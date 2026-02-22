@@ -38,6 +38,28 @@ DDIS_IMPROVER_MODEL=sonnet DDIS_JUDGE_MODEL=haiku DDIS_MAX_ITERATIONS=3 ./ddis_r
 ./ddis_ralph_loop.sh --manifest path/to/manifest.yaml --phase 2
 ```
 
+## Auto-Modularization (Phase 0)
+
+Before the improvement cycle begins, the RALPH loop automatically assesses whether a monolith spec should be decomposed into modules. This runs when:
+- The spec is in monolith mode (no `--modular` or `--manifest` flag)
+- `DDIS_AUTO_MODULARIZE` is not set to `false`
+
+**How it works:**
+1. **Structural Assessment**: An LLM evaluates the monolith against the §0.13.7 decision framework, considering both the spec's size AND its usage context (standalone vs. consumed as a reference alongside other work).
+2. **Decomposition** (if warranted): The LLM executes the §0.13.14 Monolith-to-Module Migration Procedure — producing a manifest.yaml, constitution files, and module files.
+3. **Validation**: `ddis_validate.sh` verifies the decomposition. If validation fails, one correction pass is attempted.
+4. **Seamless Transition**: If decomposition succeeds, the loop automatically switches to modular mode. The original monolith is preserved as `ddis_v0.md`.
+
+**Key insight**: The threshold for modularization isn't "is the spec too big to read?" — it's "does the spec leave enough room for the LLM to do useful work alongside it?" A spec consumed as a reference (like DDIS itself) needs modularization at a lower line count than a standalone spec.
+
+```bash
+# Auto-modularization is on by default. To disable:
+DDIS_AUTO_MODULARIZE=false ./ddis_ralph_loop.sh
+
+# To skip Phase 0 and use a pre-decomposed structure:
+./ddis_ralph_loop.sh --manifest path/to/manifest.yaml
+```
+
 ## How It Works
 
 Each iteration runs two separate LLM calls:
@@ -171,6 +193,7 @@ ddis-evolution/
 | `DDIS_JUDGE_MODEL` | sonnet | Model for judging (structured eval, lower cost) |
 | `DDIS_POLISH` | true | Run a consolidation pass on the final version |
 | `DDIS_USE_BEADS` | auto | Beads gap tracking: "auto" (use if found), "yes" (require), "no" (skip) |
+| `DDIS_AUTO_MODULARIZE` | true | Phase 0 auto-modularization: assess monoliths and decompose if warranted |
 
 **CLI flags (modular mode):**
 

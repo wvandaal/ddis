@@ -38,3 +38,11 @@ You have two files:
 | P3 | Polish | Additional examples, expanded anti-patterns |
 
 Address all P0 and P1 items. Address P2 if they can be done well within the line budget.
+
+## Structural Improvement: Modularization
+
+When auditing the spec, also assess whether the **spec itself** (not just specs written using it) would benefit from modularization per §0.13. Consider:
+
+- If the spec is consumed as a **reference alongside other work** (e.g., an LLM reading this spec to write another spec), the effective context budget is smaller than the spec's raw size suggests.
+- A spec that leaves insufficient room for the LLM's actual work is a P0 issue — it directly degrades LLM effectiveness.
+- If modularization is warranted, propose the decomposition as part of your structural improvements. The RALPH loop's Phase 0 can execute the actual decomposition.

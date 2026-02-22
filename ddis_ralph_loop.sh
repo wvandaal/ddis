@@ -56,6 +56,7 @@ IMPROVER_MODEL=${DDIS_IMPROVER_MODEL:-"opus"}      # Best reasoning for improvem
 JUDGE_MODEL=${DDIS_JUDGE_MODEL:-"sonnet"}           # Structured evaluation, lower cost
 POLISH_ON_EXIT=${DDIS_POLISH:-true}                # Run a consolidation pass on final version
 USE_BEADS=${DDIS_USE_BEADS:-auto}                  # "auto" = use if br/bv found, "yes" = require, "no" = skip
+AUTO_MODULARIZE=${DDIS_AUTO_MODULARIZE:-true}      # Phase 0: auto-assess monoliths for modularization
 
 # ─── Modular Mode Configuration ─────────────────────────────────────────────
 MODULAR=false                                       # Set by --modular or --manifest
@@ -352,6 +353,70 @@ JUDGE_SCHEMA='{
     "recommendation",
     "rationale"
   ]
+}'
+
+# ─── Structural Assessment Schema ──────────────────────────────────────────────
+#
+# Used by Phase 0 (auto-modularization) to evaluate whether a monolith
+# should be decomposed. The LLM returns structured JSON matching this schema.
+
+ASSESSMENT_SCHEMA='{
+  "type": "object",
+  "properties": {
+    "should_modularize": {
+      "type": "boolean",
+      "description": "Whether the spec should be decomposed into modules"
+    },
+    "rationale": {
+      "type": "string",
+      "description": "2-3 sentence explanation of the modularization recommendation"
+    },
+    "usage_context_analysis": {
+      "type": "string",
+      "description": "How this spec is consumed: standalone implementation reference vs meta-standard consumed alongside other work"
+    },
+    "proposed_domains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Domain name slug (e.g. meta-standard-core)" },
+          "description": { "type": "string", "description": "What this domain covers" },
+          "sections": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Section numbers or chapter names from the monolith"
+          }
+        },
+        "required": ["name", "description", "sections"]
+      },
+      "description": "Proposed domain groupings for the constitutional tiers"
+    },
+    "proposed_modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Module name slug (e.g. element-specs)" },
+          "domain": { "type": "string", "description": "Domain this module belongs to" },
+          "sections": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Section numbers or chapter names to include"
+          },
+          "estimated_lines": { "type": "integer", "description": "Estimated line count" }
+        },
+        "required": ["name", "domain", "sections", "estimated_lines"]
+      },
+      "description": "Proposed modules with domain assignments and section mappings"
+    },
+    "tier_recommendation": {
+      "type": "string",
+      "enum": ["two-tier", "three-tier"],
+      "description": "Whether to use two-tier (system + modules) or three-tier (system + domain + modules)"
+    }
+  },
+  "required": ["should_modularize", "rationale", "usage_context_analysis", "proposed_domains", "proposed_modules", "tier_recommendation"]
 }'
 
 # ─── Helper Functions ─────────────────────────────────────────────────────────
@@ -920,6 +985,449 @@ print_summary() {
     fi
 }
 
+# ─── Auto-Modularization Functions ──────────────────────────────────────────
+#
+# Phase 0: Before the RALPH improvement cycle, assess whether a monolith
+# should be decomposed into modules. If yes, decompose it and seamlessly
+# transition to modular mode.
+#
+# The threshold isn't "is the spec too big to read?" — it's "does the spec
+# leave enough room for the LLM to do useful work alongside it?" A spec
+# consumed as a reference (like DDIS itself) needs modularization at a
+# lower line count than a standalone spec.
+
+# Parse <!-- FILE: path --> ... <!-- END FILE: path --> markers from a text
+# file and write each extracted file to the output directory.
+parse_file_markers() {
+    local content_file="$1"
+    local output_dir="$2"
+
+    python3 - "$content_file" "$output_dir" <<'PYEOF'
+import sys, re, os
+with open(sys.argv[1]) as f:
+    content = f.read()
+output_dir = sys.argv[2]
+# Primary pattern: explicit start and end markers
+pattern = r'<!-- FILE: (.+?) -->\s*\n(.*?)<!-- END FILE: .+? -->'
+matches = re.findall(pattern, content, re.DOTALL)
+if not matches:
+    # Fallback: markers without explicit END FILE
+    pattern = r'<!-- FILE: (.+?) -->\s*\n(.*?)(?=<!-- FILE:|$)'
+    matches = re.findall(pattern, content, re.DOTALL)
+count = 0
+for filepath, body in matches:
+    filepath = filepath.strip()
+    full_path = os.path.join(output_dir, filepath)
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    with open(full_path, 'w') as f:
+        f.write(body.strip() + '\n')
+    print(f"  Written: {full_path}")
+    count += 1
+print(f"  Total: {count} files written")
+PYEOF
+}
+
+# Assess whether a monolith spec should be decomposed into modules.
+# Returns structured JSON with the decision, rationale, and proposed structure.
+run_structural_assessment() {
+    local monolith="$1"
+    local output_json="$2"
+    local log_file="${LOGS_DIR}/structural_assessment.log"
+
+    local monolith_lines
+    monolith_lines=$(line_count "$monolith")
+    log "ASSESSMENT: Evaluating monolith ($monolith_lines lines) for modularization"
+
+    local prompt="You are evaluating whether a monolithic DDIS specification should be decomposed into modules using the DDIS Modularization Protocol (§0.13).
+
+## Context
+
+The spec below is $monolith_lines lines long. It may be consumed by LLMs in two ways:
+1. **Standalone**: An LLM reads the spec to implement the system it describes
+2. **Reference**: An LLM reads the spec as a meta-standard to write OTHER specs — it must hold this spec in context PLUS have room to produce a new spec
+
+The modularization decision depends on BOTH the spec's size AND its usage context.
+
+## Decision Framework (from §0.13.7)
+
+- Spec > 4,000 lines → REQUIRED (exceeds safe bundle budget regardless of usage)
+- Spec > 2,500 lines AND used as reference alongside other work → RECOMMENDED
+- Spec > 2,500 lines AND standalone → OPTIONAL (fits in context alone)
+- Spec ≤ 2,500 lines with no context pressure → MONOLITH (overhead not justified)
+
+Key insight: A spec consumed as a reference leaves LESS room for the LLM's work product. The effective context budget is tighter because the LLM must hold both the reference AND produce output. For a ~2,300-line meta-standard, the LLM consuming it to write a new spec would need ~2,300 lines for the reference + ~2,000-3,000 lines for the output spec + reasoning overhead.
+
+## Your Task
+
+1. Analyze this spec's content structure and intended usage
+2. Determine whether modularization is warranted
+3. If yes, propose domain groupings and module boundaries
+4. Recommend two-tier vs three-tier based on number of distinct domains
+
+<file name=\"spec.md\">
+$(cat "$monolith")
+</file>
+
+Return your structured assessment."
+
+    local raw_output
+    raw_output=$(echo "$prompt" | claude -p \
+        --model "$JUDGE_MODEL" \
+        --output-format json \
+        --max-turns 2 \
+        --no-session-persistence \
+        --disallowedTools "Bash,Edit,Write,Read,Glob,Grep,WebFetch,WebSearch,NotebookEdit,Task" \
+        --json-schema "$ASSESSMENT_SCHEMA" \
+        2>"$log_file")
+
+    # Extract structured JSON from response
+    local extracted
+    extracted=$(echo "$raw_output" | jq -r '.result // empty' 2>/dev/null)
+    if echo "$extracted" | jq empty 2>/dev/null; then
+        echo "$extracted" > "$output_json"
+    else
+        echo "$raw_output" | jq -r '.structured_output // .result // empty' > "$output_json" 2>/dev/null
+    fi
+
+    if ! jq empty "$output_json" 2>/dev/null; then
+        log "WARNING: Structural assessment produced invalid JSON"
+        return 1
+    fi
+
+    local should_modularize rationale tier_rec module_count
+    should_modularize=$(jq -r '.should_modularize' "$output_json")
+    rationale=$(jq -r '.rationale' "$output_json")
+    tier_rec=$(jq -r '.tier_recommendation' "$output_json")
+    module_count=$(jq '.proposed_modules | length' "$output_json")
+
+    log "ASSESSMENT: should_modularize=$should_modularize | tier=$tier_rec | modules=$module_count"
+    log "ASSESSMENT: $rationale"
+
+    return 0
+}
+
+# Decompose a monolith into a modular structure (manifest + constitutions + modules).
+# Uses two LLM calls:
+#   Phase 1: Generate manifest.yaml + all constitution files (interdependent)
+#   Phase 2: Generate all module files (based on manifest from Phase 1)
+# Validates the result and attempts one correction pass if validation fails.
+run_decomposition() {
+    local monolith="$1"
+    local assessment_json="$2"
+    local output_dir="$3"
+    local log_file="${LOGS_DIR}/decomposition.log"
+
+    mkdir -p "$output_dir/constitution" "$output_dir/constitution/domains" "$output_dir/modules"
+
+    local monolith_lines tier_rec module_count
+    monolith_lines=$(line_count "$monolith")
+    tier_rec=$(jq -r '.tier_recommendation' "$assessment_json")
+    module_count=$(jq '.proposed_modules | length' "$assessment_json")
+
+    log "DECOMPOSITION: Decomposing monolith ($monolith_lines lines) into $module_count modules ($tier_rec)"
+
+    # ── Decomposition Phase 1: Manifest + Constitution ──
+
+    local phase1_prompt="You are decomposing a monolithic DDIS specification into a modular structure per §0.13 (Modularization Protocol).
+
+## Structural Assessment
+
+The following assessment was produced by analyzing the monolith:
+\`\`\`json
+$(cat "$assessment_json")
+\`\`\`
+
+## Your Task
+
+Produce the manifest.yaml and ALL constitution files for this decomposition. Follow the schema defined in §0.13.2–§0.13.6 of the spec itself.
+
+## Constitution Content Guidelines
+
+**System constitution (Tier 1)** — the shared substrate every module needs:
+- Preamble and formal model
+- Invariant DECLARATIONS (ID + one-line summary, NOT full definitions)
+- ADR declarations (ID + title + status, NOT full analysis)
+- Quality gate checklist (gate ID + name + pass criteria summary)
+- Non-negotiables and glossary summary
+- Module catalog (list of all modules with one-line descriptions)
+
+**Domain constitutions (Tier 2, if three-tier)** — per-domain shared context:
+- Full invariant DEFINITIONS for this domain's invariants
+- Full ADR analysis for this domain's decisions
+- Domain-specific guidance and patterns
+
+## Output Format
+
+Each file between markers:
+
+<!-- FILE: manifest.yaml -->
+(yaml content)
+<!-- END FILE: manifest.yaml -->
+
+<!-- FILE: constitution/system.md -->
+(markdown content)
+<!-- END FILE: constitution/system.md -->
+
+Use paths relative to the manifest: constitution/system.md, constitution/domains/X.md, modules/X.md.
+
+## Manifest Schema Requirements
+
+\`\`\`yaml
+spec_name: \"...\"
+version: \"...\"
+assembly:
+  tier_model: $tier_rec
+  target_budget: 4000
+  ceiling_budget: 5000
+constitution:
+  system: constitution/system.md
+  domains:  # if three-tier
+    domain-name:
+      file: constitution/domains/domain-name.md
+modules:
+  module-name:
+    file: modules/module-name.md
+    domain: domain-name
+    maintains: [INV-XXX]
+    interfaces_with: [INV-YYY]
+    adjacent: [other-module]
+    budget_lines: NNNN
+\`\`\`
+
+## The Monolith Spec
+
+<file name=\"ddis_standard.md\">
+$(cat "$monolith")
+</file>
+
+Produce the manifest and all constitution files now. Use FILE markers for each output file."
+
+    local raw_output accumulated_text session_id
+    accumulated_text=""
+
+    raw_output=$(echo "$phase1_prompt" | claude -p \
+        --model "$IMPROVER_MODEL" \
+        --output-format json \
+        --max-turns 2 \
+        --effort low \
+        --disallowedTools "Bash,Edit,Write,Read,Glob,Grep,WebFetch,WebSearch,NotebookEdit,Task" \
+        2>"$log_file")
+
+    accumulated_text=$(echo "$raw_output" | jq -r '.result // empty' 2>/dev/null)
+    session_id=$(echo "$raw_output" | jq -r '.session_id // empty' 2>/dev/null)
+
+    log "DECOMPOSITION: Phase 1 initial: $(echo "$accumulated_text" | wc -l | tr -d ' ') lines"
+
+    # Continuation loop for constitution generation
+    local max_continuations=8
+    local cont=0
+    while [[ $cont -lt $max_continuations ]]; do
+        # Check if we have manifest + at least one constitution file
+        if echo "$accumulated_text" | grep -q '<!-- END FILE: manifest.yaml'; then
+            local const_ends
+            const_ends=$(echo "$accumulated_text" | grep -c '<!-- END FILE: constitution/' || true)
+            if [[ $const_ends -ge 1 ]]; then
+                log "DECOMPOSITION: Phase 1 complete (manifest + $const_ends constitution files)"
+                break
+            fi
+        fi
+        if [[ -z "$session_id" ]]; then
+            break
+        fi
+        ((cont++))
+        log "DECOMPOSITION: Phase 1 continuation $cont"
+
+        local cont_output cont_text
+        cont_output=$(echo "Continue producing the remaining files. Do not repeat any file already output. Use the same <!-- FILE: path --> markers." \
+            | claude -p \
+                --model "$IMPROVER_MODEL" \
+                --output-format json \
+                --max-turns 2 \
+                --resume "$session_id" \
+                --disallowedTools "Bash,Edit,Write,Read,Glob,Grep,WebFetch,WebSearch,NotebookEdit,Task" \
+                2>>"$log_file")
+
+        cont_text=$(echo "$cont_output" | jq -r '.result // empty' 2>/dev/null)
+        if [[ -z "$cont_text" ]]; then
+            break
+        fi
+        accumulated_text+=$'\n'"$cont_text"
+    done
+
+    # Write Phase 1 output to temp file and parse FILE markers
+    local phase1_raw="${output_dir}/.phase1_raw.txt"
+    echo "$accumulated_text" > "$phase1_raw"
+
+    log "DECOMPOSITION: Parsing manifest and constitution files..."
+    parse_file_markers "$phase1_raw" "$output_dir"
+
+    if [[ ! -f "${output_dir}/manifest.yaml" ]]; then
+        log "ERROR: Decomposition Phase 1 failed to produce manifest.yaml"
+        return 1
+    fi
+
+    # ── Decomposition Phase 2: Module files ──
+
+    local modules_prompt="You are continuing a DDIS spec decomposition. The manifest and constitution files are done. Now produce ALL module files.
+
+## Module Header Format (per §0.13.9)
+
+Each module file must start with a proper header:
+
+\`\`\`markdown
+# Module: <Name>
+<!-- domain: <domain-name> -->
+<!-- maintains: INV-XXX, INV-YYY -->
+<!-- interfaces_with: INV-AAA, INV-BBB -->
+<!-- adjacent: module-a, module-b -->
+<!-- budget: NNNN lines -->
+
+## Negative Specifications
+- This module MUST NOT ...
+\`\`\`
+
+## The Manifest
+
+\`\`\`yaml
+$(cat "${output_dir}/manifest.yaml")
+\`\`\`
+
+## The Monolith Spec
+
+<file name=\"ddis_standard.md\">
+$(cat "$monolith")
+</file>
+
+## Instructions
+
+For each module in the manifest, extract the relevant content from the monolith and wrap it with a proper module header per §0.13.9. Include negative specifications for each module.
+
+Output each module between FILE markers:
+
+<!-- FILE: modules/module-name.md -->
+(module content)
+<!-- END FILE: modules/module-name.md -->
+
+Use the exact file paths from the manifest. Extract and restructure content from the monolith — preserve substance, add module headers and negative specs."
+
+    accumulated_text=""
+    session_id=""
+
+    raw_output=$(echo "$modules_prompt" | claude -p \
+        --model "$IMPROVER_MODEL" \
+        --output-format json \
+        --max-turns 2 \
+        --effort low \
+        --disallowedTools "Bash,Edit,Write,Read,Glob,Grep,WebFetch,WebSearch,NotebookEdit,Task" \
+        2>>"$log_file")
+
+    accumulated_text=$(echo "$raw_output" | jq -r '.result // empty' 2>/dev/null)
+    session_id=$(echo "$raw_output" | jq -r '.session_id // empty' 2>/dev/null)
+
+    log "DECOMPOSITION: Phase 2 initial: $(echo "$accumulated_text" | wc -l | tr -d ' ') lines"
+
+    # Continuation loop for module generation
+    cont=0
+    while [[ $cont -lt $max_continuations ]]; do
+        local current_modules
+        current_modules=$(echo "$accumulated_text" | grep -c '<!-- END FILE: modules/' || true)
+        if [[ $current_modules -ge $module_count ]]; then
+            log "DECOMPOSITION: Phase 2 complete ($current_modules/$module_count modules)"
+            break
+        fi
+        if [[ -z "$session_id" ]]; then
+            break
+        fi
+        ((cont++))
+        log "DECOMPOSITION: Phase 2 continuation $cont ($current_modules/$module_count modules)"
+
+        local cont_output cont_text
+        cont_output=$(echo "Continue producing the remaining module files. Do not repeat any module already written. Use the same FILE marker format." \
+            | claude -p \
+                --model "$IMPROVER_MODEL" \
+                --output-format json \
+                --max-turns 2 \
+                --resume "$session_id" \
+                --disallowedTools "Bash,Edit,Write,Read,Glob,Grep,WebFetch,WebSearch,NotebookEdit,Task" \
+                2>>"$log_file")
+
+        cont_text=$(echo "$cont_output" | jq -r '.result // empty' 2>/dev/null)
+        if [[ -z "$cont_text" ]]; then
+            break
+        fi
+        accumulated_text+=$'\n'"$cont_text"
+    done
+
+    # Write Phase 2 output and parse
+    local phase2_raw="${output_dir}/.phase2_raw.txt"
+    echo "$accumulated_text" > "$phase2_raw"
+
+    log "DECOMPOSITION: Parsing module files..."
+    parse_file_markers "$phase2_raw" "$output_dir"
+
+    # ── Validate the decomposition ──
+
+    log "DECOMPOSITION: Validating modular structure..."
+    local validate_output
+    if validate_output=$("${SCRIPT_DIR}/ddis_validate.sh" -m "${output_dir}/manifest.yaml" -v 2>&1); then
+        log "DECOMPOSITION: Validation PASSED"
+    else
+        log "DECOMPOSITION: Validation issues detected — attempting correction"
+
+        # List actual files for the fix prompt
+        local actual_files
+        actual_files=$(find "$output_dir" -type f \( -name '*.yaml' -o -name '*.md' \) 2>/dev/null \
+            | sed "s|${output_dir}/||" | sort | sed 's/^/- /')
+
+        local fix_prompt="The DDIS modular decomposition has validation errors. Fix the manifest.yaml to resolve them.
+
+## Validation Errors
+
+\`\`\`
+${validate_output}
+\`\`\`
+
+## Current Manifest
+
+\`\`\`yaml
+$(cat "${output_dir}/manifest.yaml")
+\`\`\`
+
+## Actual Files on Disk
+
+${actual_files}
+
+Output ONLY the corrected manifest.yaml content — no markers, no explanation, just the YAML."
+
+        local fix_output fixed_manifest
+        fix_output=$(echo "$fix_prompt" | claude -p \
+            --model "$JUDGE_MODEL" \
+            --output-format json \
+            --max-turns 2 \
+            --no-session-persistence \
+            --disallowedTools "Bash,Edit,Write,Read,Glob,Grep,WebFetch,WebSearch,NotebookEdit,Task" \
+            2>>"$log_file")
+
+        fixed_manifest=$(echo "$fix_output" | jq -r '.result // empty' 2>/dev/null)
+        if [[ -n "$fixed_manifest" ]]; then
+            echo "$fixed_manifest" > "${output_dir}/manifest.yaml"
+            log "DECOMPOSITION: Re-validating after correction..."
+            if "${SCRIPT_DIR}/ddis_validate.sh" -m "${output_dir}/manifest.yaml" -q 2>/dev/null; then
+                log "DECOMPOSITION: Validation PASSED after correction"
+            else
+                log "WARNING: Validation still has issues. Proceeding — modular RALPH will improve."
+            fi
+        fi
+    fi
+
+    # Preserve the original monolith as v0
+    mkdir -p "${WORK_DIR}/versions"
+    cp "$monolith" "${WORK_DIR}/versions/ddis_v0.md" 2>/dev/null || true
+
+    log "DECOMPOSITION: Complete. Output at ${output_dir}/"
+    return 0
+}
+
 # ─── Modular Mode Functions ──────────────────────────────────────────────────
 #
 # Two-phase improvement for modular DDIS specs:
@@ -1341,7 +1849,40 @@ run_modular() {
 main() {
     check_prereqs
 
-    # Dispatch to modular mode if --modular or --manifest was set
+    # ── Phase 0: Auto-Modularization Assessment ──
+    # In monolith mode, assess whether the spec should be decomposed.
+    # If yes, decompose and seamlessly transition to modular mode.
+    if [[ "$AUTO_MODULARIZE" == "true" && "$MODULAR" == "false" ]]; then
+        mkdir -p "$WORK_DIR" "$LOGS_DIR"
+        log_section "PHASE 0: Structural Assessment"
+
+        local assessment_json="${WORK_DIR}/structural_assessment.json"
+        if run_structural_assessment "$SEED_SPEC" "$assessment_json"; then
+            local should_modularize
+            should_modularize=$(jq -r '.should_modularize' "$assessment_json" 2>/dev/null)
+
+            if [[ "$should_modularize" == "true" ]]; then
+                log_section "PHASE 0: Auto-Modularization — Decomposing Monolith"
+
+                local decomp_dir="${SCRIPT_DIR}/ddis-modular"
+                if run_decomposition "$SEED_SPEC" "$assessment_json" "$decomp_dir"; then
+                    if [[ -f "${decomp_dir}/manifest.yaml" ]]; then
+                        log "AUTO-MODULARIZE: Transitioning to modular mode"
+                        MODULAR=true
+                        MANIFEST_PATH="${decomp_dir}/manifest.yaml"
+                    fi
+                else
+                    log "WARNING: Decomposition failed. Falling back to monolith mode."
+                fi
+            else
+                log "ASSESSMENT: Monolith mode appropriate. Proceeding with standard RALPH cycle."
+            fi
+        else
+            log "WARNING: Structural assessment failed. Proceeding in monolith mode."
+        fi
+    fi
+
+    # Dispatch to modular mode if --modular, --manifest, or auto-detected above
     if $MODULAR; then
         run_modular
         return $?

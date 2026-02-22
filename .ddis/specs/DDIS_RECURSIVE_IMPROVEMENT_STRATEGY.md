@@ -120,6 +120,8 @@ Things DDIS 1.0 doesn't know it's missing — improvements that require stepping
 
 - **Specification testing**: DDIS prescribes tests for the system being specified, but what about tests for the specification itself? Can invariants about the spec (not about the system) be automatically checked? Can cross-reference integrity be validated programmatically?
 
+- **Structural improvement — modularization**: When auditing a spec, assess whether the spec itself (not just specs written using it) would benefit from modularization per §0.13. The assessment should consider the spec's USAGE context: if the spec is consumed as a reference alongside other work (e.g., an LLM reading this meta-standard to write a new spec), the effective context budget is smaller because the LLM must hold both the reference AND produce output. If modularization is warranted, this counts as a P0 improvement — it directly affects LLM effectiveness. The RALPH loop's Phase 0 can execute the decomposition automatically.
+
 - **Incremental authoring support**: DDIS 1.0's authoring sequence (§11.1) is linear. Real spec authoring is iterative. What structural support does DDIS need for specs that are written incrementally as understanding develops?
 
 - **LLM-specific structural provisions**: This is the primary improvement axis — see the central optimization target above. DDIS 1.0 mentions LLMs as implementers once but does not structurally optimize for them. DDIS 2.0 must. Specific areas to investigate:
