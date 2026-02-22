@@ -39,3 +39,6 @@ coverage/
 
 # ms (meta_skill) — synced via ms sync, not project git
 .ms/
+
+# bv (beads viewer) local config and caches
+.bv/

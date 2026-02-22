@@ -68,7 +68,7 @@ The complete, improved DDIS standard — produced by executing the Improvement S
 
 The power of this approach is that DDIS contains its own quality criteria. You will:
 
-1. **Audit** DDIS 1.0 against its own invariants (INV-001 through INV-010) and quality gates (Gates 1–6). Where does it fail its own standards?
+1. **Audit** DDIS 1.0 against its own invariants (INV-001 through INV-010, plus INV-011 through INV-016 for modular specs) and quality gates (Gates 1–6, plus Gates M-1 through M-5 for modular specs). Where does it fail its own standards?
 
 2. **Identify** structural gaps, missing elements, and weaknesses that DDIS 1.0 prescribes for other specs but fails to fully deliver for itself.
 
@@ -92,6 +92,7 @@ DDIS 1.0 prescribes elements it doesn't fully deliver for itself. Systematically
 - Does the formal model in §0.2 actually support deriving the full document structure, or is the derivation hand-wavy?
 - Are there non-negotiables that lack corresponding invariants?
 - Are there quality gates that lack concrete measurement procedures?
+- For modular specs: Do INV-011 through INV-016 hold? Do the modularization quality gates (M-1 through M-5) pass? Is the cascade protocol (§0.13.12) complete?
 
 ### Layer 2: Structural Gaps
 
@@ -256,6 +257,33 @@ If any of these fail, revise Artifact 2. Do not deliver a DDIS 2.0 that fails it
 **The Afterthought LLM Section**: Do NOT add a single "Chapter 14: LLM Considerations" appendix and call it done. LLM optimization must be woven throughout — into the element specifications (how each element should be structured for LLM parsing), into the voice guide (what prose patterns LLMs handle well vs. poorly), into the quality gates (LLM-specific validation), into the invariants (properties that specifically prevent LLM failure modes). The LLM lens is a pervasive concern, not a bolt-on chapter.
 
 **The Abstraction Astronaut**: Adding meta-meta-levels ("a specification about specifications about specifications"). DDIS is one level meta (a standard for specs). Keep it there.
+
+---
+
+## Per-Module Improvement Variant (Modular Mode)
+
+When the RALPH loop runs in modular mode (via `--modular`), individual modules are improved as assembled bundles rather than as the monolithic spec. This changes the improvement task in specific ways:
+
+**What changes:**
+- You receive a *bundle* (constitution + module), not the full spec. The bundle is self-contained by design (INV-011: Module Completeness).
+- Your improvement scope is the *module portion only*. Do NOT modify constitutional content — that was improved in Phase 1.
+- The module header declares what invariants this module maintains, interfaces with, and which modules are adjacent. Use this to focus your improvements.
+- Negative specifications in the module header tell you what this module must NOT do. Verify these are complete and add any missing ones.
+
+**What stays the same:**
+- All quality criteria, checkpoints, and anti-patterns apply identically.
+- The audit framework applies to the module's portion of each invariant and gate.
+- Structural predictability, LLM optimization, and self-conformance requirements are unchanged.
+- Improvements must still be substantive (not cosmetic) and must not regress existing quality.
+
+**Module-specific audit additions:**
+- Does the module header accurately reflect the invariants it maintains and interfaces with?
+- Are all cross-module references going through constitutional elements (INV-012)?
+- Does the module satisfy INV-011 (completeness) — can an LLM implement from this bundle alone?
+- Are the module's negative specifications comprehensive enough to prevent common LLM hallucinations?
+- Is the module's implementation content correctly scoped to its declared domain?
+
+**Output format in modular mode:** Produce only the improved bundle content (the module portion). Do not re-output the constitutional tiers — they are read-only in Phase 2.
 
 ---
 
