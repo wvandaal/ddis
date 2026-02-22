@@ -1,0 +1,73 @@
+# manifest.yaml — Single source of truth for DDIS module assembly
+ddis_version: "1.0"
+spec_name: "DDIS: Decision-Driven Implementation Specification Standard"
+version: "1.0"
+tier_mode: two-tier
+
+assembly:
+  tier_model: two-tier
+  target_budget: 4000
+  ceiling_budget: 5000
+
+context_budget:
+  target_lines: 4000
+  hard_ceiling_lines: 5000
+  reasoning_reserve: 0.25
+
+constitution:
+  system: constitution/system.md
+
+modules:
+  core-framework:
+    file: modules/core-framework.md
+    domain: spec-science
+    maintains: [INV-001, INV-002, INV-003, INV-004, INV-005, INV-006, INV-007, INV-008, INV-009, INV-010]
+    interfaces: [INV-011, INV-012, INV-013, INV-014, INV-015, INV-016]
+    implements: [ADR-001, ADR-002, ADR-003, ADR-004, ADR-005]
+    adjacent: [modularization-protocol, element-specifications, guidance-and-practice]
+    budget_lines: 750
+
+  modularization-protocol:
+    file: modules/modularization-protocol.md
+    domain: modularization
+    maintains: [INV-011, INV-012, INV-013, INV-014, INV-015, INV-016]
+    interfaces: [INV-001, INV-006, INV-008]
+    implements: [ADR-006, ADR-007]
+    adjacent: [core-framework]
+    budget_lines: 520
+
+  element-specifications:
+    file: modules/element-specifications.md
+    domain: element-reference
+    maintains: []
+    interfaces: [INV-001, INV-002, INV-003, INV-004, INV-005, INV-006, INV-007, INV-008, INV-009, INV-010]
+    implements: []
+    adjacent: [core-framework, guidance-and-practice]
+    budget_lines: 600
+
+  guidance-and-practice:
+    file: modules/guidance-and-practice.md
+    domain: practice
+    maintains: []
+    interfaces: [INV-001, INV-003, INV-006, INV-007, INV-008, INV-009]
+    implements: [ADR-005]
+    adjacent: [element-specifications, core-framework]
+    budget_lines: 450
+
+invariant_registry:
+  INV-001: { owner: core-framework, domain: spec-science, description: "Causal traceability — every implementation section traces to formal model" }
+  INV-002: { owner: core-framework, domain: spec-science, description: "Decision completeness — every reasonable alternative captured in ADR" }
+  INV-003: { owner: core-framework, domain: spec-science, description: "Invariant falsifiability — concrete violation scenario and named test" }
+  INV-004: { owner: core-framework, domain: spec-science, description: "Algorithm completeness — pseudocode, complexity, example, edge cases" }
+  INV-005: { owner: core-framework, domain: spec-science, description: "Performance verifiability — claims tied to benchmarks and design point" }
+  INV-006: { owner: core-framework, domain: spec-science, description: "Cross-reference density — no orphan sections in reference web" }
+  INV-007: { owner: core-framework, domain: spec-science, description: "Signal-to-noise ratio — every section earns its place" }
+  INV-008: { owner: core-framework, domain: spec-science, description: "Self-containment — spec sufficient for correct v1 implementation" }
+  INV-009: { owner: core-framework, domain: spec-science, description: "Glossary coverage — every domain-specific term defined" }
+  INV-010: { owner: core-framework, domain: spec-science, description: "State machine completeness — all states, transitions, guards defined" }
+  INV-011: { owner: modularization-protocol, domain: modularization, description: "Module completeness — bundle sufficient without other modules" }
+  INV-012: { owner: modularization-protocol, domain: modularization, description: "Cross-module isolation — references through constitution only" }
+  INV-013: { owner: modularization-protocol, domain: modularization, description: "Invariant ownership uniqueness — each invariant owned by exactly one module" }
+  INV-014: { owner: modularization-protocol, domain: modularization, description: "Bundle budget compliance — assembled bundles within ceiling" }
+  INV-015: { owner: modularization-protocol, domain: modularization, description: "Declaration-definition consistency — Tier 1 summaries faithful to Tier 2" }
+  INV-016: { owner: modularization-protocol, domain: modularization, description: "Manifest-spec synchronization — manifest reflects actual file state" }

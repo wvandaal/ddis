@@ -1,0 +1,155 @@
+{
+  "should_modularize": true,
+  "rationale": "At 2,337 lines this spec sits 163 lines below the 2,500-line \"RECOMMENDED\" threshold, but its reference-usage context pushes the effective pressure well past that threshold: an LLM consuming DDIS to write a new spec must hold ~2,337 lines of reference plus ~2,000–3,000 lines of output simultaneously, totalling 4,300–5,300 lines of context — a clear budget problem. The modularization overhead is justified because the five proposed modules are genuinely independent reference surfaces: an LLM writing invariants for a new spec only needs the core-framework module; one decomposing a large spec needs only the modularization-protocol module. Two-tier mode is correct because the system constitution (all 16 invariant declarations + 7 ADR decisions + glossary stubs + quality-gate summaries) fits comfortably within 200 lines, well under the 400-line two-tier ceiling.",
+  "usage_context_analysis": "This spec is a meta-standard consumed as a reference alongside other work, not a standalone implementation target. An LLM reads DDIS while simultaneously producing a new conforming specification — meaning it must hold the full reference in context while generating 2,000–3,000 lines of output. This is the highest-pressure usage pattern the decision framework recognises. A standalone reader who only needs to understand DDIS (not apply it concurrently) could manage the monolith; any LLM actively writing a new spec cannot. Modularization allows the LLM to load only the relevant slice of DDIS for the task at hand (e.g., just the element-specifications module when drafting PART II content).",
+  "tier_recommendation": "two-tier",
+  "proposed_domains": [
+    {
+      "name": "spec-science",
+      "description": "Foundational theory, constraints, and invariants — what a DDIS spec must BE. Covers the formal model, all base invariants (INV-001–INV-010), ADRs 001–005, quality gates 1–6, non-negotiables, non-goals, and the PART I formal model.",
+      "sections": [
+        "§0.1",
+        "§0.2",
+        "§0.3",
+        "§0.4",
+        "§0.5 (INV-001–INV-010)",
+        "§0.6 (ADR-001–ADR-005)",
+        "§0.7 (Gates 1–6)",
+        "§0.8",
+        "§0.9",
+        "§0.10",
+        "§0.11",
+        "§0.12",
+        "PART I (Chapters 1)"
+      ]
+    },
+    {
+      "name": "modularization",
+      "description": "The complete scaling protocol for specs that exceed context budgets. Covers §0.13 in full: tiered constitution, invariants INV-011–INV-016, ADRs 006–007, quality gates M-1–M-5, manifest schema, assembly rules, consistency checks, cascade protocol, and migration procedure.",
+      "sections": [
+        "§0.13 (all 14 subsections)",
+        "INV-011–INV-016",
+        "ADR-006",
+        "ADR-007",
+        "Gates M-1–M-5"
+      ]
+    },
+    {
+      "name": "element-reference",
+      "description": "Per-element specification: what each DDIS structural element must contain, with quality criteria, anti-patterns, and cross-reference requirements. Covers PART II Chapters 2–7.",
+      "sections": [
+        "Chapter 2 (Preamble elements)",
+        "Chapter 3 (PART 0 elements)",
+        "Chapter 4 (PART I elements)",
+        "Chapter 5 (PART II elements)",
+        "Chapter 6 (PART IV elements)",
+        "Chapter 7 (Appendix elements)"
+      ]
+    },
+    {
+      "name": "practice",
+      "description": "How to use DDIS in practice: voice and style, proportional weight, cross-reference patterns, authoring sequence, common mistakes, validation procedures, evolution guidance, risk register, and the master TODO.",
+      "sections": [
+        "PART III (Chapters 8–10)",
+        "PART IV (Chapters 11–13)",
+        "Appendix A (Glossary)",
+        "Appendix B (Risk Register)",
+        "Appendix C (Quick-Reference Card)",
+        "PART X (Master TODO)"
+      ]
+    }
+  ],
+  "proposed_modules": [
+    {
+      "name": "system-constitution",
+      "domain": "spec-science",
+      "sections": [
+        "Preamble (design goal, core promise, document note, how-to-use)",
+        "INV-001–INV-016 declarations (ID + 1-line + owner)",
+        "ADR-001–ADR-007 decisions (ID + 1-line + chosen option)",
+        "Quality gate summaries (Gates 1–6, M-1–M-5)",
+        "Architecture overview (§0.4)",
+        "Glossary (terms + 1-line definitions)",
+        "Non-negotiables",
+        "Non-goals",
+        "Context budget table"
+      ],
+      "estimated_lines": 220
+    },
+    {
+      "name": "core-framework",
+      "domain": "spec-science",
+      "sections": [
+        "§0.1 Executive Summary",
+        "§0.2 First-Principles Derivation",
+        "§0.3 Document Structure",
+        "§0.4 Architecture Overview",
+        "§0.5 INV-001–INV-010 (full definitions)",
+        "§0.6 ADR-001–ADR-005 (full analysis)",
+        "§0.7 Quality Gates 1–6 (full)",
+        "§0.8 Performance Budgets",
+        "§0.9 Public API Surface",
+        "§0.10 Open Questions",
+        "§0.11 Non-Negotiables (full)",
+        "§0.12 Non-Goals (full)",
+        "PART I Chapter 1 (Formal Model, State Machine, Complexity)"
+      ],
+      "estimated_lines": 750
+    },
+    {
+      "name": "modularization-protocol",
+      "domain": "modularization",
+      "sections": [
+        "§0.13.1 The Scaling Problem",
+        "§0.13.2 Core Concepts",
+        "§0.13.3 Tiered Constitution",
+        "§0.13.4 Invariant Declarations vs Definitions",
+        "§0.13.5 Module Header",
+        "§0.13.6 Cross-Module Reference Rules",
+        "§0.13.7 Decision Flowchart (incl. two-tier simplification)",
+        "§0.13.8 File Layout",
+        "§0.13.9 Manifest Schema",
+        "§0.13.10 Assembly Rules",
+        "§0.13.11 Consistency Validation (CHECK-1–CHECK-9)",
+        "§0.13.12 Cascade Protocol",
+        "§0.13.13 Quality Gate Extensions",
+        "§0.13.14 Migration Procedure",
+        "INV-011–INV-016 full definitions",
+        "ADR-006 full analysis",
+        "ADR-007 full analysis",
+        "Gates M-1–M-5 full definitions"
+      ],
+      "estimated_lines": 520
+    },
+    {
+      "name": "element-specifications",
+      "domain": "element-reference",
+      "sections": [
+        "Chapter 2: Preamble Elements (§2.1–§2.4)",
+        "Chapter 3: PART 0 Elements (§3.1–§3.7)",
+        "Chapter 4: PART I Elements (§4.1–§4.3)",
+        "Chapter 5: PART II Elements (§5.1–§5.5)",
+        "Chapter 6: PART IV Elements (§6.1–§6.3)",
+        "Chapter 7: Appendix Elements (§7.1–§7.3)"
+      ],
+      "estimated_lines": 600
+    },
+    {
+      "name": "guidance-and-practice",
+      "domain": "practice",
+      "sections": [
+        "Chapter 8: Voice and Style (§8.1–§8.3 Anti-Pattern Catalog)",
+        "Chapter 9: Proportional Weight Deep Dive (§9.1–§9.2)",
+        "Chapter 10: Cross-Reference Patterns (§10.1–§10.2)",
+        "Chapter 11: Applying DDIS (§11.1 Authoring Sequence, §11.2 Common Mistakes)",
+        "Chapter 12: Validating a DDIS Spec (§12.1 Self-Validation, §12.2 External Validation)",
+        "Chapter 13: Evolving a DDIS Spec (§13.1 Living Spec, §13.2 Versioning)",
+        "Appendix A: Glossary (full definitions)",
+        "Appendix B: Risk Register",
+        "Appendix C: Quick-Reference Card",
+        "PART X: Master TODO Inventory"
+      ],
+      "estimated_lines": 450
+    }
+  ]
+}

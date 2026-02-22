@@ -4,7 +4,7 @@
 
 > Design goal: **A formal standard for writing implementation specifications that are precise enough for an LLM or junior engineer to implement correctly without guessing, while remaining readable enough that a senior engineer would choose to read them voluntarily.**
 
-> Core promise: A specification conforming to DDIS contains everything needed to implement the described system — architecture, algorithms, invariants, decisions, test strategies, performance budgets, and execution plan — in a single cohesive document where every section earns its place by serving the sections around it, and where an LLM implementer encounters explicit constraints that prevent hallucination at every decision point.
+> Core promise: A DDIS-conforming specification contains everything needed to implement the described system — architecture, algorithms, invariants, decisions, test strategies, performance budgets, and execution plan — in a single cohesive document where every section earns its place by serving the sections around it, and where explicit constraints prevent LLM hallucination at every decision point.
 
 > Document note (important):
 > This standard is **self-bootstrapping**: it is written in the format it defines.
@@ -14,14 +14,14 @@
 > invariants, not in any particular syntax.
 
 > How to use this standard (practical):
-> 1) Read **PART 0** once end-to-end: understand what DDIS requires, why, and how elements connect.
+> 1) Read **PART 0** end-to-end: understand what DDIS requires, why, and how elements connect.
 > 2) Lock your spec's **churn-magnets** via ADRs before writing implementation sections.
 > 3) Write your spec following the **Document Structure** (§0.3), using PART II as the element-by-element reference.
 > 4) Validate against the **Quality Gates** (§0.7) and the **Completeness Checklist** (Part X) before considering the spec "done."
 > 5) Treat the **cross-reference web** as a product requirement, not polish — it is the mechanism that makes the spec cohere.
 > 6) If your spec exceeds **2,500 lines** or your target LLM's context window, read **§0.13 (Modularization Protocol)** and decompose into a manifest-driven module structure.
-> 7) If the primary implementer is an **LLM**, read §0.2.2 (LLM Consumption Model) and ensure every implementation chapter includes negative specifications (§3.8), verification prompts (§5.6), and meta-instructions (§5.7) — these are P0 for LLM effectiveness.
-> 8) Verify that every element specification chapter includes a **verification prompt block** (§5.6, INV-020) — this is the self-demonstration mechanism that proves the standard practices what it preaches.
+> 7) If the primary implementer is an **LLM**, ensure every implementation chapter includes negative specifications (§3.8), verification prompts (§5.6), and meta-instructions (§5.7). Read §0.2.2 for the formal consumption model.
+> 8) Verify that every element specification chapter includes a **verification prompt block** (§5.6, INV-020).
 
 ---
 
@@ -29,13 +29,13 @@
 
 ## 0.1 Executive Summary
 
-DDIS (Decision-Driven Implementation Specification) is a standard for writing technical specifications that bridge the gap between architectural vision and correct implementation. The primary optimization target is **LLM consumption**: the primary implementer reading a DDIS-conforming spec will be a large language model.
+DDIS (Decision-Driven Implementation Specification) is a standard for writing technical specifications that bridge architectural vision and correct implementation. The primary optimization target is **LLM consumption**: the primary implementer will be a large language model.
 
-Most specifications fail in one of two ways: they are too abstract (the implementer must guess at critical details) or too mechanical (they prescribe code without explaining why, making evolution impossible). DDIS avoids both failure modes by requiring a **causal chain** from first principles through decisions to implementation details, where every element justifies its existence by serving the elements around it.
+Most specifications fail in one of two ways: too abstract (the implementer guesses at critical details) or too mechanical (they prescribe code without explaining why, making evolution impossible). DDIS avoids both by requiring a **causal chain** from first principles through decisions to implementation details, where every element justifies its existence by serving the elements around it.
 
-When the implementer is an LLM, a third failure mode emerges: the spec is complete but the LLM **hallucinates** plausible details not in the spec, or **forgets** invariants defined far from the implementation section. DDIS 3.0 addresses this with structural provisions woven throughout: negative specifications (§3.8), structural redundancy at point of use (INV-018), verification prompts (§5.6), and meta-instructions (§5.7). These provisions are not an add-on — they are integral to every element specification. (Locked by ADR-008.)
+When the implementer is an LLM, a third failure mode emerges: the LLM **hallucinates** plausible details not in the spec, or **forgets** invariants defined far from the implementation section. DDIS addresses this with structural provisions woven throughout: negative specifications (§3.8), structural redundancy at point of use (INV-018), verification prompts (§5.6), and meta-instructions (§5.7). These are integral to every element specification, not an add-on. (Locked by ADR-008.)
 
-DDIS synthesizes techniques from several traditions — Architecture Decision Records (Nygard), Design by Contract (Meyer), temporal invariants (Lamport), performance budgeting (game engine development), and test-driven specification — into a unified document structure. The synthesis is the contribution: these techniques are well-known individually but rarely composed into a single coherent standard.
+DDIS synthesizes Architecture Decision Records (Nygard), Design by Contract (Meyer), temporal invariants (Lamport), performance budgeting (game engine development), and test-driven specification into a unified document structure. These techniques are well-known individually but rarely composed into a single coherent standard.
 
 ### 0.1.1 What DDIS Is
 
@@ -47,7 +47,7 @@ DDIS is a document standard. It specifies:
 - How to validate that a specification is complete
 - How to structure elements for optimal LLM consumption (§0.2.2)
 
-DDIS is domain-agnostic. It can describe a terminal rendering kernel, an agent coordination system, a database engine, a compiler, or any system where correctness matters and multiple people (or LLMs) will implement from the spec.
+DDIS is domain-agnostic. It applies to any system where correctness matters and multiple people (or LLMs) will implement from the spec.
 
 ### 0.1.2 Non-Negotiables (Engineering Contract)
 
@@ -78,12 +78,12 @@ These are not aspirations; they are the contract. If any are violated, a documen
 
 DDIS does not attempt:
 
-- **To replace code.** A spec is not an implementation. It describes what to build, why, and how to verify it — not the literal source code. Design sketches illustrate intent; they are not copy-paste targets.
-- **To eliminate judgment.** Implementers will make thousands of micro-decisions. DDIS constrains the macro-decisions (architecture, algorithms, invariants) so micro-decisions are locally safe.
-- **To be a project management framework.** DDIS includes a Master TODO and phased roadmap, but these are execution aids for the spec's content, not a substitute for sprint planning or issue tracking.
-- **To prescribe notation.** DDIS requires formal models but does not mandate TLA+, Alloy, Z, or any specific formalism. Pseudocode, state machine diagrams, mathematical notation, or "close to [language]" sketches are all acceptable if they are precise.
-- **To guarantee correctness.** A DDIS-conforming spec dramatically reduces the chance of building the wrong thing. It cannot eliminate it. The spec is a contract for human (or LLM) intent, not a machine-checked proof.
-- **To optimize for a specific LLM.** DDIS provisions target structural properties that benefit all transformer-based models (context window management, explicit constraints, structural predictability). They are not prompt-engineering tricks for a particular model family.
+- **To replace code.** A spec describes what to build, why, and how to verify it — not the literal source code. Design sketches illustrate intent; they are not copy-paste targets.
+- **To eliminate judgment.** Implementers make thousands of micro-decisions. DDIS constrains macro-decisions (architecture, algorithms, invariants) so micro-decisions are locally safe.
+- **To be a project management framework.** The Master TODO and phased roadmap are execution aids, not a substitute for sprint planning or issue tracking.
+- **To prescribe notation.** DDIS requires formal models but does not mandate TLA+, Alloy, Z, or any specific formalism. Pseudocode, state machines, mathematical notation, or "close to [language]" sketches are all acceptable if precise.
+- **To guarantee correctness.** A DDIS-conforming spec dramatically reduces the chance of building the wrong thing but cannot eliminate it. The spec is a contract for intent, not a machine-checked proof.
+- **To optimize for a specific LLM.** DDIS provisions target structural properties benefiting all transformer-based models (context window management, explicit constraints, structural predictability), not prompt-engineering tricks for a particular model family.
 
 ## 0.2 First-Principles Derivation
 
@@ -99,13 +99,13 @@ where:
 
 The quality of a specification is measured by one criterion: **does an implementer produce a correct system from it, without requiring information not in the document?**
 
-This definition has consequences:
+Consequences:
 
-1. **Completeness over elegance.** A verbose spec that leaves nothing ambiguous is better than a terse spec that leaves critical details to inference. (But see INV-007: verbosity without structure is noise.)
+1. **Completeness over elegance.** A verbose spec that leaves nothing ambiguous beats a terse spec that leaves critical details to inference. (But see INV-007: verbosity without structure is noise.)
 
-2. **Decisions over descriptions.** The hardest part of building a system is not writing code — it is making the hundreds of design decisions that determine whether the code is correct. A spec that describes a system without recording why it is shaped that way is a snapshot, not a blueprint.
+2. **Decisions over descriptions.** The hardest part of building a system is making the hundreds of design decisions that determine whether the code is correct. A spec that describes without recording why is a snapshot, not a blueprint.
 
-3. **Verifiability over trust.** Every claim in the spec must be testable. "The system is fast" is not verifiable. "Event ingestion completes in < 100µs p99 at the design point of 300 agents / 10K tasks, measured by Benchmark B-001" is verifiable.
+3. **Verifiability over trust.** Every claim must be testable. "The system is fast" is not verifiable. "Event ingestion completes in < 100µs p99 at the design point of 300 agents / 10K tasks, measured by Benchmark B-001" is verifiable.
 
 ### 0.2.2 LLM Consumption Model
 
@@ -143,17 +143,17 @@ where:
   }
 ```
 
-**Consequence 1:** A spec that is correct but exceeds the context window is equivalent to an incomplete spec — the LLM cannot consume what it cannot hold. This motivates the modularization protocol (§0.13).
+**Consequence 1:** A spec exceeding the context window is equivalent to an incomplete spec. This motivates the modularization protocol (§0.13).
 
-**Consequence 2:** A spec that is complete but lacks negative specifications will produce implementations with plausible but unauthorized behaviors — the LLM "fills in" what seems reasonable. This motivates INV-017 and §3.8.
+**Consequence 2:** A spec lacking negative specifications will produce implementations with plausible but unauthorized behaviors. This motivates INV-017 and §3.8.
 
-**Consequence 3:** A spec that relies on cross-references without restating critical context at point of use will produce implementations with subtle inconsistencies — the LLM "forgets" invariants defined far from the implementation section. This motivates INV-018.
+**Consequence 3:** A spec relying on cross-references without restating critical context at point of use will produce subtle inconsistencies. This motivates INV-018.
 
-**Consequence 4:** A spec that provides no implementation ordering guidance forces the LLM to choose an order that may violate dependency chains between subsystems. This motivates INV-019 and §5.7.
+**Consequence 4:** A spec without implementation ordering guidance forces the LLM to choose an order that may violate dependency chains. This motivates INV-019 and §5.7.
 
 ### 0.2.3 The Causal Chain (Why DDIS Is Structured This Way)
 
-DDIS prescribes a specific document structure because specifications fail in predictable ways, and each structural element prevents a specific failure mode:
+DDIS prescribes a specific document structure because specifications fail in predictable ways, and each structural element prevents a named failure mode:
 
 | Failure Mode | Symptom | DDIS Element That Prevents It |
 |---|---|---|
@@ -329,7 +329,7 @@ Violation scenario: An implementation chapter describes a caching layer with no 
 
 Validation: Manual audit. Pick 5 random implementation sections. For each, follow cross-references backward to an ADR or invariant, then to the formal model. If any chain breaks, INV-001 is violated.
 
-// WHY THIS MATTERS: Without traceability, sections accumulate by accretion ("add a caching layer") without justification. Six months later, nobody knows if the caching layer can be removed.
+// WHY THIS MATTERS: Without traceability, sections accumulate without justification and cannot be safely removed.
 
 ---
 
@@ -342,9 +342,9 @@ Validation: Manual audit. Pick 5 random implementation sections. For each, follo
   ∃ adr ∈ ADRs: adr.covers(choice) ∧ adr.alternatives.contains(alternative)
 ```
 
-Violation scenario: The spec prescribes an advisory locking model but never records why mandatory locking was rejected. A new team member re-implements with mandatory locks, causing deadlocks.
+Violation scenario: The spec prescribes advisory locking but never records why mandatory locking was rejected. A new team member re-implements with mandatory locks, causing deadlocks.
 
-Validation: Adversarial review. A reviewer reads each implementation section and asks "could this reasonably be done differently?" If yes and no ADR exists, INV-002 is violated.
+Validation: Adversarial review. For each implementation section, ask "could this reasonably be done differently?" If yes and no ADR exists, INV-002 is violated.
 
 // WHY THIS MATTERS: Undocumented decisions get relitigated. Each relitigation costs the same as the original decision but adds no value.
 
@@ -380,11 +380,11 @@ Validation: For each invariant, construct a counterexample (a state or sequence 
   algorithm.has(edge_cases)
 ```
 
-Violation scenario: The spec describes a "conflict resolution algorithm" in prose but provides no pseudocode. The LLM implementer invents its own algorithm that handles the happy path but fails on concurrent modifications.
+Violation scenario: The spec describes a "conflict resolution algorithm" in prose without pseudocode. The LLM invents its own algorithm that handles the happy path but fails on concurrent modifications.
 
 Validation: Mechanical check. Scan each algorithm section for the four required components.
 
-// WHY THIS MATTERS: Prose descriptions of algorithms are ambiguous. LLMs especially will fill ambiguity with plausible but incorrect logic.
+// WHY THIS MATTERS: Prose descriptions of algorithms are ambiguous. LLMs fill ambiguity with plausible but incorrect logic.
 
 ---
 
@@ -399,7 +399,7 @@ Validation: Mechanical check. Scan each algorithm section for the four required 
   benchmark.has(methodology)
 ```
 
-Violation scenario: The spec claims "sub-millisecond dispatch" but defines no benchmark, no design point, and no measurement method. The implementer achieves 0.5ms in testing but 15ms in production due to different hardware.
+Violation scenario: The spec claims "sub-millisecond dispatch" without a benchmark, design point, or measurement method. The implementer achieves 0.5ms in testing but 15ms in production on different hardware.
 
 Validation: For each performance number, locate the benchmark that measures it. If the benchmark doesn't exist or doesn't describe how to run it, INV-005 is violated.
 
@@ -417,11 +417,11 @@ Validation: For each performance number, locate the benchmark that measures it. 
   section.incoming_references.count ≥ 1
 ```
 
-Violation scenario: A "Security Considerations" section is added late in the project. It references nothing and nothing references it. It contains good advice that no implementer ever reads because it's disconnected from the sections they work in.
+Violation scenario: A "Security Considerations" section is added late. It references nothing and nothing references it. It contains good advice that no implementer reads because it's disconnected from the sections they work in.
 
 Validation: Build a directed graph of cross-references. Every non-trivial section must have at least one inbound and one outbound edge. Orphan sections violate INV-006.
 
-// WHY THIS MATTERS: Cross-references are the mechanism that prevents a spec from devolving into a collection of independent essays. They force the author to think about how each section serves the whole. For LLMs, explicit cross-references (using §X.Y and INV-NNN identifiers) are the ONLY way to navigate — they cannot "flip back" like a human.
+// WHY THIS MATTERS: Cross-references prevent a spec from devolving into independent essays. For LLMs, explicit identifiers (§X.Y, INV-NNN) are the ONLY navigation mechanism — they cannot "flip back" like a human.
 
 ---
 
@@ -435,7 +435,7 @@ Validation: Build a directed graph of cross-references. Every non-trivial sectio
     (section.serves(other_section) ∨ section.prevents(named_failure_mode))
 ```
 
-Violation scenario: The spec includes a 200-line "History of the Project" section that describes the team's journey. It serves no other section and prevents no failure. It consumes context budget (especially critical for LLM consumption) without contributing to implementation correctness.
+Violation scenario: The spec includes a 200-line "History of the Project" section that serves no other section and prevents no failure. It consumes context budget without contributing to implementation correctness.
 
 Validation: For each section, state in one sentence why removing it would make the spec worse. If you cannot, remove the section.
 
@@ -453,11 +453,11 @@ Validation: For each section, state in one sentence why removing it would make t
   Q.answerable_from(general_competence ∪ public_references)
 ```
 
-Violation scenario: The spec references "the standard retry algorithm" without specifying which one (exponential backoff? fixed delay? jittered?). The LLM implementer picks one; it's the wrong one for this use case.
+Violation scenario: The spec references "the standard retry algorithm" without specifying which one. The LLM picks exponential backoff; the use case requires jittered retry.
 
-Validation: Give the spec to a competent engineer unfamiliar with the project. Track every question they ask. If questions reveal information that should be in the spec, INV-008 is violated.
+Validation: Give the spec to a competent engineer unfamiliar with the project. Track every question they ask. If questions reveal missing spec information, INV-008 is violated.
 
-// WHY THIS MATTERS: An LLM cannot ask clarifying questions mid-implementation. Every gap in the spec becomes a hallucination site.
+// WHY THIS MATTERS: An LLM cannot ask clarifying questions mid-implementation. Every gap becomes a hallucination site.
 
 ---
 
@@ -470,9 +470,9 @@ Validation: Give the spec to a competent engineer unfamiliar with the project. T
   ∃ entry ∈ Glossary: entry.defines(term)
 ```
 
-Violation scenario: The spec uses "reservation" in a domain-specific sense (advisory file lock) but never defines it. The LLM implementer uses the common-English meaning and builds a booking system.
+Violation scenario: The spec uses "reservation" (meaning advisory file lock) without defining it. The LLM uses the common-English meaning and builds a booking system.
 
-Validation: Extract all non-common-English terms from the spec. Check each against the glossary.
+Validation: Extract all non-common-English terms. Check each against the glossary.
 
 // WHY THIS MATTERS: LLMs default to the most common meaning of a word. Domain-specific overloads MUST be defined explicitly.
 
@@ -490,11 +490,11 @@ Validation: Extract all non-common-English terms from the spec. Check each again
   sm.has(invalid_transition_policy)
 ```
 
-Violation scenario: A task state machine defines states {Pending, InProgress, Done} but omits what happens when a "complete" event arrives for a task already in Done state. The LLM implementer silently accepts the duplicate completion, corrupting downstream state.
+Violation scenario: A task state machine defines states {Pending, InProgress, Done} but omits what happens when "complete" arrives for an already-Done task. The LLM silently accepts the duplicate completion, corrupting downstream state.
 
-Validation: For each state machine, enumerate the state × event cross-product. Every cell must either name a transition or explicitly state "invalid — [policy]."
+Validation: For each state machine, enumerate the state × event cross-product. Every cell must name a transition or explicitly state "invalid — [policy]."
 
-// WHY THIS MATTERS: Incomplete state machines are the most common source of bugs in event-driven systems. LLMs are especially prone to implementing only the happy-path transitions.
+// WHY THIS MATTERS: Incomplete state machines are the most common source of bugs in event-driven systems. LLMs implement only the happy-path transitions unless told otherwise.
 
 ---
 
@@ -509,11 +509,11 @@ Validation: For each state machine, enumerate the state × event cross-product. 
     bundle.answers(Q) ∨ Q.answerable_from(general_competence)
 ```
 
-Violation scenario: The Scheduler module references EventStore's internal ring buffer layout to determine batching strategy, but the ring buffer details live only in the EventStore module (not in the constitution or shared types).
+Violation scenario: The Scheduler module references EventStore's internal ring buffer layout, but ring buffer details live only in the EventStore module — not in the constitution.
 
-Validation: Give a bundle (not the full spec) to an LLM. Track questions that require information from another module's implementation. Any such question violates INV-011.
+Validation: Give a bundle (not the full spec) to an LLM. Track questions requiring information from another module's implementation. Any such question violates INV-011.
 
-// WHY THIS MATTERS: If module completeness fails, the modularization protocol provides no benefit. The entire value proposition is that bundles are sufficient.
+// WHY THIS MATTERS: If module completeness fails, modularization provides no benefit. The value proposition is that bundles are sufficient.
 
 ---
 
@@ -532,7 +532,7 @@ Violation scenario: The TUI Renderer module says "use the same batching strategy
 
 Validation: Mechanical (CHECK-7 in §0.13.11). Semantic: review for implicit references that bypass the constitution.
 
-// WHY THIS MATTERS: If modules reference each other's internals, Module A's bundle needs Module B's implementation — defeating the purpose of modularization. The constitution is the "header file"; modules are "implementation files" that are never directly included. (Locked by ADR-007.)
+// WHY THIS MATTERS: If modules reference each other's internals, bundles need other modules' implementation — defeating modularization. The constitution is the "header file"; modules are "implementation files" never directly included. (Locked by ADR-007.)
 
 ---
 
@@ -546,11 +546,11 @@ Validation: Mechanical (CHECK-7 in §0.13.11). Semantic: review for implicit ref
   ∨ (inv.owner ≠ "system" ∧ count(s ∈ modules : inv ∈ s.maintains) = 1)
 ```
 
-Violation scenario: Both EventStore and SnapshotManager list APP-INV-017 in their maintains declarations. Which module's tests are authoritative for that invariant?
+Violation scenario: Both EventStore and SnapshotManager list APP-INV-017 in their maintains declarations. Which module's tests are authoritative?
 
 Validation: Mechanical (CHECK-1 in §0.13.11).
 
-// WHY THIS MATTERS: Ownership uniqueness prevents accountability gaps. If two modules both claim to maintain an invariant, neither takes full responsibility for its test coverage.
+// WHY THIS MATTERS: If two modules both claim to maintain an invariant, neither takes full responsibility for its test coverage.
 
 ---
 
@@ -567,7 +567,7 @@ Violation scenario: Scheduler module grows to 3,500 lines. With 1,200-line const
 
 Validation: Mechanical (CHECK-5 in §0.13.11). Run the assembly script; it validates budget compliance automatically.
 
-// WHY THIS MATTERS: The modularization protocol exists to keep bundles within LLM context budget. Budget violations mean the modularization added complexity without delivering the benefit.
+// WHY THIS MATTERS: Budget violations mean modularization added complexity without delivering its benefit.
 
 ---
 
@@ -583,11 +583,11 @@ Validation: Mechanical (CHECK-5 in §0.13.11). Run the assembly script; it valid
   decl.one_line is_faithful_summary_of defn.statement
 ```
 
-Violation scenario: System constitution declares "APP-INV-017: Event log is append-only" but the Storage domain definition now says "append-only except during compaction windows." An LLM implementing a different domain sees only the declaration and codes against the wrong contract.
+Violation scenario: System constitution declares "APP-INV-017: Event log is append-only" but the Storage domain definition now says "append-only except during compaction." An LLM implementing a different domain codes against the wrong contract.
 
-Validation: Semi-mechanical. Extract declaration/definition pairs, present to reviewer for semantic consistency.
+Validation: Semi-mechanical. Extract declaration/definition pairs; present to reviewer for semantic consistency.
 
-// WHY THIS MATTERS: Divergence between tiers means different modules are implemented against different understandings of the same invariant. The declaration is the API; the definition is the implementation — they must agree.
+// WHY THIS MATTERS: Divergence between tiers means different modules implement against different understandings of the same invariant. The declaration is the API; the definition is the implementation — they must agree.
 
 ---
 
@@ -601,11 +601,11 @@ Validation: Semi-mechanical. Extract declaration/definition pairs, present to re
 ∀ module_file ∈ filesystem("modules/"): module_file ∈ manifest
 ```
 
-Violation scenario: Author adds `modules/new_feature.md` but forgets to add it to the manifest. The assembly script never produces a bundle for it. The RALPH loop never improves it.
+Violation scenario: Author adds `modules/new_feature.md` but forgets to add it to the manifest. The assembly script never produces a bundle for it.
 
 Validation: Mechanical (CHECK-9 in §0.13.11).
 
-// WHY THIS MATTERS: The manifest is the single source of truth for module topology. A file that exists but isn't in the manifest is invisible to all tooling — assembly, validation, improvement loops, cascade analysis.
+// WHY THIS MATTERS: A file not in the manifest is invisible to all tooling — assembly, validation, improvement loops, cascade analysis.
 
 ---
 
@@ -619,11 +619,11 @@ Validation: Mechanical (CHECK-9 in §0.13.11).
   chapter.negative_specifications.count ≥ 3
 ```
 
-Violation scenario: The scheduler implementation chapter describes how tasks are dispatched but never says "DO NOT implement priority inversion" or "DO NOT use blocking locks." The LLM implementer adds a mutex-based priority system that deadlocks under load.
+Violation scenario: The scheduler chapter describes how tasks are dispatched but never says "DO NOT use blocking locks." The LLM adds a mutex-based priority system that deadlocks under load.
 
-Validation: For each implementation chapter, verify that at least 3 negative specifications exist and that each addresses a plausible LLM hallucination (not an absurd scenario). Test by asking: "Would a competent LLM, given only the positive spec, plausibly do this?" If yes and no negative spec prevents it, INV-017 is violated.
+Validation: For each implementation chapter, verify ≥ 3 negative specifications exist, each addressing a plausible LLM hallucination. Test: "Would an LLM, given only the positive spec, plausibly do this?" If yes and no negative spec prevents it, INV-017 is violated.
 
-// WHY THIS MATTERS: LLMs fill specification gaps with plausible behavior. Negative specifications are the primary defense — they tell the LLM what NOT to do, preventing the most common hallucination patterns before they occur. (Locked by ADR-009.)
+// WHY THIS MATTERS: LLMs fill specification gaps with plausible behavior. Negative specifications tell the LLM what NOT to do, preventing hallucination before it occurs. (Locked by ADR-009.)
 
 ---
 
@@ -638,11 +638,11 @@ Validation: For each implementation chapter, verify that at least 3 negative spe
     chapter.contains(inv.one_line_statement ∨ inv.full_statement)
 ```
 
-Violation scenario: An implementation chapter says "Preserves: INV-003, INV-017, INV-018" but never restates what these invariants require. The LLM implementer, 2,000 lines past the invariant definitions, cannot recall what INV-017 requires and violates it.
+Violation scenario: An implementation chapter says "Preserves: INV-003, INV-017, INV-018" but never restates what these require. The LLM, 2,000 lines past the definitions, violates INV-017 unknowingly.
 
-Validation: For each implementation chapter, verify that preserved invariants are restated (at minimum: ID + one-line statement). A bare list of IDs without statements violates INV-018.
+Validation: For each implementation chapter, verify preserved invariants are restated (minimum: ID + one-line statement). Bare ID lists violate INV-018.
 
-// WHY THIS MATTERS: LLMs lose context over long documents. An invariant reference 2,000 lines from its definition is functionally invisible. Restating the invariant at the point where it must be preserved is the structural equivalent of "inline the header."
+// WHY THIS MATTERS: An invariant reference 2,000 lines from its definition is functionally invisible to an LLM. Restating at point of use is the structural equivalent of "inline the header."
 
 ---
 
@@ -657,11 +657,11 @@ Validation: For each implementation chapter, verify that preserved invariants ar
     ∃ reason: a.must_precede(b).because(reason)
 ```
 
-Violation scenario: The spec describes five subsystems but provides no ordering guidance. The LLM implementer builds the UI layer first, then discovers it depends on a data model that doesn't exist yet. Cascading rework ensues.
+Violation scenario: The spec describes five subsystems with no ordering guidance. The LLM builds the UI layer first, then discovers it depends on a nonexistent data model. Cascading rework ensues.
 
-Validation: Locate the implementation ordering (in the operational playbook or meta-instructions). Verify it is a DAG (no cycles). For each dependency edge, verify the stated reason is valid.
+Validation: Locate the implementation ordering (operational playbook or meta-instructions). Verify it is a DAG. For each dependency edge, verify the stated reason.
 
-// WHY THIS MATTERS: Humans infer implementation order from experience. LLMs do not — they implement in whatever order they encounter sections. Explicit ordering prevents cascading rework and ensures foundational subsystems exist before dependent ones. (See §5.7 for meta-instruction format.)
+// WHY THIS MATTERS: LLMs implement in whatever order they encounter sections. Explicit ordering prevents cascading rework. (See §5.7 for meta-instruction format.)
 
 ---
 
@@ -676,11 +676,11 @@ Validation: Locate the implementation ordering (in the operational playbook or m
   chapter.verification_prompt_block.has(negative_check)
 ```
 
-Violation scenario: The DDIS standard prescribes verification prompts (§5.6) for each implementation chapter in conforming specs, but its own element specification chapters in PART II lack verification prompt blocks. An LLM author reading §5.6 sees the prescription but has no self-bootstrapping demonstration to copy — the standard defines verification prompts without systematically applying them to itself.
+Violation scenario: The DDIS standard prescribes verification prompts (§5.6) but its own element specification chapters lack them. An LLM author reading §5.6 sees the prescription but has no self-bootstrapping demonstration to copy.
 
-Validation: For each element specification chapter (Chapters 2–7), verify that a verification prompt block exists at the end of the chapter with at least one positive check and one negative check referencing specific invariants. Bare quality criteria without the §5.6 format do not satisfy INV-020.
+Validation: For each element specification chapter (Chapters 2–7), verify a verification prompt block exists with at least one positive and one negative check referencing specific invariants. Bare quality criteria without the §5.6 format do not satisfy INV-020.
 
-// WHY THIS MATTERS: Self-bootstrapping (ADR-004) requires the standard to demonstrate every element it prescribes. If the standard prescribes verification prompts but doesn't include them in its own element specs, the self-bootstrapping property is incomplete — and LLM authors lack a concrete model to follow. (Locked by ADR-010.)
+// WHY THIS MATTERS: Self-bootstrapping (ADR-004) requires the standard to demonstrate every element it prescribes. Without verification prompts in its own element specs, LLM authors lack a concrete model to follow. (Locked by ADR-010.)
 
 ---
 
@@ -695,28 +695,27 @@ Should DDIS prescribe a fixed document structure, or allow authors to organize f
 #### Options
 
 A) **Fixed structure** (prescribed section ordering and hierarchy)
-- Pros: Predictable for readers; mechanical completeness checking; easier to teach; LLMs benefit from structural predictability (§0.2.2).
-- Cons: May feel rigid; some domains fit the structure better than others.
+- Pros: Predictable for readers; mechanical completeness checking; LLMs benefit from structural predictability (§0.2.2).
+- Cons: May feel rigid; some domains fit better than others.
 
 B) **Content requirements only** (prescribe what, not where)
-- Pros: Flexibility; authors can organize by whatever axis makes sense.
-- Cons: Every spec is a unique snowflake; readers must re-learn structure each time; harder to validate; LLMs perform worse with unpredictable structure.
+- Pros: Flexibility; authors organize by whatever axis makes sense.
+- Cons: Every spec is unique; readers re-learn structure each time; harder to validate; LLMs perform worse with unpredictable structure.
 
-C) **Fixed skeleton with flexible interior** (prescribed top-level parts, flexible chapter organization within)
+C) **Fixed skeleton with flexible interior** (prescribed top-level parts, flexible chapters within)
 - Pros: Balance of predictability and flexibility.
-- Cons: The "flexible interior" often means "no structure at all."
+- Cons: "Flexible interior" often means "no structure at all."
 
 #### Decision
 
-**Option A: Fixed structure.** The value of DDIS is that a reader who has seen one DDIS spec can navigate any other DDIS spec. This is worth the cost of occasionally awkward section placement. For LLM implementers, fixed structure reduces variance in output quality (§0.2.2).
+**Option A: Fixed structure.** A reader who has seen one DDIS spec can navigate any other. Worth the cost of occasionally awkward placement. For LLMs, fixed structure reduces output variance (§0.2.2).
 
-The structure may be renamed (e.g., "Kernel Invariants" instead of "Invariants") and domain-specific sections may be added within any PART, but the required elements (§0.3) must appear, and the PART ordering must be preserved.
+Sections may be renamed (e.g., "Kernel Invariants" instead of "Invariants") and domain-specific sections added within any PART, but required elements (§0.3) must appear and PART ordering preserved.
 
 #### Consequences
 
-- Authors must sometimes figure out where a domain-specific concept "lives" in the DDIS structure
-- Readers gain predictability and can skip to known locations
-- Validation tools can check structural conformance mechanically
+- Authors must sometimes determine where a domain-specific concept fits
+- Readers gain predictability; validation tools can check conformance mechanically
 
 #### Tests
 
@@ -732,23 +731,23 @@ Should invariants be aspirational properties ("the system should be fast") or fo
 
 #### Options
 
-A) **Aspirational invariants** (state desired properties in natural language)
+A) **Aspirational invariants** (natural language desired properties)
 - Pros: Easy to write; captures intent.
-- Cons: Cannot be tested; cannot be violated; useless for verification.
+- Cons: Cannot be tested, violated, or used for verification.
 
 B) **Formal invariants with proof obligations** (TLA+-style temporal logic)
 - Pros: Machine-checkable; mathematically rigorous.
-- Cons: Requires formal methods expertise; most implementers can't read them; high authoring cost.
+- Cons: Requires formal methods expertise; high authoring cost; most implementers can't read them.
 
 C) **Falsifiable invariants** (formal enough to test, informal enough to read)
-- Pros: Each invariant has a concrete counterexample and a test; readable by working engineers and LLMs.
+- Pros: Each has a concrete counterexample and test; readable by engineers and LLMs.
 - Cons: Not machine-checkable; relies on human judgment for completeness.
 
 #### Decision
 
-**Option C: Falsifiable invariants.** Every invariant must include: a plain-language statement, a semi-formal expression (pseudocode, predicate logic, or precise English), a violation scenario (how could this break?), and a validation method (how do we test it?).
+**Option C: Falsifiable invariants.** Every invariant must include: plain-language statement, semi-formal expression, violation scenario, and validation method.
 
-// WHY NOT Option B? Because the goal is implementation correctness by humans and LLMs, not machine-checked proofs. The authoring cost of full formal verification exceeds the benefit for most systems. If a domain requires machine-checked invariants, the DDIS spec can reference the external formal model.
+// WHY NOT Option B? The goal is implementation correctness by humans and LLMs, not machine-checked proofs. If a domain requires machine-checked invariants, the DDIS spec can reference an external formal model.
 
 #### Consequences
 
@@ -775,13 +774,12 @@ B) **Required** — every non-trivial section must have inbound and outbound ref
 
 #### Decision
 
-**Option B: Required.** Cross-references are the mechanism that transforms a collection of sections into a unified specification. Without them, sections exist in isolation and the causal chain (INV-001) cannot be verified. For LLM implementers, explicit cross-references using section numbers and identifiers are the ONLY reliable navigation mechanism (§0.2.2) — implicit references like "see above" fail because LLMs cannot reliably resolve positional context.
+**Option B: Required.** Cross-references transform a collection of sections into a unified specification. Without them, the causal chain (INV-001) cannot be verified. For LLMs, explicit identifiers (§X.Y, INV-NNN, ADR-NNN) are the ONLY reliable navigation — implicit references like "see above" fail (§0.2.2).
 
 #### Consequences
 
 - Higher authoring cost (every section requires thinking about its relationships)
-- Much higher reader value (any section can be understood in context)
-- Enables graph-based validation of spec completeness
+- Much higher reader value; enables graph-based validation of completeness
 
 #### Tests
 
@@ -802,13 +800,13 @@ B) **Self-bootstrapping** — write the standard in its own format, validate by 
 
 #### Decision
 
-**Option B: Self-bootstrapping.** This document is both the standard and its first conforming instance. If the standard is unclear, the author discovers this while attempting to apply it to itself. If the standard is incomplete, the self-application reveals the gap.
+**Option B: Self-bootstrapping.** This document is both the standard and its first conforming instance. If the standard is unclear or incomplete, the author discovers this while applying it to itself.
 
-// WHY NOT Option A? Because a standard that cannot be applied to itself is suspect. If the structure is good enough for implementation specs, it is good enough for a meta-spec. Self-application is the ultimate dog-fooding.
+// WHY NOT Option A? A standard that cannot be applied to itself is suspect. Self-application is the ultimate dog-fooding.
 
 #### Consequences
 
-- The standard is simultaneously more trustworthy (tested by self-application) and more complex (meta-level and object-level interleave)
+- More trustworthy (tested by self-application) but more complex (meta-level and object-level interleave)
 - Readers may initially find the self-referential nature disorienting
 - The document serves as both reference and example
 
@@ -831,13 +829,12 @@ B) **Voice guidance** — specify tone, provide examples, define anti-patterns.
 
 #### Decision
 
-**Option B: Voice guidance.** Specifications fail when they are either too dry to read or too casual to trust. DDIS prescribes a specific voice: technically precise but human, the voice of a senior engineer explaining their system to a peer they respect. (See §8.1 for full guidance.) For LLM-generated specs, explicit voice guidance reduces generic boilerplate and produces more useful output.
+**Option B: Voice guidance.** Specifications fail when either too dry to read or too casual to trust. DDIS prescribes a specific voice: technically precise but human, a senior engineer explaining to a peer they respect. (See §8.1.) For LLMs, explicit voice guidance reduces generic boilerplate.
 
 #### Consequences
 
 - Specs feel more unified and readable
 - Authors must sometimes revise natural writing habits
-- LLMs benefit significantly from explicit voice guidance (reduces generic boilerplate)
 
 #### Tests
 
@@ -853,29 +850,29 @@ When a DDIS spec is modular for context-window compliance (§0.13), constitution
 
 #### Options
 
-A) **Flat root** — one file containing everything (all invariant definitions, all ADR analysis, all shared types).
+A) **Flat root** — one file containing everything.
 - Pros: Simple; one file to maintain; no tier logic.
-- Cons: Doesn't scale past ~20 invariants / ~10 ADRs. Against a FrankenTUI-scale spec (25 invariants, 15 ADRs, 4,800 lines), the flat root alone is ~1,500 lines, leaving only 2,500 for the module.
+- Cons: Doesn't scale past ~20 invariants / ~10 ADRs. At scale (25 invariants, 15 ADRs, 4,800 lines), the root alone is ~1,500 lines, leaving only 2,500 for the module.
 
 B) **Two-tier** — system constitution (full definitions) + modules.
-- Pros: Simple; works for small modular specs (< 20 invariants, system constitution ≤ 400 lines).
-- Cons: System constitution grows linearly with invariant count; exceeds budget at medium scale.
+- Pros: Simple; works for small modular specs (< 20 invariants, constitution ≤ 400 lines).
+- Cons: Constitution grows linearly with invariant count; exceeds budget at medium scale.
 
-C) **Three-tier** — system constitution (declarations only, 200–400 lines) + domain constitution (full definitions, 200–500 lines per domain) + cross-domain deep context (0–600 lines, per-module) + module.
-- Pros: Scales to large specs; domain grouping is already present in well-architected systems (double duty); no duplication between tiers.
-- Cons: One additional level of indirection; requires domain identification.
+C) **Three-tier** — system constitution (declarations only) + domain constitution (full definitions) + cross-domain deep context + module.
+- Pros: Scales to large specs; domain grouping already present in well-architected systems (double duty); no duplication between tiers.
+- Cons: One additional indirection level; requires domain identification.
 
 #### Decision
 
-**Option C as the full protocol, with Option B as a blessed simplification** for small specs (< 20 invariants, system constitution ≤ 400 lines). The `tier_mode` field in the manifest selects between them. This avoids forcing three-tier complexity on specs that don't need it while providing a clear upgrade path.
+**Option C as the full protocol, with Option B as a blessed simplification** for small specs (< 20 invariants, constitution ≤ 400 lines). The `tier_mode` manifest field selects between them — no forced complexity for specs that don't need it, with a clear upgrade path.
 
-// WHY NOT Option A? At FrankenTUI scale, the flat root consumes 30–37% of the context budget before the module even starts. That's not "context management" — it's context waste.
+// WHY NOT Option A? At scale, the flat root consumes 30–37% of the context budget before the module starts. That's context waste, not management.
 
 #### Consequences
 
-- Authors must identify 2–5 architectural domains when modularizing (usually obvious from the architecture overview)
-- Two-tier specs can migrate to three-tier without restructuring modules (§0.13.14)
-- The domain boundary serves double duty: isolation mechanism in the architecture and context management mechanism in the spec
+- Authors must identify 2–5 architectural domains when modularizing (usually obvious from architecture overview)
+- Two-tier specs migrate to three-tier without restructuring modules (§0.13.13)
+- Domain boundaries serve double duty: architectural isolation and context management
 
 #### Tests
 
@@ -893,24 +890,23 @@ When a DDIS spec is modular, how should modules reference content in other modul
 #### Options
 
 A) **Direct references** — "see section 7.3 in the Scheduler module."
-- Pros: Natural; mirrors how monolithic cross-references work.
-- Cons: Creates invisible dependencies between modules. If Module A references Module B's internals, Module A's bundle needs Module B — defeating the purpose of modularization. Violates INV-011.
+- Pros: Natural; mirrors monolithic cross-references.
+- Cons: Creates invisible dependencies. Module A's bundle needs Module B — defeating modularization. Violates INV-011.
 
-B) **Through constitution only** — Module A references APP-INV-032, which lives in the constitution. Module A never references Module B's internal sections.
-- Pros: Enforces isolation mechanically; the constitution is the "header file" and modules are "implementation files"; bundles are self-contained.
-- Cons: Authors must extract all cross-module contracts into the constitution; can feel indirect for tightly coupled subsystems.
+B) **Through constitution only** — Module A references APP-INV-032 in the constitution, never Module B's internals.
+- Pros: Enforces isolation mechanically; bundles are self-contained.
+- Cons: Authors must extract all cross-module contracts into the constitution; feels indirect for tightly coupled subsystems.
 
 #### Decision
 
-**Option B: Through constitution only.** INV-012 enforces this mechanically. Cross-module contracts are expressed as invariants or shared types in the constitution, never as references to another module's algorithms, state machines, or data structures.
+**Option B: Through constitution only.** INV-012 enforces this mechanically. Cross-module contracts are expressed as invariants or shared types in the constitution, never as references to another module's internals.
 
-// WHY NOT Option A? It breaks INV-011 (module completeness). If Module A references Module B's internals, Module A's bundle needs Module B's implementation content — the very thing modularization was designed to avoid.
+// WHY NOT Option A? It breaks INV-011. Module A's bundle would need Module B's implementation — the very thing modularization avoids.
 
 #### Consequences
 
-- All cross-module contracts must be elevated to the constitution (invariants, shared types, or interface descriptions)
-- Modules become truly self-contained implementation units
-- Tight coupling between subsystems becomes visible in the constitution's interface surface
+- All cross-module contracts must be elevated to the constitution
+- Modules become truly self-contained; tight coupling becomes visible in the constitution's interface surface
 
 #### Tests
 
@@ -927,32 +923,31 @@ DDIS introduces structural provisions for LLM consumption (negative specificatio
 
 #### Options
 
-A) **Isolated chapter** — add a "Chapter N: LLM Considerations" appendix with all LLM-specific guidance in one place.
-- Pros: Easy to find; easy to skip if the implementer is human; doesn't change existing element specs.
-- Cons: LLM provisions that are distant from the element they modify are forgotten when the LLM processes that element. An LLM reading §3.4 (Invariants) won't know about LLM-specific guidance in Chapter N. This is exactly the failure mode described in §0.2.2 — "implicit reference failure."
+A) **Isolated chapter** — a "Chapter N: LLM Considerations" appendix.
+- Pros: Easy to find; easy to skip for human implementers.
+- Cons: LLM provisions distant from the element they modify get forgotten — exactly the "implicit reference failure" of §0.2.2.
 
-B) **Woven throughout** — integrate LLM-specific provisions into each element specification, so that the guidance for writing an invariant (§3.4) includes how to write it for LLM consumption, the guidance for implementation chapters (§5.1) includes negative specs and verification prompts, etc.
-- Pros: LLM guidance is present at the point of use — the author encounters it while writing each element. No separate chapter to forget. Follows the same principle as INV-018 (structural redundancy at point of use).
-- Cons: Increases element specification length by 10–15%; harder to get a "summary of all LLM provisions" in one place.
+B) **Woven throughout** — integrate LLM provisions into each element specification.
+- Pros: Guidance at point of use; follows INV-018 (structural redundancy). No separate chapter to forget.
+- Cons: Increases element spec length by 10–15%.
 
-C) **Dual: woven plus summary appendix** — weave provisions throughout AND provide a summary appendix for quick reference.
+C) **Dual: woven plus summary appendix.**
 - Pros: Best of both worlds.
-- Cons: Risk of summary diverging from woven content; violates DRY principle; marginal value over woven-only since the Quick-Reference Card (Appendix D) already serves the summary function.
+- Cons: Divergence risk (INV-015); marginal value since the Quick-Reference Card (Appendix D) already summarizes.
 
 #### Decision
 
-**Option B: Woven throughout.** LLM provisions are integrated into each element specification in PART II. The Quick-Reference Card (Appendix D) provides the high-level summary. This follows DDIS's own principle: context at point of use is worth the redundancy cost.
+**Option B: Woven throughout.** LLM provisions are integrated into each element specification. The Quick-Reference Card provides the high-level summary. Context at point of use is worth the redundancy cost.
 
-// WHY NOT Option A? Because it suffers from the exact failure mode DDIS is designed to prevent — information distant from its point of use gets lost. An author writing an invariant section won't flip to a separate chapter for LLM guidance. An LLM processing invariant specs won't have that chapter in context.
+// WHY NOT Option A? It suffers from the exact failure mode DDIS prevents — information distant from point of use gets lost.
 
-// WHY NOT Option C? Because maintaining two copies of the same guidance creates a divergence risk that INV-015 (Declaration-Definition Consistency) warns about. The Quick-Reference Card is intentionally terse and doesn't carry full guidance.
+// WHY NOT Option C? Maintaining two copies creates divergence risk.
 
 #### Consequences
 
-- Every element specification in PART II includes LLM-specific notes and provisions
-- Authors cannot avoid LLM considerations — they encounter them naturally while writing each element
-- The standard is slightly longer (~10%) but every added line is at the point of maximum impact
-- The self-bootstrapping property requires that this document demonstrate woven provisions (it does)
+- Every element specification includes LLM-specific notes and provisions
+- Authors encounter LLM considerations naturally while writing each element
+- ~10% longer, but every added line is at maximum impact
 
 #### Tests
 
@@ -969,32 +964,31 @@ How should "what the system must NOT do" be captured in a DDIS spec? Anti-patter
 
 #### Options
 
-A) **Anti-patterns only** — rely on the existing anti-pattern catalog (§8.3) and per-element anti-pattern examples.
-- Pros: No new structural element required; anti-patterns already exist and work well for human readers.
-- Cons: Anti-patterns are in PART III (guidance), not PART II (required elements). They are document-level, not subsystem-level. LLMs need subsystem-specific "DO NOT" constraints co-located with the implementation — a generic anti-pattern list 500 lines away has minimal effect on LLM output.
+A) **Anti-patterns only** — rely on existing anti-pattern catalog (§8.3).
+- Pros: No new element required; works well for human readers.
+- Cons: Anti-patterns are document-level guidance, not subsystem-level requirements. LLMs need co-located "DO NOT" constraints — a list 500 lines away has minimal effect.
 
-B) **Formal negative specification blocks** — require a "Negative Specifications" section in each implementation chapter, with per-subsystem "DO NOT" constraints using a prescribed format.
-- Pros: Co-located with the subsystem they constrain (maximum LLM impact per §0.2.2). Falsifiable (you can check if the implementation violates them). Address the most common LLM failure mode (hallucination). Machine-verifiable (presence of the section is a mechanical check).
-- Cons: Adds ~5–10 lines per implementation chapter. Authors must think adversarially about each subsystem.
+B) **Formal negative specification blocks** — required per implementation chapter with prescribed format.
+- Pros: Co-located with the subsystem (maximum LLM impact per §0.2.2). Falsifiable. Machine-verifiable.
+- Cons: Adds ~5–10 lines per chapter. Requires adversarial thinking.
 
-C) **Separate negative specification chapter** — a single chapter listing all "DO NOT" constraints organized by subsystem.
-- Pros: All negative specs in one place; easy to audit for completeness.
-- Cons: Same problem as Option A — distance from point of use reduces LLM effectiveness.
+C) **Separate negative specification chapter** — one chapter listing all constraints.
+- Pros: Easy to audit for completeness.
+- Cons: Same distance-from-use problem as Option A.
 
 #### Decision
 
-**Option B: Formal negative specification blocks in each implementation chapter.** Negative specifications are required structural elements (INV-017), specified in §3.8, and demonstrated throughout this document's own element specifications.
+**Option B: Formal negative specification blocks in each implementation chapter.** Required structural elements (INV-017), specified in §3.8, demonstrated throughout this document.
 
-// WHY NOT Option A? Anti-patterns are excellent for human readers but insufficient for LLMs. LLMs need imperative, co-located constraints — not illustrative examples in a distant section.
+// WHY NOT Option A? LLMs need imperative, co-located constraints — not illustrative examples in a distant section.
 
-// WHY NOT Option C? Centralized negative specs suffer the same "distance from point of use" problem. The LLM implementing the scheduler won't have the negative spec chapter in context when it needs it most.
+// WHY NOT Option C? Same distance-from-use problem. The LLM implementing the scheduler won't have the chapter in context.
 
 #### Consequences
 
-- Every implementation chapter gains a "Negative Specifications" section (3–8 items)
-- Authors must think adversarially: "What would an LLM plausibly do wrong here?"
-- The anti-pattern catalog (§8.3) remains as document-level guidance; negative specs are subsystem-level requirements
-- Self-bootstrapping: this document's element specifications include negative spec examples
+- Every implementation chapter gains 3–8 negative specifications
+- Authors think adversarially: "What would an LLM plausibly do wrong here?"
+- Anti-pattern catalog (§8.3) remains as document-level guidance; negative specs are subsystem-level requirements
 
 #### Tests
 
@@ -1011,31 +1005,30 @@ How should implementers verify that their work conforms to the spec? Test strate
 
 #### Options
 
-A) **Test strategies only** — rely on the existing test strategy element to catch conformance issues after implementation.
-- Pros: No new element required; test strategies are well-established.
-- Cons: Test strategies catch bugs after code is written. For LLMs, the cost of rewriting is high (new API call, new context window). A self-check prompt BEFORE or DURING implementation is cheaper than a test AFTER.
+A) **Test strategies only** — catch conformance issues post-implementation.
+- Pros: No new element required; well-established.
+- Cons: Catches bugs after code is written. For LLMs, rewriting is expensive (new API call, new context). A self-check DURING implementation is cheaper than a test AFTER.
 
-B) **Verification prompts per chapter** — each implementation chapter ends with a structured self-check prompt that the implementer (especially an LLM) can use to verify their output against the spec before moving on.
-- Pros: Catches misunderstandings before code is written. LLMs can execute these prompts as part of their implementation flow. Humans can use them as review checklists. Cheap to author (3–5 checkboxes per chapter).
-- Cons: Adds ~5–8 lines per implementation chapter. May feel redundant with test strategies for human implementers.
+B) **Verification prompts per chapter** — structured self-check at the end of each implementation chapter.
+- Pros: Catches misunderstandings before code is written. LLMs execute as part of implementation flow. Humans use as review checklists.
+- Cons: Adds ~5–8 lines per chapter.
 
-C) **Single end-of-document verification checklist** — one comprehensive checklist at the end of the spec.
+C) **Single end-of-document verification checklist.**
 - Pros: Easy to find; comprehensive.
-- Cons: Too distant from implementation context; too generic to catch subsystem-specific issues.
+- Cons: Too distant and generic for subsystem-specific issues.
 
 #### Decision
 
-**Option B: Verification prompts per chapter.** Each implementation chapter ends with a verification prompt (§5.6). The prompt includes both positive checks ("your implementation DOES...") and negative checks ("your implementation does NOT..."), referencing specific invariants.
+**Option B: Verification prompts per chapter.** Each chapter ends with positive checks ("DOES...") and negative checks ("does NOT..."), referencing specific invariants.
 
-// WHY NOT Option A? Test strategies catch implementation bugs. Verification prompts catch specification misunderstandings. They address different failure modes at different points in the workflow.
+// WHY NOT Option A? Test strategies catch implementation bugs; verification prompts catch specification misunderstandings. Different failure modes, different workflow points.
 
-// WHY NOT Option C? Same distance-from-use problem as centralized negative specs. A generic checklist cannot address subsystem-specific concerns.
+// WHY NOT Option C? Same distance-from-use problem. Generic checklists miss subsystem-specific concerns.
 
 #### Consequences
 
-- Each implementation chapter gains a ~5–8 line verification prompt section
-- LLMs can use these prompts as structured self-checks during implementation
-- Human implementers can use them as PR review checklists
+- Each chapter gains ~5–8 lines of verification prompts
+- LLMs use as structured self-checks; humans use as PR review checklists
 - Self-bootstrapping: this document includes verification prompts for its own elements
 
 #### Tests
@@ -1049,21 +1042,21 @@ C) **Single end-of-document verification checklist** — one comprehensive check
 
 #### Problem
 
-When a DDIS spec enters the Living state (§1.1, §13.1), ADRs may be superseded as implementation reveals better alternatives. How should superseded ADRs be handled? Without a formal protocol, superseded ADRs create contradictions: sections referencing the old decision prescribe behavior incompatible with the new decision, and implementers (especially LLMs) encounter conflicting guidance.
+When a Living spec (§1.1, §13.1) supersedes an ADR, sections referencing the old decision may prescribe behavior incompatible with the new one. Without a formal protocol, LLMs encounter conflicting guidance.
 
 #### Options
 
-A) **Delete-and-replace** — Remove the old ADR entirely, replace with the new one using the same ADR-NNN identifier.
-- Pros: Clean; no historical cruft; implementers see only current decisions.
-- Cons: Loses the reasoning history. Future maintainers cannot understand why the original decision was made or why it was reversed. Violates the principle that decisions are historical record.
+A) **Delete-and-replace** — Remove old ADR, reuse the same identifier.
+- Pros: Clean; implementers see only current decisions.
+- Cons: Loses reasoning history. Future maintainers cannot understand why the original decision was made or reversed.
 
-B) **Mark-and-supersede with cross-reference cascade** — Mark the old ADR as "Superseded by ADR-NNN", retain it as historical record, create the new ADR with a fresh identifier, and mandate a cross-reference cascade that updates all sections referencing the old ADR.
-- Pros: Preserves history; new ADR contains "WHY NOT the old approach?" which prevents re-exploration of rejected paths; cross-reference cascade ensures no section still prescribes the superseded behavior.
-- Cons: Requires a cascade procedure; slightly increases document length.
+B) **Mark-and-supersede with cross-reference cascade** — Mark old ADR as superseded, retain as record, create new ADR with fresh identifier, cascade-update all references.
+- Pros: Preserves history; "WHY NOT the old approach?" prevents re-exploration; cascade ensures consistency.
+- Cons: Requires cascade procedure; slightly increases document length.
 
-C) **Versioned ADRs** — Keep the same ADR-NNN identifier but add version suffixes (ADR-003v1, ADR-003v2) with each version timestamped.
-- Pros: Easy to track evolution of a single decision.
-- Cons: Breaks cross-reference stability — all references to ADR-003 become ambiguous (which version?). LLMs cannot resolve version suffixes reliably.
+C) **Versioned ADRs** — Same identifier with version suffixes (ADR-003v1, ADR-003v2).
+- Pros: Easy to track evolution.
+- Cons: Breaks cross-reference stability — "ADR-003" becomes ambiguous. LLMs cannot resolve version suffixes reliably.
 
 #### Decision
 
@@ -1074,16 +1067,15 @@ C) **Versioned ADRs** — Keep the same ADR-NNN identifier but add version suffi
 3. The new ADR's "Options" section MUST include the old decision as a rejected option with a WHY NOT annotation explaining what changed
 4. Execute a cross-reference cascade: every section referencing the old ADR-NNN must be updated to reference the new ADR-NNN (see §13.3 for the cascade procedure)
 
-// WHY NOT Option A? Deleting ADRs destroys institutional knowledge. The reasoning behind the original decision is often more valuable than the decision itself — it prevents future teams from re-exploring the same dead ends.
+// WHY NOT Option A? Deleting ADRs destroys institutional knowledge — the reasoning prevents re-exploring dead ends.
 
-// WHY NOT Option C? Version suffixes break cross-reference stability (INV-006: Cross-Reference Density requires explicit identifiers). An LLM encountering "ADR-003" in an implementation chapter cannot determine whether it means v1 or v2 without additional context.
+// WHY NOT Option C? Version suffixes break cross-reference stability (INV-006). "ADR-003" becomes ambiguous without additional context.
 
 #### Consequences
 
-- Every ADR supersession triggers a cross-reference cascade (§13.3), ensuring consistency
-- Superseded ADRs remain in the document as historical record
-- The new ADR explains not just "what we decided" but "what changed since the original decision"
-- Spec length grows slightly with each supersession (old ADR retained + new ADR added)
+- Every supersession triggers a cross-reference cascade (§13.3)
+- Superseded ADRs remain as historical record
+- Spec length grows slightly with each supersession
 
 #### Tests
 
@@ -1094,30 +1086,30 @@ C) **Versioned ADRs** — Keep the same ADR-NNN identifier but add version suffi
 
 ## 0.7 Quality Gates
 
-A DDIS-conforming specification is "done" when all quality gates pass. Gates are ordered by priority; a failing Gate 1 makes Gates 2–7 irrelevant.
+A DDIS-conforming specification is "done" when all quality gates pass. Gates are ordered by priority; a failing Gate N makes Gates N+1 through 7 irrelevant.
 
 **Gate 1: Structural Conformance**
-All required elements from §0.3 are present, including negative specifications (§3.8), verification prompts (§5.6), and meta-instructions (§5.7) for each implementation chapter. Every element specification chapter includes a verification prompt block (INV-020). Mechanical check.
+All required elements from §0.3 present, including negative specifications (§3.8), verification prompts (§5.6), and meta-instructions (§5.7). Every element spec chapter includes a verification prompt block (INV-020). Mechanical check.
 
 **Gate 2: Causal Chain Integrity**
-Five randomly selected implementation sections trace backward to the formal model without breaks. (Validates INV-001.)
+Five random implementation sections trace backward to the formal model without breaks. (Validates INV-001.)
 
 **Gate 3: Decision Coverage**
-An adversarial reviewer identifies zero "obvious alternatives" not covered by an ADR. (Validates INV-002.)
+Adversarial reviewer identifies zero "obvious alternatives" not covered by an ADR. (Validates INV-002.)
 
 **Gate 4: Invariant Falsifiability**
 Every invariant has a constructible counterexample and a named test. (Validates INV-003.)
 
 **Gate 5: Cross-Reference Web**
-The reference graph has no orphan sections and the graph is connected. (Validates INV-006.)
+The reference graph has no orphan sections and is connected. (Validates INV-006.)
 
 **Gate 6: Implementation Readiness**
-A competent implementer (or LLM), given only the spec and public references, can begin implementing without asking clarifying questions about architecture, algorithms, data models, or invariants. Questions about micro-level implementation details (variable names, error message wording) are acceptable.
+A competent implementer (or LLM), given only the spec and public references, can begin implementing without clarifying questions about architecture, algorithms, data models, or invariants. Micro-level questions (variable names, error message wording) are acceptable.
 
 **Gate 7: LLM Implementation Readiness**
-For each implementation chapter, give ONLY that chapter (plus the glossary and relevant invariants) to an LLM and ask it to implement the subsystem. Verify: (a) the LLM produces no requirements not stated in the spec (no hallucination), (b) the LLM asks no clarifying questions about architecture or algorithms, (c) the LLM's implementation preserves all invariants listed in the chapter header, (d) the LLM correctly observes all negative specifications. Tested on at least 2 representative chapters. (Validates INV-017, INV-018, INV-019.)
+Give ONLY one implementation chapter (plus glossary and relevant invariants) to an LLM. Verify: (a) no hallucinated requirements, (b) no clarifying questions about architecture, (c) all chapter-header invariants preserved, (d) all negative specifications observed. Test on ≥ 2 representative chapters. (Validates INV-017, INV-018, INV-019.)
 
-> **Gate 7 demonstration (thought experiment for this meta-standard):** Give §3.4 (Invariants element spec) plus the glossary to an LLM and ask it to write invariants for a hypothetical system. The LLM should: produce invariants in the prescribed format (statement, formal expression, violation scenario, validation method, WHY THIS MATTERS); NOT produce aspirational invariants like "the system shall be performant" (prevented by the anti-pattern in §3.4); NOT omit violation scenarios (prevented by the negative spec "DO NOT write invariants without violation scenarios"). If the LLM produces correct invariants without hallucinating format elements or omitting required components, Gate 7 passes for §3.4.
+> **Gate 7 demonstration (thought experiment):** Give §3.4 plus the glossary to an LLM and ask it to write invariants for a hypothetical system. It should produce the prescribed format (statement, formal expression, violation scenario, validation, WHY THIS MATTERS); NOT produce aspirational invariants (prevented by anti-pattern in §3.4); NOT omit violation scenarios (prevented by negative spec). If correct without hallucinating format elements, Gate 7 passes for §3.4.
 
 ### Modularization Quality Gates [Conditional — modular specs only]
 
@@ -1142,13 +1134,13 @@ A simulated change to one invariant correctly identifies all affected modules vi
 
 DDIS 3.0 is "done" when:
 - This document passes Gates 1–7 applied to itself
-- At least one non-trivial specification has been written conforming to DDIS and the author reports that the standard was sufficient (no structural gaps required working around)
+- At least one non-trivial spec has been written conforming to DDIS without structural workarounds
 - The Glossary (Appendix A) covers all DDIS-specific terminology
-- LLM provisions (negative specs, verification prompts, meta-instructions) are demonstrated in this document's own element specifications (self-bootstrapping of new elements)
+- LLM provisions are demonstrated in this document's own element specifications (self-bootstrapping)
 
 ## 0.8 Performance Budgets (for Specifications, Not Software)
 
-Specifications have performance characteristics too. A spec that takes 40 hours to read is too long. A spec that takes 2 hours to read probably omits critical details.
+Specifications have performance characteristics too. A 40-hour spec is too long. A 2-hour spec probably omits critical details.
 
 ### 0.8.1 Specification Size Budgets
 
@@ -1160,7 +1152,7 @@ Specifications have performance characteristics too. A spec that takes 40 hours 
 
 ### 0.8.2 Proportional Weight Guide
 
-Not all PART sections are equal. The following proportions prevent bloat in some areas and starvation in others. These are guidelines — domain-specific specs may adjust by ±20%.
+Not all sections are equal. These proportions prevent bloat and starvation. Domain-specific specs may adjust by ±20%.
 
 | Section | % of Total | Why |
 |---|---|---|
@@ -1192,10 +1184,10 @@ To validate the performance budgets above, measure these metrics during implemen
 
 | Metric | Measurement Method | Target |
 |---|---|---|
-| Time to first implementer question | Start timer when implementer begins reading; stop at first question that reveals a spec gap | > 2 hours (spec should sustain 2+ hours of productive implementation before first gap) |
-| LLM hallucination rate | Count unauthorized behaviors in LLM implementation ÷ total implementation decisions | < 5% with negative specs; > 15% without (baseline comparison validates INV-017) |
-| Cross-reference resolution time | Time for implementer to locate a referenced section | < 30 seconds (validates explicit cross-reference format) |
-| Gate passage rate | % of quality gates passing on first validation attempt | > 80% (author followed DDIS correctly) |
+| Time to first implementer question | Start timer when implementer begins; stop at first spec-gap question | > 2 hours |
+| LLM hallucination rate | Unauthorized behaviors ÷ total decisions | < 5% with negative specs; > 15% without (validates INV-017) |
+| Cross-reference resolution time | Time to locate a referenced section | < 30 seconds |
+| Gate passage rate | % of gates passing on first attempt | > 80% |
 
 ---
 
@@ -1219,7 +1211,7 @@ DDIS exposes the following "API" to specification authors:
 
 2. **Multi-document specs**: For very large systems, how should sub-specs reference each other? What invariants apply across spec boundaries? (Partially addressed by §0.13 modularization for single-spec decomposition.)
 
-3. ~~**Spec evolution**: How should a DDIS spec handle versioning? When an ADR is superseded, what happens to sections that referenced the old decision?~~ **RESOLVED in 3.0**: ADR-011 defines the mark-and-supersede protocol with cross-reference cascade. §13.3 prescribes the operational procedure.
+3. ~~**Spec evolution**: How should a DDIS spec handle versioning?~~ **RESOLVED**: ADR-011 defines mark-and-supersede with cross-reference cascade (§13.3).
 
 4. **Formal verification bridge**: Should DDIS define a pathway from falsifiable invariants to machine-checked properties for safety-critical systems?
 
@@ -1231,19 +1223,19 @@ DDIS exposes the following "API" to specification authors:
 
 ## 0.13 Modularization Protocol [Conditional]
 
-This section is REQUIRED when the monolithic specification exceeds 4,000 lines or when the target context window (model-dependent) cannot hold the full spec plus a meaningful working budget for LLM reasoning. It is OPTIONAL but recommended for specs between 2,500–4,000 lines.
+REQUIRED when the monolithic spec exceeds 4,000 lines or when the target context window cannot hold the full spec plus reasoning budget. OPTIONAL but recommended for 2,500–4,000 line specs.
 
 > Namespace note: INV-001 through INV-019 and ADR-001 through ADR-010 are DDIS meta-standard invariants/ADRs (defined in this standard). Application specs using DDIS define their OWN invariant namespace (e.g., APP-INV-001) — never reuse the meta-standard's INV-NNN space. Examples in this section use APP-INV-NNN to demonstrate this convention.
 
 ### 0.13.1 The Scaling Problem
 
-A DDIS spec's value depends on the implementer holding sufficient context to produce correct output without guessing. When the spec exceeds the implementer's context window, two failure modes emerge:
+When the spec exceeds the LLM's context window, two failure modes emerge:
 
-1. **Truncation**: The LLM silently drops content from the beginning of the context, losing invariants and the formal model — the very elements that prevent hallucination.
+1. **Truncation**: The LLM silently drops content from the beginning, losing invariants and the formal model.
 
-2. **Naive splitting**: Arbitrary file splits break cross-references, orphan invariants from the sections they constrain, and force the LLM to guess at contracts defined in unseen sections.
+2. **Naive splitting**: Arbitrary splits break cross-references, orphan invariants, and force guessing at contracts in unseen sections.
 
-The modularization protocol prevents both failures by defining a principled decomposition with formal completeness guarantees. (Motivated by INV-008: Self-Containment, INV-014: Bundle Budget Compliance.)
+The modularization protocol prevents both with principled decomposition and formal completeness guarantees. (Motivated by INV-008, INV-014.)
 
 ### 0.13.2 Core Concepts
 
@@ -1308,11 +1300,11 @@ Target budget:    1,200 - 4,500 lines per bundle
 Hard ceiling:     5,000 lines (must fit in context with reasoning room)
 ```
 
-// WHY THREE TIERS? Two tiers (root + module) works for systems with < 20 invariants and < 10 ADRs. Beyond that, the root itself exceeds budget. Three tiers add one level of indirection — domain grouping — which is already present in any well-architected system. The domain boundary serves double duty: it was already an isolation mechanism in the architecture, now it is also a context management mechanism. See ADR-006.
+// WHY THREE TIERS? Two tiers work for < 20 invariants / < 10 ADRs. Beyond that, the root exceeds budget. Three tiers add domain grouping — already present in well-architected systems. The domain boundary serves double duty: architectural isolation and context management. See ADR-006.
 
 ### 0.13.4 Invariant Declarations vs. Definitions
 
-The critical mechanism that makes the tiered constitution work. An invariant has two representations:
+An invariant has two representations:
 
 **Declaration** (Tier 1, always present, ~1 line):
 ```
@@ -1347,9 +1339,7 @@ log prefix byte-for-byte.
 | INTERFACES, invariant in OTHER domain | Declaration | —                               | Full definition        |
 | No relationship                       | Declaration | —                               | —                     |
 
-Key insight: a module's maintained invariants are ALWAYS in its own domain (enforced by CHECK-4 in §0.13.11). Therefore Tier 2 always covers them. Tier 3 ONLY adds cross-domain content. This eliminates all duplication between tiers.
-
-The same pattern applies to ADRs: declarations in Tier 1 always, full analysis in the domain that decided them, cross-domain inclusion in Tier 3 only when a module in another domain implements or is affected by the ADR.
+Key insight: a module's maintained invariants are ALWAYS in its own domain (enforced by CHECK-4). Therefore Tier 2 always covers them; Tier 3 ONLY adds cross-domain content, eliminating duplication. The same pattern applies to ADRs.
 
 ### 0.13.5 Module Header (Required per Module)
 
@@ -1440,7 +1430,7 @@ For small modular specs, the domain tier can be skipped. In two-tier mode:
 
 Assembly in two-tier mode: `system_constitution + module → bundle`.
 
-The manifest uses `tier_mode: two-tier` to signal this to the assembly script. If the spec grows beyond the two-tier threshold, migrate to three-tier by extracting domain constitutions (see Migration Procedure §0.13.14).
+The manifest uses `tier_mode: two-tier` to signal this to the assembly script. If the spec grows beyond the two-tier threshold, migrate to three-tier by extracting domain constitutions (see Migration Procedure §0.13.13).
 
 ### 0.13.8 File Layout
 
@@ -1717,11 +1707,7 @@ When constitutional content changes, affected modules must be re-validated.
 
 Both paths use the same manifest query. Beads adds persistence and ordering; the manifest provides the data either way.
 
-### 0.13.13 Quality Gate Extensions
-
-Modular specs must pass the additional quality gates defined in §0.7 (Gates M-1 through M-5) in addition to the base DDIS gates (Gates 1 through 7).
-
-### 0.13.14 Monolith-to-Module Migration Procedure
+### 0.13.13 Monolith-to-Module Migration Procedure
 
 **Step 1: Identify domains.**
 Group PART II chapters into 2–5 domains based on architectural boundaries.
@@ -1832,29 +1818,27 @@ A complete specification satisfies two properties:
 | Negative specification | O(adversarial_thinking) | O(1) per constraint | O(1) per constraint (check implementation) |
 | Verification prompt | O(invariants_per_chapter) | O(1) per prompt | O(1) (execute the prompt) |
 
-The quadratic cost of cross-reference verification is why automated tooling (Open Question §0.10.1) would be valuable.
+The quadratic cost of cross-reference verification is why automated tooling (§0.10, question 1) would be valuable.
 
 ### 1.4 End-to-End Trace: Authoring an ADR Through the DDIS Process
 
-This trace follows a single element — ADR-002 (Invariants Must Be Falsifiable) — from the author's initial recognition of a decision through the full DDIS authoring process to its validated form. This trace exercises the formal model (§0.2), non-negotiables (§0.1.2), invariants (§0.5), ADRs (§0.6), element specifications (§3.4, §3.5), quality gates (§0.7), validation (Chapter 12), and the self-bootstrapping property (ADR-004).
+This trace follows ADR-002 (Invariants Must Be Falsifiable) from initial recognition through full DDIS authoring to validation. It exercises the formal model (§0.2), non-negotiables (§0.1.2), invariants (§0.5), ADRs (§0.6), element specs (§3.4, §3.5), quality gates (§0.7), validation (Chapter 12), and self-bootstrapping (ADR-004).
 
-**Step 1: Recognition (First-Principles Derivation, §0.2.1)**
-The author, defining what an implementation specification IS, recognizes that "verifiability over trust" (§0.2.1, consequence 3) requires every claim to be testable. This raises a decision: what level of formality should invariants have?
+**Step 1: Recognition (§0.2.1)**
+Defining what a specification IS, the author recognizes that "verifiability over trust" (consequence 3) requires every claim to be testable. This raises a decision: what level of formality should invariants have?
 
 **Step 2: Non-Negotiable Check (§0.1.2)**
-The non-negotiable "Invariants are falsifiable" establishes the philosophical commitment. But how falsifiable? Three reasonable alternatives exist (aspirational, formal proof, falsifiable-but-readable), so this is an ADR, not a mere assertion.
+"Invariants are falsifiable" establishes the commitment. Three reasonable alternatives exist (aspirational, formal proof, falsifiable-but-readable), so this requires an ADR.
 
-**Step 3: ADR Creation (§3.5 element spec)**
-Following the ADR format prescribed in §3.5, the author writes ADR-002:
-- **Problem**: Should invariants be aspirational, formally proven, or falsifiable?
-- **Options**: Three genuine alternatives with concrete pros/cons (§3.5 requires "each option must have a real advocate").
-- **Decision**: Option C (falsifiable) with WHY NOT annotations for Options A and B.
-- **Tests**: "Validated by INV-003" — creating a forward reference to the invariant that will enforce this decision.
+**Step 3: ADR Creation (§3.5)**
+The author writes ADR-002 per §3.5 format:
+- **Problem**: Aspirational, formally proven, or falsifiable?
+- **Options**: Three genuine alternatives with concrete pros/cons.
+- **Decision**: Option C (falsifiable) with WHY NOT annotations.
+- **Tests**: "Validated by INV-003" — forward reference to the enforcing invariant.
 
-**Step 4: Invariant Derivation (§3.4 element spec)**
-The ADR decision motivates INV-003 (Invariant Falsifiability). Following the invariant format prescribed in §3.4, the author writes:
-- Plain-language statement, semi-formal expression, violation scenario, validation method, WHY THIS MATTERS.
-- The violation scenario ("an invariant states 'the system shall be performant'") demonstrates concretely how INV-003 would be violated.
+**Step 4: Invariant Derivation (§3.4)**
+ADR-002 motivates INV-003 (Invariant Falsifiability). The author writes per §3.4 format: statement, formal expression, violation scenario, validation, WHY THIS MATTERS. The violation scenario ("the system shall be performant") demonstrates concretely how INV-003 would be violated.
 
 **Step 5: Cross-Reference Threading (Chapter 10)**
 The author threads cross-references: ADR-002 references INV-003, INV-003 references Gate 4, Gate 4 references back to INV-003, the element spec §3.4 references both ADR-002 and INV-003, and the anti-pattern in §3.4 demonstrates what an INV-003 violation looks like.
@@ -1875,7 +1859,7 @@ This trace demonstrates that a single ADR touches 7 structural elements across 5
 
 # PART II: CORE STANDARD — ELEMENT SPECIFICATIONS
 
-This is the heart of DDIS. Each section specifies one structural element: what it must contain, what quality criteria it must meet, how it relates to other elements, and what it looks like when done well versus done badly. Each element specification includes LLM-specific provisions woven in (locked by ADR-008).
+The heart of DDIS. Each section specifies one structural element: what it must contain, quality criteria, how it relates to other elements, and what good versus bad looks like. Each includes woven LLM-specific provisions (ADR-008).
 
 ## Chapter 2: Preamble Elements
 
@@ -1921,11 +1905,11 @@ This is the heart of DDIS. Each section specifies one structural element: what i
 
 ### 2.3 Document Note
 
-**What it is**: A short disclaimer (2–4 sentences) about the nature of code blocks and where the correctness contract lives.
+**What it is**: A short disclaimer (2–4 sentences) about code blocks and where correctness lives.
 
-**Why it exists**: Without this note, implementers treat code blocks as copy-paste targets. When the pseudocode has a typo or uses a slightly wrong API, they copy the bug. The document note redirects trust from code to invariants and tests. This is especially critical for LLMs, which will reproduce code blocks verbatim if not explicitly told otherwise.
+**Why it exists**: Without this note, implementers treat code blocks as copy-paste targets. The document note redirects trust from code to invariants and tests. LLMs will reproduce code blocks verbatim unless explicitly told otherwise.
 
-**DO NOT** omit this note even if it seems obvious. LLMs will treat any code block as authoritative unless explicitly instructed otherwise. (Validates INV-017.)
+**DO NOT** omit this note even if it seems obvious. (Validates INV-017.)
 
 **Template**:
 > Code blocks in this plan are **design sketches** for API shape, invariants, and responsibilities.
@@ -1962,7 +1946,7 @@ After writing your spec's preamble, verify:
 
 ### 3.1 Non-Negotiables (Engineering Contract)
 
-**What it is**: 5–10 properties that define what the system IS. These are stronger than invariants (which are formal and testable) — they are the philosophical commitments that an implementer must never compromise, even under pressure.
+**What it is**: 5–10 properties defining what the system IS. Stronger than invariants (which are formal and testable) — these are philosophical commitments that must never be compromised, even under pressure.
 
 **Required format**:
 ```
@@ -1985,7 +1969,7 @@ After writing your spec's preamble, verify:
 
 **What it is**: A list of 5–10 things the system explicitly does NOT attempt.
 
-**Why it exists**: Scope creep is the most common spec failure. Non-goals are the immune system. They give implementers permission to say "that's out of scope" when stakeholders request features that violate the system's boundaries. For LLM implementers, non-goals prevent the addition of "helpful" features not in the spec.
+**Why it exists**: Scope creep is the most common spec failure. Non-goals give implementers permission to say "out of scope." For LLMs, non-goals prevent adding "helpful" features not in the spec.
 
 **Quality criteria for each non-goal**:
 - Someone has actually asked for this (or will), making the exclusion non-obvious
@@ -1999,7 +1983,7 @@ After writing your spec's preamble, verify:
 
 ### 3.3 First-Principles Derivation
 
-**What it is**: The formal model from which the entire architecture derives. This is the section that makes every other section feel *inevitable* rather than *asserted*.
+**What it is**: The formal model from which the entire architecture derives. Makes every section feel *inevitable* rather than *asserted*.
 
 **Required components**:
 
@@ -2175,7 +2159,7 @@ B) **[Option name]**
 
 **What it is**: Explicit constraints on what the system (or subsystem) must NOT do, organized per implementation chapter.
 
-**Why it exists**: LLMs fill specification gaps with plausible but unauthorized behaviors (§0.2.2). Negative specifications are the primary structural defense against hallucination. They are more effective than anti-patterns because they are co-located with the subsystem they constrain and use imperative language that LLMs follow. (Locked by ADR-009, validates INV-017.)
+**Why it exists**: LLMs fill specification gaps with plausible but unauthorized behaviors (§0.2.2). Negative specifications are co-located with the subsystem they constrain and use imperative language LLMs follow — more effective than distant anti-patterns. (Locked by ADR-009, validates INV-017.)
 
 **Required format per implementation chapter**:
 ```
@@ -2278,7 +2262,7 @@ After writing your spec's PART I (Foundations), verify:
 
 ### 5.1 Implementation Chapters
 
-**What it is**: One chapter per major subsystem. This is where the spec earns its value.
+**What it is**: One chapter per major subsystem — where the spec earns its value.
 
 **Required components per chapter**:
 
@@ -2308,9 +2292,9 @@ After writing your spec's PART I (Foundations), verify:
 
 13. **Cross-references**: To ADRs, invariants, other subsystems, the formal model.
 
-**Quality criteria**: An implementer could build this subsystem from this chapter alone, without reading any other chapter. (They would need to read other chapters to understand how subsystems compose, but each chapter is self-contained for its subsystem.)
+**Quality criteria**: An implementer could build this subsystem from this chapter alone. (Understanding composition requires other chapters, but each chapter is self-contained for its subsystem.)
 
-**DO NOT** write implementation chapters before locking the ADRs they depend on — you will rewrite them when ADR decisions change. **DO NOT** reference invariants by ID alone without restating them — this violates INV-018 (every implementation chapter restates the invariants it must preserve, not merely referencing them by ID) and causes LLM context loss. (Validates INV-001: every implementation section traces to the formal model; INV-017; INV-018.)
+**DO NOT** write implementation chapters before locking their ADR dependencies — you will rewrite them when decisions change. **DO NOT** reference invariants by ID alone — restate them (INV-018). (Validates INV-001, INV-017, INV-018.)
 
 ---
 
@@ -2323,7 +2307,7 @@ After writing your spec's PART I (Foundations), verify:
 - Shows state before, the operation, and state after
 - Includes at least one non-trivial aspect (an edge case, a conflict, a boundary condition)
 
-**DO NOT** use variables or placeholders instead of concrete values. LLMs over-index on examples (§0.2.2) — an example with "some task" teaches the LLM to produce vague implementations. An example with `task_id = T-042` teaches precision. (Validates INV-017.)
+**DO NOT** use variables or placeholders. LLMs over-index on examples (§0.2.2) — "some task" produces vague implementations; `task_id = T-042` teaches precision. (Validates INV-017.)
 
 **Anti-pattern**:
 ```
@@ -2352,7 +2336,7 @@ After writing your spec's PART I (Foundations), verify:
 - Identifies which invariants are exercised at each step
 - Includes at least one cross-subsystem interaction that could go wrong
 
-**Why it exists**: Individual subsystem examples prove each piece works. The end-to-end trace proves the pieces fit together. Many bugs live at subsystem boundaries. (Validates INV-001.)
+**Why it exists**: Individual examples prove each piece works. The end-to-end trace proves the pieces fit together. Most bugs live at subsystem boundaries. (Validates INV-001.)
 
 **Self-bootstrapping demonstration**: This document includes an end-to-end trace in §1.4 — tracing ADR-002 from recognition through the full DDIS authoring process.
 
@@ -2394,7 +2378,7 @@ After writing your spec's PART I (Foundations), verify:
 
 ### 5.6 Verification Prompts
 
-**What it is**: A structured self-check prompt at the end of each implementation chapter that an implementer (especially an LLM) can use to verify their output against the spec before moving on. (Locked by ADR-010.)
+**What it is**: A structured self-check at the end of each implementation chapter for verifying output against the spec before moving on. (Locked by ADR-010.)
 
 **Required format**:
 ```
@@ -2431,7 +2415,7 @@ After implementing this subsystem, verify:
 
 ### 5.7 Meta-Instructions
 
-**What it is**: Directives to the LLM implementer embedded in the spec, providing ordering, sequencing, and process guidance that traditional specs don't need because human implementers infer these from experience.
+**What it is**: Directives to the LLM implementer providing ordering, sequencing, and process guidance that human implementers infer from experience.
 
 **Required format**:
 ```
@@ -2478,18 +2462,15 @@ After writing your spec's implementation chapters, verify:
 
 ### 6.1 Operational Playbook
 
-**What it is**: A chapter that prevents the most common failure mode of detailed specs: infinite refinement without shipping.
+**What it is**: Prevents the most common failure mode of detailed specs: infinite refinement without shipping.
 
 **Required sections**:
 
 #### 6.1.1 Phase -1: Decision Spikes
 
-Before building anything, run tiny experiments that de-risk the hardest unknowns. Each spike produces an ADR.
+Run tiny experiments to de-risk the hardest unknowns before building. Each spike produces an ADR.
 
-**Required per spike**:
-- What question it answers
-- Maximum time budget (typically 1–3 days)
-- Exit criterion: one ADR capturing decision + rationale + consequences
+**Required per spike**: What question it answers, maximum time budget (1–3 days), exit criterion (one ADR).
 
 #### 6.1.2 Exit Criteria per Phase
 
@@ -2507,11 +2488,11 @@ What every PR touching invariants, reducers, or critical paths must include:
 
 #### 6.1.4 Minimal Deliverables Order
 
-The order in which subsystems should be built, chosen to maximize the "working subset" at each stage. The first deliverable should be a minimal system that exercises the core loop, not a complete system missing its core. This ordering must be an explicit DAG with dependency reasons (validates INV-019).
+Build order chosen to maximize the "working subset" at each stage. The first deliverable exercises the core loop, not a complete system missing its core. Must be an explicit DAG with dependency reasons (INV-019).
 
 #### 6.1.5 Immediate Next Steps (First PRs)
 
-The literal first 5–6 things to implement, in dependency order. Not strategic. Tactical. This converts the spec from "a plan to study" into "a plan to execute starting now."
+The literal first 5–6 things to implement, in dependency order. Not strategic — tactical. Converts the spec from "a plan to study" into "a plan to execute now."
 
 ---
 
@@ -2629,12 +2610,12 @@ After writing your spec's appendices, verify:
 - Never uses marketing language ("enterprise-grade", "cutting-edge", "revolutionary")
 - Never uses bureaucratic language ("it is recommended that", "the system shall")
 
-**DO NOT** allow the voice to shift between sections — inconsistent voice signals to an LLM that different sections were written by different authors with different conventions, causing inconsistent implementation style. **DO NOT** use hedging language ("arguably", "it could be said that") in invariants, ADRs, or negative specifications — hedging in imperative sections causes LLMs to treat requirements as optional. (Validates INV-017.)
+**DO NOT** let the voice shift between sections — inconsistency signals different conventions to an LLM, producing inconsistent implementations. **DO NOT** hedge in invariants, ADRs, or negative specifications — hedging causes LLMs to treat requirements as optional. (Validates INV-017.)
 
-**LLM-specific voice guidance**: LLMs generate in the voice they're trained on. DDIS voice guidance steers them away from generic boilerplate. Specifically:
-- **Avoid passive voice** — LLMs default to passive ("it is recommended that..."). Active voice ("the system retries three times, then fails") produces clearer implementation.
-- **Use concrete numbers** — LLMs generate vague qualifiers ("quickly", "efficiently") when the spec uses them. Concrete numbers ("< 1ms", "at most 3 retries") produce testable implementations.
-- **Name things explicitly** — LLMs generate generic names ("data", "handler", "process") when the spec doesn't provide names. Domain-specific names reduce ambiguity.
+**LLM-specific voice guidance**: LLMs generate in the voice they're trained on. Specifically:
+- **Active voice** — LLMs default to passive ("it is recommended that..."). Active ("the system retries three times, then fails") produces clearer implementation.
+- **Concrete numbers** — Vague qualifiers ("quickly") produce untestable code. Use "< 1ms", "at most 3 retries."
+- **Explicit names** — Without domain-specific names, LLMs generate "data", "handler", "process."
 
 **Calibration examples**:
 
@@ -2692,18 +2673,18 @@ A section that references nothing and is referenced by nothing. It may contain g
 Every option in an ADR must have a genuine advocate — a competent engineer who, in a different context, would choose it.
 
 **Anti-pattern: The Missing Verification Prompt**
-An implementation chapter that has negative specifications and invariant references but no verification prompt block. The author assumed that the quality criteria are self-evident — but an LLM implementer benefits from an explicit checklist (§5.6, INV-020). Without it, the LLM has no structured self-check point before moving to the next subsystem.
+An implementation chapter with negative specifications and invariant references but no verification prompt block. Without it, the LLM has no structured self-check before moving to the next subsystem. (§5.6, INV-020.)
 
 **Anti-pattern: The Percentage-Free Performance Budget**
 "The system should respond quickly." Without a number, a design point, and a measurement method, this is a wish, not a budget.
 
 **Anti-pattern: The Spec That Requires Oral Tradition**
-If an implementer must ask the architect a question that the spec should have answered, the spec has a gap. Track these questions during implementation and patch them back into the spec (see Living state, §1.1).
+If an implementer must ask the architect a question the spec should have answered, the spec has a gap. Track questions during implementation and patch them in (Living state, §1.1).
 
 **Anti-pattern: The Afterthought LLM Section**
-A single "Chapter N: LLM Considerations" appendix bolted onto an otherwise LLM-unaware spec. LLM provisions must be woven throughout element specifications, not isolated. (See ADR-008.)
+A "Chapter N: LLM Considerations" appendix bolted onto an otherwise LLM-unaware spec. Provisions must be woven throughout, not isolated. (ADR-008.)
 
-**DO NOT** treat the anti-pattern catalog as a substitute for subsystem-specific negative specifications (§3.8). Anti-patterns are document-level guidance for spec authors; negative specifications are subsystem-level constraints for implementers. Both are required; neither replaces the other. (Validates INV-017, ADR-009.)
+**DO NOT** treat anti-patterns as a substitute for subsystem-specific negative specifications (§3.8). Anti-patterns are document-level guidance; negative specs are subsystem-level constraints. Both required; neither replaces the other. (Validates INV-017, ADR-009.)
 
 ---
 
@@ -2711,7 +2692,7 @@ A single "Chapter N: LLM Considerations" appendix bolted onto an otherwise LLM-u
 
 ### 9.1 Identifying the Heart
 
-Every system has a "heart" — the 2–3 subsystems where most complexity and most bugs live. In the proportional weight guide, these subsystems should receive 40–50% of the PART II line budget.
+Every system has a "heart" — the 2–3 subsystems where most complexity and bugs live. These should receive 40–50% of the PART II line budget.
 
 **How to identify the heart**:
 - Which subsystems have the most invariants?
@@ -2766,7 +2747,7 @@ DDIS does not mandate a specific syntax, but recommends consistent conventions. 
 
 > **META-INSTRUCTION (for spec authors):** Write sections in this order (not document order) to minimize rework. Do not skip steps or reorder — the dependency chain between steps is real.
 
-**DO NOT** write sections in document order instead of authoring order — this causes cascading rework when ADRs change after implementation chapters are already written. **DO NOT** skip negative specifications (step 7) or verification prompts (step 11) — these are the primary LLM-effectiveness provisions and cannot be retrofitted without re-reading each implementation chapter. (Validates INV-017, INV-019: explicit ordering with stated reasons.)
+**DO NOT** write in document order instead of authoring order — this causes cascading rework when ADRs change. **DO NOT** skip negative specifications (step 7) or verification prompts (step 11) — these cannot be retrofitted without re-reading each chapter. (Validates INV-017, INV-019.)
 
 1. **Design goal + Core promise** (forces you to articulate the value)
 2. **First-principles formal model** (forces you to understand the domain)
@@ -2807,7 +2788,7 @@ DDIS does not mandate a specific syntax, but recommends consistent conventions. 
 
 ### 12.1 Self-Validation Checklist
 
-**DO NOT** skip the self-validation checklist or treat it as optional polish — a spec that has not been self-validated will fail external validation (§12.2) and produce LLM implementations with preventable errors. **DO NOT** validate gates out of order — a failing Gate 1 makes later gates irrelevant (§0.7). (Validates INV-003, INV-020.)
+**DO NOT** skip self-validation or treat it as polish — unvalidated specs produce preventable LLM errors. **DO NOT** validate gates out of order — a failing Gate 1 makes later gates irrelevant. (Validates INV-003, INV-020.)
 
 Before declaring a spec complete, the author should:
 
@@ -2820,11 +2801,11 @@ Before declaring a spec complete, the author should:
 
 ### 12.2 External Validation
 
-The strongest validation is giving the spec to an implementer (or LLM) and tracking:
-- Questions they ask that the spec should have answered (→ gaps)
-- Incorrect implementations that the spec didn't prevent (→ ambiguities)
-- Sections they skipped because they couldn't understand them (→ voice/clarity issues)
-- Behaviors they added that the spec didn't request (→ missing negative specifications)
+Give the spec to an implementer (or LLM) and track:
+- Questions the spec should have answered → gaps
+- Incorrect implementations not prevented → ambiguities
+- Skipped sections → voice/clarity issues
+- Added behaviors not in spec → missing negative specifications
 
 ---
 
@@ -2832,15 +2813,15 @@ The strongest validation is giving the spec to an implementer (or LLM) and track
 
 ### 13.1 The Living Spec
 
-**DO NOT** treat the Living state as permission to make informal changes — every modification to the Living spec must maintain the causal chain (INV-001), cross-reference web (INV-006), and all quality gates (§0.7). **DO NOT** delete superseded ADRs — mark them as superseded and follow the ADR supersession protocol (ADR-011, §13.3). (Validates INV-001, INV-006.)
+**DO NOT** treat the Living state as permission for informal changes — every modification must maintain the causal chain (INV-001), cross-reference web (INV-006), and quality gates (§0.7). **DO NOT** delete superseded ADRs — mark and follow the supersession protocol (ADR-011, §13.3).
 
 Once implementation begins, the spec enters the Living state (§1.1). In this state:
 
-- **Gaps discovered during implementation** are patched back into the spec, not into oral tradition or issue trackers. The spec remains the single source of architectural truth.
-- **ADRs may be superseded.** When an ADR is reversed, mark the old ADR as "Superseded by ADR-NNN" and update all cross-references. Do not delete the old ADR — its reasoning is historical record.
-- **New invariants may be added.** Implementation often reveals properties that weren't obvious during design. Add them with full INV-NNN format.
-- **Performance budgets may be revised.** If a budget is consistently unachievable, either the budget or the design must change. Document which, and why.
-- **Negative specifications may be added.** LLM implementation often reveals hallucination patterns not anticipated during spec authoring. Add negative specs to prevent recurrence.
+- **Gaps** are patched into the spec, not oral tradition. The spec remains the single source of architectural truth.
+- **ADRs may be superseded.** Mark old ADR as "Superseded by ADR-NNN," update all cross-references. Do not delete — reasoning is historical record.
+- **New invariants may be added.** Implementation reveals non-obvious properties. Add with full INV-NNN format.
+- **Performance budgets may be revised.** If unachievable, the budget or design must change. Document which and why.
+- **Negative specifications may be added.** LLM implementation reveals unanticipated hallucination patterns.
 
 ### 13.2 Spec Versioning
 
@@ -2873,7 +2854,7 @@ After the cascade:
 - Gate 2 (Causal Chain): Verify that sections updated in Step 3 still trace to the formal model
 - Gate 5 (Cross-Reference Web): Verify the superseded ADR still has at least one inbound reference (the new ADR's "Supersedes" link)
 
-**DO NOT** supersede an ADR without executing the cross-reference cascade — this creates contradictions where some sections prescribe behavior based on the old decision while others follow the new one. An LLM encountering conflicting guidance will produce inconsistent implementations. (Validates INV-001, INV-006.)
+**DO NOT** supersede an ADR without executing the cross-reference cascade — conflicting guidance produces inconsistent LLM implementations. (Validates INV-001, INV-006.)
 
 ---
 
@@ -2884,13 +2865,13 @@ After the cascade:
 | Term | Definition |
 |---|---|
 | **ADR** | Architecture Decision Record. A structured record of a design choice, including alternatives considered and rationale. (See §3.5) |
-| **ADR supersession** | The formal process of replacing an ADR with a new decision while preserving the original as historical record. Requires a cross-reference cascade to update all sections referencing the old ADR. (See ADR-011, §13.3) |
-| **Bundle** | The assembled document sent to an LLM for implementation of a single module. Contains: Tier 1 + Tier 2 + Tier 3 + Module. The unit of LLM consumption in modular specs. (See §0.13.2, §0.13.10) |
+| **ADR supersession** | Replacing an ADR while preserving the original as historical record. Requires cross-reference cascade. (See ADR-011, §13.3) |
+| **Bundle** | Assembled document for LLM implementation of one module: Tier 1 + Tier 2 + Tier 3 + Module. The unit of LLM consumption. (See §0.13.2, §0.13.10) |
 | **Cascade protocol** | The procedure for identifying and re-validating modules affected by a change to constitutional content. (See §0.13.12) |
 | **Causal chain** | The traceable path from a first principle through an invariant and/or ADR to an implementation detail. (See §0.2.3, INV-001) |
 | **Churn-magnet** | A decision that, if left open, causes the most downstream rework. ADRs should prioritize locking churn-magnets. (See §3.5) |
 | **Comparison block** | A side-by-side ❌/✅ comparison of a rejected and chosen approach with quantified reasoning. (See §5.5) |
-| **Constitution** | The cross-cutting material that constrains all modules in a modular spec. Organized in tiers: system (Tier 1), domain (Tier 2), cross-domain deep (Tier 3). (See §0.13.3) |
+| **Constitution** | Cross-cutting material constraining all modules. Organized in tiers: system (Tier 1), domain (Tier 2), cross-domain deep (Tier 3). (See §0.13.3) |
 | **Cross-reference** | An explicit link between two sections of the spec, using §X.Y, INV-NNN, or ADR-NNN identifiers. Forms part of the reference web. (See Chapter 10, INV-006) |
 | **DDIS** | Decision-Driven Implementation Specification. This standard. |
 | **Decision spike** | A time-boxed experiment that de-risks an unknown and produces an ADR. (See §6.1.1) |
@@ -2910,25 +2891,25 @@ After the cascade:
 | **Invariant** | A numbered, falsifiable property that must hold at all times during system operation. (See §3.4) |
 | **Living spec** | A specification in active use, being updated as implementation reveals gaps. (See §13.1) |
 | **LLM consumption model** | The formal model of how an LLM consumes a DDIS spec, including failure modes and structural mitigations. (See §0.2.2) |
-| **Manifest** | A machine-readable YAML file declaring all modules, their domain membership, invariant ownership, cross-module interfaces, and assembly rules. The single source of truth for module assembly. (See §0.13.9) |
+| **Manifest** | Machine-readable YAML declaring all modules, domain membership, invariant ownership, and assembly rules. Single source of truth for assembly. (See §0.13.9) |
 | **Master TODO** | A checkboxable task inventory cross-referenced to subsystems, phases, and ADRs. (See §7.3) |
 | **Meta-instruction** | A directive to the LLM implementer embedded in the spec, providing ordering, sequencing, or process guidance. (See §5.7) |
 | **Monolith** | A DDIS spec that exists as a single document, as opposed to a modular spec. All specs start as monoliths. (See §0.13.2) |
-| **Negative specification** | An explicit "DO NOT" constraint on what a subsystem must not do, co-located with the implementation chapter. The primary defense against LLM hallucination. (See §3.8, INV-017) |
+| **Negative specification** | Explicit "DO NOT" constraint co-located with the implementation chapter. Primary defense against LLM hallucination. (See §3.8, INV-017) |
 | **Non-goal** | Something the system explicitly does not attempt. (See §3.2) |
 | **Non-negotiable** | A philosophical commitment stronger than an invariant — defines what the system IS. (See §3.1) |
 | **Operational playbook** | A chapter covering how the spec gets converted into shipped software. (See §6.1) |
 | **Proportional weight** | Line budget guidance preventing bloat in some sections and starvation in others. (See §0.8.2) |
 | **Self-bootstrapping** | A property of this standard: it is written in the format it defines. (See ADR-004) |
-| **Module** | A self-contained unit of a modular spec covering one major subsystem. Corresponds to one PART II chapter. Always assembled into a bundle with constitutional context. (See §0.13.2, §0.13.5) |
-| **Module header** | A structured YAML-format block at the start of each module declaring its domain, maintained invariants, interfaces, adjacent modules, and negative specifications. (See §0.13.5) |
+| **Module** | Self-contained spec unit covering one major subsystem. Corresponds to one PART II chapter. Always assembled into a bundle. (See §0.13.2, §0.13.5) |
+| **Module header** | Structured YAML block at module start declaring domain, maintained invariants, interfaces, and negative specifications. (See §0.13.5) |
 | **Structural redundancy** | The practice of restating key invariants at their point of use (not just at the point of definition) to prevent context loss in long documents. Required by INV-018. (See §0.2.2) |
 | **System constitution** | Tier 1 of the constitution: compact declarations of all invariants and ADRs, plus system-wide orientation (design goal, non-negotiables, glossary summaries). Always included in every bundle. (See §0.13.3) |
 | **Three-tier mode** | The standard modularization configuration: system constitution (Tier 1) + domain constitution (Tier 2) + cross-domain deep context (Tier 3) + module. (See §0.13.7, ADR-006) |
 | **Two-tier mode** | A simplified modularization configuration for small specs (< 20 invariants): system constitution (full definitions) + module. No domain or deep context tiers. (See §0.13.7.1) |
 | **Verification prompt** | A structured self-check prompt at the end of an implementation chapter, used by implementers (especially LLMs) to verify their output against the spec. (See §5.6, ADR-010) |
 | **Voice** | The writing style prescribed by DDIS: technically precise but human. (See §8.1) |
-| **Verification prompt coverage** | The property (INV-020) that every element specification chapter includes a structured verification prompt block demonstrating §5.6 by self-application. The self-bootstrapping mechanism for verification prompts. (See INV-020) |
+| **Verification prompt coverage** | Property (INV-020) that every element spec chapter includes a verification prompt block demonstrating §5.6 by self-application. (See INV-020) |
 | **WHY NOT annotation** | An inline comment explaining why a non-obvious alternative was rejected. (See §5.4) |
 | **Worked example** | A concrete scenario with specific values showing a subsystem in action. (See §5.2) |
 
@@ -2938,13 +2919,13 @@ After the cascade:
 
 | # | Risk | Impact | Mitigation | Detection |
 |---|---|---|---|---|
-| 1 | Standard is too prescriptive, authors feel constrained | Low adoption | Non-goals clearly state what DDIS doesn't attempt; [Optional] elements provide flexibility | Author feedback; compare time-to-first-spec across teams |
-| 2 | Standard is too verbose, specs become shelfware | Implementers don't read the spec | Proportional weight guide limits bloat; voice guide keeps prose readable | Track "questions that the spec should have answered" during implementation |
-| 3 | Cross-reference requirement is burdensome | Authors skip references, violating INV-006 | Authoring sequence (§11.1) defers cross-references to step 12 so they're added systematically, not incrementally | Reference graph analysis during validation |
-| 4 | Self-bootstrapping creates circular confusion | Readers can't distinguish meta-level from object-level | Document note and consistent use of "this standard" vs "a conforming specification" | Reader feedback on first encounter |
-| 5 | No automated tooling exists for validation | Quality gates require manual effort | Completeness checklist (Part X) makes manual checks systematic | Track time-to-validate; prioritize tooling if > 2 hours |
-| 6 | Negative specifications become boilerplate | Authors write generic "DO NOT" constraints that provide no value | Quality criteria in §3.8 require subsystem-specific, falsifiable constraints; examples show good vs bad | LLM hallucination rate comparison with/without negative specs (§0.8.4) |
-| 7 | LLM provisions add bulk without proportional value | Spec length increases beyond 30% growth budget | Proportional weight guide (§0.8.2) applies to LLM provisions too; INV-007 (signal-to-noise) governs all additions | Measure LLM implementation quality with vs without provisions |
+| 1 | Too prescriptive, authors feel constrained | Low adoption | Non-goals + [Optional] elements provide flexibility | Author feedback; time-to-first-spec comparison |
+| 2 | Too verbose, specs become shelfware | Implementers skip the spec | Proportional weight guide limits bloat; voice guide keeps prose readable | Track questions spec should have answered |
+| 3 | Cross-reference requirement is burdensome | Authors skip references (INV-006) | Authoring sequence (§11.1) defers cross-refs to step 12 | Reference graph analysis during validation |
+| 4 | Self-bootstrapping creates confusion | Meta/object-level ambiguity | Consistent "this standard" vs "a conforming spec" language | Reader feedback on first encounter |
+| 5 | No automated validation tooling | Quality gates require manual effort | Completeness checklist (Part X) systematizes manual checks | Track time-to-validate; prioritize if > 2 hours |
+| 6 | Negative specs become boilerplate | Generic "DO NOT" with no value | §3.8 requires subsystem-specific, falsifiable constraints | LLM hallucination rate with/without (§0.8.4) |
+| 7 | LLM provisions add bulk without value | Length exceeds growth budget | INV-007 governs all additions; proportional weight applies | Measure LLM quality with vs without |
 
 ---
 
@@ -3029,7 +3010,7 @@ DO NOT constraints: in EVERY element spec, PART III guidance, AND PART IV operat
 - [x] Anti-pattern catalog (§8.3) — including "Afterthought LLM Section" anti-pattern
 - [x] Cross-reference patterns (Chapter 10) — with "DO NOT use implicit references"
 
-## C) LLM Provisions (Introduced in 2.0, Enhanced in 3.0)
+## C) LLM Provisions
 - [x] LLM Consumption Model (§0.2.2) with formal model and failure modes
 - [x] INV-017 (Negative Specification Coverage) with violation scenario and validation
 - [x] INV-018 (Structural Redundancy at Point of Use) with violation scenario and validation
@@ -3040,34 +3021,32 @@ DO NOT constraints: in EVERY element spec, PART III guidance, AND PART IV operat
 - [x] ADR-010 (Verification Prompts per Chapter) with genuine alternatives
 - [x] ADR-011 (ADR Supersession Protocol) — NEW in 3.0: formal mark-and-supersede with cross-reference cascade
 - [x] Gate 7 (LLM Implementation Readiness) with thought experiment demonstration
-- [x] Negative specifications woven throughout element specs (§2.1, §2.2, §2.3, §3.1, §3.2, §3.3, §3.4, §3.5, §3.6, §3.7, §4.2, §5.1, §5.2, §5.6, §5.7, §7.1, §10.1)
-- [x] DO NOT constraints extended to PART III (§8.1, §8.3) and PART IV (§11.1, §12.1, §13.1) — NEW in 3.0
-- [x] §3.8 Negative Specifications element spec with format, quality criteria, and anti-patterns
+- [x] Negative specifications woven throughout element specs (§2.1–§3.7, §4.2, §5.1–§5.7, §7.1, §8.1, §8.3, §10.1, §11.1, §12.1, §13.1)- [x] §3.8 Negative Specifications element spec with format, quality criteria, and anti-patterns
 - [x] §5.6 Verification Prompts element spec with format and self-bootstrapping demo
 - [x] §5.7 Meta-Instructions element spec with format, examples, and self-bootstrapping demo
 
-## D) Self-Conformance Fixes (from audit)
-- [x] End-to-end trace for DDIS itself (§1.4) — traces ADR-002 through full authoring process
-- [x] State machine (§1.1) enhanced with guards, entry actions, and complete invalid transition list
+## D) Self-Conformance Fixes
+- [x] End-to-end trace for DDIS itself (§1.4)
+- [x] State machine (§1.1) with guards, entry actions, complete invalid transition list
 - [x] Error taxonomy for specification authoring (Appendix C)
 - [x] Specification quality measurement methodology (§0.8.4)
-- [x] Verification prompt blocks in all element spec chapters (Chapters 2–7) — NEW in 3.0 (INV-020)
-- [x] INV-018 restatements: key invariants restated at point of use within element specs — NEW in 3.0
-- [x] Open Question §0.10.3 resolved: ADR supersession protocol formalized (ADR-011, §13.3) — NEW in 3.0
+- [x] Verification prompt blocks in all element spec chapters (Chapters 2–7, INV-020)
+- [x] INV-018 restatements at point of use within element specs
+- [x] ADR supersession protocol formalized (ADR-011, §13.3)
 
 ## E) Guidance
-- [x] Voice and style guide (Chapter 8) — with LLM-specific voice guidance and DO NOT constraints (enhanced in 3.0)
+- [x] Voice and style guide (Chapter 8) with LLM-specific guidance
 - [x] Proportional weight deep dive (Chapter 9)
-- [x] Authoring sequence (§11.1) — expanded with negative specs, verification prompts, meta-instructions steps; DO NOT constraints added in 3.0
-- [x] Common mistakes (§11.2) — includes "omitting negative specifications" and "referencing invariants by ID only"
-- [x] Validation procedure (Chapter 12) — includes Gate 7 LLM validation step; DO NOT constraints added in 3.0
-- [x] Evolution guidance (Chapter 13) — includes negative spec evolution; §13.3 ADR Supersession Procedure added in 3.0
+- [x] Authoring sequence (§11.1) with negative specs, verification prompts, meta-instructions
+- [x] Common mistakes (§11.2)
+- [x] Validation procedure (Chapter 12) including Gate 7
+- [x] Evolution guidance (Chapter 13) including §13.3 ADR Supersession
 
 ## F) Reference Material
-- [x] Glossary (Appendix A) — enhanced with new terms (hallucination, LLM consumption model, meta-instruction, negative specification, structural redundancy, verification prompt, ADR supersession, verification prompt coverage)
-- [x] Risk register (Appendix B) — enhanced with LLM-specific risks (#6, #7)
-- [x] Specification error taxonomy (Appendix C) — enhanced with "missing verification prompt" and "superseded ADR without cascade" error classes (3.0)
-- [x] Quick-reference card (Appendix D) — enhanced with verification prompt coverage, ADR supersession, DO NOT scope
+- [x] Glossary (Appendix A) — all DDIS-specific terms defined
+- [x] Risk register (Appendix B) including LLM-specific risks
+- [x] Specification error taxonomy (Appendix C)
+- [x] Quick-reference card (Appendix D)
 
 ## G) Modularization Protocol
 - [x] Modularization protocol integrated (§0.13) with 14 subsections
@@ -3079,7 +3058,7 @@ DO NOT constraints: in EVERY element spec, PART III guidance, AND PART IV operat
 - [x] Assembly rules specified for both two-tier and three-tier modes (§0.13.10)
 - [x] All 9 consistency checks defined with formal expressions (§0.13.11, CHECK-1 through CHECK-9)
 - [x] Cascade protocol documented with and without beads fallback (§0.13.12)
-- [x] Migration procedure: monolith to modular, 9 steps (§0.13.14)
+- [x] Migration procedure: monolith to modular, 9 steps (§0.13.13)
 - [x] Module header format specified with namespace distinction (§0.13.5)
 - [x] Cross-module reference rules formalized (§0.13.6)
 - [x] Modularization decision flowchart with two-tier simplification (§0.13.7)
@@ -3096,29 +3075,15 @@ DO NOT constraints: in EVERY element spec, PART III guidance, AND PART IV operat
 
 ## Conclusion
 
-DDIS 3.0 synthesizes techniques from several well-established traditions:
-
-1. **From Architecture Decision Records** (Nygard): The Problem → Options → Decision → Consequences structure that makes design choices explicit and reviewable.
-
-2. **From Design by Contract** (Meyer): The invariant-first approach where system properties are stated formally before implementation details.
-
-3. **From Formal Specification** (Lamport): The use of state machines, temporal properties, and formal models as the foundation from which architecture derives.
-
-4. **From Game Engine Development**: Performance budgets tied to specific design points with concrete measurement methodologies.
-
-5. **From Test-Driven Development**: The requirement that every property be testable and every algorithm include worked examples and edge cases.
-
-6. **From LLM-era specification practice**: Negative specifications, verification prompts, meta-instructions, structural redundancy at point of use, verification prompt coverage (INV-020), and the LLM consumption model — structural provisions that prevent the most common LLM failure modes (hallucination, context loss, implicit reference failure) while remaining useful for human implementers. (See §0.2.2, INV-017 through INV-020, ADR-008 through ADR-011.)
-
-7. **From living document practice**: ADR supersession protocol (ADR-011, §13.3) — a formal mechanism for evolving decisions without losing institutional knowledge or creating cross-reference contradictions.
+DDIS synthesizes well-established traditions: Architecture Decision Records (Nygard), Design by Contract (Meyer), formal specification (Lamport), game-engine performance budgeting, test-driven development, LLM-era specification practice (negative specs, verification prompts, meta-instructions, structural redundancy — §0.2.2, INV-017 through INV-020, ADR-008 through ADR-011), and living-document evolution (ADR supersession, ADR-011, §13.3).
 
 The result is a specification standard that is:
 
 - **Decision-driven**: Architecture emerges from locked decisions, not assertions
-- **Invariant-anchored**: Correctness is defined before implementation
+- **Invariant-anchored**: Correctness defined before implementation
 - **Falsifiable throughout**: Every claim can be tested
-- **LLM-optimized**: Structural provisions prevent hallucination and context loss (Gate 7); verification prompts self-demonstrated in every element spec chapter (INV-020)
-- **Self-validating**: Quality gates and the completeness checklist provide mechanical conformance checking
+- **LLM-optimized**: Structural provisions prevent hallucination and context loss; verification prompts self-demonstrated in every element spec chapter (Gate 7, INV-020)
+- **Self-validating**: Quality gates provide mechanical conformance checking
 - **Self-bootstrapping**: This document is both the standard and its first conforming instance
 
 *DDIS: Where rigor meets readability — and specifications become implementations.*
