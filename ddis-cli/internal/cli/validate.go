@@ -16,6 +16,7 @@ var (
 	validateChecks    string
 	validateLog       bool
 	validateOplogPath string
+	validateCodeRoot  string
 )
 
 // ErrValidationFailed is returned when validation finds errors.
@@ -44,6 +45,7 @@ func init() {
 	validateCmd.Flags().StringVar(&validateChecks, "checks", "", "Comma-separated list of check IDs to run (default: all)")
 	validateCmd.Flags().BoolVar(&validateLog, "log", false, "Append validation report to oplog")
 	validateCmd.Flags().StringVar(&validateOplogPath, "oplog-path", "", "Custom oplog path (default: .ddis/oplog.jsonl)")
+	validateCmd.Flags().StringVar(&validateCodeRoot, "code-root", "", "Source code root for implementation traceability check (Check 13)")
 }
 
 func runValidate(cmd *cobra.Command, args []string) error {
@@ -67,6 +69,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 
 	opts := validator.ValidateOptions{
 		CheckIDs: checkIDs,
+		CodeRoot: validateCodeRoot,
 	}
 
 	report, err := validator.Validate(db, specID, opts)

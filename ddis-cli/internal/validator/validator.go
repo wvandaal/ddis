@@ -59,7 +59,8 @@ type Check interface {
 
 // ValidateOptions controls which checks to run.
 type ValidateOptions struct {
-	CheckIDs []int // empty = run all applicable
+	CheckIDs []int  // empty = run all applicable
+	CodeRoot string // Path to source code root for traceability check (Check 13)
 }
 
 // ParseCheckIDs parses a comma-separated list of check IDs (e.g. "1,2,3").
@@ -98,6 +99,7 @@ func AllChecks() []Check {
 		&checkGate1Structural{},
 		&checkProportionalWeight{},
 		&checkNamespaceConsistency{},
+		&checkImplementationTraceability{}, // Check 13
 	}
 }
 
@@ -109,6 +111,13 @@ func Validate(db *sql.DB, specID int64, opts ValidateOptions) (*Report, error) {
 	}
 
 	allChecks := AllChecks()
+
+	// Inject CodeRoot into the traceability check
+	for _, check := range allChecks {
+		if tc, ok := check.(*checkImplementationTraceability); ok {
+			tc.CodeRoot = opts.CodeRoot
+		}
+	}
 
 	// Filter to requested checks if specified
 	wantIDs := make(map[int]bool)

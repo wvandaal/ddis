@@ -1,0 +1,153 @@
+# manifest.yaml — Single source of truth for DDIS CLI Specification
+# Self-bootstrapping artifact: this spec describes the tool that validates it.
+#
+# Line counts (initial creation):
+#   constitution/system.md:              ~500 lines
+#   modules/parse-pipeline.md:           ~700 lines
+#   modules/search-intelligence.md:      ~800 lines
+#   modules/query-validation.md:         ~150 lines (stub)
+#   modules/lifecycle-ops.md:            ~150 lines (stub)
+#   Total modular:                       ~2300 lines
+#
+# Bundle sizes (constitution + module):
+#   parse-pipeline bundle:           ~1200 lines (target: 4000, ceiling: 5000) ✓
+#   search-intelligence bundle:      ~1300 lines ✓
+#   query-validation bundle:         ~650 lines ✓
+#   lifecycle-ops bundle:            ~650 lines ✓
+
+ddis_version: "3.0"
+spec_name: "DDIS CLI: Transactional Specification Management System"
+tier_mode: "two-tier"
+
+context_budget:
+  target_lines: 4000
+  hard_ceiling_lines: 5000
+  reasoning_reserve: 0.25
+
+constitution:
+  system: "constitution/system.md"
+
+modules:
+  parse-pipeline:
+    file: "modules/parse-pipeline.md"
+    domain: parsing
+    maintains:
+      - APP-INV-001
+      - APP-INV-009
+      - APP-INV-015
+    interfaces:
+      - APP-INV-002
+      - APP-INV-003
+      - APP-INV-005
+      - APP-INV-007
+      - APP-INV-008
+      - APP-INV-016
+    implements:
+      - APP-ADR-001
+      - APP-ADR-002
+      - APP-ADR-005
+      - APP-ADR-009
+      - APP-ADR-010
+    adjacent: [search-intelligence, query-validation, lifecycle-ops]
+    deep_context: null
+    negative_specs:
+      - "Must NOT silently drop markdown content during parsing"
+      - "Must NOT assume heading hierarchy is always well-formed"
+      - "Must NOT use non-deterministic operations in hash computation"
+
+  search-intelligence:
+    file: "modules/search-intelligence.md"
+    domain: search
+    maintains:
+      - APP-INV-004
+      - APP-INV-005
+      - APP-INV-008
+      - APP-INV-012
+      - APP-INV-014
+    interfaces:
+      - APP-INV-001
+      - APP-INV-003
+      - APP-INV-009
+      - APP-INV-015
+      - APP-INV-016
+    implements:
+      - APP-ADR-003
+      - APP-ADR-006
+    adjacent: [parse-pipeline, query-validation, lifecycle-ops]
+    deep_context: null
+    negative_specs:
+      - "Must NOT use online learning or mutable global state in search indices"
+      - "Must NOT return results without a computable score derivation"
+      - "Must NOT build context bundles that reference elements outside the spec index"
+
+  query-validation:
+    file: "modules/query-validation.md"
+    domain: validation
+    maintains:
+      - APP-INV-002
+      - APP-INV-003
+      - APP-INV-007
+      - APP-INV-011
+    interfaces:
+      - APP-INV-001
+      - APP-INV-005
+      - APP-INV-006
+      - APP-INV-008
+      - APP-INV-009
+      - APP-INV-015
+      - APP-INV-016
+    implements:
+      - APP-ADR-004
+    adjacent: [parse-pipeline, search-intelligence, lifecycle-ops]
+    deep_context: null
+    negative_specs:
+      - "Must NOT rely on execution order for validation check correctness"
+      - "Must NOT use floating-point comparison for structural diff matching"
+      - "Must NOT produce false positives from template references"
+
+  lifecycle-ops:
+    file: "modules/lifecycle-ops.md"
+    domain: lifecycle
+    maintains:
+      - APP-INV-006
+      - APP-INV-010
+      - APP-INV-013
+      - APP-INV-016
+    interfaces:
+      - APP-INV-001
+      - APP-INV-002
+      - APP-INV-003
+      - APP-INV-007
+      - APP-INV-008
+      - APP-INV-009
+      - APP-INV-011
+      - APP-INV-012
+      - APP-INV-015
+    implements:
+      - APP-ADR-007
+      - APP-ADR-008
+      - APP-ADR-011
+    adjacent: [parse-pipeline, search-intelligence, query-validation]
+    deep_context: null
+    negative_specs:
+      - "Must NOT modify or delete existing oplog records"
+      - "Must NOT allow transaction state transitions outside the defined state machine"
+      - "Must NOT claim spec-to-code traceability without mechanical verification"
+
+invariant_registry:
+  APP-INV-001: { owner: parse-pipeline, domain: parsing, description: "Round-Trip Fidelity — parse-render produces byte-identical output" }
+  APP-INV-002: { owner: query-validation, domain: validation, description: "Validation Determinism — results independent of clock, RNG, execution order" }
+  APP-INV-003: { owner: query-validation, domain: validation, description: "Cross-Reference Integrity — every resolved reference points to existing element" }
+  APP-INV-004: { owner: search-intelligence, domain: search, description: "Authority Monotonicity — adding a relevant cross-reference can only increase authority score" }
+  APP-INV-005: { owner: search-intelligence, domain: search, description: "Context Self-Containment — bundles include all 9 intelligence signals for LLM consumption" }
+  APP-INV-006: { owner: lifecycle-ops, domain: lifecycle, description: "Transaction State Machine — only pending→committed or pending→rolled_back transitions" }
+  APP-INV-007: { owner: query-validation, domain: validation, description: "Diff Completeness — structural diff reports every add/remove/modify, no silent drops" }
+  APP-INV-008: { owner: search-intelligence, domain: search, description: "RRF Fusion Correctness — score equals Σ 1/(K + rank_r(d)) × weight_r for all signals" }
+  APP-INV-009: { owner: parse-pipeline, domain: parsing, description: "Monolith-Modular Equivalence — parsing monolith produces same index as parsing assembled modules" }
+  APP-INV-010: { owner: lifecycle-ops, domain: lifecycle, description: "Oplog Append-Only — no record modification or deletion after write" }
+  APP-INV-011: { owner: query-validation, domain: validation, description: "Check Composability — running a subset of checks equals running all for that subset" }
+  APP-INV-012: { owner: search-intelligence, domain: search, description: "LSI Dimension Bound — k ≤ doc count and all vectors have exactly k dimensions" }
+  APP-INV-013: { owner: lifecycle-ops, domain: lifecycle, description: "Impact Termination — BFS visits each node at most once, no infinite loops on cycles" }
+  APP-INV-014: { owner: search-intelligence, domain: search, description: "Glossary Expansion Bound — query expansion adds at most 5 terms" }
+  APP-INV-015: { owner: parse-pipeline, domain: parsing, description: "Deterministic Hashing — SHA-256 with no salt produces identical hash for identical input" }
+  APP-INV-016: { owner: lifecycle-ops, domain: lifecycle, description: "Implementation Traceability — every invariant with implementation claims has valid Source/Tests/Validates-via paths" }
