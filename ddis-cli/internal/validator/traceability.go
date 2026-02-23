@@ -57,12 +57,16 @@ func parseTraceAnnotations(rawText string) []traceAnnotation {
 	return annotations
 }
 
-// funcExistsInFile checks whether a Go function, method, or type with the given
-// name exists in the specified file. It handles:
+// funcExistsInFile checks whether a Go function, method, type, const, or var
+// with the given name exists in the specified file. It handles:
 //
 //	func FunctionName(
 //	func (receiver) FunctionName(
 //	type TypeName struct
+//	const ConstName =
+//	const ConstName string =
+//	var VarName =
+//	var VarName Type =
 func funcExistsInFile(filePath, funcName string) (bool, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
@@ -72,11 +76,12 @@ func funcExistsInFile(filePath, funcName string) (bool, error) {
 
 	funcPattern := regexp.MustCompile(`func\s+(\([^)]+\)\s+)?` + regexp.QuoteMeta(funcName) + `\(`)
 	typePattern := regexp.MustCompile(`type\s+` + regexp.QuoteMeta(funcName) + `\s+`)
+	constVarPattern := regexp.MustCompile(`(const|var)\s+` + regexp.QuoteMeta(funcName) + `(\s+\S+)?\s*=`)
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if funcPattern.MatchString(line) || typePattern.MatchString(line) {
+		if funcPattern.MatchString(line) || typePattern.MatchString(line) || constVarPattern.MatchString(line) {
 			return true, nil
 		}
 	}
