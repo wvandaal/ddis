@@ -4,12 +4,16 @@ domain: modularization
 maintains: [INV-011, INV-012, INV-013, INV-014, INV-015, INV-016]
 interfaces: [INV-001, INV-006, INV-008, INV-017, INV-018]
 implements: [ADR-006, ADR-007]
-negative_specs: 3
+adjacent: [core-standard]
+negative_specs:
+  - "Must NOT allow direct cross-module references bypassing the constitution"
+  - "Must NOT allow bundles exceeding the hard ceiling"
+  - "Must NOT allow invariants to be unowned or multiply-owned"
 ---
 
 # Module: Modularization Protocol
 
-The modularization protocol itself — how to decompose a DDIS spec that exceeds the LLM context window into manifest-driven modules with formal completeness guarantees.
+The modularization protocol — how to decompose a DDIS spec that exceeds the LLM context window into manifest-driven modules with formal completeness guarantees.
 
 **Invariants this module maintains (INV-018 compliance):**
 - INV-011: An LLM receiving a properly assembled bundle can implement the module's subsystem without information from any other module
@@ -20,19 +24,228 @@ The modularization protocol itself — how to decompose a DDIS spec that exceeds
 - INV-016: The manifest accurately reflects the current state of all spec files
 
 **Key invariants referenced from other modules (INV-018 compliance):**
-- INV-001: Every implementation section traces to at least one ADR or invariant (maintained by core-standard)
+- INV-001: Every implementation section traces to at least one ADR or invariant, which traces to the formal model (maintained by core-standard)
 - INV-006: The specification contains a cross-reference web where no section is an island (maintained by core-standard)
-- INV-008: The specification is self-contained (maintained by core-standard)
-- INV-017: Every implementation chapter includes explicit "DO NOT" constraints (maintained by core-standard)
+- INV-008: The specification is sufficient to build a correct v1 (maintained by core-standard)
+- INV-017: Every implementation chapter includes explicit "DO NOT" constraints that prevent the most likely hallucination patterns for that subsystem (maintained by core-standard)
 - INV-018: Every implementation chapter restates the invariants it must preserve (maintained by core-standard)
+
+---
+
+## Invariant Definitions
+
+**INV-011: Module Completeness** [Conditional — modular specs only]
+
+*An LLM receiving a properly assembled bundle can implement the module's subsystem without information from any other module's implementation content.*
+
+```
+∀ module ∈ modules:
+  let bundle = ASSEMBLE(module)
+  ∀ implementation_question Q about module's subsystem:
+    bundle.answers(Q) ∨ Q.answerable_from(general_competence)
+```
+
+Violation scenario: The Scheduler module references EventStore's internal ring buffer layout, but ring buffer details live only in the EventStore module — not in the constitution.
+
+Validation: Give a bundle (not the full spec) to an LLM. Track questions requiring information from another module's implementation. Any such question violates INV-011.
+
+// WHY THIS MATTERS: If module completeness fails, modularization provides no benefit. The value proposition is that bundles are sufficient.
+
+---
+
+**INV-012: Cross-Module Isolation** [Conditional — modular specs only]
+
+*Modules reference each other only through constitutional elements (invariants, ADRs, shared types). No module contains direct references to another module's internal sections, algorithms, or data structures.*
+
+```
+∀ module_a, module_b ∈ modules where module_a ≠ module_b:
+  ∀ ref ∈ module_a.outbound_references:
+    ref.target ∉ module_b.internal_sections ∧
+    ref.target ∈ {constitution, shared_types, invariants, ADRs}
+```
+
+Violation scenario: The TUI Renderer module says "use the same batching strategy as the EventStore module's flush_batch() function."
+
+Validation: Mechanical (CHECK-7 in §0.13.11). Semantic: review for implicit references that bypass the constitution.
+
+// WHY THIS MATTERS: If modules reference each other's internals, bundles need other modules' implementation — defeating modularization. The constitution is the "header file"; modules are "implementation files" never directly included. (Locked by ADR-007.)
+
+---
+
+**INV-013: Invariant Ownership Uniqueness** [Conditional — modular specs only]
+
+*Every application invariant is maintained by exactly one module (or explicitly by the system constitution). No invariant is unowned or multiply-owned.*
+
+```
+∀ inv ∈ invariant_registry:
+  (inv.owner = "system" ∧ count(s ∈ modules : inv ∈ s.maintains) = 0)
+  ∨ (inv.owner ≠ "system" ∧ count(s ∈ modules : inv ∈ s.maintains) = 1)
+```
+
+Violation scenario: Both EventStore and SnapshotManager list APP-INV-017 in their maintains declarations. Which module's tests are authoritative?
+
+Validation: Mechanical (CHECK-1 in §0.13.11).
+
+// WHY THIS MATTERS: If two modules both claim to maintain an invariant, neither takes full responsibility for its test coverage.
+
+---
+
+**INV-014: Bundle Budget Compliance** [Conditional — modular specs only]
+
+*Every assembled bundle fits within the hard ceiling defined in the manifest's context budget.*
+
+```
+∀ module ∈ modules:
+  line_count(ASSEMBLE(module)) ≤ context_budget.hard_ceiling_lines
+```
+
+Violation scenario: Scheduler module grows to 3,500 lines. With 1,200-line constitutional context, the bundle is 4,700 lines — under the 5,000 hard ceiling but over the 4,000 target (WARN). If the bundle reaches 5,100 lines, INV-014 is violated (ERROR, assembly fails).
+
+Validation: Mechanical (CHECK-5 in §0.13.11). Run the assembly script; it validates budget compliance automatically.
+
+// WHY THIS MATTERS: Budget violations mean modularization added complexity without delivering its benefit.
+
+---
+
+**INV-015: Declaration-Definition Consistency** [Conditional — modular specs only]
+
+*Every invariant declaration in the system constitution is a faithful summary of its full definition in the domain constitution.*
+
+```
+∀ inv ∈ invariant_registry:
+  let decl = system_constitution.declaration(inv)
+  let defn = full_definition(inv)
+  decl.id = defn.id ∧
+  decl.one_line is_faithful_summary_of defn.statement
+```
+
+Violation scenario: System constitution declares "APP-INV-017: Event log is append-only" but the Storage domain definition now says "append-only except during compaction." An LLM implementing a different domain codes against the wrong contract.
+
+Validation: Semi-mechanical. Extract declaration/definition pairs; present to reviewer for semantic consistency.
+
+// WHY THIS MATTERS: Divergence between tiers means different modules implement against different understandings of the same invariant. The declaration is the API; the definition is the implementation — they must agree.
+
+---
+
+**INV-016: Manifest-Spec Synchronization** [Conditional — modular specs only]
+
+*The manifest accurately reflects the current state of all spec files.*
+
+```
+∀ path ∈ manifest.all_referenced_paths: file_exists(path)
+∀ inv ∈ manifest.all_referenced_invariants: inv ∈ system_constitution
+∀ module_file ∈ filesystem("modules/"): module_file ∈ manifest
+```
+
+Violation scenario: Author adds `modules/new_feature.md` but forgets to add it to the manifest. The assembly script never produces a bundle for it.
+
+Validation: Mechanical (CHECK-9 in §0.13.11).
+
+// WHY THIS MATTERS: A file not in the manifest is invisible to all tooling — assembly, validation, improvement loops, cascade analysis.
+
+---
+
+## Architecture Decision Records
+
+### ADR-006: Tiered Constitution over Flat Root [Conditional — modular specs only]
+
+#### Problem
+
+When a DDIS spec is modular for context-window compliance (§0.13), constitutional context must accompany every module bundle. How should this constitutional context be structured?
+
+#### Options
+
+A) **Flat root** — one file containing everything.
+- Pros: Simple; one file to maintain; no tier logic.
+- Cons: Doesn't scale past ~20 invariants / ~10 ADRs. At scale (25 invariants, 15 ADRs, 4,800 lines), the root alone is ~1,500 lines, leaving only 2,500 for the module.
+
+B) **Two-tier** — system constitution (full definitions) + modules.
+- Pros: Simple; works for small modular specs (< 20 invariants, constitution ≤ 400 lines).
+- Cons: Constitution grows linearly with invariant count; exceeds budget at medium scale.
+
+C) **Three-tier** — system constitution (declarations only) + domain constitution (full definitions) + cross-domain deep context + module.
+- Pros: Scales to large specs; domain grouping already present in well-architected systems (double duty); no duplication between tiers.
+- Cons: One additional indirection level; requires domain identification.
+
+#### Decision
+
+**Option C as the full protocol, with Option B as a blessed simplification** for small specs (< 20 invariants, constitution ≤ 400 lines). The `tier_mode` manifest field selects between them — no forced complexity for specs that don't need it, with a clear upgrade path.
+
+// WHY NOT Option A? At scale, the flat root consumes 30–37% of the context budget before the module starts. That's context waste, not management.
+
+#### Consequences
+
+- Authors must identify 2–5 architectural domains when modularizing (usually obvious from architecture overview)
+- Two-tier specs migrate to three-tier without restructuring modules (§0.13.13)
+- Domain boundaries serve double duty: architectural isolation and context management
+
+#### Tests
+
+- (Validated by INV-014) Bundle budget compliance confirms that the chosen tier mode keeps bundles within ceiling.
+- (Validated by INV-011) Module completeness confirms that the constitutional context in each bundle is sufficient.
+
+---
+
+### ADR-007: Cross-Module References Through Constitution Only [Conditional — modular specs only]
+
+#### Problem
+
+When a DDIS spec is modular, how should modules reference content in other modules?
+
+#### Options
+
+A) **Direct references** — "see section 7.3 in the Scheduler module."
+- Pros: Natural; mirrors monolithic cross-references.
+- Cons: Creates invisible dependencies. Module A's bundle needs Module B — defeating modularization. Violates INV-011.
+
+B) **Through constitution only** — Module A references APP-INV-032 in the constitution, never Module B's internals.
+- Pros: Enforces isolation mechanically; bundles are self-contained.
+- Cons: Authors must extract all cross-module contracts into the constitution; feels indirect for tightly coupled subsystems.
+
+#### Decision
+
+**Option B: Through constitution only.** INV-012 enforces this mechanically. Cross-module contracts are expressed as invariants or shared types in the constitution, never as references to another module's internals.
+
+// WHY NOT Option A? It breaks INV-011. Module A's bundle would need Module B's implementation — the very thing modularization avoids.
+
+#### Consequences
+
+- All cross-module contracts must be elevated to the constitution
+- Modules become truly self-contained; tight coupling becomes visible in the constitution's interface surface
+
+#### Tests
+
+- (Validated by INV-012) Mechanical check (CHECK-7 in §0.13.11) scans modules for direct cross-module references.
+- (Validated by INV-011) LLM bundle sufficiency test confirms modules don't need each other's content.
+
+---
+
+## Modularization Quality Gates [Conditional — modular specs only]
+
+In addition to Gates 1–7, modular specs must pass these gates. A failing Gate M-1 makes Gates M-2 through M-5 irrelevant.
+
+**Gate M-1: Consistency Checks**
+All nine mechanical checks (CHECK-1 through CHECK-9 in §0.13.11) pass with zero errors. (Validates INV-012, INV-013, INV-014, INV-016.)
+
+**Gate M-2: Bundle Budget Compliance**
+Every assembled bundle is under the hard ceiling. Fewer than 20% of bundles exceed the target line count. (Validates INV-014.)
+
+**Gate M-3: LLM Bundle Sufficiency**
+An LLM receiving one assembled bundle produces zero questions that require another module's implementation content. Tested on at least 2 representative modules. (Validates INV-011.)
+
+**Gate M-4: Declaration-Definition Faithfulness**
+Every Tier 1 invariant declaration is a faithful summary of its Tier 2 full definition. (Validates INV-015.)
+
+**Gate M-5: Cascade Simulation**
+A simulated change to one invariant correctly identifies all affected modules via the cascade protocol (§0.13.12). (Validates INV-016 and the manifest's invariant registry.)
 
 ---
 
 ## 0.13 Modularization Protocol [Conditional]
 
-REQUIRED when the monolithic spec exceeds 4,000 lines or when the target context window cannot hold the full spec plus reasoning budget. OPTIONAL but recommended for 2,500-4,000 line specs.
+REQUIRED when the monolithic spec exceeds 4,000 lines or when the target context window cannot hold the full spec plus reasoning budget. OPTIONAL but recommended for 2,500–4,000 line specs.
 
-> Namespace note: INV-001 through INV-019 and ADR-001 through ADR-010 are DDIS meta-standard invariants/ADRs (defined in this standard). Application specs using DDIS define their OWN invariant namespace (e.g., APP-INV-001) — never reuse the meta-standard's INV-NNN space. Examples in this section use APP-INV-NNN to demonstrate this convention.
+> Namespace note: INV-001 through INV-020 and ADR-001 through ADR-011 are DDIS meta-standard invariants/ADRs (defined in this standard). Application specs using DDIS define their OWN invariant namespace (e.g., APP-INV-001) — never reuse the meta-standard's INV-NNN space. Examples in this section use APP-INV-NNN to demonstrate this convention.
 
 ### 0.13.1 The Scaling Problem
 
@@ -124,8 +337,8 @@ APP-INV-017: Event log is append-only -- Owner: EventStore -- Domain: Storage
 
 *Events, once written, are never modified or deleted.*
 
-  forall event in EventLog, forall t1 < t2:
-    event in EventLog(t1) -> event in EventLog(t2) and event(t1) = event(t2)
+  ∀ event ∈ EventLog, ∀ t1 < t2:
+    event ∈ EventLog(t1) → event ∈ EventLog(t2) ∧ event(t1) = event(t2)
 
 Violation scenario: A compaction routine rewrites old events to save space,
 silently changing event payloads. Replay produces different state.
@@ -141,10 +354,10 @@ log prefix byte-for-byte.
 
 | Module's relationship to invariant     | Tier 1      | Tier 2 (own domain)              | Tier 3 (cross-domain)  |
 |---------------------------------------|-------------|----------------------------------|------------------------|
-| Module MAINTAINS this invariant        | Declaration | Full definition (already present) | -- (same domain rule)  |
-| INTERFACES, invariant in SAME domain  | Declaration | Full definition (already present) | --                     |
-| INTERFACES, invariant in OTHER domain | Declaration | --                               | Full definition        |
-| No relationship                       | Declaration | --                               | --                     |
+| Module MAINTAINS this invariant        | Declaration | Full definition (already present) | — (same domain rule)  |
+| INTERFACES, invariant in SAME domain  | Declaration | Full definition (already present) | —                     |
+| INTERFACES, invariant in OTHER domain | Declaration | —                               | Full definition        |
+| No relationship                       | Declaration | —                               | —                     |
 
 Key insight: a module's maintained invariants are ALWAYS in its own domain (enforced by CHECK-4). Therefore Tier 2 always covers them; Tier 3 ONLY adds cross-domain content, eliminating duplication. The same pattern applies to ADRs.
 
@@ -196,7 +409,7 @@ The end-to-end trace (§5.3) is the one element that legitimately crosses all mo
 ```yaml
 # Module Header: End-to-End Trace
 # Domain: cross-cutting
-# Maintains: (none -- this module validates, it doesn't implement)
+# Maintains: (none — this module validates, it doesn't implement)
 # Interfaces: ALL application invariants
 # Purpose: Integration validation, not implementation
 # Assembly: Tier 1 + ALL domain constitutions (no Tier 3 needed)
@@ -230,12 +443,12 @@ Is spec > 4,000 lines?
 
 For small modular specs, the domain tier can be skipped. In two-tier mode:
 
-- **Tier 1 (System Constitution)**: Contains BOTH declarations AND full definitions for all invariants and ADRs (since there are few enough to fit in <=400 lines).
+- **Tier 1 (System Constitution)**: Contains BOTH declarations AND full definitions for all invariants and ADRs (since there are few enough to fit in ≤ 400 lines).
 - **Tier 2 (Domain Constitution)**: SKIPPED. Does not exist in the file layout.
 - **Tier 3 (Cross-Domain Deep)**: SKIPPED. Not needed because all full definitions are already in Tier 1.
 - **Module**: Unchanged.
 
-Assembly in two-tier mode: `system_constitution + module -> bundle`.
+Assembly in two-tier mode: `system_constitution + module → bundle`.
 
 The manifest uses `tier_mode: two-tier` to signal this to the assembly script. If the spec grows beyond the two-tier threshold, migrate to three-tier by extracting domain constitutions (see Migration Procedure §0.13.13).
 
@@ -274,7 +487,7 @@ spec-project/
 ### 0.13.9 Manifest Schema
 
 ```yaml
-# manifest.yaml -- Single source of truth for DDIS module assembly
+# manifest.yaml — Single source of truth for DDIS module assembly
 ddis_version: "3.0"
 spec_name: "Example System"
 tier_mode: "three-tier"               # "two-tier" or "three-tier"
@@ -337,7 +550,7 @@ invariant_registry:
   APP-INV-003: { owner: event_store, domain: storage, description: "Replay determinism" }
   APP-INV-017: { owner: event_store, domain: storage, description: "Append-only log" }
   APP-INV-022: { owner: scheduler, domain: coordination, description: "Fair scheduling" }
-  # ... (abbreviated for illustration -- real manifests list all invariants)
+  # ... (abbreviated for illustration — real manifests list all invariants)
 ```
 
 ### 0.13.10 Assembly Rules
@@ -402,73 +615,73 @@ Nine mechanical checks. All implementable by a validation script.
 
 **CHECK-1: Invariant ownership completeness**
 ```
-forall inv in invariant_registry:
-  (inv.owner = "system" and count(s in modules : inv in s.maintains) = 0)
-  or (inv.owner != "system" and count(s in modules : inv in s.maintains) = 1)
+∀ inv ∈ invariant_registry:
+  (inv.owner = "system" ∧ count(s ∈ modules : inv ∈ s.maintains) = 0)
+  ∨ (inv.owner ≠ "system" ∧ count(s ∈ modules : inv ∈ s.maintains) = 1)
 ```
 Remediation: Assign unowned invariant or remove duplicate owner.
 
 **CHECK-2: Interface consistency**
 ```
-forall s in modules, forall inv in s.interfaces (where s.interfaces != "all"):
-  (exists other in modules : inv in other.maintains and other != s)
-  or invariant_registry[inv].owner = "system"
+∀ s ∈ modules, ∀ inv ∈ s.interfaces (where s.interfaces ≠ "all"):
+  (∃ other ∈ modules : inv ∈ other.maintains ∧ other ≠ s)
+  ∨ invariant_registry[inv].owner = "system"
 ```
 Remediation: Add invariant to appropriate maintains list or register as system-owned.
 
 **CHECK-3: Adjacency symmetry**
 ```
-forall a in modules, forall b in a.adjacent
-  (where a.adjacent != "all" and b.adjacent != "all"):
-    a.name in manifest.modules[b].adjacent
+∀ a ∈ modules, ∀ b ∈ a.adjacent
+  (where a.adjacent ≠ "all" ∧ b.adjacent ≠ "all"):
+    a.name ∈ manifest.modules[b].adjacent
 ```
 Remediation: Add missing adjacency entry.
 
 **CHECK-4: Domain membership consistency**
 ```
-forall s in modules (where s.domain != "cross-cutting"),
-  forall inv in s.maintains:
+∀ s ∈ modules (where s.domain ≠ "cross-cutting"),
+  ∀ inv ∈ s.maintains:
     invariant_registry[inv].domain = s.domain
-    or invariant_registry[inv].domain = "system"
+    ∨ invariant_registry[inv].domain = "system"
 ```
 Remediation: Move invariant to module's domain or move module to invariant's domain.
 
 **CHECK-5: Budget compliance**
 ```
-forall s in modules:
-  line_count(ASSEMBLE(s)) <= context_budget.hard_ceiling_lines
+∀ s ∈ modules:
+  line_count(ASSEMBLE(s)) ≤ context_budget.hard_ceiling_lines
 ```
 Remediation: Reduce module size, move content to constitution, or split module. (Validates INV-014.)
 
 **CHECK-6: No orphan invariants**
 ```
-forall inv in invariant_registry:
-  exists s in modules : inv in s.maintains or inv in s.interfaces
+∀ inv ∈ invariant_registry:
+  ∃ s ∈ modules : inv ∈ s.maintains ∨ inv ∈ s.interfaces
 ```
 Remediation: Add invariant to a module's interfaces or remove from registry.
 
 **CHECK-7: Cross-module reference isolation**
 ```
-forall module_file in module_files:
-  not contains(module_file, pattern matching direct module-to-module references)
+∀ module_file ∈ module_files:
+  ¬contains(module_file, pattern matching direct module-to-module references)
 ```
 Remediation: Replace direct references with constitutional references. (Validates INV-012.)
 
 **CHECK-8: Deep context correctness (three-tier only)**
 ```
-forall s in modules (where s.domain != "cross-cutting"):
-  let xd = {inv in s.interfaces :
-    invariant_registry[inv].domain != s.domain
-    and invariant_registry[inv].domain != "system"}
-  (count(xd) > 0 implies s.deep_context != null)
-  and (count(xd) = 0 implies s.deep_context = null)
+∀ s ∈ modules (where s.domain ≠ "cross-cutting"):
+  let xd = {inv ∈ s.interfaces :
+    invariant_registry[inv].domain ≠ s.domain
+    ∧ invariant_registry[inv].domain ≠ "system"}
+  (count(xd) > 0 ⟹ s.deep_context ≠ null)
+  ∧ (count(xd) = 0 ⟹ s.deep_context = null)
 ```
 Remediation: Create missing deep context file or remove unnecessary one.
 
 **CHECK-9: File existence**
 ```
-forall path in manifest.all_referenced_paths: file_exists(path)
-forall module_file in filesystem("modules/"): module_file in manifest.modules.*.file
+∀ path ∈ manifest.all_referenced_paths: file_exists(path)
+∀ module_file ∈ filesystem("modules/"): module_file ∈ manifest.modules.*.file
 ```
 Remediation: Create missing file or correct manifest path. Second clause catches module files that exist on disk but are missing from the manifest. (Validates INV-016.)
 
@@ -493,16 +706,16 @@ When constitutional content changes, affected modules must be re-validated.
 1. Author changes APP-INV-017 in constitution/domains/storage.md
 2. Run: ddis_validate.sh --check-cascade APP-INV-017
 3. Script queries manifest for affected modules:
-   - event_store (maintains APP-INV-017) -> MUST re-validate
-   - snapshot_manager (interfaces APP-INV-017) -> SHOULD re-validate
-   - scheduler (interfaces APP-INV-017 via deep) -> SHOULD re-validate
+   - event_store (maintains APP-INV-017) → MUST re-validate
+   - snapshot_manager (interfaces APP-INV-017) → SHOULD re-validate
+   - scheduler (interfaces APP-INV-017 via deep) → SHOULD re-validate
 4. Script creates/reopens br issues for affected modules
    Label: cascade:APP-INV-017, priority by blast radius
 5. bv --robot-plan shows improvement order
 6. Re-run assembly, re-validate affected modules
 ```
 
-**Cascade workflow (without beads -- manifest-only fallback):**
+**Cascade workflow (without beads — manifest-only fallback):**
 
 ```
 1-3. Same as above.
@@ -517,7 +730,7 @@ Both paths use the same manifest query. Beads adds persistence and ordering; the
 ### 0.13.13 Monolith-to-Module Migration Procedure
 
 **Step 1: Identify domains.**
-Group PART II chapters into 2-5 domains based on architectural boundaries.
+Group PART II chapters into 2–5 domains based on architectural boundaries.
 
 **Step 2: Extract system constitution.**
 From monolith to `constitution/system.md`: preamble, PART 0 sections, all invariant DECLARATIONS, all ADR DECLARATIONS, glossary (1-line definitions), quality gates, non-negotiables, non-goals.
@@ -542,24 +755,3 @@ Create `modules/end_to_end_trace.md` as cross-cutting module. Verify bundle fits
 
 **Step 9: LLM validation.**
 Give 2+ bundles to an LLM. Zero questions requiring other module's implementation.
-
----
-
-## Modularization Quality Gates (Full Detail)
-
-These gates supplement Gates 1-7 for modular specs. A failing Gate M-1 makes Gates M-2 through M-5 irrelevant.
-
-**Gate M-1: Consistency Checks**
-All nine mechanical checks (CHECK-1 through CHECK-9 in §0.13.11) pass with zero errors. (Validates INV-012, INV-013, INV-014, INV-016.)
-
-**Gate M-2: Bundle Budget Compliance**
-Every assembled bundle is under the hard ceiling. Fewer than 20% of bundles exceed the target line count. (Validates INV-014.)
-
-**Gate M-3: LLM Bundle Sufficiency**
-An LLM receiving one assembled bundle produces zero questions that require another module's implementation content. Tested on at least 2 representative modules. (Validates INV-011.)
-
-**Gate M-4: Declaration-Definition Faithfulness**
-Every Tier 1 invariant declaration is a faithful summary of its Tier 2 full definition. (Validates INV-015.)
-
-**Gate M-5: Cascade Simulation**
-A simulated change to one invariant correctly identifies all affected modules via the cascade protocol (§0.13.12). (Validates INV-016 and the manifest's invariant registry.)

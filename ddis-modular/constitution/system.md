@@ -4,9 +4,9 @@ domain: system
 tier: 1
 description: >
   System Constitution (Tier 1) — included in EVERY bundle.
-  Contains orientation, first principles, invariant/ADR/gate declarations,
-  and essential glossary. Sufficient to understand WHAT exists; modules
-  provide HOW.
+  Contains orientation, first principles summary, invariant/ADR/gate declarations,
+  glossary, and cross-cutting concerns. Sufficient to understand WHAT exists;
+  modules provide HOW.
 ddis_version: "3.0"
 tier_mode: two-tier
 ---
@@ -44,11 +44,11 @@ tier_mode: two-tier
 
 DDIS (Decision-Driven Implementation Specification) is a standard for writing technical specifications that bridge architectural vision and correct implementation. The primary optimization target is **LLM consumption**: the primary implementer will be a large language model.
 
-Most specifications fail in one of two ways: too abstract (the implementer guesses at critical details) or too mechanical (they prescribe code without explaining why, making evolution impossible). DDIS avoids both by requiring a **causal chain** from first principles through decisions to implementation details.
+Most specifications fail in one of two ways: too abstract (the implementer guesses at critical details) or too mechanical (they prescribe code without explaining why, making evolution impossible). DDIS avoids both by requiring a **causal chain** from first principles through decisions to implementation details, where every element justifies its existence by serving the elements around it.
 
-When the implementer is an LLM, a third failure mode emerges: the LLM **hallucinates** plausible details not in the spec, or **forgets** invariants defined far from the implementation section. DDIS addresses this with structural provisions woven throughout: negative specifications (§3.8), structural redundancy at point of use (INV-018), verification prompts (§5.6), and meta-instructions (§5.7). (Locked by ADR-008.)
+When the implementer is an LLM, a third failure mode emerges: the LLM **hallucinates** plausible details not in the spec, or **forgets** invariants defined far from the implementation section. DDIS addresses this with structural provisions woven throughout: negative specifications (§3.8), structural redundancy at point of use (INV-018), verification prompts (§5.6), and meta-instructions (§5.7). These are integral to every element specification, not an add-on. (Locked by ADR-008.)
 
-DDIS synthesizes Architecture Decision Records (Nygard), Design by Contract (Meyer), temporal invariants (Lamport), performance budgeting (game engine development), and test-driven specification into a unified document structure.
+DDIS synthesizes Architecture Decision Records (Nygard), Design by Contract (Meyer), temporal invariants (Lamport), performance budgeting (game engine development), and test-driven specification into a unified document structure. These techniques are well-known individually but rarely composed into a single coherent standard.
 
 ### 0.1.1 What DDIS Is
 
@@ -76,13 +76,13 @@ These are not aspirations; they are the contract. If any are violated, a documen
   Every invariant can be violated by a concrete scenario and detected by a concrete test. An invariant that cannot be tested is a wish, not a contract.
 
 - **No implementation detail is unsupported**
-  Every algorithm, data structure, state machine, and protocol has: pseudocode or formal description, complexity analysis, at least one worked example, and a test strategy.
+  Every algorithm, data structure, state machine, and protocol has: pseudocode or formal description, complexity analysis, at least one worked example, and a test strategy. Prose descriptions of behavior without any of these are insufficient.
 
 - **Cross-references form a web, not a list**
-  ADRs reference invariants. Invariants reference tests. Tests reference performance budgets. Performance budgets reference the design point. The design point references first principles.
+  ADRs reference invariants. Invariants reference tests. Tests reference performance budgets. Performance budgets reference the design point. The design point references first principles. A specification where sections exist in isolation is a collection of essays, not a DDIS spec.
 
 - **The document is self-contained**
-  A competent implementer with the spec and the spec alone can build a correct v1. If they cannot, the spec has failed.
+  A competent implementer with the spec and the spec alone — no oral tradition, no Slack threads, no "ask the architect" — can build a correct v1. If they cannot, the spec has failed.
 
 - **Negative specifications prevent hallucination**
   Every implementation chapter states what the subsystem must NOT do, not merely what it must do. This is the primary defense against LLM hallucination and human assumption. (See §3.8, INV-017.)
@@ -91,12 +91,12 @@ These are not aspirations; they are the contract. If any are violated, a documen
 
 DDIS does not attempt:
 
-- **To replace code.** A spec describes what to build, why, and how to verify it — not the literal source code.
-- **To eliminate judgment.** DDIS constrains macro-decisions so micro-decisions are locally safe.
-- **To be a project management framework.** The Master TODO and phased roadmap are execution aids, not a substitute for sprint planning.
-- **To prescribe notation.** DDIS requires formal models but does not mandate TLA+, Alloy, Z, or any specific formalism.
-- **To guarantee correctness.** A DDIS-conforming spec dramatically reduces the chance of building the wrong thing but cannot eliminate it.
-- **To optimize for a specific LLM.** DDIS provisions target structural properties benefiting all transformer-based models, not prompt-engineering tricks for a particular model family.
+- **To replace code.** A spec describes what to build, why, and how to verify it — not the literal source code. Design sketches illustrate intent; they are not copy-paste targets.
+- **To eliminate judgment.** Implementers make thousands of micro-decisions. DDIS constrains macro-decisions (architecture, algorithms, invariants) so micro-decisions are locally safe.
+- **To be a project management framework.** The Master TODO and phased roadmap are execution aids, not a substitute for sprint planning or issue tracking.
+- **To prescribe notation.** DDIS requires formal models but does not mandate TLA+, Alloy, Z, or any specific formalism. Pseudocode, state machines, mathematical notation, or "close to [language]" sketches are all acceptable if precise.
+- **To guarantee correctness.** A DDIS-conforming spec dramatically reduces the chance of building the wrong thing but cannot eliminate it. The spec is a contract for intent, not a machine-checked proof.
+- **To optimize for a specific LLM.** DDIS provisions target structural properties benefiting all transformer-based models (context window management, explicit constraints, structural predictability), not prompt-engineering tricks for a particular model family.
 
 ## 0.2 First-Principles Derivation
 
@@ -105,9 +105,9 @@ DDIS does not attempt:
 A specification is a function from intent to artifact:
 
 ```
-Spec: (Problem, Constraints, Knowledge) -> Document
+Spec: (Problem, Constraints, Knowledge) → Document
 where:
-  Document enables: Implementer x Document -> Correct_System
+  Document enables: Implementer × Document → Correct_System
 ```
 
 The quality of a specification is measured by one criterion: **does an implementer produce a correct system from it, without requiring information not in the document?**
@@ -118,7 +118,7 @@ Consequences:
 
 2. **Decisions over descriptions.** The hardest part of building a system is making the hundreds of design decisions that determine whether the code is correct. A spec that describes without recording why is a snapshot, not a blueprint.
 
-3. **Verifiability over trust.** Every claim must be testable. "The system is fast" is not verifiable. "Event ingestion completes in < 100us p99 at the design point of 300 agents / 10K tasks, measured by Benchmark B-001" is verifiable.
+3. **Verifiability over trust.** Every claim must be testable. "The system is fast" is not verifiable. "Event ingestion completes in < 100µs p99 at the design point of 300 agents / 10K tasks, measured by Benchmark B-001" is verifiable.
 
 ### 0.2.2 LLM Consumption Model
 
@@ -139,7 +139,7 @@ An LLM consuming a DDIS spec operates under constraints fundamentally different 
 **Formal model of LLM consumption:**
 
 ```
-LLM_Implement: (Spec_Fragment, Context_Budget) -> Implementation
+LLM_Implement: (Spec_Fragment, Context_Budget) → Implementation
 
 where:
   Correctness = f(
@@ -150,9 +150,9 @@ where:
   )
 
   hallucination_triggers = {
-    gap: exists question Q: not Spec_Fragment.answers(Q) and Q.is_architectural,
-    ambiguity: exists statement S: |interpretations(S)| > 1,
-    implicit_reference: exists ref R: R.target not_in Spec_Fragment
+    gap: ∃ question Q: ¬Spec_Fragment.answers(Q) ∧ Q.is_architectural,
+    ambiguity: ∃ statement S: |interpretations(S)| > 1,
+    implicit_reference: ∃ ref R: R.target ∉ Spec_Fragment
   }
 ```
 
@@ -184,17 +184,17 @@ DDIS prescribes a specific document structure because specifications fail in pre
 
 ```
 First Principles (formal model of the problem)
-  | justifies
+  ↓ justifies
 Non-Negotiables + Invariants (what must always be true)
-  | constrained by
+  ↓ constrained by
 Architecture Decision Records (choices that could go either way)
-  | implemented via
+  ↓ implemented via
 Algorithms + Data Structures + Protocols (pseudocode, state machines)
-  | bounded by
+  ↓ bounded by
 Negative Specifications (what must NOT be done)
-  | verified by
+  ↓ verified by
 Test Strategies + Performance Budgets + Verification Prompts
-  | shipped via
+  ↓ shipped via
 Quality Gates + Master TODO (stop-ship criteria, execution checklist)
 ```
 
@@ -255,14 +255,14 @@ PART II: CORE IMPLEMENTATION (the heart of the spec)
     - Formal types (data model)
     - Algorithm pseudocode
     - State machine (if stateful)
-    - Invariants this subsystem must preserve (RESTATED, not just referenced -- INV-018)
-    - Negative specifications (what this subsystem must NOT do -- §3.8, INV-017)
+    - Invariants this subsystem must preserve (RESTATED, not just referenced — INV-018)
+    - Negative specifications (what this subsystem must NOT do — §3.8, INV-017)
     - Worked example(s)
     - WHY NOT annotations on non-obvious choices
     - Test strategy
     - Performance budget for this subsystem
-    - Verification prompt (LLM self-check -- §5.6)
-    - Meta-instructions (implementation ordering -- §5.7)          [If applicable]
+    - Verification prompt (LLM self-check — §5.6)
+    - Meta-instructions (implementation ordering — §5.7)          [If applicable]
     - Cross-references to ADRs, invariants, other subsystems
   End-to-end trace (one worked scenario traversing ALL subsystems)
 
@@ -278,7 +278,7 @@ PART IV: OPERATIONS
     - Phase -1: Decision spikes
     - Exit criteria per phase
     - Merge discipline
-    - Minimal deliverables order (with dependency chain -- INV-019)
+    - Minimal deliverables order (with dependency chain — INV-019)
     - Immediate next steps (first PRs)
   Agent/tool compatibility notes                           [Optional]
 
@@ -295,6 +295,8 @@ PART X: MASTER TODO INVENTORY
   Checkboxable task list organized by subsystem
   Cross-referenced to phases, ADRs, and quality gates
 ```
+
+**Meta-standard PART mapping**: When DDIS is applied to a meta-standard (a standard about standards), PARTs are renamed: PART II → Element Specifications, PART III → Guidance, PART IV → Authoring & Validation. This document demonstrates this mapping.
 
 ### 0.3.1 Ordering Rationale
 
@@ -324,77 +326,112 @@ DDIS has a simple ring architecture:
 
 ---
 
-## Invariant Declarations
+## Invariant Registry (Declarations)
 
-All 20 invariants of the DDIS standard. Full definitions with formal expressions, violation scenarios, and validation methods are in the core-standard module.
+All 20 invariants of the DDIS standard. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module.
 
-| ID | Statement | Domain | Owner |
+| ID | Statement | Conditional | Owner Module |
 |---|---|---|---|
-| INV-001 | Every implementation section traces to at least one ADR or invariant, which traces to the formal model | core | system |
-| INV-002 | Every design choice where a reasonable alternative exists is captured in an ADR | core | system |
-| INV-003 | Every invariant can be violated by a concrete scenario and detected by a named test | core | system |
-| INV-004 | Every described algorithm includes pseudocode, complexity analysis, worked example, and edge cases | core | system |
-| INV-005 | Every performance claim is tied to a specific benchmark, design point, and measurement methodology | core | system |
-| INV-006 | The specification contains a cross-reference web where no section is an island | core | system |
-| INV-007 | Every section earns its place by serving at least one other section or preventing a named failure mode | core | system |
-| INV-008 | The specification is self-contained: sufficient for a correct v1 without external oral tradition | core | system |
-| INV-009 | Every domain-specific term used in the specification is defined in the glossary | core | system |
-| INV-010 | Every state machine defines all states, all transitions, all guards, and behavior for invalid transitions | core | system |
-| INV-011 | [Conditional] An LLM receiving a properly assembled bundle can implement the module's subsystem without information from any other module | modularization | system |
-| INV-012 | [Conditional] Modules reference each other only through constitutional elements, never direct internal references | modularization | system |
-| INV-013 | [Conditional] Every application invariant is maintained by exactly one module | modularization | system |
-| INV-014 | [Conditional] Every assembled bundle fits within the hard ceiling defined in the manifest's context budget | modularization | system |
-| INV-015 | [Conditional] Every invariant declaration in the system constitution is a faithful summary of its full definition | modularization | system |
-| INV-016 | [Conditional] The manifest accurately reflects the current state of all spec files | modularization | system |
-| INV-017 | Every implementation chapter includes explicit "DO NOT" constraints preventing likely hallucination patterns | core | system |
-| INV-018 | Every implementation chapter restates the invariants it must preserve, not merely referencing them by ID | core | system |
-| INV-019 | The spec provides an explicit dependency chain for implementation ordering | core | system |
-| INV-020 | Every element specification chapter includes a structured verification prompt block | core | system |
+| INV-001 | Every implementation section traces to at least one ADR or invariant, which traces to the formal model | No | core-standard |
+| INV-002 | Every design choice where a reasonable alternative exists is captured in an ADR | No | core-standard |
+| INV-003 | Every invariant can be violated by a concrete scenario and detected by a named test | No | core-standard |
+| INV-004 | Every described algorithm includes pseudocode, complexity analysis, worked example, and edge cases | No | core-standard |
+| INV-005 | Every performance claim is tied to a specific benchmark, design point, and measurement methodology | No | core-standard |
+| INV-006 | The specification contains a cross-reference web where no section is an island | No | core-standard |
+| INV-007 | Every section earns its place by serving at least one other section or preventing a named failure mode | No | core-standard |
+| INV-008 | The specification is self-contained: sufficient for a correct v1 without external oral tradition | No | core-standard |
+| INV-009 | Every domain-specific term used in the specification is defined in the glossary | No | core-standard |
+| INV-010 | Every state machine defines all states, all transitions, all guards, and behavior for invalid transitions | No | core-standard |
+| INV-011 | An LLM receiving a properly assembled bundle can implement the module's subsystem without information from any other module | Conditional — modular specs only | modularization |
+| INV-012 | Modules reference each other only through constitutional elements, never direct internal references | Conditional — modular specs only | modularization |
+| INV-013 | Every application invariant is maintained by exactly one module | Conditional — modular specs only | modularization |
+| INV-014 | Every assembled bundle fits within the hard ceiling defined in the manifest's context budget | Conditional — modular specs only | modularization |
+| INV-015 | Every invariant declaration in the system constitution is a faithful summary of its full definition | Conditional — modular specs only | modularization |
+| INV-016 | The manifest accurately reflects the current state of all spec files | Conditional — modular specs only | modularization |
+| INV-017 | Every implementation chapter includes explicit "DO NOT" constraints preventing likely hallucination patterns | No | core-standard |
+| INV-018 | Every implementation chapter restates the invariants it must preserve, not merely referencing them by ID | No | core-standard |
+| INV-019 | The spec provides an explicit dependency chain for implementation ordering | No | core-standard |
+| INV-020 | Every element specification chapter includes a structured verification prompt block | No | core-standard |
 
 ---
 
-## ADR Declarations
+## ADR Registry (Declarations)
 
-All 11 ADRs of the DDIS standard. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the core-standard module.
+All 11 ADRs of the DDIS standard. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
 
-| ID | Title | Decision (one sentence) |
-|---|---|---|
-| ADR-001 | Document Structure Is Fixed, Not Flexible | Fixed structure: a reader who has seen one DDIS spec can navigate any other. |
-| ADR-002 | Invariants Must Be Falsifiable, Not Merely True | Falsifiable invariants with plain-language statement, semi-formal expression, violation scenario, and validation method. |
-| ADR-003 | Cross-References Are Mandatory, Not Optional Polish | Required: every non-trivial section must have inbound and outbound references using explicit identifiers. |
-| ADR-004 | Self-Bootstrapping as Validation Strategy | Self-bootstrapping: this document is both the standard and its first conforming instance. |
-| ADR-005 | Voice Is Specified, Not Left to Author Preference | Voice guidance: technically precise but human, a senior engineer explaining to a peer they respect. |
-| ADR-006 | Tiered Constitution over Flat Root | Three-tier as full protocol with two-tier as blessed simplification for small specs. |
-| ADR-007 | Cross-Module References Through Constitution Only | Through constitution only: INV-012 enforces this mechanically. |
-| ADR-008 | LLM Provisions Woven Throughout, Not Isolated | Woven throughout: LLM provisions integrated into each element specification. |
-| ADR-009 | Negative Specifications as Formal Elements | Formal negative specification blocks required per implementation chapter. |
-| ADR-010 | Verification Prompts per Implementation Chapter | Verification prompts per chapter: structured self-check at the end of each implementation chapter. |
-| ADR-011 | ADR Supersession Protocol | Mark-and-supersede with cross-reference cascade preserving historical record. |
-
----
-
-## Quality Gate Declarations
-
-All 12 quality gates (7 standard + 5 modularization). Full descriptions are in the core-standard module; modularization gates M-1 through M-5 are detailed in the modularization module.
-
-| Gate | What It Checks |
-|---|---|
-| Gate 1: Structural Conformance | All required elements from §0.3 present, including negative specs, verification prompts, meta-instructions |
-| Gate 2: Causal Chain Integrity | Five random implementation sections trace backward to the formal model without breaks (INV-001) |
-| Gate 3: Decision Coverage | Adversarial reviewer identifies zero "obvious alternatives" not covered by an ADR (INV-002) |
-| Gate 4: Invariant Falsifiability | Every invariant has a constructible counterexample and a named test (INV-003) |
-| Gate 5: Cross-Reference Web | The reference graph has no orphan sections and is connected (INV-006) |
-| Gate 6: Implementation Readiness | A competent implementer can begin without clarifying questions about architecture |
-| Gate 7: LLM Implementation Readiness | LLM given one chapter produces no hallucinated requirements and preserves all invariants (INV-017, INV-018, INV-019) |
-| Gate M-1: Consistency Checks | All nine mechanical checks (CHECK-1 through CHECK-9) pass with zero errors (INV-012, INV-013, INV-014, INV-016) |
-| Gate M-2: Bundle Budget Compliance | Every assembled bundle is under the hard ceiling; fewer than 20% exceed target (INV-014) |
-| Gate M-3: LLM Bundle Sufficiency | LLM receiving one bundle produces zero questions requiring another module's content (INV-011) |
-| Gate M-4: Declaration-Definition Faithfulness | Every Tier 1 declaration is a faithful summary of its full definition (INV-015) |
-| Gate M-5: Cascade Simulation | A simulated change correctly identifies all affected modules via the cascade protocol (INV-016) |
+| ID | Title | Decision (one-line) | Conditional | Implementing Module |
+|---|---|---|---|---|
+| ADR-001 | Document Structure Is Fixed, Not Flexible | Fixed structure: a reader who has seen one DDIS spec can navigate any other | No | core-standard |
+| ADR-002 | Invariants Must Be Falsifiable, Not Merely True | Falsifiable invariants with plain-language statement, semi-formal expression, violation scenario, and validation method | No | core-standard |
+| ADR-003 | Cross-References Are Mandatory, Not Optional Polish | Required: every non-trivial section must have inbound and outbound references using explicit identifiers | No | core-standard |
+| ADR-004 | Self-Bootstrapping as Validation Strategy | Self-bootstrapping: this document is both the standard and its first conforming instance | No | core-standard |
+| ADR-005 | Voice Is Specified, Not Left to Author Preference | Voice guidance: technically precise but human, a senior engineer explaining to a peer they respect | No | core-standard |
+| ADR-006 | Tiered Constitution over Flat Root | Three-tier as full protocol with two-tier as blessed simplification for small specs | Conditional — modular specs only | modularization |
+| ADR-007 | Cross-Module References Through Constitution Only | Through constitution only: INV-012 enforces this mechanically | Conditional — modular specs only | modularization |
+| ADR-008 | LLM Provisions Woven Throughout, Not Isolated | Woven throughout: LLM provisions integrated into each element specification | No | core-standard |
+| ADR-009 | Negative Specifications as Formal Elements | Formal negative specification blocks required per implementation chapter | No | core-standard |
+| ADR-010 | Verification Prompts per Implementation Chapter | Verification prompts per chapter: structured self-check at end of each implementation chapter | No | core-standard |
+| ADR-011 | ADR Supersession Protocol | Mark-and-supersede with cross-reference cascade preserving historical record | No | core-standard |
 
 ---
 
-## 0.8 Performance Budgets (Summary)
+## Quality Gates (Summaries)
+
+A DDIS-conforming specification is "done" when all quality gates pass. Gates are ordered by priority; a failing Gate N makes Gates N+1 through 7 irrelevant.
+
+**Gate 1: Structural Conformance**
+All required elements from §0.3 present, including negative specifications (§3.8), verification prompts (§5.6), and meta-instructions (§5.7). Every element spec chapter includes a verification prompt block (INV-020). Mechanical check.
+
+**Gate 2: Causal Chain Integrity**
+Five random implementation sections trace backward to the formal model without breaks. (Validates INV-001.)
+
+**Gate 3: Decision Coverage**
+Adversarial reviewer identifies zero "obvious alternatives" not covered by an ADR. (Validates INV-002.)
+
+**Gate 4: Invariant Falsifiability**
+Every invariant has a constructible counterexample and a named test. (Validates INV-003.)
+
+**Gate 5: Cross-Reference Web**
+The reference graph has no orphan sections and is connected. (Validates INV-006.)
+
+**Gate 6: Implementation Readiness**
+A competent implementer (or LLM), given only the spec and public references, can begin implementing without clarifying questions about architecture, algorithms, data models, or invariants. Micro-level questions (variable names, error message wording) are acceptable.
+
+**Gate 7: LLM Implementation Readiness**
+Give ONLY one implementation chapter (plus glossary and relevant invariants) to an LLM. Verify: (a) no hallucinated requirements, (b) no clarifying questions about architecture, (c) all chapter-header invariants preserved, (d) all negative specifications observed. Test on >= 2 representative chapters. (Validates INV-017, INV-018, INV-019.)
+
+> **Gate 7 demonstration (thought experiment):** Give §3.4 plus the glossary to an LLM and ask it to write invariants for a hypothetical system. It should produce the prescribed format (statement, formal expression, violation scenario, validation, WHY THIS MATTERS); NOT produce aspirational invariants (prevented by anti-pattern in §3.4); NOT omit violation scenarios (prevented by negative spec). If correct without hallucinating format elements, Gate 7 passes for §3.4.
+
+### Modularization Quality Gates [Conditional — modular specs only]
+
+In addition to Gates 1-7, modular specs must pass these gates. A failing Gate M-1 makes Gates M-2 through M-5 irrelevant.
+
+**Gate M-1: Consistency Checks**
+All nine mechanical checks (CHECK-1 through CHECK-9 in §0.13.11) pass with zero errors. (Validates INV-012, INV-013, INV-014, INV-016.)
+
+**Gate M-2: Bundle Budget Compliance**
+Every assembled bundle is under the hard ceiling. Fewer than 20% of bundles exceed the target line count. (Validates INV-014.)
+
+**Gate M-3: LLM Bundle Sufficiency**
+An LLM receiving one assembled bundle produces zero questions that require another module's implementation content. Tested on at least 2 representative modules. (Validates INV-011.)
+
+**Gate M-4: Declaration-Definition Faithfulness**
+Every Tier 1 invariant declaration is a faithful summary of its Tier 2 full definition. (Validates INV-015.)
+
+**Gate M-5: Cascade Simulation**
+A simulated change to one invariant correctly identifies all affected modules via the cascade protocol (§0.13.12). (Validates INV-016 and the manifest's invariant registry.)
+
+### Definition of Done (for this standard)
+
+DDIS 3.0 is "done" when:
+- This document passes Gates 1-7 applied to itself
+- At least one non-trivial spec has been written conforming to DDIS without structural workarounds
+- The Glossary (Appendix A) covers all DDIS-specific terminology
+- LLM provisions are demonstrated in this document's own element specifications (self-bootstrapping)
+
+---
+
+## 0.8 Performance Budgets (for Specifications, Not Software)
 
 ### 0.8.1 Specification Size Budgets
 
@@ -406,6 +443,8 @@ All 12 quality gates (7 standard + 5 modularization). Full descriptions are in t
 
 ### 0.8.2 Proportional Weight Guide
 
+Not all sections are equal. These proportions prevent bloat and starvation. Domain-specific specs may adjust by +/-20%.
+
 | Section | % of Total | Why |
 |---|---|---|
 | Preamble + PART 0 | 15-20% | Dense: formal model, invariants, ADRs, quality gates |
@@ -415,31 +454,123 @@ All 12 quality gates (7 standard + 5 modularization). Full descriptions are in t
 | PART IV: Operations | 10-15% | Testing, operational playbook, roadmap |
 | Appendices + Part X | 10-15% | Reference material, glossary, error taxonomy, master TODO |
 
+**For meta-standards** (self-bootstrapping specs about specification authoring):
+
+| Section | % of Total | Why |
+|---|---|---|
+| Preamble + PART 0 | 45-60% | Contains the entire standard definition: invariants, ADRs, gates, modularization |
+| PART I: Foundations | 3-6% | Formal model of specifications — concise by nature |
+| PART II: Element Specifications | 20-30% | Templates and guidance for each structural element |
+| PART III: Guidance | 4-8% | Voice, style, and cross-reference patterns |
+| PART IV: Operations | 3-6% | Authoring sequence, validation, evolution |
+| Appendices + Part X | 6-12% | Reference material, glossary, error taxonomy, master TODO |
+
+DO NOT apply domain-spec proportions to a meta-standard and flag a violation. See Chapter 9 for diagnostic signals.
+
 ---
 
-## Essential Glossary
+## 0.9 Public API Surface (of DDIS Itself)
 
-Core terms used across all modules. The full glossary (51 terms) is in the guidance-operations module (Appendix A).
+DDIS exposes the following "API" to specification authors:
 
-| Term | Definition |
-|---|---|
-| **ADR** | Architecture Decision Record. A structured record of a design choice, including alternatives considered and rationale. (See §3.5) |
-| **Bundle** | Assembled document for LLM implementation of one module: constitution + module. The unit of LLM consumption. (See §0.13.2) |
-| **Causal chain** | The traceable path from a first principle through an invariant and/or ADR to an implementation detail. (See §0.2.3, INV-001) |
-| **Constitution** | Cross-cutting material constraining all modules. In two-tier mode: system constitution only. (See §0.13.3) |
-| **Cross-reference** | An explicit link between two sections using §X.Y, INV-NNN, or ADR-NNN identifiers. (See Chapter 10, INV-006) |
-| **DDIS** | Decision-Driven Implementation Specification. This standard. |
-| **Declaration** | A compact (1-line) summary of an invariant or ADR in the system constitution. (See §0.13.4) |
-| **Design point** | The specific hardware, workload, and scale scenario against which performance budgets are validated. (See §3.7) |
-| **Falsifiable** | A property of an invariant: it can be violated by a concrete scenario and detected by a concrete test. (See INV-003, ADR-002) |
-| **First principles** | The formal model of the problem domain from which the architecture derives. (See §3.3) |
-| **Gate** | A quality gate: a stop-ship predicate that must be true before the project can proceed. (See §3.6) |
-| **Hallucination** | An LLM failure mode where the model generates plausible but unauthorized behaviors. Prevented by negative specifications (§3.8). (See §0.2.2) |
-| **Invariant** | A numbered, falsifiable property that must hold at all times during system operation. (See §3.4) |
-| **Manifest** | Machine-readable YAML declaring all modules, invariant ownership, and assembly rules. (See §0.13.9) |
-| **Meta-instruction** | A directive to the LLM implementer providing ordering, sequencing, or process guidance. (See §5.7) |
-| **Module** | Self-contained spec unit covering one major subsystem. Always assembled into a bundle. (See §0.13.2) |
-| **Negative specification** | Explicit "DO NOT" constraint co-located with the implementation chapter. Primary defense against LLM hallucination. (See §3.8, INV-017) |
-| **Self-bootstrapping** | A property of this standard: it is written in the format it defines. (See ADR-004) |
-| **Structural redundancy** | Restating key invariants at their point of use to prevent context loss. Required by INV-018. (See §0.2.2) |
-| **Verification prompt** | A structured self-check prompt at the end of an implementation chapter. (See §5.6, ADR-010) |
+1. **Document Structure Template** (§0.3) — the skeleton to fill in.
+2. **Element Specifications** (PART II) — what each structural element must contain, including LLM-specific provisions.
+3. **Quality Criteria** (§0.5 invariants, §0.7 gates) — how to validate conformance.
+4. **Voice and Style Guide** (PART III, §8.1) — how to write well within the structure.
+5. **Anti-Pattern Catalog** (PART III, §8.3) — what bad specs look like.
+6. **Error Taxonomy** (Appendix C) — classification of specification authoring errors.
+7. **Completeness Checklist** (Part X) — mechanical conformance validation.
+
+---
+
+## 0.10 Open Questions (for DDIS 3.0)
+
+1. ~~**Machine-readable cross-references**~~ **RESOLVED**: DDIS cross-references use three parseable token formats: `§X.Y`, `INV-NNN`, `ADR-NNN`. Machine-parseable via regex. See §10.1.
+
+2. **Multi-document specs**: For very large systems, how should sub-specs reference each other? What invariants apply across spec boundaries? (Partially addressed by §0.13.)
+
+3. ~~**Spec evolution**~~ **RESOLVED**: ADR-011 defines mark-and-supersede with cross-reference cascade (§13.3).
+
+4. **Formal verification bridge**: Should DDIS define a pathway from falsifiable invariants to machine-checked properties for safety-critical systems?
+
+5. ~~**Confidence levels**~~ **RESOLVED**: ADR format (§3.5) now includes optional Confidence field with three levels: Committed (default), Provisional (revisit after spike), Speculative (needs abstraction boundary).
+
+6. **Composability across specs**: **DEFERRED** — requires ≥ 2 interdependent DDIS-conforming specs to validate. Candidate approach: `[SpecName]:INV-NNN` and `[SpecName]:§X.Y` syntax with shared invariant registry.
+
+---
+
+## Glossary (Compact)
+
+All DDIS-specific terms. Short definitions for orientation; full definitions are in the referenced modules.
+
+| Term | Definition | See Module |
+|---|---|---|
+| **ADR** | Architecture Decision Record: structured record of a design choice with alternatives and rationale (§3.5) | core-standard |
+| **ADR supersession** | Replacing an ADR while preserving the original as historical record; requires cross-reference cascade (ADR-011, §13.3) | core-standard |
+| **Bundle** | Assembled document for LLM implementation: constitution + module. The unit of LLM consumption (§0.13.2, §0.13.10) | modularization |
+| **Cascade protocol** | Procedure for identifying and re-validating modules affected by a change to constitutional content (§0.13.12) | modularization |
+| **Causal chain** | Traceable path from a first principle through an invariant and/or ADR to an implementation detail (§0.2.3, INV-001) | core-standard |
+| **Churn-magnet** | A decision that, if left open, causes the most downstream rework; ADRs should prioritize locking these (§3.5) | core-standard |
+| **Comparison block** | Side-by-side rejected/chosen comparison with quantified reasoning (§5.5) | element-specifications |
+| **Constitution** | Cross-cutting material constraining all modules, organized in tiers (§0.13.3) | modularization |
+| **Cross-reference** | Explicit link between sections using §X.Y, INV-NNN, or ADR-NNN identifiers (Chapter 10, INV-006) | guidance-operations |
+| **DDIS** | Decision-Driven Implementation Specification. This standard | system-constitution |
+| **Decision spike** | Time-boxed experiment that de-risks an unknown and produces an ADR (§6.1.1) | guidance-operations |
+| **Declaration** | Compact (1-line) summary of an invariant or ADR in the system constitution (§0.13.4) | modularization |
+| **Deep context** | Tier 3: cross-domain invariant definitions and interface contracts for a specific module (§0.13.3) | modularization |
+| **Definition** | Full specification of an invariant or ADR including formal expression, violation scenario, validation (§0.13.4) | modularization |
+| **Design point** | Specific hardware, workload, and scale scenario against which performance budgets are validated (§3.7) | element-specifications |
+| **Domain** | Architectural grouping of related modules sharing tighter coupling (§0.13.2) | modularization |
+| **Domain constitution** | Tier 2: full invariant definitions and ADR analysis for one architectural domain (§0.13.3) | modularization |
+| **End-to-end trace** | Worked scenario traversing all major subsystems, showing data at each boundary (§5.3) | element-specifications |
+| **Exit criterion** | Specific, testable condition for phase completion (§6.1.2) | guidance-operations |
+| **Falsifiable** | Property of an invariant: can be violated by a concrete scenario and detected by a concrete test (INV-003, ADR-002) | core-standard |
+| **First principles** | Formal model of the problem domain from which the architecture derives (§3.3) | core-standard |
+| **Formal model** | Mathematical or pseudo-mathematical definition of the system as a state machine or function (§0.2.1) | core-standard |
+| **Gate** | Quality gate: stop-ship predicate that must be true before the project can proceed (§3.6) | core-standard |
+| **Hallucination** | LLM failure mode: generates plausible but unauthorized behaviors; prevented by negative specifications (§3.8, §0.2.2) | core-standard |
+| **Invariant** | Numbered, falsifiable property that must hold at all times during system operation (§3.4) | core-standard |
+| **Living spec** | Specification in active use, updated as implementation reveals gaps (§13.1) | guidance-operations |
+| **LLM consumption model** | Formal model of how an LLM consumes a DDIS spec, including failure modes and mitigations (§0.2.2) | core-standard |
+| **Manifest** | Machine-readable YAML declaring all modules, invariant ownership, and assembly rules (§0.13.9) | modularization |
+| **Master TODO** | Checkboxable task inventory cross-referenced to subsystems, phases, and ADRs (§7.3) | guidance-operations |
+| **Meta-instruction** | Directive to the LLM implementer providing ordering, sequencing, or process guidance (§5.7) | element-specifications |
+| **Module** | Self-contained spec unit covering one major subsystem; always assembled into a bundle (§0.13.2, §0.13.5) | modularization |
+| **Module header** | Structured YAML block at module start declaring domain, maintained invariants, interfaces, negative specs (§0.13.5) | modularization |
+| **Monolith** | A DDIS spec that exists as a single document, as opposed to a modular spec (§0.13.2) | modularization |
+| **Negative specification** | Explicit "DO NOT" constraint co-located with implementation chapter; primary defense against LLM hallucination (§3.8, INV-017) | element-specifications |
+| **Non-goal** | Something the system explicitly does not attempt (§3.2) | core-standard |
+| **Non-negotiable** | Philosophical commitment stronger than an invariant; defines what the system IS (§3.1) | core-standard |
+| **Operational playbook** | Chapter covering how the spec gets converted into shipped software (§6.1) | guidance-operations |
+| **Proportional weight** | Line budget guidance preventing bloat in some sections and starvation in others (§0.8.2) | system-constitution |
+| **Self-bootstrapping** | Property of this standard: it is written in the format it defines (ADR-004) | core-standard |
+| **Structural redundancy** | Restating key invariants at point of use to prevent context loss; required by INV-018 (§0.2.2) | core-standard |
+| **System constitution** | Tier 1: compact declarations of all invariants and ADRs, plus system-wide orientation (§0.13.3) | modularization |
+| **Three-tier mode** | Standard modularization: system constitution + domain constitution + cross-domain deep + module (§0.13.7, ADR-006) | modularization |
+| **Two-tier mode** | Simplified modularization for small specs: system constitution (full definitions) + module (§0.13.7.1) | modularization |
+| **Verification prompt** | Structured self-check prompt at end of implementation chapter (§5.6, ADR-010) | element-specifications |
+| **Verification prompt coverage** | Property (INV-020) that every element spec chapter includes a verification prompt block (INV-020) | core-standard |
+| **Voice** | Writing style prescribed by DDIS: technically precise but human (§8.1) | guidance-operations |
+| **WHY NOT annotation** | Inline comment explaining why a non-obvious alternative was rejected (§5.4) | element-specifications |
+| **Worked example** | Concrete scenario with specific values showing a subsystem in action (§5.2) | element-specifications |
+
+---
+
+## Context Budget
+
+```
+target_lines: 4000
+hard_ceiling_lines: 5000
+reasoning_reserve: 0.25
+```
+
+---
+
+## Module Map
+
+| Module | Domain | Contents |
+|---|---|---|
+| **core-standard** | core | Full invariant definitions (INV-001 through INV-010, INV-017 through INV-020), full ADR specifications (ADR-001 through ADR-005, ADR-008 through ADR-011), PART I foundations (formal model, state machines, complexity, end-to-end trace) |
+| **element-specifications** | core | PART II element specs: preamble elements (Ch 2), PART 0 elements (Ch 3), PART I elements (Ch 4), PART II elements (Ch 5), negative specifications (§3.8), verification prompts (§5.6), meta-instructions (§5.7) |
+| **modularization** | modular | Full modularization protocol (§0.13): scaling problem, core concepts, tiered constitution, manifest schema, assembly rules, consistency checks, cascade protocol, migration procedure; INV-011 through INV-016; ADR-006, ADR-007 |
+| **guidance-operations** | ops | PART III guidance (voice, style, anti-patterns, proportional weight, cross-reference patterns), PART IV operations (authoring sequence, validation, evolution, testing, error taxonomy), appendices (glossary, risk register, error taxonomy, quick-reference), PART X master TODO |

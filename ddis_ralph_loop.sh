@@ -19,9 +19,10 @@ unset ANTHROPIC_API_KEY 2>/dev/null || true
 #
 # Uses Claude Code (`claude -p`) to recursively improve the DDIS specification
 # using its own methodology. Each iteration:
-#   1. IMPROVE: LLM reads spec + methodology from disk → writes improved spec
-#   2. JUDGE:   Separate LLM reads both versions → structured quality assessment
-#   3. DECIDE:  Script checks multi-signal stopping condition
+#   1. AUDIT:   LLM reads spec + methodology → creates improvement tasks in beads (br)
+#   2. APPLY:   LLM picks tasks via bv triage → applies surgical edits → closes tasks
+#   3. JUDGE:   Separate LLM evaluates: self-bootstrapping, comparison, LLM optimization
+#   4. DECIDE:  Script checks multi-signal stopping condition
 #
 # Stopping condition (three independent signals):
 #   Signal 1: DIMINISHING RETURNS — substantive improvements below threshold
@@ -38,7 +39,7 @@ MAX_ITERATIONS=${DDIS_MAX_ITERATIONS:-5}
 MIN_SUBSTANTIVE_IMPROVEMENTS=${DDIS_MIN_IMPROVEMENTS:-2}
 MIN_QUALITY_DELTA=${DDIS_MIN_DELTA:-3}
 IMPROVER_MODEL=${DDIS_IMPROVER_MODEL:-"opus"}
-JUDGE_MODEL=${DDIS_JUDGE_MODEL:-"sonnet"}
+JUDGE_MODEL=${DDIS_JUDGE_MODEL:-"opus"}
 POLISH_ON_EXIT=${DDIS_POLISH:-true}
 MODULARIZE_ON_EXIT=${DDIS_MODULARIZE:-true}
 USE_BEADS=${DDIS_USE_BEADS:-auto}
@@ -73,21 +74,19 @@ KICKOFF_PROMPT="${SCRIPT_DIR}/kickoff_prompt.md"
 # All calls disable MCP servers (btca hangs during shutdown).
 # Built-in tools (Read, Write, Edit, Glob, Grep, Bash) still work.
 
-MCP_FLAGS='--strict-mcp-config --mcp-config {"mcpServers":{}}'
+MCP_FLAGS=(--strict-mcp-config --mcp-config '{"mcpServers":{}}')
 
 # Debug flag: --debug-file writes logs without changing output format
-CLAUDE_DEBUG_FLAG=""
+CLAUDE_DEBUG_FLAGS=()
 if [[ "$VERBOSE" == "true" ]]; then
     mkdir -p "${WORK_DIR}/logs"
-    CLAUDE_DEBUG_FLAG="--debug-file ${LOGS_DIR}/claude_debug.log"
+    CLAUDE_DEBUG_FLAGS=(--debug-file "${LOGS_DIR}/claude_debug.log")
 fi
 
-# Per-call-type tuning
-IMPROVE_MAX_TURNS=100
-IMPROVE_TIMEOUT=2400   # 40 minutes
+# Per-call-type tuning (audit + apply replace the old monolithic improve step)
 
-JUDGE_MAX_TURNS=15
-JUDGE_TIMEOUT=600      # 10 minutes
+JUDGE_MAX_TURNS=100
+JUDGE_TIMEOUT=2400     # 40 minutes
 
 POLISH_MAX_TURNS=50
 POLISH_TIMEOUT=1800    # 30 minutes
@@ -98,6 +97,7 @@ MODULARIZE_TIMEOUT=2400  # 40 minutes
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 timestamp() { date '+%Y-%m-%d %H:%M:%S'; }
+epoch_secs() { date '+%s'; }
 log() { echo "[$(timestamp)] $*"; }
 
 log_section() {
@@ -109,6 +109,16 @@ log_section() {
 }
 
 line_count() { wc -l < "$1" | tr -d ' '; }
+
+# Format elapsed seconds as "Xm Ys"
+fmt_elapsed() {
+    local secs=$1
+    if [[ $secs -ge 60 ]]; then
+        printf "%dm %ds" $((secs / 60)) $((secs % 60))
+    else
+        printf "%ds" "$secs"
+    fi
+}
 
 judgment_field() {
     local file="$1" field="$2"
@@ -142,7 +152,10 @@ check_prereqs() {
 
 # ─── Beads Integration ────────────────────────────────────────────────────────
 #
-# br/bv track gaps ACROSS RALPH runs. Lightweight — doesn't control the loop.
+# br/bv are the TASK BACKBONE of the improvement loop. The audit agent creates
+# granular improvement tasks directly via `br create`. The apply agent picks
+# them off via `br ready` / `bv --robot-triage` and closes them via `br close`.
+# Issues persist across iterations AND across RALPH runs.
 
 BEADS_AVAILABLE=false
 BV_AVAILABLE=false
@@ -167,239 +180,359 @@ beads_init() {
     fi
 }
 
-beads_sync_gaps() {
-    $BEADS_AVAILABLE || return 0
-    local iteration=$1 judgment_file="$2" prev_judgment="${3:-}"
-
-    local gaps
-    gaps=$(jq -r '.remaining_gaps[]' "$judgment_file" 2>/dev/null) || return 0
-
-    # Close resolved gaps from previous iteration
-    if [[ -n "$prev_judgment" && -f "$prev_judgment" ]]; then
-        local prev_gaps
-        prev_gaps=$(jq -r '.remaining_gaps[]' "$prev_judgment" 2>/dev/null) || true
-        while IFS= read -r prev_gap; do
-            [[ -z "$prev_gap" ]] && continue
-            if ! echo "$gaps" | grep -qF "$prev_gap"; then
-                local issue_id
-                issue_id=$(cd "$WORK_DIR" && br search "$prev_gap" --json 2>/dev/null \
-                    | jq -r '.[0].id // empty' 2>/dev/null) || true
-                [[ -n "$issue_id" ]] && \
-                    (cd "$WORK_DIR" && br close "$issue_id" \
-                        --reason "Resolved in iteration $iteration" --quiet 2>/dev/null) || true
-            fi
-        done <<< "$prev_gaps"
-    fi
-
-    # Create issues for new gaps
-    local priority=1
-    while IFS= read -r gap; do
-        [[ -z "$gap" ]] && continue
-        local existing
-        existing=$(cd "$WORK_DIR" && br search "$gap" --json 2>/dev/null \
-            | jq -r '[.[] | select(.status == "open")] | length' 2>/dev/null) || existing=0
-        if [[ "$existing" == "0" ]]; then
-            (cd "$WORK_DIR" && br create "$gap" \
-                --type task --priority "$priority" --quiet 2>/dev/null) || true
-        fi
-        ((priority++)) || true
-    done <<< "$gaps"
-}
-
-beads_get_persistent_gaps() {
-    $BEADS_AVAILABLE || { echo ""; return 0; }
-    [[ -f "${WORK_DIR}/.beads/beads.db" ]] || { echo ""; return 0; }
-    (cd "$WORK_DIR" && br list --status open --json 2>/dev/null \
-        | jq -r '.[].title' 2>/dev/null) || echo ""
-}
-
-beads_get_triage() {
-    $BV_AVAILABLE || { echo ""; return 0; }
-    (cd "$WORK_DIR" && bv --robot-triage --format toon 2>/dev/null) || echo ""
+beads_open_count() {
+    $BEADS_AVAILABLE || { echo "0"; return 0; }
+    (cd "$WORK_DIR" && br count --status open 2>/dev/null \
+        | grep -oP '\d+' | head -1) || echo "0"
 }
 
 beads_finalize() {
     $BEADS_AVAILABLE || return 0
     log "BEADS: Finalizing"
     (cd "$WORK_DIR" && br sync --flush-only --quiet 2>/dev/null) || true
-    if $BV_AVAILABLE; then
-        local open_count
-        open_count=$(cd "$WORK_DIR" && br count --status open 2>/dev/null \
-            | grep -oP '\d+' | head -1) || open_count=0
-        [[ "$open_count" -gt 0 ]] && \
-            log "BEADS: $open_count gaps remain. Run: cd ${WORK_DIR} && bv --robot-triage"
-    fi
+    local open_count
+    open_count=$(beads_open_count)
+    [[ "$open_count" -gt 0 ]] && \
+        log "BEADS: $open_count issues remain open. Run: cd ${WORK_DIR} && bv --robot-triage"
 }
 
-# ─── Improve Step ─────────────────────────────────────────────────────────────
+# ─── Improve Step (Two-Phase: Audit → Apply) ────────────────────────────────
 #
-# Design: The model reads files from disk (via Read tool), reasons deeply
-# (extended thinking enabled by default — no --effort flag), and writes the
-# improved spec to disk (via Write tool).
+# Phase 1 — AUDIT: LLM reads spec + methodology, systematically evaluates it
+#   against its own criteria, and creates improvement tasks directly in beads
+#   via the `br` CLI. Reviews its own work for thoroughness. Pure analysis.
 #
-# No text extraction. No continuation loop. No WRITTEN_TO_FILE protocol.
+# Phase 2 — APPLY: LLM reads spec + picks tasks from beads via `br ready` /
+#   `bv --robot-triage`, applies targeted edits using Edit tool, and closes
+#   each task via `br close` when done. Surgical changes, no full rewrite.
+#
+# This replaces the monolithic "rewrite entire spec" approach that timed out
+# on 3,000+ line specs.
 
-run_improve() {
+AUDIT_TIMEOUT=2400   # 40 minutes — deep analysis + beads creation
+AUDIT_MAX_TURNS=80
+APPLY_TIMEOUT=2400   # 40 minutes — surgical edits
+APPLY_MAX_TURNS=100
+
+# ─── Phase 1: Audit ─────────────────────────────────────────────────────────
+
+run_audit() {
     local iteration=$1
     local current_spec="$2"
-    local output_spec="$3"
-    local prev_judgment="${4:-}"
-    local log_file="${LOGS_DIR}/improve_v${iteration}.log"
+    local prev_judgment="${3:-}"
+    local log_file="${LOGS_DIR}/audit_v${iteration}.log"
 
     local current_lines
     current_lines=$(line_count "$current_spec")
-    log "IMPROVE: v$((iteration - 1)) ($current_lines lines) → v${iteration}"
+    log "AUDIT: Analyzing v$((iteration - 1)) ($current_lines lines)"
 
-    # Build the prompt. Key principle: SHORT prompt + file paths on disk.
-    # The model reads the actual files using the Read tool, keeping our
-    # prompt small and letting the model manage its own context.
-    local prompt
+    # Build judgment context for iterations > 1
+    local judgment_section=""
+    if [[ -n "$prev_judgment" && -f "$prev_judgment" ]]; then
+        judgment_section="3. **Judge's assessment of v$((iteration - 1))**: ${prev_judgment}
+   Read this carefully — it tells you what the judge found wrong. Address every gap and regression."
+    fi
 
-    if [[ $iteration -eq 1 ]]; then
-        local persistent_gaps
-        persistent_gaps=$(beads_get_persistent_gaps)
-        local gaps_section=""
-        if [[ -n "$persistent_gaps" ]]; then
-            gaps_section="
-## Persistent Gaps from Previous Runs
-These gaps were never fully resolved. Pay special attention:
-$(echo "$persistent_gaps" | sed 's/^/- /')
-"
-        fi
-
-        prompt="You are performing the first iteration of recursive self-improvement on the DDIS specification standard.
+    local prompt="You are the AUDITOR in iteration $iteration of the DDIS recursive self-improvement loop.
+Your job is ANALYSIS ONLY — systematically evaluate the spec against its own criteria and create
+granular improvement tasks using the \`br\` (beads) CLI. Do NOT edit the spec.
 
 ## Files to Read (use the Read tool)
 
 1. **Improvement methodology**: ${IMPROVEMENT_PROMPT}
    This describes the audit framework, quality criteria, and anti-patterns. Read it first.
 
-2. **Current DDIS spec (v0)**: ${current_spec}
-   This is the ~2,300-line self-bootstrapping meta-specification you will improve.
-
-## What to Do
-
-$(cat "$KICKOFF_PROMPT")
-${gaps_section}
-
-## CRITICAL OVERRIDE
-
-The improvement methodology says to produce two artifacts. **IGNORE THAT.**
-Produce ONLY the improved DDIS standard (Artifact 2). Do the audit and
-improvement spec work in your reasoning/thinking — do not output Artifact 1.
-
-## Output Instructions
-
-Write the complete improved DDIS standard to this exact path:
-  ${output_spec}
-
-Use the Write tool to create the file. The file must be the complete spec —
-start with the first heading, end with the last section. Target 2,000-3,000
-lines. After writing, briefly confirm what you wrote and any key changes made."
-
-    else
-        local triage_section=""
-        local triage
-        triage=$(beads_get_triage)
-        if [[ -n "$triage" ]]; then
-            triage_section="
-## Gap Triage (dependency-aware prioritization)
-\`\`\`
-${triage}
-\`\`\`
-"
-        fi
-
-        prompt="You are performing iteration $iteration of recursive self-improvement on the DDIS specification standard.
-
-## Files to Read (use the Read tool)
-
-1. **Improvement methodology**: ${IMPROVEMENT_PROMPT}
 2. **Current DDIS spec (v$((iteration - 1)))**: ${current_spec}
-3. **Judge's assessment of v$((iteration - 1))**: ${prev_judgment}
+   This is the ~${current_lines}-line self-bootstrapping meta-specification to audit.
+
+${judgment_section}
+
+## Beads Issue Tracker
+
+The beads workspace is at: ${WORK_DIR}
+Use Bash to run \`br\` and \`bv\` commands. Always \`cd ${WORK_DIR}\` first.
+
+**Before creating new tasks**, check what already exists:
+\`\`\`bash
+cd ${WORK_DIR}
+br list --status open --json    # See existing open issues
+bv --robot-triage 2>/dev/null   # Dependency-aware prioritization (if bv available)
+\`\`\`
 
 ## Your Task
 
-Read the judge's assessment carefully. Produce the next version that:
-- Addresses every remaining gap the judge identified
-- Preserves all existing strengths (do NOT regress)
-- Makes only structural/substantive improvements (not cosmetic)
+Read the ENTIRE spec thoroughly. Systematically evaluate it against:
 
-## Key Constraints
+1. **Self-Conformance**: Does the spec satisfy its own invariants (INV-001 through INV-020)?
+   Check EACH invariant. For every violation, create a task.
+2. **Quality Gates**: Does it pass Gates 1-7? For every gate failure, create a task.
+3. **LLM Optimization**: Is it maximally effective for LLM consumption? Structure, density,
+   navigation aids, context efficiency.
+4. **Structural completeness**: All required elements present per the spec's own template?
+5. **Cross-references**: All valid? No orphan sections (INV-006)?
+6. **Negative specifications**: Enough DO NOT constraints per chapter (INV-017)?
+7. **Verification prompts**: Every element spec chapter has a verification block (INV-020)?
 
-- The spec must remain self-bootstrapping (conform to the format it defines)
-- Focus on LLM-optimization: the primary consumer is an LLM
-- Do NOT increase document length by more than 20%
+## Creating Tasks
 
-## Remaining Gaps to Address (summary — read the full judge file for details)
+For each improvement needed, use the \`br\` CLI:
 
-$(jq -r '.remaining_gaps[]' "$prev_judgment" 2>/dev/null | sed 's/^/- /' || echo "- Read judge assessment for details")
+\`\`\`bash
+cd ${WORK_DIR} && br create \"<concise title>\" \\
+  --type task \\
+  --priority <0-3> \\
+  --description \"<detailed description including: what section, what's wrong, what the fix should be, which invariants this addresses>\" \\
+  --labels \"ralph-iter-${iteration},<category>\"
+\`\`\`
 
-## Regressions to Fix
+Priority guide:
+- P0: Critical invariant violation or broken self-bootstrapping
+- P1: Significant gap (missing required element, quality gate failure)
+- P2: Meaningful structural improvement
+- P3: Minor polish (only if it directly serves an invariant)
 
-$(jq -r '.regressions_list[]' "$prev_judgment" 2>/dev/null | sed 's/^/- /' || echo "- None identified")
-${triage_section}
-## Output Instructions
+Category labels: \`self-conformance\`, \`quality-gate\`, \`llm-optimization\`, \`structural\`, \`cross-ref\`, \`negative-spec\`, \`verification\`
 
-Write the complete improved DDIS standard to this exact path:
-  ${output_spec}
+After creating tasks, wire up dependencies where one fix depends on another:
+\`\`\`bash
+cd ${WORK_DIR} && br dep add <task-id> <depends-on-id>
+\`\`\`
 
-Use the Write tool. After writing, briefly confirm what you wrote."
-    fi
+## Self-Review
 
-    log "IMPROVE: Starting claude -p (model=$IMPROVER_MODEL, max_turns=$IMPROVE_MAX_TURNS, timeout=${IMPROVE_TIMEOUT}s)"
+After creating all tasks, review your own work:
+\`\`\`bash
+cd ${WORK_DIR} && br list --status open --json | jq length    # Total open
+cd ${WORK_DIR} && br ready --json | jq length                 # Ready (unblocked)
+cd ${WORK_DIR} && bv --robot-triage 2>/dev/null | jq '.quick_ref' 2>/dev/null
+\`\`\`
+
+Ask yourself:
+- Did I check EVERY invariant (INV-001 through INV-020)?
+- Did I check every quality gate (Gates 1-7)?
+- Are my task descriptions specific enough that another LLM could implement each one
+  without reading the audit? (Section, problem, exact fix, affected invariants)
+- Are dependencies correct? (e.g., \"add INV-021\" must happen before \"update namespace note\")
+- Did I miss anything? If so, create additional tasks.
+
+Target 8-20 tasks. Focus on SUBSTANCE over cosmetics."
+
+    log "AUDIT: Starting claude -p (model=$IMPROVER_MODEL, max_turns=$AUDIT_MAX_TURNS, timeout=${AUDIT_TIMEOUT}s)"
+
+    local start_secs
+    start_secs=$(epoch_secs)
 
     local raw_output=""
-    raw_output=$(echo "$prompt" | timeout "$IMPROVE_TIMEOUT" \
-        claude -p $CLAUDE_DEBUG_FLAG $MCP_FLAGS \
+    raw_output=$(echo "$prompt" | timeout "$AUDIT_TIMEOUT" \
+        claude -p "${CLAUDE_DEBUG_FLAGS[@]}" "${MCP_FLAGS[@]}" \
             --model "$IMPROVER_MODEL" \
             --output-format json \
-            --max-turns "$IMPROVE_MAX_TURNS" \
-            --permission-mode acceptEdits \
+            --max-turns "$AUDIT_MAX_TURNS" \
+            --permission-mode bypassPermissions \
             2>"$log_file") || {
         local exit_code=$?
         if [[ $exit_code -eq 124 ]]; then
-            log "IMPROVE: TIMEOUT after $((IMPROVE_TIMEOUT / 60)) minutes"
+            log "AUDIT: TIMEOUT after $((AUDIT_TIMEOUT / 60)) minutes"
         else
-            log "IMPROVE: claude -p exited with code $exit_code"
+            log "AUDIT: claude -p exited with code $exit_code"
         fi
     }
 
-    # Log session ID for post-hoc analysis
+    local elapsed=$(( $(epoch_secs) - start_secs ))
+    log "AUDIT: Elapsed: $(fmt_elapsed $elapsed)"
+
     local session_id
     session_id=$(extract_session_id "$raw_output") || true
-    [[ -n "$session_id" ]] && log "IMPROVE: Session: ${session_id}"
+    [[ -n "$session_id" ]] && log "AUDIT: Session: ${session_id}"
 
-    # Primary check: did the model write the output file?
+    # Check how many issues were created
+    local open_count
+    open_count=$(beads_open_count)
+    log "AUDIT: $open_count open issues in tracker"
+
+    if [[ "$open_count" == "0" ]]; then
+        log "WARNING: Audit created no issues"
+        return 1
+    fi
+
+    return 0
+}
+
+# ─── Phase 2: Apply ─────────────────────────────────────────────────────────
+
+run_apply() {
+    local iteration=$1
+    local current_spec="$2"
+    local output_spec="$3"
+    local log_file="${LOGS_DIR}/apply_v${iteration}.log"
+
+    local current_lines
+    current_lines=$(line_count "$current_spec")
+
+    # Copy current spec to output path — apply will EDIT it in place
+    cp "$current_spec" "$output_spec"
+
+    local open_count
+    open_count=$(beads_open_count)
+    log "APPLY: $open_count open issues to address on v$((iteration - 1)) ($current_lines lines)"
+
+    local prompt="You are the APPLIER in iteration $iteration of the DDIS recursive self-improvement loop.
+Your job is to apply improvements to the spec by working through the beads issue tracker.
+
+## Files
+
+1. **Spec to improve**: ${output_spec}
+   Read this file. You will EDIT it in place using the Edit tool.
+
+2. **Improvement methodology** (for context): ${IMPROVEMENT_PROMPT}
+
+## Beads Issue Tracker
+
+The beads workspace is at: ${WORK_DIR}
+Use Bash to run \`br\` and \`bv\` commands. Always \`cd ${WORK_DIR}\` first.
+
+**Start by getting your prioritized work list:**
+\`\`\`bash
+cd ${WORK_DIR} && bv --robot-triage 2>/dev/null || br ready --json
+\`\`\`
+
+## Workflow for Each Task
+
+1. **Pick the next task** (highest priority, unblocked):
+   \`\`\`bash
+   cd ${WORK_DIR} && br ready --json --limit 1
+   \`\`\`
+
+2. **Read its details**:
+   \`\`\`bash
+   cd ${WORK_DIR} && br show <id>
+   \`\`\`
+
+3. **Mark in-progress**:
+   \`\`\`bash
+   cd ${WORK_DIR} && br update <id> --status in_progress
+   \`\`\`
+
+4. **Read the relevant section** of ${output_spec} using the Read tool
+
+5. **Apply the fix** using the Edit tool:
+   - Find the exact text to change in the spec
+   - Use Edit with precise old_string and new_string
+   - Verify cross-references remain valid after your edit
+   - If the edit would break self-bootstrapping, skip it
+
+6. **Close the task**:
+   \`\`\`bash
+   cd ${WORK_DIR} && br close <id> --reason \"Applied: <brief description of what was done>\"
+   \`\`\`
+
+7. **Repeat** until all ready tasks are done or you've run out of time
+
+## CRITICAL RULES
+
+- **Use the Edit tool**, NOT the Write tool. Make surgical edits to specific sections.
+  The Edit tool replaces exact string matches. This preserves everything you don't touch.
+- **NEVER rewrite the entire file.** Only change what needs changing.
+- The spec MUST remain self-bootstrapping (conform to the format it defines)
+- Do NOT increase total document length by more than 20%
+- Do NOT make cosmetic-only changes — every edit must serve an invariant or quality gate
+- If two tasks conflict, prefer the higher-priority one and close the other with a note
+- Update namespace notes, TODOs, and cross-references affected by your edits
+- After completing all tasks, run \`br list --status open\` and report what remains
+
+## After All Edits
+
+Provide a brief summary of:
+- How many tasks you completed vs skipped
+- Key changes made
+- Any tasks that couldn't be applied and why"
+
+    log "APPLY: Starting claude -p (model=$IMPROVER_MODEL, max_turns=$APPLY_MAX_TURNS, timeout=${APPLY_TIMEOUT}s)"
+
+    local start_secs
+    start_secs=$(epoch_secs)
+
+    local raw_output=""
+    raw_output=$(echo "$prompt" | timeout "$APPLY_TIMEOUT" \
+        claude -p "${CLAUDE_DEBUG_FLAGS[@]}" "${MCP_FLAGS[@]}" \
+            --model "$IMPROVER_MODEL" \
+            --output-format json \
+            --max-turns "$APPLY_MAX_TURNS" \
+            --permission-mode bypassPermissions \
+            2>"$log_file") || {
+        local exit_code=$?
+        if [[ $exit_code -eq 124 ]]; then
+            log "APPLY: TIMEOUT after $((APPLY_TIMEOUT / 60)) minutes"
+        else
+            log "APPLY: claude -p exited with code $exit_code"
+        fi
+    }
+
+    local elapsed=$(( $(epoch_secs) - start_secs ))
+    log "APPLY: Elapsed: $(fmt_elapsed $elapsed)"
+
+    local session_id
+    session_id=$(extract_session_id "$raw_output") || true
+    [[ -n "$session_id" ]] && log "APPLY: Session: ${session_id}"
+
+    # Report beads status after apply
+    local remaining
+    remaining=$(beads_open_count)
+    local closed=$((open_count - remaining))
+    log "APPLY: Closed $closed issues, $remaining remain open"
+
+    # Check: does the output file still exist and have content?
     if [[ -f "$output_spec" ]] && [[ $(wc -l < "$output_spec" | tr -d ' ') -ge 200 ]]; then
         local new_lines
         new_lines=$(line_count "$output_spec")
-        log "IMPROVE: Produced v${iteration} ($new_lines lines, delta: $((new_lines - current_lines)))"
+
+        # Sanity: if the file shrank drastically, something went wrong
+        local min_acceptable=$(( current_lines * 70 / 100 ))
+        if [[ $new_lines -lt $min_acceptable ]]; then
+            log "APPLY: WARNING — output shrank to $new_lines lines (<70% of $current_lines)"
+        fi
+
+        log "APPLY: Produced v${iteration} ($new_lines lines, delta: $((new_lines - current_lines)))"
         return 0
     fi
 
-    # Fallback: model may have output the spec as response text instead of writing a file
-    local result_text
-    result_text=$(extract_result "$raw_output") || true
-    if [[ -n "$result_text" ]] && [[ $(echo "$result_text" | wc -l | tr -d ' ') -ge 200 ]]; then
-        log "IMPROVE: Model output spec as text — writing to file"
-        echo "$result_text" > "$output_spec"
-        local new_lines
-        new_lines=$(line_count "$output_spec")
-        log "IMPROVE: Produced v${iteration} ($new_lines lines, delta: $((new_lines - current_lines)))"
-        return 0
-    fi
-
-    log "ERROR: v${iteration} not produced. Output file missing or too short."
+    log "ERROR: Apply failed — output file missing or too short"
     log "       Session: ${session_id:-unknown}"
     log "       Log: $log_file"
     return 1
 }
 
+# ─── Combined Improve Step (Audit → Apply) ──────────────────────────────────
+
+run_improve() {
+    local iteration=$1
+    local current_spec="$2"
+    local output_spec="$3"
+    local prev_judgment="${4:-}"
+
+    local current_lines
+    current_lines=$(line_count "$current_spec")
+    log "IMPROVE: v$((iteration - 1)) ($current_lines lines) → v${iteration} [audit → apply]"
+
+    # Phase 1: Audit — create improvement tasks in beads
+    if ! run_audit "$iteration" "$current_spec" "$prev_judgment"; then
+        log "ERROR: Audit failed at iteration $iteration — no improvements identified"
+        return 1
+    fi
+
+    # Phase 2: Apply — work through beads tasks with surgical edits
+    if ! run_apply "$iteration" "$current_spec" "$output_spec"; then
+        log "ERROR: Apply failed at iteration $iteration"
+        return 1
+    fi
+
+    return 0
+}
+
 # ─── Judge Step ───────────────────────────────────────────────────────────────
 #
 # Separate LLM evaluates whether version N is better than N-1.
-# Uses --json-schema for structured output.
+# Outputs raw JSON via prompt instruction (structured output via prompt, not flag).
 
 run_judge() {
     local iteration=$1
@@ -413,25 +546,76 @@ run_judge() {
     curr_lines=$(line_count "$curr_spec")
     log "JUDGE: Comparing v$((iteration - 1)) ($prev_lines lines) vs v${iteration} ($curr_lines lines)"
 
+    # Build judge prompt — three evaluation dimensions:
+    #   (a) Self-bootstrapping: how well does the spec conform to itself?
+    #   (b) Comparison: is it better than the previous version?
+    #   (c) LLM optimization: how well does it serve LLM generation/implementation goals?
+
+    local comparison_context=""
+    local recommendation_context=""
+    if [[ $iteration -eq 1 ]]; then
+        comparison_context="This is the FIRST iteration. v0 is the unmodified seed spec.
+There is no prior score to compare against. Evaluate v1 on absolute quality."
+        recommendation_context="- **continue**: Score < 90 AND >= ${MIN_SUBSTANTIVE_IMPROVEMENTS} substantive improvements AND remaining gaps are addressable
+- **stop_converged**: < ${MIN_SUBSTANTIVE_IMPROVEMENTS} substantive improvements (v1 barely differs from seed)
+- **stop_regressed**: v1 is WORSE than v0 — missing sections, broken cross-refs, content loss
+- **stop_excellent**: Score >= 95 AND no critical remaining gaps"
+    else
+        comparison_context="Compare v${iteration} against v$((iteration - 1)). Both absolute quality and relative improvement matter."
+        recommendation_context="- **continue**: Score improved by >= ${MIN_QUALITY_DELTA} AND >= ${MIN_SUBSTANTIVE_IMPROVEMENTS} substantive improvements AND gaps addressable
+- **stop_converged**: Score improved by < ${MIN_QUALITY_DELTA} OR < ${MIN_SUBSTANTIVE_IMPROVEMENTS} improvements
+- **stop_regressed**: Regressions outweigh improvements — keep previous version
+- **stop_excellent**: Score >= 95 AND no critical remaining gaps"
+    fi
+
     local prompt="You are the JUDGE in a recursive self-improvement loop for the DDIS specification.
 
 ## Files to Read (use the Read tool)
 
 1. **Previous version (v$((iteration - 1)))**: ${prev_spec}
 2. **Current version (v${iteration})**: ${curr_spec}
+3. **Improvement methodology** (scoring criteria): ${IMPROVEMENT_PROMPT}
 
 ## Your Role
 
-Evaluate whether v${iteration} is better than v$((iteration - 1)). You are NOT the
-author — you are an independent assessor. Be rigorous. Do not credit cosmetic changes.
+You are an independent assessor — NOT the author. Be rigorous. Do not credit cosmetic changes.
+Evaluate v${iteration} across THREE dimensions:
 
-## Evaluation Criteria
+${comparison_context}
 
-1. **DDIS Self-Conformance**: Does v${iteration} satisfy its own invariants (INV-001 through INV-010+) and quality gates?
-2. **LLM Optimization**: Is v${iteration} more effective for LLM consumption?
-3. **Substantive vs Cosmetic**: Count ONLY structural improvements (new invariants, fixed violations, new LLM provisions). NOT rewording.
-4. **Regressions**: Did anything get WORSE? Missing sections, broken cross-refs, violated invariants?
-5. **Remaining Gaps**: Top 3-5 things still missing or weak?
+### Dimension A: Self-Bootstrapping Adherence (40% of score)
+
+The DDIS spec defines a format that it must itself conform to. How well does it eat its own dogfood?
+
+- Check EACH invariant INV-001 through INV-020. For every one: does the spec satisfy it?
+- Check quality gates 1-7. Does the spec pass each one?
+- Are all required structural elements present (per §0.3 template)?
+- Is the namespace note accurate? Do counts match reality?
+- Does the Master TODO reflect the actual state of the document?
+- Are cross-references valid (no broken links, no orphan sections)?
+
+### Dimension B: Version Comparison (30% of score)
+
+- What SUBSTANTIVE improvements were made? (New invariants, fixed violations, new sections,
+  improved coverage — NOT rewording, reformatting, or cosmetic changes)
+- What REGRESSIONS occurred? (Missing content, broken cross-refs, weakened invariants,
+  lost sections, reduced coverage)
+- Net: is v${iteration} objectively better than v$((iteration - 1))?
+
+### Dimension C: LLM Optimization Goals (30% of score)
+
+This spec's primary consumer is an LLM. How well does it serve these goals:
+
+1. **Context efficiency**: Can an LLM load what it needs without loading everything?
+   Cross-reference density, modular structure, section independence.
+2. **Implementation clarity**: Could an LLM produce a correct v1 implementation from this
+   spec alone, with zero clarifying questions? Worked examples, pseudocode, edge cases.
+3. **Self-validation**: Can an LLM verify its own output against the spec? Verification
+   prompts, falsifiable invariants, concrete violation scenarios.
+4. **Iterative authoring**: Does the spec support efficient iterative improvement?
+   Clear audit criteria, measurable quality, explicit gaps.
+5. **Resistance to drift**: Does the spec prevent hallucination and content loss during
+   LLM rewrites? Structural redundancy, namespace notes, checksums.
 
 ## Scoring Guide
 
@@ -440,37 +624,43 @@ author — you are an independent assessor. Be rigorous. Do not credit cosmetic 
 - 51-70: Functional but incomplete
 - 71-85: Good (complete, most invariants satisfied)
 - 86-95: Excellent (comprehensive, self-conforming, LLM-optimized)
-- 96-100: Near-perfect (reserve this)
+- 96-100: Near-perfect (reserve this — requires passing ALL invariants and gates)
 
 ## Recommendation Logic
 
-- **continue**: Score improved by >= ${MIN_QUALITY_DELTA} AND >= ${MIN_SUBSTANTIVE_IMPROVEMENTS} substantive improvements AND gaps addressable
-- **stop_converged**: Score improved by < ${MIN_QUALITY_DELTA} OR < ${MIN_SUBSTANTIVE_IMPROVEMENTS} improvements
-- **stop_regressed**: Regressions outweigh improvements — keep previous version
-- **stop_excellent**: Score >= 95 AND no critical remaining gaps
+${recommendation_context}
 
 ## Output Format — CRITICAL
 
-Read both versions carefully, then output ONLY a single raw JSON object. No markdown fences, no explanation before or after — JUST the JSON. The object must have exactly these fields:
+Read both versions THOROUGHLY, then output ONLY a single raw JSON object. No markdown fences,
+no explanation before or after — JUST the JSON. The object must have exactly these fields:
 
 {
   \"quality_score\": <integer 0-100>,
+  \"self_bootstrap_score\": <integer 0-100>,
+  \"comparison_score\": <integer 0-100>,
+  \"llm_optimization_score\": <integer 0-100>,
   \"substantive_improvements\": <integer>,
   \"regressions\": <integer>,
-  \"improvements_list\": [\"<brief description of each improvement>\"],
+  \"improvements_list\": [\"<brief description of each substantive improvement>\"],
   \"regressions_list\": [\"<brief description of each regression>\"],
-  \"remaining_gaps\": [\"<top 3-5 remaining gaps>\"],
+  \"invariant_violations\": [\"<INV-NNN: brief description of how it's violated>\"],
+  \"gate_failures\": [\"<Gate N: brief description of failure>\"],
+  \"remaining_gaps\": [\"<top 5-8 remaining gaps, ordered by impact>\"],
   \"recommendation\": \"<continue|stop_converged|stop_regressed|stop_excellent>\",
-  \"rationale\": \"<2-3 sentence explanation>\"
+  \"rationale\": \"<detailed 3-5 sentence explanation covering all three dimensions>\"
 }
 
 Your ENTIRE response must be valid JSON. Nothing else."
 
     log "JUDGE: Starting claude -p (model=$JUDGE_MODEL, max_turns=$JUDGE_MAX_TURNS, timeout=${JUDGE_TIMEOUT}s)"
 
+    local start_secs
+    start_secs=$(epoch_secs)
+
     local raw_output=""
     raw_output=$(echo "$prompt" | timeout "$JUDGE_TIMEOUT" \
-        claude -p $CLAUDE_DEBUG_FLAG $MCP_FLAGS \
+        claude -p "${CLAUDE_DEBUG_FLAGS[@]}" "${MCP_FLAGS[@]}" \
             --model "$JUDGE_MODEL" \
             --output-format json \
             --max-turns "$JUDGE_MAX_TURNS" \
@@ -483,6 +673,9 @@ Your ENTIRE response must be valid JSON. Nothing else."
             log "JUDGE: claude -p exited with code $exit_code"
         fi
     }
+
+    local elapsed=$(( $(epoch_secs) - start_secs ))
+    log "JUDGE: Elapsed: $(fmt_elapsed $elapsed)"
 
     # Extract structured JSON from response.
     # The model should output raw JSON as its response text, which ends up in .result.
@@ -535,7 +728,14 @@ FALLBACK
     regressions=$(judgment_field "$output_json" "regressions")
     recommendation=$(judgment_field "$output_json" "recommendation")
 
-    log "JUDGE: Score=$score | Improvements=$improvements | Regressions=$regressions | Rec=$recommendation"
+    # Sub-scores (may not exist in fallback judgments)
+    local bootstrap_score comparison_score llm_score
+    bootstrap_score=$(judgment_field "$output_json" "self_bootstrap_score" 2>/dev/null) || bootstrap_score="—"
+    comparison_score=$(judgment_field "$output_json" "comparison_score" 2>/dev/null) || comparison_score="—"
+    llm_score=$(judgment_field "$output_json" "llm_optimization_score" 2>/dev/null) || llm_score="—"
+
+    log "JUDGE: Score=$score (bootstrap=$bootstrap_score, comparison=$comparison_score, llm=$llm_score)"
+    log "JUDGE: Improvements=$improvements | Regressions=$regressions | Rec=$recommendation"
 
     local session_id
     session_id=$(extract_session_id "$raw_output") || true
@@ -586,14 +786,20 @@ Use the Write tool."
 
     log "POLISH: Starting claude -p (timeout=${POLISH_TIMEOUT}s)"
 
+    local start_secs
+    start_secs=$(epoch_secs)
+
     local raw_output=""
     raw_output=$(echo "$prompt" | timeout "$POLISH_TIMEOUT" \
-        claude -p $CLAUDE_DEBUG_FLAG $MCP_FLAGS \
+        claude -p "${CLAUDE_DEBUG_FLAGS[@]}" "${MCP_FLAGS[@]}" \
             --model "$IMPROVER_MODEL" \
             --output-format json \
             --max-turns "$POLISH_MAX_TURNS" \
             --permission-mode acceptEdits \
             2>"$log_file") || true
+
+    local elapsed=$(( $(epoch_secs) - start_secs ))
+    log "POLISH: Elapsed: $(fmt_elapsed $elapsed)"
 
     if [[ -f "$output_spec" ]] && [[ $(wc -l < "$output_spec" | tr -d ' ') -ge 200 ]]; then
         local output_lines
@@ -721,9 +927,12 @@ Write ALL 6 files using the Write tool. After writing, report:
 
     log "MODULARIZE: Starting claude -p (model=$IMPROVER_MODEL, max_turns=$MODULARIZE_MAX_TURNS, timeout=${MODULARIZE_TIMEOUT}s)"
 
+    local start_secs
+    start_secs=$(epoch_secs)
+
     local raw_output=""
     raw_output=$(echo "$prompt" | timeout "$MODULARIZE_TIMEOUT" \
-        claude -p $CLAUDE_DEBUG_FLAG $MCP_FLAGS \
+        claude -p "${CLAUDE_DEBUG_FLAGS[@]}" "${MCP_FLAGS[@]}" \
             --model "$IMPROVER_MODEL" \
             --output-format json \
             --max-turns "$MODULARIZE_MAX_TURNS" \
@@ -736,6 +945,9 @@ Write ALL 6 files using the Write tool. After writing, report:
             log "MODULARIZE: claude -p exited with code $exit_code"
         fi
     }
+
+    local elapsed=$(( $(epoch_secs) - start_secs ))
+    log "MODULARIZE: Elapsed: $(fmt_elapsed $elapsed)"
 
     local session_id
     session_id=$(extract_session_id "$raw_output") || true
@@ -930,8 +1142,22 @@ print_summary() {
         echo "Beads:      ${WORK_DIR}/.beads/"
     fi
 
-    local last_judgment="${JUDGMENTS_DIR}/judgment_v${final_version}.json"
-    if [[ -f "$last_judgment" ]]; then
+    # Find the last available judgment — when best_version=0 (regression on
+    # iteration 1), judgment_v0.json doesn't exist, but judgment_v1.json does.
+    local last_judgment=""
+    if [[ -f "${JUDGMENTS_DIR}/judgment_v${final_version}.json" ]]; then
+        last_judgment="${JUDGMENTS_DIR}/judgment_v${final_version}.json"
+    else
+        # Walk backward to find the most recent judgment file
+        for ((j = final_version + 1; j >= 1; j--)); do
+            if [[ -f "${JUDGMENTS_DIR}/judgment_v${j}.json" ]]; then
+                last_judgment="${JUDGMENTS_DIR}/judgment_v${j}.json"
+                break
+            fi
+        done
+    fi
+
+    if [[ -n "$last_judgment" && -f "$last_judgment" ]]; then
         echo ""
         echo "Remaining gaps:"
         jq -r '.remaining_gaps[]' "$last_judgment" 2>/dev/null | sed 's/^/  - /'
@@ -955,7 +1181,7 @@ main() {
     log "  Judge model:        $JUDGE_MODEL"
     log "  Polish on exit:     $POLISH_ON_EXIT"
     log "  Modularize on exit: $MODULARIZE_ON_EXIT"
-    log "  Improve timeout:    $((IMPROVE_TIMEOUT / 60))m | Judge: $((JUDGE_TIMEOUT / 60))m | Modularize: $((MODULARIZE_TIMEOUT / 60))m"
+    log "  Audit timeout:      $((AUDIT_TIMEOUT / 60))m | Apply: $((APPLY_TIMEOUT / 60))m | Judge: $((JUDGE_TIMEOUT / 60))m | Modularize: $((MODULARIZE_TIMEOUT / 60))m"
     log ""
 
     mkdir -p "$VERSIONS_DIR" "$JUDGMENTS_DIR" "$LOGS_DIR"
@@ -964,13 +1190,9 @@ main() {
     check_beads
     beads_init
 
-    local persistent_gaps
-    persistent_gaps=$(beads_get_persistent_gaps)
-    if [[ -n "$persistent_gaps" ]]; then
-        local gap_count
-        gap_count=$(echo "$persistent_gaps" | wc -l | tr -d ' ')
-        log "BEADS: $gap_count persistent gaps from previous run"
-    fi
+    local open_count
+    open_count=$(beads_open_count)
+    [[ "$open_count" != "0" ]] && log "BEADS: $open_count open issues from previous runs"
 
     local best_version=0
     local stop_reason="max_iterations"
@@ -996,12 +1218,6 @@ main() {
         # ── Step 2: Judge ──
         run_judge "$i" "$prev_spec" "$curr_spec" "$judgment"
 
-        # ── Step 2b: Sync gaps to beads ──
-        local prev_judg_for_beads=""
-        [[ -f "${JUDGMENTS_DIR}/judgment_v$((i - 1)).json" ]] && \
-            prev_judg_for_beads="${JUDGMENTS_DIR}/judgment_v$((i - 1)).json"
-        beads_sync_gaps "$i" "$judgment" "$prev_judg_for_beads"
-
         # ── Step 3: Check stopping condition ──
         local decision
         decision=$(check_stop "$judgment" "$i")
@@ -1009,6 +1225,8 @@ main() {
         case "$decision" in
             regressed)
                 stop_reason="regressed"
+                # Keep the PREVIOUS version (not the regressed one)
+                best_version=$((i - 1))
                 break
                 ;;
             excellent)
@@ -1028,13 +1246,13 @@ main() {
         esac
     done
 
-    [[ $best_version -eq 0 ]] && best_version=1
-
     # ── Optional Polish Pass ──
+    # best_version=0 means the seed was best (regression on first iteration)
     if [[ "$POLISH_ON_EXIT" == "true" && $best_version -gt 0 ]]; then
         log_section "POLISH PASS"
         run_polish "${VERSIONS_DIR}/ddis_v${best_version}.md" "${VERSIONS_DIR}/ddis_final.md"
     else
+        log "POLISH: Skipping — using v${best_version} as final"
         cp "${VERSIONS_DIR}/ddis_v${best_version}.md" "${VERSIONS_DIR}/ddis_final.md"
     fi
 
@@ -1054,9 +1272,17 @@ main() {
     beads_finalize
     print_summary "$best_version" "$stop_reason"
 
-    cp "${VERSIONS_DIR}/ddis_final.md" "${SCRIPT_DIR}/ddis_final.md"
-    log ""
-    log "Done. Final spec: ${SCRIPT_DIR}/ddis_final.md"
+    # Copy to project root — but only if we actually improved beyond the seed.
+    # When best_version=0, the final is just the unchanged seed; no point overwriting.
+    if [[ $best_version -gt 0 ]]; then
+        cp "${VERSIONS_DIR}/ddis_final.md" "${SCRIPT_DIR}/ddis_final.md"
+        log ""
+        log "Done. Final spec: ${SCRIPT_DIR}/ddis_final.md"
+    else
+        log ""
+        log "Done. No improvement over seed — final remains at ${VERSIONS_DIR}/ddis_final.md"
+        log "Seed preserved at: ${SEED_SPEC}"
+    fi
 
     if [[ -d "${MODULAR_DIR}/modules" ]] && ls "${MODULAR_DIR}/modules"/*.md &>/dev/null; then
         log "Modular: ${MODULAR_DIR}/"

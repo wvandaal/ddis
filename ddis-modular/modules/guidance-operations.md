@@ -4,7 +4,12 @@ domain: guidance
 maintains: []
 interfaces: [INV-001, INV-003, INV-006, INV-009, INV-017, INV-018, INV-019, INV-020]
 implements: [ADR-004, ADR-005, ADR-011]
-negative_specs: 4
+adjacent: [core-standard, element-specifications]
+negative_specs:
+  - "Must NOT let voice shift between sections"
+  - "Must NOT hedge in invariants, ADRs, or negative specifications"
+  - "Must NOT use implicit references like 'see above'"
+  - "Must NOT treat anti-patterns as substitute for negative specifications"
 ---
 
 # Module: Guidance and Operations
@@ -52,17 +57,17 @@ Practical guidance for DDIS authors: voice, proportional weight, cross-reference
 **Calibration examples**:
 
 ```
-GOOD: "The kernel loop is single-threaded by design -- not because concurrency is
+✅ GOOD: "The kernel loop is single-threaded by design — not because concurrency is
 hard, but because serialization through the event log is the mechanism that gives
 us deterministic replay for free."
 
-BAD (academic): "The kernel loop utilizes a single-threaded architecture paradigm
+❌ BAD (academic): "The kernel loop utilizes a single-threaded architecture paradigm
 to facilitate deterministic replay capabilities within the event-sourced persistence
 layer."
 
-BAD (casual): "We made the kernel single-threaded and it's awesome!"
+❌ BAD (casual): "We made the kernel single-threaded and it's awesome!"
 
-BAD (bureaucratic): "It is recommended that the kernel loop shall be implemented
+❌ BAD (bureaucratic): "It is recommended that the kernel loop shall be implemented
 in a single-threaded manner to support the deterministic replay requirement as
 specified in section 4.3.2.1."
 ```
@@ -82,10 +87,10 @@ Every DDIS element has bad and good examples defined in its specification (PART 
 
 **Anti-pattern: The Hedge Cascade**
 ```
-BAD: "It might be worth considering the possibility of potentially using a
+❌ "It might be worth considering the possibility of potentially using a
 single-threaded loop, which could arguably provide some benefits in terms
 of determinism, although this would need to be validated."
-GOOD: "The kernel loop is single-threaded. This gives us deterministic replay.
+✅ "The kernel loop is single-threaded. This gives us deterministic replay.
 See ADR-003 for the throughput analysis that confirms this is sufficient."
 ```
 
@@ -97,7 +102,7 @@ A section that references nothing and is referenced by nothing. It may contain g
 
 **Anti-pattern: The Strawman ADR**
 ```
-BAD Options:
+❌ Options:
   A) Our chosen approach (clearly the best)
   B) A terrible approach nobody would choose
   Decision: A, obviously.
@@ -124,7 +129,7 @@ A "Chapter N: LLM Considerations" appendix bolted onto an otherwise LLM-unaware 
 
 ### 9.1 Identifying the Heart
 
-Every system has a "heart" — the 2-3 subsystems where most complexity and bugs live. These should receive 40-50% of the PART II line budget.
+Every system has a "heart" — the 2–3 subsystems where most complexity and bugs live. These should receive 40–50% of the PART II line budget.
 
 **How to identify the heart**:
 - Which subsystems have the most invariants?
@@ -148,11 +153,11 @@ Every system has a "heart" — the 2-3 subsystems where most complexity and bugs
 DDIS does not mandate a specific syntax, but recommends consistent conventions. Common patterns:
 
 ```
-(see §3.2)                    -- section reference
-(validated by INV-004)        -- invariant reference
-(locked by ADR-003)           -- decision reference
-(measured by Benchmark B-001) -- performance reference
-(defined in Glossary: "task") -- glossary reference
+(see §3.2)                    — section reference
+(validated by INV-004)        — invariant reference
+(locked by ADR-003)           — decision reference
+(measured by Benchmark B-001) — performance reference
+(defined in Glossary: "task") — glossary reference
 ```
 
 **DO NOT** use implicit references ("see above", "as mentioned earlier"). These fail for LLM readers who cannot resolve positional context. Always use explicit section numbers, invariant IDs, or ADR IDs. (Validates INV-006.)
@@ -234,10 +239,10 @@ Before declaring a spec complete, the author should:
 ### 12.2 External Validation
 
 Give the spec to an implementer (or LLM) and track:
-- Questions the spec should have answered -> gaps
-- Incorrect implementations not prevented -> ambiguities
-- Skipped sections -> voice/clarity issues
-- Added behaviors not in spec -> missing negative specifications
+- Questions the spec should have answered → gaps
+- Incorrect implementations not prevented → ambiguities
+- Skipped sections → voice/clarity issues
+- Added behaviors not in spec → missing negative specifications
 
 ---
 
@@ -302,7 +307,7 @@ After the cascade:
 | **Cascade protocol** | The procedure for identifying and re-validating modules affected by a change to constitutional content. (See §0.13.12) |
 | **Causal chain** | The traceable path from a first principle through an invariant and/or ADR to an implementation detail. (See §0.2.3, INV-001) |
 | **Churn-magnet** | A decision that, if left open, causes the most downstream rework. ADRs should prioritize locking churn-magnets. (See §3.5) |
-| **Comparison block** | A side-by-side rejected/chosen comparison with quantified reasoning. (See §5.5) |
+| **Comparison block** | A side-by-side ❌/✅ comparison of a rejected and chosen approach with quantified reasoning. (See §5.5) |
 | **Constitution** | Cross-cutting material constraining all modules. Organized in tiers: system (Tier 1), domain (Tier 2), cross-domain deep (Tier 3). (See §0.13.3) |
 | **Cross-reference** | An explicit link between two sections of the spec, using §X.Y, INV-NNN, or ADR-NNN identifiers. Forms part of the reference web. (See Chapter 10, INV-006) |
 | **DDIS** | Decision-Driven Implementation Specification. This standard. |
@@ -387,25 +392,25 @@ Classification of errors in specification authoring, analogous to §6.3 error ta
 For experienced DDIS authors who need a reminder, not the full standard:
 
 ```
-PREAMBLE: Design goal -> Core promise -> Document note -> How to use
-PART 0:   Summary -> First principles (+ LLM consumption model) -> Architecture ->
-          Layout -> Invariants -> ADRs -> Gates (1-7) -> Budgets -> API ->
-          Non-negotiables -> Non-goals
-PART I:   Formal model -> State machines -> Complexity -> End-to-end trace
-PART II:  [Per subsystem: types -> algorithm -> state machine -> invariants (RESTATED) ->
-          negative specs (DO NOT) -> example -> WHY NOT -> tests -> budget ->
-          verification prompt -> meta-instructions -> cross-refs]
+PREAMBLE: Design goal → Core promise → Document note → How to use
+PART 0:   Summary → First principles (+ LLM consumption model) → Architecture →
+          Layout → Invariants → ADRs → Gates (1-7) → Budgets → API →
+          Non-negotiables → Non-goals
+PART I:   Formal model → State machines → Complexity → End-to-end trace
+PART II:  [Per subsystem: types → algorithm → state machine → invariants (RESTATED) →
+          negative specs (DO NOT) → example → WHY NOT → tests → budget →
+          verification prompt → meta-instructions → cross-refs]
           End-to-end trace (crosses all subsystems)
-PART III: Protocol schemas -> Adapters -> UI contracts
-PART IV:  Test taxonomy -> Error taxonomy -> Operational playbook
-          (spikes -> exit criteria -> merge discipline -> deliverable order -> first PRs)
-APPENDICES: Glossary -> Risks -> Error taxonomy -> Quick-reference -> Formats -> Benchmarks
+PART III: Protocol schemas → Adapters → UI contracts
+PART IV:  Test taxonomy → Error taxonomy → Operational playbook
+          (spikes → exit criteria → merge discipline → deliverable order → first PRs)
+APPENDICES: Glossary → Risks → Error taxonomy → Quick-reference → Formats → Benchmarks
 PART X:   Master TODO (checkboxable, by subsystem)
 
 Every invariant: ID + statement + formal + violation + test + why
 Every ADR: problem + options (genuine) + decision + WHY NOT + consequences + tests
 Every algorithm: pseudocode + complexity + example + edge cases
-Every impl chapter: negative specs (>=3) + verification prompt + invariants RESTATED
+Every impl chapter: negative specs (≥3) + verification prompt + invariants RESTATED
 Every element spec chapter: verification prompt block (INV-020)
 ADR supersession: mark old + create new + cascade cross-refs (ADR-011, §13.3)
 Cross-refs: web, not list. No orphan sections. Explicit §X.Y, never "see above."
@@ -427,7 +432,7 @@ DO NOT constraints: in EVERY element spec, PART III guidance, AND PART IV operat
 - [x] Document structure prescribed (§0.3) — includes negative specs, verification prompts, meta-instructions
 - [x] Invariants numbered and falsifiable (§0.5, INV-001 through INV-020)
 - [x] ADRs with genuine alternatives (§0.6, ADR-001 through ADR-011)
-- [x] Quality gates defined (§0.7) — Gates 1-7 including LLM Implementation Readiness (Gate 7)
+- [x] Quality gates defined (§0.7) — Gates 1–7 including LLM Implementation Readiness (Gate 7)
 - [x] Performance budgets (§0.8 — for spec authoring, not software)
 - [x] Proportional weight guide (§0.8.2)
 - [x] Specification quality measurement methodology (§0.8.4)
@@ -453,7 +458,7 @@ DO NOT constraints: in EVERY element spec, PART III guidance, AND PART IV operat
 - [x] ADR-010 (Verification Prompts per Chapter) with genuine alternatives
 - [x] ADR-011 (ADR Supersession Protocol) — NEW in 3.0: formal mark-and-supersede with cross-reference cascade
 - [x] Gate 7 (LLM Implementation Readiness) with thought experiment demonstration
-- [x] Negative specifications woven throughout element specs (§2.1-§3.7, §4.2, §5.1-§5.7, §7.1, §8.1, §8.3, §10.1, §11.1, §12.1, §13.1)
+- [x] Negative specifications woven throughout element specs (§2.1–§3.7, §4.2, §5.1–§5.7, §7.1, §8.1, §8.3, §10.1, §11.1, §12.1, §13.1)
 - [x] §3.8 Negative Specifications element spec with format, quality criteria, and anti-patterns
 - [x] §5.6 Verification Prompts element spec with format and self-bootstrapping demo
 - [x] §5.7 Meta-Instructions element spec with format, examples, and self-bootstrapping demo
@@ -463,7 +468,7 @@ DO NOT constraints: in EVERY element spec, PART III guidance, AND PART IV operat
 - [x] State machine (§1.1) with guards, entry actions, complete invalid transition list
 - [x] Error taxonomy for specification authoring (Appendix C)
 - [x] Specification quality measurement methodology (§0.8.4)
-- [x] Verification prompt blocks in all element spec chapters (Chapters 2-7, INV-020)
+- [x] Verification prompt blocks in all element spec chapters (Chapters 2–7, INV-020)
 - [x] INV-018 restatements at point of use within element specs
 - [x] ADR supersession protocol formalized (ADR-011, §13.3)
 
