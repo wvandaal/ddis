@@ -308,6 +308,12 @@ type InvariantRegistryEntry struct {
 	Description string
 }
 
+// RefCounts holds incoming/outgoing cross-reference counts for a section.
+type RefCounts struct {
+	Incoming int
+	Outgoing int
+}
+
 // FormattingHint records formatting details for round-trip fidelity.
 type FormattingHint struct {
 	ID           int64

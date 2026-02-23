@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -16,6 +17,9 @@ var rootCmd = &cobra.Command{
 // Execute runs the root command.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
+		if errors.Is(err, ErrValidationFailed) {
+			os.Exit(1)
+		}
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
@@ -24,4 +28,6 @@ func Execute() {
 func init() {
 	rootCmd.AddCommand(parseCmd)
 	rootCmd.AddCommand(renderCmd)
+	rootCmd.AddCommand(queryCmd)
+	rootCmd.AddCommand(validateCmd)
 }
