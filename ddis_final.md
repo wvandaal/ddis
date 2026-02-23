@@ -1225,7 +1225,7 @@ DDIS exposes the following "API" to specification authors:
 
 REQUIRED when the monolithic spec exceeds 4,000 lines or when the target context window cannot hold the full spec plus reasoning budget. OPTIONAL but recommended for 2,500–4,000 line specs.
 
-> Namespace note: INV-001 through INV-019 and ADR-001 through ADR-010 are DDIS meta-standard invariants/ADRs (defined in this standard). Application specs using DDIS define their OWN invariant namespace (e.g., APP-INV-001) — never reuse the meta-standard's INV-NNN space. Examples in this section use APP-INV-NNN to demonstrate this convention.
+> Namespace note: INV-001 through INV-020 and ADR-001 through ADR-011 are DDIS meta-standard invariants/ADRs (defined in this standard). Application specs using DDIS define their OWN invariant namespace (e.g., APP-INV-001) — never reuse the meta-standard's INV-NNN space. Examples in this section use APP-INV-NNN to demonstrate this convention.
 
 ### 0.13.1 The Scaling Problem
 
@@ -1876,6 +1876,10 @@ The heart of DDIS. Each section specifies one structural element: what it must c
 
 **DO NOT** state the design goal in terms of implementation technology ("Build a Rust-based event-sourced system"). State it in terms of value ("scrollback-native, zero-flicker terminal apps"). An LLM reading an implementation-focused design goal will over-constrain its solution space. (Validates INV-017.)
 
+**DO NOT** exceed 30 words — a design goal longer than one sentence becomes a design essay that LLMs will treat as implementation requirements rather than directional guidance. (Validates INV-007.)
+
+**DO NOT** use unmeasurable qualities ("robust", "scalable", "enterprise-grade") — LLMs generate boilerplate prose when given abstract adjectives instead of concrete properties. (Validates INV-017.)
+
 **Anti-pattern**: "Design goal: Build a distributed task coordination system using event sourcing and advisory reservations." ← This describes implementation, not value.
 
 **Good example** (FrankenTUI): "Design goal: **scrollback-native, zero-flicker, agent-ergonomic, and high-performance** Rust terminal apps."
@@ -1896,6 +1900,10 @@ The heart of DDIS. Each section specifies one structural element: what it must c
 **Quality criteria**: If you showed only this sentence to a potential user, they should understand what the system gives them and what it doesn't cost them.
 
 **DO NOT** use abstract qualities without concrete meaning ("robust", "scalable", "enterprise-grade"). An LLM encountering these terms will generate generic boilerplate instead of domain-specific implementation. (Validates INV-017.)
+
+**DO NOT** promise implementation details ("uses React", "built on PostgreSQL") — the core promise describes user-facing value, not technical choices. Technical choices belong in ADRs. (Validates INV-002.)
+
+**DO NOT** omit "without" clauses — a promise that only states what the system does (without stating what it avoids) leaves the most important constraints implicit, creating hallucination sites. (Validates INV-017.)
 
 **Anti-pattern**: "The system provides robust, scalable, enterprise-grade coordination." ← Meaningless buzzwords.
 
@@ -1960,6 +1968,10 @@ After writing your spec's preamble, verify:
 - It is not a restatement of a technical invariant; it is a commitment
 
 **DO NOT** restate invariants as non-negotiables — they serve different purposes. Non-negotiables are philosophical commitments ("deterministic replay is non-negotiable"); invariants are testable properties ("same event sequence → identical state"). (Validates INV-017.)
+
+**DO NOT** list more than 10 non-negotiables — each one is a philosophical commitment the team can never compromise. More than 10 means some are actually preferences, diluting the ones that matter. (Validates INV-007.)
+
+**DO NOT** write non-negotiables that no reasonable person would violate ("the system must not corrupt data") — non-negotiables should constrain tempting shortcuts, not restate universal engineering ethics. (Validates INV-017.)
 
 **Relationship to invariants**: Non-negotiables are the "why" that justifies groups of invariants. "Deterministic replay is real" (non-negotiable) justifies INV-003: "Same event log → identical state" (invariant). The non-negotiable is the commitment; the invariant is the testable manifestation.
 
