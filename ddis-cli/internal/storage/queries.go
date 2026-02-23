@@ -587,6 +587,149 @@ func GetGlossaryTerms(db *sql.DB, specID int64) (map[string]bool, error) {
 	return result, rows.Err()
 }
 
+// CreateTransaction inserts a new pending transaction.
+func CreateTransaction(db *sql.DB, specID int64, txID, description string) error {
+	_, err := db.Exec(
+		`INSERT INTO transactions (spec_id, tx_id, description, status, created_at)
+		 VALUES (?, ?, ?, 'pending', datetime('now'))`,
+		specID, txID, description,
+	)
+	if err != nil {
+		return fmt.Errorf("create transaction: %w", err)
+	}
+	return nil
+}
+
+// GetTransaction retrieves a transaction by its tx_id.
+func GetTransaction(db *sql.DB, txID string) (*Transaction, error) {
+	t := &Transaction{}
+	var committedAt, parentTxID sql.NullString
+	err := db.QueryRow(
+		`SELECT id, spec_id, tx_id, description, status, created_at, committed_at, parent_tx_id
+		 FROM transactions WHERE tx_id = ?`, txID,
+	).Scan(&t.ID, &t.SpecID, &t.TxID, &t.Description, &t.Status, &t.CreatedAt,
+		&committedAt, &parentTxID)
+	if err != nil {
+		return nil, fmt.Errorf("get transaction %s: %w", txID, err)
+	}
+	if committedAt.Valid {
+		t.CommittedAt = &committedAt.String
+	}
+	if parentTxID.Valid {
+		t.ParentTxID = &parentTxID.String
+	}
+	return t, nil
+}
+
+// CommitTransaction marks a transaction as committed.
+func CommitTransaction(db *sql.DB, txID string) error {
+	res, err := db.Exec(
+		`UPDATE transactions SET status = 'committed', committed_at = datetime('now')
+		 WHERE tx_id = ? AND status = 'pending'`, txID,
+	)
+	if err != nil {
+		return fmt.Errorf("commit transaction: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("transaction %s not found or not pending", txID)
+	}
+	return nil
+}
+
+// RollbackTransaction marks a transaction as rolled back.
+func RollbackTransaction(db *sql.DB, txID string) error {
+	res, err := db.Exec(
+		`UPDATE transactions SET status = 'rolled_back', committed_at = datetime('now')
+		 WHERE tx_id = ? AND status = 'pending'`, txID,
+	)
+	if err != nil {
+		return fmt.Errorf("rollback transaction: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("transaction %s not found or not pending", txID)
+	}
+	return nil
+}
+
+// ListTransactions returns all transactions for a spec, ordered by creation time.
+func ListTransactions(db *sql.DB, specID int64) ([]Transaction, error) {
+	rows, err := db.Query(
+		`SELECT id, spec_id, tx_id, description, status, created_at, committed_at, parent_tx_id
+		 FROM transactions WHERE spec_id = ? ORDER BY created_at DESC`, specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list transactions: %w", err)
+	}
+	defer rows.Close()
+
+	var result []Transaction
+	for rows.Next() {
+		var t Transaction
+		var committedAt, parentTxID sql.NullString
+		if err := rows.Scan(&t.ID, &t.SpecID, &t.TxID, &t.Description, &t.Status,
+			&t.CreatedAt, &committedAt, &parentTxID); err != nil {
+			return nil, fmt.Errorf("scan transaction: %w", err)
+		}
+		if committedAt.Valid {
+			t.CommittedAt = &committedAt.String
+		}
+		if parentTxID.Valid {
+			t.ParentTxID = &parentTxID.String
+		}
+		result = append(result, t)
+	}
+	return result, rows.Err()
+}
+
+// AddTxOperation inserts an operation into a transaction.
+func AddTxOperation(db *sql.DB, txID string, ordinal int, opType, opData, impactSet string) error {
+	var impact *string
+	if impactSet != "" {
+		impact = &impactSet
+	}
+	_, err := db.Exec(
+		`INSERT INTO tx_operations (tx_id, ordinal, operation_type, operation_data, impact_set, applied_at)
+		 VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+		txID, ordinal, opType, opData, impact,
+	)
+	if err != nil {
+		return fmt.Errorf("add tx operation: %w", err)
+	}
+	return nil
+}
+
+// GetTxOperations returns all operations for a transaction, ordered by ordinal.
+func GetTxOperations(db *sql.DB, txID string) ([]TxOperation, error) {
+	rows, err := db.Query(
+		`SELECT id, tx_id, ordinal, operation_type, operation_data, impact_set, applied_at
+		 FROM tx_operations WHERE tx_id = ? ORDER BY ordinal`, txID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get tx operations: %w", err)
+	}
+	defer rows.Close()
+
+	var result []TxOperation
+	for rows.Next() {
+		var op TxOperation
+		var impactSet, appliedAt sql.NullString
+		if err := rows.Scan(&op.ID, &op.TxID, &op.Ordinal, &op.OperationType,
+			&op.OperationData, &impactSet, &appliedAt); err != nil {
+			return nil, fmt.Errorf("scan tx operation: %w", err)
+		}
+		if impactSet.Valid {
+			op.ImpactSet = &impactSet.String
+		}
+		if appliedAt.Valid {
+			op.AppliedAt = &appliedAt.String
+		}
+		result = append(result, op)
+	}
+	return result, rows.Err()
+}
+
 // CountElements returns element counts by table name for a spec.
 func CountElements(db *sql.DB, specID int64) (map[string]int, error) {
 	tables := []struct {

@@ -314,6 +314,29 @@ type RefCounts struct {
 	Outgoing int
 }
 
+// Transaction represents a spec modification transaction.
+type Transaction struct {
+	ID          int64
+	SpecID      int64
+	TxID        string
+	Description string
+	Status      string // "pending", "committed", "rolled_back"
+	CreatedAt   string
+	CommittedAt *string
+	ParentTxID  *string
+}
+
+// TxOperation represents one operation within a transaction.
+type TxOperation struct {
+	ID            int64
+	TxID          string
+	Ordinal       int
+	OperationType string
+	OperationData string
+	ImpactSet     *string
+	AppliedAt     *string
+}
+
 // FormattingHint records formatting details for round-trip fidelity.
 type FormattingHint struct {
 	ID           int64

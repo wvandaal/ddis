@@ -30,4 +30,9 @@ func init() {
 	rootCmd.AddCommand(renderCmd)
 	rootCmd.AddCommand(queryCmd)
 	rootCmd.AddCommand(validateCmd)
+	rootCmd.AddCommand(diffCmd)
+	rootCmd.AddCommand(impactCmd)
+	rootCmd.AddCommand(logCmd)
+	rootCmd.AddCommand(txCmd)
+	rootCmd.AddCommand(seedCmd)
 }

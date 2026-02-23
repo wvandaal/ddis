@@ -6,13 +6,16 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/oplog"
 	"github.com/wvandaal/ddis/internal/storage"
 	"github.com/wvandaal/ddis/internal/validator"
 )
 
 var (
-	validateJSON   bool
-	validateChecks string
+	validateJSON      bool
+	validateChecks    string
+	validateLog       bool
+	validateOplogPath string
 )
 
 // ErrValidationFailed is returned when validation finds errors.
@@ -39,6 +42,8 @@ Examples:
 func init() {
 	validateCmd.Flags().BoolVar(&validateJSON, "json", false, "Output as JSON (for RALPH integration)")
 	validateCmd.Flags().StringVar(&validateChecks, "checks", "", "Comma-separated list of check IDs to run (default: all)")
+	validateCmd.Flags().BoolVar(&validateLog, "log", false, "Append validation report to oplog")
+	validateCmd.Flags().StringVar(&validateOplogPath, "oplog-path", "", "Custom oplog path (default: .ddis/oplog.jsonl)")
 }
 
 func runValidate(cmd *cobra.Command, args []string) error {
@@ -74,6 +79,28 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	if validateLog {
+		spec, specErr := storage.GetSpecIndex(db, specID)
+		if specErr != nil {
+			return fmt.Errorf("get spec for oplog: %w", specErr)
+		}
+
+		oplogPath := validateOplogPath
+		if oplogPath == "" {
+			oplogPath = oplog.DefaultPath(".")
+		}
+
+		vd := oplog.ImportValidation(report, spec.SpecPath, spec.ContentHash)
+		rec, recErr := oplog.NewValidateRecord("", vd)
+		if recErr != nil {
+			return fmt.Errorf("create validate record: %w", recErr)
+		}
+		if appendErr := oplog.Append(oplogPath, rec); appendErr != nil {
+			return fmt.Errorf("append to oplog: %w", appendErr)
+		}
+		fmt.Fprintf(cmd.ErrOrStderr(), "Validation record appended to %s\n", oplogPath)
+	}
 
 	if report.Errors > 0 {
 		return ErrValidationFailed
