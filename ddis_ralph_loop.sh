@@ -40,6 +40,7 @@ MIN_QUALITY_DELTA=${DDIS_MIN_DELTA:-3}
 IMPROVER_MODEL=${DDIS_IMPROVER_MODEL:-"opus"}
 JUDGE_MODEL=${DDIS_JUDGE_MODEL:-"sonnet"}
 POLISH_ON_EXIT=${DDIS_POLISH:-true}
+MODULARIZE_ON_EXIT=${DDIS_MODULARIZE:-true}
 USE_BEADS=${DDIS_USE_BEADS:-auto}
 VERBOSE=${DDIS_VERBOSE:-false}
 
@@ -47,9 +48,10 @@ VERBOSE=${DDIS_VERBOSE:-false}
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --verbose)   VERBOSE=true; shift ;;
-        --no-polish) POLISH_ON_EXIT=false; shift ;;
-        *)           echo "Unknown argument: $1" >&2; exit 1 ;;
+        --verbose)      VERBOSE=true; shift ;;
+        --no-polish)    POLISH_ON_EXIT=false; shift ;;
+        --no-modularize) MODULARIZE_ON_EXIT=false; shift ;;
+        *)              echo "Unknown argument: $1" >&2; exit 1 ;;
     esac
 done
 
@@ -61,6 +63,7 @@ VERSIONS_DIR="${WORK_DIR}/versions"
 JUDGMENTS_DIR="${WORK_DIR}/judgments"
 LOGS_DIR="${WORK_DIR}/logs"
 
+MODULAR_DIR="${SCRIPT_DIR}/ddis-modular"
 SEED_SPEC="${SCRIPT_DIR}/ddis_standard.md"
 IMPROVEMENT_PROMPT="${SCRIPT_DIR}/ddis_recursive_improvement_prompt.md"
 KICKOFF_PROMPT="${SCRIPT_DIR}/kickoff_prompt.md"
@@ -88,6 +91,9 @@ JUDGE_TIMEOUT=600      # 10 minutes
 
 POLISH_MAX_TURNS=50
 POLISH_TIMEOUT=1800    # 30 minutes
+
+MODULARIZE_MAX_TURNS=80
+MODULARIZE_TIMEOUT=2400  # 40 minutes
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -599,6 +605,217 @@ Use the Write tool."
     fi
 }
 
+# ─── Modularize Step ─────────────────────────────────────────────────────────
+#
+# Decomposes the monolithic spec into constitution + modules per §0.13.
+# This is a self-bootstrapping requirement: the spec prescribes modularization
+# for documents exceeding 2,500 lines and must demonstrate it on itself.
+#
+# Runs AFTER polish. The improve/judge loop works on the monolithic spec
+# (easier for LLM context), then we decompose into the final modular form.
+
+run_modularize() {
+    local input_spec="$1"
+    local log_file="${LOGS_DIR}/modularize.log"
+
+    local input_lines
+    input_lines=$(line_count "$input_spec")
+    log "MODULARIZE: Decomposing monolithic spec ($input_lines lines)"
+
+    # Ensure modular directory structure
+    mkdir -p "${MODULAR_DIR}/constitution" "${MODULAR_DIR}/modules"
+
+    # Check if manifest exists (defines the decomposition structure)
+    local manifest_ref=""
+    if [[ -f "${MODULAR_DIR}/manifest.yaml" ]]; then
+        manifest_ref="
+3. **Module manifest (decomposition guide)**: ${MODULAR_DIR}/manifest.yaml
+   This defines the module structure, invariant ownership, and bundle budgets.
+   Follow its structure but update line counts after writing files."
+        log "MODULARIZE: Using existing manifest for structure guidance"
+    else
+        log "MODULARIZE: No manifest found — LLM will create decomposition from scratch"
+    fi
+
+    local prompt="You are performing the MODULARIZATION step on the DDIS specification.
+This is a self-bootstrapping requirement: DDIS §0.13 prescribes modularization
+for specs exceeding 2,500 lines, and at ${input_lines} lines the spec exceeds
+its own threshold.
+
+## Files to Read (use the Read tool)
+
+1. **Monolithic spec to decompose**: ${input_spec}
+2. **Improvement methodology** (for context on §0.13 modularization protocol): ${IMPROVEMENT_PROMPT}
+${manifest_ref}
+
+## Your Task
+
+Decompose the monolithic spec into TWO-TIER modular form per §0.13:
+
+### Tier 1: System Constitution
+- \`${MODULAR_DIR}/constitution/system.md\`
+- DECLARATIONS ONLY: one-line summaries of all invariants, ADRs, quality gates
+- Executive summary, first-principles derivation, document structure overview
+- Cross-cutting concerns: performance budgets, glossary excerpt, architecture
+- Target: 400-600 lines
+
+### Tier 2: Modules (one file per knowledge domain)
+
+1. \`${MODULAR_DIR}/modules/core-standard.md\` — PART 0 core + PART I foundations
+   - Full invariant definitions (INV-001 through INV-010, INV-017 through INV-020)
+   - Full ADR definitions (ADR-001 through ADR-005, ADR-008 through ADR-011)
+   - Quality gates (Gate 1 through Gate 7)
+   - State machine (§1.1), complexity analysis (§1.3), end-to-end trace (§1.4)
+
+2. \`${MODULAR_DIR}/modules/element-specifications.md\` — Chapters 2-7
+   - All element specification chapters with their verification prompt blocks
+   - Maintains INV-020 (Verification Prompt Coverage)
+
+3. \`${MODULAR_DIR}/modules/modularization.md\` — §0.13 protocol
+   - Modularization invariants (INV-011 through INV-016)
+   - Modularization ADRs (ADR-006, ADR-007)
+   - Modularization quality gates (M-1 through M-5)
+   - Cascade protocol, assembly/disassembly procedures
+
+4. \`${MODULAR_DIR}/modules/guidance-operations.md\` — PART III + PART IV + Appendices + PART X
+   - Voice & style guidance, anti-pattern catalog
+   - Operational playbook, authoring sequence
+   - Appendices: Glossary, Risk Register, Error Taxonomy, Quick-Reference Card
+   - Master TODO, open questions, version history
+
+### Updated Manifest
+
+5. \`${MODULAR_DIR}/manifest.yaml\` — Updated with accurate line counts
+
+## Critical Invariants for Modularization
+
+- **ZERO content loss**: every section, invariant, ADR, gate, glossary term, verification
+  prompt from the monolithic spec must appear in EXACTLY ONE module. Missing content is
+  the single most common modularization failure mode.
+- **INV-013 (Ownership Uniqueness)**: each INV-NNN is maintained by exactly one module
+- **INV-014 (Bundle Budget)**: constitution + any single module must fit within 4,000 lines
+- **INV-012 (Cross-Module Isolation)**: cross-module references use INV-NNN/ADR-NNN IDs
+  through the constitution, not direct section number references
+- **INV-018 (Structural Redundancy)**: restate key invariants at point of use within modules
+- **INV-011 (Module Completeness)**: each module bundle (constitution + module) must be
+  sufficient for an LLM to work on that domain without loading other modules
+- **INV-015 (Declaration-Definition Consistency)**: constitution declarations must faithfully
+  summarize the full definitions in modules
+
+## Anti-Patterns to Avoid
+
+- DO NOT create stub modules with placeholder content
+- DO NOT lose negative specifications (DO NOT constraints) during decomposition
+- DO NOT lose verification prompt blocks during decomposition
+- DO NOT merge unrelated content just to balance module sizes
+- DO NOT reference other modules by section number — use invariant/ADR IDs only
+- DO NOT duplicate full definitions across modules (declarations in constitution are fine)
+
+## Output
+
+Write ALL 6 files using the Write tool. After writing, report:
+- Line count for each file
+- Total lines across all files
+- Bundle sizes (constitution + each module)
+- Any content that could not be cleanly placed"
+
+    log "MODULARIZE: Starting claude -p (model=$IMPROVER_MODEL, max_turns=$MODULARIZE_MAX_TURNS, timeout=${MODULARIZE_TIMEOUT}s)"
+
+    local raw_output=""
+    raw_output=$(echo "$prompt" | timeout "$MODULARIZE_TIMEOUT" \
+        claude -p $CLAUDE_DEBUG_FLAG $MCP_FLAGS \
+            --model "$IMPROVER_MODEL" \
+            --output-format json \
+            --max-turns "$MODULARIZE_MAX_TURNS" \
+            --permission-mode acceptEdits \
+            2>"$log_file") || {
+        local exit_code=$?
+        if [[ $exit_code -eq 124 ]]; then
+            log "MODULARIZE: TIMEOUT after $((MODULARIZE_TIMEOUT / 60)) minutes"
+        else
+            log "MODULARIZE: claude -p exited with code $exit_code"
+        fi
+    }
+
+    local session_id
+    session_id=$(extract_session_id "$raw_output") || true
+    [[ -n "$session_id" ]] && log "MODULARIZE: Session: ${session_id}"
+
+    # Validate modularization output
+    validate_modularization "$input_spec"
+}
+
+validate_modularization() {
+    local monolithic_spec="$1"
+    local mono_lines
+    mono_lines=$(line_count "$monolithic_spec")
+    local all_ok=true
+
+    log "MODULARIZE: Validating decomposition..."
+
+    # Check all expected files exist and have content
+    local expected_files=(
+        "${MODULAR_DIR}/constitution/system.md"
+        "${MODULAR_DIR}/modules/core-standard.md"
+        "${MODULAR_DIR}/modules/element-specifications.md"
+        "${MODULAR_DIR}/modules/modularization.md"
+        "${MODULAR_DIR}/modules/guidance-operations.md"
+        "${MODULAR_DIR}/manifest.yaml"
+    )
+
+    local total_lines=0
+    local constitution_lines=0
+
+    for f in "${expected_files[@]}"; do
+        if [[ ! -f "$f" ]]; then
+            log "MODULARIZE: MISSING: $f"
+            all_ok=false
+        else
+            local flines
+            flines=$(line_count "$f")
+            if [[ "$f" == *"manifest.yaml" ]]; then
+                log "MODULARIZE:   manifest.yaml ($flines lines)"
+            else
+                total_lines=$((total_lines + flines))
+                log "MODULARIZE:   $(basename "$f") ($flines lines)"
+                if [[ "$f" == *"system.md" ]]; then
+                    constitution_lines=$flines
+                fi
+            fi
+        fi
+    done
+
+    log "MODULARIZE: Total modular lines: $total_lines (monolithic: $mono_lines)"
+
+    # Check bundle budgets (constitution + module)
+    local hard_ceiling=5000
+    for mod in "${MODULAR_DIR}/modules"/*.md; do
+        [[ -f "$mod" ]] || continue
+        local mod_lines bundle_size
+        mod_lines=$(line_count "$mod")
+        bundle_size=$((constitution_lines + mod_lines))
+        local mod_name
+        mod_name=$(basename "$mod")
+        if [[ $bundle_size -gt $hard_ceiling ]]; then
+            log "MODULARIZE: BUDGET EXCEEDED: $mod_name bundle = $bundle_size lines (ceiling: $hard_ceiling)"
+            all_ok=false
+        fi
+    done
+
+    # Content loss check: total modular lines should be ≥80% of monolithic
+    local min_expected=$((mono_lines * 80 / 100))
+    if [[ $total_lines -lt $min_expected ]]; then
+        log "MODULARIZE: WARNING: Possible content loss — modular ($total_lines) < 80% of monolithic ($mono_lines)"
+        all_ok=false
+    fi
+
+    if $all_ok; then
+        log "MODULARIZE: Validation PASSED"
+    else
+        log "MODULARIZE: Validation FAILED — review output manually"
+    fi
+}
+
 # ─── Stopping Condition ──────────────────────────────────────────────────────
 
 check_stop() {
@@ -700,6 +917,15 @@ print_summary() {
     echo "Judgments:  ${JUDGMENTS_DIR}/"
     echo "Logs:       ${LOGS_DIR}/"
 
+    if [[ -d "${MODULAR_DIR}/modules" ]] && ls "${MODULAR_DIR}/modules"/*.md &>/dev/null 2>&1; then
+        echo "Modular:    ${MODULAR_DIR}/"
+        echo ""
+        echo "Module sizes:"
+        for mod_file in "${MODULAR_DIR}/constitution/system.md" "${MODULAR_DIR}/modules"/*.md; do
+            [[ -f "$mod_file" ]] && printf "  %-35s %s lines\n" "$(basename "$mod_file")" "$(line_count "$mod_file")"
+        done
+    fi
+
     if $BEADS_AVAILABLE; then
         echo "Beads:      ${WORK_DIR}/.beads/"
     fi
@@ -728,7 +954,8 @@ main() {
     log "  Improver model:     $IMPROVER_MODEL"
     log "  Judge model:        $JUDGE_MODEL"
     log "  Polish on exit:     $POLISH_ON_EXIT"
-    log "  Improve timeout:    $((IMPROVE_TIMEOUT / 60))m | Judge: $((JUDGE_TIMEOUT / 60))m"
+    log "  Modularize on exit: $MODULARIZE_ON_EXIT"
+    log "  Improve timeout:    $((IMPROVE_TIMEOUT / 60))m | Judge: $((JUDGE_TIMEOUT / 60))m | Modularize: $((MODULARIZE_TIMEOUT / 60))m"
     log ""
 
     mkdir -p "$VERSIONS_DIR" "$JUDGMENTS_DIR" "$LOGS_DIR"
@@ -811,12 +1038,29 @@ main() {
         cp "${VERSIONS_DIR}/ddis_v${best_version}.md" "${VERSIONS_DIR}/ddis_final.md"
     fi
 
+    # ── Optional Modularization Pass ──
+    if [[ "$MODULARIZE_ON_EXIT" == "true" ]]; then
+        local final_spec="${VERSIONS_DIR}/ddis_final.md"
+        local final_lines
+        final_lines=$(line_count "$final_spec")
+        if [[ $final_lines -gt 2500 ]]; then
+            log_section "MODULARIZE PASS"
+            run_modularize "$final_spec"
+        else
+            log "MODULARIZE: Skipping — $final_lines lines does not exceed §0.13 threshold (2,500)"
+        fi
+    fi
+
     beads_finalize
     print_summary "$best_version" "$stop_reason"
 
     cp "${VERSIONS_DIR}/ddis_final.md" "${SCRIPT_DIR}/ddis_final.md"
     log ""
     log "Done. Final spec: ${SCRIPT_DIR}/ddis_final.md"
+
+    if [[ -d "${MODULAR_DIR}/modules" ]] && ls "${MODULAR_DIR}/modules"/*.md &>/dev/null; then
+        log "Modular: ${MODULAR_DIR}/"
+    fi
 }
 
 main "$@"
