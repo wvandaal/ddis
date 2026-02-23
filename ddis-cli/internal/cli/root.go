@@ -37,4 +37,5 @@ func init() {
 	rootCmd.AddCommand(seedCmd)
 	rootCmd.AddCommand(searchCmd)
 	rootCmd.AddCommand(contextCmd)
+	rootCmd.AddCommand(exemplarCmd)
 }
