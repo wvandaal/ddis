@@ -293,12 +293,12 @@ B) **[Option name]**
 
 **Confidence levels** (optional, recommended for early-stage specs):
 - **Committed**: High confidence, well-analyzed, unlikely to change. Default if omitted.
-- **Provisional**: Medium confidence, will be revisited after a decision spike (§6.1.1). Implementation should minimize coupling to this decision.
+- **Provisional**: Medium confidence, will be revisited after a decision spike (§6.1.1, guidance-operations module). Implementation should minimize coupling to this decision.
 - **Speculative**: Low confidence, research needed. Implementation should use an abstraction boundary so the decision can be swapped without cascading rework.
 
 **DO NOT** mark all ADRs as Committed in an early-stage spec — if no ADRs are Provisional, you are likely over-committing. (Validates INV-002, INV-017.)
 
-**DO NOT** use Speculative confidence to defer decisions indefinitely — every Speculative ADR must reference a specific decision spike in §6.1.1 with a time budget and exit criterion. (Validates INV-017, INV-019.)
+**DO NOT** use Speculative confidence to defer decisions indefinitely — every Speculative ADR must reference a specific decision spike in §6.1.1 (guidance-operations module) with a time budget and exit criterion. (Validates INV-017, INV-019.)
 
 **Quality criteria for each ADR**:
 - **Genuine alternatives**: Each option must have a real advocate. If Option B is a strawman nobody would choose, it is not a genuine alternative. The test: would a competent engineer in a different context reasonably choose Option B?
@@ -318,7 +318,7 @@ B) **[Option name]**
     No concrete tradeoff analysis.
 ```
 
-**Churn-magnets**: After all ADRs are written, add a brief section identifying which decisions cause the most downstream rework if changed. These are the decisions to lock first and spike earliest (see §6.1.1, Phase -1).
+**Churn-magnets**: After all ADRs are written, add a brief section identifying which decisions cause the most downstream rework if changed. These are the decisions to lock first and spike earliest (see §6.1.1 in guidance-operations module, Phase -1).
 
 ---
 
@@ -752,7 +752,7 @@ After implementing this subsystem, verify:
 > complexity in coordination systems (see ADR-005, consequences).
 ```
 
-**Self-bootstrapping demonstration**: This document includes meta-instructions in §0.3.1 (reading order for LLM implementers) and §11.1 (authoring sequence, guidance-operations module).
+**Self-bootstrapping demonstration**: This document includes meta-instructions in §0.3.1 (reading order for LLM implementers) and §11.1 (authoring sequence).
 
 ### Verification Prompt for Chapter 5 (PART II Elements)
 
@@ -850,7 +850,7 @@ For the error taxonomy of specification authoring errors, see Appendix C.
 ### Verification Prompt for Chapter 6 (PART IV Elements)
 
 After writing your spec's operational chapters, verify:
-1. [ ] The operational playbook includes Phase -1 decision spikes with time budgets and ADR exit criteria (§6.1.1)
+1. [ ] The operational playbook includes Phase -1 decision spikes with time budgets and ADR exit criteria (§6.1.1, guidance-operations module)
 2. [ ] Every phase has a specific, testable exit criterion — not "phase complete when done" (§6.1.2, INV-003: every invariant/criterion must be falsifiable)
 3. [ ] The minimal deliverables order is an explicit DAG with dependency reasons (INV-019: the spec provides an explicit dependency chain for implementation ordering)
 4. [ ] The testing strategy includes at minimum: unit, property, integration, and stress test types with examples (§6.2)

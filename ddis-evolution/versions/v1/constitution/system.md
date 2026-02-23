@@ -243,11 +243,6 @@ PART 0: EXECUTIVE BLUEPRINT
   §0.12 Non-Goals (explicit exclusions)
   §0.13 Modularization Protocol (specs > context window)        [Conditional]
 
-Meta-standard adaptation: When DDIS is applied to itself, §0.11 (Non-Negotiables)
-and §0.12 (Non-Goals) are nested under §0.1 as §0.1.2 and §0.1.3 because they are
-integral to the executive blueprint. This nesting is valid — the template prescribes
-content obligations, not numbering rigidity. (Validates ADR-004.)
-
 PART I: FOUNDATIONS
   First-principles derivation (full formal model)
   State machines for all stateful components
@@ -353,7 +348,7 @@ All 20 invariants of the DDIS standard. Full definitions with formal expressions
 | INV-014 | Every assembled bundle fits within the hard ceiling defined in the manifest's context budget | Conditional — modular specs only | modularization |
 | INV-015 | Every invariant declaration in the system constitution is a faithful summary of its full definition | Conditional — modular specs only | modularization |
 | INV-016 | The manifest accurately reflects the current state of all spec files | Conditional — modular specs only | modularization |
-| INV-017 | Every implementation chapter includes explicit "DO NOT" constraints preventing likely hallucination patterns for that subsystem | No | core-standard |
+| INV-017 | Every implementation chapter includes explicit "DO NOT" constraints preventing likely hallucination patterns | No | core-standard |
 | INV-018 | Every implementation chapter restates the invariants it must preserve, not merely referencing them by ID | No | core-standard |
 | INV-019 | The spec provides an explicit dependency chain for implementation ordering | No | core-standard |
 | INV-020 | Every element specification chapter includes a structured verification prompt block | No | core-standard |
@@ -484,8 +479,6 @@ Core DDIS terms for quick orientation. *(Full glossary: Appendix A, guidance-ope
 | **Self-bootstrapping** | Property of this standard: written in the format it defines (ADR-004) | core-standard |
 | **Verification prompt** | Structured self-check at end of implementation chapter (§5.6, INV-020) | element-specifications |
 
-> **Verification**: For each term in this compact glossary, the 1-line definition must be a faithful summary of the corresponding Appendix A entry (INV-015). If adding or renaming a term, update both locations. The compact glossary contains only terms needed for PART 0 orientation; terms used only in implementation modules are defined only in Appendix A.
-
 ---
 
 ## Section Map
@@ -494,10 +487,10 @@ Cross-reference lookup: which module file contains each section number. The Note
 
 | Section Range | Module File | Notes |
 |---|---|---|
-| §0.1–§0.10, Invariant/ADR/Gate declarations, Glossary | constitution/system.md | Cross-cutting: included in every bundle. §0.11/§0.12 content nested as §0.1.2/§0.1.3 |
+| §0.1–§0.12, Invariant/ADR/Gate declarations, Glossary | constitution/system.md | Cross-cutting: included in every bundle |
 | §0.5 (full defs), §0.6 (full ADRs), §0.7 (details), §0.8, §1.1–§1.4 | modules/core-standard.md | References: INV-011–016 from modularization |
 | §0.13 (full protocol), INV-011–INV-016, ADR-006–ADR-007 | modules/modularization.md | References: §5.3, §5.5 from element-specifications |
-| §2.1–§7.3 | modules/element-specifications.md | References: §1.4 from core-standard |
+| §2.1–§7.3 | modules/element-specifications.md | References: §6.1.1 from guidance-operations, §1.4 from core-standard |
 | §8.1–Part X | modules/guidance-operations.md | References: §3.8, §5.6, §5.7 from element-specifications, §1.1 from core-standard |
 
 ---

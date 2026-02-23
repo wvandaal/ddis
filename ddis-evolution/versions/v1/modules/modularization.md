@@ -381,8 +381,6 @@ negative_specs:
 # Negative specs: Must NOT directly access TUI rendering state (use event bus)
 ```
 
-**DO NOT** omit the `negative_specs` field in the module header — without it, the assembly script cannot populate subsystem-specific constraints and LLMs implementing the module lack DO NOT guidance. (Validates INV-011, INV-017.)
-
 The module header is consumed by:
 1. **The assembly script** — to determine what context to include in the bundle (YAML frontmatter preferred)
 2. **The LLM implementer** — to understand scope boundaries before reading
@@ -472,7 +470,7 @@ In both variants:
 
 Assembly in two-tier mode: `system_constitution + module → bundle`.
 
-**Self-bootstrapping note**: This standard uses Variant B. It has 20 invariants + 11 ADRs = 31 items (exceeding the Variant A threshold), but all bundles are 1,144–1,442 lines — well within the 4,000-line target. The declaration-only constitution (524 lines) keeps bundles compact. Three-tier would add complexity without benefit. (Validates ADR-006, ADR-004.)
+**Self-bootstrapping note**: This standard uses Variant B. It has 20 invariants + 11 ADRs = 31 items (exceeding the Variant A threshold), but all bundles are 1,100–1,460 lines — well within the 4,000-line target. The declaration-only constitution (576 lines) keeps bundles compact. Three-tier would add complexity without benefit. (Validates ADR-006, ADR-004.)
 
 The manifest uses `tier_mode: two-tier` to signal this to the assembly script. If the spec grows beyond the two-tier threshold (constitution + largest module > `target_lines`), migrate to three-tier by extracting domain constitutions (see Migration Procedure §0.13.13).
 
@@ -577,8 +575,6 @@ invariant_registry:
   # ... (abbreviated for illustration — real manifests list all invariants)
 ```
 
-**DO NOT** define modules without the `maintains` field — an unowned invariant violates INV-013 and leaves nobody responsible for testing it. (Validates INV-013.)
-
 ### 0.13.10 Assembly Rules
 
 The assembly script reads the manifest and produces one bundle per module.
@@ -645,7 +641,7 @@ ASSEMBLE(module_name):
 - **Total**: 3,450 lines (under 4,000 target, under 5,000 ceiling)
 
 **Edge cases**:
-- **Missing file**: If any referenced path (constitution, domain, deep context, or module) does not exist, ABORT with an error naming the missing file and the manifest entry that references it. **DO NOT** silently skip missing files during assembly — a missing file is a manifest-spec synchronization failure (INV-016), not an optional component. (Detected by CHECK-9.)
+- **Missing file**: If any referenced path (constitution, domain, deep context, or module) does not exist, ABORT with an error naming the missing file and the manifest entry that references it. Do not silently skip. (Detected by CHECK-9.)
 - **Empty module**: If a module file exists but contains 0 lines, WARN and produce a minimal bundle (constitution only). The author likely forgot to populate the module.
 - **Missing deep context**: If `deep_context` is non-null but the file does not exist, ABORT. This is a manifest-spec synchronization failure. (Detected by CHECK-9.)
 - **Manifest schema violation**: If a module entry lacks required fields (`file`, `domain`, `maintains`), ABORT before assembly with a validation error listing the missing fields.
@@ -823,8 +819,6 @@ For each domain to `constitution/domains/{domain}.md`: domain formal model, full
 
 **Step 4: Extract modules.**
 For each PART II chapter to `modules/{subsystem}.md`: add module header (§0.13.5), include implementation content, convert cross-module direct references to constitutional references (hardest step — see INV-012).
-
-**DO NOT** defer cross-module reference conversion to after Step 4 — convert them during extraction while the monolith is still available for context. Deferring produces bundles that violate INV-012.
 
 **Step 5: Create cross-domain deep context files.**
 For each module interfacing with other-domain invariants: create `deep/{module}.md` with full definitions for cross-domain invariants, interface contracts, shared types.

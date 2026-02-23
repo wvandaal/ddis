@@ -55,8 +55,6 @@ Validation: Mechanical (CHECK-7 in §0.13.11). Semantic: review for implicit ref
 
 // WHY THIS MATTERS: If modules reference each other's internals, bundles need other modules' implementation — defeating modularization. The constitution is the "header file"; modules are "implementation files" never directly included. (Locked by ADR-007.)
 
-// META-STANDARD CARVE-OUT: For meta-standards using two-tier mode with a declaration-only constitution, the Section Map (§0.3) serves as the constitutional routing table for cross-module section references. The pattern "§X.Y, [module-name] module" is permissible because (a) the Section Map is constitutional content mediating the reference, (b) the module name suffix makes the cross-module nature explicit, and (c) the referenced sections are the meta-standard's public API surface. Application specs should still prefer invariant/ADR references over direct section references.
-
 ---
 
 **INV-013: Invariant Ownership Uniqueness** [Conditional — modular specs only]
@@ -350,41 +348,26 @@ Key insight: a module's maintained invariants are ALWAYS in its own domain (enfo
 
 ### 0.13.5 Module Header (Required per Module)
 
-Every module begins with a structured header that makes the module self-describing. The header uses application-level invariant identifiers (APP-INV-NNN), not the DDIS meta-standard's INV-NNN identifiers.
-
-Two formats are valid:
-
-**YAML frontmatter (preferred)** — machine-parseable, used when tooling consumes the headers. This standard uses this format.
-
-```yaml
----
-module: [module-name]
-domain: [domain-name]
-maintains: [APP-INV-017, APP-INV-018, APP-INV-019]
-interfaces: [APP-INV-003, APP-INV-032]
-implements: [APP-ADR-003, APP-ADR-011]
-adjacent: [EventStore, Scheduler]
-negative_specs:
-  - "Must NOT directly access TUI rendering state (use event bus)"
-  - "Must NOT bypass the reservation system for file writes"
-  - "Must NOT assume event ordering beyond the guarantees in APP-INV-017"
----
-```
-
-**Comment-style** — for specs without assembly tooling, embedded directly in the document:
+Every module begins with a structured header that makes the module self-describing. The header uses application-level invariant identifiers (APP-INV-NNN), not the DDIS meta-standard's INV-NNN identifiers:
 
 ```yaml
 # Module Header: [Module Name]
 # Domain: [Domain Name]
 # Maintains: APP-INV-017, APP-INV-018, APP-INV-019
 # Interfaces: APP-INV-003 (via EventStore), APP-INV-032 (via Scheduler)
-# Negative specs: Must NOT directly access TUI rendering state (use event bus)
+# Implements: APP-ADR-003, APP-ADR-011
+# Adjacent modules: EventStore (read types), Scheduler (publish events)
+# Assembly: Tier 1 + Storage domain + cross-domain deep (Coordination interfaces)
+#
+# NEGATIVE SPECIFICATION (what this module must NOT do):
+# - Must NOT directly access TUI rendering state (use event bus)
+# - Must NOT bypass the reservation system for file writes
+# - Must NOT assume event ordering beyond the guarantees in APP-INV-017
+# - Must NOT implement its own serialization (use shared codec from APP-ADR-011)
 ```
 
-**DO NOT** omit the `negative_specs` field in the module header — without it, the assembly script cannot populate subsystem-specific constraints and LLMs implementing the module lack DO NOT guidance. (Validates INV-011, INV-017.)
-
 The module header is consumed by:
-1. **The assembly script** — to determine what context to include in the bundle (YAML frontmatter preferred)
+1. **The assembly script** — to determine what context to include in the bundle
 2. **The LLM implementer** — to understand scope boundaries before reading
 3. **The RALPH loop** — to determine module dependencies for improvement ordering
 
@@ -399,8 +382,6 @@ GOOD: "This subsystem publishes SchedulerReady events (see APP-INV-032,
 ```
 
 The invariant lives in the constitution. Both modules can reference it without needing each other's content. The LLM implementing Module A never sees Module B's internals — only the contract (invariant) that Module B must satisfy.
-
-> **Meta-standard note:** When the constitution includes a Section Map (§0.3), the pattern "§X.Y, [module-name] module" is a Section Map-mediated reference, not a direct cross-module reference. The Section Map is constitutional content that routes navigation. See the carve-out note on INV-012 above.
 
 **Rule 2: Shared types are defined in the constitution, not in any module.**
 
@@ -472,7 +453,7 @@ In both variants:
 
 Assembly in two-tier mode: `system_constitution + module → bundle`.
 
-**Self-bootstrapping note**: This standard uses Variant B. It has 20 invariants + 11 ADRs = 31 items (exceeding the Variant A threshold), but all bundles are 1,144–1,442 lines — well within the 4,000-line target. The declaration-only constitution (524 lines) keeps bundles compact. Three-tier would add complexity without benefit. (Validates ADR-006, ADR-004.)
+**Self-bootstrapping note**: This standard uses Variant B. It has 20 invariants + 11 ADRs = 31 items (exceeding the Variant A threshold), but all bundles are 1,100–1,460 lines — well within the 4,000-line target. The declaration-only constitution (576 lines) keeps bundles compact. Three-tier would add complexity without benefit. (Validates ADR-006, ADR-004.)
 
 The manifest uses `tier_mode: two-tier` to signal this to the assembly script. If the spec grows beyond the two-tier threshold (constitution + largest module > `target_lines`), migrate to three-tier by extracting domain constitutions (see Migration Procedure §0.13.13).
 
@@ -577,8 +558,6 @@ invariant_registry:
   # ... (abbreviated for illustration — real manifests list all invariants)
 ```
 
-**DO NOT** define modules without the `maintains` field — an unowned invariant violates INV-013 and leaves nobody responsible for testing it. (Validates INV-013.)
-
 ### 0.13.10 Assembly Rules
 
 The assembly script reads the manifest and produces one bundle per module.
@@ -645,7 +624,7 @@ ASSEMBLE(module_name):
 - **Total**: 3,450 lines (under 4,000 target, under 5,000 ceiling)
 
 **Edge cases**:
-- **Missing file**: If any referenced path (constitution, domain, deep context, or module) does not exist, ABORT with an error naming the missing file and the manifest entry that references it. **DO NOT** silently skip missing files during assembly — a missing file is a manifest-spec synchronization failure (INV-016), not an optional component. (Detected by CHECK-9.)
+- **Missing file**: If any referenced path (constitution, domain, deep context, or module) does not exist, ABORT with an error naming the missing file and the manifest entry that references it. Do not silently skip. (Detected by CHECK-9.)
 - **Empty module**: If a module file exists but contains 0 lines, WARN and produce a minimal bundle (constitution only). The author likely forgot to populate the module.
 - **Missing deep context**: If `deep_context` is non-null but the file does not exist, ABORT. This is a manifest-spec synchronization failure. (Detected by CHECK-9.)
 - **Manifest schema violation**: If a module entry lacks required fields (`file`, `domain`, `maintains`), ABORT before assembly with a validation error listing the missing fields.
@@ -824,8 +803,6 @@ For each domain to `constitution/domains/{domain}.md`: domain formal model, full
 **Step 4: Extract modules.**
 For each PART II chapter to `modules/{subsystem}.md`: add module header (§0.13.5), include implementation content, convert cross-module direct references to constitutional references (hardest step — see INV-012).
 
-**DO NOT** defer cross-module reference conversion to after Step 4 — convert them during extraction while the monolith is still available for context. Deferring produces bundles that violate INV-012.
-
 **Step 5: Create cross-domain deep context files.**
 For each module interfacing with other-domain invariants: create `deep/{module}.md` with full definitions for cross-domain invariants, interface contracts, shared types.
 
@@ -840,16 +817,3 @@ Create `modules/end_to_end_trace.md` as cross-cutting module. Verify bundle fits
 
 **Step 9: LLM validation.**
 Give 2+ bundles to an LLM. Zero questions requiring other module's implementation.
-
-### Verification Prompt for Modularization Protocol (§0.13)
-
-After modularizing your spec, verify:
-
-1. [ ] Every module header declares maintained invariants, interfaces, and negative specs (§0.13.5, INV-011)
-2. [ ] Cross-module references go through constitutional elements, never direct module internals (INV-012, ADR-007)
-3. [ ] Every invariant is maintained by exactly one module (INV-013, CHECK-1)
-4. [ ] Every assembled bundle fits within the hard ceiling (INV-014, CHECK-5)
-5. [ ] Constitution declarations faithfully summarize module definitions (INV-015, Gate M-4)
-6. [ ] Your modularization does NOT have modules referencing each other's internal sections (INV-012)
-7. [ ] Your manifest does NOT have orphan invariants or missing file paths (CHECK-6, CHECK-9)
-8. [ ] *Integration*: Your cascade protocol correctly identifies affected modules for a simulated invariant change (Gate M-5)

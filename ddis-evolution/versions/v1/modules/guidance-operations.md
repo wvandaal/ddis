@@ -484,7 +484,7 @@ PART I:   Formal model → State machines → Complexity → End-to-end trace
 PART II:  [Per subsystem: purpose → types → algorithm → state machine →
           invariants (RESTATED) → negative specs (DO NOT) → example →
           edge cases → tests → budget → verification prompt →
-          meta-instructions → cross-refs]  (13 components per §5.1, element-specifications module)
+          meta-instructions → cross-refs]  (13 components per §5.1, element-specifications)
           End-to-end trace (crosses all subsystems)
 PART III: Protocol schemas → Adapters → UI contracts
 PART IV:  Test taxonomy → Error taxonomy → Operational playbook
@@ -597,10 +597,10 @@ DO NOT constraints: in EVERY element spec, PART III guidance, AND PART IV operat
 ## I) Modular Self-Conformance
 - [x] Constitution declarations are genuine summaries, not near-duplicates of module definitions (INV-015)
 - [x] Compact glossary trimmed to navigational aid; full glossary in Appendix A is authoritative (INV-015)
-- [x] Section Map accuracy validated against current module structure after edits (INV-016) — verified RALPH iter-2: range corrected to §0.1–§0.10, §6.1.1 misattribution fixed
-- [x] Cross-module references audited: all go through constitutional elements or Section Map (INV-012) — verified RALPH iter-2: 19 bare refs fixed across 3 modules
-- [x] Declaration-definition faithfulness verified: each Tier 1 declaration matches its Tier 2 definition (Gate M-4) — verified RALPH iter-2: 30/31 faithful, INV-017 qualifier added
-- [x] Context budget values in constitution match manifest.yaml (INV-016) — verified RALPH iter-2: target=4000, ceiling=5000, reserve=0.25 match exactly
+- [ ] Section Map accuracy validated against current module structure after edits (INV-016)
+- [ ] Cross-module references audited: all go through constitutional elements or Section Map (INV-012)
+- [ ] Declaration-definition faithfulness verified: each Tier 1 declaration matches its Tier 2 definition (Gate M-4)
+- [ ] Context budget values in constitution match manifest.yaml (INV-016)
 
 ---
 

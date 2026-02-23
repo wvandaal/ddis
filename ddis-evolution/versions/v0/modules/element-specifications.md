@@ -1,7 +1,7 @@
 ---
 module: element-specifications
 domain: core
-maintains: [] # Invariant definitions owned by core-standard; this module defines the FORMATS by which INV-017, INV-018, INV-019, INV-020 are satisfied
+maintains: []
 interfaces: [INV-001, INV-002, INV-003, INV-004, INV-005, INV-006, INV-007, INV-008, INV-009, INV-010, INV-017, INV-018, INV-019, INV-020]
 implements: [ADR-008, ADR-009, ADR-010]
 adjacent: [core-standard, guidance-operations]
@@ -103,7 +103,7 @@ The heart of DDIS. Each section specifies one structural element: what it must c
 - Identifies at least one non-negotiable process requirement
 - For LLM implementers: includes a step about reading negative specifications and verification prompts
 
-**Quality criteria**: A new team member reading only this section knows exactly how to engage with the document. The Public API Surface (§0.9, system constitution) lists the complete interface DDIS provides to specification authors.
+**Quality criteria**: A new team member reading only this section knows exactly how to engage with the document.
 
 **DO NOT** list more than 8 steps — this is a quick-start guide, not an operating manual. Process details belong in PART IV. (Validates INV-007.)
 
@@ -293,12 +293,12 @@ B) **[Option name]**
 
 **Confidence levels** (optional, recommended for early-stage specs):
 - **Committed**: High confidence, well-analyzed, unlikely to change. Default if omitted.
-- **Provisional**: Medium confidence, will be revisited after a decision spike (§6.1.1). Implementation should minimize coupling to this decision.
+- **Provisional**: Medium confidence, will be revisited after a decision spike (§6.1.1, guidance-operations module). Implementation should minimize coupling to this decision.
 - **Speculative**: Low confidence, research needed. Implementation should use an abstraction boundary so the decision can be swapped without cascading rework.
 
 **DO NOT** mark all ADRs as Committed in an early-stage spec — if no ADRs are Provisional, you are likely over-committing. (Validates INV-002, INV-017.)
 
-**DO NOT** use Speculative confidence to defer decisions indefinitely — every Speculative ADR must reference a specific decision spike in §6.1.1 with a time budget and exit criterion. (Validates INV-017, INV-019.)
+**DO NOT** use Speculative confidence to defer decisions indefinitely — every Speculative ADR must reference a specific decision spike in §6.1.1 (guidance-operations module) with a time budget and exit criterion. (Validates INV-017, INV-019.)
 
 **Quality criteria for each ADR**:
 - **Genuine alternatives**: Each option must have a real advocate. If Option B is a strawman nobody would choose, it is not a genuine alternative. The test: would a competent engineer in a different context reasonably choose Option B?
@@ -318,7 +318,7 @@ B) **[Option name]**
     No concrete tradeoff analysis.
 ```
 
-**Churn-magnets**: After all ADRs are written, add a brief section identifying which decisions cause the most downstream rework if changed. These are the decisions to lock first and spike earliest (see §6.1.1, Phase -1).
+**Churn-magnets**: After all ADRs are written, add a brief section identifying which decisions cause the most downstream rework if changed. These are the decisions to lock first and spike earliest (see §6.1.1 in guidance-operations module, Phase -1).
 
 ---
 
@@ -444,8 +444,6 @@ After writing your spec's PART 0, verify:
 
 **DO NOT** copy-paste the §0.2 executive summary and call it the full formal model — include complete state definitions, input/output taxonomies, transition semantics, and composition rules. (Validates INV-004, INV-017.)
 
-**DO NOT** define the full formal model as a single monolithic block — decompose into state definition, input taxonomy, output taxonomy, transition semantics, and composition rules as separate, identifiable subsections. (Validates INV-004, INV-017.)
-
 ### 4.2 State Machines
 
 **What it is**: Every stateful component gets a formal state machine.
@@ -460,10 +458,6 @@ After writing your spec's PART 0, verify:
 **Quality criteria**: The state × event table has no empty cells. Every cell either names a transition or explicitly says "no transition" or "error."
 
 **DO NOT** define state machines with only happy-path transitions — LLMs implement only the transitions you show them. Omitting invalid transition handling causes silent corruption or crashes. (Validates INV-010, INV-017.)
-
-**DO NOT** present state machines as only ASCII diagrams without the state × event table — diagrams are supplementary; the table is the formal specification. (Validates INV-010, INV-017.)
-
-**DO NOT** define guard conditions as prose descriptions — express guards as boolean predicates that an implementer (or test) can evaluate mechanically. (Validates INV-003, INV-010, INV-017.)
 
 ### 4.3 Complexity Analysis
 
@@ -520,8 +514,6 @@ After writing your spec's PART I (Foundations), verify:
 13. **Cross-references**: To ADRs, invariants, other subsystems, the formal model. Include proportional weight (§9.1, guidance-operations module) to validate line budget allocation.
 
 **Quality criteria**: An implementer could build this subsystem from this chapter alone. (Understanding composition requires other chapters, but each chapter is self-contained for its subsystem.)
-
-> **Self-bootstrapping note (ADR-004):** For meta-standards (standards about specification authoring), not all 13 components apply literally. Formal types, algorithm pseudocode, and state machines are N/A for element specification chapters (which define document formats, not system behavior). The applicable components are: purpose statement, invariants preserved (RESTATED), negative specifications, worked examples (as anti-patterns), quality criteria (serving as test strategy), verification prompt, meta-instructions, and cross-references. This document demonstrates this adaptation.
 
 **DO NOT** write implementation chapters before locking their ADR dependencies. **DO NOT** reference invariants by ID alone — restate them per INV-018. (Validates INV-001, INV-017, INV-018.)
 
@@ -752,7 +744,7 @@ After implementing this subsystem, verify:
 > complexity in coordination systems (see ADR-005, consequences).
 ```
 
-**Self-bootstrapping demonstration**: This document includes meta-instructions in §0.3.1 (reading order for LLM implementers) and §11.1 (authoring sequence, guidance-operations module).
+**Self-bootstrapping demonstration**: This document includes meta-instructions in §0.3.1 (reading order for LLM implementers) and §11.1 (authoring sequence).
 
 ### Verification Prompt for Chapter 5 (PART II Elements)
 
@@ -850,7 +842,7 @@ For the error taxonomy of specification authoring errors, see Appendix C.
 ### Verification Prompt for Chapter 6 (PART IV Elements)
 
 After writing your spec's operational chapters, verify:
-1. [ ] The operational playbook includes Phase -1 decision spikes with time budgets and ADR exit criteria (§6.1.1)
+1. [ ] The operational playbook includes Phase -1 decision spikes with time budgets and ADR exit criteria (§6.1.1, guidance-operations module)
 2. [ ] Every phase has a specific, testable exit criterion — not "phase complete when done" (§6.1.2, INV-003: every invariant/criterion must be falsifiable)
 3. [ ] The minimal deliverables order is an explicit DAG with dependency reasons (INV-019: the spec provides an explicit dependency chain for implementation ordering)
 4. [ ] The testing strategy includes at minimum: unit, property, integration, and stress test types with examples (§6.2)

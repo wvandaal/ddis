@@ -18,11 +18,16 @@ unset ANTHROPIC_API_KEY 2>/dev/null || true
 # ═══════════════════════════════════════════════════════════════════════════════
 #
 # Uses Claude Code (`claude -p`) to recursively improve the DDIS specification
-# using its own methodology. Each iteration:
-#   1. AUDIT:   LLM reads spec + methodology → creates improvement tasks in beads (br)
-#   2. APPLY:   LLM picks tasks via bv triage → applies surgical edits → closes tasks
-#   3. JUDGE:   Separate LLM evaluates: self-bootstrapping, comparison, LLM optimization
+# using its own methodology. The loop works on MODULAR files (self-bootstrapping
+# per §0.13: the spec exceeds 2,500 lines and must demonstrate modularization).
+#
+# Each iteration:
+#   1. AUDIT:   LLM reads modular spec + methodology → creates tasks in beads (br)
+#   2. APPLY:   LLM picks tasks via bv triage → surgical edits on modules → closes tasks
+#   3. JUDGE:   Separate LLM evaluates versioned modular snapshots
 #   4. DECIDE:  Script checks multi-signal stopping condition
+#
+# Post-loop: Assemble modular files → monolith (mechanical concatenation)
 #
 # Stopping condition (three independent signals):
 #   Signal 1: DIMINISHING RETURNS — substantive improvements below threshold
@@ -41,7 +46,6 @@ MIN_QUALITY_DELTA=${DDIS_MIN_DELTA:-3}
 IMPROVER_MODEL=${DDIS_IMPROVER_MODEL:-"opus"}
 JUDGE_MODEL=${DDIS_JUDGE_MODEL:-"opus"}
 POLISH_ON_EXIT=${DDIS_POLISH:-true}
-MODULARIZE_ON_EXIT=${DDIS_MODULARIZE:-true}
 USE_BEADS=${DDIS_USE_BEADS:-auto}
 VERBOSE=${DDIS_VERBOSE:-false}
 
@@ -51,7 +55,6 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --verbose)      VERBOSE=true; shift ;;
         --no-polish)    POLISH_ON_EXIT=false; shift ;;
-        --no-modularize) MODULARIZE_ON_EXIT=false; shift ;;
         *)              echo "Unknown argument: $1" >&2; exit 1 ;;
     esac
 done
@@ -196,6 +199,121 @@ beads_finalize() {
         log "BEADS: $open_count issues remain open. Run: cd ${WORK_DIR} && bv --robot-triage"
 }
 
+# ─── Self-Bootstrapping Preamble ─────────────────────────────────────────────
+#
+# Included in EVERY agent prompt. The spec must conform to the format it defines.
+
+SELF_BOOTSTRAP_PREAMBLE="## SELF-BOOTSTRAPPING REQUIREMENT
+
+This specification defines a standard that it MUST itself conform to. Every invariant
+it prescribes must be satisfied BY the spec. Every quality gate it defines must be
+passed BY the spec. Every structural requirement it mandates — including modularization
+for documents exceeding 2,500 lines (§0.13) — must be demonstrated BY the spec.
+
+You are working on the MODULAR form of the spec: a system constitution with declarations,
+plus domain modules with full definitions. This IS the self-bootstrapping demonstration
+of §0.13. The modular invariants (INV-011 through INV-016) apply to THIS decomposition.
+
+You are not just improving content — you are ensuring the spec practices what it preaches."
+
+# ─── Modular Working Form ───────────────────────────────────────────────────
+#
+# The loop operates on modular files, not a monolith. If no modular form
+# exists, decompose the seed first. Assembly to monolith is the post-loop step.
+
+MODULAR_FILES=(
+    "${MODULAR_DIR}/constitution/system.md"
+    "${MODULAR_DIR}/modules/core-standard.md"
+    "${MODULAR_DIR}/modules/element-specifications.md"
+    "${MODULAR_DIR}/modules/modularization.md"
+    "${MODULAR_DIR}/modules/guidance-operations.md"
+)
+MANIFEST_FILE="${MODULAR_DIR}/manifest.yaml"
+
+# Build a file listing string for agent prompts
+modular_file_listing() {
+    local idx=1
+    echo "- **System constitution**: ${MODULAR_DIR}/constitution/system.md"
+    for mod in "${MODULAR_DIR}/modules"/*.md; do
+        [[ -f "$mod" ]] && echo "- **Module**: $mod"
+    done
+    echo "- **Manifest**: ${MANIFEST_FILE}"
+}
+
+# Total lines across all modular files (excluding manifest)
+modular_total_lines() {
+    local total=0
+    for f in "${MODULAR_FILES[@]}"; do
+        [[ -f "$f" ]] && total=$((total + $(line_count "$f")))
+    done
+    echo "$total"
+}
+
+# Snapshot the modular dir to a versioned copy
+snapshot_modular() {
+    local version=$1
+    local dest="${VERSIONS_DIR}/v${version}"
+    mkdir -p "$dest"
+    cp -r "${MODULAR_DIR}/constitution" "${MODULAR_DIR}/modules" "${MODULAR_DIR}/manifest.yaml" "$dest/" 2>/dev/null || true
+    log "SNAPSHOT: v${version} saved to $dest ($(modular_total_lines) lines)"
+}
+
+# Check if modular form exists and is populated
+modular_form_exists() {
+    [[ -f "${MODULAR_DIR}/constitution/system.md" ]] && \
+    [[ -f "${MODULAR_DIR}/modules/core-standard.md" ]] && \
+    [[ $(modular_total_lines) -ge 500 ]]
+}
+
+# Assemble modular files → monolith (mechanical concatenation)
+run_assemble() {
+    local output="$1"
+    log "ASSEMBLE: Building monolith from modular files"
+    {
+        cat "${MODULAR_DIR}/constitution/system.md"
+        echo ""
+        for mod in "${MODULAR_DIR}/modules"/*.md; do
+            [[ -f "$mod" ]] && { echo ""; cat "$mod"; }
+        done
+    } > "$output"
+    local lines
+    lines=$(line_count "$output")
+    log "ASSEMBLE: Produced monolith ($lines lines)"
+}
+
+# ─── Bootstrap: Ensure Modular Working Form ─────────────────────────────────
+#
+# If no modular form exists (first run), decompose the monolithic seed.
+# If modular form already exists (subsequent runs), use it directly.
+# This is the self-bootstrapping entry point: the loop ALWAYS works on modular files.
+
+ensure_modular_form() {
+    if modular_form_exists; then
+        local lines
+        lines=$(modular_total_lines)
+        log "MODULAR: Using existing modular form ($lines lines across modules)"
+        return 0
+    fi
+
+    log_section "BOOTSTRAP: Decomposing monolith into modular form"
+    log "MODULAR: No modular form found — decomposing seed spec"
+
+    # Ensure directory structure
+    mkdir -p "${MODULAR_DIR}/constitution" "${MODULAR_DIR}/modules"
+
+    # Use run_modularize to do the decomposition
+    run_modularize "$SEED_SPEC"
+
+    if modular_form_exists; then
+        local lines
+        lines=$(modular_total_lines)
+        log "MODULAR: Bootstrap complete ($lines lines across modules)"
+    else
+        log "ERROR: Bootstrap failed — modular form not created. Cannot continue."
+        exit 1
+    fi
+}
+
 # ─── Improve Step (Two-Phase: Audit → Apply) ────────────────────────────────
 #
 # Phase 1 — AUDIT: LLM reads spec + methodology, systematically evaluates it
@@ -218,13 +336,11 @@ APPLY_MAX_TURNS=100
 
 run_audit() {
     local iteration=$1
-    local current_spec="$2"
+    local current_lines="$2"
     local prev_judgment="${3:-}"
     local log_file="${LOGS_DIR}/audit_v${iteration}.log"
 
-    local current_lines
-    current_lines=$(line_count "$current_spec")
-    log "AUDIT: Analyzing v$((iteration - 1)) ($current_lines lines)"
+    log "AUDIT: Analyzing v$((iteration - 1)) ($current_lines lines across modules)"
 
     # Build judgment context for iterations > 1
     local judgment_section=""
@@ -233,17 +349,24 @@ run_audit() {
    Read this carefully — it tells you what the judge found wrong. Address every gap and regression."
     fi
 
+    local file_listing
+    file_listing=$(modular_file_listing)
+
     local prompt="You are the AUDITOR in iteration $iteration of the DDIS recursive self-improvement loop.
 Your job is ANALYSIS ONLY — systematically evaluate the spec against its own criteria and create
 granular improvement tasks using the \`br\` (beads) CLI. Do NOT edit the spec.
+
+${SELF_BOOTSTRAP_PREAMBLE}
 
 ## Files to Read (use the Read tool)
 
 1. **Improvement methodology**: ${IMPROVEMENT_PROMPT}
    This describes the audit framework, quality criteria, and anti-patterns. Read it first.
 
-2. **Current DDIS spec (v$((iteration - 1)))**: ${current_spec}
-   This is the ~${current_lines}-line self-bootstrapping meta-specification to audit.
+2. **DDIS spec (v$((iteration - 1))) — MODULAR FORM** (~${current_lines} total lines):
+${file_listing}
+
+   Read ALL files. The constitution has declarations; modules have full definitions.
 
 ${judgment_section}
 
@@ -272,6 +395,13 @@ Read the ENTIRE spec thoroughly. Systematically evaluate it against:
 5. **Cross-references**: All valid? No orphan sections (INV-006)?
 6. **Negative specifications**: Enough DO NOT constraints per chapter (INV-017)?
 7. **Verification prompts**: Every element spec chapter has a verification block (INV-020)?
+8. **Modular self-conformance** (the spec prescribes modularization — does it practice it?):
+   - INV-011: Each module bundle (constitution + module) sufficient for standalone work?
+   - INV-012: Cross-module references go through constitution, not direct section refs?
+   - INV-013: Each invariant maintained by exactly one module?
+   - INV-014: Bundle sizes within hard ceiling (constitution + any module < 5,000 lines)?
+   - INV-015: Constitution declarations faithfully summarize module definitions?
+   - INV-016: Manifest reflects current file state (line counts, module list)?
 
 ## Creating Tasks
 
@@ -281,9 +411,17 @@ For each improvement needed, use the \`br\` CLI:
 cd ${WORK_DIR} && br create \"<concise title>\" \\
   --type task \\
   --priority <0-3> \\
-  --description \"<detailed description including: what section, what's wrong, what the fix should be, which invariants this addresses>\" \\
+  --description \"FILE: <full path to the module file to edit>
+SECTION: <section within that file>
+PROBLEM: <what is wrong or missing>
+FIX: <specific description of what to change>
+INVARIANTS: <INV-NNN IDs this addresses>\" \\
   --labels \"ralph-iter-${iteration},<category>\"
 \`\`\`
+
+**IMPORTANT**: Every task description MUST specify which FILE to edit. Tasks affecting the
+constitution go to \`${MODULAR_DIR}/constitution/system.md\`. Tasks affecting specific
+content go to the relevant module. Tasks affecting structure go to the manifest.
 
 Priority guide:
 - P0: Critical invariant violation or broken self-bootstrapping
@@ -362,29 +500,32 @@ Target 8-20 tasks. Focus on SUBSTANCE over cosmetics."
 
 run_apply() {
     local iteration=$1
-    local current_spec="$2"
-    local output_spec="$3"
     local log_file="${LOGS_DIR}/apply_v${iteration}.log"
 
     local current_lines
-    current_lines=$(line_count "$current_spec")
-
-    # Copy current spec to output path — apply will EDIT it in place
-    cp "$current_spec" "$output_spec"
+    current_lines=$(modular_total_lines)
 
     local open_count
     open_count=$(beads_open_count)
-    log "APPLY: $open_count open issues to address on v$((iteration - 1)) ($current_lines lines)"
+    log "APPLY: $open_count open issues to address on v$((iteration - 1)) ($current_lines lines across modules)"
+
+    local file_listing
+    file_listing=$(modular_file_listing)
 
     local prompt="You are the APPLIER in iteration $iteration of the DDIS recursive self-improvement loop.
 Your job is to apply improvements to the spec by working through the beads issue tracker.
 
-## Files
+${SELF_BOOTSTRAP_PREAMBLE}
 
-1. **Spec to improve**: ${output_spec}
-   Read this file. You will EDIT it in place using the Edit tool.
+## Files — MODULAR FORM
 
-2. **Improvement methodology** (for context): ${IMPROVEMENT_PROMPT}
+The spec is decomposed into modular files. Each beads task specifies which file to edit.
+
+${file_listing}
+
+Read the relevant files as needed. Edit them in place using the Edit tool.
+
+**Improvement methodology** (for context): ${IMPROVEMENT_PROMPT}
 
 ## Beads Issue Tracker
 
@@ -413,11 +554,13 @@ cd ${WORK_DIR} && bv --robot-triage 2>/dev/null || br ready --json
    cd ${WORK_DIR} && br update <id> --status in_progress
    \`\`\`
 
-4. **Read the relevant section** of ${output_spec} using the Read tool
+4. **Read the relevant file** specified in the task description using the Read tool
 
 5. **Apply the fix** using the Edit tool:
-   - Find the exact text to change in the spec
+   - Find the exact text to change in the specified module file
    - Use Edit with precise old_string and new_string
+   - If the task affects the constitution, update declarations there too
+   - If the task adds/changes invariants, update the manifest
    - Verify cross-references remain valid after your edit
    - If the edit would break self-bootstrapping, skip it
 
@@ -481,22 +624,23 @@ Provide a brief summary of:
     local closed=$((open_count - remaining))
     log "APPLY: Closed $closed issues, $remaining remain open"
 
-    # Check: does the output file still exist and have content?
-    if [[ -f "$output_spec" ]] && [[ $(wc -l < "$output_spec" | tr -d ' ') -ge 200 ]]; then
-        local new_lines
-        new_lines=$(line_count "$output_spec")
+    # Check modular files still exist and have content
+    local new_lines
+    new_lines=$(modular_total_lines)
 
-        # Sanity: if the file shrank drastically, something went wrong
+    if [[ $new_lines -ge 500 ]]; then
         local min_acceptable=$(( current_lines * 70 / 100 ))
         if [[ $new_lines -lt $min_acceptable ]]; then
-            log "APPLY: WARNING — output shrank to $new_lines lines (<70% of $current_lines)"
+            log "APPLY: WARNING — modular total shrank to $new_lines lines (<70% of $current_lines)"
         fi
-
         log "APPLY: Produced v${iteration} ($new_lines lines, delta: $((new_lines - current_lines)))"
+
+        # Snapshot the modular form for this version
+        snapshot_modular "$iteration"
         return 0
     fi
 
-    log "ERROR: Apply failed — output file missing or too short"
+    log "ERROR: Apply failed — modular files missing or too short ($new_lines lines)"
     log "       Session: ${session_id:-unknown}"
     log "       Log: $log_file"
     return 1
@@ -506,22 +650,20 @@ Provide a brief summary of:
 
 run_improve() {
     local iteration=$1
-    local current_spec="$2"
-    local output_spec="$3"
-    local prev_judgment="${4:-}"
+    local prev_judgment="${2:-}"
 
     local current_lines
-    current_lines=$(line_count "$current_spec")
-    log "IMPROVE: v$((iteration - 1)) ($current_lines lines) → v${iteration} [audit → apply]"
+    current_lines=$(modular_total_lines)
+    log "IMPROVE: v$((iteration - 1)) ($current_lines lines) → v${iteration} [audit → apply on modular form]"
 
     # Phase 1: Audit — create improvement tasks in beads
-    if ! run_audit "$iteration" "$current_spec" "$prev_judgment"; then
+    if ! run_audit "$iteration" "$current_lines" "$prev_judgment"; then
         log "ERROR: Audit failed at iteration $iteration — no improvements identified"
         return 1
     fi
 
-    # Phase 2: Apply — work through beads tasks with surgical edits
-    if ! run_apply "$iteration" "$current_spec" "$output_spec"; then
+    # Phase 2: Apply — work through beads tasks with surgical edits on module files
+    if ! run_apply "$iteration"; then
         log "ERROR: Apply failed at iteration $iteration"
         return 1
     fi
@@ -536,15 +678,15 @@ run_improve() {
 
 run_judge() {
     local iteration=$1
-    local prev_spec="$2"
-    local curr_spec="$3"
-    local output_json="$4"
+    local output_json="$2"
     local log_file="${LOGS_DIR}/judge_v${iteration}.log"
 
+    local prev_dir="${VERSIONS_DIR}/v$((iteration - 1))"
+    local curr_dir="${VERSIONS_DIR}/v${iteration}"
     local prev_lines curr_lines
-    prev_lines=$(line_count "$prev_spec")
-    curr_lines=$(line_count "$curr_spec")
-    log "JUDGE: Comparing v$((iteration - 1)) ($prev_lines lines) vs v${iteration} ($curr_lines lines)"
+    prev_lines=$(wc -l "${prev_dir}"/constitution/*.md "${prev_dir}"/modules/*.md 2>/dev/null | tail -1 | awk '{print $1}')
+    curr_lines=$(wc -l "${curr_dir}"/constitution/*.md "${curr_dir}"/modules/*.md 2>/dev/null | tail -1 | awk '{print $1}')
+    log "JUDGE: Comparing v$((iteration - 1)) ($prev_lines lines) vs v${iteration} ($curr_lines lines) [modular]"
 
     # Build judge prompt — three evaluation dimensions:
     #   (a) Self-bootstrapping: how well does the spec conform to itself?
@@ -570,11 +712,19 @@ There is no prior score to compare against. Evaluate v1 on absolute quality."
 
     local prompt="You are the JUDGE in a recursive self-improvement loop for the DDIS specification.
 
+${SELF_BOOTSTRAP_PREAMBLE}
+
 ## Files to Read (use the Read tool)
 
-1. **Previous version (v$((iteration - 1)))**: ${prev_spec}
-2. **Current version (v${iteration})**: ${curr_spec}
-3. **Improvement methodology** (scoring criteria): ${IMPROVEMENT_PROMPT}
+Read BOTH versions completely — they are in modular form (constitution + modules).
+
+**Previous version (v$((iteration - 1))):**
+$(ls "${prev_dir}"/constitution/*.md "${prev_dir}"/modules/*.md 2>/dev/null | sed 's/^/- /')
+
+**Current version (v${iteration}):**
+$(ls "${curr_dir}"/constitution/*.md "${curr_dir}"/modules/*.md 2>/dev/null | sed 's/^/- /')
+
+**Improvement methodology**: ${IMPROVEMENT_PROMPT}
 
 ## Your Role
 
@@ -722,6 +872,37 @@ Your ENTIRE response must be valid JSON. Nothing else."
 FALLBACK
     fi
 
+    # Normalize field names — judges sometimes use alternate key names.
+    # Canonicalize to: quality_score, substantive_improvements, regressions (int),
+    # recommendation, self_bootstrap_score, comparison_score, llm_optimization_score.
+    jq '
+      # Normalize improvements count
+      .substantive_improvements = (
+        .substantive_improvements // .improvements_count //
+        (if (.improvements_list | type) == "array" then .improvements_list | length
+         elif (.improvements | type) == "array" then .improvements | length
+         else 0 end)
+      ) |
+      # Normalize regressions count
+      .regressions = (
+        if (.regressions | type) == "number" then .regressions
+        elif (.regressions_count | type) == "number" then .regressions_count
+        elif (.regressions_list | type) == "array" then .regressions_list | length
+        elif (.regressions | type) == "array" then .regressions | length
+        else 0 end
+      ) |
+      # Normalize sub-scores (may be nested under dimension_scores)
+      .self_bootstrap_score = (.self_bootstrap_score // .dimension_scores.self_bootstrapping // .dimension_scores.self_bootstrap // null) |
+      .comparison_score = (.comparison_score // .dimension_scores.version_comparison // .dimension_scores.comparison // null) |
+      .llm_optimization_score = (.llm_optimization_score // .dimension_scores.llm_optimization // .dimension_scores.llm // null) |
+      # Normalize improvements/regressions lists
+      .improvements_list = (.improvements_list // .improvements // []) |
+      .regressions_list = (
+        if (.regressions_list | type) == "array" then .regressions_list
+        else [] end
+      )
+    ' "$output_json" > "${output_json}.tmp" && mv "${output_json}.tmp" "$output_json"
+
     local score improvements regressions recommendation
     score=$(judgment_field "$output_json" "quality_score")
     improvements=$(judgment_field "$output_json" "substantive_improvements")
@@ -814,11 +995,8 @@ Use the Write tool."
 # ─── Modularize Step ─────────────────────────────────────────────────────────
 #
 # Decomposes the monolithic spec into constitution + modules per §0.13.
-# This is a self-bootstrapping requirement: the spec prescribes modularization
-# for documents exceeding 2,500 lines and must demonstrate it on itself.
-#
-# Runs AFTER polish. The improve/judge loop works on the monolithic spec
-# (easier for LLM context), then we decompose into the final modular form.
+# Called by ensure_modular_form() on the FIRST run to bootstrap from the
+# monolithic seed. After that, the loop works on modular files directly.
 
 run_modularize() {
     local input_spec="$1"
@@ -1040,6 +1218,11 @@ check_stop() {
     improvements=$(judgment_field "$judgment_file" "substantive_improvements")
     regressions=$(judgment_field "$judgment_file" "regressions")
 
+    # Defensive: ensure numeric values (judge may return null/string)
+    [[ "$score" =~ ^[0-9]+$ ]] || score=50
+    [[ "$improvements" =~ ^[0-9]+$ ]] || improvements=0
+    [[ "$regressions" =~ ^[0-9]+$ ]] || regressions=0
+
     # Signal 3: Regression
     if [[ "$recommendation" == "stop_regressed" ]] || \
        [[ $regressions -gt 0 && $regressions -ge $improvements ]]; then
@@ -1103,15 +1286,24 @@ print_summary() {
     printf "%-8s  %6s  %7s  %5s  %5s  %-15s\n" \
         "-------" "------" "-------" "-----" "-----" "---------------"
 
+    # v0 — modular snapshot (seed)
+    local v0_lines="—"
+    if [[ -d "${VERSIONS_DIR}/v0" ]]; then
+        v0_lines=$(wc -l "${VERSIONS_DIR}/v0"/constitution/*.md "${VERSIONS_DIR}/v0"/modules/*.md 2>/dev/null | tail -1 | awk '{print $1}')
+    fi
     printf "%-8s  %6s  %7s  %5s  %5s  %-15s\n" \
-        "v0" "$(line_count "$VERSIONS_DIR/ddis_v0.md")" "—" "—" "—" "seed"
+        "v0" "$v0_lines" "—" "—" "—" "seed"
 
     for ((i = 1; i <= final_version; i++)); do
         local judg="${JUDGMENTS_DIR}/judgment_v${i}.json"
+        local vi_lines="—"
+        if [[ -d "${VERSIONS_DIR}/v${i}" ]]; then
+            vi_lines=$(wc -l "${VERSIONS_DIR}/v${i}"/constitution/*.md "${VERSIONS_DIR}/v${i}"/modules/*.md 2>/dev/null | tail -1 | awk '{print $1}')
+        fi
         if [[ -f "$judg" ]]; then
             printf "%-8s  %6s  %7s  %5s  %5s  %-15s\n" \
                 "v${i}" \
-                "$(line_count "${VERSIONS_DIR}/ddis_v${i}.md")" \
+                "$vi_lines" \
                 "$(judgment_field "$judg" "quality_score")" \
                 "$(judgment_field "$judg" "substantive_improvements")" \
                 "$(judgment_field "$judg" "regressions")" \
@@ -1119,24 +1311,23 @@ print_summary() {
         fi
     done
 
-    if [[ -f "${VERSIONS_DIR}/ddis_final.md" ]]; then
+    local final_spec="${VERSIONS_DIR}/ddis_final.md"
+    if [[ -f "$final_spec" ]]; then
         echo ""
-        echo "Final: ${VERSIONS_DIR}/ddis_final.md ($(line_count "${VERSIONS_DIR}/ddis_final.md") lines)"
+        echo "Final (assembled): ${final_spec} ($(line_count "$final_spec") lines)"
     fi
 
     echo ""
     echo "Versions:  ${VERSIONS_DIR}/"
     echo "Judgments:  ${JUDGMENTS_DIR}/"
     echo "Logs:       ${LOGS_DIR}/"
+    echo "Modular:    ${MODULAR_DIR}/"
 
-    if [[ -d "${MODULAR_DIR}/modules" ]] && ls "${MODULAR_DIR}/modules"/*.md &>/dev/null 2>&1; then
-        echo "Modular:    ${MODULAR_DIR}/"
-        echo ""
-        echo "Module sizes:"
-        for mod_file in "${MODULAR_DIR}/constitution/system.md" "${MODULAR_DIR}/modules"/*.md; do
-            [[ -f "$mod_file" ]] && printf "  %-35s %s lines\n" "$(basename "$mod_file")" "$(line_count "$mod_file")"
-        done
-    fi
+    echo ""
+    echo "Module sizes (working form):"
+    for mod_file in "${MODULAR_DIR}/constitution/system.md" "${MODULAR_DIR}/modules"/*.md; do
+        [[ -f "$mod_file" ]] && printf "  %-35s %s lines\n" "$(basename "$mod_file")" "$(line_count "$mod_file")"
+    done
 
     if $BEADS_AVAILABLE; then
         echo "Beads:      ${WORK_DIR}/.beads/"
@@ -1180,15 +1371,22 @@ main() {
     log "  Improver model:     $IMPROVER_MODEL"
     log "  Judge model:        $JUDGE_MODEL"
     log "  Polish on exit:     $POLISH_ON_EXIT"
-    log "  Modularize on exit: $MODULARIZE_ON_EXIT"
-    log "  Audit timeout:      $((AUDIT_TIMEOUT / 60))m | Apply: $((APPLY_TIMEOUT / 60))m | Judge: $((JUDGE_TIMEOUT / 60))m | Modularize: $((MODULARIZE_TIMEOUT / 60))m"
+    log "  Working form:       modular (self-bootstrapping per §0.13)"
+    log "  Audit timeout:      $((AUDIT_TIMEOUT / 60))m | Apply: $((APPLY_TIMEOUT / 60))m | Judge: $((JUDGE_TIMEOUT / 60))m"
     log ""
 
     mkdir -p "$VERSIONS_DIR" "$JUDGMENTS_DIR" "$LOGS_DIR"
-    cp "$SEED_SPEC" "$VERSIONS_DIR/ddis_v0.md"
 
     check_beads
     beads_init
+
+    # ── Bootstrap: ensure modular working form exists ──
+    # The loop ALWAYS works on modular files (self-bootstrapping per §0.13).
+    # First run decomposes the monolithic seed; subsequent runs use existing modules.
+    ensure_modular_form
+
+    # Snapshot v0 — the starting state of the modular form
+    snapshot_modular 0
 
     local open_count
     open_count=$(beads_open_count)
@@ -1200,23 +1398,21 @@ main() {
     for ((i = 1; i <= MAX_ITERATIONS; i++)); do
         log_section "ITERATION $i / $MAX_ITERATIONS"
 
-        local prev_spec="${VERSIONS_DIR}/ddis_v$((i - 1)).md"
-        local curr_spec="${VERSIONS_DIR}/ddis_v${i}.md"
         local judgment="${JUDGMENTS_DIR}/judgment_v${i}.json"
         local prev_judgment="${JUDGMENTS_DIR}/judgment_v$((i - 1)).json"
 
-        # ── Step 1: Improve ──
+        # ── Step 1: Improve (audit → apply on modular files) ──
         local prev_judg_arg=""
         [[ -f "$prev_judgment" ]] && prev_judg_arg="$prev_judgment"
 
-        if ! run_improve "$i" "$prev_spec" "$curr_spec" "$prev_judg_arg"; then
+        if ! run_improve "$i" "$prev_judg_arg"; then
             log "ERROR: Improvement failed at iteration $i. Keeping v$((i - 1))."
             stop_reason="improve_failed"
             break
         fi
 
-        # ── Step 2: Judge ──
-        run_judge "$i" "$prev_spec" "$curr_spec" "$judgment"
+        # ── Step 2: Judge (reads versioned modular snapshots) ──
+        run_judge "$i" "$judgment"
 
         # ── Step 3: Check stopping condition ──
         local decision
@@ -1225,8 +1421,16 @@ main() {
         case "$decision" in
             regressed)
                 stop_reason="regressed"
-                # Keep the PREVIOUS version (not the regressed one)
                 best_version=$((i - 1))
+                # Restore previous modular form from snapshot
+                log "ROLLBACK: Restoring modular form from v$((i - 1)) snapshot"
+                local prev_snapshot="${VERSIONS_DIR}/v$((i - 1))"
+                if [[ -d "$prev_snapshot" ]]; then
+                    rm -rf "${MODULAR_DIR}/constitution" "${MODULAR_DIR}/modules"
+                    cp -r "${prev_snapshot}/constitution" "${prev_snapshot}/modules" "${MODULAR_DIR}/"
+                    [[ -f "${prev_snapshot}/manifest.yaml" ]] && \
+                        cp "${prev_snapshot}/manifest.yaml" "${MODULAR_DIR}/"
+                fi
                 break
                 ;;
             excellent)
@@ -1246,47 +1450,39 @@ main() {
         esac
     done
 
-    # ── Optional Polish Pass ──
-    # best_version=0 means the seed was best (regression on first iteration)
+    # ── Assemble monolith from modular form ──
+    # The modular form is the working artifact; the monolith is the distribution form.
+    log_section "ASSEMBLE PASS"
+    local final_spec="${VERSIONS_DIR}/ddis_final.md"
+    run_assemble "$final_spec"
+
+    # ── Optional Polish Pass (on assembled monolith) ──
     if [[ "$POLISH_ON_EXIT" == "true" && $best_version -gt 0 ]]; then
         log_section "POLISH PASS"
-        run_polish "${VERSIONS_DIR}/ddis_v${best_version}.md" "${VERSIONS_DIR}/ddis_final.md"
-    else
-        log "POLISH: Skipping — using v${best_version} as final"
-        cp "${VERSIONS_DIR}/ddis_v${best_version}.md" "${VERSIONS_DIR}/ddis_final.md"
-    fi
-
-    # ── Optional Modularization Pass ──
-    if [[ "$MODULARIZE_ON_EXIT" == "true" ]]; then
-        local final_spec="${VERSIONS_DIR}/ddis_final.md"
-        local final_lines
-        final_lines=$(line_count "$final_spec")
-        if [[ $final_lines -gt 2500 ]]; then
-            log_section "MODULARIZE PASS"
-            run_modularize "$final_spec"
-        else
-            log "MODULARIZE: Skipping — $final_lines lines does not exceed §0.13 threshold (2,500)"
+        local polished_spec="${VERSIONS_DIR}/ddis_polished.md"
+        run_polish "$final_spec" "$polished_spec"
+        if [[ -f "$polished_spec" ]] && [[ $(line_count "$polished_spec") -ge 200 ]]; then
+            cp "$polished_spec" "$final_spec"
         fi
+    else
+        log "POLISH: Skipping — using assembled monolith as final"
     fi
 
     beads_finalize
     print_summary "$best_version" "$stop_reason"
 
     # Copy to project root — but only if we actually improved beyond the seed.
-    # When best_version=0, the final is just the unchanged seed; no point overwriting.
     if [[ $best_version -gt 0 ]]; then
-        cp "${VERSIONS_DIR}/ddis_final.md" "${SCRIPT_DIR}/ddis_final.md"
+        cp "$final_spec" "${SCRIPT_DIR}/ddis_final.md"
         log ""
         log "Done. Final spec: ${SCRIPT_DIR}/ddis_final.md"
     else
         log ""
-        log "Done. No improvement over seed — final remains at ${VERSIONS_DIR}/ddis_final.md"
+        log "Done. No improvement over seed — final remains at ${final_spec}"
         log "Seed preserved at: ${SEED_SPEC}"
     fi
 
-    if [[ -d "${MODULAR_DIR}/modules" ]] && ls "${MODULAR_DIR}/modules"/*.md &>/dev/null; then
-        log "Modular: ${MODULAR_DIR}/"
-    fi
+    log "Modular (working form): ${MODULAR_DIR}/"
 }
 
 main "$@"

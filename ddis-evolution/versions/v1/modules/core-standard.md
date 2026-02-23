@@ -641,7 +641,7 @@ A competent implementer (or LLM), given only the spec and public references, can
 **Gate 7: LLM Implementation Readiness**
 Give ONLY one implementation chapter (plus glossary and relevant invariants) to an LLM. Verify: (a) no hallucinated requirements, (b) no clarifying questions about architecture, (c) all chapter-header invariants preserved, (d) all negative specifications observed. Test on ≥ 2 representative chapters. (Validates INV-017, INV-018, INV-019.)
 
-> **Gate 7 demonstrations (thought experiments):** *(All section references below are in element-specifications module.)*
+> **Gate 7 demonstrations (thought experiments):**
 > - **§3.4 (Invariants)**: LLM writes invariants → must use prescribed five-part format; must NOT produce aspirational invariants or omit violation scenarios.
 > - **§4.2 (State Machines)**: LLM writes a state machine → state × event table with NO empty cells, guards, invalid transition policy; must NOT produce happy-path-only transitions.
 > - **§5.1 (Implementation Chapters)**: LLM writes an implementation chapter → all 13 required components present; must NOT reference invariants by ID alone (INV-018) or omit negative specs (INV-017).
@@ -704,18 +704,7 @@ A meta-standard's "implementation" IS its own definitions — invariants, ADRs, 
 | PART IV: Operations | 3–6% | Authoring sequence, validation, evolution |
 | Appendices + Part X | 6–12% | Reference material, glossary, error taxonomy, master TODO |
 
-DO NOT apply domain-spec proportions to a meta-standard and flag a violation. The causal chain is: meta-standards define the structure that domain specs follow, so their weight distribution reflects authoring (definitions, invariants, ADRs) rather than implementation (algorithms, protocols). See Chapter 9 (guidance-operations module) for diagnostic signals of imbalanced weight and guidance on identifying the spec's "heart."
-
-**Self-application — Proportional weight verification** (ADR-004): The modular form of this standard (3,811 lines total) distributes PART 0 across the constitution and two modules. Aggregate proportions against meta-standard targets:
-
-| Category | Modular components | Lines | % of Total | Target | Status |
-|---|---|---|---|---|---|
-| Preamble + PART 0 | constitution (524) + core-standard (894) + modularization (855) | 2,273 | 59.6% | 45–60% | Within ±20% |
-| PART I: Foundations | Included in core-standard above | — | — | 3–6% | Embedded |
-| PART II: Element Specifications | element-specifications | 918 | 24.1% | 20–30% | Within |
-| PART III + IV + Appendices | guidance-operations | 620 | 16.3% | 13–26% combined | Within |
-
-The modular decomposition shifts per-file percentages (each module is 16–24% of total), but aggregate proportions remain within the ±20% adjustment band. The "heart" of this meta-standard — invariant definitions, ADRs, element specification templates — correctly dominates at ~84% (PART 0 + PART II).
+DO NOT apply domain-spec proportions to a meta-standard and flag a violation. The causal chain is: meta-standards define the structure that domain specs follow, so their weight distribution reflects authoring (definitions, invariants, ADRs) rather than implementation (algorithms, protocols). See Chapter 9 for diagnostic signals of imbalanced weight and guidance on identifying the spec's "heart."
 
 ### 0.8.3 Authoring Time Budgets
 
@@ -868,17 +857,17 @@ Defining what a specification IS, the author recognizes that "verifiability over
 **Step 2: Non-Negotiable Check (§0.1.2)**
 "Invariants are falsifiable" establishes the commitment. Three reasonable alternatives exist (aspirational, formal proof, falsifiable-but-readable), so this requires an ADR.
 
-**Step 3: ADR Creation (§3.5, element-specifications module)**
+**Step 3: ADR Creation (§3.5)**
 The author writes ADR-002 per §3.5 format:
 - **Problem**: Aspirational, formally proven, or falsifiable?
 - **Options**: Three genuine alternatives with concrete pros/cons.
 - **Decision**: Option C (falsifiable) with WHY NOT annotations.
 - **Tests**: "Validated by INV-003" — forward reference to the enforcing invariant.
 
-**Step 4: Invariant Derivation (§3.4, element-specifications module)**
+**Step 4: Invariant Derivation (§3.4)**
 ADR-002 motivates INV-003 (Invariant Falsifiability). The author writes per §3.4 format: statement, formal expression, violation scenario, validation, WHY THIS MATTERS. The violation scenario ("the system shall be performant") demonstrates concretely how INV-003 would be violated.
 
-**Step 5: Cross-Reference Threading (Chapter 10, guidance-operations module)**
+**Step 5: Cross-Reference Threading (Chapter 10)**
 The author threads cross-references: ADR-002 references INV-003, INV-003 references Gate 4, Gate 4 references back to INV-003, the element spec §3.4 references both ADR-002 and INV-003, and the anti-pattern in §3.4 demonstrates what an INV-003 violation looks like.
 
 **Step 6: Quality Gate Validation (§0.7)**

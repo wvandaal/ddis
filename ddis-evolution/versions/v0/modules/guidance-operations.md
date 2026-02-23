@@ -136,7 +136,7 @@ After writing your spec's voice and style guidance, verify:
 
 ### 9.1 Identifying the Heart
 
-Every system has a "heart" — the 2–3 subsystems where most complexity and bugs live. These should receive 40–50% of the PART II line budget. The ring architecture (§0.4, system constitution) determines which sections are sacred (must-follow) versus recommended, which in turn constrains proportional weight allocation.
+Every system has a "heart" — the 2–3 subsystems where most complexity and bugs live. These should receive 40–50% of the PART II line budget.
 
 **How to identify the heart**:
 - Which subsystems have the most invariants?
@@ -217,28 +217,28 @@ After writing your spec's cross-reference patterns, verify:
 
 ### 11.1 The Authoring Sequence
 
-> **META-INSTRUCTION (for spec authors):** Write sections in this order (not document order) to minimize rework. Do not skip steps or reorder — the dependency chain between steps is real. See §0.9 (system constitution) for the complete interface DDIS provides.
+> **META-INSTRUCTION (for spec authors):** Write sections in this order (not document order) to minimize rework. Do not skip steps or reorder — the dependency chain between steps is real.
 
 **DO NOT** write in document order — use authoring order below; writing implementation before ADRs causes cascading rework. **DO NOT** skip negative specs (step 7) or verification prompts (step 11) — these cannot be retrofitted without re-reading each chapter. (Validates INV-017, INV-019.)
 
 **DO NOT** treat the authoring sequence as inflexible for experienced authors — the dependency chain between steps is real, but experienced authors may batch steps within the same dependency tier (e.g., steps 1–3 can be drafted in one pass). Reordering across tiers (e.g., writing implementation before invariants) causes cascading rework regardless of experience. (Validates INV-019, INV-017.)
 
-1. **GOAL: Design goal + Core promise** — no dependencies; start here
-2. **FORMAL: First-principles formal model** — depends on GOAL: the formal model derives from the design goal
-3. **NON-NEG: Non-negotiables** — depends on GOAL, FORMAL: commitments derive from goal and model
-4. **INV: Invariants** — depends on FORMAL, NON-NEG: invariants formalize the model's properties and non-negotiable commitments
-5. **ADR: ADRs** — depends on INV: ADRs reference invariants they protect; writing invariants first reveals which decisions matter
-6. **IMPL: Implementation chapters** — depends on INV, ADR: implementation must respect locked invariants and ADR decisions; heaviest subsystems first
-7. **NEG-SPEC: Negative specifications per chapter** — depends on IMPL: requires reading each chapter's implementation to identify what an LLM might get wrong
-8. **TRACE: End-to-end trace** — depends on IMPL: requires all subsystems to be drafted so the trace can traverse them
-9. **PERF: Performance budgets** — depends on IMPL: requires implementation to be specified before anchoring budgets to specific operations
-10. **TEST: Test strategies** — depends on INV, IMPL, NEG-SPEC: tests validate invariants against implementation and negative specs
-11. **VERIFY: Verification prompts per chapter** — depends on INV, NEG-SPEC, TEST: derived from invariants, negative specs, and test strategies
-12. **XREF: Cross-references** — depends on steps 1–11: weaves the web across all existing content
-13. **GLOSS: Glossary** — depends on steps 1–12: extract terms from the complete spec; writing it earlier means missing terms
-14. **TODO: Master TODO** — depends on IMPL, PERF, PLAYBOOK: converts implementation chapters and budgets into an execution plan
-15. **PLAYBOOK: Operational playbook** — depends on ADR, IMPL: requires ADRs and implementation to plan phases and delivery order
-16. **META-INST: Meta-instructions** — depends on IMPL, TODO, PLAYBOOK: implementation ordering requires knowing the implementation, execution plan, and delivery order
+1. **Design goal + Core promise** — no dependencies; start here
+2. **First-principles formal model** — depends on (1): the formal model derives from the design goal
+3. **Non-negotiables** — depends on (1, 2): commitments derive from goal and model
+4. **Invariants** — depends on (2, 3): invariants formalize the model's properties and non-negotiable commitments
+5. **ADRs** — depends on (4): ADRs reference invariants they protect; writing invariants first reveals which decisions matter
+6. **Implementation chapters** — depends on (4, 5): implementation must respect locked invariants and ADR decisions; heaviest subsystems first
+7. **Negative specifications per chapter** — depends on (6): requires reading each chapter's implementation to identify what an LLM might get wrong
+8. **End-to-end trace** — depends on (6): requires all subsystems to be drafted so the trace can traverse them
+9. **Performance budgets** — depends on (6): requires implementation to be specified before anchoring budgets to specific operations
+10. **Test strategies** — depends on (4, 6, 7): tests validate invariants against implementation and negative specs
+11. **Verification prompts per chapter** — depends on (4, 7, 10): derived from invariants, negative specs, and test strategies
+12. **Cross-references** — depends on (1–11): weaves the web across all existing content
+13. **Glossary** — depends on (1–12): extract terms from the complete spec; writing it earlier means missing terms
+14. **Master TODO** — depends on (6, 9, 15): converts implementation chapters and budgets into an execution plan
+15. **Operational playbook** — depends on (5, 6): requires ADRs and implementation to plan phases and delivery order
+16. **Meta-instructions** — depends on (6, 14, 15): implementation ordering requires knowing the implementation, execution plan, and delivery order
 
 ### 11.2 Common Mistakes in First DDIS Specs
 
@@ -403,7 +403,6 @@ After writing your spec's evolution guidance, verify:
 | **Invariant** | A numbered, falsifiable property that must hold at all times during system operation. (See §3.4, element-specifications module) |
 | **Invariant registry** | The section of the manifest listing every invariant with its owning module, ensuring INV-013 (Invariant Ownership Uniqueness). (See §0.13.9, modularization module) |
 | **Living spec** | A specification in active use, being updated as implementation reveals gaps. (See §13.1) |
-| **LLM** | Large Language Model. In DDIS context: the primary implementer consuming a spec to produce a correct implementation, operating under the constraints modeled in §0.2.2 (fixed context window, no random access, hallucination tendency). (See §0.2.2) |
 | **LLM consumption model** | The formal model of how an LLM consumes a DDIS spec, including failure modes and structural mitigations. (See §0.2.2) |
 | **Manifest** | Machine-readable YAML declaring all modules, domain membership, invariant ownership, and assembly rules. Single source of truth for assembly. (See §0.13.9, modularization module) |
 | **Master TODO** | A checkboxable task inventory cross-referenced to subsystems, phases, and ADRs. (See §7.3, element-specifications module) |
@@ -445,8 +444,6 @@ After writing your spec's evolution guidance, verify:
 | 5 | No automated validation tooling | Quality gates require manual effort | Completeness checklist (Part X) systematizes manual checks | Track time-to-validate; prioritize if > 2 hours |
 | 6 | Negative specs become boilerplate | Generic "DO NOT" with no value | §3.8 (element-specifications module) requires subsystem-specific, falsifiable constraints | LLM hallucination rate with/without (§0.8.4) |
 | 7 | LLM provisions add bulk without value | Length exceeds growth budget | INV-007 governs all additions; proportional weight applies | Measure LLM quality with vs without |
-| 8 | Declaration-definition drift in modular specs | LLMs code against wrong invariant contracts | Semi-automated comparison check (Gate M-4); review as part of cascade protocol (§0.13.12, modularization module) | INV-015 validation fails; diff between Tier 1 declaration and module definition |
-| 9 | Assembly tooling unavailable for validation | Consistency checks (§0.13.11) cannot be automated | Manual validation using CHECK-1 through CHECK-9 as checklists; prioritize tooling | Validation takes > 2 hours manually |
 
 ---
 
@@ -484,7 +481,7 @@ PART I:   Formal model → State machines → Complexity → End-to-end trace
 PART II:  [Per subsystem: purpose → types → algorithm → state machine →
           invariants (RESTATED) → negative specs (DO NOT) → example →
           edge cases → tests → budget → verification prompt →
-          meta-instructions → cross-refs]  (13 components per §5.1, element-specifications module)
+          meta-instructions → cross-refs]  (13 components per §5.1, element-specifications)
           End-to-end trace (crosses all subsystems)
 PART III: Protocol schemas → Adapters → UI contracts
 PART IV:  Test taxonomy → Error taxonomy → Operational playbook
@@ -593,14 +590,6 @@ DO NOT constraints: in EVERY element spec, PART III guidance, AND PART IV operat
 - [ ] INV-008 (Self-Containment): Requires external validation — give this standard to a first-time author and track their questions
 - [ ] Gate 6 (Implementation Readiness): Requires a non-trivial spec to be written conforming to DDIS
 - [ ] Gate 7 (LLM Implementation Readiness): Requires LLM to implement from DDIS-conforming spec chapters
-
-## I) Modular Self-Conformance
-- [x] Constitution declarations are genuine summaries, not near-duplicates of module definitions (INV-015)
-- [x] Compact glossary trimmed to navigational aid; full glossary in Appendix A is authoritative (INV-015)
-- [x] Section Map accuracy validated against current module structure after edits (INV-016) — verified RALPH iter-2: range corrected to §0.1–§0.10, §6.1.1 misattribution fixed
-- [x] Cross-module references audited: all go through constitutional elements or Section Map (INV-012) — verified RALPH iter-2: 19 bare refs fixed across 3 modules
-- [x] Declaration-definition faithfulness verified: each Tier 1 declaration matches its Tier 2 definition (Gate M-4) — verified RALPH iter-2: 30/31 faithful, INV-017 qualifier added
-- [x] Context budget values in constitution match manifest.yaml (INV-016) — verified RALPH iter-2: target=4000, ceiling=5000, reserve=0.25 match exactly
 
 ---
 
