@@ -136,6 +136,9 @@ Validation: For a known corpus of N documents with predetermined BM25, LSI, and 
 - Source: `internal/search/engine.go::Search` (lines 218–257: RRF computation loop)
 - Tests: `tests/search_test.go::TestSearchRRFFusion`
 - Tests: `tests/search_test.go::TestSearchExactMatch`
+- Tests: `tests/search_test.go::TestRRFFormulaCorrectness`
+- Tests: `tests/search_test.go::TestRRFRankIndexing`
+- Tests: `tests/search_test.go::TestRRFTypeBoosts`
 - Validates-via: `internal/validator/checks.go::checkXRefIntegrity`
 
 ----
@@ -163,6 +166,8 @@ Validation: (1) Build LSI from a corpus of 5 documents with k=50. Assert that th
 **Implementation Trace:**
 - Source: `internal/search/lsi.go::BuildLSI` (lines 72–82: k-clamping logic)
 - Tests: `tests/search_test.go::TestSearchLSIBuild`
+- Tests: `tests/search_test.go::TestLSIDimensionBound`
+- Tests: `tests/search_test.go::TestLSIDimensionStability`
 - Validates-via: Assertion `len(DocVectors[i]) == K` in test
 
 ----

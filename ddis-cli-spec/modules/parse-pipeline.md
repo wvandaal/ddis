@@ -60,6 +60,9 @@ Validation: Parse any valid DDIS specification (monolith or modular). Render the
 - Source: `internal/parser/document.go::extractFormattingHints`
 - Tests: `tests/roundtrip_test.go::TestRoundTripMonolith`
 - Tests: `tests/roundtrip_test.go::TestRoundTripModular`
+- Tests: `tests/roundtrip_test.go::TestRoundTripCLISpec`
+- Tests: `tests/roundtrip_test.go::TestRoundTripIdempotency`
+- Tests: `tests/roundtrip_test.go::TestRoundTripLinePreservation`
 
 ---
 

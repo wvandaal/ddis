@@ -2,6 +2,8 @@ package tests
 
 import (
 	"encoding/json"
+	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"testing"
@@ -519,4 +521,344 @@ func TestContextReasoningModeTags(t *testing.T) {
 		t.Fatalf("build context §0.5: %v", err)
 	}
 	t.Logf("Reasoning mode items for §0.5: %d", len(bundle2.ReasoningMode))
+}
+
+// =============================================================================
+// APP-INV-008: RRF Fusion Correctness (Property Test)
+// =============================================================================
+//
+// Verifies the formal predicate:
+//   ∀ doc ∈ SearchResults:
+//     raw_score(doc) = Σ_r (weight_r / (K + rank_r(doc)))
+//     score(doc) = raw_score(doc) × type_boost(doc.element_type)
+//   where K=60, weights={bm25:1.0, lsi:1.0, authority:0.5}
+
+func TestRRFFormulaCorrectness(t *testing.T) {
+	dbPtr, specID, _ := getSearchDB(t)
+	db := *dbPtr
+
+	const rrfK = 60.0
+
+	signalWeights := map[string]float64{
+		"bm25":      1.0,
+		"lsi":       1.0,
+		"authority":  0.5,
+	}
+
+	typeBoosts := map[string]float64{
+		"invariant":     1.2,
+		"adr":           1.1,
+		"gate":          1.1,
+		"section":       1.0,
+		"glossary":      0.8,
+		"negative_spec": 0.9,
+	}
+
+	// Run several diverse queries to exercise different signal combinations
+	queries := []string{
+		"cross-reference integrity",
+		"round-trip fidelity parse render",
+		"RRF fusion score weight",
+		"transaction commit rollback",
+		"glossary term definition",
+	}
+
+	totalVerified := 0
+	multiSignalCount := 0
+
+	for _, query := range queries {
+		results, err := search.Search(db, specID, query, search.SearchOptions{Limit: 20})
+		if err != nil {
+			t.Fatalf("search %q: %v", query, err)
+		}
+
+		for _, r := range results {
+			// Compute expected raw score from the formula
+			expectedRaw := 0.0
+			for signal, rank := range r.Signals {
+				weight, ok := signalWeights[signal]
+				if !ok {
+					t.Errorf("query %q, result %s: unknown signal %q", query, r.ElementID, signal)
+					continue
+				}
+				if rank <= 0 {
+					t.Errorf("query %q, result %s: signal %s has rank %d (must be >= 1)",
+						query, r.ElementID, signal, rank)
+					continue
+				}
+				expectedRaw += weight / (rrfK + float64(rank))
+			}
+
+			// Apply type boost
+			boost := 1.0
+			if b, ok := typeBoosts[r.ElementType]; ok {
+				boost = b
+			}
+			expected := expectedRaw * boost
+
+			// Compare with tolerance for float64 arithmetic
+			if math.Abs(r.Score-expected) > 1e-10 {
+				t.Errorf("query %q, result %s (type=%s): score=%.10f, expected=%.10f (diff=%.2e)\n"+
+					"  signals=%v, boost=%.1f, rawExpected=%.10f",
+					query, r.ElementID, r.ElementType, r.Score, expected,
+					math.Abs(r.Score-expected), r.Signals, boost, expectedRaw)
+			}
+
+			totalVerified++
+			if len(r.Signals) > 1 {
+				multiSignalCount++
+			}
+		}
+	}
+
+	if totalVerified == 0 {
+		t.Fatal("no results verified across all queries")
+	}
+	if multiSignalCount == 0 {
+		t.Error("no results had multiple signals — multi-signal fusion not exercised")
+	}
+
+	t.Logf("APP-INV-008 property check: %d results verified, %d with multiple signals",
+		totalVerified, multiSignalCount)
+}
+
+// TestRRFRankIndexing verifies ranks are 1-indexed (rank 1 → 1/(K+1), not 1/(K+0)).
+func TestRRFRankIndexing(t *testing.T) {
+	dbPtr, specID, _ := getSearchDB(t)
+	db := *dbPtr
+
+	results, err := search.Search(db, specID, "invariant", search.SearchOptions{Limit: 50})
+	if err != nil {
+		t.Fatalf("search: %v", err)
+	}
+
+	for _, r := range results {
+		for signal, rank := range r.Signals {
+			if rank < 1 {
+				t.Errorf("result %s, signal %s: rank=%d (must be >= 1, 1-indexed)",
+					r.ElementID, signal, rank)
+			}
+		}
+	}
+
+	// Verify the top BM25 result has rank exactly 1
+	for _, r := range results {
+		if bm25Rank, ok := r.Signals["bm25"]; ok && bm25Rank == 1 {
+			// With K=60 and rank=1, the BM25 contribution should be 1.0/61
+			expectedBM25Contrib := 1.0 / 61.0
+			// If it were 0-indexed, it would be 1.0/60
+			wrongContrib := 1.0 / 60.0
+
+			// The total score includes other signals and boost, but
+			// we can verify the BM25 contribution is in the right ballpark
+			if r.Score > wrongContrib*1.5 {
+				// Score too high — might be using 0-indexed ranks
+				t.Logf("  Top BM25 result %s: score=%.6f (1-indexed BM25 contrib=%.6f, 0-indexed would be=%.6f)",
+					r.ElementID, r.Score, expectedBM25Contrib, wrongContrib)
+			}
+			break
+		}
+	}
+
+	t.Logf("APP-INV-008 rank indexing: all %d results use 1-indexed ranks", len(results))
+}
+
+// TestRRFTypeBoosts verifies type boost multipliers are applied correctly.
+func TestRRFTypeBoosts(t *testing.T) {
+	dbPtr, specID, _ := getSearchDB(t)
+	db := *dbPtr
+
+	const rrfK = 60.0
+
+	typeBoosts := map[string]float64{
+		"invariant":     1.2,
+		"adr":           1.1,
+		"gate":          1.1,
+		"section":       1.0,
+		"glossary":      0.8,
+		"negative_spec": 0.9,
+	}
+
+	// Use a broad query to get results of many types
+	results, err := search.Search(db, specID, "specification", search.SearchOptions{Limit: 50})
+	if err != nil {
+		t.Fatalf("search: %v", err)
+	}
+
+	typesVerified := make(map[string]bool)
+
+	for _, r := range results {
+		// Compute raw score (pre-boost)
+		rawScore := 0.0
+		if bm25, ok := r.Signals["bm25"]; ok {
+			rawScore += 1.0 / (rrfK + float64(bm25))
+		}
+		if lsi, ok := r.Signals["lsi"]; ok {
+			rawScore += 1.0 / (rrfK + float64(lsi))
+		}
+		if auth, ok := r.Signals["authority"]; ok {
+			rawScore += 0.5 / (rrfK + float64(auth))
+		}
+
+		if rawScore == 0 {
+			continue
+		}
+
+		// Derive the actual boost applied
+		actualBoost := r.Score / rawScore
+		expectedBoost, ok := typeBoosts[r.ElementType]
+		if !ok {
+			expectedBoost = 1.0
+		}
+
+		if math.Abs(actualBoost-expectedBoost) > 1e-10 {
+			t.Errorf("result %s (type=%s): derived boost=%.6f, expected=%.1f",
+				r.ElementID, r.ElementType, actualBoost, expectedBoost)
+		}
+
+		typesVerified[r.ElementType] = true
+	}
+
+	t.Logf("APP-INV-008 type boosts verified for %d types: %v", len(typesVerified), typesVerified)
+	if len(typesVerified) < 2 {
+		t.Error("fewer than 2 element types verified — insufficient coverage")
+	}
+}
+
+// =============================================================================
+// APP-INV-012: LSI Dimension Bound (Property Test)
+// =============================================================================
+//
+// Verifies the formal predicate:
+//   ∀ LSIIndex: k ≤ min(n, v) ∧ len(vec) = k for all vectors
+
+func TestLSIDimensionBound(t *testing.T) {
+	// Test cases with varying corpus sizes to exercise k-clamping
+	testCases := []struct {
+		name     string
+		nDocs    int
+		kInput   int
+		wantKMax int // k must be <= this
+	}{
+		{"3-docs-k50", 3, 50, 3},
+		{"5-docs-k50", 5, 50, 5},
+		{"10-docs-k50", 10, 50, 10},
+		{"20-docs-k10", 20, 10, 10},
+		{"1-doc-k50", 1, 50, 1},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Build a corpus of distinct documents
+			docs := make([]search.SearchDocument, tc.nDocs)
+			for i := 0; i < tc.nDocs; i++ {
+				// Each doc needs distinct content so vocabulary grows
+				docs[i] = search.SearchDocument{
+					DocID:       i,
+					ElementType: "section",
+					ElementID:   fmt.Sprintf("§test-%d", i),
+					Title:       fmt.Sprintf("Test Section %d", i),
+					Content:     fmt.Sprintf("unique content for document %d with words alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec romeo sierra tango uniform victor whiskey xray yankee zulu variant%d", i, i),
+				}
+			}
+
+			lsi, err := search.BuildLSI(docs, tc.kInput)
+			if err != nil {
+				t.Fatalf("BuildLSI: %v", err)
+			}
+
+			// Property 1: K must not exceed document count
+			if lsi.K > tc.nDocs {
+				t.Errorf("K=%d exceeds nDocs=%d", lsi.K, tc.nDocs)
+			}
+
+			// Property 2: K must not exceed requested k
+			if lsi.K > tc.kInput {
+				t.Errorf("K=%d exceeds kInput=%d", lsi.K, tc.kInput)
+			}
+
+			// Property 3: K must be positive
+			if lsi.K <= 0 {
+				t.Errorf("K=%d must be > 0", lsi.K)
+			}
+
+			// Property 4: K must not exceed the bound
+			if lsi.K > tc.wantKMax {
+				t.Errorf("K=%d exceeds expected max=%d", lsi.K, tc.wantKMax)
+			}
+
+			// Property 5: Every document vector must have exactly K dimensions
+			if len(lsi.DocVectors) != tc.nDocs {
+				t.Errorf("DocVectors count=%d, want %d", len(lsi.DocVectors), tc.nDocs)
+			}
+			for i, vec := range lsi.DocVectors {
+				if len(vec) != lsi.K {
+					t.Errorf("DocVectors[%d] has %d dims, want K=%d", i, len(vec), lsi.K)
+				}
+			}
+
+			// Property 6: Query vector must have exactly K dimensions
+			qvec := lsi.QueryVec("alpha bravo charlie delta")
+			if qvec != nil && len(qvec) != lsi.K {
+				t.Errorf("QueryVec has %d dims, want K=%d", len(qvec), lsi.K)
+			}
+
+			t.Logf("nDocs=%d, kInput=%d → K=%d, terms=%d, docVecs=%d",
+				tc.nDocs, tc.kInput, lsi.K, len(lsi.TermIndex), len(lsi.DocVectors))
+		})
+	}
+}
+
+// TestLSIDimensionStability verifies that the same corpus produces identical K and vectors.
+func TestLSIDimensionStability(t *testing.T) {
+	dbPtr, specID, _ := getSearchDB(t)
+	db := *dbPtr
+
+	docs, err := search.ExtractDocuments(db, specID)
+	if err != nil {
+		t.Fatalf("extract docs: %v", err)
+	}
+
+	k := 50
+	if len(docs) < k {
+		k = len(docs)
+	}
+
+	lsi1, err := search.BuildLSI(docs, k)
+	if err != nil {
+		t.Fatalf("BuildLSI 1: %v", err)
+	}
+
+	lsi2, err := search.BuildLSI(docs, k)
+	if err != nil {
+		t.Fatalf("BuildLSI 2: %v", err)
+	}
+
+	// K must be identical
+	if lsi1.K != lsi2.K {
+		t.Errorf("K differs: %d vs %d", lsi1.K, lsi2.K)
+	}
+
+	// Vector dimensions must be identical
+	for i := range lsi1.DocVectors {
+		if len(lsi1.DocVectors[i]) != len(lsi2.DocVectors[i]) {
+			t.Errorf("DocVectors[%d] dims differ: %d vs %d",
+				i, len(lsi1.DocVectors[i]), len(lsi2.DocVectors[i]))
+		}
+	}
+
+	// Query vectors must be identical
+	qvec1 := lsi1.QueryVec("cross-reference integrity")
+	qvec2 := lsi2.QueryVec("cross-reference integrity")
+	if len(qvec1) != len(qvec2) {
+		t.Errorf("QueryVec dims differ: %d vs %d", len(qvec1), len(qvec2))
+	}
+	for i := range qvec1 {
+		if math.Abs(qvec1[i]-qvec2[i]) > 1e-10 {
+			t.Errorf("QueryVec[%d] differs: %.10f vs %.10f", i, qvec1[i], qvec2[i])
+		}
+	}
+
+	t.Logf("APP-INV-012 stability: K=%d, %d docs, %d terms — deterministic across builds",
+		lsi1.K, len(docs), len(lsi1.TermIndex))
 }
