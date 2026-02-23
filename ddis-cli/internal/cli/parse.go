@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/wvandaal/ddis/internal/parser"
+	"github.com/wvandaal/ddis/internal/search"
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
@@ -61,8 +62,33 @@ func runParse(cmd *cobra.Command, args []string) error {
 	// Print summary
 	printParseSummary(db, specID)
 
+	// Build search index (FTS5 + LSI + PageRank)
+	fmt.Println("\nBuilding search index...")
+	if err := search.BuildIndex(db, specID); err != nil {
+		fmt.Printf("  Warning: search index build failed: %v\n", err)
+	} else {
+		printSearchSummary(db, specID)
+	}
+
 	fmt.Printf("\nIndex written to %s\n", dbPath)
 	return nil
+}
+
+func printSearchSummary(db storage.DB, specID int64) {
+	var ftsCount int
+	if err := db.QueryRow("SELECT COUNT(*) FROM fts_index").Scan(&ftsCount); err == nil {
+		fmt.Printf("  FTS5 documents:   %d\n", ftsCount)
+	}
+	var authCount int
+	if err := db.QueryRow("SELECT COUNT(*) FROM search_authority WHERE spec_id = ?", specID).Scan(&authCount); err == nil {
+		fmt.Printf("  Authority nodes:  %d\n", authCount)
+	}
+	var modelCount int
+	if err := db.QueryRow("SELECT COUNT(*) FROM search_model WHERE spec_id = ?", specID).Scan(&modelCount); err == nil && modelCount > 0 {
+		var k, terms, docs int
+		_ = db.QueryRow("SELECT k_dimensions, term_count, doc_count FROM search_model WHERE spec_id = ? AND model_type = 'lsi'", specID).Scan(&k, &terms, &docs)
+		fmt.Printf("  LSI model:        k=%d, %d terms, %d docs\n", k, terms, docs)
+	}
 }
 
 func printParseSummary(db storage.DB, specID int64) {

@@ -1,4 +1,4 @@
-.PHONY: build test test-roundtrip test-query test-validate test-diff test-impact test-oplog test-tx install clean
+.PHONY: build test test-roundtrip test-query test-validate test-diff test-impact test-oplog test-tx test-search install clean
 
 build:
 	go build -o bin/ddis ./cmd/ddis
@@ -49,6 +49,19 @@ test-tx: build
 	./bin/ddis tx begin /tmp/test.db "Test transaction" > /tmp/tx_id.txt
 	./bin/ddis tx list /tmp/test.db
 	./bin/ddis tx commit $$(cat /tmp/tx_id.txt) /tmp/test.db --oplog /tmp/test-oplog.jsonl
+
+test-search: build
+	./bin/ddis parse ../ddis_final.md -o /tmp/test.db
+	./bin/ddis search "cross-reference density" /tmp/test.db
+	./bin/ddis search "INV-006" /tmp/test.db --snippets
+	./bin/ddis search "LLM consumption" /tmp/test.db --type invariant --limit 5
+	./bin/ddis search "validation method" /tmp/test.db --json
+	./bin/ddis search "state machine" /tmp/test.db --lexical-only
+	./bin/ddis context §0.5 /tmp/test.db
+	./bin/ddis context INV-006 /tmp/test.db --json
+	rm -f /tmp/test-oplog.jsonl
+	./bin/ddis seed /tmp/test.db --oplog-path /tmp/test-oplog.jsonl
+	./bin/ddis context §0.5 /tmp/test.db --oplog-path /tmp/test-oplog.jsonl
 
 install:
 	go install ./cmd/ddis

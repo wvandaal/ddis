@@ -384,6 +384,79 @@ func InsertFormattingHint(db *sql.DB, fh *FormattingHint) (int64, error) {
 	return res.LastInsertId()
 }
 
+// InsertFTSEntry inserts a row into the FTS5 index.
+func InsertFTSEntry(db *sql.DB, elementType, elementID, title, content string) error {
+	_, err := db.Exec(
+		`INSERT INTO fts_index (rowid, element_type, element_id, title, content)
+		 VALUES (NULL, ?, ?, ?, ?)`,
+		elementType, elementID, title, content,
+	)
+	if err != nil {
+		return fmt.Errorf("insert fts_index: %w", err)
+	}
+	return nil
+}
+
+// InsertSearchVector inserts an LSI vector for a document.
+func InsertSearchVector(db *sql.DB, specID int64, elementType, elementID string, vector []byte) error {
+	_, err := db.Exec(
+		`INSERT OR REPLACE INTO search_vectors (spec_id, element_type, element_id, vector)
+		 VALUES (?, ?, ?, ?)`,
+		specID, elementType, elementID, vector,
+	)
+	if err != nil {
+		return fmt.Errorf("insert search_vector: %w", err)
+	}
+	return nil
+}
+
+// InsertSearchModel inserts a serialized search model.
+func InsertSearchModel(db *sql.DB, specID int64, modelType string, k, terms, docs int, data []byte) error {
+	_, err := db.Exec(
+		`INSERT INTO search_model (spec_id, model_type, k_dimensions, term_count, doc_count, built_at, model_data)
+		 VALUES (?, ?, ?, ?, ?, datetime('now'), ?)`,
+		specID, modelType, k, terms, docs, data,
+	)
+	if err != nil {
+		return fmt.Errorf("insert search_model: %w", err)
+	}
+	return nil
+}
+
+// InsertAuthority inserts a PageRank authority score.
+func InsertAuthority(db *sql.DB, specID int64, elementID string, score float64) error {
+	_, err := db.Exec(
+		`INSERT OR REPLACE INTO search_authority (spec_id, element_id, score)
+		 VALUES (?, ?, ?)`,
+		specID, elementID, score,
+	)
+	if err != nil {
+		return fmt.Errorf("insert search_authority: %w", err)
+	}
+	return nil
+}
+
+// ClearFTSIndex removes all rows from the FTS5 index.
+// Uses the FTS5 'delete-all' command because fts_index is a contentless table.
+func ClearFTSIndex(db *sql.DB) error {
+	_, err := db.Exec(`INSERT INTO fts_index(fts_index) VALUES('delete-all')`)
+	return err
+}
+
+// ClearSearchData removes all search-related data for a spec.
+func ClearSearchData(db *sql.DB, specID int64) error {
+	if _, err := db.Exec(`DELETE FROM search_vectors WHERE spec_id = ?`, specID); err != nil {
+		return err
+	}
+	if _, err := db.Exec(`DELETE FROM search_model WHERE spec_id = ?`, specID); err != nil {
+		return err
+	}
+	if _, err := db.Exec(`DELETE FROM search_authority WHERE spec_id = ?`, specID); err != nil {
+		return err
+	}
+	return nil
+}
+
 // nullStr converts an empty string to a sql.NullString.
 func nullStr(s string) interface{} {
 	if s == "" {

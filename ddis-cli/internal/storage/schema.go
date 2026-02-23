@@ -363,4 +363,44 @@ CREATE TABLE IF NOT EXISTS formatting_hints (
     hint_type TEXT NOT NULL,
     hint_value TEXT
 );
+
+-- Full-text search index (FTS5)
+CREATE VIRTUAL TABLE IF NOT EXISTS fts_index USING fts5(
+    element_type,
+    element_id,
+    title,
+    content,
+    content=''
+);
+
+-- LSI vectors stored as blobs (k floats per document)
+CREATE TABLE IF NOT EXISTS search_vectors (
+    id INTEGER PRIMARY KEY,
+    spec_id INTEGER NOT NULL REFERENCES spec_index(id),
+    element_type TEXT NOT NULL,
+    element_id TEXT NOT NULL,
+    vector BLOB NOT NULL,
+    UNIQUE(spec_id, element_type, element_id)
+);
+
+-- Search model metadata
+CREATE TABLE IF NOT EXISTS search_model (
+    id INTEGER PRIMARY KEY,
+    spec_id INTEGER NOT NULL REFERENCES spec_index(id),
+    model_type TEXT NOT NULL,
+    k_dimensions INTEGER NOT NULL,
+    term_count INTEGER NOT NULL,
+    doc_count INTEGER NOT NULL,
+    built_at TEXT NOT NULL,
+    model_data BLOB NOT NULL
+);
+
+-- PageRank authority scores
+CREATE TABLE IF NOT EXISTS search_authority (
+    id INTEGER PRIMARY KEY,
+    spec_id INTEGER NOT NULL REFERENCES spec_index(id),
+    element_id TEXT NOT NULL,
+    score REAL NOT NULL,
+    UNIQUE(spec_id, element_id)
+);
 `

@@ -730,6 +730,219 @@ func GetTxOperations(db *sql.DB, txID string) ([]TxOperation, error) {
 	return result, rows.Err()
 }
 
+// FTSResult holds a single result from FTS5 search.
+type FTSResult struct {
+	ElementType string
+	ElementID   string
+	Title       string
+	Rank        float64 // BM25 score (lower = better match)
+	Snippet     string
+}
+
+// SearchFTS5 searches the FTS5 index using BM25 ranking.
+func SearchFTS5(db *sql.DB, queryStr string, limit int) ([]FTSResult, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	rows, err := db.Query(
+		`SELECT element_type, element_id, title, rank,
+		        snippet(fts_index, 3, '>>>', '<<<', '...', 32)
+		 FROM fts_index
+		 WHERE fts_index MATCH ?
+		 ORDER BY rank
+		 LIMIT ?`, queryStr, limit,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("fts5 search: %w", err)
+	}
+	defer rows.Close()
+
+	var results []FTSResult
+	for rows.Next() {
+		var r FTSResult
+		if err := rows.Scan(&r.ElementType, &r.ElementID, &r.Title, &r.Rank, &r.Snippet); err != nil {
+			return nil, fmt.Errorf("scan fts result: %w", err)
+		}
+		results = append(results, r)
+	}
+	return results, rows.Err()
+}
+
+// GetAuthorityScores returns all authority scores for a spec.
+func GetAuthorityScores(db *sql.DB, specID int64) (map[string]float64, error) {
+	rows, err := db.Query(
+		`SELECT element_id, score FROM search_authority WHERE spec_id = ?`, specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get authority scores: %w", err)
+	}
+	defer rows.Close()
+
+	result := make(map[string]float64)
+	for rows.Next() {
+		var id string
+		var score float64
+		if err := rows.Scan(&id, &score); err != nil {
+			return nil, fmt.Errorf("scan authority: %w", err)
+		}
+		result[id] = score
+	}
+	return result, rows.Err()
+}
+
+// ListNegativeSpecs returns all negative specs for a spec.
+func ListNegativeSpecs(db *sql.DB, specID int64) ([]NegativeSpec, error) {
+	rows, err := db.Query(
+		`SELECT id, spec_id, source_file_id, section_id, constraint_text, reason, invariant_ref, line_number, raw_text
+		 FROM negative_specs WHERE spec_id = ? ORDER BY line_number`, specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list negative_specs: %w", err)
+	}
+	defer rows.Close()
+
+	var result []NegativeSpec
+	for rows.Next() {
+		var ns NegativeSpec
+		var reason, invRef sql.NullString
+		if err := rows.Scan(&ns.ID, &ns.SpecID, &ns.SourceFileID, &ns.SectionID,
+			&ns.ConstraintText, &reason, &invRef, &ns.LineNumber, &ns.RawText); err != nil {
+			return nil, fmt.Errorf("scan negative_spec: %w", err)
+		}
+		ns.Reason = reason.String
+		ns.InvariantRef = invRef.String
+		result = append(result, ns)
+	}
+	return result, rows.Err()
+}
+
+// ListVerificationPrompts returns all verification prompts for a spec.
+func ListVerificationPrompts(db *sql.DB, specID int64) ([]VerificationPrompt, error) {
+	rows, err := db.Query(
+		`SELECT id, spec_id, section_id, chapter_name, line_start, line_end, raw_text
+		 FROM verification_prompts WHERE spec_id = ? ORDER BY line_start`, specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list verification_prompts: %w", err)
+	}
+	defer rows.Close()
+
+	var result []VerificationPrompt
+	for rows.Next() {
+		var vp VerificationPrompt
+		if err := rows.Scan(&vp.ID, &vp.SpecID, &vp.SectionID, &vp.ChapterName,
+			&vp.LineStart, &vp.LineEnd, &vp.RawText); err != nil {
+			return nil, fmt.Errorf("scan verification_prompt: %w", err)
+		}
+		result = append(result, vp)
+	}
+	return result, rows.Err()
+}
+
+// ListWorkedExamples returns all worked examples for a spec.
+func ListWorkedExamples(db *sql.DB, specID int64) ([]WorkedExample, error) {
+	rows, err := db.Query(
+		`SELECT id, spec_id, section_id, title, line_start, line_end, raw_text
+		 FROM worked_examples WHERE spec_id = ? ORDER BY line_start`, specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list worked_examples: %w", err)
+	}
+	defer rows.Close()
+
+	var result []WorkedExample
+	for rows.Next() {
+		var we WorkedExample
+		var title sql.NullString
+		if err := rows.Scan(&we.ID, &we.SpecID, &we.SectionID, &title,
+			&we.LineStart, &we.LineEnd, &we.RawText); err != nil {
+			return nil, fmt.Errorf("scan worked_example: %w", err)
+		}
+		we.Title = title.String
+		result = append(result, we)
+	}
+	return result, rows.Err()
+}
+
+// ListWhyNotAnnotations returns all WHY NOT annotations for a spec.
+func ListWhyNotAnnotations(db *sql.DB, specID int64) ([]WhyNotAnnotation, error) {
+	rows, err := db.Query(
+		`SELECT id, spec_id, section_id, alternative, explanation, adr_ref, line_number, raw_text
+		 FROM why_not_annotations WHERE spec_id = ? ORDER BY line_number`, specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list why_not_annotations: %w", err)
+	}
+	defer rows.Close()
+
+	var result []WhyNotAnnotation
+	for rows.Next() {
+		var wn WhyNotAnnotation
+		var adrRef sql.NullString
+		if err := rows.Scan(&wn.ID, &wn.SpecID, &wn.SectionID, &wn.Alternative,
+			&wn.Explanation, &adrRef, &wn.LineNumber, &wn.RawText); err != nil {
+			return nil, fmt.Errorf("scan why_not_annotation: %w", err)
+		}
+		wn.ADRRef = adrRef.String
+		result = append(result, wn)
+	}
+	return result, rows.Err()
+}
+
+// ListComparisonBlocks returns all comparison blocks for a spec.
+func ListComparisonBlocks(db *sql.DB, specID int64) ([]ComparisonBlock, error) {
+	rows, err := db.Query(
+		`SELECT id, spec_id, section_id, suboptimal_approach, chosen_approach,
+		        suboptimal_reasons, chosen_reasons, adr_ref, line_start, line_end, raw_text
+		 FROM comparison_blocks WHERE spec_id = ? ORDER BY line_start`, specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list comparison_blocks: %w", err)
+	}
+	defer rows.Close()
+
+	var result []ComparisonBlock
+	for rows.Next() {
+		var cb ComparisonBlock
+		var subReasons, chosenReasons, adrRef sql.NullString
+		if err := rows.Scan(&cb.ID, &cb.SpecID, &cb.SectionID, &cb.SuboptimalApproach,
+			&cb.ChosenApproach, &subReasons, &chosenReasons, &adrRef,
+			&cb.LineStart, &cb.LineEnd, &cb.RawText); err != nil {
+			return nil, fmt.Errorf("scan comparison_block: %w", err)
+		}
+		cb.SuboptimalReasons = subReasons.String
+		cb.ChosenReasons = chosenReasons.String
+		cb.ADRRef = adrRef.String
+		result = append(result, cb)
+	}
+	return result, rows.Err()
+}
+
+// ListStateMachines returns all state machines for a spec.
+func ListStateMachines(db *sql.DB, specID int64) ([]StateMachine, error) {
+	rows, err := db.Query(
+		`SELECT id, spec_id, section_id, title, line_start, line_end, raw_text
+		 FROM state_machines WHERE spec_id = ? ORDER BY line_start`, specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list state_machines: %w", err)
+	}
+	defer rows.Close()
+
+	var result []StateMachine
+	for rows.Next() {
+		var sm StateMachine
+		var title sql.NullString
+		if err := rows.Scan(&sm.ID, &sm.SpecID, &sm.SectionID, &title,
+			&sm.LineStart, &sm.LineEnd, &sm.RawText); err != nil {
+			return nil, fmt.Errorf("scan state_machine: %w", err)
+		}
+		sm.Title = title.String
+		result = append(result, sm)
+	}
+	return result, rows.Err()
+}
+
 // CountElements returns element counts by table name for a spec.
 func CountElements(db *sql.DB, specID int64) (map[string]int, error) {
 	tables := []struct {

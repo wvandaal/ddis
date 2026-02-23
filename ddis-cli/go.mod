@@ -4,6 +4,7 @@ go 1.24.4
 
 require (
 	github.com/spf13/cobra v1.10.2
+	gonum.org/v1/gonum v0.17.0
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.46.1
 )
