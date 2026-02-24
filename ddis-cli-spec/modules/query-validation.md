@@ -358,7 +358,7 @@ Compares module names from `source_files` (where `file_role = "module"`) against
 
 #### Check 9: INV-017 Negative Spec Coverage
 
-Accumulates negative spec counts per top-level implementation chapter. Uses `findChapterPath` to normalize section paths to their chapter root: `"§4.2.1"` -> `"§4"`, `"Chapter-3/subsection"` -> `"Chapter-3"`, `"§0.5"` -> `""` (skip preamble). Any chapter with < 3 negative specs is `error`.
+Accumulates negative spec counts per top-level implementation chapter. Uses `findChapterPath` to normalize section paths to their chapter root: `"sec-4.2.1"` -> `"sec-4"`, `"Chapter-3/subsection"` -> `"Chapter-3"`, `"sec-0.5"` -> `""` (skip preamble). Any chapter with < 3 negative specs is `error`.
 
 #### Check 10: Gate-1 Structural Conformance
 
@@ -457,7 +457,7 @@ Output: list of MatchPair (ElementType, ElementID, BaseDBID?, HeadDBID?, BaseHas
 - They share the same parent path (`sectionParent` strips the last `.N` segment)
 - AND their titles match via either prefix containment or Levenshtein distance <= 3
 
-The `sectionParent` function: `"§4.2.1"` -> `"§4.2"`, `"§4"` -> `"§"` (root). Paths with `~N` disambiguation suffixes have the suffix stripped before parent extraction.
+The `sectionParent` function: `"sec-4.2.1"` -> `"sec-4.2"`, `"sec-4"` -> `"sec-"` (root). Paths with `~N` disambiguation suffixes have the suffix stripped before parent extraction.
 
 The `levenshtein` function computes standard edit distance using the two-row dynamic programming approach:
 ```
@@ -826,7 +826,7 @@ Use this self-check after implementing or modifying the query-validation subsyst
 
 ## Referenced Invariants from Other Modules
 
-Per APP-INV-018 (Cross-Module Reference Completeness), this section lists invariants owned by other modules that this module depends on or interfaces with:
+Per the cross-module reference completeness convention, this section lists invariants owned by other modules that this module depends on or interfaces with:
 
 | Invariant | Owner | Relationship | Usage in This Module |
 |-----------|-------|--------------|------------------------------------------------------|

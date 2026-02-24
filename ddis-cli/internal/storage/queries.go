@@ -5,6 +5,25 @@ import (
 	"fmt"
 )
 
+// SetParentSpecID sets the parent_spec_id for a child spec.
+func SetParentSpecID(db *sql.DB, childSpecID, parentSpecID int64) error {
+	_, err := db.Exec(`UPDATE spec_index SET parent_spec_id = ? WHERE id = ?`, parentSpecID, childSpecID)
+	return err
+}
+
+// GetParentSpecID returns the parent_spec_id for a spec, or nil if none.
+func GetParentSpecID(db *sql.DB, specID int64) (*int64, error) {
+	var parentID sql.NullInt64
+	err := db.QueryRow(`SELECT parent_spec_id FROM spec_index WHERE id = ?`, specID).Scan(&parentID)
+	if err != nil {
+		return nil, err
+	}
+	if !parentID.Valid {
+		return nil, nil
+	}
+	return &parentID.Int64, nil
+}
+
 // GetFirstSpecID returns the first spec ID in the database.
 func GetFirstSpecID(db *sql.DB) (int64, error) {
 	var id int64
@@ -941,6 +960,121 @@ func ListStateMachines(db *sql.DB, specID int64) ([]StateMachine, error) {
 		result = append(result, sm)
 	}
 	return result, rows.Err()
+}
+
+// ListModulesByDomain returns all modules in a specific domain for a spec.
+func ListModulesByDomain(db *sql.DB, specID int64, domain string) ([]Module, error) {
+	rows, err := db.Query(
+		`SELECT id, spec_id, source_file_id, module_name, domain, deep_context_path, line_count
+		 FROM modules WHERE spec_id = ? AND domain = ? ORDER BY module_name`, specID, domain,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list modules by domain: %w", err)
+	}
+	defer rows.Close()
+
+	var results []Module
+	for rows.Next() {
+		var m Module
+		var deepCtx sql.NullString
+		if err := rows.Scan(&m.ID, &m.SpecID, &m.SourceFileID, &m.ModuleName, &m.Domain,
+			&deepCtx, &m.LineCount); err != nil {
+			return nil, fmt.Errorf("scan module: %w", err)
+		}
+		m.DeepContextPath = deepCtx.String
+		results = append(results, m)
+	}
+	return results, rows.Err()
+}
+
+// GetModuleDomains returns all distinct non-empty domain names for a spec.
+func GetModuleDomains(db *sql.DB, specID int64) ([]string, error) {
+	rows, err := db.Query(
+		`SELECT DISTINCT domain FROM modules WHERE spec_id = ? AND domain != '' ORDER BY domain`, specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get module domains: %w", err)
+	}
+	defer rows.Close()
+
+	var domains []string
+	for rows.Next() {
+		var d string
+		if err := rows.Scan(&d); err != nil {
+			return nil, fmt.Errorf("scan domain: %w", err)
+		}
+		domains = append(domains, d)
+	}
+	return domains, rows.Err()
+}
+
+// ListInvariantsByDomain returns invariants whose registry entry belongs to the given domain.
+func ListInvariantsByDomain(db *sql.DB, specID int64, domain string) ([]Invariant, error) {
+	rows, err := db.Query(
+		`SELECT i.id, i.spec_id, i.invariant_id, i.title, i.statement,
+		        i.semi_formal, i.violation_scenario, i.validation_method, i.why_this_matters
+		 FROM invariants i
+		 JOIN invariant_registry ir ON i.spec_id = ir.spec_id AND i.invariant_id = ir.invariant_id
+		 WHERE i.spec_id = ? AND ir.domain = ?
+		 ORDER BY i.invariant_id`, specID, domain,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list invariants by domain: %w", err)
+	}
+	defer rows.Close()
+
+	var results []Invariant
+	for rows.Next() {
+		var inv Invariant
+		var semiFormal, violation, validation, whyMatters sql.NullString
+		if err := rows.Scan(&inv.ID, &inv.SpecID, &inv.InvariantID, &inv.Title, &inv.Statement,
+			&semiFormal, &violation, &validation, &whyMatters); err != nil {
+			return nil, fmt.Errorf("scan invariant: %w", err)
+		}
+		inv.SemiFormal = semiFormal.String
+		inv.ViolationScenario = violation.String
+		inv.ValidationMethod = validation.String
+		inv.WhyThisMatters = whyMatters.String
+		results = append(results, inv)
+	}
+	return results, rows.Err()
+}
+
+// GetDomainBoundaryInvariants returns invariants maintained by OTHER domains that modules
+// in the given domain interface with (via module_relationships with rel_type = 'interfaces').
+func GetDomainBoundaryInvariants(db *sql.DB, specID int64, domain string) ([]InvariantRegistryEntry, error) {
+	rows, err := db.Query(
+		`SELECT DISTINCT ir.id, ir.spec_id, ir.invariant_id, ir.owner, ir.domain, ir.description
+		 FROM invariant_registry ir
+		 JOIN module_relationships mr ON mr.target = ir.invariant_id
+		 JOIN modules m ON m.id = mr.module_id AND m.spec_id = ir.spec_id
+		 WHERE ir.spec_id = ? AND m.domain = ? AND ir.domain != ? AND mr.rel_type = 'interfaces'
+		 ORDER BY ir.invariant_id`, specID, domain, domain,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get domain boundary invariants: %w", err)
+	}
+	defer rows.Close()
+
+	var results []InvariantRegistryEntry
+	for rows.Next() {
+		var e InvariantRegistryEntry
+		if err := rows.Scan(&e.ID, &e.SpecID, &e.InvariantID, &e.Owner, &e.Domain, &e.Description); err != nil {
+			return nil, fmt.Errorf("scan invariant_registry: %w", err)
+		}
+		results = append(results, e)
+	}
+	return results, rows.Err()
+}
+
+// GetSourceFileContent returns the raw text content of a source file by its ID.
+func GetSourceFileContent(db *sql.DB, fileID int64) (string, error) {
+	var content string
+	err := db.QueryRow(`SELECT raw_text FROM source_files WHERE id = ?`, fileID).Scan(&content)
+	if err != nil {
+		return "", fmt.Errorf("get source file content %d: %w", fileID, err)
+	}
+	return content, nil
 }
 
 // CountElements returns element counts by table name for a spec.

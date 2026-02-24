@@ -15,6 +15,7 @@ type ManifestData struct {
 	DDISVersion string `yaml:"ddis_version"`
 	SpecName    string `yaml:"spec_name"`
 	TierMode    string `yaml:"tier_mode"`
+	ParentSpec  string `yaml:"parent_spec"`
 
 	ContextBudget struct {
 		TargetLines      int     `yaml:"target_lines"`
@@ -222,7 +223,27 @@ func ParseModularSpec(manifestPath string, db storage.DB) (int64, error) {
 		return 0, err
 	}
 
-	// Resolve cross-references across all files
+	// Parse parent spec if declared
+	if manifest.ParentSpec != "" {
+		parentPath := filepath.Join(filepath.Dir(manifestPath), manifest.ParentSpec)
+		parentPath, err = filepath.Abs(parentPath)
+		if err != nil {
+			return 0, fmt.Errorf("resolve parent path: %w", err)
+		}
+		// Guard against infinite recursion
+		absManifest, _ := filepath.Abs(manifestPath)
+		if parentPath != absManifest {
+			parentSpecID, err := ParseModularSpec(parentPath, db)
+			if err != nil {
+				return 0, fmt.Errorf("parse parent spec %s: %w", parentPath, err)
+			}
+			if err := storage.SetParentSpecID(db, specID, parentSpecID); err != nil {
+				return 0, fmt.Errorf("set parent spec ID: %w", err)
+			}
+		}
+	}
+
+	// Resolve cross-references across all files (with parent fallback)
 	if err := ResolveCrossReferences(db, specID); err != nil {
 		return 0, fmt.Errorf("resolve cross-references: %w", err)
 	}

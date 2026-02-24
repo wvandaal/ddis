@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS spec_index (
     content_hash TEXT NOT NULL,
     parsed_at TEXT NOT NULL,
     source_type TEXT NOT NULL
-      CHECK(source_type IN ('monolith', 'modular'))
+      CHECK(source_type IN ('monolith', 'modular')),
+    parent_spec_id INTEGER REFERENCES spec_index(id)
 );
 
 -- Source files (1 for monolith, N for modular)
@@ -402,5 +403,15 @@ CREATE TABLE IF NOT EXISTS search_authority (
     element_id TEXT NOT NULL,
     score REAL NOT NULL,
     UNIQUE(spec_id, element_id)
+);
+
+-- Session state (key-value store for authoring sessions)
+CREATE TABLE IF NOT EXISTS session_state (
+    id INTEGER PRIMARY KEY,
+    spec_id INTEGER NOT NULL REFERENCES spec_index(id),
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(spec_id, key)
 );
 `

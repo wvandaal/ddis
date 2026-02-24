@@ -18,6 +18,7 @@
 ddis_version: "3.0"
 spec_name: "DDIS CLI: Transactional Specification Management System"
 tier_mode: "two-tier"
+parent_spec: "../ddis-modular/manifest.yaml"
 
 context_budget:
   target_lines: 4000

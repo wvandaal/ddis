@@ -118,6 +118,7 @@ func ExtractCrossReferences(lines []string, sections []*SectionNode, specID, sou
 }
 
 // ResolveCrossReferences checks if each cross-reference target exists.
+// After local resolution, attempts to resolve remaining refs against the parent spec.
 func ResolveCrossReferences(db storage.DB, specID int64) error {
 	rows, err := db.Query(
 		`SELECT id, ref_type, ref_target FROM cross_references WHERE spec_id = ?`, specID)
@@ -141,26 +142,7 @@ func ResolveCrossReferences(db storage.DB, specID int64) error {
 	}
 
 	for _, r := range refs {
-		var exists bool
-		switch r.typ {
-		case "section":
-			exists = queryExists(db,
-				`SELECT 1 FROM sections WHERE spec_id = ? AND section_path = ?`,
-				specID, r.target)
-		case "invariant", "app_invariant":
-			exists = queryExists(db,
-				`SELECT 1 FROM invariants WHERE spec_id = ? AND invariant_id = ?`,
-				specID, r.target)
-		case "adr", "app_adr":
-			exists = queryExists(db,
-				`SELECT 1 FROM adrs WHERE spec_id = ? AND adr_id = ?`,
-				specID, r.target)
-		case "gate":
-			exists = queryExists(db,
-				`SELECT 1 FROM quality_gates WHERE spec_id = ? AND gate_id = ?`,
-				specID, r.target)
-		}
-
+		exists := resolveRefInSpec(db, specID, r.typ, r.target)
 		if exists {
 			if _, err := db.Exec(
 				`UPDATE cross_references SET resolved = 1 WHERE id = ?`, r.id); err != nil {
@@ -168,7 +150,63 @@ func ResolveCrossReferences(db storage.DB, specID int64) error {
 			}
 		}
 	}
+
+	// Parent fallback for still-unresolved refs
+	parentID, err := storage.GetParentSpecID(db, specID)
+	if err != nil || parentID == nil {
+		return nil
+	}
+
+	unresolvedRows, err := db.Query(
+		`SELECT id, ref_type, ref_target FROM cross_references WHERE spec_id = ? AND resolved = 0`, specID)
+	if err != nil {
+		return err
+	}
+	defer unresolvedRows.Close()
+
+	var unresolved []xref
+	for unresolvedRows.Next() {
+		var r xref
+		if err := unresolvedRows.Scan(&r.id, &r.typ, &r.target); err != nil {
+			return err
+		}
+		unresolved = append(unresolved, r)
+	}
+
+	for _, r := range unresolved {
+		exists := resolveRefInSpec(db, *parentID, r.typ, r.target)
+		if exists {
+			if _, err := db.Exec(
+				`UPDATE cross_references SET resolved = 1 WHERE id = ?`, r.id); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
+}
+
+// resolveRefInSpec checks if a reference target exists in the given spec.
+func resolveRefInSpec(db *sql.DB, specID int64, refType, target string) bool {
+	switch refType {
+	case "section":
+		return queryExists(db,
+			`SELECT 1 FROM sections WHERE spec_id = ? AND section_path = ?`,
+			specID, target)
+	case "invariant", "app_invariant":
+		return queryExists(db,
+			`SELECT 1 FROM invariants WHERE spec_id = ? AND invariant_id = ?`,
+			specID, target)
+	case "adr", "app_adr":
+		return queryExists(db,
+			`SELECT 1 FROM adrs WHERE spec_id = ? AND adr_id = ?`,
+			specID, target)
+	case "gate":
+		return queryExists(db,
+			`SELECT 1 FROM quality_gates WHERE spec_id = ? AND gate_id = ?`,
+			specID, target)
+	}
+	return false
 }
 
 func queryExists(db *sql.DB, query string, args ...interface{}) bool {

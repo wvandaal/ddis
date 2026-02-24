@@ -38,4 +38,13 @@ func init() {
 	rootCmd.AddCommand(searchCmd)
 	rootCmd.AddCommand(contextCmd)
 	rootCmd.AddCommand(exemplarCmd)
+	rootCmd.AddCommand(coverageCmd)
+	rootCmd.AddCommand(stateCmd)
+	rootCmd.AddCommand(skeletonCmd)
+	rootCmd.AddCommand(checkpointCmd)
+	rootCmd.AddCommand(checklistCmd)
+	rootCmd.AddCommand(cascadeCmd)
+	rootCmd.AddCommand(bundleCmd)
+	rootCmd.AddCommand(implorderCmd)
+	rootCmd.AddCommand(progressCmd)
 }

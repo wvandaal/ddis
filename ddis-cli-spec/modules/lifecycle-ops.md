@@ -17,7 +17,7 @@ This module owns the transactional mutation, operation logging, impact analysis 
 
 The architectural principle: **lifecycle operations are write-once, state-machine-governed, and mechanically auditable.** Transactions follow a two-terminal state machine with no backward transitions. The oplog is an immutable audit trail --- records are appended but never modified or deleted. Impact analysis terminates in bounded time regardless of graph topology. Implementation Trace annotations are verified by scanning the actual source tree, not by trusting the spec author.
 
-**Invariants interfaced from other modules (APP-INV-018 compliance --- restated at point of use):**
+**Invariants interfaced from other modules (cross-module reference completeness --- restated at point of use):**
 
 - APP-INV-001: Round-Trip Fidelity --- parse then render produces byte-identical output (maintained by parse-pipeline). *Transactional edits depend on the round-trip guarantee; a commit that silently corrupts whitespace during re-render produces a dirty working tree after rollback.*
 - APP-INV-002: Validation Determinism --- results independent of clock, RNG, execution order (maintained by query-validation). *Validation records in the oplog must be reproducible; if re-running validation on the same spec produces different results, the oplog's historical records are untrustworthy.*
@@ -988,7 +988,7 @@ Use this self-check after implementing or modifying the lifecycle operations sub
 
 ## Referenced Invariants from Other Modules
 
-Per APP-INV-018 (Cross-Module Reference Completeness), this section lists invariants
+Per the cross-module reference completeness convention, this section lists invariants
 owned by other modules that this module depends on or interfaces with:
 
 | Invariant    | Owner              | Relationship | Usage in This Module                                            |

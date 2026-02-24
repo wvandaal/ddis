@@ -2,14 +2,15 @@ package storage
 
 // SpecIndex represents the top-level parsed spec.
 type SpecIndex struct {
-	ID          int64
-	SpecPath    string
-	SpecName    string
-	DDISVersion string
-	TotalLines  int
-	ContentHash string
-	ParsedAt    string
-	SourceType  string // "monolith" or "modular"
+	ID           int64
+	SpecPath     string
+	SpecName     string
+	DDISVersion  string
+	TotalLines   int
+	ContentHash  string
+	ParsedAt     string
+	SourceType   string // "monolith" or "modular"
+	ParentSpecID *int64
 }
 
 // SourceFile represents one parsed source file.
