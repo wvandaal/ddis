@@ -47,4 +47,5 @@ func init() {
 	rootCmd.AddCommand(bundleCmd)
 	rootCmd.AddCommand(implorderCmd)
 	rootCmd.AddCommand(progressCmd)
+	rootCmd.AddCommand(driftCmd)
 }

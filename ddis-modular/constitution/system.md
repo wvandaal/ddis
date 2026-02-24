@@ -333,7 +333,7 @@ DDIS has a simple ring architecture:
 
 ## §0.5 Invariant Registry (Declarations)
 
-All 20 invariants of the DDIS standard. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module.
+All 23 invariants of the DDIS standard. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module.
 
 | ID | Statement | Conditional | Owner Module |
 |---|---|---|---|
@@ -357,12 +357,15 @@ All 20 invariants of the DDIS standard. Full definitions with formal expressions
 | INV-018 | Every implementation chapter restates the invariants it must preserve, not merely referencing them by ID | No | core-standard |
 | INV-019 | The spec provides an explicit dependency chain for implementation ordering | No | core-standard |
 | INV-020 | Every element specification chapter includes a structured verification prompt block | No | core-standard |
+| INV-021 | Every form of spec-implementation drift is detectable by at least one mechanical check | No | drift-management |
+| INV-022 | A reconciliation step can only reduce drift and must preserve existing valid correspondences | No | drift-management |
+| INV-023 | From total drift, a constructive procedure monotonically reduces drift to zero | No | drift-management |
 
 ---
 
 ## §0.6 ADR Registry (Declarations)
 
-All 11 ADRs of the DDIS standard. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
+All 14 ADRs of the DDIS standard. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
 
 | ID | Title | Decision (one-line) | Conditional | Implementing Module |
 |---|---|---|---|---|
@@ -377,6 +380,9 @@ All 11 ADRs of the DDIS standard. Full specifications with Problem, Options, Dec
 | ADR-009 | Negative Specifications as Formal Elements | Formal negative specification blocks required per implementation chapter | No | core-standard |
 | ADR-010 | Verification Prompts per Implementation Chapter | Verification prompts per chapter: structured self-check at end of each implementation chapter | No | core-standard |
 | ADR-011 | ADR Supersession Protocol | Mark-and-supersede with cross-reference cascade preserving historical record | No | core-standard |
+| ADR-012 | Drift as First-Class Concept | Formal drift measure with mechanical detection, not informal guidelines | No | drift-management |
+| ADR-013 | Planned Divergence Registry | Tracked planned divergence with expiry, not zero tolerance | No | drift-management |
+| ADR-014 | Brownfield via Skeleton + RALPH | Automated skeleton bootstrap + iterative RALPH refinement | No | drift-management |
 
 ---
 
@@ -472,6 +478,8 @@ Core DDIS terms for quick orientation. *(Full glossary: Appendix A, guidance-ope
 | **Declaration** | Compact summary of invariant/ADR in system constitution (§0.13.4) | modularization |
 | **Definition** | Full specification including formal expression, violation scenario, validation (§0.13.4) | modularization |
 | **Design point** | Specific scale scenario anchoring performance budgets (§3.7) | element-specifications |
+| **Drift** | Quantified divergence between specification and implementation, measured as unspecified + unimplemented + 2·contradictions (§D.2) | drift-management |
+| **Drift report** | Output of the `drift` command: impl_drift, intent_drift, quality breakdown, classification (§D.5) | drift-management |
 | **Falsifiable** | Can be violated by a concrete scenario and detected by a concrete test (INV-003) | core-standard |
 | **Gate** | Quality gate: stop-ship predicate for project progression (§0.7) | core-standard |
 | **Hallucination** | LLM failure: plausible but unauthorized behaviors; prevented by negative specs (§0.2.2) | core-standard |
@@ -481,6 +489,8 @@ Core DDIS terms for quick orientation. *(Full glossary: Appendix A, guidance-ope
 | **Meta-instruction** | Directive to LLM implementer: ordering, sequencing, process guidance (§5.7) | element-specifications |
 | **Module** | Self-contained spec unit covering one major subsystem (§0.13.2, §0.13.5) | modularization |
 | **Negative specification** | Explicit "DO NOT" constraint; primary defense against hallucination (§3.8, INV-017) | element-specifications |
+| **Planned divergence** | Tracked intentional spec-implementation difference with expiry and justification (§D.6, ADR-013) | drift-management |
+| **Remediation package** | Actionable output from `ddis drift` default mode: target, context, exemplar, guidance (§D.5) | drift-management |
 | **Self-bootstrapping** | Property of this standard: written in the format it defines (ADR-004) | core-standard |
 | **Verification prompt** | Structured self-check at end of implementation chapter (§5.6, INV-020) | element-specifications |
 
@@ -499,6 +509,7 @@ Cross-reference lookup: which module file contains each section number. The Note
 | §0.13 (full protocol), INV-011–INV-016, ADR-006–ADR-007 | modules/modularization.md | References: §5.3, §5.5 from element-specifications |
 | §2.1–§7.3 | modules/element-specifications.md | References: §1.4 from core-standard |
 | §8.1–Part X | modules/guidance-operations.md | References: §3.8, §5.6, §5.7 from element-specifications, §1.1 from core-standard |
+| §D.1–§D.13 | modules/drift-management.md | References: INV-003, INV-006, INV-007 from core-standard; INV-015, INV-016 from modularization |
 
 ---
 
@@ -522,3 +533,4 @@ reasoning_reserve: 0.25
 | **element-specifications** | core | PART II element specs: preamble elements (Ch 2), PART 0 elements (Ch 3), PART I elements (Ch 4), PART II elements (Ch 5), negative specifications (§3.8), verification prompts (§5.6), meta-instructions (§5.7) |
 | **modularization** | modularization | Full modularization protocol (§0.13): scaling problem, core concepts, tiered constitution, manifest schema, assembly rules, consistency checks, cascade protocol, migration procedure; INV-011 through INV-016; ADR-006, ADR-007 |
 | **guidance-operations** | guidance | PART III guidance (voice, style, anti-patterns, proportional weight, cross-reference patterns), PART IV operations (authoring sequence, validation, evolution, testing, error taxonomy), appendices (glossary, risk register, error taxonomy, quick-reference), PART X master TODO |
+| **drift-management** | drift | Drift management: detection, measurement, reconciliation; INV-021 through INV-023; ADR-012 through ADR-014; brownfield entry, agent quickstart, CLI command mapping |
