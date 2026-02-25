@@ -962,6 +962,93 @@ func ListStateMachines(db *sql.DB, specID int64) ([]StateMachine, error) {
 	return result, rows.Err()
 }
 
+// GetWitness retrieves a single witness by spec ID and invariant ID.
+func GetWitness(db *sql.DB, specID int64, invariantID string) (*InvariantWitness, error) {
+	w := &InvariantWitness{}
+	var codeHash, model, notes sql.NullString
+	err := db.QueryRow(
+		`SELECT id, spec_id, invariant_id, spec_hash, code_hash, evidence_type,
+		        evidence, proven_by, model, proven_at, status, notes
+		 FROM invariant_witnesses WHERE spec_id = ? AND invariant_id = ?`, specID, invariantID,
+	).Scan(&w.ID, &w.SpecID, &w.InvariantID, &w.SpecHash, &codeHash,
+		&w.EvidenceType, &w.Evidence, &w.ProvenBy, &model, &w.ProvenAt,
+		&w.Status, &notes)
+	if err != nil {
+		return nil, fmt.Errorf("get witness %s: %w", invariantID, err)
+	}
+	w.CodeHash = codeHash.String
+	w.Model = model.String
+	w.Notes = notes.String
+	return w, nil
+}
+
+// ListWitnesses returns all witnesses for a spec.
+func ListWitnesses(db *sql.DB, specID int64) ([]InvariantWitness, error) {
+	rows, err := db.Query(
+		`SELECT id, spec_id, invariant_id, spec_hash, code_hash, evidence_type,
+		        evidence, proven_by, model, proven_at, status, notes
+		 FROM invariant_witnesses WHERE spec_id = ? ORDER BY invariant_id`, specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list witnesses: %w", err)
+	}
+	defer rows.Close()
+
+	var result []InvariantWitness
+	for rows.Next() {
+		var w InvariantWitness
+		var codeHash, model, notes sql.NullString
+		if err := rows.Scan(&w.ID, &w.SpecID, &w.InvariantID, &w.SpecHash, &codeHash,
+			&w.EvidenceType, &w.Evidence, &w.ProvenBy, &model, &w.ProvenAt,
+			&w.Status, &notes); err != nil {
+			return nil, fmt.Errorf("scan witness: %w", err)
+		}
+		w.CodeHash = codeHash.String
+		w.Model = model.String
+		w.Notes = notes.String
+		result = append(result, w)
+	}
+	return result, rows.Err()
+}
+
+// ListValidWitnessIDs returns invariant IDs of all valid witnesses.
+func ListValidWitnessIDs(db *sql.DB, specID int64) ([]string, error) {
+	rows, err := db.Query(
+		`SELECT invariant_id FROM invariant_witnesses
+		 WHERE spec_id = ? AND status = 'valid' ORDER BY invariant_id`, specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list valid witness IDs: %w", err)
+	}
+	defer rows.Close()
+
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("scan witness ID: %w", err)
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
+// DeleteWitness removes a witness for a specific invariant.
+func DeleteWitness(db *sql.DB, specID int64, invariantID string) error {
+	res, err := db.Exec(
+		`DELETE FROM invariant_witnesses WHERE spec_id = ? AND invariant_id = ?`,
+		specID, invariantID,
+	)
+	if err != nil {
+		return fmt.Errorf("delete witness %s: %w", invariantID, err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("no witness found for %s", invariantID)
+	}
+	return nil
+}
+
 // ListModulesByDomain returns all modules in a specific domain for a spec.
 func ListModulesByDomain(db *sql.DB, specID int64, domain string) ([]Module, error) {
 	rows, err := db.Query(

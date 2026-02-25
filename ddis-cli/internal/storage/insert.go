@@ -1,5 +1,7 @@
 package storage
 
+// ddis:maintains APP-INV-041 (witness auto-invalidation — InsertWitness, InvalidateWitnesses)
+
 import (
 	"database/sql"
 	"fmt"
@@ -455,6 +457,49 @@ func ClearSearchData(db *sql.DB, specID int64) error {
 		return err
 	}
 	return nil
+}
+
+// InsertWitness inserts or replaces an invariant witness.
+func InsertWitness(db *sql.DB, w *InvariantWitness) (int64, error) {
+	res, err := db.Exec(
+		`INSERT OR REPLACE INTO invariant_witnesses
+		 (spec_id, invariant_id, spec_hash, code_hash, evidence_type, evidence,
+		  proven_by, model, proven_at, status, notes)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?, ?)`,
+		w.SpecID, w.InvariantID, w.SpecHash, nullStr(w.CodeHash),
+		w.EvidenceType, w.Evidence, w.ProvenBy, nullStr(w.Model),
+		w.Status, nullStr(w.Notes),
+	)
+	if err != nil {
+		return 0, fmt.Errorf("insert witness %s: %w", w.InvariantID, err)
+	}
+	return res.LastInsertId()
+}
+
+// InvalidateWitnesses marks witnesses as stale_spec where the spec hash no longer
+// matches the latest parsed invariant content_hash.
+//
+// witnessSpecID is the spec_id where witnesses are stored (typically GetFirstSpecID).
+// currentSpecID is the spec_id of the most recently parsed invariants (the new parse).
+// If they are the same, the query joins on the same spec_id. If different (common
+// when re-parsing creates a new spec_index row), it compares witness hashes against
+// the freshly-parsed invariants.
+func InvalidateWitnesses(db DB, witnessSpecID, currentSpecID int64) (int, error) {
+	res, err := db.Exec(
+		`UPDATE invariant_witnesses SET status = 'stale_spec'
+		 WHERE spec_id = ? AND status = 'valid'
+		 AND NOT EXISTS (
+		     SELECT 1 FROM invariants inv
+		     WHERE inv.spec_id = ?
+		     AND inv.invariant_id = invariant_witnesses.invariant_id
+		     AND inv.content_hash = invariant_witnesses.spec_hash
+		 )`, witnessSpecID, currentSpecID,
+	)
+	if err != nil {
+		return 0, fmt.Errorf("invalidate witnesses: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	return int(n), nil
 }
 
 // nullStr converts an empty string to a sql.NullString.

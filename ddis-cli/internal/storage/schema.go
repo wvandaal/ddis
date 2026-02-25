@@ -434,4 +434,25 @@ CREATE TABLE IF NOT EXISTS code_annotations (
     UNIQUE(spec_id, file_path, line_number, verb, target)
 );
 CREATE INDEX IF NOT EXISTS idx_annotations_target ON code_annotations(spec_id, target);
+
+-- Invariant witnesses (proof receipts for implemented invariants)
+CREATE TABLE IF NOT EXISTS invariant_witnesses (
+    id INTEGER PRIMARY KEY,
+    spec_id INTEGER NOT NULL REFERENCES spec_index(id),
+    invariant_id TEXT NOT NULL,
+    spec_hash TEXT NOT NULL,
+    code_hash TEXT,
+    evidence_type TEXT NOT NULL
+      CHECK(evidence_type IN ('test', 'annotation', 'scan', 'review', 'attestation')),
+    evidence TEXT NOT NULL,
+    proven_by TEXT NOT NULL,
+    model TEXT,
+    proven_at TEXT NOT NULL DEFAULT (datetime('now')),
+    status TEXT NOT NULL DEFAULT 'valid'
+      CHECK(status IN ('valid', 'stale_spec', 'stale_code', 'invalidated')),
+    notes TEXT,
+    UNIQUE(spec_id, invariant_id)
+);
+CREATE INDEX IF NOT EXISTS idx_witness_inv ON invariant_witnesses(spec_id, invariant_id);
+CREATE INDEX IF NOT EXISTS idx_witness_status ON invariant_witnesses(spec_id, status);
 `

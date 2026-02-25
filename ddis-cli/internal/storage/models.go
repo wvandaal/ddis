@@ -309,6 +309,22 @@ type InvariantRegistryEntry struct {
 	Description string
 }
 
+// InvariantWitness represents a proof receipt for an implemented invariant.
+type InvariantWitness struct {
+	ID           int64
+	SpecID       int64
+	InvariantID  string
+	SpecHash     string
+	CodeHash     string
+	EvidenceType string // "test", "annotation", "scan", "review", "attestation"
+	Evidence     string
+	ProvenBy     string // session/agent ID (traceable)
+	Model        string // model type (e.g., "claude-opus-4-6")
+	ProvenAt     string
+	Status       string // "valid", "stale_spec", "stale_code", "invalidated"
+	Notes        string
+}
+
 // RefCounts holds incoming/outgoing cross-reference counts for a section.
 type RefCounts struct {
 	Incoming int
