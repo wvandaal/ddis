@@ -86,6 +86,19 @@ func runParse(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("\nIndex written to %s\n", dbPath)
+
+	// Guidance postscript
+	if !NoGuidance {
+		// Check for unresolved cross-refs
+		var unresolved int
+		_ = db.QueryRow("SELECT COUNT(*) FROM cross_references WHERE spec_id = ? AND resolved = 0", specID).Scan(&unresolved)
+		if unresolved > 0 {
+			fmt.Printf("\nNext: ddis validate --checks 1\n")
+			fmt.Printf("  %d unresolved cross-references detected.\n", unresolved)
+		} else {
+			fmt.Println("\nNext: ddis validate && ddis coverage")
+		}
+	}
 	return nil
 }
 

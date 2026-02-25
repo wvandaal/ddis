@@ -49,7 +49,7 @@ func runProgress(cmd *cobra.Command, args []string) error {
 	}
 	if dbPath == "" {
 		var err error
-		dbPath, err = findDB()
+		dbPath, err = FindDB()
 		if err != nil {
 			return err
 		}
@@ -77,5 +77,11 @@ func runProgress(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	if !NoGuidance && !progressJSON {
+		fmt.Println("\nNext: ddis context <first-ready-element>")
+		fmt.Println("  Investigate the first ready-to-implement element.")
+	}
+
 	return nil
 }

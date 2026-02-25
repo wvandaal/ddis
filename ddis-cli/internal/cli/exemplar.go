@@ -60,7 +60,7 @@ func runExemplar(cmd *cobra.Command, args []string) error {
 	}
 	if dbPath == "" {
 		var err error
-		dbPath, err = findDB()
+		dbPath, err = FindDB()
 		if err != nil {
 			return err
 		}
@@ -112,5 +112,10 @@ func runExemplar(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	if !NoGuidance && !exemplarJSON {
+		fmt.Printf("\nNext: ddis refine apply\n")
+		fmt.Println("  Generate an improvement prompt using these exemplars as guides.")
+	}
 	return nil
 }

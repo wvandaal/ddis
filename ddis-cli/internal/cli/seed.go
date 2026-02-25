@@ -15,17 +15,19 @@ import (
 var seedOplogPath string
 
 var seedCmd = &cobra.Command{
-	Use:   "seed <index.db>",
+	Use:   "seed [index.db]",
 	Short: "Seed the oplog with a baseline record for an existing spec",
 	Long: `Creates a "genesis" transaction in the oplog with the current validation state.
 This captures the epoch state so future diffs have a baseline.
 
 Idempotent — skips if the oplog already contains a genesis transaction.
+If no database path is given, auto-discovers a *.ddis.db file in the current directory.
 
 Examples:
+  ddis seed
   ddis seed index.db
   ddis seed index.db --oplog-path .ddis/oplog.jsonl`,
-	Args:          cobra.ExactArgs(1),
+	Args:          cobra.RangeArgs(0, 1),
 	RunE:          runSeed,
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -36,7 +38,17 @@ func init() {
 }
 
 func runSeed(cmd *cobra.Command, args []string) error {
-	dbPath := args[0]
+	var dbPath string
+	if len(args) >= 1 {
+		dbPath = args[0]
+	}
+	if dbPath == "" {
+		var err error
+		dbPath, err = FindDB()
+		if err != nil {
+			return err
+		}
+	}
 
 	db, err := storage.Open(dbPath)
 	if err != nil {

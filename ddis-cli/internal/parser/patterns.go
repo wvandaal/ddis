@@ -18,8 +18,15 @@ var (
 	ADRHeaderRe = regexp.MustCompile(
 		`^###\s+(?P<id>(?:APP-)?ADR-\d{3}):\s+(?P<title>.+?)(?:\s*\[(?P<cond>[^\]]+)\])?\s*$`)
 
+	// **ADR-NNN: Title** — bold format (used in constitution declarations and legacy skeletons)
+	ADRBoldHeaderRe = regexp.MustCompile(
+		`^\*\*(?P<id>(?:APP-)?ADR-\d{3}):\s+(?P<title>[^*]+?)\*\*`)
+
 	// #### Problem / #### Options / #### Decision / #### Consequences / #### Tests
 	ADRSubheadingRe = regexp.MustCompile(`^####\s+(?P<heading>Problem|Options|Decision|Consequences|Tests)\s*$`)
+
+	// Bare text subheading: "Problem:" / "Options considered:" / "Decision:" / "Consequences:" / "Tests:"
+	ADRBareSubheadingRe = regexp.MustCompile(`^(?P<heading>Problem|Options considered|Decision|Consequences|Tests):\s*(?P<rest>.*)$`)
 
 	// Option line: A) **Name** or A) Name
 	ADROptionRe = regexp.MustCompile(`^(?P<label>[A-Z])\)\s+\*\*(?P<name>[^*]+)\*\*`)

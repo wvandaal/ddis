@@ -46,7 +46,7 @@ func runCascade(cmd *cobra.Command, args []string) error {
 	}
 	if dbPath == "" {
 		var err error
-		dbPath, err = findDB()
+		dbPath, err = FindDB()
 		if err != nil {
 			return err
 		}
@@ -74,5 +74,11 @@ func runCascade(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	if !NoGuidance && !cascadeJSON {
+		fmt.Println("\nNext: ddis validate")
+		fmt.Println("  Verify structural integrity after cascade analysis.")
+	}
+
 	return nil
 }

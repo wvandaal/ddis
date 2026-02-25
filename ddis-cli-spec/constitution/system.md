@@ -178,7 +178,7 @@ Each pass is independently testable. The pipeline is deterministic: same input a
 
 ## 0.3 Invariant Registry (Declarations)
 
-All 41 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
+All 46 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
 
 **APP-INV-001: Round-Trip Fidelity** (Owner: parse-pipeline)
 Parse followed by render MUST produce byte-identical output for any valid DDIS specification.
@@ -385,6 +385,31 @@ When a spec is re-parsed and an invariant's content_hash changes, any witness wi
 Confidence: falsified
 *Violation: Invariant modified, re-parsed, but witness still shows valid with old hash.*
 
+**APP-INV-042: Guidance Emission** (Owner: auto-prompting)
+Every data command with non-empty findings emits at least one guidance hint.
+Confidence: falsified
+*Violation: `ddis validate` reports 5 failures but emits no guidance; the LLM has no next-step suggestion.*
+
+**APP-INV-043: Invariant Statement Inline** (Owner: query-validation)
+Every validation finding includes governing invariant statement inline.
+Confidence: falsified
+*Violation: A validation report shows "[FAIL] Check 3" but no invariant text; the LLM must run ddis context just to understand what was violated.*
+
+**APP-INV-044: Warning Collapse** (Owner: query-validation)
+No check produces >10 warning lines in text mode.
+Confidence: falsified
+*Violation: Check 3 produces 88 cross-reference density warnings, burying the actual failure diagnosis in noise.*
+
+**APP-INV-045: Universal Auto-Discovery** (Owner: auto-prompting)
+Every DB-reading command supports auto-discovery.
+Confidence: falsified
+*Violation: `ddis validate` requires an explicit path argument even when a manifest.ddis.db exists in the current directory.*
+
+**APP-INV-046: Error Recovery Guidance** (Owner: auto-prompting)
+Every error includes at least one recovery hint.
+Confidence: falsified
+*Violation: `ddis validate` fails with "no such table: spec_index" and no hint to run ddis parse first.*
+
 ---
 
 ## 0.4 Invariant Confidence Levels
@@ -404,7 +429,7 @@ Confidence levels are tracked per-invariant in the implementation. The `validate
 
 ## 0.5 ADR Registry (Declarations)
 
-All 30 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
+All 33 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
 
 **APP-ADR-001: Go over Rust** (Implements: parse-pipeline)
 Decision: Go for CLI implementation. The workload is I/O-bound (SQLite reads/writes, file parsing), not CPU-bound. Go's fast compilation supports rapid iteration in the RALPH improvement loop. A pure-Go SQLite driver (`modernc.org/sqlite`) eliminates CGO complexity.
@@ -526,6 +551,18 @@ WHY NOT JSON only: Beads is the project's issue tracker. Beads-compatible output
 Decision: Witnesses persist in the `invariant_witnesses` table with auto-invalidation on spec change via content_hash comparison. `ddis progress` loads witnesses by default. The `--done` flag remains as an additive override.
 WHY NOT ephemeral done flags: No auto-invalidation, no per-invariant evidence tracking, no cross-agent visibility.
 
+**APP-ADR-031: Navigational Guidance as Postscript** (Implements: auto-prompting)
+Decision: Navigational guidance emitted as postscript, not inline. Data output comes first, guidance follows as a clearly separated block after the primary output.
+WHY NOT inline guidance: Interleaving guidance with data output breaks the Gestalt principle of figure-ground separation. The LLM cannot parse data and guidance when they are mixed.
+
+**APP-ADR-032: Gestalt-Optimized CLI Output** (Implements: query-validation)
+Decision: Validation output uses Gestalt principles: failures-first, spec framing, warning collapse. Every failing check includes the governing invariant statement inline. Warnings beyond 5 collapsed to count plus top-5 summary.
+WHY NOT verbose flag: The useful information should be in the default output. Requiring a flag to see the governing invariant defeats the purpose of LLM-friendly output.
+
+**APP-ADR-033: ddis next as Universal Entry Point** (Implements: auto-prompting)
+Decision: Bare `ddis` invocation delegates to `ddis next` meta-command. The meta-command inspects workspace state and suggests the single most useful next action.
+WHY NOT help text: Help text lists all commands equally. `ddis next` is opinionated: it reads the current state and recommends one action.
+
 ---
 
 ## 0.6 Quality Gates (Declarations)
@@ -562,9 +599,9 @@ The CLI successfully parses, indexes, and validates its own specification with z
 
 ### Definition of Done (for this specification)
 
-DDIS CLI Spec v2.0 is "done" when:
+DDIS CLI Spec v3.0 is "done" when:
 - All 6 quality gates pass
-- All 40 APP-INVs are at least `property-checked` confidence
+- All 46 APP-INVs are at least `property-checked` confidence
 - The CLI parses and validates this spec with zero errors (APP-G-6)
 - At least one non-trivial DDIS spec (the meta-standard itself) has been validated by the CLI
 - The bilateral lifecycle (`discover` → `refine` → `drift` → `absorb`) operates on the CLI's own spec (self-bootstrapping)
@@ -623,10 +660,10 @@ Cross-reference lookup: which module file contains each section's full specifica
 | §0.1-§0.9, APP-INV/ADR/Gate declarations, Glossary | constitution/system.md | Cross-cutting: included in every bundle |
 | 4-pass pipeline, schema design, round-trip, hashing, monolith/modular detection | modules/parse-pipeline.md | Owns: APP-INV-001, -009, -015. Implements: APP-ADR-001, -002, -005, -009, -010 |
 | BM25/LSI/PageRank, RRF fusion, context bundles, glossary expansion, authority scoring | modules/search-intelligence.md | Owns: APP-INV-004, -005, -008, -012, -014. Implements: APP-ADR-003, -006 |
-| 12+ validation checks, cross-ref resolution, structural diff, query projection | modules/query-validation.md | Owns: APP-INV-002, -003, -007, -011. Implements: APP-ADR-004 |
-| Transaction state machine, oplog, impact BFS, implementation tracing, seed | modules/lifecycle-ops.md | Owns: APP-INV-006, -010, -013, -016. Implements: APP-ADR-007, -008, -011 |
+| 12+ validation checks, cross-ref resolution, structural diff, query projection | modules/query-validation.md | Owns: APP-INV-002, -003, -007, -011, -043, -044. Implements: APP-ADR-004, -032 |
+| Transaction state machine, oplog, impact BFS, implementation tracing, seed | modules/lifecycle-ops.md | Owns: APP-INV-006, -010, -013, -016, -041. Implements: APP-ADR-007, -008, -011, -030 |
 | Annotations, scan, contradiction detection (Tier 1 + Z3), event sourcing | modules/code-bridge.md | Owns: APP-INV-017, -018, -019, -020, -021. Implements: APP-ADR-012, -013, -014, -015 |
-| State monad, discover, refine, absorb loops, contributor topology, thread management | modules/auto-prompting.md | Owns: APP-INV-022–036. Implements: APP-ADR-016–025 |
+| State monad, discover, refine, absorb loops, contributor topology, thread management | modules/auto-prompting.md | Owns: APP-INV-022–036, -042, -045, -046. Implements: APP-ADR-016–025, -031, -033 |
 | Workspace init, multi-domain composition, cross-spec drift, task generation, progressive validation | modules/workspace-ops.md | Owns: APP-INV-037, -038, -039, -040. Implements: APP-ADR-026, -027, -028, -029 |
 
 ---
@@ -663,8 +700,8 @@ reasoning_reserve: 0.25
 |---|---|---|
 | **parse-pipeline** | parsing | 4-pass parse pipeline (tree, elements, xrefs, resolve), 30-table schema design, render engine, monolith/modular detection, content hashing. APP-INV-001, -009, -015. APP-ADR-001, -002, -005, -009, -010. |
 | **search-intelligence** | search | BM25/FTS5 integration, LSI model (truncated SVD), PageRank computation, RRF fusion (K=60), context bundle assembly (9 signals), glossary expansion. APP-INV-004, -005, -008, -012, -014. APP-ADR-003, -006. |
-| **query-validation** | validation | Query projection, 12+ validation checks (composable), cross-reference resolution, structural diff, Cobra command routing. APP-INV-002, -003, -007, -011. APP-ADR-004. |
-| **lifecycle-ops** | lifecycle | Transaction state machine (begin/commit/rollback), JSONL oplog (append-only), impact BFS with cycle protection, seed command, implementation traceability (Check 13). APP-INV-006, -010, -013, -016. APP-ADR-007, -008, -011. |
+| **query-validation** | validation | Query projection, 12+ validation checks (composable), cross-reference resolution, structural diff, Cobra command routing. APP-INV-002, -003, -007, -011, -043, -044. APP-ADR-004, -032. |
+| **lifecycle-ops** | lifecycle | Transaction state machine (begin/commit/rollback), JSONL oplog (append-only), impact BFS with cycle protection, seed command, implementation traceability (Check 13). APP-INV-006, -010, -013, -016, -041. APP-ADR-007, -008, -011, -030. |
 | **code-bridge** | bridge | Cross-language annotation scanner (`ddis scan`), tiered contradiction detection (graph + Z3 SMT), three-stream event sourcing (`ddis history`), spec-code drift types. APP-INV-017–021. APP-ADR-012–015. |
-| **auto-prompting** | autoprompt | Bilateral specification lifecycle: `ddis discover` (idea→spec), `ddis refine` (spec improvement), `ddis absorb` (impl→spec). State monad architecture, thread-scoped discovery, cognitive mode classification, contributor topology, Gestalt-optimized prompt generation. APP-INV-022–036. APP-ADR-016–025. |
+| **auto-prompting** | autoprompt | Bilateral specification lifecycle: `ddis discover` (idea→spec), `ddis refine` (spec improvement), `ddis absorb` (impl→spec). State monad architecture, thread-scoped discovery, cognitive mode classification, contributor topology, Gestalt-optimized prompt generation. APP-INV-022–036, -042, -045, -046. APP-ADR-016–025, -031, -033. |
 | **workspace-ops** | workspace | Workspace initialization (`ddis init`), multi-domain composition (`ddis spec add/list`), cross-spec drift, mechanical task generation (`ddis tasks`), progressive validation (Level 1/2/3 maturity tiers). APP-INV-037–040. APP-ADR-026–029. |

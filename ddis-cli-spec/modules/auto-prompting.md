@@ -1,9 +1,9 @@
 ---
 module: auto-prompting
 domain: autoprompt
-maintains: [APP-INV-022, APP-INV-023, APP-INV-024, APP-INV-025, APP-INV-026, APP-INV-027, APP-INV-028, APP-INV-029, APP-INV-030, APP-INV-031, APP-INV-032, APP-INV-033, APP-INV-034, APP-INV-035, APP-INV-036]
+maintains: [APP-INV-022, APP-INV-023, APP-INV-024, APP-INV-025, APP-INV-026, APP-INV-027, APP-INV-028, APP-INV-029, APP-INV-030, APP-INV-031, APP-INV-032, APP-INV-033, APP-INV-034, APP-INV-035, APP-INV-036, APP-INV-042, APP-INV-045, APP-INV-046]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-005, APP-INV-008, APP-INV-009, APP-INV-010, APP-INV-015, APP-INV-016, APP-INV-017, APP-INV-018, APP-INV-020]
-implements: [APP-ADR-016, APP-ADR-017, APP-ADR-018, APP-ADR-019, APP-ADR-020, APP-ADR-021, APP-ADR-022, APP-ADR-023, APP-ADR-024, APP-ADR-025]
+implements: [APP-ADR-016, APP-ADR-017, APP-ADR-018, APP-ADR-019, APP-ADR-020, APP-ADR-021, APP-ADR-022, APP-ADR-023, APP-ADR-024, APP-ADR-025, APP-ADR-031, APP-ADR-033]
 adjacent: [code-bridge, search-intelligence, query-validation, lifecycle-ops, workspace-ops]
 negative_specs:
   - "Must NOT generate prompts that exceed LLM context budget"
@@ -1932,3 +1932,134 @@ owned by other modules that this module depends on or interfaces with:
 | APP-INV-017  | code-bridge        | interfaces   | Annotation portability for absorb scanner |
 | APP-INV-018  | code-bridge        | interfaces   | Scan-spec correspondence for absorb reconciliation |
 | APP-INV-020  | code-bridge        | interfaces   | Event stream append-only for discovery JSONL |
+
+**APP-INV-042: Guidance Emission**
+
+*Every CLI command that produces non-empty findings MUST emit at least one navigational guidance hint as a postscript, unless suppressed by --no-guidance.*
+
+```
+FOR ALL cmd IN DataCommands, result = cmd.Execute():
+  result.Findings \!= [] AND NOT NoGuidance
+  IMPLIES len(result.GuidanceHints) >= 1
+
+DataCommands = {parse, validate, coverage, drift, search, context, exemplar, impact, progress}
+```
+
+Violation scenario: An LLM agent runs ddis validate and receives 3 failing checks but no hint about what to do next. The agent stalls, unable to determine whether to run context, exemplar, or search. The improvement loop halts until a human intervenes with the right command.
+
+Validation: Run each DataCommand against a spec with known findings. Verify that stdout includes a "Next:" postscript with at least one ddis command. Run with -q flag and verify the postscript is absent. Parse the output to confirm the hint is a valid ddis command.
+
+// WHY THIS MATTERS: The CLI is an LLM-facing API (APP-ADR-023). Without guidance, each command is a dead end requiring external knowledge to continue. Guidance transforms the CLI from a passive tool into an active navigator that drives the improvement loop forward.
+
+---
+
+**APP-INV-045: Universal Auto-Discovery**
+
+*Every CLI command that reads from a spec database MUST support auto-discovery: when no database path is given, the command searches the current directory for a single *.ddis.db file and uses it automatically.*
+
+```
+FOR ALL cmd IN DBReadingCommands:
+  cmd.Args = [] AND EXISTS unique db IN cwd/*.ddis.db
+  IMPLIES cmd.Execute() uses db
+
+DBReadingCommands = AllCommands \ {parse, init, skeleton, help}
+```
+
+Violation scenario: An LLM agent in a directory with manifest.ddis.db runs ddis discover --content "new idea" and the command crashes with a nil pointer because no --spec flag was provided. The agent must already know the DB path to use discovery, defeating the zero-knowledge adoption property.
+
+Validation: For each DB-reading command, run it in a directory containing exactly one *.ddis.db file with no database argument. Verify the command succeeds and operates on the discovered database. Then run in a directory with zero or multiple *.ddis.db files and verify a clear error message.
+
+// WHY THIS MATTERS: Database path is parasitic boilerplate (APP-ADR-023). Every command that requires it forces the LLM to track state that the filesystem already provides. Auto-discovery eliminates a class of argument-order errors and enables zero-knowledge adoption.
+
+---
+
+### APP-ADR-031: Navigational Guidance as Postscript
+
+#### Problem
+
+CLI commands return results but provide no indication of what to do next. LLM agents must have external knowledge of the DDIS workflow to chain commands productively.
+
+#### Options
+
+A) **Embed guidance in command help text** --- Static, not context-sensitive. Requires reading help before using the command.
+B) **Separate guidance command** --- Requires knowing to run it. Does not solve the "what next" problem at the point of output.
+C) **Append context-sensitive guidance as postscript to every data command** --- Guidance is a pure projection of domain results, no additional DB queries. Suppressed with -q/--no-guidance. JSON output includes guidance as a top-level key.
+
+#### Decision
+
+**Option C: Append context-sensitive guidance as postscript.** Every data command appends a "Next:" postscript with 1-3 context-sensitive hints derived from its output. The pattern already exists in drift.renderRecommendation() --- this ADR generalizes it to all data commands. Pure projection ensures guidance adds zero latency.
+
+// WHY NOT Option A (embed in help)? Static help text cannot adapt to the command's actual output. An agent that ran validate and got 3 failures needs "ddis context APP-INV-006", not generic help.
+
+// WHY NOT Option B (separate command)? Defeats the purpose --- the agent must already know to run the guidance command, which is the problem we're solving.
+
+**Confidence:** Committed
+
+#### Consequences
+
+The CLI is an LLM-facing API (APP-ADR-023). Postscript guidance transforms passive tool output into active navigation. Without guidance, each command is a dead end requiring external knowledge to continue. With guidance, the tool directs the improvement loop forward. The -q flag preserves backward compatibility for scripting.
+
+#### Tests
+
+- Run ddis validate with failures: verify Next: appears with relevant command
+- Run ddis validate -q: verify no Next: appears
+- Run ddis validate --json: verify guidance key in JSON output
+- Verify no guidance generator calls db.Query (pure projection)
+
+---
+
+### APP-ADR-033: ddis next as Universal Entry Point
+
+#### Problem
+
+An LLM encountering DDIS for the first time has no starting point. Bare ddis shows cobra help --- a list of 30 commands with no indication of which to run or in what order. The agent must have prior knowledge of the workflow to begin.
+
+#### Options
+
+A) **Enhanced help text** --- Better descriptions in cobra help. Still a list, not a directed suggestion. Requires reading all entries to find the right one.
+B) **Workflow documentation** --- ddis help --workflow shows a guide. Requires knowing the flag exists. Static, not context-sensitive.
+C) **Meta-command that reads state and directs** --- ddis next inspects the current workspace (DB presence, validation status, coverage, drift) and emits exactly one suggested command with rationale.
+
+#### Decision
+
+**Option C: ddis next as meta-command.** Bare ddis delegates to next logic. ddis next reads workspace state and emits the single highest-value next action. Zero-knowledge adoption: round 0 (ddis) tells you to parse, round 1 (ddis parse) tells you to validate, round 2 (ddis validate) produces actionable output. Three rounds to autonomy.
+
+// WHY NOT Option A (enhanced help)? Help is a menu, not a recommendation. An agent reading 30 command descriptions still faces a decision problem. next solves it by choosing for you.
+
+// WHY NOT Option B (workflow docs)? Static documentation cannot adapt to workspace state. An agent that has already parsed but not validated needs different guidance than one starting fresh.
+
+**Confidence:** Committed
+
+#### Consequences
+
+The state monad architecture (APP-ADR-022) ensures every command returns guidance. ddis next is the bootstrap --- it provides the first guidance when no command has been run yet. Combined with universal auto-discovery (APP-INV-045), the complete zero-to-productive path requires zero configuration and zero prior knowledge.
+
+#### Tests
+
+- Run ddis next with no DB: verify it suggests ddis parse manifest.yaml
+- Run ddis next with valid DB: verify it reports status and suggests next action
+- Run bare ddis: verify it delegates to next, not cobra help
+- Verify ddis next reads workspace state (DB existence, validation, coverage, drift)
+
+---
+
+**APP-INV-046: Error Recovery Guidance**
+
+*Every CLI command that fails with an actionable error MUST emit at least one recovery hint on stderr, unless suppressed by --no-guidance.*
+
+```
+FOR ALL cmd IN Commands, err = cmd.Execute():
+  err != nil AND IsActionable(err) AND NOT NoGuidance
+  IMPLIES stderr CONTAINS RecoveryHint(err)
+
+Actionable(err) = err.category IN {no_db, stale_db, bad_args, missing_spec, empty_query}
+RecoveryHint(err) = "Tip: " + corrective_ddis_command
+```
+
+Violation scenario: An LLM agent runs ddis validate without a database present. The error says 'open database: no such file or directory' but provides no guidance on how to create the database. The agent has no way to recover without external documentation.
+
+Validation: For each Actionable error category, trigger the error condition and verify stderr contains a Tip: line with a valid ddis command. Verify the tip is suppressed with -q. Verify non-actionable errors (e.g., I/O failures) do NOT emit tips.
+
+// WHY THIS MATTERS: Error messages are the highest-friction interaction point in CLI UX. An agent that encounters an error and receives a recovery hint can self-correct immediately. Without recovery hints, every error becomes a dead end requiring human intervention or external documentation lookup.
+
+---

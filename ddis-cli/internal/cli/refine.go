@@ -88,11 +88,26 @@ func init() {
 	refineCmd.AddCommand(refineApplyCmd)
 	refineCmd.AddCommand(refineJudgeCmd)
 
-	refineCmd.MarkPersistentFlagRequired("spec")
+	// --spec is no longer required; auto-discovery or positional arg can provide DB path
+}
+
+// resolveRefineSpec resolves the spec DB path from --spec flag, positional arg, or auto-discovery.
+func resolveRefineSpec(args []string) (string, error) {
+	if refineSpec != "" {
+		return refineSpec, nil
+	}
+	if len(args) >= 1 {
+		return args[0], nil
+	}
+	return FindDB()
 }
 
 func runRefineAudit(cmd *cobra.Command, args []string) error {
-	db, err := storage.Open(refineSpec)
+	specPath, err := resolveRefineSpec(args)
+	if err != nil {
+		return err
+	}
+	db, err := storage.Open(specPath)
 	if err != nil {
 		return fmt.Errorf("open spec database: %w", err)
 	}
@@ -117,7 +132,11 @@ func runRefineAudit(cmd *cobra.Command, args []string) error {
 }
 
 func runRefinePlan(cmd *cobra.Command, args []string) error {
-	db, err := storage.Open(refineSpec)
+	specPath, err := resolveRefineSpec(args)
+	if err != nil {
+		return err
+	}
+	db, err := storage.Open(specPath)
 	if err != nil {
 		return fmt.Errorf("open spec database: %w", err)
 	}
@@ -142,7 +161,11 @@ func runRefinePlan(cmd *cobra.Command, args []string) error {
 }
 
 func runRefineApply(cmd *cobra.Command, args []string) error {
-	db, err := storage.Open(refineSpec)
+	specPath, err := resolveRefineSpec(args)
+	if err != nil {
+		return err
+	}
+	db, err := storage.Open(specPath)
 	if err != nil {
 		return fmt.Errorf("open spec database: %w", err)
 	}
@@ -167,7 +190,11 @@ func runRefineApply(cmd *cobra.Command, args []string) error {
 }
 
 func runRefineJudge(cmd *cobra.Command, args []string) error {
-	db, err := storage.Open(refineSpec)
+	specPath, err := resolveRefineSpec(args)
+	if err != nil {
+		return err
+	}
+	db, err := storage.Open(specPath)
 	if err != nil {
 		return fmt.Errorf("open spec database: %w", err)
 	}

@@ -63,7 +63,32 @@ func MatchElements(baseDB, headDB *sql.DB, baseSpec, headSpec int64) ([]MatchPai
 	return pairs, nil
 }
 
-// matchSections implements two-pass section matching: exact path, then fuzzy.
+// sectionKey builds a composite key for section matching in modular specs.
+// Uses source file path + section_path to disambiguate sections with the same
+// path across different modules (e.g., "invariants" in both core.md and auth.md).
+func sectionKey(s *storage.Section, fileMap map[int64]string) string {
+	if fp, ok := fileMap[s.SourceFileID]; ok {
+		return fp + ":" + s.SectionPath
+	}
+	return s.SectionPath
+}
+
+// buildFileMap creates a SourceFileID → FilePath map for composite key generation.
+func buildFileMap(db *sql.DB, specID int64) map[int64]string {
+	files, err := storage.GetSourceFiles(db, specID)
+	if err != nil {
+		return nil
+	}
+	m := make(map[int64]string, len(files))
+	for _, f := range files {
+		m[f.ID] = f.FilePath
+	}
+	return m
+}
+
+// matchSections implements two-pass section matching: exact composite key, then fuzzy.
+// Uses composite keys (source_file:section_path) to handle modular specs where
+// multiple modules have sections with the same section_path.
 func matchSections(baseDB, headDB *sql.DB, baseSpec, headSpec int64) ([]MatchPair, error) {
 	baseSecs, err := storage.ListSections(baseDB, baseSpec)
 	if err != nil {
@@ -74,23 +99,26 @@ func matchSections(baseDB, headDB *sql.DB, baseSpec, headSpec int64) ([]MatchPai
 		return nil, err
 	}
 
-	// Index by section_path
-	baseByPath := make(map[string]*storage.Section, len(baseSecs))
-	for i := range baseSecs {
-		baseByPath[baseSecs[i].SectionPath] = &baseSecs[i]
-	}
-	headByPath := make(map[string]*storage.Section, len(headSecs))
+	// Build file maps for composite key generation
+	baseFileMap := buildFileMap(baseDB, baseSpec)
+	headFileMap := buildFileMap(headDB, headSpec)
+
+	// Index by composite key (source_file:section_path)
+	headByKey := make(map[string]*storage.Section, len(headSecs))
 	for i := range headSecs {
-		headByPath[headSecs[i].SectionPath] = &headSecs[i]
+		key := sectionKey(&headSecs[i], headFileMap)
+		headByKey[key] = &headSecs[i]
 	}
 
-	matched := make(map[string]bool) // head paths already matched
+	matched := make(map[string]bool) // head composite keys already matched
 	var pairs []MatchPair
 
-	// Pass 1: Exact match by section_path
+	// Pass 1: Exact match by composite key
 	for _, bs := range baseSecs {
-		if hs, ok := headByPath[bs.SectionPath]; ok {
+		bKey := sectionKey(&bs, baseFileMap)
+		if hs, ok := headByKey[bKey]; ok {
 			bid, hid := bs.ID, hs.ID
+			hKey := sectionKey(hs, headFileMap)
 			pairs = append(pairs, MatchPair{
 				ElementType: "section",
 				ElementID:   bs.SectionPath,
@@ -99,18 +127,20 @@ func matchSections(baseDB, headDB *sql.DB, baseSpec, headSpec int64) ([]MatchPai
 				BaseHash:    bs.ContentHash,
 				HeadHash:    hs.ContentHash,
 			})
-			matched[bs.SectionPath] = true
+			matched[hKey] = true
 		}
 	}
 
 	// Pass 2: Fuzzy match for unmatched base sections (handles ~N disambiguation)
 	for _, bs := range baseSecs {
-		if matched[bs.SectionPath] {
+		bKey := sectionKey(&bs, baseFileMap)
+		if matched[bKey] {
 			continue
 		}
-		// Look for a head section with similar path
-		if hs := fuzzyMatchSection(&bs, headSecs, matched); hs != nil {
+		// Look for a head section with similar path (within same source file if possible)
+		if hs := fuzzyMatchSection(&bs, headSecs, matched, baseFileMap, headFileMap); hs != nil {
 			bid, hid := bs.ID, hs.ID
+			hKey := sectionKey(hs, headFileMap)
 			pairs = append(pairs, MatchPair{
 				ElementType: "section",
 				ElementID:   bs.SectionPath,
@@ -119,7 +149,7 @@ func matchSections(baseDB, headDB *sql.DB, baseSpec, headSpec int64) ([]MatchPai
 				BaseHash:    bs.ContentHash,
 				HeadHash:    hs.ContentHash,
 			})
-			matched[hs.SectionPath] = true
+			matched[hKey] = true
 		} else {
 			// Removed from head
 			bid := bs.ID
@@ -134,7 +164,8 @@ func matchSections(baseDB, headDB *sql.DB, baseSpec, headSpec int64) ([]MatchPai
 
 	// Any unmatched head sections are additions
 	for _, hs := range headSecs {
-		if !matched[hs.SectionPath] {
+		hKey := sectionKey(&hs, headFileMap)
+		if !matched[hKey] {
 			hid := hs.ID
 			pairs = append(pairs, MatchPair{
 				ElementType: "section",
@@ -149,13 +180,21 @@ func matchSections(baseDB, headDB *sql.DB, baseSpec, headSpec int64) ([]MatchPai
 }
 
 // fuzzyMatchSection finds a head section with the same parent and similar title.
-func fuzzyMatchSection(base *storage.Section, headSecs []storage.Section, matched map[string]bool) *storage.Section {
+// Prefers matches from the same source file path.
+func fuzzyMatchSection(base *storage.Section, headSecs []storage.Section, matched map[string]bool, baseFileMap, headFileMap map[int64]string) *storage.Section {
 	baseParent := sectionParent(base.SectionPath)
 	baseTitle := strings.ToLower(base.Title)
+	baseFile := baseFileMap[base.SourceFileID]
 
+	// First pass: prefer matches within the same source file
 	for i := range headSecs {
 		hs := &headSecs[i]
-		if matched[hs.SectionPath] {
+		hKey := sectionKey(hs, headFileMap)
+		if matched[hKey] {
+			continue
+		}
+		headFile := headFileMap[hs.SourceFileID]
+		if baseFile != headFile {
 			continue
 		}
 		headParent := sectionParent(hs.SectionPath)
@@ -163,7 +202,24 @@ func fuzzyMatchSection(base *storage.Section, headSecs []storage.Section, matche
 			continue
 		}
 		headTitle := strings.ToLower(hs.Title)
-		// Case-insensitive prefix match or Levenshtein ≤ 3
+		if strings.HasPrefix(headTitle, baseTitle) || strings.HasPrefix(baseTitle, headTitle) ||
+			levenshtein(baseTitle, headTitle) <= 3 {
+			return hs
+		}
+	}
+
+	// Second pass: allow cross-file fuzzy matches
+	for i := range headSecs {
+		hs := &headSecs[i]
+		hKey := sectionKey(hs, headFileMap)
+		if matched[hKey] {
+			continue
+		}
+		headParent := sectionParent(hs.SectionPath)
+		if baseParent != headParent {
+			continue
+		}
+		headTitle := strings.ToLower(hs.Title)
 		if strings.HasPrefix(headTitle, baseTitle) || strings.HasPrefix(baseTitle, headTitle) ||
 			levenshtein(baseTitle, headTitle) <= 3 {
 			return hs

@@ -48,7 +48,7 @@ func runChecklist(cmd *cobra.Command, args []string) error {
 	}
 	if dbPath == "" {
 		var err error
-		dbPath, err = findDB()
+		dbPath, err = FindDB()
 		if err != nil {
 			return err
 		}
@@ -81,5 +81,11 @@ func runChecklist(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	if !NoGuidance && !checklistJSON {
+		fmt.Println("\nNext: ddis validate && ddis scan .")
+		fmt.Println("  Run checks and scan for annotations after completing items.")
+	}
+
 	return nil
 }

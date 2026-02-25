@@ -78,6 +78,13 @@ func ParseModularSpec(manifestPath string, db storage.DB) (int64, error) {
 		return 0, err
 	}
 
+	// Clear existing data for this spec path (idempotent re-parse).
+	// Witnesses are saved and will be re-attached after parsing.
+	savedWitnesses, err := storage.ClearSpecByPath(db, manifestPath)
+	if err != nil {
+		return 0, fmt.Errorf("clear existing spec: %w", err)
+	}
+
 	// Read all source files to compute total content hash
 	allContent := rawYAML
 
@@ -248,6 +255,18 @@ func ParseModularSpec(manifestPath string, db storage.DB) (int64, error) {
 	// Resolve cross-references across all files (with parent fallback)
 	if err := ResolveCrossReferences(db, specID); err != nil {
 		return 0, fmt.Errorf("resolve cross-references: %w", err)
+	}
+
+	// Re-attach saved witnesses to the new spec ID.
+	// InvalidateWitnesses (called by parse CLI) will mark stale ones.
+	for i := range savedWitnesses {
+		w := savedWitnesses[i]
+		w.SpecID = specID
+		w.ID = 0 // reset PK for fresh insert
+		if _, err := storage.InsertWitness(db, &w); err != nil {
+			// Non-fatal: witness re-attach failure shouldn't block parse
+			fmt.Fprintf(os.Stderr, "warning: could not re-attach witness %s: %v\n", w.InvariantID, err)
+		}
 	}
 
 	return specID, nil

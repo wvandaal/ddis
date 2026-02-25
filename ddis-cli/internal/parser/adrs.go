@@ -67,8 +67,15 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
-		// Check for a new ADR header (always resets state)
+		// Check for a new ADR header (always resets state).
+		// Try canonical heading format first (### ADR-NNN:), then bold format (**ADR-NNN:**).
+		var adrID, adrTitle string
 		if m := ADRHeaderRe.FindStringSubmatch(trimmed); m != nil {
+			adrID, adrTitle = m[1], strings.TrimSpace(m[2])
+		} else if m := ADRBoldHeaderRe.FindStringSubmatch(trimmed); m != nil {
+			adrID, adrTitle = m[1], strings.TrimSpace(m[2])
+		}
+		if adrID != "" {
 			if state != idle {
 				if err := flush(i + 1); err != nil {
 					return err
@@ -78,8 +85,8 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 			current = storage.ADR{
 				SpecID:       specID,
 				SourceFileID: sourceFileID,
-				ADRID:        m[1],
-				Title:        strings.TrimSpace(m[2]),
+				ADRID:        adrID,
+				Title:        adrTitle,
 				LineStart:    i + 1,
 			}
 			sec := FindSectionForLine(sections, i)
@@ -101,15 +108,28 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 
 		rawLines = append(rawLines, line)
 
-		// Check for subheadings
+		// Check for subheadings — try heading format first, then bare text format.
+		var subheading, restText string
 		if m := ADRSubheadingRe.FindStringSubmatch(trimmed); m != nil {
+			subheading = m[1]
+		} else if m := ADRBareSubheadingRe.FindStringSubmatch(trimmed); m != nil {
+			subheading = m[1]
+			if len(m) > 2 {
+				restText = strings.TrimSpace(m[2])
+			}
+			// Normalize "Options considered" to "Options"
+			if subheading == "Options considered" {
+				subheading = "Options"
+			}
+		}
+		if subheading != "" {
 			// Flush current option if we're leaving Options
-			if currentOpt != nil && currentSection == "Options" && m[1] != "Options" {
+			if currentOpt != nil && currentSection == "Options" && subheading != "Options" {
 				options = append(options, currentOpt)
 				currentOpt = nil
 			}
 
-			currentSection = m[1]
+			currentSection = subheading
 			switch currentSection {
 			case "Problem":
 				state = inProblem
@@ -121,6 +141,19 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 				state = inConsequences
 			case "Tests":
 				state = inTests
+			}
+			// For bare text format, the rest of the line after "Problem:" etc. is content
+			if restText != "" {
+				switch state {
+				case inProblem:
+					current.Problem = restText
+				case inDecision:
+					current.DecisionText = restText
+				case inConsequences:
+					current.Consequences = restText
+				case inTests:
+					current.Tests = restText
+				}
 			}
 			continue
 		}

@@ -17,9 +17,9 @@ var (
 )
 
 var renderCmd = &cobra.Command{
-	Use:   "render <index.db>",
+	Use:   "render [index.db]",
 	Short: "Render an index back to markdown",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.RangeArgs(0, 1),
 	RunE:  runRender,
 }
 
@@ -29,7 +29,17 @@ func init() {
 }
 
 func runRender(cmd *cobra.Command, args []string) error {
-	dbPath := args[0]
+	var dbPath string
+	if len(args) >= 1 {
+		dbPath = args[0]
+	}
+	if dbPath == "" {
+		var err error
+		dbPath, err = FindDB()
+		if err != nil {
+			return err
+		}
+	}
 
 	db, err := storage.Open(dbPath)
 	if err != nil {

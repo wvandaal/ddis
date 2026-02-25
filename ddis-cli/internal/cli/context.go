@@ -53,7 +53,7 @@ func runContext(cmd *cobra.Command, args []string) error {
 	}
 	if dbPath == "" {
 		var err error
-		dbPath, err = findDB()
+		dbPath, err = FindDB()
 		if err != nil {
 			return err
 		}
@@ -96,5 +96,10 @@ func runContext(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	if !NoGuidance && !contextJSON {
+		fmt.Printf("\nNext: ddis exemplar %s\n", target)
+		fmt.Println("  See corpus demonstrations for weak components.")
+	}
 	return nil
 }

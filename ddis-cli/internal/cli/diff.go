@@ -80,6 +80,11 @@ func runDiff(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Print(out)
 
+	if !NoGuidance && !diffJSON {
+		fmt.Println("\nNext: ddis impact <changed-element>")
+		fmt.Println("  Assess downstream impact of the changes.")
+	}
+
 	if diffLog {
 		oplogPath := diffOplogPath
 		if oplogPath == "" {

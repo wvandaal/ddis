@@ -46,7 +46,7 @@ func runImplOrder(cmd *cobra.Command, args []string) error {
 	}
 	if dbPath == "" {
 		var err error
-		dbPath, err = findDB()
+		dbPath, err = FindDB()
 		if err != nil {
 			return err
 		}
@@ -74,5 +74,11 @@ func runImplOrder(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	if !NoGuidance && !implorderJSON {
+		fmt.Println("\nNext: ddis progress")
+		fmt.Println("  See implementation status of the ordered elements.")
+	}
+
 	return nil
 }

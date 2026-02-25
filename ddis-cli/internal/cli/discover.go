@@ -43,6 +43,7 @@ Examples:
   ddis discover --spec index.db --content "how should we handle TTL?"
   ddis discover status --spec index.db
   ddis discover threads --spec index.db`,
+	Args:          cobra.MaximumNArgs(1),
 	RunE:          runDiscover,
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -97,11 +98,18 @@ func init() {
 	discoverCmd.AddCommand(discoverThreadsCmd)
 	discoverCmd.AddCommand(discoverParkCmd)
 	discoverCmd.AddCommand(discoverMergeCmd)
+	discoverCmd.AddCommand(crystallizeCmd)
 }
 
 func runDiscover(cmd *cobra.Command, args []string) error {
+	// Accept positional DB arg alongside --spec flag
+	specDB := discoverSpec
+	if specDB == "" && len(args) >= 1 {
+		specDB = args[0]
+	}
+
 	opts := discover.DiscoverOptions{
-		SpecDB:    discoverSpec,
+		SpecDB:    specDB,
 		ThreadID:  discoverThread,
 		Content:   discoverContent,
 		Depth:     discoverDepth,

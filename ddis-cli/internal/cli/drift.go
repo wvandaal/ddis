@@ -54,7 +54,7 @@ func runDrift(cmd *cobra.Command, args []string) error {
 	}
 	if dbPath == "" {
 		var err error
-		dbPath, err = findDB()
+		dbPath, err = FindDB()
 		if err != nil {
 			return err
 		}
@@ -70,6 +70,8 @@ func runDrift(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("no spec found: %w", err)
 	}
+
+	WarnIfStale(db, specID)
 
 	if driftReport {
 		// Full report mode
@@ -87,6 +89,11 @@ func runDrift(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		fmt.Print(out)
+
+		// Guidance postscript for report mode
+		if !NoGuidance && !driftJSON {
+			emitDriftGuidance(report)
+		}
 		return nil
 	}
 
@@ -113,4 +120,24 @@ func runDrift(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Print(out)
 	return nil
+}
+
+func emitDriftGuidance(report *drift.DriftReport) {
+	if report.EffectiveDrift == 0 {
+		fmt.Println("\nNext: ddis validate")
+		fmt.Println("  Drift is 0 — verify structural integrity.")
+		return
+	}
+	q := report.QualityBreakdown
+	if q.Correctness > 0 && len(report.ImplDrift.Details) > 0 {
+		element := report.ImplDrift.Details[0].Element
+		fmt.Printf("\nNext: ddis context %s\n", element)
+		fmt.Println("  Correctness drift — investigate the first drifted element.")
+	} else if q.Coherence > 0 {
+		fmt.Println("\nNext: ddis validate --checks 1")
+		fmt.Println("  Coherence drift — repair cross-references.")
+	} else {
+		fmt.Println("\nNext: ddis drift")
+		fmt.Println("  Depth drift — get remediation package for the top item.")
+	}
 }

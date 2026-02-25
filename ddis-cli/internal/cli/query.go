@@ -1,9 +1,12 @@
 package cli
 
 import (
+	"database/sql"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -73,7 +76,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 	// Auto-discover DB if not specified
 	if dbPath == "" {
 		var err error
-		dbPath, err = findDB()
+		dbPath, err = FindDB()
 		if err != nil {
 			return err
 		}
@@ -146,11 +149,16 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	if !NoGuidance && !queryJSON && !queryRaw {
+		fmt.Printf("\nNext: ddis context %s\n", target)
+		fmt.Println("  Get the full intelligence bundle with all 9 signals.")
+	}
 	return nil
 }
 
-// findDB looks for a *.ddis.db file in the current directory.
-func findDB() (string, error) {
+// FindDB looks for a *.ddis.db file in the current directory.
+func FindDB() (string, error) {
 	matches, err := filepath.Glob("*.ddis.db")
 	if err != nil {
 		return "", fmt.Errorf("search for .ddis.db: %w", err)
@@ -162,4 +170,47 @@ func findDB() (string, error) {
 		return "", fmt.Errorf("multiple .ddis.db files found (%s); specify which one to use", strings.Join(matches, ", "))
 	}
 	return matches[0], nil
+}
+
+// WarnIfStale checks whether the spec source files are newer than the parsed database.
+// Emits a warning to stderr if stale. Non-fatal — never returns an error.
+func WarnIfStale(db *sql.DB, specID int64) {
+	if NoGuidance {
+		return
+	}
+	var parsedAt string
+	if err := db.QueryRow("SELECT parsed_at FROM spec_index WHERE id = ?", specID).Scan(&parsedAt); err != nil {
+		return
+	}
+	parsed, err := time.Parse(time.RFC3339, parsedAt)
+	if err != nil {
+		// Try ISO 8601 without timezone
+		parsed, err = time.Parse("2006-01-02T15:04:05Z", parsedAt)
+		if err != nil {
+			return
+		}
+	}
+
+	// Check source file mtimes
+	rows, err := db.Query("SELECT file_path FROM source_files WHERE spec_id = ?", specID)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var fp string
+		if err := rows.Scan(&fp); err != nil {
+			continue
+		}
+		info, err := os.Stat(fp)
+		if err != nil {
+			continue
+		}
+		if info.ModTime().After(parsed) {
+			fmt.Fprintf(os.Stderr, "Warning: spec file %s modified since last parse.\n", fp)
+			fmt.Fprintln(os.Stderr, "Tip: ddis parse manifest.yaml")
+			return
+		}
+	}
 }

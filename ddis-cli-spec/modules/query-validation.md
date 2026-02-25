@@ -1,9 +1,9 @@
 ---
 module: query-validation
 domain: validation
-maintains: [APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-011]
+maintains: [APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-011, APP-INV-043, APP-INV-044]
 interfaces: [APP-INV-001, APP-INV-005, APP-INV-006, APP-INV-008, APP-INV-009, APP-INV-015, APP-INV-016]
-implements: [APP-ADR-004]
+implements: [APP-ADR-004, APP-ADR-032]
 adjacent: [parse-pipeline, search-intelligence, lifecycle-ops]
 negative_specs:
   - "Must NOT rely on execution order for validation check correctness"
@@ -838,3 +838,75 @@ Per the cross-module reference completeness convention, this section lists invar
 | APP-INV-013 | lifecycle-ops | interfaces | Impact analysis BFS termination guarantee; visited set prevents infinite loops on cycles |
 | APP-INV-015 | parse-pipeline | interfaces | Content hashes used by the diff engine for change detection must be deterministic |
 | APP-INV-016 | lifecycle-ops | interfaces | Implementation Traceability annotations consumed by Check 13 must have valid Source/Tests/Validates-via paths |
+
+**APP-INV-043: Invariant Statement Inline**
+
+*Every validation finding that references a governing invariant MUST include the invariant statement text inline in the output, eliminating the need for a follow-up context lookup.*
+
+```
+FOR ALL result IN ValidationReport.Results WHERE NOT result.Passed:
+  result.InvariantID \!= ""
+  IMPLIES result.InvariantStatement \!= ""
+```
+
+Violation scenario: A validation report shows "[FAIL] Check 3" with 88 warnings but no invariant text. The LLM must run ddis context APP-INV-006 just to understand what the check means, wasting a round-trip and breaking the flow of the improvement loop.
+
+Validation: Run ddis validate on a spec with at least one failing check. Parse the output and verify that every [FAIL] line with an invariant ID also includes the invariant statement text. Verify the statement matches the actual invariant definition in the spec index.
+
+// WHY THIS MATTERS: Spec-first framing (Gestalt principle) requires the governing property to be visible at the point of failure. Without inline statements, every failing check requires a follow-up command, multiplying round-trips and fragmenting the improvement context.
+
+---
+
+**APP-INV-044: Warning Collapse**
+
+*No single validation check may produce more than 10 individual warning lines in text mode. Warnings beyond 5 MUST be collapsed to a count plus top-5 summary.*
+
+```
+FOR ALL check IN ValidationReport.Results WHERE NOT check.Passed:
+  LET warnings = [f FOR f IN check.Findings WHERE f.Severity = WARNING]
+  textLines(warnings) <= 10
+  AND len(warnings) > 5 IMPLIES output CONTAINS "N warnings (top 5):"
+```
+
+Violation scenario: A check produces 88 cross-reference density warnings. The validation output is 92 lines long, burying the actual failure diagnosis in noise. The LLM cannot parse the signal from the noise and either ignores the check or processes all 88 items inefficiently.
+
+Validation: Run ddis validate on a spec where Check 3 (cross-reference density) produces more than 5 warnings. Count the warning lines in text output for that check. Verify the count is at most 10. Verify the output includes a collapse summary line. Compare with --json output to confirm all warnings are still present in structured form.
+
+// WHY THIS MATTERS: Gestalt principle of signal-to-noise: 88 identical warnings carry the same information as "88 warnings (top 5: ...)" but consume 17x more context tokens. Warning collapse preserves information while respecting the LLM context budget.
+
+---
+
+### APP-ADR-032: Gestalt-Optimized CLI Output
+
+#### Problem
+
+Validation output lists checks by number without showing the governing invariant. An LLM reading "[FAIL] Check 3: cross-reference density, 88 warnings" must call ddis context to understand what invariant is violated, adding a round-trip per failing check.
+
+#### Options
+
+A) **Verbose mode flag** --- Adds detail when requested but default output remains opaque. Requires the agent to know the flag exists.
+B) **Structured JSON only** --- Machine-readable but loses the gestalt of a visual summary. Requires post-processing for every invocation.
+C) **Gestalt-optimized default output** --- Every failing check includes the governing invariant statement inline. Warnings collapsed to count + top-5. Failures rendered before passes.
+
+#### Decision
+
+**Option C: Gestalt-optimized default output.** Validation report shows invariant ID and statement for each check, failures first, warnings collapsed to top-5 with count. The format applies Gestalt principles from the spec itself (APP-ADR-017): spec-first framing, demonstrations over constraints, remove parasitic information.
+
+// WHY NOT Option A (verbose flag)? The useful information should be in the default output. Requiring a flag to see the governing invariant defeats the purpose of LLM-friendly output.
+
+// WHY NOT Option B (JSON only)? JSON is for programmatic consumption. The text report is what the LLM reads in conversation context. Both must be good.
+
+**Confidence:** Committed
+
+#### Consequences
+
+The +3-4 quality point improvement from spec-first framing (APP-ADR-017) applies equally to CLI output. When a check fails, the LLM needs the invariant statement to understand what was violated and craft a fix. Embedding it inline eliminates a ddis context round-trip per failure. Warning collapse prevents context window pollution from 88 identical warnings.
+
+#### Tests
+
+- Run ddis validate with a failing check: verify invariant statement appears inline
+- Run ddis validate: verify failures render before passes
+- Run ddis validate with >10 warnings: verify count + top-5 collapse
+- Verify ddis validate --json backward compatibility (same structure)
+
+---

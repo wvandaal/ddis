@@ -95,6 +95,8 @@ modules:
       - APP-INV-003
       - APP-INV-007
       - APP-INV-011
+      - APP-INV-043
+      - APP-INV-044
     interfaces:
       - APP-INV-001
       - APP-INV-005
@@ -105,6 +107,7 @@ modules:
       - APP-INV-016
     implements:
       - APP-ADR-004
+      - APP-ADR-032
     adjacent: [parse-pipeline, search-intelligence, lifecycle-ops]
     deep_context: null
     negative_specs:
@@ -189,6 +192,9 @@ modules:
       - APP-INV-034
       - APP-INV-035
       - APP-INV-036
+      - APP-INV-042
+      - APP-INV-045
+      - APP-INV-046
     interfaces:
       - APP-INV-001
       - APP-INV-003
@@ -211,6 +217,8 @@ modules:
       - APP-ADR-023
       - APP-ADR-024
       - APP-ADR-025
+      - APP-ADR-031
+      - APP-ADR-033
     adjacent: [code-bridge, search-intelligence, lifecycle-ops, workspace-ops]
     deep_context: null
     negative_specs:
@@ -299,3 +307,8 @@ invariant_registry:
   APP-INV-039: { owner: workspace-ops, domain: workspace, description: "Task Derivation Completeness — generated tasks cover all unimplemented spec elements" }
   APP-INV-040: { owner: workspace-ops, domain: workspace, description: "Progressive Validation Monotonicity — level transitions are monotonic: L1 ⊂ L2 ⊂ L3" }
   APP-INV-041: { owner: lifecycle-ops, domain: lifecycle, description: "Witness Auto-Invalidation — stale witnesses detected on re-parse" }
+  APP-INV-042: { owner: auto-prompting, domain: autoprompt, description: "Every data command with non-empty findings emits guidance" }
+  APP-INV-043: { owner: query-validation, domain: validation, description: "Every validation finding includes governing invariant statement inline" }
+  APP-INV-044: { owner: query-validation, domain: validation, description: "Warning collapse — top-5 rendering for checks with many warnings" }
+  APP-INV-045: { owner: auto-prompting, domain: autoprompt, description: "Universal auto-discovery — every DB-reading command works without explicit path" }
+  APP-INV-046: { owner: auto-prompting, domain: autoprompt, description: "Every actionable error includes recovery guidance on stderr" }

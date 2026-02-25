@@ -151,7 +151,7 @@ func TestOpen_CreatesExpectedTables(t *testing.T) {
 	}
 }
 
-func TestInsertSpec_GetFirstSpecID_RoundTrip(t *testing.T) {
+func TestInsertSpec_GetFirstAndLatestSpecID_RoundTrip(t *testing.T) {
 	td := openTestDB(t)
 
 	spec := &SpecIndex{
@@ -179,6 +179,46 @@ func TestInsertSpec_GetFirstSpecID_RoundTrip(t *testing.T) {
 	}
 	if gotID != insertedID {
 		t.Errorf("GetFirstSpecID = %d, want %d", gotID, insertedID)
+	}
+
+	// GetLatestSpecID should also return the same ID (only one spec).
+	latestID, err := GetLatestSpecID(td.DB)
+	if err != nil {
+		t.Fatalf("GetLatestSpecID: %v", err)
+	}
+	if latestID != insertedID {
+		t.Errorf("GetLatestSpecID = %d, want %d", latestID, insertedID)
+	}
+
+	// Insert a second spec — GetFirstSpecID returns first, GetLatestSpecID returns second.
+	spec2 := &SpecIndex{
+		SpecPath:    "/tmp/my-spec.md",
+		SpecName:    "My Spec v2",
+		DDISVersion: "3.0",
+		TotalLines:  300,
+		ContentHash: "hash_def",
+		ParsedAt:    "2026-02-25T13:00:00Z",
+		SourceType:  "monolith",
+	}
+	secondID, err := InsertSpecIndex(td.DB, spec2)
+	if err != nil {
+		t.Fatalf("InsertSpecIndex (second): %v", err)
+	}
+
+	firstID, err := GetFirstSpecID(td.DB)
+	if err != nil {
+		t.Fatalf("GetFirstSpecID after second insert: %v", err)
+	}
+	if firstID != insertedID {
+		t.Errorf("GetFirstSpecID = %d, want %d (original)", firstID, insertedID)
+	}
+
+	latestID2, err := GetLatestSpecID(td.DB)
+	if err != nil {
+		t.Fatalf("GetLatestSpecID after second insert: %v", err)
+	}
+	if latestID2 != secondID {
+		t.Errorf("GetLatestSpecID = %d, want %d (second)", latestID2, secondID)
 	}
 
 	// GetSpecIndex should return matching data.
@@ -491,6 +531,16 @@ func TestGetFirstSpecID_EmptyDB(t *testing.T) {
 	}
 }
 
+func TestGetLatestSpecID_EmptyDB(t *testing.T) {
+	td := openTestDB(t)
+
+	// No specs inserted, GetLatestSpecID should fail.
+	_, err := GetLatestSpecID(td.DB)
+	if err == nil {
+		t.Fatal("expected error from GetLatestSpecID on empty DB, got nil")
+	}
+}
+
 func TestInsertInvariant_UniqueConstraint(t *testing.T) {
 	td := openTestDB(t)
 	specID := td.insertSpec()
@@ -549,14 +599,26 @@ func TestInsertADR_UniqueConstraint(t *testing.T) {
 		t.Fatalf("first insert: %v", err)
 	}
 
-	// Second insert with same (spec_id, adr_id) should fail.
+	// Second insert with same (spec_id, adr_id) should upsert (richer content wins).
 	adr2 := *adr
 	adr2.Title = "Duplicate"
+	adr2.Problem = "A much more detailed problem description that is longer"
+	adr2.RawText = "raw text that is much longer than the original version for upsert testing"
 	adr2.ContentHash = "hash2"
-	_, err := InsertADR(td.DB, &adr2)
-	if err == nil {
-		t.Fatal("expected UNIQUE constraint error on duplicate adr_id, got nil")
+	id2, err := InsertADR(td.DB, &adr2)
+	if err != nil {
+		t.Fatalf("upsert should succeed: %v", err)
 	}
+
+	// Verify richer content was kept
+	got, err := GetADR(td.DB, specID, "ADR-001")
+	if err != nil {
+		t.Fatalf("GetADR after upsert: %v", err)
+	}
+	if got.Problem != "A much more detailed problem description that is longer" {
+		t.Fatalf("upsert should keep richer problem, got %q", got.Problem)
+	}
+	_ = id2
 }
 
 func TestNullableFields_EmptyStringsStoredAsNull(t *testing.T) {

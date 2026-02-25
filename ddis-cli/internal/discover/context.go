@@ -248,6 +248,9 @@ func countOpenQuestions(events []Event) int {
 // computeDriftProxy computes a lightweight drift proxy from cross-references.
 // drift = unresolved_refs / total_refs (0 if no refs).
 func computeDriftProxy(db *sql.DB, specID int64) float64 {
+	if db == nil {
+		return 0.0
+	}
 	counts, err := storage.CountElements(db, specID)
 	if err != nil {
 		return 0.0
@@ -264,6 +267,9 @@ func computeDriftProxy(db *sql.DB, specID int64) float64 {
 // buildConfidence builds the 5-element confidence array from spec data.
 func buildConfidence(db *sql.DB, specID int64) [5]int {
 	var conf [5]int
+	if db == nil {
+		return conf
+	}
 
 	counts, err := storage.CountElements(db, specID)
 	if err != nil {

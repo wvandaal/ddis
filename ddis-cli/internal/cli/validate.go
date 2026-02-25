@@ -28,17 +28,20 @@ var (
 var ErrValidationFailed = errors.New("validation failed")
 
 var validateCmd = &cobra.Command{
-	Use:   "validate <index.db>",
+	Use:   "validate [index.db]",
 	Short: "Run mechanical validation checks against the spec index",
 	Long: `Runs validation checks against a parsed DDIS spec index.
 Checks include cross-reference integrity, invariant structure,
 glossary completeness, structural conformance, and more.
 
+If no database path is given, auto-discovers a *.ddis.db file in the current directory.
+
 Examples:
+  ddis validate
   ddis validate index.db
   ddis validate index.db --json
   ddis validate index.db --checks 1,2,3,9`,
-	Args:          cobra.ExactArgs(1),
+	Args:          cobra.RangeArgs(0, 1),
 	RunE:          runValidate,
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -53,7 +56,17 @@ func init() {
 }
 
 func runValidate(cmd *cobra.Command, args []string) error {
-	dbPath := args[0]
+	var dbPath string
+	if len(args) >= 1 {
+		dbPath = args[0]
+	}
+	if dbPath == "" {
+		var err error
+		dbPath, err = FindDB()
+		if err != nil {
+			return err
+		}
+	}
 
 	db, err := storage.Open(dbPath)
 	if err != nil {
@@ -65,6 +78,8 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("no spec found in database: %w", err)
 	}
+
+	WarnIfStale(db, specID)
 
 	checkIDs, err := validator.ParseCheckIDs(validateChecks)
 	if err != nil {
@@ -109,9 +124,39 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(cmd.ErrOrStderr(), "Validation record appended to %s\n", oplogPath)
 	}
 
+	// Guidance postscript
+	if !NoGuidance && !validateJSON {
+		emitValidateGuidance(report)
+	}
+
 	if report.Errors > 0 {
 		return ErrValidationFailed
 	}
 
 	return nil
+}
+
+func emitValidateGuidance(report *validator.Report) {
+	if report.Failed > 0 {
+		// Find first failing check with an element to investigate
+		for _, res := range report.Results {
+			if res.Passed {
+				continue
+			}
+			for _, f := range res.Findings {
+				if f.InvariantID != "" {
+					fmt.Printf("\nNext: ddis context %s\n", f.InvariantID)
+					fmt.Printf("  Investigate the highest-impact failing element.\n")
+					return
+				}
+			}
+			// No element ID — suggest re-running with focus
+			fmt.Printf("\nNext: ddis validate --checks %d\n", res.CheckID)
+			fmt.Printf("  Review Check %d details.\n", res.CheckID)
+			return
+		}
+	} else {
+		fmt.Println("\nNext: ddis coverage && ddis drift --report")
+		fmt.Println("  All checks passing — verify completeness and alignment.")
+	}
 }

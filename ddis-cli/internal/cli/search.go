@@ -58,7 +58,7 @@ func runSearch(cmd *cobra.Command, args []string) error {
 	}
 	if dbPath == "" {
 		var err error
-		dbPath, err = findDB()
+		dbPath, err = FindDB()
 		if err != nil {
 			return err
 		}
@@ -90,5 +90,15 @@ func runSearch(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	if !NoGuidance && !searchJSON {
+		if len(results) > 0 {
+			fmt.Printf("\nNext: ddis context %s\n", results[0].ElementID)
+			fmt.Println("  Get the full intelligence bundle for the top result.")
+		} else {
+			fmt.Println("\nNext: ddis query --list invariants")
+			fmt.Println("  No results — try browsing available elements.")
+		}
+	}
 	return nil
 }

@@ -33,11 +33,13 @@ type Finding struct {
 
 // CheckResult is the outcome of running one check.
 type CheckResult struct {
-	CheckID   int       `json:"check_id"`
-	CheckName string    `json:"check_name"`
-	Passed    bool      `json:"passed"`
-	Findings  []Finding `json:"findings"`
-	Summary   string    `json:"summary"`
+	CheckID            int       `json:"check_id"`
+	CheckName          string    `json:"check_name"`
+	Passed             bool      `json:"passed"`
+	Findings           []Finding `json:"findings"`
+	Summary            string    `json:"summary"`
+	InvariantID        string    `json:"invariant_id,omitempty"`
+	InvariantStatement string    `json:"invariant_statement,omitempty"`
 }
 
 // Report is the full validation output.
@@ -85,6 +87,24 @@ func ParseCheckIDs(s string) ([]int, error) {
 		ids = append(ids, id)
 	}
 	return ids, nil
+}
+
+// checkInvariantInfo maps check IDs to their governing invariant ID and statement.
+var checkInvariantInfo = map[int]struct {
+	ID        string
+	Statement string
+}{
+	1:  {"APP-INV-003", "Every cross-reference in the specification must resolve to a defined target."},
+	2:  {"INV-003", "Every invariant must have 4 core components: statement, semi-formal property, violation scenario, validation method."},
+	3:  {"INV-006", "Every section with implementation content must have at least one incoming cross-reference."},
+	4:  {"INV-009", "Every bold term appearing 3+ times in the spec must be defined in the glossary."},
+	5:  {"INV-013", "Each invariant must be owned (maintained) by exactly one module."},
+	6:  {"INV-014", "No module file may exceed the bundle budget size limit."},
+	7:  {"INV-015", "Every element declared in the registry must have a corresponding definition, and vice versa."},
+	8:  {"INV-016", "Module names in manifest.yaml must match the modules declared in the spec."},
+	9:  {"INV-017", "Each chapter must contain at least 3 negative specifications."},
+	10: {"Gate-1", "Required structural sections (overview, invariant registry, ADR index) must exist."},
+	14: {"APP-INV-041", "Invariant witnesses must be refreshed when the spec changes; stale witnesses are invalidated."},
 }
 
 // AllChecks returns all registered validation checks.
@@ -143,6 +163,10 @@ func Validate(db *sql.DB, specID int64, opts ValidateOptions) (*Report, error) {
 		}
 
 		result := check.Run(db, specID)
+		if info, ok := checkInvariantInfo[result.CheckID]; ok {
+			result.InvariantID = info.ID
+			result.InvariantStatement = info.Statement
+		}
 		report.Results = append(report.Results, result)
 		report.TotalChecks++
 

@@ -101,5 +101,10 @@ func runScan(cmd *cobra.Command, args []string) error {
 		fmt.Print(annotate.RenderText(result))
 	}
 
+	if !NoGuidance && !scanJSON {
+		fmt.Println("\nNext: ddis drift --report")
+		fmt.Println("  Check spec-implementation alignment after scanning.")
+	}
+
 	return nil
 }

@@ -26,11 +26,13 @@ elements connected to the given target.
 Forward impact: "I'm changing X, what else is affected?"
 Backward trace: "Why does X say this? What does it depend on?"
 
+If no database path is given, auto-discovers a *.ddis.db file in the current directory.
+
 Examples:
-  ddis impact INV-006 index.db
-  ddis impact §4.2 index.db --direction backward
-  ddis impact ADR-003 index.db --depth 3 --json`,
-	Args:          cobra.ExactArgs(2),
+  ddis impact APP-INV-006 forward
+  ddis impact §4.2 backward --direction backward
+  ddis impact ADR-003 forward index.db --depth 3 --json`,
+	Args:          cobra.RangeArgs(1, 2),
 	RunE:          runImpact,
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -43,7 +45,18 @@ func init() {
 }
 
 func runImpact(cmd *cobra.Command, args []string) error {
-	target, dbPath := args[0], args[1]
+	target := args[0]
+	var dbPath string
+	if len(args) >= 2 {
+		dbPath = args[1]
+	}
+	if dbPath == "" {
+		var err error
+		dbPath, err = FindDB()
+		if err != nil {
+			return err
+		}
+	}
 
 	db, err := storage.Open(dbPath)
 	if err != nil {
@@ -71,6 +84,11 @@ func runImpact(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	if !NoGuidance && !impactJSON {
+		fmt.Println("\nNext: ddis context <top-impacted-element>")
+		fmt.Println("  Investigate the most impacted element.")
+	}
 
 	return nil
 }

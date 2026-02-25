@@ -73,7 +73,21 @@ func InsertADR(db *sql.DB, a *ADR) (int64, error) {
 		`INSERT INTO adrs (spec_id, source_file_id, section_id, adr_id, title, problem, decision_text,
 		  chosen_option, consequences, tests, confidence, status, superseded_by,
 		  line_start, line_end, raw_text, content_hash)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		 ON CONFLICT(spec_id, adr_id) DO UPDATE SET
+		  source_file_id = CASE WHEN length(excluded.raw_text) > length(adrs.raw_text) THEN excluded.source_file_id ELSE adrs.source_file_id END,
+		  section_id = CASE WHEN length(excluded.raw_text) > length(adrs.raw_text) THEN excluded.section_id ELSE adrs.section_id END,
+		  title = CASE WHEN length(excluded.title) > length(adrs.title) THEN excluded.title ELSE adrs.title END,
+		  problem = CASE WHEN length(excluded.problem) > length(COALESCE(adrs.problem,'')) THEN excluded.problem ELSE adrs.problem END,
+		  decision_text = CASE WHEN length(excluded.decision_text) > length(COALESCE(adrs.decision_text,'')) THEN excluded.decision_text ELSE adrs.decision_text END,
+		  chosen_option = CASE WHEN excluded.chosen_option IS NOT NULL AND (adrs.chosen_option IS NULL OR length(excluded.chosen_option) > length(adrs.chosen_option)) THEN excluded.chosen_option ELSE adrs.chosen_option END,
+		  consequences = CASE WHEN excluded.consequences IS NOT NULL AND (adrs.consequences IS NULL OR length(excluded.consequences) > length(adrs.consequences)) THEN excluded.consequences ELSE adrs.consequences END,
+		  tests = CASE WHEN excluded.tests IS NOT NULL AND (adrs.tests IS NULL OR length(excluded.tests) > length(adrs.tests)) THEN excluded.tests ELSE adrs.tests END,
+		  confidence = CASE WHEN excluded.confidence IS NOT NULL THEN excluded.confidence ELSE adrs.confidence END,
+		  line_start = CASE WHEN length(excluded.raw_text) > length(adrs.raw_text) THEN excluded.line_start ELSE adrs.line_start END,
+		  line_end = CASE WHEN length(excluded.raw_text) > length(adrs.raw_text) THEN excluded.line_end ELSE adrs.line_end END,
+		  raw_text = CASE WHEN length(excluded.raw_text) > length(adrs.raw_text) THEN excluded.raw_text ELSE adrs.raw_text END,
+		  content_hash = CASE WHEN length(excluded.raw_text) > length(adrs.raw_text) THEN excluded.content_hash ELSE adrs.content_hash END`,
 		a.SpecID, a.SourceFileID, a.SectionID, a.ADRID, a.Title, a.Problem, a.DecisionText,
 		nullStr(a.ChosenOption), nullStr(a.Consequences), nullStr(a.Tests),
 		nullStr(a.Confidence), a.Status, nullStr(a.SupersededBy),
@@ -82,7 +96,16 @@ func InsertADR(db *sql.DB, a *ADR) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("insert ADR %s: %w", a.ADRID, err)
 	}
-	return res.LastInsertId()
+	_ = res
+	// ON CONFLICT DO UPDATE does not update last_insert_rowid() in SQLite,
+	// so LastInsertId() returns a stale value. Always query back the actual
+	// row ID for correct FK references in adr_options.
+	var id int64
+	err = db.QueryRow(`SELECT id FROM adrs WHERE spec_id = ? AND adr_id = ?`, a.SpecID, a.ADRID).Scan(&id)
+	if err != nil {
+		return 0, fmt.Errorf("get ADR ID after upsert %s: %w", a.ADRID, err)
+	}
+	return id, nil
 }
 
 // InsertADROption inserts an adr_options row.
@@ -500,6 +523,143 @@ func InvalidateWitnesses(db DB, witnessSpecID, currentSpecID int64) (int, error)
 	}
 	n, _ := res.RowsAffected()
 	return int(n), nil
+}
+
+// ClearSpecByPath removes all data for existing specs with the given path,
+// making re-parsing idempotent. Returns saved witnesses so they can be
+// re-attached to the freshly-parsed spec after insertion.
+//
+// Deletion order respects FK constraints (deepest children first).
+func ClearSpecByPath(db DB, specPath string) ([]InvariantWitness, error) {
+	// Find all spec_ids for this path
+	rows, err := db.Query(`SELECT id FROM spec_index WHERE spec_path = ?`, specPath)
+	if err != nil {
+		return nil, fmt.Errorf("find specs by path: %w", err)
+	}
+	var specIDs []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		specIDs = append(specIDs, id)
+	}
+	rows.Close()
+
+	if len(specIDs) == 0 {
+		return nil, nil
+	}
+
+	// Save witnesses before deletion
+	var savedWitnesses []InvariantWitness
+	for _, sid := range specIDs {
+		ws, err := ListWitnesses(db, sid)
+		if err == nil {
+			savedWitnesses = append(savedWitnesses, ws...)
+		}
+	}
+
+	for _, sid := range specIDs {
+		if err := deleteSpecData(db, sid); err != nil {
+			return savedWitnesses, fmt.Errorf("delete spec %d: %w", sid, err)
+		}
+	}
+
+	return savedWitnesses, nil
+}
+
+// deleteSpecData removes all data for a single specID in FK-safe order.
+// Tables are deleted leaf-first respecting all foreign key constraints.
+func deleteSpecData(db DB, specID int64) error {
+	// Temporarily disable FK checks for bulk deletion, then re-enable.
+	// This is safe because we're deleting ALL data for a specID (complete graph removal).
+	if _, err := db.Exec(`PRAGMA foreign_keys=OFF`); err != nil {
+		return fmt.Errorf("disable FK: %w", err)
+	}
+
+	// Delete all tables that reference spec_id
+	tables := []string{
+		"adr_options",          // FK → adrs
+		"verification_checks",  // FK → verification_prompts
+		"budget_entries",       // FK → performance_budgets
+		"state_machine_cells",  // FK → state_machines
+		"module_relationships", // FK → modules
+		"module_negative_specs", // FK → modules
+		"tx_operations",        // FK → transactions
+		"cross_references",
+		"negative_specs",
+		"formatting_hints",
+		"invariants",
+		"adrs",
+		"quality_gates",
+		"verification_prompts",
+		"meta_instructions",
+		"worked_examples",
+		"why_not_annotations",
+		"comparison_blocks",
+		"performance_budgets",
+		"state_machines",
+		"glossary_entries",
+		"modules",
+		"manifest",
+		"invariant_registry",
+		"transactions",
+		"sections",
+		"source_files",
+		"search_vectors",
+		"search_model",
+		"search_authority",
+		"session_state",
+		"code_annotations",
+		"invariant_witnesses",
+	}
+
+	for _, table := range tables {
+		var q string
+		switch table {
+		case "adr_options":
+			q = `DELETE FROM adr_options WHERE adr_id IN (SELECT id FROM adrs WHERE spec_id = ?)`
+		case "verification_checks":
+			q = `DELETE FROM verification_checks WHERE prompt_id IN (SELECT id FROM verification_prompts WHERE spec_id = ?)`
+		case "budget_entries":
+			q = `DELETE FROM budget_entries WHERE budget_id IN (SELECT id FROM performance_budgets WHERE spec_id = ?)`
+		case "state_machine_cells":
+			q = `DELETE FROM state_machine_cells WHERE machine_id IN (SELECT id FROM state_machines WHERE spec_id = ?)`
+		case "module_relationships":
+			q = `DELETE FROM module_relationships WHERE module_id IN (SELECT id FROM modules WHERE spec_id = ?)`
+		case "module_negative_specs":
+			q = `DELETE FROM module_negative_specs WHERE module_id IN (SELECT id FROM modules WHERE spec_id = ?)`
+		case "tx_operations":
+			q = `DELETE FROM tx_operations WHERE tx_id IN (SELECT tx_id FROM transactions WHERE spec_id = ?)`
+		default:
+			q = fmt.Sprintf("DELETE FROM %s WHERE spec_id = ?", table)
+		}
+		if _, err := db.Exec(q, specID); err != nil {
+			// Re-enable FK before returning error
+			db.Exec(`PRAGMA foreign_keys=ON`)
+			return fmt.Errorf("delete %s: %w", table, err)
+		}
+	}
+
+	// Clear parent_spec_id references pointing to this spec
+	if _, err := db.Exec(`UPDATE spec_index SET parent_spec_id = NULL WHERE parent_spec_id = ?`, specID); err != nil {
+		db.Exec(`PRAGMA foreign_keys=ON`)
+		return err
+	}
+
+	// Delete spec_index row
+	if _, err := db.Exec(`DELETE FROM spec_index WHERE id = ?`, specID); err != nil {
+		db.Exec(`PRAGMA foreign_keys=ON`)
+		return err
+	}
+
+	// Re-enable foreign keys
+	if _, err := db.Exec(`PRAGMA foreign_keys=ON`); err != nil {
+		return fmt.Errorf("re-enable FK: %w", err)
+	}
+
+	return nil
 }
 
 // nullStr converts an empty string to a sql.NullString.

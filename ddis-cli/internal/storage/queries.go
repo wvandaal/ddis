@@ -24,12 +24,24 @@ func GetParentSpecID(db *sql.DB, specID int64) (*int64, error) {
 	return &parentID.Int64, nil
 }
 
-// GetFirstSpecID returns the first spec ID in the database.
+// GetFirstSpecID returns the first (oldest) spec ID in the database.
+// Reserved for witness invalidation (APP-INV-041) where the canonical baseline is needed.
 func GetFirstSpecID(db *sql.DB) (int64, error) {
 	var id int64
-	err := db.QueryRow("SELECT id FROM spec_index LIMIT 1").Scan(&id)
+	err := db.QueryRow("SELECT id FROM spec_index ORDER BY id ASC LIMIT 1").Scan(&id)
 	if err != nil {
 		return 0, fmt.Errorf("get first spec_id: %w", err)
+	}
+	return id, nil
+}
+
+// GetLatestSpecID returns the most recently parsed spec ID in the database.
+// Per APP-INV-046, all CLI commands (except witness invalidation) must use this.
+func GetLatestSpecID(db *sql.DB) (int64, error) {
+	var id int64
+	err := db.QueryRow("SELECT id FROM spec_index ORDER BY id DESC LIMIT 1").Scan(&id)
+	if err != nil {
+		return 0, fmt.Errorf("get latest spec_id: %w", err)
 	}
 	return id, nil
 }

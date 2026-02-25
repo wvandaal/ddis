@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -48,7 +49,7 @@ func runCoverage(cmd *cobra.Command, args []string) error {
 	}
 	if dbPath == "" {
 		var err error
-		dbPath, err = findDB()
+		dbPath, err = FindDB()
 		if err != nil {
 			return err
 		}
@@ -64,6 +65,8 @@ func runCoverage(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("no spec found: %w", err)
 	}
+
+	WarnIfStale(db, specID)
 
 	opts := coverage.Options{
 		Domain: coverageDomain,
@@ -81,5 +84,17 @@ func runCoverage(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	// Guidance postscript
+	if !NoGuidance && !coverageJSON {
+		if len(result.Gaps) > 0 {
+			element := strings.SplitN(result.Gaps[0], ":", 2)[0]
+			fmt.Printf("\nNext: ddis exemplar %s\n", element)
+			fmt.Printf("  Coverage gap: %s — see corpus examples.\n", result.Gaps[0])
+		} else {
+			fmt.Println("\nNext: ddis drift --report")
+			fmt.Println("  100% coverage — check spec-implementation alignment.")
+		}
+	}
 	return nil
 }

@@ -123,6 +123,24 @@ WHY NOT alternative: <!-- TODO: explain why the alternative was rejected -->
 | Gate-5 | Cross-Reference Web | No orphan sections | Graph analysis |
 | Gate-6 | Self-Validation | Spec validates itself | Mechanical |
 
+**Gate 1: Structural Conformance**
+All commands accept expected inputs and produce expected output shapes. Tested mechanically.
+
+**Gate 2: Causal Chain**
+Every command traces through an APP-ADR or APP-INV to the formal state model. Verified by sampling.
+
+**Gate 3: Decision Coverage**
+All design choices have corresponding APP-ADRs. Verified by review.
+
+**Gate 4: Invariant Falsifiability**
+Each APP-INV has a concrete violation scenario and at least one test. Verified constructively.
+
+**Gate 5: Cross-Reference Web**
+No orphan sections in the specification. Verified by graph analysis.
+
+**Gate 6: Self-Validation**
+The specification validates itself with zero errors. This is the self-bootstrapping gate.
+
 ---
 
 ## 0.7 Glossary
@@ -210,20 +228,43 @@ Validation: <!-- TODO: describe how to mechanically verify this invariant -->
 
 ## ADRs
 
-**APP-ADR-{{ printf "%03d" .DomainIdx }}: {{ .DomainUpper }} Architecture Decision**
+### APP-ADR-{{ printf "%03d" .DomainIdx }}: {{ .DomainUpper }} Architecture Decision
 
-Problem: <!-- TODO: what problem does this decision solve? -->
+#### Problem
 
-Options considered:
-1. <!-- TODO: option A -->
-2. <!-- TODO: option B -->
+<!-- TODO: what problem does this decision solve? -->
 
-Decision: <!-- TODO: which option and why -->
+#### Options
 
-WHY NOT alternative: <!-- TODO: why the rejected option was rejected -->
+A) **Option A** <!-- TODO: describe option A -->
+- Pros: <!-- TODO -->
+- Cons: <!-- TODO -->
 
-Consequences:
+B) **Option B** <!-- TODO: describe option B -->
+- Pros: <!-- TODO -->
+- Cons: <!-- TODO -->
+
+#### Decision
+
+**Option A: Description.** <!-- TODO: which option and why -->
+
+WHY NOT Option B: <!-- TODO: why the rejected option was rejected -->
+
+#### Consequences
+
 - <!-- TODO: list consequences -->
 
-Tests: <!-- TODO: how to verify this decision holds -->
+#### Tests
+
+<!-- TODO: how to verify this decision holds -->
+
+---
+
+## Negative Specifications
+
+**DO NOT** {{ .Domain }} without proper validation. Every operation must be verified before state transitions. (Validates APP-INV-{{ printf "%03d" (add (add .DomainIdx .DomainIdx) -1) }})
+
+**DO NOT** silently ignore errors in {{ .Domain }} operations. All failures must be reported with actionable context. (Validates APP-INV-{{ printf "%03d" (add .DomainIdx .DomainIdx) }})
+
+**DO NOT** allow {{ .Domain }} state to become inconsistent. If a multi-step operation fails partway, roll back all changes. (Validates APP-INV-{{ printf "%03d" (add (add .DomainIdx .DomainIdx) -1) }}, APP-INV-{{ printf "%03d" (add .DomainIdx .DomainIdx) }})
 `
