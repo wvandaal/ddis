@@ -103,6 +103,7 @@ func AllChecks() []Check {
 		&checkProportionalWeight{},
 		&checkNamespaceConsistency{},
 		&checkImplementationTraceability{}, // Check 13
+		&checkWitnessFreshness{},           // Check 14
 	}
 }
 

@@ -28,6 +28,7 @@ type DriftReport struct {
 	EffectiveDrift     int              `json:"effective_drift"`
 	Classification     Classification   `json:"classification"`
 	QualityBreakdown   QualityBreakdown `json:"quality_breakdown"`
+	StaleWitnesses     int              `json:"stale_witnesses"`
 }
 
 // QualityBreakdown decomposes drift by quality dimension.
@@ -280,15 +281,42 @@ func Analyze(db *sql.DB, specID int64, opts Options) (*DriftReport, error) {
 		}
 	}
 
+	// 7.5 Stale witnesses: query witness table for non-valid witnesses
+	staleWitnessCount := 0
+	if witnessRows, err := db.Query(
+		`SELECT invariant_id FROM invariant_witnesses WHERE spec_id = ? AND status != 'valid'`, specID,
+	); err == nil {
+		defer witnessRows.Close()
+		for witnessRows.Next() {
+			var invID string
+			if err := witnessRows.Scan(&invID); err == nil {
+				staleWitnessCount++
+				details = append(details, DriftDetail{
+					Element:  invID,
+					Type:     "stale_witness",
+					Location: "invariant_witnesses",
+				})
+			}
+		}
+	}
+
+	// Re-sort details after adding stale witnesses
+	sort.Slice(details, func(i, j int) bool {
+		if details[i].Type != details[j].Type {
+			return details[i].Type < details[j].Type
+		}
+		return details[i].Element < details[j].Element
+	})
+
 	// 8. Compute effective drift and quality breakdown
-	totalDrift := implDrift.Total + intentDrift.Total
+	totalDrift := implDrift.Total + intentDrift.Total + staleWitnessCount
 	effectiveDrift := totalDrift - plannedCount
 	if effectiveDrift < 0 {
 		effectiveDrift = 0
 	}
 
 	quality := QualityBreakdown{
-		Correctness: unimplemented + contradictions,
+		Correctness: unimplemented + contradictions + staleWitnessCount,
 		Depth:       unspecified,
 		Coherence:   coherenceGaps,
 	}
@@ -300,6 +328,7 @@ func Analyze(db *sql.DB, specID int64, opts Options) (*DriftReport, error) {
 		PlannedDivergences: plannedCount,
 		EffectiveDrift:     effectiveDrift,
 		QualityBreakdown:   quality,
+		StaleWitnesses:     staleWitnessCount,
 	}
 	report.Classification = Classify(report)
 

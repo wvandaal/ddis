@@ -12,8 +12,9 @@ import (
 // ddis:interfaces APP-INV-016 (implementation traceability)
 
 var (
-	progressDone string
-	progressJSON bool
+	progressDone    string
+	progressJSON    bool
+	progressWitness bool
 )
 
 var progressCmd = &cobra.Command{
@@ -38,6 +39,7 @@ Examples:
 func init() {
 	progressCmd.Flags().StringVar(&progressDone, "done", "", "Comma-separated invariant IDs or domain names to mark as done")
 	progressCmd.Flags().BoolVar(&progressJSON, "json", false, "Output as JSON")
+	progressCmd.Flags().BoolVar(&progressWitness, "witness", true, "Use persistent witnesses for done set")
 }
 
 func runProgress(cmd *cobra.Command, args []string) error {
@@ -64,7 +66,7 @@ func runProgress(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no spec found: %w", err)
 	}
 
-	opts := progress.Options{Done: progressDone, AsJSON: progressJSON}
+	opts := progress.Options{Done: progressDone, AsJSON: progressJSON, UseWitnesses: progressWitness}
 	result, err := progress.Analyze(db, specID, opts)
 	if err != nil {
 		return err

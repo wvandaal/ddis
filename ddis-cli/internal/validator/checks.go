@@ -907,6 +907,46 @@ func countADRsInRange(adrs []storage.ADR, lo, hi int) int {
 	return count
 }
 
+// Check 14: Witness freshness — stale witnesses are warning findings.
+type checkWitnessFreshness struct{}
+
+func (c *checkWitnessFreshness) ID() int                { return 14 }
+func (c *checkWitnessFreshness) Name() string           { return "Witness freshness" }
+func (c *checkWitnessFreshness) Applicable(string) bool { return true }
+
+func (c *checkWitnessFreshness) Run(db *sql.DB, specID int64) CheckResult {
+	result := CheckResult{CheckID: c.ID(), CheckName: c.Name(), Passed: true}
+
+	witnesses, err := storage.ListWitnesses(db, specID)
+	if err != nil {
+		// No witnesses table yet is fine — just skip
+		result.Summary = "no witnesses recorded"
+		return result
+	}
+
+	stale := 0
+	valid := 0
+	for _, w := range witnesses {
+		if w.Status == "valid" {
+			valid++
+		} else {
+			stale++
+			result.Findings = append(result.Findings, Finding{
+				CheckID: c.ID(), CheckName: c.Name(), Severity: SeverityWarning,
+				Message:     fmt.Sprintf("witness %s is %s (proven by %s at %s)", w.InvariantID, w.Status, w.ProvenBy, w.ProvenAt),
+				InvariantID: w.InvariantID,
+			})
+		}
+	}
+
+	if stale > 0 {
+		result.Summary = fmt.Sprintf("%d stale witness(es) out of %d total", stale, len(witnesses))
+	} else {
+		result.Summary = fmt.Sprintf("%d witness(es), all valid", valid)
+	}
+	return result
+}
+
 func countGatesInRange(gates []storage.QualityGate, lo, hi int) int {
 	count := 0
 	for _, g := range gates {

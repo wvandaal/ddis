@@ -15,6 +15,7 @@ import (
 // ddis:implements APP-ADR-001 (monolith-first parsing)
 // ddis:maintains APP-INV-001 (round-trip fidelity)
 // ddis:maintains APP-INV-009 (monolith-modular equivalence)
+// ddis:maintains APP-INV-041 (witness auto-invalidation — triggers InvalidateWitnesses on re-parse)
 
 var (
 	parseOutput string
@@ -61,6 +62,16 @@ func runParse(cmd *cobra.Command, args []string) error {
 
 	if err != nil {
 		return fmt.Errorf("parse: %w", err)
+	}
+
+	// Auto-invalidate stale witnesses
+	// Witnesses are stored against the first (canonical) spec_id; compare against fresh parse
+	firstSpecID, _ := storage.GetFirstSpecID(db)
+	if firstSpecID == 0 {
+		firstSpecID = specID
+	}
+	if staleCount, err := storage.InvalidateWitnesses(db, firstSpecID, specID); err == nil && staleCount > 0 {
+		fmt.Printf("  Witnesses invalidated: %d (spec changed)\n", staleCount)
 	}
 
 	// Print summary

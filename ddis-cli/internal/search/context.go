@@ -32,6 +32,15 @@ type ContextBundle struct {
 	ImpactRadius    *impact.ImpactResult `json:"impact_radius"`
 	RecentChanges   []ChangeRecord       `json:"recent_changes,omitempty"`
 	EditingGuidance []string             `json:"editing_guidance"`
+	WitnessStatus   *WitnessInfo         `json:"witness_status,omitempty"`
+}
+
+// WitnessInfo summarizes witness state for an invariant.
+type WitnessInfo struct {
+	Status       string `json:"status"`                  // "valid", "stale_spec", "stale_code", "missing"
+	EvidenceType string `json:"evidence_type,omitempty"`
+	ProvenBy     string `json:"proven_by,omitempty"`
+	ProvenAt     string `json:"proven_at,omitempty"`
 }
 
 // Constraint is an invariant, gate, or negative spec that constrains the target.
@@ -166,6 +175,21 @@ func BuildContext(db *sql.DB, specID int64, target string, lsi *LSIIndex, oplogP
 	})
 	if err == nil {
 		bundle.ImpactRadius = impactResult
+	}
+
+	// Signal 10: Witness status (only for invariants)
+	if bundle.ElementType == "invariant" {
+		w, err := storage.GetWitness(db, specID, bundle.Target)
+		if err == nil {
+			bundle.WitnessStatus = &WitnessInfo{
+				Status:       w.Status,
+				EvidenceType: w.EvidenceType,
+				ProvenBy:     w.ProvenBy,
+				ProvenAt:     w.ProvenAt,
+			}
+		} else {
+			bundle.WitnessStatus = &WitnessInfo{Status: "missing"}
+		}
 	}
 
 	// Recent changes from oplog
@@ -614,6 +638,19 @@ func generateGuidance(bundle *ContextBundle) []string {
 		}
 	}
 
+	// Witness-aware guidance
+	if bundle.WitnessStatus != nil {
+		switch bundle.WitnessStatus.Status {
+		case "missing":
+			guidance = append(guidance, fmt.Sprintf("This invariant has no witness. After implementation, run `ddis witness %s --verify --code-root .`", bundle.Target))
+		case "stale_spec", "stale_code":
+			guidance = append(guidance, fmt.Sprintf("Witness is stale (%s). Re-verify: `ddis witness %s --verify --code-root .`", bundle.WitnessStatus.Status, bundle.Target))
+		case "valid":
+			guidance = append(guidance, fmt.Sprintf("This invariant is witnessed (Level %s, by %s). Modifications will invalidate the witness.",
+				witnessLevelLabel(bundle.WitnessStatus.EvidenceType), bundle.WitnessStatus.ProvenBy))
+		}
+	}
+
 	// Standard guidance
 	guidance = append(guidance, "Run `ddis validate` after changes")
 
@@ -748,6 +785,22 @@ func renderHumanContext(b *ContextBundle) string {
 		s.WriteString("\n")
 	}
 
+	// Witness Status
+	if b.WitnessStatus != nil {
+		s.WriteString("WITNESS STATUS\n")
+		fmt.Fprintf(&s, "  Status: %s\n", b.WitnessStatus.Status)
+		if b.WitnessStatus.EvidenceType != "" {
+			fmt.Fprintf(&s, "  Type:   %s\n", b.WitnessStatus.EvidenceType)
+		}
+		if b.WitnessStatus.ProvenBy != "" {
+			fmt.Fprintf(&s, "  By:     %s\n", b.WitnessStatus.ProvenBy)
+		}
+		if b.WitnessStatus.ProvenAt != "" {
+			fmt.Fprintf(&s, "  At:     %s\n", b.WitnessStatus.ProvenAt)
+		}
+		s.WriteString("\n")
+	}
+
 	// Editing Guidance
 	if len(b.EditingGuidance) > 0 {
 		s.WriteString("EDITING GUIDANCE\n")
@@ -762,6 +815,21 @@ func renderHumanContext(b *ContextBundle) string {
 	}
 
 	return s.String()
+}
+
+func witnessLevelLabel(evidenceType string) string {
+	switch evidenceType {
+	case "attestation":
+		return "1"
+	case "test", "annotation":
+		return "2"
+	case "scan":
+		return "3"
+	case "review":
+		return "4"
+	default:
+		return evidenceType
+	}
 }
 
 func truncate(s string, maxLen int) string {

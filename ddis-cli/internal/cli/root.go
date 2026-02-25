@@ -54,4 +54,5 @@ func init() {
 	rootCmd.AddCommand(refineCmd)
 	rootCmd.AddCommand(discoverCmd)
 	rootCmd.AddCommand(absorbCmd)
+	rootCmd.AddCommand(witnessCmd)
 }

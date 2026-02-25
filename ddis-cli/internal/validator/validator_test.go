@@ -159,9 +159,9 @@ func TestValidate_RunsAllApplicableChecks(t *testing.T) {
 
 	// For monolith, Checks 5-8 are not applicable (modular only).
 	// Check 13 is not applicable (no CodeRoot).
-	// So we expect checks 1-4, 9-12 = 8 checks.
-	if report.TotalChecks != 8 {
-		t.Errorf("expected 8 applicable checks for monolith, got %d", report.TotalChecks)
+	// So we expect checks 1-4, 9-12, 14 = 9 checks.
+	if report.TotalChecks != 9 {
+		t.Errorf("expected 9 applicable checks for monolith, got %d", report.TotalChecks)
 		for _, r := range report.Results {
 			t.Logf("  Check %d (%s): passed=%v", r.CheckID, r.CheckName, r.Passed)
 		}
@@ -789,14 +789,15 @@ func intSliceEqual(a, b []int) bool {
 
 func TestAllChecks_Count(t *testing.T) {
 	checks := AllChecks()
-	if len(checks) != 13 {
-		t.Errorf("expected 13 registered checks, got %d", len(checks))
+	if len(checks) != 14 {
+		t.Errorf("expected 14 registered checks, got %d", len(checks))
 	}
 
-	// Verify IDs are 1-13
+	// Verify IDs are sequential (1-12, 13, 14)
+	expectedIDs := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}
 	for i, c := range checks {
-		if c.ID() != i+1 {
-			t.Errorf("check at index %d has ID %d, expected %d", i, c.ID(), i+1)
+		if i < len(expectedIDs) && c.ID() != expectedIDs[i] {
+			t.Errorf("check at index %d has ID %d, expected %d", i, c.ID(), expectedIDs[i])
 		}
 	}
 }

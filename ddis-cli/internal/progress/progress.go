@@ -7,12 +7,14 @@ import (
 	"strings"
 
 	"github.com/wvandaal/ddis/internal/storage"
+	"github.com/wvandaal/ddis/internal/witness"
 )
 
 // Options controls progress analysis behavior.
 type Options struct {
-	Done   string // comma-separated invariant IDs or domain names
-	AsJSON bool
+	Done          string // comma-separated invariant IDs or domain names
+	AsJSON        bool
+	UseWitnesses  bool   // load persistent witnesses as done set
 }
 
 // ProgressResult holds the complete progress analysis output.
@@ -125,8 +127,17 @@ func Analyze(db *sql.DB, specID int64, opts Options) (*ProgressResult, error) {
 	// Only hard implementation dependencies create DAG edges.
 	_ = moduleInterfaceInvs // interfaces tracked but not used for hard deps
 
-	// 5. Expand "done" set from --done flag
+	// 4.5. Load persistent witness done set
 	doneSet := make(map[string]bool)
+	if opts.UseWitnesses {
+		if wSet, err := witness.ValidDoneSet(db, specID); err == nil {
+			for id := range wSet {
+				doneSet[id] = true
+			}
+		}
+	}
+
+	// 5. Expand "done" set from --done flag (additive on top of witnesses)
 	if opts.Done != "" {
 		for _, token := range strings.Split(opts.Done, ",") {
 			token = strings.TrimSpace(token)
