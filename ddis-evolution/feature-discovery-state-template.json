@@ -1,0 +1,88 @@
+{
+  "_origin": "Root-Rise/project-oak .claude/skills/feature-discovery/discovery-state-template.json",
+  "feature": "",
+  "created": "",
+  "updated": "",
+  "phase": "nebulous",
+  "summary": "",
+
+  "confidence": {
+    "overall": 0,
+    "limiting_factor": "",
+    "dimensions": {
+      "problem_understanding": {
+        "score": 0,
+        "evidence": [],
+        "gaps": [],
+        "notes": ""
+      },
+      "solution_clarity": {
+        "score": 0,
+        "evidence": [],
+        "gaps": [],
+        "notes": ""
+      },
+      "implementation_visibility": {
+        "score": 0,
+        "evidence": [],
+        "gaps": [],
+        "notes": ""
+      },
+      "risk_awareness": {
+        "score": 0,
+        "evidence": [],
+        "gaps": [],
+        "notes": ""
+      },
+      "unknown_unknown_coverage": {
+        "score": 0,
+        "probes_run": [],
+        "territory_unexplored": [],
+        "notes": ""
+      }
+    }
+  },
+
+  "question_tree": {
+    "questions": {},
+    "root_questions": [],
+    "stats": {
+      "total": 0,
+      "open": 0,
+      "investigating": 0,
+      "answered": 0,
+      "resolved": 0,
+      "deferred": 0,
+      "max_depth": 0,
+      "convergence_trend": "unknown"
+    }
+  },
+
+  "decisions": {},
+
+  "findings": {},
+
+  "out_of_scope": [],
+
+  "artifact_map": {},
+
+  "implementation_map": {
+    "ready": false,
+    "phases": []
+  },
+
+  "risk_assessment": {
+    "identified": [],
+    "mitigations": []
+  },
+
+  "verification": {
+    "ready": false,
+    "last_ddis_validate": null,
+    "checks": []
+  },
+
+  "rfc_path": null,
+
+  "session_log": []
+}
