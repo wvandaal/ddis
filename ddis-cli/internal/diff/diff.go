@@ -1,5 +1,7 @@
 package diff
 
+// ddis:implements APP-ADR-008 (surgical edit strategy)
+
 import (
 	"database/sql"
 	"encoding/json"

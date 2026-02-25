@@ -9,6 +9,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:interfaces APP-INV-004 (authority monotonicity)
+
 var (
 	implorderDomain string
 	implorderJSON   bool

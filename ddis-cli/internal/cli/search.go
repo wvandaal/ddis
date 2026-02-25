@@ -9,6 +9,10 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:maintains APP-INV-008 (RRF fusion correctness)
+// ddis:maintains APP-INV-004 (authority monotonicity)
+// ddis:implements APP-ADR-003 (hybrid search)
+
 var (
 	searchJSON        bool
 	searchType        string

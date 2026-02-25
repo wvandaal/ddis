@@ -13,6 +13,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:maintains APP-INV-005 (context self-containment)
+
 // ContextBundle is the complete pre-flight briefing for a spec element.
 type ContextBundle struct {
 	Target          string               `json:"target"`

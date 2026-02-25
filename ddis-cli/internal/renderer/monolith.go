@@ -1,5 +1,7 @@
 package renderer
 
+// ddis:maintains APP-INV-001 (round-trip fidelity)
+
 import (
 	"fmt"
 	"os"

@@ -9,6 +9,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:maintains APP-INV-013 (impact termination)
+
 var (
 	impactJSON      bool
 	impactDirection string

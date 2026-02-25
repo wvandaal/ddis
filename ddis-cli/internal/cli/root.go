@@ -48,4 +48,10 @@ func init() {
 	rootCmd.AddCommand(implorderCmd)
 	rootCmd.AddCommand(progressCmd)
 	rootCmd.AddCommand(driftCmd)
+	rootCmd.AddCommand(scanCmd)
+	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(tasksCmd)
+	rootCmd.AddCommand(refineCmd)
+	rootCmd.AddCommand(discoverCmd)
+	rootCmd.AddCommand(absorbCmd)
 }

@@ -1,5 +1,8 @@
 package validator
 
+// ddis:implements APP-ADR-014 (tiered contradiction detection)
+// ddis:interfaces APP-INV-019 (contradiction graph soundness)
+
 import (
 	"database/sql"
 	"fmt"
@@ -8,6 +11,11 @@ import (
 
 	"github.com/wvandaal/ddis/internal/storage"
 )
+
+// ddis:maintains APP-INV-002 (validation determinism)
+// ddis:maintains APP-INV-011 (check composability)
+// ddis:maintains APP-INV-038 (cross-spec reference integrity)
+// ddis:maintains APP-INV-040 (progressive validation monotonicity)
 
 // Check 1: Cross-reference integrity — all refs should resolve.
 type checkXRefIntegrity struct{}

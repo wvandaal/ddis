@@ -9,6 +9,9 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:maintains APP-INV-005 (context self-containment)
+// ddis:implements APP-ADR-006 (bundle intelligence)
+
 var (
 	contextJSON         bool
 	contextOplogPath    string

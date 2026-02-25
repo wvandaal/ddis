@@ -9,6 +9,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:interfaces APP-INV-002 (validation determinism)
+
 var (
 	checklistSection   string
 	checklistInvariant string

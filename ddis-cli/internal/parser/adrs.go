@@ -6,6 +6,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:maintains APP-INV-015 (deterministic hashing)
+
 // ExtractADRs finds ADR blocks within the given lines.
 func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID int64, db storage.DB) error {
 	type adrState int
@@ -36,6 +38,11 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 		current.ContentHash = sha256Hex(current.RawText)
 		if current.Status == "" {
 			current.Status = "active"
+		}
+		// Store the full decision text as chosen option rationale
+		// (chosenLabel identifies which option; full text captures the why)
+		if chosenLabel != "" && current.ChosenOption == "" {
+			current.ChosenOption = current.DecisionText
 		}
 
 		adrDBID, err := storage.InsertADR(db, &current)
@@ -170,7 +177,6 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 			// Check for chosen option
 			if m := ADRChosenRe.FindStringSubmatch(trimmed); m != nil {
 				chosenLabel = m[1]
-				current.ChosenOption = "Option " + m[1]
 			}
 			// Check for confidence
 			if m := ConfidenceRe.FindStringSubmatch(trimmed); m != nil {

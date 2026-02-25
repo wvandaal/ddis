@@ -1,11 +1,15 @@
 package parser
 
+// ddis:implements APP-ADR-027 (peer spec relationships)
+
 import (
 	"database/sql"
 	"strings"
 
 	"github.com/wvandaal/ddis/internal/storage"
 )
+
+// ddis:maintains APP-INV-003 (cross-reference integrity)
 
 // ExtractCrossReferences finds all cross-references in the document.
 func ExtractCrossReferences(lines []string, sections []*SectionNode, specID, sourceFileID int64, db storage.DB) error {

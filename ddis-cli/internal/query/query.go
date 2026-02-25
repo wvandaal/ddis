@@ -1,5 +1,7 @@
 package query
 
+// ddis:implements APP-ADR-011 (structured intent over formal derivation)
+
 import (
 	"database/sql"
 	"fmt"

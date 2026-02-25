@@ -1,5 +1,7 @@
 package parser
 
+// ddis:implements APP-ADR-010 (monolith/modular polymorphism)
+
 import (
 	"fmt"
 	"os"

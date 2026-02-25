@@ -1,5 +1,7 @@
 package impact
 
+// ddis:maintains APP-INV-013 (invariant ownership)
+
 import (
 	"database/sql"
 	"encoding/json"

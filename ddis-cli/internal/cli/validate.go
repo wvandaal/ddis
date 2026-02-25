@@ -11,6 +11,10 @@ import (
 	"github.com/wvandaal/ddis/internal/validator"
 )
 
+// ddis:maintains APP-INV-002 (validation determinism)
+// ddis:maintains APP-INV-003 (cross-reference integrity)
+// ddis:implements APP-ADR-004 (validation architecture)
+
 var (
 	validateJSON      bool
 	validateChecks    string

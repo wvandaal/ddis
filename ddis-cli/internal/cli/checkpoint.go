@@ -10,6 +10,8 @@ import (
 	"github.com/wvandaal/ddis/internal/validator"
 )
 
+// ddis:interfaces APP-INV-002 (validation determinism)
+
 var (
 	checkpointGates string
 	checkpointJSON  bool

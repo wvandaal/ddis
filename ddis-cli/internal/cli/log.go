@@ -8,6 +8,8 @@ import (
 	"github.com/wvandaal/ddis/internal/oplog"
 )
 
+// ddis:maintains APP-INV-010 (oplog append-only)
+
 var (
 	logJSON  bool
 	logType  string

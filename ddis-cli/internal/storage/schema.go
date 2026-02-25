@@ -1,5 +1,8 @@
 package storage
 
+// ddis:implements APP-ADR-005 (30-table normalized schema)
+// ddis:maintains APP-INV-015 (deterministic hashing)
+
 // SchemaSQL contains all CREATE TABLE statements for the DDIS spec index.
 const SchemaSQL = `
 -- The spec itself (one row per parsed spec)
@@ -414,4 +417,21 @@ CREATE TABLE IF NOT EXISTS session_state (
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(spec_id, key)
 );
+
+-- Code annotations (spec-code bridge)
+CREATE TABLE IF NOT EXISTS code_annotations (
+    id INTEGER PRIMARY KEY,
+    spec_id INTEGER NOT NULL REFERENCES spec_index(id),
+    file_path TEXT NOT NULL,
+    line_number INTEGER NOT NULL,
+    verb TEXT NOT NULL
+      CHECK(verb IN ('maintains', 'implements', 'interfaces', 'tests',
+                     'validates-via', 'postcondition', 'relates-to', 'satisfies')),
+    target TEXT NOT NULL,
+    qualifier TEXT,
+    language TEXT NOT NULL,
+    raw_comment TEXT NOT NULL,
+    UNIQUE(spec_id, file_path, line_number, verb, target)
+);
+CREATE INDEX IF NOT EXISTS idx_annotations_target ON code_annotations(spec_id, target);
 `

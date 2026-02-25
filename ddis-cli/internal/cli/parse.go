@@ -12,6 +12,10 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:implements APP-ADR-001 (monolith-first parsing)
+// ddis:maintains APP-INV-001 (round-trip fidelity)
+// ddis:maintains APP-INV-009 (monolith-modular equivalence)
+
 var (
 	parseOutput string
 )

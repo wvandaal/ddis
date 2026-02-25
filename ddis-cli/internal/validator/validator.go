@@ -1,5 +1,8 @@
 package validator
 
+// ddis:interfaces APP-INV-021 (Z3 translation fidelity)
+// ddis:implements APP-ADR-013 (Z3 as required dependency)
+
 import (
 	"database/sql"
 	"fmt"

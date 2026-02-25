@@ -1,5 +1,7 @@
 package storage
 
+// ddis:implements APP-ADR-002 (SQLite as sole storage backend)
+
 import (
 	"database/sql"
 	"fmt"

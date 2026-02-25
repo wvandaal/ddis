@@ -1,5 +1,9 @@
 package parser
 
+// ddis:implements APP-ADR-009 (4-pass parse pipeline)
+// ddis:maintains APP-INV-001 (round-trip fidelity)
+// ddis:maintains APP-INV-009 (monolith-modular equivalence)
+
 import (
 	"fmt"
 	"os"

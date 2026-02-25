@@ -10,6 +10,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:implements APP-ADR-012 (annotations over code manifest)
+
 var (
 	driftJSON   bool
 	driftReport bool

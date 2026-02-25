@@ -1,5 +1,7 @@
 package skeleton
 
+// ddis:maintains APP-INV-036 (human format transparency)
+
 import (
 	"fmt"
 	"os"

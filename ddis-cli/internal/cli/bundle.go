@@ -9,6 +9,9 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:maintains APP-INV-014 (glossary expansion bound)
+// ddis:interfaces APP-INV-005 (context self-containment)
+
 var (
 	bundleJSON        bool
 	bundleContentOnly bool

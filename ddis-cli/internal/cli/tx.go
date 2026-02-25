@@ -13,6 +13,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:maintains APP-INV-006 (transaction state machine)
+
 var txOplogPath string
 
 var txCmd = &cobra.Command{

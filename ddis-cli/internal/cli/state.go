@@ -11,6 +11,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:interfaces APP-INV-006 (transaction state machine)
+
 var (
 	stateSet    []string
 	stateGet    string

@@ -10,6 +10,8 @@ import (
 	"github.com/wvandaal/ddis/internal/validator"
 )
 
+// ddis:maintains APP-INV-010 (oplog append-only)
+
 var seedOplogPath string
 
 var seedCmd = &cobra.Command{

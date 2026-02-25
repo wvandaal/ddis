@@ -10,6 +10,10 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:maintains APP-INV-007 (diff completeness)
+// ddis:interfaces APP-ADR-021 (contributor topology via git blame)
+// ddis:interfaces APP-INV-030 (contributor topology graceful degradation)
+
 var (
 	diffJSON      bool
 	diffLog       bool

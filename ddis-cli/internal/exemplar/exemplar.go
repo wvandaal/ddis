@@ -1,5 +1,7 @@
 package exemplar
 
+// ddis:maintains APP-INV-012 (LSI dimension bound)
+
 import (
 	"database/sql"
 	"fmt"

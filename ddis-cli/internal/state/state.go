@@ -1,5 +1,7 @@
 package state
 
+// ddis:maintains APP-INV-025 (discovery provenance chain)
+
 import (
 	"database/sql"
 	"fmt"

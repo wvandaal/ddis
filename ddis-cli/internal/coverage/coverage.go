@@ -1,5 +1,7 @@
 package coverage
 
+// ddis:maintains APP-INV-040 (progressive validation monotonicity)
+
 import (
 	"database/sql"
 	"fmt"

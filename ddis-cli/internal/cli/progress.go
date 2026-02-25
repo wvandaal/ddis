@@ -9,6 +9,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:interfaces APP-INV-016 (implementation traceability)
+
 var (
 	progressDone string
 	progressJSON bool

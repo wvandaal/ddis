@@ -9,6 +9,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:maintains APP-INV-001 (round-trip fidelity)
+
 var (
 	renderOutput string
 	renderFormat string

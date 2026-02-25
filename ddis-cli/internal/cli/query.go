@@ -11,6 +11,9 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:implements APP-ADR-004 (validation architecture)
+// ddis:interfaces APP-INV-003 (cross-reference integrity)
+
 var (
 	queryJSON            bool
 	queryRaw             bool

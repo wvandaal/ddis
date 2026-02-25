@@ -8,6 +8,8 @@ import (
 	"github.com/wvandaal/ddis/internal/skeleton"
 )
 
+// ddis:interfaces APP-INV-001 (round-trip fidelity)
+
 var (
 	skeletonName    string
 	skeletonDomains []string

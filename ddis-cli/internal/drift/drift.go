@@ -11,6 +11,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:implements APP-ADR-012 (annotations over code manifest)
+
 // Options controls drift analysis behavior.
 type Options struct {
 	AsJSON  bool

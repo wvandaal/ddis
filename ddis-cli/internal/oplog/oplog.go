@@ -1,5 +1,10 @@
 package oplog
 
+// ddis:implements APP-ADR-007 (JSONL oplog format)
+// ddis:implements APP-ADR-015 (three-stream event sourcing)
+// ddis:maintains APP-INV-020 (event stream append-only)
+// ddis:maintains INV-001 (causal traceability)
+
 import (
 	"bufio"
 	"encoding/json"

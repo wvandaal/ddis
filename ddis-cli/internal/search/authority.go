@@ -8,6 +8,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:maintains APP-INV-004 (authority monotonicity)
+
 // ComputeAuthority runs PageRank over the cross-reference graph and stores scores in the DB.
 func ComputeAuthority(db *sql.DB, specID int64) (map[string]float64, error) {
 	// Build adjacency list from cross-references

@@ -118,28 +118,12 @@ func Analyze(db *sql.DB, specID int64, opts Options) (*ImplOrderResult, error) {
 		inDegree[node] = 0
 	}
 
-	// If module M maintains INV-X and interfaces with INV-Y, then INV-X depends on INV-Y
-	edgeSet := make(map[[2]string]bool) // dedup edges
-	for mod, maintained := range moduleMainInvs {
-		interfaces := moduleInterfaceInvs[mod]
-		for _, m := range maintained {
-			if !nodeSet[m] {
-				continue
-			}
-			for _, i := range interfaces {
-				if !nodeSet[i] || m == i {
-					continue
-				}
-				edge := [2]string{m, i}
-				if edgeSet[edge] {
-					continue
-				}
-				edgeSet[edge] = true
-				dependedBy[i] = append(dependedBy[i], m)
-				inDegree[m]++
-			}
-		}
-	}
+	// Note: interface relationships are soft dependencies (consumed, not produced).
+	// Creating hard edges from interfaces causes circular dependencies when
+	// two modules interface each other's maintained invariants.
+	// Only hard implementation dependencies create DAG edges.
+	edgeSet := make(map[[2]string]bool) // dedup edges (empty — no hard deps from interfaces)
+	_ = moduleInterfaceInvs             // interfaces tracked but not used for hard deps
 
 	// 5. Apply domain filter
 	if opts.Domain != "" {

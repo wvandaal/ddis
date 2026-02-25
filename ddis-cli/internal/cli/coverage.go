@@ -9,6 +9,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:interfaces APP-INV-003 (cross-reference integrity)
+
 var (
 	coverageDomain string
 	coverageModule string

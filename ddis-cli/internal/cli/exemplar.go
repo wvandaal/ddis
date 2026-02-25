@@ -10,6 +10,8 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// ddis:interfaces APP-INV-005 (context self-containment)
+
 var (
 	exemplarJSON     bool
 	exemplarGap      string

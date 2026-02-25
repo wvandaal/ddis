@@ -119,20 +119,11 @@ func Analyze(db *sql.DB, specID int64, opts Options) (*ProgressResult, error) {
 		deps[node] = make(map[string]bool)
 	}
 
-	for mod, maintained := range moduleMainInvs {
-		interfaces := moduleInterfaceInvs[mod]
-		for _, m := range maintained {
-			if !nodeSet[m] {
-				continue
-			}
-			for _, i := range interfaces {
-				if !nodeSet[i] || m == i {
-					continue
-				}
-				deps[m][i] = true
-			}
-		}
-	}
+	// Note: interface relationships are soft dependencies (consumed, not produced).
+	// Creating hard edges from interfaces causes circular dependencies when
+	// two modules interface each other's maintained invariants.
+	// Only hard implementation dependencies create DAG edges.
+	_ = moduleInterfaceInvs // interfaces tracked but not used for hard deps
 
 	// 5. Expand "done" set from --done flag
 	doneSet := make(map[string]bool)
