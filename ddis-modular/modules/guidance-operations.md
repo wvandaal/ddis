@@ -96,7 +96,7 @@ See ADR-003 for the throughput analysis that confirms this is sufficient."
 A section that references nothing and is referenced by nothing. It may contain good content, but if it's disconnected from the web, it's carrying dead weight. Either connect it or remove it.
 
 **Anti-pattern: The Trivial Invariant**
-"INV-042: The system uses UTF-8 encoding." This is either enforced by the language/platform (not worth an invariant) or so fundamental it belongs in Non-Negotiables, not the invariant list.
+"INV-XYZ: The system uses UTF-8 encoding." This is either enforced by the language/platform (not worth an invariant) or so fundamental it belongs in Non-Negotiables, not the invariant list.
 
 **Anti-pattern: The Strawman ADR**
 ```

@@ -185,7 +185,7 @@ A) **Direct references** — "see section 7.3 in the Scheduler module."
 - Pros: Natural; mirrors monolithic cross-references.
 - Cons: Creates invisible dependencies. Module A's bundle needs Module B — defeating modularization. Violates INV-011.
 
-B) **Through constitution only** — Module A references APP-INV-032 in the constitution, never Module B's internals.
+B) **Through constitution only** — Module A references APP-INV-NNN in the constitution, never Module B's internals.
 - Pros: Enforces isolation mechanically; bundles are self-contained.
 - Cons: Authors must extract all cross-module contracts into the constitution; feels indirect for tightly coupled subsystems.
 
@@ -232,7 +232,7 @@ A simulated change to one invariant correctly identifies all affected modules vi
 
 REQUIRED when the monolithic spec exceeds 4,000 lines or when the target context window cannot hold the full spec plus reasoning budget. OPTIONAL but recommended for 2,500–4,000 line specs.
 
-> Namespace note: INV-001 through INV-020 and ADR-001 through ADR-011 are DDIS meta-standard invariants/ADRs (defined in this standard). Application specs using DDIS define their OWN invariant namespace (e.g., APP-INV-001) — never reuse the meta-standard's INV-NNN space. Examples in this section use APP-INV-NNN to demonstrate this convention.
+> Namespace note: INV-001 through INV-020 and ADR-001 through ADR-011 are DDIS meta-standard invariants/ADRs (defined in this standard). Application specs using DDIS define their OWN invariant namespace (e.g., APP-INV-NNN) — never reuse the meta-standard's INV-NNN space. Examples in this section use APP-INV-NNN to demonstrate this convention.
 
 ### 0.13.1 The Scaling Problem
 
@@ -728,7 +728,7 @@ Remediation: Create missing file or correct manifest path. Second clause catches
 
 #### Worked Examples for CHECK-1 through CHECK-9
 
-Minimal manifest: two modules (event_store, scheduler), three invariants (APP-INV-001 through APP-INV-003).
+Minimal manifest: two modules (event_store, scheduler), three invariants (APP-INV-NNN through APP-INV-PPP).
 
 ```
 CHECK-1/6 (Ownership):

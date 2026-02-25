@@ -430,7 +430,7 @@ Consider this 12-line markdown fragment:
 ```markdown
 ## 0.5 Invariants
 
-**INV-001: Causal Traceability**
+**INV-NNN: Causal Traceability**
 
 *Every implementation section traces to at least one ADR.*
 
@@ -446,7 +446,7 @@ Validation: Pick 5 random sections, trace references backward.
 **Pass 1 (Section Tree):** `BuildSectionTree` finds one heading at line 0 (`## 0.5 Invariants`), creating a `SectionNode` with `SectionPath = "§0.5"`, `HeadingLevel = 2`, `LineStart = 0`, `LineEnd = 12` (EOF).
 
 **Pass 2 (Element Extraction):** `ExtractInvariants` identifies the invariant block:
-- Line 2: `InvHeaderRe` matches -> state = `headerSeen`, `invariant_id = "INV-001"`, `title = "Causal Traceability"`
+- Line 2: `InvHeaderRe` matches -> state = `headerSeen`, `invariant_id = "INV-NNN"`, `title = "Causal Traceability"`
 - Line 4: `InvStatementRe` matches -> state = `statementSeen`, `statement = "Every implementation section traces to at least one ADR."`
 - Line 6: `ViolationRe` matches -> state = `afterCode`, `violation_scenario = "An implementation chapter has no ADR reference."`
 - Line 8: `ValidationRe` matches -> `validation_method = "Pick 5 random sections, trace references backward."`
@@ -571,6 +571,31 @@ The key difference: the monolith parser runs all 4 passes on one line array. The
 
 Both paths use the same underlying functions. `parseAndInsertFile` reads a file, inserts it as a `source_files` row, calls `BuildSectionTree` and `InsertSectionsDB`. Then `extractElementsFromFile` calls `loadSectionDBIDs` (queries section IDs back from the database) before running element extractors and cross-reference extraction.
 
+#### File Role Assignment
+
+Each source file inserted into the database carries a `file_role` that identifies its position in the modular hierarchy:
+
+- `monolith`: the single markdown file in the monolith path
+- `manifest`: the YAML manifest file (stored in both `source_files` and the `manifest` table)
+- `system_constitution`: the constitution file referenced by `constitution.system` in the manifest
+- `domain_constitution`: optional per-domain constitution files
+- `deep_context`: module-specific deep context files referenced in the manifest
+- `module`: markdown module files declared in the `modules` map
+
+The role determines how the render mechanism retrieves files. The monolith renderer queries for `file_role IN ('monolith', 'system_constitution')` with monolith prioritized. The modular renderer queries all roles except manifest (which is handled separately via the `manifest` table).
+
+#### Cross-Spec Resolution via `parent_spec`
+
+When a manifest declares `parent_spec: <path>`, `ParseModularSpec` recursively parses the parent specification into the same database. The resolution sequence is:
+
+1. Parse the child spec completely (all files, all passes 1-3)
+2. Resolve the parent path relative to the child manifest's directory: `filepath.Join(filepath.Dir(manifestPath), manifest.ParentSpec)`
+3. Guard against infinite recursion by comparing absolute paths of child and parent manifests
+4. Recursively call `ParseModularSpec(parentPath, db)` to parse the parent, obtaining `parentSpecID`
+5. Link the specs: `SetParentSpecID(db, childSpecID, parentSpecID)` sets the `parent_spec_id` FK on the child's `spec_index` row
+
+Cross-reference resolution then uses two-phase lookup. `ResolveCrossReferences` first attempts to resolve every cross-reference within the local spec. Any references that remain unresolved (e.g., a module referencing an invariant defined in the parent standard) are tried against the parent spec via `resolveRefInSpec(db, parentSpecID, refType, target)`. This local-first, parent-fallback strategy ensures that child specs can extend or specialize parent definitions while inheriting the parent's vocabulary.
+
 ---
 
 ### Chapter 4: Round-Trip Render Mechanism
@@ -586,6 +611,22 @@ Queries `source_files` for the row with `file_role = 'monolith'` (or `'system_co
 #### `RenderModular`
 
 Queries all `source_files` rows (excluding the manifest), writes each to its original relative path under the output directory (creating subdirectories as needed). Then queries the `manifest` table for `raw_yaml` and writes it as `manifest.yaml`.
+
+#### Atomic Write Pattern
+
+Both render functions use atomic write strategies to prevent partial output. `RenderMonolith` writes to a temporary file (`<outputPath>.tmp`), then atomically renames it to the target path via `os.Rename`. If the rename fails, the temporary file is cleaned up with `os.Remove`. On POSIX filesystems, rename is atomic within the same filesystem --- readers never see a half-written file. `RenderModular` writes each file directly via `os.WriteFile`, which creates or truncates the target atomically at the filesystem level.
+
+#### Directory Creation for Modular Render
+
+`RenderModular` reconstructs the original directory hierarchy from the stored `file_path` values. For each source file, it computes the output path as `filepath.Join(outputDir, filePath)` and calls `os.MkdirAll(filepath.Dir(outPath), 0755)` to ensure the parent directory exists. This handles arbitrarily nested module structures (e.g., `modules/core/standard.md`) without requiring the caller to pre-create directories. File permissions are set to 0644 (owner read-write, group and others read-only); directory permissions are 0755 (owner full, group and others read-execute).
+
+#### Render Ordering and Determinism
+
+`RenderModular` queries source files with `ORDER BY id`, which reflects insertion order during parsing. Since `ParseModularSpec` processes the constitution first, then modules in manifest-declared order, the render output is deterministic across runs. The manifest is always written last, as it is retrieved from the separate `manifest` table via its own query (`SELECT raw_yaml FROM manifest WHERE spec_id = ?`). This guarantees that re-rendering a parsed spec produces files in a stable, predictable order.
+
+#### Raw Text Preservation
+
+The renderer never reconstructs content from parsed fields. `raw_text` is stored verbatim during parsing --- including all whitespace, blank lines, horizontal rules, and trailing newlines --- and written back unchanged during rendering. This design makes the round-trip guarantee (APP-INV-001) trivially satisfiable: the renderer is a pure read-write passthrough with no transformation logic that could introduce discrepancies.
 
 #### Formatting Hints
 

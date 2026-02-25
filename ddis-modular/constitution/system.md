@@ -504,7 +504,7 @@ Cross-reference lookup: which module file contains each section number. The Note
 
 | Section Range | Module File | Notes |
 |---|---|---|
-| §0.1–§0.10, Invariant/ADR/Gate declarations, Glossary | constitution/system.md | Cross-cutting: included in every bundle. §0.11/§0.12 content nested as §0.1.2/§0.1.3 |
+| §0.1–§0.10, Invariant/ADR/Gate declarations, Glossary | constitution/system.md | Cross-cutting: included in every bundle. former sections 0.11/0.12 nested as §0.1.2/§0.1.3 |
 | §0.5 (full defs), §0.6 (full ADRs), §0.7 (details), §0.8, §1.1–§1.4 | modules/core-standard.md | References: INV-011–016 from modularization |
 | §0.13 (full protocol), INV-011–INV-016, ADR-006–ADR-007 | modules/modularization.md | References: §5.3, §5.5 from element-specifications |
 | §2.1–§7.3 | modules/element-specifications.md | References: §1.4 from core-standard |
