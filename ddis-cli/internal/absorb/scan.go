@@ -20,7 +20,17 @@ import (
 var DefaultExcludes = []string{".git", "vendor", "node_modules", "bin", "testdata", ".ddis"}
 
 // maxHeuristicPerFile caps heuristic patterns per file to avoid overwhelming output.
-const maxHeuristicPerFile = 200
+const maxHeuristicPerFile = 50
+
+// minPatternLength requires heuristic pattern lines to have enough content
+// to carry domain signal. Short lines like "if err != nil {" are noise.
+// Empirically calibrated: 55 chars filters trivial guards while keeping
+// patterns with domain-specific comparisons and error messages.
+const minPatternLength = 55
+
+// minConfidence filters low-confidence heuristic types at scan time.
+// Patterns below this threshold are too noisy to report.
+const minConfidence = 0.65
 
 // Heuristic patterns for code analysis.
 var (
@@ -31,6 +41,19 @@ var (
 	interfaceDefRe = regexp.MustCompile(`(?i)(?:interface\s*\{|type\s+\w+\s+interface)`)
 )
 
+// goBoilerplate matches common Go idioms that are never spec-worthy.
+// These represent language conventions, not domain behavior.
+var goBoilerplate = []*regexp.Regexp{
+	regexp.MustCompile(`^\s*if\s+err\s*!=\s*nil\s*\{`),
+	regexp.MustCompile(`^\s*if\s+\w+\s*==\s*nil\s*\{`),
+	regexp.MustCompile(`^\s*return\s+(nil\s*,\s*)?(nil\s*,\s*)?err\s*$`),
+	regexp.MustCompile(`^\s*return\s+(nil\s*,\s*)?fmt\.Errorf\(`),
+	regexp.MustCompile(`^\s*return\s+nil\s*$`),
+	regexp.MustCompile(`^\s*defer\s+\w+\.Close\(\)`),
+	regexp.MustCompile(`^\s*if\s+len\(\w+\)\s*[=!><]+\s*\d+\s*\{`),
+	regexp.MustCompile(`^\s*if\s+\w+\s*:?=\s*\w+\.\w+\([^)]*\);\s*\w+\s*!=\s*nil\s*\{`),
+}
+
 // patternDef pairs a regex with its classification and confidence.
 type patternDef struct {
 	re         *regexp.Regexp
@@ -40,10 +63,10 @@ type patternDef struct {
 
 var heuristicDefs = []patternDef{
 	{assertionRe, "assertion", 0.8},
-	{errorReturnRe, "error_return", 0.6},
+	{interfaceDefRe, "interface_def", 0.75},
 	{guardClauseRe, "guard_clause", 0.7},
-	{stateTransRe, "state_transition", 0.5},
-	{interfaceDefRe, "interface_def", 0.7},
+	{errorReturnRe, "error_return", 0.65},
+	{stateTransRe, "state_transition", 0.5}, // below minConfidence, filtered at scan time
 }
 
 // ScanPatterns extracts both annotations and heuristic patterns from code.
@@ -99,6 +122,14 @@ func ScanPatterns(codeRoot string) (*AbsorbResult, error) {
 		relPath, relErr := filepath.Rel(codeRoot, path)
 		if relErr != nil {
 			relPath = path
+		}
+
+		// Skip test files for heuristic scanning — test assertions and
+		// error handling are implementation details, not domain behavior.
+		// (Annotations in test files are captured separately by annotate.Scan.)
+		if strings.HasSuffix(d.Name(), "_test.go") || strings.HasSuffix(d.Name(), ".test.ts") ||
+			strings.HasSuffix(d.Name(), "_test.py") || strings.HasSuffix(d.Name(), ".spec.ts") {
+			return nil
 		}
 
 		patterns, scanErr := scanFileHeuristic(path, relPath, lang)
@@ -165,7 +196,22 @@ func scanFileHeuristic(absPath, relPath, lang string) ([]Pattern, error) {
 			break
 		}
 
+		// Filter boilerplate: common idioms that never indicate domain behavior.
+		if isBoilerplate(line, lang) {
+			continue
+		}
+
+		// Require minimum text complexity — short lines lack domain signal.
+		if len(trimmed) < minPatternLength {
+			continue
+		}
+
 		for _, def := range heuristicDefs {
+			// Skip pattern types below minimum confidence threshold.
+			if def.confidence < minConfidence {
+				continue
+			}
+
 			if def.re.MatchString(line) {
 				patterns = append(patterns, Pattern{
 					File:       relPath,
@@ -188,6 +234,20 @@ func scanFileHeuristic(absPath, relPath, lang string) ([]Pattern, error) {
 	}
 
 	return patterns, scanner.Err()
+}
+
+// isBoilerplate returns true if the line matches a common language idiom
+// that never represents domain-specific behavior worth specifying.
+func isBoilerplate(line, lang string) bool {
+	switch lang {
+	case "Go":
+		for _, re := range goBoilerplate {
+			if re.MatchString(line) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // isCommentOnly returns true if the trimmed line is exclusively a comment

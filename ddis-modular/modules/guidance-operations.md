@@ -144,6 +144,8 @@ After writing your spec's voice and style guidance, verify:
 
 ## Chapter 9: Proportional Weight Deep Dive
 
+Detailed guidance on maintaining proportional balance between specification chapters (validates INV-007, complements the ring architecture in §0.4 of the system constitution). Proportional weight is mechanically checked by CHECK-11 (§12.3) and is a precondition for Gate-1 structural conformance.
+
 ### 9.1 Identifying the Heart
 
 Every system has a "heart" — the 2–3 subsystems where most complexity and bugs live. These should receive 40–50% of the PART II line budget. The ring architecture (§0.4, system constitution) determines which sections are sacred (must-follow) versus recommended, which in turn constrains proportional weight allocation.
@@ -223,6 +225,8 @@ After writing your spec's proportional weight guidance, verify:
 
 ## Chapter 10: Cross-Reference Patterns
 
+Concrete patterns for building the cross-reference web required by INV-006. Cross-references are the primary navigation mechanism for LLMs (ADR-003) and their density is validated by Gate-5 and CHECK-3. See §0.5 for invariant registry declarations, which define the source of truth for cross-spec references.
+
 ### 10.1 Reference Syntax
 
 DDIS does not mandate a specific syntax, but recommends consistent conventions. Common patterns:
@@ -294,6 +298,8 @@ After writing your spec's cross-reference patterns, verify:
 
 ## Chapter 11: Applying DDIS to a New Project
 
+Step-by-step guide for first-time DDIS authors. Follows the authoring sequence that enforces implementation ordering (INV-019) and progressive validation (§12.1). The sequence is designed so each step produces artifacts consumed by later steps, following the causal traceability chain (INV-001). For brownfield adoption, see ADR-014 (drift-management module).
+
 **DO NOT** jump directly to implementation chapters when starting a new DDIS spec — the authoring sequence (§11.1) exists because each step produces artifacts consumed by later steps. Skipping the formal model or invariant steps forces costly retrofitting when implementation reveals missing constraints. (Validates INV-017, INV-019.)
 
 **DO NOT** assume first-time DDIS authors will discover common pitfalls on their own — the mistakes in §11.2 are consistently repeated by new authors and LLMs alike. Spec templates and tooling should actively guard against these patterns. (Validates INV-017.)
@@ -364,6 +370,8 @@ After writing your spec's application guidance, verify:
 
 ## Chapter 12: Validating a DDIS Specification
 
+Validation confirms structural integrity, internal consistency, and completeness against the quality gates (§0.7, system constitution). This chapter covers both self-validation (Gates 1-7, §12.1) and external validation by implementers (§12.2). Validation enforces INV-003 (falsifiability), INV-006 (cross-reference density), and INV-020 (verification prompt coverage). For automated validation using the CLI, see §12.3.
+
 **DO NOT** conflate validation with correctness — a spec can pass all quality gates and still describe the wrong system. Validation confirms structural integrity and internal consistency; domain correctness requires human judgment and implementation experience. (Validates INV-003, INV-017.)
 
 **DO NOT** run validation only once at the end — validate incrementally after each authoring tier (§11.1). Late-stage validation discovers cascading failures that could have been caught early, and the cost of fixing grows with each subsequent tier that built on the flawed foundation. (Validates INV-003, INV-020.)
@@ -430,6 +438,8 @@ After writing your spec's validation guidance, verify:
 ---
 
 ## Chapter 13: Evolving a DDIS Specification
+
+How specifications change over time once they enter the Living state (§1.1, core-standard module). Covers ADR supersession (ADR-011), invariant evolution, and cascade analysis. Changes must maintain causal traceability (INV-001) and cross-reference integrity (INV-006). For drift detection between spec and implementation, see INV-021 through INV-023 (drift-management module).
 
 **DO NOT** evolve a spec by editing inline without recording the change rationale — every modification to a Living spec must be traceable to either new information (implementation experience, changed requirements) or gap discovery (implementer questions, failed tests). Unrecorded changes erode the spec's value as historical record. (Validates INV-001, INV-006.)
 

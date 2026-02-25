@@ -3,6 +3,7 @@ package absorb
 import (
 	"database/sql"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/wvandaal/ddis/internal/autoprompt"
@@ -113,7 +114,15 @@ func Reconcile(result *AbsorbResult, db *sql.DB, specID int64) error {
 			}
 		}
 
-		if bestIdx >= 0 && bestScore >= matchThreshold {
+		// Confidence-weighted threshold: low-confidence heuristic patterns
+		// require proportionally higher keyword overlap to compensate for
+		// their inherent imprecision. Annotations (1.0) use base threshold.
+		effectiveThreshold := matchThreshold
+		if p.Confidence < 1.0 {
+			effectiveThreshold = matchThreshold + (1.0-p.Confidence)*0.3
+		}
+
+		if bestIdx >= 0 && bestScore >= effectiveThreshold {
 			elem := elements[bestIdx]
 			report.Correspondences = append(report.Correspondences, Correspondence{
 				Pattern:     p,
@@ -260,14 +269,38 @@ func RenderReconciliation(report *ReconciliationReport) string {
 			c.SpecElement, c.ElementType, c.Score))
 	}
 
-	b.WriteString(fmt.Sprintf("\n### Undocumented Behavior (%d)\n\n", len(report.UndocumentedBehavior)))
-	for _, u := range report.UndocumentedBehavior {
+	// Undocumented behavior: show top-N by confidence, summarize the rest.
+	// A human reviewer can act on 50 items; 500 is noise.
+	const maxUndocumentedDetail = 50
+	undoc := report.UndocumentedBehavior
+	b.WriteString(fmt.Sprintf("\n### Undocumented Behavior (%d)\n\n", len(undoc)))
+
+	// Sort by confidence descending (highest-signal first).
+	sortUndocumented(undoc)
+
+	shown := len(undoc)
+	if shown > maxUndocumentedDetail {
+		shown = maxUndocumentedDetail
+	}
+	for _, u := range undoc[:shown] {
 		text := u.Pattern.Text
 		if len(text) > 80 {
 			text = text[:77] + "..."
 		}
 		b.WriteString(fmt.Sprintf("- %s:%d: %s (suggest: %s)\n",
 			u.Pattern.File, u.Pattern.Line, text, u.Suggestion))
+	}
+
+	if len(undoc) > maxUndocumentedDetail {
+		// Group remainder by suggestion type for summary.
+		byType := make(map[string]int)
+		for _, u := range undoc[maxUndocumentedDetail:] {
+			byType[u.Suggestion]++
+		}
+		b.WriteString(fmt.Sprintf("\n*... and %d more patterns:*\n", len(undoc)-maxUndocumentedDetail))
+		for typ, count := range byType {
+			b.WriteString(fmt.Sprintf("  - %s: %d\n", typ, count))
+		}
 	}
 
 	b.WriteString(fmt.Sprintf("\n### Unimplemented Spec (%d)\n\n", len(report.UnimplementedSpec)))
@@ -320,13 +353,28 @@ func renderPatternSummary(result *AbsorbResult) string {
 	return b.String()
 }
 
-// wordSet splits text into a set of lowercase words, filtering short tokens.
+// programmingStopWords are common programming terms that add no domain signal
+// to keyword overlap scoring. They appear in nearly every code file and
+// match nearly every spec element, diluting precision.
+var programmingStopWords = map[string]bool{
+	"err": true, "error": true, "nil": true, "return": true, "func": true,
+	"var": true, "const": true, "type": true, "string": true, "int": true,
+	"bool": true, "byte": true, "float": true, "fmt": true, "log": true,
+	"true": true, "false": true, "for": true, "range": true, "len": true,
+	"make": true, "append": true, "new": true, "map": true, "chan": true,
+	"struct": true, "interface": true, "package": true, "import": true,
+	"the": true, "and": true, "not": true, "this": true, "that": true,
+	"with": true, "from": true, "has": true, "was": true, "are": true,
+}
+
+// wordSet splits text into a set of lowercase words, filtering short tokens
+// and programming stop words that carry no domain signal.
 func wordSet(text string) map[string]bool {
 	words := make(map[string]bool)
 	for _, w := range strings.Fields(strings.ToLower(text)) {
 		// Strip punctuation and skip short words.
-		w = strings.Trim(w, ".,;:!?(){}[]\"'`")
-		if len(w) >= 3 {
+		w = strings.Trim(w, ".,;:!?(){}[]\"'`*")
+		if len(w) >= 3 && !programmingStopWords[w] {
 			words[w] = true
 		}
 	}
@@ -400,6 +448,17 @@ func estimateDrift(result *AbsorbResult) float64 {
 	// Drift formula from the spec: |unspecified| + |unimplemented| + 2*|contradictions|
 	// We have no contradiction detection here, so just sum the two categories.
 	return float64(unspec + unimpl)
+}
+
+// sortUndocumented orders undocumented items by descending confidence
+// so the highest-signal patterns appear first in the output.
+func sortUndocumented(items []UndocumentedItem) {
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].Pattern.Confidence != items[j].Pattern.Confidence {
+			return items[i].Pattern.Confidence > items[j].Pattern.Confidence
+		}
+		return items[i].Pattern.File < items[j].Pattern.File
+	})
 }
 
 // min returns the smaller of two ints.

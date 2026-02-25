@@ -44,8 +44,8 @@ func TestWordSet_ShortWordFiltering(t *testing.T) {
 	if ws["to"] {
 		t.Error("two-char word 'to' should be filtered out (len < 3)")
 	}
-	if !ws["the"] {
-		t.Error("expected 'the' (len 3) to be included (>= 3)")
+	if ws["the"] {
+		t.Error("stop word 'the' should be filtered out by programmingStopWords")
 	}
 	if !ws["big"] {
 		t.Error("expected 'big' to be included")
@@ -287,11 +287,16 @@ func Foo() error {
 func TestScanPatterns_FindsHeuristicPatterns(t *testing.T) {
 	dir := t.TempDir()
 
+	// Use a domain-specific guard clause long enough to pass minPatternLength
+	// and complex enough to survive boilerplate filtering.
 	goFile := filepath.Join(dir, "heuristic.go")
 	content := `package heuristic
 
-func Bar() error {
-	return fmt.Errorf("something bad happened")
+func ValidateSpecElement(specID string, element SpecElement, validationCtx *Context) error {
+	if specID != "" && element.CrossRefCount > 0 && validationCtx.ActiveSpec != nil && validationCtx.Threshold > 0 {
+		return nil
+	}
+	return nil
 }
 `
 	if err := os.WriteFile(goFile, []byte(content), 0644); err != nil {
@@ -303,15 +308,15 @@ func Bar() error {
 		t.Fatalf("ScanPatterns: %v", err)
 	}
 
-	foundErrorReturn := false
+	foundGuard := false
 	for _, p := range result.Patterns {
-		if p.Type == "error_return" {
-			foundErrorReturn = true
+		if p.Type == "guard_clause" {
+			foundGuard = true
 			break
 		}
 	}
-	if !foundErrorReturn {
-		t.Error("expected to find an 'error_return' heuristic pattern")
+	if !foundGuard {
+		t.Error("expected to find a 'guard_clause' heuristic pattern for domain-specific guard")
 	}
 }
 
