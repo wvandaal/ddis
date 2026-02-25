@@ -223,7 +223,7 @@ func TestEXINV003_ExemplarGapRelevance(t *testing.T) {
 	db := *dbPtr
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target:   "INV-001",
+		Target:   "APP-INV-001",
 		MinScore: 0.1,
 		Limit:    10,
 	})
@@ -257,7 +257,7 @@ func TestEXINV004_RankingConsistency(t *testing.T) {
 	db := *dbPtr
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target:   "INV-001",
+		Target:   "APP-INV-001",
 		MinScore: 0.1,
 		Limit:    10,
 	})
@@ -322,7 +322,7 @@ func TestEXINV006_SubstrateCueStructure(t *testing.T) {
 	db := *dbPtr
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target:   "INV-001",
+		Target:   "APP-INV-001",
 		MinScore: 0.1,
 		Limit:    10,
 	})
@@ -354,7 +354,7 @@ func TestEXINV006_SubstrateCueStructure(t *testing.T) {
 		}
 
 		// 4. Transfer instruction — contains target ID
-		if !strings.Contains(ex.SubstrateCue, "INV-001") {
+		if !strings.Contains(ex.SubstrateCue, "APP-INV-001") {
 			t.Errorf("exemplar %s cue missing target ID (transfer instruction)", ex.ElementID)
 		}
 	}
@@ -492,9 +492,9 @@ func TestExemplarAllGaps(t *testing.T) {
 	dbPtr, specID, lsi := getExemplarDB(t)
 	db := *dbPtr
 
-	// INV-001 has semi_formal missing (and violation_scenario weak)
+	// APP-INV-001 is complete — verify Analyze runs cleanly with MinScore and Limit
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target:   "INV-001",
+		Target:   "APP-INV-001",
 		MinScore: 0.1,
 		Limit:    3,
 	})
@@ -502,11 +502,12 @@ func TestExemplarAllGaps(t *testing.T) {
 		t.Fatalf("analyze: %v", err)
 	}
 
-	if len(result.Gaps) == 0 {
-		t.Error("expected gaps for INV-001")
+	// A fully-specified element should have no gaps and generate appropriate guidance
+	if result.Target != "APP-INV-001" {
+		t.Errorf("expected target APP-INV-001, got %s", result.Target)
 	}
-	if len(result.Exemplars) == 0 {
-		t.Error("expected exemplars for INV-001's gaps")
+	if !strings.Contains(result.Guidance, "no component gaps") {
+		t.Errorf("complete element should report no gaps; guidance: %s", result.Guidance)
 	}
 }
 
@@ -515,7 +516,7 @@ func TestExemplarGapFilter(t *testing.T) {
 	db := *dbPtr
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target: "INV-001",
+		Target: "APP-INV-001",
 		Gap:    "semi_formal",
 	})
 	if err != nil {
@@ -539,7 +540,7 @@ func TestExemplarJSONValid(t *testing.T) {
 	db := *dbPtr
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target:   "INV-001",
+		Target:   "APP-INV-001",
 		MinScore: 0.1,
 	})
 	if err != nil {
@@ -556,7 +557,7 @@ func TestExemplarJSONValid(t *testing.T) {
 		t.Fatalf("invalid JSON output: %v\nOutput:\n%s", err, out)
 	}
 
-	if parsed.Target != "INV-001" {
+	if parsed.Target != "APP-INV-001" {
 		t.Errorf("target mismatch: got %s", parsed.Target)
 	}
 }
@@ -566,7 +567,7 @@ func TestExemplarHumanReadable(t *testing.T) {
 	db := *dbPtr
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target: "INV-001",
+		Target: "APP-INV-001",
 	})
 	if err != nil {
 		t.Fatalf("analyze: %v", err)
@@ -580,7 +581,7 @@ func TestExemplarHumanReadable(t *testing.T) {
 	if !strings.Contains(out, "Exemplar Analysis:") {
 		t.Error("missing header in human output")
 	}
-	if !strings.Contains(out, "INV-001") {
+	if !strings.Contains(out, "APP-INV-001") {
 		t.Error("missing target ID in human output")
 	}
 	if !strings.Contains(out, "Guidance:") {
@@ -593,7 +594,7 @@ func TestExemplarDeterminism(t *testing.T) {
 	db := *dbPtr
 
 	opts := exemplar.Options{
-		Target:   "INV-001",
+		Target:   "APP-INV-001",
 		MinScore: 0.1,
 		Limit:    5,
 	}

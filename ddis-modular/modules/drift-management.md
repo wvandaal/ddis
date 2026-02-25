@@ -322,32 +322,32 @@ Every planned divergence requires a reason and an expiry. Expired entries become
 
 The definitive workflow for agents working on DDIS specifications. Six steps, one rule.
 
-```
-# 1. SEED: Capture starting point
-$ ddis seed index.db
+```bash
+## Step 1 — SEED: Capture starting point
+ddis seed index.db
 
-# 2. ORIENT: Understand before writing
-$ ddis drift index.db                       # baseline measurement
-$ ddis context index.db INV-003             # what touches this?
-$ ddis exemplar index.db INV-001            # what does good look like?
+## Step 2 — ORIENT: Understand before writing
+ddis drift index.db                       # baseline measurement
+ddis context index.db INV-003             # what touches this?
+ddis exemplar index.db INV-001            # what does good look like?
 
-# 3. AUTHOR: Formalize intent into spec
-#    After EACH edit:
-$ ddis parse manifest.yaml -o idx.db && ddis drift idx.db
-#    Rule: drift MUST NOT increase (INV-022). If it did, undo.
+## Step 3 — AUTHOR: Formalize intent into spec
+## After EACH edit:
+ddis parse manifest.yaml -o idx.db && ddis drift idx.db
+## Rule: drift MUST NOT increase (INV-022). If it did, undo.
 
-# 4. VERIFY: Confirm intent captured
-$ ddis validate index.db --json
-$ ddis checkpoint index.db
-$ ddis checklist index.db
+## Step 4 — VERIFY: Confirm intent captured
+ddis validate index.db --json
+ddis checkpoint index.db
+ddis checklist index.db
 
-# 5. PLAN: Decompose into tasks
-$ ddis progress index.db --json             # what's ready?
-$ ddis impl-order index.db --json           # in what sequence?
-#    → Feed into beads (br) for task management
+## Step 5 — PLAN: Decompose into tasks
+ddis progress index.db --json             # what's ready?
+ddis impl-order index.db --json           # in what sequence?
+## Feed into beads (br) for task management
 
-# 6. TRACK: After implementation
-$ ddis drift index.db                       # did code stay aligned?
+## Step 6 — TRACK: After implementation
+ddis drift index.db                       # did code stay aligned?
 ```
 
 **The one rule: never increase drift.**

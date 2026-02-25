@@ -69,7 +69,7 @@ Validation: Mechanical (CHECK-7 in §0.13.11). Semantic: review for implicit ref
   ∨ (inv.owner ≠ "system" ∧ count(s ∈ modules : inv ∈ s.maintains) = 1)
 ```
 
-Violation scenario: Both EventStore and SnapshotManager list APP-INV-017 in their maintains declarations. Which module's tests are authoritative?
+Violation scenario: Both EventStore and SnapshotManager list an invariant in their maintains declarations. Which module's tests are authoritative?
 
 Validation: Mechanical (CHECK-1 in §0.13.11).
 
@@ -106,7 +106,7 @@ Validation: Mechanical (CHECK-5 in §0.13.11). Run the assembly script; it valid
   decl.one_line is_faithful_summary_of defn.statement
 ```
 
-Violation scenario: System constitution declares "APP-INV-017: Event log is append-only" but the Storage domain definition now says "append-only except during compaction." An LLM implementing a different domain codes against the wrong contract.
+Violation scenario: System constitution declares an invariant as "Event log is append-only" but the Storage domain definition now says "append-only except during compaction." An LLM implementing a different domain codes against the wrong contract.
 
 Validation: Semi-mechanical. Extract declaration/definition pairs; present to reviewer for semantic consistency.
 
@@ -156,7 +156,7 @@ C) **Three-tier** — system constitution (declarations only) + domain constitut
 
 #### Decision
 
-**Option C as the full protocol, with Option B as a blessed simplification** for small specs (< 20 invariants, constitution ≤ 400 lines). The `tier_mode` manifest field selects between them — no forced complexity for specs that don't need it, with a clear upgrade path.
+**Option C: Three-tier with two-tier simplification.** Option C is the full protocol, with Option B as a blessed simplification for small specs (< 20 invariants, constitution ≤ 400 lines). The `tier_mode` manifest field selects between them — no forced complexity for specs that don't need it, with a clear upgrade path.
 
 // WHY NOT Option A? At scale, the flat root consumes 30–37% of the context budget before the module starts. That's context waste, not management.
 
@@ -320,7 +320,7 @@ APP-INV-017: Event log is append-only -- Owner: EventStore -- Domain: Storage
 
 **Definition** (Tier 2, in the owning domain's constitution, ~10-20 lines):
 ```
-**APP-INV-017: Event Log Append-Only**
+**APP-INV-NNN: Event Log Append-Only**
 
 *Events, once written, are never modified or deleted.*
 
@@ -334,7 +334,7 @@ Validation: Write 1000 events, snapshot the log, run any operation, compare
 log prefix byte-for-byte.
 
 // WHY THIS MATTERS: Append-only is the foundation of deterministic replay.
-// Without it, APP-INV-003 (replay determinism) is impossible.
+// Without it, replay determinism is impossible.
 ```
 
 **Inclusion rules — which tier provides which level of detail:**

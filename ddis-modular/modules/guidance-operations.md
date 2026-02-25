@@ -167,6 +167,49 @@ Every system has a "heart" — the 2–3 subsystems where most complexity and bu
 - PART 0 longer than PART II means the spec is top-heavy (more framing than substance)
 - Appendices longer than PART II means reference material is displacing implementation spec
 
+### 9.3 Rebalancing Strategies
+
+When proportional weight check detects imbalance, the following strategies restore balance without losing content:
+
+**For starved subsystems** (many invariants, few lines):
+- Expand implementation chapters with worked examples demonstrating invariant compliance
+- Add negative specifications addressing the most likely implementation errors
+- Include algorithm pseudocode for complex invariant validation procedures
+- Reference the invariant registry (§0.5) to verify nothing was overlooked
+
+**For bloated subsystems** (few invariants, many lines):
+- Extract general-purpose content (patterns, templates) into appendix chapters
+- Split large subsections into peer chapters with focused scope
+- Convert inline examples into separate worked example blocks (§5.2, element-specifications module)
+- Review whether the subsystem should define additional invariants to justify its size
+
+**For top-heavy specs** (PART 0 > PART II):
+- Move detailed design rationale from PART 0 into ADR records
+- Ensure PART 0 elements are declarations, not implementations
+- Push concrete algorithms and data structures into PART II chapters
+
+**For appendix-heavy specs** (appendices > PART II):
+- Inline essential reference material into the implementation chapters that use it
+- Remove redundant appendix entries that duplicate PART II content
+- Verify each appendix section is referenced by at least one implementation chapter (INV-006)
+
+**Mechanical detection**: The `ddis validate` command (Check 11) computes mean chapter size and flags chapters deviating more than ±50% as errors. Use `ddis coverage` to correlate chapter size with invariant density — a chapter's weight should be proportional to its invariant and ADR count.
+
+### 9.4 Weight in Meta-Standards vs Domain Specs
+
+Meta-standards (like DDIS itself) have fundamentally different weight distributions than domain specs:
+
+| Property | Domain Spec | Meta-Standard |
+|---|---|---|
+| PART 0 (framing) | 10–20% of total | 30–50% of total |
+| PART I (foundations) | 15–25% of total | 10–20% of total |
+| PART II (implementation) | 40–60% of total | 20–30% of total |
+| Appendices | 5–15% of total | 10–20% of total |
+
+A domain spec's PART II is its substance — implementation chapters describe what to build. A meta-standard's PART 0 IS its substance — it defines the format and constraints that domain specs must follow. Flagging a meta-standard for "top-heavy PART 0" is a false positive; flagging a domain spec for the same is a genuine signal.
+
+The `ddis validate` proportional weight check (Check 11) measures chapter-level balance, not PART-level distribution. Both meta-standards and domain specs benefit from balanced chapters within each PART, even when the PARTs themselves have different relative sizes.
+
 ### Verification Prompt for Chapter 9 (Proportional Weight)
 
 After writing your spec's proportional weight guidance, verify:
@@ -209,6 +252,32 @@ DDIS does not mandate a specific syntax, but recommends consistent conventions. 
 | Test strategy | 2 (at least: one invariant, one implementation chapter) |
 | Negative specification | 1 (at least: one invariant or ADR it protects) |
 | Verification prompt | 2 (at least: one invariant, one negative specification) |
+
+### 10.3 Modular Cross-References
+
+In modular specs (those exceeding the 2,500-line threshold in ADR-007, modularization module), cross-references span module boundaries. The manifest declares module relationships:
+
+- **`maintains`**: Invariants this module owns and is authoritative for
+- **`interfaces`**: Invariants defined elsewhere that this module references
+- **`adjacent`**: Peer modules with shared concerns and frequent cross-references
+
+Cross-module references should use the full invariant or ADR identifier (e.g., `INV-006`, not "the cross-reference invariant"). The `ddis validate` command resolves cross-module references against the combined index, reporting unresolved references per module. Child specs using `parent_spec` in their manifest can reference parent-spec invariants, which resolve through the recursive parent parsing mechanism.
+
+**Pullback assembly** (§0.13.11, modularization module): When an LLM receives a domain bundle for implementation, the bundle includes the system constitution, domain constitution, and relevant module — but NOT other modules. Cross-references to elements outside the bundle must be self-contained enough that an implementer can understand the reference without reading the source module.
+
+### 10.4 Cross-Reference Graph Properties
+
+A well-referenced DDIS specification forms a connected directed graph with specific structural properties:
+
+**Reachability**: Every section should be reachable from at least one other section. Orphan sections (zero incoming, zero outgoing references) indicate disconnected content that may be obsolete or missing integration points. The `ddis validate` command (Check 3, INV-006) detects orphan sections automatically.
+
+**Hub sections**: Sections with high outgoing reference count (>5) are natural navigation hubs. The system constitution's invariant registry (§0.5), ADR registry (§0.6), and quality gates (§0.7) should be the highest-degree hubs, connecting formal declarations to their implementations throughout the spec.
+
+**Authority sections**: Sections with high incoming reference count are authority nodes — content that many other sections depend on. Implementation chapters that define core algorithms typically have the highest authority. The `ddis search` command uses PageRank on the cross-reference graph to surface these authority nodes.
+
+**Cross-module references**: In modular specs, cross-references span module boundaries. The manifest declares `interfaces` (invariants a module references from other modules) and `adjacent` (peer modules with shared concerns). Cross-module references should flow through declared interfaces, not bypass them via implicit knowledge of other modules' internal structure.
+
+**Reference staleness**: As specs evolve, references can become stale — pointing to renamed sections, deleted invariants, or restructured chapters. The `ddis validate` command (Check 1) detects unresolved references. Keeping the cross-reference graph accurate is a maintenance obligation, not polish.
 
 ### Verification Prompt for Chapter 10 (Cross-Reference Patterns)
 
@@ -274,6 +343,12 @@ After writing your spec's cross-reference patterns, verify:
 
 7. **Referencing invariants by ID only.** INV-017 means nothing 2,000 lines from its definition. Restate it. (See INV-018.)
 
+8. **Writing the spec alone.** External validation (§12.2) reveals blind spots that no amount of self-review can surface. Give the spec to an implementer early.
+
+9. **Ignoring proportional weight.** A spec with 500-line implementation chapters alongside 20-line chapters signals uneven coverage. The heavy chapters may be over-specified, or the light chapters under-specified. Check against §9.2 signals before declaring the spec complete.
+
+10. **Not using the CLI tools during authoring.** The `ddis parse → ddis validate → ddis coverage → ddis drift` cycle catches errors incrementally. Waiting until the end turns small fixable issues into cascading failures.
+
 **DO NOT** treat common mistakes as merely informational — each mistake in the list above has been observed repeatedly in LLM-generated specs. Tooling and templates should actively prevent these patterns rather than relying on authors to read and remember warnings. (Validates INV-017, INV-019.)
 
 ### Verification Prompt for Chapter 11 (Applying DDIS)
@@ -322,6 +397,26 @@ Give the spec to an implementer (or LLM) and track:
 - Added behaviors not in spec → missing negative specifications
 
 **DO NOT** treat external validation feedback as informal commentary — every question, incorrect implementation, skipped section, and unauthorized behavior must be tracked, triaged, and patched into the spec. Untracked feedback is lost institutional knowledge. (Validates INV-017, INV-020.)
+
+### 12.3 Automated Validation with CLI Tooling
+
+The `ddis validate` command mechanizes Gates 1–5 and provides structured feedback for Gates 6–7:
+
+| Check | Gate | What It Validates |
+|---|---|---|
+| Check 1: Cross-reference integrity | Gate 5 | All §X.Y, INV-NNN, ADR-NNN references resolve to existing sections |
+| Check 2: Invariant falsifiability | Gate 4 | Every invariant has statement, semi-formal, violation scenario, validation method |
+| Check 3: Cross-reference density | Gate 5 | No orphan sections; minimum reference density per section type |
+| Check 4: Glossary completeness | Gate 1 | Frequently used bold terms are defined in the glossary |
+| Check 5-8: Registry consistency | Gate 1 | Invariant/ADR registries match definitions; manifest matches source files |
+| Check 9: Negative spec coverage | Gate 7 | Every implementation chapter has ≥3 DO NOT constraints (INV-017) |
+| Check 10: Structural conformance | Gate 1 | Required sections from §0.3 are present |
+| Check 11: Proportional weight | Gate 1 | Chapter sizes within ±50% of mean (see Chapter 9, §9.3) |
+| Check 12: Namespace consistency | Gate 1 | INV/ADR numbering is sequential with no gaps |
+
+**Progressive validation** (PLAN-ADR-014): Validation severity should match spec maturity. A Level 1 (Seed) spec needs only structural conformance and ≥1 invariant. A Level 2 (Growing) spec adds cross-reference checks and component completeness. A Level 3 (Complete) spec enforces all checks at full strictness. The `--level` flag allows gating at chosen maturity.
+
+**Continuous validation**: Run `ddis parse && ddis validate` after every authoring tier in §11.1. The cost of a single parse+validate cycle is negligible compared to the cost of discovering cascading failures at the end.
 
 ### Verification Prompt for Chapter 12 (Validating a DDIS Specification)
 
@@ -391,14 +486,27 @@ After the cascade:
 
 **DO NOT** modify invariant statements without updating their semi-formal predicates and violation scenarios in the same edit — partial updates create internal contradiction within the invariant where the English statement asserts one property and the formal predicate constrains another. (Validates INV-001, INV-017.)
 
+### 13.4 Drift-Driven Evolution
+
+Spec evolution should be guided by measurable drift rather than intuition. The `ddis drift` command (see drift-management module) quantifies the gap between specification and implementation:
+
+**Forward drift** (spec describes features not yet implemented): Expected during authoring. The spec deliberately outruns implementation to capture design intent. Forward drift becomes problematic only when it grows without corresponding implementation progress — this indicates either over-specification or stalled implementation.
+
+**Backward drift** (implementation contains patterns not captured in spec): Indicates undocumented design decisions. The `ddis absorb` command extracts implementation patterns and proposes spec amendments. Every backward drift finding is either (a) a missing spec element that should be added, or (b) an unauthorized implementation deviation that should be corrected.
+
+**Quality drift** (spec elements degrade over time): Invariants without violation scenarios, ADRs without genuine alternatives, implementation chapters without negative specifications. The `ddis refine` command identifies quality regressions and generates improvement prompts using Gestalt-optimized LLM prompting (see auto-prompting module in child specs).
+
+**The drift budget**: During active development, total drift should decrease monotonically (INV-022, drift-management module). Each evolution cycle should either reduce drift or hold it steady while working toward a multi-step reduction. Drift that increases signals a process failure — either the spec and implementation are diverging, or the spec is being edited without validation.
+
 ### Verification Prompt for Chapter 13 (Evolving a DDIS Specification)
 
 After writing your spec's evolution guidance, verify:
 1. [ ] The Living state description maintains all invariants and quality gates — evolution does not degrade spec quality (§13.1, INV-001, INV-006)
 2. [ ] The ADR supersession procedure includes all four steps: mark, create, cascade, re-validate (§13.3, ADR-011)
-3. [ ] Your evolution guidance does NOT treat the Living state as permission for informal changes (§13.1, INV-001)
-4. [ ] Your supersession procedure does NOT allow deleting superseded ADRs — they are historical record (§13.3, ADR-011)
-5. [ ] *Integration*: Your cascade protocol references the modularization module's §0.13.12 for cross-module impact analysis and the quality gates in §0.7 (constitution) for re-validation (INV-006)
+3. [ ] Drift-driven evolution guidance describes forward, backward, and quality drift with specific tooling references (§13.4)
+4. [ ] Your evolution guidance does NOT treat the Living state as permission for informal changes (§13.1, INV-001)
+5. [ ] Your supersession procedure does NOT allow deleting superseded ADRs — they are historical record (§13.3, ADR-011)
+6. [ ] *Integration*: Your cascade protocol references the modularization module's §0.13.12 for cross-module impact analysis and the quality gates in §0.7 (constitution) for re-validation (INV-006)
 
 ---
 

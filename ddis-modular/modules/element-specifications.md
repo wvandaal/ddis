@@ -202,6 +202,8 @@ After writing your spec's preamble, verify:
 
 ---
 
+## Chapter 3B: PART 0 Formal Elements
+
 ### 3.4 Invariants
 
 **What it is**: A numbered list of properties that must hold at all times during system operation.
@@ -321,6 +323,8 @@ B) **[Option name]**
 **Churn-magnets**: After all ADRs are written, add a brief section identifying which decisions cause the most downstream rework if changed. These are the decisions to lock first and spike earliest (see §6.1.1, Phase -1).
 
 ---
+
+## Chapter 3C: PART 0 Quality Infrastructure
 
 ### 3.6 Quality Gates
 
@@ -472,6 +476,16 @@ After writing your spec's PART 0, verify:
 **Required**: Big-O bounds with constants where they matter for the design point. "O(n) where n = active_agents, expected ≤ 300" is more useful than "O(n)."
 
 **DO NOT** provide complexity bounds without anchoring to the design point — "O(n²)" is meaningless without knowing n. (Validates INV-005.)
+
+### 4.4 Formal Model Validation
+
+The full formal model in PART I must satisfy three properties that are mechanically verifiable:
+
+**Completeness**: Every entity, state, and transition referenced by PART II implementation chapters must be defined in PART I. Missing definitions create ambiguity — implementers (especially LLMs) will invent definitions to fill gaps. Use `ddis validate` (Check 1) to verify that all cross-references from implementation chapters to formal model sections resolve.
+
+**Consistency**: The formal model must not contain contradictions. Two sections should not prescribe incompatible state transitions, conflicting guard conditions, or overlapping state definitions. The end-to-end trace (§1.4, core-standard module) exercises the model by following a concrete scenario through multiple subsystems, surfacing contradictions that isolated reading would miss.
+
+**Minimality**: The formal model should not define entities, states, or transitions that no implementation chapter references. Unused formal definitions are dead weight that increases authoring and maintenance cost without adding value. Use `ddis coverage` to identify formal model sections with zero incoming references — these are candidates for removal or indicate missing implementation chapters.
 
 ### Verification Prompt for Chapter 4 (PART I Elements)
 
@@ -625,6 +639,8 @@ After writing your spec's PART I (Foundations), verify:
 ```
 
 ---
+
+## Chapter 5B: PART II Auxiliary Elements
 
 ### 5.5 Comparison Blocks
 
@@ -907,6 +923,16 @@ After writing your spec's operational chapters, verify:
 
 **DO NOT** organize the Master TODO by phase alone — subsystem organization ensures that an LLM implementing one subsystem can find all related tasks without scanning the entire list. (Validates INV-017.)
 
+### 7.4 Appendix Maintenance
+
+Appendices require active maintenance as the spec evolves. Unlike implementation chapters (which are self-contained per subsystem), appendix entries have cross-cutting dependencies:
+
+**Glossary drift**: New terms introduced in implementation chapters must be added to the glossary. The `ddis validate` command (Check 4, INV-009) detects frequently used bold terms that lack glossary definitions. Run this check after every authoring tier.
+
+**Risk register staleness**: Risks that have been mitigated or that have materialized should be updated with their resolution. Unresolved risks should be reviewed after each implementation phase — some risks become more or less likely as the system takes shape.
+
+**TODO inventory reconciliation**: As tasks are completed, the Master TODO should be updated. In projects using task management tools (e.g., beads), the `ddis tasks` command can derive TODO items from spec artifacts and reconcile them against the task database, surfacing items that exist in the spec but not in the tracker (or vice versa).
+
 ### Verification Prompt for Chapter 7 (Appendix Elements)
 
 After writing your spec's appendices, verify:
@@ -915,4 +941,5 @@ After writing your spec's appendices, verify:
 3. [ ] The risk register includes detection methods, not just mitigations — how do you know a risk is materializing? (§7.2)
 4. [ ] The Master TODO is organized by subsystem and cross-referenced to ADRs and phases (§7.3)
 5. [ ] Your appendices do NOT contain circular glossary definitions ("task: a unit of work in the task system") or risks without detection methods
-6. [ ] *Integration*: Your glossary defines every term that appears in bold or code formatting across PART II chapters (INV-009)
+6. [ ] Appendix entries are actively maintained — glossary, risks, and TODOs are updated after each authoring tier (§7.4)
+7. [ ] *Integration*: Your glossary defines every term that appears in bold or code formatting across PART II chapters (INV-009)
