@@ -28,6 +28,7 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 	var options []*storage.ADROption
 	var currentOpt *storage.ADROption
 	var chosenLabel string
+	var inChosenRationale bool
 
 	flush := func(endLine int) error {
 		if current.ADRID == "" {
@@ -38,11 +39,6 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 		current.ContentHash = sha256Hex(current.RawText)
 		if current.Status == "" {
 			current.Status = "active"
-		}
-		// Store the full decision text as chosen option rationale
-		// (chosenLabel identifies which option; full text captures the why)
-		if chosenLabel != "" && current.ChosenOption == "" {
-			current.ChosenOption = current.DecisionText
 		}
 
 		adrDBID, err := storage.InsertADR(db, &current)
@@ -94,6 +90,7 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 			options = nil
 			currentOpt = nil
 			chosenLabel = ""
+			inChosenRationale = false
 			currentSection = ""
 			continue
 		}
@@ -174,17 +171,32 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 				}
 				current.DecisionText += trimmed
 			}
-			// Check for chosen option
+			// Check for chosen option marker: **Option X: Name.** Rationale...
 			if m := ADRChosenRe.FindStringSubmatch(trimmed); m != nil {
 				chosenLabel = m[1]
+				// Extract rationale text after the **Option X: ...** marker
+				loc := ADRChosenRe.FindStringIndex(trimmed)
+				if loc != nil {
+					rest := strings.TrimSpace(trimmed[loc[1]:])
+					if rest != "" {
+						current.ChosenOption = rest
+					}
+				}
+				inChosenRationale = true
+			} else if inChosenRationale {
+				// Continue accumulating rationale until blank line or special marker
+				if trimmed == "" || ConfidenceRe.MatchString(trimmed) || WhyNotRe.MatchString(trimmed) || CodeFenceRe.MatchString(trimmed) {
+					inChosenRationale = false
+				} else {
+					if current.ChosenOption != "" {
+						current.ChosenOption += " "
+					}
+					current.ChosenOption += trimmed
+				}
 			}
 			// Check for confidence
 			if m := ConfidenceRe.FindStringSubmatch(trimmed); m != nil {
 				current.Confidence = m[1]
-			}
-			// Check for WHY NOT
-			if m := WhyNotRe.FindStringSubmatch(trimmed); m != nil {
-				// This is part of the decision narrative, already captured
 			}
 
 		case inConsequences:

@@ -1342,55 +1342,57 @@ The `--surface-ambiguity` flag triggers additional analysis: the planner scans f
 
 #### Phase 3: Apply (apply.go)
 
-The apply phase generates the prompt the LLM uses to edit the spec. Prompt structure follows "demonstrations > constraints":
+The apply phase generates the Gestalt-optimized prompt the LLM uses to edit the spec. The prompt structure applies five Gestalt principles (APP-ADR-017):
+
+1. **Spec-first framing** (+3-4 quality points): Formalize what quality means for the dimension before assigning the task. The `dimensionFraming(dimension)` function returns ~150 tokens of domain-specific framing per dimension (completeness, coherence, depth, coverage, formality).
+2. **Demonstrations before task** (structure first, content second): Show full exemplar elements before presenting the element to improve. This primes the LLM's quality model.
+3. **Full element demonstrations** (demonstrations > constraints): Show complete `RawText` of exemplar elements, not just one component. The full element encodes format, style, depth, tone, and domain simultaneously.
+4. **Remove parasitic constraints**: The exemplar demonstration already shows what "good" looks like. Listing generic criteria ("Every invariant MUST have...") is redundant. Removed entirely (passes Gestalt removal test).
+5. **Activating directive** (match language to substrate): The `activatingDirective(dimension, weak)` function replaces generic "Return ONLY the improved element" with dimension-specific instructions that activate deep reasoning.
 
 ```
-Apply Prompt Structure (bounded by TokenTarget(depth)):
-1. Spec-first framing (~200 tokens): "You are editing the X dimension of Y spec"
-2. Current spec element (~variable): full text of the element being improved
-3. Exemplar demonstrations (1-3): selected by SelectExemplars algorithm
-4. Quality criteria (~100 tokens): what "good" looks like for this dimension
-5. Constraints (~50 tokens): what NOT to do (from negative specs)
-6. Output format (~50 tokens): exact format the edit should take
+Gestalt-Optimized Apply Prompt Structure (bounded by TokenTarget(depth)):
+1. Spec-first dimension framing (~150 tokens): formalizes what quality means
+2. Full exemplar demonstrations (1-3): complete elements showing excellence
+3. Current element + diagnosis (~variable): full text + weak dimension label
+4. Activating directive (~80 tokens): dimension-specific output instruction
 ```
 
-If the full prompt exceeds `TokenTarget(depth)`, sections are trimmed in reverse priority order: constraints first, then quality criteria, then exemplar count reduced from 3 to 1. Spec-first framing and the current spec element are never trimmed.
+Budget trimming follows a new priority order: reduce exemplars from N to 1, then shorten framing to a 1-sentence version, then drop exemplars entirely. The current element and activating directive are never trimmed.
 
-**Worked example --- refine apply prompt at depth=0, dimension=completeness:**
-
-```
-You are improving the COMPLETENESS dimension of the DDIS CLI specification.
-
-## Current Element
-APP-INV-003: Cross-Reference Integrity
-Every resolved reference points to an existing element.
-[statement only — missing violation scenario, validation method]
-
-## Exemplar Demonstration
-Here is a complete invariant from the same spec that scores 9/10 on completeness:
-
-APP-INV-001: Round-Trip Fidelity
-*For every valid specification, parsing it into the index and rendering it back
-produces byte-identical output.*
+**Worked example --- Gestalt-optimized refine apply prompt at depth=0, dimension=completeness:**
 
 ```
-FOR ALL spec IN ValidSpecs:
-  render(parse(spec)) = spec
-```
+## Completeness in DDIS Specification
 
-Violation scenario: The renderer omits a blank line that separates two invariant
-blocks. The re-parsed spec merges the two invariants into one...
+A complete invariant creates an interlocking proof structure: the statement
+asserts the property, the semi-formal predicate makes it mechanically checkable,
+the violation scenario proves it is falsifiable, the validation method makes it
+testable, and why-this-matters connects it to system value. Each component
+constrains interpretation of the others.
 
-Validation: Parse any valid DDIS specification. Render the result. Compare
-byte-for-byte against the original...
+## Exemplar Demonstrations
+
+The following elements demonstrate excellence. Study their structure, tone,
+and depth.
+
+### Exemplar 1: INV-ABC (Round-Trip Fidelity)
+
+[complete raw text of the exemplar element, showing all components:
+ statement, semi-formal predicate, violation scenario, validation method,
+ and why-this-matters]
+
+## Element to Improve: INV-XYZ (Cross-Reference Integrity)
+
+Type: invariant | Weak dimension: completeness
+
+[full raw text of element being improved]
 
 ## Your Task
-Add the missing violation scenario and validation method to APP-INV-003.
-The violation scenario must describe a CONCRETE failure — not a vague possibility.
-The validation method must be MECHANICALLY EXECUTABLE.
 
-DO NOT change the existing statement or semi-formal predicate.
-DO NOT add cross-references to elements that don't exist.
+Rewrite INV-XYZ so every component interlocks. What would a reviewer need
+to see to trust this property holds? Preserve all existing correct content.
+Output only the improved element in the same markdown format.
 ```
 
 #### Phase 4: Judge (judge.go)

@@ -32,6 +32,12 @@ negative_specs:
 
 ## Chapter 8: Voice and Style
 
+**DO NOT** generate spec elements in an inconsistent register — if the design overview uses senior-engineer voice, invariants must not shift to bureaucratic "shall" language, and ADRs must not shift to academic passive. Register consistency is how LLMs maintain coherent implementations across subsystems. (Validates INV-017.)
+
+**DO NOT** omit concrete calibration examples alongside voice guidance — abstract style rules ("be precise") produce wildly different interpretations across LLMs. Provide explicit good/bad pairs (§8.1) so the LLM can pattern-match rather than infer. (Validates INV-017.)
+
+**DO NOT** treat formatting conventions (§8.2) as cosmetic — bold, code, blockquote, and table choices are semantic signals that LLMs use to distinguish definitions, types, commentary, and structured data. Inconsistent formatting causes LLMs to misclassify spec elements. (Validates INV-007, INV-017.)
+
 ### 8.1 The DDIS Voice
 
 **Technically precise but human.** The voice of a senior engineer explaining their system to a peer they respect.
@@ -79,6 +85,8 @@ specified in section 4.3.2.1."
 - Blockquotes for the preamble elements and meta-instructions (§5.7, element-specifications module)
 - ASCII diagrams preferred over external image references (the spec should be readable in any text editor)
 
+**DO NOT** mix formatting conventions within a single element type — if invariants use `code` for type names in one section, all invariants must follow the same convention. Inconsistent formatting within an element type causes LLMs to generate structurally inconsistent output. (Validates INV-007, INV-017.)
+
 ### 8.3 Anti-Pattern Catalog
 
 Every DDIS element has bad and good examples defined in its specification (PART II). This section collects cross-cutting anti-patterns that affect multiple elements:
@@ -120,6 +128,8 @@ If an implementer must ask the architect a question the spec should have answere
 A "Chapter N: LLM Considerations" appendix bolted onto an otherwise LLM-unaware spec. Provisions must be woven throughout, not isolated. (ADR-008.)
 
 **DO NOT** treat anti-patterns as a substitute for subsystem-specific negative specifications (§3.8, element-specifications module). Anti-patterns are document-level guidance; negative specs are subsystem-level constraints. Both required. (Validates INV-017, ADR-009.)
+
+**DO NOT** use passive voice for invariant statements, ADR decisions, or negative specs — "it is recommended that" must become "MUST" or "MUST NOT". Passive voice in specification elements creates ambiguity about obligation level that LLMs resolve inconsistently, producing implementations that treat hard requirements as suggestions. (Validates INV-017.)
 
 ### Verification Prompt for Chapter 8 (Voice and Style)
 
@@ -215,6 +225,12 @@ After writing your spec's cross-reference patterns, verify:
 
 ## Chapter 11: Applying DDIS to a New Project
 
+**DO NOT** jump directly to implementation chapters when starting a new DDIS spec — the authoring sequence (§11.1) exists because each step produces artifacts consumed by later steps. Skipping the formal model or invariant steps forces costly retrofitting when implementation reveals missing constraints. (Validates INV-017, INV-019.)
+
+**DO NOT** assume first-time DDIS authors will discover common pitfalls on their own — the mistakes in §11.2 are consistently repeated by new authors and LLMs alike. Spec templates and tooling should actively guard against these patterns. (Validates INV-017.)
+
+**DO NOT** treat the authoring sequence dependency chain as documentation overhead — each dependency captures a real information flow. Breaking the chain does not save time; it shifts rework downstream where the cost is higher. (Validates INV-019.)
+
 ### 11.1 The Authoring Sequence
 
 > **META-INSTRUCTION (for spec authors):** Write sections in this order (not document order) to minimize rework. Do not skip steps or reorder — the dependency chain between steps is real. See §0.9 (system constitution) for the complete interface DDIS provides.
@@ -222,6 +238,8 @@ After writing your spec's cross-reference patterns, verify:
 **DO NOT** write in document order — use authoring order below; writing implementation before ADRs causes cascading rework. **DO NOT** skip negative specs (step 7) or verification prompts (step 11) — these cannot be retrofitted without re-reading each chapter. (Validates INV-017, INV-019.)
 
 **DO NOT** treat the authoring sequence as inflexible for experienced authors — the dependency chain between steps is real, but experienced authors may batch steps within the same dependency tier (e.g., steps 1–3 can be drafted in one pass). Reordering across tiers (e.g., writing implementation before invariants) causes cascading rework regardless of experience. (Validates INV-019, INV-017.)
+
+**DO NOT** begin implementation chapters before the formal model (step 2) and invariants (step 4) are complete — implementations without invariant constraints produce code that cannot be validated, and retrofitting invariants after implementation creates confirmation bias where invariants merely describe what was built rather than what should hold. (Validates INV-017, INV-019.)
 
 1. **GOAL: Design goal + Core promise** — no dependencies; start here
 2. **FORMAL: First-principles formal model** — depends on GOAL: the formal model derives from the design goal
@@ -256,6 +274,8 @@ After writing your spec's cross-reference patterns, verify:
 
 7. **Referencing invariants by ID only.** INV-017 means nothing 2,000 lines from its definition. Restate it. (See INV-018.)
 
+**DO NOT** treat common mistakes as merely informational — each mistake in the list above has been observed repeatedly in LLM-generated specs. Tooling and templates should actively prevent these patterns rather than relying on authors to read and remember warnings. (Validates INV-017, INV-019.)
+
 ### Verification Prompt for Chapter 11 (Applying DDIS)
 
 After writing your spec's application guidance, verify:
@@ -269,11 +289,19 @@ After writing your spec's application guidance, verify:
 
 ## Chapter 12: Validating a DDIS Specification
 
+**DO NOT** conflate validation with correctness — a spec can pass all quality gates and still describe the wrong system. Validation confirms structural integrity and internal consistency; domain correctness requires human judgment and implementation experience. (Validates INV-003, INV-017.)
+
+**DO NOT** run validation only once at the end — validate incrementally after each authoring tier (§11.1). Late-stage validation discovers cascading failures that could have been caught early, and the cost of fixing grows with each subsequent tier that built on the flawed foundation. (Validates INV-003, INV-020.)
+
+**DO NOT** treat external validation (§12.2) as optional polish — implementer feedback reveals gaps, ambiguities, and missing negative specs that no amount of self-validation can surface. The spec is not complete until an implementer (human or LLM) has used it without asking questions the spec should have answered. (Validates INV-017.)
+
 ### 12.1 Self-Validation Checklist
 
 **DO NOT** skip self-validation or treat it as polish. **DO NOT** validate gates out of order — a failing Gate 1 makes later gates irrelevant. (Validates INV-003, INV-020.)
 
 **DO NOT** declare validation complete after only mechanical checks — Gates 1–5 are mechanical, but Gate 6 (Implementation Readiness) and Gate 7 (LLM Implementation Readiness) require human or LLM judgment. Skipping judgment-based gates produces specs that are structurally conforming but practically unusable. (Validates INV-003, INV-017.)
+
+**DO NOT** validate cross-references (Gate 5) before structural conformance (Gate 1) passes — unresolved headings and malformed sections make the cross-reference graph unreliable, producing false positives that waste investigation time and false negatives that hide real gaps. (Validates INV-003, INV-006, INV-020.)
 
 Before declaring a spec complete, the author should:
 
@@ -293,6 +321,8 @@ Give the spec to an implementer (or LLM) and track:
 - Skipped sections → voice/clarity issues
 - Added behaviors not in spec → missing negative specifications
 
+**DO NOT** treat external validation feedback as informal commentary — every question, incorrect implementation, skipped section, and unauthorized behavior must be tracked, triaged, and patched into the spec. Untracked feedback is lost institutional knowledge. (Validates INV-017, INV-020.)
+
 ### Verification Prompt for Chapter 12 (Validating a DDIS Specification)
 
 After writing your spec's validation guidance, verify:
@@ -305,6 +335,12 @@ After writing your spec's validation guidance, verify:
 ---
 
 ## Chapter 13: Evolving a DDIS Specification
+
+**DO NOT** evolve a spec by editing inline without recording the change rationale — every modification to a Living spec must be traceable to either new information (implementation experience, changed requirements) or gap discovery (implementer questions, failed tests). Unrecorded changes erode the spec's value as historical record. (Validates INV-001, INV-006.)
+
+**DO NOT** add new invariants without verifying they do not contradict existing ones — invariant sets must be consistent. Adding INV-NNN that conflicts with INV-MMM creates an impossible implementation target. Run contradiction detection (§3.2 in element-specifications module) after every invariant addition. (Validates INV-001, INV-017.)
+
+**DO NOT** assume backward compatibility when evolving specs — every ADR supersession, invariant change, or performance budget revision potentially invalidates existing implementations. The cross-reference cascade (§13.3) exists precisely to surface these impacts. (Validates INV-001, INV-006.)
 
 ### 13.1 The Living Spec
 
@@ -323,6 +359,8 @@ Once implementation begins, the spec enters the Living state (§1.1, core-standa
 DDIS recommends a simple versioning scheme: `Major.Minor` where:
 - **Major** increments when the formal model or a non-negotiable changes
 - **Minor** increments when ADRs, invariants, or implementation chapters are added or revised
+
+**DO NOT** reuse version numbers or skip versions — version numbers are monotonically increasing identifiers that serve as reference points in the spec's history. Reusing or skipping creates ambiguity about which state of the spec a reference refers to. (Validates INV-001.)
 
 ### 13.3 ADR Supersession Procedure
 
@@ -350,6 +388,8 @@ After the cascade:
 - Gate 5 (Cross-Reference Web): Verify the superseded ADR still has at least one inbound reference (the new ADR's "Supersedes" link)
 
 **DO NOT** supersede an ADR without executing the cross-reference cascade — conflicting guidance produces inconsistent implementations. (Validates INV-001, INV-006.)
+
+**DO NOT** modify invariant statements without updating their semi-formal predicates and violation scenarios in the same edit — partial updates create internal contradiction within the invariant where the English statement asserts one property and the formal predicate constrains another. (Validates INV-001, INV-017.)
 
 ### Verification Prompt for Chapter 13 (Evolving a DDIS Specification)
 

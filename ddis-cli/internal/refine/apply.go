@@ -27,6 +27,7 @@ type exemplarEntry struct {
 	ElementID string
 	Title     string
 	Content   string // the strong component text
+	RawText   string // full element text for Gestalt demonstrations
 }
 
 // findWeakest finds the element with the worst score on the given dimension.
@@ -267,6 +268,7 @@ func selectExemplars(db *sql.DB, specID int64, dimension, excludeID string, maxC
 		id      string
 		title   string
 		content string
+		rawText string
 		score   float64
 	}
 
@@ -286,6 +288,7 @@ func selectExemplars(db *sql.DB, specID int64, dimension, excludeID string, maxC
 				id:      inv.InvariantID,
 				title:   inv.Title,
 				content: text,
+				rawText: inv.RawText,
 				score:   score,
 			})
 		}
@@ -311,6 +314,7 @@ func selectExemplars(db *sql.DB, specID int64, dimension, excludeID string, maxC
 						id:      adr.ADRID,
 						title:   adr.Title,
 						content: text,
+						rawText: adr.RawText,
 						score:   score,
 					})
 				}
@@ -337,6 +341,7 @@ func selectExemplars(db *sql.DB, specID int64, dimension, excludeID string, maxC
 			ElementID: c.id,
 			Title:     c.title,
 			Content:   c.content,
+			RawText:   c.rawText,
 		})
 	}
 	return result
@@ -376,6 +381,14 @@ func dimensionToADRComponent(dimension string) string {
 	}
 }
 
+// capitalizeFirst returns s with its first letter capitalized.
+func capitalizeFirst(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
+}
+
 // countNonEmpty returns the number of non-empty fields in the map.
 func countNonEmpty(fields map[string]string) int {
 	count := 0
@@ -400,8 +413,91 @@ func averageWeakScore(fields map[string]string, elementType string) float64 {
 	return total / float64(len(components))
 }
 
+// dimensionFraming returns spec-first framing text that formalizes what quality
+// means for the given dimension before any task is assigned. This activates the
+// LLM's domain understanding (Gestalt spec-first framing principle).
+func dimensionFraming(dimension string) string {
+	switch dimension {
+	case "completeness":
+		return "A complete invariant creates an interlocking proof structure: " +
+			"the statement asserts the property, the semi-formal predicate makes it " +
+			"mechanically checkable, the violation scenario proves it is falsifiable, " +
+			"the validation method makes it testable, and why-this-matters connects " +
+			"it to system value. Each component constrains interpretation of the others. " +
+			"A complete ADR similarly requires that the problem, decision, chosen option " +
+			"rationale, consequences, and tests form a coherent decision record where " +
+			"no component can be removed without losing explanatory power."
+	case "coherence":
+		return "Coherence means every reference resolves and every claim connects " +
+			"to the web of specification. An isolated element is dead weight; a connected " +
+			"element amplifies the specification's explanatory power. Cross-references " +
+			"must point to existing elements. WHY NOT annotations must reference " +
+			"rejected alternatives. Semi-formal predicates must use terms defined in " +
+			"the glossary or earlier in the spec."
+	case "depth":
+		return "Depth is the distance between a violation scenario and reality. " +
+			"A shallow scenario states the obvious; a deep scenario captures the " +
+			"non-obvious failure mode that only emerges under specific conditions. " +
+			"Deep validation methods go beyond 'check that X holds' to describe " +
+			"the exact procedure, inputs, and expected outputs."
+	case "coverage":
+		return "Coverage measures how much of the domain surface the element " +
+			"addresses. A high-coverage element anticipates the full range of " +
+			"situations where the property applies. For invariants, this means " +
+			"the violation scenario covers edge cases, not just the happy path. " +
+			"For ADRs, this means consequences address both positive and negative " +
+			"outcomes, and tests verify both the chosen option and rejected alternatives."
+	case "formality":
+		return "Formality is the bridge between natural language intent and mechanical " +
+			"verification. A semi-formal predicate translates English claims into " +
+			"logical structure that a validator can check. It uses quantifiers " +
+			"(FOR ALL, THERE EXISTS), logical connectives (AND, OR, IMPLIES), " +
+			"and domain-specific predicates with precise scope."
+	default:
+		return "Quality in specification means every element earns its place " +
+			"through interlocking components that constrain interpretation, " +
+			"connect to the broader spec web, and enable mechanical verification."
+	}
+}
+
+// activatingDirective returns a dimension-specific output instruction that uses
+// spec language to trigger deep reasoning, replacing generic "Return ONLY" instructions.
+func activatingDirective(dimension string, weak *weakestElement) string {
+	switch dimension {
+	case "completeness":
+		return fmt.Sprintf("Rewrite %s so every component interlocks. "+
+			"What would a reviewer need to see to trust this property holds? "+
+			"Preserve all existing correct content. Output only the improved element "+
+			"in the same markdown format.", weak.ElementID)
+	case "coherence":
+		return fmt.Sprintf("Rewrite %s so every reference resolves and every claim "+
+			"connects to the specification web. Add cross-references where the element "+
+			"touches other spec elements. Output only the improved element "+
+			"in the same markdown format.", weak.ElementID)
+	case "depth":
+		return fmt.Sprintf("Deepen %s. What is the non-obvious failure mode? "+
+			"Under what specific conditions does this property break? "+
+			"Replace shallow scenarios with concrete, falsifiable ones. "+
+			"Output only the improved element in the same markdown format.", weak.ElementID)
+	case "coverage":
+		return fmt.Sprintf("Broaden %s to cover the full domain surface. "+
+			"What edge cases are missing? What situations does the current "+
+			"element fail to anticipate? Output only the improved element "+
+			"in the same markdown format.", weak.ElementID)
+	case "formality":
+		return fmt.Sprintf("Add or strengthen the semi-formal predicate for %s. "+
+			"What are the quantifiers, the domain, and the logical connectives? "+
+			"Translate the English claim into structure a machine could evaluate. "+
+			"Output only the improved element in the same markdown format.", weak.ElementID)
+	default:
+		return fmt.Sprintf("Improve %s on the %s dimension. "+
+			"Output only the improved element in the same markdown format.",
+			weak.ElementID, dimension)
+	}
+}
+
 // Apply generates an LLM edit prompt with exemplars for the selected dimension.
-// The prompt follows: demonstrations > constraints.
+// The prompt follows Gestalt principles: spec-first framing → demonstrations → element → activating directive.
 func Apply(db *sql.DB, specID int64, iteration int) (*autoprompt.CommandResult, error) {
 	// 1. Get selected dimension from state (or recompute via plan logic)
 	dimension, err := state.Get(db, specID, "refine_focus_"+strconv.Itoa(iteration))
@@ -433,100 +529,77 @@ func Apply(db *sql.DB, specID int64, iteration int) (*autoprompt.CommandResult, 
 	// 4. Select exemplars
 	exemplars := selectExemplars(db, specID, dimension, weak.ElementID, maxExemplars)
 
-	// 5. Load negative specs for constraint generation
-	negSpecs, _ := storage.ListNegativeSpecs(db, specID)
-
-	// 6. Assemble prompt sections
+	// 5. Assemble Gestalt-optimized prompt (4 sections):
+	//   1. Spec-first dimension framing (activates domain understanding)
+	//   2. Full exemplar demonstrations (primes quality pattern)
+	//   3. Current element + diagnosis (now LLM has context)
+	//   4. Activating directive (triggers deep work in spec language)
 	tokenTarget := autoprompt.TokenTarget(iteration)
 
-	// Section A: Spec-first framing (~200 tokens)
+	// Section 1: Spec-first dimension framing (~150 tokens)
 	framing := fmt.Sprintf(
-		"You are improving the **%s** dimension of a DDIS specification element.\n"+
-			"The element below scores poorly on %s. Your task is to rewrite it\n"+
-			"so that it matches the quality demonstrated by the exemplars.\n"+
-			"Preserve all existing correct content. Only add or improve.\n",
-		dimension, dimension)
+		"## %s in DDIS Specification\n\n%s\n",
+		capitalizeFirst(dimension), dimensionFraming(dimension))
 
-	// Section B: Current element (variable size)
-	currentElement := fmt.Sprintf(
-		"\n## Current Element: %s (%s)\nType: %s\n\n%s\n",
-		weak.ElementID, weak.Title, weak.ElementType, weak.RawText)
-
-	// Section C: Exemplar demonstrations
+	// Section 2: Full exemplar demonstrations (shows complete elements, not just components)
 	var exemSection strings.Builder
 	if len(exemplars) > 0 {
 		exemSection.WriteString("\n## Exemplar Demonstrations\n\n")
+		exemSection.WriteString("The following elements demonstrate excellence. Study their structure, tone, and depth.\n\n")
 		for i, ex := range exemplars {
-			fmt.Fprintf(&exemSection, "### Exemplar %d: %s (%s)\n%s\n\n",
-				i+1, ex.ElementID, ex.Title, ex.Content)
+			// Use full RawText if available; fall back to component text
+			content := ex.RawText
+			if content == "" {
+				content = ex.Content
+			}
+			fmt.Fprintf(&exemSection, "### Exemplar %d: %s (%s)\n\n%s\n\n",
+				i+1, ex.ElementID, ex.Title, content)
 		}
 	}
 
-	// Section D: Quality criteria (~100 tokens)
-	criteria := fmt.Sprintf(
-		"\n## Quality Criteria for %s\n"+
-			"- Every invariant MUST have: statement, semi-formal predicate, violation scenario, validation method, why-this-matters\n"+
-			"- Every ADR MUST have: problem, decision text, chosen option, consequences, tests\n"+
-			"- Cross-references must resolve to existing elements\n"+
-			"- Semi-formal predicates should use logical operators\n",
-		dimension)
+	// Section 3: Current element + diagnosis
+	currentElement := fmt.Sprintf(
+		"\n## Element to Improve: %s (%s)\n\nType: %s | Weak dimension: %s\n\n%s\n",
+		weak.ElementID, weak.Title, weak.ElementType, dimension, weak.RawText)
 
-	// Section E: Constraints from negative specs (~50 tokens)
-	var constraints strings.Builder
-	if len(negSpecs) > 0 {
-		constraints.WriteString("\n## Constraints (DO NOT)\n")
-		cap := 3
-		if len(negSpecs) < cap {
-			cap = len(negSpecs)
-		}
-		for _, ns := range negSpecs[:cap] {
-			fmt.Fprintf(&constraints, "- %s\n", ns.ConstraintText)
-		}
-	}
+	// Section 4: Activating directive (spec-language output instruction)
+	directive := fmt.Sprintf("\n## Your Task\n\n%s\n", activatingDirective(dimension, weak))
 
-	// Section F: Output format (~50 tokens)
-	outputFormat := "\n## Output Format\nReturn ONLY the improved element in the same markdown format as the original.\n" +
-		"Do not include explanations or commentary outside the element.\n"
-
-	// 7. Budget trimming: if total exceeds TokenTarget, trim in order
+	// 6. Budget trimming: if total exceeds TokenTarget, trim in priority order
 	// Rough estimate: 1 token ~ 4 chars
-	totalChars := len(framing) + len(currentElement) + exemSection.Len() +
-		len(criteria) + constraints.Len() + len(outputFormat)
+	// Priority: trim exemplars from N to 1 → shorten framing → never trim element or directive
 	charBudget := tokenTarget * 4
+	totalChars := len(framing) + exemSection.Len() + len(currentElement) + len(directive)
 
-	constraintStr := constraints.String()
-	criteriaStr := criteria
-
-	if totalChars > charBudget {
-		// Trim constraints first
-		constraintStr = ""
-		totalChars = len(framing) + len(currentElement) + exemSection.Len() +
-			len(criteriaStr) + len(outputFormat)
-	}
-	if totalChars > charBudget {
-		// Trim criteria second
-		criteriaStr = ""
-		totalChars = len(framing) + len(currentElement) + exemSection.Len() + len(outputFormat)
-	}
 	if totalChars > charBudget && len(exemplars) > 1 {
-		// Reduce exemplars to 1
-		var trimmed strings.Builder
-		trimmed.WriteString("\n## Exemplar Demonstration\n\n")
-		fmt.Fprintf(&trimmed, "### Exemplar: %s (%s)\n%s\n\n",
-			exemplars[0].ElementID, exemplars[0].Title, exemplars[0].Content)
+		// Reduce exemplars to 1 (still keep one demonstration)
 		exemSection.Reset()
-		exemSection.WriteString(trimmed.String())
+		exemSection.WriteString("\n## Exemplar Demonstration\n\n")
+		content := exemplars[0].RawText
+		if content == "" {
+			content = exemplars[0].Content
+		}
+		fmt.Fprintf(&exemSection, "### %s (%s)\n\n%s\n\n",
+			exemplars[0].ElementID, exemplars[0].Title, content)
+		totalChars = len(framing) + exemSection.Len() + len(currentElement) + len(directive)
 	}
-	// NEVER trim framing or current element
+	if totalChars > charBudget {
+		// Shorten dimension framing to 1-sentence version
+		framing = fmt.Sprintf("## Improving %s\n\n", dimension)
+		totalChars = len(framing) + exemSection.Len() + len(currentElement) + len(directive)
+	}
+	if totalChars > charBudget && exemSection.Len() > 0 {
+		// Drop exemplars entirely as last resort before touching element/directive
+		exemSection.Reset()
+	}
+	// NEVER trim current element or activating directive
 
-	// 8. Assemble final prompt
+	// 7. Assemble final prompt (Gestalt order: framing → demonstrations → element → directive)
 	var prompt strings.Builder
 	prompt.WriteString(framing)
-	prompt.WriteString(currentElement)
 	prompt.WriteString(exemSection.String())
-	prompt.WriteString(criteriaStr)
-	prompt.WriteString(constraintStr)
-	prompt.WriteString(outputFormat)
+	prompt.WriteString(currentElement)
+	prompt.WriteString(directive)
 
 	// 9. Store apply state
 	_ = state.Set(db, specID, "refine_target_"+strconv.Itoa(iteration), weak.ElementID)
