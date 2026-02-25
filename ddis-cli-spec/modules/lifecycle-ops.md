@@ -1,9 +1,9 @@
 ---
 module: lifecycle-ops
 domain: lifecycle
-maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016]
+maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016, APP-INV-041]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-008, APP-INV-009, APP-INV-011, APP-INV-012, APP-INV-015]
-implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011]
+implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011, APP-ADR-030]
 adjacent: [parse-pipeline, search-intelligence, query-validation]
 negative_specs:
   - "Must NOT modify or delete existing oplog records"
@@ -33,7 +33,7 @@ The architectural principle: **lifecycle operations are write-once, state-machin
 
 ## Invariants
 
-This module maintains four invariants. Each invariant is fully specified with all six components: plain-language statement, semi-formal expression, violation scenario, validation method, WHY THIS MATTERS annotation, and implementation trace.
+This module maintains five invariants. Each invariant is fully specified with all six components: plain-language statement, semi-formal expression, violation scenario, validation method, WHY THIS MATTERS annotation, and implementation trace.
 
 ---
 
@@ -212,6 +212,33 @@ Validation: (1) Create a spec with an invariant that has valid Implementation Tr
 
 ----
 
+**APP-INV-041: Witness Auto-Invalidation**
+
+*When a spec is re-parsed and an invariant's content_hash changes, any witness whose spec_hash no longer matches the invariant's content_hash MUST be automatically set to `stale_spec` status.*
+
+```
+FOR ALL w IN invariant_witnesses WHERE w.status = 'valid':
+  EXISTS inv IN invariants
+    WHERE inv.invariant_id = w.invariant_id
+    AND inv.content_hash = w.spec_hash
+```
+
+Violation scenario: An invariant is modified and re-parsed, but its witness still shows `status = 'valid'` with the old hash, giving a false sense of implementation coverage.
+
+Validation: Record a witness for an invariant, modify the invariant's text (changing its content_hash), re-parse the spec, then verify the witness status has changed to `stale_spec`.
+
+// WHY THIS MATTERS: Without auto-invalidation, witnesses become stale silently. A team could believe invariants are implemented when the spec has evolved past the witnessed version, creating a dangerous false confidence in spec-implementation alignment.
+
+**Implementation Trace:**
+- Source: `internal/storage/insert.go::InvalidateWitnesses`
+- Source: `internal/witness/witness.go::Record`
+- Source: `internal/witness/witness.go::Refresh`
+- Source: `internal/cli/parse.go::runParse`
+- Tests: `internal/witness/witness_test.go::TestCheck_StalenessDetection`
+- Tests: `internal/witness/witness_test.go::TestInvalidateWitnesses`
+
+----
+
 ## Architecture Decision Records
 
 ---
@@ -362,6 +389,52 @@ The trade-off is explicit: mathematical rigor is sacrificed for accessibility an
 - `tests/traceability_test.go::TestTraceabilityValidAnnotation` verifies that valid annotations are accepted.
 - `tests/traceability_test.go::TestTraceabilityBrokenFunction` verifies that stale annotations are detected.
 - The six-component structure (statement, semi-formal, violation, validation, WHY, trace) is enforced by the query-validation module's invariant completeness check.
+
+---
+
+### APP-ADR-030: Persistent Witnesses over Ephemeral Done Flags
+
+#### Problem
+
+The `--done` flag on `ddis progress` is ephemeral --- passed per invocation, forgotten immediately. In multi-agent workflows, no agent knows the global done set. Progress tracking requires external coordination.
+
+#### Options
+
+A) **External done file** --- Store completed invariant IDs in a flat file alongside the spec.
+- Pros: Simple, portable, no schema changes required.
+- Cons: No auto-invalidation when spec changes, manual management burden, no evidence tracking.
+
+B) **Persistent witness table** --- Store witnesses in an `invariant_witnesses` table with content_hash-based auto-invalidation.
+- Pros: Auto-invalidation on spec change, queryable via SQL, per-invariant evidence with provenance, integrates with existing SQLite index.
+- Cons: Additional schema table, slightly more complex than a flat file.
+
+C) **Session state KV** --- Reuse the existing `session_state` key-value table to track done invariants.
+- Pros: No new table needed, reuses existing infrastructure.
+- Cons: No per-invariant granularity, no evidence tracking, no auto-invalidation, conflates session state with persistent proof receipts.
+
+#### Decision
+
+**Option B: Persistent witness table.** Witnesses persist in the `invariant_witnesses` table, auto-invalidate on spec change via content_hash comparison, and are loaded by `ddis progress` by default (via `--witness` flag, default true). The `--done` flag remains as an additive override.
+
+// WHY NOT Option A (external done file)? Auto-invalidation is the core property (APP-INV-041). A flat file has no mechanism to detect that the spec changed underneath --- it would require external tooling to compare hashes, duplicating what the SQLite index already provides.
+
+// WHY NOT Option C (session state KV)? Session state is per-session and ephemeral by design. Witnesses are persistent proof receipts that survive across sessions. Conflating these concerns violates the separation between transient state and durable evidence.
+
+**Confidence:** Committed
+
+#### Consequences
+
+- `ddis progress` reads witnesses by default; the `--witness` flag (default true) loads valid witnesses into the done set before `--done` expansion, making them additive.
+- Stale witnesses are drift signals: `ddis drift --report` includes stale witnesses in the drift count and quality breakdown.
+- `ddis validate` Check 14 (Witness Freshness) reports stale witnesses as warnings, integrating witness health into the standard validation pipeline.
+- The `ddis parse` command auto-invalidates stale witnesses on every re-parse, ensuring APP-INV-041 is mechanically enforced.
+
+#### Tests
+
+- `internal/witness/witness_test.go::TestProgressWithWitnesses` --- witnesses populate done set
+- `internal/witness/witness_test.go::TestProgressWitnessAndDoneFlag` --- witnesses and --done are additive
+- `internal/witness/witness_test.go::TestInvalidateWitnesses` --- stale witnesses detected on re-parse
+- `internal/witness/witness_test.go::TestCheck_StalenessDetection` --- staleness detection and reporting
 
 ---
 

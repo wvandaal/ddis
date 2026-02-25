@@ -2,11 +2,11 @@
 # Self-bootstrapping artifact: this spec describes the tool that validates it.
 #
 # Line counts (Level 2 expansion):
-#   constitution/system.md:              ~635 lines
+#   constitution/system.md:              ~670 lines
 #   modules/parse-pipeline.md:           ~643 lines
 #   modules/search-intelligence.md:      ~897 lines
 #   modules/query-validation.md:         ~840 lines
-#   modules/lifecycle-ops.md:            ~1004 lines
+#   modules/lifecycle-ops.md:            ~1077 lines
 #   modules/code-bridge.md:             ~934 lines
 #   modules/auto-prompting.md:          ~1932 lines
 #   modules/workspace-ops.md:           ~886 lines
@@ -120,6 +120,7 @@ modules:
       - APP-INV-010
       - APP-INV-013
       - APP-INV-016
+      - APP-INV-041
     interfaces:
       - APP-INV-001
       - APP-INV-002
@@ -134,6 +135,7 @@ modules:
       - APP-ADR-007
       - APP-ADR-008
       - APP-ADR-011
+      - APP-ADR-030
     adjacent: [parse-pipeline, search-intelligence, query-validation]
     deep_context: null
     negative_specs:
@@ -296,3 +298,4 @@ invariant_registry:
   APP-INV-038: { owner: workspace-ops, domain: workspace, description: "Cross-Spec Reference Integrity — peer spec references resolve correctly across workspace" }
   APP-INV-039: { owner: workspace-ops, domain: workspace, description: "Task Derivation Completeness — generated tasks cover all unimplemented spec elements" }
   APP-INV-040: { owner: workspace-ops, domain: workspace, description: "Progressive Validation Monotonicity — level transitions are monotonic: L1 ⊂ L2 ⊂ L3" }
+  APP-INV-041: { owner: lifecycle-ops, domain: lifecycle, description: "Witness Auto-Invalidation — stale witnesses detected on re-parse" }

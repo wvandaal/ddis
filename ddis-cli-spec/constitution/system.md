@@ -75,7 +75,7 @@ where:
   Workspace      = Map(SpecID -> {manifest_path, parent_spec, related_specs, drift_score})
 ```
 
-### 0.2.1 State Transitions (22 Commands)
+### 0.2.1 State Transitions (23 Commands)
 
 Each command is a transition function over the state space:
 
@@ -114,6 +114,9 @@ T_absorb:      CodeRoot * Index -> CommandResult * SpecFiles'
 T_init:        EmptyDir -> SpecFiles * Index * EventStreams * Workspace
 T_spec:        Workspace * ManifestPath -> Workspace'
 T_tasks:       DiscoveryState * Index -> TaskList
+
+-- Witness domain
+T_witness:   Index * InvariantID -> WitnessReceipt
 ```
 
 ### 0.2.2 Key Composition: T_context
@@ -175,7 +178,7 @@ Each pass is independently testable. The pipeline is deterministic: same input a
 
 ## 0.3 Invariant Registry (Declarations)
 
-All 40 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
+All 41 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
 
 **APP-INV-001: Round-Trip Fidelity** (Owner: parse-pipeline)
 Parse followed by render MUST produce byte-identical output for any valid DDIS specification.
@@ -377,6 +380,11 @@ Validation maturity levels are strictly ordered: Level 1 ⊂ Level 2 ⊂ Level 3
 Confidence: falsified
 *Violation: spec passes Level 2 (has invariants) but fails Level 1 (no overview); monotonicity broken.*
 
+**APP-INV-041: Witness Auto-Invalidation** (Owner: lifecycle-ops)
+When a spec is re-parsed and an invariant's content_hash changes, any witness with mismatched spec_hash is automatically set to stale_spec.
+Confidence: falsified
+*Violation: Invariant modified, re-parsed, but witness still shows valid with old hash.*
+
 ---
 
 ## 0.4 Invariant Confidence Levels
@@ -396,7 +404,7 @@ Confidence levels are tracked per-invariant in the implementation. The `validate
 
 ## 0.5 ADR Registry (Declarations)
 
-All 29 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
+All 30 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
 
 **APP-ADR-001: Go over Rust** (Implements: parse-pipeline)
 Decision: Go for CLI implementation. The workload is I/O-bound (SQLite reads/writes, file parsing), not CPU-bound. Go's fast compilation supports rapid iteration in the RALPH improvement loop. A pure-Go SQLite driver (`modernc.org/sqlite`) eliminates CGO complexity.
@@ -513,6 +521,10 @@ WHY NOT binary: A freshly-initialized spec failing 11 of 12 checks is discouragi
 **APP-ADR-029: Beads-Compatible Task Output** (Implements: workspace-ops)
 Decision: `ddis tasks` defaults to beads JSONL for `br import`. Also supports JSON and markdown. Task dependencies derived from `implementation_map.phases`.
 WHY NOT JSON only: Beads is the project's issue tracker. Beads-compatible output eliminates manual conversion.
+
+**APP-ADR-030: Persistent Witnesses over Ephemeral Done Flags** (Implements: lifecycle-ops)
+Decision: Witnesses persist in the `invariant_witnesses` table with auto-invalidation on spec change via content_hash comparison. `ddis progress` loads witnesses by default. The `--done` flag remains as an additive override.
+WHY NOT ephemeral done flags: No auto-invalidation, no per-invariant evidence tracking, no cross-agent visibility.
 
 ---
 
