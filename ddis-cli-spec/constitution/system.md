@@ -30,15 +30,16 @@ tier_mode: two-tier
 
 ## 0.1 Executive Summary
 
-The DDIS CLI is a Go command-line tool that makes DDIS-conforming specifications machine-queryable. It parses markdown specifications into a normalized 30-table SQLite index, then provides 13 commands for querying, validating, searching, diffing, and analyzing change impact across specification elements.
+The DDIS CLI is a Go command-line tool that makes DDIS-conforming specifications machine-queryable and machine-improvable. It parses markdown specifications into a normalized 30-table SQLite index, then provides commands for querying, validating, searching, diffing, analyzing change impact, detecting contradictions, bridging spec to code, and orchestrating bilateral specification workflows where humans think and LLMs formalize.
 
-The primary purpose is to close the loop between three activities that currently require manual effort:
+The primary purpose is to close the loop between four activities that currently require manual effort:
 
-1. **Human exploration** — an engineer writes and evolves a specification through conversational iteration
-2. **Formal indexing** — the CLI parses the spec into a structured, cross-referenced index
-3. **LLM consumption** — the CLI assembles context bundles (9 intelligence signals) that give an LLM implementer exactly the information it needs for a given task
+1. **Human exploration** — an engineer discovers and evolves a specification through conversational iteration (`ddis discover`)
+2. **Formal indexing** — the CLI parses the spec into a structured, cross-referenced index (`ddis parse`, `ddis validate`)
+3. **LLM consumption** — the CLI assembles context bundles that give an LLM implementer exactly the information it needs (`ddis context`, `ddis search`)
+4. **Bilateral feedback** — implementation speaks back into the spec via code annotation scanning and automated absorption (`ddis scan`, `ddis absorb`, `ddis drift`)
 
-13 commands span four domains: *parsing* (`parse`, `render`, `seed`), *querying and validation* (`query`, `validate`, `diff`), *search and intelligence* (`search`, `context`, `impact`), and *lifecycle operations* (`log`, `tx begin`, `tx commit`, `tx rollback`).
+Commands span seven domains: *parsing* (`parse`, `render`, `seed`), *querying and validation* (`query`, `validate`, `diff`), *search and intelligence* (`search`, `context`, `impact`, `exemplar`), *lifecycle operations* (`log`, `tx`, `coverage`, `skeleton`, `checkpoint`, `cascade`, `bundle`, `impl-order`, `checklist`, `progress`, `state`, `drift`), *code bridge* (`scan`, `history`), *auto-prompting* (`discover`, `refine`, `absorb`), and *workspace* (`init`, `spec`, `tasks`).
 
 ### 0.1.1 Non-Negotiables (Engineering Contract)
 
@@ -58,37 +59,61 @@ These are not aspirations; they are the contract. A conforming implementation MU
 
 ## 0.2 Formal State Space Model
 
-The system state is a 5-tuple:
+The system state is an 8-tuple:
 
 ```
-S = (SpecFiles, Index, SearchState, OpLog, TxState)
+S = (SpecFiles, Index, SearchState, OpLog, TxState, EventStreams, DiscoveryState, Workspace)
 
 where:
-  SpecFiles   = MarkdownFile | (Manifest * ModuleFile*)
-  Index       = SQLiteDB(30 tables)
-  SearchState = FTSIndex * LSIModel * AuthorityScores
-  OpLog       = JSONL(DiffRecord | ValidateRecord | TxRecord)*
-  TxState     = Map(TxID -> {pending | committed | rolled_back})
+  SpecFiles      = MarkdownFile | (Manifest * ModuleFile*)
+  Index          = SQLiteDB(30 tables)
+  SearchState    = FTSIndex * LSIModel * AuthorityScores
+  OpLog          = JSONL(DiffRecord | ValidateRecord | TxRecord)*
+  TxState        = Map(TxID -> {pending | committed | rolled_back})
+  EventStreams   = (DiscoveryJSONL * SpecJSONL * ImplJSONL)    -- three-stream event sourcing
+  DiscoveryState = ThreadTopology * ArtifactMap * ConfidenceVector * OpenQuestions
+  Workspace      = Map(SpecID -> {manifest_path, parent_spec, related_specs, drift_score})
 ```
 
-### 0.2.1 State Transitions (13 Commands)
+### 0.2.1 State Transitions (22 Commands)
 
 Each command is a transition function over the state space:
 
 ```
+-- Parsing domain
 T_parse:       SpecFiles -> Index * SearchState
 T_render:      Index -> SpecFiles                     (inverse of T_parse)
+T_seed:        Index -> OpLog(genesis)
+
+-- Query and validation domain
 T_query:       Index * Target -> Fragment
 T_validate:    Index -> Report(12+ checks)
 T_diff:        Index * Index -> DeltaResult
-T_impact:      Index * Target * Dir * Depth -> Graph
+
+-- Search and intelligence domain
 T_search:      Index * Query * Opts -> RankedResults
 T_context:     Index * Target -> Bundle(9 signals)
+T_impact:      Index * Target * Dir * Depth -> Graph
+
+-- Lifecycle domain
 T_tx_begin:    Index -> Index * TxState(pending)
 T_tx_commit:   Index * TxState -> Index * OpLog
 T_tx_rollback: Index * TxState -> Index
-T_seed:        Index -> OpLog(genesis)
 T_log:         OpLog * Filters -> FormattedRecords
+
+-- Code bridge domain
+T_scan:        CodeRoot * Index -> ScanResult * EventStreams'
+T_history:     EventStreams * Filters -> UnifiedTimeline
+
+-- Auto-prompting domain (state monad: returns CommandResult)
+T_discover:    Index * DiscoveryState -> CommandResult * DiscoveryState'
+T_refine:      Index * OpLog -> CommandResult * Index'
+T_absorb:      CodeRoot * Index -> CommandResult * SpecFiles'
+
+-- Workspace domain
+T_init:        EmptyDir -> SpecFiles * Index * EventStreams * Workspace
+T_spec:        Workspace * ManifestPath -> Workspace'
+T_tasks:       DiscoveryState * Index -> TaskList
 ```
 
 ### 0.2.2 Key Composition: T_context
@@ -150,7 +175,7 @@ Each pass is independently testable. The pipeline is deterministic: same input a
 
 ## 0.3 Invariant Registry (Declarations)
 
-All 16 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
+All 40 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
 
 **APP-INV-001: Round-Trip Fidelity** (Owner: parse-pipeline)
 Parse followed by render MUST produce byte-identical output for any valid DDIS specification.
@@ -232,6 +257,126 @@ Every invariant that claims implementation status MUST have valid `Source`, `Tes
 Confidence: falsified
 *Violation: an invariant's `Tests` path points to a file that was renamed; the path is stale.*
 
+**APP-INV-017: Annotation Portability** (Owner: code-bridge)
+The annotation grammar is parseable in any programming language that supports single-line comments. No language-specific AST parsers required.
+Confidence: falsified
+*Violation: scanner misses Python `#`-style comments; annotations silently disappear from scan results.*
+
+**APP-INV-018: Scan-Spec Correspondence** (Owner: code-bridge)
+When `ddis scan --verify` is run with a spec database, every annotation target must resolve to an existing spec element. Orphaned and unimplemented elements reported.
+Confidence: falsified
+*Violation: `// ddis:maintains INV-XYZ` stored without validation; link is orphaned but not reported.*
+
+**APP-INV-019: Contradiction Graph Soundness** (Owner: code-bridge)
+Every reported contradiction represents a genuine logical conflict. False positives are not acceptable at any tier.
+Confidence: falsified
+*Violation: detector flags structural redundancy (INV-018) as contradicting signal-to-noise (INV-007); it's not a real conflict.*
+
+**APP-INV-020: Event Stream Append-Only** (Owner: code-bridge)
+JSONL event streams are strictly append-only with monotonically increasing timestamps. No modification, deletion, or reordering after write.
+Confidence: falsified
+*Violation: `ddis parse --force` recreates the DB and loses all historical events.*
+
+**APP-INV-021: Z3 Translation Fidelity** (Owner: code-bridge)
+Z3 assertions generated from `semi_formal` fields faithfully represent the logical content. UNSAT results correspond to genuine inconsistency.
+Confidence: falsified
+*Violation: two unrelated invariants mapped to the same Z3 variable; false contradiction reported.*
+
+**APP-INV-022: Refinement Drift Monotonicity** (Owner: auto-prompting)
+Each iteration of `ddis refine` must produce a measurable drift reduction. Drift monotonically decreases; regression halts the loop. Extends INV-022 from parent spec.
+Confidence: falsified
+*Violation: new invariant introduces unresolved cross-ref; drift increases but loop continues.*
+
+**APP-INV-023: Prompt Self-Containment** (Owner: auto-prompting)
+Every generated prompt contains all context needed for the LLM to act. No implicit dependencies on prior turns or environment.
+Confidence: falsified
+*Violation: prompt references "the invariant from the previous iteration" without including its text.*
+
+**APP-INV-024: Ambiguity Surfacing** (Owner: auto-prompting)
+When the refine loop detects unresolved design decisions, these ambiguities are surfaced to the user. The loop does not resolve ambiguities autonomously.
+Confidence: falsified
+*Violation: system silently resolves tension between INV-007 and INV-018 without user input.*
+
+**APP-INV-025: Discovery Provenance Chain** (Owner: auto-prompting)
+Every crystallized artifact has a complete provenance chain in the event stream from root question/finding to crystallization.
+Confidence: falsified
+*Violation: ADR exists in spec but has no provenance in discovery JSONL; invisible to task generation.*
+
+**APP-INV-026: Classification Non-Prescriptive** (Owner: auto-prompting)
+The cognitive mode classification layer observes and tags — it never prescribes, directs, or constrains the user's thinking.
+Confidence: falsified
+*Violation: after 5 divergent events, system suggests "Consider narrowing your focus" — a prescription.*
+
+**APP-INV-027: Thread Topology Primacy** (Owner: auto-prompting)
+Inquiry threads are the primary organizational unit, not sessions. A single thread may span sessions, LLMs, and humans.
+Confidence: falsified
+*Violation: events scoped by session; caching exploration split across sessions with interleaved authentication events.*
+
+**APP-INV-028: Spec-as-Trunk** (Owner: auto-prompting)
+Every discovery thread branches from the specification and crystallizes back into it. No orphan threads that bypass spec integration.
+Confidence: falsified
+*Violation: thread marked "merged" but no artifacts written to spec; decisions invisible to downstream tools.*
+
+**APP-INV-029: Convergent Thread Selection** (Owner: auto-prompting)
+Thread attachment is inferred from conversation content, never forced. User override via `--thread` always available but never required.
+Confidence: falsified
+*Violation: exact keyword matching misses related thread about "TTL-based expiration" when user discusses "cache invalidation."*
+
+**APP-INV-030: Contributor Topology Graceful Degradation** (Owner: auto-prompting)
+Contributor topology degrades gracefully: multi-author → temporal self-disagreement → skip. No core feature depends on git blame.
+Confidence: falsified
+*Violation: `ddis discover` crashes with "fatal: not a git repository" when git unavailable.*
+
+**APP-INV-031: Absorbed Artifacts Validate** (Owner: auto-prompting)
+Every artifact produced by `ddis absorb` passes `ddis validate`. No syntactically invalid spec output.
+Confidence: falsified
+*Violation: absorbed invariant missing `Violation scenario:` component; validate Check 2 fails.*
+
+**APP-INV-032: Symmetric Reconciliation** (Owner: auto-prompting)
+`ddis absorb --against` reports gaps in both directions: undocumented behavior AND unimplemented specification. Neither direction privileged.
+Confidence: falsified
+*Violation: reconciliation only reports what code does that spec doesn't mention; missed 5 unimplemented spec invariants.*
+
+**APP-INV-033: Absorption Format Parity** (Owner: auto-prompting)
+Absorbed specs are structurally indistinguishable from hand-written specs. Only provenance metadata differs.
+Confidence: falsified
+*Violation: absorbed invariants have only statements, no violation scenarios; visible quality gap.*
+
+**APP-INV-034: State Monad Universality** (Owner: auto-prompting)
+Every auto-prompting command returns `(output, state, guidance)`. No command produces output without guidance for the LLM interpreter.
+Confidence: falsified
+*Violation: `ddis refine audit` returns audit report but no guidance; LLM interpreter has no next-step hints.*
+
+**APP-INV-035: Guidance Attenuation** (Owner: auto-prompting)
+First invocation returns heavy guidance; subsequent invocations return light deltas. k\* guard prevents overprompting.
+Confidence: falsified
+*Violation: every invocation dumps full translation framework; by invocation 10, context is 40% guidance.*
+
+**APP-INV-036: Human Format Transparency** (Owner: auto-prompting)
+The human never needs to learn the spec format to use discovery. LLMs author specs; humans confirm crystallization.
+Confidence: falsified
+*Violation: system prompts user to "write the invariant in the following format: `**INV-NNN: Title** ...`"*
+
+**APP-INV-037: Workspace Isolation** (Owner: workspace-ops)
+Each spec in a multi-spec workspace is independently parseable. Removing one spec does not prevent parsing of others.
+Confidence: falsified
+*Violation: removing `data-spec` crashes `ddis parse api-spec/` because cross-spec resolution is not fault-tolerant.*
+
+**APP-INV-038: Cross-Spec Reference Integrity** (Owner: workspace-ops)
+Cross-spec references resolve correctly. Changed elements in referenced specs are flagged for review.
+Confidence: falsified
+*Violation: referenced INV-006 in meta-spec is amended but referencing API spec has no stale-reference warning.*
+
+**APP-INV-039: Task Derivation Completeness** (Owner: workspace-ops)
+Every artifact in a discovery artifact map generates appropriate tasks per the mechanical derivation rules. No artifact silently skipped.
+Confidence: falsified
+*Violation: invariant→task rule generates constraint task but not property test task; 3 invariants produce 3 tasks instead of 6.*
+
+**APP-INV-040: Progressive Validation Monotonicity** (Owner: workspace-ops)
+Validation maturity levels are strictly ordered: Level 1 ⊂ Level 2 ⊂ Level 3. A spec passing Level N passes all levels below N.
+Confidence: falsified
+*Violation: spec passes Level 2 (has invariants) but fails Level 1 (no overview); monotonicity broken.*
+
 ---
 
 ## 0.4 Invariant Confidence Levels
@@ -251,7 +396,7 @@ Confidence levels are tracked per-invariant in the implementation. The `validate
 
 ## 0.5 ADR Registry (Declarations)
 
-All 11 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
+All 29 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
 
 **APP-ADR-001: Go over Rust** (Implements: parse-pipeline)
 Decision: Go for CLI implementation. The workload is I/O-bound (SQLite reads/writes, file parsing), not CPU-bound. Go's fast compilation supports rapid iteration in the RALPH improvement loop. A pure-Go SQLite driver (`modernc.org/sqlite`) eliminates CGO complexity.
@@ -297,6 +442,78 @@ WHY NOT explicit flag: User burden; easy to forget.
 Decision: Invariant implementation traces use structured fields (`Source`, `Tests`, `Validates-via`) rather than formal proof derivations. This matches the current state of practice: Go tests, not theorem provers.
 WHY NOT formal proofs: The Go ecosystem lacks mature formal verification tooling. Structured traces provide 80% of the traceability value at 10% of the cost.
 
+**APP-ADR-012: Annotations over Code Manifest** (Implements: code-bridge)
+Decision: Inline `// ddis:maintains INV-006` annotations in source code, not a centralized `code_manifest.yaml`. Annotations travel with the code, are portable across all languages via comment syntax, and make traceability inspectable at point of implementation.
+WHY NOT code manifest: A manifest is a declaration of intent, not proof of implementation. Manifest files drift from code independently.
+
+**APP-ADR-013: Z3 as Required Dependency** (Implements: code-bridge)
+Decision: Z3 SMT solver is a required dependency (CGO via `go-z3`), not optional. Simpler build, one code path, full contradiction detection for all users. Design parallel with Eiffel's AutoProof.
+WHY NOT optional: Two code paths means two test matrices. Users discover they need Z3 only after hitting subtle contradictions Tier 1 misses.
+
+**APP-ADR-014: Tiered Contradiction Detection** (Implements: code-bridge)
+Decision: Two tiers running in parallel. Tier 1: graph-based predicate analysis (~80% structural contradictions). Tier 2: Z3 SMT (semantic contradictions, arithmetic conflicts). Both tiers run; results merged.
+WHY NOT graph-only: Misses arithmetic contradictions (e.g., conflicting performance budgets). WHY NOT SMT-only: Z3 translation is lossy for natural-language predicates.
+
+**APP-ADR-015: Three-Stream Event Sourcing** (Implements: code-bridge)
+Decision: Three JSONL event streams: Stream 1 (discovery), Stream 2 (spec parse/validate/drift), Stream 3 (implementation). Cross-stream references via shared artifact IDs. Streams never write to each other.
+WHY NOT single stream: Different domains have different schemas, consumers, and lifecycle semantics.
+
+**APP-ADR-016: Auto-Prompting over Manual Prompting** (Implements: auto-prompting)
+Decision: CLI generates context-rich prompts from spec state, drift data, and exemplars. Users can override with `--prompt-only`. Auto-prompting is the default; manual is the escape hatch.
+WHY NOT manual-only: Requires deep familiarity with spec format and Gestalt optimization principles.
+
+**APP-ADR-017: Gestalt Theory Integration** (Implements: auto-prompting)
+Decision: Structural principles applied to prompt generation: demonstrations > constraints, spec-first framing, DoF separation per iteration, k\* overprompting guard. Embedded in logic, not user-facing config.
+WHY NOT ignore Gestalt: Empirical evidence shows +3-4 quality points from spec-first framing alone.
+
+**APP-ADR-018: Observation over Prescription** (Implements: auto-prompting)
+Decision: Cognitive mode classification observes and tags, never prescribes. Labels inform prompt generation (mode-appropriate DoF) but are never directives.
+WHY NOT prescriptive: Prescription destroys naturalism. The user's cognitive autonomy is non-negotiable.
+
+**APP-ADR-019: Threads over Sessions** (Implements: auto-prompting)
+Decision: Inquiry threads are the primary scoping unit. Sessions are substrate metadata. A thread may span sessions, LLMs, and humans.
+WHY NOT sessions: Sessions are accidents of tooling. Cognitive coherence doesn't respect context window limits.
+
+**APP-ADR-020: Conversational over Procedural** (Implements: auto-prompting)
+Decision: Single `ddis discover` command. System loads context, converges on thread and mode during conversation. Old subcommands (explore, decide, risks) become internal classification events. Experience feels like resuming a conversation.
+WHY NOT procedural: Forcing users to declare modes violates observation-over-prescription (APP-ADR-018).
+
+**APP-ADR-021: Contributor Topology via Git Blame** (Implements: auto-prompting)
+Decision: Use `git blame --porcelain` for per-section authorship. Surface cross-pollination opportunities and silent mental model disagreements. Graceful degradation: multi-author → temporal self-disagreement → skip.
+WHY NOT ignore contributors: Structural validation misses epistemic incoherence — different mental models that pass all structural checks.
+
+**APP-ADR-022: State Monad Architecture** (Implements: auto-prompting)
+Decision: CLI returns `(output, state, guidance)` — `CommandResult`. LLM is interpreter; human is input stream. CLI stays pure (no LLM dependency). Each interaction is inspectable via `--prompt-only`.
+WHY NOT prompt-only: Without structured feedback, LLM loses context between invocations. WHY NOT full agent: Makes CLI non-deterministic and provider-dependent.
+
+**APP-ADR-023: LLMs as Primary Spec Authors** (Implements: auto-prompting)
+Decision: The rigorous format (4-component invariants, 5-subsection ADRs) is the API contract between LLM author and mechanical validator. Humans review; LLMs write. User-friendly = better conversation, not simpler format.
+WHY NOT human-first: Every spec in this project was authored by LLMs. The format serves the validator.
+
+**APP-ADR-024: Bilateral Specification / The Inverse Principle** (Implements: auto-prompting)
+Decision: Every forward operation has an inverse. `discover` (idea→spec) ↔ `absorb` (impl→spec). Four-loop cycle replaces three-loop triad. In category theory: each pair is an adjunction; drift measures round-trip divergence from identity.
+WHY NOT unidirectional: The code has knowledge the spec doesn't capture. `absorb` gives the code voice.
+
+**APP-ADR-025: Heuristic Scan over AST Parsing** (Implements: auto-prompting)
+Decision: Regex + LLM analysis for `ddis absorb` code extraction. No language-specific AST parsers. Builds on the annotation scanner (APP-ADR-012) with additional heuristic pattern detection.
+WHY NOT AST parsing: Violates portability principle (APP-INV-017). The annotation system already solves cross-language extraction.
+
+**APP-ADR-026: Full Workspace Init at Phase 12** (Implements: workspace-ops)
+Decision: `ddis init` creates complete scaffolding in one command: manifest, DB, event streams, discovery directory, `.gitignore`. `--workspace` adds multi-spec infrastructure.
+WHY NOT partial init: Incomplete scaffolding requires retroactive extension. One comprehensive init is cleaner.
+
+**APP-ADR-027: Peer Spec Relationships** (Implements: workspace-ops)
+Decision: Manifest gains `related_specs` array alongside `parent_spec`. Cross-spec references resolve: local → parent → related. Diamond dependencies supported.
+WHY NOT parent-child only: CLI spec and meta-spec are already peer domains. Forcing one as "parent" is semantically incorrect.
+
+**APP-ADR-028: Progressive Validation over Binary Pass/Fail** (Implements: workspace-ops)
+Decision: Checks grouped into Level 1 (Seed), Level 2 (Growing), Level 3 (Complete). Validation says "here's where you are and what's next," never "FAIL." `--level N` for CI gating.
+WHY NOT binary: A freshly-initialized spec failing 11 of 12 checks is discouraging and conveys no useful information.
+
+**APP-ADR-029: Beads-Compatible Task Output** (Implements: workspace-ops)
+Decision: `ddis tasks` defaults to beads JSONL for `br import`. Also supports JSON and markdown. Task dependencies derived from `implementation_map.phases`.
+WHY NOT JSON only: Beads is the project's issue tracker. Beads-compatible output eliminates manual conversion.
+
 ---
 
 ## 0.6 Quality Gates (Declarations)
@@ -333,11 +550,12 @@ The CLI successfully parses, indexes, and validates its own specification with z
 
 ### Definition of Done (for this specification)
 
-DDIS CLI Spec v1.0 is "done" when:
+DDIS CLI Spec v2.0 is "done" when:
 - All 6 quality gates pass
-- All 16 APP-INVs are at least `property-checked` confidence
+- All 40 APP-INVs are at least `property-checked` confidence
 - The CLI parses and validates this spec with zero errors (APP-G-6)
 - At least one non-trivial DDIS spec (the meta-standard itself) has been validated by the CLI
+- The bilateral lifecycle (`discover` → `refine` → `drift` → `absorb`) operates on the CLI's own spec (self-bootstrapping)
 
 ---
 
@@ -362,8 +580,25 @@ Terms specific to the DDIS CLI. If a term is also defined in the DDIS standard, 
 | **OpLog** | Append-only JSONL file recording all CLI operations: parse, validate, diff, transaction begin/commit/rollback. Survives database recreation. (APP-ADR-007, APP-INV-010) |
 | **PageRank** | Iterative authority scoring algorithm applied to the cross-reference graph. Elements with many high-authority inbound references score higher. (APP-ADR-003, APP-INV-004) |
 | **RRF** | Reciprocal Rank Fusion — method for combining ranked lists from multiple scoring signals. Score = `SUM(1/(K + rank_r(d)) * weight_r)` with K=60. (APP-INV-008) |
+| **Absorption** | The process of deriving a DDIS specification from existing implementation code. Inverse of discovery. Implemented by `ddis absorb`. (APP-ADR-024) |
+| **Annotation** | A `// ddis:<verb> <target>` comment embedded in source code declaring spec traceability. Portable across all languages with comment syntax. (APP-ADR-012, APP-INV-017) |
+| **Bilateral Specification** | The principle that specification flows in both directions: human intent → spec (discover/refine) AND implementation → spec (absorb/drift). Neither direction is privileged. (APP-ADR-024) |
+| **Cognitive Mode** | One of seven modes of human thinking observed during discovery: divergent, convergent, dialectical, abductive, metacognitive, incubation, crystallization. Classified observationally, never prescriptively. (APP-ADR-018) |
+| **CommandResult** | The universal return type for auto-prompting commands: `(output, state, guidance)`. The state monad's output. (APP-ADR-022, APP-INV-034) |
+| **Contributor Topology** | The authorship structure of a spec, extracted from git blame. Reveals where multiple contributors' mental models overlap or silently conflict. (APP-ADR-021, APP-INV-030) |
+| **Contradiction** | A logical conflict between spec elements (e.g., quantifier conflict, negation pair, negative spec violation). Detected by Tier 1 (graph) and Tier 2 (Z3). (APP-ADR-014, APP-INV-019) |
+| **Crystallization** | The act of committing a discovery insight into a durable spec artifact (invariant, ADR, glossary entry, negative spec). The only explicit user act in discovery. (APP-INV-028) |
+| **Discovery** | The process of transforming nebulous feature ideas into DDIS-conforming spec artifacts through conversational exploration. Implemented by `ddis discover`. (APP-ADR-020) |
+| **Event Stream** | An append-only JSONL file recording lifecycle events. Three streams: discovery (Stream 1), spec (Stream 2), implementation (Stream 3). (APP-ADR-015, APP-INV-020) |
+| **Guidance** | The LLM-facing component of a `CommandResult`: observed mode, DoF hint, suggested next actions, relevant context, and translation hint. Attenuates over conversation depth. (APP-INV-035) |
+| **k\* Guard** | The overprompting threshold from LLM Gestalt Theory. Prompt size must not exceed this budget, which decreases as conversation depth increases. (APP-INV-035, APP-ADR-017) |
+| **Progressive Validation** | Validation grouped into maturity levels: Level 1 (Seed), Level 2 (Growing), Level 3 (Complete). Reports current level and next steps. Never says "FAIL." (APP-ADR-028, APP-INV-040) |
+| **Reconciliation** | The `--against` mode of `ddis absorb`: comparing absorbed draft against existing spec to find gaps in both directions (undocumented behavior + unimplemented specification). (APP-INV-032) |
 | **Seed** | The `seed` command creates a genesis oplog record for a newly parsed specification. Establishes the baseline for subsequent diff and change tracking. |
+| **State Monad** | The CLI's interaction pattern: each command takes state and returns `(output, new_state, guidance)`. The LLM is the interpreter; the human is the input stream. (APP-ADR-022) |
+| **Thread** | An inquiry thread — a directed line of investigation in discovery. Primary scoping unit for events. May span sessions, LLMs, and humans. Lifecycle: branch, merge, park, resume, fork, converge. (APP-ADR-019, APP-INV-027) |
 | **Transaction** | An atomic unit of specification modification. States: `pending`, `committed`, `rolled_back`. State machine enforced by APP-INV-006. |
+| **Workspace** | A multi-spec project managed by `ddis init --workspace`. Contains multiple specs with parent, peer, and diamond dependency relationships. (APP-ADR-026, APP-INV-037) |
 
 ---
 
@@ -373,11 +608,14 @@ Cross-reference lookup: which module file contains each section's full specifica
 
 | Section Range | Module File | Notes |
 |---|---|---|
-| §0.1-§0.8, APP-INV/ADR/Gate declarations, Glossary | constitution/system.md | Cross-cutting: included in every bundle |
+| §0.1-§0.9, APP-INV/ADR/Gate declarations, Glossary | constitution/system.md | Cross-cutting: included in every bundle |
 | 4-pass pipeline, schema design, round-trip, hashing, monolith/modular detection | modules/parse-pipeline.md | Owns: APP-INV-001, -009, -015. Implements: APP-ADR-001, -002, -005, -009, -010 |
 | BM25/LSI/PageRank, RRF fusion, context bundles, glossary expansion, authority scoring | modules/search-intelligence.md | Owns: APP-INV-004, -005, -008, -012, -014. Implements: APP-ADR-003, -006 |
 | 12+ validation checks, cross-ref resolution, structural diff, query projection | modules/query-validation.md | Owns: APP-INV-002, -003, -007, -011. Implements: APP-ADR-004 |
 | Transaction state machine, oplog, impact BFS, implementation tracing, seed | modules/lifecycle-ops.md | Owns: APP-INV-006, -010, -013, -016. Implements: APP-ADR-007, -008, -011 |
+| Annotations, scan, contradiction detection (Tier 1 + Z3), event sourcing | modules/code-bridge.md | Owns: APP-INV-017, -018, -019, -020, -021. Implements: APP-ADR-012, -013, -014, -015 |
+| State monad, discover, refine, absorb loops, contributor topology, thread management | modules/auto-prompting.md | Owns: APP-INV-022–036. Implements: APP-ADR-016–025 |
+| Workspace init, multi-domain composition, cross-spec drift, task generation, progressive validation | modules/workspace-ops.md | Owns: APP-INV-037, -038, -039, -040. Implements: APP-ADR-026, -027, -028, -029 |
 
 ---
 
@@ -387,13 +625,11 @@ This specification explicitly does NOT attempt:
 
 1. **Code generation from spec.** The CLI indexes and validates specifications. It does not generate Go, Rust, or any other implementation code from spec content. Code generation is a separate tool concern.
 
-2. **Formal proof artifacts.** Invariant confidence levels include `proven` as a future goal, but this specification does not prescribe a formal verification toolchain. Structured implementation traces (APP-ADR-011) are the current ceiling.
+2. **Formal proof artifacts.** Invariant confidence levels include `proven` as a future goal, but this specification does not prescribe a formal verification toolchain beyond Z3 SMT for contradiction detection (APP-ADR-013). Structured implementation traces (APP-ADR-011) remain the ceiling for invariant confidence.
 
-3. **Modifying existing CLI commands.** This spec describes the 13 commands as implemented. The only addition is Check 13 (implementation traceability) to the validation suite, which extends rather than modifies the `validate` command.
+3. **Embedding an LLM runtime.** The CLI is a state monad (APP-ADR-022): it produces prompts and guidance, but does not execute them. The LLM interpreter is external. This preserves the CLI's purity, determinism, and provider-independence.
 
-4. **RALPH loop code changes.** The RALPH loop (`ddis_ralph_loop.sh`) is a consumer of the CLI, not a component of it. This spec does not prescribe changes to the RALPH loop's architecture.
-
-5. **Cross-spec composability testing.** Validating references between two different DDIS-conforming specifications (e.g., `[OtherSpec]:INV-001`) is deferred. The CLI validates references within a single specification.
+4. **MCP server interface.** The CLI is shell-first. An MCP wrapper may be added later but is not specified here (PLAN-ADR-003).
 
 ---
 
@@ -417,3 +653,6 @@ reasoning_reserve: 0.25
 | **search-intelligence** | search | BM25/FTS5 integration, LSI model (truncated SVD), PageRank computation, RRF fusion (K=60), context bundle assembly (9 signals), glossary expansion. APP-INV-004, -005, -008, -012, -014. APP-ADR-003, -006. |
 | **query-validation** | validation | Query projection, 12+ validation checks (composable), cross-reference resolution, structural diff, Cobra command routing. APP-INV-002, -003, -007, -011. APP-ADR-004. |
 | **lifecycle-ops** | lifecycle | Transaction state machine (begin/commit/rollback), JSONL oplog (append-only), impact BFS with cycle protection, seed command, implementation traceability (Check 13). APP-INV-006, -010, -013, -016. APP-ADR-007, -008, -011. |
+| **code-bridge** | bridge | Cross-language annotation scanner (`ddis scan`), tiered contradiction detection (graph + Z3 SMT), three-stream event sourcing (`ddis history`), spec-code drift types. APP-INV-017–021. APP-ADR-012–015. |
+| **auto-prompting** | autoprompt | Bilateral specification lifecycle: `ddis discover` (idea→spec), `ddis refine` (spec improvement), `ddis absorb` (impl→spec). State monad architecture, thread-scoped discovery, cognitive mode classification, contributor topology, Gestalt-optimized prompt generation. APP-INV-022–036. APP-ADR-016–025. |
+| **workspace-ops** | workspace | Workspace initialization (`ddis init`), multi-domain composition (`ddis spec add/list`), cross-spec drift, mechanical task generation (`ddis tasks`), progressive validation (Level 1/2/3 maturity tiers). APP-INV-037–040. APP-ADR-026–029. |
