@@ -2,8 +2,8 @@ package consistency
 
 // Tier 3: SAT-based contradiction detection via gophersat.
 //
-// ddis:implements APP-ADR-034 (pure-Go tiered consistency — Tier 3 SAT)
-// ddis:maintains APP-INV-021 (SAT encoding fidelity)
+// ddis:maintains APP-ADR-034 (superseded — gophersat retained for fast propositional path)
+// ddis:maintains APP-INV-021 (SAT encoding fidelity — Tier 3 propositional)
 //
 // Parses semi-formal expressions into propositional clauses (CNF) using a
 // GLOBAL variable namespace (APP-INV-021), then solves via gophersat CDCL.

@@ -185,6 +185,13 @@ Encoding rules:
   "NOT A":            negation of clause_A
   Numeric constraints: encoded as propositional bounds (e.g., x <= 5 becomes NOT x_6 AND NOT x_7 ...)
   Named variables:    GLOBAL propositional variable per unique identifier (NOT per-invariant)
+
+Tier 5 SMT extension (Z3 subprocess via APP-ADR-038):
+  sat_check extended: clause set -> {SAT, UNSAT} via Z3 SMT-LIB2 when propositional encoding is insufficient
+  Arithmetic:         x > 5 encoded as (assert (> x 5)) in QF_LIA
+  Quantifiers:        FOR ALL x: P(x) encoded as (assert (forall ((x Int)) (P x))) in LIA
+  Uninterpreted:      f(x) = y encoded via (declare-fun f (Int) Int) (assert (= (f x) y)) in QF_UF
+  Graceful:           When Z3 not in PATH, Tier 5 silently skipped — no false negatives from absence
 ```
 
 Violation scenario: INV-005 has `semi_formal: "bundle_size(b) <= hard_ceiling"` and INV-007 has `semi_formal: "signal_density(s) > 0.5"`. The encoder maps `bundle_size` and `signal_density` to the same propositional variable set. The solver reports UNSAT for a satisfiable pair. The system reports a false contradiction between two unrelated invariants.
@@ -338,7 +345,7 @@ Superseded. Verification is covered by APP-ADR-034 tests.
 
 ---
 
-### APP-ADR-034: Pure-Go Tiered Consistency over Z3
+### APP-ADR-034: Pure-Go Tiered Consistency over Z3 — SUPERSEDED BY APP-ADR-038
 
 #### Problem
 Contradiction detection requires formal reasoning about invariant consistency. APP-ADR-013 prescribed Z3 via CGo bindings, but all Go Z3 bindings require CGo, which violates single-binary distribution (APP-ADR-024: `curl | bash` installable). The most mature binding (mitchellh/go-z3) was archived in October 2023. How should the CLI detect contradictions without CGo?
@@ -1009,5 +1016,29 @@ The validator can count, track, and report on unresolved areas. Bottom tags part
 #### Tests
 
 1. ddis validate reports tagged bottom elements as warnings (not errors). 2. ddis coverage distinguishes bottom-tagged vs fully-defined elements. 3. Bottom tags survive parse-render round-trips.
+
+---
+
+### APP-ADR-038: Z3 Subprocess as Tier 5 SMT Consistency
+
+#### Problem
+
+Approximately 19% of semi-formal expressions fall through to heuristic fallback because they contain arithmetic constraints (x > 5, latency <= 200), higher-order functions (f(g(x))), complex quantifiers (nested FOR ALL/EXISTS), or unstructured English. Propositional logic (Tier 3 gophersat) cannot express these theories. APP-ADR-034 rejected Z3 citing CGo/single-binary concerns, but subprocess invocation preserves the single-binary property.
+
+#### Options
+
+A) Z3 subprocess via SMT-LIB2 stdin/stdout — preserves single binary, graceful degradation. B) Z3 CGo binding — requires CGo toolchain, breaks single binary. C) Pure-Go SMT solver — no mature Go SMT library exists.
+
+#### Decision
+
+**Option A: Z3 subprocess via SMT-LIB2.** Z3 invoked via exec.CommandContext with SMT-LIB2 on stdin. 30-second timeout per check. Graceful degradation via exec.LookPath — when Z3 is not installed, Tier 5 is silently skipped. Supersedes APP-ADR-034 (pure-Go tiered consistency).
+
+#### Consequences
+
+New Tier 5 (SMT) in consistency checker alongside existing Tier 2 (graph), Tier 3 (SAT/gophersat), Tier 4 (heuristic). ddis contradict --tier 5 activates SMT analysis. Arithmetic, quantifier, and uninterpreted function contradictions now detectable. APP-ADR-034 superseded — gophersat retained for fast propositional path. Z3 is an optional runtime dependency, not a build dependency.
+
+#### Tests
+
+TestTranslateSMTLIB2_Arithmetic, TestRunZ3_Sat, TestRunZ3_Unsat, TestAnalyzeSMT_PairwiseContradiction, TestAPPINV021_EncodingFidelity (updated for SMT extension)
 
 ---

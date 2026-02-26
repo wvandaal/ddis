@@ -1,6 +1,6 @@
 package consistency
 
-// ddis:implements APP-ADR-034 (pure-Go tiered consistency — global variable namespace)
+// ddis:maintains APP-ADR-034 (superseded — global variable namespace for propositional path)
 // ddis:maintains APP-INV-021 (SAT encoding fidelity — global namespace for cross-invariant UNSAT)
 
 import "fmt"

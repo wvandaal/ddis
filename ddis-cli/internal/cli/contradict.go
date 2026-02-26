@@ -1,8 +1,9 @@
 package cli
 
-// ddis:implements APP-ADR-034 (pure-Go tiered consistency — CLI command)
+// ddis:implements APP-ADR-038 (Z3 subprocess as Tier 5 — CLI command)
+// ddis:maintains APP-ADR-034 (superseded — gophersat retained for fast propositional path)
 // ddis:maintains APP-INV-019 (contradiction graph soundness — user-facing)
-// ddis:maintains APP-INV-021 (SAT encoding fidelity — Tier 3 invocation)
+// ddis:maintains APP-INV-021 (SAT encoding fidelity — Tier 3+5 invocation)
 
 import (
 	"encoding/json"
@@ -20,6 +21,7 @@ import (
 var (
 	contradictTier int
 	contradictJSON bool
+	contradictZ3   bool
 )
 
 var contradictCmd = &cobra.Command{
@@ -27,18 +29,22 @@ var contradictCmd = &cobra.Command{
 	Short: "Detect contradictions between spec elements",
 	Long: `Runs tiered contradiction detection on the spec index.
 
-Four detection tiers:
+Five detection tiers:
   Tier 1 (structural): Existing validation checks (ddis validate)
   Tier 2 (graph):      Cross-reference overlap, governance conflict, neg-spec violations
   Tier 3 (SAT):        Semi-formal → propositional encoding, DPLL satisfiability
   Tier 4 (heuristic):  Polarity inversion, quantifier conflict, numeric bounds, LSI tension
+  Tier 5 (SMT):        Semi-formal → SMT-LIB2 via Z3 subprocess (arithmetic, quantifiers)
 
-By default runs all tiers. Use --tier to limit.
+By default runs tiers 2-4. Use --tier 5 or --z3 to include SMT analysis.
+Z3 must be installed (apt install z3). Graceful degradation when absent.
 
 Examples:
-  ddis contradict                          # All tiers, auto-find DB
+  ddis contradict                          # Tiers 2-4, auto-find DB
   ddis contradict manifest.ddis.db         # Explicit DB path
   ddis contradict --tier 2                 # Graph analysis only
+  ddis contradict --tier 5                 # All tiers including SMT/Z3
+  ddis contradict --z3                     # Shorthand for --tier 5
   ddis contradict --json                   # Machine-readable output`,
 	Args:          cobra.MaximumNArgs(1),
 	RunE:          runContradict,
@@ -47,8 +53,9 @@ Examples:
 }
 
 func init() {
-	contradictCmd.Flags().IntVar(&contradictTier, "tier", 4, "Maximum tier to run (2-4)")
+	contradictCmd.Flags().IntVar(&contradictTier, "tier", 4, "Maximum tier to run (2-5)")
 	contradictCmd.Flags().BoolVar(&contradictJSON, "json", false, "JSON output")
+	contradictCmd.Flags().BoolVar(&contradictZ3, "z3", false, "Enable Tier 5 SMT/Z3 analysis (shorthand for --tier 5)")
 }
 
 func runContradict(cmd *cobra.Command, args []string) error {
@@ -77,8 +84,12 @@ func runContradict(cmd *cobra.Command, args []string) error {
 
 	WarnIfStale(db, specID)
 
+	tier := contradictTier
+	if contradictZ3 && tier < int(consistency.TierSMT) {
+		tier = int(consistency.TierSMT)
+	}
 	opts := consistency.Options{
-		MaxTier: consistency.Tier(contradictTier),
+		MaxTier: consistency.Tier(tier),
 	}
 	if opts.MaxTier < consistency.TierGraph {
 		opts.MaxTier = consistency.TierGraph

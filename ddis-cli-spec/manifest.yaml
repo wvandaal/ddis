@@ -165,6 +165,7 @@ modules:
       - APP-ADR-014
       - APP-ADR-015
       - APP-ADR-034
+      - APP-ADR-038
     adjacent: [parse-pipeline, query-validation, lifecycle-ops, auto-prompting]
     deep_context: null
     negative_specs:

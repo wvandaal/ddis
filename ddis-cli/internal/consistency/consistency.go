@@ -1,6 +1,7 @@
 package consistency
 
-// ddis:implements APP-ADR-034 (pure-Go tiered consistency — orchestrator)
+// ddis:implements APP-ADR-038 (Z3 subprocess as Tier 5 — orchestrator)
+// ddis:maintains APP-ADR-034 (superseded — gophersat retained for fast propositional path)
 // ddis:maintains APP-INV-019 (contradiction graph soundness — zero false positives)
 
 import (
@@ -16,6 +17,7 @@ const (
 	TierGraph     Tier = 2 // Graph-based: typed edges, governance overlap, cycles
 	TierSAT       Tier = 3 // SAT-based: semi-formal → propositional encoding
 	TierHeuristic Tier = 4 // Heuristic: polarity, quantifier, numeric rules + LSI
+	TierSMT       Tier = 5 // SMT-based: semi-formal → SMT-LIB2 via Z3 subprocess
 )
 
 func (t Tier) String() string {
@@ -26,6 +28,8 @@ func (t Tier) String() string {
 		return "SAT"
 	case TierHeuristic:
 		return "heuristic"
+	case TierSMT:
+		return "SMT"
 	default:
 		return fmt.Sprintf("tier-%d", int(t))
 	}
@@ -42,6 +46,7 @@ const (
 	NumericBoundConflict ConflictType = "numeric_bound_conflict"
 	CircularImplication  ConflictType = "circular_implication"
 	SATUnsatisfiable     ConflictType = "sat_unsatisfiable"
+	SMTUnsatisfiable     ConflictType = "smt_unsatisfiable"
 	SemanticTension      ConflictType = "semantic_tension"
 )
 
@@ -114,6 +119,20 @@ func Analyze(db *sql.DB, specID int64, opts Options) (*Result, error) {
 		result.Contradictions = append(result.Contradictions, semanticResults...)
 		result.TiersRun = append(result.TiersRun, TierHeuristic)
 		result.ElementsScanned += scanned + scanned2
+	}
+
+	// Tier 5: SMT analysis (Z3 subprocess)
+	if opts.MaxTier >= TierSMT {
+		if Z3Available() {
+			smtResults, scanned, err := analyzeSMT(db, specID)
+			if err != nil {
+				return nil, fmt.Errorf("tier 5 (SMT): %w", err)
+			}
+			result.Contradictions = append(result.Contradictions, smtResults...)
+			result.TiersRun = append(result.TiersRun, TierSMT)
+			result.ElementsScanned += scanned
+		}
+		// If Z3 not available, silently skip Tier 5
 	}
 
 	// Deduplicate: same element pair may appear from multiple tiers.
