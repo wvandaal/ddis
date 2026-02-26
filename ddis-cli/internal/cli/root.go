@@ -96,6 +96,8 @@ func init() {
 	exemplarCmd.GroupID = "investigate"
 	impactCmd.GroupID = "investigate"
 	cascadeCmd.GroupID = "investigate"
+	contradictCmd.GroupID = "investigate"
+	historyCmd.GroupID = "investigate"
 
 	// Improvement
 	refineCmd.GroupID = "improvement"
@@ -121,6 +123,10 @@ func init() {
 	stateCmd.GroupID = "utility"
 	checkpointCmd.GroupID = "utility"
 	initCmd.GroupID = "utility"
+	patchCmd.GroupID = "utility"
+	manifestCmd.GroupID = "utility"
+	specCmd.GroupID = "core"
+	agentHelpCmd.GroupID = "utility"
 
 	rootCmd.AddCommand(nextCmd)
 	rootCmd.AddCommand(parseCmd)
@@ -152,4 +158,10 @@ func init() {
 	rootCmd.AddCommand(discoverCmd)
 	rootCmd.AddCommand(absorbCmd)
 	rootCmd.AddCommand(witnessCmd)
+	rootCmd.AddCommand(patchCmd)
+	rootCmd.AddCommand(manifestCmd)
+	rootCmd.AddCommand(contradictCmd)
+	rootCmd.AddCommand(specCmd)
+	rootCmd.AddCommand(historyCmd)
+	rootCmd.AddCommand(agentHelpCmd)
 }

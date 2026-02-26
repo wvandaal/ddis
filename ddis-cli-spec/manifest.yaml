@@ -25,15 +25,12 @@ ddis_version: "3.0"
 spec_name: "DDIS CLI: Transactional Specification Management System"
 tier_mode: "two-tier"
 parent_spec: "../ddis-modular/manifest.yaml"
-
 context_budget:
   target_lines: 4000
   hard_ceiling_lines: 5000
   reasoning_reserve: 0.25
-
 constitution:
   system: "constitution/system.md"
-
 modules:
   parse-pipeline:
     file: "modules/parse-pipeline.md"
@@ -61,7 +58,6 @@ modules:
       - "Must NOT silently drop markdown content during parsing"
       - "Must NOT assume heading hierarchy is always well-formed"
       - "Must NOT use non-deterministic operations in hash computation"
-
   search-intelligence:
     file: "modules/search-intelligence.md"
     domain: search
@@ -86,7 +82,6 @@ modules:
       - "Must NOT use online learning or mutable global state in search indices"
       - "Must NOT return results without a computable score derivation"
       - "Must NOT build context bundles that reference elements outside the spec index"
-
   query-validation:
     file: "modules/query-validation.md"
     domain: validation
@@ -97,6 +92,7 @@ modules:
       - APP-INV-011
       - APP-INV-043
       - APP-INV-044
+      - APP-INV-047
     interfaces:
       - APP-INV-001
       - APP-INV-005
@@ -108,13 +104,13 @@ modules:
     implements:
       - APP-ADR-004
       - APP-ADR-032
+      - APP-ADR-035
     adjacent: [parse-pipeline, search-intelligence, lifecycle-ops]
     deep_context: null
     negative_specs:
       - "Must NOT rely on execution order for validation check correctness"
       - "Must NOT use floating-point comparison for structural diff matching"
       - "Must NOT produce false positives from template references"
-
   lifecycle-ops:
     file: "modules/lifecycle-ops.md"
     domain: lifecycle
@@ -145,7 +141,6 @@ modules:
       - "Must NOT modify or delete existing oplog records"
       - "Must NOT allow transaction state transitions outside the defined state machine"
       - "Must NOT claim spec-to-code traceability without mechanical verification"
-
   code-bridge:
     file: "modules/code-bridge.md"
     domain: bridge
@@ -157,22 +152,24 @@ modules:
       - APP-INV-021
     interfaces:
       - APP-INV-001
+      - APP-INV-002
       - APP-INV-003
+      - APP-INV-008
       - APP-INV-009
       - APP-INV-015
       - APP-INV-016
     implements:
       - APP-ADR-012
-      - APP-ADR-013
       - APP-ADR-014
       - APP-ADR-015
+      - APP-ADR-034
     adjacent: [parse-pipeline, query-validation, lifecycle-ops, auto-prompting]
     deep_context: null
     negative_specs:
-      - "Must NOT require language-specific parsers for annotation extraction"
-      - "Must NOT treat absence of annotation as implementation absence"
-      - "Must NOT invoke Z3 unless Tier 1 graph analysis is inconclusive"
-
+      - "Must NOT require language-specific AST parsers for annotation extraction"
+      - "Must NOT report false positive contradictions — reported conflicts must be real logical conflicts"
+      - "Must NOT modify or delete existing event stream records"
+      - "Must NOT silently drop annotations that use valid grammar but target non-existent spec elements"
   auto-prompting:
     file: "modules/auto-prompting.md"
     domain: autoprompt
@@ -197,10 +194,12 @@ modules:
       - APP-INV-046
     interfaces:
       - APP-INV-001
+      - APP-INV-002
       - APP-INV-003
       - APP-INV-005
       - APP-INV-008
       - APP-INV-009
+      - APP-INV-010
       - APP-INV-015
       - APP-INV-016
       - APP-INV-017
@@ -219,15 +218,14 @@ modules:
       - APP-ADR-025
       - APP-ADR-031
       - APP-ADR-033
-    adjacent: [code-bridge, search-intelligence, lifecycle-ops, workspace-ops]
+    adjacent: [code-bridge, search-intelligence, query-validation, lifecycle-ops, workspace-ops]
     deep_context: null
     negative_specs:
-      - "Must NOT embed LLM provider keys or model identifiers in spec content"
-      - "Must NOT prescribe implementation approach in discovery observations"
-      - "Must NOT merge absorbed content without passing all applicable validation checks"
-      - "Must NOT select threads by explicit user declaration — thread identity is inferred"
-      - "Must NOT treat guidance as mandatory — attenuation to zero is always valid"
-
+      - "Must NOT generate prompts that exceed LLM context budget"
+      - "Must NOT hide intermediate state from the user"
+      - "Must NOT substitute LLM judgment for mechanical verification"
+      - "Must NOT prescribe cognitive mode transitions — only observe and classify"
+      - "Must NOT treat absorbed spec artifacts as authoritative without human review"
   workspace-ops:
     file: "modules/workspace-ops.md"
     domain: workspace
@@ -264,51 +262,51 @@ modules:
       - "Must NOT generate tasks without mechanical derivation from the artifact map"
       - "Must NOT treat validation failure as binary — report maturity level and next steps"
       - "Must NOT require external tools (br, bv) for task generation core — only for output format"
-
 invariant_registry:
-  APP-INV-001: { owner: parse-pipeline, domain: parsing, description: "Round-Trip Fidelity — parse-render produces byte-identical output" }
-  APP-INV-002: { owner: query-validation, domain: validation, description: "Validation Determinism — results independent of clock, RNG, execution order" }
-  APP-INV-003: { owner: query-validation, domain: validation, description: "Cross-Reference Integrity — every resolved reference points to existing element" }
-  APP-INV-004: { owner: search-intelligence, domain: search, description: "Authority Monotonicity — adding a relevant cross-reference can only increase authority score" }
-  APP-INV-005: { owner: search-intelligence, domain: search, description: "Context Self-Containment — bundles include all 9 intelligence signals for LLM consumption" }
-  APP-INV-006: { owner: lifecycle-ops, domain: lifecycle, description: "Transaction State Machine — only pending→committed or pending→rolled_back transitions" }
-  APP-INV-007: { owner: query-validation, domain: validation, description: "Diff Completeness — structural diff reports every add/remove/modify, no silent drops" }
-  APP-INV-008: { owner: search-intelligence, domain: search, description: "RRF Fusion Correctness — score equals Σ 1/(K + rank_r(d)) × weight_r for all signals" }
-  APP-INV-009: { owner: parse-pipeline, domain: parsing, description: "Monolith-Modular Equivalence — parsing monolith produces same index as parsing assembled modules" }
-  APP-INV-010: { owner: lifecycle-ops, domain: lifecycle, description: "Oplog Append-Only — no record modification or deletion after write" }
-  APP-INV-011: { owner: query-validation, domain: validation, description: "Check Composability — running a subset of checks equals running all for that subset" }
-  APP-INV-012: { owner: search-intelligence, domain: search, description: "LSI Dimension Bound — k ≤ doc count and all vectors have exactly k dimensions" }
-  APP-INV-013: { owner: lifecycle-ops, domain: lifecycle, description: "Impact Termination — BFS visits each node at most once, no infinite loops on cycles" }
-  APP-INV-014: { owner: search-intelligence, domain: search, description: "Glossary Expansion Bound — query expansion adds at most 5 terms" }
-  APP-INV-015: { owner: parse-pipeline, domain: parsing, description: "Deterministic Hashing — SHA-256 with no salt produces identical hash for identical input" }
-  APP-INV-016: { owner: lifecycle-ops, domain: lifecycle, description: "Implementation Traceability — every invariant with implementation claims has valid Source/Tests/Validates-via paths" }
-  APP-INV-017: { owner: code-bridge, domain: bridge, description: "Annotation Portability — grammar is language-agnostic comment prefix plus structured verb:target" }
-  APP-INV-018: { owner: code-bridge, domain: bridge, description: "Scan-Spec Correspondence — every annotation references a resolvable spec element" }
-  APP-INV-019: { owner: code-bridge, domain: bridge, description: "Contradiction Graph Soundness — Tier 1 graph contains no spurious edges beyond parsed predicates" }
-  APP-INV-020: { owner: code-bridge, domain: bridge, description: "Event Stream Append-Only — event streams are immutable append logs, no retroactive edits" }
-  APP-INV-021: { owner: code-bridge, domain: bridge, description: "Z3 Translation Fidelity — SMT encoding preserves predicate semantics from source invariants" }
-  APP-INV-022: { owner: auto-prompting, domain: autoprompt, description: "Refinement Drift Monotonicity — each refine cycle must not increase drift score" }
-  APP-INV-023: { owner: auto-prompting, domain: autoprompt, description: "Prompt Self-Containment — generated prompts include all context needed without external lookup" }
-  APP-INV-024: { owner: auto-prompting, domain: autoprompt, description: "Ambiguity Surfacing — ambiguous terms trigger explicit disambiguation, never silent resolution" }
-  APP-INV-025: { owner: auto-prompting, domain: autoprompt, description: "Discovery Provenance — every discovery observation traces to a specific source artifact" }
-  APP-INV-026: { owner: auto-prompting, domain: autoprompt, description: "Classification Non-Prescriptive — observation classification describes what, never how" }
-  APP-INV-027: { owner: auto-prompting, domain: autoprompt, description: "Thread Topology Primacy — threads are the primary organizational unit, sessions are substrate" }
-  APP-INV-028: { owner: auto-prompting, domain: autoprompt, description: "Spec-as-Trunk — spec is the canonical trunk, all loops feed into it" }
-  APP-INV-029: { owner: auto-prompting, domain: autoprompt, description: "Convergent Thread Selection — thread identity inferred from content via LSI/BM25, not declared" }
-  APP-INV-030: { owner: auto-prompting, domain: autoprompt, description: "Contributor Topology Graceful Degradation — absence of git metadata disables enrichment, never blocks operation" }
-  APP-INV-031: { owner: auto-prompting, domain: autoprompt, description: "Absorbed Artifacts Validate — merged content must pass all applicable validation checks" }
-  APP-INV-032: { owner: auto-prompting, domain: autoprompt, description: "Symmetric Reconciliation — absorption reconciles bidirectionally between discovery and spec" }
-  APP-INV-033: { owner: auto-prompting, domain: autoprompt, description: "Absorption Format Parity — absorbed content is indistinguishable from hand-authored spec content" }
-  APP-INV-034: { owner: auto-prompting, domain: autoprompt, description: "State Monad Universality — every CLI command returns (output, state, guidance) triple" }
-  APP-INV-035: { owner: auto-prompting, domain: autoprompt, description: "Guidance Attenuation — guidance decays monotonically, attenuation to zero is always valid" }
-  APP-INV-036: { owner: auto-prompting, domain: autoprompt, description: "Human Format Transparency — all spec formats optimized for LLM authoring and human review" }
-  APP-INV-037: { owner: workspace-ops, domain: workspace, description: "Workspace Isolation — init creates complete workspace without modifying files outside root" }
-  APP-INV-038: { owner: workspace-ops, domain: workspace, description: "Cross-Spec Reference Integrity — peer spec references resolve correctly across workspace" }
-  APP-INV-039: { owner: workspace-ops, domain: workspace, description: "Task Derivation Completeness — generated tasks cover all unimplemented spec elements" }
-  APP-INV-040: { owner: workspace-ops, domain: workspace, description: "Progressive Validation Monotonicity — level transitions are monotonic: L1 ⊂ L2 ⊂ L3" }
-  APP-INV-041: { owner: lifecycle-ops, domain: lifecycle, description: "Witness Auto-Invalidation — stale witnesses detected on re-parse" }
-  APP-INV-042: { owner: auto-prompting, domain: autoprompt, description: "Every data command with non-empty findings emits guidance" }
-  APP-INV-043: { owner: query-validation, domain: validation, description: "Every validation finding includes governing invariant statement inline" }
-  APP-INV-044: { owner: query-validation, domain: validation, description: "Warning collapse — top-5 rendering for checks with many warnings" }
-  APP-INV-045: { owner: auto-prompting, domain: autoprompt, description: "Universal auto-discovery — every DB-reading command works without explicit path" }
-  APP-INV-046: { owner: auto-prompting, domain: autoprompt, description: "Every actionable error includes recovery guidance on stderr" }
+  APP-INV-001: {owner: parse-pipeline, domain: parsing, description: "Round-Trip Fidelity — parse-render produces byte-identical output"}
+  APP-INV-002: {owner: query-validation, domain: validation, description: "Validation Determinism — results independent of clock, RNG, execution order"}
+  APP-INV-003: {owner: query-validation, domain: validation, description: "Cross-Reference Integrity — every resolved reference points to existing element"}
+  APP-INV-004: {owner: search-intelligence, domain: search, description: "Authority Monotonicity — adding a relevant cross-reference can only increase authority score"}
+  APP-INV-005: {owner: search-intelligence, domain: search, description: "Context Self-Containment — bundles include all 9 intelligence signals for LLM consumption"}
+  APP-INV-006: {owner: lifecycle-ops, domain: lifecycle, description: "Transaction State Machine — only pending→committed or pending→rolled_back transitions"}
+  APP-INV-007: {owner: query-validation, domain: validation, description: "Diff Completeness — structural diff reports every add/remove/modify, no silent drops"}
+  APP-INV-008: {owner: search-intelligence, domain: search, description: "RRF Fusion Correctness — score equals Σ 1/(K + rank_r(d)) × weight_r for all signals"}
+  APP-INV-009: {owner: parse-pipeline, domain: parsing, description: "Monolith-Modular Equivalence — parsing monolith produces same index as parsing assembled modules"}
+  APP-INV-010: {owner: lifecycle-ops, domain: lifecycle, description: "Oplog Append-Only — no record modification or deletion after write"}
+  APP-INV-011: {owner: query-validation, domain: validation, description: "Check Composability — running a subset of checks equals running all for that subset"}
+  APP-INV-012: {owner: search-intelligence, domain: search, description: "LSI Dimension Bound — k ≤ doc count and all vectors have exactly k dimensions"}
+  APP-INV-013: {owner: lifecycle-ops, domain: lifecycle, description: "Impact Termination — BFS visits each node at most once, no infinite loops on cycles"}
+  APP-INV-014: {owner: search-intelligence, domain: search, description: "Glossary Expansion Bound — query expansion adds at most 5 terms"}
+  APP-INV-015: {owner: parse-pipeline, domain: parsing, description: "Deterministic Hashing — SHA-256 with no salt produces identical hash for identical input"}
+  APP-INV-016: {owner: lifecycle-ops, domain: lifecycle, description: "Implementation Traceability — every invariant with implementation claims has valid Source/Tests/Validates-via paths"}
+  APP-INV-017: {owner: code-bridge, domain: bridge, description: "Annotation Portability — grammar is language-agnostic comment prefix plus structured verb:target"}
+  APP-INV-018: {owner: code-bridge, domain: bridge, description: "Scan-Spec Correspondence — every annotation references a resolvable spec element"}
+  APP-INV-019: {owner: code-bridge, domain: bridge, description: "Contradiction Graph Soundness — Tier 1 graph contains no spurious edges beyond parsed predicates"}
+  APP-INV-020: {owner: code-bridge, domain: bridge, description: "Event Stream Append-Only — event streams are immutable append logs, no retroactive edits"}
+  APP-INV-021: {owner: code-bridge, domain: bridge, description: "SAT Encoding Fidelity — propositional encodings preserve predicate semantics from source invariants"}
+  APP-INV-022: {owner: auto-prompting, domain: autoprompt, description: "Refinement Drift Monotonicity — each refine cycle must not increase drift score"}
+  APP-INV-023: {owner: auto-prompting, domain: autoprompt, description: "Prompt Self-Containment — generated prompts include all context needed without external lookup"}
+  APP-INV-024: {owner: auto-prompting, domain: autoprompt, description: "Ambiguity Surfacing — ambiguous terms trigger explicit disambiguation, never silent resolution"}
+  APP-INV-025: {owner: auto-prompting, domain: autoprompt, description: "Discovery Provenance — every discovery observation traces to a specific source artifact"}
+  APP-INV-026: {owner: auto-prompting, domain: autoprompt, description: "Classification Non-Prescriptive — observation classification describes what, never how"}
+  APP-INV-027: {owner: auto-prompting, domain: autoprompt, description: "Thread Topology Primacy — threads are the primary organizational unit, sessions are substrate"}
+  APP-INV-028: {owner: auto-prompting, domain: autoprompt, description: "Spec-as-Trunk — spec is the canonical trunk, all loops feed into it"}
+  APP-INV-029: {owner: auto-prompting, domain: autoprompt, description: "Convergent Thread Selection — thread identity inferred from content via LSI/BM25, not declared"}
+  APP-INV-030: {owner: auto-prompting, domain: autoprompt, description: "Contributor Topology Graceful Degradation — absence of git metadata disables enrichment, never blocks operation"}
+  APP-INV-031: {owner: auto-prompting, domain: autoprompt, description: "Absorbed Artifacts Validate — merged content must pass all applicable validation checks"}
+  APP-INV-032: {owner: auto-prompting, domain: autoprompt, description: "Symmetric Reconciliation — absorption reconciles bidirectionally between discovery and spec"}
+  APP-INV-033: {owner: auto-prompting, domain: autoprompt, description: "Absorption Format Parity — absorbed content is indistinguishable from hand-authored spec content"}
+  APP-INV-034: {owner: auto-prompting, domain: autoprompt, description: "State Monad Universality — every CLI command returns (output, state, guidance) triple"}
+  APP-INV-035: {owner: auto-prompting, domain: autoprompt, description: "Guidance Attenuation — guidance decays monotonically, attenuation to zero is always valid"}
+  APP-INV-036: {owner: auto-prompting, domain: autoprompt, description: "Human Format Transparency — all spec formats optimized for LLM authoring and human review"}
+  APP-INV-037: {owner: workspace-ops, domain: workspace, description: "Workspace Isolation — init creates complete workspace without modifying files outside root"}
+  APP-INV-038: {owner: workspace-ops, domain: workspace, description: "Cross-Spec Reference Integrity — peer spec references resolve correctly across workspace"}
+  APP-INV-039: {owner: workspace-ops, domain: workspace, description: "Task Derivation Completeness — generated tasks cover all unimplemented spec elements"}
+  APP-INV-040: {owner: workspace-ops, domain: workspace, description: "Progressive Validation Monotonicity — level transitions are monotonic: L1 ⊂ L2 ⊂ L3"}
+  APP-INV-041: {owner: lifecycle-ops, domain: lifecycle, description: "Witness Auto-Invalidation — stale witnesses detected on re-parse"}
+  APP-INV-042: {owner: auto-prompting, domain: autoprompt, description: "Every data command with non-empty findings emits guidance"}
+  APP-INV-043: {owner: query-validation, domain: validation, description: "Every validation finding includes governing invariant statement inline"}
+  APP-INV-044: {owner: query-validation, domain: validation, description: "Warning collapse — top-5 rendering for checks with many warnings"}
+  APP-INV-045: {owner: auto-prompting, domain: autoprompt, description: "Universal auto-discovery — every DB-reading command works without explicit path"}
+  APP-INV-046: {owner: auto-prompting, domain: autoprompt, description: "Every actionable error includes recovery guidance on stderr"}
+  APP-INV-047: {owner: query-validation, domain: validation, description: "Frontmatter-Manifest Bijection — module frontmatter declarations match manifest.yaml entries exactly"}

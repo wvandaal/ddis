@@ -1,9 +1,9 @@
 ---
 module: query-validation
 domain: validation
-maintains: [APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-011, APP-INV-043, APP-INV-044]
+maintains: [APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-011, APP-INV-043, APP-INV-044, APP-INV-047]
 interfaces: [APP-INV-001, APP-INV-005, APP-INV-006, APP-INV-008, APP-INV-009, APP-INV-015, APP-INV-016]
-implements: [APP-ADR-004, APP-ADR-032]
+implements: [APP-ADR-004, APP-ADR-032, APP-ADR-035]
 adjacent: [parse-pipeline, search-intelligence, lifecycle-ops]
 negative_specs:
   - "Must NOT rely on execution order for validation check correctness"
@@ -873,6 +873,62 @@ Violation scenario: A check produces 88 cross-reference density warnings. The va
 Validation: Run ddis validate on a spec where Check 3 (cross-reference density) produces more than 5 warnings. Count the warning lines in text output for that check. Verify the count is at most 10. Verify the output includes a collapse summary line. Compare with --json output to confirm all warnings are still present in structured form.
 
 // WHY THIS MATTERS: Gestalt principle of signal-to-noise: 88 identical warnings carry the same information as "88 warnings (top 5: ...)" but consume 17x more context tokens. Warning collapse preserves information while respecting the LLM context budget.
+
+---
+
+**APP-INV-047: Frontmatter-Manifest Bijection**
+
+*Module frontmatter declarations (maintains, interfaces, implements, negative_specs) MUST be a bijection with manifest.yaml entries. Every frontmatter field matches its manifest counterpart exactly. No silent divergence between collocated module metadata and centralized manifest metadata.*
+
+```
+FOR ALL module M IN manifest.modules:
+  LET fm = frontmatter(M.file)
+  fm.maintains = M.maintains
+  AND fm.interfaces = M.interfaces
+  AND fm.implements = M.implements
+  AND fm.negative_specs = M.negative_specs
+  AND fm.adjacent = M.adjacent
+```
+
+Violation scenario: code-bridge.md frontmatter lists APP-INV-002 in interfaces but manifest.yaml omits it. The parser silently uses one or the other depending on code path, producing inconsistent cross-reference graphs. An agent running `ddis impact APP-INV-002` gets different results depending on whether the index was built from frontmatter or manifest traversal.
+
+Validation: For each module, extract frontmatter YAML fields and compare against manifest.yaml entries. Report any field where the sets differ. This check should be part of the validation pipeline (Check 15 or integrated into existing structural checks).
+
+// WHY THIS MATTERS: Two sources of truth for module metadata creates a class of bugs that only manifest when specific code paths are exercised. The frontmatter is collocated with the module content (convenient for authors), the manifest is the canonical registry (convenient for tooling). If they diverge, every cross-reference operation becomes order-dependent.
+
+---
+
+### APP-ADR-035: Frontmatter-Manifest Cross-Validation
+
+#### Problem
+
+Module metadata exists in two places: YAML frontmatter in each module file and the centralized manifest.yaml. Different code paths read different sources. When they diverge silently, cross-reference resolution produces different results depending on which code path runs first.
+
+#### Options
+
+A) **Trust frontmatter only** --- Ignore manifest for module metadata. Manifest becomes just a file list.
+B) **Trust manifest only** --- Ignore frontmatter. Module files lose collocated metadata.
+C) **Cross-validate both** --- Add a validation check that verifies bijection between frontmatter and manifest entries. Report discrepancies as errors.
+
+#### Decision
+
+**Option C: Cross-validate both.** Both sources exist for good reasons (frontmatter for authors, manifest for tooling). Rather than eliminating one, enforce that they agree. A new validation check reports any field where frontmatter and manifest differ. Discrepancies are errors, not warnings, because they cause non-deterministic cross-reference resolution.
+
+// WHY NOT Option A (frontmatter only)? The manifest provides a single-file overview of all module relationships, essential for tooling that needs to enumerate modules without parsing every file.
+
+// WHY NOT Option B (manifest only)? Collocated metadata is a proven pattern for maintainability. Removing frontmatter forces authors to context-switch to manifest.yaml for every metadata change.
+
+**Confidence:** Committed
+
+#### Consequences
+
+Every `ddis parse` run implicitly validates frontmatter-manifest consistency. Authors who update one but not the other get immediate feedback. The bijection invariant (APP-INV-047) is mechanically enforced.
+
+#### Tests
+
+- Create a module with mismatched frontmatter and manifest maintains lists: verify validation reports error
+- Create a module with identical frontmatter and manifest: verify no error
+- Verify all 7 CLI spec modules pass the bijection check after sync
 
 ---
 

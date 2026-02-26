@@ -2,8 +2,8 @@
 module: code-bridge
 domain: bridge
 maintains: [APP-INV-017, APP-INV-018, APP-INV-019, APP-INV-020, APP-INV-021]
-interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-008, APP-INV-015, APP-INV-016]
-implements: [APP-ADR-012, APP-ADR-013, APP-ADR-014, APP-ADR-015]
+interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-008, APP-INV-009, APP-INV-015, APP-INV-016]
+implements: [APP-ADR-012, APP-ADR-014, APP-ADR-015, APP-ADR-034]
 adjacent: [parse-pipeline, query-validation, lifecycle-ops, auto-prompting]
 negative_specs:
   - "Must NOT require language-specific AST parsers for annotation extraction"
@@ -18,7 +18,7 @@ The code bridge module closes the gap between specification and implementation b
 
 This module answers the question: **does the code match the spec, does the spec contradict itself, and how did it get here?** Together, the three subsystems extend drift detection from spec-internal consistency (already handled by the drift-management module in the parent spec) to spec-code correspondence and temporal evolution.
 
-The annotation system uses a universal `ddis:` comment prefix --- no language-specific AST parsing required. Annotations travel with the code, making traceability a property of the source file, not an external manifest. The contradiction detector operates in two tiers: graph-based predicate analysis (Tier 1) and Z3 SMT solving (Tier 2). Event sourcing records every parse, validation, and drift measurement as an append-only JSONL stream.
+The annotation system uses a universal `ddis:` comment prefix --- no language-specific AST parsing required. Annotations travel with the code, making traceability a property of the source file, not an external manifest. The contradiction detector operates in four tiers: structural validation (Tier 1), graph-based predicate analysis (Tier 2), SAT solving via gophersat (Tier 3), and heuristic NLP + LSI (Tier 4). Event sourcing records every parse, validation, and drift measurement as an append-only JSONL stream.
 
 **Invariants interfaced from other modules (INV-018 compliance):**
 
@@ -164,36 +164,34 @@ Validation: Write 5 events to the stream. Run `ddis parse --force` (which recrea
 
 ---
 
-**APP-INV-021: Z3 Translation Fidelity**
+**APP-INV-021: Consistency Encoding Fidelity**
 
-*Z3 assertions generated from invariant `semi_formal` fields faithfully represent the logical content of those fields. If Z3 reports UNSAT (unsatisfiable) for a set of assertions, the corresponding invariants are genuinely logically inconsistent.*
+*Propositional encodings generated from invariant `semi_formal` fields faithfully represent the logical content of those fields. If the SAT solver reports UNSAT (unsatisfiable) for a set of encoded clauses, the corresponding invariants are genuinely logically inconsistent. (Updated per APP-ADR-034: Z3 CGo dependency replaced by pure-Go gophersat.)*
 
 ```
-FOR ALL invariant_sets S WHERE z3_check(S) = UNSAT:
+FOR ALL invariant_sets S WHERE sat_check(encode(S)) = UNSAT:
   logically_inconsistent(S) = true
 WHERE:
-  translate: semi_formal -> Z3 assertion
-  z3_check: Z3 assertion set -> {SAT, UNSAT, UNKNOWN}
+  encode: semi_formal -> propositional clause set (CNF)
+  sat_check: clause set -> {SAT, UNSAT}
   logically_inconsistent: manually verifiable that no model satisfies all constraints in S
 
-Translation rules:
-  "FOR ALL x":       z3.ForAll(x, ...)
-  "EXISTS x":        z3.Exists(x, ...)
-  "x <= y":          z3.LE(x, y)
-  "x > y":           z3.GT(x, y)
-  "A AND B":         z3.And(A, B)
-  "A OR B":          z3.Or(A, B)
-  "A IMPLIES B":     z3.Implies(A, B)
-  "NOT A":           z3.Not(A)
-  Numeric constants: z3.Int(value) or z3.Real(value) depending on context
-  Named variables:   fresh z3 variable per unique identifier, typed by usage context
+Encoding rules:
+  "FOR ALL x: P(x)":  conjunction of P(x_i) for all known domain elements x_i
+  "EXISTS x: P(x)":   disjunction of P(x_i) for all known domain elements x_i
+  "A AND B":          clause_A AND clause_B
+  "A OR B":           clause_A OR clause_B
+  "A IMPLIES B":      NOT clause_A OR clause_B
+  "NOT A":            negation of clause_A
+  Numeric constraints: encoded as propositional bounds (e.g., x <= 5 becomes NOT x_6 AND NOT x_7 ...)
+  Named variables:    fresh propositional variable per unique identifier
 ```
 
-Violation scenario: INV-005 has `semi_formal: "bundle_size(b) <= hard_ceiling"` and INV-007 has `semi_formal: "signal_density(s) > 0.5"`. The Z3 translator maps `bundle_size` to an integer variable and `signal_density` to a real variable but accidentally constrains both to the same Z3 variable. Z3 reports UNSAT because `x <= 5000 AND x > 0.5` is satisfiable but the incorrect translation makes them conflict. The system reports a false contradiction between two unrelated invariants.
+Violation scenario: INV-005 has `semi_formal: "bundle_size(b) <= hard_ceiling"` and INV-007 has `semi_formal: "signal_density(s) > 0.5"`. The encoder maps `bundle_size` and `signal_density` to the same propositional variable set. The solver reports UNSAT for a satisfiable pair. The system reports a false contradiction between two unrelated invariants.
 
-Validation: Create 5 invariant pairs with known satisfiability status (3 satisfiable, 2 unsatisfiable). Translate to Z3 assertions. Verify Z3 results match ground truth for all 5 pairs.
+Validation: Create 5 invariant pairs with known satisfiability status (3 satisfiable, 2 unsatisfiable). Encode and check via gophersat. Verify results match ground truth for all 5 pairs. Verify MUS extraction identifies the correct minimal conflicting subset for UNSAT pairs.
 
-// WHY THIS MATTERS: Z3 is the strongest contradiction detection mechanism, but its value depends entirely on faithful translation. A mistranslation turns an infallible theorem prover into a random oracle.
+// WHY THIS MATTERS: The SAT solver is the strongest pure-Go contradiction detection mechanism, but its value depends on faithful encoding. A mis-encoding turns a sound solver into a random oracle.
 
 **Confidence:** property-derived
 
@@ -319,34 +317,68 @@ B) **Inline Annotations** --- `// ddis:maintains INV-006` comments embedded in s
 
 ---
 
-### APP-ADR-013: Z3 as Required Dependency
+### APP-ADR-013: Z3 as Required Dependency — **SUPERSEDED by APP-ADR-034**
 
 #### Problem
 Contradiction detection Tier 2 requires an SMT solver. Z3 (via `mitchellh/go-z3` CGO bindings) is the industry standard. Should it be optional (build tags) or required?
 
 #### Options
-A) **Optional** --- build tags for Z3 support. Binary works without Z3 but loses Tier 2 contradiction detection.
-- Pros: smaller binary without Z3, no CGO dependency for basic usage
-- Cons: conditional compilation complexity, two code paths to test
-
-B) **Required** --- Z3 is always linked. Binary includes Tier 2 contradiction detection.
-- Pros: simpler build, one code path, full capability for all users
-- Cons: binary size +10-15MB, requires `libz3-dev` on build machine
+A) **Z3 required (CGo)** — Link Z3 via CGo bindings.
+B) **Z3 optional (build tags)** — Conditional compilation for Z3.
+C) **Pure-Go replacement** — See APP-ADR-034.
 
 #### Decision
-**Option B: Required.** The Z3 dependency simplifies the build (no conditional compilation, no build tags) and ensures all users have access to the strongest contradiction detection. The design parallel with Eiffel's AutoProof --- where the SMT backend is integral, not optional --- reinforces this: contract consistency checking should be a first-class capability, not an opt-in feature.
-
-// WHY NOT Optional? Two code paths for contradiction detection means two test matrices, two sets of edge cases, and users who discover they need Z3 only after hitting a subtle contradiction that Tier 1 missed. The 10-15MB binary size increase is negligible for a developer tool.
+**Option C: Pure-Go replacement (SUPERSEDED).** This ADR is superseded by APP-ADR-034 (Pure-Go Tiered Consistency over Z3). All Go Z3 bindings require CGo, which violates single-binary distribution. The most mature binding (mitchellh/go-z3) was archived in October 2023. See APP-ADR-034 for the replacement architecture.
 
 #### Consequences
-- `go-z3` CGO bindings added to `go.mod`
-- Build requires `libz3-dev` (documented in installation instructions)
-- `internal/contradiction/z3.go` translates `semi_formal` fields to Z3 assertions
-- Contradiction detection always runs both Tier 1 (graph) and Tier 2 (Z3)
+Superseded. No consequences apply — see APP-ADR-034 for the replacement decision and its consequences.
 
 #### Tests
-- Translate 5 invariant `semi_formal` fields to Z3 assertions; verify satisfiability matches expected results
-- Build on clean machine with `libz3-dev` installed; verify binary includes Z3 functionality
+Superseded. Verification is covered by APP-ADR-034 tests.
+
+---
+
+### APP-ADR-034: Pure-Go Tiered Consistency over Z3
+
+#### Problem
+Contradiction detection requires formal reasoning about invariant consistency. APP-ADR-013 prescribed Z3 via CGo bindings, but all Go Z3 bindings require CGo, which violates single-binary distribution (APP-ADR-024: `curl | bash` installable). The most mature binding (mitchellh/go-z3) was archived in October 2023. How should the CLI detect contradictions without CGo?
+
+#### Options
+A) **Z3 subprocess** --- pipe SMT-LIB2 to `z3` binary via `os/exec`.
+- Pros: full Z3 power, no CGo
+- Cons: requires Z3 on PATH, breaks single-binary promise, ~50-200ms startup per query
+
+B) **Pure-Go SAT (gophersat)** --- encode semi-formal expressions as propositional logic, use gophersat for SAT checking with UNSAT core (MUS) extraction.
+- Pros: pure Go (MIT, v1.4), single binary, MUS extraction for conflict localization
+- Cons: propositional only (no quantified theories), ~80% of semi-formal expressions parseable
+
+C) **Tiered pure-Go** --- Layer multiple techniques: graph analysis (existing BFS/PageRank), SAT (gophersat), heuristic NLP, LSI (existing gonum). Each tier catches a different class of contradiction.
+- Pros: best coverage, all pure Go, reuses existing infrastructure extensively
+- Cons: more code surface than single technique
+
+#### Decision
+**Option C: Tiered pure-Go.** Four detection tiers, each targeting a different contradiction class:
+
+- **Tier 1 (structural)**: Existing 14 validator checks already catch structural inconsistencies (orphan references, broken declarations, missing components). Zero additional code.
+- **Tier 2 (graph)**: Typed cross-reference edges (supports/requires/qualifies/conflicts/supersedes), contradictory cycle detection (DFS + sign tracking), governance overlap analysis, unsupported invariant detection. Reuses `internal/impact/impact.go` BFS and `internal/search/authority.go` PageRank. ~200 LOC.
+- **Tier 3 (SAT)**: Parse semi-formal expressions into AST (~80% of 46 expressions). Encode invariant pairs as gophersat clauses. UNSAT = contradiction. MUS extraction identifies minimal conflicting subset. Dependency: `github.com/crillab/gophersat` (pure Go, MIT, v1.4, maintained by CRIL research lab). ~300 LOC.
+- **Tier 4 (heuristic + semantic)**: Polarity inversion detection (must vs must-not on same subject), quantifier conflict (forall vs exists-not on same domain), numeric bound conflicts. LSI projection of invariant + negative-spec statements for cross-boundary tension detection. Reuses `internal/search/lsi.go`. ~250 LOC.
+
+// WHY NOT Z3 subprocess? Breaks single-binary promise. Optional external tools contradict the CLI's design principle of offline, self-contained operation.
+
+// WHY NOT SAT-only? Semi-formal parsing achieves ~80% coverage. The remaining 20% of expressions are best handled by Tier 4 heuristics. Graph analysis (Tier 2) catches structural contradictions that SAT encoding would miss.
+
+#### Consequences
+- `github.com/crillab/gophersat` added to `go.mod` (pure Go, ~500KB)
+- New package `internal/consistency/` with graph.go, sat.go, heuristic.go, semantic.go
+- New CLI command `ddis contradict manifest.ddis.db [--tier N] [--json]`
+- APP-INV-021 updated: "Z3 Translation Fidelity" → "Consistency Encoding Fidelity"
+- `drift.ImplDrift.Contradictions` populated from real analysis (previously hardcoded to 0)
+
+#### Tests
+- Create spec with 3 structural contradictions and 2 numeric contradictions; verify Tier 2 catches structural, Tier 3/4 catches numeric
+- Verify zero false positives on the DDIS CLI's own spec (self-bootstrap)
+- Verify gophersat MUS extraction identifies the correct minimal conflict set
 
 ---
 
@@ -356,34 +388,41 @@ B) **Required** --- Z3 is always linked. Binary includes Tier 2 contradiction de
 Spec elements can contradict each other in ways that structural validation misses. How should the system detect logical contradictions?
 
 #### Options
-A) **Graph-only (Tier 1)** --- predicate extraction + contradiction graph from invariant statements and cross-references. Pattern-matching on quantifiers and negation.
+A) **Graph-only** --- predicate extraction + contradiction graph from invariant statements and cross-references. Pattern-matching on quantifiers and negation.
 - Pros: pure Go, no external dependencies, fast
 - Cons: misses semantic contradictions (conflicting performance budgets, arithmetic impossibilities)
 
-B) **SMT-only (Tier 2)** --- translate all constraints to Z3 assertions, check satisfiability.
-- Pros: strongest possible detection, catches arithmetic and logical contradictions
-- Cons: requires Z3, slower, translation fidelity is hard to guarantee for all semi-formal notations
+B) **SAT-only** --- encode all constraints as propositional logic, check satisfiability via gophersat.
+- Pros: pure Go, formal soundness, UNSAT core extraction
+- Cons: semi-formal parsing covers ~80% of expressions, misses nuanced natural-language tension
 
-C) **Tiered (Tier 1 + Tier 2)** --- graph analysis runs first for structural contradictions, Z3 runs second for semantic contradictions. Both results merged.
-- Pros: best of both --- structural patterns caught fast, semantic contradictions caught thoroughly
-- Cons: two systems to maintain, potential disagreement between tiers
+C) **Four-tier layered** --- structural validation (existing), graph analysis, SAT solving, heuristic NLP + LSI. Each tier catches a different class of contradiction.
+- Pros: best coverage, all pure Go, reuses existing infrastructure
+- Cons: four subsystems to maintain
 
 #### Decision
-**Option C: Tiered.** Tier 1 catches structural contradictions (quantifier conflicts, negation pairs, circular implications, negative spec violations) with zero external dependencies and sub-millisecond latency. The concrete algorithm (see Algorithm Specifications above) extracts (subject, modal, predicate) tuples, builds a conflict graph, and detects four contradiction patterns. Tier 2 catches the remaining semantic contradictions (conflicting budgets, arithmetic impossibilities) via Z3. Both tiers run; results are merged. Tier 1 is designed for speed; Tier 2 for depth.
+**Option C: Four-tier layered.** (Updated per APP-ADR-034 — Z3 replaced with pure-Go tiers.)
 
-// WHY NOT Graph-only? Misses the class of contradictions that first motivated the user's research into formal methods. For example: "max response latency is 50ms" vs "minimum 3 sequential network calls at 20ms each" requires arithmetic reasoning (3 * 20 = 60 > 50) that graph analysis cannot provide.
+- Tier 1 (structural): Existing 14 validator checks catch structural inconsistencies.
+- Tier 2 (graph): Typed cross-ref edges, cycle detection, governance overlap. Reuses existing BFS + PageRank.
+- Tier 3 (SAT): Semi-formal → gophersat propositional encoding. UNSAT = contradiction. MUS = minimal conflict.
+- Tier 4 (heuristic + semantic): Polarity/quantifier/numeric rules + LSI tension detection.
 
-// WHY NOT SMT-only? Z3 translation is lossy for natural-language predicates. Graph analysis handles pattern-based contradictions (negation pairs, quantifier conflicts) more reliably than translating them through an intermediate formal language.
+All tiers run; results merged with deduplication by element pair. Tier 2 is designed for speed; Tier 3 for logical soundness; Tier 4 for natural-language coverage.
+
+// WHY NOT Graph-only? Misses arithmetic contradictions (e.g., conflicting latency budgets: 50ms max vs 3×20ms sequential calls = 60ms).
+
+// WHY NOT SAT-only? Semi-formal parsing covers ~80% of expressions. The remaining 20% with complex natural-language predicates fall to Tier 4 heuristics.
 
 #### Consequences
-- New package `internal/contradiction/` with `predicate.go` (Tier 1), `graph.go` (Tier 1), `z3.go` (Tier 2)
+- New package `internal/consistency/` with `graph.go` (Tier 2), `sat.go` (Tier 3), `heuristic.go` (Tier 4), `semantic.go` (Tier 4)
 - `drift.ImplDrift.Contradictions` populated from real analysis (currently hardcoded to 0)
-- New validator Check 14: semantic contradiction detection
-- `ddis validate --check-semantics` flag
+- New CLI command `ddis contradict` for standalone contradiction analysis
+- Dependency: `github.com/crillab/gophersat` (pure Go, MIT, v1.4)
 
 #### Tests
-- Create spec with 3 structural contradictions and 2 arithmetic contradictions; verify Tier 1 catches structural and Tier 2 catches arithmetic
-- Verify zero false positives on a known-consistent spec (the DDIS meta-spec itself)
+- Create spec with 3 structural contradictions and 2 arithmetic contradictions; verify Tier 2 catches structural and Tier 3/4 catches arithmetic
+- Verify zero false positives on a known-consistent spec (the DDIS CLI spec itself)
 
 ---
 

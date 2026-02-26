@@ -190,7 +190,7 @@ func TestInsertSpec_GetFirstAndLatestSpecID_RoundTrip(t *testing.T) {
 		t.Errorf("GetLatestSpecID = %d, want %d", latestID, insertedID)
 	}
 
-	// Insert a second spec — GetFirstSpecID returns first, GetLatestSpecID returns second.
+	// Insert a second spec — both are non-parent, so GetFirstSpecID returns latest (second).
 	spec2 := &SpecIndex{
 		SpecPath:    "/tmp/my-spec.md",
 		SpecName:    "My Spec v2",
@@ -205,12 +205,13 @@ func TestInsertSpec_GetFirstAndLatestSpecID_RoundTrip(t *testing.T) {
 		t.Fatalf("InsertSpecIndex (second): %v", err)
 	}
 
+	// GetFirstSpecID returns the latest non-parent spec (second, since neither is a parent).
 	firstID, err := GetFirstSpecID(td.DB)
 	if err != nil {
 		t.Fatalf("GetFirstSpecID after second insert: %v", err)
 	}
-	if firstID != insertedID {
-		t.Errorf("GetFirstSpecID = %d, want %d (original)", firstID, insertedID)
+	if firstID != secondID {
+		t.Errorf("GetFirstSpecID = %d, want %d (latest non-parent)", firstID, secondID)
 	}
 
 	latestID2, err := GetLatestSpecID(td.DB)

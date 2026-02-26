@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -18,6 +19,8 @@ import (
 var (
 	validateJSON      bool
 	validateChecks    string
+	validateFocus     int
+	validateLevel     int
 	validateLog       bool
 	validateOplogPath string
 	validateCodeRoot  string
@@ -40,7 +43,8 @@ Examples:
   ddis validate
   ddis validate index.db
   ddis validate index.db --json
-  ddis validate index.db --checks 1,2,3,9`,
+  ddis validate index.db --checks 1,2,3,9
+  ddis validate index.db --focus 5`,
 	Args:          cobra.RangeArgs(0, 1),
 	RunE:          runValidate,
 	SilenceErrors: true,
@@ -50,6 +54,8 @@ Examples:
 func init() {
 	validateCmd.Flags().BoolVar(&validateJSON, "json", false, "Output as JSON (for RALPH integration)")
 	validateCmd.Flags().StringVar(&validateChecks, "checks", "", "Comma-separated list of check IDs to run (default: all)")
+	validateCmd.Flags().IntVar(&validateFocus, "focus", 0, "Deep single-check mode: run one check with verbose findings")
+	validateCmd.Flags().IntVar(&validateLevel, "level", 0, "Progressive validation level: 1=structural, 2=+content, 3=all")
 	validateCmd.Flags().BoolVar(&validateLog, "log", false, "Append validation report to oplog")
 	validateCmd.Flags().StringVar(&validateOplogPath, "oplog-path", "", "Custom oplog path (default: .ddis/oplog.jsonl)")
 	validateCmd.Flags().StringVar(&validateCodeRoot, "code-root", "", "Source code root for implementation traceability check (Check 13)")
@@ -86,6 +92,23 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// --level sets progressive validation tiers.
+	if validateLevel > 0 && len(checkIDs) == 0 {
+		switch validateLevel {
+		case 1:
+			checkIDs = []int{1, 7, 8, 10} // structural fast
+		case 2:
+			checkIDs = []int{1, 2, 3, 4, 5, 7, 8, 10} // + content quality
+		default:
+			// level 3+ = all (leave checkIDs nil)
+		}
+	}
+
+	// --focus overrides --checks/--level: single check, verbose output.
+	if validateFocus > 0 {
+		checkIDs = []int{validateFocus}
+	}
+
 	opts := validator.ValidateOptions{
 		CheckIDs: checkIDs,
 		CodeRoot: validateCodeRoot,
@@ -94,6 +117,11 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	report, err := validator.Validate(db, specID, opts)
 	if err != nil {
 		return err
+	}
+
+	if validateFocus > 0 && !validateJSON {
+		// Focus mode: verbose single-check output.
+		return renderFocusReport(report, validateFocus)
 	}
 
 	out, err := validator.RenderReport(report, validateJSON)
@@ -134,6 +162,68 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func renderFocusReport(report *validator.Report, checkID int) error {
+	for _, res := range report.Results {
+		if res.CheckID != checkID {
+			continue
+		}
+		status := "PASSED"
+		if !res.Passed {
+			status = "FAILED"
+		}
+		fmt.Printf("Focus: Check %d — %s [%s]\n", res.CheckID, res.CheckName, status)
+		fmt.Println(strings.Repeat("═", 60))
+		fmt.Printf("Summary: %s\n", res.Summary)
+		if res.InvariantID != "" {
+			fmt.Printf("Invariant: %s\n", res.InvariantID)
+		}
+
+		if len(res.Findings) == 0 {
+			fmt.Println("\nNo findings.")
+		} else {
+			errors, warnings, infos := 0, 0, 0
+			for _, f := range res.Findings {
+				switch f.Severity {
+				case "error":
+					errors++
+				case "warning":
+					warnings++
+				default:
+					infos++
+				}
+			}
+			fmt.Printf("\nFindings: %d total (%d errors, %d warnings, %d info)\n",
+				len(res.Findings), errors, warnings, infos)
+			fmt.Println(strings.Repeat("─", 60))
+
+			for i, f := range res.Findings {
+				sev := "INFO"
+				switch f.Severity {
+				case "error":
+					sev = "ERROR"
+				case "warning":
+					sev = "WARN"
+				}
+				fmt.Printf("  %d. [%s] %s", i+1, sev, f.Message)
+				if f.Location != "" {
+					fmt.Printf(" (at %s)", f.Location)
+				}
+				if f.InvariantID != "" {
+					fmt.Printf(" [%s]", f.InvariantID)
+				}
+				fmt.Println()
+			}
+		}
+
+		if !NoGuidance && !res.Passed {
+			fmt.Printf("\nNext: ddis context %s\n", res.InvariantID)
+			fmt.Println("  Investigate the failing check's related elements.")
+		}
+		return nil
+	}
+	return fmt.Errorf("check %d not found in report", checkID)
 }
 
 func emitValidateGuidance(report *validator.Report) {

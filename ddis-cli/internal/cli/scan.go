@@ -16,6 +16,7 @@ import (
 var (
 	scanSpec   string
 	scanVerify bool
+	scanStrict bool
 	scanStore  bool
 	scanJSON   bool
 )
@@ -47,6 +48,7 @@ Examples:
 func init() {
 	scanCmd.Flags().StringVar(&scanSpec, "spec", "", "Path to spec database for verification")
 	scanCmd.Flags().BoolVar(&scanVerify, "verify", false, "Verify annotations against spec DB (requires --spec)")
+	scanCmd.Flags().BoolVar(&scanStrict, "strict", false, "Fail (exit 1) if any spec elements lack annotations (requires --verify)")
 	scanCmd.Flags().BoolVar(&scanStore, "store", false, "Store annotations in spec DB (requires --spec)")
 	scanCmd.Flags().BoolVar(&scanJSON, "json", false, "Output as JSON")
 }
@@ -99,6 +101,11 @@ func runScan(cmd *cobra.Command, args []string) error {
 		fmt.Println(out)
 	} else {
 		fmt.Print(annotate.RenderText(result))
+	}
+
+	// --strict: fail if unimplemented spec elements exist.
+	if scanStrict && result.VerifyReport != nil && len(result.VerifyReport.Unimplemented) > 0 {
+		return fmt.Errorf("strict mode: %d spec elements have no code annotations", len(result.VerifyReport.Unimplemented))
 	}
 
 	if !NoGuidance && !scanJSON {

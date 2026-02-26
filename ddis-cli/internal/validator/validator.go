@@ -1,7 +1,7 @@
 package validator
 
-// ddis:interfaces APP-INV-021 (Z3 translation fidelity)
-// ddis:implements APP-ADR-013 (Z3 as required dependency)
+// ddis:interfaces APP-INV-021 (SAT encoding fidelity)
+// ddis:implements APP-ADR-034 (pure-Go tiered consistency over Z3 — Tier 1 structural validation)
 
 import (
 	"database/sql"

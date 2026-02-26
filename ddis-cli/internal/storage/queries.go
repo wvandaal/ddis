@@ -24,11 +24,26 @@ func GetParentSpecID(db *sql.DB, specID int64) (*int64, error) {
 	return &parentID.Int64, nil
 }
 
-// GetFirstSpecID returns the first (oldest) spec ID in the database.
-// Reserved for witness invalidation (APP-INV-041) where the canonical baseline is needed.
+// GetFirstSpecID returns the primary spec ID in the database.
+// The primary spec is the most recently inserted spec that is NOT referenced
+// as another spec's parent_spec_id. This correctly skips both stale entries
+// (from previous parses at different paths) and parent specs parsed as
+// dependencies. Falls back to latest spec if the smart query finds nothing.
 func GetFirstSpecID(db *sql.DB) (int64, error) {
 	var id int64
-	err := db.QueryRow("SELECT id FROM spec_index ORDER BY id ASC LIMIT 1").Scan(&id)
+	// Smart: latest spec that nobody references as parent
+	err := db.QueryRow(`
+		SELECT id FROM spec_index
+		WHERE id NOT IN (
+			SELECT DISTINCT parent_spec_id FROM spec_index
+			WHERE parent_spec_id IS NOT NULL
+		)
+		ORDER BY id DESC LIMIT 1`).Scan(&id)
+	if err == nil {
+		return id, nil
+	}
+	// Fallback: just the latest
+	err = db.QueryRow("SELECT id FROM spec_index ORDER BY id DESC LIMIT 1").Scan(&id)
 	if err != nil {
 		return 0, fmt.Errorf("get first spec_id: %w", err)
 	}
