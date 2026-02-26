@@ -647,6 +647,199 @@ func TestFindLimitingFactor_TieBreakByInitialIndex(t *testing.T) {
 // modeGuidance (helper)
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// APP-INV-026: Classification Non-Prescriptive
+// Mode classification is observational — it reports what mode is observed
+// but does not prescribe or mandate behavior.
+// ---------------------------------------------------------------------------
+
+// ddis:tests APP-INV-026
+func TestAPPINV026_ClassificationNonPrescriptive(t *testing.T) {
+	dir := t.TempDir()
+
+	// Create a thread so BuildContext has something to work with.
+	if err := SaveThread(dir, Thread{ID: "t-1", Status: "active", Summary: "test thread"}); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := BuildContext(nil, 0, DiscoverOptions{
+		Content:   "test classification",
+		EventsDir: dir,
+	})
+	if err != nil {
+		t.Fatalf("BuildContext failed: %v", err)
+	}
+
+	// 1. The state snapshot uses "ObservedMode" (observational, not prescriptive).
+	if result.State.ModeObserved == "" {
+		t.Error("ModeObserved should be set (classification must produce a mode)")
+	}
+
+	// 2. Guidance uses "SuggestedNext" — not "RequiredNext" or "MandatoryActions".
+	if result.Guidance.SuggestedNext == nil {
+		t.Error("SuggestedNext should be populated with mode-appropriate suggestions")
+	}
+
+	// 3. The guidance field is named "ObservedMode" — explicitly observational.
+	if result.Guidance.ObservedMode == "" {
+		t.Error("Guidance.ObservedMode should be set")
+	}
+
+	// 4. The Output contains mode as observation ("**Mode**: ..."), not as command.
+	if !strings.Contains(result.Output, "**Mode**:") {
+		t.Error("output should contain mode observation (\"**Mode**: ...\")")
+	}
+
+	// 5. Test all 7 defined modes produce guidance without prescriptive language.
+	prescriptiveVerbs := []string{"you must", "you are required", "mandatory:", "required:"}
+	modes := []string{"divergent", "convergent", "dialectical", "abductive",
+		"metacognitive", "incubation", "crystallization"}
+	conf := [5]int{5, 5, 5, 5, 5}
+	for _, m := range modes {
+		mc := ModeClassification{Mode: m, Confidence: 0.8, DoFHint: "mid"}
+		suggestions := modeGuidance(mc, conf)
+		for _, s := range suggestions {
+			lower := strings.ToLower(s)
+			for _, verb := range prescriptiveVerbs {
+				if strings.Contains(lower, verb) {
+					t.Errorf("mode %q suggestion %q contains prescriptive verb %q", m, s, verb)
+				}
+			}
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// APP-INV-030: Contributor Topology Graceful Degradation
+// BuildContext must succeed even without a database, git, or prior state.
+// ---------------------------------------------------------------------------
+
+// ddis:tests APP-INV-030
+func TestAPPINV030_ContributorTopologyGracefulDegradation(t *testing.T) {
+	dir := t.TempDir()
+
+	// Call BuildContext with nil DB and zero specID — no database, no git, no prior state.
+	result, err := BuildContext(nil, 0, DiscoverOptions{
+		Content:   "graceful degradation test",
+		EventsDir: dir,
+	})
+	if err != nil {
+		t.Fatalf("BuildContext(nil, 0, ...) should succeed without DB, got: %v", err)
+	}
+
+	// Must produce a non-nil, non-empty result.
+	if result == nil {
+		t.Fatal("result should not be nil even without DB")
+	}
+	if result.Output == "" {
+		t.Error("output should not be empty even in degraded mode")
+	}
+
+	// Confidence should be zero-valued (no DB to compute from), not an error.
+	zeroConf := [5]int{}
+	if result.State.Confidence != zeroConf {
+		t.Errorf("expected zero confidence without DB, got %v", result.State.Confidence)
+	}
+
+	// Drift should be 0 (no DB to measure drift from).
+	if result.State.SpecDrift != 0 {
+		t.Errorf("expected zero spec drift without DB, got %f", result.State.SpecDrift)
+	}
+
+	// Should still produce a valid thread (new thread created).
+	if result.State.ActiveThread == "" {
+		t.Error("should have an active thread even without DB")
+	}
+
+	// Mode classification should work (defaults to divergent for empty events).
+	if result.State.ModeObserved == "" {
+		t.Error("mode classification should work even without DB")
+	}
+
+	// Guidance should still be populated.
+	if len(result.Guidance.SuggestedNext) == 0 {
+		t.Error("guidance suggestions should be populated even in degraded mode")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// APP-INV-036: Human Format Transparency
+// BuildContext output is human-readable markdown. No internal DDIS format
+// artifacts (raw invariant patterns, violation scenarios, parser syntax) leak
+// into user-facing output.
+// ---------------------------------------------------------------------------
+
+// ddis:tests APP-INV-036
+func TestAPPINV036_HumanFormatTransparency(t *testing.T) {
+	dir := t.TempDir()
+
+	// Set up threads and events to produce rich output.
+	if err := SaveThread(dir, Thread{ID: "t-1", Status: "active", Summary: "design thread", EventCount: 3}); err != nil {
+		t.Fatal(err)
+	}
+	if err := SaveThread(dir, Thread{ID: "t-2", Status: "parked", Summary: "parked thread"}); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := BuildContext(nil, 0, DiscoverOptions{
+		Content:   "design the authentication flow",
+		EventsDir: dir,
+	})
+	if err != nil {
+		t.Fatalf("BuildContext failed: %v", err)
+	}
+
+	output := result.Output
+
+	// 1. Output should be non-empty readable text.
+	if len(output) < 50 {
+		t.Errorf("output suspiciously short (%d chars), expected readable markdown", len(output))
+	}
+
+	// 2. Output should contain human-readable markdown headers.
+	if !strings.Contains(output, "## Discovery Context") {
+		t.Error("output should contain readable section header")
+	}
+
+	// 3. No internal DDIS format artifacts should leak into output.
+	internalPatterns := []struct {
+		pattern string
+		desc    string
+	}{
+		{"**INV-", "raw invariant declaration"},
+		{"**APP-INV-", "raw app invariant declaration"},
+		{"**ADR-", "raw ADR declaration"},
+		{"**APP-ADR-", "raw app ADR declaration"},
+		{"Violation scenario:", "invariant violation scenario field"},
+		{"Semi-formal:", "invariant semi-formal field"},
+		{"Validation method:", "invariant validation method field"},
+		{"#### Problem", "ADR problem subheading"},
+		{"#### Options", "ADR options subheading"},
+		{"#### Decision", "ADR decision subheading"},
+		{"#### Consequences", "ADR consequences subheading"},
+		{"ddis:implements", "code annotation syntax"},
+		{"ddis:maintains", "code annotation syntax"},
+		{"ddis:tests", "code annotation syntax"},
+		{"```yaml", "raw YAML code block"},
+		{"spec_id:", "internal DB field"},
+		{"content_hash:", "internal DB field"},
+	}
+
+	for _, p := range internalPatterns {
+		if strings.Contains(output, p.pattern) {
+			t.Errorf("output contains internal DDIS format artifact %q (%s)", p.pattern, p.desc)
+		}
+	}
+
+	// 4. Output should use human-readable formatting (bold labels, not raw keys).
+	humanLabels := []string{"**Thread**:", "**Mode**:", "**Open questions**:"}
+	for _, label := range humanLabels {
+		if !strings.Contains(output, label) {
+			t.Errorf("output missing human-readable label %q", label)
+		}
+	}
+}
+
 func TestModeGuidance_ReturnsNonEmpty(t *testing.T) {
 	modes := []string{"divergent", "convergent", "dialectical", "abductive",
 		"metacognitive", "incubation", "crystallization", "unknown_mode"}

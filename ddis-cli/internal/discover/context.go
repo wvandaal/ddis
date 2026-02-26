@@ -3,6 +3,9 @@ package discover
 // ddis:maintains APP-INV-028 (spec-as-trunk)
 // ddis:implements APP-INV-023 (prompt self-containment — BuildContext assembles threads, mode, confidence, drift into single CommandResult)
 // ddis:maintains APP-INV-035 (guidance attenuation — applies KStarEff and Attenuation to scale guidance by depth)
+// ddis:implements APP-INV-026 (classification non-prescriptive — ClassifyMode returns ObservedMode, guidance is SuggestedNext not mandatory)
+// ddis:implements APP-INV-030 (contributor topology graceful degradation — BuildContext handles nil DB and empty eventsDir without error)
+// ddis:implements APP-INV-036 (human format transparency — BuildContext output uses readable markdown, no internal format leakage)
 
 import (
 	"database/sql"
