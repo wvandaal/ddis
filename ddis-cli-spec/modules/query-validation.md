@@ -966,3 +966,35 @@ The +3-4 quality point improvement from spec-first framing (APP-ADR-017) applies
 - Verify ddis validate --json backward compatibility (same structure)
 
 ---
+
+**APP-INV-049: Behavioral Witness Ground Truth**
+
+*A witness with type=test is mechanically grounded by test execution. A witness with type=attestation is an unverified claim. Check 16 enforces this distinction by verifying test-backed witnesses match actual test results.*
+
+```
+FOR ALL w IN witnesses: w.type = test IMPLIES EXISTS t IN tests: t.name = w.evidence AND t.result = pass
+```
+
+Violation scenario: An invariant has a witness with type=attestation but its behavioral test fails. The toolchain reports the invariant as valid.
+
+Validation: Run Check 16. Verify test-backed witnesses correspond to passing tests.
+
+// WHY THIS MATTERS: Without behavioral verification, the toolchain creates a self-reinforcing false confidence loop: spec says hold, code says maintains, witness says attested, validator says text complete — but nobody checks if the code actually works.
+
+---
+
+### APP-ADR-036: Behavioral Verification Check
+
+#### Problem
+
+The toolchain validates spec text structure and annotation existence but never verifies that code behavior matches invariant claims. This creates a self-reinforcing false confidence loop.
+
+#### Options
+
+(1) LLM-based verification; (2) Mechanical test-witness cross-check; (3) Manual review gates
+
+#### Decision
+
+Implement Check 16 as a mechanical cross-check: match test-type witnesses to test execution results. This adds no external dependencies and closes the verification gap without requiring LLM integration.
+
+---

@@ -7,52 +7,58 @@ import (
 // --- SAT solver tests ---
 
 func TestSatisfiable_EmptyCNF(t *testing.T) {
-	if !satisfiable(CNF{}) {
+	vm := NewVarMap()
+	if !Satisfiable(CNF{}, vm) {
 		t.Error("empty CNF should be satisfiable")
 	}
 }
 
 func TestSatisfiable_SinglePositive(t *testing.T) {
+	vm := NewVarMap()
 	cnf := CNF{
 		{{Var: "A", Negate: false}},
 	}
-	if !satisfiable(cnf) {
+	if !Satisfiable(cnf, vm) {
 		t.Error("single positive literal should be satisfiable")
 	}
 }
 
 func TestSatisfiable_SingleNegative(t *testing.T) {
+	vm := NewVarMap()
 	cnf := CNF{
 		{{Var: "A", Negate: true}},
 	}
-	if !satisfiable(cnf) {
+	if !Satisfiable(cnf, vm) {
 		t.Error("single negative literal should be satisfiable")
 	}
 }
 
 func TestUnsatisfiable_Contradiction(t *testing.T) {
+	vm := NewVarMap()
 	// A AND NOT A — classic contradiction.
 	cnf := CNF{
 		{{Var: "A", Negate: false}},
 		{{Var: "A", Negate: true}},
 	}
-	if satisfiable(cnf) {
+	if Satisfiable(cnf, vm) {
 		t.Error("A AND NOT A should be unsatisfiable")
 	}
 }
 
 func TestSatisfiable_Implication(t *testing.T) {
+	vm := NewVarMap()
 	// (¬A ∨ B) AND A — forces B.
 	cnf := CNF{
 		{{Var: "A", Negate: true}, {Var: "B", Negate: false}},
 		{{Var: "A", Negate: false}},
 	}
-	if !satisfiable(cnf) {
+	if !Satisfiable(cnf, vm) {
 		t.Error("(A→B) AND A should be satisfiable (B=true)")
 	}
 }
 
 func TestUnsatisfiable_ImplicationChain(t *testing.T) {
+	vm := NewVarMap()
 	// A→B, B→C, C→¬A, A — circular contradiction.
 	cnf := CNF{
 		{{Var: "A", Negate: true}, {Var: "B", Negate: false}}, // A→B
@@ -60,19 +66,20 @@ func TestUnsatisfiable_ImplicationChain(t *testing.T) {
 		{{Var: "C", Negate: true}, {Var: "A", Negate: true}},  // C→¬A
 		{{Var: "A", Negate: false}},                            // A
 	}
-	if satisfiable(cnf) {
+	if Satisfiable(cnf, vm) {
 		t.Error("circular implication chain with forced A should be unsatisfiable")
 	}
 }
 
 func TestSatisfiable_ThreeVarSAT(t *testing.T) {
+	vm := NewVarMap()
 	// (A ∨ B) AND (¬A ∨ C) AND (¬B ∨ ¬C) — satisfiable.
 	cnf := CNF{
 		{{Var: "A", Negate: false}, {Var: "B", Negate: false}},
 		{{Var: "A", Negate: true}, {Var: "C", Negate: false}},
 		{{Var: "B", Negate: true}, {Var: "C", Negate: true}},
 	}
-	if !satisfiable(cnf) {
+	if !Satisfiable(cnf, vm) {
 		t.Error("3-variable formula should be satisfiable")
 	}
 }
@@ -145,8 +152,9 @@ func TestActionOverlap(t *testing.T) {
 // --- Semi-formal parser tests ---
 
 func TestParseSemiFormal_Predicate(t *testing.T) {
+	vm := NewVarMap()
 	expr := "P(x) = true"
-	cnf := parseSemiFormal(expr, "INV-001")
+	cnf := ParseSemiFormal(expr, vm)
 	if len(cnf) != 1 {
 		t.Fatalf("expected 1 clause, got %d", len(cnf))
 	}
@@ -156,8 +164,9 @@ func TestParseSemiFormal_Predicate(t *testing.T) {
 }
 
 func TestParseSemiFormal_NegatedPredicate(t *testing.T) {
+	vm := NewVarMap()
 	expr := "P(x) = false"
-	cnf := parseSemiFormal(expr, "INV-001")
+	cnf := ParseSemiFormal(expr, vm)
 	if len(cnf) != 1 {
 		t.Fatalf("expected 1 clause, got %d", len(cnf))
 	}
@@ -167,8 +176,11 @@ func TestParseSemiFormal_NegatedPredicate(t *testing.T) {
 }
 
 func TestParseSemiFormal_Implication(t *testing.T) {
-	expr := "A IMPLIES B"
-	cnf := parseSemiFormal(expr, "INV-002")
+	vm := NewVarMap()
+	// Use realistic variable names (len > 2) since the parser filters
+	// single-letter atoms as noise per APP-INV-021.
+	expr := "valid(spec) = true IMPLIES render(spec) = true"
+	cnf := ParseSemiFormal(expr, vm)
 	if len(cnf) != 1 {
 		t.Fatalf("expected 1 clause, got %d", len(cnf))
 	}
@@ -176,13 +188,15 @@ func TestParseSemiFormal_Implication(t *testing.T) {
 		t.Fatalf("implication clause should have 2 literals, got %d", len(cnf[0]))
 	}
 	if !cnf[0][0].Negate || cnf[0][1].Negate {
-		t.Error("A IMPLIES B should be (¬A ∨ B)")
+		t.Error("antecedent IMPLIES consequent should be (¬ant ∨ cons)")
 	}
 }
 
 func TestParseSemiFormal_Conjunction(t *testing.T) {
-	expr := "A AND B AND C"
-	cnf := parseSemiFormal(expr, "INV-003")
+	vm := NewVarMap()
+	// Use predicate forms that the parser recognizes as real atoms.
+	expr := "valid(spec) = true AND render(spec) = true AND parse(spec) = true"
+	cnf := ParseSemiFormal(expr, vm)
 	if len(cnf) != 3 {
 		t.Fatalf("expected 3 unit clauses, got %d", len(cnf))
 	}
@@ -247,5 +261,113 @@ func TestTruncate(t *testing.T) {
 	got := truncate("hello world, this is long", 15)
 	if len(got) > 15 {
 		t.Errorf("truncated string should be <= 15 chars, got %d", len(got))
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Behavioral test: APP-INV-019 — Contradiction Graph Soundness
+// ddis:tests APP-INV-019
+// ---------------------------------------------------------------------------
+
+func TestAPPINV019_NoFalsePositives(t *testing.T) {
+	// A negative spec says "Must NOT embed API keys in source files".
+	// An invariant says "Source files must not contain embedded API keys".
+	// Both AGREE (both negative) — this is NOT a contradiction.
+	// The current impliesForbidden uses bag-of-words overlap which flags
+	// this as a false positive because the words overlap.
+
+	// Setup: neg spec forbids "embed API keys in source files"
+	forbidden := extractForbiddenAction("Must NOT embed API keys in source files")
+	if forbidden == "" {
+		t.Fatal("expected non-empty forbidden action")
+	}
+
+	// An invariant that AGREES with the prohibition (also negative):
+	agreeStatement := "Source files must not contain embedded API keys or secrets"
+	agreeSemiFormal := "FOR ALL file IN source_files: NOT contains_api_key(file)"
+
+	// This should NOT be flagged as implying the forbidden action,
+	// because the invariant is itself a prohibition.
+	if impliesForbidden(agreeStatement, agreeSemiFormal, forbidden) {
+		t.Error("APP-INV-019 VIOLATED: impliesForbidden flagged a non-contradicting invariant " +
+			"(both the neg spec and the invariant agree: don't embed keys). " +
+			"This is a false positive — zero false positives required.")
+	}
+
+	// An invariant that genuinely CONTRADICTS the prohibition:
+	contradictStatement := "All API keys must be embedded directly in configuration source files"
+	contradictSemiFormal := "FOR ALL key IN api_keys: embed_in_source(key) = true"
+
+	// This SHOULD be flagged — the invariant positively requires the forbidden action.
+	if !impliesForbidden(contradictStatement, contradictSemiFormal, forbidden) {
+		t.Error("impliesForbidden missed a genuine contradiction: invariant requires embedding keys while neg spec forbids it")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Behavioral test: APP-INV-021 — SAT Encoding Fidelity
+// ddis:tests APP-INV-021
+// ---------------------------------------------------------------------------
+
+func TestAPPINV021_EncodingFidelity(t *testing.T) {
+	// Test that real semi-formal expressions from the DDIS CLI spec
+	// produce non-empty CNF when parsed.
+
+	vm := NewVarMap()
+
+	realSemiFormals := []struct {
+		label string
+		expr  string
+	}{
+		// Simple predicate forms that SHOULD parse
+		{"simple-predicate", "P(x) = true"},
+		{"simple-implies", "A IMPLIES B"},
+		{"simple-conjunction", "A AND B AND C"},
+		// Real semi-formals from the spec
+		{"APP-INV-002", `FOR ALL db, specID, checks:
+  Validate(db, specID, checks).Results = Validate(db, specID, checks).Results`},
+		{"APP-INV-004", "authority(graph_with_x) IMPLIES authority(graph_without_x)"},
+		{"APP-INV-049", "FOR ALL w IN witnesses: w.type = test IMPLIES EXISTS t IN tests: t.name = w.evidence AND t.result = pass"},
+	}
+
+	parsed := 0
+	for _, sf := range realSemiFormals {
+		cnf := ParseSemiFormal(sf.expr, vm)
+		if len(cnf) > 0 {
+			parsed++
+			t.Logf("  %s: %d clauses", sf.label, len(cnf))
+		} else {
+			t.Logf("  %s: EMPTY (not parsed)", sf.label)
+		}
+	}
+
+	// The invariant requires that semi-formal expressions produce non-empty CNF.
+	// The first 3 (simple forms) should always parse. The real semi-formals
+	// should now also parse with the gophersat rewrite. At least 5/6 expected.
+	if parsed < 5 {
+		t.Errorf("APP-INV-021 VIOLATED: only %d/%d semi-formals produced non-empty CNF "+
+			"(expected at least 5 with gophersat rewrite)", parsed, len(realSemiFormals))
+	}
+
+	// Cross-invariant namespace: two invariants sharing a variable name
+	// must use the SAME variable so pairwise UNSAT can be detected.
+	// CRITICAL: use a SHARED VarMap for both — this is the global namespace.
+	sharedVM := NewVarMap()
+	cnfA := ParseSemiFormal("render(x) = true", sharedVM)
+	cnfB := ParseSemiFormal("render(x) = false", sharedVM)
+
+	if len(cnfA) == 0 || len(cnfB) == 0 {
+		t.Fatal("namespace test: predicates must parse (render(x)=true/false)")
+	}
+
+	// With global namespace (shared VarMap), both use the SAME variable ID
+	// for "render_x", so the combined formula (render_x AND NOT render_x) is UNSAT.
+	combined := make(CNF, 0, len(cnfA)+len(cnfB))
+	combined = append(combined, cnfA...)
+	combined = append(combined, cnfB...)
+
+	if Satisfiable(combined, sharedVM) {
+		t.Error("APP-INV-021 VIOLATED: render(x)=true AND render(x)=false should be UNSAT " +
+			"with global variable namespace. Variables must share IDs across invariants.")
 	}
 }

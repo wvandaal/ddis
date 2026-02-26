@@ -5,6 +5,7 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -32,6 +33,13 @@ func Open(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("enable foreign keys: %w", err)
 	}
 
+	// Run migrations before schema application (CREATE TABLE IF NOT EXISTS
+	// won't update existing tables with outdated CHECK constraints).
+	if err := migrateSchema(db); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("migrate schema: %w", err)
+	}
+
 	// Apply schema
 	if _, err := db.Exec(SchemaSQL); err != nil {
 		db.Close()
@@ -39,4 +47,27 @@ func Open(dbPath string) (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+// migrateSchema handles backward-incompatible schema changes.
+func migrateSchema(db *sql.DB) error {
+	// Migration 1: challenge_results CHECK constraint must include 'provisional'.
+	// Added when the Provisional verdict tier was introduced between Confirmed
+	// and Inconclusive. Old tables have CHECK(verdict IN ('confirmed','refuted','inconclusive')).
+	var tableSql string
+	err := db.QueryRow(`SELECT sql FROM sqlite_master WHERE type='table' AND name='challenge_results'`).Scan(&tableSql)
+	if err == sql.ErrNoRows {
+		return nil // Table doesn't exist yet — SchemaSQL will create it
+	}
+	if err != nil {
+		return fmt.Errorf("check challenge_results schema: %w", err)
+	}
+	if !strings.Contains(tableSql, "'provisional'") {
+		// Old schema — drop so SchemaSQL recreates with correct constraint.
+		// Challenge results are transient and can be regenerated.
+		if _, err := db.Exec(`DROP TABLE IF EXISTS challenge_results`); err != nil {
+			return fmt.Errorf("drop old challenge_results: %w", err)
+		}
+	}
+	return nil
 }

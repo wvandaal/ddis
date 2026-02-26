@@ -325,6 +325,23 @@ type InvariantWitness struct {
 	Notes        string
 }
 
+// ChallengeResult represents a mechanical verification of a witness claim.
+type ChallengeResult struct {
+	ID               int64
+	SpecID           int64
+	InvariantID      string
+	WitnessID        *int64
+	Verdict          string // "confirmed", "refuted", "inconclusive"
+	LevelFormal      string
+	LevelUncertainty string
+	LevelCausal      string
+	LevelPractical   string
+	LevelMeta        string
+	ChallengedAt     string
+	ChallengedBy     string
+	Model            string
+}
+
 // RefCounts holds incoming/outgoing cross-reference counts for a section.
 type RefCounts struct {
 	Incoming int

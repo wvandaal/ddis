@@ -1076,6 +1076,77 @@ func DeleteWitness(db *sql.DB, specID int64, invariantID string) error {
 	return nil
 }
 
+// GetChallengeResult returns the challenge result for a specific invariant.
+func GetChallengeResult(db *sql.DB, specID int64, invariantID string) (*ChallengeResult, error) {
+	row := db.QueryRow(
+		`SELECT id, spec_id, invariant_id, witness_id, verdict,
+		        level_formal, level_uncertainty, level_causal, level_practical, level_meta,
+		        challenged_at, challenged_by, model
+		 FROM challenge_results WHERE spec_id = ? AND invariant_id = ?`,
+		specID, invariantID,
+	)
+	cr := &ChallengeResult{}
+	var witnessID sql.NullInt64
+	var formal, uncertainty, causal, practical, meta, model sql.NullString
+	err := row.Scan(
+		&cr.ID, &cr.SpecID, &cr.InvariantID, &witnessID, &cr.Verdict,
+		&formal, &uncertainty, &causal, &practical, &meta,
+		&cr.ChallengedAt, &cr.ChallengedBy, &model,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get challenge result %s: %w", invariantID, err)
+	}
+	if witnessID.Valid {
+		cr.WitnessID = &witnessID.Int64
+	}
+	cr.LevelFormal = formal.String
+	cr.LevelUncertainty = uncertainty.String
+	cr.LevelCausal = causal.String
+	cr.LevelPractical = practical.String
+	cr.LevelMeta = meta.String
+	cr.Model = model.String
+	return cr, nil
+}
+
+// ListChallengeResults returns all challenge results for a spec.
+func ListChallengeResults(db *sql.DB, specID int64) ([]ChallengeResult, error) {
+	rows, err := db.Query(
+		`SELECT id, spec_id, invariant_id, witness_id, verdict,
+		        level_formal, level_uncertainty, level_causal, level_practical, level_meta,
+		        challenged_at, challenged_by, model
+		 FROM challenge_results WHERE spec_id = ? ORDER BY invariant_id`,
+		specID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list challenge results: %w", err)
+	}
+	defer rows.Close()
+	var results []ChallengeResult
+	for rows.Next() {
+		var cr ChallengeResult
+		var witnessID sql.NullInt64
+		var formal, uncertainty, causal, practical, meta, model sql.NullString
+		if err := rows.Scan(
+			&cr.ID, &cr.SpecID, &cr.InvariantID, &witnessID, &cr.Verdict,
+			&formal, &uncertainty, &causal, &practical, &meta,
+			&cr.ChallengedAt, &cr.ChallengedBy, &model,
+		); err != nil {
+			return nil, fmt.Errorf("scan challenge result: %w", err)
+		}
+		if witnessID.Valid {
+			cr.WitnessID = &witnessID.Int64
+		}
+		cr.LevelFormal = formal.String
+		cr.LevelUncertainty = uncertainty.String
+		cr.LevelCausal = causal.String
+		cr.LevelPractical = practical.String
+		cr.LevelMeta = meta.String
+		cr.Model = model.String
+		results = append(results, cr)
+	}
+	return results, rows.Err()
+}
+
 // ListModulesByDomain returns all modules in a specific domain for a spec.
 func ListModulesByDomain(db *sql.DB, specID int64, domain string) ([]Module, error) {
 	rows, err := db.Query(

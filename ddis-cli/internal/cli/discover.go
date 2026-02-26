@@ -7,6 +7,7 @@ import (
 
 	"github.com/wvandaal/ddis/internal/autoprompt"
 	"github.com/wvandaal/ddis/internal/discover"
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
@@ -118,15 +119,19 @@ func runDiscover(cmd *cobra.Command, args []string) error {
 
 	var result *autoprompt.CommandResult
 	var err error
+	var db storage.DB
+	var specID int64
 
 	if opts.SpecDB != "" {
-		db, dbErr := storage.Open(opts.SpecDB)
+		var dbErr error
+		db, dbErr = storage.Open(opts.SpecDB)
 		if dbErr != nil {
 			return fmt.Errorf("open spec database: %w", dbErr)
 		}
 		defer db.Close()
 
-		specID, sErr := storage.GetFirstSpecID(db)
+		var sErr error
+		specID, sErr = storage.GetFirstSpecID(db)
 		if sErr != nil {
 			return fmt.Errorf("no spec found: %w", sErr)
 		}
@@ -143,6 +148,20 @@ func runDiscover(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Println(out)
+
+	// Emit mode_observed event to Stream 1 (Discovery).
+	specHash := ""
+	dbPathForEvent := "."
+	if opts.SpecDB != "" {
+		dbPathForEvent = opts.SpecDB
+		specHash = specHashFromDB(db, specID)
+	}
+	emitEvent(dbPathForEvent, events.StreamDiscovery, events.TypeModeObserved, specHash, map[string]interface{}{
+		"thread_id": opts.ThreadID,
+		"content":   opts.Content,
+		"depth":     opts.Depth,
+	})
+
 	return nil
 }
 
@@ -205,6 +224,12 @@ func runDiscoverPark(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("park thread: %w", err)
 	}
 	fmt.Printf("Thread %s parked.\n", threadID)
+
+	// Emit thread_parked event to Stream 1 (Discovery).
+	emitEvent(".", events.StreamDiscovery, events.TypeThreadParked, "", map[string]interface{}{
+		"thread_id": threadID,
+	})
+
 	return nil
 }
 
@@ -217,5 +242,12 @@ func runDiscoverMerge(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("merge thread: %w", err)
 	}
 	fmt.Printf("Thread %s merged into %s.\n", sourceID, discoverMergeInto)
+
+	// Emit thread_merged event to Stream 1 (Discovery).
+	emitEvent(".", events.StreamDiscovery, events.TypeThreadMerged, "", map[string]interface{}{
+		"source_thread": sourceID,
+		"target_thread": discoverMergeInto,
+	})
+
 	return nil
 }

@@ -120,6 +120,7 @@ modules:
       - APP-INV-013
       - APP-INV-016
       - APP-INV-041
+      - APP-INV-050
     interfaces:
       - APP-INV-001
       - APP-INV-002
@@ -135,6 +136,7 @@ modules:
       - APP-ADR-008
       - APP-ADR-011
       - APP-ADR-030
+      - APP-ADR-037
     adjacent: [parse-pipeline, search-intelligence, query-validation]
     deep_context: null
     negative_specs:
@@ -310,3 +312,6 @@ invariant_registry:
   APP-INV-045: {owner: auto-prompting, domain: autoprompt, description: "Universal auto-discovery — every DB-reading command works without explicit path"}
   APP-INV-046: {owner: auto-prompting, domain: autoprompt, description: "Every actionable error includes recovery guidance on stderr"}
   APP-INV-047: {owner: query-validation, domain: validation, description: "Frontmatter-Manifest Bijection — module frontmatter declarations match manifest.yaml entries exactly"}
+  APP-INV-048: {owner: code-bridge, domain: bridge, description: "Event stream JSONL files are VCS-tracked primary data"}
+  APP-INV-049: {owner: query-validation, domain: validation, description: "Behavioral Witness Ground Truth — test-type witnesses reference actual passing tests"}
+  APP-INV-050: {owner: lifecycle-ops, domain: lifecycle, description: "Challenge-Witness Adjunction Fidelity — challenge(witness(inv)) returns confirmed/refuted/inconclusive"}

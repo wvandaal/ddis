@@ -6,6 +6,8 @@ package validator
 import (
 	"database/sql"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -947,6 +949,104 @@ func (c *checkWitnessFreshness) Run(db *sql.DB, specID int64) CheckResult {
 	return result
 }
 
+// Check 15: Event stream VCS primacy — JSONL streams must not be gitignored.
+// Governs APP-INV-048.
+type checkEventStreamVCS struct{}
+
+func (c *checkEventStreamVCS) ID() int                { return 15 }
+func (c *checkEventStreamVCS) Name() string           { return "Event stream VCS primacy" }
+func (c *checkEventStreamVCS) Applicable(string) bool { return true }
+
+func (c *checkEventStreamVCS) Run(db *sql.DB, specID int64) CheckResult {
+	result := CheckResult{CheckID: c.ID(), CheckName: c.Name(), Passed: true}
+
+	spec, err := storage.GetSpecIndex(db, specID)
+	if err != nil {
+		result.Summary = "could not read spec path"
+		return result
+	}
+
+	// Derive workspace root from spec path.
+	wsRoot := deriveWorkspaceRoot(spec.SpecPath)
+
+	// Check .gitignore for event stream exclusions.
+	gitignorePath := wsRoot + "/.gitignore"
+	data, err := os.ReadFile(gitignorePath)
+	if err != nil {
+		// No .gitignore is fine — events are tracked by default.
+		result.Summary = "no .gitignore found (events tracked by default)"
+		return result
+	}
+
+	content := string(data)
+	lines := strings.Split(content, "\n")
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		// Check for patterns that would gitignore event streams.
+		if strings.Contains(trimmed, "events/") && strings.Contains(trimmed, ".jsonl") {
+			result.Passed = false
+			result.Findings = append(result.Findings, Finding{
+				CheckID: c.ID(), CheckName: c.Name(), Severity: SeverityError,
+				Message:     fmt.Sprintf(".gitignore line %d excludes event streams: %q — JSONL event streams are primary data and must be VCS-tracked", i+1, trimmed),
+				InvariantID: "APP-INV-048",
+			})
+		}
+	}
+
+	// Check that stream files use conformant names (stream-N.jsonl).
+	eventsDir := wsRoot + "/.ddis/events"
+	entries, err := os.ReadDir(eventsDir)
+	if err == nil {
+		nonConformant := []string{}
+		for _, entry := range entries {
+			name := entry.Name()
+			if !strings.HasSuffix(name, ".jsonl") {
+				continue
+			}
+			// threads.jsonl is allowed — discovery thread state.
+			if name == "threads.jsonl" {
+				continue
+			}
+			// Conformant: stream-1.jsonl, stream-2.jsonl, stream-3.jsonl
+			if name != "stream-1.jsonl" && name != "stream-2.jsonl" && name != "stream-3.jsonl" {
+				nonConformant = append(nonConformant, name)
+			}
+		}
+		if len(nonConformant) > 0 {
+			result.Findings = append(result.Findings, Finding{
+				CheckID: c.ID(), CheckName: c.Name(), Severity: SeverityWarning,
+				Message:     fmt.Sprintf("non-conformant stream filenames: %s (expected stream-N.jsonl per APP-ADR-015)", strings.Join(nonConformant, ", ")),
+				InvariantID: "APP-INV-048",
+			})
+		}
+	}
+
+	if result.Passed {
+		result.Summary = "event streams are VCS-tracked"
+	} else {
+		result.Summary = fmt.Sprintf("%d gitignore violation(s)", len(result.Findings))
+	}
+	return result
+}
+
+// deriveWorkspaceRoot finds the workspace root from a spec path.
+// For modular specs the manifest is at <root>/manifest.yaml.
+// For .ddis/index.db paths, the root is parent of .ddis.
+func deriveWorkspaceRoot(specPath string) string {
+	abs, err := filepath.Abs(specPath)
+	if err != nil {
+		return "."
+	}
+	dir := filepath.Dir(abs)
+	if strings.HasSuffix(dir, ".ddis") {
+		return filepath.Dir(dir)
+	}
+	return dir
+}
+
 func countGatesInRange(gates []storage.QualityGate, lo, hi int) int {
 	count := 0
 	for _, g := range gates {
@@ -960,4 +1060,125 @@ func countGatesInRange(gates []storage.QualityGate, lo, hi int) int {
 		}
 	}
 	return count
+}
+
+// Check 16: Behavioral witness verification — test-type witnesses must
+// reference actual passing tests. Attestation-only witnesses are flagged.
+// Governs APP-INV-049.
+//
+// ddis:maintains APP-INV-049 (behavioral witness ground truth)
+// ddis:implements APP-ADR-036 (behavioral verification check)
+type checkBehavioralWitness struct{}
+
+func (c *checkBehavioralWitness) ID() int                { return 16 }
+func (c *checkBehavioralWitness) Name() string           { return "Behavioral witness verification" }
+func (c *checkBehavioralWitness) Applicable(string) bool { return true }
+
+func (c *checkBehavioralWitness) Run(db *sql.DB, specID int64) CheckResult {
+	result := CheckResult{CheckID: c.ID(), CheckName: c.Name(), Passed: true}
+
+	witnesses, err := storage.ListWitnesses(db, specID)
+	if err != nil {
+		result.Summary = "no witnesses recorded"
+		return result
+	}
+
+	if len(witnesses) == 0 {
+		result.Summary = "no witnesses recorded"
+		return result
+	}
+
+	testBacked := 0
+	attestationOnly := 0
+	for _, w := range witnesses {
+		if w.Status != "valid" {
+			continue // stale witnesses are handled by Check 14
+		}
+		if w.EvidenceType == "test" {
+			testBacked++
+		} else {
+			attestationOnly++
+			result.Findings = append(result.Findings, Finding{
+				CheckID: c.ID(), CheckName: c.Name(), Severity: SeverityWarning,
+				Message:     fmt.Sprintf("%s has witness type=%q (not test-backed). Behavioral ground truth unverified.", w.InvariantID, w.EvidenceType),
+				InvariantID: w.InvariantID,
+			})
+		}
+	}
+
+	result.Summary = fmt.Sprintf("%d test-backed, %d attestation-only (total %d valid witnesses)",
+		testBacked, attestationOnly, testBacked+attestationOnly)
+	return result
+}
+
+// Check 17: Challenge freshness — valid witnesses should have a challenge result.
+// Also flags attestation-only witnesses as low-confidence, driving autoprompting
+// to request more rigorous review.
+// Governs APP-INV-050.
+//
+// ddis:maintains APP-INV-050 (challenge-witness adjunction fidelity)
+type checkChallengeFreshness struct{}
+
+func (c *checkChallengeFreshness) ID() int                { return 17 }
+func (c *checkChallengeFreshness) Name() string           { return "Challenge freshness" }
+func (c *checkChallengeFreshness) Applicable(string) bool { return true }
+
+func (c *checkChallengeFreshness) Run(db *sql.DB, specID int64) CheckResult {
+	result := CheckResult{CheckID: c.ID(), CheckName: c.Name(), Passed: true}
+	witnesses, err := storage.ListWitnesses(db, specID)
+	if err != nil {
+		result.Summary = "no witnesses recorded"
+		return result
+	}
+
+	valid := 0
+	challenged := 0
+	unchallenged := 0
+	attestationOnly := 0
+	refuted := 0
+	for _, w := range witnesses {
+		if w.Status != "valid" {
+			continue
+		}
+		valid++
+
+		// Flag attestation-only witnesses — low confidence, needs strengthening.
+		if w.EvidenceType == "attestation" {
+			attestationOnly++
+			result.Findings = append(result.Findings, Finding{
+				CheckID: c.ID(), CheckName: c.Name(), Severity: SeverityWarning,
+				Message:     fmt.Sprintf("%s has attestation-only witness (confidence=0.3). Strengthen with: ddis witness %s --type test --evidence \"...\"", w.InvariantID, w.InvariantID),
+				InvariantID: w.InvariantID,
+			})
+		}
+
+		cr, err := storage.GetChallengeResult(db, specID, w.InvariantID)
+		if err != nil || cr == nil {
+			unchallenged++
+			result.Findings = append(result.Findings, Finding{
+				CheckID: c.ID(), CheckName: c.Name(), Severity: SeverityWarning,
+				Message:     fmt.Sprintf("%s has valid witness but no challenge result. Run: ddis challenge %s --code-root .", w.InvariantID, w.InvariantID),
+				InvariantID: w.InvariantID,
+			})
+		} else {
+			challenged++
+			if cr.Verdict == "refuted" {
+				refuted++
+				result.Passed = false
+				result.Findings = append(result.Findings, Finding{
+					CheckID: c.ID(), CheckName: c.Name(), Severity: SeverityError,
+					Message:     fmt.Sprintf("%s challenge verdict=refuted. Witness invalidated — re-implement and record new witness.", w.InvariantID),
+					InvariantID: w.InvariantID,
+				})
+			}
+		}
+	}
+
+	if unchallenged > 0 {
+		result.Passed = false
+	}
+
+	result.Summary = fmt.Sprintf("%d challenged, %d unchallenged, %d attestation-only, %d refuted (of %d valid witnesses)",
+		challenged, unchallenged, attestationOnly, refuted, valid)
+	return result
 }

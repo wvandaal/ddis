@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/parser"
 	"github.com/wvandaal/ddis/internal/search"
 	"github.com/wvandaal/ddis/internal/storage"
@@ -86,6 +87,13 @@ func runParse(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("\nIndex written to %s\n", dbPath)
+
+	// Emit spec_parsed event to Stream 2 (Specification).
+	emitEvent(dbPath, events.StreamSpecification, events.TypeSpecParsed, specHashFromDB(db, specID), map[string]interface{}{
+		"spec_path":   specPath,
+		"spec_id":     specID,
+		"source_type": func() string { if basename == "manifest.yaml" || basename == "manifest.yml" { return "modular" }; return "monolith" }(),
+	})
 
 	// Guidance postscript
 	if !NoGuidance {

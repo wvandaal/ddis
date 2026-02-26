@@ -62,6 +62,7 @@ discover ⊣ absorb          (idea ↔ impl)
 parse    ⊣ render           (markdown ↔ index)
 tasks    ⊣ traceability     (spec → issues ↔ issues → spec)
 refine   ⊣ drift            (improve spec ↔ measure divergence)
+witness  ⊣ challenge        (attest ↔ verify)
 ```
 
 The unit of each adjunction measures round-trip divergence from the identity morphism:

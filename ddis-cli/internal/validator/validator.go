@@ -105,6 +105,9 @@ var checkInvariantInfo = map[int]struct {
 	9:  {"INV-017", "Each chapter must contain at least 3 negative specifications."},
 	10: {"Gate-1", "Required structural sections (overview, invariant registry, ADR index) must exist."},
 	14: {"APP-INV-041", "Invariant witnesses must be refreshed when the spec changes; stale witnesses are invalidated."},
+	15: {"APP-INV-048", "Event stream JSONL files are primary data artifacts, tracked in version control."},
+	16: {"APP-INV-049", "A witness with type=test is mechanically grounded by test execution. Attestation-only witnesses are unverified claims."},
+	17: {"APP-INV-050", "For every invariant with a valid witness, challenge(witness(inv)) must return a verdict in {confirmed, provisional, refuted, inconclusive}. If refuted, the witness is automatically invalidated."},
 }
 
 // AllChecks returns all registered validation checks.
@@ -124,6 +127,9 @@ func AllChecks() []Check {
 		&checkNamespaceConsistency{},
 		&checkImplementationTraceability{}, // Check 13
 		&checkWitnessFreshness{},           // Check 14
+		&checkEventStreamVCS{},             // Check 15
+		&checkBehavioralWitness{},          // Check 16
+		&checkChallengeFreshness{},         // Check 17
 	}
 }
 

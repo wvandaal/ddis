@@ -184,7 +184,7 @@ Encoding rules:
   "A IMPLIES B":      NOT clause_A OR clause_B
   "NOT A":            negation of clause_A
   Numeric constraints: encoded as propositional bounds (e.g., x <= 5 becomes NOT x_6 AND NOT x_7 ...)
-  Named variables:    fresh propositional variable per unique identifier
+  Named variables:    GLOBAL propositional variable per unique identifier (NOT per-invariant)
 ```
 
 Violation scenario: INV-005 has `semi_formal: "bundle_size(b) <= hard_ceiling"` and INV-007 has `semi_formal: "signal_density(s) > 0.5"`. The encoder maps `bundle_size` and `signal_density` to the same propositional variable set. The solver reports UNSAT for a satisfiable pair. The system reports a false contradiction between two unrelated invariants.
@@ -971,3 +971,43 @@ owned by other modules that this module depends on or interfaces with:
 | APP-INV-010 | lifecycle-ops       | interfaces   | Append-only pattern reused for event stream write path                       |
 | APP-INV-015 | parse-pipeline      | interfaces   | Deterministic hashing for event stream spec_hash and annotation content_hash |
 | APP-INV-016 | lifecycle-ops       | interfaces   | Implementation traceability provides source-side evidence for annotations    |
+
+**APP-INV-048: Event Stream VCS Primacy**
+
+*Event stream JSONL files are primary data artifacts, tracked in version control. They must never be gitignored, and init must create them with spec-conformant names (stream-N.jsonl).*
+
+```
+forall ws in Workspaces: .ddis/events/stream-{1,2,3}.jsonl in VCS(ws) AND NOT in .gitignore(ws)
+```
+
+Violation scenario: Init adds events/*.jsonl to .gitignore, or creates files with non-conformant names (e.g. discovery.jsonl instead of stream-1.jsonl), silently discarding the provenance chain.
+
+Validation: ddis validate checks .gitignore does not exclude .ddis/events/*.jsonl and verifies stream filenames match stream-N.jsonl pattern
+
+// WHY THIS MATTERS: JSONL event streams capture the complete discovery-to-implementation provenance chain. If gitignored, the bilateral lifecycle loses its audit trail across VCS boundaries.
+
+---
+
+### APP-ADR-036: Tagged Bottom Types for Explicit Non-Resolution
+
+#### Problem
+
+When a design decision is deferred or a spec element is known to be needed but not yet defined, there is no formal mechanism to mark it as explicitly uninhabited. TODOs and comments lack type-theoretic grounding and are invisible to validation.
+
+#### Options
+
+A. TODO comments (informal, invisible to tooling). B. Dedicated sentinel values in schema (breaks type safety). C. Tagged bottom type system where bottom-N carries a named tag identifying the unresolved area, enabling validation to track non-resolution as first-class data.
+
+#### Decision
+
+**Option C: Tagged bottom type system.** A bottom element is written as a formal placeholder with a named tag (e.g. bottom[event-wiring]) that is tracked by the validation system. Like Scala Nothing with named tags, this provides compile-time-equivalent tracking of unresolved design areas. Tagged bottoms make non-resolution visible to formal verification.
+
+#### Consequences
+
+The validator can count, track, and report on unresolved areas. Bottom tags participate in the type lattice (bottom is subtype of every type) so they compose safely with existing invariants and ADRs. They survive parse-render round-trips and are first-class citizens in the coverage model.
+
+#### Tests
+
+1. ddis validate reports tagged bottom elements as warnings (not errors). 2. ddis coverage distinguishes bottom-tagged vs fully-defined elements. 3. Bottom tags survive parse-render round-trips.
+
+---

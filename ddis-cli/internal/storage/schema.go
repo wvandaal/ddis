@@ -455,4 +455,23 @@ CREATE TABLE IF NOT EXISTS invariant_witnesses (
 );
 CREATE INDEX IF NOT EXISTS idx_witness_inv ON invariant_witnesses(spec_id, invariant_id);
 CREATE INDEX IF NOT EXISTS idx_witness_status ON invariant_witnesses(spec_id, status);
+
+-- Challenge results (mechanical verification of witness claims)
+CREATE TABLE IF NOT EXISTS challenge_results (
+    id INTEGER PRIMARY KEY,
+    spec_id INTEGER NOT NULL REFERENCES spec_index(id),
+    invariant_id TEXT NOT NULL,
+    witness_id INTEGER REFERENCES invariant_witnesses(id),
+    verdict TEXT NOT NULL CHECK(verdict IN ('confirmed', 'provisional', 'refuted', 'inconclusive')),
+    level_formal TEXT,
+    level_uncertainty TEXT,
+    level_causal TEXT,
+    level_practical TEXT,
+    level_meta TEXT,
+    challenged_at TEXT NOT NULL DEFAULT (datetime('now')),
+    challenged_by TEXT NOT NULL,
+    model TEXT,
+    UNIQUE(spec_id, invariant_id)
+);
+CREATE INDEX IF NOT EXISTS idx_challenge_inv ON challenge_results(spec_id, invariant_id);
 `

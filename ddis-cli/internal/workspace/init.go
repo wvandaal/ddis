@@ -3,6 +3,7 @@ package workspace
 // ddis:implements APP-ADR-026 (full workspace init)
 // ddis:implements APP-ADR-028 (progressive validation over binary pass/fail)
 // ddis:maintains APP-INV-037 (workspace isolation)
+// ddis:maintains APP-INV-048 (event stream VCS primacy — init creates stream-{1,2,3}.jsonl)
 
 import (
 	"fmt"
@@ -100,7 +101,7 @@ func Init(opts InitOptions) (*InitResult, error) {
 	}
 
 	// 6. .ddis/events/*.jsonl
-	for _, name := range []string{"discovery.jsonl", "spec.jsonl", "impl.jsonl"} {
+	for _, name := range []string{"stream-1.jsonl", "stream-2.jsonl", "stream-3.jsonl"} {
 		rel := filepath.Join(".ddis", "events", name)
 		if err := writeFileIfNew(root, rel, "", result); err != nil {
 			return nil, err

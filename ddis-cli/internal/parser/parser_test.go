@@ -2,6 +2,7 @@ package parser
 
 import (
 	"database/sql"
+	"os"
 	"strings"
 	"testing"
 
@@ -188,6 +189,17 @@ func setupTestDB(t *testing.T) (storage.DB, int64, int64) {
 	}
 
 	return db, specID, sfID
+}
+
+// setupTestDBRaw returns just the DB (no pre-inserted spec/file).
+func setupTestDBRaw(t *testing.T) storage.DB {
+	t.Helper()
+	db, err := storage.Open(":memory:")
+	if err != nil {
+		t.Fatalf("create in-memory DB: %v", err)
+	}
+	t.Cleanup(func() { db.Close() })
+	return db
 }
 
 // insertTestSection inserts a minimal section row needed as a FK target
@@ -880,5 +892,79 @@ func TestGateRe(t *testing.T) {
 		if len(m) > 2 && m[2] != tc.title {
 			t.Errorf("for %q: expected title %q, got %q", tc.input, tc.title, m[2])
 		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Circular spec dependency detection
+// ---------------------------------------------------------------------------
+
+func TestCircularSpecDependency(t *testing.T) {
+	// Create two temporary manifest files that reference each other:
+	//   A.yaml parent_spec: B.yaml
+	//   B.yaml parent_spec: A.yaml
+	// ParseModularSpec should detect the cycle and return an error,
+	// not recurse infinitely.
+	dir := t.TempDir()
+
+	aPath := dir + "/a/manifest.yaml"
+	bPath := dir + "/b/manifest.yaml"
+
+	// Create directories
+	if err := os.MkdirAll(dir+"/a", 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(dir+"/b", 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Write a minimal constitution file for each
+	constContent := `# System Constitution
+
+## System State
+
+Minimal test constitution.
+`
+	if err := os.WriteFile(dir+"/a/system.md", []byte(constContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(dir+"/b/system.md", []byte(constContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// A references B as parent
+	aYAML := `ddis_version: "3.0"
+spec_name: "Spec A"
+tier_mode: "modular"
+parent_spec: "../b/manifest.yaml"
+constitution:
+  system: "system.md"
+modules: {}
+`
+	if err := os.WriteFile(aPath, []byte(aYAML), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// B references A as parent
+	bYAML := `ddis_version: "3.0"
+spec_name: "Spec B"
+tier_mode: "modular"
+parent_spec: "../a/manifest.yaml"
+constitution:
+  system: "system.md"
+modules: {}
+`
+	if err := os.WriteFile(bPath, []byte(bYAML), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	db := setupTestDBRaw(t)
+
+	_, err := ParseModularSpec(aPath, db)
+	if err == nil {
+		t.Fatal("expected error for circular spec dependency, got nil")
+	}
+	if !strings.Contains(err.Error(), "circular spec dependency") {
+		t.Errorf("expected 'circular spec dependency' error, got: %v", err)
 	}
 }

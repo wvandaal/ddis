@@ -34,9 +34,9 @@ func TestInit_CreatesAllFiles(t *testing.T) {
 		"modules",
 		filepath.Join(".ddis", "index.db"),
 		filepath.Join(".ddis", "oplog.jsonl"),
-		filepath.Join(".ddis", "events", "discovery.jsonl"),
-		filepath.Join(".ddis", "events", "spec.jsonl"),
-		filepath.Join(".ddis", "events", "impl.jsonl"),
+		filepath.Join(".ddis", "events", "stream-1.jsonl"),
+		filepath.Join(".ddis", "events", "stream-2.jsonl"),
+		filepath.Join(".ddis", "events", "stream-3.jsonl"),
 		filepath.Join(".ddis", "discoveries"),
 		".gitignore",
 	}

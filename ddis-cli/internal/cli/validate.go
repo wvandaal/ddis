@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/oplog"
 	"github.com/wvandaal/ddis/internal/storage"
 	"github.com/wvandaal/ddis/internal/validator"
@@ -92,13 +93,14 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// --level sets progressive validation tiers.
+	// --level sets progressive validation tiers per spec check-to-level table
+	// (workspace-ops.md:654-672). L1 ⊂ L2 ⊂ L3 (monotonicity, APP-INV-040).
 	if validateLevel > 0 && len(checkIDs) == 0 {
 		switch validateLevel {
 		case 1:
-			checkIDs = []int{1, 7, 8, 10} // structural fast
+			checkIDs = []int{10, 12} // G1 + NS (structural fast)
 		case 2:
-			checkIDs = []int{1, 2, 3, 4, 5, 7, 8, 10} // + content quality
+			checkIDs = []int{1, 2, 4, 5, 7, 8, 10, 12} // L1 + C1,C2,C4,C5,C7,C8
 		default:
 			// level 3+ = all (leave checkIDs nil)
 		}
@@ -129,6 +131,14 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	// Emit validation_run event to Stream 2 (Specification).
+	emitEvent(dbPath, events.StreamSpecification, events.TypeValidationRun, specHashFromDB(db, specID), map[string]interface{}{
+		"passed": report.Passed,
+		"failed": report.Failed,
+		"errors": report.Errors,
+		"checks": len(report.Results),
+	})
 
 	if validateLog {
 		spec, specErr := storage.GetSpecIndex(db, specID)

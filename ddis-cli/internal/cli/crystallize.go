@@ -12,6 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/parser"
 )
 
@@ -180,6 +181,15 @@ func runCrystallize(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("update manifest registry: %w", err)
 		}
 	}
+
+	// Emit decision_crystallized event to Stream 1 (Discovery).
+	emitEvent(crystallizeFile, events.StreamDiscovery, events.TypeDecisionCrystallized, "", map[string]interface{}{
+		"element_type":  input.Type,
+		"element_id":    input.ID,
+		"title":         input.Title,
+		"module":        crystallizeModule,
+		"artifact_refs": []string{input.ID},
+	})
 
 	fmt.Println("\nNext: ddis parse manifest.yaml && ddis validate")
 	return nil

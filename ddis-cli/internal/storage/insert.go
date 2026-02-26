@@ -483,7 +483,17 @@ func ClearSearchData(db *sql.DB, specID int64) error {
 }
 
 // InsertWitness inserts or replaces an invariant witness.
+// Clears any challenge_results referencing the old witness to avoid FK violations
+// during INSERT OR REPLACE (which DELETEs then INSERTs).
 func InsertWitness(db *sql.DB, w *InvariantWitness) (int64, error) {
+	// Remove stale challenge results that reference the witness being replaced.
+	if _, err := db.Exec(
+		`DELETE FROM challenge_results WHERE spec_id = ? AND invariant_id = ?`,
+		w.SpecID, w.InvariantID,
+	); err != nil {
+		return 0, fmt.Errorf("clear challenge for witness %s: %w", w.InvariantID, err)
+	}
+
 	res, err := db.Exec(
 		`INSERT OR REPLACE INTO invariant_witnesses
 		 (spec_id, invariant_id, spec_hash, code_hash, evidence_type, evidence,
@@ -497,6 +507,41 @@ func InsertWitness(db *sql.DB, w *InvariantWitness) (int64, error) {
 		return 0, fmt.Errorf("insert witness %s: %w", w.InvariantID, err)
 	}
 	return res.LastInsertId()
+}
+
+// InsertChallengeResult inserts or replaces a challenge result.
+func InsertChallengeResult(db DB, cr *ChallengeResult) (int64, error) {
+	res, err := db.Exec(
+		`INSERT OR REPLACE INTO challenge_results
+		 (spec_id, invariant_id, witness_id, verdict,
+		  level_formal, level_uncertainty, level_causal, level_practical, level_meta,
+		  challenged_at, challenged_by, model)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?, ?)`,
+		cr.SpecID, cr.InvariantID, cr.WitnessID, cr.Verdict,
+		nullStr(cr.LevelFormal), nullStr(cr.LevelUncertainty),
+		nullStr(cr.LevelCausal), nullStr(cr.LevelPractical), nullStr(cr.LevelMeta),
+		cr.ChallengedBy, nullStr(cr.Model),
+	)
+	if err != nil {
+		return 0, fmt.Errorf("insert challenge result %s: %w", cr.InvariantID, err)
+	}
+	return res.LastInsertId()
+}
+
+// InvalidateWitnessByID sets a specific witness status to 'invalidated'.
+func InvalidateWitnessByID(db DB, witnessID int64) error {
+	res, err := db.Exec(
+		`UPDATE invariant_witnesses SET status = 'invalidated' WHERE id = ?`,
+		witnessID,
+	)
+	if err != nil {
+		return fmt.Errorf("invalidate witness %d: %w", witnessID, err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("no witness found with id %d", witnessID)
+	}
+	return nil
 }
 
 // InvalidateWitnesses marks witnesses as stale_spec where the spec hash no longer
@@ -612,6 +657,7 @@ func deleteSpecData(db DB, specID int64) error {
 		"search_authority",
 		"session_state",
 		"code_annotations",
+		"challenge_results",
 		"invariant_witnesses",
 	}
 

@@ -130,6 +130,7 @@ T_tasks:       DiscoveryState * Index -> TaskList
 
 -- Witness domain
 T_witness:     Index * InvariantID -> WitnessReceipt
+T_challenge:   Index * InvariantID * CodeRoot? -> ChallengeResult
 ```
 
 ### 0.2.2 Key Composition: T_context
@@ -626,7 +627,7 @@ The CLI successfully parses, indexes, and validates its own specification with z
 
 DDIS CLI Spec v3.0 is "done" when:
 - All 6 quality gates pass
-- All 47 APP-INVs are at least `property-checked` confidence
+- All 49 APP-INVs are at least `property-checked` confidence
 - The CLI parses and validates this spec with zero errors (APP-G-6)
 - At least one non-trivial DDIS spec (the meta-standard itself) has been validated by the CLI
 - The bilateral lifecycle (`discover` → `refine` → `drift` → `absorb`) operates on the CLI's own spec (self-bootstrapping)
@@ -685,7 +686,7 @@ Cross-reference lookup: which module file contains each section's full specifica
 | §0.1-§0.9, APP-INV/ADR/Gate declarations, Glossary | constitution/system.md | Cross-cutting: included in every bundle |
 | 4-pass pipeline, schema design, round-trip, hashing, monolith/modular detection | modules/parse-pipeline.md | Owns: APP-INV-001, -009, -015. Implements: APP-ADR-001, -002, -005, -009, -010 |
 | BM25/LSI/PageRank, RRF fusion, context bundles, glossary expansion, authority scoring | modules/search-intelligence.md | Owns: APP-INV-004, -005, -008, -012, -014. Implements: APP-ADR-003, -006 |
-| 14 validation checks, cross-ref resolution, structural diff, query projection | modules/query-validation.md | Owns: APP-INV-002, -003, -007, -011, -043, -044, -047. Implements: APP-ADR-004, -032, -035 |
+| 16 validation checks, cross-ref resolution, structural diff, query projection | modules/query-validation.md | Owns: APP-INV-002, -003, -007, -011, -043, -044, -047, -049. Implements: APP-ADR-004, -032, -035, -036 |
 | Transaction state machine, oplog, impact BFS, implementation tracing, seed | modules/lifecycle-ops.md | Owns: APP-INV-006, -010, -013, -016, -041. Implements: APP-ADR-007, -008, -011, -030 |
 | Annotations, scan, contradiction detection (graph + SAT + heuristic + LSI), event sourcing | modules/code-bridge.md | Owns: APP-INV-017, -018, -019, -020, -021. Implements: APP-ADR-012, -014, -015, -034 |
 | State monad, discover, refine, absorb loops, contributor topology, thread management | modules/auto-prompting.md | Owns: APP-INV-022–036, -042, -045, -046. Implements: APP-ADR-016–025, -031, -033 |
@@ -725,7 +726,7 @@ reasoning_reserve: 0.25
 |---|---|---|
 | **parse-pipeline** | parsing | 4-pass parse pipeline (tree, elements, xrefs, resolve), 39-table schema design, render engine, monolith/modular detection, content hashing. APP-INV-001, -009, -015. APP-ADR-001, -002, -005, -009, -010. |
 | **search-intelligence** | search | BM25/FTS5 integration, LSI model (truncated SVD), PageRank computation, RRF fusion (K=60), context bundle assembly (9 signals), glossary expansion. APP-INV-004, -005, -008, -012, -014. APP-ADR-003, -006. |
-| **query-validation** | validation | Query projection, 14 validation checks (composable), cross-reference resolution, structural diff, Cobra command routing. APP-INV-002, -003, -007, -011, -043, -044, -047. APP-ADR-004, -032, -035. |
+| **query-validation** | validation | Query projection, 16 validation checks (composable), cross-reference resolution, structural diff, Cobra command routing. APP-INV-002, -003, -007, -011, -043, -044, -047, -049. APP-ADR-004, -032, -035, -036. |
 | **lifecycle-ops** | lifecycle | Transaction state machine (begin/commit/rollback), JSONL oplog (append-only), impact BFS with cycle protection, seed command, implementation traceability (Check 13). APP-INV-006, -010, -013, -016, -041. APP-ADR-007, -008, -011, -030. |
 | **code-bridge** | bridge | Cross-language annotation scanner (`ddis scan`), tiered contradiction detection (graph + SAT + heuristic + LSI), three-stream event sourcing (`ddis history`), spec-code drift types. APP-INV-017–021. APP-ADR-012, -014, -015, -034. |
 | **auto-prompting** | autoprompt | Bilateral specification lifecycle: `ddis discover` (idea→spec), `ddis refine` (spec improvement), `ddis absorb` (impl→spec). State monad architecture, thread-scoped discovery, cognitive mode classification, contributor topology, Gestalt-optimized prompt generation. APP-INV-022–036, -042, -045, -046. APP-ADR-016–025, -031, -033. |

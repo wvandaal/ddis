@@ -1,9 +1,9 @@
 ---
 module: lifecycle-ops
 domain: lifecycle
-maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016, APP-INV-041]
+maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016, APP-INV-041, APP-INV-050]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-008, APP-INV-009, APP-INV-011, APP-INV-012, APP-INV-015]
-implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011, APP-ADR-030]
+implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011, APP-ADR-030, APP-ADR-037]
 adjacent: [parse-pipeline, search-intelligence, query-validation]
 negative_specs:
   - "Must NOT modify or delete existing oplog records"
@@ -1075,3 +1075,54 @@ owned by other modules that this module depends on or interfaces with:
 | APP-INV-011  | query-validation   | interfaces   | Check composability enables selective validation in transactions |
 | APP-INV-012  | search-intelligence| interfaces   | LSI dimensions stable across index updates from transactions     |
 | APP-INV-015  | parse-pipeline     | interfaces   | Deterministic hashing for content comparison in oplog records    |
+
+**APP-INV-050: Challenge-Witness Adjunction Fidelity**
+
+*For every invariant with a valid witness, challenge(witness(inv)) must return a verdict in {confirmed, provisional, refuted, inconclusive}. If refuted, the witness is automatically invalidated.*
+
+```
+FOR ALL inv IN invariants WHERE witness(inv).status = valid: challenge(inv).verdict IN {confirmed, provisional, refuted, inconclusive} AND (challenge(inv).verdict = refuted IMPLIES witness(inv).status = invalidated)
+```
+
+Violation scenario: An agent records a witness claiming full gophersat rewrite via test evidence. Challenge Level 3 finds no ddis:tests annotation. Level 5 finds low keyword overlap between invariant statement and evidence. Witness remains valid because no challenge was issued.
+
+Validation: Record a witness. Run ddis challenge with --code-root. Verdicts: confirmed (test passed), provisional (code annotations + consistent semi-formal + confidence > 0.3), refuted (SAT contradiction or test failure), inconclusive (insufficient evidence). Modify test to not test invariant. Re-challenge. Verify refuted and witness invalidated.
+
+// WHY THIS MATTERS: Without a mechanical challenge mechanism, the bilateral lifecycle is an open chain. Witness operates by attestation --- the implementing agent declares success, but nothing verifies the claim. At high implementation depth, k-star budget exhaustion causes silent constraint dropping: the agent satisfies proxy goals (tests pass) while violating the foundational invariant. Challenge closes the chain into a convergent cycle, catching attestation drift before it compounds.
+
+**Confidence:** falsified
+
+---
+
+### APP-ADR-037: Challenge as Right Adjoint of Witness
+
+#### Problem
+
+Witnesses operate by attestation. The implementing agent declares success but nothing mechanically verifies the claim. K-star budget exhaustion at implementation depth causes silent constraint dropping.
+
+#### Options
+
+A) Challenge as separate command with 5-level mechanical verification. B) Strengthen witness to require proof at record time. C) External CI verification.
+
+#### Decision
+
+**Option A: Challenge as separate command with 5-level mechanical verification.** Challenge is a separate command operating with fresh context, using the spec as oracle. Five levels: formal (SAT), uncertainty (evidence scoring), causal (annotation lookup), practical (test execution), meta-reflective (keyword overlap). Separates concerns: witness records claims, challenge verifies them.
+
+// WHY NOT Option B (strengthen witness)? Witness and challenge serve different roles. Witness records claims at implementation time. Requiring proof at record time conflates the claiming and verification concerns, and the implementing agent's context is already k-star-exhausted --- it cannot reliably verify its own work.
+
+// WHY NOT Option C (external CI)? CI operates outside the bilateral lifecycle. Challenge must be a first-class DDIS command so it participates in the adjunction chain (witness ⊣ challenge) and its results feed back into the spec.
+
+**Confidence:** Committed
+
+#### Consequences
+
+New adjunction witness-challenge in the bilateral lifecycle. Check 17 flags unchallenged witnesses. Challenge results stored in `challenge_results` table with per-level detail. Witness auto-invalidated on refutation. Self-bootstrapping: `ddis challenge APP-INV-050` verifies the challenge mechanism itself.
+
+#### Tests
+
+- Record witness, challenge, verify verdict in {confirmed, refuted, inconclusive}
+- On refutation, verify witness status transitions to invalidated
+- Verify 5-level decomposition: formal SAT, uncertainty scoring, causal annotation, practical test exec, meta keyword overlap
+- Self-bootstrap: `ddis challenge --all` on CLI spec with 0 refuted
+
+---

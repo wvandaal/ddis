@@ -105,6 +105,7 @@ func init() {
 	absorbCmd.GroupID = "improvement"
 	witnessCmd.GroupID = "improvement"
 	scanCmd.GroupID = "improvement"
+	challengeCmd.GroupID = "improvement"
 
 	// Planning
 	progressCmd.GroupID = "planning"
@@ -158,6 +159,7 @@ func init() {
 	rootCmd.AddCommand(discoverCmd)
 	rootCmd.AddCommand(absorbCmd)
 	rootCmd.AddCommand(witnessCmd)
+	rootCmd.AddCommand(challengeCmd)
 	rootCmd.AddCommand(patchCmd)
 	rootCmd.AddCommand(manifestCmd)
 	rootCmd.AddCommand(contradictCmd)

@@ -71,6 +71,17 @@ func ParseManifestFile(path string) (*ManifestData, string, error) {
 
 // ParseModularSpec parses a modular spec starting from manifest.yaml.
 func ParseModularSpec(manifestPath string, db storage.DB) (int64, error) {
+	return parseModularSpecVisited(manifestPath, db, make(map[string]bool))
+}
+
+// parseModularSpecVisited is the recursive core with a visited-set cycle guard.
+func parseModularSpecVisited(manifestPath string, db storage.DB, visited map[string]bool) (int64, error) {
+	absPath, _ := filepath.Abs(manifestPath)
+	if visited[absPath] {
+		return 0, fmt.Errorf("circular spec dependency: %s", absPath)
+	}
+	visited[absPath] = true
+
 	manifestDir := filepath.Dir(manifestPath)
 
 	manifest, rawYAML, err := ParseManifestFile(manifestPath)
@@ -239,16 +250,13 @@ func ParseModularSpec(manifestPath string, db storage.DB) (int64, error) {
 		if err != nil {
 			return 0, fmt.Errorf("resolve parent path: %w", err)
 		}
-		// Guard against infinite recursion
-		absManifest, _ := filepath.Abs(manifestPath)
-		if parentPath != absManifest {
-			parentSpecID, err := ParseModularSpec(parentPath, db)
-			if err != nil {
-				return 0, fmt.Errorf("parse parent spec %s: %w", parentPath, err)
-			}
-			if err := storage.SetParentSpecID(db, specID, parentSpecID); err != nil {
-				return 0, fmt.Errorf("set parent spec ID: %w", err)
-			}
+		// Cycle guard is handled by the visited set in parseModularSpecVisited.
+		parentSpecID, err := parseModularSpecVisited(parentPath, db, visited)
+		if err != nil {
+			return 0, fmt.Errorf("parse parent spec %s: %w", parentPath, err)
+		}
+		if err := storage.SetParentSpecID(db, specID, parentSpecID); err != nil {
+			return 0, fmt.Errorf("set parent spec ID: %w", err)
 		}
 	}
 

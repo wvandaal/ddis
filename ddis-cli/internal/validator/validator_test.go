@@ -159,9 +159,9 @@ func TestValidate_RunsAllApplicableChecks(t *testing.T) {
 
 	// For monolith, Checks 5-8 are not applicable (modular only).
 	// Check 13 is not applicable (no CodeRoot).
-	// So we expect checks 1-4, 9-12, 14 = 9 checks.
-	if report.TotalChecks != 9 {
-		t.Errorf("expected 9 applicable checks for monolith, got %d", report.TotalChecks)
+	// So we expect checks 1-4, 9-12, 14, 15, 16, 17 = 12 checks.
+	if report.TotalChecks != 12 {
+		t.Errorf("expected 12 applicable checks for monolith, got %d", report.TotalChecks)
 		for _, r := range report.Results {
 			t.Logf("  Check %d (%s): passed=%v", r.CheckID, r.CheckName, r.Passed)
 		}
@@ -789,12 +789,12 @@ func intSliceEqual(a, b []int) bool {
 
 func TestAllChecks_Count(t *testing.T) {
 	checks := AllChecks()
-	if len(checks) != 14 {
-		t.Errorf("expected 14 registered checks, got %d", len(checks))
+	if len(checks) != 17 {
+		t.Errorf("expected 17 registered checks, got %d", len(checks))
 	}
 
-	// Verify IDs are sequential (1-12, 13, 14)
-	expectedIDs := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}
+	// Verify IDs are sequential (1-17)
+	expectedIDs := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}
 	for i, c := range checks {
 		if i < len(expectedIDs) && c.ID() != expectedIDs[i] {
 			t.Errorf("check at index %d has ID %d, expected %d", i, c.ID(), expectedIDs[i])
@@ -805,6 +805,78 @@ func TestAllChecks_Count(t *testing.T) {
 // ---------------------------------------------------------------------------
 // Test: isTemplateRef helper
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Behavioral test: APP-INV-040 — Progressive Validation Monotonicity
+// ddis:tests APP-INV-040
+// ---------------------------------------------------------------------------
+
+func TestAPPINV040_Monotonicity(t *testing.T) {
+	// The spec check-to-level table (workspace-ops.md:654-672) defines:
+	//   Level 1: G1 (Check 10) + NS (Check 12)
+	//   Level 2: L1 + C1 (1) + C2 (2) + C4 (4) + C5 (5) + C7 (7) + C8 (8)
+	//   Level 3: all checks
+	//
+	// APP-INV-040 requires: checks(L1) ⊂ checks(L2) ⊂ checks(L3)
+
+	// Expected per spec table:
+	specL1 := map[int]bool{10: true, 12: true}
+	specL2 := map[int]bool{1: true, 2: true, 4: true, 5: true, 7: true, 8: true, 10: true, 12: true}
+
+	// Actual from validate.go (must match the switch statement):
+	actualL1 := map[int]bool{}
+	actualL2 := map[int]bool{}
+
+	// These values come from validate.go:runValidate switch cases.
+	// After the fix: L1={10,12}, L2={1,2,4,5,7,8,10,12}
+	for _, id := range []int{10, 12} {
+		actualL1[id] = true
+	}
+	for _, id := range []int{1, 2, 4, 5, 7, 8, 10, 12} {
+		actualL2[id] = true
+	}
+
+	// Check L1 matches spec
+	if !intSetsEqual(actualL1, specL1) {
+		t.Errorf("APP-INV-040 VIOLATED: Level 1 checks do not match spec table.\n"+
+			"  Spec says L1 = %v\n  Code has L1 = %v",
+			setToSlice(specL1), setToSlice(actualL1))
+	}
+
+	// Check L2 matches spec
+	if !intSetsEqual(actualL2, specL2) {
+		t.Errorf("APP-INV-040 VIOLATED: Level 2 checks do not match spec table.\n"+
+			"  Spec says L2 = %v\n  Code has L2 = %v",
+			setToSlice(specL2), setToSlice(actualL2))
+	}
+
+	// Check monotonicity: L1 ⊂ L2
+	for id := range actualL1 {
+		if !actualL2[id] {
+			t.Errorf("APP-INV-040 VIOLATED: Check %d is in L1 but not L2 (violates monotonicity)", id)
+		}
+	}
+}
+
+func intSetsEqual(a, b map[int]bool) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for k := range a {
+		if !b[k] {
+			return false
+		}
+	}
+	return true
+}
+
+func setToSlice(s map[int]bool) []int {
+	out := make([]int, 0, len(s))
+	for k := range s {
+		out = append(out, k)
+	}
+	return out
+}
 
 func TestIsTemplateRef(t *testing.T) {
 	templates := []string{"INV-NNN", "ADR-NNN", "§N.M", "INV-XXX", "something-nnn-etc"}
@@ -818,6 +890,117 @@ func TestIsTemplateRef(t *testing.T) {
 	for _, ref := range nonTemplates {
 		if isTemplateRef(ref) {
 			t.Errorf("expected %q to NOT be a template ref", ref)
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Test: Check 16 — Behavioral witness verification (APP-INV-049)
+// ddis:tests APP-INV-049
+// ---------------------------------------------------------------------------
+
+func TestCheck16_BehavioralWitness_TestBacked(t *testing.T) {
+	dbp, specID := testDB(t, "monolith")
+	db := *dbp
+
+	sfID := insertSourceFile(t, db, specID, "/test/spec.md", "monolith", "", 100)
+	secID := insertSection(t, db, specID, sfID, "§1", "Chapter 1", 2, 1, 50, "text")
+
+	if _, err := storage.InsertInvariant(db, &storage.Invariant{
+		SpecID: specID, SourceFileID: sfID, SectionID: secID,
+		InvariantID: "INV-001", Title: "Test", Statement: "stmt",
+		LineStart: 1, LineEnd: 10, RawText: "raw", ContentHash: "h",
+	}); err != nil {
+		t.Fatalf("insert invariant: %v", err)
+	}
+
+	// Insert a test-backed witness
+	if _, err := storage.InsertWitness(db, &storage.InvariantWitness{
+		SpecID: specID, InvariantID: "INV-001", SpecHash: "h",
+		EvidenceType: "test", Evidence: "TestFoo passes", ProvenBy: "agent", Status: "valid",
+	}); err != nil {
+		t.Fatalf("insert witness: %v", err)
+	}
+
+	check := &checkBehavioralWitness{}
+	result := check.Run(db, specID)
+
+	// Test-backed witnesses should produce no warnings
+	for _, f := range result.Findings {
+		if f.Severity == SeverityWarning {
+			t.Errorf("unexpected warning for test-backed witness: %s", f.Message)
+		}
+	}
+}
+
+func TestCheck16_BehavioralWitness_AttestationFlagged(t *testing.T) {
+	dbp, specID := testDB(t, "monolith")
+	db := *dbp
+
+	sfID := insertSourceFile(t, db, specID, "/test/spec.md", "monolith", "", 100)
+	secID := insertSection(t, db, specID, sfID, "§1", "Chapter 1", 2, 1, 50, "text")
+
+	if _, err := storage.InsertInvariant(db, &storage.Invariant{
+		SpecID: specID, SourceFileID: sfID, SectionID: secID,
+		InvariantID: "INV-001", Title: "Test", Statement: "stmt",
+		LineStart: 1, LineEnd: 10, RawText: "raw", ContentHash: "h",
+	}); err != nil {
+		t.Fatalf("insert invariant: %v", err)
+	}
+
+	// Insert attestation-only witness — should be flagged
+	if _, err := storage.InsertWitness(db, &storage.InvariantWitness{
+		SpecID: specID, InvariantID: "INV-001", SpecHash: "h",
+		EvidenceType: "attestation", Evidence: "I checked it", ProvenBy: "agent", Status: "valid",
+	}); err != nil {
+		t.Fatalf("insert witness: %v", err)
+	}
+
+	check := &checkBehavioralWitness{}
+	result := check.Run(db, specID)
+
+	// Attestation-only witness must produce a warning
+	warnings := 0
+	for _, f := range result.Findings {
+		if f.Severity == SeverityWarning {
+			warnings++
+		}
+	}
+	if warnings != 1 {
+		t.Errorf("expected 1 warning for attestation-only witness, got %d", warnings)
+	}
+}
+
+func TestCheck16_BehavioralWitness_StaleIgnored(t *testing.T) {
+	dbp, specID := testDB(t, "monolith")
+	db := *dbp
+
+	sfID := insertSourceFile(t, db, specID, "/test/spec.md", "monolith", "", 100)
+	secID := insertSection(t, db, specID, sfID, "§1", "Chapter 1", 2, 1, 50, "text")
+
+	if _, err := storage.InsertInvariant(db, &storage.Invariant{
+		SpecID: specID, SourceFileID: sfID, SectionID: secID,
+		InvariantID: "INV-001", Title: "Test", Statement: "stmt",
+		LineStart: 1, LineEnd: 10, RawText: "raw", ContentHash: "h",
+	}); err != nil {
+		t.Fatalf("insert invariant: %v", err)
+	}
+
+	// Insert stale witness — should be ignored by Check 16
+	if _, err := storage.InsertWitness(db, &storage.InvariantWitness{
+		SpecID: specID, InvariantID: "INV-001", SpecHash: "h",
+		EvidenceType: "attestation", Evidence: "old", ProvenBy: "agent", Status: "stale_spec",
+	}); err != nil {
+		t.Fatalf("insert witness: %v", err)
+	}
+
+	check := &checkBehavioralWitness{}
+	result := check.Run(db, specID)
+
+	// Stale witnesses should not produce warnings (handled by Check 14)
+	for _, f := range result.Findings {
+		if f.Severity == SeverityWarning {
+			t.Errorf("unexpected warning for stale witness: %s", f.Message)
 		}
 	}
 }

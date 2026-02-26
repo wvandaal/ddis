@@ -349,9 +349,9 @@ ddis init creates:                         ddis init --workspace adds:
   |  |- index.db             (schema init)
   |  |- oplog.jsonl          (empty)
   |  |- events/
-  |  |  |- discovery.jsonl   (empty)
-  |  |  |- spec.jsonl        (empty)
-  |  |  +-- impl.jsonl       (empty)
+  |  |  |- stream-1.jsonl    (discovery — empty)
+  |  |  |- stream-2.jsonl    (specification — empty)
+  |  |  +-- stream-3.jsonl   (implementation — empty)
   |  +-- discoveries/
   +-- .gitignore             (ignores .ddis/index.db)
 ```

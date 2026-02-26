@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/wvandaal/ddis/internal/drift"
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/search"
 	"github.com/wvandaal/ddis/internal/storage"
 )
@@ -90,6 +91,15 @@ func runDrift(cmd *cobra.Command, args []string) error {
 		}
 		fmt.Print(out)
 
+		// Emit drift_measured event to Stream 2 (Specification).
+		emitEvent(dbPath, events.StreamSpecification, events.TypeDriftMeasured, specHashFromDB(db, specID), map[string]interface{}{
+			"effective_drift": report.EffectiveDrift,
+			"correctness":    report.QualityBreakdown.Correctness,
+			"depth":          report.QualityBreakdown.Depth,
+			"coherence":      report.QualityBreakdown.Coherence,
+			"mode":           "report",
+		})
+
 		// Guidance postscript for report mode
 		if !NoGuidance && !driftJSON {
 			emitDriftGuidance(report)
@@ -119,6 +129,15 @@ func runDrift(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Print(out)
+
+	// Emit drift_measured event for remediation mode to Stream 2.
+	if pkg != nil {
+		emitEvent(dbPath, events.StreamSpecification, events.TypeDriftMeasured, specHashFromDB(db, specID), map[string]interface{}{
+			"mode":   "remediate",
+			"target": pkg.Target,
+		})
+	}
+
 	return nil
 }
 
