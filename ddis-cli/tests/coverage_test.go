@@ -240,11 +240,16 @@ func TestCoverageDomainFilter(t *testing.T) {
 		t.Skip("no domains in spec")
 	}
 
-	// Pick the first domain
+	// Pick the first non-empty domain (empty domain disables the filter)
 	var domainName string
 	for d := range full.Domains {
-		domainName = d
-		break
+		if d != "" {
+			domainName = d
+			break
+		}
+	}
+	if domainName == "" {
+		t.Skip("no named domains in spec")
 	}
 
 	filtered, err := coverage.Analyze(db, specID, coverage.Options{Domain: domainName})
