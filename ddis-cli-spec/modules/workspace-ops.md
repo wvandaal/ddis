@@ -353,7 +353,7 @@ ddis init creates:                         ddis init --workspace adds:
   |  |  |- spec.jsonl        (empty)
   |  |  +-- impl.jsonl       (empty)
   |  +-- discoveries/
-  +-- .gitignore             (ignores .ddis/index.db, events/*.jsonl)
+  +-- .gitignore             (ignores .ddis/index.db)
 ```
 
 #### File Creation Algorithm

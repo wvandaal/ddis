@@ -424,8 +424,8 @@ func TestEnsureGitignore_CreatesNew(t *testing.T) {
 	if !strings.Contains(string(content), ".ddis/index.db") {
 		t.Error("expected .ddis/index.db in .gitignore")
 	}
-	if !strings.Contains(string(content), ".ddis/events/*.jsonl") {
-		t.Error("expected .ddis/events/*.jsonl in .gitignore")
+	if strings.Contains(string(content), ".ddis/events/*.jsonl") {
+		t.Error("event streams are primary data (VCS-tracked), should NOT be gitignored")
 	}
 }
 
@@ -457,7 +457,7 @@ func TestEnsureGitignore_AppendsToExisting(t *testing.T) {
 
 func TestEnsureGitignore_SkipsIfAlreadyPresent(t *testing.T) {
 	root := t.TempDir()
-	existing := "# DDIS derived artifacts\n.ddis/index.db\n.ddis/events/*.jsonl\n"
+	existing := "# DDIS derived artifacts\n.ddis/index.db\n"
 	if err := os.WriteFile(filepath.Join(root, ".gitignore"), []byte(existing), 0644); err != nil {
 		t.Fatal(err)
 	}

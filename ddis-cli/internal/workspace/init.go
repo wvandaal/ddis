@@ -181,12 +181,10 @@ func mkdirIfNew(root, rel string, result *InitResult) error {
 
 var gitignoreEntries = []string{
 	".ddis/index.db",
-	".ddis/events/*.jsonl",
 }
 
 const gitignoreBlock = `# DDIS derived artifacts
 .ddis/index.db
-.ddis/events/*.jsonl
 `
 
 func ensureGitignore(root string, result *InitResult) error {
