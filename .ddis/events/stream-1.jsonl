@@ -1,0 +1,16 @@
+{"id":"evt-20260226-7944","type":"thread_parked","timestamp":"2026-02-26T08:48:27Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772084971865"}}
+{"id":"evt-20260226-7950","type":"thread_parked","timestamp":"2026-02-26T08:48:27Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772085235826"}}
+{"id":"evt-20260226-7957","type":"thread_parked","timestamp":"2026-02-26T08:48:27Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772085832911"}}
+{"id":"evt-20260226-7964","type":"thread_parked","timestamp":"2026-02-26T08:48:27Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772087619005"}}
+{"id":"evt-20260226-7969","type":"thread_parked","timestamp":"2026-02-26T08:48:27Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772087740287"}}
+{"id":"evt-20260226-7976","type":"thread_parked","timestamp":"2026-02-26T08:48:27Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772087775574"}}
+{"id":"evt-20260226-7983","type":"thread_parked","timestamp":"2026-02-26T08:48:27Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772088194710"}}
+{"id":"evt-20260226-16363","type":"thread_parked","timestamp":"2026-02-26T08:48:36Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772035753037"}}
+{"id":"evt-20260226-16368","type":"thread_parked","timestamp":"2026-02-26T08:48:36Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772087950848"}}
+{"id":"evt-20260226-32261","type":"mode_observed","timestamp":"2026-02-26T08:48:52Z","spec_hash":"","stream":1,"payload":{"content":"REVISIT: APP-ADR-034 should be superseded. User has requested Z3 integration multiple times. The pure-Go propositional approach has known limitations: 19% unparseable semi-formals (arithmetic, higher-order), 30-40% recall ceiling for semantic contradictions. Z3 via subprocess (not CGo binding) would preserve single-binary while gaining SMT power. New ADR needed: APP-ADR-038 Z3 subprocess integration for Tier 5 consistency.","depth":0,"thread_id":""}}
+{"id":"evt-20260226-7820","type":"thread_parked","timestamp":"2026-02-26T16:48:27Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772095732261"}}
+{"id":"evt-20260226-7827","type":"thread_parked","timestamp":"2026-02-26T16:48:27Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772096446159"}}
+{"id":"evt-20260226-7833","type":"thread_parked","timestamp":"2026-02-26T16:48:27Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772097653318"}}
+{"id":"evt-20260226-23994","type":"thread_parked","timestamp":"2026-02-26T17:33:43Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772124524085"}}
+{"id":"evt-20260226-23999","type":"thread_parked","timestamp":"2026-02-26T17:33:43Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772124537558"}}
+{"id":"evt-20260226-24004","type":"thread_parked","timestamp":"2026-02-26T17:33:44Z","spec_hash":"","stream":1,"payload":{"thread_id":"t-1772124552089"}}

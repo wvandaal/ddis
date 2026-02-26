@@ -42,3 +42,21 @@ coverage/
 
 # bv (beads viewer) local config and caches
 .bv/
+
+# DDIS scratch databases from CLI commands
+# (CLI generates these when given spec element IDs as paths)
+APP-INV-*
+APP-ADR-*
+
+# Build binaries
+ddis-cli/bin/
+ddis-cli/ddis
+
+# Working manifest databases (each subproject has its own tracked copy)
+/manifest.ddis.db
+ddis-cli/manifest.ddis.db
+ddis-modular/output.md
+
+# Orphaned test artifacts
+ddis-cli-spec/nonexistent.db
+ddis-cli-spec/forward
