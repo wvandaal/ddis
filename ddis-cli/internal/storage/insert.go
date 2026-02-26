@@ -84,6 +84,8 @@ func InsertADR(db *sql.DB, a *ADR) (int64, error) {
 		  consequences = CASE WHEN excluded.consequences IS NOT NULL AND (adrs.consequences IS NULL OR length(excluded.consequences) > length(adrs.consequences)) THEN excluded.consequences ELSE adrs.consequences END,
 		  tests = CASE WHEN excluded.tests IS NOT NULL AND (adrs.tests IS NULL OR length(excluded.tests) > length(adrs.tests)) THEN excluded.tests ELSE adrs.tests END,
 		  confidence = CASE WHEN excluded.confidence IS NOT NULL THEN excluded.confidence ELSE adrs.confidence END,
+		  status = CASE WHEN excluded.status = 'superseded' THEN 'superseded' ELSE adrs.status END,
+		  superseded_by = CASE WHEN excluded.superseded_by IS NOT NULL THEN excluded.superseded_by ELSE adrs.superseded_by END,
 		  line_start = CASE WHEN length(excluded.raw_text) > length(adrs.raw_text) THEN excluded.line_start ELSE adrs.line_start END,
 		  line_end = CASE WHEN length(excluded.raw_text) > length(adrs.raw_text) THEN excluded.line_end ELSE adrs.line_end END,
 		  raw_text = CASE WHEN length(excluded.raw_text) > length(adrs.raw_text) THEN excluded.raw_text ELSE adrs.raw_text END,

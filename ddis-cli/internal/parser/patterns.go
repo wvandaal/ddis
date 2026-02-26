@@ -108,4 +108,7 @@ var (
 	// Comparison block: ❌ or ✅ markers
 	ComparisonBadRe  = regexp.MustCompile(`^❌`)
 	ComparisonGoodRe = regexp.MustCompile(`^✅`)
+
+	// SUPERSEDED by ADR-NNN or SUPERSEDED BY APP-ADR-NNN (case-insensitive)
+	supersededByRe = regexp.MustCompile(`(?i)SUPERSEDED\s+(?:by\s+)?(?P<id>(?:APP-)?ADR-\d{3})`)
 )

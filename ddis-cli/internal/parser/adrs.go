@@ -89,6 +89,15 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 				Title:        adrTitle,
 				LineStart:    i + 1,
 			}
+			// Detect SUPERSEDED in title and set status accordingly.
+			upperTitle := strings.ToUpper(adrTitle)
+			if strings.Contains(upperTitle, "SUPERSEDED") {
+				current.Status = "superseded"
+				// Try to extract "superseded by APP-ADR-NNN" reference.
+				if m := supersededByRe.FindStringSubmatch(adrTitle); m != nil {
+					current.SupersededBy = m[1]
+				}
+			}
 			sec := FindSectionForLine(sections, i)
 			if sec != nil {
 				current.SectionID = sec.DBID

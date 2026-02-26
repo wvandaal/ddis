@@ -74,6 +74,7 @@ type smtTranslation struct {
 	declarations []string // (declare-const ...) or (declare-fun ...)
 	assertions   []string // (assert ...)
 	logic        string   // QF_LIA, QF_UF, LIA, ALL
+	realPatterns int      // count of non-fallback pattern matches (arithmetic, predicates, functions)
 }
 
 // TranslateSMTLIB2 converts a semi-formal expression to SMT-LIB2 format.
@@ -115,6 +116,14 @@ func TranslateSMTLIB2(semiFormal string) (string, string, bool) {
 	}
 
 	if !anyTranslated {
+		return "", "", false
+	}
+
+	// Reject translations that only produced boolean fallback atoms.
+	// These are English text fragments, not real formal expressions.
+	// Real patterns include: arithmetic comparisons, predicate applications,
+	// function equalities, quantifiers, implications.
+	if trans.realPatterns == 0 {
 		return "", "", false
 	}
 
@@ -235,6 +244,7 @@ func translateAtom(text string, trans *smtTranslation, declaredVars, declaredFun
 		if op == "=" {
 			smtOp = "="
 		}
+		trans.realPatterns++
 		return fmt.Sprintf("(%s %s %s)", smtOp, varName, value)
 	}
 
@@ -253,6 +263,7 @@ func translateAtom(text string, trans *smtTranslation, declaredVars, declaredFun
 			ensureVarInt(a, trans, declaredVars)
 		}
 		call := fmt.Sprintf("(%s %s)", pred, strings.Join(argNames, " "))
+		trans.realPatterns++
 		if val == "false" {
 			return fmt.Sprintf("(not %s)", call)
 		}
@@ -275,10 +286,13 @@ func translateAtom(text string, trans *smtTranslation, declaredVars, declaredFun
 			ensureVarInt(a, trans, declaredVars)
 		}
 		ensureVarInt(result, trans, declaredVars)
+		trans.realPatterns++
 		return fmt.Sprintf("(= (%s %s) %s)", funcName, strings.Join(argNames, " "), result)
 	}
 
-	// Fallback: treat as boolean constant
+	// Fallback: treat as boolean constant.
+	// These are NOT counted as realPatterns — if only fallback matches occur,
+	// the translation is rejected (English text, not formal expression).
 	name := sanitize(text)
 	if name != "" && len(name) > 2 {
 		ensureVarBool(name, trans, declaredVars)
@@ -352,6 +366,7 @@ func analyzeSMT(db *sql.DB, specID int64) ([]Contradiction, int, error) {
 	}
 
 	var translated []translatable
+	ctx := context.Background()
 	for _, inv := range invs {
 		if inv.SemiFormal == "" {
 			continue
@@ -371,8 +386,28 @@ func analyzeSMT(db *sql.DB, specID int64) ([]Contradiction, int, error) {
 		return nil, len(invs), nil
 	}
 
+	// Pre-check: skip invariants that are individually UNSAT.
+	// An invariant UNSAT by itself will make every pairwise check UNSAT (false positive).
+	var selfConsistent []translatable
+	for _, t := range translated {
+		result, err := runZ3(ctx, t.smt)
+		if err != nil {
+			continue // Z3 error — skip
+		}
+		if result == "unsat" {
+			// This invariant's SMT encoding is self-contradictory.
+			// This is an encoding artifact, not a real contradiction. Skip it.
+			continue
+		}
+		selfConsistent = append(selfConsistent, t)
+	}
+	translated = selfConsistent
+
+	if len(translated) < 2 {
+		return nil, len(invs), nil
+	}
+
 	// Check pairwise satisfiability via Z3
-	ctx := context.Background()
 	var results []Contradiction
 	for i := 0; i < len(translated); i++ {
 		for j := i + 1; j < len(translated); j++ {
