@@ -89,7 +89,7 @@ func init() {
 	discoverCmd.PersistentFlags().StringVar(&discoverSpec, "spec", "", "Path to spec database")
 	discoverCmd.PersistentFlags().StringVar(&discoverEvents, "events", ".ddis/events", "Path to events directory")
 
-	discoverCmd.Flags().StringVar(&discoverThread, "thread", "", "Explicit thread override")
+	discoverCmd.PersistentFlags().StringVar(&discoverThread, "thread", "", "Explicit thread override")
 	discoverCmd.Flags().StringVar(&discoverContent, "content", "", "Content for thread matching")
 	discoverCmd.Flags().IntVar(&discoverDepth, "depth", 0, "Conversation depth for k* budget")
 

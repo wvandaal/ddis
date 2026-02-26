@@ -1,9 +1,11 @@
 package cli
 
 // ddis:implements APP-ADR-038 (Z3 subprocess as Tier 5 — CLI command)
+// ddis:implements APP-ADR-042 (Tier 6 LLM-as-judge — CLI invocation)
 // ddis:maintains APP-ADR-034 (superseded — gophersat retained for fast propositional path)
 // ddis:maintains APP-INV-019 (contradiction graph soundness — user-facing)
 // ddis:maintains APP-INV-021 (SAT encoding fidelity — Tier 3+5 invocation)
+// ddis:maintains APP-INV-054 (LLM provider graceful degradation — Tier 6 skips when unavailable)
 
 import (
 	"encoding/json"
@@ -22,6 +24,7 @@ var (
 	contradictTier int
 	contradictJSON bool
 	contradictZ3   bool
+	contradictLLM  bool
 )
 
 var contradictCmd = &cobra.Command{
@@ -29,15 +32,17 @@ var contradictCmd = &cobra.Command{
 	Short: "Detect contradictions between spec elements",
 	Long: `Runs tiered contradiction detection on the spec index.
 
-Five detection tiers:
+Six detection tiers:
   Tier 1 (structural): Existing validation checks (ddis validate)
   Tier 2 (graph):      Cross-reference overlap, governance conflict, neg-spec violations
   Tier 3 (SAT):        Semi-formal → propositional encoding, DPLL satisfiability
   Tier 4 (heuristic):  Polarity inversion, quantifier conflict, numeric bounds, LSI tension
   Tier 5 (SMT):        Semi-formal → SMT-LIB2 via Z3 subprocess (arithmetic, quantifiers)
+  Tier 6 (LLM):        Semantic contradiction via LLM-as-judge (Anthropic API, majority vote)
 
-By default runs tiers 2-4. Use --tier 5 or --z3 to include SMT analysis.
-Z3 must be installed (apt install z3). Graceful degradation when absent.
+By default runs tiers 2-4. Use --tier 5/--z3 for SMT, --tier 6/--llm for LLM analysis.
+Z3 must be installed (apt install z3). ANTHROPIC_API_KEY required for Tier 6.
+Graceful degradation when either is absent.
 
 Examples:
   ddis contradict                          # Tiers 2-4, auto-find DB
@@ -45,6 +50,8 @@ Examples:
   ddis contradict --tier 2                 # Graph analysis only
   ddis contradict --tier 5                 # All tiers including SMT/Z3
   ddis contradict --z3                     # Shorthand for --tier 5
+  ddis contradict --tier 6                 # All tiers including LLM-as-judge
+  ddis contradict --llm                    # Shorthand for --tier 6
   ddis contradict --json                   # Machine-readable output`,
 	Args:          cobra.MaximumNArgs(1),
 	RunE:          runContradict,
@@ -53,9 +60,10 @@ Examples:
 }
 
 func init() {
-	contradictCmd.Flags().IntVar(&contradictTier, "tier", 4, "Maximum tier to run (2-5)")
+	contradictCmd.Flags().IntVar(&contradictTier, "tier", 4, "Maximum tier to run (2-6)")
 	contradictCmd.Flags().BoolVar(&contradictJSON, "json", false, "JSON output")
 	contradictCmd.Flags().BoolVar(&contradictZ3, "z3", false, "Enable Tier 5 SMT/Z3 analysis (shorthand for --tier 5)")
+	contradictCmd.Flags().BoolVar(&contradictLLM, "llm", false, "Enable Tier 6 LLM-as-judge analysis (shorthand for --tier 6)")
 }
 
 func runContradict(cmd *cobra.Command, args []string) error {
@@ -87,6 +95,9 @@ func runContradict(cmd *cobra.Command, args []string) error {
 	tier := contradictTier
 	if contradictZ3 && tier < int(consistency.TierSMT) {
 		tier = int(consistency.TierSMT)
+	}
+	if contradictLLM && tier < int(consistency.TierLLM) {
+		tier = int(consistency.TierLLM)
 	}
 	opts := consistency.Options{
 		MaxTier: consistency.Tier(tier),

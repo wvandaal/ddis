@@ -2,6 +2,8 @@ package cli
 
 // ddis:implements APP-INV-041 (witness auto-invalidation)
 // ddis:implements APP-ADR-030 (persistent witnesses over ephemeral done flags)
+// ddis:maintains APP-INV-054 (LLM provider graceful degradation — eval type skips when provider unavailable)
+// ddis:maintains APP-INV-055 (eval evidence statistical soundness — wires --type eval to majority vote)
 
 import (
 	"database/sql"
@@ -63,7 +65,7 @@ Examples:
 }
 
 func init() {
-	witnessCmd.Flags().StringVar(&witnessType, "type", "attestation", "Evidence type: attestation, test, annotation, scan, review")
+	witnessCmd.Flags().StringVar(&witnessType, "type", "attestation", "Evidence type: attestation, test, annotation, scan, review, eval")
 	witnessCmd.Flags().StringVar(&witnessEvidence, "evidence", "", "Proof content (free text or JSON)")
 	witnessCmd.Flags().StringVar(&witnessBy, "by", "", "Agent session/agent ID (traceable)")
 	witnessCmd.Flags().StringVar(&witnessModel, "model", "", "Model type (e.g., claude-opus-4-6)")
@@ -199,6 +201,34 @@ func witnessReviewMode(db *sql.DB, specID int64, invariantID string) error {
 func witnessRecordMode(db *sql.DB, specID int64, invariantID string) error {
 	if invariantID == "" {
 		return fmt.Errorf("witness requires an invariant ID (e.g., ddis witness APP-INV-001 db.db)")
+	}
+
+	// Eval type uses majority-vote LLM evaluation.
+	if witnessType == "eval" {
+		evalOpts := witness.EvalOptions{
+			InvariantID: invariantID,
+			ProvenBy:    witnessBy,
+			CodeRoot:    witnessCodeRoot,
+			Notes:       witnessNotes,
+			AsJSON:      witnessJSON,
+		}
+		result, err := witness.RecordEval(db, specID, evalOpts)
+		if err != nil {
+			return err
+		}
+		if witnessJSON {
+			data, _ := json.MarshalIndent(result, "", "  ")
+			fmt.Println(string(data))
+		} else {
+			fmt.Printf("Eval witness: %s — verdict=%s confidence=%.2f (%d/%d agreement, model=%s)\n",
+				result.InvariantID, result.Verdict, result.Confidence,
+				result.Agreement, result.Runs, result.ModelID)
+		}
+		if !NoGuidance && !witnessJSON {
+			fmt.Println("\nNext: ddis challenge", invariantID)
+			fmt.Println("  Challenge the invariant to verify the eval witness.")
+		}
+		return nil
 	}
 
 	opts := witness.Options{

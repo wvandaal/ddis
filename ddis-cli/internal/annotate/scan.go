@@ -169,9 +169,9 @@ func Verify(result *ScanResult, db *sql.DB, specID int64) error {
 		}
 	}
 
-	// Check ADRs
+	// Check ADRs (exclude superseded — they are correctly unimplemented)
 	adrRows, err := db.Query(
-		`SELECT adr_id FROM adrs WHERE spec_id = ?`, specID)
+		`SELECT adr_id FROM adrs WHERE spec_id = ? AND (status IS NULL OR status != 'superseded')`, specID)
 	if err != nil {
 		return fmt.Errorf("query adrs: %w", err)
 	}

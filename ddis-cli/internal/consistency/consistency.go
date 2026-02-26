@@ -1,6 +1,7 @@
 package consistency
 
 // ddis:implements APP-ADR-038 (Z3 subprocess as Tier 5 — orchestrator)
+// ddis:maintains APP-ADR-013 (superseded — planned divergence subsumed by tiered consistency)
 // ddis:maintains APP-ADR-034 (superseded — gophersat retained for fast propositional path)
 // ddis:maintains APP-INV-019 (contradiction graph soundness — zero false positives)
 // ddis:maintains APP-INV-024 (ambiguity surfacing — contradiction detection surfaces conflicts, never auto-resolves)
@@ -19,6 +20,7 @@ const (
 	TierSAT       Tier = 3 // SAT-based: semi-formal → propositional encoding
 	TierHeuristic Tier = 4 // Heuristic: polarity, quantifier, numeric rules + LSI
 	TierSMT       Tier = 5 // SMT-based: semi-formal → SMT-LIB2 via Z3 subprocess
+	TierLLM       Tier = 6 // LLM-as-judge: semantic contradiction via Anthropic API
 )
 
 func (t Tier) String() string {
@@ -31,6 +33,8 @@ func (t Tier) String() string {
 		return "heuristic"
 	case TierSMT:
 		return "SMT"
+	case TierLLM:
+		return "LLM"
 	default:
 		return fmt.Sprintf("tier-%d", int(t))
 	}
@@ -134,6 +138,20 @@ func Analyze(db *sql.DB, specID int64, opts Options) (*Result, error) {
 			result.ElementsScanned += scanned
 		}
 		// If Z3 not available, silently skip Tier 5
+	}
+
+	// Tier 6: LLM-as-judge semantic analysis
+	if opts.MaxTier >= TierLLM {
+		if LLMAvailable() {
+			llmResults, scanned, err := analyzeLLM(db, specID)
+			if err != nil {
+				return nil, fmt.Errorf("tier 6 (LLM): %w", err)
+			}
+			result.Contradictions = append(result.Contradictions, llmResults...)
+			result.TiersRun = append(result.TiersRun, TierLLM)
+			result.ElementsScanned += scanned
+		}
+		// If LLM not available, silently skip Tier 6
 	}
 
 	// Deduplicate: same element pair may appear from multiple tiers.

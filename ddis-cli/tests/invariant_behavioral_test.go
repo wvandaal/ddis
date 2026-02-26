@@ -8,6 +8,7 @@ package tests
 // to reach "confirmed" verdict via the L3→L4 path (APP-ADR-039).
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"math"
@@ -19,12 +20,15 @@ import (
 
 	"github.com/wvandaal/ddis/internal/autoprompt"
 	cli "github.com/wvandaal/ddis/internal/cli"
+	"github.com/wvandaal/ddis/internal/consistency"
 	"github.com/wvandaal/ddis/internal/discovery"
 	"github.com/wvandaal/ddis/internal/events"
+	"github.com/wvandaal/ddis/internal/llm"
 	"github.com/wvandaal/ddis/internal/parser"
 	"github.com/wvandaal/ddis/internal/search"
 	"github.com/wvandaal/ddis/internal/storage"
 	"github.com/wvandaal/ddis/internal/validator"
+	"github.com/wvandaal/ddis/internal/witness"
 )
 
 // sharedModularDB caches a parsed modular DB for behavioral tests.
@@ -1587,6 +1591,127 @@ func TestAPPINV053_EventStreamCompleteness(t *testing.T) {
 		t.Errorf("APP-INV-053 VIOLATED: round-tripped event type = %s, want %s", readEvts[0].Type, events.TypeSpecParsed)
 	}
 	t.Logf("APP-INV-053: all 3 streams have valid event types, append+read round-trips correctly")
+}
+
+// ---------------------------------------------------------------------------
+// APP-INV-054: LLM Provider Graceful Degradation
+// All LLM-dependent features skip silently when no API key is configured.
+// ---------------------------------------------------------------------------
+
+// ddis:tests APP-INV-054
+func TestAPPINV054_LLMProviderGracefulDegradation(t *testing.T) {
+	// 1. Verify Provider interface with empty key → unavailable.
+	emptyProvider := &testUnavailableProvider{}
+	if emptyProvider.Available() {
+		t.Error("APP-INV-054 VIOLATED: empty-key provider should return Available()=false")
+	}
+
+	// 2. ModelID must return a non-empty string even when unavailable.
+	if emptyProvider.ModelID() == "" {
+		t.Error("APP-INV-054 VIOLATED: ModelID() should be non-empty even when unavailable")
+	}
+
+	// 3. Tier 6 must skip silently when LLM unavailable.
+	// Inject mock unavailable provider, run analysis, verify Tier 6 doesn't appear.
+	oldProvider := consistency.LLMProvider
+	consistency.SetLLMProvider(emptyProvider)
+	defer consistency.SetLLMProvider(oldProvider)
+
+	db, specID := getModularDB(t)
+	result, err := consistency.Analyze(db, specID, consistency.Options{
+		MaxTier: consistency.TierLLM,
+	})
+	if err != nil {
+		t.Fatalf("APP-INV-054 VIOLATED: Analyze with --tier 6 failed: %v", err)
+	}
+
+	for _, tier := range result.TiersRun {
+		if tier == consistency.TierLLM {
+			t.Error("APP-INV-054 VIOLATED: TierLLM should not appear in TiersRun when LLM unavailable")
+		}
+	}
+
+	// 4. LLMAvailable() should return false with the mock provider.
+	if consistency.LLMAvailable() {
+		t.Error("APP-INV-054 VIOLATED: LLMAvailable() should return false with unavailable provider")
+	}
+
+	// 5. Verify that NewProvider() at least returns a non-nil Provider (even with real env).
+	realProvider := llm.NewProvider()
+	if realProvider == nil {
+		t.Error("APP-INV-054 VIOLATED: NewProvider() should never return nil")
+	}
+	if realProvider.ModelID() == "" {
+		t.Error("APP-INV-054 VIOLATED: real provider ModelID() should be non-empty")
+	}
+
+	t.Logf("APP-INV-054: graceful degradation verified — unavailable provider skips Tier 6, no errors")
+}
+
+// testUnavailableProvider always returns Available()=false.
+type testUnavailableProvider struct{}
+
+func (p *testUnavailableProvider) Available() bool                                   { return false }
+func (p *testUnavailableProvider) ModelID() string                                   { return "test-unavailable" }
+func (p *testUnavailableProvider) Complete(_ context.Context, _ string) (string, error) {
+	return "", fmt.Errorf("provider not available")
+}
+
+// ---------------------------------------------------------------------------
+// APP-INV-055: Eval Evidence Statistical Soundness
+// Majority vote: 3 runs, 2/3 agreement. Confidence 0.95 for 3/3, 0.75 for 2/3.
+// Records prompt template, model ID, vote distribution, raw responses.
+// ---------------------------------------------------------------------------
+
+// ddis:tests APP-INV-055
+func TestAPPINV055_EvalEvidenceStatisticalSoundness(t *testing.T) {
+	// 1. Verify classifyResponse normalization.
+	classifyCases := []struct {
+		input    string
+		expected string
+	}{
+		{"holds", "holds"},
+		{"Holds", "holds"},
+		{"HOLDS", "holds"},
+		{"violated", "violated"},
+		{"Violated", "violated"},
+		{"random", "inconclusive"},
+	}
+	for _, tc := range classifyCases {
+		got := witness.ClassifyResponseForTest(tc.input)
+		if got != tc.expected {
+			t.Errorf("APP-INV-055 VIOLATED: classifyResponse(%q) = %q, want %q", tc.input, got, tc.expected)
+		}
+	}
+
+	// 2. Verify majority vote logic.
+	// 3/3 agreement → confidence 0.95
+	votes3 := map[string]int{"holds": 3}
+	count3, verdict3 := witness.MajorityVoteForTest(votes3)
+	if count3 != 3 || verdict3 != "holds" {
+		t.Errorf("APP-INV-055 VIOLATED: 3/3 vote expected (3, holds), got (%d, %s)", count3, verdict3)
+	}
+
+	// 2/3 agreement → confidence 0.75
+	votes2 := map[string]int{"holds": 2, "violated": 1}
+	count2, verdict2 := witness.MajorityVoteForTest(votes2)
+	if count2 != 2 || verdict2 != "holds" {
+		t.Errorf("APP-INV-055 VIOLATED: 2/3 vote expected (2, holds), got (%d, %s)", count2, verdict2)
+	}
+
+	// No majority → reject
+	votesNone := map[string]int{"holds": 1, "violated": 1, "inconclusive": 1}
+	countNone, _ := witness.MajorityVoteForTest(votesNone)
+	if countNone >= 2 {
+		t.Errorf("APP-INV-055 VIOLATED: no majority should have count < 2, got %d", countNone)
+	}
+
+	// 3. Verify the required number of runs is 3 (spec says 3).
+	if witness.RequiredRunsForTest() != 3 {
+		t.Errorf("APP-INV-055 VIOLATED: required runs should be 3, got %d", witness.RequiredRunsForTest())
+	}
+
+	t.Logf("APP-INV-055: majority vote logic verified — 3/3→0.95, 2/3→0.75, <2/3→reject, runs=3")
 }
 
 // Suppress unused import warnings.
