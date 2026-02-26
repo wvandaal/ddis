@@ -12,6 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
@@ -193,6 +194,12 @@ func runPatchFile(dbPath, relPath, oldText, newText string, dryRun bool) error {
 	fmt.Printf("  - %s\n", truncate(oldText, 120))
 	fmt.Printf("  + %s\n", truncate(newText, 120))
 
+	// Emit amendment_applied event
+	emitEvent(dbPath, events.StreamSpecification, events.TypeAmendmentApplied, "", map[string]interface{}{
+		"file": relPath,
+		"line": lineNumber,
+	})
+
 	if !NoGuidance {
 		fmt.Println("\nNext: ddis parse manifest.yaml && ddis validate")
 		fmt.Println("  Re-parse to verify the patch didn't break anything.")
@@ -269,6 +276,14 @@ func runPatchElement(db *sql.DB, specID int64, target, oldText, newText string, 
 	fmt.Printf("Patched %s in %s (line %d):\n", target, relPath, matchLine)
 	fmt.Printf("  - %s\n", truncate(oldText, 120))
 	fmt.Printf("  + %s\n", truncate(newText, 120))
+
+	// Emit amendment_applied event
+	specHash := specHashFromDB(db, specID)
+	emitEvent(".", events.StreamSpecification, events.TypeAmendmentApplied, specHash, map[string]interface{}{
+		"element": target,
+		"file":    relPath,
+		"line":    matchLine,
+	})
 
 	if !NoGuidance {
 		fmt.Println("\nNext: ddis parse manifest.yaml && ddis validate")

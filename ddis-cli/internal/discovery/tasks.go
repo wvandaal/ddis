@@ -1,6 +1,8 @@
 package discovery
 
 // ddis:implements APP-ADR-016 (auto-prompting over manual prompting)
+// ddis:implements APP-ADR-041 (challenge-feedback loop — task derivation)
+// ddis:maintains APP-INV-052 (challenge-driven task derivation)
 
 import (
 	"database/sql"
@@ -8,6 +10,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/wvandaal/ddis/internal/storage"
 )
 
 // DeriveTasks applies the 8 derivation rules to an artifact map.
@@ -484,4 +488,62 @@ func FormatMarkdown(result *TasksResult) string {
 		sb.WriteString(fmt.Sprintf("  Acceptance: %s\n", task.AcceptanceCriteria))
 	}
 	return sb.String()
+}
+
+// DeriveFromChallenges generates tasks from challenge verdicts (Rules 9-10).
+// Rule 9: Provisional invariants → upgrade tasks (write test, add annotations).
+// Rule 10: Refuted invariants → remediation tasks (fix impl or amend spec).
+func DeriveFromChallenges(db storage.DB, specID int64) (*TasksResult, error) {
+	challenges, err := storage.ListChallengeResults(db, specID)
+	if err != nil {
+		return nil, fmt.Errorf("list challenges: %w", err)
+	}
+
+	result := &TasksResult{
+		ByRule: make(map[int]int),
+	}
+
+	for _, cr := range challenges {
+		switch cr.Verdict {
+		case "refuted":
+			// Rule 10: Refuted → highest priority remediation
+			result.Tasks = append(result.Tasks, DerivedTask{
+				ID:       fmt.Sprintf("TASK-%s-remediate", cr.InvariantID),
+				Title:    fmt.Sprintf("REMEDIATE: %s (refuted by challenge)", cr.InvariantID),
+				Type:     "task",
+				Priority: 0, // Higher than any discovery-derived task
+				Labels:   []string{"remediation", "challenge"},
+				AcceptanceCriteria: fmt.Sprintf(
+					"Fix implementation to satisfy %s, or amend spec if invariant is wrong. "+
+						"Re-challenge must return confirmed or provisional.", cr.InvariantID),
+				Metadata: TaskMetadata{
+					SourceArtifact: cr.InvariantID,
+					DerivationRule: 10,
+				},
+			})
+			result.ByRule[10]++
+
+		case "provisional":
+			// Rule 9: Provisional → upgrade task
+			result.Tasks = append(result.Tasks, DerivedTask{
+				ID:       fmt.Sprintf("TASK-%s-upgrade", cr.InvariantID),
+				Title:    fmt.Sprintf("Upgrade evidence: %s (provisional)", cr.InvariantID),
+				Type:     "task",
+				Priority: 1,
+				Labels:   []string{"upgrade", "challenge"},
+				AcceptanceCriteria: fmt.Sprintf(
+					"Write behavioral test with ddis:tests %s annotation, or add "+
+						"ddis:implements annotations across 3+ packages. Re-challenge "+
+						"must return confirmed.", cr.InvariantID),
+				Metadata: TaskMetadata{
+					SourceArtifact: cr.InvariantID,
+					DerivationRule: 9,
+				},
+			})
+			result.ByRule[9]++
+		}
+	}
+
+	result.TotalTasks = len(result.Tasks)
+	return result, nil
 }

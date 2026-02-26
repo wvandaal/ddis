@@ -1,9 +1,9 @@
 ---
 module: lifecycle-ops
 domain: lifecycle
-maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016, APP-INV-041, APP-INV-050]
+maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016, APP-INV-041, APP-INV-050, APP-INV-051, APP-INV-052, APP-INV-053]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-008, APP-INV-009, APP-INV-011, APP-INV-012, APP-INV-015]
-implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011, APP-ADR-030, APP-ADR-037]
+implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011, APP-ADR-030, APP-ADR-037, APP-ADR-039, APP-ADR-041]
 adjacent: [parse-pipeline, search-intelligence, query-validation]
 negative_specs:
   - "Must NOT modify or delete existing oplog records"
@@ -1148,5 +1148,77 @@ computeVerdict becomes an evidence accumulation function rather than a strict ch
 #### Tests
 
 TestComputeVerdict_EvidenceAccumulation, TestComputeVerdict_MultiPackageBoost, TestComputeVerdict_ImplementsVerbBoost
+
+---
+
+**APP-INV-051: Challenge-Informed Navigation**
+
+*The ddis next command MUST query challenge_results and incorporate verdict distribution into its recommendation, prioritizing refuted invariant remediation above all other suggestions.*
+
+```
+FOR ALL states s: next(s).recommendations INCLUDES challenge_upgrade_actions(s) WHEN provisional_count(s) > 0; next(s).priority[0] = remediate(refuted(s)) WHEN refuted_count(s) > 0
+```
+
+Violation scenario: An agent runs ddis next after receiving 10 provisional and 2 refuted challenge verdicts. The next command reports "all aligned" because it only checks validation, coverage, and drift — never querying challenge_results. The refuted invariants silently remain unaddressed.
+
+Validation: Run ddis challenge --all. Then run ddis next. Verify that next output includes challenge summary and recommends actions for provisional/refuted invariants. Verify refuted invariants appear as highest priority.
+
+// WHY THIS MATTERS: Without challenge-informed navigation, the bilateral lifecycle is open — verdicts are computed but never consumed. Agents using ddis next never discover that invariants need strengthening, creating an invisible quality ceiling that compounds over time.
+
+---
+
+**APP-INV-052: Challenge-Driven Task Derivation**
+
+*The ddis tasks command MUST derive actionable work items from challenge verdicts, with refuted invariant remediation at highest priority and provisional upgrade actions for invariants lacking behavioral tests.*
+
+```
+FOR ALL inv IN provisional_invariants: EXISTS task IN tasks(--from-challenges) WHERE task.target = inv AND task.action IN {write_test, add_annotations}; FOR ALL inv IN refuted_invariants: EXISTS task IN tasks(--from-challenges) WHERE task.target = inv AND task.action = remediate AND task.priority > max(discovery_task_priorities)
+```
+
+Violation scenario: An agent runs ddis tasks to find work. 23 invariants have provisional verdicts and 1 has refuted. The tasks command returns only discovery-derived items because it lacks challenge-aware derivation rules. The agent works on low-priority discovery tasks while critical refutation remediation goes unaddressed.
+
+Validation: Run ddis challenge --all. Then run ddis tasks --from-challenges. Verify that refuted invariants produce remediation tasks at highest priority. Verify provisional invariants produce upgrade tasks (write test, add annotations). Verify challenge-derived tasks sort above discovery-derived tasks.
+
+// WHY THIS MATTERS: Task derivation without challenge feedback is like navigating without a compass. The most actionable quality signal — verification verdicts — never generates work items, causing agents to optimize for discovery breadth while ignoring verification depth.
+
+---
+
+**APP-INV-053: Event Stream Completeness**
+
+*Every state-mutating CLI command MUST emit a typed event to the appropriate event stream before returning, covering parse, validate, drift, contradict, and patch operations.*
+
+```
+FOR ALL commands c IN {parse, validate, drift, contradict, patch}: post(c) IMPLIES EXISTS event e IN stream(c) WHERE e.type = event_type(c) AND e.spec_hash = current_spec_hash AND e.timestamp <= now()
+```
+
+Violation scenario: An agent runs ddis parse followed by ddis validate. Both succeed, but no events appear on Stream 2 or Stream 3. A downstream event consumer (ddis drift, monitoring) has no visibility into these state changes. The event stream shows only discovery activity, giving a false impression that no spec work occurred.
+
+Validation: Run ddis parse and verify a spec_parsed event on Stream 2. Run ddis validate and verify a validation_run event on Stream 2. Run ddis drift and verify a drift_measured event on Stream 3. Run ddis contradict with contradictions and verify a contradiction_detected event on Stream 3. Run ddis patch and verify an amendment_applied event on Stream 2.
+
+// WHY THIS MATTERS: The spec defines 22 event types across 3 streams, but only discovery and challenge events are wired. Silent state mutations break the observability contract and prevent the bilateral lifecycle from closing its feedback loops through event-driven reactions.
+
+---
+
+### APP-ADR-041: Challenge-Feedback Loop Closes Bilateral Lifecycle
+
+#### Problem
+
+The bilateral lifecycle has 4 missing morphisms: challenge verdicts do not flow back to navigation (ddis next), challenge verdicts do not generate tasks (ddis tasks), state-mutating commands do not emit events, and no LLM-based evaluation evidence type exists. These broken arrows mean the lifecycle category is not traced — feedback loops are open.
+
+#### Options
+
+A) Targeted 4-phase closure with specific code changes per morphism. B) Generic event bus deriving everything from events. C) Leave open and rely on manual intervention.
+
+#### Decision
+
+**Option A: Targeted 4-phase closure.** Phase 1 wires challenge-to-next, challenge-to-tasks, and command-to-events. Phase 2 adds honest behavioral tests for mechanically-testable invariants. Phase 3 adds LLM provider abstraction with eval evidence type. Phase 4 adds Tier 6 semantic contradiction detection.
+
+#### Consequences
+
+ddis next becomes challenge-aware (APP-INV-051). ddis tasks derives from challenges (APP-INV-052). Five event types get wired (APP-INV-053). LLM provider enables eval-based witnessing (APP-INV-054). Tier 6 catches semantic contradictions formal methods miss (APP-ADR-042). Each phase follows bilateral lifecycle: discover, crystallize, parse, validate, implement, scan, drift, witness, challenge.
+
+#### Tests
+
+TestNextIncludesChallengeResults, TestTasksFromChallenges, TestEventEmission_Parse, TestEventEmission_Validate, TestEventEmission_Drift
 
 ---

@@ -317,3 +317,8 @@ invariant_registry:
   APP-INV-048: {owner: code-bridge, domain: bridge, description: "Event stream JSONL files are VCS-tracked primary data"}
   APP-INV-049: {owner: query-validation, domain: validation, description: "Behavioral Witness Ground Truth — test-type witnesses reference actual passing tests"}
   APP-INV-050: {owner: lifecycle-ops, domain: lifecycle, description: "Challenge-Witness Adjunction Fidelity — challenge(witness(inv)) returns confirmed/refuted/inconclusive"}
+  APP-INV-051: { owner: lifecycle-ops, domain: , description: "" }
+  APP-INV-052: { owner: lifecycle-ops, domain: , description: "" }
+  APP-INV-053: { owner: lifecycle-ops, domain: , description: "" }
+  APP-INV-054: { owner: code-bridge, domain: , description: "" }
+  APP-INV-055: { owner: code-bridge, domain: , description: "" }

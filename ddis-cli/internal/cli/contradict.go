@@ -11,10 +11,10 @@ import (
 	"os"
 	"strings"
 
-
 	"github.com/spf13/cobra"
 
 	"github.com/wvandaal/ddis/internal/consistency"
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
@@ -98,6 +98,20 @@ func runContradict(cmd *cobra.Command, args []string) error {
 	result, err := consistency.Analyze(db, specID, opts)
 	if err != nil {
 		return fmt.Errorf("analyze: %w", err)
+	}
+
+	// Emit contradiction_detected event if contradictions found
+	if len(result.Contradictions) > 0 {
+		tierNames := make([]string, len(result.TiersRun))
+		for i, t := range result.TiersRun {
+			tierNames[i] = t.String()
+		}
+		emitEvent(dbPath, events.StreamSpecification, events.TypeContradictionDetected,
+			specHashFromDB(db, specID), map[string]interface{}{
+				"contradictions": len(result.Contradictions),
+				"elements":       result.ElementsScanned,
+				"tiers":          tierNames,
+			})
 	}
 
 	if contradictJSON {

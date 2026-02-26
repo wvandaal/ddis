@@ -94,6 +94,40 @@ func ExtractInvariants(lines []string, sections []*SectionNode, specID, sourceFi
 			if m := ViolationRe.FindStringSubmatch(trimmed); m != nil {
 				current.ViolationScenario = m[1]
 				state = afterCode
+			} else if trimmed == "---" {
+				// Terminate invariant without violation/validation
+				current.LineEnd = i + 1
+				current.RawText = strings.Join(rawLines, "\n")
+				current.ContentHash = sha256Hex(current.RawText)
+				if _, err := storage.InsertInvariant(db, &current); err != nil {
+					return err
+				}
+				state = idle
+				rawLines = nil
+			} else if m := InvHeaderRe.FindStringSubmatch(trimmed); m != nil {
+				// Next invariant starts — flush current
+				current.LineEnd = i
+				current.RawText = strings.Join(rawLines[:len(rawLines)-1], "\n")
+				current.ContentHash = sha256Hex(current.RawText)
+				if _, err := storage.InsertInvariant(db, &current); err != nil {
+					return err
+				}
+				state = headerSeen
+				current = storage.Invariant{
+					SpecID:       specID,
+					SourceFileID: sourceFileID,
+					InvariantID:  m[1],
+					Title:        strings.TrimSpace(m[2]),
+					LineStart:    i + 1,
+				}
+				if len(m) > 3 && m[3] != "" {
+					current.ConditionalTag = m[3]
+				}
+				rawLines = []string{line}
+				sec := FindSectionForLine(sections, i)
+				if sec != nil {
+					current.SectionID = sec.DBID
+				}
 			}
 
 		case afterCode:

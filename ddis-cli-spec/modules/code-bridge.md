@@ -1,9 +1,9 @@
 ---
 module: code-bridge
 domain: bridge
-maintains: [APP-INV-017, APP-INV-018, APP-INV-019, APP-INV-020, APP-INV-021]
+maintains: [APP-INV-017, APP-INV-018, APP-INV-019, APP-INV-020, APP-INV-021, APP-INV-054, APP-INV-055]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-008, APP-INV-009, APP-INV-015, APP-INV-016]
-implements: [APP-ADR-012, APP-ADR-014, APP-ADR-015, APP-ADR-034]
+implements: [APP-ADR-012, APP-ADR-014, APP-ADR-015, APP-ADR-034, APP-ADR-038, APP-ADR-040, APP-ADR-042]
 adjacent: [parse-pipeline, query-validation, lifecycle-ops, auto-prompting]
 negative_specs:
   - "Must NOT require language-specific AST parsers for annotation extraction"
@@ -1040,5 +1040,85 @@ New Tier 5 (SMT) in consistency checker alongside existing Tier 2 (graph), Tier 
 #### Tests
 
 TestTranslateSMTLIB2_Arithmetic, TestRunZ3_Sat, TestRunZ3_Unsat, TestAnalyzeSMT_PairwiseContradiction, TestAPPINV021_EncodingFidelity (updated for SMT extension)
+
+---
+
+### APP-ADR-040: LLM-as-Judge Semantic Contradictions via Anthropic SDK
+
+#### Problem
+
+Tiers 2-5 detect structural, propositional, arithmetic, and heuristic contradictions but miss semantic conflicts: synonym collisions, implicit assumption mismatches, scope ambiguities, and temporal ordering violations. Estimated 25-40% of real contradictions are semantic.
+
+#### Options
+
+A: Anthropic SDK subprocess via Provider interface with majority vote. B: OpenAI SDK with function calling. C: Local LLM (ollama) for offline analysis. D: No LLM — expand heuristic patterns.
+
+#### Decision
+
+**Option A: Anthropic SDK via Provider interface.** Pairwise invariant comparison across domains with majority vote (3 runs, 2/3 agreement) boosting precision from 85% to 94%. Graceful degradation when ANTHROPIC_API_KEY absent. Tier 6 in consistency checker.
+
+#### Consequences
+
+New Tier 6 in consistency checker. Processes only pairs that Tiers 3-5 could not parse. Cost: ~$0.01 per invariant pair. Provider abstraction (APP-INV-054) enables graceful degradation. Majority vote protocol (APP-INV-055) ensures statistical soundness. Supersedes APP-ADR-040 general design with specific detection mechanics.
+
+#### Tests
+
+TestTier6_SemanticConflictDetected, TestTier6_NoFalsePositive, TestTier6_GracefulDegradation, TestTier6_MajorityVote
+
+---
+
+**APP-INV-054: LLM Provider Graceful Degradation**
+
+*The LLM provider MUST degrade gracefully when no API key is configured: all LLM-dependent features skip silently, no command fails due to missing LLM configuration.*
+
+```
+FOR ALL commands c that use LLM: NOT provider.Available() IMPLIES c succeeds with degraded_output AND c.exit_code = 0; provider.Available() IMPLIES c uses LLM for enhanced_output
+```
+
+Violation scenario: A user installs ddis without configuring ANTHROPIC_API_KEY. They run ddis contradict --tier 6 which attempts LLM-as-judge evaluation. The command crashes with "API key not found" error, breaking the offline-first contract.
+
+Validation: Unset ANTHROPIC_API_KEY. Run ddis contradict --tier 6. Verify exit code 0, output mentions "Tier 6 skipped (no LLM provider)". Set ANTHROPIC_API_KEY. Re-run. Verify Tier 6 executes and produces results.
+
+// WHY THIS MATTERS: DDIS is a single-binary CLI that must work without external services. The Z3 graceful degradation pattern (Z3Available()) proves this works. LLM features must follow the same pattern: enhance when available, degrade when not.
+
+---
+
+**APP-INV-055: Eval Evidence Statistical Soundness**
+
+*The eval witness evidence type MUST use majority vote (3 independent LLM runs, 2/3 agreement) to produce statistically sound confidence scores, recording prompt template, model ID, vote distribution, and raw responses for auditability.*
+
+```
+FOR ALL eval witnesses w: w.runs >= 3 AND w.agreement >= 2/3; w.confidence = IF agreement = 3/3 THEN 0.95 ELSE IF agreement = 2/3 THEN 0.75 ELSE REJECT; w.audit_trail INCLUDES {prompt_template, model_id, vote_distribution, raw_responses}
+```
+
+Violation scenario: An agent records an eval witness for APP-INV-035 using a single LLM call. The LLM returns "holds" with confidence 0.85. But the single evaluation was a false positive — the invariant actually has a subtle violation. The single-run confidence score enters the evidence accumulation pipeline and contributes to a false confirmed verdict.
+
+Validation: Attempt to record an eval witness with runs < 3. Verify rejection. Record an eval witness with 3 runs, 2 agreeing. Verify confidence = 0.75. Record with 3/3 agreement. Verify confidence = 0.95. Verify audit trail contains prompt_template, model_id, vote_distribution, raw_responses fields.
+
+// WHY THIS MATTERS: A single LLM judgment has ~85% precision, meaning ~15% of single-run evaluations are false positives. Majority vote with 3 independent runs and 2/3 agreement raises precision to ~94%. Without this protocol, eval witnesses introduce systematic overconfidence that Goodharts the confirmation threshold.
+
+---
+
+### APP-ADR-042: Tier 6 LLM-as-Judge Semantic Contradiction Detection
+
+#### Problem
+
+Tiers 2-5 detect structural (graph), propositional (SAT), heuristic (keyword), and arithmetic/quantifier (SMT) contradictions. But approximately 19% of semi-formal expressions contain semantic content that no formal method can evaluate: intent conflicts, domain assumption clashes, temporal ordering violations expressed in natural language.
+
+#### Options
+
+A) LLM-as-judge with majority vote on invariant pairs. B) Embedding similarity with cosine threshold. C) NLI model fine-tuned on spec language. D) Accept the semantic gap.
+
+#### Decision
+
+**Option A: LLM-as-judge using Anthropic Claude API.** For each pair of invariants whose semi-formals failed Tiers 3-5 parsing, prompt the LLM to classify the relationship as compatible, contradictory, or independent. Majority vote (3 runs, 2/3 agreement). Contradictory with 2/3 agreement yields confidence 0.80, with 3/3 agreement yields 0.95. Requires Provider.Available() for graceful degradation.
+
+#### Consequences
+
+New Tier 6 in consistency checker. Only processes pairs that Tiers 3-5 could not parse. Requires ANTHROPIC_API_KEY environment variable. Graceful degradation via Provider.Available(). Cost approximately 0.01 USD per invariant pair evaluation. APP-ADR-040 general design refined into specific detection mechanics.
+
+#### Tests
+
+TestTier6_SemanticConflictDetected, TestTier6_NoFalsePositive, TestTier6_GracefulDegradation, TestTier6_MajorityVote
 
 ---

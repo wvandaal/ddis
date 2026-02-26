@@ -429,6 +429,38 @@ Module frontmatter declarations (maintains, interfaces, implements, negative_spe
 Confidence: falsified
 *Violation: code-bridge.md frontmatter lists APP-INV-002 in interfaces but manifest.yaml omits it; parser silently uses one or the other depending on code path, producing inconsistent cross-reference graphs.*
 
+**APP-INV-048: Behavioral Witness Ground Truth** (Owner: query-validation)
+Behavioral tests annotated with ddis:tests produce ground truth witness evidence for invariant challenge verification.
+Confidence: falsified
+
+**APP-INV-049: Event Stream VCS Primacy** (Owner: lifecycle-ops)
+Event streams are append-only JSONL files under VCS control, not database tables.
+Confidence: falsified
+
+**APP-INV-050: Challenge-Witness Adjunction Fidelity** (Owner: lifecycle-ops)
+For every invariant with a valid witness, challenge must return a verdict. If refuted, witness is automatically invalidated.
+Confidence: falsified
+
+**APP-INV-051: Challenge-Informed Navigation** (Owner: lifecycle-ops)
+The ddis next command must query challenge_results and incorporate verdict distribution into its recommendation.
+Confidence: falsified
+
+**APP-INV-052: Challenge-Driven Task Derivation** (Owner: lifecycle-ops)
+The ddis tasks command must derive actionable work items from challenge verdicts.
+Confidence: falsified
+
+**APP-INV-053: Event Stream Completeness** (Owner: lifecycle-ops)
+Every state-mutating CLI command must emit a typed event to the appropriate event stream.
+Confidence: falsified
+
+**APP-INV-054: LLM Provider Graceful Degradation** (Owner: code-bridge)
+The LLM provider must degrade gracefully when no API key is configured.
+Confidence: falsified
+
+**APP-INV-055: Eval Evidence Statistical Soundness** (Owner: code-bridge)
+The eval witness evidence type must use majority vote to produce statistically sound confidence scores.
+Confidence: falsified
+
 ---
 
 ## 0.4 Invariant Confidence Levels
@@ -590,6 +622,24 @@ WHY NOT Z3: All Go Z3 bindings require CGo, which violates single-binary distrib
 Decision: Add a validation check that verifies module frontmatter (maintains, interfaces, implements, negative_specs) is a bijection with the corresponding manifest.yaml entries. Discrepancies are reported as validation errors, not warnings.
 WHY NOT trust one source: Both frontmatter and manifest are read by different code paths (parser reads frontmatter, manifest reader reads manifest). Silent divergence causes inconsistent cross-reference resolution depending on which code path runs first.
 
+**APP-ADR-037: Challenge as Right Adjoint of Witness** (Implements: lifecycle-ops)
+Decision: Challenge is a separate command with 5-level mechanical verification. Witness records claims, challenge verifies them via formal SAT, uncertainty scoring, causal annotation lookup, practical test execution, and meta keyword overlap.
+
+**APP-ADR-038: Z3 Subprocess as Tier 5 SMT Consistency** (Implements: code-bridge) — **Supersedes APP-ADR-034 partially**
+Decision: Z3 invoked as subprocess via SMT-LIB2 stdin/stdout for arithmetic, quantifier, and uninterpreted function contradictions. Graceful degradation when Z3 not in PATH. Preserves single binary. APP-ADR-034 retained for fast propositional path.
+
+**APP-ADR-039: Evidence Accumulation Verdicts** (Implements: lifecycle-ops)
+Decision: Dempster-Shafer inspired multi-signal scoring replaces binary test-found confirmation. Independent signals compound: base confidence, package spread, implements verb, annotation volume, semi-formal consistency, keyword overlap. Threshold 0.85 for confirmed.
+
+**APP-ADR-040: LLM-as-Judge Semantic Contradictions** (Implements: code-bridge)
+Decision: Anthropic Claude API via Provider interface. Pairwise invariant comparison with majority vote (3 runs, 2/3 agreement). Tier 6 in consistency checker. Graceful degradation.
+
+**APP-ADR-041: Challenge-Feedback Loop Closes Bilateral Lifecycle** (Implements: lifecycle-ops)
+Decision: Targeted 4-phase closure of 4 missing morphisms. Challenge verdicts flow to navigation and task derivation. Event stream wiring for 5 command types. LLM provider abstraction.
+
+**APP-ADR-042: Tier 6 LLM-as-Judge Semantic Contradiction Detection** (Implements: code-bridge)
+Decision: LLM-as-judge for invariant pairs that failed Tiers 3-5 parsing. Majority vote with 3 runs, 2/3 agreement. Contradictory pairs yield confidence 0.80 (2/3) or 0.95 (3/3). Requires Provider.Available().
+
 ---
 
 ## 0.6 Quality Gates (Declarations)
@@ -687,8 +737,8 @@ Cross-reference lookup: which module file contains each section's full specifica
 | 4-pass pipeline, schema design, round-trip, hashing, monolith/modular detection | modules/parse-pipeline.md | Owns: APP-INV-001, -009, -015. Implements: APP-ADR-001, -002, -005, -009, -010 |
 | BM25/LSI/PageRank, RRF fusion, context bundles, glossary expansion, authority scoring | modules/search-intelligence.md | Owns: APP-INV-004, -005, -008, -012, -014. Implements: APP-ADR-003, -006 |
 | 16 validation checks, cross-ref resolution, structural diff, query projection | modules/query-validation.md | Owns: APP-INV-002, -003, -007, -011, -043, -044, -047, -049. Implements: APP-ADR-004, -032, -035, -036 |
-| Transaction state machine, oplog, impact BFS, implementation tracing, seed | modules/lifecycle-ops.md | Owns: APP-INV-006, -010, -013, -016, -041. Implements: APP-ADR-007, -008, -011, -030 |
-| Annotations, scan, contradiction detection (graph + SAT + heuristic + LSI), event sourcing | modules/code-bridge.md | Owns: APP-INV-017, -018, -019, -020, -021. Implements: APP-ADR-012, -014, -015, -034 |
+| Transaction state machine, oplog, impact BFS, implementation tracing, seed, challenge adjunction, evidence accumulation | modules/lifecycle-ops.md | Owns: APP-INV-006, -010, -013, -016, -041, -050, -051, -052, -053. Implements: APP-ADR-007, -008, -011, -030, -037, -039, -041 |
+| Annotations, scan, contradiction detection (graph + SAT + heuristic + LSI + SMT + LLM), event sourcing, LLM provider | modules/code-bridge.md | Owns: APP-INV-017, -018, -019, -020, -021, -054, -055. Implements: APP-ADR-012, -014, -015, -034, -038, -040, -042 |
 | State monad, discover, refine, absorb loops, contributor topology, thread management | modules/auto-prompting.md | Owns: APP-INV-022–036, -042, -045, -046. Implements: APP-ADR-016–025, -031, -033 |
 | Workspace init, multi-domain composition, cross-spec drift, task generation, progressive validation | modules/workspace-ops.md | Owns: APP-INV-037, -038, -039, -040. Implements: APP-ADR-026, -027, -028, -029 |
 
