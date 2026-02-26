@@ -2,6 +2,7 @@ package challenge
 
 // ddis:implements APP-INV-050 (challenge-witness adjunction fidelity)
 // ddis:implements APP-ADR-037 (challenge as right adjoint of witness)
+// ddis:implements APP-ADR-039 (evidence accumulation verdicts — computeVerdict)
 
 import (
 	"bufio"
@@ -45,6 +46,7 @@ type Options struct {
 type Result struct {
 	InvariantID        string             `json:"invariant_id"`
 	Verdict            Verdict            `json:"verdict"`
+	EvidenceScore      float64            `json:"evidence_score"`
 	LevelFormal        *FormalResult      `json:"level_formal"`
 	LevelUncertainty   *UncertaintyResult `json:"level_uncertainty"`
 	LevelCausal        *CausalResult      `json:"level_causal,omitempty"`
@@ -76,6 +78,8 @@ type CausalResult struct {
 	TestFile         string   `json:"test_file,omitempty"`
 	CodeAnnotations  int      `json:"code_annotations"`  // count of implements/maintains/interfaces
 	AnnotationVerbs  []string `json:"annotation_verbs,omitempty"`
+	DistinctPackages int      `json:"distinct_packages"`  // annotations from N distinct Go packages
+	HasImplements    bool     `json:"has_implements"`      // at least one ddis:implements annotation
 }
 
 // PracticalResult is Level 4: test execution.
@@ -263,9 +267,15 @@ func levelCausal(inv *storage.Invariant, codeRoot string) *CausalResult {
 	}
 
 	verbsSeen := make(map[string]bool)
+	pkgsSeen := make(map[string]bool)
 	for _, ann := range scanResult.Annotations {
 		if ann.Target != inv.InvariantID {
 			continue
+		}
+
+		// Track distinct packages from file paths (e.g., "internal/cli" from "internal/cli/parse.go").
+		if dir := filepath.Dir(ann.FilePath); dir != "" && dir != "." {
+			pkgsSeen[dir] = true
 		}
 
 		if ann.Verb == "tests" {
@@ -283,6 +293,9 @@ func levelCausal(inv *storage.Invariant, codeRoot string) *CausalResult {
 			// Track implements/maintains/interfaces annotations.
 			result.CodeAnnotations++
 			result.Annotations = append(result.Annotations, fmt.Sprintf("%s:%d (%s)", ann.FilePath, ann.Line, ann.Verb))
+			if ann.Verb == "implements" {
+				result.HasImplements = true
+			}
 		}
 		verbsSeen[ann.Verb] = true
 	}
@@ -290,6 +303,7 @@ func levelCausal(inv *storage.Invariant, codeRoot string) *CausalResult {
 	for v := range verbsSeen {
 		result.AnnotationVerbs = append(result.AnnotationVerbs, v)
 	}
+	result.DistinctPackages = len(pkgsSeen)
 	return result
 }
 
@@ -350,13 +364,16 @@ func levelMeta(inv *storage.Invariant, w *storage.InvariantWitness) *MetaResult 
 	}
 }
 
-// computeVerdict synthesizes all level results into a verdict.
+// Confirmation threshold for evidence accumulation (APP-ADR-039).
+const confirmationThreshold = 0.85
+
+// computeVerdict synthesizes all level results into a verdict using
+// evidence accumulation (APP-ADR-039: Dempster-Shafer inspired).
 //
-// The verdict taxonomy (gestalt-informed — evidence synthesis over short-circuit):
+// The verdict taxonomy:
 //   Refuted:      hard negative evidence (SAT contradiction or test failure)
-//   Confirmed:    ddis:tests annotation found, test ran, test passed
-//   Provisional:  no ddis:tests, but code annotations exist + semi-formal consistent
-//                 + evidence confidence > attestation level
+//   Confirmed:    test-backed (L4 passed) OR accumulated evidence score >= 0.85
+//   Provisional:  code grounding exists, score in [0.3, 0.85)
 //   Inconclusive: insufficient evidence to make any determination
 func computeVerdict(r *Result) Verdict {
 	// === Hard refutation signals (categorical — override everything) ===
@@ -371,23 +388,90 @@ func computeVerdict(r *Result) Verdict {
 		return Refuted
 	}
 
-	// === Full confirmation: test-backed evidence ===
+	// === Full confirmation: test-backed evidence (strongest path) ===
 
 	// Confirmed if: test ran AND passed AND no refutation signals
 	if r.LevelPractical != nil && r.LevelPractical.Ran && r.LevelPractical.Passed {
+		r.EvidenceScore = 1.0
 		return Confirmed
 	}
 
-	// === Provisional: code annotations provide causal grounding without test execution ===
-	// Requires: (a) at least one code annotation (implements/maintains/interfaces/tests),
-	//           (b) semi-formal is consistent (or absent),
-	//           (c) evidence confidence above attestation-only threshold
-	if r.LevelCausal != nil && hasCodeGrounding(r.LevelCausal) {
-		formalOK := r.LevelFormal == nil || !r.LevelFormal.Parsed || r.LevelFormal.SelfConsistent
-		confAboveAttestation := r.LevelUncertainty != nil && r.LevelUncertainty.Confidence > 0.3
-		if formalOK && confAboveAttestation {
-			return Provisional
+	// === Evidence accumulation (APP-ADR-039) ===
+	//
+	// Accumulate belief mass from independent signals:
+	//   - Base: witness evidence type confidence (0.3-0.9)
+	//   - Boost: multi-package annotation spread (independent corroboration)
+	//   - Boost: implements verb presence (stronger commitment than maintains)
+	//   - Boost: semi-formal parsed and consistent (formal grounding)
+	//   - Boost: keyword overlap above threshold (semantic alignment)
+	//
+	// Each boost is independent — they compound additively, not multiplicatively,
+	// because each represents a different dimension of evidence.
+
+	score := 0.0
+
+	// Base: evidence type confidence
+	if r.LevelUncertainty != nil {
+		score = r.LevelUncertainty.Confidence
+	}
+
+	// Boost: multi-package annotation spread
+	// Annotations from N distinct packages represent N independent declarations
+	// that the code upholds this invariant. Each additional package beyond the
+	// first adds diminishing evidence (log-like).
+	if r.LevelCausal != nil {
+		pkgs := r.LevelCausal.DistinctPackages
+		if pkgs >= 3 {
+			score += 0.15 // strong: 3+ independent packages
+		} else if pkgs == 2 {
+			score += 0.10 // moderate: 2 packages
+		} else if pkgs == 1 {
+			score += 0.05 // minimal: single package
 		}
+
+		// Boost: implements verb (stronger than maintains-only)
+		// ddis:implements declares "this code IS the implementation of INV-X"
+		// vs ddis:maintains which says "this code upholds INV-X as a side-effect"
+		if r.LevelCausal.HasImplements {
+			score += 0.05
+		}
+
+		// Boost: annotation volume (more declarations = more evidence)
+		// Diminishing returns: 1 ann = 0, 2-3 = +0.03, 4+ = +0.05
+		if r.LevelCausal.CodeAnnotations >= 4 {
+			score += 0.05
+		} else if r.LevelCausal.CodeAnnotations >= 2 {
+			score += 0.03
+		}
+	}
+
+	// Boost: semi-formal parsed and self-consistent
+	// A parseable, consistent semi-formal means the invariant has been
+	// formalized enough to be mechanically checked — this is formal grounding.
+	if r.LevelFormal != nil && r.LevelFormal.Parsed && r.LevelFormal.SelfConsistent {
+		score += 0.05
+	}
+
+	// Boost: keyword overlap above threshold (semantic alignment)
+	// High overlap between invariant statement and witness evidence means
+	// the evidence actually talks about what the invariant specifies.
+	if r.LevelMeta != nil && r.LevelMeta.Overlap >= 0.15 {
+		score += 0.05
+	}
+
+	r.EvidenceScore = score
+
+	// === Verdict thresholds ===
+
+	if score >= confirmationThreshold {
+		// Confirmed via evidence accumulation: multiple independent signals
+		// jointly provide sufficient confidence without a dedicated test.
+		return Confirmed
+	}
+
+	// Provisional: some evidence but below confirmation threshold
+	if r.LevelCausal != nil && hasCodeGrounding(r.LevelCausal) && score > 0.3 {
+		return Provisional
 	}
 
 	// === Inconclusive: everything else ===

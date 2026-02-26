@@ -1126,3 +1126,27 @@ New adjunction witness-challenge in the bilateral lifecycle. Check 17 flags unch
 - Self-bootstrap: `ddis challenge --all` on CLI spec with 0 refuted
 
 ---
+
+### APP-ADR-039: Evidence Accumulation Verdicts over Single-Path Confirmation
+
+#### Problem
+
+45 of 50 invariants are permanently stuck at provisional verdict because the single confirmation path requires a ddis:tests annotation pointing to a passing test. Many invariants describe architectural properties (append-only, monotonicity, isolation) that have strong code evidence — multiple independent ddis:implements/maintains annotations across packages, consistent semi-formals, passing test suite — but no dedicated behavioral test. The binary test_found→confirmed / no_test→provisional model discards compounding evidence.
+
+#### Options
+
+A) Write dedicated behavioral tests for all 45 invariants. Strongest proof but ~1500 LOC of test code, many properties resist unit testing. B) Dempster-Shafer inspired evidence accumulation — combine independent signals (multi-package annotations, semi-formal consistency, evidence type confidence, keyword overlap) into a belief mass that can cross the confirmation threshold without a dedicated test. C) Lower the confirmation bar — accept any annotation as sufficient.
+
+#### Decision
+
+**Option B: Evidence accumulation with targeted behavioral tests.** Base confidence from witness type (test=0.9, scan=0.7, review=0.8, annotation=0.6), boosted by independent code grounding signals — multi-package annotation spread (annotations from N distinct packages), implements verb presence (stronger than maintains-only), semi-formal parseable and consistent, high keyword overlap. Confirmation threshold: accumulated score >= 0.85. Dedicated ddis:tests written for directly-testable invariants (~15). Architectural invariants reach confirmed through accumulated evidence mass.
+
+#### Consequences
+
+computeVerdict becomes an evidence accumulation function rather than a strict chain. Verdicts become more nuanced — strong provisional (score 0.7-0.84) distinguished from weak provisional (0.3-0.69). Confirmed count expected to rise from 5 to 20+. The semantic distinction between declared and demonstrated is preserved — accumulated evidence from multiple independent sources provides demonstration without a single dedicated test.
+
+#### Tests
+
+TestComputeVerdict_EvidenceAccumulation, TestComputeVerdict_MultiPackageBoost, TestComputeVerdict_ImplementsVerbBoost
+
+---

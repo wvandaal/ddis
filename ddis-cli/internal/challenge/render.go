@@ -68,7 +68,7 @@ func renderHuman(r *Result) string {
 		fmt.Fprintf(&b, "\n  L2 Uncertainty: type=%s confidence=%.1f", r.LevelUncertainty.EvidenceType, r.LevelUncertainty.Confidence)
 	}
 	if r.LevelCausal != nil {
-		fmt.Fprintf(&b, "\n  L3 Causal:      test_found=%v code_annotations=%d", r.LevelCausal.TestFound, r.LevelCausal.CodeAnnotations)
+		fmt.Fprintf(&b, "\n  L3 Causal:      test_found=%v code_annotations=%d pkgs=%d", r.LevelCausal.TestFound, r.LevelCausal.CodeAnnotations, r.LevelCausal.DistinctPackages)
 		if r.LevelCausal.TestName != "" {
 			fmt.Fprintf(&b, " test=%s", r.LevelCausal.TestName)
 		}
@@ -78,6 +78,9 @@ func renderHuman(r *Result) string {
 	}
 	if r.LevelMeta != nil {
 		fmt.Fprintf(&b, "\n  L5 Meta:        overlap=%.2f (inv=%d evid=%d shared=%d)", r.LevelMeta.Overlap, r.LevelMeta.InvTerms, r.LevelMeta.EvidTerms, r.LevelMeta.Shared)
+	}
+	if r.EvidenceScore > 0 {
+		fmt.Fprintf(&b, "\n  Evidence score: %.2f (threshold=%.2f)", r.EvidenceScore, confirmationThreshold)
 	}
 	if r.WitnessInvalidated {
 		fmt.Fprintf(&b, "\n  Witness INVALIDATED (refuted)")

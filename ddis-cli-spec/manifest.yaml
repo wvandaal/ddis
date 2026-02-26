@@ -137,6 +137,7 @@ modules:
       - APP-ADR-011
       - APP-ADR-030
       - APP-ADR-037
+      - APP-ADR-039
     adjacent: [parse-pipeline, search-intelligence, query-validation]
     deep_context: null
     negative_specs:
