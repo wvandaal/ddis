@@ -3,6 +3,7 @@ package consistency
 // ddis:implements APP-ADR-038 (Z3 subprocess as Tier 5 — orchestrator)
 // ddis:maintains APP-ADR-034 (superseded — gophersat retained for fast propositional path)
 // ddis:maintains APP-INV-019 (contradiction graph soundness — zero false positives)
+// ddis:maintains APP-INV-024 (ambiguity surfacing — contradiction detection surfaces conflicts, never auto-resolves)
 
 import (
 	"database/sql"

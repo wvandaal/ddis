@@ -3,6 +3,7 @@ package challenge
 // ddis:implements APP-INV-050 (challenge-witness adjunction fidelity)
 // ddis:implements APP-ADR-037 (challenge as right adjoint of witness)
 // ddis:implements APP-ADR-039 (evidence accumulation verdicts — computeVerdict)
+// ddis:maintains APP-INV-052 (challenge-driven task derivation — produces verdicts consumed by DeriveFromChallenges)
 
 import (
 	"bufio"

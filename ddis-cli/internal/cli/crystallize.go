@@ -2,6 +2,7 @@ package cli
 
 // ddis:maintains APP-INV-028 (spec-as-trunk — crystallization feeds discoveries into spec)
 // ddis:maintains APP-INV-033 (absorption format parity — generated content indistinguishable from hand-authored)
+// ddis:implements APP-INV-025 (discovery provenance chain — records decision_crystallized event linking artifact to discovery thread)
 
 import (
 	"encoding/json"

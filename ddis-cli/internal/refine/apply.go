@@ -1,5 +1,8 @@
 package refine
 
+// ddis:maintains APP-INV-023 (prompt self-containment — Apply bundles element content, exemplars, and gap analysis into complete prompt)
+// ddis:implements APP-INV-035 (guidance attenuation — enforces TokenTarget budget; trims exemplar set on deep conversations via KStarEff)
+
 import (
 	"database/sql"
 	"fmt"

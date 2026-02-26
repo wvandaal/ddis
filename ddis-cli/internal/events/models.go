@@ -2,6 +2,8 @@ package events
 
 // ddis:implements APP-ADR-015 (three-stream event sourcing — event envelope)
 // ddis:implements APP-INV-020 (event stream append-only — immutable records)
+// ddis:maintains APP-INV-027 (thread topology primacy — event envelope carries thread_id as primary field)
+// ddis:maintains APP-INV-029 (convergent thread selection — events carry thread_id from convergent selection)
 
 import (
 	"crypto/sha256"

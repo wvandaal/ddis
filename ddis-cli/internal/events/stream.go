@@ -2,6 +2,7 @@ package events
 
 // ddis:implements APP-ADR-015 (three-stream event sourcing — write/read/correlate)
 // ddis:implements APP-INV-020 (event stream append-only — O_APPEND, no modifications)
+// ddis:maintains APP-INV-025 (discovery provenance chain — AppendEvent enforces append-only JSONL provenance records)
 
 import (
 	"bufio"

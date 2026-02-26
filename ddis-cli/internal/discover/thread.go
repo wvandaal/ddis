@@ -1,6 +1,8 @@
 package discover
 
 // ddis:implements APP-ADR-019 (threads over sessions)
+// ddis:implements APP-INV-027 (thread topology primacy — threads persist across sessions, LLMs, and humans)
+// ddis:implements APP-INV-029 (convergent thread selection — ConvergeThread infers from content; user_override always available)
 
 import (
 	"bufio"

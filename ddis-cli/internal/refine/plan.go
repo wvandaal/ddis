@@ -1,6 +1,6 @@
 package refine
 
-// ddis:maintains APP-INV-024 (ambiguity surfacing without resolution)
+// ddis:implements APP-INV-024 (ambiguity surfacing — surfaceAmbiguities returns questions only, never resolutions)
 // ddis:implements APP-ADR-017 (gestalt theory integration)
 
 import (

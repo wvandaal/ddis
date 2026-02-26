@@ -11,6 +11,7 @@ import (
 
 // ddis:implements APP-ADR-022 (state monad architecture)
 // ddis:maintains APP-INV-022 (refinement drift monotonicity)
+// ddis:maintains APP-INV-024 (ambiguity surfacing — --surface-ambiguity flag surfaces questions without autonomous resolution)
 
 var (
 	refineSpec      string

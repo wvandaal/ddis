@@ -2,6 +2,8 @@ package refine
 
 // ddis:implements APP-ADR-022 (state monad architecture)
 // ddis:maintains APP-INV-022 (refinement drift monotonicity)
+// ddis:maintains APP-INV-023 (prompt self-containment — Audit consolidates drift, validation, coverage into one diagnostic)
+// ddis:maintains APP-INV-024 (ambiguity surfacing — detects unresolved spec elements without modifying them)
 
 import (
 	"database/sql"

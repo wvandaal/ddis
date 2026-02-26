@@ -1,5 +1,9 @@
 package absorb
 
+// ddis:implements APP-INV-028 (spec-as-trunk — undocumented_behavior detection flags impl bypassing spec)
+// ddis:implements APP-INV-032 (symmetric reconciliation — bidirectional gap analysis: undocumented_behavior + unimplemented_spec)
+// ddis:maintains APP-INV-035 (guidance attenuation — applies Attenuation(depth) to scale guidance tokens)
+
 import (
 	"database/sql"
 	"fmt"

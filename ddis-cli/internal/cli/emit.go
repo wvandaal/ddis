@@ -2,6 +2,7 @@ package cli
 
 // ddis:implements APP-ADR-015 (three-stream event sourcing — CLI emission wiring)
 // ddis:maintains APP-INV-020 (event stream append-only — best-effort, never blocks commands)
+// ddis:implements APP-INV-053 (event stream completeness — emitEvent wires CLI commands to event streams)
 
 import (
 	"fmt"

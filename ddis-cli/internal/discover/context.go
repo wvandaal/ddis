@@ -1,6 +1,8 @@
 package discover
 
 // ddis:maintains APP-INV-028 (spec-as-trunk)
+// ddis:implements APP-INV-023 (prompt self-containment — BuildContext assembles threads, mode, confidence, drift into single CommandResult)
+// ddis:maintains APP-INV-035 (guidance attenuation — applies KStarEff and Attenuation to scale guidance by depth)
 
 import (
 	"database/sql"

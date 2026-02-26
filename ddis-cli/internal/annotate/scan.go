@@ -12,6 +12,7 @@ import (
 
 // ddis:maintains APP-INV-017 (annotation portability)
 // ddis:maintains APP-INV-018 (scan-spec correspondence)
+// ddis:maintains APP-INV-032 (symmetric reconciliation — code-side evidence feeding absorb's bidirectional gap analysis)
 
 // DefaultExcludes are directory patterns excluded from scanning by default.
 var DefaultExcludes = []string{".git", "vendor", "node_modules", "bin", "testdata", ".ddis"}

@@ -2,6 +2,7 @@ package events
 
 // ddis:implements APP-ADR-015 (three-stream event sourcing — typed event schemas)
 // ddis:maintains APP-INV-020 (event stream append-only — version field enables forward-compatible evolution)
+// ddis:maintains APP-INV-053 (event stream completeness — 22 typed event types covering all 3 streams)
 
 import "fmt"
 
