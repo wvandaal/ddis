@@ -166,4 +166,5 @@ func init() {
 	rootCmd.AddCommand(specCmd)
 	rootCmd.AddCommand(historyCmd)
 	rootCmd.AddCommand(agentHelpCmd)
+	rootCmd.AddCommand(versionCmd)
 }

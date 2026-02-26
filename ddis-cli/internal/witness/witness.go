@@ -116,7 +116,10 @@ func Record(db *sql.DB, specID int64, opts Options) (*storage.InvariantWitness, 
 		}
 		// Override evidence with scan result
 		opts.EvidenceType = "scan"
-		evidence, _ := json.Marshal(vr)
+		evidence, err := json.Marshal(vr)
+		if err != nil {
+			return nil, fmt.Errorf("marshal verify result: %w", err)
+		}
 		opts.Evidence = string(evidence)
 	}
 
@@ -350,6 +353,9 @@ func readCodeSnippet(filePath string, codeRoot string, targetLine int, radius in
 		if lineNum > end {
 			break
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Sprintf("(read error in %s: %v)\n%s", filePath, err, strings.Join(lines, "\n"))
 	}
 
 	return strings.Join(lines, "\n")

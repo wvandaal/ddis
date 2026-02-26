@@ -1,7 +1,14 @@
 .PHONY: build test test-roundtrip test-query test-validate test-diff test-impact test-oplog test-tx test-search install clean
 
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+COMMIT  ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
+DATE    ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+LDFLAGS := -X github.com/wvandaal/ddis/internal/cli.Version=$(VERSION) \
+           -X github.com/wvandaal/ddis/internal/cli.Commit=$(COMMIT) \
+           -X github.com/wvandaal/ddis/internal/cli.Date=$(DATE)
+
 build:
-	go build -o bin/ddis ./cmd/ddis
+	go build -ldflags "$(LDFLAGS)" -o bin/ddis ./cmd/ddis
 
 test:
 	go test ./... -v
@@ -64,7 +71,7 @@ test-search: build
 	./bin/ddis context §0.5 /tmp/test.db --oplog-path /tmp/test-oplog.jsonl
 
 install:
-	go install ./cmd/ddis
+	go install -ldflags "$(LDFLAGS)" ./cmd/ddis
 
 clean:
 	rm -rf bin/
