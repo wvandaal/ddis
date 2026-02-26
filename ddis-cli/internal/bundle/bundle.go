@@ -8,6 +8,12 @@ import (
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
+// Default line budgets for bundle assembly. Overridden by manifest if set.
+const (
+	DefaultLineCeiling = 5000
+	DefaultLineTarget  = 4000
+)
+
 // Options controls bundle assembly behavior.
 type Options struct {
 	ContentOnly bool
@@ -124,8 +130,8 @@ func Assemble(db *sql.DB, specID int64, domain string, opts Options) (*BundleRes
 	// 4. Compute budget
 	result.TotalLines = result.ConstitutionLines + result.ModuleLines + result.InterfaceLines
 	manifest, _ := storage.GetManifest(db, specID)
-	ceiling := 5000
-	target := 4000
+	ceiling := DefaultLineCeiling
+	target := DefaultLineTarget
 	if manifest != nil {
 		if manifest.HardCeilingLines > 0 {
 			ceiling = manifest.HardCeilingLines

@@ -17,7 +17,7 @@ var timeNow = time.Now
 
 // RecordEvent appends a discovery event to the JSONL stream.
 func RecordEvent(eventsDir string, threadID string, eventType string, data map[string]interface{}) error {
-	if err := os.MkdirAll(eventsDir, 0755); err != nil {
+	if err := os.MkdirAll(eventsDir, 0o755); err != nil {
 		return fmt.Errorf("create events dir: %w", err)
 	}
 
@@ -38,7 +38,7 @@ func RecordEvent(eventsDir string, threadID string, eventType string, data map[s
 	}
 
 	path := filepath.Join(eventsDir, "discovery.jsonl")
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return fmt.Errorf("open discovery events file: %w", err)
 	}
