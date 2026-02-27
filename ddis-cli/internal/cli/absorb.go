@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/wvandaal/ddis/internal/absorb"
+	"github.com/wvandaal/ddis/internal/events"
 )
 
 // ddis:implements APP-ADR-024 (bilateral specification)
@@ -70,5 +71,12 @@ func runAbsorb(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Println(out)
+
+	// ddis:maintains APP-INV-053 (event stream completeness — emits implementation_finding to stream 3)
+	emitEvent(".", events.StreamImplementation, events.TypeImplementationFinding, "", map[string]interface{}{
+		"code_root": args[0],
+		"command":   "absorb",
+	})
+
 	return nil
 }

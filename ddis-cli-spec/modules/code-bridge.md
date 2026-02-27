@@ -154,7 +154,7 @@ FOR ALL validate_operations:
   event_stream receives exactly one event: {type: "validation_run", check_results, spec_hash}
 ```
 
-Violation scenario: A `ddis parse --force` recreates the SQLite database. The event stream is stored in the same SQLite file. All historical parse and validation events are lost. The developer can no longer track how the spec evolved over time --- the entire temporal record is gone.
+Violation scenario: Suppose event streams were stored inside the SQLite database rather than in append-only JSONL files. A `ddis parse --force` recreates the database. All historical parse and validation events would be lost. The developer could no longer track how the spec evolved --- the entire temporal record gone. This motivates the JSONL design: stream files at `.ddis/events/stream-{1,2,3}.jsonl` survive database recreation by existing outside the DB.
 
 Validation: Write 5 events to the stream. Run `ddis parse --force` (which recreates the DB). Verify all 5 events are still present and in original order. Write 1 more event. Verify it appears after the original 5 with a monotonically increasing timestamp. Additionally, write two events with identical payloads; verify their content hashes match. Write two events with different payloads; verify their content hashes differ.
 
@@ -364,7 +364,7 @@ C) **Tiered pure-Go** --- Layer multiple techniques: graph analysis (existing BF
 - Cons: more code surface than single technique
 
 #### Decision
-**Option C: Tiered pure-Go.** Four detection tiers, each targeting a different contradiction class:
+**Option C: Tiered pure-Go.** Six detection tiers, each targeting a different contradiction class:
 
 - **Tier 1 (structural)**: Existing 14 validator checks already catch structural inconsistencies (orphan references, broken declarations, missing components). Zero additional code.
 - **Tier 2 (graph)**: Typed cross-reference edges (supports/requires/qualifies/conflicts/supersedes), contradictory cycle detection (DFS + sign tracking), governance overlap analysis, unsupported invariant detection. Reuses `internal/impact/impact.go` BFS and `internal/search/authority.go` PageRank. ~200 LOC.
@@ -408,7 +408,7 @@ C) **Four-tier layered** --- structural validation (existing), graph analysis, S
 - Cons: four subsystems to maintain
 
 #### Decision
-**Option C: Four-tier layered.** (Updated per APP-ADR-034 — Z3 replaced with pure-Go tiers.)
+**Option C: Six-tier layered.** (Updated per APP-ADR-034 — Z3 replaced with pure-Go tiers.)
 
 - Tier 1 (structural): Existing 14 validator checks catch structural inconsistencies.
 - Tier 2 (graph): Typed cross-ref edges, cycle detection, governance overlap. Reuses existing BFS + PageRank.
@@ -620,9 +620,9 @@ Result: 3 annotations, 3 unique targets, 1 file with annotations.
 
 **Interfaces:** APP-INV-002 (Validation Determinism --- contradiction results are deterministic for the same spec).
 
-Contradiction detection operates in two tiers. Tier 1 (graph-based) runs in pure Go with no external dependencies. Tier 2 (Z3-based) requires the SMT solver but catches semantic contradictions that Tier 1 cannot. Both tiers run on every invocation; results are merged with deduplication by element pair.
+Contradiction detection operates in five tiers (Tiers 2--6). Tier 2 (graph-based) runs in pure Go with no external dependencies. Tier 3 (SAT) encodes semi-formal expressions as propositional logic via gophersat. Tier 4 (heuristic + semantic) catches natural-language contradictions through polarity and tension analysis. Tier 5 (SMT/Z3) handles arithmetic constraints via Z3 subprocess. Tier 6 (LLM-as-judge) detects semantic contradictions that formal methods miss. All tiers run on every invocation; results are merged with deduplication by element pair. Tier 1 (structural) operates through the existing 16 validator checks, not the contradiction pipeline.
 
-#### Tier 1: Predicate Extraction (`predicate.go`)
+#### Tier 2: Predicate Extraction (`graph.go`)
 
 `ExtractPredicates(db storage.DB, specID int64) ([]PredicateTuple, error)` queries all invariants, ADRs, and negative specs for the spec, then parses each element's statement and semi_formal fields:
 
@@ -636,7 +636,7 @@ Contradiction detection operates in two tiers. Tier 1 (graph-based) runs in pure
 4. Normalize: lowercase, strip articles, collapse whitespace
 5. Return `PredicateTuple{ElementID, Subject, Modal, Predicate, SourceText, ContentHash}`
 
-#### Tier 1: Conflict Graph (`graph.go`)
+#### Tier 2: Conflict Graph (`graph.go`)
 
 `BuildConflictGraph(predicates []PredicateTuple) *ConflictGraph` constructs the graph:
 
@@ -650,7 +650,7 @@ Contradiction detection operates in two tiers. Tier 1 (graph-based) runs in pure
 
 `DetectContradictions(graph *ConflictGraph) []Contradiction` returns all conflicts with their confidence scores.
 
-#### Tier 2: Z3 Translation (`z3.go`)
+#### Tier 5: Z3 Translation (`smt.go`)
 
 `TranslateToZ3(predicates []PredicateTuple) ([]z3.AST, error)` converts semi_formal fields to Z3 assertions:
 
@@ -670,6 +670,47 @@ Critical rule: each unique identifier in a semi_formal field maps to exactly one
 
 `CheckSatisfiability(assertions []z3.AST) (z3.Result, z3.Model, error)` runs the solver. If UNSAT, the model is nil and the conflicting assertion core is extracted for the report.
 
+#### Tier 3: SAT Encoding (`sat.go`)
+
+`analyzeSAT` translates semi-formal predicates into conjunctive normal form (CNF) and feeds the combined clause set to a CDCL SAT solver (gophersat). The key design decision preserving APP-INV-021 (detection completeness) is a **shared variable namespace**: identifiers appearing in different invariants' semi-formals are unified into the same boolean variable via `VarMap`. This ensures cross-invariant conflicts are detectable.
+
+**CNF Translation Rules:**
+
+| Semi-formal Pattern | CNF Translation |
+|---|---|
+| `FOR ALL x: P(x)` | Extract variables from quantifier body |
+| `A IMPLIES B` | `(NOT A OR B)` — single clause |
+| `A AND B` | Split into separate unit clauses |
+| `A OR B` | Single clause with both literals |
+| `NOT P` | Negated literal of `P` |
+
+Each invariant's semi-formal becomes one or more CNF clauses. The combined clause set across all invariants is fed to `solver.Solve()`. UNSAT means the invariant set is mutually contradictory (conflict type: `SATUnsatisfiable`). Confidence: 0.85 (propositional encoding loses arithmetic and quantifier semantics that Tier 5 captures).
+
+#### Tier 4: Heuristic + Semantic Analysis (`heuristic.go`, `semantic.go`)
+
+Two complementary analyzers run at Tier 4, catching patterns that formal solvers miss:
+
+**Heuristic analysis** (`analyzeHeuristic`) applies three lightweight checks against invariant semi-formals and statement text:
+
+1. **Polarity inversion** (confidence 0.6): detects "must X" vs "must not X" on overlapping subjects (overlap threshold >0.5). Conflict type: `PolarityInversion`.
+2. **Quantifier conflict** (confidence 0.5): universal ("for all") vs existential negation ("no X may") with subject overlap >0.4. Conflict type: `QuantifierConflict`.
+3. **Numeric bound conflict** (confidence 0.7): incompatible quantitative constraints (`at_most` vs `at_least`, `exactly` vs different-`exactly`) on the same subject. Conflict type: `NumericBoundConflict`.
+
+**Semantic analysis** (`analyzeSemantic`) builds TF-IDF vectors from invariant statement text and computes pairwise cosine similarity:
+
+- Similarity >0.85 between invariants with opposing polarity produces `SemanticTension` (confidence: `sim * 0.7`)
+- Invariant-vs-negative_spec similarity >0.7 produces suspicious alignment (confidence: `sim * 0.5`)
+
+Both analyzers require no external dependencies and run in ~1ms per pair.
+
+#### Tier 6: LLM-as-Judge (`llm.go`)
+
+`analyzeLLM` targets invariant pairs whose semi-formals could not be fully parsed by Tiers 3--5 (natural language or mixed-formality statements). Each pair is classified as contradictory/compatible/independent via the Anthropic API (preserving APP-ADR-042).
+
+**Majority vote protocol** (preserving APP-INV-055): 3 independent completions per pair. 3/3 agreement yields confidence 0.95; 2/3 agreement yields confidence 0.80; less than 2/3 produces no verdict (confidence 0.0). Response normalization extracts the first word of each completion and maps "contradictory"/"contradiction" to contradictory, "consistent"/"compatible" to compatible.
+
+**Graceful degradation** (preserving APP-INV-054): `LLMAvailable()` checks whether a provider is configured. If `ANTHROPIC_API_KEY` is absent, Tier 6 is silently skipped with zero contradictions reported. For testability, `SetLLMProvider()` injects mock providers.
+
 #### Worked Example: Detecting a Genuine Contradiction
 
 *Example INV-XYZ:* All API responses must complete within 50 milliseconds.
@@ -683,9 +724,9 @@ semi_formal: "FOR ALL request r: sequential_middleware(r, [auth, rate_limit, log
               min_latency(auth) = 25ms AND min_latency(rate_limit) = 20ms AND min_latency(logging) = 8ms"
 ```
 
-**Tier 1:** Extracts (api_response, must, complete_within_50ms) and (request, must, pass_through_sequential_middleware). No negation pair, no quantifier conflict. Result: no contradiction detected.
+**Tier 2 (graph):** Extracts (api_response, must, complete_within_50ms) and (request, must, pass_through_sequential_middleware). No negation pair, no quantifier conflict. Result: no contradiction detected.
 
-**Tier 2:** Z3 translation:
+**Tier 5 (SMT/Z3):** Z3 translation:
 
 ```smt2
 (declare-const response_time_r Int)
@@ -700,19 +741,19 @@ semi_formal: "FOR ALL request r: sequential_middleware(r, [auth, rate_limit, log
 (check-sat)  ; -> UNSAT (25+20+8=53 > 50)
 ```
 
-Z3 result: **UNSAT** --- the class of contradiction that Tier 1 cannot detect and that motivated APP-ADR-014.
+Z3 result: **UNSAT** --- the class of arithmetic contradiction that Tier 2 (graph) cannot detect and that motivated APP-ADR-038.
 
 **Implementation Trace:**
-- Source: `internal/contradiction/predicate.go::ExtractPredicates`
-- Source: `internal/contradiction/predicate.go::parseModalPattern`
-- Source: `internal/contradiction/predicate.go::normalizePredicate`
-- Source: `internal/contradiction/graph.go::BuildConflictGraph`
-- Source: `internal/contradiction/graph.go::DetectContradictions`
-- Source: `internal/contradiction/graph.go::detectCycles`
-- Source: `internal/contradiction/z3.go::TranslateToZ3`
-- Source: `internal/contradiction/z3.go::CheckSatisfiability`
-- Source: `internal/contradiction/models.go::PredicateTuple`
-- Source: `internal/contradiction/models.go::Contradiction`
+- Source: `internal/consistency/graph.go::BuildConflictGraph`
+- Source: `internal/consistency/graph.go::DetectContradictions`
+- Source: `internal/consistency/graph.go::detectCycles`
+- Source: `internal/consistency/sat.go::CheckSAT`
+- Source: `internal/consistency/heuristic.go::CheckHeuristic`
+- Source: `internal/consistency/semantic.go::CheckSemantic`
+- Source: `internal/consistency/smt.go::CheckSMT`
+- Source: `internal/consistency/smt.go::translateToSMTLIB2`
+- Source: `internal/consistency/llm.go::CheckLLM`
+- Source: `internal/consistency/models.go::Contradiction`
 
 ---
 

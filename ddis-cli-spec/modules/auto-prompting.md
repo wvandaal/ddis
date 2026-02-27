@@ -784,6 +784,49 @@ Best match: t-ttl-strategies at 0.672 (above 0.4 threshold). Selected via LSI se
 
 ---
 
+### Algorithm: Mode-Influenced Navigation
+
+Commands that emit guidance (ddis next, ddis context, ddis refine) MUST consult the latest `mode_observed` event from Stream 1. The observed cognitive mode adjusts the guidance postscript without overriding the mechanical priority (validation > coverage > drift). This preserves APP-INV-026 (non-prescriptive classification): mode informs, never dictates.
+
+**Mode-to-guidance mapping** (applied only when all mechanical checks pass):
+
+| Observed Mode | Guidance Adjustment |
+|---|---|
+| crystallization | Suggest `ddis witness` or `ddis challenge` — crystallize discoveries into proof |
+| divergent | Suggest `ddis discover` or broad `ddis search` — widen the inquiry space |
+| incubation | Suggest `ddis context` or `ddis refine audit` — review without commitment |
+| convergent | Suggest `ddis validate` or `ddis challenge --all` — tighten toward closure |
+| dialectical | Suggest `ddis contradict` or `ddis refine plan --surface-ambiguity` — explore tensions |
+
+When mechanical issues exist (failed checks, drift > 0, refuted invariants), the priority pyramid takes precedence and mode guidance is suppressed.
+
+**Implementation Trace:**
+- Source: `internal/cli/next.go::runNext`
+- Source: `internal/events/stream.go::ReadStream`
+
+---
+
+### Algorithm: Convergence Detection
+
+The RALPH loop (audit-plan-apply-judge) terminates when the specification has converged. Convergence is a conjunction of four conditions:
+
+```
+isConverged(db, specID) := drift == 0
+  AND validation_passed == total_checks
+  AND all_witnesses_valid
+  AND quality_plateau (delta == 0 for current iteration)
+```
+
+When `isConverged` returns true, `ddis refine judge` emits a convergence message recommending that the agent stop the refinement loop. The agent MAY continue if it has domain-specific reasons to iterate (new requirements, pending exploration threads).
+
+The plateau condition prevents premature convergence: a single zero-delta iteration after a sequence of improvements does not indicate convergence if drift is still nonzero.
+
+**Implementation Trace:**
+- Source: `internal/refine/judge.go::isConverged`
+- Source: `internal/refine/judge.go::Judge`
+
+---
+
 ### Algorithm: Exemplar Selection for Prompt Context
 
 The refine apply phase uses exemplars (demonstrations > constraints, per Gestalt Study 2). This algorithm selects the most relevant exemplars for a given quality dimension.

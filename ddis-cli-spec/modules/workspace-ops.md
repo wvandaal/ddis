@@ -641,6 +641,29 @@ Given 2 ADRs and 3 invariants across 2 phases, `ddis tasks --from-discovery sess
 
 ---
 
+### Chapter: Onboarding Flow
+
+**Preserves:** APP-INV-042 (Guidance Emission --- ddis next always recommends a concrete action).
+
+**Interfaces:** APP-INV-037 (Workspace Isolation --- init creates an isolated workspace).
+
+The onboarding flow ensures that `ddis next` provides correct guidance at every stage of a cold start, from an empty directory to a fully parsed spec.
+
+#### Cold-Start Detection
+
+When `ddis next` runs, it checks three conditions in order:
+
+1. **No manifest.yaml AND no .ddis/ directory** --- the user has never initialized. Suggest `ddis init`.
+2. **manifest.yaml exists but no .ddis/\*.db** --- the user has a spec but hasn't parsed. Suggest `ddis parse manifest.yaml`.
+3. **Database exists** --- delegate to the standard priority pyramid (validation > coverage > drift > challenges).
+
+This 3-stage detection replaces the previous behavior where a missing database always suggested `ddis parse`, even when no manifest existed.
+
+**Implementation Trace:**
+- Source: `internal/cli/next.go::runNext`
+
+---
+
 ### Chapter: Progressive Validation
 
 **Preserves:** APP-INV-040 (Progressive Validation Monotonicity --- levels are strictly ordered subsets), APP-INV-002 (Validation Determinism --- level assignment is deterministic).

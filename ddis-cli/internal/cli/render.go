@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/renderer"
 	"github.com/wvandaal/ddis/internal/storage"
 )
@@ -76,6 +77,13 @@ func runRender(cmd *cobra.Command, args []string) error {
 	default:
 		return fmt.Errorf("unknown format: %s (use 'monolith' or 'modular')", renderFormat)
 	}
+
+	// ddis:maintains APP-INV-053 (event stream completeness — emits artifact_written to stream 1)
+	emitEvent(dbPath, events.StreamDiscovery, events.TypeArtifactWritten, specHashFromDB(db, specID), map[string]interface{}{
+		"output_path": output,
+		"format":      renderFormat,
+		"command":     "render",
+	})
 
 	fmt.Println("Done.")
 	return nil

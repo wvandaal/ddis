@@ -1185,15 +1185,15 @@ Validation: Run ddis challenge --all. Then run ddis tasks --from-challenges. Ver
 
 **APP-INV-053: Event Stream Completeness**
 
-*Every state-mutating CLI command MUST emit a typed event to the appropriate event stream before returning, covering parse, validate, drift, contradict, and patch operations.*
+*Every state-mutating CLI command MUST emit a typed event to the appropriate event stream before returning, covering parse, validate, drift, contradict, patch, render, skeleton, manifest-sync, state, absorb, refine, init, and witness operations.*
 
 ```
-FOR ALL commands c IN {parse, validate, drift, contradict, patch}: post(c) IMPLIES EXISTS event e IN stream(c) WHERE e.type = event_type(c) AND e.spec_hash = current_spec_hash AND e.timestamp <= now()
+FOR ALL commands c IN {parse, validate, drift, contradict, patch, render, skeleton, manifest-sync, state, absorb, refine, init, witness}: post(c) IMPLIES EXISTS event e IN stream(c) WHERE e.type = event_type(c) AND e.spec_hash = current_spec_hash AND e.timestamp <= now()
 ```
 
 Violation scenario: An agent runs ddis parse followed by ddis validate. Both succeed, but no events appear on Stream 2 or Stream 3. A downstream event consumer (ddis drift, monitoring) has no visibility into these state changes. The event stream shows only discovery activity, giving a false impression that no spec work occurred.
 
-Validation: Run ddis parse and verify a spec_parsed event on Stream 2. Run ddis validate and verify a validation_run event on Stream 2. Run ddis drift and verify a drift_measured event on Stream 3. Run ddis contradict with contradictions and verify a contradiction_detected event on Stream 3. Run ddis patch and verify an amendment_applied event on Stream 2.
+Validation: Run each of the 13 covered commands and verify the corresponding event appears on its stream. Stream 2 (Specification): parse emits spec_parsed, validate emits validation_run, drift emits drift_measured, contradict emits contradiction_detected, patch emits amendment_applied, manifest-sync emits amendment_applied. Stream 1 (Discovery): render emits artifact_written, skeleton emits artifact_written, init emits artifact_written, refine emits finding_recorded. Stream 3 (Implementation): state emits status_changed, absorb emits implementation_finding, witness emits status_changed.
 
 // WHY THIS MATTERS: The spec defines 22 event types across 3 streams, but only discovery and challenge events are wired. Silent state mutations break the observability contract and prevent the bilateral lifecycle from closing its feedback loops through event-driven reactions.
 

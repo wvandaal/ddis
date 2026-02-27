@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/workspace"
 )
 
@@ -73,6 +74,12 @@ func runInit(cmd *cobra.Command, args []string) error {
 	} else {
 		fmt.Print(workspace.RenderText(result))
 	}
+
+	// ddis:maintains APP-INV-053 (event stream completeness — emits artifact_written to stream 1)
+	emitEvent(root, events.StreamDiscovery, events.TypeArtifactWritten, "", map[string]interface{}{
+		"root":    root,
+		"command": "init",
+	})
 
 	return nil
 }

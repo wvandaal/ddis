@@ -11,6 +11,7 @@ import (
 	"github.com/wvandaal/ddis/internal/autoprompt"
 	"github.com/wvandaal/ddis/internal/drift"
 	"github.com/wvandaal/ddis/internal/state"
+	"github.com/wvandaal/ddis/internal/validator"
 )
 
 // Judge compares before/after drift to enforce monotonicity.
@@ -114,6 +115,14 @@ func Judge(db *sql.DB, specID int64, iteration int) (*autoprompt.CommandResult, 
 	// 5. Store current drift in state
 	_ = state.Set(db, specID, "refine_drift_"+strconv.Itoa(iteration), strconv.Itoa(currDrift))
 
+	// 5b. Check convergence
+	if converged, reason := isConverged(db, specID, currDrift, hasPrev && (currDrift-prevDrift) == 0); converged {
+		output.WriteString("\nCONVERGED: " + reason + "\n")
+		output.WriteString("Recommendation: stop the RALPH loop. The spec is fully aligned.\n")
+		suggestedNext = []string{"Spec has converged — no further refinement needed."}
+		mode = "convergent"
+	}
+
 	// 6. Build CommandResult
 	attenuation := autoprompt.Attenuation(iteration)
 
@@ -134,4 +143,21 @@ func Judge(db *sql.DB, specID int64, iteration int) (*autoprompt.CommandResult, 
 			Attenuation:   attenuation,
 		},
 	}, nil
+}
+
+// isConverged checks whether the specification has reached full convergence.
+// Convergence requires: drift==0 AND all validation checks pass AND quality plateau.
+func isConverged(db *sql.DB, specID int64, currDrift int, plateau bool) (bool, string) {
+	if currDrift != 0 {
+		return false, ""
+	}
+	if !plateau {
+		return false, ""
+	}
+	// Check validation: all checks must pass
+	report, err := validator.Validate(db, specID, validator.ValidateOptions{})
+	if err != nil || report.Failed > 0 {
+		return false, ""
+	}
+	return true, fmt.Sprintf("drift=0, %d/%d checks pass, quality plateau reached", report.Passed, report.TotalChecks)
 }

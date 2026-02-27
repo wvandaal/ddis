@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/skeleton"
 )
 
@@ -56,5 +57,14 @@ func runSkeleton(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Printf("  Total: %d lines\n", result.TotalLines)
 	fmt.Printf("  Next: Fill sections following TODO markers, then run `ddis checkpoint`\n")
+
+	// ddis:maintains APP-INV-053 (event stream completeness — emits artifact_written to stream 1)
+	emitEvent(".", events.StreamDiscovery, events.TypeArtifactWritten, "", map[string]interface{}{
+		"output_dir":  result.OutputDir,
+		"total_lines": result.TotalLines,
+		"file_count":  len(result.Files),
+		"command":     "skeleton",
+	})
+
 	return nil
 }

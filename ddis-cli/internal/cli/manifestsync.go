@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/parser"
 )
 
@@ -190,6 +191,12 @@ func runManifestSync(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("apply sync: %w", err)
 		}
 		fmt.Printf("\nApplied %d field update(s) to %s\n", totalDiffs, manifestPath)
+		// ddis:maintains APP-INV-053 (event stream completeness — emits amendment_applied to stream 2)
+		emitEvent(manifestPath, events.StreamSpecification, events.TypeAmendmentApplied, "", map[string]interface{}{
+			"manifest_path": manifestPath,
+			"fields_synced": totalDiffs,
+			"command":       "manifest-sync",
+		})
 		if !NoGuidance {
 			fmt.Println("\nNext: ddis parse manifest.yaml && ddis validate")
 			fmt.Println("  Re-parse to verify the sync didn't break anything.")

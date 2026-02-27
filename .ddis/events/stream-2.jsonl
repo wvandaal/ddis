@@ -1,0 +1,17 @@
+{"id":"evt-20260227-12106","type":"amendment_applied","timestamp":"2026-02-27T01:56:52Z","spec_hash":"","stream":2,"payload":{"file":"modules/code-bridge.md","line":367}}
+{"id":"evt-20260227-27627","type":"amendment_applied","timestamp":"2026-02-27T01:57:07Z","spec_hash":"","stream":2,"payload":{"file":"modules/code-bridge.md","line":411}}
+{"id":"evt-20260227-33130","type":"amendment_applied","timestamp":"2026-02-27T01:57:13Z","spec_hash":"","stream":2,"payload":{"file":"modules/code-bridge.md","line":623}}
+{"id":"evt-20260227-50069","type":"amendment_applied","timestamp":"2026-02-27T01:57:30Z","spec_hash":"","stream":2,"payload":{"file":"modules/code-bridge.md","line":625}}
+{"id":"evt-20260227-50076","type":"amendment_applied","timestamp":"2026-02-27T01:57:30Z","spec_hash":"","stream":2,"payload":{"file":"modules/code-bridge.md","line":639}}
+{"id":"evt-20260227-50082","type":"amendment_applied","timestamp":"2026-02-27T01:57:30Z","spec_hash":"","stream":2,"payload":{"file":"modules/code-bridge.md","line":653}}
+{"id":"evt-20260227-68437","type":"amendment_applied","timestamp":"2026-02-27T01:57:48Z","spec_hash":"","stream":2,"payload":{"file":"modules/code-bridge.md","line":686}}
+{"id":"evt-20260227-68456","type":"amendment_applied","timestamp":"2026-02-27T01:57:48Z","spec_hash":"","stream":2,"payload":{"file":"modules/code-bridge.md","line":688}}
+{"id":"evt-20260227-68464","type":"amendment_applied","timestamp":"2026-02-27T01:57:48Z","spec_hash":"","stream":2,"payload":{"file":"modules/code-bridge.md","line":703}}
+{"id":"evt-20260227-84818","type":"amendment_applied","timestamp":"2026-02-27T01:58:04Z","spec_hash":"","stream":2,"payload":{"file":"modules/code-bridge.md","line":706}}
+{"id":"evt-20260227-96228","type":"amendment_applied","timestamp":"2026-02-27T01:58:16Z","spec_hash":"83ddaa2486c3394b343698beecd42fe6dd31cbcb8b1d52def1c45e333146aaa7","stream":2,"payload":{"element":"APP-INV-020","file":"modules/code-bridge.md","line":157}}
+{"id":"evt-20260227-54590","type":"amendment_applied","timestamp":"2026-02-27T02:05:54Z","spec_hash":"","stream":2,"payload":{"file":"modules/code-bridge.md","line":673}}
+{"id":"evt-20260227-70184","type":"amendment_applied","timestamp":"2026-02-27T02:09:30Z","spec_hash":"83ddaa2486c3394b343698beecd42fe6dd31cbcb8b1d52def1c45e333146aaa7","stream":2,"payload":{"element":"APP-INV-053","file":"modules/lifecycle-ops.md","line":1188}}
+{"id":"evt-20260227-74023","type":"amendment_applied","timestamp":"2026-02-27T02:09:34Z","spec_hash":"83ddaa2486c3394b343698beecd42fe6dd31cbcb8b1d52def1c45e333146aaa7","stream":2,"payload":{"element":"APP-INV-053","file":"modules/lifecycle-ops.md","line":1191}}
+{"id":"evt-20260227-81720","type":"amendment_applied","timestamp":"2026-02-27T02:09:41Z","spec_hash":"83ddaa2486c3394b343698beecd42fe6dd31cbcb8b1d52def1c45e333146aaa7","stream":2,"payload":{"element":"APP-INV-053","file":"modules/lifecycle-ops.md","line":1196}}
+{"id":"evt-20260227-25634","type":"amendment_applied","timestamp":"2026-02-27T02:15:25Z","spec_hash":"","stream":2,"payload":{"file":"modules/auto-prompting.md","line":787}}
+{"id":"evt-20260227-33563","type":"amendment_applied","timestamp":"2026-02-27T02:18:53Z","spec_hash":"","stream":2,"payload":{"file":"modules/workspace-ops.md","line":644}}

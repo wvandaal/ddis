@@ -6,13 +6,16 @@ package cli
 // ddis:maintains APP-INV-051 (challenge-informed navigation)
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/wvandaal/ddis/internal/coverage"
 	"github.com/wvandaal/ddis/internal/drift"
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/storage"
 	"github.com/wvandaal/ddis/internal/validator"
 )
@@ -37,6 +40,15 @@ Examples:
 func runNext(cmd *cobra.Command, args []string) error {
 	dbPath, err := FindDB()
 	if err != nil {
+		// Cold-start detection: distinguish "no workspace" from "workspace but no DB"
+		_, manifestErr := os.Stat("manifest.yaml")
+		_, ddisErr := os.Stat(".ddis")
+		if os.IsNotExist(manifestErr) && os.IsNotExist(ddisErr) {
+			fmt.Println("No DDIS workspace found in current directory.")
+			fmt.Println("\nNext: ddis init --name \"My Spec\"")
+			fmt.Println("  Initialize a new DDIS specification workspace.")
+			return nil
+		}
 		fmt.Println("No DDIS database found in current directory.")
 		fmt.Println("\nNext: ddis parse manifest.yaml")
 		return nil
@@ -213,7 +225,44 @@ func runNext(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// All gates passing, all challenges confirmed
+	// All gates passing, all challenges confirmed — consult mode for guidance
 	fmt.Printf("\nAll quality gates passing. %d/%d invariants confirmed. Spec and implementation are fully aligned.\n", confirmed, len(challenges))
+
+	// ddis:maintains APP-INV-026 (classification non-prescriptive — mode informs, never dictates)
+	if hint := modeHint(dbPath); hint != "" {
+		fmt.Printf("\nMode-informed suggestion: %s\n", hint)
+	}
+
 	return nil
+}
+
+// modeHint reads the latest mode_observed event and returns a contextual suggestion.
+// Returns empty string if no mode data is available (best-effort, non-blocking).
+func modeHint(dbPath string) string {
+	wsRoot := events.WorkspaceRoot(dbPath)
+	streamPath := events.StreamPath(wsRoot, events.StreamDiscovery)
+	evts, err := events.ReadStream(streamPath, events.EventFilters{Type: events.TypeModeObserved})
+	if err != nil || len(evts) == 0 {
+		return ""
+	}
+	latest := evts[len(evts)-1]
+	var payload map[string]interface{}
+	if err := json.Unmarshal(latest.Payload, &payload); err != nil {
+		return ""
+	}
+	mode, _ := payload["mode"].(string)
+	switch mode {
+	case "crystallization":
+		return "crystallization mode — consider `ddis witness` or `ddis challenge` to crystallize discoveries into proof"
+	case "divergent":
+		return "divergent mode — consider `ddis discover` to widen the inquiry space"
+	case "incubation":
+		return "incubation mode — consider `ddis context` to review without commitment"
+	case "convergent":
+		return "convergent mode — consider `ddis challenge --all` to tighten toward closure"
+	case "dialectical":
+		return "dialectical mode — consider `ddis contradict` or `ddis refine plan --surface-ambiguity`"
+	default:
+		return ""
+	}
 }

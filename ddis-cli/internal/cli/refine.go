@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/refine"
 	"github.com/wvandaal/ddis/internal/storage"
 )
@@ -129,6 +130,16 @@ func runRefineAudit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Println(out)
+
+	// ddis:maintains APP-INV-053 (event stream completeness — emits finding_recorded to stream 1)
+	emitEvent(specPath, events.StreamDiscovery, events.TypeFindingRecorded, specHashFromDB(db, specID), map[string]interface{}{
+		"subcommand":      "audit",
+		"iteration":       refineIteration,
+		"limiting_factor": result.State.LimitingFactor,
+		"spec_drift":      result.State.SpecDrift,
+		"command":         "refine",
+	})
+
 	return nil
 }
 
@@ -158,6 +169,15 @@ func runRefinePlan(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Println(out)
+
+	// ddis:maintains APP-INV-053 (event stream completeness — emits finding_recorded to stream 1)
+	emitEvent(specPath, events.StreamDiscovery, events.TypeFindingRecorded, specHashFromDB(db, specID), map[string]interface{}{
+		"subcommand":      "plan",
+		"iteration":       refineIteration,
+		"limiting_factor": result.State.LimitingFactor,
+		"command":         "refine",
+	})
+
 	return nil
 }
 
@@ -187,6 +207,14 @@ func runRefineApply(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Println(out)
+
+	// ddis:maintains APP-INV-053 (event stream completeness — emits finding_recorded to stream 1)
+	emitEvent(specPath, events.StreamDiscovery, events.TypeFindingRecorded, specHashFromDB(db, specID), map[string]interface{}{
+		"subcommand": "apply",
+		"iteration":  refineIteration,
+		"command":    "refine",
+	})
+
 	return nil
 }
 
@@ -216,5 +244,14 @@ func runRefineJudge(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Println(out)
+
+	// ddis:maintains APP-INV-053 (event stream completeness — emits finding_recorded to stream 1)
+	emitEvent(specPath, events.StreamDiscovery, events.TypeFindingRecorded, specHashFromDB(db, specID), map[string]interface{}{
+		"subcommand": "judge",
+		"iteration":  refineIteration,
+		"spec_drift": result.State.SpecDrift,
+		"command":    "refine",
+	})
+
 	return nil
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/storage"
 	"github.com/wvandaal/ddis/internal/witness"
 )
@@ -125,11 +126,30 @@ func runWitness(cmd *cobra.Command, args []string) error {
 	case witnessCheck:
 		return witnessCheckMode(db, specID)
 	case witnessRevoke != "":
-		return witnessRevokeMode(db, specID, invariantID)
+		if err := witnessRevokeMode(db, specID, invariantID); err != nil {
+			return err
+		}
+		// ddis:maintains APP-INV-053 (event stream completeness — emits status_changed to stream 3)
+		emitEvent(dbPath, events.StreamImplementation, events.TypeStatusChanged, specHashFromDB(db, specID), map[string]interface{}{
+			"invariant_id": invariantID,
+			"command":      "witness",
+			"action":       "revoke",
+		})
+		return nil
 	case witnessReviewContext:
 		return witnessReviewMode(db, specID, invariantID)
 	default:
-		return witnessRecordMode(db, specID, invariantID)
+		if err := witnessRecordMode(db, specID, invariantID); err != nil {
+			return err
+		}
+		// ddis:maintains APP-INV-053 (event stream completeness — emits status_changed to stream 3)
+		emitEvent(dbPath, events.StreamImplementation, events.TypeStatusChanged, specHashFromDB(db, specID), map[string]interface{}{
+			"invariant_id":  invariantID,
+			"evidence_type": witnessType,
+			"command":       "witness",
+			"action":        "record",
+		})
+		return nil
 	}
 }
 
@@ -217,7 +237,10 @@ func witnessRecordMode(db *sql.DB, specID int64, invariantID string) error {
 			return err
 		}
 		if witnessJSON {
-			data, _ := json.MarshalIndent(result, "", "  ")
+			data, err := json.MarshalIndent(result, "", "  ")
+			if err != nil {
+				return fmt.Errorf("marshal eval result to JSON: %w", err)
+			}
 			fmt.Println(string(data))
 		} else {
 			fmt.Printf("Eval witness: %s — verdict=%s confidence=%.2f (%d/%d agreement, model=%s)\n",

@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/state"
 	"github.com/wvandaal/ddis/internal/storage"
 )
@@ -83,6 +84,12 @@ func runState(cmd *cobra.Command, args []string) error {
 			}
 		}
 		fmt.Printf("Set %d key(s)\n", len(stateSet))
+		// ddis:maintains APP-INV-053 (event stream completeness — emits status_changed to stream 3)
+		emitEvent(dbPath, events.StreamImplementation, events.TypeStatusChanged, specHashFromDB(db, specID), map[string]interface{}{
+			"keys_set": len(stateSet),
+			"command":  "state",
+			"action":   "set",
+		})
 		return nil
 	}
 
@@ -98,7 +105,16 @@ func runState(cmd *cobra.Command, args []string) error {
 
 	// Handle --delete
 	if stateDelete != "" {
-		return state.Delete(db, specID, stateDelete)
+		if err := state.Delete(db, specID, stateDelete); err != nil {
+			return err
+		}
+		// ddis:maintains APP-INV-053 (event stream completeness — emits status_changed to stream 3)
+		emitEvent(dbPath, events.StreamImplementation, events.TypeStatusChanged, specHashFromDB(db, specID), map[string]interface{}{
+			"key":     stateDelete,
+			"command": "state",
+			"action":  "delete",
+		})
+		return nil
 	}
 
 	// Handle --list (default if no other action)
@@ -107,7 +123,10 @@ func runState(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if stateJSON {
-		data, _ := json.MarshalIndent(entries, "", "  ")
+		data, err := json.MarshalIndent(entries, "", "  ")
+		if err != nil {
+			return fmt.Errorf("marshal state to JSON: %w", err)
+		}
 		fmt.Println(string(data))
 		return nil
 	}
