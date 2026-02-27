@@ -250,3 +250,4 @@
 {"id":"evt-20260227-55667","type":"validation_run","timestamp":"2026-02-27T21:25:55Z","spec_hash":"b4bb5c4343b363fbf77b58835e61f415f5643e8da321e2c84cdeee2145782968","stream":2,"payload":{"checks":17,"errors":1,"failed":2,"passed":15}}
 {"id":"evt-20260227-79010","type":"validation_run","timestamp":"2026-02-27T21:26:19Z","spec_hash":"b4bb5c4343b363fbf77b58835e61f415f5643e8da321e2c84cdeee2145782968","stream":2,"payload":{"checks":17,"errors":1,"failed":1,"passed":16}}
 {"id":"evt-20260227-86005","type":"drift_measured","timestamp":"2026-02-27T21:26:26Z","spec_hash":"b4bb5c4343b363fbf77b58835e61f415f5643e8da321e2c84cdeee2145782968","stream":2,"payload":{"coherence":0,"correctness":1,"depth":0,"effective_drift":1,"mode":"report"}}
+{"id":"evt-20260227-52815","type":"validation_run","timestamp":"2026-02-27T21:27:32Z","spec_hash":"b4bb5c4343b363fbf77b58835e61f415f5643e8da321e2c84cdeee2145782968","stream":2,"payload":{"checks":17,"errors":1,"failed":1,"passed":16}}
