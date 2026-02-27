@@ -39,6 +39,7 @@ modules:
       - APP-INV-001
       - APP-INV-009
       - APP-INV-015
+      - APP-INV-058
     interfaces:
       - APP-INV-002
       - APP-INV-003
@@ -52,6 +53,7 @@ modules:
       - APP-ADR-005
       - APP-ADR-009
       - APP-ADR-010
+      - APP-ADR-045
     adjacent: [search-intelligence, query-validation, lifecycle-ops]
     deep_context: null
     negative_specs:
@@ -105,6 +107,7 @@ modules:
       - APP-ADR-004
       - APP-ADR-032
       - APP-ADR-035
+      - APP-ADR-048
     adjacent: [parse-pipeline, search-intelligence, lifecycle-ops]
     deep_context: null
     negative_specs:
@@ -124,6 +127,8 @@ modules:
       - APP-INV-051
       - APP-INV-052
       - APP-INV-053
+      - APP-INV-059
+      - APP-INV-062
     interfaces:
       - APP-INV-001
       - APP-INV-002
@@ -142,6 +147,9 @@ modules:
       - APP-ADR-037
       - APP-ADR-039
       - APP-ADR-041
+      - APP-ADR-046
+      - APP-ADR-050
+      - APP-ADR-052
     adjacent: [parse-pipeline, search-intelligence, query-validation]
     deep_context: null
     negative_specs:
@@ -175,6 +183,7 @@ modules:
       - APP-ADR-038
       - APP-ADR-040
       - APP-ADR-042
+      - APP-ADR-051
     adjacent: [parse-pipeline, query-validation, lifecycle-ops, auto-prompting]
     deep_context: null
     negative_specs:
@@ -205,6 +214,7 @@ modules:
       - APP-INV-045
       - APP-INV-046
       - APP-INV-056
+      - APP-INV-061
     interfaces:
       - APP-INV-001
       - APP-INV-002
@@ -232,6 +242,7 @@ modules:
       - APP-ADR-031
       - APP-ADR-033
       - APP-ADR-043
+      - APP-ADR-049
     adjacent: [code-bridge, search-intelligence, query-validation, lifecycle-ops, workspace-ops]
     deep_context: null
     negative_specs:
@@ -249,6 +260,7 @@ modules:
       - APP-INV-039
       - APP-INV-040
       - APP-INV-057
+      - APP-INV-060
     interfaces:
       - APP-INV-001
       - APP-INV-002
@@ -268,6 +280,7 @@ modules:
       - APP-ADR-028
       - APP-ADR-029
       - APP-ADR-044
+      - APP-ADR-047
     adjacent: [parse-pipeline, query-validation, lifecycle-ops, code-bridge, auto-prompting]
     deep_context: null
     negative_specs:
@@ -336,3 +349,8 @@ invariant_registry:
   APP-INV-055: {owner: code-bridge, domain: '', description: ""}
   APP-INV-056: {owner: auto-prompting, domain: autoprompt, description: "Process Compliance Observability — computes PC score from git/oplog/witness/validate data, reports via Signal 11 and Check 18"}
   APP-INV-057: {owner: workspace-ops, domain: workspace, description: "External tool commands degrade gracefully with recovery hints"}
+  APP-INV-058: {owner: parse-pipeline, domain: parsing, description: "Parse Diagnostic Completeness — emit diagnostics for malformed elements, never silently discard"}
+  APP-INV-059: {owner: lifecycle-ops, domain: lifecycle, description: "Database Path Validation — read-only commands verify DB existence before opening"}
+  APP-INV-060: {owner: workspace-ops, domain: workspace, description: "Manifest-Module Bijection — scaffold generates stubs matching manifest declarations"}
+  APP-INV-061: {owner: auto-prompting, domain: autoprompt, description: "Crystallize Module Auto-Resolution — resolve target module from manifest maintains mapping"}
+  APP-INV-062: {owner: lifecycle-ops, domain: lifecycle, description: "Lifecycle Reachability — every reachable state has forward path to ValidatedSpec, no dead-ends"}

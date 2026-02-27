@@ -1,9 +1,9 @@
 ---
 module: auto-prompting
 domain: autoprompt
-maintains: [APP-INV-022, APP-INV-023, APP-INV-024, APP-INV-025, APP-INV-026, APP-INV-027, APP-INV-028, APP-INV-029, APP-INV-030, APP-INV-031, APP-INV-032, APP-INV-033, APP-INV-034, APP-INV-035, APP-INV-036, APP-INV-042, APP-INV-045, APP-INV-046, APP-INV-056]
+maintains: [APP-INV-022, APP-INV-023, APP-INV-024, APP-INV-025, APP-INV-026, APP-INV-027, APP-INV-028, APP-INV-029, APP-INV-030, APP-INV-031, APP-INV-032, APP-INV-033, APP-INV-034, APP-INV-035, APP-INV-036, APP-INV-042, APP-INV-045, APP-INV-046, APP-INV-056, APP-INV-061]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-005, APP-INV-008, APP-INV-009, APP-INV-010, APP-INV-015, APP-INV-016, APP-INV-017, APP-INV-018, APP-INV-020]
-implements: [APP-ADR-016, APP-ADR-017, APP-ADR-018, APP-ADR-019, APP-ADR-020, APP-ADR-021, APP-ADR-022, APP-ADR-023, APP-ADR-024, APP-ADR-025, APP-ADR-031, APP-ADR-033, APP-ADR-043]
+implements: [APP-ADR-016, APP-ADR-017, APP-ADR-018, APP-ADR-019, APP-ADR-020, APP-ADR-021, APP-ADR-022, APP-ADR-023, APP-ADR-024, APP-ADR-025, APP-ADR-031, APP-ADR-033, APP-ADR-043, APP-ADR-049]
 adjacent: [code-bridge, search-intelligence, query-validation, lifecycle-ops, workspace-ops]
 negative_specs:
   - "Must NOT generate prompts that exceed LLM context budget"
@@ -1817,6 +1817,8 @@ These constraints prevent the most likely implementation errors and LLM hallucin
 
 **DO NOT** report reconciliation gaps in only one direction. The `--against` mode must always report both undocumented behavior (code does things the spec doesn't mention) AND unimplemented specification (spec claims things the code doesn't do). An LLM implementing reconciliation must never short-circuit after finding undocumented behavior --- it must also check for unimplemented spec in a second pass. (Validates APP-INV-032)
 
+**DO NOT** require `--module` when the target module is deterministically derivable from the manifest. The `crystallize` command MUST resolve the target module from `input.owner` or `input.domain`. (Validates APP-INV-061)
+
 ---
 
 ## Worked Examples
@@ -2197,5 +2199,45 @@ Violation scenario: An LLM agent runs ddis validate without a database present. 
 Validation: For each Actionable error category, trigger the error condition and verify stderr contains a Tip: line with a valid ddis command. Verify the tip is suppressed with -q. Verify non-actionable errors (e.g., I/O failures) do NOT emit tips.
 
 // WHY THIS MATTERS: Error messages are the highest-friction interaction point in CLI UX. An agent that encounters an error and receives a recovery hint can self-correct immediately. Without recovery hints, every error becomes a dead end requiring human intervention or external documentation lookup.
+
+---
+
+**APP-INV-061: Crystallize Module Auto-Resolution**
+
+*When ddis discover crystallize is invoked without --module, the CLI MUST deterministically resolve the target module from the manifest maintains mapping. If resolution is ambiguous, fail with explicit error listing candidates.*
+
+```
+FOR ALL elem IN CrystallizeInput: LET candidates = ResolveModule(manifest, elem); |candidates| = 1 IMPLIES crystallize succeeds with module = candidates[0]; |candidates| = 0 IMPLIES Error("cannot auto-resolve"); |candidates| > 1 IMPLIES Error("ambiguous: " + candidates)
+```
+
+Violation scenario: An LLM runs crystallize --module auto-prompting for every element because it cannot determine the correct module. A lifecycle invariant gets misplaced into auto-prompting.
+
+Validation: Crystallize an invariant with owner lifecycle-ops and no --module. Verify it lands in lifecycle-ops. Crystallize with no owner or domain. Verify explicit error.
+
+// WHY THIS MATTERS: The --module flag is a manual specification of information the manifest already contains. Requiring it violates mechanical derivation and increases misplacement risk for LLM workflows.
+
+---
+
+### APP-ADR-049: Crystallize Auto-Detection from Manifest Bijection
+
+#### Problem
+
+crystallize requires --module despite manifest.modules.*.maintains providing deterministic mapping.
+
+#### Options
+
+A) Auto-resolve from manifest maintains mapping. B) Prompt user for module. C) Default to largest module.
+
+#### Decision
+
+**Option A: Auto-resolve from manifest maintains.** Resolution: owner match > domain match > error with candidates. --module becomes optional override. WHY NOT Option B? Breaks state monad contract (APP-ADR-022). WHY NOT Option C? Heuristics are non-deterministic across spec evolution.
+
+#### Consequences
+
+--module changes from required to optional. New resolveTargetModule function. Resolution priority: explicit --module > owner > domain.
+
+#### Tests
+
+Crystallize with owner lifecycle-ops, no --module: resolves to lifecycle-ops. Domain matching 2 modules: error with candidates.
 
 ---

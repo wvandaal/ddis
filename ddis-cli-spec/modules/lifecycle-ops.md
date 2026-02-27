@@ -1,9 +1,9 @@
 ---
 module: lifecycle-ops
 domain: lifecycle
-maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016, APP-INV-041, APP-INV-050, APP-INV-051, APP-INV-052, APP-INV-053]
+maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016, APP-INV-041, APP-INV-050, APP-INV-051, APP-INV-052, APP-INV-053, APP-INV-059, APP-INV-062]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-008, APP-INV-009, APP-INV-011, APP-INV-012, APP-INV-015]
-implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011, APP-ADR-030, APP-ADR-037, APP-ADR-039, APP-ADR-041]
+implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011, APP-ADR-030, APP-ADR-037, APP-ADR-039, APP-ADR-041, APP-ADR-046, APP-ADR-050, APP-ADR-052]
 adjacent: [parse-pipeline, search-intelligence, query-validation]
 negative_specs:
   - "Must NOT modify or delete existing oplog records"
@@ -1023,6 +1023,12 @@ These constraints prevent the most likely implementation errors and LLM hallucin
 
 **DO NOT** run Check 13 without a code root. When `--code-root` is not set, the check's `Applicable` method returns false, and the check is skipped entirely. An LLM must not bypass this gate by hardcoding a path or defaulting to the current directory. Traceability verification requires an explicit, user-provided code root to avoid silently validating against the wrong source tree. (Validates APP-INV-016)
 
+**DO NOT** auto-create SQLite databases from read-only command invocations. Commands that only read the database MUST call `storage.OpenExisting()` which verifies the file exists before opening. (Validates APP-INV-059)
+
+**DO NOT** accept database paths via inconsistent positional conventions without also supporting the unified `--db` flag. Every command that accepts a database path MUST register the `--db` named flag. (Validates APP-ADR-050)
+
+**DO NOT** add state transitions without verifying lifecycle reachability. Every new transition's output state must have a forward path to ValidatedSpec. (Validates APP-INV-062)
+
 ---
 
 ## Verification Prompt
@@ -1220,5 +1226,109 @@ ddis next becomes challenge-aware (APP-INV-051). ddis tasks derives from challen
 #### Tests
 
 TestNextIncludesChallengeResults, TestTasksFromChallenges, TestEventEmission_Parse, TestEventEmission_Validate, TestEventEmission_Drift
+
+---
+
+**APP-INV-059: Database Path Validation**
+
+*Before opening a SQLite database, the CLI MUST validate that the path refers to an existing file when the operation is read-only (validate, query, search, coverage, drift, etc.). Auto-creation is permitted ONLY for write-intending operations (parse, init). For read-only commands, a non-existent path MUST produce a clear error with recovery guidance.*
+
+```
+FOR ALL cmd IN ReadOnlyCommands, path = cmd.db_path: NOT FileExists(path) IMPLIES cmd.Execute() = Error("database not found: " + path, RecoveryHint("ddis parse <manifest> -o " + path)) AND NOT FileCreated(path)
+```
+
+Violation scenario: A user runs ddis validate my-spec.md manifest.ddis.db with swapped arguments. storage.Open silently creates a new empty database at my-spec.md, applies the schema, and reports no spec found.
+
+Validation: For each read-only command, invoke with a non-existent database path. Verify error exit, stderr contains path and recovery hint, and no file was created.
+
+// WHY THIS MATTERS: Auto-creation is correct for parse but catastrophically wrong for read commands. Silent creation from mistyped paths produces confusing errors and can corrupt existing files.
+
+---
+
+**APP-INV-062: Lifecycle Reachability**
+
+*Every state reachable from T_init via defined state transitions MUST have a forward transition path to ValidatedSpec. No dead-end states exist in the lifecycle graph. No orphan states exist. The transition graph is connected.*
+
+```
+FOR ALL s IN ReachableStates(T_init): EXISTS path [T_1,...,T_n] from s to ValidatedSpec WHERE each T_i IN DefinedTransitions(section_0_2_1) AND |path| is finite. FOR ALL T IN DefinedTransitions: OutputState(T) IN ReachableStates(T_init) -- No orphan states: every transition output is reachable from init
+```
+
+Violation scenario: User runs ddis init, adds module declarations to manifest, reaches state (manifest exists, no module files). No CLI command produces module stubs from manifest. State is a dead-end -- unreachable from ValidatedSpec without manual file creation outside the CLI. This violates CLI-mediates-all-interactions.
+
+Validation: Extract transition graph from section 0.2.1. Run BFS from T_init output state. Verify every reachable state has at least one outgoing transition toward ValidatedSpec. Report dead-end states as validation failures.
+
+// WHY THIS MATTERS: Individual gap fixes are reactive. Reachability verification is preventive. It catches the ENTIRE CLASS of missing morphisms -- any future command that creates a state without a forward path triggers Check 20 at spec-validation time. This is the fixed point of self-bootstrapping.
+
+---
+
+### APP-ADR-046: Existence-Check Before Open over Auto-Create
+
+#### Problem
+
+storage.Open() auto-creates databases. Read-only commands silently create empty databases from mistyped paths.
+
+#### Options
+
+A) Split Open into OpenExisting and OpenCreate. B) Add create bool parameter. C) Check existence in each commands RunE.
+
+#### Decision
+
+**Option A: Split into OpenExisting and OpenCreate.** OpenExisting checks os.Stat before sql.Open. WHY NOT Option B? Open(path, false) is less readable than OpenExisting(path). WHY NOT Option C? 22 commands would duplicate the same 4-line check.
+
+#### Consequences
+
+OpenExisting = os.Stat + sql.Open + migration + PRAGMAs. OpenCreate = current behavior. 22 read-only commands switch to OpenExisting.
+
+#### Tests
+
+OpenExisting on non-existent path: error, no file created. ddis validate nonexistent.db: error with recovery hint. All 22 read-only commands use OpenExisting.
+
+---
+
+### APP-ADR-050: Unified --db Flag over Positional Ambiguity
+
+#### Problem
+
+22 commands accept DB as 1st positional; search/query accept it as 2nd. Inconsistency triggers auto-creation bug.
+
+#### Options
+
+A) Unified --db named flag. B) Normalize all to DB-first. C) Normalize all to DB-last.
+
+#### Decision
+
+**Option A: Unified --db flag on root command.** Positional retained for backward compatibility. --db takes precedence. WHY NOT Option B? ddis search index.db query reads as if DB is the query. WHY NOT Option C? Multi-word queries make boundary ambiguous.
+
+#### Consequences
+
+Global --db flag on root command. --db precedence over positional. Auto-discovery fallback. Backward compatible.
+
+#### Tests
+
+ddis validate --db path.db: uses path.db. ddis search --db path.db query: unambiguous. --db + positional: --db wins.
+
+---
+
+### APP-ADR-052: Reachability Check (Check 20) over Manual Audit
+
+#### Problem
+
+The lifecycle state transition graph can have dead-end states (states with no forward path to ValidatedSpec) that manual audit fails to catch. G1 was missed by 3 convergence audits.
+
+#### Options
+
+A) Check 20: BFS reachability on transition graph. B) Manual audit at each convergence. C) External model checker.
+
+#### Decision
+
+**Option A: Check 20 extracts state transition graph from section 0.2.1.** Runs BFS from T_init output states, reports dead-end states. WHY NOT Option B? Manual review missed G1 despite 3 audits. Missing-morphism errors are systematic. WHY NOT Option C? External tools violate self-bootstrapping. The CLI must verify its own spec.
+
+#### Consequences
+
+New Check 20: checkLifecycleReachability. Graph-theoretic (BFS/DFS). Graceful degradation when transition graph not extractable. Level 3 progressive validation.
+
+#### Tests
+
+Transition graph with no dead-ends: passes. Graph with one dead-end: reports it. Disconnected component: reports unreachable states.
 
 ---

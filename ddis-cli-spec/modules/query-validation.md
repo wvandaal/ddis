@@ -3,7 +3,7 @@ module: query-validation
 domain: validation
 maintains: [APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-011, APP-INV-043, APP-INV-044, APP-INV-047]
 interfaces: [APP-INV-001, APP-INV-005, APP-INV-006, APP-INV-008, APP-INV-009, APP-INV-015, APP-INV-016]
-implements: [APP-ADR-004, APP-ADR-032, APP-ADR-035]
+implements: [APP-ADR-004, APP-ADR-032, APP-ADR-035, APP-ADR-048]
 adjacent: [parse-pipeline, search-intelligence, lifecycle-ops]
 negative_specs:
   - "Must NOT rely on execution order for validation check correctness"
@@ -996,5 +996,29 @@ The toolchain validates spec text structure and annotation existence but never v
 #### Decision
 
 Implement Check 16 as a mechanical cross-check: match test-type witnesses to test execution results. This adds no external dependencies and closes the verification gap without requiring LLM integration.
+
+---
+
+### APP-ADR-048: Check 19: VCS Primacy Enforcement
+
+#### Problem
+
+Check 15 verifies gitignore but not actual git tracking. Files can be untracked without triggering validation.
+
+#### Options
+
+A) Extend Check 15. B) New Check 19 with git ls-files. C) External CI checks.
+
+#### Decision
+
+**Option B: New Check 19.** Shells out to git ls-files --error-unmatch. Gracefully degrades when git unavailable. WHY NOT Option A? Mixes filesystem-only and subprocess-dependent logic, breaking test isolation. WHY NOT Option C? Violates self-bootstrapping.
+
+#### Consequences
+
+New Check 19: checkVCSTracking. Applicable only when .git directory exists. Warning for untracked files. Level 3 progressive validation.
+
+#### Tests
+
+Files tracked: passes. Files untracked: warnings. No .git: skip with info. No git binary: skip with info.
 
 ---

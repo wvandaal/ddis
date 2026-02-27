@@ -75,7 +75,7 @@ where:
   Workspace      = Map(SpecID -> {manifest_path, parent_spec, related_specs, drift_score})
 ```
 
-### 0.2.1 State Transitions (30 Commands)
+### 0.2.1 State Transitions (32 Commands)
 
 Each command is a transition function over the state space:
 
@@ -127,6 +127,8 @@ T_absorb:      CodeRoot * Index -> CommandResult * SpecFiles'
 T_init:        EmptyDir -> SpecFiles * Index * EventStreams * Workspace
 T_spec:        Workspace * ManifestPath -> Workspace'
 T_tasks:       DiscoveryState * Index -> TaskList
+T_manifest_scaffold: Manifest * ModuleDecls -> SpecFiles     (left adjoint of T_manifest_sync)
+T_rename:      Index * OldText * NewText * Opts -> SpecFiles' * OpLog
 
 -- Witness domain
 T_witness:     Index * InvariantID -> WitnessReceipt
@@ -192,7 +194,7 @@ Each pass is independently testable. The pipeline is deterministic: same input a
 
 ## 0.3 Invariant Registry (Declarations)
 
-All 56 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
+All 62 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
 
 **APP-INV-001: Round-Trip Fidelity** (Owner: parse-pipeline)
 Parse followed by render MUST produce byte-identical output for any valid DDIS specification.
@@ -471,6 +473,31 @@ When a ddis command depends on an external tool (e.g., gh), absence or failure o
 Confidence: falsified
 *Violation: user runs ddis issue without gh installed and gets raw exec error instead of install guidance.*
 
+**APP-INV-058: Parse Diagnostic Completeness** (Owner: parse-pipeline)
+When the parser encounters a candidate element that matches the header pattern but fails structural validation, it emits a diagnostic to stderr. Silent discard is never acceptable.
+Confidence: falsified
+*Violation: an invariant header is followed by a code block with no statement line; the parser silently resets to idle and the invariant is never indexed.*
+
+**APP-INV-059: Database Path Validation** (Owner: lifecycle-ops)
+Read-only commands verify database path existence before opening. Auto-creation is permitted only for write-intending operations (parse, init).
+Confidence: falsified
+*Violation: ddis validate my-spec.md auto-creates a SQLite database at the markdown path.*
+
+**APP-INV-060: Manifest-Module Bijection** (Owner: workspace-ops)
+The manifest scaffold operation generates module stubs with frontmatter matching manifest declarations. The composition sync . scaffold is isomorphic to the identity on manifests.
+Confidence: falsified
+*Violation: user adds modules to manifest but has no tool to generate corresponding files; manual creation produces frontmatter mismatches.*
+
+**APP-INV-061: Crystallize Module Auto-Resolution** (Owner: auto-prompting)
+When --module is omitted, crystallize resolves the target module from the manifest maintains/domain mapping. Ambiguity produces explicit error with candidates.
+Confidence: falsified
+*Violation: LLM crystallizes a lifecycle invariant into auto-prompting because it cannot auto-resolve the target module.*
+
+**APP-INV-062: Lifecycle Reachability** (Owner: lifecycle-ops)
+Every state reachable from T_init has a forward transition path to ValidatedSpec. No dead-end states. The lifecycle graph is connected.
+Confidence: falsified
+*Violation: state (manifest exists, no module files) has no outgoing transition -- dead-end requiring manual file creation outside the CLI.*
+
 ---
 
 ## 0.4 Invariant Confidence Levels
@@ -490,7 +517,7 @@ Confidence levels are tracked per-invariant in the implementation. The `validate
 
 ## 0.5 ADR Registry (Declarations)
 
-All 43 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
+All 52 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
 
 **APP-ADR-001: Go over Rust** (Implements: parse-pipeline)
 Decision: Go for CLI implementation. The workload is I/O-bound (SQLite reads/writes, file parsing), not CPU-bound. Go's fast compilation supports rapid iteration in the RALPH improvement loop. A pure-Go SQLite driver (`modernc.org/sqlite`) eliminates CGO complexity.
@@ -657,6 +684,38 @@ WHY NOT prescriptive gates: Coercive hooks create adversarial dynamics; agents l
 **APP-ADR-044: External Issue Tracker Integration via gh CLI** (Implements: workspace-ops)
 Decision: Wrap gh CLI for issue filing. ddis issue shells out to gh issue create. Auth delegated to gh. Graceful degradation via APP-INV-057 when gh is absent.
 
+**APP-ADR-045: Parser Diagnostics over Silent Discard** (Implements: parse-pipeline)
+Decision: Resurrect dead-code isInvariantComplete() as diagnostic gatekeeper. Emit structured diagnostics on stderr for malformed elements.
+WHY NOT hard rejection: Breaks Level 1/Level 2 specs (APP-ADR-028).
+
+**APP-ADR-046: Existence-Check Before Open over Auto-Create** (Implements: lifecycle-ops)
+Decision: Split storage.Open into OpenExisting (read-only) and OpenCreate (write). OpenExisting checks os.Stat before sql.Open.
+WHY NOT boolean parameter: Open(path, false) less readable than OpenExisting(path).
+
+**APP-ADR-047: Manifest Scaffold as Bilateral Dual** (Implements: workspace-ops)
+Decision: New ddis manifest scaffold command. Left adjoint to manifest sync. Idempotent.
+WHY NOT extend init: Different lifecycle phases.
+
+**APP-ADR-048: Check 19: VCS Primacy Enforcement** (Implements: query-validation)
+Decision: New Check 19 using git ls-files. Gracefully degrades when git unavailable.
+WHY NOT extend Check 15: Mixes filesystem-only and subprocess-dependent logic.
+
+**APP-ADR-049: Crystallize Auto-Detection from Manifest Bijection** (Implements: auto-prompting)
+Decision: Auto-resolve module from manifest maintains mapping. Priority: --module > owner > domain > error.
+WHY NOT interactive prompting: Breaks state monad contract (APP-ADR-022).
+
+**APP-ADR-050: Unified --db Flag over Positional Ambiguity** (Implements: lifecycle-ops)
+Decision: Global --db flag on root command. Positional retained for backward compat.
+WHY NOT DB-first: ddis search index.db query reads as if DB is the query.
+
+**APP-ADR-051: Dedicated Rename over Patch --replace-all** (Implements: code-bridge)
+Decision: New ddis rename command for multi-file renames. Separate from patch (different safety profile).
+WHY NOT patch --replace-all: Conflates surgical edit with mechanical rename.
+
+**APP-ADR-052: Reachability Check (Check 20) over Manual Audit** (Implements: lifecycle-ops)
+Decision: Check 20 extracts transition graph from section 0.2.1, runs BFS, reports dead-end states.
+WHY NOT manual audit: Missed G1 despite 3 audits. Systematic errors need systematic detection.
+
 ---
 
 ## 0.6 Quality Gates (Declarations)
@@ -741,6 +800,12 @@ Terms specific to the DDIS CLI. If a term is also defined in the DDIS standard, 
 | **Thread** | An inquiry thread — a directed line of investigation in discovery. Primary scoping unit for events. May span sessions, LLMs, and humans. Lifecycle: branch, merge, park, resume, fork, converge. (APP-ADR-019, APP-INV-027) |
 | **Transaction** | An atomic unit of specification modification. States: `pending`, `committed`, `rolled_back`. State machine enforced by APP-INV-006. |
 | **Workspace** | A multi-spec project managed by `ddis init --workspace`. Contains multiple specs with parent, peer, and diamond dependency relationships. (APP-ADR-026, APP-INV-037) |
+| **Adjunction (Manifest-Files)** | The categorical relationship between manifest scaffold (left adjoint) and manifest sync (right adjoint). Unit: sync . scaffold ~ id_Manifest. (APP-INV-060, APP-ADR-047) |
+| **Diagnostic** | Structured warning emitted by parser when candidate element fails structural validation. Format: parse: warning: file:line: id missing component. (APP-INV-058, APP-ADR-045) |
+| **OpenExisting / OpenCreate** | Two database opening modes. OpenExisting verifies existence (read-only). OpenCreate permits auto-creation (write). (APP-INV-059, APP-ADR-046) |
+| **Module Auto-Resolution** | Inferring target module for crystallize from manifest maintains/domain mapping. (APP-INV-061, APP-ADR-049) |
+| **Rename** | Multi-file, multi-occurrence text replacement distinct from patch (single-scope). (APP-ADR-051) |
+| **Lifecycle Reachability** | Graph connectivity property: every state reachable from init has a forward path to validated spec. Mechanically verified by Check 20. (APP-INV-062, APP-ADR-052) |
 
 ---
 

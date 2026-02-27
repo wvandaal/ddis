@@ -1,9 +1,9 @@
 ---
 module: workspace-ops
 domain: workspace
-maintains: [APP-INV-037, APP-INV-038, APP-INV-039, APP-INV-040, APP-INV-057]
+maintains: [APP-INV-037, APP-INV-038, APP-INV-039, APP-INV-040, APP-INV-057, APP-INV-060]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-006, APP-INV-009, APP-INV-010, APP-INV-015, APP-INV-016, APP-INV-017, APP-INV-018, APP-INV-020, APP-INV-025]
-implements: [APP-ADR-026, APP-ADR-027, APP-ADR-028, APP-ADR-029, APP-ADR-044]
+implements: [APP-ADR-026, APP-ADR-027, APP-ADR-028, APP-ADR-029, APP-ADR-044, APP-ADR-047]
 adjacent: [parse-pipeline, query-validation, lifecycle-ops, code-bridge, auto-prompting]
 negative_specs:
   - "Must NOT modify files outside the workspace root during init"
@@ -785,6 +785,8 @@ These constraints prevent the most likely failure modes in the workspace operati
 
 **NEG-WORKSPACE-008: DO NOT** allow `ddis init` to overwrite existing files. Running init in a directory that already has a manifest must preserve existing files and only create missing ones. This prevents accidental data loss when using init as a "repair" command. (Validates APP-INV-037, APP-ADR-026)
 
+**NEG-WORKSPACE-009: DO NOT** require manual creation of module stub files after declaring modules in the manifest. The `ddis manifest scaffold` command MUST generate corresponding files with correct frontmatter. (Validates APP-INV-060)
+
 ---
 
 ## CLI Commands
@@ -947,5 +949,45 @@ Violation scenario: User runs ddis issue without gh installed. Instead of exec: 
 Validation: Unit test: mock exec.LookPath returning error, verify error message contains install URL.
 
 // WHY THIS MATTERS: External tool wrappers are only valuable if they fail gracefully. A raw exec error is worse than no wrapper at all.
+
+---
+
+**APP-INV-060: Manifest-Module Bijection**
+
+*The manifest scaffold operation is the left adjoint to manifest sync. Given a manifest declaring N modules, manifest scaffold MUST generate exactly N module stub files with correct frontmatter. The composition sync . scaffold is isomorphic to the identity on Manifest.*
+
+```
+FOR ALL m IN ValidManifests: LET files = manifest_scaffold(m); THEN |files| = |m.modules| AND FOR ALL (name, decl) IN m.modules: EXISTS f IN files: f.frontmatter.module = name AND f.frontmatter.domain = decl.domain AND f.frontmatter.maintains = decl.maintains. FOR ALL m IN ValidManifests: manifest_sync(manifest_scaffold(m)) = m
+```
+
+Violation scenario: User adds modules to manifest but has no tool to generate corresponding files. Manual creation produces frontmatter mismatches that fail Check 15.
+
+Validation: Create a manifest with 3 modules. Run manifest scaffold. Verify 3 files with correct frontmatter. Run manifest sync on scaffolded files. Verify round-trip recovers manifest structure.
+
+// WHY THIS MATTERS: Without the left adjoint, the bilateral lifecycle has a fixed-point initialization problem. manifest scaffold breaks this circularity.
+
+---
+
+### APP-ADR-047: Manifest Scaffold as Bilateral Dual
+
+#### Problem
+
+No inverse to manifest sync. Fixed-point initialization problem: need files to validate manifest, need manifest to create files.
+
+#### Options
+
+A) ddis manifest scaffold -- left adjoint to manifest sync. B) Extend ddis init. C) External template tool.
+
+#### Decision
+
+**Option A: ddis manifest scaffold.** Left adjoint completing the Manifest-Files adjunction. Idempotent. WHY NOT Option B? init creates workspaces from scratch; scaffold adds modules to existing workspaces. WHY NOT Option C? External tools cannot enforce frontmatter-manifest bijection.
+
+#### Consequences
+
+New command: ddis manifest scaffold. New state transition: T_manifest_scaffold. Composition T_manifest_sync . T_manifest_scaffold verifiable as adjunction unit.
+
+#### Tests
+
+Scaffold 3-module manifest: verify 3 files with correct frontmatter. Re-run scaffold: all 3 skipped (idempotent). manifest sync on scaffolded files: round-trip matches.
 
 ---

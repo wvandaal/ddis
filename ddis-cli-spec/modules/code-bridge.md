@@ -3,7 +3,7 @@ module: code-bridge
 domain: bridge
 maintains: [APP-INV-017, APP-INV-018, APP-INV-019, APP-INV-020, APP-INV-021, APP-INV-054, APP-INV-055]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-008, APP-INV-009, APP-INV-015, APP-INV-016]
-implements: [APP-ADR-012, APP-ADR-014, APP-ADR-015, APP-ADR-034, APP-ADR-038, APP-ADR-040, APP-ADR-042]
+implements: [APP-ADR-012, APP-ADR-014, APP-ADR-015, APP-ADR-034, APP-ADR-038, APP-ADR-040, APP-ADR-042, APP-ADR-051]
 adjacent: [parse-pipeline, query-validation, lifecycle-ops, auto-prompting]
 negative_specs:
   - "Must NOT require language-specific AST parsers for annotation extraction"
@@ -875,6 +875,8 @@ These constraints prevent the most likely implementation errors and LLM hallucin
 
 **DO NOT** allow the annotation scanner to traverse symlinks or follow paths outside the specified code root (Validates APP-INV-017, APP-INV-018). A symlink pointing outside the code root could cause the scanner to read files from unrelated projects, producing annotations that appear local but reference external code. The file walker must use `filepath.WalkDir` with symlink-aware logic: `entry.Type()&os.ModeSymlink != 0` causes a skip, not a follow.
 
+**DO NOT** use `ddis patch` for multi-file, multi-occurrence renames. Rename operations MUST use `ddis rename` which provides totality checking, cross-file consistency, and oplog recording. (Validates APP-ADR-051)
+
 ---
 
 ## New CLI Commands
@@ -1161,5 +1163,29 @@ New Tier 6 in consistency checker. Only processes pairs that Tiers 3-5 could not
 #### Tests
 
 TestTier6_SemanticConflictDetected, TestTier6_NoFalsePositive, TestTier6_GracefulDegradation, TestTier6_MajorityVote
+
+---
+
+### APP-ADR-051: Dedicated Rename over Patch --replace-all
+
+#### Problem
+
+patch enforces single-occurrence by design. No command for multi-file, multi-occurrence renames.
+
+#### Options
+
+A) ddis rename command. B) ddis patch --replace-all. C) External sed/rg.
+
+#### Decision
+
+**Option A: ddis rename.** Searches all spec source files and manifest. Optional --code-root for annotations. --dry-run. WHY NOT Option B? Patch single-occurrence is a safety feature. Rename is a different operation. WHY NOT Option C? Bypasses oplog, skips cross-reference validation.
+
+#### Consequences
+
+New command: ddis rename --old --new. New state transition: T_rename. Scans all source files + manifest + optionally code annotations.
+
+#### Tests
+
+Rename title: verify changes in module, constitution, manifest. --dry-run: no files modified. No occurrences: error.
 
 ---

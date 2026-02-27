@@ -1,9 +1,9 @@
 ---
 module: parse-pipeline
 domain: parsing
-maintains: [APP-INV-001, APP-INV-009, APP-INV-015]
+maintains: [APP-INV-001, APP-INV-009, APP-INV-015, APP-INV-058]
 interfaces: [APP-INV-002, APP-INV-003, APP-INV-005, APP-INV-007, APP-INV-008, APP-INV-016]
-implements: [APP-ADR-001, APP-ADR-002, APP-ADR-005, APP-ADR-009, APP-ADR-010]
+implements: [APP-ADR-001, APP-ADR-002, APP-ADR-005, APP-ADR-009, APP-ADR-010, APP-ADR-045]
 adjacent: [search-intelligence, query-validation, lifecycle-ops]
 negative_specs:
   - "Must NOT silently drop markdown content during parsing"
@@ -659,6 +659,8 @@ The following constraints prevent the most likely failure modes in the parse pip
 
 **DO NOT** overwrite section database IDs during the modular parse. `loadSectionDBIDs` queries section IDs from the database to populate in-memory `SectionNode.DBID` fields. It must match by both `section_path` AND `line_start` (adjusted for 0-indexed vs 1-indexed) to avoid assigning the wrong ID when two files have sections with the same path (e.g., both have a "Glossary" section).
 
+**DO NOT** silently discard invariant or ADR candidates that match the header pattern but fail structural validation. When the parser state machine transitions from a non-idle state back to idle without inserting an element, it MUST emit a diagnostic. The `isInvariantComplete()` predicate must never be dead code. (Validates APP-INV-058)
+
 ---
 
 ## Verification Prompt for Parse Pipeline Module
@@ -682,3 +684,43 @@ After implementing or modifying the parse pipeline, execute the following checks
 3. Does NOT the parser silently drop lines that fall outside any section boundary. (Negative spec 1)
 4. Does NOT the modular parser fail when the manifest references a module file that contains cross-references to elements in another module file. (APP-INV-009, pass 4 runs after all files)
 5. Does NOT `ExtractInvariants` insert an invariant with an empty statement field. (Data integrity)
+
+**APP-INV-058: Parse Diagnostic Completeness**
+
+*When the parser encounters a candidate invariant or ADR that matches the header pattern but fails structural validation (missing statement, malformed code fence, absent violation scenario), it MUST emit a diagnostic to stderr with the element ID, file path, line number, and the specific structural deficiency. Silent discard is never acceptable.*
+
+```
+FOR ALL elem IN CandidateElements(lines): LET h = HeaderMatch(elem); h != nil AND NOT StructurallyValid(elem) IMPLIES EXISTS d IN Diagnostics(parse_run): d.element_id = h.id AND d.file = source_file AND d.line = h.line_start AND d.deficiency IN {missing_statement, missing_semi_formal, missing_violation, missing_validation, malformed_code_fence, unterminated_block}
+```
+
+Violation scenario: A spec author writes **APP-INV-042: Guidance Emission** followed by a blank line and then a code block with no italic statement line. The parser state machine resets to idle and silently discards the invariant. No diagnostic appears on stderr.
+
+Validation: Create a test spec with 5 deliberately malformed invariants. Parse and verify stderr contains exactly 5 diagnostic lines, each with correct element ID and line number.
+
+// WHY THIS MATTERS: The parser is the gateway between human-authored markdown and the indexed representation. Silent discard is the most dangerous failure mode because it is invisible.
+
+---
+
+### APP-ADR-045: Parser Diagnostics over Silent Discard
+
+#### Problem
+
+The invariant parser silently resets to idle when a candidate fails structural validation. isInvariantComplete() is dead code. Malformed invariants are invisible.
+
+#### Options
+
+A) Emit diagnostics on stderr during parse (resurrect isInvariantComplete). B) Reject malformed invariants as hard parse errors. C) Add --strict mode.
+
+#### Decision
+
+**Option A: Emit diagnostics on stderr.** isInvariantComplete() becomes the gatekeeper. Diagnostics are informational, compatible with progressive validation. WHY NOT Option B? Breaks Level 1/Level 2 specs with deliberately incomplete invariants (APP-ADR-028). WHY NOT Option C? Dangerous silent default remains. LLMs will not pass --strict.
+
+#### Consequences
+
+ExtractInvariants gains []ParseDiagnostic return. Parse result includes diagnostics_count. Format: parse: warning: file:line: id missing component.
+
+#### Tests
+
+Parse spec with 3 well-formed and 2 malformed invariants: verify 2 diagnostics, 3 in DB. Parse Level 1 spec: verify diagnostic, invariant still indexed. Parse with --quiet: no diagnostics.
+
+---
