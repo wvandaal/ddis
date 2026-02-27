@@ -3,6 +3,8 @@ package cli
 // ddis:maintains APP-INV-028 (spec-as-trunk — crystallization feeds discoveries into spec)
 // ddis:maintains APP-INV-033 (absorption format parity — generated content indistinguishable from hand-authored)
 // ddis:implements APP-INV-025 (discovery provenance chain — records decision_crystallized event linking artifact to discovery thread)
+// ddis:maintains APP-INV-061
+// ddis:implements APP-ADR-049
 
 import (
 	"encoding/json"
@@ -71,10 +73,6 @@ func init() {
 }
 
 func runCrystallize(cmd *cobra.Command, args []string) error {
-	if crystallizeModule == "" {
-		return fmt.Errorf("--module is required")
-	}
-
 	// Read JSON from stdin
 	var input CrystallizeInput
 	dec := json.NewDecoder(os.Stdin)
@@ -96,6 +94,16 @@ func runCrystallize(cmd *cobra.Command, args []string) error {
 	manifest, _, err := parser.ParseManifestFile(crystallizeFile)
 	if err != nil {
 		return fmt.Errorf("parse manifest: %w", err)
+	}
+
+	// Auto-resolve target module if --module not provided
+	if crystallizeModule == "" {
+		resolved, resolveErr := resolveTargetModule(manifest, input.ID, input.Domain)
+		if resolveErr != nil {
+			return resolveErr
+		}
+		crystallizeModule = resolved
+		fmt.Fprintf(os.Stderr, "Auto-resolved module: %s\n", crystallizeModule)
 	}
 
 	moduleDecl, ok := manifest.Modules[crystallizeModule]
@@ -255,6 +263,46 @@ func formatADR(in CrystallizeInput) string {
 
 	b.WriteString("---\n")
 	return b.String()
+}
+
+// resolveTargetModule auto-resolves the target module for crystallization.
+// Priority: 1) manifest invariant_registry mapping, 2) domain match from input, 3) error with candidates.
+func resolveTargetModule(manifest *parser.ManifestData, elementID, inputDomain string) (string, error) {
+	// Priority 1: Check invariant_registry for explicit mapping
+	if entry, ok := manifest.InvariantRegistry[elementID]; ok {
+		// Find module by domain match
+		for name, mod := range manifest.Modules {
+			if mod.Domain == entry.Domain {
+				return name, nil
+			}
+		}
+	}
+
+	// Priority 2: Check manifest maintains lists
+	for name, mod := range manifest.Modules {
+		for _, m := range mod.Maintains {
+			if m == elementID {
+				return name, nil
+			}
+		}
+	}
+
+	// Priority 3: Domain match from input
+	if inputDomain != "" {
+		for name, mod := range manifest.Modules {
+			if mod.Domain == inputDomain {
+				return name, nil
+			}
+		}
+	}
+
+	// No match — error with candidates
+	candidates := make([]string, 0, len(manifest.Modules))
+	for name, mod := range manifest.Modules {
+		candidates = append(candidates, fmt.Sprintf("%s (domain: %s)", name, mod.Domain))
+	}
+	return "", fmt.Errorf("cannot auto-resolve target module for %s; use --module to specify (candidates: %s)",
+		elementID, strings.Join(candidates, ", "))
 }
 
 // updateManifestRegistry appends an invariant to the manifest.yaml invariant_registry.

@@ -56,7 +56,7 @@ func runNext(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	db, err := storage.Open(dbPath)
+	db, err := storage.OpenExisting(dbPath)
 	if err != nil {
 		fmt.Printf("Cannot open %s: %v\n", dbPath, err)
 		fmt.Println("\nNext: ddis parse manifest.yaml")

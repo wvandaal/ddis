@@ -5,6 +5,7 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 
 	_ "modernc.org/sqlite"
@@ -13,6 +14,18 @@ import (
 // DB is the interface used by the parser for database operations.
 // *sql.DB satisfies this interface.
 type DB = *sql.DB
+
+// OpenExisting opens an existing SQLite database, returning a clear error if
+// the file does not exist. Use this for read-only commands that should never
+// auto-create a database file.
+// ddis:maintains APP-INV-059
+// ddis:implements APP-ADR-046
+func OpenExisting(dbPath string) (*sql.DB, error) {
+	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("database not found: %s (run ddis parse to create it)", dbPath)
+	}
+	return Open(dbPath)
+}
 
 // Open creates or opens a SQLite database at the given path and applies the schema.
 func Open(dbPath string) (*sql.DB, error) {

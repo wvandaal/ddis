@@ -386,78 +386,31 @@ A stack of depth 7 (indices 0-6, index 0 unused) tracks the most recent heading 
 
 `extractElementsFromLines` runs 12 independent recognizers sequentially. Each recognizer is a state machine that walks the lines array, identifies blocks matching its pattern, and inserts rows into the corresponding table. The recognizers are:
 
-1. `ExtractInvariants` --- state machine: idle -> headerSeen -> statementSeen -> inCodeBlock -> codeDone -> afterCode. Terminates on `---` or next invariant header.
-2. `ExtractADRs` --- state machine: idle -> headerSeen -> inProblem -> inOptions -> inDecision -> inConsequences -> inTests. Tracks option labels and chosen option.
-3. `ExtractGates` --- matches `GateRe` pattern for quality gate blocks.
-4. `ExtractNegativeSpecs` --- matches `NegSpecRe` for **DO NOT** constraints.
-5. `ExtractVerificationPrompts` --- matches `VerifPromptRe` for structured self-checks.
-6. `ExtractMetaInstructions` --- matches `MetaInstrRe` for META-INSTRUCTION blocks.
-7. `ExtractWorkedExamples` --- matches `WorkedExampleRe` for worked example blocks.
-8. `ExtractWhyNots` --- matches `WhyNotRe` for WHY NOT annotations.
-9. `ExtractComparisonBlocks` --- matches comparison markers for suboptimal/chosen approach pairs.
-10. `ExtractPerformanceBudgets` --- matches `PerfBudgetHeaderRe` for budget tables.
-11. `ExtractStateMachines` --- matches `StateMachineHeaderRe` for state-event tables.
-12. `ExtractGlossaryEntries` --- matches `GlossaryRowRe` for glossary table rows.
+- **State-machine recognizers** (multi-state): `ExtractInvariants` (idle→headerSeen→statementSeen→afterCode, terminates on `---`), `ExtractADRs` (idle→headerSeen→inProblem→...→inTests, tracks chosen option)
+- **Block-pattern recognizers** (single-regex): `ExtractGates`, `ExtractNegativeSpecs`, `ExtractVerificationPrompts`, `ExtractMetaInstructions`, `ExtractWorkedExamples`, `ExtractWhyNots`
+- **Structured-data recognizers**: `ExtractComparisonBlocks` (suboptimal/chosen pairs), `ExtractPerformanceBudgets` (budget tables), `ExtractStateMachines` (state-event tables), `ExtractGlossaryEntries` (glossary rows)
 
 Every recognizer calls `FindSectionForLine` to associate extracted elements with their containing section (the deepest section whose `[LineStart, LineEnd)` range includes the element's line).
 
 #### Pass 3: Cross-Reference Extraction
 
-`ExtractCrossReferences` walks every line (skipping code blocks) and matches four regex patterns:
-
-- `XRefSectionRe`: `§(\d+(?:\.\d+)*)` --- captures section references like `§0.5`, `§3.8`
-- `XRefInvRe`: `((?:APP-)?INV-\d{3})` --- captures invariant references like `INV-001`, `APP-INV-003`
-- `XRefADRRe`: `((?:APP-)?ADR-\d{3})` --- captures ADR references like `ADR-002`, `APP-ADR-005`
-- `XRefGateRe`: `Gate\s+((?:M-)?[1-9]\d*)` --- captures gate references like `Gate 3`, `Gate M-1`
-
-Each match is inserted into the `cross_references` table with `resolved = 0`. Definition lines (invariant headers, ADR headers, gate definitions) are excluded to prevent self-references.
+`ExtractCrossReferences` walks every line (skipping code blocks) and matches four regex patterns: `XRefSectionRe` (`§N.M`), `XRefInvRe` (`(APP-)?INV-NNN`), `XRefADRRe` (`(APP-)?ADR-NNN`), and `XRefGateRe` (`Gate N`). Each match is inserted into `cross_references` with `resolved = 0`. Definition lines are excluded to prevent self-references.
 
 #### Pass 4: Cross-Reference Resolution
 
-`ResolveCrossReferences` queries all unresolved cross-references for the spec, then for each one checks whether the target exists:
-
-- `section` type: queries `sections` for matching `section_path`
-- `invariant`/`app_invariant` type: queries `invariants` for matching `invariant_id`
-- `adr`/`app_adr` type: queries `adrs` for matching `adr_id`
-- `gate` type: queries `quality_gates` for matching `gate_id`
-
-Resolved references are updated with `resolved = 1`.
+`ResolveCrossReferences` queries unresolved cross-references and checks target existence by type: sections by `section_path`, invariants/ADRs by their ID, gates by `gate_id`. Resolved references are updated with `resolved = 1`.
 
 #### Worked Example: Parsing a Small Fragment
 
-Consider this 12-line markdown fragment:
+Given a fragment containing a heading (`## 0.5 Invariants`), an invariant block (`INV-NNN: Causal Traceability`), and a terminator (`---`):
 
-```markdown
-## 0.5 Invariants
+**Pass 1:** `BuildSectionTree` produces one `SectionNode` — `SectionPath = "§0.5"`, `HeadingLevel = 2`, `LineStart = 0`, `LineEnd = 12`.
 
-**INV-NNN: Causal Traceability**
+**Pass 2:** `ExtractInvariants` walks the state machine (`idle → headerSeen → statementSeen → afterCode`) collecting `statement`, `violation_scenario`, `validation_method`, and `why_this_matters`. The `---` terminator triggers flush with `content_hash = sha256Hex(raw_text)`.
 
-*Every implementation section traces to at least one ADR.*
+**Pass 3:** `ExtractCrossReferences` finds no reference patterns (bare "ADR" without dash-number suffix does not match `XRefADRRe`).
 
-Violation scenario: An implementation chapter has no ADR reference.
-
-Validation: Pick 5 random sections, trace references backward.
-
-// WHY THIS MATTERS: Without traceability, sections accumulate without justification.
-
----
-```
-
-**Pass 1 (Section Tree):** `BuildSectionTree` finds one heading at line 0 (`## 0.5 Invariants`), creating a `SectionNode` with `SectionPath = "§0.5"`, `HeadingLevel = 2`, `LineStart = 0`, `LineEnd = 12` (EOF).
-
-**Pass 2 (Element Extraction):** `ExtractInvariants` identifies the invariant block:
-- Line 2: `InvHeaderRe` matches -> state = `headerSeen`, `invariant_id = "INV-NNN"`, `title = "Causal Traceability"`
-- Line 4: `InvStatementRe` matches -> state = `statementSeen`, `statement = "Every implementation section traces to at least one ADR."`
-- Line 6: `ViolationRe` matches -> state = `afterCode`, `violation_scenario = "An implementation chapter has no ADR reference."`
-- Line 8: `ValidationRe` matches -> `validation_method = "Pick 5 random sections, trace references backward."`
-- Line 10: `WhyMattersRe` matches -> `why_this_matters = "Without traceability, sections accumulate without justification."`
-- Line 12: `---` -> flush. `content_hash = sha256Hex(raw_text)`. Insert into `invariants` table.
-
-**Pass 3 (Cross-Reference Extraction):** `ExtractCrossReferences` scans lines:
-- Line 4: `XRefADRRe` does not match "ADR" (the word "ADR" without the dash-number suffix is not a reference pattern)
-- No other reference patterns found in this fragment
-
-**Pass 4 (Cross-Reference Resolution):** No unresolved references to process.
+**Pass 4:** No unresolved references to process.
 
 ---
 
@@ -476,41 +429,19 @@ The 30-table schema is organized into six groups. Each table has a specific role
 | `sections` | Heading-delimited tree structure | `section_path`, `heading_level`, `parent_id`, `raw_text`, `content_hash` |
 | `formatting_hints` | Blank lines and horizontal rules for round-trip fidelity | `line_number`, `hint_type` (blank_line/hr) |
 
-The `source_files.raw_text` column is the single source of truth for rendering. `RenderMonolith` queries this column directly; `RenderModular` queries all source files and writes each back to its original path.
+`source_files.raw_text` is the single source of truth for rendering — `RenderMonolith` queries it directly; `RenderModular` writes each file back to its original path.
 
 #### Element Tables (16 tables)
 
-| Table | Element Type | Foreign Keys |
-|---|---|---|
-| `invariants` | Invariant blocks | `spec_id`, `source_file_id`, `section_id` |
-| `adrs` | Architecture Decision Records | `spec_id`, `source_file_id`, `section_id` |
-| `adr_options` | Per-ADR options (1:N from `adrs`) | `adr_id` |
-| `quality_gates` | Quality gate definitions | `spec_id`, `section_id` |
-| `negative_specs` | DO NOT constraints | `spec_id`, `source_file_id`, `section_id` |
-| `verification_prompts` | Verification prompt blocks | `spec_id`, `section_id` |
-| `verification_checks` | Individual checks (1:N from prompts) | `prompt_id` |
-| `meta_instructions` | META-INSTRUCTION directives | `spec_id`, `section_id` |
-| `worked_examples` | Worked example blocks | `spec_id`, `section_id` |
-| `why_not_annotations` | WHY NOT annotations | `spec_id`, `section_id` |
-| `comparison_blocks` | Suboptimal/chosen comparison pairs | `spec_id`, `section_id` |
-| `performance_budgets` | Performance budget headers | `spec_id`, `section_id` |
-| `budget_entries` | Individual budget rows (1:N from budgets) | `budget_id` |
-| `state_machines` | State machine blocks | `spec_id`, `section_id` |
-| `state_machine_cells` | State x event cells (1:N from machines) | `machine_id` |
-| `glossary_entries` | Term-definition pairs | `spec_id`, `section_id` |
+**Primary element tables** (all share FKs `spec_id`, `section_id`; some add `source_file_id`): `invariants`, `adrs`, `quality_gates`, `negative_specs`, `verification_prompts`, `meta_instructions`, `worked_examples`, `why_not_annotations`, `comparison_blocks`, `performance_budgets`, `state_machines`, `glossary_entries`.
 
-Every element table has `section_id` as a foreign key, establishing the containment relationship: which section does this element live in? This enables queries like "all invariants in section §0.5" via a single indexed join.
+**Child tables** (1:N from parent): `adr_options` → `adrs`, `verification_checks` → `verification_prompts`, `budget_entries` → `performance_budgets`, `state_machine_cells` → `state_machines`.
+
+Every element table has `section_id` as a foreign key, enabling containment queries (e.g., "all invariants in §0.5") via a single indexed join.
 
 #### Cross-Reference Table (1 table)
 
-The `cross_references` table records every explicit reference found in the spec:
-
-- `source_section_id` -> `sections(id)`: which section contains this reference
-- `ref_type`: one of `section`, `invariant`, `adr`, `gate`, `app_invariant`, `app_adr`, `glossary_term`
-- `ref_target`: the identifier being referenced (e.g., `"§0.5"`, `"INV-001"`, `"ADR-002"`)
-- `resolved`: 0 or 1, set by pass 4
-
-The `ref_type` + `ref_target` pair forms the cross-reference graph that the search-intelligence module uses for PageRank computation (APP-INV-004, maintained by search-intelligence) and that the query-validation module uses for integrity checking (APP-INV-003, maintained by query-validation).
+The `cross_references` table records every reference with columns: `source_section_id` (FK → sections), `ref_type` (section/invariant/adr/gate/app_invariant/app_adr/glossary_term), `ref_target` (e.g., `"§0.5"`, `"INV-001"`), and `resolved` (0/1, set by pass 4). The `ref_type` + `ref_target` pair forms the cross-reference graph used by search-intelligence for PageRank (APP-INV-004) and query-validation for integrity checking (APP-INV-003).
 
 #### Modular Structure Tables (5 tables)
 

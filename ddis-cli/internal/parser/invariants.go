@@ -7,7 +7,14 @@ import (
 )
 
 // ExtractInvariants finds invariant blocks within the given line range.
-func ExtractInvariants(lines []string, sections []*SectionNode, specID, sourceFileID int64, db storage.DB) error {
+// When diags is non-nil, incomplete invariant headers are reported as diagnostics
+// instead of being silently discarded.
+func ExtractInvariants(lines []string, sections []*SectionNode, specID, sourceFileID int64, db storage.DB, diags ...*Diagnostics) error {
+	var diagSink *Diagnostics
+	if len(diags) > 0 {
+		diagSink = diags[0]
+	}
+	_ = diagSink // used below
 	type invState int
 	const (
 		idle invState = iota
@@ -57,7 +64,14 @@ func ExtractInvariants(lines []string, sections []*SectionNode, specID, sourceFi
 				current.Statement = m[1]
 				state = statementSeen
 			} else {
-				// Not a valid invariant block, reset
+				// Not a valid invariant block — emit diagnostic and reset
+				if diagSink != nil {
+					diagSink.Add(ParseDiagnostic{
+						ElementID:  current.InvariantID,
+						Line:       current.LineStart,
+						Deficiency: "missing statement (expected italic *...*)",
+					})
+				}
 				state = idle
 			}
 

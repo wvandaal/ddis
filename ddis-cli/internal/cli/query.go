@@ -82,7 +82,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	db, err := storage.Open(dbPath)
+	db, err := storage.OpenExisting(dbPath)
 	if err != nil {
 		return fmt.Errorf("open database: %w", err)
 	}
@@ -157,8 +157,11 @@ func runQuery(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// FindDB looks for a *.ddis.db file in the current directory.
+// FindDB resolves the database path. Priority: --db flag > positional arg > auto-discovery.
 func FindDB() (string, error) {
+	if globalDBPath != "" {
+		return globalDBPath, nil
+	}
 	matches, err := filepath.Glob("*.ddis.db")
 	if err != nil {
 		return "", fmt.Errorf("search for .ddis.db: %w", err)

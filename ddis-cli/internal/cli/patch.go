@@ -107,7 +107,7 @@ func runPatch(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	db, err := storage.Open(dbPath)
+	db, err := storage.OpenExisting(dbPath)
 	if err != nil {
 		return fmt.Errorf("open database: %w", err)
 	}
@@ -141,7 +141,7 @@ func runPatchFile(dbPath, relPath, oldText, newText string, dryRun bool) error {
 					return fmt.Errorf("file %q not found and no DB to resolve against: %w", relPath, err)
 				}
 			}
-			db, err := storage.Open(dbPath)
+			db, err := storage.OpenExisting(dbPath)
 			if err != nil {
 				return fmt.Errorf("open database: %w", err)
 			}

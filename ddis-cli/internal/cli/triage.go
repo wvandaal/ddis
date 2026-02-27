@@ -70,7 +70,7 @@ func runTriage(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	db, err := storage.Open(dbPath)
+	db, err := storage.OpenExisting(dbPath)
 	if err != nil {
 		return fmt.Errorf("open database: %w", err)
 	}

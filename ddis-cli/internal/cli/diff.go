@@ -48,13 +48,13 @@ func init() {
 func runDiff(cmd *cobra.Command, args []string) error {
 	basePath, headPath := args[0], args[1]
 
-	baseDB, err := storage.Open(basePath)
+	baseDB, err := storage.OpenExisting(basePath)
 	if err != nil {
 		return fmt.Errorf("open base database: %w", err)
 	}
 	defer baseDB.Close()
 
-	headDB, err := storage.Open(headPath)
+	headDB, err := storage.OpenExisting(headPath)
 	if err != nil {
 		return fmt.Errorf("open head database: %w", err)
 	}

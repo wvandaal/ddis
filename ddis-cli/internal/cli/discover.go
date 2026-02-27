@@ -124,7 +124,7 @@ func runDiscover(cmd *cobra.Command, args []string) error {
 
 	if opts.SpecDB != "" {
 		var dbErr error
-		db, dbErr = storage.Open(opts.SpecDB)
+		db, dbErr = storage.OpenExisting(opts.SpecDB)
 		if dbErr != nil {
 			return fmt.Errorf("open spec database: %w", dbErr)
 		}
@@ -179,7 +179,7 @@ func runDiscoverStatus(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	db, err := storage.Open(discoverSpec)
+	db, err := storage.OpenExisting(discoverSpec)
 	if err != nil {
 		return fmt.Errorf("open spec database: %w", err)
 	}

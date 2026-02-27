@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -50,6 +51,9 @@ func runParse(cmd *cobra.Command, args []string) error {
 	}
 	defer db.Close()
 
+	// Reset parser diagnostics before parsing
+	parser.ResetDiagnostics()
+
 	// Detect monolith vs modular
 	var specID int64
 	basename := filepath.Base(specPath)
@@ -63,6 +67,14 @@ func runParse(cmd *cobra.Command, args []string) error {
 
 	if err != nil {
 		return fmt.Errorf("parse: %w", err)
+	}
+
+	// Print parser diagnostics (incomplete elements) to stderr
+	if diags := parser.GlobalDiagnostics.All(); len(diags) > 0 {
+		for _, d := range diags {
+			d.FilePath = specPath
+			fmt.Fprintln(os.Stderr, parser.FormatDiagnostic(d))
+		}
 	}
 
 	// Auto-invalidate stale witnesses

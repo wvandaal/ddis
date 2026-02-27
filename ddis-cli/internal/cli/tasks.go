@@ -71,7 +71,7 @@ func runTasks(cmd *cobra.Command, args []string) error {
 			}
 			specPath = found
 		}
-		db, err := storage.Open(specPath)
+		db, err := storage.OpenExisting(specPath)
 		if err != nil {
 			return fmt.Errorf("open spec database: %w", err)
 		}
@@ -115,7 +115,7 @@ func runTasks(cmd *cobra.Command, args []string) error {
 
 	// Cross-validate against spec if provided
 	if tasksSpec != "" && tasksDiscovery != "" {
-		db, err := storage.Open(tasksSpec)
+		db, err := storage.OpenExisting(tasksSpec)
 		if err != nil {
 			return fmt.Errorf("open spec database: %w", err)
 		}

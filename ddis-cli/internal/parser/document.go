@@ -86,7 +86,7 @@ func ParseDocument(filePath string, db storage.DB) (int64, error) {
 
 // extractElementsFromLines runs all element recognizers on the given lines.
 func extractElementsFromLines(lines []string, sections []*SectionNode, specID, sfID int64, db storage.DB) error {
-	if err := ExtractInvariants(lines, sections, specID, sfID, db); err != nil {
+	if err := ExtractInvariants(lines, sections, specID, sfID, db, &GlobalDiagnostics); err != nil {
 		return fmt.Errorf("invariants: %w", err)
 	}
 	if err := ExtractADRs(lines, sections, specID, sfID, db); err != nil {

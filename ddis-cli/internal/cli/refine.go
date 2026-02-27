@@ -109,7 +109,7 @@ func runRefineAudit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	db, err := storage.Open(specPath)
+	db, err := storage.OpenExisting(specPath)
 	if err != nil {
 		return fmt.Errorf("open spec database: %w", err)
 	}
@@ -148,7 +148,7 @@ func runRefinePlan(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	db, err := storage.Open(specPath)
+	db, err := storage.OpenExisting(specPath)
 	if err != nil {
 		return fmt.Errorf("open spec database: %w", err)
 	}
@@ -186,7 +186,7 @@ func runRefineApply(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	db, err := storage.Open(specPath)
+	db, err := storage.OpenExisting(specPath)
 	if err != nil {
 		return fmt.Errorf("open spec database: %w", err)
 	}
@@ -223,7 +223,7 @@ func runRefineJudge(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	db, err := storage.Open(specPath)
+	db, err := storage.OpenExisting(specPath)
 	if err != nil {
 		return fmt.Errorf("open spec database: %w", err)
 	}

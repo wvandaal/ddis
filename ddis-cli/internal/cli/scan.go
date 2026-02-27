@@ -69,7 +69,7 @@ func runScan(cmd *cobra.Command, args []string) error {
 
 	// Verify and/or store require a spec DB
 	if (opts.Verify || opts.Store) && opts.SpecDB != "" {
-		db, err := storage.Open(opts.SpecDB)
+		db, err := storage.OpenExisting(opts.SpecDB)
 		if err != nil {
 			return fmt.Errorf("open spec database: %w", err)
 		}

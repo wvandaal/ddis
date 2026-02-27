@@ -109,6 +109,8 @@ var checkInvariantInfo = map[int]struct {
 	16: {"APP-INV-049", "A witness with type=test is mechanically grounded by test execution. Attestation-only witnesses are unverified claims."},
 	17: {"APP-INV-050", "For every invariant with a valid witness, challenge(witness(inv)) must return a verdict in {confirmed, provisional, refuted, inconclusive}. If refuted, the witness is automatically invalidated."},
 	18: {"APP-INV-056", "Process compliance observability — computes PC score from available data sources, reports via context bundles and validation."},
+	19: {"APP-ADR-048", "VCS tracking — all spec source files must be tracked in version control."},
+	20: {"APP-INV-062", "Lifecycle reachability — every state in the transition graph must be reachable from the initial state with a forward path to the terminal state."},
 }
 
 // AllChecks returns all registered validation checks.
@@ -132,6 +134,8 @@ func AllChecks() []Check {
 		&checkBehavioralWitness{},          // Check 16
 		&checkChallengeFreshness{},         // Check 17
 		&checkProcessCompliance{},         // Check 18
+		&checkVCSTracking{},               // Check 19
+		&checkLifecycleReachability{},     // Check 20
 	}
 }
 

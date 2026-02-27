@@ -16,6 +16,10 @@ import (
 // NoGuidance suppresses "Next:" guidance postscripts when true.
 var NoGuidance bool
 
+// globalDBPath is the unified --db flag for specifying the database path.
+// ddis:implements APP-ADR-050
+var globalDBPath string
+
 var rootCmd = &cobra.Command{
 	Use:   "ddis",
 	Short: "DDIS: Transactional Specification Management System",
@@ -76,6 +80,7 @@ func emitRecoveryHint(err error) {
 func init() {
 	// Global flags
 	rootCmd.PersistentFlags().BoolVarP(&NoGuidance, "no-guidance", "q", false, "Suppress navigational guidance postscripts")
+	rootCmd.PersistentFlags().StringVar(&globalDBPath, "db", "", "Path to DDIS database (overrides auto-discovery)")
 
 	// Command groups by workflow phase
 	coreGroup := &cobra.Group{ID: "core", Title: "Core Workflow:"}
@@ -134,6 +139,7 @@ func init() {
 	agentHelpCmd.GroupID = "utility"
 	issueCmd.GroupID = "core"
 	triageCmd.GroupID = "core"
+	renameCmd.GroupID = "utility"
 
 	rootCmd.AddCommand(nextCmd)
 	rootCmd.AddCommand(parseCmd)
@@ -175,4 +181,5 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(issueCmd)
 	rootCmd.AddCommand(triageCmd)
+	rootCmd.AddCommand(renameCmd)
 }
