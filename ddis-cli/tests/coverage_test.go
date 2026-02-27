@@ -2,64 +2,12 @@ package tests
 
 import (
 	"encoding/json"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/wvandaal/ddis/internal/coverage"
 	"github.com/wvandaal/ddis/internal/exemplar"
-	"github.com/wvandaal/ddis/internal/parser"
-	"github.com/wvandaal/ddis/internal/storage"
 )
-
-// sharedCoverageDB caches a parsed DB for coverage tests.
-var sharedCoverageDB *coverageTestDB
-
-type coverageTestDB struct {
-	db     *storage.DB
-	specID int64
-}
-
-func getCoverageDB(t *testing.T) (*storage.DB, int64) {
-	t.Helper()
-	if sharedCoverageDB != nil {
-		return sharedCoverageDB.db, sharedCoverageDB.specID
-	}
-
-	manifestPath := filepath.Join(projectRoot(), "ddis-cli-spec", "manifest.yaml")
-	monolithPath := filepath.Join(projectRoot(), "ddis_final.md")
-
-	var specPath string
-	var isModular bool
-	if _, err := os.Stat(manifestPath); err == nil {
-		specPath = manifestPath
-		isModular = true
-	} else if _, err := os.Stat(monolithPath); err == nil {
-		specPath = monolithPath
-	} else {
-		t.Skipf("no spec found (tried %s and %s)", manifestPath, monolithPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "coverage_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-
-	var specID int64
-	if isModular {
-		specID, err = parser.ParseModularSpec(specPath, db)
-	} else {
-		specID, err = parser.ParseDocument(specPath, db)
-	}
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
-
-	sharedCoverageDB = &coverageTestDB{db: &db, specID: specID}
-	return sharedCoverageDB.db, sharedCoverageDB.specID
-}
 
 // =============================================================================
 // INV-COV-MONO: Coverage Monotonicity
@@ -119,12 +67,11 @@ func TestCoverageMonotonicity(t *testing.T) {
 }
 
 // =============================================================================
-// Coverage Analyze correctness on real spec
+// Coverage Analyze correctness on synthetic spec
 // =============================================================================
 
 func TestCoverageAnalyze(t *testing.T) {
-	dbPtr, specID := getCoverageDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	result, err := coverage.Analyze(db, specID, coverage.Options{})
 	if err != nil {
@@ -167,8 +114,7 @@ func TestCoverageAnalyze(t *testing.T) {
 // =============================================================================
 
 func TestCoverageJSONValid(t *testing.T) {
-	dbPtr, specID := getCoverageDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	result, err := coverage.Analyze(db, specID, coverage.Options{})
 	if err != nil {
@@ -199,8 +145,7 @@ func TestCoverageJSONValid(t *testing.T) {
 // =============================================================================
 
 func TestCoverageHumanReadable(t *testing.T) {
-	dbPtr, specID := getCoverageDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	result, err := coverage.Analyze(db, specID, coverage.Options{})
 	if err != nil {
@@ -228,8 +173,7 @@ func TestCoverageHumanReadable(t *testing.T) {
 // =============================================================================
 
 func TestCoverageDomainFilter(t *testing.T) {
-	dbPtr, specID := getCoverageDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	full, err := coverage.Analyze(db, specID, coverage.Options{})
 	if err != nil {
@@ -272,8 +216,7 @@ func TestCoverageDomainFilter(t *testing.T) {
 // =============================================================================
 
 func TestCoverageDeterminism(t *testing.T) {
-	dbPtr, specID := getCoverageDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	result1, err := coverage.Analyze(db, specID, coverage.Options{})
 	if err != nil {
@@ -297,8 +240,7 @@ func TestCoverageDeterminism(t *testing.T) {
 // =============================================================================
 
 func TestCoverageGapsNonNil(t *testing.T) {
-	dbPtr, specID := getCoverageDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	result, err := coverage.Analyze(db, specID, coverage.Options{})
 	if err != nil {
@@ -315,8 +257,7 @@ func TestCoverageGapsNonNil(t *testing.T) {
 // =============================================================================
 
 func TestCoverageCompleteCount(t *testing.T) {
-	dbPtr, specID := getCoverageDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	result, err := coverage.Analyze(db, specID, coverage.Options{})
 	if err != nil {

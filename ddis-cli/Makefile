@@ -1,4 +1,4 @@
-.PHONY: build test test-roundtrip test-query test-validate test-diff test-impact test-oplog test-tx test-search install clean
+.PHONY: build test test-race test-integration test-all test-roundtrip test-query test-validate test-diff test-impact test-oplog test-tx test-search install clean
 
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 COMMIT  ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
@@ -12,6 +12,15 @@ build:
 
 test:
 	go test ./... -v
+
+test-race:
+	go test ./... -race -timeout 120s
+
+test-integration:
+	go test ./... -tags integration -v -timeout 300s
+
+test-all:
+	go test ./... -tags integration -race -timeout 600s
 
 test-roundtrip: build
 	./bin/ddis parse ../ddis_final.md -o /tmp/test.db

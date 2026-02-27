@@ -1,9 +1,9 @@
 ---
 module: auto-prompting
 domain: autoprompt
-maintains: [APP-INV-022, APP-INV-023, APP-INV-024, APP-INV-025, APP-INV-026, APP-INV-027, APP-INV-028, APP-INV-029, APP-INV-030, APP-INV-031, APP-INV-032, APP-INV-033, APP-INV-034, APP-INV-035, APP-INV-036, APP-INV-042, APP-INV-045, APP-INV-046]
+maintains: [APP-INV-022, APP-INV-023, APP-INV-024, APP-INV-025, APP-INV-026, APP-INV-027, APP-INV-028, APP-INV-029, APP-INV-030, APP-INV-031, APP-INV-032, APP-INV-033, APP-INV-034, APP-INV-035, APP-INV-036, APP-INV-042, APP-INV-045, APP-INV-046, APP-INV-056]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-005, APP-INV-008, APP-INV-009, APP-INV-010, APP-INV-015, APP-INV-016, APP-INV-017, APP-INV-018, APP-INV-020]
-implements: [APP-ADR-016, APP-ADR-017, APP-ADR-018, APP-ADR-019, APP-ADR-020, APP-ADR-021, APP-ADR-022, APP-ADR-023, APP-ADR-024, APP-ADR-025, APP-ADR-031, APP-ADR-033]
+implements: [APP-ADR-016, APP-ADR-017, APP-ADR-018, APP-ADR-019, APP-ADR-020, APP-ADR-021, APP-ADR-022, APP-ADR-023, APP-ADR-024, APP-ADR-025, APP-ADR-031, APP-ADR-033, APP-ADR-043]
 adjacent: [code-bridge, search-intelligence, query-validation, lifecycle-ops, workspace-ops]
 negative_specs:
   - "Must NOT generate prompts that exceed LLM context budget"
@@ -2084,6 +2084,98 @@ The state monad architecture (APP-ADR-022) ensures every command returns guidanc
 - Run ddis next with valid DB: verify it reports status and suggests next action
 - Run bare ddis: verify it delegates to next, not cobra help
 - Verify ddis next reads workspace state (DB existence, validation, coverage, drift)
+
+---
+
+### APP-ADR-043: Observational Process Compliance over Prescriptive Gates
+
+#### Problem
+
+Agents violate spec-first methodology by defaulting to implementation-first when given a detailed plan. The plan's ordering instructions attenuate with conversation depth (k\* decay from LLM Gestalt Theory). The mid-DoF saddle (Alien Artifact Methodology) pulls toward the implementation substrate. Pre-commit hooks are coercive, bypassable, and create adversarial dynamics between tool and user.
+
+#### Options
+
+A) **Prescriptive gates** --- Pre-commit hook that blocks commits when spec files have not been modified before code files. `ddis validate --strict` fails when process compliance is below threshold.
+- Pros: Hard enforcement. Impossible to bypass without disabling.
+- Cons: Coercive. Creates adversarial dynamics. Bypassable via `--no-verify`. Blocks legitimate workflows (hotfixes, prototyping). Violates APP-INV-026 (Classification Non-Prescriptive) and APP-ADR-018 (Observation over Prescription).
+
+B) **Observational compliance** --- Process compliance is OBSERVED and REPORTED through existing information channels (context bundles, validation, drift), never ENFORCED through gates or blocks.
+- Pros: Non-coercive. Works with all workflows. Self-correcting via guidance. Follows existing DDIS principles (observe, do not prescribe). Gracefully degrades. No new commands to learn.
+- Cons: Agent can ignore warnings. No hard enforcement. Requires agent to read and act on guidance.
+
+C) **Hybrid** --- Observational by default, prescriptive opt-in via `--strict` flag on validate/drift.
+- Pros: Flexibility. CI pipelines can enforce, humans can observe.
+- Cons: Complexity. Two modes to maintain. Strict mode still has the coercion problems of Option A.
+
+#### Decision
+
+**Option B: Observational compliance.** Process compliance is OBSERVED and REPORTED through existing information channels (context bundles, validation, drift), never ENFORCED through gates or blocks.
+
+This follows APP-INV-026 (classification non-prescriptive) and APP-ADR-018 (observation over prescription) applied to the methodology itself. The Gestalt Theory principle applies: demonstrate correct ordering through guidance, do not constrain against incorrect ordering. Constraints are parasitic when the agent already knows the correct behavior --- it just needs a reminder at the right time.
+
+// WHY NOT Prescriptive gates (Option A)? Pre-commit hooks that block work create adversarial dynamics. The agent learns to circumvent the gate rather than internalize the methodology. This is the Gestalt "constraint as parasitic attention sink" anti-pattern applied to process enforcement. Blocking is the wrong substrate for methodology adoption.
+
+// WHY NOT Hybrid (Option C)? The strict mode reintroduces all the problems of Option A for anyone who enables it. If observational compliance works (and the Gestalt Theory predicts it will --- demonstrations outperform constraints), the strict mode is unused complexity. If observational compliance does not work, the strict mode is a band-aid that masks the real problem (the guidance is not reaching the agent at the right time).
+
+**Confidence:** Committed
+
+#### Consequences
+
+- Context bundles include process compliance (Signal 11)
+- Validation includes process compliance check (Check 18, warning-only)
+- Drift reports include process drift dimension
+- Editing guidance recommends correct workflow sequencing
+- No agent is ever blocked from working
+- Methodology deviations are recoverable, not permanent
+- Self-bootstrapping: the tool measures its own process compliance
+
+#### Tests
+
+- Context bundle for a spec-first feature shows PC > 0.8
+- Context bundle for a code-first feature shows PC < 0.4
+- Validation Check 18 emits warnings for code-first, no warnings for spec-first
+- Drift report includes process drift when PC < 1.0
+- Guidance recommends remediation steps when sub-scores are low
+- Graceful degradation: all sub-scores compute when git/oplog missing
+
+---
+
+**APP-INV-056: Process Compliance Observability**
+
+*For every feature modification scope, the system computes a process compliance score PC in [0.0, 1.0] from available data sources (git log, oplog, witness table, validation records). The score is included in context bundles (Signal 11) and validation reports (Check 18). Missing data sources degrade individual sub-scores to neutral (0.5), never block computation. The check is warning-only --- it never fails validation.*
+
+```
+PC(feature) = w1*R_spec + w2*R_tool + w3*R_witness + w4*R_validate
+
+where:
+  R_spec     = |{inv : spec_commit(inv) < code_commit(inv)}| / |modified_invariants|
+  R_tool     = |{cmd in {discover,refine,context,absorb} : cmd in oplog}| / expected_count
+  R_witness  = |{inv : witness(inv).status = 'valid'}| / |modified_invariants|
+  R_validate = 1 if EXISTS validate_record between spec_change and code_change, else 0
+
+  weights: w1 = 0.35, w2 = 0.20, w3 = 0.25, w4 = 0.20
+
+FOR ALL features f modified by agent a:
+  EXISTS pc IN ProcessCompliance WHERE
+    pc.feature = f AND
+    pc.score = w1*R_spec(f) + w2*R_tool(f) + w3*R_witness(f) + w4*R_validate(f) AND
+    pc.score IN [0.0, 1.0] AND
+    pc.degraded = {s : s could not be computed from available data}
+
+FOR ALL context bundles b targeting element e:
+  IF e is related to a recently modified feature f:
+    b.ProcessCompliance IS NOT NULL
+
+FOR ALL validation runs v:
+  v.results CONTAINS process_compliance_check
+  process_compliance_check.passed = true  (always -- warning-only)
+```
+
+Violation scenario: An agent implements APP-INV-056 itself but writes code before spec, never uses ddis discover, and does not witness the invariant. The context bundle for APP-INV-056 shows ProcessCompliance.Score = 0.15 with SpecFirstRatio = 0.0 and ToolUsage = 0.0. The editing guidance says: "Process: spec changes should precede code changes." The irony is mechanical: the tool that measures process compliance reveals its own process was not followed.
+
+Validation: Implement APP-INV-056 following correct methodology (spec-first, tool-intermediated). Verify Signal 11 appears in context bundles. Verify Check 18 reports in validation. Then deliberately implement a feature code-first and verify PC score reflects the violation. Then remediate (ddis witness --verify) and verify PC score improves.
+
+// WHY THIS MATTERS: Without process compliance observability, the bilateral lifecycle has no meta-loop --- no mechanism that observes the methodology itself. Agents silently violate spec-first ordering, drift from the bilateral lifecycle, and produce retro-fitted specs that look correct but were derived from code rather than driving it. The process compliance signal closes this gap by making methodology adherence visible through the same information channels the agent already reads.
 
 ---
 

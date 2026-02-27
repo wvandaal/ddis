@@ -464,9 +464,8 @@ func InsertAuthority(db *sql.DB, specID int64, elementID string, score float64) 
 }
 
 // ClearFTSIndex removes all rows from the FTS5 index.
-// Uses the FTS5 'delete-all' command because fts_index is a contentless table.
 func ClearFTSIndex(db *sql.DB) error {
-	_, err := db.Exec(`INSERT INTO fts_index(fts_index) VALUES('delete-all')`)
+	_, err := db.Exec(`DELETE FROM fts_index`)
 	return err
 }
 
@@ -593,6 +592,9 @@ func ClearSpecByPath(db DB, specPath string) ([]InvariantWitness, error) {
 		specIDs = append(specIDs, id)
 	}
 	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate spec IDs: %w", err)
+	}
 
 	if len(specIDs) == 0 {
 		return nil, nil
@@ -624,6 +626,7 @@ func deleteSpecData(db DB, specID int64) error {
 	if _, err := db.Exec(`PRAGMA foreign_keys=OFF`); err != nil {
 		return fmt.Errorf("disable FK: %w", err)
 	}
+	defer db.Exec(`PRAGMA foreign_keys=ON`) // always re-enable, even on error paths
 
 	// Delete all tables that reference spec_id
 	tables := []string{
@@ -684,27 +687,18 @@ func deleteSpecData(db DB, specID int64) error {
 			q = fmt.Sprintf("DELETE FROM %s WHERE spec_id = ?", table)
 		}
 		if _, err := db.Exec(q, specID); err != nil {
-			// Re-enable FK before returning error
-			db.Exec(`PRAGMA foreign_keys=ON`)
 			return fmt.Errorf("delete %s: %w", table, err)
 		}
 	}
 
 	// Clear parent_spec_id references pointing to this spec
 	if _, err := db.Exec(`UPDATE spec_index SET parent_spec_id = NULL WHERE parent_spec_id = ?`, specID); err != nil {
-		db.Exec(`PRAGMA foreign_keys=ON`)
 		return err
 	}
 
 	// Delete spec_index row
 	if _, err := db.Exec(`DELETE FROM spec_index WHERE id = ?`, specID); err != nil {
-		db.Exec(`PRAGMA foreign_keys=ON`)
 		return err
-	}
-
-	// Re-enable foreign keys
-	if _, err := db.Exec(`PRAGMA foreign_keys=ON`); err != nil {
-		return fmt.Errorf("re-enable FK: %w", err)
 	}
 
 	return nil

@@ -68,6 +68,9 @@ func Generate(opts Options) (*GenerateResult, error) {
 		return nil, fmt.Errorf("create modules dir: %w", err)
 	}
 	for i, domain := range opts.Domains {
+		if domain == "" {
+			return nil, fmt.Errorf("domain name must not be empty")
+		}
 		modPath := filepath.Join(modDir, domain+".md")
 		data := struct {
 			Options
@@ -117,5 +120,9 @@ func writeTemplate(path string, tmplStr string, data interface{}) (int, error) {
 	if _, err := f.WriteString(content); err != nil {
 		return 0, err
 	}
-	return strings.Count(content, "\n") + 1, nil
+	lines := strings.Count(content, "\n")
+	if len(content) > 0 && !strings.HasSuffix(content, "\n") {
+		lines++
+	}
+	return lines, nil
 }

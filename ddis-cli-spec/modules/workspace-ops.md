@@ -1,9 +1,9 @@
 ---
 module: workspace-ops
 domain: workspace
-maintains: [APP-INV-037, APP-INV-038, APP-INV-039, APP-INV-040]
+maintains: [APP-INV-037, APP-INV-038, APP-INV-039, APP-INV-040, APP-INV-057]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-006, APP-INV-009, APP-INV-010, APP-INV-015, APP-INV-016, APP-INV-017, APP-INV-018, APP-INV-020, APP-INV-025]
-implements: [APP-ADR-026, APP-ADR-027, APP-ADR-028, APP-ADR-029]
+implements: [APP-ADR-026, APP-ADR-027, APP-ADR-028, APP-ADR-029, APP-ADR-044]
 adjacent: [parse-pipeline, query-validation, lifecycle-ops, code-bridge, auto-prompting]
 negative_specs:
   - "Must NOT modify files outside the workspace root during init"
@@ -907,3 +907,45 @@ Per the cross-module reference completeness convention, this section lists invar
 | APP-INV-018 | code-bridge | interfaces | Cross-spec references generalize scan-spec correspondence |
 | APP-INV-020 | code-bridge | interfaces | Event stream files created by init honor append-only guarantee |
 | APP-INV-025 | auto-prompting | interfaces | Task derivation reads provenance chain from discovery artifacts |
+
+### APP-ADR-044: External Issue Tracker Integration via gh CLI
+
+#### Problem
+
+Users need to report bugs and request features for DDIS without leaving the CLI. Manually navigating to GitHub breaks flow and loses context that the CLI already has (spec version, drift state, validation status).
+
+#### Options
+
+A. Direct GitHub API calls via net/http (heavy, auth management). B. Thin wrapper around gh CLI (minimal code, delegates auth to gh). C. Built-in issue tracker (scope creep, duplicates GitHub).
+
+#### Decision
+
+**Option B: Thin wrapper around gh CLI.** Delegates auth to gh, minimal code (~50 LOC), gh already detects repo from git remote.
+
+Wrap gh CLI. The ddis issue command shells out to gh issue create with title, body, and label flags. gh handles authentication, rate limits, and repo detection. If gh is not installed or not authenticated, ddis issue fails with a clear recovery hint rather than silently degrading.
+
+#### Consequences
+
+Minimal code surface (~50 LOC). Auth delegation to gh avoids storing tokens. gh detects the repo from git remote. Aligns with workspace-ops domain (external artifact integration). Does not violate APP-INV-015 since issue filing is not core task generation.
+
+#### Tests
+
+1. ddis issue --help prints usage without requiring gh. 2. ddis issue with missing gh binary returns error with recovery hint. 3. ddis issue with valid gh creates issue and prints URL.
+
+---
+
+**APP-INV-057: External Tool Graceful Degradation**
+
+*When a ddis command depends on an external tool (e.g., gh), absence or failure of that tool must produce a clear, actionable error with recovery guidance — never a panic, silent failure, or cryptic exec error.*
+
+```
+forall cmd in ExternalToolCommands: missing(tool(cmd)) => (exit_code > 0 AND stderr contains recovery_hint(tool(cmd)))
+```
+
+Violation scenario: User runs ddis issue without gh installed. Instead of exec: gh: not found, the CLI prints: Error: gh CLI not found. Install from https://cli.github.com/ and run gh auth login.
+
+Validation: Unit test: mock exec.LookPath returning error, verify error message contains install URL.
+
+// WHY THIS MATTERS: External tool wrappers are only valuable if they fail gracefully. A raw exec error is worse than no wrapper at all.
+
+---

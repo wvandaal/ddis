@@ -9,9 +9,13 @@ import (
 )
 
 // PopulateFTS populates the FTS5 index from extracted documents.
+// Handles migration from older contentless schema by recreating the table if needed.
 func PopulateFTS(db *sql.DB, docs []SearchDocument) error {
+	// Migrate from old contentless schema: if DELETE fails (contentless tables
+	// don't support DELETE), drop and recreate as a regular FTS5 table.
 	if err := storage.ClearFTSIndex(db); err != nil {
-		return fmt.Errorf("clear fts: %w", err)
+		db.Exec(`DROP TABLE IF EXISTS fts_index`)
+		db.Exec(`CREATE VIRTUAL TABLE fts_index USING fts5(element_type, element_id, title, content)`)
 	}
 
 	for _, doc := range docs {
@@ -83,14 +87,28 @@ func sanitizeFTSQuery(q string) string {
 	terms := strings.Fields(q)
 	var sanitized []string
 	for _, t := range terms {
-		// Remove FTS5 operators from user input
+		// Strip all FTS5 special characters and operators from user input.
+		// FTS5 syntax chars: " - * ^ ( ) { } :
+		// FTS5 keyword operators: OR AND NOT NEAR
 		t = strings.TrimLeft(t, "-")
-		t = strings.ReplaceAll(t, `"`, "")
-		if t != "" && t != "OR" && t != "AND" && t != "NOT" {
+		t = stripFTSChars(t)
+		if t != "" && t != "OR" && t != "AND" && t != "NOT" && t != "NEAR" {
 			sanitized = append(sanitized, t)
 		}
 	}
 	return strings.Join(sanitized, " ")
+}
+
+// stripFTSChars removes FTS5 special characters from a term.
+func stripFTSChars(s string) string {
+	return strings.Map(func(r rune) rune {
+		switch r {
+		case '"', '*', '^', '(', ')', '{', '}', ':':
+			return -1 // drop
+		default:
+			return r
+		}
+	}, s)
 }
 
 func isElementID(s string) bool {

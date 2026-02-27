@@ -29,6 +29,8 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 	var currentOpt *storage.ADROption
 	var chosenLabel string
 	var inChosenRationale bool
+	var inCodeBlock bool
+	var codeFence string
 
 	flush := func(endLine int) error {
 		if current.ADRID == "" {
@@ -67,6 +69,29 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
+		// Track code blocks — skip content inside fenced code blocks.
+		// Without this, ADR headers, subheadings, and --- separators inside
+		// code examples would be processed as real ADR structure.
+		if m := CodeFenceRe.FindStringSubmatch(trimmed); m != nil {
+			if !inCodeBlock {
+				inCodeBlock = true
+				codeFence = m[1]
+			} else if strings.HasPrefix(trimmed, codeFence) && len(trimmed) <= len(codeFence) {
+				inCodeBlock = false
+				codeFence = ""
+			}
+			if state != idle {
+				rawLines = append(rawLines, line)
+			}
+			continue
+		}
+		if inCodeBlock {
+			if state != idle {
+				rawLines = append(rawLines, line)
+			}
+			continue
+		}
+
 		// Check for a new ADR header (always resets state).
 		// Try canonical heading format first (### ADR-NNN:), then bold format (**ADR-NNN:**).
 		var adrID, adrTitle string
@@ -77,7 +102,7 @@ func ExtractADRs(lines []string, sections []*SectionNode, specID, sourceFileID i
 		}
 		if adrID != "" {
 			if state != idle {
-				if err := flush(i + 1); err != nil {
+				if err := flush(i); err != nil {
 					return err
 				}
 			}

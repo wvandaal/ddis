@@ -460,6 +460,10 @@ func computeVerdict(r *Result) Verdict {
 		score += 0.05
 	}
 
+	// Clamp to [0, 1] — accumulated boosts can exceed 1.0.
+	if score > 1.0 {
+		score = 1.0
+	}
 	r.EvidenceScore = score
 
 	// === Verdict thresholds ===

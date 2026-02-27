@@ -131,7 +131,7 @@ func Init(opts InitOptions) (*InitResult, error) {
 // ---------- path confinement ----------
 
 func confine(absPath, root string) error {
-	if !strings.HasPrefix(absPath, root) {
+	if absPath != root && !strings.HasPrefix(absPath, root+string(filepath.Separator)) {
 		return fmt.Errorf("path %q escapes workspace root %q", absPath, root)
 	}
 	return nil

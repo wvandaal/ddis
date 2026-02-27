@@ -1,32 +1,15 @@
 package tests
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/wvandaal/ddis/internal/oplog"
-	"github.com/wvandaal/ddis/internal/parser"
 	"github.com/wvandaal/ddis/internal/storage"
 )
 
 func TestTxBeginCommit(t *testing.T) {
-	specPath := filepath.Join(projectRoot(), "ddis_final.md")
-	if _, err := os.Stat(specPath); os.IsNotExist(err) {
-		t.Skipf("ddis_final.md not found at %s", specPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "tx_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-	defer db.Close()
-
-	specID, err := parser.ParseDocument(specPath, db)
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
+	db, specID := buildSyntheticDB(t)
 
 	// Begin
 	txID := "tx-test-begin-commit"
@@ -61,22 +44,7 @@ func TestTxBeginCommit(t *testing.T) {
 }
 
 func TestTxRollback(t *testing.T) {
-	specPath := filepath.Join(projectRoot(), "ddis_final.md")
-	if _, err := os.Stat(specPath); os.IsNotExist(err) {
-		t.Skipf("ddis_final.md not found at %s", specPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "tx_rb_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-	defer db.Close()
-
-	specID, err := parser.ParseDocument(specPath, db)
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
+	db, specID := buildSyntheticDB(t)
 
 	txID := "tx-test-rollback"
 	if err := storage.CreateTransaction(db, specID, txID, "Test rollback"); err != nil {
@@ -94,29 +62,14 @@ func TestTxRollback(t *testing.T) {
 	}
 
 	// Double commit should fail
-	err = storage.CommitTransaction(db, txID)
+	err := storage.CommitTransaction(db, txID)
 	if err == nil {
 		t.Error("expected error on commit after rollback")
 	}
 }
 
 func TestTxOperations(t *testing.T) {
-	specPath := filepath.Join(projectRoot(), "ddis_final.md")
-	if _, err := os.Stat(specPath); os.IsNotExist(err) {
-		t.Skipf("ddis_final.md not found at %s", specPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "tx_ops_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-	defer db.Close()
-
-	specID, err := parser.ParseDocument(specPath, db)
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
+	db, specID := buildSyntheticDB(t)
 
 	txID := "tx-test-ops"
 	if err := storage.CreateTransaction(db, specID, txID, "Test operations"); err != nil {
@@ -127,7 +80,7 @@ func TestTxOperations(t *testing.T) {
 	if err := storage.AddTxOperation(db, txID, 1, "create", `{"type":"invariant","id":"INV-999"}`, ""); err != nil {
 		t.Fatalf("add op 1: %v", err)
 	}
-	if err := storage.AddTxOperation(db, txID, 2, "update", `{"type":"section","id":"§4.2"}`, `["INV-006","§4.2"]`); err != nil {
+	if err := storage.AddTxOperation(db, txID, 2, "update", `{"type":"section","id":"§2.1"}`, `["INV-001","§2.1"]`); err != nil {
 		t.Fatalf("add op 2: %v", err)
 	}
 
@@ -152,22 +105,7 @@ func TestTxOperations(t *testing.T) {
 }
 
 func TestTxList(t *testing.T) {
-	specPath := filepath.Join(projectRoot(), "ddis_final.md")
-	if _, err := os.Stat(specPath); os.IsNotExist(err) {
-		t.Skipf("ddis_final.md not found at %s", specPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "tx_list_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-	defer db.Close()
-
-	specID, err := parser.ParseDocument(specPath, db)
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
+	db, specID := buildSyntheticDB(t)
 
 	// Create multiple transactions
 	for i, desc := range []string{"First tx", "Second tx", "Third tx"} {
@@ -194,22 +132,7 @@ func TestTxList(t *testing.T) {
 }
 
 func TestTxFlushToOplog(t *testing.T) {
-	specPath := filepath.Join(projectRoot(), "ddis_final.md")
-	if _, err := os.Stat(specPath); os.IsNotExist(err) {
-		t.Skipf("ddis_final.md not found at %s", specPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "tx_flush_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-	defer db.Close()
-
-	specID, err := parser.ParseDocument(specPath, db)
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
+	db, specID := buildSyntheticDB(t)
 
 	txID := "tx-flush-test"
 	oplogPath := filepath.Join(t.TempDir(), "flush-oplog.jsonl")

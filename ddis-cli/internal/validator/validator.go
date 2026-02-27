@@ -108,6 +108,7 @@ var checkInvariantInfo = map[int]struct {
 	15: {"APP-INV-048", "Event stream JSONL files are primary data artifacts, tracked in version control."},
 	16: {"APP-INV-049", "A witness with type=test is mechanically grounded by test execution. Attestation-only witnesses are unverified claims."},
 	17: {"APP-INV-050", "For every invariant with a valid witness, challenge(witness(inv)) must return a verdict in {confirmed, provisional, refuted, inconclusive}. If refuted, the witness is automatically invalidated."},
+	18: {"APP-INV-056", "Process compliance observability — computes PC score from available data sources, reports via context bundles and validation."},
 }
 
 // AllChecks returns all registered validation checks.
@@ -130,6 +131,7 @@ func AllChecks() []Check {
 		&checkEventStreamVCS{},             // Check 15
 		&checkBehavioralWitness{},          // Check 16
 		&checkChallengeFreshness{},         // Check 17
+		&checkProcessCompliance{},         // Check 18
 	}
 }
 

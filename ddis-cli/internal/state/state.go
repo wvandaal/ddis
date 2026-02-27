@@ -64,7 +64,10 @@ func Delete(db *sql.DB, specID int64, key string) error {
 	if err != nil {
 		return err
 	}
-	n, _ := result.RowsAffected()
+	n, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("get rows affected: %w", err)
+	}
 	if n == 0 {
 		return fmt.Errorf("key %q not found", key)
 	}

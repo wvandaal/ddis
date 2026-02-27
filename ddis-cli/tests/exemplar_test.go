@@ -2,83 +2,11 @@ package tests
 
 import (
 	"encoding/json"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/wvandaal/ddis/internal/exemplar"
-	"github.com/wvandaal/ddis/internal/parser"
-	"github.com/wvandaal/ddis/internal/search"
-	"github.com/wvandaal/ddis/internal/storage"
 )
-
-// sharedExemplarDB caches a parsed + indexed DB for exemplar tests.
-var sharedExemplarDB *exemplarTestDB
-
-type exemplarTestDB struct {
-	db     *storage.DB
-	specID int64
-	lsi    *search.LSIIndex
-}
-
-func getExemplarDB(t *testing.T) (*storage.DB, int64, *search.LSIIndex) {
-	t.Helper()
-	if sharedExemplarDB != nil {
-		return sharedExemplarDB.db, sharedExemplarDB.specID, sharedExemplarDB.lsi
-	}
-
-	// Try modular spec (manifest.yaml) first, fall back to monolith
-	manifestPath := filepath.Join(projectRoot(), "ddis-cli-spec", "manifest.yaml")
-	monolithPath := filepath.Join(projectRoot(), "ddis_final.md")
-
-	var specPath string
-	var isModular bool
-	if _, err := os.Stat(manifestPath); err == nil {
-		specPath = manifestPath
-		isModular = true
-	} else if _, err := os.Stat(monolithPath); err == nil {
-		specPath = monolithPath
-	} else {
-		t.Skipf("no spec found (tried %s and %s)", manifestPath, monolithPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "exemplar_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-
-	var specID int64
-	if isModular {
-		specID, err = parser.ParseModularSpec(specPath, db)
-	} else {
-		specID, err = parser.ParseDocument(specPath, db)
-	}
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
-
-	if err := search.BuildIndex(db, specID); err != nil {
-		t.Fatalf("build index: %v", err)
-	}
-
-	docs, err := search.ExtractDocuments(db, specID)
-	if err != nil {
-		t.Fatalf("extract docs: %v", err)
-	}
-	k := 50
-	if len(docs) < k {
-		k = len(docs)
-	}
-	lsi, err := search.BuildLSI(docs, k)
-	if err != nil {
-		t.Fatalf("build lsi: %v", err)
-	}
-
-	sharedExemplarDB = &exemplarTestDB{db: &db, specID: specID, lsi: lsi}
-	return sharedExemplarDB.db, sharedExemplarDB.specID, sharedExemplarDB.lsi
-}
 
 // =============================================================================
 // EX-INV-001: Exemplar Quality Monotonicity
@@ -219,11 +147,10 @@ func TestEXINV002_GapDetectionCompleteness(t *testing.T) {
 // =============================================================================
 
 func TestEXINV003_ExemplarGapRelevance(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target:   "APP-INV-001",
+		Target:   "INV-001",
 		MinScore: 0.1,
 		Limit:    10,
 	})
@@ -253,11 +180,10 @@ func TestEXINV003_ExemplarGapRelevance(t *testing.T) {
 // =============================================================================
 
 func TestEXINV004_RankingConsistency(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target:   "APP-INV-001",
+		Target:   "INV-001",
 		MinScore: 0.1,
 		Limit:    10,
 	})
@@ -287,11 +213,10 @@ func TestEXINV004_RankingConsistency(t *testing.T) {
 // =============================================================================
 
 func TestEXINV005_SelfExclusion(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
-	// Test with multiple targets
-	targets := []string{"APP-INV-001", "APP-INV-006", "APP-INV-008"}
+	// Test with multiple targets from the synthetic DB
+	targets := []string{"INV-001", "INV-003", "INV-005"}
 	for _, target := range targets {
 		t.Run(target, func(t *testing.T) {
 			result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
@@ -318,11 +243,10 @@ func TestEXINV005_SelfExclusion(t *testing.T) {
 // =============================================================================
 
 func TestEXINV006_SubstrateCueStructure(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target:   "APP-INV-001",
+		Target:   "INV-001",
 		MinScore: 0.1,
 		Limit:    10,
 	})
@@ -354,7 +278,7 @@ func TestEXINV006_SubstrateCueStructure(t *testing.T) {
 		}
 
 		// 4. Transfer instruction — contains target ID
-		if !strings.Contains(ex.SubstrateCue, "APP-INV-001") {
+		if !strings.Contains(ex.SubstrateCue, "INV-001") {
 			t.Errorf("exemplar %s cue missing target ID (transfer instruction)", ex.ElementID)
 		}
 	}
@@ -466,19 +390,18 @@ func assertGapExists(t *testing.T, gaps []exemplar.ComponentGap, component, seve
 // =============================================================================
 
 func TestExemplarNoGaps(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
-	// APP-INV-001 has all components well-filled
+	// INV-001 has all components well-filled in the synthetic DB
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target: "APP-INV-001",
+		Target: "INV-001",
 	})
 	if err != nil {
 		t.Fatalf("analyze: %v", err)
 	}
 
 	if len(result.Gaps) != 0 {
-		t.Errorf("expected 0 gaps for APP-INV-001, got %d", len(result.Gaps))
+		t.Errorf("expected 0 gaps for INV-001, got %d", len(result.Gaps))
 	}
 	if len(result.Exemplars) != 0 {
 		t.Errorf("expected 0 exemplars for complete element, got %d", len(result.Exemplars))
@@ -489,12 +412,11 @@ func TestExemplarNoGaps(t *testing.T) {
 }
 
 func TestExemplarAllGaps(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
-	// APP-INV-001 is complete — verify Analyze runs cleanly with MinScore and Limit
+	// INV-001 is complete — verify Analyze runs cleanly with MinScore and Limit
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target:   "APP-INV-001",
+		Target:   "INV-001",
 		MinScore: 0.1,
 		Limit:    3,
 	})
@@ -503,8 +425,8 @@ func TestExemplarAllGaps(t *testing.T) {
 	}
 
 	// A fully-specified element should have no gaps and generate appropriate guidance
-	if result.Target != "APP-INV-001" {
-		t.Errorf("expected target APP-INV-001, got %s", result.Target)
+	if result.Target != "INV-001" {
+		t.Errorf("expected target INV-001, got %s", result.Target)
 	}
 	if !strings.Contains(result.Guidance, "no component gaps") {
 		t.Errorf("complete element should report no gaps; guidance: %s", result.Guidance)
@@ -512,11 +434,10 @@ func TestExemplarAllGaps(t *testing.T) {
 }
 
 func TestExemplarGapFilter(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target: "APP-INV-001",
+		Target: "INV-001",
 		Gap:    "semi_formal",
 	})
 	if err != nil {
@@ -536,11 +457,10 @@ func TestExemplarGapFilter(t *testing.T) {
 }
 
 func TestExemplarJSONValid(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target:   "APP-INV-001",
+		Target:   "INV-001",
 		MinScore: 0.1,
 	})
 	if err != nil {
@@ -557,17 +477,16 @@ func TestExemplarJSONValid(t *testing.T) {
 		t.Fatalf("invalid JSON output: %v\nOutput:\n%s", err, out)
 	}
 
-	if parsed.Target != "APP-INV-001" {
+	if parsed.Target != "INV-001" {
 		t.Errorf("target mismatch: got %s", parsed.Target)
 	}
 }
 
 func TestExemplarHumanReadable(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target: "APP-INV-001",
+		Target: "INV-001",
 	})
 	if err != nil {
 		t.Fatalf("analyze: %v", err)
@@ -581,7 +500,7 @@ func TestExemplarHumanReadable(t *testing.T) {
 	if !strings.Contains(out, "Exemplar Analysis:") {
 		t.Error("missing header in human output")
 	}
-	if !strings.Contains(out, "APP-INV-001") {
+	if !strings.Contains(out, "INV-001") {
 		t.Error("missing target ID in human output")
 	}
 	if !strings.Contains(out, "Guidance:") {
@@ -590,11 +509,10 @@ func TestExemplarHumanReadable(t *testing.T) {
 }
 
 func TestExemplarDeterminism(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
 	opts := exemplar.Options{
-		Target:   "APP-INV-001",
+		Target:   "INV-001",
 		MinScore: 0.1,
 		Limit:    5,
 	}
@@ -617,8 +535,7 @@ func TestExemplarDeterminism(t *testing.T) {
 }
 
 func TestExemplarInvalidTarget(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
 	_, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
 		Target: "NONEXISTENT-999",
@@ -629,11 +546,10 @@ func TestExemplarInvalidTarget(t *testing.T) {
 }
 
 func TestExemplarADR(t *testing.T) {
-	dbPtr, specID, lsi := getExemplarDB(t)
-	db := *dbPtr
+	db, specID, lsi := buildSyntheticSearchDB(t)
 
 	result, err := exemplar.Analyze(db, specID, lsi, exemplar.Options{
-		Target:   "APP-ADR-001",
+		Target:   "ADR-001",
 		MinScore: 0.1,
 	})
 	if err != nil {

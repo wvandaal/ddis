@@ -192,7 +192,7 @@ Each pass is independently testable. The pipeline is deterministic: same input a
 
 ## 0.3 Invariant Registry (Declarations)
 
-All 47 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
+All 56 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
 
 **APP-INV-001: Round-Trip Fidelity** (Owner: parse-pipeline)
 Parse followed by render MUST produce byte-identical output for any valid DDIS specification.
@@ -461,6 +461,16 @@ Confidence: falsified
 The eval witness evidence type must use majority vote to produce statistically sound confidence scores.
 Confidence: falsified
 
+**APP-INV-056: Process Compliance Observability** (Owner: auto-prompting)
+For every feature modification scope, the system computes a process compliance score PC in [0.0, 1.0] from available data sources. Missing data sources degrade to neutral (0.5), never block. Check 18 is warning-only.
+Confidence: falsified
+*Violation: agent writes code before spec, never uses ddis discover, but no signal fires and the context bundle omits any process compliance data.*
+
+**APP-INV-057: External Tool Graceful Degradation** (Owner: workspace-ops)
+When a ddis command depends on an external tool (e.g., gh), absence or failure of that tool must produce a clear, actionable error with recovery guidance — never a panic, silent failure, or cryptic exec error.
+Confidence: falsified
+*Violation: user runs ddis issue without gh installed and gets raw exec error instead of install guidance.*
+
 ---
 
 ## 0.4 Invariant Confidence Levels
@@ -480,7 +490,7 @@ Confidence levels are tracked per-invariant in the implementation. The `validate
 
 ## 0.5 ADR Registry (Declarations)
 
-All 35 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
+All 43 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
 
 **APP-ADR-001: Go over Rust** (Implements: parse-pipeline)
 Decision: Go for CLI implementation. The workload is I/O-bound (SQLite reads/writes, file parsing), not CPU-bound. Go's fast compilation supports rapid iteration in the RALPH improvement loop. A pure-Go SQLite driver (`modernc.org/sqlite`) eliminates CGO complexity.
@@ -639,6 +649,13 @@ Decision: Targeted 4-phase closure of 4 missing morphisms. Challenge verdicts fl
 
 **APP-ADR-042: Tier 6 LLM-as-Judge Semantic Contradiction Detection** (Implements: code-bridge)
 Decision: LLM-as-judge for invariant pairs that failed Tiers 3-5 parsing. Majority vote with 3 runs, 2/3 agreement. Contradictory pairs yield confidence 0.80 (2/3) or 0.95 (3/3). Requires Provider.Available().
+
+**APP-ADR-043: Observational Process Compliance over Prescriptive Gates** (Implements: auto-prompting)
+Decision: Process compliance is OBSERVED and REPORTED through existing information channels (context bundles, validation, drift), never ENFORCED through gates or blocks. Follows APP-INV-026 and APP-ADR-018.
+WHY NOT prescriptive gates: Coercive hooks create adversarial dynamics; agents learn to circumvent rather than internalize.
+
+**APP-ADR-044: External Issue Tracker Integration via gh CLI** (Implements: workspace-ops)
+Decision: Wrap gh CLI for issue filing. ddis issue shells out to gh issue create. Auth delegated to gh. Graceful degradation via APP-INV-057 when gh is absent.
 
 ---
 

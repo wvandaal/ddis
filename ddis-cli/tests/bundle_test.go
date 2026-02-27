@@ -2,71 +2,19 @@ package tests
 
 import (
 	"encoding/json"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/wvandaal/ddis/internal/bundle"
-	"github.com/wvandaal/ddis/internal/parser"
 	"github.com/wvandaal/ddis/internal/storage"
 )
-
-// sharedBundleDB caches a parsed DB for bundle tests.
-var sharedBundleDB *bundleTestDB
-
-type bundleTestDB struct {
-	db     *storage.DB
-	specID int64
-}
-
-func getBundleDB(t *testing.T) (*storage.DB, int64) {
-	t.Helper()
-	if sharedBundleDB != nil {
-		return sharedBundleDB.db, sharedBundleDB.specID
-	}
-
-	manifestPath := filepath.Join(projectRoot(), "ddis-cli-spec", "manifest.yaml")
-	monolithPath := filepath.Join(projectRoot(), "ddis_final.md")
-
-	var specPath string
-	var isModular bool
-	if _, err := os.Stat(manifestPath); err == nil {
-		specPath = manifestPath
-		isModular = true
-	} else if _, err := os.Stat(monolithPath); err == nil {
-		specPath = monolithPath
-	} else {
-		t.Skipf("no spec found (tried %s and %s)", manifestPath, monolithPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "bundle_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-
-	var specID int64
-	if isModular {
-		specID, err = parser.ParseModularSpec(specPath, db)
-	} else {
-		specID, err = parser.ParseDocument(specPath, db)
-	}
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
-
-	sharedBundleDB = &bundleTestDB{db: &db, specID: specID}
-	return sharedBundleDB.db, sharedBundleDB.specID
-}
 
 // =============================================================================
 // INV-BUNDLE-SELF-CONTAINED: Bundle includes constitution + modules + stubs
 // =============================================================================
 
 func TestBundleSelfContained(t *testing.T) {
-	dbPtr, specID := getBundleDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	// Get available domains
 	domains, err := storage.GetModuleDomains(db, specID)
@@ -123,8 +71,7 @@ func TestBundleSelfContained(t *testing.T) {
 // =============================================================================
 
 func TestBundleBudget(t *testing.T) {
-	dbPtr, specID := getBundleDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	domains, err := storage.GetModuleDomains(db, specID)
 	if err != nil {
@@ -165,8 +112,7 @@ func TestBundleBudget(t *testing.T) {
 // =============================================================================
 
 func TestBundleJSONValid(t *testing.T) {
-	dbPtr, specID := getBundleDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	domains, err := storage.GetModuleDomains(db, specID)
 	if err != nil {
@@ -204,8 +150,7 @@ func TestBundleJSONValid(t *testing.T) {
 // =============================================================================
 
 func TestBundleHumanReadable(t *testing.T) {
-	dbPtr, specID := getBundleDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	domains, err := storage.GetModuleDomains(db, specID)
 	if err != nil {
@@ -244,8 +189,7 @@ func TestBundleHumanReadable(t *testing.T) {
 // =============================================================================
 
 func TestBundleContentOnly(t *testing.T) {
-	dbPtr, specID := getBundleDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	domains, err := storage.GetModuleDomains(db, specID)
 	if err != nil {
@@ -281,8 +225,7 @@ func TestBundleContentOnly(t *testing.T) {
 // =============================================================================
 
 func TestBundleDeterminism(t *testing.T) {
-	dbPtr, specID := getBundleDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	domains, err := storage.GetModuleDomains(db, specID)
 	if err != nil {
@@ -314,8 +257,7 @@ func TestBundleDeterminism(t *testing.T) {
 // =============================================================================
 
 func TestBundleEmptyDomain(t *testing.T) {
-	dbPtr, specID := getBundleDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	result, err := bundle.Assemble(db, specID, "nonexistent-domain-xyz", bundle.Options{})
 	if err != nil {
@@ -330,11 +272,4 @@ func TestBundleEmptyDomain(t *testing.T) {
 	if result.ConstitutionLines == 0 {
 		t.Error("constitution should still be present even for nonexistent domain")
 	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

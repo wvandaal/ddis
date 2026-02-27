@@ -22,13 +22,24 @@ type Options struct {
 
 // DriftReport holds the complete drift analysis output.
 type DriftReport struct {
-	ImplDrift          ImplDrift        `json:"impl_drift"`
-	IntentDrift        IntentDrift      `json:"intent_drift"`
-	PlannedDivergences int              `json:"planned_divergences"`
-	EffectiveDrift     int              `json:"effective_drift"`
-	Classification     Classification   `json:"classification"`
-	QualityBreakdown   QualityBreakdown `json:"quality_breakdown"`
-	StaleWitnesses     int              `json:"stale_witnesses"`
+	ImplDrift          ImplDrift         `json:"impl_drift"`
+	IntentDrift        IntentDrift       `json:"intent_drift"`
+	PlannedDivergences int               `json:"planned_divergences"`
+	EffectiveDrift     int               `json:"effective_drift"`
+	Classification     Classification    `json:"classification"`
+	QualityBreakdown   QualityBreakdown  `json:"quality_breakdown"`
+	StaleWitnesses     int               `json:"stale_witnesses"`
+	ProcessDrift       float64           `json:"process_drift,omitempty"`
+	ProcessDetails     *ProcessDriftInfo `json:"process_details,omitempty"`
+}
+
+// ProcessDriftInfo captures methodology compliance metrics.
+type ProcessDriftInfo struct {
+	SpecFirstRatio     float64  `json:"spec_first_ratio"`
+	ToolIntermediation float64  `json:"tool_intermediation"`
+	WitnessCoverage    float64  `json:"witness_coverage"`
+	ValidateGating     float64  `json:"validate_gating"`
+	Degraded           []string `json:"degraded,omitempty"`
 }
 
 // QualityBreakdown decomposes drift by quality dimension.
@@ -308,6 +319,25 @@ func Analyze(db *sql.DB, specID int64, opts Options) (*DriftReport, error) {
 		return details[i].Element < details[j].Element
 	})
 
+	// 7.6 Process drift: compute witness coverage as process quality signal
+	processDrift := 0.0
+	var processDetails *ProcessDriftInfo
+	{
+		totalInvs, _ := storage.ListInvariants(db, specID)
+		validIDs, _ := storage.ListValidWitnessIDs(db, specID)
+		if len(totalInvs) > 0 {
+			witCov := float64(len(validIDs)) / float64(len(totalInvs))
+			processDrift = 1.0 - witCov
+			processDetails = &ProcessDriftInfo{
+				SpecFirstRatio:     0.5, // degraded: no git analysis in drift context
+				ToolIntermediation: 0.5, // degraded: no oplog analysis in drift context
+				WitnessCoverage:    witCov,
+				ValidateGating:     0.5, // degraded: no oplog analysis in drift context
+				Degraded:           []string{"spec_first_ratio", "tool_intermediation", "validate_gating"},
+			}
+		}
+	}
+
 	// 8. Compute effective drift and quality breakdown
 	totalDrift := implDrift.Total + intentDrift.Total + staleWitnessCount
 	effectiveDrift := totalDrift - plannedCount
@@ -329,6 +359,8 @@ func Analyze(db *sql.DB, specID int64, opts Options) (*DriftReport, error) {
 		EffectiveDrift:     effectiveDrift,
 		QualityBreakdown:   quality,
 		StaleWitnesses:     staleWitnessCount,
+		ProcessDrift:       processDrift,
+		ProcessDetails:     processDetails,
 	}
 	report.Classification = Classify(report)
 

@@ -66,6 +66,10 @@ func emitRecoveryHint(err error) {
 		fmt.Fprintln(os.Stderr, "Tip: ensure manifest.yaml exists in the current directory")
 	case strings.Contains(msg, "unknown command"):
 		fmt.Fprintln(os.Stderr, "Tip: ddis next")
+	case strings.Contains(msg, "gh CLI not found"):
+		fmt.Fprintln(os.Stderr, "Tip: install gh from https://cli.github.com/ then run: gh auth login")
+	case strings.Contains(msg, "gh authentication required"):
+		fmt.Fprintln(os.Stderr, "Tip: gh auth login")
 	}
 }
 
@@ -128,6 +132,7 @@ func init() {
 	manifestCmd.GroupID = "utility"
 	specCmd.GroupID = "core"
 	agentHelpCmd.GroupID = "utility"
+	issueCmd.GroupID = "utility"
 
 	rootCmd.AddCommand(nextCmd)
 	rootCmd.AddCommand(parseCmd)
@@ -167,4 +172,5 @@ func init() {
 	rootCmd.AddCommand(historyCmd)
 	rootCmd.AddCommand(agentHelpCmd)
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(issueCmd)
 }

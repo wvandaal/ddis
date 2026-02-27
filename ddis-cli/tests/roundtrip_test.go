@@ -1,3 +1,5 @@
+//go:build integration
+
 package tests
 
 import (
@@ -12,16 +14,6 @@ import (
 	"github.com/wvandaal/ddis/internal/renderer"
 	"github.com/wvandaal/ddis/internal/storage"
 )
-
-// projectRoot returns the DDIS project root (parent of ddis-cli/).
-func projectRoot() string {
-	// Try environment variable first
-	if root := os.Getenv("DDIS_PROJECT_ROOT"); root != "" {
-		return root
-	}
-	// Default to the known path on the VPS
-	return "/data/projects/ddis"
-}
 
 func TestRoundTripMonolith(t *testing.T) {
 	specPath := filepath.Join(projectRoot(), "ddis_final.md")

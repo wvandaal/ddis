@@ -121,6 +121,9 @@ modules:
       - APP-INV-016
       - APP-INV-041
       - APP-INV-050
+      - APP-INV-051
+      - APP-INV-052
+      - APP-INV-053
     interfaces:
       - APP-INV-001
       - APP-INV-002
@@ -138,6 +141,7 @@ modules:
       - APP-ADR-030
       - APP-ADR-037
       - APP-ADR-039
+      - APP-ADR-041
     adjacent: [parse-pipeline, search-intelligence, query-validation]
     deep_context: null
     negative_specs:
@@ -153,6 +157,8 @@ modules:
       - APP-INV-019
       - APP-INV-020
       - APP-INV-021
+      - APP-INV-054
+      - APP-INV-055
     interfaces:
       - APP-INV-001
       - APP-INV-002
@@ -167,6 +173,8 @@ modules:
       - APP-ADR-015
       - APP-ADR-034
       - APP-ADR-038
+      - APP-ADR-040
+      - APP-ADR-042
     adjacent: [parse-pipeline, query-validation, lifecycle-ops, auto-prompting]
     deep_context: null
     negative_specs:
@@ -196,6 +204,7 @@ modules:
       - APP-INV-042
       - APP-INV-045
       - APP-INV-046
+      - APP-INV-056
     interfaces:
       - APP-INV-001
       - APP-INV-002
@@ -222,6 +231,7 @@ modules:
       - APP-ADR-025
       - APP-ADR-031
       - APP-ADR-033
+      - APP-ADR-043
     adjacent: [code-bridge, search-intelligence, query-validation, lifecycle-ops, workspace-ops]
     deep_context: null
     negative_specs:
@@ -238,6 +248,7 @@ modules:
       - APP-INV-038
       - APP-INV-039
       - APP-INV-040
+      - APP-INV-057
     interfaces:
       - APP-INV-001
       - APP-INV-002
@@ -256,6 +267,7 @@ modules:
       - APP-ADR-027
       - APP-ADR-028
       - APP-ADR-029
+      - APP-ADR-044
     adjacent: [parse-pipeline, query-validation, lifecycle-ops, code-bridge, auto-prompting]
     deep_context: null
     negative_specs:
@@ -317,8 +329,10 @@ invariant_registry:
   APP-INV-048: {owner: code-bridge, domain: bridge, description: "Event stream JSONL files are VCS-tracked primary data"}
   APP-INV-049: {owner: query-validation, domain: validation, description: "Behavioral Witness Ground Truth — test-type witnesses reference actual passing tests"}
   APP-INV-050: {owner: lifecycle-ops, domain: lifecycle, description: "Challenge-Witness Adjunction Fidelity — challenge(witness(inv)) returns confirmed/refuted/inconclusive"}
-  APP-INV-051: { owner: lifecycle-ops, domain: , description: "" }
-  APP-INV-052: { owner: lifecycle-ops, domain: , description: "" }
-  APP-INV-053: { owner: lifecycle-ops, domain: , description: "" }
-  APP-INV-054: { owner: code-bridge, domain: , description: "" }
-  APP-INV-055: { owner: code-bridge, domain: , description: "" }
+  APP-INV-051: {owner: lifecycle-ops, domain: '', description: ""}
+  APP-INV-052: {owner: lifecycle-ops, domain: '', description: ""}
+  APP-INV-053: {owner: lifecycle-ops, domain: '', description: ""}
+  APP-INV-054: {owner: code-bridge, domain: '', description: ""}
+  APP-INV-055: {owner: code-bridge, domain: '', description: ""}
+  APP-INV-056: {owner: auto-prompting, domain: autoprompt, description: "Process Compliance Observability — computes PC score from git/oplog/witness/validate data, reports via Signal 11 and Check 18"}
+  APP-INV-057: {owner: workspace-ops, domain: workspace, description: "External tool commands degrade gracefully with recovery hints"}

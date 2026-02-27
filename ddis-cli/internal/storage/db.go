@@ -21,6 +21,12 @@ func Open(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("open database %s: %w", dbPath, err)
 	}
 
+	// SQLite PRAGMAs are per-connection. Minimize the connection pool so
+	// the PRAGMA'd connection is reused for most operations. We cannot use
+	// SetMaxOpenConns(1) because code that holds rows iterators open while
+	// executing other queries would deadlock.
+	db.SetMaxIdleConns(1)
+
 	// WAL mode for better concurrent read performance
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
 		db.Close()

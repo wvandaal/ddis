@@ -9,6 +9,7 @@ import (
 
 	"github.com/wvandaal/ddis/internal/impact"
 	"github.com/wvandaal/ddis/internal/oplog"
+	"github.com/wvandaal/ddis/internal/process"
 	"github.com/wvandaal/ddis/internal/query"
 	"github.com/wvandaal/ddis/internal/storage"
 )
@@ -31,8 +32,9 @@ type ContextBundle struct {
 	Related         []RelatedElement     `json:"related"`
 	ImpactRadius    *impact.ImpactResult `json:"impact_radius"`
 	RecentChanges   []ChangeRecord       `json:"recent_changes,omitempty"`
-	EditingGuidance []string             `json:"editing_guidance"`
-	WitnessStatus   *WitnessInfo         `json:"witness_status,omitempty"`
+	EditingGuidance   []string             `json:"editing_guidance"`
+	WitnessStatus     *WitnessInfo         `json:"witness_status,omitempty"`
+	ProcessCompliance *process.Info        `json:"process_compliance,omitempty"`
 }
 
 // WitnessInfo summarizes witness state for an invariant.
@@ -192,6 +194,11 @@ func BuildContext(db *sql.DB, specID int64, target string, lsi *LSIIndex, oplogP
 		}
 	}
 
+	// Signal 11: Process compliance
+	bundle.ProcessCompliance = process.Compute(db, specID, process.Options{
+		OplogPath: oplogPath,
+	})
+
 	// Recent changes from oplog
 	if oplogPath != "" {
 		bundle.RecentChanges = getRecentChanges(oplogPath, frag.ID)
@@ -282,46 +289,60 @@ func findConstraints(db *sql.DB, specID int64, frag *query.Fragment) []Constrain
 }
 
 // checkInvariantCompleteness verifies that each constraining invariant has all 4 components.
+// When the target itself is an invariant, includes its own completeness status.
 func checkInvariantCompleteness(db *sql.DB, specID int64, frag *query.Fragment, constraints []Constraint) []InvariantStatus {
 	var statuses []InvariantStatus
+	seen := make(map[string]bool)
+
+	// If the target is an invariant, include its own completeness first
+	if frag.Type == query.FragmentInvariant {
+		inv, err := storage.GetInvariant(db, specID, frag.ID)
+		if err == nil {
+			statuses = append(statuses, buildInvStatus(inv))
+			seen[inv.InvariantID] = true
+		}
+	}
 
 	for _, c := range constraints {
-		if c.Type != "invariant" {
+		if c.Type != "invariant" || seen[c.ID] {
 			continue
 		}
 		inv, err := storage.GetInvariant(db, specID, c.ID)
 		if err != nil {
 			continue
 		}
-
-		status := InvariantStatus{
-			ID:            inv.InvariantID,
-			HasStatement:  strings.TrimSpace(inv.Statement) != "",
-			HasSemiFormal: strings.TrimSpace(inv.SemiFormal) != "",
-			HasValidation: strings.TrimSpace(inv.ValidationMethod) != "",
-			HasWhyMatters: strings.TrimSpace(inv.WhyThisMatters) != "",
-			HasViolation:  strings.TrimSpace(inv.ViolationScenario) != "",
-		}
-		status.Complete = status.HasStatement && status.HasSemiFormal &&
-			status.HasValidation && status.HasWhyMatters
-
-		if !status.HasStatement {
-			status.MissingFields = append(status.MissingFields, "statement")
-		}
-		if !status.HasSemiFormal {
-			status.MissingFields = append(status.MissingFields, "semi-formal predicate")
-		}
-		if !status.HasValidation {
-			status.MissingFields = append(status.MissingFields, "validation method")
-		}
-		if !status.HasWhyMatters {
-			status.MissingFields = append(status.MissingFields, "why-this-matters")
-		}
-
-		statuses = append(statuses, status)
+		statuses = append(statuses, buildInvStatus(inv))
+		seen[inv.InvariantID] = true
 	}
 
 	return statuses
+}
+
+func buildInvStatus(inv *storage.Invariant) InvariantStatus {
+	status := InvariantStatus{
+		ID:            inv.InvariantID,
+		HasStatement:  strings.TrimSpace(inv.Statement) != "",
+		HasSemiFormal: strings.TrimSpace(inv.SemiFormal) != "",
+		HasValidation: strings.TrimSpace(inv.ValidationMethod) != "",
+		HasWhyMatters: strings.TrimSpace(inv.WhyThisMatters) != "",
+		HasViolation:  strings.TrimSpace(inv.ViolationScenario) != "",
+	}
+	status.Complete = status.HasStatement && status.HasSemiFormal &&
+		status.HasValidation && status.HasWhyMatters
+
+	if !status.HasStatement {
+		status.MissingFields = append(status.MissingFields, "statement")
+	}
+	if !status.HasSemiFormal {
+		status.MissingFields = append(status.MissingFields, "semi-formal predicate")
+	}
+	if !status.HasValidation {
+		status.MissingFields = append(status.MissingFields, "validation method")
+	}
+	if !status.HasWhyMatters {
+		status.MissingFields = append(status.MissingFields, "why-this-matters")
+	}
+	return status
 }
 
 var boldTermRe = regexp.MustCompile(`\*\*([^*]+)\*\*`)
@@ -651,6 +672,32 @@ func generateGuidance(bundle *ContextBundle) []string {
 		}
 	}
 
+	// Process compliance guidance (Signal 11)
+	if bundle.ProcessCompliance != nil {
+		pc := bundle.ProcessCompliance
+		if pc.SpecFirstRatio < 0.5 {
+			guidance = append(guidance,
+				"Process: spec changes should precede code changes. "+
+					"Run `ddis refine` on this module before further implementation.")
+		}
+		if pc.ToolUsage < 0.3 {
+			guidance = append(guidance,
+				"Process: auto-prompting tools underused. "+
+					"Run `ddis discover` to establish context before editing.")
+		}
+		if pc.WitnessCoverage < 0.5 {
+			guidance = append(guidance,
+				fmt.Sprintf("Process: %.0f%% of invariants lack witnesses. "+
+					"Run `ddis witness <INV-ID> --verify --code-root .`",
+					(1-pc.WitnessCoverage)*100))
+		}
+		if pc.ValidationGate < 0.5 {
+			guidance = append(guidance,
+				"Process: no recent validation run. "+
+					"Run `ddis validate` after spec edits, before implementation.")
+		}
+	}
+
 	// Standard guidance
 	guidance = append(guidance, "Run `ddis validate` after changes")
 
@@ -797,6 +844,24 @@ func renderHumanContext(b *ContextBundle) string {
 		}
 		if b.WitnessStatus.ProvenAt != "" {
 			fmt.Fprintf(&s, "  At:     %s\n", b.WitnessStatus.ProvenAt)
+		}
+		s.WriteString("\n")
+	}
+
+	// Process Compliance (Signal 11)
+	if b.ProcessCompliance != nil {
+		pc := b.ProcessCompliance
+		s.WriteString("PROCESS COMPLIANCE\n")
+		fmt.Fprintf(&s, "  Score:            %.0f%%\n", pc.Score*100)
+		fmt.Fprintf(&s, "  Spec-first:       %.0f%%\n", pc.SpecFirstRatio*100)
+		fmt.Fprintf(&s, "  Tool usage:       %.0f%%\n", pc.ToolUsage*100)
+		fmt.Fprintf(&s, "  Witness coverage: %.0f%%\n", pc.WitnessCoverage*100)
+		fmt.Fprintf(&s, "  Validation gate:  %.0f%%\n", pc.ValidationGate*100)
+		if len(pc.Degraded) > 0 {
+			fmt.Fprintf(&s, "  Degraded:         %s\n", strings.Join(pc.Degraded, ", "))
+		}
+		if pc.Recommendation != "" {
+			fmt.Fprintf(&s, "  Recommendation:   %s\n", pc.Recommendation)
 		}
 		s.WriteString("\n")
 	}

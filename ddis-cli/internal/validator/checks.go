@@ -1182,3 +1182,76 @@ func (c *checkChallengeFreshness) Run(db *sql.DB, specID int64) CheckResult {
 		challenged, unchallenged, attestationOnly, refuted, valid)
 	return result
 }
+
+// Check 18: Process compliance — warning-only check that analyzes witness coverage
+// and available process signals to report methodology adherence.
+// Never fails validation. Governs APP-INV-056.
+//
+// ddis:maintains APP-INV-056 (process compliance observability)
+type checkProcessCompliance struct{}
+
+func (c *checkProcessCompliance) ID() int        { return 18 }
+func (c *checkProcessCompliance) Name() string   { return "Process compliance" }
+func (c *checkProcessCompliance) Applicable(sourceType string) bool { return true }
+
+func (c *checkProcessCompliance) Run(db *sql.DB, specID int64) CheckResult {
+	result := CheckResult{CheckID: c.ID(), CheckName: c.Name(), Passed: true}
+	// Passed is ALWAYS true — this check never fails validation.
+	// It only emits warnings for methodology deviations.
+
+	// Count invariants and witnesses
+	invs, err := storage.ListInvariants(db, specID)
+	if err != nil || len(invs) == 0 {
+		result.Summary = "no invariants to assess"
+		return result
+	}
+
+	validIDs, _ := storage.ListValidWitnessIDs(db, specID)
+	validSet := make(map[string]bool)
+	for _, id := range validIDs {
+		validSet[id] = true
+	}
+
+	witnessed := len(validSet)
+	total := len(invs)
+	coverage := float64(witnessed) / float64(total)
+
+	// Emit warnings for low witness coverage
+	if coverage < 0.5 {
+		result.Findings = append(result.Findings, Finding{
+			CheckID:   c.ID(),
+			CheckName: c.Name(),
+			Severity:  SeverityWarning,
+			Message:   fmt.Sprintf("witness coverage %.0f%% (%d/%d invariants) — consider running `ddis witness` on unwitnessed invariants", coverage*100, witnessed, total),
+		})
+	}
+
+	// Report unwitnessed invariants (info level, capped at 5)
+	count := 0
+	for _, inv := range invs {
+		if !validSet[inv.InvariantID] {
+			count++
+			if count <= 5 {
+				result.Findings = append(result.Findings, Finding{
+					CheckID:     c.ID(),
+					CheckName:   c.Name(),
+					Severity:    SeverityInfo,
+					Message:     fmt.Sprintf("unwitnessed: %s (%s)", inv.InvariantID, inv.Title),
+					Location:    inv.InvariantID,
+					InvariantID: inv.InvariantID,
+				})
+			}
+		}
+	}
+	if count > 5 {
+		result.Findings = append(result.Findings, Finding{
+			CheckID:   c.ID(),
+			CheckName: c.Name(),
+			Severity:  SeverityInfo,
+			Message:   fmt.Sprintf("... and %d more unwitnessed invariants", count-5),
+		})
+	}
+
+	result.Summary = fmt.Sprintf("%.0f%% witness coverage (%d/%d invariants)", coverage*100, witnessed, total)
+	return result
+}

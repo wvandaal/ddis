@@ -2,72 +2,19 @@ package tests
 
 import (
 	"encoding/json"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/wvandaal/ddis/internal/drift"
-	"github.com/wvandaal/ddis/internal/parser"
 	"github.com/wvandaal/ddis/internal/search"
-	"github.com/wvandaal/ddis/internal/storage"
 )
 
-// sharedDriftDB caches a parsed DB for drift tests.
-var sharedDriftDB *driftTestDB
-
-type driftTestDB struct {
-	db     *storage.DB
-	specID int64
-}
-
-func getDriftDB(t *testing.T) (*storage.DB, int64) {
-	t.Helper()
-	if sharedDriftDB != nil {
-		return sharedDriftDB.db, sharedDriftDB.specID
-	}
-
-	manifestPath := filepath.Join(projectRoot(), "ddis-cli-spec", "manifest.yaml")
-	monolithPath := filepath.Join(projectRoot(), "ddis_final.md")
-
-	var specPath string
-	var isModular bool
-	if _, err := os.Stat(manifestPath); err == nil {
-		specPath = manifestPath
-		isModular = true
-	} else if _, err := os.Stat(monolithPath); err == nil {
-		specPath = monolithPath
-	} else {
-		t.Skipf("no spec found (tried %s and %s)", manifestPath, monolithPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "drift_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-
-	var specID int64
-	if isModular {
-		specID, err = parser.ParseModularSpec(specPath, db)
-	} else {
-		specID, err = parser.ParseDocument(specPath, db)
-	}
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
-
-	sharedDriftDB = &driftTestDB{db: &db, specID: specID}
-	return sharedDriftDB.db, sharedDriftDB.specID
-}
-
 // =============================================================================
-// TestDriftAnalyze: basic analysis on real spec
+// TestDriftAnalyze: basic analysis on synthetic spec
 // =============================================================================
 
 func TestDriftAnalyze(t *testing.T) {
-	dbPtr, specID := getDriftDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	report, err := drift.Analyze(db, specID, drift.Options{})
 	if err != nil {
@@ -101,8 +48,7 @@ func TestDriftAnalyze(t *testing.T) {
 // =============================================================================
 
 func TestDriftQualityBreakdown(t *testing.T) {
-	dbPtr, specID := getDriftDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	report, err := drift.Analyze(db, specID, drift.Options{})
 	if err != nil {
@@ -199,9 +145,9 @@ func TestDriftClassifySeverity(t *testing.T) {
 
 func TestDriftClassifyIntentionality(t *testing.T) {
 	tests := []struct {
-		name         string
-		planned      int
-		wantIntent   string
+		name       string
+		planned    int
+		wantIntent string
 	}{
 		{"organic", 0, "organic"},
 		{"planned", 2, "planned"},
@@ -225,8 +171,7 @@ func TestDriftClassifyIntentionality(t *testing.T) {
 // =============================================================================
 
 func TestDriftRenderJSON(t *testing.T) {
-	dbPtr, specID := getDriftDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	report, err := drift.Analyze(db, specID, drift.Options{})
 	if err != nil {
@@ -258,8 +203,7 @@ func TestDriftRenderJSON(t *testing.T) {
 // =============================================================================
 
 func TestDriftRenderHuman(t *testing.T) {
-	dbPtr, specID := getDriftDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	report, err := drift.Analyze(db, specID, drift.Options{})
 	if err != nil {
@@ -295,8 +239,7 @@ func TestDriftRenderHuman(t *testing.T) {
 // =============================================================================
 
 func TestDriftDeterminism(t *testing.T) {
-	dbPtr, specID := getDriftDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	report1, err := drift.Analyze(db, specID, drift.Options{})
 	if err != nil {
@@ -320,32 +263,15 @@ func TestDriftDeterminism(t *testing.T) {
 // =============================================================================
 
 func TestDriftRemediateZero(t *testing.T) {
-	// Create a minimal aligned spec: registry matches definitions
-	dbPath := filepath.Join(t.TempDir(), "zero_drift.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
+	db, specID := buildSyntheticDB(t)
 
-	// Parse the modular meta-spec (should have low drift against itself)
-	manifestPath := filepath.Join(projectRoot(), "ddis-modular", "manifest.yaml")
-	if _, err := os.Stat(manifestPath); err != nil {
-		t.Skip("ddis-modular/manifest.yaml not found")
-	}
-
-	specID, err := parser.ParseModularSpec(manifestPath, db)
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
-
-	// Run remediate
+	// Remediate on a fresh synthetic DB (may or may not have drift)
 	pkg, err := drift.Remediate(db, specID, nil)
 	if err != nil {
 		t.Fatalf("remediate: %v", err)
 	}
 
-	// We can't guarantee zero drift on the real spec, but we can verify
-	// the function doesn't error and returns a valid structure
+	// We verify the function doesn't error and returns a valid structure
 	if pkg != nil {
 		if pkg.Target == "" {
 			t.Error("remediation package has empty target")
@@ -357,12 +283,11 @@ func TestDriftRemediateZero(t *testing.T) {
 }
 
 // =============================================================================
-// TestDriftRemediation: returns non-nil package on CLI spec (known drift)
+// TestDriftRemediation: returns valid package when drift exists
 // =============================================================================
 
 func TestDriftRemediation(t *testing.T) {
-	dbPtr, specID := getDriftDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	report, err := drift.Analyze(db, specID, drift.Options{})
 	if err != nil {
@@ -439,8 +364,7 @@ func TestDriftRenderRemediationNil(t *testing.T) {
 // =============================================================================
 
 func TestDriftWithIntent(t *testing.T) {
-	dbPtr, specID := getDriftDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticDB(t)
 
 	// Without intent
 	reportNoIntent, err := drift.Analyze(db, specID, drift.Options{Intent: false})

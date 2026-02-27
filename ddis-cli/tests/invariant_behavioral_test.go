@@ -1,3 +1,5 @@
+//go:build integration
+
 package tests
 
 // Behavioral tests for DDIS CLI invariants.
@@ -31,39 +33,7 @@ import (
 	"github.com/wvandaal/ddis/internal/witness"
 )
 
-// sharedModularDB caches a parsed modular DB for behavioral tests.
-var sharedModularDB *modularTestDB
-
-type modularTestDB struct {
-	db     storage.DB
-	specID int64
-}
-
-func getModularDB(t *testing.T) (storage.DB, int64) {
-	t.Helper()
-	if sharedModularDB != nil {
-		return sharedModularDB.db, sharedModularDB.specID
-	}
-
-	manifestPath := filepath.Join(projectRoot(), "ddis-cli-spec", "manifest.yaml")
-	if _, err := os.Stat(manifestPath); os.IsNotExist(err) {
-		t.Skipf("manifest.yaml not found at %s", manifestPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "behavioral_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-
-	specID, err := parser.ParseModularSpec(manifestPath, db)
-	if err != nil {
-		t.Fatalf("parse modular: %v", err)
-	}
-
-	sharedModularDB = &modularTestDB{db: db, specID: specID}
-	return sharedModularDB.db, sharedModularDB.specID
-}
+// Uses getModularDB from integration_helpers_test.go
 
 // ---------------------------------------------------------------------------
 // ddis:tests APP-INV-002

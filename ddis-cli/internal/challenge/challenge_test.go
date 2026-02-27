@@ -137,11 +137,9 @@ func TestChallenge_CausalFound(t *testing.T) {
 	// Create a temp directory with a file containing a test annotation.
 	dir := t.TempDir()
 	testFile := filepath.Join(dir, "foo_test.go")
-	content := `package foo
-
-// ddis:tests APP-INV-901
-func TestSomething(t *testing.T) {}
-`
+	// Build annotation string in two parts to avoid scanner false positive.
+	ann := "// " + "ddis:tests APP-INV-901"
+	content := "package foo\n\n" + ann + "\nfunc TestSomething(t *testing.T) {}\n"
 	if err := os.WriteFile(testFile, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -240,11 +238,9 @@ func TestChallenge_ConfirmedFull(t *testing.T) {
 	// Insert test witness with test annotation in temp dir.
 	dir := t.TempDir()
 	testFile := filepath.Join(dir, "conf_test.go")
-	content := `package conf
-
-// ddis:tests APP-INV-902
-func TestConf(t *testing.T) {}
-`
+	// Build annotation string in two parts to avoid scanner false positive.
+	ann := "// " + "ddis:tests APP-INV-902"
+	content := "package conf\n\n" + ann + "\nfunc TestConf(t *testing.T) {}\n"
 	if err := os.WriteFile(testFile, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -320,11 +316,9 @@ func TestAPPINV050_AdjunctionFidelity(t *testing.T) {
 	// 3. Create temp code file with ddis:tests annotation.
 	dir := t.TempDir()
 	testFile := filepath.Join(dir, "adj_test.go")
-	content := `package adj
-
-// ddis:tests APP-INV-903
-func TestRoundTrip(t *testing.T) {}
-`
+	// Build annotation string in two parts to avoid scanner false positive.
+	ann := "// " + "ddis:tests APP-INV-903"
+	content := "package adj\n\n" + ann + "\nfunc TestRoundTrip(t *testing.T) {}\n"
 	if err := os.WriteFile(testFile, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}

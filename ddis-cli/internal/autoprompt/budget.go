@@ -14,6 +14,9 @@ const (
 // KStarEff computes the effective attention budget for a given conversation depth.
 // Returns a value between Floor (3) and BaseBudget (12).
 func KStarEff(depth int) int {
+	if depth < 0 {
+		depth = 0
+	}
 	k := BaseBudget - (depth / Step)
 	if k < Floor {
 		return Floor

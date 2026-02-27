@@ -2,56 +2,17 @@ package tests
 
 import (
 	"encoding/json"
-	"os"
-	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/wvandaal/ddis/internal/cascade"
-	"github.com/wvandaal/ddis/internal/parser"
-	"github.com/wvandaal/ddis/internal/storage"
 )
-
-// sharedCascadeDB caches a parsed modular CLI-spec DB for cascade tests.
-var sharedCascadeDB *cascadeTestDB
-
-type cascadeTestDB struct {
-	db     *storage.DB
-	specID int64
-}
-
-func getCascadeDB(t *testing.T) (*storage.DB, int64) {
-	t.Helper()
-	if sharedCascadeDB != nil {
-		return sharedCascadeDB.db, sharedCascadeDB.specID
-	}
-
-	manifestPath := filepath.Join(projectRoot(), "ddis-cli-spec", "manifest.yaml")
-	if _, err := os.Stat(manifestPath); os.IsNotExist(err) {
-		t.Skipf("ddis-cli-spec manifest not found: %s", manifestPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "cascade_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-
-	specID, err := parser.ParseModularSpec(manifestPath, db)
-	if err != nil {
-		t.Fatalf("parse modular spec: %v", err)
-	}
-
-	sharedCascadeDB = &cascadeTestDB{db: &db, specID: specID}
-	return sharedCascadeDB.db, sharedCascadeDB.specID
-}
 
 // INV-CASCADE-TERM: Cascade analysis terminates for any valid element.
 func TestCascadeTerminates(t *testing.T) {
-	dbPtr, specID := getCascadeDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
-	// Test with several known APP-INV invariants
-	targets := []string{"APP-INV-001", "APP-INV-006", "APP-INV-008"}
+	targets := []string{"INV-001", "INV-004", "INV-005"}
 	for _, target := range targets {
 		t.Run(target, func(t *testing.T) {
 			result, err := cascade.Analyze(db, specID, target, cascade.Options{Depth: 3})
@@ -69,55 +30,45 @@ func TestCascadeTerminates(t *testing.T) {
 
 // INV-CASCADE-COMPLETE: All reachable referrers appear in the result.
 func TestCascadeComplete(t *testing.T) {
-	dbPtr, specID := getCascadeDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
-	// APP-INV-001 (Round-Trip Fidelity) should be referenced by at least one module
-	result, err := cascade.Analyze(db, specID, "APP-INV-001", cascade.Options{Depth: 3})
+	result, err := cascade.Analyze(db, specID, "INV-001", cascade.Options{Depth: 3})
 	if err != nil {
 		t.Fatalf("cascade: %v", err)
 	}
 
-	// Verify element type detected correctly
 	if result.ElementType != "invariant" {
 		t.Errorf("element_type = %s, want invariant", result.ElementType)
 	}
 
-	// Verify title is non-empty
 	if result.Title == "" {
 		t.Error("title should not be empty")
 	}
 
-	// Log all affected modules for manual inspection
 	for _, m := range result.AffectedModules {
 		t.Logf("  affected: %s (%s) — %s", m.Module, m.Domain, m.Relationship)
 	}
 }
 
-// Test that cascade detects owner module from invariant registry.
 func TestCascadeOwner(t *testing.T) {
-	dbPtr, specID := getCascadeDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
-	result, err := cascade.Analyze(db, specID, "APP-INV-001", cascade.Options{})
+	result, err := cascade.Analyze(db, specID, "INV-001", cascade.Options{})
 	if err != nil {
 		t.Fatalf("cascade: %v", err)
 	}
 
-	// APP-INV-001 should have an owner in the registry
 	if result.OwnerModule == "" {
-		t.Log("APP-INV-001 has no owner in registry (may be expected if registry is sparse)")
+		t.Log("INV-001 has no owner in registry (may be expected)")
 	} else {
-		t.Logf("APP-INV-001 owner: %s (%s)", result.OwnerModule, result.OwnerDomain)
+		t.Logf("INV-001 owner: %s (%s)", result.OwnerModule, result.OwnerDomain)
 	}
 }
 
-// Test JSON output round-trips correctly.
 func TestCascadeJSON(t *testing.T) {
-	dbPtr, specID := getCascadeDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
-	result, err := cascade.Analyze(db, specID, "APP-INV-001", cascade.Options{})
+	result, err := cascade.Analyze(db, specID, "INV-001", cascade.Options{})
 	if err != nil {
 		t.Fatalf("cascade: %v", err)
 	}
@@ -132,8 +83,8 @@ func TestCascadeJSON(t *testing.T) {
 		t.Fatalf("invalid JSON: %v\nOutput:\n%s", err, out)
 	}
 
-	if parsed.ChangedElement != "APP-INV-001" {
-		t.Errorf("JSON changed_element = %s, want APP-INV-001", parsed.ChangedElement)
+	if parsed.ChangedElement != "INV-001" {
+		t.Errorf("JSON changed_element = %s, want INV-001", parsed.ChangedElement)
 	}
 	if parsed.AffectedModules == nil {
 		t.Error("affected_modules should be non-nil (even if empty)")
@@ -143,12 +94,10 @@ func TestCascadeJSON(t *testing.T) {
 	}
 }
 
-// Test human-readable output includes key elements.
 func TestCascadeHumanOutput(t *testing.T) {
-	dbPtr, specID := getCascadeDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
-	result, err := cascade.Analyze(db, specID, "APP-INV-001", cascade.Options{})
+	result, err := cascade.Analyze(db, specID, "INV-001", cascade.Options{})
 	if err != nil {
 		t.Fatalf("cascade: %v", err)
 	}
@@ -162,24 +111,21 @@ func TestCascadeHumanOutput(t *testing.T) {
 		t.Fatal("empty human output")
 	}
 
-	// Must contain the element ID and "Cascade Analysis"
-	if !contains(out, "Cascade Analysis:") {
+	if !strings.Contains(out, "Cascade Analysis:") {
 		t.Error("missing 'Cascade Analysis:' header")
 	}
-	if !contains(out, "APP-INV-001") {
+	if !strings.Contains(out, "INV-001") {
 		t.Error("missing element ID in output")
 	}
-	if !contains(out, "revalidation") {
+	if !strings.Contains(out, "revalidation") {
 		t.Error("missing summary line")
 	}
 
 	t.Logf("Human output:\n%s", out)
 }
 
-// Test invalid element returns error.
 func TestCascadeInvalidElement(t *testing.T) {
-	dbPtr, specID := getCascadeDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	_, err := cascade.Analyze(db, specID, "NONEXISTENT-999", cascade.Options{})
 	if err == nil {
@@ -187,12 +133,10 @@ func TestCascadeInvalidElement(t *testing.T) {
 	}
 }
 
-// Test ADR cascade.
 func TestCascadeADR(t *testing.T) {
-	dbPtr, specID := getCascadeDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
-	result, err := cascade.Analyze(db, specID, "APP-ADR-001", cascade.Options{})
+	result, err := cascade.Analyze(db, specID, "ADR-001", cascade.Options{})
 	if err != nil {
 		t.Fatalf("cascade ADR: %v", err)
 	}
@@ -200,6 +144,5 @@ func TestCascadeADR(t *testing.T) {
 	if result.ElementType != "adr" {
 		t.Errorf("element_type = %s, want adr", result.ElementType)
 	}
-	t.Logf("APP-ADR-001 cascade: %d refs, %d affected modules", result.TotalReferences, len(result.AffectedModules))
+	t.Logf("ADR-001 cascade: %d refs, %d affected modules", result.TotalReferences, len(result.AffectedModules))
 }
-

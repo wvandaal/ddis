@@ -2,62 +2,11 @@ package tests
 
 import (
 	"encoding/json"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/wvandaal/ddis/internal/implorder"
-	"github.com/wvandaal/ddis/internal/parser"
 	"github.com/wvandaal/ddis/internal/storage"
 )
-
-// sharedImplOrderDB caches a parsed DB for impl-order tests.
-var sharedImplOrderDB *implorderTestDB
-
-type implorderTestDB struct {
-	db     *storage.DB
-	specID int64
-}
-
-func getImplOrderDB(t *testing.T) (*storage.DB, int64) {
-	t.Helper()
-	if sharedImplOrderDB != nil {
-		return sharedImplOrderDB.db, sharedImplOrderDB.specID
-	}
-
-	manifestPath := filepath.Join(projectRoot(), "ddis-cli-spec", "manifest.yaml")
-	monolithPath := filepath.Join(projectRoot(), "ddis_final.md")
-
-	var specPath string
-	var isModular bool
-	if _, err := os.Stat(manifestPath); err == nil {
-		specPath = manifestPath
-		isModular = true
-	} else if _, err := os.Stat(monolithPath); err == nil {
-		specPath = monolithPath
-	} else {
-		t.Skipf("no spec found (tried %s and %s)", manifestPath, monolithPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "implorder_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-
-	var specID int64
-	if isModular {
-		specID, err = parser.ParseModularSpec(specPath, db)
-	} else {
-		specID, err = parser.ParseDocument(specPath, db)
-	}
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
-
-	sharedImplOrderDB = &implorderTestDB{db: &db, specID: specID}
-	return sharedImplOrderDB.db, sharedImplOrderDB.specID
-}
 
 // =============================================================================
 // INV-TOPO-VALID: Every edge (u,v) in the dependency graph has phase(u) <= phase(v)
@@ -66,8 +15,7 @@ func getImplOrderDB(t *testing.T) (*storage.DB, int64) {
 // =============================================================================
 
 func TestImplOrderTopoValid(t *testing.T) {
-	dbPtr, specID := getImplOrderDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	result, err := implorder.Analyze(db, specID, implorder.Options{})
 	if err != nil {
@@ -135,8 +83,7 @@ func TestImplOrderTopoValid(t *testing.T) {
 // =============================================================================
 
 func TestImplOrderPhaseZeroNoDeps(t *testing.T) {
-	dbPtr, specID := getImplOrderDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	result, err := implorder.Analyze(db, specID, implorder.Options{})
 	if err != nil {
@@ -161,8 +108,7 @@ func TestImplOrderPhaseZeroNoDeps(t *testing.T) {
 // =============================================================================
 
 func TestImplOrderElementCount(t *testing.T) {
-	dbPtr, specID := getImplOrderDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	result, err := implorder.Analyze(db, specID, implorder.Options{})
 	if err != nil {
@@ -187,8 +133,7 @@ func TestImplOrderElementCount(t *testing.T) {
 // =============================================================================
 
 func TestImplOrderCriticalPath(t *testing.T) {
-	dbPtr, specID := getImplOrderDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	result, err := implorder.Analyze(db, specID, implorder.Options{})
 	if err != nil {
@@ -205,8 +150,7 @@ func TestImplOrderCriticalPath(t *testing.T) {
 // =============================================================================
 
 func TestImplOrderJSONValid(t *testing.T) {
-	dbPtr, specID := getImplOrderDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	result, err := implorder.Analyze(db, specID, implorder.Options{})
 	if err != nil {
@@ -238,20 +182,15 @@ func TestImplOrderJSONValid(t *testing.T) {
 // =============================================================================
 
 func TestImplOrderDomainFilter(t *testing.T) {
-	dbPtr, specID := getImplOrderDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	full, err := implorder.Analyze(db, specID, implorder.Options{})
 	if err != nil {
 		t.Fatalf("analyze full: %v", err)
 	}
 
-	domains, _ := storage.GetModuleDomains(db, specID)
-	if len(domains) == 0 {
-		t.Skip("no domains in spec")
-	}
-
-	filtered, err := implorder.Analyze(db, specID, implorder.Options{Domain: domains[0]})
+	// Filter to "parsing" domain (INV-001, INV-002, INV-003)
+	filtered, err := implorder.Analyze(db, specID, implorder.Options{Domain: "parsing"})
 	if err != nil {
 		t.Fatalf("analyze filtered: %v", err)
 	}
@@ -267,9 +206,9 @@ func TestImplOrderDomainFilter(t *testing.T) {
 	// All elements in filtered result should belong to the requested domain
 	for _, phase := range filtered.Phases {
 		for _, elem := range phase.Elements {
-			if elem.Domain != domains[0] {
+			if elem.Domain != "parsing" {
 				t.Errorf("element %s has domain %q, expected %q",
-					elem.ID, elem.Domain, domains[0])
+					elem.ID, elem.Domain, "parsing")
 			}
 		}
 	}
@@ -280,8 +219,7 @@ func TestImplOrderDomainFilter(t *testing.T) {
 // =============================================================================
 
 func TestImplOrderDeterminism(t *testing.T) {
-	dbPtr, specID := getImplOrderDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	result1, err := implorder.Analyze(db, specID, implorder.Options{})
 	if err != nil {
@@ -305,8 +243,7 @@ func TestImplOrderDeterminism(t *testing.T) {
 // =============================================================================
 
 func TestImplOrderAuthorityOrdering(t *testing.T) {
-	dbPtr, specID := getImplOrderDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	result, err := implorder.Analyze(db, specID, implorder.Options{})
 	if err != nil {
@@ -330,8 +267,7 @@ func TestImplOrderAuthorityOrdering(t *testing.T) {
 // =============================================================================
 
 func TestImplOrderCyclesNonNil(t *testing.T) {
-	dbPtr, specID := getImplOrderDB(t)
-	db := *dbPtr
+	db, specID := buildSyntheticModularDB(t)
 
 	result, err := implorder.Analyze(db, specID, implorder.Options{})
 	if err != nil {

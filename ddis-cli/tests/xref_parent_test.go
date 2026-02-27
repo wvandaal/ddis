@@ -1,48 +1,15 @@
+//go:build integration
+
 package tests
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
 
-	"github.com/wvandaal/ddis/internal/parser"
 	"github.com/wvandaal/ddis/internal/storage"
 	"github.com/wvandaal/ddis/internal/validator"
 )
 
-// sharedXRefDB caches a parsed DB for cross-ref parent tests.
-var sharedXRefDB *xrefTestDB
-
-type xrefTestDB struct {
-	db     *storage.DB
-	specID int64
-}
-
-func getXRefDB(t *testing.T) (*storage.DB, int64) {
-	t.Helper()
-	if sharedXRefDB != nil {
-		return sharedXRefDB.db, sharedXRefDB.specID
-	}
-
-	manifestPath := filepath.Join(projectRoot(), "ddis-cli-spec", "manifest.yaml")
-	if _, err := os.Stat(manifestPath); err != nil {
-		t.Skipf("ddis-cli-spec manifest not found: %s", manifestPath)
-	}
-
-	dbPath := filepath.Join(t.TempDir(), "xref_parent_test.db")
-	db, err := storage.Open(dbPath)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
-
-	specID, err := parser.ParseModularSpec(manifestPath, db)
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
-
-	sharedXRefDB = &xrefTestDB{db: &db, specID: specID}
-	return sharedXRefDB.db, sharedXRefDB.specID
-}
+// Uses getXRefDB from integration_helpers_test.go
 
 // TestINV_XREF_SOUND verifies that every resolved cross-reference actually
 // points to an existing element (no false positives in resolution).

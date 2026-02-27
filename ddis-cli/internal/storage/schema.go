@@ -373,8 +373,7 @@ CREATE VIRTUAL TABLE IF NOT EXISTS fts_index USING fts5(
     element_type,
     element_id,
     title,
-    content,
-    content=''
+    content
 );
 
 -- LSI vectors stored as blobs (k floats per document)
