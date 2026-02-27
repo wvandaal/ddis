@@ -1,7 +1,7 @@
 ---
 module: code-bridge
 domain: bridge
-maintains: [APP-INV-017, APP-INV-018, APP-INV-019, APP-INV-020, APP-INV-021, APP-INV-054, APP-INV-055]
+maintains: [APP-INV-017, APP-INV-018, APP-INV-019, APP-INV-020, APP-INV-021, APP-INV-048, APP-INV-054, APP-INV-055]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-008, APP-INV-009, APP-INV-015, APP-INV-016]
 implements: [APP-ADR-012, APP-ADR-014, APP-ADR-015, APP-ADR-034, APP-ADR-038, APP-ADR-040, APP-ADR-042, APP-ADR-051]
 adjacent: [parse-pipeline, query-validation, lifecycle-ops, auto-prompting]

@@ -571,12 +571,20 @@ func InvalidateWitnesses(db DB, witnessSpecID, currentSpecID int64) (int, error)
 	return int(n), nil
 }
 
+// SavedEvidence holds witnesses and challenge results preserved across re-parse.
+// The witness-challenge adjunction requires both halves to survive the
+// ClearSpecByPath natural transformation.
+type SavedEvidence struct {
+	Witnesses []InvariantWitness
+	Challenges []ChallengeResult
+}
+
 // ClearSpecByPath removes all data for existing specs with the given path,
-// making re-parsing idempotent. Returns saved witnesses so they can be
-// re-attached to the freshly-parsed spec after insertion.
+// making re-parsing idempotent. Returns saved witnesses and challenge results
+// so they can be re-attached to the freshly-parsed spec after insertion.
 //
 // Deletion order respects FK constraints (deepest children first).
-func ClearSpecByPath(db DB, specPath string) ([]InvariantWitness, error) {
+func ClearSpecByPath(db DB, specPath string) (*SavedEvidence, error) {
 	// Find all spec_ids for this path
 	rows, err := db.Query(`SELECT id FROM spec_index WHERE spec_path = ?`, specPath)
 	if err != nil {
@@ -600,22 +608,28 @@ func ClearSpecByPath(db DB, specPath string) ([]InvariantWitness, error) {
 		return nil, nil
 	}
 
-	// Save witnesses before deletion
-	var savedWitnesses []InvariantWitness
+	saved := &SavedEvidence{}
+
+	// Save witnesses and challenge results before deletion.
+	// Both halves of the witness-challenge adjunction must be preserved.
 	for _, sid := range specIDs {
 		ws, err := ListWitnesses(db, sid)
 		if err == nil {
-			savedWitnesses = append(savedWitnesses, ws...)
+			saved.Witnesses = append(saved.Witnesses, ws...)
+		}
+		crs, err := ListChallengeResults(db, sid)
+		if err == nil {
+			saved.Challenges = append(saved.Challenges, crs...)
 		}
 	}
 
 	for _, sid := range specIDs {
 		if err := deleteSpecData(db, sid); err != nil {
-			return savedWitnesses, fmt.Errorf("delete spec %d: %w", sid, err)
+			return saved, fmt.Errorf("delete spec %d: %w", sid, err)
 		}
 	}
 
-	return savedWitnesses, nil
+	return saved, nil
 }
 
 // deleteSpecData removes all data for a single specID in FK-safe order.

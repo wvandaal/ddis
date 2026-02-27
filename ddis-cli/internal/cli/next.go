@@ -4,6 +4,7 @@ package cli
 // ddis:implements APP-ADR-041 (challenge-feedback loop closes bilateral lifecycle)
 // ddis:maintains APP-INV-042 (guidance emission — next emits guidance based on state)
 // ddis:maintains APP-INV-051 (challenge-informed navigation)
+// ddis:maintains APP-INV-068 (fixpoint termination — triage-aware priority routing)
 
 import (
 	"encoding/json"
@@ -17,6 +18,7 @@ import (
 	"github.com/wvandaal/ddis/internal/drift"
 	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/storage"
+	"github.com/wvandaal/ddis/internal/triage"
 	"github.com/wvandaal/ddis/internal/validator"
 )
 
@@ -140,6 +142,56 @@ func runNext(cmd *cobra.Command, args []string) error {
 		fmt.Printf("\nNext: ddis context %s\n", refutedIDs[0])
 		fmt.Println("  Refuted invariant requires immediate remediation — fix implementation or amend spec.")
 		return nil
+	}
+
+	// Priority 1.5: Triage lifecycle advancement (APP-INV-068)
+	// Surface lifecycle bookends: verified (ready to close) and filed (needs triage)
+	{
+		wsRoot := events.WorkspaceRoot(dbPath)
+		implStream := events.StreamPath(wsRoot, events.StreamImplementation)
+		implEvts, _ := events.ReadStream(implStream, events.EventFilters{})
+		allIssues := triage.DeriveAllIssueStates(derefEvents(implEvts))
+
+		var best *triage.IssueInfo
+		for _, info := range allIssues {
+			if info.State.IsTerminal() {
+				continue
+			}
+			if best == nil || info.State.Order() > best.State.Order() {
+				best = info
+			}
+		}
+
+		if best != nil {
+			switch best.State {
+			case triage.StateVerified:
+				fmt.Printf("\nNext: ddis issue close %d\n", best.Number)
+				fmt.Println("  Verified issue ready to close — evidence chain will be verified.")
+				return nil
+			case triage.StateImplementing:
+				fmt.Printf("\nNext: ddis challenge --all %s --code-root .\n", dbPath)
+				fmt.Printf("  Issue #%d implementing — challenge to advance to verified.\n", best.Number)
+				return nil
+			case triage.StateSpecified:
+				if len(best.AffectedInvariants) > 0 {
+					fmt.Printf("\nNext: ddis witness %s --type test --evidence \"...\"\n", best.AffectedInvariants[0])
+				} else {
+					fmt.Println("\nNext: ddis witness <INV-ID> --type test --evidence \"...\"")
+				}
+				fmt.Printf("  Issue #%d specified — implement and witness affected invariants.\n", best.Number)
+				return nil
+			case triage.StateTriaged:
+				if best.ThreadID != "" {
+					fmt.Printf("\nNext: ddis discover --thread %s\n", best.ThreadID)
+					fmt.Println("  Continue investigation until spec converges.")
+				}
+				// Don't return — let quality signals take priority for triaged issues
+			case triage.StateFiled:
+				fmt.Printf("\nNext: ddis issue triage %d --thread <thread-id>\n", best.Number)
+				fmt.Println("  Filed issue awaiting triage — link to discovery thread.")
+				return nil
+			}
+		}
 	}
 
 	// Priority 2: Non-challenge validation failures

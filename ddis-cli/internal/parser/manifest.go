@@ -90,8 +90,9 @@ func parseModularSpecVisited(manifestPath string, db storage.DB, visited map[str
 	}
 
 	// Clear existing data for this spec path (idempotent re-parse).
-	// Witnesses are saved and will be re-attached after parsing.
-	savedWitnesses, err := storage.ClearSpecByPath(db, manifestPath)
+	// Both witnesses and challenge results are saved and re-attached after parsing.
+	// This preserves the witness-challenge adjunction across the re-parse transformation.
+	savedEvidence, err := storage.ClearSpecByPath(db, manifestPath)
 	if err != nil {
 		return 0, fmt.Errorf("clear existing spec: %w", err)
 	}
@@ -265,15 +266,39 @@ func parseModularSpecVisited(manifestPath string, db storage.DB, visited map[str
 		return 0, fmt.Errorf("resolve cross-references: %w", err)
 	}
 
-	// Re-attach saved witnesses to the new spec ID.
-	// InvalidateWitnesses (called by parse CLI) will mark stale ones.
-	for i := range savedWitnesses {
-		w := savedWitnesses[i]
-		w.SpecID = specID
-		w.ID = 0 // reset PK for fresh insert
-		if _, err := storage.InsertWitness(db, &w); err != nil {
-			// Non-fatal: witness re-attach failure shouldn't block parse
-			fmt.Fprintf(os.Stderr, "warning: could not re-attach witness %s: %v\n", w.InvariantID, err)
+	// Re-attach saved witnesses and challenge results to the new spec ID.
+	// Order matters: witnesses first (InsertWitness clears stale challenges),
+	// then challenges. InvalidateWitnesses (called by parse CLI) will mark stale ones.
+	if savedEvidence != nil {
+		// Build witness invariant_id → new witness row ID mapping for challenge FK fixup.
+		witnessIDMap := make(map[string]int64)
+		for i := range savedEvidence.Witnesses {
+			w := savedEvidence.Witnesses[i]
+			w.SpecID = specID
+			w.ID = 0 // reset PK for fresh insert
+			newID, err := storage.InsertWitness(db, &w)
+			if err != nil {
+				// Non-fatal: witness re-attach failure shouldn't block parse
+				fmt.Fprintf(os.Stderr, "warning: could not re-attach witness %s: %v\n", w.InvariantID, err)
+				continue
+			}
+			witnessIDMap[w.InvariantID] = newID
+		}
+
+		// Re-attach challenge results with updated spec_id and witness_id FK.
+		for i := range savedEvidence.Challenges {
+			cr := savedEvidence.Challenges[i]
+			cr.SpecID = specID
+			cr.ID = 0 // reset PK for fresh insert
+			// Update witness_id FK to point to the re-attached witness.
+			if newWID, ok := witnessIDMap[cr.InvariantID]; ok {
+				cr.WitnessID = &newWID
+			} else {
+				cr.WitnessID = nil // witness didn't survive re-attach
+			}
+			if _, err := storage.InsertChallengeResult(db, &cr); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: could not re-attach challenge %s: %v\n", cr.InvariantID, err)
+			}
 		}
 	}
 

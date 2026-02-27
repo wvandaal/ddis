@@ -2,6 +2,7 @@ package cli
 
 // ddis:implements APP-INV-050 (challenge-witness adjunction fidelity)
 // ddis:implements APP-ADR-037 (challenge as right adjoint of witness)
+// ddis:maintains APP-INV-066 (recursive feedback — refutation suggests filing remediation issue)
 
 import (
 	"database/sql"
@@ -144,8 +145,9 @@ func runChallengeSingle(db *sql.DB, dbPath string, specID int64, invariantID str
 			fmt.Println("  Provisionally confirmed via code annotations. Strengthen to full confirmation")
 			fmt.Println("  by adding a ddis:tests annotation and re-challenging.")
 		case challenge.Refuted:
-			fmt.Printf("\nNext: ddis witness %s --type test --evidence \"...\"\n", invariantID)
-			fmt.Println("  Witness invalidated — re-implement and record new witness.")
+			fmt.Printf("\nNext: ddis issue file \"Remediate %s\" --label refutation\n", invariantID)
+			fmt.Println("  Witness invalidated — file a remediation issue for tracked resolution.")
+			fmt.Printf("  Then: ddis witness %s --type test --evidence \"...\"\n", invariantID)
 		case challenge.Inconclusive:
 			if result.LevelUncertainty != nil && result.LevelUncertainty.Confidence <= 0.3 {
 				fmt.Printf("\nNext: ddis witness %s --type test --evidence \"...\"\n", invariantID)
@@ -208,8 +210,8 @@ func runChallengeAll(db *sql.DB, dbPath string, specID int64, opts challenge.Opt
 
 	if !NoGuidance {
 		if refuted > 0 {
-			fmt.Println("\nNext: ddis witness --list")
-			fmt.Printf("  %d witness(es) refuted — review and re-implement.\n", refuted)
+			fmt.Printf("\nNext: ddis issue file \"Remediate refuted invariants\" --label refutation\n")
+			fmt.Printf("  %d witness(es) refuted — file remediation issue(s) for tracked resolution.\n", refuted)
 		} else if inconclusive > 0 {
 			fmt.Printf("\nNext: Strengthen %d inconclusive witnesses (attestation-only → test/scan evidence)\n", inconclusive)
 			fmt.Println("  Run: ddis witness INV-ID --type test --evidence \"...\"")

@@ -2,7 +2,7 @@ package events
 
 // ddis:implements APP-ADR-015 (three-stream event sourcing — typed event schemas)
 // ddis:maintains APP-INV-020 (event stream append-only — version field enables forward-compatible evolution)
-// ddis:maintains APP-INV-053 (event stream completeness — 22 typed event types covering all 3 streams)
+// ddis:maintains APP-INV-053 (event stream completeness — 28 typed event types covering all 3 streams)
 
 import "fmt"
 
@@ -32,12 +32,20 @@ const (
 
 // Stream 3 (Implementation) event types.
 const (
-	TypeIssueCreated        = "issue_created"
-	TypeStatusChanged       = "status_changed"
-	TypeDependencyResolved  = "dependency_resolved"
+	TypeIssueCreated         = "issue_created"
+	TypeStatusChanged        = "status_changed"
+	TypeDependencyResolved   = "dependency_resolved"
 	TypeImplementationFinding = "implementation_finding"
 	TypeChallengeIssued      = "challenge_issued"
 	TypeChallengeBatch       = "challenge_batch"
+
+	// Triage lifecycle events (APP-ADR-053: event-sourced issue state machine)
+	TypeIssueTriaged      = "issue_triaged"
+	TypeIssueSpecified    = "issue_specified"
+	TypeIssueImplementing = "issue_implementing"
+	TypeIssueVerified     = "issue_verified"
+	TypeIssueClosed       = "issue_closed"
+	TypeIssueWontfix      = "issue_wontfix"
 )
 
 // streamEventTypes maps each stream to its valid event types.
@@ -63,12 +71,18 @@ var streamEventTypes = map[Stream]map[string]bool{
 		TypeAmendmentApplied:      true,
 	},
 	StreamImplementation: {
-		TypeIssueCreated:        true,
-		TypeStatusChanged:       true,
-		TypeDependencyResolved:  true,
+		TypeIssueCreated:         true,
+		TypeStatusChanged:        true,
+		TypeDependencyResolved:   true,
 		TypeImplementationFinding: true,
 		TypeChallengeIssued:      true,
 		TypeChallengeBatch:       true,
+		TypeIssueTriaged:        true,
+		TypeIssueSpecified:      true,
+		TypeIssueImplementing:   true,
+		TypeIssueVerified:       true,
+		TypeIssueClosed:         true,
+		TypeIssueWontfix:        true,
 	},
 }
 

@@ -132,7 +132,8 @@ func init() {
 	manifestCmd.GroupID = "utility"
 	specCmd.GroupID = "core"
 	agentHelpCmd.GroupID = "utility"
-	issueCmd.GroupID = "utility"
+	issueCmd.GroupID = "core"
+	triageCmd.GroupID = "core"
 
 	rootCmd.AddCommand(nextCmd)
 	rootCmd.AddCommand(parseCmd)
@@ -173,4 +174,5 @@ func init() {
 	rootCmd.AddCommand(agentHelpCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(issueCmd)
+	rootCmd.AddCommand(triageCmd)
 }

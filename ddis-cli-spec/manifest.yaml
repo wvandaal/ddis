@@ -10,7 +10,8 @@
 #   modules/code-bridge.md:             ~934 lines
 #   modules/auto-prompting.md:          ~1932 lines
 #   modules/workspace-ops.md:           ~886 lines
-#   Total modular:                       ~7771 lines
+#   modules/triage-workflow.md:          ~900 lines
+#   Total modular:                       ~8671 lines
 #
 # Bundle sizes (constitution + module):
 #   parse-pipeline bundle:           ~1278 lines (target: 4000, ceiling: 5000) ✓
@@ -20,6 +21,7 @@
 #   code-bridge bundle:              ~1569 lines ✓
 #   auto-prompting bundle:           ~2567 lines ✓
 #   workspace-ops bundle:            ~1521 lines ✓
+#   triage-workflow bundle:          ~1765 lines ✓
 
 ddis_version: "3.0"
 spec_name: "DDIS CLI: Transactional Specification Management System"
@@ -95,6 +97,7 @@ modules:
       - APP-INV-043
       - APP-INV-044
       - APP-INV-047
+      - APP-INV-049
     interfaces:
       - APP-INV-001
       - APP-INV-005
@@ -165,6 +168,7 @@ modules:
       - APP-INV-019
       - APP-INV-020
       - APP-INV-021
+      - APP-INV-048
       - APP-INV-054
       - APP-INV-055
     interfaces:
@@ -291,6 +295,45 @@ modules:
       - "Must NOT generate tasks without mechanical derivation from the artifact map"
       - "Must NOT treat validation failure as binary — report maturity level and next steps"
       - "Must NOT require external tools (br, bv) for task generation core — only for output format"
+  triage-workflow:
+    file: "modules/triage-workflow.md"
+    domain: triage
+    maintains:
+      - APP-INV-063
+      - APP-INV-064
+      - APP-INV-065
+      - APP-INV-066
+      - APP-INV-067
+      - APP-INV-068
+      - APP-INV-069
+      - APP-INV-070
+    interfaces:
+      - APP-INV-001
+      - APP-INV-002
+      - APP-INV-010
+      - APP-INV-016
+      - APP-INV-020
+      - APP-INV-025
+      - APP-INV-027
+      - APP-INV-042
+      - APP-INV-050
+      - APP-INV-053
+      - APP-INV-057
+      - APP-INV-062
+    implements:
+      - APP-ADR-053
+      - APP-ADR-054
+      - APP-ADR-055
+      - APP-ADR-056
+      - APP-ADR-057
+    adjacent: [lifecycle-ops, auto-prompting, workspace-ops, code-bridge]
+    deep_context: null
+    negative_specs:
+      - "Must NOT store mutable issue state — derive from event stream only"
+      - "Must NOT suggest implementation before spec convergence"
+      - "Must NOT close issues without complete evidence chain"
+      - "Must NOT allow infinite triage loops — well-founded ordering must decrease"
+      - "Must NOT require network for lifecycle state derivation"
 invariant_registry:
   APP-INV-001: {owner: parse-pipeline, domain: parsing, description: "Round-Trip Fidelity — parse-render produces byte-identical output"}
   APP-INV-002: {owner: query-validation, domain: validation, description: "Validation Determinism — results independent of clock, RNG, execution order"}
@@ -354,3 +397,11 @@ invariant_registry:
   APP-INV-060: {owner: workspace-ops, domain: workspace, description: "Manifest-Module Bijection — scaffold generates stubs matching manifest declarations"}
   APP-INV-061: {owner: auto-prompting, domain: autoprompt, description: "Crystallize Module Auto-Resolution — resolve target module from manifest maintains mapping"}
   APP-INV-062: {owner: lifecycle-ops, domain: lifecycle, description: "Lifecycle Reachability — every reachable state has forward path to ValidatedSpec, no dead-ends"}
+  APP-INV-063: {owner: triage-workflow, domain: triage, description: "Issue-Discovery Linkage — every triaged issue has a linked discovery thread with ≥1 observation"}
+  APP-INV-064: {owner: triage-workflow, domain: triage, description: "Spec-Before-Code Gate — implementation suppressed until spec converges (17/17 checks, drift=0)"}
+  APP-INV-065: {owner: triage-workflow, domain: triage, description: "Resolution Evidence Chain — issue close requires confirmed witnesses for all affected invariants"}
+  APP-INV-066: {owner: triage-workflow, domain: triage, description: "Recursive Feedback — challenge refutations suggest remediation issues with strictly smaller scope"}
+  APP-INV-067: {owner: triage-workflow, domain: triage, description: "Self-Bootstrap Closure — this module processes its own implementation through complete lifecycle"}
+  APP-INV-068: {owner: triage-workflow, domain: triage, description: "Fixpoint Termination — triage measure μ(S) decreases lexicographically, guaranteed to reach (0,0,0)"}
+  APP-INV-069: {owner: triage-workflow, domain: triage, description: "Triage Monotonic Fitness — F(S') ≥ F(S) after every triage step; F=1.0 iff fixpoint reached"}
+  APP-INV-070: {owner: triage-workflow, domain: triage, description: "Protocol Completeness — ddis triage --protocol output sufficient for zero-knowledge agent participation"}

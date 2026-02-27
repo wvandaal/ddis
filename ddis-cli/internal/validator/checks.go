@@ -156,6 +156,32 @@ func (c *checkINV006XRefDensity) Run(db *sql.DB, specID int64) CheckResult {
 		return result
 	}
 
+	// Build section tree: the partial order (S, ≤) where s₁ ≤ s₂ iff s₁ is ancestor.
+	// Reachability is a closure operator on this poset: if a parent is reachable,
+	// all descendants inherit reachability.
+	sectionByID := make(map[int64]*storage.Section)
+	for i := range sections {
+		sectionByID[sections[i].ID] = &sections[i]
+	}
+
+	// Compute reachable set: section has refs OR any ancestor has refs.
+	// Walk up the parent chain for each section — if any ancestor is reachable,
+	// this section inherits reachability (closure property of the partial order).
+	isReachable := func(sec *storage.Section) bool {
+		cur := sec
+		for cur != nil {
+			rc := refCounts[cur.ID]
+			if rc.Incoming > 0 || rc.Outgoing > 0 {
+				return true
+			}
+			if cur.ParentID == nil {
+				break
+			}
+			cur = sectionByID[*cur.ParentID]
+		}
+		return false
+	}
+
 	orphans := 0
 	for _, sec := range sections {
 		// Skip top-level structural sections that are naturally orphaned
@@ -167,12 +193,11 @@ func (c *checkINV006XRefDensity) Run(db *sql.DB, specID int64) CheckResult {
 			continue
 		}
 
-		rc := refCounts[sec.ID]
-		if rc.Incoming == 0 && rc.Outgoing == 0 {
+		if !isReachable(&sec) {
 			orphans++
 			result.Findings = append(result.Findings, Finding{
 				CheckID: c.ID(), CheckName: c.Name(), Severity: SeverityWarning,
-				Message:     fmt.Sprintf("orphan section: %s (%s) — 0 incoming, 0 outgoing refs", sec.SectionPath, sec.Title),
+				Message:     fmt.Sprintf("orphan section: %s (%s) — no refs in section or ancestors", sec.SectionPath, sec.Title),
 				Location:    sec.SectionPath,
 				InvariantID: "INV-006",
 			})
@@ -188,9 +213,15 @@ func (c *checkINV006XRefDensity) Run(db *sql.DB, specID int64) CheckResult {
 }
 
 func isExemptSection(path string) bool {
-	exempts := []string{"PART-0", "Glossary", "Appendix-A", "Appendix-B", "Appendix-C", "Preamble"}
+	// Structural preamble sections that are naturally entry points or containers.
+	// These form the top-level skeleton and need not be cross-referenced.
+	exempts := []string{
+		"PART-0", "Glossary", "Appendix-A", "Appendix-B", "Appendix-C",
+		"Preamble", "§0", "Frontmatter", "YAML-Frontmatter",
+		"Negative-Specifications", "Verification-Prompts",
+	}
 	for _, e := range exempts {
-		if path == e || strings.HasPrefix(path, e+"/") {
+		if path == e || strings.HasPrefix(path, e+"/") || strings.HasPrefix(path, e+".") {
 			return true
 		}
 	}
@@ -217,7 +248,11 @@ func (c *checkINV009GlossaryCompleteness) Run(db *sql.DB, specID int64) CheckRes
 		return result
 	}
 
-	// Scan all section text for bold terms (**Term**) and count occurrences
+	// Scan section text for bold terms (**Term**) and count occurrences.
+	// Only count leaf sections to avoid double-counting from raw_text nesting:
+	// parent sections contain all descendant text, so counting them all
+	// multiplies occurrences by nesting depth. Counting leaves only makes
+	// the measurement idempotent over the section tree's containment preorder.
 	sections, err := storage.ListSections(db, specID)
 	if err != nil {
 		result.Passed = false
@@ -228,21 +263,42 @@ func (c *checkINV009GlossaryCompleteness) Run(db *sql.DB, specID int64) CheckRes
 		return result
 	}
 
+	// Identify leaf sections: sections that are not parents of any other section.
+	hasChildren := make(map[int64]bool)
+	for _, sec := range sections {
+		if sec.ParentID != nil {
+			hasChildren[*sec.ParentID] = true
+		}
+	}
+
 	boldTermRe := regexp.MustCompile(`\*\*([A-Z][A-Za-z\s-]{2,40})\*\*`)
 	termCounts := make(map[string]int)
 
 	for _, sec := range sections {
+		if hasChildren[sec.ID] {
+			continue // skip non-leaf sections to avoid double-counting
+		}
 		matches := boldTermRe.FindAllStringSubmatch(sec.RawText, -1)
 		for _, m := range matches {
 			term := strings.TrimSpace(m[1])
+			// Semantic filter: exclude structural patterns that aren't domain terms.
+			if isStructuralBoldTerm(term) {
+				continue
+			}
 			termCounts[term]++
 		}
+	}
+
+	// Case-insensitive glossary matching: normalize both sides to lowercase.
+	glossaryLower := make(map[string]bool, len(glossaryTerms))
+	for term := range glossaryTerms {
+		glossaryLower[strings.ToLower(term)] = true
 	}
 
 	// Flag terms appearing >= 3 times that aren't in the glossary
 	missing := 0
 	for term, count := range termCounts {
-		if count >= 3 && !glossaryTerms[term] {
+		if count >= 3 && !glossaryLower[strings.ToLower(term)] {
 			missing++
 			result.Findings = append(result.Findings, Finding{
 				CheckID: c.ID(), CheckName: c.Name(), Severity: SeverityWarning,
@@ -254,6 +310,31 @@ func (c *checkINV009GlossaryCompleteness) Run(db *sql.DB, specID int64) CheckRes
 
 	result.Summary = fmt.Sprintf("%d glossary terms, %d frequent bold terms missing", len(glossaryTerms), missing)
 	return result
+}
+
+// isStructuralBoldTerm returns true for bold patterns that are structural labels
+// (headings, field names, ADR/INV titles) rather than domain glossary terms.
+func isStructuralBoldTerm(term string) bool {
+	// ADR/INV/Gate element titles: "APP-INV-NNN: Title" or "APP-ADR-NNN: Title"
+	if strings.HasPrefix(term, "APP-") || strings.HasPrefix(term, "INV-") ||
+		strings.HasPrefix(term, "ADR-") || strings.HasPrefix(term, "Gate-") {
+		return true
+	}
+	// Common structural field labels in spec element blocks
+	structuralPatterns := []string{
+		"Problem", "Options", "Decision", "Consequences", "Tests",
+		"DO NOT", "WHY NOT", "MUST", "SHOULD", "SHALL",
+		"Owner", "Domain", "Confidence", "Status",
+		"Statement", "Semi-formal", "Violation Scenario", "Validation Method",
+		"Why This Matters", "Rationale",
+		"Option A", "Option B", "Option C", "Option D",
+	}
+	for _, p := range structuralPatterns {
+		if strings.EqualFold(term, p) || strings.HasPrefix(term, p+":") || strings.HasPrefix(term, p+" ") {
+			return true
+		}
+	}
+	return false
 }
 
 // Check 5: INV-013 — Invariant ownership (modular only).

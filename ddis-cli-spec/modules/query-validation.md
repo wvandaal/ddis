@@ -1,7 +1,7 @@
 ---
 module: query-validation
 domain: validation
-maintains: [APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-011, APP-INV-043, APP-INV-044, APP-INV-047]
+maintains: [APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-011, APP-INV-043, APP-INV-044, APP-INV-047, APP-INV-049]
 interfaces: [APP-INV-001, APP-INV-005, APP-INV-006, APP-INV-008, APP-INV-009, APP-INV-015, APP-INV-016]
 implements: [APP-ADR-004, APP-ADR-032, APP-ADR-035, APP-ADR-048]
 adjacent: [parse-pipeline, search-intelligence, lifecycle-ops]

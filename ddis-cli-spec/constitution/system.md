@@ -39,7 +39,7 @@ The primary purpose is to close the loop between four activities that currently 
 3. **LLM consumption** — the CLI assembles context bundles that give an LLM implementer exactly the information it needs (`ddis context`, `ddis search`)
 4. **Bilateral feedback** — implementation speaks back into the spec via code annotation scanning and automated absorption (`ddis scan`, `ddis absorb`, `ddis drift`)
 
-Commands span seven domains: *parsing* (`parse`, `render`, `seed`), *querying and validation* (`query`, `validate`, `diff`), *search and intelligence* (`search`, `context`, `impact`, `exemplar`), *lifecycle operations* (`log`, `tx`, `coverage`, `skeleton`, `checkpoint`, `cascade`, `bundle`, `impl-order`, `checklist`, `progress`, `state`, `drift`), *code bridge* (`scan`, `history`), *auto-prompting* (`discover`, `refine`, `absorb`), and *workspace* (`init`, `spec`, `tasks`).
+Commands span eight domains: *parsing* (`parse`, `render`, `seed`), *querying and validation* (`query`, `validate`, `diff`), *search and intelligence* (`search`, `context`, `impact`, `exemplar`), *lifecycle operations* (`log`, `tx`, `coverage`, `skeleton`, `checkpoint`, `cascade`, `bundle`, `impl-order`, `checklist`, `progress`, `state`, `drift`), *code bridge* (`scan`, `history`), *auto-prompting* (`discover`, `refine`, `absorb`), *workspace* (`init`, `spec`, `tasks`), and *triage* (`issue file`, `issue triage`, `issue close`, `issue status`, `issue list`, `triage`).
 
 ### 0.1.1 Non-Negotiables (Engineering Contract)
 
@@ -75,7 +75,7 @@ where:
   Workspace      = Map(SpecID -> {manifest_path, parent_spec, related_specs, drift_score})
 ```
 
-### 0.2.1 State Transitions (32 Commands)
+### 0.2.1 State Transitions (38 Commands)
 
 Each command is a transition function over the state space:
 
@@ -133,6 +133,14 @@ T_rename:      Index * OldText * NewText * Opts -> SpecFiles' * OpLog
 -- Witness domain
 T_witness:     Index * InvariantID -> WitnessReceipt
 T_challenge:   Index * InvariantID * CodeRoot? -> ChallengeResult
+
+-- Triage domain
+T_issue_file:    Title * Labels -> IssueRef * EventStreams'
+T_issue_triage:  IssueRef * ThreadID -> IssueState(triaged) * EventStreams'
+T_issue_close:   IssueRef * EvidenceChain -> IssueState(closed) * EventStreams'
+T_issue_status:  IssueRef? -> IssueStatusReport
+T_triage_auto:   Index * EventStreams -> FitnessReport * RankedWork * EventStreams'
+T_triage_proto:  Index * EventStreams -> Protocol(JSON)
 ```
 
 ### 0.2.2 Key Composition: T_context
@@ -194,7 +202,7 @@ Each pass is independently testable. The pipeline is deterministic: same input a
 
 ## 0.3 Invariant Registry (Declarations)
 
-All 62 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
+All 70 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
 
 **APP-INV-001: Round-Trip Fidelity** (Owner: parse-pipeline)
 Parse followed by render MUST produce byte-identical output for any valid DDIS specification.
@@ -431,12 +439,12 @@ Module frontmatter declarations (maintains, interfaces, implements, negative_spe
 Confidence: falsified
 *Violation: code-bridge.md frontmatter lists APP-INV-002 in interfaces but manifest.yaml omits it; parser silently uses one or the other depending on code path, producing inconsistent cross-reference graphs.*
 
-**APP-INV-048: Behavioral Witness Ground Truth** (Owner: query-validation)
-Behavioral tests annotated with ddis:tests produce ground truth witness evidence for invariant challenge verification.
+**APP-INV-048: Event Stream VCS Primacy** (Owner: code-bridge)
+Event streams are append-only JSONL files under VCS control, not database tables.
 Confidence: falsified
 
-**APP-INV-049: Event Stream VCS Primacy** (Owner: lifecycle-ops)
-Event streams are append-only JSONL files under VCS control, not database tables.
+**APP-INV-049: Behavioral Witness Ground Truth** (Owner: query-validation)
+Behavioral tests annotated with ddis:tests produce ground truth witness evidence for invariant challenge verification.
 Confidence: falsified
 
 **APP-INV-050: Challenge-Witness Adjunction Fidelity** (Owner: lifecycle-ops)
@@ -498,6 +506,46 @@ Every state reachable from T_init has a forward transition path to ValidatedSpec
 Confidence: falsified
 *Violation: state (manifest exists, no module files) has no outgoing transition -- dead-end requiring manual file creation outside the CLI.*
 
+**APP-INV-063: Issue-Discovery Linkage** (Owner: triage-workflow)
+Every triaged issue has a linked discovery thread containing at least one observation event. Filing alone is insufficient; triage creates the provenance chain.
+Confidence: falsified
+*Violation: agent triages issue without discovery thread; second agent implements with no understanding of requirements.*
+
+**APP-INV-064: Spec-Before-Code Gate** (Owner: triage-workflow)
+`ddis next` and `ddis triage --auto` suppress implementation suggestions until affected spec elements converge (validate 17/17, drift 0). Mechanical enforcement of formalize-before-build.
+Confidence: falsified
+*Violation: agent implements half-specified invariant; implementation must be rewritten when spec completes.*
+
+**APP-INV-065: Resolution Evidence Chain** (Owner: triage-workflow)
+`ddis issue close` requires complete evidence chain: non-stale witness + confirmed challenge verdict for all affected invariants. Closing without evidence is forbidden.
+Confidence: falsified
+*Violation: issue closed with only partial witness coverage; later audit finds unimplemented invariant.*
+
+**APP-INV-066: Recursive Feedback** (Owner: triage-workflow)
+Challenge refutations suggest filing remediation issues with strictly smaller scope (proper subset of affected invariants). Guarantees well-founded termination.
+Confidence: falsified
+*Violation: remediation issues filed with same scope; triage loop cycles indefinitely.*
+
+**APP-INV-067: Self-Bootstrap Closure** (Owner: triage-workflow)
+The triage-workflow module processes its own implementation through the complete lifecycle. Event stream contains all 7 triage event types for the bootstrap issue.
+Confidence: falsified
+*Violation: bootstrap issue closed manually; event stream missing issue_closed event; self-bootstrap property violated.*
+
+**APP-INV-068: Fixpoint Termination** (Owner: triage-workflow)
+Triage measure μ(S) = (open_issues, unspecified, drift) decreases lexicographically with each triage step. Well-founded ordering on ℕ³ guarantees finite convergence.
+Confidence: falsified
+*Violation: triage step files more issues than it closes; μ first component increases; loop diverges.*
+
+**APP-INV-069: Triage Monotonic Fitness** (Owner: triage-workflow)
+F(S') ≥ F(S) after every triage step. F(S) = 1.0 iff fixpoint. Fitness regression triggers remediation issue.
+Confidence: falsified
+*Violation: new invariant added without witness drags down challenge health; fitness decreases silently.*
+
+**APP-INV-070: Protocol Completeness** (Owner: triage-workflow)
+`ddis triage --protocol` output is a self-contained JSON sufficient for any zero-knowledge agent to drive triage to fixpoint.
+Confidence: falsified
+*Violation: protocol omits required flags for ranked_work actions; agent execution fails with no recovery path.*
+
 ---
 
 ## 0.4 Invariant Confidence Levels
@@ -517,7 +565,7 @@ Confidence levels are tracked per-invariant in the implementation. The `validate
 
 ## 0.5 ADR Registry (Declarations)
 
-All 52 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
+All 57 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
 
 **APP-ADR-001: Go over Rust** (Implements: parse-pipeline)
 Decision: Go for CLI implementation. The workload is I/O-bound (SQLite reads/writes, file parsing), not CPU-bound. Go's fast compilation supports rapid iteration in the RALPH improvement loop. A pure-Go SQLite driver (`modernc.org/sqlite`) eliminates CGO complexity.
@@ -716,6 +764,26 @@ WHY NOT patch --replace-all: Conflates surgical edit with mechanical rename.
 Decision: Check 20 extracts transition graph from section 0.2.1, runs BFS, reports dead-end states.
 WHY NOT manual audit: Missed G1 despite 3 audits. Systematic errors need systematic detection.
 
+**APP-ADR-053: Issue Lifecycle as Event-Sourced State Machine** (Implements: triage-workflow)
+Decision: Issue lifecycle state derived from Stream 3 event replay, not a mutable table. DeriveIssueState folds events into current state. Consistent with APP-INV-020 append-only.
+WHY NOT mutable table: Creates second source of truth alongside event stream; events and table can diverge silently.
+
+**APP-ADR-054: Fixpoint Convergence via Well-Founded Ordering** (Implements: triage-workflow)
+Decision: μ : S → ℕ³ with lexicographic ordering. Each triage step strictly decreases μ or reaches fixpoint (0,0,0). Termination is provable, not empirical.
+WHY NOT iteration cap: Engineering workaround that masks bugs instead of proving convergence.
+
+**APP-ADR-055: Full Agent Autonomy with Spec-Convergence Guardrails** (Implements: triage-workflow)
+Decision: Two mechanical gates (spec-convergence at triaged→specified, evidence-chain at verified→closed) with full autonomy between. Gates are observational, not prescriptive.
+WHY NOT fully manual: Human bottleneck. WHY NOT fully autonomous: Agents skip to closed without evidence.
+
+**APP-ADR-056: Spec Fitness Function as Endogenous Quality Signal** (Implements: triage-workflow)
+Decision: F(S) = weighted combination of 6 signals (validation, coverage, drift, challenges, contradictions, open issues). Fixed weights, ranked work by ΔF. Lyapunov complement V(S)=1-F(S).
+WHY NOT manual priority: Human judgment may conflict with spec state. WHY NOT heuristic rules: Don't compose into single gradient.
+
+**APP-ADR-057: Agent-Executable Protocol for Zero-Knowledge Participation** (Implements: triage-workflow)
+Decision: `ddis triage --protocol` emits self-contained JSON. Any agent executes ranked_work[0].action, re-runs --protocol, repeats until F=1.0. Lyapunov function unifies μ and F.
+WHY NOT documentation: High barrier for zero-knowledge agents. WHY NOT context bundle: Read-only, no executable actions.
+
 ---
 
 ## 0.6 Quality Gates (Declarations)
@@ -805,7 +873,16 @@ Terms specific to the DDIS CLI. If a term is also defined in the DDIS standard, 
 | **OpenExisting / OpenCreate** | Two database opening modes. OpenExisting verifies existence (read-only). OpenCreate permits auto-creation (write). (APP-INV-059, APP-ADR-046) |
 | **Module Auto-Resolution** | Inferring target module for crystallize from manifest maintains/domain mapping. (APP-INV-061, APP-ADR-049) |
 | **Rename** | Multi-file, multi-occurrence text replacement distinct from patch (single-scope). (APP-ADR-051) |
+| **Interface** | A module-level declaration of spec elements that a module references but does not own. Distinguished from maintains (ownership) by the interfaces/maintains duality. |
+| **Behavior** | Observable system property that can be mechanically tested. Distinguished from attestation by requiring executable evidence (test-backed witnesses). (APP-INV-049) |
 | **Lifecycle Reachability** | Graph connectivity property: every state reachable from init has a forward path to validated spec. Mechanically verified by Check 20. (APP-INV-062, APP-ADR-052) |
+| **Evidence Chain** | The formal certificate of issue completion: for each affected invariant, a non-stale witness with a confirmed challenge verdict. Verified by `ddis issue close`. (APP-INV-065, APP-ADR-055) |
+| **Issue Lifecycle** | Event-sourced state machine: filed → triaged → specified → implementing → verified → closed (or wont_fix). State derived from Stream 3 event replay, never stored mutably. (APP-ADR-053) |
+| **Spec Fitness Function** | F(S) ∈ [0,1]: weighted combination of 6 normalized quality signals (validation, coverage, drift, challenges, contradictions, open issues). F=1.0 at fixpoint. (APP-INV-069, APP-ADR-056) |
+| **Spec-Before-Code Gate** | Mechanical precondition at the triaged→specified transition: validate=17/17 AND drift=0 for affected elements. Prevents premature implementation. (APP-INV-064, APP-ADR-055) |
+| **Triage Endofunctor** | T : DDIS → DDIS mapping spec state to successor via one triage step. Contractive: μ(T(S)) <_lex μ(S). Convergent: fixpoint at μ=(0,0,0). (APP-INV-068, APP-ADR-054) |
+| **Triage Measure** | μ(S) = (open_issues, unspecified, drift) ∈ ℕ³ with lexicographic well-founded ordering. Decreases with each triage step; zero at fixpoint. (APP-INV-068) |
+| **Triage Protocol** | Self-contained JSON output of `ddis triage --protocol`: fitness, measure, ranked work queue, convergence metrics. Sufficient for zero-knowledge agent participation. (APP-INV-070, APP-ADR-057) |
 
 ---
 
@@ -823,6 +900,7 @@ Cross-reference lookup: which module file contains each section's full specifica
 | Annotations, scan, contradiction detection (graph + SAT + heuristic + LSI + SMT + LLM), event sourcing, LLM provider | modules/code-bridge.md | Owns: APP-INV-017, -018, -019, -020, -021, -054, -055. Implements: APP-ADR-012, -014, -015, -034, -038, -040, -042 |
 | State monad, discover, refine, absorb loops, contributor topology, thread management | modules/auto-prompting.md | Owns: APP-INV-022–036, -042, -045, -046. Implements: APP-ADR-016–025, -031, -033 |
 | Workspace init, multi-domain composition, cross-spec drift, task generation, progressive validation | modules/workspace-ops.md | Owns: APP-INV-037, -038, -039, -040. Implements: APP-ADR-026, -027, -028, -029 |
+| Issue lifecycle, triage state machine, evidence chain, spec-before-code gate, fitness function, triage protocol | modules/triage-workflow.md | Owns: APP-INV-063–070. Implements: APP-ADR-053–057 |
 
 ---
 
@@ -863,3 +941,4 @@ reasoning_reserve: 0.25
 | **code-bridge** | bridge | Cross-language annotation scanner (`ddis scan`), tiered contradiction detection (graph + SAT + heuristic + LSI), three-stream event sourcing (`ddis history`), spec-code drift types. APP-INV-017–021. APP-ADR-012, -014, -015, -034. |
 | **auto-prompting** | autoprompt | Bilateral specification lifecycle: `ddis discover` (idea→spec), `ddis refine` (spec improvement), `ddis absorb` (impl→spec). State monad architecture, thread-scoped discovery, cognitive mode classification, contributor topology, Gestalt-optimized prompt generation. APP-INV-022–036, -042, -045, -046. APP-ADR-016–025, -031, -033. |
 | **workspace-ops** | workspace | Workspace initialization (`ddis init`), multi-domain composition (`ddis spec add/list`), cross-spec drift, mechanical task generation (`ddis tasks`), progressive validation (Level 1/2/3 maturity tiers). APP-INV-037–040. APP-ADR-026–029. |
+| **triage-workflow** | triage | Recursive self-improvement: issue lifecycle state machine (event-sourced), spec-before-code gate, evidence chain, fitness function F(S), well-founded convergence μ(S), agent-executable protocol. APP-INV-063–070. APP-ADR-053–057. |
