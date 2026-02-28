@@ -542,7 +542,7 @@ func TestGetLatestSpecID_EmptyDB(t *testing.T) {
 	}
 }
 
-func TestInsertInvariant_UniqueConstraint(t *testing.T) {
+func TestInsertInvariant_Upsert(t *testing.T) {
 	td := openTestDB(t)
 	specID := td.insertSpec()
 	sfID := td.insertSourceFile(specID)
@@ -561,17 +561,32 @@ func TestInsertInvariant_UniqueConstraint(t *testing.T) {
 		ContentHash:  "hash1",
 	}
 
-	if _, err := InsertInvariant(td.DB, inv); err != nil {
+	id1, err := InsertInvariant(td.DB, inv)
+	if err != nil {
 		t.Fatalf("first insert: %v", err)
 	}
 
-	// Second insert with same (spec_id, invariant_id) should fail.
+	// Second insert with same (spec_id, invariant_id) should upsert (richer content wins).
 	inv2 := *inv
-	inv2.Title = "Duplicate"
+	inv2.Title = "Longer Title Here"
+	inv2.Statement = "A much longer and more detailed statement"
+	inv2.RawText = "raw text that is longer than the original raw text content"
 	inv2.ContentHash = "hash2"
-	_, err := InsertInvariant(td.DB, &inv2)
-	if err == nil {
-		t.Fatal("expected UNIQUE constraint error on duplicate invariant_id, got nil")
+	id2, err := InsertInvariant(td.DB, &inv2)
+	if err != nil {
+		t.Fatalf("upsert: %v", err)
+	}
+	if id1 != id2 {
+		t.Errorf("upsert returned different ID: %d vs %d", id1, id2)
+	}
+
+	// Verify richer content won
+	got, err := GetInvariant(td.DB, specID, "INV-001")
+	if err != nil {
+		t.Fatalf("get after upsert: %v", err)
+	}
+	if got.Title != "Longer Title Here" {
+		t.Errorf("expected richer title, got %q", got.Title)
 	}
 }
 

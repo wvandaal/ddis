@@ -3289,6 +3289,10 @@ func (a *testApplier) InsertNegativeSpec(p events.NegativeSpecPayload) error {
 	a.ops = append(a.ops, "InsertNegativeSpec:"+p.Pattern)
 	return nil
 }
+func (a *testApplier) InsertQualityGate(p events.QualityGatePayload) error {
+	a.ops = append(a.ops, "InsertQualityGate:"+p.Title)
+	return nil
+}
 
 func makeTestEvents() []*events.Event {
 	return []*events.Event{

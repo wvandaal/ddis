@@ -15,6 +15,7 @@ import (
 )
 
 // ddis:implements APP-ADR-001 (monolith-first parsing)
+// ddis:implements APP-ADR-068 (phased migration — parse handles legacy markdown, new changes via crystallize events)
 // ddis:maintains APP-INV-001 (round-trip fidelity)
 // ddis:maintains APP-INV-009 (monolith-modular equivalence)
 // ddis:maintains APP-INV-041 (witness auto-invalidation — triggers InvalidateWitnesses on re-parse)

@@ -1,9 +1,9 @@
 ---
 module: event-sourcing
 domain: eventsourcing
-maintains: [APP-INV-071, APP-INV-072, APP-INV-073, APP-INV-074, APP-INV-075, APP-INV-076, APP-INV-077, APP-INV-078, APP-INV-079, APP-INV-080, APP-INV-081, APP-INV-082, APP-INV-083, APP-INV-084]
+maintains: [APP-INV-071, APP-INV-072, APP-INV-073, APP-INV-074, APP-INV-075, APP-INV-076, APP-INV-077, APP-INV-078, APP-INV-079, APP-INV-080, APP-INV-081, APP-INV-082, APP-INV-083, APP-INV-084, APP-INV-085, APP-INV-086, APP-INV-087, APP-INV-088, APP-INV-089, APP-INV-090, APP-INV-091, APP-INV-092, APP-INV-093, APP-INV-094, APP-INV-095, APP-INV-096, APP-INV-097]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-010, APP-INV-015, APP-INV-016, APP-INV-020, APP-INV-025, APP-INV-048, APP-INV-053]
-implements: [APP-ADR-058, APP-ADR-059, APP-ADR-060, APP-ADR-061, APP-ADR-062, APP-ADR-063, APP-ADR-064, APP-ADR-065]
+implements: [APP-ADR-058, APP-ADR-059, APP-ADR-060, APP-ADR-061, APP-ADR-062, APP-ADR-063, APP-ADR-064, APP-ADR-065, APP-ADR-066, APP-ADR-067, APP-ADR-068, APP-ADR-069, APP-ADR-070, APP-ADR-071, APP-ADR-072, APP-ADR-073, APP-ADR-074]
 adjacent: [parse-pipeline, code-bridge, lifecycle-ops, auto-prompting]
 negative_specs:
   - "Must NOT read or write markdown as canonical source of truth"
@@ -409,6 +409,234 @@ Violation scenario: An invariant is crystallized via event e1, then updated via 
 Validation: For each element in the materialized state, compute provenance(e) by following causes chains. Verify: (1) provenance is non-empty, (2) first event is a creation type, (3) each subsequent event has causes linking to prior events, (4) replaying provenance in isolation produces the element.
 
 // WHY THIS MATTERS: Causal provenance is the "git blame" of event sourcing. It answers "who created this invariant, when, and why?" and "what was the chain of modifications that led to its current form?" Without provenance, the event log is an opaque sequence with no navigable structure.
+
+---
+
+**APP-INV-085: Import Content Completeness**
+
+*The ddis import command must emit synthetic events for ALL content types: modules, invariants, ADRs, sections, cross-references, negative specs, quality gates, glossary entries.*
+
+```
+forall content_type T in {modules, invariants, adrs, sections, xrefs, negspecs, gates, glossary}:
+  count(import(db).events_of_type(T)) = count(db.table(T).rows)
+```
+
+Violation scenario: Import emits events for invariants and ADRs but skips sections and cross-references. Materialize produces database missing sections.
+
+Validation: Parse CLI spec, import, materialize, compare row counts per table.
+
+// WHY THIS MATTERS: Partial import silently loses spec content. The migration from parse to import+materialize requires content completeness as a precondition for equivalence (APP-INV-078).
+
+---
+
+**APP-INV-086: Applier Spec-ID Parameterization**
+
+*The sqlApplier derives spec_id from event payloads or configuration, never hardcoding values. Every inserted row references the correct spec_index and source_files entries.*
+
+```
+forall event E with payload.spec_id = N:
+  apply(E).inserted_rows.spec_id = N
+  foreign_key_check(apply(E)) passes
+```
+
+Violation scenario: sqlApplier hardcodes spec_id=1; when materializing events from spec ID 3, all rows reference non-existent spec_id=1.
+
+Validation: Materialize events into fresh database, verify spec_id references resolve via foreign key check.
+
+// WHY THIS MATTERS: Hardcoded spec_id breaks multi-spec materialization and foreign key integrity. Every row must reference the correct spec_index entry.
+
+---
+
+**APP-INV-087: Projector Section Rendering**
+
+*The project command filters invariants, ADRs, sections, and other content by module ownership. Each projected module contains only the elements maintained by that module.*
+
+```
+forall module M with maintains = {E1, E2, ...}:
+  project(db, M).elements = {E | E.id in M.maintains}
+```
+
+Violation scenario: project queries all invariants for every module, producing incorrect documents.
+
+Validation: Project multi-module spec, verify each output file contains only elements from its maintains list.
+
+// WHY THIS MATTERS: Module boundaries are the organizational unit of the spec. Cross-module element leakage produces incorrect documents.
+
+---
+
+**APP-INV-088: Single Write Path**
+
+*Content-mutating commands write ONLY to the event log. SQLite databases are produced exclusively by materialize; markdown files exclusively by project.*
+
+```
+forall content-mutating command C:
+  C.writes = {event_log}
+  C.writes ∩ {sqlite, markdown} = empty
+```
+
+Violation scenario: Crystallize dual-writes to event log AND markdown; crash between writes produces inconsistent state.
+
+Validation: Instrument crystallize write calls, verify only event stream writes occur.
+
+// WHY THIS MATTERS: Dual writes create split-brain between event log and derived artifacts. Single write path is the architectural guarantee that the event log is the sole source of truth.
+
+---
+
+**APP-INV-089: Deprecation Compatibility Bridge**
+
+*During migration Phase B, deprecated commands (parse, render) produce structurally equivalent output to their event-sourcing replacements (import+materialize, project).*
+
+```
+forall deprecated command D with replacement R:
+  StructuralDiff(D(input), R(input)) = empty
+```
+
+Violation scenario: Replaced parse produces different section ordering than import+materialize.
+
+Validation: Run both paths on same input, compare via StructuralDiff.
+
+// WHY THIS MATTERS: The deprecation bridge enables incremental migration. Without equivalence verification, replacing commands silently changes behavior.
+
+---
+
+**APP-INV-090: Processor Idempotency**
+
+*Processor Handle is deterministic: same event and same state always produce the same derived events. Re-fold fires processors only on primary events (those without derived_by).*
+
+```
+forall processor P, event E, state S:
+  P.Handle(E, S) = P.Handle(E, S)  // deterministic
+forall derived event D with D.derived_by != nil:
+  processors_skip(D)
+```
+
+Violation scenario: Re-fold fires processors on derived events, producing duplicate validation warnings.
+
+Validation: Fold same events twice, verify derived event count identical.
+
+// WHY THIS MATTERS: Idempotency enables safe re-fold from any checkpoint. Without it, processor outputs accumulate unboundedly across replays.
+
+---
+
+**APP-INV-091: Processor Failure Isolation**
+
+*A processor error is non-fatal: the engine logs the error, discards that processor's derived events, and continues fold. No single processor failure can halt materialization.*
+
+```
+forall processor P where P.Handle returns error:
+  fold continues with remaining processors
+  P.derived_events = discarded
+  error logged to stream
+```
+
+Violation scenario: Validation processor panics on malformed invariant; fold aborts, leaving database in partial state.
+
+Validation: Register error-returning processor, verify fold completes and database is consistent.
+
+// WHY THIS MATTERS: Processor isolation ensures the core materialization pipeline is robust. A broken custom processor cannot corrupt the specification database.
+
+---
+
+**APP-INV-092: Derived Event Provenance**
+
+*Derived events carry the triggering event ID in their causes array and a derived_by field identifying the producing processor.*
+
+```
+forall derived event D:
+  D.causes contains trigger_event.ID
+  D.payload.derived_by = processor.Name()
+```
+
+Violation scenario: Derived event without causes reference breaks causal tracing during bisect.
+
+Validation: Fold events, verify all derived events have non-empty causes and derived_by fields.
+
+// WHY THIS MATTERS: Derived event provenance enables causal tracing through processor outputs. Without it, bisect cannot distinguish primary from derived events.
+
+---
+
+**APP-INV-093: Snapshot Creation Determinism**
+
+*StateHash computed over canonicalized content tables is deterministic: two materializations of the same event prefix produce identical hashes.*
+
+```
+forall event prefixes P, materializations M1(P) and M2(P):
+  StateHash(M1) = StateHash(M2)
+```
+
+Violation scenario: StateHash includes auto-increment IDs; two materializations produce different hashes.
+
+Validation: Materialize same events twice, verify hash equality.
+
+// WHY THIS MATTERS: Snapshot verification depends on deterministic hashing. Non-deterministic hashes make it impossible to detect snapshot corruption.
+
+---
+
+**APP-INV-094: Snapshot Monotonicity**
+
+*Snapshots are monotonically ordered by event position. A snapshot at position N certifies the state as of event N; no snapshot may exist at a position less than a prior snapshot.*
+
+```
+forall snapshots S1, S2 where S1.created_at < S2.created_at:
+  S1.position <= S2.position
+```
+
+Violation scenario: Snapshot at position 500 followed by snapshot at position 300 causes accelerated fold to skip events 300-500.
+
+Validation: Create multiple snapshots, verify positions are non-decreasing.
+
+// WHY THIS MATTERS: Monotonicity ensures accelerated fold correctness. A non-monotonic snapshot sequence would cause events to be skipped or replayed.
+
+---
+
+**APP-INV-095: Snapshot Recovery Graceful Degradation**
+
+*A corrupted snapshot or hash mismatch triggers full replay from the beginning of the event log. No silent corruption propagation.*
+
+```
+forall snapshots S where verify(S) = false:
+  fold(log, S) = fold(log, empty)  // fallback to full replay
+```
+
+Violation scenario: Corrupted snapshot passes verification; fold resumes from corrupt state producing incorrect database.
+
+Validation: Corrupt a snapshot, verify the engine falls back to full replay and produces correct state.
+
+// WHY THIS MATTERS: Graceful degradation ensures snapshots are a pure optimization. A corrupt snapshot must never produce incorrect results.
+
+---
+
+**APP-INV-096: Pipeline Round-Trip Preservation**
+
+*The full event-sourcing pipeline preserves all structural content modulo metadata. StructuralDiff(parsed, materialize(import(parsed))) = empty.*
+
+```
+forall parsed databases D:
+  StructuralDiff(D, materialize(import(D))) = empty_set
+```
+
+Violation scenario: Project drops glossary entries; re-parsing produces database missing terms.
+
+Validation: Full round-trip on CLI spec, compare parsed databases via StructuralDiff.
+
+// WHY THIS MATTERS: Round-trip preservation proves the event-sourcing pipeline is a faithful representation. Any content loss indicates a structural defect.
+
+---
+
+**APP-INV-097: E2E Pipeline Determinism**
+
+*Running the pipeline twice on the same input produces identical output. StateHash equality across runs.*
+
+```
+forall inputs I, pipeline runs R1(I) and R2(I):
+  StateHash(materialize(R1)) = StateHash(materialize(R2))
+```
+
+Violation scenario: Timestamps in JSONL events differ between runs, breaking determinism.
+
+Validation: Run pipeline twice, compare output byte-for-byte.
+
+// WHY THIS MATTERS: Deterministic output enables reproducible builds, meaningful diffing, and reliable CI gates.
 
 ---
 
@@ -1059,3 +1287,337 @@ replay(log, target) -> SQLiteState
 | APP-ADR-063 (Semilattice Merge) | APP-ADR-060 (Causal References) | Uses: merge depends on causal references to identify independent events |
 | APP-ADR-064 (Snapshot Checkpoint) | APP-ADR-059 (Deterministic Fold) | Optimizes: snapshots accelerate the deterministic fold |
 | APP-ADR-065 (Stream Processors) | APP-ADR-058 (JSONL Canonical) | Extends: processors append derived events to the canonical log |
+| APP-INV-085 (Import Content Completeness) | APP-INV-078 (Import Equivalence) | Precondition: import must emit all content types for equivalence to hold |
+| APP-INV-086 (Applier Spec-ID) | APP-INV-073 (Fold Determinism) | Requires: applier parameterization needed for deterministic multi-spec fold |
+| APP-INV-087 (Projector Section Rendering) | APP-INV-076 (Projection Purity) | Implements: module-filtered projection is how purity is enforced |
+| APP-INV-088 (Single Write Path) | APP-INV-071 (Log Canonicality) | Enforces: single write path ensures log is sole source of truth |
+| APP-INV-089 (Deprecation Bridge) | APP-INV-078 (Import Equivalence) | Gates: deprecation bridge verified via structural equivalence |
+| APP-INV-090 (Processor Idempotency) | APP-INV-080 (Stream Processor Reactivity) | Constrains: idempotency constrains how processors fire during re-fold |
+| APP-INV-091 (Processor Failure Isolation) | APP-INV-080 (Stream Processor Reactivity) | Protects: failure isolation ensures processor errors don't halt fold |
+| APP-INV-092 (Derived Event Provenance) | APP-INV-084 (Causal Provenance) | Extends: derived provenance extends causal provenance to processor outputs |
+| APP-INV-093 (Snapshot Determinism) | APP-INV-073 (Fold Determinism) | Requires: snapshot hash determinism depends on fold determinism |
+| APP-INV-094 (Snapshot Monotonicity) | APP-INV-083 (Snapshot Consistency) | Constrains: monotonicity ensures snapshots can be used for accelerated fold |
+| APP-INV-095 (Snapshot Recovery) | APP-INV-083 (Snapshot Consistency) | Protects: recovery ensures corrupt snapshots don't produce corrupt state |
+| APP-INV-096 (Pipeline Round-Trip) | APP-INV-078 (Import Equivalence) | Extends: round-trip extends import equivalence to full pipeline |
+| APP-INV-097 (E2E Determinism) | APP-INV-073 (Fold Determinism) | Extends: E2E determinism extends fold determinism to full pipeline |
+| APP-ADR-066 (Self-Bootstrap Gate) | APP-ADR-062 (Parse as Import) | Tests: self-bootstrap verifies the parse-to-import migration |
+| APP-ADR-067 (Structural Equivalence) | APP-ADR-066 (Self-Bootstrap Gate) | Defines: what equality means for self-bootstrap comparison |
+| APP-ADR-068 (Phased Migration) | APP-ADR-062 (Parse as Import) | Extends: defines the full migration lifecycle |
+| APP-ADR-069 (Crystallize Event-Only) | APP-ADR-068 (Phased Migration) | Implements: crystallize event-only is Phase B for crystallize command |
+| APP-ADR-070 (Processor Registration) | APP-ADR-065 (Stream Processors) | Specifies: how processors are registered and discovered |
+| APP-ADR-071 (Derived Dedup) | APP-ADR-070 (Processor Registration) | Constrains: deduplication strategy for processor-produced events |
+| APP-ADR-072 (Snapshot State Hash) | APP-ADR-064 (Snapshot Checkpoint) | Implements: state hash is how snapshot integrity is verified |
+| APP-ADR-073 (Snapshot Interval) | APP-ADR-072 (Snapshot State Hash) | Configures: when snapshots are automatically created |
+| APP-ADR-074 (E2E Test Architecture) | APP-ADR-066 (Self-Bootstrap Gate) | Specifies: test architecture for self-bootstrap and behavioral tests |
+
+---
+
+# Chapter 7: Self-Bootstrap Verification
+
+This chapter defines the self-bootstrap pipeline: the mechanism by which the DDIS CLI validates its own event-sourcing pipeline by running it on the CLI specification itself. The pipeline verifies that `import → materialize → project` produces structurally equivalent output to the `parse` command.
+
+## 7.1 Self-Bootstrap Pipeline Definition
+
+The self-bootstrap pipeline is a 5-stage verification sequence:
+
+1. **Parse**: `ddis parse manifest.yaml -o parsed.db` — baseline SQLite from direct parsing
+2. **Import**: `ddis import --db parsed.db` — emit synthetic JSONL events from parsed database
+3. **Materialize**: `ddis materialize --stream events/ -o materialized.db` — fold events into fresh SQLite
+4. **Compare**: `StructuralDiff(parsed.db, materialized.db)` — verify structural equivalence
+5. **Project** (optional): `ddis project --db materialized.db -o output/` — render markdown from materialized state
+
+The pipeline exercises every content type: modules, invariants, ADRs, sections, cross-references, negative specs, quality gates, and glossary entries. A successful self-bootstrap run proves the event-sourcing pipeline is functionally equivalent to the legacy parse pipeline (APP-INV-078, APP-INV-085).
+
+## 7.2 Structural Equivalence Comparator
+
+`StructuralDiff(db1, db2) []Difference` compares two SQLite databases row-by-row for structural content equivalence.
+
+**Compared**: content-bearing fields from invariants, adrs, sections, glossary, cross_refs, negative_specs, quality_gates, modules.
+**Excluded**: auto-increment id, parsed_at, created_at, raw_text, content_hash, source_file_id, spec_id.
+
+`StateHash(db, specID) string` computes SHA-256 over the deterministic serialization of all content tables. Rows are sorted by primary key, fields are serialized in schema order, and only content-bearing fields are included. This function is used for both snapshot verification (APP-INV-093) and structural equivalence shortcut (APP-ADR-067).
+
+## 7.3 Per-Content-Type Completeness Verification
+
+APP-INV-085 requires import to emit events for ALL content types. Verification compares event counts against parsed database row counts:
+
+Verification: for each of the 8 content types (module, invariant, ADR, section, cross-ref, negative spec, quality gate, glossary), compare count of emitted events against parsed database row counts. All 8 must match for equivalence.
+
+## 7.4 Integration Test Architecture
+
+`TestSelfBootstrapEventPipeline` (build tag `integration`) uses the real CLI spec as fixture: parse → import → materialize → StructuralDiff (empty = pass) → per-content-type count verification (APP-INV-085). See APP-INV-085 through APP-INV-097 in the invariant definitions above.
+
+### APP-ADR-066: Self-Bootstrap Pipeline as Integration Gate
+
+#### Problem
+The event-sourcing pipeline must be verified against the CLI spec itself.
+
+#### Decision
+**Option C: Self-bootstrap.** Run the full pipeline on the CLI spec as a CI gate, exercising all content types and edge cases. // WHY NOT A/B: Synthetic fixtures miss real-world edge cases.
+
+Consequences: Self-bootstrap exercises all content types, cross-references, and edge cases present in the real spec.
+#### Tests
+TestSelfBootstrapEventPipeline in tests/pipeline_integration_test.go.
+
+### APP-ADR-067: Structural Equivalence Definition
+
+#### Problem
+APP-INV-078 requires import+materialize to equal parse, but equality needs precise definition.
+
+#### Decision
+**Option C: Content-only comparison.** Excluding auto-increment id, parsed_at, created_at, raw_text, content_hash. Implemented as StructuralDiff and StateHash. // WHY NOT A: Metadata differs legitimately. B: Row counts miss field-level differences.
+
+Consequences: Implemented as StructuralDiff and StateHash functions testing structured information.
+#### Tests
+TestStructuralDiff_Determinism, TestStructuralDiff_Sensitivity in internal/materialize/diff_test.go.
+
+### APP-ADR-074: E2E Test Architecture
+
+#### Problem
+Event-sourcing tests span multiple packages and commands.
+
+#### Decision
+**Option C: Hybrid.** In-process for behavioral tests (fast, debuggable), subprocess for E2E (catches integration issues). Real CLI spec as fixture. // WHY NOT A/B: Pure unit tests miss integration; pure subprocess tests are slow.
+
+Consequences: In-process tests are fast; subprocess E2E catches integration issues.
+#### Tests
+tests/invariant_behavioral_test.go, tests/e2e_pipeline_test.go, tests/pipeline_integration_test.go.
+
+---
+
+# Chapter 8: Architecture Migration Strategy
+
+This chapter defines the phased migration from direct markdown/SQLite writes to event-only writes. The migration proceeds through three phases: Phase A (import bridge, done), Phase B (event-first with deprecation wrappers), and Phase C (remove old paths).
+
+## 8.1 Migration Phase Definitions
+
+| Phase | State | Write Path | Read Path |
+|---|---|---|---|
+| **A** (done) | Import bridge | Events emitted alongside direct SQL/markdown | Direct SQL reads |
+| **B** (current) | Event-first | Events are sole write target; parse/render become wrappers | Materialize for SQL, project for markdown |
+| **C** (target) | Event-only | Old write paths removed entirely | All reads from materialized views |
+
+Phase transitions are gated by structural equivalence verification: the new path must produce identical content to the old path (APP-INV-089).
+
+## 8.2 Write-Path Command Inventory
+
+Commands that mutate content and must transition to event-only writes:
+
+| Command | Current Write | Phase B | Phase C |
+|---|---|---|---|
+| `crystallize` | Event + markdown + manifest | Event only + auto-project | Event only |
+| `refine` | Direct markdown edit | Event + auto-project | Event only |
+| `absorb` | Direct markdown merge | Event + auto-project | Event only |
+| `witness` | Event + SQL insert | Event only + materialize | Event only |
+| `challenge` | Event + SQL insert | Event only + materialize | Event only |
+| `parse` | Direct SQL insert | Wrapper: import + materialize | Removed (deprecated) |
+| `render` | Direct markdown read from SQL | Wrapper: project | Removed (deprecated) |
+
+## 8.3 Crystallize Event-Only Architecture
+
+After Phase B, crystallize follows this sequence (APP-ADR-069):
+
+1. Read JSON input, validate
+2. Emit `invariant_crystallized` or `adr_crystallized` event to Stream 2
+3. Emit `decision_crystallized` event to Stream 1
+4. If `--no-project` is NOT set: run `materialize(stream) → project(db)` internally
+5. Report result
+
+The event is the sole write. Markdown exists only as a projection from the event stream.
+
+## 8.4 Parse/Render Deprecation Wrapper Mechanism
+
+During Phase B, `parse` and `render` are thin wrappers (APP-INV-089):
+
+**parse wrapper**: `parse(manifest)` → emit deprecation warning → `import(parse_legacy(manifest))` → `materialize(events)` → return database
+**render wrapper**: `render(db)` → emit deprecation warning → `project(db)` → return markdown
+
+Both wrappers verify structural equivalence between old and new output before returning. If equivalence fails, the wrapper falls back to the legacy path and emits a warning.
+
+## 8.5 Migration Gate & Rollback
+
+Phase B → Phase C transition requires: (1) all behavioral tests pass with event-only paths, (2) self-bootstrap pipeline test passes (APP-INV-096), (3) zero structural differences between parse and import+materialize output, (4) 10+ consecutive green CI runs. Rollback to Phase A is always safe: event emission is additive and legacy paths remain functional. Events emitted during Phase B remain valid for future replay.
+
+See APP-INV-088, APP-INV-089 in the invariant definitions section above.
+
+### APP-ADR-068: Phased Migration Strategy
+
+#### Problem
+Transitioning from direct writes to event-only writes cannot be done atomically.
+
+#### Decision
+**Option B: Phased migration.** Structural equivalence (APP-INV-089) gates each transition. Rollback to Phase A always safe. // WHY NOT A: Big-bang rewrite is all-or-nothing. C: Feature flags add complexity.
+
+Consequences: Incremental verification at each step. Rollback always safe.
+#### Tests
+TestParseDeprecationWrapper, TestRenderDeprecationWrapper verify equivalent output.
+
+### APP-ADR-069: Crystallize Event-Only Path
+
+#### Problem
+Crystallize dual-writes to event log AND markdown, violating APP-INV-088.
+
+#### Decision
+**Option C: Crystallize event-only.** Emits event, then auto-projects via materialize+project (preserves UX). --no-project to skip. // WHY NOT A: Dual-write is the bug. B: Separate project breaks UX.
+
+Consequences: Preserves UX of immediate markdown updates. Event is sole source of truth.
+#### Tests
+TestCrystallizeEventOnly, TestCrystallizeAutoProject.
+
+---
+
+# Chapter 9: Stream Processor Catalog
+
+This chapter specifies the stream processor subsystem: how processors are registered, invoked during fold, and how derived events are managed. The `Engine` orchestrates processor execution after each content event's `Apply()` step.
+
+## 9.1 Processor Interface Specification
+
+```go
+type Processor interface {
+    Name() string
+    Handle(evt *events.Event, state *sql.DB) ([]*events.Event, error)
+}
+```
+
+- `Name()`: Returns the processor name (used in derived event provenance)
+- `Handle(evt, state)`: Receives a content event and current materialized state. Returns zero or more derived events and an optional error. The processor MUST be deterministic: same event + same state → same output (APP-INV-090).
+
+## 9.2 FoldWithProcessors Execution Model
+
+`Engine.FoldWithProcessors(applier, evts)` extends `Fold` with processor invocation:
+
+1. CausalSort(evts)
+2. For each event:
+   a. Apply(applier, evt) — mutate SQL state
+   b. If evt is a primary event (no `derived_by` in payload):
+      - For each registered processor:
+        - Call processor.Handle(evt, state)
+        - If error: log error, discard derived events, continue (APP-INV-091)
+        - If success: append derived events to output stream
+   c. If evt is a derived event: skip processor invocation (APP-ADR-071)
+3. Return FoldResult with primary + derived event counts
+
+## 9.3 Built-in Processor Catalog
+
+Three built-in processors are registered by default. All produce `implementation_finding` derived events:
+
+| Processor | Trigger Events | Checks |
+|---|---|---|
+| **Validation** | `invariant_crystallized`, `adr_crystallized` | Non-empty required fields (statement, semi_formal for INV; problem, decision, consequences for ADR), ID pattern `APP-INV/ADR-NNN` |
+| **Consistency** | All content events | Cross-ref resolution, no broken references, acyclic module relationships |
+| **Drift** | All content events | Annotation presence for crystallized invariants, stale ADR implementation references |
+
+Each derived event includes `derived_by: "<processor_name>"` in its payload. See APP-INV-090, APP-INV-091, APP-INV-092 in the invariant definitions section above.
+
+### APP-ADR-070: Processor Registration Mechanism
+
+#### Problem
+Stream processors need a registration mechanism supporting built-in and custom processors.
+
+#### Decision
+**Option C: RegisterProcessor() API.** Engine.RegisterProcessor(name, Processor) with three built-ins by default. // WHY NOT A: Hardcoded prevents extension. B: Plugin system adds excessive complexity.
+
+Consequences: Extensible via RegisterProcessor() for domain-specific analysis.
+#### Tests
+TestProcessorRegistration, TestBuiltInProcessorValidation in internal/materialize/fold_test.go.
+
+---
+
+### APP-ADR-071: Derived Event Deduplication
+
+#### Problem
+During re-fold, processors fire on derived events, creating duplicates.
+
+#### Decision
+**Option B: Skip-derived-events.** Events with derived_by are applied but processors skip them. Simplest correct: no state tracking needed. // WHY NOT A: ID tracking adds state. C: Dedup burden on every processor.
+
+Consequences: No state tracking or processor-side dedup needed.
+#### Tests
+TestSkipDerivedEvents, TestReFoldIdempotency.
+
+---
+
+# Chapter 10: Snapshot Implementation
+
+This chapter specifies the snapshot subsystem: how snapshots are created, verified, used for accelerated fold, and pruned. Snapshots are SQLite state checkpoints at known event positions, enabling O(k) incremental replay instead of O(n) full replay.
+
+## 10.1 Snapshot Creation
+
+`CreateSnapshot(db, position, eventsDir)` creates a snapshot at the given event position:
+
+1. Compute `StateHash(db, specID)` — SHA-256 over canonicalized content tables
+2. Store snapshot record in `snapshots` table: position, state_hash, created_at
+3. Emit `snapshot_created` event to Stream 2
+
+Snapshots can be created manually via `ddis snapshot create` or automatically during materialize at configured intervals (APP-ADR-073).
+
+## 10.2 Snapshot Verification
+
+`VerifySnapshot(db, snapshot)` verifies a snapshot's integrity:
+
+1. Recompute `StateHash(db, specID)` at the snapshot's position
+2. Compare against stored `state_hash`
+3. If mismatch: return error (snapshot is corrupt)
+
+## 10.3 Accelerated Fold
+
+`FoldFrom(applier, startPosition, evts)` resumes fold from a snapshot position:
+
+1. Load latest valid snapshot: `LoadLatestSnapshot(db)`
+2. Verify snapshot: `VerifySnapshot(db, snapshot)`
+3. If verification fails: fall back to full replay (APP-INV-095)
+4. If verification passes: fold only events after snapshot.position
+5. Total cost: O(verification) + O(remaining_events) instead of O(all_events)
+
+## 10.4 Snapshot Pruning
+
+`PruneSnapshots(db, keepLatest int)` removes old snapshots, keeping only the N most recent:
+
+1. Query snapshots ordered by position descending
+2. Delete all except the latest `keepLatest` entries
+3. Pruning is safe: snapshots are disposable optimization artifacts
+
+## 10.5 Snapshot Lifecycle
+
+Snapshot states: `created → valid → stale → pruned`
+
+- **created**: Just created, not yet verified
+- **valid**: Verified against current state
+- **stale**: Invalidated by merge or event insertion before snapshot position
+- **pruned**: Deleted during pruning
+
+CRDT merge invalidates existing snapshots because the merged event stream may differ from the original.
+
+See APP-INV-093, APP-INV-094, APP-INV-095 in the invariant definitions section above.
+
+### APP-ADR-072: Snapshot as SQLite State Hash
+
+#### Problem
+Snapshots need a verification mechanism to detect corruption.
+
+#### Decision
+**Option B: SHA-256 state hash.** Over canonicalized content tables, excluding auto-IDs and timestamps. Same function used for structural equivalence. // WHY NOT A: File checksum includes non-content bytes. C: Row counts miss field-level corruption.
+
+#### Consequences
+Same function used for snapshot verification and structural equivalence, reducing implementation surface.
+
+#### Tests
+TestStateHash_Determinism, TestSnapshotVerification in internal/materialize/diff_test.go.
+
+---
+
+### APP-ADR-073: Automatic Snapshot Interval
+
+#### Problem
+Snapshots must be created at appropriate intervals for accelerated fold.
+
+#### Decision
+**Option C: Event-count-based interval.** Every 1000 events, configurable via --snapshot-interval, 0 to disable. // WHY NOT A: No automation. B: Time-based is non-deterministic across machines.
+
+#### Consequences
+Predictable, deterministic, independent of wall-clock time. Manual creation always available via snapshot create.
+
+#### Tests
+TestAutomaticSnapshotInterval, TestManualSnapshotCreation in internal/materialize/snapshot_test.go.
+
+---

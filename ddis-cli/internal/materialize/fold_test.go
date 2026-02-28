@@ -6,6 +6,7 @@ package materialize
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/wvandaal/ddis/internal/events"
@@ -78,6 +79,10 @@ func (m *mockApplier) InsertCrossRef(p events.CrossRefPayload) error {
 }
 func (m *mockApplier) InsertNegativeSpec(p events.NegativeSpecPayload) error {
 	m.calls = append(m.calls, "InsertNegativeSpec:"+p.Pattern)
+	return nil
+}
+func (m *mockApplier) InsertQualityGate(p events.QualityGatePayload) error {
+	m.calls = append(m.calls, "InsertQualityGate:"+p.Title)
 	return nil
 }
 
@@ -249,6 +254,123 @@ func TestFold_Empty(t *testing.T) {
 	}
 	if result.EventsProcessed != 0 {
 		t.Errorf("expected 0 processed, got %d", result.EventsProcessed)
+	}
+}
+
+func TestFoldWithProcessors_InvokesProcessors(t *testing.T) {
+	// APP-INV-080: processors fire after each content event
+	var fired []string
+	engine := New()
+	engine.RegisterProcessor(Processor{
+		Name: "test-proc",
+		Handle: func(evt *events.Event, db interface{}) ([]*events.Event, error) {
+			fired = append(fired, evt.ID)
+			return nil, nil
+		},
+	})
+
+	m := &mockApplier{}
+	evts := []*events.Event{
+		makeEvent("e1", events.TypeInvariantCrystallized, "2026-01-01T00:00:00Z",
+			events.InvariantPayload{ID: "INV-A", Title: "First"}, nil),
+		makeEvent("e2", events.TypeADRCrystallized, "2026-01-02T00:00:00Z",
+			events.ADRPayload{ID: "ADR-B", Title: "Second"}, nil),
+	}
+
+	result, err := engine.FoldWithProcessors(m, evts, nil)
+	if err != nil {
+		t.Fatalf("FoldWithProcessors: %v", err)
+	}
+	if result.EventsProcessed != 2 {
+		t.Errorf("expected 2 processed, got %d", result.EventsProcessed)
+	}
+	if len(fired) != 2 {
+		t.Errorf("expected processor fired 2 times, got %d: %v", len(fired), fired)
+	}
+}
+
+func TestFoldWithProcessors_FailureIsolation(t *testing.T) {
+	// APP-INV-091: processor error is non-fatal
+	engine := New()
+	engine.RegisterProcessor(Processor{
+		Name: "failing-proc",
+		Handle: func(evt *events.Event, db interface{}) ([]*events.Event, error) {
+			return nil, fmt.Errorf("processor exploded")
+		},
+	})
+
+	m := &mockApplier{}
+	evts := []*events.Event{
+		makeEvent("e1", events.TypeInvariantCrystallized, "2026-01-01T00:00:00Z",
+			events.InvariantPayload{ID: "INV-A", Title: "First"}, nil),
+	}
+
+	result, err := engine.FoldWithProcessors(m, evts, nil)
+	if err != nil {
+		t.Fatalf("FoldWithProcessors should not fail: %v", err)
+	}
+	// Event should still be processed
+	if result.EventsProcessed != 1 {
+		t.Errorf("expected 1 processed, got %d", result.EventsProcessed)
+	}
+	// Processor error should be captured
+	if len(result.Errors) != 1 {
+		t.Errorf("expected 1 error from processor, got %d", len(result.Errors))
+	}
+}
+
+func TestFoldWithProcessors_SkipsDerivedEvents(t *testing.T) {
+	// APP-ADR-071: processors don't re-fire on derived events
+	var fireCount int
+	engine := New()
+	engine.RegisterProcessor(Processor{
+		Name: "counting-proc",
+		Handle: func(evt *events.Event, db interface{}) ([]*events.Event, error) {
+			fireCount++
+			// Return a derived event
+			derivedPayload := map[string]interface{}{
+				"finding":    "test finding",
+				"derived_by": "counting-proc",
+			}
+			derived := makeEvent("derived-1", "implementation_finding", "2026-01-01T01:00:00Z",
+				derivedPayload, []string{evt.ID})
+			return []*events.Event{derived}, nil
+		},
+	})
+
+	m := &mockApplier{}
+	evts := []*events.Event{
+		makeEvent("e1", events.TypeInvariantCrystallized, "2026-01-01T00:00:00Z",
+			events.InvariantPayload{ID: "INV-A", Title: "First"}, nil),
+	}
+
+	_, err := engine.FoldWithProcessors(m, evts, nil)
+	if err != nil {
+		t.Fatalf("FoldWithProcessors: %v", err)
+	}
+	// Processor should fire exactly once (on e1), not on the derived event
+	if fireCount != 1 {
+		t.Errorf("expected processor to fire 1 time, got %d", fireCount)
+	}
+}
+
+func TestIsDerivedEvent(t *testing.T) {
+	// Non-derived event
+	evt := makeEvent("e1", events.TypeInvariantCrystallized, "2026-01-01T00:00:00Z",
+		events.InvariantPayload{ID: "INV-A"}, nil)
+	if isDerivedEvent(evt) {
+		t.Error("regular event should not be derived")
+	}
+
+	// Derived event (has causes + derived_by in payload)
+	derivedPayload := map[string]interface{}{
+		"finding":    "test",
+		"derived_by": "validation",
+	}
+	derived := makeEvent("d1", "implementation_finding", "2026-01-01T01:00:00Z",
+		derivedPayload, []string{"e1"})
+	if !isDerivedEvent(derived) {
+		t.Error("event with causes + derived_by should be derived")
 	}
 }
 

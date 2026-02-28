@@ -314,6 +314,19 @@ modules:
       - APP-INV-082
       - APP-INV-083
       - APP-INV-084
+      - APP-INV-085
+      - APP-INV-086
+      - APP-INV-087
+      - APP-INV-088
+      - APP-INV-089
+      - APP-INV-090
+      - APP-INV-091
+      - APP-INV-092
+      - APP-INV-093
+      - APP-INV-094
+      - APP-INV-095
+      - APP-INV-096
+      - APP-INV-097
     interfaces:
       - APP-INV-001
       - APP-INV-002
@@ -333,6 +346,15 @@ modules:
       - APP-ADR-063
       - APP-ADR-064
       - APP-ADR-065
+      - APP-ADR-066
+      - APP-ADR-067
+      - APP-ADR-068
+      - APP-ADR-069
+      - APP-ADR-070
+      - APP-ADR-071
+      - APP-ADR-072
+      - APP-ADR-073
+      - APP-ADR-074
     adjacent: [parse-pipeline, code-bridge, lifecycle-ops, auto-prompting]
     deep_context: null
     negative_specs:
@@ -465,3 +487,16 @@ invariant_registry:
   APP-INV-082: {owner: event-sourcing, domain: eventsourcing, description: "Bisect Correctness — finds earliest defect-introducing event via binary search"}
   APP-INV-083: {owner: event-sourcing, domain: eventsourcing, description: "Snapshot Consistency — fold(snapshot, log[snap_pos:]) equals fold(log)"}
   APP-INV-084: {owner: event-sourcing, domain: eventsourcing, description: "Causal Provenance — every element traces to its crystallization event"}
+  APP-INV-085: { owner: event-sourcing, domain: eventsourcing, description: "Import Content Completeness — import emits events for all content types" }
+  APP-INV-086: { owner: event-sourcing, domain: eventsourcing, description: "Applier Spec-ID Parameterization — sqlApplier derives spec_id from events/config, never hardcoded" }
+  APP-INV-087: { owner: event-sourcing, domain: eventsourcing, description: "Projector Section Rendering — project filters content by module ownership" }
+  APP-INV-088: { owner: event-sourcing, domain: eventsourcing, description: "Single Write Path — content-mutating commands write ONLY to event log" }
+  APP-INV-089: { owner: event-sourcing, domain: eventsourcing, description: "Deprecation Compatibility Bridge — deprecated commands produce equivalent output" }
+  APP-INV-090: { owner: event-sourcing, domain: eventsourcing, description: "Processor Idempotency — re-fold deduplicates via skip-derived-events" }
+  APP-INV-091: { owner: event-sourcing, domain: eventsourcing, description: "Processor Failure Isolation — processor error is non-fatal, fold continues" }
+  APP-INV-092: { owner: event-sourcing, domain: eventsourcing, description: "Derived Event Provenance — derived events carry triggering event ID in causes" }
+  APP-INV-093: { owner: event-sourcing, domain: eventsourcing, description: "Snapshot Creation Determinism — StateHash is deterministic over content tables" }
+  APP-INV-094: { owner: event-sourcing, domain: eventsourcing, description: "Snapshot Monotonicity — later snapshots have greater or equal position" }
+  APP-INV-095: { owner: event-sourcing, domain: eventsourcing, description: "Snapshot Recovery Graceful Degradation — corrupted snapshot triggers full replay fallback" }
+  APP-INV-096: { owner: event-sourcing, domain: eventsourcing, description: "Pipeline Round-Trip Preservation — full pipeline preserves structural content" }
+  APP-INV-097: { owner: event-sourcing, domain: eventsourcing, description: "E2E Pipeline Determinism — running pipeline twice produces byte-identical output" }

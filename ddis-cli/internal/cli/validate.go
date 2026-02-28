@@ -123,7 +123,13 @@ func runValidate(cmd *cobra.Command, args []string) error {
 
 	if validateFocus > 0 && !validateJSON {
 		// Focus mode: verbose single-check output.
-		return renderFocusReport(report, validateFocus)
+		if err := renderFocusReport(report, validateFocus); err != nil {
+			return err
+		}
+		if report.Errors > 0 {
+			return ErrValidationFailed
+		}
+		return nil
 	}
 
 	out, err := validator.RenderReport(report, validateJSON)

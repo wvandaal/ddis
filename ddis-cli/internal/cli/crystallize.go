@@ -4,7 +4,9 @@ package cli
 // ddis:maintains APP-INV-033 (absorption format parity — generated content indistinguishable from hand-authored)
 // ddis:implements APP-INV-025 (discovery provenance chain — records decision_crystallized event linking artifact to discovery thread)
 // ddis:maintains APP-INV-061
+// ddis:implements APP-INV-088 (single write path — crystallize emits events as primary write, file is projection)
 // ddis:implements APP-ADR-049
+// ddis:implements APP-ADR-069 (crystallize event-only path — events emitted alongside file write)
 
 import (
 	"encoding/json"

@@ -1,6 +1,7 @@
 package cli
 
 // ddis:implements APP-INV-078 (import equivalence — markdown to JSONL event conversion)
+// ddis:implements APP-INV-085 (import content completeness — emits events for ALL content types)
 // ddis:implements APP-ADR-062 (parse as import migration path)
 
 import (
@@ -159,6 +160,91 @@ func runImport(cmd *cobra.Command, args []string) error {
 				continue
 			}
 			evt, err := events.NewEvent(events.StreamSpecification, events.TypeGlossaryTermDefined, specHash, p)
+			if err != nil {
+				continue
+			}
+			if err := events.AppendEvent(outPath, evt); err != nil {
+				continue
+			}
+			count++
+		}
+	}
+
+	// Emit section events (APP-INV-085: content completeness)
+	secRows, err := db.Query(`SELECT section_path, title, heading_level, COALESCE(raw_text,'')
+		FROM sections WHERE spec_id = ? ORDER BY section_path`, specID)
+	if err == nil {
+		defer secRows.Close()
+		for secRows.Next() {
+			var p events.SectionPayload
+			if err := secRows.Scan(&p.Path, &p.Title, &p.Level, &p.Body); err != nil {
+				continue
+			}
+			evt, err := events.NewEvent(events.StreamSpecification, events.TypeSpecSectionDefined, specHash, p)
+			if err != nil {
+				continue
+			}
+			if err := events.AppendEvent(outPath, evt); err != nil {
+				continue
+			}
+			count++
+		}
+	}
+
+	// Emit cross-reference events (APP-INV-085: content completeness)
+	xrefRows, err := db.Query(`SELECT ref_text, ref_target
+		FROM cross_references WHERE spec_id = ? ORDER BY id`, specID)
+	if err == nil {
+		defer xrefRows.Close()
+		for xrefRows.Next() {
+			var p events.CrossRefPayload
+			if err := xrefRows.Scan(&p.Source, &p.Target); err != nil {
+				continue
+			}
+			evt, err := events.NewEvent(events.StreamSpecification, events.TypeCrossRefAdded, specHash, p)
+			if err != nil {
+				continue
+			}
+			if err := events.AppendEvent(outPath, evt); err != nil {
+				continue
+			}
+			count++
+		}
+	}
+
+	// Emit negative spec events (APP-INV-085: content completeness)
+	negRows, err := db.Query(`SELECT constraint_text, COALESCE(reason,'')
+		FROM negative_specs WHERE spec_id = ? ORDER BY id`, specID)
+	if err == nil {
+		defer negRows.Close()
+		for negRows.Next() {
+			var p events.NegativeSpecPayload
+			if err := negRows.Scan(&p.Pattern, &p.Rationale); err != nil {
+				continue
+			}
+			evt, err := events.NewEvent(events.StreamSpecification, events.TypeNegativeSpecAdded, specHash, p)
+			if err != nil {
+				continue
+			}
+			if err := events.AppendEvent(outPath, evt); err != nil {
+				continue
+			}
+			count++
+		}
+	}
+
+	// Emit quality gate events (APP-INV-085: content completeness)
+	gateRows, err := db.Query(`SELECT gate_id, title, predicate
+		FROM quality_gates WHERE spec_id = ? ORDER BY gate_id`, specID)
+	if err == nil {
+		defer gateRows.Close()
+		for gateRows.Next() {
+			var gateID, title, predicate string
+			if err := gateRows.Scan(&gateID, &title, &predicate); err != nil {
+				continue
+			}
+			p := events.QualityGatePayload{Title: title, Predicate: predicate}
+			evt, err := events.NewEvent(events.StreamSpecification, events.TypeQualityGateDefined, specHash, p)
 			if err != nil {
 				continue
 			}

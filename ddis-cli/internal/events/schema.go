@@ -1,6 +1,7 @@
 package events
 
 // ddis:implements APP-ADR-015 (three-stream event sourcing — typed event schemas)
+// ddis:implements APP-ADR-066 (event-sourced architecture — JSONL as canonical record, events are source of truth)
 // ddis:maintains APP-INV-020 (event stream append-only — version field enables forward-compatible evolution)
 // ddis:maintains APP-INV-053 (event stream completeness — 28 typed event types covering all 3 streams)
 

@@ -204,6 +204,8 @@ func Challenge(db *sql.DB, specID int64, invariantID string, opts Options) (*Res
 }
 
 // ChallengeAll runs challenge on all witnessed invariants.
+// Individual challenge errors are collected and returned as a combined error
+// after processing all witnesses (fail-open: one failure doesn't block others).
 func ChallengeAll(db *sql.DB, specID int64, opts Options) ([]Result, error) {
 	witnesses, err := storage.ListWitnesses(db, specID)
 	if err != nil {
@@ -211,15 +213,21 @@ func ChallengeAll(db *sql.DB, specID int64, opts Options) ([]Result, error) {
 	}
 
 	var results []Result
+	var errs []string
 	for _, w := range witnesses {
 		if w.Status != "valid" {
 			continue
 		}
 		r, err := Challenge(db, specID, w.InvariantID, opts)
 		if err != nil {
+			errs = append(errs, fmt.Sprintf("%s: %v", w.InvariantID, err))
 			continue
 		}
 		results = append(results, *r)
+	}
+	if len(errs) > 0 {
+		return results, fmt.Errorf("challenge errors (%d/%d failed): %s",
+			len(errs), len(errs)+len(results), strings.Join(errs, "; "))
 	}
 	return results, nil
 }

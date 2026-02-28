@@ -184,6 +184,11 @@ func loadSectionDBIDs(db storage.DB, sections []*SectionNode, specID, sfID int64
 
 // extractFormattingHints records blank lines and horizontal rules for round-trip fidelity.
 func extractFormattingHints(lines []string, specID, sfID int64, db storage.DB) error {
+	// Track frontmatter region: --- at line 0 opens it, next --- closes it.
+	// Horizontal rules are --- outside the frontmatter region.
+	inFrontmatter := false
+	frontmatterDone := false
+
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
@@ -197,16 +202,26 @@ func extractFormattingHints(lines []string, specID, sfID int64, db storage.DB) e
 			if _, err := storage.InsertFormattingHint(db, fh); err != nil {
 				return err
 			}
-		} else if trimmed == "---" && !FrontmatterRe.MatchString(trimmed) {
-			fh := &storage.FormattingHint{
-				SpecID:       specID,
-				SourceFileID: sfID,
-				LineNumber:   i + 1,
-				HintType:     "hr",
-				HintValue:    "---",
-			}
-			if _, err := storage.InsertFormattingHint(db, fh); err != nil {
-				return err
+		} else if FrontmatterRe.MatchString(trimmed) {
+			if i == 0 && !frontmatterDone {
+				// Opening frontmatter delimiter
+				inFrontmatter = true
+			} else if inFrontmatter {
+				// Closing frontmatter delimiter
+				inFrontmatter = false
+				frontmatterDone = true
+			} else {
+				// Horizontal rule (outside frontmatter)
+				fh := &storage.FormattingHint{
+					SpecID:       specID,
+					SourceFileID: sfID,
+					LineNumber:   i + 1,
+					HintType:     "hr",
+					HintValue:    "---",
+				}
+				if _, err := storage.InsertFormattingHint(db, fh); err != nil {
+					return err
+				}
 			}
 		}
 	}

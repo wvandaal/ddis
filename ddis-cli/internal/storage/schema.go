@@ -1,6 +1,7 @@
 package storage
 
 // ddis:implements APP-ADR-005 (30-table normalized schema)
+// ddis:implements APP-INV-095 (snapshot isolation level — snapshots table carries SHA-256 state hash)
 // ddis:maintains APP-INV-015 (deterministic hashing)
 
 // SchemaSQL contains all CREATE TABLE statements for the DDIS spec index.

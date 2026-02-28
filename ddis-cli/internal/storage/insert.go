@@ -3,6 +3,7 @@ package storage
 // ddis:maintains APP-INV-041 (witness auto-invalidation — InsertWitness, InvalidateWitnesses)
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 )
@@ -51,11 +52,24 @@ func InsertSection(db *sql.DB, s *Section) (int64, error) {
 
 // InsertInvariant inserts an invariants row and returns its ID.
 func InsertInvariant(db *sql.DB, inv *Invariant) (int64, error) {
-	res, err := db.Exec(
+	_, err := db.Exec(
 		`INSERT INTO invariants (spec_id, source_file_id, section_id, invariant_id, title, statement,
 		  semi_formal, violation_scenario, validation_method, why_this_matters, conditional_tag,
 		  line_start, line_end, raw_text, content_hash)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		 ON CONFLICT(spec_id, invariant_id) DO UPDATE SET
+		  source_file_id = CASE WHEN length(excluded.raw_text) > length(invariants.raw_text) THEN excluded.source_file_id ELSE invariants.source_file_id END,
+		  section_id = CASE WHEN length(excluded.raw_text) > length(invariants.raw_text) THEN excluded.section_id ELSE invariants.section_id END,
+		  title = CASE WHEN length(excluded.title) > length(invariants.title) THEN excluded.title ELSE invariants.title END,
+		  statement = CASE WHEN length(excluded.statement) > length(COALESCE(invariants.statement,'')) THEN excluded.statement ELSE invariants.statement END,
+		  semi_formal = CASE WHEN excluded.semi_formal IS NOT NULL AND (invariants.semi_formal IS NULL OR length(excluded.semi_formal) > length(invariants.semi_formal)) THEN excluded.semi_formal ELSE invariants.semi_formal END,
+		  violation_scenario = CASE WHEN excluded.violation_scenario IS NOT NULL AND (invariants.violation_scenario IS NULL OR length(excluded.violation_scenario) > length(invariants.violation_scenario)) THEN excluded.violation_scenario ELSE invariants.violation_scenario END,
+		  validation_method = CASE WHEN excluded.validation_method IS NOT NULL AND (invariants.validation_method IS NULL OR length(excluded.validation_method) > length(invariants.validation_method)) THEN excluded.validation_method ELSE invariants.validation_method END,
+		  why_this_matters = CASE WHEN excluded.why_this_matters IS NOT NULL AND (invariants.why_this_matters IS NULL OR length(excluded.why_this_matters) > length(invariants.why_this_matters)) THEN excluded.why_this_matters ELSE invariants.why_this_matters END,
+		  line_start = CASE WHEN length(excluded.raw_text) > length(invariants.raw_text) THEN excluded.line_start ELSE invariants.line_start END,
+		  line_end = CASE WHEN length(excluded.raw_text) > length(invariants.raw_text) THEN excluded.line_end ELSE invariants.line_end END,
+		  raw_text = CASE WHEN length(excluded.raw_text) > length(invariants.raw_text) THEN excluded.raw_text ELSE invariants.raw_text END,
+		  content_hash = CASE WHEN length(excluded.raw_text) > length(invariants.raw_text) THEN excluded.content_hash ELSE invariants.content_hash END`,
 		inv.SpecID, inv.SourceFileID, inv.SectionID, inv.InvariantID, inv.Title, inv.Statement,
 		nullStr(inv.SemiFormal), nullStr(inv.ViolationScenario), nullStr(inv.ValidationMethod),
 		nullStr(inv.WhyThisMatters), nullStr(inv.ConditionalTag),
@@ -64,7 +78,14 @@ func InsertInvariant(db *sql.DB, inv *Invariant) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("insert invariant %s: %w", inv.InvariantID, err)
 	}
-	return res.LastInsertId()
+	// ON CONFLICT DO UPDATE may not update last_insert_rowid().
+	// Query back the actual row ID.
+	var id int64
+	err = db.QueryRow(`SELECT id FROM invariants WHERE spec_id = ? AND invariant_id = ?`, inv.SpecID, inv.InvariantID).Scan(&id)
+	if err != nil {
+		return 0, fmt.Errorf("get invariant ID after upsert %s: %w", inv.InvariantID, err)
+	}
+	return id, nil
 }
 
 // InsertADR inserts an adrs row and returns its ID.
@@ -614,13 +635,16 @@ func ClearSpecByPath(db DB, specPath string) (*SavedEvidence, error) {
 	// Both halves of the witness-challenge adjunction must be preserved.
 	for _, sid := range specIDs {
 		ws, err := ListWitnesses(db, sid)
-		if err == nil {
-			saved.Witnesses = append(saved.Witnesses, ws...)
+		if err != nil {
+			return nil, fmt.Errorf("list witnesses for spec %d: %w", sid, err)
 		}
+		saved.Witnesses = append(saved.Witnesses, ws...)
+
 		crs, err := ListChallengeResults(db, sid)
-		if err == nil {
-			saved.Challenges = append(saved.Challenges, crs...)
+		if err != nil {
+			return nil, fmt.Errorf("list challenge results for spec %d: %w", sid, err)
 		}
+		saved.Challenges = append(saved.Challenges, crs...)
 	}
 
 	for _, sid := range specIDs {
@@ -634,13 +658,20 @@ func ClearSpecByPath(db DB, specPath string) (*SavedEvidence, error) {
 
 // deleteSpecData removes all data for a single specID in FK-safe order.
 // Tables are deleted leaf-first respecting all foreign key constraints.
+// Uses a dedicated connection to ensure PRAGMA foreign_keys=OFF is pinned
+// to the same connection as the subsequent DELETE statements.
 func deleteSpecData(db DB, specID int64) error {
-	// Temporarily disable FK checks for bulk deletion, then re-enable.
-	// This is safe because we're deleting ALL data for a specID (complete graph removal).
-	if _, err := db.Exec(`PRAGMA foreign_keys=OFF`); err != nil {
+	// Pin to a single connection so the PRAGMA applies to all DELETEs.
+	conn, err := db.Conn(context.Background())
+	if err != nil {
+		return fmt.Errorf("acquire connection: %w", err)
+	}
+	defer conn.Close()
+
+	if _, err := conn.ExecContext(context.Background(), `PRAGMA foreign_keys=OFF`); err != nil {
 		return fmt.Errorf("disable FK: %w", err)
 	}
-	defer db.Exec(`PRAGMA foreign_keys=ON`) // always re-enable, even on error paths
+	defer conn.ExecContext(context.Background(), `PRAGMA foreign_keys=ON`)
 
 	// Delete all tables that reference spec_id
 	tables := []string{
@@ -678,6 +709,8 @@ func deleteSpecData(db DB, specID int64) error {
 		"code_annotations",
 		"challenge_results",
 		"invariant_witnesses",
+		"snapshots",
+		"event_provenance",
 	}
 
 	for _, table := range tables {
@@ -700,18 +733,18 @@ func deleteSpecData(db DB, specID int64) error {
 		default:
 			q = fmt.Sprintf("DELETE FROM %s WHERE spec_id = ?", table)
 		}
-		if _, err := db.Exec(q, specID); err != nil {
+		if _, err := conn.ExecContext(context.Background(), q, specID); err != nil {
 			return fmt.Errorf("delete %s: %w", table, err)
 		}
 	}
 
 	// Clear parent_spec_id references pointing to this spec
-	if _, err := db.Exec(`UPDATE spec_index SET parent_spec_id = NULL WHERE parent_spec_id = ?`, specID); err != nil {
+	if _, err := conn.ExecContext(context.Background(), `UPDATE spec_index SET parent_spec_id = NULL WHERE parent_spec_id = ?`, specID); err != nil {
 		return err
 	}
 
 	// Delete spec_index row
-	if _, err := db.Exec(`DELETE FROM spec_index WHERE id = ?`, specID); err != nil {
+	if _, err := conn.ExecContext(context.Background(), `DELETE FROM spec_index WHERE id = ?`, specID); err != nil {
 		return err
 	}
 

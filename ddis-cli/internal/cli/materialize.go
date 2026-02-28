@@ -2,6 +2,7 @@ package cli
 
 // ddis:implements APP-INV-073 (fold determinism — CLI wiring for materialize command)
 // ddis:implements APP-INV-075 (materialization idempotency — replay produces identical state)
+// ddis:implements APP-INV-086 (applier spec-ID parameterization — no hardcoded IDs)
 // ddis:implements APP-ADR-059 (deterministic fold over incremental mutation)
 
 import (
@@ -16,9 +17,10 @@ import (
 )
 
 var (
-	materializeOutput   string
-	materializeFromSnap bool
-	materializeJSON     bool
+	materializeOutput      string
+	materializeFromSnap    bool
+	materializeJSON        bool
+	materializeNoProcessor bool
 )
 
 var materializeCmd = &cobra.Command{
@@ -49,6 +51,7 @@ func init() {
 	materializeCmd.Flags().StringVarP(&materializeOutput, "output", "o", "", "Output database path (default: .ddis/index.db)")
 	materializeCmd.Flags().BoolVar(&materializeFromSnap, "from-snapshot", false, "Resume from latest snapshot checkpoint")
 	materializeCmd.Flags().BoolVar(&materializeJSON, "json", false, "Output result as JSON")
+	materializeCmd.Flags().BoolVar(&materializeNoProcessor, "no-processors", false, "Skip stream processor invocation during fold")
 }
 
 func runMaterialize(cmd *cobra.Command, args []string) error {
@@ -101,11 +104,29 @@ func runMaterialize(cmd *cobra.Command, args []string) error {
 	}
 	defer db.Close()
 
-	// Create the SQL applier
-	applier := &sqlApplier{db: db}
+	// Disable FK enforcement — materialized data uses section_id=0 placeholder
+	db.Exec(`PRAGMA foreign_keys = OFF`)
 
-	// Run the fold
-	result, err := materialize.Fold(applier, contentEvts)
+	// Initialize spec_index and source_files rows (APP-INV-086: parameterized IDs)
+	specID, sourceFileID, err := initMaterializeSpec(db, streamPath)
+	if err != nil {
+		return fmt.Errorf("init spec: %w", err)
+	}
+
+	// Create the SQL applier with parameterized IDs
+	applier := &sqlApplier{db: db, specID: specID, sourceFileID: sourceFileID}
+
+	// Run the fold — with or without processors
+	var result *materialize.FoldResult
+	if materializeNoProcessor {
+		result, err = materialize.Fold(applier, contentEvts)
+	} else {
+		engine := materialize.New()
+		engine.RegisterProcessor(materialize.NewValidationProcessor())
+		engine.RegisterProcessor(materialize.NewConsistencyProcessor())
+		engine.RegisterProcessor(materialize.NewDriftProcessor())
+		result, err = engine.FoldWithProcessors(applier, contentEvts, db)
+	}
 	if err != nil {
 		return fmt.Errorf("fold: %w", err)
 	}
@@ -147,6 +168,7 @@ func isContentEvent(t string) bool {
 		events.TypeNegativeSpecAdded,
 		events.TypeCrossRefAdded,
 		events.TypeGlossaryTermDefined,
+		events.TypeQualityGateDefined,
 		events.TypeModuleRegistered,
 		events.TypeWitnessRecorded,
 		events.TypeWitnessRevoked,
@@ -157,125 +179,164 @@ func isContentEvent(t string) bool {
 	return false
 }
 
+// initMaterializeSpec creates the spec_index and source_files rows for materialization.
+// Returns the spec_id and source_file_id for use by the applier (APP-INV-086).
+func initMaterializeSpec(db storage.DB, streamPath string) (int64, int64, error) {
+	res, err := db.Exec(`INSERT INTO spec_index (spec_name, source_type, spec_path, content_hash, parsed_at)
+		VALUES ('materialized', 'monolith', ?, '', datetime('now'))`, streamPath)
+	if err != nil {
+		return 0, 0, fmt.Errorf("insert spec_index: %w", err)
+	}
+	specID, _ := res.LastInsertId()
+
+	res, err = db.Exec(`INSERT INTO source_files (spec_id, file_path, file_role, line_count, content_hash, raw_text)
+		VALUES (?, ?, 'monolith', 0, '', '')`, specID, streamPath)
+	if err != nil {
+		return 0, 0, fmt.Errorf("insert source_files: %w", err)
+	}
+	sourceFileID, _ := res.LastInsertId()
+
+	return specID, sourceFileID, nil
+}
+
 // sqlApplier implements materialize.Applier using the storage package.
+// spec_id and sourceFileID are parameterized, never hardcoded (APP-INV-086).
 type sqlApplier struct {
-	db storage.DB
+	db           storage.DB
+	specID       int64
+	sourceFileID int64
 }
 
 func (a *sqlApplier) InsertSection(p events.SectionPayload) error {
-	// Minimal stub: insert section into sections table
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO sections (spec_id, source_file_id, section_path, title, heading_level, line_start, line_end, raw_text, content_hash)
-		VALUES (1, 1, ?, ?, ?, 0, 0, ?, '')`,
-		p.Path, p.Title, p.Level, p.Body)
+		VALUES (?, ?, ?, ?, ?, 0, 0, ?, '')`,
+		a.specID, a.sourceFileID, p.Path, p.Title, p.Level, p.Body)
 	return err
 }
 
 func (a *sqlApplier) UpdateSection(p events.SectionUpdatePayload) error {
-	_, err := a.db.Exec(`UPDATE sections SET title = ?, raw_text = ? WHERE spec_id = 1 AND section_path = ?`,
-		p.Title, p.Body, p.Path)
+	_, err := a.db.Exec(`UPDATE sections SET title = ?, raw_text = ? WHERE spec_id = ? AND section_path = ?`,
+		p.Title, p.Body, a.specID, p.Path)
 	return err
 }
 
 func (a *sqlApplier) RemoveSection(p events.SectionRemovePayload) error {
-	_, err := a.db.Exec(`DELETE FROM sections WHERE spec_id = 1 AND section_path = ?`, p.Path)
+	_, err := a.db.Exec(`DELETE FROM sections WHERE spec_id = ? AND section_path = ?`, a.specID, p.Path)
 	return err
 }
 
 func (a *sqlApplier) InsertInvariant(p events.InvariantPayload) error {
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO invariants (spec_id, source_file_id, section_id, invariant_id, title, statement, semi_formal, violation_scenario, validation_method, why_this_matters, line_start, line_end, raw_text, content_hash)
-		VALUES (1, 1, 1, ?, ?, ?, ?, ?, ?, ?, 0, 0, '', '')`,
-		p.ID, p.Title, p.Statement, p.SemiFormal, p.ViolationScenario, p.ValidationMethod, p.WhyThisMatters)
+		VALUES (?, ?, 0, ?, ?, ?, ?, ?, ?, ?, 0, 0, '', '')`,
+		a.specID, a.sourceFileID, p.ID, p.Title, p.Statement, p.SemiFormal, p.ViolationScenario, p.ValidationMethod, p.WhyThisMatters)
 	return err
 }
 
 func (a *sqlApplier) UpdateInvariant(p events.InvariantUpdatePayload) error {
 	for field, val := range p.NewValues {
+		var err error
 		switch field {
 		case "title":
-			a.db.Exec(`UPDATE invariants SET title = ? WHERE spec_id = 1 AND invariant_id = ?`, val, p.ID)
+			_, err = a.db.Exec(`UPDATE invariants SET title = ? WHERE spec_id = ? AND invariant_id = ?`, val, a.specID, p.ID)
 		case "statement":
-			a.db.Exec(`UPDATE invariants SET statement = ? WHERE spec_id = 1 AND invariant_id = ?`, val, p.ID)
+			_, err = a.db.Exec(`UPDATE invariants SET statement = ? WHERE spec_id = ? AND invariant_id = ?`, val, a.specID, p.ID)
 		case "semi_formal":
-			a.db.Exec(`UPDATE invariants SET semi_formal = ? WHERE spec_id = 1 AND invariant_id = ?`, val, p.ID)
+			_, err = a.db.Exec(`UPDATE invariants SET semi_formal = ? WHERE spec_id = ? AND invariant_id = ?`, val, a.specID, p.ID)
+		}
+		if err != nil {
+			return fmt.Errorf("update invariant %s field %s: %w", p.ID, field, err)
 		}
 	}
 	return nil
 }
 
 func (a *sqlApplier) RemoveInvariant(p events.InvariantRemovePayload) error {
-	_, err := a.db.Exec(`DELETE FROM invariants WHERE spec_id = 1 AND invariant_id = ?`, p.ID)
+	_, err := a.db.Exec(`DELETE FROM invariants WHERE spec_id = ? AND invariant_id = ?`, a.specID, p.ID)
 	return err
 }
 
 func (a *sqlApplier) InsertADR(p events.ADRPayload) error {
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO adrs (spec_id, source_file_id, section_id, adr_id, title, problem, decision_text, consequences, tests, line_start, line_end, raw_text, content_hash)
-		VALUES (1, 1, 1, ?, ?, ?, ?, ?, ?, 0, 0, '', '')`,
-		p.ID, p.Title, p.Problem, p.Decision, p.Consequences, p.Tests)
+		VALUES (?, ?, 0, ?, ?, ?, ?, ?, ?, 0, 0, '', '')`,
+		a.specID, a.sourceFileID, p.ID, p.Title, p.Problem, p.Decision, p.Consequences, p.Tests)
 	return err
 }
 
 func (a *sqlApplier) UpdateADR(p events.ADRUpdatePayload) error {
 	for field, val := range p.NewValues {
+		var err error
 		switch field {
 		case "title":
-			a.db.Exec(`UPDATE adrs SET title = ? WHERE spec_id = 1 AND adr_id = ?`, val, p.ID)
+			_, err = a.db.Exec(`UPDATE adrs SET title = ? WHERE spec_id = ? AND adr_id = ?`, val, a.specID, p.ID)
 		case "decision":
-			a.db.Exec(`UPDATE adrs SET decision_text = ? WHERE spec_id = 1 AND adr_id = ?`, val, p.ID)
+			_, err = a.db.Exec(`UPDATE adrs SET decision_text = ? WHERE spec_id = ? AND adr_id = ?`, val, a.specID, p.ID)
+		}
+		if err != nil {
+			return fmt.Errorf("update ADR %s field %s: %w", p.ID, field, err)
 		}
 	}
 	return nil
 }
 
 func (a *sqlApplier) SupersedeADR(p events.ADRSupersededPayload) error {
-	_, err := a.db.Exec(`UPDATE adrs SET status = 'superseded', superseded_by = ? WHERE spec_id = 1 AND adr_id = ?`,
-		p.SupersededBy, p.ID)
+	_, err := a.db.Exec(`UPDATE adrs SET status = 'superseded', superseded_by = ? WHERE spec_id = ? AND adr_id = ?`,
+		p.SupersededBy, a.specID, p.ID)
 	return err
 }
 
 func (a *sqlApplier) InsertWitness(p events.WitnessPayload) error {
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO invariant_witnesses (spec_id, invariant_id, spec_hash, code_hash, evidence_type, evidence, proven_by, model)
-		VALUES (1, ?, ?, ?, ?, ?, ?, ?)`,
-		p.InvariantID, p.SpecHash, p.CodeHash, p.EvidenceType, p.Evidence, p.By, p.Model)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		a.specID, p.InvariantID, p.SpecHash, p.CodeHash, p.EvidenceType, p.Evidence, p.By, p.Model)
 	return err
 }
 
 func (a *sqlApplier) RevokeWitness(p events.WitnessRevokePayload) error {
-	_, err := a.db.Exec(`UPDATE invariant_witnesses SET status = 'invalidated', notes = ? WHERE spec_id = 1 AND invariant_id = ?`,
-		p.Reason, p.InvariantID)
+	_, err := a.db.Exec(`UPDATE invariant_witnesses SET status = 'invalidated', notes = ? WHERE spec_id = ? AND invariant_id = ?`,
+		p.Reason, a.specID, p.InvariantID)
 	return err
 }
 
 func (a *sqlApplier) InsertChallenge(p events.ChallengePayload) error {
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO challenge_results (spec_id, invariant_id, verdict, challenged_by)
-		VALUES (1, ?, ?, 'system')`,
-		p.InvariantID, p.Verdict)
+		VALUES (?, ?, ?, 'system')`,
+		a.specID, p.InvariantID, p.Verdict)
 	return err
 }
 
 func (a *sqlApplier) InsertModule(p events.ModulePayload) error {
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO modules (spec_id, source_file_id, module_name, domain, line_count)
-		VALUES (1, 1, ?, ?, 0)`,
-		p.Name, p.Domain)
+		VALUES (?, ?, ?, ?, 0)`,
+		a.specID, a.sourceFileID, p.Name, p.Domain)
 	return err
 }
 
 func (a *sqlApplier) InsertGlossaryTerm(p events.GlossaryTermPayload) error {
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO glossary_entries (spec_id, section_id, term, definition, line_number)
-		VALUES (1, 1, ?, ?, 0)`,
-		p.Term, p.Definition)
+		VALUES (?, 0, ?, ?, 0)`,
+		a.specID, p.Term, p.Definition)
 	return err
 }
 
 func (a *sqlApplier) InsertCrossRef(p events.CrossRefPayload) error {
 	_, err := a.db.Exec(`INSERT INTO cross_references (spec_id, source_file_id, source_line, ref_type, ref_target, ref_text, resolved)
-		VALUES (1, 1, 0, 'section', ?, ?, 0)`,
-		p.Target, p.Source)
+		VALUES (?, ?, 0, 'section', ?, ?, 0)`,
+		a.specID, a.sourceFileID, p.Target, p.Source)
 	return err
 }
 
 func (a *sqlApplier) InsertNegativeSpec(p events.NegativeSpecPayload) error {
 	_, err := a.db.Exec(`INSERT INTO negative_specs (spec_id, source_file_id, section_id, constraint_text, reason, line_number, raw_text)
-		VALUES (1, 1, 1, ?, ?, 0, '')`,
-		p.Pattern, p.Rationale)
+		VALUES (?, ?, 0, ?, ?, 0, '')`,
+		a.specID, a.sourceFileID, p.Pattern, p.Rationale)
+	return err
+}
+
+// InsertQualityGate handles quality_gate_defined events.
+func (a *sqlApplier) InsertQualityGate(p events.QualityGatePayload) error {
+	gateID := fmt.Sprintf("APP-G-%d", p.GateNumber)
+	_, err := a.db.Exec(`INSERT OR REPLACE INTO quality_gates (spec_id, section_id, gate_id, title, predicate, is_modular, line_start, line_end, raw_text)
+		VALUES (?, 0, ?, ?, ?, 0, 0, 0, '')`,
+		a.specID, gateID, p.Title, p.Predicate)
 	return err
 }

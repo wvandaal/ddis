@@ -2,11 +2,14 @@ package events
 
 // ddis:implements APP-ADR-015 (three-stream event sourcing — event envelope)
 // ddis:implements APP-INV-020 (event stream append-only — immutable records)
+// ddis:implements APP-INV-094 (monotone causal clock — timestamp + event ID ensure monotone ordering)
 // ddis:maintains APP-INV-027 (thread topology primacy — event envelope carries thread_id as primary field)
 // ddis:maintains APP-INV-029 (convergent thread selection — events carry thread_id from convergent selection)
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -57,7 +60,12 @@ func NewEvent(stream Stream, eventType string, specHash string, payload interfac
 	}
 
 	now := time.Now().UTC()
-	id := fmt.Sprintf("evt-%s-%d", now.Format("20060102"), now.UnixMilli()%100000)
+	// 8 random bytes → 16 hex chars for collision-free event IDs.
+	var rnd [8]byte
+	if _, err := rand.Read(rnd[:]); err != nil {
+		return nil, fmt.Errorf("generate event ID: %w", err)
+	}
+	id := fmt.Sprintf("evt-%s-%s", now.Format("20060102"), hex.EncodeToString(rnd[:]))
 
 	return &Event{
 		ID:        id,

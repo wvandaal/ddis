@@ -2,6 +2,7 @@ package events
 
 // ddis:implements APP-INV-072 (event content completeness — structured payloads for content events)
 // ddis:implements APP-ADR-058 (JSONL as canonical representation — content payloads enable fold)
+// ddis:implements APP-ADR-073 (snapshot format — SnapshotPayload carries position + SHA-256 state hash)
 
 // SectionPayload carries the full content of a spec section.
 type SectionPayload struct {

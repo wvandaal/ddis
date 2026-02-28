@@ -6,6 +6,7 @@ package materialize
 // ddis:implements APP-INV-073 (fold determinism — pure apply function)
 // ddis:implements APP-INV-075 (materialization idempotency — replay produces identical state)
 // ddis:implements APP-ADR-059 (deterministic fold over incremental mutation)
+// ddis:implements APP-ADR-074 (causal sort strategy — Kahn's algorithm with timestamp tiebreaker)
 
 import (
 	"encoding/json"
@@ -207,6 +208,12 @@ func Apply(applier Applier, evt *events.Event) error {
 			return fmt.Errorf("unmarshal negative spec payload: %w", err)
 		}
 		return applier.InsertNegativeSpec(p)
+	case events.TypeQualityGateDefined:
+		var p events.QualityGatePayload
+		if err := json.Unmarshal(evt.Payload, &p); err != nil {
+			return fmt.Errorf("unmarshal quality gate payload: %w", err)
+		}
+		return applier.InsertQualityGate(p)
 	default:
 		// Unknown types are no-ops for forward compatibility
 		return nil
@@ -232,6 +239,7 @@ type Applier interface {
 	InsertGlossaryTerm(events.GlossaryTermPayload) error
 	InsertCrossRef(events.CrossRefPayload) error
 	InsertNegativeSpec(events.NegativeSpecPayload) error
+	InsertQualityGate(events.QualityGatePayload) error
 }
 
 // FoldResult captures the outcome of a materialize fold.
@@ -271,4 +279,87 @@ func Fold(applier Applier, evts []*events.Event) (*FoldResult, error) {
 	}
 
 	return result, nil
+}
+
+// FoldWithProcessors replays events through the apply function AND invokes
+// registered processors after each content event's apply step.
+//
+// ddis:implements APP-INV-080 (stream processor reactivity — content events trigger processors)
+// ddis:implements APP-INV-090 (processor idempotency — skip-derived-events prevents duplicates)
+// ddis:implements APP-INV-091 (processor failure isolation — errors logged, fold continues)
+// ddis:implements APP-ADR-071 (derived event deduplication — skip processors on derived events)
+func (e *Engine) FoldWithProcessors(applier Applier, evts []*events.Event, db interface{}) (*FoldResult, error) {
+	sorted, err := CausalSort(evts)
+	if err != nil {
+		return nil, fmt.Errorf("causal sort: %w", err)
+	}
+
+	result := &FoldResult{}
+	for _, evt := range sorted {
+		if err := Apply(applier, evt); err != nil {
+			result.Errors = append(result.Errors, FoldError{
+				EventID:   evt.ID,
+				EventType: evt.Type,
+				Err:       err,
+			})
+			result.EventsSkipped++
+			continue
+		}
+		result.EventsProcessed++
+
+		// Skip processor invocation on derived events (APP-ADR-071)
+		if isDerivedEvent(evt) {
+			continue
+		}
+
+		// Fire matching processors (APP-INV-080, APP-INV-091)
+		for _, p := range e.processors {
+			if p.EventTypes != nil && !p.EventTypes[evt.Type] {
+				continue
+			}
+			derived, pErr := p.Handle(evt, db)
+			if pErr != nil {
+				// APP-INV-091: processor failure is non-fatal
+				result.Errors = append(result.Errors, FoldError{
+					EventID:   evt.ID,
+					EventType: "processor:" + p.Name,
+					Err:       pErr,
+				})
+				continue
+			}
+			// Apply derived events (APP-INV-092: they carry causes)
+			for _, d := range derived {
+				if err := Apply(applier, d); err != nil {
+					result.Errors = append(result.Errors, FoldError{
+						EventID:   d.ID,
+						EventType: d.Type,
+						Err:       err,
+					})
+				} else {
+					result.EventsProcessed++
+				}
+			}
+		}
+	}
+
+	return result, nil
+}
+
+// isDerivedEvent checks if an event was produced by a processor.
+// Derived events have a "derived_by" field in their payload (APP-INV-092).
+func isDerivedEvent(evt *events.Event) bool {
+	// Quick heuristic: check if payload contains "derived_by"
+	return len(evt.Payload) > 0 && json.Valid(evt.Payload) &&
+		len(evt.Causes) > 0 &&
+		containsDerivedBy(evt.Payload)
+}
+
+// containsDerivedBy checks if the JSON payload has a "derived_by" field.
+func containsDerivedBy(payload json.RawMessage) bool {
+	var m map[string]interface{}
+	if json.Unmarshal(payload, &m) == nil {
+		_, ok := m["derived_by"]
+		return ok
+	}
+	return false
 }

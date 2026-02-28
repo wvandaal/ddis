@@ -624,6 +624,71 @@ Every spec element traces back to its originating crystallization event and all 
 Confidence: falsified
 *Violation: an invariant is updated via event e2 but e2.causes is empty; provenance chain shows only e2, losing the history of the original crystallization.*
 
+**APP-INV-085: Import Content Completeness** (Owner: event-sourcing)
+The ddis import command must emit synthetic events for ALL content types: modules, invariants, ADRs, sections, cross-references, negative specs, quality gates, glossary entries.
+Confidence: falsified
+*Violation: import emits invariant and ADR events but skips sections, cross-references, and negative specs. Materialize produces database missing sections.*
+
+**APP-INV-086: Applier Spec-ID Parameterization** (Owner: event-sourcing)
+The sqlApplier derives spec_id from event payloads or configuration, never hardcoding values.
+Confidence: falsified
+*Violation: sqlApplier hardcodes spec_id=1, source_file_id=1. When materializing events from a spec whose index row is ID 3, all rows reference non-existent spec_id=1.*
+
+**APP-INV-087: Projector Section Rendering** (Owner: event-sourcing)
+The project command filters invariants, ADRs, sections, and other content by module ownership.
+Confidence: falsified
+*Violation: project queries all invariants for every module. Module A receives invariants owned by Module B.*
+
+**APP-INV-088: Single Write Path** (Owner: event-sourcing)
+Content-mutating commands write ONLY to the event log. SQLite and markdown are produced exclusively by materialize and project.
+Confidence: falsified
+*Violation: crystallize writes to both event log AND markdown file. A crash between the two writes produces inconsistent state.*
+
+**APP-INV-089: Deprecation Compatibility Bridge** (Owner: event-sourcing)
+During migration Phase B, deprecated commands produce structurally equivalent output to their replacements.
+Confidence: falsified
+*Violation: parse is replaced by import+materialize but produces different section ordering, breaking existing workflows.*
+
+**APP-INV-090: Processor Idempotency** (Owner: event-sourcing)
+Processor Handle is deterministic; re-fold deduplicates via skip-derived-events.
+Confidence: falsified
+*Violation: re-fold fires processors on both primary and derived events, producing duplicate validation warnings.*
+
+**APP-INV-091: Processor Failure Isolation** (Owner: event-sourcing)
+A processor error is non-fatal; logged, derived events discarded, fold continues.
+Confidence: falsified
+*Violation: validation processor panics on malformed invariant. Fold aborts, leaving database in partial state.*
+
+**APP-INV-092: Derived Event Provenance** (Owner: event-sourcing)
+Derived events carry triggering event ID in causes and derived_by in payload.
+Confidence: falsified
+*Violation: processor emits derived event without causes reference. During bisect, derived event cannot be traced to trigger.*
+
+**APP-INV-093: Snapshot Creation Determinism** (Owner: event-sourcing)
+StateHash computed over canonicalized content tables is deterministic.
+Confidence: falsified
+*Violation: StateHash includes auto-increment IDs. Two materializations produce different hashes.*
+
+**APP-INV-094: Snapshot Monotonicity** (Owner: event-sourcing)
+Snapshots are monotonically ordered by position.
+Confidence: falsified
+*Violation: snapshot at position 500 followed by snapshot at position 300 causes accelerated fold to skip events.*
+
+**APP-INV-095: Snapshot Recovery Graceful Degradation** (Owner: event-sourcing)
+Corrupted snapshot triggers full replay fallback, never silent corruption.
+Confidence: falsified
+*Violation: corrupted snapshot passes verification. Fold resumes from corrupt state, producing incorrect database.*
+
+**APP-INV-096: Pipeline Round-Trip Preservation** (Owner: event-sourcing)
+Full pipeline round-trip preserves all structural content modulo metadata.
+Confidence: falsified
+*Violation: project drops glossary entries. Re-parsing the projected output produces database missing glossary terms.*
+
+**APP-INV-097: E2E Pipeline Determinism** (Owner: event-sourcing)
+Running the pipeline twice produces byte-identical output.
+Confidence: falsified
+*Violation: timestamps in JSONL events differ between runs. Second materialize produces different event IDs.*
+
 ---
 
 ## 0.4 Invariant Confidence Levels
@@ -894,6 +959,42 @@ WHY NOT incremental apply: State drift compounds. WHY NOT no optimization: Impra
 Decision: Post-fold observers fire after content events, may append derived events with causes references. Idempotent and independently deployable.
 WHY NOT manual invocation: Defeats event-driven purpose. WHY NOT in-fold validation: Couples validation to fold, makes apply impure.
 
+**APP-ADR-066: Self-Bootstrap Pipeline as Integration Gate** (Implements: event-sourcing)
+Decision: Run the full event-sourcing pipeline on the CLI spec itself as a CI gate.
+WHY NOT synthetic fixtures: Real spec catches edge cases that synthetic fixtures miss.
+
+**APP-ADR-067: Structural Equivalence Definition** (Implements: event-sourcing)
+Decision: Content-only comparison excluding auto-increment IDs, timestamps, raw_text, content_hash.
+WHY NOT byte-identical: Timestamps differ by design. WHY NOT row-count: Too loose, content could be wrong.
+
+**APP-ADR-068: Phased Migration Strategy** (Implements: event-sourcing)
+Decision: Phase A (bridge), Phase B (event-first with deprecation wrappers), Phase C (remove old paths).
+WHY NOT big-bang: Too risky. WHY NOT feature flags: Over-engineering for internal tool.
+
+**APP-ADR-069: Crystallize Event-Only Path** (Implements: event-sourcing)
+Decision: Crystallize emits event, then auto-projects via materialize+project. --no-project to skip.
+WHY NOT dual-write: Violates APP-INV-088. WHY NOT separate step: Breaks UX of immediate markdown.
+
+**APP-ADR-070: Processor Registration Mechanism** (Implements: event-sourcing)
+Decision: Engine.RegisterProcessor(name, Processor) API with 3 built-in processors (validation, consistency, drift).
+WHY NOT hardcoded: Not extensible. WHY NOT plugins: Over-engineering.
+
+**APP-ADR-071: Derived Event Deduplication** (Implements: event-sourcing)
+Decision: Skip-derived-events: processors fire only on primary events (no derived_by field).
+WHY NOT state tracking: Complex. WHY NOT idempotent processors: Pushes complexity to each processor.
+
+**APP-ADR-072: Snapshot as SQLite State Hash** (Implements: event-sourcing)
+Decision: SHA-256 over canonicalized content tables, excluding auto-IDs and timestamps.
+WHY NOT file checksum: SQLite layout varies. WHY NOT row-count: Too loose.
+
+**APP-ADR-073: Automatic Snapshot Interval** (Implements: event-sourcing)
+Decision: Every 1000 events, configurable via --snapshot-interval, 0 to disable.
+WHY NOT time-based: Not predictable. WHY NOT manual-only: Missing optimization opportunities.
+
+**APP-ADR-074: E2E Test Architecture** (Implements: event-sourcing)
+Decision: Hybrid: in-process for behavioral, subprocess for E2E. Real CLI spec as fixture.
+WHY NOT pure unit: Misses integration issues. WHY NOT pure subprocess: Too slow for behavioral.
+
 ---
 
 ## 0.6 Quality Gates (Declarations)
@@ -1001,6 +1102,13 @@ Terms specific to the DDIS CLI. If a term is also defined in the DDIS standard, 
 | **Semilattice** | The algebraic structure governing CRDT merge of independent event streams. Independent events commute under fold; concurrent updates use LWW resolution. (APP-INV-081, APP-ADR-063) |
 | **Snapshot** | A materialized SQLite state paired with the event log position at which it was taken. Enables incremental replay from the snapshot instead of full replay from genesis. (APP-INV-083, APP-ADR-064) |
 | **Stream Processor** | A post-fold observer that fires after content events and may append derived events. Processors are idempotent and independently deployable. (APP-INV-080, APP-ADR-065) |
+| **Self-Bootstrap** | The practice of running the event-sourcing pipeline on the CLI spec itself as a correctness gate. Proves the pipeline produces equivalent output to the legacy parse pipeline. (APP-INV-085, APP-ADR-066) |
+| **Structural Equivalence** | Content-only comparison between two SQLite databases, excluding auto-increment IDs, timestamps, raw_text, and content_hash. Implemented by StructuralDiff and StateHash. (APP-ADR-067) |
+| **Architecture Flip** | The transition from dual-write (events + markdown) to single-write (events only) for all content-mutating commands. Proceeds through Phase A/B/C. (APP-INV-088, APP-ADR-068) |
+| **Auto-Project** | The mechanism by which crystallize emits events then automatically runs materialize+project to produce updated markdown. Preserves UX while enforcing single write path. (APP-ADR-069) |
+| **Deprecation Bridge** | Thin wrappers that make legacy commands (parse, render) call their event-sourcing replacements internally, emitting deprecation warnings. (APP-INV-089, APP-ADR-068) |
+| **Derived Event** | An event produced by a stream processor in response to a primary event. Carries `derived_by` in payload and triggering event ID in `causes`. (APP-INV-092, APP-ADR-071) |
+| **Primary Event** | An event originating from user action (crystallize, witness, challenge, import), not from processor invocation. Has no `derived_by` field. Distinguished from derived events during re-fold. (APP-ADR-071) |
 
 ---
 
@@ -1019,7 +1127,7 @@ Cross-reference lookup: which module file contains each section's full specifica
 | State monad, discover, refine, absorb loops, contributor topology, thread management | modules/auto-prompting.md | Owns: APP-INV-022–036, -042, -045, -046. Implements: APP-ADR-016–025, -031, -033 |
 | Workspace init, multi-domain composition, cross-spec drift, task generation, progressive validation | modules/workspace-ops.md | Owns: APP-INV-037, -038, -039, -040. Implements: APP-ADR-026, -027, -028, -029 |
 | Issue lifecycle, triage state machine, evidence chain, spec-before-code gate, fitness function, triage protocol | modules/triage-workflow.md | Owns: APP-INV-063–070. Implements: APP-ADR-053–057 |
-| JSONL-canonical event sourcing, fold/materialize engine, synthetic projections, import bridge, causal DAG, CRDT merge, temporal queries, bisect, blame | modules/event-sourcing.md | Owns: APP-INV-071–084. Implements: APP-ADR-058–065 |
+| JSONL-canonical event sourcing, fold/materialize engine, synthetic projections, import bridge, causal DAG, CRDT merge, temporal queries, bisect, blame, self-bootstrap pipeline, architecture migration, stream processor catalog, snapshot implementation | modules/event-sourcing.md | Owns: APP-INV-071–097. Implements: APP-ADR-058–074 |
 
 ---
 
