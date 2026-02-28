@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/wvandaal/ddis/internal/storage"
 )
@@ -80,10 +81,41 @@ func (c *checkVCSTracking) Run(db *sql.DB, specID int64) CheckResult {
 		return result
 	}
 
+	// Resolve the database file's directory so relative source file paths
+	// are checked against the correct git-tracked location (e.g.
+	// "ddis-cli-spec/modules/foo.md" instead of bare "modules/foo.md").
+	var specDir string
+	if rows2, err := db.Query("PRAGMA database_list"); err == nil {
+		defer rows2.Close()
+		for rows2.Next() {
+			var seq int
+			var name, file string
+			if rows2.Scan(&seq, &name, &file) == nil && name == "main" && file != "" {
+				specDir = filepath.Dir(file)
+				break
+			}
+		}
+	}
+	// Make specDir relative to CWD for correct git path matching.
+	if specDir != "" {
+		if cwd, err := os.Getwd(); err == nil {
+			if rel, err := filepath.Rel(cwd, specDir); err == nil {
+				specDir = rel
+			}
+		}
+		if specDir == "." {
+			specDir = ""
+		}
+	}
+
 	// Check each source file against git tracking.
 	untracked := 0
 	for _, fp := range filePaths {
-		cmd := exec.Command(gitPath, "ls-files", "--error-unmatch", fp)
+		checkPath := fp
+		if specDir != "" && !filepath.IsAbs(fp) {
+			checkPath = filepath.Join(specDir, fp)
+		}
+		cmd := exec.Command(gitPath, "ls-files", "--error-unmatch", checkPath)
 		// Combine stdout and stderr so any git error message is captured but discarded.
 		cmd.Stdout = nil
 		cmd.Stderr = nil
