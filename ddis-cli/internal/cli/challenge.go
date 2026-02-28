@@ -127,11 +127,17 @@ func runChallengeSingle(db *sql.DB, dbPath string, specID int64, invariantID str
 	}
 	fmt.Println(output)
 
-	// Emit event
+	// Emit events
 	specHash := specHashFromDB(db, specID)
 	emitEvent(dbPath, events.StreamImplementation, events.TypeChallengeIssued, specHash, map[string]interface{}{
 		"invariant_id": invariantID,
 		"verdict":      result.Verdict,
+	})
+	// ddis:implements APP-INV-072 (event content completeness — challenge emits structured payload)
+	emitEvent(dbPath, events.StreamImplementation, events.TypeChallengeCompleted, specHash, events.ChallengePayload{
+		InvariantID: invariantID,
+		Verdict:     string(result.Verdict),
+		Score:       result.EvidenceScore,
 	})
 
 	// Guidance postscript
@@ -201,12 +207,20 @@ func runChallengeAll(db *sql.DB, dbPath string, specID int64, opts challenge.Opt
 		}
 	}
 	emitEvent(dbPath, events.StreamImplementation, events.TypeChallengeBatch, specHash, map[string]interface{}{
-		"total":       len(results),
-		"confirmed":   confirmed,
-		"provisional": provisional,
-		"refuted":     refuted,
+		"total":        len(results),
+		"confirmed":    confirmed,
+		"provisional":  provisional,
+		"refuted":      refuted,
 		"inconclusive": inconclusive,
 	})
+	// ddis:implements APP-INV-072 (event content completeness — challenge batch emits per-result structured payloads)
+	for _, r := range results {
+		emitEvent(dbPath, events.StreamImplementation, events.TypeChallengeCompleted, specHash, events.ChallengePayload{
+			InvariantID: r.InvariantID,
+			Verdict:     string(r.Verdict),
+			Score:       r.EvidenceScore,
+		})
+	}
 
 	if !NoGuidance {
 		if refuted > 0 {

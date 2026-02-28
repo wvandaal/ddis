@@ -473,4 +473,27 @@ CREATE TABLE IF NOT EXISTS challenge_results (
     UNIQUE(spec_id, invariant_id)
 );
 CREATE INDEX IF NOT EXISTS idx_challenge_inv ON challenge_results(spec_id, invariant_id);
+
+-- Snapshot checkpoints for materialization (APP-INV-083, APP-ADR-064)
+CREATE TABLE IF NOT EXISTS snapshots (
+    id INTEGER PRIMARY KEY,
+    spec_id INTEGER NOT NULL REFERENCES spec_index(id),
+    position INTEGER NOT NULL,
+    state_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_snapshot_spec ON snapshots(spec_id, position);
+
+-- Event provenance tracking (APP-INV-084)
+CREATE TABLE IF NOT EXISTS event_provenance (
+    id INTEGER PRIMARY KEY,
+    spec_id INTEGER NOT NULL REFERENCES spec_index(id),
+    element_type TEXT NOT NULL,
+    element_id TEXT NOT NULL,
+    event_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_provenance_element ON event_provenance(spec_id, element_type, element_id);
+CREATE INDEX IF NOT EXISTS idx_provenance_event ON event_provenance(spec_id, event_id);
 `

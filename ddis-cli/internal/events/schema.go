@@ -28,6 +28,24 @@ const (
 	TypeDriftMeasured         = "drift_measured"
 	TypeContradictionDetected = "contradiction_detected"
 	TypeAmendmentApplied      = "amendment_applied"
+
+	// Content-bearing event types (APP-INV-072: event content completeness)
+	TypeSpecSectionDefined    = "spec_section_defined"
+	TypeSpecSectionUpdated    = "spec_section_updated"
+	TypeSpecSectionRemoved    = "spec_section_removed"
+	TypeInvariantCrystallized = "invariant_crystallized"
+	TypeInvariantUpdated      = "invariant_updated"
+	TypeInvariantRemoved      = "invariant_removed"
+	TypeADRCrystallized       = "adr_crystallized"
+	TypeADRUpdated            = "adr_updated"
+	TypeADRSuperseded         = "adr_superseded"
+	TypeNegativeSpecAdded     = "negative_spec_added"
+	TypeQualityGateDefined    = "quality_gate_defined"
+	TypeCrossRefAdded         = "cross_ref_added"
+	TypeGlossaryTermDefined   = "glossary_term_defined"
+	TypeModuleRegistered      = "module_registered"
+	TypeManifestUpdated       = "manifest_updated"
+	TypeSnapshotCreated       = "snapshot_created"
 )
 
 // Stream 3 (Implementation) event types.
@@ -46,6 +64,12 @@ const (
 	TypeIssueVerified     = "issue_verified"
 	TypeIssueClosed       = "issue_closed"
 	TypeIssueWontfix      = "issue_wontfix"
+
+	// Content-bearing witness/challenge events (APP-INV-071: log canonicality)
+	TypeWitnessRecorded    = "witness_recorded"
+	TypeWitnessRevoked     = "witness_revoked"
+	TypeWitnessInvalidated = "witness_invalidated"
+	TypeChallengeCompleted = "challenge_completed"
 )
 
 // streamEventTypes maps each stream to its valid event types.
@@ -69,6 +93,22 @@ var streamEventTypes = map[Stream]map[string]bool{
 		TypeDriftMeasured:         true,
 		TypeContradictionDetected: true,
 		TypeAmendmentApplied:      true,
+		TypeSpecSectionDefined:    true,
+		TypeSpecSectionUpdated:    true,
+		TypeSpecSectionRemoved:    true,
+		TypeInvariantCrystallized: true,
+		TypeInvariantUpdated:      true,
+		TypeInvariantRemoved:      true,
+		TypeADRCrystallized:       true,
+		TypeADRUpdated:            true,
+		TypeADRSuperseded:         true,
+		TypeNegativeSpecAdded:     true,
+		TypeQualityGateDefined:    true,
+		TypeCrossRefAdded:         true,
+		TypeGlossaryTermDefined:   true,
+		TypeModuleRegistered:      true,
+		TypeManifestUpdated:       true,
+		TypeSnapshotCreated:       true,
 	},
 	StreamImplementation: {
 		TypeIssueCreated:         true,
@@ -83,6 +123,10 @@ var streamEventTypes = map[Stream]map[string]bool{
 		TypeIssueVerified:       true,
 		TypeIssueClosed:         true,
 		TypeIssueWontfix:        true,
+		TypeWitnessRecorded:     true,
+		TypeWitnessRevoked:      true,
+		TypeWitnessInvalidated:  true,
+		TypeChallengeCompleted:  true,
 	},
 }
 

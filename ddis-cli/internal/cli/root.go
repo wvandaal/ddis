@@ -141,6 +141,14 @@ func init() {
 	triageCmd.GroupID = "core"
 	renameCmd.GroupID = "utility"
 
+	// Event sourcing
+	materializeCmd.GroupID = "core"
+	projectCmd.GroupID = "core"
+	importCmd.GroupID = "utility"
+	bisectCmd.GroupID = "investigate"
+	blameCmd.GroupID = "investigate"
+	replayCmd.GroupID = "utility"
+
 	rootCmd.AddCommand(nextCmd)
 	rootCmd.AddCommand(parseCmd)
 	rootCmd.AddCommand(renderCmd)
@@ -182,4 +190,10 @@ func init() {
 	rootCmd.AddCommand(issueCmd)
 	rootCmd.AddCommand(triageCmd)
 	rootCmd.AddCommand(renameCmd)
+	rootCmd.AddCommand(materializeCmd)
+	rootCmd.AddCommand(projectCmd)
+	rootCmd.AddCommand(importCmd)
+	rootCmd.AddCommand(bisectCmd)
+	rootCmd.AddCommand(blameCmd)
+	rootCmd.AddCommand(replayCmd)
 }

@@ -200,6 +200,33 @@ func runCrystallize(cmd *cobra.Command, args []string) error {
 		"artifact_refs": []string{input.ID},
 	})
 
+	// Emit content-bearing event to Stream 2 (Specification).
+	// ddis:implements APP-INV-072 (event content completeness — crystallize emits structured payloads)
+	switch input.Type {
+	case "invariant":
+		emitEvent(crystallizeFile, events.StreamSpecification, events.TypeInvariantCrystallized, "", events.InvariantPayload{
+			ID:                input.ID,
+			Title:             input.Title,
+			Statement:         input.Statement,
+			SemiFormal:        input.SemiFormal,
+			ViolationScenario: input.ViolationScenario,
+			ValidationMethod:  input.ValidationMethod,
+			WhyThisMatters:    input.WhyThisMatters,
+			Module:            crystallizeModule,
+		})
+	case "adr":
+		emitEvent(crystallizeFile, events.StreamSpecification, events.TypeADRCrystallized, "", events.ADRPayload{
+			ID:           input.ID,
+			Title:        input.Title,
+			Problem:      input.Problem,
+			Options:      input.Options,
+			Decision:     input.Decision,
+			Consequences: input.Rationale,
+			Tests:        input.Tests,
+			Module:       crystallizeModule,
+		})
+	}
+
 	fmt.Println("\nNext: ddis parse manifest.yaml && ddis validate")
 	return nil
 }

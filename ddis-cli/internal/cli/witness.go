@@ -135,6 +135,11 @@ func runWitness(cmd *cobra.Command, args []string) error {
 			"command":      "witness",
 			"action":       "revoke",
 		})
+		// ddis:implements APP-INV-072 (event content completeness — witness revoke emits structured payload)
+		emitEvent(dbPath, events.StreamImplementation, events.TypeWitnessRevoked, specHashFromDB(db, specID), events.WitnessRevokePayload{
+			InvariantID: invariantID,
+			Reason:      "manual revocation",
+		})
 		return nil
 	case witnessReviewContext:
 		return witnessReviewMode(db, specID, invariantID)
@@ -142,12 +147,23 @@ func runWitness(cmd *cobra.Command, args []string) error {
 		if err := witnessRecordMode(db, specID, invariantID); err != nil {
 			return err
 		}
+		specHash := specHashFromDB(db, specID)
 		// ddis:maintains APP-INV-053 (event stream completeness — emits status_changed to stream 3)
-		emitEvent(dbPath, events.StreamImplementation, events.TypeStatusChanged, specHashFromDB(db, specID), map[string]interface{}{
+		emitEvent(dbPath, events.StreamImplementation, events.TypeStatusChanged, specHash, map[string]interface{}{
 			"invariant_id":  invariantID,
 			"evidence_type": witnessType,
 			"command":       "witness",
 			"action":        "record",
+		})
+		// ddis:implements APP-INV-072 (event content completeness — witness record emits structured payload)
+		emitEvent(dbPath, events.StreamImplementation, events.TypeWitnessRecorded, specHash, events.WitnessPayload{
+			InvariantID:  invariantID,
+			EvidenceType: witnessType,
+			Evidence:     witnessEvidence,
+			By:           witnessBy,
+			Model:        witnessModel,
+			CodeHash:     witnessCodeHash,
+			SpecHash:     specHash,
 		})
 		return nil
 	}

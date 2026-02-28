@@ -75,7 +75,7 @@ where:
   Workspace      = Map(SpecID -> {manifest_path, parent_spec, related_specs, drift_score})
 ```
 
-### 0.2.1 State Transitions (38 Commands)
+### 0.2.1 State Transitions (44 Commands)
 
 Each command is a transition function over the state space:
 
@@ -129,6 +129,14 @@ T_spec:        Workspace * ManifestPath -> Workspace'
 T_tasks:       DiscoveryState * Index -> TaskList
 T_manifest_scaffold: Manifest * ModuleDecls -> SpecFiles     (left adjoint of T_manifest_sync)
 T_rename:      Index * OldText * NewText * Opts -> SpecFiles' * OpLog
+
+-- Event sourcing domain
+T_materialize: EventStreams * Snapshot? -> Index               (fold events into SQLite)
+T_project:     Index -> SpecFiles                              (render SQLite to markdown)
+T_import:      SpecFiles -> EventStreams                        (convert markdown to events)
+T_bisect:      EventStreams * Predicate -> Event                (find defect-introducing event)
+T_blame:       Index * ElementID -> ProvenanceChain             (trace element to events)
+T_replay:      EventStreams * Position -> Index                 (materialize to specific event)
 
 -- Witness domain
 T_witness:     Index * InvariantID -> WitnessReceipt
@@ -202,7 +210,7 @@ Each pass is independently testable. The pipeline is deterministic: same input a
 
 ## 0.3 Invariant Registry (Declarations)
 
-All 70 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
+All 84 application invariants. Full definitions with formal expressions, violation scenarios, and validation methods are in the owning module. Each invariant starts at `Confidence: falsified`.
 
 **APP-INV-001: Round-Trip Fidelity** (Owner: parse-pipeline)
 Parse followed by render MUST produce byte-identical output for any valid DDIS specification.
@@ -546,6 +554,76 @@ Confidence: falsified
 Confidence: falsified
 *Violation: protocol omits required flags for ranked_work actions; agent execution fails with no recovery path.*
 
+**APP-INV-071: Log Canonicality** (Owner: event-sourcing)
+The JSONL event log is the single source of truth. SQLite databases and markdown files are derived artifacts. Deleting the SQLite database and replaying the event log via materialize must recover the full specification state.
+Confidence: falsified
+*Violation: a command writes directly to SQLite without appending an event; replaying the log produces a different state than the live database.*
+
+**APP-INV-072: Event Content Completeness** (Owner: event-sourcing)
+Every content-mutating event carries the full structured payload needed to reconstruct the affected spec element without external file access.
+Confidence: falsified
+*Violation: an invariant_crystallized event carries only the ID and title; the statement is in a separate file; replay without the file produces an incomplete invariant.*
+
+**APP-INV-073: Fold Determinism** (Owner: event-sourcing)
+Given the same event sequence, the fold function produces byte-identical SQLite state. No system clock reads, no RNG, no environment access.
+Confidence: falsified
+*Violation: the apply function uses time.Now() for a created_at field; replaying at different times produces different database contents.*
+
+**APP-INV-074: Causal Ordering** (Owner: event-sourcing)
+Events carry a causes field referencing prior events. The fold respects this partial order: if e2 references e1 via causes, e1 must be applied before e2.
+Confidence: falsified
+*Violation: an invariant_updated event appears before its invariant_crystallized event due to missing causes reference; fold updates a non-existent invariant.*
+
+**APP-INV-075: Materialization Idempotency** (Owner: event-sourcing)
+Deleting the SQLite database and replaying the full event log produces state identical to the original database.
+Confidence: falsified
+*Violation: auto-increment IDs differ after re-materialization because original DB had interleaved insertions from concurrent commands.*
+
+**APP-INV-076: Projection Purity** (Owner: event-sourcing)
+Projections (markdown rendering from SQLite state) are pure functions: no side effects, no writes, no state outside the SQLite index.
+Confidence: falsified
+*Violation: the project function reads filesystem timestamps to annotate freshness; projecting on a different machine produces different output.*
+
+**APP-INV-077: Synthetic Render** (Owner: event-sourcing)
+Markdown projections are synthesized from structured fields, not by replaying raw_text blobs. Rendering format can evolve independently of event schema.
+Confidence: falsified
+*Violation: project replays a raw_text blob from the crystallization event; when rendering convention changes, the output is stale.*
+
+**APP-INV-078: Import Equivalence** (Owner: event-sourcing)
+Importing existing markdown via ddis import followed by ddis materialize produces SQLite state structurally equivalent to ddis parse on the same markdown.
+Confidence: falsified
+*Violation: import emits section bodies as single blobs while parse splits them into sub-elements; materialized state has sections without extracted elements.*
+
+**APP-INV-079: Temporal Query Soundness** (Owner: event-sourcing)
+Folding the event log up to time t produces a valid specification state at time t.
+Confidence: falsified
+*Violation: folding to time t includes an invariant_updated event but not the preceding invariant_crystallized event due to clock skew; fold updates a non-existent invariant.*
+
+**APP-INV-080: Stream Processor Reactivity** (Owner: event-sourcing)
+Content-bearing events trigger downstream stream processors (validation, consistency, drift) that fire after the fold step and may append derived events.
+Confidence: falsified
+*Violation: a spec_section_defined event is applied but no validation processor fires; the section remains unvalidated.*
+
+**APP-INV-081: CRDT Convergence** (Owner: event-sourcing)
+For independent events, merge is commutative, associative, and idempotent. Two agents producing independent event streams converge to the same state regardless of merge order.
+Confidence: falsified
+*Violation: merging Agent 1 then Agent 2 assigns different SQLite row IDs than the reverse order; downstream queries return different results.*
+
+**APP-INV-082: Bisect Correctness** (Owner: event-sourcing)
+Bisect finds the earliest event introducing a specified defect via binary search in O(log n) materialize operations.
+Confidence: falsified
+*Violation: bisect materializes from scratch at each step instead of using snapshots; O(n * log n) instead of O(k * log n).*
+
+**APP-INV-083: Snapshot Consistency** (Owner: event-sourcing)
+A snapshot (materialized state + event position) enables incremental replay: fold(snapshot, remaining) equals fold(all_events).
+Confidence: falsified
+*Violation: snapshot taken at position p has stale foreign keys; incremental fold fails with constraint violation that full replay would not trigger.*
+
+**APP-INV-084: Causal Provenance** (Owner: event-sourcing)
+Every spec element traces back to its originating crystallization event and all subsequent modifications via the causal DAG.
+Confidence: falsified
+*Violation: an invariant is updated via event e2 but e2.causes is empty; provenance chain shows only e2, losing the history of the original crystallization.*
+
 ---
 
 ## 0.4 Invariant Confidence Levels
@@ -565,7 +643,7 @@ Confidence levels are tracked per-invariant in the implementation. The `validate
 
 ## 0.5 ADR Registry (Declarations)
 
-All 57 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
+All 65 architecture decision records. Full specifications with Problem, Options, Decision, WHY NOT, Consequences, and Tests are in the implementing module.
 
 **APP-ADR-001: Go over Rust** (Implements: parse-pipeline)
 Decision: Go for CLI implementation. The workload is I/O-bound (SQLite reads/writes, file parsing), not CPU-bound. Go's fast compilation supports rapid iteration in the RALPH improvement loop. A pure-Go SQLite driver (`modernc.org/sqlite`) eliminates CGO complexity.
@@ -784,6 +862,38 @@ WHY NOT manual priority: Human judgment may conflict with spec state. WHY NOT he
 Decision: `ddis triage --protocol` emits self-contained JSON. Any agent executes ranked_work[0].action, re-runs --protocol, repeats until F=1.0. Lyapunov function unifies μ and F.
 WHY NOT documentation: High barrier for zero-knowledge agents. WHY NOT context bundle: Read-only, no executable actions.
 
+**APP-ADR-058: JSONL as Canonical Representation** (Implements: event-sourcing)
+Decision: JSONL event logs are the canonical representation. SQLite is a materialized view. Markdown is a rendered projection. JSONL provides append-only guarantees, human-readability, VCS-friendly diffs, and natural event ordering.
+WHY NOT markdown: Lacks structured fields, causal ordering, and deterministic replay. WHY NOT SQLite: Binary format makes VCS diffs meaningless; no append-only guarantee.
+
+**APP-ADR-059: Deterministic Fold over Incremental Mutation** (Implements: event-sourcing)
+Decision: Full replay via deterministic fold (or from snapshot). The apply function is pure: (state, event) -> new_state. No side effects.
+WHY NOT incremental mutation: State depends on execution order, concurrency timing, and environment; precludes temporal queries.
+
+**APP-ADR-060: Event References for Causal Metadata** (Implements: event-sourcing)
+Decision: Explicit causes array of event IDs. Each event references specific prior events it depends on. Transitive closure defines the causal DAG.
+WHY NOT Lamport timestamps: Total ordering is too strong; cannot distinguish "before" from "concurrent." WHY NOT vector clocks: Size grows with agent count.
+
+**APP-ADR-061: Field Synthesis for Projections** (Implements: event-sourcing)
+Decision: Projections assembled from structured fields using rendering templates. Format evolves independently of content.
+WHY NOT raw text replay: Locks content to original formatting; prevents format evolution.
+
+**APP-ADR-062: Parse as Import Migration Path** (Implements: event-sourcing)
+Decision: Parallel pipelines. ddis import emits synthetic events from parsed markdown. ddis materialize folds events into SQLite. APP-INV-078 gates the transition.
+WHY NOT big-bang: Import equivalence must be proven first. WHY NOT immediate wrapper: Same risk.
+
+**APP-ADR-063: Semilattice Merge for CRDT** (Implements: event-sourcing)
+Decision: Independent events commute (semilattice). Concurrent updates to same element use LWW with timestamp + agent ID tiebreaker.
+WHY NOT total ordering: Prevents concurrent multi-agent work. WHY NOT OT: Unnecessary complexity for element-level events.
+
+**APP-ADR-064: Snapshot as Fold Checkpoint** (Implements: event-sourcing)
+Decision: Materialized SQLite + event position for fast incremental replay. Snapshots are disposable, created at configurable intervals.
+WHY NOT incremental apply: State drift compounds. WHY NOT no optimization: Impractical beyond ~1000 events.
+
+**APP-ADR-065: Stream Processors as Fold Observers** (Implements: event-sourcing)
+Decision: Post-fold observers fire after content events, may append derived events with causes references. Idempotent and independently deployable.
+WHY NOT manual invocation: Defeats event-driven purpose. WHY NOT in-fold validation: Couples validation to fold, makes apply impure.
+
 ---
 
 ## 0.6 Quality Gates (Declarations)
@@ -883,6 +993,14 @@ Terms specific to the DDIS CLI. If a term is also defined in the DDIS standard, 
 | **Triage Endofunctor** | T : DDIS → DDIS mapping spec state to successor via one triage step. Contractive: μ(T(S)) <_lex μ(S). Convergent: fixpoint at μ=(0,0,0). (APP-INV-068, APP-ADR-054) |
 | **Triage Measure** | μ(S) = (open_issues, unspecified, drift) ∈ ℕ³ with lexicographic well-founded ordering. Decreases with each triage step; zero at fixpoint. (APP-INV-068) |
 | **Triage Protocol** | Self-contained JSON output of `ddis triage --protocol`: fitness, measure, ranked work queue, convergence metrics. Sufficient for zero-knowledge agent participation. (APP-INV-070, APP-ADR-057) |
+| **Event Log** | The append-only JSONL file that serves as the single source of truth for specification content. The free monoid (Sigma*, ., epsilon) over the event type alphabet. All content mutations flow through the log. (APP-INV-071, APP-ADR-058) |
+| **Fold** | The monoid homomorphism f : Sigma* -> S that maps event sequences to materialized state. A pure function: same events always produce identical SQLite state. (APP-INV-073, APP-ADR-059) |
+| **Materialize** | The CLI command that replays the event log (or from a snapshot) into a SQLite database via the fold function. The primary derivation mechanism for the materialized view. (APP-INV-075, APP-ADR-059) |
+| **Projection** | A pure function from materialized SQLite state to human-readable output (markdown, HTML, etc.). Carries no information beyond what the materialized state contains. (APP-INV-076, APP-ADR-061) |
+| **Causal DAG** | The directed acyclic graph of causal dependencies between events, constructed from the causes fields. Defines the partial order that the fold must respect. (APP-INV-074, APP-ADR-060) |
+| **Semilattice** | The algebraic structure governing CRDT merge of independent event streams. Independent events commute under fold; concurrent updates use LWW resolution. (APP-INV-081, APP-ADR-063) |
+| **Snapshot** | A materialized SQLite state paired with the event log position at which it was taken. Enables incremental replay from the snapshot instead of full replay from genesis. (APP-INV-083, APP-ADR-064) |
+| **Stream Processor** | A post-fold observer that fires after content events and may append derived events. Processors are idempotent and independently deployable. (APP-INV-080, APP-ADR-065) |
 
 ---
 
@@ -901,6 +1019,7 @@ Cross-reference lookup: which module file contains each section's full specifica
 | State monad, discover, refine, absorb loops, contributor topology, thread management | modules/auto-prompting.md | Owns: APP-INV-022–036, -042, -045, -046. Implements: APP-ADR-016–025, -031, -033 |
 | Workspace init, multi-domain composition, cross-spec drift, task generation, progressive validation | modules/workspace-ops.md | Owns: APP-INV-037, -038, -039, -040. Implements: APP-ADR-026, -027, -028, -029 |
 | Issue lifecycle, triage state machine, evidence chain, spec-before-code gate, fitness function, triage protocol | modules/triage-workflow.md | Owns: APP-INV-063–070. Implements: APP-ADR-053–057 |
+| JSONL-canonical event sourcing, fold/materialize engine, synthetic projections, import bridge, causal DAG, CRDT merge, temporal queries, bisect, blame | modules/event-sourcing.md | Owns: APP-INV-071–084. Implements: APP-ADR-058–065 |
 
 ---
 
@@ -942,3 +1061,4 @@ reasoning_reserve: 0.25
 | **auto-prompting** | autoprompt | Bilateral specification lifecycle: `ddis discover` (idea→spec), `ddis refine` (spec improvement), `ddis absorb` (impl→spec). State monad architecture, thread-scoped discovery, cognitive mode classification, contributor topology, Gestalt-optimized prompt generation. APP-INV-022–036, -042, -045, -046. APP-ADR-016–025, -031, -033. |
 | **workspace-ops** | workspace | Workspace initialization (`ddis init`), multi-domain composition (`ddis spec add/list`), cross-spec drift, mechanical task generation (`ddis tasks`), progressive validation (Level 1/2/3 maturity tiers). APP-INV-037–040. APP-ADR-026–029. |
 | **triage-workflow** | triage | Recursive self-improvement: issue lifecycle state machine (event-sourced), spec-before-code gate, evidence chain, fitness function F(S), well-founded convergence μ(S), agent-executable protocol. APP-INV-063–070. APP-ADR-053–057. |
+| **event-sourcing** | eventsourcing | JSONL-canonical architecture: fold/materialize engine, synthetic projection, import migration bridge, causal DAG with CRDT merge, temporal queries, bisect, blame, snapshot checkpoints, stream processors. APP-INV-071–084. APP-ADR-058–065. |

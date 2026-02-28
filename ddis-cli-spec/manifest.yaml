@@ -11,7 +11,8 @@
 #   modules/auto-prompting.md:          ~1932 lines
 #   modules/workspace-ops.md:           ~886 lines
 #   modules/triage-workflow.md:          ~900 lines
-#   Total modular:                       ~8671 lines
+#   modules/event-sourcing.md:          ~1500 lines
+#   Total modular:                       ~10171 lines
 #
 # Bundle sizes (constitution + module):
 #   parse-pipeline bundle:           ~1278 lines (target: 4000, ceiling: 5000) ✓
@@ -295,6 +296,51 @@ modules:
       - "Must NOT generate tasks without mechanical derivation from the artifact map"
       - "Must NOT treat validation failure as binary — report maturity level and next steps"
       - "Must NOT require external tools (br, bv) for task generation core — only for output format"
+  event-sourcing:
+    file: "modules/event-sourcing.md"
+    domain: eventsourcing
+    maintains:
+      - APP-INV-071
+      - APP-INV-072
+      - APP-INV-073
+      - APP-INV-074
+      - APP-INV-075
+      - APP-INV-076
+      - APP-INV-077
+      - APP-INV-078
+      - APP-INV-079
+      - APP-INV-080
+      - APP-INV-081
+      - APP-INV-082
+      - APP-INV-083
+      - APP-INV-084
+    interfaces:
+      - APP-INV-001
+      - APP-INV-002
+      - APP-INV-010
+      - APP-INV-015
+      - APP-INV-016
+      - APP-INV-020
+      - APP-INV-025
+      - APP-INV-048
+      - APP-INV-053
+    implements:
+      - APP-ADR-058
+      - APP-ADR-059
+      - APP-ADR-060
+      - APP-ADR-061
+      - APP-ADR-062
+      - APP-ADR-063
+      - APP-ADR-064
+      - APP-ADR-065
+    adjacent: [parse-pipeline, code-bridge, lifecycle-ops, auto-prompting]
+    deep_context: null
+    negative_specs:
+      - "Must NOT read or write markdown as canonical source of truth"
+      - "Must NOT store mutable state not derivable from the event log"
+      - "Must NOT use raw_text blobs for rendering projections"
+      - "Must NOT break causal ordering during merge operations"
+      - "Must NOT allow non-deterministic materialize results"
   triage-workflow:
     file: "modules/triage-workflow.md"
     domain: triage
@@ -405,3 +451,17 @@ invariant_registry:
   APP-INV-068: {owner: triage-workflow, domain: triage, description: "Fixpoint Termination — triage measure μ(S) decreases lexicographically, guaranteed to reach (0,0,0)"}
   APP-INV-069: {owner: triage-workflow, domain: triage, description: "Triage Monotonic Fitness — F(S') ≥ F(S) after every triage step; F=1.0 iff fixpoint reached"}
   APP-INV-070: {owner: triage-workflow, domain: triage, description: "Protocol Completeness — ddis triage --protocol output sufficient for zero-knowledge agent participation"}
+  APP-INV-071: {owner: event-sourcing, domain: eventsourcing, description: "Log Canonicality — JSONL event log is single source of truth; SQL and markdown are derived"}
+  APP-INV-072: {owner: event-sourcing, domain: eventsourcing, description: "Event Content Completeness — content-mutating events carry full structured payload"}
+  APP-INV-073: {owner: event-sourcing, domain: eventsourcing, description: "Fold Determinism — same event sequence produces identical SQLite state (pure function)"}
+  APP-INV-074: {owner: event-sourcing, domain: eventsourcing, description: "Causal Ordering — events carry causes refs; fold respects partial order"}
+  APP-INV-075: {owner: event-sourcing, domain: eventsourcing, description: "Materialization Idempotency — delete SQL, replay log produces byte-identical state"}
+  APP-INV-076: {owner: event-sourcing, domain: eventsourcing, description: "Projection Purity — projections are pure functions of SQL state"}
+  APP-INV-077: {owner: event-sourcing, domain: eventsourcing, description: "Synthetic Render — markdown from structured fields, not raw_text blobs"}
+  APP-INV-078: {owner: event-sourcing, domain: eventsourcing, description: "Import Equivalence — ddis import + materialize equals ddis parse (modulo metadata)"}
+  APP-INV-079: {owner: event-sourcing, domain: eventsourcing, description: "Temporal Query Soundness — fold(log[0:t]) equals valid spec at time t"}
+  APP-INV-080: {owner: event-sourcing, domain: eventsourcing, description: "Stream Processor Reactivity — content events trigger validation/consistency/drift processors"}
+  APP-INV-081: {owner: event-sourcing, domain: eventsourcing, description: "CRDT Convergence — merge(A,B) equals merge(B,A) for independent events"}
+  APP-INV-082: {owner: event-sourcing, domain: eventsourcing, description: "Bisect Correctness — finds earliest defect-introducing event via binary search"}
+  APP-INV-083: {owner: event-sourcing, domain: eventsourcing, description: "Snapshot Consistency — fold(snapshot, log[snap_pos:]) equals fold(log)"}
+  APP-INV-084: {owner: event-sourcing, domain: eventsourcing, description: "Causal Provenance — every element traces to its crystallization event"}

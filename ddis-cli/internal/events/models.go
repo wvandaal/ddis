@@ -27,7 +27,8 @@ func (s Stream) File() string {
 }
 
 // Event is the common envelope for all three streams.
-// Matches the spec at code-bridge.md §Envelope Schema.
+// Matches the spec at code-bridge.md §Envelope Schema and
+// event-sourcing.md §Event Struct Extension.
 type Event struct {
 	ID        string          `json:"id"`
 	Type      string          `json:"type"`
@@ -35,6 +36,8 @@ type Event struct {
 	SpecHash  string          `json:"spec_hash"`
 	Stream    Stream          `json:"stream"`
 	Payload   json.RawMessage `json:"payload"`
+	Causes    []string        `json:"causes,omitempty"`  // APP-INV-074: IDs of causally preceding events
+	Version   int             `json:"version,omitempty"` // APP-INV-072: schema version for forward compat
 }
 
 // ContentHash computes SHA-256 of the canonical JSON payload.
