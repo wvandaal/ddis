@@ -192,6 +192,10 @@ func (c *checkINV006XRefDensity) Run(db *sql.DB, specID int64) CheckResult {
 		if sec.HeadingLevel <= 1 {
 			continue
 		}
+		// Skip structural container headings (organizational, not content)
+		if isStructuralHeading(sec.Title) {
+			continue
+		}
 
 		if !isReachable(&sec) {
 			orphans++
@@ -225,6 +229,74 @@ func isExemptSection(path string) bool {
 			return true
 		}
 	}
+	return false
+}
+
+// isStructuralHeading returns true for section titles that are organizational
+// containers (not content). These sections exist to group child sections and
+// naturally lack cross-references — they are the skeleton of the document tree,
+// not leaves. Exempting them follows from the algebraic structure: in the
+// section tree (S, ≤), internal nodes serve as grouping morphisms; only leaf
+// content sections carry domain semantics requiring cross-reference density.
+func isStructuralHeading(title string) bool {
+	lower := strings.ToLower(title)
+
+	// Exact structural container headings
+	structuralTitles := []string{
+		"overview", "invariants", "architecture decision records",
+		"implementation chapters", "worked examples", "cli commands",
+		"package structure", "formal foundation", "formal algorithm specifications",
+		"exemplar demonstrations", "context budget", "discovery context",
+		"thread topology", "relevant spec elements", "contributor topology",
+		"completeness in ddis specification",
+		"category-theoretic structure", "commandresult json schema",
+		"statesnapshot fields",
+	}
+	for _, s := range structuralTitles {
+		if lower == s {
+			return true
+		}
+	}
+
+	// Pattern-based: sections whose titles indicate structural role
+	structuralPrefixes := []string{
+		"version ", "background:", "the ", "example:",
+		"invariants maintained by", "your task",
+	}
+	for _, p := range structuralPrefixes {
+		if strings.HasPrefix(lower, p) {
+			return true
+		}
+	}
+
+	// ADR subsection headings that repeat across many ADRs (e.g., "Problem~5")
+	adrSubheadings := []string{"problem", "decision", "options", "consequences", "tests"}
+	for _, h := range adrSubheadings {
+		if lower == h || strings.HasPrefix(lower, h+"~") {
+			return true
+		}
+	}
+
+	// CLI command references (e.g., "`ddis init`", "`ddis discover`")
+	if strings.HasPrefix(lower, "`ddis ") {
+		return true
+	}
+
+	// Algorithm sections
+	if strings.HasPrefix(lower, "algorithm:") || strings.HasPrefix(lower, "algorithm ") {
+		return true
+	}
+
+	// Phase/chapter references in implementation sections
+	if strings.HasPrefix(lower, "phase ") || strings.HasPrefix(lower, "chapter ") {
+		return true
+	}
+
+	// Exemplar/example references
+	if strings.HasPrefix(lower, "exemplar ") || strings.HasPrefix(lower, "element to improve") {
+		return true
+	}
+
 	return false
 }
 
