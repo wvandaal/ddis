@@ -2,9 +2,11 @@ package cli
 
 // ddis:implements APP-INV-078 (import equivalence — markdown to JSONL event conversion)
 // ddis:implements APP-INV-085 (import content completeness — emits events for ALL content types)
+// ddis:implements APP-INV-110 (ADR options round-trip fidelity — import serializes adr_options as JSON)
 // ddis:implements APP-ADR-062 (parse as import migration path)
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -128,14 +130,23 @@ func runImport(cmd *cobra.Command, args []string) error {
 	}
 
 	// Emit ADR events
-	adrRows, err := db.Query(`SELECT adr_id, title, problem, decision_text, COALESCE(consequences,''), COALESCE(tests,'')
+	// ddis:implements APP-INV-110 (ADR options round-trip — query adr_options per ADR, serialize as JSON)
+	adrRows, err := db.Query(`SELECT id, adr_id, title, problem, decision_text, COALESCE(consequences,''), COALESCE(tests,'')
 		FROM adrs WHERE spec_id = ? ORDER BY adr_id`, specID)
 	if err == nil {
 		defer adrRows.Close()
 		for adrRows.Next() {
+			var adrDBID int64
 			var p events.ADRPayload
-			if err := adrRows.Scan(&p.ID, &p.Title, &p.Problem, &p.Decision, &p.Consequences, &p.Tests); err != nil {
+			if err := adrRows.Scan(&adrDBID, &p.ID, &p.Title, &p.Problem, &p.Decision, &p.Consequences, &p.Tests); err != nil {
 				continue
+			}
+			// Serialize adr_options as JSON array in Options field
+			opts, optErr := storage.GetADROptions(db, adrDBID)
+			if optErr == nil && len(opts) > 0 {
+				if b, je := json.Marshal(opts); je == nil {
+					p.Options = string(b)
+				}
 			}
 			p.Synthetic = importSynth
 			evt, err := events.NewEvent(events.StreamSpecification, events.TypeADRCrystallized, specHash, p)

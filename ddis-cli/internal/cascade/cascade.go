@@ -32,6 +32,7 @@ type AffectedModule struct {
 	Module       string `json:"module"`
 	Domain       string `json:"domain"`
 	Relationship string `json:"relationship"`
+	Role         string `json:"role"` // "owner", "consumer", or "peer"
 }
 
 // Analyze performs cascade analysis: given an element ID, find all modules and
@@ -89,6 +90,7 @@ func Analyze(db *sql.DB, specID int64, elementID string, opts Options) (*Cascade
 	}
 
 	// 4. Find affected modules via module_relationships
+	// ddis:implements APP-INV-111 (cascade relationship completeness — all 4 rel_types included)
 	rels, _ := storage.GetModuleRelationships(db, specID)
 	domainSet := make(map[string]bool)
 	seen := make(map[string]bool) // dedup by module name
@@ -97,7 +99,7 @@ func Analyze(db *sql.DB, specID int64, elementID string, opts Options) (*Cascade
 			continue
 		}
 		moduleName := moduleByID[r.ModuleID]
-		if moduleName == "" || r.RelType == "maintains" {
+		if moduleName == "" {
 			continue
 		}
 		if seen[moduleName] {
@@ -105,10 +107,18 @@ func Analyze(db *sql.DB, specID int64, elementID string, opts Options) (*Cascade
 		}
 		seen[moduleName] = true
 		domain := moduleDomain[moduleName]
+		role := "consumer"
+		switch r.RelType {
+		case "maintains":
+			role = "owner"
+		case "adjacent":
+			role = "peer"
+		}
 		result.AffectedModules = append(result.AffectedModules, AffectedModule{
 			Module:       moduleName,
 			Domain:       domain,
 			Relationship: r.RelType + " with " + elementID,
+			Role:         role,
 		})
 		domainSet[domain] = true
 	}

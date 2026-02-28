@@ -6,6 +6,7 @@ package cli
 // ddis:implements APP-ADR-059 (deterministic fold over incremental mutation)
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -328,12 +329,35 @@ func (a *sqlApplier) RemoveInvariant(p events.InvariantRemovePayload) error {
 	return err
 }
 
+// ddis:implements APP-INV-110 (ADR options round-trip fidelity — deserialize options JSON on materialize)
 func (a *sqlApplier) InsertADR(p events.ADRPayload) error {
 	sectionID := a.lookupSectionID(p.SectionPath)
-	_, err := a.db.Exec(`INSERT OR REPLACE INTO adrs (spec_id, source_file_id, section_id, adr_id, title, problem, decision_text, consequences, tests, line_start, line_end, raw_text, content_hash)
+	res, err := a.db.Exec(`INSERT OR REPLACE INTO adrs (spec_id, source_file_id, section_id, adr_id, title, problem, decision_text, consequences, tests, line_start, line_end, raw_text, content_hash)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, '', '')`,
 		a.specID, a.sourceFileID, sectionID, p.ID, p.Title, p.Problem, p.Decision, p.Consequences, p.Tests)
-	return err
+	if err != nil {
+		return err
+	}
+	// Deserialize options JSON and populate adr_options table
+	if p.Options != "" && p.Options[0] == '[' {
+		adrDBID, _ := res.LastInsertId()
+		if adrDBID == 0 {
+			a.db.QueryRow(`SELECT id FROM adrs WHERE spec_id = ? AND adr_id = ?`,
+				a.specID, p.ID).Scan(&adrDBID)
+		}
+		if adrDBID > 0 {
+			var opts []storage.ADROption
+			if json.Unmarshal([]byte(p.Options), &opts) == nil {
+				// Clear existing options for this ADR before inserting
+				a.db.Exec(`DELETE FROM adr_options WHERE adr_id = ?`, adrDBID)
+				for _, opt := range opts {
+					opt.ADRID = adrDBID
+					storage.InsertADROption(a.db, &opt)
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (a *sqlApplier) UpdateADR(p events.ADRUpdatePayload) error {

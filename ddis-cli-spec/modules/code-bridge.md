@@ -1,7 +1,7 @@
 ---
 module: code-bridge
 domain: bridge
-maintains: [APP-INV-017, APP-INV-018, APP-INV-019, APP-INV-020, APP-INV-021, APP-INV-048, APP-INV-054, APP-INV-055]
+maintains: [APP-INV-017, APP-INV-018, APP-INV-019, APP-INV-020, APP-INV-021, APP-INV-048, APP-INV-054, APP-INV-055, APP-INV-111]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-008, APP-INV-009, APP-INV-015, APP-INV-016]
 implements: [APP-ADR-012, APP-ADR-014, APP-ADR-015, APP-ADR-034, APP-ADR-038, APP-ADR-040, APP-ADR-042, APP-ADR-051]
 adjacent: [parse-pipeline, query-validation, lifecycle-ops, auto-prompting]
@@ -1187,5 +1187,30 @@ New command: ddis rename --old --new. New state transition: T_rename. Scans all 
 #### Tests
 
 Rename title: verify changes in module, constitution, manifest. --dry-run: no files modified. No occurrences: error.
+
+---
+
+## Chapter 8: Cleanroom Audit Round 3 — Cascade Relationship Completeness
+
+The `cascade` command analyzes the impact of changing a spec element by looking up which modules have relationships to that element. The current implementation at `internal/cascade/cascade.go:100` excludes `maintains` relationships, meaning the owning module is not flagged when its own invariant changes. This is semantically backwards: the module that maintains an invariant is the primary stakeholder of any change to it. By contrast, `progress` and `implorder` both include `maintains` relationships in their dependency graphs. This chapter formalizes the correct behavior.
+
+**APP-INV-111: Cascade Relationship Completeness**
+
+*When analyzing cascade impact for element E, the result must include every module M such that a relationship R exists where R.target = E, regardless of R.rel_type. All four relationship types (maintains, interfaces, implements, adjacent) must contribute to the affected module set. The output must categorize each affected module by its relationship role.*
+
+```
+forall element E, module M, relationship R in module_relationships:
+  R.target = E AND R.module_id = M.id =>
+    M in cascade(E).AffectedModules
+  role(M) = "owner" if R.rel_type = "maintains"
+  role(M) = "consumer" if R.rel_type in {"interfaces", "implements"}
+  role(M) = "peer" if R.rel_type = "adjacent"
+```
+
+Violation scenario: Module M maintains APP-INV-001. Run `ddis cascade APP-INV-001 db.db`. Module M is missing from the affected modules list because `maintains` relationships are excluded at line 100. The developer modifying APP-INV-001 has no signal that M (the owning module) needs updating.
+
+Validation method: Create a test database with module M maintaining INV-X, module N interfacing INV-X, module P adjacent to INV-X. Run cascade analysis on INV-X. Assert all three modules appear in the result with correct roles (owner, consumer, peer respectively).
+
+Why this matters: Cascade analysis is how developers discover the blast radius of spec changes. Excluding the owning module — the most affected party — means the most critical update is missed. This creates a false sense of containment: the cascade report says "only consumers are affected" when the owner itself needs revision. The asymmetry with `progress` and `implorder` (which DO include maintains) makes the behavior inconsistent across commands. Related: APP-INV-016 (Implementation Traceability), APP-INV-020 (Spec-Impl Correspondence).
 
 ---

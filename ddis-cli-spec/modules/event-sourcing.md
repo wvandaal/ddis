@@ -1,9 +1,9 @@
 ---
 module: event-sourcing
 domain: eventsourcing
-maintains: [APP-INV-071, APP-INV-072, APP-INV-073, APP-INV-074, APP-INV-075, APP-INV-076, APP-INV-077, APP-INV-078, APP-INV-079, APP-INV-080, APP-INV-081, APP-INV-082, APP-INV-083, APP-INV-084, APP-INV-085, APP-INV-086, APP-INV-087, APP-INV-088, APP-INV-089, APP-INV-090, APP-INV-091, APP-INV-092, APP-INV-093, APP-INV-094, APP-INV-095, APP-INV-096, APP-INV-097, APP-INV-098, APP-INV-100, APP-INV-101, APP-INV-108]
+maintains: [APP-INV-071, APP-INV-072, APP-INV-073, APP-INV-074, APP-INV-075, APP-INV-076, APP-INV-077, APP-INV-078, APP-INV-079, APP-INV-080, APP-INV-081, APP-INV-082, APP-INV-083, APP-INV-084, APP-INV-085, APP-INV-086, APP-INV-087, APP-INV-088, APP-INV-089, APP-INV-090, APP-INV-091, APP-INV-092, APP-INV-093, APP-INV-094, APP-INV-095, APP-INV-096, APP-INV-097, APP-INV-098, APP-INV-100, APP-INV-101, APP-INV-108, APP-INV-110]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-010, APP-INV-015, APP-INV-016, APP-INV-020, APP-INV-025, APP-INV-048, APP-INV-053]
-implements: [APP-ADR-058, APP-ADR-059, APP-ADR-060, APP-ADR-061, APP-ADR-062, APP-ADR-063, APP-ADR-064, APP-ADR-065, APP-ADR-066, APP-ADR-067, APP-ADR-068, APP-ADR-069, APP-ADR-070, APP-ADR-071, APP-ADR-072, APP-ADR-073, APP-ADR-074, APP-ADR-076, APP-ADR-078]
+implements: [APP-ADR-058, APP-ADR-059, APP-ADR-060, APP-ADR-061, APP-ADR-062, APP-ADR-063, APP-ADR-064, APP-ADR-065, APP-ADR-066, APP-ADR-067, APP-ADR-068, APP-ADR-069, APP-ADR-070, APP-ADR-071, APP-ADR-072, APP-ADR-073, APP-ADR-074, APP-ADR-076, APP-ADR-078, APP-ADR-079]
 adjacent: [parse-pipeline, code-bridge, lifecycle-ops, auto-prompting]
 negative_specs:
   - "Must NOT read or write markdown as canonical source of truth"
@@ -1736,5 +1736,49 @@ Users gain incremental materialization for large event streams. Graceful degrada
 
 #### Tests
 1. Create snapshot at position N, add events, materialize --from-snapshot, verify only events after N are processed. 2. Corrupt snapshot hash, verify graceful fallback to full replay.
+
+---
+
+## Chapter 13: Cleanroom Audit Round 3 — ADR Options Round-Trip Fidelity
+
+The event-sourcing pipeline must preserve ADR options across the full round-trip: parse → store → import → event → materialize → project. The parser correctly extracts options into the `adr_options` table during the initial parse phase. However, the import command does not query this table, the event payload carries an empty string for options, and the materializer does not reconstitute options from the payload. This chapter specifies the missing links.
+
+**APP-INV-110: ADR Options Round-Trip Fidelity**
+
+*ADR options stored in the adr_options table during parse must survive the complete event-sourcing round-trip: import, event emission, materialize, project, rendered markdown. No option label, name, pros, cons, is_chosen, or why_not field may be lost during the cycle.*
+
+```
+forall ADR A with options O = {o_1, ..., o_n} in parsed DB:
+  let E = import(A).payload.Options
+  let O' = materialize(E).adr_options
+  |O| = |O'|
+  forall o_i in O: exists o'_j in O' where
+    o_i.label = o'_j.label AND o_i.name = o'_j.name AND o_i.is_chosen = o'_j.is_chosen
+```
+
+Violation scenario: Parse a spec with ADR containing 3 options (A, B, C) with pros/cons. Export via `ddis import`, materialize the resulting events, query `adr_options` — the table is empty. Options are silently dropped during import because the query does not JOIN on `adr_options`.
+
+Validation method: Round-trip test: parse spec with multi-option ADR → import to events → materialize events → count rows in `adr_options`. Assert `COUNT(adr_options WHERE adr_id = A) >= 3`.
+
+Why this matters: ADR options are the deliberative record of the specification process. Losing them breaks the bilateral discourse contract — the spec no longer captures WHY alternatives were rejected, only WHAT was chosen. This degrades spec quality on every round-trip through the event pipeline. Related: APP-INV-078 (Import Equivalence), APP-INV-085 (Import Content Completeness), APP-INV-087 (Materialization Structural Fidelity).
+
+---
+
+### APP-ADR-079: ADR Options Serialization in Event Payloads
+
+#### Problem
+The `ADRPayload.Options` field is a single string but the parser stores options as normalized rows in `adr_options` (label, name, pros, cons, is_chosen, why_not). The import command does not query `adr_options`, so the Options field is always empty. The materializer does not parse the Options field back into rows. Round-trip fidelity for ADR options is zero.
+
+#### Options
+A) Serialize options as structured JSON in the Options string field; deserialize on materialize. B) Add a new `TypeADROptionAdded` event type for each individual option. C) Serialize as markdown text matching the parser's input format, so the materializer can re-parse.
+
+#### Decision
+**Option A: Structured JSON serialization.** Serialize the options array as a JSON array within the ADRPayload.Options string field. On import, query `adr_options` joined to `adrs`, serialize each option as `{"label":"A","name":"Go","pros":"...","cons":"...","is_chosen":true,"why_not":"..."}`. On materialize, deserialize the JSON array and call `InsertADROption()` for each entry. This preserves all fields without adding new event types or relying on markdown re-parsing.
+
+#### Consequences
+JSON serialization is lossless and does not require new event types, keeping the event schema stable. The materializer gains a new code path in the ADR applier to parse and store options. Existing events with empty Options strings produce no options (backward compatible). New events carry full option structure. The query and projector paths can also use `GetADROptions()` for enrichment.
+
+#### Tests
+1. Parse spec with 3-option ADR, import to events, verify Options field is non-empty JSON array. 2. Materialize those events, verify `adr_options` table has 3 rows with correct labels. 3. Import ADR with no options, verify empty Options field, materialize succeeds with no options.
 
 ---
