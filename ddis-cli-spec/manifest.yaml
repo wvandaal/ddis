@@ -500,3 +500,8 @@ invariant_registry:
   APP-INV-095: { owner: event-sourcing, domain: eventsourcing, description: "Snapshot Recovery Graceful Degradation — corrupted snapshot triggers full replay fallback" }
   APP-INV-096: { owner: event-sourcing, domain: eventsourcing, description: "Pipeline Round-Trip Preservation — full pipeline preserves structural content" }
   APP-INV-097: { owner: event-sourcing, domain: eventsourcing, description: "E2E Pipeline Determinism — running pipeline twice produces byte-identical output" }
+  APP-INV-098: { owner: event-sourcing, domain: event-sourcing, description: "Snapshot position tracks event stream ordinal, not content count" }
+  APP-INV-099: { owner: lifecycle-ops, domain: lifecycle, description: "Manifest mutations use structured YAML parse/serialize, never string ops" }
+  APP-INV-100: { owner: event-sourcing, domain: event-sourcing, description: "Event applier preserves section hierarchy via proper section_id assignment" }
+  APP-INV-101: { owner: event-sourcing, domain: event-sourcing, description: "StructuralDiff uses complete composite keys including all discriminants" }
+  APP-INV-102: { owner: auto-prompting, domain: autoprompt, description: "LLM confidence constants centralized across all voting modules" }
