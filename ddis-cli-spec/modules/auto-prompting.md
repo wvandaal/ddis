@@ -1,7 +1,7 @@
 ---
 module: auto-prompting
 domain: autoprompt
-maintains: [APP-INV-022, APP-INV-023, APP-INV-024, APP-INV-025, APP-INV-026, APP-INV-027, APP-INV-028, APP-INV-029, APP-INV-030, APP-INV-031, APP-INV-032, APP-INV-033, APP-INV-034, APP-INV-035, APP-INV-036, APP-INV-042, APP-INV-045, APP-INV-046, APP-INV-056, APP-INV-061, APP-INV-102, APP-INV-104]
+maintains: [APP-INV-022, APP-INV-023, APP-INV-024, APP-INV-025, APP-INV-026, APP-INV-027, APP-INV-028, APP-INV-029, APP-INV-030, APP-INV-031, APP-INV-032, APP-INV-033, APP-INV-034, APP-INV-035, APP-INV-036, APP-INV-042, APP-INV-045, APP-INV-046, APP-INV-056, APP-INV-061, APP-INV-102, APP-INV-104, APP-INV-109]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-005, APP-INV-008, APP-INV-009, APP-INV-010, APP-INV-015, APP-INV-016, APP-INV-017, APP-INV-018, APP-INV-020]
 implements: [APP-ADR-016, APP-ADR-017, APP-ADR-018, APP-ADR-019, APP-ADR-020, APP-ADR-021, APP-ADR-022, APP-ADR-023, APP-ADR-024, APP-ADR-025, APP-ADR-031, APP-ADR-033, APP-ADR-043, APP-ADR-049]
 adjacent: [code-bridge, search-intelligence, query-validation, lifecycle-ops, workspace-ops]
@@ -2279,5 +2279,27 @@ Violation scenario: Witness eval records a 2/3 agreement witness with confidence
 Validation: grep for hardcoded confidence constants (0.75, 0.80, 0.85, 0.95). Verify all originate from a single source of truth. Test: call both eval and consistency with mock 2/3 agreement, verify identical confidence.
 
 // WHY THIS MATTERS: Confidence values feed into deduplication, prioritization, and report rendering. Inconsistent values create ordering anomalies where identical evidence is ranked differently based on the code path, violating statistical soundness (APP-INV-055).
+
+---
+
+## Chapter 7: Cleanroom Audit Round 2 — Refinement Confidence Fidelity
+
+### §AP.7.1 Floating-Point Confidence Scoring
+
+**APP-INV-109: Refine confidence floating-point fidelity**
+
+*Confidence dimension scores in the RALPH refinement loop must use floating-point intermediate arithmetic to avoid integer division truncation that distorts dimension selection.*
+
+```
+forall d in dimensions:
+  |score_float(d) - score_int(d)| < 0.5
+  where score_float uses float64 division and score_int uses integer division
+```
+
+Violation scenario: deriveConfidence computes `10 * numerator / denominator` using Go integer division. For 1/3, this yields 3 instead of 3.33, causing the wrong dimension to be selected for improvement.
+
+Validation: Test: deriveConfidence with CompleteElements=1, TotalElements=3; verify coverage score is 3 (rounded), not 3 (truncated from 3.33).
+
+// WHY THIS MATTERS: The RALPH loop selects the weakest dimension for improvement. Integer truncation can make two dimensions appear equally weak when one is clearly weaker, causing the wrong dimension to be targeted.
 
 ---

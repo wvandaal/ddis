@@ -1,9 +1,9 @@
 ---
 module: lifecycle-ops
 domain: lifecycle
-maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016, APP-INV-041, APP-INV-050, APP-INV-051, APP-INV-052, APP-INV-053, APP-INV-059, APP-INV-062, APP-INV-103, APP-INV-105]
+maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016, APP-INV-041, APP-INV-050, APP-INV-051, APP-INV-052, APP-INV-053, APP-INV-059, APP-INV-062, APP-INV-103, APP-INV-105, APP-INV-106, APP-INV-107]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-008, APP-INV-009, APP-INV-011, APP-INV-012, APP-INV-015]
-implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011, APP-ADR-030, APP-ADR-037, APP-ADR-039, APP-ADR-041, APP-ADR-046, APP-ADR-050, APP-ADR-052, APP-ADR-075]
+implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011, APP-ADR-030, APP-ADR-037, APP-ADR-039, APP-ADR-041, APP-ADR-046, APP-ADR-050, APP-ADR-052, APP-ADR-075, APP-ADR-077]
 adjacent: [parse-pipeline, search-intelligence, query-validation]
 negative_specs:
   - "Must NOT modify or delete existing oplog records"
@@ -1439,5 +1439,65 @@ Safe manifest mutation by construction. Round-trip YAML validity guaranteed. Exi
 
 #### Tests
 Round-trip: parse manifest, add entry, serialize, parse again. Concurrent: two parallel crystallize calls. Edge: no trailing newline, empty registry.
+
+---
+
+## Chapter 9: Cleanroom Audit Round 2 — Witness and Drift Integrity
+
+### §L.9.1 Witness ID Stability
+
+**APP-INV-107: Witness ID stability under upsert**
+
+*Witness upsert operations must preserve the row ID when updating an existing witness, ensuring FK references from challenge_results remain valid.*
+
+```
+forall w in invariant_witnesses: upsert(w) => w.id_after == w.id_before
+AND forall c in challenge_results: c.witness_id IN invariant_witnesses.id
+```
+
+Violation scenario: InsertWitness uses INSERT OR REPLACE which deletes the old row (destroying its ID) then inserts a new row with a new auto-increment ID. challenge_results.witness_id references the old ID, causing FK constraint failure.
+
+Validation: Test: insert witness, insert challenge referencing it, upsert witness, verify challenge FK still valid.
+
+// WHY THIS MATTERS: Without ID stability, the witness-challenge adjunction breaks. Challenges become orphaned, Check 17 fails, and the bilateral verification loop is severed.
+
+---
+
+### §L.9.2 Drift Contradiction Integration
+
+**APP-INV-106: Drift contradiction integration**
+
+*The drift analysis formula must integrate contradictions detected by the consistency checker, not leave the contradictions counter at zero. The 2x penalty for contradictions in the drift formula must be exercised.*
+
+```
+drift.contradictions >= |consistency.Analyze(db, specID).filter(t => t.Type == contradiction)|
+```
+
+Violation scenario: drift.go declares `contradictions := 0` but never increments it. The drift formula includes 2*contradictions but the value is always 0, meaning contradictory specs get the same drift score as consistent ones.
+
+Validation: Test: create spec with contradictory invariants, run drift analysis, verify contradictions > 0 and drift score includes 2x penalty.
+
+// WHY THIS MATTERS: Contradictions are the most severe form of drift — a spec that contradicts itself is worse than one with missing elements. The 2x penalty exists for this reason but is dead code.
+
+---
+
+### §L.9.3 Witness Upsert Architecture
+
+### APP-ADR-077: ON CONFLICT DO UPDATE for witness upsert
+
+#### Problem
+INSERT OR REPLACE on witnesses deletes the old row and creates a new one with a different auto-increment ID. This orphans FK references in challenge_results, causing FOREIGN KEY constraint failures.
+
+#### Options
+A) ON CONFLICT DO UPDATE (preserves row ID). B) ON DELETE CASCADE on FK (auto-deletes challenges). C) Remove FK constraint entirely (loose coupling).
+
+#### Decision
+**Option A: ON CONFLICT DO UPDATE.** Use INSERT ... ON CONFLICT(spec_id, invariant_id) DO UPDATE SET ... which preserves the existing row ID while updating all fields. This maintains FK integrity without requiring cascade rules or removing constraints.
+
+#### Consequences
+ON CONFLICT DO UPDATE is the correct SQLite pattern for upsert-with-identity-preservation. It avoids the DELETE+INSERT semantics of INSERT OR REPLACE, keeping the row ID stable. CASCADE would silently destroy challenge evidence. Removing the FK would weaken data integrity.
+
+#### Tests
+1. Insert witness (ID=5), insert challenge with witness_id=5, upsert witness, verify challenge.witness_id=5 still valid. 2. Verify LastInsertId returns existing ID on conflict path.
 
 ---

@@ -504,23 +504,30 @@ func ClearSearchData(db *sql.DB, specID int64) error {
 	return nil
 }
 
-// InsertWitness inserts or replaces an invariant witness.
-// Clears any challenge_results referencing the old witness to avoid FK violations
-// during INSERT OR REPLACE (which DELETEs then INSERTs).
+// InsertWitness inserts or updates an invariant witness.
+// ddis:implements APP-INV-107 (witness ID stability under upsert)
+// ddis:implements APP-ADR-077 (ON CONFLICT DO UPDATE preserves row ID)
+//
+// Uses INSERT ... ON CONFLICT DO UPDATE instead of INSERT OR REPLACE to preserve
+// the row ID. INSERT OR REPLACE deletes then reinserts, generating a new auto-increment
+// ID that orphans FK references in challenge_results. ON CONFLICT DO UPDATE modifies
+// the existing row in-place, keeping the same ID.
 func InsertWitness(db *sql.DB, w *InvariantWitness) (int64, error) {
-	// Remove stale challenge results that reference the witness being replaced.
-	if _, err := db.Exec(
-		`DELETE FROM challenge_results WHERE spec_id = ? AND invariant_id = ?`,
-		w.SpecID, w.InvariantID,
-	); err != nil {
-		return 0, fmt.Errorf("clear challenge for witness %s: %w", w.InvariantID, err)
-	}
-
 	res, err := db.Exec(
-		`INSERT OR REPLACE INTO invariant_witnesses
+		`INSERT INTO invariant_witnesses
 		 (spec_id, invariant_id, spec_hash, code_hash, evidence_type, evidence,
 		  proven_by, model, proven_at, status, notes)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?, ?)`,
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?, ?)
+		 ON CONFLICT(spec_id, invariant_id) DO UPDATE SET
+		  spec_hash = excluded.spec_hash,
+		  code_hash = excluded.code_hash,
+		  evidence_type = excluded.evidence_type,
+		  evidence = excluded.evidence,
+		  proven_by = excluded.proven_by,
+		  model = excluded.model,
+		  proven_at = excluded.proven_at,
+		  status = excluded.status,
+		  notes = excluded.notes`,
 		w.SpecID, w.InvariantID, w.SpecHash, nullStr(w.CodeHash),
 		w.EvidenceType, w.Evidence, w.ProvenBy, nullStr(w.Model),
 		w.Status, nullStr(w.Notes),
@@ -528,7 +535,15 @@ func InsertWitness(db *sql.DB, w *InvariantWitness) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("insert witness %s: %w", w.InvariantID, err)
 	}
-	return res.LastInsertId()
+
+	// ON CONFLICT DO UPDATE doesn't change rowid, so LastInsertId may return 0
+	// on the update path. Query the actual ID to ensure correctness.
+	id, _ := res.LastInsertId()
+	if id == 0 {
+		db.QueryRow(`SELECT id FROM invariant_witnesses WHERE spec_id = ? AND invariant_id = ?`,
+			w.SpecID, w.InvariantID).Scan(&id)
+	}
+	return id, nil
 }
 
 // InsertChallengeResult inserts or replaces a challenge result.

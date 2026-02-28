@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/wvandaal/ddis/internal/consistency"
 	"github.com/wvandaal/ddis/internal/state"
 	"github.com/wvandaal/ddis/internal/storage"
 )
@@ -232,7 +233,25 @@ func Analyze(db *sql.DB, specID int64, opts Options) (*DriftReport, error) {
 		}
 	}
 
-	// 5d. Coherence: unresolved cross-references
+	// 5d. Contradictions: integrate consistency checker (APP-INV-106)
+	// ddis:implements APP-INV-106 (drift contradiction integration)
+	// Run tiers 2-4 (graph, SAT, heuristic) — skip LLM tiers for performance.
+	conResult, conErr := consistency.Analyze(db, specID, consistency.Options{MaxTier: consistency.TierHeuristic})
+	if conErr == nil && conResult != nil {
+		contradictions = len(conResult.Contradictions)
+		for i, c := range conResult.Contradictions {
+			if i >= 10 {
+				break // Cap at 10 contradiction details
+			}
+			details = append(details, DriftDetail{
+				Element:  c.ElementA + " vs " + c.ElementB,
+				Type:     "contradiction",
+				Location: string(c.Type),
+			})
+		}
+	}
+
+	// 5e. Coherence: unresolved cross-references
 	unresolvedRefs, err := storage.GetUnresolvedRefs(db, specID)
 	if err != nil {
 		unresolvedRefs = nil

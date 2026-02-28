@@ -74,7 +74,7 @@ func runMaterialize(cmd *cobra.Command, args []string) error {
 		dbPath = ".ddis/index.db"
 	}
 
-	result, err := runMaterializeInternal(streamPath, dbPath, !materializeNoProcessor)
+	result, err := runMaterializeInternal(streamPath, dbPath, !materializeNoProcessor, materializeFromSnap)
 	if err != nil {
 		return err
 	}
@@ -102,10 +102,13 @@ func runMaterialize(cmd *cobra.Command, args []string) error {
 }
 
 // runMaterializeInternal is the programmatic entry point for materialization.
-// It replays a JSONL event stream into a fresh SQLite database.
+// It replays a JSONL event stream into a SQLite database.
 // Used by: runMaterialize (CLI), crystallize auto-project (APP-ADR-069).
 // ddis:implements APP-INV-088 (single write path — materialize is the only SQLite writer)
-func runMaterializeInternal(streamPath, dbPath string, withProcessors bool) (*materialize.FoldResult, error) {
+// ddis:implements APP-ADR-078 (snapshot-accelerated fold CLI integration)
+func runMaterializeInternal(streamPath, dbPath string, withProcessors bool, fromSnapshot ...bool) (*materialize.FoldResult, error) {
+	useSnapshot := len(fromSnapshot) > 0 && fromSnapshot[0]
+
 	// Read all content events from the stream
 	evts, err := events.ReadStream(streamPath, events.EventFilters{})
 	if err != nil {
@@ -126,6 +129,45 @@ func runMaterializeInternal(streamPath, dbPath string, withProcessors bool) (*ma
 
 	if len(contentEvts) == 0 {
 		return &materialize.FoldResult{}, nil
+	}
+
+	// Snapshot-accelerated fold: open existing DB and resume from snapshot
+	// ddis:implements APP-ADR-078 (snapshot-accelerated fold CLI integration)
+	if useSnapshot {
+		if existingDB, err := storage.OpenExisting(dbPath); err == nil {
+			specID, specErr := storage.GetFirstSpecID(existingDB)
+			if specErr == nil {
+				snap, snapErr := materialize.LoadLatestSnapshot(existingDB, specID)
+				if snapErr == nil && snap != nil {
+					valid, vErr := materialize.VerifySnapshot(existingDB, snap)
+					if vErr == nil && valid && snap.Position <= len(contentEvts) {
+						// Snapshot valid — resume from snapshot position
+						existingDB.Exec(`PRAGMA foreign_keys = OFF`)
+						var sourceFileID int64
+						existingDB.QueryRow(`SELECT id FROM source_files WHERE spec_id = ? LIMIT 1`, specID).Scan(&sourceFileID)
+						applier := &sqlApplier{db: existingDB, specID: specID, sourceFileID: sourceFileID}
+						result, foldErr := materialize.FoldFrom(applier, contentEvts, snap.Position)
+						existingDB.Close()
+						if foldErr == nil {
+							fmt.Fprintf(os.Stderr, "Snapshot-accelerated: skipped %d events, processed %d\n", snap.Position, result.EventsProcessed)
+							return result, nil
+						}
+						// Snapshot fold failed — fall through to full replay
+						fmt.Fprintf(os.Stderr, "Snapshot fold failed (%v), falling back to full replay\n", foldErr)
+					} else {
+						existingDB.Close()
+						if vErr != nil || !valid {
+							fmt.Fprintf(os.Stderr, "Snapshot verification failed, falling back to full replay\n")
+						}
+					}
+				} else {
+					existingDB.Close()
+				}
+			} else {
+				existingDB.Close()
+			}
+		}
+		// Fall through to full replay
 	}
 
 	// Create fresh database
@@ -336,11 +378,43 @@ func (a *sqlApplier) InsertChallenge(p events.ChallengePayload) error {
 	return err
 }
 
+// InsertModule handles module_registered events, populating both the modules table
+// and the module_relationships table from payload arrays.
+// ddis:implements APP-INV-108 (module relationship materialization completeness)
 func (a *sqlApplier) InsertModule(p events.ModulePayload) error {
-	_, err := a.db.Exec(`INSERT OR REPLACE INTO modules (spec_id, source_file_id, module_name, domain, line_count)
+	res, err := a.db.Exec(`INSERT OR REPLACE INTO modules (spec_id, source_file_id, module_name, domain, line_count)
 		VALUES (?, ?, ?, ?, 0)`,
 		a.specID, a.sourceFileID, p.Name, p.Domain)
-	return err
+	if err != nil {
+		return err
+	}
+
+	moduleID, _ := res.LastInsertId()
+	if moduleID == 0 {
+		// ON CONFLICT path — look up existing module ID
+		a.db.QueryRow(`SELECT id FROM modules WHERE spec_id = ? AND module_name = ?`,
+			a.specID, p.Name).Scan(&moduleID)
+	}
+	if moduleID == 0 {
+		return nil // Module not found — skip relationships
+	}
+
+	// Clear old relationships for this module before repopulating
+	a.db.Exec(`DELETE FROM module_relationships WHERE module_id = ?`, moduleID)
+
+	// Populate module_relationships from payload arrays
+	insertRel := func(relType string, targets []string) {
+		for _, target := range targets {
+			a.db.Exec(`INSERT INTO module_relationships (module_id, rel_type, target) VALUES (?, ?, ?)`,
+				moduleID, relType, target)
+		}
+	}
+	insertRel("maintains", p.Maintains)
+	insertRel("interfaces", p.Interfaces)
+	insertRel("implements", p.Implements)
+	insertRel("adjacent", p.Adjacent)
+
+	return nil
 }
 
 func (a *sqlApplier) InsertGlossaryTerm(p events.GlossaryTermPayload) error {

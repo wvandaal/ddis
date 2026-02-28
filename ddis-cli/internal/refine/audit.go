@@ -155,12 +155,14 @@ func computeSpecInternalDrift(db *sql.DB, specID int64) (*specInternalDrift, []f
 
 // deriveConfidence computes the 5-dimensional confidence array from spec metrics.
 // Each dimension scores 0-10.
+// ddis:implements APP-INV-109 (refine confidence floating-point fidelity)
+// Uses roundedDiv for proper rounding instead of integer truncation.
 func deriveConfidence(sid *specInternalDrift) [5]int {
 	var conf [5]int
 
 	// Coverage: based on component coverage % (complete elements / total elements)
 	if sid.TotalElements > 0 {
-		conf[autoprompt.ConfCoverage] = clampScore(10 * sid.CompleteElements / sid.TotalElements)
+		conf[autoprompt.ConfCoverage] = clampScore(roundedDiv(10*sid.CompleteElements, sid.TotalElements))
 	} else {
 		conf[autoprompt.ConfCoverage] = 10 // vacuously covered
 	}
@@ -168,7 +170,7 @@ func deriveConfidence(sid *specInternalDrift) [5]int {
 	// Depth: based on how many invariants have full components
 	// (statement + semi_formal + violation + validation + why_this_matters)
 	if sid.TotalInvariants > 0 {
-		conf[autoprompt.ConfDepth] = clampScore(10 * sid.CompleteInvariants / sid.TotalInvariants)
+		conf[autoprompt.ConfDepth] = clampScore(roundedDiv(10*sid.CompleteInvariants, sid.TotalInvariants))
 	} else {
 		conf[autoprompt.ConfDepth] = 10
 	}
@@ -176,7 +178,7 @@ func deriveConfidence(sid *specInternalDrift) [5]int {
 	// Coherence: based on ratio of resolved xrefs to total xrefs
 	if sid.TotalRefs > 0 {
 		resolved := sid.TotalRefs - sid.UnresolvedRefs
-		conf[autoprompt.ConfCoherence] = clampScore(10 * resolved / sid.TotalRefs)
+		conf[autoprompt.ConfCoherence] = clampScore(roundedDiv(10*resolved, sid.TotalRefs))
 	} else {
 		conf[autoprompt.ConfCoherence] = 10
 	}
@@ -193,12 +195,21 @@ func deriveConfidence(sid *specInternalDrift) [5]int {
 
 	// Formality: based on ratio of invariants with semi_formal predicates
 	if sid.TotalInvariants > 0 {
-		conf[autoprompt.ConfFormality] = clampScore(10 * sid.InvariantsWithFormal / sid.TotalInvariants)
+		conf[autoprompt.ConfFormality] = clampScore(roundedDiv(10*sid.InvariantsWithFormal, sid.TotalInvariants))
 	} else {
 		conf[autoprompt.ConfFormality] = 10
 	}
 
 	return conf
+}
+
+// roundedDiv performs integer division with rounding to nearest (not truncation).
+// (a + b/2) / b gives proper rounding for positive values.
+func roundedDiv(a, b int) int {
+	if b == 0 {
+		return 0
+	}
+	return (a + b/2) / b
 }
 
 // selectLimitingFactor returns the dimension name with the lowest confidence score.

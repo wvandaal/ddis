@@ -1,9 +1,9 @@
 ---
 module: event-sourcing
 domain: eventsourcing
-maintains: [APP-INV-071, APP-INV-072, APP-INV-073, APP-INV-074, APP-INV-075, APP-INV-076, APP-INV-077, APP-INV-078, APP-INV-079, APP-INV-080, APP-INV-081, APP-INV-082, APP-INV-083, APP-INV-084, APP-INV-085, APP-INV-086, APP-INV-087, APP-INV-088, APP-INV-089, APP-INV-090, APP-INV-091, APP-INV-092, APP-INV-093, APP-INV-094, APP-INV-095, APP-INV-096, APP-INV-097, APP-INV-098, APP-INV-100, APP-INV-101]
+maintains: [APP-INV-071, APP-INV-072, APP-INV-073, APP-INV-074, APP-INV-075, APP-INV-076, APP-INV-077, APP-INV-078, APP-INV-079, APP-INV-080, APP-INV-081, APP-INV-082, APP-INV-083, APP-INV-084, APP-INV-085, APP-INV-086, APP-INV-087, APP-INV-088, APP-INV-089, APP-INV-090, APP-INV-091, APP-INV-092, APP-INV-093, APP-INV-094, APP-INV-095, APP-INV-096, APP-INV-097, APP-INV-098, APP-INV-100, APP-INV-101, APP-INV-108]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-010, APP-INV-015, APP-INV-016, APP-INV-020, APP-INV-025, APP-INV-048, APP-INV-053]
-implements: [APP-ADR-058, APP-ADR-059, APP-ADR-060, APP-ADR-061, APP-ADR-062, APP-ADR-063, APP-ADR-064, APP-ADR-065, APP-ADR-066, APP-ADR-067, APP-ADR-068, APP-ADR-069, APP-ADR-070, APP-ADR-071, APP-ADR-072, APP-ADR-073, APP-ADR-074, APP-ADR-076]
+implements: [APP-ADR-058, APP-ADR-059, APP-ADR-060, APP-ADR-061, APP-ADR-062, APP-ADR-063, APP-ADR-064, APP-ADR-065, APP-ADR-066, APP-ADR-067, APP-ADR-068, APP-ADR-069, APP-ADR-070, APP-ADR-071, APP-ADR-072, APP-ADR-073, APP-ADR-074, APP-ADR-076, APP-ADR-078]
 adjacent: [parse-pipeline, code-bridge, lifecycle-ops, auto-prompting]
 negative_specs:
   - "Must NOT read or write markdown as canonical source of truth"
@@ -1693,5 +1693,48 @@ Events become self-describing. Fold produces structurally complete state. Round-
 
 #### Tests
 TestEventApplier_SectionHierarchy, TestFold_SectionLookup in internal/materialize/fold_test.go.
+
+---
+
+## Chapter 12: Cleanroom Audit Round 2 — Materialization Completeness
+
+### §ES.12.1 Module Relationship Materialization
+
+**APP-INV-108: Module relationship materialization completeness**
+
+*The materialize fold applier must populate the module_relationships table from ModulePayload relationship arrays (maintains, interfaces, implements, adjacent), preserving the module ownership graph for projector filtering.*
+
+```
+forall m in ModulePayload:
+  |m.Maintains| + |m.Interfaces| + |m.Implements| + |m.Adjacent|
+  == |INSERT INTO module_relationships WHERE module_id = m.id|
+```
+
+Violation scenario: InsertModule receives ModulePayload with relationship arrays but only stores module_name and domain. The module_relationships table stays empty, breaking projector module filtering and APP-INV-087.
+
+Validation: Test: emit module_registered event with maintains=[INV-001], materialize, verify module_relationships row exists with rel_type=maintains and target=INV-001.
+
+// WHY THIS MATTERS: Module relationships are the structural backbone of the spec graph. Without them, cascade analysis, implementation order, and projector filtering all degrade to empty results.
+
+---
+
+### §ES.12.2 Snapshot-Accelerated Fold CLI Integration
+
+### APP-ADR-078: Snapshot-accelerated fold CLI integration
+
+#### Problem
+The --from-snapshot flag exists on the materialize command but is never read. FoldFrom() exists but is unreachable from CLI. Users cannot benefit from snapshot optimization.
+
+#### Options
+A) Wire --from-snapshot to FoldFrom in runMaterializeInternal. B) Remove the flag and snapshots entirely. C) Auto-detect snapshots without flag.
+
+#### Decision
+**Option A: Wire flag to FoldFrom.** Wire --from-snapshot to FoldFrom. When set, load latest snapshot, verify its state hash, then call FoldFrom with the snapshot position. If verification fails, fall back to full replay (APP-INV-095 graceful degradation).
+
+#### Consequences
+Users gain incremental materialization for large event streams. Graceful degradation via snapshot verification ensures correctness.
+
+#### Tests
+1. Create snapshot at position N, add events, materialize --from-snapshot, verify only events after N are processed. 2. Corrupt snapshot hash, verify graceful fallback to full replay.
 
 ---

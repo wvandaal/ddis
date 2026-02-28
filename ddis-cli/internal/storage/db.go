@@ -101,11 +101,37 @@ func migrateSchema(db *sql.DB) error {
 	var witnessSql string
 	err2 := db.QueryRow(`SELECT sql FROM sqlite_master WHERE type='table' AND name='invariant_witnesses'`).Scan(&witnessSql)
 	if err2 == nil && !strings.Contains(witnessSql, "'eval'") {
-		// Preserve existing data through temp table rename.
+		// Drop challenge_results first — it has a FK to invariant_witnesses.
+		// Challenge results are transient and regenerable via `ddis challenge`.
+		db.Exec(`DROP TABLE IF EXISTS challenge_results`)
+		// Preserve existing witness data through temp table rename.
 		// SchemaSQL will create the new table with updated CHECK.
 		// Data is migrated after schema application in Open().
 		if _, err := db.Exec(`ALTER TABLE invariant_witnesses RENAME TO _witnesses_old`); err != nil {
 			return fmt.Errorf("rename old witnesses: %w", err)
+		}
+	}
+
+	// Migration 3: challenge_results FK may reference stale "_witnesses_old" table.
+	// ddis:implements APP-INV-107 (witness ID stability under upsert)
+	// SQLite 3.25+ auto-updates FK references during ALTER TABLE RENAME.
+	// When Migration 2 renamed invariant_witnesses → _witnesses_old, SQLite
+	// rewrote challenge_results.witness_id FK to reference "_witnesses_old".
+	// Drop challenge_results so SchemaSQL recreates it with correct FK target,
+	// and clean up the migration artifact table.
+	var crSql string
+	err3 := db.QueryRow(`SELECT sql FROM sqlite_master WHERE type='table' AND name='challenge_results'`).Scan(&crSql)
+	if err3 == nil && strings.Contains(crSql, "_witnesses_old") {
+		db.Exec(`DROP TABLE IF EXISTS challenge_results`)
+	}
+	// Clean up _witnesses_old if new invariant_witnesses already exists with data.
+	var oldExists int
+	db.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='_witnesses_old'`).Scan(&oldExists)
+	if oldExists > 0 {
+		var newExists int
+		db.QueryRow(`SELECT COUNT(*) FROM invariant_witnesses`).Scan(&newExists)
+		if newExists > 0 {
+			db.Exec(`DROP TABLE IF EXISTS _witnesses_old`)
 		}
 	}
 
