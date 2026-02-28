@@ -1,5 +1,7 @@
 //go:build integration
 
+// ddis:implements APP-INV-097 (self-bootstrap pipeline test — parse→render roundtrip verifies fidelity)
+
 package tests
 
 import (

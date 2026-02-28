@@ -22,8 +22,9 @@ import (
 )
 
 var (
-	crystallizeModule string
-	crystallizeFile   string
+	crystallizeModule    string
+	crystallizeFile      string
+	crystallizeNoProject bool
 )
 
 // CrystallizeInput defines the JSON schema for element crystallization.
@@ -72,6 +73,7 @@ Examples:
 func init() {
 	crystallizeCmd.Flags().StringVar(&crystallizeModule, "module", "", "Target module name (required)")
 	crystallizeCmd.Flags().StringVar(&crystallizeFile, "manifest", "manifest.yaml", "Path to manifest.yaml")
+	crystallizeCmd.Flags().BoolVar(&crystallizeNoProject, "no-project", false, "Skip auto-project (emit events only, no markdown regeneration)")
 }
 
 func runCrystallize(cmd *cobra.Command, args []string) error {
@@ -108,8 +110,7 @@ func runCrystallize(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Auto-resolved module: %s\n", crystallizeModule)
 	}
 
-	moduleDecl, ok := manifest.Modules[crystallizeModule]
-	if !ok {
+	if _, ok := manifest.Modules[crystallizeModule]; !ok {
 		available := make([]string, 0, len(manifest.Modules))
 		for k := range manifest.Modules {
 			available = append(available, k)
@@ -117,81 +118,15 @@ func runCrystallize(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("module %q not found in manifest (available: %s)", crystallizeModule, strings.Join(available, ", "))
 	}
 
-	modulePath := filepath.Join(filepath.Dir(crystallizeFile), moduleDecl.File)
-
-	// Format the element
-	var formatted string
+	// Validate element type
 	switch input.Type {
-	case "invariant":
-		formatted = formatInvariant(input)
-	case "adr":
-		formatted = formatADR(input)
+	case "invariant", "adr":
+		// valid
 	default:
 		return fmt.Errorf("unknown type %q (expected invariant or adr)", input.Type)
 	}
 
-	// Read existing content to check for replacement
-	existing, err := os.ReadFile(modulePath)
-	if err != nil {
-		return fmt.Errorf("read module file: %w", err)
-	}
-	content := string(existing)
-
-	// Check if element already exists — find and replace if so
-	var marker string
-	if input.Type == "invariant" {
-		marker = fmt.Sprintf("**%s:", input.ID)
-	} else {
-		marker = fmt.Sprintf("### %s:", input.ID)
-	}
-
-	if idx := strings.Index(content, marker); idx >= 0 {
-		// Find the end of the existing element (next --- separator or next element header)
-		endIdx := idx
-		searchFrom := idx + len(marker)
-		// Look for the terminating ---
-		if dashes := strings.Index(content[searchFrom:], "\n---\n"); dashes >= 0 {
-			endIdx = searchFrom + dashes + len("\n---\n")
-		} else if dashes := strings.Index(content[searchFrom:], "\n---"); dashes >= 0 && searchFrom+dashes+4 >= len(content) {
-			endIdx = len(content)
-		} else {
-			endIdx = len(content)
-		}
-
-		// Find the start (back up to include any leading blank lines)
-		startIdx := idx
-		for startIdx > 0 && content[startIdx-1] == '\n' {
-			startIdx--
-		}
-		if startIdx > 0 {
-			startIdx++ // Keep one newline
-		}
-
-		content = content[:startIdx] + "\n" + formatted + content[endIdx:]
-		if err := os.WriteFile(modulePath, []byte(content), 0644); err != nil {
-			return fmt.Errorf("write module file: %w", err)
-		}
-		fmt.Printf("Replaced %s %s: %s in %s\n", input.Type, input.ID, input.Title, modulePath)
-	} else {
-		// Append to end
-		f, err := os.OpenFile(modulePath, os.O_APPEND|os.O_WRONLY, 0644)
-		if err != nil {
-			return fmt.Errorf("open module file: %w", err)
-		}
-		defer f.Close()
-
-		if _, err := f.WriteString("\n" + formatted); err != nil {
-			return fmt.Errorf("write to module file: %w", err)
-		}
-		fmt.Printf("Crystallized %s %s: %s → %s\n", input.Type, input.ID, input.Title, modulePath)
-	}
-
-	// Update manifest.yaml invariant registry (for invariants only)
-	if input.Type == "invariant" && input.Owner != "" {
-		if err := updateManifestRegistry(crystallizeFile, input); err != nil {
-			return fmt.Errorf("update manifest registry: %w", err)
-		}
-	}
+	// --- Step 1: Emit events (APP-INV-088: event log is the primary write) ---
 
 	// Emit decision_crystallized event to Stream 1 (Discovery).
 	emitEvent(crystallizeFile, events.StreamDiscovery, events.TypeDecisionCrystallized, "", map[string]interface{}{
@@ -229,7 +164,58 @@ func runCrystallize(cmd *cobra.Command, args []string) error {
 		})
 	}
 
-	fmt.Println("\nNext: ddis parse manifest.yaml && ddis validate")
+	fmt.Printf("Crystallized %s %s: %s (event emitted to stream)\n", input.Type, input.ID, input.Title)
+
+	// --- Step 2: Update manifest registry (metadata, not content) ---
+	if input.Type == "invariant" && input.Owner != "" {
+		if err := updateManifestRegistry(crystallizeFile, input); err != nil {
+			return fmt.Errorf("update manifest registry: %w", err)
+		}
+	}
+
+	// --- Step 3: Auto-project (APP-ADR-069: materialize + project) ---
+	if !crystallizeNoProject {
+		if err := crystallizeAutoProject(crystallizeFile); err != nil {
+			// Auto-project failure is non-fatal — the event was already emitted
+			fmt.Fprintf(os.Stderr, "Auto-project warning: %v\n", err)
+			fmt.Fprintf(os.Stderr, "  Events are recorded. Run manually: ddis materialize && ddis project\n")
+		}
+	}
+
+	if !NoGuidance {
+		fmt.Println("\nNext: ddis parse manifest.yaml && ddis validate")
+	}
+	return nil
+}
+
+// crystallizeAutoProject runs materialize + project after event emission.
+// This is the auto-project path (APP-ADR-069): events → SQLite → markdown.
+// Failures are non-fatal since the event was already recorded.
+func crystallizeAutoProject(manifestPath string) error {
+	manifestDir := filepath.Dir(manifestPath)
+	wsRoot := manifestDir
+	streamPath := events.StreamPath(wsRoot, events.StreamSpecification)
+
+	// Check that the event stream exists
+	if _, err := os.Stat(streamPath); os.IsNotExist(err) {
+		return fmt.Errorf("no event stream at %s (run 'ddis import' first to populate)", streamPath)
+	}
+
+	// Materialize: JSONL → SQLite
+	dbPath := filepath.Join(wsRoot, ".ddis", "index.db")
+	result, err := runMaterializeInternal(streamPath, dbPath, true)
+	if err != nil {
+		return fmt.Errorf("materialize: %w", err)
+	}
+	fmt.Fprintf(os.Stderr, "  Auto-materialized %d events → %s\n", result.EventsProcessed, dbPath)
+
+	// Project: SQLite → markdown module files
+	// Derive module output directory from manifest module paths
+	moduleDir := filepath.Join(manifestDir, "modules")
+	if err := runProjectInternal(dbPath, moduleDir, ""); err != nil {
+		return fmt.Errorf("project: %w", err)
+	}
+
 	return nil
 }
 

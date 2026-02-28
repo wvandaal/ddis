@@ -196,4 +196,5 @@ func init() {
 	rootCmd.AddCommand(bisectCmd)
 	rootCmd.AddCommand(blameCmd)
 	rootCmd.AddCommand(replayCmd)
+	rootCmd.AddCommand(snapshotCmd)
 }

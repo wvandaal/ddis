@@ -57,6 +57,28 @@ func runProject(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Determine output
+	outDir := projectOutput
+	if outDir == "" {
+		outDir = "."
+	}
+
+	if err := runProjectInternal(dbPath, outDir, projectModule); err != nil {
+		return err
+	}
+
+	if !NoGuidance {
+		fmt.Fprintln(os.Stderr, "\nNext: ddis validate "+dbPath)
+	}
+
+	return nil
+}
+
+// runProjectInternal is the programmatic entry point for projection.
+// It renders materialized SQLite state into markdown module files.
+// Used by: runProject (CLI), crystallize auto-project (APP-ADR-069).
+// ddis:implements APP-INV-088 (single write path — project is the only markdown writer)
+func runProjectInternal(dbPath, outDir, moduleName string) error {
 	db, err := storage.OpenExisting(dbPath)
 	if err != nil {
 		return fmt.Errorf("open database: %w", err)
@@ -74,35 +96,29 @@ func runProject(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("query modules: %w", err)
 	}
 
-	if projectModule != "" {
+	if moduleName != "" {
 		filtered := make([]projector.ModuleSpec, 0)
 		for _, m := range modules {
-			if m.Name == projectModule {
+			if m.Name == moduleName {
 				filtered = append(filtered, m)
 			}
 		}
 		if len(filtered) == 0 {
-			return fmt.Errorf("module %q not found", projectModule)
+			return fmt.Errorf("module %q not found", moduleName)
 		}
 		modules = filtered
-	}
-
-	// Determine output
-	outDir := projectOutput
-	if outDir == "" {
-		outDir = "."
 	}
 
 	// Render each module
 	for _, mod := range modules {
 		rendered := projector.RenderModule(mod)
 
-		if projectModule != "" && projectOutput != "" {
+		if moduleName != "" && outDir != "" && !isDir(outDir) {
 			// Single module to single file
-			if err := os.WriteFile(projectOutput, []byte(rendered), 0o644); err != nil {
-				return fmt.Errorf("write %s: %w", projectOutput, err)
+			if err := os.WriteFile(outDir, []byte(rendered), 0o644); err != nil {
+				return fmt.Errorf("write %s: %w", outDir, err)
 			}
-			fmt.Printf("Projected %s → %s\n", mod.Name, projectOutput)
+			fmt.Printf("Projected %s → %s\n", mod.Name, outDir)
 		} else {
 			// Each module to its own file in output dir
 			if err := os.MkdirAll(outDir, 0o755); err != nil {
@@ -116,11 +132,13 @@ func runProject(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if !NoGuidance {
-		fmt.Fprintln(os.Stderr, "\nNext: ddis validate "+dbPath)
-	}
-
 	return nil
+}
+
+// isDir returns true if the path exists and is a directory.
+func isDir(path string) bool {
+	fi, err := os.Stat(path)
+	return err == nil && fi.IsDir()
 }
 
 // resolveDBPath resolves the database path from args or auto-discovery.

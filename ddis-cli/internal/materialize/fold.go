@@ -345,6 +345,36 @@ func (e *Engine) FoldWithProcessors(applier Applier, evts []*events.Event, db in
 	return result, nil
 }
 
+// FoldFrom replays events starting from a snapshot position,
+// skipping events already covered by the snapshot (APP-INV-095).
+// If startPosition is 0, this behaves identically to Fold.
+func FoldFrom(applier Applier, evts []*events.Event, startPosition int) (*FoldResult, error) {
+	sorted, err := CausalSort(evts)
+	if err != nil {
+		return nil, fmt.Errorf("causal sort: %w", err)
+	}
+
+	result := &FoldResult{}
+	for i, evt := range sorted {
+		// Skip events already covered by the snapshot
+		if i < startPosition {
+			continue
+		}
+		if err := Apply(applier, evt); err != nil {
+			result.Errors = append(result.Errors, FoldError{
+				EventID:   evt.ID,
+				EventType: evt.Type,
+				Err:       err,
+			})
+			result.EventsSkipped++
+		} else {
+			result.EventsProcessed++
+		}
+	}
+
+	return result, nil
+}
+
 // isDerivedEvent checks if an event was produced by a processor.
 // Derived events have a "derived_by" field in their payload (APP-INV-092).
 func isDerivedEvent(evt *events.Event) bool {

@@ -16,6 +16,7 @@ import (
 
 // ddis:implements APP-ADR-001 (monolith-first parsing)
 // ddis:implements APP-ADR-068 (phased migration — parse handles legacy markdown, new changes via crystallize events)
+// ddis:implements APP-INV-089 (deprecation compatibility bridge — parse wraps import+materialize path)
 // ddis:maintains APP-INV-001 (round-trip fidelity)
 // ddis:maintains APP-INV-009 (monolith-modular equivalence)
 // ddis:maintains APP-INV-041 (witness auto-invalidation — triggers InvalidateWitnesses on re-parse)
@@ -36,6 +37,9 @@ func init() {
 }
 
 func runParse(cmd *cobra.Command, args []string) error {
+	// APP-INV-089: deprecation bridge — parse still works but suggests event pipeline
+	fmt.Fprintln(os.Stderr, "Note: 'ddis parse' is the legacy path. For new content, prefer: ddis crystallize → ddis materialize → ddis project")
+
 	specPath := args[0]
 
 	// Determine output path

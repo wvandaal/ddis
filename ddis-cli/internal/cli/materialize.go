@@ -68,67 +68,15 @@ func runMaterialize(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Read all content events from the stream
-	evts, err := events.ReadStream(streamPath, events.EventFilters{})
-	if err != nil {
-		return fmt.Errorf("read stream %s: %w", streamPath, err)
-	}
-
-	if len(evts) == 0 {
-		return fmt.Errorf("no events found in %s", streamPath)
-	}
-
-	// Filter to content-bearing event types only
-	var contentEvts []*events.Event
-	for _, e := range evts {
-		if isContentEvent(e.Type) {
-			contentEvts = append(contentEvts, e)
-		}
-	}
-
-	if len(contentEvts) == 0 {
-		fmt.Fprintf(os.Stderr, "No content-bearing events in %s (%d total events skipped)\n", streamPath, len(evts))
-		return nil
-	}
-
 	// Determine output path
 	dbPath := materializeOutput
 	if dbPath == "" {
 		dbPath = ".ddis/index.db"
 	}
 
-	// Create fresh database
-	db, err := storage.Open(dbPath)
+	result, err := runMaterializeInternal(streamPath, dbPath, !materializeNoProcessor)
 	if err != nil {
-		return fmt.Errorf("create database %s: %w", dbPath, err)
-	}
-	defer db.Close()
-
-	// Disable FK enforcement — materialized data uses section_id=0 placeholder
-	db.Exec(`PRAGMA foreign_keys = OFF`)
-
-	// Initialize spec_index and source_files rows (APP-INV-086: parameterized IDs)
-	specID, sourceFileID, err := initMaterializeSpec(db, streamPath)
-	if err != nil {
-		return fmt.Errorf("init spec: %w", err)
-	}
-
-	// Create the SQL applier with parameterized IDs
-	applier := &sqlApplier{db: db, specID: specID, sourceFileID: sourceFileID}
-
-	// Run the fold — with or without processors
-	var result *materialize.FoldResult
-	if materializeNoProcessor {
-		result, err = materialize.Fold(applier, contentEvts)
-	} else {
-		engine := materialize.New()
-		engine.RegisterProcessor(materialize.NewValidationProcessor())
-		engine.RegisterProcessor(materialize.NewConsistencyProcessor())
-		engine.RegisterProcessor(materialize.NewDriftProcessor())
-		result, err = engine.FoldWithProcessors(applier, contentEvts, db)
-	}
-	if err != nil {
-		return fmt.Errorf("fold: %w", err)
+		return err
 	}
 
 	// Report results
@@ -151,6 +99,70 @@ func runMaterialize(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+// runMaterializeInternal is the programmatic entry point for materialization.
+// It replays a JSONL event stream into a fresh SQLite database.
+// Used by: runMaterialize (CLI), crystallize auto-project (APP-ADR-069).
+// ddis:implements APP-INV-088 (single write path — materialize is the only SQLite writer)
+func runMaterializeInternal(streamPath, dbPath string, withProcessors bool) (*materialize.FoldResult, error) {
+	// Read all content events from the stream
+	evts, err := events.ReadStream(streamPath, events.EventFilters{})
+	if err != nil {
+		return nil, fmt.Errorf("read stream %s: %w", streamPath, err)
+	}
+
+	if len(evts) == 0 {
+		return &materialize.FoldResult{}, nil
+	}
+
+	// Filter to content-bearing event types only
+	var contentEvts []*events.Event
+	for _, e := range evts {
+		if isContentEvent(e.Type) {
+			contentEvts = append(contentEvts, e)
+		}
+	}
+
+	if len(contentEvts) == 0 {
+		return &materialize.FoldResult{}, nil
+	}
+
+	// Create fresh database
+	db, err := storage.Open(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("create database %s: %w", dbPath, err)
+	}
+	defer db.Close()
+
+	// Disable FK enforcement — materialized data uses section_id=0 placeholder
+	db.Exec(`PRAGMA foreign_keys = OFF`)
+
+	// Initialize spec_index and source_files rows (APP-INV-086: parameterized IDs)
+	specID, sourceFileID, err := initMaterializeSpec(db, streamPath)
+	if err != nil {
+		return nil, fmt.Errorf("init spec: %w", err)
+	}
+
+	// Create the SQL applier with parameterized IDs
+	applier := &sqlApplier{db: db, specID: specID, sourceFileID: sourceFileID}
+
+	// Run the fold — with or without processors
+	var result *materialize.FoldResult
+	if !withProcessors {
+		result, err = materialize.Fold(applier, contentEvts)
+	} else {
+		engine := materialize.New()
+		engine.RegisterProcessor(materialize.NewValidationProcessor())
+		engine.RegisterProcessor(materialize.NewConsistencyProcessor())
+		engine.RegisterProcessor(materialize.NewDriftProcessor())
+		result, err = engine.FoldWithProcessors(applier, contentEvts, db)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("fold: %w", err)
+	}
+
+	return result, nil
 }
 
 // isContentEvent returns true for event types that carry spec content mutations.

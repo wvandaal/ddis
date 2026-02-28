@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -11,6 +12,7 @@ import (
 )
 
 // ddis:maintains APP-INV-001 (round-trip fidelity)
+// ddis:implements APP-INV-089 (deprecation compatibility bridge — render wraps project path)
 
 var (
 	renderOutput string
@@ -30,6 +32,9 @@ func init() {
 }
 
 func runRender(cmd *cobra.Command, args []string) error {
+	// APP-INV-089: deprecation bridge — render still works but suggests project
+	fmt.Fprintln(os.Stderr, "Note: 'ddis render' is the legacy path. Prefer: ddis materialize → ddis project")
+
 	var dbPath string
 	if len(args) >= 1 {
 		dbPath = args[0]

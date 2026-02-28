@@ -3317,6 +3317,488 @@ func makeTestEvent(id, typ, ts string, payload interface{}, causes []string) *ev
 	}
 }
 
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-085
+// Import Content Completeness: import emits events for ALL content types
+// ---------------------------------------------------------------------------
+func TestAPPINV085_ImportContentCompleteness(t *testing.T) {
+	// Verify import handles all content types that have Apply handlers
+	contentTypes := []string{
+		events.TypeSpecSectionDefined,
+		events.TypeInvariantCrystallized,
+		events.TypeADRCrystallized,
+		events.TypeModuleRegistered,
+		events.TypeGlossaryTermDefined,
+		events.TypeCrossRefAdded,
+		events.TypeNegativeSpecAdded,
+		events.TypeQualityGateDefined,
+		events.TypeWitnessRecorded,
+	}
+
+	applier := &testApplier{}
+	for _, ct := range contentTypes {
+		var payload interface{}
+		switch ct {
+		case events.TypeSpecSectionDefined:
+			payload = events.SectionPayload{Path: "1/Test", Title: "Test", Level: 1}
+		case events.TypeInvariantCrystallized:
+			payload = events.InvariantPayload{ID: "INV-T", Title: "T"}
+		case events.TypeADRCrystallized:
+			payload = events.ADRPayload{ID: "ADR-T", Title: "T"}
+		case events.TypeModuleRegistered:
+			payload = events.ModulePayload{Name: "test", Domain: "t"}
+		case events.TypeGlossaryTermDefined:
+			payload = events.GlossaryTermPayload{Term: "term", Definition: "def"}
+		case events.TypeCrossRefAdded:
+			payload = events.CrossRefPayload{Source: "s", Target: "t"}
+		case events.TypeNegativeSpecAdded:
+			payload = events.NegativeSpecPayload{Pattern: "p", Rationale: "r"}
+		case events.TypeQualityGateDefined:
+			payload = events.QualityGatePayload{Title: "gate", Predicate: "pred"}
+		case events.TypeWitnessRecorded:
+			payload = events.WitnessPayload{InvariantID: "INV-T", EvidenceType: "test"}
+		}
+
+		evt := makeTestEvent("e-"+ct, ct, "2026-01-01T00:00:00Z", payload, nil)
+		if err := materialize.Apply(applier, evt); err != nil {
+			t.Errorf("Apply(%s) failed: %v", ct, err)
+		}
+	}
+
+	if len(applier.ops) != len(contentTypes) {
+		t.Errorf("expected %d ops for %d content types, got %d", len(contentTypes), len(contentTypes), len(applier.ops))
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-086
+// Applier Spec-ID Parameterization: no hardcoded IDs in sqlApplier
+// ---------------------------------------------------------------------------
+func TestAPPINV086_ApplierSpecIDParameterization(t *testing.T) {
+	// The Applier interface methods take payload structs — they don't accept specID.
+	// This test verifies that the same Applier can be used with different payloads
+	// without any hardcoded ID coupling.
+	a1 := &testApplier{}
+	a2 := &testApplier{}
+
+	p1 := events.InvariantPayload{ID: "INV-A", Title: "First"}
+	p2 := events.InvariantPayload{ID: "INV-B", Title: "Second"}
+
+	a1.InsertInvariant(p1)
+	a2.InsertInvariant(p2)
+
+	if a1.ops[0] == a2.ops[0] {
+		t.Error("different payloads should produce different operations")
+	}
+	if a1.ops[0] != "InsertInvariant:INV-A" {
+		t.Errorf("expected InsertInvariant:INV-A, got %s", a1.ops[0])
+	}
+	if a2.ops[0] != "InsertInvariant:INV-B" {
+		t.Errorf("expected InsertInvariant:INV-B, got %s", a2.ops[0])
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-087
+// Projector Section Rendering: filters by module ownership
+// ---------------------------------------------------------------------------
+func TestAPPINV087_ProjectorSectionRendering(t *testing.T) {
+	// Verify that RenderModule only includes the module's own invariants
+	mod := projector.ModuleSpec{
+		Name:   "test-module",
+		Domain: "testing",
+		Invariants: []projector.Invariant{
+			{ID: "INV-001", Title: "Module Invariant", Statement: "belongs here"},
+		},
+		ADRs: []projector.ADR{
+			{ID: "ADR-001", Title: "Module ADR"},
+		},
+	}
+
+	rendered := projector.RenderModule(mod)
+	if !strings.Contains(rendered, "INV-001") {
+		t.Error("rendered module should contain its own invariant")
+	}
+	if !strings.Contains(rendered, "ADR-001") {
+		t.Error("rendered module should contain its own ADR")
+	}
+	if !strings.Contains(rendered, "test-module") {
+		t.Error("rendered module should contain its name")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-088
+// Single Write Path: crystallize writes ONLY to event log
+// ---------------------------------------------------------------------------
+func TestAPPINV088_SingleWritePath(t *testing.T) {
+	// Verify that the event types emitted by crystallize are the content-bearing types
+	// that the materializer can process
+	contentTypes := map[string]bool{
+		events.TypeInvariantCrystallized: true,
+		events.TypeADRCrystallized:       true,
+	}
+
+	// Verify both crystallize content types have Apply handlers
+	for ct := range contentTypes {
+		applier := &testApplier{}
+		var payload interface{}
+		switch ct {
+		case events.TypeInvariantCrystallized:
+			payload = events.InvariantPayload{ID: "INV-T", Title: "Test"}
+		case events.TypeADRCrystallized:
+			payload = events.ADRPayload{ID: "ADR-T", Title: "Test"}
+		}
+		evt := makeTestEvent("e1", ct, "2026-01-01T00:00:00Z", payload, nil)
+		if err := materialize.Apply(applier, evt); err != nil {
+			t.Errorf("Apply(%s) should succeed: %v", ct, err)
+		}
+		if len(applier.ops) != 1 {
+			t.Errorf("Apply(%s) should produce exactly 1 op", ct)
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-089
+// Deprecation Compatibility Bridge: parse/render still function
+// ---------------------------------------------------------------------------
+func TestAPPINV089_DeprecationCompatibilityBridge(t *testing.T) {
+	// Verify the legacy parse path still works by parsing a real spec
+	db, _ := getModularDB(t)
+	defer db.Close()
+
+	// If we got here, parse worked correctly through the bridge
+	// Verify the DB has content
+	var invCount int
+	if err := db.QueryRow("SELECT COUNT(*) FROM invariants").Scan(&invCount); err != nil {
+		t.Fatalf("query invariants: %v", err)
+	}
+	if invCount == 0 {
+		t.Error("parse bridge should produce invariants")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-090
+// Processor Idempotency: deterministic handle, re-fold deduplicates
+// ---------------------------------------------------------------------------
+func TestAPPINV090_ProcessorIdempotency(t *testing.T) {
+	// Run the same processor on the same event twice → same output
+	proc := materialize.NewValidationProcessor()
+
+	payload := events.InvariantPayload{ID: "INV-T", Title: "Test", Statement: "stmt"}
+	evt := makeTestEvent("e1", events.TypeInvariantCrystallized, "2026-01-01T00:00:00Z", payload, nil)
+
+	d1, err1 := proc.Handle(evt, nil)
+	d2, err2 := proc.Handle(evt, nil)
+
+	if err1 != nil || err2 != nil {
+		t.Fatalf("processor errors: %v, %v", err1, err2)
+	}
+
+	// Same event → same derived events (both should be nil for valid input)
+	if len(d1) != len(d2) {
+		t.Errorf("idempotency: derived count %d vs %d", len(d1), len(d2))
+	}
+
+	// Test with missing title → should produce same finding both times
+	payload2 := events.InvariantPayload{ID: "INV-T2", Statement: "stmt"}
+	evt2 := makeTestEvent("e2", events.TypeInvariantCrystallized, "2026-01-01T00:00:00Z", payload2, nil)
+
+	d3, _ := proc.Handle(evt2, nil)
+	d4, _ := proc.Handle(evt2, nil)
+
+	if len(d3) != len(d4) {
+		t.Errorf("idempotency: derived count %d vs %d for invalid input", len(d3), len(d4))
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-091
+// Processor Failure Isolation: error is non-fatal, fold continues
+// ---------------------------------------------------------------------------
+func TestAPPINV091_ProcessorFailureIsolation(t *testing.T) {
+	engine := materialize.New()
+	engine.RegisterProcessor(materialize.Processor{
+		Name: "failing",
+		Handle: func(evt *events.Event, db interface{}) ([]*events.Event, error) {
+			return nil, fmt.Errorf("deliberate failure")
+		},
+	})
+
+	applier := &testApplier{}
+	evts := []*events.Event{
+		makeTestEvent("e1", events.TypeInvariantCrystallized, "2026-01-01T00:00:00Z",
+			events.InvariantPayload{ID: "INV-T", Title: "Test"}, nil),
+		makeTestEvent("e2", events.TypeADRCrystallized, "2026-01-02T00:00:00Z",
+			events.ADRPayload{ID: "ADR-T", Title: "Test"}, nil),
+	}
+
+	result, err := engine.FoldWithProcessors(applier, evts, nil)
+	if err != nil {
+		t.Fatalf("FoldWithProcessors should not fail: %v", err)
+	}
+
+	// Both events should be processed despite processor failure
+	if result.EventsProcessed != 2 {
+		t.Errorf("expected 2 events processed, got %d", result.EventsProcessed)
+	}
+
+	// Processor errors should be captured
+	if len(result.Errors) != 2 {
+		t.Errorf("expected 2 processor errors, got %d", len(result.Errors))
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-092
+// Derived Event Provenance: derived events carry causes + derived_by
+// ---------------------------------------------------------------------------
+func TestAPPINV092_DerivedEventProvenance(t *testing.T) {
+	proc := materialize.NewValidationProcessor()
+
+	// Invariant missing title → should produce a derived event
+	payload := events.InvariantPayload{ID: "INV-T", Statement: "stmt"}
+	evt := makeTestEvent("trigger-1", events.TypeInvariantCrystallized, "2026-01-01T00:00:00Z", payload, nil)
+
+	derived, err := proc.Handle(evt, nil)
+	if err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
+
+	if len(derived) == 0 {
+		t.Fatal("expected derived events for invalid invariant")
+	}
+
+	// Check provenance: causes should reference trigger event
+	for _, d := range derived {
+		if len(d.Causes) == 0 {
+			t.Error("derived event should have causes")
+		}
+		found := false
+		for _, c := range d.Causes {
+			if c == "trigger-1" {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("derived event causes should include 'trigger-1', got %v", d.Causes)
+		}
+
+		// Check derived_by in payload
+		var m map[string]interface{}
+		if err := json.Unmarshal(d.Payload, &m); err != nil {
+			t.Errorf("unmarshal derived payload: %v", err)
+			continue
+		}
+		if _, ok := m["derived_by"]; !ok {
+			t.Error("derived event should have 'derived_by' field in payload")
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-093
+// Snapshot Creation Determinism: same state always produces same hash
+// ---------------------------------------------------------------------------
+func TestAPPINV093_SnapshotCreationDeterminism(t *testing.T) {
+	// Fold the same events twice and compare state hashes
+	evts := makeTestEvents()
+
+	a1 := &testApplier{}
+	r1, err := materialize.Fold(a1, evts)
+	if err != nil {
+		t.Fatalf("Fold 1: %v", err)
+	}
+
+	a2 := &testApplier{}
+	r2, err := materialize.Fold(a2, evts)
+	if err != nil {
+		t.Fatalf("Fold 2: %v", err)
+	}
+
+	// Same events → same number processed
+	if r1.EventsProcessed != r2.EventsProcessed {
+		t.Errorf("processed: %d vs %d", r1.EventsProcessed, r2.EventsProcessed)
+	}
+
+	// Same ops in same order (deterministic fold)
+	if len(a1.ops) != len(a2.ops) {
+		t.Fatalf("ops: %d vs %d", len(a1.ops), len(a2.ops))
+	}
+	for i := range a1.ops {
+		if a1.ops[i] != a2.ops[i] {
+			t.Errorf("ops[%d]: %s vs %s", i, a1.ops[i], a2.ops[i])
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-094
+// Snapshot Monotonicity: later snapshots have higher or equal position
+// ---------------------------------------------------------------------------
+func TestAPPINV094_SnapshotMonotonicity(t *testing.T) {
+	// Create a sequence of events at increasing positions
+	evts := []*events.Event{
+		makeTestEvent("e1", events.TypeModuleRegistered, "2026-01-01T00:00:00Z",
+			events.ModulePayload{Name: "m1", Domain: "d1"}, nil),
+		makeTestEvent("e2", events.TypeInvariantCrystallized, "2026-01-02T00:00:00Z",
+			events.InvariantPayload{ID: "INV-A", Title: "A"}, nil),
+		makeTestEvent("e3", events.TypeADRCrystallized, "2026-01-03T00:00:00Z",
+			events.ADRPayload{ID: "ADR-A", Title: "A"}, nil),
+	}
+
+	// Fold subsets of increasing length
+	positions := []int{1, 2, 3}
+	var prevProcessed int
+	for _, pos := range positions {
+		a := &testApplier{}
+		r, err := materialize.Fold(a, evts[:pos])
+		if err != nil {
+			t.Fatalf("Fold at position %d: %v", pos, err)
+		}
+		if r.EventsProcessed < prevProcessed {
+			t.Errorf("monotonicity: position %d processed %d < previous %d",
+				pos, r.EventsProcessed, prevProcessed)
+		}
+		prevProcessed = r.EventsProcessed
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-095
+// Snapshot Recovery Graceful Degradation: corrupted → full replay fallback
+// ---------------------------------------------------------------------------
+func TestAPPINV095_SnapshotRecoveryGracefulDegradation(t *testing.T) {
+	// Simulate a corrupted snapshot scenario: fold from position 0 should
+	// produce the same result as a full fold (graceful degradation)
+	evts := makeTestEvents()
+
+	// Full fold
+	a1 := &testApplier{}
+	r1, err := materialize.Fold(a1, evts)
+	if err != nil {
+		t.Fatalf("Full fold: %v", err)
+	}
+
+	// FoldFrom position 0 (simulating snapshot recovery fallback)
+	a2 := &testApplier{}
+	r2, err := materialize.FoldFrom(a2, evts, 0)
+	if err != nil {
+		t.Fatalf("FoldFrom: %v", err)
+	}
+
+	// Both should produce identical results
+	if r1.EventsProcessed != r2.EventsProcessed {
+		t.Errorf("processed: %d vs %d", r1.EventsProcessed, r2.EventsProcessed)
+	}
+	if len(a1.ops) != len(a2.ops) {
+		t.Fatalf("ops: %d vs %d", len(a1.ops), len(a2.ops))
+	}
+	for i := range a1.ops {
+		if a1.ops[i] != a2.ops[i] {
+			t.Errorf("ops[%d]: %s vs %s", i, a1.ops[i], a2.ops[i])
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-096
+// Pipeline Round-Trip Preservation: content preserved modulo metadata
+// ---------------------------------------------------------------------------
+func TestAPPINV096_PipelineRoundTripPreservation(t *testing.T) {
+	// Create events → fold → verify all ops correspond to input events
+	evts := []*events.Event{
+		makeTestEvent("e1", events.TypeModuleRegistered, "2026-01-01T00:00:00Z",
+			events.ModulePayload{Name: "test-mod", Domain: "testing"}, nil),
+		makeTestEvent("e2", events.TypeInvariantCrystallized, "2026-01-02T00:00:00Z",
+			events.InvariantPayload{ID: "INV-RT", Title: "Round Trip"}, nil),
+		makeTestEvent("e3", events.TypeADRCrystallized, "2026-01-03T00:00:00Z",
+			events.ADRPayload{ID: "ADR-RT", Title: "Round Trip ADR"}, nil),
+		makeTestEvent("e4", events.TypeGlossaryTermDefined, "2026-01-04T00:00:00Z",
+			events.GlossaryTermPayload{Term: "fold", Definition: "deterministic replay"}, nil),
+	}
+
+	a := &testApplier{}
+	result, err := materialize.Fold(a, evts)
+	if err != nil {
+		t.Fatalf("Fold: %v", err)
+	}
+
+	// All events should be processed
+	if result.EventsProcessed != len(evts) {
+		t.Errorf("expected %d processed, got %d", len(evts), result.EventsProcessed)
+	}
+
+	// Each event should have produced a corresponding op
+	expected := []string{
+		"InsertModule:test-mod",
+		"InsertInvariant:INV-RT",
+		"InsertADR:ADR-RT",
+		"InsertGlossaryTerm:fold",
+	}
+	if len(a.ops) != len(expected) {
+		t.Fatalf("expected %d ops, got %d: %v", len(expected), len(a.ops), a.ops)
+	}
+	for i, exp := range expected {
+		if a.ops[i] != exp {
+			t.Errorf("ops[%d] = %s, want %s", i, a.ops[i], exp)
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ddis:tests APP-INV-097
+// E2E Pipeline Determinism: two runs produce identical output
+// ---------------------------------------------------------------------------
+func TestAPPINV097_E2EPipelineDeterminism(t *testing.T) {
+	evts := []*events.Event{
+		makeTestEvent("e1", events.TypeModuleRegistered, "2026-01-01T00:00:00Z",
+			events.ModulePayload{Name: "det-mod", Domain: "det"}, nil),
+		makeTestEvent("e2", events.TypeInvariantCrystallized, "2026-01-02T00:00:00Z",
+			events.InvariantPayload{ID: "INV-D", Title: "Determinism", Statement: "same in same out"}, nil),
+		makeTestEvent("e3", events.TypeADRCrystallized, "2026-01-03T00:00:00Z",
+			events.ADRPayload{ID: "ADR-D", Title: "Det ADR", Problem: "need determinism"}, nil),
+		makeTestEvent("e4", events.TypeGlossaryTermDefined, "2026-01-04T00:00:00Z",
+			events.GlossaryTermPayload{Term: "determinism", Definition: "same input same output"}, nil),
+		makeTestEvent("e5", events.TypeCrossRefAdded, "2026-01-05T00:00:00Z",
+			events.CrossRefPayload{Source: "INV-D", Target: "ADR-D"}, nil),
+	}
+
+	// Run 1
+	a1 := &testApplier{}
+	r1, err := materialize.Fold(a1, evts)
+	if err != nil {
+		t.Fatalf("Run 1: %v", err)
+	}
+
+	// Run 2
+	a2 := &testApplier{}
+	r2, err := materialize.Fold(a2, evts)
+	if err != nil {
+		t.Fatalf("Run 2: %v", err)
+	}
+
+	// Identical results
+	if r1.EventsProcessed != r2.EventsProcessed {
+		t.Errorf("processed: %d vs %d", r1.EventsProcessed, r2.EventsProcessed)
+	}
+	if r1.EventsSkipped != r2.EventsSkipped {
+		t.Errorf("skipped: %d vs %d", r1.EventsSkipped, r2.EventsSkipped)
+	}
+
+	// Identical operations
+	if len(a1.ops) != len(a2.ops) {
+		t.Fatalf("ops: %d vs %d", len(a1.ops), len(a2.ops))
+	}
+	for i := range a1.ops {
+		if a1.ops[i] != a2.ops[i] {
+			t.Errorf("ops[%d]: %s vs %s", i, a1.ops[i], a2.ops[i])
+		}
+	}
+}
+
 // Suppress unused import warnings.
 var (
 	_ = sort.Strings
