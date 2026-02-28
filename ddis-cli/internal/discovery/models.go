@@ -48,6 +48,7 @@ type DerivedTask struct {
 	AcceptanceCriteria string       `json:"acceptance"`
 	DependsOn          []string     `json:"depends_on"`
 	Metadata           TaskMetadata `json:"metadata"`
+	WitnessStatus      string       `json:"witness_status,omitempty"` // ddis:maintains APP-INV-104
 }
 
 // TaskMetadata tracks the provenance of a derived task.

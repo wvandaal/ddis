@@ -39,6 +39,7 @@ type InvariantPayload struct {
 	ValidationMethod  string `json:"validation_method"`
 	WhyThisMatters    string `json:"why_this_matters"`
 	Module            string `json:"module"`
+	SectionPath       string `json:"section_path,omitempty"` // ddis:maintains APP-INV-100 (section hierarchy)
 	Synthetic         bool   `json:"synthetic,omitempty"`
 }
 
@@ -66,6 +67,7 @@ type ADRPayload struct {
 	Consequences string `json:"consequences"`
 	Tests        string `json:"tests"`
 	Module       string `json:"module"`
+	SectionPath  string `json:"section_path,omitempty"` // ddis:maintains APP-INV-100 (section hierarchy)
 	Synthetic    bool   `json:"synthetic,omitempty"`
 }
 
@@ -85,9 +87,10 @@ type ADRSupersededPayload struct {
 
 // NegativeSpecPayload carries a negative specification addition.
 type NegativeSpecPayload struct {
-	Module    string `json:"module"`
-	Pattern   string `json:"pattern"`
-	Rationale string `json:"rationale"`
+	Module      string `json:"module"`
+	Pattern     string `json:"pattern"`
+	Rationale   string `json:"rationale"`
+	SectionPath string `json:"section_path,omitempty"` // ddis:maintains APP-INV-100
 }
 
 // QualityGatePayload carries a quality gate definition.

@@ -505,3 +505,6 @@ invariant_registry:
   APP-INV-100: { owner: event-sourcing, domain: event-sourcing, description: "Event applier preserves section hierarchy via proper section_id assignment" }
   APP-INV-101: { owner: event-sourcing, domain: event-sourcing, description: "StructuralDiff uses complete composite keys including all discriminants" }
   APP-INV-102: { owner: auto-prompting, domain: autoprompt, description: "LLM confidence constants centralized across all voting modules" }
+  APP-INV-103: { owner: lifecycle-ops, domain: lifecycle, description: "Witness lifecycle completeness" }
+  APP-INV-104: { owner: auto-prompting, domain: autoprompt, description: "Task witness enrichment" }
+  APP-INV-105: { owner: lifecycle-ops, domain: lifecycle, description: "CI witness gate" }

@@ -1,9 +1,9 @@
 ---
 module: lifecycle-ops
 domain: lifecycle
-maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016, APP-INV-041, APP-INV-050, APP-INV-051, APP-INV-052, APP-INV-053, APP-INV-059, APP-INV-062]
+maintains: [APP-INV-006, APP-INV-010, APP-INV-013, APP-INV-016, APP-INV-041, APP-INV-050, APP-INV-051, APP-INV-052, APP-INV-053, APP-INV-059, APP-INV-062, APP-INV-103, APP-INV-105]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-007, APP-INV-008, APP-INV-009, APP-INV-011, APP-INV-012, APP-INV-015]
-implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011, APP-ADR-030, APP-ADR-037, APP-ADR-039, APP-ADR-041, APP-ADR-046, APP-ADR-050, APP-ADR-052]
+implements: [APP-ADR-007, APP-ADR-008, APP-ADR-011, APP-ADR-030, APP-ADR-037, APP-ADR-039, APP-ADR-041, APP-ADR-046, APP-ADR-050, APP-ADR-052, APP-ADR-075]
 adjacent: [parse-pipeline, search-intelligence, query-validation]
 negative_specs:
   - "Must NOT modify or delete existing oplog records"
@@ -1261,6 +1261,75 @@ Validation: Extract transition graph from section 0.2.1. Run BFS from T_init out
 
 ---
 
+**APP-INV-103: Witness Lifecycle Completeness**
+
+*For every spec-mutating CLI operation (crystallize, absorb, refine apply, parse), the witness system responds: auto-recording (crystallize at Level 1), auto-suggesting (absorb correspondences, refine guidance), or auto-invalidating (parse). No spec mutation exits without witness system acknowledgment.*
+
+```
+FOR ALL op IN {crystallize, absorb, refine_apply, parse}:
+  LET (S, S') = op(args) WHERE S != S':
+    response(op, S, S') != EMPTY
+
+-- crystallize: storage.InsertWitness(db, witness{EvidenceType: "attestation", ProvenBy: "ddis-crystallize"})
+-- absorb: IF correspondence.Score > 0.8 THEN fmt.Fprintf(os.Stderr, "Suggest: ddis witness ...")
+-- refine_apply: fmt.Fprintf(os.Stderr, "Re-witness modified: ...")
+-- parse: storage.InvalidateWitnesses(db, oldSpecID, newSpecID) [EXISTS]
+```
+
+Violation scenario: Agent crystallizes APP-INV-104 via `ddis discover crystallize`. The invariant is written to the module file and the manifest is updated, but no witness is auto-recorded and no guidance suggests witnessing. The invariant enters "proven by nothing" limbo.
+
+Validation: Crystallize an invariant, verify `storage.ListWitnesses` returns an entry with `EvidenceType: "attestation"` and `ProvenBy: "ddis-crystallize"`. Run `ddis absorb ./src --against db.db` with a high-confidence correspondence, verify stderr contains `ddis witness` guidance. Run `ddis refine apply`, verify output includes re-witness guidance for modified elements.
+
+// WHY THIS MATTERS: Without lifecycle completeness, the witness system has a blind spot: it detects staleness (parse) but ignores creation (crystallize) and modification (absorb, refine). New invariants born from code evidence should start life as witnessed. Without this, the witness flywheel has a cold-start problem.
+
+---
+
+**APP-INV-105: CI Witness Gate**
+
+*`ddis witness --check --strict` exits with code 1 if any witnesses are stale or if witness coverage is below a configurable threshold. Without `--strict`, the check is informational only (exit 0). Threshold defaults to 0% (only staleness triggers failure) and is configurable via `--threshold`.*
+
+```
+LET summary = witness.Check(db, specID, CheckOptions{AsJSON: witnessJSON}):
+  IF NOT strict: RETURN nil  -- exit 0
+  IF summary.Stale > 0: os.Exit(1)
+  IF threshold > 0 AND summary.Total > 0:
+    LET cov = float64(summary.Valid) / float64(summary.Total):
+      IF cov < threshold: os.Exit(1)
+  RETURN nil  -- exit 0
+```
+
+Violation scenario: CI pipeline runs `ddis witness --check` after spec changes. Three witnesses are stale. The command prints a summary but exits 0. CI proceeds, deploys code that no longer satisfies its invariants.
+
+Validation: Witness some invariants, stale one via spec change, run `ddis witness --check` (exits 0). Run `ddis witness --check --strict` (exits 1). Test `--threshold 0.8` when coverage is 70% (exits 1). Test with 100% valid, no stale (exits 0).
+
+// WHY THIS MATTERS: Without a non-zero exit code, witness checking is advisory. The --strict flag turns observation into enforcement -- the single place in DDIS where the system prescribes rather than observes, and it's opt-in.
+
+---
+
+### APP-ADR-075: Witness Lifecycle Automation Strategy
+
+#### Problem
+
+DDIS has five spec-mutating operations (parse, crystallize, absorb, refine apply, patch). The witness system responds to exactly one (parse -> auto-invalidate via `storage.InvalidateWitnesses`). The other four are witness-blind: they mutate the spec without any witness system acknowledgment.
+
+#### Options
+
+A) Full automation: Every operation auto-records or auto-invalidates witnesses. Risk: auto-recording Level 1 attestation for modifications where the agent has not verified anything. B) Guidance only: No auto-recording anywhere. All operations emit guidance text only. Misses the insight that crystallization IS attestation. C) Hybrid: Auto-record on creation (crystallize -> Level 1), guidance on modification (absorb, refine), auto-invalidation on parse (existing).
+
+#### Decision
+
+**Option C: Hybrid.** Crystallization is attestation: the agent creates the invariant FROM code evidence, so Level 1 auto-witness is semantically correct. For modifications (absorb correspondences, refine improvements), the correct witness level depends on what the agent does next, so guidance is appropriate. Parse auto-invalidation is already implemented. Must NOT auto-record witnesses above Level 1 without mechanical verification. Must NOT block primary operations on witness failures (best-effort). Must NOT emit witness guidance when --prompt-only or --json mode is active. WHY NOT Option A? Creates false confidence for modifications. WHY NOT Option B? Misses the crystallize-is-attestation insight.
+
+#### Consequences
+
+ddis discover crystallize auto-records Level 1 attestation witness (best-effort, stderr on failure). ddis absorb --against prints witness suggestion for correspondences. ddis refine audit/apply prints stale-witness warnings and re-witness guidance. ddis tasks --from-challenges --spec enriches output with witness status and priority boost. ddis witness --check --strict provides CI gate with configurable threshold. No changes to parse or progress (already complete).
+
+#### Tests
+
+Crystallize invariant -> storage.GetWitness returns non-nil with EvidenceType="attestation". Absorb with correspondence -> stderr contains "ddis witness". Tasks with stale witness -> priority decremented, JSON has witness_status. witness --check --strict with stale -> exit code 1. witness --check without strict with stale -> exit code 0.
+
+---
+
 ### APP-ADR-046: Existence-Check Before Open over Auto-Create
 
 #### Problem
@@ -1330,5 +1399,45 @@ New Check 20: checkLifecycleReachability. Graph-theoretic (BFS/DFS). Graceful de
 #### Tests
 
 Transition graph with no dead-ends: passes. Graph with one dead-end: reports it. Disconnected component: reports unreachable states.
+
+---
+
+## Chapter 8: Cleanroom Audit — Manifest Integrity
+
+**APP-INV-099: Manifest Mutation via Structured Serialization**
+
+*Any programmatic modification to manifest.yaml MUST use a YAML parser for reading and a YAML serializer for writing. String concatenation, substring insertion, or regex-based edits on the raw file content are prohibited. The serialization round-trip must preserve all existing keys, comments within the YAML data model, and structural relationships.*
+
+```
+Let M be a manifest file, parse(M) its YAML AST, and serialize(AST) the inverse. For any mutation f on the AST: serialize(f(parse(M))) must be valid YAML AND parse(serialize(f(parse(M)))) = f(parse(M)). String-level operations g(text(M)) do NOT satisfy this because g is not a homomorphism from the character monoid to the YAML CFG.
+```
+
+Violation scenario: crystallize command appends a registry entry via string concat before the last newline. If the file lacks a trailing newline, the entry is appended to the last line. If a concurrent crystallize interleaves, both writes corrupt each other.
+
+Validation: Round-trip test: parse manifest, mutate AST, serialize, parse again, verify equality. Concurrent test: two parallel crystallize calls, verify both entries present and YAML valid.
+
+// WHY THIS MATTERS: The manifest is the spec's structural skeleton (APP-ADR-010). Corrupting it via string manipulation breaks parse (APP-INV-001), module resolution, and the entire bilateral lifecycle. The crystallize command is the primary spec authoring path (APP-INV-088) — it must be safe.
+
+---
+
+### APP-ADR-075: Structured YAML Serialization for Manifest Mutations
+
+#### Problem
+The crystallize command modifies manifest.yaml by appending strings before the last newline. This bypasses the YAML grammar, risking corruption on edge cases (no trailing newline, concurrent writes, inline comments) and violating the bilateral lifecycle's requirement that all spec authoring be mechanically sound.
+
+#### Options
+Option A: YAML parse-mutate-serialize via gopkg.in/yaml.v3 (already a dependency). Reads file, unmarshals to map, modifies map, marshals back.
+Option B: Template-based generation. Regenerate entire manifest from DB state each time.
+Option C: Patch-based editing via a YAML-aware diff/patch library.
+Option D: Status quo (string concatenation). Rejected due to corruption risk.
+
+#### Decision
+**Option A: Use gopkg.in/yaml.v3 Unmarshal/Marshal for all manifest mutations.** Read file, unmarshal to typed struct, modify struct fields, marshal back. Simplest correct approach using existing dependency. // WHY NOT B: Loses manual formatting. C: Over-engineered. D: Provably unsafe.
+
+#### Consequences
+Safe manifest mutation by construction. Round-trip YAML validity guaranteed. Existing dependency reused.
+
+#### Tests
+Round-trip: parse manifest, add entry, serialize, parse again. Concurrent: two parallel crystallize calls. Edge: no trailing newline, empty registry.
 
 ---

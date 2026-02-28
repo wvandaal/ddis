@@ -16,9 +16,11 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/parser"
+	"github.com/wvandaal/ddis/internal/storage"
 )
 
 var (
@@ -179,6 +181,11 @@ func runCrystallize(cmd *cobra.Command, args []string) error {
 			// Auto-project failure is non-fatal — the event was already emitted
 			fmt.Fprintf(os.Stderr, "Auto-project warning: %v\n", err)
 			fmt.Fprintf(os.Stderr, "  Events are recorded. Run manually: ddis materialize && ddis project\n")
+		} else if input.Type == "invariant" {
+			// ddis:maintains APP-INV-103
+			// Auto-witness: crystallization is attestation (APP-ADR-075).
+			// Only after auto-project succeeds — the invariant must be in the DB.
+			crystallizeAutoWitness(crystallizeFile, input.ID)
 		}
 	}
 
@@ -320,25 +327,84 @@ func resolveTargetModule(manifest *parser.ManifestData, elementID, inputDomain s
 		elementID, strings.Join(candidates, ", "))
 }
 
-// updateManifestRegistry appends an invariant to the manifest.yaml invariant_registry.
+// crystallizeAutoWitness records a Level 1 attestation witness after crystallization.
+// Best-effort: all errors are logged to stderr but never block crystallization.
+// ddis:maintains APP-INV-103
+func crystallizeAutoWitness(manifestPath string, invariantID string) {
+	wsRoot := filepath.Dir(manifestPath)
+	dbPath := filepath.Join(wsRoot, ".ddis", "index.db")
+
+	awDB, err := storage.OpenExisting(dbPath)
+	if err != nil {
+		return // DB doesn't exist yet — skip silently
+	}
+	defer awDB.Close()
+
+	specID, err := storage.GetFirstSpecID(awDB)
+	if err != nil {
+		return
+	}
+
+	inv, err := storage.GetInvariant(awDB, specID, invariantID)
+	if err != nil {
+		return
+	}
+
+	w := &storage.InvariantWitness{
+		SpecID:       specID,
+		InvariantID:  invariantID,
+		SpecHash:     inv.ContentHash,
+		EvidenceType: "attestation",
+		Evidence:     "auto: crystallization is attestation",
+		ProvenBy:     "ddis-crystallize",
+		Status:       "valid",
+	}
+
+	if _, err := storage.InsertWitness(awDB, w); err == nil {
+		fmt.Fprintf(os.Stderr, "Auto-witnessed %s (Level 1 attestation)\n", invariantID)
+		emitEvent(dbPath, events.StreamImplementation,
+			events.TypeWitnessRecorded, inv.ContentHash,
+			events.WitnessPayload{
+				InvariantID:  invariantID,
+				EvidenceType: "attestation",
+				Evidence:     "auto: crystallization is attestation",
+				By:           "ddis-crystallize",
+				SpecHash:     inv.ContentHash,
+			})
+	}
+}
+
+// updateManifestRegistry adds an invariant to the manifest.yaml invariant_registry.
+// ddis:maintains APP-INV-099 (structured YAML serialization — parse, mutate, serialize)
 func updateManifestRegistry(manifestPath string, in CrystallizeInput) error {
 	data, err := os.ReadFile(manifestPath)
 	if err != nil {
 		return err
 	}
 
-	content := string(data)
-
-	// Find the invariant_registry section and append the new entry
-	entry := fmt.Sprintf("  %s: { owner: %s, domain: %s, description: \"%s\" }\n",
-		in.ID, in.Owner, in.Domain, in.Description)
-
-	// Append before the last line if registry exists, or at end
-	if idx := strings.LastIndex(content, "\n"); idx >= 0 {
-		content = content[:idx+1] + entry
-	} else {
-		content += "\n" + entry
+	// Parse manifest YAML into structured form.
+	var manifest parser.ManifestData
+	if err := yaml.Unmarshal(data, &manifest); err != nil {
+		return fmt.Errorf("parse manifest YAML: %w", err)
 	}
 
-	return os.WriteFile(manifestPath, []byte(content), 0644)
+	// Initialize registry map if nil.
+	if manifest.InvariantRegistry == nil {
+		manifest.InvariantRegistry = make(map[string]parser.InvRegistryEntry)
+	}
+
+	// Add or update the registry entry.
+	manifest.InvariantRegistry[in.ID] = parser.InvRegistryEntry{
+		Owner:       in.Owner,
+		Domain:      in.Domain,
+		Description: in.Description,
+	}
+
+	// Serialize back to YAML.
+	out, err := yaml.Marshal(&manifest)
+	if err != nil {
+		return fmt.Errorf("serialize manifest YAML: %w", err)
+	}
+
+	return os.WriteFile(manifestPath, out, 0644)
 }

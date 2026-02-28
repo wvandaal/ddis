@@ -689,6 +689,21 @@ Running the pipeline twice produces byte-identical output.
 Confidence: falsified
 *Violation: timestamps in JSONL events differ between runs. Second materialize produces different event IDs.*
 
+**APP-INV-103: Witness Lifecycle Completeness** (Owner: lifecycle-ops)
+For every spec-mutating CLI operation, the witness system responds: auto-recording, auto-suggesting, or auto-invalidating.
+Confidence: falsified
+*Violation: crystallize creates invariant with no witness. Agent must manually witness despite having just proven it.*
+
+**APP-INV-104: Task Witness Enrichment** (Owner: auto-prompting)
+Derived tasks include witness status. Stale-witnessed tasks are prioritized above unwitnessed tasks.
+Confidence: falsified
+*Violation: stale witness tasks appear at same priority as fresh tasks. Agent misses regression risk.*
+
+**APP-INV-105: CI Witness Gate** (Owner: lifecycle-ops)
+`ddis witness --check --strict` exits 1 on stale witnesses or coverage below threshold.
+Confidence: falsified
+*Violation: CI runs witness --check, three stale, exits 0. Deploys code not satisfying invariants.*
+
 ---
 
 ## 0.4 Invariant Confidence Levels
@@ -994,6 +1009,10 @@ WHY NOT time-based: Not predictable. WHY NOT manual-only: Missing optimization o
 **APP-ADR-074: E2E Test Architecture** (Implements: event-sourcing)
 Decision: Hybrid: in-process for behavioral, subprocess for E2E. Real CLI spec as fixture.
 WHY NOT pure unit: Misses integration issues. WHY NOT pure subprocess: Too slow for behavioral.
+
+**APP-ADR-075: Witness Lifecycle Automation Strategy** (Implements: lifecycle-ops)
+Decision: Hybrid: auto-record on creation (crystallize -> Level 1 attestation), guidance on modification (absorb, refine), auto-invalidation on parse (existing).
+WHY NOT full automation: Creates false confidence for modifications. WHY NOT guidance-only: Misses crystallize-is-attestation insight.
 
 ---
 

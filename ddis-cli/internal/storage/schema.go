@@ -443,7 +443,7 @@ CREATE TABLE IF NOT EXISTS invariant_witnesses (
     spec_hash TEXT NOT NULL,
     code_hash TEXT,
     evidence_type TEXT NOT NULL
-      CHECK(evidence_type IN ('test', 'annotation', 'scan', 'review', 'attestation')),
+      CHECK(evidence_type IN ('test', 'annotation', 'scan', 'review', 'attestation', 'eval')),
     evidence TEXT NOT NULL,
     proven_by TEXT NOT NULL,
     model TEXT,

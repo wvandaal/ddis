@@ -32,6 +32,8 @@ var (
 	witnessCheck         bool
 	witnessRevoke        string
 	witnessJSON          bool
+	witnessStrict        bool    // ddis:maintains APP-INV-105
+	witnessThreshold     float64 // ddis:maintains APP-INV-105
 )
 
 var witnessCmd = &cobra.Command{
@@ -79,6 +81,8 @@ func init() {
 	witnessCmd.Flags().BoolVar(&witnessCheck, "check", false, "Check witness freshness")
 	witnessCmd.Flags().StringVar(&witnessRevoke, "revoke", "", "Revoke witness for invariant ID")
 	witnessCmd.Flags().BoolVar(&witnessJSON, "json", false, "Output as JSON")
+	witnessCmd.Flags().BoolVar(&witnessStrict, "strict", false, "Exit 1 on stale witnesses or coverage below threshold (CI gate)")
+	witnessCmd.Flags().Float64Var(&witnessThreshold, "threshold", 0.0, "Minimum witness coverage 0.0-1.0 (requires --strict)")
 }
 
 func runWitness(cmd *cobra.Command, args []string) error {
@@ -182,6 +186,7 @@ func witnessListMode(db *sql.DB, specID int64) error {
 	return nil
 }
 
+// ddis:maintains APP-INV-105 (CI witness gate)
 func witnessCheckMode(db *sql.DB, specID int64) error {
 	staleCount, err := witness.Refresh(db, specID)
 	if err != nil {
@@ -200,6 +205,23 @@ func witnessCheckMode(db *sql.DB, specID int64) error {
 		return err
 	}
 	fmt.Print(out)
+
+	// CI gate (APP-INV-105): --strict exits 1 on stale or below-threshold coverage.
+	if witnessStrict {
+		if summary.Stale > 0 {
+			fmt.Fprintf(os.Stderr, "\nStrict mode: %d stale witness(es) — failing.\n", summary.Stale)
+			os.Exit(1)
+		}
+		if witnessThreshold > 0 && summary.Total > 0 {
+			cov := float64(summary.Valid) / float64(summary.Total)
+			if cov < witnessThreshold {
+				fmt.Fprintf(os.Stderr, "\nStrict mode: coverage %.1f%% below threshold %.1f%% — failing.\n",
+					cov*100, witnessThreshold*100)
+				os.Exit(1)
+			}
+		}
+	}
+
 	return nil
 }
 

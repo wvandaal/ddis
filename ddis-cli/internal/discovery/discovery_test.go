@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/wvandaal/ddis/internal/storage"
 )
 
 // ---------------------------------------------------------------------------
@@ -696,4 +698,121 @@ func writeEventsToJSONL(t *testing.T, events []DiscoveryEvent) string {
 		t.Fatalf("write JSONL: %v", err)
 	}
 	return f
+}
+
+// ---------------------------------------------------------------------------
+// EnrichWithWitnesses
+// ---------------------------------------------------------------------------
+
+func TestEnrichWithWitnesses_StaleBoost(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "test.db")
+	db, err := storage.Open(dbPath)
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+	defer db.Close()
+
+	// Insert a spec
+	res, err := db.Exec(`INSERT INTO spec_index (spec_path, content_hash, parsed_at, source_type) VALUES (?, ?, datetime('now'), 'monolith')`, "test.md", "hash1")
+	if err != nil {
+		t.Fatalf("insert spec: %v", err)
+	}
+	specID, _ := res.LastInsertId()
+
+	// Insert a source file and section for invariants
+	sfRes, err := db.Exec(`INSERT INTO source_files (spec_id, file_path, file_role, content_hash, line_count, raw_text) VALUES (?, 'f.md', 'monolith', 'x', 100, 'x')`, specID)
+	if err != nil {
+		t.Fatalf("insert source: %v", err)
+	}
+	sfID, _ := sfRes.LastInsertId()
+
+	secRes, err := db.Exec(`INSERT INTO sections (spec_id, source_file_id, section_path, title, heading_level, line_start, line_end, raw_text, content_hash) VALUES (?, ?, 'test', 'Test', 1, 1, 100, 'x', 'x')`, specID, sfID)
+	if err != nil {
+		t.Fatalf("insert section: %v", err)
+	}
+	secID, _ := secRes.LastInsertId()
+
+	// Insert invariants
+	for _, inv := range []struct{ id, hash string }{
+		{"APP-INV-001", "h1"},
+		{"APP-INV-002", "h2"},
+		{"APP-INV-003", "h3"},
+	} {
+		_, err = db.Exec(`INSERT INTO invariants (spec_id, source_file_id, section_id, invariant_id, title, statement, line_start, line_end, raw_text, content_hash) VALUES (?, ?, ?, ?, 'Test', 'test stmt', 1, 1, 'x', ?)`,
+			specID, sfID, secID, inv.id, inv.hash)
+		if err != nil {
+			t.Fatalf("insert invariant %s: %v", inv.id, err)
+		}
+	}
+
+	// Insert witnesses: APP-INV-001 valid, APP-INV-002 stale
+	_, err = storage.InsertWitness(db, &storage.InvariantWitness{
+		SpecID: specID, InvariantID: "APP-INV-001", SpecHash: "h1",
+		EvidenceType: "attestation", Evidence: "test", ProvenBy: "test", Status: "valid",
+	})
+	if err != nil {
+		t.Fatalf("insert witness 001: %v", err)
+	}
+	_, err = storage.InsertWitness(db, &storage.InvariantWitness{
+		SpecID: specID, InvariantID: "APP-INV-002", SpecHash: "old-hash",
+		EvidenceType: "attestation", Evidence: "test", ProvenBy: "test", Status: "stale_spec",
+	})
+	if err != nil {
+		t.Fatalf("insert witness 002: %v", err)
+	}
+	// APP-INV-003 has no witness (unwitnessed)
+
+	// Create tasks referencing these invariants
+	result := &TasksResult{
+		Tasks: []DerivedTask{
+			{ID: "T1", Title: "Impl 001", Priority: 2, Metadata: TaskMetadata{SourceArtifact: "APP-INV-001"}},
+			{ID: "T2", Title: "Impl 002", Priority: 2, Metadata: TaskMetadata{SourceArtifact: "APP-INV-002"}},
+			{ID: "T3", Title: "Impl 003", Priority: 2, Metadata: TaskMetadata{SourceArtifact: "APP-INV-003"}},
+			{ID: "T4", Title: "Impl ADR", Priority: 2, Metadata: TaskMetadata{SourceArtifact: "APP-ADR-001"}},
+		},
+	}
+
+	EnrichWithWitnesses(result, db, specID)
+
+	// T1: valid witness
+	if result.Tasks[0].WitnessStatus != "valid" {
+		t.Errorf("T1: expected witness_status 'valid', got %q", result.Tasks[0].WitnessStatus)
+	}
+	if result.Tasks[0].Priority != 2 {
+		t.Errorf("T1: expected priority 2 (no change), got %d", result.Tasks[0].Priority)
+	}
+
+	// T2: stale witness — priority should be decremented
+	if result.Tasks[1].WitnessStatus != "stale_spec" {
+		t.Errorf("T2: expected witness_status 'stale_spec', got %q", result.Tasks[1].WitnessStatus)
+	}
+	if result.Tasks[1].Priority != 1 {
+		t.Errorf("T2: expected priority 1 (decremented from 2), got %d", result.Tasks[1].Priority)
+	}
+
+	// T3: unwitnessed
+	if result.Tasks[2].WitnessStatus != "unwitnessed" {
+		t.Errorf("T3: expected witness_status 'unwitnessed', got %q", result.Tasks[2].WitnessStatus)
+	}
+	if result.Tasks[2].Priority != 2 {
+		t.Errorf("T3: expected priority 2 (no change), got %d", result.Tasks[2].Priority)
+	}
+
+	// T4: ADR — should not be enriched
+	if result.Tasks[3].WitnessStatus != "" {
+		t.Errorf("T4: expected empty witness_status for ADR, got %q", result.Tasks[3].WitnessStatus)
+	}
+}
+
+func TestEnrichWithWitnesses_NilDB(t *testing.T) {
+	result := &TasksResult{
+		Tasks: []DerivedTask{
+			{ID: "T1", Priority: 2, Metadata: TaskMetadata{SourceArtifact: "APP-INV-001"}},
+		},
+	}
+	// Should not panic with nil DB
+	EnrichWithWitnesses(result, nil, 1)
+	if result.Tasks[0].WitnessStatus != "" {
+		t.Errorf("expected empty witness_status with nil DB, got %q", result.Tasks[0].WitnessStatus)
+	}
 }

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -71,6 +72,13 @@ func runAbsorb(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Println(out)
+
+	// ddis:maintains APP-INV-103 (witness lifecycle completeness — absorb guidance)
+	// Emit witness guidance when reconciling against a spec (high-confidence correspondences).
+	if absorbAgainst != "" && !absorbPromptOnly {
+		fmt.Fprintf(os.Stderr, "\nWitness guidance: For high-confidence correspondences, record witnesses:\n")
+		fmt.Fprintf(os.Stderr, "  ddis witness <INV-ID> --type test --evidence \"...\" --by <agent>\n")
+	}
 
 	// ddis:maintains APP-INV-053 (event stream completeness — emits implementation_finding to stream 3)
 	emitEvent(".", events.StreamImplementation, events.TypeImplementationFinding, "", map[string]interface{}{

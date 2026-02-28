@@ -87,6 +87,9 @@ func runTasks(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("derive from challenges: %w", err)
 		}
 		result = challengeResult
+
+		// ddis:maintains APP-INV-104 (task witness enrichment — challenge path)
+		discovery.EnrichWithWitnesses(result, db, specID)
 	}
 
 	// Discovery-derived tasks
@@ -129,6 +132,9 @@ func runTasks(cmd *cobra.Command, args []string) error {
 		if err := discovery.CrossValidate(result, db, specID); err != nil {
 			return fmt.Errorf("cross-validate: %w", err)
 		}
+
+		// ddis:maintains APP-INV-104 (task witness enrichment — cross-validation path)
+		discovery.EnrichWithWitnesses(result, db, specID)
 	}
 
 	// Output in requested format

@@ -429,6 +429,42 @@ func resolveArtifact(db *sql.DB, specID int64, artID string) bool {
 	return false
 }
 
+// EnrichWithWitnesses decorates tasks with witness status and adjusts priority
+// for stale witnesses (regression risk outranks greenfield risk).
+// Best-effort: errors are silently ignored.
+// ddis:maintains APP-INV-104
+func EnrichWithWitnesses(result *TasksResult, db *sql.DB, specID int64) {
+	if db == nil {
+		return
+	}
+	witnesses, err := storage.ListWitnesses(db, specID)
+	if err != nil {
+		return
+	}
+	wStatus := make(map[string]string)
+	for _, w := range witnesses {
+		wStatus[w.InvariantID] = w.Status
+	}
+	for i := range result.Tasks {
+		t := &result.Tasks[i]
+		artID := t.Metadata.SourceArtifact
+		if !strings.HasPrefix(artID, "APP-INV-") {
+			continue
+		}
+		if status, ok := wStatus[artID]; ok {
+			t.WitnessStatus = status
+			// Priority boost for stale witnesses (regression risk)
+			if status == "stale_spec" || status == "stale_code" {
+				if t.Priority > 0 {
+					t.Priority--
+				}
+			}
+		} else {
+			t.WitnessStatus = "unwitnessed"
+		}
+	}
+}
+
 // sortedArtifacts returns artifacts sorted by ID for deterministic output.
 func sortedArtifacts(m map[string]*ArtifactEntry) []*ArtifactEntry {
 	keys := make([]string, 0, len(m))
@@ -456,6 +492,9 @@ func FormatBeads(result *TasksResult) string {
 			"depends_on": task.DependsOn,
 			"metadata":   task.Metadata,
 		}
+		if task.WitnessStatus != "" {
+			bead["witness_status"] = task.WitnessStatus
+		}
 		line, err := json.Marshal(bead)
 		if err != nil {
 			continue
@@ -480,8 +519,14 @@ func FormatMarkdown(result *TasksResult) string {
 	var sb strings.Builder
 	sb.WriteString("## Tasks\n\n")
 	for _, task := range result.Tasks {
-		sb.WriteString(fmt.Sprintf("- [ ] P%d: %s (source: %s)\n",
-			task.Priority, task.Title, task.Metadata.SourceArtifact))
+		indicator := ""
+		if task.WitnessStatus == "stale_spec" || task.WitnessStatus == "stale_code" {
+			indicator = " [STALE]"
+		} else if task.WitnessStatus == "valid" {
+			indicator = " [VALID]"
+		}
+		sb.WriteString(fmt.Sprintf("- [ ] P%d: %s (source: %s)%s\n",
+			task.Priority, task.Title, task.Metadata.SourceArtifact, indicator))
 		if len(task.DependsOn) > 0 {
 			sb.WriteString(fmt.Sprintf("  Depends on: %s\n", strings.Join(task.DependsOn, ", ")))
 		}

@@ -401,10 +401,11 @@ func diffCrossRefs(db1, db2 *sql.DB, sid1, sid2 int64) []Difference {
 	left := scanCrossRefs(db1, q, sid1)
 	right := scanCrossRefs(db2, q, sid2)
 
+	// ddis:maintains APP-INV-101 (composite key includes all discriminants — ref_type|target|text)
 	return diffMaps("cross_references", left, right, func(a, b xrefRow) []Difference {
 		var d []Difference
 		if a.refType != b.refType {
-			d = append(d, Difference{Table: "cross_references", Key: a.target + "|" + a.text, Kind: "modified", Field: "ref_type", Left: a.refType, Right: b.refType})
+			d = append(d, Difference{Table: "cross_references", Key: a.refType + "|" + a.target + "|" + a.text, Kind: "modified", Field: "ref_type", Left: a.refType, Right: b.refType})
 		}
 		return d
 	})
@@ -420,7 +421,8 @@ func scanCrossRefs(db *sql.DB, q string, specID int64) map[string]xrefRow {
 	for rows.Next() {
 		var r xrefRow
 		rows.Scan(&r.refType, &r.target, &r.text)
-		key := r.target + "|" + r.text
+		// ddis:maintains APP-INV-101 (composite key completeness — include ref_type to prevent collision)
+		key := r.refType + "|" + r.target + "|" + r.text
 		m[key] = r
 	}
 	return m

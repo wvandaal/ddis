@@ -159,13 +159,13 @@ func classifyPair(ctx context.Context, provider llm.Provider, a, b *storage.Inva
 		}
 	}
 
-	// Confidence per spec: 3/3 → 0.95, 2/3 → 0.80.
+	// ddis:maintains APP-INV-102 (centralized LLM confidence constants)
 	if bestCount < 2 {
 		return "independent", 0, nil // No majority
 	}
-	confidence := 0.80
+	confidence := llm.ConfidenceMajority
 	if bestCount >= 3 {
-		confidence = 0.95
+		confidence = llm.ConfidenceUnanimous
 	}
 
 	return bestVerdict, confidence, nil

@@ -219,6 +219,23 @@ type sqlApplier struct {
 	sourceFileID int64
 }
 
+// lookupSectionID resolves a section_path to its database ID.
+// Returns 0 if the path is empty or not found (graceful degradation for old events).
+// ddis:maintains APP-INV-100 (section hierarchy preservation)
+func (a *sqlApplier) lookupSectionID(sectionPath string) int64 {
+	if sectionPath == "" {
+		return 0 // backward compat: old events without section_path
+	}
+	var id int64
+	err := a.db.QueryRow(
+		`SELECT id FROM sections WHERE spec_id = ? AND section_path = ?`,
+		a.specID, sectionPath).Scan(&id)
+	if err != nil {
+		return 0 // section not yet created — graceful degradation
+	}
+	return id
+}
+
 func (a *sqlApplier) InsertSection(p events.SectionPayload) error {
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO sections (spec_id, source_file_id, section_path, title, heading_level, line_start, line_end, raw_text, content_hash)
 		VALUES (?, ?, ?, ?, ?, 0, 0, ?, '')`,
@@ -237,10 +254,12 @@ func (a *sqlApplier) RemoveSection(p events.SectionRemovePayload) error {
 	return err
 }
 
+// ddis:maintains APP-INV-100 (section hierarchy preservation — look up section_id from section_path)
 func (a *sqlApplier) InsertInvariant(p events.InvariantPayload) error {
+	sectionID := a.lookupSectionID(p.SectionPath)
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO invariants (spec_id, source_file_id, section_id, invariant_id, title, statement, semi_formal, violation_scenario, validation_method, why_this_matters, line_start, line_end, raw_text, content_hash)
-		VALUES (?, ?, 0, ?, ?, ?, ?, ?, ?, ?, 0, 0, '', '')`,
-		a.specID, a.sourceFileID, p.ID, p.Title, p.Statement, p.SemiFormal, p.ViolationScenario, p.ValidationMethod, p.WhyThisMatters)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, '', '')`,
+		a.specID, a.sourceFileID, sectionID, p.ID, p.Title, p.Statement, p.SemiFormal, p.ViolationScenario, p.ValidationMethod, p.WhyThisMatters)
 	return err
 }
 
@@ -268,9 +287,10 @@ func (a *sqlApplier) RemoveInvariant(p events.InvariantRemovePayload) error {
 }
 
 func (a *sqlApplier) InsertADR(p events.ADRPayload) error {
+	sectionID := a.lookupSectionID(p.SectionPath)
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO adrs (spec_id, source_file_id, section_id, adr_id, title, problem, decision_text, consequences, tests, line_start, line_end, raw_text, content_hash)
-		VALUES (?, ?, 0, ?, ?, ?, ?, ?, ?, 0, 0, '', '')`,
-		a.specID, a.sourceFileID, p.ID, p.Title, p.Problem, p.Decision, p.Consequences, p.Tests)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, '', '')`,
+		a.specID, a.sourceFileID, sectionID, p.ID, p.Title, p.Problem, p.Decision, p.Consequences, p.Tests)
 	return err
 }
 
@@ -326,7 +346,7 @@ func (a *sqlApplier) InsertModule(p events.ModulePayload) error {
 func (a *sqlApplier) InsertGlossaryTerm(p events.GlossaryTermPayload) error {
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO glossary_entries (spec_id, section_id, term, definition, line_number)
 		VALUES (?, 0, ?, ?, 0)`,
-		a.specID, p.Term, p.Definition)
+		a.specID, p.Term, p.Definition) // glossary section_id stays 0 (no section_path in payload yet)
 	return err
 }
 
@@ -338,9 +358,10 @@ func (a *sqlApplier) InsertCrossRef(p events.CrossRefPayload) error {
 }
 
 func (a *sqlApplier) InsertNegativeSpec(p events.NegativeSpecPayload) error {
+	sectionID := a.lookupSectionID(p.SectionPath)
 	_, err := a.db.Exec(`INSERT INTO negative_specs (spec_id, source_file_id, section_id, constraint_text, reason, line_number, raw_text)
-		VALUES (?, ?, 0, ?, ?, 0, '')`,
-		a.specID, a.sourceFileID, p.Pattern, p.Rationale)
+		VALUES (?, ?, ?, ?, ?, 0, '')`,
+		a.specID, a.sourceFileID, sectionID, p.Pattern, p.Rationale)
 	return err
 }
 
@@ -349,6 +370,6 @@ func (a *sqlApplier) InsertQualityGate(p events.QualityGatePayload) error {
 	gateID := fmt.Sprintf("APP-G-%d", p.GateNumber)
 	_, err := a.db.Exec(`INSERT OR REPLACE INTO quality_gates (spec_id, section_id, gate_id, title, predicate, is_modular, line_start, line_end, raw_text)
 		VALUES (?, 0, ?, ?, ?, 0, 0, 0, '')`,
-		a.specID, gateID, p.Title, p.Predicate)
+		a.specID, gateID, p.Title, p.Predicate) // gate section_id stays 0 (no section_path in payload yet)
 	return err
 }

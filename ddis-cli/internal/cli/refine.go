@@ -2,12 +2,14 @@ package cli
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/refine"
 	"github.com/wvandaal/ddis/internal/storage"
+	"github.com/wvandaal/ddis/internal/witness"
 )
 
 // ddis:implements APP-ADR-022 (state monad architecture)
@@ -131,6 +133,11 @@ func runRefineAudit(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Println(out)
 
+	// ddis:maintains APP-INV-103 (witness lifecycle completeness — refine audit guidance)
+	if !refinePromptOnly {
+		refineWitnessGuidance(db, specID)
+	}
+
 	// ddis:maintains APP-INV-053 (event stream completeness — emits finding_recorded to stream 1)
 	emitEvent(specPath, events.StreamDiscovery, events.TypeFindingRecorded, specHashFromDB(db, specID), map[string]interface{}{
 		"subcommand":      "audit",
@@ -208,6 +215,12 @@ func runRefineApply(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Println(out)
 
+	// ddis:maintains APP-INV-103 (witness lifecycle completeness — refine apply guidance)
+	if !refinePromptOnly {
+		fmt.Fprintf(os.Stderr, "\nWitness guidance: Re-witness modified invariants after applying refinements.\n")
+		fmt.Fprintf(os.Stderr, "  ddis witness <INV-ID> --verify --code-root . --by <agent>\n")
+	}
+
 	// ddis:maintains APP-INV-053 (event stream completeness — emits finding_recorded to stream 1)
 	emitEvent(specPath, events.StreamDiscovery, events.TypeFindingRecorded, specHashFromDB(db, specID), map[string]interface{}{
 		"subcommand": "apply",
@@ -254,4 +267,19 @@ func runRefineJudge(cmd *cobra.Command, args []string) error {
 	})
 
 	return nil
+}
+
+// refineWitnessGuidance checks for stale witnesses and prints guidance to stderr.
+// Best-effort: errors are silently ignored.
+// ddis:maintains APP-INV-103
+func refineWitnessGuidance(db storage.DB, specID int64) {
+	summary, err := witness.Check(db, specID, witness.CheckOptions{})
+	if err != nil {
+		return
+	}
+	if summary.Stale > 0 {
+		fmt.Fprintf(os.Stderr, "\nWitness warning: %d stale witness(es) detected.\n", summary.Stale)
+		fmt.Fprintf(os.Stderr, "  Run: ddis witness --check --json  (to see details)\n")
+		fmt.Fprintf(os.Stderr, "  Run: ddis witness <INV-ID> --verify --code-root . --by <agent>  (to re-witness)\n")
+	}
 }

@@ -65,6 +65,13 @@ func Open(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("apply schema: %w", err)
 	}
 
+	// Migrate witness data from old table if it exists (migration 2 data step).
+	var hasOld int
+	if db.QueryRow(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='_witnesses_old'`).Scan(&hasOld) == nil {
+		db.Exec(`INSERT INTO invariant_witnesses SELECT * FROM _witnesses_old`)
+		db.Exec(`DROP TABLE _witnesses_old`)
+	}
+
 	return db, nil
 }
 
@@ -88,5 +95,19 @@ func migrateSchema(db *sql.DB) error {
 			return fmt.Errorf("drop old challenge_results: %w", err)
 		}
 	}
+
+	// Migration 2: invariant_witnesses CHECK constraint must include 'eval'.
+	// Added when the eval evidence type was introduced for LLM-based evaluation.
+	var witnessSql string
+	err2 := db.QueryRow(`SELECT sql FROM sqlite_master WHERE type='table' AND name='invariant_witnesses'`).Scan(&witnessSql)
+	if err2 == nil && !strings.Contains(witnessSql, "'eval'") {
+		// Preserve existing data through temp table rename.
+		// SchemaSQL will create the new table with updated CHECK.
+		// Data is migrated after schema application in Open().
+		if _, err := db.Exec(`ALTER TABLE invariant_witnesses RENAME TO _witnesses_old`); err != nil {
+			return fmt.Errorf("rename old witnesses: %w", err)
+		}
+	}
+
 	return nil
 }

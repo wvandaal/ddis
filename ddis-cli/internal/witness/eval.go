@@ -87,12 +87,13 @@ func RecordEval(db *sql.DB, specID int64, opts EvalOptions) (*EvalResult, error)
 	// Determine majority verdict.
 	agreement, verdict := majorityVote(votes)
 
-	// Compute confidence per spec: 0.95 for 3/3, 0.75 for 2/3, reject otherwise.
+	// ddis:maintains APP-INV-102 (centralized LLM confidence constants)
+	// Compute confidence per spec: unanimous or majority, reject otherwise.
 	confidence := 0.0
 	if agreement >= 3 {
-		confidence = 0.95
+		confidence = llm.ConfidenceUnanimous
 	} else if agreement >= 2 {
-		confidence = 0.75
+		confidence = llm.ConfidenceMajority
 	} else {
 		// No majority — reject
 		return &EvalResult{

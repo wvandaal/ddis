@@ -12,6 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/wvandaal/ddis/internal/events"
 	"github.com/wvandaal/ddis/internal/materialize"
 	"github.com/wvandaal/ddis/internal/storage"
 )
@@ -99,9 +100,17 @@ func runSnapshotCreate(cmd *cobra.Command, args []string) error {
 	}
 	defer db.Close()
 
-	// Count events processed as position
+	// ddis:maintains APP-INV-098 (snapshot position is event-stream ordinal, not content count)
+	// Count events in the canonical event stream (not materialized content).
+	// Position represents the fold ordinal: how many events have been applied.
 	var eventCount int
-	db.QueryRow("SELECT COUNT(*) FROM invariants WHERE spec_id = ?", specID).Scan(&eventCount)
+	streamPath := events.StreamPath(".", events.StreamSpecification)
+	if evts, err := events.ReadStream(streamPath, events.EventFilters{}); err == nil {
+		eventCount = len(evts)
+	} else {
+		// Fallback: count event_provenance rows if stream file not accessible from CWD.
+		db.QueryRow("SELECT COUNT(*) FROM event_provenance WHERE spec_id = ?", specID).Scan(&eventCount)
+	}
 
 	snap, err := materialize.CreateSnapshot(db, specID, eventCount)
 	if err != nil {

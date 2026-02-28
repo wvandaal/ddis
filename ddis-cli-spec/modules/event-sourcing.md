@@ -1,9 +1,9 @@
 ---
 module: event-sourcing
 domain: eventsourcing
-maintains: [APP-INV-071, APP-INV-072, APP-INV-073, APP-INV-074, APP-INV-075, APP-INV-076, APP-INV-077, APP-INV-078, APP-INV-079, APP-INV-080, APP-INV-081, APP-INV-082, APP-INV-083, APP-INV-084, APP-INV-085, APP-INV-086, APP-INV-087, APP-INV-088, APP-INV-089, APP-INV-090, APP-INV-091, APP-INV-092, APP-INV-093, APP-INV-094, APP-INV-095, APP-INV-096, APP-INV-097]
+maintains: [APP-INV-071, APP-INV-072, APP-INV-073, APP-INV-074, APP-INV-075, APP-INV-076, APP-INV-077, APP-INV-078, APP-INV-079, APP-INV-080, APP-INV-081, APP-INV-082, APP-INV-083, APP-INV-084, APP-INV-085, APP-INV-086, APP-INV-087, APP-INV-088, APP-INV-089, APP-INV-090, APP-INV-091, APP-INV-092, APP-INV-093, APP-INV-094, APP-INV-095, APP-INV-096, APP-INV-097, APP-INV-098, APP-INV-100, APP-INV-101]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-010, APP-INV-015, APP-INV-016, APP-INV-020, APP-INV-025, APP-INV-048, APP-INV-053]
-implements: [APP-ADR-058, APP-ADR-059, APP-ADR-060, APP-ADR-061, APP-ADR-062, APP-ADR-063, APP-ADR-064, APP-ADR-065, APP-ADR-066, APP-ADR-067, APP-ADR-068, APP-ADR-069, APP-ADR-070, APP-ADR-071, APP-ADR-072, APP-ADR-073, APP-ADR-074]
+implements: [APP-ADR-058, APP-ADR-059, APP-ADR-060, APP-ADR-061, APP-ADR-062, APP-ADR-063, APP-ADR-064, APP-ADR-065, APP-ADR-066, APP-ADR-067, APP-ADR-068, APP-ADR-069, APP-ADR-070, APP-ADR-071, APP-ADR-072, APP-ADR-073, APP-ADR-074, APP-ADR-076]
 adjacent: [parse-pipeline, code-bridge, lifecycle-ops, auto-prompting]
 negative_specs:
   - "Must NOT read or write markdown as canonical source of truth"
@@ -1619,5 +1619,79 @@ Predictable, deterministic, independent of wall-clock time. Manual creation alwa
 
 #### Tests
 TestAutomaticSnapshotInterval, TestManualSnapshotCreation in internal/materialize/snapshot_test.go.
+
+---
+
+## Chapter 11: Cleanroom Audit Hardening
+
+This chapter addresses findings from the 2026-02-28 cleanroom software engineering audit. Each invariant below was discovered through systematic code-level trace analysis and formalized via the bilateral specification cycle.
+
+**APP-INV-098: Snapshot Position Event-Stream Ordinal**
+
+*The snapshot position field MUST represent the count of events processed from the canonical event stream, NOT a count of materialized content elements (e.g., invariants, sections). Position forms a monotone counter in the stream's ordinal space: it strictly increases with each applied event and enables FoldFrom() to resume at the correct stream offset.*
+
+```
+Let pos(s) be the position stored in snapshot s, and let |E_applied| be the number of events applied during the fold that produced s. Then pos(s) = |E_applied|. For any subsequent snapshot s' with pos(s') > pos(s), FoldFrom(events, pos(s)) must apply exactly the events at indices [pos(s), pos(s')-1].
+```
+
+Violation scenario: Snapshot created with position = COUNT(invariants). After an invariant upsert (no new row), position stays at N. After an invariant deletion, position decreases to N-1. FoldFrom(events, N) skips or replays wrong events, producing divergent state.
+
+Validation: Create snapshot, count events in stream file, verify snapshot.Position == event count. Delete an invariant from DB, create new snapshot, verify position still equals event count (not invariant count).
+
+// WHY THIS MATTERS: Snapshot-accelerated fold (APP-INV-094) relies on position to skip already-applied events. If position tracks a projection (invariant count) instead of the stream ordinal, the skip window is wrong, breaking idempotency (APP-INV-075) and determinism (APP-INV-097).
+
+---
+
+**APP-INV-100: Event Applier Section Hierarchy Preservation**
+
+*The event fold applier MUST preserve section hierarchy when materializing events into the SQLite state. Content elements (invariants, ADRs, glossary entries, negative specs, quality gates) MUST be associated with their correct containing section via section_id. Hardcoding section_id to a constant (e.g., 0) is prohibited.*
+
+```
+Let E be a content event with payload containing section_path P. Let S be the section table after applying all section events. Then Apply(E).section_id = lookup(S, P).id. The function lookup: SectionPath -> SectionID is total over the domain of section paths present in prior section events.
+```
+
+Violation scenario: sqlApplier.InsertInvariant sets section_id=0 for all invariants. Coverage analysis queries invariants by section — returns empty. project command reconstructs modules without section structure. Validation Check 5 cannot verify invariants are in correct sections.
+
+Validation: After fold: SELECT COUNT(*) FROM invariants WHERE section_id = 0 MUST return 0. For each invariant with a section_path in its event payload, verify section_id points to the correct section row. Run ddis coverage on materialized DB — verify per-section completeness is computable.
+
+// WHY THIS MATTERS: Section hierarchy is the structural backbone of DDIS specs (§0.1 State Space). Without it, the materialized state is a flat bag of elements — losing the tree structure that enables scoped queries, module-section relationships, and structural validation. This breaks the round-trip guarantee (APP-INV-096).
+
+---
+
+**APP-INV-101: Structural Diff Composite Key Completeness**
+
+*The StructuralDiff function MUST use composite keys that include ALL discriminant fields when building comparison maps. For cross-references, the key MUST include (ref_type, ref_target, ref_text). Omitting any discriminant field from the key can cause silent collision and data loss in the diff output.*
+
+```
+For any table T with natural key K = (k1, k2, ..., kn), the diff map key MUST be the full tuple K. For cross_references, K = (ref_type, ref_target, ref_text). The map function m: Row -> Key is injective iff K contains all discriminant columns. If m is not injective, |image(m)| < |domain(m)| and the diff loses rows.
+```
+
+Violation scenario: diffCrossRefs uses key = target|text, omitting ref_type. Two cross-refs (type=invariant, target=APP-INV-071, text=See INV) and (type=app_invariant, target=APP-INV-071, text=See INV) collide. The second overwrites the first in the map. StateHash computed on the diff is wrong.
+
+Validation: Insert two cross-refs with same target+text but different ref_type into DB1. Insert only one into DB2. Run StructuralDiff. Verify BOTH additions are reported, not just one.
+
+// WHY THIS MATTERS: StructuralDiff is the foundation for StateHash (APP-INV-093), snapshot verification, and the event-sourcing integrity chain. A lossy diff means snapshots can verify as correct when they actually diverge.
+
+---
+
+### APP-ADR-076: Event Schema Carries Section Path for Hierarchy Reconstruction
+
+#### Problem
+The event fold applier (sqlApplier) hardcodes section_id=0 for all content elements because events do not carry section path information. This destroys the section hierarchy that is fundamental to DDIS spec structure, making coverage analysis, section-scoped queries, and structural validation impossible on materialized state.
+
+#### Options
+Option A: Add section_path to content event payloads. During fold, look up or create the section row and use its ID. Events become self-contained.
+Option B: Run a post-fold reconciliation pass that matches elements to sections by line number or name heuristics. Fragile and lossy.
+Option C: Store section events separately and reconstruct the tree before applying content events. Requires event ordering guarantees.
+Option D: Accept section_id=0 and disable section-dependent features for materialized state. Violates round-trip (APP-INV-096).
+
+#### Decision
+**Option A: Enrich content event payloads with a section_path field.** The applier looks up the section by path (creating it if needed via a synthetic section event). This is the correct approach because it makes events self-describing and enables correct fold without external state. // WHY NOT B: Heuristic-dependent. C: Requires strict ordering. D: Unacceptable.
+
+#### Consequences
+Events become self-describing. Fold produces structurally complete state. Round-trip guarantee restored.
+
+#### Tests
+TestEventApplier_SectionHierarchy, TestFold_SectionLookup in internal/materialize/fold_test.go.
 
 ---

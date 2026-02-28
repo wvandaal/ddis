@@ -14,6 +14,16 @@ import (
 	"time"
 )
 
+// ddis:maintains APP-INV-102 (LLM confidence constant centralization)
+// Centralized confidence values for majority-vote LLM evaluations.
+// All modules (witness/eval, consistency/llm) MUST use these constants.
+const (
+	// ConfidenceUnanimous is the confidence for 3/3 agreement.
+	ConfidenceUnanimous = 0.95
+	// ConfidenceMajority is the confidence for 2/3 agreement.
+	ConfidenceMajority = 0.80
+)
+
 // Provider abstracts LLM access with graceful degradation.
 // When Available() returns false, all LLM-dependent features skip silently.
 type Provider interface {

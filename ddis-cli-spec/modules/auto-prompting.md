@@ -1,7 +1,7 @@
 ---
 module: auto-prompting
 domain: autoprompt
-maintains: [APP-INV-022, APP-INV-023, APP-INV-024, APP-INV-025, APP-INV-026, APP-INV-027, APP-INV-028, APP-INV-029, APP-INV-030, APP-INV-031, APP-INV-032, APP-INV-033, APP-INV-034, APP-INV-035, APP-INV-036, APP-INV-042, APP-INV-045, APP-INV-046, APP-INV-056, APP-INV-061]
+maintains: [APP-INV-022, APP-INV-023, APP-INV-024, APP-INV-025, APP-INV-026, APP-INV-027, APP-INV-028, APP-INV-029, APP-INV-030, APP-INV-031, APP-INV-032, APP-INV-033, APP-INV-034, APP-INV-035, APP-INV-036, APP-INV-042, APP-INV-045, APP-INV-046, APP-INV-056, APP-INV-061, APP-INV-102, APP-INV-104]
 interfaces: [APP-INV-001, APP-INV-002, APP-INV-003, APP-INV-005, APP-INV-008, APP-INV-009, APP-INV-010, APP-INV-015, APP-INV-016, APP-INV-017, APP-INV-018, APP-INV-020]
 implements: [APP-ADR-016, APP-ADR-017, APP-ADR-018, APP-ADR-019, APP-ADR-020, APP-ADR-021, APP-ADR-022, APP-ADR-023, APP-ADR-024, APP-ADR-025, APP-ADR-031, APP-ADR-033, APP-ADR-043, APP-ADR-049]
 adjacent: [code-bridge, search-intelligence, query-validation, lifecycle-ops, workspace-ops]
@@ -2218,6 +2218,28 @@ Validation: Crystallize an invariant with owner lifecycle-ops and no --module. V
 
 ---
 
+**APP-INV-104: Task Witness Enrichment**
+
+*Every derived task whose `Metadata.SourceArtifact` matches an invariant ID includes the invariant's current witness status in both structured (JSON) and human-readable output. Tasks for stale-witnessed invariants are prioritized above tasks for unwitnessed invariants (lower priority number = higher priority).*
+
+```
+FOR ALL t IN TasksResult.Tasks:
+  IF t.Metadata.SourceArtifact MATCHES /^APP-INV-/:
+    t.WitnessStatus IN {"unwitnessed", "valid", "stale_spec", "stale_code", "invalidated"}
+
+FOR ALL pairs (t1, t2) WHERE
+  t1.WitnessStatus IN {"stale_spec", "stale_code"} AND t2.WitnessStatus = "unwitnessed":
+    t1.Priority < t2.Priority  -- lower number = higher priority
+```
+
+Violation scenario: Agent runs `ddis tasks --from-challenges --spec db.db` and gets 15 derived tasks. Three reference invariants with stale witnesses. The stale tasks appear at the same priority as fresh implementation tasks. The agent picks an unwitnessed task over a stale one, missing regression risk.
+
+Validation: Create witnesses for some invariants, parse a modified spec to stale them, run `ddis tasks --from-challenges --spec db.db --format json`. Verify JSON includes `witness_status` field. Verify stale tasks have numerically lower priority. Verify markdown output shows `[STALE]` indicator.
+
+// WHY THIS MATTERS: Stale witnesses represent regression risk (previously proven code may no longer satisfy invariants). Unwitnessed invariants represent greenfield risk (untested). Regression risk should always outprioritize greenfield risk because regressions indicate something was working and broke, while greenfield just hasn't been proven yet.
+
+---
+
 ### APP-ADR-049: Crystallize Auto-Detection from Manifest Bijection
 
 #### Problem
@@ -2239,5 +2261,23 @@ A) Auto-resolve from manifest maintains mapping. B) Prompt user for module. C) D
 #### Tests
 
 Crystallize with owner lifecycle-ops, no --module: resolves to lifecycle-ops. Domain matching 2 modules: error with candidates.
+
+---
+
+## Chapter 6: Cleanroom Audit — LLM Confidence Integrity
+
+**APP-INV-102: LLM Confidence Constant Centralization**
+
+*All LLM-based majority vote confidence calculations MUST use centralized constants. For N-of-M agreement, the confidence value MUST be identical regardless of which module (witness evaluation, consistency checking, or any future LLM tier) computes it. Specifically: unanimous (3/3) = 0.95, majority (2/3) = 0.80.*
+
+```
+Let conf: (agreement, total) -> [0,1] be the confidence function. conf is a SINGLE function shared by all modules. For all callers c1, c2: conf_c1(k, n) = conf_c2(k, n). Currently violated: conf_eval(2,3) = 0.75 != conf_llm(2,3) = 0.80.
+```
+
+Violation scenario: Witness eval records a 2/3 agreement witness with confidence 0.75. Consistency checker finds the same pair with 2/3 agreement at confidence 0.80. Deduplication keeps the consistency finding even though both represent the same statistical evidence.
+
+Validation: grep for hardcoded confidence constants (0.75, 0.80, 0.85, 0.95). Verify all originate from a single source of truth. Test: call both eval and consistency with mock 2/3 agreement, verify identical confidence.
+
+// WHY THIS MATTERS: Confidence values feed into deduplication, prioritization, and report rendering. Inconsistent values create ordering anomalies where identical evidence is ranked differently based on the code path, violating statistical soundness (APP-INV-055).
 
 ---
