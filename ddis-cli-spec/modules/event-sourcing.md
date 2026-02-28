@@ -746,12 +746,7 @@ The `Causes` field enables causal DAG construction (APP-INV-074). The `Version` 
 
 ### Event Validation Rules
 
-Extended validation for content-bearing events:
-1. All existing rules (ID, Timestamp, Type, Stream correspondence) remain
-2. Content events must have non-empty Payload with all required fields
-3. If Causes is non-empty, all referenced IDs must exist in prior events
-4. Version must be a positive integer (current version = 1)
-5. Content events must not duplicate an existing element ID (except for update/supersede types)
+Extended validation for content-bearing events: all existing rules (ID, Timestamp, Type, Stream) remain, plus content events must have non-empty Payload with all required fields, Causes references must resolve to existing events, and content events must not duplicate element IDs (except update/supersede types).
 
 ---
 
@@ -765,30 +760,11 @@ The core of the materialization pipeline is the `apply` function, a pure functio
 apply : (SQLiteState, Event) -> SQLiteState
 
 apply(state, e) = case e.Type of
-  "spec_section_defined"    -> insertSection(state, e.Payload)
-  "spec_section_updated"    -> updateSection(state, e.Payload)
-  "spec_section_removed"    -> removeSection(state, e.Payload)
-  "invariant_crystallized"  -> insertInvariant(state, e.Payload)
-  "invariant_updated"       -> updateInvariant(state, e.Payload)
-  "invariant_removed"       -> removeInvariant(state, e.Payload)
-  "adr_crystallized"        -> insertADR(state, e.Payload)
-  "adr_updated"             -> updateADR(state, e.Payload)
-  "adr_superseded"          -> supersedeADR(state, e.Payload)
-  "negative_spec_added"     -> insertNegativeSpec(state, e.Payload)
-  "quality_gate_defined"    -> insertGate(state, e.Payload)
-  "cross_ref_added"         -> insertCrossRef(state, e.Payload)
-  "glossary_term_defined"   -> insertGlossaryTerm(state, e.Payload)
-  "module_registered"       -> insertModule(state, e.Payload)
-  "manifest_updated"        -> updateManifest(state, e.Payload)
-  "witness_recorded"        -> insertWitness(state, e.Payload)
-  "witness_revoked"         -> revokeWitness(state, e.Payload)
-  "witness_invalidated"     -> invalidateWitness(state, e.Payload)
-  "challenge_completed"     -> insertChallenge(state, e.Payload)
-  "snapshot_created"        -> recordSnapshot(state, e.Payload)
-  _                         -> state  // Unknown types are no-ops (forward compat)
+  <20 content types from Chapter 1 table>  -> mutation(state, e.Payload)
+  _                                        -> state  // forward compat
 ```
 
-Each case function is a pure SQL mutation: INSERT, UPDATE, or DELETE on the appropriate tables. No file I/O, no system clock, no randomness.
+Each content type maps to exactly one SQL mutation (INSERT, UPDATE, or DELETE) on its corresponding table. See Chapter 1 for the full type-to-mutation mapping. No file I/O, no system clock, no randomness --- the function is pure (APP-INV-073).
 
 ### Materialize Pipeline
 
@@ -815,23 +791,9 @@ materialize(log, snapshot?) -> SQLiteState
 3. Return state
 ```
 
-### Causal Sort
+### Causal Sort and Error Handling
 
-Before applying events, the materialize engine sorts them into a valid causal order. Events without causal references preserve their log order. Events with causal references are topologically sorted.
-
-```
-causal_sort(events) -> sorted_events
-
-1. Build dependency graph G from causes references
-2. Verify G is acyclic (error if cycle detected)
-3. Topological sort G
-4. Within each topological level, sort by timestamp (stable)
-5. Return sorted events
-```
-
-### Error Handling
-
-The materialize engine collects errors without halting: unknown types are skipped (forward compat), missing causal references and schema violations are reported, and the fold continues processing valid events. All errors are reported after the full fold completes, producing a best-effort state.
+Events are sorted into causal order before folding (see Chapter 5 for the full algorithm). The engine collects errors without halting: unknown types become no-ops, and all errors are reported after the fold completes.
 
 ---
 

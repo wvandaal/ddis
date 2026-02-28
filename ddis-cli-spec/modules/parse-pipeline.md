@@ -570,6 +570,10 @@ The `extractFormattingHints` function records:
 - `hint_type = "blank_line"` for empty lines (trimmed to empty)
 - `hint_type = "hr"` with `hint_value = "---"` for horizontal rules (excluding frontmatter delimiters)
 
+#### Deterministic Render Ordering
+
+All render outputs are deterministic: source files are queried with `ORDER BY id` (insertion order), the manifest is always written last, and no random or clock-dependent operations are used. This makes the render step a pure function of the database state, enabling `diff` to detect any unintended changes and `validate` to verify structural consistency of the output.
+
 ---
 
 ## Negative Specifications

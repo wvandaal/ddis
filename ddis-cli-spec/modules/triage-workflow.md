@@ -765,6 +765,10 @@ For each signal where score < 1.0, identify specific deficiencies and estimate �
 
 **Edge cases:** When totalIssues = 0, I(S) = 0 (no backlog — perfect). When maxDrift = 0, D(S) = 0 (no drift — perfect). When challengesTotal = 0, H(S) defaults to 1.0 (no challenges needed). Division by zero is guarded at every signal computation.
 
+**Signal independence:** Each of the 6 signals (v, c, d, h, k, i) is computed from a disjoint subset of the database state, making them independently testable. Validation (v) reads the check results, coverage (c) reads module-to-invariant mappings, drift (d) reads spec-impl annotations, challenge health (h) reads challenge_results, consistency (k) reads invariant pairs, and issue backlog (i) reads the event stream. No signal computation depends on another signal's output, which guarantees that fitness is a pure function of the spec state alone.
+
+**Normalization bounds:** All signals are clamped to [0, 1], ensuring F(S) is bounded in [0, 1]. The Lyapunov function V(S) = 1 - F(S) is therefore bounded in [0, 1] and non-negative, satisfying the definiteness requirement for convergence proofs.
+
 **Worked example:** Given a spec with 17 validation checks (16 passing), 70 invariants at 100% coverage, drift score 1 with maxDrift 10, 63/63 challenges confirmed, 0 contradictions in 2415 pairs, and 0/0 open issues: v=16/17≈0.941, c=1.0, d=1/10=0.1, h=1.0, k=0, i=0. F = 0.20(0.941) + 0.20(1.0) + 0.20(0.9) + 0.15(1.0) + 0.15(1.0) + 0.10(1.0) = 0.9882. V(S) = 0.0118. The dominant deficiency is validation (ΔF ≈ 0.20 × 0.059 = 0.0118), matching the Lyapunov gap.
 
 **Lyapunov decrease guarantee:** Each ranked deficiency's ΔF estimate is a lower bound on the fitness improvement achievable by addressing that single item. The ranking by ΔF descending ensures that the greedy strategy (fix highest-ΔF first) achieves the steepest descent. Since each remediation either fixes the deficiency (ΔF > 0) or reveals it as a false positive (no change), the sequence F(S₀), F(S₁), ... is monotonically non-decreasing. Combined with the well-founded ordering on μ, this guarantees termination at F(S) = 1.0.
