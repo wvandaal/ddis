@@ -881,6 +881,230 @@ The spec plus the implementer's general competence plus public references must b
 
 This is not incidental style — composition is what makes the bilateral loop possible. If operations mutated state in place, temporal queries would be impossible (no prior state to query). Bisection would be impossible (no way to reproduce intermediate states). CRDT merge would be impossible (mutations don't commute). The append-only, composition-first architecture is a direct consequence of the determinism and convergence requirements.
 
+## The Drift System
+
+Drift quantifies the divergence between what the spec promises and what the implementation delivers. `ddis drift` measures it, classifies it, and generates remediation plans.
+
+### Three Drift Dimensions
+
+**Implementation drift** counts discrepancies between spec and code:
+
+```
+impl_drift = unspecified + unimplemented + 2 × contradictions
+
+where:
+  unspecified    = invariants maintained in code but not in the spec registry
+  unimplemented  = invariants declared in the spec but with no code annotations
+  contradictions = conflicts detected by the consistency checker (Tiers 2–5)
+```
+
+Contradictions are double-weighted because they represent active conflicts, not just gaps.
+
+**Intent drift** counts misalignment between stated goals and spec content:
+
+```
+intent_drift = uncovered_nonnegotiables + purposeless_elements
+
+where:
+  uncovered_nonnegotiables = requirements stated in the constitution with no invariant coverage
+  purposeless_elements     = invariants that address no stated goal or non-negotiable
+```
+
+**Process drift** measures methodology adherence: witness coverage, validation gating, and the ratio of spec-first to code-first development.
+
+**Effective drift** combines all three, minus planned divergences tracked in session state:
+
+```
+effective_drift = impl_drift + intent_drift - planned_divergences
+```
+
+### Quality Breakdown
+
+Drift decomposes into three quality dimensions that guide where to focus remediation:
+
+| Dimension | Composition | Fix By |
+|-----------|-------------|--------|
+| **Correctness** | Unimplemented invariants + contradictions + stale witnesses | Fix implementation gaps, resolve contradictions, re-verify witnesses |
+| **Depth** | Unspecified invariants (maintained in code but not formally specified) | Formalize invariants via `ddis absorb` or `ddis discover` |
+| **Coherence** | Unresolved cross-references + declaration-definition gaps | Repair spec structure, add missing registry entries |
+
+### Drift Classification
+
+Each drift report classifies along three axes:
+
+- **Direction**: `impl-ahead` (code has more than spec), `spec-ahead` (spec has more than code), `contradictory` (they actively disagree), `mutual` (both incomplete)
+- **Severity**: `additive` (gaps only, no conflicts), `contradictory` (incompatible claims), `structural` (coherence failures, orphaned references)
+- **Intentionality**: `planned` (tracked via `ddis state`), `accidental` (sudden regression), `organic` (gradual evolution)
+
+Remediation plans are generated per category with priority ranking: correctness drift fixes first (highest risk), then depth, then coherence. Planned divergences are excluded — they represent conscious decisions to defer, not accidental rot.
+
+## Supporting Systems
+
+### Skeleton Generation
+
+`ddis skeleton` generates DDIS-conformant specification scaffolds that pass mechanical validation immediately. The generator creates a manifest.yaml with correct tier mode and context budgets, a system constitution with configurable maturity level (Level 1: minimal declarations; Level 3: fully-detailed with semi-formal expressions, violation scenarios, and validation methods), and per-domain module stubs with proper frontmatter and placeholder sections. All generated files respect context budget line limits. A fresh skeleton passes 13/13 structural validation checks without manual editing, providing a correct starting point that can be incrementally expanded.
+
+### Bundle Assembly
+
+`ddis bundle <domain>` implements three-tier pullback assembly for LLM consumption:
+
+1. **System constitution** — declarations, non-negotiables, formal state space, gates (always included)
+2. **Domain modules** — full definitions of invariants and ADRs belonging to the queried domain
+3. **Interface stubs** — boundary invariants from other domains that this domain depends on, rendered as read-only summaries
+
+The result fits within the manifest's context budget (target lines + reasoning reserve). Budget usage is reported as a percentage of the ceiling, flagging overages. Interface stubs are read-only — they remind the implementer of cross-domain constraints without duplicating content. This enables domain-isolated implementation: an LLM can implement one domain from its bundle alone without needing the full specification.
+
+### Progress and Implementation Order
+
+`ddis progress` partitions all invariants into three sets:
+
+- **Done** — complete, with valid witnesses
+- **Frontier** — ready to implement (all dependencies satisfied), ranked by authority (cross-reference count) and unblocking value (how many blocked items completing this would unlock)
+- **Blocked** — waiting on unsatisfied dependencies, with the blocking items listed explicitly
+
+`ddis impl-order` produces a full topological sort via Kahn's algorithm over the module dependency DAG. Cycles are handled by SCC (strongly connected component) condensation. The output is a strict implementation sequence that respects all dependency constraints.
+
+### Exemplar Retrieval
+
+`ddis exemplar --target APP-INV-001` detects quality gaps in a target invariant (missing semi-formal statement, no violation scenario, weak validation method) and retrieves high-quality exemplars from the spec corpus. Gap detection identifies which of the 5 invariant components are absent or below a quality threshold. The system then searches via LSI + BM25 for semantically similar invariants, scores candidates by whether they have the missing fields, and returns the top-N with component-level demonstrations. This accelerates spec authoring by giving writers concrete examples of well-formed invariants in the same domain.
+
+### Multi-Spec Workspaces
+
+DDIS supports hierarchical spec relationships via `parent_spec` in the manifest:
+
+```yaml
+parent_spec: "../ddis-modular/manifest.yaml"
+```
+
+A child spec inherits the parent's invariants and ADRs. The parser loads both specs into the same database, enabling cross-spec reference resolution — a child can cite `INV-006` and it resolves against the parent. `ddis init --workspace` creates a workspace tracking multiple specs, their relationships, and cross-spec drift. Progressive validation degrades gracefully if the parent spec is unavailable: Level 1 (structural) checks run locally, Level 2+ checks that require parent context skip with warnings rather than failing.
+
+## Comparison with Existing Tools
+
+DDIS occupies a space not covered by existing specification tools.
+
+### vs. TLA+ / Alloy / Z (Formal Methods)
+
+Formal methods produce machine-checkable specifications, but few practicing engineers write or read them fluently. The specification becomes a parallel artifact maintained by specialists, disconnected from implementation. The formalism verifies a model of the system, not the system itself. DDIS uses markdown — readable by anyone, tracked in git alongside code. Formal structure (invariants with semi-formal expressions, state machine tables) is embedded in the prose, parsed mechanically, and validated by the CLI. Engineers do not need to learn a specification language.
+
+### vs. adr-tools / log4brains (ADR Tools)
+
+ADR-focused tools capture design decisions but not the full specification contract. They lack invariants, quality gates, negative specifications, cross-reference validation, coverage tracking, drift detection, and LLM-specific optimization. In DDIS, ADRs are one component of a complete specification. They connect to invariants (which ADR does this invariant implement?), quality gates (which gate verifies this decision?), and code annotations (which function implements this ADR?). The full graph is mechanically validated.
+
+### vs. OpenAPI / AsyncAPI (API Specifications)
+
+API specifications describe interfaces — request/response schemas, endpoints, message formats. They do not capture invariants, design rationale, cross-cutting concerns, implementation guidelines, or negative specifications. There is no bilateral feedback loop: the spec describes the API, but the API does not speak back into the spec. DDIS is a general-purpose specification standard covering all domains (search, validation, lifecycle, event sourcing, triage), not just interfaces.
+
+### vs. Sphinx / MkDocs / Docusaurus (Documentation Generators)
+
+Documentation generators render content but do not validate it. There is no mechanical check for completeness, no drift detection when code changes, no LLM-optimized assembly. Documents rot because there is no feedback signal when the implementation diverges. DDIS closes this loop: `ddis drift` detects divergence, `ddis absorb` reconciles it, `ddis validate` enforces structural quality, and `ddis context` assembles what the LLM needs without manual curation.
+
+### What DDIS Uniquely Provides
+
+1. **Bilateral specification** — automatic detection when code diverges from spec, with monotonic reconciliation
+2. **LLM-native format** — context bundles, negative specs, structural redundancy, verification prompts designed for model consumption
+3. **Self-bootstrapping** — the standard is written in its own format, validated by its own tool
+4. **Event sourcing** — complete temporal history, bisection, CRDT merge, snapshot acceleration
+5. **Graduated verification** — 4-level witnesses, 5-level challenges, 5-tier contradiction checking
+6. **Single binary, zero dependencies** — pure Go, offline-first, deterministic, no server
+
+## End-to-End Workflow
+
+A concrete walkthrough from empty directory to validated specification.
+
+### 1. Initialize
+
+```bash
+ddis init my-service
+cd my-service
+```
+
+This creates `manifest.yaml`, `constitution/system.md`, a `modules/` directory, `.ddis/index.db`, and the oplog. All files pass validation immediately.
+
+### 2. Define the Constitution
+
+Edit `constitution/system.md`. Add a system overview, declare 5–10 core invariants (title + statement minimum), and sketch 3–5 architecture decisions:
+
+```markdown
+**APP-INV-001: Request Idempotency**
+Every request handler produces identical results for identical inputs.
+No hidden state, no clock-dependent behavior.
+
+*Violation: replaying a request produces different output due to
+cached timestamp in the response body.*
+
+### APP-ADR-001: Event-Driven Architecture
+**Problem:** Synchronous RPC vs asynchronous events for inter-service communication?
+**Decision:** Event-driven. Services publish domain events; consumers react asynchronously.
+**Consequences:** Eventual consistency. Requires idempotent consumers (APP-INV-001).
+```
+
+### 3. Parse and Validate
+
+```bash
+ddis parse manifest.yaml -o index.db
+ddis validate index.db
+# 0 errors, some warnings for incomplete fields
+```
+
+### 4. Add Modules
+
+Create domain modules (e.g., `modules/api-layer.md`, `modules/storage.md`). Register them in `manifest.yaml`:
+
+```yaml
+modules:
+  api-layer:
+    file: "modules/api-layer.md"
+    domain: api
+    maintains: [APP-INV-001, APP-INV-002]
+    implements: [APP-ADR-001]
+    negative_specs:
+      - "Must NOT return cached responses without cache-control headers"
+```
+
+Re-parse. Check coverage:
+
+```bash
+ddis parse manifest.yaml -o index.db
+ddis coverage index.db
+# Shows % of invariants and ADRs that are fully defined
+```
+
+### 5. Implement with Annotations
+
+Write code. Add annotations linking implementation to spec:
+
+```go
+// ddis:maintains APP-INV-001
+func HandleRequest(ctx context.Context, req Request) (Response, error) {
+    // ddis:implements APP-ADR-001
+    event := NewDomainEvent(req)
+    return process(event)
+}
+```
+
+### 6. Close the Loop
+
+Scan annotations, measure drift, get context for the next implementation task:
+
+```bash
+ddis scan . --spec index.db          # Extract code annotations
+ddis drift index.db                  # Quantify spec-impl divergence
+ddis context index.db APP-INV-002    # 9-signal bundle for implementing the next invariant
+ddis progress index.db               # See what's done, ready, and blocked
+```
+
+### 7. Converge
+
+Record witnesses for implemented invariants. Challenge them. Iterate until fitness reaches 1.0:
+
+```bash
+ddis witness index.db APP-INV-001 --evidence-type test --evidence "TestIdempotency passes"
+ddis challenge index.db APP-INV-001
+ddis triage index.db                 # Reports F(S) and highest-impact next action
+```
+
+When `ddis triage` reports F(S) = 1.0, all validation checks pass, drift is zero, all witnesses are confirmed, and no contradictions exist — the specification and implementation have reached fixpoint.
+
 ## Self-Bootstrapping
 
 DDIS validates itself at two levels.
