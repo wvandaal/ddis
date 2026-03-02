@@ -5022,12 +5022,2362 @@ Verify that resolution only occurs when all participants have identical visible 
 
 ---
 
-*Sections §9–§14 (Wave 3 namespaces) and §15–§17 (integration) will be produced in
-subsequent sessions following the same three-level refinement methodology.*
+---
+
+## §9. SIGNAL — Divergence Signal Routing
+
+> **Purpose**: Signals are the nervous system of DDIS — typed events that detect divergence
+> and route it to the appropriate resolution mechanism. Every signal is a datom, making
+> the system's self-awareness queryable and auditable.
+>
+> **Traces to**: SEED.md §6 (Reconciliation Mechanisms), ADRS PO-004, PO-005, PO-008,
+> CO-003, CR-002, CR-003, AS-009
+
+### §9.1 Level 0: Algebraic Specification
+
+A **signal** is a typed divergence detection event:
+
+```
+Signal = (type: SignalType, source: EntityId, target: EntityId,
+          severity: Severity, payload: Value)
+
+SignalType = Confusion | Conflict | UncertaintySpike | ResolutionProposal
+           | DelegationRequest | GoalDrift | BranchReady | DeliberationTurn
+
+Severity = Low | Medium | High | Critical
+  with total order: Low < Medium < High < Critical
+```
+
+The **signal dispatch function** maps signal types to resolution mechanisms:
+
+```
+dispatch : Signal → ResolutionMechanism
+dispatch(Confusion(_))         = ReAssociate       — epistemic divergence
+dispatch(Conflict(_))          = Route(severity)    — aleatory divergence
+dispatch(UncertaintySpike(_))  = Guidance           — consequential divergence
+dispatch(GoalDrift(_))         = Escalate(human)    — axiological divergence
+dispatch(DelegationRequest(_)) = Delegate           — authority resolution
+dispatch(BranchReady(_))       = Compare            — structural divergence
+dispatch(DeliberationTurn(_))  = Deliberate         — logical divergence
+dispatch(ResolutionProposal(_))= Evaluate           — resolution convergence
+```
+
+**Laws**:
+- **L1 (Totality)**: Every signal type has a defined dispatch target
+- **L2 (Monotonicity)**: `severity(s1) ≤ severity(s2) ⟹ cost(dispatch(s1)) ≤ cost(dispatch(s2))` — higher severity signals route to more expensive resolution mechanisms
+- **L3 (Completeness)**: Every divergence type in the reconciliation taxonomy (CO-003) maps to at least one signal type
+
+### §9.2 Level 1: State Machine Specification
+
+**State**: `Σ_signal = (pending: Set<Signal>, active: Set<Signal>, resolved: Set<Signal>, subscriptions: Map<Pattern, Set<Callback>>)`
+
+**Transitions**:
+
+```
+EMIT(Σ, signal) → Σ' where:
+  PRE:  signal.source ∈ known_entities(store)
+  POST: Σ'.pending = Σ.pending ∪ {signal}
+  POST: signal recorded as datom in store
+  POST: matching subscriptions fired
+
+ROUTE(Σ, signal) → Σ' where:
+  PRE:  signal ∈ Σ.pending
+  POST: Σ'.pending = Σ.pending \ {signal}
+  POST: Σ'.active = Σ.active ∪ {signal}
+  POST: dispatch(signal) invoked
+
+RESOLVE(Σ, signal, resolution) → Σ' where:
+  PRE:  signal ∈ Σ.active
+  POST: Σ'.active = Σ.active \ {signal}
+  POST: Σ'.resolved = Σ.resolved ∪ {signal}
+  POST: resolution recorded as datom with causal link to signal
+
+SUBSCRIBE(Σ, pattern, callback) → Σ' where:
+  POST: Σ'.subscriptions[pattern] = Σ.subscriptions[pattern] ∪ {callback}
+  INV:  subscription persists until explicitly removed
+```
+
+**Conflict routing cascade** (from CR-003):
+1. Assert Conflict entity as datom
+2. Compute severity = `max(w(d₁), w(d₂))` (commitment weights)
+3. Route by severity tier: automated (Low) → agent-with-notification (Medium) → human-required (High/Critical)
+4. Fire TUI notification if severity ≥ Medium
+5. Update uncertainty tensor for affected entities
+6. Invalidate cached query results touching affected entities
+
+### §9.3 Level 2: Implementation Contract
+
+```rust
+/// Signal types — sum type covering all divergence classes
+#[derive(Clone, Debug)]
+pub enum SignalType {
+    Confusion(ConfusionKind),
+    Conflict { datom_a: DatomRef, datom_b: DatomRef },
+    UncertaintySpike { entity: EntityId, delta: f64 },
+    ResolutionProposal { deliberation: EntityId, position: EntityId },
+    DelegationRequest { entity: EntityId, from: AgentId, to: AgentId },
+    GoalDrift { intention: EntityId, observed_delta: f64 },
+    BranchReady { branch: EntityId, comparison_criteria: Vec<Criterion> },
+    DeliberationTurn { deliberation: EntityId, position: EntityId },
+}
+
+#[derive(Clone, Debug)]
+pub enum ConfusionKind {
+    NeedMore,       // insufficient context
+    Contradictory,  // conflicting information
+    GoalUnclear,    // ambiguous intention
+    SchemaUnknown,  // unknown entity type or attribute
+}
+
+pub struct Signal {
+    pub signal_type: SignalType,
+    pub source: EntityId,
+    pub target: EntityId,
+    pub severity: Severity,
+    pub timestamp: TxId,
+}
+
+/// Subscription — Datalog-like pattern with callback
+pub struct Subscription {
+    pub pattern: SignalPattern,
+    pub callback: Box<dyn Fn(&Signal) -> Vec<Datom>>,
+    pub debounce: Option<Duration>,
+}
+```
+
+### §9.4 Invariants
+
+### INV-SIGNAL-001: Signal as Datom
+
+**Traces to**: ADRS PO-004
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 3
+
+#### Level 0 (Algebraic Law)
+Every signal is a datom. Signal history is a subset of the store:
+`∀ s ∈ signals_emitted: ∃ d ∈ S such that d encodes s`
+
+#### Level 1 (State Invariant)
+For all reachable states, every emitted signal has a corresponding datom in the store
+with entity type `:signal/*` and attributes recording type, source, target, severity.
+
+#### Level 2 (Implementation Contract)
+```rust
+// Every emit produces a transact
+fn emit_signal(store: &mut Store, signal: Signal) -> TxReceipt {
+    let datoms = signal.to_datoms(); // deterministic encoding
+    store.transact(Transaction::from(datoms).commit(&store.schema()).unwrap())
+        .unwrap()
+}
+```
+
+**Falsification**: A signal is emitted but no corresponding datom exists in the store.
+
+**proptest strategy**: Emit random signals. After each, query store for `:signal/type`
+matching the emitted type. Verify 1:1 correspondence.
 
 ---
 
-## Appendix A: Element Count Summary (Waves 1–2)
+### INV-SIGNAL-002: Confusion Triggers Re-Association
+
+**Traces to**: ADRS PO-005
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+`dispatch(Confusion(cue)) = ReAssociate(cue)` — confusion signals trigger the
+associative retrieval pipeline within one agent cycle (not a full round-trip).
+
+#### Level 1 (State Invariant)
+For all reachable states where a Confusion signal is emitted:
+within the same agent cycle, ASSOCIATE + ASSEMBLE execute with the confusion cue
+as input, producing an updated context.
+
+#### Level 2 (Implementation Contract)
+The agent cycle handler intercepts Confusion signals and invokes the
+`associate → query → assemble` pipeline before proceeding to the next action.
+
+**Falsification**: A Confusion signal is emitted and the agent proceeds to the next
+action without re-association.
+
+**proptest strategy**: Inject Confusion signals at random points in agent cycle
+simulations. Verify re-association always executes before the next action.
+
+---
+
+### INV-SIGNAL-003: Subscription Completeness
+
+**Traces to**: ADRS PO-008
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 3
+
+#### Level 0 (Algebraic Law)
+`∀ subscription s, signal σ: matches(s.pattern, σ) ⟹ s.callback(σ) is invoked`
+
+No matching signal is silently dropped.
+
+#### Level 1 (State Invariant)
+For all reachable states where EMIT produces a signal matching a subscription pattern,
+the subscription callback fires within one refresh cycle. Debounced subscriptions
+batch within their declared window but still fire.
+
+#### Level 2 (Implementation Contract)
+```rust
+#[kani::ensures(|_| subscriptions.iter()
+    .filter(|s| s.pattern.matches(&signal))
+    .all(|s| s.fired_count > old(s.fired_count)))]
+fn emit_and_dispatch(signal: Signal, subscriptions: &mut [Subscription]) { ... }
+```
+
+**Falsification**: A subscription pattern matches a signal, but the callback is never invoked.
+
+---
+
+### INV-SIGNAL-004: Severity-Ordered Routing
+
+**Traces to**: ADRS CR-002
+**Verification**: `V:PROP`
+**Stage**: 3
+
+#### Level 0 (Algebraic Law)
+`severity(s) = max(w(d₁), w(d₂))` for conflict signals. The routing tier is
+monotonically determined by severity:
+```
+Low      → Tier 1 (automated lattice/LWW resolution)
+Medium   → Tier 2 (agent-with-notification)
+High     → Tier 3 (human-required, blocks progress)
+Critical → Tier 3 + immediate TUI alert
+```
+
+#### Level 1 (State Invariant)
+No High/Critical severity signal is resolved by an automated mechanism.
+No Low severity signal blocks agent progress.
+
+#### Level 2 (Implementation Contract)
+The routing function's output tier is determined by a match on severity,
+with the mapping configured as datoms (enabling per-deployment tuning).
+
+**Falsification**: A Critical-severity conflict is silently resolved by LWW
+without human/agent review.
+
+---
+
+### INV-SIGNAL-005: Diamond Lattice Signal Generation
+
+**Traces to**: ADRS AS-009
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+For diamond lattices (challenge-verdict, finding-lifecycle, proposal-lifecycle),
+when two incomparable values are merged (CRDT join), the result is the lattice top
+which encodes a coordination signal:
+```
+join(confirmed, refuted) = contradicted    → emits Conflict signal
+join(proposed_A, proposed_B) = contested   → emits DeliberationTurn signal
+```
+
+#### Level 1 (State Invariant)
+For all reachable states where a lattice merge produces a diamond-top value,
+a signal of the corresponding type is emitted within the same transaction.
+
+#### Level 2 (Implementation Contract)
+Lattice join implementations for diamond lattices include a signal-emission
+side effect when the join produces the top element.
+
+**Falsification**: Two incomparable lattice values merge to produce a top element
+but no signal is emitted.
+
+**proptest strategy**: Generate random concurrent assertions on diamond-lattice
+attributes. Verify that every top-join produces exactly one signal.
+
+---
+
+### INV-SIGNAL-006: Taxonomy Completeness
+
+**Traces to**: ADRS CO-003
+**Verification**: `V:PROP`
+**Stage**: 3
+
+#### Level 0 (Algebraic Law)
+The signal type set covers all eight divergence types in the reconciliation taxonomy:
+```
+Epistemic    → Confusion
+Structural   → BranchReady (forward), GoalDrift (backward)
+Consequential → UncertaintySpike
+Aleatory     → Conflict
+Logical      → DeliberationTurn
+Axiological  → GoalDrift
+Temporal     → (detected by frontier comparison, surfaced as UncertaintySpike)
+Procedural   → (detected by drift detection, surfaced as GoalDrift)
+```
+
+#### Level 1 (State Invariant)
+Every detected divergence, regardless of type, produces at least one signal.
+No divergence class lacks a signal pathway.
+
+**Falsification**: A divergence is detected by some mechanism but no signal
+is emitted, leaving it invisible to the resolution layer.
+
+---
+
+### §9.5 ADRs
+
+### ADR-SIGNAL-001: Eight Signal Types Cover Reconciliation Taxonomy
+
+**Traces to**: ADRS PO-004, CO-003
+**Stage**: 3
+
+#### Problem
+How many signal types are needed, and how do they map to divergence types?
+
+#### Options
+A) One generic signal type with metadata — simple but loses type safety
+B) One signal type per divergence type (8) — exact coverage but some divergence
+   types don't map to a natural signal
+C) Eight signal types, some covering multiple divergence types — pragmatic mapping
+
+#### Decision
+**Option C.** Eight concrete signal types (from PO-004) with a surjective mapping
+from divergence types. Some divergence types (Temporal, Procedural) are detected by
+specialized mechanisms and surfaced through existing signal types.
+
+#### Formal Justification
+The taxonomy completeness law (L3) requires surjection from divergence types to signal
+types, not bijection. A 1:1 mapping would force artificial signal types for divergences
+that are better detected by existing mechanisms (e.g., temporal divergence is naturally
+frontier comparison, not a separate signal).
+
+---
+
+### ADR-SIGNAL-002: Conflict Routing Cascade as Datom Trail
+
+**Traces to**: ADRS CR-003
+**Stage**: 3
+
+#### Problem
+Should conflict routing produce durable records or be ephemeral dispatch?
+
+#### Decision
+Every step of the routing cascade (assert conflict → compute severity → route → notify →
+update uncertainty → invalidate caches) produces datoms. The cascade is a transaction.
+This makes the full resolution history queryable: "How was this conflict detected?
+What severity was it assigned? Who resolved it? What was the rationale?"
+
+#### Formal Justification
+FD-012 (every command is a transaction) applies to signal routing. Ephemeral routing
+would create state outside the store, violating the single-source-of-truth property.
+
+---
+
+### ADR-SIGNAL-003: Subscription Debounce Over Immediate Fire
+
+**Traces to**: ADRS PO-008
+**Stage**: 3
+
+#### Problem
+Should subscriptions fire immediately on every match, or debounce rapid-fire events?
+
+#### Decision
+Optional debounce parameter per subscription. Debounced subscriptions batch matching
+signals within a time window and fire once with the full batch. Immediate fire
+remains the default for latency-sensitive subscriptions (e.g., TUI notifications).
+
+#### Formal Justification
+MERGE cascade can produce many signals in rapid succession. Without debounce,
+N conflicts from a single merge produce N subscription fires. Debounce reduces
+to 1 batched fire containing N signals — same information, lower overhead.
+
+---
+
+### §9.6 Negative Cases
+
+### NEG-SIGNAL-001: No Silent Signal Drop
+
+**Traces to**: ADRS PO-004
+**Verification**: `V:PROP`, `V:KANI`
+
+**Safety property**: `□ ¬(∃ signal emitted ∧ ¬recorded_as_datom)`
+
+Every emitted signal is recorded in the store. No signal is lost between
+emission and recording.
+
+**proptest strategy**: Emit signals under concurrent load (multiple agents).
+Verify store contains exactly the emitted signal set after quiescence.
+
+---
+
+### NEG-SIGNAL-002: No Confusion Without Re-Association
+
+**Traces to**: ADRS PO-005
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(confusion_emitted ∧ ¬reassociation_within_cycle)`
+
+A Confusion signal that doesn't trigger re-association is a protocol violation.
+The agent must not proceed with stale context after signaling confusion.
+
+**proptest strategy**: Inject Confusion signals. Verify agent cycle always
+executes ASSOCIATE+ASSEMBLE before the next action step.
+
+---
+
+### NEG-SIGNAL-003: No High-Severity Automated Resolution
+
+**Traces to**: ADRS CR-002
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(severity ≥ High ∧ resolved_by_automated_mechanism)`
+
+High and Critical severity conflicts must involve agent or human review.
+Automated resolution (lattice join, LWW) is restricted to Low severity.
+
+**proptest strategy**: Generate conflicts with all severity levels. Verify
+that High/Critical conflicts are never closed by automated resolution.
+
+---
+
+## §10. BILATERAL — Bilateral Feedback Loop
+
+> **Purpose**: The bilateral loop is the convergence mechanism — it continuously checks
+> alignment between specification and implementation in both directions until the gap
+> between them reaches zero (or an explicitly documented residual).
+>
+> **Traces to**: SEED.md §3 (Bilateral feedback loop), §6 (Reconciliation Mechanisms),
+> ADRS CO-004, CO-008, CO-009, CO-010, SQ-006, AS-006
+
+### §10.1 Level 0: Algebraic Specification
+
+The bilateral loop is an **adjunction** between forward and backward projections:
+
+```
+Forward:  F : Spec → ImplStatus     — does the implementation satisfy the spec?
+Backward: B : Impl → SpecAlignment  — does the spec accurately describe the implementation?
+
+The loop is the composition: (B ∘ F) applied repeatedly until fixpoint.
+```
+
+**Divergence measure** over the four-boundary chain (CO-010):
+
+```
+D(spec, impl) = Σᵢ wᵢ × |boundary_gap(i)|
+
+where boundaries are:
+  i=1: Intent → Spec       (axiological gap)
+  i=2: Spec → Spec         (logical gap — contradictions)
+  i=3: Spec → Impl         (structural gap)
+  i=4: Impl → Behavior     (behavioral gap)
+```
+
+**Laws**:
+- **L1 (Monotonic convergence)**: `D(spec', impl') ≤ D(spec, impl)` after each bilateral cycle — total divergence never increases
+- **L2 (Fixpoint existence)**: The loop terminates when `D(spec, impl) = 0` or when all remaining divergence is explicitly documented as residual
+- **L3 (Bilateral symmetry)**: Forward and backward checks use the same Datalog query apparatus (SQ-006)
+
+**Fitness function** (CO-009):
+```
+F(S) = 0.18×V + 0.18×C + 0.18×(1-D) + 0.13×H + 0.13×(1-K) + 0.08×(1-I) + 0.12×(1-U)
+
+where:
+  V = validation score (invariants verified / total)
+  C = coverage (goals traced to invariants and back)
+  D = drift (spec-impl divergence)
+  H = harvest quality (FP/FN rates)
+  K = contradictions (weighted by severity)
+  I = incompleteness (gaps between spec and impl)
+  U = mean uncertainty
+```
+
+Target: `F(S) → 1.0`
+
+### §10.2 Level 1: State Machine Specification
+
+**State**: `Σ_bilateral = (divergence_map: Map<Boundary, Set<Gap>>, fitness: f64, cycle_count: u64, residuals: Set<DocumentedResidual>)`
+
+**Transitions**:
+
+```
+FORWARD_SCAN(Σ, spec, impl) → Σ' where:
+  POST: Σ'.divergence_map[SpecToImpl] = detected structural gaps
+  POST: for each gap: emit Signal(type=BranchReady or GoalDrift)
+
+BACKWARD_SCAN(Σ, impl, spec) → Σ' where:
+  POST: Σ'.divergence_map[ImplToSpec] = detected spec inaccuracies
+  POST: for each inaccuracy: emit Signal(type=GoalDrift)
+
+COMPUTE_FITNESS(Σ) → Σ' where:
+  POST: Σ'.fitness = F(S) computed from current state
+  POST: fitness value recorded as datom
+
+DOCUMENT_RESIDUAL(Σ, gap, rationale) → Σ' where:
+  PRE:  gap ∈ Σ.divergence_map[any]
+  POST: gap moved from divergence_map to residuals
+  POST: rationale recorded with uncertainty marker
+
+CYCLE(Σ, spec, impl) → Σ' where:
+  POST: FORWARD_SCAN then BACKWARD_SCAN then COMPUTE_FITNESS
+  POST: Σ'.cycle_count = Σ.cycle_count + 1
+  INV:  Σ'.fitness ≥ Σ.fitness (monotonic convergence)
+```
+
+**Query layer bilateral structure** (SQ-006):
+
+Forward-flow queries (planning):
+- Epistemic uncertainty: what does the system not know?
+- Crystallization candidates: what is stable enough to commit?
+- Delegation: who should work on what?
+
+Backward-flow queries (assessment):
+- Conflict detection: where do agents disagree?
+- Drift candidates: where has implementation departed from spec?
+- Absorption triggers: what implementation patterns should update the spec?
+
+Bridge queries (both):
+- Commitment weight: how costly is changing this decision?
+- Spectral authority: who has demonstrated competence here?
+
+### §10.3 Level 2: Implementation Contract
+
+```rust
+pub struct BilateralLoop {
+    pub divergence_map: HashMap<Boundary, Vec<Gap>>,
+    pub fitness: f64,
+    pub cycle_count: u64,
+    pub residuals: Vec<DocumentedResidual>,
+}
+
+#[derive(Clone, Debug)]
+pub enum Boundary {
+    IntentToSpec,
+    SpecToSpec,
+    SpecToImpl,
+    ImplToBehavior,
+}
+
+pub struct Gap {
+    pub boundary: Boundary,
+    pub source: EntityId,
+    pub target: Option<EntityId>,
+    pub severity: Severity,
+    pub description: String,
+}
+
+impl BilateralLoop {
+    /// Run one complete bilateral cycle
+    pub fn cycle(&mut self, store: &mut Store) -> CycleReport {
+        let forward = self.forward_scan(store);
+        let backward = self.backward_scan(store);
+        let fitness = self.compute_fitness(store);
+        CycleReport { forward, backward, fitness, cycle: self.cycle_count }
+    }
+}
+```
+
+### §10.4 Invariants
+
+### INV-BILATERAL-001: Monotonic Convergence
+
+**Traces to**: ADRS CO-004
+**Verification**: `V:PROP`, `V:MODEL`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+`∀ cycle n: F(S_{n+1}) ≥ F(S_n)`
+The fitness function never decreases across bilateral cycles. Each cycle either
+reduces divergence or documents residual — both are non-decreasing fitness operations.
+
+#### Level 1 (State Invariant)
+For all reachable states (Σ, Σ') where Σ →[CYCLE] Σ':
+`Σ'.fitness ≥ Σ.fitness`
+
+#### Level 2 (Implementation Contract)
+```rust
+#[kani::ensures(|report| report.fitness >= old(self.fitness))]
+fn cycle(&mut self, store: &mut Store) -> CycleReport { ... }
+```
+
+**Falsification**: A bilateral cycle produces a lower fitness score than the previous cycle.
+
+**proptest strategy**: Run random sequences of bilateral cycles with random
+spec/impl states. Verify fitness is monotonically non-decreasing.
+
+**Stateright model**: 2 agents, 1 spec, 1 impl. Run bilateral cycles.
+Verify fitness monotonicity across all reachable states.
+
+---
+
+### INV-BILATERAL-002: Five-Point Coherence Statement
+
+**Traces to**: ADRS CO-008
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+The bilateral loop checks five coherence conditions:
+```
+C1: ¬∃ contradiction in spec         (spec self-consistency)
+C2: impl ⊨ spec                      (impl satisfies spec)
+C3: spec ≈ intent                     (spec matches intent)
+C4: ∀ agents α,β: store_α ∪ store_β converges  (agent agreement)
+C5: agent_behavior ⊨ methodology      (process adherence)
+```
+
+Full coherence: `C1 ∧ C2 ∧ C3 ∧ C4 ∧ C5`
+
+#### Level 1 (State Invariant)
+Each CYCLE evaluates all five conditions. The divergence map partitions gaps
+by which coherence condition they violate.
+
+**Falsification**: A bilateral cycle evaluates fewer than five conditions,
+leaving a coherence dimension unchecked.
+
+---
+
+### INV-BILATERAL-003: Bilateral Symmetry
+
+**Traces to**: ADRS SQ-006, AS-006
+**Verification**: `V:PROP`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+Forward and backward scans use the same Datalog query apparatus.
+The branching mechanism (AS-006) works identically in both directions:
+forward (spec → competing implementations → selection) and backward
+(implementation → competing spec updates → selection).
+
+#### Level 1 (State Invariant)
+For all reachable states, the forward and backward scans produce gap types
+drawn from the same type set, using the same query engine, stored as the
+same datom types. No structural asymmetry exists between directions.
+
+**Falsification**: The system supports branching for competing implementations
+but requires linear spec modifications (or vice versa).
+
+---
+
+### INV-BILATERAL-004: Residual Documentation
+
+**Traces to**: SEED §6 (explicitly acknowledged residual)
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+Every gap that persists beyond a bilateral cycle is either:
+(a) resolved in the next cycle, or
+(b) documented as a residual with uncertainty marker and rationale.
+
+No gap persists undocumented.
+
+#### Level 1 (State Invariant)
+`∀ gap ∈ divergence_map: age(gap) > 1 cycle ⟹ gap ∈ residuals ∨ gap resolved`
+
+**Falsification**: A gap appears in the divergence map for two consecutive cycles
+without being either resolved or documented as a residual.
+
+---
+
+### INV-BILATERAL-005: Test Results as Datoms
+
+**Traces to**: ADRS CO-011
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+Test outcomes are datoms in the store:
+`test_passed(X, frontier_F) ⟺ ∃ d ∈ S: d.a = :test/result ∧ d.v = :passed ∧ d.e = X`
+
+This extends the bilateral loop to the Impl→Behavior boundary.
+
+#### Level 1 (State Invariant)
+After any test execution, the result (pass/fail, error, frontier) is transacted
+into the store as a datom with entity type `:test-result/*`.
+
+**Falsification**: A test runs but its result is not in the store.
+
+---
+
+### §10.5 ADRs
+
+### ADR-BILATERAL-001: Fitness Function Weights
+
+**Traces to**: ADRS CO-009
+**Stage**: 1
+
+#### Problem
+How should the fitness function weight its seven components?
+
+#### Decision
+Weights from CO-009: V=0.18, C=0.18, D=0.18, H=0.13, K=0.13, I=0.08, U=0.12.
+Validation, coverage, and drift weighted equally (primary triad). Harvest and
+contradiction weighted equally (secondary). Incompleteness lowest (subsumes coverage).
+Uncertainty moderate (important coordination metric).
+
+#### Formal Justification
+The primary triad (V,C,D) directly measures the spec↔impl correspondence.
+The secondary pair (H,K) measures methodology health. Incompleteness is partially
+redundant with coverage. Uncertainty is actionable but not a defect per se.
+
+**Uncertainty**: UNC-BILATERAL-001 — weights are theoretical. Empirical calibration
+during Stage 0 may revise them. Confidence: 0.6.
+
+---
+
+### ADR-BILATERAL-002: Divergence Metric as Weighted Boundary Sum
+
+**Traces to**: ADRS CO-010
+**Stage**: 1
+
+#### Problem
+How should total divergence be quantified across the four-boundary chain?
+
+#### Decision
+`D(spec, impl) = Σᵢ wᵢ × |boundary_gap(i)|` where boundary weights
+reflect the cost of divergence at each boundary. Default: equal weights.
+
+#### Formal Justification
+Each boundary contributes independently to total divergence. Weighted sum
+is the simplest combination that captures per-boundary severity while
+remaining decomposable for targeted remediation.
+
+**Uncertainty**: UNC-BILATERAL-002 — boundary weights may need per-project tuning.
+Confidence: 0.5.
+
+---
+
+### ADR-BILATERAL-003: Intent Validation as Periodic Session
+
+**Traces to**: ADRS CO-012
+**Stage**: 2
+
+#### Problem
+How is the Intent→Spec boundary checked?
+
+#### Decision
+Periodic intent validation sessions where the system assembles current spec state
+for human review: "Does this still describe what I want?" The human's response
+is a datom — either confirming alignment or asserting axiological divergence.
+
+#### Formal Justification
+The Intent→Spec boundary uniquely requires human judgment. No automated mechanism
+can verify that a specification captures intent (this is the fundamental
+limitation — intent exists outside the formal system). Periodic sessions
+with structured output make this otherwise invisible boundary checkable.
+
+---
+
+### §10.6 Negative Cases
+
+### NEG-BILATERAL-001: No Fitness Regression
+
+**Traces to**: ADRS CO-004
+**Verification**: `V:PROP`, `V:MODEL`
+
+**Safety property**: `□ ¬(F(S_{n+1}) < F(S_n))`
+No bilateral cycle may reduce the fitness score.
+
+**proptest strategy**: Run 1000 random bilateral cycles. Verify strict
+monotonicity of the fitness sequence.
+
+**Stateright model**: Verify across all reachable states of a
+2-agent, 10-invariant model.
+
+---
+
+### NEG-BILATERAL-002: No Unchecked Coherence Dimension
+
+**Traces to**: ADRS CO-008
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(∃ cycle that skips any of C1–C5)`
+Every bilateral cycle must evaluate all five coherence conditions.
+
+**proptest strategy**: Instrument cycle execution. Verify all five checks
+execute for every cycle invocation.
+
+---
+
+## §11. DELIBERATION — Structured Conflict Resolution
+
+> **Purpose**: Deliberation is the structured resolution mechanism for conflicts that
+> automated mechanisms (lattice join, LWW) cannot handle. It produces three entity types
+> — Deliberation, Position, Decision — stored as datoms, creating a queryable case law
+> system where past decisions inform future conflicts.
+>
+> **Traces to**: SEED.md §6 (Deliberation and Decision), ADRS CR-004, CR-005, CR-007,
+> PO-007, AS-002, AA-001
+
+### §11.1 Level 0: Algebraic Specification
+
+A **deliberation** is a convergence process over a lattice of positions:
+
+```
+Deliberation = (question: String, positions: Set<Position>, decision: Option<Decision>)
+Position = (stance: Stance, rationale: String, evidence: Set<DatomRef>)
+Decision = (method: DecisionMethod, chosen: Position, rationale: String)
+
+Stance = Advocate | Oppose | Neutral | Synthesize
+DecisionMethod = Consensus | Majority | Authority | HumanOverride | Automated
+```
+
+**Deliberation lifecycle lattice**:
+```
+:open < :active < :decided < :superseded
+         ↗ :stalled (incomparable with :decided)
+```
+
+**Laws**:
+- **L1 (Convergence)**: Every deliberation either reaches `:decided` or `:stalled` in finite steps
+- **L2 (Monotonicity)**: `lifecycle(d, t1) ⊑ lifecycle(d, t2)` for `t1 < t2` — deliberations progress forward in the lattice, never backward
+- **L3 (Precedent preservation)**: Decided deliberations remain queryable as precedent (growth-only store guarantees this by construction)
+- **L4 (Stability guard)**: A decision may only be reached when crystallization conditions are met (CR-005)
+
+### §11.2 Level 1: State Machine Specification
+
+**State**: `Σ_delib = (deliberations: Map<EntityId, Deliberation>, precedent_index: Map<(EntityType, Attr), Set<EntityId>>)`
+
+**Transitions**:
+
+```
+OPEN(Σ, question, context) → Σ' where:
+  POST: new deliberation entity with status :open
+  POST: conflict signal recorded as causal predecessor
+
+POSITION(Σ, delib_id, stance, rationale, evidence) → Σ' where:
+  PRE:  Σ.deliberations[delib_id].status ∈ {:open, :active}
+  POST: new position entity linked to deliberation
+  POST: Σ.deliberations[delib_id].status = :active (if was :open)
+
+DECIDE(Σ, delib_id, method, chosen, rationale) → Σ' where:
+  PRE:  Σ.deliberations[delib_id].status = :active
+  PRE:  stability_guard(chosen) passes (CR-005)
+  POST: new decision entity linked to deliberation
+  POST: Σ.deliberations[delib_id].status = :decided
+  POST: competing branches resolved (winner committed, losers marked :abandoned)
+
+STALL(Σ, delib_id, reason) → Σ' where:
+  PRE:  Σ.deliberations[delib_id].status = :active
+  POST: Σ.deliberations[delib_id].status = :stalled
+  POST: reason recorded as uncertainty marker (UNC-*)
+  POST: escalation signal emitted (DelegationRequest or GoalDrift)
+```
+
+**Crystallization stability guard** (CR-005):
+- Status `:refined` (or position has substantive evidence)
+- Thread `:active` (deliberation is ongoing, not stalled)
+- Parent entity confidence ≥ 0.6
+- Coherence score ≥ 0.6
+- No unresolved conflicts on the decided entity
+- Commitment weight `w(d) ≥ stability_min` (default 0.7)
+
+### §11.3 Level 2: Implementation Contract
+
+```rust
+/// Deliberation entity — stored as datoms via schema Layer 2
+pub struct Deliberation {
+    pub entity: EntityId,
+    pub question: String,
+    pub status: DeliberationStatus,
+    pub positions: Vec<EntityId>,  // refs to Position entities
+    pub decision: Option<EntityId>, // ref to Decision entity
+}
+
+#[derive(Clone, Debug, PartialOrd, Ord, PartialEq, Eq)]
+pub enum DeliberationStatus {
+    Open,
+    Active,
+    Stalled,
+    Decided,
+    Superseded,
+}
+
+pub struct Position {
+    pub entity: EntityId,
+    pub deliberation: EntityId,
+    pub stance: Stance,
+    pub rationale: String,
+    pub evidence: Vec<DatomRef>,
+    pub agent: AgentId,
+}
+
+pub struct Decision {
+    pub entity: EntityId,
+    pub deliberation: EntityId,
+    pub method: DecisionMethod,
+    pub chosen_position: EntityId,
+    pub rationale: String,
+    pub commitment_weight: f64,
+}
+```
+
+### §11.4 Invariants
+
+### INV-DELIBERATION-001: Deliberation Convergence
+
+**Traces to**: ADRS CR-004
+**Verification**: `V:PROP`, `V:MODEL`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+`∀ deliberation d: ◇(d.status = :decided ∨ d.status = :stalled)`
+Every deliberation eventually reaches a terminal state.
+
+#### Level 1 (State Invariant)
+No deliberation remains in `:open` or `:active` indefinitely. Either positions
+converge to a decision, or a timeout/stall condition triggers escalation.
+
+#### Level 2 (Implementation Contract)
+Deliberations carry a timeout. If no decision is reached within the timeout,
+the deliberation transitions to `:stalled` and emits an escalation signal.
+
+**Falsification**: A deliberation remains `:active` past its timeout without
+transitioning to `:decided` or `:stalled`.
+
+**Stateright model**: 3 agents filing positions on a deliberation. Verify
+that all executions reach a terminal state.
+
+---
+
+### INV-DELIBERATION-002: Stability Guard Enforcement
+
+**Traces to**: ADRS CR-005
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+`∀ decision d: decide(d) ⟹ stability(d.chosen) ≥ stability_min`
+No decision is recorded unless the crystallization stability guard passes.
+
+#### Level 1 (State Invariant)
+The DECIDE transition requires all stability guard conditions (CR-005) to hold.
+A decision attempted with insufficient stability is rejected.
+
+#### Level 2 (Implementation Contract)
+```rust
+#[kani::requires(stability_score(&position) >= STABILITY_MIN)]
+fn decide(delib: &mut Deliberation, position: EntityId, method: DecisionMethod)
+    -> Result<Decision, StabilityError> { ... }
+```
+
+**Falsification**: A decision is recorded where `stability(chosen) < stability_min`.
+
+---
+
+### INV-DELIBERATION-003: Precedent Queryability
+
+**Traces to**: ADRS CR-007
+**Verification**: `V:PROP`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+All decided deliberations are indexed by entity type and contested attributes,
+enabling precedent lookup:
+```
+find-precedent(entity_type, attributes) =
+  {d ∈ deliberations | d.status = :decided
+                     ∧ d.entity_type = entity_type
+                     ∧ d.contested_attrs ∩ attributes ≠ ∅}
+```
+
+#### Level 1 (State Invariant)
+The precedent index is maintained as a materialized view, updated on every DECIDE.
+Precedent queries return all matching decided deliberations.
+
+**Falsification**: A decided deliberation with matching entity type and attributes
+is not returned by a precedent query.
+
+---
+
+### INV-DELIBERATION-004: Bilateral Deliberation Symmetry
+
+**Traces to**: ADRS CR-004 (INV-DELIBERATION-BILATERAL-001), AS-006
+**Verification**: `V:PROP`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+Deliberation supports both forward and backward flow with identical entity structure:
+- Forward: "Given this spec, which of these competing implementations is better?"
+- Backward: "Given this implementation, which of these spec interpretations is correct?"
+
+#### Level 1 (State Invariant)
+The Deliberation/Position/Decision entity structure is direction-agnostic.
+Forward and backward deliberations use the same schema, same lifecycle,
+same stability guard, same precedent query.
+
+**Falsification**: The system creates a structural asymmetry where forward
+deliberations have capabilities that backward deliberations lack (or vice versa).
+
+---
+
+### INV-DELIBERATION-005: Commitment Weight Integration
+
+**Traces to**: ADRS AS-002
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+The decision's commitment weight is computed from its forward causal cone:
+`w(decision) = |{d' ∈ S : decision ∈ causes*(d')}|`
+
+Decisions with high commitment weight are harder to overturn (require
+stronger evidence, higher authority).
+
+#### Level 1 (State Invariant)
+When a new decision is recorded, its commitment weight is computed and stored.
+As downstream decisions reference it, the weight monotonically increases.
+
+**Falsification**: A decision's commitment weight decreases after downstream
+decisions are recorded.
+
+---
+
+### INV-DELIBERATION-006: Competing Branch Resolution
+
+**Traces to**: ADRS PO-007
+**Verification**: `V:PROP`, `V:MODEL`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+When a deliberation produces a decision selecting one competing branch:
+- The winning branch is committed to trunk
+- Losing branches are marked `:abandoned` (remain readable for provenance)
+- No losers' datoms leak into trunk
+
+#### Level 1 (State Invariant)
+For all reachable states where DECIDE selects a branch:
+```
+trunk' = trunk ∪ winner.datoms
+∀ loser: loser.status = :abandoned
+∀ loser: loser.datoms ∩ trunk' = loser.datoms ∩ trunk  (no new datoms from losers)
+```
+
+**Falsification**: A losing branch's datoms appear in trunk after the decision.
+
+**Stateright model**: 2 agents with competing branches. Deliberation decides.
+Verify loser's datoms never appear in trunk.
+
+---
+
+### §11.5 ADRs
+
+### ADR-DELIBERATION-001: Three Entity Types for Structured Resolution
+
+**Traces to**: ADRS CR-004
+**Stage**: 2
+
+#### Problem
+What entities are needed for structured conflict resolution?
+
+#### Decision
+Three: Deliberation (the process), Position (a stance with rationale and evidence),
+Decision (the outcome with method and chosen position). All stored as datoms.
+
+#### Formal Justification
+The separation into three entity types mirrors legal proceedings: a case (Deliberation),
+arguments (Positions), and a ruling (Decision). This structure enables precedent queries
+(CR-007) — past Decisions inform future Deliberations. A single entity type would lose
+the distinction between process, argument, and outcome.
+
+---
+
+### ADR-DELIBERATION-002: Five Decision Methods
+
+**Traces to**: ADRS CR-004
+**Stage**: 2
+
+#### Problem
+What decision methods should be supported?
+
+#### Options
+A) Consensus only — simplest, but may never converge
+B) Authority only — fast, but ignores evidence quality
+C) Five methods: Consensus, Majority, Authority, HumanOverride, Automated
+
+#### Decision
+**Option C.** Different conflicts warrant different resolution methods. Low-stakes
+conflicts can use Automated (lattice join). Medium-stakes use Majority or Authority.
+High-stakes require HumanOverride. Consensus is the ideal but not always achievable.
+
+#### Formal Justification
+The method selection aligns with the three-tier conflict routing (CR-002):
+Tier 1 (Low) → Automated, Tier 2 (Medium) → Majority/Authority,
+Tier 3 (High) → HumanOverride. Consensus is orthogonal — achievable at any tier
+but never required.
+
+---
+
+### ADR-DELIBERATION-003: Precedent as Case Law
+
+**Traces to**: ADRS CR-007
+**Stage**: 2
+
+#### Problem
+Should past deliberation outcomes inform future conflicts?
+
+#### Decision
+Yes. Decided deliberations are indexed by entity type and contested attributes.
+When a new conflict arises, the system queries for precedent — past decisions
+on the same entity type and attributes. Precedent doesn't bind (not stare decisis)
+but is surfaced as context for the new deliberation.
+
+#### Formal Justification
+The growth-only store guarantees precedent preservation by construction (no deliberation
+is ever deleted). Indexing by entity type and attributes is the natural decomposition:
+conflicts on the same kind of entity tend to have similar resolution patterns.
+
+---
+
+### ADR-DELIBERATION-004: Crystallization Guard Over Immediate Commit
+
+**Traces to**: ADRS CR-005
+**Stage**: 2
+
+#### Problem
+Should decisions take effect immediately or after a stability period?
+
+#### Decision
+Stability guard. The default `stability_min = 0.7` ensures a decision is not
+committed prematurely. The guard checks six conditions (status, thread, confidence,
+coherence, conflicts, commitment weight). This prevents the failure mode where
+a quick decision with incomplete evidence cascades into downstream errors.
+
+#### Formal Justification
+Premature crystallization is an S0-severity failure mode (silently wrong artifacts
+with no detection signal). The stability guard is the direct countermeasure.
+The cost (delayed commitment) is justified by the risk (cascading incompleteness,
+FM-004).
+
+---
+
+### §11.6 Negative Cases
+
+### NEG-DELIBERATION-001: No Decision Without Stability Guard
+
+**Traces to**: ADRS CR-005
+**Verification**: `V:PROP`, `V:KANI`
+
+**Safety property**: `□ ¬(decision_recorded ∧ stability < stability_min)`
+
+No decision may be recorded if the stability guard conditions are not met.
+
+**proptest strategy**: Generate random deliberation states with varying stability.
+Attempt DECIDE. Verify rejection when stability < threshold.
+
+**Kani harness**: Exhaustive check over all stability dimension combinations
+that `decide()` rejects when any dimension is below threshold.
+
+---
+
+### NEG-DELIBERATION-002: No Losing Branch Leak
+
+**Traces to**: ADRS PO-007
+**Verification**: `V:PROP`, `V:MODEL`
+
+**Safety property**: `□ ¬(branch.status = :abandoned ∧ branch.datoms ∩ trunk' ⊃ branch.datoms ∩ trunk)`
+
+No new datoms from an abandoned branch appear in trunk.
+
+**Stateright model**: 3 agents, 2 competing branches. Decision selects one.
+Verify no datoms from the loser appear in trunk post-decision.
+
+---
+
+### NEG-DELIBERATION-003: No Backward Lifecycle Transition
+
+**Traces to**: ADRS CR-004
+**Verification**: `V:PROP`, `V:KANI`
+
+**Safety property**: `□ ¬(lifecycle(d,t2) ⊏ lifecycle(d,t1) for t2 > t1)`
+
+Deliberation lifecycle progresses monotonically: open → active → decided/stalled.
+No backward transitions (e.g., decided → active) are permitted.
+
+**proptest strategy**: Generate random transition sequences. Verify lattice
+monotonicity after each transition.
+
+---
+
+## §12. GUIDANCE — Methodology Steering
+
+> **Purpose**: Guidance is the anti-drift mechanism — continuous methodology steering
+> that counteracts the basin competition between DDIS methodology (Basin A) and pretrained
+> coding patterns (Basin B). Without guidance, agents drift into Basin B within 15–20 turns.
+>
+> **Traces to**: SEED.md §7 (Self-Improvement Loop), §8 (Interface Principles),
+> ADRS GU-001–008
+
+### §12.1 Level 0: Algebraic Specification
+
+The guidance system is a **comonad** (GU-001):
+
+```
+W(A) = (StoreState, A)
+
+extract : W(A) → A
+  — given the store state and a value, extract the value (current guidance)
+
+extend : (W(A) → B) → W(A) → W(B)
+  — given a function that uses store context to produce guidance,
+    lift it to produce guidance at every store state
+```
+
+**Basin competition model** (GU-006):
+```
+P(Basin_A, t) = probability of methodology-adherent behavior at time t
+P(Basin_B, t) = probability of pretrained-pattern behavior at time t
+
+P(Basin_A, t) + P(Basin_B, t) = 1
+
+Without intervention: P(Basin_B, t) → 1 as t → ∞ (pretrained patterns dominate)
+With guidance injection: P(Basin_A, t) maintained above threshold τ
+```
+
+**Anti-drift energy** is injected via six mechanisms (GU-007) that collectively
+maintain `P(Basin_A) > τ`:
+
+```
+E_drift = E_preemption + E_injection + E_detection + E_gate + E_alarm + E_harvest
+
+Each Eᵢ > 0 is a positive contribution to Basin A probability.
+The system is stable when E_drift > E_decay (natural drift toward Basin B).
+```
+
+**Laws**:
+- **L1 (Continuous steering)**: Every tool response includes a guidance footer (GU-005)
+- **L2 (Spec-language phrasing)**: Guidance uses invariant references and formal structure, not checklists (GU-003)
+- **L3 (Intention coherence)**: Actions scored higher if they advance active intentions (GU-008)
+- **L4 (Empirical improvement)**: Learned guidance is effectiveness-tracked and pruned below threshold (GU-001)
+
+### §12.2 Level 1: State Machine Specification
+
+**State**: `Σ_guidance = (topology: Graph<GuidanceNode>, learned: Map<EntityId, Effectiveness>, drift_score: f64, mechanisms: [Mechanism; 6])`
+
+**Transitions**:
+
+```
+QUERY_GUIDANCE(Σ, agent_state, lookahead) → (actions, tree) where:
+  POST: evaluates guidance node predicates against agent state
+  POST: returns scored actions + optional lookahead tree (1–5 steps)
+  POST: intention-aligned actions scored higher: if postconditions(a) ∩ goals(i) ≠ ∅:
+        score(a) += intention_alignment_bonus
+
+INJECT(Σ, tool_response) → tool_response' where:
+  POST: tool_response' = tool_response + guidance_footer
+  POST: footer contains: (a) specific ddis command, (b) active invariant refs,
+        (c) uncommitted observation count, (d) drift warning if applicable
+  POST: footer size determined by k*_eff (GU-005)
+
+DETECT_DRIFT(Σ, access_log) → Σ' where:
+  POST: analyze transact gap (> 5 bash commands without transact = drift signal)
+  POST: analyze tool absence (key tools unused for > threshold turns)
+  POST: Σ'.drift_score updated
+  POST: if drift_score > threshold: emit GoalDrift signal
+
+EVOLVE(Σ, outcome_data) → Σ' where:
+  POST: update effectiveness scores for learned guidance based on outcomes
+  POST: prune guidance below effectiveness threshold (0.3)
+  POST: effective patterns promoted to higher confidence
+```
+
+**Six anti-drift mechanisms** (GU-007):
+1. **Guidance Pre-emption**: CLAUDE.md rules require `ddis guidance` before code writing
+2. **Guidance Injection**: Every tool response includes next-action footer
+3. **Drift Detection**: Access log analysis for transact gap, tool absence
+4. **Pre-Implementation Gate**: `ddis pre-check --file <path>` returns GO/CAUTION/STOP
+5. **Statusline Drift Alarm**: Uncommitted count, time since last transact, warning indicator
+6. **Harvest Safety Net**: Recovers un-transacted observations at session end
+
+### §12.3 Level 2: Implementation Contract
+
+```rust
+pub struct GuidanceTopology {
+    pub nodes: HashMap<EntityId, GuidanceNode>,
+    pub edges: Vec<(EntityId, EntityId)>,
+}
+
+pub struct GuidanceNode {
+    pub entity: EntityId,
+    pub predicate: QueryExpr,  // Datalog predicate over store state
+    pub actions: Vec<GuidanceAction>,
+    pub learned: bool,
+    pub effectiveness: f64,
+}
+
+pub struct GuidanceAction {
+    pub command: String,          // specific ddis command
+    pub invariant_refs: Vec<String>, // e.g., "INV-STORE-001"
+    pub postconditions: Vec<EntityId>,
+    pub score: f64,
+}
+
+pub struct GuidanceFooter {
+    pub next_action: String,
+    pub invariant_refs: Vec<String>,
+    pub uncommitted_count: u32,
+    pub drift_warning: Option<String>,
+}
+
+impl GuidanceTopology {
+    /// Query guidance for current state with lookahead
+    pub fn query(&self, store: &Store, agent: &AgentId, lookahead: u8)
+        -> GuidanceResult { ... }
+
+    /// Generate footer for tool response
+    pub fn footer(&self, store: &Store, k_eff: f64) -> GuidanceFooter { ... }
+}
+```
+
+### §12.4 Invariants
+
+### INV-GUIDANCE-001: Continuous Injection
+
+**Traces to**: ADRS GU-005
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+`∀ tool_response r: ∃ footer f: r' = r ⊕ f`
+Every tool response includes a guidance footer.
+
+#### Level 1 (State Invariant)
+The INJECT transition always fires as post-processing on tool output.
+No tool response reaches the agent without a guidance footer.
+
+#### Level 2 (Implementation Contract)
+The CLI output pipeline appends a footer to every response. The footer
+is computed from current store state and k*_eff.
+
+**Falsification**: Any tool response reaches the agent without a guidance footer.
+
+---
+
+### INV-GUIDANCE-002: Spec-Language Phrasing
+
+**Traces to**: ADRS GU-003
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+Guidance text references invariant IDs, formal structures, and spec elements.
+Never instruction-language ("do step 1, then step 2") — always spec-language
+("INV-STORE-001 requires append-only; current operation would mutate").
+
+#### Level 1 (State Invariant)
+Guidance generation templates use invariant references. The template engine
+pulls from the store's invariant index, not from hardcoded instruction strings.
+
+**Falsification**: Guidance output contains a numbered checklist or imperative
+instruction without invariant reference.
+
+---
+
+### INV-GUIDANCE-003: Intention-Action Coherence
+
+**Traces to**: ADRS GU-008
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+`∀ action a, intention i:
+  postconditions(a) ∩ goals(i) ≠ ∅ ⟹ score(a) += intention_alignment_bonus`
+
+Actions that advance active intentions are scored higher in guidance output.
+
+#### Level 1 (State Invariant)
+The QUERY_GUIDANCE transition computes intersection between action postconditions
+and active intention goals. Non-empty intersection adds a bonus to action score.
+
+**Falsification**: An action that advances an active intention is scored
+identically to an action that does not.
+
+---
+
+### INV-GUIDANCE-004: Drift Detection Responsiveness
+
+**Traces to**: ADRS GU-007 (mechanism 3)
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+`transact_gap > 5 ⟹ drift_signal_emitted`
+If an agent executes more than 5 bash commands without a transact, the drift
+detection mechanism emits a GoalDrift signal.
+
+#### Level 1 (State Invariant)
+The DETECT_DRIFT transition monitors the access log for transact gaps and
+tool absence patterns. When thresholds are exceeded, a signal is emitted.
+
+**Falsification**: An agent executes 10+ bash commands without a transact
+and no drift signal is emitted.
+
+---
+
+### INV-GUIDANCE-005: Learned Guidance Effectiveness Tracking
+
+**Traces to**: ADRS GU-001
+**Verification**: `V:PROP`
+**Stage**: 4
+
+#### Level 0 (Algebraic Law)
+`∀ learned_guidance g: effectiveness(g) < 0.3 ⟹ ◇ retracted(g)`
+Learned guidance below the effectiveness threshold is eventually retracted.
+
+Effectiveness is computed from outcome data:
+`effectiveness(g) = success_rate(actions_taken_following_g)`
+
+#### Level 1 (State Invariant)
+The EVOLVE transition updates effectiveness scores and prunes below-threshold
+learned guidance. System-default guidance is never pruned.
+
+**Falsification**: Learned guidance with effectiveness < 0.3 persists after
+5+ sessions without being retracted.
+
+---
+
+### INV-GUIDANCE-006: Lookahead via Branch Simulation
+
+**Traces to**: ADRS GU-002
+**Verification**: `V:PROP`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+Lookahead (1–5 steps) simulates action consequences by creating a virtual branch,
+applying hypothetical actions, and evaluating the resulting store state.
+
+`lookahead(actions, n) = evaluate(apply(fork(store), actions[0..n]))`
+
+#### Level 1 (State Invariant)
+Virtual branches created for lookahead are never committed to trunk.
+Lookahead branches are ephemeral — created, evaluated, and discarded within
+the QUERY_GUIDANCE transition.
+
+**Falsification**: A lookahead branch persists after the guidance query completes
+or its datoms leak into trunk.
+
+---
+
+### INV-GUIDANCE-007: Dynamic CLAUDE.md Improvement
+
+**Traces to**: ADRS GU-004, PO-014
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+Dynamic CLAUDE.md generation incorporates empirical drift corrections.
+Corrections that show no measurable effect after 5 sessions are replaced.
+
+`∀ correction c: sessions_without_effect(c) > 5 ⟹ ◇ replaced(c)`
+
+#### Level 1 (State Invariant)
+The GENERATE-CLAUDE-MD operation tracks correction effectiveness across sessions.
+Ineffective corrections are replaced by new corrections derived from recent
+drift patterns.
+
+**Falsification**: A drift correction persists in generated CLAUDE.md for 10+
+sessions with no measurable improvement in the targeted drift metric.
+
+---
+
+### §12.5 ADRs
+
+### ADR-GUIDANCE-001: Comonadic Topology Over Flat Rules
+
+**Traces to**: ADRS GU-001
+**Stage**: 1
+
+#### Problem
+How should guidance be structured — flat rules or a graph topology?
+
+#### Decision
+Comonadic topology: guidance nodes are entities with Datalog predicates.
+The `(StoreState, A)` comonad means guidance is always contextualized by the
+full store state. Nodes can be traversed, composed, and extended.
+
+#### Formal Justification
+Flat rules don't compose (interaction between rules is implicit and fragile).
+The comonadic structure makes composition explicit: `extend` lifts a guidance
+function to operate over the full topology. Agents can contribute new guidance
+nodes that integrate with existing ones via graph edges.
+
+---
+
+### ADR-GUIDANCE-002: Basin Competition as Central Failure Model
+
+**Traces to**: ADRS GU-006
+**Stage**: 0
+
+#### Problem
+What is the primary failure mode in agent-methodology interaction?
+
+#### Decision
+Basin competition between DDIS methodology (Basin A) and pretrained coding patterns
+(Basin B). As k*_eff decreases, Basin B's pull increases. At crossover, Basin B
+captures the trajectory and the agent's own non-DDIS outputs reinforce it.
+
+#### Formal Justification
+This is not a memory problem (bigger context doesn't help — it just delays
+the crossover). It is a dynamical systems problem: two attractors competing for
+trajectory. The six anti-drift mechanisms are energy injections that maintain
+Basin A dominance. Understanding this is prerequisite to designing effective
+countermeasures.
+
+---
+
+### ADR-GUIDANCE-003: Six Integrated Mechanisms Over Single Solution
+
+**Traces to**: ADRS GU-007
+**Stage**: 1
+
+#### Problem
+How many anti-drift mechanisms are needed?
+
+#### Decision
+Six. No single mechanism is sufficient — they compose: pre-emption prevents,
+injection steers, detection catches, gate forces, alarm makes visible, harvest
+recovers. The failure mode of each mechanism is covered by the others.
+
+#### Formal Justification
+Defense in depth. Pre-emption fails when agents skip the CLAUDE.md check.
+Injection fails when agents ignore footer. Detection fails for novel drift
+patterns. Gate fails if agents don't call pre-check. Alarm fails if agent
+doesn't read statusline. Harvest fails if session terminates abnormally.
+No mechanism is single-point-of-failure because each covers the others' gaps.
+
+---
+
+### ADR-GUIDANCE-004: Spec-Language Over Instruction-Language
+
+**Traces to**: ADRS GU-003
+**Stage**: 0
+
+#### Problem
+What language register should guidance use?
+
+#### Options
+A) Instruction-language — "Do X, then Y, then Z" (checklists)
+B) Spec-language — "INV-STORE-001 requires X; current state violates Y"
+
+#### Decision
+**Option B.** Spec-language activates the deep reasoning substrate of LLMs
+(formal pattern matching, logical inference). Instruction-language activates
+the surface substrate (compliance, procedure following). The deep substrate
+produces more robust behavior under context pressure.
+
+#### Formal Justification
+This is empirically validated: demonstration-style prompts outperform
+constraint-style prompts for LLMs. "Demonstration, not constraint list" (IB-002).
+Spec-language is the formal analogue of demonstration style applied to methodology.
+
+---
+
+### §12.6 Negative Cases
+
+### NEG-GUIDANCE-001: No Tool Response Without Footer
+
+**Traces to**: ADRS GU-005
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(tool_response_sent ∧ ¬footer_appended)`
+
+Every tool response includes a guidance footer. No response reaches the agent
+without methodology steering.
+
+**proptest strategy**: Invoke all CLI commands with random arguments. Verify
+every output contains a guidance footer section.
+
+---
+
+### NEG-GUIDANCE-002: No Lookahead Branch Leak
+
+**Traces to**: ADRS GU-002
+**Verification**: `V:PROP`, `V:KANI`
+
+**Safety property**: `□ ¬(lookahead_branch_committed_to_trunk)`
+
+Virtual branches created for lookahead simulation must never be committed.
+They are ephemeral evaluation contexts, not real branches.
+
+**proptest strategy**: Run random lookahead sequences. After each, verify
+trunk contains exactly the datoms it had before lookahead.
+
+**Kani harness**: Verify that the `lookahead` function cannot call `commit`.
+
+---
+
+### NEG-GUIDANCE-003: No Ineffective Guidance Persistence
+
+**Traces to**: ADRS GU-001
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(learned_guidance_effectiveness < 0.3 ∧ age > 5_sessions ∧ ¬retracted)`
+
+Learned guidance that fails to improve outcomes must be pruned. The system
+must not accumulate ineffective guidance that wastes agent attention budget.
+
+**proptest strategy**: Create learned guidance with low effectiveness scores.
+Run EVOLVE transitions. Verify pruning occurs within 5 sessions.
+
+---
+
+## §13. BUDGET — Attention Budget Management
+
+> **Purpose**: The attention budget is the fundamental constraint on agent output quality.
+> Budget management ensures that high-priority information is never displaced by
+> low-priority output, and that tool responses degrade gracefully as context fills.
+>
+> **Traces to**: SEED.md §8 (Interface Principles), ADRS IB-004–007, IB-011,
+> SQ-007, UA-001
+
+### §13.1 Level 0: Algebraic Specification
+
+The attention budget is a **monotonically decreasing resource**:
+
+```
+k*_eff : Time → [0, 1]
+  — effective remaining attention at time t, measured from actual context consumption
+
+Q(t) = k*_eff(t) × attention_decay(k*_eff(t))
+  — quality-adjusted budget incorporating attention degradation
+
+attention_decay(k) =
+  | 1.0           if k > 0.6      (full quality)
+  | k / 0.6       if 0.3 ≤ k ≤ 0.6 (linear degradation)
+  | (k / 0.3)²    if k < 0.3      (quadratic degradation)
+```
+
+**Five-level output precedence**:
+```
+System > Methodology > UserRequested > Speculative > Ambient
+
+Truncation order: Ambient first, System last.
+Lower-priority output is truncated before higher-priority output is touched.
+```
+
+**Projection pyramid** (SQ-007):
+```
+π₀ = full datoms           (> 2000 tokens available)
+π₁ = entity summaries      (500–2000 tokens)
+π₂ = type summaries         (200–500 tokens)
+π₃ = store summary          (≤ 200 tokens — single-line status + single guidance action)
+```
+
+**Laws**:
+- **L1 (Budget monotonicity)**: `k*_eff(t+1) ≤ k*_eff(t)` — effective attention never increases within a session
+- **L2 (Precedence ordering)**: Truncation always follows the five-level ordering — no level N content is truncated while level N+1 content remains
+- **L3 (Minimum output)**: `output_size ≥ MIN_OUTPUT` (50 tokens) — even at critical budget, a harvest signal is always emitted
+
+### §13.2 Level 1: State Machine Specification
+
+**State**: `Σ_budget = (k_eff: f64, q: f64, output_budget: u32, precedence_stack: [Level; 5])`
+
+**Transitions**:
+
+```
+MEASURE(Σ, context_data) → Σ' where:
+  POST: Σ'.k_eff computed from measured context consumption
+  POST: Σ'.q = Q(t) formula applied
+  POST: Σ'.output_budget = max(50, Σ'.q × 200000 × 0.05)
+
+ALLOCATE(Σ, content, priority) → output where:
+  POST: content truncated to fit output_budget
+  POST: truncation follows precedence: lowest priority first
+  POST: guidance compression follows IB-006:
+        k > 0.7: full (100–200 tokens)
+        0.4–0.7: compressed (30–60 tokens)
+        ≤ 0.4: minimal (10–20 tokens)
+        ≤ 0.2: harvest signal only
+
+PROJECT(Σ, entities, budget) → projection where:
+  POST: pyramid level selected based on budget:
+        > 2000: π₀ for top, π₁ for others
+        500–2000: π₁/π₂
+        200–500: π₂ for top, omit others
+        ≤ 200: π₃ (single-line)
+```
+
+**Budget source precedence** (IB-004):
+1. `--budget` flag (explicit)
+2. `--context-used` flag (from caller)
+3. Session state file `.ddis/session/context.json` (from statusline hook)
+4. Transcript tail-parse (fallback)
+5. Conservative default: 500 tokens
+
+Staleness threshold: 30 seconds. Sources older than 30s are deprioritized.
+
+### §13.3 Level 2: Implementation Contract
+
+```rust
+pub struct BudgetManager {
+    pub k_eff: f64,
+    pub q: f64,
+    pub output_budget: u32,
+}
+
+#[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq)]
+pub enum OutputPrecedence {
+    Ambient = 0,
+    Speculative = 1,
+    UserRequested = 2,
+    Methodology = 3,
+    System = 4,
+}
+
+impl BudgetManager {
+    /// Measure k*_eff from context data
+    pub fn measure(&mut self, context_used_pct: f64) {
+        self.k_eff = 1.0 - context_used_pct;
+        self.q = self.k_eff * self.attention_decay(self.k_eff);
+        self.output_budget = (50.0_f64).max(self.q * 200_000.0 * 0.05) as u32;
+    }
+
+    fn attention_decay(&self, k: f64) -> f64 {
+        if k > 0.6 { 1.0 }
+        else if k >= 0.3 { k / 0.6 }
+        else { (k / 0.3).powi(2) }
+    }
+
+    /// Project entities to the appropriate pyramid level
+    pub fn project(&self, entities: &[EntitySummary]) -> Projection {
+        match self.output_budget {
+            b if b > 2000 => Projection::Full(entities),
+            b if b > 500  => Projection::EntitySummary(entities),
+            b if b > 200  => Projection::TypeSummary(entities),
+            _             => Projection::StoreSummary,
+        }
+    }
+}
+```
+
+### §13.4 Invariants
+
+### INV-BUDGET-001: Output Budget as Hard Cap
+
+**Traces to**: ADRS IB-004
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+`∀ tool_response r: |r| ≤ max(MIN_OUTPUT, Q(t) × W × budget_fraction)`
+
+where W = context window size, budget_fraction = 0.05 (5% of remaining capacity).
+
+#### Level 1 (State Invariant)
+The ALLOCATE transition enforces the cap. Content exceeding the budget is
+truncated according to precedence ordering.
+
+#### Level 2 (Implementation Contract)
+```rust
+#[kani::ensures(|output| output.len() <= self.output_budget as usize)]
+fn allocate(&self, content: &[OutputBlock]) -> Vec<u8> { ... }
+```
+
+**Falsification**: A tool response exceeds the computed output budget.
+
+---
+
+### INV-BUDGET-002: Precedence-Ordered Truncation
+
+**Traces to**: ADRS IB-004
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+`∀ content blocks b₁, b₂ where priority(b₁) < priority(b₂):
+  truncated(b₂) ⟹ truncated(b₁)`
+
+Higher-priority content is never truncated while lower-priority content remains.
+
+#### Level 1 (State Invariant)
+The ALLOCATE transition sorts content by precedence and fills from highest to lowest.
+When budget is exhausted, remaining lower-priority content is truncated.
+
+**Falsification**: System output truncates a Methodology-level block while
+Speculative-level blocks remain in the output.
+
+---
+
+### INV-BUDGET-003: Quality-Adjusted Degradation
+
+**Traces to**: ADRS IB-005
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+The Q(t) formula accounts for attention quality degradation:
+```
+Q(t) = k*_eff(t) × attention_decay(k*_eff(t))
+
+Q(t) degrades faster than k*_eff(t) when k*_eff < 0.6
+  because attention quality drops before context fills.
+```
+
+#### Level 1 (State Invariant)
+The MEASURE transition computes Q(t) using the piecewise attention_decay function.
+Output budget is derived from Q(t), not raw k*_eff.
+
+**Falsification**: Output budget is computed from raw k*_eff without applying
+the attention_decay quality adjustment.
+
+---
+
+### INV-BUDGET-004: Guidance Compression by Budget
+
+**Traces to**: ADRS IB-006
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+Guidance footer size is a function of k*_eff:
+```
+k > 0.7:    full (100–200 tokens)
+0.4–0.7:    compressed (30–60 tokens)
+≤ 0.4:      minimal (10–20 tokens)
+≤ 0.2:      harvest signal only ("Run ddis harvest")
+```
+
+#### Level 1 (State Invariant)
+The INJECT transition (from GUIDANCE namespace) selects footer size
+based on the current k*_eff from the budget manager.
+
+**Falsification**: At k*_eff = 0.1, the guidance footer is 100+ tokens instead
+of a minimal harvest signal.
+
+---
+
+### INV-BUDGET-005: Command Attention Profile
+
+**Traces to**: ADRS IB-007
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+Commands are classified by attention cost:
+```
+CHEAP    (≤ 50 tokens):  status, guidance, frontier, branch ls
+MODERATE (50–300):        associate, query, assemble, diff
+EXPENSIVE (300+):         assemble --full, seed
+META     (side effects):  harvest, transact, merge
+```
+
+The budget manager adjusts output to stay within the allocated cost.
+
+#### Level 1 (State Invariant)
+Each CLI command has a declared attention profile. The output pipeline
+respects the profile ceiling, truncating to fit.
+
+**Falsification**: A CHEAP command produces 300+ tokens of output.
+
+---
+
+### §13.5 ADRs
+
+### ADR-BUDGET-001: Measured Context Over Heuristic
+
+**Traces to**: ADRS IB-005
+**Stage**: 1
+
+#### Problem
+Should attention budget be estimated heuristically or measured from actual consumption?
+
+#### Decision
+Measured. Claude Code exposes `context_window.used_percentage` via the statusline hook.
+This gives ground truth. The heuristic `k*_eff = k*_base × e^{-0.03n}` becomes fallback
+only when measurement is unavailable.
+
+#### Formal Justification
+Heuristic is inaccurate because conversation structure varies — a session with many
+long tool outputs consumes context faster than one with short exchanges. Measured
+consumption eliminates this source of error.
+
+---
+
+### ADR-BUDGET-002: Piecewise Attention Decay
+
+**Traces to**: ADRS IB-005
+**Verification**: Used in Q(t) computation
+**Stage**: 1
+
+#### Problem
+How should attention quality degrade with context consumption?
+
+#### Decision
+Piecewise: full quality above 60% remaining, linear degradation 30–60%,
+quadratic degradation below 30%.
+
+#### Formal Justification
+Empirical observation: LLM attention quality degrades faster than a simple linear
+model would predict. The piecewise function captures three regimes: comfortable
+(no degradation), pressured (graceful degradation), critical (rapid degradation).
+The quadratic regime below 30% reflects the observed cliff in output quality.
+
+---
+
+### ADR-BUDGET-003: Rate-Distortion Framework
+
+**Traces to**: ADRS IB-011
+**Stage**: 1
+
+#### Problem
+What theoretical framework governs the budget-information tradeoff?
+
+#### Decision
+Rate-distortion theory. The interface is a channel with rate constraint (budget).
+The system maximizes information value while minimizing distortion (loss of
+important facts) at the given rate. The projection pyramid (π₀–π₃) is the
+codebook with decreasing rate requirements.
+
+#### Formal Justification
+Rate-distortion is the information-theoretic framework for lossy compression
+with quality guarantees. It formalizes the intuition that "less budget = less
+detail, but the most important things survive." The precedence ordering defines
+what "most important" means.
+
+---
+
+### §13.6 Negative Cases
+
+### NEG-BUDGET-001: No Budget Overflow
+
+**Traces to**: ADRS IB-004
+**Verification**: `V:PROP`, `V:KANI`
+
+**Safety property**: `□ ¬(output_size > output_budget ∧ output_budget > MIN_OUTPUT)`
+
+No tool response exceeds the computed output budget (except at the minimum
+floor of 50 tokens).
+
+**proptest strategy**: Generate random tool outputs at various budget levels.
+Verify truncation to budget ceiling in all cases.
+
+**Kani harness**: Verify `allocate()` output size ≤ budget for all inputs.
+
+---
+
+### NEG-BUDGET-002: No High-Priority Truncation Before Low
+
+**Traces to**: ADRS IB-004
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(∃ b_high, b_low: priority(b_high) > priority(b_low) ∧ truncated(b_high) ∧ ¬truncated(b_low))`
+
+Precedence ordering is inviolable. System and Methodology content is never
+truncated while Speculative or Ambient content remains.
+
+**proptest strategy**: Generate output with blocks at all five precedence levels.
+Apply budget pressure. Verify truncation order matches precedence.
+
+---
+
+## §14. INTERFACE — CLI/MCP/TUI Layers
+
+> **Purpose**: The interface layers are the graded information channels through which
+> agents, humans, and machines interact with the store. Each layer serves a different
+> consumer at a different frequency, all backed by the same datom store.
+>
+> **Traces to**: SEED.md §8 (Interface Principles), ADRS IB-001–003, IB-008–009,
+> SR-011, AA-003
+
+### §14.1 Level 0: Algebraic Specification
+
+The interface is a **five-layer graded information channel**:
+
+```
+Layer 0 (Ambient):    CLAUDE.md — ~80 tokens, k*-exempt, always present
+Layer 1 (CLI):        Rust binary — primary agent interface, budget-aware
+Layer 2 (MCP):        Thin wrapper — machine-to-machine, nine tools
+Layer 3 (Guidance):   Comonadic — spec-language, injected in every response
+Layer 4 (TUI):        Subscription-driven — human monitoring dashboard
+Layer 4.5 (Statusline): Bridge — persistent low-bandwidth agent↔human signal
+```
+
+**Information flow**:
+```
+Store → CLI (agent reads/writes)
+Store → MCP → Agent (machine-to-machine)
+Store → TUI (human reads)
+TUI → Store (human injects signals via IB-009)
+Statusline → Session State → CLI (budget measurement)
+```
+
+**Laws**:
+- **L1 (Layer independence)**: Each layer can operate independently of other layers
+- **L2 (Store as sole truth)**: All layers read from and write to the same datom store. No layer-local state that isn't a projection of the store.
+- **L3 (Budget awareness)**: Layers 1–3 respect the attention budget. Layer 0 is k*-exempt (always present). Layer 4/4.5 is unconstrained (human, not agent).
+
+### §14.2 Level 1: State Machine Specification
+
+**State**: `Σ_interface = (cli: CLIState, mcp: MCPState, tui: TUIState, statusline: StatuslineState)`
+
+**Transitions**:
+
+```
+CLI_COMMAND(Σ, command, args, budget) → (output, Σ') where:
+  PRE:  command ∈ known_commands
+  POST: output = execute(command, args, store)
+  POST: |output| ≤ budget (truncated per precedence)
+  POST: output includes guidance footer
+  POST: store updated if command is META type
+
+MCP_CALL(Σ, tool_name, params) → (result, Σ') where:
+  PRE:  tool_name ∈ {ddis_status, ddis_guidance, ddis_associate, ddis_query,
+                      ddis_transact, ddis_branch, ddis_signal, ddis_harvest, ddis_seed}
+  POST: reads session state, computes Q(t), passes --budget to CLI
+  POST: appends pending notifications
+  POST: updates session state
+  POST: checks harvest warning thresholds
+
+TUI_UPDATE(Σ, subscriptions) → display where:
+  POST: continuous projection via SUBSCRIBE
+  POST: NOT k*-constrained (human interface)
+  POST: delegation changes and conflicts above threshold trigger notification
+
+SIGNAL_INJECT(Σ, signal_from_human) → Σ' where:
+  POST: signal recorded as datom (high authority — human source)
+  POST: queued in MCP notification queue for agent's next tool response
+  POST: entity type `:signal/*` with provenance `:observed`
+
+STATUSLINE_TICK(Σ, context_data) → Σ' where:
+  POST: writes session state to .ddis/session/context.json
+  POST: fields: used_percentage, input_tokens, remaining_tokens,
+        k_eff, quality_adjusted, output_budget, timestamp, session_id
+  POST: zero cost to agent context (side effect only)
+```
+
+### §14.3 Level 2: Implementation Contract
+
+```rust
+/// CLI output modes (IB-002)
+pub enum OutputMode {
+    Structured,  // JSON — machine-parseable
+    Agent,       // 100–300 tokens, headline + entities + signals + guidance + pointers
+    Human,       // TTY — full formatting, color, tables
+}
+
+/// MCP server — thin wrapper calling CLI for all computation
+pub struct MCPServer {
+    pub session_state: SessionState,
+    pub notification_queue: Vec<Signal>,
+}
+
+/// Nine MCP tools (IB-003)
+pub enum MCPTool {
+    Status,     // cheap: ≤50 tokens
+    Guidance,   // cheap: ≤50 tokens
+    Associate,  // moderate: 50–300 tokens
+    Query,      // moderate: 50–300 tokens
+    Transact,   // meta: side effect
+    Branch,     // meta: side effect
+    Signal,     // meta: side effect
+    Harvest,    // meta: side effect
+    Seed,       // expensive: 300+ tokens
+}
+
+/// Session state file (SR-011)
+#[derive(Serialize, Deserialize)]
+pub struct SessionState {
+    pub used_percentage: f64,
+    pub input_tokens: u64,
+    pub remaining_tokens: u64,
+    pub k_eff: f64,
+    pub quality_adjusted: f64,
+    pub output_budget: u32,
+    pub timestamp: u64,
+    pub session_id: String,
+}
+
+/// TUI — subscription-driven push projection
+pub struct TUIState {
+    pub subscriptions: Vec<Subscription>,
+    pub active_display: DisplayState,
+}
+```
+
+### §14.4 Invariants
+
+### INV-INTERFACE-001: Three CLI Output Modes
+
+**Traces to**: ADRS IB-002
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+The CLI produces output in exactly one of three modes per invocation:
+Structured (JSON), Agent (budget-constrained), Human (TTY-formatted).
+Mode selection is explicit (flag) or inferred from terminal context.
+
+#### Level 1 (State Invariant)
+Every CLI_COMMAND invocation selects exactly one mode. The mode determines
+formatting, token budget, and content selection.
+
+**Falsification**: A CLI command produces mixed-mode output (e.g., JSON with
+TTY escape codes, or agent-mode output without budget constraint).
+
+---
+
+### INV-INTERFACE-002: MCP as Thin Wrapper
+
+**Traces to**: ADRS IB-003
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+The MCP server performs no computation. All computation is delegated to the CLI.
+MCP adds: session state management, budget adjustment, tool descriptions,
+notification queuing.
+
+`∀ mcp_call: result = cli_execute(mcp_call.to_cli_args()) + mcp_metadata`
+
+#### Level 1 (State Invariant)
+Every MCP_CALL transition invokes a CLI command as a subprocess. The MCP server
+reads/writes session state and manages notifications but does not duplicate
+any CLI logic.
+
+**Falsification**: The MCP server implements query parsing, store access, or
+any other logic that exists in the CLI binary.
+
+---
+
+### INV-INTERFACE-003: Nine MCP Tools
+
+**Traces to**: ADRS IB-003
+**Verification**: `V:PROP`, `V:TYPE`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+The MCP server exposes exactly nine tools:
+`{status, guidance, associate, query, transact, branch, signal, harvest, seed}`
+
+#### Level 1 (State Invariant)
+The tool set is fixed. Adding tools requires a spec update.
+Each tool maps to a specific CLI command.
+
+#### Level 2 (Implementation Contract)
+```rust
+// Type-level guarantee: exactly 9 tools
+const MCP_TOOLS: [MCPTool; 9] = [
+    MCPTool::Status, MCPTool::Guidance, MCPTool::Associate,
+    MCPTool::Query, MCPTool::Transact, MCPTool::Branch,
+    MCPTool::Signal, MCPTool::Harvest, MCPTool::Seed,
+];
+```
+
+**Falsification**: The MCP server exposes a tool not in the defined set of nine.
+
+---
+
+### INV-INTERFACE-004: Statusline Zero-Cost to Agent
+
+**Traces to**: ADRS IB-001 (Layer 4.5), SR-011
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+The statusline hook produces side effects (writes session state file) but
+consumes zero tokens from the agent's context window.
+
+#### Level 1 (State Invariant)
+STATUSLINE_TICK writes to `.ddis/session/context.json` as an external side effect.
+The statusline output is consumed by the human display and the CLI budget system,
+never by the agent's context.
+
+**Falsification**: Statusline output appears in the agent's context window,
+consuming attention budget.
+
+---
+
+### INV-INTERFACE-005: TUI Subscription Liveness
+
+**Traces to**: ADRS IB-008
+**Verification**: `V:PROP`
+**Stage**: 4
+
+#### Level 0 (Algebraic Law)
+Delegation changes and conflicts above severity threshold trigger TUI notification
+within one refresh cycle.
+
+`∀ event e where severity(e) ≥ threshold: ◇ displayed_in_tui(e)`
+
+#### Level 1 (State Invariant)
+The TUI subscribes to store changes. When a matching event occurs (delegation change,
+conflict above threshold), the TUI display updates within the subscription's
+refresh interval.
+
+**Falsification**: A High-severity conflict is recorded in the store but the TUI
+does not display a notification.
+
+---
+
+### INV-INTERFACE-006: Human Signal Injection
+
+**Traces to**: ADRS IB-009
+**Verification**: `V:PROP`
+**Stage**: 3
+
+#### Level 0 (Algebraic Law)
+A human can inject signals from the TUI. The signal is:
+1. Recorded as a datom with human provenance (`:observed`, axiomatically high authority)
+2. Queued in the MCP notification queue
+3. Delivered to the agent in the next tool response
+
+#### Level 1 (State Invariant)
+SIGNAL_INJECT always produces both a datom and a notification queue entry.
+The agent receives the signal at the next MCP_CALL.
+
+**Falsification**: A human injects a signal from TUI and the agent never receives it.
+
+---
+
+### INV-INTERFACE-007: Proactive Harvest Warning
+
+**Traces to**: ADRS IB-012
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+```
+Q(t) < 0.15 (~75% consumed) ⟹ every response includes harvest warning
+Q(t) < 0.05 (~85% consumed) ⟹ CLI emits ONLY the harvest imperative
+```
+
+#### Level 1 (State Invariant)
+When k*_eff drops below thresholds, the response format changes:
+below 0.15, a harvest warning is appended; below 0.05, only the harvest
+imperative is emitted, suppressing all other output.
+
+**Falsification**: k*_eff = 0.03 and the CLI still produces full output without
+a harvest warning.
+
+---
+
+### §14.5 ADRs
+
+### ADR-INTERFACE-001: Five Layers Plus Statusline Bridge
+
+**Traces to**: ADRS IB-001
+**Stage**: 0–4 (layers implemented across stages)
+
+#### Problem
+How many interface layers are needed, and what does each serve?
+
+#### Decision
+Five layers plus a Layer 4.5 statusline bridge:
+- Layer 0 (Ambient): CLAUDE.md — always-present, ~80 tokens, most important
+  ("agents fail to invoke tools 56% without ambient awareness")
+- Layer 1 (CLI): Primary agent interface, budget-aware
+- Layer 2 (MCP): Machine-to-machine, thin wrapper
+- Layer 3 (Guidance): Comonadic, injected in responses
+- Layer 4 (TUI): Human monitoring, subscription-driven
+- Layer 4.5 (Statusline): Zero-cost bridge, writes session state
+
+#### Formal Justification
+Each layer serves a different consumer (agent/machine/human) at a different
+frequency (always/per-command/continuous). The statusline bridge is the critical
+innovation: it connects the human display (Layer 4) to the agent budget system
+(Layer 1) with zero context cost to the agent.
+
+---
+
+### ADR-INTERFACE-002: Agent-Mode Demonstration Style
+
+**Traces to**: ADRS IB-002
+**Stage**: 0
+
+#### Problem
+How should agent-mode CLI output be structured?
+
+#### Decision
+Demonstration style: headline + entities (3–7) + signals (0–3) + guidance (1–3)
++ pointers (1–3). Total: 100–300 tokens. "Demonstration, not constraint list."
+
+#### Formal Justification
+Demonstration-style output activates the deep reasoning substrate of LLMs
+(pattern matching, analogy, formal inference). Constraint-style output
+("DO NOT do X, MUST do Y") activates the surface compliance substrate,
+which produces brittle behavior under context pressure.
+
+---
+
+### ADR-INTERFACE-003: Store-Mediated Trajectory Management
+
+**Traces to**: ADRS IB-010
+**Stage**: 0
+
+#### Problem
+How should agent work sessions be managed across conversation boundaries?
+
+#### Decision
+Store-mediated: `ddis harvest` extracts durable facts, `ddis seed` generates
+carry-over. Agent lifecycle: SEED → work 20–30 turns → HARVEST → reset → GOTO SEED.
+
+Seed output follows a five-part template:
+1. Context (1–2 sentences)
+2. Invariants established
+3. Artifacts produced
+4. Open questions from deliberations
+5. Active guidance
+
+#### Formal Justification
+The store is the sole truth (FD-012). Trajectory management through the store
+means conversation boundaries become knowledge extraction points, not knowledge
+loss points. The five-part template provides structure for the seed while
+keeping it within budget.
+
+---
+
+### §14.6 Negative Cases
+
+### NEG-INTERFACE-001: No Layer-Local State
+
+**Traces to**: ADRS AA-003
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(∃ layer_state that is not a projection of the store)`
+
+No interface layer maintains state that isn't derivable from the store.
+Session state (SR-011) is a projection of measured context data.
+MCP notification queues are projections of pending signals.
+
+**proptest strategy**: After any sequence of interface operations, verify
+that all layer state can be reconstructed from the store alone.
+
+---
+
+### NEG-INTERFACE-002: No MCP Logic Duplication
+
+**Traces to**: ADRS IB-003
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(mcp_server implements logic that exists in cli_binary)`
+
+The MCP server is a thin wrapper. Any computation that appears in both the
+MCP server and the CLI binary is a duplication bug.
+
+**proptest strategy**: Structural analysis — verify MCP tool handlers
+contain only: subprocess call, session state read/write, notification
+queue management. No query parsing, store access, or domain logic.
+
+---
+
+### NEG-INTERFACE-003: No Harvest Warning Suppression
+
+**Traces to**: ADRS IB-012
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(Q(t) < 0.15 ∧ response_without_harvest_warning)`
+
+When context is critically low, the harvest warning must appear. No configuration,
+flag, or output mode may suppress it.
+
+**proptest strategy**: Set k*_eff to values below 0.15. Invoke all CLI commands.
+Verify every response contains a harvest warning.
+
+---
+
+*Sections §15–§17 (Wave 4 integration: Uncertainty Register, Verification Plan,
+Cross-Reference Index) will be produced in a subsequent session.*
+
+---
+
+## Appendix A: Element Count Summary (Waves 1–3)
 
 | Namespace | INV | ADR | NEG | Total | Wave |
 |-----------|-----|-----|-----|-------|------|
@@ -5039,16 +7389,22 @@ subsequent sessions following the same three-level refinement methodology.*
 | SEED      | 6   | 3   | 2   | 11    | 2    |
 | MERGE     | 8   | 4   | 3   | 15    | 2    |
 | SYNC      | 5   | 3   | 2   | 10    | 2    |
-| **Total** | **68** | **43** | **25** | **136** |      |
+| SIGNAL    | 6   | 3   | 3   | 12    | 3    |
+| BILATERAL | 5   | 3   | 2   | 10    | 3    |
+| DELIBERATION | 6 | 4  | 3   | 13    | 3    |
+| GUIDANCE  | 7   | 4   | 3   | 14    | 3    |
+| BUDGET    | 5   | 3   | 2   | 10    | 3    |
+| INTERFACE | 7   | 3   | 3   | 13    | 3    |
+| **Total** | **104** | **63** | **41** | **208** |      |
 
-## Appendix B: Verification Coverage (Waves 1–2)
+## Appendix B: Verification Coverage (Waves 1–3)
 
 | Tag | Count | Namespaces |
 |-----|-------|------------|
-| V:PROP | 68/68 | All (minimum requirement met) |
-| V:KANI | 32 | STORE (10), SCHEMA (3), QUERY (3), RESOLUTION (6), HARVEST (3), SEED (2), MERGE (4), SYNC (1) |
-| V:MODEL | 10 | STORE (1), QUERY (1), RESOLUTION (3), MERGE (2), SYNC (3) |
-| V:TYPE | 9 | STORE (2), SCHEMA (2), QUERY (3), RESOLUTION (2) |
+| V:PROP | 104/104 INVs | All (minimum requirement met) |
+| V:KANI | 42 | STORE (10), SCHEMA (3), QUERY (3), RESOLUTION (6), HARVEST (3), SEED (2), MERGE (4), SYNC (1), SIGNAL (3), DELIBERATION (3), GUIDANCE (1), BUDGET (3), INTERFACE (0) |
+| V:MODEL | 15 | STORE (1), QUERY (1), RESOLUTION (3), MERGE (2), SYNC (3), BILATERAL (1), DELIBERATION (2), SIGNAL (0), GUIDANCE (0), BUDGET (0), INTERFACE (0) |
+| V:TYPE | 10 | STORE (2), SCHEMA (2), QUERY (3), RESOLUTION (2), INTERFACE (1) |
 | V:CONTRACT | 0 | (Applied during implementation, not spec) |
 | V:DEDUCTIVE | 0 | (Candidate: INV-STORE-004/005/006 — CRDT laws) |
 | V:MIRI | 0 | (Applied during implementation for unsafe code) |
@@ -5066,6 +7422,8 @@ Elements required for Stage 0 (Harvest/Seed cycle):
 | INV-HARVEST-001–005, 007 | HARVEST | Harvest pipeline and warnings |
 | INV-SEED-001–004 | SEED | Seed assembly pipeline |
 | INV-MERGE-001–002, 008 | MERGE | Core merge (no branching) |
+| INV-GUIDANCE-001–002, 007 | GUIDANCE | Injection, spec-language, dynamic CLAUDE.md |
+| INV-INTERFACE-001–003 | INTERFACE | CLI modes, MCP wrapper, nine tools |
 | ADR-STORE-001–012 | STORE | Foundation decisions |
 | ADR-SCHEMA-001–003 | SCHEMA | Schema decisions |
 | ADR-QUERY-001–003, 005–006 | QUERY | Query engine decisions |
@@ -5074,6 +7432,8 @@ Elements required for Stage 0 (Harvest/Seed cycle):
 | ADR-SEED-001–003 | SEED | Seed decisions |
 | ADR-MERGE-001 | MERGE | Core merge decision |
 | ADR-SYNC-001 | SYNC | Barrier as optional coordination |
+| ADR-GUIDANCE-002, 004 | GUIDANCE | Basin competition, spec-language |
+| ADR-INTERFACE-001–003 | INTERFACE | Layers, agent-mode, trajectory |
 | NEG-STORE-001–005 | STORE | Store safety |
 | NEG-SCHEMA-001–003 | SCHEMA | Schema safety |
 | NEG-QUERY-001–004 | QUERY | Query safety |
@@ -5081,3 +7441,5 @@ Elements required for Stage 0 (Harvest/Seed cycle):
 | NEG-HARVEST-001–002 | HARVEST | Harvest safety |
 | NEG-SEED-001–002 | SEED | Seed safety |
 | NEG-MERGE-001, 003 | MERGE | Merge safety (no data loss, no W_α leak) |
+| NEG-GUIDANCE-001 | GUIDANCE | No tool response without footer |
+| NEG-INTERFACE-003 | INTERFACE | No harvest warning suppression |

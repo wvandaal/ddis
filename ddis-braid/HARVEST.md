@@ -221,6 +221,65 @@ Secondary: **Produce SPEC.md** (carried from Sessions 001 and 002). With §9 now
 
 ---
 
+## Session 010 — 2026-03-02 (SPEC.md Wave 3: Intelligence Specification)
+
+**Platform**: Claude Code (Opus 4.6)
+**Duration**: ~1 hour, single session (continuation of Session 009)
+
+### What Was Accomplished
+
+1. **Produced `SPEC.md` Wave 3 — Intelligence namespaces** (7,445 total lines, 208 cumulative elements)
+   - **§9 SIGNAL** (6 INV, 3 ADR, 3 NEG = 12 elements): Signal as typed divergence event, eight signal types mapping to reconciliation taxonomy, dispatch function, confusion→re-association pipeline, subscription completeness, severity-ordered routing (three-tier cascade), diamond lattice signal generation (AS-009), taxonomy completeness check
+   - **§10 BILATERAL** (5 INV, 3 ADR, 2 NEG = 10 elements): Bilateral loop as adjunction (forward ⊣ backward), divergence measure over four-boundary chain, fitness function F(S) with seven components (CO-009), monotonic convergence property, five-point coherence statement (C1–C5), bilateral symmetry via same Datalog apparatus, residual documentation requirement, test results as datoms
+   - **§11 DELIBERATION** (6 INV, 4 ADR, 3 NEG = 13 elements): Convergence to decided/stalled, crystallization stability guard (CR-005 — six conditions including stability_min=0.7), precedent queryability (case law system), bilateral deliberation symmetry, commitment weight integration (AS-002), competing branch resolution (winner committed, losers abandoned), three entity types, five decision methods, precedent as case law
+   - **§12 GUIDANCE** (7 INV, 4 ADR, 3 NEG = 14 elements): Comonadic topology (GU-001), basin competition model P(Basin_A) vs P(Basin_B), six anti-drift mechanisms as energy injection, continuous injection (every response has footer), spec-language phrasing, intention-action coherence, drift detection responsiveness (5-command transact gap), learned guidance effectiveness tracking (pruned below 0.3), lookahead via branch simulation, dynamic CLAUDE.md improvement
+   - **§13 BUDGET** (5 INV, 3 ADR, 2 NEG = 10 elements): k*_eff as monotonically decreasing resource, Q(t) formula with piecewise attention decay, five-level output precedence, projection pyramid (π₀–π₃), output budget as hard cap, precedence-ordered truncation, quality-adjusted degradation, guidance compression by budget, command attention profiles, rate-distortion framework
+   - **§14 INTERFACE** (7 INV, 3 ADR, 3 NEG = 13 elements): Five layers plus Layer 4.5 statusline bridge, three CLI output modes (structured/agent/human), MCP as thin wrapper with nine tools, statusline zero-cost to agent, TUI subscription liveness, human signal injection, proactive harvest warning thresholds
+
+2. **Updated appendices**: Element count summary (208 total), verification coverage matrix, Stage 0 element catalog — all updated to include Wave 3 data including new Stage 0 elements from GUIDANCE and INTERFACE namespaces.
+
+3. **Cross-namespace consistency**: Wave 3 namespaces reference Wave 1 types (Datom, EntityId, Store, QueryExpr), Wave 2 mechanisms (harvest pipeline, seed assembly, merge cascade, sync barriers), and each other (SIGNAL↔BILATERAL, DELIBERATION↔SIGNAL, GUIDANCE→BUDGET, INTERFACE→GUIDANCE).
+
+### Decisions Made
+
+| Decision | Rationale |
+|---|---|
+| Eight signal types with surjective taxonomy mapping | Some divergence types (Temporal, Procedural) are detected by specialized mechanisms and surfaced through existing signal types. Bijection would force artificial types. |
+| Fitness function weights as uncertainty | CO-009 weights (V=0.18, C=0.18, D=0.18, H=0.13, K=0.13, I=0.08, U=0.12) are theoretical. Marked UNC-BILATERAL-001 with confidence 0.6 pending empirical calibration. |
+| Basin competition as central failure model | Understanding agent methodology drift as dynamical systems (two attractors) rather than memory problem is prerequisite to effective countermeasures. Six anti-drift mechanisms are energy injections. |
+| Crystallization guard over immediate commit | Premature crystallization is S0-severity (silently wrong artifacts). Stability guard with six conditions directly addresses FM-004 (cascading incompleteness). |
+| MCP as thin wrapper, CLI does all computation | Single-implementation principle: all logic lives in CLI binary, MCP only adds session state and notifications. Prevents duplication bugs. |
+
+### Open Questions
+
+1. **SPEC.md modularization**: At 7,445 lines with 14/14 namespaces done, the file now exceeds NEG-008 (no massive monolithic files). Must modularize before Wave 4 integration sections.
+2. **Fitness function weight calibration**: UNC-BILATERAL-001 (confidence 0.6) and UNC-BILATERAL-002 (confidence 0.5) need empirical data from Stage 0 usage.
+3. **Learned guidance effectiveness measurement**: The 0.3 threshold for pruning (INV-GUIDANCE-005) is theoretical. Needs calibration.
+4. **Wave 4 integration**: §15 Uncertainty Register, §16 Verification Plan, §17 Cross-Reference Index remain.
+
+### Failure Modes
+
+No new failure modes discovered. Wave 3 namespaces directly address:
+- FM-001 (knowledge loss) — GUIDANCE continuous injection prevents methodology drift that leads to unharvested work
+- FM-002 (provenance fabrication) — SIGNAL routes provenance-typed events through three-tier cascade
+- FM-003 (anchoring bias) — BILATERAL bilateral symmetry ensures both directions are checked with same apparatus
+- FM-004 (cascading incompleteness) — DELIBERATION stability guard prevents premature crystallization
+
+### Files Created/Modified
+
+| File | Action | Details |
+|------|--------|---------|
+| `SPEC.md` | MODIFIED | 5,083 → 7,445 lines, +72 elements (36 INV, 20 ADR, 16 NEG), 6 new namespaces (SIGNAL, BILATERAL, DELIBERATION, GUIDANCE, BUDGET, INTERFACE) |
+| `HARVEST.md` | MODIFIED | This entry appended |
+
+### Recommended Next Action
+
+1. **Plan SPEC.md modularization** — at 7,445 lines, splitting is necessary before adding Wave 4 integration sections
+2. **Produce Wave 4** — §15 Uncertainty Register (collect all UNC-* markers), §16 Verification Plan (per-invariant verification matrix), §17 Cross-Reference Index (namespace→SEED→ADRS mappings)
+3. **Begin IMPLEMENTATION_GUIDE.md** — Stage 0 deliverables with exact CLI command signatures, file formats, success criteria
+
+---
+
 ## Session 008 — 2026-03-02 (SPEC.md Wave 1: Foundation Specification)
 
 **Platform**: Claude Code (Opus 4.6)
