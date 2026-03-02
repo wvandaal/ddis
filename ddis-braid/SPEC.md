@@ -3126,28 +3126,1928 @@ produces a Resolution entity in the store.
 
 ---
 
-*Sections §5–§14 (Wave 2–3 namespaces) and §15–§17 (integration) will be produced in
+## §5. HARVEST — End-of-Session Extraction
+
+### §5.0 Overview
+
+Harvest is the mechanism by which knowledge survives conversation boundaries. At the end
+of a conversation (or when context budget is critically low), the agent extracts durable
+knowledge — observations, decisions, dependencies, uncertainties — from the ephemeral
+conversation into the permanent datom store.
+
+The fundamental insight: **conversations are disposable; knowledge is durable.** Harvest
+transforms the workflow from "fight to keep conversations alive" to "ride bounded context
+waves, extracting knowledge at each crest."
+
+**Traces to**: SEED.md §5
+**ADRS.md sources**: LM-005–006, LM-011–013, IB-012, CR-005, UA-007
+
+---
+
+### §5.1 Level 0: Algebraic Specification
+
+#### Epistemic Gap
+
+```
+Let K_agent(t) = knowledge held by the agent at time t (in conversation context)
+Let K_store(t) = knowledge in the datom store at time t
+
+Epistemic gap: Δ(t) = K_agent(t) \ K_store(t)
+  (knowledge the agent has that the store does not)
+
+Harvest: HARVEST(Δ(t)) → K_store(t') where K_store(t') ⊇ K_store(t) ∪ Δ(t)
+  The store grows to include the agent's un-transacted knowledge.
+
+Perfect harvest: Δ(t') = ∅
+  (all agent knowledge is in the store after harvest)
+
+Practical harvest: |Δ(t')| ≤ ε
+  (residual gap below acceptable threshold)
+```
+
+#### Harvest as Monotonic Extension
+
+```
+∀ harvest operations H:
+  K_store(pre) ⊆ K_store(post)          — store grows (C1)
+  |K_store(post)| ≥ |K_store(pre)|      — never shrinks (L5)
+
+Harvest does not modify existing datoms. It only adds new datoms
+representing the agent's un-transacted observations and decisions.
+```
+
+#### Harvest Quality Metrics
+
+```
+false_positive_rate = |{candidates committed then later retracted}| / |{committed}|
+false_negative_rate = |{candidates rejected then later re-discovered}| / |{rejected}|
+drift_score = |Δ(t)| at session end before harvest
+
+Calibration: High FP → raise thresholds. High FN → lower thresholds.
+Both high → improve extractor.
+
+Quality bands:
+  0–2 uncommitted observations at harvest time = excellent
+  3–5 = minor drift
+  6+  = significant drift (methodology not followed)
+```
+
+---
+
+### §5.2 Level 1: State Machine Specification
+
+#### Harvest Pipeline
+
+```
+HARVEST(S, agent, transcript_context) → S'
+
+PIPELINE:
+  1. DETECT: Scan agent's recent transactions. Identify:
+     - Observations made but not transacted (implicit knowledge)
+     - Decisions made but not recorded as ADR datoms
+     - Dependencies discovered but not linked
+     - Uncertainties encountered but not marked
+
+  2. PROPOSE: Generate harvest candidates.
+     Each candidate c has:
+       c.datom_spec    — the datom(s) to transact
+       c.category      — observation | decision | dependency | uncertainty
+       c.confidence    — extraction confidence (0.0–1.0)
+       c.weight        — commitment weight estimate
+
+  3. REVIEW: Agent/human confirms or rejects each candidate.
+     Review topology (LM-012) determines who reviews:
+       single-agent self-review (default)
+       bilateral peer review
+       swarm broadcast + voting
+       hierarchical specialist delegation
+       human review
+
+  4. COMMIT: Confirmed candidates transacted as datoms.
+     Each committed candidate becomes a Transaction with:
+       provenance = :observed or :derived
+       rationale = harvest extraction context
+       causal_predecessors = session's transaction chain
+
+  5. RECORD: Harvest session entity created.
+     Records: session_id, agent, topology, candidate_count,
+     committed_count, rejected_count, drift_score, timestamp.
+
+POST:
+  S'.datoms ⊇ S.datoms                          — monotonic (C1)
+  harvest_session entity in S'                    — provenance trail
+  ∀ committed candidates: datoms in S'            — knowledge captured
+  drift_score(S') recorded for calibration        — learning signal
+```
+
+#### Proactive Harvest Warnings
+
+```
+When Q(t) < 0.15 (~75% context consumed):
+  Every CLI response includes harvest warning.
+  "Context budget low. Run `braid harvest` to preserve session knowledge."
+
+When Q(t) < 0.05 (~85% context consumed):
+  CLI emits ONLY the harvest imperative.
+  "HARVEST NOW. Run `braid harvest`. Further work will degrade."
+
+Continuing past harvest threshold produces diminishing returns —
+outputs become parasitic (consuming budget without producing value).
+```
+
+#### Crystallization Stability Guard
+
+```
+Harvest candidates with high commitment weight require stability check:
+
+crystallizable(candidate) =
+  candidate.status = :refined ∧
+  candidate.confidence ≥ 0.6 ∧
+  candidate.coherence ≥ 0.6 ∧
+  no_unresolved_conflicts(candidate) ∧
+  stability_score(candidate) ≥ stability_min (default 0.7)
+
+Candidates below stability threshold remain as :proposed in the harvest
+session, not committed. They surface in the next session's seed as
+"pending crystallization."
+```
+
+#### Observation Staleness Model
+
+```
+Observation datoms carry freshness metadata:
+  :observation/source    — :filesystem | :shell | :network | :git | :process
+  :observation/timestamp — when observed
+  :observation/hash      — content hash at observation time
+  :observation/stale-after — TTL (source-dependent)
+
+Freshness check during harvest:
+  if now - observation.timestamp > stale_after:
+    flag as potentially stale
+    ASSEMBLE applies freshness-mode: :warn (default) | :refresh | :accept
+```
+
+---
+
+### §5.3 Level 2: Interface Specification
+
+```rust
+/// Harvest candidate — proposed datom extraction from conversation.
+pub struct HarvestCandidate {
+    pub datom_spec: Vec<Datom>,
+    pub category: HarvestCategory,
+    pub confidence: f64,            // 0.0–1.0
+    pub weight: f64,                // estimated commitment weight
+    pub status: CandidateStatus,    // lattice: :proposed < :under-review < :committed < :rejected
+    pub extraction_context: String, // why this was extracted
+}
+
+pub enum HarvestCategory {
+    Observation,     // fact observed but not transacted
+    Decision,        // choice made but not recorded as ADR
+    Dependency,      // link discovered but not asserted
+    Uncertainty,     // unknown encountered but not marked
+}
+
+/// Harvest session entity.
+pub struct HarvestSession {
+    pub session_id: EntityId,
+    pub agent: AgentId,
+    pub review_topology: ReviewTopology,
+    pub candidates: Vec<HarvestCandidate>,
+    pub drift_score: u32,           // count of uncommitted observations
+    pub timestamp: Instant,
+}
+
+pub enum ReviewTopology {
+    SelfReview,                     // single agent reviews own work
+    PeerReview { reviewer: AgentId },
+    SwarmVote { quorum: u32 },
+    HierarchicalDelegation { specialist: AgentId },
+    HumanReview,
+}
+
+impl Store {
+    /// Detect and propose harvest candidates.
+    pub fn harvest_detect(&self, agent: AgentId) -> Vec<HarvestCandidate>;
+
+    /// Commit confirmed candidates.
+    pub fn harvest_commit(
+        &mut self,
+        agent: AgentId,
+        candidates: &[HarvestCandidate],
+        topology: ReviewTopology,
+    ) -> Result<HarvestSession, HarvestError>;
+}
+```
+
+#### CLI Commands
+
+```
+braid harvest                       # Interactive: detect, propose, review, commit
+braid harvest --auto                # Auto-commit candidates above confidence threshold
+braid harvest --dry-run             # Show candidates without committing
+braid harvest --topology peer       # Use peer review topology
+braid harvest --stats               # Show harvest quality metrics (FP/FN rates)
+```
+
+---
+
+### §5.4 Invariants
+
+### INV-HARVEST-001: Harvest Monotonicity
+
+**Traces to**: SEED §5, C1
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ harvest operations H on store S:
+  S ⊆ HARVEST(S)
+  (harvest only adds datoms, never removes)
+```
+
+#### Level 1 (State Invariant)
+Every harvest commit is a TRANSACT operation, inheriting all STORE invariants.
+No existing datom is modified or removed during harvest.
+
+#### Level 2 (Implementation Contract)
+```rust
+// Harvest commit delegates to Store::transact, which preserves INV-STORE-001.
+pub fn harvest_commit(&mut self, ...) -> Result<HarvestSession, HarvestError> {
+    let tx = Transaction::<Building>::new(agent);
+    for candidate in confirmed_candidates {
+        for datom in &candidate.datom_spec {
+            tx = tx.assert_datom(datom.entity, datom.attribute.clone(), datom.value.clone());
+        }
+    }
+    let tx = tx.commit(&self.schema)?;
+    self.transact(tx)?;
+    // ...
+}
+```
+
+**Falsification**: A harvest operation that reduces the datom count or removes existing datoms.
+
+---
+
+### INV-HARVEST-002: Harvest Provenance Trail
+
+**Traces to**: SEED §5, ADRS FD-012
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ harvest operations:
+  ∃ HarvestSession entity in S' recording:
+    agent, timestamp, candidate_count, drift_score, topology
+  ∀ committed candidates:
+    ∃ transaction with provenance tracing to the harvest session
+```
+
+#### Level 1 (State Invariant)
+Every harvest creates a HarvestSession entity. Every committed candidate has a
+transaction whose causal predecessors include the harvest session entity.
+
+**Falsification**: A harvest that commits candidates without creating a HarvestSession
+entity, or candidates whose transactions have no provenance link to the session.
+
+---
+
+### INV-HARVEST-003: Drift Score Recording
+
+**Traces to**: ADRS LM-006
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ harvest sessions:
+  drift_score = |uncommitted observations| at harvest time
+  drift_score is stored as a datom on the HarvestSession entity
+```
+
+#### Level 1 (State Invariant)
+The drift score is recorded per session, enabling longitudinal tracking of
+harvest discipline. Quality bands: 0–2 = excellent, 3–5 = minor, 6+ = significant.
+
+**Falsification**: A harvest session entity without a drift_score attribute.
+
+---
+
+### INV-HARVEST-004: FP/FN Calibration
+
+**Traces to**: ADRS LM-006
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+```
+∀ committed candidates c:
+  if c is later retracted: FP_count += 1
+∀ rejected candidates c:
+  if c's knowledge is later re-discovered: FN_count += 1
+
+Calibration rule:
+  FP_rate > threshold → raise extraction confidence threshold
+  FN_rate > threshold → lower extraction confidence threshold
+  Both high → improve extractor (not just thresholds)
+```
+
+#### Level 1 (State Invariant)
+The harvest system tracks empirical quality and adjusts thresholds.
+False positives and false negatives are both measurable from the store.
+
+**Falsification**: Harvest thresholds that never adjust despite persistent FP/FN rates.
+
+---
+
+### INV-HARVEST-005: Proactive Warning
+
+**Traces to**: ADRS IB-012
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ CLI responses when Q(t) < 0.15:
+  response includes harvest warning
+∀ CLI responses when Q(t) < 0.05:
+  response = ONLY harvest imperative (no other content)
+```
+
+#### Level 1 (State Invariant)
+The budget system triggers harvest warnings at context consumption thresholds.
+Below the critical threshold, all output is suppressed except the harvest command.
+
+**Falsification**: A CLI response at Q(t) < 0.05 that contains content other than
+the harvest imperative.
+
+---
+
+### INV-HARVEST-006: Crystallization Guard
+
+**Traces to**: ADRS CR-005
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+```
+∀ harvest candidates c with commitment_weight(c) > crystallization_threshold:
+  c MUST NOT be committed unless:
+    c.confidence ≥ 0.6 ∧
+    c.coherence ≥ 0.6 ∧
+    no_unresolved_conflicts(c) ∧
+    stability_score(c) ≥ stability_min
+```
+
+#### Level 1 (State Invariant)
+High-weight candidates require stability verification before commitment.
+This prevents premature crystallization of uncertain knowledge into
+load-bearing datoms.
+
+**Falsification**: A high-weight candidate committed with stability_score below threshold.
+
+**proptest strategy**: Generate candidates with varying weights and stability scores.
+Verify that only stable, high-confidence candidates with weights above threshold
+pass the crystallization guard.
+
+---
+
+### INV-HARVEST-007: Bounded Conversation Lifecycle
+
+**Traces to**: ADRS LM-011
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+Agent lifecycle is a bounded cycle:
+  SEED → work(20–30 turns) → HARVEST → conversation_end → SEED → ...
+
+Each conversation is a bounded trajectory:
+  high-quality reasoning for a limited window before attention degrades.
+  Produces: durable knowledge (datoms) + ephemeral reasoning (conversation).
+  At end: ephemeral released, durable persists.
+```
+
+#### Level 1 (State Invariant)
+The system enforces a bounded lifecycle through proactive warnings (INV-HARVEST-005)
+and budget monitoring. Conversations that exceed the attention degradation threshold
+without harvesting produce lower-quality output.
+
+**Falsification**: An agent operating for 50+ turns without a harvest or harvest warning.
+
+---
+
+### INV-HARVEST-008: Delegation Topology Support
+
+**Traces to**: ADRS LM-012
+**Verification**: `V:PROP`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+```
+∀ harvest sessions: topology ∈ {self, peer, swarm, hierarchical, human}
+
+Topology selection based on commitment weight:
+  auto_threshold = 0.15: self-review sufficient
+  peer_threshold = 0.40: peer review recommended
+  human_threshold = 0.70: human review required
+
+harvest_weight(candidate) = intrinsic_weight(candidate) × confidence(extraction)
+```
+
+#### Level 1 (State Invariant)
+High-weight harvest candidates are routed to higher-authority review topologies.
+The topology is recorded on the HarvestSession entity.
+
+**Falsification**: A harvest session with high-weight candidates using self-review topology.
+
+---
+
+### §5.5 ADRs
+
+### ADR-HARVEST-001: Semi-Automated Over Fully Automatic
+
+**Traces to**: ADRS LM-005
+**Stage**: 0
+
+#### Problem
+Should harvest be fully automatic or require agent/human confirmation?
+
+#### Options
+A) **Fully automatic** — system extracts and commits without review.
+B) **Semi-automated** — system proposes candidates; agent/human confirms.
+C) **Fully manual** — agent must explicitly identify all harvestable knowledge.
+
+#### Decision
+**Option B.** The system detects harvestable knowledge from transaction analysis and
+presents candidates for confirmation. This balances extraction coverage (higher than C)
+with precision (lower FP rate than A).
+
+#### Formal Justification
+Fully automatic harvest (Option A) risks high false positive rates — committing
+speculative observations as established facts. Fully manual (Option C) risks high
+false negative rates — agents forgetting to harvest key decisions. Semi-automated
+balances both failure modes and provides calibration data (FP/FN rates) for improvement.
+
+---
+
+### ADR-HARVEST-002: Conversations Disposable, Knowledge Durable
+
+**Traces to**: SEED §5, ADRS LM-003
+**Stage**: 0
+
+#### Problem
+What is the relationship between conversations and durable state?
+
+#### Options
+A) **Conversations are disposable** — knowledge extracted to store; conversation discarded.
+B) **Conversations are archival** — full transcripts preserved alongside store.
+C) **Conversations are primary** — store is an index into conversations.
+
+#### Decision
+**Option A.** Conversations are bounded reasoning trajectories. Knowledge lives in the
+store. Conversations are lightweight and replaceable — start one, work 20–30 turns,
+harvest, discard, start fresh. The agent never loses anything.
+
+#### Formal Justification
+Option B preserves too much — conversation transcripts are voluminous and mostly
+redundant with the extracted datoms. Option C inverts the architecture — makes the
+store dependent on ephemeral artifacts. Option A aligns with the harvest/seed lifecycle:
+knowledge survives; reasoning sessions do not.
+
+---
+
+### ADR-HARVEST-003: FP/FN Tracking for Calibration
+
+**Traces to**: ADRS LM-006
+**Stage**: 1
+
+#### Problem
+How to improve harvest quality over time?
+
+#### Decision
+Track empirical FP/FN rates per agent and per category. A committed candidate later
+retracted is a false positive. A rejected candidate whose knowledge is later re-discovered
+is a false negative. Rates feed back into threshold adjustment.
+
+#### Formal Justification
+Harvest quality is measurable from the store: retractions of harvest-committed datoms
+and re-discoveries of rejected candidates are both detectable by querying transaction
+history. This makes harvest improvement a data-driven process.
+
+---
+
+### ADR-HARVEST-004: Five Review Topologies
+
+**Traces to**: ADRS LM-012
+**Stage**: 2
+
+#### Problem
+Who reviews harvest candidates?
+
+#### Decision
+Five topologies: (1) self-review (default — agent reviews own harvest), (2) bilateral
+peer review (a second agent reviews), (3) swarm broadcast + voting (multiple agents vote),
+(4) hierarchical specialist delegation (route to domain expert), (5) human review.
+
+The "Fresh-Agent Self-Review" pattern exploits maximum context asymmetry: the depleted
+agent proposes candidates, a fresh session reviews them with full attention budget.
+
+---
+
+### §5.6 Negative Cases
+
+### NEG-HARVEST-001: No Unharvested Session Termination
+
+**Traces to**: SEED §5, ADRS IB-012
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(∃ session termination with drift_score > 0 and no harvest warning issued)`
+
+**Formal statement**: Every session that ends with uncommitted observations MUST have
+issued at least one harvest warning before termination. The warning is triggered by
+Q(t) threshold crossing, not by session end detection.
+
+**proptest strategy**: Simulate sessions with varying transaction/observation ratios.
+Verify that all sessions with uncommitted observations receive harvest warnings.
+
+---
+
+### NEG-HARVEST-002: No Harvest Data Loss
+
+**Traces to**: C1
+**Verification**: `V:PROP`, `V:KANI`
+
+**Safety property**: `□ ¬(∃ committed harvest candidate whose datoms are not in the store post-harvest)`
+
+**Formal statement**: Every candidate with `status = :committed` has its datom_spec
+present in `S'.datoms` after the harvest transaction completes.
+
+**Kani harness**: Bounded check that for any set of committed candidates, all specified
+datoms appear in the post-harvest store.
+
+---
+
+### NEG-HARVEST-003: No Premature Crystallization
+
+**Traces to**: ADRS CR-005
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(∃ high-weight candidate committed with stability < stability_min)`
+
+**proptest strategy**: Generate harvest sessions with candidates of varying weight and
+stability. Verify that no high-weight candidate bypasses the crystallization guard.
+
+---
+
+## §6. SEED — Start-of-Session Assembly
+
+### §6.0 Overview
+
+Seed is the complement of harvest: where harvest extracts knowledge at session end,
+seed assembles relevant knowledge at session start. The seed provides a fresh agent
+with full relevant context, zero irrelevant noise, and a fresh attention budget.
+
+The seed collapses three concerns into one mechanism: ambient awareness (CLAUDE.md),
+guidance (methodology steering), and trajectory management (carry-over from prior sessions).
+
+**Traces to**: SEED.md §5, §8
+**ADRS.md sources**: IB-010, PO-002, PO-003, PO-014, GU-004, SQ-007
+
+---
+
+### §6.1 Level 0: Algebraic Specification
+
+#### Seed as Projection
+
+```
+SEED : Store × TaskContext × Budget → AssembledContext
+
+SEED(S, task, k*) = ASSEMBLE(QUERY(ASSOCIATE(S, task)), k*)
+
+The seed is a projection of the store onto the relevant subset,
+compressed to fit the available attention budget.
+
+Formally: SEED = assemble ∘ query ∘ associate
+  where associate : Store × TaskContext → SchemaNeighborhood
+        query     : SchemaNeighborhood → QueryResult
+        assemble  : QueryResult × Budget → AssembledContext
+```
+
+#### Assembly Priority Function
+
+```
+For each entity e in the query result:
+  score(e) = α × relevance(e, task) + β × significance(e) + γ × recency(e)
+  where α = 0.5, β = 0.3, γ = 0.2 (defaults, configurable as datoms)
+
+Assembly selects entities in score order until budget is exhausted.
+Higher-priority entities get richer projections (π₀ → π₁ → π₂ → π₃).
+```
+
+#### Dynamic CLAUDE.md as Seed
+
+```
+GENERATE-CLAUDE-MD : Store × Focus × Agent × Budget → Markdown
+
+The dynamic CLAUDE.md collapses three concerns:
+  1. Ambient awareness (Layer 0) — CLAUDE.md IS the ambient context
+  2. Guidance (Layer 3) — seed context IS the first guidance (zero tool-call cost)
+  3. Trajectory management — CLAUDE.md IS the seed turn
+
+Seven-step generation:
+  (1) ASSOCIATE with focus
+  (2) QUERY active intentions
+  (3) QUERY governing invariants
+  (4) QUERY uncertainty markers
+  (5) QUERY competing branches
+  (6) QUERY drift patterns
+  (7) ASSEMBLE at budget
+
+Priority ordering: tools > task_context > risks > drift_corrections > seed_context
+```
+
+---
+
+### §6.2 Level 1: State Machine Specification
+
+#### ASSOCIATE — Schema Discovery
+
+```
+ASSOCIATE(S, cue) → SchemaNeighborhood
+
+Two modes:
+  SemanticCue(text): natural language → schema search → graph expansion
+  ExplicitSeeds([EntityId]): start from known entities → graph expansion
+
+POST:
+  |result| ≤ depth × breadth (bounded)
+  high-significance entities preferred (AS-007)
+  learned associations traversed alongside structural edges (AA-004)
+
+SchemaNeighborhood = {entities, attributes, types} — NOT values
+  (schema-level discovery, not data retrieval)
+```
+
+#### ASSEMBLE — Rate-Distortion Context
+
+```
+ASSEMBLE(query_results, schema_neighborhood, budget) → AssembledContext
+
+PRE:
+  budget > 0
+
+PIPELINE:
+  1. Score entities: score(e) = α×relevance + β×significance + γ×recency
+  2. Sort by score (descending)
+  3. For each entity in order:
+     a. Select projection level based on remaining budget:
+        >2000 tokens: π₀ (full datoms) for top entities, π₁ for others
+        500–2000:     π₁/π₂
+        200–500:      π₂ for top, omit others
+        ≤200:         single-line status + single guidance action
+     b. Subtract token cost from remaining budget
+     c. If budget exhausted, stop
+  4. Pin intentions at π₀ regardless of budget (INV-ASSEMBLE-INTENTION-001)
+  5. Record projection pattern for reification learning (AS-008)
+  6. Check staleness for observation entities (UA-007)
+
+POST:
+  |result| ≤ budget (token count)
+  structural dependency coherence (no entity without its dependencies)
+  all active intentions included
+```
+
+#### Seed Output Template
+
+```
+Seed output follows a five-part template:
+  (1) Context — 1–2 sentences: what was last worked on, current project state
+  (2) Invariants — active invariants governing the next task
+  (3) Artifacts — files modified, decisions made, entities created
+  (4) Open questions — from deliberations, uncertainties, pending crystallizations
+  (5) Active guidance — next methodologically correct actions
+
+Formatted as spec-language (INV-GUIDANCE-SEED-001): invariants and formal
+structure, NOT instruction-language (steps, checklists).
+```
+
+---
+
+### §6.3 Level 2: Interface Specification
+
+```rust
+/// Schema neighborhood — what ASSOCIATE discovers.
+pub struct SchemaNeighborhood {
+    pub entities: Vec<EntityId>,
+    pub attributes: Vec<Attribute>,
+    pub entity_types: Vec<Keyword>,
+}
+
+/// Assembled context — what ASSEMBLE produces.
+pub struct AssembledContext {
+    pub sections: Vec<ContextSection>,
+    pub total_tokens: usize,
+    pub budget_remaining: usize,
+    pub projection_pattern: ProjectionPattern,
+}
+
+pub struct ContextSection {
+    pub entity: EntityId,
+    pub projection_level: ProjectionLevel,
+    pub content: String,
+    pub score: f64,
+}
+
+pub enum ProjectionLevel {
+    Full,       // π₀ — all datoms
+    Summary,    // π₁ — entity summary
+    TypeLevel,  // π₂ — type summary
+    Pointer,    // π₃ — single-line reference
+}
+
+/// Dynamic CLAUDE.md generator.
+pub struct ClaudeMdGenerator {
+    pub store: Store,
+}
+
+impl ClaudeMdGenerator {
+    /// Generate dynamic CLAUDE.md for a session.
+    pub fn generate(
+        &self,
+        focus: &str,
+        agent: AgentId,
+        budget: usize,
+    ) -> Result<String, SeedError>;
+}
+
+impl Store {
+    /// ASSOCIATE — discover relevant schema neighborhood.
+    pub fn associate(&self, cue: AssociateCue) -> SchemaNeighborhood;
+
+    /// ASSEMBLE — build budget-aware context.
+    pub fn assemble(
+        &self,
+        query_results: &QueryResult,
+        neighborhood: &SchemaNeighborhood,
+        budget: usize,
+    ) -> AssembledContext;
+
+    /// SEED — full pipeline: associate → query → assemble.
+    pub fn seed(&mut self, task: &str, budget: usize) -> Result<AssembledContext, SeedError>;
+}
+```
+
+#### CLI Commands
+
+```
+braid seed --task "implement datom store"     # Full seed for task
+braid seed --budget 2000                      # With explicit token budget
+braid associate "conflict resolution"         # Schema neighborhood only
+braid assemble --budget 500                   # Assemble from last query
+braid claude-md --focus "stage 0"             # Generate dynamic CLAUDE.md
+```
+
+---
+
+### §6.4 Invariants
+
+### INV-SEED-001: Seed as Store Projection
+
+**Traces to**: SEED §5, ADRS IB-010
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ seed operations: SEED(S, task, k*) ⊆ S
+  (the seed contains only information from the store — nothing fabricated)
+```
+
+#### Level 1 (State Invariant)
+Every datum in the seed output traces to a datom in the store.
+The seed is a view, not a source of truth.
+
+**Falsification**: Any claim in the seed output that does not correspond to a datom in the store.
+
+---
+
+### INV-SEED-002: Budget Compliance
+
+**Traces to**: ADRS IB-004, PO-003
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ ASSEMBLE operations with budget B:
+  |output| ≤ B (in tokens)
+```
+
+#### Level 1 (State Invariant)
+The assembled context never exceeds the declared budget. If the relevant
+information exceeds the budget, lower-priority content is dropped (projected
+to coarser levels), never the budget exceeded.
+
+**Falsification**: An ASSEMBLE output whose token count exceeds the budget parameter.
+
+**proptest strategy**: Generate stores of varying sizes. Assemble with varying budgets.
+Verify output token count ≤ budget for all combinations.
+
+---
+
+### INV-SEED-003: ASSOCIATE Boundedness
+
+**Traces to**: ADRS PO-002
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ ASSOCIATE operations with depth d and breadth b:
+  |result.entities| ≤ d × b
+```
+
+#### Level 1 (State Invariant)
+ASSOCIATE graph expansion is bounded to prevent unbounded traversal.
+The bound is `depth × breadth`, both configurable.
+
+**Falsification**: An ASSOCIATE result with more entities than `depth × breadth`.
+
+---
+
+### INV-SEED-004: Intention Anchoring
+
+**Traces to**: ADRS AA-005, PO-003
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ ASSEMBLE operations with include_intentions=true:
+  ∀ active intentions I: I ∈ assembled_context at projection level π₀
+  regardless of budget pressure
+```
+
+#### Level 1 (State Invariant)
+Active intentions are pinned at full detail (π₀) even when the budget would
+otherwise compress or omit them. Intentions are never sacrificed for budget.
+
+**Falsification**: An active intention omitted from the assembled context when
+`include_intentions=true`, or projected below π₀.
+
+---
+
+### INV-SEED-005: Dynamic CLAUDE.md Relevance
+
+**Traces to**: ADRS PO-014
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+```
+∀ sections s in GENERATE-CLAUDE-MD output:
+  removing s would change agent behavior
+  (no irrelevant padding or boilerplate)
+```
+
+#### Level 1 (State Invariant)
+Every section of the dynamic CLAUDE.md is relevant to the declared focus.
+Irrelevant sections waste attention budget.
+
+**Falsification**: A section in the generated CLAUDE.md that, if removed, would not
+change agent behavior (deadweight content).
+
+---
+
+### INV-SEED-006: Dynamic CLAUDE.md Improvement
+
+**Traces to**: ADRS PO-014
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+```
+∀ drift corrections in GENERATE-CLAUDE-MD:
+  correction derived from empirical drift data (not speculation)
+  corrections showing no effect after 5 sessions → replaced
+```
+
+#### Level 1 (State Invariant)
+Drift corrections are data-driven. The system tracks which corrections
+change agent behavior and removes ineffective ones.
+
+**Falsification**: A drift correction that has been included for 5+ sessions
+with no measurable effect on agent behavior, and is not replaced.
+
+---
+
+### §6.5 ADRs
+
+### ADR-SEED-001: Three-Concern Collapse
+
+**Traces to**: ADRS GU-004
+**Stage**: 0
+
+#### Problem
+How to handle ambient awareness, guidance, and trajectory management?
+
+#### Options
+A) **Three separate mechanisms** — CLAUDE.md for awareness, guidance API for steering,
+   seed file for carry-over.
+B) **Single mechanism** — dynamic CLAUDE.md that collapses all three.
+
+#### Decision
+**Option B.** One mechanism, three problems solved. CLAUDE.md IS the ambient awareness
+(Layer 0). The seed context IS the first guidance (pre-computed, zero tool-call cost).
+CLAUDE.md IS the seed turn (trajectory management).
+
+#### Formal Justification
+Option A triples the attention cost: agent must process three separate information
+sources. Option B is rate-distortion optimal: one compressed channel carrying all
+three signals, prioritized by the budget system.
+
+---
+
+### ADR-SEED-002: Rate-Distortion Assembly
+
+**Traces to**: ADRS IB-011
+**Stage**: 0
+
+#### Problem
+How to compress knowledge to fit the attention budget?
+
+#### Decision
+Rate-distortion theory: maximize information value while minimizing attention cost.
+The projection pyramid (π₀ → π₃) provides controlled lossy compression. The score
+function (α×relevance + β×significance + γ×recency) determines what survives.
+
+#### Formal Justification
+The attention budget is a hard constraint (INV-SEED-002). Within that constraint,
+the score function and projection pyramid maximize information value — high-relevance,
+high-significance, recent entities get richer projections; low-value entities get
+compressed or omitted.
+
+---
+
+### ADR-SEED-003: Spec-Language Over Instruction-Language
+
+**Traces to**: ADRS GU-003
+**Stage**: 0
+
+#### Problem
+What style should seed output use?
+
+#### Options
+A) **Instruction-language** — "Step 1: do X. Step 2: do Y." (checklists, procedures)
+B) **Spec-language** — invariants, formal structure, constraints.
+
+#### Decision
+**Option B.** Spec-language activates the deep formal-methods substrate in the LLM.
+Instruction-language activates the surface procedural substrate. Spec-language produces
+more rigorous, consistent output because it frames the task as constraint satisfaction
+rather than instruction following.
+
+---
+
+### §6.6 Negative Cases
+
+### NEG-SEED-001: No Fabricated Context
+
+**Traces to**: C5
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(∃ claim in seed output not traceable to a datom)`
+
+**proptest strategy**: For each entity in the seed output, verify a corresponding
+datom exists in the store. Flag any content without store backing.
+
+---
+
+### NEG-SEED-002: No Budget Overflow
+
+**Traces to**: ADRS IB-004
+**Verification**: `V:PROP`, `V:KANI`
+
+**Safety property**: `□ ¬(∃ ASSEMBLE output exceeding declared budget)`
+
+**Kani harness**: For all stores of size ≤ N and budgets ≤ M, verify output ≤ budget.
+
+---
+
+## §7. MERGE — Store Merge & CRDT
+
+### §7.0 Overview
+
+Merge combines knowledge from independent agents. The core operation is set union (C4),
+but merge also triggers a cascade of consequences: conflict detection, cache invalidation,
+uncertainty updates, and subscription notifications. The branching extension (W_α, patch
+branches) provides isolated workspaces with explicit commit to the shared store.
+
+**Traces to**: SEED.md §6
+**ADRS.md sources**: AS-001, AS-003–006, AS-010, PD-001, PD-004, PO-006, PO-007
+
+---
+
+### §7.1 Level 0: Algebraic Specification
+
+#### Core Merge
+
+```
+MERGE : Store × Store → Store
+MERGE(S₁, S₂) = S₁ ∪ S₂
+
+Properties (from STORE namespace, restated for completeness):
+  L1: MERGE(S₁, S₂) = MERGE(S₂, S₁)           — commutativity
+  L2: MERGE(MERGE(S₁, S₂), S₃) = MERGE(S₁, MERGE(S₂, S₃))  — associativity
+  L3: MERGE(S, S) = S                             — idempotency
+  L4: S ⊆ MERGE(S, S')                            — monotonicity
+```
+
+#### Branching Extension
+
+```
+Branching G-Set: (S, B, ⊑, commit, combine)
+  S = trunk (shared store, a G-Set over D)
+  B = set of branches, each a G-Set over D
+  ⊑ = ancestry relation
+  commit : Branch × S → S'
+  combine : Branch × Branch → Branch
+
+Properties:
+  P1 (Monotonicity):    commit(b, S) ⊇ S
+  P2 (Isolation):       ∀ b₁ ≠ b₂: visible(b₁) ∩ branch_only(b₂) = ∅
+  P3 (Combination commutativity): combine(b₁, b₂) = combine(b₂, b₁)
+  P4 (Commit-combine equivalence): commit(combine(b₁, b₂), S) = commit(b₂, commit(b₁, S))
+  P5 (Fork snapshot):   b.base = S|_{frontier(t_fork)}
+```
+
+#### Working Set (W_α)
+
+```
+Each agent α maintains private W_α using the same datom structure as S.
+
+Local query view: visible(α) = W_α ∪ S
+Commit: commit(W_α, S) = S ∪ selected(W_α)   — agent chooses what to commit
+
+W_α datoms are NOT included in MERGE operations.
+W_α datoms are invisible to other agents.
+```
+
+---
+
+### §7.2 Level 1: State Machine Specification
+
+#### Merge Cascade
+
+```
+MERGE(S₁, S₂) → S'
+
+POST (set union):
+  S'.datoms = S₁.datoms ∪ S₂.datoms
+
+CASCADE (all produce datoms):
+  1. DETECT CONFLICTS:
+     For each new datom d entering from the merge:
+       if conflict(d, d_existing) → assert Conflict entity
+  2. INVALIDATE CACHES:
+     Mark query results as stale for entities affected by new datoms
+  3. MARK STALE PROJECTIONS:
+     Existing projection patterns touching affected entities → refresh needed
+  4. RECOMPUTE UNCERTAINTY:
+     σ(e) updated for entities with new assertions or conflicts
+  5. FIRE SUBSCRIPTIONS:
+     Notify subscribers whose patterns match new datoms
+```
+
+#### Branch Operations
+
+```
+Six sub-operations:
+
+FORK(S, agent, purpose) → Branch
+  POST: branch.base_tx = current frontier
+        branch.status = :active
+        branch entity created in S
+
+COMMIT(branch, S) → S'
+  PRE:  branch.status = :active
+        if branch.competing_with ≠ ∅: comparison/deliberation completed
+  POST: S' = S ∪ branch.datoms
+        branch.status = :committed
+
+COMBINE(b₁, b₂, strategy) → Branch
+  strategies:
+    Union — b₁.datoms ∪ b₂.datoms
+    SelectiveUnion — agent-curated subset
+    ConflictToDeliberation — conflicts → Deliberation entity
+  POST: result preserves properties P1–P4
+
+REBASE(branch, S_new) → Branch'
+  POST: branch'.base_tx = S_new.frontier
+        branch' sees trunk datoms up to S_new.frontier
+
+ABANDON(branch) → ()
+  POST: branch.status = :abandoned (datom, not deletion)
+
+COMPARE(branches, criterion) → BranchComparison
+  criteria: FitnessScore | TestSuite | UncertaintyReduction | AgentReview | Custom
+  POST: BranchComparison entity created with scores, winner, rationale
+```
+
+#### Competing Branch Lock
+
+```
+∀ branches b₁, b₂ where b₁.competing_with = b₂:
+  COMMIT(b₁, S) is BLOCKED until:
+    ∃ BranchComparison c: c.branches ⊇ {b₁, b₂} ∧ c.winner is decided
+  OR:
+    ∃ Deliberation d resolving the competition
+
+This prevents first-to-commit from winning by default.
+```
+
+---
+
+### §7.3 Level 2: Interface Specification
+
+```rust
+/// Branch entity.
+pub struct Branch {
+    pub id: EntityId,
+    pub ident: String,
+    pub base_tx: TxId,
+    pub agent: AgentId,
+    pub status: BranchStatus,       // lattice: :active < :proposed < :committed < :abandoned
+    pub purpose: String,
+    pub competing_with: Vec<EntityId>,
+    pub datoms: BTreeSet<Datom>,
+}
+
+pub enum CombineStrategy {
+    Union,
+    SelectiveUnion { selected: Vec<Datom> },
+    ConflictToDeliberation,
+}
+
+pub enum ComparisonCriterion {
+    FitnessScore,
+    TestSuite,
+    UncertaintyReduction,
+    AgentReview,
+    Custom(String),
+}
+
+pub struct BranchComparison {
+    pub branches: Vec<EntityId>,
+    pub criterion: ComparisonCriterion,
+    pub scores: HashMap<EntityId, f64>,
+    pub winner: Option<EntityId>,
+    pub rationale: String,
+}
+
+/// Merge receipt — records what happened during merge.
+pub struct MergeReceipt {
+    pub datoms_added: usize,
+    pub conflicts_detected: Vec<Conflict>,
+    pub subscriptions_fired: usize,
+    pub stale_projections: usize,
+}
+
+impl Store {
+    /// Merge another store (set union + cascade).
+    pub fn merge(&mut self, other: &Store) -> MergeReceipt;
+
+    /// Create a branch.
+    pub fn fork(&mut self, agent: AgentId, purpose: &str) -> Result<Branch, BranchError>;
+
+    /// Commit a branch to trunk.
+    pub fn commit_branch(&mut self, branch: &Branch) -> Result<TxReceipt, BranchError>;
+
+    /// Compare branches.
+    pub fn compare_branches(
+        &mut self,
+        branches: &[EntityId],
+        criterion: ComparisonCriterion,
+    ) -> Result<BranchComparison, BranchError>;
+}
+```
+
+#### CLI Commands
+
+```
+braid merge --from <store-path>       # Merge another store
+braid branch create "experiment-x"    # Fork a branch
+braid branch list                     # List all branches
+braid branch commit <branch>          # Commit branch to trunk
+braid branch compare <b1> <b2>        # Compare two branches
+braid branch abandon <branch>         # Mark branch as abandoned
+```
+
+---
+
+### §7.4 Invariants
+
+### INV-MERGE-001: Merge Is Set Union
+
+**Traces to**: SEED §4, C4, ADRS AS-001
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ S₁, S₂: MERGE(S₁, S₂).datoms = S₁.datoms ∪ S₂.datoms
+  (no heuristics, no resolution, no filtering — pure set union)
+```
+
+#### Level 1 (State Invariant)
+The merge operation at the store level is exactly set union. All conflict detection,
+resolution, and cascade effects are post-merge operations, not part of merge itself.
+
+**Falsification**: A merge operation that produces a datom set different from the
+mathematical set union of the two input sets.
+
+---
+
+### INV-MERGE-002: Merge Cascade Completeness
+
+**Traces to**: ADRS PO-006
+**Verification**: `V:PROP`, `V:MODEL`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ merge operations MERGE(S₁, S₂):
+  all 5 cascade steps execute:
+    (1) conflict detection, (2) cache invalidation,
+    (3) projection staleness, (4) uncertainty update,
+    (5) subscription notification
+  all cascade steps produce datoms
+```
+
+#### Level 1 (State Invariant)
+No cascade step is skipped. Each step produces datoms recording its effects.
+The merge cascade is atomic — either all 5 steps complete or the merge fails.
+
+**Falsification**: A merge that completes without running conflict detection,
+or a cascade step that produces no datom trail.
+
+**Stateright model**: Model merge operations between 3 agents. Verify that
+every merge triggers all 5 cascade steps in all interleavings.
+
+---
+
+### INV-MERGE-003: Branch Isolation
+
+**Traces to**: ADRS AS-003, AS-004
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+```
+∀ branches b₁, b₂ where b₁ ≠ b₂:
+  branch_datoms(b₁) ∩ visible(b₂) = ∅
+  (branches cannot see each other's uncommitted datoms)
+```
+
+#### Level 1 (State Invariant)
+A query against branch b₁ never returns datoms from branch b₂.
+Branch visibility is exactly: `{trunk datoms at fork point} ∪ {b₁'s own datoms}`.
+
+**Falsification**: A query against branch b₁ returning a datom from b₂.
+
+**proptest strategy**: Create two branches from the same fork point. Add different
+datoms to each. Verify queries against each branch see only their own datoms.
+
+---
+
+### INV-MERGE-004: Competing Branch Lock
+
+**Traces to**: ADRS AS-005, PO-007
+**Verification**: `V:PROP`, `V:MODEL`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+```
+∀ branches b₁, b₂ where b₁.competing_with = b₂:
+  COMMIT(b₁) is BLOCKED until:
+    ∃ comparison or deliberation resolving {b₁, b₂}
+```
+
+#### Level 1 (State Invariant)
+A branch marked as competing with another branch cannot be committed
+until a BranchComparison or Deliberation entity exists that resolves
+the competition.
+
+**Falsification**: A competing branch committed without a prior comparison or deliberation.
+
+**Stateright model**: Two competing branches, two agents. Verify that no
+interleaving allows commit without comparison.
+
+---
+
+### INV-MERGE-005: Branch Commit Monotonicity
+
+**Traces to**: ADRS AS-003 Property P1
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+```
+∀ branch commits: commit(b, S) ⊇ S
+  (committing a branch only adds datoms to trunk)
+```
+
+#### Level 1 (State Invariant)
+Branch commit is a union operation: trunk grows, never shrinks.
+
+**Falsification**: A branch commit that removes datoms from trunk.
+
+---
+
+### INV-MERGE-006: Branch as First-Class Entity
+
+**Traces to**: ADRS AS-005
+**Verification**: `V:PROP`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+```
+∀ branches b: b is an entity in the datom store with:
+  :branch/ident, :branch/base-tx, :branch/agent,
+  :branch/status, :branch/purpose, :branch/competing-with
+```
+
+#### Level 1 (State Invariant)
+Branch metadata is queryable via the same Datalog engine as any other data.
+The `:branch/competing-with` attribute enables the competing branch lock.
+
+**Falsification**: A branch whose metadata is not queryable via Datalog.
+
+---
+
+### INV-MERGE-007: Bilateral Branch Duality
+
+**Traces to**: ADRS AS-006
+**Verification**: `V:PROP`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+```
+The DCC (diverge-compare-converge) pattern works identically:
+  Forward: spec → competing implementations → selection
+  Backward: implementation → competing spec updates → selection
+Same algebraic structure, same comparison machinery.
+```
+
+#### Level 1 (State Invariant)
+If the system supports branching for implementation alternatives, it must
+also support branching for specification alternatives.
+
+**Falsification**: The system supports implementation branches but requires
+linear (non-branching) spec modifications.
+
+---
+
+### INV-MERGE-008: At-Least-Once Idempotent Delivery
+
+**Traces to**: ADRS PD-004
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ stores S, R:
+  MERGE(MERGE(S, R), R) = MERGE(S, R)
+  (duplicate delivery produces same result — idempotency from L3)
+```
+
+#### Level 1 (State Invariant)
+Duplicate merge operations are harmless. An agent that receives the same
+datoms twice produces the same store state as receiving them once.
+
+**Falsification**: A duplicate merge that changes the store state.
+
+---
+
+### §7.5 ADRs
+
+### ADR-MERGE-001: Set Union Over Heuristic Merge
+
+**Traces to**: C4, ADRS AS-001
+**Stage**: 0
+
+#### Problem
+How should stores be merged?
+
+#### Options
+A) **Pure set union** — mathematical operation. Conflicts detected post-merge.
+B) **Resolution during merge** — apply conflict resolution during merge.
+C) **Selective merge** — agent chooses which datoms to accept.
+
+#### Decision
+**Option A.** MERGE is `S₁ ∪ S₂`. Conflict detection and resolution are separate
+operations (RESOLUTION namespace) that run after merge completes. This preserves
+L1–L3 (CRDT properties) and avoids making merge depend on schema.
+
+#### Formal Justification
+Option B makes MERGE depend on resolution modes (schema), creating a circular dependency:
+merge needs schema, schema is data in the store, store is modified by merge. Option A
+breaks this cycle: merge is pure set union, resolution is query-time.
+
+---
+
+### ADR-MERGE-002: Branching G-Set Extension
+
+**Traces to**: ADRS AS-003
+**Stage**: 2
+
+#### Problem
+How do agents get isolated workspaces?
+
+#### Decision
+The pure G-Set is extended to a Branching G-Set with five properties (P1–P5).
+Branches are G-Sets themselves, preserving all CRDT properties. Trunk monotonicity
+is preserved: `commit(b, S) ⊇ S`.
+
+#### Formal Justification
+The extension preserves the core G-Set properties while adding isolation.
+Each branch is a G-Set that can be composed with trunk via union (commit).
+
+---
+
+### ADR-MERGE-003: Competing Branch Lock
+
+**Traces to**: ADRS AS-005, PO-007
+**Stage**: 2
+
+#### Problem
+How to prevent first-to-commit from winning by default?
+
+#### Decision
+Branches can declare `:branch/competing-with` pointing to another branch.
+Competing branches MUST NOT commit until a BranchComparison or Deliberation
+resolves the competition.
+
+#### Formal Justification
+Without the lock, the first agent to commit "wins" by making its datoms part
+of trunk. The competing branch then sees those datoms and may be unable to
+diverge. The lock ensures comparison before commitment.
+
+---
+
+### ADR-MERGE-004: Three Combine Strategies
+
+**Traces to**: ADRS PO-007
+**Stage**: 2
+
+#### Problem
+How to combine two branches?
+
+#### Decision
+Three strategies: Union (merge both), SelectiveUnion (agent curates),
+ConflictToDeliberation (conflicts become Deliberation entities).
+
+ConflictToDeliberation opens a structured resolution process instead
+of forcing an immediate choice.
+
+---
+
+### §7.6 Negative Cases
+
+### NEG-MERGE-001: No Merge Data Loss
+
+**Traces to**: C4, L4
+**Verification**: `V:KANI`, `V:PROP`
+
+**Safety property**: `□ ¬(∃ d ∈ S₁ ∪ S₂: d ∉ MERGE(S₁, S₂))`
+No datom from either input is lost during merge.
+
+**Kani harness**: For all store pairs of size ≤ N, verify merged datom set
+is the exact union.
+
+---
+
+### NEG-MERGE-002: No Merge Without Cascade
+
+**Traces to**: ADRS PO-006
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(∃ merge completing without all 5 cascade steps)`
+
+**proptest strategy**: Instrument each cascade step. After merge, verify all 5
+were executed and produced datom trails.
+
+---
+
+### NEG-MERGE-003: No Working Set Leak
+
+**Traces to**: ADRS PD-001
+**Verification**: `V:PROP`, `V:KANI`
+
+**Safety property**: `□ ¬(∃ W_α datom visible to agent β where α ≠ β)`
+Working set datoms are never included in merge operations.
+
+**Kani harness**: For two agents with working sets, verify merge of their
+shared stores does not include any working set datom.
+
+---
+
+## §8. SYNC — Sync Barriers
+
+### §8.0 Overview
+
+Sync barriers establish consistent cuts — shared reference points where all participating
+agents agree on the same facts. This is the most expensive coordination mechanism because
+it requires blocking until all participants report their frontiers. It is necessary for
+decisions that depend on the absence of certain facts (non-monotonic queries).
+
+**Traces to**: SEED.md §6
+**ADRS.md sources**: PO-010, SQ-001, SQ-004, PD-005
+
+---
+
+### §8.1 Level 0: Algebraic Specification
+
+#### Consistent Cut
+
+```
+A consistent cut C is a set of frontiers such that:
+  ∀ agents α, β participating in C:
+    C[α] and C[β] are causally consistent
+    (no message "in flight" — all sent messages are received)
+
+Formally: C = {(α, F_α) | α ∈ participants}
+  where ∀ α: F_α = frontier of α at barrier completion
+
+A consistent cut enables answering "what is NOT in the store" —
+the set of facts absent from the cut is meaningful because all
+participants agree on what IS present.
+```
+
+#### Barrier as Frontier Intersection
+
+```
+Given agents {α₁, ..., αₙ} with frontiers {F₁, ..., Fₙ}:
+
+Barrier establishes: ∀ i, j: known(αᵢ, F_barrier) = known(αⱼ, F_barrier)
+  where F_barrier = the consistent cut
+
+Post-barrier: non-monotonic queries at F_barrier produce
+deterministic results across all participants.
+```
+
+---
+
+### §8.2 Level 1: State Machine Specification
+
+#### Barrier Protocol
+
+```
+SYNC-BARRIER(participants, timeout) → BarrierResult
+
+PROTOCOL:
+  1. INITIATE: Barrier initiator creates Barrier entity in store.
+     barrier.status = :initiated
+     barrier.participants = [agent IDs]
+     barrier.timeout = duration
+
+  2. EXCHANGE: Each participant:
+     a. Reports current frontier to barrier entity
+     b. Shares all datoms not yet received by others (delta sync)
+     c. Waits for all other participants to report
+
+  3. RESOLVE:
+     If all participants report within timeout:
+       barrier.status = :resolved
+       barrier.cut = consistent cut (the agreed-upon frontier)
+       All participants now have identical datom sets (up to the cut)
+     If timeout expires:
+       barrier.status = :timed-out
+       barrier records which participants responded
+
+  4. QUERY-ENABLE:
+     Post-resolution, non-monotonic queries reference the barrier:
+       QueryMode::Barriered(barrier_id)
+     Results are deterministic across all participants.
+
+POST:
+  Barrier entity in store with full provenance
+  All participants at same frontier (if resolved)
+```
+
+#### Topology-Dependent Implementation
+
+```
+The protocol provides primitives; deployment chooses topology.
+
+Star topology:   coordinator collects and distributes
+Ring topology:   each agent passes to next
+Mesh topology:   all-to-all exchange
+Hierarchical:    tree-structured aggregation
+
+The sync result is topology-independent (SQ-005):
+  same participants + same datoms → same consistent cut
+```
+
+---
+
+### §8.3 Level 2: Interface Specification
+
+```rust
+/// Sync barrier entity.
+pub struct Barrier {
+    pub id: EntityId,
+    pub participants: Vec<AgentId>,
+    pub status: BarrierStatus,     // lattice: :initiated < :exchanging < :resolved | :timed-out
+    pub timeout: Duration,
+    pub cut: Option<Frontier>,     // set after resolution
+    pub responses: HashMap<AgentId, Frontier>,
+}
+
+pub enum BarrierResult {
+    Resolved { cut: Frontier },
+    TimedOut { responded: Vec<AgentId>, missing: Vec<AgentId> },
+}
+
+impl Store {
+    /// Initiate a sync barrier.
+    pub fn sync_barrier(
+        &mut self,
+        participants: &[AgentId],
+        timeout: Duration,
+    ) -> Result<EntityId, SyncError>;
+
+    /// Participate in a barrier (report frontier, share deltas).
+    pub fn barrier_participate(
+        &mut self,
+        barrier_id: EntityId,
+        agent: AgentId,
+    ) -> Result<(), SyncError>;
+
+    /// Check barrier status.
+    pub fn barrier_status(&self, barrier_id: EntityId) -> BarrierStatus;
+
+    /// Query at a barrier's consistent cut.
+    pub fn query_at_barrier(
+        &mut self,
+        expr: &QueryExpr,
+        barrier_id: EntityId,
+    ) -> Result<QueryResult, QueryError>;
+}
+```
+
+#### CLI Commands
+
+```
+braid sync --with agent-1,agent-2       # Initiate barrier
+braid sync --timeout 30s                # With timeout
+braid sync status <barrier-id>          # Check barrier status
+braid query --barrier <barrier-id> '[:find ...]'  # Query at barrier
+```
+
+---
+
+### §8.4 Invariants
+
+### INV-SYNC-001: Barrier Produces Consistent Cut
+
+**Traces to**: SEED §6, ADRS PO-010
+**Verification**: `V:PROP`, `V:MODEL`
+**Stage**: 3
+
+#### Level 0 (Algebraic Law)
+```
+∀ resolved barriers B with participants {α₁, ..., αₙ}:
+  ∀ i, j: datoms_visible(αᵢ, B.cut) = datoms_visible(αⱼ, B.cut)
+  (all participants see the same datom set at the cut)
+```
+
+#### Level 1 (State Invariant)
+A resolved barrier guarantees that all participants have exchanged all
+datoms up to the cut point. Non-monotonic queries at this cut produce
+identical results regardless of which participant evaluates them.
+
+**Falsification**: Two participants at a resolved barrier producing different
+results for the same non-monotonic query.
+
+**Stateright model**: 3 agents with different initial datom sets. Run barrier
+protocol. Verify post-barrier query determinism across all agents.
+
+---
+
+### INV-SYNC-002: Barrier Timeout Safety
+
+**Traces to**: ADRS PO-010
+**Verification**: `V:PROP`
+**Stage**: 3
+
+#### Level 0 (Algebraic Law)
+```
+∀ barriers B with timeout T:
+  B resolves within T OR B times out with status :timed-out
+  No barrier hangs indefinitely.
+```
+
+#### Level 1 (State Invariant)
+A barrier always terminates — either by resolution (all respond) or by
+timeout (deadline reached). The timed-out barrier records which participants
+responded and which did not, for crash-recovery (PD-003).
+
+**Falsification**: A barrier that neither resolves nor times out.
+
+---
+
+### INV-SYNC-003: Barrier Is Topology-Independent
+
+**Traces to**: ADRS PD-005, SQ-005
+**Verification**: `V:MODEL`
+**Stage**: 3
+
+#### Level 0 (Algebraic Law)
+```
+∀ topologies T₁, T₂, ∀ participant sets P, ∀ datom sets D:
+  barrier(P, D, T₁).cut = barrier(P, D, T₂).cut
+  (the consistent cut depends only on participants and datoms, not topology)
+```
+
+#### Level 1 (State Invariant)
+Star, ring, mesh, and hierarchical topologies all produce the same consistent
+cut for the same inputs.
+
+**Falsification**: Two different topologies producing different cuts for the same
+participants and datom sets.
+
+**Stateright model**: Run barrier protocol under 3 topologies (star, ring, mesh).
+Verify identical cuts.
+
+---
+
+### INV-SYNC-004: Barrier Entity Provenance
+
+**Traces to**: ADRS FD-012
+**Verification**: `V:PROP`
+**Stage**: 3
+
+#### Level 0 (Algebraic Law)
+```
+∀ barrier operations:
+  ∃ Barrier entity in the store recording:
+    participants, status, timeout, cut (if resolved), responses
+```
+
+#### Level 1 (State Invariant)
+Every barrier — resolved or timed-out — produces a Barrier entity in the store.
+The barrier history is queryable.
+
+**Falsification**: A barrier operation that completes without creating a Barrier entity.
+
+---
+
+### INV-SYNC-005: Non-Monotonic Queries Require Barrier
+
+**Traces to**: ADRS SQ-004
+**Verification**: `V:PROP`
+**Stage**: 3
+
+#### Level 0 (Algebraic Law)
+```
+∀ queries Q with mode = Barriered(barrier_id):
+  barrier_id references a resolved Barrier entity
+  Q is evaluated against barrier.cut (not local frontier)
+```
+
+#### Level 1 (State Invariant)
+A Barriered query mode requires a valid, resolved barrier. The query engine
+rejects Barriered queries referencing unresolved or timed-out barriers.
+
+**Falsification**: A Barriered query executing against a timed-out or nonexistent barrier.
+
+---
+
+### §8.5 ADRs
+
+### ADR-SYNC-001: Barrier as Explicit Coordination Point
+
+**Traces to**: ADRS SQ-001, PO-010
+**Stage**: 3
+
+#### Problem
+How to handle non-monotonic queries that depend on the absence of facts?
+
+#### Options
+A) **Always consistent** — all queries require global consistency. Too expensive.
+B) **Never consistent** — all queries are local frontier. Non-monotonic results vary.
+C) **Explicit barriers** — monotonic queries run locally; non-monotonic queries can
+   optionally use a barrier for consistency.
+
+#### Decision
+**Option C.** Most queries (Strata 0–1) are monotonic and need no coordination.
+Non-monotonic queries (Strata 2–5) produce useful approximate results at local
+frontier but can use a barrier when precision is critical.
+
+#### Formal Justification
+CALM theorem: monotonic programs have coordination-free implementations.
+Barriers are needed only for non-monotonic queries where correctness
+depends on knowing what is NOT present.
+
+---
+
+### ADR-SYNC-002: Topology-Agnostic Protocol
+
+**Traces to**: ADRS PD-005
+**Stage**: 3
+
+#### Problem
+Should the sync protocol prescribe a topology?
+
+#### Decision
+No. The protocol provides primitives (initiate, report, exchange, resolve).
+Topology emerges from deployment. Single-agent (trivial — barrier with self),
+bilateral (two agents exchange), flat swarm (all-to-all), hierarchy (tree) are
+all valid using the same primitives.
+
+#### Formal Justification
+Prescribing topology limits applicability. The invariant (INV-SYNC-003) that
+results are topology-independent means the protocol can support any topology
+without changing the correctness guarantees.
+
+---
+
+### ADR-SYNC-003: Barrier Timeout Over Blocking
+
+**Traces to**: ADRS PO-010
+**Stage**: 3
+
+#### Problem
+What happens when a barrier participant doesn't respond?
+
+#### Decision
+Timeouts. Every barrier has a deadline. Unresponsive participants cause
+timeout, not deadlock. The timed-out barrier records who responded,
+enabling crash-recovery (PD-003) — the recovering agent can query the
+barrier record to understand what was missed.
+
+---
+
+### §8.6 Negative Cases
+
+### NEG-SYNC-001: No Unbounded Barrier Wait
+
+**Traces to**: ADRS PO-010
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(∃ barrier that blocks indefinitely)`
+Every barrier either resolves or times out within its declared timeout.
+
+**proptest strategy**: Create barriers with varying participant counts and
+response patterns. Verify all complete within timeout.
+
+---
+
+### NEG-SYNC-002: No Barrier at Inconsistent Cut
+
+**Traces to**: ADRS PO-010
+**Verification**: `V:MODEL`
+
+**Safety property**: `□ ¬(∃ resolved barrier where participants disagree on datom set)`
+
+**Stateright model**: 3 agents with partial connectivity. Run barrier protocol.
+Verify that resolution only occurs when all participants have identical visible sets.
+
+---
+
+*Sections §9–§14 (Wave 3 namespaces) and §15–§17 (integration) will be produced in
 subsequent sessions following the same three-level refinement methodology.*
 
 ---
 
-## Appendix A: Element Count Summary (Wave 1)
+## Appendix A: Element Count Summary (Waves 1–2)
 
-| Namespace | INV | ADR | NEG | Total |
-|-----------|-----|-----|-----|-------|
-| STORE     | 14  | 12  | 5   | 31    |
-| SCHEMA    | 8   | 4   | 3   | 15    |
-| QUERY     | 11  | 8   | 4   | 23    |
-| RESOLUTION| 8   | 5   | 3   | 16    |
-| **Total** | **41** | **29** | **15** | **85** |
+| Namespace | INV | ADR | NEG | Total | Wave |
+|-----------|-----|-----|-----|-------|------|
+| STORE     | 14  | 12  | 5   | 31    | 1    |
+| SCHEMA    | 8   | 4   | 3   | 15    | 1    |
+| QUERY     | 11  | 8   | 4   | 23    | 1    |
+| RESOLUTION| 8   | 5   | 3   | 16    | 1    |
+| HARVEST   | 8   | 4   | 3   | 15    | 2    |
+| SEED      | 6   | 3   | 2   | 11    | 2    |
+| MERGE     | 8   | 4   | 3   | 15    | 2    |
+| SYNC      | 5   | 3   | 2   | 10    | 2    |
+| **Total** | **68** | **43** | **25** | **136** |      |
 
-## Appendix B: Verification Coverage (Wave 1)
+## Appendix B: Verification Coverage (Waves 1–2)
 
 | Tag | Count | Namespaces |
 |-----|-------|------------|
-| V:PROP | 41/41 | All (minimum requirement met) |
-| V:KANI | 22 | STORE (10), SCHEMA (3), QUERY (3), RESOLUTION (6) |
-| V:MODEL | 5 | STORE (1), QUERY (1), RESOLUTION (3) |
+| V:PROP | 68/68 | All (minimum requirement met) |
+| V:KANI | 32 | STORE (10), SCHEMA (3), QUERY (3), RESOLUTION (6), HARVEST (3), SEED (2), MERGE (4), SYNC (1) |
+| V:MODEL | 10 | STORE (1), QUERY (1), RESOLUTION (3), MERGE (2), SYNC (3) |
 | V:TYPE | 9 | STORE (2), SCHEMA (2), QUERY (3), RESOLUTION (2) |
 | V:CONTRACT | 0 | (Applied during implementation, not spec) |
 | V:DEDUCTIVE | 0 | (Candidate: INV-STORE-004/005/006 — CRDT laws) |
@@ -3163,11 +5063,21 @@ Elements required for Stage 0 (Harvest/Seed cycle):
 | INV-SCHEMA-001–007 | SCHEMA | Schema bootstrap |
 | INV-QUERY-001–002, 005–007 | QUERY | Core query engine |
 | INV-RESOLUTION-001–002, 004–008 | RESOLUTION | Basic conflict handling |
+| INV-HARVEST-001–005, 007 | HARVEST | Harvest pipeline and warnings |
+| INV-SEED-001–004 | SEED | Seed assembly pipeline |
+| INV-MERGE-001–002, 008 | MERGE | Core merge (no branching) |
 | ADR-STORE-001–012 | STORE | Foundation decisions |
 | ADR-SCHEMA-001–003 | SCHEMA | Schema decisions |
 | ADR-QUERY-001–003, 005–006 | QUERY | Query engine decisions |
 | ADR-RESOLUTION-001–004 | RESOLUTION | Resolution decisions |
+| ADR-HARVEST-001–003 | HARVEST | Harvest decisions |
+| ADR-SEED-001–003 | SEED | Seed decisions |
+| ADR-MERGE-001 | MERGE | Core merge decision |
+| ADR-SYNC-001 | SYNC | Barrier as optional coordination |
 | NEG-STORE-001–005 | STORE | Store safety |
 | NEG-SCHEMA-001–003 | SCHEMA | Schema safety |
 | NEG-QUERY-001–004 | QUERY | Query safety |
 | NEG-RESOLUTION-001–003 | RESOLUTION | Resolution safety |
+| NEG-HARVEST-001–002 | HARVEST | Harvest safety |
+| NEG-SEED-001–002 | SEED | Seed safety |
+| NEG-MERGE-001, 003 | MERGE | Merge safety (no data loss, no W_α leak) |

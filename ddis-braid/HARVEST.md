@@ -294,6 +294,62 @@ Secondary: **Plan SPEC.md modularization** before Wave 3 pushes the file past ma
 
 ---
 
+## Session 009 — 2026-03-02 (SPEC.md Wave 2: Lifecycle Specification)
+
+**Platform**: Claude Code (Opus 4.6)
+**Duration**: ~1 hour, single session (continuation of Session 008)
+
+### What Was Accomplished
+
+1. **Produced `SPEC.md` Wave 2 — Lifecycle namespaces** (5,083 total lines, 136 cumulative elements)
+   - **§5 HARVEST** (8 INV, 4 ADR, 3 NEG = 15 elements): Epistemic gap algebra (set difference: agent_knowledge \ store), harvest pipeline (detect→propose→review→commit→record), proactive warning system at Q(t) thresholds, crystallization stability guard (no harvest during open deliberation), FP/FN calibration metrics (LM-006), bounded conversation lifecycle, delegation topologies (single-agent, review-agent, committee)
+   - **§6 SEED** (6 INV, 3 ADR, 2 NEG = 11 elements): Seed as projection (assemble ∘ query ∘ associate), priority scoring formula (α×relevance + β×significance + γ×recency), dynamic CLAUDE.md generation (7-step process with 3-concern collapse), rate-distortion assembly (projection pyramid π₀–π₃), intention anchoring with task_context vector, budget-monotonic truncation
+   - **§7 MERGE** (8 INV, 4 ADR, 3 NEG = 15 elements): Core set-union merge (L1–L5 from STORE), 5-step merge cascade (copy→detect→surface→record→update), branching G-Set extension with 5 properties (P1 inclusion through P5 growth preservation), 6 branch sub-operations, competing branch lock, working set isolation (W_α ∩ W_β = ∅), bilateral branch duality, at-least-once idempotent delivery
+   - **§8 SYNC** (5 INV, 3 ADR, 2 NEG = 10 elements): Consistent cut algebra (intersection of frontiers), barrier protocol (initiate→exchange→resolve), topology-dependent implementation (P2P direct, hub-spoke via central), barrier timeout safety (no stuck agents), topology-independent results, barrier entity provenance trail
+
+2. **Updated appendices**: Element count summary (136 total), verification coverage matrix, Stage 0 element catalog — all updated to include Wave 2 data.
+
+3. **Cross-namespace consistency maintained**: Wave 2 namespaces reference STORE types (Datom, EntityId, TxId, Store), SCHEMA attributes (`:db/attr.*`), QUERY engine (frontier-scoped queries), and RESOLUTION modes — all defined in Wave 1.
+
+### Decisions Made
+
+| Decision | Rationale |
+|---|---|
+| Harvest as epistemic gap detection, not summarization | FM-001 shows ~47% miss rate with manual summarization. The set-difference formulation (agent_knowledge \ store) makes gaps structurally detectable rather than relying on agent recall. |
+| Dynamic CLAUDE.md generation in SEED namespace | The three-concern collapse (ambient awareness + guidance + trajectory) is the concrete implementation of seed assembly. CLAUDE.md is the output artifact, not a separate system. |
+| Branching G-Set as formal extension to STORE algebra | Working set isolation (PD-001) requires branch semantics. Extending the G-Set with (S, B, ⊑, commit, combine) preserves all 5 CRDT laws while adding branch operations. |
+| Sync barriers as consistent cuts | Consistent cut theory from distributed systems gives a clean algebra. The barrier is the set of datoms visible to all participants — intersection, not union. |
+| Competing branch lock for multi-agent merge | When agents fork competing approaches (deliberation), only one merges. The losing branch remains readable for provenance but is not committed. Prevents the "merge everything" failure mode. |
+
+### Open Questions
+
+1. **SPEC.md modularization**: At 5,083 lines with 8 of 14 namespaces, the file will exceed NEG-008 (no massive monolithic files) during Wave 3. Splitting strategy needed before proceeding.
+2. **Harvest proactive warning thresholds**: The Q(t) formula is specified but the concrete thresholds (SEED.md doesn't provide numbers) are marked as uncertainty (UNC-HARVEST-001). Need empirical calibration.
+3. **Dynamic CLAUDE.md generation specifics**: The 7-step generation process is specified but the template format for the three-concern collapse is an implementation detail deferred to Stage 0.
+4. **Merge cascade crash recovery**: ADR-MERGE-003 specifies WAL-based crash recovery, but the interaction with the append-only store invariant (INV-STORE-001) during partial merges needs deeper analysis.
+
+### Failure Modes
+
+No new failure modes discovered. Wave 2 namespaces directly address FM-001 (knowledge loss — harvest gap detection), FM-003 (anchoring bias — seed assembles from full store), and FM-004 (cascading incompleteness — bilateral branch duality).
+
+### Files Created/Modified
+
+| File | Action | Details |
+|------|--------|---------|
+| `SPEC.md` | MODIFIED | 3,173 → 5,083 lines, +51 elements (27 INV, 14 ADR, 10 NEG), 4 new namespaces (HARVEST, SEED, MERGE, SYNC) |
+| `HARVEST.md` | MODIFIED | This entry appended |
+
+### Recommended Next Action
+
+**Plan SPEC.md modularization** before Wave 3. At 5,083 lines, adding 6 more namespaces (SIGNAL, BILATERAL, DELIBERATION, GUIDANCE, BUDGET, INTERFACE) would push past 8,000 lines. Options:
+- Split into per-namespace files under `spec/` with a root SPEC.md index
+- Split into per-wave files (SPEC-foundation.md, SPEC-lifecycle.md, SPEC-intelligence.md)
+- Keep monolithic but with clear section markers for tooling
+
+Then **produce SPEC.md Wave 3 — Intelligence namespaces** (SIGNAL, BILATERAL, DELIBERATION, GUIDANCE, BUDGET, INTERFACE). Estimated: ~30 INV, ~15 ADR, ~10 NEG across 6 namespaces.
+
+---
+
 ## Session 004 — 2026-03-02 (ADR→Gap Analysis Cross-Reference Audit)
 
 **Platform**: Claude Code (Opus 4.6)
