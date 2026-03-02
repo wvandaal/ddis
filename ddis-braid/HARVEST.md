@@ -221,6 +221,55 @@ Secondary: **Produce SPEC.md** (carried from Sessions 001 and 002). With §9 now
 
 ---
 
+## Session 011 — 2026-03-02 (SPEC.md Wave 4: Integration Sections — Complete)
+
+**Platform**: Claude Code (Opus 4.6)
+**Duration**: ~45 minutes, single session (continuation of Session 010)
+
+### What Was Accomplished
+
+1. **Produced `SPEC.md` Wave 4 — Integration sections** (8,157 total lines)
+   - **§15 Uncertainty Register** (10 entries): 2 explicit markers from Wave 3 (UNC-BILATERAL-001/002 — fitness function weights, boundary weights), plus 8 implicit uncertainties identified by systematic analysis: content-addressable collision rate, HLC clock skew tolerance, Datalog evaluation performance, harvest warning thresholds, basin competition crossover point, crystallization stability threshold, 17-attribute sufficiency, resolution mode ergonomics. Each entry includes confidence level, stage affected, impact analysis, resolution criteria, and what breaks if wrong.
+   - **§16 Verification Plan**: Complete 104-row per-invariant verification matrix (14 namespace tables mapping each INV to primary/secondary V:TAG, tool, CI gate, and stage), 5-gate CI pipeline specification (compile→test→kani→model→miri), typestate encoding catalog (9 patterns), deductive verification candidates (5 INVs recommended for Verus/Creusot post-Stage 2), verification statistics summary.
+   - **§17 Cross-Reference Index**: Namespace→SEED.md→ADRS.md mapping (14 rows), invariant dependency graph (key chains from STORE foundations through INTERFACE), dependency depth analysis (5 levels confirming implementation order), stage mapping (Stages 0–4 with INV counts and success criteria), hard constraint traceability (C1–C7 → specific INVs), failure mode traceability (FM-001–004 → specific INVs and ADRs).
+
+2. **Updated appendices to final form**: Element count summary marked "(Complete)", verification statistics expanded with Stage 0 INV counts and uncertainty metrics, Stage 0 element catalog refined with corrected namespace coverage.
+
+3. **SPEC.md is now complete**: All 17 sections (§0–§17) across 4 waves, 208 specification elements (104 INV + 63 ADR + 41 NEG), 10 uncertainty markers, 8,157 lines.
+
+### Decisions Made
+
+| Decision | Rationale |
+|---|---|
+| 10 uncertainty entries (2 explicit + 8 implicit) | Explicit markers from Waves 1–3 are supplemented by systematic analysis of assumptions that have not been validated by implementation. Focus on Stage 0 blockers. |
+| 5-gate CI pipeline (compile→test→kani→model→miri) | Progressive verification: cheap gates run on every commit, expensive gates on PRs or nightly. Matches Rust formal verification ecosystem capabilities. |
+| 5 deductive verification candidates deferred post-Stage 2 | CRDT laws and merge preservation are high-value targets for Verus/Creusot proofs, but the cost is only justified after implementation stabilizes. |
+| Dependency graph confirms implementation order | Longest chain (depth 4) runs STORE→MERGE→SYNC→BILATERAL→GUIDANCE→INTERFACE, validating the Wave 1→2→3 production order matches implementation dependency order. |
+
+### Open Questions
+
+1. **SPEC.md modularization**: At 8,157 lines, the file significantly exceeds NEG-008 (no massive monolithic files). Splitting strategy needed before beginning IMPLEMENTATION_GUIDE.md.
+2. **Three high-urgency uncertainties**: UNC-HARVEST-001 (warning thresholds), UNC-GUIDANCE-001 (basin crossover), UNC-SCHEMA-001 (17-attribute sufficiency) — all Stage 0 blockers that must be resolved during initial implementation.
+
+### Failure Modes
+
+No new failure modes discovered. The uncertainty register (§15) systematically identifies where the specification might be wrong — this is the FM-004 (cascading incompleteness) countermeasure applied to the specification itself.
+
+### Files Created/Modified
+
+| File | Action | Details |
+|------|--------|---------|
+| `SPEC.md` | MODIFIED | 7,445 → 8,157 lines, +3 integration sections (§15–§17), appendices finalized |
+| `HARVEST.md` | MODIFIED | This entry appended |
+
+### Recommended Next Action
+
+**SPEC.md is complete.** Next priorities:
+1. **IMPLEMENTATION_GUIDE.md** — Stage 0 deliverables with exact CLI command signatures, file formats, CLAUDE.md template, success criteria. The implementing agent's operating manual.
+2. **SPEC.md modularization** — Split into per-namespace or per-wave files if the implementing agent needs more manageable units.
+
+---
+
 ## Session 010 — 2026-03-02 (SPEC.md Wave 3: Intelligence Specification)
 
 **Platform**: Claude Code (Opus 4.6)

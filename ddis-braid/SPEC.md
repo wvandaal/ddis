@@ -7372,12 +7372,716 @@ Verify every response contains a harvest warning.
 
 ---
 
-*Sections §15–§17 (Wave 4 integration: Uncertainty Register, Verification Plan,
-Cross-Reference Index) will be produced in a subsequent session.*
+---
+
+## §15. Uncertainty Register
+
+> **Purpose**: All claims in this specification with confidence < 1.0, organized by
+> resolution urgency. Each entry identifies what is uncertain, why it matters, what
+> would resolve it, and what breaks if the assumption is wrong.
+>
+> **Methodology**: Uncertainty markers follow UA-006 — explicit confidence levels with
+> resolution criteria. Claims without markers are considered confidence 1.0 (settled).
+
+### §15.1 Explicit Uncertainty Markers
+
+These are claims explicitly flagged during specification production.
+
+#### UNC-BILATERAL-001: Fitness Function Component Weights
+
+**Source**: ADR-BILATERAL-001 (§10.5)
+**Confidence**: 0.6
+**Stage affected**: 1+
+
+**Claim**: F(S) = 0.18×V + 0.18×C + 0.18×(1-D) + 0.13×H + 0.13×(1-K) + 0.08×(1-I) + 0.12×(1-U)
+
+**Why uncertain**: Weights are derived from theoretical analysis of component importance
+(primary triad V/C/D = 0.18, secondary pair H/K = 0.13, etc.) but have not been
+calibrated against empirical data from actual Braid usage.
+
+**Impact if wrong**: Fitness score gives misleading convergence signal. A high F(S) could
+mask real divergence if a low-weight component is actually critical, or vice versa.
+
+**Resolution**: Run Stage 0 for ≥10 sessions. Compute F(S) after each. Compare weights
+that correlate with successful outcomes (sessions where harvested knowledge was correct
+and complete) against weights that correlate with failures. Adjust weights to maximize
+predictive power.
+
+**What breaks**: INV-BILATERAL-001 (monotonic convergence) still holds regardless of weights.
+The question is whether convergence is toward actual coherence or toward a local optimum.
 
 ---
 
-## Appendix A: Element Count Summary (Waves 1–3)
+#### UNC-BILATERAL-002: Divergence Boundary Weights
+
+**Source**: ADR-BILATERAL-002 (§10.5)
+**Confidence**: 0.5
+**Stage affected**: 1+
+
+**Claim**: D(spec, impl) = Σᵢ wᵢ × |boundary_gap(i)| with default equal weights
+across the four boundaries (Intent→Spec, Spec→Spec, Spec→Impl, Impl→Behavior).
+
+**Why uncertain**: Different projects may have very different boundary-gap distributions.
+A project with a stable spec but turbulent implementation needs different weights than
+one where intent is shifting.
+
+**Impact if wrong**: Divergence metric under-weights the critical boundary, causing the
+bilateral loop to focus remediation effort on the wrong gaps.
+
+**Resolution**: After Stage 0, analyze which boundaries produce the most actionable
+gaps. Weight boundaries proportional to their remediation cost × occurrence frequency.
+Consider per-project weight profiles.
+
+**What breaks**: The bilateral loop still detects all gaps (completeness is structural,
+not weight-dependent). But prioritization of remediation effort may be misguided.
+
+---
+
+### §15.2 Implicit Uncertainties
+
+These are areas where the specification makes commitments that depend on assumptions
+not yet validated by implementation experience.
+
+#### UNC-STORE-001: Content-Addressable EntityId Collision Rate
+
+**Source**: INV-STORE-002, ADR-STORE-002
+**Confidence**: 0.95
+**Stage affected**: 0
+
+**Claim**: SHA-256 hash of content produces unique EntityIds with negligible collision
+probability.
+
+**Why uncertain**: SHA-256 collision probability is astronomically low (2^{-128} for
+random inputs) but content-addressed systems at scale can hit birthday-bound issues
+with certain workload patterns.
+
+**Impact if wrong**: Two different entities map to the same EntityId. Silent data
+corruption — one entity's attributes overwrite another's.
+
+**Resolution**: Monitor EntityId generation during implementation. Verify uniqueness
+across ≥10^6 datoms. Consider a secondary check (entity content comparison on hash
+match) as defense in depth.
+
+**What breaks**: INV-STORE-002 (content identity), INV-STORE-003 (merge deduplication).
+
+---
+
+#### UNC-STORE-002: HLC Clock Skew Tolerance
+
+**Source**: INV-STORE-008, ADR-STORE-004
+**Confidence**: 0.9
+**Stage affected**: 0
+
+**Claim**: Hybrid Logical Clocks maintain causal ordering across agents with bounded
+clock skew.
+
+**Why uncertain**: HLC assumes clock skew is bounded. On a single VPS with NTP, skew
+is typically <1ms. But container environments, VM migration, or suspended processes
+can introduce larger skew.
+
+**Impact if wrong**: Transaction ordering violations. Causally-later transactions appear
+before causally-earlier ones, breaking frontier monotonicity (INV-STORE-009).
+
+**Resolution**: Implement HLC with configurable max-skew parameter. Alert when observed
+skew exceeds threshold. For Stage 0 (single VPS), this is very low risk.
+
+**What breaks**: INV-STORE-008 (HLC monotonicity), INV-STORE-009 (frontier durability).
+
+---
+
+#### UNC-QUERY-001: Datalog Evaluation Performance at Scale
+
+**Source**: INV-QUERY-002, ADR-QUERY-001
+**Confidence**: 0.8
+**Stage affected**: 1+
+
+**Claim**: Semi-naive Datalog evaluation is efficient for Braid's query patterns
+at expected scale (thousands of datoms, dozens of query patterns).
+
+**Why uncertain**: Semi-naive evaluation is well-studied for databases but Braid's
+query patterns include recursive graph traversal (causal-ancestor, depends-on),
+aggregation (uncertainty tensor), and derived functions (spectral authority). These
+may have pathological performance characteristics on certain store topologies.
+
+**Impact if wrong**: Query latency exceeds acceptable limits, making the CLI unusable
+for interactive agent workflows. Budget-aware output degrades to π₃ not from attention
+pressure but from query timeout.
+
+**Resolution**: Benchmark query patterns against synthetic stores of 10^3, 10^4, 10^5
+datoms. Identify performance cliffs. Optimize hot paths (EAVT/AEVT index lookups).
+Consider incremental materialization for Stratum 4–5 queries.
+
+**What breaks**: INV-QUERY-002 (fixpoint termination — technically guaranteed by
+Datalog semantics, but timeout is a practical termination condition).
+
+---
+
+#### UNC-HARVEST-001: Proactive Warning Thresholds
+
+**Source**: INV-HARVEST-005, INV-INTERFACE-007
+**Confidence**: 0.7
+**Stage affected**: 0
+
+**Claim**: Q(t) < 0.15 (~75% consumed) triggers harvest warning; Q(t) < 0.05 (~85%)
+triggers harvest-only mode.
+
+**Why uncertain**: Thresholds are calibrated to Claude Code context windows (~200K tokens)
+with observed attention degradation patterns. Different LLM providers, model sizes, or
+future context window changes may shift the optimal thresholds.
+
+**Impact if wrong**: Warnings too early → annoyance, wasted budget on premature harvest.
+Warnings too late → unharvested knowledge loss (FM-001).
+
+**Resolution**: Track harvest outcomes vs. Q(t) at harvest time across 50+ sessions.
+Compute the Q(t) threshold below which harvest quality degrades measurably. Adjust
+thresholds to match.
+
+**What breaks**: INV-HARVEST-005 (warning correctness), INV-INTERFACE-007 (proactive warning).
+
+---
+
+#### UNC-GUIDANCE-001: Basin Competition Crossover Point
+
+**Source**: ADR-GUIDANCE-002, INV-GUIDANCE-004
+**Confidence**: 0.7
+**Stage affected**: 0
+
+**Claim**: Without intervention, agents drift to Basin B (pretrained patterns) within
+15–20 turns. The six anti-drift mechanisms maintain Basin A dominance.
+
+**Why uncertain**: The "15–20 turns" figure is based on observed behavior with specific
+LLM models (Claude). Different models may have different crossover points. The
+effectiveness of the six mechanisms is theoretical — no empirical measurement yet.
+
+**Impact if wrong**: If crossover is earlier (10 turns), the mechanisms may be insufficient.
+If later (30+ turns), the mechanisms may be unnecessarily aggressive (wasting budget).
+
+**Resolution**: Instrument drift detection during Stage 0. Measure turn count at which
+agents first skip a DDIS step (transact gap, guidance miss). Plot Basin A probability
+over turns. Calibrate mechanism intensity to the measured crossover.
+
+**What breaks**: INV-GUIDANCE-004 (drift detection responsiveness — the threshold of 5
+bash commands may be too lenient or too strict).
+
+---
+
+#### UNC-DELIBERATION-001: Crystallization Stability Threshold
+
+**Source**: INV-DELIBERATION-002, ADR-DELIBERATION-004
+**Confidence**: 0.7
+**Stage affected**: 2
+
+**Claim**: Default stability_min = 0.7 provides the right balance between premature
+crystallization and unnecessary delay.
+
+**Why uncertain**: The threshold interacts with commitment weight, confidence, coherence,
+and conflict state. The optimal threshold may vary by entity type (architectural
+decisions need higher stability than implementation details).
+
+**Impact if wrong**: Too high → deliberation takes too long, blocking downstream work.
+Too low → premature decisions create cascading incompleteness (FM-004).
+
+**Resolution**: Run deliberation simulations with varying thresholds during Stage 2.
+Measure: time-to-decision, downstream error rate from premature decisions, developer
+frustration from blocked work. Find the Pareto frontier.
+
+**What breaks**: INV-DELIBERATION-002 (stability guard enforcement — the invariant holds
+regardless, but the quality of decisions may suffer).
+
+---
+
+#### UNC-SCHEMA-001: Seventeen Axiomatic Attributes Sufficiency
+
+**Source**: INV-SCHEMA-001, ADR-SCHEMA-001
+**Confidence**: 0.85
+**Stage affected**: 0
+
+**Claim**: Exactly 17 axiomatic meta-schema attributes are sufficient to bootstrap
+the full schema system.
+
+**Why uncertain**: The 17 were identified through design analysis (Transcript 02:379–420)
+but have not been tested against a real implementation. Missing an attribute at Layer 0
+requires a breaking change to the genesis transaction.
+
+**Impact if wrong**: Schema system cannot express a required concept. Workaround:
+add attributes at Layer 1+ (non-breaking) or revise genesis (breaking — all stores
+become incompatible).
+
+**Resolution**: Implement genesis transaction during Stage 0. Attempt to define all
+Layer 1–5 schema using only the 17 axiomatic attributes. Any failure reveals a gap.
+
+**What breaks**: INV-SCHEMA-001 (genesis completeness), INV-SCHEMA-008 (self-description).
+
+---
+
+#### UNC-RESOLUTION-001: Per-Attribute Resolution Mode Ergonomics
+
+**Source**: ADR-RESOLUTION-001, ADR-RESOLUTION-002
+**Confidence**: 0.8
+**Stage affected**: 0
+
+**Claim**: Schema authors can and will correctly declare resolution modes (LWW, Lattice,
+Multi) for each attribute.
+
+**Why uncertain**: This places a cognitive burden on schema designers. Incorrect mode
+selection (e.g., LWW on an attribute that should be Lattice) silently loses data.
+There's no mechanism to detect "probably wrong" mode selections.
+
+**Impact if wrong**: Silent data loss or incorrect conflict resolution. The system
+behaves correctly per its configuration but the configuration doesn't match intent.
+
+**Resolution**: Provide sensible defaults (LWW for scalar attributes, Multi for set-valued,
+Lattice for lifecycle/status). Emit warnings when resolution mode selection looks unusual
+(e.g., LWW on a set-valued attribute). Consider a `ddis schema audit` command.
+
+**What breaks**: INV-RESOLUTION-001 (algebraic law holds by construction, but semantic
+correctness depends on correct mode selection).
+
+---
+
+### §15.3 Summary
+
+| ID | Confidence | Stage | Impact | Resolution Urgency |
+|----|-----------|-------|--------|-------------------|
+| UNC-BILATERAL-001 | 0.6 | 1+ | Misleading convergence signal | Medium — calibrate during Stage 0 |
+| UNC-BILATERAL-002 | 0.5 | 1+ | Misguided remediation priority | Medium — calibrate during Stage 0 |
+| UNC-STORE-001 | 0.95 | 0 | Silent data corruption (extremely unlikely) | Low — monitor during implementation |
+| UNC-STORE-002 | 0.9 | 0 | Transaction ordering violation | Low — mitigated by single-VPS deployment |
+| UNC-QUERY-001 | 0.8 | 1+ | Query timeout in interactive use | Medium — benchmark during Stage 0 |
+| UNC-HARVEST-001 | 0.7 | 0 | Knowledge loss or wasted budget | High — calibrate during Stage 0 |
+| UNC-GUIDANCE-001 | 0.7 | 0 | Insufficient or excessive drift correction | High — instrument during Stage 0 |
+| UNC-DELIBERATION-001 | 0.7 | 2 | Premature or delayed decisions | Medium — simulate during Stage 2 |
+| UNC-SCHEMA-001 | 0.85 | 0 | Missing bootstrap attribute | High — verify during Stage 0 |
+| UNC-RESOLUTION-001 | 0.8 | 0 | Incorrect conflict resolution | Medium — provide defaults + warnings |
+
+**By resolution urgency**:
+- **High** (resolve during Stage 0): UNC-HARVEST-001, UNC-GUIDANCE-001, UNC-SCHEMA-001
+- **Medium** (resolve during Stage 0–2): UNC-BILATERAL-001/002, UNC-QUERY-001, UNC-DELIBERATION-001, UNC-RESOLUTION-001
+- **Low** (monitor, resolve if observed): UNC-STORE-001/002
+
+---
+
+## §16. Verification Plan
+
+> **Purpose**: Maps every invariant to its verification method(s), tool, implementation
+> stage, and CI gate. This section is the implementor's guide to "how do I prove this
+> invariant holds?"
+
+### §16.1 Per-Invariant Verification Matrix
+
+#### STORE (14 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-STORE-001 | V:TYPE | V:KANI | rustc + kani | compile + kani | 0 |
+| INV-STORE-002 | V:TYPE | — | rustc | compile | 0 |
+| INV-STORE-003 | V:TYPE | V:PROP | rustc + proptest | compile + test | 0 |
+| INV-STORE-004 | V:PROP | V:KANI, V:MODEL | proptest + kani + stateright | test + kani + model | 0 |
+| INV-STORE-005 | V:PROP | V:KANI, V:MODEL | proptest + kani + stateright | test + kani + model | 0 |
+| INV-STORE-006 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-STORE-007 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-STORE-008 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-STORE-009 | V:PROP | — | proptest | test | 0 |
+| INV-STORE-010 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-STORE-011 | V:PROP | — | proptest | test | 0 |
+| INV-STORE-012 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-STORE-013 | V:PROP | V:MODEL | proptest + stateright | test + model | 2 |
+| INV-STORE-014 | V:PROP | — | proptest | test | 0 |
+
+#### SCHEMA (8 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-SCHEMA-001 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-SCHEMA-002 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-SCHEMA-003 | V:TYPE | — | rustc | compile | 0 |
+| INV-SCHEMA-004 | V:TYPE | V:KANI, V:PROP | rustc + kani + proptest | compile + kani + test | 0 |
+| INV-SCHEMA-005 | V:PROP | — | proptest | test | 0 |
+| INV-SCHEMA-006 | V:PROP | — | proptest | test | 0 |
+| INV-SCHEMA-007 | V:PROP | — | proptest | test | 0 |
+| INV-SCHEMA-008 | V:PROP | — | proptest | test | 0 |
+
+#### QUERY (11 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-QUERY-001 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-QUERY-002 | V:PROP | — | proptest | test | 0 |
+| INV-QUERY-003 | V:PROP | — | proptest | test | 1 |
+| INV-QUERY-004 | V:PROP | V:KANI | proptest + kani | test + kani | 2 |
+| INV-QUERY-005 | V:TYPE | V:PROP | rustc + proptest | compile + test | 0 |
+| INV-QUERY-006 | V:TYPE | — | rustc | compile | 0 |
+| INV-QUERY-007 | V:TYPE | V:PROP | rustc + proptest | compile + test | 0 |
+| INV-QUERY-008 | V:PROP | — | proptest | test | 1 |
+| INV-QUERY-009 | V:PROP | — | proptest | test | 1 |
+| INV-QUERY-010 | V:PROP | V:MODEL | proptest + stateright | test + model | 2 |
+| INV-QUERY-011 | V:PROP | — | proptest | test | 2 |
+
+#### RESOLUTION (8 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-RESOLUTION-001 | V:TYPE | V:PROP | rustc + proptest | compile + test | 0 |
+| INV-RESOLUTION-002 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-RESOLUTION-003 | V:PROP | V:MODEL | proptest + stateright | test + model | 3 |
+| INV-RESOLUTION-004 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-RESOLUTION-005 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-RESOLUTION-006 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-RESOLUTION-007 | V:PROP | V:MODEL, V:KANI | proptest + stateright + kani | test + model + kani | 2 |
+| INV-RESOLUTION-008 | V:PROP | V:MODEL | proptest + stateright | test + model | 0 |
+
+#### HARVEST (8 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-HARVEST-001 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-HARVEST-002 | V:PROP | — | proptest | test | 0 |
+| INV-HARVEST-003 | V:PROP | — | proptest | test | 0 |
+| INV-HARVEST-004 | V:PROP | — | proptest | test | 0 |
+| INV-HARVEST-005 | V:PROP | — | proptest | test | 0 |
+| INV-HARVEST-006 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-HARVEST-007 | V:PROP | — | proptest | test | 0 |
+| INV-HARVEST-008 | V:PROP | — | proptest | test | 0 |
+
+#### SEED (6 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-SEED-001 | V:PROP | — | proptest | test | 0 |
+| INV-SEED-002 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-SEED-003 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-SEED-004 | V:PROP | — | proptest | test | 0 |
+| INV-SEED-005 | V:PROP | — | proptest | test | 1 |
+| INV-SEED-006 | V:PROP | — | proptest | test | 2 |
+
+#### MERGE (8 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-MERGE-001 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-MERGE-002 | V:PROP | V:MODEL | proptest + stateright | test + model | 2 |
+| INV-MERGE-003 | V:PROP | V:KANI | proptest + kani | test + kani | 2 |
+| INV-MERGE-004 | V:PROP | V:KANI, V:MODEL | proptest + kani + stateright | test + kani + model | 2 |
+| INV-MERGE-005 | V:PROP | V:KANI | proptest + kani | test + kani | 2 |
+| INV-MERGE-006 | V:PROP | — | proptest | test | 2 |
+| INV-MERGE-007 | V:PROP | — | proptest | test | 2 |
+| INV-MERGE-008 | V:PROP | — | proptest | test | 0 |
+
+#### SYNC (5 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-SYNC-001 | V:PROP | V:MODEL | proptest + stateright | test + model | 3 |
+| INV-SYNC-002 | V:PROP | — | proptest | test | 3 |
+| INV-SYNC-003 | V:PROP | V:MODEL | proptest + stateright | test + model | 3 |
+| INV-SYNC-004 | V:PROP | V:MODEL | proptest + stateright | test + model | 3 |
+| INV-SYNC-005 | V:PROP | — | proptest | test | 3 |
+
+#### SIGNAL (6 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-SIGNAL-001 | V:PROP | V:KANI | proptest + kani | test + kani | 3 |
+| INV-SIGNAL-002 | V:PROP | — | proptest | test | 1 |
+| INV-SIGNAL-003 | V:PROP | V:KANI | proptest + kani | test + kani | 3 |
+| INV-SIGNAL-004 | V:PROP | — | proptest | test | 3 |
+| INV-SIGNAL-005 | V:PROP | V:KANI | proptest + kani | test + kani | 2 |
+| INV-SIGNAL-006 | V:PROP | — | proptest | test | 3 |
+
+#### BILATERAL (5 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-BILATERAL-001 | V:PROP | V:MODEL | proptest + stateright | test + model | 1 |
+| INV-BILATERAL-002 | V:PROP | — | proptest | test | 1 |
+| INV-BILATERAL-003 | V:PROP | — | proptest | test | 2 |
+| INV-BILATERAL-004 | V:PROP | — | proptest | test | 1 |
+| INV-BILATERAL-005 | V:PROP | — | proptest | test | 1 |
+
+#### DELIBERATION (6 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-DELIBERATION-001 | V:PROP | V:MODEL | proptest + stateright | test + model | 2 |
+| INV-DELIBERATION-002 | V:PROP | V:KANI | proptest + kani | test + kani | 2 |
+| INV-DELIBERATION-003 | V:PROP | — | proptest | test | 2 |
+| INV-DELIBERATION-004 | V:PROP | — | proptest | test | 2 |
+| INV-DELIBERATION-005 | V:PROP | V:KANI | proptest + kani | test + kani | 2 |
+| INV-DELIBERATION-006 | V:PROP | V:MODEL | proptest + stateright | test + model | 2 |
+
+#### GUIDANCE (7 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-GUIDANCE-001 | V:PROP | — | proptest | test | 0 |
+| INV-GUIDANCE-002 | V:PROP | — | proptest | test | 0 |
+| INV-GUIDANCE-003 | V:PROP | — | proptest | test | 1 |
+| INV-GUIDANCE-004 | V:PROP | — | proptest | test | 1 |
+| INV-GUIDANCE-005 | V:PROP | — | proptest | test | 4 |
+| INV-GUIDANCE-006 | V:PROP | V:KANI | proptest + kani | test + kani | 2 |
+| INV-GUIDANCE-007 | V:PROP | — | proptest | test | 0 |
+
+#### BUDGET (5 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-BUDGET-001 | V:PROP | V:KANI | proptest + kani | test + kani | 1 |
+| INV-BUDGET-002 | V:PROP | — | proptest | test | 1 |
+| INV-BUDGET-003 | V:PROP | V:KANI | proptest + kani | test + kani | 1 |
+| INV-BUDGET-004 | V:PROP | — | proptest | test | 1 |
+| INV-BUDGET-005 | V:PROP | — | proptest | test | 1 |
+
+#### INTERFACE (7 INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-INTERFACE-001 | V:PROP | — | proptest | test | 0 |
+| INV-INTERFACE-002 | V:PROP | — | proptest | test | 0 |
+| INV-INTERFACE-003 | V:PROP | V:TYPE | proptest + rustc | test + compile | 0 |
+| INV-INTERFACE-004 | V:PROP | — | proptest | test | 1 |
+| INV-INTERFACE-005 | V:PROP | — | proptest | test | 4 |
+| INV-INTERFACE-006 | V:PROP | — | proptest | test | 3 |
+| INV-INTERFACE-007 | V:PROP | — | proptest | test | 1 |
+
+### §16.2 CI Pipeline Gates
+
+Every commit runs through a staged verification pipeline:
+
+```
+Gate 1: compile           — cargo check --all-targets
+                            Checks: V:TYPE (all typestate patterns compile)
+                            Time: <30s
+
+Gate 2: test              — cargo test
+                            Checks: V:PROP (all proptest properties hold)
+                            Coverage: 104/104 INVs have proptest strategies
+                            Time: <5m (proptest default: 256 cases per property)
+
+Gate 3: kani              — cargo kani
+                            Checks: V:KANI (bounded model checking)
+                            Coverage: 42 INVs with critical-path verification
+                            Time: <15m (bounded; unwind limit configurable)
+
+Gate 4: model             — cargo test --features stateright
+                            Checks: V:MODEL (protocol model checking)
+                            Coverage: 15 INVs with protocol safety/liveness
+                            Time: <30m (state space exploration)
+
+Gate 5: miri (optional)   — cargo +nightly miri test
+                            Checks: V:MIRI (undefined behavior detection)
+                            Coverage: all unsafe code paths
+                            Time: <10m
+```
+
+**Gate progression**: Gates 1–2 run on every commit. Gate 3 runs on PRs targeting main.
+Gate 4 runs nightly or on protocol-affecting changes. Gate 5 runs on any `unsafe` code changes.
+
+**Failure handling**: A gate failure blocks merge. The implementing agent must fix the
+failing invariant before proceeding. Gate failures are recorded as datoms (CO-011).
+
+### §16.3 Typestate Encoding Catalog
+
+Protocols enforced at compile time via Rust's type system (zero runtime cost):
+
+| Protocol | Types | Transitions | INV |
+|----------|-------|-------------|-----|
+| Transaction lifecycle | `Building → Committed → Applied` | `commit()`, `apply()` | INV-STORE-001 |
+| EntityId construction | `EntityId(hash)` — no public constructor from arbitrary bytes | content-addressed only | INV-STORE-002 |
+| Store immutability | `&Store` for reads, `&mut Store` only via `transact`/`merge` | borrow checker | INV-STORE-005 |
+| Schema attribute | `Attribute` newtype — cannot confuse with raw strings | type-safe attribute refs | INV-SCHEMA-003 |
+| Schema monotonicity | `SchemaEvolution(datoms)` — no `DROP` or `ALTER DELETE` | append-only by type | INV-SCHEMA-004 |
+| Query mode | `QueryMode::Monotonic \| Stratified(Frontier) \| Barriered(BarrierId)` | parse-time enforcement | INV-QUERY-005 |
+| FFI boundary | `FfiFunction` trait with `pure` marker — host-language functions can't mutate store | type-level purity | INV-QUERY-006 |
+| Resolution mode | `ResolutionMode` enum — exhaustive match required | compile-time completeness | INV-RESOLUTION-001 |
+| MCP tool set | `const MCP_TOOLS: [MCPTool; 9]` — fixed-size array | compile-time tool count | INV-INTERFACE-003 |
+
+### §16.4 Deductive Verification Candidates
+
+Invariants where deductive verification (Verus/Creusot) would provide mathematical proof
+of correctness, justifying the higher cost:
+
+| INV | Property | Justification |
+|-----|----------|---------------|
+| INV-STORE-004 | CRDT commutativity: `S₁ ∪ S₂ = S₂ ∪ S₁` | Foundational — all merge correctness depends on this. Proof by construction (set union) but a formal proof would close the loop. |
+| INV-STORE-005 | CRDT associativity: `(S₁ ∪ S₂) ∪ S₃ = S₁ ∪ (S₂ ∪ S₃)` | Same justification as commutativity. |
+| INV-STORE-006 | CRDT idempotency: `S ∪ S = S` | Completes the CRDT law triad. |
+| INV-MERGE-001 | Merge preserves all datoms: `S ⊆ merge(S, S')` | Critical safety — no data loss during merge. |
+| INV-RESOLUTION-005 | LWW commutativity | Per-attribute resolution correctness. |
+
+**Recommendation**: Defer deductive verification to post-Stage 2. The cost is high
+and the properties are well-served by proptest + Kani during initial implementation.
+Pursue deductive proofs when the implementation stabilizes.
+
+### §16.5 Verification Statistics
+
+| Metric | Count | Coverage |
+|--------|-------|----------|
+| Total invariants | 104 | — |
+| With V:PROP (minimum) | 104 | 100% |
+| With V:KANI | 42 | 40.4% |
+| With V:MODEL | 15 | 14.4% |
+| With V:TYPE | 11 | 10.6% |
+| Stage 0 invariants | 62 | 59.6% |
+| Stage 1 invariants | 17 | 16.3% |
+| Stage 2 invariants | 17 | 16.3% |
+| Stage 3 invariants | 6 | 5.8% |
+| Stage 4 invariants | 2 | 1.9% |
+
+---
+
+## §17. Cross-Reference Index
+
+> **Purpose**: Maps every element to its source documents, tracks inter-invariant
+> dependencies, and provides stage-based views for implementation planning.
+
+### §17.1 Namespace → SEED.md → ADRS.md
+
+| Namespace | SEED.md §§ | ADRS.md Categories | Primary Concerns |
+|-----------|------------|---------------------|-----------------|
+| STORE | §4, §9, §11 | FD-001–012, AS-001–010, SR-001–011, PD-001–004, PO-001, PO-012 | Append-only datom store, CRDT merge, content identity, HLC ordering, indexes |
+| SCHEMA | §4 | SR-008–010, FD-005, FD-008 | 17 axiomatic attributes, genesis, schema-as-data, six-layer architecture |
+| QUERY | §4 | FD-003, SQ-001–010, PO-013, AS-007 | Datalog, CALM, six strata, FFI boundary, significance tracking |
+| RESOLUTION | §4 | FD-005, CR-001–006 | Per-attribute resolution, conflict predicate, three-tier routing |
+| HARVEST | §5 | LM-005–006, LM-012–013, IB-012, CR-005 | Epistemic gap detection, pipeline, FP/FN calibration, proactive warnings |
+| SEED | §5, §8 | IB-010, PO-002–003, PO-014, GU-003–004, SQ-007 | Associate→query→assemble, dynamic CLAUDE.md, rate-distortion, projection pyramid |
+| MERGE | §6 | AS-001, AS-003–006, PD-001, PD-004, PO-006–007 | Set-union merge, branching G-Set, W_α, merge cascade, competing branch lock |
+| SYNC | §6 | PO-010, SQ-001, SQ-004, PD-005 | Consistent cut, barrier protocol, topology independence |
+| SIGNAL | §6 | PO-004–005, PO-008, CR-002–003, AS-009, CO-003 | Eight signal types, dispatch, subscription, diamond lattice signals |
+| BILATERAL | §3, §6 | CO-004, CO-008–010, SQ-006, AS-006, CO-011 | Adjunction, fitness function, five-point coherence, bilateral symmetry |
+| DELIBERATION | §6 | CR-004–005, CR-007, PO-007, AS-002, AA-001 | Three entity types, stability guard, precedent, commitment weight |
+| GUIDANCE | §7, §8 | GU-001–008, IB-006 | Comonad, basin competition, six anti-drift mechanisms, spec-language |
+| BUDGET | §8 | IB-004–007, IB-011, SQ-007 | k* measurement, Q(t), precedence, projection pyramid, rate-distortion |
+| INTERFACE | §8 | IB-001–003, IB-008–009, IB-012, SR-011, AA-003 | Five layers, CLI modes, MCP tools, TUI, statusline, harvest warning |
+
+### §17.2 Invariant Dependency Graph
+
+Key inter-invariant dependencies (an edge A → B means B depends on A holding):
+
+```
+INV-STORE-001 (append-only) ──→ INV-MERGE-001 (merge preserves)
+                              ──→ INV-HARVEST-001 (harvest commits to store)
+                              ──→ INV-SCHEMA-004 (schema monotonicity)
+
+INV-STORE-002 (content identity) ──→ INV-STORE-006 (idempotency)
+                                  ──→ INV-MERGE-001 (deduplication)
+
+INV-STORE-004/005/006 (CRDT laws) ──→ INV-MERGE-002 (merge cascade)
+                                    ──→ INV-SYNC-001 (consistent cut)
+                                    ──→ INV-BILATERAL-001 (convergence)
+
+INV-STORE-008 (HLC monotonicity) ──→ INV-STORE-009 (frontier durability)
+                                   ──→ INV-SYNC-003 (topology independence)
+
+INV-SCHEMA-001 (genesis) ──→ INV-SCHEMA-002 (self-description)
+                           ──→ INV-STORE-014 (every command is transaction)
+
+INV-QUERY-001 (CALM) ──→ INV-SYNC-001 (barriers for non-monotonic)
+                       ──→ INV-RESOLUTION-003 (conservative detection)
+
+INV-RESOLUTION-004 (conflict predicate) ──→ INV-SIGNAL-004 (severity routing)
+                                          ──→ INV-DELIBERATION-001 (deliberation entry)
+
+INV-HARVEST-001 (epistemic gap) ──→ INV-SEED-001 (seed from store)
+                                  ──→ INV-BILATERAL-001 (convergence)
+
+INV-GUIDANCE-001 (continuous injection) ──→ INV-BUDGET-004 (compression by budget)
+                                         ──→ INV-INTERFACE-007 (harvest warning)
+
+INV-BILATERAL-001 (convergence) ──→ INV-DELIBERATION-001 (deliberation convergence)
+                                  ──→ INV-GUIDANCE-004 (drift detection)
+```
+
+**Dependency depth** (longest chain from leaf to root):
+- Depth 0: INV-STORE-001/002/008, INV-SCHEMA-001, INV-QUERY-001
+- Depth 1: INV-STORE-004–006, INV-STORE-009, INV-MERGE-001, INV-SCHEMA-002
+- Depth 2: INV-MERGE-002, INV-SYNC-001, INV-BILATERAL-001, INV-HARVEST-001
+- Depth 3: INV-SEED-001, INV-DELIBERATION-001, INV-GUIDANCE-001
+- Depth 4: INV-BUDGET-004, INV-INTERFACE-007
+
+This confirms the implementation order: STORE → SCHEMA → QUERY → RESOLUTION → HARVEST
+→ SEED → MERGE → SYNC → SIGNAL → BILATERAL → DELIBERATION → GUIDANCE → BUDGET → INTERFACE.
+
+### §17.3 Stage Mapping
+
+#### Stage 0 — Harvest/Seed Cycle (62 INV, core)
+
+The foundational layer. Must be complete before any other stage.
+
+**Namespaces fully included**: STORE (13/14 INV), SCHEMA (8/8), HARVEST (8/8), SEED (4/6)
+**Namespaces partially included**: QUERY (5/11), RESOLUTION (5/8), MERGE (2/8), GUIDANCE (3/7), INTERFACE (3/7)
+**Namespaces excluded**: SYNC, SIGNAL, BILATERAL, DELIBERATION, BUDGET
+
+**Success criterion**: Work 25 turns, harvest, start fresh with seed — new session
+picks up without manual re-explanation. First act: migrate SPEC.md elements as datoms.
+
+#### Stage 1 — Budget-Aware Output + Guidance Injection (17 INV)
+
+Builds on Stage 0 with attention budget management and enhanced guidance.
+
+**New capabilities**: Q(t) measurement, output precedence, guidance compression,
+harvest warnings, statusline bridge, significance tracking, frontier-scoped queries,
+bilateral loop (basic), signal processing (confusion only).
+
+**Key invariants**: INV-BUDGET-001–005, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005,
+INV-INTERFACE-004/007, INV-QUERY-003/008–009, INV-SIGNAL-002.
+
+#### Stage 2 — Branching + Deliberation (17 INV)
+
+Adds isolated workspaces, competing proposals, and structured conflict resolution.
+
+**New capabilities**: W_α working set, patch branches, branch comparison, deliberation
+lifecycle, precedent queries, stability guard, lookahead via branch simulation,
+bilateral symmetry, diamond lattice signal generation.
+
+**Key invariants**: INV-STORE-013, INV-MERGE-002–007, INV-SEED-006,
+INV-DELIBERATION-001–006, INV-SIGNAL-005, INV-GUIDANCE-006, INV-BILATERAL-003.
+
+#### Stage 3 — Multi-Agent Coordination (6 INV)
+
+Adds multi-agent primitives: sync barriers, signal routing, subscription system.
+
+**New capabilities**: Full sync barrier protocol, eight signal types with three-tier
+routing, subscription completeness, taxonomy coverage, human signal injection.
+
+**Key invariants**: INV-SYNC-001–005, INV-SIGNAL-001/003–004/006,
+INV-RESOLUTION-003, INV-INTERFACE-006.
+
+#### Stage 4 — Advanced Intelligence (2 INV)
+
+Adds learned guidance, spectral authority, significance-weighted retrieval, TUI.
+
+**New capabilities**: Learned guidance effectiveness tracking, TUI subscription liveness.
+
+**Key invariants**: INV-GUIDANCE-005, INV-INTERFACE-005.
+
+### §17.4 Hard Constraint Traceability
+
+Every hard constraint (C1–C7) traces to specific invariants:
+
+| Constraint | Description | Enforcing Invariants |
+|------------|-------------|---------------------|
+| C1 | Append-only store | INV-STORE-001, INV-STORE-005, NEG-STORE-001 |
+| C2 | Identity by content | INV-STORE-002, NEG-STORE-002 |
+| C3 | Schema-as-data | INV-SCHEMA-003, INV-SCHEMA-004, INV-SCHEMA-008, NEG-SCHEMA-001 |
+| C4 | CRDT merge by set union | INV-STORE-003, INV-STORE-004–007, INV-MERGE-001, NEG-MERGE-001 |
+| C5 | Traceability | All elements have `Traces to` fields; INV-BILATERAL-002 (five-point coherence) |
+| C6 | Falsifiability | All INVs have `Falsification` sections; structural property of the specification |
+| C7 | Self-bootstrap | INV-SCHEMA-001 (genesis), INV-STORE-014 (every command is transaction), INV-BILATERAL-005 (test results as datoms) |
+
+### §17.5 Failure Mode Traceability
+
+Each failure mode (FAILURE_MODES.md) maps to the DDIS/Braid mechanisms that prevent it:
+
+| FM | Class | Preventing Invariants | Preventing ADRs |
+|----|-------|-----------------------|-----------------|
+| FM-001 | Knowledge loss across sessions | INV-HARVEST-001–005, INV-SEED-001–004, INV-INTERFACE-007 | ADR-HARVEST-001, ADR-SEED-001 |
+| FM-002 | Provenance fabrication | INV-STORE-014 (every command is tx), INV-SIGNAL-001 (signal as datom) | ADR-STORE-008 (provenance typing) |
+| FM-003 | Anchoring bias in analysis scope | INV-SEED-001 (full store query), INV-BILATERAL-003 (bilateral symmetry) | ADR-SEED-002 (priority scoring) |
+| FM-004 | Cascading incompleteness | INV-BILATERAL-001 (convergence), INV-DELIBERATION-002 (stability guard) | ADR-DELIBERATION-004 (crystallization guard) |
+
+---
+
+## Appendix A: Element Count Summary (Complete)
 
 | Namespace | INV | ADR | NEG | Total | Wave |
 |-----------|-----|-----|-----|-------|------|
@@ -7397,17 +8101,26 @@ Cross-Reference Index) will be produced in a subsequent session.*
 | INTERFACE | 7   | 3   | 3   | 13    | 3    |
 | **Total** | **104** | **63** | **41** | **208** |      |
 
-## Appendix B: Verification Coverage (Waves 1–3)
+**Additional Wave 4 content**: 10 uncertainty entries (§15), 104-row verification matrix (§16),
+14-namespace cross-reference index with dependency graph and stage mapping (§17).
 
-| Tag | Count | Namespaces |
-|-----|-------|------------|
-| V:PROP | 104/104 INVs | All (minimum requirement met) |
-| V:KANI | 42 | STORE (10), SCHEMA (3), QUERY (3), RESOLUTION (6), HARVEST (3), SEED (2), MERGE (4), SYNC (1), SIGNAL (3), DELIBERATION (3), GUIDANCE (1), BUDGET (3), INTERFACE (0) |
-| V:MODEL | 15 | STORE (1), QUERY (1), RESOLUTION (3), MERGE (2), SYNC (3), BILATERAL (1), DELIBERATION (2), SIGNAL (0), GUIDANCE (0), BUDGET (0), INTERFACE (0) |
-| V:TYPE | 10 | STORE (2), SCHEMA (2), QUERY (3), RESOLUTION (2), INTERFACE (1) |
-| V:CONTRACT | 0 | (Applied during implementation, not spec) |
-| V:DEDUCTIVE | 0 | (Candidate: INV-STORE-004/005/006 — CRDT laws) |
-| V:MIRI | 0 | (Applied during implementation for unsafe code) |
+## Appendix B: Verification Statistics (Final)
+
+| Metric | Count | Coverage |
+|--------|-------|----------|
+| Total INVs | 104 | — |
+| V:PROP (minimum) | 104/104 | 100.0% |
+| V:KANI (critical) | 42/104 | 40.4% |
+| V:MODEL (protocol) | 15/104 | 14.4% |
+| V:TYPE (compile-time) | 11/104 | 10.6% |
+| V:DEDUCTIVE (candidate) | 5 | Deferred to post-Stage 2 |
+| Stage 0 INVs | 62 | 59.6% |
+| Stage 1 INVs | 17 | 16.3% |
+| Stage 2 INVs | 17 | 16.3% |
+| Stage 3 INVs | 6 | 5.8% |
+| Stage 4 INVs | 2 | 1.9% |
+| Uncertainty markers | 10 | — |
+| High-urgency uncertainties | 3 | Resolve during Stage 0 |
 
 ## Appendix C: Stage 0 Elements
 
@@ -7416,29 +8129,28 @@ Elements required for Stage 0 (Harvest/Seed cycle):
 | Element | Namespace | Summary |
 |---------|-----------|---------|
 | INV-STORE-001–012, 014 | STORE | Core store operations |
-| INV-SCHEMA-001–007 | SCHEMA | Schema bootstrap |
+| INV-SCHEMA-001–008 | SCHEMA | Schema bootstrap (all 8) |
 | INV-QUERY-001–002, 005–007 | QUERY | Core query engine |
-| INV-RESOLUTION-001–002, 004–008 | RESOLUTION | Basic conflict handling |
-| INV-HARVEST-001–005, 007 | HARVEST | Harvest pipeline and warnings |
+| INV-RESOLUTION-001–002, 004–006, 008 | RESOLUTION | Basic conflict handling |
+| INV-HARVEST-001–008 | HARVEST | Full harvest pipeline |
 | INV-SEED-001–004 | SEED | Seed assembly pipeline |
-| INV-MERGE-001–002, 008 | MERGE | Core merge (no branching) |
+| INV-MERGE-001, 008 | MERGE | Core merge (no branching) |
 | INV-GUIDANCE-001–002, 007 | GUIDANCE | Injection, spec-language, dynamic CLAUDE.md |
 | INV-INTERFACE-001–003 | INTERFACE | CLI modes, MCP wrapper, nine tools |
 | ADR-STORE-001–012 | STORE | Foundation decisions |
-| ADR-SCHEMA-001–003 | SCHEMA | Schema decisions |
+| ADR-SCHEMA-001–004 | SCHEMA | Schema decisions |
 | ADR-QUERY-001–003, 005–006 | QUERY | Query engine decisions |
 | ADR-RESOLUTION-001–004 | RESOLUTION | Resolution decisions |
-| ADR-HARVEST-001–003 | HARVEST | Harvest decisions |
+| ADR-HARVEST-001–004 | HARVEST | Harvest decisions |
 | ADR-SEED-001–003 | SEED | Seed decisions |
 | ADR-MERGE-001 | MERGE | Core merge decision |
-| ADR-SYNC-001 | SYNC | Barrier as optional coordination |
 | ADR-GUIDANCE-002, 004 | GUIDANCE | Basin competition, spec-language |
 | ADR-INTERFACE-001–003 | INTERFACE | Layers, agent-mode, trajectory |
 | NEG-STORE-001–005 | STORE | Store safety |
 | NEG-SCHEMA-001–003 | SCHEMA | Schema safety |
 | NEG-QUERY-001–004 | QUERY | Query safety |
 | NEG-RESOLUTION-001–003 | RESOLUTION | Resolution safety |
-| NEG-HARVEST-001–002 | HARVEST | Harvest safety |
+| NEG-HARVEST-001–003 | HARVEST | Harvest safety |
 | NEG-SEED-001–002 | SEED | Seed safety |
 | NEG-MERGE-001, 003 | MERGE | Merge safety (no data loss, no W_α leak) |
 | NEG-GUIDANCE-001 | GUIDANCE | No tool response without footer |
