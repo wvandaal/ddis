@@ -1402,7 +1402,7 @@ Transition graph with no dead-ends: passes. Graph with one dead-end: reports it.
 
 ---
 
-## Chapter 8: Cleanroom Audit — Manifest Integrity
+### Manifest Integrity
 
 **APP-INV-099: Manifest Mutation via Structured Serialization**
 
@@ -1417,8 +1417,6 @@ Violation scenario: crystallize command appends a registry entry via string conc
 Validation: Round-trip test: parse manifest, mutate AST, serialize, parse again, verify equality. Concurrent test: two parallel crystallize calls, verify both entries present and YAML valid.
 
 // WHY THIS MATTERS: The manifest is the spec's structural skeleton (APP-ADR-010). Corrupting it via string manipulation breaks parse (APP-INV-001), module resolution, and the entire bilateral lifecycle. The crystallize command is the primary spec authoring path (APP-INV-088) — it must be safe.
-
----
 
 ### APP-ADR-075: Structured YAML Serialization for Manifest Mutations
 
@@ -1442,9 +1440,7 @@ Round-trip: parse manifest, add entry, serialize, parse again. Concurrent: two p
 
 ---
 
-## Chapter 9: Cleanroom Audit Round 2 — Witness and Drift Integrity
-
-### §L.9.1 Witness ID Stability
+### Witness and Drift Integrity
 
 **APP-INV-107: Witness ID stability under upsert**
 
@@ -1461,10 +1457,6 @@ Validation: Test: insert witness, insert challenge referencing it, upsert witnes
 
 // WHY THIS MATTERS: Without ID stability, the witness-challenge adjunction breaks. Challenges become orphaned, Check 17 fails, and the bilateral verification loop is severed.
 
----
-
-### §L.9.2 Drift Contradiction Integration
-
 **APP-INV-106: Drift contradiction integration**
 
 *The drift analysis formula must integrate contradictions detected by the consistency checker, not leave the contradictions counter at zero. The 2x penalty for contradictions in the drift formula must be exercised.*
@@ -1478,10 +1470,6 @@ Violation scenario: drift.go declares `contradictions := 0` but never increments
 Validation: Test: create spec with contradictory invariants, run drift analysis, verify contradictions > 0 and drift score includes 2x penalty.
 
 // WHY THIS MATTERS: Contradictions are the most severe form of drift — a spec that contradicts itself is worse than one with missing elements. The 2x penalty exists for this reason but is dead code.
-
----
-
-### §L.9.3 Witness Upsert Architecture
 
 ### APP-ADR-077: ON CONFLICT DO UPDATE for witness upsert
 

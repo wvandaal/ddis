@@ -169,6 +169,26 @@ Validation: Create 3 test specs: one passing only Level 1, one passing Levels 1-
 
 ---
 
+**APP-INV-112: Module-Level Dependency Ordering**
+
+*The impl-order and progress commands must derive a non-trivial dependency DAG from module relationships. Modules are ordered by their adjacent declarations: if module A lists module B in its adjacent array, A depends on B. Invariants are assigned to phases based on which module maintains them. Cycles are broken by SCC condensation.*
+
+```
+let G = (Modules, {(A, B) | B in A.adjacent})
+let SCC(G) = {C_1, ..., C_k} be the condensation DAG
+impl-order: phase(C_i) < phase(C_j) iff C_i ->* C_j in SCC(G)
+forall invariant I maintained by module in C_i: phase(I) = phase(C_i)
+progress: blocked(I) iff exists C_j with phase(C_j) < phase(C_i) and exists I' in C_j with status != done
+```
+
+Violation scenario: Two modules exist: parse-pipeline (adjacent: []) and query-validation (adjacent: [parse-pipeline]). Run `ddis impl-order`. All invariants appear in Phase 0 because no edges exist. parse-pipeline invariants should be Phase 0, query-validation invariants Phase 1.
+
+Validation: Test with 3 modules in a chain: A (no deps), B (adjacent: [A]), C (adjacent: [B]). Verify A's invariants are Phase 0, B's are Phase 1, C's are Phase 2. Test with cycle: X (adjacent: [Y]) and Y (adjacent: [X]). Verify X and Y invariants share a phase (SCC condensation).
+
+// WHY THIS MATTERS: Without dependency ordering, both `impl-order` and `progress` give trivially flat output — every invariant is Phase 0 / "ready". This makes the commands useless for planning. Module-level ordering captures the architectural reality that parsing must exist before validation, validation before lifecycle ops, etc. The `adjacent` relationship already encodes this information in every module's frontmatter. Related: APP-INV-039 (Task Derivation Completeness), APP-INV-040 (Progressive Validation Monotonicity).
+
+---
+
 ## Architecture Decision Records
 
 ---
@@ -324,6 +344,30 @@ C) **Markdown only** --- human-readable but not machine-importable.
 - Generate tasks with `--format markdown`; verify human-readable output
 - Generate tasks with dependencies; verify edges match `implementation_map.phases`
 - Generate tasks from all 8 artifact types; verify task count matches derivation rules
+
+---
+
+### APP-ADR-080: Module-Level DAG with SCC Cycle Breaking
+
+#### Problem
+
+Both `impl-order` and `progress` attempt invariant-level dependency graphs. Interface relationships between modules create cycles (module A interfaces module B's invariants, B interfaces A's), making invariant-level topological sort impossible. The current workaround is to emit no edges, resulting in a single flat phase containing all invariants.
+
+#### Options
+
+A) Module-level DAG from adjacent declarations with SCC condensation for cycles. B) Invariant-level DAG with cycle detection and arbitrary edge removal. C) Domain-level ordering with fixed precedence table (parsing < validation < lifecycle < workspace).
+
+#### Decision
+
+**Option A: Module-level DAG with SCC condensation.** Build a directed graph where modules are nodes and `adjacent` relationships form edges (A lists B means A depends on B). Compute SCCs using Tarjan's algorithm. Condense each SCC into a single super-node. Topologically sort the condensation DAG. Assign phases to invariants based on their maintaining module's SCC position. Within an SCC, order by authority score (PageRank). This is algebraically correct: the condensation of any directed graph is guaranteed to be a DAG, and Kahn's algorithm on the condensation yields a valid topological order.
+
+#### Consequences
+
+The empty graph problem is eliminated. Module ordering matches the natural architecture (parsing before validation before lifecycle). Cycles from bidirectional interfaces are absorbed into SCCs and resolved by authority score rather than arbitrary edge removal. The `adjacent` field in module frontmatter gains semantic weight — it is no longer decorative but determines implementation priority. Existing modules already declare meaningful adjacent relationships, so no spec changes are needed beyond this ADR.
+
+#### Tests
+
+1. Linear chain: A → B → C. Verify 3 phases. 2. Cycle: X ↔ Y. Verify SCC condensation produces 1 combined phase. 3. Diamond: A → B, A → C, B → D, C → D. Verify A=Phase 0, {B,C}=Phase 1, D=Phase 2. 4. No adjacent declarations: all modules Phase 0 (backward compatible).
 
 ---
 
@@ -991,46 +1035,5 @@ New command: ddis manifest scaffold. New state transition: T_manifest_scaffold. 
 Scaffold 3-module manifest: verify 3 files with correct frontmatter. Re-run scaffold: all 3 skipped (idempotent). manifest sync on scaffolded files: round-trip matches.
 
 ---
-
-## Chapter 7: Cleanroom Audit Round 3 — Module-Level Dependency Ordering
-
-The `impl-order` and `progress` commands both declare Kahn's topological sort but operate on an empty dependency graph. The `module_relationships` table contains `maintains`, `interfaces`, `implements`, and `adjacent` relationships from manifest frontmatter, but neither command derives invariant-to-invariant edges from them. The original code comments explain that "interface relationships cause cycles when two modules interface each other's maintained invariants." The solution is to operate at the module level (using `adjacent` as directed dependency) rather than the invariant level, then flatten phases by module membership.
-
-**APP-INV-112: Module-Level Dependency Ordering**
-
-*The impl-order and progress commands must derive a non-trivial dependency DAG from module relationships. Modules are ordered by their adjacent declarations: if module A lists module B in its adjacent array, A depends on B. Invariants are assigned to phases based on which module maintains them. Cycles are broken by SCC condensation.*
-
-```
-let G = (Modules, {(A, B) | B in A.adjacent})
-let SCC(G) = {C_1, ..., C_k} be the condensation DAG
-impl-order: phase(C_i) < phase(C_j) iff C_i ->* C_j in SCC(G)
-forall invariant I maintained by module in C_i: phase(I) = phase(C_i)
-progress: blocked(I) iff exists C_j with phase(C_j) < phase(C_i) and exists I' in C_j with status != done
-```
-
-Violation scenario: Two modules exist: parse-pipeline (adjacent: []) and query-validation (adjacent: [parse-pipeline]). Run `ddis impl-order`. All invariants appear in Phase 0 because no edges exist. parse-pipeline invariants should be Phase 0, query-validation invariants Phase 1.
-
-Validation method: Test with 3 modules in a chain: A (no deps), B (adjacent: [A]), C (adjacent: [B]). Verify A's invariants are Phase 0, B's are Phase 1, C's are Phase 2. Test with cycle: X (adjacent: [Y]) and Y (adjacent: [X]). Verify X and Y invariants share a phase (SCC condensation).
-
-Why this matters: Without dependency ordering, both `impl-order` and `progress` give trivially flat output — every invariant is Phase 0 / "ready". This makes the commands useless for planning. Module-level ordering captures the architectural reality that parsing must exist before validation, validation before lifecycle ops, etc. The `adjacent` relationship already encodes this information in every module's frontmatter. Related: APP-INV-039 (Task Derivation Completeness), APP-INV-040 (Progressive Validation Monotonicity).
-
----
-
-### APP-ADR-080: Module-Level DAG with SCC Cycle Breaking
-
-#### Problem
-Both `impl-order` and `progress` attempt invariant-level dependency graphs. Interface relationships between modules create cycles (module A interfaces module B's invariants, B interfaces A's), making invariant-level topological sort impossible. The current workaround is to emit no edges, resulting in a single flat phase containing all invariants.
-
-#### Options
-A) Module-level DAG from adjacent declarations with SCC condensation for cycles. B) Invariant-level DAG with cycle detection and arbitrary edge removal. C) Domain-level ordering with fixed precedence table (parsing < validation < lifecycle < workspace).
-
-#### Decision
-**Option A: Module-level DAG with SCC condensation.** Build a directed graph where modules are nodes and `adjacent` relationships form edges (A lists B means A depends on B). Compute SCCs using Tarjan's algorithm. Condense each SCC into a single super-node. Topologically sort the condensation DAG. Assign phases to invariants based on their maintaining module's SCC position. Within an SCC, order by authority score (PageRank). This is algebraically correct: the condensation of any directed graph is guaranteed to be a DAG, and Kahn's algorithm on the condensation yields a valid topological order.
-
-#### Consequences
-The empty graph problem is eliminated. Module ordering matches the natural architecture (parsing before validation before lifecycle). Cycles from bidirectional interfaces are absorbed into SCCs and resolved by authority score rather than arbitrary edge removal. The `adjacent` field in module frontmatter gains semantic weight — it is no longer decorative but determines implementation priority. Existing modules already declare meaningful adjacent relationships, so no spec changes are needed beyond this ADR.
-
-#### Tests
-1. Linear chain: A → B → C. Verify 3 phases. 2. Cycle: X ↔ Y. Verify SCC condensation produces 1 combined phase. 3. Diamond: A → B, A → C, B → D, C → D. Verify A=Phase 0, {B,C}=Phase 1, D=Phase 2. 4. No adjacent declarations: all modules Phase 0 (backward compatible).
 
 ---

@@ -566,6 +566,22 @@ Validation: Conduct a discovery session with a test user who has never seen the 
 
 ---
 
+**APP-INV-102: LLM Confidence Constant Centralization**
+
+*All LLM-based majority vote confidence calculations MUST use centralized constants. For N-of-M agreement, the confidence value MUST be identical regardless of which module (witness evaluation, consistency checking, or any future LLM tier) computes it. Specifically: unanimous (3/3) = 0.95, majority (2/3) = 0.80.*
+
+```
+Let conf: (agreement, total) -> [0,1] be the confidence function. conf is a SINGLE function shared by all modules. For all callers c1, c2: conf_c1(k, n) = conf_c2(k, n). Currently violated: conf_eval(2,3) = 0.75 != conf_llm(2,3) = 0.80.
+```
+
+Violation scenario: Witness eval records a 2/3 agreement witness with confidence 0.75. Consistency checker finds the same pair with 2/3 agreement at confidence 0.80. Deduplication keeps the consistency finding even though both represent the same statistical evidence.
+
+Validation: grep for hardcoded confidence constants (0.75, 0.80, 0.85, 0.95). Verify all originate from a single source of truth. Test: call both eval and consistency with mock 2/3 agreement, verify identical confidence.
+
+// WHY THIS MATTERS: Confidence values feed into deduplication, prioritization, and report rendering. Inconsistent values create ordering anomalies where identical evidence is ranked differently based on the code path, violating statistical soundness (APP-INV-055).
+
+---
+
 ## Formal Algorithm Specifications
 
 This section specifies the four core algorithms that power the auto-prompting module. Each algorithm is fully specified with typed inputs, typed outputs, numbered steps, and worked examples with concrete data. These algorithms are the mechanical core --- everything else in this module is orchestration around them.
@@ -824,6 +840,24 @@ The plateau condition prevents premature convergence: a single zero-delta iterat
 **Implementation Trace:**
 - Source: `internal/refine/judge.go::isConverged`
 - Source: `internal/refine/judge.go::Judge`
+
+### Confidence Scoring Fidelity
+
+**APP-INV-109: Refine confidence floating-point fidelity**
+
+*Confidence dimension scores in the RALPH refinement loop must use floating-point intermediate arithmetic to avoid integer division truncation that distorts dimension selection.*
+
+```
+forall d in dimensions:
+  |score_float(d) - score_int(d)| < 0.5
+  where score_float uses float64 division and score_int uses integer division
+```
+
+Violation scenario: deriveConfidence computes `10 * numerator / denominator` using Go integer division. For 1/3, this yields 3 instead of 3.33, causing the wrong dimension to be selected for improvement.
+
+Validation: Test: deriveConfidence with CompleteElements=1, TotalElements=3; verify coverage score is 3 (rounded), not 3 (truncated from 3.33).
+
+// WHY THIS MATTERS: The RALPH loop selects the weakest dimension for improvement. Integer truncation can make two dimensions appear equally weak when one is clearly weaker, causing the wrong dimension to be targeted.
 
 ---
 
@@ -2263,43 +2297,5 @@ A) Auto-resolve from manifest maintains mapping. B) Prompt user for module. C) D
 Crystallize with owner lifecycle-ops, no --module: resolves to lifecycle-ops. Domain matching 2 modules: error with candidates.
 
 ---
-
-## Chapter 6: Cleanroom Audit — LLM Confidence Integrity
-
-**APP-INV-102: LLM Confidence Constant Centralization**
-
-*All LLM-based majority vote confidence calculations MUST use centralized constants. For N-of-M agreement, the confidence value MUST be identical regardless of which module (witness evaluation, consistency checking, or any future LLM tier) computes it. Specifically: unanimous (3/3) = 0.95, majority (2/3) = 0.80.*
-
-```
-Let conf: (agreement, total) -> [0,1] be the confidence function. conf is a SINGLE function shared by all modules. For all callers c1, c2: conf_c1(k, n) = conf_c2(k, n). Currently violated: conf_eval(2,3) = 0.75 != conf_llm(2,3) = 0.80.
-```
-
-Violation scenario: Witness eval records a 2/3 agreement witness with confidence 0.75. Consistency checker finds the same pair with 2/3 agreement at confidence 0.80. Deduplication keeps the consistency finding even though both represent the same statistical evidence.
-
-Validation: grep for hardcoded confidence constants (0.75, 0.80, 0.85, 0.95). Verify all originate from a single source of truth. Test: call both eval and consistency with mock 2/3 agreement, verify identical confidence.
-
-// WHY THIS MATTERS: Confidence values feed into deduplication, prioritization, and report rendering. Inconsistent values create ordering anomalies where identical evidence is ranked differently based on the code path, violating statistical soundness (APP-INV-055).
-
----
-
-## Chapter 7: Cleanroom Audit Round 2 — Refinement Confidence Fidelity
-
-### §AP.7.1 Floating-Point Confidence Scoring
-
-**APP-INV-109: Refine confidence floating-point fidelity**
-
-*Confidence dimension scores in the RALPH refinement loop must use floating-point intermediate arithmetic to avoid integer division truncation that distorts dimension selection.*
-
-```
-forall d in dimensions:
-  |score_float(d) - score_int(d)| < 0.5
-  where score_float uses float64 division and score_int uses integer division
-```
-
-Violation scenario: deriveConfidence computes `10 * numerator / denominator` using Go integer division. For 1/3, this yields 3 instead of 3.33, causing the wrong dimension to be selected for improvement.
-
-Validation: Test: deriveConfidence with CompleteElements=1, TotalElements=3; verify coverage score is 3 (rounded), not 3 (truncated from 3.33).
-
-// WHY THIS MATTERS: The RALPH loop selects the weakest dimension for improvement. Integer truncation can make two dimensions appear equally weak when one is clearly weaker, causing the wrong dimension to be targeted.
 
 ---

@@ -976,6 +976,48 @@ The `Causes` field enables causal DAG construction (APP-INV-074). The `Version` 
 
 Extended validation for content-bearing events: all existing rules (ID, Timestamp, Type, Stream) remain, plus content events must have non-empty Payload with all required fields, Causes references must resolve to existing events, and content events must not duplicate element IDs (except update/supersede types).
 
+### ADR Options Round-Trip Fidelity
+
+The event-sourcing pipeline must preserve ADR options across the full round-trip: parse → store → import → event → materialize → project. The parser correctly extracts options into the `adr_options` table during the initial parse phase. However, the import command must query this table, the event payload must carry structured options, and the materializer must reconstitute options from the payload.
+
+**APP-INV-110: ADR Options Round-Trip Fidelity**
+
+*ADR options stored in the adr_options table during parse must survive the complete event-sourcing round-trip: import, event emission, materialize, project, rendered markdown. No option label, name, pros, cons, is_chosen, or why_not field may be lost during the cycle.*
+
+```
+forall ADR A with options O = {o_1, ..., o_n} in parsed DB:
+  let E = import(A).payload.Options
+  let O' = materialize(E).adr_options
+  |O| = |O'|
+  forall o_i in O: exists o'_j in O' where
+    o_i.label = o'_j.label AND o_i.name = o'_j.name AND o_i.is_chosen = o'_j.is_chosen
+```
+
+Violation scenario: Parse a spec with ADR containing 3 options (A, B, C) with pros/cons. Export via `ddis import`, materialize the resulting events, query `adr_options` — the table is empty. Options are silently dropped during import because the query does not JOIN on `adr_options`.
+
+Validation: Round-trip test: parse spec with multi-option ADR → import to events → materialize events → count rows in `adr_options`. Assert `COUNT(adr_options WHERE adr_id = A) >= 3`.
+
+// WHY THIS MATTERS: ADR options are the deliberative record of the specification process. Losing them breaks the bilateral discourse contract — the spec no longer captures WHY alternatives were rejected, only WHAT was chosen. This degrades spec quality on every round-trip through the event pipeline. Related: APP-INV-078 (Import Equivalence), APP-INV-085 (Import Content Completeness), APP-INV-087 (Materialization Structural Fidelity).
+
+---
+
+### APP-ADR-079: ADR Options Serialization in Event Payloads
+
+#### Problem
+The `ADRPayload.Options` field is a single string but the parser stores options as normalized rows in `adr_options` (label, name, pros, cons, is_chosen, why_not). The import command does not query `adr_options`, so the Options field is always empty. The materializer does not parse the Options field back into rows. Round-trip fidelity for ADR options is zero.
+
+#### Options
+A) Serialize options as structured JSON in the Options string field; deserialize on materialize. B) Add a new `TypeADROptionAdded` event type for each individual option. C) Serialize as markdown text matching the parser's input format, so the materializer can re-parse.
+
+#### Decision
+**Option A: Structured JSON serialization.** Serialize the options array as a JSON array within the ADRPayload.Options string field. On import, query `adr_options` joined to `adrs`, serialize each option as `{"label":"A","name":"Go","pros":"...","cons":"...","is_chosen":true,"why_not":"..."}`. On materialize, deserialize the JSON array and call `InsertADROption()` for each entry. This preserves all fields without adding new event types or relying on markdown re-parsing.
+
+#### Consequences
+JSON serialization is lossless and does not require new event types, keeping the event schema stable. The materializer gains a new code path in the ADR applier to parse and store options. Existing events with empty Options strings produce no options (backward compatible). New events carry full option structure. The query and projector paths can also use `GetADROptions()` for enrichment.
+
+#### Tests
+1. Parse spec with 3-option ADR, import to events, verify Options field is non-empty JSON array. 2. Materialize those events, verify `adr_options` table has 3 rows with correct labels. 3. Import ADR with no options, verify empty Options field, materialize succeeds with no options.
+
 ---
 
 ## Chapter 2: Fold/Materialize Engine
@@ -1022,6 +1064,60 @@ materialize(log, snapshot?) -> SQLiteState
 ### Causal Sort and Error Handling
 
 Events are sorted into causal order before folding (see Chapter 5 for the full algorithm). The engine collects errors without halting: unknown types become no-ops, and all errors are reported after the fold completes.
+
+### Section Hierarchy Preservation
+
+**APP-INV-100: Event Applier Section Hierarchy Preservation**
+
+*The event fold applier MUST preserve section hierarchy when materializing events into the SQLite state. Content elements (invariants, ADRs, glossary entries, negative specs, quality gates) MUST be associated with their correct containing section via section_id. Hardcoding section_id to a constant (e.g., 0) is prohibited.*
+
+```
+Let E be a content event with payload containing section_path P. Let S be the section table after applying all section events. Then Apply(E).section_id = lookup(S, P).id. The function lookup: SectionPath -> SectionID is total over the domain of section paths present in prior section events.
+```
+
+Violation scenario: sqlApplier.InsertInvariant sets section_id=0 for all invariants. Coverage analysis queries invariants by section — returns empty. project command reconstructs modules without section structure. Validation Check 5 cannot verify invariants are in correct sections.
+
+Validation: After fold: SELECT COUNT(*) FROM invariants WHERE section_id = 0 MUST return 0. For each invariant with a section_path in its event payload, verify section_id points to the correct section row. Run ddis coverage on materialized DB — verify per-section completeness is computable.
+
+// WHY THIS MATTERS: Section hierarchy is the structural backbone of DDIS specs (§0.1 State Space). Without it, the materialized state is a flat bag of elements — losing the tree structure that enables scoped queries, module-section relationships, and structural validation. This breaks the round-trip guarantee (APP-INV-096).
+
+### Module Relationship Materialization
+
+**APP-INV-108: Module relationship materialization completeness**
+
+*The materialize fold applier must populate the module_relationships table from ModulePayload relationship arrays (maintains, interfaces, implements, adjacent), preserving the module ownership graph for projector filtering.*
+
+```
+forall m in ModulePayload:
+  |m.Maintains| + |m.Interfaces| + |m.Implements| + |m.Adjacent|
+  == |INSERT INTO module_relationships WHERE module_id = m.id|
+```
+
+Violation scenario: InsertModule receives ModulePayload with relationship arrays but only stores module_name and domain. The module_relationships table stays empty, breaking projector module filtering and APP-INV-087.
+
+Validation: Test: emit module_registered event with maintains=[INV-001], materialize, verify module_relationships row exists with rel_type=maintains and target=INV-001.
+
+// WHY THIS MATTERS: Module relationships are the structural backbone of the spec graph. Without them, cascade analysis, implementation order, and projector filtering all degrade to empty results.
+
+### APP-ADR-076: Event Schema Carries Section Path for Hierarchy Reconstruction
+
+#### Problem
+The event fold applier (sqlApplier) hardcodes section_id=0 for all content elements because events do not carry section path information. This destroys the section hierarchy that is fundamental to DDIS spec structure, making coverage analysis, section-scoped queries, and structural validation impossible on materialized state.
+
+#### Options
+Option A: Add section_path to content event payloads. During fold, look up or create the section row and use its ID. Events become self-contained.
+Option B: Run a post-fold reconciliation pass that matches elements to sections by line number or name heuristics. Fragile and lossy.
+Option C: Store section events separately and reconstruct the tree before applying content events. Requires event ordering guarantees.
+Option D: Accept section_id=0 and disable section-dependent features for materialized state. Violates round-trip (APP-INV-096).
+
+#### Decision
+**Option A: Enrich content event payloads with a section_path field.** The applier looks up the section by path (creating it if needed via a synthetic section event). This is the correct approach because it makes events self-describing and enables correct fold without external state. // WHY NOT B: Heuristic-dependent. C: Requires strict ordering. D: Unacceptable.
+
+#### Consequences
+Events become self-describing. Fold produces structurally complete state. Round-trip guarantee restored.
+
+#### Tests
+TestEventApplier_SectionHierarchy, TestFold_SectionLookup in internal/materialize/fold_test.go.
 
 ---
 
@@ -1337,6 +1433,22 @@ The pipeline exercises every content type: modules, invariants, ADRs, sections, 
 
 `StateHash(db, specID) string` computes SHA-256 over the deterministic serialization of all content tables. Rows are sorted by primary key, fields are serialized in schema order, and only content-bearing fields are included. This function is used for both snapshot verification (APP-INV-093) and structural equivalence shortcut (APP-ADR-067).
 
+### Composite Key Requirements
+
+**APP-INV-101: Structural Diff Composite Key Completeness**
+
+*The StructuralDiff function MUST use composite keys that include ALL discriminant fields when building comparison maps. For cross-references, the key MUST include (ref_type, ref_target, ref_text). Omitting any discriminant field from the key can cause silent collision and data loss in the diff output.*
+
+```
+For any table T with natural key K = (k1, k2, ..., kn), the diff map key MUST be the full tuple K. For cross_references, K = (ref_type, ref_target, ref_text). The map function m: Row -> Key is injective iff K contains all discriminant columns. If m is not injective, |image(m)| < |domain(m)| and the diff loses rows.
+```
+
+Violation scenario: diffCrossRefs uses key = target|text, omitting ref_type. Two cross-refs (type=invariant, target=APP-INV-071, text=See INV) and (type=app_invariant, target=APP-INV-071, text=See INV) collide. The second overwrites the first in the map. StateHash computed on the diff is wrong.
+
+Validation: Insert two cross-refs with same target+text but different ref_type into DB1. Insert only one into DB2. Run StructuralDiff. Verify BOTH additions are reported, not just one.
+
+// WHY THIS MATTERS: StructuralDiff is the foundation for StateHash (APP-INV-093), snapshot verification, and the event-sourcing integrity chain. A lossy diff means snapshots can verify as correct when they actually diverge.
+
 ## 7.3 Per-Content-Type Completeness Verification
 
 APP-INV-085 requires import to emit events for ALL content types. Verification compares event counts against parsed database row counts:
@@ -1622,9 +1734,7 @@ TestAutomaticSnapshotInterval, TestManualSnapshotCreation in internal/materializ
 
 ---
 
-## Chapter 11: Cleanroom Audit Hardening
-
-This chapter addresses findings from the 2026-02-28 cleanroom software engineering audit. Each invariant below was discovered through systematic code-level trace analysis and formalized via the bilateral specification cycle.
+### Snapshot Position Ordinal
 
 **APP-INV-098: Snapshot Position Event-Stream Ordinal**
 
@@ -1642,84 +1752,6 @@ Validation: Create snapshot, count events in stream file, verify snapshot.Positi
 
 ---
 
-**APP-INV-100: Event Applier Section Hierarchy Preservation**
-
-*The event fold applier MUST preserve section hierarchy when materializing events into the SQLite state. Content elements (invariants, ADRs, glossary entries, negative specs, quality gates) MUST be associated with their correct containing section via section_id. Hardcoding section_id to a constant (e.g., 0) is prohibited.*
-
-```
-Let E be a content event with payload containing section_path P. Let S be the section table after applying all section events. Then Apply(E).section_id = lookup(S, P).id. The function lookup: SectionPath -> SectionID is total over the domain of section paths present in prior section events.
-```
-
-Violation scenario: sqlApplier.InsertInvariant sets section_id=0 for all invariants. Coverage analysis queries invariants by section — returns empty. project command reconstructs modules without section structure. Validation Check 5 cannot verify invariants are in correct sections.
-
-Validation: After fold: SELECT COUNT(*) FROM invariants WHERE section_id = 0 MUST return 0. For each invariant with a section_path in its event payload, verify section_id points to the correct section row. Run ddis coverage on materialized DB — verify per-section completeness is computable.
-
-// WHY THIS MATTERS: Section hierarchy is the structural backbone of DDIS specs (§0.1 State Space). Without it, the materialized state is a flat bag of elements — losing the tree structure that enables scoped queries, module-section relationships, and structural validation. This breaks the round-trip guarantee (APP-INV-096).
-
----
-
-**APP-INV-101: Structural Diff Composite Key Completeness**
-
-*The StructuralDiff function MUST use composite keys that include ALL discriminant fields when building comparison maps. For cross-references, the key MUST include (ref_type, ref_target, ref_text). Omitting any discriminant field from the key can cause silent collision and data loss in the diff output.*
-
-```
-For any table T with natural key K = (k1, k2, ..., kn), the diff map key MUST be the full tuple K. For cross_references, K = (ref_type, ref_target, ref_text). The map function m: Row -> Key is injective iff K contains all discriminant columns. If m is not injective, |image(m)| < |domain(m)| and the diff loses rows.
-```
-
-Violation scenario: diffCrossRefs uses key = target|text, omitting ref_type. Two cross-refs (type=invariant, target=APP-INV-071, text=See INV) and (type=app_invariant, target=APP-INV-071, text=See INV) collide. The second overwrites the first in the map. StateHash computed on the diff is wrong.
-
-Validation: Insert two cross-refs with same target+text but different ref_type into DB1. Insert only one into DB2. Run StructuralDiff. Verify BOTH additions are reported, not just one.
-
-// WHY THIS MATTERS: StructuralDiff is the foundation for StateHash (APP-INV-093), snapshot verification, and the event-sourcing integrity chain. A lossy diff means snapshots can verify as correct when they actually diverge.
-
----
-
-### APP-ADR-076: Event Schema Carries Section Path for Hierarchy Reconstruction
-
-#### Problem
-The event fold applier (sqlApplier) hardcodes section_id=0 for all content elements because events do not carry section path information. This destroys the section hierarchy that is fundamental to DDIS spec structure, making coverage analysis, section-scoped queries, and structural validation impossible on materialized state.
-
-#### Options
-Option A: Add section_path to content event payloads. During fold, look up or create the section row and use its ID. Events become self-contained.
-Option B: Run a post-fold reconciliation pass that matches elements to sections by line number or name heuristics. Fragile and lossy.
-Option C: Store section events separately and reconstruct the tree before applying content events. Requires event ordering guarantees.
-Option D: Accept section_id=0 and disable section-dependent features for materialized state. Violates round-trip (APP-INV-096).
-
-#### Decision
-**Option A: Enrich content event payloads with a section_path field.** The applier looks up the section by path (creating it if needed via a synthetic section event). This is the correct approach because it makes events self-describing and enables correct fold without external state. // WHY NOT B: Heuristic-dependent. C: Requires strict ordering. D: Unacceptable.
-
-#### Consequences
-Events become self-describing. Fold produces structurally complete state. Round-trip guarantee restored.
-
-#### Tests
-TestEventApplier_SectionHierarchy, TestFold_SectionLookup in internal/materialize/fold_test.go.
-
----
-
-## Chapter 12: Cleanroom Audit Round 2 — Materialization Completeness
-
-### §ES.12.1 Module Relationship Materialization
-
-**APP-INV-108: Module relationship materialization completeness**
-
-*The materialize fold applier must populate the module_relationships table from ModulePayload relationship arrays (maintains, interfaces, implements, adjacent), preserving the module ownership graph for projector filtering.*
-
-```
-forall m in ModulePayload:
-  |m.Maintains| + |m.Interfaces| + |m.Implements| + |m.Adjacent|
-  == |INSERT INTO module_relationships WHERE module_id = m.id|
-```
-
-Violation scenario: InsertModule receives ModulePayload with relationship arrays but only stores module_name and domain. The module_relationships table stays empty, breaking projector module filtering and APP-INV-087.
-
-Validation: Test: emit module_registered event with maintains=[INV-001], materialize, verify module_relationships row exists with rel_type=maintains and target=INV-001.
-
-// WHY THIS MATTERS: Module relationships are the structural backbone of the spec graph. Without them, cascade analysis, implementation order, and projector filtering all degrade to empty results.
-
----
-
-### §ES.12.2 Snapshot-Accelerated Fold CLI Integration
-
 ### APP-ADR-078: Snapshot-accelerated fold CLI integration
 
 #### Problem
@@ -1736,49 +1768,5 @@ Users gain incremental materialization for large event streams. Graceful degrada
 
 #### Tests
 1. Create snapshot at position N, add events, materialize --from-snapshot, verify only events after N are processed. 2. Corrupt snapshot hash, verify graceful fallback to full replay.
-
----
-
-## Chapter 13: Cleanroom Audit Round 3 — ADR Options Round-Trip Fidelity
-
-The event-sourcing pipeline must preserve ADR options across the full round-trip: parse → store → import → event → materialize → project. The parser correctly extracts options into the `adr_options` table during the initial parse phase. However, the import command does not query this table, the event payload carries an empty string for options, and the materializer does not reconstitute options from the payload. This chapter specifies the missing links.
-
-**APP-INV-110: ADR Options Round-Trip Fidelity**
-
-*ADR options stored in the adr_options table during parse must survive the complete event-sourcing round-trip: import, event emission, materialize, project, rendered markdown. No option label, name, pros, cons, is_chosen, or why_not field may be lost during the cycle.*
-
-```
-forall ADR A with options O = {o_1, ..., o_n} in parsed DB:
-  let E = import(A).payload.Options
-  let O' = materialize(E).adr_options
-  |O| = |O'|
-  forall o_i in O: exists o'_j in O' where
-    o_i.label = o'_j.label AND o_i.name = o'_j.name AND o_i.is_chosen = o'_j.is_chosen
-```
-
-Violation scenario: Parse a spec with ADR containing 3 options (A, B, C) with pros/cons. Export via `ddis import`, materialize the resulting events, query `adr_options` — the table is empty. Options are silently dropped during import because the query does not JOIN on `adr_options`.
-
-Validation method: Round-trip test: parse spec with multi-option ADR → import to events → materialize events → count rows in `adr_options`. Assert `COUNT(adr_options WHERE adr_id = A) >= 3`.
-
-Why this matters: ADR options are the deliberative record of the specification process. Losing them breaks the bilateral discourse contract — the spec no longer captures WHY alternatives were rejected, only WHAT was chosen. This degrades spec quality on every round-trip through the event pipeline. Related: APP-INV-078 (Import Equivalence), APP-INV-085 (Import Content Completeness), APP-INV-087 (Materialization Structural Fidelity).
-
----
-
-### APP-ADR-079: ADR Options Serialization in Event Payloads
-
-#### Problem
-The `ADRPayload.Options` field is a single string but the parser stores options as normalized rows in `adr_options` (label, name, pros, cons, is_chosen, why_not). The import command does not query `adr_options`, so the Options field is always empty. The materializer does not parse the Options field back into rows. Round-trip fidelity for ADR options is zero.
-
-#### Options
-A) Serialize options as structured JSON in the Options string field; deserialize on materialize. B) Add a new `TypeADROptionAdded` event type for each individual option. C) Serialize as markdown text matching the parser's input format, so the materializer can re-parse.
-
-#### Decision
-**Option A: Structured JSON serialization.** Serialize the options array as a JSON array within the ADRPayload.Options string field. On import, query `adr_options` joined to `adrs`, serialize each option as `{"label":"A","name":"Go","pros":"...","cons":"...","is_chosen":true,"why_not":"..."}`. On materialize, deserialize the JSON array and call `InsertADROption()` for each entry. This preserves all fields without adding new event types or relying on markdown re-parsing.
-
-#### Consequences
-JSON serialization is lossless and does not require new event types, keeping the event schema stable. The materializer gains a new code path in the ADR applier to parse and store options. Existing events with empty Options strings produce no options (backward compatible). New events carry full option structure. The query and projector paths can also use `GetADROptions()` for enrichment.
-
-#### Tests
-1. Parse spec with 3-option ADR, import to events, verify Options field is non-empty JSON array. 2. Materialize those events, verify `adr_options` table has 3 rows with correct labels. 3. Import ADR with no options, verify empty Options field, materialize succeeds with no options.
 
 ---
