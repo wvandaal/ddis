@@ -69,7 +69,9 @@ ddis-braid/                                     ← YOU ARE HERE
 ├── IMPLEMENTATION_GUIDE.md          ← Stage-by-stage build plan for the implementing agent
 ├── GAP_ANALYSIS.md                  ← Existing code vs. specification comparison
 ├── HARVEST.md                       ← Manual harvest log (session summaries, decisions)
-└── src/                             ← Implementation (language TBD, likely Rust)
+├── FAILURE_MODES.md                 ← Agentic failure mode catalog (test cases + acceptance criteria for DDIS/Braid)
+├── ADRS.md                          ← Design decision index (all settled choices with rationale)
+└── src/                             ← Implementation (Rust)
 ```
 
 ### Sibling Directories (Reference Material)
@@ -108,6 +110,20 @@ Read these in order when you need to understand the design:
 4. **`../ddis-cli-spec/`** — The existing CLI specification. 97 invariants, 74 ADRs across 9
    modules. Reference for understanding how DDIS specifications are structured in practice.
 
+5. **`FAILURE_MODES.md`** — Agentic failure mode catalog. Documents real failures observed
+   when using AI agents for complex work (knowledge loss, provenance fabrication, anchoring
+   bias, cascading incompleteness). Each entry maps to a DDIS/Braid mechanism and defines
+   an acceptance criterion with SLA target. These are test cases for evaluating whether the
+   methodology works — not a task tracker for ad-hoc fixes.
+
+6. **`GAP_ANALYSIS.md`** — Comprehensive analysis of the Go CLI (~62,500 LOC) against SEED.md.
+   Categorizes 38 packages as ALIGNED/DIVERGENT/EXTRA/BROKEN/MISSING. Use when understanding
+   what exists in the Go CLI and how it maps to Braid's design.
+
+7. **`ADRS.md`** — Design decision index. All settled choices from design transcripts and
+   sessions, with rationale, alternatives rejected, and transcript references. Lightweight
+   precursor to formal ADR elements in SPEC.md. Check before relitigating any decision.
+
 </source_documents>
 
 ---
@@ -121,19 +137,22 @@ Read these in order when you need to understand the design:
 Every session follows this pattern:
 
 **1. Orient.** Read this file. Check `HARVEST.md` for the latest session summary and pending
-decisions. If a specific task was assigned, locate it.
+decisions. Check `FAILURE_MODES.md` for open failure modes that may intersect your task.
+If a specific task was assigned, locate it.
 
 **2. Plan.** Before writing any code or spec, state what you intend to do and why. Trace the
 work back to a section in `SEED.md` or a specific invariant/ADR. If you cannot trace it,
 question whether the work should be done.
 
 **3. Execute.** Do the work. Follow the constraints below. Test everything testable. Document
-every design decision as an ADR.
+every design decision as an ADR. When you discover a process failure, methodology gap, or
+unexpected divergence, record it immediately in `FAILURE_MODES.md` with an FM-NNN ID.
 
 **4. Harvest.** Before the session ends, append to `HARVEST.md`:
    - What was accomplished (with file paths)
    - Decisions made (with rationale)
    - Open questions discovered
+   - Failure modes discovered (reference FM-NNN IDs from `FAILURE_MODES.md`)
    - Recommended next action for the following session
 
 ### The Manual Harvest/Seed Discipline
@@ -357,18 +376,18 @@ completeness, and formality. Target: F(S) → 1.0.
 
 <design_decisions>
 
-## Key Design Decisions (From SEED.md §11)
+## Key Design Decisions
 
-These are settled. Do not revisit without finding a formal contradiction.
+These are settled. Do not revisit without finding a formal contradiction (NEG-002).
 
-| Decision | Rationale | Alternatives Rejected |
-|---|---|---|
-| Append-only store | Eliminates correctness bugs from mutation; enables time-travel | Mutable state (rejected: correctness risk) |
-| EAV over relational | Schema evolves with project; no migrations | Relational tables (rejected: schema rigidity) |
-| Datalog for queries | Natural graph joins for traceability; stratified evaluation | SQL (rejected: poor graph traversal), custom (rejected: wheel reinvention) |
-| Datom store over vector DB | Verification substrate, not just retrieval heuristic | RAG/vector DB (rejected: no coherence verification) |
-| Per-attribute resolution | Different attributes have different semantics | Global policy (rejected: information loss) |
-| DDIS specifies itself | Integrity, bootstrapping, validation | Traditional docs (rejected: can't verify own coherence) |
+The full design decision index is in **`ADRS.md`**, organized into:
+- **Foundational Decisions (FD-001–008)**: Append-only store, EAV, Datalog, content-addressable identity, schema-as-data, per-attribute resolution, self-bootstrap
+- **Protocol Decisions (PD-001–004)**: Agent working set W_α / patch branches, provenance typing lattice, crash-recovery model, at-least-once delivery
+- **Snapshot & Query Decisions (SQ-001–004)**: Local frontier default, frontier as datom attribute, Datalog frontier extension, stratum safety classification
+- **Lifecycle Decisions (LD-001–004)**: Braid as new implementation, manual harvest/seed, disposable conversations, reconciliation taxonomy
+
+Each entry includes rationale, alternatives rejected, and transcript references. Consult
+`ADRS.md` for the full record before proposing changes to any settled decision.
 
 </design_decisions>
 
@@ -381,6 +400,7 @@ Use this at the start and end of every session.
 ### Start of Session
 - [ ] Read this CLAUDE.md
 - [ ] Read latest entry in HARVEST.md
+- [ ] Check `FAILURE_MODES.md` for open failure modes that intersect your task
 - [ ] Identify the specific task for this session
 - [ ] Trace the task to SEED.md section(s)
 - [ ] State the plan before executing
@@ -390,10 +410,12 @@ Use this at the start and end of every session.
 - [ ] All specification elements have IDs, types, traceability, and falsification conditions
 - [ ] No hard constraints (C1–C7) violated
 - [ ] No negative cases (NEG-001–NEG-008) triggered
+- [ ] Any new failure modes discovered during the session recorded in `FAILURE_MODES.md`
 - [ ] Harvest entry appended to HARVEST.md with:
   - What was accomplished
   - Decisions made with rationale
   - Open questions discovered
+  - Failure modes discovered (reference FM-NNN IDs)
   - Recommended next action
 
 </session_checklist>
@@ -419,7 +441,7 @@ decision. The transcripts are large — do not read them whole. Use them surgica
 | `01-datomic-rust-crdt-spec-foundation.md` | Algebraic foundations, five axioms, uncertainty tensor, spectral authority |
 | `02-datom-store-query-patterns.md` | Datalog query strata, monotonicity analysis, CALM compliance, LIVE indexing |
 | `03-agent-protocol-convergence-analysis.md` | Dual-process architecture, multi-agent coordination, protocol gaps |
-| `04-datom-protocol-interface-design.md` | Protocol operations, five-layer interface, attention budget decay |
+| `04-datom-protocol-interface-design.md` | Protocol operations, five-layer interface, attention budget decay, **PQ1–PQ4 design decisions** (private datoms/W_α, provenance typing, crash-recovery, delivery semantics) |
 | `05-ddis-implementation-roadmap-dynamic-claude-md.md` | Staging model, change management, dynamic CLAUDE.md innovation |
 | `06-ddis-seed-document-coherence-verification.md` | Shift from "memory problem" to "coherence verification" |
 | `07-ddis-seed-document-finalization.md` | Self-bootstrap commitment, reconciliation taxonomy, final seed |
