@@ -65,7 +65,12 @@ ddis-braid/                                     ← YOU ARE HERE
 ├── onboarding.md                               ← Comprehensive guide to the existing DDIS project
 │
 │   (Created as work progresses:)
-├── SPEC.md                          ← DDIS-structured specification (invariants, ADRs, etc.)
+├── SPEC.md                          ← Stub pointing to spec/ (original monolith, now modularized)
+├── spec/                            ← Modularized specification (one file per namespace)
+│   ├── README.md                    ← Master index with wave grouping and reading order
+│   ├── 00-preamble.md               ← Shared definitions (conventions, verification tags, constraints)
+│   ├── 01-store.md – 14-interface.md  ← 14 namespace specifications (§1–§14)
+│   └── 15-uncertainty.md – 17-crossref.md  ← Integration sections (§15–§17 + Appendices)
 ├── IMPLEMENTATION_GUIDE.md          ← Stage-by-stage build plan for the implementing agent
 ├── GAP_ANALYSIS.md                  ← Existing code vs. specification comparison
 ├── HARVEST.md                       ← Manual harvest log (session summaries, decisions)
@@ -122,7 +127,7 @@ Read these in order when you need to understand the design:
 
 7. **`ADRS.md`** — Design decision index. All settled choices from design transcripts and
    sessions, with rationale, alternatives rejected, and transcript references. Lightweight
-   precursor to formal ADR elements in SPEC.md. Check before relitigating any decision.
+   precursor to formal ADR elements in `spec/`. Check before relitigating any decision.
 
 </source_documents>
 
@@ -205,10 +210,11 @@ explicitly told otherwise.
 
 The immediate work is producing three documents:
 
-1. **SPEC.md** — The DDIS-structured specification. Invariants with IDs and falsification
-   conditions, ADRs with alternatives and rationale, negative cases, explicit uncertainty
-   markers. Every element individually addressable, traceable to the seed, structured for
-   eventual migration into the datom store.
+1. **`spec/`** — The DDIS-structured specification, modularized into one file per namespace.
+   Invariants with IDs and falsification conditions, ADRs with alternatives and rationale,
+   negative cases, explicit uncertainty markers. Every element individually addressable,
+   traceable to the seed, structured for eventual migration into the datom store.
+   See `spec/README.md` for the master index.
 
 2. **IMPLEMENTATION_GUIDE.md** — Stage 0–4 deliverables, CLI command specs with examples,
    CLAUDE.md template for the implementing agent, file formats, success criteria.
@@ -227,7 +233,7 @@ CLAUDE.md generation.
 **Success criterion**: Work 25 turns, harvest, start fresh with seed — new session picks up
 without manual re-explanation.
 
-**First act**: Migrate the specification elements from SPEC.md into the store as datoms.
+**First act**: Migrate the specification elements from `spec/` into the store as datoms.
 
 ### Stage 1: Budget-Aware Output + Guidance Injection
 ### Stage 2: Branching + Deliberation
@@ -478,9 +484,10 @@ with the new specification and which diverge. Let the specification lead, not th
 
 ## Task-Specific Guidance
 
-### If your task is "Write SPEC.md"
+### If your task is "Write/Edit the specification" (spec/)
 
-Work through SEED.md section by section. For each section:
+Work through SEED.md section by section. Each namespace has its own file in `spec/`
+(see `spec/README.md` for the index). For each section:
 1. Extract every implicit claim about system behavior
 2. Formalize each claim as an invariant with ID and falsification condition
 3. Record every design choice as an ADR with alternatives and rationale
@@ -520,7 +527,7 @@ Read IMPLEMENTATION_GUIDE.md first. Then:
 4. Implement harvest and seed
 5. Implement the guidance injection system
 6. Implement dynamic CLAUDE.md generation
-7. **First act**: transact the specification elements from SPEC.md as datoms
+7. **First act**: transact the specification elements from `spec/` as datoms
 8. Verify: the system can check its own specification for contradictions
 
 </guidance_for_specific_tasks>

@@ -1,0 +1,352 @@
+> **Namespace**: BUDGET | **Wave**: 3 (Intelligence) | **Stage**: 1
+> **Shared definitions**: [00-preamble.md](00-preamble.md) (conventions, verification tags, constraints)
+
+## §13. BUDGET — Attention Budget Management
+
+> **Purpose**: The attention budget is the fundamental constraint on agent output quality.
+> Budget management ensures that high-priority information is never displaced by
+> low-priority output, and that tool responses degrade gracefully as context fills.
+>
+> **Traces to**: SEED.md §8 (Interface Principles), ADRS IB-004–007, IB-011,
+> SQ-007, UA-001
+
+### §13.1 Level 0: Algebraic Specification
+
+The attention budget is a **monotonically decreasing resource**:
+
+```
+k*_eff : Time → [0, 1]
+  — effective remaining attention at time t, measured from actual context consumption
+
+Q(t) = k*_eff(t) × attention_decay(k*_eff(t))
+  — quality-adjusted budget incorporating attention degradation
+
+attention_decay(k) =
+  | 1.0           if k > 0.6      (full quality)
+  | k / 0.6       if 0.3 ≤ k ≤ 0.6 (linear degradation)
+  | (k / 0.3)²    if k < 0.3      (quadratic degradation)
+```
+
+**Five-level output precedence**:
+```
+System > Methodology > UserRequested > Speculative > Ambient
+
+Truncation order: Ambient first, System last.
+Lower-priority output is truncated before higher-priority output is touched.
+```
+
+**Projection pyramid** (SQ-007):
+```
+π₀ = full datoms           (> 2000 tokens available)
+π₁ = entity summaries      (500–2000 tokens)
+π₂ = type summaries         (200–500 tokens)
+π₃ = store summary          (≤ 200 tokens — single-line status + single guidance action)
+```
+
+**Laws**:
+- **L1 (Budget monotonicity)**: `k*_eff(t+1) ≤ k*_eff(t)` — effective attention never increases within a session
+- **L2 (Precedence ordering)**: Truncation always follows the five-level ordering — no level N content is truncated while level N+1 content remains
+- **L3 (Minimum output)**: `output_size ≥ MIN_OUTPUT` (50 tokens) — even at critical budget, a harvest signal is always emitted
+
+### §13.2 Level 1: State Machine Specification
+
+**State**: `Σ_budget = (k_eff: f64, q: f64, output_budget: u32, precedence_stack: [Level; 5])`
+
+**Transitions**:
+
+```
+MEASURE(Σ, context_data) → Σ' where:
+  POST: Σ'.k_eff computed from measured context consumption
+  POST: Σ'.q = Q(t) formula applied
+  POST: Σ'.output_budget = max(50, Σ'.q × 200000 × 0.05)
+
+ALLOCATE(Σ, content, priority) → output where:
+  POST: content truncated to fit output_budget
+  POST: truncation follows precedence: lowest priority first
+  POST: guidance compression follows IB-006:
+        k > 0.7: full (100–200 tokens)
+        0.4–0.7: compressed (30–60 tokens)
+        ≤ 0.4: minimal (10–20 tokens)
+        ≤ 0.2: harvest signal only
+
+PROJECT(Σ, entities, budget) → projection where:
+  POST: pyramid level selected based on budget:
+        > 2000: π₀ for top, π₁ for others
+        500–2000: π₁/π₂
+        200–500: π₂ for top, omit others
+        ≤ 200: π₃ (single-line)
+```
+
+**Budget source precedence** (IB-004):
+1. `--budget` flag (explicit)
+2. `--context-used` flag (from caller)
+3. Session state file `.ddis/session/context.json` (from statusline hook)
+4. Transcript tail-parse (fallback)
+5. Conservative default: 500 tokens
+
+Staleness threshold: 30 seconds. Sources older than 30s are deprioritized.
+
+### §13.3 Level 2: Implementation Contract
+
+```rust
+pub struct BudgetManager {
+    pub k_eff: f64,
+    pub q: f64,
+    pub output_budget: u32,
+}
+
+#[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq)]
+pub enum OutputPrecedence {
+    Ambient = 0,
+    Speculative = 1,
+    UserRequested = 2,
+    Methodology = 3,
+    System = 4,
+}
+
+impl BudgetManager {
+    /// Measure k*_eff from context data
+    pub fn measure(&mut self, context_used_pct: f64) {
+        self.k_eff = 1.0 - context_used_pct;
+        self.q = self.k_eff * self.attention_decay(self.k_eff);
+        self.output_budget = (50.0_f64).max(self.q * 200_000.0 * 0.05) as u32;
+    }
+
+    fn attention_decay(&self, k: f64) -> f64 {
+        if k > 0.6 { 1.0 }
+        else if k >= 0.3 { k / 0.6 }
+        else { (k / 0.3).powi(2) }
+    }
+
+    /// Project entities to the appropriate pyramid level
+    pub fn project(&self, entities: &[EntitySummary]) -> Projection {
+        match self.output_budget {
+            b if b > 2000 => Projection::Full(entities),
+            b if b > 500  => Projection::EntitySummary(entities),
+            b if b > 200  => Projection::TypeSummary(entities),
+            _             => Projection::StoreSummary,
+        }
+    }
+}
+```
+
+### §13.4 Invariants
+
+### INV-BUDGET-001: Output Budget as Hard Cap
+
+**Traces to**: ADRS IB-004
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+`∀ tool_response r: |r| ≤ max(MIN_OUTPUT, Q(t) × W × budget_fraction)`
+
+where W = context window size, budget_fraction = 0.05 (5% of remaining capacity).
+
+#### Level 1 (State Invariant)
+The ALLOCATE transition enforces the cap. Content exceeding the budget is
+truncated according to precedence ordering.
+
+#### Level 2 (Implementation Contract)
+```rust
+#[kani::ensures(|output| output.len() <= self.output_budget as usize)]
+fn allocate(&self, content: &[OutputBlock]) -> Vec<u8> { ... }
+```
+
+**Falsification**: A tool response exceeds the computed output budget.
+
+---
+
+### INV-BUDGET-002: Precedence-Ordered Truncation
+
+**Traces to**: ADRS IB-004
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+`∀ content blocks b₁, b₂ where priority(b₁) < priority(b₂):
+  truncated(b₂) ⟹ truncated(b₁)`
+
+Higher-priority content is never truncated while lower-priority content remains.
+
+#### Level 1 (State Invariant)
+The ALLOCATE transition sorts content by precedence and fills from highest to lowest.
+When budget is exhausted, remaining lower-priority content is truncated.
+
+**Falsification**: System output truncates a Methodology-level block while
+Speculative-level blocks remain in the output.
+
+---
+
+### INV-BUDGET-003: Quality-Adjusted Degradation
+
+**Traces to**: ADRS IB-005
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+The Q(t) formula accounts for attention quality degradation:
+```
+Q(t) = k*_eff(t) × attention_decay(k*_eff(t))
+
+Q(t) degrades faster than k*_eff(t) when k*_eff < 0.6
+  because attention quality drops before context fills.
+```
+
+#### Level 1 (State Invariant)
+The MEASURE transition computes Q(t) using the piecewise attention_decay function.
+Output budget is derived from Q(t), not raw k*_eff.
+
+**Falsification**: Output budget is computed from raw k*_eff without applying
+the attention_decay quality adjustment.
+
+---
+
+### INV-BUDGET-004: Guidance Compression by Budget
+
+**Traces to**: ADRS IB-006
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+Guidance footer size is a function of k*_eff:
+```
+k > 0.7:    full (100–200 tokens)
+0.4–0.7:    compressed (30–60 tokens)
+≤ 0.4:      minimal (10–20 tokens)
+≤ 0.2:      harvest signal only ("Run ddis harvest")
+```
+
+#### Level 1 (State Invariant)
+The INJECT transition (from GUIDANCE namespace) selects footer size
+based on the current k*_eff from the budget manager.
+
+**Falsification**: At k*_eff = 0.1, the guidance footer is 100+ tokens instead
+of a minimal harvest signal.
+
+---
+
+### INV-BUDGET-005: Command Attention Profile
+
+**Traces to**: ADRS IB-007
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+Commands are classified by attention cost:
+```
+CHEAP    (≤ 50 tokens):  status, guidance, frontier, branch ls
+MODERATE (50–300):        associate, query, assemble, diff
+EXPENSIVE (300+):         assemble --full, seed
+META     (side effects):  harvest, transact, merge
+```
+
+The budget manager adjusts output to stay within the allocated cost.
+
+#### Level 1 (State Invariant)
+Each CLI command has a declared attention profile. The output pipeline
+respects the profile ceiling, truncating to fit.
+
+**Falsification**: A CHEAP command produces 300+ tokens of output.
+
+---
+
+### §13.5 ADRs
+
+### ADR-BUDGET-001: Measured Context Over Heuristic
+
+**Traces to**: ADRS IB-005
+**Stage**: 1
+
+#### Problem
+Should attention budget be estimated heuristically or measured from actual consumption?
+
+#### Decision
+Measured. Claude Code exposes `context_window.used_percentage` via the statusline hook.
+This gives ground truth. The heuristic `k*_eff = k*_base × e^{-0.03n}` becomes fallback
+only when measurement is unavailable.
+
+#### Formal Justification
+Heuristic is inaccurate because conversation structure varies — a session with many
+long tool outputs consumes context faster than one with short exchanges. Measured
+consumption eliminates this source of error.
+
+---
+
+### ADR-BUDGET-002: Piecewise Attention Decay
+
+**Traces to**: ADRS IB-005
+**Verification**: Used in Q(t) computation
+**Stage**: 1
+
+#### Problem
+How should attention quality degrade with context consumption?
+
+#### Decision
+Piecewise: full quality above 60% remaining, linear degradation 30–60%,
+quadratic degradation below 30%.
+
+#### Formal Justification
+Empirical observation: LLM attention quality degrades faster than a simple linear
+model would predict. The piecewise function captures three regimes: comfortable
+(no degradation), pressured (graceful degradation), critical (rapid degradation).
+The quadratic regime below 30% reflects the observed cliff in output quality.
+
+---
+
+### ADR-BUDGET-003: Rate-Distortion Framework
+
+**Traces to**: ADRS IB-011
+**Stage**: 1
+
+#### Problem
+What theoretical framework governs the budget-information tradeoff?
+
+#### Decision
+Rate-distortion theory. The interface is a channel with rate constraint (budget).
+The system maximizes information value while minimizing distortion (loss of
+important facts) at the given rate. The projection pyramid (π₀–π₃) is the
+codebook with decreasing rate requirements.
+
+#### Formal Justification
+Rate-distortion is the information-theoretic framework for lossy compression
+with quality guarantees. It formalizes the intuition that "less budget = less
+detail, but the most important things survive." The precedence ordering defines
+what "most important" means.
+
+---
+
+### §13.6 Negative Cases
+
+### NEG-BUDGET-001: No Budget Overflow
+
+**Traces to**: ADRS IB-004
+**Verification**: `V:PROP`, `V:KANI`
+
+**Safety property**: `□ ¬(output_size > output_budget ∧ output_budget > MIN_OUTPUT)`
+
+No tool response exceeds the computed output budget (except at the minimum
+floor of 50 tokens).
+
+**proptest strategy**: Generate random tool outputs at various budget levels.
+Verify truncation to budget ceiling in all cases.
+
+**Kani harness**: Verify `allocate()` output size ≤ budget for all inputs.
+
+---
+
+### NEG-BUDGET-002: No High-Priority Truncation Before Low
+
+**Traces to**: ADRS IB-004
+**Verification**: `V:PROP`
+
+**Safety property**: `□ ¬(∃ b_high, b_low: priority(b_high) > priority(b_low) ∧ truncated(b_high) ∧ ¬truncated(b_low))`
+
+Precedence ordering is inviolable. System and Methodology content is never
+truncated while Speculative or Ambient content remains.
+
+**proptest strategy**: Generate output with blocks at all five precedence levels.
+Apply budget pressure. Verify truncation order matches precedence.
+
+---
+

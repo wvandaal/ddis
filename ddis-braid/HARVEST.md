@@ -798,3 +798,49 @@ Tertiary: **Decide implementation language** (Rust vs Go). Blocks Stage 0 but no
 
 Work through SEED.md §§1–11, formalizing claims as invariants (INV-{NS}-{NNN}), design choices as ADRs (ADR-{NS}-{NNN}), and bounds as negative cases (NEG-{NS}-{NNN}). Use ADRS.md as the operational specification source. Namespaces: STORE, QUERY, HARVEST, SEED, GUIDANCE, MERGE, DELIBERATION, SIGNAL, SYNC, BILATERAL, SCHEMA, RESOLUTION, BUDGET, INTERFACE.
 
+---
+
+## Session 008 — 2026-03-02: SPEC.md Modularization
+
+### Task
+
+Modularize SPEC.md (8,157 lines) into `spec/` directory with one file per namespace. Prerequisite for IMPLEMENTATION_GUIDE.md production — enables per-namespace context loading to prevent FM-001/FM-003 failure modes.
+
+### What Was Accomplished
+
+| File | Action | Details |
+|------|--------|---------|
+| `spec/` directory | CREATED | 19 files: README.md + 00-preamble.md + 14 namespace files + 3 integration files |
+| `spec/00-preamble.md` | CREATED | Lines 1–137 of SPEC.md (title block + §0 shared definitions) |
+| `spec/01-store.md` – `spec/14-interface.md` | CREATED | 14 namespace sections, exact content with compact navigation headers |
+| `spec/15-uncertainty.md` – `spec/17-crossref.md` | CREATED | Integration sections + Appendices A–C |
+| `spec/README.md` | CREATED | Master index with wave grouping, reading order, links |
+| `SPEC.md` | MODIFIED | Replaced with thin stub pointing to `spec/` |
+| `CLAUDE.md` | MODIFIED | Updated project structure, source doc refs, and task guidance to reference `spec/` |
+| `HARVEST.md` | MODIFIED | Session 008 entry appended |
+
+### Verification
+
+- **Content integrity**: Concatenating all spec files (stripping 3-line headers) produces byte-for-byte identical output to original SPEC.md
+- **Element counts preserved**: 310 INV refs, 85 ADR refs, 54 NEG refs — all match original
+- **Line count**: 8,208 total = 8,157 original + 51 added header lines (17 files × 3 lines)
+- **NEG-008 resolved**: No file exceeds 1,175 lines (STORE is the largest)
+
+### Decisions Made
+
+| Decision | Rationale |
+|---|---|
+| Flat `spec/` directory (no subdirectories) | 18 files is manageable; nested dirs would complicate relative links |
+| Compact 2-line navigation header per namespace file | Provides wave/stage context and preamble link without adding noise |
+| §17 + Appendices A–C in single file | These are cross-cutting reference tables that belong together |
+| SPEC.md retained as stub (not deleted) | RULE NUMBER 1: no file deletion |
+| §0 title block (lines 1–19) included in preamble | Title block is document-level metadata; preamble is the natural home |
+
+### Open Questions
+
+None introduced. No content was modified.
+
+### Recommended Next Action
+
+**Produce IMPLEMENTATION_GUIDE.md.** The specification is now modularized for per-namespace loading. Work through Stage 0 namespaces first (STORE, SCHEMA, QUERY, HARVEST, SEED, GUIDANCE, INTERFACE), loading one `spec/` file at a time to ensure full attention per namespace.
+

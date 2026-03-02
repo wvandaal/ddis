@@ -1,0 +1,1175 @@
+> **Namespace**: STORE | **Wave**: 1 (Foundation) | **Stage**: 0
+> **Shared definitions**: [00-preamble.md](00-preamble.md) (conventions, verification tags, constraints)
+
+## §1. STORE — Datom Store
+
+### §1.0 Overview
+
+The datom store is the foundational substrate of Braid. All state — specification elements,
+implementation facts, observations, decisions, provenance — lives as datoms in a single
+append-only store. The store is a G-Set CvRDT: a grow-only set of datoms under set union.
+
+**Traces to**: SEED.md §4, §11
+**ADRS.md sources**: FD-001–012, AS-001–010, SR-001–011, PD-001, PD-003–004, PO-001, PO-012
+
+---
+
+### §1.1 Level 0: Algebraic Specification
+
+#### Definitions
+
+```
+Datom d = (e, a, v, tx, op)
+  where e  : EntityId       — content-addressed entity identifier
+        a  : Attribute       — keyword naming the property
+        v  : Value           — the asserted value (polymorphic)
+        tx : TxId            — transaction identifier (HLC timestamp)
+        op : Operation       — assert | retract
+
+D = the set of all possible datoms
+Store S ∈ P(D)              — a store is a subset of all possible datoms
+```
+
+#### Identity Axiom
+
+```
+identity(d) = hash(d.e, d.a, d.v, d.tx, d.op)
+
+∀ d₁, d₂ ∈ D:
+  (d₁.e = d₂.e ∧ d₁.a = d₂.a ∧ d₁.v = d₂.v ∧ d₁.tx = d₂.tx ∧ d₁.op = d₂.op)
+  ⟹ d₁ = d₂
+```
+
+Two agents independently asserting the same fact about the same entity in the same transaction
+produce one datom. Identity is structural, not positional.
+
+#### Store Algebra: (P(D), ∪)
+
+The store forms a **join-semilattice** under set union:
+
+```
+L1 (Commutativity):   S₁ ∪ S₂ = S₂ ∪ S₁
+L2 (Associativity):   (S₁ ∪ S₂) ∪ S₃ = S₁ ∪ (S₂ ∪ S₃)
+L3 (Idempotency):     S ∪ S = S
+L4 (Monotonicity):    S ⊆ S ∪ S'           for all S' ∈ P(D)
+L5 (Growth-only):     |S(t+1)| ≥ |S(t)|    for all transitions t → t+1
+```
+
+**Proof**: L1–L3 hold by the definition of set union. L4 follows from L1–L3 (S ⊆ S ∪ S'
+because S ∪ (S ∪ S') = S ∪ S' by L2, L3). L5 follows from L4: every transition is a union
+with a non-empty set (the transaction datoms), so cardinality is non-decreasing.
+
+**CRDT classification**: The store is a **G-Set CvRDT** (Grow-only Set, Convergent Replicated
+Data Type). Strong eventual consistency follows from L1–L3: any two replicas that have received
+the same set of updates are in the same state, regardless of delivery order.
+
+#### Transaction Algebra
+
+```
+Transaction T = (datoms: Set<Datom>, tx_entity: EntityId, provenance: ProvenanceType,
+                 causal_predecessors: Set<TxId>, agent: AgentId, rationale: String)
+
+TRANSACT : Store × Transaction → Store
+TRANSACT(S, T) = S ∪ T.datoms ∪ {tx_datom}
+  where tx_datom records T's metadata as datoms about T.tx_entity
+
+∀ S, T: S ⊆ TRANSACT(S, T)                    — monotonicity
+∀ S, T: |TRANSACT(S, T)| > |S|                 — strict growth (tx_entity adds at least one datom)
+∀ S, T₁, T₂: TRANSACT(TRANSACT(S, T₁), T₂) is defined  — composability
+```
+
+#### Value Domain
+
+```
+Value = String | Keyword | Boolean | Long | Double | Instant | UUID
+      | Ref EntityId | Bytes | URI | BigInt | BigDec | Tuple [Value] | Json String
+
+ProvenanceType = Observed | Derived | Inferred | Hypothesized
+  with ordering: Observed > Derived > Inferred > Hypothesized
+  and provenance factors: Observed=1.0, Derived=0.8, Inferred=0.5, Hypothesized=0.2
+
+Operation = Assert | Retract
+```
+
+---
+
+### §1.2 Level 1: State Machine Specification
+
+#### State
+
+```
+StoreState = {
+  datoms:   Set<Datom>,                    — the append-only datom set
+  frontier: Map<AgentId, TxId>,            — per-agent latest known transaction
+  indexes:  { eavt, aevt, vaet, avet, live }  — materialized index views
+}
+```
+
+#### Transitions
+
+##### TRANSACT
+
+```
+TRANSACT(S, agent, datoms, tx_data) → S'
+
+PRE:
+  tx_data.causal_predecessors ⊆ known_txs(S)
+  ∀ d ∈ datoms: d.a is a known attribute in S (schema validation)
+  ∀ d ∈ datoms: typeof(d.v) matches schema_type(S, d.a)
+
+POST:
+  S'.datoms = S.datoms ∪ new_datoms ∪ tx_metadata_datoms
+  S'.frontier[agent] = tx_id
+  |S'.datoms| > |S.datoms|
+  ∀ d ∈ S.datoms: d ∈ S'.datoms           — no datom removed
+
+SIDE EFFECTS:
+  All indexes updated incrementally
+  LIVE index recomputed for affected entities
+  Frontier durably persisted before response (INV-STORE-009)
+```
+
+##### MERGE
+
+```
+MERGE(S₁, S₂) → S'
+
+POST:
+  S' = S₁ ∪ S₂                            — set union, no heuristics
+  ∀ d ∈ S₁: d ∈ S'
+  ∀ d ∈ S₂: d ∈ S'
+  |S'| ≤ |S₁| + |S₂|                      — dedup by content identity
+  |S'| ≥ max(|S₁|, |S₂|)                  — at least as large as the larger input
+
+INVARIANT: MERGE is commutative, associative, idempotent (L1–L3)
+```
+
+##### Genesis
+
+```
+GENESIS() → S₀
+
+POST:
+  S₀.datoms = {meta_schema_datoms}         — exactly the 17 axiomatic attributes
+  S₀.frontier = { system: tx_0 }
+  ∀ S₁, S₂ created by GENESIS: S₁ = S₂   — deterministic (constant hash)
+  tx_0 has no causal predecessors
+```
+
+#### Index Invariants
+
+```
+EAVT: sorted by (entity, attribute, value, tx)    — entity lookup
+AEVT: sorted by (attribute, entity, value, tx)    — attribute-centric queries
+VAET: sorted by (value, attribute, entity, tx)    — reverse reference traversal
+AVET: sorted by (attribute, value, entity, tx)    — unique/range lookups
+
+LIVE: materialized current-state view
+  LIVE(S) = fold(causal_sort(S), apply_resolution)
+  where apply_resolution uses the per-attribute resolution mode:
+    LWW:     greatest HLC assertion
+    Lattice: join over unretracted assertions
+    Multi:   set of all unretracted values
+```
+
+---
+
+### §1.3 Level 2: Interface Specification
+
+#### Core Types (Rust)
+
+```rust
+/// A datom — the atomic unit of information.
+/// Content-addressed: identity is the hash of all five fields.
+#[derive(Clone, Hash, Eq, PartialEq)]
+pub struct Datom {
+    pub entity:    EntityId,
+    pub attribute: Attribute,
+    pub value:     Value,
+    pub tx:        TxId,
+    pub op:        Op,
+}
+
+/// Content-addressed entity identifier.
+/// Derived from the semantic content, not sequentially assigned.
+#[derive(Clone, Copy, Hash, Eq, PartialEq, Ord, PartialOrd)]
+pub struct EntityId(pub [u8; 32]);  // SHA-256 of content
+
+/// Hybrid Logical Clock — causally ordered, globally unique.
+#[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
+pub struct TxId {
+    pub wall_time: u64,    // milliseconds since epoch
+    pub logical:   u32,    // logical counter for same-millisecond ordering
+    pub agent:     AgentId,
+}
+
+/// Assert or retract.
+#[derive(Clone, Copy, Hash, Eq, PartialEq)]
+pub enum Op { Assert, Retract }
+```
+
+#### Typestate Transaction Lifecycle
+
+```rust
+/// Transaction states — enforced at compile time.
+pub struct Building;
+pub struct Committed;
+pub struct Applied;
+
+pub struct Transaction<S: TxState> {
+    datoms:     Vec<Datom>,
+    tx_data:    TxData,
+    _state:     PhantomData<S>,
+}
+
+impl Transaction<Building> {
+    pub fn new(agent: AgentId) -> Self;
+    pub fn assert_datom(self, e: EntityId, a: Attribute, v: Value) -> Self;
+    pub fn retract_datom(self, e: EntityId, a: Attribute, v: Value) -> Self;
+    pub fn with_provenance(self, p: ProvenanceType) -> Self;
+    pub fn with_causal_predecessors(self, preds: &[TxId]) -> Self;
+    pub fn with_rationale(self, rationale: &str) -> Self;
+
+    /// Validate and seal. Compile error if you try to apply without committing.
+    pub fn commit(self, schema: &Schema) -> Result<Transaction<Committed>, TxValidationError>;
+}
+
+impl Transaction<Committed> {
+    /// Apply to store. Cannot be called on Building state (type error).
+    pub fn apply(self, store: &mut Store) -> Result<Transaction<Applied>, TxApplyError>;
+}
+
+impl Transaction<Applied> {
+    pub fn tx_id(&self) -> TxId;
+    pub fn receipt(&self) -> &TxReceipt;
+}
+// Compile error: Transaction<Building>.apply() — invalid state transition
+// Compile error: Transaction<Applied>.assert_datom() — sealed
+```
+
+#### Store API
+
+```rust
+pub struct Store {
+    datoms: BTreeSet<Datom>,
+    indexes: Indexes,
+    frontier: HashMap<AgentId, TxId>,
+    schema: Schema,
+}
+
+impl Store {
+    /// Create a new store with genesis transaction.
+    pub fn genesis() -> Self;
+
+    /// Transact a committed transaction.
+    pub fn transact(&mut self, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError>;
+
+    /// Merge another store (set union).
+    pub fn merge(&mut self, other: &Store) -> MergeReceipt;
+
+    /// Query the LIVE index for current state of an entity.
+    pub fn current(&self, entity: EntityId) -> EntityView;
+
+    /// Query at a specific frontier.
+    pub fn as_of(&self, frontier: &Frontier) -> SnapshotView;
+
+    /// Datom count (monotonically non-decreasing).
+    pub fn len(&self) -> usize;
+}
+```
+
+#### CLI Commands
+
+```
+braid transact --file <datoms.edn>    # Apply a transaction from file
+braid transact --inline '<edn>'       # Apply inline transaction
+braid status                          # Store summary: datom count, frontier, schema stats
+braid entity <entity-id>              # Show all datoms for an entity
+braid history <entity-id> <attr>      # Show all values of an attribute over time
+```
+
+---
+
+### §1.4 Invariants
+
+### INV-STORE-001: Append-Only Immutability
+
+**Traces to**: SEED §4 Axiom 2, C1, ADRS FD-001
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ S ∈ Store, S' = TRANSACT(S, T) for any T:
+  S ⊆ S'
+  (monotonicity: once asserted, never lost)
+```
+
+#### Level 1 (State Invariant)
+For all reachable states (S, S') where S →[op] S':
+  `S.datoms ⊆ S'.datoms`
+
+#### Level 2 (Implementation Contract)
+```rust
+#[kani::ensures(|result| old(store.datoms.len()) <= store.datoms.len())]
+fn transact(store: &mut Store, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError>;
+```
+
+**Falsification**: Any operation that reduces `store.datoms.len()` or removes a
+previously-observed datom from the set.
+
+**proptest strategy**: Generate random sequences of TRANSACT/RETRACT operations.
+After each operation, verify all previously-observed datoms remain present.
+
+---
+
+### INV-STORE-002: Strict Transaction Growth
+
+**Traces to**: SEED §4, ADRS PO-001
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ S, T: |TRANSACT(S, T)| > |S|
+  (every transaction adds at least its tx_entity metadata datoms)
+```
+
+#### Level 1 (State Invariant)
+For all transitions S →[TRANSACT(T)] S':
+  `|S'.datoms| > |S.datoms|`
+
+#### Level 2 (Implementation Contract)
+```rust
+#[kani::ensures(|result| old(store.len()) < store.len())]
+fn transact(store: &mut Store, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError>;
+```
+
+**Falsification**: A TRANSACT operation that leaves the store size unchanged.
+
+**proptest strategy**: After every transact, assert `store.len() > pre_len`.
+
+---
+
+### INV-STORE-003: Content-Addressable Identity
+
+**Traces to**: SEED §4 Axiom 1, C2, ADRS FD-007
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ d₁, d₂ ∈ D:
+  (d₁.e, d₁.a, d₁.v, d₁.tx, d₁.op) = (d₂.e, d₂.a, d₂.v, d₂.tx, d₂.op)
+  ⟺ d₁ = d₂
+```
+
+#### Level 1 (State Invariant)
+For all reachable states S:
+  No two distinct datoms in `S.datoms` have identical five-tuple values.
+
+#### Level 2 (Implementation Contract)
+```rust
+// Enforced by BTreeSet/HashSet with (e, a, v, tx, op) as the key.
+// Two insertions of the same five-tuple result in one stored datom.
+impl Hash for Datom { /* hash all five fields */ }
+impl Eq for Datom { /* compare all five fields */ }
+```
+
+**Falsification**: Two datoms with identical `(e, a, v, tx, op)` coexisting in the store
+as distinct entries. Or: two datoms with different `(e, a, v, tx, op)` comparing as equal.
+
+**proptest strategy**: Generate pairs of datoms with varying field equality. Verify Hash/Eq
+consistency: equal datoms produce identical hashes; distinct datoms stored separately.
+
+---
+
+### INV-STORE-004: CRDT Merge Commutativity
+
+**Traces to**: SEED §4 Axiom 2, C4, ADRS AS-001, L1
+**Verification**: `V:PROP`, `V:KANI`, `V:MODEL`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ S₁, S₂ ∈ Store: MERGE(S₁, S₂) = MERGE(S₂, S₁)
+```
+
+#### Level 1 (State Invariant)
+For all reachable store pairs (S₁, S₂):
+  `MERGE(S₁, S₂).datoms = MERGE(S₂, S₁).datoms`
+
+#### Level 2 (Implementation Contract)
+```rust
+#[kani::ensures(|_| merge(s1, s2).datoms == merge(s2, s1).datoms)]
+fn merge(s1: &Store, s2: &Store) -> Store;
+```
+
+**Falsification**: Any pair of stores where `MERGE(S₁, S₂) ≠ MERGE(S₂, S₁)`.
+
+**proptest strategy**: Generate two random stores, merge in both orders, assert identical
+datom sets. Run 100,000+ iterations with varying store sizes.
+
+---
+
+### INV-STORE-005: CRDT Merge Associativity
+
+**Traces to**: SEED §4, C4, ADRS AS-001, L2
+**Verification**: `V:PROP`, `V:KANI`, `V:MODEL`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ S₁, S₂, S₃ ∈ Store: MERGE(MERGE(S₁, S₂), S₃) = MERGE(S₁, MERGE(S₂, S₃))
+```
+
+#### Level 1 (State Invariant)
+For all reachable store triples:
+  Merge order does not affect the final datom set.
+
+#### Level 2 (Implementation Contract)
+```rust
+#[kani::ensures(|_| merge(&merge(s1, s2), s3).datoms == merge(s1, &merge(s2, s3)).datoms)]
+```
+
+**Falsification**: Any triple of stores where regrouping merge operations produces different results.
+
+**proptest strategy**: Generate three random stores, merge in both groupings, assert equal.
+
+---
+
+### INV-STORE-006: CRDT Merge Idempotency
+
+**Traces to**: SEED §4, C4, ADRS AS-001, PD-004, L3
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ S ∈ Store: MERGE(S, S) = S
+```
+
+#### Level 1 (State Invariant)
+Merging a store with itself produces no change.
+
+#### Level 2 (Implementation Contract)
+```rust
+#[kani::ensures(|_| merge(s, s).datoms == s.datoms)]
+```
+
+**Falsification**: A store where `MERGE(S, S)` differs from `S`.
+
+**proptest strategy**: Generate random store, merge with self, assert datom sets equal.
+
+---
+
+### INV-STORE-007: CRDT Merge Monotonicity
+
+**Traces to**: SEED §4, C4, L4
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ S₁, S₂ ∈ Store: S₁ ⊆ MERGE(S₁, S₂) ∧ S₂ ⊆ MERGE(S₁, S₂)
+```
+
+#### Level 1 (State Invariant)
+Merging never loses datoms from either input.
+
+#### Level 2 (Implementation Contract)
+```rust
+#[kani::ensures(|result| s1.datoms.is_subset(&result.datoms)
+                      && s2.datoms.is_subset(&result.datoms))]
+```
+
+**Falsification**: Any datom present in S₁ or S₂ but absent from `MERGE(S₁, S₂)`.
+
+**proptest strategy**: Generate two stores, merge, verify both inputs are subsets of result.
+
+---
+
+### INV-STORE-008: Genesis Determinism
+
+**Traces to**: SEED §10, ADRS PO-012
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ S₁, S₂ created by GENESIS(): S₁ = S₂
+  (genesis is a constant function)
+```
+
+#### Level 1 (State Invariant)
+The genesis transaction installs exactly the 17 axiomatic meta-schema attributes.
+No other datoms exist. The hash of the genesis datom set is a compile-time constant.
+
+#### Level 2 (Implementation Contract)
+```rust
+const GENESIS_HASH: [u8; 32] = /* compile-time constant */;
+
+#[kani::ensures(|result| hash(result.datoms) == GENESIS_HASH)]
+fn genesis() -> Store;
+```
+
+**Falsification**: Two independently-created stores with different genesis datom sets.
+
+**proptest strategy**: Create 1000 stores via `genesis()`, assert all have identical datom sets.
+
+---
+
+### INV-STORE-009: Frontier Durability
+
+**Traces to**: SEED §4, ADRS PD-003
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ agent α, ∀ TRANSACT or MERGE operation:
+  frontier(α) is durably stored BEFORE the operation returns
+```
+
+#### Level 1 (State Invariant)
+On crash and recovery, the agent's frontier is recoverable from durable storage.
+The recovered frontier is the frontier at the last completed operation.
+
+#### Level 2 (Implementation Contract)
+```rust
+impl Store {
+    fn transact(&mut self, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError> {
+        // ... apply datoms ...
+        self.persist_frontier()?;  // fsync before returning
+        Ok(receipt)
+    }
+}
+```
+
+**Falsification**: A crash after a successful TRANSACT where the frontier is lost,
+causing the agent to replay already-committed transactions on recovery.
+
+---
+
+### INV-STORE-010: Causal Ordering
+
+**Traces to**: SEED §4, ADRS PO-001, SR-004
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ T with causal_predecessors P:
+  ∀ p ∈ P: p.tx_id < T.tx_id   (HLC ordering)
+  ∀ p ∈ P: p ∈ S                (predecessors exist in the store)
+```
+
+#### Level 1 (State Invariant)
+A transaction's causal predecessors must all be present in the store at the time of
+the transaction. HLC timestamps are monotonically increasing per agent.
+
+#### Level 2 (Implementation Contract)
+```rust
+impl Transaction<Building> {
+    pub fn commit(self, schema: &Schema) -> Result<Transaction<Committed>, TxValidationError> {
+        for pred in &self.tx_data.causal_predecessors {
+            if !schema.store_contains_tx(pred) {
+                return Err(TxValidationError::MissingCausalPredecessor(*pred));
+            }
+        }
+        // ...
+    }
+}
+```
+
+**Falsification**: A transaction referencing a causal predecessor that does not exist in the store.
+
+**proptest strategy**: Generate transaction chains with random predecessor references.
+Verify that commits with invalid predecessors are rejected.
+
+---
+
+### INV-STORE-011: HLC Monotonicity
+
+**Traces to**: ADRS SR-004
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ transactions T₁, T₂ from agent α where T₁ precedes T₂:
+  T₁.tx_id < T₂.tx_id
+```
+
+#### Level 1 (State Invariant)
+An agent's transaction IDs are strictly monotonically increasing.
+The HLC combines wall-clock time with a logical counter to ensure uniqueness
+even when wall-clock resolution is insufficient.
+
+#### Level 2 (Implementation Contract)
+```rust
+impl HlcClock {
+    pub fn tick(&mut self) -> TxId {
+        let now = wall_time();
+        if now > self.last.wall_time {
+            self.last = TxId { wall_time: now, logical: 0, agent: self.agent };
+        } else {
+            self.last.logical += 1;
+        }
+        self.last
+    }
+}
+```
+
+**Falsification**: Two transactions from the same agent with the same or decreasing TxId.
+
+---
+
+### INV-STORE-012: LIVE Index Correctness
+
+**Traces to**: ADRS SR-002
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+LIVE(S) = fold(causal_sort(S), apply_resolution)
+
+∀ entity e, attribute a with cardinality :one:
+  LIVE(S, e, a) = resolution_mode(a).resolve(
+    {d.v | d ∈ S, d.e = e, d.a = a, d.op = Assert,
+           ¬∃ r ∈ S: r.e = e, r.a = a, r.v = d.v, r.op = Retract, r.tx > d.tx}
+  )
+```
+
+#### Level 1 (State Invariant)
+The LIVE index is the deterministic result of applying all assert and retract datoms
+in causal order with the declared resolution mode per attribute.
+
+#### Level 2 (Implementation Contract)
+```rust
+impl LiveIndex {
+    /// Incrementally update after a transaction.
+    pub fn apply_tx(&mut self, tx: &[Datom], schema: &Schema);
+
+    /// Full recompute from scratch (for verification).
+    pub fn recompute(datoms: &BTreeSet<Datom>, schema: &Schema) -> Self;
+}
+
+// Verification: incremental update produces same result as full recompute
+#[cfg(test)]
+fn verify_live_consistency(store: &Store) {
+    let incremental = &store.indexes.live;
+    let full_recompute = LiveIndex::recompute(&store.datoms, &store.schema);
+    assert_eq!(incremental, &full_recompute);
+}
+```
+
+**Falsification**: LIVE shows a value whose retraction has no subsequent re-assertion,
+or LIVE differs from a full recompute.
+
+**proptest strategy**: Generate random transaction sequences with asserts and retracts.
+After each transaction, verify `incremental_live == full_recompute_live`.
+
+---
+
+### INV-STORE-013: Working Set Isolation
+
+**Traces to**: SEED §4, ADRS PD-001
+**Verification**: `V:PROP`, `V:MODEL`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+```
+∀ agents α, β where α ≠ β:
+  W_α ∩ visible(β) = ∅
+  (agent α's working set is invisible to agent β)
+
+commit : W_α × S → S'
+  where S' = S ∪ {d ∈ W_α | agent chose to commit d}
+  and post-commit: d ∉ W_α for committed datoms
+```
+
+#### Level 1 (State Invariant)
+Uncommitted working set datoms are local to one agent. MERGE operations do not
+include working set datoms. Only explicit `commit` promotes W_α datoms to the shared store.
+
+#### Level 2 (Implementation Contract)
+```rust
+pub struct WorkingSet {
+    local_datoms: BTreeSet<Datom>,
+    agent: AgentId,
+}
+
+impl WorkingSet {
+    /// Query sees W_α ∪ S (local override).
+    pub fn query_view<'a>(&'a self, store: &'a Store) -> MergedView<'a>;
+
+    /// Promote selected datoms to the shared store.
+    pub fn commit(&mut self, store: &mut Store, datoms: &[Datom]) -> Result<TxReceipt, TxApplyError>;
+}
+```
+
+**Falsification**: Agent β can query and observe datoms from Agent α's working set
+before α has committed them.
+
+---
+
+### INV-STORE-014: Every Command Is a Transaction
+
+**Traces to**: SEED §10, ADRS FD-012
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ DDIS commands C: ∃ transaction T such that executing C produces T
+  (no read-only path bypasses the store; queries produce tx records for provenance)
+```
+
+#### Level 1 (State Invariant)
+Every CLI command, including queries, generates a transaction recording provenance
+(who queried, what, when, why). The transaction may contain only metadata datoms.
+
+#### Level 2 (Implementation Contract)
+```rust
+impl Store {
+    /// Even queries produce a provenance transaction.
+    pub fn query(&mut self, q: &Query) -> QueryResult {
+        let result = self.evaluate(q);
+        self.record_query_provenance(q, &result);
+        result
+    }
+}
+```
+
+**Falsification**: Any DDIS command that completes without producing a transaction record.
+
+---
+
+### §1.5 ADRs
+
+### ADR-STORE-001: G-Set CvRDT as Store Algebra
+
+**Traces to**: SEED §4 Axiom 2, ADRS AS-001
+**Stage**: 0
+
+#### Problem
+What CRDT type should the datom store use?
+
+#### Options
+A) **G-Set (grow-only set)** — simplest CRDT with set union merge. Content-addressable identity
+   ensures deduplication. Preserves L1–L5 by construction.
+B) **OR-Set** — supports element removal. More complex merge (requires unique tags per add).
+   Would enable true deletion, violating C1.
+C) **2P-Set** — separate add/remove sets. Once removed, never re-assertable.
+   Gives any agent permanent veto power.
+D) **Custom merge logic** — application-specific heuristics. Breaks formal CRDT guarantees.
+
+#### Decision
+**Option A.** G-Set is the minimal CRDT that provides strong eventual consistency under set
+union. Retractions are modeled as new datoms with `op=Retract`, preserving append-only
+semantics. The "current state" is a query-layer concern (LIVE index), not a store-layer concern.
+
+#### Formal Justification
+G-Set preserves L1–L5 by the definition of set union. Options B–D either violate C1 (append-only),
+introduce complexity without algebraic benefit, or break formal guarantees.
+
+#### Consequences
+- Merge is always safe — set union cannot produce invalid state
+- The store never shrinks — storage is monotonically consumed
+- "Deletion" is modeled as retraction (a new fact), preserving full history
+- Conflict resolution is deferred to the query layer (RESOLUTION namespace)
+
+#### Falsification
+Evidence that G-Set is insufficient would be: a required operation that cannot be expressed
+as a new datom assertion, requiring actual removal of existing datoms from the set.
+
+---
+
+### ADR-STORE-002: EAV Over Relational
+
+**Traces to**: SEED §4, §11, ADRS FD-002
+**Stage**: 0
+
+#### Problem
+What data model should the datom store use?
+
+#### Options
+A) **EAV (Entity-Attribute-Value)** — schema-on-read. Structure determined at query time.
+   No migrations. Schema crystallizes from usage.
+B) **Relational tables** — schema-on-write. Structure determined at design time.
+   Requires DDL migrations for evolution.
+C) **Document store** — schema-per-document. Poor graph traversal.
+
+#### Decision
+**Option A.** EAV aligns with how AI agents actually work: they discover the structure of
+the problem as they explore it. Early in development, you don't know what entity types
+you'll need. With EAV, you assert facts and the schema crystallizes from usage.
+
+#### Formal Justification
+EAV preserves C3 (schema-as-data): the schema is itself a collection of datoms, not a
+separate DDL. Relational tables (Option B) would require the Go CLI's approach — 39
+`CREATE TABLE` statements in Go source, each a potential divergence point.
+
+#### Consequences
+- Schema evolution is a transaction, not a migration
+- All queries go through the same EAV access path
+- Query performance depends on indexing strategy (four core indexes + LIVE)
+- The Datalog query engine is natural (EAV triples are Datalog's native data model)
+
+---
+
+### ADR-STORE-003: Content-Addressable Entity IDs
+
+**Traces to**: SEED §4 Axiom 1, ADRS FD-007
+**Stage**: 0
+
+#### Problem
+How are entities identified?
+
+#### Options
+A) **Content-addressed** — EntityId = hash of semantic content. Same fact = same entity.
+B) **Sequential integers** — auto-incrementing per agent. Requires ID mapping during merge.
+C) **Random UUIDs** — globally unique but no deduplication. Same fact gets different IDs.
+
+#### Decision
+**Option A.** Content-addressable identity eliminates the "same fact, different ID" problem
+in multi-agent settings. When two agents independently assert the same fact, the datoms
+have the same EntityId and naturally deduplicate during merge (set union).
+
+#### Formal Justification
+Content-addressable identity is what makes set-union merge (L1–L3) produce correct results.
+With sequential IDs (Option B), merge would need an ID remapping step that could introduce
+errors. With random UUIDs (Option C), merge would preserve duplicates.
+
+#### Consequences
+- EntityId computation is deterministic and reproducible
+- Two agents asserting "entity X has attribute A with value V" produce identical datoms
+- Merge is pure set union with no post-processing
+- Entity lookup requires either the content or a known EntityId (no sequential scan)
+
+---
+
+### ADR-STORE-004: Hybrid Logical Clocks for Transaction IDs
+
+**Traces to**: SEED §4, ADRS SR-004
+**Stage**: 0
+
+#### Problem
+How are transactions ordered?
+
+#### Options
+A) **Hybrid Logical Clocks (HLC)** — combines physical wall-clock time with logical counter.
+   Causally ordered, globally unique without central coordination.
+B) **Sequential integers** — simple but requires centralized counter. Conflicts across agents.
+C) **Lamport clocks** — causal ordering but no wall-clock correlation. Cannot answer
+   "what was true at 3pm?"
+D) **UUIDs** — unique but unordered. No temporal queries.
+
+#### Decision
+**Option A.** HLC preserves temporal ordering (critical for time-travel queries) while
+maintaining uniqueness across agents without centralized coordination. The agent field
+in the TxId breaks ties.
+
+#### Formal Justification
+HLC satisfies: (1) monotonicity within an agent (INV-STORE-011), (2) causal consistency
+(if T₁ causally precedes T₂, then T₁.tx_id < T₂.tx_id), (3) wall-clock approximation
+(for human-readable time queries), (4) no central coordination (agents generate independently).
+
+---
+
+### ADR-STORE-005: Four Core Indexes Plus LIVE
+
+**Traces to**: SEED §4, ADRS SR-001, SR-002
+**Stage**: 0
+
+#### Problem
+What indexes should the store maintain?
+
+#### Options
+A) **Four Datomic indexes (EAVT, AEVT, VAET, AVET) + LIVE materialized view** —
+   covers all query patterns. LIVE provides O(1) current-state lookup.
+B) **Single index with secondary lookups** — simpler but poor query performance.
+C) **Ad-hoc indexes per query** — unpredictable performance, index explosion.
+
+#### Decision
+**Option A.** Datomic's four-index design is proven at scale. The LIVE index (SR-002)
+is added as a fifth index that materializes the current-state view, eliminating the need
+for stratified negation in the most common query pattern.
+
+#### Formal Justification
+Each index covers a different access pattern: EAVT (entity lookup), AEVT (attribute-centric),
+VAET (reverse reference traversal), AVET (unique/range). LIVE handles the non-monotonic
+"current value" query without requiring Datalog negation, keeping common queries in the
+CALM-compliant monotonic fragment.
+
+---
+
+### ADR-STORE-006: Embedded Deployment
+
+**Traces to**: SEED §4, ADRS FD-010
+**Stage**: 0
+
+#### Problem
+How is the datom store deployed?
+
+#### Options
+A) **Embedded library** — no daemon process. Agents invoke as CLI or link as library.
+B) **Client-server database** — separate database server.
+C) **Distributed database** — multi-node with consensus.
+
+#### Decision
+**Option A.** For the target deployment (single VPS, single-digit agents, thousands of
+datoms), embedded is sufficient. Minimizes operational complexity. Multiple agents coordinate
+through the shared filesystem (SR-007).
+
+#### Formal Justification
+Embedded deployment preserves the property that all coordination goes through the store.
+A separate database server (Option B) introduces a coordination channel outside the datom
+store, potentially violating FD-012 (every command is a transaction).
+
+---
+
+### ADR-STORE-007: File-Backed Store with Git
+
+**Traces to**: ADRS SR-006, SR-007
+**Stage**: 0
+
+#### Problem
+What is the physical storage format?
+
+#### Options
+A) **Append-only files with git** — `trunk.ednl`, `branches/{name}.ednl`, git for history.
+B) **LMDB/redb** — MVCC storage with B-tree indexes.
+C) **SQLite** — proven, familiar, but mutable (UPDATE/DELETE).
+
+#### Decision
+**Option A for initial implementation, Option B as target.** The file-backed approach enables
+immediate bootstrapping (shell tools can manipulate the store). The target architecture uses
+redb (Rust-native MVCC) for production performance. SQLite is rejected as the store backend
+because its mutable semantics conflict with C1, though it could serve as an index cache.
+
+#### Formal Justification
+Append-only files naturally enforce C1 (no mutation). Git provides audit history and
+time-travel. The file format (EDNL — EDN per line) is human-readable and grep-able,
+supporting the shell bootstrap phase (SR-005).
+
+---
+
+### ADR-STORE-008: Provenance Typing Lattice
+
+**Traces to**: ADRS PD-002
+**Stage**: 0
+
+#### Problem
+How are different epistemic statuses of transactions distinguished?
+
+#### Options
+A) **No provenance typing** — all transactions equal. Rely on challenge system post-hoc.
+B) **Provenance typing lattice** — `:observed > :derived > :inferred > :hypothesized`.
+   Transaction declares its provenance; system can audit the declaration.
+C) **Structural inference only** — imperfect classification without agent declaration.
+
+#### Decision
+**Option B.** Provenance factors feed into authority computation (UA-003): `:observed` = 1.0,
+`:derived` = 0.8, `:inferred` = 0.5, `:hypothesized` = 0.2. A transaction labeled `:observed`
+without corresponding tool read operations is flagged as misclassified.
+
+#### Formal Justification
+Provenance typing enables differential trust. Self-authored associations (`:inferred`) carry
+less weight than direct observations (`:observed`). This feeds into spectral authority
+computation (UA-003) without requiring post-hoc challenge for every assertion.
+
+---
+
+### ADR-STORE-009: Crash-Recovery Model
+
+**Traces to**: ADRS PD-003
+**Stage**: 0
+
+#### Problem
+What failure model do agents follow?
+
+#### Options
+A) **Crash-stop** — once crashed, never recovers. Too rigid for LLM agents.
+B) **Crash-recovery** — agent recovers from last durable frontier.
+C) **Byzantine** — assumes agents may be actively malicious. Overkill for controlled environment.
+
+#### Decision
+**Option B.** Crash-recovery matches the reality of LLM agents: conversations end (crash),
+new conversations begin (recovery). The agent announces its frontier on recovery and receives
+the delta of new datoms.
+
+#### Formal Justification
+Crash-recovery requires INV-STORE-009 (frontier durability). Combined with at-least-once
+delivery (PD-004) and idempotent operations, an agent that crashes mid-transaction can
+safely replay or discard without corrupting the store.
+
+---
+
+### ADR-STORE-010: At-Least-Once Delivery
+
+**Traces to**: ADRS PD-004
+**Stage**: 0
+
+#### Problem
+What delivery semantics for inter-agent communication?
+
+#### Options
+A) **At-most-once** — messages may be lost. Risks data loss.
+B) **At-least-once** — messages may be duplicated. All operations must be idempotent.
+C) **Exactly-once** — requires 2PC or equivalent. Expensive coordination.
+
+#### Decision
+**Option B.** Idempotent operations (MERGE is idempotent by L3; TRANSACT with content-addressed
+identity is idempotent) make at-least-once delivery safe. The SYNC-BARRIER operation
+requires stronger guarantees but is explicitly rare.
+
+#### Formal Justification
+```
+merge(merge(S, R), R) = merge(S, R)    — by L3 (idempotency)
+```
+Duplicate message delivery produces the same result as single delivery.
+
+---
+
+### ADR-STORE-011: Every Command as Transaction
+
+**Traces to**: SEED §10, ADRS FD-012
+**Stage**: 0
+
+#### Problem
+Should read-only operations bypass the store?
+
+#### Options
+A) **Read-only bypass** — queries don't produce transactions. Simpler, faster.
+B) **Every command is a transaction** — including queries. Full provenance trail.
+
+#### Decision
+**Option B.** If any DDIS operation produces state outside the store, that state cannot be
+queried, conflict-detected, or coherence-verified. The store is the sole truth. Query
+provenance enables "what was this agent curious about?" — useful for ASSOCIATE significance
+weighting and drift detection.
+
+#### Formal Justification
+Violating this principle creates a blind spot in the coherence verification framework.
+The cost (small metadata transactions for queries) is amortized by the value (full
+provenance, significance computation, drift detection).
+
+---
+
+### ADR-STORE-012: Three-Phase Implementation Path
+
+**Traces to**: ADRS SR-005
+**Stage**: 0
+
+#### Problem
+How to bootstrap the query engine when the system doesn't exist yet?
+
+#### Options
+A) **Start directly with Rust binary** — most efficient but no system to build with.
+B) **Shell tools → SQLite → Rust binary** — three substitutable implementations.
+C) **Single intermediate step** — shell tools → Rust binary.
+
+#### Decision
+**Option B.** Three-phase: (a) shell tools (grep/jq + Python) for immediate bootstrap,
+(b) SQLite with EAV schema as intermediate, (c) Rust binary as final target. All three
+implementations are substitutable (same protocol interface, tested against same invariants).
+
+#### Formal Justification
+The bootstrapping problem: you need the system to build the system. Shell tools enable
+immediate use of harvest/seed before the store exists. The invariants (this specification)
+constrain all three implementations identically.
+
+---
+
+### §1.6 Negative Cases
+
+### NEG-STORE-001: No Datom Deletion
+
+**Traces to**: SEED §4, C1, ADRS FD-001
+**Verification**: `V:KANI`, `V:PROP`
+
+**Safety property**: `□ ¬(∃ d ∈ S, S' = next(S): d ∉ S')`
+In all reachable states, no datom ever disappears from the store.
+
+**Formal statement**:
+For all execution traces T and all datoms d:
+  if d ∈ S at time t, then d ∈ S at all times t' > t.
+
+**proptest strategy**: Generate adversarial operation sequences (rapid assert/retract cycles,
+concurrent merges, crash/recovery). After each operation, verify the datom set is a
+superset of all previously-observed sets.
+
+**Kani harness**: Bounded exhaustive check that no sequence of ≤ 20 operations
+reduces the datom count.
+
+---
+
+### NEG-STORE-002: No Mutable State in Store
+
+**Traces to**: SEED §4, C1
+**Verification**: `V:TYPE`, `V:KANI`
+
+**Safety property**: `□ ¬(∃ operation that modifies an existing datom's fields)`
+No operation changes the `(e, a, v, tx, op)` tuple of an existing datom.
+
+**Formal statement**:
+The store exposes no `&mut Datom` reference to existing datoms. The only way to
+"change" a fact is to assert a new datom.
+
+**Rust type-level enforcement**: `Store` provides only `fn insert(&mut self, d: Datom)`
+and `fn iter(&self) -> impl Iterator<Item = &Datom>`. No `fn get_mut`.
+
+---
+
+### NEG-STORE-003: No Sequential ID Assignment
+
+**Traces to**: SEED §4 Axiom 1, C2, ADRS FD-007
+**Verification**: `V:TYPE`
+
+**Safety property**: `□ ¬(∃ auto-increment counter for EntityId generation)`
+EntityIds are never assigned sequentially.
+
+**Formal statement**:
+The `EntityId` type has no `fn next()` or auto-increment constructor.
+All EntityId creation goes through content-hashing.
+
+**Rust type-level enforcement**: `EntityId` has a single constructor:
+`pub fn from_content(content: &[u8]) -> EntityId`. No `fn new(n: u64)`.
+
+---
+
+### NEG-STORE-004: No Merge Heuristics
+
+**Traces to**: SEED §4, C4
+**Verification**: `V:TYPE`, `V:PROP`
+
+**Safety property**: `□ ¬(∃ merge operation that applies heuristics or conflict resolution)`
+Merge is pure set union. No heuristic, no conflict resolution, no "smart" merging at the
+store level.
+
+**Formal statement**:
+`MERGE(S₁, S₂) = S₁ ∪ S₂` — the mathematical set union. Any conflict resolution happens
+in the RESOLUTION namespace at query time, not during merge.
+
+**proptest strategy**: Merge two stores with conflicting values for the same entity-attribute.
+Verify both values are present in the merged store (no automatic resolution).
+
+---
+
+### NEG-STORE-005: No Store Compaction
+
+**Traces to**: C1, ADRS FD-001
+**Verification**: `V:TYPE`
+
+**Safety property**: `□ ¬(∃ operation that removes "old" or "superseded" datoms)`
+No garbage collection, compaction, or pruning of the datom set.
+
+**Formal statement**:
+The store API exposes no `compact()`, `gc()`, `prune()`, or `vacuum()` operations.
+Retracted datoms remain in the store permanently.
+
+---
+
