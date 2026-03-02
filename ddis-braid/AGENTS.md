@@ -71,7 +71,14 @@ ddis-braid/                                     ← YOU ARE HERE
 │   ├── 00-preamble.md               ← Shared definitions (conventions, verification tags, constraints)
 │   ├── 01-store.md – 14-interface.md  ← 14 namespace specifications (§1–§14)
 │   └── 15-uncertainty.md – 17-crossref.md  ← Integration sections (§15–§17 + Appendices)
-├── IMPLEMENTATION_GUIDE.md          ← Stage-by-stage build plan for the implementing agent
+├── IMPLEMENTATION_GUIDE.md          ← Stub pointing to guide/ (modularized)
+├── guide/                           ← Modularized implementation guide (one file per namespace)
+│   ├── README.md                    ← Master index, build order, cognitive phase protocol
+│   ├── 00-architecture.md           ← Crate layout, type catalog, CLI/MCP specs, LLM-native design
+│   ├── 01-store.md – 09-interface.md  ← Per-namespace build plans (§1–§9)
+│   ├── 10-verification.md           ← Verification pipeline, CI gates, coverage matrix
+│   ├── 11-worked-examples.md        ← Self-bootstrap demo, session transcripts, Datalog queries
+│   └── 12-stages-1-4.md             ← Future roadmap, extension points
 ├── GAP_ANALYSIS.md                  ← Existing code vs. specification comparison
 ├── HARVEST.md                       ← Manual harvest log (session summaries, decisions)
 ├── FAILURE_MODES.md                 ← Agentic failure mode catalog (test cases + acceptance criteria for DDIS/Braid)

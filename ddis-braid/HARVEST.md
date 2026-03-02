@@ -844,3 +844,74 @@ None introduced. No content was modified.
 
 **Produce IMPLEMENTATION_GUIDE.md.** The specification is now modularized for per-namespace loading. Work through Stage 0 namespaces first (STORE, SCHEMA, QUERY, HARVEST, SEED, GUIDANCE, INTERFACE), loading one `spec/` file at a time to ensure full attention per namespace.
 
+---
+
+## Session 009 — 2026-03-02: IMPLEMENTATION_GUIDE.md Production (Modularized as `guide/`)
+
+### Task
+
+Produce the implementation guide — the definitive build plan for the implementing agent. Modularized as `guide/` (13 files), mirroring the `spec/` pattern. Grounded in formal methods, cleanroom software engineering, and prompt-optimization methodology.
+
+Traces to: SEED.md §10 (Concrete Next Step 3), CLAUDE.md task-specific guidance.
+
+### What Was Accomplished
+
+| File | Lines | Content |
+|------|-------|---------|
+| `guide/README.md` | ~130 | Master index, build order, cognitive phase protocol, spec cross-reference |
+| `guide/00-architecture.md` | ~600 | Crate workspace layout, core type catalog (Datom through Store), Cargo.toml files, file formats (JSONL, redb, seed template, dynamic CLAUDE.md), CLI command signatures (clap derive structs), MCP tool definitions (9 tools with JSON Schema), LLM-native interface design (output algebra, error protocol, guidance footer design, token targets), SPEC-GAP markers, uncertainty resolution protocol |
+| `guide/01-store.md` | ~280 | STORE build plan — module structure, public API, three-box decomposition (Datom, Store, Transaction typestate), type-level encoding, LLM-facing outputs, proptest strategies, Kani harnesses, implementation checklist |
+| `guide/02-schema.md` | ~230 | SCHEMA build plan — genesis constants (17 axiomatic attributes), Schema type, self-description verification |
+| `guide/03-query.md` | ~260 | QUERY build plan — Datalog parser, semi-naive evaluator, stratum classification, CALM compliance |
+| `guide/04-resolution.md` | ~220 | RESOLUTION build plan — three resolution modes, conflict predicate, LIVE index |
+| `guide/05-harvest.md` | ~250 | HARVEST build plan — epistemic gap detection, five-stage pipeline, quality metrics, candidate presentation |
+| `guide/06-seed.md` | ~270 | SEED build plan — associate/assemble/compress, dynamic CLAUDE.md, five-part trajectory seed as prompt component |
+| `guide/07-merge-basic.md` | ~180 | MERGE Stage 0 subset — INV-MERGE-001/008 only, pure set union |
+| `guide/08-guidance.md` | ~230 | GUIDANCE build plan — drift detection, six anti-drift mechanisms, footer selection algorithm, navigative language |
+| `guide/09-interface.md` | ~260 | INTERFACE build plan — output mode dispatch, MCP server, persistence bridge, error protocol |
+| `guide/10-verification.md` | ~280 | Tiered verification pipeline (Gates 1–5), CI configuration (GitHub Actions YAML), coverage matrix, proptest configuration, quality gate protocol |
+| `guide/11-worked-examples.md` | ~520 | Self-bootstrap demo (genesis → schema → spec transact → query), harvest/seed session transcript (10-turn lifecycle), 5 Datalog queries, 3 error recovery demos, MCP round-trip demo |
+| `guide/12-stages-1-4.md` | ~190 | Stage 1–4 roadmap, extension points per stage, INV activation table |
+| `IMPLEMENTATION_GUIDE.md` | ~20 | Stub pointer to `guide/` (same pattern as SPEC.md → spec/) |
+| `CLAUDE.md` | MODIFIED | Updated project structure to include `guide/` directory |
+
+**Totals**: 13 guide files + 1 stub pointer. ~3,900 lines across all guide files.
+
+### Key Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| Modularized as `guide/` (not monolithic) | NEG-008 (no massive files); enables per-namespace loading during implementation |
+| `guide/NN-*.md` numbering mirrors `spec/NN-*.md` | Implementing agent loads `spec/03-query.md` alongside `guide/03-query.md` — mental mapping |
+| Three-box decomposition (black/state/clear) per core type | Cleanroom methodology (Mills); each box is independently verifiable |
+| Exact Rust type signatures (not prose) | Implementing agent needs precise contracts, not descriptions |
+| LLM-native design as explicit §0.6 section | Core structural invariant of Braid — every output is an optimized prompt |
+| Worked examples as the longest section | Per prompt-optimization: demonstrations encode what constraints cannot |
+| `[SPEC-GAP]` markers for spec augmentation | Four potential spec additions identified during guide production |
+| Build order: STORE → SCHEMA → QUERY → RESOLUTION → MERGE → HARVEST → SEED → GUIDANCE → INTERFACE | Follows invariant dependency graph from spec/17-crossref.md §17.2 |
+
+### SPEC-GAP Markers Identified
+
+Four potential specification additions flagged for follow-up:
+1. `[SPEC-GAP]` Tool description quality metric (INV-INTERFACE-008 candidate)
+2. `[SPEC-GAP]` Error message recovery-hint completeness (INV-INTERFACE-009 candidate)
+3. `[SPEC-GAP]` Dynamic CLAUDE.md as formally optimized prompt (INV-GUIDANCE-007 augmentation)
+4. `[SPEC-GAP]` Token efficiency as testable property (INV-BUDGET-006 candidate)
+
+### Failure Modes Observed
+
+None triggered. NEG-001 (no stubs) — all files complete. NEG-005 (no unstructured prose) — all guide sections use structured format. NEG-008 (no massive files) — largest file ~600 lines.
+
+### Open Questions
+
+- UNC-SCHEMA-001 (17 axiomatic attributes): guide specifies genesis constants but verification requires implementation. Flagged in guide/02-schema.md.
+- Should `braid-kernel` use `edition = "2024"` or `"2021"`? (2024 may not be stable yet — implement should verify)
+
+### Recommended Next Action
+
+**Begin Stage 0 implementation.** The implementing agent's workflow:
+1. Read `guide/README.md` (build order, cognitive protocol)
+2. For each namespace in order: read `spec/NN-*.md` then `guide/NN-*.md`
+3. Implement following three-box decomposition and verification checklist
+4. First act: `Store::genesis()` + spec element self-bootstrap (guide/11-worked-examples.md §11.1)
+
