@@ -2,7 +2,7 @@
 
 **Date**: 2026-02-22
 **Evaluator**: Claude Opus 4.6 (independent assessment, not the RALPH loop Judge)
-**Artifact**: `/data/projects/ddis/ddis-evolution/versions/ddis_final.md` (3,089 lines)
+**Artifact**: `ddis-evolution/versions/ddis_final.md` (3,089 lines)
 **RALPH Run**: v17 (2 iterations + polish, 66 minutes total)
 
 ---

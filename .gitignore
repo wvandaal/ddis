@@ -57,6 +57,10 @@ ddis-cli/ddis
 ddis-cli/manifest.ddis.db
 ddis-modular/output.md
 
+# RALPH loop working artifacts (generated during runs)
+ralph/versions/
+ralph/logs/
+
 # Orphaned test artifacts
 ddis-cli-spec/nonexistent.db
 ddis-cli-spec/forward

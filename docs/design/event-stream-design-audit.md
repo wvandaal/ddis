@@ -157,7 +157,7 @@ Using the spec's own formal predicates:
 - Two cm rules (`b-mm2e6bpt-460dd5`, `b-mm2eqbm4-urn8dz`) capturing the notation `⊥[NAME]`
 - Your memory of the design intent
 
-The feature-discovery-state-template at `ddis-evolution/feature-discovery-state-template.json` (from your collaborator) has a `question_tree` with question statuses that could include "deferred", and an `artifact_map` where entries can be partial. But this is not a type-theoretic bottom type — it's a workflow status.
+The feature-discovery-state-template at `docs/design/feature-discovery-state-template.json` (from your collaborator) has a `question_tree` with question statuses that could include "deferred", and an `artifact_map` where entries can be partial. But this is not a type-theoretic bottom type — it's a workflow status.
 
 The formal gap: DDIS has no mechanism for a spec element to be **present but explicitly uninhabited** — known to be needed, tracked by ID, visible to validation, but without concrete content. The closest existing mechanism is an invariant with `Confidence: falsified` (never witnessed), but that's about implementation evidence, not specification completeness.
 

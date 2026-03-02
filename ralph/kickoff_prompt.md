@@ -4,9 +4,9 @@ You are performing the first iteration of recursive self-improvement on the DDIS
 
 You have two files:
 
-1. **ddis_recursive_improvement_prompt.md** — A detailed methodology for how to audit and improve DDIS, including audit frameworks, quality criteria, priority levels, and anti-patterns to avoid.
+1. **improvement_strategy.md** — A detailed methodology for how to audit and improve DDIS, including audit frameworks, quality criteria, priority levels, and anti-patterns to avoid.
 
-2. **ddis_standard.md** — The current DDIS standard (version 1.0), approximately 1,575 lines. This is a self-bootstrapping meta-specification: it defines a standard for writing implementation specifications and is itself written in the format it defines.
+2. **ddis-evolution/versions/ddis_v0.md** — The current DDIS standard (version 1.0), approximately 1,575 lines. This is a self-bootstrapping meta-specification: it defines a standard for writing implementation specifications and is itself written in the format it defines.
 
 ## Your Task
 

@@ -4,15 +4,22 @@
 
 ## Setup
 
-Put all four files in the same directory:
+All RALPH files live in the `ralph/` directory:
 
 ```
-ddis-project/
-├── ddis_ralph_loop.sh              # This script
-├── ddis_standard.md                # DDIS 1.0 (the seed spec)
-├── ddis_recursive_improvement_prompt.md  # The improvement methodology
-└── kickoff_prompt.md               # Short kickoff for iteration 1
+ralph/
+├── ddis_ralph_loop.sh              # Main RALPH loop script
+├── ddis_assemble.sh                # Module assembler
+├── ddis_validate.sh                # Validation checks
+├── improvement_strategy.md         # The improvement methodology
+├── kickoff_prompt.md               # Short kickoff for iteration 1
+├── README.md                       # This file
+└── judgments/                      # RALPH convergence evaluations
+    ├── judgment_v1.json
+    └── judgment_v2.json
 ```
+
+The seed spec lives at `ddis-evolution/versions/ddis_v0.md` (the original DDIS 1.0).
 
 Requirements: `claude` CLI (Claude Code), `jq`, and `python3` with PyYAML.
 
@@ -140,25 +147,18 @@ Plus: `stop_excellent` if score ≥ 95 with no critical gaps, and a safety cap a
 ## Output
 
 ```
-ddis-evolution/
-├── versions/
-│   ├── ddis_v0.md          # Seed (DDIS 1.0)
-│   ├── ddis_v1.md          # First improvement
-│   ├── ddis_v2.md          # Second improvement
-│   └── ddis_final.md       # Best version, polished
-├── judgments/
-│   ├── judgment_v1.json    # Judge comparison: v0 vs v1
-│   └── judgment_v2.json    # Judge comparison: v1 vs v2
-├── logs/
-│   ├── improve_v1.log
-│   ├── judge_v1.log
-│   └── polish.log
-└── .beads/                 # (if br installed) Gap tracking
-    ├── beads.db            # SQLite: gap issues with statuses
-    └── issues.jsonl        # Git-friendly export
+ddis-evolution/versions/
+├── ddis_v0.md          # Seed (DDIS 1.0)
+├── ddis_v1.md          # First improvement
+├── ddis_v2.md          # Second improvement
+└── ddis_final.md       # Best version, polished
+
+ralph/judgments/
+├── judgment_v1.json    # Judge comparison: v0 vs v1
+└── judgment_v2.json    # Judge comparison: v1 vs v2
 ```
 
-The final spec is also copied to `./ddis_final.md` for convenience.
+The final spec is written to `ddis-evolution/versions/ddis_final.md`.
 
 In modular mode, the output structure also includes:
 

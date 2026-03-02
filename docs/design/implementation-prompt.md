@@ -12,7 +12,7 @@ Before doing anything, formalize your understanding of the domain.
 Read each file completely. Do not skim.
 
 ```
-1. ddis-evolution/PROGRESS_REVIEW_2026-02-24.md     — the honest gap assessment
+1. docs/reference/progress-review-2026-02-24.md     — the honest gap assessment
 2. ddis-cli-spec/constitution/system.md              — 8-tuple state space, 22 state transitions
 3. ddis-cli-spec/modules/auto-prompting.md           — the bilateral lifecycle spec (1,932 lines)
 4. ddis-cli-spec/modules/code-bridge.md              — annotation system + contradiction detection

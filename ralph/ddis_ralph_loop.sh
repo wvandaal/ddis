@@ -62,14 +62,15 @@ done
 # ─── Path Setup ──────────────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORK_DIR="${SCRIPT_DIR}/ddis-evolution"
+PROJECT_ROOT="${SCRIPT_DIR}/.."
+WORK_DIR="${PROJECT_ROOT}/ddis-evolution"
 VERSIONS_DIR="${WORK_DIR}/versions"
-JUDGMENTS_DIR="${WORK_DIR}/judgments"
+JUDGMENTS_DIR="${SCRIPT_DIR}/judgments"
 LOGS_DIR="${WORK_DIR}/logs"
 
-MODULAR_DIR="${SCRIPT_DIR}/ddis-modular"
-SEED_SPEC="${SCRIPT_DIR}/ddis_standard.md"
-IMPROVEMENT_PROMPT="${SCRIPT_DIR}/ddis_recursive_improvement_prompt.md"
+MODULAR_DIR="${PROJECT_ROOT}/ddis-modular"
+SEED_SPEC="${VERSIONS_DIR}/ddis_v0.md"
+IMPROVEMENT_PROMPT="${SCRIPT_DIR}/improvement_strategy.md"
 KICKOFF_PROMPT="${SCRIPT_DIR}/kickoff_prompt.md"
 
 # ─── Claude -p Flags ─────────────────────────────────────────────────────────
@@ -1473,9 +1474,9 @@ main() {
 
     # Copy to project root — but only if we actually improved beyond the seed.
     if [[ $best_version -gt 0 ]]; then
-        cp "$final_spec" "${SCRIPT_DIR}/ddis_final.md"
+        cp "$final_spec" "${VERSIONS_DIR}/ddis_final.md"
         log ""
-        log "Done. Final spec: ${SCRIPT_DIR}/ddis_final.md"
+        log "Done. Final spec: ${VERSIONS_DIR}/ddis_final.md"
     else
         log ""
         log "Done. No improvement over seed — final remains at ${final_spec}"
