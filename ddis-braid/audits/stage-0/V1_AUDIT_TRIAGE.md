@@ -3,8 +3,9 @@
 > **Audit source**: `V1_AUDIT_3-3-2026.md`
 > **Beads tracking**: 8 epics (R0–R7), 122 tasks, 130 total beads
 > **Status**: IN PROGRESS — exploration phase
-> **Ready beads**: 20 (unblocked, ready for execution)
+> **Ready beads**: 41 (unblocked, ready for execution)
 > **Dependency cycles**: 0
+> **Parallelism**: R0, R1, R2, R3, R5 all run concurrently; R4 after R1; R6 after R1+R2; R7 after all
 
 ---
 
@@ -282,14 +283,20 @@ Three spec-internal contradictions requiring detailed exploration:
 | Blocked | 110 |
 | Dependency cycles | 0 |
 
-### Epic Dependency DAG
+### Epic Dependency DAG (Revised)
 
 ```
-R0 (Critical Fixes) ─┬─→ R1 (Types) ──→ R4 (Phantom Types) ──→ R6 (Cross-Cutting) ──→ R7 (Final)
-                      ├─→ R2 (CRDT Proofs) ──────────────────→ R6
-                      └─→ R5 (Patterns) ─────────────────────→ R6
-R3 (Research) ── parallel, no blockers ──────────────────────→ informs R6
+R0 (Critical Fixes) ── narrow task deps only ──→ R1.6, R1.9b, R1.10, R1.12
+R1 (Types)          ── parallel with R0 ──────→ R4 (Phantom Types) ──→ R6 ──→ R7
+R2 (CRDT Proofs)    ── parallel with R0 ──────────────────────────→ R6 ──→ R7
+R3 (Research)       ── parallel with all ──────────────────────────────────→ R7
+R5 (Patterns)       ── parallel with R0 ──────────────────────────────────→ R7
 ```
+
+**Key change from v1**: Removed R0→R1/R2/R5 epic-level deps. Most R1/R2/R5 tasks
+are independent of R0 behavioral fixes. Only 4 narrow R1 tasks (R1.6, R1.9b, R1.10,
+R1.12) genuinely depend on specific R0 outcomes. This increases parallelizable work
+from 20 to 41 ready beads.
 
 ### R0 — Critical Behavioral Fixes (P0, 14 beads)
 
