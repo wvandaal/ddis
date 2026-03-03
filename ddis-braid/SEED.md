@@ -45,13 +45,40 @@ DDIS provides the substrate that makes this possible.
 
 ## 3. The Specification Formalism
 
-The DDIS specification formalism provides specific machinery for detecting and resolving each type of divergence. Each element addresses a different failure mode:
+The DDIS specification formalism provides specific machinery for detecting and resolving each type of divergence. Each element addresses a specific failure mode in the divergence chain (§2):
 
-**Invariants** are falsifiable claims about the system. Not wishes, not goals — statements that can be mechanically checked. Each invariant has an ID, a formal statement, an explicit violation condition ("this invariant is falsified if..."), and a verification method. Invariants are the primary mechanism for detecting **logical** and **structural** divergence.
+| Primitive | ID Pattern | Divergence Addressed | Role |
+|-----------|-----------|---------------------|------|
+| Invariant | `INV-{NS}-{NNN}` | Logical, structural | Falsifiable claim about what must hold |
+| ADR | `ADR-{NS}-{NNN}` | Axiological | Record of why a choice was made |
+| Negative Case | `NEG-{NS}-{NNN}` | Structural (underspecification) | Safety property: what must NOT happen |
+| Uncertainty Marker | confidence 0.0–1.0 | Epistemic | Explicitly provisional claim |
+| Contradiction Detection | 5-tier | Logical (internal) | Finds conflicts between specification elements |
+| Fitness Function | F(S) → [0, 1] | All types (quantified) | Measures overall convergence |
+| Bilateral Loop | — | All boundaries | Checks alignment in both directions |
 
-**Architectural Decision Records (ADRs)** capture why a choice was made, what alternatives were considered, and what tradeoffs were accepted. ADRs prevent the specific failure mode where someone revisits a decision without knowing why it was made, reverses it for seemingly good reasons, and breaks downstream invariants that depended on the original choice. ADRs are the primary mechanism for detecting **axiological divergence** — when the implementation undermines the goals that motivated the design.
+The first four are **element types** — artifacts with IDs that become datoms in the store (C7). The last three are **verification mechanisms** — processes that operate over elements to detect and measure divergence.
 
-**Negative cases** define what the system must NOT do. They bound the solution space. Without explicit negative cases, an agent optimizing for one invariant may violate an unstated constraint. Negative cases prevent **structural divergence** arising from overspecification in one dimension and underspecification in another.
+**Invariants** are falsifiable claims about the system. Not wishes, not goals — statements that can be mechanically checked. Each invariant has an ID, a formal statement, an explicit violation condition ("this invariant is falsified if..."), and a verification method. Invariants are the primary mechanism for detecting **logical** and **structural** divergence. Every invariant requires:
+
+- **ID** (`INV-{NAMESPACE}-{NNN}`) — individually addressable, traceable to this seed
+- **Formal statement** — the claim about system behavior
+- **Falsification condition** — "this invariant is violated if..." (C6: non-negotiable; an invariant without a falsification condition is not an invariant — it is a wish)
+- **Verification method** — how the claim is mechanically checked
+
+**Architectural Decision Records (ADRs)** capture why a choice was made, what alternatives were considered, and what tradeoffs were accepted. ADRs prevent the specific failure mode where someone revisits a decision without knowing why it was made, reverses it for seemingly good reasons, and breaks downstream invariants that depended on the original choice. ADRs are the primary mechanism for detecting **axiological divergence** — when the implementation undermines the goals that motivated the design. Every ADR requires:
+
+- **ID** (`ADR-{NAMESPACE}-{NNN}`) — individually addressable
+- **Problem** — the question being decided
+- **Options** — all alternatives considered, with tradeoffs for each
+- **Decision** — which option was chosen, with formal justification
+- **Consequences** — what follows, especially which invariants depend on this choice
+
+**Negative cases** define what the system must NOT do. They bound the solution space from the opposite direction as invariants: where invariants say "this must hold," negative cases say "this must never happen in any reachable state." Without explicit negative cases, an agent optimizing for one invariant may violate an unstated constraint. Negative cases prevent **structural divergence** arising from overspecification in one dimension and underspecification in another. Every negative case requires:
+
+- **ID** (`NEG-{NAMESPACE}-{NNN}`) — individually addressable
+- **Safety property** — what must never occur, stated as a temporal logic formula where possible
+- **Violation condition** — observable evidence that the property has been breached
 
 **The bilateral feedback loop** continuously checks alignment in both directions. Forward: does the implementation satisfy the specification? Backward: does the specification accurately describe the implementation? The loop converges when the specification fully describes the implementation and the implementation fully satisfies the specification.
 
@@ -59,7 +86,26 @@ The DDIS specification formalism provides specific machinery for detecting and r
 
 **The fitness function** quantifies convergence toward full coherence across multiple dimensions: coverage (every goal traces to invariants and back), depth (invariants are fully specified with violation conditions), coherence (no internal contradictions), completeness (no gaps between spec and implementation), formality (claims are falsifiable, not aspirational), certainty (uncertainty markers resolved toward commitment), and commitment (provisional decisions stabilized into ADRs). The formula F(S) is a weighted combination of these seven components (see ADRS.md: CO-009).
 
-**Explicit uncertainty markers** acknowledge what the specification doesn't know yet. Where a claim is provisional, it carries a confidence level and a description of what would resolve the uncertainty. This prevents the failure mode where aspirational prose reads like settled commitment, and agents implement uncertain claims as though they were axioms. Uncertainty is not a defect in the specification — it is information about where the specification needs more work.
+**Explicit uncertainty markers** acknowledge what the specification doesn't know yet. Where a claim is provisional, it carries a confidence level and a description of what would resolve the uncertainty. This prevents the failure mode where aspirational prose reads like settled commitment, and agents implement uncertain claims as though they were axioms. Uncertainty is not a defect in the specification — it is information about where the specification needs more work. Every uncertainty marker requires:
+
+- **Confidence** (0.0–1.0) — how settled the claim is
+- **Source** — which element (invariant, ADR) the uncertainty qualifies
+- **Impact if wrong** — what breaks if the uncertain claim proves false
+- **Resolution criteria** — what evidence or experience would settle it
+- **What survives** — which guarantees hold regardless of how the uncertainty resolves
+
+### How the Primitives Interact
+
+The seven primitives form a constraint network, not a flat list:
+
+- **INV ← ADR**: Every invariant exists because a design decision established the property it asserts. Reversing an ADR without checking downstream invariants is a defect.
+- **NEG bounds INV**: Invariants define what must hold; negative cases define what must not happen. Together they constrain the solution space from both directions.
+- **UNC qualifies INV and ADR**: A high-confidence invariant is a commitment; a low-confidence one is a hypothesis. Agents must treat them differently — implementing a 0.4-confidence claim as an axiom is a known failure mode.
+- **Contradiction detection operates over INV and ADR pairs**: Each detected contradiction becomes input to the deliberation mechanism (§6), producing a new ADR that resolves it.
+- **F(S) measures all element types**: Coverage gaps (missing INVs), conflicts (contradicting INVs), unresolved uncertainties (open UNCs) all reduce the score.
+- **Bilateral loop uses INV and NEG as its test suite**: Forward — does the implementation satisfy every INV and respect every NEG? Backward — does every implemented behavior trace to an INV or ADR? Untraceable behavior is a spec gap; unimplemented invariants are implementation gaps.
+
+Adding or changing any element has consequences across the network. This is why contradiction detection and the bilateral loop exist — to surface those consequences automatically rather than discovering them by accident.
 
 When this machinery is reified as structured data in the knowledge store, the coherence verification itself becomes queryable and auditable. "Show me every invariant and its current validation status." "Show me every ADR and whether the decision it records is still reflected in the implementation." "Show me every unresolved contradiction, classified by type and severity." "Show me every uncertainty marker and what would resolve it." These are queries, not manual audits. They run continuously, automatically, triggered by every new fact assertion.
 
@@ -156,6 +202,23 @@ The system maintains coherence through specific mechanisms, each targeting a dif
 **The Bilateral Loop** continuously checks alignment between specification and implementation in both directions. Forward: does the implementation satisfy the spec? Backward: does the spec accurately describe the implementation? Convergence means no further changes in either direction.
 
 **Dynamic CLAUDE.md** reconciles divergence between the methodology the agent should follow and the methodology it actually follows. The system tracks drift patterns (what agents forget, which checks they skip) and generates operating instructions that preemptively correct for observed failure patterns. The instructions improve with use as drift data accumulates.
+
+### The Reconciliation Taxonomy
+
+Every divergence the system detects falls into one of eight classes. Each has a characteristic boundary, detection mechanism, and resolution path:
+
+| Divergence Type | Boundary | Detection | Resolution |
+|----------------|----------|-----------|------------|
+| Epistemic | Store vs. agent knowledge | Harvest gap detection | Harvest (promote to datoms) |
+| Structural | Implementation vs. specification | Bilateral scan / drift | Associate + guided reimplementation |
+| Consequential | Current state vs. future risk | Uncertainty tensor | Guidance (redirect before action) |
+| Aleatory | Agent vs. agent | Merge conflict detection | Deliberation + Decision |
+| Logical | Invariant vs. invariant | Contradiction detection (5-tier) | Deliberation + new ADR |
+| Axiological | Implementation vs. goals | Fitness function / goal-drift signal | Human review + ADR revision |
+| Temporal | Agent frontier vs. agent frontier | Frontier comparison | Sync barrier |
+| Procedural | Agent behavior vs. methodology | Drift detection (access log) | Dynamic CLAUDE.md |
+
+If a feature under development doesn't address at least one of these divergence types, either a ninth type has been discovered (document it) or the feature doesn't belong.
 
 ### Uncertainty, Authority, and Conflict
 
