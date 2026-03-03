@@ -34,8 +34,8 @@ match arms. Zero runtime cost verification.
 
 ### Gate 2: Test (`cargo test`)
 
-**Checks**: All `V:PROP` invariants via proptest properties. Every one of the 122 invariants
-has a proptest strategy (100% coverage by spec requirement).
+**Checks**: All `V:PROP` invariants via proptest properties. 121 of the 124 invariants
+have proptest strategies (the remaining 3 are V:TYPE-only compile-time checks).
 
 **Time**: <5 minutes (256 cases per property, default proptest config).
 
@@ -57,7 +57,7 @@ inputs up to the configured bound.
 
 **Time**: <15 minutes.
 
-**Coverage**: 38 invariants (31.4%) with critical-path verification:
+**Coverage**: 41 invariants (33.1%) with critical-path verification:
 - All STORE CRDT laws (INV-STORE-004–008)
 - All SCHEMA bootstrap properties (INV-SCHEMA-001–002, 004)
 - All RESOLUTION algebraic laws (INV-RESOLUTION-002, 004–006)
@@ -68,7 +68,7 @@ inputs up to the configured bound.
 
 **Configuration**:
 ```rust
-// Kani harness examples (2 of 38 — see full list below)
+// Kani harness examples (2 of 41 — see full list below)
 #[cfg(kani)]
 mod kani_proofs {
     use super::*;
@@ -104,50 +104,55 @@ mod kani_proofs {
 **Solver bounds**: `#[kani::unwind(8)]` for most harnesses. Increase to 16 for
 CRDT commutativity/associativity proofs (three-store merge scenarios).
 
-### Complete V:KANI Harness List (38 total)
+### Complete V:KANI Harness List (41 total)
 
-All INVs tagged V:KANI in the verification matrix, grouped by namespace:
+All INVs tagged V:KANI in the verification matrix (spec/16-verification.md §16.1),
+grouped by namespace. Each harness targets the **Level 2 implementation contract**
+(bounded, concrete Rust code), not the Level 0 algebraic property.
 
-| Namespace | INV | Harness Property |
-|-----------|-----|-----------------|
-| STORE | INV-STORE-001 | Append-only: transact never decreases datom count |
-| STORE | INV-STORE-004 | Merge commutativity: `merge(A,B) = merge(B,A)` |
-| STORE | INV-STORE-005 | Store immutability: reads unaffected by concurrent writes |
-| STORE | INV-STORE-006 | Merge idempotency: `merge(A,A) = A` |
-| STORE | INV-STORE-007 | Merge monotonicity: `|merge(A,B)| ≥ max(|A|,|B|)` |
-| STORE | INV-STORE-008 | Genesis determinism: `genesis() = genesis()` |
-| STORE | INV-STORE-010 | Causal ordering: predecessor `<` successor in HLC |
-| STORE | INV-STORE-012 | LIVE index matches manual resolution |
-| SCHEMA | INV-SCHEMA-001 | Schema-as-data: schema extracted only from datoms |
-| SCHEMA | INV-SCHEMA-002 | Genesis completeness: exactly 17 axiomatic attributes |
-| SCHEMA | INV-SCHEMA-004 | Schema validation: rejects malformed datoms |
-| QUERY | INV-QUERY-001 | Query determinism: same inputs → same bindings |
-| QUERY | INV-QUERY-004 | Stratified negation: no unstratifiable queries accepted |
-| QUERY | INV-QUERY-012 | SCC correctness: Tarjan's produces valid decomposition |
-| QUERY | INV-QUERY-013 | Condensation DAG: acyclic after SCC contraction |
-| QUERY | INV-QUERY-017 | Critical path: longest path in DAG |
-| RESOLUTION | INV-RESOLUTION-002 | Resolution commutativity: order-independent |
-| RESOLUTION | INV-RESOLUTION-004 | Conflict predicate: six-condition correctness |
-| RESOLUTION | INV-RESOLUTION-005 | LWW semilattice: comm + assoc + idem |
-| RESOLUTION | INV-RESOLUTION-006 | Lattice join: LUB correctness |
-| RESOLUTION | INV-RESOLUTION-007 | Three-tier routing: totality (no unrouted conflicts) |
-| HARVEST | INV-HARVEST-001 | Harvest monotonicity: never removes datoms |
-| HARVEST | INV-HARVEST-006 | Crystallization guard: high-weight stability check |
-| SEED | INV-SEED-002 | Budget compliance: output ≤ budget |
-| SEED | INV-SEED-003 | ASSOCIATE boundedness: ≤ depth × breadth |
-| MERGE | INV-MERGE-001 | No datom loss: both inputs preserved |
-| MERGE | INV-MERGE-003 | Branch isolation: branches can't see each other |
-| MERGE | INV-MERGE-004 | DCC completeness: diverge-compare-converge |
-| MERGE | INV-MERGE-005 | Competing branch lock: at most 2 active branches |
-| SIGNAL | INV-SIGNAL-001 | Signal monotonicity: signals grow, never shrink |
-| SIGNAL | INV-SIGNAL-003 | Signal correctness: derived from datom state |
-| SIGNAL | INV-SIGNAL-005 | Threshold detection: triggers fire at boundary |
-| DELIBERATION | INV-DELIBERATION-002 | Quorum correctness: majority required |
-| DELIBERATION | INV-DELIBERATION-005 | Decision finality: committed decisions immutable |
-| GUIDANCE | INV-GUIDANCE-006 | M(t) bounded: methodology score ∈ [0,1] |
-| BUDGET | INV-BUDGET-001 | Output budget cap: `|output| ≤ budget` |
-| BUDGET | INV-BUDGET-003 | Projection monotonicity: higher level ≤ lower tokens |
-| BUDGET | INV-BUDGET-006 | Token efficiency: density monotonically non-decreasing |
+| Namespace | INV | Harness Property | Bound |
+|-----------|-----|-----------------|-------|
+| STORE | INV-STORE-001 | Append-only: transact never decreases datom count | <=20 ops |
+| STORE | INV-STORE-002 | Content-addressing: same [e,a,v,tx,op] = same datom | <=5 datoms |
+| STORE | INV-STORE-003 | EntityId from content hash: no arbitrary construction | <=5 datoms |
+| STORE | INV-STORE-004 | Merge commutativity: `merge(A,B) = merge(B,A)` | <=5 datoms/store |
+| STORE | INV-STORE-005 | CRDT associativity: `(A ∪ B) ∪ C = A ∪ (B ∪ C)` | <=3 datoms/store |
+| STORE | INV-STORE-006 | Merge idempotency: `merge(A,A) = A` | <=5 datoms |
+| STORE | INV-STORE-007 | Merge monotonicity: `\|merge(A,B)\| >= max(\|A\|,\|B\|)` | <=5 datoms/store |
+| STORE | INV-STORE-008 | Genesis determinism: `genesis() = genesis()` | n/a (pure fn) |
+| STORE | INV-STORE-010 | Causal ordering: predecessor `<` successor in HLC | <=5 datoms |
+| STORE | INV-STORE-012 | LIVE index matches manual resolution | <=5 values/attr |
+| SCHEMA | INV-SCHEMA-001 | Schema-as-data: schema extracted only from datoms | <=17 attributes |
+| SCHEMA | INV-SCHEMA-002 | Genesis completeness: exactly 17 axiomatic attributes | n/a (bootstrap) |
+| SCHEMA | INV-SCHEMA-004 | Schema validation: rejects malformed datoms | <=10 datoms |
+| QUERY | INV-QUERY-001 | CALM compliance: Monotonic mode rejects negation/aggregation at parse time | <=10 clauses |
+| QUERY | INV-QUERY-004 | Branch visibility: snapshot isolation at fork point (trunk@fork + branch-only) | <=5 datoms, 1 branch |
+| QUERY | INV-QUERY-012 | Topological sort: Kahn's produces valid linear extension of DAG | <=8 vertices |
+| QUERY | INV-QUERY-013 | Tarjan SCC: partition + maximality + acyclic condensation | <=8 vertices |
+| QUERY | INV-QUERY-017 | Critical path: longest path equals forward/backward pass result | <=8 vertices |
+| RESOLUTION | INV-RESOLUTION-002 | Resolution commutativity: order-independent | <=5 values |
+| RESOLUTION | INV-RESOLUTION-004 | Conflict predicate: six-condition correctness | <=3 agents |
+| RESOLUTION | INV-RESOLUTION-005 | LWW semilattice: comm + assoc + idem | <=5 values |
+| RESOLUTION | INV-RESOLUTION-006 | Lattice join: LUB correctness | <=5 values |
+| RESOLUTION | INV-RESOLUTION-007 | Three-tier routing: totality (no unrouted conflicts) | <=5 conflicts |
+| HARVEST | INV-HARVEST-001 | Harvest monotonicity: never removes datoms | <=10 candidates |
+| HARVEST | INV-HARVEST-006 | Crystallization guard: high-weight stability check | <=5 candidates |
+| SEED | INV-SEED-002 | Budget compliance: output <= budget | <=1000 tokens |
+| SEED | INV-SEED-003 | ASSOCIATE boundedness: <= depth x breadth | depth<=3, breadth<=5 |
+| MERGE | INV-MERGE-001 | No datom loss: both inputs preserved in merged store | <=5 datoms/store |
+| MERGE | INV-MERGE-003 | Branch isolation: branches can't see each other's datoms | <=3 branches |
+| MERGE | INV-MERGE-004 | DCC completeness: diverge-compare-converge cycle | <=3 branches |
+| MERGE | INV-MERGE-005 | Competing branch lock: at most 2 active branches | <=3 branches |
+| MERGE | INV-MERGE-008 | Merge idempotency: `merge(A,A).datoms = A.datoms` | <=5 datoms |
+| SIGNAL | INV-SIGNAL-001 | Signal as datom: every emitted signal produces a store datom | <=5 signals |
+| SIGNAL | INV-SIGNAL-003 | Subscription completeness: no matching signal silently dropped | <=5 subscriptions |
+| SIGNAL | INV-SIGNAL-005 | Diamond lattice: incomparable merge produces signal | <=3 values |
+| DELIBERATION | INV-DELIBERATION-002 | Stability guard: decide() requires stability >= threshold | <=5 dimensions |
+| DELIBERATION | INV-DELIBERATION-005 | Commitment weight: weight monotonically non-decreasing | <=5 decisions |
+| GUIDANCE | INV-GUIDANCE-006 | M(t) bounded: methodology score in [0,1] | <=10 observations |
+| BUDGET | INV-BUDGET-001 | Output budget cap: `\|output\| <= budget` | <=1000 tokens |
+| BUDGET | INV-BUDGET-003 | Quality-adjusted degradation: Q(t) <= k*_eff(t) | <=100 steps |
+| BUDGET | INV-BUDGET-006 | Token efficiency: density monotonically non-decreasing | <=5 projections |
 
 ### Gate 3 — Tiered Kani CI Design (from D3-kani-feasibility.md)
 
@@ -200,10 +205,14 @@ fn verify_store_commutativity() {
 - Consider `#[kani::stub]` for complex subsystems (e.g., stub the hash function with a
   simpler version for CRDT algebra proofs).
 
-**Harness count verification note**: D3 report estimated 24 Stage 0 V:KANI harnesses. The
-authoritative count from spec/16-verification.md is **27** (STORE: 10, SCHEMA: 3, QUERY: 4,
-RESOLUTION: 5, HARVEST: 1, SEED: 2, MERGE: 2). The discrepancy arises from D3 undercounting
-QUERY (3 vs 4: missing QUERY-012/013 split) and MERGE (1 vs 2: MERGE-008 also has V:KANI).
+**Harness count verification note**: The authoritative total from spec/16-verification.md
+is **41** V:KANI harnesses across all stages (STORE: 10, SCHEMA: 3, QUERY: 5, RESOLUTION: 5,
+HARVEST: 2, SEED: 2, MERGE: 5, SIGNAL: 3, DELIBERATION: 2, GUIDANCE: 1, BUDGET: 3). Of
+these, **29 are Stage 0** (STORE: 10, SCHEMA: 3, QUERY: 4, RESOLUTION: 5, HARVEST: 1,
+SEED: 2, MERGE: 2, INTERFACE: 0). The remaining 12 are Stage 1-3 and run in Gate 3b/3c.
+
+**Feasibility: 41/41 (100%).** See spec/16-verification.md §16.5 for the complete feasibility
+assurance with per-category Kani strategies and bounds.
 
 ### Gate 4: Model Checking (`cargo test --features stateright`)
 
@@ -305,7 +314,7 @@ jobs:
 
 ## §10.3 Coverage Matrix Template
 
-The verification matrix maps each Stage 0 INV (61 total) to its verification methods.
+The verification matrix maps each Stage 0 INV (64 total) to its verification methods.
 This template is filled as implementation proceeds:
 
 | INV | V:TYPE | V:PROP | V:KANI | V:MODEL | Status |
@@ -498,7 +507,7 @@ Before advancing from namespace N to namespace N+1:
 
 ### What blocks Stage 0 completion
 
-1. All 61 Stage 0 INVs verified (proptest minimum, Kani where tagged)
+1. All 64 Stage 0 INVs verified (proptest minimum, Kani where tagged)
 2. Self-bootstrap test passes: spec elements transacted as datoms, queryable
 3. Harvest/seed round-trip test: 25-turn → harvest → seed → resume without re-explanation
 4. Dynamic CLAUDE.md generation produces valid output from store state

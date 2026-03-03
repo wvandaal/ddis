@@ -23,7 +23,7 @@
 - **Basic bilateral loop**: F(S) computation, convergence monitoring (INV-BILATERAL-001–002/004–005)
 - **Confusion signal**: First signal type — agent confusion detection (INV-SIGNAL-002)
 - **FP/FN calibration**: Harvest detection quality tuning (INV-HARVEST-004/006)
-- **CLAUDE.md relevance/improvement**: Dynamic CLAUDE.md quality tracking (INV-SEED-005–006)
+- **CLAUDE.md relevance/improvement**: Dynamic CLAUDE.md quality tracking (INV-SEED-007–008)
 - **Betweenness centrality**: Bottleneck detection in dependency graphs (INV-QUERY-015)
 - **HITS hub/authority**: Dual scoring for dependency structure (INV-QUERY-016)
 - **k-Core decomposition**: Tightly coupled component identification (INV-QUERY-018)
@@ -165,7 +165,7 @@ INVs that move from deferred to active at each stage transition:
 
 | Transition | Newly Active INVs |
 |------------|-------------------|
-| → Stage 1 (25 INV) | INV-BUDGET-001–006, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005, INV-INTERFACE-004/007, INV-QUERY-003/008–009/015–016/018, INV-SIGNAL-002, INV-HARVEST-004/006, INV-SEED-005–006 |
+| → Stage 1 (25 INV) | INV-BUDGET-001–006, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005, INV-INTERFACE-004/007, INV-QUERY-003/008–009/015–016/018, INV-SIGNAL-002, INV-HARVEST-004/006, INV-SEED-007–008 |
 | → Stage 2 (22 INV) | INV-STORE-013, INV-SCHEMA-008, INV-MERGE-003–007, INV-DELIBERATION-001–006, INV-SIGNAL-005, INV-GUIDANCE-006/011, INV-BILATERAL-003, INV-QUERY-004/011/019–020, INV-HARVEST-008 |
 | → Stage 3 (11 INV) | INV-SYNC-001–005, INV-SIGNAL-001/003–004/006, INV-QUERY-010, INV-INTERFACE-006 |
 | → Stage 4 (2 INV) | INV-GUIDANCE-005, INV-INTERFACE-005 |

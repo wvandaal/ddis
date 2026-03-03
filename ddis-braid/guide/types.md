@@ -8,8 +8,10 @@
 > R1.7 (reconcile field-level mismatches).
 >
 > **Convention**: `[AGREE]` = spec and guide definitions match. `[DIVERGENCE]` = mismatch
-> between spec and guide that requires reconciliation. `[SPEC-ONLY]` = defined in spec
-> but absent from guide. `[GUIDE-ONLY]` = defined in guide but absent from spec.
+> between spec and guide that requires reconciliation. `[STAGED]` = intentional difference
+> where guide implements a Stage 0 subset of the spec's full definition.
+> `[SPEC-ONLY]` = defined in spec but absent from guide.
+> `[GUIDE-ONLY]` = defined in guide but absent from spec.
 
 ---
 
@@ -123,7 +125,7 @@ contain exactly one `/`. Guide adds `from_keyword` const constructor for genesis
 | **Stage** | 0 |
 | **Spec file** | `spec/01-store.md` (L0 value domain: 14 types) |
 | **Guide files** | `guide/00-architecture.md` (section 0.2), `guide/01-store.md` (section 1.1) |
-| **Status** | `[DIVERGENCE]` -- Spec defines 14 value types, guide implements 9 at Stage 0 |
+| **Status** | `[STAGED]` -- Intentional: spec defines 14 value types, guide implements 9 at Stage 0 |
 
 ```rust
 // Guide definition (Stage 0):
@@ -158,7 +160,7 @@ spec and guide. Not a reconciliation defect -- tracked as staged feature.
 | **Stage** | 0 |
 | **Spec file** | `spec/01-store.md` (L0, L2: HLC specification) |
 | **Guide files** | `guide/00-architecture.md` (section 0.2), `guide/01-store.md` (section 1.1) |
-| **Status** | `[DIVERGENCE]` -- Spec does not derive Hash; guide derives Hash on AgentId but TxId uses Ord only |
+| **Status** | `[AGREE]` -- Spec silent on derive attributes; guide intentionally omits Hash on TxId (only AgentId needs Hash) |
 
 ```rust
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
@@ -662,30 +664,20 @@ pub enum LatticeValidationError {
 |-------|-------|
 | **Namespace** | QUERY |
 | **Stage** | 0 |
-| **Spec file** | `spec/03-query.md` (L2: `QueryExpr { Find, Pull }`) |
+| **Spec file** | `spec/03-query.md` (L2: `QueryExpr { Find(ParsedQuery), Pull }`) |
 | **Guide files** | `guide/03-query.md` (section 3.1) |
-| **Status** | `[DIVERGENCE]` -- Structural difference in Find variant |
+| **Status** | `[AGREE]` |
 
 ```rust
-// Spec definition (spec/03-query.md L2):
-pub enum QueryExpr {
-    Find { variables: Vec<Variable>, clauses: Vec<Clause> },
-    Pull { pattern: PullPattern, entity: EntityRef },
-}
-
-// Guide definition (guide/03-query.md section 3.1):
 pub enum QueryExpr {
     Find(ParsedQuery),
     Pull { pattern: PullPattern, entity: EntityRef },
 }
 ```
 
-**Divergence detail**: Spec uses an inline `Find { variables, clauses }` struct. Guide wraps
-`Find(ParsedQuery)` where `ParsedQuery` is a richer AST with `find_spec`, `where_clauses`,
-`rules`, `inputs`. The guide explicitly notes this divergence: "Spec defines Find and Pull
-as the two query modes; ParsedQuery is the richer AST produced by the parser for Find queries."
-Guide is a refinement, not a contradiction -- the guide's `ParsedQuery` subsumes the spec's
-`Find` fields.
+**Notes**: Spec updated (R6.7b) to adopt guide's `Find(ParsedQuery)` form. `ParsedQuery`
+subsumes the original `{variables, clauses}` with richer AST support for all four Datomic
+find forms, rules, and inputs.
 
 ---
 
@@ -695,9 +687,9 @@ Guide is a refinement, not a contradiction -- the guide's `ParsedQuery` subsumes
 |-------|-------|
 | **Namespace** | QUERY |
 | **Stage** | 0 |
-| **Spec file** | `spec/03-query.md` (implicit in L2 Find variant) |
+| **Spec file** | `spec/03-query.md` (L2: explicit struct in QueryExpr) |
 | **Guide files** | `guide/03-query.md` (section 3.1), `guide/00-architecture.md` (section 0.2) |
-| **Status** | `[GUIDE-ONLY]` -- Guide refines spec's Find into richer ParsedQuery |
+| **Status** | `[AGREE]` |
 
 ```rust
 pub struct ParsedQuery {
@@ -718,31 +710,21 @@ pub struct ParsedQuery {
 | **Stage** | 0 |
 | **Spec file** | `spec/03-query.md` (L2) |
 | **Guide files** | `guide/03-query.md` (section 3.1), `guide/00-architecture.md` (section 0.2) |
-| **Status** | `[DIVERGENCE]` -- Field naming difference |
+| **Status** | `[AGREE]` |
 
 ```rust
-// Spec definition:
-pub struct QueryResult {
-    pub tuples: Vec<Vec<Value>>,
-    pub mode: QueryMode,
-    pub stratum: u8,
-    pub provenance_tx: TxId,
-}
+pub type BindingSet = HashMap<Variable, Value>;
 
-// Guide definition:
 pub struct QueryResult {
-    pub bindings: Vec<BindingSet>,   // spec: tuples
-    pub stratum:  Stratum,           // spec: u8
+    pub bindings: Vec<BindingSet>,
+    pub stratum:  Stratum,
     pub mode:     QueryMode,
     pub provenance_tx: TxId,
 }
 ```
 
-**Divergence detail**: (1) Spec uses `tuples: Vec<Vec<Value>>`, guide uses `bindings: Vec<BindingSet>`
-where `BindingSet = HashMap<Variable, Value>`. Guide explicitly notes: "The spec's
-`tuples: Vec<Vec<Value>>` is a simplified view; BindingSet preserves variable names for
-downstream consumers." (2) Spec uses `stratum: u8`, guide uses `stratum: Stratum` enum.
-Guide is more type-safe; spec is simpler. Both are valid but need reconciliation.
+**Notes**: Spec updated (R6.7b) to adopt guide's `BindingSet` (preserves variable names) and
+`Stratum` enum (type-safe). Both spec and guide now agree.
 
 ---
 
@@ -752,9 +734,9 @@ Guide is more type-safe; spec is simpler. Both are valid but need reconciliation
 |-------|-------|
 | **Namespace** | QUERY |
 | **Stage** | 0 |
-| **Spec file** | `spec/03-query.md` (L2: `variables: Vec<Variable>` in Find variant) |
+| **Spec file** | `spec/03-query.md` (L2: FindSpec enum in ParsedQuery) |
 | **Guide files** | `guide/03-query.md` (section 3.1), `guide/00-architecture.md` (section 0.2) |
-| **Status** | `[GUIDE-ONLY]` -- Guide provides richer four-form enum |
+| **Status** | `[AGREE]` |
 
 ```rust
 pub enum FindSpec {
@@ -775,19 +757,9 @@ pub enum FindSpec {
 | **Stage** | 0 |
 | **Spec file** | `spec/03-query.md` (L2) |
 | **Guide files** | `guide/03-query.md` (section 3.1) |
-| **Status** | `[DIVERGENCE]` -- Variant naming and structure differences |
+| **Status** | `[AGREE]` |
 
 ```rust
-// Spec definition (spec/03-query.md L2):
-pub enum Clause {
-    Pattern(EntityRef, AttributeRef, ValueRef),
-    Frontier(FrontierRef),
-    Not(Box<Clause>),
-    Aggregate(Variable, AggregateFunc),
-    Ffi(FfiCall),
-}
-
-// Guide definition (guide/03-query.md section 3.1):
 pub enum Clause {
     DataPattern(EntityPattern, AttributePattern, ValuePattern),
     RuleApplication(RuleName, Vec<Term>),
@@ -799,10 +771,9 @@ pub enum Clause {
 }
 ```
 
-**Divergence detail**: (1) Spec's `Pattern` -> guide's `DataPattern` (renamed, different parameter
-types). (2) Guide adds `RuleApplication` and `OrClause` not in spec. (3) Guide defers `Aggregate`
-and `Ffi` to Stage 1+; spec includes them. (4) Spec's `Not` -> guide's `NotClause`.
-This is a significant structural divergence requiring reconciliation.
+**Notes**: Spec updated (R6.7b) to adopt guide's Datalog-standard naming (DataPattern,
+RuleApplication, NotClause, OrClause) and stage-defer Aggregate/Ffi to Stage 1+.
+Both spec and guide now agree on Stage 0 variant set.
 
 ---
 
@@ -814,17 +785,9 @@ This is a significant structural divergence requiring reconciliation.
 | **Stage** | 0 |
 | **Spec file** | `spec/03-query.md` (L0, L2) |
 | **Guide files** | `guide/00-architecture.md` (section 0.2), `guide/03-query.md` (section 3.1) |
-| **Status** | `[DIVERGENCE]` -- Variant field differences |
+| **Status** | `[AGREE]` |
 
 ```rust
-// Spec definition:
-pub enum QueryMode {
-    Monotonic,
-    Stratified { frontier: Frontier },
-    Barriered { barrier_id: BarrierId },
-}
-
-// Guide definition (guide/00-architecture.md):
 pub enum QueryMode {
     Monotonic,
     Stratified(Frontier),
@@ -832,8 +795,8 @@ pub enum QueryMode {
 }
 ```
 
-**Divergence detail**: Spec uses named fields (`{ frontier: Frontier }`), guide uses tuple
-variants (`(Frontier)`). Semantically identical; syntactically different. Minor.
+**Notes**: Spec updated (R6.7b) to adopt guide's tuple variant form. Semantically identical
+to the original named-field form; syntactically simpler and consistent.
 
 ---
 
@@ -845,20 +808,20 @@ variants (`(Frontier)`). Semantically identical; syntactically different. Minor.
 | **Stage** | 0 |
 | **Spec file** | `spec/03-query.md` (L2) |
 | **Guide files** | `guide/03-query.md` (section 3.1) |
-| **Status** | `[DIVERGENCE]` -- Guide defines only Stage 0 variants; spec defines all 6 |
+| **Status** | `[STAGED]` -- Intentional: guide defines Stage 0 only; spec defines all 6 |
 
 ```rust
-// Spec definition (spec/03-query.md L2) — all 6 strata:
+// Spec definition (all 6 strata):
 pub enum Stratum {
-    S0_Primitive,           // Monotonic. Current-value over LIVE index.
-    S1_MonotonicJoin,       // Monotonic. Multi-hop joins, transitive closure.
-    S2_Uncertainty,         // Mixed (Stratified). Epistemic/aleatory/consequential.
-    S3_Authority,           // Stratified (FFI). SVD, spectral authority.
-    S4_ConflictDetection,   // Conservatively monotonic.
-    S5_BilateralLoop,       // Barriered. Fitness, drift, crystallization.
+    S0_Primitive,           // Stage 0: Monotonic. Current-value over LIVE index.
+    S1_MonotonicJoin,       // Stage 0: Monotonic. Multi-hop joins, transitive closure.
+    S2_Uncertainty,         // Stage 1+: Mixed (Stratified). Epistemic/aleatory/consequential.
+    S3_Authority,           // Stage 1+: Stratified (FFI). SVD, spectral authority.
+    S4_ConflictDetection,   // Stage 1+: Conservatively monotonic.
+    S5_BilateralLoop,       // Stage 1+: Barriered. Fitness, drift, crystallization.
 }
 
-// Guide definition (guide/03-query.md) — Stage 0 only:
+// Guide definition (Stage 0 only):
 pub enum Stratum {
     S0_Primitive,
     S1_MonotonicJoin,
@@ -866,23 +829,23 @@ pub enum Stratum {
 }
 ```
 
-**Notes**: Spec Rust enum formalized via R4.2b (was prose-only in L1). Guide intentionally
-defines only Stage 0 variants. Divergence is stage-scoping, not a conflict.
+**Notes**: Intentional stage scoping, not a conflict. Spec defines the full enum for reference;
+guide implements only the Stage 0 subset. Both documents agree on Stage 0 behavior.
 
 ---
 
-### BindingSet / Variable / QueryExpr (cross-namespace)
+### BindingSet / FrontierRef / QueryStats (cross-namespace)
 
 | Field | Value |
 |-------|-------|
 | **Namespace** | QUERY |
 | **Stage** | 0 |
+| **Spec file** | `spec/03-query.md` (L2: BindingSet in QueryResult) |
 | **Guide files** | `guide/00-architecture.md` (section 0.2) |
-| **Status** | `[GUIDE-ONLY]` |
+| **Status** | `[AGREE]` (BindingSet), `[GUIDE-ONLY]` (FrontierRef, QueryStats) |
 
 ```rust
 pub type BindingSet = HashMap<Variable, Value>;
-pub struct QueryExpr { pub find_spec: FindSpec, pub where_clauses: Vec<Clause> }
 pub struct FrontierRef(pub AgentId);
 pub struct QueryStats { pub datoms_scanned: usize, pub bindings_produced: usize }
 ```
@@ -1248,35 +1211,24 @@ NEG-RESOLUTION-003: every resolution must produce a datom trail.
 | **Stage** | 0 |
 | **Spec file** | `spec/05-harvest.md` (L2) |
 | **Guide files** | `guide/00-architecture.md` (section 0.2), `guide/05-harvest.md` (section 5.1) |
-| **Status** | `[DIVERGENCE]` -- Guide adds fields not in spec |
+| **Status** | `[AGREE]` |
 
 ```rust
-// Spec definition (spec/05-harvest.md L2):
 pub struct HarvestCandidate {
-    pub datom_spec: Vec<Datom>,
-    pub category: HarvestCategory,
-    pub confidence: f64,
-    pub weight: f64,
-    pub status: CandidateStatus,
-    pub extraction_context: String,
-}
-
-// Guide definition (guide/05-harvest.md):
-pub struct HarvestCandidate {
-    pub id:                  usize,                   // Guide addition
+    pub id:                  usize,                  // Index for accept/reject referencing in CLI
     pub datom_spec:          Vec<Datom>,
     pub category:            HarvestCategory,
-    pub confidence:          f64,
-    pub weight:              f64,
-    pub status:              CandidateStatus,
-    pub extraction_context:  String,
-    pub reconciliation_type: ReconciliationType,       // Guide addition
+    pub confidence:          f64,                    // 0.0-1.0
+    pub weight:              f64,                    // estimated commitment weight
+    pub status:              CandidateStatus,        // lattice: proposed < under-review < committed | rejected
+    pub extraction_context:  String,                 // why this was extracted
+    pub reconciliation_type: ReconciliationType,     // traces to reconciliation taxonomy (spec section 15)
 }
 ```
 
-**Divergence detail**: Guide adds `id: usize` (for accept/reject referencing) and
-`reconciliation_type: ReconciliationType` (traces to reconciliation taxonomy). Both
-are implementation refinements not in spec. Guide explicitly documents these as additions.
+**Notes**: Spec updated (R6.7b) to include `id` and `reconciliation_type` fields from guide.
+Both are needed: `id` for CLI accept/reject workflow, `reconciliation_type` for traceability
+to the reconciliation taxonomy.
 
 ---
 
@@ -1511,27 +1463,19 @@ pub struct SchemaNeighborhood {
 | **Stage** | 0 |
 | **Spec file** | `spec/06-seed.md` (L2) |
 | **Guide files** | `guide/00-architecture.md` (section 0.2) |
-| **Status** | `[DIVERGENCE]` -- Guide omits `projection_pattern` field |
+| **Status** | `[AGREE]` |
 
 ```rust
-// Spec definition:
 pub struct AssembledContext {
     pub sections: Vec<ContextSection>,
     pub total_tokens: usize,
     pub budget_remaining: usize,
     pub projection_pattern: ProjectionPattern,
 }
-
-// Guide definition (guide/00-architecture.md cross-namespace):
-pub struct AssembledContext {
-    pub sections: Vec<ContextSection>,
-    pub total_tokens: usize,
-    pub budget_remaining: usize,
-}
 ```
 
-**Divergence detail**: Guide omits `projection_pattern` field. This field references the
-projection pyramid level used during assembly. May be implicit in the guide's architecture.
+**Notes**: Guide updated (R6.7b) to include `projection_pattern` field matching spec.
+This field records which projection pyramid level was used during assembly.
 
 ---
 
@@ -2758,7 +2702,7 @@ reconciliation beads (R1.2, R1.3, R1.7).
 | # | Type | Spec Source | Guide Source | Nature |
 |---|------|------------|-------------|--------|
 | ~~D1~~ | ~~`MergeReceipt`~~ | `spec/07-merge.md` | `guide/07-merge-basic.md` | **RESOLVED (R1.6)**: Spec section 7.3 updated to match INV-MERGE-009. Old cascade fields moved to `CascadeReceipt` (now in both spec and guide). `merge()` returns `(MergeReceipt, CascadeReceipt)`. |
-| D2 | `Clause` | `spec/03-query.md` | `guide/03-query.md` | Structural: spec has `{Pattern, Frontier, Not, Aggregate, Ffi}`; guide has `{DataPattern, RuleApplication, NotClause, OrClause, Frontier}` with Aggregate/Ffi deferred. Variant names and parameters differ. |
+| ~~D2~~ | ~~`Clause`~~ | `spec/03-query.md` | `guide/03-query.md` | **RESOLVED (R6.7b)**: Spec adopted guide's Datalog-standard naming (DataPattern, RuleApplication, NotClause, OrClause, Frontier) with Aggregate/Ffi stage-deferred. |
 | ~~D3~~ | ~~`ConflictSet` / `Conflict`~~ | `spec/04-resolution.md` | `guide/04-resolution.md` | **RESOLVED (R1.10)**: Spec adopted `ConflictSet` with `assertions` + `retractions`. Routing metadata (severity, tier, status) are computed during routing, not embedded. |
 | ~~D4~~ | ~~`ResolutionMode`~~ | `spec/04-resolution.md` | `guide/04-resolution.md` | **RESOLVED (R1.10)**: Spec adopted guide naming: `LastWriterWins`, `MultiValue`. LwwClock moved to schema layer. |
 
@@ -2766,15 +2710,15 @@ reconciliation beads (R1.2, R1.3, R1.7).
 
 | # | Type | Nature |
 |---|------|--------|
-| D5 | `QueryResult` | Spec: `tuples: Vec<Vec<Value>>`, `stratum: u8`. Guide: `bindings: Vec<BindingSet>`, `stratum: Stratum`. Guide is more type-safe. |
-| D6 | `QueryExpr` | Spec: `Find { variables, clauses }`. Guide: `Find(ParsedQuery)`. Guide is richer. |
-| D7 | `QueryMode` | Spec: named fields `{ frontier: Frontier }`. Guide: tuple variant `(Frontier)`. |
-| D8 | `HarvestCandidate` | Guide adds `id: usize` and `reconciliation_type: ReconciliationType`. |
+| ~~D5~~ | ~~`QueryResult`~~ | **RESOLVED (R6.7b)**: Spec adopted guide's `bindings: Vec<BindingSet>` and `stratum: Stratum` enum. More type-safe. |
+| ~~D6~~ | ~~`QueryExpr`~~ | **RESOLVED (R6.7b)**: Spec adopted guide's `Find(ParsedQuery)` form. ParsedQuery subsumes inline fields. |
+| ~~D7~~ | ~~`QueryMode`~~ | **RESOLVED (R6.7b)**: Spec adopted guide's tuple variant form `Stratified(Frontier)`, `Barriered(BarrierId)`. |
+| ~~D8~~ | ~~`HarvestCandidate`~~ | **RESOLVED (R6.7b)**: Spec added `id: usize` and `reconciliation_type: ReconciliationType` from guide. |
 | ~~D9~~ | ~~`CandidateStatus`~~ | **RESOLVED (R4.1b)**: Spec now defines Rust enum with `Rejected(String)` matching guide. |
-| D10 | `AssembledContext` | Guide omits `projection_pattern` field. |
-| D11 | `MCPServer` | **Resolved**: Both now use `{store: Arc<Store>, session_state, notification_queue, phase}`. Guide renames to `BraidMcpServer` for rmcp integration. |
+| ~~D10~~ | ~~`AssembledContext`~~ | **RESOLVED (R6.7b)**: Guide added `projection_pattern: ProjectionPattern` field from spec. |
+| ~~D11~~ | ~~`MCPServer`~~ | **RESOLVED**: Both now use `{store: Arc<Store>, session_state, notification_queue, phase}`. Guide renames to `BraidMcpServer` for rmcp integration. |
 | ~~D12~~ | ~~`ConflictTier` / `RoutingTier`~~ | **RESOLVED (R1.10)**: Spec adopted `RoutingTier`. |
-| D13 | `TxId` | Guide omits `Hash` derive (intentional -- only `AgentId` needs `Hash`). |
+| ~~D13~~ | ~~`TxId`~~ | **RESOLVED (R6.7d)**: Intentional — spec silent on derive attributes; guide correctly omits Hash on TxId (only AgentId needs Hash). Not a defect. |
 
 ### Intentional Stage Scoping (Not Defects)
 
@@ -2812,8 +2756,7 @@ identical enum and `const MCP_TOOLS: [MCPTool; 6]` array, matching spec/14-inter
 
 These types are implementation refinements introduced by the guide:
 
-`ParsedQuery`, `FindSpec`,
-`BindingSet`, `QueryStats`, `FrontierRef`, `DirectedGraph`, `ResolvedValue`,
+`QueryStats`, `FrontierRef`, `DirectedGraph`, `ResolvedValue`,
 `ReconciliationType`, `HarvestResult`, `HarvestQuality`, `SessionContext`,
 `SeedOutput`, `DriftSignals`, `GuidanceOutput`, `ToolResponse`.
 
@@ -2822,9 +2765,12 @@ Note: `CascadeReceipt` was removed from this list (R1.6) -- now in both spec and
 Note: `TxReceipt`, `TxValidationError`, `SchemaError` were removed from this list (R4.1b/R4.2b)
 -- now defined in both spec and guide.
 
+Note: `ParsedQuery`, `FindSpec`, `BindingSet` were removed from this list (R6.7b) --
+now defined in both spec and guide via QueryExpr reconciliation.
+
 ---
 
 *Total types cataloged: 113 (+9 new: Frontier, EntityView, SnapshotView, TxApplyError, QueryError, CandidateStatus enum, LwwClock enum, SchemaLayer enum, Stratum enum).
-Divergences: 7 remaining (1 critical, 6 moderate), 6 resolved (D1/R1.6, D3/R1.10, D4/R1.10, D9/R4.1b, D12/R1.10).
-Intentional stage scoping: 3. Spec-only: 33 (Resolution, HarvestSession, ReviewTopology moved to AGREE per R4.3b).
-Guide-only: 15 (TxReceipt, TxValidationError, SchemaError moved to AGREE per R4.1b/R4.2b).*
+Divergences: 0 remaining, 13 resolved (D1/R1.6, D2/R6.7b, D3/R1.10, D4/R1.10, D5/R6.7b, D6/R6.7b, D7/R6.7b, D8/R6.7b, D9/R4.1b, D10/R6.7b, D11, D12/R1.10, D13/R6.7d).
+Intentional stage scoping: 3 (S1: Value, S2: Stratum, S3: Clause deferred variants). Spec-only: 33 (Resolution, HarvestSession, ReviewTopology moved to AGREE per R4.3b).
+Guide-only: 12 (ParsedQuery, FindSpec, BindingSet moved to AGREE per R6.7b; TxReceipt, TxValidationError, SchemaError moved to AGREE per R4.1b/R4.2b).*

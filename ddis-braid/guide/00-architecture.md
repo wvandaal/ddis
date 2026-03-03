@@ -467,7 +467,7 @@ pub enum CandidateStatus { Proposed, UnderReview, Committed, Rejected(String) }
 
 // --- Seed (§6 SEED) ---
 pub struct SchemaNeighborhood { pub entities: Vec<EntityId>, pub attributes: Vec<Attribute>, pub entity_types: Vec<Keyword> }
-pub struct AssembledContext { pub sections: Vec<ContextSection>, pub total_tokens: usize, pub budget_remaining: usize }
+pub struct AssembledContext { pub sections: Vec<ContextSection>, pub total_tokens: usize, pub budget_remaining: usize, pub projection_pattern: ProjectionPattern }
 
 // --- Guidance (§8 GUIDANCE) ---
 pub struct GuidanceFooter {

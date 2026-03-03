@@ -1211,3 +1211,155 @@ None new. All Phase 5 verification beads closed.
 Start with `braid-kernel` crate: STORE → SCHEMA → QUERY → RESOLUTION → HARVEST → SEED → MERGE → GUIDANCE.
 Then `braid` binary crate: CLI + MCP (INTERFACE). First act: transact spec elements as datoms (C7).
 
+---
+
+## Session 007 — 2026-03-03 (R2.5b + R2.5c: CRDT Proofs and Proptest Harnesses)
+
+**Task**: Complete CRDT formal proofs (R2.5b) and design proptest harnesses (R2.5c).
+
+### What Was Accomplished
+
+**R2.5b — Conservative Conflict Detection Completeness Proof** (`spec/04-resolution.md` §4.3.2):
+- Added formal proof as new subsection §4.3.2, immediately after the existing §4.3.1 Resolution-Merge Composition Proof
+- Defined three key concepts: true conflict (6-condition predicate over global causal history), frontier (agent's visible datom subset), detection predicate (6-condition predicate with frontier-restricted causal order)
+- Proved the main theorem via contrapositive: if detection fails at a frontier, then no true conflict exists globally
+  - Case A: conditions (1)-(5) depend only on datoms and schema, both of which are identical at F and S
+  - Case B: condition (6') failure implies a visible causal path at F, which is also valid in S (Causal Path Monotonicity Lemma: F ⊆ S implies <_F ⊆ <_causal)
+- Proved the anti-monotonicity corollary: conflicts_detected(F2) ⊆ conflicts_detected(F1) when F1 ⊆ F2 (more datoms = fewer apparent conflicts)
+- Documented the relationship between conflict detection and resolution modes (LWW/Lattice/Multi) with mode-detection interaction summary table
+- Explicitly showed WHY false positives are possible (missing intermediate causal chain transactions) and WHY this is safe (wasted effort, not data corruption)
+
+**R2.5c — CRDT Verification Suite** (`guide/10-verification.md` §10.7):
+- Added comprehensive §10.7 with 10 subsections (§10.7.1–§10.7.10)
+- §10.7.1: CRDT-suite-specific strategies (arb_diverged_stores, arb_three_stores, arb_partial_frontier, arb_conflicting_datom_pair, arb_lww_contest, arb_partial_order)
+- §10.7.2: G-Set grow-only (INV-STORE-001, INV-STORE-002, L4, L5) — 3 properties
+- §10.7.3: Merge commutativity (INV-STORE-004, L1) — 2 properties
+- §10.7.4: Merge associativity (INV-STORE-005, L2) — 2 properties (datom + LIVE level)
+- §10.7.5: Merge idempotency (INV-STORE-006, INV-MERGE-008, L3) — 3 properties
+- §10.7.6: LWW semilattice (INV-RESOLUTION-005, ADR-RESOLUTION-009) — 5 properties including BLAKE3 tie-break
+- §10.7.7: Conservative conflict detection (INV-RESOLUTION-003, INV-RESOLUTION-004, NEG-RESOLUTION-002, §4.3.2) — 3 properties
+- §10.7.8: Resolution-merge composition (§4.3.1, INV-RESOLUTION-002, NEG-RESOLUTION-001) — 4 properties
+- §10.7.9: Causal independence (INV-STORE-010, INV-RESOLUTION-004(6)) — 4 properties
+- §10.7.10: Cross-reference index table mapping harness to INVs
+- Total: 24 property-based tests covering 16 INVs, 5 algebraic laws, 2 formal proofs, 3 ADRs, 2 negative cases
+
+### Decisions Made
+
+| Decision | Rationale |
+|---|---|
+| Proof by contrapositive for R2.5b | More natural structure: "if not detected, then not a true conflict" decomposes cleanly into conditions (1)-(5) vs condition (6') |
+| Separate Causal Path Monotonicity as a lemma | Reusable result — the key insight that F ⊆ S implies <_F ⊆ <_causal is needed by both the main theorem and the anti-monotonicity corollary |
+| Anti-monotonicity as a corollary, not a separate theorem | It follows directly from the main theorem and the monotonicity of causal paths |
+| 24 properties (not 8) in the verification suite | Each of the 8 CRDT concepts needs multiple properties to fully verify: e.g., merge commutativity needs both independent and diverged-store variants; LIVE layer properties need separate tests from datom layer |
+| Kept proptest strategies in §10.7.1, not scattered | Centralized strategy definitions prevent duplication and ensure consistent test data generation |
+
+### Files Modified
+
+| File | Changes |
+|------|---------|
+| spec/04-resolution.md | +163 lines: §4.3.2 Conservative Conflict Detection Completeness Proof |
+| guide/10-verification.md | +905 lines: §10.7 CRDT Verification Suite (8 harnesses + strategies + cross-ref index) |
+| HARVEST.md | This session entry |
+
+### Failure Modes Observed
+
+None triggered. Both deliverables are complete within their scope, with IDs, traceability, and falsification conditions.
+
+### Open Questions
+
+None new. The proof and harness suite are self-contained.
+
+### Recommended Next Action
+
+Begin Stage 0 implementation in Rust, starting with the `braid-kernel` crate. The CRDT
+Verification Suite (§10.7) provides the test harness that implementation must satisfy. The
+natural starting point is the STORE namespace (§1): Datom, EntityId, Store, Transaction
+typestate, and the G-Set merge operation. The proptest harnesses from §10.7.2–§10.7.5
+become the acceptance criteria for Store correctness.
+
+---
+
+## Session 008 — 2026-03-03 (R6.2a/b/c: Verification Pipeline Feasibility to 100%)
+
+**Task**: R6.2a + R6.2b + R6.2c — resolve the V1 audit's 2.2% verification infeasibility finding.
+
+### What Was Accomplished
+
+**R6.2a — INV-QUERY-001 (CALM Compliance) feasibility resolved:**
+- The audit flagged this as "V:KANI potentially infeasible" due to concern about proving
+  Datalog soundness via bounded model checking.
+- Analysis: The Kani harness targets the **Level 2 parser rejection path**, not Level 0
+  Datalog soundness. The harness verifies that `QueryParser::parse()` rejects all bounded
+  AST combinations containing negation/aggregation when `mode = Monotonic`. This is a
+  finite-state property over a bounded enum tree — well within Kani's capabilities.
+- No spec change needed to the invariant itself. Added explicit feasibility rationale in
+  spec/16-verification.md §16.5.
+
+**R6.2b — INV-QUERY-004 (Branch Visibility) feasibility resolved:**
+- The audit flagged this as "V:KANI potentially infeasible" due to concern about verifying
+  semi-naive evaluation correctness (the task description confused this invariant's identity).
+- Analysis: INV-QUERY-004 is actually **Branch Visibility** (snapshot isolation at fork point),
+  not semi-naive correctness. The Kani harness verifies that for a bounded store with one
+  branch, the visible set equals `trunk@fork_point ∪ branch_only_datoms`. Bounded to <=5
+  datoms and 1 branch — feasible.
+- No spec change needed. Added explicit feasibility rationale in spec/16-verification.md §16.5.
+
+**R6.2c — Complete V:KANI feasibility audit (41/41 = 100%):**
+- Audited all 41 V:KANI-tagged invariants across 11 namespaces.
+- Found **zero infeasible** Kani targets. Every harness operates on bounded, concrete Rust
+  code at Level 2, not unbounded algebraic properties at Level 0.
+- Root cause of the "2.2% infeasibility" finding: confusion between what Kani verifies
+  (Level 2 implementation contracts with bounded inputs) and what the invariant's Level 0
+  algebraic law says (which is verified by V:PROP/proptest instead).
+
+**Collateral fixes during audit:**
+1. Fixed guide/10-verification.md harness descriptions for INV-QUERY-001 (was "Query
+   determinism", corrected to "CALM compliance: Monotonic mode rejects negation/aggregation
+   at parse time") and INV-QUERY-004 (was "Stratified negation", corrected to "Branch
+   visibility: snapshot isolation at fork point").
+2. Added 3 missing INVs to the guide's harness list: INV-STORE-002 (content-addressing),
+   INV-STORE-003 (EntityId from content hash), INV-MERGE-008 (merge idempotency).
+   Total corrected from 38 to 41.
+3. Fixed 5 additional incorrect harness descriptions in the guide: INV-STORE-005 (was
+   "Store immutability", now "CRDT associativity"), INV-SIGNAL-001 (was "Signal monotonicity",
+   now "Signal as datom"), INV-SIGNAL-003 (was "Signal correctness", now "Subscription
+   completeness"), INV-DELIBERATION-002 (was "Quorum correctness", now "Stability guard"),
+   INV-DELIBERATION-005 (was "Decision finality", now "Commitment weight").
+4. Added per-harness bounds column to the guide's harness table for implementor clarity.
+5. Updated stale counts: Gate 2 coverage (122 -> 124 INVs), Gate 3 coverage (38/31.4% ->
+   41/33.1%), Stage 0 completion gate (61 -> 64 INVs).
+6. Added §16.5 Kani Feasibility Assurance to spec/16-verification.md with per-category
+   strategy table and misconception resolution notes.
+7. Added `V:KANI feasibility | 41/41 | 100%` row to verification statistics.
+
+### Decisions Made
+
+| Decision | Rationale |
+|---|---|
+| No verification method changes needed | The existing V:KANI assignments are all feasible because they target Level 2 contracts, not Level 0 properties. The "infeasibility" finding was based on a category error. |
+| Added §16.5 as a new section rather than inline notes | A dedicated feasibility assurance section provides a clear answer to the audit finding and serves as a reference for implementors who might question Kani feasibility. |
+| Per-harness bounds in the guide table | Explicit bounds (e.g., "<=8 vertices", "<=5 datoms") make the feasibility argument concrete and help implementors configure `#[kani::unwind(N)]`. |
+
+### Files Modified
+
+| File | Changes |
+|------|---------|
+| spec/16-verification.md | +40 lines: §16.5 Kani Feasibility Assurance, renumbered §16.5->§16.6, added feasibility row to stats |
+| guide/10-verification.md | +50 lines net: fixed 7 wrong harness descriptions, added 3 missing INVs, added bounds column, updated stale counts |
+| HARVEST.md | This session entry |
+
+### Failure Modes Observed
+
+None triggered. The audit finding was a false positive — all verification methods are feasible.
+
+### Open Questions
+
+None new. The verification pipeline is at 100% feasibility.
+
+### Recommended Next Action
+
+Begin Stage 0 implementation in Rust. The verification pipeline is fully specified with
+100% feasibility assurance. All 41 Kani harnesses have concrete bounds documented. The
+implementing agent should start with the STORE namespace and use the proptest + Kani
+harnesses from guide/10-verification.md §10.4 and §10.7 as acceptance criteria.
+

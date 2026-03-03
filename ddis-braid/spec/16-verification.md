@@ -222,12 +222,12 @@ Gate 3: clippy            — cargo clippy --all-targets -- -D warnings
 
 Gate 4: test              — cargo test
                             Checks: V:PROP (all proptest properties hold)
-                            Coverage: 122/122 INVs have proptest strategies
+                            Coverage: 121/124 INVs have proptest strategies (3 are V:TYPE-only)
                             Time: <5m (proptest default: 256 cases per property)
 
 Gate 5: kani              — cargo kani
                             Checks: V:KANI (bounded model checking)
-                            Coverage: 39 INVs with critical-path verification
+                            Coverage: 41 INVs with critical-path verification
                             Time: <15m (bounded; unwind limit configurable)
 
 Gate 6: model             — cargo test --features stateright
@@ -281,20 +281,63 @@ of correctness, justifying the higher cost:
 and the properties are well-served by proptest + Kani during initial implementation.
 Pursue deductive proofs when the implementation stabilizes.
 
-### §16.5 Verification Statistics
+### §16.5 Kani Feasibility Assurance
+
+All 41 V:KANI-tagged invariants target **Level 2 implementation contracts** — bounded,
+concrete Rust code operating on small inputs (3-5 datoms, <=8 graph vertices, <=20 operations).
+Kani verifies these contracts exhaustively within the declared unwind bound. The Level 0
+algebraic properties (which may involve unbounded domains) are covered by V:PROP (proptest),
+not by Kani.
+
+**Potential misconceptions resolved:**
+
+- **INV-QUERY-001 (CALM Compliance)**: The Kani harness does NOT attempt to prove Datalog
+  soundness in general. It verifies the **parser rejection path**: for all bounded AST
+  combinations, Monotonic mode rejects expressions containing negation or aggregation.
+  This is a finite-state property over a bounded enum tree — well within Kani's capabilities.
+
+- **INV-QUERY-004 (Branch Visibility)**: The Kani harness does NOT model arbitrary branch
+  topologies. It verifies **snapshot isolation for a single branch**: given a bounded store
+  and one branch with a fork point, the visible set equals trunk datoms at fork plus
+  branch-only datoms. Bounded to <=5 datoms and 1 branch — feasible.
+
+**Why every V:KANI harness is feasible:**
+
+| Category | INVs | Kani Strategy | Bound |
+|----------|------|---------------|-------|
+| Append-only / monotonicity | STORE-001/002/007/008, HARVEST-001, MERGE-001/008 | Verify datom count non-decreasing after bounded op sequences | <=20 ops |
+| Content-addressing | STORE-003/010 | Stub hash with simpler function; verify structural properties | <=5 datoms |
+| CRDT algebra | STORE-004/005/006, RESOLUTION-002/005/006 | Two/three bounded stores; verify algebraic law on merge | <=5 datoms/store |
+| Schema validation | SCHEMA-001/002/004 | Bounded attribute set; verify rejection of invalid datoms | <=17 attributes |
+| Graph algorithms | QUERY-012/013/017 | Bounded adjacency matrix; verify sort/SCC/critical path | <=8 vertices |
+| Parser rejection | QUERY-001 | Enumerate AST node combinations; verify mode enforcement | <=10 clauses |
+| Branch visibility | QUERY-004 | Bounded store + branch fork; verify visibility set | <=5 datoms, 1 branch |
+| LIVE index / resolution | STORE-012, RESOLUTION-004/007 | Bounded attribute history; verify resolved value | <=5 values/attr |
+| Budget / bounds | SEED-002/003, BUDGET-001/003/006 | Arithmetic on bounded numeric inputs | <=1000 tokens |
+| Lifecycle guards | HARVEST-006, DELIBERATION-002/005, GUIDANCE-006 | Bounded state; verify guard enforcement | <=5 candidates |
+| Signal system | SIGNAL-001/003/005 | Bounded subscription list + signal sequence | <=5 subscriptions |
+| Merge isolation | MERGE-003/004/005 | Bounded branch pair; verify isolation/DCC | <=3 branches |
+
+**Infeasible Kani count: 0.** Every V:KANI invariant has a concrete, bounded harness design.
+The verification pipeline achieves **100% feasibility** — no invariant relies on a
+verification method that cannot be practically executed.
+
+### §16.6 Verification Statistics
 
 | Metric | Count | Coverage |
 |--------|-------|----------|
-| Total invariants | 122 | — |
-| With V:PROP (minimum) | 122 | 100% |
-| With V:KANI | 39 | 32.0% |
-| With V:MODEL | 15 | 12.3% |
-| With V:TYPE | 12 | 9.8% |
-| Stage 0 invariants | 62 | 50.8% |
-| Stage 1 invariants | 25 | 20.5% |
-| Stage 2 invariants | 22 | 18.0% |
-| Stage 3 invariants | 11 | 9.0% |
+| Total invariants | 124 | — |
+| With V:PROP | 121 | 97.6% |
+| With V:TYPE (compile-time) | 10 | 8.1% |
+| With V:PROP or V:TYPE (minimum) | 124 | 100% |
+| With V:KANI | 41 | 33.1% |
+| With V:MODEL | 15 | 12.1% |
+| Stage 0 invariants | 64 | 51.6% |
+| Stage 1 invariants | 25 | 20.2% |
+| Stage 2 invariants | 22 | 17.7% |
+| Stage 3 invariants | 11 | 8.9% |
 | Stage 4 invariants | 2 | 1.6% |
+| V:KANI feasibility | 41/41 | 100% |
 
 ---
 

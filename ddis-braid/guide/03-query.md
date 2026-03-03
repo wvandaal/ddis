@@ -23,8 +23,8 @@ braid-kernel/src/query/
 
 ```rust
 /// Top-level query expression (spec/03-query.md §3.3 Level 2).
-/// Spec defines Find and Pull as the two query modes; ParsedQuery is the
-/// richer AST produced by the parser for Find queries.
+/// Both spec and guide define Find(ParsedQuery) and Pull as the two query
+/// modes (R6.7b alignment). ParsedQuery is the rich Datalog AST.
 pub enum QueryExpr {
     Find(ParsedQuery),
     Pull {
@@ -51,9 +51,9 @@ pub struct ParsedQuery {
     pub inputs:     Vec<Input>,
 }
 
-/// Query result — uses BindingSet (variable→value maps) rather than raw
-/// tuples. The spec's `tuples: Vec<Vec<Value>>` is a simplified view;
-/// BindingSet preserves variable names for downstream consumers.
+/// Query result — uses BindingSet (variable->value maps).
+/// Both spec and guide use BindingSet to preserve variable names for
+/// downstream consumers (R6.7b alignment).
 pub struct QueryResult {
     pub bindings: Vec<BindingSet>,
     pub stratum:  Stratum,
@@ -61,8 +61,8 @@ pub struct QueryResult {
     pub provenance_tx: TxId,     // Audit trail — transaction context of evaluation
 }
 
-/// Datomic-style find specification — richer than the spec's simple
-/// `variables: Vec<Variable>`, supporting all four Datomic find forms.
+/// Datomic-style find specification — all four Datomic find forms.
+/// Now defined in both spec and guide (R6.7b alignment).
 pub enum FindSpec {
     Relation(Vec<Variable>),    // [:find ?x ?y]
     Scalar(Variable),           // [:find ?x .]
@@ -70,8 +70,8 @@ pub enum FindSpec {
     Tuple(Vec<Variable>),       // [:find [?x ?y]]
 }
 
-/// Clause types for Stage 0. The spec (spec/03-query.md §3.3) defines
-/// Aggregate and Ffi variants — those are deferred to Stage 1+ (Strata 2–5).
+/// Clause types for Stage 0 (spec and guide now agree per R6.7b).
+/// Aggregate and Ffi variants are deferred to Stage 1+ (Strata 2-5).
 pub enum Clause {
     DataPattern(EntityPattern, AttributePattern, ValuePattern),
     RuleApplication(RuleName, Vec<Term>),

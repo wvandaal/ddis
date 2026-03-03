@@ -529,3 +529,466 @@ lifetime. All tool calls below operate against this session-scoped store referen
 ```
 
 ---
+
+## §11.6 Self-Bootstrap: Spec-to-Datom Migration
+
+This section demonstrates the complete pipeline for migrating spec elements into the
+datom store. The pipeline is the system's first act of self-reference (C7): the
+specification that defines the store becomes data managed by the store.
+
+### §11.6.1 Parsing a Spec Element
+
+Source: `spec/01-store.md`, element INV-STORE-001.
+
+The parser extracts structured fields from the spec markdown:
+
+```
+Input (spec/01-store.md):
+─────────────────────────
+### INV-STORE-001: Append-Only Immutability
+
+**Traces to**: SEED §4 Axiom 2, C1, ADRS FD-001
+**Verification**: `V:TYPE`, `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+∀ S ∈ Store, S' = TRANSACT(S, T) for any T:
+  S ⊆ S'
+  (monotonicity: once asserted, never lost)
+
+#### Level 1 (State Invariant)
+For all reachable states (S, S') where S →[op] S':
+  S.datoms ⊆ S'.datoms
+
+#### Level 2 (Implementation Contract)
+#[kani::ensures(|result| old(store.datoms.len()) <= store.datoms.len())]
+fn transact(store: &mut Store, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError>;
+
+**Falsification**: Any operation that reduces store.datoms.len() or removes a
+previously-observed datom from the set.
+
+**proptest strategy**: Generate random sequences of TRANSACT/RETRACT operations.
+After each operation, verify all previously-observed datoms remain present.
+```
+
+```
+Parsed output (structured fields):
+───────────────────────────────────
+  id:            "INV-STORE-001"
+  type:          invariant
+  namespace:     STORE
+  statement:     "Append-Only Immutability"
+  traces_to:     ["SEED §4 Axiom 2", "C1", "ADRS FD-001"]
+  verification:  [V:TYPE, V:PROP, V:KANI]
+  stage:         0
+  level_0:       "∀ S ∈ Store, S' = TRANSACT(S, T) for any T:\n  S ⊆ S'\n  (monotonicity: once asserted, never lost)"
+  level_1:       "For all reachable states (S, S') where S →[op] S':\n  S.datoms ⊆ S'.datoms"
+  level_2:       "#[kani::ensures(|result| old(store.datoms.len()) <= store.datoms.len())]\nfn transact(store: &mut Store, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError>;"
+  falsification: "Any operation that reduces store.datoms.len() or removes a previously-observed datom from the set."
+  proptest:      "Generate random sequences of TRANSACT/RETRACT operations. After each operation, verify all previously-observed datoms remain present."
+```
+
+### §11.6.2 Generating Transaction Datoms
+
+Each parsed field maps to a datom. The entity ID is content-addressed (BLAKE3 hash of the
+spec element ID — the canonical identifier for this entity across all stores).
+
+Entity identity: `blake3("spec-element:INV-STORE-001")` = `blake3:a7c9e2...`
+
+Transaction: `hlc:1709100000000-0-bootstrap`
+
+```jsonl
+{"e":"blake3:a7c9e2...","a":":spec/id","v":{"String":"INV-STORE-001"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/type","v":{"Keyword":"invariant"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/namespace","v":{"Keyword":"STORE"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/statement","v":{"String":"Append-Only Immutability"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/traces-to","v":{"String":"SEED §4 Axiom 2"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/traces-to","v":{"String":"C1"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/traces-to","v":{"String":"ADRS FD-001"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/verification","v":{"Keyword":"V:TYPE"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/verification","v":{"Keyword":"V:PROP"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/verification","v":{"Keyword":"V:KANI"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/stage","v":{"Long":0},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/falsification","v":{"String":"Any operation that reduces store.datoms.len() or removes a previously-observed datom from the set."},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/proptest","v":{"String":"Generate random sequences of TRANSACT/RETRACT operations. After each operation, verify all previously-observed datoms remain present."},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/level-0","v":{"String":"∀ S ∈ Store, S' = TRANSACT(S, T) for any T:\n  S ⊆ S'\n  (monotonicity: once asserted, never lost)"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/level-1","v":{"String":"For all reachable states (S, S') where S →[op] S':\n  S.datoms ⊆ S'.datoms"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+{"e":"blake3:a7c9e2...","a":":spec/level-2","v":{"String":"#[kani::ensures(|result| old(store.datoms.len()) <= store.datoms.len())]\nfn transact(store: &mut Store, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError>;"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+```
+
+**Datom count**: 16 datoms for one invariant. Multi-valued attributes (`:spec/traces-to`,
+`:spec/verification`) produce one datom per value. The three-level refinement texts
+(`:spec/level-0`, `:spec/level-1`, `:spec/level-2`) preserve the full fidelity of the
+spec's cleanroom refinement chain.
+
+### §11.6.3 Resulting Datom Set (After INV-STORE-001 Bootstrap)
+
+Assuming genesis (85 datoms) + spec-element schema (21 attrs x ~4 datoms each = ~84 datoms)
+have already been transacted:
+
+```
+$ braid status --format agent
+
+[STATUS] Store: 185 datoms. 17 axiomatic + 21 spec-element attributes defined.
+Entities: 39 (17 meta-schema attrs + 21 spec attrs + 1 INV-STORE-001).
+Frontier: {bootstrap: tx_2}.
+---
+↳ Self-bootstrap in progress: 1/62 Stage 0 elements transacted.
+  Continue: `braid bootstrap --spec-dir spec/`
+```
+
+The datom set for INV-STORE-001 viewed as a table (EAVT index order):
+
+```
+Entity            Attribute             Value                                          Tx                    Op
+────────────────  ────────────────────  ─────────────────────────────────────────────  ────────────────────  ──────
+blake3:a7c9e2..   :spec/id              "INV-STORE-001"                                hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/type            :invariant                                     hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/namespace       :STORE                                         hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/statement       "Append-Only Immutability"                     hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/traces-to       "SEED §4 Axiom 2"                              hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/traces-to       "C1"                                           hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/traces-to       "ADRS FD-001"                                  hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/verification    :V:TYPE                                        hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/verification    :V:PROP                                        hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/verification    :V:KANI                                        hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/stage           0                                              hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/falsification   "Any operation that reduces store.datoms..."   hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/proptest        "Generate random sequences of TRANSACT..."     hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/level-0         "∀ S ∈ Store, S' = TRANSACT(S, T)..."          hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/level-1         "For all reachable states (S, S')..."           hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/level-2         "#[kani::ensures(|result| old(store...)...]"   hlc:..000-bootstrap   assert
+```
+
+**Key observations**:
+- One entity, 16 datoms. Content-addressed identity means the same element bootstrapped
+  by two independent agents produces the same datoms (INV-STORE-003, C2).
+- Multi-valued attributes (`:spec/traces-to`, `:spec/verification`) use resolution mode
+  `:multi` — all values coexist, no conflict.
+- Single-valued attributes (`:spec/statement`, `:spec/stage`) use `:lww` — last writer wins
+  if two agents disagree on the wording.
+- The three-level refinement texts are separate datoms, enabling queries like "find all
+  Level 0 algebraic laws" without parsing the full statement.
+
+### §11.6.4 Datalog Queries Over Spec Datoms
+
+After bootstrapping all 62 Stage 0 elements, the store is queryable:
+
+#### Query A: All Invariants (basic enumeration)
+
+```
+$ braid query '[:find ?id ?stmt
+  :where [?e :spec/type "invariant"]
+         [?e :spec/id ?id]
+         [?e :spec/statement ?stmt]]' --format agent
+
+[QUERY] 62 results (Stratum 0, monotonic).
+  INV-STORE-001   "Append-Only Immutability"
+  INV-STORE-002   "Strict Transaction Growth"
+  INV-STORE-003   "Content-Addressed Identity"
+  ...
+  INV-INTERFACE-009 "MCP Error Recovery"
+---
+↳ Full self-bootstrap: all 62 Stage 0 invariants queryable from the store (C7).
+```
+
+#### Query B: All Stage 0 Elements by Namespace (aggregation)
+
+```
+$ braid query '[:find ?ns (count ?e)
+  :where [?e :spec/stage 0]
+         [?e :spec/namespace ?ns]]' --mode stratified --format agent
+
+[QUERY] 9 results (Stratum 1, stratified — aggregation requires stratification).
+  STORE        13
+  SCHEMA        7
+  QUERY        10
+  RESOLUTION    8
+  HARVEST       5
+  SEED          4
+  MERGE         4
+  GUIDANCE      6
+  INTERFACE     5
+---
+↳ 62 elements across 9 namespaces. Matches spec/16-verification.md matrix.
+```
+
+#### Query C: Elements with Level 0 Algebraic Laws
+
+```
+$ braid query '[:find ?id ?law
+  :where [?e :spec/type "invariant"]
+         [?e :spec/id ?id]
+         [?e :spec/level-0 ?law]]' --format agent
+
+[QUERY] 48 results (Stratum 0, monotonic).
+  INV-STORE-001   "∀ S ∈ Store, S' = TRANSACT(S, T)..."
+  INV-STORE-003   "∀ d₁, d₂ ∈ D: (d₁.e = d₂.e ∧ ...) ⟹ d₁ = d₂"
+  INV-SCHEMA-001  "schema(S) ⊂ S"
+  ...
+---
+↳ 48 of 62 Stage 0 invariants have Level 0 laws. Remaining 14 are defined at Level 1
+  (state machine invariants without a standalone algebraic formulation).
+```
+
+#### Query D: Traceability — Which Invariants Trace to C1 (Append-Only)?
+
+```
+$ braid query '[:find ?id
+  :where [?e :spec/traces-to "C1"]
+         [?e :spec/id ?id]]' --format agent
+
+[QUERY] 6 results (Stratum 0, monotonic).
+  INV-STORE-001
+  INV-STORE-002
+  INV-STORE-005
+  INV-SCHEMA-003
+  INV-MERGE-001
+  NEG-SCHEMA-002
+---
+↳ 6 elements depend on Hard Constraint C1 (append-only). Modifying C1 would
+  require reviewing all 6. This is the traceability lattice in action (C5).
+```
+
+#### Query E: Dependency Graph Traversal (Find What INV-MERGE-001 Depends On)
+
+```
+$ braid query '[:find ?dep-id
+  :where [?e :spec/id "INV-MERGE-001"]
+         [?e :spec/depends-on ?d]
+         [?d :spec/id ?dep-id]]' --format agent
+
+[QUERY] 2 results (Stratum 0, monotonic).
+  INV-STORE-001
+  INV-STORE-003
+---
+↳ INV-MERGE-001 depends on append-only (001) and content identity (003).
+  Merge is set union — it requires that datoms are never lost (001)
+  and that identity is structural (003). Verified against spec/17-crossref.md.
+```
+
+### §11.6.5 ADR as Datoms — Worked Example
+
+ADR-STORE-013 (BLAKE3 for Content Hashing) demonstrates the ADR-specific attributes:
+
+```jsonl
+{"e":"blake3:f4d1b8...","a":":spec/id","v":{"String":"ADR-STORE-013"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/type","v":{"Keyword":"adr"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/namespace","v":{"Keyword":"STORE"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/statement","v":{"String":"BLAKE3 for Content Hashing"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/stage","v":{"Long":0},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/traces-to","v":{"String":"ADRS FD-007"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/adr-problem","v":{"String":"Which hash function for content-addressed entity IDs?"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/adr-options","v":{"String":"A) BLAKE3 — fast, cryptographic, parallelizable, 256-bit"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/adr-options","v":{"String":"B) SHA-256 — ubiquitous, well-audited, slower"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/adr-options","v":{"String":"C) xxHash — non-cryptographic, fastest, collision risk"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/adr-decision","v":{"String":"Option A. BLAKE3 provides cryptographic collision resistance with performance matching non-cryptographic hashes."},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/adr-alternatives","v":{"String":"B rejected: 3-5x slower, no parallelism, same security margin unnecessary for content addressing."},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+{"e":"blake3:f4d1b8...","a":":spec/adr-alternatives","v":{"String":"C rejected: collision risk unacceptable when identity correctness depends on hash uniqueness (INV-STORE-003)."},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+```
+
+**Datom count**: 14 datoms. Multi-valued `:spec/adr-options` and `:spec/adr-alternatives`
+capture all options and rejection reasons as independent datoms. This structure enables:
+
+```
+$ braid query '[:find ?id ?decision
+  :where [?e :spec/type "adr"]
+         [?e :spec/id ?id]
+         [?e :spec/adr-decision ?decision]]' --format agent
+
+[QUERY] 38 results (Stratum 0, monotonic).
+  ADR-STORE-001   "Option A. EAV over relational..."
+  ADR-STORE-013   "Option A. BLAKE3 provides cryptographic..."
+  ...
+```
+
+---
+
+## §11.7 Stage 0 Contradiction Detection
+
+After self-bootstrap, the store contains its own specification. The simplest form of
+coherence verification (C7) is detecting contradictions within that specification.
+At Stage 0, contradiction detection is constrained to what the Datalog query engine
+can compute without the full five-tier contradiction engine (which arrives at Stage 2+).
+
+### §11.7.1 Minimal Viable Contradiction Detection
+
+Three classes of contradiction are detectable at Stage 0 using only monotonic Datalog
+queries (Stratum 0-1) and simple aggregation:
+
+**Class 1: Duplicate Spec IDs**
+
+Two entities asserting the same `:spec/id` value. Since spec element IDs are unique
+identifiers by convention (one invariant = one entity), this indicates either a parsing
+error (duplicate extraction) or a genuine contradiction (two conflicting definitions
+under the same ID).
+
+```
+$ braid query '[:find ?id (count ?e)
+  :where [?e :spec/id ?id]
+  :having (> (count ?e) 1)]' --mode stratified --format agent
+
+[QUERY] 0 results (Stratum 1, stratified).
+---
+↳ No duplicate spec IDs. Each element has a unique entity. Self-consistency check passed.
+```
+
+If a duplicate were found:
+
+```
+[QUERY] 1 result (Stratum 1, stratified).
+  INV-STORE-001  2
+---
+↳ CONTRADICTION: INV-STORE-001 has 2 distinct entities. This means two different
+  content hashes claim to define the same invariant. Inspect both:
+  `braid query '[:find ?e ?stmt :where [?e :spec/id "INV-STORE-001"] [?e :spec/statement ?stmt]]'`
+```
+
+**Class 2: Conflicting Resolution Modes on Same Attribute**
+
+If two agents independently define `:spec/stage` with different resolution modes, the
+schema is inconsistent. This query detects attributes with more than one resolution mode
+asserted (which can happen after a merge of two independently-evolved stores).
+
+```
+$ braid query '[:find ?attr (count-distinct ?mode)
+  :where [?a :db/ident ?attr]
+         [?a :db/resolutionMode ?mode]
+  :having (> (count-distinct ?mode) 1)]' --mode stratified --format agent
+
+[QUERY] 0 results (Stratum 1, stratified).
+---
+↳ All attributes have a single resolution mode. Schema consistency verified.
+```
+
+If a conflict were found:
+
+```
+[QUERY] 1 result (Stratum 1, stratified).
+  :spec/stage  2
+---
+↳ CONTRADICTION: :spec/stage has 2 different resolution modes asserted.
+  This can happen after merging a store where :spec/stage was defined as LWW
+  and another where it was defined as MULTI. Resolve via ADR:
+  `braid query '[:find ?mode ?tx :where [?a :db/ident ":spec/stage"] [?a :db/resolutionMode ?mode ?tx _]]'`
+```
+
+**Class 3: Attribute Uniqueness Violations**
+
+For attributes with `:db/unique :identity` (like `:spec/id`), the LIVE index should
+never resolve to two different entities having the same value. This query checks the
+post-resolution state:
+
+```
+$ braid query '[:find ?v (count-distinct ?e)
+  :where [?e :spec/id ?v]
+  :having (> (count-distinct ?e) 1)]' --mode stratified --format agent
+
+[QUERY] 0 results (Stratum 1, stratified).
+---
+↳ No uniqueness violations. Every :spec/id value maps to exactly one entity.
+```
+
+### §11.7.2 Contradiction Detection Pipeline (Stage 0)
+
+The three checks above form a minimal pipeline that runs after every bootstrap
+transaction and after every merge:
+
+```
+$ braid verify --self-consistency --format agent
+
+[VERIFY] Running Stage 0 self-consistency checks (3 classes):
+
+  1. Duplicate spec IDs ................. PASS (0 duplicates in 62 elements)
+  2. Resolution mode conflicts .......... PASS (0 conflicts in 38 attributes)
+  3. Uniqueness violations .............. PASS (0 violations)
+
+Self-consistency: 3/3 checks passed. Specification is internally coherent.
+---
+↳ Stage 0 contradiction detection complete. For deeper analysis (semantic
+  contradictions, invariant-vs-invariant conflicts), see Stage 2: five-tier
+  contradiction engine (INV-DELIBERATION-001 through 006).
+```
+
+### §11.7.3 What Stage 0 Cannot Detect
+
+Stage 0 contradiction detection is structural, not semantic. It catches:
+- Duplicate identifiers (mechanical parse errors)
+- Schema definition conflicts (merge-induced)
+- Uniqueness constraint violations (LIVE index integrity)
+
+It does NOT catch:
+- **Semantic contradictions** — e.g., INV-STORE-001 (append-only) conflicting with a
+  hypothetical INV-STORE-099 (garbage collection). Both can coexist structurally as
+  distinct entities with distinct IDs. Detecting that their *meanings* conflict requires
+  the five-tier contradiction engine (Stage 2+: SAT/SMT, LLM-as-judge).
+- **Completeness gaps** — e.g., a namespace with invariants but no corresponding ADRs.
+  This is a coverage check, not a contradiction check. Handled by `braid coverage`.
+- **Traceability orphans** — e.g., a spec element with no `:spec/traces-to`. This is
+  a traceability check (C5). Detectable at Stage 0 via simple query but is a quality
+  metric, not a contradiction:
+
+```
+$ braid query '[:find ?id
+  :where [?e :spec/id ?id]
+         (not [?e :spec/traces-to _])]' --format agent
+
+[QUERY] 0 results (Stratum 1, negation — still monotone-safe via stratification).
+---
+↳ All 62 Stage 0 elements have at least one traceability reference.
+  Traceability obligation (C5) satisfied.
+```
+
+### §11.7.4 Contradiction After Merge — Worked Scenario
+
+Two agents independently extend the schema, then merge. The merge (pure set union)
+introduces a resolution mode conflict that the contradiction pipeline catches:
+
+```
+Agent A defines :task/priority with resolution mode :lattice:
+  (blake3:x1..., :db/ident, :task/priority, hlc:A1, assert)
+  (blake3:x1..., :db/resolutionMode, :lattice, hlc:A1, assert)
+
+Agent B defines :task/priority with resolution mode :lww:
+  (blake3:x2..., :db/ident, :task/priority, hlc:B1, assert)
+  (blake3:x2..., :db/resolutionMode, :lww, hlc:B1, assert)
+```
+
+Note: `blake3:x1...` and `blake3:x2...` are *different* entity IDs because the agents
+used different content to generate them (different transaction context). After merge:
+
+```
+$ braid merge agent-b.redb --format agent
+
+[MERGE] Merged 4 new datoms. Store: 197 datoms.
+---
+↳ Warning: 2 new attribute definitions for :task/priority. Run self-consistency check.
+```
+
+```
+$ braid verify --self-consistency --format agent
+
+[VERIFY] Running Stage 0 self-consistency checks (3 classes):
+
+  1. Duplicate spec IDs ................. PASS
+  2. Resolution mode conflicts .......... FAIL
+     :task/priority has 2 resolution modes: :lattice (Agent A) and :lww (Agent B).
+     Both are valid datoms — the store faithfully records the disagreement.
+     Resolution requires human or deliberation decision.
+  3. Uniqueness violations .............. PASS (note: :task/priority has 2 defining
+     entities — this is expected when two agents define the same attribute independently
+     with different content-addressing context)
+
+Self-consistency: 2/3 checks passed. 1 conflict requires resolution.
+---
+↳ Action needed: `braid deliberate --attribute :task/priority`
+  This will create a deliberation thread to decide the resolution mode.
+  Until resolved, :task/priority datoms are accepted but LIVE resolution is undefined.
+```
+
+This scenario demonstrates the fundamental property: the store *never loses information*
+(C1, INV-STORE-001). Both agents' assertions are preserved. The contradiction is detected
+*after* merge by the query layer, and resolution is deferred to the deliberation protocol
+(Stage 2+). At Stage 0, the contradiction is flagged and the human decides.
+
+---

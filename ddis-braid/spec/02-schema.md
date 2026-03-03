@@ -153,7 +153,7 @@ Proptest / verification detail:
   :spec/proptest        — String     :one    lww    — Proptest strategy description
 ```
 
-This gives 22 spec-element attributes. Combined with the 17 axiomatic attributes and
+This gives 21 spec-element attributes. Combined with the 17 axiomatic attributes and
 Layer 1 agent/provenance attributes, the Stage 0 schema is sufficient to represent all
 specification elements in the datom store with full fidelity across all three refinement
 levels and all element types (invariant, ADR, negative case, uncertainty).

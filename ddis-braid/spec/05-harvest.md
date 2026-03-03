@@ -169,12 +169,14 @@ Freshness check during harvest:
 ```rust
 /// Harvest candidate — proposed datom extraction from conversation.
 pub struct HarvestCandidate {
-    pub datom_spec: Vec<Datom>,
-    pub category: HarvestCategory,
-    pub confidence: f64,            // 0.0–1.0
-    pub weight: f64,                // estimated commitment weight
-    pub status: CandidateStatus,    // lattice: :proposed < :under-review < :committed < :rejected
-    pub extraction_context: String, // why this was extracted
+    pub id:                  usize,                  // Index for accept/reject referencing in CLI
+    pub datom_spec:          Vec<Datom>,
+    pub category:            HarvestCategory,
+    pub confidence:          f64,                    // 0.0–1.0
+    pub weight:              f64,                    // estimated commitment weight
+    pub status:              CandidateStatus,        // lattice: :proposed < :under-review < :committed < :rejected
+    pub extraction_context:  String,                 // why this was extracted
+    pub reconciliation_type: ReconciliationType,     // Traces to reconciliation taxonomy (§15)
 }
 
 pub enum HarvestCategory {

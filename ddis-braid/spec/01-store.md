@@ -1391,7 +1391,7 @@ EntityIds from arbitrary bytes, bypassing the hash — a type-level violation of
 
 ---
 
-### ADR-STORE-013: Free Functions Over Store Methods for Namespace Operations
+### ADR-STORE-015: Free Functions Over Store Methods for Namespace Operations
 
 **Traces to**: SEED.md §4, §10, ADRS FD-010, FD-012
 **Stage**: 0

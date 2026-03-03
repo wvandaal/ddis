@@ -257,13 +257,40 @@ Three spec-internal contradictions requiring detailed exploration:
 
 ## 8. Failure Modes Discovered
 
-*Failure modes identified during audit, to be incorporated into FAILURE_MODES.md with FM-NNN IDs.*
+Failure modes identified during V1 audit, incorporated into FAILURE_MODES.md as FM-010 through FM-019.
 
-| FM-ID | Description | DDIS Mechanism | Acceptance Criterion |
-|-------|-------------|---------------|---------------------|
-| | | | |
+| FM-ID | Description | DDIS Mechanism | Acceptance Criterion | Audit Source |
+|-------|-------------|---------------|---------------------|--------------|
+| FM-010 | Spec self-contradiction (NEG vs ADR) | 5-tier contradiction detection | 0 intra-spec contradictions | Pattern 5 #1 |
+| FM-011 | Verification tag inconsistency (matrix vs body) | V-tags as datom attributes | 0 mismatches | Pattern 5 #3 |
+| FM-012 | Type name divergence (spec vs guide) | Schema-as-data + bilateral scan | 0 cross-surface divergences | Category B (13 types) |
+| FM-013 | Phantom types (referenced, never defined) | Schema validation (INV-SCHEMA-005) | 0 phantom types | Pattern 3 (21 types) |
+| FM-014 | Free function vs method inconsistency | ADR-as-data + seed conventions | 0 placement mismatches | Pattern 1 |
+| FM-015 | Seed section name divergence | Schema-as-data | All docs use same names | Pattern 2 |
+| FM-016 | Token counting undefined dependency | Schema definition of tokenizer | All thresholds testable | Pattern 4 |
+| FM-017 | Incomplete CRDT proofs (cascade gap) | Formal proof obligations | All properties proven | Category C |
+| FM-018 | Stage 0 scope overcommitment | Guidance + M(t) scoring | Achievable within 4 weeks | Category D #1 |
+| FM-019 | K_agent harvest epistemological overreach | Harvest heuristic w/ FP/FN | >=90% externalized capture | Category D #4 |
 
-*Populated during R6.5 execution.*
+Existing FMs also cross-referenced with audit findings:
+- **FM-005**: V1 Audit Category A item A2 (INV-MERGE-008)
+- **FM-006**: V1 Audit 67 spec-guide divergences
+- **FM-007**: V1 Audit Category A item A1 (LWW tie-breaking)
+- **FM-008**: V1 Audit Agent 7 MAJOR/MINOR stale count findings
+- **FM-009**: V1 Audit Agent 5 guidance ADR contradiction
+
+### Wave 1 Non-Critical Findings Resolution
+
+Full resolution of all 214 MAJOR/MINOR/NOTE findings: **`wave1-findings-resolution.md`**
+
+| Status | Count | Percentage |
+|--------|-------|------------|
+| RESOLVED | 156 | 72.9% |
+| DEFERRED | 42 | 19.6% |
+| WONTFIX | 12 | 5.6% |
+| TODO | 4 | 1.9% |
+
+All 4 TODO items are blocked on R4 (Phantom & Missing Types) epic — specifically R4.2b (brai-2j88).
 
 ---
 

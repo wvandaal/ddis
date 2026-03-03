@@ -1,0 +1,713 @@
+[
+  {
+    "id": "INV-DELIBERATION-001",
+    "type": "invariant",
+    "properties_committed": ["deliberation_converges", "no_backward_lifecycle"],
+    "properties_assumed": ["grow_only", "append_only"],
+    "violation_condition": "A deliberation remains :active past its timeout without transitioning to :decided or :stalled.",
+    "dependencies": [],
+    "assumptions": ["Every deliberation has a timeout; timeouts are enforced at the implementation layer"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "INV-DELIBERATION-002",
+    "type": "invariant",
+    "properties_committed": ["stability_guard_required", "no_premature_crystallization"],
+    "properties_assumed": ["deliberation_converges"],
+    "violation_condition": "A decision is recorded where stability(chosen) < stability_min (default 0.7).",
+    "dependencies": ["INV-DELIBERATION-001"],
+    "assumptions": ["stability_min is a globally configurable constant with default 0.7", "All six stability guard dimensions are independently measurable"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "INV-DELIBERATION-003",
+    "type": "invariant",
+    "properties_committed": ["precedent_queryable", "grow_only"],
+    "properties_assumed": ["append_only", "deterministic_query"],
+    "violation_condition": "A decided deliberation with matching entity type and contested attributes is not returned by a precedent query.",
+    "dependencies": [],
+    "assumptions": ["Precedent index is a materialized view updated on every DECIDE transition"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "INV-DELIBERATION-004",
+    "type": "invariant",
+    "properties_committed": ["bilateral_symmetry"],
+    "properties_assumed": ["deliberation_converges", "stability_guard_required"],
+    "violation_condition": "The system creates a structural asymmetry where forward deliberations have capabilities that backward deliberations lack (or vice versa).",
+    "dependencies": ["INV-DELIBERATION-001", "INV-DELIBERATION-002", "INV-DELIBERATION-003"],
+    "assumptions": ["Forward and backward are definitional (forward=spec→impl, backward=impl→spec interpretation)"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "INV-DELIBERATION-005",
+    "type": "invariant",
+    "properties_committed": ["grow_only", "monotonic_store_growth"],
+    "properties_assumed": ["append_only", "causal_ordering"],
+    "violation_condition": "A decision's commitment weight decreases after downstream decisions are recorded.",
+    "dependencies": [],
+    "assumptions": ["Commitment weight is the cardinality of the forward causal cone of a decision", "Causal cone only grows as store grows (append-only guarantees this)"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "INV-DELIBERATION-006",
+    "type": "invariant",
+    "properties_committed": ["branch_isolation", "no_branch_leak"],
+    "properties_assumed": ["append_only", "grow_only"],
+    "violation_condition": "A losing branch's datoms appear in trunk after the deliberation decision.",
+    "dependencies": ["INV-DELIBERATION-002"],
+    "assumptions": ["Trunk is a defined set distinct from branch working sets", "DECIDE transition atomically marks losers :abandoned before committing winner"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "ADR-DELIBERATION-001",
+    "type": "adr",
+    "commitments": ["deliberation_converges", "precedent_queryable", "position_as_datom", "signal_as_datom"],
+    "assumptions": ["schema_as_data"],
+    "exclusions": [],
+    "dependencies": [],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "ADR-DELIBERATION-002",
+    "type": "adr",
+    "commitments": ["severity_tiered_routing"],
+    "assumptions": ["deliberation_converges"],
+    "exclusions": [],
+    "dependencies": [],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "ADR-DELIBERATION-003",
+    "type": "adr",
+    "commitments": ["precedent_queryable", "grow_only", "signal_auditable"],
+    "assumptions": ["append_only", "deterministic_query"],
+    "exclusions": [],
+    "dependencies": ["INV-DELIBERATION-003"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "ADR-DELIBERATION-004",
+    "type": "adr",
+    "commitments": ["stability_guard_required", "no_premature_crystallization"],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-DELIBERATION-002"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "NEG-DELIBERATION-001",
+    "type": "negative_case",
+    "prohibited_properties": ["no_premature_crystallization"],
+    "safety_properties": ["stability_guard_required"],
+    "related_invariants": ["INV-DELIBERATION-002"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "NEG-DELIBERATION-002",
+    "type": "negative_case",
+    "prohibited_properties": ["no_branch_leak"],
+    "safety_properties": ["branch_isolation"],
+    "related_invariants": ["INV-DELIBERATION-006"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "NEG-DELIBERATION-003",
+    "type": "negative_case",
+    "prohibited_properties": ["no_backward_lifecycle"],
+    "safety_properties": ["deliberation_converges"],
+    "related_invariants": ["INV-DELIBERATION-001"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "INV-GUIDANCE-001",
+    "type": "invariant",
+    "properties_committed": ["guidance_per_response", "guidance_anti_drift"],
+    "properties_assumed": ["guidance_budget_aware"],
+    "violation_condition": "Any tool response reaches the agent without a guidance footer.",
+    "dependencies": ["INV-BUDGET-004"],
+    "assumptions": ["The CLI output pipeline has a single post-processing stage that cannot be bypassed", "Footer generation is not gated on store state availability"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "INV-GUIDANCE-002",
+    "type": "invariant",
+    "properties_committed": ["guidance_methodology_first"],
+    "properties_assumed": ["guidance_per_response"],
+    "violation_condition": "Guidance output contains a numbered checklist or imperative instruction without invariant reference.",
+    "dependencies": ["INV-GUIDANCE-001"],
+    "assumptions": ["Template engine pulls from store's invariant index, not hardcoded instruction strings"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "INV-GUIDANCE-003",
+    "type": "invariant",
+    "properties_committed": ["guidance_anti_drift"],
+    "properties_assumed": ["guidance_per_response", "deterministic_query"],
+    "violation_condition": "An action that advances an active intention is scored identically to an action that does not.",
+    "dependencies": ["INV-GUIDANCE-001"],
+    "assumptions": ["Active intentions are queryable from store state", "Postconditions of actions are pre-declared as datoms"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-GUIDANCE-004",
+    "type": "invariant",
+    "properties_committed": ["guidance_anti_drift", "guidance_six_mechanisms"],
+    "properties_assumed": ["signal_as_datom"],
+    "violation_condition": "An agent executes 10+ bash commands without a transact and no drift signal is emitted.",
+    "dependencies": [],
+    "assumptions": ["Access log is a queryable artifact (or observable stream)", "The threshold of 5 commands is the right crossover — see UNC-GUIDANCE-001"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-GUIDANCE-005",
+    "type": "invariant",
+    "properties_committed": ["guidance_learned", "guidance_anti_drift"],
+    "properties_assumed": ["grow_only", "append_only"],
+    "violation_condition": "Learned guidance with effectiveness < 0.3 persists after 5+ sessions without being retracted.",
+    "dependencies": ["INV-GUIDANCE-001"],
+    "assumptions": ["Retraction is a new datom with op=retract — consistent with append-only (no actual deletion)", "effectiveness() is computable from outcome data in the store"],
+    "confidence": 1.0,
+    "stage": 4
+  },
+  {
+    "id": "INV-GUIDANCE-006",
+    "type": "invariant",
+    "properties_committed": ["branch_isolation", "no_branch_leak"],
+    "properties_assumed": ["append_only"],
+    "violation_condition": "A lookahead branch persists after the guidance query completes or its datoms leak into trunk.",
+    "dependencies": [],
+    "assumptions": ["Virtual branches are a runtime concept distinct from store branches — they are never transacted"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "INV-GUIDANCE-007",
+    "type": "invariant",
+    "properties_committed": ["dynamic_claude_md", "guidance_budget_aware", "guidance_anti_drift", "guidance_learned"],
+    "properties_assumed": ["budget_monotonic_decreasing", "schema_as_data", "deterministic_query"],
+    "violation_condition": "A drift correction persists in generated CLAUDE.md for 10+ sessions with no measurable improvement, OR generated CLAUDE.md exceeds k* constraint budget, OR ambient section exceeds 80 tokens, OR zero demonstrations accompany a cluster of 3+ constraints, OR the generator emits without validating constraint count.",
+    "dependencies": ["INV-GUIDANCE-001", "INV-GUIDANCE-005"],
+    "assumptions": ["k*_eff of a fresh session is a known constant (or measurable lower bound)", "The 80-token ambient limit and 1.0 demonstration-per-cluster ratio are correct (not empirically validated — UNC-GUIDANCE-001 affects calibration)"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "INV-GUIDANCE-008",
+    "type": "invariant",
+    "properties_committed": ["guidance_anti_drift", "guidance_budget_aware", "schema_as_data", "deterministic_query"],
+    "properties_assumed": ["budget_monotonic_decreasing"],
+    "violation_condition": "M(t) falls outside [0,1], OR component weights do not sum to 1.0, OR M(t) is not present in guidance footer, OR changing a component weight datom does not affect subsequent M(t) calculations.",
+    "dependencies": ["INV-GUIDANCE-001"],
+    "assumptions": ["All five M(t) components are independently measurable from store/session state", "Default weights w=(0.25,0.20,0.15,0.25,0.15) are reasonable starting values (not empirically validated)"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "INV-GUIDANCE-009",
+    "type": "invariant",
+    "properties_committed": ["self_specifying", "spec_elements_as_datoms", "schema_as_data", "deterministic_query"],
+    "properties_assumed": ["append_only", "grow_only"],
+    "violation_condition": "A specification artifact with a matching rule that does not produce any derived task, OR a derived task without :task/derived-from traceability, OR a rule modification that does not affect subsequent derivations, OR the default 10 rules are not present in the genesis store.",
+    "dependencies": [],
+    "assumptions": ["The 10 default derivation rules cover all spec element types exhaustively", "Self-modification via derived tasks does not create infinite loops (fixed-point assumption)"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "INV-GUIDANCE-010",
+    "type": "invariant",
+    "properties_committed": ["deterministic_query", "schema_as_data", "signal_auditable"],
+    "properties_assumed": ["bounded_query_time", "causal_ordering"],
+    "violation_condition": "R(t) selects a task whose dependencies are not all completed, OR two invocations at the same frontier select different tasks, OR a weight change via :guidance/r-weight does not affect routing, OR the routing decision is not recorded as a datom.",
+    "dependencies": ["INV-GUIDANCE-009"],
+    "assumptions": ["betweenness centrality (g2) defaults to 0.5 at Stage 0 — it is only approximated, not computed (UNC dependency on INV-QUERY-015)", "Graph metrics (PageRank, betweenness) are available at the required stage"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "INV-GUIDANCE-011",
+    "type": "invariant",
+    "properties_committed": ["schema_as_data", "signal_auditable", "deterministic_query"],
+    "properties_assumed": ["grow_only"],
+    "violation_condition": "T(t) recommends a topology not in the five-topology set, OR fitness scores fall outside [0,1], OR the same phase always produces the same recommendation regardless of store state, OR topology transitions are not recorded as datoms.",
+    "dependencies": ["INV-GUIDANCE-010"],
+    "assumptions": ["The five-topology set (Tree/Swarm/Market/Ring/Hybrid) is exhaustive for the problem space", "Phase-topology fitness matrix values (e.g., Swarm=0.9 for Reconciliation) are correct — these are theoretical"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "ADR-GUIDANCE-001",
+    "type": "adr",
+    "commitments": ["guidance_anti_drift", "deterministic_query"],
+    "assumptions": ["schema_as_data"],
+    "exclusions": [],
+    "dependencies": ["INV-GUIDANCE-001"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "ADR-GUIDANCE-002",
+    "type": "adr",
+    "commitments": ["guidance_anti_drift", "guidance_six_mechanisms"],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-GUIDANCE-004"],
+    "confidence": 0.7,
+    "stage": 0,
+    "note": "Confidence degraded from 1.0 to reflect UNC-GUIDANCE-001: the 15-20 turn crossover figure is unvalidated"
+  },
+  {
+    "id": "ADR-GUIDANCE-003",
+    "type": "adr",
+    "commitments": ["guidance_six_mechanisms", "guidance_anti_drift"],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": [],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "ADR-GUIDANCE-004",
+    "type": "adr",
+    "commitments": ["guidance_methodology_first"],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-GUIDANCE-002"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "ADR-GUIDANCE-005",
+    "type": "adr",
+    "commitments": ["guidance_anti_drift", "guidance_budget_aware", "deterministic_query"],
+    "assumptions": ["budget_monotonic_decreasing"],
+    "exclusions": [],
+    "dependencies": ["INV-GUIDANCE-008", "INV-GUIDANCE-010", "INV-GUIDANCE-011"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "NEG-GUIDANCE-001",
+    "type": "negative_case",
+    "prohibited_properties": ["guidance_per_response"],
+    "safety_properties": ["guidance_anti_drift"],
+    "related_invariants": ["INV-GUIDANCE-001"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "NEG-GUIDANCE-002",
+    "type": "negative_case",
+    "prohibited_properties": ["no_branch_leak"],
+    "safety_properties": ["branch_isolation"],
+    "related_invariants": ["INV-GUIDANCE-006"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "NEG-GUIDANCE-003",
+    "type": "negative_case",
+    "prohibited_properties": ["guidance_learned"],
+    "safety_properties": ["guidance_anti_drift"],
+    "related_invariants": ["INV-GUIDANCE-005"],
+    "confidence": 1.0,
+    "stage": 4
+  },
+  {
+    "id": "INV-BUDGET-001",
+    "type": "invariant",
+    "properties_committed": ["budget_hard_cap", "no_budget_overflow"],
+    "properties_assumed": ["budget_monotonic_decreasing"],
+    "violation_condition": "A tool response exceeds the computed output budget.",
+    "dependencies": [],
+    "assumptions": ["context window size W is known/measurable", "budget_fraction of 0.05 (5%) is correctly calibrated"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-BUDGET-002",
+    "type": "invariant",
+    "properties_committed": ["precedence_five_level"],
+    "properties_assumed": ["budget_hard_cap"],
+    "violation_condition": "System output truncates a Methodology-level block while Speculative-level blocks remain in the output.",
+    "dependencies": ["INV-BUDGET-001"],
+    "assumptions": ["All content blocks carry a declared precedence level before entering the allocator", "Precedence levels are totally ordered: System(4) > Methodology(3) > UserRequested(2) > Speculative(1) > Ambient(0)"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-BUDGET-003",
+    "type": "invariant",
+    "properties_committed": ["graceful_degradation", "budget_monotonic_decreasing"],
+    "properties_assumed": ["budget_hard_cap"],
+    "violation_condition": "Output budget is computed from raw k*_eff without applying the attention_decay quality adjustment.",
+    "dependencies": ["INV-BUDGET-001"],
+    "assumptions": ["The piecewise attention_decay function (full above 0.6, linear 0.3-0.6, quadratic below 0.3) accurately models LLM attention quality — this is empirically motivated but not formally proven"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-BUDGET-004",
+    "type": "invariant",
+    "properties_committed": ["guidance_budget_aware", "minimum_output_guaranteed"],
+    "properties_assumed": ["budget_monotonic_decreasing", "guidance_per_response"],
+    "violation_condition": "At k*_eff = 0.1, the guidance footer is 100+ tokens instead of a minimal harvest signal.",
+    "dependencies": ["INV-GUIDANCE-001", "INV-BUDGET-003"],
+    "assumptions": ["The four-tier guidance compression schedule (full/compressed/minimal/harvest-signal-only) correctly maps to k*_eff thresholds (0.7, 0.4, 0.2)"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-BUDGET-005",
+    "type": "invariant",
+    "properties_committed": ["budget_hard_cap", "graceful_degradation"],
+    "properties_assumed": ["precedence_five_level"],
+    "violation_condition": "A CHEAP command produces 300+ tokens of output.",
+    "dependencies": ["INV-BUDGET-001", "INV-BUDGET-002"],
+    "assumptions": ["The CHEAP/MODERATE/EXPENSIVE/META classification of commands is complete and correct", "Commands are classified at definition time, not runtime"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-BUDGET-006",
+    "type": "invariant",
+    "properties_committed": ["graceful_degradation", "budget_hard_cap"],
+    "properties_assumed": ["projection_pyramid_four_level"],
+    "violation_condition": "Reducing the budget by 50% reduces information value by more than 50% (distortion exceeds rate-distortion bound), OR agent-mode output exceeds 300 tokens, OR a guidance footer exceeds 50 tokens, OR an error message exceeds 100 tokens.",
+    "dependencies": ["INV-BUDGET-001", "INV-BUDGET-003"],
+    "assumptions": ["semantic_units() is a measurable function (the spec does not define it precisely — this is a conceptual claim that requires operationalization)", "Rate-distortion theory applies — the output pipeline is a lossy channel with a well-defined distortion measure"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "ADR-BUDGET-001",
+    "type": "adr",
+    "commitments": ["budget_monotonic_decreasing", "graceful_degradation"],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-BUDGET-003"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "ADR-BUDGET-002",
+    "type": "adr",
+    "commitments": ["graceful_degradation", "budget_monotonic_decreasing"],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-BUDGET-003"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "ADR-BUDGET-003",
+    "type": "adr",
+    "commitments": ["graceful_degradation", "projection_pyramid_four_level", "precedence_five_level"],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-BUDGET-001", "INV-BUDGET-002", "INV-BUDGET-003", "INV-BUDGET-006"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "NEG-BUDGET-001",
+    "type": "negative_case",
+    "prohibited_properties": ["no_budget_overflow"],
+    "safety_properties": ["budget_hard_cap"],
+    "related_invariants": ["INV-BUDGET-001"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "NEG-BUDGET-002",
+    "type": "negative_case",
+    "prohibited_properties": ["precedence_five_level"],
+    "safety_properties": ["graceful_degradation"],
+    "related_invariants": ["INV-BUDGET-002"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-INTERFACE-001",
+    "type": "invariant",
+    "properties_committed": ["cli_primary_agent_interface", "five_layer_graded"],
+    "properties_assumed": [],
+    "violation_condition": "A CLI command produces mixed-mode output (e.g., JSON with TTY escape codes, or agent-mode output without budget constraint).",
+    "dependencies": [],
+    "assumptions": ["Mode is determinable at invocation time — either explicit flag or terminal context inference is unambiguous"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "INV-INTERFACE-002",
+    "type": "invariant",
+    "properties_committed": ["mcp_six_tools", "store_sole_truth"],
+    "properties_assumed": ["append_only"],
+    "violation_condition": "The MCP server implements query parsing, resolution logic, or any other domain computation that exists in the kernel crate.",
+    "dependencies": [],
+    "assumptions": ["The kernel is a single shared library callable by the MCP server — ADR-INTERFACE-004 (library model) is accepted"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "INV-INTERFACE-003",
+    "type": "invariant",
+    "properties_committed": ["mcp_six_tools"],
+    "properties_assumed": [],
+    "violation_condition": "The MCP server exposes a tool not in the defined set of six, or fewer than six tools are registered.",
+    "dependencies": ["INV-INTERFACE-002"],
+    "assumptions": ["The six tools are: braid_transact, braid_query, braid_status, braid_harvest, braid_seed, braid_guidance", "Stage 0 is a fixed point — no tools are added until a spec update with a new invariant version"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "INV-INTERFACE-004",
+    "type": "invariant",
+    "properties_committed": ["statusline_zero_cost"],
+    "properties_assumed": [],
+    "violation_condition": "Statusline output appears in the agent's context window, consuming attention budget.",
+    "dependencies": [],
+    "assumptions": ["The statusline hook mechanism (external to the agent's conversation loop) is available in the deployment environment (Claude Code specific)"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-INTERFACE-005",
+    "type": "invariant",
+    "properties_committed": ["signal_subscription_persistent", "tui_human_only"],
+    "properties_assumed": [],
+    "violation_condition": "A High-severity conflict is recorded in the store but the TUI does not display a notification.",
+    "dependencies": [],
+    "assumptions": ["TUI refresh interval is bounded — not specified in the invariant (one cycle could be indefinitely long)"],
+    "confidence": 1.0,
+    "stage": 4
+  },
+  {
+    "id": "INV-INTERFACE-006",
+    "type": "invariant",
+    "properties_committed": ["signal_as_datom", "signal_auditable", "at_least_once_delivery"],
+    "properties_assumed": [],
+    "violation_condition": "A human injects a signal from TUI and the agent never receives it.",
+    "dependencies": [],
+    "assumptions": ["The MCP notification queue is durable enough to survive across tool calls within a session"],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "INV-INTERFACE-007",
+    "type": "invariant",
+    "properties_committed": ["minimum_output_guaranteed", "harvest_boundary_detection"],
+    "properties_assumed": ["budget_monotonic_decreasing"],
+    "violation_condition": "k*_eff = 0.03 and the CLI still produces full output without a harvest warning.",
+    "dependencies": ["INV-BUDGET-004", "INV-GUIDANCE-001"],
+    "assumptions": ["Q(t) thresholds of 0.15 and 0.05 are correctly calibrated — see UNC-HARVEST-001 which flags this as confidence 0.7"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-INTERFACE-008",
+    "type": "invariant",
+    "properties_committed": ["guidance_methodology_first", "guidance_budget_aware"],
+    "properties_assumed": ["guidance_per_response"],
+    "violation_condition": "A tool description exceeds 100 tokens, OR uses imperative language without a demonstration, OR omits semantic type annotations for inputs/outputs, OR contains no micro-example.",
+    "dependencies": ["INV-INTERFACE-003"],
+    "assumptions": ["navigative() is a well-defined predicate over description text — the spec describes it qualitatively but does not provide an algorithm for checking it"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "INV-INTERFACE-009",
+    "type": "invariant",
+    "properties_committed": ["no_silent_failure"],
+    "properties_assumed": [],
+    "violation_condition": "Any error variant e where R(e) is undefined, OR an error message missing any of the four parts (what/why/recovery/spec_ref), OR a recovery action that leads to another error without its own recovery path.",
+    "dependencies": [],
+    "assumptions": ["The error algebra E is closed — all possible error conditions are enumerated at design time", "The recovery action 'EscalateToHuman' is the only terminal for truly unrecoverable errors (no infinite regress)"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "ADR-INTERFACE-001",
+    "type": "adr",
+    "commitments": ["five_layer_graded", "statusline_zero_cost", "guidance_per_response"],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-INTERFACE-001", "INV-INTERFACE-002", "INV-INTERFACE-003", "INV-INTERFACE-004"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "ADR-INTERFACE-002",
+    "type": "adr",
+    "commitments": ["guidance_methodology_first", "budget_hard_cap"],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-INTERFACE-001"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "ADR-INTERFACE-003",
+    "type": "adr",
+    "commitments": ["store_sole_truth", "seed_is_projection", "seed_no_fabrication"],
+    "assumptions": ["harvest_monotonic"],
+    "exclusions": [],
+    "dependencies": [],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "ADR-INTERFACE-004",
+    "type": "adr",
+    "commitments": ["store_sole_truth", "append_only"],
+    "assumptions": ["append_only", "crdt_mergeable"],
+    "exclusions": [],
+    "dependencies": ["INV-INTERFACE-002"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "NEG-INTERFACE-001",
+    "type": "negative_case",
+    "prohibited_properties": ["store_sole_truth"],
+    "safety_properties": ["store_sole_truth"],
+    "related_invariants": ["INV-INTERFACE-002"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "NEG-INTERFACE-002",
+    "type": "negative_case",
+    "prohibited_properties": ["mcp_six_tools"],
+    "safety_properties": ["store_sole_truth"],
+    "related_invariants": ["INV-INTERFACE-002", "INV-INTERFACE-003"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "NEG-INTERFACE-003",
+    "type": "negative_case",
+    "prohibited_properties": ["minimum_output_guaranteed"],
+    "safety_properties": ["harvest_boundary_detection"],
+    "related_invariants": ["INV-INTERFACE-007"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "NEG-INTERFACE-004",
+    "type": "negative_case",
+    "prohibited_properties": ["no_silent_failure"],
+    "safety_properties": ["no_silent_failure"],
+    "related_invariants": ["INV-INTERFACE-009"],
+    "confidence": 1.0,
+    "stage": 0
+  },
+  {
+    "id": "UNC-BILATERAL-001",
+    "type": "uncertainty",
+    "provisional_claim": "F(S) = 0.18×V + 0.18×C + 0.18×(1-D) + 0.13×H + 0.13×(1-K) + 0.08×(1-I) + 0.12×(1-U) with these specific weights",
+    "confidence": 0.6,
+    "impact_if_wrong": "Fitness score gives misleading convergence signal. A high F(S) could mask real divergence if a low-weight component is actually critical, or vice versa.",
+    "properties_affected": ["fitness_monotonic", "five_point_coherence", "fitness_seven_dimensions"],
+    "dependencies_affected": ["INV-BILATERAL-001"]
+  },
+  {
+    "id": "UNC-BILATERAL-002",
+    "type": "uncertainty",
+    "provisional_claim": "D(spec, impl) = Σᵢ wᵢ × |boundary_gap(i)| with default equal weights across the four boundaries",
+    "confidence": 0.5,
+    "impact_if_wrong": "Divergence metric under-weights the critical boundary, causing the bilateral loop to focus remediation effort on the wrong gaps.",
+    "properties_affected": ["fitness_monotonic", "bilateral_inverse_operations"],
+    "dependencies_affected": ["INV-BILATERAL-001"]
+  },
+  {
+    "id": "UNC-STORE-001",
+    "type": "uncertainty",
+    "provisional_claim": "BLAKE3 hash of content produces unique EntityIds with negligible collision probability",
+    "confidence": 0.95,
+    "impact_if_wrong": "Two different entities map to the same EntityId. Silent data corruption — one entity's attributes overwrite another's.",
+    "properties_affected": ["content_addressable", "set_union_merge"],
+    "dependencies_affected": ["INV-STORE-002", "INV-STORE-003"]
+  },
+  {
+    "id": "UNC-STORE-002",
+    "type": "uncertainty",
+    "provisional_claim": "Hybrid Logical Clocks maintain causal ordering across agents with bounded clock skew",
+    "confidence": 0.9,
+    "impact_if_wrong": "Transaction ordering violations. Causally-later transactions appear before causally-earlier ones, breaking frontier monotonicity.",
+    "properties_affected": ["causal_ordering", "monotonic_store_growth"],
+    "dependencies_affected": ["INV-STORE-008", "INV-STORE-009"]
+  },
+  {
+    "id": "UNC-QUERY-001",
+    "type": "uncertainty",
+    "provisional_claim": "Semi-naive Datalog evaluation is efficient for Braid's query patterns at expected scale",
+    "confidence": 0.8,
+    "impact_if_wrong": "Query latency exceeds acceptable limits, making the CLI unusable for interactive agent workflows. Budget-aware output degrades to π₃ not from attention pressure but from query timeout.",
+    "properties_affected": ["bounded_query_time", "terminating_evaluation"],
+    "dependencies_affected": ["INV-QUERY-002"]
+  },
+  {
+    "id": "UNC-HARVEST-001",
+    "type": "uncertainty",
+    "provisional_claim": "Q(t) < 0.15 (~75% consumed) triggers harvest warning; Q(t) < 0.05 (~85%) triggers harvest-only mode",
+    "confidence": 0.7,
+    "impact_if_wrong": "Warnings too early → wasted budget on premature harvest. Warnings too late → unharvested knowledge loss (FM-001).",
+    "properties_affected": ["harvest_boundary_detection", "minimum_output_guaranteed"],
+    "dependencies_affected": ["INV-HARVEST-005", "INV-INTERFACE-007"]
+  },
+  {
+    "id": "UNC-GUIDANCE-001",
+    "type": "uncertainty",
+    "provisional_claim": "Without intervention, agents drift to Basin B within 15–20 turns; the six anti-drift mechanisms maintain Basin A dominance",
+    "confidence": 0.7,
+    "impact_if_wrong": "If crossover is earlier (10 turns), the mechanisms may be insufficient. If later (30+ turns), the mechanisms may be unnecessarily aggressive (wasting budget).",
+    "properties_affected": ["guidance_anti_drift", "guidance_six_mechanisms"],
+    "dependencies_affected": ["INV-GUIDANCE-004"]
+  },
+  {
+    "id": "UNC-DELIBERATION-001",
+    "type": "uncertainty",
+    "provisional_claim": "Default stability_min = 0.7 provides the right balance between premature crystallization and unnecessary delay",
+    "confidence": 0.7,
+    "impact_if_wrong": "Too high → deliberation takes too long, blocking downstream work. Too low → premature decisions create cascading incompleteness (FM-004).",
+    "properties_affected": ["stability_guard_required", "no_premature_crystallization"],
+    "dependencies_affected": ["INV-DELIBERATION-002"]
+  },
+  {
+    "id": "UNC-SCHEMA-001",
+    "type": "uncertainty",
+    "provisional_claim": "Exactly 17 axiomatic meta-schema attributes are sufficient to bootstrap the full schema system",
+    "confidence": 0.85,
+    "impact_if_wrong": "Schema system cannot express a required concept. Workaround requires a breaking change to the genesis transaction — all stores become incompatible.",
+    "properties_affected": ["schema_as_data", "self_specifying"],
+    "dependencies_affected": ["INV-SCHEMA-001", "INV-SCHEMA-008"]
+  },
+  {
+    "id": "UNC-RESOLUTION-001",
+    "type": "uncertainty",
+    "provisional_claim": "Schema authors can and will correctly declare resolution modes (LWW, Lattice, Multi) for each attribute",
+    "confidence": 0.8,
+    "impact_if_wrong": "Silent data loss or incorrect conflict resolution. The system behaves correctly per its configuration but the configuration doesn't match intent.",
+    "properties_affected": ["per_attribute_resolution", "resolution_at_query_time"],
+    "dependencies_affected": ["INV-RESOLUTION-001"]
+  }
+]

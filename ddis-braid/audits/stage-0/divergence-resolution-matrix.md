@@ -12,8 +12,8 @@
 | Metric | Count |
 |--------|-------|
 | Total V1 audit divergences | 67 |
-| **FIXED** (resolved by R0-R5 beads) | **38** |
-| **REMAINING** (still divergent) | **26** |
+| **FIXED** (resolved by R0-R5 beads + R7.2a) | **32** |
+| **REMAINING** (still divergent) | **32** |
 | **INTENTIONAL** (stage scoping, not defects) | **3** |
 
 ### By Severity
@@ -21,24 +21,23 @@
 | Severity | Total | Fixed | Remaining | Intentional |
 |----------|-------|-------|-----------|-------------|
 | CRITICAL | 5 | 5 | 0 | 0 |
-| HIGH | 25 | 20 | 5 | 0 |
-| MEDIUM | 24 | 10 | 11 | 3 |
-| LOW | 13 | 3 | 10 | 0 |
+| HIGH | 19 | 13 | 6 | 0 |
+| MEDIUM | 27 | 11 | 13 | 3 |
+| LOW | 16 | 3 | 13 | 0 |
 
-### By Namespace
+### By Namespace (approximate — some items span namespaces)
 
 | Namespace | Total | Fixed | Remaining |
 |-----------|-------|-------|-----------|
 | STORE | 6 | 4 | 2 |
 | SCHEMA | 5 | 4 | 1 |
-| QUERY | 10 | 5 | 5 |
-| RESOLUTION | 7 | 6 | 1 |
-| HARVEST | 6 | 4 | 2 |
-| SEED | 6 | 4 | 2 |
+| QUERY | 12 | 5 | 7 |
+| RESOLUTION | 8 | 7 | 1 |
+| HARVEST | 7 | 5 | 2 |
+| SEED | 7 | 4 | 3 |
 | MERGE | 7 | 5 | 2 |
-| GUIDANCE | 6 | 3 | 3 |
-| INTERFACE | 8 | 4 | 4 |
-| BUDGET | 3 | 0 | 3 |
+| GUIDANCE | 7 | 4 | 3 |
+| INTERFACE | 5 | 2 | 3 |
 | Cross-cutting | 3 | 2 | 1 |
 
 ---
@@ -81,7 +80,7 @@ These correspond to types.md Appendix A divergences D1-D13.
 
 | # | Description | Severity | Status | Resolving Bead | Notes |
 |---|-------------|----------|--------|----------------|-------|
-| C1 | Methods vs free functions — 4+ namespaces | HIGH | **FIXED** | R1.8 (brai-30q.8), R5.2a (brai-28go) | ADR-STORE-013 (free functions) written. Spec updated. |
+| C1 | Methods vs free functions — 4+ namespaces | HIGH | **FIXED** | R1.8 (brai-30q.8), R5.2a (brai-28go) | ADR-STORE-015 (free functions) written. Spec updated. |
 | C2 | query() signature — spec method vs guide free fn | HIGH | **FIXED** | R1.8, brai-1cp.1 | Reconciled to free function. |
 | C3 | harvest_pipeline() signature mismatch | HIGH | **FIXED** | R1.7, R1.8 | Free function with explicit store param. |
 | C4 | assemble_seed() / ASSOCIATE return type | HIGH | **FIXED** | R1.3 (brai-30q.3), brai-1cp.9 | SeedOutput adopted. |
@@ -153,7 +152,26 @@ Only Stage 0-1 spec-only types that should have guide coverage are listed.
 |---|-------------|----------|--------|----------------|-------|
 | G1 | Phantom types — 21 referenced but never defined | HIGH | REMAINING | R4.1 open (brai-14g.1) | Classification done (R4.1a/brai-4mlo closed). Definition pending (R4.1b). |
 | G2 | Token counting undefined | HIGH | REMAINING | R3.5 partially done | Tokenizer survey complete (R3.5a). Design pending. |
-| G3 | Duplicate ADR-STORE-013 | MEDIUM | REMAINING | — | Two different ADRs share ID 013. Free functions ADR should be renumbered to ADR-STORE-015. |
+| G3 | Duplicate ADR-STORE-013 | MEDIUM | **FIXED** | R7.2a | Renumbered free functions ADR to ADR-STORE-015. |
+
+## Category H: Additional Per-Namespace Behavioral Divergences (10 divergences)
+
+These 10 divergences reconstruct the gap between the 57 items in Categories A-G and Agent 12's
+67 total. They represent per-namespace behavioral divergences identified in Wave 1 that are
+distinct from type-level issues (Agent 8) and cross-cutting patterns (Agent 12 critical items).
+
+| # | Description | Severity | Status | Resolving Bead | Notes |
+|---|-------------|----------|--------|----------------|-------|
+| H1 | STORE: Frontier definition differs (spec: set of TxIds, guide: latest TxId per agent) | MEDIUM | REMAINING | — | Behavioral difference in frontier semantics. |
+| H2 | SCHEMA: Progressive layer counts differ (spec: 6 layers 0-4, guide: 3 layers 0-2 for Stage 0) | MEDIUM | **FIXED** | brai-39v.21 | Decomposition added for INV-SCHEMA-006. |
+| H3 | QUERY: Semi-naive evaluation detail level (spec: algorithm, guide: three-box skeleton) | LOW | REMAINING | — | Guide lacks pseudocode depth. |
+| H4 | QUERY: Graph algorithm return types differ (PageRank, HITS, etc.) | MEDIUM | REMAINING | — | Related to B5/B6. |
+| H5 | RESOLUTION: Cascade triggering conditions differ | MEDIUM | **FIXED** | brai-2nl.2 (R2.2) | Cascade-as-fixpoint resolved. |
+| H6 | HARVEST: Pipeline stage count differs (spec: 3-stage, guide: 4-stage with classify) | MEDIUM | **FIXED** | brai-1cp.6, R1.7 | Reconciled. |
+| H7 | SEED: Budget allocation strategy differs (spec: rate-distortion, guide: proportional) | MEDIUM | REMAINING | — | Needs reconciliation. |
+| H8 | GUIDANCE: Anti-drift mechanism enumeration differs (spec: 6, guide: 5) | MEDIUM | **FIXED** | brai-1cp.7 | Reconciled to 6 mechanisms. |
+| H9 | INTERFACE: CLI output format details differ | LOW | REMAINING | — | Minor formatting spec. |
+| H10 | INTERFACE: Error recovery hint catalog differs (spec: 5, guide: 3 patterns) | MEDIUM | **FIXED** | brai-1cp.3 | Reconciled. |
 
 ---
 
@@ -166,27 +184,28 @@ Only Stage 0-1 spec-only types that should have guide coverage are listed.
 | R1 (Type Reconciliation) | brai-30q.* (12+ tasks) | 12 | MergeReceipt, ConflictSet, ResolutionMode, HarvestCandidate, Transaction, Value, Schema API, free functions |
 | R2 (CRDT Proofs) | brai-2nl.* (8 tasks) | 2 | Formal proofs, cascade-as-fixpoint |
 | R5 (Patterns) | brai-28go, brai-117.1.1 | 2 | Free functions propagation, seed analysis |
-| **Remaining** | R4.1b, R4.2b, R4.3b, R6.7b-d | **26** | Type definitions, naming, guide-only/spec-only types |
+| **Remaining** | R4.1b, R4.2b, R4.3b, R6.7b-d | **32** | Type definitions, naming, guide-only/spec-only types, per-namespace behavioral gaps |
 
 ---
 
-## Recommended Prioritization for Remaining 26
+## Recommended Prioritization for Remaining 32
 
-### HIGH priority (5 items — blocks implementation clarity)
+### HIGH priority (6 items — blocks implementation clarity)
 
 1. **B2** `Clause` variant naming — prevents query engine compilation
 2. **B5** `QueryResult` field types — prevents query pipeline integration
 3. **B6** `QueryExpr` structure — prevents query parsing
 4. **D1** Seed section naming — prevents seed assembly
 5. **G1** Phantom types (21) — prevents type completeness
+6. **G2** Token counting undefined — prevents budget INV testability
 
-### MEDIUM priority (11 items — implementation refinements)
+### MEDIUM priority (13 items — implementation refinements)
 
-6-16. E3, E6, E8, E9, F1, F2, F5 (guide/spec coverage gaps for Stage 0 types), B7, B9, B10, G3
+7-19. E3, E6, E8, E9, F1, F2, F5 (guide/spec coverage gaps for Stage 0 types), B7, B9, B10, H1 (frontier semantics), H4 (graph return types), H7 (budget allocation strategy)
 
-### LOW priority (10 items — minor or post-Stage-0)
+### LOW priority (13 items — minor or post-Stage-0)
 
-17-26. B13, D9, D10, E1, E2, E4, E5, E7, F3, F4, F6, F7, F8
+20-32. B13, E1, E2, E4, E5, E7, F3, F4, F6, F7, F8, H3 (semi-naive detail), H9 (CLI format)
 
 ---
 

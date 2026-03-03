@@ -69,7 +69,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rationale**: Natural graph joins for traceability (goal → invariant → implementation → test). Stratified evaluation maps cleanly to the monotonic/non-monotonic distinction (Axiom 4). CALM theorem compliance. Semi-naive avoids redundant derivation.
 **Rejected**: SQL (poor graph traversal), custom query language (wheel reinvention), top-down evaluation (worse for materialized views).
 **Source**: SEED.md §4 Axiom 4, §11; Transcript 01; Transcript 02 (stratum analysis); Transcript 03 (Datomic dialect, semi-naive)
-**Formalized as**: ADR-QUERY-001 in `spec/03-query.md`
+**Formalized as**: ADR-QUERY-001, ADR-QUERY-002 in `spec/03-query.md`
 
 ### FD-004: Datom Store Over Vector DB / RAG
 
@@ -329,6 +329,13 @@ Deployment model, storage implementation, schema layers, and index design.
 **Invariant**: `INV-SESSION-STATE-001`: session state file must be updated on every statusline render cycle.
 **Source**: Transcript 05:652–737
 
+### SR-013: Free Functions Over Store Methods for Namespace Operations
+
+**Decision**: Namespace operations (query, harvest, seed, merge, guidance) are free functions taking `&Store` rather than Store methods. Store methods are reserved for core datom operations: `genesis()`, `transact()`, `current()`, `as_of()`, `len()`, `datoms()`, `frontier()`, `schema()`.
+**Rationale**: Store is a datom container, not an application framework. Free functions keep namespace logic independent of Store internals, prevent Store from becoming a god object, and enable testing with mock stores. Each namespace's free functions form a natural Rust module boundary.
+**Source**: SEED.md §4, §10; ADRS FD-010, FD-012
+**Formalized as**: ADR-STORE-015 in `spec/01-store.md`, ADR-ARCHITECTURE-001 in `guide/00-architecture.md`
+
 ---
 
 ## Protocol Decisions
@@ -426,6 +433,7 @@ Specifications for the canonical protocol operations.
 **Decision**: MERGE propagates consequences: invalidated queries, new conflicts, uncertainty deltas, stale projections. All cascade effects recorded as datoms.
 **Invariant**: `INV-MERGE-CASCADE-001`: after merge, MUST detect conflicts, invalidate caches, mark stale projections, recompute uncertainty, fire subscriptions.
 **Source**: Transcript 04:64–78, 04:1642–1651
+**Formalized as**: ADR-MERGE-001 in `spec/07-merge.md`
 
 ### PO-007: BRANCH — Six Sub-Operations with Competing-Branch Lock
 
@@ -439,6 +447,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Registers Datalog-like pattern filter with callback. Debounce parameter batches rapid-fire matches.
 **Invariants**: `INV-SUBSCRIBE-COMPLETENESS-001` (fire for every match within refresh cycle), `INV-SUBSCRIBE-DEBOUNCE-001` (debounced notifications must batch within window).
 **Source**: Transcript 04:1772–1814
+**Formalized as**: ADR-SIGNAL-003 in `spec/09-signal.md`
 
 ### PO-009: GUIDANCE — Query over Guidance Graph
 
@@ -451,6 +460,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Topology-dependent (Option C): protocol provides primitives; deployment chooses topology. User confirmed "C for sure."
 **Invariants**: `INV-BARRIER-TIMEOUT-001` (resolve within timeout), `INV-BARRIER-CRASH-RECOVERY-001` (recovering agents can query barrier record).
 **Source**: Transcript 04:1960–1977
+**Formalized as**: ADR-SYNC-001, ADR-SYNC-003 in `spec/08-sync.md`
 
 ### PO-011: Agent Cycle as Ten-Step Composition
 
@@ -547,6 +557,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Three core computations CANNOT be expressed in pure Datalog: σ_a (requires entropy — grouping, division, logarithm), σ_c (requires bottom-up DAG traversal with memoization), spectral authority (requires linear algebra — SVD). These are DERIVED FUNCTIONS: Datalog provides the input query, a Rust function computes the result. σ_e uses count-distinct aggregation (borderline). The query engine must support a foreign-function interface for derived computations.
 **Rationale**: Establishes the boundary between declarative queries and imperative computation. Major architectural implication: three of four core coordination computations are derived functions.
 **Source**: Transcript 02:1318–1321 (σ_a), 02:1391 (σ_c), 02:1475–1476 (authority); Transcript 03:346–392, 03:422–466
+**Formalized as**: ADR-QUERY-004 in `spec/03-query.md`
 
 ---
 
@@ -644,18 +655,20 @@ Specifications for the canonical protocol operations.
 
 **Decision**: System: (1) asserts Conflict entity, (2) computes severity, (3) routes, (4) fires TUI, (5) updates uncertainty, (6) invalidates caches. ALL steps produce datoms.
 **Source**: Transcript 04:1331–1342
+**Formalized as**: ADR-SIGNAL-002 in `spec/09-signal.md`
 
 ### CR-004: Deliberation, Position, and Decision as First-Class Entity Types
 
 **Decision**: Deliberation (process), Position (stance: `:advocate | :oppose | :neutral | :synthesize`), Decision (method: `:consensus | :majority | :authority | :human-override | :automated`). Deliberation history is a case law system.
 **Invariant**: `INV-DELIBERATION-BILATERAL-001`: supports both forward and backward flow with identical entity structure.
 **Source**: Transcript 04:745–828
-**Formalized as**: ADR-DELIBERATION-001 in `spec/11-deliberation.md`, ADR-RESOLUTION-005 in `spec/04-resolution.md`
+**Formalized as**: ADR-DELIBERATION-001, ADR-DELIBERATION-002 in `spec/11-deliberation.md`; ADR-RESOLUTION-005 in `spec/04-resolution.md`
 
 ### CR-005: Crystallization Stability Guard
 
 **Decision**: Datom carries `:stability-min` guard. Cannot crystallize until stability score exceeds threshold (default 0.7). Conditions: status `:refined`, thread `:active`, parent confidence ≥ 0.6, coherence ≥ 0.6, no unresolved conflicts. Defense against premature crystallization: `:stability-min` as Datalog pre-filter.
 **Source**: Transcript 02; Transcript 03:942–990
+**Formalized as**: ADR-DELIBERATION-004 in `spec/11-deliberation.md`
 
 ### CR-006: Formal Conflict Predicate
 
@@ -683,6 +696,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Concrete Datalog query pattern `find-precedent` locates past deliberations relevant to a current conflict by matching entity type and contested attributes.
 **Rationale**: Makes deliberation history a "case law system" — past decisions inform future conflicts.
 **Source**: Transcript 04:798–828
+**Formalized as**: ADR-DELIBERATION-003 in `spec/11-deliberation.md`
 
 ---
 
@@ -765,7 +779,7 @@ Specifications for the canonical protocol operations.
 **Rationale**: Heuristic inaccurate because conversation structure varies. Measured consumption gives ground truth. Attention quality degrades faster than context consumption above ~60–70%.
 **Fallback**: Exponential decay `k*_eff = k*_base × e^{-αn}` (α=0.03) when measurement unavailable.
 **Source**: Transcript 04:2870–2900 (heuristic); Transcript 05:510–648 (measured, Q(t) formula)
-**Formalized as**: ADR-BUDGET-001, ADR-BUDGET-002 in `spec/13-budget.md`
+**Formalized as**: ADR-BUDGET-001, ADR-BUDGET-002, ADR-BUDGET-003 in `spec/13-budget.md`
 
 ### IB-006: k*-Parameterized Guidance Compression
 
@@ -793,12 +807,13 @@ Specifications for the canonical protocol operations.
 **Decision**: `ddis harvest` extracts durable facts; `ddis seed` generates carry-over. Agent lifecycle: SEED → work 20–30 turns → HARVEST → reset → GOTO SEED.
 **Invariant**: `INV-TRAJECTORY-STORE-001`: Seed output five-part template: (1) Context (1–2 sentences), (2) Invariants established, (3) Artifacts, (4) Open questions from deliberations, (5) Active guidance. Formatted as spec-first seed turn.
 **Source**: Transcript 04:2742–2812
-**Formalized as**: ADR-INTERFACE-003 in `spec/14-interface.md`
+**Formalized as**: ADR-INTERFACE-003 in `spec/14-interface.md`, ADR-SEED-004 in `spec/06-seed.md`
 
 ### IB-011: Rate-Distortion Interface Design
 
 **Decision**: Interface is formally a rate-distortion channel: maximize information value while minimizing attention cost.
 **Source**: Transcript 05
+**Formalized as**: ADR-SEED-002 in `spec/06-seed.md`
 
 ### IB-012: Proactive Harvest Warning (INV-INTERFACE-HARVEST-001)
 
@@ -827,12 +842,13 @@ Specifications for the canonical protocol operations.
 **Decision**: Guidance MUST use spec-language (invariants, formal structure), NOT instruction-language (steps, checklists).
 **Invariant**: `INV-GUIDANCE-SEED-001`.
 **Source**: Transcript 04:2647–2673; Transcript 05
-**Formalized as**: ADR-GUIDANCE-004 in `spec/12-guidance.md`
+**Formalized as**: ADR-GUIDANCE-004 in `spec/12-guidance.md`, ADR-SEED-003 in `spec/06-seed.md`
 
 ### GU-004: Dynamic CLAUDE.md Generation
 
 **Decision**: CLAUDE.md dynamically generated from empirical drift patterns. Collapses three concerns: (1) Ambient awareness (Layer 0 — CLAUDE.md IS the ambient awareness), (2) Guidance (Layer 3 — seed context IS the first guidance, pre-computed, zero tool-call cost), (3) Trajectory management (CLAUDE.md IS the seed turn). "One mechanism, three problems solved."
 **Source**: Transcript 05; Transcript 06:209–232
+**Formalized as**: ADR-SEED-001 in `spec/06-seed.md` (three-concern collapse)
 
 ### GU-005: Guidance Injection — Recency Effect Exploitation (INV-GUIDANCE-INJECTION-001)
 

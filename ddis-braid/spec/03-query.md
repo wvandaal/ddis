@@ -150,40 +150,63 @@ Frontier is itself a datom attribute (:tx/frontier), enabling:
 
 ```rust
 /// Datalog query expression.
+/// Find wraps ParsedQuery — the richer AST produced by the query parser.
+/// ParsedQuery subsumes the simpler {variables, clauses} representation
+/// with support for all four Datomic find forms, rules, and inputs.
 pub enum QueryExpr {
-    Find {
-        variables: Vec<Variable>,
-        clauses: Vec<Clause>,
-    },
+    Find(ParsedQuery),
     Pull {
         pattern: PullPattern,
         entity: EntityRef,
     },
 }
 
+/// Parsed Datalog query — the rich AST for a Find expression.
+pub struct ParsedQuery {
+    pub find_spec:     FindSpec,
+    pub where_clauses: Vec<Clause>,
+    pub rules:         Vec<Rule>,
+    pub inputs:        Vec<Input>,
+}
+
+/// Datomic-style find specification — the four standard find forms.
+pub enum FindSpec {
+    Relation(Vec<Variable>),    // [:find ?x ?y]
+    Scalar(Variable),           // [:find ?x .]
+    Collection(Variable),       // [:find [?x ...]]
+    Tuple(Vec<Variable>),       // [:find [?x ?y]]
+}
+
+/// Clause types for Datalog queries.
+/// Stage 0 variants: DataPattern, RuleApplication, NotClause, OrClause, Frontier.
+/// Stage 1+ variants (deferred): Aggregate, Ffi.
 pub enum Clause {
-    /// Pattern match: [?e ?a ?v]
-    Pattern(EntityRef, AttributeRef, ValueRef),
+    /// Data pattern match: [?e :attr ?v]
+    DataPattern(EntityPattern, AttributePattern, ValuePattern),
+    /// Rule application: (rule-name ?x ?y)
+    RuleApplication(RuleName, Vec<Term>),
+    /// Negation: (not [?e :attr ?v]). Stratum 2+ only.
+    NotClause(Box<Clause>),
+    /// Disjunction: (or [...] [...])
+    OrClause(Vec<Vec<Clause>>),
     /// Frontier scope: [:frontier ?f]
     Frontier(FrontierRef),
-    /// Negation: (not [?e :attr ?v])
-    Not(Box<Clause>),
-    /// Aggregation: (aggregate ?var fn)
-    Aggregate(Variable, AggregateFunc),
-    /// FFI: call Rust function
-    Ffi(FfiCall),
+    // Stage 1+: Aggregate(Variable, AggregateFunc)
+    // Stage 1+: Ffi(FfiCall)
 }
 
 pub enum QueryMode {
     Monotonic,
-    Stratified { frontier: Frontier },
-    Barriered { barrier_id: BarrierId },
+    Stratified(Frontier),
+    Barriered(BarrierId),
 }
 
+pub type BindingSet = HashMap<Variable, Value>;
+
 pub struct QueryResult {
-    pub tuples: Vec<Vec<Value>>,
-    pub mode: QueryMode,
-    pub stratum: u8,
+    pub bindings: Vec<BindingSet>,
+    pub stratum:  Stratum,
+    pub mode:     QueryMode,
     pub provenance_tx: TxId,
 }
 

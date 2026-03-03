@@ -18,17 +18,16 @@ braid-kernel/src/
 
 ```rust
 /// A candidate for harvest: knowledge to potentially transact.
-/// Fields align with spec/05-harvest.md §5.3 Level 2, plus implementation
-/// additions (id, reconciliation_type) documented below.
+/// All fields match spec/05-harvest.md §5.3 Level 2 (R6.7b alignment).
 pub struct HarvestCandidate {
-    pub id:                  usize,                  // Guide addition: index for accept/reject referencing
-    pub datom_spec:          Vec<Datom>,              // Spec name (was: datoms)
+    pub id:                  usize,                  // Index for accept/reject referencing in CLI
+    pub datom_spec:          Vec<Datom>,
     pub category:            HarvestCategory,
-    pub confidence:          f64,                     // 0.0–1.0
+    pub confidence:          f64,                     // 0.0-1.0
     pub weight:              f64,                     // Estimated commitment weight
-    pub status:              CandidateStatus,         // Spec name: lattice :proposed < :under-review < :committed < :rejected
-    pub extraction_context:  String,                  // Spec name (was: source) — why this was extracted
-    pub reconciliation_type: ReconciliationType,      // Guide addition: traces to reconciliation taxonomy
+    pub status:              CandidateStatus,         // Lattice: proposed < under-review < committed < rejected
+    pub extraction_context:  String,                  // Why this was extracted
+    pub reconciliation_type: ReconciliationType,      // Traces to reconciliation taxonomy (spec section 15)
 }
 
 /// Candidate status lattice (spec/05-harvest.md §5.3).

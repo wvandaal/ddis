@@ -1,0 +1,549 @@
+[
+  {
+    "id": "INV-SYNC-001",
+    "type": "invariant",
+    "properties_committed": [
+      "consistent_cut",
+      "post_barrier_deterministic",
+      "deterministic_query"
+    ],
+    "properties_assumed": [
+      "sync_barrier_blocking",
+      "at_least_once_delivery"
+    ],
+    "violation_condition": "Two participants at a resolved barrier producing different results for the same non-monotonic query.",
+    "dependencies": [],
+    "assumptions": [
+      "All participants have exchanged all datoms up to the cut point before resolution is declared.",
+      "The barrier protocol guarantees that every in-flight message is delivered before resolution."
+    ],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "INV-SYNC-002",
+    "type": "invariant",
+    "properties_committed": [
+      "sync_timeout_safe"
+    ],
+    "properties_assumed": [
+      "sync_barrier_blocking"
+    ],
+    "violation_condition": "A barrier that neither resolves nor times out — i.e., hangs indefinitely.",
+    "dependencies": [],
+    "assumptions": [
+      "The timeout parameter is finite and strictly positive.",
+      "The runtime clock is monotonic and cannot stall."
+    ],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "INV-SYNC-003",
+    "type": "invariant",
+    "properties_committed": [
+      "sync_topology_independent"
+    ],
+    "properties_assumed": [
+      "consistent_cut",
+      "at_least_once_delivery"
+    ],
+    "violation_condition": "Two different topologies (star, ring, mesh) producing different consistent cuts for the same participants and datom sets.",
+    "dependencies": [],
+    "assumptions": [
+      "All topologies use the same barrier primitives: initiate, report frontier, exchange deltas, resolve.",
+      "The datom set is finite and identical at barrier initiation across all topology comparisons."
+    ],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "INV-SYNC-004",
+    "type": "invariant",
+    "properties_committed": [
+      "signal_as_datom",
+      "signal_auditable",
+      "append_only"
+    ],
+    "properties_assumed": [
+      "schema_as_data"
+    ],
+    "violation_condition": "A barrier operation that completes (resolved or timed-out) without creating a Barrier entity in the store.",
+    "dependencies": [],
+    "assumptions": [
+      "The store is accessible to the barrier coordinator for the full duration of the barrier protocol.",
+      "The Barrier entity schema is pre-defined in the store."
+    ],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "INV-SYNC-005",
+    "type": "invariant",
+    "properties_committed": [
+      "post_barrier_deterministic",
+      "stratified_negation"
+    ],
+    "properties_assumed": [
+      "consistent_cut",
+      "sync_timeout_safe"
+    ],
+    "violation_condition": "A Barriered query executing against a timed-out or nonexistent barrier, or against an unresolved barrier.",
+    "dependencies": ["INV-SYNC-001", "INV-SYNC-002"],
+    "assumptions": [
+      "The query engine can distinguish resolved from timed-out barriers by inspecting the Barrier entity.",
+      "QueryMode::Barriered carries the barrier_id as a typed reference, not a raw string."
+    ],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "ADR-SYNC-001",
+    "type": "adr",
+    "commitments": [
+      "calm_compliant",
+      "post_barrier_deterministic",
+      "local_first",
+      "monotonic_computation"
+    ],
+    "assumptions": [
+      "coordination_free",
+      "stratum_classified"
+    ],
+    "exclusions": [
+      "global_consistency_required"
+    ],
+    "dependencies": ["INV-SYNC-001", "INV-SYNC-005"],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "ADR-SYNC-002",
+    "type": "adr",
+    "commitments": [
+      "sync_topology_independent"
+    ],
+    "assumptions": [
+      "at_least_once_delivery"
+    ],
+    "exclusions": [],
+    "dependencies": ["INV-SYNC-003"],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "ADR-SYNC-003",
+    "type": "adr",
+    "commitments": [
+      "sync_timeout_safe"
+    ],
+    "assumptions": [
+      "sync_barrier_blocking"
+    ],
+    "exclusions": [
+      "always_nonblocking"
+    ],
+    "dependencies": ["INV-SYNC-002", "INV-SYNC-004"],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "NEG-SYNC-001",
+    "type": "negative_case",
+    "prohibited_properties": [
+      "always_nonblocking"
+    ],
+    "safety_properties": [
+      "sync_timeout_safe"
+    ],
+    "related_invariants": ["INV-SYNC-002"],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "NEG-SYNC-002",
+    "type": "negative_case",
+    "prohibited_properties": [
+      "global_consistency_required"
+    ],
+    "safety_properties": [
+      "consistent_cut",
+      "post_barrier_deterministic"
+    ],
+    "related_invariants": ["INV-SYNC-001"],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "INV-SIGNAL-001",
+    "type": "invariant",
+    "properties_committed": [
+      "signal_as_datom",
+      "signal_auditable",
+      "append_only",
+      "grow_only"
+    ],
+    "properties_assumed": [
+      "schema_as_data",
+      "no_silent_failure"
+    ],
+    "violation_condition": "A signal is emitted but no corresponding datom with entity type :signal/* and matching type/source/target/severity attributes exists in the store.",
+    "dependencies": [],
+    "assumptions": [
+      "The emit_signal function is the only codepath through which signals are created.",
+      "The store is available (not in a crash state) when a signal is emitted."
+    ],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "INV-SIGNAL-002",
+    "type": "invariant",
+    "properties_committed": [
+      "signal_triggers_resolution"
+    ],
+    "properties_assumed": [
+      "signal_as_datom"
+    ],
+    "violation_condition": "A Confusion signal is emitted and the agent proceeds to the next action without executing the associate → query → assemble pipeline within the same agent cycle.",
+    "dependencies": ["INV-SIGNAL-001"],
+    "assumptions": [
+      "The agent cycle is a single-threaded execution loop where signal interception is synchronous.",
+      "Re-association is strictly bounded in time and cannot itself cause a Confusion signal (no infinite loop)."
+    ],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-SIGNAL-003",
+    "type": "invariant",
+    "properties_committed": [
+      "signal_subscription_persistent"
+    ],
+    "properties_assumed": [
+      "signal_as_datom",
+      "dispatch_total"
+    ],
+    "violation_condition": "A subscription pattern matches a signal, but the callback is never invoked (not even in the next refresh cycle).",
+    "dependencies": ["INV-SIGNAL-001"],
+    "assumptions": [
+      "The subscription has not been explicitly removed before the signal arrived.",
+      "Debounced subscriptions: 'never invoked' means even after the debounce window has elapsed."
+    ],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "INV-SIGNAL-004",
+    "type": "invariant",
+    "properties_committed": [
+      "severity_tiered_routing",
+      "severity_monotonic_cost"
+    ],
+    "properties_assumed": [
+      "signal_typed",
+      "dispatch_total"
+    ],
+    "violation_condition": "A Critical-severity conflict signal is silently resolved by an automated mechanism (lattice-join or LWW) without human or agent review.",
+    "dependencies": ["INV-SIGNAL-001"],
+    "assumptions": [
+      "The severity field is set at signal emission time and is not mutable after recording.",
+      "The routing tier mapping is configured as datoms and thus auditable."
+    ],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "INV-SIGNAL-005",
+    "type": "invariant",
+    "properties_committed": [
+      "signal_as_datom",
+      "signal_typed"
+    ],
+    "properties_assumed": [
+      "lattice_resolved",
+      "append_only"
+    ],
+    "violation_condition": "Two incomparable lattice values (e.g., confirmed and refuted in a challenge-verdict diamond) merge to produce the lattice-top element, but no signal of the corresponding type (Conflict or DeliberationTurn) is emitted within the same transaction.",
+    "dependencies": ["INV-SIGNAL-001"],
+    "assumptions": [
+      "Diamond lattice join implementations carry signal-emission as a side effect — this is a structural commitment about the lattice join code, not a post-hoc check.",
+      "The set of diamond lattices is fixed: challenge-verdict, finding-lifecycle, proposal-lifecycle."
+    ],
+    "confidence": 0.9,
+    "stage": 2
+  },
+  {
+    "id": "INV-SIGNAL-006",
+    "type": "invariant",
+    "properties_committed": [
+      "signal_typed",
+      "dispatch_total"
+    ],
+    "properties_assumed": [],
+    "violation_condition": "A divergence is detected by some mechanism but no signal is emitted, leaving that divergence class invisible to the resolution layer.",
+    "dependencies": [],
+    "assumptions": [
+      "All eight divergence types in the reconciliation taxonomy are detectable by the system.",
+      "Temporal and Procedural divergences are surfaced via UncertaintySpike and GoalDrift respectively — the indirection is acceptable coverage."
+    ],
+    "confidence": 0.85,
+    "stage": 3
+  },
+  {
+    "id": "ADR-SIGNAL-001",
+    "type": "adr",
+    "commitments": [
+      "signal_typed",
+      "dispatch_total"
+    ],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-SIGNAL-006"],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "ADR-SIGNAL-002",
+    "type": "adr",
+    "commitments": [
+      "signal_as_datom",
+      "signal_auditable",
+      "append_only"
+    ],
+    "assumptions": [
+      "schema_as_data"
+    ],
+    "exclusions": [],
+    "dependencies": ["INV-SIGNAL-001"],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "ADR-SIGNAL-003",
+    "type": "adr",
+    "commitments": [
+      "signal_subscription_persistent"
+    ],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-SIGNAL-003"],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "NEG-SIGNAL-001",
+    "type": "negative_case",
+    "prohibited_properties": [
+      "no_data_loss"
+    ],
+    "safety_properties": [
+      "signal_as_datom",
+      "signal_auditable"
+    ],
+    "related_invariants": ["INV-SIGNAL-001"],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "NEG-SIGNAL-002",
+    "type": "negative_case",
+    "prohibited_properties": [],
+    "safety_properties": [
+      "signal_triggers_resolution"
+    ],
+    "related_invariants": ["INV-SIGNAL-002"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "NEG-SIGNAL-003",
+    "type": "negative_case",
+    "prohibited_properties": [],
+    "safety_properties": [
+      "severity_tiered_routing",
+      "severity_monotonic_cost"
+    ],
+    "related_invariants": ["INV-SIGNAL-004"],
+    "confidence": 1.0,
+    "stage": 3
+  },
+  {
+    "id": "INV-BILATERAL-001",
+    "type": "invariant",
+    "properties_committed": [
+      "fitness_monotonic"
+    ],
+    "properties_assumed": [
+      "bilateral_symmetry"
+    ],
+    "violation_condition": "A bilateral cycle produces a lower fitness score F(S_{n+1}) < F(S_n) than the previous cycle.",
+    "dependencies": [],
+    "assumptions": [
+      "Documenting a gap as a residual (with rationale) counts as a non-decreasing fitness operation — i.e., residual documentation is defined to not decrease F(S).",
+      "The fitness function F(S) is deterministic given the same store state."
+    ],
+    "confidence": 0.8,
+    "stage": 1
+  },
+  {
+    "id": "INV-BILATERAL-002",
+    "type": "invariant",
+    "properties_committed": [
+      "five_point_coherence"
+    ],
+    "properties_assumed": [
+      "bilateral_symmetry"
+    ],
+    "violation_condition": "A bilateral cycle evaluates fewer than five coherence conditions (C1–C5), leaving a coherence dimension unchecked.",
+    "dependencies": [],
+    "assumptions": [
+      "All five conditions (spec self-consistency, impl satisfies spec, spec matches intent, agent agreement, process adherence) are checkable by automated query.",
+      "The Intent→Spec boundary (C3) is checkable — but see ADR-BILATERAL-003 which admits this requires human judgment, a potential tension."
+    ],
+    "confidence": 0.9,
+    "stage": 1
+  },
+  {
+    "id": "INV-BILATERAL-003",
+    "type": "invariant",
+    "properties_committed": [
+      "bilateral_symmetry",
+      "bilateral_inverse_operations"
+    ],
+    "properties_assumed": [
+      "datalog_primary"
+    ],
+    "violation_condition": "The system supports branching for competing implementations but requires strictly linear (non-branching) spec modifications, or vice versa.",
+    "dependencies": [],
+    "assumptions": [
+      "Forward branching (spec → competing implementations) and backward branching (impl → competing spec updates) are both supported by the MERGE namespace branching mechanism.",
+      "The Datalog query apparatus is shared and not direction-specific."
+    ],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "INV-BILATERAL-004",
+    "type": "invariant",
+    "properties_committed": [
+      "no_silent_failure"
+    ],
+    "properties_assumed": [
+      "append_only"
+    ],
+    "violation_condition": "A gap appears in the divergence map for two consecutive bilateral cycles without being either resolved or documented as a residual with uncertainty marker and rationale.",
+    "dependencies": ["INV-BILATERAL-001"],
+    "assumptions": [
+      "A 'cycle' is precisely the CYCLE transition (FORWARD_SCAN + BACKWARD_SCAN + COMPUTE_FITNESS).",
+      "Residual documentation requires both an uncertainty marker and a rationale — not just one."
+    ],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "INV-BILATERAL-005",
+    "type": "invariant",
+    "properties_committed": [
+      "signal_as_datom",
+      "append_only",
+      "grow_only"
+    ],
+    "properties_assumed": [
+      "schema_as_data"
+    ],
+    "violation_condition": "A test runs but its result (pass/fail, error, frontier) is not transacted into the store as a datom.",
+    "dependencies": [],
+    "assumptions": [
+      "Tests are executed within an environment that has store access.",
+      "The store transact is not skipped on test failure — even failure results must be recorded."
+    ],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "ADR-BILATERAL-001",
+    "type": "adr",
+    "commitments": [
+      "fitness_seven_dimensions",
+      "fitness_monotonic"
+    ],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-BILATERAL-001"],
+    "confidence": 0.6,
+    "stage": 1
+  },
+  {
+    "id": "ADR-BILATERAL-002",
+    "type": "adr",
+    "commitments": [
+      "five_point_coherence"
+    ],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-BILATERAL-002"],
+    "confidence": 0.5,
+    "stage": 1
+  },
+  {
+    "id": "ADR-BILATERAL-003",
+    "type": "adr",
+    "commitments": [
+      "bilateral_lifecycle_stages",
+      "signal_as_datom"
+    ],
+    "assumptions": [],
+    "exclusions": [],
+    "dependencies": ["INV-BILATERAL-002"],
+    "confidence": 1.0,
+    "stage": 2
+  },
+  {
+    "id": "NEG-BILATERAL-001",
+    "type": "negative_case",
+    "prohibited_properties": [],
+    "safety_properties": [
+      "fitness_monotonic"
+    ],
+    "related_invariants": ["INV-BILATERAL-001"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "NEG-BILATERAL-002",
+    "type": "negative_case",
+    "prohibited_properties": [],
+    "safety_properties": [
+      "five_point_coherence",
+      "bilateral_symmetry"
+    ],
+    "related_invariants": ["INV-BILATERAL-002"],
+    "confidence": 1.0,
+    "stage": 1
+  },
+  {
+    "id": "UNC-BILATERAL-001",
+    "type": "uncertainty",
+    "provisional_claim": "Fitness function weights V=0.18, C=0.18, D=0.18, H=0.13, K=0.13, I=0.08, U=0.12 are the correct empirical calibration.",
+    "confidence": 0.6,
+    "impact_if_wrong": "F(S) could misrepresent true spec quality, leading bilateral cycles to declare convergence when meaningful divergence remains. The monotonic-convergence invariant (INV-BILATERAL-001) might be satisfied numerically while the system remains incoherent in practice.",
+    "properties_affected": [
+      "fitness_seven_dimensions",
+      "fitness_monotonic"
+    ],
+    "dependencies_affected": ["INV-BILATERAL-001", "ADR-BILATERAL-001"]
+  },
+  {
+    "id": "UNC-BILATERAL-002",
+    "type": "uncertainty",
+    "provisional_claim": "Default equal weights across the four boundary gaps in D(spec, impl) = Σᵢ wᵢ × |boundary_gap(i)| are appropriate.",
+    "confidence": 0.5,
+    "impact_if_wrong": "Total divergence metric could over- or under-weight specific boundary types, making remediation targets misleading. Projects with high axiological drift but equal weights might appear healthier than they are.",
+    "properties_affected": [
+      "five_point_coherence",
+      "fitness_monotonic"
+    ],
+    "dependencies_affected": ["INV-BILATERAL-001", "INV-BILATERAL-002", "ADR-BILATERAL-002"]
+  }
+]
