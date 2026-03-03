@@ -172,31 +172,48 @@ pub struct BranchComparison {
     pub rationale: String,
 }
 
-/// Merge receipt — records what happened during merge.
+/// Merge receipt — records the set-union operation (INV-MERGE-009).
+/// Cascade side-effects are tracked separately in CascadeReceipt.
 pub struct MergeReceipt {
-    pub datoms_added: usize,
-    pub conflicts_detected: Vec<Conflict>,
-    pub subscriptions_fired: usize,
-    pub stale_projections: usize,
+    pub new_datoms:      usize,                                   // Stage 0
+    pub duplicate_datoms: usize,                                  // Stage 0
+    pub frontier_delta:  HashMap<AgentId, (Option<TxId>, TxId)>,  // Stage 0
 }
 
-impl Store {
-    /// Merge another store (set union + cascade).
-    pub fn merge(&mut self, other: &Store) -> MergeReceipt;
-
-    /// Create a branch.
-    pub fn fork(&mut self, agent: AgentId, purpose: &str) -> Result<Branch, BranchError>;
-
-    /// Commit a branch to trunk.
-    pub fn commit_branch(&mut self, branch: &Branch) -> Result<TxReceipt, BranchError>;
-
-    /// Compare branches.
-    pub fn compare_branches(
-        &mut self,
-        branches: &[EntityId],
-        criterion: ComparisonCriterion,
-    ) -> Result<BranchComparison, BranchError>;
+/// Cascade receipt — records the 5-step cascade (INV-MERGE-002).
+/// Returned alongside MergeReceipt from the full merge operation.
+pub struct CascadeReceipt {
+    pub conflicts_detected: usize,       // Stage 0 — count; Vec<ConflictSet> in Stage 2
+    pub caches_invalidated: usize,       // Stage 0
+    pub projections_staled: usize,       // Stage 0
+    pub uncertainties_updated: usize,    // Stage 0
+    pub notifications_sent: usize,       // Stage 0
+    pub cascade_datoms: Vec<Datom>,      // Stage 0 — datom trail per INV-MERGE-002
 }
+
+// --- Free functions (ADR-ARCHITECTURE-001) ---
+
+/// Merge another store into target (set union + cascade).
+/// Free function: merge is a set-algebraic operation with its own cascade
+/// sequence. Both stores are explicit parameters, making the semantics clear.
+/// Returns (MergeReceipt, CascadeReceipt) — merge statistics and cascade effects.
+pub fn merge(target: &mut Store, source: &Store) -> (MergeReceipt, CascadeReceipt);
+
+// Stage 2 branch operations — also free functions per ADR-ARCHITECTURE-001.
+// Signatures shown in free function form; implementation deferred to Stage 2.
+
+/// Create a branch (Stage 2).
+pub fn fork(store: &mut Store, agent: AgentId, purpose: &str) -> Result<Branch, BranchError>;
+
+/// Commit a branch to trunk (Stage 2).
+pub fn commit_branch(store: &mut Store, branch: &Branch) -> Result<TxReceipt, BranchError>;
+
+/// Compare branches (Stage 2).
+pub fn compare_branches(
+    store: &Store,
+    branches: &[EntityId],
+    criterion: ComparisonCriterion,
+) -> Result<BranchComparison, BranchError>;
 ```
 
 #### CLI Commands
@@ -393,6 +410,46 @@ Duplicate merge operations are harmless. An agent that receives the same
 datoms twice produces the same store state as receiving them once.
 
 **Falsification**: A duplicate merge that changes the store state.
+
+---
+
+### INV-MERGE-009: Merge Receipt Completeness
+
+**Traces to**: SEED §6, ADRS PO-006
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ merge operations M = MERGE(S₁, S₂):
+  receipt(M) = (|S₁ ∪ S₂| - |S₁|, |S₁ ∩ S₂|, Δfrontier(S₁, S₁ ∪ S₂))
+  (every merge produces a receipt documenting new datom count,
+   duplicate count, and per-agent frontier delta)
+```
+
+#### Level 1 (State Invariant)
+Every merge operation returns a `MergeReceipt` that accurately records what
+changed: the number of new datoms introduced, the number of duplicates
+deduplicated, and the per-agent frontier advancement. The receipt is a
+deterministic function of the pre-merge and post-merge store states.
+
+#### Level 2 (Interface Constraint)
+```rust
+pub struct MergeReceipt {
+    pub new_datoms:      usize,
+    pub duplicate_datoms: usize,
+    pub frontier_delta:  HashMap<AgentId, (Option<TxId>, TxId)>,
+}
+```
+
+The `merge()` function MUST return a `MergeReceipt`. A merge that completes
+without returning a receipt, or a receipt whose fields do not match the actual
+store delta, violates this invariant.
+
+**Falsification**: A merge operation that (a) does not return a receipt,
+(b) returns a receipt where `new_datoms` differs from the actual count of
+datoms added, or (c) returns a receipt where `frontier_delta` does not
+reflect the actual frontier change.
 
 ---
 

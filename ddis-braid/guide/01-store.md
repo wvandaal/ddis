@@ -26,6 +26,8 @@ pub struct TxId { wall_time, logical, agent }
 pub struct AgentId([u8; 16]);
 pub enum Op { Assert, Retract }
 pub enum Value { String, Keyword, Boolean, Long, Double, Instant, Uuid, Ref, Bytes }
+// Stage 0 scope: 9 variants above. Full spec domain (spec/01-store.md §1.1) adds:
+// BigInt, BigDec, Tuple, Json, URI — deferred to later stages.
 pub struct Attribute(String);
 pub enum ProvenanceType { Hypothesized, Inferred, Derived, Observed }
 
@@ -34,7 +36,7 @@ pub struct Store { /* opaque */ }
 impl Store {
     pub fn genesis() -> Self;
     pub fn transact(&mut self, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError>;
-    pub fn merge(&mut self, other: &Store) -> MergeReceipt;
+    pub fn merge(&mut self, other: &Store) -> (MergeReceipt, CascadeReceipt);
     pub fn current(&self, entity: EntityId) -> EntityView;
     pub fn as_of(&self, frontier: &Frontier) -> SnapshotView;
     pub fn len(&self) -> usize;

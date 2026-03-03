@@ -91,12 +91,12 @@ This confirms the implementation order: STORE → SCHEMA → QUERY → RESOLUTIO
 
 ### §17.3 Stage Mapping
 
-#### Stage 0 — Harvest/Seed Cycle (61 INV, core)
+#### Stage 0 — Harvest/Seed Cycle (62 INV, core)
 
 The foundational layer. Must be complete before any other stage.
 
 **Namespaces fully included**: STORE (13/14 INV), RESOLUTION (8/8)
-**Namespaces partially included**: SCHEMA (7/8, incl. 006 progressive), QUERY (10/21), HARVEST (5/8), SEED (4/6), MERGE (3/8), GUIDANCE (6/11), INTERFACE (5/9)
+**Namespaces partially included**: SCHEMA (7/8, incl. 006 progressive), QUERY (10/21), HARVEST (5/8), SEED (4/6), MERGE (4/9), GUIDANCE (6/11), INTERFACE (5/9)
 **Namespaces excluded**: SYNC, SIGNAL, BILATERAL, DELIBERATION, BUDGET
 
 **Success criterion**: Work 25 turns, harvest, start fresh with seed — new session
@@ -185,7 +185,7 @@ Each failure mode (FAILURE_MODES.md) maps to the DDIS/Braid mechanisms that prev
 | RESOLUTION| 8   | 5   | 3   | 16    | 1    |
 | HARVEST   | 8   | 4   | 3   | 15    | 2    |
 | SEED      | 6   | 4   | 2   | 12    | 2    |
-| MERGE     | 8   | 4   | 3   | 15    | 2    |
+| MERGE     | 9   | 4   | 3   | 16    | 2    |
 | SYNC      | 5   | 3   | 2   | 10    | 2    |
 | SIGNAL    | 6   | 3   | 3   | 12    | 3    |
 | BILATERAL | 5   | 3   | 2   | 10    | 3    |
@@ -193,26 +193,26 @@ Each failure mode (FAILURE_MODES.md) maps to the DDIS/Braid mechanisms that prev
 | GUIDANCE  | 11  | 5   | 3   | 19    | 3    |
 | BUDGET    | 6   | 3   | 2   | 11    | 3    |
 | INTERFACE | 9   | 4   | 4   | 17    | 3    |
-| **Total** | **121** | **70** | **42** | **233** |      |
+| **Total** | **122** | **70** | **42** | **234** |      |
 
-**Additional Wave 4 content**: 10 uncertainty entries (§15), 121-row verification matrix (§16),
+**Additional Wave 4 content**: 10 uncertainty entries (§15), 122-row verification matrix (§16),
 14-namespace cross-reference index with dependency graph and stage mapping (§17).
 
 ## Appendix B: Verification Statistics (Final)
 
 | Metric | Count | Coverage |
 |--------|-------|----------|
-| Total INVs | 121 | — |
-| V:PROP (minimum) | 121/121 | 100.0% |
-| V:KANI (critical) | 38/121 | 31.4% |
-| V:MODEL (protocol) | 15/121 | 12.4% |
-| V:TYPE (compile-time) | 12/121 | 9.9% |
+| Total INVs | 122 | — |
+| V:PROP (minimum) | 122/122 | 100.0% |
+| V:KANI (critical) | 39/122 | 32.0% |
+| V:MODEL (protocol) | 15/122 | 12.3% |
+| V:TYPE (compile-time) | 12/122 | 9.8% |
 | V:DEDUCTIVE (candidate) | 5 | Deferred to post-Stage 2 |
-| Stage 0 INVs | 61 | 50.4% |
-| Stage 1 INVs | 25 | 20.7% |
-| Stage 2 INVs | 22 | 18.2% |
-| Stage 3 INVs | 11 | 9.1% |
-| Stage 4 INVs | 2 | 1.7% |
+| Stage 0 INVs | 62 | 50.8% |
+| Stage 1 INVs | 25 | 20.5% |
+| Stage 2 INVs | 22 | 18.0% |
+| Stage 3 INVs | 11 | 9.0% |
+| Stage 4 INVs | 2 | 1.6% |
 | Uncertainty markers | 10 | — |
 | High-urgency uncertainties | 3 | Resolve during Stage 0 |
 
@@ -228,13 +228,13 @@ Elements required for Stage 0 (Harvest/Seed cycle):
 | INV-RESOLUTION-001–008 | RESOLUTION | Full conflict handling (all 8 INV) |
 | INV-HARVEST-001–003, 005, 007 | HARVEST | Core harvest pipeline (5 INV; 004,006 Stage 1; 008 Stage 2) |
 | INV-SEED-001–004 | SEED | Seed assembly pipeline (4 INV) |
-| INV-MERGE-001–002, 008 | MERGE | Core merge incl. cascade (3 INV) |
+| INV-MERGE-001–002, 008–009 | MERGE | Core merge incl. cascade and receipt (4 INV) |
 | INV-GUIDANCE-001–002, 007–010 | GUIDANCE | Injection, spec-language, dynamic CLAUDE.md, M(t), task derivation, R(t) (6 INV) |
 | INV-INTERFACE-001–003, 008–009 | INTERFACE | CLI modes, MCP wrapper, tools, description quality, error recovery (5 INV) |
 | ADR-STORE-001–014 | STORE | Foundation decisions |
 | ADR-SCHEMA-001–005 | SCHEMA | Schema decisions |
 | ADR-QUERY-001–003, 005–006 | QUERY | Query engine decisions |
-| ADR-RESOLUTION-001–004 | RESOLUTION | Resolution decisions |
+| ADR-RESOLUTION-001–005, 009 | RESOLUTION | Resolution decisions |
 | ADR-HARVEST-001–004 | HARVEST | Harvest decisions |
 | ADR-SEED-001–004 | SEED | Seed decisions |
 | ADR-MERGE-001 | MERGE | Core merge decision |

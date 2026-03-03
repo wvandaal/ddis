@@ -83,7 +83,7 @@ The dependency graph (from spec/17-crossref.md §17.2) determines the implementa
    ↓
 6. SEED ───────────────────────────────────────── guide/06-seed.md
    ↓
-7. MERGE (basic: INV-MERGE-001, 008 only) ────── guide/07-merge-basic.md
+7. MERGE (basic: INV-MERGE-001, 008–009) ─────── guide/07-merge-basic.md
    ↓
 8. GUIDANCE ───────────────────────────────────── guide/08-guidance.md
    ↓
@@ -97,9 +97,56 @@ for the current namespace must pass (see guide/10-verification.md).
 
 ## Stage 0 Scope
 
-**61 invariants** across 9 namespaces (full inclusion for STORE, RESOLUTION; partial
+**62 invariants** across 9 namespaces (full inclusion for STORE, RESOLUTION; partial
 for SCHEMA, QUERY, HARVEST, SEED, MERGE, GUIDANCE, INTERFACE).
-Full list in spec/17-crossref.md Appendix C.
+Full list in spec/17-crossref.md Appendix C and spec/16-verification.md matrix.
+
+**Count verification** (from spec/16-verification.md, confirmed by D1-scope-boundary.md):
+
+| Namespace | Count | Elements |
+|-----------|-------|----------|
+| STORE | 13 | 001-012, 014 |
+| SCHEMA | 7 | 001-007 (006 progressive, 008 deferred to Stage 2) |
+| QUERY | 10 | 001-002, 005-007, 012-014, 017, 021 |
+| RESOLUTION | 8 | 001-008 (all) |
+| HARVEST | 5 | 001-003, 005, 007 |
+| SEED | 4 | 001-004 |
+| MERGE | 4 | 001-002, 008-009 |
+| GUIDANCE | 6 | 001-002, 007-010 |
+| INTERFACE | 5 | 001-003, 008-009 |
+| **Total** | **62** | |
+
+Note: D1 report counted 61 because Appendix C's detailed prose does not explicitly list
+INV-MERGE-009, but the verification matrix (spec/16-verification.md) assigns MERGE-009 to
+Stage 0. The authoritative count is **62**, consistent with Appendix C's header and Appendix B.
+
+### Sub-Staging Recommendation (from D1-scope-boundary.md)
+
+62 invariants is aggressive for the SEED.md "1-2 week" target. The recommended approach
+is to split Stage 0 into two sub-stages:
+
+**Stage 0a — Foundation** (38 INV, ~2-3 weeks):
+- STORE (13): Append-only datom store, CRDT algebra, HLC, indexes
+- SCHEMA (7): Genesis, axiomatic attributes, six-layer architecture
+- QUERY (10): Datalog engine (Strata 0-1), graph algorithms (topo sort, SCC, PageRank, critical path, density)
+- RESOLUTION (8): Per-attribute conflict handling, three-tier routing
+
+**Stage 0b — Lifecycle + Intelligence** (24 INV, ~2 weeks):
+- HARVEST (5): Epistemic gap detection, pipeline, proactive warnings
+- SEED (4): Associate/assemble/compress, dynamic CLAUDE.md
+- MERGE (4): Pure set-union merge, deduplication
+- GUIDANCE (6): Injection, anti-drift, M(t), task derivation, R(t) routing
+- INTERFACE (5): CLI modes, MCP tools, error recovery
+
+**Rationale**: Stage 0a validates the core store hypothesis (append-only, content-addressed,
+CRDT merge) before building the lifecycle layer. Stage 0b cannot function without a working
+store+schema+query+resolution foundation. This matches the natural dependency order
+(spec/17-crossref.md section 17.2).
+
+**Cross-stage dependency note**: INV-GUIDANCE-010 (R(t) routing) references betweenness
+centrality (INV-QUERY-015, Stage 1). At Stage 0, R(t) uses only Stage 0 graph metrics
+(PageRank + critical path + topo sort), degrading gracefully without betweenness. See
+guide/08-guidance.md section 8.2 (R(t) state box) for the proxy_betweenness implementation.
 
 **Success criterion**: Work 25 turns, harvest, start fresh with seed — new session picks
 up without manual re-explanation.

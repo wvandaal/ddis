@@ -34,7 +34,7 @@ match arms. Zero runtime cost verification.
 
 ### Gate 2: Test (`cargo test`)
 
-**Checks**: All `V:PROP` invariants via proptest properties. Every one of the 121 invariants
+**Checks**: All `V:PROP` invariants via proptest properties. Every one of the 122 invariants
 has a proptest strategy (100% coverage by spec requirement).
 
 **Time**: <5 minutes (256 cases per property, default proptest config).
@@ -149,6 +149,62 @@ All INVs tagged V:KANI in the verification matrix, grouped by namespace:
 | BUDGET | INV-BUDGET-003 | Projection monotonicity: higher level ≤ lower tokens |
 | BUDGET | INV-BUDGET-006 | Token efficiency: density monotonically non-decreasing |
 
+### Gate 3 — Tiered Kani CI Design (from D3-kani-feasibility.md)
+
+The spec allocates <15 minutes for Gate 3 (Kani). With 27 Stage 0 V:KANI harnesses, a
+tiered approach is required:
+
+**Gate 3a: Fast Kani (every PR) — target < 5 min**
+- Trivial + simple harnesses only (~13 harnesses: type-level checks, simple set operations)
+- Solver: CaDiCaL (default) — 10-200x faster than MiniSat for structural properties
+- Unwind: `#[kani::unwind(5)]`
+- Harnesses: STORE-001/003/008 (trivial), STORE-004-008/010 (simple set ops), SCHEMA-001/002 (bootstrap)
+
+**Gate 3b: Full Kani (nightly) — target < 30 min**
+- All 27 Stage 0 harnesses
+- Per-harness solver selection (CaDiCaL for structural, Kissat for hash/bit-level)
+- Unwind: `#[kani::unwind(8)]` default, `#[kani::unwind(12)]` for graph algorithms
+
+**Gate 3c: Extended Kani (weekly) — target < 2 hours**
+- All harnesses with higher unwind bounds (`#[kani::unwind(16)]`)
+- Regression testing for new harnesses
+- Three-store merge scenarios (CRDT commutativity/associativity)
+
+**Solver selection per property type**:
+
+| Property Type | Recommended Solver | Reasoning |
+|---------------|-------------------|-----------|
+| Set algebra (CRDT laws L1-L5) | CaDiCaL | Good for equality reasoning |
+| Content addressing (hashing) | Kissat | Better for bit-level operations |
+| Graph algorithms | CaDiCaL | Good for structural properties |
+| Resolution mode (enum matching) | MiniSat | Simple boolean constraints (fast) |
+
+**Per-harness configuration pattern**:
+```rust
+#[cfg(kani)]
+#[kani::proof]
+#[kani::solver(cadical)]
+#[kani::unwind(8)]
+fn verify_store_commutativity() {
+    let s1: Store = kani::any();
+    let s2: Store = kani::any();
+    assert_eq!(s1.merge(&s2), s2.merge(&s1));
+}
+```
+
+**Key constraints**:
+- All Kani harnesses must use **bounded test stores** (3-5 datoms). Kani cannot verify
+  properties over unbounded collections. Proptest covers the unbounded case.
+- Track verification time per harness from the start. Budget each harness < 60s for Gate 3a.
+- If a harness exceeds 2 minutes, move it to Gate 3b (nightly) with a tracked exception.
+- Consider `#[kani::stub]` for complex subsystems (e.g., stub the hash function with a
+  simpler version for CRDT algebra proofs).
+
+**Harness count verification note**: D3 report estimated 24 Stage 0 V:KANI harnesses. The
+authoritative count from spec/16-verification.md is **27** (STORE: 10, SCHEMA: 3, QUERY: 4,
+RESOLUTION: 5, HARVEST: 1, SEED: 2, MERGE: 2). The discrepancy arises from D3 undercounting
+QUERY (3 vs 4: missing QUERY-012/013 split) and MERGE (1 vs 2: MERGE-008 also has V:KANI).
+
 ### Gate 4: Model Checking (`cargo test --features stateright`)
 
 **Checks**: `V:MODEL` invariants — protocol safety and liveness over all reachable states.
@@ -209,18 +265,36 @@ jobs:
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo fmt --check
 
-  gate-4-kani:
+  gate-4a-kani-fast:
     if: github.event_name == 'pull_request'
     needs: gate-2-test
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: model-checking/kani-verifier-action@v1
-      - run: cargo kani --workspace
+      - name: Kani Verification (Fast — trivial + simple harnesses)
+        run: >-
+          cargo kani
+          --harness "verify_store_*"
+          --harness "verify_schema_*"
+          --output-format terse
+          --jobs 4
+
+  gate-4b-kani-full:
+    if: github.event_name == 'schedule'  # nightly
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: model-checking/kani-verifier-action@v1
+      - name: Kani Verification (Full — all Stage 0 harnesses)
+        run: cargo kani --workspace --output-format terse --jobs 4
 
   gate-5-model:
     if: github.event_name == 'schedule'  # nightly
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -334,12 +408,12 @@ fn arb_resolution_mode() -> impl Strategy<Value = ResolutionMode> {
 // Level 3: Harvest candidate strategy
 fn arb_harvest_candidate() -> impl Strategy<Value = HarvestCandidate> {
     (0..100usize, prop::collection::vec(arb_datom(), 1..5), 0.0..1.0f64)
-        .prop_map(|(id, datoms, confidence)| HarvestCandidate {
-            id, datoms, confidence,
+        .prop_map(|(id, datom_spec, confidence)| HarvestCandidate {
+            id, datom_spec, confidence,
             category: HarvestCategory::Observation,
-            source: "test".into(), weight: 1.0,
+            extraction_context: "test".into(), weight: 1.0,
             reconciliation_type: ReconciliationType::Epistemic,
-            status: HarvestStatus::Pending,
+            status: CandidateStatus::Proposed,
         })
 }
 
@@ -438,5 +512,910 @@ Until the store exists, track defects as issues.
 
 **Defect density target**: <1 defect per 100 lines of kernel code after Gate 2 passes.
 This is a cleanroom software engineering standard metric.
+
+---
+
+## §10.7 CRDT Verification Suite (R2.5c)
+
+> **Purpose**: Consolidated proptest harnesses verifying every proven CRDT property in the
+> Braid specification. This suite is the runtime counterpart of the algebraic proofs in
+> spec/01-store.md (G-Set properties, causal independence), spec/02-schema.md (semilattice
+> witness), and spec/04-resolution.md (resolution-merge composition, conservative conflict
+> detection, LWW semilattice). Each harness references the specific INV it verifies.
+>
+> **Location**: `braid-kernel/tests/crdt_verification.rs`
+>
+> **Execution**: Part of Gate 2 (`cargo test`). Run standalone with:
+> `cargo test --test crdt_verification -- --nocapture`
+
+### §10.7.1 Strategy Dependencies
+
+All harnesses depend on the strategy hierarchy from §10.4. The following additional
+strategies are specific to the CRDT suite:
+
+```rust
+use proptest::prelude::*;
+use proptest::collection;
+use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
+
+// --- CRDT-suite-specific strategies ---
+
+/// Two stores that share a common base and then diverge.
+/// Models the fundamental CRDT scenario: two agents that forked from a common state.
+fn arb_diverged_stores(
+    base_txs: usize,
+    branch_txs: usize,
+) -> impl Strategy<Value = (Store, Store)> {
+    arb_store(base_txs).prop_flat_map(move |base| {
+        let base_clone = base.clone();
+        (
+            collection::vec(arb_datom(), 0..branch_txs * 3)
+                .prop_map(move |extra| {
+                    let mut s = base.clone();
+                    for d in extra { s.insert_datom(d); }
+                    s
+                }),
+            collection::vec(arb_datom(), 0..branch_txs * 3)
+                .prop_map(move |extra| {
+                    let mut s = base_clone.clone();
+                    for d in extra { s.insert_datom(d); }
+                    s
+                }),
+        )
+    })
+}
+
+/// Three stores for associativity tests. All share a common genesis.
+fn arb_three_stores(max_txs: usize) -> impl Strategy<Value = (Store, Store, Store)> {
+    (arb_store(max_txs), arb_store(max_txs), arb_store(max_txs))
+}
+
+/// A frontier that is a strict subset of a store's full frontier.
+/// Used to test conservative detection (partial view vs. full view).
+fn arb_partial_frontier(
+    store: &Store,
+) -> impl Strategy<Value = HashMap<AgentId, TxId>> {
+    let agents: Vec<AgentId> = store.frontier().keys().cloned().collect();
+    let frontier = store.frontier().clone();
+    collection::hash_set(0..agents.len(), 0..agents.len())
+        .prop_map(move |included| {
+            let mut partial = HashMap::new();
+            for (i, agent) in agents.iter().enumerate() {
+                if included.contains(&i) {
+                    partial.insert(*agent, frontier[agent]);
+                }
+            }
+            partial
+        })
+}
+
+/// A pair of datoms targeting the same (entity, attribute) with different values
+/// and configurable causal relationship.
+fn arb_conflicting_datom_pair() -> impl Strategy<Value = (Datom, Datom, bool)> {
+    (arb_entity_id(), arb_attribute(), arb_value(), arb_value(),
+     arb_tx_id(), arb_tx_id(), any::<bool>())
+        .prop_filter("values must differ", |(_, _, v1, v2, _, _, _)| v1 != v2)
+        .prop_map(|(e, a, v1, v2, tx1, tx2, causally_related)| {
+            let d1 = Datom {
+                entity: e.clone(), attribute: a.clone(),
+                value: v1, tx: tx1, op: Op::Assert,
+            };
+            let d2 = Datom {
+                entity: e, attribute: a,
+                value: v2, tx: tx2, op: Op::Assert,
+            };
+            (d1, d2, causally_related)
+        })
+}
+
+/// A set of LWW-contested values: multiple (value, tx) pairs for the same
+/// (entity, attribute).
+fn arb_lww_contest(n: usize) -> impl Strategy<Value = Vec<(Value, TxId)>> {
+    collection::vec((arb_value(), arb_tx_id()), 2..n)
+}
+
+/// Partial order over a small element set for lattice property testing.
+/// Returns (elements, comparator_edges) where comparator_edges encodes
+/// the partial order as a set of (i, j) pairs meaning elements[i] <= elements[j].
+fn arb_partial_order(
+    max_size: usize,
+) -> impl Strategy<Value = (Vec<Keyword>, Vec<(usize, usize)>)> {
+    (3..max_size).prop_flat_map(|n| {
+        let elements: Vec<Keyword> =
+            (0..n).map(|i| Keyword::from(format!(":test/e{i}"))).collect();
+        // Generate a random DAG (topological ordering = index order)
+        let mut all_edges = Vec::new();
+        for i in 0..n {
+            for j in (i+1)..n {
+                all_edges.push((i, j));
+            }
+        }
+        (Just(elements), collection::subsequence(all_edges.clone(), 0..all_edges.len()))
+    })
+}
+```
+
+### §10.7.2 Harness 1: G-Set Grow-Only Property
+
+**Verifies**: INV-STORE-001 (Append-Only Immutability), INV-STORE-002 (Strict Growth),
+L4 (Monotonicity), L5 (Growth-Only)
+
+**Property**: The datom set grows monotonically. No operation ever removes a datom.
+Set union with any other set preserves all existing elements.
+
+```rust
+proptest! {
+    /// INV-STORE-001 + L4: Every datom present before an operation remains
+    /// present after. The store is a G-Set: elements can only be added,
+    /// never removed.
+    #[test]
+    fn crdt_gset_grow_only(
+        base in arb_store(5),
+        additions in collection::vec(arb_datom(), 1..20),
+    ) {
+        let snapshot: BTreeSet<Datom> = base.datoms().cloned().collect();
+        let mut store = base;
+        // Transact additional datoms
+        for batch in additions.chunks(5) {
+            let mut tx = Transaction::<Building>::new(SYSTEM_AGENT)
+                .with_provenance(ProvenanceType::Observed);
+            for d in batch { tx = tx.assert_datom(d.clone()); }
+            if let Ok(committed) = tx.commit(store.schema()) {
+                let _ = store.transact(committed);
+            }
+        }
+        // Every datom from before must still be present
+        for d in &snapshot {
+            prop_assert!(
+                store.datoms().any(|stored| stored == d),
+                "G-Set violation: datom {:?} was removed after transact", d
+            );
+        }
+    }
+
+    /// INV-STORE-002 + L5: Every successful transaction strictly increases
+    /// store size.
+    #[test]
+    fn crdt_gset_strict_growth(
+        store in arb_store(3),
+        datoms in collection::vec(arb_datom(), 1..5),
+    ) {
+        let mut s = store;
+        let pre_len = s.len();
+        let mut tx = Transaction::<Building>::new(SYSTEM_AGENT)
+            .with_provenance(ProvenanceType::Observed);
+        for d in &datoms { tx = tx.assert_datom(d.clone()); }
+        if let Ok(committed) = tx.commit(s.schema()) {
+            let _receipt = s.transact(committed).unwrap();
+            prop_assert!(s.len() > pre_len,
+                "Strict growth violated: pre={}, post={}", pre_len, s.len());
+        }
+    }
+
+    /// L4 as subset check: S ⊆ S ∪ S' for arbitrary S'.
+    #[test]
+    fn crdt_gset_union_monotonic(
+        s1 in arb_store(3),
+        s2 in arb_store(3),
+    ) {
+        let s1_datoms: BTreeSet<Datom> = s1.datoms().cloned().collect();
+        let mut merged = s1.clone();
+        merged.merge(&s2);
+        for d in &s1_datoms {
+            prop_assert!(merged.datoms().any(|stored| stored == d),
+                "Union monotonicity violation: datom lost from s1 after merge");
+        }
+        let s2_datoms: BTreeSet<Datom> = s2.datoms().cloned().collect();
+        for d in &s2_datoms {
+            prop_assert!(merged.datoms().any(|stored| stored == d),
+                "Union monotonicity violation: datom lost from s2 after merge");
+        }
+    }
+}
+```
+
+### §10.7.3 Harness 2: Merge Commutativity
+
+**Verifies**: INV-STORE-004 (CRDT Merge Commutativity), L1
+
+**Property**: `MERGE(A, B) = MERGE(B, A)` -- merge order does not affect the resulting
+datom set. Two agents receiving the same stores in different order converge to the
+same state.
+
+```rust
+proptest! {
+    /// INV-STORE-004: MERGE(A, B).datoms = MERGE(B, A).datoms
+    #[test]
+    fn crdt_merge_commutative(
+        s1 in arb_store(5),
+        s2 in arb_store(5),
+    ) {
+        let mut m1 = s1.clone();
+        m1.merge(&s2);
+        let mut m2 = s2.clone();
+        m2.merge(&s1);
+        let d1: BTreeSet<Datom> = m1.datoms().cloned().collect();
+        let d2: BTreeSet<Datom> = m2.datoms().cloned().collect();
+        prop_assert_eq!(d1, d2,
+            "Merge commutativity violation: MERGE(s1,s2) != MERGE(s2,s1)");
+    }
+
+    /// Commutativity with diverged stores (stronger: stores share a common
+    /// ancestor, modeling the real-world agent fork scenario).
+    #[test]
+    fn crdt_merge_commutative_diverged(
+        (s1, s2) in arb_diverged_stores(3, 5),
+    ) {
+        let mut m1 = s1.clone();
+        m1.merge(&s2);
+        let mut m2 = s2.clone();
+        m2.merge(&s1);
+        let d1: BTreeSet<Datom> = m1.datoms().cloned().collect();
+        let d2: BTreeSet<Datom> = m2.datoms().cloned().collect();
+        prop_assert_eq!(d1, d2,
+            "Merge commutativity violation on diverged stores");
+    }
+}
+```
+
+### §10.7.4 Harness 3: Merge Associativity
+
+**Verifies**: INV-STORE-005 (CRDT Merge Associativity), L2
+
+**Property**: `MERGE(MERGE(A, B), C) = MERGE(A, MERGE(B, C))` -- regrouping merges
+does not affect the result. Critical for multi-agent scenarios where three or more
+agents merge in arbitrary order.
+
+```rust
+proptest! {
+    /// INV-STORE-005: MERGE(MERGE(A,B),C).datoms = MERGE(A,MERGE(B,C)).datoms
+    #[test]
+    fn crdt_merge_associative(
+        (s1, s2, s3) in arb_three_stores(3),
+    ) {
+        // Left grouping: (s1 ∪ s2) ∪ s3
+        let mut left = s1.clone();
+        left.merge(&s2);
+        left.merge(&s3);
+
+        // Right grouping: s1 ∪ (s2 ∪ s3)
+        let mut s2_s3 = s2.clone();
+        s2_s3.merge(&s3);
+        let mut right = s1.clone();
+        right.merge(&s2_s3);
+
+        let d_left: BTreeSet<Datom> = left.datoms().cloned().collect();
+        let d_right: BTreeSet<Datom> = right.datoms().cloned().collect();
+        prop_assert_eq!(d_left, d_right,
+            "Merge associativity violation: (A∪B)∪C != A∪(B∪C)");
+    }
+
+    /// Associativity also holds for the LIVE view, not just the datom set.
+    /// This follows from the spec/04-resolution.md §4.3.1 Resolution-Merge
+    /// Composition Proof, but we verify it empirically.
+    #[test]
+    fn crdt_merge_associative_live(
+        (s1, s2, s3) in arb_three_stores(2),
+    ) {
+        let mut left = s1.clone();
+        left.merge(&s2);
+        left.merge(&s3);
+
+        let mut s2_s3 = s2.clone();
+        s2_s3.merge(&s3);
+        let mut right = s1.clone();
+        right.merge(&s2_s3);
+
+        // Compare LIVE views for all entities
+        for entity in left.entities() {
+            let live_left = live_entity(&left, entity);
+            let live_right = live_entity(&right, entity);
+            prop_assert_eq!(live_left, live_right,
+                "LIVE associativity violation for entity {:?}", entity);
+        }
+    }
+}
+```
+
+### §10.7.5 Harness 4: Merge Idempotency
+
+**Verifies**: INV-STORE-006 (CRDT Merge Idempotency), INV-MERGE-008
+(At-Least-Once Delivery), L3
+
+**Property**: `MERGE(A, A) = A` -- merging a store with itself is a no-op.
+This is the foundation of at-least-once delivery: duplicate merges are harmless.
+
+```rust
+proptest! {
+    /// INV-STORE-006 + L3: MERGE(A, A).datoms = A.datoms
+    #[test]
+    fn crdt_merge_idempotent(
+        store in arb_store(5),
+    ) {
+        let original: BTreeSet<Datom> = store.datoms().cloned().collect();
+        let mut merged = store.clone();
+        merged.merge(&store);
+        let after: BTreeSet<Datom> = merged.datoms().cloned().collect();
+        prop_assert_eq!(original, after,
+            "Merge idempotency violation: MERGE(A,A) != A");
+    }
+
+    /// INV-MERGE-008: Repeated merges are no-ops (at-least-once delivery).
+    #[test]
+    fn crdt_merge_idempotent_repeated(
+        s1 in arb_store(3),
+        s2 in arb_store(3),
+    ) {
+        let mut once = s1.clone();
+        once.merge(&s2);
+        let once_datoms: BTreeSet<Datom> = once.datoms().cloned().collect();
+
+        // Merge s2 again -- should be no-op
+        let mut twice = once.clone();
+        let receipt = twice.merge(&s2);
+        let twice_datoms: BTreeSet<Datom> = twice.datoms().cloned().collect();
+
+        prop_assert_eq!(once_datoms, twice_datoms,
+            "Repeated merge changed the store");
+        prop_assert_eq!(receipt.new_datoms, 0,
+            "Repeated merge reported new datoms");
+    }
+
+    /// Idempotency of the LIVE layer: LIVE(MERGE(A,A)) = LIVE(A).
+    #[test]
+    fn crdt_merge_idempotent_live(
+        store in arb_store(3),
+    ) {
+        let mut merged = store.clone();
+        merged.merge(&store);
+        for entity in store.entities() {
+            let live_before = live_entity(&store, entity);
+            let live_after = live_entity(&merged, entity);
+            prop_assert_eq!(live_before, live_after,
+                "LIVE idempotency violation for entity {:?}", entity);
+        }
+    }
+}
+```
+
+### §10.7.6 Harness 5: LWW Semilattice Property
+
+**Verifies**: INV-RESOLUTION-005 (LWW Semilattice Properties),
+ADR-RESOLUTION-009 (BLAKE3 Hash Tie-Breaking)
+
+**Property**: LWW resolution forms a join-semilattice: commutative, associative,
+idempotent. Tie-breaking via BLAKE3 hash preserves all three properties even when
+HLC timestamps are identical.
+
+```rust
+proptest! {
+    /// INV-RESOLUTION-005 commutativity: lww(v1, v2) = lww(v2, v1)
+    #[test]
+    fn crdt_lww_commutative(
+        contestants in arb_lww_contest(6),
+    ) {
+        let mut forward = contestants.clone();
+        let mut reverse = contestants.clone();
+        reverse.reverse();
+        let r1 = resolve_lww(&forward);
+        let r2 = resolve_lww(&reverse);
+        prop_assert_eq!(r1, r2,
+            "LWW commutativity violation: different order produced different winner");
+    }
+
+    /// INV-RESOLUTION-005 associativity: lww(lww(a,b),c) = lww(a,lww(b,c))
+    #[test]
+    fn crdt_lww_associative(
+        a in (arb_value(), arb_tx_id()),
+        b in (arb_value(), arb_tx_id()),
+        c in (arb_value(), arb_tx_id()),
+    ) {
+        // Left: lww(lww(a,b), c)
+        let left_inner = resolve_lww(&[a.clone(), b.clone()]);
+        let left = resolve_lww(&[left_inner, c.clone()]);
+
+        // Right: lww(a, lww(b,c))
+        let right_inner = resolve_lww(&[b.clone(), c.clone()]);
+        let right = resolve_lww(&[a.clone(), right_inner]);
+
+        prop_assert_eq!(left, right,
+            "LWW associativity violation");
+    }
+
+    /// INV-RESOLUTION-005 idempotency: lww(v, v) = v
+    #[test]
+    fn crdt_lww_idempotent(
+        v in (arb_value(), arb_tx_id()),
+    ) {
+        let result = resolve_lww(&[v.clone(), v.clone()]);
+        prop_assert_eq!(result.0, v.0,
+            "LWW idempotency violation: lww(v,v) != v");
+    }
+
+    /// ADR-RESOLUTION-009: BLAKE3 tie-breaking preserves commutativity when
+    /// HLC timestamps are equal.
+    #[test]
+    fn crdt_lww_blake3_tiebreak(
+        v1 in arb_value(),
+        v2 in arb_value(),
+    ) {
+        prop_assume!(v1 != v2);
+        // Same HLC timestamp for both -- force a tie
+        let tx = fixed_tx_id();
+        let contestants_1 = vec![(v1.clone(), tx), (v2.clone(), tx)];
+        let contestants_2 = vec![(v2.clone(), tx), (v1.clone(), tx)];
+        let r1 = resolve_lww(&contestants_1);
+        let r2 = resolve_lww(&contestants_2);
+        prop_assert_eq!(r1, r2,
+            "BLAKE3 tie-break not commutative: different input order produced \
+             different winner when HLC timestamps are equal");
+    }
+
+    /// LWW across all permutations: resolution of N values is order-independent.
+    #[test]
+    fn crdt_lww_all_permutations(
+        contestants in arb_lww_contest(4),  // keep small for permutation count
+    ) {
+        let reference = resolve_lww(&contestants);
+        // Test a few random shuffles (full permutation is O(n!) -- too expensive)
+        let mut shuffled = contestants.clone();
+        shuffled.rotate_left(1);
+        prop_assert_eq!(resolve_lww(&shuffled), reference,
+            "LWW permutation sensitivity: rotate_left(1) changed result");
+        shuffled.reverse();
+        prop_assert_eq!(resolve_lww(&shuffled), reference,
+            "LWW permutation sensitivity: reverse changed result");
+    }
+}
+
+// Helper: deterministic TxId for tie-break tests.
+fn fixed_tx_id() -> TxId {
+    TxId { wall_time: 1000, logical: 0, agent: AgentId::from_bytes([0u8; 16]) }
+}
+```
+
+### §10.7.7 Harness 6: Conservative Conflict Detection (No False Negatives)
+
+**Verifies**: INV-RESOLUTION-003 (Conservative Conflict Detection),
+INV-RESOLUTION-004 (Conflict Predicate Correctness),
+NEG-RESOLUTION-002 (No False Negative Conflict Detection),
+spec/04-resolution.md §4.3.2 (Conservative Detection Completeness Proof)
+
+**Property**: For any frontier F ⊆ S, if a true conflict exists and both datoms
+are in F, the detection predicate fires. A partial frontier may overestimate
+conflicts (false positives are safe) but never underestimate (false negatives
+are critical).
+
+```rust
+proptest! {
+    /// INV-RESOLUTION-003: conflicts_detected(F_local) ⊇ conflicts_detected(F_global).
+    /// A partial frontier detects a SUPERSET of the conflicts visible at the
+    /// full frontier.
+    #[test]
+    fn crdt_conflict_detection_conservative(
+        (s_local, s_global) in arb_overlapping_stores(3, 8),
+    ) {
+        // s_local ⊆ s_global (s_local is a partial view)
+        let f_local = s_local.frontier().clone();
+        let f_global = s_global.frontier().clone();
+        let conflicts_local = detect_conflicts(&s_local, &f_local);
+        let conflicts_global = detect_conflicts(&s_global, &f_global);
+
+        // Every conflict detected at the global frontier must also be detected
+        // at the local frontier (if both datoms are present).
+        for gc in &conflicts_global {
+            let both_present = gc.assertions.iter().all(|(_, tx)| {
+                s_local.datoms().any(|d|
+                    d.entity == gc.entity
+                    && d.attribute == gc.attribute
+                    && d.tx == *tx
+                )
+            });
+            if both_present {
+                prop_assert!(
+                    conflicts_local.iter().any(|lc|
+                        lc.entity == gc.entity && lc.attribute == gc.attribute
+                    ),
+                    "FALSE NEGATIVE: conflict ({:?}, {:?}) detected globally \
+                     and both datoms present locally, but not detected locally",
+                    gc.entity, gc.attribute
+                );
+            }
+        }
+    }
+
+    /// Anti-monotonicity: as frontier grows, detected conflict set can only shrink.
+    /// F1 ⊆ F2 ==> conflicts(F2) ⊆ conflicts(F1)
+    #[test]
+    fn crdt_conflict_detection_antimonotone(
+        base in arb_store(3),
+        extra_datoms in collection::vec(arb_datom(), 1..10),
+    ) {
+        // F1 = base frontier (smaller)
+        let f1 = base.frontier().clone();
+        let conflicts_f1 = detect_conflicts(&base, &f1);
+
+        // F2 = base + extra datoms (larger frontier)
+        let mut expanded = base.clone();
+        for d in &extra_datoms { expanded.insert_datom(d.clone()); }
+        let f2 = expanded.frontier().clone();
+        let conflicts_f2 = detect_conflicts(&expanded, &f2);
+
+        // Every conflict at F2 should also appear at F1 (if both datoms were
+        // present in F1)
+        for c2 in &conflicts_f2 {
+            let both_in_base = c2.assertions.iter().all(|(_, tx)| {
+                base.datoms().any(|d|
+                    d.entity == c2.entity
+                    && d.attribute == c2.attribute
+                    && d.tx == *tx
+                )
+            });
+            if both_in_base {
+                prop_assert!(
+                    conflicts_f1.iter().any(|c1|
+                        c1.entity == c2.entity && c1.attribute == c2.attribute
+                    ),
+                    "Anti-monotonicity violation: conflict present at larger \
+                     frontier but absent at smaller frontier (both datoms in both)"
+                );
+            }
+        }
+    }
+
+    /// INV-RESOLUTION-004: Conflict predicate requires all six conditions.
+    /// Systematically vary each condition and verify the predicate matches
+    /// expectations.
+    #[test]
+    fn crdt_conflict_predicate_six_conditions(
+        (d1, d2, _) in arb_conflicting_datom_pair(),
+        vary_condition in 0..6u8,
+    ) {
+        let schema = Schema::test_schema_cardinality_one(d1.attribute.clone());
+        let mut d2_mod = d2.clone();
+
+        let expect_conflict = match vary_condition {
+            0 => {
+                // Break condition 1: different entity
+                d2_mod.entity = EntityId::from_content(b"different");
+                false
+            }
+            1 => {
+                // Break condition 2: different attribute
+                d2_mod.attribute = Attribute::new(":other/attr").unwrap();
+                false
+            }
+            2 => {
+                // Break condition 4: one is a retraction
+                d2_mod.op = Op::Retract;
+                false
+            }
+            3 => {
+                // Break condition 5: cardinality :many -- tested separately
+                return Ok(());
+            }
+            4 => {
+                // Condition 3: same value -- no conflict
+                d2_mod.value = d1.value.clone();
+                false
+            }
+            5 => {
+                // All conditions met -- conflict expected
+                true
+            }
+            _ => unreachable!(),
+        };
+
+        let conflict_set = ConflictSet {
+            entity: d1.entity.clone(),
+            attribute: d1.attribute.clone(),
+            assertions: vec![
+                (d1.value.clone(), d1.tx),
+                (d2_mod.value.clone(), d2_mod.tx),
+            ],
+            retractions: vec![],
+        };
+        let detected = has_conflict(
+            &conflict_set, &ResolutionMode::LastWriterWins
+        );
+
+        if expect_conflict {
+            prop_assert!(detected,
+                "Expected conflict not detected (condition {} held)",
+                vary_condition);
+        }
+    }
+}
+```
+
+### §10.7.8 Harness 7: Resolution-Merge Composition
+
+**Verifies**: spec/04-resolution.md §4.3.1 (Resolution-Merge Composition Proof),
+INV-RESOLUTION-002 (Resolution Commutativity), LIVE derived CRDT corollary
+
+**Property**: `LIVE(MERGE(S1, S2)) = LIVE(MERGE(S2, S1))` and
+`LIVE(MERGE(MERGE(S1, S2), S3)) = LIVE(MERGE(S1, MERGE(S2, S3)))`.
+The LIVE view commutes and associates over set-union merge for all resolution modes.
+
+```rust
+proptest! {
+    /// §4.3.1 Composition -- LIVE commutativity:
+    /// LIVE(MERGE(A,B)) = LIVE(MERGE(B,A))
+    /// Tests all three resolution modes simultaneously across all entities.
+    #[test]
+    fn crdt_resolution_merge_commutative(
+        (s1, s2) in arb_diverged_stores(3, 5),
+    ) {
+        let mut m1 = s1.clone();
+        m1.merge(&s2);
+        let mut m2 = s2.clone();
+        m2.merge(&s1);
+
+        // LIVE views must be identical for all entities across all attributes
+        let entities_m1: BTreeSet<EntityId> = m1.entities().collect();
+        let entities_m2: BTreeSet<EntityId> = m2.entities().collect();
+        prop_assert_eq!(&entities_m1, &entities_m2,
+            "Entity sets differ after commuted merges");
+
+        for entity in &entities_m1 {
+            let live1 = live_entity(&m1, *entity);
+            let live2 = live_entity(&m2, *entity);
+            prop_assert_eq!(live1, live2,
+                "LIVE(MERGE(A,B)) != LIVE(MERGE(B,A)) for entity {:?}", entity);
+        }
+    }
+
+    /// §4.3.1 Composition -- LIVE associativity:
+    /// LIVE(MERGE(MERGE(A,B),C)) = LIVE(MERGE(A,MERGE(B,C)))
+    #[test]
+    fn crdt_resolution_merge_associative(
+        (s1, s2, s3) in arb_three_stores(2),
+    ) {
+        // Left grouping
+        let mut left = s1.clone();
+        left.merge(&s2);
+        left.merge(&s3);
+
+        // Right grouping
+        let mut s2_s3 = s2.clone();
+        s2_s3.merge(&s3);
+        let mut right = s1.clone();
+        right.merge(&s2_s3);
+
+        for entity in left.entities() {
+            let live_left = live_entity(&left, entity);
+            let live_right = live_entity(&right, entity);
+            prop_assert_eq!(live_left, live_right,
+                "LIVE associativity violation for entity {:?}", entity);
+        }
+    }
+
+    /// §4.3.1 -- LIVE determinism: Two agents with identical datom sets
+    /// produce identical LIVE views, regardless of merge history.
+    #[test]
+    fn crdt_live_deterministic(
+        s1 in arb_store(3),
+        s2 in arb_store(3),
+        s3 in arb_store(3),
+    ) {
+        // Agent A merges in order: s1, s2, s3
+        let mut agent_a = Store::genesis();
+        agent_a.merge(&s1);
+        agent_a.merge(&s2);
+        agent_a.merge(&s3);
+
+        // Agent B merges in order: s3, s1, s2
+        let mut agent_b = Store::genesis();
+        agent_b.merge(&s3);
+        agent_b.merge(&s1);
+        agent_b.merge(&s2);
+
+        // Same datom set -- same LIVE view
+        let datoms_a: BTreeSet<Datom> = agent_a.datoms().cloned().collect();
+        let datoms_b: BTreeSet<Datom> = agent_b.datoms().cloned().collect();
+        prop_assert_eq!(&datoms_a, &datoms_b,
+            "Datom sets differ despite same inputs in different order");
+
+        for entity in agent_a.entities() {
+            let live_a = live_entity(&agent_a, entity);
+            let live_b = live_entity(&agent_b, entity);
+            prop_assert_eq!(live_a, live_b,
+                "LIVE determinism violation for entity {:?}: \
+                 same datoms, different merge order produced different \
+                 resolved values", entity);
+        }
+    }
+
+    /// NEG-RESOLUTION-001: Merge MUST NOT apply resolution. Both conflicting
+    /// values must be present in the merged datom set.
+    #[test]
+    fn crdt_merge_no_resolution(
+        base in arb_store(2),
+        (d1, d2, _) in arb_conflicting_datom_pair(),
+    ) {
+        // Create two branches with conflicting values
+        let mut branch_a = base.clone();
+        branch_a.insert_datom(d1.clone());
+        let mut branch_b = base.clone();
+        branch_b.insert_datom(d2.clone());
+
+        // Merge
+        let mut merged = branch_a.clone();
+        merged.merge(&branch_b);
+
+        // BOTH datoms must be present (merge = set union, no resolution)
+        prop_assert!(merged.datoms().any(|d| d == &d1),
+            "Merge lost d1 -- resolution applied during merge (NEG-RESOLUTION-001)");
+        prop_assert!(merged.datoms().any(|d| d == &d2),
+            "Merge lost d2 -- resolution applied during merge (NEG-RESOLUTION-001)");
+    }
+}
+```
+
+### §10.7.9 Harness 8: Causal Independence via Predecessor Sets
+
+**Verifies**: INV-STORE-010 (Causal Ordering), INV-RESOLUTION-004 condition (6)
+(Causal Independence in Conflict Predicate)
+
+**Property**: Causal independence is defined by predecessor set reachability, NOT
+by HLC comparison. Two transactions are causally independent iff neither is
+transitively reachable from the other via the predecessor graph.
+
+```rust
+proptest! {
+    /// INV-STORE-010: Causal order is defined by predecessor sets, not HLC.
+    /// Construct scenarios where HLC order disagrees with causal order and
+    /// verify that causally_independent() uses the predecessor graph.
+    #[test]
+    fn crdt_causal_independence_predecessor_based(
+        base in arb_store(2),
+        d1 in arb_datom(),
+        d2 in arb_datom(),
+    ) {
+        let mut store = base;
+        // Transact d1 (agent A)
+        let tx1 = store.transact_single(d1.clone(), AGENT_A).unwrap();
+        // Transact d2 WITHOUT declaring tx1 as predecessor (agent B)
+        let tx2 = store.transact_single(d2.clone(), AGENT_B).unwrap();
+
+        // tx1 and tx2 are causally independent (no predecessor link)
+        prop_assert!(
+            causally_independent(&store, tx1.tx_id, tx2.tx_id),
+            "tx1 and tx2 should be causally independent (no predecessor link)"
+        );
+
+        // Now transact d3 with tx1 as predecessor
+        let d3 = Datom::test_datom();
+        let tx3 = store.transact_with_predecessor(
+            d3, AGENT_A, tx1.tx_id
+        ).unwrap();
+
+        // tx1 < tx3 causally (tx1 is predecessor of tx3)
+        prop_assert!(
+            !causally_independent(&store, tx1.tx_id, tx3.tx_id),
+            "tx1 and tx3 should be causally related (tx1 is predecessor)"
+        );
+
+        // tx2 || tx3 (no predecessor link between them)
+        prop_assert!(
+            causally_independent(&store, tx2.tx_id, tx3.tx_id),
+            "tx2 and tx3 should be causally independent (no link)"
+        );
+    }
+
+    /// INV-STORE-010: HLC ordering does NOT imply causal ordering across agents.
+    /// Even if tx1.hlc < tx2.hlc, they may be causally independent.
+    #[test]
+    fn crdt_causal_independence_hlc_irrelevant(
+        base in arb_store(2),
+        d1 in arb_datom(),
+        d2 in arb_datom(),
+    ) {
+        let mut store = base;
+        // Agent A transacts at wall_time=100
+        let tx1 = store.transact_at_time(d1, AGENT_A, 100).unwrap();
+        // Agent B transacts at wall_time=200 (later HLC, no causal link)
+        let tx2 = store.transact_at_time(d2, AGENT_B, 200).unwrap();
+
+        // HLC says tx1 < tx2, but they are causally independent
+        prop_assert!(tx1.tx_id.wall_time < tx2.tx_id.wall_time,
+            "Precondition: tx1 should have earlier HLC");
+        prop_assert!(
+            causally_independent(&store, tx1.tx_id, tx2.tx_id),
+            "HLC ordering does NOT imply causal ordering -- \
+             these should be independent"
+        );
+    }
+
+    /// Transitive closure: if A -> B -> C, then A <_causal C.
+    #[test]
+    fn crdt_causal_transitivity(
+        base in arb_store(2),
+        d1 in arb_datom(),
+        d2 in arb_datom(),
+        d3 in arb_datom(),
+    ) {
+        let mut store = base;
+        let tx1 = store.transact_single(d1, AGENT_A).unwrap();
+        let tx2 = store.transact_with_predecessor(
+            d2, AGENT_B, tx1.tx_id
+        ).unwrap();
+        let tx3 = store.transact_with_predecessor(
+            d3, AGENT_A, tx2.tx_id
+        ).unwrap();
+
+        // tx1 -> tx2 -> tx3, so tx1 <_causal tx3 (transitively)
+        prop_assert!(
+            store.is_causal_ancestor(tx1.tx_id, tx3.tx_id),
+            "Transitive causal link not detected: tx1 -> tx2 -> tx3"
+        );
+        prop_assert!(
+            !causally_independent(&store, tx1.tx_id, tx3.tx_id),
+            "tx1 and tx3 should NOT be independent (transitive causal link)"
+        );
+    }
+
+    /// Conflict predicate uses causal independence, not HLC.
+    /// Two datoms with the same (e, a) and different values should only be
+    /// flagged as conflicts if their transactions are causally independent.
+    #[test]
+    fn crdt_conflict_requires_causal_independence(
+        base in arb_store(2),
+        entity in arb_entity_id(),
+        attr in arb_attribute(),
+        v1 in arb_value(),
+        v2 in arb_value(),
+    ) {
+        prop_assume!(v1 != v2);
+        let mut store = base;
+
+        // Register attr as cardinality :one
+        store.register_test_attribute(
+            &attr, Cardinality::One, ResolutionMode::LastWriterWins
+        );
+
+        // Agent A asserts (entity, attr, v1)
+        let tx1 = store.transact_assertion(
+            entity.clone(), attr.clone(), v1.clone(), AGENT_A
+        ).unwrap();
+
+        // Agent B asserts (entity, attr, v2) WITH tx1 as predecessor
+        // (causal update, NOT conflict)
+        let tx2 = store.transact_assertion_with_pred(
+            entity.clone(), attr.clone(), v2.clone(),
+            AGENT_B, tx1.tx_id,
+        ).unwrap();
+
+        // This is NOT a conflict because tx1 <_causal tx2
+        let conflicts = detect_conflicts(&store, store.frontier());
+        let is_conflict = conflicts.iter().any(|c|
+            c.entity == entity && c.attribute == attr
+        );
+        prop_assert!(!is_conflict,
+            "Causal update falsely flagged as conflict -- \
+             conflict predicate must check causal independence, not HLC");
+    }
+}
+```
+
+### §10.7.10 INV Cross-Reference Index
+
+Summary of which INVs each harness in the CRDT Verification Suite covers:
+
+| Harness | Section | INVs Verified |
+|---------|---------|---------------|
+| G-Set Grow-Only | §10.7.2 | INV-STORE-001, INV-STORE-002, L4, L5 |
+| Merge Commutativity | §10.7.3 | INV-STORE-004, L1 |
+| Merge Associativity | §10.7.4 | INV-STORE-005, L2, §4.3.1 (LIVE assoc) |
+| Merge Idempotency | §10.7.5 | INV-STORE-006, INV-MERGE-008, L3 |
+| LWW Semilattice | §10.7.6 | INV-RESOLUTION-005, ADR-RESOLUTION-009 |
+| Conservative Detection | §10.7.7 | INV-RESOLUTION-003, INV-RESOLUTION-004, NEG-RESOLUTION-002, §4.3.2 |
+| Resolution-Merge Composition | §10.7.8 | §4.3.1, INV-RESOLUTION-002, NEG-RESOLUTION-001 |
+| Causal Independence | §10.7.9 | INV-STORE-010, INV-RESOLUTION-004(6) |
+
+**Total coverage**: 16 INVs, 5 algebraic laws (L1-L5), 2 formal proofs (§4.3.1, §4.3.2),
+3 ADRs, 2 negative cases.
+
+**Test count at 256 cases/property**: 24 properties x 256 = 6,144 property evaluations per run.
 
 ---

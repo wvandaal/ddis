@@ -184,6 +184,16 @@ pub enum HarvestCategory {
     Uncertainty,     // unknown encountered but not marked
 }
 
+/// Candidate lifecycle lattice: proposed < under-review < committed | rejected.
+/// The lattice ordering ensures forward-only progress through the review pipeline.
+/// Motivating invariant: INV-HARVEST-001 (harvest monotonicity — no status reversal).
+pub enum CandidateStatus {
+    Proposed,                // Initial state after detection
+    UnderReview,             // Being reviewed by the selected topology
+    Committed,               // Approved and transacted into the store
+    Rejected(String),        // Rejected with reason (terminal state)
+}
+
 /// Harvest session entity.
 pub struct HarvestSession {
     pub session_id: EntityId,
@@ -202,18 +212,25 @@ pub enum ReviewTopology {
     HumanReview,
 }
 
-impl Store {
-    /// Detect and propose harvest candidates.
-    pub fn harvest_detect(&self, agent: AgentId) -> Vec<HarvestCandidate>;
+// --- Free functions (ADR-ARCHITECTURE-001) ---
 
-    /// Commit confirmed candidates.
-    pub fn harvest_commit(
-        &mut self,
-        agent: AgentId,
-        candidates: &[HarvestCandidate],
-        topology: ReviewTopology,
-    ) -> Result<HarvestSession, HarvestError>;
-}
+/// Harvest detection pipeline: scans agent's recent transactions and proposes candidates.
+/// Free function: harvest detection is a read-only pipeline that queries the store
+/// for un-transacted knowledge. See guide/05-harvest.md for the decomposed pipeline.
+pub fn harvest_pipeline(store: &Store, session_context: &SessionContext) -> HarvestResult;
+
+/// Accept a harvest candidate by building a transaction for commitment.
+/// The caller commits via Store::transact(). This reuses the core mutation path
+/// rather than creating a parallel mutation path inside Store.
+pub fn accept_candidate(candidate: &HarvestCandidate, agent: AgentId) -> Transaction<Building>;
+
+/// Create a HarvestSession entity recording the harvest metadata.
+/// The caller commits via Store::transact().
+pub fn harvest_session_entity(
+    result: &HarvestResult,
+    agent: AgentId,
+    topology: ReviewTopology,
+) -> Transaction<Building>;
 ```
 
 #### CLI Commands
@@ -249,18 +266,21 @@ No existing datom is modified or removed during harvest.
 
 #### Level 2 (Implementation Contract)
 ```rust
-// Harvest commit delegates to Store::transact, which preserves INV-STORE-001.
-pub fn harvest_commit(&mut self, ...) -> Result<HarvestSession, HarvestError> {
-    let tx = Transaction::<Building>::new(agent);
-    for candidate in confirmed_candidates {
-        for datom in &candidate.datom_spec {
-            tx = tx.assert_datom(datom.entity, datom.attribute.clone(), datom.value.clone());
-        }
+// Free function (ADR-ARCHITECTURE-001): builds a transaction from confirmed candidates.
+// Caller commits via Store::transact(), which preserves INV-STORE-001.
+pub fn accept_candidate(candidate: &HarvestCandidate, agent: AgentId) -> Transaction<Building> {
+    let mut tx = Transaction::<Building>::new(agent);
+    for datom in &candidate.datom_spec {
+        tx = tx.assert_datom(datom.entity, datom.attribute.clone(), datom.value.clone());
     }
-    let tx = tx.commit(&self.schema)?;
-    self.transact(tx)?;
-    // ...
+    tx
 }
+
+// Usage in CLI layer:
+// for candidate in confirmed_candidates {
+//     let tx = accept_candidate(&candidate, agent).commit(&store.schema())?;
+//     store.transact(tx)?;
+// }
 ```
 
 **Falsification**: A harvest operation that reduces the datom count or removes existing datoms.

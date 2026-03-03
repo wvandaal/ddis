@@ -20,23 +20,29 @@ braid-kernel/src/
 pub struct Schema { /* opaque */ }
 
 impl Schema {
-    /// Build the schema from the datom set (extract schema-defining datoms).
-    pub fn from_store(store: &Store) -> Self;
+    /// Reconstruct schema from store datoms (the only constructor — enforces C3).
+    /// Called internally by Store on load and after schema-modifying transactions.
+    pub fn from_store(datoms: &BTreeSet<Datom>) -> Schema;
 
-    /// Validate an attribute exists and value type matches.
+    /// Validate a datom against schema (attribute existence + value type match).
     pub fn validate_datom(&self, datom: &Datom) -> Result<(), SchemaValidationError>;
 
-    /// Register a new attribute (produces datoms for the transaction).
+    /// Produce datoms for a new attribute definition (caller wraps in Transaction).
     pub fn new_attribute(&self, spec: AttributeSpec) -> Vec<Datom>;
 
-    /// Lookup attribute definition.
-    pub fn get(&self, attr: &Attribute) -> Option<&AttributeDef>;
+    /// Look up attribute definition by attribute keyword.
+    pub fn attribute(&self, ident: &Attribute) -> Option<&AttributeDef>;
 
     /// All known attributes.
     pub fn attributes(&self) -> impl Iterator<Item = (&Attribute, &AttributeDef)>;
 
     /// Resolution mode for an attribute.
     pub fn resolution_mode(&self, attr: &Attribute) -> ResolutionMode;
+}
+
+impl Store {
+    /// Borrow the schema — zero cost, derived from store datoms on load.
+    pub fn schema(&self) -> &Schema { &self.schema }
 }
 
 pub struct AttributeSpec {
@@ -126,8 +132,8 @@ pub mod genesis {
 - Schema grows only via `transact` of new schema datoms.
 
 **Clear box** (implementation):
-- `from_store`: query store for `(?, :db/ident, ?)` → extract all attribute-defining datoms →
-  build `AttributeDef` per attribute → populate HashMap.
+- `from_store(datoms)`: scan datoms for `(?, :db/ident, ?)` → extract all attribute-defining datoms →
+  build `AttributeDef` per attribute → populate HashMap. Also extracts lattice definition entities.
 - `validate_datom`: lookup `datom.attribute` → check value type matches `attr.value_type` →
   check cardinality constraint (`:one` means only one assertion per entity per attribute in LIVE view).
 - `new_attribute`: generate EntityId from keyword (`EntityId::from_ident(keyword)`) →
@@ -184,26 +190,33 @@ impl Schema {
 ```rust
 impl Schema {
     /// Validate that all lattice-resolved attributes have complete definitions.
-    pub fn validate_lattice_completeness(&self, store: &Store) -> Vec<LatticeDefError> {
+    /// Lattice definitions are extracted from datoms during from_store() and stored
+    /// internally — no Store reference needed (ADR-SCHEMA-005, Option C).
+    pub fn validate_lattice_completeness(&self) -> Vec<LatticeDefError> {
         let mut errors = Vec::new();
         for (attr, def) in self.attributes() {
             if let ResolutionMode::Lattice { lattice_id } = def.resolution_mode {
-                let lattice = store.entity(lattice_id);
-                if lattice.get(":lattice/ident").is_none() { errors.push(MissingIdent(attr.clone())); }
-                if lattice.get(":lattice/elements").map_or(true, |v| v.is_empty()) {
-                    errors.push(EmptyElements(attr.clone()));
+                match self.lattice_def(lattice_id) {
+                    None => { errors.push(MissingLatticeDef(attr.clone())); }
+                    Some(lattice) => {
+                        if lattice.ident.is_none() { errors.push(MissingIdent(attr.clone())); }
+                        if lattice.elements.is_empty() { errors.push(EmptyElements(attr.clone())); }
+                        if lattice.comparator.is_none() { errors.push(MissingComparator(attr.clone())); }
+                        if lattice.bottom.is_none() { errors.push(MissingBottom(attr.clone())); }
+                    }
                 }
-                if lattice.get(":lattice/comparator").is_none() { errors.push(MissingComparator(attr.clone())); }
-                if lattice.get(":lattice/bottom").is_none() { errors.push(MissingBottom(attr.clone())); }
             }
         }
         errors
     }
+
+    /// Look up a lattice definition by entity id (extracted during from_store).
+    fn lattice_def(&self, id: EntityId) -> Option<&LatticeDef>;
 }
 ```
 
 **proptest strategy**: Generate schema with random lattice-resolved attributes.
-For each, verify the lattice entity exists with all 4 required properties.
+For each, verify the lattice definition is complete (all 4 required properties present).
 
 ---
 
@@ -244,7 +257,7 @@ proptest! {
     // INV-SCHEMA-001: Schema-as-Data (schema is subset of store)
     fn inv_schema_001() {
         let store = Store::genesis();
-        let schema = Schema::from_store(&store);
+        let schema = store.schema();
         // Schema is derived from store datoms, not external source
         assert!(schema.attributes().count() > 0);
     }
@@ -252,23 +265,23 @@ proptest! {
     // INV-SCHEMA-002: Genesis Completeness (exactly 17 axiomatic attributes)
     fn inv_schema_002() {
         let store = Store::genesis();
-        let schema = Schema::from_store(&store);
+        let schema = store.schema();
         assert_eq!(schema.attributes().count(), 17);
     }
 
     // INV-SCHEMA-005: Meta-Schema Self-Description
     fn inv_schema_005() {
         let store = Store::genesis();
-        let schema = Schema::from_store(&store);
-        for (attr, def) in schema.attributes() {
+        let schema = store.schema();
+        for (attr, _def) in schema.attributes() {
             // Every axiomatic attribute can be looked up via itself
-            assert!(schema.get(attr).is_some());
+            assert!(schema.attribute(attr).is_some());
         }
     }
 
     // INV-SCHEMA-006: Six-Layer Architecture — layer ordering respected
     fn inv_schema_006(store in arb_schema(5)) {
-        let schema = Schema::from_store(&store);
+        let schema = store.schema();
         let violations = schema.validate_layer_ordering();
         prop_assert!(violations.is_empty(),
             "Layer ordering violated: {:?}", violations);
@@ -276,8 +289,8 @@ proptest! {
 
     // INV-SCHEMA-007: Lattice Definition Completeness
     fn inv_schema_007(store in arb_schema(3)) {
-        let schema = Schema::from_store(&store);
-        let errors = schema.validate_lattice_completeness(&store);
+        let schema = store.schema();
+        let errors = schema.validate_lattice_completeness();
         prop_assert!(errors.is_empty(),
             "Incomplete lattice definitions: {:?}", errors);
     }

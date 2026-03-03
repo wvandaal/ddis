@@ -187,9 +187,58 @@ pub struct QueryResult {
     pub provenance_tx: TxId,
 }
 
-impl Store {
-    pub fn query(&mut self, expr: &QueryExpr, mode: QueryMode) -> Result<QueryResult, QueryError>;
+/// Six-stratum classification (ADR-QUERY-003, INV-QUERY-005).
+/// Determines the query's safety level and required coordination mode.
+pub enum Stratum {
+    /// Stratum 0: Current-value over LIVE index. No joins. Monotonic.
+    S0_Primitive,
+    /// Stratum 1: Multi-hop joins, transitive closure. Monotonic.
+    S1_MonotonicJoin,
+    /// Stratum 2: Epistemic/aleatory/consequential uncertainty. Mixed (Stratified).
+    S2_Uncertainty,
+    /// Stratum 3: Linear algebra (SVD, spectral authority). Stratified (FFI).
+    S3_Authority,
+    /// Stratum 4: Concurrent assertion detection. Conservatively monotonic.
+    S4_ConflictDetection,
+    /// Stratum 5: Fitness, crystallization readiness, drift. Barriered.
+    S5_BilateralLoop,
 }
+
+/// Errors from query parsing, classification, or evaluation.
+/// Return type of the top-level query() function.
+pub enum QueryError {
+    /// Query expression failed to parse.
+    ParseError(String),
+    /// Non-monotonic constructs (negation, aggregation) in Monotonic mode (INV-QUERY-001).
+    NonMonotonicInMonotonicMode,
+    /// Unsafe Datalog program: unbound head variable (INV-QUERY-006).
+    UnsafeProgram { variable: Variable },
+    /// Barrier required but not resolved (INV-QUERY-005: Stratum 5 requires Barriered mode).
+    BarrierNotResolved(BarrierId),
+    /// FFI derived function error.
+    FfiError { function: String, message: String },
+    /// Graph algorithm error (delegates to GraphError).
+    Graph(GraphError),
+}
+
+/// Errors from graph algorithms (INV-QUERY-012–021).
+/// Used by topo_sort, critical_path, and other graph queries.
+pub enum GraphError {
+    /// Cycle detected during topological sort (INV-QUERY-012, INV-QUERY-013).
+    /// Contains the strongly connected components via Tarjan's algorithm.
+    CycleDetected(SCCResult),
+    /// Graph has no vertices for the specified entity type and dependency attribute.
+    EmptyGraph,
+    /// Power iteration (PageRank, eigenvector centrality, HITS) did not converge
+    /// within the maximum iteration bound.
+    NonConvergence(u32),
+}
+
+// Free function (ADR-ARCHITECTURE-001): query is a complex operation spanning
+// the QUERY namespace (stratum classification, FFI, access log). Takes &Store
+// rather than &mut self; provenance recording (INV-STORE-014) is a separate
+// transact call by the caller.
+pub fn query(store: &Store, expr: &QueryExpr, mode: QueryMode) -> Result<QueryResult, QueryError>;
 ```
 
 #### FFI Boundary

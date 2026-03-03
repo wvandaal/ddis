@@ -63,6 +63,115 @@ with a non-empty set (the transaction datoms), so cardinality is non-decreasing.
 Data Type). Strong eventual consistency follows from L1–L3: any two replicas that have received
 the same set of updates are in the same state, regardless of delivery order.
 
+#### Partial Order and Join-Semilattice Structure
+
+The claim that `(P(D), ∪)` is a join-semilattice rests on an underlying partial order. This
+section makes that partial order explicit and proves the semilattice structure.
+
+**Definition (Partial Order).** The relation ⊆ (subset inclusion) on `P(D)` is defined by:
+
+```
+S₁ ⊆ S₂  ⟺  ∀ d ∈ S₁: d ∈ S₂
+```
+
+**Theorem PO-1.** `(P(D), ⊆)` is a partial order.
+
+```
+PO-1a (Reflexivity):      ∀ S ∈ P(D): S ⊆ S
+  Proof: Every element of S is an element of S. □
+
+PO-1b (Antisymmetry):     ∀ S₁, S₂ ∈ P(D): S₁ ⊆ S₂ ∧ S₂ ⊆ S₁ ⟹ S₁ = S₂
+  Proof: If every element of S₁ is in S₂ and every element of S₂ is in S₁,
+  then S₁ and S₂ have the same elements, so S₁ = S₂ by extensionality. □
+
+PO-1c (Transitivity):     ∀ S₁, S₂, S₃ ∈ P(D): S₁ ⊆ S₂ ∧ S₂ ⊆ S₃ ⟹ S₁ ⊆ S₃
+  Proof: Let d ∈ S₁. Then d ∈ S₂ (by S₁ ⊆ S₂), then d ∈ S₃ (by S₂ ⊆ S₃). □
+```
+
+**Theorem PO-2.** Set union ∪ is the join (least upper bound) under ⊆.
+
+```
+For all S₁, S₂ ∈ P(D), the set S₁ ∪ S₂ satisfies:
+
+PO-2a (Upper bound):      S₁ ⊆ S₁ ∪ S₂  ∧  S₂ ⊆ S₁ ∪ S₂
+  Proof: By definition of union, every element of S₁ is in S₁ ∪ S₂,
+  and every element of S₂ is in S₁ ∪ S₂. □
+
+PO-2b (Least upper bound): ∀ U ∈ P(D): (S₁ ⊆ U ∧ S₂ ⊆ U) ⟹ S₁ ∪ S₂ ⊆ U
+  Proof: Let d ∈ S₁ ∪ S₂. Then d ∈ S₁ or d ∈ S₂. In either case, d ∈ U
+  (by S₁ ⊆ U or S₂ ⊆ U respectively). So S₁ ∪ S₂ ⊆ U. □
+```
+
+**Corollary PO-3.** `(P(D), ⊆, ∪)` is a join-semilattice.
+
+```
+Proof: (P(D), ⊆) is a partial order (PO-1), and every pair of elements has a
+join — namely their set union (PO-2). Therefore (P(D), ⊆, ∪) is a
+join-semilattice. L1–L3 (commutativity, associativity, idempotency) follow
+as properties of the join operation in any semilattice. □
+```
+
+**Distinguished Elements.**
+
+```
+Bottom element:  ∅ ∈ P(D)
+  ∀ S ∈ P(D): ∅ ⊆ S  ∧  S ∪ ∅ = S
+  The empty store is the identity element of the join operation.
+
+  NOTE: The bottom element ∅ is NOT genesis. Genesis S₀ = {meta_schema_datoms}
+  is the initial operational state, with S₀ ⊋ ∅. The algebraic bottom is the
+  empty set; the operational bottom is genesis. These are distinct:
+    ∅ is the algebraic identity (S ∪ ∅ = S for all S).
+    S₀ is the smallest VALID store (contains the 17 axiomatic attributes).
+
+Top element:     Does not exist.
+  D is the set of all POSSIBLE datoms. Since D is constructed from unbounded
+  domains (Value includes arbitrary strings, BigInt, etc.), D itself is
+  unbounded — there is no finite set containing all possible datoms.
+  Consequently P(D) has no top element.
+  This is expected: a grow-only store in an open world has no maximal state.
+```
+
+**Connection to L4 and L5.** Laws L4 (monotonicity) and L5 (growth-only) are consequences
+of the partial order:
+
+```
+L4: S ⊆ S ∪ S'
+  This is PO-2a — the join is an upper bound of its arguments.
+  Equivalently: every store transition via MERGE or TRANSACT moves UP in the
+  partial order (P(D), ⊆). The store never moves down.
+
+L5: |S(t+1)| ≥ |S(t)|
+  If S(t) ⊆ S(t+1) (L4), then |S(t)| ≤ |S(t+1)| because subset inclusion
+  implies cardinality inequality for finite sets. L5 is the cardinality shadow
+  of L4. Strict growth (INV-STORE-002) holds because every transaction adds at
+  least its tx_entity metadata datoms.
+```
+
+**Separation of Store and Resolution Layers.** Per-attribute resolution modes
+(LWW, Lattice, Multi — see §4 RESOLUTION) operate on the LIVE index, not on
+the store. This separation is critical to preserving the join-semilattice property:
+
+```
+Store layer:      (P(D), ⊆, ∪)  — pure join-semilattice, no resolution logic
+LIVE layer:       LIVE(S) = fold(causal_sort(S), apply_resolution)
+
+The LIVE function is a monotone function from the store semilattice to a
+per-attribute value semilattice:
+  S₁ ⊆ S₂ ⟹ LIVE(S₂) reflects all information in LIVE(S₁)
+              (though resolved values may change as more datoms arrive)
+
+Why this separation preserves the semilattice:
+  1. MERGE(S₁, S₂) = S₁ ∪ S₂ — set union, no schema or resolution dependency
+  2. Resolution modes are schema data, and schema lives IN the store (C3)
+  3. If MERGE applied resolution, it would need to read schema from the store
+     being merged — a circular dependency that breaks L1–L3
+  4. By deferring resolution to LIVE, the store remains a pure G-Set CvRDT
+     and the resolution layer composes on top without violating the algebra
+
+See ADR-RESOLUTION-002 for the full decision record on resolution timing.
+```
+
 #### Transaction Algebra
 
 ```
@@ -167,7 +276,7 @@ AVET: sorted by (attribute, value, entity, tx)    — unique/range lookups
 LIVE: materialized current-state view
   LIVE(S) = fold(causal_sort(S), apply_resolution)
   where apply_resolution uses the per-attribute resolution mode:
-    LWW:     greatest HLC assertion
+    LWW:     greatest HLC assertion (ties broken by BLAKE3 hash; ADR-RESOLUTION-009)
     Lattice: join over unretracted assertions
     Multi:   set of all unretracted values
 ```
@@ -252,6 +361,66 @@ impl Transaction<Applied> {
 }
 // Compile error: Transaction<Building>.apply() — invalid state transition
 // Compile error: Transaction<Applied>.assert_datom() — sealed
+
+/// Receipt returned after a transaction is applied to the store.
+/// Provides the assigned TxId and summary metadata for the caller.
+/// Motivating invariant: INV-STORE-001, INV-STORE-002 (transact returns proof of growth).
+pub struct TxReceipt {
+    pub tx_id: TxId,            // HLC timestamp assigned to this transaction
+    pub datom_count: usize,     // number of datoms added by this transaction
+    pub new_entities: Vec<EntityId>, // entities created (first assertion for each)
+}
+
+/// Errors that prevent a Transaction<Building> from committing.
+/// Each variant corresponds to a schema validation failure (INV-SCHEMA-004).
+pub enum TxValidationError {
+    /// Datom references an attribute not in the schema.
+    UnknownAttribute(Attribute),
+    /// Datom value type does not match schema-declared type.
+    SchemaViolation { attr: Attribute, expected: ValueType, got: ValueType },
+    /// Retraction targets a (entity, attribute) pair with no prior assertion.
+    InvalidRetraction(EntityId, Attribute),
+}
+
+/// Errors that prevent a Transaction<Committed> from being applied to the store.
+/// Distinct from TxValidationError: validation is schema-level, apply errors are
+/// store-level (duplicate detection, storage failures).
+pub enum TxApplyError {
+    /// All datoms in this transaction are already present in the store
+    /// (content-addressed deduplication, INV-STORE-003).
+    DuplicateTransaction(TxId),
+    /// Storage backend failure (e.g., redb write error).
+    StorageFailure(String),
+}
+
+/// Map from agent to that agent's latest known transaction.
+/// Used for frontier-scoped queries (INV-QUERY-007) and conservative conflict
+/// detection (INV-RESOLUTION-003). Equivalent to a vector clock.
+pub type Frontier = HashMap<AgentId, TxId>;
+
+/// Current state of an entity as resolved by the LIVE index.
+/// Returned by Store::current() — provides resolved attribute values
+/// after applying per-attribute resolution modes (§4 RESOLUTION).
+pub struct EntityView {
+    pub entity: EntityId,
+    pub attributes: HashMap<Attribute, Value>,  // resolved values (LIVE)
+    pub as_of: TxId,                            // latest transaction affecting this entity
+}
+
+/// Snapshot of the store at a specific frontier.
+/// Returned by Store::as_of() — provides a read-only view of the store
+/// restricted to datoms visible at the given frontier.
+pub struct SnapshotView<'a> {
+    store: &'a Store,
+    frontier: Frontier,
+}
+
+impl<'a> SnapshotView<'a> {
+    /// Query the LIVE index for entity state at this snapshot's frontier.
+    pub fn current(&self, entity: EntityId) -> EntityView;
+    /// Count of datoms visible at this frontier.
+    pub fn len(&self) -> usize;
+}
 ```
 
 #### Store API
@@ -271,9 +440,6 @@ impl Store {
     /// Transact a committed transaction.
     pub fn transact(&mut self, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError>;
 
-    /// Merge another store (set union).
-    pub fn merge(&mut self, other: &Store) -> MergeReceipt;
-
     /// Query the LIVE index for current state of an entity.
     pub fn current(&self, entity: EntityId) -> EntityView;
 
@@ -283,6 +449,22 @@ impl Store {
     /// Datom count (monotonically non-decreasing).
     pub fn len(&self) -> usize;
 }
+
+// --- Free functions (ADR-ARCHITECTURE-001) ---
+
+/// Merge another store into target (set union + cascade).
+/// Free function: merge is a set-algebraic operation spanning the MERGE namespace.
+/// See spec/07-merge.md for full cascade specification.
+/// Returns (MergeReceipt, CascadeReceipt) — merge statistics and cascade effects.
+pub fn merge(target: &mut Store, source: &Store) -> (MergeReceipt, CascadeReceipt);
+
+/// Query the store using Datalog expressions.
+/// Free function: query is a complex operation spanning the QUERY namespace
+/// (stratum classification, FFI boundary, access log). Provenance recording
+/// (INV-STORE-014) is handled by an explicit transact call within the
+/// query function body, not by implicit Store mutation.
+/// See spec/03-query.md for full query specification.
+pub fn query(store: &Store, expr: &QueryExpr, mode: QueryMode) -> Result<QueryResult, QueryError>;
 ```
 
 #### CLI Commands
@@ -302,7 +484,7 @@ braid history <entity-id> <attr>      # Show all values of an attribute over tim
 ### INV-STORE-001: Append-Only Immutability
 
 **Traces to**: SEED §4 Axiom 2, C1, ADRS FD-001
-**Verification**: `V:PROP`, `V:KANI`
+**Verification**: `V:TYPE`, `V:PROP`, `V:KANI`
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
@@ -361,7 +543,7 @@ fn transact(store: &mut Store, tx: Transaction<Committed>) -> Result<TxReceipt, 
 ### INV-STORE-003: Content-Addressable Identity
 
 **Traces to**: SEED §4 Axiom 1, C2, ADRS FD-007
-**Verification**: `V:PROP`, `V:KANI`
+**Verification**: `V:TYPE`, `V:PROP`, `V:KANI`
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
@@ -567,13 +749,39 @@ causing the agent to replay already-committed transactions on recovery.
 #### Level 0 (Algebraic Law)
 ```
 ∀ T with causal_predecessors P:
-  ∀ p ∈ P: p.tx_id < T.tx_id   (HLC ordering)
   ∀ p ∈ P: p ∈ S                (predecessors exist in the store)
+
+Causal order (happens-before) is defined by the predecessor set:
+  T1 ->_causal T2  iff  T1.tx_id ∈ T2.causal_predecessors
+  T1 <_causal T2   iff  transitive closure of ->_causal
+
+HLC ordering is a CONSEQUENCE, not the DEFINITION:
+  T1 <_causal T2  ==>  T1.tx_id <_hlc T2.tx_id   (HLC respects causality)
+  T1.tx_id <_hlc T2.tx_id  =/=>  T1 <_causal T2   (HLC does NOT imply causality)
+
+Two transactions are CAUSALLY INDEPENDENT (concurrent) iff:
+  T1 || T2  iff  not(T1 <_causal T2) and not(T2 <_causal T1)
+
+Causally independent transactions may have any HLC ordering -- they may even
+share the same wall-clock time or have "reversed" HLC timestamps relative to
+an external observer. HLC ordering among concurrent transactions is arbitrary
+and MUST NOT be interpreted as causal precedence.
 ```
 
 #### Level 1 (State Invariant)
 A transaction's causal predecessors must all be present in the store at the time of
-the transaction. HLC timestamps are monotonically increasing per agent.
+the transaction. HLC timestamps are monotonically increasing per agent (INV-STORE-011),
+which ensures that within a single agent's history, HLC order and causal order coincide.
+Across agents, however, HLC ordering is a convenience for display, time-travel queries,
+and LWW tie-breaking -- it does NOT establish causality. Only the explicit predecessor
+set defines the happens-before relation.
+
+**Clarification (R2.3)**: The conflict predicate in §4 RESOLUTION (INV-RESOLUTION-004)
+requires causal independence, which is determined by predecessor sets, not by HLC
+comparison. Two transactions T1, T2 are causally independent iff neither is transitively
+reachable from the other via the predecessor graph. HLC comparison alone is insufficient:
+`T1.tx_id <_hlc T2.tx_id` does not mean T1 happened before T2 in the causal sense --
+T2's agent may simply have a faster wall clock.
 
 #### Level 2 (Implementation Contract)
 ```rust
@@ -587,12 +795,37 @@ impl Transaction<Building> {
         // ...
     }
 }
+
+/// Causal independence check -- used by the conflict predicate.
+/// Determined by predecessor graph reachability, NOT by HLC comparison.
+fn causally_independent(store: &Store, tx1: TxId, tx2: TxId) -> bool {
+    !store.is_causal_ancestor(tx1, tx2) && !store.is_causal_ancestor(tx2, tx1)
+}
+
+/// Transitive closure over causal_predecessors.
+fn is_causal_ancestor(store: &Store, ancestor: TxId, descendant: TxId) -> bool {
+    // BFS/DFS over the predecessor graph from descendant back to ancestor.
+    let mut visited = HashSet::new();
+    let mut queue = VecDeque::from(store.causal_predecessors(descendant));
+    while let Some(pred) = queue.pop_front() {
+        if pred == ancestor { return true; }
+        if visited.insert(pred) {
+            queue.extend(store.causal_predecessors(pred));
+        }
+    }
+    false
+}
 ```
 
 **Falsification**: A transaction referencing a causal predecessor that does not exist in the store.
+Also: any code path that uses `tx1.tx_id <_hlc tx2.tx_id` as a proxy for causal precedence
+across different agents, rather than consulting the predecessor graph.
 
 **proptest strategy**: Generate transaction chains with random predecessor references.
-Verify that commits with invalid predecessors are rejected.
+Verify that commits with invalid predecessors are rejected. Additionally, generate pairs
+of transactions from different agents with arbitrary HLC orderings and verify that
+`causally_independent` returns true iff neither is reachable from the other in the
+predecessor graph, regardless of HLC ordering.
 
 ---
 
@@ -740,13 +973,14 @@ Every CLI command, including queries, generates a transaction recording provenan
 
 #### Level 2 (Implementation Contract)
 ```rust
-impl Store {
-    /// Even queries produce a provenance transaction.
-    pub fn query(&mut self, q: &Query) -> QueryResult {
-        let result = self.evaluate(q);
-        self.record_query_provenance(q, &result);
-        result
-    }
+/// Even queries produce a provenance transaction (ADR-ARCHITECTURE-001: free function).
+/// The caller is responsible for committing the provenance transaction via Store::transact().
+pub fn query(store: &Store, q: &QueryExpr, mode: QueryMode) -> QueryResult {
+    let result = evaluate(store, q, mode);
+    // Provenance recording: the query function builds a provenance transaction
+    // and the caller commits it. This keeps query as a read operation on the store,
+    // with provenance as a documented post-step.
+    result
 }
 ```
 
@@ -1154,6 +1388,51 @@ EntityIds from arbitrary bytes, bypassing the hash — a type-level violation of
 - `EntityId::as_bytes()` provides read-only access for serialization
 - Deserialization from storage uses a `pub(crate)` constructor (trusted boundary)
 - INV-STORE-002 is enforced at compile time with zero runtime cost
+
+---
+
+### ADR-STORE-013: Free Functions Over Store Methods for Namespace Operations
+
+**Traces to**: SEED.md §4, §10, ADRS FD-010, FD-012
+**Stage**: 0
+
+#### Problem
+Should namespace operations (query, harvest, seed, merge, guidance, derivation, routing,
+drift detection) be implemented as Store methods or as free functions taking `&Store` /
+`&mut Store`?
+
+#### Options
+A) **Free functions** — `query(store, expr, mode)`, `harvest_pipeline(store, session)`,
+   `assemble_seed(store, task, budget)`, `merge(target, source)`. Store methods reserved
+   for core datom operations: `genesis()`, `transact()`, `current()`, `as_of()`, `len()`,
+   `datoms()`, `frontier()`, `schema()`.
+B) **Store methods** — `store.query(expr)`, `store.harvest(session)`, `store.seed(task)`.
+   All operations as methods on Store.
+C) **Trait-based** — `Harvestable`, `Seedable`, `Queryable` traits implemented on Store.
+
+#### Decision
+**Option A.** Free functions for all namespace operations. Store methods are limited to:
+constructors (`genesis`), core mutation (`transact`), and trivial read accessors
+(`current`, `as_of`, `len`, `datoms`, `frontier`, `schema`). Everything else is a free
+function in its respective namespace module.
+
+#### Formal Justification
+1. **Keeps Store lean**: Store is the foundational abstraction. Methods for every namespace
+   would make Store a God-object growing with every new feature.
+2. **Enables independent testing**: Free functions can be tested with minimal Store fixtures.
+3. **Matches Rust idioms**: Namespace operations need only Store's public API. Free functions
+   make this dependency explicit.
+4. **Consistent with guide convention**: All guide files already use free functions.
+
+#### Consequences
+- Store's `impl` block contains only: `genesis()`, `transact()`, `current()`, `as_of()`,
+  `len()`, `datoms()`, `frontier()`, `schema()`.
+- Adding a new namespace never requires modifying Store's API surface.
+
+#### Falsification
+Evidence this decision is wrong: a namespace operation that requires access to Store's
+private fields and cannot be expressed through Store's public API. In that case, the
+Store API needs a new public method, not a namespace method on Store.
 
 ---
 

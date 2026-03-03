@@ -53,6 +53,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rationale**: Mutable state is the root of most correctness bugs in distributed systems. Append-only plus content-addressing gives arbitrary time-travel for free.
 **Rejected**: Mutable state (correctness risk, no time-travel); 2P-Set (once retracted, never re-assertable — gives any agent permanent veto power); OR-Set/Add-Wins (scoped retractions with unique tags — correct but adds identity complexity; unnecessary when retractions are modeled as facts).
 **Source**: SEED.md §4 Axiom 2, §11; Transcript 01 (five locked axioms, Options 2A/2B/2C)
+**Formalized as**: ADR-STORE-001 in `spec/01-store.md`
 
 ### FD-002: EAV Over Relational
 
@@ -60,6 +61,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rationale**: The ontology of a project evolves as the project evolves. EAV handles schema evolution without migrations. The schema crystallizes from usage rather than being declared upfront.
 **Rejected**: Relational tables (schema rigidity, migration burden), document stores (no graph traversal).
 **Source**: SEED.md §4, §11; Transcript 01
+**Formalized as**: ADR-STORE-002 in `spec/01-store.md`
 
 ### FD-003: Datalog for Queries
 
@@ -67,6 +69,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rationale**: Natural graph joins for traceability (goal → invariant → implementation → test). Stratified evaluation maps cleanly to the monotonic/non-monotonic distinction (Axiom 4). CALM theorem compliance. Semi-naive avoids redundant derivation.
 **Rejected**: SQL (poor graph traversal), custom query language (wheel reinvention), top-down evaluation (worse for materialized views).
 **Source**: SEED.md §4 Axiom 4, §11; Transcript 01; Transcript 02 (stratum analysis); Transcript 03 (Datomic dialect, semi-naive)
+**Formalized as**: ADR-QUERY-001 in `spec/03-query.md`
 
 ### FD-004: Datom Store Over Vector DB / RAG
 
@@ -81,6 +84,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rationale**: Different attributes have different semantics. Task status has a natural lattice (`todo < in-progress < done`). Person names do not. Global policy either loses information or produces nonsense.
 **Rejected**: Global resolution policy (information loss).
 **Source**: SEED.md §4 Axiom 5; Transcript 01 (five locked axioms)
+**Formalized as**: ADR-RESOLUTION-001 in `spec/04-resolution.md`
 
 ### FD-006: DDIS Specifies Itself
 
@@ -95,6 +99,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rationale**: Eliminates the "same fact, different ID" problem in multi-agent settings. Makes set-union merge naturally deduplicate. The entity `e` is derived from content hash, not assigned sequentially.
 **Rejected**: Sequential IDs (merge conflicts, agent-local ID spaces).
 **Source**: SEED.md §4 Axiom 1; Transcript 01 (five-tuple identity)
+**Formalized as**: ADR-STORE-003 in `spec/01-store.md`
 
 ### FD-008: Schema-as-Data
 
@@ -102,6 +107,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rationale**: Aligns with EAV (FD-002). The schema should evolve with the project without requiring code changes or DDL migrations.
 **Rejected**: Hardcoded DDL (the Go CLI approach — 39 `CREATE TABLE` statements in Go source).
 **Source**: SEED.md §4 Constraint C3
+**Formalized as**: ADR-SCHEMA-001 in `spec/02-schema.md`
 
 ### FD-009: Datom Store Replaces JSONL Event Stream
 
@@ -116,6 +122,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rationale**: Minimizes operational complexity. Agents invoke Braid as a CLI tool or link it as a library. The VPS-local deployment model means all agents share a filesystem, making a database server unnecessary.
 **Rejected**: Client-server database (unnecessary infrastructure at target scale); distributed database (overkill for single-VPS deployment).
 **Source**: Transcript 01 (embedded SQLite-style deployment)
+**Formalized as**: ADR-STORE-006 in `spec/01-store.md`
 
 ### FD-011: Rust as Implementation Language
 
@@ -129,6 +136,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Decision**: Every DDIS command becomes a transaction against the datom store. The bilateral loop (discover → refine → crystallize → datoms; scan → absorb → drift → datoms) maps entirely to store operations.
 **Rationale**: If any DDIS operation produces state outside the store, that state cannot be queried, conflict-detected, or coherence-verified. The store is the sole truth.
 **Source**: Transcript 01:866–924 (architecture diagram, command-to-transaction mapping)
+**Formalized as**: ADR-STORE-011 in `spec/01-store.md`
 
 ### FD-013: BLAKE3 for Content Hashing
 
@@ -137,6 +145,14 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rejected**: SHA-256 (slower, requires C dependency via `ring` or `openssl` for optimal performance); BLAKE2b (predecessor to BLAKE3, less optimized tree structure, no SIMD auto-detection); xxHash (not cryptographic — collision resistance is insufficient for content-addressed identity where collisions cause silent data corruption).
 **Source**: SEED.md §4 (content-addressed identity, Axiom 1); Transcript 01 (BLAKE3 discussed for content hashing); FD-007 (content-addressable identity)
 **Formalized as**: ADR-STORE-013 in `spec/01-store.md`
+
+### FD-014: Private EntityId Inner Field
+
+**Decision**: EntityId's inner `[u8; 32]` field is private. Construction only via `EntityId::from_content()`. Read access via `as_bytes()`.
+**Rationale**: Content-addressable identity (C2) means EntityIds MUST be derived from content. A public constructor from raw bytes would bypass content addressing, allowing fabricated IDs that break set-union deduplication (INV-STORE-002).
+**Rejected**: Public inner field (simpler pattern matching, but bypasses C2 at construction time).
+**Source**: SEED §4 Axiom 1, C2
+**Formalized as**: ADR-STORE-014 in `spec/01-store.md`
 
 ---
 
@@ -150,6 +166,7 @@ Formal algebraic properties of the datom store and its extensions.
 **Rationale**: G-Set is the simplest CRDT that provides strong eventual consistency. Set union requires no coordination. Content-addressable identity (FD-007) ensures the same fact has the same identity regardless of which agent asserted it.
 **Rejected**: More complex CRDTs (OR-Set, LWW-Register at store level — unnecessary when per-attribute resolution handles conflicts); custom merge logic (breaks formal guarantees).
 **Source**: Transcript 01 (algebraic foundations); SEED.md §4 Axiom 3
+**Formalized as**: ADR-STORE-001 in `spec/01-store.md`
 
 ### AS-002: Commitment Weight Function w(d)
 
@@ -165,6 +182,7 @@ Formal algebraic properties of the datom store and its extensions.
 **Properties**: (1) Monotonicity: `commit(b,S) ⊇ S`; (2) Branch isolation: branches cannot see each other; (3) Combination commutativity; (4) Commit-combine equivalence; (5) Fork snapshot: `b.base = S|_{frontier(t)}`.
 **Rejected**: Pure G-Set only (no isolated workspaces); mutable branching (violates FD-001).
 **Source**: Transcript 04:509–553 (formal properties)
+**Formalized as**: ADR-MERGE-002 in `spec/07-merge.md`
 
 ### AS-004: Branch Visibility Formula
 
@@ -226,6 +244,7 @@ Deployment model, storage implementation, schema layers, and index design.
 **Rationale**: Different query patterns require different access paths. EAVT for entity lookup, AEVT for attribute-centric queries, VAET for reverse reference traversal, AVET for value-range scans. Datomic's index design is proven at scale.
 **Rejected**: Single index with secondary lookups (poor query performance); ad-hoc indexes per query (unpredictable performance, index explosion).
 **Source**: Transcript 01 (four index sort orders); Transcript 04:2197–2235
+**Formalized as**: ADR-STORE-005 in `spec/01-store.md`
 
 ### SR-002: LIVE Materialized Index as Fifth Index
 
@@ -248,6 +267,7 @@ Deployment model, storage implementation, schema layers, and index design.
 **Rationale**: HLC preserves temporal ordering (critical for time-travel queries) while maintaining uniqueness across agents without centralized coordination. Purely logical clocks lose temporal information; purely physical clocks have clock skew issues.
 **Rejected**: Sequential integers (require centralized counter, conflict across agents); UUIDs (no temporal ordering); pure Lamport clocks (no wall-clock correlation).
 **Source**: Transcript 01 (HLC for tx IDs)
+**Formalized as**: ADR-STORE-004 in `spec/01-store.md`
 
 ### SR-005: Query Engine Implementation Path — Shell → SQLite → Rust Binary
 
@@ -255,6 +275,7 @@ Deployment model, storage implementation, schema layers, and index design.
 **Rationale**: Bootstrapping problem — you need the system to build the system. Shell tools enable immediate use. The three implementations are substitutable (same protocol interface, tested against same invariants).
 **Rejected**: Starting directly with Rust (bootstrapping problem); staying with shell permanently (won't scale).
 **Source**: Transcript 04:2293–2314, 04:2397 (user confirms Rust target)
+**Formalized as**: ADR-STORE-012 in `spec/01-store.md`
 
 ### SR-006: File-Backed Store with Git as Temporal Index
 
@@ -262,6 +283,7 @@ Deployment model, storage implementation, schema layers, and index design.
 **Rationale**: For single-VPS with single-digit agents and thousands of datoms, file-backed with in-memory indexes is sufficient. Git integration provides audit history and time-travel without implementing a separate temporal layer.
 **Rejected**: Database server (unnecessary infrastructure); in-memory only (not durable, violates PD-003).
 **Source**: Transcript 04:2197–2235
+**Formalized as**: ADR-STORE-007 in `spec/01-store.md`
 
 ### SR-007: Multi-Agent Coordination via Shared Filesystem
 
@@ -275,6 +297,7 @@ Deployment model, storage implementation, schema layers, and index design.
 **Decision**: The meta-schema consists of exactly 17 axiomatic attributes hardcoded in the engine (not defined by datoms): `:db/ident`, `:db/valueType`, `:db/cardinality`, `:db/doc`, `:db/unique`, `:db/isComponent`, `:db/resolutionMode`, `:db/latticeOrder`, `:db/lwwClock`, plus lattice definition attributes (`:lattice/ident`, `:lattice/elements`, `:lattice/comparator`, `:lattice/bottom`, `:lattice/top`). Value types include non-standard `:db.type/json` and `:db.type/tuple`. Three LWW clock options: `:hlc`, `:wall`, `:agent-rank`.
 **Rationale**: The meta-schema is the self-describing foundation — the only attributes not defined by datoms. Everything else in the store is defined by datoms that reference these 17 attributes.
 **Source**: Transcript 02:379–420
+**Formalized as**: ADR-SCHEMA-002 in `spec/02-schema.md`
 
 ### SR-009: Six-Layer Schema Architecture
 
@@ -282,12 +305,22 @@ Deployment model, storage implementation, schema layers, and index design.
 **Rationale**: The user chose "Approach 2: Full domain model" over minimal schema. The schema IS the ontology — it determines what the system can think about. The 6-layer structure enables incremental implementation.
 **Note**: Protocol extensions (Transcript 04) add 15 more entity types, bringing total to ~46 types, ~300 attributes, ~16 lattices.
 **Source**: Transcript 02:356–942 (user choice at 369, full schema)
+**Formalized as**: ADR-SCHEMA-003 in `spec/02-schema.md`
 
 ### SR-010: Twelve Named Lattice Definitions
 
 **Decision**: Exactly 12 lattices defined, several with non-trivial diamond structure: (1) agent-lifecycle, (2) confidence-level, (3) adr-lifecycle, (4) witness-lifecycle, (5) challenge-verdict (diamond: `:confirmed`/`:refuted` incomparable, join=`:contradicted`), (6) thread-lifecycle, (7) finding-lifecycle (diamond), (8) proposal-lifecycle (three-way incomparable, join=`:contested`), (9) delegation-level, (10) conflict-lifecycle, (11) task-lifecycle, (12) numeric-max.
 **Rationale**: The diamond lattice structures are formally significant — concurrent incomparable values join to produce a coordination signal (see AS-009). This connects lattice algebra directly to uncertainty detection.
 **Source**: Transcript 02:628–926 (lattice definitions throughout schema)
+**Formalized as**: ADR-SCHEMA-004 in `spec/02-schema.md`
+
+### SR-012: Owned Schema with Borrow API
+
+**Decision**: Store owns a `Schema` field internally, derived from schema datoms on load. Exposed via `store.schema() -> &Schema` (zero-cost borrow). Schema is reconstructed after schema-modifying transactions.
+**Rationale**: Avoids lifetime infection from Option A (borrow-based `Schema<'a>`), prevents divergence from Option B (copied data that can go stale). Maintains C3 because Schema is always derived from datoms — `Schema::from_store()` is the sole constructor.
+**Rejected**: (A) Borrow-based `Schema<'a>` (lifetime-infectious in Rust); (B) Independent copy (can diverge from store after construction).
+**Source**: C3, INV-SCHEMA-001
+**Formalized as**: ADR-SCHEMA-005 in `spec/02-schema.md`
 
 ### SR-011: Session State File as Coordination Point
 
@@ -318,6 +351,7 @@ These decisions govern the protocol layer above the axioms.
 **Formal**: Provenance factors for authority computation: `:observed` = 1.0, `:derived` = 0.8, `:inferred` = 0.5, `:hypothesized` = 0.2. `contribution_weight(d) = base_weight × provenance_factor(d.tx.provenance)`.
 **Rejected**: (A) No provenance typing — rely on challenge system post-hoc (slow convergence). (C) Structural inference only — imperfect classification.
 **Source**: Transcript 04:244–310 (options, provenance factor weights), 04:373 (confirmed)
+**Formalized as**: ADR-STORE-008 in `spec/01-store.md`
 
 ### PD-003: Crash-Recovery Model with Durable Frontiers
 
@@ -326,6 +360,7 @@ These decisions govern the protocol layer above the axioms.
 **Invariant**: `INV-FRONTIER-DURABLE-001`: frontier MUST be durably stored after every TRANSACT and every MERGE.
 **Rejected**: (A) Crash-stop (too rigid). (C) Byzantine model (overkill).
 **Source**: Transcript 04:310–342, 04:373 (confirmed)
+**Formalized as**: ADR-STORE-009 in `spec/01-store.md`
 
 ### PD-004: At-Least-Once Delivery with Idempotent Operations
 
@@ -333,6 +368,7 @@ These decisions govern the protocol layer above the axioms.
 **Formal**: `merge(merge(S, R), R) = merge(S, R)` (idempotence). SYNC-BARRIER is the exception — requires stronger guarantees but is explicitly rare.
 **Rejected**: Exactly-once (requires 2PC). At-most-once (risks data loss).
 **Source**: Transcript 04:337–358, 04:373 (confirmed)
+**Formalized as**: ADR-STORE-010 in `spec/01-store.md`
 
 ### PD-005: Protocol Is Topology-Agnostic
 
@@ -340,6 +376,7 @@ These decisions govern the protocol layer above the axioms.
 **Rationale**: Prescribing topology limits applicability. Topology-specific behavior is agents choosing SIGNAL targets and MERGE partners.
 **Rejected**: Topology-prescribing protocol (locks to one coordination pattern).
 **Source**: Transcript 04:114–127; Transcript 03
+**Formalized as**: ADR-SYNC-002 in `spec/08-sync.md`
 
 ### PD-006: Bilateral Authority Principle
 
@@ -376,6 +413,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Every signal (Confusion, Conflict, UncertaintySpike, ResolutionProposal, DelegationRequest, GoalDrift, BranchReady, DeliberationTurn) is recorded as a datom.
 **Invariant**: `INV-SIGNAL-DATOM-001`: signal history must be queryable.
 **Source**: Transcript 04:1715–1769
+**Formalized as**: ADR-SIGNAL-001 in `spec/09-signal.md`
 
 ### PO-005: Confusion Signal as First-Class Protocol Operation
 
@@ -394,6 +432,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Fork, Commit, Combine (strategies: Union, SelectiveUnion, ConflictToDeliberation), Rebase, Abandon, Compare (criteria: FitnessScore, TestSuite, UncertaintyReduction, AgentReview, Custom). Competing branches locked from commit until comparison/deliberation.
 **Invariant**: `INV-BRANCH-COMPETE-001`, `INV-BRANCH-DELIBERATION-001` (ConflictToDeliberation opens deliberation).
 **Source**: Transcript 04:1524–1591
+**Formalized as**: ADR-MERGE-003 in `spec/07-merge.md`, ADR-MERGE-004 in `spec/07-merge.md`
 
 ### PO-008: SUBSCRIBE — Pattern-Based Push Notifications
 
@@ -444,11 +483,13 @@ Specifications for the canonical protocol operations.
 **Decision**: Default query mode is local frontier. Consistent cuts via optional sync barriers for non-monotonic queries.
 **Rejected**: (A) Local frontier only. (B) Consistent cut only (too expensive for monotonic queries).
 **Source**: Transcript 01:518–542, 01:645
+**Formalized as**: ADR-QUERY-005 in `spec/03-query.md`
 
 ### SQ-002: Frontier as Datom Attribute
 
 **Decision**: Frontier stored as `:tx/frontier`. Concrete type: `Frontier = Map<AgentId, TxId>` (vector-clock equivalent).
 **Source**: Transcript 02:471–479; Transcript 04:1190–1243
+**Formalized as**: ADR-QUERY-006 in `spec/03-query.md`
 
 ### SQ-003: Datalog Frontier Query Extension
 
@@ -457,8 +498,9 @@ Specifications for the canonical protocol operations.
 
 ### SQ-004: Stratum Safety Classification
 
-**Decision**: Strata 0–3 (monotonic) safe without coordination. Strata 4–5 (non-monotonic) require sync barriers. `QueryMode = Monotonic | Stratified Frontier | Barriered BarrierId`.
+**Decision**: Strata 0–1 (monotonic) and Stratum 4 (conservatively monotonic) safe without coordination. Strata 2–3 (mixed/FFI) require frontier-specific evaluation (Stratified mode). Stratum 5 (non-monotonic bilateral loop) requires sync barriers (Barriered mode). `QueryMode = Monotonic | Stratified Frontier | Barriered BarrierId`.
 **Source**: Transcript 02:2047; Transcript 04:1190–1243
+**Formalized as**: ADR-QUERY-003 in `spec/03-query.md`
 
 ### SQ-005: Topology-Agnostic Resolution Invariant
 
@@ -470,6 +512,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Query layer is bilateral. Forward queries (spec → impl status) and backward queries (impl → spec alignment) use the same Datalog apparatus.
 **Formal**: Queries naturally partition into: Forward-flow (planning: epistemic uncertainty, crystallization candidates, delegation, ready tasks), Backward-flow (assessment: conflict detection, drift candidates, aleatory uncertainty, absorption triggers), Bridge (both: commitment weight, consequential uncertainty, spectral authority). Spectral authority is the explicit bridge — updated by backward-flow observations, consumed by forward-flow decisions.
 **Source**: Transcript 02; Transcript 03:1084–1094
+**Formalized as**: ADR-QUERY-008 in `spec/03-query.md`
 
 ### SQ-007: Projection Pyramid — Level-Based Summarization
 
@@ -477,6 +520,7 @@ Specifications for the canonical protocol operations.
 **Budget-driven selection**: >2000 tokens = π₀ for top/π₁ for others; 500–2000 = π₁/π₂; 200–500 = π₂ for top/omit others; ≤200 = single-line status + single guidance action.
 **Invariant**: `INV-ASSEMBLE-PYRAMID-001`: structural dependency coherence.
 **Source**: Transcript 04:966–1021; Transcript 05:1008–1019 (budget thresholds)
+**Formalized as**: ADR-QUERY-007 in `spec/03-query.md`
 
 ### SQ-008: Complete Protocol Type Definitions
 
@@ -488,6 +532,15 @@ Specifications for the canonical protocol operations.
 **Decision**: Six strata with 17 named query patterns: Stratum 0 (primitive, monotonic — current-value over LIVE), Stratum 1 (graph traversal, monotonic — causal-ancestor, depends-on, cross-ref reachability), Stratum 2 (uncertainty, mixed — epistemic/aleatory/consequential), Stratum 3 (authority, not pure Datalog — linear algebra: SVD, delegation threshold), Stratum 4 (conflict detection, conservatively monotonic — detect-conflicts, route-conflict), Stratum 5 (bilateral loop, non-monotonic — spec-fitness, crystallization-candidates, drift-candidates).
 **Rationale**: Systematic safety analysis. Strata 0–3 safe at any frontier. Strata 4–5 benefit from sync barriers for correctness-critical decisions.
 **Source**: Transcript 03:1052–1081
+**Formalized as**: ADR-QUERY-003 in `spec/03-query.md`
+
+### SQ-011: Full Graph Engine in Kernel
+
+**Decision**: Graph algorithms (PageRank, betweenness, critical path, SCC, k-core, etc.) are first-class kernel query operations alongside Datalog, with results stored as datoms.
+**Rationale**: Graph algorithms are the foundation of task derivation (INV-GUIDANCE-009), work routing (INV-GUIDANCE-010), and topology fitness (INV-GUIDANCE-011). Externalizing them would break CRDT merge — graph results must be datoms to merge across agents. Graph metrics over the datom reference graph are monotonic (CALM-compliant).
+**Rejected**: (A) External tools (breaks store-as-sole-truth); (B) FFI derived functions (forces unnatural Datalog encoding of results).
+**Source**: ADRS SQ-004, FD-003
+**Formalized as**: ADR-QUERY-009 in `spec/03-query.md`
 
 ### SQ-010: Datalog/Imperative Boundary for Derived Functions
 
@@ -579,11 +632,13 @@ Specifications for the canonical protocol operations.
 **Decision**: Conservative — flags potential conflicts even when uncertain. `INV-CONFLICT-CONSERVATIVE-001`: detected conflicts at any local frontier MUST be a superset of conflicts at the global frontier. `conflicts(frontier_local) ⊇ conflicts(frontier_global)`.
 **Proof sketch**: Causal-ancestor relation is monotonically growing. Learning about new causal paths can only resolve apparent concurrency, never create it. Agent may waste effort on phantom conflicts (safe) but never miss a real one (critical).
 **Source**: Transcript 02; Transcript 03:742–761
+**Formalized as**: ADR-RESOLUTION-003 in `spec/04-resolution.md`
 
 ### CR-002: Three-Tier Conflict Routing
 
 **Decision**: (1) Automatic (low severity — lattice/LWW per attribute), (2) Agent-with-notification (medium), (3) Human-required (high — blocks). Severity = `max(w(d₁), w(d₂))`.
 **Source**: Transcript 02; Transcript 04:1331–1342
+**Formalized as**: ADR-RESOLUTION-004 in `spec/04-resolution.md`
 
 ### CR-003: Conflict Detection and Routing as Datom Cascade
 
@@ -595,6 +650,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Deliberation (process), Position (stance: `:advocate | :oppose | :neutral | :synthesize`), Decision (method: `:consensus | :majority | :authority | :human-override | :automated`). Deliberation history is a case law system.
 **Invariant**: `INV-DELIBERATION-BILATERAL-001`: supports both forward and backward flow with identical entity structure.
 **Source**: Transcript 04:745–828
+**Formalized as**: ADR-DELIBERATION-001 in `spec/11-deliberation.md`, ADR-RESOLUTION-005 in `spec/04-resolution.md`
 
 ### CR-005: Crystallization Stability Guard
 
@@ -605,6 +661,22 @@ Specifications for the canonical protocol operations.
 
 **Decision**: `conflict(d1, d2) = d1 = [e a v1 t1 assert] ∧ d2 = [e a v2 t2 assert] ∧ v1 ≠ v2 ∧ cardinality(a) = :one ∧ ¬(t1 < t2) ∧ ¬(t2 < t1)`. Critical: conflict requires causal independence — if one tx precedes the other, it is an update, not a conflict.
 **Source**: Transcript 01:998–1011
+
+### CR-008: Resolution at Query Time, Not Merge Time
+
+**Decision**: MERGE is pure set union; conflict resolution happens at query time in the LIVE index, not during MERGE.
+**Rationale**: If MERGE resolves conflicts, then `MERGE(S1, S2)` depends on schema — but schema is itself data in the store. This creates a circular dependency that breaks the CRDT algebraic properties (L1–L3 assume set union). Resolution at query time avoids this: MERGE is always set union, and LIVE applies resolution modes.
+**Rejected**: (A) Resolution at merge time (breaks C4, creates schema dependency in MERGE).
+**Source**: C4, ADRS AS-001
+**Formalized as**: ADR-RESOLUTION-002 in `spec/04-resolution.md`
+
+### CR-009: BLAKE3 Hash Tie-Breaking for LWW Conflicts
+
+**Decision**: When two concurrent LWW assertions have identical HLC timestamps, break ties by lexicographic comparison of `blake3([e, a, v, tx, op])` hash. The datom with the greater hash wins.
+**Rationale**: Without a deterministic tie-breaker, two agents resolving the same conflict could pick different winners, violating INV-RESOLUTION-002 (commutativity). BLAKE3 hash comparison provides a total order that preserves commutativity, associativity, and idempotency. The hash is already computed for EntityId generation (ADR-STORE-013 / FD-013), so marginal cost is zero.
+**Rejected**: (B) Agent ID comparison (creates implicit agent hierarchy, incentivizes ID manipulation); (C) Leave undefined (breaks CRDT convergence).
+**Source**: INV-RESOLUTION-005, ADR-STORE-013
+**Formalized as**: ADR-RESOLUTION-009 in `spec/04-resolution.md`
 
 ### CR-007: Precedent Query Pattern for Deliberations
 
@@ -665,23 +737,27 @@ Specifications for the canonical protocol operations.
 **Decision**: Layer 0 (Ambient — CLAUDE.md, ~80 tokens, k*-exempt), Layer 1 (CLI — Rust binary, budget-aware), Layer 2 (MCP Server — thin wrapper), Layer 3 (Guidance — comonadic, spec-language), Layer 4 (TUI — subscription-driven, human-only), Layer 4.5 (Statusline — bridge between human display and agent budget, writes session state file).
 **Rationale**: "Agents fail to invoke available tools 56% of the time without ambient awareness." Layer 0 is most important. Layer 4.5 (statusline hook) has zero cost to agent context but produces critical side effect consumed by agent-facing layers.
 **Source**: Transcript 04:2444–2638; Transcript 05 (statusline as Layer 4.5, 05:1080–1163)
+**Formalized as**: ADR-INTERFACE-001 in `spec/14-interface.md`
 
 ### IB-002: CLI Has Three Output Modes
 
 **Decision**: (1) Structured/JSON, (2) Agent mode (100–300 tokens), (3) Human mode (TTY). Agent-mode: headline + entities (3–7) + signals (0–3) + guidance (1–3) + pointers (1–3).
 **Principle**: "Demonstration, not constraint list" — agent output follows demonstration style (activates deep LLM substrate) rather than constraint style (activates surface substrate). Concrete BAD/GOOD examples in transcript.
 **Source**: Transcript 04:2508–2574
+**Formalized as**: ADR-INTERFACE-002 in `spec/14-interface.md`
 
 ### IB-003: MCP as Thin Wrapper with Six Tools (Stage 0)
 
 **Decision**: MCP server calls CLI for all computation. Adds session state, budget adjustment, tool descriptions, notification queuing. Stage 0 exposes exactly six tools: `braid_transact` (meta), `braid_query` (moderate), `braid_status` (cheap), `braid_harvest` (meta), `braid_seed` (expensive), `braid_guidance` (cheap). Entity lookup and history are accessible via `braid_query`; CLAUDE.md generation is accessible via `braid_guidance`. Three additional tools (`braid_branch`, `braid_signal`, `braid_associate`) activate at Stage 2+ when branching and multi-agent coordination are available. On every call: reads context state, computes Q(t), passes `--budget`, appends notifications, updates session state, checks thresholds.
 **Source**: Transcript 04:2578–2641; Transcript 05:792–900 (original nine tool schemas); revised to six tools for Stage 0 per INV-INTERFACE-003
+**Formalized as**: ADR-INTERFACE-004 in `spec/14-interface.md`
 
 ### IB-004: CLI Output Budget as Hard Invariant
 
 **Decision**: `--budget <tokens>` flag on every command. Five-level precedence for budget determination: (1) `--budget` flag, (2) `--context-used` flag, (3) session state file `.ddis/session/context.json`, (4) transcript tail-parse (fallback), (5) conservative default 500 tokens. Staleness threshold: 30 seconds.
 **Invariant**: `INV-CLI-BUDGET-001`, `INV-INTERFACE-BUDGET-001` (output capped at `max(MIN_OUTPUT, Q(t) × W × budget_fraction)`).
 **Source**: Transcript 04:2489–2506; Transcript 05:649–716, 05:988–1006
+**Formalized as**: ADR-BUDGET-001 in `spec/13-budget.md`
 
 ### IB-005: k* Measurement — Measured Context Replaces Heuristic
 
@@ -689,6 +765,7 @@ Specifications for the canonical protocol operations.
 **Rationale**: Heuristic inaccurate because conversation structure varies. Measured consumption gives ground truth. Attention quality degrades faster than context consumption above ~60–70%.
 **Fallback**: Exponential decay `k*_eff = k*_base × e^{-αn}` (α=0.03) when measurement unavailable.
 **Source**: Transcript 04:2870–2900 (heuristic); Transcript 05:510–648 (measured, Q(t) formula)
+**Formalized as**: ADR-BUDGET-001, ADR-BUDGET-002 in `spec/13-budget.md`
 
 ### IB-006: k*-Parameterized Guidance Compression
 
@@ -716,6 +793,7 @@ Specifications for the canonical protocol operations.
 **Decision**: `ddis harvest` extracts durable facts; `ddis seed` generates carry-over. Agent lifecycle: SEED → work 20–30 turns → HARVEST → reset → GOTO SEED.
 **Invariant**: `INV-TRAJECTORY-STORE-001`: Seed output five-part template: (1) Context (1–2 sentences), (2) Invariants established, (3) Artifacts, (4) Open questions from deliberations, (5) Active guidance. Formatted as spec-first seed turn.
 **Source**: Transcript 04:2742–2812
+**Formalized as**: ADR-INTERFACE-003 in `spec/14-interface.md`
 
 ### IB-011: Rate-Distortion Interface Design
 
@@ -737,6 +815,7 @@ Specifications for the canonical protocol operations.
 **Decision**: `(W, extract, extend)` where `W(A) = (StoreState, A)`. Guidance nodes are entities with query-driven lookup. Agents can write new guidance nodes.
 **Invariant**: `INV-GUIDANCE-EVOLUTION-001`: learned guidance flagged, effectiveness updated empirically, below 0.3 threshold SHOULD be retracted.
 **Source**: Transcript 04:857–962
+**Formalized as**: ADR-GUIDANCE-001 in `spec/12-guidance.md`
 
 ### GU-002: Guidance Lookahead via Branch Simulation
 
@@ -748,6 +827,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Guidance MUST use spec-language (invariants, formal structure), NOT instruction-language (steps, checklists).
 **Invariant**: `INV-GUIDANCE-SEED-001`.
 **Source**: Transcript 04:2647–2673; Transcript 05
+**Formalized as**: ADR-GUIDANCE-004 in `spec/12-guidance.md`
 
 ### GU-004: Dynamic CLAUDE.md Generation
 
@@ -765,12 +845,22 @@ Specifications for the canonical protocol operations.
 **Decision**: Primary failure mode: attractor competition between Basin A (DDIS methodology — multi-step, token-expensive, learned in-conversation) and Basin B (pretrained coding pattern — single-step plan-to-code, deeply embedded). As k*_eff decreases, Basin B's pull increases. At crossover, Basin B captures trajectory and agent's own non-DDIS outputs reinforce it. Three non-fixes: longer CLAUDE.md (decays with k*), more reminders (accelerates k* depletion), simpler tools (can't beat zero friction).
 **Rationale**: "Most important practical problem in the entire system." Understanding as basin competition (not memory problem) is essential for designing countermeasures.
 **Source**: Transcript 05:1183–1260
+**Formalized as**: ADR-GUIDANCE-002 in `spec/12-guidance.md`
 
 ### GU-007: Six Anti-Drift Mechanisms (Integrated Architecture)
 
 **Decision**: (1) **Guidance Pre-emption** — CLAUDE.md rules: "Before writing code, MUST run `ddis guidance`." (2) **Guidance Injection** — every tool response includes next-action footer (GU-005). (3) **Drift Detection** — access log analysis: transact gap > 5 bash commands, tool absence > threshold. (4) **Pre-Implementation Gate** — `ddis pre-check --file <path>` before file writes, returns GO/CAUTION/STOP. (5) **Statusline Drift Alarm** — uncommitted count, time since last transact, warning indicator. (6) **Harvest Safety Net** — recovers un-transacted observations.
 **Rationale**: No single mechanism sufficient. They compose: injection prevents, detection catches, gate forces, statusline makes visible, harvest recovers.
 **Source**: Transcript 05:1262–1568
+**Formalized as**: ADR-GUIDANCE-003 in `spec/12-guidance.md`
+
+### GU-009: Unified Guidance as M(t) x R(t) x T(t)
+
+**Decision**: Guidance composes three independently falsifiable scores: M(t) methodology adherence, R(t) graph-based work routing, and T(t) topology fitness. Each has its own invariant (INV-GUIDANCE-008, 010, 011), uses data-driven weights stored as datoms, and is computed at its designated stage (M(t) and R(t) at Stage 0, T(t) at Stage 2).
+**Rationale**: Independent scores enable independent verification and independent evolution. A composite score hides which component failed. Hierarchical gating creates artificial dependencies — M(t) being low shouldn't prevent R(t) from routing to the right task. The tensor product preserves each component's information while enabling composition in the comonadic footer.
+**Rejected**: (A) Single composite score (hides failure component); (C) Hierarchical gating (creates artificial dependencies).
+**Source**: ADRS GU-006, GU-007, GU-008
+**Formalized as**: ADR-GUIDANCE-005 in `spec/12-guidance.md`
 
 ### GU-008: Guidance-Intention Coherence (INV-GUIDANCE-ALIGNMENT-001)
 
@@ -795,6 +885,7 @@ Specifications for the canonical protocol operations.
 
 **Decision**: Bounded conversation trajectories with durable knowledge extraction.
 **Source**: SEED.md §5; Transcript 06
+**Formalized as**: ADR-HARVEST-002 in `spec/05-harvest.md`
 
 ### LM-004: Reconciliation as Unified Taxonomy
 
@@ -805,12 +896,14 @@ Specifications for the canonical protocol operations.
 
 **Decision**: System proposes harvests from transaction analysis; agent/human confirms.
 **Source**: Transcript 05
+**Formalized as**: ADR-HARVEST-001 in `spec/05-harvest.md`
 
 ### LM-006: Harvest Calibration with FP/FN Tracking (INV-HARVEST-LEARNING-001)
 
 **Decision**: Track empirical quality: committed candidate later retracted = false positive; rejected candidate re-discovered = false negative. High FP → raise thresholds; high FN → lower; both → improve extractor. Harvest as drift metric: 0–2 uncommitted = excellent; 3–5 = minor drift; 6+ = significant.
 **Invariant**: `INV-HARVEST-DIAGNOSTIC-001`: uncommitted count stored as datom per session.
 **Source**: Transcript 05:1507–1520, 05:2011–2031
+**Formalized as**: ADR-HARVEST-003 in `spec/05-harvest.md`
 
 ### LM-007: Datom-Exclusive Information
 
@@ -842,6 +935,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Five topologies: single-agent self-review, bilateral peer review, swarm broadcast+voting, hierarchical specialist delegation, human review. Conservative thresholds: auto=0.15, peer=0.40, human=0.70. "Fresh-Agent Self-Review" pattern: depleted agent proposes, fresh session reviews (maximum context asymmetry).
 **Formal**: `w_harvest(candidate) = w_intrinsic(candidate) × confidence(extraction)`.
 **Source**: Transcript 05:1676–2073
+**Formalized as**: ADR-HARVEST-004 in `spec/05-harvest.md`
 
 ### LM-013: Harvest Entity Types
 
@@ -926,6 +1020,7 @@ Specifications for the canonical protocol operations.
 **Decision**: `F(S) = 0.18×V + 0.18×C + 0.18×(1-D) + 0.13×H + 0.13×(1-K) + 0.08×(1-I) + 0.12×(1-U)` where U = mean uncertainty. Target: F(S) → 1.0.
 **Rationale**: Uncertainty weight 0.12 reflects importance as coordination metric without dominating fitness.
 **Source**: Transcript 02:1905–1910; Transcript 03:933–941
+**Formalized as**: ADR-BILATERAL-001 in `spec/10-bilateral.md`
 
 ### CO-010: Four-Boundary Chain
 
@@ -941,16 +1036,52 @@ Specifications for the canonical protocol operations.
 
 **Decision**: Periodic structured reviews where the system assembles current spec state for human review: "Does this still describe what I want?" Output is a datom. Something between deliberation and harvest.
 **Source**: Transcript 07:249–253
+**Formalized as**: ADR-BILATERAL-003 in `spec/10-bilateral.md`
 
 ### CO-013: Cross-Project Coherence (Deferred)
 
 **Decision**: Axiological divergence can occur between projects. Store architecture supports it (multiple stores mergeable) but reconciliation machinery needs cross-store contradiction detection. Deferred to post-Stage-2.
 **Source**: Transcript 07:259–261
 
+### CO-015: Divergence Metric as Weighted Boundary Sum
+
+**Decision**: Total divergence across the four-boundary chain (intent -> spec -> impl -> behavior) is quantified as `D(spec, impl) = Sigma_i w_i * |boundary_gap(i)|` where boundary weights reflect the cost of divergence at each boundary. Default: equal weights.
+**Rationale**: Each boundary contributes independently to total divergence. Weighted sum is the simplest combination that captures per-boundary severity while remaining decomposable for targeted remediation.
+**Uncertainty**: UNC-BILATERAL-002 — boundary weights may need per-project tuning. Confidence: 0.5.
+**Source**: ADRS CO-010
+**Formalized as**: ADR-BILATERAL-002 in `spec/10-bilateral.md`
+
 ### CO-014: Extensible Reconciliation Architecture
 
 **Decision**: Taxonomy extensible by construction: new divergence types yield new detection queries and new deliberation patterns, all producing datoms in the same store. Resolution mechanism for all future types constrained to be datom-producing queries.
 **Source**: Transcript 07:315–317
+
+---
+
+## Implementation Decisions
+
+Decisions made during the specification-to-implementation transition, based on research
+findings from `audits/stage-0/research/`.
+
+### IMPL-001: Custom Datalog Engine Over Existing Crates
+
+**Decision**: Build a custom Datalog evaluator (~2100-3400 LOC) rather than using Datafrog, Crepe, Ascent, or DDlog. None of the existing Rust Datalog engines support runtime query construction, which is required for `braid query '[:find ...]'`. Crepe and Ascent are compile-time macro systems. DDlog is archived. Datafrog is a fixpoint engine without a Datalog layer.
+**Rationale**: The CLI's runtime query requirement (`braid query` accepts arbitrary Datalog strings) fundamentally disqualifies compile-time-only engines. Custom is the only option satisfying all spec requirements (semi-naive, frontier scoping, EAV pattern matching, runtime construction).
+**Rejected**: Datafrog (no Datalog parser, no stratification — only primitives), Crepe (compile-time only), Ascent (compile-time only), DDlog (archived, Haskell toolchain).
+**Source**: D2-datalog-engines.md; spec/03-query.md; formalized as ADR-IMPL-QUERY-001 in guide/03-query.md.
+
+### IMPL-002: Tiered Tokenization (chars/4 at Stage 0, tiktoken-rs at Stage 1)
+
+**Decision**: Use chars/4 with content-type correction at Stage 0. Graduate to tiktoken-rs (cl100k_base) at Stage 1 when token efficiency tracking needs cross-session comparability. Behind a `TokenCounter` trait for swappability.
+**Rationale**: The budget system uses coarse bands (200/500/2000 tokens). A 15-20% approximation error from chars/4 rarely changes band selection. Zero-dependency at Stage 0 avoids complexity during critical foundation work.
+**Rejected**: tiktoken-rs at Stage 0 (unnecessary dependency), HuggingFace tokenizers (~40 deps, no Claude model), bpe (no model-specific encoding).
+**Source**: D5-tokenizer-survey.md; spec/13-budget.md.
+
+### IMPL-003: Three-Tier Kani CI Pipeline
+
+**Decision**: Split Kani verification into three CI tiers: Fast (every PR, <5 min, ~13 trivial+simple harnesses), Full (nightly, <30 min, all 24 Stage 0 harnesses), Extended (weekly, <2 hours, higher unwind bounds). CaDiCaL as default solver.
+**Rationale**: 24 Stage 0 Kani harnesses cannot all run within the 15-minute PR gate. The three-tier split keeps PR verification fast while still running comprehensive verification on a schedule. CaDiCaL shows 10-200x speedup over MiniSat for structural properties.
+**Source**: D3-kani-feasibility.md; spec/16-verification.md section 16.2.
 
 ---
 

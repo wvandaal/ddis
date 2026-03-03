@@ -24,7 +24,7 @@ braid/src/                      ← Binary crate (not kernel — this is the IO 
 │   ├── guidance.rs             ← braid guidance
 │   └── entity.rs               ← braid entity, braid history
 ├── output.rs                   ← OutputMode dispatch (json/agent/human) + footer injection
-├── mcp.rs                      ← MCP JSON-RPC server (6 tools)
+├── mcp.rs                      ← MCP server (6 tools, rmcp-based, persistent process)
 ├── persistence.rs              ← redb ↔ kernel Store bridge
 └── claude_md.rs                ← Dynamic CLAUDE.md file generation
 ```
@@ -85,9 +85,10 @@ pub fn format_output(response: &ToolResponse, mode: OutputMode, footer: &Guidanc
 
 **Black box** (contract):
 - INV-INTERFACE-002: MCP wrapper — all six tools accessible via MCP JSON-RPC.
+  Persistent server process; store loaded once at initialization, held for session lifetime.
 - INV-INTERFACE-003: Exactly six tools at Stage 0. Fixed-size at compile time.
   `const MCP_TOOLS: [MCPTool; 6]` — adding/removing a tool is a compile error unless the
-  array size changes.
+  array size changes. The `tools/list` response is generated from these same definitions.
 - INV-INTERFACE-008: MCP tool description quality — every tool description satisfies the
   quality predicate `Q(D) = navigative(D) ∧ has_example(D) ∧ |D| ≤ 100 tokens ∧ has_semantic_types(D)`.
   Descriptions are compile-time constants; quality is verified via tests.
@@ -95,40 +96,102 @@ pub fn format_output(response: &ToolResponse, mode: OutputMode, footer: &Guidanc
   delay a harvest warning triggered by Q(t) threshold.
 
 **State box** (internal design):
-- JSON-RPC 2.0 over stdio.
-- Each tool: validate input → load store from redb → call kernel function →
-  format response → return JSON-RPC result.
+- JSON-RPC 2.0 over stdio, transported by `rmcp` crate (ADR-INTERFACE-004).
+- MCP lifecycle: `initialize` → `initialized` → tool calls → `shutdown`.
+  The rmcp crate handles the 3-phase initialization handshake and JSON-RPC framing.
+  Braid implements tool handler functions annotated with rmcp's `#[tool]` macro.
+- Store loaded once at `initialize` from redb, held as `Arc<Store>` for session lifetime.
+- Each tool call: validate input → call kernel function via `&Store` → format response → return.
 - Tool descriptions are the optimized prompts from guide/00-architecture.md §0.5.
 
 **Clear box** (implementation):
 ```rust
-pub struct MCPServer {
-    store_path: PathBuf,
+use rmcp::{ServerHandler, tool, McpServer};
+
+/// MCP server — persistent process, store loaded once at initialization.
+/// rmcp handles: stdio JSON-RPC, initialize/initialized handshake, tools/list, shutdown.
+/// Braid handles: tool handlers, session state, notification dispatch.
+pub struct BraidMcpServer {
+    store: Arc<Store>,                      // Loaded once at init, shared across all calls
+    session_state: SessionState,
+    notification_queue: Vec<Signal>,
 }
 
-impl MCPServer {
-    pub async fn serve(&self) {
-        // Read JSON-RPC from stdin, dispatch to tool handler, write result to stdout
-        loop {
-            let request = read_jsonrpc_request().await;
-            let result = match request.method.as_str() {
-                "braid_transact" => self.handle_transact(request.params).await,
-                "braid_query"    => self.handle_query(request.params).await,
-                "braid_status"   => self.handle_status(request.params).await,
-                "braid_harvest"  => self.handle_harvest(request.params).await,
-                "braid_seed"     => self.handle_seed(request.params).await,
-                "braid_guidance" => self.handle_guidance(request.params).await,
-                _ => Err(jsonrpc_error(-32601, "Method not found")),
-            };
-            write_jsonrpc_response(request.id, result).await;
-        }
+impl BraidMcpServer {
+    /// Called during MCP initialization. Loads store from redb once.
+    pub fn new(store_path: &Path) -> Result<Self, PersistenceError> {
+        let store = Arc::new(load_store(store_path)?);
+        Ok(Self {
+            store,
+            session_state: SessionState::default(),
+            notification_queue: Vec::new(),
+        })
     }
 }
 
+#[tool]
+impl BraidMcpServer {
+    /// Assert or retract datoms. Use when you have facts to record.
+    #[tool(name = "braid_transact")]
+    async fn handle_transact(&self, params: TransactParams) -> ToolResult {
+        kernel::transact(&self.store, params.datoms, params.provenance)
+    }
+
+    /// Run Datalog query or graph algorithm. Use to find facts, dependencies, metrics.
+    #[tool(name = "braid_query")]
+    async fn handle_query(&self, params: QueryParams) -> ToolResult {
+        kernel::query(&self.store, &params.query, params.mode)
+    }
+
+    /// Store summary: datom count, frontier, drift. Use for orientation.
+    #[tool(name = "braid_status")]
+    async fn handle_status(&self) -> ToolResult {
+        kernel::status(&self.store)
+    }
+
+    /// Extract session knowledge into datoms. Use near session end.
+    #[tool(name = "braid_harvest")]
+    async fn handle_harvest(&self, params: HarvestParams) -> ToolResult {
+        kernel::harvest(&self.store, params.auto)
+    }
+
+    /// Assemble session context from store. Use at session start.
+    #[tool(name = "braid_seed")]
+    async fn handle_seed(&self, params: SeedParams) -> ToolResult {
+        kernel::seed(&self.store, &params.task)
+    }
+
+    /// Methodology guidance: M(t), R(t), drift, CLAUDE.md generation.
+    #[tool(name = "braid_guidance")]
+    async fn handle_guidance(&self, params: GuidanceParams) -> ToolResult {
+        kernel::guidance(&self.store, params.generate_claude_md)
+    }
+}
+
+// Entry point: `braid serve` launches the MCP server
+pub async fn serve_mcp(store_path: &Path) -> Result<(), Box<dyn Error>> {
+    let server = BraidMcpServer::new(store_path)?;
+    // rmcp handles: stdio transport, initialize/initialized handshake,
+    // tools/list generation from #[tool] annotations, shutdown
+    McpServer::serve(server).await
+}
+
+/// Six MCP tools (INV-INTERFACE-003) — Stage 0 surface.
+/// Aligned with spec/14-interface.md MCPTool enum (R4.1c naming reconciliation).
+pub enum MCPTool {
+    Transact,   // meta: side effect — assert/retract datoms
+    Query,      // moderate: 50–300 tokens — Datalog query
+    Status,     // cheap: ≤50 tokens — store summary + M(t) + drift
+    Harvest,    // meta: side effect — extract session knowledge
+    Seed,       // expensive: 300+ tokens — session initialization
+    Guidance,   // cheap: ≤50 tokens — methodology steering + R(t)
+}
+
 /// Compile-time tool count enforcement (INV-INTERFACE-003).
-const MCP_TOOLS: [&str; 6] = [
-    "braid_transact", "braid_query", "braid_status",
-    "braid_harvest", "braid_seed", "braid_guidance",
+/// With rmcp, the #[tool] macro annotations also enforce this at compile time.
+const MCP_TOOLS: [MCPTool; 6] = [
+    MCPTool::Transact, MCPTool::Query, MCPTool::Status,
+    MCPTool::Harvest, MCPTool::Seed, MCPTool::Guidance,
 ];
 
 /// Tool description quality enforcement (INV-INTERFACE-008).
@@ -146,6 +209,7 @@ pub struct ToolDescription {
 ### Persistence Bridge
 
 **Black box**: Translate between kernel's in-memory `Store` and redb on-disk tables.
+Called once at startup (CLI command or MCP initialization), not per-call.
 
 **Clear box**:
 ```rust
@@ -162,6 +226,10 @@ pub fn save_store(store: &Store, path: &Path) -> Result<(), PersistenceError> {
     // Write frontier to "frontier" table
     // Indexes maintained in redb tables for query performance
 }
+
+// Usage contexts:
+// - CLI: load_store() at command start, save_store() at command end (per-invocation)
+// - MCP: load_store() once at MCP_INIT, save_store() after transact/harvest (session-scoped)
 ```
 
 ---
@@ -263,11 +331,13 @@ proptest! {
         }
     }
 
-    // INV-INTERFACE-002: MCP wrapper — all six tools accessible via MCP JSON-RPC
+    // INV-INTERFACE-002: MCP wrapper — all six tools accessible, store loaded once
     fn inv_interface_002() {
-        let server = MCPServer::new(":memory:");
-        for tool_name in &MCP_TOOLS {
-            let request = jsonrpc_request(tool_name, serde_json::json!({}));
+        let server = BraidMcpServer::new(temp_store_path())?;
+        // Store loaded once at init, not per-call
+        assert!(Arc::strong_count(&server.store) >= 1);
+        for tool in &MCP_TOOLS {
+            let request = jsonrpc_request(tool.name(), serde_json::json!({}));
             let result = server.dispatch(&request);
             // Every registered tool must be dispatchable (no "Method not found" for known tools)
             prop_assert!(
@@ -290,10 +360,14 @@ proptest! {
     }
 }
 
-// Integration test: MCP round-trip
+// Integration test: MCP lifecycle + round-trip
 #[test]
-fn mcp_transact_round_trip() {
-    // Send JSON-RPC transact request → receive response → verify datoms stored
+fn mcp_lifecycle_and_transact_round_trip() {
+    // 1. Create BraidMcpServer (simulates MCP_INIT — store loaded once)
+    // 2. Verify store is loaded and held via Arc
+    // 3. Send transact tool call → verify datoms stored
+    // 4. Send query tool call → verify datoms retrievable (same store ref)
+    // 5. Simulate shutdown → verify session state persisted
 }
 
 // Integration test: agent mode includes footer
@@ -312,7 +386,9 @@ fn agent_mode_has_footer() {
 - [ ] `OutputMode` enum with json/agent/human dispatch
 - [ ] Agent-mode output: context + content + footer
 - [ ] `$BRAID_AGENT` env var detection for default mode
-- [ ] MCP server: JSON-RPC over stdio, 6 tool handlers
+- [ ] MCP server: rmcp-based persistent process, 6 tool handlers via `#[tool]` macro
+- [ ] MCP lifecycle: initialize handshake, tools/list, shutdown (handled by rmcp)
+- [ ] MCP store loading: once at initialization via `Arc<Store>`, not per-call
 - [ ] MCP tool descriptions match guide/00-architecture.md §0.5
 - [ ] INV-INTERFACE-008: `ToolDescription` struct with quality predicate Q(D) enforced by test
 - [ ] INV-INTERFACE-009: `RecoveryHint` + `RecoveryAction` enum, total `KernelError::recovery()`
@@ -322,6 +398,7 @@ fn agent_mode_has_footer() {
 - [ ] Guidance footer injected into every agent-mode response
 - [ ] NEG-INTERFACE-003: harvest warnings never suppressed
 - [ ] Integration: full CLI round-trip (transact → query → status → harvest → seed)
-- [ ] Integration: MCP round-trip (JSON-RPC request → response)
+- [ ] Integration: MCP lifecycle test (init → tool calls → shutdown)
+- [ ] Integration: MCP round-trip (transact → query via same store ref)
 
 ---

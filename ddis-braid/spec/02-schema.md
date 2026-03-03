@@ -107,6 +107,57 @@ Transaction metadata:
   :tx/provenance      — Keyword    :one    — provenance type
 ```
 
+#### Layer 2 Spec-Element Attributes (Self-Bootstrap)
+
+The following attributes define how specification elements are represented as datoms.
+These belong to Layer 2 (DDIS Core) and are installed after genesis + Layer 1 (Agent &
+Provenance). They enable the self-bootstrap commitment (C7): the specification is the
+first dataset the system manages.
+
+```
+Core identity (required for all spec elements):
+  :spec/id              — String     :one    lww    — Element ID (e.g., "INV-STORE-001")
+  :spec/type            — Keyword    :one    lww    — invariant | adr | negative-case | uncertainty
+  :spec/namespace       — Keyword    :one    lww    — STORE | SCHEMA | QUERY | RESOLUTION | ...
+  :spec/statement       — String     :one    lww    — Primary statement text
+
+Traceability:
+  :spec/traces-to       — String     :many   multi  — References (e.g., "SEED §4 Axiom 2", "C1")
+  :spec/depends-on      — Ref        :many   multi  — Entity refs to other spec elements
+
+Verification & falsification:
+  :spec/falsification   — String     :one    lww    — Violation condition text
+  :spec/verification    — Keyword    :many   multi  — V:TYPE, V:PROP, V:KANI, V:MODEL, ...
+  :spec/stage           — Long       :one    lww    — Implementation stage (0, 1, 2, 3, 4)
+
+Three-level refinement fidelity (Mills cleanroom):
+  :spec/level-0         — String     :one    lww    — Algebraic law text (Level 0)
+  :spec/level-1         — String     :one    lww    — State machine invariant text (Level 1)
+  :spec/level-2         — String     :one    lww    — Implementation contract text (Level 2)
+
+ADR-specific:
+  :spec/adr-problem     — String     :one    lww    — Problem statement
+  :spec/adr-options     — String     :many   multi  — Option descriptions (one per option)
+  :spec/adr-decision    — String     :one    lww    — Chosen option with rationale
+  :spec/adr-alternatives— String     :many   multi  — Rejected alternatives with reasons
+
+Negative case-specific:
+  :spec/neg-violation   — String     :one    lww    — What constitutes a violation
+  :spec/neg-safety      — String     :one    lww    — Safety property in temporal logic
+
+Uncertainty:
+  :spec/confidence      — Double     :one    lww    — Confidence level (0.0–1.0)
+  :spec/resolves-when   — String     :one    lww    — What would resolve the uncertainty
+
+Proptest / verification detail:
+  :spec/proptest        — String     :one    lww    — Proptest strategy description
+```
+
+This gives 22 spec-element attributes. Combined with the 17 axiomatic attributes and
+Layer 1 agent/provenance attributes, the Stage 0 schema is sufficient to represent all
+specification elements in the datom store with full fidelity across all three refinement
+levels and all element types (invariant, ADR, negative case, uncertainty).
+
 #### Schema Evolution as Transaction
 
 ```
@@ -158,22 +209,73 @@ pub mod meta_schema {
     pub const TX_PROVENANCE: Attribute = Attribute::from_keyword(":tx/provenance");
 }
 
-pub struct Schema {
-    store: Store,  // schema IS the store (filtered to schema datoms)
-}
+/// Schema is owned by Store internally, derived from schema datoms (ADR-SCHEMA-005, Option C).
+/// Constructed via Schema::from_store() on load and after schema-modifying transactions.
+/// Exposed via store.schema() -> &Schema (zero-cost borrow).
+pub struct Schema { /* fields extracted from schema datoms */ }
 
 impl Schema {
-    /// Look up attribute definition.
-    pub fn attribute(&self, ident: &Keyword) -> Option<AttributeDef>;
+    /// Reconstruct schema from store datoms (the only constructor — enforces C3).
+    pub fn from_store(datoms: &BTreeSet<Datom>) -> Schema;
 
-    /// Validate a value against an attribute's type.
-    pub fn validate_value(&self, attr: &Attribute, value: &Value) -> Result<(), SchemaError>;
+    /// Look up attribute definition by attribute keyword.
+    pub fn attribute(&self, ident: &Attribute) -> Option<&AttributeDef>;
 
-    /// Add a new attribute (returns a Transaction).
-    pub fn define_attribute(&self, spec: AttributeSpec) -> Transaction<Building>;
+    /// Validate a datom against schema (attribute existence + value type match).
+    pub fn validate_datom(&self, datom: &Datom) -> Result<(), SchemaValidationError>;
+
+    /// Produce datoms for a new attribute definition (caller wraps in Transaction).
+    pub fn new_attribute(&self, spec: AttributeSpec) -> Vec<Datom>;
 
     /// All known attributes.
-    pub fn attributes(&self) -> impl Iterator<Item = AttributeDef>;
+    pub fn attributes(&self) -> impl Iterator<Item = (&Attribute, &AttributeDef)>;
+
+    /// Resolution mode for an attribute.
+    pub fn resolution_mode(&self, attr: &Attribute) -> ResolutionMode;
+
+    /// LWW clock selection for an attribute (when resolution mode = LWW).
+    pub fn lww_clock(&self, attr: &Attribute) -> LwwClock;
+}
+
+/// Clock selection for LWW resolution (INV-RESOLUTION-005).
+/// Stored as :db/lwwClock keyword on the attribute entity. Determines which
+/// ordering function is used when two assertions have equal HLC timestamps.
+pub enum LwwClock {
+    /// Hybrid Logical Clock ordering (default). Most precise.
+    Hlc,
+    /// Wall-clock ordering. Less precise but simpler.
+    Wall,
+    /// Agent rank ordering. Deterministic hierarchy among agents.
+    AgentRank,
+}
+
+impl Store {
+    /// Borrow the schema — zero cost, derived from store datoms on load.
+    pub fn schema(&self) -> &Schema { &self.schema }
+}
+
+/// Six-layer schema architecture (INV-SCHEMA-006).
+/// Each layer depends only on layers below it; Stage 0 installs Layers 0–1.
+pub enum SchemaLayer {
+    MetaSchema,       // Layer 0: 17 axiomatic attributes (9 :db/*, 5 :lattice/*, 3 :tx/*)
+    AgentProvenance,  // Layer 1: 2 types, 16 attributes (agent identity + provenance)
+    DdisCore,         // Layer 2: 12 types, 72 attributes (spec elements, observations)
+    Discovery,        // Layer 3: 5 types, 28 attributes (threads, findings)
+    Coordination,     // Layer 4: 7 types, 35 attributes (deliberation, sync)
+    Workflow,         // Layer 5: 5 types, 27 attributes (tasks, workspace)
+}
+
+/// Errors from schema operations (attribute definition, schema evolution).
+/// Distinct from SchemaValidationError (which covers datom-level type checking
+/// in INV-SCHEMA-004); SchemaError covers schema definition operations.
+pub enum SchemaError {
+    /// Attempt to define an attribute with an :db/ident that already exists.
+    DuplicateAttribute(Attribute),
+    /// Attribute has invalid cardinality value (not :one or :many).
+    InvalidCardinality,
+    /// Schema layer dependency violation (NEG-SCHEMA-003): attribute in Layer N
+    /// references entity type from Layer M where M > N.
+    LayerDependencyViolation { attr: Attribute, attr_layer: SchemaLayer, ref_layer: SchemaLayer },
 }
 ```
 
@@ -214,7 +316,7 @@ pub struct Schema { /* fields extracted from schema datoms */ }
 impl Schema {
     /// Reconstruct schema from store datoms (the only constructor).
     pub fn from_store(datoms: &BTreeSet<Datom>) -> Schema { /* ... */ }
-    pub fn attribute(&self, ident: &Keyword) -> Option<&AttributeDef> { /* ... */ }
+    pub fn attribute(&self, ident: &Attribute) -> Option<&AttributeDef> { /* ... */ }
 }
 
 impl Store {
@@ -376,7 +478,7 @@ Attributes in Layer N reference only entity types defined in Layers 0..N.
 ### INV-SCHEMA-007: Lattice Definition Completeness
 
 **Traces to**: ADRS SR-010
-**Verification**: `V:PROP`
+**Verification**: `V:PROP`, `V:KANI`
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
@@ -388,13 +490,108 @@ Attributes in Layer N reference only entity types defined in Layers 0..N.
     L.:lattice/elements is non-empty
     L.:lattice/comparator names a valid ordering function
     L.:lattice/bottom ∈ L.:lattice/elements
+
+  AND the comparator defines a valid join-semilattice over the declared elements:
+
+  Semilattice witness requirement (R2.4):
+    Let E = L.:lattice/elements and ≤ = L.:lattice/comparator. Then:
+
+    (1) Reflexivity:     ∀ x ∈ E: x ≤ x
+    (2) Antisymmetry:    ∀ x, y ∈ E: (x ≤ y ∧ y ≤ x) ⟹ x = y
+    (3) Transitivity:    ∀ x, y, z ∈ E: (x ≤ y ∧ y ≤ z) ⟹ x ≤ z
+    (4) Join existence:  ∀ x, y ∈ E: ∃ j ∈ E:
+                           j ≥ x ∧ j ≥ y                          (upper bound)
+                           ∧ (∀ u ∈ E: u ≥ x ∧ u ≥ y ⟹ u ≥ j)   (least)
+    (5) Join uniqueness: The j in (4) is unique for each pair (x, y)
+    (6) Bottom validity: ∀ x ∈ E: L.:lattice/bottom ≤ x
+
+  These properties MUST be verified at schema-registration time (when the lattice
+  definition is transacted). For finite element sets, verification is exhaustive
+  over all pairs/triples — O(|E|²) for (1)-(2) and (4)-(5), O(|E|³) for (3).
+  For the 12 named lattices (ADR-SCHEMA-004), |E| ≤ 10, so this is trivially fast.
 ```
 
 #### Level 1 (State Invariant)
-Every lattice-resolved attribute has a complete lattice definition.
+Every lattice-resolved attribute has a complete lattice definition. The lattice
+definition is not merely syntactically complete (has elements, comparator, bottom)
+but semantically valid: the comparator defines a partial order with unique least
+upper bounds for all pairs.
+
+A user-defined lattice that fails the semilattice witness check at registration time
+is rejected. The transaction installing the lattice definition does not commit.
+This prevents downstream violations of INV-RESOLUTION-002 (Resolution Commutativity)
+and INV-RESOLUTION-006 (Lattice Join Correctness), which depend on the algebraic
+properties guaranteed by the semilattice structure.
+
+#### Level 2 (Implementation Contract)
+```rust
+/// Verify that a lattice definition forms a valid join-semilattice.
+/// Called during schema validation when a lattice entity is transacted.
+fn verify_semilattice(elements: &[Keyword], comparator: &dyn Fn(&Keyword, &Keyword) -> bool,
+                      bottom: &Keyword) -> Result<(), LatticeValidationError> {
+    // (1) Reflexivity
+    for x in elements {
+        if !comparator(x, x) {
+            return Err(LatticeValidationError::NotReflexive(x.clone()));
+        }
+    }
+    // (2) Antisymmetry
+    for x in elements {
+        for y in elements {
+            if x != y && comparator(x, y) && comparator(y, x) {
+                return Err(LatticeValidationError::NotAntisymmetric(x.clone(), y.clone()));
+            }
+        }
+    }
+    // (3) Transitivity
+    for x in elements {
+        for y in elements {
+            for z in elements {
+                if comparator(x, y) && comparator(y, z) && !comparator(x, z) {
+                    return Err(LatticeValidationError::NotTransitive(
+                        x.clone(), y.clone(), z.clone()));
+                }
+            }
+        }
+    }
+    // (4)+(5) Join existence and uniqueness
+    for x in elements {
+        for y in elements {
+            let upper_bounds: Vec<_> = elements.iter()
+                .filter(|u| comparator(x, u) && comparator(y, u))
+                .collect();
+            if upper_bounds.is_empty() {
+                return Err(LatticeValidationError::NoJoin(x.clone(), y.clone()));
+            }
+            let least = upper_bounds.iter()
+                .filter(|u| upper_bounds.iter().all(|w| comparator(u, w)))
+                .collect::<Vec<_>>();
+            if least.len() != 1 {
+                return Err(LatticeValidationError::NonUniqueJoin(x.clone(), y.clone()));
+            }
+        }
+    }
+    // (6) Bottom validity
+    for x in elements {
+        if !comparator(bottom, x) {
+            return Err(LatticeValidationError::InvalidBottom(bottom.clone(), x.clone()));
+        }
+    }
+    Ok(())
+}
+```
 
 **Falsification**: An attribute declared as `:lattice` resolution mode with no corresponding
-lattice definition, or a lattice definition missing required properties.
+lattice definition, or a lattice definition missing required properties. Additionally:
+a lattice definition whose comparator violates reflexivity, antisymmetry, or transitivity;
+or a lattice definition where some pair of elements has no least upper bound or has multiple
+incomparable upper bounds (violating the semilattice requirement). Any such lattice that
+is accepted by the schema validation without triggering an error violates this invariant.
+
+**proptest strategy**: Generate random partial orders over small element sets (|E| ≤ 8).
+For valid semilattices, verify `verify_semilattice` accepts. For partial orders that
+violate any of the six properties, verify `verify_semilattice` rejects with the
+correct error variant.
 
 ---
 
@@ -565,7 +762,10 @@ No YAML config, no CREATE TABLE, no schema.json.
 **Formal statement**: The only source of truth for "what attributes exist" is
 `store.query([:find ?a :where [?a :db/ident ?name]])`.
 
-**Rust type-level enforcement**: `Schema` wraps a `&Store` reference. No `Schema::from_file()`.
+**Rust type-level enforcement**: `Schema` is owned by `Store` internally (ADR-SCHEMA-005,
+Option C). `Schema::from_store(datoms)` is the sole constructor — no `Schema::from_file()`,
+`Schema::from_yaml()`, or `Schema::new()`. The type has no lifetime parameter; schema is
+derived from store datoms on load and after schema-modifying transactions.
 
 ---
 

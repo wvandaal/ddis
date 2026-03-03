@@ -18,20 +18,25 @@ braid-kernel/src/
 
 ```rust
 /// A candidate for harvest: knowledge to potentially transact.
+/// Fields align with spec/05-harvest.md §5.3 Level 2, plus implementation
+/// additions (id, reconciliation_type) documented below.
 pub struct HarvestCandidate {
-    pub id:          usize,
-    pub datoms:      Vec<Datom>,
-    pub category:    HarvestCategory,
-    pub confidence:  f64,            // 0.0–1.0
-    pub source:      String,         // Where in the conversation this was found
-    pub weight:      f64,            // Estimated commitment weight
-    pub reconciliation_type: ReconciliationType,
-    pub status:      HarvestStatus,  // Tracks candidate lifecycle
+    pub id:                  usize,                  // Guide addition: index for accept/reject referencing
+    pub datom_spec:          Vec<Datom>,              // Spec name (was: datoms)
+    pub category:            HarvestCategory,
+    pub confidence:          f64,                     // 0.0–1.0
+    pub weight:              f64,                     // Estimated commitment weight
+    pub status:              CandidateStatus,         // Spec name: lattice :proposed < :under-review < :committed < :rejected
+    pub extraction_context:  String,                  // Spec name (was: source) — why this was extracted
+    pub reconciliation_type: ReconciliationType,      // Guide addition: traces to reconciliation taxonomy
 }
 
-pub enum HarvestStatus {
-    Pending,                // Awaiting review
-    Accepted,               // Approved for transact
+/// Candidate status lattice (spec/05-harvest.md §5.3).
+/// Follows the spec's four-step lattice: proposed < under-review < committed < rejected.
+pub enum CandidateStatus {
+    Proposed,               // Initial state after detection
+    UnderReview,            // Being reviewed by topology
+    Committed,              // Approved and transacted
     Rejected(String),       // Rejected with reason
 }
 
@@ -87,7 +92,120 @@ pub struct SessionContext {
     pub recent_transactions: Vec<TxId>,
     pub task_description:   String,
 }
+
+/// Harvest session entity — records metadata for a completed harvest (INV-HARVEST-002).
+/// Created by harvest_session_entity() and transacted into the store.
+pub struct HarvestSession {
+    pub session_id:       EntityId,
+    pub agent:            AgentId,
+    pub review_topology:  ReviewTopology,
+    pub candidates:       Vec<HarvestCandidate>,
+    pub drift_score:      u32,           // count of uncommitted observations at harvest time
+    pub timestamp:        Instant,
+}
+
+/// Review topology for harvest candidates (INV-HARVEST-008).
+/// Stage 0: only SelfReview is used. Other variants defined for forward compatibility.
+pub enum ReviewTopology {
+    SelfReview,                                    // Stage 0: single agent reviews own work
+    PeerReview { reviewer: AgentId },              // Stage 2: bilateral peer review
+    SwarmVote { quorum: u32 },                     // Stage 3: multi-agent voting
+    HierarchicalDelegation { specialist: AgentId },// Stage 3: route to domain expert
+    HumanReview,                                   // Stage 2: human in the loop
+}
 ```
+
+---
+
+## §5.1a Harvest Detection Epistemology (from D4-harvest-epistemology.md)
+
+The formal model defines `Delta(t) = K_agent(t) \ K_store(t)` as the epistemic gap.
+The operational challenge is that **K_agent(t) is not directly observable**.
+
+### What K_agent(t) Contains (Five Categories)
+
+| Category | Observable? | Source | Detection Method |
+|----------|------------|--------|-----------------|
+| 1. Seed knowledge | YES (fully) | Loaded at session start from store | Known by construction |
+| 2. Transaction knowledge | YES (fully) | Explicit `braid transact` calls | In K_store by definition |
+| 3. Query knowledge | YES (fully) | `braid query` results | Projections of K_store |
+| 4. Tool output knowledge | PARTIAL | Non-braid tool calls (bash, file reads, web) | Tool call log matching |
+| 5. Reasoning knowledge | NO | Implicit conclusions, trade-off assessments | LLM-assisted only |
+
+**The epistemic gap lives primarily in categories 4 and 5.** Category 4 is the highest-value
+target for mechanical detection. Category 5 requires the agent to self-report its knowledge.
+
+### Stage 0 Detection: Two-Layer Architecture
+
+**Layer 1 — Tool Call Log Matcher (mechanical)**:
+```
+1. Read session context (agent ID, task description, start TX)
+2. Query store for all transactions since session start
+3. Query tool call log for all tool calls since session start
+4. For each tool call result:
+   a. Check if a corresponding observation datom exists in store
+   b. If not: generate a harvest candidate with category=Observation
+```
+
+Mechanical signals with detection confidence:
+
+| Signal | Detection Method | Confidence |
+|--------|-----------------|------------|
+| File read without observation datom | Compare tool log to store | High |
+| Error encountered without uncertainty datom | Check tool exit codes | High |
+| Test run without result datom | Check test tool calls | High |
+| Dependency discovered without link | Compare entity references | Medium |
+| Decision language in conversation | Parse for decision patterns | Medium |
+
+**Layer 2 — LLM-Assisted Detection (semi-automated)**:
+
+Steps 1-4 above are mechanical. Steps 5-7 require the agent:
+```
+5. Present mechanical candidates to the agent for categorization and refinement
+6. Agent adds reasoning-derived candidates (decisions, uncertainties)
+7. Agent reviews and accepts/rejects each candidate
+```
+
+### The Harvest Prompt Template
+
+To structure LLM-assisted detection and reduce false negatives, `braid harvest` presents
+structured questions:
+
+- "What files did you read that aren't recorded as observations?"
+- "What decisions did you make that aren't recorded as ADRs?"
+- "What uncertainties did you discover?"
+- "What dependencies exist that aren't linked?"
+
+This template activates specific knowledge categories rather than asking the open-ended
+"what do you know?" which is subject to the same attention degradation harvest counteracts.
+
+### Recursive Epistemic Uncertainty
+
+The agent does not know what it does not know. An empty harvest (0 candidates) may mean
+either (a) all knowledge is transacted, or (b) detection missed gaps. The **drift score
+is the key cross-check**: if drift_score > 0 but candidates = 0, the detector is broken.
+Over time, FP/FN tracking (INV-HARVEST-004, Stage 1) calibrates detection thresholds.
+
+### Verification Against spec/05-harvest.md
+
+The D4 analysis confirms alignment with the spec's formal model:
+
+- **Epistemic gap definition** (spec section 5.1 Level 0): mathematically sound, correctly
+  formulated as set difference. D4 confirms no corrections needed.
+- **Quality metrics** (spec section 5.1 Level 0): FP/FN rates and drift_score are the right
+  diagnostics. D4 adds that **data collection should start at Stage 0** even though
+  INV-HARVEST-004 (FP/FN calibration) is Stage 1.
+- **Pipeline stages** (spec section 5.2 Level 1): Five-stage pipeline (DETECT/PROPOSE/REVIEW/
+  COMMIT/RECORD) is correctly structured. D4 clarifies that DETECT is two-layered at Stage 0.
+- **Bounded conversation lifecycle** (INV-HARVEST-007): Forces regular harvests, preventing
+  unbounded epistemic gap accumulation. Confirmed as essential.
+
+### Acknowledged Weakness
+
+Category 5 knowledge (reasoning conclusions) **will be systematically missed** at Stage 0.
+The structured harvest prompt template mitigates but does not eliminate this. Tracking FP/FN
+rates from day one (even before INV-HARVEST-004 is formally active) provides the data needed
+to improve detection at Stage 1.
 
 ---
 
@@ -188,7 +306,7 @@ proptest! {
         store.transact(committed).unwrap();
         prop_assert!(store.len() > pre_datoms);
         // All candidate datoms present
-        for d in &candidate.datoms {
+        for d in &candidate.datom_spec {
             prop_assert!(store.contains(d));
         }
     }
@@ -253,7 +371,7 @@ proptest! {
 
 ## §5.5 Implementation Checklist
 
-- [ ] `HarvestCandidate`, `HarvestCategory`, `ReconciliationType` types defined
+- [ ] `HarvestCandidate`, `HarvestCategory`, `CandidateStatus`, `ReconciliationType` types defined
 - [ ] `harvest_pipeline()` implements five-stage pipeline
 - [ ] Epistemic gap detection identifies untransacted knowledge
 - [ ] Candidate confidence scoring

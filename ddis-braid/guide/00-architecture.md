@@ -50,7 +50,7 @@ braid/                          ← Cargo workspace root
 │       │   └── entity.rs       ← braid entity, braid history
 │       ├── persistence.rs      ← redb store ↔ kernel Store bridge
 │       ├── output.rs           ← OutputMode dispatch (json/agent/human)
-│       ├── mcp.rs              ← MCP JSON-RPC server (6 tools)
+│       ├── mcp.rs              ← MCP server (6 tools, rmcp-based, persistent process)
 │       └── claude_md.rs        ← Dynamic CLAUDE.md generation
 └── tests/
     ├── proptest/               ← Property-based tests per namespace
@@ -246,14 +246,21 @@ impl TxState for Building {}
 impl TxState for Committed {}
 impl TxState for Applied {}
 
+/// Transaction metadata (spec §1.3 references this as `TxData`).
+/// The spec uses an opaque `tx_data: TxData` field; here we inline the fields
+/// for clarity. Either representation is valid for implementation.
+pub struct TxData {
+    pub tx_entity:           EntityId,
+    pub provenance:          ProvenanceType,
+    pub causal_predecessors: Vec<TxId>,
+    pub agent:               AgentId,
+    pub rationale:           String,
+}
+
 pub struct Transaction<S: TxState> {
-    datoms:              Vec<Datom>,
-    tx_entity:           EntityId,
-    provenance:          ProvenanceType,
-    causal_predecessors: Vec<TxId>,
-    agent:               AgentId,
-    rationale:           String,
-    _state:              PhantomData<S>,
+    datoms:   Vec<Datom>,
+    tx_data:  TxData,
+    _state:   PhantomData<S>,
 }
 
 // Building → Committed: validates schema, seals datoms
@@ -406,7 +413,7 @@ Types defined in namespace-specific guide files but referenced across boundaries
 
 ```rust
 // --- Transaction results (§1 STORE) ---
-pub struct TxReport {
+pub struct TxReceipt {
     pub tx_id: TxId,
     pub datom_count: usize,
     pub new_entities: Vec<EntityId>,
@@ -440,15 +447,23 @@ pub struct MergeReceipt {
     pub duplicate_datoms: usize,
     pub frontier_delta: HashMap<AgentId, (Option<TxId>, TxId)>,
 }
+pub struct CascadeReceipt {
+    pub conflicts_detected: usize,
+    pub caches_invalidated: usize,
+    pub projections_staled: usize,
+    pub uncertainties_updated: usize,
+    pub notifications_sent: usize,
+    pub cascade_datoms: Vec<Datom>,
+}
 
 // --- Harvest (§5 HARVEST) ---
 pub struct HarvestCandidate {
-    pub id: usize, pub datoms: Vec<Datom>, pub category: HarvestCategory,
-    pub confidence: f64, pub source: String, pub weight: f64,
-    pub reconciliation_type: ReconciliationType, pub status: HarvestStatus,
+    pub id: usize, pub datom_spec: Vec<Datom>, pub category: HarvestCategory,
+    pub confidence: f64, pub weight: f64, pub status: CandidateStatus,
+    pub extraction_context: String, pub reconciliation_type: ReconciliationType,
 }
 pub struct HarvestResult { pub candidates: Vec<HarvestCandidate>, pub drift_score: f64, pub quality: HarvestQuality }
-pub enum HarvestStatus { Pending, Accepted, Rejected(String) }
+pub enum CandidateStatus { Proposed, UnderReview, Committed, Rejected(String) }
 
 // --- Seed (§6 SEED) ---
 pub struct SchemaNeighborhood { pub entities: Vec<EntityId>, pub attributes: Vec<Attribute>, pub entity_types: Vec<Keyword> }
@@ -502,7 +517,7 @@ Table "frontier"   → (agent_id_bytes) → (tx_id_bytes)
 Table "schema"     → (attr_keyword) → (schema_entry_bytes)  # derived cache of schema datoms
 ```
 
-### Seed Output Template (from spec/06-seed.md)
+### Seed Output Template (ADR-SEED-004, spec/06-seed.md)
 
 Five-part structure, each designed as a prompt component:
 
@@ -510,17 +525,17 @@ Five-part structure, each designed as a prompt component:
 ## Orientation
 {project_identity, current_phase, active_spec_section}
 
-## Prior Decisions
-{relevant_ADRs, commitment_weights, do_not_relitigate_list}
+## Constraints
+{relevant_INVs, settled_ADRs, negative_cases, commitment_weights}
 
-## Working Context
+## State
 {recent_transactions, frontier_state, drift_score, active_uncertainties}
 
 ## Warnings
-{unresolved_conflicts, stale_datoms, approaching_thresholds}
+{drift_signals, open_questions, uncertainties, harvest_alerts}
 
-## Task
-{assigned_task, traceability_to_SEED, relevant_INVs, recommended_first_action}
+## Directive
+{next_task, acceptance_criteria, active_guidance_corrections}
 ```
 
 ### Dynamic CLAUDE.md Template (from spec/12-guidance.md, INV-GUIDANCE-007)
@@ -703,9 +718,14 @@ Genesis + spec bootstrap complete. Schema: 17 axiomatic + 14 spec attributes.
 
 ## §0.5 MCP Tool Definitions
 
-Six tools at Stage 0 (INV-INTERFACE-003). Each description is an optimized prompt:
-navigative purpose, semantic types, one micro-example. Entity lookup, history, and
-CLAUDE.md generation are accessible via `braid_query` and `braid_guidance` respectively.
+Six tools at Stage 0 (INV-INTERFACE-003). The MCP server is a persistent process
+using the `rmcp` crate for transport (ADR-INTERFACE-004). The store is loaded once
+at initialization and held via `Arc<Store>` for the session lifetime. Tool handlers
+are annotated with rmcp's `#[tool]` macro, which generates the `tools/list` response.
+
+Each description is an optimized prompt: navigative purpose, semantic types, one
+micro-example. Entity lookup, history, and CLAUDE.md generation are accessible via
+`braid_query` and `braid_guidance` respectively.
 
 ```json
 {
@@ -797,16 +817,17 @@ Three modes form a projection algebra over tool responses:
 ```
 ToolResponse = {
     structured: Value,          // Full data (JSON mode)
-    agent_summary: AgentOutput, // Compressed prompt (agent mode)
+    agent_context: String,      // ≤50 tokens — headline (agent mode)
+    agent_content: String,      // ≤200 tokens — entities + signals (agent mode)
     human_display: String,      // Formatted for terminal (human mode)
 }
-
-AgentOutput = {
-    context: String,            // ≤50 tokens — cognitive mode activation
-    content: String,            // ≤200 tokens — the payload
-    footer:  GuidanceFooter,    // ≤50 tokens — methodology steering
-}
 ```
+
+Agent mode maps the spec's 5 semantic parts (ADR-INTERFACE-002: headline + entities +
+signals + guidance + pointers) into 3 display zones during formatting:
+- `agent_context` = headline
+- `agent_content` = entities + signals
+- footer (guidance + pointers) = injected by `format_output()` via `GuidanceFooter`
 
 ### Error Message Protocol
 
@@ -850,6 +871,62 @@ The footer is a micro-prompt. Uses activation language (navigative, not instruct
 Footer selection: choose the highest-priority signal. One footer per response. Priority:
 budget warning > harvest prompt > drift correction > general guidance.
 
+### TokenCounter Trait (from D5-tokenizer-survey.md)
+
+Token counting is abstracted behind a trait to allow swappable implementations
+across stages without changing callers. At Stage 0, the implementation is zero-dependency.
+
+```rust
+/// Trait for token counting. Swappable between stages.
+/// Stage 0: ApproxTokenCounter (chars/4 + content-type heuristic, 0 deps)
+/// Stage 1: TiktokenCounter (tiktoken-rs cl100k_base, ~90-95% Claude accuracy)
+/// Stage 2+: AnthropicApiCounter (messages.countTokens API, ~99% accuracy)
+pub trait TokenCounter: Send + Sync {
+    /// Count the number of tokens in the given text.
+    fn count(&self, text: &str) -> usize;
+
+    /// Name of the counting method (for diagnostics/logging).
+    fn method(&self) -> &'static str;
+}
+
+/// Stage 0 implementation: chars/4 with content-type correction.
+/// Average error: ~15-20% vs real tokenizer.
+/// Sufficient for coarse budget band selection (bands are 4x apart).
+pub struct ApproxTokenCounter;
+
+impl TokenCounter for ApproxTokenCounter {
+    fn count(&self, text: &str) -> usize {
+        let byte_count = text.len();
+        let base = byte_count / 4;
+        if looks_like_code(text) {
+            base * 5 / 4  // 25% uplift for code
+        } else {
+            base
+        }
+    }
+
+    fn method(&self) -> &'static str { "chars/4" }
+}
+
+fn looks_like_code(text: &str) -> bool {
+    let indicators: &[&str] = &["{", "}", "(", ")", ";", "fn ", "let ", "pub ", "impl "];
+    let score: usize = indicators.iter()
+        .map(|i| text.matches(i).count())
+        .sum();
+    score > text.len() / 200  // > 0.5% indicator density
+}
+```
+
+**Where TokenCounter is used**: Output budget cap (INV-BUDGET-001), guidance footer
+size selection, projection pyramid level, command attention profile, token efficiency
+metric (INV-BUDGET-006), CLAUDE.md budget validation. All callers accept `&dyn TokenCounter`,
+enabling stage-based upgrades without API changes.
+
+**Why chars/4 is sufficient at Stage 0**: The budget system uses coarse thresholds
+(pi_0: >2000, pi_1: 500-2000, pi_2: 200-500, pi_3: <=200). A 15-20% error rarely
+changes band selection. The token efficiency metric (INV-BUDGET-006) is a ratio where
+consistent bias cancels out. See D5-tokenizer-survey.md for the full analysis.
+
 ### Token Efficiency Targets
 
 | Surface | Budget | Metric |
@@ -889,5 +966,84 @@ Three high-urgency uncertainties (spec/15-uncertainty.md) share a resolution pat
 **Pattern**: Make the uncertain value a configurable datom → instrument from day one →
 resolve via empirical data from Stage 0 usage. The datom store stores its own uncertainty
 resolution data — self-bootstrap at the epistemological level.
+
+---
+
+## §0.8 ADRs
+
+### ADR-ARCHITECTURE-001: Free Functions Over Store Methods for Namespace Operations
+
+**Traces to**: SEED.md §4, §10; ADRS FD-010, FD-012
+**Stage**: 0
+
+#### Problem
+
+Should namespace operations (harvest, seed, merge, guidance, derivation, routing,
+drift detection, etc.) be implemented as Store methods or as free functions that
+accept a `&Store` / `&mut Store` parameter?
+
+#### Options
+
+A) **Free functions** — `query(store, expr, mode)`, `harvest_pipeline(store, session)`,
+   `assemble_seed(store, task, budget)`, `merge(target, source)`, `guidance_footer(store, signals)`.
+   Store methods are reserved for core datom operations: `store.genesis()`, `store.transact(tx)`,
+   `store.current(entity)`, `store.as_of(frontier)`, `store.len()`, `store.datoms()`,
+   `store.frontier()`, `store.schema()`.
+
+B) **Store methods** — `store.harvest(session)`, `store.seed(task, budget)`, `store.guidance()`.
+   All operations are methods on Store, centralizing the API surface.
+
+C) **Trait-based** — Define traits like `Harvestable`, `Seedable`, `Guidable` and implement
+   them on Store. Namespace operations accessed via trait methods: `store.harvest(session)`.
+
+#### Decision
+
+**Option A.** Free functions for all namespace operations. Store methods are reserved
+exclusively for the core datom operations defined in spec/01-store.md §1.3 (genesis,
+transact, current, as_of, len, datoms, frontier, schema). Merge is also a free function
+since it is a set-algebraic operation spanning the MERGE namespace.
+
+#### Formal Justification
+
+1. **Keeps Store lean**: Store is the foundational abstraction (spec §1). Adding methods
+   for every namespace would make Store a God-object that grows with every new feature.
+   With 14 namespaces, Store would accumulate dozens of methods unrelated to its core
+   responsibility (managing the datom set).
+
+2. **Prevents God-object anti-pattern**: A Store with methods for harvest, seed, guidance,
+   merge, deliberation, bilateral, sync, budget, and interface conflates data substrate
+   with domain logic. Each namespace has its own invariants, types, and failure modes —
+   these should live in their own modules, not on Store.
+
+3. **Enables independent testing**: Free functions `fn harvest_pipeline(store: &Store, ...)`
+   can be tested with a mock or minimal Store. Store methods would require constructing
+   a full Store for every namespace test, coupling test infrastructure to Store internals.
+
+4. **Matches Rust idioms**: Rust favors free functions for operations that don't need
+   privileged access to private fields. Namespace operations only need Store's public API
+   (`datoms()`, `current()`, `as_of()`, `schema()`, `transact()`). Free functions make
+   this dependency explicit in the signature.
+
+5. **Consistent with guide convention**: All guide files already use free functions for
+   namespace APIs (guide/05-harvest.md, guide/06-seed.md, guide/07-merge-basic.md,
+   guide/08-guidance.md). This ADR formalizes the existing pattern.
+
+#### Consequences
+
+- Store's `impl` block contains only: `genesis()`, `transact()`, `current()`,
+  `as_of()`, `len()`, `datoms()`, `frontier()`, `schema()`.
+  Note: `merge()` is also a free function (`pub fn merge(target: &mut Store, source: &Store)`)
+  per the R5.2a audit, since merge is a set-algebraic operation spanning the MERGE namespace.
+- Namespace operations are free functions in their respective modules: `query/mod.rs`,
+  `harvest.rs`, `seed.rs`, `guidance.rs`, `merge.rs`, `methodology.rs`, `derivation.rs`,
+  `routing.rs`.
+- The binary crate (`braid/src/commands/`) calls free functions, passing the loaded Store.
+- Adding a new namespace never requires modifying `Store`'s API surface.
+
+#### Falsification
+
+Evidence this decision is wrong would be: a namespace operation that requires access to
+Store's private fields and cannot be expressed through Store's public API. In that case,
+the Store API needs extension (a new public method), not a namespace method on Store.
 
 ---

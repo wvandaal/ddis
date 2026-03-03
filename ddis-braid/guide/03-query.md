@@ -22,7 +22,18 @@ braid-kernel/src/query/
 ### Public API Surface
 
 ```rust
-/// Execute a Datalog query against the store (spec/03-query.md Level 2).
+/// Top-level query expression (spec/03-query.md §3.3 Level 2).
+/// Spec defines Find and Pull as the two query modes; ParsedQuery is the
+/// richer AST produced by the parser for Find queries.
+pub enum QueryExpr {
+    Find(ParsedQuery),
+    Pull {
+        pattern: PullPattern,
+        entity: EntityRef,
+    },
+}
+
+/// Execute a Datalog query against the store.
 pub fn query(store: &Store, expr: &QueryExpr, mode: QueryMode) -> Result<QueryResult, QueryError>;
 
 /// Parse without executing (for validation).
@@ -31,6 +42,8 @@ pub fn parse(q: &str) -> Result<ParsedQuery, ParseError>;
 /// Classify the stratum of a parsed query.
 pub fn classify_stratum(q: &ParsedQuery) -> Stratum;
 
+/// Parsed Datalog query — the rich AST for a Find expression.
+/// This is the internal representation that QueryExpr::Find wraps.
 pub struct ParsedQuery {
     pub find_spec:  FindSpec,
     pub where_clauses: Vec<Clause>,
@@ -38,6 +51,9 @@ pub struct ParsedQuery {
     pub inputs:     Vec<Input>,
 }
 
+/// Query result — uses BindingSet (variable→value maps) rather than raw
+/// tuples. The spec's `tuples: Vec<Vec<Value>>` is a simplified view;
+/// BindingSet preserves variable names for downstream consumers.
 pub struct QueryResult {
     pub bindings: Vec<BindingSet>,
     pub stratum:  Stratum,
@@ -45,6 +61,8 @@ pub struct QueryResult {
     pub provenance_tx: TxId,     // Audit trail — transaction context of evaluation
 }
 
+/// Datomic-style find specification — richer than the spec's simple
+/// `variables: Vec<Variable>`, supporting all four Datomic find forms.
 pub enum FindSpec {
     Relation(Vec<Variable>),    // [:find ?x ?y]
     Scalar(Variable),           // [:find ?x .]
@@ -52,12 +70,16 @@ pub enum FindSpec {
     Tuple(Vec<Variable>),       // [:find [?x ?y]]
 }
 
+/// Clause types for Stage 0. The spec (spec/03-query.md §3.3) defines
+/// Aggregate and Ffi variants — those are deferred to Stage 1+ (Strata 2–5).
 pub enum Clause {
     DataPattern(EntityPattern, AttributePattern, ValuePattern),
     RuleApplication(RuleName, Vec<Term>),
-    NotClause(Box<Clause>),       // Stratum 1+ only
+    NotClause(Box<Clause>),       // Stratum 2+ only
     OrClause(Vec<Vec<Clause>>),
     Frontier(FrontierRef),        // Frontier scope (INV-QUERY-007)
+    // Stage 1+: Aggregate(Variable, AggregateFunc)
+    // Stage 1+: Ffi(FfiCall)
 }
 
 pub enum Stratum {
@@ -105,6 +127,72 @@ pub fn graph_density(
     dep_attr: &Attribute,
 ) -> GraphDensityMetrics;
 ```
+
+---
+
+## §3.1a ADR: Custom Datalog Evaluator (from D2-datalog-engines.md)
+
+### ADR-IMPL-QUERY-001: Custom Datalog Engine Over Existing Crates
+
+**Traces to**: SEED.md §4 (Axiom 4: Datalog), ADR-QUERY-002, INV-QUERY-006
+**Stage**: 0
+**Source**: D2-datalog-engines.md (research report, 2026-03-03)
+
+#### Problem
+
+Braid requires a Datalog engine that supports: runtime query construction (`braid query '[:find ...]'`),
+semi-naive bottom-up evaluation, stratified negation (Stage 2+), EAV triple pattern matching,
+frontier-scoped evaluation, and graph algorithms as kernel operations. Which engine to use?
+
+#### Options Evaluated
+
+| Feature | Datafrog | Crepe | Ascent | DDlog | Custom |
+|---------|----------|-------|--------|-------|--------|
+| Semi-naive | YES | YES | Likely | YES | Build |
+| Stratified negation | Manual | YES | YES | YES | Build |
+| Aggregation | NO | NO | YES | YES | Build |
+| FFI | Trivial | Limited | NO | YES | Build |
+| **Runtime queries** | YES | **NO** | **NO** | Partial | YES |
+| Active maintenance | Low | Moderate | Active | DEAD | N/A |
+| EAV pattern matching | Manual | NO | NO | NO | Build |
+| Frontier scoping | NO | NO | NO | NO | Build |
+
+#### Decision
+
+**Custom Datalog evaluator.** Crepe and Ascent are disqualified because they are compile-time
+macro systems with no runtime query construction. DDlog is archived. Datafrog provides useful
+low-level primitives (leapjoin, semi-naive iteration) but at ~1500 LOC it may be simpler to
+reimplement directly rather than take a lightly-maintained dependency.
+
+#### Implementation Estimate
+
+| Component | LOC Estimate | Complexity |
+|-----------|-------------|------------|
+| Query parser (Datomic-style) | 500-800 | Medium |
+| Semi-naive evaluator | 400-600 | High |
+| Stratum classifier | 200-300 | Medium |
+| EAV index integration | 300-500 | Medium |
+| Frontier scoping | 100-200 | Low |
+| Graph algorithms (6 for Stage 0) | 600-1000 | Medium |
+| **Total** | **2100-3400** | |
+
+The evaluator is the critical-path item for Stage 0 -- everything else (harvest, seed,
+guidance) depends on a functioning query layer.
+
+#### Consequences
+
+- No external Datalog dependency. The query engine is fully owned code.
+- Parser implements Datomic-style `[:find ... :where ...]` syntax directly.
+- Semi-naive evaluation operates over the store's EAVT/AEVT/AVET/VAET indexes.
+- Only Strata 0-1 (monotonic) are needed at Stage 0. Strata 2-5 can be stubbed.
+- Consider Datafrog as a future optimization substrate if the custom evaluator proves
+  insufficient for large-scale workloads, but do not take the dependency at Stage 0.
+
+#### Falsification
+
+Evidence this decision is wrong would be: an existing crate that supports runtime query
+construction, EAV pattern matching, frontier scoping, AND is actively maintained. If such
+a crate emerges, re-evaluate. As of March 2026, none qualifies.
 
 ---
 

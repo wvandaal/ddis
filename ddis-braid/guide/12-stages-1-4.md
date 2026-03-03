@@ -136,19 +136,26 @@ code — no structural refactoring.
 ## §12.6 Stage Dependencies
 
 ```
-Stage 0 (61 INV) ← Foundation + Graph Engine + Guidance Expansion
+Stage 0a (38 INV) ← Store + Schema + Query + Resolution (foundation)
     ↓
-Stage 1 (25 INV) ← Budget + Advanced Graph Metrics
+Stage 0b (24 INV) ← Harvest + Seed + Merge + Guidance + Interface (lifecycle)
     ↓
-Stage 2 (22 INV) ← Branching + Deliberation + Topology
+Stage 1  (25 INV) ← Budget + Advanced Graph Metrics
     ↓
-Stage 3 (11 INV) ← Multi-Agent
+Stage 2  (22 INV) ← Branching + Deliberation + Topology
     ↓
-Stage 4 (2 INV)  ← Intelligence
+Stage 3  (11 INV) ← Multi-Agent
+    ↓
+Stage 4  (2 INV)  ← Intelligence
 ```
 
-**Total**: 121 INVs across all stages. Stage 0 contains 50.4% of all invariants (61 INV) —
+**Total**: 122 INVs across all stages. Stage 0 contains 50.8% of all invariants (62 INV) —
 it is the foundation. Stages 1–4 add 60 INVs as extensions.
+
+**Stage 0 sub-staging** (from D1-scope-boundary.md): The 62-INV scope splits naturally into
+Stage 0a (STORE/SCHEMA/QUERY/RESOLUTION = 38 INV) and Stage 0b (HARVEST/SEED/MERGE/GUIDANCE/
+INTERFACE = 24 INV). Stage 0a validates the core store hypothesis before Stage 0b builds the
+lifecycle layer. See guide/README.md for the full breakdown and cross-stage dependency notes.
 
 ---
 

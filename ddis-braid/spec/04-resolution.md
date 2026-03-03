@@ -127,32 +127,28 @@ An agent may waste effort on phantom conflicts (safe) but never miss a real one 
 /// Per-attribute resolution mode.
 #[derive(Clone)]
 pub enum ResolutionMode {
-    /// Last-writer-wins, ordered by specified clock.
-    Lww { clock: LwwClock },
-    /// Join-semilattice resolution.
+    /// Last-writer-wins, ordered by HLC (default). Clock variant (HLC/Wall/AgentRank)
+    /// is a schema-level attribute (:db/lwwClock), not part of this enum — see §2 SCHEMA.
+    LastWriterWins,
+    /// Join-semilattice resolution — lattice definition stored as datoms (C3).
     Lattice { lattice_id: EntityId },
     /// Keep all values (cardinality :many semantics).
-    Multi,
+    MultiValue,
 }
 
-#[derive(Clone, Copy)]
-pub enum LwwClock {
-    Hlc,        // Hybrid Logical Clock (default)
-    Wall,       // Wall-clock time
-    AgentRank,  // Agent authority ranking
+/// A set of competing assertions for a single (entity, attribute) pair.
+/// Detection-stage type: captures the datom-level facts. Routing metadata
+/// (severity, tier, status) are computed during the conflict routing pipeline
+/// (INV-RESOLUTION-007) and stored as separate datoms, not embedded here.
+pub struct ConflictSet {
+    pub entity:     EntityId,
+    pub attribute:  Attribute,
+    pub assertions:  Vec<(Value, TxId)>,  // competing values with their transactions
+    pub retractions: Vec<(Value, TxId)>,  // relevant retractions for conservative detection
 }
 
-/// Conflict entity.
-pub struct Conflict {
-    pub entity: EntityId,
-    pub attribute: Attribute,
-    pub values: Vec<(Value, TxId)>,  // competing values with their transactions
-    pub severity: f64,
-    pub tier: ConflictTier,
-    pub status: ConflictStatus,      // lattice: :detected < :routing < :resolving < :resolved
-}
-
-pub enum ConflictTier {
+/// Three-tier routing for detected conflicts (INV-RESOLUTION-007).
+pub enum RoutingTier {
     Automatic,
     AgentNotification,
     HumanRequired,
@@ -187,6 +183,245 @@ braid resolve <conflict-id> --auto        # Apply automatic resolution
 
 ---
 
+### §4.3.1 Resolution--Merge Composition Proof (R2.2)
+
+The audit concern: if per-attribute resolution operates in the LIVE index layer while
+merge operates in the store layer (pure set union), do these compose correctly? That is,
+does resolution commute and associate over set-union merge?
+
+**Theorem**: For all resolution modes M and all stores S1, S2, S3:
+
+```
+LIVE(MERGE(S1, S2)) = LIVE(MERGE(S2, S1))                         -- commutativity
+LIVE(MERGE(MERGE(S1, S2), S3)) = LIVE(MERGE(S1, MERGE(S2, S3)))   -- associativity
+```
+
+where LIVE is computed per-attribute using the declared resolution mode.
+
+**Proof sketch by mode**:
+
+Define for entity e and attribute a:
+```
+candidates(S, e, a) = {d.v | d in S, d.e = e, d.a = a, d.op = Assert, not retracted(S, d)}
+```
+
+Since MERGE(S1, S2) = S1 union S2 (set union), the candidate set for MERGE is:
+```
+candidates(S1 union S2, e, a) = candidates(S1, e, a) union candidates(S2, e, a)
+  minus values retracted in S1 union S2
+```
+
+Note: retraction membership is also determined by set union -- a retraction datom in
+either S1 or S2 is present in S1 union S2. Since set union is commutative and associative,
+the candidate set after retraction filtering is commutative and associative over merge.
+
+**Case LWW**: The resolved value is the assertion with the greatest HLC timestamp among
+unretracted assertions:
+```
+lww_resolve(candidates(S1 union S2, e, a)) = max_by_hlc(candidates(S1 union S2, e, a))
+```
+Since the candidate set is the same regardless of merge order (set union commutativity
+and associativity), `max_by_hlc` produces the same result. The `max` function over a
+totally-ordered domain (HLC with BLAKE3 tiebreak per ADR-RESOLUTION-009) is commutative,
+associative, and idempotent. Therefore LWW resolution composes correctly with set-union
+merge.
+
+**Case Lattice**: The resolved value is the lattice join over all unretracted assertions:
+```
+lattice_resolve(candidates(S1 union S2, e, a)) = join{v | v in candidates(S1 union S2, e, a)}
+```
+The lattice join is, by the definition of join-semilattice (verified at schema-registration
+time per INV-SCHEMA-007), commutative, associative, and idempotent. Since the candidate set
+is identical regardless of merge order, and the folded join over any permutation of a set
+yields the same result (commutativity + associativity of the join operator), lattice
+resolution composes correctly with set-union merge.
+
+**Case Multi**: The resolved value is the set of all unretracted values:
+```
+multi_resolve(candidates(S1 union S2, e, a)) = candidates(S1 union S2, e, a)
+```
+This is the identity function on the candidate set. Since the candidate set is
+commutative and associative over merge (set union), multi resolution trivially
+composes correctly.
+
+**Conclusion**: All three resolution modes form join-semilattices (INV-RESOLUTION-005,
+INV-RESOLUTION-006, section 4.1), and each operates on a candidate set derived via set union
+(which is itself a semilattice). The composition of two semilattice operations preserves
+commutativity and associativity. Therefore, per-attribute resolution in the LIVE index
+is fully compatible with set-union merge, and the CRDT laws L1-L3 from section 1 STORE are
+preserved end-to-end through to the resolved state visible to agents.
+
+**Corollary**: LIVE is a **derived CRDT**. If S forms a G-Set CvRDT and LIVE is a
+monotonic function from S to a per-attribute semilattice, then LIVE inherits strong
+eventual consistency from S.
+
+---
+
+### §4.3.2 Conservative Conflict Detection Completeness Proof (R2.5b)
+
+The audit concern: conflict detection operates on local frontiers — partial views of the
+global datom set. Can a real conflict be invisible to an agent that holds both conflicting
+datoms? This proof shows that the detection predicate is conservative: it may produce false
+positives (phantom conflicts) but never false negatives (missed real conflicts).
+
+#### Definitions
+
+**Definition 1 (True conflict).** A pair of datoms `(d₁, d₂)` constitutes a *true conflict*
+in store S iff all six conditions of INV-RESOLUTION-004 hold with respect to the complete
+causal history:
+
+```
+true_conflict(S, d₁, d₂) ⟺
+  (1) d₁.e = d₂.e                                           — same entity
+  (2) d₁.a = d₂.a                                           — same attribute
+  (3) d₁.v ≠ d₂.v                                           — different value
+  (4) d₁.op = Assert ∧ d₂.op = Assert                       — both assertions
+  (5) cardinality(d₁.a) = :one                               — cardinality-one attribute
+  (6) d₁.tx ∥ d₂.tx                                         — causally independent
+      where ∥ means: ¬(d₁.tx <_causal d₂.tx) ∧ ¬(d₂.tx <_causal d₁.tx)
+      and <_causal is the transitive closure of the predecessor relation
+```
+
+**Definition 2 (Frontier).** A frontier F for agent α is a set of datoms:
+```
+F_α = {d ∈ S | d is visible to α}
+```
+The global frontier is the full store: `F_global = S`.
+A local frontier is a subset: `F_α ⊆ S`.
+
+**Definition 3 (Detection predicate).** At frontier F, the detection predicate is:
+```
+detect(F, d₁, d₂) ⟺
+  (1)-(5) as above, evaluated over F
+  (6') ¬(d₁.tx <_F d₂.tx) ∧ ¬(d₂.tx <_F d₁.tx)
+       where <_F is the causal order restricted to transactions visible in F
+```
+
+The key distinction: condition (6') uses `<_F` (the causal order visible at frontier F),
+while condition (6) uses `<_causal` (the true causal order over the complete store).
+
+#### Theorem (Conservative Detection Completeness)
+
+```
+∀ stores S, ∀ frontiers F ⊆ S, ∀ datom pairs (d₁, d₂) where d₁ ∈ F ∧ d₂ ∈ F:
+  true_conflict(S, d₁, d₂) ⟹ detect(F, d₁, d₂)
+
+Equivalently: no false negatives. If (d₁, d₂) is a true conflict in the global store,
+then any frontier containing both datoms detects it.
+```
+
+#### Proof
+
+We prove the contrapositive: `¬detect(F, d₁, d₂) ⟹ ¬true_conflict(S, d₁, d₂)`.
+
+If `detect(F, d₁, d₂)` is false, then at least one of conditions (1)-(5) or (6') fails.
+
+**Case A: One of conditions (1)-(5) fails.**
+Conditions (1)-(5) depend only on the datoms d₁ and d₂ themselves and on the schema
+(specifically the cardinality of the attribute). Since d₁, d₂ ∈ F and schema is globally
+consistent (INV-SCHEMA-001: schema is datoms in the store, and schema monotonicity
+INV-SCHEMA-003 ensures that schema at F ⊆ schema at S), conditions (1)-(5) evaluate
+identically at F and at S. Therefore if any of (1)-(5) fails at F, it also fails at S,
+and `true_conflict(S, d₁, d₂)` is false. **QED for Case A.**
+
+**Case B: Conditions (1)-(5) hold at F, but (6') fails.**
+Condition (6') fails means:
+```
+d₁.tx <_F d₂.tx  ∨  d₂.tx <_F d₁.tx
+```
+That is, there exists a causal path from one transaction to the other *that is visible
+within F*. Since F ⊆ S, every causal path visible in F is also a valid causal path in S:
+
+```
+Lemma (Causal Path Monotonicity):
+  ∀ F ⊆ S: d₁.tx <_F d₂.tx ⟹ d₁.tx <_causal d₂.tx
+
+Proof: <_F is the transitive closure of the predecessor relation restricted to
+transactions in F. <_causal is the transitive closure of the FULL predecessor relation
+in S. Since F ⊆ S, every predecessor edge in F is also an edge in S. Therefore every
+path in F is a path in S, and <_F ⊆ <_causal. □
+```
+
+So if `d₁.tx <_F d₂.tx`, then `d₁.tx <_causal d₂.tx`, which means condition (6)
+of `true_conflict` fails. Therefore `true_conflict(S, d₁, d₂)` is false. **QED for Case B.**
+
+Combining Cases A and B, the contrapositive holds. By contraposition, the theorem holds. **QED.**
+
+#### Key insight: why the converse does NOT hold (false positives are possible)
+
+The detection predicate can flag conflicts that are not true conflicts. This happens when:
+
+```
+d₁.tx ∥_F d₂.tx  BUT  d₁.tx <_causal d₂.tx
+
+That is: at frontier F, no causal path from d₁.tx to d₂.tx is visible (because
+intermediate transactions carrying the causal chain have not yet been merged into F),
+so the detector conservatively flags a conflict. But in the full store, a causal path
+exists — d₁ is actually an update superseded by d₂, not a concurrent conflict.
+```
+
+This is exactly the situation described in the proof sketch of §4.2: the causal-ancestor
+relation is *monotonically growing* as an agent's frontier expands. Learning about new
+causal paths can only *resolve* apparent concurrency (turning phantom conflicts into
+recognized updates), never *create* new concurrency.
+
+Formally:
+```
+∀ F₁ ⊆ F₂ ⊆ S:
+  conflicts_detected(F₂) ⊆ conflicts_detected(F₁)
+
+Proof: If d₁.tx ∥_{F₁} d₂.tx but d₁.tx <_{F₂} d₂.tx, then the conflict detected
+at F₁ is resolved at F₂ (the causal path is now visible). No new conflict can appear
+at F₂ that was not at F₁, because <_{F₁} ⊆ <_{F₂} — strictly MORE causal paths are
+visible, which can only reduce concurrency, never increase it. □
+```
+
+**Corollary (Anti-monotonicity of detected conflicts):** The set of detected conflicts
+is anti-monotone in the frontier: as an agent receives more datoms, its detected conflict
+set can only shrink (or stay the same), never grow. This means:
+
+```
+conflicts_detected(F_local) ⊇ conflicts_detected(F_global)
+```
+
+which is exactly INV-RESOLUTION-003.
+
+#### Relationship between conflict detection and resolution modes
+
+The detection predicate (Definition 3) is the same for all resolution modes — it identifies
+*which* (entity, attribute) pairs have causally independent competing assertions. What differs
+per mode is how those conflicts are **resolved**:
+
+**LWW conflicts**: Two causally independent assertions for a cardinality-one LWW attribute.
+The conflict is detected, but *immediately resolved* by picking the assertion with the
+greater HLC timestamp (ties broken by BLAKE3 hash per ADR-RESOLUTION-009). The conflict
+entity is created and immediately resolved in a single cascade. Conservative detection
+ensures neither assertion is silently lost — even if the "losing" value is discarded by
+LWW, the fact that a conflict occurred is recorded as a datom (INV-RESOLUTION-008).
+
+**Lattice conflicts**: Two causally independent assertions for a cardinality-one lattice
+attribute. If the values are comparable in the lattice order, the lattice join resolves
+them immediately (no real conflict). If the values are incomparable, the join produces
+the lattice top element — which for diamond lattices (INV-SCHEMA-008) is an error signal
+element triggering escalation. Conservative detection ensures that all incomparable
+pairs are detected; the lattice join ensures that comparable pairs are silently resolved.
+
+**Multi-value**: Cardinality-many attributes never trigger the conflict predicate
+(condition (5) requires cardinality :one). All values coexist. There is no conflict
+to detect, and the detection predicate correctly returns false.
+
+**Summary of mode-detection interaction:**
+
+```
+Mode      | Detection fires? | Resolution        | Severity routing
+----------|------------------|-------------------|------------------
+LWW       | Yes              | max(HLC)          | Tier 1 (automatic)
+Lattice   | Yes (incomp.)    | join / error-top  | Tier 1 or 2
+Multi     | No (card :many)  | all values kept   | N/A
+```
+
+---
+
 ### §4.4 Invariants
 
 ### INV-RESOLUTION-001: Per-Attribute Resolution
@@ -214,7 +449,7 @@ impl Schema {
     pub fn resolution_mode(&self, attr: &Attribute) -> ResolutionMode {
         self.attribute(attr)
             .and_then(|def| def.resolution_mode)
-            .unwrap_or(ResolutionMode::Lww { clock: LwwClock::Hlc })
+            .unwrap_or(ResolutionMode::LastWriterWins)
     }
 }
 ```
@@ -315,12 +550,22 @@ For LWW resolution with clock C:
   Commutativity: lww(v₁, v₂) = lww(v₂, v₁)
   Associativity: lww(lww(v₁, v₂), v₃) = lww(v₁, lww(v₂, v₃))
   Idempotency:   lww(v, v) = v
+
+Tie-breaking (equal clock values):
+  When C(d₁) = C(d₂), the winner is the datom whose BLAKE3 hash is
+  lexicographically greater: lww(d₁, d₂) = d where blake3(d) = max(blake3(d₁), blake3(d₂)).
+  This preserves commutativity and associativity because byte comparison is a total order.
+  See ADR-RESOLUTION-009.
 ```
 
 #### Level 1 (State Invariant)
-LWW picks the value with the highest clock value. Ties broken by agent ID.
+LWW picks the value with the highest clock value. When two concurrent assertions
+have identical HLC timestamps, the tie is broken by BLAKE3 hash comparison of the
+datom content (ADR-RESOLUTION-009). This is deterministic and topology-agnostic:
+both agents independently compute the same winner without coordination.
 
-**Falsification**: Two agents resolving the same LWW conflict to different values.
+**Falsification**: Two agents resolving the same LWW conflict to different values,
+including when the conflicting datoms have identical HLC timestamps.
 
 ---
 
@@ -498,6 +743,57 @@ How to record conflict resolution decisions?
 Three entity types: Deliberation (process), Position (stance), Decision (outcome).
 Deliberation history forms a case law system — past decisions inform future conflicts
 via the precedent query pattern (CR-007).
+
+---
+
+### ADR-RESOLUTION-009: BLAKE3 Hash Tie-Breaking for LWW
+
+**Traces to**: INV-RESOLUTION-005, ADR-STORE-013
+**Stage**: 0
+
+#### Problem
+When two concurrent assertions have identical HLC timestamps for a cardinality-one
+LWW attribute, the resolution is undefined. Without a deterministic tie-breaker, two
+agents resolving the same conflict could pick different winners, violating
+INV-RESOLUTION-002 (commutativity) and breaking CRDT convergence.
+
+#### Options
+A) **BLAKE3 hash of datom content** — compute `blake3([e, a, v, tx, op])` for each
+   competing datom; the datom with the lexicographically greater hash wins. Deterministic,
+   content-addressable, consistent with ADR-STORE-013 (BLAKE3 already used for EntityId).
+B) **Agent ID lexicographic comparison** — break ties by comparing the agent ID embedded
+   in the HLC timestamp. Simple but creates an implicit agent hierarchy: agents with
+   lexicographically later IDs always win ties, incentivizing ID manipulation.
+C) **Leave undefined** — let implementations choose. Breaks CRDT convergence guarantee
+   across heterogeneous implementations.
+
+#### Decision
+**Option A.** BLAKE3 hash comparison provides a deterministic, topology-agnostic total
+order over datoms. Both agents independently compute the same winner without coordination.
+The hash is already computed for EntityId generation (ADR-STORE-013), so the marginal
+cost is zero for entities and negligible for the full datom tuple.
+
+#### Formal Justification
+The tie-breaking rule preserves all three CRDT semilattice properties required by
+INV-RESOLUTION-005:
+
+- **Commutativity**: `max(blake3(d₁), blake3(d₂)) = max(blake3(d₂), blake3(d₁))` —
+  byte comparison is commutative under max.
+- **Associativity**: `max(max(h₁, h₂), h₃) = max(h₁, max(h₂, h₃))` — max over a
+  total order is associative.
+- **Idempotency**: `max(h, h) = h` — trivially holds.
+
+BLAKE3's collision resistance (2^{-128} birthday bound) makes hash equality between
+distinct datoms practically impossible. In the astronomically unlikely event of a
+hash collision, both agents still agree (they compute the same hash), so convergence
+is preserved.
+
+#### Consequences
+- No new dependencies (BLAKE3 already required by ADR-STORE-013)
+- No agent hierarchy — tie-breaking is content-derived, not identity-derived
+- Deterministic across all implementations that use BLAKE3 (the only permitted hash per ADR-STORE-013)
+- The tie-breaking case is rare in practice (requires exact HLC equality, which implies
+  near-simultaneous assertions on different agents with identical logical clock state)
 
 ---
 

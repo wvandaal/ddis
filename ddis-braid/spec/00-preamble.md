@@ -106,7 +106,7 @@ Every element is assigned to an implementation stage:
 | 4 | RESOLUTION | §4 | FD-005, CR-001–007 | 1 | ~8 INV, ~5 ADR, ~3 NEG |
 | 5 | HARVEST | §5 | LM-005–006, LM-012–013 | 2 | ~8 INV, ~4 ADR, ~3 NEG |
 | 6 | SEED | §5, §8 | IB-010, PO-014, GU-004 | 2 | ~6 INV, ~3 ADR, ~2 NEG |
-| 7 | MERGE | §6 | AS-001, PD-004, PO-006 | 2 | ~8 INV, ~4 ADR, ~3 NEG |
+| 7 | MERGE | §6 | AS-001, PD-004, PO-006 | 2 | ~9 INV, ~4 ADR, ~3 NEG |
 | 8 | SYNC | §6 | PO-010, SQ-001, SQ-004 | 2 | ~5 INV, ~3 ADR, ~2 NEG |
 | 9 | SIGNAL | §6 | PO-004–005, PO-008 | 3 | ~6 INV, ~3 ADR, ~2 NEG |
 | 10 | BILATERAL | §3, §6 | SQ-006, CO-004 | 3 | ~5 INV, ~3 ADR, ~2 NEG |

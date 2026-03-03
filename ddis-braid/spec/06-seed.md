@@ -109,9 +109,12 @@ PIPELINE:
         ≤200:         single-line status + single guidance action
      b. Subtract token cost from remaining budget
      c. If budget exhausted, stop
-  4. Pin intentions at π₀ regardless of budget (INV-ASSEMBLE-INTENTION-001)
-  5. Record projection pattern for reification learning (AS-008)
-  6. Check staleness for observation entities (UA-007)
+  4. Pin intentions at π₀ regardless of budget (INV-SEED-006)
+  5. Apply section compression priority (INV-SEED-004):
+     compress State before Constraints before Orientation before Warnings before Directive
+  6. Insert demonstrations for constraint clusters if budget permits (INV-SEED-005)
+  7. Record projection pattern for reification learning (AS-008)
+  8. Check staleness for observation entities (UA-007)
 
 POST:
   |result| ≤ budget (token count)
@@ -131,6 +134,22 @@ Seed output follows a five-part template:
 
 Formatted as spec-language (INV-GUIDANCE-SEED-001): invariants and formal
 structure, NOT instruction-language (steps, checklists).
+
+Section compression priority (INV-SEED-004):
+  Under budget pressure, compress in this order (first to compress → last):
+    State > Constraints > Orientation > Warnings > Directive
+  State absorbs compression first (reconstructible from store).
+  Directive absorbs compression last (directly controls behavior).
+
+Token allocation by remaining budget:
+  > 2000 tokens:  Full detail in all sections. π₀ for State items.
+  500–2000:       Compress State to π₁. Keep Constraints at full IDs.
+  200–500:        Orientation (50 tok) + Directive (100 tok) + top-3 Warnings.
+  ≤ 200:          Single-line orientation + single-line directive + harvest warning.
+
+Demonstration density (INV-SEED-005):
+  Include ≥1 demonstration per constraint cluster when budget > 1000 tokens.
+  A demonstration is a concrete 20–40 token example showing compliance.
 ```
 
 ---
@@ -167,36 +186,35 @@ pub enum ProjectionLevel {
     Pointer,    // π₃ — single-line reference
 }
 
-/// Dynamic CLAUDE.md generator.
-pub struct ClaudeMdGenerator {
-    pub store: Store,
-}
+// --- Free functions (ADR-ARCHITECTURE-001) ---
 
-impl ClaudeMdGenerator {
-    /// Generate dynamic CLAUDE.md for a session.
-    pub fn generate(
-        &self,
-        focus: &str,
-        agent: AgentId,
-        budget: usize,
-    ) -> Result<String, SeedError>;
-}
+/// ASSOCIATE — discover relevant schema neighborhood.
+/// Free function: association is a query-layer operation that reads from the store.
+pub fn associate(store: &Store, cue: AssociateCue) -> SchemaNeighborhood;
 
-impl Store {
-    /// ASSOCIATE — discover relevant schema neighborhood.
-    pub fn associate(&self, cue: AssociateCue) -> SchemaNeighborhood;
+/// ASSEMBLE — build budget-aware context.
+/// Free function: assembly is a compression operation that reads from the store
+/// and produces formatted seed output.
+pub fn assemble(
+    store: &Store,
+    query_results: &QueryResult,
+    neighborhood: &SchemaNeighborhood,
+    budget: usize,
+) -> AssembledContext;
 
-    /// ASSEMBLE — build budget-aware context.
-    pub fn assemble(
-        &self,
-        query_results: &QueryResult,
-        neighborhood: &SchemaNeighborhood,
-        budget: usize,
-    ) -> AssembledContext;
+/// SEED — full pipeline: associate → query → assemble.
+/// Composite free function. Provenance recording (INV-STORE-014) is handled
+/// by the caller via a separate Store::transact() call.
+pub fn assemble_seed(store: &Store, task: &str, budget: usize) -> SeedOutput;
 
-    /// SEED — full pipeline: associate → query → assemble.
-    pub fn seed(&mut self, task: &str, budget: usize) -> Result<AssembledContext, SeedError>;
-}
+/// Generate dynamic CLAUDE.md from store state.
+/// Free function: generates formatted CLAUDE.md by querying the store.
+pub fn generate_claude_md(
+    store: &Store,
+    focus: &str,
+    agent: AgentId,
+    budget: usize,
+) -> Result<String, SeedError>;
 ```
 
 #### CLI Commands
@@ -277,7 +295,75 @@ The bound is `depth × breadth`, both configurable.
 
 ---
 
-### INV-SEED-004: Intention Anchoring
+### INV-SEED-004: Section Compression Priority
+
+**Traces to**: SEED §5, §8, ADRS IB-004, PO-003
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+Under budget pressure, sections compress in priority order (first-to-compress → last):
+  1. State       — lowest marginal value per token; reconstructible via store queries
+  2. Constraints — reconstructible from store; can degrade to ID-only references
+  3. Orientation — short, mostly fixed across sessions; compress but never omit
+  4. Warnings    — safety-critical, high behavioral leverage per token
+  5. Directive   — directly controls agent behavior; last to compress
+
+∀ ASSEMBLE operations under budget B:
+  if tokens(full_seed) > B:
+    compress(State) before compress(Constraints)
+    compress(Constraints) before compress(Orientation)
+    compress(Orientation) before compress(Warnings)
+    compress(Warnings) before compress(Directive)
+```
+
+#### Level 1 (State Invariant)
+The ASSEMBLE pipeline compresses sections in priority order, not by section
+position. State absorbs compression first because it is fully reconstructible
+from the store. Directive absorbs compression last because it directly controls
+the agent's next action. Warnings are second-last because they are safety-critical
+and have high behavioral leverage per token.
+
+**Falsification**: An ASSEMBLE operation that compresses Warnings or Directive while
+State still contains verbose detail, or that omits Directive before omitting State.
+
+---
+
+### INV-SEED-005: Demonstration Density
+
+**Traces to**: ADRS GU-003, GU-004, INV-GUIDANCE-007
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+∀ constraint clusters C in the seed Constraints section:
+  if |C| ≥ 2 and budget permits:
+    ∃ at least one demonstration d showing compliance with C
+    d is a concrete 20-40 token example, not prose
+
+A constraint cluster is a set of related INVs/ADRs/NEGs that govern
+the same behavioral domain (e.g., {INV-STORE-001, INV-STORE-003}
+form an append-only + content-addressed cluster).
+```
+
+#### Level 1 (State Invariant)
+The seed includes at least one worked example per constraint cluster when
+budget permits. Demonstrations activate the LLM's pattern-completion substrate
+far more effectively than invariant statements alone. A 30-token demonstration
+is worth approximately 10x its token cost in behavioral activation.
+
+Under budget pressure, demonstrations compress before their parent constraints
+(constraints without demonstrations are still useful; demonstrations without
+constraints lack context).
+
+**Falsification**: A seed with 3+ related constraints and budget > 1000 tokens
+that contains zero demonstrations for the cluster.
+
+---
+
+### INV-SEED-006: Intention Anchoring
 
 **Traces to**: ADRS AA-005, PO-003
 **Verification**: `V:PROP`
@@ -299,7 +385,7 @@ otherwise compress or omit them. Intentions are never sacrificed for budget.
 
 ---
 
-### INV-SEED-005: Dynamic CLAUDE.md Relevance
+### INV-SEED-007: Dynamic CLAUDE.md Relevance
 
 **Traces to**: ADRS PO-014
 **Verification**: `V:PROP`
@@ -321,7 +407,7 @@ change agent behavior (deadweight content).
 
 ---
 
-### INV-SEED-006: Dynamic CLAUDE.md Improvement
+### INV-SEED-008: Dynamic CLAUDE.md Improvement
 
 **Traces to**: ADRS PO-014
 **Verification**: `V:PROP`

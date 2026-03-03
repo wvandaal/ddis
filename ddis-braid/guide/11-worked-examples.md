@@ -145,18 +145,20 @@ $ braid seed --task "Implement Store::transact per INV-STORE-001" --format agent
 ## Orientation
 You are working on Braid. Phase: Stage 0 implementation. Namespace: STORE.
 
-## Prior Decisions
+## Constraints
 - ADR-STORE-002: BLAKE3 for content hashing (w=12, do not relitigate)
 - ADR-STORE-004: HLC for transaction ordering (w=8)
+- INV-STORE-001: Append-only immutability
+- NEG-001: No aspirational stubs
 
-## Working Context
+## State
 Last tx: spec-bootstrap (tx_2). Frontier: {agent1: tx_2}. Drift: 0.0.
 Store: 147 datoms. 13 spec elements transacted.
 
 ## Warnings
 UNC-SCHEMA-001: 17 axiomatic attributes — verify sufficiency during implementation.
 
-## Task
+## Directive
 Implement Store::transact per INV-STORE-001 (append-only) and INV-STORE-002 (strict growth).
 Traces to: SEED §4 Axiom 2. First action: write typestate Transaction<Building>.
 ---
@@ -231,21 +233,21 @@ $ braid seed --task "Continue STORE implementation: INV-STORE-004 through 008" -
 ## Orientation
 Braid. Stage 0. STORE namespace. 3/13 INVs complete.
 
-## Prior Decisions
+## Constraints
 - ADR-STORE-002: BLAKE3 (w=12, settled)
 - OBS-001: BTreeSet handles dedup (harvested)
 - IMPL-001: Transaction typestate uses PhantomData (harvested)
 - IMPL-002: Frontier as HashMap<AgentId, TxId> (harvested)
 - DEP-001: INV-STORE-009 depends on redb fsync (harvested)
 
-## Working Context
+## State
 Last harvest: 4 candidates committed. Frontier: {agent1: tx_15}. Drift: 0.2.
 Store: 163 datoms. STORE progress: INV-001–003 done, INV-004–014 remaining.
 
 ## Warnings
 UNC-SCHEMA-001: Monitor attribute sufficiency.
 
-## Task
+## Directive
 Implement INV-STORE-004 (commutativity), 005 (associativity), 006 (idempotency),
 007 (monotonicity), 008 (genesis determinism). These are the CRDT algebra laws.
 First action: proptest for commutativity (test before implement).
@@ -369,11 +371,11 @@ $ braid query '[:find ?ns (count ?e)
   RESOLUTION    8
   HARVEST       5
   SEED          4
-  MERGE         3
+  MERGE         4
   GUIDANCE      6
   INTERFACE     5
 ---
-↳ 61 Stage 0 INVs transacted across 9 namespaces (of 121 total).
+↳ 62 Stage 0 INVs transacted across 9 namespaces (of 122 total).
 ```
 
 ### Query 4: Frontier-Relative Query
@@ -453,6 +455,11 @@ Query error: aggregation (count) in monotonic mode
 ---
 
 ## §11.5 MCP Tool Interaction Demonstration
+
+The MCP server is a persistent process launched via `braid serve`. At startup, it
+completes the MCP 3-phase initialization handshake (handled by the rmcp crate),
+loads the store once from redb, and holds it via `Arc<Store>` for the session
+lifetime. All tool calls below operate against this session-scoped store reference.
 
 ### Transact via MCP
 

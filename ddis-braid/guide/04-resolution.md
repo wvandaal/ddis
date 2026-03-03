@@ -49,6 +49,24 @@ pub enum ResolvedValue {
 /// Conflict predicate: does this (entity, attribute) have unresolved conflict?
 pub fn has_conflict(conflict: &ConflictSet, mode: &ResolutionMode) -> bool;
 
+/// Clock selection for LWW resolution (spec/02-schema.md: :db/lwwClock).
+/// Read from schema datoms at resolution time; not embedded in ResolutionMode.
+pub enum LwwClock {
+    Hlc,        // Hybrid Logical Clock (default, most precise)
+    Wall,       // Wall-clock ordering
+    AgentRank,  // Deterministic agent hierarchy
+}
+
+/// Resolution provenance entity (NEG-RESOLUTION-003).
+/// Every resolution — automatic, agent, or human — produces a Resolution
+/// entity in the store recording method, value, and rationale.
+pub struct Resolution {
+    pub conflict: EntityId,         // references the ConflictSet's entity
+    pub resolved_value: Value,      // the winning value
+    pub method: ResolutionMethod,   // :lww | :lattice | :deliberation | :human
+    pub rationale: String,          // human-readable explanation
+}
+
 /// Compute the LIVE view of an entity by resolving all attributes.
 pub fn live_entity(store: &Store, entity: EntityId) -> HashMap<Attribute, ResolvedValue>;
 ```
@@ -67,6 +85,7 @@ pub fn live_entity(store: &Store, entity: EntityId) -> HashMap<Attribute, Resolv
 - INV-RESOLUTION-004: Conflict Predicate Correctness — conflict requires all six conditions
   (same entity, same attribute, different value, both assert, cardinality one, causally independent).
 - INV-RESOLUTION-005: LWW Semilattice Properties — commutativity, associativity, idempotency.
+  Ties on identical HLC timestamps broken by BLAKE3 hash comparison (ADR-RESOLUTION-009).
 - INV-RESOLUTION-006: Lattice Join Correctness — lattice resolution produces the least upper
   bound; diamond lattices produce error signal element for incomparable values.
 - INV-RESOLUTION-008: Conflict Entity Datom Trail — full conflict lifecycle (assert, severity,
@@ -84,9 +103,10 @@ pub fn live_entity(store: &Store, entity: EntityId) -> HashMap<Attribute, Resolv
   - Match on mode:
     - `Lattice(def)`: fold values using `def.join`. Result is the LUB.
     - `LastWriterWins`: pick value with max TxId (by HLC ordering). If HLC timestamps
-      are equal, break ties by datom hash (BLAKE3, ADR-STORE-013). This is always decisive:
-      different values produce different hashes (collision resistance), so equal-timestamp
-      ties are resolved deterministically without additional mechanism.
+      are equal, break ties by BLAKE3 hash of the full datom content — the datom with the
+      lexicographically greater hash wins (ADR-RESOLUTION-009, ADR-STORE-013). This is
+      always decisive: different values produce different hashes (collision resistance),
+      so equal-timestamp ties are resolved deterministically without additional mechanism.
     - `MultiValue`: return set of all unretracted values.
 - `has_conflict`:
   - Lattice: conflict if two unretracted values are incomparable in the partial order.
@@ -173,7 +193,7 @@ Verify that `route_conflict` always returns a valid `RoutingTier` (totality via 
 
 | INV | Compile-Time Guarantee | Mechanism |
 |-----|----------------------|-----------|
-| INV-RESOLUTION-001 | Exhaustive match on `ResolutionMode` | `match mode { Lattice(..) => .., LWW => .., Multi => .. }` |
+| INV-RESOLUTION-001 | Exhaustive match on `ResolutionMode` | `match mode { Lattice(..) => .., LastWriterWins => .., MultiValue => .. }` |
 
 ---
 
@@ -229,7 +249,7 @@ must transact the resolution datoms.
 
 ```rust
 proptest! {
-    // INV-RESOLUTION-005: LWW commutativity
+    // INV-RESOLUTION-005: LWW commutativity (including BLAKE3 tie-breaking)
     fn inv_resolution_005(assertions in arb_assertions(5)) {
         let mut a1 = assertions.clone();
         let mut a2 = assertions.clone();
@@ -237,6 +257,17 @@ proptest! {
         let r1 = resolve_lww(&a1);
         let r2 = resolve_lww(&a2);
         prop_assert_eq!(r1, r2);
+    }
+
+    // ADR-RESOLUTION-009: BLAKE3 tie-breaking determinism for equal HLC timestamps
+    fn adr_resolution_009_tiebreak(v1 in arb_value(), v2 in arb_value()) {
+        prop_assume!(v1 != v2);
+        let tx = TxId::from_hlc(same_timestamp());  // identical HLC for both
+        let a1 = vec![(v1.clone(), tx.clone()), (v2.clone(), tx.clone())];
+        let a2 = vec![(v2.clone(), tx.clone()), (v1.clone(), tx.clone())];
+        let r1 = resolve_lww(&a1);
+        let r2 = resolve_lww(&a2);
+        prop_assert_eq!(r1, r2);  // same winner regardless of input order
     }
 
     // INV-RESOLUTION-002: Resolution Commutativity (order-independent)
@@ -326,6 +357,7 @@ INV-RESOLUTION-001, 002, 004, 005, 006 have V:KANI tags.
 - [ ] `has_conflict()` detects lattice incomparability
 - [ ] `live_entity()` resolves all attributes per schema mode
 - [ ] LWW commutativity verified (proptest + Kani)
+- [ ] LWW BLAKE3 tie-breaking for equal HLC timestamps (ADR-RESOLUTION-009)
 - [ ] Integration with STORE: transact conflicting values → resolve → correct LIVE view
 - [ ] Integration with SCHEMA: resolution mode read from schema datoms
 

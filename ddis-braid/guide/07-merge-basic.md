@@ -1,7 +1,7 @@
 # §7. MERGE (Basic) — Build Plan
 
 > **Spec reference**: [spec/07-merge.md](../spec/07-merge.md) — read FIRST
-> **Stage 0 elements**: INV-MERGE-001–002, 008 (3 INV), ADR-MERGE-001, NEG-MERGE-001, NEG-MERGE-003
+> **Stage 0 elements**: INV-MERGE-001–002, 008–009 (4 INV), ADR-MERGE-001, NEG-MERGE-001, NEG-MERGE-003
 > **Dependencies**: STORE (§1), SCHEMA (§2), QUERY (§3), RESOLUTION (§4)
 > **Cognitive mode**: Set-theoretic — union, deduplication, monotonicity
 
@@ -15,7 +15,8 @@ Stage 0 requires the core merge subset:
 - **INV-MERGE-002**: Merge Cascade Completeness — all 5 cascade steps execute: (1) conflict
   detection, (2) cache invalidation, (3) projection staleness, (4) uncertainty update,
   (5) subscription notification. Each step produces datoms recording its effects.
-- **INV-MERGE-008**: Merge receipt records the operation — count of new datoms, frontier delta.
+- **INV-MERGE-008**: At-least-once idempotent delivery — duplicate merges are harmless.
+- **INV-MERGE-009**: Merge receipt records the operation — count of new datoms, frontier delta.
 
 Branching (INV-MERGE-003–007), W_α working sets are **deferred to Stage 2**.
 Stage 0 merge is pure set union of two flat stores with full cascade.
@@ -206,6 +207,18 @@ proptest! {
                         twice.datoms().collect::<BTreeSet<_>>());
         prop_assert_eq!(r2.new_datoms, 0);  // No new datoms on re-merge
     }
+
+    // INV-MERGE-009: Receipt completeness — receipt matches actual store delta
+    fn inv_merge_009(s1 in arb_store(5), s2 in arb_store(5)) {
+        let pre_len = s1.len();
+        let mut target = s1.clone();
+        let receipt = merge(&mut target, &s2);
+        let post_len = target.len();
+        prop_assert_eq!(receipt.new_datoms, post_len - pre_len,
+            "new_datoms mismatch: receipt={}, actual={}", receipt.new_datoms, post_len - pre_len);
+        prop_assert_eq!(receipt.duplicate_datoms, s2.len() - receipt.new_datoms,
+            "duplicate_datoms mismatch");
+    }
 }
 ```
 
@@ -231,7 +244,7 @@ by adding parameters with defaults.
 ## §7.7 Implementation Checklist
 
 - [ ] `merge()` function implements set union
-- [ ] `MergeReceipt` records statistics correctly
+- [ ] `MergeReceipt` records statistics correctly (INV-MERGE-009)
 - [ ] Content-identity deduplication works (BTreeSet)
 - [ ] Frontier merged (pointwise max per agent)
 - [ ] Indexes updated after merge

@@ -14,8 +14,8 @@
 | ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
 |----|---------------|-----------|------|---------|-------|
 | INV-STORE-001 | V:TYPE | V:KANI | rustc + kani | compile + kani | 0 |
-| INV-STORE-002 | V:TYPE | — | rustc | compile | 0 |
-| INV-STORE-003 | V:TYPE | V:PROP | rustc + proptest | compile + test | 0 |
+| INV-STORE-002 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-STORE-003 | V:TYPE | V:PROP, V:KANI | rustc + proptest + kani | compile + test + kani | 0 |
 | INV-STORE-004 | V:PROP | V:KANI, V:MODEL | proptest + kani + stateright | test + kani + model | 0 |
 | INV-STORE-005 | V:PROP | V:KANI, V:MODEL | proptest + kani + stateright | test + kani + model | 0 |
 | INV-STORE-006 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
@@ -93,7 +93,7 @@
 | INV-HARVEST-007 | V:PROP | — | proptest | test | 0 |
 | INV-HARVEST-008 | V:PROP | — | proptest | test | 2 |
 
-#### SEED (6 INV)
+#### SEED (8 INV)
 
 | ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
 |----|---------------|-----------|------|---------|-------|
@@ -101,10 +101,12 @@
 | INV-SEED-002 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
 | INV-SEED-003 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
 | INV-SEED-004 | V:PROP | — | proptest | test | 0 |
-| INV-SEED-005 | V:PROP | — | proptest | test | 1 |
-| INV-SEED-006 | V:PROP | — | proptest | test | 1 |
+| INV-SEED-005 | V:PROP | — | proptest | test | 0 |
+| INV-SEED-006 | V:PROP | — | proptest | test | 0 |
+| INV-SEED-007 | V:PROP | — | proptest | test | 1 |
+| INV-SEED-008 | V:PROP | — | proptest | test | 1 |
 
-#### MERGE (8 INV)
+#### MERGE (9 INV)
 
 | ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
 |----|---------------|-----------|------|---------|-------|
@@ -115,7 +117,8 @@
 | INV-MERGE-005 | V:PROP | V:KANI | proptest + kani | test + kani | 2 |
 | INV-MERGE-006 | V:PROP | — | proptest | test | 2 |
 | INV-MERGE-007 | V:PROP | — | proptest | test | 2 |
-| INV-MERGE-008 | V:PROP | — | proptest | test | 0 |
+| INV-MERGE-008 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-MERGE-009 | V:PROP | — | proptest | test | 0 |
 
 #### SYNC (5 INV)
 
@@ -219,12 +222,12 @@ Gate 3: clippy            — cargo clippy --all-targets -- -D warnings
 
 Gate 4: test              — cargo test
                             Checks: V:PROP (all proptest properties hold)
-                            Coverage: 121/121 INVs have proptest strategies
+                            Coverage: 122/122 INVs have proptest strategies
                             Time: <5m (proptest default: 256 cases per property)
 
 Gate 5: kani              — cargo kani
                             Checks: V:KANI (bounded model checking)
-                            Coverage: 38 INVs with critical-path verification
+                            Coverage: 39 INVs with critical-path verification
                             Time: <15m (bounded; unwind limit configurable)
 
 Gate 6: model             — cargo test --features stateright
@@ -252,8 +255,8 @@ Protocols enforced at compile time via Rust's type system (zero runtime cost):
 | Protocol | Types | Transitions | INV |
 |----------|-------|-------------|-----|
 | Transaction lifecycle | `Building → Committed → Applied` | `commit()`, `apply()` | INV-STORE-001 |
-| EntityId construction | `EntityId(hash)` — no public constructor from arbitrary bytes | content-addressed only | INV-STORE-002 |
-| Store immutability | `&Store` for reads, `&mut Store` only via `transact`/`merge` | borrow checker | INV-STORE-005 |
+| EntityId construction | `EntityId(hash)` — no public constructor from arbitrary bytes | content-addressed only | INV-STORE-003 |
+| Store immutability | `&Store` for reads, `&mut Store` only via `transact`/`merge` | borrow checker | INV-STORE-001 |
 | Schema attribute | `Attribute` newtype — cannot confuse with raw strings | type-safe attribute refs | INV-SCHEMA-003 |
 | Schema monotonicity | `SchemaEvolution(datoms)` — no `DROP` or `ALTER DELETE` | append-only by type | INV-SCHEMA-004 |
 | Query mode | `QueryMode::Monotonic \| Stratified(Frontier) \| Barriered(BarrierId)` | parse-time enforcement | INV-QUERY-005 |
@@ -282,16 +285,16 @@ Pursue deductive proofs when the implementation stabilizes.
 
 | Metric | Count | Coverage |
 |--------|-------|----------|
-| Total invariants | 121 | — |
-| With V:PROP (minimum) | 121 | 100% |
-| With V:KANI | 38 | 31.4% |
-| With V:MODEL | 15 | 12.4% |
-| With V:TYPE | 12 | 9.9% |
-| Stage 0 invariants | 61 | 50.4% |
-| Stage 1 invariants | 25 | 20.7% |
-| Stage 2 invariants | 22 | 18.2% |
-| Stage 3 invariants | 11 | 9.1% |
-| Stage 4 invariants | 2 | 1.7% |
+| Total invariants | 122 | — |
+| With V:PROP (minimum) | 122 | 100% |
+| With V:KANI | 39 | 32.0% |
+| With V:MODEL | 15 | 12.3% |
+| With V:TYPE | 12 | 9.8% |
+| Stage 0 invariants | 62 | 50.8% |
+| Stage 1 invariants | 25 | 20.5% |
+| Stage 2 invariants | 22 | 18.0% |
+| Stage 3 invariants | 11 | 9.0% |
+| Stage 4 invariants | 2 | 1.6% |
 
 ---
 

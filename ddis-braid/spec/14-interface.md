@@ -51,13 +51,42 @@ CLI_COMMAND(Σ, command, args, budget) → (output, Σ') where:
   POST: output includes guidance footer
   POST: store updated if command is META type
 
+MCP_INIT(Σ) → Σ' where:
+  PRE:  Σ.mcp.phase = Uninitialized
+  POST: store loaded from redb once (held for session lifetime)
+  POST: Σ'.mcp.phase = Initialized
+  POST: responds with server capabilities (tools, notifications)
+  NOTE: MCP protocol 3-phase: client sends `initialize` →
+        server responds with capabilities → client sends `initialized` notification.
+        Transport layer (rmcp crate) handles framing; Braid implements the handler.
+
+MCP_TOOLS_LIST(Σ) → tool_list where:
+  PRE:  Σ.mcp.phase = Initialized
+  POST: returns descriptions for all 6 Stage 0 tools
+  POST: each description satisfies Q(D) (INV-INTERFACE-008)
+
 MCP_CALL(Σ, tool_name, params) → (result, Σ') where:
+  PRE:  Σ.mcp.phase = Initialized
   PRE:  tool_name ∈ {braid_transact, braid_query, braid_status,
                       braid_harvest, braid_seed, braid_guidance}
-  POST: reads session state, computes Q(t), passes --budget to CLI
-  POST: appends pending notifications
+  POST: dispatches to kernel function via &Store reference (no subprocess, no reload)
+  POST: reads session state, computes Q(t), passes budget to kernel
+  POST: appends pending notifications to MCP notification queue
   POST: updates session state
   POST: checks harvest warning thresholds
+
+MCP_NOTIFY(Σ) → Σ' where:
+  PRE:  Σ.mcp.notification_queue is non-empty
+  POST: server-to-client notifications sent for pending signals
+  POST: Σ'.mcp.notification_queue = []
+  NOTE: Notifications are piggybacked on tool responses (MCP allows server→client
+        notifications; signals queued between calls are flushed with next response)
+
+MCP_SHUTDOWN(Σ) → Σ' where:
+  PRE:  Σ.mcp.phase = Initialized
+  POST: Σ'.mcp.phase = Shutdown
+  POST: store reference dropped, session state persisted
+  NOTE: Triggered by client `shutdown` request or stdio EOF
 
 TUI_UPDATE(Σ, subscriptions) → display where:
   POST: continuous projection via SUBSCRIBE
@@ -86,10 +115,20 @@ pub enum OutputMode {
     Human,       // TTY — full formatting, color, tables
 }
 
-/// MCP server — thin wrapper calling CLI for all computation
+/// MCP server — persistent process, thin wrapper calling kernel for all computation.
+/// Transport (stdio JSON-RPC, initialize handshake, tools/list) handled by rmcp crate.
+/// Braid implements: tool handlers, notification dispatch, session state.
 pub struct MCPServer {
+    pub store: Arc<Store>,                  // Loaded once at MCP_INIT, held for session
     pub session_state: SessionState,
     pub notification_queue: Vec<Signal>,
+    pub phase: MCPPhase,                    // Uninitialized → Initialized → Shutdown
+}
+
+pub enum MCPPhase {
+    Uninitialized,
+    Initialized,
+    Shutdown,
 }
 
 /// Six MCP tools (IB-003) — Stage 0 surface
@@ -152,18 +191,23 @@ TTY escape codes, or agent-mode output without budget constraint).
 
 #### Level 0 (Algebraic Law)
 The MCP server performs no domain computation. All domain logic is delegated to
-the kernel via direct function calls. MCP adds: session state management, budget
-adjustment, tool descriptions, notification queuing.
+the kernel via direct function calls. MCP adds: protocol lifecycle (initialize/
+tools_list/shutdown), session state management, budget adjustment, tool descriptions,
+notification queuing.
 
 `∀ mcp_call: result = kernel_dispatch(mcp_call.params) + mcp_metadata`
 
 #### Level 1 (State Invariant)
-Every MCP_CALL transition dispatches to a kernel function via direct Rust
-function call. The MCP server holds a `&Store` reference, calls kernel functions,
-and formats the response — but does not duplicate any kernel logic.
+The MCP server is a persistent process that loads the store once at initialization
+(MCP_INIT) and holds an `Arc<Store>` for the session lifetime. Every MCP_CALL
+transition dispatches to a kernel function via direct Rust function call. The MCP
+server formats the response — but does not duplicate any kernel logic. The rmcp
+crate handles transport (stdio JSON-RPC framing, initialize handshake negotiation).
 
 **Falsification**: The MCP server implements query parsing, resolution logic, or
-any other domain computation that exists in the kernel crate.
+any other domain computation that exists in the kernel crate. OR: the MCP server
+reloads the store from disk on every tool call instead of holding a session-scoped
+reference.
 
 ---
 
@@ -197,10 +241,16 @@ const MCP_TOOLS: [MCPTool; 6] = [
     MCPTool::Transact, MCPTool::Query, MCPTool::Status,
     MCPTool::Harvest, MCPTool::Seed, MCPTool::Guidance,
 ];
+
+// tools/list handler returns these 6 tools with Q(D)-satisfying descriptions.
+// The rmcp crate's #[tool] macro generates the tools/list response from
+// annotated handler functions; the fixed-size array enforces the count at
+// compile time.
 ```
 
 **Falsification**: The MCP server exposes a tool not in the defined set of six,
-or fewer than six tools are registered.
+or fewer than six tools are registered. OR: a `tools/list` request returns a
+tool set that differs from `MCP_TOOLS`.
 
 ---
 
@@ -316,9 +366,9 @@ structure and demonstration density.
 
 #### Level 1 (State Invariant)
 
-Every MCP tool registration includes a description satisfying `Q(D)`. The
-MCP_REGISTER transition checks `Q(D)` as a precondition. Descriptions are
-compile-time constants (`const` array), so `Q(D)` is verified at development
+Every MCP tool served via `MCP_TOOLS_LIST` includes a description satisfying
+`Q(D)`. Descriptions are compile-time constants (generated by rmcp `#[tool]`
+annotations or static `const` array), so `Q(D)` is verified at development
 time via tests, not at runtime.
 
 #### Level 2 (Implementation Contract)
@@ -468,27 +518,43 @@ keeping it within budget.
 
 ---
 
-### ADR-INTERFACE-004: Library Model for MCP Server
+### ADR-INTERFACE-004: Library-Mode Persistent MCP Server via rmcp
 
 **Traces to**: ADRS IB-003, FD-001
 **Stage**: 0
 
 #### Problem
 Should the MCP server invoke CLI commands as subprocesses or call kernel
-functions directly via Rust function calls?
+functions directly via Rust function calls? How should MCP protocol transport
+(JSON-RPC framing, initialize handshake, tools/list) be handled?
 
 #### Options
 A) **Subprocess model** — MCP server spawns `braid transact`, `braid query`, etc.
    as child processes. Full process isolation, each call is stateless.
 B) **Library model** — MCP server holds a `&Store` reference and calls kernel
    functions directly. Shared address space, near-zero overhead.
+C) **Library model + rmcp crate** — Same as (B) but delegates MCP protocol transport
+   (stdio JSON-RPC, initialize/initialized handshake, tools/list, shutdown) to the
+   `rmcp` crate. Braid implements only the tool handler functions.
 
 #### Decision
-**Option B.** The library model. C1 (append-only) and C4 (CRDT merge by set union)
-make the Store effectively immutable — `&Store` is always safe to share. Process
-isolation solves a problem that the CRDT architecture already solves. The subprocess
-model would add ~50-100ms overhead per call and require serialization/deserialization
-through CLI args and stdout, degrading agent experience.
+**Option C.** Library model with rmcp for transport. C1 (append-only) and C4
+(CRDT merge by set union) make the Store effectively immutable — `Arc<Store>` is
+always safe to share. Process isolation solves a problem that the CRDT architecture
+already solves. The subprocess model would add ~50-100ms overhead per call and
+require serialization/deserialization through CLI args and stdout, degrading agent
+experience. The rmcp crate provides the MCP protocol machinery (3-phase
+initialization handshake, tools/list handler generation, JSON-RPC framing over
+stdio, shutdown lifecycle) so Braid focuses on domain logic.
+
+MCP requires a persistent server process with a 3-phase initialization lifecycle:
+1. Client sends `initialize` with `clientInfo` and `capabilities`
+2. Server responds with `serverInfo` and `capabilities` (including tool list)
+3. Client sends `initialized` notification (handshake complete, tool calls may begin)
+
+The rmcp `#[tool]` macro generates the tools/list response from annotated Rust
+functions, ensuring compile-time agreement between handler implementations and
+tool descriptions.
 
 #### Formal Justification
 The Store is a G-Set CvRDT (INV-STORE-003). Reads via `&Store` are always safe
@@ -501,7 +567,10 @@ improving safety.
 - Single binary deployment (MCP server and kernel in one process)
 - Kernel functions called directly: `kernel::query(&store, expr)`, etc.
 - Error handling via Rust `Result<T, E>` types (not exit codes)
-- Store loaded once per session, shared across all tool calls
+- Store loaded once at initialization (MCP_INIT), shared across all tool calls via `Arc<Store>`
+- rmcp handles: stdio JSON-RPC framing, initialize/initialized handshake, tools/list
+  response generation, shutdown lifecycle
+- Braid handles: 6 tool handler functions, session state, notification dispatch
 
 ---
 

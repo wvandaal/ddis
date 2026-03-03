@@ -118,31 +118,33 @@ pub enum BarrierResult {
     TimedOut { responded: Vec<AgentId>, missing: Vec<AgentId> },
 }
 
-impl Store {
-    /// Initiate a sync barrier.
-    pub fn sync_barrier(
-        &mut self,
-        participants: &[AgentId],
-        timeout: Duration,
-    ) -> Result<EntityId, SyncError>;
+// --- Free functions (ADR-ARCHITECTURE-001) ---
+// Stage 3 sync operations — shown in free function form.
+// Implementation deferred to Stage 3.
 
-    /// Participate in a barrier (report frontier, share deltas).
-    pub fn barrier_participate(
-        &mut self,
-        barrier_id: EntityId,
-        agent: AgentId,
-    ) -> Result<(), SyncError>;
+/// Initiate a sync barrier.
+pub fn sync_barrier(
+    store: &mut Store,
+    participants: &[AgentId],
+    timeout: Duration,
+) -> Result<EntityId, SyncError>;
 
-    /// Check barrier status.
-    pub fn barrier_status(&self, barrier_id: EntityId) -> BarrierStatus;
+/// Participate in a barrier (report frontier, share deltas).
+pub fn barrier_participate(
+    store: &mut Store,
+    barrier_id: EntityId,
+    agent: AgentId,
+) -> Result<(), SyncError>;
 
-    /// Query at a barrier's consistent cut.
-    pub fn query_at_barrier(
-        &mut self,
-        expr: &QueryExpr,
-        barrier_id: EntityId,
-    ) -> Result<QueryResult, QueryError>;
-}
+/// Check barrier status.
+pub fn barrier_status(store: &Store, barrier_id: EntityId) -> BarrierStatus;
+
+/// Query at a barrier's consistent cut.
+pub fn query_at_barrier(
+    store: &Store,
+    expr: &QueryExpr,
+    barrier_id: EntityId,
+) -> Result<QueryResult, QueryError>;
 ```
 
 #### CLI Commands

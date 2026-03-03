@@ -20,24 +20,27 @@ braid-kernel/src/
 ### Public API Surface
 
 ```rust
-/// Generate a guidance footer for the current agent state.
-pub fn guidance_footer(
-    store: &Store,
-    drift_signals: &DriftSignals,
-) -> GuidanceFooter;
+// --- Guidance Topology (spec §12.3, ADR-GUIDANCE-001: comonadic topology) ---
 
-/// Detect drift signals from the agent's recent behavior.
-pub fn detect_drift(
-    store: &Store,
-    agent: AgentId,
-    recent_commands: &[CommandRecord],
-) -> DriftSignals;
+pub struct GuidanceTopology {
+    pub nodes: HashMap<EntityId, GuidanceNode>,
+    pub edges: Vec<(EntityId, EntityId)>,
+}
 
-/// Generate full guidance output (standalone guidance command).
-pub fn full_guidance(
-    store: &Store,
-    agent: AgentId,
-) -> GuidanceOutput;
+pub struct GuidanceNode {
+    pub entity: EntityId,
+    pub predicate: QueryExpr,      // Datalog predicate over store state
+    pub actions: Vec<GuidanceAction>,
+    pub learned: bool,
+    pub effectiveness: f64,
+}
+
+pub struct GuidanceAction {
+    pub command: String,               // specific braid command
+    pub invariant_refs: Vec<String>,   // e.g., "INV-STORE-001"
+    pub postconditions: Vec<EntityId>,
+    pub score: f64,
+}
 
 pub struct GuidanceFooter {
     pub next_action: String,           // ≤50 tokens, navigative language
@@ -46,6 +49,38 @@ pub struct GuidanceFooter {
     pub drift_warning: Option<String>, // Active drift signal if any
 }
 
+// --- Public free functions (ADR-ARCHITECTURE-001) ---
+
+/// Query guidance topology for current state with lookahead (spec §12.2 QUERY_GUIDANCE).
+pub fn query_guidance(
+    topology: &GuidanceTopology,
+    store: &Store,
+    agent: &AgentId,
+    lookahead: u8,
+) -> GuidanceResult;
+
+/// Generate a guidance footer for a tool response (spec §12.2 INJECT).
+pub fn guidance_footer(
+    topology: &GuidanceTopology,
+    store: &Store,
+    k_eff: f64,
+) -> GuidanceFooter;
+
+/// Detect drift signals from the agent's recent behavior (spec §12.2 DETECT_DRIFT).
+pub fn detect_drift(
+    store: &Store,
+    agent: AgentId,
+    recent_commands: &[CommandRecord],
+) -> DriftSignals;
+
+/// Generate full guidance output (standalone `braid guidance` command).
+pub fn full_guidance(
+    store: &Store,
+    agent: AgentId,
+) -> GuidanceOutput;
+
+// --- Drift Detection (internal, feeds into topology evaluation) ---
+
 pub struct DriftSignals {
     pub turns_without_ddis: usize,  // Consecutive turns without braid commands
     pub schema_changes_unvalidated: bool,
@@ -53,21 +88,7 @@ pub struct DriftSignals {
     pub approaching_budget_threshold: bool,
     pub using_pretrained_patterns: bool,
     pub missing_inv_references: bool,
-}
-
-pub enum GuidanceMechanism {
-    CorrectionInsertion(DriftPattern),       // Insert correction for detected drift
-    EffectivenessTracking(u32),              // Track sessions without improvement
-    ConstraintBudget(usize),                 // k* limit enforcement
-    AmbientPartition(usize),                 // ≤80 tokens ambient section
-    DemonstrationDensity(f64),               // Ratio ≥1.0 (demos per constraint cluster)
-    DynamicRegeneration,                     // Regenerate CLAUDE.md from store state
-}
-
-pub enum DriftPriority {
-    Critical,   // Budget warning, harvest urgency
-    High,       // Drift detected, active correction
-    Normal,     // Standard guidance
+    pub drift_score: f64,           // Aggregate drift score (spec §12.2)
 }
 
 pub struct GuidanceOutput {
@@ -175,27 +196,41 @@ pub struct RoutingDecision {
   verified before emission.
 
 **Clear box** (implementation):
-- `guidance_footer`:
+- `guidance_footer` (via topology, per ADR-GUIDANCE-001):
   ```rust
-  pub fn guidance_footer(store: &Store, signals: &DriftSignals) -> GuidanceFooter {
-      if signals.approaching_budget_threshold {
-          return budget_warning_footer(store);
+  pub fn guidance_footer(
+      topology: &GuidanceTopology,
+      store: &Store,
+      k_eff: f64,
+  ) -> GuidanceFooter {
+      // Evaluate topology nodes: each node's Datalog predicate is tested
+      // against current store state. Matching nodes produce scored actions.
+      let mut scored_actions: Vec<(GuidanceAction, f64)> = Vec::new();
+      for (_, node) in &topology.nodes {
+          if evaluate_predicate(&node.predicate, store) {
+              for action in &node.actions {
+                  scored_actions.push((action.clone(), action.score));
+              }
+          }
       }
-      if signals.high_confidence_unharvested {
-          return harvest_prompt_footer(store);
+      // Select highest-scoring action (priority:
+      //   budget warning > harvest prompt > drift correction > general guidance)
+      scored_actions.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+      let best = scored_actions.first();
+      GuidanceFooter {
+          next_action: best.map(|(a, _)| a.command.clone())
+              .unwrap_or_else(|| default_next_action(store)),
+          invariant_refs: best.map(|(a, _)| a.invariant_refs.clone())
+              .unwrap_or_default(),
+          uncommitted_count: count_uncommitted(store),
+          drift_warning: detect_active_warning(store),
       }
-      if signals.turns_without_ddis >= 5 {
-          return drift_correction_footer(store);
-      }
-      if signals.missing_inv_references {
-          return spec_language_footer(store);
-      }
-      if signals.using_pretrained_patterns {
-          return basin_competition_footer(store);
-      }
-      default_guidance_footer(store)
   }
   ```
+- Token counting for footer budget uses `&dyn TokenCounter` (see guide/00-architecture.md
+  section 0.6, from D5-tokenizer-survey.md). At Stage 0: chars/4 approximation. At Stage 1:
+  tiktoken-rs. The 50-token footer budget is coarse enough that ~15-20% approximation error
+  is acceptable.
 - Each footer generator produces a ≤50 token navigative question:
   - `budget_warning_footer`: "Q(t) = {value}. Harvest soon. What knowledge is at risk?"
   - `harvest_prompt_footer`: "High-confidence candidate detected. Transact now?"
@@ -475,19 +510,21 @@ R(t): Next → INV-STORE-004 (impact: 0.87 — PR: 0.92, critical: yes, blockers
 ```rust
 proptest! {
     // INV-GUIDANCE-001: Every response has a footer
-    fn inv_guidance_001(store in arb_store(5), signals in arb_drift_signals()) {
-        let footer = guidance_footer(&store, &signals);
-        prop_assert!(!footer.text.is_empty());
-        prop_assert!(footer.text.len() <= 200);  // ≤50 tokens ≈ ≤200 chars
+    fn inv_guidance_001(store in arb_store(5), topology in arb_guidance_topology()) {
+        let footer = guidance_footer(&topology, &store, 1.0);
+        prop_assert!(!footer.next_action.is_empty());
+        prop_assert!(footer.next_action.len() <= 200);  // ≤50 tokens ≈ ≤200 chars
     }
 
     // INV-GUIDANCE-002: Spec-language (footer references INV/ADR/NEG)
-    fn inv_guidance_002(store in arb_store_with_specs(5), signals in arb_drift_signals()) {
-        let footer = guidance_footer(&store, &signals);
+    fn inv_guidance_002(store in arb_store_with_specs(5), topology in arb_guidance_topology()) {
+        let footer = guidance_footer(&topology, &store, 1.0);
         // At least one spec element reference in non-default footers
+        let signals = detect_drift(&store, test_agent(), &[]);
         if signals.turns_without_ddis >= 5 || signals.missing_inv_references {
-            prop_assert!(footer.text.contains("INV-") || footer.text.contains("ADR-")
-                        || footer.text.contains("NEG-") || footer.text.contains("SEED"));
+            let has_ref = footer.invariant_refs.iter()
+                .any(|r| r.contains("INV-") || r.contains("ADR-") || r.contains("NEG-"));
+            prop_assert!(has_ref || footer.next_action.contains("SEED"));
         }
     }
 
@@ -562,12 +599,14 @@ proptest! {
 
 ## §8.5 Implementation Checklist
 
-### Core Guidance
-- [ ] `GuidanceFooter`, `DriftSignals`, `AntiDriftMechanism` types defined
-- [ ] `guidance_footer()` selects highest-priority signal
+### Core Guidance (spec §12.3, ADR-GUIDANCE-001)
+- [ ] `GuidanceTopology`, `GuidanceNode`, `GuidanceAction` types defined (comonadic topology)
+- [ ] `GuidanceFooter`, `DriftSignals` types defined
+- [ ] `guidance_footer()` evaluates topology nodes, selects highest-scoring action
+- [ ] `query_guidance()` evaluates predicates with optional lookahead
 - [ ] `detect_drift()` computes drift signals from command history
 - [ ] `full_guidance()` produces comprehensive guidance output
-- [ ] Six anti-drift mechanism footer generators implemented
+- [ ] Six anti-drift mechanisms represented as topology nodes (spec §12.2)
 - [ ] Footer uses navigative language (not instructive)
 - [ ] Footer ≤50 tokens
 - [ ] Spec-language: footers reference INV/ADR/NEG IDs

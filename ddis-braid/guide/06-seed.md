@@ -1,7 +1,7 @@
 # §6. SEED — Build Plan
 
 > **Spec reference**: [spec/06-seed.md](../spec/06-seed.md) — read FIRST
-> **Stage 0 elements**: INV-SEED-001–004 (4 INV), ADR-SEED-001–003, NEG-SEED-001–002
+> **Stage 0 elements**: INV-SEED-001–006 (6 INV), ADR-SEED-001–004, NEG-SEED-001–002
 > **Dependencies**: STORE (§1), SCHEMA (§2), QUERY (§3), RESOLUTION (§4), MERGE (§7), HARVEST (§5)
 > **Cognitive mode**: Retrieval-theoretic — relevance, compression, trajectory seeds
 
@@ -24,13 +24,16 @@ pub fn assemble_seed(
     budget: usize,       // token budget for seed output
 ) -> SeedOutput;
 
-/// The five-part trajectory seed.
+/// The five-part trajectory seed (ADR-SEED-004 canonical template).
+/// Field names match spec/06-seed.md ADR-SEED-004. The spec's AssembledContext
+/// is the lower-level entity-scored representation; SeedOutput is the
+/// agent-facing formatted template produced from it.
 pub struct SeedOutput {
-    pub orientation:   String,  // Project identity, phase, active spec section
-    pub decisions:     String,  // Relevant ADRs, commitment weights, do-not-relitigate
-    pub context:       String,  // Recent transactions, frontier, drift score, uncertainties
-    pub warnings:      String,  // Unresolved conflicts, stale datoms, thresholds
-    pub task:          String,  // Assigned task, traceability, relevant INVs, first action
+    pub orientation:  String,  // Project identity, phase, active spec section
+    pub constraints:  String,  // Relevant INVs, settled ADRs, negative cases
+    pub state:        String,  // Recent transactions, frontier, drift score, uncertainties
+    pub warnings:     String,  // Drift signals, open questions, uncertainties, harvest alerts
+    pub directive:    String,  // Next task, acceptance criteria, active guidance corrections
 }
 
 /// Compute relevance score for a datom w.r.t. a task description.
@@ -63,22 +66,35 @@ pub fn compress_seed(seed: &SeedOutput, budget: usize) -> SeedOutput;
   Compression preserves activation-critical content over verbose detail.
 - INV-SEED-003: ASSOCIATE Boundedness — graph expansion is bounded to `depth × breadth`,
   preventing unbounded traversal.
-- INV-SEED-004: Intention Anchoring — active intentions pinned at π₀ (full detail)
+- INV-SEED-004: Section Compression Priority — compress State first, Directive last.
+- INV-SEED-005: Demonstration Density — at least one demonstration per constraint cluster.
+- INV-SEED-006: Intention Anchoring — active intentions pinned at π₀ (full detail)
   regardless of budget pressure.
 
 **State box** (internal design):
 - Three-stage pipeline: associate → assemble → compress.
 - **Associate**: Query store for task-relevant entities using keyword matching and
   graph proximity. Score by relevance: α=0.5 (keyword match), β=0.3 (significance), γ=0.2 (recency).
-- **Assemble**: Build five-part structure from associated entities:
+- **Assemble**: Build five-part structure from associated entities (ADR-SEED-004):
   - Orientation: project metadata datoms + current phase.
-  - Decisions: ADR entities with highest commitment weight relevant to task.
-  - Context: transactions since last seed, frontier state, drift score.
-  - Warnings: unresolved conflicts, high-urgency uncertainties.
-  - Task: the task description with traceability to SEED.md sections and relevant INVs.
-- **Compress**: If assembled seed exceeds budget, truncate least-relevant items per section.
-  Preserve: all warnings (safety-critical), task (directive), top-K decisions.
-  Truncate: older context items, lower-relevance ADRs.
+  - Constraints: relevant INVs, settled ADRs, negative cases for current task.
+  - State: transactions since last seed, frontier state, drift score.
+  - Warnings: drift signals, open questions, uncertainties, harvest alerts.
+  - Directive: next task, acceptance criteria, active guidance corrections.
+- **Compress**: If assembled seed exceeds budget, apply section compression priority (INV-SEED-004):
+  1. Compress **State** first (lowest marginal value; reconstructible from store queries)
+  2. Compress **Constraints** second (degrade to ID-only references, e.g., "INV-STORE-001")
+  3. Compress **Orientation** third (short, mostly fixed; compress but never omit entirely)
+  4. Compress **Warnings** fourth (safety-critical; high behavioral leverage per token)
+  5. Compress **Directive** last (directly controls agent behavior; most valuable per token)
+  Token allocation by remaining budget:
+  - \> 2000 tokens: full detail in all sections; pi_0 for State items
+  - 500-2000 tokens: compress State to pi_1; keep Constraints at full IDs
+  - 200-500 tokens: Orientation (50 tok) + Directive (100 tok) + top-3 Warnings only
+  - <= 200 tokens: single-line orientation + single-line directive + harvest warning if applicable
+  Demonstration density (INV-SEED-005): include >= 1 worked example per constraint cluster
+  when budget > 1000 tokens. A 30-token demonstration activates pattern-completion more
+  effectively than invariant statements alone.
 
 **Clear box** (implementation):
 - `associate`: Tokenize task description → extract keywords → Datalog query:
@@ -86,8 +102,8 @@ pub fn compress_seed(seed: &SeedOutput, budget: usize) -> SeedOutput;
   For Stage 0, keyword matching is simple substring/overlap. Significance tracking deferred to Stage 1.
 - `assemble`: For each section, query store for relevant datoms. Format into markdown strings.
   Token count estimated at 4 characters per token (rough approximation).
-- `compress`: If total tokens > budget, iteratively remove lowest-scored items from context
-  and decisions sections until within budget. Never remove warnings or task.
+- `compress`: If total tokens > budget, iteratively remove lowest-scored items from state
+  and constraints sections until within budget. Never remove warnings or directive.
 
 ### Dynamic CLAUDE.md Generation (INV-GUIDANCE-007)
 
@@ -118,12 +134,14 @@ The seed output IS the primary LLM-facing surface. Each part is designed as a pr
 You are working on **Braid** (DDIS implementation). Current phase: Stage 0 implementation.
 Active namespace: STORE. Spec: spec/01-store.md.
 
-## Prior Decisions
+## Constraints
 - ADR-STORE-002: BLAKE3 for content hashing (w=12, do not relitigate)
 - ADR-STORE-004: HLC for transaction ordering (w=8, do not relitigate)
 - ADR-STORE-009: redb for persistence (w=3, low commitment — revisable)
+- INV-STORE-001: Append-only immutability
+- NEG-001: No aspirational stubs
 
-## Working Context
+## State
 Last 3 transactions: genesis (tx_0), schema extension (tx_1), spec-bootstrap (tx_2).
 Frontier: {agent1: tx_2}. Drift: 0.0. Store: 147 datoms.
 Active uncertainties: UNC-SCHEMA-001 (17 attributes sufficient? confidence=0.85).
@@ -131,7 +149,7 @@ Active uncertainties: UNC-SCHEMA-001 (17 attributes sufficient? confidence=0.85)
 ## Warnings
 None.
 
-## Task
+## Directive
 Implement `Store::transact()` per INV-STORE-001 (append-only) and INV-STORE-002 (strict growth).
 Traces to: SEED.md §4 Axiom 2. First action: write typestate Transaction impl.
 ```
@@ -191,12 +209,29 @@ proptest! {
 }
 ```
 
-### Kani Harnesses
+### Additional Properties
 
 ```rust
 proptest! {
-    // INV-SEED-004: Active Intention Pinning — π₀ survives budget compression
+    // INV-SEED-004: Section Compression Priority — State compresses before Directive
     fn inv_seed_004(
+        store in arb_store(20),
+        task in arb_task(),
+        budget in 200..2000usize,
+    ) {
+        let full_seed = assemble_seed(&store, &task, 10000);
+        let compressed_seed = assemble_seed(&store, &task, budget);
+        // If directive was compressed, state must have been compressed first
+        if token_count_section(&compressed_seed.directive) < token_count_section(&full_seed.directive) {
+            prop_assert!(
+                token_count_section(&compressed_seed.state) < token_count_section(&full_seed.state),
+                "Directive compressed before State — violates compression priority"
+            );
+        }
+    }
+
+    // INV-SEED-006: Active Intention Pinning — π₀ survives budget compression
+    fn inv_seed_006(
         store in arb_store(10),
         budget in 100usize..2000,
     ) {
@@ -206,7 +241,7 @@ proptest! {
         for intention in &active_intentions {
             prop_assert!(
                 seed.warnings.contains(&intention.summary)
-                    || seed.context.contains(&intention.summary),
+                    || seed.state.contains(&intention.summary),
                 "Active intention {} missing from seed at budget {}",
                 intention.id, budget
             );
@@ -224,12 +259,14 @@ INV-SEED-002 and INV-SEED-003 have V:KANI tags.
 - [ ] `SeedOutput` five-part structure defined
 - [ ] `associate()` finds task-relevant entities via keyword matching
 - [ ] `assemble_seed()` builds five-part output from store queries
-- [ ] `compress_seed()` fits within token budget, preserves warnings + task
+- [ ] `compress_seed()` fits within token budget, preserves warnings + directive
 - [ ] `relevance_score()` scores datoms by keyword + recency
 - [ ] `generate_claude_md()` produces valid CLAUDE.md from store state
 - [ ] Seed is budget-bounded (INV-SEED-002)
 - [ ] ASSOCIATE is bounded by depth × breadth (INV-SEED-003)
-- [ ] Active intentions pinned at π₀ regardless of budget (INV-SEED-004)
+- [ ] Section compression follows priority order: State > Constraints > Orientation > Warnings > Directive (INV-SEED-004)
+- [ ] At least one demonstration per constraint cluster when budget > 1000 tokens (INV-SEED-005)
+- [ ] Active intentions pinned at π₀ regardless of budget (INV-SEED-006)
 - [ ] Integration: genesis → transact specs → seed → readable context for new session
 
 ---
