@@ -17,7 +17,7 @@ The interface is a **five-layer graded information channel**:
 ```
 Layer 0 (Ambient):    CLAUDE.md — ~80 tokens, k*-exempt, always present
 Layer 1 (CLI):        Rust binary — primary agent interface, budget-aware
-Layer 2 (MCP):        Thin wrapper — machine-to-machine, nine tools
+Layer 2 (MCP):        Thin wrapper — machine-to-machine, six tools
 Layer 3 (Guidance):   Comonadic — spec-language, injected in every response
 Layer 4 (TUI):        Subscription-driven — human monitoring dashboard
 Layer 4.5 (Statusline): Bridge — persistent low-bandwidth agent↔human signal
@@ -52,8 +52,8 @@ CLI_COMMAND(Σ, command, args, budget) → (output, Σ') where:
   POST: store updated if command is META type
 
 MCP_CALL(Σ, tool_name, params) → (result, Σ') where:
-  PRE:  tool_name ∈ {ddis_status, ddis_guidance, ddis_associate, ddis_query,
-                      ddis_transact, ddis_branch, ddis_signal, ddis_harvest, ddis_seed}
+  PRE:  tool_name ∈ {braid_transact, braid_query, braid_status,
+                      braid_harvest, braid_seed, braid_guidance}
   POST: reads session state, computes Q(t), passes --budget to CLI
   POST: appends pending notifications
   POST: updates session state
@@ -81,7 +81,7 @@ STATUSLINE_TICK(Σ, context_data) → Σ' where:
 ```rust
 /// CLI output modes (IB-002)
 pub enum OutputMode {
-    Structured,  // JSON — machine-parseable
+    Json,        // JSON — machine-parseable (structured output)
     Agent,       // 100–300 tokens, headline + entities + signals + guidance + pointers
     Human,       // TTY — full formatting, color, tables
 }
@@ -92,17 +92,14 @@ pub struct MCPServer {
     pub notification_queue: Vec<Signal>,
 }
 
-/// Nine MCP tools (IB-003)
+/// Six MCP tools (IB-003) — Stage 0 surface
 pub enum MCPTool {
-    Status,     // cheap: ≤50 tokens
-    Guidance,   // cheap: ≤50 tokens
-    Associate,  // moderate: 50–300 tokens
-    Query,      // moderate: 50–300 tokens
-    Transact,   // meta: side effect
-    Branch,     // meta: side effect
-    Signal,     // meta: side effect
-    Harvest,    // meta: side effect
-    Seed,       // expensive: 300+ tokens
+    Transact,   // meta: side effect — assert/retract datoms
+    Query,      // moderate: 50–300 tokens — Datalog query
+    Status,     // cheap: ≤50 tokens — store summary + M(t) + drift
+    Harvest,    // meta: side effect — extract session knowledge
+    Seed,       // expensive: 300+ tokens — session initialization
+    Guidance,   // cheap: ≤50 tokens — methodology steering + R(t)
 }
 
 /// Session state file (SR-011)
@@ -135,7 +132,7 @@ pub struct TUIState {
 
 #### Level 0 (Algebraic Law)
 The CLI produces output in exactly one of three modes per invocation:
-Structured (JSON), Agent (budget-constrained), Human (TTY-formatted).
+Json (machine-parseable), Agent (budget-constrained), Human (TTY-formatted).
 Mode selection is explicit (flag) or inferred from terminal context.
 
 #### Level 1 (State Invariant)
@@ -154,47 +151,56 @@ TTY escape codes, or agent-mode output without budget constraint).
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
-The MCP server performs no computation. All computation is delegated to the CLI.
-MCP adds: session state management, budget adjustment, tool descriptions,
-notification queuing.
+The MCP server performs no domain computation. All domain logic is delegated to
+the kernel via direct function calls. MCP adds: session state management, budget
+adjustment, tool descriptions, notification queuing.
 
-`∀ mcp_call: result = cli_execute(mcp_call.to_cli_args()) + mcp_metadata`
+`∀ mcp_call: result = kernel_dispatch(mcp_call.params) + mcp_metadata`
 
 #### Level 1 (State Invariant)
-Every MCP_CALL transition invokes a CLI command as a subprocess. The MCP server
-reads/writes session state and manages notifications but does not duplicate
-any CLI logic.
+Every MCP_CALL transition dispatches to a kernel function via direct Rust
+function call. The MCP server holds a `&Store` reference, calls kernel functions,
+and formats the response — but does not duplicate any kernel logic.
 
-**Falsification**: The MCP server implements query parsing, store access, or
-any other logic that exists in the CLI binary.
+**Falsification**: The MCP server implements query parsing, resolution logic, or
+any other domain computation that exists in the kernel crate.
 
 ---
 
-### INV-INTERFACE-003: Nine MCP Tools
+### INV-INTERFACE-003: Six MCP Tools
 
 **Traces to**: ADRS IB-003
 **Verification**: `V:PROP`, `V:TYPE`
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
-The MCP server exposes exactly nine tools:
-`{status, guidance, associate, query, transact, branch, signal, harvest, seed}`
+The MCP server exposes exactly six tools at Stage 0:
+`{braid_transact, braid_query, braid_status, braid_harvest, braid_seed, braid_guidance}`
+
+The tool set partitions by cost class:
+- **Meta** (side effects): `braid_transact`, `braid_harvest`
+- **Read** (moderate budget): `braid_query`, `braid_seed`
+- **Cheap** (≤50 tokens): `braid_status`, `braid_guidance`
+
+Stage 2+ may add tools (e.g., `braid_branch`, `braid_signal`) via spec update.
 
 #### Level 1 (State Invariant)
-The tool set is fixed. Adding tools requires a spec update.
-Each tool maps to a specific CLI command.
+The tool set is fixed per stage. Adding tools requires a spec update with
+a new invariant version. Each tool maps to a specific CLI command.
+Tools removed from Stage 0 (Associate, Branch, Signal) are available
+via `braid query` Datalog expressions or at later stages.
 
 #### Level 2 (Implementation Contract)
 ```rust
-// Type-level guarantee: exactly 9 tools
-const MCP_TOOLS: [MCPTool; 9] = [
-    MCPTool::Status, MCPTool::Guidance, MCPTool::Associate,
-    MCPTool::Query, MCPTool::Transact, MCPTool::Branch,
-    MCPTool::Signal, MCPTool::Harvest, MCPTool::Seed,
+// Type-level guarantee: exactly 6 tools at Stage 0
+const MCP_TOOLS: [MCPTool; 6] = [
+    MCPTool::Transact, MCPTool::Query, MCPTool::Status,
+    MCPTool::Harvest, MCPTool::Seed, MCPTool::Guidance,
 ];
 ```
 
-**Falsification**: The MCP server exposes a tool not in the defined set of nine.
+**Falsification**: The MCP server exposes a tool not in the defined set of six,
+or fewer than six tools are registered.
 
 ---
 
@@ -447,18 +453,55 @@ How should agent work sessions be managed across conversation boundaries?
 Store-mediated: `ddis harvest` extracts durable facts, `ddis seed` generates
 carry-over. Agent lifecycle: SEED → work 20–30 turns → HARVEST → reset → GOTO SEED.
 
-Seed output follows a five-part template:
-1. Context (1–2 sentences)
-2. Invariants established
-3. Artifacts produced
-4. Open questions from deliberations
-5. Active guidance
+Seed output follows a five-part template (ADR-SEED-004):
+1. Orientation (project identity, phase, recent history)
+2. Constraints (relevant INVs, ADRs, negative cases)
+3. State (datoms, artifacts, frontier, changes)
+4. Warnings (drift, questions, uncertainties)
+5. Directive (next task, acceptance criteria, corrections)
 
 #### Formal Justification
 The store is the sole truth (FD-012). Trajectory management through the store
 means conversation boundaries become knowledge extraction points, not knowledge
 loss points. The five-part template provides structure for the seed while
 keeping it within budget.
+
+---
+
+### ADR-INTERFACE-004: Library Model for MCP Server
+
+**Traces to**: ADRS IB-003, FD-001
+**Stage**: 0
+
+#### Problem
+Should the MCP server invoke CLI commands as subprocesses or call kernel
+functions directly via Rust function calls?
+
+#### Options
+A) **Subprocess model** — MCP server spawns `braid transact`, `braid query`, etc.
+   as child processes. Full process isolation, each call is stateless.
+B) **Library model** — MCP server holds a `&Store` reference and calls kernel
+   functions directly. Shared address space, near-zero overhead.
+
+#### Decision
+**Option B.** The library model. C1 (append-only) and C4 (CRDT merge by set union)
+make the Store effectively immutable — `&Store` is always safe to share. Process
+isolation solves a problem that the CRDT architecture already solves. The subprocess
+model would add ~50-100ms overhead per call and require serialization/deserialization
+through CLI args and stdout, degrading agent experience.
+
+#### Formal Justification
+The Store is a G-Set CvRDT (INV-STORE-003). Reads via `&Store` are always safe
+because the store never mutates existing datoms (C1). Writes go through
+`transact()` which returns a new Store. The MCP server cannot corrupt the store
+because it never holds `&mut Store`. Process isolation would add overhead without
+improving safety.
+
+#### Consequences
+- Single binary deployment (MCP server and kernel in one process)
+- Kernel functions called directly: `kernel::query(&store, expr)`, etc.
+- Error handling via Rust `Result<T, E>` types (not exit codes)
+- Store loaded once per session, shared across all tool calls
 
 ---
 
@@ -491,8 +534,8 @@ The MCP server is a thin wrapper. Any computation that appears in both the
 MCP server and the CLI binary is a duplication bug.
 
 **proptest strategy**: Structural analysis — verify MCP tool handlers
-contain only: subprocess call, session state read/write, notification
-queue management. No query parsing, store access, or domain logic.
+contain only: kernel function dispatch, session state read/write, notification
+queue management. No query parsing, resolution logic, or domain computation.
 
 ---
 

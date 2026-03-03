@@ -208,14 +208,18 @@ All attribute definitions are queryable via the same query engine as any other d
 
 #### Level 2 (Implementation Contract)
 ```rust
-// Schema is a view over the store, not a separate data structure.
-pub struct Schema<'a> { store: &'a Store }
+// Schema is derived from store datoms on load, owned by Store (ADR-SCHEMA-005).
+pub struct Schema { /* fields extracted from schema datoms */ }
 
-impl<'a> Schema<'a> {
-    pub fn attribute(&self, ident: &Keyword) -> Option<AttributeDef> {
-        // Query the store for datoms about this attribute
-        self.store.query_attribute(ident)
-    }
+impl Schema {
+    /// Reconstruct schema from store datoms (the only constructor).
+    pub fn from_store(datoms: &BTreeSet<Datom>) -> Schema { /* ... */ }
+    pub fn attribute(&self, ident: &Keyword) -> Option<&AttributeDef> { /* ... */ }
+}
+
+impl Store {
+    /// Borrow the schema — zero cost, derived from store datoms on load.
+    pub fn schema(&self) -> &Schema { &self.schema }
 }
 ```
 
@@ -515,6 +519,36 @@ Twelve lattices, several with non-trivial diamond structure:
 12. numeric-max
 
 The diamond patterns connect lattice algebra to coordination (INV-SCHEMA-008).
+
+---
+
+### ADR-SCHEMA-005: Owned Schema with Borrow API
+
+**Traces to**: C3, INV-SCHEMA-001
+**Stage**: 0
+
+#### Problem
+What is Schema's ownership model relative to Store?
+
+#### Options
+A) **Borrow** — `Schema<'a> { store: &'a Store }`. Schema borrows Store, queries on
+   demand. Pure C3 expression but lifetime-infectious in Rust.
+B) **Copy** — `Schema { /* copied data */ }`. Independent of Store lifetime, but the
+   copy can diverge from the store after construction.
+C) **Owned internally** — Store owns a `Schema` field, derived from schema datoms on
+   load. Exposed via `store.schema() -> &Schema`.
+
+#### Decision
+**Option C.** Store owns Schema internally, constructed via `Schema::from_store(datoms)`
+on load and after schema-modifying transactions. The API exposes `&Schema` via borrow
+(zero-cost, no allocation). This avoids lifetime infection (Option A), prevents
+divergence (Option B), and maintains C3 because Schema is always derived from datoms.
+
+#### Consequences
+- `Schema` struct has no lifetime parameter — can be stored in any context
+- `Schema::from_store()` is the sole constructor (enforces C3)
+- Store rebuilds Schema when schema datoms change (after transact of schema attributes)
+- `store.schema()` returns `&Schema` — borrow semantics, zero cost
 
 ---
 

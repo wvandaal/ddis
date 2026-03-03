@@ -130,6 +130,14 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rationale**: If any DDIS operation produces state outside the store, that state cannot be queried, conflict-detected, or coherence-verified. The store is the sole truth.
 **Source**: Transcript 01:866–924 (architecture diagram, command-to-transaction mapping)
 
+### FD-013: BLAKE3 for Content Hashing
+
+**Decision**: BLAKE3 is the hash algorithm for all content-addressed identity in Braid (EntityId generation, datom identity, genesis hash). 256-bit output (`[u8; 32]`).
+**Rationale**: BLAKE3 is ~14x faster than SHA-256 on modern hardware, ships as a pure Rust crate (`blake3`) with no C dependency for optimal performance, produces the same 256-bit collision resistance (2^{-128} birthday bound), and was designed specifically for content-addressed systems (used by IPFS, Bao, and other content-addressed projects). Performance matters for Braid because every datom insertion, every entity lookup, and every merge deduplication involves hashing.
+**Rejected**: SHA-256 (slower, requires C dependency via `ring` or `openssl` for optimal performance); BLAKE2b (predecessor to BLAKE3, less optimized tree structure, no SIMD auto-detection); xxHash (not cryptographic — collision resistance is insufficient for content-addressed identity where collisions cause silent data corruption).
+**Source**: SEED.md §4 (content-addressed identity, Axiom 1); Transcript 01 (BLAKE3 discussed for content hashing); FD-007 (content-addressable identity)
+**Formalized as**: ADR-STORE-013 in `spec/01-store.md`
+
 ---
 
 ## Algebraic Structure Decisions
@@ -664,10 +672,10 @@ Specifications for the canonical protocol operations.
 **Principle**: "Demonstration, not constraint list" — agent output follows demonstration style (activates deep LLM substrate) rather than constraint style (activates surface substrate). Concrete BAD/GOOD examples in transcript.
 **Source**: Transcript 04:2508–2574
 
-### IB-003: MCP as Thin Wrapper with Nine Tools
+### IB-003: MCP as Thin Wrapper with Six Tools (Stage 0)
 
-**Decision**: MCP server calls CLI for all computation. Adds session state, budget adjustment, tool descriptions, notification queuing. Exposes exactly nine tools: `ddis_status` (cheap), `ddis_guidance` (cheap), `ddis_associate`, `ddis_query`, `ddis_transact`, `ddis_branch`, `ddis_signal`, `ddis_harvest`, `ddis_seed`. On every call: reads context state, computes Q(t), passes `--budget`, appends notifications, updates session state, checks thresholds.
-**Source**: Transcript 04:2578–2641; Transcript 05:792–900 (nine tool schemas)
+**Decision**: MCP server calls CLI for all computation. Adds session state, budget adjustment, tool descriptions, notification queuing. Stage 0 exposes exactly six tools: `braid_transact` (meta), `braid_query` (moderate), `braid_status` (cheap), `braid_harvest` (meta), `braid_seed` (expensive), `braid_guidance` (cheap). Entity lookup and history are accessible via `braid_query`; CLAUDE.md generation is accessible via `braid_guidance`. Three additional tools (`braid_branch`, `braid_signal`, `braid_associate`) activate at Stage 2+ when branching and multi-agent coordination are available. On every call: reads context state, computes Q(t), passes `--budget`, appends notifications, updates session state, checks thresholds.
+**Source**: Transcript 04:2578–2641; Transcript 05:792–900 (original nine tool schemas); revised to six tools for Stage 0 per INV-INTERFACE-003
 
 ### IB-004: CLI Output Budget as Hard Invariant
 

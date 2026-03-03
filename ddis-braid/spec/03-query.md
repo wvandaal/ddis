@@ -485,6 +485,510 @@ Useful query patterns are promoted to entities, enabling the system to learn
 
 ---
 
+### INV-QUERY-012: Topological Sort
+
+**Traces to**: ADRS SQ-004, FD-003
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+Given a directed acyclic graph G = (V, E) derived from datom references
+(entity → entity via Ref-valued attributes):
+
+topo_sort(G) produces a linear extension L = [v₁, v₂, ..., vₙ] such that:
+  ∀ (u, v) ∈ E: index(u, L) < index(v, L)
+
+If G contains a cycle: topo_sort(G) = Err(CycleDetected(scc))
+```
+
+The sort is deterministic: ties broken by EntityId lexicographic order.
+This ensures reproducible implementation ordering across sessions and agents.
+
+#### Level 1 (State Invariant)
+The query engine provides `topo_sort(entity_type, dependency_attr)` as a
+built-in graph query. It operates on the materialized reference graph
+extracted from the store's EAVT index for the specified attribute.
+
+Pipeline: extract subgraph → detect cycles (INV-QUERY-013) → if DAG, sort
+via Kahn's algorithm → return ordered entity list with depth annotations.
+
+#### Level 2 (Implementation Contract)
+```rust
+pub fn topo_sort(
+    store: &Store,
+    entity_type: &Attribute,    // e.g., :task/type
+    dep_attr: &Attribute,       // e.g., :task/depends-on
+) -> Result<Vec<(EntityId, usize)>, GraphError> {
+    // Returns (entity, depth) pairs in topological order
+    // Kahn's algorithm: O(V + E)
+    // CycleDetected error includes the SCC via Tarjan (INV-QUERY-013)
+}
+```
+
+**Falsification**: `topo_sort` returns an ordering where a dependency appears
+after its dependent, OR returns `Ok` for a graph containing a cycle, OR
+produces different orderings for the same graph across invocations.
+
+---
+
+### INV-QUERY-013: Cycle Detection via Tarjan SCC
+
+**Traces to**: ADRS SQ-004, FD-003
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+tarjan_scc(G) decomposes G into strongly connected components:
+  G = SCC₁ ∪ SCC₂ ∪ ... ∪ SCCₖ
+
+Properties:
+  1. Partition: every vertex belongs to exactly one SCC
+  2. Maximality: no SCC can be extended with additional vertices
+  3. DAG condensation: the graph of SCCs is always a DAG
+
+∀ SCC with |SCC| > 1: SCC represents a circular dependency (error condition)
+∀ SCC with |SCC| = 1: trivial SCC (no self-cycle unless self-referencing)
+```
+
+#### Level 1 (State Invariant)
+Cycle detection is a precondition for topological sort, task derivation,
+and schema layer validation. When cycles are detected, they are reported
+as `GraphError::CycleDetected(Vec<Vec<EntityId>>)` containing all
+non-trivial SCCs.
+
+The condensation DAG (SCCs as vertices, inter-SCC edges) is also returned
+for downstream algorithms that can operate on the condensed graph.
+
+#### Level 2 (Implementation Contract)
+```rust
+pub struct SCCResult {
+    pub components: Vec<Vec<EntityId>>,  // SCCs in reverse topological order
+    pub condensation: Vec<Vec<usize>>,   // DAG adjacency list over SCC indices
+    pub has_cycles: bool,                // true if any |SCC| > 1
+}
+
+pub fn tarjan_scc(
+    store: &Store,
+    entity_type: &Attribute,
+    dep_attr: &Attribute,
+) -> SCCResult {
+    // Tarjan's algorithm: O(V + E), single DFS pass
+}
+```
+
+**Falsification**: A vertex appears in two SCCs (partition violation), OR
+a non-trivial SCC is not detected, OR the condensation contains a cycle.
+
+---
+
+### INV-QUERY-014: PageRank Scoring
+
+**Traces to**: ADRS SQ-004
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+PageRank computes importance scores over the datom reference graph:
+
+PR(v) = (1 - d)/|V| + d × Σ_{u→v} PR(u)/out_degree(u)
+
+where d ∈ (0,1) is the damping factor (default: 0.85).
+
+Properties:
+  1. Normalization: Σ PR(v) = 1
+  2. Convergence: power iteration converges for any connected graph
+  3. Monotonicity: adding an edge u→v can only increase PR(v) (monotone query)
+  4. Determinism: PR(G) at frontier F is a pure function of G and d
+```
+
+#### Level 1 (State Invariant)
+PageRank is a Stratum 1 query (graph traversal, monotonic). It operates on
+the reference subgraph for a given entity type and dependency attribute.
+The result is a `Vec<(EntityId, f64)>` sorted by descending rank.
+
+Convergence criterion: `max|PR^(i+1)(v) - PR^(i)(v)| < ε` (default ε = 1e-6).
+Maximum iterations: 100 (safety bound).
+
+#### Level 2 (Implementation Contract)
+```rust
+pub struct PageRankConfig {
+    pub damping: f64,         // default: 0.85
+    pub epsilon: f64,         // convergence: 1e-6
+    pub max_iterations: u32,  // safety bound: 100
+}
+
+pub fn pagerank(
+    store: &Store,
+    entity_type: &Attribute,
+    dep_attr: &Attribute,
+    config: &PageRankConfig,
+) -> Vec<(EntityId, f64)> {
+    // Power iteration: O(iterations × (V + E))
+    // Returns entities sorted by descending rank
+}
+```
+
+**Falsification**: PageRank scores do not sum to 1.0 (within ε), OR
+the same graph produces different scores across invocations, OR
+power iteration fails to converge within `max_iterations`.
+
+---
+
+### INV-QUERY-015: Betweenness Centrality
+
+**Traces to**: ADRS SQ-004
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+```
+Betweenness centrality measures how often a vertex lies on shortest paths:
+
+BC(v) = Σ_{s≠v≠t} σ_st(v) / σ_st
+
+where σ_st = number of shortest paths from s to t,
+      σ_st(v) = number of those passing through v.
+
+Properties:
+  1. Range: BC(v) ∈ [0, (|V|-1)(|V|-2)/2] (unnormalized)
+  2. Normalized: BC_norm(v) = BC(v) / ((|V|-1)(|V|-2)/2) ∈ [0, 1]
+  3. Bottleneck identification: high BC ⟹ vertex is a critical dependency
+```
+
+#### Level 1 (State Invariant)
+Betweenness centrality is a Stratum 1 query. It identifies bottleneck
+entities in the dependency graph — entities whose removal would maximally
+disrupt connectivity. Used by R(t) work routing (INV-GUIDANCE-010) to
+prioritize unblocking high-betweenness tasks.
+
+#### Level 2 (Implementation Contract)
+```rust
+pub fn betweenness_centrality(
+    store: &Store,
+    entity_type: &Attribute,
+    dep_attr: &Attribute,
+    normalized: bool,
+) -> Vec<(EntityId, f64)> {
+    // Brandes' algorithm: O(V × E)
+    // Returns entities sorted by descending centrality
+}
+```
+
+**Falsification**: Normalized betweenness score falls outside [0, 1], OR
+a vertex on every shortest path between two components has BC = 0.
+
+---
+
+### INV-QUERY-016: HITS Hub/Authority Scoring
+
+**Traces to**: ADRS SQ-004, SQ-006
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+```
+HITS computes dual scores — hub (outgoing links) and authority (incoming links):
+
+auth(v) = Σ_{u→v} hub(u)
+hub(v)  = Σ_{v→w} auth(w)
+
+Converges via alternating power iteration with normalization.
+
+Properties:
+  1. Convergence: guaranteed for connected components
+  2. Duality: hubs aggregate, authorities are depended upon
+  3. Orthogonality to PageRank: HITS distinguishes aggregators from authorities
+```
+
+#### Level 1 (State Invariant)
+HITS is a Stratum 1 query. The hub/authority duality maps to the bilateral
+query layer (ADR-QUERY-008): authorities correspond to deeply specified
+entities, hubs correspond to integration points that reference many authorities.
+
+Used to bootstrap spectral authority (Stratum 3) at Stage 1 before
+the full SVD-based computation is available.
+
+#### Level 2 (Implementation Contract)
+```rust
+pub struct HITSResult {
+    pub authorities: Vec<(EntityId, f64)>,  // sorted descending
+    pub hubs: Vec<(EntityId, f64)>,         // sorted descending
+    pub iterations: u32,                    // actual convergence iterations
+}
+
+pub fn hits(
+    store: &Store,
+    entity_type: &Attribute,
+    dep_attr: &Attribute,
+    max_iterations: u32,  // default: 100
+    epsilon: f64,         // convergence: 1e-6
+) -> HITSResult {
+    // Alternating power iteration: O(iterations × (V + E))
+}
+```
+
+**Falsification**: Authority scores not normalized (Σ auth² ≠ 1), OR
+hub scores not normalized (Σ hub² ≠ 1), OR a vertex with only incoming
+edges has a non-zero hub score.
+
+---
+
+### INV-QUERY-017: Critical Path Analysis
+
+**Traces to**: ADRS SQ-004
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+Given a weighted DAG G = (V, E, w) where w: V → ℝ⁺ (vertex weights = effort):
+
+critical_path(G) = argmax over all source-to-sink paths P: Σ_{v ∈ P} w(v)
+
+Properties:
+  1. Existence: every DAG has at least one critical path
+  2. Uniqueness: if vertex weights are distinct, the critical path is unique
+  3. Optimality: reducing total project time requires reducing a critical-path task
+  4. Slack: for non-critical vertices, slack(v) = latest_start(v) - earliest_start(v)
+```
+
+Vertex weights default to 1.0 (uniform effort). Custom weights can be
+stored as datom attributes (e.g., `:task/effort`).
+
+#### Level 1 (State Invariant)
+Critical path is a Stratum 1 query (graph traversal on DAG, monotonic).
+Requires topological sort (INV-QUERY-012) as a prerequisite.
+
+Forward pass: compute earliest start times.
+Backward pass: compute latest start times.
+Critical path: vertices where earliest_start = latest_start (zero slack).
+
+#### Level 2 (Implementation Contract)
+```rust
+pub struct CriticalPathResult {
+    pub path: Vec<EntityId>,           // critical path vertices
+    pub total_weight: f64,             // critical path length
+    pub slack: HashMap<EntityId, f64>, // slack per vertex (0.0 = critical)
+    pub earliest_start: HashMap<EntityId, f64>,
+    pub latest_start: HashMap<EntityId, f64>,
+}
+
+pub fn critical_path(
+    store: &Store,
+    entity_type: &Attribute,
+    dep_attr: &Attribute,
+    weight_attr: Option<&Attribute>,  // None = uniform weight 1.0
+) -> Result<CriticalPathResult, GraphError> {
+    // Requires DAG (errors on cycle). O(V + E)
+}
+```
+
+**Falsification**: A non-critical-path vertex has zero slack, OR
+the critical path length is not the maximum path weight, OR
+the algorithm succeeds on a graph containing cycles.
+
+---
+
+### INV-QUERY-018: k-Core Decomposition
+
+**Traces to**: ADRS SQ-004
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+```
+The k-core of G is the maximal subgraph where every vertex has degree ≥ k.
+
+core_number(v) = max k such that v ∈ k-core(G)
+
+Properties:
+  1. Nesting: k₂ > k₁ ⟹ k₂-core ⊆ k₁-core
+  2. Uniqueness: for each k, the k-core is unique
+  3. Monotonicity: adding edges can only increase core numbers
+  4. Density signal: high core number ⟹ tightly coupled component
+```
+
+#### Level 1 (State Invariant)
+k-Core decomposition is a Stratum 1 query (monotonic). It identifies
+tightly coupled clusters in the dependency graph — regions where entities
+are heavily interdependent. High-core regions may indicate:
+- Specification areas needing atomic implementation (can't do one without the others)
+- Potential module boundaries (high internal cohesion)
+- Risk concentrations (failure cascades within high-core regions)
+
+#### Level 2 (Implementation Contract)
+```rust
+pub fn k_core_decomposition(
+    store: &Store,
+    entity_type: &Attribute,
+    dep_attr: &Attribute,
+) -> HashMap<EntityId, u32> {
+    // Iterative peeling: O(V + E)
+    // Returns core number for each entity
+}
+```
+
+**Falsification**: A vertex in the k-core has degree < k within that subgraph,
+OR k₂-core ⊄ k₁-core for k₂ > k₁ (nesting violation).
+
+---
+
+### INV-QUERY-019: Eigenvector Centrality
+
+**Traces to**: ADRS SQ-004
+**Verification**: `V:PROP`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+```
+Eigenvector centrality is the dominant eigenvector of the adjacency matrix A:
+
+A × x = λ × x, where λ is the largest eigenvalue
+
+EC(v) = x_v / max(x)
+
+Properties:
+  1. Non-negative (Perron-Frobenius for non-negative matrices)
+  2. Recursive influence: high EC ⟹ connected to other high-EC vertices
+  3. Convergence: power iteration converges for connected graphs
+  4. Relationship to PageRank: PageRank ≈ damped eigenvector centrality
+```
+
+#### Level 1 (State Invariant)
+Eigenvector centrality is a Stratum 1 query. It provides refined authority
+scoring beyond PageRank by capturing recursive influence without damping.
+Available at Stage 2 when branch-level analysis makes refined scoring valuable.
+
+#### Level 2 (Implementation Contract)
+```rust
+pub fn eigenvector_centrality(
+    store: &Store,
+    entity_type: &Attribute,
+    dep_attr: &Attribute,
+    epsilon: f64,         // convergence: 1e-6
+    max_iterations: u32,  // safety: 100
+) -> Vec<(EntityId, f64)> {
+    // Power iteration on adjacency matrix: O(iterations × (V + E))
+}
+```
+
+**Falsification**: Any centrality score is negative (Perron-Frobenius violation),
+OR scores are not normalized to [0, 1], OR the same graph produces
+different centrality rankings across invocations.
+
+---
+
+### INV-QUERY-020: Articulation Points
+
+**Traces to**: ADRS SQ-004
+**Verification**: `V:PROP`
+**Stage**: 2
+
+#### Level 0 (Algebraic Law)
+```
+An articulation point (cut vertex) v is a vertex whose removal disconnects G:
+
+articulation_point(v) ⟺ components(G \ {v}) > components(G)
+
+A bridge (cut edge) (u,v) is an edge whose removal disconnects G:
+
+bridge(u,v) ⟺ components(G \ {(u,v)}) > components(G)
+
+Properties:
+  1. Every bridge endpoint is an articulation point (in undirected graphs)
+  2. Biconnected components partition edges, overlapping only at articulation points
+  3. Articulation points represent single points of failure in the dependency graph
+```
+
+#### Level 1 (State Invariant)
+Articulation point detection is a Stratum 1 query. It identifies entities
+that are single points of failure — if the entity's specification or
+implementation fails, it disconnects the dependency graph. Used for:
+- Risk assessment (single-point-of-failure detection)
+- Implementation priority (articulation points should be implemented first)
+- Redundancy planning (add alternative paths around articulation points)
+
+#### Level 2 (Implementation Contract)
+```rust
+pub struct ArticulationResult {
+    pub articulation_points: Vec<EntityId>,
+    pub bridges: Vec<(EntityId, EntityId)>,
+    pub biconnected_components: Vec<Vec<EntityId>>,
+}
+
+pub fn articulation_points(
+    store: &Store,
+    entity_type: &Attribute,
+    dep_attr: &Attribute,
+) -> ArticulationResult {
+    // DFS with low-link values: O(V + E)
+}
+```
+
+**Falsification**: A vertex identified as an articulation point whose removal
+does not disconnect the graph, OR a non-articulation vertex whose removal
+does disconnect it.
+
+---
+
+### INV-QUERY-021: Graph Density Metrics
+
+**Traces to**: ADRS SQ-004
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+Graph density and derived health metrics:
+
+density(G) = |E| / (|V| × (|V| - 1))  for directed graphs, ∈ [0, 1]
+
+Derived metrics:
+  avg_degree(G) = 2|E| / |V|
+  clustering_coefficient(v) = 2 × triangles(v) / (deg(v) × (deg(v) - 1))
+  avg_clustering(G) = Σ clustering_coefficient(v) / |V|
+
+Properties:
+  1. density ∈ [0, 1], with 0 = no edges, 1 = complete graph
+  2. Monotonicity: adding edges increases density (monotone query)
+  3. Health signal: very high density (>0.5) indicates over-coupling;
+     very low density (<0.05) indicates under-specification
+```
+
+#### Level 1 (State Invariant)
+Graph density is a Stratum 0 query (primitive, monotonic — edge counting).
+It provides a store-level health metric for the dependency graph.
+Reported by `braid status` and incorporated into the M(t) methodology
+adherence score (INV-GUIDANCE-008).
+
+#### Level 2 (Implementation Contract)
+```rust
+pub struct GraphDensityMetrics {
+    pub vertex_count: usize,
+    pub edge_count: usize,
+    pub density: f64,
+    pub avg_degree: f64,
+    pub avg_clustering: f64,
+    pub components: usize,         // number of weakly connected components
+}
+
+pub fn graph_density(
+    store: &Store,
+    entity_type: &Attribute,
+    dep_attr: &Attribute,
+) -> GraphDensityMetrics {
+    // O(V + E) for density, O(V × E) for clustering coefficients
+}
+```
+
+**Falsification**: Density falls outside [0, 1], OR vertex/edge counts
+disagree with the store's datom count for the specified attribute.
+
+---
+
 ### §3.5 ADRs
 
 ### ADR-QUERY-001: Datalog Over SQL
@@ -659,6 +1163,38 @@ Queries naturally partition into:
 
 Spectral authority is the explicit bridge — updated by backward-flow observations,
 consumed by forward-flow decisions.
+
+---
+
+### ADR-QUERY-009: Full Graph Engine in Kernel
+
+**Traces to**: ADRS SQ-004, FD-003
+**Stage**: 0
+
+#### Problem
+Should graph algorithms (PageRank, betweenness, critical path, etc.) be
+external tools or part of the kernel query engine?
+
+#### Options
+A) **External tools** — graph algorithms as separate binaries, called from CLI.
+B) **FFI derived functions** — graph algorithms as Datalog FFI functions.
+C) **Full kernel integration** — graph algorithms as first-class query operations
+   alongside Datalog, with results stored as datoms.
+
+#### Decision
+**Option C.** The graph algorithms are the foundation of task derivation
+(INV-GUIDANCE-009), work routing (INV-GUIDANCE-010), and topology fitness
+(INV-GUIDANCE-011). Externalizing them would break the CRDT merge properties —
+graph results must be datoms to merge across agents. FFI (Option B) would work
+but forces unnatural Datalog encoding of results.
+
+#### Formal Justification
+Graph metrics over the datom reference graph are monotonic (adding edges/vertices
+can only change scores, never invalidate the computation). This makes them
+CALM-compliant (INV-QUERY-001). Results are stored as datoms with `:graph/*`
+attributes, making them queryable, mergeable, and traceable. The ten algorithms
+(INV-QUERY-012–021) cover the complete analysis needs identified in the ddis CLI
+tasking system and the Beads graph triage engine.
 
 ---
 

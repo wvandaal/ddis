@@ -190,10 +190,17 @@ pub struct Datom {
     pub op:        Op,
 }
 
-/// Content-addressed entity identifier.
-/// Derived from the semantic content, not sequentially assigned.
+/// Content-addressed entity identifier (INV-STORE-002).
+/// Private inner field — construction only via EntityId::from_content().
 #[derive(Clone, Copy, Hash, Eq, PartialEq, Ord, PartialOrd)]
-pub struct EntityId(pub [u8; 32]);  // SHA-256 of content
+pub struct EntityId([u8; 32]);  // BLAKE3 of content
+
+impl EntityId {
+    /// The ONLY constructor — hashes content with BLAKE3 (ADR-STORE-013).
+    pub fn from_content(content: &[u8]) -> Self { EntityId(blake3::hash(content).into()) }
+    /// Read-only access for serialization.
+    pub fn as_bytes(&self) -> &[u8; 32] { &self.0 }
+}
 
 /// Hybrid Logical Clock — causally ordered, globally unique.
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
@@ -1081,6 +1088,72 @@ implementations are substitutable (same protocol interface, tested against same 
 The bootstrapping problem: you need the system to build the system. Shell tools enable
 immediate use of harvest/seed before the store exists. The invariants (this specification)
 constrain all three implementations identically.
+
+---
+
+### ADR-STORE-013: BLAKE3 for Content Hashing
+
+**Traces to**: SEED §4 Axiom 1, ADRS FD-007, FD-013
+**Stage**: 0
+
+#### Problem
+Which hash algorithm should be used for content-addressable identity (EntityId generation,
+datom identity, genesis hash)?
+
+#### Options
+A) **BLAKE3** — 256-bit output, ~14x faster than SHA-256, pure Rust crate, tree-hashable,
+   streaming API, designed for content-addressed systems (IPFS, Bao).
+B) **SHA-256** — ubiquitous, FIPS-certified, but slower and requires C dependency (`ring`
+   or `openssl`) for optimal performance.
+C) **BLAKE2b** — predecessor to BLAKE3, fast, well-audited, but less optimized tree structure,
+   no SIMD auto-detection.
+D) **xxHash** — fastest non-cryptographic hash, but insufficient collision resistance for
+   content-addressed identity where collisions cause silent data corruption.
+
+#### Decision
+**Option A.** BLAKE3 provides the optimal balance of speed, collision resistance (2^{-128}
+birthday bound), and ecosystem fit. Performance matters because every datom insertion, every
+entity lookup, and every merge deduplication involves hashing.
+
+#### Formal Justification
+Content-addressable identity (C2, ADR-STORE-003) requires collision resistance: a collision
+means two different facts share an EntityId, causing silent data loss. xxHash (Option D) is
+non-cryptographic and unacceptable. Among cryptographic options, BLAKE3 is fastest in pure
+Rust (no C dependency), ships with tree-hashing (future parallelism for large values), and
+is the only option where the performance overhead of hashing is negligible relative to I/O.
+
+#### Consequences
+- `blake3` crate dependency (pure Rust, no `unsafe`, actively maintained)
+- 32-byte (`[u8; 32]`) hash output everywhere EntityId appears
+- Not FIPS-certified (acceptable — Braid is not a compliance-regulated system)
+- Consistent with ADR-STORE-003 (content-addressable) and ADR-STORE-011 (HLC timestamps)
+
+---
+
+### ADR-STORE-014: Private EntityId Inner Field
+
+**Traces to**: SEED §4 Axiom 1, C2, INV-STORE-002
+**Stage**: 0
+
+#### Problem
+Should `EntityId`'s inner `[u8; 32]` field be `pub` or private?
+
+#### Options
+A) **Private** — construction only via `EntityId::from_content()`. Read access via
+   `as_bytes()`. Enforces INV-STORE-002 at compile time.
+B) **Public** — `EntityId(pub [u8; 32])`. Simpler, allows pattern matching and
+   direct construction from arbitrary bytes.
+
+#### Decision
+**Option A.** Private inner field. Content-addressable identity (C2) means EntityIds
+must correspond to actual content hashes. A public constructor allows creating
+EntityIds from arbitrary bytes, bypassing the hash — a type-level violation of C2.
+
+#### Consequences
+- `EntityId::from_content(content)` is the sole constructor (hashes with BLAKE3)
+- `EntityId::as_bytes()` provides read-only access for serialization
+- Deserialization from storage uses a `pub(crate)` constructor (trusted boundary)
+- INV-STORE-002 is enforced at compile time with zero runtime cost
 
 ---
 

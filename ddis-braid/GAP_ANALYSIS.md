@@ -15,7 +15,7 @@ The existing DDIS Go CLI is a mature, production-quality implementation (~62,500
 
 | Category | Count | Details |
 |----------|-------|---------|
-| ALIGNED | 8 modules | Concepts proven correct; logic portable to new substrate |
+| ALIGNED | 17 modules | Concepts proven correct; logic portable to new substrate |
 | DIVERGENT | 12 modules | Right concept, wrong substrate or incomplete mechanism |
 | EXTRA | 6 modules | Useful features the spec doesn't address; evaluate for inclusion |
 | BROKEN | 4 items | Known bugs from cleanroom audit (H1–H4) |
@@ -31,7 +31,7 @@ The existing DDIS Go CLI is a mature, production-quality implementation (~62,500
 | MISSING | 66 | No implementation whatsoever |
 | N/A | 10 | Decision is Braid-specific, not assessable against Go CLI |
 
-The ADR-level analysis (Section 11) reveals that the module-level assessment understates the gap. While 8 modules are ALIGNED at the implementation level, only 12 of 139 design decisions are fully IMPLEMENTED. The gap concentrates in four subsystems: **Uncertainty & Authority** (0/12 implemented), **Conflict & Resolution** (0/7), **Agent Architecture** (0/7), and **Guidance System** (0/8).
+The ADR-level analysis (Section 11) reveals that the module-level assessment understates the gap. While 17 modules are ALIGNED at the implementation level, only 12 of 139 design decisions are fully IMPLEMENTED. The gap concentrates in four subsystems: **Uncertainty & Authority** (0/12 implemented), **Conflict & Resolution** (0/7), **Agent Architecture** (0/7), and **Guidance System** (0/8).
 
 ---
 
@@ -1259,6 +1259,6 @@ Three patterns explain the coverage distribution:
 
 *This gap analysis was produced for the Braid project (`ddis-braid/`) as the bridge between the existing DDIS Go CLI and the staged implementation plan defined in SEED.md §10. Every finding traces to specific source code locations and SEED.md sections. The analysis used 24 parallel investigation agents across 6 waves, each reading actual Go source code, to ensure comprehensive coverage of the ~62,500-line codebase and all 139 design decisions in ADRS.md.*
 
-*Addendum (2026-03-02): Section 4.15 (Agent Working Set / Patch Branches) was added after review revealed a settled design decision from Transcript 04 (PQ1, Option B confirmed) and Transcript 05 (`ddis_branch` tool spec) that was never captured in SEED.md and therefore missed in the initial analysis. This itself exemplifies the harvest gap that DDIS is designed to prevent — see FAILURE_MODES.md FM-001.*
+*Addendum (2026-03-02): Section 4.15 (Agent Working Set / Patch Branches) was added to SEED.md after review revealed a settled design decision from Transcript 04 (PQ1, Option B confirmed) and Transcript 05 (`ddis_branch` tool spec) that had not yet been captured there, and was therefore missed in the initial analysis. SEED.md §4.15 now formalizes W_α with the PD-001 reference. This itself exemplifies the harvest gap that DDIS is designed to prevent — see FAILURE_MODES.md FM-001.*
 
 *Addendum (2026-03-02): Section 11 expanded from coverage gap inventory to comprehensive ADR assessment. All 139 design decisions in ADRS.md now have explicit status assessments (IMPLEMENTED/PARTIAL/DIVERGENT/MISSING/N/A) with specific Go source code evidence. Analysis performed by Waves 4–6 (12 agents), cross-verified by dedicated verification agents.*

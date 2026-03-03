@@ -24,11 +24,15 @@ braid/                          ← Cargo workspace root
 │       │   ├── parser.rs       ← Datalog parser (pest or nom)
 │       │   ├── evaluator.rs    ← Semi-naive fixpoint evaluator
 │       │   ├── clause.rs       ← Clause, Binding, Pattern
-│       │   └── strata.rs       ← Stratum classification (CALM)
+│       │   ├── strata.rs       ← Stratum classification (CALM)
+│       │   └── graph.rs        ← Graph engine: topo sort, SCC, PageRank, critical path, density
 │       ├── resolution.rs       ← ResolutionMode, ConflictSet, resolve
 │       ├── harvest.rs          ← HarvestCandidate, HarvestPipeline, gap detection
 │       ├── seed.rs             ← SeedAssembly, associate/assemble/compress
 │       ├── guidance.rs         ← GuidanceFooter, drift detection, anti-drift
+│       ├── methodology.rs      ← M(t) adherence score, component computation
+│       ├── derivation.rs       ← Task derivation rules, template matching
+│       ├── routing.rs          ← R(t) graph-based work routing, impact scoring
 │       ├── merge.rs            ← Pure set-union merge (Stage 0 subset)
 │       └── frontier.rs         ← Frontier, AgentId, HLC clock
 ├── braid/                      ← Binary crate (CLI + MCP + persistence)
@@ -46,7 +50,7 @@ braid/                          ← Cargo workspace root
 │       │   └── entity.rs       ← braid entity, braid history
 │       ├── persistence.rs      ← redb store ↔ kernel Store bridge
 │       ├── output.rs           ← OutputMode dispatch (json/agent/human)
-│       ├── mcp.rs              ← MCP JSON-RPC server (9 tools)
+│       ├── mcp.rs              ← MCP JSON-RPC server (6 tools)
 │       └── claude_md.rs        ← Dynamic CLAUDE.md generation
 └── tests/
     ├── proptest/               ← Property-based tests per namespace
@@ -306,10 +310,159 @@ pub enum QueryMode {
 
 ```rust
 pub enum ResolutionMode {
-    Lattice(LatticeDef),    // Join over unretracted values
-    LastWriterWins,         // Greatest HLC assertion
-    MultiValue,             // Set of all unretracted values
+    Lattice { lattice_id: EntityId },  // Join-semilattice — definition stored as datoms (C3)
+    LastWriterWins,                    // Greatest HLC assertion
+    MultiValue,                        // Set of all unretracted values
 }
+```
+
+### Graph Engine Types (INV-QUERY-012–021)
+
+```rust
+/// Strongly connected components result (INV-QUERY-013).
+pub struct SCCResult {
+    pub components: Vec<Vec<EntityId>>,  // SCCs in reverse topological order
+    pub condensation: Vec<Vec<usize>>,   // DAG adjacency list over SCC indices
+    pub has_cycles: bool,                // true if any |SCC| > 1
+}
+
+/// PageRank configuration (INV-QUERY-014).
+pub struct PageRankConfig {
+    pub damping: f64,         // default: 0.85
+    pub epsilon: f64,         // convergence: 1e-6
+    pub max_iterations: u32,  // safety bound: 100
+}
+
+/// Critical path analysis result (INV-QUERY-017).
+pub struct CriticalPathResult {
+    pub path: Vec<EntityId>,               // critical path vertices
+    pub total_weight: f64,                 // critical path length
+    pub slack: HashMap<EntityId, f64>,     // slack per vertex (0.0 = critical)
+    pub earliest_start: HashMap<EntityId, f64>,
+    pub latest_start: HashMap<EntityId, f64>,
+}
+
+/// Graph density and health metrics (INV-QUERY-021).
+pub struct GraphDensityMetrics {
+    pub vertex_count: usize,
+    pub edge_count: usize,
+    pub density: f64,           // ∈ [0, 1]
+    pub avg_degree: f64,
+    pub avg_clustering: f64,    // ∈ [0, 1]
+    pub components: usize,      // weakly connected component count
+}
+
+/// Graph algorithm errors.
+pub enum GraphError {
+    CycleDetected(SCCResult),   // Graph has cycles — includes SCC details
+    EmptyGraph,                 // No vertices match the entity_type filter
+    NonConvergence(u32),        // PageRank/eigenvector did not converge in N iterations
+}
+```
+
+### Guidance Expansion Types (INV-GUIDANCE-008–010)
+
+```rust
+/// M(t) methodology adherence score (INV-GUIDANCE-008).
+pub struct MethodologyScore {
+    pub total: f64,              // M(t) ∈ [0, 1]
+    pub components: [f64; 5],    // [transact_freq, spec_lang, query_div, harvest_q, guidance_c]
+    pub weights: [f64; 5],       // loaded from store as `:guidance/m-weight` datoms
+    pub trend: Trend,
+}
+
+pub enum Trend { Up, Down, Stable }
+
+/// Task derivation rule (INV-GUIDANCE-009). Rules are datoms.
+pub struct DerivationRule {
+    pub entity: EntityId,
+    pub artifact_type: String,
+    pub task_template: TaskTemplate,
+    pub dependency_fn: QueryExpr,
+    pub priority_fn: PriorityFn,
+}
+
+pub struct TaskTemplate {
+    pub task_type: String,
+    pub title_pattern: String,
+    pub attributes: Vec<(Attribute, ValueTemplate)>,
+}
+
+/// R(t) work routing decision (INV-GUIDANCE-010).
+pub struct RoutingDecision {
+    pub selected: EntityId,
+    pub impact_score: f64,
+    pub components: HashMap<String, f64>,
+    pub alternatives: Vec<(EntityId, f64)>,
+    pub ready_count: usize,
+    pub blocked_count: usize,
+    pub critical_path_remaining: usize,
+}
+```
+
+### Cross-Namespace Types
+
+Types defined in namespace-specific guide files but referenced across boundaries:
+
+```rust
+// --- Transaction results (§1 STORE) ---
+pub struct TxReport {
+    pub tx_id: TxId,
+    pub datom_count: usize,
+    pub new_entities: Vec<EntityId>,
+}
+
+pub enum TxValidationError {
+    SchemaViolation { attr: Keyword, expected: ValueType, got: ValueType },
+    UnknownAttribute(Keyword),
+    InvalidRetraction(EntityId, Keyword),
+}
+
+// --- Schema (§2 SCHEMA) ---
+pub struct Schema { /* extracted from schema datoms — see guide/02-schema.md */ }
+pub enum SchemaError { DuplicateAttribute(Keyword), InvalidCardinality, CyclicDependency }
+
+// --- Query (§3 QUERY) ---
+pub struct QueryResult {
+    pub bindings: Vec<BindingSet>,
+    pub stratum:  Stratum,
+    pub mode:     QueryMode,
+    pub provenance_tx: TxId,
+}
+pub struct QueryStats { pub datoms_scanned: usize, pub bindings_produced: usize }
+pub type BindingSet = HashMap<Variable, Value>;
+pub struct QueryExpr { pub find_spec: FindSpec, pub where_clauses: Vec<Clause> }
+pub struct FrontierRef(pub AgentId);  // Clause::Frontier operand (INV-QUERY-007)
+
+// --- Merge (§7 MERGE) ---
+pub struct MergeReceipt {
+    pub new_datoms: usize,
+    pub duplicate_datoms: usize,
+    pub frontier_delta: HashMap<AgentId, (Option<TxId>, TxId)>,
+}
+
+// --- Harvest (§5 HARVEST) ---
+pub struct HarvestCandidate {
+    pub id: usize, pub datoms: Vec<Datom>, pub category: HarvestCategory,
+    pub confidence: f64, pub source: String, pub weight: f64,
+    pub reconciliation_type: ReconciliationType, pub status: HarvestStatus,
+}
+pub struct HarvestResult { pub candidates: Vec<HarvestCandidate>, pub drift_score: f64, pub quality: HarvestQuality }
+pub enum HarvestStatus { Pending, Accepted, Rejected(String) }
+
+// --- Seed (§6 SEED) ---
+pub struct SchemaNeighborhood { pub entities: Vec<EntityId>, pub attributes: Vec<Attribute>, pub entity_types: Vec<Keyword> }
+pub struct AssembledContext { pub sections: Vec<ContextSection>, pub total_tokens: usize, pub budget_remaining: usize }
+
+// --- Guidance (§8 GUIDANCE) ---
+pub struct GuidanceFooter {
+    pub next_action: String, pub invariant_refs: Vec<String>,
+    pub uncommitted_count: u32, pub drift_warning: Option<String>,
+}
+
+// --- Interface (§9 INTERFACE) ---
+pub enum OutputMode { Json, Agent, Human }
+pub struct ToolResponse { pub structured: Value, pub agent_context: String, pub agent_content: String, pub human_display: String }
 ```
 
 ---
@@ -334,6 +487,10 @@ One datom per line. Used for `braid transact --file` and export:
 
 ### redb Table Schema
 
+All redb tables are **derived caches** — the in-memory `Store` (BTreeSet of datoms) is
+authoritative. redb provides durable persistence and index-accelerated lookups. The schema
+table in particular is rebuilt from schema datoms on load, consistent with C3 (schema-as-data).
+
 ```
 Table "datoms"     → (datom_hash: [u8; 32]) → (datom_bytes: Vec<u8>)
 Table "eavt"       → (entity ++ attr ++ value ++ tx) → datom_hash
@@ -342,7 +499,7 @@ Table "vaet"       → (value ++ attr ++ entity ++ tx) → datom_hash
 Table "avet"       → (attr ++ value ++ entity ++ tx) → datom_hash
 Table "tx_log"     → (tx_id_bytes) → (tx_metadata_bytes)
 Table "frontier"   → (agent_id_bytes) → (tx_id_bytes)
-Table "schema"     → (attr_keyword) → (schema_entry_bytes)
+Table "schema"     → (attr_keyword) → (schema_entry_bytes)  # derived cache of schema datoms
 ```
 
 ### Seed Output Template (from spec/06-seed.md)
@@ -392,6 +549,49 @@ Seven-step generation pipeline. Each step applies prompt-optimization:
 ## Anti-Drift
 {guidance_footer_appropriate_to_current_drift_signal}
 ```
+
+---
+
+## §0.3b Bootstrap Path (C7, SR-005)
+
+The system initializes itself in three phases, implementing C7 (self-bootstrap):
+
+### Phase 1: Empty → Schema-Enabled
+
+```
+braid init .braid/store.redb
+```
+
+1. Create empty store (BTreeSet = ∅)
+2. Transact genesis datoms: 17 axiomatic meta-schema attributes (INV-SCHEMA-002)
+3. Store now recognizes `:db/ident`, `:db/valueType`, etc.
+4. Schema module can validate subsequent transactions
+
+### Phase 2: Schema-Enabled → Spec-Enabled
+
+```
+braid transact --file spec-datoms.jsonl
+```
+
+1. Load the specification elements from `spec/` as datoms
+2. INVs, ADRs, NEGs become entities with `:spec/type`, `:spec/id`, `:spec/statement`
+3. Cross-references (`:spec/traces-to`, `:spec/depends-on`) become ref datoms
+4. Store now contains its own specification as queryable data
+
+### Phase 3: Spec-Enabled → Self-Verified
+
+```
+braid query '[:find ?inv :where [?inv :spec/type "invariant"] [?inv :spec/falsification ?f] [(missing? $ ?inv :spec/verified)]]'
+```
+
+1. Query the store for internal contradictions (INV-QUERY-001)
+2. Verify all invariants have falsification conditions (C6)
+3. Verify traceability: all INVs trace to SEED.md sections (C5)
+4. Verify no orphans: all spec elements are reachable from the root goal
+
+The system's first act of coherence verification is checking its own specification.
+This is not ceremonial — it validates that the store, schema, query, and resolution
+layers compose correctly before any user data enters the system.
 
 ---
 
@@ -503,8 +703,9 @@ Genesis + spec bootstrap complete. Schema: 17 axiomatic + 14 spec attributes.
 
 ## §0.5 MCP Tool Definitions
 
-Nine tools (INV-INTERFACE-003). Each description is an optimized prompt: navigative purpose,
-semantic types, one micro-example.
+Six tools at Stage 0 (INV-INTERFACE-003). Each description is an optimized prompt:
+navigative purpose, semantic types, one micro-example. Entity lookup, history, and
+CLAUDE.md generation are accessible via `braid_query` and `braid_guidance` respectively.
 
 ```json
 {
@@ -524,19 +725,21 @@ semantic types, one micro-example.
     },
     {
       "name": "braid_query",
-      "description": "Run a Datalog query against the store. Use when you need to find facts — which invariants exist, what depends on what, what changed since a frontier. Returns binding sets.",
+      "description": "Run a Datalog query or graph algorithm against the store. Use to find facts, entity details, history, dependencies, PageRank, critical path. Returns binding sets or graph metrics.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "query": { "type": "string", "description": "Datalog query in Braid syntax" },
-          "mode": { "enum": ["monotonic", "stratified"], "default": "monotonic" }
+          "query": { "type": "string", "description": "Datalog query or graph command (topo_sort, pagerank, critical_path, etc.)" },
+          "mode": { "enum": ["monotonic", "stratified"], "default": "monotonic" },
+          "entity": { "type": "string", "description": "Optional: entity lookup by id or :db/ident" },
+          "history": { "type": "object", "description": "Optional: {entity, attribute} for value-over-time" }
         },
         "required": ["query"]
       }
     },
     {
       "name": "braid_status",
-      "description": "Store summary: datom count, frontier, schema statistics, drift score. Use for orientation at session start.",
+      "description": "Store summary: datom count, frontier, schema stats, M(t) adherence score, drift signals, graph density. Use for orientation at session start.",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {
@@ -562,36 +765,13 @@ semantic types, one micro-example.
     },
     {
       "name": "braid_guidance",
-      "description": "Get methodology guidance based on current drift signals. Use when uncertain about next step. Returns spec-language guidance with INV references.",
-      "inputSchema": { "type": "object", "properties": {} }
-    },
-    {
-      "name": "braid_entity",
-      "description": "All datoms for an entity. Use when examining a specific decision, invariant, or specification element.",
+      "description": "Get methodology guidance: M(t) score, R(t) next task routing, drift signals, spec-language corrections. Use when uncertain about next step or to generate dynamic CLAUDE.md.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "description": "EntityId (blake3 hash) or :db/ident keyword" }
-        },
-        "required": ["id"]
+          "generate_claude_md": { "type": "boolean", "default": false, "description": "If true, generate dynamic CLAUDE.md from store state" }
+        }
       }
-    },
-    {
-      "name": "braid_history",
-      "description": "Attribute value over time for an entity. Use when understanding how a decision evolved.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "entity": { "type": "string" },
-          "attribute": { "type": "string" }
-        },
-        "required": ["entity", "attribute"]
-      }
-    },
-    {
-      "name": "braid_claude_md",
-      "description": "Generate dynamic CLAUDE.md from store state. Use to update session instructions after significant state changes.",
-      "inputSchema": { "type": "object", "properties": {} }
     }
   ]
 }

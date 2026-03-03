@@ -9,11 +9,11 @@
 
 ## §12.1 Stage 1 — Budget-Aware Output + Guidance Injection
 
-**18 additional INVs** | Builds on Stage 0
+**25 additional INVs** | Builds on Stage 0
 
 ### New Capabilities
 
-- **Q(t) measurement**: Continuous attention budget tracking (INV-BUDGET-001–005)
+- **Q(t) measurement**: Continuous attention budget tracking (INV-BUDGET-001–006)
 - **Output precedence**: Prioritize high-value content when budget is low (INV-BUDGET-003)
 - **Guidance compression**: Adapt guidance footers to remaining budget (INV-GUIDANCE-003–004)
 - **Harvest warnings**: Proactive Q(t)-based harvest prompts (INV-INTERFACE-004/007)
@@ -22,6 +22,11 @@
 - **Frontier-scoped queries**: Stratified Datalog with frontier parameter (INV-QUERY-003)
 - **Basic bilateral loop**: F(S) computation, convergence monitoring (INV-BILATERAL-001–002/004–005)
 - **Confusion signal**: First signal type — agent confusion detection (INV-SIGNAL-002)
+- **FP/FN calibration**: Harvest detection quality tuning (INV-HARVEST-004/006)
+- **CLAUDE.md relevance/improvement**: Dynamic CLAUDE.md quality tracking (INV-SEED-005–006)
+- **Betweenness centrality**: Bottleneck detection in dependency graphs (INV-QUERY-015)
+- **HITS hub/authority**: Dual scoring for dependency structure (INV-QUERY-016)
+- **k-Core decomposition**: Tightly coupled component identification (INV-QUERY-018)
 
 ### Stage 0 Extension Points
 
@@ -43,21 +48,24 @@ code — no structural refactoring.
 
 ## §12.2 Stage 2 — Branching + Deliberation
 
-**17 additional INVs** | Builds on Stage 1
+**22 additional INVs** | Builds on Stage 1
 
 ### New Capabilities
 
 - **W_α working set**: Per-agent isolated workspace (INV-STORE-013, INV-MERGE-003–007)
-- **Patch branches**: Create/switch/merge/compare/prune/lock (INV-MERGE-002–007)
+- **Patch branches**: Create/switch/merge/compare/prune/lock (INV-MERGE-003–007)
 - **Branch comparison**: Structured diff between competing branches (INV-MERGE-006)
 - **Deliberation lifecycle**: Propose → Discuss → Stabilize → Crystallize (INV-DELIBERATION-001–006)
 - **Precedent queries**: Query past deliberation outcomes for guidance (INV-DELIBERATION-003)
 - **Stability guard**: Block premature crystallization (INV-DELIBERATION-002)
 - **Bilateral symmetry**: Forward and backward flow use identical branch mechanics (INV-BILATERAL-003)
-- **Diamond lattice signals**: Contradiction detection from lattice incomparability (INV-SIGNAL-005)
+- **Diamond lattice signals**: Schema lattice signal generation (INV-SIGNAL-005, INV-SCHEMA-008)
 - **Guidance expansion**: Drift detection triggers branch-level guidance (INV-GUIDANCE-006)
-- **Seed enrichment**: Branch-aware seed with competing contexts (INV-SEED-006)
-- **Query lookahead**: Branch-scoped speculative queries (INV-QUERY-004, 010–011)
+- **Delegation topology**: Multi-agent harvest delegation (INV-HARVEST-008)
+- **Query extensions**: Branch-scoped queries and projection reification (INV-QUERY-004/011)
+- **Eigenvector centrality**: Refined recursive influence scoring (INV-QUERY-019)
+- **Articulation points**: Single-point-of-failure detection (INV-QUERY-020)
+- **Topology fitness**: Phase-topology optimization T(t) (INV-GUIDANCE-011)
 
 ### Stage 0 Extension Points
 
@@ -72,14 +80,14 @@ code — no structural refactoring.
 
 ## §12.3 Stage 3 — Multi-Agent Coordination
 
-**6 additional INVs** | Builds on Stage 2
+**11 additional INVs** | Builds on Stage 2
 
 ### New Capabilities
 
 - **Full sync barriers**: Consistent cut across agent frontiers (INV-SYNC-001–005)
 - **Eight signal types**: Complete signal taxonomy with three-tier routing (INV-SIGNAL-001/003–004/006)
 - **Subscription completeness**: Every signal type has at least one subscriber (INV-SIGNAL-006)
-- **Conservative conflict detection**: Multi-agent conflict resolution (INV-RESOLUTION-003)
+- **Topology-agnostic queries**: Query results independent of network topology (INV-QUERY-010)
 - **Human signal injection**: External signal input for human-in-the-loop (INV-INTERFACE-006)
 
 ### Stage 0 Extension Points
@@ -128,19 +136,19 @@ code — no structural refactoring.
 ## §12.6 Stage Dependencies
 
 ```
-Stage 0 (64 INV) ← Foundation
+Stage 0 (61 INV) ← Foundation + Graph Engine + Guidance Expansion
     ↓
-Stage 1 (18 INV) ← Budget + Guidance
+Stage 1 (25 INV) ← Budget + Advanced Graph Metrics
     ↓
-Stage 2 (17 INV) ← Branching + Deliberation
+Stage 2 (22 INV) ← Branching + Deliberation + Topology
     ↓
-Stage 3 (6 INV)  ← Multi-Agent
+Stage 3 (11 INV) ← Multi-Agent
     ↓
 Stage 4 (2 INV)  ← Intelligence
 ```
 
-**Total**: 107 INVs across all stages. Stage 0 contains 59.8% of all invariants —
-it is the bulk of the system. Stages 1–4 are extensions, not foundations.
+**Total**: 121 INVs across all stages. Stage 0 contains 50.4% of all invariants (61 INV) —
+it is the foundation. Stages 1–4 add 60 INVs as extensions.
 
 ---
 
@@ -150,9 +158,9 @@ INVs that move from deferred to active at each stage transition:
 
 | Transition | Newly Active INVs |
 |------------|-------------------|
-| → Stage 1 | INV-BUDGET-001–006, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005, INV-INTERFACE-004/007, INV-QUERY-003/008–009, INV-SIGNAL-002 |
-| → Stage 2 | INV-STORE-013, INV-MERGE-002–007, INV-SEED-006, INV-DELIBERATION-001–006, INV-SIGNAL-005, INV-GUIDANCE-006, INV-BILATERAL-003, INV-QUERY-004/010–011, INV-RESOLUTION-007 |
-| → Stage 3 | INV-SYNC-001–005, INV-SIGNAL-001/003–004/006, INV-RESOLUTION-003, INV-INTERFACE-006 |
-| → Stage 4 | INV-GUIDANCE-005, INV-INTERFACE-005 |
+| → Stage 1 (25 INV) | INV-BUDGET-001–006, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005, INV-INTERFACE-004/007, INV-QUERY-003/008–009/015–016/018, INV-SIGNAL-002, INV-HARVEST-004/006, INV-SEED-005–006 |
+| → Stage 2 (22 INV) | INV-STORE-013, INV-SCHEMA-008, INV-MERGE-003–007, INV-DELIBERATION-001–006, INV-SIGNAL-005, INV-GUIDANCE-006/011, INV-BILATERAL-003, INV-QUERY-004/011/019–020, INV-HARVEST-008 |
+| → Stage 3 (11 INV) | INV-SYNC-001–005, INV-SIGNAL-001/003–004/006, INV-QUERY-010, INV-INTERFACE-006 |
+| → Stage 4 (2 INV) | INV-GUIDANCE-005, INV-INTERFACE-005 |
 
 ---

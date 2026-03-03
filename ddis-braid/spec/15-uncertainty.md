@@ -75,10 +75,10 @@ not yet validated by implementation experience.
 **Confidence**: 0.95
 **Stage affected**: 0
 
-**Claim**: SHA-256 hash of content produces unique EntityIds with negligible collision
+**Claim**: BLAKE3 hash of content produces unique EntityIds with negligible collision
 probability.
 
-**Why uncertain**: SHA-256 collision probability is astronomically low (2^{-128} for
+**Why uncertain**: BLAKE3 collision probability is astronomically low (2^{-128} for
 random inputs) but content-addressed systems at scale can hit birthday-bound issues
 with certain workload patterns.
 

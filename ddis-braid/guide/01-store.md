@@ -95,6 +95,27 @@ impl Transaction<Applied> { fn tx_id, receipt }
 - `as_of`: filter datoms by `d.tx <= frontier_txid` → apply resolution per attribute.
 - Indexes are maintained incrementally on transact (not rebuilt from scratch).
 
+### Index Architecture
+
+Four standard index orderings, each a `BTreeMap` for ordered range scans:
+
+| Index | Key Order | Use Case |
+|-------|-----------|----------|
+| EAVT | entity → attr → value → tx | Entity lookup: "all facts about entity E" |
+| AEVT | attr → entity → value → tx | Attribute scan: "all entities with attribute A" |
+| AVET | attr → value → entity → tx | Value lookup: "which entity has A=V?" (unique attrs) |
+| VAET | value → attr → entity → tx | Reverse ref: "who references entity E?" (ref attrs only) |
+
+**Stage 0**: Indexes are in-memory `BTreeMap<Vec<u8>, EntityId>` with composite key bytes.
+On persist, mirrored to redb tables with identical key structure (see §0.3 redb Table Schema).
+On load, indexes are rebuilt from the datom set (derived, not authoritative).
+
+**Stage 2 extension (LIVE index, INV-STORE-012–013)**: Adds incremental resolution maintenance.
+When a datom is inserted, only affected (entity, attribute) pairs are re-resolved. The LIVE
+index caches `HashMap<(EntityId, Attribute), ResolvedValue>` with invalidation on insert.
+The Stage 0 index infrastructure supports this by providing efficient (entity, attribute) scans
+via EAVT.
+
 ### Transaction (Typestate)
 
 **Black box** (contract):
@@ -181,6 +202,51 @@ proptest! {
     fn inv_store_007(s1 in arb_store(3), s2 in arb_store(3)) { ... }
     // INV-STORE-008: Genesis determinism
     fn inv_store_008() { assert_eq!(Store::genesis(), Store::genesis()); }
+
+    // INV-STORE-009: Frontier durability — frontier persists across save/load
+    fn inv_store_009(store in arb_store(3)) {
+        let frontier_before = store.frontier().clone();
+        save_store(&store, &tmp_path);
+        let loaded = load_store(&tmp_path).unwrap();
+        prop_assert_eq!(frontier_before, loaded.frontier().clone());
+    }
+
+    // INV-STORE-010: Causal ordering — tx with causal predecessor respects ordering
+    fn inv_store_010(store in arb_store(3), d1 in arb_datom(), d2 in arb_datom()) {
+        let mut s = store;
+        let tx1 = s.transact(vec![d1]).unwrap();
+        let tx2 = s.transact_with_predecessor(vec![d2], tx1.tx_id).unwrap();
+        prop_assert!(tx1.tx_id < tx2.tx_id);  // causal ordering
+    }
+
+    // INV-STORE-011: HLC monotonicity — timestamps strictly increase within an agent
+    fn inv_store_011(store in arb_store(5)) {
+        let txs: Vec<_> = store.tx_log().collect();
+        for window in txs.windows(2) {
+            if window[0].agent == window[1].agent {
+                prop_assert!(window[0].tx_id < window[1].tx_id);
+            }
+        }
+    }
+
+    // INV-STORE-012: LIVE index correctness — LIVE matches resolution from raw datoms
+    fn inv_store_012(store in arb_store(5)) {
+        for entity in store.entities() {
+            let live = live_entity(&store, entity);
+            let manual = manually_resolve_all_attributes(&store, entity);
+            prop_assert_eq!(live, manual);
+        }
+    }
+
+    // INV-STORE-014: Every command is a transaction — metadata is datoms in the store
+    fn inv_store_014(store in arb_store(3)) {
+        for tx_id in store.tx_log().map(|t| t.tx_id) {
+            // The transaction entity itself has datoms recording it
+            let tx_datoms: Vec<_> = store.datoms_for_entity(tx_id.as_entity()).collect();
+            prop_assert!(!tx_datoms.is_empty());  // every tx has metadata
+            prop_assert!(tx_datoms.iter().any(|d| d.attribute == Attribute::new(":tx/agent").unwrap()));
+        }
+    }
 }
 ```
 

@@ -79,11 +79,11 @@ The dependency graph (from spec/17-crossref.md §17.2) determines the implementa
    ↓
 4. RESOLUTION ─────────────────────────────────── guide/04-resolution.md
    ↓
-5. MERGE (basic: INV-MERGE-001, 008 only) ────── guide/07-merge-basic.md
+5. HARVEST ────────────────────────────────────── guide/05-harvest.md
    ↓
-6. HARVEST ────────────────────────────────────── guide/05-harvest.md
+6. SEED ───────────────────────────────────────── guide/06-seed.md
    ↓
-7. SEED ───────────────────────────────────────── guide/06-seed.md
+7. MERGE (basic: INV-MERGE-001, 008 only) ────── guide/07-merge-basic.md
    ↓
 8. GUIDANCE ───────────────────────────────────── guide/08-guidance.md
    ↓
@@ -97,8 +97,9 @@ for the current namespace must pass (see guide/10-verification.md).
 
 ## Stage 0 Scope
 
-**64 invariants** across 9 namespaces (partial inclusion for QUERY, RESOLUTION, MERGE,
-GUIDANCE, INTERFACE). Full list in spec/17-crossref.md Appendix C.
+**61 invariants** across 9 namespaces (full inclusion for STORE, RESOLUTION; partial
+for SCHEMA, QUERY, HARVEST, SEED, MERGE, GUIDANCE, INTERFACE).
+Full list in spec/17-crossref.md Appendix C.
 
 **Success criterion**: Work 25 turns, harvest, start fresh with seed — new session picks
 up without manual re-explanation.

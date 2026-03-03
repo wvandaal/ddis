@@ -130,7 +130,10 @@ $ braid query '[:find ?id :where [?e :spec/type "invariant"] [?e :spec/id ?id]]'
 
 ## §11.2 Harvest/Seed Session Transcript
 
-Simulated 10-turn session demonstrating the full lifecycle.
+Condensed session demonstrating the full harvest/seed lifecycle. Shows 10 representative
+turns (not the full 25-turn success criterion from SEED.md §10 — a 25-turn transcript
+would be too verbose for a worked example). The key validation is that the NEW session
+(§11.2 "New Session: Seed Picks Up") recovers full context without manual re-explanation.
 
 ### Turn 1: Seed at Session Start
 
@@ -255,6 +258,63 @@ The new session has full context without any manual re-explanation. Success crit
 
 ---
 
+## §11.2b Merge Worked Example
+
+Two agents working on separate stores, then merging.
+
+### Agent A: Working on STORE
+
+```
+$ braid transact --inline '{:spec/id "INV-STORE-001" :spec/type "invariant" \
+  :spec/statement "Append-only immutability"}' --format agent
+
+[STORE] Transacted 3 datoms in tx hlc:1709000001-0-agentA. Store: 150 datoms.
+```
+
+### Agent B: Working on SCHEMA (separate store)
+
+```
+$ braid transact --inline '{:spec/id "INV-SCHEMA-001" :spec/type "invariant" \
+  :spec/statement "Schema as data"}' --store .braid/agent-b.redb --format agent
+
+[STORE] Transacted 3 datoms in tx hlc:1709000002-0-agentB. Store: 150 datoms.
+```
+
+### Agent A merges Agent B's store
+
+```
+$ braid merge .braid/agent-b.redb --format agent
+
+[MERGE] Merged 3 new datoms (147 duplicates deduplicated).
+Store: 153 datoms. Frontier updated for {agentB}.
+---
+↳ Merge is pure set union (INV-MERGE-001). No datoms were lost.
+  Check LIVE view for resolution changes: `braid entity INV-SCHEMA-001`
+```
+
+### Verify: datoms from both agents present
+
+```
+$ braid query '[:find ?id :where [?e :spec/type "invariant"] [?e :spec/id ?id]]' --format agent
+
+[QUERY] 2 results (Stratum 0, monotonic).
+  INV-STORE-001
+  INV-SCHEMA-001
+```
+
+### Idempotent re-merge (INV-MERGE-008)
+
+```
+$ braid merge .braid/agent-b.redb --format agent
+
+[MERGE] Merged 0 new datoms (150 duplicates deduplicated).
+Store: 153 datoms. No frontier changes.
+---
+↳ Re-merge is a no-op (INV-MERGE-008). Store unchanged.
+```
+
+---
+
 ## §11.3 Datalog Query Examples
 
 Five queries against self-bootstrapped spec datoms. Each shows agent-mode output.
@@ -304,16 +364,16 @@ $ braid query '[:find ?ns (count ?e)
 
 [QUERY] 9 results (Stratum 1, monotonic).
   STORE        13
-  SCHEMA        8
-  QUERY         5
-  RESOLUTION    6
-  HARVEST       8
+  SCHEMA        7
+  QUERY        10
+  RESOLUTION    8
+  HARVEST       5
   SEED          4
-  MERGE         2
-  GUIDANCE      3
-  INTERFACE     3
+  MERGE         3
+  GUIDANCE      6
+  INTERFACE     5
 ---
-↳ 52 Stage 0 INVs transacted across 9 namespaces (of 62 total).
+↳ 61 Stage 0 INVs transacted across 9 namespaces (of 121 total).
 ```
 
 ### Query 4: Frontier-Relative Query
@@ -324,10 +384,10 @@ $ braid query '[:find ?id
          [?e :spec/stage 0]]'
   --mode monotonic --format agent
 
-[QUERY] 62 results (Stratum 0, monotonic).
-  INV-STORE-001, INV-STORE-002, ..., INV-INTERFACE-003
+[QUERY] 61 results (Stratum 0, monotonic).
+  INV-STORE-001, INV-STORE-002, ..., INV-INTERFACE-009
 ---
-↳ All 62 Stage 0 elements queryable. Full self-bootstrap complete.
+↳ All 61 Stage 0 invariants queryable. Full self-bootstrap complete.
 ```
 
 ### Query 5: Resolution Mode Lookup

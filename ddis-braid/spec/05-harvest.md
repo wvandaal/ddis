@@ -357,6 +357,10 @@ False positives and false negatives are both measurable from the store.
 The budget system triggers harvest warnings at context consumption thresholds.
 Below the critical threshold, all output is suppressed except the harvest command.
 
+**Stage 0 simplification**: At Stage 0, Q(t) is not yet available (BUDGET is Stage 1).
+The Stage 0 implementation uses a turn-count heuristic as a proxy: warn at turn 20,
+imperative at turn 40. Stage 1 replaces this with the formal Q(t) formula.
+
 **Falsification**: A CLI response at Q(t) < 0.05 that contains content other than
 the harvest imperative.
 

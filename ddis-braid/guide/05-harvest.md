@@ -1,7 +1,7 @@
 # §5. HARVEST — Build Plan
 
 > **Spec reference**: [spec/05-harvest.md](../spec/05-harvest.md) — read FIRST
-> **Stage 0 elements**: INV-HARVEST-001–008 (all 8), ADR-HARVEST-001–004, NEG-HARVEST-001–003
+> **Stage 0 elements**: INV-HARVEST-001–003, 005, 007 (5 INV), ADR-HARVEST-001–004, NEG-HARVEST-001–003
 > **Dependencies**: STORE (§1), SCHEMA (§2), QUERY (§3), RESOLUTION (§4), MERGE-basic (§7)
 > **Cognitive mode**: Information-theoretic — epistemic gaps, information gain, pipeline
 
@@ -26,6 +26,13 @@ pub struct HarvestCandidate {
     pub source:      String,         // Where in the conversation this was found
     pub weight:      f64,            // Estimated commitment weight
     pub reconciliation_type: ReconciliationType,
+    pub status:      HarvestStatus,  // Tracks candidate lifecycle
+}
+
+pub enum HarvestStatus {
+    Pending,                // Awaiting review
+    Accepted,               // Approved for transact
+    Rejected(String),       // Rejected with reason
 }
 
 pub enum HarvestCategory {
@@ -89,18 +96,21 @@ pub struct SessionContext {
 ### HarvestPipeline
 
 **Black box** (contract):
-- INV-HARVEST-001: Epistemic gap detection — harvest identifies knowledge in agent context
-  not yet in the store. Must detect observations, decisions, dependencies, uncertainties.
-- INV-HARVEST-002: Pipeline completeness — all five stages (detect → propose → review →
-  commit → record) execute in order.
-- INV-HARVEST-003: FP/FN calibration — false positive and false negative rates are tracked
-  for threshold adjustment.
-- INV-HARVEST-004: Provenance — every committed candidate records harvest provenance
-  (agent, session, extraction confidence).
-- INV-HARVEST-005: Proactive warning — Q(t) triggers are monitored (configured thresholds).
-- INV-HARVEST-006: No data loss — committed candidates become permanent datoms (C1).
-- INV-HARVEST-007: Harvest session entity — metadata recorded for learning.
-- INV-HARVEST-008: Category taxonomy — every candidate classified into one of four categories.
+- INV-HARVEST-001: Harvest Monotonicity — harvest only adds datoms, never removes (C1).
+- INV-HARVEST-002: Harvest Provenance Trail — every harvest creates a HarvestSession entity
+  with provenance linking committed candidates to the session.
+- INV-HARVEST-003: Drift Score Recording — drift_score (count of uncommitted observations)
+  stored as a datom on the HarvestSession entity.
+- INV-HARVEST-004: FP/FN Calibration — false positive and false negative rates are tracked
+  for threshold adjustment (Stage 1).
+- INV-HARVEST-005: Proactive Warning — Q(t) triggers are monitored; harvest warnings at
+  Q(t) < 0.15, harvest-only imperative at Q(t) < 0.05.
+- INV-HARVEST-006: Crystallization Guard — high-weight candidates require stability check
+  before commitment (Stage 1).
+- INV-HARVEST-007: Bounded Conversation Lifecycle — SEED → work → HARVEST → end cycle;
+  conversations are bounded reasoning trajectories.
+- INV-HARVEST-008: Delegation Topology Support — harvest review topology selected by
+  commitment weight (self/peer/swarm/hierarchical/human) (Stage 2).
 
 **State box** (internal design):
 - Pipeline is a pure function: `(Store, SessionContext) → HarvestResult`.
@@ -150,8 +160,8 @@ pub struct SessionContext {
 
 ### Error Messages
 
-- **Empty harvest**: `[HARVEST] 0 candidates. Either all knowledge is already transacted (ideal) or detection missed gaps. Run `braid status` to check drift score. See: INV-HARVEST-001`
-- **Session context missing**: `Harvest error: no session context — run `braid seed --task "..."` at session start — See: INV-HARVEST-002`
+- **Empty harvest**: `[HARVEST] 0 candidates. Either all knowledge is already transacted (ideal) or detection missed gaps. Run `braid status` to check drift score. See: INV-HARVEST-003`
+- **Session context missing**: `Harvest error: no session context — run `braid seed --task "..."` at session start — See: INV-HARVEST-007`
 
 ---
 
@@ -161,17 +171,16 @@ pub struct SessionContext {
 
 ```rust
 proptest! {
-    // INV-HARVEST-001: Epistemic gap detection
+    // INV-HARVEST-001: Harvest Monotonicity (harvest only adds, never removes)
     fn inv_harvest_001(store in arb_store(5), context in arb_session_context()) {
+        let pre_count = store.len();
         let result = harvest_pipeline(&store, &context);
-        // If there are un-transacted observations in context, candidates should be non-empty
-        if context.has_untransacted_observations(&store) {
-            prop_assert!(!result.candidates.is_empty());
-        }
+        // Harvest result does not reduce store size
+        prop_assert!(store.len() >= pre_count);
     }
 
-    // INV-HARVEST-006: No data loss on commit
-    fn inv_harvest_006(store in arb_store(5), candidate in arb_harvest_candidate()) {
+    // INV-HARVEST-001 (commit path): No data loss on commit
+    fn inv_harvest_001_commit(store in arb_store(5), candidate in arb_harvest_candidate()) {
         let mut store = store;
         let tx = accept_candidate(&candidate, AgentId::test());
         let committed = tx.commit(&store.schema()).unwrap();
@@ -181,6 +190,60 @@ proptest! {
         // All candidate datoms present
         for d in &candidate.datoms {
             prop_assert!(store.contains(d));
+        }
+    }
+
+    // INV-HARVEST-002: Provenance Trail — harvest session entity created
+    fn inv_harvest_002(store in arb_store(5), context in arb_session_context()) {
+        let mut s = store;
+        let result = harvest_pipeline(&s, &context);
+        let accepted: Vec<_> = result.candidates.iter().map(|c| c.id).collect();
+        let tx = harvest_session_entity(&result, &accepted, &[], context.agent);
+        let committed = tx.commit(&s.schema()).unwrap();
+        s.transact(committed).unwrap();
+        // A HarvestSession entity exists with provenance
+        let sessions = s.query_by_type(":harvest/session");
+        prop_assert!(!sessions.is_empty());
+    }
+
+    // INV-HARVEST-003: Drift Score Recording — drift_score stored as datom
+    fn inv_harvest_003(store in arb_store(5), context in arb_session_context()) {
+        let mut s = store;
+        let result = harvest_pipeline(&s, &context);
+        let tx = harvest_session_entity(&result, &[], &[], context.agent);
+        let committed = tx.commit(&s.schema()).unwrap();
+        s.transact(committed).unwrap();
+        // Drift score is a datom on the session entity
+        let sessions = s.query_by_type(":harvest/session");
+        for session in sessions {
+            let drift = s.entity_attr(session, ":harvest/drift-score");
+            prop_assert!(drift.is_some());
+        }
+    }
+
+    // INV-HARVEST-007: Proactive Harvest Schedule — harvest frequency scales with delta
+    fn inv_harvest_007(
+        delta_size in 1usize..100,
+        session_turns in 1usize..50,
+    ) {
+        let schedule = compute_harvest_schedule(delta_size, session_turns);
+        // Higher delta accumulation → shorter intervals between harvest warnings
+        let schedule_tight = compute_harvest_schedule(delta_size * 2, session_turns);
+        prop_assert!(schedule_tight.interval <= schedule.interval);
+        // Harvest is always recommended before the delta would exceed the budget
+        prop_assert!(schedule.next_harvest_turn <= session_turns);
+    }
+
+    // INV-HARVEST-005: Proactive Warning — Q(t) < 0.15 triggers warning
+    fn inv_harvest_005(q_t in 0.0..0.2f64) {
+        let should_warn = q_t < 0.15;
+        let should_imperative = q_t < 0.05;
+        let warning = harvest_warning(q_t);
+        if should_imperative {
+            prop_assert!(warning.is_some());
+            prop_assert!(warning.unwrap().severity == WarningSeverity::Imperative);
+        } else if should_warn {
+            prop_assert!(warning.is_some());
         }
     }
 }

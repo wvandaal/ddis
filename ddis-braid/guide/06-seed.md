@@ -43,8 +43,8 @@ pub fn generate_claude_md(
     budget: usize,
 ) -> String;
 
-/// Associate: find datoms relevant to the task via Datalog queries.
-pub fn associate(store: &Store, task: &str) -> Vec<(EntityId, f64)>;
+/// Associate: discover schema neighborhood relevant to the task (INV-SEED-003).
+pub fn associate(store: &Store, cue: AssociateCue) -> SchemaNeighborhood;
 
 /// Compress seed to fit within budget.
 pub fn compress_seed(seed: &SeedOutput, budget: usize) -> SeedOutput;
@@ -57,14 +57,14 @@ pub fn compress_seed(seed: &SeedOutput, budget: usize) -> SeedOutput;
 ### Seed Assembly (Associate → Assemble → Compress)
 
 **Black box** (contract):
-- INV-SEED-001: Seed is derived entirely from the store — no external state, no stale caches.
-  All content in the seed is queryable and traceable to datoms.
-- INV-SEED-002: Idempotent — same store + same task + same budget → same seed.
-  Deterministic assembly from store state.
-- INV-SEED-003: Budget-bounded — seed output fits within the specified token budget.
+- INV-SEED-001: Seed as Store Projection — seed contains only information from the store,
+  nothing fabricated. All content is queryable and traceable to datoms.
+- INV-SEED-002: Budget Compliance — seed output fits within the specified token budget.
   Compression preserves activation-critical content over verbose detail.
-- INV-SEED-004: Relevance ordering — seed content ordered by declining relevance to the task.
-  Most important context first.
+- INV-SEED-003: ASSOCIATE Boundedness — graph expansion is bounded to `depth × breadth`,
+  preventing unbounded traversal.
+- INV-SEED-004: Intention Anchoring — active intentions pinned at π₀ (full detail)
+  regardless of budget pressure.
 
 **State box** (internal design):
 - Three-stage pipeline: associate → assemble → compress.
@@ -166,7 +166,7 @@ Implement STORE namespace (guide/01-store.md). 13 INVs, 12 ADRs.
 
 ```rust
 proptest! {
-    // INV-SEED-001: Seed from store only
+    // INV-SEED-001: Seed as Store Projection (only info from store, nothing fabricated)
     fn inv_seed_001(store in arb_store(10), task in arb_task()) {
         let seed = assemble_seed(&store, &task, 10000);
         // Every entity referenced in seed must exist in store
@@ -175,24 +175,47 @@ proptest! {
         }
     }
 
-    // INV-SEED-002: Idempotent
-    fn inv_seed_002(store in arb_store(10), task in arb_task(), budget in 1000..10000usize) {
-        let s1 = assemble_seed(&store, &task, budget);
-        let s2 = assemble_seed(&store, &task, budget);
-        prop_assert_eq!(s1, s2);
-    }
-
-    // INV-SEED-003: Budget-bounded
-    fn inv_seed_003(store in arb_store(10), task in arb_task(), budget in 100..5000usize) {
+    // INV-SEED-002: Budget Compliance (seed output fits within token budget)
+    fn inv_seed_002(store in arb_store(10), task in arb_task(), budget in 100..5000usize) {
         let seed = assemble_seed(&store, &task, budget);
         prop_assert!(token_count(&seed) <= budget);
+    }
+
+    // INV-SEED-003: ASSOCIATE Boundedness (graph expansion bounded by depth × breadth)
+    fn inv_seed_003(store in arb_store(10), task in arb_task()) {
+        let neighborhood = associate(&store, &task);
+        let depth = 3; // default depth
+        let breadth = 10; // default breadth
+        prop_assert!(neighborhood.entities.len() <= depth * breadth);
     }
 }
 ```
 
 ### Kani Harnesses
 
-INV-SEED-002, 003 have V:KANI tags.
+```rust
+proptest! {
+    // INV-SEED-004: Active Intention Pinning — π₀ survives budget compression
+    fn inv_seed_004(
+        store in arb_store(10),
+        budget in 100usize..2000,
+    ) {
+        let active_intentions = store.query_active_intentions();
+        let seed = assemble_seed(&store, "test task", budget);
+        // Active intentions must appear regardless of budget
+        for intention in &active_intentions {
+            prop_assert!(
+                seed.warnings.contains(&intention.summary)
+                    || seed.context.contains(&intention.summary),
+                "Active intention {} missing from seed at budget {}",
+                intention.id, budget
+            );
+        }
+    }
+}
+```
+
+INV-SEED-002 and INV-SEED-003 have V:KANI tags.
 
 ---
 
@@ -204,9 +227,9 @@ INV-SEED-002, 003 have V:KANI tags.
 - [ ] `compress_seed()` fits within token budget, preserves warnings + task
 - [ ] `relevance_score()` scores datoms by keyword + recency
 - [ ] `generate_claude_md()` produces valid CLAUDE.md from store state
-- [ ] Seed is idempotent (same inputs → same output)
-- [ ] Seed is budget-bounded
-- [ ] Relevance ordering: most important first
+- [ ] Seed is budget-bounded (INV-SEED-002)
+- [ ] ASSOCIATE is bounded by depth × breadth (INV-SEED-003)
+- [ ] Active intentions pinned at π₀ regardless of budget (INV-SEED-004)
 - [ ] Integration: genesis → transact specs → seed → readable context for new session
 
 ---

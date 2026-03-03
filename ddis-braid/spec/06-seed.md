@@ -119,15 +119,15 @@ POST:
   all active intentions included
 ```
 
-#### Seed Output Template
+#### Seed Output Template (ADR-SEED-004)
 
 ```
 Seed output follows a five-part template:
-  (1) Context — 1–2 sentences: what was last worked on, current project state
-  (2) Invariants — active invariants governing the next task
-  (3) Artifacts — files modified, decisions made, entities created
-  (4) Open questions — from deliberations, uncertainties, pending crystallizations
-  (5) Active guidance — next methodologically correct actions
+  (1) Orientation — project identity, current phase, recent session history
+  (2) Constraints — relevant INVs, settled ADRs, negative cases for current task
+  (3) State — relevant datoms, artifacts, frontier, recent changes
+  (4) Warnings — drift signals, open questions, uncertainties, harvest alerts
+  (5) Directive — next task, acceptance criteria, active guidance corrections
 
 Formatted as spec-language (INV-GUIDANCE-SEED-001): invariants and formal
 structure, NOT instruction-language (steps, checklists).
@@ -408,6 +408,43 @@ B) **Spec-language** — invariants, formal structure, constraints.
 Instruction-language activates the surface procedural substrate. Spec-language produces
 more rigorous, consistent output because it frames the task as constraint satisfaction
 rather than instruction following.
+
+---
+
+### ADR-SEED-004: Unified Five-Part Seed Template
+
+**Traces to**: ADRS IB-010, GU-003
+**Stage**: 0
+
+#### Problem
+The spec (Context/Invariants/Artifacts/Open questions/Active guidance) and guide
+(Orientation/Decisions/Context/Warnings/Task) used different five-part templates.
+Which structure should the seed output follow?
+
+#### Options
+A) **Spec template** — knowledge-facing: what exists in the store.
+B) **Guide template** — agent-facing: orient the agent and direct action.
+C) **Unified template** — reconcile both into a single structure that is both
+   knowledge-grounded and agent-directing.
+
+#### Decision
+**Option C.** Unified five-part template:
+1. **Orientation** — project identity, current phase, recent session history
+2. **Constraints** — relevant INVs, settled ADRs, negative cases
+3. **State** — relevant datoms, artifacts, frontier, recent changes
+4. **Warnings** — drift signals, open questions, uncertainties, harvest alerts
+5. **Directive** — next task, acceptance criteria, active guidance corrections
+
+The spec's parts map to the unified template: Context→Orientation+State,
+Invariants→Constraints, Artifacts→State, Open questions→Warnings,
+Active guidance→Directive. The guide's parts map similarly: Orientation→Orientation,
+Decisions→Constraints, Context→State, Warnings→Warnings, Task→Directive.
+
+#### Consequences
+- All documents (spec, guide, ADRS.md IB-010) reference the same template
+- "Constraints" is broader than "Invariants" — includes ADRs and negative cases
+- "Directive" is more action-oriented than "Active guidance"
+- The SeedOutput struct uses these five field names
 
 ---
 

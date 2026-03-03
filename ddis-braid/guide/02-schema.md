@@ -1,7 +1,7 @@
 # §2. SCHEMA — Build Plan
 
 > **Spec reference**: [spec/02-schema.md](../spec/02-schema.md) — read FIRST
-> **Stage 0 elements**: INV-SCHEMA-001–008 (all 8), ADR-SCHEMA-001–004, NEG-SCHEMA-001–003
+> **Stage 0 elements**: INV-SCHEMA-001–007 (7 INV; 006 progressive 0–4; 008 Stage 2), ADR-SCHEMA-001–004, NEG-SCHEMA-001–003
 > **Dependencies**: STORE (§1 complete)
 > **Cognitive mode**: Ontological — category theory, bootstrap, self-description
 
@@ -110,14 +110,14 @@ pub mod genesis {
 ### Schema
 
 **Black box** (contract):
-- INV-SCHEMA-001: genesis installs exactly 17 axiomatic attributes, is deterministic.
-- INV-SCHEMA-002: meta-schema is self-describing (every axiomatic attribute is described using axiomatic attributes).
-- INV-SCHEMA-003: schema is data in the store, not external DDL (C3).
-- INV-SCHEMA-004: schema evolution is monotonic — new attributes only, no removal.
-- INV-SCHEMA-005: every datom's attribute exists in the schema at transact time.
-- INV-SCHEMA-006: every datom's value type matches the schema-declared type.
-- INV-SCHEMA-007: resolution mode is declared per-attribute.
-- INV-SCHEMA-008: the schema can describe itself (self-bootstrap test).
+- INV-SCHEMA-001: Schema-as-Data — schema is a subset of the store, not a separate DDL (C3).
+- INV-SCHEMA-002: Genesis Completeness — genesis tx contains exactly 17 axiomatic attributes, self-contained.
+- INV-SCHEMA-003: Schema Monotonicity — schema can only grow; attributes are never removed.
+- INV-SCHEMA-004: Schema Validation on Transact — no undefined attribute or mistyped value enters the store.
+- INV-SCHEMA-005: Meta-Schema Self-Description — axiomatic attributes describe themselves using only A₀.
+- INV-SCHEMA-006: Six-Layer Schema Architecture — 6 layers with dependency ordering (Stage 0–4 progressive).
+- INV-SCHEMA-007: Lattice Definition Completeness — every lattice-resolved attribute has a complete lattice definition.
+- INV-SCHEMA-008: Diamond Lattice Signal Generation — incomparable lattice values produce error signal (Stage 2).
 
 **State box** (internal design):
 - `attrs: HashMap<Attribute, AttributeDef>` — in-memory attribute registry.
@@ -135,14 +135,84 @@ pub mod genesis {
 - Genesis: iterate `AXIOMATIC_ATTRIBUTES` → call `new_attribute` for each → collect datoms.
   Use `TxId { wall_time: 0, logical: 0, agent: SYSTEM_AGENT }` for genesis tx.
 
+### Six-Layer Schema Architecture (INV-SCHEMA-006)
+
+**Black box** (contract):
+- INV-SCHEMA-006: Schema organized into 6 layers with dependency ordering:
+  Layer 0 (Meta-schema, 17 axiomatic) → Layer 1 (Agent & Provenance) → Layer 2 (DDIS Core) →
+  Layer 3 (Discovery) → Layer 4 (Coordination) → Layer 5 (Workflow).
+  Each layer depends only on layers below it. Stages 0–4 introduce layers progressively.
+
+**State box** (internal design):
+- Layer membership is determined by the attribute's `:db/doc` or a `:schema/layer` attribute.
+- Stage 0 implements Layers 0–1 (meta-schema + agent/provenance). Layer 2 starts in Stage 0–1.
+- Schema validation enforces layer ordering: Layer N attributes may only reference
+  types defined in Layers 0..N.
+
+**Clear box** (implementation):
+```rust
+pub enum SchemaLayer {
+    MetaSchema,       // Layer 0: 17 axiomatic attributes
+    AgentProvenance,  // Layer 1: agent, provenance types
+    DdisCore,         // Layer 2: spec types, harvest, seed
+    Discovery,        // Layer 3: search, exploration
+    Coordination,     // Layer 4: deliberation, sync
+    Workflow,         // Layer 5: task, workspace
+}
+
+impl Schema {
+    /// Validate that attribute belongs to its declared layer
+    /// and only references types from lower layers.
+    pub fn validate_layer_ordering(&self) -> Vec<LayerViolation>;
+}
+```
+
+### Lattice Definition Completeness (INV-SCHEMA-007)
+
+**Black box** (contract):
+- INV-SCHEMA-007: Every attribute with `:db/resolutionMode = :lattice` has a complete
+  lattice definition: `:db/latticeOrder` → lattice entity with `:lattice/ident`,
+  `:lattice/elements` (non-empty), `:lattice/comparator`, `:lattice/bottom`.
+
+**State box** (internal design):
+- Lattice definitions are entities in the store (C3).
+- Genesis includes no lattice-resolved attributes — lattice definitions are added via schema evolution.
+- Validation checks completeness at `transact` time: if an attribute sets `:lattice` mode,
+  the referenced lattice entity must already exist with all required properties.
+
+**Clear box** (implementation):
+```rust
+impl Schema {
+    /// Validate that all lattice-resolved attributes have complete definitions.
+    pub fn validate_lattice_completeness(&self, store: &Store) -> Vec<LatticeDefError> {
+        let mut errors = Vec::new();
+        for (attr, def) in self.attributes() {
+            if let ResolutionMode::Lattice { lattice_id } = def.resolution_mode {
+                let lattice = store.entity(lattice_id);
+                if lattice.get(":lattice/ident").is_none() { errors.push(MissingIdent(attr.clone())); }
+                if lattice.get(":lattice/elements").map_or(true, |v| v.is_empty()) {
+                    errors.push(EmptyElements(attr.clone()));
+                }
+                if lattice.get(":lattice/comparator").is_none() { errors.push(MissingComparator(attr.clone())); }
+                if lattice.get(":lattice/bottom").is_none() { errors.push(MissingBottom(attr.clone())); }
+            }
+        }
+        errors
+    }
+}
+```
+
+**proptest strategy**: Generate schema with random lattice-resolved attributes.
+For each, verify the lattice entity exists with all 4 required properties.
+
 ---
 
 ## §2.3 Type-Level Encoding
 
 | INV | Compile-Time Guarantee | Mechanism |
 |-----|----------------------|-----------|
-| INV-SCHEMA-003 | Cannot construct schema outside store | `Schema::from_store` is the only constructor |
-| INV-SCHEMA-004 | No `DROP` or `ALTER DELETE` on attributes | No `remove_attribute` method exists |
+| INV-SCHEMA-001 | Cannot construct schema outside store | `Schema::from_store` is the only constructor |
+| INV-SCHEMA-003 | No `DROP` or `ALTER DELETE` on attributes | No `remove_attribute` method exists |
 
 ---
 
@@ -154,14 +224,14 @@ pub mod genesis {
 [SCHEMA] Added attribute :task/status (Keyword, :one, resolution: lattice).
 Schema: 18 attributes (17 axiomatic + 1 user-defined).
 ---
-↳ Which schema layer does this attribute belong to? (See: INV-SCHEMA-001)
+↳ Which schema layer does this attribute belong to? (See: INV-SCHEMA-006)
 ```
 
 ### Error Messages
 
-- **Unknown attribute**: `Schema error: attribute {attr} not in schema — add via schema transaction — See: INV-SCHEMA-005`
-- **Type mismatch**: `Schema error: {attr} expects {expected}, got {actual} — See: INV-SCHEMA-006`
-- **Duplicate ident**: `Schema warning: attribute {attr} already exists — updating properties via append — See: INV-SCHEMA-004`
+- **Unknown attribute**: `Schema error: attribute {attr} not in schema — add via schema transaction — See: INV-SCHEMA-004`
+- **Type mismatch**: `Schema error: {attr} expects {expected}, got {actual} — See: INV-SCHEMA-004`
+- **Duplicate ident**: `Schema warning: attribute {attr} already exists — updating properties via append — See: INV-SCHEMA-003`
 
 ---
 
@@ -171,15 +241,23 @@ Schema: 18 attributes (17 axiomatic + 1 user-defined).
 
 ```rust
 proptest! {
-    // INV-SCHEMA-001: Genesis produces 17 attributes
+    // INV-SCHEMA-001: Schema-as-Data (schema is subset of store)
     fn inv_schema_001() {
+        let store = Store::genesis();
+        let schema = Schema::from_store(&store);
+        // Schema is derived from store datoms, not external source
+        assert!(schema.attributes().count() > 0);
+    }
+
+    // INV-SCHEMA-002: Genesis Completeness (exactly 17 axiomatic attributes)
+    fn inv_schema_002() {
         let store = Store::genesis();
         let schema = Schema::from_store(&store);
         assert_eq!(schema.attributes().count(), 17);
     }
 
-    // INV-SCHEMA-002: Self-description
-    fn inv_schema_002() {
+    // INV-SCHEMA-005: Meta-Schema Self-Description
+    fn inv_schema_005() {
         let store = Store::genesis();
         let schema = Schema::from_store(&store);
         for (attr, def) in schema.attributes() {
@@ -188,18 +266,27 @@ proptest! {
         }
     }
 
-    // INV-SCHEMA-008: Genesis is deterministic
-    fn inv_schema_008() {
-        let s1 = Store::genesis();
-        let s2 = Store::genesis();
-        assert_eq!(s1.datoms().collect::<Vec<_>>(), s2.datoms().collect::<Vec<_>>());
+    // INV-SCHEMA-006: Six-Layer Architecture — layer ordering respected
+    fn inv_schema_006(store in arb_schema(5)) {
+        let schema = Schema::from_store(&store);
+        let violations = schema.validate_layer_ordering();
+        prop_assert!(violations.is_empty(),
+            "Layer ordering violated: {:?}", violations);
+    }
+
+    // INV-SCHEMA-007: Lattice Definition Completeness
+    fn inv_schema_007(store in arb_schema(3)) {
+        let schema = Schema::from_store(&store);
+        let errors = schema.validate_lattice_completeness(&store);
+        prop_assert!(errors.is_empty(),
+            "Incomplete lattice definitions: {:?}", errors);
     }
 }
 ```
 
 ### Kani Harnesses
 
-INV-SCHEMA-001, 002, 004 have V:KANI tags.
+INV-SCHEMA-001, 002, 004 have V:KANI tags. INV-SCHEMA-005 has V:PROP tag.
 
 ---
 

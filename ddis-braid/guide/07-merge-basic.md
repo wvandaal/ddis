@@ -1,7 +1,7 @@
 # §7. MERGE (Basic) — Build Plan
 
 > **Spec reference**: [spec/07-merge.md](../spec/07-merge.md) — read FIRST
-> **Stage 0 elements**: INV-MERGE-001, INV-MERGE-008 only (2 INV), ADR-MERGE-001, NEG-MERGE-001, NEG-MERGE-003
+> **Stage 0 elements**: INV-MERGE-001–002, 008 (3 INV), ADR-MERGE-001, NEG-MERGE-001, NEG-MERGE-003
 > **Dependencies**: STORE (§1), SCHEMA (§2), QUERY (§3), RESOLUTION (§4)
 > **Cognitive mode**: Set-theoretic — union, deduplication, monotonicity
 
@@ -9,13 +9,16 @@
 
 ## §7.1 Scope
 
-Stage 0 requires only the minimal merge subset:
+Stage 0 requires the core merge subset:
 
 - **INV-MERGE-001**: Merge preserves all datoms — `S ⊆ merge(S, S')` for both inputs.
+- **INV-MERGE-002**: Merge Cascade Completeness — all 5 cascade steps execute: (1) conflict
+  detection, (2) cache invalidation, (3) projection staleness, (4) uncertainty update,
+  (5) subscription notification. Each step produces datoms recording its effects.
 - **INV-MERGE-008**: Merge receipt records the operation — count of new datoms, frontier delta.
 
-Branching (INV-MERGE-002–007), W_α working sets, and merge cascade are **deferred to Stage 2**.
-Stage 0 merge is pure set union of two flat stores.
+Branching (INV-MERGE-003–007), W_α working sets are **deferred to Stage 2**.
+Stage 0 merge is pure set union of two flat stores with full cascade.
 
 ---
 
@@ -80,6 +83,73 @@ pub fn merge(target: &mut Store, source: &Store) -> MergeReceipt {
 }
 ```
 
+### Merge Cascade (INV-MERGE-002)
+
+**Black box** (contract):
+- INV-MERGE-002: Every merge executes all 5 cascade steps, each producing datoms:
+  (1) conflict detection, (2) cache invalidation, (3) projection staleness,
+  (4) uncertainty update, (5) subscription notification.
+  The cascade is atomic — either all 5 steps complete or the merge fails.
+
+**State box** (internal design):
+- After set union (INV-MERGE-001), the cascade runs sequentially on newly-inserted datoms.
+- Each step queries the newly-merged state and produces metadata datoms.
+- Stage 0 cascade is lightweight: steps 2–5 produce stub datoms recording that the step ran.
+  Full cascade behavior expands in later stages.
+
+**Clear box** (implementation):
+```rust
+pub struct CascadeReceipt {
+    pub conflicts_detected: usize,
+    pub caches_invalidated: usize,
+    pub projections_staled: usize,
+    pub uncertainties_updated: usize,
+    pub notifications_sent: usize,
+    pub cascade_datoms: Vec<Datom>,  // datoms recording cascade effects
+}
+
+fn merge_cascade(
+    store: &mut Store,
+    new_datoms: &[Datom],
+    agent: AgentId,
+) -> CascadeReceipt {
+    let mut receipt = CascadeReceipt::default();
+    // (1) Conflict detection — find new conflicts from merged datoms
+    let conflicts = detect_new_conflicts(store, new_datoms);
+    receipt.conflicts_detected = conflicts.len();
+    for c in &conflicts {
+        store.transact_cascade_datom(cascade_conflict_datom(c, agent));
+    }
+    // (2) Cache invalidation — mark LIVE cache entries stale for affected entities
+    let affected = affected_entities(new_datoms);
+    receipt.caches_invalidated = affected.len();
+    for e in &affected {
+        store.transact_cascade_datom(cascade_invalidation_datom(*e, agent));
+    }
+    // (3) Projection staleness — mark projections for affected entities as stale
+    receipt.projections_staled = affected.len();
+    for e in &affected {
+        store.transact_cascade_datom(cascade_projection_datom(*e, agent));
+    }
+    // (4) Uncertainty update — recompute uncertainty for entities with new data
+    let uncertainties = recompute_uncertainties(store, &affected);
+    receipt.uncertainties_updated = uncertainties.len();
+    for u in &uncertainties {
+        store.transact_cascade_datom(cascade_uncertainty_datom(u, agent));
+    }
+    // (5) Subscription notification — notify subscribers of affected entities
+    let notifications = notify_subscribers(store, &affected);
+    receipt.notifications_sent = notifications.len();
+    for n in &notifications {
+        store.transact_cascade_datom(cascade_notification_datom(n, agent));
+    }
+    receipt
+}
+```
+
+**proptest strategy**: Merge two arbitrary stores. Verify `CascadeReceipt` has entries for all
+5 steps, and that each step produced at least one datom in the store when new datoms exist.
+
 ---
 
 ## §7.4 LLM-Facing Outputs
@@ -110,12 +180,31 @@ proptest! {
         for d in s2.datoms() { prop_assert!(target.contains(d)); }
     }
 
-    // INV-MERGE-008: Receipt correctness
-    fn inv_merge_008(s1 in arb_store(3), s2 in arb_store(3)) {
-        let pre_len = s1.len();
+    // INV-MERGE-002: Cascade Completeness — all 5 steps produce datoms
+    fn inv_merge_002(s1 in arb_store(3), s2 in arb_store(3)) {
         let mut target = s1.clone();
+        let pre_len = target.len();
         let receipt = merge(&mut target, &s2);
-        prop_assert_eq!(receipt.new_datoms + pre_len, target.len());
+        if receipt.new_datoms > 0 {
+            // Cascade should have run and produced datoms for each step
+            let cascade_datoms: Vec<_> = target.datoms()
+                .filter(|d| d.attribute.name().starts_with(":cascade/"))
+                .collect();
+            // At least 5 cascade datoms (one per step)
+            prop_assert!(cascade_datoms.len() >= 5,
+                "Expected ≥5 cascade datoms, got {}", cascade_datoms.len());
+        }
+    }
+
+    // INV-MERGE-008: Idempotent delivery — re-merging same store is no-op
+    fn inv_merge_008(s1 in arb_store(3), s2 in arb_store(3)) {
+        let mut once = s1.clone();
+        let _r1 = merge(&mut once, &s2);
+        let mut twice = once.clone();
+        let r2 = merge(&mut twice, &s2);
+        prop_assert_eq!(once.datoms().collect::<BTreeSet<_>>(),
+                        twice.datoms().collect::<BTreeSet<_>>());
+        prop_assert_eq!(r2.new_datoms, 0);  // No new datoms on re-merge
     }
 }
 ```
