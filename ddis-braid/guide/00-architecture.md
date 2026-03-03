@@ -681,18 +681,18 @@ budget warning > harvest prompt > drift correction > general guidance.
 | MCP tool description | ≤100 tokens | Purpose + use-when + returns |
 | Dynamic CLAUDE.md | ≤1000 tokens | Shrinks as k* decays |
 
-### `[SPEC-GAP]` Markers
+### Resolved Spec Gaps
 
-Potential specification additions identified during guide production:
+All gaps identified during guide production are now closed with formal invariants:
 
-1. **`[SPEC-GAP]` Tool description quality metric** — No INV specifies that MCP tool descriptions
-   must be ≤100 tokens or follow the navigative structure. Consider: INV-INTERFACE-008.
-2. **`[SPEC-GAP]` Error message recovery-hint completeness** — No INV requires every error to
-   include a recovery action. Consider: INV-INTERFACE-009.
-3. **`[SPEC-GAP]` Dynamic CLAUDE.md as formally optimized prompt** — INV-GUIDANCE-007 specifies
-   generation but not that the output must follow prompt-optimization rules. Consider augmenting.
-4. **`[SPEC-GAP]` Token efficiency as testable property** — No INV specifies token budget
-   targets. Consider: INV-BUDGET-006.
+1. **Tool description quality metric** — Specified in INV-INTERFACE-008 (MCP Tool Description Quality):
+   navigative structure, ≤100 tokens, semantic types, micro-example required.
+2. **Error message recovery-hint completeness** — Specified in INV-INTERFACE-009 (Error Recovery
+   Protocol Completeness) and NEG-INTERFACE-004: total recovery function, four-part error protocol.
+3. **Dynamic CLAUDE.md as formally optimized prompt** — Specified in INV-GUIDANCE-007 (augmented):
+   k* constraint budget, ambient/active partition, demonstration density, typestate pipeline.
+4. **Token efficiency as testable property** — Specified in INV-BUDGET-006 (Token Efficiency as
+   Testable Property): density monotonicity, mode-specific ceilings, rate-distortion bound.
 
 ---
 

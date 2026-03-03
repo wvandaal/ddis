@@ -260,25 +260,74 @@ or its datoms leak into trunk.
 
 ---
 
-### INV-GUIDANCE-007: Dynamic CLAUDE.md Improvement
+### INV-GUIDANCE-007: Dynamic CLAUDE.md as Optimized Prompt
 
 **Traces to**: ADRS GU-004, PO-014
 **Verification**: `V:PROP`
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
-Dynamic CLAUDE.md generation incorporates empirical drift corrections.
-Corrections that show no measurable effect after 5 sessions are replaced.
 
-`∀ correction c: sessions_without_effect(c) > 5 ⟹ ◇ replaced(c)`
+CLAUDE.md generation is a function `G: StoreState → CLAUDEmd` that produces a
+field configuration over the agent's activation manifold, subject to:
+
+1. **Constraint budget**: `|constraints(G(s))| ≤ k*(fresh_session)` — the total
+   constraint count must not exceed the k* capacity of a fresh session
+2. **Ambient/active partition**: `G(s) = ambient(s) ⊕ active(s)` where
+   `|ambient(s)| ≤ 80 tokens` — ambient content is k*-exempt and always present
+3. **Demonstration density**: `demonstrations(G(s)) / max(1, constraint_clusters(G(s))) ≥ 1.0`
+   — at least one demonstration per cluster of constraints
+4. **Effectiveness tracking**: `∀ correction c: sessions_without_effect(c) > 5 ⟹ ◇ replaced(c)`
+   — corrections that show no measurable effect after 5 sessions are replaced
 
 #### Level 1 (State Invariant)
-The GENERATE-CLAUDE-MD operation tracks correction effectiveness across sessions.
+
+The GENERATE-CLAUDE-MD operation follows a typestate pipeline:
+
+```
+MeasureDrift → DiagnoseDrift → SelectCorrections → ValidateBudget → Emit
+```
+
+- **MeasureDrift**: query store for recent drift patterns across sessions
+- **DiagnoseDrift**: classify drift signals (basin competition, spec-language
+  decay, tool avoidance)
+- **SelectCorrections**: choose corrections from drift patterns, respecting
+  k* budget
+- **ValidateBudget**: verify `|constraints| ≤ k*`, verify demonstration ratio
+  ≥ 1.0, verify ambient ≤ 80 tokens
+- **Emit**: produce the CLAUDE.md content
+
 Ineffective corrections are replaced by new corrections derived from recent
-drift patterns.
+drift patterns. The pipeline cannot skip the ValidateBudget stage.
+
+#### Level 2 (Implementation Contract)
+
+```rust
+pub struct ClaudeMdConfig {
+    pub ambient: AmbientSection,     // |ambient| ≤ 80 tokens, k*-exempt
+    pub active: ActiveSection,       // |active| ≤ k*(fresh_session) - |ambient|
+}
+
+pub struct AmbientSection {
+    pub tool_awareness: String,      // Tool names + one-line purposes
+    pub identity: String,            // Project identity
+}
+// Invariant: ambient.token_count() <= 80
+
+pub struct ActiveSection {
+    pub demonstrations: Vec<Demonstration>,
+    pub constraints: Vec<DriftCorrection>,
+    pub context: SessionContext,
+}
+// Invariant: demonstrations.len() >= constraints.chunks(3).len()
+```
 
 **Falsification**: A drift correction persists in generated CLAUDE.md for 10+
-sessions with no measurable improvement in the targeted drift metric.
+sessions with no measurable improvement in the targeted drift metric, OR
+generated CLAUDE.md exceeds k* constraint budget for a fresh session, OR
+ambient section exceeds 80 tokens, OR zero demonstrations accompany a cluster
+of 3+ constraints, OR the generator emits without validating constraint count
+(pipeline stage skipped).
 
 ---
 

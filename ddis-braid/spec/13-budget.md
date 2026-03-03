@@ -251,6 +251,62 @@ respects the profile ceiling, truncating to fit.
 
 ---
 
+### INV-BUDGET-006: Token Efficiency as Testable Property
+
+**Traces to**: ADRS IB-011
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+
+Information density function `ρ(output) = semantic_units(output) / |output|`.
+For a budget constraint `b`, the output `O(cmd, b)` satisfies:
+
+1. `|O(cmd, b)| ≤ b` — hard budget cap (already in INV-BUDGET-001)
+2. `ρ(O(cmd, b₁)) ≤ ρ(O(cmd, b₂))` for `b₁ > b₂` — density monotonicity
+   (tighter budgets produce denser output, not truncated output)
+3. Mode-specific ceilings:
+   - `agent_mode ≤ 300 tokens`
+   - `guidance_footer ≤ 50 tokens`
+   - `error_message ≤ 100 tokens`
+
+#### Level 1 (State Invariant)
+
+The output pipeline evaluates density at each projection level. When budget
+forces projection from a higher level (Full) to a lower level (Summary), the
+density of the lower projection is verified to be ≥ the density of the higher.
+The pipeline never produces output that is merely truncated — it always
+re-projects at a lower level.
+
+#### Level 2 (Implementation Contract)
+
+```rust
+pub struct TokenEfficiency {
+    pub semantic_units: usize,
+    pub token_count: usize,
+}
+
+impl TokenEfficiency {
+    pub fn density(&self) -> f64 {
+        self.semantic_units as f64 / self.token_count.max(1) as f64
+    }
+}
+
+pub const AGENT_MODE_CEILING: usize = 300;
+pub const GUIDANCE_FOOTER_CEILING: usize = 50;
+pub const ERROR_MESSAGE_CEILING: usize = 100;
+
+// proptest: for any command at budget b1 > b2,
+//   density(output(cmd, b2)) >= density(output(cmd, b1))
+```
+
+**Falsification**: Reducing the budget by 50% reduces information value by more
+than 50% (distortion exceeds rate-distortion bound), OR agent-mode output
+exceeds 300 tokens, OR a guidance footer exceeds 50 tokens, OR an error message
+exceeds 100 tokens.
+
+---
+
 ### §13.5 ADRs
 
 ### ADR-BUDGET-001: Measured Context Over Heuristic

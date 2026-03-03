@@ -282,6 +282,111 @@ a harvest warning.
 
 ---
 
+### INV-INTERFACE-008: MCP Tool Description Quality
+
+**Traces to**: ADRS IB-002, IB-011
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+
+A tool description `D` is a mapping from tool identity to an activation prompt.
+Quality is a predicate `Q(D)`:
+
+```
+Q(D) = navigative(D) ∧ has_example(D) ∧ |D| ≤ 100 tokens ∧ has_semantic_types(D)
+```
+
+Where:
+- `navigative(D)`: description activates deep reasoning (pattern matching, analogy),
+  not surface compliance ("you must", "do not")
+- `has_example(D)`: at least one micro-example (≤30 tokens) demonstrating usage
+- `|D| ≤ 100 tokens`: total description fits within ambient attention budget
+- `has_semantic_types(D)`: inputs and outputs carry semantic type annotations,
+  not raw `String`
+
+Information density: `ρ(D) = unique_concepts(D) / |D|` — maximized by navigative
+structure and demonstration density.
+
+#### Level 1 (State Invariant)
+
+Every MCP tool registration includes a description satisfying `Q(D)`. The
+MCP_REGISTER transition checks `Q(D)` as a precondition. Descriptions are
+compile-time constants (`const` array), so `Q(D)` is verified at development
+time via tests, not at runtime.
+
+#### Level 2 (Implementation Contract)
+
+```rust
+pub struct ToolDescription {
+    pub name: &'static str,
+    pub purpose: &'static str,      // 1 sentence, navigative, ≤20 tokens
+    pub inputs: &'static [TypedParam], // semantic types, not raw String
+    pub output: &'static str,        // semantic description
+    pub example: &'static str,       // 1 micro-example, ≤30 tokens
+}
+
+const_assert!(MCP_TOOLS.iter().all(|t| t.total_tokens() <= 100));
+```
+
+**Falsification**: A tool description exceeds 100 tokens, OR uses imperative
+language ("you must", "do not") without a demonstration, OR omits semantic
+type annotations for inputs/outputs, OR contains no micro-example.
+
+---
+
+### INV-INTERFACE-009: Error Recovery Protocol Completeness
+
+**Traces to**: ADRS IB-011
+**Verification**: `V:PROP`, `V:TYPE`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+
+The error algebra `E` has a total recovery function `R: E → RecoveryHint`.
+For every error variant `e ∈ E`, `R(e)` is defined and executable.
+
+The error message function `M: E → String` produces a four-part string:
+
+```
+M(e) = what_failed(e) ⊕ why(e) ⊕ R(e) ⊕ spec_ref(e)
+```
+
+Totality: `∀ e ∈ E: R(e) ≠ ⊥ ∧ executable(R(e))`
+
+#### Level 1 (State Invariant)
+
+Every error transition in the state machine produces a message via `M(e)`.
+The recovery action `R(e)` is a valid state transition back to a non-error
+state. No error message is emitted without all four parts.
+
+#### Level 2 (Implementation Contract)
+
+```rust
+pub struct RecoveryHint {
+    pub action: RecoveryAction,     // Enum, not String
+    pub spec_ref: &'static str,     // e.g., "INV-STORE-001"
+}
+
+pub enum RecoveryAction {
+    RetryWith(String),              // Retry with corrected input
+    CheckPrecondition(String),      // Verify a precondition
+    UseAlternative(String),         // Use alternative approach
+    EscalateToHuman(String),        // Only for truly unrecoverable
+}
+
+// Every KernelError variant must map to a RecoveryHint
+impl KernelError {
+    pub fn recovery(&self) -> RecoveryHint; // Total — no match arm returns None
+}
+```
+
+**Falsification**: Any error variant `e` where `R(e)` is undefined, OR an error
+message missing any of the four parts (what/why/recovery/spec_ref), OR a recovery
+action that leads to another error without its own recovery path.
+
+---
+
 ### §14.5 ADRs
 
 ### ADR-INTERFACE-001: Five Layers Plus Statusline Bridge
@@ -403,6 +508,23 @@ flag, or output mode may suppress it.
 
 **proptest strategy**: Set k*_eff to values below 0.15. Invoke all CLI commands.
 Verify every response contains a harvest warning.
+
+---
+
+### NEG-INTERFACE-004: No Error Without Recovery Hint
+
+**Traces to**: ADRS IB-011
+**Verification**: `V:PROP`
+
+**Safety property**: `□(error_emitted → recovery_hint_present)`
+
+Every error message emitted by the CLI or MCP layer includes a recovery hint.
+No error is surfaced to the agent with only "operation failed" — every error
+carries actionable recovery information following the four-part protocol
+(what/why/recovery/spec_ref) defined in INV-INTERFACE-009.
+
+**proptest strategy**: Generate arbitrary `KernelError` variants, format them
+via the error formatter, assert all four parts are present in the output.
 
 ---
 

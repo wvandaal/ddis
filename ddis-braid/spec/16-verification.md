@@ -161,7 +161,7 @@
 | INV-GUIDANCE-006 | V:PROP | V:KANI | proptest + kani | test + kani | 2 |
 | INV-GUIDANCE-007 | V:PROP | — | proptest | test | 0 |
 
-#### BUDGET (5 INV)
+#### BUDGET (6 INV)
 
 | ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
 |----|---------------|-----------|------|---------|-------|
@@ -170,8 +170,9 @@
 | INV-BUDGET-003 | V:PROP | V:KANI | proptest + kani | test + kani | 1 |
 | INV-BUDGET-004 | V:PROP | — | proptest | test | 1 |
 | INV-BUDGET-005 | V:PROP | — | proptest | test | 1 |
+| INV-BUDGET-006 | V:PROP | V:KANI | proptest + kani | test + kani | 1 |
 
-#### INTERFACE (7 INV)
+#### INTERFACE (9 INV)
 
 | ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
 |----|---------------|-----------|------|---------|-------|
@@ -182,6 +183,8 @@
 | INV-INTERFACE-005 | V:PROP | — | proptest | test | 4 |
 | INV-INTERFACE-006 | V:PROP | — | proptest | test | 3 |
 | INV-INTERFACE-007 | V:PROP | — | proptest | test | 1 |
+| INV-INTERFACE-008 | V:PROP | — | proptest | test | 0 |
+| INV-INTERFACE-009 | V:PROP | V:TYPE | proptest + rustc | test + compile | 0 |
 
 ### §16.2 CI Pipeline Gates
 
@@ -194,12 +197,12 @@ Gate 1: compile           — cargo check --all-targets
 
 Gate 2: test              — cargo test
                             Checks: V:PROP (all proptest properties hold)
-                            Coverage: 104/104 INVs have proptest strategies
+                            Coverage: 107/107 INVs have proptest strategies
                             Time: <5m (proptest default: 256 cases per property)
 
 Gate 3: kani              — cargo kani
                             Checks: V:KANI (bounded model checking)
-                            Coverage: 42 INVs with critical-path verification
+                            Coverage: 44 INVs with critical-path verification
                             Time: <15m (bounded; unwind limit configurable)
 
 Gate 4: model             — cargo test --features stateright
@@ -256,15 +259,15 @@ Pursue deductive proofs when the implementation stabilizes.
 
 | Metric | Count | Coverage |
 |--------|-------|----------|
-| Total invariants | 104 | — |
-| With V:PROP (minimum) | 104 | 100% |
-| With V:KANI | 42 | 40.4% |
-| With V:MODEL | 15 | 14.4% |
-| With V:TYPE | 11 | 10.6% |
-| Stage 0 invariants | 62 | 59.6% |
-| Stage 1 invariants | 17 | 16.3% |
-| Stage 2 invariants | 17 | 16.3% |
-| Stage 3 invariants | 6 | 5.8% |
+| Total invariants | 107 | — |
+| With V:PROP (minimum) | 107 | 100% |
+| With V:KANI | 44 | 41.1% |
+| With V:MODEL | 15 | 14.0% |
+| With V:TYPE | 12 | 11.2% |
+| Stage 0 invariants | 64 | 59.8% |
+| Stage 1 invariants | 18 | 16.8% |
+| Stage 2 invariants | 17 | 15.9% |
+| Stage 3 invariants | 6 | 5.6% |
 | Stage 4 invariants | 2 | 1.9% |
 
 ---

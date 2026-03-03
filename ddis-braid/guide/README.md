@@ -97,7 +97,7 @@ for the current namespace must pass (see guide/10-verification.md).
 
 ## Stage 0 Scope
 
-**62 invariants** across 9 namespaces (partial inclusion for QUERY, RESOLUTION, MERGE,
+**64 invariants** across 9 namespaces (partial inclusion for QUERY, RESOLUTION, MERGE,
 GUIDANCE, INTERFACE). Full list in spec/17-crossref.md Appendix C.
 
 **Success criterion**: Work 25 turns, harvest, start fresh with seed — new session picks

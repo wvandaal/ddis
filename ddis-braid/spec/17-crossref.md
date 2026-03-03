@@ -58,6 +58,11 @@ INV-HARVEST-001 (epistemic gap) ──→ INV-SEED-001 (seed from store)
 
 INV-GUIDANCE-001 (continuous injection) ──→ INV-BUDGET-004 (compression by budget)
                                          ──→ INV-INTERFACE-007 (harvest warning)
+                                         ──→ INV-INTERFACE-009 (error recovery)
+
+INV-INTERFACE-003 (nine MCP tools) ──→ INV-INTERFACE-008 (tool description quality)
+
+INV-BUDGET-001 (output budget cap) ──→ INV-BUDGET-006 (token efficiency)
 
 INV-BILATERAL-001 (convergence) ──→ INV-DELIBERATION-001 (deliberation convergence)
                                   ──→ INV-GUIDANCE-004 (drift detection)
@@ -75,26 +80,26 @@ This confirms the implementation order: STORE → SCHEMA → QUERY → RESOLUTIO
 
 ### §17.3 Stage Mapping
 
-#### Stage 0 — Harvest/Seed Cycle (62 INV, core)
+#### Stage 0 — Harvest/Seed Cycle (64 INV, core)
 
 The foundational layer. Must be complete before any other stage.
 
 **Namespaces fully included**: STORE (13/14 INV), SCHEMA (8/8), HARVEST (8/8), SEED (4/6)
-**Namespaces partially included**: QUERY (5/11), RESOLUTION (5/8), MERGE (2/8), GUIDANCE (3/7), INTERFACE (3/7)
+**Namespaces partially included**: QUERY (5/11), RESOLUTION (5/8), MERGE (2/8), GUIDANCE (3/7), INTERFACE (5/9)
 **Namespaces excluded**: SYNC, SIGNAL, BILATERAL, DELIBERATION, BUDGET
 
 **Success criterion**: Work 25 turns, harvest, start fresh with seed — new session
 picks up without manual re-explanation. First act: migrate SPEC.md elements as datoms.
 
-#### Stage 1 — Budget-Aware Output + Guidance Injection (17 INV)
+#### Stage 1 — Budget-Aware Output + Guidance Injection (18 INV)
 
 Builds on Stage 0 with attention budget management and enhanced guidance.
 
 **New capabilities**: Q(t) measurement, output precedence, guidance compression,
 harvest warnings, statusline bridge, significance tracking, frontier-scoped queries,
-bilateral loop (basic), signal processing (confusion only).
+bilateral loop (basic), signal processing (confusion only), token efficiency metrics.
 
-**Key invariants**: INV-BUDGET-001–005, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005,
+**Key invariants**: INV-BUDGET-001–006, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005,
 INV-INTERFACE-004/007, INV-QUERY-003/008–009, INV-SIGNAL-002.
 
 #### Stage 2 — Branching + Deliberation (17 INV)
@@ -169,27 +174,27 @@ Each failure mode (FAILURE_MODES.md) maps to the DDIS/Braid mechanisms that prev
 | BILATERAL | 5   | 3   | 2   | 10    | 3    |
 | DELIBERATION | 6 | 4  | 3   | 13    | 3    |
 | GUIDANCE  | 7   | 4   | 3   | 14    | 3    |
-| BUDGET    | 5   | 3   | 2   | 10    | 3    |
-| INTERFACE | 7   | 3   | 3   | 13    | 3    |
-| **Total** | **104** | **63** | **41** | **208** |      |
+| BUDGET    | 6   | 3   | 2   | 11    | 3    |
+| INTERFACE | 9   | 3   | 4   | 16    | 3    |
+| **Total** | **107** | **63** | **42** | **212** |      |
 
-**Additional Wave 4 content**: 10 uncertainty entries (§15), 104-row verification matrix (§16),
+**Additional Wave 4 content**: 10 uncertainty entries (§15), 107-row verification matrix (§16),
 14-namespace cross-reference index with dependency graph and stage mapping (§17).
 
 ## Appendix B: Verification Statistics (Final)
 
 | Metric | Count | Coverage |
 |--------|-------|----------|
-| Total INVs | 104 | — |
-| V:PROP (minimum) | 104/104 | 100.0% |
-| V:KANI (critical) | 42/104 | 40.4% |
-| V:MODEL (protocol) | 15/104 | 14.4% |
-| V:TYPE (compile-time) | 11/104 | 10.6% |
+| Total INVs | 107 | — |
+| V:PROP (minimum) | 107/107 | 100.0% |
+| V:KANI (critical) | 44/107 | 41.1% |
+| V:MODEL (protocol) | 15/107 | 14.0% |
+| V:TYPE (compile-time) | 12/107 | 11.2% |
 | V:DEDUCTIVE (candidate) | 5 | Deferred to post-Stage 2 |
-| Stage 0 INVs | 62 | 59.6% |
-| Stage 1 INVs | 17 | 16.3% |
-| Stage 2 INVs | 17 | 16.3% |
-| Stage 3 INVs | 6 | 5.8% |
+| Stage 0 INVs | 64 | 59.8% |
+| Stage 1 INVs | 18 | 16.8% |
+| Stage 2 INVs | 17 | 15.9% |
+| Stage 3 INVs | 6 | 5.6% |
 | Stage 4 INVs | 2 | 1.9% |
 | Uncertainty markers | 10 | — |
 | High-urgency uncertainties | 3 | Resolve during Stage 0 |
@@ -208,7 +213,7 @@ Elements required for Stage 0 (Harvest/Seed cycle):
 | INV-SEED-001–004 | SEED | Seed assembly pipeline |
 | INV-MERGE-001, 008 | MERGE | Core merge (no branching) |
 | INV-GUIDANCE-001–002, 007 | GUIDANCE | Injection, spec-language, dynamic CLAUDE.md |
-| INV-INTERFACE-001–003 | INTERFACE | CLI modes, MCP wrapper, nine tools |
+| INV-INTERFACE-001–003, 008–009 | INTERFACE | CLI modes, MCP wrapper, nine tools, tool description quality, error recovery |
 | ADR-STORE-001–012 | STORE | Foundation decisions |
 | ADR-SCHEMA-001–004 | SCHEMA | Schema decisions |
 | ADR-QUERY-001–003, 005–006 | QUERY | Query engine decisions |
@@ -226,4 +231,4 @@ Elements required for Stage 0 (Harvest/Seed cycle):
 | NEG-SEED-001–002 | SEED | Seed safety |
 | NEG-MERGE-001, 003 | MERGE | Merge safety (no data loss, no W_α leak) |
 | NEG-GUIDANCE-001 | GUIDANCE | No tool response without footer |
-| NEG-INTERFACE-003 | INTERFACE | No harvest warning suppression |
+| NEG-INTERFACE-003–004 | INTERFACE | No harvest warning suppression, no error without recovery hint |

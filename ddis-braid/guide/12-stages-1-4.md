@@ -9,7 +9,7 @@
 
 ## §12.1 Stage 1 — Budget-Aware Output + Guidance Injection
 
-**17 additional INVs** | Builds on Stage 0
+**18 additional INVs** | Builds on Stage 0
 
 ### New Capabilities
 
@@ -128,9 +128,9 @@ code — no structural refactoring.
 ## §12.6 Stage Dependencies
 
 ```
-Stage 0 (62 INV) ← Foundation
+Stage 0 (64 INV) ← Foundation
     ↓
-Stage 1 (17 INV) ← Budget + Guidance
+Stage 1 (18 INV) ← Budget + Guidance
     ↓
 Stage 2 (17 INV) ← Branching + Deliberation
     ↓
@@ -139,7 +139,7 @@ Stage 3 (6 INV)  ← Multi-Agent
 Stage 4 (2 INV)  ← Intelligence
 ```
 
-**Total**: 104 INVs across all stages. Stage 0 contains 59.6% of all invariants —
+**Total**: 107 INVs across all stages. Stage 0 contains 59.8% of all invariants —
 it is the bulk of the system. Stages 1–4 are extensions, not foundations.
 
 ---
@@ -150,7 +150,7 @@ INVs that move from deferred to active at each stage transition:
 
 | Transition | Newly Active INVs |
 |------------|-------------------|
-| → Stage 1 | INV-BUDGET-001–005, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005, INV-INTERFACE-004/007, INV-QUERY-003/008–009, INV-SIGNAL-002 |
+| → Stage 1 | INV-BUDGET-001–006, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005, INV-INTERFACE-004/007, INV-QUERY-003/008–009, INV-SIGNAL-002 |
 | → Stage 2 | INV-STORE-013, INV-MERGE-002–007, INV-SEED-006, INV-DELIBERATION-001–006, INV-SIGNAL-005, INV-GUIDANCE-006, INV-BILATERAL-003, INV-QUERY-004/010–011, INV-RESOLUTION-007 |
 | → Stage 3 | INV-SYNC-001–005, INV-SIGNAL-001/003–004/006, INV-RESOLUTION-003, INV-INTERFACE-006 |
 | → Stage 4 | INV-GUIDANCE-005, INV-INTERFACE-005 |

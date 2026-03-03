@@ -915,3 +915,78 @@ None triggered. NEG-001 (no stubs) — all files complete. NEG-005 (no unstructu
 3. Implement following three-box decomposition and verification checklist
 4. First act: `Store::genesis()` + spec element self-bootstrap (guide/11-worked-examples.md §11.1)
 
+---
+
+## Session 006 — 2026-03-02 (Close 4 SPEC-GAP Markers with Formal Invariants)
+
+**Platform**: Claude Code (Opus 4.6)
+**Duration**: Single focused session
+
+### What Was Accomplished
+
+Closed all 4 `[SPEC-GAP]` markers identified during implementation guide production.
+Three new invariants added, one augmented, one negative case added. All with full
+three-level refinement (L0 algebraic → L1 state machine → L2 implementation contract),
+falsification conditions, verification tags, and traceability.
+
+**Files modified** (6 total):
+
+1. **`spec/14-interface.md`** — Added INV-INTERFACE-008 (MCP Tool Description Quality),
+   INV-INTERFACE-009 (Error Recovery Protocol Completeness), NEG-INTERFACE-004
+   (No Error Without Recovery Hint)
+
+2. **`spec/12-guidance.md`** — Augmented INV-GUIDANCE-007 from "Dynamic CLAUDE.md
+   Improvement" to "Dynamic CLAUDE.md as Optimized Prompt" — added k* constraint budget,
+   ambient/active partition (≤80 tokens), demonstration density ≥1.0, typestate generation
+   pipeline (MeasureDrift → DiagnoseDrift → SelectCorrections → ValidateBudget → Emit),
+   Level 2 implementation contract
+
+3. **`spec/13-budget.md`** — Added INV-BUDGET-006 (Token Efficiency as Testable Property)
+   with density monotonicity, mode-specific ceilings (agent ≤300, guidance ≤50, error ≤100),
+   rate-distortion bound
+
+4. **`spec/16-verification.md`** — Updated verification matrix (BUDGET 5→6, INTERFACE 7→9),
+   gate coverage (104→107 proptest, 42→44 kani), all statistics
+
+5. **`spec/17-crossref.md`** — Updated Appendix A (107 INV, 42 NEG, 212 total elements),
+   Appendix B (all percentages), Appendix C (Stage 0: 62→64, includes INV-INTERFACE-008–009,
+   NEG-INTERFACE-004), dependency graph (3 new edges), Stage 1 count (17→18)
+
+6. **`guide/00-architecture.md`** — Replaced 4 `[SPEC-GAP]` markers with "Resolved Spec Gaps"
+   section referencing the now-defined invariants
+
+### Decisions Made
+
+| Decision | Rationale |
+|---|---|
+| INV-INTERFACE-008 at Stage 0 | MCP tool descriptions are needed from the first usable build; quality gates should be in place from day one |
+| INV-INTERFACE-009 at Stage 0 | Errors are produced from the earliest stage; recovery protocol prevents agents from hitting dead ends |
+| INV-BUDGET-006 at Stage 1 | Token efficiency depends on the budget manager (all BUDGET INVs are Stage 1); density monotonicity requires the projection pyramid to be implemented first |
+| NEG-INTERFACE-004 as separate negative case | The safety property `□(error_emitted → recovery_hint_present)` deserves its own proptest strategy independent of INV-INTERFACE-009's structural requirements |
+| Augment INV-GUIDANCE-007 in place rather than creating new INV | The CLAUDE.md generation invariant is the same conceptual element — augmentation preserves ID stability and traceability |
+
+### Verification Results
+
+| Check | Result |
+|---|---|
+| Unique INV definitions | 107 (across 14 spec files) |
+| Unique NEG definitions | 42 (across 14 spec files) |
+| SPEC-GAP markers remaining | 0 (in guide/) |
+| Falsification conditions present | All new INVs have them |
+| Stage 0 count | 64 (updated in 17-crossref.md) |
+
+### Failure Modes Observed
+
+None triggered. All new spec elements have IDs, types, traceability, falsification conditions,
+and three-level refinement. No stubs (NEG-001), no unstructured prose (NEG-005).
+
+### Open Questions
+
+None new. All gaps cleanly resolved.
+
+### Recommended Next Action
+
+**Begin Stage 0 implementation.** The specification is now complete enough for Stage 0:
+64 invariants with full verification strategies, 0 SPEC-GAP markers, all cross-references
+consistent. The implementing agent should follow the workflow in Session 005's recommendation.
+
