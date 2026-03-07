@@ -80,6 +80,24 @@ tx₀ has no causal predecessors.
 tx₀ is the root of the causal graph.
 ```
 
+#### M(t) Default Weight Bootstrap Datoms
+
+The M(t) methodology adherence weights (INV-GUIDANCE-008) are installed as genesis
+datoms so that the guidance system has defined weights from the first transaction.
+These defaults are overridable via subsequent transactions (schema-as-data, C3).
+
+```clojure
+[:guidance/m-weight :guidance.weight/coverage        0.25]
+[:guidance/m-weight :guidance.weight/harvest-rate     0.20]
+[:guidance/m-weight :guidance.weight/contradiction    0.15]
+[:guidance/m-weight :guidance.weight/traceability     0.25]
+[:guidance/m-weight :guidance.weight/formality        0.15]
+```
+
+These five weights sum to 1.0 and correspond to the five independently measurable
+components of the methodology score. See `guide/08-guidance.md` and
+`spec/12-guidance.md` (INV-GUIDANCE-008) for the full M(t) computation.
+
 #### The 17 Axiomatic Attributes
 
 ```
@@ -129,6 +147,8 @@ Verification & falsification:
   :spec/falsification   — String     :one    lww    — Violation condition text
   :spec/verification    — Keyword    :many   multi  — V:TYPE, V:PROP, V:KANI, V:MODEL, ...
   :spec/stage           — Long       :one    lww    — Implementation stage (0, 1, 2, 3, 4)
+  :spec/witnessed       — Boolean    :one    lww    — Invariant has been witnessed (test evidence)
+  :spec/challenged      — Boolean    :one    lww    — Invariant has been challenged (adversarial verification)
 
 Three-level refinement fidelity (Mills cleanroom):
   :spec/level-0         — String     :one    lww    — Algebraic law text (Level 0)
@@ -153,10 +173,29 @@ Proptest / verification detail:
   :spec/proptest        — String     :one    lww    — Proptest strategy description
 ```
 
-This gives 21 spec-element attributes. Combined with the 17 axiomatic attributes and
-Layer 1 agent/provenance attributes, the Stage 0 schema is sufficient to represent all
-specification elements in the datom store with full fidelity across all three refinement
-levels and all element types (invariant, ADR, negative case, uncertainty).
+Trilateral coherence attributes (Layer 2 — required for C7 self-verification):
+
+```
+Intent namespace:
+  :intent/noted         — Boolean    :one    lww    — Entity acknowledged, not yet formalized
+
+Implementation namespace:
+  :impl/module          — String     :one    lww    — Source module path
+  :impl/file            — String     :one    lww    — Source file path
+  :impl/signature       — String     :one    lww    — Function/type signature
+  :impl/implements      — Ref        :many   multi  — Impl entity → spec entity (typed link)
+  :impl/test-result     — Keyword    :one    lattice — Test result (:untested < :failing < :passing)
+  :impl/coverage        — Double     :one    lww    — Test coverage fraction [0.0, 1.0]
+
+Cross-boundary link:
+  :spec/implements      — Ref        :many   multi  — Impl entity → spec entity it implements
+```
+
+This gives 23 spec-element attributes plus 8 trilateral coherence attributes (31 total
+in Layer 2). Combined with the 17 axiomatic attributes and Layer 1 agent/provenance
+attributes, the Stage 0 schema is sufficient to represent all specification elements in
+the datom store with full fidelity across all three refinement levels and all element
+types (invariant, ADR, negative case, uncertainty).
 
 #### Schema Evolution as Transaction
 
@@ -263,6 +302,21 @@ pub enum SchemaLayer {
     Discovery,        // Layer 3: 5 types, 28 attributes (threads, findings)
     Coordination,     // Layer 4: 7 types, 35 attributes (deliberation, sync)
     Workflow,         // Layer 5: 5 types, 27 attributes (tasks, workspace)
+}
+
+/// Errors from datom-level schema validation (INV-SCHEMA-004).
+/// Returned by Schema::validate_datom() when a datom fails type checking.
+pub enum SchemaValidationError {
+    /// Datom references an attribute not defined in the schema.
+    UnknownAttribute(Attribute),
+    /// Datom's value type does not match the attribute's declared :db/valueType.
+    TypeMismatch { attr: Attribute, expected: ValueType, got: ValueType },
+    /// Datom violates the attribute's cardinality constraint (:one vs :many).
+    CardinalityViolation { attr: Attribute, cardinality: Cardinality },
+    /// Datom's value is not a valid element of the attribute's declared lattice.
+    InvalidLatticeValue { attr: Attribute, value: Value, lattice: String },
+    /// Retraction targets an entity-attribute pair with no prior assertion.
+    InvalidRetraction { entity: EntityId, attr: Attribute },
 }
 
 /// Errors from schema operations (attribute definition, schema evolution).
@@ -372,7 +426,7 @@ any axiomatic attribute lacks a complete definition.
 ### INV-SCHEMA-003: Schema Monotonicity
 
 **Traces to**: SEED §4, C1, C3
-**Verification**: `V:PROP`
+**Verification**: `V:TYPE`, `V:PROP`
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
@@ -392,7 +446,7 @@ may be updated (via new datoms), but the attribute identity persists forever.
 ### INV-SCHEMA-004: Schema Validation on Transact
 
 **Traces to**: SEED §4, ADRS PO-001
-**Verification**: `V:PROP`, `V:KANI`
+**Verification**: `V:TYPE`, `V:PROP`, `V:KANI`
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
@@ -746,6 +800,115 @@ divergence (Option B), and maintains C3 because Schema is always derived from da
 - `Schema::from_store()` is the sole constructor (enforces C3)
 - Store rebuilds Schema when schema datoms change (after transact of schema attributes)
 - `store.schema()` returns `&Schema` — borrow semantics, zero cost
+
+#### Stage 3 Concurrency Analysis
+
+At Stage 3 (multi-agent coordination), the Store is accessed concurrently via
+`ArcSwap<Store>` (ADR-STORE-016). Because Schema is owned by Store (Option C), Schema
+is part of each MVCC snapshot — readers always see a Schema consistent with the datoms
+in that snapshot. This makes schema-datom consistency a **structural property** of the
+concurrency model, not a coordination obligation.
+
+**Option B rejection (independent Schema snapshots)**: Three consistency hazards rule
+out decoupling Schema from Store's MVCC lifecycle:
+
+1. **Stale schema + new datoms**: A reader holds an old Schema snapshot while the Store
+   swaps to a new version containing newly-defined attributes. The reader encounters datoms
+   whose attributes are unknown to its Schema — validation fails or silently misinterprets
+   values.
+2. **New schema + old datoms**: A reader obtains a new Schema snapshot but reads from an
+   older Store. Attributes declared in the Schema may have no datoms yet, causing queries
+   to return phantom empty results where the reader expects data.
+3. **Resolution mode mismatch during merge**: If Schema is versioned independently, a merge
+   operation could use one Schema's resolution modes while operating on datoms that were
+   asserted under a different Schema version. The resolution mode for a given attribute
+   might differ between versions (e.g., an attribute changed from LWW to multi-value),
+   producing silently incorrect merge results.
+
+Under Option C + MVCC, all three hazards are structurally impossible: the Schema and datoms
+are the same snapshot. See also ADR-INTERFACE-004 (MCP server architecture) for the
+`ArcSwap<Store>` initialization model.
+
+---
+
+### ADR-SCHEMA-006: Value Type Union
+
+**Traces to**: SEED §4, ADRS SQ-008
+**Stage**: 0
+
+#### Problem
+What is the complete set of value types that the datom store supports? The `Value` type
+in the `[e, a, v, tx, op]` tuple must cover all data that agents, specifications, and
+the system itself need to represent — without being so open-ended that schema validation
+becomes meaningless.
+
+#### Options
+A) **Minimal type set** — String, Long, Boolean, Ref. All complex data serialized to
+   String. Simple but loses type safety: a String containing JSON is not distinguishable
+   from a String containing prose without parsing the content.
+B) **Datomic-compatible type union** — 14 types matching Datomic's value types: String,
+   Keyword, Boolean, Long, Double, Instant, UUID, Ref, Bytes, URI, BigInt, BigDec,
+   Tuple, Json. Proven at scale with well-understood storage and indexing characteristics.
+C) **Extensible type system** — User-defined value types registered at runtime. Maximum
+   flexibility but complicates schema validation, storage, and merge semantics.
+
+#### Decision
+**Option B.** The complete Value type union is:
+
+```
+Value = String              — UTF-8 text (spec statements, descriptions, rationale)
+      | Keyword             — namespaced identifier (:db/ident, :task/status)
+      | Boolean             — true | false
+      | Long                — 64-bit signed integer (counts, indices, stage numbers)
+      | Double              — 64-bit IEEE 754 (confidence levels, scores, weights)
+      | Instant             — UTC timestamp with nanosecond precision (wall-clock times)
+      | UUID                — 128-bit universally unique identifier
+      | Ref EntityId        — reference to another entity (relationships, dependencies)
+      | Bytes               — raw byte array (hashes, binary content)
+      | URI                 — RFC 3986 URI (external references, documentation links)
+      | BigInt              — arbitrary precision integer (future-proofing for large counts)
+      | BigDec              — arbitrary precision decimal (financial, scientific)
+      | Tuple [Value]       — ordered heterogeneous sequence (composite keys, coordinates)
+      | Json String         — JSON-encoded string (complex payloads, comparison scores)
+```
+
+Additionally, two domain-specific sum types used in the protocol:
+
+```
+Level = 0 | 1 | 2 | 3
+  — refinement level (Level 0 algebraic law through Level 3 test evidence)
+
+SignalType = Confusion | Conflict | UncertaintySpike | ResolutionProposal
+           | DelegationRequest | GoalDrift | BranchReady | DeliberationTurn
+  — divergence signal classification (INV-SIGNAL-001)
+```
+
+#### Formal Justification
+The 14 value types are the minimum set needed to represent all protocol-level data without
+resorting to String-encoded structured data:
+- **Keyword** is essential for schema (attribute idents), entity types, and enum values
+  without encoding them as arbitrary strings
+- **Ref** enables the entity reference graph that Datalog traverses (joins on entity IDs)
+- **Instant** enables time-travel queries (as_of, since) with nanosecond precision
+- **Tuple** enables composite values (e.g., `[confidence, evidence_count]` for uncertainty
+  tensors) without requiring separate entities for every compound value
+- **Json** is the escape hatch for genuinely complex payloads (branch comparison scores,
+  diagnostic reports) that would require dozens of attributes to flatten
+
+The Level and SignalType sum types are protocol enums stored as Keywords but given
+distinct Rust types for compile-time exhaustiveness checking.
+
+#### Consequences
+- `Value` is a Rust enum with 14 variants — pattern matching covers all cases
+- Schema validation checks that a datom's value matches its attribute's declared type
+- Each value type has a canonical serialization to EDNL (ADR-STORE-007)
+- Indexing (AVET) operates on the serialized form — ordering is type-aware
+- Merge deduplication compares values by content, not by reference (C2)
+
+#### Falsification
+This decision is wrong if: a protocol-level datum cannot be represented by any of the 14
+value types without lossy transformation (e.g., a geometric shape, a graph structure, or
+a probabilistic distribution that loses semantic information when encoded as Json or Bytes).
 
 ---
 
