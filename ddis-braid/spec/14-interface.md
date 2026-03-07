@@ -1064,19 +1064,34 @@ Option B as well despite the later trigger point).
 
 ### §14.6 Negative Cases
 
-### NEG-INTERFACE-001: No Layer-Local State
+### NEG-INTERFACE-001: No Authoritative Non-Store State
 
 **Traces to**: ADRS AA-003
 **Verification**: `V:PROP`
 
-**Safety property**: `□ ¬(∃ layer_state that is not a projection of the store)`
+**Safety property**: `□ ¬(∃ authoritative_state that is not a projection of the store ∧ authoritative_state ∉ external_measurements)`
 
-No interface layer maintains state that isn't derivable from the store.
-Session state (SR-011) is a projection of measured context data.
-MCP notification queues are projections of pending signals.
+No interface layer maintains authoritative state that isn't derivable from the
+store, with the explicit exception of **ephemeral runtime telemetry** —
+external measurements (API token consumption, timing, k_eff) that originate
+from actual API calls and are used for budget computation.
+
+This exemption is narrowly scoped:
+- **Exempted**: API telemetry in `context.json` (token counts, timing data,
+  k_eff measurements). These originate outside the store's domain — they are
+  sensor readings from the runtime environment, not store-derivable facts.
+- **NOT exempted**: Spec elements, coordination state, provenance, harvest
+  candidates, frontier data, entity state, signals, or any domain-relevant
+  knowledge. These must be store-derivable.
+
+Session state (SR-011) combines both: measured telemetry (exempted) and
+store-derived projections (not exempted — must trace to datoms).
+MCP notification queues are projections of pending signals (not exempted).
 
 **proptest strategy**: After any sequence of interface operations, verify
-that all layer state can be reconstructed from the store alone.
+that all non-telemetry layer state can be reconstructed from the store alone.
+Verify that telemetry state consists only of external measurement values
+(token counts, timing, k_eff) and not domain knowledge.
 
 ---
 

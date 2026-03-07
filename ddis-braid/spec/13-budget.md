@@ -139,13 +139,27 @@ impl BudgetManager {
 **Stage**: 1
 
 #### Level 0 (Algebraic Law)
-`∀ tool_response r: |r| ≤ max(MIN_OUTPUT, Q(t) × W × budget_fraction)`
+```
+∀ tool_response r in non-emergency mode:
+  |r| ≤ max(MIN_OUTPUT, Q(t) × W × budget_fraction)
 
 where W = context window size, budget_fraction = 0.05 (5% of remaining capacity).
 
+Exception: harvest-imperative mode (Q(t) < 0.05, INV-INTERFACE-007) is exempt
+from MIN_OUTPUT. In harvest-imperative mode, the goal is behavioral steering
+(emit only the harvest imperative, ~10 tokens), not information delivery.
+The MIN_OUTPUT floor exists to ensure useful output; harvest-imperative mode
+has a different purpose — it tells the agent to stop and harvest.
+```
+
 #### Level 1 (State Invariant)
 The ALLOCATE transition enforces the cap. Content exceeding the budget is
-truncated according to precedence ordering.
+truncated according to precedence ordering. The MIN_OUTPUT floor (50 tokens)
+applies to all non-emergency modes.
+
+In harvest-imperative mode (Q(t) < 0.05), MIN_OUTPUT does not apply. The
+MEASURE transition detects this condition and switches the output pipeline
+to harvest-imperative mode, which emits only the harvest imperative.
 
 #### Level 2 (Implementation Contract)
 ```rust
@@ -153,7 +167,9 @@ truncated according to precedence ordering.
 fn allocate(&self, content: &[OutputBlock]) -> Vec<u8> { ... }
 ```
 
-**Falsification**: A tool response exceeds the computed output budget.
+**Falsification**: A tool response in non-emergency mode exceeds the computed
+output budget, OR a tool response in harvest-imperative mode emits content
+other than the harvest imperative.
 
 ---
 
@@ -369,6 +385,63 @@ Rate-distortion is the information-theoretic framework for lossy compression
 with quality guarantees. It formalizes the intuition that "less budget = less
 detail, but the most important things survive." The precedence ordering defines
 what "most important" means.
+
+---
+
+### ADR-BUDGET-004: Tokenization via Chars/4 Approximation
+
+**Traces to**: SEED §8, ADRS IMPL-002
+**Stage**: 0
+
+#### Problem
+The budget system requires token counting to enforce output caps, select
+projection levels, and compute Q(t). At Stage 0, what tokenization strategy
+should be used? Accurate tokenization requires model-specific vocabulary tables
+(e.g., tiktoken cl100k_base for Claude/GPT-4), which add dependencies and
+complexity.
+
+#### Options
+A) **tiktoken-rs at Stage 0** — use the cl100k_base tokenizer from day one for accurate counts.
+B) **HuggingFace tokenizers** — use the HuggingFace tokenizers crate with a Claude-specific model.
+C) **bpe crate** — use a generic BPE implementation.
+D) **chars/4 approximation** — estimate tokens as character count divided by 4, with content-type correction factors. Behind a `TokenCounter` trait for future swappability.
+
+#### Decision
+**Option D.** Use chars/4 with content-type correction factors at Stage 0.
+Graduate to tiktoken-rs (cl100k_base) at Stage 1 when token efficiency tracking
+needs cross-session comparability. The implementation is behind a `TokenCounter`
+trait so the approximation can be swapped for an accurate tokenizer without
+changing any calling code.
+
+The budget system operates on coarse bands (200/500/2000 tokens for projection
+pyramid levels). A 15-20% approximation error from chars/4 rarely changes band
+selection. The error is systematic (consistently overestimates for code,
+underestimates for prose) and can be partially corrected with content-type factors.
+
+#### Formal Justification
+At Stage 0, zero external dependencies is a design goal — the system should be
+self-contained and buildable without network access. tiktoken-rs (Option A) adds
+a non-trivial dependency with a model vocabulary file. HuggingFace tokenizers
+(Option B) pulls ~40 transitive dependencies and has no Claude-specific model.
+bpe (Option C) provides no model-specific encoding. The chars/4 approximation
+(Option D) has zero dependencies, is trivially correct to implement, and the
+budget system's coarse bands (200/500/2000) provide sufficient margin for a
+15-20% error. The `TokenCounter` trait ensures the graduation path to accurate
+tokenization is frictionless.
+
+#### Consequences
+- Zero dependencies for tokenization at Stage 0
+- 15-20% approximation error, which is acceptable for coarse band selection
+- `TokenCounter` trait abstracts the strategy: `fn count(&self, text: &str) -> usize`
+- Content-type correction: `code_factor = 0.85`, `prose_factor = 1.1`, `mixed_factor = 1.0`
+- Stage 1 replaces the implementation behind the trait with tiktoken-rs cl100k_base
+- Cross-session token comparisons are not reliable until Stage 1
+
+#### Falsification
+The chars/4 approximation error causes incorrect projection level selection in
+more than 10% of cases (measured empirically), OR the `TokenCounter` trait is
+not used (making the graduation path to accurate tokenization require widespread
+code changes), OR Stage 0 adds tiktoken-rs as a dependency.
 
 ---
 

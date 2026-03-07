@@ -26,8 +26,18 @@ DecisionMethod = Consensus | Majority | Authority | HumanOverride | Automated
 
 **Deliberation lifecycle lattice**:
 ```
-:open < :active < :decided < :superseded
-         ↗ :stalled (incomparable with :decided)
+Deliberation status lattice:
+  :open < :active < :decided  < :contested < :superseded
+                  < :stalled  <
+
+  join(:open, X) = X for all X
+  join(:active, :decided) = :decided
+  join(:active, :stalled) = :stalled
+  join(:stalled, :decided) = :contested  — requires escalation (DelegationRequest signal)
+  join(:contested, :superseded) = :superseded
+  join(X, :superseded) = :superseded for all X
+
+  L5 (Lattice Completeness): Every pair of states has a defined join (LUB).
 ```
 
 **Laws**:
@@ -64,15 +74,36 @@ STALL(Σ, delib_id, reason) → Σ' where:
   POST: Σ.deliberations[delib_id].status = :stalled
   POST: reason recorded as uncertainty marker (UNC-*)
   POST: escalation signal emitted (DelegationRequest or GoalDrift)
+
+CONTEST(Σ, delib_id, contesting_evidence) → Σ' where:
+  PRE:  Σ.deliberations[delib_id].status ∈ {:decided, :stalled}
+  POST: Σ.deliberations[delib_id].status = :contested
+  POST: contesting_evidence recorded as new Position linked to deliberation
+  POST: escalation signal emitted (DelegationRequest)
+  NOTE: This transition arises when a :stalled deliberation later receives a
+        decision attempt, or when a :decided deliberation is challenged by new
+        evidence. The :contested state requires explicit re-resolution via a
+        new DECIDE or escalation to a higher authority.
 ```
 
 **Crystallization stability guard** (CR-005):
+
+Stability guard conditions (ALL must hold for DECIDE transition):
 - Status `:refined` (or position has substantive evidence)
 - Thread `:active` (deliberation is ongoing, not stalled)
 - Parent entity confidence ≥ 0.6
 - Coherence score ≥ 0.6
+  Coherence score = F(S)|_{scope(entity)}
+    where scope(entity) = subgraph reachable from entity (depth 2, forward+backward refs)
+  UNC-DELIBERATION-001: The depth=2 bound and F(S) scoping are provisional.
+    Confidence: 0.5. Resolves when: empirical measurement at Stage 2 determines
+    whether local F(S) is a reliable predictor of decision stability.
 - No unresolved conflicts on the decided entity
 - Commitment weight `w(d) ≥ stability_min` (default 0.7)
+  EXCEPTION: For decisions with no existing dependents (w=0),
+  this condition is replaced by: all other guard conditions pass
+  AND the deliberation has been :active for >= min_deliberation_turns (default 3).
+  This prevents snap decisions on new topics while allowing first-ever decisions to proceed.
 
 ### §11.3 Level 2: Implementation Contract
 
@@ -86,13 +117,58 @@ pub struct Deliberation {
     pub decision: Option<EntityId>, // ref to Decision entity
 }
 
-#[derive(Clone, Debug, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum DeliberationStatus {
     Open,
     Active,
     Stalled,
     Decided,
+    Contested,
     Superseded,
+}
+
+impl DeliberationStatus {
+    /// Compute the join (LUB) of two statuses per the deliberation lattice.
+    /// The order is partial — do NOT derive Ord.
+    pub fn join(&self, other: &Self) -> Self {
+        use DeliberationStatus::*;
+        match (self, other) {
+            (x, y) if x == y => x.clone(),
+            (Open, x) | (x, Open) => x.clone(),
+            (Active, Decided) | (Decided, Active) => Decided,
+            (Active, Stalled) | (Stalled, Active) => Stalled,
+            (Stalled, Decided) | (Decided, Stalled) => Contested,
+            (Contested, Superseded) | (Superseded, Contested) => Superseded,
+            (_, Superseded) | (Superseded, _) => Superseded,
+            (Active, Contested) | (Contested, Active) => Contested,
+            (Decided, Contested) | (Contested, Decided) => Contested,
+            (Stalled, Contested) | (Contested, Stalled) => Contested,
+            _ => Superseded, // conservative: unknown pairs map to top
+        }
+    }
+}
+
+impl PartialOrd for DeliberationStatus {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        use DeliberationStatus::*;
+        use std::cmp::Ordering::*;
+        match (self, other) {
+            (x, y) if x == y => Some(Equal),
+            (Open, _) => Some(Less),
+            (_, Superseded) => Some(Less),
+            (Active, Decided) | (Active, Stalled) | (Active, Contested) => Some(Less),
+            (Decided, Contested) | (Stalled, Contested) => Some(Less),
+            (Contested, Superseded) => Some(Less),
+            // Stalled and Decided are incomparable
+            (Stalled, Decided) | (Decided, Stalled) => None,
+            // Reverse of all Less cases
+            (Superseded, _) => Some(Greater),
+            (_, Open) => Some(Greater),
+            (Decided, Active) | (Stalled, Active) | (Contested, Active) => Some(Greater),
+            (Contested, Decided) | (Contested, Stalled) => Some(Greater),
+            _ => None,
+        }
+    }
 }
 
 pub struct Position {
@@ -393,7 +469,7 @@ Verify no datoms from the loser appear in trunk post-decision.
 
 **Safety property**: `□ ¬(lifecycle(d,t2) ⊏ lifecycle(d,t1) for t2 > t1)`
 
-Deliberation lifecycle progresses monotonically: open → active → decided/stalled.
+Deliberation lifecycle progresses monotonically: open → active → decided/stalled → contested → superseded.
 No backward transitions (e.g., decided → active) are permitted.
 
 **proptest strategy**: Generate random transition sequences. Verify lattice
