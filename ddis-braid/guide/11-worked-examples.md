@@ -30,56 +30,56 @@ Store: 85 datoms (17 attributes × 5 meta-properties each). Frontier: {system: t
 Schema: 17 attributes. Self-description verified: all meta-schema attributes describe themselves.
 ---
 ↳ Genesis complete (INV-SCHEMA-001, INV-SCHEMA-002). Next: define spec-element attributes
-  for self-bootstrap. `braid transact --file spec-schema.jsonl`
+  for self-bootstrap. `braid transact --file spec-schema.ednl`
 ```
 
 ### Step 2: Define Spec-Element Attributes
 
 Add attributes for managing specification elements:
 
-```jsonl
-{"e":"blake3:a1b2...","a":":db/ident","v":{"Keyword":":spec/id"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:a1b2...","a":":db/valueType","v":{"Keyword":"string"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:a1b2...","a":":db/cardinality","v":{"Keyword":"one"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:a1b2...","a":":db/doc","v":{"String":"Spec element ID (e.g., INV-STORE-001)"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:a1b2...","a":":db/resolutionMode","v":{"Keyword":"lww"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:c3d4...","a":":db/ident","v":{"Keyword":":spec/type"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:c3d4...","a":":db/valueType","v":{"Keyword":"keyword"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:c3d4...","a":":db/cardinality","v":{"Keyword":"one"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:c3d4...","a":":db/doc","v":{"String":"Element type: invariant, adr, negative-case"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:c3d4...","a":":db/resolutionMode","v":{"Keyword":"lww"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:e5f6...","a":":db/ident","v":{"Keyword":":spec/statement"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:e5f6...","a":":db/valueType","v":{"Keyword":"string"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:e5f6...","a":":db/cardinality","v":{"Keyword":"one"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:e5f6...","a":":db/resolutionMode","v":{"Keyword":"lww"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:g7h8...","a":":db/ident","v":{"Keyword":":spec/namespace"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:g7h8...","a":":db/valueType","v":{"Keyword":"keyword"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:g7h8...","a":":db/cardinality","v":{"Keyword":"one"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:g7h8...","a":":db/resolutionMode","v":{"Keyword":"lww"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:i9j0...","a":":db/ident","v":{"Keyword":":spec/traces-to"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:i9j0...","a":":db/valueType","v":{"Keyword":"string"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:i9j0...","a":":db/cardinality","v":{"Keyword":"many"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:i9j0...","a":":db/resolutionMode","v":{"Keyword":"multi"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:k1l2...","a":":db/ident","v":{"Keyword":":spec/falsification"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:k1l2...","a":":db/valueType","v":{"Keyword":"string"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:k1l2...","a":":db/cardinality","v":{"Keyword":"one"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:k1l2...","a":":db/resolutionMode","v":{"Keyword":"lww"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:m3n4...","a":":db/ident","v":{"Keyword":":spec/verification"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:m3n4...","a":":db/valueType","v":{"Keyword":"keyword"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:m3n4...","a":":db/cardinality","v":{"Keyword":"many"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:m3n4...","a":":db/resolutionMode","v":{"Keyword":"multi"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:o5p6...","a":":db/ident","v":{"Keyword":":spec/stage"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:o5p6...","a":":db/valueType","v":{"Keyword":"long"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:o5p6...","a":":db/cardinality","v":{"Keyword":"one"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:o5p6...","a":":db/resolutionMode","v":{"Keyword":"lww"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:q7r8...","a":":db/ident","v":{"Keyword":":spec/depends-on"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:q7r8...","a":":db/valueType","v":{"Keyword":"ref"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:q7r8...","a":":db/cardinality","v":{"Keyword":"many"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
-{"e":"blake3:q7r8...","a":":db/resolutionMode","v":{"Keyword":"multi"},"tx":"hlc:1709000001000-0-agent1","op":"assert"}
+```clojure
+{:e #blake3 "a1b2..." :a :db/ident :v :spec/id :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "a1b2..." :a :db/valueType :v :string :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "a1b2..." :a :db/cardinality :v :one :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "a1b2..." :a :db/doc :v "Spec element ID (e.g., INV-STORE-001)" :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "a1b2..." :a :db/resolutionMode :v :lww :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "c3d4..." :a :db/ident :v :spec/type :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "c3d4..." :a :db/valueType :v :keyword :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "c3d4..." :a :db/cardinality :v :one :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "c3d4..." :a :db/doc :v "Element type: invariant, adr, negative-case" :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "c3d4..." :a :db/resolutionMode :v :lww :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "e5f6..." :a :db/ident :v :spec/statement :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "e5f6..." :a :db/valueType :v :string :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "e5f6..." :a :db/cardinality :v :one :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "e5f6..." :a :db/resolutionMode :v :lww :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "g7h8..." :a :db/ident :v :spec/namespace :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "g7h8..." :a :db/valueType :v :keyword :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "g7h8..." :a :db/cardinality :v :one :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "g7h8..." :a :db/resolutionMode :v :lww :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "i9j0..." :a :db/ident :v :spec/traces-to :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "i9j0..." :a :db/valueType :v :string :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "i9j0..." :a :db/cardinality :v :many :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "i9j0..." :a :db/resolutionMode :v :multi :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "k1l2..." :a :db/ident :v :spec/falsification :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "k1l2..." :a :db/valueType :v :string :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "k1l2..." :a :db/cardinality :v :one :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "k1l2..." :a :db/resolutionMode :v :lww :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "m3n4..." :a :db/ident :v :spec/verification :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "m3n4..." :a :db/valueType :v :keyword :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "m3n4..." :a :db/cardinality :v :many :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "m3n4..." :a :db/resolutionMode :v :multi :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "o5p6..." :a :db/ident :v :spec/stage :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "o5p6..." :a :db/valueType :v :long :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "o5p6..." :a :db/cardinality :v :one :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "o5p6..." :a :db/resolutionMode :v :lww :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "q7r8..." :a :db/ident :v :spec/depends-on :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "q7r8..." :a :db/valueType :v :ref :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "q7r8..." :a :db/cardinality :v :many :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "q7r8..." :a :db/resolutionMode :v :multi :tx #hlc "1709000001000-0-agent1" :op :assert}
 ```
 
 ```
-$ braid transact --file spec-schema.jsonl --format agent
+$ braid transact --file spec-schema.ednl --format agent
 
 [STORE] Transacted 36 datoms (9 spec attributes defined) in tx hlc:1709000001000-0-agent1.
 Store: 121 datoms. Schema: 26 attributes (17 axiomatic + 9 spec).
@@ -90,21 +90,21 @@ Store: 121 datoms. Schema: 26 attributes (17 axiomatic + 9 spec).
 
 ### Step 3: Transact First Invariant
 
-```jsonl
-{"e":"blake3:s9t0...","a":":spec/id","v":{"String":"INV-STORE-001"},"tx":"hlc:1709000002000-0-agent1","op":"assert"}
-{"e":"blake3:s9t0...","a":":spec/type","v":{"Keyword":"invariant"},"tx":"hlc:1709000002000-0-agent1","op":"assert"}
-{"e":"blake3:s9t0...","a":":spec/namespace","v":{"Keyword":"STORE"},"tx":"hlc:1709000002000-0-agent1","op":"assert"}
-{"e":"blake3:s9t0...","a":":spec/statement","v":{"String":"The datom store never deletes or mutates an existing datom. All state changes are new assertions."},"tx":"hlc:1709000002000-0-agent1","op":"assert"}
-{"e":"blake3:s9t0...","a":":spec/falsification","v":{"String":"Any operation that removes a datom or modifies the five-tuple of an existing datom."},"tx":"hlc:1709000002000-0-agent1","op":"assert"}
-{"e":"blake3:s9t0...","a":":spec/traces-to","v":{"String":"SEED §4 Axiom 2"},"tx":"hlc:1709000002000-0-agent1","op":"assert"}
-{"e":"blake3:s9t0...","a":":spec/traces-to","v":{"String":"C1"},"tx":"hlc:1709000002000-0-agent1","op":"assert"}
-{"e":"blake3:s9t0...","a":":spec/verification","v":{"Keyword":"V:PROP"},"tx":"hlc:1709000002000-0-agent1","op":"assert"}
-{"e":"blake3:s9t0...","a":":spec/verification","v":{"Keyword":"V:KANI"},"tx":"hlc:1709000002000-0-agent1","op":"assert"}
-{"e":"blake3:s9t0...","a":":spec/stage","v":{"Long":0},"tx":"hlc:1709000002000-0-agent1","op":"assert"}
+```clojure
+{:e #blake3 "s9t0..." :a :spec/id :v "INV-STORE-001" :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "s9t0..." :a :spec/type :v :invariant :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "s9t0..." :a :spec/namespace :v :STORE :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "s9t0..." :a :spec/statement :v "The datom store never deletes or mutates an existing datom. All state changes are new assertions." :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "s9t0..." :a :spec/falsification :v "Any operation that removes a datom or modifies the five-tuple of an existing datom." :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "s9t0..." :a :spec/traces-to :v "SEED §4 Axiom 2" :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "s9t0..." :a :spec/traces-to :v "C1" :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "s9t0..." :a :spec/verification :v :V:PROP :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "s9t0..." :a :spec/verification :v :V:KANI :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "s9t0..." :a :spec/stage :v 0 :tx #hlc "1709000002000-0-agent1" :op :assert}
 ```
 
 ```
-$ braid transact --file inv-store-001.jsonl --format agent
+$ braid transact --file inv-store-001.ednl --format agent
 
 [STORE] Transacted 10 datoms (INV-STORE-001) in tx hlc:1709000002000-0-agent1.
 Store: 131 datoms. First spec element bootstrapped. Self-reference: the store now
@@ -373,9 +373,11 @@ $ braid query '[:find ?ns (count ?e)
   SEED          4
   MERGE         4
   GUIDANCE      6
-  INTERFACE     5
+  INTERFACE     6
+  LAYOUT       11
+  TRILATERAL    6
 ---
-↳ 62 Stage 0 INVs transacted across 9 namespaces (of 122 total).
+↳ 83 Stage 0 INVs transacted across 11 namespaces (of 145 total).
 ```
 
 ### Query 4: Frontier-Relative Query
@@ -429,7 +431,7 @@ Tx error: attribute `:spec/bogus` not in schema
 ### Error 2: Transaction Conflict (Duplicate Datom)
 
 ```
-$ braid transact --file inv-store-001.jsonl  # transacted previously
+$ braid transact --file inv-store-001.ednl  # transacted previously
 
 [STORE] Transacted 0 new datoms (10 duplicates — content-identity dedup).
 All datoms already present in store. Transaction recorded for provenance.
@@ -600,23 +602,23 @@ Entity identity: `blake3("spec-element:INV-STORE-001")` = `blake3:a7c9e2...`
 
 Transaction: `hlc:1709100000000-0-bootstrap`
 
-```jsonl
-{"e":"blake3:a7c9e2...","a":":spec/id","v":{"String":"INV-STORE-001"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/type","v":{"Keyword":"invariant"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/namespace","v":{"Keyword":"STORE"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/statement","v":{"String":"Append-Only Immutability"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/traces-to","v":{"String":"SEED §4 Axiom 2"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/traces-to","v":{"String":"C1"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/traces-to","v":{"String":"ADRS FD-001"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/verification","v":{"Keyword":"V:TYPE"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/verification","v":{"Keyword":"V:PROP"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/verification","v":{"Keyword":"V:KANI"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/stage","v":{"Long":0},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/falsification","v":{"String":"Any operation that reduces store.datoms.len() or removes a previously-observed datom from the set."},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/proptest","v":{"String":"Generate random sequences of TRANSACT/RETRACT operations. After each operation, verify all previously-observed datoms remain present."},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/level-0","v":{"String":"∀ S ∈ Store, S' = TRANSACT(S, T) for any T:\n  S ⊆ S'\n  (monotonicity: once asserted, never lost)"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/level-1","v":{"String":"For all reachable states (S, S') where S →[op] S':\n  S.datoms ⊆ S'.datoms"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
-{"e":"blake3:a7c9e2...","a":":spec/level-2","v":{"String":"#[kani::ensures(|result| old(store.datoms.len()) <= store.datoms.len())]\nfn transact(store: &mut Store, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError>;"},"tx":"hlc:1709100000000-0-bootstrap","op":"assert"}
+```clojure
+{:e #blake3 "a7c9e2..." :a :spec/id :v "INV-STORE-001" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/type :v :invariant :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/namespace :v :STORE :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/statement :v "Append-Only Immutability" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/traces-to :v "SEED §4 Axiom 2" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/traces-to :v "C1" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/traces-to :v "ADRS FD-001" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/verification :v :V:TYPE :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/verification :v :V:PROP :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/verification :v :V:KANI :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/stage :v 0 :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/falsification :v "Any operation that reduces store.datoms.len() or removes a previously-observed datom from the set." :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/proptest :v "Generate random sequences of TRANSACT/RETRACT operations. After each operation, verify all previously-observed datoms remain present." :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/level-0 :v "∀ S ∈ Store, S' = TRANSACT(S, T) for any T:\n  S ⊆ S'\n  (monotonicity: once asserted, never lost)" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/level-1 :v "For all reachable states (S, S') where S →[op] S':\n  S.datoms ⊆ S'.datoms" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/level-2 :v "#[kani::ensures(|result| old(store.datoms.len()) <= store.datoms.len())]\nfn transact(store: &mut Store, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError>;" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
 ```
 
 **Datom count**: 16 datoms for one invariant. Multi-valued attributes (`:spec/traces-to`,
@@ -636,7 +638,7 @@ $ braid status --format agent
 Entities: 39 (17 meta-schema attrs + 21 spec attrs + 1 INV-STORE-001).
 Frontier: {bootstrap: tx_2}.
 ---
-↳ Self-bootstrap in progress: 1/62 Stage 0 elements transacted.
+↳ Self-bootstrap in progress: 1/83 Stage 0 elements transacted.
   Continue: `braid bootstrap --spec-dir spec/`
 ```
 
@@ -675,7 +677,7 @@ blake3:a7c9e2..   :spec/level-2         "#[kani::ensures(|result| old(store...).
 
 ### §11.6.4 Datalog Queries Over Spec Datoms
 
-After bootstrapping all 62 Stage 0 elements, the store is queryable:
+After bootstrapping all 83 Stage 0 elements, the store is queryable:
 
 #### Query A: All Invariants (basic enumeration)
 
@@ -685,14 +687,14 @@ $ braid query '[:find ?id ?stmt
          [?e :spec/id ?id]
          [?e :spec/statement ?stmt]]' --format agent
 
-[QUERY] 62 results (Stratum 0, monotonic).
+[QUERY] 83 results (Stratum 0, monotonic).
   INV-STORE-001   "Append-Only Immutability"
   INV-STORE-002   "Strict Transaction Growth"
   INV-STORE-003   "Content-Addressed Identity"
   ...
   INV-INTERFACE-009 "MCP Error Recovery"
 ---
-↳ Full self-bootstrap: all 62 Stage 0 invariants queryable from the store (C7).
+↳ Full self-bootstrap: all 83 Stage 0 invariants queryable from the store (C7).
 ```
 
 #### Query B: All Stage 0 Elements by Namespace (aggregation)
@@ -713,7 +715,7 @@ $ braid query '[:find ?ns (count ?e)
   GUIDANCE      6
   INTERFACE     5
 ---
-↳ 62 elements across 9 namespaces. Matches spec/16-verification.md matrix.
+↳ 83 elements across 11 namespaces. Matches spec/16-verification.md matrix.
 ```
 
 #### Query C: Elements with Level 0 Algebraic Laws
@@ -730,7 +732,7 @@ $ braid query '[:find ?id ?law
   INV-SCHEMA-001  "schema(S) ⊂ S"
   ...
 ---
-↳ 48 of 62 Stage 0 invariants have Level 0 laws. Remaining 14 are defined at Level 1
+↳ 67 of 83 Stage 0 invariants have Level 0 laws. Remaining 16 are defined at Level 1
   (state machine invariants without a standalone algebraic formulation).
 ```
 
@@ -774,20 +776,20 @@ $ braid query '[:find ?dep-id
 
 ADR-STORE-013 (BLAKE3 for Content Hashing) demonstrates the ADR-specific attributes:
 
-```jsonl
-{"e":"blake3:f4d1b8...","a":":spec/id","v":{"String":"ADR-STORE-013"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/type","v":{"Keyword":"adr"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/namespace","v":{"Keyword":"STORE"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/statement","v":{"String":"BLAKE3 for Content Hashing"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/stage","v":{"Long":0},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/traces-to","v":{"String":"ADRS FD-007"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/adr-problem","v":{"String":"Which hash function for content-addressed entity IDs?"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/adr-options","v":{"String":"A) BLAKE3 — fast, cryptographic, parallelizable, 256-bit"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/adr-options","v":{"String":"B) SHA-256 — ubiquitous, well-audited, slower"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/adr-options","v":{"String":"C) xxHash — non-cryptographic, fastest, collision risk"},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/adr-decision","v":{"String":"Option A. BLAKE3 provides cryptographic collision resistance with performance matching non-cryptographic hashes."},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/adr-alternatives","v":{"String":"B rejected: 3-5x slower, no parallelism, same security margin unnecessary for content addressing."},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
-{"e":"blake3:f4d1b8...","a":":spec/adr-alternatives","v":{"String":"C rejected: collision risk unacceptable when identity correctness depends on hash uniqueness (INV-STORE-003)."},"tx":"hlc:1709100001000-0-bootstrap","op":"assert"}
+```clojure
+{:e #blake3 "f4d1b8..." :a :spec/id :v "ADR-STORE-013" :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/type :v :adr :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/namespace :v :STORE :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/statement :v "BLAKE3 for Content Hashing" :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/stage :v 0 :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/traces-to :v "ADRS FD-007" :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/adr-problem :v "Which hash function for content-addressed entity IDs?" :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/adr-options :v "A) BLAKE3 — fast, cryptographic, parallelizable, 256-bit" :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/adr-options :v "B) SHA-256 — ubiquitous, well-audited, slower" :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/adr-options :v "C) xxHash — non-cryptographic, fastest, collision risk" :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/adr-decision :v "Option A. BLAKE3 provides cryptographic collision resistance with performance matching non-cryptographic hashes." :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/adr-alternatives :v "B rejected: 3-5x slower, no parallelism, same security margin unnecessary for content addressing." :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/adr-alternatives :v "C rejected: collision risk unacceptable when identity correctness depends on hash uniqueness (INV-STORE-003)." :tx #hlc "1709100001000-0-bootstrap" :op :assert}
 ```
 
 **Datom count**: 14 datoms. Multi-valued `:spec/adr-options` and `:spec/adr-alternatives`
@@ -902,7 +904,7 @@ $ braid verify --self-consistency --format agent
 
 [VERIFY] Running Stage 0 self-consistency checks (3 classes):
 
-  1. Duplicate spec IDs ................. PASS (0 duplicates in 62 elements)
+  1. Duplicate spec IDs ................. PASS (0 duplicates in 83 elements)
   2. Resolution mode conflicts .......... PASS (0 conflicts in 38 attributes)
   3. Uniqueness violations .............. PASS (0 violations)
 
@@ -938,7 +940,7 @@ $ braid query '[:find ?id
 
 [QUERY] 0 results (Stratum 1, negation — still monotone-safe via stratification).
 ---
-↳ All 62 Stage 0 elements have at least one traceability reference.
+↳ All 83 Stage 0 elements have at least one traceability reference.
   Traceability obligation (C5) satisfied.
 ```
 

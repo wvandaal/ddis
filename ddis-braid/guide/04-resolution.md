@@ -110,8 +110,46 @@ pub fn live_entity(store: &Store, entity: EntityId) -> HashMap<Attribute, Resolv
     - `MultiValue`: return set of all unretracted values.
 - `has_conflict`:
   - Lattice: conflict if two unretracted values are incomparable in the partial order.
-  - LWW: conflict if two assertions have identical TxId (exact same timestamp — very rare).
+  - LWW: conflict if two causally independent assertions exist for the same (entity, attribute)
+    with cardinality :one (INV-RESOLUTION-004). Causal independence is determined by walking
+    the causal_predecessors chain — if neither assertion's transaction is a causal ancestor
+    of the other, they are genuinely concurrent and thus conflicting.
   - Multi: never a conflict (all values kept).
+
+```rust
+fn has_conflict(store: &Store, entity: EntityId, attr: &Attribute) -> bool {
+    let assertions = store.datoms()
+        .filter(|d| d.entity == entity && d.attribute == *attr && d.op == Op::Assert)
+        .collect::<Vec<_>>();
+    if assertions.len() <= 1 { return false; }
+    // Check if any pair of assertions are causally independent
+    for i in 0..assertions.len() {
+        for j in (i+1)..assertions.len() {
+            if !is_causal_ancestor(store, assertions[i].tx, assertions[j].tx)
+                && !is_causal_ancestor(store, assertions[j].tx, assertions[i].tx)
+            {
+                return true;  // Causally independent — genuine conflict
+            }
+        }
+    }
+    false
+}
+
+fn is_causal_ancestor(store: &Store, ancestor: TxId, descendant: TxId) -> bool {
+    // Walk causal_predecessors chain from descendant backward
+    let mut frontier = vec![descendant];
+    let mut visited = HashSet::new();
+    while let Some(tx) = frontier.pop() {
+        if tx == ancestor { return true; }
+        if !visited.insert(tx) { continue; }
+        // Look up causal predecessors from tx entity datoms
+        for pred in store.causal_predecessors(tx) {
+            frontier.push(pred);
+        }
+    }
+    false
+}
+```
 - `live_entity`: for each attribute of entity → build ConflictSet → resolve → collect.
 
 ### Conservative Conflict Detection (INV-RESOLUTION-003)

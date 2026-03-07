@@ -9,7 +9,7 @@
 
 ## §12.1 Stage 1 — Budget-Aware Output + Guidance Injection
 
-**25 additional INVs** | Builds on Stage 0
+**26 additional INVs** | Builds on Stage 0
 
 ### New Capabilities
 
@@ -48,7 +48,7 @@ code — no structural refactoring.
 
 ## §12.2 Stage 2 — Branching + Deliberation
 
-**22 additional INVs** | Builds on Stage 1
+**23 additional INVs** | Builds on Stage 1
 
 ### New Capabilities
 
@@ -136,26 +136,27 @@ code — no structural refactoring.
 ## §12.6 Stage Dependencies
 
 ```
-Stage 0a (38 INV) ← Store + Schema + Query + Resolution (foundation)
+Stage 0a (49 INV) ← Store + Layout + Schema + Query + Resolution (foundation)
     ↓
-Stage 0b (24 INV) ← Harvest + Seed + Merge + Guidance + Interface (lifecycle)
+Stage 0b (34 INV) ← Harvest + Seed + Merge + Guidance + Interface + Trilateral (lifecycle)
     ↓
-Stage 1  (25 INV) ← Budget + Advanced Graph Metrics
+Stage 1  (26 INV) ← Budget + Advanced Graph Metrics + Bilateral + Confusion Signal
     ↓
-Stage 2  (22 INV) ← Branching + Deliberation + Topology
+Stage 2  (23 INV) ← Branching + Deliberation + Topology
     ↓
-Stage 3  (11 INV) ← Multi-Agent
+Stage 3  (11 INV) ← Multi-Agent + Full Signal System
     ↓
 Stage 4  (2 INV)  ← Intelligence
 ```
 
-**Total**: 122 INVs across all stages. Stage 0 contains 50.8% of all invariants (62 INV) —
-it is the foundation. Stages 1–4 add 60 INVs as extensions.
+**Total**: 145 INVs across all stages. Stage 0 contains 57.2% of all invariants (83 INV) —
+it is the foundation. Stages 1–4 add 62 INVs as extensions.
 
-**Stage 0 sub-staging** (from D1-scope-boundary.md): The 62-INV scope splits naturally into
-Stage 0a (STORE/SCHEMA/QUERY/RESOLUTION = 38 INV) and Stage 0b (HARVEST/SEED/MERGE/GUIDANCE/
-INTERFACE = 24 INV). Stage 0a validates the core store hypothesis before Stage 0b builds the
-lifecycle layer. See guide/README.md for the full breakdown and cross-stage dependency notes.
+**Stage 0 sub-staging**: The 83-INV scope splits naturally into Stage 0a
+(STORE/LAYOUT/SCHEMA/QUERY/RESOLUTION = 49 INV) and Stage 0b
+(HARVEST/SEED/MERGE/GUIDANCE/INTERFACE/TRILATERAL = 34 INV). Stage 0a validates the core
+store hypothesis before Stage 0b builds the lifecycle layer. See guide/README.md for the
+full breakdown and cross-stage dependency notes.
 
 ---
 
@@ -165,8 +166,8 @@ INVs that move from deferred to active at each stage transition:
 
 | Transition | Newly Active INVs |
 |------------|-------------------|
-| → Stage 1 (25 INV) | INV-BUDGET-001–006, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005, INV-INTERFACE-004/007, INV-QUERY-003/008–009/015–016/018, INV-SIGNAL-002, INV-HARVEST-004/006, INV-SEED-007–008 |
-| → Stage 2 (22 INV) | INV-STORE-013, INV-SCHEMA-008, INV-MERGE-003–007, INV-DELIBERATION-001–006, INV-SIGNAL-005, INV-GUIDANCE-006/011, INV-BILATERAL-003, INV-QUERY-004/011/019–020, INV-HARVEST-008 |
+| → Stage 1 (26 INV) | INV-BUDGET-001–006, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005, INV-INTERFACE-004/007, INV-QUERY-003/008–009/015–016/018, INV-SIGNAL-002, INV-HARVEST-004/006, INV-SEED-007–008, INV-TRILATERAL-004 |
+| → Stage 2 (23 INV) | INV-STORE-013, INV-SCHEMA-008, INV-MERGE-003–007, INV-DELIBERATION-001–006, INV-SIGNAL-005, INV-GUIDANCE-006/011, INV-BILATERAL-003, INV-QUERY-004/011/019–020, INV-HARVEST-008–009 |
 | → Stage 3 (11 INV) | INV-SYNC-001–005, INV-SIGNAL-001/003–004/006, INV-QUERY-010, INV-INTERFACE-006 |
 | → Stage 4 (2 INV) | INV-GUIDANCE-005, INV-INTERFACE-005 |
 

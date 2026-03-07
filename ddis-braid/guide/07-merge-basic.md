@@ -1,7 +1,7 @@
 # §7. MERGE (Basic) — Build Plan
 
 > **Spec reference**: [spec/07-merge.md](../spec/07-merge.md) — read FIRST
-> **Stage 0 elements**: INV-MERGE-001–002, 008–009 (4 INV), ADR-MERGE-001, NEG-MERGE-001, NEG-MERGE-003
+> **Stage 0 elements**: INV-MERGE-001–002, 008–010 (5 INV), ADR-MERGE-001, ADR-MERGE-005, NEG-MERGE-001, NEG-MERGE-003
 > **Dependencies**: STORE (§1), SCHEMA (§2), QUERY (§3), RESOLUTION (§4)
 > **Cognitive mode**: Set-theoretic — union, deduplication, monotonicity
 
@@ -17,9 +17,12 @@ Stage 0 requires the core merge subset:
   (5) subscription notification. Each step produces datoms recording its effects.
 - **INV-MERGE-008**: At-least-once idempotent delivery — duplicate merges are harmless.
 - **INV-MERGE-009**: Merge receipt records the operation — count of new datoms, frontier delta.
+- **INV-MERGE-010**: Cascade Determinism — cascade is a pure function of the merged datom set.
+  No agent ID, timestamps, or external state may influence cascade output. This is what
+  restores L1/L2 at the full post-cascade store level (ADR-MERGE-005).
 
 Branching (INV-MERGE-003–007), W_α working sets are **deferred to Stage 2**.
-Stage 0 merge is pure set union of two flat stores with full cascade.
+Stage 0 merge is pure set union of two flat stores with deterministic cascade.
 
 ---
 
@@ -84,17 +87,23 @@ pub fn merge(target: &mut Store, source: &Store) -> MergeReceipt {
 }
 ```
 
-### Merge Cascade (INV-MERGE-002)
+### Merge Cascade (INV-MERGE-002, INV-MERGE-010)
 
 **Black box** (contract):
 - INV-MERGE-002: Every merge executes all 5 cascade steps, each producing datoms:
   (1) conflict detection, (2) cache invalidation, (3) projection staleness,
   (4) uncertainty update, (5) subscription notification.
   The cascade is atomic — either all 5 steps complete or the merge fails.
+- INV-MERGE-010: Cascade is a **deterministic function of the merged datom set**.
+  The function signature enforces this — it takes `&Store` and `&[Datom]` only.
+  No `AgentId`, no `SystemTime`, no RNG. Two agents independently merging the
+  same two stores produce identical cascade datom sets.
 
 **State box** (internal design):
 - After set union (INV-MERGE-001), the cascade runs sequentially on newly-inserted datoms.
 - Each step queries the newly-merged state and produces metadata datoms.
+- Cascade datom identity is derived from the conflict/change content itself
+  (content-addressable, INV-STORE-003), not from who detected it or when.
 - Stage 0 cascade is lightweight: steps 2–5 produce stub datoms recording that the step ran.
   Full cascade behavior expands in later stages.
 
@@ -109,42 +118,63 @@ pub struct CascadeReceipt {
     pub cascade_datoms: Vec<Datom>,  // datoms recording cascade effects
 }
 
-fn merge_cascade(
-    store: &mut Store,
+/// INV-MERGE-010: Cascade takes ONLY &Store and &[Datom].
+/// No AgentId, no SystemTime, no RNG — determinism by construction.
+/// Two agents merging the same stores produce identical cascade output.
+fn run_cascade(
+    store: &Store,
     new_datoms: &[Datom],
-    agent: AgentId,
 ) -> CascadeReceipt {
     let mut receipt = CascadeReceipt::default();
+
     // (1) Conflict detection — find new conflicts from merged datoms
+    //     detect_new_conflicts reads only store state (schema, existing datoms)
     let conflicts = detect_new_conflicts(store, new_datoms);
     receipt.conflicts_detected = conflicts.len();
     for c in &conflicts {
-        store.transact_cascade_datom(cascade_conflict_datom(c, agent));
+        receipt.cascade_datoms.push(cascade_conflict_datom(c));
     }
-    // (2) Cache invalidation — mark LIVE cache entries stale for affected entities
-    let affected = affected_entities(new_datoms);
-    receipt.caches_invalidated = affected.len();
-    for e in &affected {
-        store.transact_cascade_datom(cascade_invalidation_datom(*e, agent));
+
+    // (2)–(5) Stub datoms per ADR-MERGE-007.
+    // Steps 2-5 produce stub datoms at Stage 0.
+    // Full implementations are Stage 2+ deliverables per ADR-MERGE-007.
+    for step in &["cache-invalidation", "projection-staleness", "uncertainty-delta", "subscription-notification"] {
+        let stub = cascade_stub(step, store);
+        match *step {
+            "cache-invalidation" => receipt.caches_invalidated = 0,
+            "projection-staleness" => receipt.projections_staled = 0,
+            "uncertainty-delta" => receipt.uncertainties_updated = 0,
+            "subscription-notification" => receipt.notifications_sent = 0,
+            _ => {}
+        }
+        receipt.cascade_datoms.extend(stub);
     }
-    // (3) Projection staleness — mark projections for affected entities as stale
-    receipt.projections_staled = affected.len();
-    for e in &affected {
-        store.transact_cascade_datom(cascade_projection_datom(*e, agent));
-    }
-    // (4) Uncertainty update — recompute uncertainty for entities with new data
-    let uncertainties = recompute_uncertainties(store, &affected);
-    receipt.uncertainties_updated = uncertainties.len();
-    for u in &uncertainties {
-        store.transact_cascade_datom(cascade_uncertainty_datom(u, agent));
-    }
-    // (5) Subscription notification — notify subscribers of affected entities
-    let notifications = notify_subscribers(store, &affected);
-    receipt.notifications_sent = notifications.len();
-    for n in &notifications {
-        store.transact_cascade_datom(cascade_notification_datom(n, agent));
-    }
+
     receipt
+}
+
+fn cascade_stub(step: &str, merged: &Store) -> Vec<Datom> {
+    // Steps 2-5 produce stub datoms at Stage 0.
+    // Full implementations are Stage 2+ deliverables per ADR-MERGE-007.
+    vec![Datom::new(
+        EntityId::from_content(format!("cascade:{}", step).as_bytes()),
+        Attribute::new(":merge/cascade-step").unwrap(),
+        Value::String(format!("{}: 0 items processed (stub)", step)),
+        merged.frontier().values().max().copied().unwrap_or_default(),
+        Op::Assert,
+    )]
+}
+
+/// Cascade datom identity derived from conflict content, not from who detected it.
+/// Same conflict always produces same datom (content-addressable, INV-STORE-003).
+fn cascade_conflict_datom(conflict: &Conflict) -> Datom {
+    let entity_id = EntityId::from_content(&[
+        conflict.entity.as_bytes(),
+        conflict.attribute.as_bytes(),
+        conflict.value_a.as_bytes(),
+        conflict.value_b.as_bytes(),
+    ]);
+    Datom::new(entity_id, Attribute::cascade_conflict(), /* ... */)
 }
 ```
 
@@ -219,6 +249,25 @@ proptest! {
         prop_assert_eq!(receipt.duplicate_datoms, s2.len() - receipt.new_datoms,
             "duplicate_datoms mismatch");
     }
+
+    // INV-MERGE-010: Cascade determinism — same merged state, same cascade output
+    fn inv_merge_010(s1 in arb_store(5), s2 in arb_store(5)) {
+        // Merge in order A∪B
+        let mut target_ab = s1.clone();
+        merge(&mut target_ab, &s2);
+        let cascade_ab = run_cascade(&target_ab, /* new datoms from merge */);
+
+        // Merge in order B∪A
+        let mut target_ba = s2.clone();
+        merge(&mut target_ba, &s1);
+        let cascade_ba = run_cascade(&target_ba, /* new datoms from merge */);
+
+        // Cascade outputs must be identical (determinism + commutativity)
+        let datoms_ab: BTreeSet<Datom> = cascade_ab.cascade_datoms.into_iter().collect();
+        let datoms_ba: BTreeSet<Datom> = cascade_ba.cascade_datoms.into_iter().collect();
+        prop_assert_eq!(datoms_ab, datoms_ba,
+            "Cascade determinism violation: different cascade datoms for same merged state");
+    }
 }
 ```
 
@@ -250,6 +299,9 @@ by adding parameters with defaults.
 - [ ] Indexes updated after merge
 - [ ] No datom loss verified (proptest + Kani)
 - [ ] Commutativity/associativity/idempotency hold (from STORE tests)
+- [ ] `run_cascade()` takes only `&Store` + `&[Datom]` — no AgentId, no clock, no RNG (INV-MERGE-010)
+- [ ] Cascade datom identity is content-addressable from conflict/change content (INV-MERGE-010)
+- [ ] Cascade determinism proptest passes: merge(A,B) and merge(B,A) produce identical cascade datoms
 - [ ] Integration: two independent stores merge cleanly
 
 ---

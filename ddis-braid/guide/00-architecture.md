@@ -18,6 +18,7 @@ braid/                          ← Cargo workspace root
 │       ├── lib.rs              ← Public re-exports
 │       ├── datom.rs            ← Datom, EntityId, TxId, Op, Value
 │       ├── store.rs            ← Store, transact, merge
+│       ├── layout.rs           ← Canonical serialization, transaction hashing (pure)
 │       ├── schema.rs           ← Schema, genesis, attribute registry
 │       ├── query/
 │       │   ├── mod.rs          ← Query engine entry point
@@ -34,6 +35,7 @@ braid/                          ← Cargo workspace root
 │       ├── derivation.rs       ← Task derivation rules, template matching
 │       ├── routing.rs          ← R(t) graph-based work routing, impact scoring
 │       ├── merge.rs            ← Pure set-union merge (Stage 0 subset)
+│       ├── trilateral.rs       ← Trilateral coherence model (LIVE projections, Phi, formality)
 │       └── frontier.rs         ← Frontier, AgentId, HLC clock
 ├── braid/                      ← Binary crate (CLI + MCP + persistence)
 │   ├── Cargo.toml
@@ -48,7 +50,7 @@ braid/                          ← Cargo workspace root
 │       │   ├── seed.rs         ← braid seed
 │       │   ├── guidance.rs     ← braid guidance
 │       │   └── entity.rs       ← braid entity, braid history
-│       ├── persistence.rs      ← Layout ↔ kernel Store bridge
+│       ├── persistence.rs      ← Layout ↔ kernel Store bridge (filesystem I/O)
 │       ├── output.rs           ← OutputMode dispatch (json/agent/human)
 │       ├── mcp.rs              ← MCP server (6 tools, rmcp-based, persistent process)
 │       └── claude_md.rs        ← Dynamic CLAUDE.md generation
@@ -495,21 +497,21 @@ pub struct ToolResponse { pub structured: Value, pub agent_context: String, pub 
 
 ## §0.3 File Formats
 
-### Datom JSONL Interchange
+### Datom EDNL Interchange
 
-One datom per line. Used for `braid transact --file` and export:
+One EDN datom per line. Used for `braid transact --file` and export (ADR-TRILATERAL-002):
 
-```jsonl
-{"e":"blake3:a1b2c3...","a":":db/ident","v":{"String":":spec/type"},"tx":"hlc:1709000000000-0-agent1","op":"assert"}
-{"e":"blake3:d4e5f6...","a":":spec/statement","v":{"String":"The store never deletes"},"tx":"hlc:1709000000000-0-agent1","op":"assert"}
+```clojure
+{:e #blake3 "a1b2c3..." :a :db/ident :v :spec/type :tx #hlc "1709000000000-0-agent1" :op :assert}
+{:e #blake3 "d4e5f6..." :a :spec/statement :v "The store never deletes" :tx #hlc "1709000000000-0-agent1" :op :assert}
 ```
 
 **Key conventions**:
-- `e`: prefixed with `blake3:` + hex-encoded 32 bytes
-- `a`: keyword string (`:namespace/name`)
-- `v`: tagged union matching `Value` enum — `{"String":"..."}`, `{"Long":42}`, `{"Ref":"blake3:..."}`, etc.
-- `tx`: prefixed with `hlc:` + `{wall_time}-{logical}-{agent_hex}`
-- `op`: `"assert"` or `"retract"`
+- `e`: `#blake3 "hex..."` (tagged literal, 32 bytes hex-encoded)
+- `a`: keyword (`:namespace/name`)
+- `v`: EDN value — strings (`"..."`), keywords (`:keyword`), longs (`42`), refs (`#blake3 "..."`)
+- `tx`: `#hlc "wall_time-logical-agent_hex"` (tagged literal)
+- `op`: keyword (`:assert` or `:retract`)
 
 ### Layout Directory Schema
 
@@ -596,7 +598,7 @@ braid init .braid/
 ### Phase 2: Schema-Enabled → Spec-Enabled
 
 ```
-braid transact --file spec-datoms.jsonl
+braid transact --file spec-datoms.ednl
 ```
 
 1. Load the specification elements from `spec/` as datoms

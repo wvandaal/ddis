@@ -46,6 +46,14 @@ pub fn generate_claude_md(
     budget: usize,
 ) -> String;
 
+/// Cue for ASSOCIATE — determines how schema neighborhood discovery starts.
+/// `depth` and `breadth` enforce INV-SEED-003 (ASSOCIATE Boundedness).
+/// Defaults: depth=3, breadth=10.
+pub enum AssociateCue {
+    Semantic { text: String, depth: usize, breadth: usize },
+    Explicit { seeds: Vec<EntityId>, depth: usize, breadth: usize },
+}
+
 /// Associate: discover schema neighborhood relevant to the task (INV-SEED-003).
 pub fn associate(store: &Store, cue: AssociateCue) -> SchemaNeighborhood;
 

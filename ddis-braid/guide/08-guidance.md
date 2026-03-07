@@ -298,6 +298,9 @@ partition, demonstration density, effectiveness tracking.
   4. `harvest_quality`: new datoms from harvest / estimated epistemic gap size
   5. `guidance_compliance`: followed suggestions / total suggestions
 - Weights loaded from `:guidance/m-weight` datoms. Default: `(0.25, 0.20, 0.15, 0.25, 0.15)`.
+  **Note**: M(t) weights are loaded from store datoms at initialization, with code-level
+  fallback to the defaults above. The genesis bootstrap datoms for these weights are
+  defined in `spec/02-schema.md` §2.2 (M(t) Default Weight Bootstrap Datoms).
 - Trend: compare current M(t) to rolling average of last 5. >5% up = Up, >5% down = Down.
 - Each measurement recorded as a datom for cross-session trend analysis.
 

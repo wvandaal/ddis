@@ -18,6 +18,7 @@
 ## Table of Contents
 
 - [STORE (spec/01, guide/01, guide/00)](#store)
+- [LAYOUT (spec/01b, guide/01b)](#layout)
 - [SCHEMA (spec/02, guide/02)](#schema)
 - [QUERY (spec/03, guide/03, guide/00)](#query)
 - [RESOLUTION (spec/04, guide/04)](#resolution)
@@ -31,6 +32,7 @@
 - [GUIDANCE (spec/12, guide/08, guide/00)](#guidance)
 - [BUDGET (spec/13)](#budget)
 - [INTERFACE (spec/14, guide/09, guide/00)](#interface)
+- [TRILATERAL (spec/18, guide/13)](#trilateral)
 - [Appendix A: Divergence Summary](#appendix-a-divergence-summary)
 
 ---
@@ -437,6 +439,54 @@ store restricted to datoms visible at the given frontier.
 
 ---
 
+## LAYOUT
+
+### LayoutError
+
+| Field | Value |
+|-------|-------|
+| **Namespace** | LAYOUT |
+| **Stage** | 0 |
+| **Spec file** | `spec/01b-storage-layout.md` (INV-LAYOUT-005 L2) |
+| **Guide files** | `guide/01b-storage-layout.md` (§1b.2) |
+| **Status** | `[AGREE]` |
+
+```rust
+pub enum LayoutError {
+    Io(std::io::Error),
+    Deserialize(String),
+    HashMismatch { expected: Blake3Hash, actual: Blake3Hash, path: PathBuf },
+    CorruptedTransaction { path: PathBuf, reason: String },
+    MissingGenesis,
+}
+```
+
+**Notes**: Used by all persistence functions in `braid/src/persistence.rs` and serialization
+functions in `braid-kernel/src/layout.rs`. `HashMismatch` supports INV-LAYOUT-005 (integrity
+self-verification).
+
+---
+
+### Blake3Hash
+
+| Field | Value |
+|-------|-------|
+| **Namespace** | LAYOUT |
+| **Stage** | 0 |
+| **Spec file** | `spec/01b-storage-layout.md` (INV-LAYOUT-001) |
+| **Guide files** | `guide/01b-storage-layout.md` (§1b.2) |
+| **Status** | `[AGREE]` |
+
+```rust
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+pub struct Blake3Hash([u8; 32]);
+```
+
+**Notes**: Content-addressed file identity. File name = hex(Blake3Hash). Used by
+`transaction_hash()` and all content-addressed operations.
+
+---
+
 ## SCHEMA
 
 ### Schema
@@ -464,6 +514,11 @@ impl Schema {
 
 **Notes**: Owned by Store internally (ADR-SCHEMA-005). `from_store` is the sole constructor
 (enforces C3). Guide adds `get()` as alias for `attribute()`.
+
+**Concurrency**: Schema is part of Store's MVCC snapshot (ADR-STORE-016). No independent
+versioning needed or permitted. Each `ArcSwap` load returns a Store whose Schema matches
+its datoms exactly — consistency is structural, not coordinated. See ADR-SCHEMA-005
+Stage 3 Concurrency Analysis for Option B rejection rationale.
 
 ---
 
@@ -624,11 +679,21 @@ adopt spec variants.
 | **Stage** | 0 |
 | **Spec file** | `spec/02-schema.md` (INV-SCHEMA-004 L2) |
 | **Guide files** | `guide/02-schema.md` (implied by `validate_datom` return) |
-| **Status** | `[SPEC-ONLY]` -- Referenced but not structurally defined in either |
+| **Status** | `[AGREE]` |
 
-**Notes**: Used as error return from `Schema::validate_datom()`. Neither spec nor guide
-provides full variant list. Guide `00-architecture.md` defines `TxValidationError` which
-partially covers the same space.
+```rust
+pub enum SchemaValidationError {
+    UnknownAttribute(Attribute),
+    TypeMismatch { attr: Attribute, expected: ValueType, got: ValueType },
+    CardinalityViolation { attr: Attribute, cardinality: Cardinality },
+    InvalidLatticeValue { attr: Attribute, value: Value, lattice: String },
+    InvalidRetraction { entity: EntityId, attr: Attribute },
+}
+```
+
+**Notes**: Covers datom-level type checking (INV-SCHEMA-004). Distinct from `SchemaError`
+(schema definition operations) and `TxValidationError` (transaction-level wrapper in
+`guide/00-architecture.md`).
 
 ---
 
@@ -1542,9 +1607,20 @@ per ADR-ARCHITECTURE-001. Functionally equivalent.
 |-------|-------|
 | **Namespace** | SEED |
 | **Stage** | 0 |
-| **Spec file** | `spec/06-seed.md` (referenced but not defined) |
-| **Guide files** | `guide/06-seed.md` (referenced in `associate()` signature) |
-| **Status** | `[UNDEFINED]` -- Referenced in both but never structurally defined |
+| **Spec file** | `spec/06-seed.md` (§6.3 L2) |
+| **Guide files** | `guide/06-seed.md` (§6.1) |
+| **Status** | `[AGREE]` |
+
+```rust
+pub enum AssociateCue {
+    Semantic { text: String, depth: usize, breadth: usize },
+    Explicit { seeds: Vec<EntityId>, depth: usize, breadth: usize },
+}
+```
+
+**Notes**: `depth` and `breadth` enforce INV-SEED-003 (ASSOCIATE Boundedness). Defaults:
+depth=3, breadth=10. `Semantic` mode uses text similarity for seed selection. `Explicit`
+mode starts from specific entity IDs.
 
 ---
 
@@ -1986,18 +2062,29 @@ pub struct Deliberation {
 | **Status** | `[SPEC-ONLY]` |
 
 ```rust
-#[derive(Clone, Debug, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum DeliberationStatus {
     Open,
     Active,
     Stalled,
     Decided,
+    Contested,    // join(:stalled, :decided) — requires escalation
     Superseded,
 }
+
+impl DeliberationStatus {
+    pub fn join(&self, other: &Self) -> Self;  // Custom — does NOT derive Ord
+}
+
+impl PartialOrd for DeliberationStatus { /* custom partial order */ }
+// NOTE: Ord is NOT implemented — the order is partial (:stalled ∥ :decided)
 ```
 
-**Notes**: Lifecycle lattice: `:open < :active < :decided < :superseded`, with `:stalled`
-incomparable with `:decided`.
+**Notes**: Lifecycle partial lattice:
+`:open < :active < :decided < :contested < :superseded` and
+`:open < :active < :stalled < :contested < :superseded`.
+`join(:stalled, :decided) = :contested` — requires DelegationRequest signal escalation.
+`Ord` must NOT be derived — the order is partial.
 
 ---
 
@@ -2544,7 +2631,7 @@ pub struct ToolResponse {
 ```rust
 // Spec definition:
 pub struct MCPServer {
-    pub store: Arc<Store>,                  // Loaded once at MCP_INIT
+    pub store: ArcSwap<Store>,              // Loaded once at MCP_INIT; swapped on transact
     pub session_state: SessionState,
     pub notification_queue: Vec<Signal>,
     pub phase: MCPPhase,                    // Uninitialized → Initialized → Shutdown
@@ -2552,12 +2639,16 @@ pub struct MCPServer {
 
 // Guide definition (rmcp integration):
 pub struct BraidMcpServer {
-    store: Arc<Store>,                      // Loaded once at init
+    store: ArcSwap<Store>,                  // Loaded once at init; swapped on write ops
     session_state: SessionState,
     notification_queue: Vec<Signal>,
 }
 // Guide omits `phase` field because rmcp manages lifecycle state externally.
 // This is an intentional implementation refinement, not a divergence.
+//
+// ArcSwap<Store> implements the Datomic connection model: Store values are immutable
+// (C1), the pointer swaps atomically after transact/harvest. Reads are lock-free
+// via hazard pointers; in-flight queries see consistent snapshots.
 ```
 
 ---
@@ -2692,6 +2783,56 @@ pub enum RecoveryAction {
 
 ---
 
+## TRILATERAL
+
+### AttrNamespace
+
+| Field | Value |
+|-------|-------|
+| **Namespace** | TRILATERAL |
+| **Stage** | 0 |
+| **Spec file** | `spec/18-trilateral.md` (INV-TRILATERAL-005 L2) |
+| **Guide files** | `guide/13-trilateral.md` (§13.2) |
+| **Status** | `[AGREE]` |
+
+```rust
+pub enum AttrNamespace {
+    Intent,
+    Spec,
+    Impl,
+    Meta,   // db/*, tx/* — not counted in trilateral projections
+}
+```
+
+**Notes**: Classifies attributes into the three trilateral boundaries (Intent, Spec, Impl)
+plus a Meta category for infrastructure attributes. Exhaustive match enforced by V:TYPE
+(INV-TRILATERAL-005).
+
+---
+
+### LiveView
+
+| Field | Value |
+|-------|-------|
+| **Namespace** | TRILATERAL |
+| **Stage** | 0 |
+| **Spec file** | `spec/18-trilateral.md` (INV-TRILATERAL-001 L1) |
+| **Guide files** | `guide/13-trilateral.md` (§13.2) |
+| **Status** | `[AGREE]` |
+
+```rust
+pub struct LiveView {
+    pub datoms: Vec<Datom>,
+    pub entity_count: usize,
+    pub namespace: AttrNamespace,
+}
+```
+
+**Notes**: Result of a LIVE projection over one of the three attribute namespaces.
+Monotone: `S₁ ⊆ S₂ ⟹ LiveView(S₁).datoms ⊆ LiveView(S₂).datoms`.
+
+---
+
 ## Appendix A: Divergence Summary
 
 This appendix catalogs all divergences between `spec/` and `guide/` for downstream
@@ -2716,7 +2857,7 @@ reconciliation beads (R1.2, R1.3, R1.7).
 | ~~D8~~ | ~~`HarvestCandidate`~~ | **RESOLVED (R6.7b)**: Spec added `id: usize` and `reconciliation_type: ReconciliationType` from guide. |
 | ~~D9~~ | ~~`CandidateStatus`~~ | **RESOLVED (R4.1b)**: Spec now defines Rust enum with `Rejected(String)` matching guide. |
 | ~~D10~~ | ~~`AssembledContext`~~ | **RESOLVED (R6.7b)**: Guide added `projection_pattern: ProjectionPattern` field from spec. |
-| ~~D11~~ | ~~`MCPServer`~~ | **RESOLVED**: Both now use `{store: Arc<Store>, session_state, notification_queue, phase}`. Guide renames to `BraidMcpServer` for rmcp integration. |
+| ~~D11~~ | ~~`MCPServer`~~ | **RESOLVED**: Both now use `{store: ArcSwap<Store>, session_state, notification_queue, phase}`. Guide renames to `BraidMcpServer` for rmcp integration. ArcSwap implements the Datomic connection model (immutable Store values, atomic pointer swap on writes). |
 | ~~D12~~ | ~~`ConflictTier` / `RoutingTier`~~ | **RESOLVED (R1.10)**: Spec adopted `RoutingTier`. |
 | ~~D13~~ | ~~`TxId`~~ | **RESOLVED (R6.7d)**: Intentional — spec silent on derive attributes; guide correctly omits Hash on TxId (only AgentId needs Hash). Not a defect. |
 

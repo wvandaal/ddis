@@ -18,24 +18,29 @@ match arms. Zero runtime cost verification.
 
 **Time**: <30 seconds.
 
-**Invariants verified at compile time**:
-- INV-STORE-001 (Transaction typestate: Building → Committed → Applied)
-- INV-STORE-002 (EntityId: no raw constructor)
-- INV-STORE-003 (content identity via Hash/Eq derivation)
-- INV-SCHEMA-003 (Attribute newtype)
-- INV-SCHEMA-004 (SchemaEvolution: no DROP/ALTER)
-- INV-QUERY-005 (QueryMode enum)
-- INV-QUERY-006 (FFI purity marker)
-- INV-QUERY-007 (typed clause patterns)
-- INV-RESOLUTION-001 (ResolutionMode exhaustive match)
-- INV-INTERFACE-001 (OutputFormat enum)
+**Invariants verified at compile time** (V:TYPE — access control boundaries, not semantic
+properties; see spec §16 V:TYPE Scope Principle):
+- INV-STORE-001 (Transaction typestate: Building → Committed → Applied; borrow checker prevents store mutation outside transact/merge)
+- INV-STORE-003 (EntityId: content-addressed, no raw constructor)
+- INV-SCHEMA-003 (Schema monotonicity: no `remove_attribute` method, Attribute newtype)
+- INV-SCHEMA-004 (Schema validation gate: Transaction<Building>.commit(schema) typestate)
+- INV-QUERY-005 (QueryMode enum: parse-time stratum enforcement)
+- INV-QUERY-008 (FFI boundary: FfiFunction trait with pure marker)
+- INV-RESOLUTION-001 (ResolutionMode enum: exhaustive match)
 - INV-INTERFACE-003 (MCP_TOOLS: fixed-size array)
 - INV-INTERFACE-009 (RecoveryAction enum exhaustive match)
 
+Note: every V:TYPE invariant also has V:PROP. V:TYPE enforces access control (the compiler
+prevents code paths that would violate the invariant). V:PROP verifies the semantic property
+(the allowed code paths preserve the invariant). Both are needed because Rust does not have
+dependent types — the type system cannot prove input-output value relationships like "the
+output set is a superset of the input set."
+
 ### Gate 2: Test (`cargo test`)
 
-**Checks**: All `V:PROP` invariants via proptest properties. 121 of the 124 invariants
-have proptest strategies (the remaining 3 are V:TYPE-only compile-time checks).
+**Checks**: All `V:PROP` invariants via proptest properties. 143 of 145 invariants
+have proptest strategies (2 are V:MODEL-only: INV-QUERY-010, INV-SYNC-003). Every
+V:TYPE invariant also has V:PROP — no V:TYPE-only invariants exist.
 
 **Time**: <5 minutes (256 cases per property, default proptest config).
 
@@ -55,9 +60,10 @@ committed to git. They contain minimal failure cases that must continue to pass.
 **Checks**: `V:KANI` invariants — bounded model checking. Exhaustive verification for all
 inputs up to the configured bound.
 
-**Time**: <15 minutes.
+**Time**: Tiered — Gate 3a (every PR): <5 min; Gate 3b (nightly): <30 min;
+Gate 3c (weekly): <2 hours. See §10.1 below for the full tiered CI design.
 
-**Coverage**: 41 invariants (33.1%) with critical-path verification:
+**Coverage**: 41 invariants (32.3%) with critical-path verification:
 - All STORE CRDT laws (INV-STORE-004–008)
 - All SCHEMA bootstrap properties (INV-SCHEMA-001–002, 004)
 - All RESOLUTION algebraic laws (INV-RESOLUTION-002, 004–006)
@@ -125,11 +131,13 @@ grouped by namespace. Each harness targets the **Level 2 implementation contract
 | SCHEMA | INV-SCHEMA-001 | Schema-as-data: schema extracted only from datoms | <=17 attributes |
 | SCHEMA | INV-SCHEMA-002 | Genesis completeness: exactly 17 axiomatic attributes | n/a (bootstrap) |
 | SCHEMA | INV-SCHEMA-004 | Schema validation: rejects malformed datoms | <=10 datoms |
+| SCHEMA | INV-SCHEMA-007 | Lattice definition completeness: all 4 required properties present | <=17 attributes |
 | QUERY | INV-QUERY-001 | CALM compliance: Monotonic mode rejects negation/aggregation at parse time | <=10 clauses |
 | QUERY | INV-QUERY-004 | Branch visibility: snapshot isolation at fork point (trunk@fork + branch-only) | <=5 datoms, 1 branch |
 | QUERY | INV-QUERY-012 | Topological sort: Kahn's produces valid linear extension of DAG | <=8 vertices |
 | QUERY | INV-QUERY-013 | Tarjan SCC: partition + maximality + acyclic condensation | <=8 vertices |
 | QUERY | INV-QUERY-017 | Critical path: longest path equals forward/backward pass result | <=8 vertices |
+| RESOLUTION | INV-RESOLUTION-001 | Per-attribute resolution: exhaustive mode routing | <=5 attributes |
 | RESOLUTION | INV-RESOLUTION-002 | Resolution commutativity: order-independent | <=5 values |
 | RESOLUTION | INV-RESOLUTION-004 | Conflict predicate: six-condition correctness | <=3 agents |
 | RESOLUTION | INV-RESOLUTION-005 | LWW semilattice: comm + assoc + idem | <=5 values |
@@ -154,10 +162,10 @@ grouped by namespace. Each harness targets the **Level 2 implementation contract
 | BUDGET | INV-BUDGET-003 | Quality-adjusted degradation: Q(t) <= k*_eff(t) | <=100 steps |
 | BUDGET | INV-BUDGET-006 | Token efficiency: density monotonically non-decreasing | <=5 projections |
 
-### Gate 3 — Tiered Kani CI Design (from D3-kani-feasibility.md)
+### Gate 3 — Tiered Kani CI Design (spec Gate 5; from D3-kani-feasibility.md)
 
-The spec allocates <15 minutes for Gate 3 (Kani). With 27 Stage 0 V:KANI harnesses, a
-tiered approach is required:
+The spec defines Gate 5 (Kani) as a three-tier pipeline (spec/16-verification.md §16.2).
+With 32 Stage 0 V:KANI harnesses, the tiers are:
 
 **Gate 3a: Fast Kani (every PR) — target < 5 min**
 - Trivial + simple harnesses only (~13 harnesses: type-level checks, simple set operations)
@@ -166,7 +174,7 @@ tiered approach is required:
 - Harnesses: STORE-001/003/008 (trivial), STORE-004-008/010 (simple set ops), SCHEMA-001/002 (bootstrap)
 
 **Gate 3b: Full Kani (nightly) — target < 30 min**
-- All 27 Stage 0 harnesses
+- All 32 Stage 0 harnesses
 - Per-harness solver selection (CaDiCaL for structural, Kissat for hash/bit-level)
 - Unwind: `#[kani::unwind(8)]` default, `#[kani::unwind(12)]` for graph algorithms
 
@@ -206,12 +214,13 @@ fn verify_store_commutativity() {
   simpler version for CRDT algebra proofs).
 
 **Harness count verification note**: The authoritative total from spec/16-verification.md
-is **41** V:KANI harnesses across all stages (STORE: 10, SCHEMA: 3, QUERY: 5, RESOLUTION: 5,
-HARVEST: 2, SEED: 2, MERGE: 5, SIGNAL: 3, DELIBERATION: 2, GUIDANCE: 1, BUDGET: 3). Of
-these, **29 are Stage 0** (STORE: 10, SCHEMA: 3, QUERY: 4, RESOLUTION: 5, HARVEST: 1,
-SEED: 2, MERGE: 2, INTERFACE: 0). The remaining 12 are Stage 1-3 and run in Gate 3b/3c.
+is **48** V:KANI harnesses across all stages (STORE: 10, LAYOUT: 5, SCHEMA: 4, QUERY: 5,
+RESOLUTION: 6, HARVEST: 2, SEED: 2, MERGE: 5, SIGNAL: 3, DELIBERATION: 2, GUIDANCE: 1,
+BUDGET: 3). Of these, **32 are Stage 0** (STORE: 10, LAYOUT: 5, SCHEMA: 4, QUERY: 4,
+RESOLUTION: 6, HARVEST: 1, SEED: 2, MERGE: 2). The remaining 16 are Stage 1-3 and run
+in Gate 3b/3c.
 
-**Feasibility: 41/41 (100%).** See spec/16-verification.md §16.5 for the complete feasibility
+**Feasibility: 48/48 (100%).** See spec/16-verification.md §16.5 for the complete feasibility
 assurance with per-category Kani strategies and bounds.
 
 ### Gate 4: Model Checking (`cargo test --features stateright`)
@@ -220,12 +229,12 @@ assurance with per-category Kani strategies and bounds.
 
 **Time**: <30 minutes.
 
-**Coverage**: 15 invariants (12.4%) for protocol-level properties:
-- STORE CRDT algebra (INV-STORE-004–005)
+**Coverage**: 12 invariants (9.4%) for protocol-level properties:
+- STORE CRDT algebra (INV-STORE-004–005, 013)
 - MERGE cascade (INV-MERGE-002, 004)
-- SYNC barrier (INV-SYNC-001, 003–004)
+- SYNC barrier (INV-SYNC-001, 003)
 - DELIBERATION lifecycle (INV-DELIBERATION-001, 006)
-- RESOLUTION convergence (INV-RESOLUTION-003, 007–008)
+- RESOLUTION convergence (INV-RESOLUTION-003)
 - BILATERAL convergence (INV-BILATERAL-001)
 
 **Gate progression**:
@@ -274,6 +283,7 @@ jobs:
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo fmt --check
 
+  # Spec Gate 5a — Fast Kani (every PR, <5 min target)
   gate-4a-kani-fast:
     if: github.event_name == 'pull_request'
     needs: gate-2-test
@@ -290,6 +300,7 @@ jobs:
           --output-format terse
           --jobs 4
 
+  # Spec Gate 5b — Full Kani (nightly, <30 min target)
   gate-4b-kani-full:
     if: github.event_name == 'schedule'  # nightly
     runs-on: ubuntu-latest
@@ -297,8 +308,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: model-checking/kani-verifier-action@v1
-      - name: Kani Verification (Full — all Stage 0 harnesses)
+      - name: Kani Verification (Full — all Stage N harnesses)
         run: cargo kani --workspace --output-format terse --jobs 4
+
+  # Spec Gate 5c — Extended Kani (weekly, <2h target)
+  # Add when harness count grows beyond Stage 0.
+  # Uses higher unwind bounds (#[kani::unwind(16)]) for regression coverage.
+  # gate-4c-kani-extended:
+  #   if: github.event_name == 'schedule'  # weekly cron
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 150
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: model-checking/kani-verifier-action@v1
+  #     - name: Kani Verification (Extended — all harnesses, high unwind)
+  #       run: cargo kani --workspace --output-format terse --jobs 4
 
   gate-5-model:
     if: github.event_name == 'schedule'  # nightly
@@ -314,7 +338,7 @@ jobs:
 
 ## §10.3 Coverage Matrix Template
 
-The verification matrix maps each Stage 0 INV (64 total) to its verification methods.
+The verification matrix maps each Stage 0 INV (83 total) to its verification methods.
 This template is filled as implementation proceeds:
 
 | INV | V:TYPE | V:PROP | V:KANI | V:MODEL | Status |
@@ -507,7 +531,7 @@ Before advancing from namespace N to namespace N+1:
 
 ### What blocks Stage 0 completion
 
-1. All 64 Stage 0 INVs verified (proptest minimum, Kani where tagged)
+1. All 83 Stage 0 INVs verified (proptest minimum, Kani where tagged)
 2. Self-bootstrap test passes: spec elements transacted as datoms, queryable
 3. Harvest/seed round-trip test: 25-turn → harvest → seed → resume without re-explanation
 4. Dynamic CLAUDE.md generation produces valid output from store state
@@ -1407,7 +1431,97 @@ proptest! {
 }
 ```
 
-### §10.7.10 INV Cross-Reference Index
+### §10.7.10 Harness 9: Cascade Determinism
+
+**Verifies**: INV-MERGE-010 (Cascade Determinism), ADR-MERGE-005 (Cascade as
+Deterministic Fixpoint)
+
+**Property**: The merge cascade is a pure function of the merged datom set. Two agents
+independently merging the same two stores produce identical cascade output. The cascade
+function takes only `&Store` and `&[Datom]` — no `AgentId`, no `SystemTime`, no RNG.
+This restores L1/L2 at the total post-merge state level (including cascade datoms).
+
+**Strategy**: Generate two arbitrary stores. Merge in both orders (A∪B and B∪A). Run
+the cascade on each merged result. The cascade datom sets must be identical.
+
+```rust
+proptest! {
+    /// INV-MERGE-010: Cascade determinism — identical input produces identical output.
+    /// Merge order must not affect cascade results.
+    #[test]
+    fn crdt_cascade_determinism(
+        s1 in arb_store(5),
+        s2 in arb_store(5),
+    ) {
+        // Merge A ∪ B
+        let mut target_ab = s1.clone();
+        let receipt_ab = merge(&mut target_ab, &s2);
+        let new_datoms_ab: Vec<Datom> = target_ab.datoms()
+            .filter(|d| !s1.contains(d))
+            .cloned()
+            .collect();
+        let cascade_ab = run_cascade(&target_ab, &new_datoms_ab);
+
+        // Merge B ∪ A
+        let mut target_ba = s2.clone();
+        let receipt_ba = merge(&mut target_ba, &s1);
+        let new_datoms_ba: Vec<Datom> = target_ba.datoms()
+            .filter(|d| !s2.contains(d))
+            .cloned()
+            .collect();
+        let cascade_ba = run_cascade(&target_ba, &new_datoms_ba);
+
+        // Cascade datom sets must be identical (as sets, not sequences)
+        let datoms_ab: BTreeSet<Datom> = cascade_ab.cascade_datoms.into_iter().collect();
+        let datoms_ba: BTreeSet<Datom> = cascade_ba.cascade_datoms.into_iter().collect();
+        prop_assert_eq!(&datoms_ab, &datoms_ba,
+            "Cascade determinism violation: merge(A,B) produced {} cascade datoms, \
+             merge(B,A) produced {} — sets differ",
+            datoms_ab.len(), datoms_ba.len());
+
+        // Verify cascade datom identity is content-addressable
+        // (no agent ID, timestamp, or sequence number in the datom identity)
+        for datom in &datoms_ab {
+            prop_assert!(datom.attribute.name().starts_with(":cascade/"),
+                "Cascade datom has non-cascade attribute: {}", datom.attribute.name());
+        }
+    }
+
+    /// INV-MERGE-010 corollary: cascade on identical store produces identical output
+    /// regardless of which "new datoms" set is provided (determinism from store state).
+    #[test]
+    fn crdt_cascade_store_determinism(
+        s1 in arb_store(5),
+        s2 in arb_store(5),
+    ) {
+        // Merge once to get the combined store
+        let mut combined = s1.clone();
+        merge(&mut combined, &s2);
+
+        // Run cascade twice on the same inputs
+        let new_datoms: Vec<Datom> = combined.datoms()
+            .filter(|d| !s1.contains(d))
+            .cloned()
+            .collect();
+        let cascade_1 = run_cascade(&combined, &new_datoms);
+        let cascade_2 = run_cascade(&combined, &new_datoms);
+
+        // Must be identical (no internal RNG, no clock reads)
+        prop_assert_eq!(cascade_1.cascade_datoms, cascade_2.cascade_datoms,
+            "Cascade produced different output on identical inputs — \
+             internal nondeterminism detected");
+    }
+}
+```
+
+**Key verification points**:
+- `run_cascade` signature takes `&Store` + `&[Datom]` only — `AgentId` and `SystemTime`
+  are not in scope (enforced by Rust's type system, verified by `V:TYPE`)
+- Cascade datom `EntityId` is derived from content (conflict entity, attribute, values),
+  not from detection metadata
+- Same merged state `S₁ ∪ S₂ = S₂ ∪ S₁` produces same cascade regardless of merge order
+
+### §10.7.11 INV Cross-Reference Index
 
 Summary of which INVs each harness in the CRDT Verification Suite covers:
 
@@ -1421,10 +1535,11 @@ Summary of which INVs each harness in the CRDT Verification Suite covers:
 | Conservative Detection | §10.7.7 | INV-RESOLUTION-003, INV-RESOLUTION-004, NEG-RESOLUTION-002, §4.3.2 |
 | Resolution-Merge Composition | §10.7.8 | §4.3.1, INV-RESOLUTION-002, NEG-RESOLUTION-001 |
 | Causal Independence | §10.7.9 | INV-STORE-010, INV-RESOLUTION-004(6) |
+| Cascade Determinism | §10.7.10 | INV-MERGE-010, ADR-MERGE-005 |
 
-**Total coverage**: 16 INVs, 5 algebraic laws (L1-L5), 2 formal proofs (§4.3.1, §4.3.2),
-3 ADRs, 2 negative cases.
+**Total coverage**: 17 INVs, 5 algebraic laws (L1-L5), 2 formal proofs (§4.3.1, §4.3.2),
+4 ADRs, 2 negative cases.
 
-**Test count at 256 cases/property**: 24 properties x 256 = 6,144 property evaluations per run.
+**Test count at 256 cases/property**: 26 properties x 256 = 6,656 property evaluations per run.
 
 ---

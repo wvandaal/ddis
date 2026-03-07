@@ -220,6 +220,25 @@ For each, verify the lattice definition is complete (all 4 required properties p
 
 ---
 
+### Schema and MVCC Snapshots (ADR-STORE-016)
+
+Schema is part of Store's MVCC snapshot. Three consequences for implementors:
+
+1. **No split-brain**: Every `store.load()` via `ArcSwap` returns a Store whose Schema
+   matches its datoms exactly. A reader cannot observe a stale Schema with new datoms
+   or a new Schema with old datoms — both are the same `Arc<Store>`.
+
+2. **No coordination needed**: Unlike a design where Schema is versioned independently,
+   there is no need for "schema version checks," "schema refresh" calls, or
+   synchronization between Schema and Store updates. Schema consistency is structural
+   (ADR-SCHEMA-005, Option C), not a protocol obligation.
+
+3. **Merge rebuilds Schema**: When `merge(S₁, S₂)` introduces schema datoms, the
+   resulting Store value contains a Schema rebuilt via `Schema::from_store(merged_datoms)`.
+   This is step 3 (REBUILD SCHEMA) in the merge cascade (spec/07-merge.md §7.2).
+
+---
+
 ## §2.3 Type-Level Encoding
 
 | INV | Compile-Time Guarantee | Mechanism |

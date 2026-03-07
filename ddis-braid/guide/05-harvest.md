@@ -2,7 +2,8 @@
 
 > **Spec reference**: [spec/05-harvest.md](../spec/05-harvest.md) — read FIRST
 > **Stage 0 elements**: INV-HARVEST-001–003, 005, 007 (5 INV), ADR-HARVEST-001–004, NEG-HARVEST-001–003
-> **Dependencies**: STORE (§1), SCHEMA (§2), QUERY (§3), RESOLUTION (§4), MERGE-basic (§7)
+> **Later stages**: INV-HARVEST-004 (Stage 1), 006 (Stage 1), 008 (Stage 2), 009 (Stage 2)
+> **Dependencies**: STORE (§1), SCHEMA (§2), QUERY (§3), RESOLUTION (§4)
 > **Cognitive mode**: Information-theoretic — epistemic gaps, information gain, pipeline
 
 ---
@@ -91,6 +92,23 @@ pub struct SessionContext {
     pub recent_transactions: Vec<TxId>,
     pub task_description:   String,
 }
+
+/// Micro-transaction annotation from continuous externalization (INV-HARVEST-009).
+/// These are structured hints that feed into the harvest pipeline as pre-candidates.
+/// Stage 2+: generated via externalization obligations in dynamic CLAUDE.md.
+pub struct ExternalizationAnnotation {
+    pub category:    HarvestCategory,       // observation | decision | dependency | uncertainty
+    pub description: String,                // what was learned
+    pub response_id: usize,                 // which response produced this
+    pub confidence:  f64,                   // self-assessed confidence (0.0-1.0)
+}
+
+/// Ingest externalization annotations into harvest pipeline (INV-HARVEST-009).
+/// Filters annotations already in store, boosts confidence of remaining to ≥ 0.7.
+pub fn ingest_annotations(
+    store: &Store,
+    annotations: &[ExternalizationAnnotation],
+) -> Vec<HarvestCandidate>;
 
 /// Harvest session entity — records metadata for a completed harvest (INV-HARVEST-002).
 /// Created by harvest_session_entity() and transacted into the store.
@@ -199,12 +217,78 @@ The D4 analysis confirms alignment with the spec's formal model:
 - **Bounded conversation lifecycle** (INV-HARVEST-007): Forces regular harvests, preventing
   unbounded epistemic gap accumulation. Confirmed as essential.
 
-### Acknowledged Weakness
+### Category 5 Knowledge Capture Strategy
 
-Category 5 knowledge (reasoning conclusions) **will be systematically missed** at Stage 0.
-The structured harvest prompt template mitigates but does not eliminate this. Tracking FP/FN
-rates from day one (even before INV-HARVEST-004 is formally active) provides the data needed
-to improve detection at Stage 1.
+Category 5 knowledge (reasoning conclusions, trade-off assessments, confidence levels) is
+**not directly observable** — it exists only in the agent's internal reasoning, never surfaced
+through tool calls or transactions. Rather than improving heuristic detection (which hits a
+fundamental ceiling), the architectural approach is to **shrink Category 5 by converting it
+to other categories in real time**.
+
+#### The Three Mechanisms
+
+**Mechanism 1: Structured Harvest Prompt (Stage 0)**
+
+The harvest prompt template (above) asks targeted questions that activate specific knowledge
+categories: "What files did you read?", "What decisions did you make?", "What uncertainties
+did you discover?". This converts some Category 5 → Category 2 by prompting the agent to
+articulate implicit knowledge while attention is still partially available.
+
+**Limitation**: At session end, attention budget is degraded — the agent cannot reliably
+self-report knowledge it doesn't know it has. Capture rate: ~60-70%.
+
+**Mechanism 2: Continuous Externalization Protocol (Stage 1-2, INV-HARVEST-009)**
+
+Instead of detecting Category 5 knowledge after the fact, the dynamic CLAUDE.md
+(INV-GUIDANCE-007) injects **externalization obligations** that prompt the agent to annotate
+every response with micro-transaction markers at the moment of discovery:
+
+```
+↳ Learned: [decision] Chose redb over rocksdb for single-process constraint
+↳ Learned: [observation] BTreeSet ordering matches INV-STORE-003 requirements
+↳ Learned: [uncertainty] HLC clock accuracy under high write load untested
+```
+
+Key insight: externalize while attention is *high* (during the response that produced the
+conclusion), not at session end when attention is *degraded*. These annotations are NOT
+auto-committed — they feed into the harvest pipeline as pre-candidates with boosted
+confidence (≥ 0.7 floor).
+
+**Mechanism 3: Fresh-Agent Category 5 Review (Stage 2, ADR-HARVEST-004)**
+
+The depleted agent proposes harvest candidates. A **fresh agent** with full attention budget
+reviews the conversation transcript (not just the tool call log) and specifically hunts for
+Category 5 residuals:
+
+1. Implicit conclusions not captured by externalization annotations
+2. Trade-off assessments where the reasoning wasn't recorded
+3. Confidence levels expressed in conversation but not as uncertainty datoms
+4. Behavioral changes suggesting the agent learned something unrecorded
+
+This exploits **maximum context asymmetry**: the fresh agent sees the transcript with full
+attention and no knowledge of what "should" have been externalized, making it an effective
+auditor of the depleted agent's blind spots.
+
+#### Stage-by-Stage Capture Trajectory
+
+| Stage | Category 5 Capture | Mechanisms Active |
+|-------|-------------------|-------------------|
+| 0 | ~60-70% | Structured harvest prompt only |
+| 1 | ~80-85% | + Continuous externalization via CLAUDE.md |
+| 2 | ~90-95% | + Fresh-agent review targeting Category 5 |
+| 3+ | ~95-98% | + Cross-agent externalization, transcript analysis, FP/FN learning |
+
+The ~2-5% residual at convergence represents the **rate-distortion limit**: genuinely tacit
+knowledge that the agent cannot articulate regardless of prompting strategy. This is not a
+failure of the system — it is the theoretical floor.
+
+#### Transcript Analysis as Detection Source
+
+The harvest pipeline's Layer 2 (LLM-assisted detection) should analyze the **conversation
+transcript**, not just the tool call log. Tool call logs capture *what the agent did*;
+conversation transcripts capture *what the agent concluded*. At Stage 0, this is implicit
+in the structured harvest prompt (the agent reviews its own reasoning). At Stage 2+, the
+fresh-agent reviewer explicitly analyzes the transcript for un-externalized knowledge.
 
 ---
 
@@ -228,6 +312,8 @@ to improve detection at Stage 1.
   conversations are bounded reasoning trajectories.
 - INV-HARVEST-008: Delegation Topology Support — harvest review topology selected by
   commitment weight (self/peer/swarm/hierarchical/human) (Stage 2).
+- INV-HARVEST-009: Continuous Externalization Protocol — agents annotate responses with
+  micro-transaction markers; annotations become pre-candidates with boosted confidence (Stage 2).
 
 **State box** (internal design):
 - Pipeline is a pure function: `(Store, SessionContext) → HarvestResult`.
@@ -379,6 +465,8 @@ proptest! {
 - [ ] Quality metrics (FP/FN tracking) computed
 - [ ] Drift score computation
 - [ ] Integration with STORE: committed candidates become permanent datoms
+- [ ] `ExternalizationAnnotation` type defined (INV-HARVEST-009)
+- [ ] `ingest_annotations()` converts annotations to boosted candidates
 - [ ] All proptest properties pass
 
 ---

@@ -31,6 +31,7 @@ For each namespace in build order:
 | Namespace | Cognitive Mode | Primary Reasoning |
 |-----------|---------------|-------------------|
 | STORE | Algebraic | Set theory, CRDT laws, commutativity proofs |
+| LAYOUT | Algebraic | Structure-preserving maps, isomorphisms, functors |
 | SCHEMA | Ontological | Category theory, bootstrap, self-description |
 | QUERY | Language-theoretic | Datalog semantics, CALM, fixpoint evaluation |
 | RESOLUTION | Order-theoretic | Lattices, partial orders, conflict predicates |
@@ -39,6 +40,7 @@ For each namespace in build order:
 | SEED | Retrieval-theoretic | Relevance, compression, trajectory seeds |
 | GUIDANCE | Control-theoretic | Basin dynamics, anti-drift, feedback loops |
 | INTERFACE | Prompt-engineering | LLM activation, output algebra, token budgets |
+| TRILATERAL | Coherence-theoretic | Divergence metrics, formality gradients, convergence monotonicity |
 
 ### Reading order per namespace
 
@@ -52,6 +54,7 @@ spec (what it must do) → guide (how to build it) → code (the implementation)
 |------------|-----------|------------|---------------------|
 | [00-architecture.md](00-architecture.md) | [00-preamble.md](../spec/00-preamble.md) | §4, §10, §11 | FD, AS, SR |
 | [01-store.md](01-store.md) | [01-store.md](../spec/01-store.md) | §4, §11 | FD-001–012, AS-001–010 |
+| [01b-storage-layout.md](01b-storage-layout.md) | [01b-storage-layout.md](../spec/01b-storage-layout.md) | §4 | FD-001/007/013, AS-001, SR-006/007 |
 | [02-schema.md](02-schema.md) | [02-schema.md](../spec/02-schema.md) | §4 | SR-008–010, FD-005/008 |
 | [03-query.md](03-query.md) | [03-query.md](../spec/03-query.md) | §4 | FD-003, SQ-001–010 |
 | [04-resolution.md](04-resolution.md) | [04-resolution.md](../spec/04-resolution.md) | §4 | FD-005, CR-001–006 |
@@ -63,6 +66,8 @@ spec (what it must do) → guide (how to build it) → code (the implementation)
 | [10-verification.md](10-verification.md) | [16-verification.md](../spec/16-verification.md) | — | — |
 | [11-worked-examples.md](11-worked-examples.md) | Multiple | §4, §5, §8, §10 | — |
 | [12-stages-1-4.md](12-stages-1-4.md) | [17-crossref.md](../spec/17-crossref.md) | §10 | — |
+| [10b-budget.md](10b-budget.md) | [13-budget.md](../spec/13-budget.md) | §7 | GU-001–008 |
+| [13-trilateral.md](13-trilateral.md) | [18-trilateral.md](../spec/18-trilateral.md) | §1, §2, §3, §5, §6 | CO-001, CO-004–005 |
 
 ---
 
@@ -71,23 +76,27 @@ spec (what it must do) → guide (how to build it) → code (the implementation)
 The dependency graph (from spec/17-crossref.md §17.2) determines the implementation order:
 
 ```
-1. STORE ──────────────────────────────────────── guide/01-store.md
-   ↓
-2. SCHEMA ─────────────────────────────────────── guide/02-schema.md
-   ↓
-3. QUERY ──────────────────────────────────────── guide/03-query.md
-   ↓
-4. RESOLUTION ─────────────────────────────────── guide/04-resolution.md
-   ↓
-5. HARVEST ────────────────────────────────────── guide/05-harvest.md
-   ↓
-6. SEED ───────────────────────────────────────── guide/06-seed.md
-   ↓
-7. MERGE (basic: INV-MERGE-001, 008–009) ─────── guide/07-merge-basic.md
-   ↓
-8. GUIDANCE ───────────────────────────────────── guide/08-guidance.md
-   ↓
-9. INTERFACE ──────────────────────────────────── guide/09-interface.md
+ 1. STORE ──────────────────────────────────────── guide/01-store.md
+    ↓
+ 2. LAYOUT ─────────────────────────────────────── guide/01b-storage-layout.md
+    ↓
+ 3. SCHEMA ─────────────────────────────────────── guide/02-schema.md
+    ↓
+ 4. QUERY ──────────────────────────────────────── guide/03-query.md
+    ↓
+ 5. RESOLUTION ─────────────────────────────────── guide/04-resolution.md
+    ↓
+ 6. HARVEST ────────────────────────────────────── guide/05-harvest.md
+    ↓
+ 7. SEED ───────────────────────────────────────── guide/06-seed.md
+    ↓
+ 8. MERGE (basic: INV-MERGE-001–002, 008–010) ──── guide/07-merge-basic.md
+    ↓
+ 9. GUIDANCE ───────────────────────────────────── guide/08-guidance.md
+    ↓
+10. INTERFACE ──────────────────────────────────── guide/09-interface.md
+    ↓
+11. TRILATERAL ─────────────────────────────────── guide/13-trilateral.md
 ```
 
 **Gate between namespaces**: Before advancing to the next namespace, all quality gates
@@ -97,46 +106,46 @@ for the current namespace must pass (see guide/10-verification.md).
 
 ## Stage 0 Scope
 
-**62 invariants** across 9 namespaces (full inclusion for STORE, RESOLUTION; partial
-for SCHEMA, QUERY, HARVEST, SEED, MERGE, GUIDANCE, INTERFACE).
+**83 invariants** across 11 namespaces (full inclusion for STORE, LAYOUT, RESOLUTION;
+partial for SCHEMA, QUERY, HARVEST, SEED, MERGE, GUIDANCE, INTERFACE, TRILATERAL).
 Full list in spec/17-crossref.md Appendix C and spec/16-verification.md matrix.
 
-**Count verification** (from spec/16-verification.md, confirmed by D1-scope-boundary.md):
+**Count verification** (from spec/16-verification.md, cross-checked against spec/17-crossref.md):
 
 | Namespace | Count | Elements |
 |-----------|-------|----------|
 | STORE | 13 | 001-012, 014 |
+| LAYOUT | 11 | 001-011 (all) |
 | SCHEMA | 7 | 001-007 (006 progressive, 008 deferred to Stage 2) |
 | QUERY | 10 | 001-002, 005-007, 012-014, 017, 021 |
 | RESOLUTION | 8 | 001-008 (all) |
 | HARVEST | 5 | 001-003, 005, 007 |
-| SEED | 4 | 001-004 |
-| MERGE | 4 | 001-002, 008-009 |
+| SEED | 6 | 001-006 |
+| MERGE | 5 | 001-002, 008-010 |
 | GUIDANCE | 6 | 001-002, 007-010 |
-| INTERFACE | 5 | 001-003, 008-009 |
-| **Total** | **62** | |
-
-Note: D1 report counted 61 because Appendix C's detailed prose does not explicitly list
-INV-MERGE-009, but the verification matrix (spec/16-verification.md) assigns MERGE-009 to
-Stage 0. The authoritative count is **62**, consistent with Appendix C's header and Appendix B.
+| INTERFACE | 6 | 001-003, 008-010 |
+| TRILATERAL | 6 | 001-003, 005-007 |
+| **Total** | **83** | |
 
 ### Sub-Staging Recommendation (from D1-scope-boundary.md)
 
-62 invariants is aggressive for the SEED.md "1-2 week" target. The recommended approach
+83 invariants is aggressive for the SEED.md "1-2 week" target. The recommended approach
 is to split Stage 0 into two sub-stages:
 
-**Stage 0a — Foundation** (38 INV, ~2-3 weeks):
+**Stage 0a — Foundation** (49 INV, ~3-4 weeks):
 - STORE (13): Append-only datom store, CRDT algebra, HLC, indexes
+- LAYOUT (11): Content-addressed transaction files, directory-union merge, persistence
 - SCHEMA (7): Genesis, axiomatic attributes, six-layer architecture
 - QUERY (10): Datalog engine (Strata 0-1), graph algorithms (topo sort, SCC, PageRank, critical path, density)
 - RESOLUTION (8): Per-attribute conflict handling, three-tier routing
 
-**Stage 0b — Lifecycle + Intelligence** (24 INV, ~2 weeks):
+**Stage 0b — Lifecycle + Intelligence** (34 INV, ~3 weeks):
 - HARVEST (5): Epistemic gap detection, pipeline, proactive warnings
-- SEED (4): Associate/assemble/compress, dynamic CLAUDE.md
-- MERGE (4): Pure set-union merge, deduplication
+- SEED (6): Associate/assemble/compress, dynamic CLAUDE.md
+- MERGE (5): Pure set-union merge, deduplication, cascade stubs
 - GUIDANCE (6): Injection, anti-drift, M(t), task derivation, R(t) routing
-- INTERFACE (5): CLI modes, MCP tools, error recovery
+- INTERFACE (6): CLI modes, MCP tools, error recovery
+- TRILATERAL (6): Coherence model, divergence metric, formality gradient
 
 **Rationale**: Stage 0a validates the core store hypothesis (append-only, content-addressed,
 CRDT merge) before building the lifecycle layer. Stage 0b cannot function without a working
@@ -161,7 +170,7 @@ up without manual re-explanation.
 |------|---------|--------|--------|
 | 1: compile | `cargo check --all-targets` | V:TYPE patterns compile | Every commit |
 | 2: test | `cargo test` | V:PROP properties hold | Every commit |
-| 3: kani | `cargo kani` | V:KANI bounded proofs | PRs to main |
+| 3: kani | `cargo kani` | V:KANI bounded proofs | Tiered: fast (PRs), full (nightly), extended (weekly) |
 | 4: clippy | `cargo clippy -- -D warnings` | Style, correctness lints | Every commit |
 | 5: format | `cargo fmt --check` | Consistent formatting | Every commit |
 
@@ -173,6 +182,7 @@ up without manual re-explanation.
 |------|-------|---------|
 | [00-architecture.md](00-architecture.md) | ~600 | Crate layout, type catalog, CLI/MCP specs, LLM-native design |
 | [01-store.md](01-store.md) | ~300 | STORE build plan — append-only datom store, CRDT algebra |
+| [01b-storage-layout.md](01b-storage-layout.md) | ~380 | LAYOUT build plan — content-addressed persistence, directory-union merge |
 | [02-schema.md](02-schema.md) | ~250 | SCHEMA build plan — genesis, axiomatic attributes, layers |
 | [03-query.md](03-query.md) | ~300 | QUERY build plan — Datalog engine, strata 0–1 |
 | [04-resolution.md](04-resolution.md) | ~250 | RESOLUTION build plan — per-attribute conflict handling |
@@ -184,3 +194,5 @@ up without manual re-explanation.
 | [10-verification.md](10-verification.md) | ~300 | Verification pipeline, CI gates, coverage matrix |
 | [11-worked-examples.md](11-worked-examples.md) | ~550 | Self-bootstrap, session transcripts, Datalog queries |
 | [12-stages-1-4.md](12-stages-1-4.md) | ~200 | Future roadmap, extension points |
+| [10b-budget.md](10b-budget.md) | ~35 | BUDGET build plan stub (Stage 1) |
+| [13-trilateral.md](13-trilateral.md) | ~350 | TRILATERAL build plan — trilateral coherence model |
