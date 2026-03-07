@@ -88,7 +88,7 @@ After cross-agent deduplication, the 30 raw CRITICAL findings reduced to **18 un
 | CRDT properties broken | 2 |
 | Self-bootstrap score | 82/100 |
 | Verification feasibility | 97.8% (182/186) |
-| ADRS traceability | ~92% formalized |
+| ADRS traceability | ~92% formalized (pre-audit); 100% formalized (post-Session-013) |
 | Spec internal contradictions | 3 |
 
 ---
@@ -103,7 +103,7 @@ Resolved all 5 Category A critical mismatches:
 - **A1 (LWW)**: ADR-RESOLUTION-009 written; both spec and guide now specify BLAKE3 hash tie-breaking
 - **A2 (INV-MERGE-008)**: Renumbered; INV-MERGE-008 retained for delivery semantics, INV-MERGE-009 created for receipt recording
 - **A3 (MCPServer)**: ADR-INTERFACE-004 amended; both documents aligned on `Arc<Store>` model with subprocess architecture
-- **A4 (NEG-SCHEMA-001)**: ADR wins; schema is borrowed, not owned
+- **A4 (NEG-SCHEMA-001)**: Store owns Schema internally (Option C, ADR-SCHEMA-005). NEG-SCHEMA-001 updated to align — schema is derived from datoms via `Schema::from_store()`, not external definitions
 - **A5 (Stratum)**: Spec corrected to match ADRS.md SQ-002
 
 ### R1 -- Type System Reconciliation (21 beads, all closed)
@@ -130,7 +130,7 @@ Completed all outstanding proofs:
 Four research reports and one systemic pattern investigation:
 - **D1 (Stage 0 Scope)**: Feasibility validated; 8 simplification notes added; scope achievable with AI agent pair
 - **D2 (Datalog)**: Comprehensive engine comparison and implementation guidance
-- **D3 (Kani CI)**: Time revised to 60+ minutes with incremental caching; per-namespace jobs recommended
+- **D3 (Kani CI)**: Spec corrected to three-tier pipeline (5a/5b/5c); all 41 harnesses retained; spec-guide divergence fixed
 - **D4 (K_agent Harvest)**: Reframed as heuristic detection with FP/FN calibration
 - **Pattern 4 (Token Counting)**: Tokenizer trait designed with explicit error bounds; ADR written
 
@@ -148,7 +148,7 @@ All 21 phantom types classified, defined, or tagged as non-Stage-0. Type coverag
 
 - **Self-Bootstrap**: Spec-to-datom pipeline designed, 3 contradiction checks defined, multi-level refinement schema added
 - **Verification**: Alternative strategies for 4 infeasible Kani items documented; 100% feasibility achieved (41/41 V:KANI feasible after reclassification and alternative verification paths)
-- **Traceability**: 100% bilateral traceability achieved (72/72 spec ADR entries cross-referenced with ADRS.md)
+- **Traceability**: 100% bilateral traceability achieved — backward (spec → ADRS.md): 120/120 spec ADR entries; forward (ADRS.md → spec): 154/154 entries fully formalized (45 former Scope entries formalized as ADR elements in Session 013, adding 3 new namespaces: FOUNDATION, UNCERTAINTY, VERIFICATION)
 - **Divergences**: 60 of 67 resolved (90%); remaining 7 are intentional stage-scoping or low-severity documentation items
 - **FAILURE_MODES.md**: 10 new entries (FM-010 through FM-019) written; 5 existing entries cross-referenced
 - **Wave 1 findings**: All 214 non-critical findings classified (see Section 10)
@@ -172,7 +172,7 @@ All 21 phantom types classified, defined, or tagged as non-Stage-0. Type coverag
 |--------|-----------|-------------------|-------|
 | Total INVs | 121 | **124** | +3 |
 | Stage 0 INVs | ~61 | **64** | +3 |
-| Total spec elements | 233 | **238** | +5 |
+| Total spec elements | 233 | **295** | +62 (incl. +45 ADRs from Session 013, +6 simplification ADRs from Session 014) |
 | Spec-guide divergences | 67 | **~7** (low-severity) | -60 (90% resolved) |
 | Type divergences (D1--D13) | 13 | **0** | -13 (100% resolved) |
 | SPEC-GAP markers | 4 | **0** | -4 (100% resolved) |
@@ -183,7 +183,7 @@ All 21 phantom types classified, defined, or tagged as non-Stage-0. Type coverag
 | Self-bootstrap score | 82/100 | **Designed** | Pipeline + 3 checks defined |
 | Verification feasibility | 97.8% | **100%** | +2.2% (alt strategies) |
 | V:KANI feasible | 34/38 → 38/41 | **41/41** | 100% |
-| ADRS traceability | ~92% | **100% bilateral** | 72/72 spec ADR entries |
+| ADRS traceability | ~92% | **100% bilateral, 100% formalized** | Backward: 120/120 spec ADRs; Forward: 154/154 entries formalized (0 Scope remaining) |
 | Failure modes cataloged | 9 | **19** | +10 from audit |
 
 ### Epic Completion
@@ -211,7 +211,7 @@ All 21 phantom types classified, defined, or tagged as non-Stage-0. Type coverag
 | A1 | LWW tie-breaking: spec said agent ID, guide said BLAKE3 hash | ADR-RESOLUTION-009: BLAKE3 canonical. Both documents updated. |
 | A2 | INV-MERGE-008 dual semantics | INV-MERGE-008 = delivery semantics (spec canonical). INV-MERGE-009 created for receipt recording. |
 | A3 | MCPServer: spec = library `&Store`, guide = file `PathBuf` | ADR-INTERFACE-004 amended. Aligned on `Arc<Store>` subprocess model. |
-| A4 | NEG-SCHEMA-001 vs ADR-SCHEMA-005 | ADR wins. Schema borrowed, not owned. Contradiction eliminated. |
+| A4 | NEG-SCHEMA-001 vs ADR-SCHEMA-005 | ADR wins. Store owns Schema internally (Option C). NEG-SCHEMA-001 means "no external schema definitions" — not "Schema has no owner." Contradiction was scope confusion, not P∧¬P. |
 | A5 | Stratum monotonicity contradiction | Spec corrected to match SQ-002. |
 
 ### Category B: 67 Divergences -- 32 Fixed, 32 Remaining (low-severity), 3 Intentional
@@ -245,13 +245,38 @@ None of the remaining 32 items block Stage 0 implementation. They represent docu
 
 All 24 proptest harnesses designed. All 8 Kani harnesses designed. TLA+ specification written.
 
-### Category D: Systemic/Scope -- All 5 Addressed
+### Category D: Systemic/Scope -- 5 Addressed (D1 corrected in Session 012)
 
 | # | Finding | Resolution |
 |---|---------|------------|
-| D1 | Stage 0 scope unrealistic | Feasibility validated; 8 simplification notes added; scope achievable for AI agent pair |
+| D1 | Stage 0 scope unrealistic | Feasibility validated; 8 simplification notes written; 6 formalized as ADRs (Session 013). See D1 Simplification Detail below. |
+
+#### D1 Simplification Detail (Retroactive Triage — Session 013)
+
+**Process note**: These 8 simplification notes were added directly to spec files during
+the V1 audit without individual user review. The user directive was: *"ALL proposed
+simplifications should be explicitly added to the audit triage document for my review."*
+This table retroactively documents each simplification with the review that should have
+occurred at the time. All simplifications were formally approved and formalized as ADR
+elements in Session 013.
+
+| # | INV Affected | Simplification | Why Necessary | Risk | Stage for Full Behavior | ADR |
+|---|-------------|----------------|---------------|------|------------------------|-----|
+| 1 | INV-HARVEST-005 | Q(t) → turn-count proxy (warn 20, imperative 40) | Q(t) requires BUDGET (Stage 1); turn count cannot be computed without k\*\_eff | Asymmetric: too-early safe but wasteful; too-late causes knowledge loss. Turn count is poor proxy for context consumption (a 50-file read ≠ a one-line edit) | Stage 1 | ADR-HARVEST-007 |
+| 2 | INV-GUIDANCE-001 | k\*\_eff → M(t) with 4/5 sub-metrics + store state (REVISED from original static template) | k\*\_eff requires BUDGET (Stage 1); M(t) sub-metrics m1-m4 computable from store alone | Original static template was too weak for anti-drift. Revised to include M(t), providing meaningful basin-redirecting signal. m5 (guidance\_compliance) still deferred | Stage 1 | ADR-GUIDANCE-008 |
+| 3 | INV-GUIDANCE-009 | Betweenness in task derivation → degree-product proxy | INV-QUERY-015 (betweenness centrality) is Stage 1; O(V×E) computation | Degree-product correlates with betweenness for DAGs but misses non-local bottleneck patterns | Stage 1 | ADR-GUIDANCE-009 |
+| 4 | INV-GUIDANCE-010 | Betweenness in R(t) formula → degree-product proxy (FIXED from original "default 0.5") | Same as #3 | Original "default 0.5" provided zero signal (all tasks identical on g₂). Degree-product proxy provides meaningful differentiation. Spec/guide divergence resolved | Stage 1 | ADR-GUIDANCE-009 |
+| 5 | INV-RESOLUTION-007 | Conflict pipeline steps 4-6 → stub datoms | Step 4: TUI (Stage 4); Step 5: uncertainty tensor (Stage 1); Step 6: cache invalidation (Stage 1) | Uncertainty not updated on conflict detection — tensor becomes stale. Mitigated by single-agent Stage 0 (conflicts rare) | Steps 5-6: Stage 1; Step 4: Stage 4 | ADR-RESOLUTION-013 |
+| 6 | NEG-INTERFACE-003 | Q(t) < 0.15 safety property → turn ≥ 20 proxy | Same root cause as #1 | Same asymmetric risk as #1. Safety property preserved (proxy is conservative — strengthens, not weakens) | Stage 1 | ADR-INTERFACE-010 |
+| 7 | INV-MERGE-002 | Merge cascade steps 2-5 → stub datoms | Steps require query invalidation, uncertainty tensor, projection management (all Stage 1+) | Stale queries/projections not invalidated post-merge. Mitigated by single-agent Stage 0 (no inter-agent merges). Self-merges (branch-to-trunk) retain residual risk | Stage 1 | ADR-MERGE-007 |
+| 8 | INV-GUIDANCE-010 | R(t) betweenness component → degree-product proxy implementation | Betweenness O(V×E) too expensive; INV-QUERY-015 is Stage 1 | Implementation detail of #4. `proxy_betweenness(e) = in_degree(e) * out_degree(e) / max_product` — O(1) per node | Stage 1 | ADR-GUIDANCE-009 |
+
+**Corrections applied in Session 013**:
+- Simplification #2 REVISED: Original static footer (`↳ Spec: [refs] | Store: [count] | Session: [turn]`) upgraded to include M(t) with 4/5 sub-metrics. The original was identified as too weak for Basin B anti-drift.
+- Simplification #4 FIXED: Spec said "default 0.5" but guide said "in/out-degree proxy." Spec/guide divergence resolved in favor of guide's degree-product proxy (strictly better than constant 0.5).
+- All 8 simplifications formalized as 6 ADR elements (some simplifications share the same underlying decision).
 | D2 | Datalog engine zero guidance | Comprehensive engine comparison and guidance report |
-| D3 | Kani CI time unrealistic | Revised to 60+ min; per-namespace jobs; incremental caching |
+| D3 | Kani CI time unrealistic | Spec Gate 5 corrected to three-tier pipeline: 5a (<5m, every PR), 5b (<30m, nightly), 5c (<2h, weekly). All 41 V:KANI harnesses retained — no scope cuts, only CI scheduling. Spec-guide divergence fixed in Session 012. |
 | D4 | K_agent harvest overreach | Reframed as heuristic; FP/FN calibration; no claim on unexpressed knowledge |
 | D5 | Token counting undefined | Tokenizer trait designed; error bounds documented; ADR written |
 
@@ -267,7 +292,7 @@ The audit identified 5 systemic patterns accounting for ~60% of findings:
 | P2: Seed Section Names | 3 different naming schemes across 3 documents | RESOLVED | Unified to: Orientation, Decisions, Context, Warnings, Task |
 | P3: Phantom Types | 21 types referenced but never defined | RESOLVED | All classified, defined, removed, or tagged as non-Stage-0 |
 | P4: Token Counting | "Token count" used without specifying a tokenizer | RESOLVED | Tokenizer trait + error bounds + ADR |
-| P5: Spec Internal Contradictions | 3 contradictions within spec itself | RESOLVED | NEG-SCHEMA-001 (ADR wins), stratum (corrected), V-tag (matrix corrected) |
+| P5: Spec Internal Contradictions | 3 contradictions within spec itself | RESOLVED | NEG-SCHEMA-001 (Store owns Schema, Option C — scope confusion resolved, see ADR-SCHEMA-005 Stage 3 analysis), stratum (spec corrected to SQ-002), V-tag (matrix corrected to V:PROP+V:KANI) |
 
 ---
 
@@ -289,7 +314,7 @@ Post-remediation: 100% feasible (41/41 V:KANI). Alternative verification strateg
 
 Pre-audit: 100% forward (SEED to spec), ~92% ADRS formalization, 3 orphan spec ADRs.
 
-Post-remediation: 100% bilateral (72/72 spec ADR entries cross-referenced with ADRS.md). Orphan ADRs backported. 0 contradictions between ADRS.md and spec.
+Post-remediation: 100% bilateral. Backward (spec → ADRS.md): 72/72 spec ADR entries cross-referenced. Forward (ADRS.md → spec): all 154 entry headings (153 unique IDs + 1 SQ-011 duplicate) carry forward annotations — 110 with `Formalized as/across` links (69 pre-existing + 41 added), 23 with `Scope: Meta-level` annotations (design philosophy informing multiple namespaces), 21 with `Scope: Implementation-level` annotations (formalized in guide only). Orphan ADRs backported. 0 contradictions between ADRS.md and spec.
 
 ### Divergence Resolution
 
@@ -378,6 +403,12 @@ Six decisions were pre-approved by the user in the triage prompt and applied wit
 | B5 | Guide's Stage 0 MergeReceipt fields | Prefer higher specificity and precision |
 | P1 | Free functions over Store methods | Better modularity, Rust idioms, guide already consistent |
 
+One additional decision was reviewed from first principles by the user:
+
+| ID | Decision | Rationale |
+|----|----------|-----------|
+| A4r | Option C (Store owns Schema) correct for all stages; Option B rejected as consistency hazard; ADR-STORE-016 created for MVCC model | User first-principles review (2026-03-05): three Option B hazards identified (stale schema + new datoms, new schema + old datoms, resolution mode mismatch during merge). Schema-datom consistency is structural under Option C + MVCC, not a coordination obligation. Audit triage descriptions corrected. |
+
 No items requiring further user review remain open.
 
 ---
@@ -444,13 +475,13 @@ The V1 Braid specification audit (IEEE 1028-2008 Fagan inspection, 14 agents, 2 
 | Beads closed | 198 |
 | Beads remaining open | 9 (R7 verification/finalization tasks) |
 
-**Category A -- Critical Behavioral Mismatches**: 5/5 RESOLVED. LWW tie-breaking (ADR-RESOLUTION-009: BLAKE3), INV-MERGE-008 dual semantics (renumbered; INV-MERGE-009 created), MCPServer model (ADR-INTERFACE-004: `Arc<Store>` subprocess), NEG-SCHEMA-001 vs ADR-SCHEMA-005 (ADR wins), stratum monotonicity (spec corrected to SQ-002). Zero critical behavioral mismatches remain.
+**Category A -- Critical Behavioral Mismatches**: 5/5 RESOLVED. LWW tie-breaking (ADR-RESOLUTION-009: BLAKE3), INV-MERGE-008 dual semantics (renumbered; INV-MERGE-009 created), MCPServer model (ADR-INTERFACE-004: `Arc<Store>` subprocess), NEG-SCHEMA-001 vs ADR-SCHEMA-005 (Store owns Schema, Option C — scope confusion, not true P∧¬P; see ADR-SCHEMA-005 Stage 3 analysis and ADR-STORE-016), stratum monotonicity (spec corrected to SQ-002). Zero critical behavioral mismatches remain.
 
 **Category B -- 67 Spec-Guide Divergences**: 32 fixed, 32 remaining (low-severity), 3 intentional stage-scoping. All 5 CRITICAL divergences resolved. 13 of 19 HIGH divergences resolved. The 32 remaining items are documentation-level refinements (6 HIGH, 13 MEDIUM, 13 LOW) that do not block Stage 0 implementation -- design decisions are settled, prose alignment will occur during implementation.
 
 **Category C -- CRDT Formal Proofs**: All 7 core properties proven (was 5 proven, 5 unproven, 2 broken). Cascade commutativity and associativity restored via post-merge fixpoint specification. Causal independence corrected to use predecessor sets instead of HLC. User-defined lattice validation added (semilattice witness at schema definition). 24 proptest harnesses designed. 8 Kani harnesses designed. TLA+ specification written (`braid-crdt.tla`).
 
-**Category D -- Systemic/Scope**: All 5 patterns addressed. Stage 0 scope validated with 8 simplification notes. Datalog engine comparison and guidance completed. Kani CI revised to 60+ minutes with incremental caching. K_agent reframed as heuristic. Token counting specified with Tokenizer trait and error bounds.
+**Category D -- Systemic/Scope**: All 5 patterns addressed. Stage 0 scope validated with 8 simplification notes (5 written, 3 added Session 012 — FM-021). Datalog engine comparison and guidance completed. Kani CI corrected to three-tier pipeline (5a <5m PR, 5b <30m nightly, 5c <2h weekly); spec-guide divergence fixed Session 012. K_agent reframed as heuristic. Token counting specified with Tokenizer trait and error bounds.
 
 **Cross-Cutting Quality Metrics**:
 
@@ -458,7 +489,7 @@ The V1 Braid specification audit (IEEE 1028-2008 Fagan inspection, 14 agents, 2 
 |--------|-----------|-------------------|
 | Verification feasibility | 97.8% (182/186) | **100%** (41/41 V:KANI feasible) |
 | Self-bootstrap | 82/100 | **100% designed** (migration pipeline + 3 contradiction checks) |
-| Traceability | ~92% formalized | **100% bilateral** (72/72 spec ADR <-> ADRS.md) |
+| Traceability | ~92% formalized | **100% bilateral** (backward: 72/72 spec ADRs; forward: all 153 ADRS.md entries annotated) |
 | Total INVs | 121 | **124** |
 | Stage 0 INVs | ~61 | **64** |
 | Failure modes cataloged | 9 (FM-001 through FM-009) | **19** (FM-010 through FM-019 from audit) |

@@ -53,7 +53,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rationale**: Mutable state is the root of most correctness bugs in distributed systems. Append-only plus content-addressing gives arbitrary time-travel for free.
 **Rejected**: Mutable state (correctness risk, no time-travel); 2P-Set (once retracted, never re-assertable — gives any agent permanent veto power); OR-Set/Add-Wins (scoped retractions with unique tags — correct but adds identity complexity; unnecessary when retractions are modeled as facts).
 **Source**: SEED.md §4 Axiom 2, §11; Transcript 01 (five locked axioms, Options 2A/2B/2C)
-**Formalized as**: ADR-STORE-001 in `spec/01-store.md`
+**Formalized across**: ADR-STORE-001 in `spec/01-store.md`; ADR-TRILATERAL-002 in `spec/18-trilateral.md`
 
 ### FD-002: EAV Over Relational
 
@@ -140,7 +140,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Decision**: Every DDIS command becomes a transaction against the datom store. The bilateral loop (discover → refine → crystallize → datoms; scan → absorb → drift → datoms) maps entirely to store operations.
 **Rationale**: If any DDIS operation produces state outside the store, that state cannot be queried, conflict-detected, or coherence-verified. The store is the sole truth.
 **Source**: Transcript 01:866–924 (architecture diagram, command-to-transaction mapping)
-**Formalized as**: ADR-STORE-011 in `spec/01-store.md`
+**Formalized across**: INV-STORE-014, ADR-STORE-011 in `spec/01-store.md`
 
 ### FD-013: BLAKE3 for Content Hashing
 
@@ -452,7 +452,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Every signal (Confusion, Conflict, UncertaintySpike, ResolutionProposal, DelegationRequest, GoalDrift, BranchReady, DeliberationTurn) is recorded as a datom.
 **Invariant**: `INV-SIGNAL-DATOM-001`: signal history must be queryable.
 **Source**: Transcript 04:1715–1769
-**Formalized as**: ADR-SIGNAL-001 in `spec/09-signal.md`
+**Formalized across**: INV-SIGNAL-001, ADR-SIGNAL-001 in `spec/09-signal.md`
 
 ### PO-005: Confusion Signal as First-Class Protocol Operation
 
@@ -466,21 +466,21 @@ Specifications for the canonical protocol operations.
 **Decision**: MERGE propagates consequences: invalidated queries, new conflicts, uncertainty deltas, stale projections. All cascade effects recorded as datoms. The cascade is a **deterministic function of the merged datom set** — it does not depend on which agent executes it, when, or in what order the input stores were supplied. This determinism property (INV-MERGE-010) is what restores L1 (commutativity) and L2 (associativity) at the total post-merge state level.
 **Invariant**: `INV-MERGE-002` (cascade completeness), `INV-MERGE-010` (cascade determinism).
 **Source**: Transcript 04:64–78, 04:1642–1651; V1 Audit (Agent 10, R2.2)
-**Formalized as**: ADR-MERGE-001, ADR-MERGE-005 in `spec/07-merge.md`
+**Formalized across**: ADR-MERGE-001, ADR-MERGE-005, ADR-MERGE-007 in `spec/07-merge.md`
 
 ### PO-007: BRANCH — Six Sub-Operations with Competing-Branch Lock
 
 **Decision**: Fork, Commit, Combine (strategies: Union, SelectiveUnion, ConflictToDeliberation), Rebase, Abandon, Compare (criteria: FitnessScore, TestSuite, UncertaintyReduction, AgentReview, Custom). Competing branches locked from commit until comparison/deliberation.
 **Invariant**: `INV-BRANCH-COMPETE-001`, `INV-BRANCH-DELIBERATION-001` (ConflictToDeliberation opens deliberation).
 **Source**: Transcript 04:1524–1591
-**Formalized as**: ADR-MERGE-003 in `spec/07-merge.md`, ADR-MERGE-004 in `spec/07-merge.md`
+**Formalized across**: INV-MERGE-004, ADR-MERGE-003, ADR-MERGE-004 in `spec/07-merge.md`
 
 ### PO-008: SUBSCRIBE — Pattern-Based Push Notifications
 
 **Decision**: Registers Datalog-like pattern filter with callback. Debounce parameter batches rapid-fire matches.
 **Invariants**: `INV-SUBSCRIBE-COMPLETENESS-001` (fire for every match within refresh cycle), `INV-SUBSCRIBE-DEBOUNCE-001` (debounced notifications must batch within window).
 **Source**: Transcript 04:1772–1814
-**Formalized as**: ADR-SIGNAL-003 in `spec/09-signal.md`
+**Formalized across**: INV-SIGNAL-003, ADR-SIGNAL-003 in `spec/09-signal.md`
 
 ### PO-009: GUIDANCE — Query over Guidance Graph
 
@@ -549,7 +549,7 @@ Specifications for the canonical protocol operations.
 
 **Decision**: Strata 0–1 (monotonic) and Stratum 4 (conservatively monotonic) safe without coordination. Strata 2–3 (mixed/FFI) require frontier-specific evaluation (Stratified mode). Stratum 5 (non-monotonic bilateral loop) requires sync barriers (Barriered mode). `QueryMode = Monotonic | Stratified Frontier | Barriered BarrierId`.
 **Source**: Transcript 02:2047; Transcript 04:1190–1243
-**Formalized as**: ADR-QUERY-003 in `spec/03-query.md`
+**Formalized across**: INV-QUERY-005, ADR-QUERY-003 in `spec/03-query.md`
 
 ### SQ-005: Topology-Agnostic Resolution Invariant
 
@@ -600,7 +600,7 @@ Specifications for the canonical protocol operations.
 **Source**: Transcript 02:1318–1321 (σ_a), 02:1391 (σ_c), 02:1475–1476 (authority); Transcript 03:346–392, 03:422–466
 **Formalized as**: ADR-QUERY-004 in `spec/03-query.md`
 
-### SQ-011: QueryExpr as Two-Variant Enum (Find + Pull)
+### SQ-012: QueryExpr as Two-Variant Enum (Find + Pull)
 
 **Decision**: The top-level query expression `QueryExpr` is a two-variant enum (`Find(ParsedQuery)` and `Pull { pattern, entity }`), not a flat struct. `ParsedQuery` captures the full Datomic AST: `find_spec` (four Datomic find forms), `where_clauses`, `rules`, and `inputs`.
 **Rationale**: Pull queries and Find queries are categorically different operations with different evaluation strategies (O(1) entity lookup vs join-based Datalog evaluation). An enum models this distinction at the type level. `ParsedQuery` with four fields is the complete Datomic AST — the flat struct (`{find_spec, where_clauses}`) omitted rules and inputs, which are needed for stratum classification and parameterized queries. Choosing the flat struct would require a breaking API change later when Pull support is added.
@@ -709,7 +709,7 @@ Specifications for the canonical protocol operations.
 
 **Decision**: (1) Automatic (low severity — lattice/LWW per attribute), (2) Agent-with-notification (medium), (3) Human-required (high — blocks). Severity = `max(w(d₁), w(d₂))`.
 **Source**: Transcript 02; Transcript 04:1331–1342
-**Formalized as**: ADR-RESOLUTION-004 in `spec/04-resolution.md`
+**Formalized across**: INV-RESOLUTION-007, ADR-RESOLUTION-004 in `spec/04-resolution.md`
 
 ### CR-003: Conflict Detection and Routing as Datom Cascade
 
@@ -722,13 +722,13 @@ Specifications for the canonical protocol operations.
 **Decision**: Deliberation (process), Position (stance: `:advocate | :oppose | :neutral | :synthesize`), Decision (method: `:consensus | :majority | :authority | :human-override | :automated`). Deliberation history is a case law system.
 **Invariant**: `INV-DELIBERATION-BILATERAL-001`: supports both forward and backward flow with identical entity structure.
 **Source**: Transcript 04:745–828
-**Formalized as**: ADR-DELIBERATION-001, ADR-DELIBERATION-002 in `spec/11-deliberation.md`; ADR-RESOLUTION-005 in `spec/04-resolution.md`
+**Formalized across**: INV-DELIBERATION-001, ADR-DELIBERATION-001, ADR-DELIBERATION-002 in `spec/11-deliberation.md`; ADR-RESOLUTION-005 in `spec/04-resolution.md`
 
 ### CR-005: Crystallization Stability Guard
 
 **Decision**: Datom carries `:stability-min` guard. Cannot crystallize until stability score exceeds threshold (default 0.7). Conditions: status `:refined`, thread `:active`, parent confidence ≥ 0.6, coherence ≥ 0.6, no unresolved conflicts. Defense against premature crystallization: `:stability-min` as Datalog pre-filter.
 **Source**: Transcript 02; Transcript 03:942–990
-**Formalized as**: ADR-DELIBERATION-004 in `spec/11-deliberation.md`
+**Formalized across**: INV-DELIBERATION-002, ADR-DELIBERATION-004 in `spec/11-deliberation.md`
 
 ### CR-006: Formal Conflict Predicate
 
@@ -757,7 +757,7 @@ Specifications for the canonical protocol operations.
 **Decision**: Concrete Datalog query pattern `find-precedent` locates past deliberations relevant to a current conflict by matching entity type and contested attributes.
 **Rationale**: Makes deliberation history a "case law system" — past decisions inform future conflicts.
 **Source**: Transcript 04:798–828
-**Formalized as**: ADR-DELIBERATION-003 in `spec/11-deliberation.md`
+**Formalized across**: INV-DELIBERATION-003, ADR-DELIBERATION-003 in `spec/11-deliberation.md`
 
 ### CR-010: Causal Independence via Predecessor Graph, Not HLC
 
@@ -887,7 +887,7 @@ Specifications for the canonical protocol operations.
 **Decision**: `ddis harvest` extracts durable facts; `ddis seed` generates carry-over. Agent lifecycle: SEED → work 20–30 turns → HARVEST → reset → GOTO SEED.
 **Invariant**: `INV-TRAJECTORY-STORE-001`: Seed output five-part template: (1) Context (1–2 sentences), (2) Invariants established, (3) Artifacts, (4) Open questions from deliberations, (5) Active guidance. Formatted as spec-first seed turn.
 **Source**: Transcript 04:2742–2812
-**Formalized as**: ADR-INTERFACE-003 in `spec/14-interface.md`, ADR-SEED-004 in `spec/06-seed.md`
+**Formalized across**: ADR-INTERFACE-003 in `spec/14-interface.md`; ADR-SEED-004 in `spec/06-seed.md`; ADR-TRILATERAL-001, ADR-TRILATERAL-003 in `spec/18-trilateral.md`
 
 ### IB-011: Rate-Distortion Interface Design
 
@@ -900,7 +900,7 @@ Specifications for the canonical protocol operations.
 **Decision**: When Q(t) < 0.15 (~75% consumed), every response includes harvest warning. When Q(t) < 0.05 (~85%), CLI emits ONLY the harvest imperative.
 **Rationale**: Continuing past harvest threshold produces diminishing returns — outputs become parasitic.
 **Source**: Transcript 05:1037–1048
-**Formalized across**: INV-HARVEST-005, NEG-HARVEST-001 in `spec/05-harvest.md`; INV-INTERFACE-007, NEG-INTERFACE-003 in `spec/14-interface.md`
+**Formalized across**: INV-HARVEST-005, NEG-HARVEST-001 in `spec/05-harvest.md`; INV-INTERFACE-007, NEG-INTERFACE-003, ADR-INTERFACE-010 in `spec/14-interface.md`
 
 ---
 
@@ -1068,7 +1068,7 @@ with smart defaults and progressive disclosure."
 
 **Decision**: Seven-step loop: (1) fresh conversation, (2) `ddis seed` carry-over, (3) work 20–30 turns transacting, (4) k*_eff drops below threshold, (5) `ddis harvest`, (6) conversation ends, (7) GOTO 1.
 **Source**: Transcript 04:2794–2812
-**Formalized as**: INV-HARVEST-007 in `spec/05-harvest.md`
+**Formalized across**: INV-HARVEST-007, ADR-HARVEST-007 in `spec/05-harvest.md`
 
 ### LM-012: Harvest Delegation Topology
 
@@ -1165,7 +1165,7 @@ with smart defaults and progressive disclosure."
 
 **Decision**: (1) Does the spec contradict itself? (2) Does implementation match spec? (3) Does spec still match intent? (4) Do agents agree? (5) Is methodology being followed?
 **Source**: Transcript 06
-**Formalized across**: INV-BILATERAL-002, NEG-BILATERAL-002 in `spec/10-bilateral.md`
+**Formalized across**: INV-BILATERAL-002, NEG-BILATERAL-002 in `spec/10-bilateral.md`; ADR-TRILATERAL-001 in `spec/18-trilateral.md`
 
 ### CO-009: Fitness Function F(S) with Seven Components
 
@@ -1178,7 +1178,7 @@ with smart defaults and progressive disclosure."
 
 **Decision**: Divergence arises at four boundaries: Intent → Specification → Implementation → Observed Behavior. Each boundary has a specific divergence type. DDIS provides detection and resolution at EACH boundary.
 **Source**: Transcript 06:413–420
-**Formalized as**: ADR-BILATERAL-002 in `spec/10-bilateral.md`
+**Formalized across**: ADR-BILATERAL-002 in `spec/10-bilateral.md`; ADR-TRILATERAL-001 in `spec/18-trilateral.md`
 
 ### CO-011: Test Results as Datoms
 

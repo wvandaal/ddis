@@ -61,15 +61,15 @@ These correspond to types.md Appendix A divergences D1-D13.
 | # | Type | Severity | Status | Resolving Bead | Notes |
 |---|------|----------|--------|----------------|-------|
 | B1 | `MergeReceipt` — completely different fields | HIGH | **FIXED** | R1.6 (brai-30q.6) | Spec updated. `CascadeReceipt` split out. |
-| B2 | `Clause` — different variant names and structure | HIGH | REMAINING | — | D2 in types.md. Spec: `{Pattern, Frontier, Not, Aggregate, Ffi}`; guide: `{DataPattern, RuleApplication, NotClause, OrClause, Frontier}`. |
+| B2 | `Clause` — different variant names and structure | HIGH | **FIXED** | R6.7b | Spec adopted guide's Datalog-standard naming (DataPattern, RuleApplication, NotClause, OrClause). Aggregate/Ffi deferred to Stage 1+. |
 | B3 | `ConflictSet`/`Conflict` — structural mismatch | HIGH | **FIXED** | R1.10 (brai-30q.10) | Spec adopted `ConflictSet` with assertions+retractions. |
 | B4 | `ResolutionMode` — variant naming | HIGH | **FIXED** | R1.10 (brai-30q.10) | Spec adopted guide naming: `LastWriterWins`, `MultiValue`. |
-| B5 | `QueryResult` — field names and types | HIGH | REMAINING | — | D5 in types.md. Spec: `tuples: Vec<Vec<Value>>`; guide: `bindings: Vec<BindingSet>`. |
-| B6 | `QueryExpr` — 2-variant enum vs flat struct | HIGH | REMAINING | — | D6 in types.md. R1.2 explored, resolution needs propagation. |
-| B7 | `QueryMode` — named vs tuple variant | MEDIUM | REMAINING | — | D7 in types.md. Minor structural difference. |
+| B5 | `QueryResult` — field names and types | HIGH | **FIXED** | R6.7b | Spec adopted guide's `bindings: Vec<BindingSet>` with `BindingSet = HashMap<Variable, Value>`. |
+| B6 | `QueryExpr` — 2-variant enum vs flat struct | HIGH | **FIXED** | R6.7b | Spec adopted guide's `enum QueryExpr { Find(ParsedQuery), Pull { pattern, entity } }`. ParsedQuery subsumes flat fields with rules/inputs. guide/00-architecture.md updated. |
+| B7 | `QueryMode` — named vs tuple variant | MEDIUM | **FIXED** | R6.7b | Spec adopted guide's tuple variant form `Stratified(Frontier)`, `Barriered(BarrierId)`. |
 | B8 | `HarvestCandidate` — guide adds id+reconciliation_type | HIGH | **FIXED** | R1.7 (brai-30q.7) | Fields reconciled per exploration report. |
-| B9 | `CandidateStatus` — guide's Rejected carries reason | MEDIUM | REMAINING | — | D9 in types.md. Guide is richer. |
-| B10 | `AssembledContext` — guide omits projection_pattern | MEDIUM | REMAINING | — | D10 in types.md. |
+| B9 | `CandidateStatus` — guide's Rejected carries reason | MEDIUM | **FIXED** | R4.1b | Spec now defines Rust enum with `Rejected(String)` matching guide. |
+| B10 | `AssembledContext` — guide omits projection_pattern | MEDIUM | **FIXED** | R6.7b | Guide added `projection_pattern: ProjectionPattern` field from spec. |
 | B11 | `MCPServer` — naming (BraidMcpServer vs MCPServer) | HIGH | **FIXED** | R0.3c (brai-12q.3.3) | Aligned. Guide uses `BraidMcpServer` for rmcp. |
 | B12 | `ConflictTier`/`RoutingTier` — naming | HIGH | **FIXED** | R1.10 (brai-30q.10) | Spec adopted `RoutingTier`. |
 | B13 | `TxId` — Hash derive presence | LOW | REMAINING | — | D13 in types.md. Intentional guide choice. |
@@ -117,7 +117,7 @@ implementation-level refinements that the spec intentionally leaves to the imple
 |---|---------|----------|--------|----------------|-------|
 | E1 | `TxReceipt`, `TxValidationError` | LOW | REMAINING | — | Implementation refinements. Guide-only. |
 | E2 | `SchemaError` | LOW | REMAINING | — | Error type, implementation-level. |
-| E3 | `ParsedQuery`, `FindSpec`, `BindingSet` | MEDIUM | REMAINING | — | Query layer types. Related to B6 resolution. |
+| E3 | `ParsedQuery`, `FindSpec`, `BindingSet` | MEDIUM | **FIXED** | R6.7b | All three types now defined identically in spec/03-query.md and guide/03-query.md. Part of B6 resolution. |
 | E4 | `QueryStats` | LOW | REMAINING | — | Diagnostic type, guide-only. |
 | E5 | `FrontierRef`, `DirectedGraph` | LOW | REMAINING | — | Implementation types. |
 | E6 | `ResolvedValue` | MEDIUM | REMAINING | — | Core resolution output type. |
@@ -165,7 +165,7 @@ distinct from type-level issues (Agent 8) and cross-cutting patterns (Agent 12 c
 | H1 | STORE: Frontier definition differs (spec: set of TxIds, guide: latest TxId per agent) | MEDIUM | REMAINING | — | Behavioral difference in frontier semantics. |
 | H2 | SCHEMA: Progressive layer counts differ (spec: 6 layers 0-4, guide: 3 layers 0-2 for Stage 0) | MEDIUM | **FIXED** | brai-39v.21 | Decomposition added for INV-SCHEMA-006. |
 | H3 | QUERY: Semi-naive evaluation detail level (spec: algorithm, guide: three-box skeleton) | LOW | REMAINING | — | Guide lacks pseudocode depth. |
-| H4 | QUERY: Graph algorithm return types differ (PageRank, HITS, etc.) | MEDIUM | REMAINING | — | Related to B5/B6. |
+| H4 | QUERY: Graph algorithm return types differ (PageRank, HITS, etc.) | MEDIUM | **FIXED** | R6.7b | All graph types (SCCResult, PageRankConfig, CriticalPathResult, GraphDensityMetrics) now `[AGREE]` in types.md. |
 | H5 | RESOLUTION: Cascade triggering conditions differ | MEDIUM | **FIXED** | brai-2nl.2 (R2.2) | Cascade-as-fixpoint resolved. |
 | H6 | HARVEST: Pipeline stage count differs (spec: 3-stage, guide: 4-stage with classify) | MEDIUM | **FIXED** | brai-1cp.6, R1.7 | Reconciled. |
 | H7 | SEED: Budget allocation strategy differs (spec: rate-distortion, guide: proportional) | MEDIUM | REMAINING | — | Needs reconciliation. |
