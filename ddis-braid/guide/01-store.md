@@ -27,7 +27,8 @@ pub struct AgentId([u8; 16]);
 pub enum Op { Assert, Retract }
 pub enum Value { String, Keyword, Boolean, Long, Double, Instant, Uuid, Ref, Bytes }
 // Stage 0 scope: 9 variants above. Full spec domain (spec/01-store.md §1.1) adds:
-// BigInt, BigDec, Tuple, Json, URI — deferred to later stages.
+// URI, BigInt, BigDec — Stage 1 (3 variants)
+// Tuple [Value], Json String — Stage 2 (2 variants — Tuple is recursive, Json requires parser)
 pub struct Attribute(String);
 pub enum ProvenanceType { Hypothesized, Inferred, Derived, Observed }
 
@@ -109,7 +110,7 @@ Four standard index orderings, each a `BTreeMap` for ordered range scans:
 | VAET | value → attr → entity → tx | Reverse ref: "who references entity E?" (ref attrs only) |
 
 **Stage 0**: Indexes are in-memory `BTreeMap<Vec<u8>, EntityId>` with composite key bytes.
-On persist, mirrored to redb tables with identical key structure (see §0.3 redb Table Schema).
+On persist, written to `.cache/` index files derived from content-addressed transaction files (see §0.3 Layout Directory Schema).
 On load, indexes are rebuilt from the datom set (derived, not authoritative).
 
 **Stage 2 extension (LIVE index, INV-STORE-012–013)**: Adds incremental resolution maintenance.

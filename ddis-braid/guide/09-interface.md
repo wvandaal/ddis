@@ -1,7 +1,7 @@
 # §9. INTERFACE — Build Plan
 
 > **Spec reference**: [spec/14-interface.md](../spec/14-interface.md) — read FIRST
-> **Stage 0 elements**: INV-INTERFACE-001–003, 008–009 (5 INV), ADR-INTERFACE-001–003, NEG-INTERFACE-003–004
+> **Stage 0 elements**: INV-INTERFACE-001–003, 008–010 (6 INV), ADR-INTERFACE-001–003, NEG-INTERFACE-003–004
 > **Dependencies**: All prior namespaces (INTERFACE is the outermost layer)
 > **Traces to SEED.md**: §8 (Interface Principles — five-layer model, guidance injection),
 >   §10 (Stage 0 deliverables — CLI and MCP tool surface), §11 (Design Rationale — output budget)
@@ -25,14 +25,14 @@ braid/src/                      ← Binary crate (not kernel — this is the IO 
 │   └── entity.rs               ← braid entity, braid history
 ├── output.rs                   ← OutputMode dispatch (json/agent/human) + footer injection
 ├── mcp.rs                      ← MCP server (6 tools, rmcp-based, persistent process)
-├── persistence.rs              ← redb ↔ kernel Store bridge
+├── persistence.rs              ← Layout ↔ kernel Store bridge
 └── claude_md.rs                ← Dynamic CLAUDE.md file generation
 ```
 
 ### Public API Surface (binary crate — CLI + MCP)
 
 The interface layer has no kernel types. It wraps kernel calls with:
-1. IO (file read/write, redb persistence, stdout)
+1. IO (file read/write, Layout persistence, stdout)
 2. Output formatting (json/agent/human)
 3. Guidance footer injection (every response)
 4. MCP JSON-RPC protocol handling
@@ -100,27 +100,33 @@ pub fn format_output(response: &ToolResponse, mode: OutputMode, footer: &Guidanc
 - MCP lifecycle: `initialize` → `initialized` → tool calls → `shutdown`.
   The rmcp crate handles the 3-phase initialization handshake and JSON-RPC framing.
   Braid implements tool handler functions annotated with rmcp's `#[tool]` macro.
-- Store loaded once at `initialize` from redb, held as `Arc<Store>` for session lifetime.
-- Each tool call: validate input → call kernel function via `&Store` → format response → return.
+- Store loaded once at `initialize` from layout directory, held via `ArcSwap<Store>` for session lifetime.
+  Reads load the current snapshot (lock-free); writes swap in a new Store atomically.
+- Each tool call: load Store snapshot from ArcSwap → call kernel function via `&Store` → format response → if write: swap in new Store → return.
 - Tool descriptions are the optimized prompts from guide/00-architecture.md §0.5.
 
 **Clear box** (implementation):
 ```rust
+use arc_swap::ArcSwap;
 use rmcp::{ServerHandler, tool, McpServer};
 
 /// MCP server — persistent process, store loaded once at initialization.
 /// rmcp handles: stdio JSON-RPC, initialize/initialized handshake, tools/list, shutdown.
 /// Braid handles: tool handlers, session state, notification dispatch.
+///
+/// Store held via ArcSwap (Datomic connection model): Store values are immutable (C1),
+/// the pointer swaps atomically after transact/harvest. Reads are lock-free via
+/// hazard pointers. In-flight queries see a consistent snapshot.
 pub struct BraidMcpServer {
-    store: Arc<Store>,                      // Loaded once at init, shared across all calls
+    store: ArcSwap<Store>,                  // Loaded once at init; swapped on write ops
     session_state: SessionState,
     notification_queue: Vec<Signal>,
 }
 
 impl BraidMcpServer {
-    /// Called during MCP initialization. Loads store from redb once.
+    /// Called during MCP initialization. Loads store from layout directory once.
     pub fn new(store_path: &Path) -> Result<Self, PersistenceError> {
-        let store = Arc::new(load_store(store_path)?);
+        let store = ArcSwap::from_pointee(load_store(store_path)?);
         Ok(Self {
             store,
             session_state: SessionState::default(),
@@ -132,43 +138,59 @@ impl BraidMcpServer {
 #[tool]
 impl BraidMcpServer {
     /// Assert or retract datoms. Use when you have facts to record.
+    /// Loads current store snapshot, transacts, swaps in new store.
     #[tool(name = "braid_transact")]
     async fn handle_transact(&self, params: TransactParams) -> ToolResult {
-        kernel::transact(&self.store, params.datoms, params.provenance)
+        let current = self.store.load();                        // Lock-free snapshot
+        let (new_store, receipt) = kernel::transact(
+            &current, params.datoms, params.provenance
+        )?;
+        self.store.store(Arc::new(new_store));                  // Atomic swap
+        Ok(receipt.into())
     }
 
     /// Run Datalog query or graph algorithm. Use to find facts, dependencies, metrics.
     #[tool(name = "braid_query")]
     async fn handle_query(&self, params: QueryParams) -> ToolResult {
-        kernel::query(&self.store, &params.query, params.mode)
+        let store = self.store.load();                          // Lock-free snapshot
+        kernel::query(&store, &params.query, params.mode)
     }
 
     /// Store summary: datom count, frontier, drift. Use for orientation.
     #[tool(name = "braid_status")]
     async fn handle_status(&self) -> ToolResult {
-        kernel::status(&self.store)
+        let store = self.store.load();
+        kernel::status(&store)
     }
 
     /// Extract session knowledge into datoms. Use near session end.
+    /// Like transact, swaps in new store after harvest commits.
     #[tool(name = "braid_harvest")]
     async fn handle_harvest(&self, params: HarvestParams) -> ToolResult {
-        kernel::harvest(&self.store, params.auto)
+        let current = self.store.load();
+        let (new_store, result) = kernel::harvest(&current, params.auto)?;
+        self.store.store(Arc::new(new_store));
+        Ok(result.into())
     }
 
     /// Assemble session context from store. Use at session start.
     #[tool(name = "braid_seed")]
     async fn handle_seed(&self, params: SeedParams) -> ToolResult {
-        kernel::seed(&self.store, &params.task)
+        let store = self.store.load();
+        kernel::seed(&store, &params.task)
     }
 
     /// Methodology guidance: M(t), R(t), drift, CLAUDE.md generation.
     #[tool(name = "braid_guidance")]
     async fn handle_guidance(&self, params: GuidanceParams) -> ToolResult {
-        kernel::guidance(&self.store, params.generate_claude_md)
+        let store = self.store.load();
+        kernel::guidance(&store, params.generate_claude_md)
     }
 }
 
-// Entry point: `braid serve` launches the MCP server
+// Entry point: `braid serve` launches the MCP server.
+// The CLI and MCP both dispatch to the same kernel functions (INV-INTERFACE-010).
+// CLI is the universal interface; MCP is the optimized machine-to-machine path.
 pub async fn serve_mcp(store_path: &Path) -> Result<(), Box<dyn Error>> {
     let server = BraidMcpServer::new(store_path)?;
     // rmcp handles: stdio transport, initialize/initialized handshake,
@@ -208,23 +230,23 @@ pub struct ToolDescription {
 
 ### Persistence Bridge
 
-**Black box**: Translate between kernel's in-memory `Store` and redb on-disk tables.
+**Black box**: Translate between kernel's in-memory `Store` and the on-disk Layout directory.
 Called once at startup (CLI command or MCP initialization), not per-call.
 
 **Clear box**:
 ```rust
 pub fn load_store(path: &Path) -> Result<Store, PersistenceError> {
-    let db = redb::Database::open(path)?;
-    // Read all datoms from "datoms" table → construct Store
-    // Read frontier from "frontier" table
+    let layout = Layout::open(path)?;
+    // Load all transaction files from txns/ → construct Store
+    // Rebuild indexes from .cache/ or from txns/ if cache missing
     // Reconstruct schema from store datoms
+    layout.load_all()
 }
 
-pub fn save_store(store: &Store, path: &Path) -> Result<(), PersistenceError> {
-    let db = redb::Database::create(path)?;
-    // Write new datoms to "datoms" table
-    // Write frontier to "frontier" table
-    // Indexes maintained in redb tables for query performance
+pub fn save_tx(layout: &Layout, tx: &TxFile) -> Result<PathBuf, PersistenceError> {
+    // Write content-addressed transaction file to txns/
+    // Idempotent: if file already exists (same content), no-op
+    layout.write_tx(tx)
 }
 
 // Usage contexts:
@@ -331,11 +353,12 @@ proptest! {
         }
     }
 
-    // INV-INTERFACE-002: MCP wrapper — all six tools accessible, store loaded once
+    // INV-INTERFACE-002: MCP wrapper — all six tools accessible, store loaded once via ArcSwap
     fn inv_interface_002() {
         let server = BraidMcpServer::new(temp_store_path())?;
-        // Store loaded once at init, not per-call
-        assert!(Arc::strong_count(&server.store) >= 1);
+        // Store loaded once at init via ArcSwap, not per-call
+        let store_snapshot = server.store.load();
+        assert!(Arc::strong_count(&store_snapshot) >= 1);
         for tool in &MCP_TOOLS {
             let request = jsonrpc_request(tool.name(), serde_json::json!({}));
             let result = server.dispatch(&request);
@@ -345,6 +368,17 @@ proptest! {
                 "MCP tool {} not registered: {:?}", tool_name, result
             );
         }
+    }
+
+    // INV-INTERFACE-010: CLI/MCP semantic equivalence — same kernel results
+    fn inv_interface_010() {
+        let store = test_store_with_datoms();
+        // Verify transact via MCP and CLI produce identical store state
+        let datoms = arb_datoms();
+        let (mcp_store, mcp_receipt) = kernel::transact(&store, datoms.clone(), Observed)?;
+        let (cli_store, cli_receipt) = kernel::transact(&store, datoms, Observed)?;
+        prop_assert_eq!(mcp_receipt.datom_count, cli_receipt.datom_count);
+        prop_assert_eq!(mcp_store.len(), cli_store.len());
     }
 
     // INV-INTERFACE-009: Every error variant produces a four-part message
@@ -388,12 +422,15 @@ fn agent_mode_has_footer() {
 - [ ] `$BRAID_AGENT` env var detection for default mode
 - [ ] MCP server: rmcp-based persistent process, 6 tool handlers via `#[tool]` macro
 - [ ] MCP lifecycle: initialize handshake, tools/list, shutdown (handled by rmcp)
-- [ ] MCP store loading: once at initialization via `Arc<Store>`, not per-call
+- [ ] MCP store loading: once at initialization via `ArcSwap<Store>`, not per-call
+- [ ] MCP store mutation: ArcSwap atomic swap on transact/harvest (Datomic connection model)
+- [ ] MCP snapshot isolation: in-flight reads see consistent pre-swap Store
 - [ ] MCP tool descriptions match guide/00-architecture.md §0.5
+- [ ] INV-INTERFACE-010: CLI/MCP parity — both dispatch to same kernel functions
 - [ ] INV-INTERFACE-008: `ToolDescription` struct with quality predicate Q(D) enforced by test
 - [ ] INV-INTERFACE-009: `RecoveryHint` + `RecoveryAction` enum, total `KernelError::recovery()`
 - [ ] NEG-INTERFACE-004: proptest verifying all error variants produce four-part messages
-- [ ] Persistence: redb load/save round-trip
+- [ ] Persistence: Layout load_all/write_tx round-trip
 - [ ] Error messages follow four-part protocol (what/why/recovery/spec_ref)
 - [ ] Guidance footer injected into every agent-mode response
 - [ ] NEG-INTERFACE-003: harvest warnings never suppressed

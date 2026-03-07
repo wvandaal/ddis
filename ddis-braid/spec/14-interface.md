@@ -53,7 +53,7 @@ CLI_COMMAND(Σ, command, args, budget) → (output, Σ') where:
 
 MCP_INIT(Σ) → Σ' where:
   PRE:  Σ.mcp.phase = Uninitialized
-  POST: store loaded from redb once (held for session lifetime)
+  POST: store loaded from layout directory once, held via ArcSwap for session lifetime
   POST: Σ'.mcp.phase = Initialized
   POST: responds with server capabilities (tools, notifications)
   NOTE: MCP protocol 3-phase: client sends `initialize` →
@@ -69,7 +69,9 @@ MCP_CALL(Σ, tool_name, params) → (result, Σ') where:
   PRE:  Σ.mcp.phase = Initialized
   PRE:  tool_name ∈ {braid_transact, braid_query, braid_status,
                       braid_harvest, braid_seed, braid_guidance}
+  POST: loads current Store snapshot from ArcSwap (lock-free)
   POST: dispatches to kernel function via &Store reference (no subprocess, no reload)
+  POST: if tool is transact or harvest: swaps in new Store via ArcSwap
   POST: reads session state, computes Q(t), passes budget to kernel
   POST: appends pending notifications to MCP notification queue
   POST: updates session state
@@ -118,8 +120,12 @@ pub enum OutputMode {
 /// MCP server — persistent process, thin wrapper calling kernel for all computation.
 /// Transport (stdio JSON-RPC, initialize handshake, tools/list) handled by rmcp crate.
 /// Braid implements: tool handlers, notification dispatch, session state.
+///
+/// Store is held via ArcSwap<Store> (Datomic connection model): the Store value is
+/// immutable (C1), but the pointer swaps atomically after each transact(). In-flight
+/// queries see a consistent snapshot (the Store they loaded before the swap).
 pub struct MCPServer {
-    pub store: Arc<Store>,                  // Loaded once at MCP_INIT, held for session
+    pub store: ArcSwap<Store>,              // Loaded once at MCP_INIT; swapped on transact
     pub session_state: SessionState,
     pub notification_queue: Vec<Signal>,
     pub phase: MCPPhase,                    // Uninitialized → Initialized → Shutdown
@@ -199,15 +205,20 @@ notification queuing.
 
 #### Level 1 (State Invariant)
 The MCP server is a persistent process that loads the store once at initialization
-(MCP_INIT) and holds an `Arc<Store>` for the session lifetime. Every MCP_CALL
-transition dispatches to a kernel function via direct Rust function call. The MCP
-server formats the response — but does not duplicate any kernel logic. The rmcp
-crate handles transport (stdio JSON-RPC framing, initialize handshake negotiation).
+(MCP_INIT) and holds it via `ArcSwap<Store>` for the session lifetime. Reads load
+the current Store snapshot (lock-free); writes (transact, harvest) swap in a new
+Store atomically. In-flight queries see a consistent point-in-time snapshot — the
+Store value they loaded before any concurrent swap (snapshot isolation). Every
+MCP_CALL transition dispatches to a kernel function via direct Rust function call.
+The MCP server formats the response — but does not duplicate any kernel logic. The
+rmcp crate handles transport (stdio JSON-RPC framing, initialize handshake
+negotiation).
 
 **Falsification**: The MCP server implements query parsing, resolution logic, or
 any other domain computation that exists in the kernel crate. OR: the MCP server
 reloads the store from disk on every tool call instead of holding a session-scoped
-reference.
+reference. OR: the MCP server uses `&mut Store` or interior mutability instead of
+the ArcSwap model (which would violate C1 value-type semantics).
 
 ---
 
@@ -443,6 +454,72 @@ action that leads to another error without its own recovery path.
 
 ---
 
+### INV-INTERFACE-010: CLI and MCP Semantic Equivalence
+
+**Traces to**: ADRS IB-003, ADR-INTERFACE-004
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+
+For every MCP tool `T` and its corresponding CLI command `C`, the kernel function
+invoked is identical. The CLI and MCP are two serialization frontends to a single
+dispatch surface (the kernel). Semantic equivalence:
+
+```
+∀ tool T, ∀ params P:
+  T(P) ≡ C(deserialize_cli(serialize_mcp(P)))  (modulo output format)
+```
+
+Both paths call the same kernel function with the same arguments. Output differs
+only in serialization format (JSON-RPC response vs. CLI stdout).
+
+#### Level 1 (State Invariant)
+
+The CLI command handlers and MCP tool handlers both invoke kernel functions from
+`braid-kernel`. Neither CLI nor MCP contains domain logic — both are thin adapters
+that parse input, dispatch to a kernel function, and format output. The kernel is
+the single source of semantic truth. Adding or modifying behavior in one path
+without the corresponding change in the other is a parity violation.
+
+This is structurally enforced at Stage 0 by keeping the kernel function set small
+(6 operations) and by having both CLI and MCP call the same functions:
+`kernel::transact`, `kernel::query`, `kernel::status`, `kernel::harvest`,
+`kernel::seed`, `kernel::guidance`.
+
+#### Level 2 (Implementation Contract)
+
+```rust
+// Both CLI and MCP call these same kernel functions:
+// CLI (commands/transact.rs):
+//   let receipt = kernel::transact(&store, datoms, provenance)?;
+// MCP (mcp.rs):
+//   let receipt = kernel::transact(&self.store.load(), datoms, provenance)?;
+//
+// The kernel function is identical. Only the input parsing (clap vs JSON-RPC)
+// and output formatting (OutputMode vs ToolResult) differ.
+
+// Parity test: for every MCP tool, construct equivalent CLI args,
+// run both, verify identical kernel-level results.
+#[cfg(test)]
+fn verify_cli_mcp_parity<P: Into<KernelParams>>(
+    tool: MCPTool,
+    params: P,
+    store: &Store,
+) {
+    let mcp_result = mcp_dispatch(tool, params.into(), store);
+    let cli_result = cli_dispatch(tool.cli_command(), params.into(), store);
+    assert_eq!(mcp_result.kernel_output, cli_result.kernel_output);
+}
+```
+
+**Falsification**: Any input where CLI and MCP produce semantically different
+kernel-level results (different datoms stored, different query bindings returned,
+different harvest candidates). Output formatting differences (JSON vs agent-mode
+text) are NOT violations.
+
+---
+
 ### §14.5 ADRs
 
 ### ADR-INTERFACE-001: Five Layers Plus Statusline Bridge
@@ -539,13 +616,28 @@ C) **Library model + rmcp crate** — Same as (B) but delegates MCP protocol tra
 
 #### Decision
 **Option C.** Library model with rmcp for transport. C1 (append-only) and C4
-(CRDT merge by set union) make the Store effectively immutable — `Arc<Store>` is
-always safe to share. Process isolation solves a problem that the CRDT architecture
-already solves. The subprocess model would add ~50-100ms overhead per call and
-require serialization/deserialization through CLI args and stdout, degrading agent
-experience. The rmcp crate provides the MCP protocol machinery (3-phase
-initialization handshake, tools/list handler generation, JSON-RPC framing over
-stdio, shutdown lifecycle) so Braid focuses on domain logic.
+(CRDT merge by set union) make the Store effectively immutable — process isolation
+solves a problem that the CRDT architecture already solves. The subprocess model
+would add ~50-100ms overhead per call and require serialization/deserialization
+through CLI args and stdout, degrading agent experience. The rmcp crate provides
+the MCP protocol machinery (3-phase initialization handshake, tools/list handler
+generation, JSON-RPC framing over stdio, shutdown lifecycle) so Braid focuses on
+domain logic.
+
+**Store mutability model (Datomic connection pattern)**: The Store is immutable
+(C1 value-type semantics). The MCP server holds an `ArcSwap<Store>` — reads load
+the current snapshot (lock-free via hazard pointers), writes (`transact`,
+`harvest`) swap in a new Store atomically. This is the direct Rust equivalent of
+Datomic's connection model where the "db value" is immutable and the "connection"
+holds a mutable pointer to the latest db value. Snapshot isolation falls out
+naturally: a query that starts before a transact sees the pre-transact Store.
+
+**Universality preservation**: The CLI remains the universal interface. Any agent
+(Python, Go, JS, bash script) can call `braid transact`, `braid query`, etc. via
+subprocess. The MCP server is an additional, optimized entry point — not a
+replacement. Both CLI and MCP dispatch to the same kernel functions
+(INV-INTERFACE-010). The system works without MCP; MCP is an optimization, not
+a requirement.
 
 MCP requires a persistent server process with a 3-phase initialization lifecycle:
 1. Client sends `initialize` with `clientInfo` and `capabilities`
@@ -559,18 +651,414 @@ tool descriptions.
 #### Formal Justification
 The Store is a G-Set CvRDT (INV-STORE-003). Reads via `&Store` are always safe
 because the store never mutates existing datoms (C1). Writes go through
-`transact()` which returns a new Store. The MCP server cannot corrupt the store
-because it never holds `&mut Store`. Process isolation would add overhead without
-improving safety.
+`transact()` which returns a new Store — the ArcSwap atomically replaces the
+pointer while preserving C1: the Store value never mutates, only the reference
+changes. The MCP server cannot corrupt the store because it never holds
+`&mut Store`. Process isolation would add overhead without improving safety.
 
 #### Consequences
 - Single binary deployment (MCP server and kernel in one process)
 - Kernel functions called directly: `kernel::query(&store, expr)`, etc.
 - Error handling via Rust `Result<T, E>` types (not exit codes)
-- Store loaded once at initialization (MCP_INIT), shared across all tool calls via `Arc<Store>`
+- Store loaded once at initialization (MCP_INIT), held via `ArcSwap<Store>`;
+  swapped atomically on write operations (transact, harvest)
+- Snapshot isolation: concurrent reads see a consistent Store snapshot
+- CLI universality preserved: CLI and MCP both dispatch to kernel (INV-INTERFACE-010)
 - rmcp handles: stdio JSON-RPC framing, initialize/initialized handshake, tools/list
   response generation, shutdown lifecycle
 - Braid handles: 6 tool handler functions, session state, notification dispatch
+- External dependency: `arc-swap` crate (one dependency, no transitive deps)
+
+---
+
+### ADR-INTERFACE-005: Configurable Heuristic Parameters with Progressive Disclosure
+
+**Traces to**: ADRS IB-013, C3
+**Stage**: 0
+
+#### Problem
+Stage 0 introduces multiple heuristic proxies (betweenness default=0.5, harvest
+warn-at-turn=20, harvest-imperative-at-turn=40, cascade stub behavior). These values
+will need tuning during real usage. How should they be exposed?
+
+#### Options
+A) **Hard-coded constants** — simplest, but requires code changes for operational tuning.
+B) **Environment variables** — not portable across sessions, not stored in datoms.
+C) **TOML/YAML config file** — external to the store, doesn't participate in merge/harvest.
+D) **Datom-stored configuration with progressive disclosure CLI** — parameters are datoms
+   in the store, exposed via `braid config` CLI command with smart defaults.
+
+#### Decision
+**Option D.** Configuration parameters are stored as datoms with attribute namespace
+`:config/` (e.g., `:config/harvest.warn-turn`, `:config/guidance.betweenness-default`).
+This means they participate in the store's append-only, content-addressed, mergeable
+infrastructure. Smart defaults are compiled into the kernel; user overrides are
+transacted as datoms that take precedence.
+
+**Progressive disclosure**:
+- **Casual user**: System works with no configuration. Defaults are chosen conservatively.
+- **Standard user**: `braid config show` displays current effective values (defaults +
+  overrides). `braid config set harvest.warn-turn 25` transacts an override.
+- **Expert user**: `braid config show --all` shows all parameters including internal
+  tuning knobs. Parameters are typed (integer, float, enum) with validation.
+
+**Portability**: Since overrides are datoms, they survive harvest/seed cycles, merge
+across stores, and are queryable via Datalog. Two agents merging stores merge their
+configuration; conflicts are resolved by the per-attribute resolution mode (LWW by
+default for config parameters — latest override wins).
+
+**Ergonomic access**: The CLI `braid config` subcommand provides tab completion.
+The MCP `braid_config` tool exposes the same interface. The dynamic CLAUDE.md
+(INV-GUIDANCE-007) references current config values when they affect guidance behavior.
+
+#### Formal Justification
+C3 (schema-as-data) requires that configuration, like schema, is stored as datoms.
+This is not merely convenient — it is structurally necessary. Configuration parameters
+affect system behavior, which means they must be part of the auditable, queryable,
+mergeable store to preserve traceability (C5). External configuration files would
+create a second source of truth outside the store, violating C3 and fragmenting the
+single-substrate property.
+
+#### Consequences
+- New attribute namespace `:config/` with ~15-20 parameters at Stage 0
+- `braid config show|set|reset` CLI subcommand
+- `braid_config` MCP tool
+- Smart defaults compiled into kernel; overrides transacted as datoms
+- Configuration conflicts resolved via LWW (latest override wins)
+- No config files external to the store
+
+---
+
+### ADR-INTERFACE-006: Ten Protocol Primitives
+
+**Traces to**: SEED §8, ADRS AA-006
+**Stage**: 0
+
+#### Problem
+How many protocol primitives should the system expose? Too few and agents cannot
+express necessary operations; too many and the interface becomes a complex API
+that wastes attention budget on discovery.
+
+#### Options
+A) **Minimal (3-4 primitives)** — CRUD operations only: create, read, update, delete.
+B) **Ten primitives** — a curated set covering store operations, association, assembly, branching, synchronization, and guidance.
+C) **Extensible registry** — start with a small set and allow dynamic registration of new primitives.
+
+#### Decision
+**Option B.** Ten protocol primitives: TRANSACT, QUERY, ASSOCIATE, ASSEMBLE,
+BRANCH, MERGE, SYNC-BARRIER, SIGNAL, SUBSCRIBE, GUIDANCE. This set is derived
+from the algebraic operations needed to interact with the store, the bilateral
+loop, and the agent coordination layer. Each primitive maps to a specific
+algebraic operation on the datom set.
+
+The ten primitives partition into three groups:
+- **Core store** (4): TRANSACT (write), QUERY (read), ASSOCIATE (link), ASSEMBLE (compose)
+- **Branching** (2): BRANCH (fork), MERGE (join)
+- **Coordination** (4): SYNC-BARRIER (wait), SIGNAL (notify), SUBSCRIBE (listen), GUIDANCE (steer)
+
+At Stage 0, six of these are exposed as MCP tools (INV-INTERFACE-003). The
+remaining four (ASSOCIATE, BRANCH, SIGNAL, SUBSCRIBE) are available as Datalog
+query patterns or deferred to later stages.
+
+#### Formal Justification
+A minimal set (Option A) conflates distinct semantic operations — TRANSACT and
+ASSOCIATE are both "writes" but have fundamentally different purposes (asserting
+facts vs. linking entities). Conflating them loses the semantic distinction that
+enables guidance to steer agents toward the right operation. An extensible
+registry (Option C) introduces discovery overhead that wastes attention budget.
+The ten-primitive set is sufficient to express all operations in the protocol
+(proved by coverage analysis of the transcript discussions) and small enough to
+fit within ambient attention budget.
+
+#### Consequences
+- Ten primitives form the complete operation vocabulary for all stages
+- Stage 0 exposes 6 as MCP tools; remaining 4 are queryable or deferred
+- Each primitive has a defined attention cost class (CHEAP/MODERATE/EXPENSIVE/META)
+- The primitive set is fixed — adding an 11th requires an ADR with justification
+
+#### Falsification
+A necessary operation exists that cannot be expressed as a composition of the
+ten primitives, OR agents consistently need to compose 3+ primitives for common
+tasks (indicating a missing atomic primitive), OR the ten primitives exceed
+ambient attention budget when listed in tool descriptions.
+
+---
+
+### ADR-INTERFACE-007: Rust as Implementation Language
+
+**Traces to**: SEED §4, ADRS FD-011
+**Stage**: 0
+
+#### Problem
+What language should Braid be implemented in? The implementation language
+determines the safety guarantees, performance characteristics, dependency
+ecosystem, and deployment model.
+
+#### Options
+A) **Go** — the language of the existing ddis-cli (~62,500 LOC). Continuing in Go would allow incremental evolution.
+B) **Rust** — a systems language with ownership-based memory safety, zero-cost abstractions, and strong type system.
+C) **Python** — rapid prototyping, extensive ML/NLP ecosystem, but performance limitations.
+
+#### Decision
+**Option B.** Braid is implemented in Rust. The query engine targets a
+purpose-built Rust binary as the final form. The user explicitly confirmed
+the Rust approach ("I want the option a) approach" referring to Rust binary).
+
+Key advantages:
+- **Safety guarantees**: Ownership and lifetimes encode invariants at compile time (V:TYPE). The typestate patterns (§16.3) that enforce transaction lifecycle, entity ID construction, and store immutability are only possible in a language with Rust's type system.
+- **Performance**: Zero-cost abstractions for index operations. The LIVE index (INV-STORE-012) and in-memory datom operations benefit from cache-friendly data layouts.
+- **Ecosystem**: `blake3` for content-addressed storage, `arc-swap` for the Datomic connection model, `rmcp` for MCP protocol transport, `proptest` and `kani` for verification.
+
+#### Formal Justification
+The substrate divergence principle (LM-001) establishes that the existing Go CLI
+represents a fundamental substrate divergence — the architectural model of the
+Go CLI does not match the algebraic foundations described in SEED.md. Continuing
+in Go (Option A) would mean fighting the substrate rather than building on it.
+Python (Option C) lacks the performance characteristics needed for in-memory
+store operations and cannot express the typestate patterns that enforce C1
+(append-only) at compile time. Rust uniquely provides both the safety guarantees
+and the performance characteristics the design requires.
+
+#### Consequences
+- Full rewrite rather than incremental evolution of the Go CLI
+- Typestate patterns encode invariants at compile time (zero runtime cost)
+- Kani bounded model checking available for critical properties
+- `#![forbid(unsafe_code)]` enforced project-wide (§16.2 Gate 7)
+- Single binary deployment (CLI + MCP server in one binary)
+- Learning curve for contributors not familiar with Rust
+
+#### Falsification
+The Rust type system proves insufficient to encode a critical typestate pattern
+(requiring runtime enforcement instead of compile-time), OR Rust ecosystem
+libraries for embedded storage, MCP transport, or verification are unavailable
+or inadequate, OR compilation times become a development bottleneck that
+significantly slows the bilateral cycle.
+
+---
+
+### ADR-INTERFACE-008: Agent Cycle as Ten-Step Composition
+
+**Traces to**: SEED §7, SEED §8, ADRS PO-011
+**Stage**: 1
+
+#### Problem
+How does an agent compose the ten protocol primitives into a coherent work
+session? Without a defined cycle, agents will use primitives ad-hoc, missing
+critical steps (e.g., skipping GUIDANCE, forgetting to TRANSACT observations).
+
+#### Options
+A) **No prescribed cycle** — agents use primitives freely; guidance nudges them toward good patterns.
+B) **Strict sequential pipeline** — enforce a fixed order of operations per turn.
+C) **Ten-step composition with flexible ordering** — define a canonical cycle that composes primitives, with defined fallback paths for confusion or subtask discovery.
+
+#### Decision
+**Option C.** The agent cycle is a ten-step composition of protocol primitives:
+
+1. **ASSOCIATE** — retrieve relevant entities from the store based on current context
+2. **QUERY** — execute specific Datalog queries for precise information
+3. **ASSEMBLE** with guidance+intentions — compose a working context from retrieved entities, active guidance, and current intentions
+4. **GUIDANCE** lookahead=2 — query the guidance graph for recommended next actions with 2-step lookahead
+5. **Agent policy evaluates** — the agent's internal reasoning applies to the assembled context
+6a. **Action** — if the agent decides to act: TRANSACT (record the action and its results)
+6b. **Confusion** — if the agent is uncertain: re-ASSOCIATE and re-ASSEMBLE with broader context, then retry
+7. **Learned association** — if the agent discovers a new useful association: TRANSACT with `:inferred` provenance
+8. **Subtask discovery** — if the agent discovers a subtask: TRANSACT an intention update
+9. **Check incoming** — process MERGE results and incoming signals from other agents
+10. **Repeat** — return to step 1
+
+#### Formal Justification
+No prescribed cycle (Option A) relies entirely on guidance nudges, which fail
+when the agent is already in Basin B (the guidance itself is ignored). A strict
+pipeline (Option B) cannot handle the non-linear nature of agent work — confusion
+requires re-association, subtask discovery requires intention updates, incoming
+signals require immediate processing. The ten-step composition (Option C) provides
+structure (each step maps to a specific primitive) with flexibility (steps 6b, 7,
+8 are conditional; step 9 is event-driven). The cycle is self-reinforcing: step 4
+(GUIDANCE) steers toward the methodology, step 7 captures emergent knowledge, and
+step 8 prevents scope creep by explicitly recording subtasks as intentions rather
+than silently expanding the current task.
+
+#### Consequences
+- Every agent turn maps to a traversal of (a subset of) the ten steps
+- The guidance footer (step 4) indicates which step the agent should be in
+- Confusion (step 6b) triggers re-association rather than degraded output
+- Learned associations (step 7) use `:inferred` provenance to distinguish agent-discovered knowledge from human-asserted knowledge
+- The cycle integrates with multi-agent coordination via step 9 (MERGE/signals)
+
+#### Falsification
+Agents following the ten-step cycle produce worse outcomes than agents using
+primitives ad-hoc, OR the cycle cannot accommodate a common agent workflow
+pattern (requiring ad-hoc primitive use outside the cycle), OR the GUIDANCE
+step (step 4) consistently fails to keep agents in Basin A.
+
+---
+
+### ADR-INTERFACE-009: Staged Alignment Strategy for Existing Codebase
+
+**Traces to**: SEED §10, ADRS LM-015
+**Stage**: 0
+
+#### Problem
+The existing Go CLI (~62,500 LOC) represents significant engineering investment.
+How should Braid relate to this codebase? A full rewrite discards working code;
+incremental migration risks inheriting architectural debt.
+
+#### Options
+A) **Full rewrite from scratch** — ignore the existing codebase entirely and build from the specification.
+B) **Incremental migration** — gradually replace Go modules with Rust equivalents, maintaining backward compatibility.
+C) **Staged alignment with four strategies** — categorize each existing module by its stability and correctness, then apply the appropriate strategy from a preference-ordered set.
+
+#### Decision
+**Option C.** Four alignment strategies in preference order:
+
+1. **THIN WRAPPER** — the existing module has correct behavior but a different interface. Wrap it with an adapter layer. Lowest cost.
+2. **SURGICAL EDIT** — the existing module has mostly correct behavior with specific divergences. Fix the divergences directly. Moderate cost.
+3. **PARALLEL IMPLEMENTATION** — the existing module is partially correct but the divergences are deep enough that editing in-place is risky. Build alongside, migrate consumers, then remove the original. Higher cost.
+4. **REWRITE** — the existing module is fundamentally incompatible with the specification. Replace entirely. Highest cost.
+
+Priority matrix for module categorization:
+- **stable + working** = optimize freely (THIN WRAPPER or SURGICAL EDIT)
+- **stable + broken** = fix now (SURGICAL EDIT or PARALLEL IMPLEMENTATION)
+- **changing-soon + working** = leave alone (defer alignment until after changes)
+- **changing-soon + broken** = defer (neither fix nor align — wait for stabilization)
+
+Governing principle: "Never rewrite what you can align incrementally."
+
+#### Formal Justification
+A full rewrite (Option A) discards validated behavior — the existing CLI has
+620+ tests and 97/97 witnessed invariants. This is working code that has proven
+the DDIS concepts in practice. Discarding it entirely wastes the empirical
+validation. Incremental migration (Option B) risks inheriting architectural
+decisions that conflict with the new specification (the substrate divergence
+from LM-001). The staged approach (Option C) is precise: each module is
+independently evaluated against the specification, and the alignment strategy
+matches the effort to the divergence. Modules that already work correctly get
+the lightest treatment; modules with fundamental incompatibilities get rewritten.
+The preference ordering minimizes total effort while ensuring all modules
+converge to specification compliance.
+
+#### Consequences
+- GAP_ANALYSIS.md categorizes every existing module as ALIGNED/DIVERGENT/EXTRA/BROKEN/MISSING
+- Each module receives one of the four strategies based on the priority matrix
+- The existing test suite is preserved and extended, not discarded
+- Braid's Rust implementation may wrap some Go modules initially (THIN WRAPPER) before eventually replacing them
+- No backward compatibility shims — aligned modules either work correctly or are replaced
+
+#### Falsification
+The staged approach takes longer than a full rewrite would have (measured by
+time to equivalent functionality and test coverage), OR modules classified as
+"stable + working" require deeper intervention than THIN WRAPPER or SURGICAL
+EDIT (indicating the classification criteria are wrong), OR the priority matrix
+fails to correctly predict the appropriate strategy for most modules.
+
+---
+
+### ADR-INTERFACE-010: Harvest Warning Turn-Count Proxy at Stage 0
+
+**Traces to**: SEED §10 (staged roadmap), NEG-INTERFACE-003, ADR-HARVEST-007
+**Stage**: 0
+
+#### Problem
+
+NEG-INTERFACE-003 defines a safety property: `□ ¬(Q(t) < 0.15 ∧ response_without_harvest_warning)`.
+When context quality Q(t) drops below 0.15 (critically low), harvest warnings must appear in
+every response to prevent knowledge loss. This is a hard safety guarantee — no configuration,
+flag, or output mode may suppress it.
+
+At Stage 0, Q(t) is unavailable because the attention budget framework (BUDGET, Stage 1)
+has not been implemented. Without Q(t), the safety property cannot be evaluated directly.
+The question is how to preserve the safety guarantee without the formal trigger mechanism.
+
+This is the same cross-stage dependency pattern as ADR-HARVEST-007, which resolves INV-HARVEST-005's
+dependence on Q(t) for harvest urgency. The solutions should be consistent: if ADR-HARVEST-007
+uses turn-count as a proxy for Q(t), then NEG-INTERFACE-003 should use the same proxy to
+avoid contradictory heuristics operating on the same underlying signal.
+
+#### Options
+A) **Pull BUDGET into Stage 0** — implement the full Q(t) computation pipeline to enable
+   the formal safety property trigger. This requires the attention budget framework
+   (INV-BUDGET-001 through 007), the k*_eff estimation pipeline, and the Q(t) decay model.
+   The same massive dependency chain that ADR-HARVEST-007 and ADR-GUIDANCE-008 avoid.
+B) **Turn-count proxy matching ADR-HARVEST-007 thresholds** — replace Q(t) < 0.15 with
+   turn >= 20 for warning and turn >= 40 for harvest-only-mode. This is conservative:
+   empirically, Q(t) drops below 0.15 around turn 25-30 for typical sessions, so
+   triggering at turn 20 warns earlier than Q(t) would. The safety property becomes:
+   `□ ¬(turn ≥ 20 ∧ response_without_harvest_warning)`.
+C) **Defer NEG-INTERFACE-003 to Stage 1** — no harvest warning safety guarantee at Stage 0.
+   This loses the safety property entirely during the bootstrap phase, which is when
+   sessions are longest (specification work) and context loss is most costly.
+D) **Always show harvest warning** — include a harvest warning in every response from
+   turn 1. This is trivially safe but noisy: agents receive warnings when context is
+   fresh, which degrades trust in the warning system (cry-wolf effect). After enough
+   false alarms, agents learn to ignore the warning, defeating its purpose.
+
+#### Decision
+**Option B.** The turn-count proxy preserves the safety property conservatively and
+maintains consistency with ADR-HARVEST-007.
+
+The Stage 0 safety property becomes:
+```
+□ ¬(turn ≥ 20 ∧ response_without_harvest_warning)
+```
+
+At turn 20, a warning footer is added to every tool response:
+```
+⚠ Context aging — consider: braid harvest (turn 20/40)
+```
+
+At turn 40, the warning escalates to harvest-only-mode indication:
+```
+⚠ HARVEST RECOMMENDED — context critically aged (turn 40+). Run: braid harvest
+```
+
+The two thresholds (20 and 40) correspond to the Q(t) thresholds from the formal
+property: Q(t) < 0.30 triggers advisory warning, Q(t) < 0.15 triggers urgent warning.
+The turn-count proxy maps these to fixed turn numbers based on empirical observation
+of typical Q(t) decay curves.
+
+#### Formal Justification
+The safety property `□ ¬(Q(t) < 0.15 ∧ response_without_harvest_warning)` is
+STRENGTHENED by the turn-count proxy, not weakened. The proxy triggers at turn 20,
+which is before Q(t) typically reaches 0.15 (empirically around turn 25-30). This
+means the proxy warns in a strict superset of the cases where Q(t) < 0.15 — it may
+produce false positives (warning when Q(t) > 0.15) but never false negatives (failing
+to warn when Q(t) < 0.15).
+
+Formally: `turn ≥ 20 ⊇ {t | Q(t) < 0.15}` for typical sessions, therefore:
+`□ ¬(turn ≥ 20 ∧ ¬warning) ⟹ □ ¬(Q(t) < 0.15 ∧ ¬warning)`
+
+The conservative proxy satisfies the original safety property as a logical consequence.
+
+Consistency with ADR-HARVEST-007: using the same thresholds (20/40) for both harvest
+urgency and harvest warning avoids the hazard of contradictory signals — where one
+subsystem says "harvest is urgent" but the interface layer suppresses the warning,
+or vice versa. The thresholds being identical means the warning system and the harvest
+urgency system agree on when action is needed.
+
+#### Consequences
+- Harvest warnings appear at turn 20 (advisory) and turn 40 (urgent) at Stage 0
+- The thresholds match ADR-HARVEST-007, ensuring consistency across subsystems
+- False positive rate: sessions that end before turn 25 will receive warnings that
+  Q(t) would not have triggered. This is acceptable — early warnings are strictly
+  safer than late warnings for a safety property
+- Stage 1 replaces the turn-count proxy with formal Q(t) < 0.15 thresholds, which
+  adapts to actual context decay rather than using fixed turn numbers
+- The proptest strategy has a Stage 0 variant: set turn count >= 20, verify harvest
+  warnings appear in every response
+- Risk: the fixed thresholds may not match actual Q(t) decay for all session types
+  (short investigative sessions vs. long implementation sessions have different decay
+  rates). Mitigated by the conservative direction — the proxy warns too early, never
+  too late
+- Reversibility: fully reversible — the turn-count check is a single conditional that
+  Stage 1 replaces with the Q(t) comparison
+
+#### Falsification
+The turn-count proxy fails to warn before Q(t) reaches 0.15 in > 10% of observed
+sessions (proving the proxy is not conservative enough), OR agents consistently harvest
+before turn 20 in typical sessions (proving the warning threshold is too high and the
+proxy never activates), OR the cry-wolf effect from early warnings causes agents to
+ignore harvest warnings at a rate > 50% (proving Option D's failure mode applies to
+Option B as well despite the later trigger point).
 
 ---
 
@@ -618,8 +1106,18 @@ queue management. No query parsing, resolution logic, or domain computation.
 When context is critically low, the harvest warning must appear. No configuration,
 flag, or output mode may suppress it.
 
+**Stage 0 simplification** (ADR-INTERFACE-010): At Stage 0, Q(t) is not yet available
+(BUDGET is Stage 1). The harvest warning trigger reduces to a turn-count heuristic
+matching ADR-HARVEST-007 thresholds: warn at turn 20, emit harvest-only-mode at turn 40.
+This is conservative (warns earlier than Q(t) would) but safe — it preserves the
+safety property by ensuring warnings cannot be suppressed. The turn-count proxy is the
+same underlying decision as ADR-HARVEST-007 applied to the interface layer's safety
+property. Stage 1 replaces the heuristic with formal Q(t) < 0.15 thresholds and the
+proptest strategy below becomes executable.
+
 **proptest strategy**: Set k*_eff to values below 0.15. Invoke all CLI commands.
-Verify every response contains a harvest warning.
+Verify every response contains a harvest warning. (Stage 0 variant: set turn count
+to values >= 20, verify harvest warnings appear in every response.)
 
 ---
 

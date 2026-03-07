@@ -1497,3 +1497,373 @@ Then HARVEST → SEED → MERGE → GUIDANCE.
 Then `braid` binary: CLI + MCP (INTERFACE).
 First act: transact spec elements as datoms (C7 self-bootstrap).
 
+---
+
+## Session 010 — 2026-03-03 (Coherence Engine Exploration: Complete Harvest & Seed)
+
+**Platform**: Claude Code (Opus 4.6)
+**Duration**: Three continuous context windows (same conversation, two compactions)
+**Task**: Exploratory analysis of how the Braid spec can serve as its own coherence-checking engine, culminating in a comprehensive harvest/seed document.
+
+### What Was Accomplished
+
+1. **Formal analysis of the coherence engine concept** (`exploration/coherence-convergence/SEED_ANALYSIS.md`, ~1200 lines)
+   - 5 Opus subagents assessed 18 dimensions: algebraic structure, logical foundations, CALM compliance, Gödelian limits, practical architecture
+   - Key finding: G-set CvRDT store `(P(D), ∪)` is provably correct — monotonic operations need no coordination (CALM theorem)
+
+2. **Feasibility experiment** (`exploration/coherence-convergence/EXTRACTION_EXPERIMENT.md`, ~400 lines)
+   - 15 spec elements × 3 models (Haiku/Sonnet/Opus) × 3 prompt styles (structured/conversational/hybrid)
+   - Result: 100% extraction success across all combinations; slot-filling is the reliable pattern
+   - 3 tensions found independently by all models
+
+3. **Property vocabulary** (`exploration/coherence-convergence/PROPERTY_VOCABULARY.md`, ~290 lines)
+   - 109 typed properties across 17 categories (STORAGE, CONCURRENCY, QUERY, SCHEMA, RESOLUTION, MERGE, HARVEST, SEED, SYNC, SIGNAL, BILATERAL, DELIBERATION, GUIDANCE, BUDGET, INTERFACE, SAFETY, SELF_BOOTSTRAP)
+   - 12 incompatibility rules (I1–I12), 16 entailment rules (E1–E16)
+   - Transforms undecidable coherence checking into O(1) table lookups
+
+4. **Full extraction of 248 spec elements** (`exploration/coherence-convergence/FULL_EXTRACTION_RESULTS.md`, ~730 lines)
+   - Found 25 tensions: 5 contradictions, 5 high, 10 medium, 5 minor
+   - Cross-element coherence analysis: 8 missing entailments, 0 incompatibility violations
+   - Five contradictions (C-01 through C-05) with resolution paths identified
+
+5. **Resolved the "Prolog question"**: Datomic-style query language already covers the useful fragment of logic programming. Actual borrowings from LP/ATP/CL shrink to 4 techniques: tabling (XSB Prolog), SMT/Z3, discourse referents (DRT/SRL), and NLI as database function.
+
+6. **Comprehensive harvest/seed document** (`exploration/coherence-convergence/HARVEST_SEED.md`, ~750 lines)
+   - 16 sections + 2 appendices covering everything from critical findings through testing strategy
+   - Structured with XML-style tags for LLM consumption optimization
+   - Designed as seed for future sessions incorporating coherence engine into Stage 0
+
+### Decisions Made
+
+| Decision | Rationale |
+|---|---|
+| Coherence engine is Stage 0 infrastructure, not a later add-on | The property vocabulary and query-based checking are prerequisites for self-bootstrap (C7). Without them, the spec elements become opaque text blobs in the store. |
+| Property vocabulary is a closed ontology (109 properties) | Closed set enables decidable checking. New properties can be added but require updating incompatibility/entailment tables. Open-ended properties would make checking undecidable. |
+| Slot-filling extraction over generative extraction | 100% success rate empirically validated. LLMs classify existing text into predefined categories, not generate new logical forms. This is the reliable pattern at current model capabilities. |
+| Datomic-style query language, not academic Datalog | Braid's query language uses EDN syntax, four find forms, pull expressions, rules, inputs, database functions. It borrows declarative pattern-matching from academic Datalog but is its own thing. |
+| Five-phase production pipeline: EXTRACT → VALIDATE → DATOMIC → STRATIFIED → SEMANTIC | Progressive checking: cheap automated checks first (O(1) table lookups), expensive LLM checks last (Opus via FFI at Stratum 5). Matches budget-aware output philosophy. |
+
+### Open Questions
+
+1. **Five contradictions to resolve** (C-01 through C-05): All have resolution paths identified but spec edits not yet made. See HARVEST_SEED.md §6.
+2. **4 new spec elements not yet extracted**: STORE +1 ADR, SEED +2 INV, RESOLUTION +1 ADR (discovered during full extraction).
+3. **Tabling/memoization implementation**: How deep should cycle detection go? XSB-style subsumption or simpler visited-set?
+4. **SMT integration boundary**: Z3 as subprocess (like existing Go CLI) vs embedded solver vs pure Datalog approximation?
+5. **NLI model for Stratum 5**: Which model, what confidence threshold, how to calibrate?
+6. **Property vocabulary completeness**: Are 109 properties sufficient or will Stage 0 implementation reveal gaps?
+7. **Extraction pipeline automation**: At what point does manual extraction become the bottleneck vs automated LLM pipeline?
+
+### Files Created
+
+| File | Lines | Content |
+|------|-------|---------|
+| `exploration/coherence-convergence/SEED_ANALYSIS.md` | ~1200 | 18-section formal methods assessment |
+| `exploration/coherence-convergence/EXTRACTION_EXPERIMENT.md` | ~400 | 15-element × 3-model × 3-prompt feasibility experiment |
+| `exploration/coherence-convergence/PROPERTY_VOCABULARY.md` | ~290 | 109-property closed ontology with incompatibilities and entailments |
+| `exploration/coherence-convergence/FULL_EXTRACTION_RESULTS.md` | ~730 | 248 elements extracted, 25 tensions, strategic analysis |
+| `exploration/coherence-convergence/CONVERSATION_SUMMARY.md` | ~200 | Phase 1-2 compaction summary |
+| `exploration/coherence-convergence/HARVEST_SEED.md` | ~750 | Comprehensive harvest/seed (this session's primary deliverable) |
+
+### Failure Modes Observed
+
+- **FM-020 (context exhaustion during deep analysis)**: Three context windows required for this analysis. Compaction loses detailed intermediate reasoning. The harvest/seed document is the countermeasure — it captures everything that would otherwise be lost. This validates the harvest/seed methodology even before implementation.
+
+### Recommended Next Action
+
+**Fix the 5 contradictions (C-01 through C-05) in the spec**, then re-run extraction to verify tension count decreases. This directly improves the specification while validating the coherence engine's diagnostic capability. See `exploration/coherence-convergence/HARVEST_SEED.md` §6 for resolution paths and §13 for the full next-steps sequence.
+
+---
+
+## Session 011 — Trilateral Coherence Model
+
+**Date**: 2026-03-03 (continuation of session 010, new context window)
+**Task**: Formalize the three-state coherence architecture (Intent ↔ Specification ↔ Implementation) as a complete algebraic treatment with convergence guarantees.
+
+### What Was Accomplished
+
+1. **Created `QUERY_ENGINE_ENHANCEMENTS.md`** (1,490 lines)
+   - Comprehensive formal document covering 10 techniques from LP, ATP, and CL
+   - Each technique: problem statement, formal justification (soundness, termination, monotonicity), stratum classification, implementation staging, empirical grounding (which of the 25 tensions it catches)
+   - Formal justification table proving all 10 techniques preserve C1-C7 store invariants
+   - 7/10 techniques are monotonic (CALM coordination-free)
+   - Implementation LOC estimates: ~600 lines Stage 0, ~550 lines Stage 1, ~400 lines Stage 2+
+   - Cross-linked from HARVEST_SEED.md §3, §9, §10
+
+2. **Created `TRILATERAL_COHERENCE_MODEL.md`** (1,633 lines)
+   - Full algebraic formalization of the I ↔ S ↔ P trilateral model
+   - 17 sections covering: motivation, ground truths (free monoid / coherence graph / executable forest), category theory (Cat_I, Cat_S, Cat_P), six bilateral functors, three adjunctions (F_IS⊣B_SI, F_SP⊣B_PS, F_IP⊣B_PI), universal 5-step convergence cycle with all three instantiations, Lyapunov stability argument, mediation theorem (S as universal mediating object), phase space dynamics, scaling properties, grounding in existing design, open questions (OQ-1 through OQ-5), implementation implications, topology-mediated conflict resolution (spectral authority, delegation classes), signal-to-noise filtering in intent, structural inevitability argument, three-layer unification (agent model + coherence engine + trilateral model)
+   - Linked from HARVEST_SEED.md §3
+
+### Decisions Made
+
+| Decision | Rationale |
+|---|---|
+| The trilateral model (I, S, P) with bilateral pairs is the correct formalization of the DDIS coherence architecture | Existing design treats only S↔P boundary fully; I↔S is partially formalized via harvest/seed; I↔P is implicit. The trilateral model unifies all three and proves convergence for the whole system. |
+| S (Specification) is the universal mediating object | Every coherent I→P path factors through S. The factored path is strictly better because it adds verifiability, traceability, and convergence guarantees. This is the formal justification for why DDIS exists. |
+| The 5-step convergence cycle is the universal pattern for all three adjunctions | Same abstract structure (Lift→Convert→Assess→Resolve→Apply) instantiated differently for I↔S, S↔P, I↔P. Unifies harvest cycle and bilateral loop under one formalism. |
+| The Lyapunov stability argument proves structural inevitability | Total divergence Φ is monotonically non-increasing through convergence cycles. Combined with append-only store, proactive triggers, and self-improvement, the system converges by construction. |
+| Topology-mediated conflict resolution is topology-agnostic | Only Step 4 (Resolve) of the convergence cycle changes with topology; Steps 1-3 and 5 are invariant. Convergence guarantees hold across all topologies. |
+
+### Open Questions
+
+1. **OQ-1**: Is F_IS truly left adjoint to B_SI? Harvest is creative (non-deterministic). May need profunctor or lax adjunction formulation. (Confidence: 0.7)
+2. **OQ-2**: What is the correct divergence metric for D(I,S) and D(I,P)? Currently only D(S,P) is fully defined. (Confidence: 0.6)
+3. **OQ-3**: How should I↔P morphisms be governed? Forbid, mandate S-routing, or track as signal? (Confidence: 0.5)
+4. **OQ-4**: Should observed behavior be a fourth state O? Would add 3 more bilateral pairs (12 total morphisms). (Confidence: 0.8)
+5. **OQ-5**: What is the optimal composition order of convergence cycles? (Confidence: 0.6)
+6. Previous session's 5 contradictions (C-01 through C-05) remain unresolved.
+
+### Files Created/Modified
+
+| File | Lines | Content |
+|------|-------|---------|
+| `exploration/coherence-convergence/QUERY_ENGINE_ENHANCEMENTS.md` | ~1490 | 10 LP/ATP/CL techniques with formal justification |
+| `exploration/coherence-convergence/TRILATERAL_COHERENCE_MODEL.md` | ~2150 | Full trilateral coherence formalization + critical assessment (§18) with 6 design improvements (DI-1 through DI-6), layman's description, adoption path, and §19: unified store with three LIVE views proposal |
+| `exploration/coherence-convergence/HARVEST_SEED.md` | (modified) | Added source document entry, cross-references |
+| `HARVEST.md` | (modified) | This entry |
+
+### Failure Modes Observed
+
+- **FM-020 recurrence (context exhaustion)**: Fourth context window in this exploration thread. The trilateral model could not have been written without the foundation from sessions 010a-010c (formal analysis, property vocabulary, extraction, query engine analysis). The harvest/seed discipline continues to be validated: each context window produces a durable document, and the next window picks up from the document rather than from ephemeral conversation.
+
+### Recommended Next Action
+
+**Implement the unified store with three LIVE views (§19) as the foundational architecture.** This dissolves the meta-problem identified in §18 — instead of three separate stores with six functors requiring periodic sync, one store with three projection functions provides continuous coherence as a structural property. Start with: (1) extend the datom schema to include intent and implementation attribute namespaces alongside spec attributes, (2) implement `LIVE_I`, `LIVE_S`, `LIVE_P` as parameterized queries, (3) implement `LIVE_Φ` as a continuously-updated divergence counter. This subsumes DI-1 (invisible convergence) and DI-3 (divergence dashboard) — they fall out naturally from the unified store architecture. See §19.6 for why this is the highest-leverage addition and §19.7 for the risk mitigation strategy (automated datomization of all three input channels).
+
+---
+
+## Session 014 — 2026-03-06 (ADR Formalization + Simplification Audit)
+
+### Seed (Context Loaded)
+
+- Continued from Session 013 (ADR formalization pass).
+- Plan: formalize 45 missing ADRs, then audit 8 simplification notes.
+
+### What Was Accomplished
+
+#### Phase 1: 45 ADR Formalization (from plan)
+
+- **45 new ADR elements** written across 15 spec files using 3 parallel agents.
+- **3 new namespaces** created: FOUNDATION (6 ADRs in spec/00-preamble.md), UNCERTAINTY (4 ADRs in spec/15-uncertainty.md), VERIFICATION (1 ADR in spec/16-verification.md).
+- **44 `Scope` annotations** in ADRS.md replaced with `Formalized as` links.
+- All 154 ADRS.md entries now carry forward traceability. 0 Scope annotations remain.
+- Total ADRs increased from 75 to 120.
+
+#### Phase 2: Simplification Audit + Formalization
+
+User flagged that 8 "simplification notes" had been added to spec files during the V1 audit without explicit user review, violating the directive that ALL proposed simplifications require user consent.
+
+**Analysis**: Used `cass` to search session history, read the D1 scope boundary research document, and searched all spec/guide files for simplification markers. Found all 8 notes, analyzed from first principles.
+
+**User directive**: Maximize for lab-grade, zero-defect implementation. Be maximally accretive — formalize all simplification decisions as proper ADR elements. Do NOT simplify away complexity.
+
+**6 new ADR elements** written to formalize Stage 0 simplification decisions:
+
+| ADR | File | Decision |
+|-----|------|----------|
+| ADR-HARVEST-007 | spec/05-harvest.md | Turn-count proxy for context budget (asymmetric risk: too-early safe, too-late knowledge loss) |
+| ADR-GUIDANCE-008 | spec/12-guidance.md | Footer progressive enrichment — M(t) with 4/5 computable sub-metrics at Stage 0 |
+| ADR-GUIDANCE-009 | spec/12-guidance.md | Betweenness degree-product proxy (O(1) vs O(V×E)), strictly dominates constant 0.5 |
+| ADR-RESOLUTION-013 | spec/04-resolution.md | Conflict pipeline progressive activation with stub datoms preserving audit trail |
+| ADR-MERGE-007 | spec/07-merge.md | Merge cascade stub datoms, proves INV-MERGE-010 determinism preserved |
+| ADR-INTERFACE-010 | spec/14-interface.md | Harvest warning turn-count proxy cross-referencing ADR-HARVEST-007 |
+
+**Additional fixes**:
+- Revised INV-GUIDANCE-001 simplification note: static template → M(t) with 4 sub-metrics
+- Fixed betweenness spec/guide divergence: "default 0.5" → "degree-product proxy per ADR-GUIDANCE-009"
+- Added D1 Simplification Detail retroactive triage table to V1_AUDIT_TRIAGE.md (all 8 entries with risk, stage activation, ADR reference)
+
+#### Phase 3: Cross-Reference Updates
+
+- spec/17-crossref.md: Updated Appendix A (ADR 120→126, total 289→295), Appendix B (126 ADRs with backward links), Forward Annotation History (+Phase 3), Appendix D Stage 0 ADR listings.
+- audits/stage-0/V1_AUDIT_TRIAGE.md: Updated total spec elements 289→295.
+
+### Decisions Made
+
+1. **All 8 simplification notes are valid engineering decisions** but required formal ADR treatment with alternatives, rationale, and falsification conditions. (Rationale: user directive — no simplifications without review; every decision deserves the full ADR treatment for lab-grade quality.)
+2. **M(t) computable at Stage 0 with 4/5 sub-metrics** (tx_compliance, spec_language, query_divergence, harvest_discipline). Only k*_eff requires BUDGET infrastructure. (Rationale: strictly dominates static template; no additional infrastructure needed.)
+3. **Degree-product proxy** for betweenness centrality at Stage 0 (in_degree × out_degree / max_product). (Rationale: O(1) vs O(V×E), monotonic in betweenness, strictly dominates constant 0.5.)
+4. **Stub datoms** preserve audit trail when full pipeline steps aren't implementable at current stage. (Rationale: maintains INV-STORE-001 append-only and INV-STORE-014 every-command-is-transaction.)
+
+### Verification
+
+| Check | Expected | Actual | Status |
+|-------|----------|--------|--------|
+| Formalized annotations in ADRS.md | 154 | 154 | PASS |
+| Scope annotations in ADRS.md | 0 | 0 | PASS |
+| Total ADR elements in spec/ | 126 | 126 | PASS |
+| Duplicate ADR IDs | 0 | 0 | PASS |
+
+### Open Questions
+
+1. **OQ-1**: The user's directive "Do not stop until we have a complete and verified and validated spec" may warrant a full spec completeness audit beyond the simplification formalization. The invariant formalization pass (analogous to the ADR pass) for informal INV references (INV-AUTHORITY-001, INV-DELEGATE-001, etc.) noted in the plan's follow-up section has not been done.
+2. **OQ-2**: Six ADRS.md entries reference informal invariant IDs that may not have formal INV elements in spec. An invariant formalization pass should follow.
+
+### Files Modified
+
+| File | Changes |
+|------|---------|
+| spec/00-preamble.md | +6 ADR-FOUNDATION elements |
+| spec/01-store.md | +3 ADR-STORE elements |
+| spec/02-schema.md | +1 ADR-SCHEMA element |
+| spec/03-query.md | +2 ADR-QUERY elements |
+| spec/04-resolution.md | +7 ADR-RESOLUTION elements (6 from plan + 1 simplification) |
+| spec/05-harvest.md | +3 ADR-HARVEST elements (2 from plan + 1 simplification) |
+| spec/06-seed.md | +3 ADR-SEED elements |
+| spec/07-merge.md | +2 ADR-MERGE elements (1 from plan + 1 simplification) |
+| spec/09-signal.md | +2 ADR-SIGNAL elements |
+| spec/10-bilateral.md | +7 ADR-BILATERAL elements |
+| spec/12-guidance.md | +4 ADR-GUIDANCE elements (2 from plan + 2 simplification) + INV-GUIDANCE-001 note revision + betweenness fix |
+| spec/13-budget.md | +1 ADR-BUDGET element |
+| spec/14-interface.md | +5 ADR-INTERFACE elements (4 from plan + 1 simplification) + NEG-INTERFACE-003 cross-ref |
+| spec/15-uncertainty.md | +4 ADR-UNCERTAINTY elements |
+| spec/16-verification.md | +1 ADR-VERIFICATION element |
+| spec/17-crossref.md | Updated Appendix A/B/D counts and listings |
+| ADRS.md | 44 Scope→Formalized replacements |
+| audits/stage-0/V1_AUDIT_TRIAGE.md | Updated metrics + D1 retroactive triage table |
+
+### Failure Modes Observed
+
+- **FM-020 recurrence (context exhaustion)**: Session ran out of context during Phase 2 simplification formalization. Recovered via conversation summary. The harvest/seed discipline continues to prove essential — the plan document and prior session's artifacts provided full recovery context.
+- **Simplification-without-review anti-pattern**: 8 simplification notes added in prior session without user review. Now formalized with full ADR treatment and retroactive triage table. This is an instance of FM-004 (cascading incompleteness) — a process shortcut that compounds if unchecked.
+
+#### Phase 4: Failure Modes Expansion
+
+User identified that FM-010–019 had been added as structurally thin entries (missing "Trigger", "Why this is a hard problem for agents", "Formal violation predicate", and "Observations" sections that FM-001–009 all have). Directed maximally accretive expansion optimized for doc-as-prompt / LLM consumption.
+
+**Structural additions to FAILURE_MODES.md**:
+- Updated recording convention (7 steps, now includes formal predicate and observations)
+- Added **Recognition Patterns** section — scannable table of 21 "When you are... → Check FM-NNN" early warning patterns
+- Added **Formal violation predicate** to all 21 FM entries (predicate logic encoding of the testable property)
+- Added **Trigger**, **Why this is a hard problem for agents**, and **Observations** to FM-010–019 (10 entries × 3 sections = 30 sections added)
+- Added **Why hard**, **Observations**, and **Formal predicate** to FM-020 and FM-021
+- Added **Recursive Self-Improvement Protocol** section with the flywheel loop and agent usage instructions
+- Added **Self-referential integrity note** acknowledging the document is subject to its own failure modes
+
+**Key insight from the expansion**: The "Why this is a hard problem for agents" section is the most valuable part of each entry. It identifies the structural invariant that makes the failure recurrent — not "the agent made a mistake" but "the architecture of the problem guarantees this class of mistake will recur." Examples: FM-017's induction-step fallacy (proving the base case doesn't prove extensions preserve the property); FM-019's observer effect (unexpressed knowledge is undetectable by any external mechanism); FM-018's 100:1 specification-to-implementation time ratio.
+
+### Recommended Next Action
+
+**Invariant formalization pass**: Several ADRS.md entries reference informal invariant IDs (INV-AUTHORITY-001, INV-DELEGATE-001, INV-MEASURE-001, INV-COMMIT-001, INV-RESOLUTION-001, INV-ASSOCIATE-LEARNED-001, INV-GUIDANCE-ALIGNMENT-001, INV-GUIDANCE-LEARNED-001) that may not have corresponding formal INV elements in the spec. Audit and formalize these, following the same pattern as the ADR formalization pass. This closes the last known traceability gap.
+
+## Session 015 — 2026-03-06 (LAYOUT Namespace: Content-Addressed Storage Layout Specification)
+
+### Seed (Context Loaded)
+
+- Continued from Session 014 (ADR formalization + simplification audit).
+- Plan: implement LAYOUT namespace specification based on analysis of trunk.ednl-over-git
+  scaling flaw — single append-only file creates git merge conflicts on concurrent agent writes.
+- The Store-Layout Isomorphism Theorem (φ/ψ between algebraic store and filesystem) was
+  designed during planning; this session writes the full formal specification.
+
+### What Was Accomplished
+
+#### Phase A: Primary Deliverable — `spec/01b-storage-layout.md`
+
+Created the full LAYOUT namespace specification (~750 lines) containing:
+
+- **Isomorphism Theorem** (§1b.0): Formal proof that the layout is a faithful functor from
+  (Store, MERGE) to (Directory, ∪_dir). All CRDT axioms become filesystem tautologies.
+- **11 Invariants** (INV-LAYOUT-001–011): Each with three-level cleanroom refinement
+  (L0 algebraic → L1 state → L2 Rust), falsification conditions, and proptest/kani strategies.
+- **7 ADRs** (ADR-LAYOUT-001–007): Per-txn files, content-addressed naming, EDN format,
+  hash-prefix sharding, pure filesystem, O_CREAT|O_EXCL concurrency, genesis dual-location.
+- **5 Negative Cases** (NEG-LAYOUT-001–005): Safety properties in temporal logic with
+  enforcement mechanisms (type-level preferred).
+- **3 Uncertainty Markers** (UNC-LAYOUT-001–003): Filesystem perf at scale, EDN parser
+  throughput, git packfile efficiency.
+- **Level 2 Rust types**: Complete type catalog for TxFile, Layout, MergeReceipt,
+  IntegrityReport, LayoutError.
+- **Cross-reference table**: All 11+7+5 elements mapped to their STORE counterparts via φ.
+
+#### Phase B: Spec Cross-References
+
+- **ADRS.md**: Added SR-014 (per-transaction content-addressed layout). Added supersession
+  forward references on SR-003, SR-006, SR-007.
+- **spec/README.md**: Added LAYOUT row to Wave 1 namespace index.
+- **spec/00-preamble.md**: Added LAYOUT to namespace list and index table.
+- **spec/01-store.md**: Added SUPERSEDED banner on ADR-STORE-007. Updated 3 redb references
+  (StorageFailure doc, SR-007 coordination, "then redb" format reference).
+- **spec/14-interface.md**: Updated 2 redb references (MCP init, ecosystem crate list).
+- **spec/15-uncertainty.md**: Added UNC-LAYOUT-001/002/003 with full entries + summary table.
+- **spec/17-crossref.md**: Added LAYOUT to namespace table, dependency graph, constraint
+  traceability (C1/C2/C4/C7), element counts (295→318), verification stats (127→138 INVs),
+  Stage 0 elements (66→77 INVs), Appendix D listings.
+
+#### Phase C: Guide Updates (redb → filesystem)
+
+- **guide/00-architecture.md**: 8 redb references updated — crate layout, file tree,
+  dependency declaration (redb→blake3+hex), table schema section→Layout Directory Schema,
+  CLI default path, bootstrap command, CLI pattern.
+- **guide/01-store.md**: redb tables → .cache/ index files.
+- **guide/09-interface.md**: 7 redb references — file tree, API surface, MCP server,
+  persistence bridge (complete rewrite: load_store/save_store → load_store/save_tx via Layout).
+- **guide/11-worked-examples.md**: 7 references — .redb files → directory paths, merge
+  examples using directory-based stores.
+
+#### Phase D: Root Documents
+
+- **SEED.md**: SR-007 supersession note on line 150.
+- **HARVEST.md**: This entry.
+
+### Decisions Made
+
+1. **Per-transaction content-addressed files over trunk.ednl** (ADR-LAYOUT-001): The single
+   append-only file creates git merge conflicts. Per-txn files make merge = directory union.
+2. **Pure filesystem over redb** (ADR-LAYOUT-005): A database backend interposes an opaque
+   binary layer that obscures the Store-Layout isomorphism.
+3. **O_CREAT|O_EXCL over flock** (ADR-LAYOUT-006): Content-addressed naming structurally
+   eliminates contention — different content → different files, same content → idempotent.
+4. **INV-LAYOUT-011 (canonical serialization) as prerequisite for INV-LAYOUT-001**: Identity
+   preservation requires deterministic bytes. This was identified during coherence verification.
+5. **heads/*.ref files are caches, not truth sources**: Resolves tension with ADR-STORE-019.
+
+### Verification
+
+| Check | Status |
+|-------|--------|
+| Every INV has three-level refinement (L0/L1/L2) | PASS (11/11) |
+| Every INV has falsification condition | PASS (11/11) |
+| Every INV has V:PROP minimum | PASS (11/11) |
+| Every ADR has ≥3 options | PASS (7/7) |
+| Every NEG has temporal logic safety property | PASS (5/5) |
+| No contradictions with INV-STORE-001–014 | PASS (verified during planning) |
+| No contradictions with INV-MERGE-001–010 | PASS (verified during planning) |
+| All supersession notes have bidirectional references | PASS |
+| Element counts updated in spec/17-crossref.md | PASS (295→318) |
+| Uncertainty register updated | PASS (10→13 entries) |
+| All redb references in spec/ updated | PASS |
+| All redb references in guide/ updated | PASS |
+
+### Open Questions
+
+None. The LAYOUT namespace is complete within its scope. The three uncertainty markers
+(UNC-LAYOUT-001–003) will resolve during implementation benchmarking.
+
+### Files Modified
+
+| File | Action | Changes |
+|------|--------|---------|
+| spec/01b-storage-layout.md | CREATE | Full LAYOUT namespace (~750 lines, 26 elements) |
+| ADRS.md | EDIT | +SR-014, supersession notes on SR-003/006/007 |
+| spec/README.md | EDIT | +LAYOUT row in Wave 1 |
+| spec/00-preamble.md | EDIT | +LAYOUT in namespace list and index |
+| spec/01-store.md | EDIT | ADR-STORE-007 SUPERSEDED banner, 3 redb→filesystem refs |
+| spec/14-interface.md | EDIT | 2 redb→filesystem refs |
+| spec/15-uncertainty.md | EDIT | +3 UNC-LAYOUT entries, updated summary table |
+| spec/17-crossref.md | EDIT | LAYOUT in all tables, counts 295→318, 127→138 INVs |
+| guide/00-architecture.md | EDIT | 8 redb→filesystem refs |
+| guide/01-store.md | EDIT | 1 redb→filesystem ref |
+| guide/09-interface.md | EDIT | 7 redb→filesystem refs (incl. persistence bridge rewrite) |
+| guide/11-worked-examples.md | EDIT | 7 redb→directory refs |
+| SEED.md | EDIT | SR-007 supersession note |
+| HARVEST.md | EDIT | This entry |
+
+### Recommended Next Action
+
+**Stage 0 implementation**: The specification is now complete with 318 elements (138 INV,
+133 ADR, 47 NEG) across 15 namespaces. The LAYOUT namespace provides the physical storage
+contract needed for implementation. Next step: begin Rust implementation per
+`guide/00-architecture.md`, starting with `braid-kernel` crate (Store, Datom, Schema types)
+and the Layout module for persistence.
+

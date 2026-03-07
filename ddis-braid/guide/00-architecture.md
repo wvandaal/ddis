@@ -48,7 +48,7 @@ braid/                          ← Cargo workspace root
 │       │   ├── seed.rs         ← braid seed
 │       │   ├── guidance.rs     ← braid guidance
 │       │   └── entity.rs       ← braid entity, braid history
-│       ├── persistence.rs      ← redb store ↔ kernel Store bridge
+│       ├── persistence.rs      ← Layout ↔ kernel Store bridge
 │       ├── output.rs           ← OutputMode dispatch (json/agent/human)
 │       ├── mcp.rs              ← MCP server (6 tools, rmcp-based, persistent process)
 │       └── claude_md.rs        ← Dynamic CLAUDE.md generation
@@ -65,7 +65,7 @@ braid/                          ← Cargo workspace root
   same inputs → same outputs. This is the verification surface.
 
 - **`braid`**: Thin wrapper. All domain logic delegated to `braid-kernel`.
-  IO boundary: reads files, writes to redb, serves MCP, prints output.
+  IO boundary: reads files, writes to layout directory, serves MCP, prints output.
   The binary crate contains no invariant-bearing logic.
 
 ### Cargo.toml — Workspace Root
@@ -109,8 +109,10 @@ edition = "2024"
 
 [dependencies]
 braid-kernel = { path = "../braid-kernel" }
+arc-swap = "1"
 clap = { version = "4", features = ["derive"] }
-redb = "2"
+blake3 = "1"
+hex = "0.4"
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
@@ -438,7 +440,16 @@ pub struct QueryResult {
 }
 pub struct QueryStats { pub datoms_scanned: usize, pub bindings_produced: usize }
 pub type BindingSet = HashMap<Variable, Value>;
-pub struct QueryExpr { pub find_spec: FindSpec, pub where_clauses: Vec<Clause> }
+pub enum QueryExpr {
+    Find(ParsedQuery),                          // Datalog pattern matching with joins
+    Pull { pattern: PullPattern, entity: EntityRef }, // Entity-centric attribute retrieval
+}
+pub struct ParsedQuery {
+    pub find_spec:     FindSpec,                // Which of four Datomic find forms
+    pub where_clauses: Vec<Clause>,             // Conjunction of pattern clauses
+    pub rules:         Vec<Rule>,               // Named rule definitions
+    pub inputs:        Vec<Input>,              // :in parameterized bindings
+}
 pub struct FrontierRef(pub AgentId);  // Clause::Frontier operand (INV-QUERY-007)
 
 // --- Merge (§7 MERGE) ---
@@ -500,21 +511,21 @@ One datom per line. Used for `braid transact --file` and export:
 - `tx`: prefixed with `hlc:` + `{wall_time}-{logical}-{agent_hex}`
 - `op`: `"assert"` or `"retract"`
 
-### redb Table Schema
+### Layout Directory Schema
 
-All redb tables are **derived caches** — the in-memory `Store` (BTreeSet of datoms) is
-authoritative. redb provides durable persistence and index-accelerated lookups. The schema
-table in particular is rebuilt from schema datoms on load, consistent with C3 (schema-as-data).
+The on-disk layout uses **content-addressed per-transaction files** (see `spec/01b-storage-layout.md`).
+The in-memory `Store` (BTreeSet of datoms) is authoritative. The layout directory provides
+durable persistence; `.cache/` indexes provide accelerated lookups. Both are derived from
+the canonical transaction files in `txns/`.
 
 ```
-Table "datoms"     → (datom_hash: [u8; 32]) → (datom_bytes: Vec<u8>)
-Table "eavt"       → (entity ++ attr ++ value ++ tx) → datom_hash
-Table "aevt"       → (attr ++ entity ++ value ++ tx) → datom_hash
-Table "vaet"       → (value ++ attr ++ entity ++ tx) → datom_hash
-Table "avet"       → (attr ++ value ++ entity ++ tx) → datom_hash
-Table "tx_log"     → (tx_id_bytes) → (tx_metadata_bytes)
-Table "frontier"   → (agent_id_bytes) → (tx_id_bytes)
-Table "schema"     → (attr_keyword) → (schema_entry_bytes)  # derived cache of schema datoms
+.braid/
+├── txns/{hash[0..2]}/{full_blake3_hex}.edn  ← immutable, content-addressed transaction files
+├── heads/{agent_id}.ref                      ← mutable frontier caches (derivable from txns/)
+├── genesis.edn                               ← compile-time constant
+├── .cache/                                   ← derived indexes (gitignored, rebuilt from txns/)
+│   ├── eavt.idx, aevt.idx, vaet.idx, avet.idx, live.idx
+└── .gitignore                                ← ignores .cache/
 ```
 
 ### Seed Output Template (ADR-SEED-004, spec/06-seed.md)
@@ -574,7 +585,7 @@ The system initializes itself in three phases, implementing C7 (self-bootstrap):
 ### Phase 1: Empty → Schema-Enabled
 
 ```
-braid init .braid/store.redb
+braid init .braid/
 ```
 
 1. Create empty store (BTreeSet = ∅)
@@ -612,7 +623,7 @@ layers compose correctly before any user data enters the system.
 
 ## §0.4 CLI Command Signatures
 
-All commands follow the pattern: parse args → load store from redb → call kernel function →
+All commands follow the pattern: parse args → load store from layout directory → call kernel function →
 format output → write result. The binary crate is a thin adapter between IO and pure kernel.
 
 ### Output Modes (INV-INTERFACE-001)
@@ -641,8 +652,8 @@ struct Cli {
     #[arg(long, default_value = "human")]
     format: OutputFormat,
 
-    /// Store path (redb file)
-    #[arg(long, default_value = ".braid/store.redb")]
+    /// Store path (layout directory)
+    #[arg(long, default_value = ".braid/")]
     store: PathBuf,
 }
 
@@ -720,8 +731,19 @@ Genesis + spec bootstrap complete. Schema: 17 axiomatic + 14 spec attributes.
 
 Six tools at Stage 0 (INV-INTERFACE-003). The MCP server is a persistent process
 using the `rmcp` crate for transport (ADR-INTERFACE-004). The store is loaded once
-at initialization and held via `Arc<Store>` for the session lifetime. Tool handlers
-are annotated with rmcp's `#[tool]` macro, which generates the `tools/list` response.
+at initialization and held via `ArcSwap<Store>` for the session lifetime — the
+Datomic connection model where Store values are immutable (C1) and the pointer swaps
+atomically after write operations (transact, harvest). Reads are lock-free; in-flight
+queries see a consistent snapshot. Schema consistency is structural under this model:
+because Schema is owned by Store (ADR-SCHEMA-005, Option C), every MVCC snapshot
+contains a Schema derived from exactly the datoms in that snapshot. No split-brain
+between Schema and datoms is possible — no coordination protocol, no independent
+Schema versioning, no stale-schema hazards. This is formalized in ADR-STORE-016
+(ArcSwap MVCC Concurrency Model) and ADR-SCHEMA-005 Stage 3 Concurrency Analysis.
+CLI and MCP both dispatch to the same kernel
+functions (INV-INTERFACE-010) — MCP is an optimization, not a replacement for the
+universal CLI interface. Tool handlers are annotated with rmcp's `#[tool]` macro,
+which generates the `tools/list` response.
 
 Each description is an optimized prompt: navigative purpose, semantic types, one
 micro-example. Entity lookup, history, and CLAUDE.md generation are accessible via

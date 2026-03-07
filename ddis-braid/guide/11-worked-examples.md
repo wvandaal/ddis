@@ -211,7 +211,7 @@ $ braid harvest --format agent
   3. [0.85] DECISION: Frontier stored as HashMap<AgentId, TxId> (Epistemic)
      Accept? [Y/n] → Y
 
-  4. [0.60] DEPENDENCY: INV-STORE-009 depends on redb fsync semantics (Structural)
+  4. [0.60] DEPENDENCY: INV-STORE-009 depends on fsync semantics for txn files (Structural)
      Accept? [Y/n] → Y
 
   5. [0.35] UNCERTAINTY: Proptest shrinking slow for large stores (Consequential)
@@ -238,7 +238,7 @@ Braid. Stage 0. STORE namespace. 3/13 INVs complete.
 - OBS-001: BTreeSet handles dedup (harvested)
 - IMPL-001: Transaction typestate uses PhantomData (harvested)
 - IMPL-002: Frontier as HashMap<AgentId, TxId> (harvested)
-- DEP-001: INV-STORE-009 depends on redb fsync (harvested)
+- DEP-001: INV-STORE-009 depends on layout fsync (harvested)
 
 ## State
 Last harvest: 4 candidates committed. Frontier: {agent1: tx_15}. Drift: 0.2.
@@ -277,7 +277,7 @@ $ braid transact --inline '{:spec/id "INV-STORE-001" :spec/type "invariant" \
 
 ```
 $ braid transact --inline '{:spec/id "INV-SCHEMA-001" :spec/type "invariant" \
-  :spec/statement "Schema as data"}' --store .braid/agent-b.redb --format agent
+  :spec/statement "Schema as data"}' --store .braid-agent-b/ --format agent
 
 [STORE] Transacted 3 datoms in tx hlc:1709000002-0-agentB. Store: 150 datoms.
 ```
@@ -285,9 +285,9 @@ $ braid transact --inline '{:spec/id "INV-SCHEMA-001" :spec/type "invariant" \
 ### Agent A merges Agent B's store
 
 ```
-$ braid merge .braid/agent-b.redb --format agent
+$ braid merge .braid-agent-b/ --format agent
 
-[MERGE] Merged 3 new datoms (147 duplicates deduplicated).
+[MERGE] Merged 3 new datoms (147 duplicates deduplicated via content-addressed dedup).
 Store: 153 datoms. Frontier updated for {agentB}.
 ---
 ↳ Merge is pure set union (INV-MERGE-001). No datoms were lost.
@@ -307,9 +307,9 @@ $ braid query '[:find ?id :where [?e :spec/type "invariant"] [?e :spec/id ?id]]'
 ### Idempotent re-merge (INV-MERGE-008)
 
 ```
-$ braid merge .braid/agent-b.redb --format agent
+$ braid merge .braid-agent-b/ --format agent
 
-[MERGE] Merged 0 new datoms (150 duplicates deduplicated).
+[MERGE] Merged 0 new datoms (150 duplicates deduplicated via content-addressed dedup).
 Store: 153 datoms. No frontier changes.
 ---
 ↳ Re-merge is a no-op (INV-MERGE-008). Store unchanged.
@@ -458,8 +458,11 @@ Query error: aggregation (count) in monotonic mode
 
 The MCP server is a persistent process launched via `braid serve`. At startup, it
 completes the MCP 3-phase initialization handshake (handled by the rmcp crate),
-loads the store once from redb, and holds it via `Arc<Store>` for the session
-lifetime. All tool calls below operate against this session-scoped store reference.
+loads the store once from the layout directory, and holds it via `ArcSwap<Store>` for the session
+lifetime (Datomic connection model — immutable Store values, atomic pointer swap
+on writes). All tool calls below operate against this session-scoped store. Reads
+load the current snapshot (lock-free); write operations (transact, harvest) swap
+in a new Store atomically.
 
 ### Transact via MCP
 
@@ -958,7 +961,7 @@ Note: `blake3:x1...` and `blake3:x2...` are *different* entity IDs because the a
 used different content to generate them (different transaction context). After merge:
 
 ```
-$ braid merge agent-b.redb --format agent
+$ braid merge .braid-agent-b/ --format agent
 
 [MERGE] Merged 4 new datoms. Store: 197 datoms.
 ---

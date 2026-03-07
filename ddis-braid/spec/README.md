@@ -24,6 +24,7 @@ Read the preamble first. All namespace files reference it for shared definitions
 | File | Namespace | Lines | Stage | SEED.md §§ |
 |------|-----------|-------|-------|------------|
 | [01-store.md](01-store.md) | STORE | 1,175 | 0 | §4, §11 |
+| [01b-storage-layout.md](01b-storage-layout.md) | LAYOUT | ~750 | 0 | §4, §11 |
 | [02-schema.md](02-schema.md) | SCHEMA | 561 | 0 | §4 |
 | [03-query.md](03-query.md) | QUERY | 720 | 0 | §4 |
 | [04-resolution.md](04-resolution.md) | RESOLUTION | 547 | 0 | §4 |

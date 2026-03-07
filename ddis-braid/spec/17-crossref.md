@@ -10,20 +10,24 @@
 
 | Namespace | SEED.md §§ | ADRS.md Categories | Primary Concerns |
 |-----------|------------|---------------------|-----------------|
-| STORE | §4, §9, §11 | FD-001–012, AS-001–010, SR-001–011, PD-001–004, PO-001, PO-012 | Append-only datom store, CRDT merge, content identity, HLC ordering, indexes |
-| SCHEMA | §4 | SR-008–010, FD-005, FD-008 | 17 axiomatic attributes, genesis, schema-as-data, six-layer architecture |
-| QUERY | §4 | FD-003, SQ-001–010, PO-013, AS-007 | Datalog, CALM, six strata, FFI boundary, significance tracking, graph engine |
-| RESOLUTION | §4 | FD-005, CR-001–006 | Per-attribute resolution, conflict predicate, three-tier routing |
-| HARVEST | §5 | LM-005–006, LM-012–013, IB-012, CR-005 | Epistemic gap detection, pipeline, FP/FN calibration, proactive warnings |
-| SEED | §5, §8 | IB-010, PO-002–003, PO-014, GU-003–004, SQ-007 | Associate→query→assemble, dynamic CLAUDE.md, rate-distortion, projection pyramid |
-| MERGE | §6 | AS-001, AS-003–006, PD-001, PD-004, PO-006–007 | Set-union merge, branching G-Set, W_α, merge cascade, competing branch lock |
+| FOUNDATION | §1–§11 | LM-001–002, LM-008–009, AA-002, CO-006 | Braid-as-new-impl, methodology-before-tooling, self-bootstrap, structural coherence |
+| STORE | §4, §9, §11 | FD-001–012, AS-001–010, SR-001–011, PD-001–004, PO-001, PO-012, LM-007 | Append-only datom store, CRDT merge, content identity, HLC ordering, indexes |
+| LAYOUT | §4, §11 | SR-006, SR-007, SR-014, FD-007, FD-013 | Content-addressed transaction files, directory-union merge, filesystem isomorphism, canonical serialization |
+| SCHEMA | §4 | SR-008–010, FD-005, FD-008, SQ-008 | 17 axiomatic attributes, genesis, schema-as-data, six-layer architecture, value type union |
+| QUERY | §4 | FD-003, SQ-001–010, PO-013, AS-007, AA-001, UA-009 | Datalog, CALM, six strata, FFI boundary, significance tracking, graph engine, stability score |
+| RESOLUTION | §4 | FD-005, CR-001–006, UA-003–005, UA-010–012 | Per-attribute resolution, conflict predicate, three-tier routing, spectral authority, delegation |
+| HARVEST | §5 | LM-005–006, LM-012–014, IB-012, CR-005, UA-007 | Epistemic gap detection, pipeline, FP/FN calibration, proactive warnings, staleness, DDR feedback |
+| SEED | §5, §8 | IB-010, PO-002–003, PO-014, GU-003–004, SQ-007, AA-004, LM-016 | Associate→query→assemble, dynamic CLAUDE.md, rate-distortion, projection pyramid, four knowledge types |
+| MERGE | §6 | AS-001, AS-003–006, AS-010, PD-001, PD-004, PO-006–007, CR-010 | Set-union merge, branching G-Set, W_α, merge cascade, cascade determinism, branch comparison |
 | SYNC | §6 | PO-010, SQ-001, SQ-004, PD-005 | Consistent cut, barrier protocol, topology independence |
-| SIGNAL | §6 | PO-004–005, PO-008, CR-002–003, AS-009, CO-003 | Eight signal types, dispatch, subscription, diamond lattice signals |
-| BILATERAL | §3, §6 | CO-004, CO-008–010, SQ-006, AS-006, CO-011 | Adjunction, fitness function, five-point coherence, bilateral symmetry |
+| SIGNAL | §6 | PO-004–005, PO-008, CR-002–003, AS-009, CO-002–003, CO-007 | Eight signal types, dispatch, subscription, diamond lattice signals, taxonomy gaps |
+| BILATERAL | §3, §6 | CO-001, CO-004–005, CO-008–010, CO-013–014, SQ-006, AS-006, CO-011, PD-006, LM-004, LM-010 | Adjunction, fitness function, five-point coherence, bilateral authority, reconciliation taxonomy |
 | DELIBERATION | §6 | CR-004–005, CR-007, PO-007, AS-002, AA-001 | Three entity types, stability guard, precedent, commitment weight |
-| GUIDANCE | §7, §8 | GU-001–008, IB-006 | Comonad, basin competition, six anti-drift mechanisms, spec-language, M(t)/R(t)/T(t) |
-| BUDGET | §8 | IB-004–007, IB-011, SQ-007 | k* measurement, Q(t), precedence, projection pyramid, rate-distortion |
-| INTERFACE | §8 | IB-001–003, IB-008–009, IB-012, SR-011, AA-003 | Five layers, CLI modes, MCP tools, TUI, statusline, harvest warning |
+| GUIDANCE | §7, §8 | GU-001–008, IB-006, PO-009, AA-007 | Comonad, basin competition, six anti-drift mechanisms, spec-language, M(t)/R(t)/T(t), S1/S2 diagnosis |
+| BUDGET | §8 | IB-004–007, IB-011, SQ-007, IMPL-002 | k* measurement, Q(t), precedence, projection pyramid, rate-distortion, tokenization |
+| INTERFACE | §8 | IB-001–003, IB-008–009, IB-012–013, SR-011, AA-003, AA-006, FD-011, PO-011, LM-015 | Five layers, CLI modes, MCP tools, TUI, statusline, harvest warning, ten primitives, Rust |
+| UNCERTAINTY | §3 | UA-001–002, UA-006, UA-008 | Three-axis tensor, temporal decay, first-class markers, self-referential exclusion |
+| VERIFICATION | §10 | IMPL-003 | Three-tier Kani CI pipeline |
 
 ### §17.2 Invariant Dependency Graph
 
@@ -33,11 +37,17 @@ Key inter-invariant dependencies (an edge A → B means B depends on A holding):
 INV-STORE-001 (append-only) ──→ INV-MERGE-001 (merge preserves)
                               ──→ INV-HARVEST-001 (harvest commits to store)
                               ──→ INV-SCHEMA-004 (schema monotonicity)
+                              ──→ INV-LAYOUT-002 (file immutability — φ preserves C1)
+
+INV-STORE-003 (content identity) ──→ INV-LAYOUT-001 (content-addressed files — φ preserves C2)
+INV-MERGE-001 (set union) ──→ INV-LAYOUT-004 (merge = dir union — φ preserves C4)
+INV-LAYOUT-011 (canonical serialization) ──→ INV-LAYOUT-001 (prerequisite for identity)
 
 INV-STORE-002 (content identity) ──→ INV-STORE-006 (idempotency)
                                   ──→ INV-MERGE-001 (deduplication)
 
 INV-STORE-004/005/006 (CRDT laws) ──→ INV-MERGE-002 (merge cascade)
+                                    ──→ INV-MERGE-010 (cascade determinism)
                                     ──→ INV-SYNC-001 (consistent cut)
                                     ──→ INV-BILATERAL-001 (convergence)
 
@@ -56,11 +66,17 @@ INV-RESOLUTION-004 (conflict predicate) ──→ INV-SIGNAL-004 (severity routi
 INV-HARVEST-001 (epistemic gap) ──→ INV-SEED-001 (seed from store)
                                   ──→ INV-BILATERAL-001 (convergence)
 
+INV-HARVEST-009 (continuous externalization) ──→ INV-GUIDANCE-007 (dynamic CLAUDE.md)
+                                               ──→ INV-HARVEST-001 (epistemic gap reduction)
+
 INV-GUIDANCE-001 (continuous injection) ──→ INV-BUDGET-004 (compression by budget)
                                          ──→ INV-INTERFACE-007 (harvest warning)
                                          ──→ INV-INTERFACE-009 (error recovery)
 
 INV-INTERFACE-003 (six MCP tools) ──→ INV-INTERFACE-008 (tool description quality)
+
+INV-INTERFACE-002 (MCP thin wrapper) ──→ INV-INTERFACE-010 (CLI/MCP semantic equivalence)
+INV-INTERFACE-010 (CLI/MCP parity) ──→ INV-INTERFACE-003 (six tools — parity per tool)
 
 INV-BUDGET-001 (output budget cap) ──→ INV-BUDGET-006 (token efficiency)
 
@@ -91,12 +107,12 @@ This confirms the implementation order: STORE → SCHEMA → QUERY → RESOLUTIO
 
 ### §17.3 Stage Mapping
 
-#### Stage 0 — Harvest/Seed Cycle (64 INV, core)
+#### Stage 0 — Harvest/Seed Cycle (77 INV, core)
 
 The foundational layer. Must be complete before any other stage.
 
-**Namespaces fully included**: STORE (13/14 INV), RESOLUTION (8/8)
-**Namespaces partially included**: SCHEMA (7/8, incl. 006 progressive), QUERY (10/21), HARVEST (5/8), SEED (6/8), MERGE (4/9), GUIDANCE (6/11), INTERFACE (5/9)
+**Namespaces fully included**: STORE (13/14 INV), LAYOUT (11/11 INV), RESOLUTION (8/8)
+**Namespaces partially included**: SCHEMA (7/8, incl. 006 progressive), QUERY (10/21), HARVEST (5/9), SEED (6/8), MERGE (5/10), GUIDANCE (6/11), INTERFACE (6/10)
 **Namespaces excluded**: SYNC, SIGNAL, BILATERAL, DELIBERATION, BUDGET
 
 **Success criterion**: Work 25 turns, harvest, start fresh with seed — new session
@@ -116,7 +132,7 @@ betweenness centrality, HITS scoring, k-core decomposition.
 INV-INTERFACE-004/007, INV-QUERY-003/008–009/015–016/018, INV-SIGNAL-002,
 INV-HARVEST-004/006, INV-SEED-007–008.
 
-#### Stage 2 — Branching + Deliberation (22 INV)
+#### Stage 2 — Branching + Deliberation (23 INV)
 
 Adds isolated workspaces, competing proposals, and structured conflict resolution.
 
@@ -127,7 +143,7 @@ eigenvector centrality, articulation points, topology fitness.
 
 **Key invariants**: INV-STORE-013, INV-MERGE-003–007, INV-SCHEMA-008,
 INV-DELIBERATION-001–006, INV-SIGNAL-005, INV-GUIDANCE-006/011, INV-BILATERAL-003,
-INV-QUERY-004/011/019–020, INV-HARVEST-008.
+INV-QUERY-004/011/019–020, INV-HARVEST-008–009.
 
 #### Stage 3 — Multi-Agent Coordination (11 INV)
 
@@ -154,13 +170,13 @@ Every hard constraint (C1–C7) traces to specific invariants:
 
 | Constraint | Description | Enforcing Invariants |
 |------------|-------------|---------------------|
-| C1 | Append-only store | INV-STORE-001, INV-STORE-005, NEG-STORE-001 |
-| C2 | Identity by content | INV-STORE-002, NEG-STORE-002 |
+| C1 | Append-only store | INV-STORE-001, INV-STORE-005, NEG-STORE-001, INV-LAYOUT-002, NEG-LAYOUT-001, NEG-LAYOUT-002 |
+| C2 | Identity by content | INV-STORE-002, NEG-STORE-002, INV-LAYOUT-001, INV-LAYOUT-011 |
 | C3 | Schema-as-data | INV-SCHEMA-003, INV-SCHEMA-004, INV-SCHEMA-008, NEG-SCHEMA-001 |
-| C4 | CRDT merge by set union | INV-STORE-003, INV-STORE-004–007, INV-MERGE-001, NEG-MERGE-001 |
+| C4 | CRDT merge by set union | INV-STORE-003, INV-STORE-004–007, INV-MERGE-001, NEG-MERGE-001, INV-LAYOUT-004, NEG-LAYOUT-003 |
 | C5 | Traceability | All elements have `Traces to` fields; INV-BILATERAL-002 (five-point coherence) |
 | C6 | Falsifiability | All INVs have `Falsification` sections; structural property of the specification |
-| C7 | Self-bootstrap | INV-SCHEMA-001 (genesis), INV-STORE-014 (every command is transaction), INV-BILATERAL-005 (test results as datoms) |
+| C7 | Self-bootstrap | INV-SCHEMA-001 (genesis), INV-STORE-014 (every command is transaction), INV-BILATERAL-005 (test results as datoms), INV-LAYOUT-005 (self-verification), INV-LAYOUT-009 (index derivability) |
 
 ### §17.5 Failure Mode Traceability
 
@@ -179,69 +195,119 @@ Each failure mode (FAILURE_MODES.md) maps to the DDIS/Braid mechanisms that prev
 
 | Namespace | INV | ADR | NEG | Total | Wave |
 |-----------|-----|-----|-----|-------|------|
-| STORE     | 14  | 15  | 5   | 34    | 1    |
-| SCHEMA    | 8   | 5   | 3   | 16    | 1    |
-| QUERY     | 21  | 9   | 4   | 34    | 1    |
-| RESOLUTION| 8   | 6   | 3   | 17    | 1    |
-| HARVEST   | 8   | 4   | 3   | 15    | 2    |
-| SEED      | 8   | 4   | 2   | 14    | 2    |
-| MERGE     | 9   | 4   | 3   | 16    | 2    |
+| FOUNDATION | 0  | 6   | 0   | 6     | 1    |
+| STORE     | 14  | 19  | 5   | 38    | 1    |
+| LAYOUT    | 11  | 7   | 5   | 23    | 1    |
+| SCHEMA    | 8   | 6   | 3   | 17    | 1    |
+| QUERY     | 21  | 11  | 4   | 36    | 1    |
+| RESOLUTION| 8   | 13  | 3   | 24    | 1    |
+| HARVEST   | 9   | 7   | 3   | 19    | 2    |
+| SEED      | 8   | 7   | 2   | 17    | 2    |
+| MERGE     | 10  | 7   | 3   | 20    | 2    |
 | SYNC      | 5   | 3   | 2   | 10    | 2    |
-| SIGNAL    | 6   | 3   | 3   | 12    | 3    |
-| BILATERAL | 5   | 3   | 2   | 10    | 3    |
+| SIGNAL    | 6   | 5   | 3   | 14    | 3    |
+| BILATERAL | 5   | 10  | 2   | 17    | 3    |
 | DELIBERATION | 6 | 4  | 3   | 13    | 3    |
-| GUIDANCE  | 11  | 5   | 3   | 19    | 3    |
-| BUDGET    | 6   | 3   | 2   | 11    | 3    |
-| INTERFACE | 9   | 4   | 4   | 17    | 3    |
-| **Total** | **124** | **72** | **42** | **238** |      |
+| GUIDANCE  | 11  | 9   | 3   | 23    | 3    |
+| BUDGET    | 6   | 4   | 2   | 12    | 3    |
+| INTERFACE | 10  | 10  | 4   | 24    | 3    |
+| UNCERTAINTY | 0 | 4   | 0   | 4     | 4    |
+| VERIFICATION | 0 | 1  | 0   | 1     | 4    |
+| **Total** | **138** | **133** | **47** | **318** |      |
 
-**Additional Wave 4 content**: 10 uncertainty entries (§15), 124-row verification matrix (§16),
-14-namespace cross-reference index with dependency graph and stage mapping (§17).
+**Additional Wave 4 content**: 13 uncertainty entries + 4 ADR-UNCERTAINTY elements (§15),
+138-row verification matrix + 1 ADR-VERIFICATION element (§16),
+18-namespace cross-reference index with dependency graph and stage mapping (§17). Total: 318.
 
-## Appendix B: Verification Statistics (Final)
+## Appendix B: Traceability Statistics
+
+### Backward Traceability (spec → ADRS.md): 100%
+
+All 126 spec ADR elements include `Traces to: ADRS` references linking back to the
+design decisions that motivated them. 72/72 were verified during the V1 audit (R6);
+3 additional ADRs added post-audit also include backward links; 45 ADRs added in the
+ADR formalization pass (Session 013) all include backward links; 6 additional ADRs
+formalizing Stage 0 simplification decisions (Session 014) all include backward links.
+
+### Forward Traceability (ADRS.md → spec): 100%
+
+All 154 ADRS.md entries carry `Formalized as` or `Formalized across` forward annotations:
+
+| Annotation Type | Count | Description |
+|-----------------|-------|-------------|
+| `Formalized as` / `Formalized across` | 154 | Entry has 1:1 or 1:N mapping to spec elements (INV, ADR, NEG) |
+| `Scope` (meta-level or implementation-level) | 0 | All former Scope entries formalized in Session 013 |
+| **Total** | **154** | **100% formalized** |
+
+### Forward Annotation History
+
+**Phase 1 (V1 Audit R6)**: 109 entries linked to spec elements; 23 annotated as
+meta-level scope; 21 annotated as implementation-level scope.
+
+**Phase 2 (ADR Formalization, Session 013)**: All 44 remaining `Scope` entries
+formalized as ADR elements across 15 spec files (+3 new namespaces: FOUNDATION,
+UNCERTAINTY, VERIFICATION). Total ADRs increased from 75 to 120 (+45).
+
+**Phase 3 (Simplification Formalization, Session 014)**: 6 Stage 0 simplification
+decisions formalized as ADR elements: ADR-HARVEST-007 (turn-count proxy),
+ADR-GUIDANCE-008 (footer progressive enrichment), ADR-GUIDANCE-009 (betweenness
+degree-product proxy), ADR-RESOLUTION-013 (conflict pipeline progressive activation),
+ADR-MERGE-007 (merge cascade stub datoms), ADR-INTERFACE-010 (harvest warning
+turn-count proxy). Total ADRs increased from 120 to 126 (+6).
+
+---
+
+## Appendix C: Verification Statistics (Final)
 
 | Metric | Count | Coverage |
 |--------|-------|----------|
-| Total INVs | 124 | — |
-| V:PROP | 121/124 | 97.6% |
-| V:TYPE (compile-time) | 10/124 | 8.1% |
-| V:PROP or V:TYPE (minimum) | 124/124 | 100.0% |
-| V:KANI (critical) | 41/124 | 33.1% |
-| V:MODEL (protocol) | 15/124 | 12.1% |
+| Total INVs | 138 | — |
+| V:PROP | 136/138 | 98.6% |
+| V:TYPE (compile-time) | 9/138 | 6.5% |
+| V:PROP or V:TYPE or V:MODEL (minimum) | 138/138 | 100.0% |
+| V:KANI (critical) | 48/138 | 34.8% |
+| V:MODEL (protocol) | 13/138 | 9.4% |
 | V:DEDUCTIVE (candidate) | 5 | Deferred to post-Stage 2 |
-| Stage 0 INVs | 64 | 51.6% |
-| Stage 1 INVs | 25 | 20.2% |
-| Stage 2 INVs | 22 | 17.7% |
-| Stage 3 INVs | 11 | 8.9% |
+| Stage 0 INVs | 77 | 55.8% |
+| Stage 1 INVs | 25 | 19.7% |
+| Stage 2 INVs | 23 | 18.1% |
+| Stage 3 INVs | 11 | 8.7% |
 | Stage 4 INVs | 2 | 1.6% |
-| Uncertainty markers | 10 | — |
+| Uncertainty markers | 13 | — |
 | High-urgency uncertainties | 3 | Resolve during Stage 0 |
 
-## Appendix C: Stage 0 Elements
+## Appendix D: Stage 0 Elements
 
 Elements required for Stage 0 (Harvest/Seed cycle):
 
 | Element | Namespace | Summary |
 |---------|-----------|---------|
 | INV-STORE-001–012, 014 | STORE | Core store operations (13 INV) |
+| INV-LAYOUT-001–011 | LAYOUT | Content-addressed layout, isomorphism, merge, verification (11 INV) |
 | INV-SCHEMA-001–007 | SCHEMA | Schema bootstrap (7 INV; 006 progressive 0–4, 008 deferred to Stage 2) |
 | INV-QUERY-001–002, 005–007, 012–014, 017, 021 | QUERY | Core query + graph engine (10 INV) |
 | INV-RESOLUTION-001–008 | RESOLUTION | Full conflict handling (all 8 INV) |
-| INV-HARVEST-001–003, 005, 007 | HARVEST | Core harvest pipeline (5 INV; 004,006 Stage 1; 008 Stage 2) |
+| INV-HARVEST-001–003, 005, 007 | HARVEST | Core harvest pipeline (5 INV; 004,006 Stage 1; 008–009 Stage 2) |
 | INV-SEED-001–006 | SEED | Seed assembly pipeline (6 INV; 007–008 Stage 1) |
-| INV-MERGE-001–002, 008–009 | MERGE | Core merge incl. cascade and receipt (4 INV) |
+| INV-MERGE-001–002, 008–010 | MERGE | Core merge incl. cascade, receipt, and cascade determinism (5 INV) |
 | INV-GUIDANCE-001–002, 007–010 | GUIDANCE | Injection, spec-language, dynamic CLAUDE.md, M(t), task derivation, R(t) (6 INV) |
-| INV-INTERFACE-001–003, 008–009 | INTERFACE | CLI modes, MCP wrapper, tools, description quality, error recovery (5 INV) |
-| ADR-STORE-001–015 | STORE | Foundation decisions (15 ADR) |
-| ADR-SCHEMA-001–005 | SCHEMA | Schema decisions |
-| ADR-QUERY-001–003, 005–006 | QUERY | Query engine decisions |
-| ADR-RESOLUTION-001–005, 009 | RESOLUTION | Resolution decisions |
-| ADR-HARVEST-001–004 | HARVEST | Harvest decisions |
-| ADR-SEED-001–004 | SEED | Seed decisions |
-| ADR-MERGE-001 | MERGE | Core merge decision |
-| ADR-GUIDANCE-002, 004 | GUIDANCE | Basin competition, spec-language |
-| ADR-INTERFACE-001–004 | INTERFACE | Layers, agent-mode, trajectory, MCP library model |
+| INV-INTERFACE-001–003, 008–010 | INTERFACE | CLI modes, MCP wrapper, tools, description quality, error recovery, CLI/MCP parity (6 INV) |
+| ADR-FOUNDATION-001–006 | FOUNDATION | Project-level decisions: Braid-as-new-impl, methodology-before-tooling, D-centric formalism, DDIS formalism, structural coherence, self-bootstrap |
+| ADR-STORE-001–019 | STORE | Foundation decisions (19 ADR, incl. vector-DB-rejection, JSONL-replacement, datom-exclusive) |
+| ADR-LAYOUT-001–007 | LAYOUT | Layout decisions (per-txn files, content-addressed naming, EDN format, sharding, pure filesystem, O_CREAT\|O_EXCL, genesis location) |
+| ADR-SCHEMA-001–006 | SCHEMA | Schema decisions (incl. value type union) |
+| ADR-QUERY-001–003, 005–006, 010–011 | QUERY | Query engine decisions (incl. agent-store composition, stability score) |
+| ADR-RESOLUTION-001–013 | RESOLUTION | Resolution decisions (incl. delegation, spectral authority, contribution weight, progressive activation) |
+| ADR-HARVEST-001–007 | HARVEST | Harvest decisions (incl. staleness model, DDR feedback, turn-count proxy) |
+| ADR-SEED-001–007 | SEED | Seed decisions (incl. four knowledge types, dynamic CLAUDE.md, eleven-section structure) |
+| ADR-MERGE-001, 005–007 | MERGE | Core merge decision, cascade-as-deterministic-fixpoint, branch comparison, stub datoms |
+| ADR-GUIDANCE-002, 004, 006–009 | GUIDANCE | Basin competition, spec-language, guidance graph query, S1/S2 diagnosis, footer enrichment, betweenness proxy |
+| ADR-BUDGET-001–004 | BUDGET | Budget decisions (incl. chars/4 tokenization) |
+| ADR-INTERFACE-001–010 | INTERFACE | Layers, agent-mode, trajectory, MCP, heuristics, ten primitives, Rust, agent cycle, staged alignment, harvest warning proxy |
+| ADR-UNCERTAINTY-001–004 | UNCERTAINTY | Tensor, temporal decay, first-class markers, self-referential exclusion |
+| ADR-VERIFICATION-001 | VERIFICATION | Three-tier Kani CI pipeline |
 | NEG-STORE-001–005 | STORE | Store safety |
+| NEG-LAYOUT-001–005 | LAYOUT | Layout safety (no modification, no deletion, no append merge, no transport dependency, no index as truth) |
 | NEG-SCHEMA-001–003 | SCHEMA | Schema safety |
 | NEG-QUERY-001–004 | QUERY | Query safety |
 | NEG-RESOLUTION-001–003 | RESOLUTION | Resolution safety |

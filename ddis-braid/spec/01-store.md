@@ -191,7 +191,9 @@ TRANSACT(S, T) = S ∪ T.datoms ∪ {tx_datom}
 
 ```
 Value = String | Keyword | Boolean | Long | Double | Instant | UUID
-      | Ref EntityId | Bytes | URI | BigInt | BigDec | Tuple [Value] | Json String
+      | Ref EntityId | Bytes                                         // Stage 0 (9 variants)
+      | URI | BigInt | BigDec                                        // Stage 1 (3 variants)
+      | Tuple [Value] | Json String                                  // Stage 2 (2 variants — Tuple is recursive, Json requires parser)
 
 ProvenanceType = Observed | Derived | Inferred | Hypothesized
   with ordering: Observed > Derived > Inferred > Hypothesized
@@ -389,7 +391,7 @@ pub enum TxApplyError {
     /// All datoms in this transaction are already present in the store
     /// (content-addressed deduplication, INV-STORE-003).
     DuplicateTransaction(TxId),
-    /// Storage backend failure (e.g., redb write error).
+    /// Storage backend failure (e.g., filesystem write error).
     StorageFailure(String),
 }
 
@@ -1163,7 +1165,7 @@ C) **Distributed database** — multi-node with consensus.
 #### Decision
 **Option A.** For the target deployment (single VPS, single-digit agents, thousands of
 datoms), embedded is sufficient. Minimizes operational complexity. Multiple agents coordinate
-through the shared filesystem (SR-007).
+through the shared filesystem via content-addressed transaction files (SR-014; SR-007 flock coordination superseded by ADR-LAYOUT-006).
 
 #### Formal Justification
 Embedded deployment preserves the property that all coordination goes through the store.
@@ -1173,6 +1175,11 @@ store, potentially violating FD-012 (every command is a transaction).
 ---
 
 ### ADR-STORE-007: File-Backed Store with Git
+
+> **SUPERSEDED** by ADR-LAYOUT-001 (per-transaction files) and ADR-LAYOUT-005 (pure filesystem)
+> in [spec/01b-storage-layout.md](01b-storage-layout.md). Both Option A (trunk.ednl) and
+> Option B (redb target) are replaced by content-addressed per-transaction files with
+> directory-union merge. See SR-014 in ADRS.md.
 
 **Traces to**: ADRS SR-006, SR-007
 **Stage**: 0
@@ -1433,6 +1440,246 @@ function in its respective namespace module.
 Evidence this decision is wrong: a namespace operation that requires access to Store's
 private fields and cannot be expressed through Store's public API. In that case, the
 Store API needs a new public method, not a namespace method on Store.
+
+---
+
+### ADR-STORE-016: ArcSwap MVCC Concurrency Model
+
+**Traces to**: SEED §4 (immutable store values), §10 (Stage 3 multi-agent), ADRS SR-003, C1, C4
+**Type**: ADR
+**Stage**: 0 (core infrastructure; critical at Stage 3)
+
+#### Problem
+
+How do concurrent readers and a single writer access the Store? The Store is immutable
+after construction (C1), but write operations (transact, harvest, merge) produce new
+Store values that must be visible to subsequent readers without blocking in-flight reads.
+
+#### Options
+
+A) **`Arc<RwLock<Store>>`** — Correct but high contention. Readers acquire read locks;
+   the writer acquires a write lock. Under read-heavy workloads (MCP tool handlers, seed
+   assembly, query evaluation), write operations (transact, harvest) are blocked by
+   concurrent readers. Degrades to serial execution under load.
+
+B) **Actor model** — All Store access goes through a message queue to a single actor.
+   Serializes all operations. Simple but eliminates read concurrency entirely — every
+   query waits behind every other query and every write.
+
+C) **`ArcSwap<Store>`** — Lock-free reads, atomic pointer swap for writes. Readers call
+   `store.load()` to get an `Arc<Store>` snapshot — zero contention, zero blocking.
+   The writer constructs a new Store value, then atomically swaps the pointer via
+   `store.swap(new_store)`. In-flight readers continue with their snapshot; new readers
+   see the updated Store.
+
+#### Decision
+
+**Option C.** Store values are immutable (C1). `ArcSwap` provides snapshot isolation
+naturally: each `load()` returns a consistent, immutable `Arc<Store>` that cannot be
+invalidated by subsequent writes. The writer never needs to wait for readers to finish.
+
+Schema inherits this concurrency model because it is owned by Store (ADR-SCHEMA-005,
+Option C). Each MVCC snapshot contains a Schema consistent with its datoms — no split-brain
+possible. See ADR-SCHEMA-005 Stage 3 Concurrency Analysis for Option B rejection rationale.
+
+#### Formal Justification
+
+1. G-Set CvRDT (INV-STORE-003) + C1 immutability → `&Store` is always safe to read.
+2. `ArcSwap` only swaps the pointer, never the pointed-to data → readers never observe
+   partially-constructed state.
+3. Snapshot isolation is automatic: each reader gets an `Arc<Store>` that remains valid
+   for the reader's lifetime, regardless of subsequent swaps.
+4. Schema consistency is structural: Schema is part of Store (ADR-SCHEMA-005), so each
+   snapshot's Schema matches its datoms. No independent Schema versioning needed or permitted.
+
+#### Consequences
+
+- `ArcSwap<Arc<Store>>` is the canonical concurrency primitive for Store access.
+- CLI commands load a snapshot once per invocation — no concurrent access concern.
+- MCP server holds `ArcSwap<Arc<Store>>` for session lifetime (ADR-INTERFACE-004).
+- Write operations (transact, harvest, merge) construct a new `Arc<Store>` and swap atomically.
+- In-flight reads are never invalidated, never blocked, never see partial state.
+- No `RwLock`, no `Mutex`, no actor — lock-free by design.
+
+#### Falsification
+
+This decision is wrong if: (a) a scenario exists where `ArcSwap` readers observe a
+partially-constructed Store (violates C1 + ArcSwap guarantees), or (b) a write is lost
+because two concurrent writers both swap (mitigated by single-writer discipline at the
+application level — only one transact/harvest/merge executes at a time, producing a
+new Store value and swapping it).
+
+---
+
+### ADR-STORE-017: Datom Store Over Vector DB / RAG
+
+**Traces to**: SEED §11, ADRS FD-004
+**Stage**: 0
+
+#### Problem
+What is the foundational substrate for DDIS? Should the system be built on a vector
+database with retrieval-augmented generation (RAG), or on a datom store with structured
+queries?
+
+#### Options
+A) **Datom store** — Append-only set of `[e, a, v, tx, op]` tuples with Datalog queries.
+   Supports logical coherence verification, contradiction detection, causal dependency
+   tracing, and CRDT merge. Provides exact answers to structured queries.
+B) **Vector database with RAG** — Embed all knowledge as vectors, retrieve by semantic
+   similarity. Good at finding "related" content across large corpora. Standard approach
+   in LLM-based systems.
+C) **Hybrid** — Vector DB for retrieval, datom store for verification. Two substrates
+   with a bridging layer.
+
+#### Decision
+**Option A.** The core substrate is a datom store. Vector similarity retrieval finds
+"related" content but cannot verify logical coherence, detect contradictions, or trace
+causal dependencies. The fundamental problem DDIS solves is divergence — the gap between
+intent, specification, implementation, and behavior. Divergence detection requires
+structured reasoning over exact relationships, not approximate similarity.
+
+#### Formal Justification
+The "filing cabinet vs. bigger desk" argument: RAG gives you a bigger desk (more context
+in the LLM window). But the problem is not desk size — it is that the documents on the
+desk may contradict each other, and the LLM cannot reliably detect this. A datom store
+gives you a filing cabinet with a verification system: every fact has provenance, every
+relationship is queryable, contradictions are mechanically detectable.
+
+Formally: contradiction detection requires negation (`not(P and not-P)`). Vector similarity
+is a continuous distance metric — it has no concept of logical negation. You cannot build
+a sound contradiction detector on cosine similarity alone. The datom store's Datalog engine
+supports stratified negation (INV-QUERY-001), enabling formal contradiction detection.
+
+#### Consequences
+- No vector embeddings in the core store architecture
+- Semantic retrieval (ASSOCIATE) is a separate, optional layer that feeds into Datalog
+  queries — not a replacement for them
+- The store's query power comes from logical inference, not statistical similarity
+- Content-addressable identity (C2) enables exact deduplication across agents — something
+  vector similarity can only approximate
+
+#### Falsification
+This decision is wrong if: a vector-based coherence verification system is demonstrated
+that can reliably detect logical contradictions, trace causal dependencies, and produce
+CRDT-mergeable state — matching the datom store's verification guarantees.
+
+---
+
+### ADR-STORE-018: Datom Store Replaces JSONL Event Stream
+
+**Traces to**: SEED §4, ADRS FD-009
+**Stage**: 0
+
+#### Problem
+The Go CLI uses a JSONL-based event stream as its canonical data substrate. Events are
+sequential, file-scoped, and processed through a crystallize-materialize-project pipeline.
+Should Braid preserve this event-sourcing architecture, layer the datom store on top of it,
+or replace it entirely?
+
+#### Options
+A) **Datom store as sole canonical substrate** — Replace the JSONL event stream entirely.
+   Events become transactions in the datom store. The store subsumes event-sourcing:
+   transactions are ordered, provenance-tracked, and content-addressed.
+B) **JSONL as application layer, datom store underneath** — Keep JSONL events as the
+   user-facing format, with the datom store as the backing storage. Dual source of truth
+   creates consistency hazards (dual-write problem).
+C) **JSONL as derived view, projected from datom store** — The datom store is canonical;
+   JSONL events are projected (rendered) from it. Preserves backward compatibility but
+   creates impedance mismatch between datom transactions and JSONL event semantics.
+
+#### Decision
+**Option A.** The datom store is the canonical substrate, replacing JSONL event streams.
+JSONL events are sequential and file-scoped — they cannot represent concurrent assertions
+from multiple agents, cannot be merged by set union, and their identity is positional
+(line number in file) rather than content-addressed.
+
+#### Formal Justification
+The datom model subsumes event-sourcing:
+- An event "entity X changed attribute A from V1 to V2" is two datoms:
+  `(X, A, V1, tx, Retract)` and `(X, A, V2, tx, Assert)`
+- Event ordering is captured by transaction ordering (HLC timestamps)
+- Event provenance is captured by transaction metadata
+- Event replay is captured by time-travel queries (`as_of(tx)`)
+
+The datom model adds capabilities JSONL lacks:
+- Content-addressed identity (C2): same fact from two agents = one datom
+- CRDT merge (C4): set union of two datom sets, no coordination
+- Graph-structured queries: Datalog joins across entity relationships
+- Schema validation: type-checked assertions at transact time
+
+Option B creates a dual-write problem: every operation must update both JSONL and datom
+store consistently, and inconsistency between them is a new divergence type the system
+must manage. Option C creates an impedance mismatch: JSONL events have different
+semantics (sequential, file-scoped) than datom transactions (set-scoped, content-addressed),
+and the projection between them is lossy in both directions.
+
+#### Consequences
+- No JSONL event files in Braid's data model
+- The Go CLI's crystallize-materialize-project pipeline has no equivalent; its function
+  is subsumed by transact + query
+- Import from the Go CLI (if needed) is a one-time migration, not an ongoing integration
+- The store file format (content-addressed EDN transaction files; see [spec/01b-storage-layout.md](01b-storage-layout.md)) is the sole persistent representation
+
+#### Falsification
+This decision is wrong if: a use case is identified where JSONL event semantics (sequential,
+file-scoped, streaming) provide capabilities that the datom store cannot replicate, making
+some DDIS workflow impossible without JSONL.
+
+---
+
+### ADR-STORE-019: All Durable Information as Datoms
+
+**Traces to**: SEED §5, ADRS LM-007
+**Stage**: 0
+
+#### Problem
+Should all persistent information live in the datom store, or should some categories of
+information (configuration, logs, session history, intermediate computations) live in
+external files, databases, or runtime state?
+
+#### Options
+A) **Datom-exclusive durability** — All durable information must exist as datoms in the
+   store. External representations (Markdown files, CLI output, CLAUDE.md) are projections
+   from the store, not independent truth sources.
+B) **Datom store + sidecar files** — Core data as datoms, configuration and logs as
+   separate files. Simpler initial implementation but creates multiple truth sources.
+C) **Datom store + external database** — Core data as datoms, derived/cached data in
+   SQLite or similar. Performance optimization but risks cache-source divergence.
+
+#### Decision
+**Option A.** All durable information must exist as datoms. This is a direct consequence
+of the D-centric formalism (ADR-FOUNDATION-003): if protocol-level state lives outside D,
+it cannot be merged (C4), queried (Datalog), or verified (bilateral loop). External
+representations are projections — derived views that are always reproducible from the store.
+
+#### Formal Justification
+Let I be all durable information. Under Option A:
+```
+I ⊂ D                           — all information is datoms
+projection(D) = external_repr   — Markdown, CLI output, CLAUDE.md are derived
+D is the sole source of truth   — no external file can contradict D
+```
+
+Under Option B or C, `I = D ∪ E` where E is external state:
+```
+merge(I₁, I₂) = merge(D₁, D₂) ∪ merge(E₁, E₂)
+```
+But `merge(E₁, E₂)` has no CRDT guarantee — external files have no content-addressed
+identity, no set-union merge, no conflict detection. Any information in E is outside
+the coherence verification boundary.
+
+#### Consequences
+- Configuration is datoms (schema attributes, agent preferences, guidance parameters)
+- Session history is datoms (transactions with provenance)
+- Intermediate computations, when they need to persist across sessions, become datoms
+- The only non-datom persistent artifacts are the store files themselves (the physical
+  representation of the datom set)
+- CLAUDE.md, Markdown specs, and CLI output are projections: `render(query(D))`
+
+#### Falsification
+This decision is wrong if: a category of durable information is identified that cannot be
+represented as datoms without unacceptable overhead (e.g., large binary artifacts where
+content-addressed hashing is prohibitively expensive).
 
 ---
 
