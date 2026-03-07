@@ -965,28 +965,52 @@ before α has committed them.
 
 #### Level 0 (Algebraic Law)
 ```
-∀ DDIS commands C: ∃ transaction T such that executing C produces T
-  (no read-only path bypasses the store; queries produce tx records for provenance)
+∀ DDIS commands C: ∃ provenance record P such that executing C produces P
+
+Provenance scope depends on command type:
+  Mutating commands (transact, harvest, merge):
+    P is a transaction in the shared store S — globally visible after merge.
+  Read commands (query, status, seed, guidance):
+    P is a local record in the agent's working set W_α — NOT included
+    in merge operations. This preserves CALM compliance (INV-QUERY-001):
+    the shared store sees no mutation from read commands.
 ```
 
 #### Level 1 (State Invariant)
-Every CLI command, including queries, generates a transaction recording provenance
-(who queried, what, when, why). The transaction may contain only metadata datoms.
+Every CLI command generates a provenance record. For mutating commands, this
+is a transaction in the shared store (new datoms recording who, what, when, why).
+For read commands, provenance is recorded in the agent's working set (W_α,
+INV-STORE-013) as local datoms that are not promoted to the shared store
+during merge operations. This ensures that queries remain pure reads from
+the shared store's perspective, preserving CALM compliance and monotonic
+read guarantees (INV-QUERY-001).
+
+Read-command provenance in W_α serves debugging and audit purposes — an agent
+can inspect its own query history — but does not pollute the shared store
+with non-convergent side effects.
 
 #### Level 2 (Implementation Contract)
 ```rust
-/// Even queries produce a provenance transaction (ADR-ARCHITECTURE-001: free function).
-/// The caller is responsible for committing the provenance transaction via Store::transact().
+/// Read commands produce provenance in W_α (local working set), not the shared store.
+/// This preserves CALM compliance: the shared store sees no mutation from queries.
+/// The caller records provenance in their working set via WorkingSet::record_provenance().
 pub fn query(store: &Store, q: &QueryExpr, mode: QueryMode) -> QueryResult {
     let result = evaluate(store, q, mode);
-    // Provenance recording: the query function builds a provenance transaction
-    // and the caller commits it. This keeps query as a read operation on the store,
-    // with provenance as a documented post-step.
+    // Provenance: caller records in W_α, NOT in store.
+    // WorkingSet::record_provenance(query_metadata) — local only.
     result
+}
+
+/// Mutating commands produce provenance in the shared store.
+pub fn transact(store: &mut Store, datoms: Vec<Datom>) -> TxReceipt {
+    // Transaction includes provenance datoms in the shared store.
+    store.apply(datoms) // provenance is part of the transaction
 }
 ```
 
-**Falsification**: Any DDIS command that completes without producing a transaction record.
+**Falsification**: A mutating command (transact, harvest, merge) completes without
+producing a transaction record in the shared store, OR a read command (query, status,
+seed, guidance) mutates the shared store as a side effect of provenance recording.
 
 ---
 

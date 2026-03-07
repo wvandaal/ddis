@@ -401,7 +401,7 @@ without an explicit rebase operation.
 ### INV-QUERY-005: Stratum Safety
 
 **Traces to**: ADRS SQ-004, SQ-009
-**Verification**: `V:PROP`
+**Verification**: `V:TYPE`, `V:PROP`
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
@@ -1267,6 +1267,142 @@ CALM-compliant (INV-QUERY-001). Results are stored as datoms with `:graph/*`
 attributes, making them queryable, mergeable, and traceable. The ten algorithms
 (INV-QUERY-012–021) cover the complete analysis needs identified in the ddis CLI
 tasking system and the Beads graph triage engine.
+
+---
+
+### ADR-QUERY-010: Agent-Store Composition — Three Layers
+
+**Traces to**: SEED §4, ADRS AA-001
+**Stage**: 0
+
+#### Problem
+How does the agent interact with the datom store? LLM agents face a fundamental tension:
+they have powerful associative reasoning (System 2) but no native structured retrieval
+(System 1). Context assembly — getting the right information into the LLM's window — is
+the bottleneck. Should context assembly be an application-level concern (the agent builds
+its own prompts) or a protocol-level requirement (the system provides structured retrieval)?
+
+#### Options
+A) **Application-level context assembly** — The agent directly queries the store and
+   formats results into its context window. Simple but leads to the "flat-buffer pathology":
+   agents dump everything they can find into the context, losing structure, exceeding
+   budgets, and missing relevant information that was not in the initial query.
+B) **Protocol-level three-layer composition** — Context assembly is a first-class pipeline
+   with three stages: ASSOCIATE (semantic retrieval), QUERY (structured Datalog), and
+   ASSEMBLE (budget-aware projection). The pipeline is `assemble . query . associate :
+   SemanticCue -> BudgetedContext`. Each stage has defined inputs, outputs, and invariants.
+C) **Monolithic retrieval function** — A single `get_context(task)` function that handles
+   all retrieval internally. Hides complexity but cannot be composed, tested, or tuned
+   at each stage independently.
+
+#### Decision
+**Option B.** The three-layer composition `assemble . query . associate` is a protocol-
+level requirement, not an application-level convenience. Each layer maps to a distinct
+cognitive function:
+
+```
+associate : SemanticCue -> Set<EntityId>     — System 1: what might be relevant?
+query     : Set<EntityId> -> Set<Datom>      — Structured: what exactly do I know?
+assemble  : Set<Datom> -> BudgetedContext    — Projection: what fits in the budget?
+```
+
+#### Formal Justification
+The dual-process architecture (System 1 associative + System 2 reasoning) is not a metaphor
+— it is a structural requirement. The agent's LLM reasoning (System 2) operates on whatever
+context it receives. If context assembly is ad hoc (Option A), the reasoning quality is
+bounded by the ad hoc retrieval quality. By making the three-layer pipeline protocol-level,
+each layer can be independently verified:
+- ASSOCIATE can be evaluated by recall (did it find relevant entities?)
+- QUERY can be verified by Datalog correctness (did it return accurate facts?)
+- ASSEMBLE can be evaluated by budget compliance (did it fit within k* tokens?)
+
+Option A conflates these concerns; Option C hides them. Option B makes each verifiable.
+
+#### Consequences
+- The QUERY namespace provides Datalog evaluation (this file)
+- The ASSOCIATE function (Stratum 3) is a Datalog FFI function that bridges semantic
+  similarity to structured retrieval
+- The ASSEMBLE function uses the projection pyramid (ADR-QUERY-007) for budget-aware output
+- Confusion signals (INV-SIGNAL-002) trigger re-association within the same agent cycle
+- The pipeline is composable: each stage can be replaced or augmented independently
+
+#### Falsification
+This decision is wrong if: application-level context assembly (Option A) achieves equal or
+better context quality (measured by agent task completion rate) compared to the three-layer
+pipeline, making the protocol-level requirement unnecessary overhead.
+
+---
+
+### ADR-QUERY-011: Query Stability Score
+
+**Traces to**: SEED §6, ADRS UA-009
+**Stage**: 1
+
+#### Problem
+An agent queries the store and receives results. The agent may then make decisions based
+on those results, including irrevocable decisions (committing code, publishing specifications,
+resolving conflicts). How does the agent know whether the query results are stable enough
+to act on? A result derived from recently-asserted, unverified facts may change when new
+information arrives. A result derived from well-established, multiply-confirmed facts is
+unlikely to change.
+
+#### Options
+A) **No stability information** — All query results are treated equally. The agent has
+   no way to distinguish high-confidence from low-confidence results without manual
+   inspection of provenance.
+B) **Stability score per result** — Each query result carries a stability score derived
+   from the commitment weights of the contributing facts. The agent can compare stability
+   against a threshold before making irrevocable decisions.
+C) **Mandatory sync barrier for all decisions** — Every decision requires a sync barrier
+   to ensure the agent has seen all available information. Correct but expensive and
+   unnecessary for decisions based on well-established facts.
+
+#### Decision
+**Option B.** Every query result has a computable stability score:
+
+```
+stability(R) = min{w(d) : d in F and d contributed to R}
+
+where:
+  R = the query result
+  F = the set of facts (datoms) that contributed to R
+  w(d) = commitment weight of datom d
+       = f(provenance_type, verification_status, age, agent_authority)
+```
+
+The stability score is the minimum commitment weight among all contributing facts.
+A result is only as stable as its weakest contributing fact. An agent can compare
+`stability(R) >= threshold` before making irrevocable decisions.
+
+#### Formal Justification
+The stability score is the lattice meet (minimum) of commitment weights over contributing
+facts. This is conservative by construction: a single low-confidence fact pulls down the
+entire result's stability. This prevents the failure mode where a high-confidence result
+masks a low-confidence dependency (e.g., "Task X is ready" derived from high-confidence
+dependency analysis but low-confidence effort estimates).
+
+The threshold mechanism provides a tunable safety margin. For irrevocable decisions
+(code deployment, specification finalization), a high threshold requires all contributing
+facts to be well-established. For exploratory queries (association, browsing), a low or
+zero threshold allows acting on preliminary information.
+
+This is distinct from the crystallization stability threshold (CR-005), which governs
+when observations are promoted to stable specification elements. Query stability measures
+the safety of acting on any query result, not just promoting datoms.
+
+#### Consequences
+- The query engine tracks which datoms contributed to each result (data lineage)
+- Stability computation is O(|contributing datoms|) per result — lightweight
+- Agents can set per-decision stability thresholds in their policy function (pi)
+- A result with stability = 0 (contributed by a hypothesized fact) should never be used
+  for irrevocable decisions without a sync barrier
+- Stability scores are stored as datoms when query provenance is enabled (INV-STORE-014)
+
+#### Falsification
+An agent makes an irrevocable decision (e.g., committing a specification change) based on
+a query result with stability = 0, and the result later changes when new information
+arrives, causing the decision to be wrong. This is the exact scenario the stability score
+is designed to prevent.
 
 ---
 

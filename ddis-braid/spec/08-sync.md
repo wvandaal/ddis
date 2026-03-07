@@ -189,7 +189,7 @@ protocol. Verify post-barrier query determinism across all agents.
 ### INV-SYNC-002: Barrier Timeout Safety
 
 **Traces to**: ADRS PO-010
-**Verification**: `V:PROP`
+**Verification**: `V:PROP`, `V:MODEL`
 **Stage**: 3
 
 #### Level 0 (Algebraic Law)
@@ -205,6 +205,9 @@ timeout (deadline reached). The timed-out barrier records which participants
 responded and which did not, for crash-recovery (PD-003).
 
 **Falsification**: A barrier that neither resolves nor times out.
+
+**Stateright model**: N agents, 1 barrier, timeout T. Verify all paths reach
+`:resolved` or `:timed-out` within T steps.
 
 ---
 

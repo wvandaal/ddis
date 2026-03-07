@@ -72,7 +72,16 @@ MERGE(S₁, S₂) → S'
 POST (set union):
   S'.datoms = S₁.datoms ∪ S₂.datoms
 
-CASCADE (all produce datoms):
+INFRASTRUCTURE PRECONDITION (not a cascade step):
+  REBUILD SCHEMA:
+     If merge introduced schema datoms (any datom with a = :db/ident, :db/valueType,
+     :db/cardinality, :db/resolutionMode, or :db/doc on a schema entity):
+       Schema::from_store(merged_datoms) → new Schema
+     Schema rebuild occurs as part of Store construction (ADR-SCHEMA-005) before
+     cascade steps execute. Schema is owned by Store, so a new Store value (with its
+     new Schema) is produced by the merge. This is structural, not a cascade step.
+
+CASCADE (exactly 5 steps, all produce datoms):
   1. DETECT CONFLICTS:
      For each new datom d entering from the merge:
        if conflict(d, d_existing) → assert Conflict entity
@@ -307,7 +316,7 @@ datoms to each. Verify queries against each branch see only their own datoms.
 ### INV-MERGE-004: Competing Branch Lock
 
 **Traces to**: ADRS AS-005, PO-007
-**Verification**: `V:PROP`, `V:MODEL`
+**Verification**: `V:PROP`, `V:KANI`, `V:MODEL`
 **Stage**: 2
 
 #### Level 0 (Algebraic Law)
@@ -453,6 +462,74 @@ reflect the actual frontier change.
 
 ---
 
+### INV-MERGE-010: Cascade Determinism
+
+**Traces to**: ADRS PO-006, ADR-MERGE-005
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+CASCADE : Store → Set<Datom>
+CASCADE(S₁ ∪ S₂) = CASCADE(S₂ ∪ S₁)    — follows from S₁ ∪ S₂ = S₂ ∪ S₁
+
+∀ stores S, ∀ agents α, β:
+  cascade_α(S) = cascade_β(S) = CASCADE(S)
+  (cascade output depends ONLY on the merged datom set, not on
+   which agent executes the cascade, when it executes, or any
+   external non-deterministic state)
+```
+
+This property is what restores L1 (commutativity) and L2 (associativity)
+at the full post-cascade store level. INV-MERGE-001 guarantees the datom
+set union is commutative. INV-MERGE-010 guarantees the cascade layer
+preserves that commutativity. Together: the total post-merge state
+(datoms + cascade datoms) is commutative and associative.
+
+#### Level 1 (State Invariant)
+Every cascade step (conflict detection, cache invalidation, projection
+staleness, uncertainty update, subscription notification) is a pure
+function of the merged store state. No cascade step reads or incorporates:
+- The executing agent's identity
+- Wall-clock timestamps or HLC values generated during cascade
+- Random values or external I/O results
+- The order in which input stores were supplied to merge
+
+Cascade datoms carry provenance (the merge transaction's TxId), but
+this TxId is itself deterministic: it is derived from the content of
+the merge operation (content-addressable identity, INV-STORE-003).
+
+**Falsification**: Two agents independently merging the same two stores
+produce different cascade datom sets, OR a cascade step that reads
+`AgentId::current()`, `SystemTime::now()`, or any non-store state to
+produce its output datoms.
+
+#### Level 2 (Implementation Contract)
+```rust
+/// Cascade functions take ONLY the merged store. No agent ID, no clock,
+/// no RNG. The function signature enforces determinism by construction.
+pub fn run_cascade(store: &Store, new_datoms: &[Datom]) -> CascadeReceipt {
+    let conflicts   = detect_conflicts(store, new_datoms);       // &Store only
+    let invalidated = invalidate_caches(store, new_datoms);      // &Store only
+    let stale       = mark_projections_stale(store, new_datoms); // &Store only
+    let uncertainty  = update_uncertainties(store, new_datoms);   // &Store only
+    let notifications = compute_notifications(store, new_datoms);// &Store only
+    CascadeReceipt { conflicts, invalidated, stale, uncertainty, notifications }
+}
+
+// Cascade datom identity is content-addressable from the conflict/change itself,
+// not from who detected it or when:
+fn conflict_datom(entity: EntityId, attr: Attribute, v1: &Value, v2: &Value) -> Datom {
+    // Deterministic: same conflict always produces same datom
+    Datom::new(conflict_entity_id(entity, attr, v1, v2), ...)
+}
+```
+
+**proptest harness**: Merge two stores in both orders (A∪B, B∪A), run
+cascade on each result, verify identical cascade datom sets.
+
+---
+
 ### §7.5 ADRs
 
 ### ADR-MERGE-001: Set Union Over Heuristic Merge
@@ -533,6 +610,293 @@ ConflictToDeliberation (conflicts become Deliberation entities).
 
 ConflictToDeliberation opens a structured resolution process instead
 of forcing an immediate choice.
+
+---
+
+### ADR-MERGE-005: Cascade as Post-Merge Deterministic Layer
+
+**Traces to**: C4, INV-STORE-004, INV-MERGE-010
+**Stage**: 0
+
+#### Problem
+Merge cascade (5 post-merge steps) produces metadata datoms. If these datoms
+carry agent-specific or time-specific information, then `MERGE(A,B) + cascade
+≠ MERGE(B,A) + cascade` — breaking L1 (commutativity) and L2 (associativity)
+at the total post-merge store level.
+
+#### Options
+A) **Cascade as separate deterministic layer** — cascade is a pure function
+   of the merged datom set. L1/L2 hold for merge by construction (set union);
+   cascade preserves them because its input is identical regardless of merge order.
+
+B) **Content-addressable cascade datoms** — cascade datoms derive identity from
+   the conflict/change itself, not from who detected them. Makes cascade datoms
+   identical across agents, but loses provenance (who detected, when).
+
+C) **Cascade as query-layer computation** — no cascade datoms at all; conflicts,
+   staleness, etc. computed on-the-fly at query time. Cleanest algebra but no
+   audit trail and slower queries.
+
+D) **Cascade included in merge definition** — prove L1/L2 for the full
+   merge+cascade operation end-to-end. Requires cascade to produce zero
+   non-deterministic content; tightly couples merge and cascade.
+
+#### Decision
+**Option A.** The standard CRDT approach: the semilattice state (datom set) is
+separate from derived computations (cascade). The cascade is a deterministic
+function `CASCADE: Store → Set<Datom>` that reads only the merged store state.
+Since `S₁ ∪ S₂ = S₂ ∪ S₁` (INV-MERGE-001), and CASCADE is a pure function,
+`CASCADE(S₁ ∪ S₂) = CASCADE(S₂ ∪ S₁)`.
+
+Option B is subsumed by Option A: content-addressable cascade datom identity
+is a consequence of the cascade being a pure function of the merged state.
+Option C loses the audit trail. Option D creates unnecessary coupling.
+
+#### Formal Justification
+The proof that L1 holds at the total post-merge level:
+```
+Let M = S₁ ∪ S₂ = S₂ ∪ S₁              (set union commutativity)
+Total state = M ∪ CASCADE(M)
+CASCADE(S₁ ∪ S₂) = CASCADE(M) = CASCADE(S₂ ∪ S₁)  (function of identical input)
+∴ M ∪ CASCADE(M) is the same regardless of argument order.  QED.
+```
+
+The same argument applies to L2 (associativity): intermediate merges produce
+intermediate sets, and CASCADE is applied once to the final merged set —
+not at each intermediate step. If CASCADE is applied at intermediate steps,
+L2 holds because each intermediate CASCADE is deterministic from its input.
+
+---
+
+### ADR-MERGE-006: Branch Comparison Entity Type
+
+**Traces to**: SEED §6, ADRS AS-010
+**Stage**: 2
+
+#### Problem
+When competing branches exist (INV-MERGE-004), the system must record why one branch was
+selected over another. The comparison process produces structured data: which branches
+were compared, what criterion was used, what scores resulted, which branch won, and what
+rationale was provided. Where and how should this comparison outcome be stored?
+
+#### Options
+A) **Unstructured text** — Record comparison outcomes as free-text datoms on the branch
+   entities. Simple but not queryable: "Why was branch X selected?" requires parsing
+   prose rather than querying attributes.
+B) **Branch Comparison as first-class entity type** — A dedicated entity type with a
+   defined schema: `:comparison/branches` (ref :many), `:comparison/criterion`,
+   `:comparison/method`, `:comparison/scores` (json), `:comparison/winner` (ref),
+   `:comparison/rationale`, `:comparison/agent`. Fully queryable and auditable.
+C) **Comparison as transaction metadata** — Attach comparison data to the commit
+   transaction's provenance. Ties comparison to the commit action but loses queryability
+   outside the transaction context.
+
+#### Decision
+**Option B.** Branch Comparisons are first-class entities with the following schema:
+
+```
+:comparison/branches    — Ref    :many   — the branches being compared
+:comparison/criterion   — Keyword :one   — what was being compared
+                                            (e.g., :fitness-score, :test-suite,
+                                             :uncertainty-reduction, :agent-review)
+:comparison/method      — Keyword :one   — how comparison was conducted
+                                            (:automated-test | :fitness-score |
+                                             :agent-review | :human-review)
+:comparison/scores      — Json    :one   — per-branch scores (structured payload)
+:comparison/winner      — Ref     :one   — the selected branch (or nil if undecided)
+:comparison/rationale   — String  :one   — human/agent-readable explanation
+:comparison/agent       — Ref     :one   — agent who conducted the comparison
+```
+
+#### Formal Justification
+The competing branch lock (INV-MERGE-004) requires that a comparison or deliberation
+exists before a competing branch can commit. Making comparisons first-class entities
+means the lock enforcement is a simple Datalog query:
+
+```
+[:find ?c
+ :where [?c :comparison/branches ?b1]
+        [?c :comparison/branches ?b2]
+        [?c :comparison/winner ?winner]]
+```
+
+If this query returns results for the competing branches, the lock is satisfied. Under
+Option A, lock enforcement would require parsing unstructured text — fragile and
+non-composable. Under Option C, the comparison is only accessible through the transaction
+log, making it invisible to standard queries.
+
+#### Consequences
+- BranchComparison entities are stored in the datom store like any other entity
+- Comparison history is queryable: "How many times has this branch been compared?"
+- The competing branch lock (INV-MERGE-004) is enforced by a Datalog existence check
+- Multiple comparisons for the same branch set are allowed (different criteria)
+- Deliberation entities (DELIBERATION namespace) can reference comparisons for context
+- The `:comparison/scores` field uses Json (ADR-SCHEMA-006) for flexible scoring payloads
+
+#### Falsification
+This decision is wrong if: comparison outcomes are so rare or simple that a dedicated entity
+type creates unnecessary schema complexity, and a simpler representation (Option A or C)
+would be sufficient for all lock enforcement and audit trail needs.
+
+---
+
+### ADR-MERGE-007: Merge Cascade Stub Datoms at Stage 0
+
+**Traces to**: SEED §10 (staged roadmap), INV-MERGE-002, INV-MERGE-010
+**Stage**: 0
+
+#### Problem
+INV-MERGE-002 (merge cascade completeness) requires that every merge operation executes
+all 5 cascade steps, each producing datoms:
+1. Conflict detection
+2. Query/cache invalidation
+3. New conflicts from cascade (projection staleness)
+4. Uncertainty deltas
+5. Stale projection marking
+
+Step 1 is core to merge correctness — without conflict detection, agents operate on
+silently inconsistent state. Steps 2-5 maintain derived state consistency:
+
+- **Step 2** (query/cache invalidation) requires query result caching infrastructure,
+  which is a Stage 1 performance optimization. At Stage 0, queries are direct store
+  reads without a cache layer.
+- **Step 3** (new conflicts from cascade) requires tracking which projections exist and
+  detecting when cascade-introduced datoms create secondary conflicts. This depends on
+  the projection management system (Stage 1+).
+- **Step 4** (uncertainty deltas) requires the uncertainty tensor computation system,
+  connected to the BUDGET namespace (§13, Stage 1). Without the uncertainty tensor,
+  there is no σ value to update.
+- **Step 5** (stale projection marking) requires projection tracking infrastructure
+  to know which projections exist and which entities they depend on (Stage 1+).
+
+INV-MERGE-002's L0 invariant is an audit trail guarantee: "all 5 cascade steps produce
+datoms." This ADR resolves how to preserve that guarantee when steps 2-5 cannot perform
+their intended work.
+
+#### Options
+A) **Full cascade implementation** — pull query caching, projection management, and the
+   uncertainty tensor into Stage 0 so all 5 cascade steps are fully operational. This
+   violates the staged roadmap by adding three substantial subsystems (each with its own
+   dependency chain) to Stage 0, whose purpose is validating the core harvest/seed
+   hypothesis — not implementing performance optimizations and multi-agent bookkeeping.
+
+B) **Stub datoms for unavailable steps** — steps 2-5 execute and produce datoms recording
+   that the step ran, with metadata-only content. Step 1 (conflict detection) is fully
+   implemented. The stub datoms preserve the audit trail and the pipeline skeleton that
+   later stages expand with real behavior.
+
+C) **Skip cascade entirely at Stage 0** — perform only the set union (INV-MERGE-001),
+   with no cascade at all. This violates INV-MERGE-002 directly ("no cascade step is
+   skipped") and loses all post-merge metadata, including conflict detection — the one
+   cascade step that matters for correctness at every stage.
+
+D) **Implement step 1 only, defer steps 2-5 without stubs** — fully implement conflict
+   detection but produce no datoms for steps 2-5. This provides functional conflict
+   awareness but breaks the L0 invariant of INV-MERGE-002 (which requires ALL steps to
+   produce datoms) and creates a gap in the audit trail: post-hoc analysis cannot
+   distinguish "step 2 ran and found nothing to invalidate" from "step 2 was not
+   implemented."
+
+#### Decision
+**Option B.** At Stage 0, the merge cascade executes all 5 steps. Step 1 is fully
+implemented:
+
+```
+Step 1: For each new datom d entering from merge:
+          if conflict(d, d_existing) → assert Conflict entity     — FULL
+```
+
+Steps 2-5 produce **stub datoms** — datoms that record the step executed but performed
+no substantive work:
+
+```
+Step 2: assert [:cascade/cache-invalidation,  :stub, merge_tx_id, count: 0]
+Step 3: assert [:cascade/secondary-conflicts, :stub, merge_tx_id, count: 0]
+Step 4: assert [:cascade/uncertainty-delta,    :stub, merge_tx_id, count: 0]
+Step 5: assert [:cascade/projection-staleness, :stub, merge_tx_id, count: 0]
+```
+
+Each stub datom carries: the cascade step identifier, the `:stub` marker, a reference to
+the merge transaction, and a count field (0 at Stage 0, populated with real counts when
+the step becomes fully operational). The stub datoms are content-addressable from the
+merge transaction identity, preserving INV-MERGE-010 (cascade determinism): given the
+same merge, the same stub datoms are produced regardless of which agent executes the
+cascade.
+
+#### Formal Justification
+INV-MERGE-002's L0 invariant states:
+
+```
+∀ merge operations MERGE(S₁, S₂):
+  all 5 cascade steps execute
+  all cascade steps produce datoms
+```
+
+Stub datoms satisfy this invariant. The invariant requires datom *production* at each
+step, not that the datom records substantive work. A stub datom asserting "step 2 ran,
+0 caches invalidated" is a valid datom in the store.
+
+INV-MERGE-010 (cascade determinism) is preserved because stub datom generation is a
+pure function of the merged store state:
+
+```
+CASCADE(S₁ ∪ S₂) with stubs:
+  Step 1: detect_conflicts(store, new_datoms)  → conflict datoms (deterministic)
+  Steps 2-5: stub_datom(step_id, merge_tx_id)  → stub datoms (deterministic from merge_tx_id)
+
+Since merge_tx_id is content-addressable (INV-STORE-003), and stub datoms are
+derived from merge_tx_id + step_id, the cascade output is fully deterministic.
+∴ CASCADE(S₁ ∪ S₂) = CASCADE(S₂ ∪ S₁)  — preserved.
+```
+
+The merge itself (INV-MERGE-001) remains pure set union. The cascade is a post-merge
+layer (ADR-MERGE-005). Stub datoms do not alter the merge semantics — they are part
+of the cascade layer only.
+
+#### Consequences
+- **Stale queries after merge**: At Stage 0, after a merge introduces new datoms, any
+  previously-computed query results are NOT invalidated (step 2 is a stub). An agent
+  querying after a merge might receive results that do not reflect the merged state.
+  In practice this is mitigated by two factors: (a) Stage 0 has no query cache, so
+  queries are always fresh reads from the store, and (b) Stage 0 is primarily
+  single-agent, so merges are infrequent (self-merges from branch-to-trunk at most).
+- **Self-merge residual risk**: Even in single-agent Stage 0, branch-to-trunk commits
+  trigger the merge cascade. If the agent has cached query results in application
+  memory (not in a formal cache layer), those results become stale after the commit.
+  The agent must re-query after any branch commit. This is a discipline requirement,
+  not an infrastructure guarantee, until Step 2 activates at Stage 1.
+- **No uncertainty propagation**: Merging datoms that introduce conflicts does NOT
+  update the uncertainty tensor (σ) for affected entities. At Stage 0, the uncertainty
+  tensor is not used for delegation decisions (ADR-RESOLUTION-006, Stage 2) or budget
+  allocation (BUDGET, Stage 1), so stale σ values have no downstream effect.
+- **No projection refresh**: Existing projections are NOT marked stale after merge.
+  At Stage 0, projections are not yet implemented, so there is nothing to mark stale.
+  When projections activate (Stage 1+), step 5 must activate simultaneously.
+- **Progressive activation schedule**:
+  - Stage 1: Steps 2 (cache invalidation), 4 (uncertainty deltas), and 5 (projection
+    staleness) become fully operational when their respective subsystems are built.
+  - Stage 2+: Step 3 (secondary conflict detection from cascade) activates when the
+    projection system is mature enough to generate cascade-induced conflicts.
+- **Audit trail completeness**: Stub datoms create a full chronological record of every
+  merge cascade, including the degraded-mode period. Future queries can distinguish
+  real cascade effects from stubs via the `:stub` marker, enabling retrospective
+  analysis of merge cascade quality across the staged rollout.
+- **Determinism preserved**: Stub datoms are derived from content-addressable inputs
+  (merge_tx_id + step_id), so INV-MERGE-010 holds without modification. The proptest
+  harness for INV-MERGE-010 (merge A∪B vs B∪A, verify identical cascade datom sets)
+  works identically with stub datoms.
+
+#### Falsification
+This simplification is inadequate if: (1) a Stage 0 agent makes a consequential decision
+based on a stale query result that would have been invalidated by step 2 in the full
+cascade — specifically, if the agent reads an entity's value post-merge and acts on a
+pre-merge value because the query was served from stale application-level state, AND this
+causes a detectable error (wrong code generated, incorrect spec element written, etc.),
+or (2) self-merge operations in Stage 0 are frequent enough (>5 per session) that the
+cumulative staleness from unrefreshed projections and uninvalidated caches causes
+observable drift between the agent's working state and the store's actual state, or
+(3) the 4 stub datoms per merge (one per step 2-5) materially impact store size for
+workloads with high merge frequency.
 
 ---
 

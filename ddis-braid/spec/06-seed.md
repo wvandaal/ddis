@@ -99,27 +99,31 @@ PRE:
   budget > 0
 
 PIPELINE:
-  1. Score entities: score(e) = α×relevance + β×significance + γ×recency
-  2. Sort by score (descending)
-  3. For each entity in order:
-     a. Select projection level based on remaining budget:
+  1. Pre-allocate pinned intentions (INV-SEED-002, INV-SEED-006):
+     a. Compute B_pinned = Σ|intention_i at π₀| for all active intentions
+     b. If B_pinned ≥ budget: emit BudgetExhaustedByIntentions signal,
+        assemble only pinned intentions + harvest imperative, STOP
+     c. B_available = budget - B_pinned
+  2. Score non-pinned entities: score(e) = α×relevance + β×significance + γ×recency
+  3. Sort by score (descending)
+  4. For each non-pinned entity in order:
+     a. Select projection level based on remaining B_available:
         >2000 tokens: π₀ (full datoms) for top entities, π₁ for others
         500–2000:     π₁/π₂
         200–500:      π₂ for top, omit others
         ≤200:         single-line status + single guidance action
-     b. Subtract token cost from remaining budget
-     c. If budget exhausted, stop
-  4. Pin intentions at π₀ regardless of budget (INV-SEED-006)
+     b. Subtract token cost from B_available
+     c. If B_available exhausted, stop
   5. Apply section compression priority (INV-SEED-004):
      compress State before Constraints before Orientation before Warnings before Directive
-  6. Insert demonstrations for constraint clusters if budget permits (INV-SEED-005)
+  6. Insert demonstrations for constraint clusters if B_available permits (INV-SEED-005)
   7. Record projection pattern for reification learning (AS-008)
   8. Check staleness for observation entities (UA-007)
 
 POST:
   |result| ≤ budget (token count)
   structural dependency coherence (no entity without its dependencies)
-  all active intentions included
+  all active intentions included at π₀
 ```
 
 #### Seed Output Template (ADR-SEED-004)
@@ -157,6 +161,14 @@ Demonstration density (INV-SEED-005):
 ### §6.3 Level 2: Interface Specification
 
 ```rust
+/// Cue for ASSOCIATE — determines how schema neighborhood discovery starts.
+/// `depth` and `breadth` enforce INV-SEED-003 (ASSOCIATE Boundedness).
+/// Defaults: depth=3, breadth=10.
+pub enum AssociateCue {
+    Semantic { text: String, depth: usize, breadth: usize },
+    Explicit { seeds: Vec<EntityId>, depth: usize, breadth: usize },
+}
+
 /// Schema neighborhood — what ASSOCIATE discovers.
 pub struct SchemaNeighborhood {
     pub entities: Vec<EntityId>,
@@ -260,18 +272,35 @@ The seed is a view, not a source of truth.
 #### Level 0 (Algebraic Law)
 ```
 ∀ ASSEMBLE operations with budget B:
-  |output| ≤ B (in tokens)
+  Let B_pinned = Σ|intention_i at π₀| for all active intentions (INV-SEED-006)
+  Let B_available = B - B_pinned
+  |output_non_pinned| ≤ B_available
+
+  Degenerate case: if B_pinned ≥ B, emit BudgetExhaustedByIntentions signal,
+  assemble only pinned intentions + harvest imperative.
+
+  Total output: |output| ≤ B (in tokens)
 ```
 
 #### Level 1 (State Invariant)
-The assembled context never exceeds the declared budget. If the relevant
-information exceeds the budget, lower-priority content is dropped (projected
-to coarser levels), never the budget exceeded.
+The assembled context never exceeds the declared budget. Pinned intentions
+(INV-SEED-006) are pre-allocated from the budget before other content is
+considered. If the relevant non-pinned information exceeds the remaining
+budget, lower-priority content is dropped (projected to coarser levels).
 
-**Falsification**: An ASSEMBLE output whose token count exceeds the budget parameter.
+When pinned intentions alone exhaust the budget (B_pinned ≥ B), the system
+emits a BudgetExhaustedByIntentions signal and assembles only the pinned
+intentions plus the harvest imperative — no other content is included.
 
-**proptest strategy**: Generate stores of varying sizes. Assemble with varying budgets.
-Verify output token count ≤ budget for all combinations.
+**Falsification**: An ASSEMBLE output whose token count exceeds the budget parameter,
+OR an ASSEMBLE operation that drops a pinned intention to make room for non-pinned
+content.
+
+**proptest strategy**: Generate stores of varying sizes with varying numbers of
+active intentions. Assemble with varying budgets (including budgets smaller than
+total pinned intention size). Verify: (1) output token count ≤ budget for all
+combinations, (2) all active intentions present in output, (3) when B_pinned ≥ B,
+only intentions and harvest imperative appear.
 
 ---
 
@@ -531,6 +560,246 @@ Decisions→Constraints, Context→State, Warnings→Warnings, Task→Directive.
 - "Constraints" is broader than "Invariants" — includes ADRs and negative cases
 - "Directive" is more action-oriented than "Active guidance"
 - The SeedOutput struct uses these five field names
+
+### ADR-SEED-005: Four Knowledge Types
+
+**Traces to**: SEED §5, §8, ADRS AA-004
+**Stage**: 1
+
+#### Problem
+The ASSOCIATE operation (§6.2) traverses structural edges (entity references, schema
+relationships) to discover relevant context. But agents also accumulate metacognitive
+knowledge — beliefs about what is true, intentions about what to do, learned associations
+between concepts, and strategic heuristics about how to work effectively. How should the
+seed assembly system represent and traverse these different knowledge types?
+
+#### Options
+A) **Flat entity model** — all knowledge is just entities with attributes. No distinction
+   between a fact about the codebase and a learned association between two concepts.
+   Simple but loses the metacognitive structure that makes associations useful.
+B) **Two-tier model** — distinguish between "ground facts" and "meta-knowledge." Too
+   coarse: it lumps beliefs, intentions, associations, and heuristics into one bucket
+   despite their different traversal and trust characteristics.
+C) **Four knowledge types** — Belief, Intention, Learned Association, and Strategic
+   Heuristic, each as a distinct entity type with type-specific schema and traversal
+   behavior.
+
+#### Decision
+**Option C.** The metacognitive layer defines four entity types:
+
+1. **Belief** — an agent's assessment that something is true or likely. Carries confidence
+   level and evidential basis. Beliefs are defeasible (can be retracted when evidence
+   changes). Used in ASSOCIATE to weight relevance of related entities.
+
+2. **Intention** — an agent's commitment to a future action. Pinned at π₀ during assembly
+   (INV-SEED-006). Intentions track progress state and have causal links to the entities
+   they intend to modify.
+
+3. **Learned Association** — a discovered relationship between entities that is not part
+   of the structural schema. Typed as one of: `:causal` (A causes B), `:correlative`
+   (A and B co-occur), `:architectural` (A and B share design pattern), `:strategic`
+   (A informs approach to B), `:analogical` (A is structurally similar to B). ASSOCIATE
+   MUST traverse learned associations alongside structural edges
+   (INV-ASSOCIATE-LEARNED-001 from AA-004).
+
+4. **Strategic Heuristic** — a reusable pattern or rule derived from experience. E.g.,
+   "when uncertainty on entity X exceeds 0.5, check related invariants before proceeding."
+   Heuristics are injected into guidance (§12) and have effectiveness tracking (was following
+   this heuristic beneficial in past sessions?).
+
+#### Formal Justification
+The four types capture qualitatively different knowledge structures:
+- Beliefs have truth values and confidence; they are epistemic.
+- Intentions have completion states and causal targets; they are conative.
+- Associations have type-classified edges; they extend the knowledge graph.
+- Heuristics have effectiveness scores; they are procedural.
+
+Collapsing these into a flat model (Option A) loses the type-specific traversal behavior
+that makes ASSOCIATE effective. The ASSOCIATE operation traverses learned associations
+alongside structural edges (AA-004), which means an agent searching for context about
+entity X will discover not just X's structural neighbors but also entities that previous
+agents found relevant to X through experience.
+
+This is the "system learns useful ways to look at data" property (AS-008: projection
+reification as learning mechanism). Learned associations are the fine-grained version of
+reified projections — individual edges rather than entire query patterns.
+
+#### Consequences
+- ASSOCIATE discovers context through both structural and experiential paths
+- Intentions are never lost during seed assembly (INV-SEED-006 anchoring)
+- Strategic heuristics compose with the guidance system (§12) for empirically-grounded
+  methodology steering
+- The five association types (causal, correlative, architectural, strategic, analogical)
+  provide rich traversal options without requiring agents to understand the full schema
+
+#### Falsification
+The four types are wrong if: (1) a significant category of metacognitive knowledge does
+not fit any of the four types (missing type), or (2) one of the four types is never used
+in practice (unnecessary type), or (3) the ASSOCIATE traversal of learned associations
+produces more noise than signal (association quality is too low to be useful).
+
+---
+
+### ADR-SEED-006: Dynamic CLAUDE.md Generation
+
+**Traces to**: SEED §5, §8, ADRS GU-004, PO-014
+**Stage**: 1
+
+#### Problem
+The static CLAUDE.md file that steers agent behavior is written once and gradually diverges
+from the project's actual state. It cannot adapt to observed drift patterns, changing
+priorities, or the specific agent's context. How should the system generate contextually
+relevant agent instructions that collapse ambient awareness, guidance, and trajectory
+management into a single mechanism?
+
+#### Options
+A) **Static CLAUDE.md** — a hand-maintained file that agents read at session start.
+   Works initially but decays: no adaptation to drift patterns, no personalization to
+   the current task, no budget awareness. The current approach during pre-Stage-0.
+B) **Template-based generation** — fill in a template with current store state (active
+   tasks, recent changes, open issues). Better than static but cannot incorporate
+   empirical drift corrections or adapt priority ordering to agent behavior patterns.
+C) **Seven-step dynamic generation** — a formal pipeline that queries the store for
+   relevant context, applies empirical drift corrections, and assembles a budget-aware
+   CLAUDE.md tailored to the current focus, agent, and available attention budget.
+
+#### Decision
+**Option C.** Dynamic CLAUDE.md is generated by the GENERATE-CLAUDE-MD operation with
+signature `(Store, focus, agent, budget) -> Markdown`. The pipeline follows seven steps:
+
+```
+GENERATE-CLAUDE-MD pipeline:
+  (1) ASSOCIATE with focus     — discover relevant schema neighborhood
+  (2) QUERY active intentions  — what the agent should be working on
+  (3) QUERY governing INVs     — which invariants constrain the current task
+  (4) QUERY uncertainty markers — what is uncertain in the relevant neighborhood
+  (5) QUERY competing branches — are there parallel efforts on the same entities?
+  (6) QUERY drift patterns     — what drift has been observed in recent sessions?
+  (7) ASSEMBLE at budget       — compress into budget-aware output
+```
+
+The output follows the unified five-part seed template (ADR-SEED-004):
+Orientation, Constraints, State, Warnings, Directive.
+
+Priority ordering within budget:
+`tools > task_context > risks > drift_corrections > seed_context`
+
+This collapses three concerns (ADR-SEED-001):
+1. **Ambient awareness** (Layer 0) — CLAUDE.md IS the ambient context
+2. **Guidance** (Layer 3) — seed context IS the first guidance, pre-computed at zero
+   tool-call cost
+3. **Trajectory management** — CLAUDE.md IS the seed turn, carrying forward the relevant
+   state from prior sessions
+
+#### Formal Justification
+The seven-step pipeline ensures that every section of the generated CLAUDE.md is
+empirically grounded in store state (INV-SEED-007: relevance — removing any section
+would change agent behavior). The pipeline queries are ordered by descending behavioral
+leverage: active intentions direct the agent's next action; governing invariants
+constrain it; uncertainty markers warn about risks; competing branches prevent
+wasted parallel effort; drift patterns encode learned corrections.
+
+The three-concern collapse (ADR-SEED-001) is rate-distortion optimal: one compressed
+channel carrying all three signals, prioritized by the budget system. Three separate
+mechanisms would triple the attention cost.
+
+Dynamic generation enables the self-improvement property (INV-SEED-008): drift
+corrections that show no effect after 5 sessions are automatically replaced. This
+makes CLAUDE.md a living document that converges toward the most effective steering
+instructions for the specific project and agent combination.
+
+#### Consequences
+- CLAUDE.md adapts to the project's current state every session
+- Drift corrections are empirically derived, not speculatively authored
+- Budget awareness prevents CLAUDE.md from consuming excessive attention
+- The generation pipeline is itself queryable — the store records which queries
+  produced which CLAUDE.md sections, enabling meta-analysis of instruction effectiveness
+- Stage 0 uses a static CLAUDE.md (this file); Stage 1 transitions to dynamic generation
+
+#### Falsification
+Dynamic generation is wrong if: (1) the generated CLAUDE.md consistently performs worse
+than a well-maintained static file (generation introduces noise or irrelevant context),
+or (2) the seven-step pipeline is too slow for interactive use (agent waits too long for
+CLAUDE.md generation at session start), or (3) drift corrections oscillate rather than
+converge (the system cannot distinguish effective from ineffective corrections).
+
+---
+
+### ADR-SEED-007: Seed Document Eleven-Section Structure
+
+**Traces to**: SEED §1–§11, ADRS LM-016
+**Stage**: 0
+
+#### Problem
+SEED.md is the foundational design document from which all specification and implementation
+flow. What structure should it follow? The structure determines how efficiently a new agent
+(or a returning agent with a fresh context window) can orient to the project and begin
+productive work.
+
+#### Options
+A) **Technical reference structure** — organized by component (Store, Query, Harvest, etc.).
+   Good for lookup but poor for initial orientation: an agent reading about the Store
+   has no context for why the Store exists or what problem it solves.
+B) **Narrative structure** — a flowing document that tells the story of DDIS from problem
+   to solution. Good for first read but poor for reference: finding a specific design
+   decision requires reading linearly.
+C) **Eleven-section progressive deepening** — starts with identity and problem statement,
+   progresses through formalism and core abstractions, then covers lifecycle, reconciliation,
+   self-improvement, interfaces, existing context, roadmap, and rationale. Each section is
+   self-contained but builds on prior sections. Minimal formalism — mathematical notation
+   flows to SPEC.md, not SEED.md.
+
+#### Decision
+**Option C.** SEED.md follows an eleven-section structure:
+
+1. **What DDIS Is** — identity statement: coherence verification system
+2. **The Problem** — divergence as the fundamental challenge; coherence leads, memory
+   subordinated
+3. **Specification Formalism** — bridges why (§2) and how (§4): invariants, ADRs,
+   negative cases, uncertainty markers
+4. **Core Abstraction** — the datom, EAV model, five axioms, content-addressable identity
+5. **Harvest/Seed Lifecycle** — bounded conversation cycles, knowledge extraction and
+   assembly
+6. **Reconciliation Mechanisms** — conflict resolution, deliberation, bilateral specification
+7. **Self-Improvement Loop** — DDR feedback, fitness function, convergence tracking
+8. **Interface Principles** — five-layer interface, budget-aware output, guidance injection
+9. **Existing Codebase** — the Go CLI as reference material, gap analysis approach
+10. **Staged Roadmap** — Stage 0 through Stage 4, deliverables and success criteria
+11. **Design Rationale** — meta-level "why these choices" connecting back to the problem
+
+#### Formal Justification
+The eleven sections follow a progressive deepening pattern:
+- §1–§2: **What and Why** — orient the agent to identity and problem
+- §3: **Formalism Bridge** — how the specification is structured (critical for agents
+  that will write or read spec elements)
+- §4–§5: **Core Mechanisms** — the datom store and the lifecycle that uses it
+- §6–§7: **Coordination and Improvement** — how the system handles disagreement and
+  evolves
+- §8–§9: **Interface and Context** — how agents interact and what already exists
+- §10–§11: **Roadmap and Rationale** — what to build next and why these choices
+
+The key constraint is **minimal formalism in the seed**. Mathematical notation
+(`σ = (σ_e, σ_a, σ_c)`, `LIVE(S) = fold(...)`) belongs in the spec, not in the seed.
+The seed uses natural language and intuitive explanations. This is deliberate: the seed
+must be accessible to any agent on first read without requiring mathematical background
+that may not be in its training data. The spec contains the formal definitions; the seed
+provides the conceptual grounding that makes the formal definitions interpretable.
+
+#### Consequences
+- New agents orient in a single read-through of SEED.md (progressive deepening)
+- Each section is self-contained enough for targeted reference
+- The separation of formalism (spec) from intuition (seed) serves different use cases:
+  the seed is for understanding, the spec is for verification
+- The eleven sections map naturally to spec namespaces: §4 -> STORE/SCHEMA/QUERY,
+  §5 -> HARVEST/SEED, §6 -> RESOLUTION/MERGE/DELIBERATION, §7 -> BILATERAL,
+  §8 -> INTERFACE/BUDGET/GUIDANCE, etc.
+
+#### Falsification
+The structure is wrong if: (1) agents consistently fail to orient after reading SEED.md
+(the progressive deepening does not achieve conceptual grounding), or (2) agents
+frequently cannot find the rationale for specific decisions (the narrative structure is
+too poor for reference use), or (3) the "minimal formalism" constraint causes ambiguity
+that the spec's formal definitions do not resolve (too little precision in the seed).
 
 ---
 

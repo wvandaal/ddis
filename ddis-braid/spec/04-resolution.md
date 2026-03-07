@@ -427,7 +427,7 @@ Multi     | No (card :many)  | all values kept   | N/A
 ### INV-RESOLUTION-001: Per-Attribute Resolution
 
 **Traces to**: SEED §4 Axiom 5, ADRS FD-005
-**Verification**: `V:PROP`, `V:KANI`
+**Verification**: `V:TYPE`, `V:PROP`, `V:KANI`
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
@@ -596,7 +596,7 @@ incomparable values in a diamond lattice that don't produce the error signal.
 ### INV-RESOLUTION-007: Three-Tier Routing Completeness
 
 **Traces to**: ADRS CR-002
-**Verification**: `V:PROP`
+**Verification**: `V:PROP`, `V:KANI`
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
@@ -633,6 +633,16 @@ The full conflict lifecycle is recorded as datoms, making it queryable
 and auditable.
 
 **Falsification**: Any step in the conflict pipeline that does not produce a datom.
+
+**Stage 0 simplification**: At Stage 0, multi-agent conflicts are rare (single agent
+only). Steps (1)-(3) are fully implemented: assert Conflict entity, compute severity,
+route to resolution tier. Steps (4)-(6) produce stub datoms recording that the step
+ran but performing no work: (4) TUI notification is deferred to Stage 4 (TUI layer),
+(5) uncertainty update is deferred to Stage 1 (uncertainty tensor requires BUDGET),
+(6) cache invalidation is deferred to Stage 1 (caching is an optimization). The L0
+invariant holds — all 6 steps produce datoms — but steps 4-6 produce metadata-only
+datoms at Stage 0. Full behavior activates progressively: Stage 1 adds (5)+(6),
+Stage 4 adds (4).
 
 ---
 
@@ -794,6 +804,552 @@ is preserved.
 - Deterministic across all implementations that use BLAKE3 (the only permitted hash per ADR-STORE-013)
 - The tie-breaking case is rare in practice (requires exact HLC equality, which implies
   near-simultaneous assertions on different agents with identical logical clock state)
+
+### ADR-RESOLUTION-006: Delegation Threshold Formula
+
+**Traces to**: SEED §6, ADRS UA-004
+**Stage**: 2
+
+#### Problem
+How should the system determine whether a spec element is safe for an agent to work on
+autonomously, or whether it requires consultation, delegation, or human escalation? The
+delegation decision depends on multiple factors — graph centrality, uncertainty, conflict
+exposure — and needs a principled combination formula.
+
+#### Options
+A) **Single-factor threshold** — delegate based solely on uncertainty level. Simple but
+   ignores structural importance (a low-uncertainty but highly-connected entity is still
+   risky to delegate).
+B) **Multi-factor weighted formula** — combine betweenness centrality, in-degree,
+   consequential uncertainty, and conflict surface into a single threshold score, with
+   weights configurable as datoms.
+C) **Rule-based classification** — a decision tree with hard-coded cutoffs per factor.
+   Interpretable but brittle and not adaptable to different project topologies.
+
+#### Decision
+**Option B.** The delegation threshold is computed as:
+
+```
+threshold = 0.3 × betweenness + 0.2 × in_degree + 0.3 × σ_c + 0.2 × conflict_surface
+```
+
+where `conflict_surface` = fraction of the entity's cardinality-one attributes that are
+currently in conflict. The four weights are stored as datoms and configurable per deployment.
+
+The threshold feeds into a four-class delegation classification (ADR-RESOLUTION-007):
+- `delegatable`: resolvers > 0 AND uncertainty < 0.2
+- `contested`: resolvers > 0 AND uncertainty >= 0.2
+- `escalated`: resolvers = 0 AND uncertainty < 0.5
+- `human-required`: resolvers = 0 AND uncertainty >= 0.5
+
+#### Formal Justification
+The multi-factor formula captures four independent risk dimensions:
+- **Betweenness** (0.3): structural importance — high-betweenness entities are bottlenecks
+  whose incorrect modification cascades through the dependency graph.
+- **In-degree** (0.2): direct dependence — entities referenced by many others carry higher
+  revision cost.
+- **σ_c** (0.3): consequential uncertainty — entities whose downstream DAG contains high
+  uncertainty are riskier to modify (changes propagate through uncertain territory).
+- **Conflict surface** (0.2): active contention — entities with many cardinality-one
+  attributes in conflict are actively contested and unsafe for unilateral work.
+
+The weights sum to 1.0 and are stored as datoms (C3: schema-as-data), enabling empirical
+calibration without code changes. The formula is topology-agnostic (PD-005), depending
+only on graph metrics computable at any agent's local frontier.
+
+#### Consequences
+- Delegation decisions are reproducible: any agent with the same frontier computes the
+  same threshold for the same entity
+- Weights are empirically tunable — Stage 0 uses defaults; later stages calibrate from
+  observed delegation outcomes (successful autonomous work vs. conflicts discovered post-hoc)
+- The formula degrades gracefully with incomplete frontiers: missing graph data increases
+  uncertainty terms, biasing toward conservative (non-delegation) classification
+
+#### Falsification
+The formula is wrong if: (1) entities classified as `delegatable` consistently produce
+conflicts when worked on autonomously (threshold too permissive), or (2) entities classified
+as `human-required` are routinely resolved without human intervention (threshold too
+conservative). Calibration should reduce both error modes over time.
+
+---
+
+### ADR-RESOLUTION-007: Four-Class Delegation
+
+**Traces to**: SEED §6, ADRS UA-005
+**Stage**: 2
+
+#### Problem
+How should the system classify work items for agent delegation? A binary delegatable/not
+classification is too coarse — it conflates "needs a quick consultation" with "requires
+human judgment."
+
+#### Options
+A) **Binary classification** — delegatable or not. Simple but forces agents to either
+   proceed alone or stop entirely.
+B) **Three classes** — self-handle, delegate, escalate. Missing the intermediate "consult"
+   class where an agent can proceed but should check with a peer.
+C) **Four classes** — self-handle, consult, delegate, escalate to human. Provides granular
+   routing that matches the spectrum of uncertainty and authority levels.
+
+#### Decision
+**Option C.** Four delegation classes:
+
+1. **Self-handle** — agent has sufficient authority and the entity is stable. Proceed
+   autonomously. No coordination required.
+2. **Consult** — agent can proceed but should notify a peer agent or check the result.
+   The work is not blocked but a second opinion reduces risk.
+3. **Delegate** — the entity requires a specialist agent (higher authority in the relevant
+   domain per spectral authority UA-003). The current agent should hand off rather than
+   attempt the work.
+4. **Escalate to human** — uncertainty is too high or no agent has sufficient authority.
+   The entity is blocked until a human makes a decision. Creates a Deliberation entity
+   (ADR-RESOLUTION-005).
+
+#### Formal Justification
+The four classes map to the delegation threshold (ADR-RESOLUTION-006) and the three-tier
+conflict routing (ADR-RESOLUTION-004):
+- Self-handle corresponds to Tier 1 (automatic) — low severity, low uncertainty.
+- Consult corresponds to Tier 2 (agent-with-notification) — medium severity.
+- Delegate routes to the agent with highest spectral authority for the entity's domain.
+- Escalate corresponds to Tier 3 (human-required) — high severity or zero resolvers.
+
+The classification is topology-agnostic (PD-005): in a hierarchy, "delegate" routes upward;
+in a swarm, "delegate" routes to the highest-authority peer; in single-agent mode, "consult"
+degrades to self-review and "delegate" degrades to "escalate."
+
+#### Consequences
+- Agents have a clear protocol for each class — no ambiguity about when to proceed vs. stop
+- The classification feeds into the harvest delegation topology (ADR-HARVEST-004):
+  self-handle -> self-review, consult -> peer-review, delegate -> specialist, escalate -> human
+- Single-agent deployments collapse to two effective classes: self-handle and escalate
+
+#### Falsification
+The four classes are wrong if a significant fraction of work items fall into gaps between
+classes (e.g., too risky for self-handle but not warranting consultation), or if the consult
+class provides no measurable benefit over binary self-handle/escalate.
+
+---
+
+### ADR-RESOLUTION-008: Delegation Safety
+
+**Traces to**: SEED §6, ADRS UA-011
+**Stage**: 2
+
+#### Problem
+What prevents an agent from beginning work on a spec element that is actively contested
+by concurrent agents? Without a safety check, an agent might implement a function whose
+signature is being debated in a parallel branch, producing wasted work or conflicting
+artifacts.
+
+#### Options
+A) **Optimistic delegation** — agents proceed freely; conflicts detected and resolved
+   after the fact via the conflict pipeline (§4.2). Simple but wastes effort on contested
+   entities.
+B) **Pessimistic locking** — agents acquire exclusive locks on entities before working.
+   Prevents conflicts but creates contention and deadlock risks.
+C) **Delegation safety predicate** — agents check a delegatability predicate before
+   beginning work. Not a lock — the check is advisory and based on the agent's local
+   frontier. Work on non-delegatable entities is blocked, not prevented by coordination.
+
+#### Decision
+**Option C.** An agent MUST NOT begin work on spec element `e` unless `delegatable(e) = true`
+at the agent's local frontier.
+
+```
+delegatable(e) =
+  ∀ a ∈ attributes(e): ¬conflict(e, a)     — no active conflicts on any attribute
+  ∧ stability(e) ≥ delegation_threshold      — stability above configured threshold
+```
+
+This is a local check — no coordination with other agents required. The predicate is
+conservative: it may block work on entities that are actually safe (because the agent's
+frontier is behind), but it never permits work on entities that are genuinely contested.
+
+#### Formal Justification
+The safety predicate is conservative by the same argument as INV-RESOLUTION-003 (conservative
+conflict detection): the agent's local frontier may overestimate conflicts (seeing phantom
+conflicts from missing causal paths) but never underestimates them. Therefore:
+
+```
+delegatable(F_local, e) = true ⟹ delegatable(F_global, e) = true
+```
+
+An entity that passes the local delegatability check is genuinely safe. An entity that fails
+may or may not be safe — the agent errs on the side of caution.
+
+This is NOT a lock. Two agents may independently determine that the same entity is
+delegatable and begin concurrent work. This is acceptable because their work produces
+datoms that merge via set union (C4), and any resulting conflicts are detected by the
+conflict pipeline. The safety predicate reduces the frequency of conflicts, not eliminates
+them.
+
+#### Consequences
+- Agents avoid wasted work on contested entities without requiring a distributed locking
+  protocol
+- The predicate is computable from local state — no network round-trips or coordination
+- False negatives (blocking safe work) decrease as the agent's frontier grows
+- The delegation_threshold is configurable as a datom, enabling per-deployment tuning
+
+#### Falsification
+The safety predicate is violated if an agent begins implementing a function whose signature
+is contested by concurrent planning agents at the global frontier, and the agent's local
+frontier contained both conflicting datoms (meaning the predicate should have returned
+false but did not). Also violated if the predicate blocks work on entities that are
+consistently safe, causing unnecessary starvation.
+
+---
+
+### ADR-RESOLUTION-010: Resolution Capacity Monotonicity
+
+**Traces to**: SEED §6, ADRS UA-012
+**Stage**: 2
+
+#### Problem
+When uncertainty about an entity increases, should the set of agents authorized to resolve
+conflicts on that entity expand, contract, or remain the same? The answer has direct
+implications for system liveness: if rising uncertainty reduces resolver capacity, high-
+uncertainty entities can become permanently stuck.
+
+#### Options
+A) **Static resolver set** — the set of authorized resolvers is fixed regardless of
+   uncertainty. Simple but ignores the increased difficulty of resolving high-uncertainty
+   conflicts.
+B) **Monotonically expanding** — as uncertainty increases, more agents (or higher-authority
+   agents) become authorized to resolve. Ensures liveness: the most uncertain entities
+   get the most resolution capacity.
+C) **Hierarchical escalation** — uncertainty triggers escalation through a fixed hierarchy:
+   agent -> team lead -> architect -> human. Requires a predefined hierarchy, violating
+   PD-005 (topology-agnostic).
+
+#### Decision
+**Option B.** Resolution capacity is monotone in uncertainty:
+
+```
+∀ t1 < t2: uncertainty(e, t1) < uncertainty(e, t2) ⟹ resolvers(e, t2) ⊇ resolvers(e, t1)
+```
+
+The implementation is topology-agnostic (PD-005):
+- In a hierarchy: higher-level agents are added to the resolver set.
+- In a swarm: the quorum threshold for resolution votes increases (more agents participate).
+- In a market topology: the reputation threshold for resolver eligibility decreases
+  (allowing less-established agents to contribute).
+- In single-agent mode: the escalation threshold for human involvement decreases.
+
+#### Formal Justification
+This decision revises the retracted INV-CASCADE-001 (Transcript 01:1096-1113), which
+mandated hierarchical escalation specifically. The revision preserves the essential property
+(rising uncertainty -> more resolution capacity) while removing the topology constraint.
+
+The monotonicity property prevents a liveness failure: if rising uncertainty could shrink
+the resolver set, an entity could enter a state where it is too uncertain for any agent
+to resolve, but no mechanism exists to reduce uncertainty (because resolution is the
+mechanism that reduces uncertainty). Monotonic expansion breaks this deadlock by ensuring
+that the hardest problems always have at least as many resolvers as easier ones.
+
+#### Consequences
+- No entity can become permanently stuck due to rising uncertainty
+- The property composes with spectral authority (ADR-RESOLUTION-011): as uncertainty rises,
+  the SVD-derived authority threshold for resolver eligibility decreases, naturally expanding
+  the resolver set
+- Human authority is axiomatically unbounded (UA-003 exception), so the ultimate resolver
+  set always includes humans for sufficiently uncertain entities
+
+#### Falsification
+Violated if there exist times t1 < t2 where uncertainty(e, t1) < uncertainty(e, t2) but
+an agent that was authorized to resolve conflicts on e at t1 is no longer authorized at t2.
+Also violated if high-uncertainty entities consistently lack sufficient resolver capacity,
+leading to resolution starvation.
+
+---
+
+### ADR-RESOLUTION-011: Spectral Authority via SVD
+
+**Traces to**: SEED §6, ADRS UA-003
+**Stage**: 2
+
+#### Problem
+How should agent authority over entities be determined? Authority governs who can resolve
+conflicts, who reviews harvest candidates, and who is delegated work. The authority model
+must be earned (not configured), transitive (contribution to related entities confers
+partial authority), and computable from the store.
+
+#### Options
+A) **Configured authority** — administrators assign authority levels to agents per entity
+   or per domain. Simple but requires manual maintenance, creates bottlenecks, and cannot
+   adapt to shifting contribution patterns.
+B) **Direct contribution counting** — authority proportional to the number of datoms an
+   agent has transacted for an entity. Computable but misses transitive authority: an agent
+   who built the foundation that entity X depends on has no authority over X despite
+   structural expertise.
+C) **Spectral decomposition (SVD)** — compute authority via singular value decomposition
+   of the bipartite agent-entity contribution matrix. Captures transitive authority through
+   latent factors. Mathematically identical to Latent Semantic Indexing applied to the
+   agent-entity matrix.
+
+#### Decision
+**Option C.** Authority is computed via truncated SVD of the agent-entity contribution
+matrix M, where M[α, e] = weighted contribution of agent α to entity e.
+
+```
+M = U Σ V^T    (truncated SVD, k = min(50, agent_count, entity_count))
+
+authority(α, e) = |u_α · Σ · v_e^T|
+  where u_α is agent α's row in U, v_e is entity e's row in V
+```
+
+The contribution weights in M are modulated by verification status (ADR-RESOLUTION-012):
+unverified = 1, witnessed = 2, challenge-confirmed = 3.
+
+**Exception**: Human authority is axiomatically unbounded — humans are not subject to
+spectral authority computation. This is the one configurable authority override.
+
+#### Formal Justification
+SVD projects agents and entities into a shared latent space where proximity equals
+structural similarity. "LSI finds relevant documents; spectral authority finds
+authoritative agents." The key property is transitivity: if agent α contributed to
+entities A, B, C that are structurally related to entity D, the SVD places α near D
+in latent space even though α never directly touched D.
+
+This aligns with the invariant INV-AUTHORITY-001: authority MUST be derived from the
+weighted spectral decomposition of the contribution graph, MUST NOT be assigned by
+configuration. The SVD-derived authority is:
+- **Earned**: based on actual contributions recorded as datoms in the store
+- **Transitive**: captures indirect authority through latent factor proximity
+- **Computable**: requires only the contribution matrix, which is derivable from
+  the store's transaction history
+- **Adaptive**: recomputation after new transactions automatically adjusts authority
+
+Truncation to k factors (default: 50) provides regularization — noise in individual
+contributions is smoothed out, and the dominant structural patterns in the contribution
+graph are amplified.
+
+#### Consequences
+- No manual authority configuration required (except the human exception)
+- Authority adapts automatically as agents contribute more to different domains
+- The LSI analogy provides well-studied mathematical properties and efficient algorithms
+- Recomputation cost is O(m * n * k) where m = agents, n = entities, k = truncation rank;
+  practical for expected scale (single-digit agents, thousands of entities)
+- Creates a virtuous feedback loop with verification weighting (ADR-RESOLUTION-012):
+  verified work -> higher authority -> more delegation -> more work -> more verification
+
+#### Falsification
+The SVD authority model is wrong if: (1) agents with high spectral authority over an entity
+consistently make poor decisions about that entity (authority does not correlate with
+competence), or (2) the transitive authority property creates false positives where agents
+gain authority over unrelated entities due to spurious latent-factor correlations. Monitor
+conflict resolution outcomes by resolver authority to calibrate.
+
+---
+
+### ADR-RESOLUTION-012: Contribution Weight by Verification Status
+
+**Traces to**: SEED §6, ADRS UA-010
+**Stage**: 2
+
+#### Problem
+Should all contributions to the authority graph be weighted equally, or should verified
+contributions carry more weight than unverified ones? The spectral authority computation
+(ADR-RESOLUTION-011) takes a contribution matrix as input — the question is how to weight
+the entries in that matrix.
+
+#### Options
+A) **Uniform weighting** — all contributions weight 1. Simple but treats speculative
+   hypothesized datoms the same as challenge-confirmed invariants.
+B) **Binary weighting** — verified = 1, unverified = 0. Too harsh: it completely ignores
+   unverified contributions, which may be correct but simply not yet reviewed.
+C) **Tiered weighting** — weight contributions by their verification status on a three-level
+   scale: unverified (1), witnessed/valid (2), challenge-confirmed (3).
+
+#### Decision
+**Option C.** Contribution weights in the authority matrix M are:
+
+```
+weight(d) = {
+  1  if d is unverified
+  2  if d is witnessed (INV verified) or witness-valid
+  3  if d is challenge-confirmed (challenged and verdict = :confirmed)
+}
+
+M[α, e] = Σ_{d ∈ contributions(α, e)} weight(d) × provenance_factor(d)
+```
+
+where `provenance_factor` comes from the provenance typing lattice (PD-002):
+`:observed` = 1.0, `:derived` = 0.8, `:inferred` = 0.5, `:hypothesized` = 0.2.
+
+#### Formal Justification
+The tiered weighting creates a feedback loop that incentivizes verification:
+
+```
+verified work → higher contribution weight → higher spectral authority
+  → more delegation → more work → more verification opportunities
+```
+
+This loop is self-reinforcing and aligns incentives: agents that produce high-quality,
+verifiable work accumulate authority faster than agents that produce unverified
+contributions. The provenance factor multiplier further distinguishes between observed
+facts (high trust) and hypothesized claims (low trust).
+
+The weights (1, 2, 3) are deliberately modest ratios. A challenge-confirmed contribution
+is worth 3x an unverified one, not 100x. This prevents verified contributions from
+completely dominating the authority matrix while still providing meaningful signal.
+
+#### Consequences
+- The authority graph becomes quality-weighted, not just quantity-weighted
+- Agents are incentivized to seek verification of their contributions (witnesses, challenges)
+- The feedback loop accelerates convergence: verified knowledge stabilizes authority,
+  which stabilizes delegation, which stabilizes the work plan
+- Provenance typing (PD-002) composes naturally — a hypothesized, unverified contribution
+  has effective weight 0.2 × 1 = 0.2, while an observed, challenge-confirmed contribution
+  has effective weight 1.0 × 3 = 3.0, a 15:1 ratio
+
+#### Falsification
+The weighting is wrong if: (1) the 1/2/3 ratio is too compressed (unverified contributions
+dominate despite verification providing meaningful signal), or (2) too spread (verified
+agents monopolize authority, preventing newer agents from contributing). Monitor the
+distribution of authority scores across agents and calibrate ratios if authority becomes
+too concentrated or too diffuse.
+
+---
+
+### ADR-RESOLUTION-013: Conflict Pipeline Progressive Activation
+
+**Traces to**: SEED §10 (staged roadmap), INV-RESOLUTION-008
+**Stage**: 0
+
+#### Problem
+INV-RESOLUTION-008 requires that the full 6-step conflict pipeline — (1) assert Conflict
+entity, (2) compute severity, (3) route to resolution tier, (4) fire TUI notification,
+(5) update uncertainty tensor, (6) invalidate caches — produces a datom at every step.
+However, steps 4-6 each depend on subsystems that are not available at Stage 0:
+
+- **Step 4** (TUI notification) requires the TUI interaction layer, a Stage 4 deliverable.
+  Without a TUI, there is no notification target.
+- **Step 5** (uncertainty tensor update) requires the uncertainty computation system, which
+  depends on the BUDGET namespace (§13) for σ_c (consequential uncertainty) propagation.
+  BUDGET is a Stage 1 deliverable.
+- **Step 6** (cache invalidation) requires query result caching infrastructure. Caching is
+  a performance optimization deferred to Stage 1; Stage 0 queries are direct store reads
+  without a cache layer.
+
+The L0 invariant of INV-RESOLUTION-008 — "all 6 steps produce datoms" — is an audit trail
+guarantee. This ADR resolves how to preserve that guarantee when three of the six steps
+cannot perform their intended work.
+
+#### Options
+A) **Full pipeline implementation** — pull TUI, BUDGET, and caching infrastructure into
+   Stage 0 so all 6 steps are fully operational. This violates the staged roadmap: each
+   of these subsystems has its own dependency chain (TUI requires terminal rendering,
+   BUDGET requires token tracking and attention decay modeling, caching requires
+   invalidation tracking and storage management), and none are prerequisites for the
+   core Stage 0 hypothesis ("harvest/seed transforms the workflow").
+
+B) **Stub datoms for unavailable steps** — steps 4-6 execute and produce datoms recording
+   that the step ran, but the datoms carry metadata-only content rather than performing
+   the actual work. The stub datoms preserve the audit trail and establish the pipeline
+   skeleton that later stages fill in with real behavior.
+
+C) **Defer entire conflict pipeline to Stage 1** — no conflict detection, severity
+   computation, or routing at Stage 0. Conflicts from concurrent assertions are silently
+   ignored until Stage 1 provides the full infrastructure. This loses all conflict
+   awareness at Stage 0.
+
+D) **Implement steps 1-3 only** — fully implement conflict detection, severity computation,
+   and routing, but omit steps 4-6 entirely (no datoms produced for those steps). This
+   provides functional correctness for the parts that matter but breaks the L0 invariant
+   of INV-RESOLUTION-008 (which requires ALL steps to produce datoms) and loses the
+   audit trail for the omitted steps.
+
+#### Decision
+**Option B.** At Stage 0, the conflict pipeline executes all 6 steps. Steps 1-3 are
+fully implemented:
+
+```
+Step 1: assert Conflict entity with conflicting datom references     — FULL
+Step 2: compute severity = max(commitment_weight(d₁), commitment_weight(d₂)) — FULL
+Step 3: route to {Automatic, AgentNotification, HumanRequired}       — FULL
+```
+
+Steps 4-6 produce **stub datoms** — datoms that record the step executed but note that
+the actual work is deferred:
+
+```
+Step 4: assert [:conflict/tui-notification, :stub, "deferred to Stage 4"]
+Step 5: assert [:conflict/uncertainty-update, :stub, "deferred to Stage 1"]
+Step 6: assert [:conflict/cache-invalidation, :stub, "deferred to Stage 1"]
+```
+
+The stub datoms carry the `:stub` marker value and a human-readable deferral reason.
+When the corresponding subsystem activates, the pipeline step replaces stub generation
+with real work. The stub datoms themselves are never retracted — they remain in the
+store as historical records of when the pipeline was operating in degraded mode.
+
+#### Formal Justification
+The L0 invariant of INV-RESOLUTION-008 states:
+
+```
+∀ conflict detections:
+  Steps (1)-(6) ALL produce datoms in the store.
+```
+
+Stub datoms satisfy this invariant unconditionally. The invariant requires datom
+*production*, not datom *effect*. A stub datom recording "step 5 ran but uncertainty
+tensor is not yet available" is still a datom in the store, satisfying the audit trail
+guarantee.
+
+The functional correctness of the conflict pipeline is preserved because the
+correctness-critical steps are 1-3:
+- **Step 1** (detection): Identifies which datom pairs are in conflict. This is the
+  core safety property — undetected conflicts lead to silent data corruption.
+- **Step 2** (severity): Determines how serious the conflict is, enabling prioritization.
+- **Step 3** (routing): Determines who resolves the conflict, enabling escalation.
+
+Steps 4-6 are **notification and bookkeeping** — they improve the agent's awareness of
+conflicts and keep derived state fresh, but they do not affect the correctness of conflict
+detection or resolution. Specifically:
+- Skipping step 4 means agents learn about conflicts only through explicit queries, not
+  push notifications. At Stage 0 (single agent), the agent can poll for conflicts.
+- Skipping step 5 means the uncertainty tensor is not updated when conflicts occur. In
+  single-agent Stage 0, the uncertainty tensor is not yet used for delegation decisions
+  (ADR-RESOLUTION-006 is Stage 2), so stale uncertainty has no downstream effect.
+- Skipping step 6 means query caches are not invalidated after conflicts. At Stage 0,
+  there is no query cache (caching is a Stage 1 optimization), so there is nothing to
+  invalidate.
+
+INV-MERGE-010 (cascade determinism) is preserved because stub datom generation is a
+deterministic function of the merged store state: given the same conflict, the same stub
+datom is produced regardless of which agent runs the cascade.
+
+#### Consequences
+- **Stale uncertainty tensor**: When conflicts are detected at Stage 0, the uncertainty
+  tensor (σ) is NOT updated. This means entity uncertainty values do not reflect active
+  conflicts. At Stage 0 this has no operational impact because the uncertainty tensor is
+  not yet used for delegation decisions, spectral authority computation, or budget
+  allocation. At Stage 1, when BUDGET activates, step 5 must be implemented before
+  uncertainty-based decisions become reliable.
+- **No push notifications**: Agents learn about conflicts only by querying for Conflict
+  entities, not through real-time TUI notifications. In single-agent Stage 0, this is
+  acceptable — the agent can include a conflict check in its seed assembly. In multi-agent
+  Stage 3+, TUI notifications become important for timely conflict awareness.
+- **No cache staleness**: Since Stage 0 has no query cache, the omission of step 6 has
+  zero functional impact. When caching is introduced at Stage 1, step 6 must activate
+  simultaneously to prevent stale cache reads after conflicts.
+- **Progressive activation schedule**:
+  - Stage 1: Steps 5 (uncertainty update) and 6 (cache invalidation) become fully operational.
+  - Stage 4: Step 4 (TUI notification) becomes fully operational.
+- **Audit trail completeness**: The stub datoms create a complete chronological record
+  of pipeline execution, including the degraded-mode period. Future queries can distinguish
+  real pipeline effects from stubs via the `:stub` marker, enabling accurate retrospective
+  analysis of conflict handling quality across stages.
+
+#### Falsification
+This simplification is inadequate if: (1) a Stage 0 agent makes a consequential decision
+based on an entity's uncertainty value that is stale due to undetected conflict-driven
+uncertainty increase (i.e., the uncertainty tensor's staleness causes a real downstream
+error), or (2) multiple conflicts accumulate at Stage 0 without agent awareness because
+the polling-based discovery mechanism is insufficient (agents consistently fail to check
+for conflicts, and push notifications would have caught the issue), or (3) the stub datom
+overhead (three additional datoms per conflict detection) materially impacts Stage 0 store
+size for workloads with high conflict rates.
 
 ---
 
