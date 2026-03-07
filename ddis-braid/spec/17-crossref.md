@@ -28,6 +28,7 @@
 | INTERFACE | §8 | IB-001–003, IB-008–009, IB-012–013, SR-011, AA-003, AA-006, FD-011, PO-011, LM-015 | Five layers, CLI modes, MCP tools, TUI, statusline, harvest warning, ten primitives, Rust |
 | UNCERTAINTY | §3 | UA-001–002, UA-006, UA-008 | Three-axis tensor, temporal decay, first-class markers, self-referential exclusion |
 | VERIFICATION | §10 | IMPL-003 | Three-tier Kani CI pipeline |
+| TRILATERAL | §1, §2, §3, §5, §6 | CO-001, CO-004–005, FD-001, AS-001, FD-003 | Trilateral coherence, three LIVE projections, Φ divergence, formality gradient, attribute namespace partitioning |
 
 ### §17.2 Invariant Dependency Graph
 
@@ -93,6 +94,12 @@ INV-GUIDANCE-010 (R(t) routing) ──→ INV-GUIDANCE-001 (injected in every re
 
 INV-BILATERAL-001 (convergence) ──→ INV-DELIBERATION-001 (deliberation convergence)
                                   ──→ INV-GUIDANCE-004 (drift detection)
+                                  ──→ INV-TRILATERAL-004 (convergence monotonicity)
+
+INV-STORE-012 (LIVE index) ──→ INV-TRILATERAL-001 (three LIVE projections)
+INV-SCHEMA-001 (genesis) ──→ INV-TRILATERAL-005 (attribute namespace partition)
+INV-QUERY-001 (CALM) ──→ INV-TRILATERAL-006 (Φ as Datalog program)
+INV-LAYOUT-001 (content-addressed) ──→ INV-TRILATERAL-007 (unified store self-bootstrap)
 ```
 
 **Dependency depth** (longest chain from leaf to root):
@@ -107,18 +114,18 @@ This confirms the implementation order: STORE → SCHEMA → QUERY → RESOLUTIO
 
 ### §17.3 Stage Mapping
 
-#### Stage 0 — Harvest/Seed Cycle (77 INV, core)
+#### Stage 0 — Harvest/Seed Cycle (83 INV, core)
 
 The foundational layer. Must be complete before any other stage.
 
 **Namespaces fully included**: STORE (13/14 INV), LAYOUT (11/11 INV), RESOLUTION (8/8)
-**Namespaces partially included**: SCHEMA (7/8, incl. 006 progressive), QUERY (10/21), HARVEST (5/9), SEED (6/8), MERGE (5/10), GUIDANCE (6/11), INTERFACE (6/10)
+**Namespaces partially included**: SCHEMA (7/8, incl. 006 progressive), QUERY (10/21), HARVEST (5/9), SEED (6/8), MERGE (5/10), GUIDANCE (6/11), INTERFACE (6/10), TRILATERAL (6/7)
 **Namespaces excluded**: SYNC, SIGNAL, BILATERAL, DELIBERATION, BUDGET
 
 **Success criterion**: Work 25 turns, harvest, start fresh with seed — new session
 picks up without manual re-explanation. First act: migrate SPEC.md elements as datoms.
 
-#### Stage 1 — Budget-Aware Output + Guidance Injection (25 INV)
+#### Stage 1 — Budget-Aware Output + Guidance Injection (26 INV)
 
 Builds on Stage 0 with attention budget management and enhanced guidance.
 
@@ -130,7 +137,7 @@ betweenness centrality, HITS scoring, k-core decomposition.
 
 **Key invariants**: INV-BUDGET-001–006, INV-GUIDANCE-003–004, INV-BILATERAL-001–002/004–005,
 INV-INTERFACE-004/007, INV-QUERY-003/008–009/015–016/018, INV-SIGNAL-002,
-INV-HARVEST-004/006, INV-SEED-007–008.
+INV-HARVEST-004/006, INV-SEED-007–008, INV-TRILATERAL-004.
 
 #### Stage 2 — Branching + Deliberation (23 INV)
 
@@ -176,7 +183,7 @@ Every hard constraint (C1–C7) traces to specific invariants:
 | C4 | CRDT merge by set union | INV-STORE-003, INV-STORE-004–007, INV-MERGE-001, NEG-MERGE-001, INV-LAYOUT-004, NEG-LAYOUT-003 |
 | C5 | Traceability | All elements have `Traces to` fields; INV-BILATERAL-002 (five-point coherence) |
 | C6 | Falsifiability | All INVs have `Falsification` sections; structural property of the specification |
-| C7 | Self-bootstrap | INV-SCHEMA-001 (genesis), INV-STORE-014 (every command is transaction), INV-BILATERAL-005 (test results as datoms), INV-LAYOUT-005 (self-verification), INV-LAYOUT-009 (index derivability) |
+| C7 | Self-bootstrap | INV-SCHEMA-001 (genesis), INV-STORE-014 (every command is transaction), INV-BILATERAL-005 (test results as datoms), INV-LAYOUT-005 (self-verification), INV-LAYOUT-009 (index derivability), INV-TRILATERAL-007 (unified store self-bootstrap) |
 
 ### §17.5 Failure Mode Traceability
 
@@ -211,13 +218,15 @@ Each failure mode (FAILURE_MODES.md) maps to the DDIS/Braid mechanisms that prev
 | GUIDANCE  | 11  | 9   | 3   | 23    | 3    |
 | BUDGET    | 6   | 4   | 2   | 12    | 3    |
 | INTERFACE | 10  | 10  | 4   | 24    | 3    |
+| TRILATERAL | 7  | 3   | 3   | 13    | 4    |
 | UNCERTAINTY | 0 | 4   | 0   | 4     | 4    |
 | VERIFICATION | 0 | 1  | 0   | 1     | 4    |
-| **Total** | **138** | **133** | **47** | **318** |      |
+| **Total** | **145** | **136** | **50** | **331** |      |
 
-**Additional Wave 4 content**: 13 uncertainty entries + 4 ADR-UNCERTAINTY elements (§15),
-138-row verification matrix + 1 ADR-VERIFICATION element (§16),
-18-namespace cross-reference index with dependency graph and stage mapping (§17). Total: 318.
+**Additional Wave 4 content**: 13 TRILATERAL elements (7 INV, 3 ADR, 3 NEG) (§18),
+13 uncertainty entries + 4 ADR-UNCERTAINTY elements (§15),
+145-row verification matrix + 1 ADR-VERIFICATION element (§16),
+19-namespace cross-reference index with dependency graph and stage mapping (§17). Total: 331.
 
 ## Appendix B: Traceability Statistics
 
@@ -261,19 +270,19 @@ turn-count proxy). Total ADRs increased from 120 to 126 (+6).
 
 | Metric | Count | Coverage |
 |--------|-------|----------|
-| Total INVs | 138 | — |
-| V:PROP | 136/138 | 98.6% |
-| V:TYPE (compile-time) | 9/138 | 6.5% |
-| V:PROP or V:TYPE or V:MODEL (minimum) | 138/138 | 100.0% |
-| V:KANI (critical) | 48/138 | 34.8% |
-| V:MODEL (protocol) | 13/138 | 9.4% |
+| Total INVs | 145 | — |
+| V:PROP | 143/145 | 98.6% |
+| V:TYPE (compile-time) | 10/145 | 6.9% |
+| V:PROP or V:TYPE or V:MODEL (minimum) | 145/145 | 100.0% |
+| V:KANI (critical) | 48/145 | 33.1% |
+| V:MODEL (protocol) | 14/145 | 9.7% |
 | V:DEDUCTIVE (candidate) | 5 | Deferred to post-Stage 2 |
-| Stage 0 INVs | 77 | 55.8% |
-| Stage 1 INVs | 25 | 19.7% |
-| Stage 2 INVs | 23 | 18.1% |
-| Stage 3 INVs | 11 | 8.7% |
-| Stage 4 INVs | 2 | 1.6% |
-| Uncertainty markers | 13 | — |
+| Stage 0 INVs | 83 | 57.2% |
+| Stage 1 INVs | 26 | 17.9% |
+| Stage 2 INVs | 23 | 15.9% |
+| Stage 3 INVs | 11 | 7.6% |
+| Stage 4 INVs | 2 | 1.4% |
+| Uncertainty markers | 15 | — |
 | High-urgency uncertainties | 3 | Resolve during Stage 0 |
 
 ## Appendix D: Stage 0 Elements
@@ -306,6 +315,9 @@ Elements required for Stage 0 (Harvest/Seed cycle):
 | ADR-INTERFACE-001–010 | INTERFACE | Layers, agent-mode, trajectory, MCP, heuristics, ten primitives, Rust, agent cycle, staged alignment, harvest warning proxy |
 | ADR-UNCERTAINTY-001–004 | UNCERTAINTY | Tensor, temporal decay, first-class markers, self-referential exclusion |
 | ADR-VERIFICATION-001 | VERIFICATION | Three-tier Kani CI pipeline |
+| INV-TRILATERAL-001–003, 005–007 | TRILATERAL | Trilateral coherence (6 Stage 0 INV) |
+| ADR-TRILATERAL-001–002 | TRILATERAL | Unified store, EDNL interchange |
+| NEG-TRILATERAL-001–003 | TRILATERAL | Trilateral safety |
 | NEG-STORE-001–005 | STORE | Store safety |
 | NEG-LAYOUT-001–005 | LAYOUT | Layout safety (no modification, no deletion, no append merge, no transport dependency, no index as truth) |
 | NEG-SCHEMA-001–003 | SCHEMA | Schema safety |

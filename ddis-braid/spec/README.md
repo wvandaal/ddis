@@ -49,13 +49,14 @@ Read the preamble first. All namespace files reference it for shared definitions
 | [13-budget.md](13-budget.md) | BUDGET | 352 | 1 | §8 |
 | [14-interface.md](14-interface.md) | INTERFACE | 410 | 0 | §8 |
 
-### Wave 4: Integration (cross-cutting references)
+### Wave 4: Integration (cross-cutting references and coherence)
 
-| File | Section | Lines |
-|------|---------|-------|
-| [15-uncertainty.md](15-uncertainty.md) | Uncertainty Register | 290 |
-| [16-verification.md](16-verification.md) | Verification Plan | 271 |
-| [17-crossref.md](17-crossref.md) | Cross-Reference Index + Appendices A–C | 229 |
+| File | Section | Lines | Stage | SEED.md §§ |
+|------|---------|-------|-------|------------|
+| [15-uncertainty.md](15-uncertainty.md) | Uncertainty Register | 290 | — | — |
+| [16-verification.md](16-verification.md) | Verification Plan | 271 | — | — |
+| [17-crossref.md](17-crossref.md) | Cross-Reference Index + Appendices A–C | 229 | — | — |
+| [18-trilateral.md](18-trilateral.md) | TRILATERAL — Trilateral Coherence Model | ~350 | 0 | §1, §2, §3, §5, §6 |
 
 ---
 
