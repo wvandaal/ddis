@@ -529,6 +529,85 @@ mod tests {
     // 4. Rate function: information retained decreases as budget decreases
     // -------------------------------------------------------------------
 
+    mod seed_proptests {
+        use super::*;
+        use crate::datom::AgentId;
+        use crate::proptest_strategies::arb_store;
+        use proptest::prelude::*;
+
+        proptest! {
+            #[test]
+            fn assemble_seed_deterministic(
+                store in arb_store(3),
+                budget in 100usize..5000,
+            ) {
+                let agent = AgentId::from_name("det-test");
+                let task = "determinism check";
+                let seed_a = assemble_seed(&store, task, budget, agent);
+                let seed_b = assemble_seed(&store, task, budget, agent);
+
+                prop_assert_eq!(
+                    seed_a.context.sections.len(),
+                    seed_b.context.sections.len(),
+                    "section count must be identical across calls"
+                );
+                prop_assert_eq!(
+                    seed_a.context.total_tokens,
+                    seed_b.context.total_tokens,
+                    "total_tokens must be identical across calls"
+                );
+                prop_assert_eq!(
+                    seed_a.context.budget_remaining,
+                    seed_b.context.budget_remaining,
+                    "budget_remaining must be identical across calls"
+                );
+                prop_assert_eq!(
+                    seed_a.entities_discovered,
+                    seed_b.entities_discovered,
+                    "entities_discovered must be identical across calls"
+                );
+                prop_assert_eq!(
+                    seed_a.context.projection_pattern,
+                    seed_b.context.projection_pattern,
+                    "projection_pattern must be identical across calls"
+                );
+            }
+
+            #[test]
+            fn assemble_seed_always_five_sections(
+                store in arb_store(3),
+                budget in 50usize..5000,
+            ) {
+                let agent = AgentId::from_name("sections-test");
+                let seed = assemble_seed(&store, "any task", budget, agent);
+
+                prop_assert_eq!(
+                    seed.context.sections.len(),
+                    5,
+                    "Seed must always have exactly 5 sections \
+                     (Orientation, Constraints, State, Warnings, Directive), got {}",
+                    seed.context.sections.len()
+                );
+            }
+
+            #[test]
+            fn assemble_seed_token_budget_respected(
+                store in arb_store(3),
+                budget in 50usize..5000,
+            ) {
+                let agent = AgentId::from_name("budget-test");
+                let seed = assemble_seed(&store, "budget test", budget, agent);
+
+                prop_assert!(
+                    seed.context.total_tokens <= budget,
+                    "INV-SEED-002: total_tokens ({}) must be <= budget ({})",
+                    seed.context.total_tokens,
+                    budget
+                );
+            }
+        }
+    }
+
     mod rate_distortion_proptests {
         use super::*;
         use crate::datom::{AgentId, Attribute, ProvenanceType, Value};

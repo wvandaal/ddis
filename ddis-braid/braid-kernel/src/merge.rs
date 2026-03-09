@@ -185,4 +185,77 @@ mod tests {
         s.merge(&Store::genesis());
         assert!(verify_monotonicity(&pre, s.datom_set()));
     }
+
+    // -------------------------------------------------------------------
+    // Property-based tests (proptest)
+    // -------------------------------------------------------------------
+
+    mod proptests {
+        use super::*;
+        use crate::proptest_strategies::*;
+        use proptest::prelude::*;
+
+        proptest! {
+            #[test]
+            fn merge_stores_is_commutative_on_datom_sets((s1, s2) in arb_store_pair(2)) {
+                let mut left = s1.clone_store();
+                merge_stores(&mut left, &s2);
+
+                let mut right = s2.clone_store();
+                merge_stores(&mut right, &s1);
+
+                prop_assert_eq!(
+                    left.datom_set(),
+                    right.datom_set(),
+                    "INV-STORE-004: merge must be commutative"
+                );
+            }
+
+            #[test]
+            fn merge_stores_is_idempotent(store in arb_store(3)) {
+                let pre_datoms = store.datom_set().clone();
+
+                let mut merged = store.clone_store();
+                merge_stores(&mut merged, &store);
+
+                prop_assert_eq!(
+                    merged.datom_set(),
+                    &pre_datoms,
+                    "INV-STORE-006: merge(S, S) must equal S"
+                );
+            }
+
+            #[test]
+            fn detect_merge_conflicts_empty_for_identical_stores(store in arb_store(3)) {
+                // Merging a store with itself produces no new conflicts
+                // because no new distinct values are introduced.
+                let mut merged = store.clone_store();
+                merge_stores(&mut merged, &store);
+
+                let conflicts = detect_merge_conflicts(&merged);
+                // For identical stores, merging doesn't add new values, so
+                // no additional conflicts arise beyond what existed pre-merge.
+                // Since arb_store uses a single agent, there should be no conflicts.
+                let pre_conflicts = detect_merge_conflicts(&store);
+                prop_assert_eq!(
+                    conflicts.len(),
+                    pre_conflicts.len(),
+                    "merging identical stores must not introduce new conflicts"
+                );
+            }
+
+            #[test]
+            fn verify_monotonicity_holds_after_merge((s1, s2) in arb_store_pair(2)) {
+                let pre = s1.datom_set().clone();
+
+                let mut merged = s1.clone_store();
+                merge_stores(&mut merged, &s2);
+
+                prop_assert!(
+                    verify_monotonicity(&pre, merged.datom_set()),
+                    "INV-STORE-007: target store datoms must be a subset of post-merge datoms"
+                );
+            }
+        }
+    }
 }

@@ -305,4 +305,107 @@ mod tests {
         assert!(CandidateStatus::UnderReview < CandidateStatus::Committed);
         assert!(CandidateStatus::UnderReview < CandidateStatus::Rejected);
     }
+
+    // -------------------------------------------------------------------
+    // Property-based tests (proptest)
+    // -------------------------------------------------------------------
+
+    mod proptests {
+        use super::*;
+        use crate::proptest_strategies::*;
+        use proptest::prelude::*;
+
+        fn arb_session_knowledge(max_items: usize) -> impl Strategy<Value = Vec<(String, Value)>> {
+            proptest::collection::vec(
+                (
+                    "[a-z]{3,8}".prop_map(|s| format!(":session/{s}")),
+                    arb_doc_value(),
+                ),
+                0..=max_items,
+            )
+        }
+
+        fn arb_session_context() -> impl Strategy<Value = SessionContext> {
+            (arb_agent_id(), arb_tx_id(), arb_session_knowledge(5)).prop_map(
+                |(agent, tx, knowledge)| SessionContext {
+                    agent,
+                    session_start_tx: tx,
+                    task_description: "proptest session".to_string(),
+                    session_knowledge: knowledge,
+                },
+            )
+        }
+
+        proptest! {
+            #[test]
+            fn harvest_pipeline_always_returns_result(ctx in arb_session_context()) {
+                let store = Store::genesis();
+                let result = harvest_pipeline(&store, &ctx);
+                // harvest_pipeline must always produce a HarvestResult
+                // (never panic, always structurally valid)
+                let _ = result.candidates.len();
+                let _ = result.drift_score;
+                let _ = result.quality.count;
+            }
+
+            #[test]
+            fn drift_score_in_unit_interval(ctx in arb_session_context()) {
+                let store = Store::genesis();
+                let result = harvest_pipeline(&store, &ctx);
+                prop_assert!(
+                    result.drift_score >= 0.0 && result.drift_score <= 1.0,
+                    "drift_score must be in [0.0, 1.0], got {}",
+                    result.drift_score
+                );
+            }
+
+            #[test]
+            fn quality_counts_sum_correctly(ctx in arb_session_context()) {
+                let store = Store::genesis();
+                let result = harvest_pipeline(&store, &ctx);
+                let q = &result.quality;
+                prop_assert_eq!(
+                    q.high_confidence + q.medium_confidence + q.low_confidence,
+                    q.count,
+                    "quality confidence buckets must sum to total count"
+                );
+            }
+
+            #[test]
+            fn candidate_to_datoms_produces_valid_datoms(ctx in arb_session_context()) {
+                let store = Store::genesis();
+                let result = harvest_pipeline(&store, &ctx);
+                let agent = AgentId::from_name("proptest:harvester");
+                let tx = TxId::new(1000, 0, agent);
+
+                for candidate in &result.candidates {
+                    let datoms = candidate_to_datoms(candidate, tx);
+
+                    // Each datom must be an assertion
+                    for d in &datoms {
+                        prop_assert_eq!(
+                            d.op,
+                            crate::datom::Op::Assert,
+                            "candidate_to_datoms must only produce assertions"
+                        );
+                        prop_assert_eq!(
+                            d.entity, candidate.entity,
+                            "datom entity must match candidate entity"
+                        );
+                        prop_assert_eq!(
+                            d.tx, tx,
+                            "datom tx must match supplied tx"
+                        );
+                    }
+
+                    // Number of datoms must equal number of assertions in the candidate
+                    prop_assert_eq!(
+                        datoms.len(),
+                        candidate.assertions.len(),
+                        "datom count must match assertion count"
+                    );
+                }
+            }
+        }
+    }
 }

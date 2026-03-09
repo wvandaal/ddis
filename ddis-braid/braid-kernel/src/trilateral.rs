@@ -738,4 +738,159 @@ mod tests {
             assert_eq!(components.d_sp, 0);
         }
     }
+
+    // -------------------------------------------------------------------
+    // Additional property-based tests (proptest)
+    // -------------------------------------------------------------------
+
+    mod proptests {
+        use super::*;
+        use crate::datom::{Attribute, Datom, Op};
+        use crate::proptest_strategies::*;
+        use proptest::prelude::*;
+
+        proptest! {
+            #[test]
+            fn live_projection_monotonicity((s1, s2) in arb_store_pair(2)) {
+                // INV-TRILATERAL-001: LIVE projections are monotone functions.
+                // Adding datoms (merging) cannot shrink any projection.
+                let (i_before, s_before, p_before) = live_projections(&s1);
+
+                let mut merged = s1.clone_store();
+                merged.merge(&s2);
+
+                let (i_after, s_after, p_after) = live_projections(&merged);
+
+                prop_assert!(
+                    i_after.datom_count >= i_before.datom_count,
+                    "intent projection must not shrink after merge: {} < {}",
+                    i_after.datom_count,
+                    i_before.datom_count
+                );
+                prop_assert!(
+                    s_after.datom_count >= s_before.datom_count,
+                    "spec projection must not shrink after merge: {} < {}",
+                    s_after.datom_count,
+                    s_before.datom_count
+                );
+                prop_assert!(
+                    p_after.datom_count >= p_before.datom_count,
+                    "impl projection must not shrink after merge: {} < {}",
+                    p_after.datom_count,
+                    p_before.datom_count
+                );
+            }
+
+            #[test]
+            fn classify_attribute_covers_all_known(
+                intent_idx in 0..INTENT_ATTRS.len(),
+                spec_idx in 0..SPEC_ATTRS.len(),
+                impl_idx in 0..IMPL_ATTRS.len(),
+            ) {
+                // All listed attributes must classify to their respective namespace.
+                let intent_attr = Attribute::from_keyword(INTENT_ATTRS[intent_idx]);
+                prop_assert_eq!(
+                    classify_attribute(&intent_attr),
+                    AttrNamespace::Intent,
+                    "INTENT_ATTRS[{}] = {:?} must classify as Intent",
+                    intent_idx,
+                    INTENT_ATTRS[intent_idx]
+                );
+
+                let spec_attr = Attribute::from_keyword(SPEC_ATTRS[spec_idx]);
+                prop_assert_eq!(
+                    classify_attribute(&spec_attr),
+                    AttrNamespace::Spec,
+                    "SPEC_ATTRS[{}] = {:?} must classify as Spec",
+                    spec_idx,
+                    SPEC_ATTRS[spec_idx]
+                );
+
+                let impl_attr = Attribute::from_keyword(IMPL_ATTRS[impl_idx]);
+                prop_assert_eq!(
+                    classify_attribute(&impl_attr),
+                    AttrNamespace::Impl,
+                    "IMPL_ATTRS[{}] = {:?} must classify as Impl",
+                    impl_idx,
+                    IMPL_ATTRS[impl_idx]
+                );
+            }
+
+            #[test]
+            fn isp_check_results_are_consistent(store in arb_store(3)) {
+                // For every entity in the store, isp_check must return a valid
+                // IspResult that is consistent with the entity's actual datoms.
+                let entities = store.entities();
+                for entity in &entities {
+                    let result = isp_check(&store, *entity);
+
+                    let datoms: Vec<&Datom> = store
+                        .datoms()
+                        .filter(|d| d.entity == *entity && d.op == Op::Assert)
+                        .collect();
+
+                    let has_intent = datoms
+                        .iter()
+                        .any(|d| classify_attribute(&d.attribute) == AttrNamespace::Intent);
+                    let has_spec = datoms
+                        .iter()
+                        .any(|d| classify_attribute(&d.attribute) == AttrNamespace::Spec);
+                    let has_impl = datoms
+                        .iter()
+                        .any(|d| classify_attribute(&d.attribute) == AttrNamespace::Impl);
+
+                    match result {
+                        IspResult::NoData => {
+                            prop_assert!(
+                                !has_intent && !has_spec && !has_impl,
+                                "NoData but entity has ISP datoms"
+                            );
+                        }
+                        IspResult::IntentSpecGap => {
+                            prop_assert!(has_intent, "IntentSpecGap requires intent");
+                            prop_assert!(!has_spec, "IntentSpecGap requires no spec");
+                        }
+                        IspResult::SpecImplGap => {
+                            prop_assert!(has_spec, "SpecImplGap requires spec");
+                            prop_assert!(!has_impl, "SpecImplGap requires no impl");
+                        }
+                        IspResult::SpecificationBypass => {
+                            prop_assert!(has_intent, "SpecificationBypass requires intent");
+                            prop_assert!(!has_spec, "SpecificationBypass requires no spec");
+                            prop_assert!(has_impl, "SpecificationBypass requires impl");
+                        }
+                        IspResult::Coherent => {
+                            // Coherent can occur in several cases:
+                            // (true, true, true), (false, true, true), (false, false, true)
+                            // Just verify it's not an impossible state
+                            if has_intent {
+                                prop_assert!(
+                                    has_spec,
+                                    "Coherent with intent requires spec"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            #[test]
+            fn classify_unknown_attributes_as_meta(attr in arb_attribute()) {
+                // Arbitrary attributes (not from the known lists) should classify as Meta,
+                // unless they happen to match a known attribute (unlikely with random generation).
+                let s = attr.as_str();
+                let is_known = INTENT_ATTRS.contains(&s)
+                    || SPEC_ATTRS.contains(&s)
+                    || IMPL_ATTRS.contains(&s);
+                if !is_known {
+                    prop_assert_eq!(
+                        classify_attribute(&attr),
+                        AttrNamespace::Meta,
+                        "unknown attribute {:?} must classify as Meta",
+                        s
+                    );
+                }
+            }
+        }
+    }
 }

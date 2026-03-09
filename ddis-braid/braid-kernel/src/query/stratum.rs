@@ -285,4 +285,106 @@ mod tests {
             );
         }
     }
+
+    // -------------------------------------------------------------------
+    // Proptest: stratum classification properties
+    // -------------------------------------------------------------------
+
+    mod stratum_proptests {
+        use super::*;
+        use crate::datom::{Attribute, Value};
+        use crate::query::clause::{FindSpec, Pattern, Term};
+        use proptest::prelude::*;
+
+        fn arb_monotone_op() -> impl Strategy<Value = String> {
+            prop_oneof![
+                Just("=".to_string()),
+                Just(">".to_string()),
+                Just("<".to_string()),
+                Just(">=".to_string()),
+                Just("<=".to_string()),
+            ]
+        }
+
+        fn arb_monotone_clause() -> impl Strategy<Value = Clause> {
+            prop_oneof![
+                Just(Clause::Pattern(Pattern::new(
+                    Term::Variable("?e".into()),
+                    Term::Attr(Attribute::from_keyword(":db/doc")),
+                    Term::Variable("?v".into()),
+                ))),
+                arb_monotone_op().prop_map(|op| Clause::Predicate {
+                    op,
+                    args: vec![Term::Variable("?v".into()), Term::Constant(Value::Long(42)),],
+                }),
+            ]
+        }
+
+        fn arb_monotone_query() -> impl Strategy<Value = QueryExpr> {
+            proptest::collection::vec(arb_monotone_clause(), 1..=5)
+                .prop_map(|clauses| QueryExpr::new(FindSpec::Rel(vec!["?e".into()]), clauses))
+        }
+
+        fn arb_negation_query() -> impl Strategy<Value = QueryExpr> {
+            proptest::collection::vec(arb_monotone_clause(), 0..=3).prop_map(|mut clauses| {
+                clauses.push(Clause::Predicate {
+                    op: "!=".to_string(),
+                    args: vec![
+                        Term::Variable("?v".into()),
+                        Term::Constant(Value::String("excluded".into())),
+                    ],
+                });
+                QueryExpr::new(FindSpec::Rel(vec!["?e".into()]), clauses)
+            })
+        }
+
+        proptest! {
+            #[test]
+            fn check_stage0_accepts_monotonic(q in arb_monotone_query()) {
+                let result = check_stage0(&q);
+                prop_assert!(
+                    result.is_ok(),
+                    "check_stage0 must accept monotone queries, got Err({:?})",
+                    result.unwrap_err()
+                );
+                let stratum = result.unwrap();
+                prop_assert!(
+                    stratum.is_monotone(),
+                    "accepted stratum {:?} must be monotone",
+                    stratum
+                );
+            }
+
+            #[test]
+            fn check_stage0_rejects_non_monotonic(q in arb_negation_query()) {
+                let result = check_stage0(&q);
+                prop_assert!(
+                    result.is_err(),
+                    "check_stage0 must reject non-monotone queries with != predicate"
+                );
+                let stratum = result.unwrap_err();
+                prop_assert!(
+                    !stratum.is_monotone(),
+                    "rejected stratum {:?} must not be monotone",
+                    stratum
+                );
+                prop_assert!(
+                    stratum >= Stratum::S2,
+                    "rejected stratum {:?} must be S2+",
+                    stratum
+                );
+            }
+
+            #[test]
+            fn classify_is_deterministic(q in arb_monotone_query()) {
+                let s1 = classify(&q);
+                let s2 = classify(&q);
+                prop_assert_eq!(
+                    s1, s2,
+                    "classify must be deterministic: {:?} vs {:?}",
+                    s1, s2
+                );
+            }
+        }
+    }
 }

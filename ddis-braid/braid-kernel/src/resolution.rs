@@ -786,4 +786,176 @@ mod tests {
             );
         }
     }
+
+    // -------------------------------------------------------------------
+    // Property-based tests (proptest)
+    // -------------------------------------------------------------------
+
+    mod proptests {
+        use super::*;
+        use crate::datom::{AgentId, ProvenanceType};
+        use crate::proptest_strategies::*;
+        use crate::store::Transaction;
+        use proptest::prelude::*;
+
+        proptest! {
+            #[test]
+            fn lww_picks_datom_with_latest_tx_id(
+                e in arb_entity_id(),
+                v1 in arb_doc_value(),
+                v2 in arb_doc_value(),
+                wall1 in 1u64..500_000,
+                wall2 in 500_001u64..1_000_000,
+            ) {
+                let agent = AgentId::from_name("proptest:agent");
+                let tx_early = TxId::new(wall1, 0, agent);
+                let tx_late = TxId::new(wall2, 0, agent);
+                let a = Attribute::from_keyword(":db/doc");
+
+                let conflict = ConflictSet {
+                    entity: e,
+                    attribute: a,
+                    assertions: vec![
+                        (v1, tx_early),
+                        (v2.clone(), tx_late),
+                    ],
+                    retractions: vec![],
+                };
+
+                let resolved = resolve(&conflict, &ResolutionMode::Lww);
+                match resolved {
+                    ResolvedValue::Single(winner) => {
+                        prop_assert_eq!(winner, v2, "LWW must pick the value with the latest TxId");
+                    }
+                    other => prop_assert!(false, "expected Single, got {:?}", other),
+                }
+            }
+
+            #[test]
+            fn multi_resolution_preserves_all_values(
+                e in arb_entity_id(),
+                values in proptest::collection::vec(arb_doc_value(), 1..=5),
+            ) {
+                let agent = AgentId::from_name("proptest:agent");
+                let a = Attribute::from_keyword(":db/doc");
+
+                let assertions: Vec<(Value, TxId)> = values
+                    .iter()
+                    .enumerate()
+                    .map(|(i, v)| (v.clone(), TxId::new(i as u64 + 1, 0, agent)))
+                    .collect();
+
+                let conflict = ConflictSet {
+                    entity: e,
+                    attribute: a,
+                    assertions,
+                    retractions: vec![],
+                };
+
+                let resolved = resolve(&conflict, &ResolutionMode::Multi);
+                match resolved {
+                    ResolvedValue::Multi(result_vals) => {
+                        prop_assert_eq!(
+                            result_vals.len(),
+                            values.len(),
+                            "Multi mode must preserve all values"
+                        );
+                    }
+                    other => prop_assert!(false, "expected Multi, got {:?}", other),
+                }
+            }
+
+            #[test]
+            fn detect_conflicts_empty_for_single_agent_store(store in arb_store(3)) {
+                // A store built by arb_store uses a single agent ("proptest:agent")
+                // and the :db/doc attribute. With only one agent asserting the same
+                // attribute per entity, there should be no conflicts on user entities.
+                // (Genesis entities may have meta-schema datoms but those are
+                // deterministic from a single system agent.)
+                //
+                // We check all entities: for each (entity, attribute) pair, if there
+                // is only one distinct value asserted (which is the case for single-agent
+                // stores), detect_conflicts should return None.
+                let entities = store.entities();
+                for entity in &entities {
+                    let datoms: Vec<&Datom> = store
+                        .datoms()
+                        .filter(|d| d.entity == *entity && d.op == Op::Assert)
+                        .collect();
+
+                    // Group by attribute
+                    let mut by_attr: std::collections::HashMap<&Attribute, Vec<&Datom>> =
+                        std::collections::HashMap::new();
+                    for d in &datoms {
+                        by_attr.entry(&d.attribute).or_default().push(d);
+                    }
+
+                    for (attr, attr_datoms) in &by_attr {
+                        let cs = ConflictSet::from_datoms(*entity, (*attr).clone(), attr_datoms);
+                        let mode = store.schema().resolution_mode(attr);
+                        // Single-agent store: at most one assertion per (entity, attr)
+                        // so there can be no conflict (different values required).
+                        if attr_datoms.len() <= 1 {
+                            prop_assert!(
+                                !has_conflict(&cs, &mode),
+                                "single assertion cannot be a conflict"
+                            );
+                        }
+                    }
+                }
+            }
+
+            #[test]
+            fn resolve_with_trail_produces_valid_record(
+                e in arb_entity_id(),
+                v1 in arb_doc_value(),
+                v2 in arb_doc_value(),
+            ) {
+                let agent_a = AgentId::from_name("alice");
+                let agent_b = AgentId::from_name("bob");
+
+                let mut store = Store::genesis();
+                let attr = Attribute::from_keyword(":db/doc");
+
+                let tx1 = Transaction::new(agent_a, ProvenanceType::Observed, "alice says")
+                    .assert(e, attr.clone(), v1)
+                    .commit(&store)
+                    .unwrap();
+                store.transact(tx1).unwrap();
+
+                let tx2 = Transaction::new(agent_b, ProvenanceType::Observed, "bob says")
+                    .assert(e, attr.clone(), v2)
+                    .commit(&store)
+                    .unwrap();
+                store.transact(tx2).unwrap();
+
+                if let Some(conflict) = detect_conflicts(&store, e, &attr) {
+                    let record = resolve_with_trail(&conflict, store.schema());
+
+                    // Record must reference the correct entity and attribute
+                    prop_assert_eq!(record.conflict.entity, e);
+                    prop_assert_eq!(record.conflict.attribute, attr.clone());
+
+                    // Resolution mode must come from the schema
+                    prop_assert_eq!(
+                        record.resolution_mode,
+                        store.schema().resolution_mode(&attr)
+                    );
+
+                    // Resolved value must not be None (there are active assertions)
+                    prop_assert!(
+                        record.resolved_value != ResolvedValue::None,
+                        "resolve_with_trail must produce a value when conflict has active assertions"
+                    );
+
+                    // The record's conflict must have exactly 2 conflicting values
+                    prop_assert_eq!(
+                        record.conflict.conflicting_values.len(),
+                        2,
+                        "two-agent conflict must have exactly 2 conflicting values"
+                    );
+                }
+            }
+        }
+    }
 }

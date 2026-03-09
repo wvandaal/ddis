@@ -283,4 +283,95 @@ mod tests {
             _ => panic!("expected Rel result"),
         }
     }
+
+    // -------------------------------------------------------------------
+    // Proptest: evaluate determinism
+    // -------------------------------------------------------------------
+
+    mod evaluator_proptests {
+        use super::*;
+        use crate::proptest_strategies::arb_store;
+        use proptest::prelude::*;
+
+        fn doc_query() -> QueryExpr {
+            QueryExpr::new(
+                FindSpec::Rel(vec!["?e".into(), "?v".into()]),
+                vec![Clause::Pattern(Pattern::new(
+                    Term::Variable("?e".into()),
+                    Term::Attr(Attribute::from_keyword(":db/doc")),
+                    Term::Variable("?v".into()),
+                ))],
+            )
+        }
+
+        fn ident_query() -> QueryExpr {
+            QueryExpr::new(
+                FindSpec::Rel(vec!["?e".into(), "?name".into()]),
+                vec![Clause::Pattern(Pattern::new(
+                    Term::Variable("?e".into()),
+                    Term::Attr(Attribute::from_keyword(":db/ident")),
+                    Term::Variable("?name".into()),
+                ))],
+            )
+        }
+
+        fn extract_rows(result: &QueryResult) -> &Vec<Vec<Value>> {
+            match result {
+                QueryResult::Rel(rows) => rows,
+                _ => panic!("expected Rel result"),
+            }
+        }
+
+        proptest! {
+            #[test]
+            fn evaluate_is_deterministic_doc(store in arb_store(3)) {
+                let query = doc_query();
+                let r1 = evaluate(&store, &query);
+                let r2 = evaluate(&store, &query);
+
+                let rows1 = extract_rows(&r1);
+                let rows2 = extract_rows(&r2);
+
+                prop_assert_eq!(
+                    rows1.len(),
+                    rows2.len(),
+                    "evaluate must return same row count: {} vs {}",
+                    rows1.len(),
+                    rows2.len()
+                );
+                for (i, (a, b)) in rows1.iter().zip(rows2.iter()).enumerate() {
+                    prop_assert_eq!(
+                        a, b,
+                        "evaluate must return same rows at index {}: {:?} vs {:?}",
+                        i, a, b
+                    );
+                }
+            }
+
+            #[test]
+            fn evaluate_is_deterministic_ident(store in arb_store(3)) {
+                let query = ident_query();
+                let r1 = evaluate(&store, &query);
+                let r2 = evaluate(&store, &query);
+
+                let rows1 = extract_rows(&r1);
+                let rows2 = extract_rows(&r2);
+
+                prop_assert_eq!(
+                    rows1.len(),
+                    rows2.len(),
+                    "evaluate must return same row count: {} vs {}",
+                    rows1.len(),
+                    rows2.len()
+                );
+                for (i, (a, b)) in rows1.iter().zip(rows2.iter()).enumerate() {
+                    prop_assert_eq!(
+                        a, b,
+                        "evaluate must return same rows at index {}: {:?} vs {:?}",
+                        i, a, b
+                    );
+                }
+            }
+        }
+    }
 }

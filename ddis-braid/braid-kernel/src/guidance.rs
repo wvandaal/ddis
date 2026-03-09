@@ -682,6 +682,160 @@ mod tests {
     }
 
     // -------------------------------------------------------------------
+    // Proptest: compute_routing, derive_tasks, task derivation properties
+    // -------------------------------------------------------------------
+
+    mod routing_derivation_proptests {
+        use super::*;
+        use crate::datom::EntityId;
+        use proptest::prelude::*;
+
+        fn arb_task_node(idx: usize, num_nodes: usize) -> impl Strategy<Value = TaskNode> {
+            let entity = EntityId::from_ident(&format!(":task/t{idx}"));
+            (
+                prop::bool::ANY, // done
+                0.0f64..1.0,     // priority_boost
+                0u64..1000,      // created_at
+                proptest::collection::vec(0..num_nodes, 0..num_nodes.min(3)),
+            )
+                .prop_map(move |(done, priority_boost, created_at, dep_indices)| {
+                    let depends_on: Vec<EntityId> = dep_indices
+                        .into_iter()
+                        .filter(|&d| d != idx)
+                        .map(|d| EntityId::from_ident(&format!(":task/t{d}")))
+                        .collect();
+                    TaskNode {
+                        entity,
+                        label: format!("task-{idx}"),
+                        priority_boost,
+                        done,
+                        depends_on,
+                        blocks: vec![],
+                        created_at,
+                    }
+                })
+        }
+
+        fn arb_task_graph(max_nodes: usize) -> impl Strategy<Value = Vec<TaskNode>> {
+            let max = max_nodes.max(1);
+            (1..=max)
+                .prop_flat_map(|n| {
+                    let strategies: Vec<_> = (0..n).map(|i| arb_task_node(i, n)).collect();
+                    strategies
+                })
+                .prop_map(|mut nodes| {
+                    // Compute blocks from depends_on
+                    let entities: Vec<EntityId> = nodes.iter().map(|n| n.entity).collect();
+                    let mut blocks_map: Vec<Vec<EntityId>> = vec![vec![]; nodes.len()];
+                    for (i, node) in nodes.iter().enumerate() {
+                        for dep in &node.depends_on {
+                            if let Some(j) = entities.iter().position(|e| e == dep) {
+                                if !blocks_map[j].contains(&entities[i]) {
+                                    blocks_map[j].push(entities[i]);
+                                }
+                            }
+                        }
+                    }
+                    for (i, node) in nodes.iter_mut().enumerate() {
+                        node.blocks = blocks_map[i].clone();
+                    }
+                    nodes
+                })
+        }
+
+        fn arb_artifacts(max: usize) -> impl Strategy<Value = Vec<(String, String)>> {
+            let types = vec![
+                "invariant".to_string(),
+                "adr".to_string(),
+                "neg".to_string(),
+                "uncertainty".to_string(),
+                "section".to_string(),
+            ];
+            proptest::collection::vec((0..max.max(1), prop::sample::select(types)), 0..=max)
+                .prop_map(|pairs| {
+                    pairs
+                        .into_iter()
+                        .map(|(idx, atype)| {
+                            let prefix = match atype.as_str() {
+                                "invariant" => "INV",
+                                "adr" => "ADR",
+                                "neg" => "NEG",
+                                "uncertainty" => "UNC",
+                                _ => "SEC",
+                            };
+                            (format!("{prefix}-TEST-{idx:03}"), atype)
+                        })
+                        .collect()
+                })
+        }
+
+        proptest! {
+            #[test]
+            fn routing_returns_only_ready(tasks in arb_task_graph(8)) {
+                let routings = compute_routing(&tasks, 1000);
+                let task_map: std::collections::BTreeMap<EntityId, &TaskNode> =
+                    tasks.iter().map(|t| (t.entity, t)).collect();
+
+                for r in &routings {
+                    let task = task_map.get(&r.entity)
+                        .expect("routed task must exist in input");
+                    prop_assert!(
+                        !task.done,
+                        "Routed task {:?} must not be done",
+                        r.label
+                    );
+                    for dep in &task.depends_on {
+                        if let Some(dep_task) = task_map.get(dep) {
+                            prop_assert!(
+                                dep_task.done,
+                                "Dependency {:?} of ready task {:?} must be done",
+                                dep_task.label,
+                                r.label
+                            );
+                        }
+                    }
+                }
+            }
+
+            #[test]
+            fn derive_tasks_count_matches_cross_product(
+                artifacts in arb_artifacts(6),
+            ) {
+                let rules = default_derivation_rules();
+                let derived = derive_tasks(&artifacts, &rules);
+
+                // Expected count: sum over each artifact of matching rules
+                let expected: usize = artifacts.iter().map(|(_, atype)| {
+                    rules.iter().filter(|r| &r.artifact_type == atype).count()
+                }).sum();
+
+                prop_assert_eq!(
+                    derived.len(),
+                    expected,
+                    "derive_tasks must produce exactly artifacts x matching rules tasks"
+                );
+            }
+
+            #[test]
+            fn derived_tasks_sorted_by_descending_priority(
+                artifacts in arb_artifacts(6),
+            ) {
+                let rules = default_derivation_rules();
+                let derived = derive_tasks(&artifacts, &rules);
+
+                for window in derived.windows(2) {
+                    prop_assert!(
+                        window[0].priority >= window[1].priority,
+                        "Tasks must be sorted descending by priority: {} >= {} violated",
+                        window[0].priority,
+                        window[1].priority
+                    );
+                }
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------
     // Proptest formal verification: Guidance Comonad Laws (brai-lkm7)
     // -------------------------------------------------------------------
     //
