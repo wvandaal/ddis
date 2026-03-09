@@ -63,7 +63,9 @@ pub struct Datom {
 
 **Notes**: Spec defines the five-tuple algebraically as `(e, a, v, tx, op)`. Guide provides the
 full Rust derive attributes. Content-addressed: identity = hash(e, a, v, tx, op). Immutable after
-construction.
+construction. Note: Guide adds `Debug`, `Ord`, `PartialOrd`, `Serialize`, `Deserialize` derives
+beyond spec definition (implementation convenience -- spec defines only `Clone`, `Hash`, `Eq`,
+`PartialEq`).
 
 ---
 
@@ -1519,7 +1521,7 @@ pub struct SessionContext {
 | **Stage** | 0 |
 | **Spec file** | `spec/06-seed.md` (ADR-SEED-004: five-part template) |
 | **Guide files** | `guide/06-seed.md` (section 6.1) |
-| **Status** | `[GUIDE-ONLY]` -- Spec describes template; guide defines struct |
+| **Status** | `[AGREE]` -- Spec defines template structure via ADR-SEED-004; guide defines the Rust struct |
 
 ```rust
 pub struct SeedOutput {
@@ -1596,6 +1598,8 @@ pub struct ContextSection {
 }
 ```
 
+**Notes**: Required for Stage 0 implementation as transitive dependency of `AssembledContext` `[AGREE]`.
+
 ---
 
 ### ProjectionLevel
@@ -1612,6 +1616,9 @@ pub struct ContextSection {
 pub enum ProjectionLevel { Full, Summary, TypeLevel, Pointer }
 ```
 
+**Notes**: Required for Stage 0 implementation as transitive dependency of `AssembledContext` `[AGREE]`
+(via `ContextSection.projection_level`).
+
 ---
 
 ### ClaudeMdGenerator
@@ -1621,8 +1628,8 @@ pub enum ProjectionLevel { Full, Summary, TypeLevel, Pointer }
 | **Namespace** | SEED |
 | **Stage** | 0 |
 | **Spec file** | `spec/06-seed.md` (L2) |
-| **Guide files** | -- |
-| **Status** | `[SPEC-ONLY]` -- Guide uses free function `generate_claude_md()` instead |
+| **Guide files** | `guide/06-seed.md` (free function form) |
+| **Status** | `[AGREE]` -- Guide implements as free function `generate_claude_md()` per ADR-ARCHITECTURE-001 |
 
 ```rust
 pub struct ClaudeMdGenerator { pub store: Store }
@@ -1901,7 +1908,7 @@ pub enum SignalType {
 | Field | Value |
 |-------|-------|
 | **Namespace** | SIGNAL |
-| **Stage** | 3 |
+| **Stage** | 1 |
 | **Spec file** | `spec/09-signal.md` (L2) |
 | **Guide files** | -- |
 | **Status** | `[SPEC-ONLY]` |
@@ -2686,6 +2693,29 @@ pub struct BraidMcpServer {
 
 ---
 
+### MCPPhase
+
+| Field | Value |
+|-------|-------|
+| **Namespace** | INTERFACE |
+| **Stage** | 0 |
+| **Spec file** | `spec/14-interface.md` (L2: `Uninitialized -> Initialized -> Shutdown`) |
+| **Guide files** | -- |
+| **Status** | `[SPEC-ONLY]` |
+
+```rust
+pub enum MCPPhase {
+    Uninitialized,
+    Initialized,
+    Shutdown,
+}
+```
+
+**Notes**: Lifecycle phase enum for `MCPServer.phase` field. Guide's `BraidMcpServer` omits
+this field because rmcp manages lifecycle state externally.
+
+---
+
 ### MCPTool
 
 | Field | Value |
@@ -2914,8 +2944,16 @@ BILATERAL, DELIBERATION are Stage 2-3; BUDGET is Stage 1):
 `BranchStatus`, `CombineStrategy`, `ComparisonCriterion`, `BranchComparison`,
 `HITSResult`, `ArticulationResult`, `Topology`, `TopologyRecommendation`,
 `ProjectPhase`, `SessionState`, `TUIState`, `ConflictStatus`,
-`ContextSection`, `ProjectionLevel`,
-`ClaudeMdGenerator`, `AssociateCue`.
+`ContextSection`, `ProjectionLevel`, `MCPPhase`.
+
+Note: `AssociateCue` was removed from this list -- catalog entry marks it `[AGREE]` (both spec
+and guide define it).
+
+Note: `ClaudeMdGenerator` was removed from this list -- reclassified as `[AGREE]` (guide implements
+as free function per ADR-ARCHITECTURE-001).
+
+Note: `ContextSection` and `ProjectionLevel` are spec-only by guide file coverage but are required
+for Stage 0 as transitive dependencies of `AssembledContext` `[AGREE]`.
 
 Note: `LwwClock` was removed from this list (R1.10) -- clock selection is now a schema-level
 concept (`:db/lwwClock` attribute), not a standalone Resolution namespace type.
@@ -2932,7 +2970,10 @@ These types are implementation refinements introduced by the guide:
 
 `QueryStats`, `FrontierRef`, `DirectedGraph`, `ResolvedValue`,
 `ReconciliationType`, `HarvestResult`, `HarvestQuality`, `SessionContext`,
-`SeedOutput`, `DriftSignals`, `GuidanceOutput`, `ToolResponse`.
+`DriftSignals`, `GuidanceOutput`, `ToolResponse`.
+
+Note: `SeedOutput` was removed from this list (F-SEED-07) -- spec ADR-SEED-004 defines
+the five-part template structure; guide defines the Rust struct. Now `[AGREE]`.
 
 Note: `CascadeReceipt` was removed from this list (R1.6) -- now in both spec and guide.
 
@@ -2944,9 +2985,9 @@ now defined in both spec and guide via QueryExpr reconciliation.
 
 ---
 
-*Total types cataloged: 114 (+10: Frontier, EntityView, SnapshotView, TxApplyError, QueryError, CandidateStatus enum, LwwClock enum, SchemaLayer enum, Stratum enum, ExternalizationAnnotation).
+*Total types cataloged: 115 (+11: Frontier, EntityView, SnapshotView, TxApplyError, QueryError, CandidateStatus enum, LwwClock enum, SchemaLayer enum, Stratum enum, ExternalizationAnnotation, MCPPhase).
 Divergences: 0 remaining, 13 resolved (D1/R1.6, D2/R6.7b, D3/R1.10, D4/R1.10, D5/R6.7b, D6/R6.7b, D7/R6.7b, D8/R6.7b, D9/R4.1b, D10/R6.7b, D11, D12/R1.10, D13/R6.7d).
-Intentional stage scoping: 3 (S1: Value, S2: Stratum, S3: Clause deferred variants). Spec-only: 33 (Resolution, HarvestSession, ReviewTopology moved to AGREE per R4.3b).
+Intentional stage scoping: 3 (S1: Value, S2: Stratum, S3: Clause deferred variants). Spec-only: 32 (Resolution, HarvestSession, ReviewTopology moved to AGREE per R4.3b; AssociateCue, ClaudeMdGenerator moved to AGREE per audit W2-B).
 Guide-only: 13 (ParsedQuery, FindSpec, BindingSet moved to AGREE per R6.7b; TxReceipt, TxValidationError, SchemaError moved to AGREE per R4.1b/R4.2b; ExternalizationAnnotation added).*
 
 ---
@@ -2963,7 +3004,7 @@ this catalog. Each is listed with its resolution status.
 | `SignalPattern` | Signal matching predicate | Stage 3 |
 | `DatomRef` | Lightweight datom reference (entity + attribute) | impl detail |
 | `DisplayState` | TUI rendering state | Stage 4 |
-| `MCPPhase` | `enum { Uninitialized, Initialized, Shutdown }` (from spec/14-interface.md) | Stage 0 |
+| ~~`MCPPhase`~~ | Promoted to full catalog entry (INTERFACE namespace) | -- |
 | `ResolutionMethod` | `enum { Automatic, Manual, Delegated }` — resolution dispatch strategy | Stage 1 |
 | `Demonstration` | Exemplar demonstration instance | Stage 1 |
 | `DriftCorrection` | Drift remediation action record | Stage 1 |

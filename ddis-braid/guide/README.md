@@ -132,7 +132,7 @@ Full list in spec/17-crossref.md Appendix C and spec/16-verification.md matrix.
 | TRILATERAL | 6 | 001-003, 005-007 |
 | **Total** | **83** | |
 
-### Sub-Staging Recommendation (from D1-scope-boundary.md)
+### Sub-Staging Recommendation (from [D1-scope-boundary.md](../audits/stage-0/research/D1-scope-boundary.md))
 
 83 invariants is aggressive for the SEED.md "1-2 week" target. The recommended approach
 is to split Stage 0 into two sub-stages:

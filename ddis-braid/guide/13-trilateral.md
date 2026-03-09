@@ -1,7 +1,7 @@
 # §13. TRILATERAL — Build Plan
 
 > **Spec reference**: [spec/18-trilateral.md](../spec/18-trilateral.md)
-> **Stage 0 elements**: INV-TRILATERAL-001-003, 005-007 (6 INV), ADR-TRILATERAL-001-002, NEG-TRILATERAL-001-003
+> **Stage 0 elements**: INV-TRILATERAL-001-003, 005-007 (6 INV), ADR-TRILATERAL-001-002 (see §13.7), NEG-TRILATERAL-001-003
 > **Dependencies**: STORE (§1), LAYOUT (§1b), SCHEMA (§2), QUERY (§3)
 > **Cognitive mode**: Coherence-theoretic — divergence metrics, formality gradients
 
@@ -72,6 +72,9 @@ every attribute maps to exactly one namespace.
 
 **Black box** (contract):
 - Three projections filter by attribute namespace and apply resolution (INV-STORE-012).
+  LIVE projection relies on INV-STORE-012 (LIVE index consistency) to ensure the three
+  projections (LIVE_I, LIVE_S, LIVE_P) reflect current store state without explicit
+  recalculation.
 - Each is monotone over the store semilattice: store growth only grows views.
 - A datom appears in at most one LIVE view. Meta-namespace datoms appear in none.
 
@@ -100,14 +103,15 @@ NEG-TRILATERAL-001 (no cross-view contamination) simultaneously.
 
 ---
 
-### (3) Divergence Metric Phi (INV-TRILATERAL-002, INV-TRILATERAL-006)
+### (3) Divergence Metric Phi (INV-TRILATERAL-002)
 
 **Black box** (contract):
 - `Phi(S) = w_is * D_IS(S) + w_sp * D_SP(S)` where D_IS counts unlinked intent +
   untraced spec entities, and D_SP counts unimplemented spec + unlinked impl entities.
 - Pure function of the store -- no external state (NEG-TRILATERAL-002). Phi >= 0.
 - Phi = 0 iff full cross-boundary linkage exists. Expressible as Stratum 5 Datalog
-  (INV-TRILATERAL-006), inheriting CALM compliance from INV-QUERY-001.
+  (INV-TRILATERAL-006), inheriting CALM compliance from INV-QUERY-001. The Datalog
+  expressibility property (INV-TRILATERAL-006) is verified separately in §13.5.
 
 **State box** (internal design):
 - Four counting functions scan for unlinked entities via set difference at each boundary.
@@ -190,7 +194,9 @@ for LIVE projections because the LIVE index (INV-STORE-012) already resolves ret
 explicit `Op::Assert` filter is defense-in-depth — if the function is ever called on raw
 store datoms instead of LIVE-projected datoms, it still produces correct results by
 excluding retraction datoms. Retraction creates a new datom (C1) but cannot remove the
-assertion datom from the LIVE projection.
+assertion datom from the LIVE projection. Retraction semantics depend on the attribute's
+resolution mode (INV-RESOLUTION-001). For LWW attributes, the latest assertion wins.
+For lattice-resolved attributes, retractions are idempotent markers.
 
 ---
 
@@ -198,7 +204,11 @@ assertion datom from the LIVE projection.
 
 **Black box** (contract):
 - All TRILATERAL spec elements (INV-TRILATERAL-001-007, ADR-TRILATERAL-001-003,
-  NEG-TRILATERAL-001-003) are datoms in the store after self-bootstrap.
+  NEG-TRILATERAL-001-003) are datoms in the store after self-bootstrap. This
+  includes all 7 INVs (not just the 6 Stage 0 INVs): INV-TRILATERAL-004
+  (Stage 1) is also bootstrapped as a spec datom because self-bootstrap
+  (C7) requires completeness of the spec view. Stage gating controls when
+  an INV is *enforced at runtime*, not whether it exists as a spec datom.
 - All trilateral spec elements appear in `LIVE_S(S)` — they are spec-namespace
   entities with `:spec/id`, `:spec/type`, `:spec/statement` attributes.
 - Phi includes the trilateral spec elements themselves as entities requiring
@@ -258,8 +268,13 @@ Present: {present_attrs}. Missing for L{next_level}: {missing_attrs}.
 
 ### Error Messages
 
-- **Unknown attribute namespace**: `Trilateral error: attribute {attr} has namespace "{ns}" not in {intent, spec, impl, meta} -- verify attribute spelling matches schema -- See: INV-TRILATERAL-005`
 - **Negative weights**: `Trilateral error: boundary weights must be non-negative (got w_is={w_is}, w_sp={w_sp}) -- use default 0.5 or configure via store datoms -- See: INV-TRILATERAL-002`
+- **Empty LIVE view**: `Trilateral warning: LIVE_{view} contains 0 entities -- store may lack {namespace}-namespace datoms -- run 'braid transact --file' to bootstrap -- See: INV-TRILATERAL-001`
+
+Note: The "unknown attribute namespace" error from earlier drafts is unreachable.
+`classify_attribute` uses an exhaustive `match` with a `_` catch-all arm mapping
+unrecognized namespaces to `AttrNamespace::Meta` (§13.2 section 1). No attribute
+can fail classification.
 
 ---
 
@@ -380,5 +395,26 @@ proptest! {
 - [ ] `cargo check` passes (Gate 1)
 - [ ] `cargo test` passes (Gate 2)
 - [ ] Integration: genesis + spec bootstrap + `compute_phi` returns correct value
+
+---
+
+## §13.7 ADR Coverage
+
+### ADR-TRILATERAL-001: Unified Store with Three LIVE Views
+
+**Build impact**: This ADR establishes that I, S, P are three LIVE materialized views
+over the single datom store rather than three separate stores with periodic sync. The
+entire module implements this decision: `live_intent`, `live_spec`, `live_impl` are the
+three projections (§13.2 section 2), `compute_phi` computes divergence as a live metric
+(§13.2 section 3), and the absence of any sync mechanism is the structural consequence.
+No separate implementation artifact is needed beyond the functions above.
+
+### ADR-TRILATERAL-002: EDNL as Interchange Format
+
+**Build impact**: The self-bootstrap path (§13.2 section 5) depends on this ADR. Trilateral
+spec elements are ingested via `braid transact --file spec-bootstrap.ednl` using the EDNL
+format. The EDNL parser (from LAYOUT namespace, see guide/01b-layout.md) is a prerequisite.
+No TRILATERAL-specific code is needed for EDNL support -- the trilateral module consumes
+datoms from the store regardless of how they were ingested.
 
 ---

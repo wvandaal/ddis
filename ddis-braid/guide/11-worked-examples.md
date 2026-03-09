@@ -14,6 +14,10 @@ The unified self-bootstrap obligation is formalized in INV-TRILATERAL-007
 (spec/18-trilateral.md): every trilateral store must bootstrap its own schema,
 spec elements, and verification metadata as datoms before any external data.
 
+> **Cross-reference**: This worked example should be verified against
+> [spec/18-trilateral.md](../spec/18-trilateral.md) (INV-TRILATERAL-001 through
+> INV-TRILATERAL-007) for consistency with the TRILATERAL coherence model.
+
 ### Step 1: Genesis
 
 ```
@@ -38,7 +42,11 @@ Schema: 17 attributes. Self-description verified: all meta-schema attributes des
 
 ### Step 2: Define Spec-Element Attributes
 
-Add attributes for managing specification elements:
+Add attributes for managing specification elements.
+
+> **Note**: Timestamp format (e.g., `#hlc "1709000001000-0-agent1"`) follows canonical EDN
+> representation from spec/01b-storage-layout.md. The `#blake3` and `#hlc` reader macros
+> are tagged literals in EDN notation.
 
 ```clojure
 {:e #blake3 "a1b2..." :a :db/ident :v :spec/id :tx #hlc "1709000001000-0-agent1" :op :assert}
@@ -181,6 +189,9 @@ $ braid transact --inline '{:spec/id "OBS-001" :spec/type "observation" \
 ---
 ↳ Observation recorded. What invariant does this satisfy? (INV-STORE-003)
 ```
+
+> **Note**: Shorthand map form (`'{:spec/id "OBS-001" ...}'`) is a planned CLI convenience.
+> The canonical datom format is the five-tuple `[e a v tx op]` per spec/01-store.md.
 
 ### Turn 6: Guidance Check
 
@@ -333,7 +344,7 @@ $ braid query '[:find ?id ?stmt
          [?e :spec/id ?id]
          [?e :spec/statement ?stmt]]' --format agent
 
-[QUERY] 13 results (Stratum 1, monotonic).
+[QUERY] 13 results (Stratum 0, monotonic).
   INV-STORE-001  "The datom store never deletes or mutates..."
   INV-STORE-002  "Every transaction adds at least one datom..."
   INV-STORE-003  "Two datoms with identical five-tuples..."
@@ -366,9 +377,9 @@ $ braid query '[:find ?from ?to
 ```
 $ braid query '[:find ?ns (count ?e)
   :where [?e :spec/namespace ?ns]
-         [?e :spec/type "invariant"]]' --format agent
+         [?e :spec/type "invariant"]]' --mode stratified --format agent
 
-[QUERY] 11 results (Stratum 1, monotonic).
+[QUERY] 11 results (Stratum 2, stratified — count aggregation requires stratification).
   STORE        13
   LAYOUT       11
   SCHEMA        7

@@ -134,6 +134,18 @@ consistent with all seven. Violation of any constraint is a defect regardless of
 | C6 | **Falsifiability.** Every invariant has an explicit violation condition. | SEED §3 |
 | C7 | **Self-bootstrap.** DDIS specifies itself. Spec elements are the first data the system manages. | SEED §10, FD-006 |
 
+#### Constraint-Axiom Mapping
+
+| Constraint | SEED.md Axiom | SEED.md Section |
+|-----------|--------------|----------------|
+| C1 (Append-only) | Axiom 2 (Store) | §4 |
+| C2 (Identity by content) | Axiom 1 (Identity) | §4 |
+| C3 (Schema-as-data) | — (design decision) | §4 |
+| C4 (CRDT merge) | Axiom 2 (Store set-union) | §4 |
+| C5 (Traceability) | — (methodology) | §3, §8 |
+| C6 (Falsifiability) | — (methodology) | §3 |
+| C7 (Self-bootstrap) | — (design commitment) | §1 |
+
 ---
 
 ### §0.5 Foundational ADRs
@@ -289,6 +301,8 @@ protocol-relevant) and C5 (traceability through D).
 #### Falsification
 This decision is wrong if: a protocol-level operation is identified that cannot be expressed
 as a function of D, requiring direct reference to R-state at the protocol layer.
+
+> **Note**: The three properties of the observation functor Obs_D (idempotent, monotonic, lossy) are structural consequences of the append-only store (C1) and content addressing (C2). They are verified transitively through INV-STORE-001 and INV-STORE-003. Separate INVs would duplicate existing coverage.
 
 ---
 

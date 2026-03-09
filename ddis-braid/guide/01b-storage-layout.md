@@ -397,7 +397,7 @@ proptest! {
 pub fn load_store(dir: &Path) -> Result<Store, LayoutError> {
     let hashes = list_transaction_hashes(dir)?;
     let mut datoms = BTreeSet::new();
-    let mut frontier: HashMap<AgentId, TxId> = HashMap::new();
+    let mut frontier: Frontier = HashMap::new(); // Frontier = HashMap<AgentId, TxId> (see types.md)
 
     for hash in hashes {
         let tx = read_transaction(dir, &hash)?;

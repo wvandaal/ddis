@@ -101,6 +101,9 @@ pub fn compress_seed(seed: &SeedOutput, budget: usize) -> SeedOutput;
     where α=0.5, β=0.3, γ=0.2 (defaults, configurable as datoms).
 
   **Stage 3 — ASSEMBLE**: Build the five-part seed structure from query results (ADR-SEED-004).
+  Note: The assembled context uses `ContextSection` and `ProjectionLevel` types defined in
+  spec/06-seed.md (lines 187-196). Stage 0 implementation should include minimal definitions
+  -- see types.md.
   - Pre-allocate pinned intentions at π_0 (INV-SEED-006).
   - Distribute remaining budget across sections:
     - Orientation: project metadata datoms + current phase.
@@ -285,6 +288,18 @@ proptest! {
                 token_count_section(&compressed_seed.state) < token_count_section(&full_seed.state),
                 "Directive compressed before State — violates compression priority"
             );
+        }
+    }
+
+    // INV-SEED-005: Demonstration Density
+    fn inv_seed_005_demonstration_density(
+        clusters in prop::collection::vec(any::<KnowledgeCluster>(), 1..10),
+    ) {
+        let context = assemble_context(&store, &clusters);
+        for cluster in &clusters {
+            let demos = context.demonstrations_for(cluster);
+            prop_assert!(demos.len() >= 1 && demos.len() <= 3,
+                "Each cluster must have 1-3 demonstrations, got {}", demos.len());
         }
     }
 

@@ -532,7 +532,7 @@ The fundamental data structure: `[entity, attribute, value, transaction, operati
 
 Schema defined as datoms in the store. Schema evolution is a transaction, not a code change. The CLI hardcodes its schema in Go source.
 
-### 4.3 Datalog Query Engine (§11)
+### 4.3 Datalog Query Engine (§4)
 
 Declarative queries with stratified evaluation, natural graph joins, and monotonic/non-monotonic distinction. The CLI uses imperative SQL.
 
@@ -694,6 +694,7 @@ Session state KV store and quality gate runner.
 
 4-signal observational scoring (spec-first ratio, tool usage, witness coverage, validation gating).
 **Recommendation**: Include as input to Dynamic CLAUDE.md generation (Stage 1). The compliance signals are the right input for procedural drift detection.
+**Note**: The CLI's 4-signal model is superseded by the spec's 5-component M(t) decomposition (spec/12-guidance.md). The 5th component (topology fitness T(t)) is a Braid addition not present in the CLI.
 
 ---
 

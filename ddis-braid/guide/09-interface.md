@@ -37,6 +37,12 @@ The interface layer has no kernel types. It wraps kernel calls with:
 3. Guidance footer injection (every response)
 4. MCP JSON-RPC protocol handling
 
+> **Note**: `braid entity <id>` and `braid history <id>` are CLI aliases for filtered
+> query operations. `entity` shows current state (LIVE projection). `history` shows all
+> datoms for an entity across transactions. See INV-INTERFACE-006. Both are implemented
+> in `commands/entity.rs` and dispatch to `kernel::query` with pre-built Datalog
+> expressions, not separate kernel functions.
+
 ---
 
 ## §9.2 Three-Box Decomposition
@@ -60,20 +66,25 @@ The interface layer has no kernel types. It wraps kernel calls with:
 ```rust
 pub enum OutputMode { Json, Agent, Human }
 
+/// Maps the spec's 5 semantic components (§14.3 Agent mode):
+///   headline → agent_context, entities+signals → agent_content,
+///   guidance+pointers → agent_footer.
 pub struct ToolResponse {
-    pub structured: serde_json::Value,  // Full data
-    pub agent_context: String,          // ≤50 tokens
-    pub agent_content: String,          // ≤200 tokens
-    pub human_display: String,          // Formatted table
+    pub structured: serde_json::Value,  // Full data (JSON mode)
+    pub agent_context: String,          // ≤50 tokens — headline
+    pub agent_content: String,          // ≤200 tokens — entities + signals
+    pub agent_footer: String,           // ≤50 tokens — guidance + pointers (5th semantic component)
+    pub human_display: String,          // Formatted table (human mode)
 }
 
 pub fn format_output(response: &ToolResponse, mode: OutputMode, footer: &GuidanceFooter) -> String {
     match mode {
         OutputMode::Json => serde_json::to_string_pretty(&response.structured).unwrap(),
         OutputMode::Agent => format!(
-            "{}\n{}\n---\n↳ {}",
+            "{}\n{}\n{}\n---\n↳ {}",
             response.agent_context,
             response.agent_content,
+            response.agent_footer,
             footer.text
         ),
         OutputMode::Human => response.human_display.clone(),
@@ -476,6 +487,7 @@ fn agent_mode_has_footer() {
 - [ ] MCP store loading: once at initialization via `ArcSwap<Store>`, not per-call
 - [ ] MCP store mutation: ArcSwap atomic swap on transact/harvest (Datomic connection model)
 - [ ] MCP snapshot isolation: in-flight reads see consistent pre-swap Store
+- [ ] MCP phase transitions: Uninitialized → Initialized → Shutdown (MCPPhase enum, spec §14.2)
 - [ ] MCP tool descriptions match guide/00-architecture.md §0.5
 - [ ] INV-INTERFACE-010: CLI/MCP parity — both dispatch to same kernel functions
 - [ ] INV-INTERFACE-008: `ToolDescription` struct with quality predicate Q(D) enforced by test
@@ -488,5 +500,19 @@ fn agent_mode_has_footer() {
 - [ ] Integration: full CLI round-trip (transact → query → status → harvest → seed)
 - [ ] Integration: MCP lifecycle test (init → tool calls → shutdown)
 - [ ] Integration: MCP round-trip (transact → query via same store ref)
+
+### Type Notes
+
+- **`Demonstration`**: Used in `ActiveSection.demonstrations` (guide/08-guidance.md §8.2,
+  Dynamic CLAUDE.md Generator). Represents a worked example embedded in the generated
+  CLAUDE.md to satisfy INV-GUIDANCE-007's demonstration density constraint (>= 1 per
+  constraint cluster). Full definition deferred to GUIDANCE module (guide/08-guidance.md);
+  the INTERFACE layer consumes it only for CLAUDE.md file emission in `claude_md.rs`.
+
+- **`DriftCorrection`**: Used in `ActiveSection.constraints` (guide/08-guidance.md §8.2).
+  Represents a methodology correction injected into the generated CLAUDE.md based on
+  detected drift patterns. Corrections ineffective after 5 sessions are replaced
+  (INV-GUIDANCE-007 L1 effectiveness tracking). Full definition in GUIDANCE module;
+  the INTERFACE layer serializes them during CLAUDE.md generation.
 
 ---

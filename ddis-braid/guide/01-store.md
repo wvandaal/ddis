@@ -29,7 +29,10 @@ pub enum Value { String, Keyword, Boolean, Long, Double, Instant, Uuid, Ref, Byt
 // Stage 0 scope: 9 variants above. Full spec domain (spec/01-store.md §1.1) adds:
 // URI, BigInt, BigDec — Stage 1 (3 variants)
 // Tuple [Value], Json String — Stage 2 (2 variants — Tuple is recursive, Json requires parser)
-pub struct Attribute(String);
+pub struct Attribute(/* private — use Attribute::new(":ns/name") */);
+impl Attribute {
+    pub fn new(keyword: &str) -> Result<Self, AttributeError>;
+}
 pub enum ProvenanceType { Hypothesized, Inferred, Derived, Observed }
 
 // store.rs
@@ -42,7 +45,7 @@ impl Store {
     pub fn as_of(&self, frontier: &Frontier) -> SnapshotView;
     pub fn len(&self) -> usize;
     pub fn datoms(&self) -> impl Iterator<Item = &Datom>;
-    pub fn frontier(&self) -> &HashMap<AgentId, TxId>;
+    pub fn frontier(&self) -> &Frontier;
 }
 
 // Transaction typestate
@@ -65,7 +68,8 @@ impl Transaction<Applied> { fn tx_id, receipt }
 
 **State box** (internal design):
 - No internal state transitions — a Datom is a value type.
-- `Clone` + `Eq` + `Hash` + `Ord` + `Serialize`/`Deserialize`.
+- `Clone` + `Debug` + `Eq` + `Hash` + `Ord` + `Serialize`/`Deserialize`.
+  See types.md for the full derive list including Debug, Ord, PartialOrd, Serialize, Deserialize.
 - Ordering: entity → attribute → value → tx → op (for BTreeSet indexing).
 
 **Clear box** (implementation):
@@ -85,7 +89,8 @@ impl Transaction<Applied> { fn tx_id, receipt }
 **State box** (internal design):
 - `datoms: BTreeSet<Datom>` — the canonical set.
 - `indexes: Indexes` — EAVT, AEVT, VAET, AVET as BTreeMaps.
-- `frontier: HashMap<AgentId, TxId>` — per-agent latest tx.
+- `frontier: Frontier` — per-agent latest tx.
+  Type alias: `pub type Frontier = HashMap<AgentId, TxId>;` — see types.md.
 - `schema: Schema` — attribute registry (delegated to schema module).
 - State transitions: only `transact` and `merge` modify state. Both are `&mut self`.
 - Read operations: `&self` only.
@@ -387,5 +392,24 @@ mod kani_proofs {
 
 > **Note**: INV-STORE-013 (Concurrent Read Safety) three-box decomposition deferred to
 > Stage 2 (requires ArcSwap concurrency model per ADR-STORE-003).
+
+---
+
+## §1.7 Additional ADRs (Stage 0b)
+
+- **ADR-STORE-015** (Immutable Directory Layout): Datoms stored as content-addressed files in a flat directory structure.
+- **ADR-STORE-016** (Canonical Serialization): EDN-based canonical serialization for datom persistence.
+- **ADR-STORE-017** (Index Rebuild from Directory): All indexes (EAVT, AEVT, VAET, AVET) can be rebuilt from directory scan alone.
+- **ADR-STORE-018** (Merge as Directory Union): Store merge is file-level union of content-addressed directories.
+- **ADR-STORE-019** (Path-Free Content Addressing): File paths are derived from content hash, never arbitrary.
+
+---
+
+## §1.8 Negative Cases
+
+- **NEG-STORE-001** (No Mutation in Place): The store never modifies an existing datom file. All changes are new assertions.
+- **NEG-STORE-003** (No Unbounded Growth): Store growth is bounded by the total volume of new assertions. Compaction is a future optimization.
+- **NEG-STORE-004** (No Floating-Point in Identity): Entity IDs and content addresses use integer/byte types only.
+- **NEG-STORE-005** (No Implicit Ordering): Datom ordering is always explicit (by tx, by attribute) — never position-dependent.
 
 ---

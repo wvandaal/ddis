@@ -996,6 +996,8 @@ component. The Stage 0 feasibility report (R3.1) provides data-driven adjustment
 Measured by: track actual vs estimated implementation time per namespace; deviation > 2x
 triggers scope revision.
 
+**Verifiability note**: SLA requires human scope estimation baseline. Mechanical verification measures actual-vs-estimate ratio but cannot validate the estimate itself.
+
 **Observations**:
 - V1 Audit: 61 Stage 0 INVs spanning Datalog engine, SCC, PageRank, betweenness centrality, MCP server, dynamic CLAUDE.md generation
 - Original estimate: "1-2 weeks" (SEED.md §10)
@@ -1045,6 +1047,8 @@ should be updated to reflect "externalized knowledge gap detection" rather than
 transacted knowledge (measured against session output, not agent internal state). The
 specification makes no claim about detecting unexpressed knowledge. Measured by: inject
 N known assertions into session output, harvest, verify >=90% appear in store.
+
+**Verifiability note**: SLA uses heuristic knowledge extraction (datom count growth rate) as proxy. Full semantic verification requires Stage 2+ analysis.
 
 **Observations**:
 - V1 Audit: INV-HARVEST-005 original language: "detect knowledge the agent has that isn't in the store" — claims detection of unobservable internal state

@@ -112,6 +112,12 @@ mod kani_proofs {
 **Solver bounds**: `#[kani::unwind(8)]` for most harnesses. Increase to 16 for
 CRDT commutativity/associativity proofs (three-store merge scenarios).
 
+**Kani bounding strategies**: For Kani harnesses, symbolic types must be bounded:
+`String` -> `kani::vec::exact_vec::<u8>(4)` converted to `String`;
+`Vec` -> `kani::vec::exact_vec(N)` with `N <= 8`. Unbounded `kani::any::<String>()`
+will cause verification timeout. All collection types used in harnesses must have
+explicit size bounds to keep solver times within Gate 3a/3b targets.
+
 ### Complete V:KANI Harness List (48 total)
 
 All INVs tagged V:KANI in the verification matrix (spec/16-verification.md §16.1),
@@ -151,7 +157,7 @@ grouped by namespace. Each harness targets the **Level 2 implementation contract
 | RESOLUTION | INV-RESOLUTION-006 | Lattice join: LUB correctness | <=5 values |
 | RESOLUTION | INV-RESOLUTION-007 | Three-tier routing: totality (no unrouted conflicts) | <=5 conflicts |
 | HARVEST | INV-HARVEST-001 | Harvest monotonicity: never removes datoms | <=10 candidates |
-| HARVEST | INV-HARVEST-006 | Crystallization guard: high-weight stability check | <=5 candidates |
+| HARVEST | INV-HARVEST-006 (Stage 1) | Crystallization guard: high-weight stability check | <=5 candidates |
 | SEED | INV-SEED-002 | Budget compliance: output <= budget | <=1000 tokens |
 | SEED | INV-SEED-003 | ASSOCIATE boundedness: <= depth x breadth | depth<=3, breadth<=5 |
 | MERGE | INV-MERGE-001 | No datom loss: both inputs preserved in merged store | <=5 datoms/store |
@@ -302,10 +308,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: model-checking/kani-verifier-action@v1
       - name: Kani Verification (Fast — trivial + simple harnesses)
+        # Harness naming convention: `inv_{namespace}_{nnn}_{short_name}`
+        # (e.g., `inv_store_001_append_only`). CI globs use namespace prefix matching.
         run: >-
           cargo kani
-          --harness "verify_store_*"
-          --harness "verify_schema_*"
+          --harness "inv_store_*"
+          --harness "inv_schema_*"
           --output-format terse
           --jobs 4
 
@@ -528,6 +536,11 @@ proptest! {
 - Any Gate 1–2 failure
 - Clippy warnings (`-D warnings`)
 - Format violations
+
+### What blocks a PR merge
+
+- Any Gate 1–2 failure (inherited from commit gate)
+- Gate 3 (Kani harness) failure. PRs must pass all Gate 1–3 checks before merge.
 
 ### What blocks a namespace completion
 

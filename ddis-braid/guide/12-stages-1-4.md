@@ -119,14 +119,16 @@ code — no structural refactoring.
    details. Those stages will get their own guide sections when their spec elements activate.
 
 2. **Performance optimization**: Correctness first (NEG-003). Stage 0 uses `BTreeSet<Datom>`
-   in memory. Optimization to persistent B-tree indexes (redb) is a binary-crate concern,
-   not a kernel concern.
+   in memory (see guide/01-store.md for store data structure details). Optimization to
+   persistent B-tree indexes (redb) is a binary-crate concern, not a kernel concern.
 
 3. **Deployment infrastructure**: Docker, systemd, monitoring. Stage 0 is a CLI tool
    invoked by agents on a single VPS.
 
-4. **Deductive verification** (Verus/Creusot): Deferred to post-Stage 2. The cost is high
-   and proptest + Kani provide sufficient confidence during initial implementation.
+4. **Deductive verification** (Verus/Creusot): Deferred to post-Stage 2. Deferral
+   rationale: Verus/Creusot require nightly Rust and have limited ecosystem maturity.
+   Kani (bounded model checking) is the Stage 0 verification tool per ADR-VERIFICATION-001.
+   Proptest + Kani provide sufficient confidence during initial implementation.
 
 5. **TLA+ specifications**: Protocol model checking is specified but the TLA+ models
    themselves are implementation artifacts, not guide content.

@@ -80,7 +80,8 @@ pub enum Uniqueness { Identity, Value }
 pub mod genesis {
     /// The 17 axiomatic meta-schema attributes.
     /// These are compile-time constants — the EntityId for each is derived from
-    /// the keyword via blake3::hash(keyword.as_bytes()).
+    /// the keyword via `EntityId::from_ident(keyword)` (see types.md canonical form).
+    /// Note: blake3 hashing is an internal implementation detail of from_ident().
     pub const AXIOMATIC_ATTRIBUTES: [AttributeSpec; 17] = [
         // Layer 0 — Meta-Schema (9 attributes)
         attr(":db/ident",           ValueType::Keyword, One, "Attribute's keyword name"),
@@ -191,7 +192,9 @@ impl Schema {
 impl Schema {
     /// Validate that all lattice-resolved attributes have complete definitions.
     /// Lattice definitions are extracted from datoms during from_store() and stored
-    /// internally — no Store reference needed (ADR-SCHEMA-005, Option C).
+    /// internally — no Store reference needed. Schema carries its own lattice
+    /// definitions as part of the immutable Store value (ADR-SCHEMA-005: schema
+    /// embedded in Store, not a separate service).
     pub fn validate_lattice_completeness(&self) -> Vec<LatticeDefError> {
         let mut errors = Vec::new();
         for (attr, def) in self.attributes() {
@@ -275,7 +278,7 @@ Schema is part of Store's MVCC snapshot. Three consequences for implementors:
 2. **No coordination needed**: Unlike a design where Schema is versioned independently,
    there is no need for "schema version checks," "schema refresh" calls, or
    synchronization between Schema and Store updates. Schema consistency is structural
-   (ADR-SCHEMA-005, Option C), not a protocol obligation.
+   (ADR-SCHEMA-005: schema embedded in Store), not a protocol obligation.
 
 3. **Merge rebuilds Schema**: When `merge(S₁, S₂)` introduces schema datoms, the
    resulting Store value contains a Schema rebuilt via `Schema::from_store(merged_datoms)`.

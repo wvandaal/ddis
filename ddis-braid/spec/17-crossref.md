@@ -183,7 +183,7 @@ Every hard constraint (C1–C7) traces to specific invariants:
 | C1 | Append-only store | INV-STORE-001, INV-STORE-005, NEG-STORE-001, INV-LAYOUT-002, NEG-LAYOUT-001, NEG-LAYOUT-002 |
 | C2 | Identity by content | INV-STORE-002, NEG-STORE-002, INV-LAYOUT-001, INV-LAYOUT-011 |
 | C3 | Schema-as-data | INV-SCHEMA-003, INV-SCHEMA-004, INV-SCHEMA-008, NEG-SCHEMA-001 |
-| C4 | CRDT merge by set union | INV-STORE-003, INV-STORE-004–007, INV-MERGE-001, NEG-MERGE-001, INV-LAYOUT-004, NEG-LAYOUT-003 |
+| C4 | CRDT merge by set union | INV-STORE-003 (prerequisite: content-addressing enables set-union deduplication), INV-STORE-004–007, INV-MERGE-001, NEG-MERGE-001, INV-LAYOUT-004, NEG-LAYOUT-003 |
 | C5 | Traceability | All elements have `Traces to` fields; INV-BILATERAL-002 (five-point coherence) |
 | C6 | Falsifiability | All INVs have `Falsification` sections; structural property of the specification |
 | C7 | Self-bootstrap | INV-SCHEMA-001 (genesis), INV-STORE-014 (every command is transaction), INV-BILATERAL-005 (test results as datoms), INV-LAYOUT-005 (self-verification), INV-LAYOUT-009 (index derivability), INV-TRILATERAL-007 (unified store self-bootstrap) |

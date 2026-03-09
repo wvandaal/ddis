@@ -538,7 +538,7 @@ genesis store.
 
 ### INV-GUIDANCE-010: R(t) Graph-Based Work Routing
 
-**Traces to**: ADRS GU-008, SQ-004
+**Traces to**: SEED.md §7, ADRS GU-008, SQ-004
 **Verification**: `V:PROP`
 **Stage**: 0
 
@@ -621,7 +621,7 @@ OR the routing decision is not recorded as a datom.
 
 ### INV-GUIDANCE-011: T(t) Topology Fitness
 
-**Traces to**: ADRS GU-001, GU-006
+**Traces to**: SEED.md §7, ADRS GU-001, GU-006
 **Verification**: `V:PROP`
 **Stage**: 2
 

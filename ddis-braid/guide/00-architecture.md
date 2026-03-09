@@ -27,6 +27,9 @@ braid/                          ← Cargo workspace root
 │       │   ├── clause.rs       ← Clause, Binding, Pattern
 │       │   ├── strata.rs       ← Stratum classification (CALM)
 │       │   └── graph.rs        ← Graph engine: topo sort, SCC, PageRank, critical path, density
+│       │                         Note: graph.rs provides dependency graph operations used by
+│       │                         multiple namespaces (GUIDANCE for R(t), BILATERAL for dependency
+│       │                         analysis). Placed in query module as primary consumer.
 │       ├── resolution.rs       ← ResolutionMode, ConflictSet, resolve
 │       ├── harvest.rs          ← HarvestCandidate, HarvestPipeline, gap detection
 │       ├── seed.rs             ← SeedAssembly, associate/assemble/compress
@@ -46,6 +49,10 @@ braid/                          ← Cargo workspace root
 │       │   ├── transact.rs     ← braid transact
 │       │   ├── query.rs        ← braid query
 │       │   ├── status.rs       ← braid status
+│       │   │                     Note: `braid status` is a derived CLI presentation
+│       │   │                     command, not a protocol operation. It aggregates
+│       │   │                     STORE and GUIDANCE namespace state. No separate
+│       │   │                     spec formalization is required.
 │       │   ├── harvest.rs      ← braid harvest
 │       │   ├── seed.rs         ← braid seed
 │       │   ├── guidance.rs     ← braid guidance
@@ -473,14 +480,18 @@ pub struct TxReceipt {
 }
 
 pub enum TxValidationError {
-    SchemaViolation { attr: Keyword, expected: ValueType, got: ValueType },
-    UnknownAttribute(Keyword),
-    InvalidRetraction(EntityId, Keyword),
+    SchemaViolation { attr: Attribute, expected: ValueType, got: ValueType },
+    UnknownAttribute(Attribute),
+    InvalidRetraction(EntityId, Attribute),
 }
 
 // --- Schema (§2 SCHEMA) ---
 pub struct Schema { /* extracted from schema datoms — see guide/02-schema.md */ }
-pub enum SchemaError { DuplicateAttribute(Keyword), InvalidCardinality, CyclicDependency }
+pub enum SchemaError {
+    DuplicateAttribute(Attribute),
+    InvalidCardinality,
+    LayerDependencyViolation { attr: Attribute, attr_layer: SchemaLayer, ref_layer: SchemaLayer },
+}
 
 // --- Query (§3 QUERY) ---
 pub struct QueryResult {
@@ -818,7 +829,7 @@ micro-example. Entity lookup, history, and CLAUDE.md generation are accessible v
     },
     {
       "name": "braid_query",
-      "description": "Run a Datalog query or graph algorithm against the store. Use to find facts, entity details, history, dependencies, PageRank, critical path. Returns binding sets or graph metrics.",
+      "description": "Run a Datalog query or graph algorithm against the store. Use to find facts, entity details, history, dependencies, PageRank, critical path. Returns binding sets or graph metrics. Note: braid_query is a composite MCP tool that routes to query, entity, and history CLI operations via INV-INTERFACE-006 tool routing.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -944,7 +955,7 @@ The footer is a micro-prompt. Uses activation language (navigative, not instruct
 Footer selection: choose the highest-priority signal. One footer per response. Priority:
 budget warning > harvest prompt > drift correction > general guidance.
 
-### TokenCounter Trait (from D5-tokenizer-survey.md)
+### TokenCounter Trait
 
 Token counting is abstracted behind a trait to allow swappable implementations
 across stages without changing callers. At Stage 0, the implementation is zero-dependency.
@@ -998,7 +1009,7 @@ enabling stage-based upgrades without API changes.
 **Why chars/4 is sufficient at Stage 0**: The budget system uses coarse thresholds
 (pi_0: >2000, pi_1: 500-2000, pi_2: 200-500, pi_3: <=200). A 15-20% error rarely
 changes band selection. The token efficiency metric (INV-BUDGET-006) is a ratio where
-consistent bias cancels out. See D5-tokenizer-survey.md for the full analysis.
+consistent bias cancels out. See `audits/stage-0/research/D5-tokenizer-survey.md` for the full analysis.
 
 ### Token Efficiency Targets
 

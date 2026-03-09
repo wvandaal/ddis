@@ -21,6 +21,8 @@ braid-kernel/src/
 
 ```rust
 // --- Guidance Topology (spec §12.3, ADR-GUIDANCE-001: comonadic topology) ---
+// Note: ADR-GUIDANCE-001 topology architecture is Stage 1 formal, but basic data
+// structures are included proactively at Stage 0 per the build-forward principle.
 
 pub struct GuidanceTopology {
     pub nodes: HashMap<EntityId, GuidanceNode>,
@@ -47,6 +49,9 @@ pub struct GuidanceFooter {
     pub invariant_refs: Vec<String>,   // e.g., ["INV-STORE-001"] (C5 traceability)
     pub uncommitted_count: u32,        // Harvest urgency signal
     pub drift_warning: Option<String>, // Active drift signal if any
+    pub methodology_score: f64,        // M(t) ∈ [0,1], computed per INV-GUIDANCE-008
+    pub turn_count: usize,             // Current turn number (budget awareness)
+    pub datom_count: usize,            // Current store size (budget awareness)
 }
 
 // --- Public free functions (ADR-ARCHITECTURE-001) ---
@@ -60,6 +65,8 @@ pub fn query_guidance(
 ) -> GuidanceResult;
 
 /// Generate a guidance footer for a tool response (spec §12.2 INJECT).
+/// Spec §12.3 L2 defines this as `GuidanceTopology::footer(&self, store, k_eff)`.
+/// Guide uses free-function form per ADR-ARCHITECTURE-001; semantically equivalent.
 pub fn guidance_footer(
     topology: &GuidanceTopology,
     store: &Store,
@@ -140,6 +147,11 @@ pub struct TaskTemplate {
     pub title_pattern: String,
     pub attributes: Vec<(Attribute, ValueTemplate)>,
 }
+
+/// Priority function for task derivation — computes priority score from graph
+/// metrics (PageRank, betweenness, etc.) for a given artifact in the store.
+/// See types.md phantom types appendix for the full type hierarchy.
+pub type PriorityFn = Box<dyn Fn(&Store, EntityId) -> f64>;
 
 // --- R(t) Work Routing (INV-GUIDANCE-010) ---
 
@@ -224,6 +236,9 @@ pub struct RoutingDecision {
               .unwrap_or_default(),
           uncommitted_count: count_uncommitted(store),
           drift_warning: detect_active_warning(store),
+          methodology_score: compute_methodology_score(store),
+          turn_count: current_turn_count(store),
+          datom_count: store.len(),
       }
   }
   ```

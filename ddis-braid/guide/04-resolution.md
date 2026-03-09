@@ -40,6 +40,7 @@ pub struct ConflictSet {
 /// Resolve a conflict set using the attribute's resolution mode.
 pub fn resolve(conflict: &ConflictSet, mode: &ResolutionMode) -> ResolvedValue;
 
+// [GUIDE-ONLY] — convenience wrapper for resolution output
 pub enum ResolvedValue {
     Single(Value),                // LWW or Lattice result
     Multi(Vec<Value>),            // Multi-value (all unretracted)
@@ -219,7 +220,10 @@ LWW as the safe default, multi-value when multiple concurrent values are the int
 
 **State box** (internal design):
 - Routing is a pure function from conflict severity to tier.
-- Severity is computed from: number of competing values, provenance types, attribute importance.
+- Severity is computed as the product of cardinality (number of conflicting assertions) and
+  domain impact (attribute importance), mapped to a 1-5 scale per INV-RESOLUTION-005.
+  In practice, `severity = max(commitment_weight(d1), commitment_weight(d2))` from the
+  conflicting datoms (spec/04-resolution.md §4.1 Level 1).
 - Thresholds: `Automatic` for low-severity (e.g., LWW-resolvable), `AgentNotification` for
   medium (lattice incomparability), `HumanRequired` for high (axiological conflicts).
 

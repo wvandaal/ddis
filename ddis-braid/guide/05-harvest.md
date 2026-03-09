@@ -113,6 +113,10 @@ pub fn ingest_annotations(
 
 /// Harvest session entity — records metadata for a completed harvest (INV-HARVEST-002).
 /// Created by harvest_session_entity() and transacted into the store.
+///
+/// Note: `drift_score` semantics differ by context — `HarvestSession.drift_score` (u32)
+/// counts observations during the session; `HarvestResult.drift_score` (f64) measures
+/// gap magnitude |Δ(t)| at harvest time. See also guide/types.md for the full reconciliation.
 pub struct HarvestSession {
     pub session_id:       EntityId,
     pub agent:            AgentId,
@@ -441,6 +445,8 @@ proptest! {
         let result = harvest_pipeline(&store, &context);
         // Harvest result does not reduce store size
         prop_assert!(store.len() >= pre_count);
+        // Explicit monotonicity: datom count never decreases after harvest
+        assert!(store.datom_count() >= pre_count, "Harvest must be monotonic: datom count never decreases");
     }
 
     // INV-HARVEST-001 (commit path): No data loss on commit
@@ -484,17 +490,32 @@ proptest! {
         }
     }
 
-    // INV-HARVEST-007: Proactive Harvest Schedule — harvest frequency scales with delta
+    // INV-HARVEST-007: Bounded Conversation Lifecycle — harvest frequency scales with delta.
+    // At Stage 0, uses turn_count_warning() from ADR-HARVEST-007 as the trigger mechanism.
+    // harvest_schedule() is a [GUIDE-ONLY] helper that adapts warning thresholds based on
+    // observed delta accumulation rate, bridging INV-HARVEST-007 with INV-HARVEST-005.
     fn inv_harvest_007(
         delta_size in 1usize..100,
         session_turns in 1usize..50,
     ) {
-        let schedule = compute_harvest_schedule(delta_size, session_turns);
+        /// [GUIDE-ONLY] Compute adaptive harvest schedule from delta accumulation.
+        /// Returns (interval between warnings, next recommended harvest turn).
+        /// At Stage 0, wraps turn_count_warning() with delta-aware threshold scaling.
+        fn harvest_schedule(delta_size: usize, session_turns: usize) -> (usize, usize) {
+            let base_interval = 20usize; // from ADR-HARVEST-007 warning_threshold
+            // Scale interval inversely with delta accumulation rate
+            let rate = delta_size as f64 / session_turns.max(1) as f64;
+            let interval = (base_interval as f64 / rate.max(0.1)).min(base_interval as f64) as usize;
+            let interval = interval.max(1);
+            let next_harvest = interval.min(session_turns);
+            (interval, next_harvest)
+        }
+        let (interval, next_harvest) = harvest_schedule(delta_size, session_turns);
         // Higher delta accumulation → shorter intervals between harvest warnings
-        let schedule_tight = compute_harvest_schedule(delta_size * 2, session_turns);
-        prop_assert!(schedule_tight.interval <= schedule.interval);
+        let (interval_tight, _) = harvest_schedule(delta_size * 2, session_turns);
+        prop_assert!(interval_tight <= interval);
         // Harvest is always recommended before the delta would exceed the budget
-        prop_assert!(schedule.next_harvest_turn <= session_turns);
+        prop_assert!(next_harvest <= session_turns);
     }
 
     // INV-HARVEST-005: Proactive Warning — Q(t) < 0.15 triggers warning

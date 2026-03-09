@@ -1174,6 +1174,8 @@ C) **Local frontier default, consistent cut via optional sync barrier** — flex
 Non-monotonic queries (Strata 2–5) may need a sync barrier for correctness-critical decisions,
 but many non-monotonic queries produce useful approximate results at local frontier.
 
+**Enforcement**: INV-QUERY-004 ensures branch visibility defaults to local frontier. No separate invariant needed — the ADR decision is structurally enforced.
+
 ---
 
 ### ADR-QUERY-006: Frontier as Datom Attribute

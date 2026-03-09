@@ -68,6 +68,8 @@ Seven-step generation:
 Priority ordering: tools > task_context > risks > drift_corrections > seed_context
 ```
 
+> **Note**: The Dynamic CLAUDE.md mechanism spans three namespaces: SEED (generation, INV-SEED-007/008), GUIDANCE (content, INV-GUIDANCE-007), and INTERFACE (delivery via MCP). See SEED.md §7 for the unified concept.
+
 ---
 
 ### §6.2 Level 1: State Machine Specification

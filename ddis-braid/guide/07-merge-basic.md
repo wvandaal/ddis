@@ -103,7 +103,9 @@ pub fn merge(target: &mut Store, source: &Store) -> (MergeReceipt, CascadeReceip
     let merge_receipt = MergeReceipt {
         new_datoms: target.len() - pre_len,
         duplicate_datoms: source.len() - (target.len() - pre_len),
-        frontier_delta: /* computed from pre/post frontier comparison */,
+        frontier_delta: target.frontier().iter()
+            .filter(|(agent, tx)| source.frontier().get(agent) != Some(tx))
+            .count(),
     };
     // Run cascade (INV-MERGE-002, INV-MERGE-010)
     let cascade_receipt = run_cascade(target, new_datoms_slice);
@@ -114,12 +116,17 @@ pub fn merge(target: &mut Store, source: &Store) -> (MergeReceipt, CascadeReceip
 ### Merge Cascade (INV-MERGE-002, INV-MERGE-010)
 
 **Black box** (contract):
-- INV-MERGE-002: Every merge executes all 5 cascade steps, each producing datoms:
+- INV-MERGE-002: Every merge executes all 5 cascade steps, each producing datoms.
+  Step ordering follows spec/07-merge.md §7.2 CASCADE and INV-MERGE-002 L0 (authoritative):
   1. **Conflict detection** — find new conflicts from merged datoms
   2. **Cache invalidation** — mark query results as stale for affected entities
   3. **Projection staleness** — mark existing projections touching affected entities for refresh
   4. **Uncertainty update** — recompute σ(e) for entities with new assertions or conflicts
   5. **Subscription notification** — notify subscribers whose patterns match new datoms
+  Note: ADR-MERGE-007 stub attribute names diverge (e.g., step 3 = `:cascade/secondary-conflicts`,
+  step 5 = `:cascade/projection-staleness`). This guide follows the L0 definition, which is
+  authoritative. Stub `:cascade/*` attribute names in the implementation should match these
+  step names, not the ADR-MERGE-007 draft names.
   The cascade is atomic — either all 5 steps complete or the merge fails.
 - INV-MERGE-010: Cascade is a **deterministic function of the merged datom set**.
   The function signature enforces this — it takes `&Store` and `&[Datom]` only.

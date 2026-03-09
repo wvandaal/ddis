@@ -141,6 +141,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Rationale**: If any DDIS operation produces state outside the store, that state cannot be queried, conflict-detected, or coherence-verified. The store is the sole truth.
 **Source**: SEED.md §10 (every command is a transaction); Transcript 01:866–924 (architecture diagram, command-to-transaction mapping)
 **Formalized across**: INV-STORE-014, ADR-STORE-011 in `spec/01-store.md`
+**Note**: Access events (query logging per INV-QUERY-003) go to a separate access log (AS-007), not the main datom store. This is a deliberate performance carve-out — the access log is still durable and queryable, preserving FD-012's spirit while avoiding store bloat from high-frequency queries.
 
 ### FD-013: BLAKE3 for Content Hashing
 
@@ -300,6 +301,7 @@ Deployment model, storage implementation, schema layers, and index design.
 **Source**: Transcript 04:2197–2235
 **Formalized as**: ADR-STORE-007 in `spec/01-store.md`
 **Note**: trunk.ednl layout superseded by SR-014 / ADR-LAYOUT-001 (per-transaction content-addressed files). See `spec/01b-storage-layout.md`.
+**Note**: Both SR-006 and SR-007 map to ADR-STORE-007 (now superseded by ADR-STORE-014). SR-006 covered file layout decisions; SR-007 covered coordination mechanism.
 
 ### SR-007: Multi-Agent Coordination via Shared Filesystem
 
@@ -309,10 +311,11 @@ Deployment model, storage implementation, schema layers, and index design.
 **Source**: Transcript 04:2316–2343
 **Formalized as**: ADR-STORE-007 in `spec/01-store.md`
 **Note**: flock coordination superseded by SR-014 / ADR-LAYOUT-006 (O_CREAT|O_EXCL structural concurrency). See `spec/01b-storage-layout.md`.
+**Note**: Both SR-006 and SR-007 map to ADR-STORE-007 (now superseded by ADR-STORE-014). SR-006 covered file layout decisions; SR-007 covered coordination mechanism.
 
 ### SR-008: Axiomatic Meta-Schema — 17 Bootstrap Attributes
 
-**Decision**: The meta-schema consists of exactly 17 axiomatic attributes hardcoded in the engine (not defined by datoms): `:db/ident`, `:db/valueType`, `:db/cardinality`, `:db/doc`, `:db/unique`, `:db/isComponent`, `:db/resolutionMode`, `:db/latticeOrder`, `:db/lwwClock`, plus lattice definition attributes (`:lattice/ident`, `:lattice/elements`, `:lattice/comparator`, `:lattice/bottom`, `:lattice/top`). Value types include non-standard `:db.type/json` and `:db.type/tuple`. Three LWW clock options: `:hlc`, `:wall`, `:agent-rank`.
+**Decision**: The meta-schema consists of exactly 17 axiomatic attributes hardcoded in the engine (not defined by datoms): `:db/ident`, `:db/valueType`, `:db/cardinality`, `:db/doc`, `:db/unique`, `:db/isComponent`, `:db/resolutionMode`, `:db/latticeOrder`, `:db/lwwClock`, plus lattice definition attributes (`:lattice/ident`, `:lattice/elements`, `:lattice/comparator`, `:lattice/bottom`, `:lattice/top`), plus transaction provenance attributes (`:tx/time` (Instant), `:tx/agent` (Ref->AgentId), `:tx/provenance` (String)). Value types include non-standard `:db.type/json` and `:db.type/tuple`. Three LWW clock options: `:hlc`, `:wall`, `:agent-rank`.
 **Rationale**: The meta-schema is the self-describing foundation — the only attributes not defined by datoms. Everything else in the store is defined by datoms that reference these 17 attributes.
 **Source**: Transcript 02:379–420
 **Formalized as**: ADR-SCHEMA-002 in `spec/02-schema.md`
@@ -362,6 +365,7 @@ Deployment model, storage implementation, schema layers, and index design.
 **Supersedes**: SR-006 Option A (trunk.ednl), SR-007 (flock coordination), SR-003 redb as primary target (ADR-STORE-007 Options A and B).
 **Source**: Coherence analysis of trunk.ednl scaling under concurrent agent writes.
 **Formalized as**: INV-LAYOUT-001–011, ADR-LAYOUT-001–007, NEG-LAYOUT-001–005 in `spec/01b-storage-layout.md`
+**Note**: Range notation covers all 7 ADRs, 11 INVs, and 5 NEGs in the LAYOUT namespace (spec/01b-storage-layout.md).
 
 ---
 
@@ -1338,6 +1342,7 @@ findings from `audits/stage-0/research/`.
 **Rejected**: Datafrog (no Datalog parser, no stratification — only primitives), Crepe (compile-time only), Ascent (compile-time only), DDlog (archived, Haskell toolchain).
 **Source**: D2-datalog-engines.md; spec/03-query.md; formalized as ADR-IMPL-QUERY-001 in guide/03-query.md.
 **Formalized as**: ADR-IMPL-QUERY-001 in `guide/03-query.md`
+**Note**: IMPL-001 is an implementation-level decision; guide/ reference is canonical.
 
 ### IMPL-002: Tiered Tokenization (chars/4 at Stage 0, tiktoken-rs at Stage 1)
 

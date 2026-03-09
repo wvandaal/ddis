@@ -305,6 +305,7 @@ pub fn classify_stratum(q: &ParsedQuery) -> Stratum {
             // Or-clause with joins → S1
             Clause::OrClause(..) => Stratum::S1_MonotonicJoin,
             // Negation → S2+ (deferred, rejected in monotonic mode)
+            // Stage 2+: requires stratified evaluation (INV-QUERY-005)
             Clause::NotClause(..) => Stratum::S2_StratifiedNegation,
             // Frontier clause does not affect stratum
             Clause::Frontier(..) => Stratum::S0_Primitive,
@@ -367,6 +368,9 @@ All graph algorithms share a common subgraph extraction pattern: given `entity_t
 **Clear box** (implementation):
 ```rust
 /// Shared graph extraction from store datoms.
+/// extract_subgraph(entity_type, dep_attr) returns all entities matching
+/// `entity_type` and their dependency edges via `dep_attr`, following both
+/// forward and backward edges to build a complete directed graph.
 fn extract_subgraph(
     store: &Store,
     entity_type: &Attribute,
@@ -472,7 +476,7 @@ pub fn graph_density(/* ... */) -> GraphDensityMetrics {
 [QUERY] PageRank: top-5 by authority.
   INV-STORE-004  0.043  (CRDT commutativity — 12 dependents)
   INV-QUERY-001  0.038  (CALM compliance — 8 dependents)
-  INV-SCHEMA-001 0.035  (genesis completeness — 7 dependents)
+  INV-SCHEMA-001 0.035  (schema-as-data — 7 dependents)
   INV-STORE-001  0.031  (append-only — 6 dependents)
   INV-MERGE-001  0.028  (set-union — 5 dependents)
 ---
@@ -496,11 +500,11 @@ pub fn graph_density(/* ... */) -> GraphDensityMetrics {
 ```rust
 proptest! {
     // INV-QUERY-001: CALM monotonicity
-    fn inv_query_001(store in arb_store(5), extra_datoms in arb_datoms(3), query in arb_monotonic_query()) {
-        let r1 = query(&store, &query).bindings;
+    fn inv_query_001(store in arb_store(5), extra_datoms in arb_datoms(3), expr in arb_monotonic_query()) {
+        let r1 = query(&store, &expr, QueryMode::Monotonic)?.bindings;
         let mut bigger_store = store.clone();
         bigger_store.add_datoms(extra_datoms);
-        let r2 = query(&bigger_store, &query).bindings;
+        let r2 = query(&bigger_store, &expr, QueryMode::Monotonic)?.bindings;
         // r1 ⊆ r2: every result in the smaller store appears in the bigger store
         for binding in &r1 {
             prop_assert!(r2.contains(binding));
@@ -508,9 +512,9 @@ proptest! {
     }
 
     // INV-QUERY-002: Query Determinism (same expression + same frontier = same result)
-    fn inv_query_002(store in arb_store(10), query in arb_monotonic_query()) {
-        let r1 = query(&store, &query).bindings;
-        let r2 = query(&store, &query).bindings;
+    fn inv_query_002(store in arb_store(10), expr in arb_monotonic_query()) {
+        let r1 = query(&store, &expr, QueryMode::Monotonic)?.bindings;
+        let r2 = query(&store, &expr, QueryMode::Monotonic)?.bindings;
         prop_assert_eq!(r1, r2);
     }
 
