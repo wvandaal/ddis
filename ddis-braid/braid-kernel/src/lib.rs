@@ -11,16 +11,29 @@
 
 pub mod datom;
 pub mod error;
+pub mod guidance;
+pub mod harvest;
 pub mod layout;
 pub mod merge;
 pub mod query;
 pub mod resolution;
 pub mod schema;
+pub mod seed;
 pub mod store;
 
 // Re-export core types at crate root for ergonomic access.
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 pub use error::KernelError;
+pub use guidance::{
+    build_footer, compute_methodology_score, compute_routing, default_derivation_rules,
+    derive_tasks, format_footer, DerivationRule, DerivedTask, GuidanceFooter,
+    MethodologyComponents, MethodologyScore, RoutingMetrics, SessionTelemetry, TaskNode,
+    TaskRouting, Trend,
+};
+pub use harvest::{
+    candidate_to_datoms, harvest_pipeline, CandidateStatus, HarvestCandidate, HarvestCategory,
+    HarvestQuality, HarvestResult, SessionContext,
+};
 pub use layout::{
     collect_datoms, deserialize_tx, serialize_tx, tx_content_hash, verify_content_hash,
     ContentHash, EdnParseError, IntegrityError, IntegrityReport, LayoutConfig, TxFile, TxFilePath,
@@ -35,5 +48,9 @@ pub use query::{
 pub use resolution::{resolve, ConflictSet, ResolvedValue};
 pub use schema::{
     AttributeDef, AttributeSpec, Cardinality, ResolutionMode, Schema, Uniqueness, ValueType,
+};
+pub use seed::{
+    assemble, assemble_seed, associate, AssembledContext, AssociateCue, ContextSection,
+    ProjectionLevel, SchemaNeighborhood, SeedOutput, StateEntry,
 };
 pub use store::{Frontier, MergeReceipt, Store, TxData, TxReceipt};
