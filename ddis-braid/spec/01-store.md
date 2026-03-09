@@ -261,10 +261,20 @@ INVARIANT: MERGE is commutative, associative, idempotent (L1–L3)
 GENESIS() → S₀
 
 POST:
-  S₀.datoms = {meta_schema_datoms}         — exactly the 17 axiomatic attributes
-  S₀.frontier = { system: tx_0 }
+  S₀.datoms = {meta_schema_datoms} ∪ {system_agent_datoms}
+  where:
+    meta_schema_datoms = the 17 axiomatic attribute definitions
+    system_agent_datoms = {
+      (SYSTEM_AGENT, :agent/ident,   :system, tx_0, assert),
+      (SYSTEM_AGENT, :agent/program, :braid,  tx_0, assert),
+      (SYSTEM_AGENT, :agent/model,   :system, tx_0, assert),
+    }
+    SYSTEM_AGENT = BLAKE3("system" + "braid" + "genesis")
+
+  S₀.frontier = { SYSTEM_AGENT: tx_0 }
   ∀ S₁, S₂ created by GENESIS: S₁ = S₂   — deterministic (constant hash)
   tx_0 has no causal predecessors
+  tx_0.:tx/agent = SYSTEM_AGENT            — genesis tx references its own agent (INV-STORE-015)
 ```
 
 #### Index Invariants
@@ -1014,6 +1024,96 @@ seed, guidance) mutates the shared store as a side effect of provenance recordin
 
 ---
 
+### INV-STORE-015: Agent Entity Completeness
+
+**Traces to**: SEED §4 (Axiom 1), exploration/03-topology-definition.md §1, ADR-STORE-020
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+Every :tx/agent Ref in the store points to a valid agent entity:
+  ∀ d = (_, :tx/agent, agent_ref, _, _) ∈ S:
+    ∃ d' = (agent_ref, :agent/ident, _, _, assert) ∈ S
+```
+
+#### Level 1 (State Invariant)
+After genesis, at least SYSTEM_AGENT exists:
+  |{e | (e, :agent/ident, _, _, assert) ∈ S₀}| >= 1
+
+Every transaction's `:tx/agent` Ref resolves to an entity with at minimum
+`:agent/ident`, `:agent/program`, and `:agent/model` attributes.
+
+#### Level 2 (Implementation Contract)
+```rust
+/// Store::transact() ensures that if :tx/agent references an EntityId not yet
+/// in the store, the transaction ALSO includes assertion datoms creating that
+/// agent entity with :agent/ident, :agent/program, :agent/model.
+fn ensure_agent_entity(store: &Store, tx: &mut Transaction<Building>, agent_id: EntityId) {
+    if store.current(agent_id).attributes.is_empty() {
+        // Agent entity does not exist — add creation datoms to this transaction.
+        // The caller must provide program, model, session_id.
+    }
+}
+```
+
+**Falsification**: A `:tx/agent` Ref that does not resolve to an entity with
+`:agent/ident` in the store.
+
+**proptest strategy**: Generate random transaction sequences with varying agent
+IDs. Assert every `:tx/agent` ref resolves to an agent entity.
+
+---
+
+### INV-STORE-016: Frontier Computability
+
+**Traces to**: SEED §4 (Axiom 3), exploration/07-fitness-function.md §3.3, ADR-STORE-021
+**Verification**: `V:PROP`
+**Stage**: 0 (definition); 3 (multi-agent usage)
+
+#### Level 0 (Algebraic Law)
+```
+For any agent α and store S:
+  staleness(α, S) = |{β ∈ agents(S) | frontier(α)[β] < latest(β, S)}| / |agents(S)|
+
+staleness(α, S) ∈ [0, 1]
+staleness(α, S) = 0 ⟺ α is fully up-to-date with all agents
+
+Frontier representation is a per-agent vector clock (ADR-STORE-021):
+  frontier(α) = {(β, max_tx_β) | β ∈ agents, max_tx_β = latest tx from β seen by α}
+```
+
+#### Level 1 (State Invariant)
+In single-agent mode (Stage 0):
+  |agents(S)| = 1
+  frontier(self)[self] = latest(self, S)  — always
+  staleness(self, S) = 0                  — always
+
+#### Level 2 (Implementation Contract)
+```rust
+/// Frontier staleness is computable via a Datalog query at Stratum 0 (monotonic,
+/// coordination-free). Each frontier entry is a compound entity with
+/// :frontier/agent (Ref) and :frontier/tx (Ref).
+pub fn staleness(store: &Store, agent: EntityId) -> f64 {
+    let agents = all_agents(store);
+    if agents.len() <= 1 { return 0.0; }
+    let frontier = agent_frontier(store, agent);
+    let stale_count = agents.iter()
+        .filter(|b| frontier.get(b).map_or(true, |tx| *tx < latest_tx(store, **b)))
+        .count();
+    stale_count as f64 / agents.len() as f64
+}
+```
+
+**Falsification**: staleness(α, S) requires a non-monotonic query (Stratum 2+)
+or cannot be expressed in Datalog.
+
+**proptest strategy**: In single-agent mode, staleness is always 0. In simulated
+multi-agent mode, staleness correctly reflects the gap between an agent's frontier
+and the global state.
+
+---
+
 ### §1.5 ADRs
 
 ### ADR-STORE-001: G-Set CvRDT as Store Algebra
@@ -1704,6 +1804,130 @@ the coherence verification boundary.
 This decision is wrong if: a category of durable information is identified that cannot be
 represented as datoms without unacceptable overhead (e.g., large binary artifacts where
 content-addressed hashing is prohibitively expensive).
+
+---
+
+### ADR-STORE-020: Agent Entity Identification
+
+**Traces to**: SEED §4 (Axiom 1), exploration/03-topology-definition.md §1
+**Stage**: 0
+
+#### Problem
+Agents are referenced by `:tx/agent` (Ref) in every transaction. What is the
+EntityId of an agent entity? Content-addressed identity (INV-STORE-002) requires
+that the EntityId be derived from content. But what content identifies an agent?
+
+#### Options
+A) **Hash of agent name string** — EntityId = BLAKE3("agent:" + name)
+   - Pro: Simple, deterministic, human-readable name
+   - Con: Name collision across deployments; renaming destroys identity
+
+B) **Hash of (program, model, instance-salt)** — EntityId = BLAKE3(program + model + salt)
+   - Pro: Distinguishes agent types
+   - Con: instance-salt must be managed; same model in different instances
+     gets different IDs
+
+C) **Hash of agent configuration datoms** — EntityId = BLAKE3(canonical serialization
+   of the agent's initial assertion datoms)
+   - Pro: Consistent with INV-STORE-002 (content-addressed)
+   - Pro: Agent identity IS its first assertion set
+   - Con: Slightly more complex; requires canonical serialization order
+
+D) **Hash of (program, model, session-context)** — EntityId = BLAKE3(program + model + session-id)
+   - Pro: Each agent session is a distinct entity
+   - Pro: Deterministic (same inputs = same EntityId)
+   - Pro: Natural isolation (concurrent sessions get distinct identities)
+   - Con: Same agent type across sessions = different entities
+
+#### Decision
+**Option D.** Agent identity is BLAKE3(program + model + session-context).
+
+Rationale:
+- Content-addressed (INV-STORE-002 compliant)
+- Deterministic (same agent type in same session = same EntityId)
+- Session isolation (concurrent sessions get distinct agent entities)
+- Aligns with how `:tx/agent` is used: the agent IS the (program, model, session)
+  tuple, not a persistent cross-session identity
+
+#### Consequences
+- Agent entities created lazily on first transaction from that (program, model, session)
+- Genesis creates SYSTEM_AGENT with fixed EntityId = BLAKE3("system" + "braid" + "genesis")
+- `:agent/ident` attribute stores human-readable name
+- `:agent/program` and `:agent/model` attributes store the ID components
+- `:agent/session-id` stores the session disambiguation token
+
+#### Falsification
+This decision is wrong if: a use case requires cross-session agent identity
+(e.g., "what has agent claude-code/opus-4.6 contributed across all sessions?")
+that cannot be answered by querying agents sharing the same `:agent/program`
+and `:agent/model` values.
+
+---
+
+### ADR-STORE-021: Frontier Representation
+
+**Traces to**: SEED §4 (Axiom 3), exploration/07-fitness-function.md §3.3 (D3 staleness)
+**Stage**: 0 (data model); 3 (multi-agent usage)
+
+#### Problem
+An agent's frontier is the set of datoms it knows about. How should this be
+represented in the store for queryability?
+
+#### Options
+A) **Set of TxIds** — frontier(α) = {tx₁, tx₂, ..., txₙ} = all transactions α has seen.
+   visible(α) = {d ∈ S | d.tx ∈ frontier(α)}
+   - Pro: Exact; every datom is attributable to a transaction
+   - Pro: Staleness = |{tx ∈ S | tx ∉ frontier(α)}| / |{tx ∈ S}|
+   - Con: Large frontier for long-running agents (grows with transaction count)
+
+B) **High-water-mark TxId** — frontier(α) = max(tx seen by α)
+   visible(α) = {d ∈ S | d.tx <= frontier(α)} (using HLC ordering)
+   - Pro: Compact (single value)
+   - Con: Assumes total ordering of transactions; not true in concurrent multi-agent
+     (agent A's tx₅ is incomparable with agent B's tx₃ under HLC partial order)
+
+C) **Per-agent high-water-mark (vector clock style)** —
+   frontier(α) = {(β, max_tx_β) | β ∈ agents, max_tx_β = latest tx from β seen by α}
+   - Pro: Compact (one entry per agent)
+   - Pro: Comparison is pointwise: α is ahead of β on agent γ iff frontier(α)[γ] >= frontier(β)[γ]
+   - Pro: Staleness = number of entries where frontier(α)[β] < latest(β)
+   - Con: Requires knowing the set of all agents (grows with agent count, not tx count)
+
+#### Decision
+**Option C.** Per-agent vector clock. Each agent's frontier is a map from agent
+IDs to the latest transaction from that agent that the current agent has seen.
+
+Rationale:
+- Compact (one entry per agent, not per transaction)
+- Directly supports staleness computation (D3 in F(T))
+- Comparison is efficient (pointwise max)
+- Merge is pointwise max (CRDT: vector clocks form a join-semilattice)
+- Consistent with HLC causality (if α saw β's tx₅, α also saw β's tx₁..tx₄)
+- In single-agent Stage 0, frontier = {(self, latest_tx)} — trivially degenerate
+
+#### Encoding
+Frontier entries are compound entities in the datom store (not JSON blobs or tuples):
+```
+Each frontier entry is an entity with:
+  (entry, :frontier/agent, agent_ref, tx, assert)   — which agent's tx this tracks
+  (entry, :frontier/tx,    tx_ref,    tx, assert)    — the latest tx seen from that agent
+```
+This encoding is the most DDIS-native: frontier entries are facts, facts are datoms,
+datoms are queryable via standard Datalog joins.
+
+Resolution: LWW per (observing-agent, tracked-agent) pair — latest observation wins.
+
+#### Consequences
+- `:frontier/agent` and `:frontier/tx` attributes defined in Layer 1
+- Frontier merge: pointwise max of vector clock entries (join-semilattice)
+- Staleness query: count agents where frontier[agent] < that agent's latest tx
+- Single-agent: frontier always up-to-date (staleness = 0)
+- Entity proliferation bounded: one entity per (observing-agent, tracked-agent) pair
+
+#### Falsification
+This decision is wrong if: a multi-agent scenario exists where per-agent
+high-water-marks lose information that TxId sets preserve (e.g., an agent
+selectively seeing tx₃ and tx₅ but not tx₄ from the same source).
 
 ---
 

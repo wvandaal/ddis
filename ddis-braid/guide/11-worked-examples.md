@@ -99,9 +99,14 @@ Store: 121 datoms. Schema: 26 attributes (17 axiomatic + 9 spec).
   Self-bootstrap begins (C7).
 ```
 
-### Step 3: Transact First Invariant
+### Step 3: Transact First Invariant (with Dependencies)
+
+INV-STORE-001 has no spec-element dependencies (it's foundational). But we also
+transact INV-STORE-004 (commutativity), which depends on INV-STORE-001 and
+INV-STORE-003, to demonstrate dependency edges.
 
 ```clojure
+;; INV-STORE-001: Append-Only Immutability (no dependencies — foundational)
 {:e #blake3 "s9t0..." :a :spec/id :v "INV-STORE-001" :tx #hlc "1709000002000-0-agent1" :op :assert}
 {:e #blake3 "s9t0..." :a :spec/type :v "invariant" :tx #hlc "1709000002000-0-agent1" :op :assert}
 {:e #blake3 "s9t0..." :a :spec/namespace :v :STORE :tx #hlc "1709000002000-0-agent1" :op :assert}
@@ -112,17 +117,33 @@ Store: 121 datoms. Schema: 26 attributes (17 axiomatic + 9 spec).
 {:e #blake3 "s9t0..." :a :spec/verification :v :V:PROP :tx #hlc "1709000002000-0-agent1" :op :assert}
 {:e #blake3 "s9t0..." :a :spec/verification :v :V:KANI :tx #hlc "1709000002000-0-agent1" :op :assert}
 {:e #blake3 "s9t0..." :a :spec/stage :v 0 :tx #hlc "1709000002000-0-agent1" :op :assert}
+
+;; INV-STORE-004: CRDT Merge Commutativity (depends on INV-STORE-001 and INV-STORE-003)
+{:e #blake3 "u1v2..." :a :spec/id :v "INV-STORE-004" :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "u1v2..." :a :spec/type :v "invariant" :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "u1v2..." :a :spec/namespace :v :STORE :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "u1v2..." :a :spec/statement :v "CRDT Merge Commutativity" :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "u1v2..." :a :spec/stage :v 0 :tx #hlc "1709000002000-0-agent1" :op :assert}
+;; DEPENDENCY EDGES — typed relationships (INV-SCHEMA-009, ADR-SCHEMA-007)
+{:e #blake3 "u1v2..." :a :spec/depends-on :v #blake3 "s9t0..." :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "u1v2..." :a :spec/depends-on :v #blake3 "w3x4..." :tx #hlc "1709000002000-0-agent1" :op :assert}
 ```
 
-```
-$ braid transact --file inv-store-001.ednl --format agent
+> **Key change (INV-SCHEMA-009)**: The `:spec/depends-on` datoms use Ref values pointing
+> to the EntityIds of the target spec elements. This builds the spec dependency graph as
+> first-class data in the store, not just prose cross-references. The bootstrap EDNL
+> generator must extract these relationships from spec markdown and emit them as ref datoms.
 
-[STORE] Transacted 10 datoms (INV-STORE-001) in tx hlc:1709000002000-0-agent1.
-Store: 131 datoms. First spec element bootstrapped. Self-reference: the store now
-contains the invariant that governs the store itself.
+```
+$ braid transact --file inv-store-001-004.ednl --format agent
+
+[STORE] Transacted 17 datoms (INV-STORE-001 + INV-STORE-004) in tx hlc:1709000002000-0-agent1.
+Store: 138 datoms. First spec elements bootstrapped with dependency edges.
+Self-reference: the store now contains the invariants that govern the store itself.
+Dependency graph: INV-STORE-004 → {INV-STORE-001, INV-STORE-003}.
 ---
-↳ Self-bootstrap active (C7). The system manages its own specification.
-  Query: `braid query '[:find ?id :where [?e :spec/type "invariant"] [?e :spec/id ?id]]'`
+↳ Self-bootstrap active (C7). Dependency graph queryable:
+  `braid query '[:find ?from ?to :where [?e :spec/id ?from] [?e :spec/depends-on ?d] [?d :spec/id ?to]]'`
 ```
 
 ### Step 4: Query Bootstrapped Spec

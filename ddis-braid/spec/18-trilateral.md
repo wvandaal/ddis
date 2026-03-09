@@ -23,6 +23,14 @@ mechanisms)
 **Source**: `exploration/coherence-convergence/TRILATERAL_COHERENCE_MODEL.md` §19
 **ADRS.md sources**: CO-008, CO-010, IB-010
 
+**Forward reference — Quadrilateral extension (Stage 3):** The trilateral
+model (Intent ↔ Spec ↔ Impl) extends to a quadrilateral (Intent ↔ Spec ↔
+Impl ↔ Topology) when the topology coordination layer is implemented at
+Stage 3. The fourth vertex adds TOPO_ATTRS and two new boundaries (T↔I,
+T↔P) to the divergence metric Φ. The generalization is parameterized over
+N vertices (ADR-TRILATERAL-004), so the trilateral case is a specialization
+of the N-lateral model with |boundaries| = 2.
+
 ---
 
 ### §18.1 Level 0: Algebraic Specification
@@ -81,6 +89,15 @@ where:
 that adds a `:spec/traces-to` or `:spec/implements` link decreases Φ. Every transaction
 that adds an unlinked intent decision or unlinked code function increases Φ.
 
+Generalized form (ADR-TRILATERAL-004):
+```
+  Φ(S) = Σᵢ wᵢ × Dᵢ(S)  where i ∈ boundaries(S)
+  boundaries(S₀) = {IS, SP}  (trilateral initial state)
+```
+The existing two-term formula is a specialization with |boundaries| = 2.
+Adding a vertex (e.g., Topology at Stage 3) registers new boundaries and
+their divergence functions; the formula structure is unchanged.
+
 #### Formality Gradient
 
 ```
@@ -101,6 +118,18 @@ formality_level(e, S) =
 - **L2 (Convergence monotonicity)**: Adding `:spec/traces-to` or `:spec/implements` links never increases Φ
 - **L3 (Attribute partition)**: `INTENT_ATTRS ∩ SPEC_ATTRS = SPEC_ATTRS ∩ IMPL_ATTRS = INTENT_ATTRS ∩ IMPL_ATTRS = ∅`
 - **L4 (Formality monotonicity)**: Formality level is monotonically non-decreasing under store growth
+
+Forward reference — LIVE_T Projection (Stage 3):
+```
+  LIVE_T: The topology projection, computed over TOPO_ATTRS.
+  Defined when the topology coordination layer (exploration docs 00-11) is implemented.
+  LIVE_T is structurally identical to LIVE_I, LIVE_S, LIVE_P — a partition of the
+  attribute namespace with a divergence function measuring gap across its boundaries.
+```
+When LIVE_T is added, L1 extends to X ∈ {I, S, P, T} and L3 extends to
+include TOPO_ATTRS in the pairwise disjointness constraint. See
+INV-TRILATERAL-005 for the reserved TOPO_ATTRS namespace and
+ADR-TRILATERAL-004 for the N-lateral generalization.
 
 ---
 
@@ -331,6 +360,18 @@ pub fn classify_attribute(attr: &Attribute) -> AttrNamespace {
 }
 ```
 
+Forward reference — Topology namespace (Stage 3):
+```
+  TOPO_ATTRS ∩ INTENT_ATTRS = ∅
+  TOPO_ATTRS ∩ SPEC_ATTRS   = ∅
+  TOPO_ATTRS ∩ IMPL_ATTRS   = ∅
+
+  TOPO_ATTRS will include: :topo/type, :topo/agents, :topo/channels,
+    :topo/fitness, :topo/coupling, :topo/compiled-from, etc.
+```
+See ADR-TRILATERAL-004 (N-Lateral Extensibility) for how the attribute
+namespace partition generalizes to N vertices.
+
 **Falsification**: Two attributes from different namespace partitions share
 the same keyword, or a datom appears in more than one LIVE view.
 
@@ -382,7 +423,7 @@ vs. from scratch.
 
 #### Level 0 (Algebraic Law)
 ```
-The TRILATERAL spec elements (INV-TRILATERAL-001..007, ADR-TRILATERAL-001..003,
+The TRILATERAL spec elements (INV-TRILATERAL-001..007, ADR-TRILATERAL-001..004,
 NEG-TRILATERAL-001..003) are datoms in the store.
 
 ∀ trilateral elements T: T ∈ LIVE_S(S)
@@ -571,6 +612,57 @@ interactive performance perceptibly (>100ms latency added), (2) automated
 extraction (especially LLM-assisted) produces more noise than signal
 (false links that increase rather than decrease confusion), or (3) developers
 bypass the hook system because manual annotation is more reliable.
+
+---
+
+### ADR-TRILATERAL-004: N-Lateral Extensibility
+
+**Traces to**: exploration/01-algebraic-foundations.md §7 (quadrilateral),
+  exploration/07-fitness-function.md §7 (F_total composition)
+**Stage**: 0 (design); 3 (topology vertex implementation)
+
+#### Problem
+The trilateral model (Intent ↔ Spec ↔ Impl) has three vertices. The topology
+exploration (doc 01 §7, doc 07 §7.3) proposes a fourth vertex (Topology)
+creating a quadrilateral. Should the model be designed for exactly four vertices,
+or for N vertices?
+
+#### Options
+A) **Hardcode quadrilateral** (4 vertices: Intent, Spec, Impl, Topology)
+   - Pro: Simple; matches current needs
+   - Con: If a fifth vertex emerges (e.g., Deployment, User), requires redesign
+
+B) **N-lateral model** (parameterized over vertex count)
+   - Pro: Extensible; adding vertices doesn't change the algebra
+   - Con: Slightly more abstract
+
+#### Decision
+**Option B.** The divergence metric generalizes to N vertices:
+
+```
+  Φ(S) = Σᵢ wᵢ × Dᵢ(S)
+```
+
+where i ranges over all adjacent boundary pairs. The trilateral case has 2 boundaries
+(IS, SP). The quadrilateral adds 2 more (PT, TI — topology↔impl, topology↔intent).
+The N-lateral case has N boundaries for an N-gon.
+
+Each boundary requires:
+  1. A LIVE projection (partition of attribute namespace)
+  2. A divergence function Dᵢ computing gap across the boundary
+  3. A weight wᵢ (stored as a datom, tunable)
+
+#### Consequences
+- Φ(S) formula generalized to weighted sum over N boundaries
+- INV-TRILATERAL-005 phrasing encompasses "all N projections are pairwise disjoint"
+- Adding a vertex requires: define ATTRS, implement Dᵢ, register wᵢ
+- No existing code changes — current 3-vertex case is a specialization
+- Stage 3 adds the 4th vertex (topology) via this extension mechanism
+
+#### Falsification
+This decision is wrong if: the N-lateral generalization introduces overhead or
+complexity for the trilateral case that makes the 3-vertex implementation worse
+than a hardcoded trilateral.
 
 ---
 

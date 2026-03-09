@@ -121,8 +121,19 @@ Lattice definition attributes:
 
 Transaction metadata:
   :tx/time            — Instant    :one    — wall-clock time
-  :tx/agent           — Ref        :one    — agent who transacted
+  :tx/agent           — Ref        :one    — agent who transacted (→ agent entity)
   :tx/provenance      — Keyword    :one    — provenance type
+
+Agent entity attributes (Layer 1 — provenance infrastructure, ADR-STORE-020):
+  :agent/ident        — Keyword    :one    lww    — human-readable agent name
+  :agent/program      — Keyword    :one    lww    — harness (claude-code, codex, gemini, human)
+  :agent/model        — Keyword    :one    lww    — LLM model (opus-4.6, sonnet-4.6, o3, human)
+  :agent/session-id   — String     :one    lww    — session disambiguation token
+
+  Forward reference — Layer 4 extensions (Stage 2–3):
+  :agent/capabilities — Keyword    :many   multi  — domain competencies
+  :agent/trust        — Double     :one    lww    — trust score T ∈ [0, 1]
+  :agent/status       — Keyword    :one    lattice — agent-lifecycle lattice
 ```
 
 #### Layer 2 Spec-Element Attributes (Self-Bootstrap)
@@ -141,7 +152,10 @@ Core identity (required for all spec elements):
 
 Traceability:
   :spec/traces-to       — String     :many   multi  — References (e.g., "SEED §4 Axiom 2", "C1")
-  :spec/depends-on      — Ref        :many   multi  — Entity refs to other spec elements
+  :spec/depends-on      — Ref        :many   multi  — X requires Y (sequencing constraint)
+  :spec/affects         — Ref        :many   multi  — X changes interpretation of Y (always non-monotonic)
+  :spec/constrains      — Ref        :many   multi  — X bounds solution space of Y (always monotonic)
+  :spec/tests           — Ref        :many   multi  — X verifies Y (always monotonic)
 
 Verification & falsification:
   :spec/falsification   — String     :one    lww    — Violation condition text
@@ -197,8 +211,9 @@ Cross-boundary link:
   :spec/implements      — Ref        :many   multi  — Impl entity → spec entity it implements
 ```
 
-This gives 23 spec-element attributes plus 14 trilateral coherence attributes (37 total
-in Layer 2). Combined with the 17 axiomatic attributes and Layer 1 agent/provenance
+This gives 26 spec-element attributes (23 original + 3 typed relationship attributes:
+`:spec/affects`, `:spec/constrains`, `:spec/tests`) plus 14 trilateral coherence
+attributes (40 total in Layer 2). Combined with the 17 axiomatic attributes and Layer 1 agent/provenance
 attributes, the Stage 0 schema is sufficient to represent all specification elements in
 the datom store with full fidelity across all three refinement levels and all element
 types (invariant, ADR, negative case, uncertainty).
@@ -303,7 +318,7 @@ impl Store {
 /// Each layer depends only on layers below it; Stage 0 installs Layers 0–1.
 pub enum SchemaLayer {
     MetaSchema,       // Layer 0: 17 axiomatic attributes (9 :db/*, 5 :lattice/*, 3 :tx/*)
-    AgentProvenance,  // Layer 1: 2 types, 16 attributes (agent identity + provenance)
+    AgentProvenance,  // Layer 1: 3 types, 20 attributes (agent entity + tx metadata + provenance)
     DdisCore,         // Layer 2: 12 types, 72 attributes (spec elements, observations)
     Discovery,        // Layer 3: 5 types, 28 attributes (threads, findings)
     Coordination,     // Layer 4: 7 types, 35 attributes (deliberation, sync)
@@ -681,6 +696,44 @@ a coordination signal.
 
 ---
 
+### INV-SCHEMA-009: Spec Dependency Graph Completeness
+
+**Traces to**: SEED §4 (C7: self-bootstrap), exploration/11-topology-as-compilation.md §2.2
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+For every spec element e with a prose dependency on spec element e':
+  ∃ datom (e, :spec/depends-on | :spec/affects | :spec/constrains | :spec/tests, e', tx, assert)
+
+The spec dependency graph G_spec = (V, E) where:
+  V = {e | ∃ (e, :spec/type, _, _, assert) ∈ S}
+  E = {(e, e', type) | ∃ (e, :spec/{type}, e', _, assert) ∈ S
+       where type ∈ {depends-on, affects, constrains, tests}}
+
+G_spec must be a connected graph (excluding uncertainty elements).
+```
+
+#### Level 1 (State Invariant)
+After self-bootstrap (Phase 2), G_spec has:
+  |V| = total spec elements transacted
+  |E| >= |V| - 1  (at minimum, a spanning tree)
+
+#### Level 2 (Implementation Contract)
+The bootstrap EDNL file generator must extract dependency relationships from
+spec prose (explicit cross-references like "Depends on INV-STORE-001") and
+emit corresponding `:spec/depends-on` ref datoms.
+
+**Falsification**: A spec element with a prose dependency ("Depends on X" or
+"Traces to X" where X is another spec element) that has no corresponding
+`:spec/depends-on`, `:spec/affects`, `:spec/constrains`, or `:spec/tests` ref datom.
+
+**proptest strategy**: Generate random spec element sets with known dependency
+graphs. Bootstrap them. Assert the dependency graph is recovered exactly.
+
+---
+
 ### §2.5 ADRs
 
 ### ADR-SCHEMA-001: Schema-as-Data Over DDL
@@ -776,6 +829,23 @@ Twelve lattices, several with non-trivial diamond structure:
 12. numeric-max
 
 The diamond patterns connect lattice algebra to coordination (INV-SCHEMA-008).
+
+#### Forward Reference — Layer 4 Coordination Lattices (Stage 2–3)
+
+The topology framework (exploration docs 00–11, ADR-SCHEMA-008) requires additional
+lattices for coordination attributes. These follow the same pattern as lattices 1–12
+and are registered via the standard lattice entity mechanism (INV-SCHEMA-007):
+
+```
+13. topology-lifecycle:       :proposed < :compiled < :enacted; terminals: :superseded, :rolled-back
+14. channel-frequency:        :none < :on-demand < :low < :medium < :high < :continuous
+15. coordination-intensity:   numeric ordering (merge overhead metric)
+16. trust-level:              bounded-real [0.0, 1.0] with max join
+```
+
+These lattices are NOT installed at genesis. They are registered as schema extension
+transactions when the coordination layer (Stage 2–3) is activated. The lattice
+registration mechanism is verified working at Stage 0 (ADR-SCHEMA-008, Option C).
 
 ---
 
@@ -918,6 +988,95 @@ a probabilistic distribution that loses semantic information when encoded as Jso
 
 ---
 
+### ADR-SCHEMA-007: Typed Spec Element Relationships
+
+**Traces to**: SEED §4 (C7), exploration/11-topology-as-compilation.md §2.2
+**Stage**: 0
+
+#### Problem
+Spec elements have relationships to each other. Currently only `:spec/depends-on`
+exists. Should relationships be typed (separate attributes per relationship type)
+or untyped (single `:spec/depends-on` for all relationships)?
+
+#### Options
+A) **Single untyped attribute** (`:spec/depends-on` for everything)
+   - Pro: Simpler schema, fewer attributes
+   - Con: Cannot distinguish sequencing constraints from impact relationships
+     in Datalog queries without additional annotation
+   - Con: CALM classification (monotonic vs non-monotonic edges) requires
+     relationship type information
+
+B) **Four typed relationship attributes** (`:spec/depends-on`, `:spec/affects`,
+   `:spec/constrains`, `:spec/tests`)
+   - Pro: Typed relationships are directly queryable in Datalog
+   - Pro: CALM classification can use relationship type as input
+   - Pro: Compilation front-end can build annotated Coupling IR
+   - Con: More attributes (4 vs 1) in Layer 2 schema
+
+C) **Relationship entity with type attribute** (separate entity per relationship)
+   - Pro: Maximum extensibility (new relationship types without schema changes)
+   - Con: Three datoms per relationship instead of one (entity overhead)
+   - Con: Queries become more complex (join through relationship entity)
+
+#### Decision
+**Option B.** Four typed attributes. The relationship types are structurally
+different for CALM classification:
+  - `:spec/depends-on`: may be monotonic or non-monotonic
+  - `:spec/affects`: always non-monotonic (changes interpretation)
+  - `:spec/constrains`: always monotonic (narrows solution space)
+  - `:spec/tests`: always monotonic (verification is additive)
+
+The type information is needed at query time for compilation (exploration doc 11,
+Pass 1). Encoding it in the attribute name avoids an extra join. Four attributes
+is a small addition to the existing Layer 2 spec attributes.
+
+#### Consequences
+- Three new Layer 2 attributes: `:spec/affects`, `:spec/constrains`, `:spec/tests`
+- `:spec/depends-on` already exists (no change needed)
+- Bootstrap EDNL generator must emit typed relationships
+- Compilation front-end queries become simple attribute pattern matches
+- CALM classification for the compilation middle-end gets relationship type for free
+
+---
+
+### ADR-SCHEMA-008: Coordination Lattice Pre-Registration
+
+**Traces to**: exploration/01-algebraic-foundations.md §5 (lattice of topologies)
+**Stage**: 2–3 (registration); 0 (mechanism verification)
+
+#### Problem
+The topology framework (exploration docs 00–11) requires lattice resolution modes
+for coordination attributes. Should these lattices be registered in Stage 0 or
+deferred to Stage 2–3?
+
+#### Options
+A) **Register all coordination lattices in Stage 0 genesis**
+   - Pro: Available from day one
+   - Con: Adds ~5 lattices to genesis that aren't used until Stage 2–3
+   - Con: Increases genesis datom count
+
+B) **Register coordination lattices in Stage 2–3 via schema extension transactions**
+   - Pro: No Stage 0 changes; follows schema-as-data (C3)
+   - Con: Must verify the mechanism works (registering new lattices post-genesis)
+
+C) **Verify mechanism in Stage 0; register in Stage 2–3**
+   - Pro: Validates extensibility without adding unused data
+   - Pro: Stage 0 test suite includes "register custom lattice" proptest
+   - Con: Slightly more testing
+
+#### Decision
+**Option C.** The lattice registration mechanism must be verified working in
+Stage 0 (a proptest that registers a custom lattice, transacts a datum using it,
+and verifies resolution). Actual coordination lattices are registered when needed.
+
+#### Consequences
+- Stage 0 proptest: `custom_lattice_registration_and_resolution`
+- No genesis changes
+- Coordination lattice definitions documented as forward references
+- Stage 2–3 implementation simply transacts lattice entities
+
+---
+
 ### §2.6 Negative Cases
 
 ### NEG-SCHEMA-001: No External Schema
@@ -959,6 +1118,28 @@ Attributes can be deprecated (via new datoms marking them deprecated), but never
 
 **proptest strategy**: For each attribute, verify all referenced entity types are from
 the same or lower layer.
+
+---
+
+### NEG-BOOTSTRAP-001: Content-Only Bootstrap Produces Flat Store
+
+**Traces to**: SEED §4 (C7), exploration/11-topology-as-compilation.md §2.2
+**Verification**: `V:PROP`
+
+**Statement**: A self-bootstrap that transacts spec element content (id, type,
+statement, falsification) but NOT dependency relationships (`:spec/depends-on`,
+`:spec/affects`, `:spec/constrains`, `:spec/tests`) produces a store where:
+  - Spec elements exist as isolated entities
+  - No dependency graph is queryable
+  - The compilation front-end (exploration doc 11 §2.2) has no input data
+  - Contradiction detection cannot trace dependency chains
+  - Impact analysis queries return empty results
+
+**Safety property**: `□(bootstrap_complete → dependency_edges > 0)`
+
+**Violation condition**: After bootstrap, the query
+  `[:find (count ?e) :where [?e :spec/depends-on _]]`
+returns 0 while spec elements with prose dependencies exist.
 
 ---
 

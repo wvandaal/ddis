@@ -1861,9 +1861,102 @@ None. The LAYOUT namespace is complete within its scope. The three uncertainty m
 
 ### Recommended Next Action
 
-**Stage 0 implementation**: The specification is now complete with 318 elements (138 INV,
-133 ADR, 47 NEG) across 15 namespaces. The LAYOUT namespace provides the physical storage
-contract needed for implementation. Next step: begin Rust implementation per
-`guide/00-architecture.md`, starting with `braid-kernel` crate (Store, Datom, Schema types)
-and the Layout module for persistence.
+**Stage 0 implementation**: The specification is now complete with 318+ elements across
+15+ namespaces. Begin Rust implementation per `guide/00-architecture.md`, starting with
+`braid-kernel` crate (Store, Datom, Schema types) and the Layout module for persistence.
+
+---
+
+## Session 016 — 2026-03-09 (Execution Topologies + Topology-Ready Stage 0 Foundations)
+
+### Seed (Context Loaded)
+
+- Continued from Session 015 (LAYOUT namespace specification).
+- User requested the most impactful theoretical addition to the topology framework.
+- Then requested comprehensive DDIS-formalized design proposal for Stage 0 foundations.
+
+### What Was Accomplished
+
+#### Phase A: Execution Topologies Exploration (12 documents)
+
+Created `exploration/execution-topologies/` — a complete topology framework for
+multi-agent coordination in Braid:
+
+- **Documents 00–10**: Core exploration (thesis, algebraic foundations, coupling model,
+  topology definition, transition protocol, scaling authority, cold-start, fitness
+  function, open questions, invariants catalog, design decisions)
+- **Document 11** (capstone): **Topology as Compilation** — the spec dependency graph IS
+  a program; the topology IS the compiled execution plan; bilateral feedback IS PGO.
+  AOT compilation from spec structure, JIT fallback for uncompilable work.
+
+#### Phase B: Formal Design Proposal
+
+Created `exploration/execution-topologies/TOPOLOGY-FOUNDATION-BEADS.md` — DDIS-formalized
+design proposal with:
+- 6 foundations (F1–F6) with dependency ordering
+- 41 beads (1 epic, 6 sub-epics, 30 tasks, 4 questions)
+- 5 open questions (all resolved during this session)
+- Complete verification matrix
+
+#### Phase C: Spec and Guide Implementation (All 6 Foundations)
+
+Implemented all topology-ready foundations across spec and guide files:
+
+| Foundation | Files Modified | Elements Added |
+|------------|---------------|----------------|
+| F1: Spec Dependency Graph | spec/02-schema.md, guide/00-architecture.md, guide/11-worked-examples.md | INV-SCHEMA-009, ADR-SCHEMA-007, NEG-BOOTSTRAP-001 |
+| F2: Resolution Mode Extensibility | spec/02-schema.md | ADR-SCHEMA-008, forward-ref lattices 13–16 |
+| F3: Agent Entity First-Class | spec/01-store.md, spec/02-schema.md | ADR-STORE-020, INV-STORE-015, SYSTEM_AGENT in genesis, Layer 1 agent attrs |
+| F4: Frontier Data Model | spec/01-store.md | ADR-STORE-021, INV-STORE-016 |
+| F5: Spectral Computation | spec/03-query.md | INV-QUERY-022, ADR-QUERY-012, Stratum 3 spectral ops |
+| F6: Quadrilateral Extension | spec/18-trilateral.md | ADR-TRILATERAL-004, TOPO_ATTRS, LIVE_T, generalized Φ(S) |
+
+**Totals**: 5 new INVs, 7 new ADRs, 1 new NEG across 5 spec files and 2 guide files.
+All 41 beads closed.
+
+### Decisions Made
+
+1. **Agent identity = BLAKE3(program + model + session_context)** (ADR-STORE-020, OQ-1):
+   Each agent session is a distinct entity.
+2. **Agent attributes in Layer 1, not Layer 4** (OQ-2): Provenance infrastructure,
+   not coordination logic. Avoids future migration from strings to refs.
+3. **Frontier as compound entities, not JSON/tuples** (OQ-3): Most DDIS-native encoding —
+   frontier entries are facts, facts are datoms, datoms are queryable.
+4. **`:spec/affects` over `:spec/impacts`** (OQ-5): Active voice, consistent naming.
+5. **Four typed relationship attributes** (ADR-SCHEMA-007): CALM classification needs
+   relationship type at query time. `:spec/depends-on` (existing) + `:spec/affects`,
+   `:spec/constrains`, `:spec/tests` (new).
+6. **Lattice mechanism verified at Stage 0, registered at Stage 2–3** (ADR-SCHEMA-008):
+   Validates extensibility without adding unused data.
+7. **N-lateral model over hardcoded quadrilateral** (ADR-TRILATERAL-004): Extensible;
+   adding vertices doesn't change the algebra.
+
+### Open Questions
+
+None. All 5 open questions resolved during the session.
+
+### Failure Modes Discovered
+
+None new. The design proposal methodology (formalize → resolve questions → implement)
+prevented the common failure mode of premature implementation with unresolved ambiguities.
+
+### Files Modified
+
+| File | Action | Key Changes |
+|------|--------|-------------|
+| exploration/execution-topologies/*.md | CREATE | 12 topology exploration documents |
+| exploration/execution-topologies/TOPOLOGY-FOUNDATION-BEADS.md | CREATE | Formal design proposal, all OQs resolved |
+| spec/01-store.md | EDIT | +INV-STORE-015, +INV-STORE-016, +ADR-STORE-020, +ADR-STORE-021, SYSTEM_AGENT genesis |
+| spec/02-schema.md | EDIT | +INV-SCHEMA-009, +ADR-SCHEMA-007, +ADR-SCHEMA-008, +NEG-BOOTSTRAP-001, typed spec relationships, Layer 1 agent attrs, forward-ref lattices |
+| spec/03-query.md | EDIT | +INV-QUERY-022, +ADR-QUERY-012, spectral ops in Stratum 3 |
+| spec/18-trilateral.md | EDIT | +ADR-TRILATERAL-004, TOPO_ATTRS, LIVE_T, generalized Φ(S) |
+| guide/00-architecture.md | EDIT | Phase 2 dependency edges required (INV-SCHEMA-009) |
+| guide/11-worked-examples.md | EDIT | Step 3 extended with dependency edge datoms |
+
+### Recommended Next Action
+
+**Stage 0 implementation**: All topology foundations are now in the spec. The specification
+is complete for Stage 0. Begin Rust implementation per `guide/00-architecture.md`. The
+agent entity schema (Layer 1) and dependency graph attributes (Layer 2) are now formally
+specified and should be implemented alongside the core store.
 

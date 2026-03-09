@@ -664,7 +664,13 @@ braid transact --file spec-datoms.ednl
 1. Load the specification elements from `spec/` as datoms
 2. INVs, ADRs, NEGs become entities with `:spec/type`, `:spec/id`, `:spec/statement`
 3. Cross-references (`:spec/traces-to`, `:spec/depends-on`) become ref datoms
-4. Store now contains its own specification as queryable data
+4. **Dependency edges are REQUIRED, not optional (INV-SCHEMA-009)**: The bootstrap EDNL
+   generator parses cross-references from spec markdown and emits corresponding
+   `:spec/depends-on`, `:spec/affects`, `:spec/constrains`, and `:spec/tests` ref datoms.
+   A bootstrap that transacts content without dependency relationships produces a flat
+   store that cannot support impact analysis, contradiction chain tracing, or topology
+   compilation (NEG-BOOTSTRAP-001).
+5. Store now contains its own specification as queryable data with a connected dependency graph
 
 ### Phase 3: Spec-Enabled → Self-Verified
 

@@ -91,9 +91,10 @@ Stratum 2 — Uncertainty (mixed):
   Examples: epistemic-uncertainty, aleatory-uncertainty, consequential-risk
 
 Stratum 3 — Authority (not pure Datalog):
-  Linear algebra: SVD of agent-entity matrix.
+  Linear algebra: SVD of agent-entity matrix, Laplacian eigendecomposition,
+  Fiedler vector, spectral partitioning.
   QueryMode: Stratified (FFI to Rust linear algebra)
-  Examples: spectral-authority, delegation-threshold
+  Examples: spectral-authority, delegation-threshold, spectral-partition
 
 Stratum 4 — Conflict Detection (conservatively monotonic):
   Concurrent assertion detection on cardinality-one attributes.
@@ -219,7 +220,7 @@ pub enum Stratum {
     S1_MonotonicJoin,
     /// Stratum 2: Epistemic/aleatory/consequential uncertainty. Mixed (Stratified).
     S2_Uncertainty,
-    /// Stratum 3: Linear algebra (SVD, spectral authority). Stratified (FFI).
+    /// Stratum 3: Linear algebra (SVD, spectral authority, Laplacian, Fiedler vector, spectral partitioning). Stratified (FFI).
     S3_Authority,
     /// Stratum 4: Concurrent assertion detection. Conservatively monotonic.
     S4_ConflictDetection,
@@ -1061,6 +1062,49 @@ disagree with the store's datom count for the specified attribute.
 
 ---
 
+### INV-QUERY-022: Spectral Computation Correctness
+
+**Traces to**: exploration/06-cold-start.md §5.1 (spectral partitioning),
+  exploration/11-topology-as-compilation.md §2.3.3 (Pass 3)
+**Verification**: `V:PROP`
+**Stage**: 3 (usage); 0 (FFI foundation)
+
+#### Level 0 (Algebraic Law)
+```
+For any symmetric adjacency matrix A:
+  L = D - A  where D = diag(row_sums(A))
+  eigenvalues(L) are real and non-negative (L is positive semi-definite)
+  eigenvalue_0 = 0 (always, for connected graphs)
+  Fiedler vector = eigenvector corresponding to eigenvalue_1
+
+The number of zero eigenvalues of L equals the number of connected components
+in the graph defined by A.
+```
+
+#### Level 1 (State Invariant)
+Spectral partitioning preserves intra-cluster connectivity: for any partition
+produced by `spectral_partition(A, k)`, all nodes within each cluster are
+connected via edges in the original adjacency matrix A.
+
+#### Level 2 (Implementation Contract)
+```rust
+pub fn graph_laplacian(adjacency: &Matrix) -> Matrix;
+pub fn fiedler_vector(laplacian: &Matrix) -> Vector;
+pub fn spectral_partition(adjacency: &Matrix, k: usize) -> Vec<Vec<NodeId>>;
+
+// All return deterministic results for the same input.
+```
+
+**Falsification**: `spectral_partition` returns a partition where two nodes in
+the same cluster have no path between them in the original graph.
+
+**proptest strategy**: For random adjacency matrices, verify:
+  1. Laplacian has non-negative eigenvalues
+  2. Number of zero eigenvalues = number of connected components
+  3. Spectral partition preserves intra-cluster connectivity
+
+---
+
 ### §3.5 ADRs
 
 ### ADR-QUERY-001: Datalog Over SQL
@@ -1405,6 +1449,48 @@ An agent makes an irrevocable decision (e.g., committing a specification change)
 a query result with stability = 0, and the result later changes when new information
 arrives, causing the decision to be wrong. This is the exact scenario the stability score
 is designed to prevent.
+
+---
+
+### ADR-QUERY-012: Spectral Graph Operations via nalgebra
+
+**Traces to**: exploration/06-cold-start.md §5, exploration/11-topology-as-compilation.md §2.3
+**Stage**: 0 (FFI infrastructure); 3 (spectral partitioning usage)
+
+#### Problem
+The topology framework requires spectral graph operations (Laplacian, eigendecomposition,
+Fiedler vector) for cluster identification in the compilation middle-end (Pass 3:
+spectral partitioning). How should these be implemented?
+
+#### Options
+A) **nalgebra FFI** — Use nalgebra crate's eigendecomposition
+   - Pro: Mature, well-tested, pure Rust, no C dependency
+   - Pro: Already planned for Stratum 3 SVD (spectral authority)
+   - Con: nalgebra eigendecomposition is O(n^3); acceptable for n <= 50
+
+B) **Custom implementation** — Hand-roll power iteration for Fiedler vector
+   - Pro: Optimized for the specific use case (only need 2nd eigenvector)
+   - Con: Reinventing tested linear algebra; error-prone
+
+C) **lapack-sys FFI** — Call LAPACK's dsyev via FFI
+   - Pro: Maximum performance
+   - Con: C dependency; complicates build; overkill for n <= 50
+
+#### Decision
+**Option A.** nalgebra for all linear algebra operations (SVD, eigendecomposition,
+Laplacian computation). The Stratum 3 FFI boundary already exists for spectral
+authority. Spectral partitioning reuses the same infrastructure.
+
+#### Consequences
+- nalgebra dependency justified by two use cases (authority + topology)
+- `graph_laplacian`, `fiedler_vector`, `spectral_partition` added to query engine
+- Stratum 3 capability list extended to include spectral graph operations
+- Stage 0 builds the FFI; Stage 3 uses it for topology
+
+#### Falsification
+This decision is wrong if: the nalgebra eigendecomposition is numerically unstable
+for the class of graph Laplacians that arise from spec dependency graphs (typically
+sparse, small n <= 50, symmetric positive semi-definite).
 
 ---
 
