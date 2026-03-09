@@ -11,6 +11,8 @@
 
 pub mod datom;
 pub mod error;
+pub mod merge;
+pub mod query;
 pub mod resolution;
 pub mod schema;
 pub mod store;
@@ -18,6 +20,13 @@ pub mod store;
 // Re-export core types at crate root for ergonomic access.
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 pub use error::KernelError;
+pub use merge::{
+    detect_merge_conflicts, merge_stores, verify_frontier_advancement, verify_monotonicity,
+};
+pub use query::{
+    critical_path, density, evaluate, pagerank, scc, topo_sort, Binding, Clause, FindSpec, Pattern,
+    QueryExpr, QueryResult,
+};
 pub use resolution::{resolve, ConflictSet, ResolvedValue};
 pub use schema::{
     AttributeDef, AttributeSpec, Cardinality, ResolutionMode, Schema, Uniqueness, ValueType,
