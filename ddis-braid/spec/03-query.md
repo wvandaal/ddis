@@ -1105,6 +1105,155 @@ the same cluster have no path between them in the original graph.
 
 ---
 
+### INV-QUERY-023: Edge Laplacian Computation
+
+**Traces to**: INV-QUERY-022 (vertex Laplacian), ADR-QUERY-012 (nalgebra),
+  exploration/sheaf-coherence/01-hodge-theory.md §1
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+The edge Laplacian L₁ extends the vertex Laplacian L₀ to 1-forms (edge functions):
+
+Given graph G = (V, E) with:
+  B : signed incidence matrix (|V| × |E|)
+  C : triangle boundary matrix (|E| × |T|), T = triangles in G
+
+  L₀ = B Bᵀ           (|V| × |V|, vertex Laplacian — INV-QUERY-022)
+  L₁ = Bᵀ B + Cᵀ C    (|E| × |E|, edge Laplacian)
+
+Properties:
+  1. Symmetry: L₁ = L₁ᵀ (self-adjoint)
+  2. Positive semi-definiteness: ∀ eigenvalue λ of L₁: λ ≥ 0
+  3. Hodge decomposition: C¹(G) = im(Bᵀ) ⊕ ker(L₁) ⊕ im(C)
+     (gradient flows ⊕ harmonic forms ⊕ curl flows — orthogonal direct sum)
+  4. Hodge isomorphism: ker(L₁) ≅ H¹(G; ℝ) (first cohomology group)
+```
+
+#### Level 1 (State Invariant)
+The query engine provides `edge_laplacian(graph)` as a Stratum 3 operation. It takes
+a graph extracted from the store's reference structure and returns the |E| × |E| edge
+Laplacian matrix. The computation reuses the signed incidence matrix from the vertex
+Laplacian (INV-QUERY-022).
+
+For weighted graphs (per-attribute resolution mode weights):
+```
+L₁(W) = Bᵀ W B + Cᵀ C
+
+where W = diag(w₁, ..., w_m) is a diagonal weight matrix on edges.
+Weights reflect attribute resolution modes:
+  lattice-resolved: w = 0.1  (auto-converges, low concern)
+  LWW:              w = 0.5  (converges after merge)
+  multi-value:      w = 1.0  (requires deliberation, high concern)
+```
+
+#### Level 2 (Implementation Contract)
+```rust
+/// Compute the edge Laplacian L₁ = Bᵀ B + Cᵀ C.
+/// B = signed incidence matrix (|V| × |E|).
+/// C = triangle boundary matrix (|E| × |T|).
+pub fn edge_laplacian(
+    incidence: &DMatrix<f64>,
+    triangles: &DMatrix<f64>,
+) -> DMatrix<f64> {
+    incidence.transpose() * incidence + triangles.transpose() * triangles
+}
+
+/// Weighted edge Laplacian with resolution-mode-derived weights.
+pub fn weighted_edge_laplacian(
+    incidence: &DMatrix<f64>,
+    triangles: &DMatrix<f64>,
+    edge_weights: &DVector<f64>,
+) -> DMatrix<f64> {
+    let w = DMatrix::from_diagonal(edge_weights);
+    incidence.transpose() * &w * incidence + triangles.transpose() * triangles
+}
+```
+
+**Falsification**: L₁ is not symmetric (L₁ ≠ L₁ᵀ), OR L₁ has a negative eigenvalue,
+OR the Hodge decomposition subspaces are not orthogonal
+(`im(Bᵀ) ∩ ker(L₁) ≠ {0}` or `ker(L₁) ∩ im(C) ≠ {0}`).
+
+**proptest strategy**: For random graphs with n ≤ 8 vertices:
+  1. Verify L₁ = L₁ᵀ (symmetry, exact)
+  2. Verify all eigenvalues ≥ -ε where ε = 1e-10 (positive semi-definiteness)
+  3. Verify dim(im(Bᵀ)) + dim(ker(L₁)) + dim(im(C)) = |E| (decomposition completeness)
+
+---
+
+### INV-QUERY-024: First Betti Number from Laplacian Kernel
+
+**Traces to**: INV-QUERY-023 (edge Laplacian), INV-TRILATERAL-009 (coherence duality),
+  exploration/sheaf-coherence/00-sheaf-cohomology.md §6
+**Verification**: `V:PROP`, `V:KANI`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+The first Betti number β₁ counts independent cycles in a graph:
+
+  β₁(G) = dim(ker(L₁)) = dim(H¹(G; ℝ))
+
+For a connected graph G = (V, E):
+  β₁ = |E| - |V| + 1    (the circuit rank)
+
+For a graph with c connected components:
+  β₁ = |E| - |V| + c
+
+Properties:
+  1. Non-negativity: β₁ ≥ 0
+  2. Trees: β₁ = 0 ⟺ G is acyclic (tree or forest)
+  3. Single cycle: β₁ = 1 for an n-cycle graph
+  4. Monotonicity under edge addition: β₁(G + e) ≥ β₁(G)
+  5. Additivity: β₁(G₁ ⊔ G₂) = β₁(G₁) + β₁(G₂) (disjoint union)
+```
+
+#### Level 1 (State Invariant)
+The query engine provides `betti_1(graph) -> usize` as a Stratum 3 operation. It
+computes β₁ from the edge Laplacian kernel dimension (INV-QUERY-023). The result is
+an exact integer (determined by counting eigenvalues below numerical threshold ε = 1e-10).
+
+For single-agent stores (Stage 0), β₁ is computed over the ISP coherence graph
+(INV-TRILATERAL-008). For multi-agent stores (Stage 2+), β₁ is additionally computed
+over the agent communication graph.
+
+The harmonic 1-forms (eigenvectors of L₁ with eigenvalue 0) are the minimum-energy
+characterizations of each incoherence cycle. These are returned alongside β₁ for
+diagnostic output (INV-TRILATERAL-009).
+
+#### Level 2 (Implementation Contract)
+```rust
+/// Compute the first Betti number β₁ = dim(ker(L₁)).
+pub fn betti_1(edge_laplacian: &DMatrix<f64>) -> usize {
+    let eigenvalues = edge_laplacian.symmetric_eigenvalues();
+    eigenvalues.iter().filter(|&&v| v.abs() < 1e-10).count()
+}
+
+/// Extract harmonic representatives (eigenvectors for zero eigenvalues).
+pub fn harmonic_representatives(
+    edge_laplacian: &DMatrix<f64>,
+) -> Vec<DVector<f64>> {
+    let decomp = edge_laplacian.symmetric_eigen();
+    decomp.eigenvalues.iter().enumerate()
+        .filter(|(_, &v)| v.abs() < 1e-10)
+        .map(|(i, _)| decomp.eigenvectors.column(i).into_owned())
+        .collect()
+}
+```
+
+**Falsification**: β₁ < 0 (impossible by construction), OR β₁ ≠ |E| - |V| + c
+where c = connected components (circuit rank mismatch), OR β₁ ≠ 0 for a tree, OR
+β₁ = 0 for a single n-cycle (n ≥ 3), OR β₁ ≠ nullity(L₁) (Hodge isomorphism failure).
+
+**proptest strategy**: For random graphs with n ≤ 8 vertices:
+  1. Verify β₁ = |E| - |V| + c (circuit rank formula)
+  2. Verify β₁ = 0 for random spanning trees
+  3. Verify β₁ = 1 for random n-cycle graphs
+  4. Verify β₁ equals the count of zero eigenvalues of L₁ (cross-check)
+
+---
+
 ### §3.5 ADRs
 
 ### ADR-QUERY-001: Datalog Over SQL
@@ -1491,6 +1640,75 @@ authority. Spectral partitioning reuses the same infrastructure.
 This decision is wrong if: the nalgebra eigendecomposition is numerically unstable
 for the class of graph Laplacians that arise from spec dependency graphs (typically
 sparse, small n <= 50, symmetric positive semi-definite).
+
+---
+
+### ADR-QUERY-013: Hodge-Theoretic Coherence via Edge Laplacian
+
+**Traces to**: INV-QUERY-023, INV-QUERY-024, ADR-QUERY-012,
+  exploration/sheaf-coherence/01-hodge-theory.md §1
+**Stage**: 0
+
+#### Problem
+The trilateral coherence model (TRILATERAL namespace) defines a divergence metric
+Φ that counts unlinked boundaries. Φ detects *missing* links but not *inconsistent*
+links — the state Φ = 0, β₁ > 0 (all links exist but form a contradictory cycle)
+is invisible to Φ alone. How should the query engine detect cyclic incoherence?
+
+#### Options
+A) **Edge Laplacian / Hodge theory** — Compute L₁ = BᵀB + CᵀC, extract
+   ker(L₁) ≅ H¹ via the Hodge isomorphism
+   - Pro: Reuses the nalgebra infrastructure (ADR-QUERY-012) — no new dependencies
+   - Pro: The Hodge decomposition provides harmonic representatives (minimum-energy
+     characterization of each incoherence cycle), not just a count
+   - Pro: The vertex Laplacian L₀ and edge Laplacian L₁ share the incidence matrix B,
+     amortizing construction cost
+   - Con: Requires enumerating triangles in the graph to build C (O(nm) where n = |V|,
+     m = |E|); acceptable for n ≤ 50
+
+B) **Simplicial boundary matrices** — Compute H¹ via rank-nullity on ∂₁, ∂₂
+   using Smith normal form over Z or F₂
+   - Pro: Direct algebraic topology computation; no eigenvalue numerics
+   - Con: Smith normal form over Z requires a separate integer-arithmetic library
+   - Con: Does not produce harmonic representatives (loses the energy interpretation)
+   - Con: New dependency or hand-rolled implementation
+
+C) **Cycle detection heuristic** — BFS/DFS cycle finder with disagreement annotation
+   - Pro: Simple to implement; no linear algebra
+   - Con: Finds cycles but cannot determine independence (may over-count)
+   - Con: No formal connection to cohomology; loses the Hodge diagnostic structure
+   - Con: No weighted variant for resolution-mode-aware analysis
+
+#### Decision
+**Option A.** The edge Laplacian L₁ computed via nalgebra's eigendecomposition gives
+both β₁ (kernel dimension) and harmonic representatives (kernel eigenvectors). This
+reuses the existing nalgebra dependency (ADR-QUERY-012) and the incidence matrix
+already computed for the vertex Laplacian (INV-QUERY-022). The Hodge decomposition
+provides a principled three-way classification of all disagreements: gradient (tree-like,
+pairwise-resolvable), harmonic (cyclic, requiring coordinated resolution), and curl
+(locally resolvable via triangle operations).
+
+#### Formal Justification
+The Hodge isomorphism ker(L₁) ≅ H¹(G; ℝ) is a theorem of discrete differential
+geometry (Eckmann, 1944). For finite graphs, it reduces to linear algebra: β₁ equals
+the number of zero eigenvalues of L₁. The isomorphism is exact (not an approximation),
+so the query engine's β₁ computation is mathematically precise up to floating-point
+tolerance in the eigenvalue solver.
+
+#### Consequences
+- `edge_laplacian`, `weighted_edge_laplacian`, `betti_1`, `harmonic_representatives`
+  added to the query engine's spectral operations (INV-QUERY-023, INV-QUERY-024)
+- `triangle_matrix(graph)` added as a prerequisite helper
+- The TRILATERAL namespace's coherence state extends from Φ to (Φ, β₁)
+  (INV-TRILATERAL-009)
+- Resolution-mode weights (lattice=0.1, LWW=0.5, multi=1.0) propagate through
+  the weighted edge Laplacian, filtering semantically insignificant cycles
+
+#### Falsification
+This decision is wrong if: (a) the eigenvalue solver's floating-point tolerance
+(1e-10) produces false zero eigenvalues for graphs arising from real coherence
+structures, OR (b) the triangle enumeration cost becomes prohibitive for graphs
+larger than n = 50 (which would require a sparse or incremental algorithm).
 
 ---
 

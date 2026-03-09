@@ -423,8 +423,8 @@ vs. from scratch.
 
 #### Level 0 (Algebraic Law)
 ```
-The TRILATERAL spec elements (INV-TRILATERAL-001..007, ADR-TRILATERAL-001..004,
-NEG-TRILATERAL-001..003) are datoms in the store.
+The TRILATERAL spec elements (INV-TRILATERAL-001..010, ADR-TRILATERAL-001..006,
+NEG-TRILATERAL-001..004) are datoms in the store.
 
 ∀ trilateral elements T: T ∈ LIVE_S(S)
   (all trilateral spec elements appear in the spec LIVE view)
@@ -440,6 +440,277 @@ elements themselves as entities requiring `:spec/implements` links.
 **Falsification**: Any trilateral spec element that is not present as a datom
 in the store after self-bootstrap, or that appears in LIVE_I or LIVE_P
 instead of LIVE_S.
+
+---
+
+### INV-TRILATERAL-008: ISP Specification Bypass Detection
+
+**Traces to**: SEED §2 (divergence problem), SEED §6 (reconciliation),
+  INV-QUERY-023 (edge Laplacian), exploration/sheaf-coherence/00-sheaf-cohomology.md §5
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+The ISP triangle is the smallest non-trivial coherence cycle:
+
+  I ——(:spec/traces-to)—— S ——(:spec/implements)—— P
+   \                                                /
+    \————————(:impl/source-intent)————————————————/
+
+A specification bypass occurs when an implementation P derives directly from
+intent I without following the specification S's interpretation.
+
+Define the ISP agreement predicate for entity e:
+  agree_IS(e) ≡ (interpretation of e in LIVE_I matches LIVE_S)
+  agree_SP(e) ≡ (interpretation of e in LIVE_S matches LIVE_P)
+  agree_IP(e) ≡ (interpretation of e in LIVE_I matches LIVE_P)
+
+ISP coherence for entity e:
+  ISP_coherent(e) ≡ agree_IS(e) ∧ agree_SP(e) → agree_IP(e)
+
+Specification bypass:
+  bypass(e) ≡ agree_IP(e) ∧ ¬agree_SP(e)
+  (impl matches intent but contradicts spec — spec was circumvented)
+```
+
+#### Level 1 (State Invariant)
+The coherence checker examines every entity e that has links in all three
+boundaries (I↔S, S↔P, I↔P). For each such entity, it computes the three
+agreement predicates by comparing resolved attribute values across LIVE views.
+
+When `bypass(e)` holds, the checker emits a diagnostic identifying:
+- The entity e
+- The attribute(s) where S and P disagree
+- The I→P link that created the bypass path
+
+In Stage 0 (single agent), this reduces to checking whether the implementing
+agent's code follows the spec or directly interprets the seed. The ISP check
+is O(|entities|) — a linear scan over trilateral-linked entities.
+
+#### Level 2 (Implementation Contract)
+```rust
+/// Check ISP coherence for a single entity across three LIVE views.
+pub fn isp_check(
+    entity: EntityId,
+    live_i: &LiveView,
+    live_s: &LiveView,
+    live_p: &LiveView,
+    attrs: &[Attribute],
+) -> IspResult {
+    let mut bypasses = Vec::new();
+    for attr in attrs {
+        let v_i = live_i.resolve(entity, attr);
+        let v_s = live_s.resolve(entity, attr);
+        let v_p = live_p.resolve(entity, attr);
+        let agree_is = v_i == v_s;
+        let agree_sp = v_s == v_p;
+        let agree_ip = v_i == v_p;
+        if agree_ip && !agree_sp {
+            bypasses.push(Bypass { entity, attr: attr.clone(), v_s, v_p });
+        }
+    }
+    IspResult { entity, bypasses }
+}
+```
+
+**Falsification**: An entity e exists where `bypass(e)` holds (impl follows intent,
+contradicts spec) but the checker reports no bypass. Equivalently: any false negative
+on the ISP agreement check.
+
+**proptest strategy**: For randomly generated ISP triples (v_i, v_s, v_p) over a
+small value domain (|V| ≤ 4), verify that `bypass` is detected iff
+`v_i == v_p && v_s != v_p`.
+
+---
+
+### INV-TRILATERAL-009: Coherence Completeness — (Φ, β₁) Duality
+
+**Traces to**: INV-TRILATERAL-001 (Φ definition), INV-QUERY-024 (β₁ computation),
+  SEED §2 (divergence problem), exploration/sheaf-coherence/00-sheaf-cohomology.md §6
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+```
+The coherence state of a store S is the pair (Φ(S), β₁(S)) where:
+
+  Φ(S) = |D_IS| + |D_SP| + |D_IP|    (INV-TRILATERAL-001, gap count)
+  β₁(S) = dim(ker(L₁(G_S)))           (INV-QUERY-024, cycle count)
+
+The four coherence quadrants:
+
+  Φ > 0, β₁ = 0: Gaps exist but are independent.
+                  Resolution: fix any gap in any order (monotonic).
+  Φ = 0, β₁ > 0: All links exist but form contradictory cycles.
+                  Resolution: coordinated multi-boundary fix required.
+  Φ > 0, β₁ > 0: Gaps AND cycles. Fix cycles first (they constrain gap resolution order).
+  Φ = 0, β₁ = 0: Fully coherent. Target state.
+
+Completeness theorem:
+  Φ(S) = 0 ∧ β₁(S) = 0 ↔ S is coherent
+  (no gaps and no cyclic contradictions ↔ full coherence)
+
+Monotonicity (gap resolution):
+  Adding a `:spec/traces-to` or `:spec/implements` link ℓ:
+    Φ(S ∪ {ℓ}) ≤ Φ(S)         (Φ is monotonically non-increasing — INV-TRILATERAL-004)
+    β₁(S ∪ {ℓ}) ≶ β₁(S)       (β₁ can increase or decrease — CAUTION)
+
+  Adding ℓ may complete an open path into a closed cycle with disagreements,
+  increasing β₁. The guidance system MUST compute β₁ before and after proposed
+  link additions (INV-TRILATERAL-008 provides the diagnostic).
+```
+
+#### Level 1 (State Invariant)
+The `braid coherence` command reports both Φ and β₁. Neither metric alone is
+sufficient: Φ misses the case where all links exist but are contradictory
+(Φ = 0, β₁ > 0), and β₁ misses isolated gaps that don't form cycles (Φ > 0,
+β₁ = 0). The pair (Φ, β₁) is the minimal complete characterization of
+store coherence with respect to the trilateral model.
+
+The coherence check returns `COHERENT` only when both Φ = 0 AND β₁ = 0.
+Any other state includes a diagnostic explaining which quadrant the store
+occupies and what resolution strategy applies.
+
+#### Level 2 (Implementation Contract)
+```rust
+#[derive(Debug, PartialEq, Eq)]
+pub enum CoherenceQuadrant {
+    Coherent,              // Φ = 0, β₁ = 0
+    GapsOnly,              // Φ > 0, β₁ = 0
+    CyclesOnly,            // Φ = 0, β₁ > 0
+    GapsAndCycles,         // Φ > 0, β₁ > 0
+}
+
+pub fn coherence_state(phi: usize, beta_1: usize) -> CoherenceQuadrant {
+    match (phi > 0, beta_1 > 0) {
+        (false, false) => CoherenceQuadrant::Coherent,
+        (true,  false) => CoherenceQuadrant::GapsOnly,
+        (false, true)  => CoherenceQuadrant::CyclesOnly,
+        (true,  true)  => CoherenceQuadrant::GapsAndCycles,
+    }
+}
+
+/// Full coherence check returning (Φ, β₁, quadrant, diagnostics).
+pub fn check_coherence(store: &Store) -> CoherenceReport {
+    let phi = compute_phi(store);        // INV-TRILATERAL-001
+    let beta_1 = compute_beta_1(store);  // INV-QUERY-024
+    let quadrant = coherence_state(phi, beta_1);
+    CoherenceReport { phi, beta_1, quadrant, /* diagnostics */ }
+}
+```
+
+**Falsification**: The system reports `CoherenceQuadrant::Coherent` when Φ > 0 OR
+β₁ > 0. Equivalently: a store with an unresolved gap or an unresolved cyclic
+contradiction is classified as coherent.
+
+**proptest strategy**: For random store states with known Φ and β₁ values,
+verify that the quadrant classification matches the (Φ > 0, β₁ > 0) truth table
+exhaustively over all four combinations.
+
+---
+
+### INV-TRILATERAL-010: Persistent Cohomology over Transaction Filtration
+
+**Traces to**: C1 (append-only), INV-QUERY-024 (β₁),
+  SEED §7 (self-improvement loop), exploration/sheaf-coherence/02-persistent-diagnostics.md §1
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+```
+The append-only store (C1) induces a monotone filtration:
+
+  ∅ = S₀ ⊂ S₁ ⊂ S₂ ⊂ ... ⊂ Sₜ
+
+where Sᵢ = store after transaction i, and Sᵢ ⊂ Sᵢ₊₁ (inclusion by set growth).
+
+The first cohomology at each step gives a persistence module:
+
+  M = {H¹(Sᵢ), φᵢ : H¹(Sᵢ) → H¹(Sᵢ₊₁)}
+
+where φᵢ is induced by the inclusion Sᵢ ↪ Sᵢ₊₁.
+
+By the structure theorem for persistence modules (over a PID):
+
+  M ≅ ⊕ⱼ k[bⱼ, dⱼ)
+
+Each interval [bⱼ, dⱼ) represents an incoherence cycle born at transaction bⱼ
+and resolved at transaction dⱼ. The multiset {(bⱼ, dⱼ)} is the persistence diagram.
+
+Stability (Bottleneck Distance Theorem):
+  d_B(PD(Sᵢ), PD(Sᵢ₊₁)) ≤ 1
+  (a single transaction changes the persistence diagram by at most one birth or death)
+
+Derived metrics:
+  P_max(t)    = max{dⱼ - bⱼ : bⱼ ≤ t < dⱼ}   — age of longest-lived cycle
+  N_active(t) = |{j : bⱼ ≤ t < dⱼ}|            — count of unresolved cycles
+  R_net(t)    = R_birth(t) - R_death(t)          — accumulation rate
+```
+
+#### Level 1 (State Invariant)
+The persistence tracker maintains a running record of H¹ generator births and
+deaths across transaction history. On each transaction, it incrementally updates
+the edge Laplacian (only edges affected by the new datoms change), recomputes
+β₁, and detects births (new kernel vectors) and deaths (kernel vectors that
+left the kernel).
+
+A generator that persists beyond the **chronic threshold** (configurable,
+default: 3× median resolved persistence) triggers a `SIGNAL_H1_CHRONIC`
+signal, elevating the incoherence from routine work-in-progress to a
+structural problem requiring deliberation.
+
+The chronic threshold is stored as a datom (schema-as-data, C3):
+```
+(config:cohomology, :config/chronic-threshold-multiplier, 3.0, tx:config, assert)
+```
+
+#### Level 2 (Implementation Contract)
+```rust
+/// A single persistence interval: an incoherence cycle's lifetime.
+#[derive(Debug, Clone)]
+pub struct PersistenceInterval {
+    pub birth_tx: TxId,
+    pub death_tx: Option<TxId>,  // None = still alive
+    pub generator: DVector<f64>, // harmonic representative at birth
+}
+
+/// Incremental persistence tracker across transaction history.
+pub struct PersistenceTracker {
+    intervals: Vec<PersistenceInterval>,
+    prev_kernel: Vec<DVector<f64>>,
+    chronic_multiplier: f64,  // default 3.0
+}
+
+impl PersistenceTracker {
+    /// Update after a new transaction. Returns births and deaths.
+    pub fn update(
+        &mut self,
+        tx: TxId,
+        new_kernel: Vec<DVector<f64>>,
+    ) -> PersistenceUpdate {
+        let births = self.detect_births(&new_kernel);
+        let deaths = self.detect_deaths(&new_kernel, tx);
+        self.prev_kernel = new_kernel;
+        PersistenceUpdate { births, deaths }
+    }
+
+    /// Current persistence diagram.
+    pub fn diagram(&self) -> Vec<(TxId, Option<TxId>)> {
+        self.intervals.iter()
+            .map(|iv| (iv.birth_tx, iv.death_tx))
+            .collect()
+    }
+}
+```
+
+**Falsification**: A generator that is provably resolved (the corresponding
+eigenvector leaves ker(L₁)) is not recorded as dead, OR a generator that
+persists beyond the chronic threshold does not trigger the chronic signal.
+
+**proptest strategy**: For a sequence of random store mutations (n ≤ 20
+transactions), verify that |births| - |deaths| = β₁(Sₜ) - β₁(S₀) at every
+step (the persistence accounting identity).
 
 ---
 
@@ -666,6 +937,137 @@ than a hardcoded trilateral.
 
 ---
 
+### ADR-TRILATERAL-005: Cohomological Complement to Divergence Metric
+
+**Traces to**: INV-TRILATERAL-009 (coherence duality), INV-TRILATERAL-001 (Φ),
+  INV-QUERY-024 (β₁), exploration/sheaf-coherence/00-sheaf-cohomology.md §6
+**Stage**: 0
+
+#### Problem
+The divergence metric Φ counts unlinked boundaries (missing edges in the
+coherence graph). A store can achieve Φ = 0 while having contradictory
+information flowing around a cycle of links (all links present, but mutually
+inconsistent). Should the trilateral model incorporate a topological invariant
+to detect this blind spot?
+
+#### Options
+A) **Add β₁ (first Betti number) as a formal complement to Φ** — Compute
+   H¹ of the coherence graph via the edge Laplacian and report (Φ, β₁)
+   as the coherence state
+   - Pro: Mathematically complete — (Φ, β₁) = (0, 0) is necessary and sufficient
+     for coherence (no gaps, no cycles)
+   - Pro: Reuses existing nalgebra infrastructure (ADR-QUERY-012, INV-QUERY-023)
+   - Pro: Provides actionable diagnostics: harmonic representatives locate the
+     exact cycle and recommend where to intervene
+   - Con: Adds a linear algebra computation to every coherence check
+
+B) **Rely on Φ alone with ad-hoc cycle detection** — Keep Φ as the only
+   metric, add a separate cycle-detection pass as a heuristic warning
+   - Pro: Simpler mental model (one number)
+   - Con: Cycle detection without cohomology cannot determine independence
+     of cycles, leading to over- or under-counting
+   - Con: No formal completeness guarantee
+
+C) **Defer to contradiction engine** — Use the existing 5-tier contradiction
+   detector (from the Go CLI) to find pairwise semantic contradictions
+   - Pro: Leverages existing infrastructure
+   - Con: Pairwise contradiction detection misses *cyclic* contradictions
+     where each pair is locally consistent but the cycle is globally incoherent
+   - Con: O(n²) pairwise comparisons vs O(|E|²) for L₁ eigendecomposition
+
+#### Decision
+**Option A.** The pair (Φ, β₁) is the minimal complete coherence characterization.
+Φ detects zeroth-order problems (missing links); β₁ detects first-order problems
+(contradictory cycles). Neither subsumes the other — the four quadrants of
+(Φ > 0, β₁ > 0) have distinct resolution strategies (INV-TRILATERAL-009).
+
+The computation cost is negligible: for Stage 0 (single agent), β₁ = 0 by
+construction (no multi-agent cycles), so the ISP triangle check
+(INV-TRILATERAL-008) is the effective implementation. For Stage 2+, the edge
+Laplacian eigendecomposition is O(m²) where m = |E| ≤ 45 (for n ≤ 10 agents),
+completing in microseconds.
+
+#### Consequences
+- `braid coherence` reports (Φ, β₁, quadrant) instead of Φ alone
+- The fitness function F(S) extends to include a β₁ term (see INV-TRILATERAL-009)
+- Guidance injection includes cycle diagnostics when β₁ > 0
+- The self-bootstrap coherence check (INV-TRILATERAL-007) verifies β₁ = 0
+  for the spec's own trilateral structure
+
+#### Falsification
+This decision is wrong if: the (Φ, β₁) pair fails to detect a class of
+coherence failures that exists in practice — i.e., a store state that is
+incoherent but has Φ = 0 ∧ β₁ = 0. By the completeness theorem
+(INV-TRILATERAL-009 Level 0), this cannot happen for the coherence graph
+model, but it could happen if the coherence graph fails to capture some
+aspect of store coherence (e.g., higher-order incoherence requiring H²).
+
+---
+
+### ADR-TRILATERAL-006: F₂ Coefficients for Initial Cohomology
+
+**Traces to**: INV-QUERY-023, INV-QUERY-024,
+  exploration/sheaf-coherence/00-sheaf-cohomology.md §3
+**Stage**: 0
+
+#### Problem
+The edge Laplacian (INV-QUERY-023) works over ℝ, using real-valued eigenvectors.
+The underlying coherence question is binary: for each edge (agent pair) and
+attribute, do the two agents agree (0) or disagree (1)? What coefficient field
+should the cohomology computation use?
+
+#### Options
+A) **ℝ (real numbers) via eigendecomposition** — Compute L₁ over ℝ,
+   detect zero eigenvalues with floating-point tolerance ε = 1e-10
+   - Pro: Reuses nalgebra's `symmetric_eigenvalues()` — no new code
+   - Pro: Harmonic representatives are real vectors, enabling weighted
+     energy computations for resolution-mode-aware diagnostics
+   - Con: Floating-point tolerance introduces potential for false
+     positives/negatives near the ε boundary
+
+B) **F₂ (binary field) via rank computation** — Compute β₁ = dim(ker(∂₁))
+   - dim(im(∂₀)) using exact arithmetic over GF(2)
+   - Pro: Exact computation, no floating-point issues
+   - Con: Requires implementing GF(2) matrix operations (Smith normal form
+     or Gaussian elimination mod 2) — new code
+   - Con: Loses the weighted Hodge decomposition (weights are meaningless
+     over F₂)
+
+C) **Dual approach** — F₂ for β₁ count (exact), ℝ for harmonic representatives
+   (diagnostic)
+   - Pro: Best of both — exact count with rich diagnostics
+   - Con: Two separate computations; complexity not justified at Stage 0
+
+#### Decision
+**Option A.** Real coefficients via the existing eigendecomposition, with
+tolerance ε = 1e-10. The nalgebra eigenvalue solver is numerically stable for
+the class of matrices that arise (symmetric, positive semi-definite, small
+dimension m ≤ 45). The real-valued computation also gives the weighted Hodge
+decomposition for free, which is essential for resolution-mode-aware diagnostics
+(INV-QUERY-023 Level 1).
+
+The tolerance ε = 1e-10 is well above machine epsilon (~1e-16) and well below
+any meaningful eigenvalue gap (the smallest non-zero eigenvalue of L₁ for a
+connected graph is the 1-form spectral gap μ₁ > 0, typically O(1/|E|)).
+UNC-TRILATERAL-003 tracks the open question of whether F₂ or a dual approach
+is needed for large-scale deployments.
+
+#### Consequences
+- β₁ computation is `eigenvalues.filter(|v| v.abs() < 1e-10).count()`
+- Harmonic representatives are the corresponding eigenvectors
+- Weighted edge Laplacian L₁(W) gives resolution-mode-aware β₁
+- The ε = 1e-10 tolerance is a configurable constant, not hardcoded
+  in business logic (stored as config datom, C3)
+
+#### Falsification
+This decision is wrong if: the floating-point eigenvalue computation produces
+a false zero (eigenvalue < ε that is actually non-zero) or a false non-zero
+(eigenvalue > ε that is actually zero) for any coherence graph arising from
+a real DDIS store. This would be observable as a disagreement between the
+real-valued β₁ and the F₂ β₁ for the same graph.
+
+---
+
 ### §18.6 Negative Cases
 
 ### NEG-TRILATERAL-001: No Cross-View Contamination
@@ -730,6 +1132,29 @@ after any link addition.
 
 ---
 
+### NEG-TRILATERAL-004: No Φ-Only Coherence Declaration
+
+**Traces to**: INV-TRILATERAL-009 (coherence duality), ADR-TRILATERAL-005
+**Verification**: `V:TYPE`
+
+**Safety property**: `□ ¬(coherence_check returns COHERENT when β₁ > 0)`
+
+The system must never declare a store "coherent" based solely on Φ = 0
+without also verifying β₁ = 0. The state Φ = 0, β₁ > 0 means all links
+exist but contain contradictory cycles — this is an incoherent store that
+would pass a Φ-only check.
+
+This is enforced at the type level: the `CoherenceReport` struct requires
+both `phi` and `beta_1` fields, and `CoherenceQuadrant::Coherent` is only
+constructible when both are zero (INV-TRILATERAL-009 Level 2). There is
+no code path that evaluates coherence from Φ alone.
+
+**Violation condition**: Any code path, CLI command, or API endpoint that
+reports "coherent" or equivalent without computing β₁. Any conditional
+that checks `phi == 0` without also checking `beta_1 == 0`.
+
+---
+
 ### §18.7 Uncertainty Register
 
 ### UNC-TRILATERAL-001: Boundary Weight Calibration
@@ -749,6 +1174,41 @@ The current partition may need extension for coordination-specific attributes
 
 ---
 
+### UNC-TRILATERAL-003: Coefficient Generalization (ℝ vs F₂)
+
+**Confidence**: 0.8
+**What would resolve it**: Stage 2+ deployment with ≥ 3 agents producing a
+coherence graph where the real-valued β₁ (via eigendecomposition with ε = 1e-10)
+disagrees with the exact F₂ β₁ (via mod-2 rank computation). If no disagreement
+is observed across 1000+ coherence checks, the ℝ approach is validated. If
+disagreement occurs, the dual approach (Option C from ADR-TRILATERAL-006)
+must be implemented.
+
+Current assessment: for the graph sizes arising in DDIS (n ≤ 10 agents,
+m ≤ 45 edges), the eigenvalue gap between zero and non-zero eigenvalues is
+large enough that ε = 1e-10 is safe. This uncertainty is relevant only if
+DDIS scales to significantly larger agent populations.
+
+---
+
+### UNC-TRILATERAL-004: Sheaf Laplacian Refinement
+
+**Confidence**: 0.6
+**What would resolve it**: Stage 2+ implementation comparing the standard
+weighted edge Laplacian L₁(W) (INV-QUERY-023) against the full sheaf Laplacian
+L_F (Hansen-Ghrist construction) for detecting resolution-mode-dependent
+convergence bottlenecks.
+
+The sheaf Laplacian uses per-edge restriction maps derived from resolution modes
+(LWW → binary agreement, lattice → lattice distance, multi-value → Jaccard
+distance), giving a tighter convergence bound (sheaf spectral gap μ_F ≤ μ₁).
+If μ_F << μ₁ in practice, the sheaf Laplacian reveals semantic bottlenecks
+invisible to the standard construction — this would justify upgrading from
+L₁(W) to L_F. Until empirical evidence exists, the weighted edge Laplacian
+(simpler, well-understood) is the correct choice.
+
+---
+
 ### §18.8 Relationship to Existing Namespaces
 
 - **Extends BILATERAL** (§10): bilateral loop → trilateral coherence. The
@@ -762,6 +1222,8 @@ The current partition may need extension for coordination-specific attributes
   schema system to enforce that each attribute belongs to exactly one namespace.
 - **Depends on QUERY** (§3): Φ as Datalog program (INV-TRILATERAL-006) depends
   on INV-QUERY-001 (CALM-compliant monotonic reads) for correctness guarantees.
+  β₁ computation (INV-TRILATERAL-009) depends on INV-QUERY-023 (edge Laplacian)
+  and INV-QUERY-024 (Betti number extraction) for the spectral computation.
 - **Depends on LAYOUT** (§1b): Per-transaction content-addressed `.edn` files
   provide the VCS-compatible storage structure that makes Φ computation possible
   from the file system.

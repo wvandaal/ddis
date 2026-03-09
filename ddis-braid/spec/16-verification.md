@@ -60,7 +60,7 @@ Every V:TYPE invariant in this spec also has V:PROP — there are no V:TYPE-only
 | INV-SCHEMA-007 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
 | INV-SCHEMA-008 | V:PROP | — | proptest | test | 2 |
 
-#### QUERY (21 INV)
+#### QUERY (24 INV)
 
 | ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
 |----|---------------|-----------|------|---------|-------|
@@ -85,6 +85,9 @@ Every V:TYPE invariant in this spec also has V:PROP — there are no V:TYPE-only
 | INV-QUERY-019 | V:PROP | — | proptest | test | 2 |
 | INV-QUERY-020 | V:PROP | — | proptest | test | 2 |
 | INV-QUERY-021 | V:PROP | — | proptest | test | 0 |
+| INV-QUERY-022 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-QUERY-023 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
+| INV-QUERY-024 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
 
 #### RESOLUTION (8 INV)
 
@@ -241,7 +244,7 @@ Every V:TYPE invariant in this spec also has V:PROP — there are no V:TYPE-only
 | INV-LAYOUT-010 | V:PROP | V:MODEL | proptest + stateright | test + model | 0 |
 | INV-LAYOUT-011 | V:PROP | V:KANI | proptest + kani | test + kani | 0 |
 
-#### TRILATERAL (7 INV)
+#### TRILATERAL (10 INV)
 
 | ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
 |----|---------------|-----------|------|---------|-------|
@@ -252,6 +255,9 @@ Every V:TYPE invariant in this spec also has V:PROP — there are no V:TYPE-only
 | INV-TRILATERAL-005 | V:TYPE | V:PROP | rustc + proptest | compile + test | 0 |
 | INV-TRILATERAL-006 | V:PROP | — | proptest | test | 0 |
 | INV-TRILATERAL-007 | V:PROP | — | proptest | test | 0 |
+| INV-TRILATERAL-008 | V:PROP | — | proptest | test | 0 |
+| INV-TRILATERAL-009 | V:PROP | — | proptest | test | 0 |
+| INV-TRILATERAL-010 | V:PROP | — | proptest | test | 1 |
 
 ### §16.2 CI Pipeline Gates
 

@@ -2049,10 +2049,84 @@ None formalized as ADRs (exploration phase). Key design choices to formalize if 
 
 ### Recommended Next Action
 
-Choose between:
-1. **Promote to spec**: If the framework is compelling, formalize key invariants
-   (INV-QUERY-023: H¹ Computability, ADR-QUERY-013: Hodge vs. Čech) in spec/03-query.md
-2. **Explore next area**: Signal system, agent capability modeling, or cross-project topology
-3. **Continue Stage 0 implementation**: The exploration is complete and can be picked up
-   later when multi-agent coherence becomes relevant (Stage 2-3)
+User chose option 1 — promote to spec. See Session 018.
+
+---
+
+## Session 018 — 2026-03-09 (Sheaf Cohomology Promotion to Formal Spec)
+
+### Seed (Context Loaded)
+
+- Continuation of Session 017 (sheaf cohomology exploration).
+- User requested cleanroom software engineering promotion: formal methods, spec-driven design,
+  abstract algebra, formal verification, zero-defect software, first-principles thinking.
+- Three exploration docs to formalize into existing spec namespaces.
+
+### What Was Accomplished
+
+Promoted 11 formal spec elements from `exploration/sheaf-coherence/` into the specification,
+using three-level cleanroom refinement (L0 algebraic law, L1 state invariant, L2 Rust contract):
+
+**spec/03-query.md** (QUERY namespace, 3 new elements):
+- **INV-QUERY-023**: Edge Laplacian Computation — L₁ = BᵀB + CᵀC, weighted variant L₁(W)
+- **INV-QUERY-024**: First Betti Number from Laplacian Kernel — β₁ = dim(ker(L₁)), harmonic reps
+- **ADR-QUERY-013**: Hodge-Theoretic Coherence via Edge Laplacian — chose Hodge/eigendecomposition
+  over Smith normal form (Option B) and cycle-detection heuristic (Option C)
+
+**spec/18-trilateral.md** (TRILATERAL namespace, 8 new elements):
+- **INV-TRILATERAL-008**: ISP Specification Bypass Detection — agree_IS ∧ agree_SP → agree_IP
+- **INV-TRILATERAL-009**: Coherence Completeness (Φ, β₁) Duality — four quadrant classification
+- **INV-TRILATERAL-010**: Persistent Cohomology over Transaction Filtration — persistence diagrams, chronic threshold
+- **ADR-TRILATERAL-005**: Cohomological Complement to Divergence Metric — (Φ, β₁) vs Φ-only vs contradiction engine
+- **ADR-TRILATERAL-006**: F₂ Coefficients for Initial Cohomology — ℝ eigendecomposition vs F₂ rank vs dual
+- **NEG-TRILATERAL-004**: No Φ-Only Coherence Declaration — type-level enforcement
+- **UNC-TRILATERAL-003**: Coefficient Generalization (ℝ vs F₂) — confidence 0.8
+- **UNC-TRILATERAL-004**: Sheaf Laplacian Refinement — confidence 0.6
+
+**spec/16-verification.md** (verification matrix updates):
+- QUERY section: 21 → 24 INVs (added INV-QUERY-022, 023, 024)
+- TRILATERAL section: 7 → 10 INVs (added INV-TRILATERAL-008, 009, 010)
+
+**Cross-reference updates**:
+- INV-TRILATERAL-007 enumeration: 001..007 → 001..010, ADR 001..004 → 001..006, NEG 001..003 → 001..004
+- §18.8 Relationships: added β₁ dependency on INV-QUERY-023, INV-QUERY-024
+- spec/README.md: updated line counts for 03-query.md and 18-trilateral.md
+
+### Key Design Decisions
+
+1. **Element pruning**: ~34 candidate claims → 11 formal elements. Eliminated redundancies
+   (append-only filtration = C1 restated) and deferred Stage 2-3 elements (multi-agent H¹,
+   signal integration, guidance elevation).
+2. **Namespace routing**: QUERY for computation (L₁, β₁), TRILATERAL for coherence model
+   ((Φ, β₁) duality, ISP bypass, persistent cohomology). No new namespace created.
+3. **Stage assignment**: ISP check (Stage 0), persistence tracker (Stage 1), multi-agent
+   cohomology (Stage 2-3 — deferred).
+4. **ℝ over F₂**: Chose real eigendecomposition for β₁ (reuses nalgebra, gives weighted
+   Hodge for free). F₂ tracked as UNC-TRILATERAL-003 for future validation.
+
+### Open Questions
+
+- OQ from S017 resolved: F₂ vs ℝ → ℝ (ADR-TRILATERAL-006), simplicial sufficient (implicit),
+  H² deferred (not promoted)
+- Remaining: sheaf Laplacian upgrade (UNC-TRILATERAL-004), large-scale coefficient validation
+  (UNC-TRILATERAL-003)
+
+### Files Modified
+
+| File | Change | Delta |
+|------|--------|-------|
+| spec/03-query.md | +INV-QUERY-023, +INV-QUERY-024, +ADR-QUERY-013 | +~130 lines |
+| spec/18-trilateral.md | +INV-008..010, +ADR-005..006, +NEG-004, +UNC-003..004 | +~300 lines |
+| spec/16-verification.md | +6 verification matrix rows, count updates | +6 lines |
+| spec/README.md | line count updates | ~2 lines |
+| HARVEST.md | +Session 018 | +this entry |
+
+### Recommended Next Action
+
+1. **Implement Stage 0 coherence check**: The ISP bypass detector (INV-TRILATERAL-008) and
+   coherence quadrant (INV-TRILATERAL-009) are Stage 0 — can be built now.
+2. **Continue exploration**: Signal system formalization, agent capability modeling, or
+   execution topology optimization.
+3. **Self-bootstrap verification**: Transact the new spec elements into the store and verify
+   β₁ = 0 for the spec's own trilateral structure.
 
