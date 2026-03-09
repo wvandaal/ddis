@@ -20,6 +20,7 @@ pub mod resolution;
 pub mod schema;
 pub mod seed;
 pub mod store;
+pub mod trilateral;
 
 // Re-export core types at crate root for ergonomic access.
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
@@ -54,3 +55,8 @@ pub use seed::{
     ProjectionLevel, SchemaNeighborhood, SeedOutput, StateEntry,
 };
 pub use store::{Frontier, MergeReceipt, Store, TxData, TxReceipt};
+pub use trilateral::{
+    check_coherence, classify_attribute, compute_phi, compute_phi_default, formality_level,
+    isp_check, live_projections, AttrNamespace, CoherenceQuadrant, CoherenceReport,
+    DivergenceComponents, IspResult, LiveView,
+};
