@@ -1960,3 +1960,99 @@ is complete for Stage 0. Begin Rust implementation per `guide/00-architecture.md
 agent entity schema (Layer 1) and dependency graph attributes (Layer 2) are now formally
 specified and should be implemented alongside the core store.
 
+## Session 017 — 2026-03-09 (Sheaf Cohomology for Coherence Verification)
+
+### Seed (Context Loaded)
+
+- Continued from Session 016 (topology foundations).
+- User is implementing Stage 0 in parallel and requested next exploration area.
+- Chose formal verification via sheaf cohomology — the most ambitious and differentiating option.
+
+### What Was Accomplished
+
+Created `exploration/sheaf-coherence/` — a formal framework for using sheaf cohomology
+as a coherence verification tool in DDIS/Braid:
+
+- **00-sheaf-cohomology-for-coherence.md** — Core framework:
+  - Why cohomology captures what Φ misses (cyclic vs. acyclic incoherence)
+  - The coherence sheaf (formal construction over agent graph and ISP triangle)
+  - Čech cohomology with F₂ coefficients
+  - **ISP triangle obstruction**: specification bypass as H¹ ≠ 0 (the key insight)
+  - Persistent cohomology as project health diagnostic
+  - Computational complexity (trivially fast: O(n⁴) for n ≤ 10)
+  - Connection to all existing Braid algebra (Φ, CALM, spectral, reconciliation)
+  - Implementation path staged across 0-2
+  - Novelty assessment vs. prior art
+
+- **01-hodge-theory-and-spectral-connection.md** — Spectral bridge:
+  - Discrete Hodge decomposition: gradient + harmonic + curl
+  - Three Laplacians (L₀ vertex, L₁ edge, L₂ triangle)
+  - L₀ already computed (INV-QUERY-022) → extending to L₁ gives H¹
+  - Weighted Hodge theory using resolution modes
+  - Heat equation interpretation (disagreement diffusion)
+  - Sheaf Laplacian (Hansen-Ghrist) for resolution-mode-aware metrics
+  - Concrete self-bootstrap coherence check example
+
+- **02-persistent-coherence-diagnostics.md** — Temporal diagnostics:
+  - Transaction filtration → persistence module → barcode
+  - Birth/death semantics for incoherence cycles
+  - Persistence diagram as project health metric ("coherence EKG")
+  - Derived metrics (P_total, P_max, N_active, R_birth, R_death, R_net)
+  - Signal system integration (SIGNAL_H1_BIRTH, DEATH, CHRONIC)
+  - Extended fitness function F_extended(S) = (Φ, β₁, P_max)
+  - CLI interface design (braid coherence --cycles, --persistence)
+  - β₁(t) curve as temporal signature
+
+### Key Insights
+
+1. **Φ = 0, H¹ ≠ 0 is the critical blind spot**: All links exist but form inconsistent
+   cycles. The current divergence metric cannot detect this. Sheaf cohomology can.
+
+2. **ISP triangle as specification bypass detector**: When an agent implements directly
+   from intent (bypassing spec), it creates a cycle in the ISP graph. If the spec-mediated
+   path and the direct path disagree, H¹ ≠ 0 — even if Φ = 0.
+
+3. **L₁ is a natural extension of L₀**: The existing spectral computation (INV-QUERY-022,
+   nalgebra) computes the vertex Laplacian L₀. The edge Laplacian L₁ gives H¹ using the
+   same library, same infrastructure, just a different matrix.
+
+4. **CALM-cohomology connection**: H¹ is monotonically non-decreasing under monotonic
+   operations. Resolving cyclic incoherence REQUIRES non-monotonic operations — formal
+   justification for sync barriers from cohomological structure.
+
+5. **Persistent cohomology distinguishes routine from structural**: Short-lived H¹
+   generators = work in progress (normal). Long-lived = structural design problems
+   (requires deliberation). The persistence diagram is a topological EKG.
+
+### Decisions Made
+
+None formalized as ADRs (exploration phase). Key design choices to formalize if promoted:
+- F₂ coefficients for initial implementation (OQ-1)
+- Simplicial complex over cubical (OQ-2)
+- H⁰ + H¹ only; defer H² to Stage 3 (OQ-3)
+
+### Open Questions
+
+- OQ-1: Coefficient choice (F₂ vs. Z vs. R) — recommend F₂ first
+- OQ-2: Simplicial vs. cubical complex — defer, simplicial sufficient
+- OQ-3: H² and higher cohomology — defer to Stage 3
+- OQ-4: Relative cohomology for localization — natural extension
+- OQ-5: Integration with Kani/stateright — Stage 2
+
+### Files Created
+
+| File | Lines | Key Content |
+|------|-------|-------------|
+| exploration/sheaf-coherence/00-sheaf-cohomology-for-coherence.md | ~500 | Core framework, ISP obstruction, implementation path |
+| exploration/sheaf-coherence/01-hodge-theory-and-spectral-connection.md | ~350 | Spectral bridge, Hodge decomposition, sheaf Laplacian |
+| exploration/sheaf-coherence/02-persistent-coherence-diagnostics.md | ~350 | Persistence diagrams, signal integration, CLI design |
+
+### Recommended Next Action
+
+Choose between:
+1. **Promote to spec**: If the framework is compelling, formalize key invariants
+   (INV-QUERY-023: H¹ Computability, ADR-QUERY-013: Hodge vs. Čech) in spec/03-query.md
+2. **Explore next area**: Signal system, agent capability modeling, or cross-project topology
+3. **Continue Stage 0 implementation**: The exploration is complete and can be picked up
+   later when multi-agent coherence becomes relevant (Stage 2-3)
+
