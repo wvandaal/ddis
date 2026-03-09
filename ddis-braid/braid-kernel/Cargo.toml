@@ -4,6 +4,13 @@ version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
 
+[features]
+default = ["stage0"]
+stage0 = []
+stage1 = ["stage0"]
+stage2 = ["stage1"]
+stage3 = ["stage2"]
+
 [dependencies]
 blake3 = { workspace = true }
 ordered-float = { workspace = true, features = ["serde"] }

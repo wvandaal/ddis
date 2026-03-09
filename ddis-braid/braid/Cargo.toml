@@ -4,6 +4,13 @@ version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
 
+[features]
+default = ["stage0"]
+stage0 = ["braid-kernel/stage0"]
+stage1 = ["stage0", "braid-kernel/stage1"]
+stage2 = ["stage1", "braid-kernel/stage2"]
+stage3 = ["stage2", "braid-kernel/stage3"]
+
 [dependencies]
 braid-kernel = { path = "../braid-kernel" }
 blake3 = { workspace = true }

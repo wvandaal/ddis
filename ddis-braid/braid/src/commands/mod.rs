@@ -15,6 +15,9 @@ mod seed;
 mod status;
 mod transact;
 
+// Re-export mcp serve as a special case (runs an event loop, not a single command).
+pub use crate::mcp;
+
 /// All subcommands available in the `braid` CLI.
 #[derive(Subcommand)]
 pub enum Command {
@@ -181,6 +184,23 @@ pub enum Command {
         #[arg(short, long, default_value = "spec")]
         spec_dir: PathBuf,
     },
+
+    /// Run the MCP (Model Context Protocol) server over JSON-RPC stdio.
+    Mcp {
+        #[command(subcommand)]
+        action: McpAction,
+    },
+}
+
+/// MCP server subcommands.
+#[derive(Subcommand)]
+pub enum McpAction {
+    /// Start the MCP server (reads JSON-RPC from stdin, writes to stdout).
+    Serve {
+        /// Path to the .braid directory.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+    },
 }
 
 /// Execute a CLI command and return the output string.
@@ -276,5 +296,11 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
                 ))
             }
         }
+        Command::Mcp { action } => match action {
+            McpAction::Serve { path } => {
+                mcp::serve(&path)?;
+                Ok(String::new())
+            }
+        },
     }
 }

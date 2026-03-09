@@ -22,6 +22,7 @@ pub mod query;
 pub mod resolution;
 pub mod schema;
 pub mod seed;
+pub mod stage;
 pub mod store;
 pub mod trilateral;
 
@@ -55,12 +56,15 @@ pub use resolution::{
     ResolutionRecord, ResolvedValue,
 };
 pub use schema::{
+    domain_schema_datoms, layer_1_attributes, layer_1_datoms, layer_2_attributes, layer_2_datoms,
     AttributeDef, AttributeSpec, Cardinality, ResolutionMode, Schema, Uniqueness, ValueType,
+    LAYER_2_COUNT,
 };
 pub use seed::{
     assemble, assemble_seed, associate, AssembledContext, AssociateCue, ContextSection,
     ProjectionLevel, SchemaNeighborhood, SeedOutput, StateEntry,
 };
+pub use stage::{capabilities, max_stage, stage_name};
 pub use store::{Frontier, MergeReceipt, Store, TxData, TxReceipt};
 pub use trilateral::{
     check_coherence, classify_attribute, compute_phi, compute_phi_default, formality_level,

@@ -4,6 +4,18 @@
 //! evolution is a transaction, not a migration. The 17 axiomatic meta-schema
 //! attributes describe themselves (INV-SCHEMA-005).
 //!
+//! # Six-Layer Schema Architecture (INV-SCHEMA-006)
+//!
+//! - **Layer 0** (Meta-Schema): 17 axiomatic attributes — `:db/*`, `:lattice/*`, `:tx/*`.
+//! - **Layer 1** (Trilateral): 24 domain attributes — `:intent/*`, `:spec/*`, `:impl/*`.
+//! - **Layer 2** (Specification Elements): 36 rich-metadata attributes —
+//!   `:element/*`, `:inv/*`, `:adr/*`, `:neg/*`, `:dep/*`, `:session/*`,
+//!   `:methodology/*`, `:coherence/*`.
+//! - **Layers 3–5**: Discovery, Coordination, Workflow (future stages).
+//!
+//! Each layer depends only on layers below it. Layer 0 is installed at genesis.
+//! Layers 1–2 are installed via schema-evolution transactions.
+//!
 //! # Invariants
 //!
 //! - **INV-SCHEMA-001**: Schema is a subset of the store, not separate DDL.
@@ -11,6 +23,7 @@
 //! - **INV-SCHEMA-003**: Schema can only grow (monotonicity).
 //! - **INV-SCHEMA-004**: Every transacted datom is validated against schema.
 //! - **INV-SCHEMA-005**: Axiomatic attributes describe themselves using A₀.
+//! - **INV-SCHEMA-006**: Six-layer architecture with dependency ordering.
 
 use std::collections::{BTreeSet, HashMap};
 
@@ -619,6 +632,560 @@ fn attr(ident: &str, value_type: ValueType, cardinality: Cardinality, doc: &str)
     }
 }
 
+/// Build an `AttributeSpec` with multi-value resolution mode.
+fn attr_multi(
+    ident: &str,
+    value_type: ValueType,
+    cardinality: Cardinality,
+    doc: &str,
+) -> AttributeSpec {
+    AttributeSpec {
+        ident: Attribute::from_keyword(ident),
+        value_type,
+        cardinality,
+        doc: doc.to_string(),
+        resolution_mode: ResolutionMode::Multi,
+        unique: None,
+        is_component: false,
+    }
+}
+
+/// Build an `AttributeSpec` with a uniqueness constraint.
+fn attr_unique(
+    ident: &str,
+    value_type: ValueType,
+    cardinality: Cardinality,
+    doc: &str,
+    unique: Uniqueness,
+) -> AttributeSpec {
+    AttributeSpec {
+        ident: Attribute::from_keyword(ident),
+        value_type,
+        cardinality,
+        doc: doc.to_string(),
+        resolution_mode: ResolutionMode::Lww,
+        unique: Some(unique),
+        is_component: false,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Layer 1 — Trilateral Domain Attributes (INV-SCHEMA-006)
+// ---------------------------------------------------------------------------
+
+/// The 24 Layer 1 (Trilateral) attributes: Intent (7) + Spec (11) + Impl (6).
+///
+/// These are the domain attributes used by the trilateral coherence model
+/// (Intent <-> Specification <-> Implementation). They depend only on Layer 0
+/// value types (String, Keyword, Long, Boolean, Ref).
+///
+/// Layer 1 is installed as a schema-evolution transaction after genesis.
+pub fn layer_1_attributes() -> Vec<AttributeSpec> {
+    vec![
+        // --- Intent layer (7 attributes) ---
+        attr(
+            ":intent/decision",
+            ValueType::String,
+            Cardinality::One,
+            "Design decision captured from intent",
+        ),
+        attr(
+            ":intent/rationale",
+            ValueType::String,
+            Cardinality::One,
+            "Rationale behind a design decision",
+        ),
+        attr(
+            ":intent/source",
+            ValueType::String,
+            Cardinality::One,
+            "Source reference for intent (transcript, conversation)",
+        ),
+        attr(
+            ":intent/goal",
+            ValueType::String,
+            Cardinality::One,
+            "Goal or objective driving this entity",
+        ),
+        attr(
+            ":intent/constraint",
+            ValueType::String,
+            Cardinality::One,
+            "Constraint or hard requirement on the design",
+        ),
+        attr(
+            ":intent/preference",
+            ValueType::String,
+            Cardinality::One,
+            "Soft preference for design direction",
+        ),
+        attr(
+            ":intent/noted",
+            ValueType::String,
+            Cardinality::One,
+            "Observation noted during intent capture",
+        ),
+        // --- Specification layer (11 attributes) ---
+        attr(
+            ":spec/id",
+            ValueType::String,
+            Cardinality::One,
+            "Specification element ID (e.g., INV-STORE-001)",
+        ),
+        attr(
+            ":spec/element-type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Type of spec element (:spec.element/invariant, :spec.element/adr, etc.)",
+        ),
+        attr(
+            ":spec/namespace",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Namespace of spec element (:spec.ns/store, :spec.ns/schema, etc.)",
+        ),
+        attr(
+            ":spec/source-file",
+            ValueType::String,
+            Cardinality::One,
+            "Source markdown file for the spec element",
+        ),
+        attr(
+            ":spec/stage",
+            ValueType::Long,
+            Cardinality::One,
+            "Implementation stage (0, 1, 2, ...) when this element becomes relevant",
+        ),
+        attr(
+            ":spec/statement",
+            ValueType::String,
+            Cardinality::One,
+            "Formal statement text of the invariant or spec element",
+        ),
+        attr(
+            ":spec/falsification",
+            ValueType::String,
+            Cardinality::One,
+            "Falsification condition: how to violate this invariant",
+        ),
+        attr(
+            ":spec/traces-to",
+            ValueType::String,
+            Cardinality::One,
+            "SEED.md section reference that motivates this element",
+        ),
+        attr(
+            ":spec/verification",
+            ValueType::String,
+            Cardinality::One,
+            "Verification method (V:PROP, V:KANI, V:TYPE, V:MODEL)",
+        ),
+        attr(
+            ":spec/witnessed",
+            ValueType::Boolean,
+            Cardinality::One,
+            "Whether this element has test evidence",
+        ),
+        attr(
+            ":spec/challenged",
+            ValueType::Boolean,
+            Cardinality::One,
+            "Whether this element has been formally challenged",
+        ),
+        // --- Implementation layer (6 attributes) ---
+        attr(
+            ":impl/signature",
+            ValueType::String,
+            Cardinality::One,
+            "Function or type signature implementing a spec element",
+        ),
+        attr(
+            ":impl/implements",
+            ValueType::Ref,
+            Cardinality::One,
+            "Ref to the spec element this code implements",
+        ),
+        attr(
+            ":impl/file",
+            ValueType::String,
+            Cardinality::One,
+            "Source file path containing the implementation",
+        ),
+        attr(
+            ":impl/module",
+            ValueType::String,
+            Cardinality::One,
+            "Module or crate containing the implementation",
+        ),
+        attr(
+            ":impl/test-result",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Test result status (:pass, :fail, :skip)",
+        ),
+        attr(
+            ":impl/coverage",
+            ValueType::Double,
+            Cardinality::One,
+            "Code coverage ratio (0.0-1.0) for this implementation",
+        ),
+    ]
+}
+
+/// Produce datoms for all Layer 1 attributes.
+///
+/// These should be transacted as a schema-evolution transaction after genesis.
+/// Uses the same datom structure as `genesis_datoms` — each attribute becomes an
+/// entity with `:db/ident`, `:db/valueType`, `:db/cardinality`, `:db/doc`,
+/// and `:db/resolutionMode` datoms.
+pub fn layer_1_datoms(tx: TxId) -> Vec<Datom> {
+    schema_datoms_from_specs(&layer_1_attributes(), tx)
+}
+
+// ---------------------------------------------------------------------------
+// Layer 2 — Specification Element Attributes (INV-SCHEMA-006)
+// ---------------------------------------------------------------------------
+
+/// Number of Layer 2 specification element attributes.
+pub const LAYER_2_COUNT: usize = 36;
+
+/// The 36 Layer 2 (Specification Element) attributes.
+///
+/// These provide rich metadata for first-class specification elements (INV, ADR,
+/// NEG) stored as datoms. They depend only on Layer 0 value types.
+///
+/// Organized into 8 groups:
+/// - Core Element (8): identity and common metadata
+/// - Invariant-Specific (4): formal verification properties
+/// - ADR-Specific (5): decision record structure
+/// - Negative Case-Specific (3): violation/detection/mitigation
+/// - Cross-Reference (3): dependency edges between elements
+/// - Session/Provenance (4): session lifecycle metadata
+/// - Methodology (4): methodology score tracking
+/// - Coherence (5): divergence metrics
+pub fn layer_2_attributes() -> Vec<AttributeSpec> {
+    vec![
+        // =================================================================
+        // Core Element Attributes (8) — All spec elements
+        // =================================================================
+        attr_unique(
+            ":element/id",
+            ValueType::String,
+            Cardinality::One,
+            "Specification element ID (e.g., INV-STORE-001, ADR-SEED-002)",
+            Uniqueness::Identity,
+        ),
+        attr(
+            ":element/type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Element type: :element.type/invariant, :element.type/adr, :element.type/negative-case, :element.type/uncertainty, :element.type/section, :element.type/goal",
+        ),
+        attr(
+            ":element/title",
+            ValueType::String,
+            Cardinality::One,
+            "Human-readable title of the specification element",
+        ),
+        attr(
+            ":element/body",
+            ValueType::String,
+            Cardinality::One,
+            "Full body text of the specification element",
+        ),
+        attr(
+            ":element/namespace",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Namespace: :element.ns/store, :element.ns/query, :element.ns/harvest, etc.",
+        ),
+        attr_multi(
+            ":element/traces-to",
+            ValueType::String,
+            Cardinality::Many,
+            "SEED.md section(s) that motivate this element",
+        ),
+        attr(
+            ":element/status",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Lifecycle status: :element.status/active, :element.status/superseded, :element.status/proposed, :element.status/deprecated",
+        ),
+        attr(
+            ":element/confidence",
+            ValueType::Double,
+            Cardinality::One,
+            "Uncertainty confidence level (0.0-1.0); 1.0 = fully certain",
+        ),
+        // =================================================================
+        // Invariant-Specific Attributes (4)
+        // =================================================================
+        attr(
+            ":inv/statement",
+            ValueType::String,
+            Cardinality::One,
+            "Formal invariant statement text",
+        ),
+        attr(
+            ":inv/falsification",
+            ValueType::String,
+            Cardinality::One,
+            "How to violate this invariant (falsification condition)",
+        ),
+        attr(
+            ":inv/verification",
+            ValueType::String,
+            Cardinality::One,
+            "How to verify this invariant holds (test strategy)",
+        ),
+        attr(
+            ":inv/property-type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Property classification: :inv.prop/safety, :inv.prop/liveness, :inv.prop/monotonicity, :inv.prop/convergence",
+        ),
+        // =================================================================
+        // ADR-Specific Attributes (5)
+        // =================================================================
+        attr(
+            ":adr/problem",
+            ValueType::String,
+            Cardinality::One,
+            "Problem statement that motivated this decision",
+        ),
+        attr(
+            ":adr/decision",
+            ValueType::String,
+            Cardinality::One,
+            "The decision that was made",
+        ),
+        attr_multi(
+            ":adr/alternatives",
+            ValueType::String,
+            Cardinality::Many,
+            "Alternatives that were considered and rejected",
+        ),
+        attr(
+            ":adr/consequences",
+            ValueType::String,
+            Cardinality::One,
+            "Consequences and implications of the decision",
+        ),
+        attr(
+            ":adr/superseded-by",
+            ValueType::String,
+            Cardinality::One,
+            "ID of the ADR that supersedes this one (if superseded)",
+        ),
+        // =================================================================
+        // Negative Case-Specific Attributes (3)
+        // =================================================================
+        attr(
+            ":neg/violation",
+            ValueType::String,
+            Cardinality::One,
+            "Description of what a violation looks like",
+        ),
+        attr(
+            ":neg/detection",
+            ValueType::String,
+            Cardinality::One,
+            "How to detect this violation",
+        ),
+        attr(
+            ":neg/mitigation",
+            ValueType::String,
+            Cardinality::One,
+            "How to prevent or fix the violation",
+        ),
+        // =================================================================
+        // Cross-Reference Attributes (3) — dependency edges
+        // =================================================================
+        attr(
+            ":dep/from",
+            ValueType::Ref,
+            Cardinality::One,
+            "Source entity of a dependency edge",
+        ),
+        attr(
+            ":dep/to",
+            ValueType::Ref,
+            Cardinality::One,
+            "Target entity of a dependency edge",
+        ),
+        attr(
+            ":dep/type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Dependency type: :dep.type/requires, :dep.type/refines, :dep.type/contradicts, :dep.type/supersedes, :dep.type/traces-to, :dep.type/references",
+        ),
+        // =================================================================
+        // Session/Provenance Attributes (4)
+        // =================================================================
+        attr(
+            ":session/agent",
+            ValueType::Ref,
+            Cardinality::One,
+            "Agent that created or owns this session",
+        ),
+        attr(
+            ":session/task",
+            ValueType::String,
+            Cardinality::One,
+            "Task description for this session",
+        ),
+        attr(
+            ":session/start-tx",
+            ValueType::Ref,
+            Cardinality::One,
+            "Transaction ID marking session start",
+        ),
+        attr(
+            ":session/harvest-quality",
+            ValueType::Double,
+            Cardinality::One,
+            "Quality score of the session harvest (0.0-1.0)",
+        ),
+        // =================================================================
+        // Methodology Attributes (4)
+        // =================================================================
+        attr(
+            ":methodology/score",
+            ValueType::Double,
+            Cardinality::One,
+            "Methodology adherence score M(t) (0.0-1.0)",
+        ),
+        attr(
+            ":methodology/trend",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Methodology trend: :methodology.trend/up, :methodology.trend/down, :methodology.trend/stable",
+        ),
+        attr(
+            ":methodology/harvest-count",
+            ValueType::Long,
+            Cardinality::One,
+            "Number of harvests completed in this session",
+        ),
+        attr(
+            ":methodology/turn-count",
+            ValueType::Long,
+            Cardinality::One,
+            "Number of agent turns in this session",
+        ),
+        // =================================================================
+        // Coherence Attributes (5) — divergence metrics
+        // =================================================================
+        attr(
+            ":coherence/phi",
+            ValueType::Double,
+            Cardinality::One,
+            "Divergence measure Phi across ISP triangle",
+        ),
+        attr(
+            ":coherence/quadrant",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Coherence quadrant classification",
+        ),
+        attr(
+            ":coherence/d-is",
+            ValueType::Double,
+            Cardinality::One,
+            "Intent-Specification divergence component",
+        ),
+        attr(
+            ":coherence/d-sp",
+            ValueType::Double,
+            Cardinality::One,
+            "Specification-Implementation divergence component",
+        ),
+        attr(
+            ":coherence/beta-1",
+            ValueType::Long,
+            Cardinality::One,
+            "First Betti number (structural cycle count in dependency graph)",
+        ),
+    ]
+}
+
+/// Produce datoms for all Layer 2 attributes.
+///
+/// These should be transacted as a schema-evolution transaction after Layer 1.
+/// Depends only on Layer 0 value types (INV-SCHEMA-006 layer ordering).
+pub fn layer_2_datoms(tx: TxId) -> Vec<Datom> {
+    schema_datoms_from_specs(&layer_2_attributes(), tx)
+}
+
+/// Produce all domain schema datoms (Layer 1 + Layer 2).
+///
+/// Convenience function that returns the full set of domain-level schema datoms.
+/// Should be transacted after genesis to register all domain attributes.
+pub fn domain_schema_datoms(tx: TxId) -> Vec<Datom> {
+    let mut datoms = layer_1_datoms(tx);
+    datoms.extend(layer_2_datoms(tx));
+    datoms
+}
+
+/// Convert a list of `AttributeSpec`s into schema-defining datoms.
+///
+/// Each attribute becomes an entity with 5 datoms:
+/// `:db/ident`, `:db/valueType`, `:db/cardinality`, `:db/doc`, `:db/resolutionMode`.
+fn schema_datoms_from_specs(specs: &[AttributeSpec], tx: TxId) -> Vec<Datom> {
+    let mut datoms = Vec::new();
+
+    for spec in specs {
+        let entity = EntityId::from_ident(spec.ident.as_str());
+
+        // :db/ident
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(spec.ident.as_str().to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // :db/valueType
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/valueType"),
+            Value::Keyword(spec.value_type.as_keyword().to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // :db/cardinality
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/cardinality"),
+            Value::Keyword(spec.cardinality.as_keyword().to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // :db/doc
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String(spec.doc.clone()),
+            tx,
+            Op::Assert,
+        ));
+
+        // :db/resolutionMode
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/resolutionMode"),
+            Value::Keyword(spec.resolution_mode.as_keyword().to_string()),
+            tx,
+            Op::Assert,
+        ));
+    }
+
+    datoms
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -809,6 +1376,412 @@ mod tests {
         assert!(schema.is_superset_of(&empty));
         assert!(schema.is_superset_of(&schema));
         assert!(!empty.is_superset_of(&schema));
+    }
+
+    // -------------------------------------------------------------------
+    // Layer 1 tests — Trilateral Domain Attributes
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn layer_1_produces_24_attributes() {
+        let specs = layer_1_attributes();
+        assert_eq!(
+            specs.len(),
+            24,
+            "Layer 1 must have exactly 24 trilateral attributes"
+        );
+    }
+
+    #[test]
+    fn layer_1_datoms_are_deterministic() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(1, 0, agent);
+        let d1 = layer_1_datoms(tx);
+        let d2 = layer_1_datoms(tx);
+        assert_eq!(d1, d2, "Layer 1 datoms must be deterministic");
+    }
+
+    #[test]
+    fn layer_1_schema_from_datoms() {
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let l1_tx = TxId::new(1, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        for d in layer_1_datoms(l1_tx) {
+            datoms.insert(d);
+        }
+        let schema = Schema::from_datoms(&datoms);
+        assert_eq!(schema.len(), 17 + 24, "genesis + L1 = 41 attributes");
+    }
+
+    #[test]
+    fn layer_1_has_correct_value_types() {
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let l1_tx = TxId::new(1, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        for d in layer_1_datoms(l1_tx) {
+            datoms.insert(d);
+        }
+        let schema = Schema::from_datoms(&datoms);
+
+        // Intent attributes — all String
+        for ident in &[
+            ":intent/decision",
+            ":intent/rationale",
+            ":intent/source",
+            ":intent/goal",
+            ":intent/constraint",
+            ":intent/preference",
+            ":intent/noted",
+        ] {
+            let attr = Attribute::from_keyword(ident);
+            let def = schema
+                .attribute(&attr)
+                .unwrap_or_else(|| panic!("L1 missing {ident}"));
+            assert_eq!(
+                def.value_type,
+                ValueType::String,
+                "{ident} should be String"
+            );
+        }
+
+        // Spec attributes with specific types
+        let attr = Attribute::from_keyword(":spec/stage");
+        assert_eq!(schema.attribute(&attr).unwrap().value_type, ValueType::Long);
+
+        let attr = Attribute::from_keyword(":spec/element-type");
+        assert_eq!(
+            schema.attribute(&attr).unwrap().value_type,
+            ValueType::Keyword
+        );
+
+        let attr = Attribute::from_keyword(":spec/witnessed");
+        assert_eq!(
+            schema.attribute(&attr).unwrap().value_type,
+            ValueType::Boolean
+        );
+
+        // Impl attributes
+        let attr = Attribute::from_keyword(":impl/implements");
+        assert_eq!(schema.attribute(&attr).unwrap().value_type, ValueType::Ref);
+
+        let attr = Attribute::from_keyword(":impl/coverage");
+        assert_eq!(
+            schema.attribute(&attr).unwrap().value_type,
+            ValueType::Double
+        );
+    }
+
+    #[test]
+    fn layer_1_is_valid_evolution_of_genesis() {
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let l1_tx = TxId::new(1, 0, agent);
+
+        let genesis_set: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        let genesis_schema = Schema::from_datoms(&genesis_set);
+
+        let mut full_set = genesis_set;
+        for d in layer_1_datoms(l1_tx) {
+            full_set.insert(d);
+        }
+        let l1_schema = Schema::from_datoms(&full_set);
+
+        let errors = genesis_schema.validate_evolution(&l1_schema);
+        assert!(
+            errors.is_empty(),
+            "L1 must be a valid evolution of genesis: {:?}",
+            errors
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // Layer 2 tests — Specification Element Attributes
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn layer_2_produces_36_attributes() {
+        let specs = layer_2_attributes();
+        assert_eq!(
+            specs.len(),
+            LAYER_2_COUNT,
+            "Layer 2 must have exactly {LAYER_2_COUNT} specification element attributes"
+        );
+    }
+
+    #[test]
+    fn layer_2_datoms_are_deterministic() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(2, 0, agent);
+        let d1 = layer_2_datoms(tx);
+        let d2 = layer_2_datoms(tx);
+        assert_eq!(d1, d2, "Layer 2 datoms must be deterministic");
+    }
+
+    #[test]
+    fn layer_2_schema_from_datoms() {
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let l1_tx = TxId::new(1, 0, agent);
+        let l2_tx = TxId::new(2, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        for d in layer_1_datoms(l1_tx) {
+            datoms.insert(d);
+        }
+        for d in layer_2_datoms(l2_tx) {
+            datoms.insert(d);
+        }
+        let schema = Schema::from_datoms(&datoms);
+        assert_eq!(
+            schema.len(),
+            17 + 24 + LAYER_2_COUNT,
+            "genesis(17) + L1(24) + L2({LAYER_2_COUNT}) = {} attributes",
+            17 + 24 + LAYER_2_COUNT
+        );
+    }
+
+    #[test]
+    fn layer_2_has_correct_value_types() {
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let l2_tx = TxId::new(2, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        for d in layer_2_datoms(l2_tx) {
+            datoms.insert(d);
+        }
+        let schema = Schema::from_datoms(&datoms);
+
+        // Core element attributes
+        let cases: Vec<(&str, ValueType)> = vec![
+            (":element/id", ValueType::String),
+            (":element/type", ValueType::Keyword),
+            (":element/title", ValueType::String),
+            (":element/body", ValueType::String),
+            (":element/namespace", ValueType::Keyword),
+            (":element/traces-to", ValueType::String),
+            (":element/status", ValueType::Keyword),
+            (":element/confidence", ValueType::Double),
+            // Invariant-specific
+            (":inv/statement", ValueType::String),
+            (":inv/falsification", ValueType::String),
+            (":inv/verification", ValueType::String),
+            (":inv/property-type", ValueType::Keyword),
+            // ADR-specific
+            (":adr/problem", ValueType::String),
+            (":adr/decision", ValueType::String),
+            (":adr/alternatives", ValueType::String),
+            (":adr/consequences", ValueType::String),
+            (":adr/superseded-by", ValueType::String),
+            // Negative case
+            (":neg/violation", ValueType::String),
+            (":neg/detection", ValueType::String),
+            (":neg/mitigation", ValueType::String),
+            // Cross-reference
+            (":dep/from", ValueType::Ref),
+            (":dep/to", ValueType::Ref),
+            (":dep/type", ValueType::Keyword),
+            // Session
+            (":session/agent", ValueType::Ref),
+            (":session/task", ValueType::String),
+            (":session/start-tx", ValueType::Ref),
+            (":session/harvest-quality", ValueType::Double),
+            // Methodology
+            (":methodology/score", ValueType::Double),
+            (":methodology/trend", ValueType::Keyword),
+            (":methodology/harvest-count", ValueType::Long),
+            (":methodology/turn-count", ValueType::Long),
+            // Coherence
+            (":coherence/phi", ValueType::Double),
+            (":coherence/quadrant", ValueType::Keyword),
+            (":coherence/d-is", ValueType::Double),
+            (":coherence/d-sp", ValueType::Double),
+            (":coherence/beta-1", ValueType::Long),
+        ];
+
+        for (ident, expected_type) in &cases {
+            let attr = Attribute::from_keyword(ident);
+            let def = schema
+                .attribute(&attr)
+                .unwrap_or_else(|| panic!("L2 missing {ident}"));
+            assert_eq!(
+                def.value_type, *expected_type,
+                "{ident}: expected {:?}, got {:?}",
+                expected_type, def.value_type
+            );
+        }
+    }
+
+    #[test]
+    fn layer_2_element_id_has_unique_identity() {
+        let specs = layer_2_attributes();
+        let element_id_spec = specs
+            .iter()
+            .find(|s| s.ident.as_str() == ":element/id")
+            .expect(":element/id must exist in L2");
+        assert_eq!(
+            element_id_spec.unique,
+            Some(Uniqueness::Identity),
+            ":element/id must have uniqueness = identity for upsert"
+        );
+    }
+
+    #[test]
+    fn layer_2_adr_alternatives_is_cardinality_many() {
+        let specs = layer_2_attributes();
+        let alt_spec = specs
+            .iter()
+            .find(|s| s.ident.as_str() == ":adr/alternatives")
+            .expect(":adr/alternatives must exist in L2");
+        assert_eq!(
+            alt_spec.cardinality,
+            Cardinality::Many,
+            ":adr/alternatives must be cardinality many"
+        );
+    }
+
+    #[test]
+    fn layer_2_element_traces_to_is_cardinality_many() {
+        let specs = layer_2_attributes();
+        let spec = specs
+            .iter()
+            .find(|s| s.ident.as_str() == ":element/traces-to")
+            .expect(":element/traces-to must exist in L2");
+        assert_eq!(
+            spec.cardinality,
+            Cardinality::Many,
+            ":element/traces-to must be cardinality many"
+        );
+    }
+
+    #[test]
+    fn layer_2_is_valid_evolution_of_genesis_plus_l1() {
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let l1_tx = TxId::new(1, 0, agent);
+        let l2_tx = TxId::new(2, 0, agent);
+
+        // Build L0+L1 schema
+        let mut l01_datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        for d in layer_1_datoms(l1_tx) {
+            l01_datoms.insert(d);
+        }
+        let l01_schema = Schema::from_datoms(&l01_datoms);
+
+        // Build L0+L1+L2 schema
+        let mut full_datoms = l01_datoms;
+        for d in layer_2_datoms(l2_tx) {
+            full_datoms.insert(d);
+        }
+        let l012_schema = Schema::from_datoms(&full_datoms);
+
+        let errors = l01_schema.validate_evolution(&l012_schema);
+        assert!(
+            errors.is_empty(),
+            "L2 must be a valid evolution of L0+L1: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn all_layer_2_idents_are_unique() {
+        let specs = layer_2_attributes();
+        let mut seen = std::collections::HashSet::new();
+        for spec in &specs {
+            let ident = spec.ident.as_str().to_string();
+            assert!(seen.insert(ident.clone()), "Duplicate L2 ident: {ident}");
+        }
+    }
+
+    #[test]
+    fn no_layer_2_ident_collides_with_layer_0_or_1() {
+        let l0 = axiomatic_attributes();
+        let l1 = layer_1_attributes();
+        let l2 = layer_2_attributes();
+
+        let l0_idents: std::collections::HashSet<String> =
+            l0.iter().map(|s| s.ident.as_str().to_string()).collect();
+        let l1_idents: std::collections::HashSet<String> =
+            l1.iter().map(|s| s.ident.as_str().to_string()).collect();
+
+        for spec in &l2 {
+            let ident = spec.ident.as_str().to_string();
+            assert!(
+                !l0_idents.contains(&ident),
+                "L2 ident {ident} collides with L0"
+            );
+            assert!(
+                !l1_idents.contains(&ident),
+                "L2 ident {ident} collides with L1"
+            );
+        }
+    }
+
+    #[test]
+    fn domain_schema_datoms_combines_l1_and_l2() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(1, 0, agent);
+
+        let combined = domain_schema_datoms(tx);
+        let l1 = layer_1_datoms(tx);
+        let l2 = layer_2_datoms(tx);
+
+        assert_eq!(
+            combined.len(),
+            l1.len() + l2.len(),
+            "domain_schema_datoms must combine L1 and L2"
+        );
+    }
+
+    #[test]
+    fn full_schema_has_77_attributes() {
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let domain_tx = TxId::new(1, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        for d in domain_schema_datoms(domain_tx) {
+            datoms.insert(d);
+        }
+        let schema = Schema::from_datoms(&datoms);
+
+        let expected = 17 + 24 + LAYER_2_COUNT; // 77
+        assert_eq!(
+            schema.len(),
+            expected,
+            "Full schema (L0+L1+L2) must have {expected} attributes, got {}",
+            schema.len()
+        );
+    }
+
+    #[test]
+    fn layer_2_only_references_layer_0_types() {
+        // All L2 value types must be basic types available in L0.
+        // This verifies INV-SCHEMA-006 layer dependency ordering.
+        let valid_l0_types = [
+            ValueType::String,
+            ValueType::Keyword,
+            ValueType::Boolean,
+            ValueType::Long,
+            ValueType::Double,
+            ValueType::Instant,
+            ValueType::Uuid,
+            ValueType::Ref,
+            ValueType::Bytes,
+        ];
+
+        for spec in &layer_2_attributes() {
+            assert!(
+                valid_l0_types.contains(&spec.value_type),
+                "L2 attribute {} uses non-L0 type {:?}",
+                spec.ident.as_str(),
+                spec.value_type
+            );
+        }
     }
 
     // -------------------------------------------------------------------
