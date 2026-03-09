@@ -9,12 +9,15 @@
 //! same inputs produce same outputs. This is the verification surface for
 //! all property-based testing and bounded model checking.
 
+pub mod claude_md;
 pub mod datom;
 pub mod error;
 pub mod guidance;
 pub mod harvest;
 pub mod layout;
 pub mod merge;
+#[cfg(test)]
+pub mod proptest_strategies;
 pub mod query;
 pub mod resolution;
 pub mod schema;
@@ -23,6 +26,7 @@ pub mod store;
 pub mod trilateral;
 
 // Re-export core types at crate root for ergonomic access.
+pub use claude_md::{generate_claude_md, ClaudeMdConfig, ClaudeMdSection, GeneratedClaudeMd};
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 pub use error::KernelError;
 pub use guidance::{
@@ -46,7 +50,10 @@ pub use query::{
     critical_path, density, evaluate, pagerank, scc, topo_sort, Binding, Clause, FindSpec, Pattern,
     QueryExpr, QueryResult,
 };
-pub use resolution::{resolve, ConflictSet, ResolvedValue};
+pub use resolution::{
+    conflict_to_datoms, detect_conflicts, resolve, resolve_with_trail, ConflictEntity, ConflictSet,
+    ResolutionRecord, ResolvedValue,
+};
 pub use schema::{
     AttributeDef, AttributeSpec, Cardinality, ResolutionMode, Schema, Uniqueness, ValueType,
 };

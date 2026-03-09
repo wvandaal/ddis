@@ -29,6 +29,45 @@ impl std::error::Error for BraidError {
     }
 }
 
+impl BraidError {
+    /// Returns a human-readable recovery suggestion for this error.
+    ///
+    /// Every variant produces an actionable hint. Kernel errors delegate
+    /// to `KernelError::recovery_hint()`. IO and parse errors inspect
+    /// their context to provide targeted advice.
+    pub fn recovery_hint(&self) -> &'static str {
+        match self {
+            BraidError::Kernel(e) => e.recovery_hint(),
+            BraidError::Io(e) => match e.kind() {
+                std::io::ErrorKind::NotFound => {
+                    "The store directory was not found. \
+                     Run `braid init` to create a new store, \
+                     or pass `--path` to point at an existing one."
+                }
+                std::io::ErrorKind::PermissionDenied => {
+                    "Permission denied accessing the store. \
+                     Check filesystem permissions on the .braid directory."
+                }
+                std::io::ErrorKind::AlreadyExists => {
+                    "The target already exists. \
+                     If re-initializing, remove the existing .braid directory first \
+                     (with the user's explicit permission)."
+                }
+                _ => {
+                    "An IO error occurred. \
+                     Check that the .braid directory is accessible \
+                     and the filesystem has sufficient space."
+                }
+            },
+            BraidError::Parse(_) => {
+                "The input could not be parsed. \
+                 Check the EDN syntax: keywords use colons (:ns/name), \
+                 strings use double-quotes, and maps use curly braces."
+            }
+        }
+    }
+}
+
 impl From<braid_kernel::KernelError> for BraidError {
     fn from(e: braid_kernel::KernelError) -> Self {
         BraidError::Kernel(e)

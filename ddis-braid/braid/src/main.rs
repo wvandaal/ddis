@@ -23,6 +23,7 @@ fn main() {
         }
         Err(e) => {
             eprintln!("error: {e}");
+            eprintln!("hint: {}", e.recovery_hint());
             std::process::exit(1);
         }
     }

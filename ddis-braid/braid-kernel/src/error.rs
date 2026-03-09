@@ -26,6 +26,19 @@ impl std::fmt::Display for KernelError {
 
 impl std::error::Error for KernelError {}
 
+impl KernelError {
+    /// Returns a human-readable recovery suggestion for this error.
+    ///
+    /// Every variant maps to an actionable hint. This is the kernel-level
+    /// half of the error protocol; the binary crate adds IO-level hints.
+    pub fn recovery_hint(&self) -> &'static str {
+        match self {
+            KernelError::Store(e) => e.recovery_hint(),
+            KernelError::Schema(e) => e.recovery_hint(),
+        }
+    }
+}
+
 impl From<StoreError> for KernelError {
     fn from(e: StoreError) -> Self {
         KernelError::Store(e)
@@ -79,6 +92,32 @@ impl std::fmt::Display for StoreError {
 
 impl std::error::Error for StoreError {}
 
+impl StoreError {
+    /// Returns a human-readable recovery suggestion for this error.
+    pub fn recovery_hint(&self) -> &'static str {
+        match self {
+            StoreError::UnknownAttribute(_) => {
+                "Register the attribute in the schema before transacting. \
+                 Use `braid transact` with a :db/ident datom to define it."
+            }
+            StoreError::SchemaViolation { .. } => {
+                "Check the attribute's declared value type in the schema \
+                 and ensure your datom value matches. \
+                 Use `braid query -a db/valueType` to inspect the schema."
+            }
+            StoreError::DuplicateTransaction(_) => {
+                "This transaction ID was already committed. \
+                 Each transaction must carry a unique ID. \
+                 Verify you are not replaying an already-applied transaction file."
+            }
+            StoreError::EmptyTransaction => {
+                "Supply at least one datom assertion. \
+                 Use `braid transact -d entity attribute value` to add datoms."
+            }
+        }
+    }
+}
+
 /// Error from schema operations.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SchemaError {
@@ -98,3 +137,20 @@ impl std::fmt::Display for SchemaError {
 }
 
 impl std::error::Error for SchemaError {}
+
+impl SchemaError {
+    /// Returns a human-readable recovery suggestion for this error.
+    pub fn recovery_hint(&self) -> &'static str {
+        match self {
+            SchemaError::InvalidAttribute(_) => {
+                "Attribute keywords must be namespaced (e.g., :db/ident, :spec/title). \
+                 Check for typos, missing namespace prefix, or invalid characters."
+            }
+            SchemaError::Inconsistency(_) => {
+                "The schema has conflicting definitions. \
+                 Use `braid query -a db/ident` to list all schema attributes \
+                 and look for duplicate or contradictory declarations."
+            }
+        }
+    }
+}

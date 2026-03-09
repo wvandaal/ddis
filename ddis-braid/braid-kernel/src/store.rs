@@ -242,6 +242,15 @@ pub struct Store {
     clock: TxId,
 }
 
+impl std::fmt::Debug for Store {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Store")
+            .field("datom_count", &self.datoms.len())
+            .field("frontier", &self.frontier)
+            .finish()
+    }
+}
+
 impl Store {
     /// Create a new store with the genesis transaction.
     ///
@@ -686,5 +695,186 @@ mod tests {
 
         let receipt = store.transact(tx).unwrap();
         assert_eq!(store.frontier()[&agent], receipt.tx_id);
+    }
+
+    // -----------------------------------------------------------------------
+    // Proptest property-based verification suite (14 STORE invariants)
+    // -----------------------------------------------------------------------
+
+    mod proptests {
+        use super::*;
+        use crate::merge::merge_stores;
+        use crate::proptest_strategies::{
+            arb_agent_id, arb_doc_value, arb_entity_id, arb_store, arb_store_pair,
+        };
+        use proptest::prelude::*;
+
+        proptest! {
+            /// INV-STORE-001: Append-only — store.len() never decreases after transact.
+            #[test]
+            fn inv_store_001_append_only(
+                store in arb_store(3),
+                entity in arb_entity_id(),
+                value in arb_doc_value(),
+            ) {
+                let before = store.len();
+                let mut s = store.clone_store();
+                let agent = AgentId::from_name("proptest:agent");
+                let tx = Transaction::new(agent, ProvenanceType::Observed, "proptest")
+                    .assert(entity, Attribute::from_keyword(":db/doc"), value)
+                    .commit(&s);
+                if let Ok(committed) = tx {
+                    let _ = s.transact(committed);
+                }
+                prop_assert!(s.len() >= before, "INV-STORE-001: append-only violated");
+            }
+
+            /// INV-STORE-002: Strict growth — transact of non-empty tx increases len.
+            #[test]
+            fn inv_store_002_strict_growth(
+                entity in arb_entity_id(),
+                value in arb_doc_value(),
+            ) {
+                let mut store = Store::genesis();
+                let before = store.len();
+                let agent = AgentId::from_name("proptest:agent");
+                let tx = Transaction::new(agent, ProvenanceType::Observed, "grow")
+                    .assert(entity, Attribute::from_keyword(":db/doc"), value)
+                    .commit(&store)
+                    .unwrap();
+                store.transact(tx).unwrap();
+                prop_assert!(store.len() > before, "INV-STORE-002: strict growth violated");
+            }
+
+            /// INV-STORE-003: Content identity — identical tuples produce identical datoms.
+            #[test]
+            fn inv_store_003_content_identity(content in any::<[u8; 32]>()) {
+                let e1 = EntityId::from_content(&content);
+                let e2 = EntityId::from_content(&content);
+                prop_assert_eq!(e1, e2, "INV-STORE-003: content identity violated");
+            }
+
+            /// INV-STORE-004: Merge commutativity — merge(A,B) == merge(B,A).
+            #[test]
+            fn inv_store_004_merge_commutativity((s1, s2) in arb_store_pair(2)) {
+                let mut left = s1.clone_store();
+                left.merge(&s2);
+                let mut right = s2.clone_store();
+                right.merge(&s1);
+                prop_assert_eq!(
+                    left.datom_set(),
+                    right.datom_set(),
+                    "INV-STORE-004: commutativity violated"
+                );
+            }
+
+            /// INV-STORE-005: Merge associativity — merge(merge(A,B),C) == merge(A,merge(B,C)).
+            #[test]
+            fn inv_store_005_merge_associativity(
+                s1 in arb_store(2),
+                s2 in arb_store(2),
+                s3 in arb_store(2),
+            ) {
+                // (A ∪ B) ∪ C
+                let mut left = s1.clone_store();
+                left.merge(&s2);
+                left.merge(&s3);
+                // A ∪ (B ∪ C)
+                let mut bc = s2.clone_store();
+                bc.merge(&s3);
+                let mut right = s1.clone_store();
+                right.merge(&bc);
+                prop_assert_eq!(
+                    left.datom_set(),
+                    right.datom_set(),
+                    "INV-STORE-005: associativity violated"
+                );
+            }
+
+            /// INV-STORE-006: Merge idempotency — merge(A,A) == A.
+            #[test]
+            fn inv_store_006_merge_idempotency(store in arb_store(3)) {
+                let before = store.datom_set().clone();
+                let mut s = store.clone_store();
+                s.merge(&store);
+                prop_assert_eq!(s.datom_set(), &before, "INV-STORE-006: idempotency violated");
+            }
+
+            /// INV-STORE-007: Merge monotonicity — A ⊆ merge(A,B).
+            #[test]
+            fn inv_store_007_merge_monotonicity((s1, s2) in arb_store_pair(2)) {
+                let before = s1.datom_set().clone();
+                let mut merged = s1.clone_store();
+                merged.merge(&s2);
+                for d in &before {
+                    prop_assert!(
+                        merged.datom_set().contains(d),
+                        "INV-STORE-007: monotonicity violated — datom lost"
+                    );
+                }
+            }
+
+            /// INV-STORE-008: Genesis determinism — genesis() == genesis() always.
+            #[test]
+            fn inv_store_008_genesis_determinism(_seed in 0u32..1000) {
+                let s1 = Store::genesis();
+                let s2 = Store::genesis();
+                prop_assert_eq!(s1.datom_set(), s2.datom_set(), "INV-STORE-008: genesis non-deterministic");
+            }
+
+            /// INV-STORE-011: HLC monotonicity — successive ticks strictly increase.
+            #[test]
+            fn inv_store_011_hlc_monotonicity(
+                wall1 in 1u64..1_000_000,
+                wall2 in 1u64..1_000_000,
+                agent in arb_agent_id(),
+            ) {
+                let t1 = TxId::new(wall1, 0, agent);
+                let t2 = t1.tick(wall2, agent);
+                prop_assert!(t2 > t1, "INV-STORE-011: HLC not monotonic");
+            }
+
+            /// INV-STORE-014: Every tx has metadata — metadata entity present for user txns.
+            #[test]
+            fn inv_store_014_tx_metadata(
+                entity in arb_entity_id(),
+                value in arb_doc_value(),
+            ) {
+                let mut store = Store::genesis();
+                let agent = AgentId::from_name("proptest:agent");
+                let tx = Transaction::new(agent, ProvenanceType::Observed, "meta-test")
+                    .assert(entity, Attribute::from_keyword(":db/doc"), value)
+                    .commit(&store)
+                    .unwrap();
+                let receipt = store.transact(tx).unwrap();
+
+                // Tx metadata entity = EntityId::from_content(serialized tx_id)
+                let tx_entity = EntityId::from_content(
+                    &serde_json::to_vec(&receipt.tx_id).unwrap(),
+                );
+                let tx_datoms: Vec<_> = store.entity_datoms(tx_entity);
+                let has_time = tx_datoms.iter().any(|d| d.attribute.as_str() == ":tx/time");
+                let has_agent = tx_datoms.iter().any(|d| d.attribute.as_str() == ":tx/agent");
+                let has_prov = tx_datoms.iter().any(|d| d.attribute.as_str() == ":tx/provenance");
+                prop_assert!(has_time, "INV-STORE-014: missing :tx/time");
+                prop_assert!(has_agent, "INV-STORE-014: missing :tx/agent");
+                prop_assert!(has_prov, "INV-STORE-014: missing :tx/provenance");
+            }
+
+            /// merge_stores (kernel-level) preserves all datoms from both inputs.
+            #[test]
+            fn merge_stores_preserves_all((s1, s2) in arb_store_pair(2)) {
+                let s1_datoms: Vec<_> = s1.datoms().cloned().collect();
+                let s2_datoms: Vec<_> = s2.datoms().cloned().collect();
+                let mut merged = s1.clone_store();
+                merge_stores(&mut merged, &s2);
+                for d in &s1_datoms {
+                    prop_assert!(merged.datom_set().contains(d), "merge lost s1 datom");
+                }
+                for d in &s2_datoms {
+                    prop_assert!(merged.datom_set().contains(d), "merge lost s2 datom");
+                }
+            }
+        }
     }
 }

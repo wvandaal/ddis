@@ -21,7 +21,7 @@
 use std::collections::HashMap;
 
 use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
-use crate::schema::ResolutionMode;
+use crate::schema::{ResolutionMode, Schema};
 use crate::store::Store;
 
 // ---------------------------------------------------------------------------
@@ -211,6 +211,240 @@ pub fn live_entity(store: &Store, entity: EntityId) -> HashMap<Attribute, Resolv
 }
 
 // ---------------------------------------------------------------------------
+// ConflictEntity
+// ---------------------------------------------------------------------------
+
+/// A detected conflict for a specific (entity, attribute) pair.
+///
+/// Captures the full provenance trail: which values are in conflict, which
+/// transactions produced them, and when the conflict was detected. This is
+/// the input to the resolution pipeline and the basis for the audit trail.
+///
+/// # Invariants
+///
+/// - **INV-RESOLUTION-004**: The conflicting values satisfy the six-condition
+///   conflict predicate (same entity, same attribute, different values, both
+///   assertions, cardinality :one, causally independent).
+#[derive(Clone, Debug)]
+pub struct ConflictEntity {
+    /// The entity with conflicting assertions.
+    pub entity: EntityId,
+    /// The attribute under conflict.
+    pub attribute: Attribute,
+    /// The distinct values that are in conflict.
+    pub conflicting_values: Vec<Value>,
+    /// The transaction IDs that produced the conflicting values (parallel to `conflicting_values`).
+    pub conflicting_txs: Vec<TxId>,
+    /// The transaction at which this conflict was detected.
+    pub detected_at: TxId,
+}
+
+// ---------------------------------------------------------------------------
+// ResolutionRecord
+// ---------------------------------------------------------------------------
+
+/// The full provenance trail of a conflict resolution.
+///
+/// Records which conflict was resolved, what the winning value is, which
+/// resolution mode was applied, and the transaction that recorded the
+/// resolution. This is the basis for the audit datom trail — every
+/// resolution decision is a first-class fact in the store.
+#[derive(Clone, Debug)]
+pub struct ResolutionRecord {
+    /// The conflict that was resolved.
+    pub conflict: ConflictEntity,
+    /// The winning value (or multi-value set).
+    pub resolved_value: ResolvedValue,
+    /// The resolution mode that was applied.
+    pub resolution_mode: ResolutionMode,
+    /// The transaction that records this resolution.
+    pub resolution_tx: TxId,
+}
+
+// ---------------------------------------------------------------------------
+// Conflict Detection and Resolution with Trail
+// ---------------------------------------------------------------------------
+
+/// Detect if an (entity, attribute) pair has conflicting values in the store.
+///
+/// Builds a `ConflictSet` from all datoms for the pair, checks for conflict
+/// using the schema's resolution mode, and — if a conflict exists — returns
+/// a `ConflictEntity` capturing the full provenance.
+///
+/// Returns `None` if there is no conflict (single value, all retracted, or
+/// multi-value mode where conflicts cannot occur by definition).
+///
+/// # Invariants
+///
+/// - **INV-RESOLUTION-004**: Uses the six-condition conflict predicate.
+pub fn detect_conflicts(
+    store: &Store,
+    entity: EntityId,
+    attribute: &Attribute,
+) -> Option<ConflictEntity> {
+    let datoms: Vec<&Datom> = store
+        .datoms()
+        .filter(|d| d.entity == entity && d.attribute == *attribute)
+        .collect();
+
+    if datoms.is_empty() {
+        return None;
+    }
+
+    let conflict_set = ConflictSet::from_datoms(entity, attribute.clone(), &datoms);
+    let mode = store.schema().resolution_mode(attribute);
+
+    if !has_conflict(&conflict_set, &mode) {
+        return None;
+    }
+
+    let active = conflict_set.active_assertions();
+
+    // Collect distinct (value, tx) pairs
+    let conflicting_values: Vec<Value> = active.iter().map(|(v, _)| v.clone()).collect();
+    let conflicting_txs: Vec<TxId> = active.iter().map(|(_, tx)| *tx).collect();
+
+    // Use the store's frontier max as the detection timestamp
+    let detected_at = store
+        .frontier()
+        .values()
+        .max()
+        .copied()
+        .unwrap_or(TxId::new(0, 0, crate::datom::AgentId::from_name("nil")));
+
+    Some(ConflictEntity {
+        entity,
+        attribute: attribute.clone(),
+        conflicting_values,
+        conflicting_txs,
+        detected_at,
+    })
+}
+
+/// Resolve a conflict and produce the full provenance trail.
+///
+/// Applies the resolution mode from the schema to the conflict's competing
+/// values, producing a `ResolutionRecord` that captures the decision. The
+/// `resolution_tx` is set to the conflict's `detected_at` — the caller is
+/// expected to transact the record into the store at a subsequent transaction.
+///
+/// # Invariants
+///
+/// - **INV-RESOLUTION-002**: Resolution is deterministic — same conflict and
+///   schema always produce the same resolved value.
+pub fn resolve_with_trail(conflict: &ConflictEntity, schema: &Schema) -> ResolutionRecord {
+    let mode = schema.resolution_mode(&conflict.attribute);
+
+    // Build assertion pairs from the conflict's values and txs
+    let active: Vec<(Value, TxId)> = conflict
+        .conflicting_values
+        .iter()
+        .zip(conflict.conflicting_txs.iter())
+        .map(|(v, tx)| (v.clone(), *tx))
+        .collect();
+
+    let conflict_set = ConflictSet {
+        entity: conflict.entity,
+        attribute: conflict.attribute.clone(),
+        assertions: active,
+        retractions: vec![],
+    };
+
+    let resolved_value = resolve(&conflict_set, &mode);
+
+    ResolutionRecord {
+        conflict: conflict.clone(),
+        resolved_value,
+        resolution_mode: mode,
+        resolution_tx: conflict.detected_at,
+    }
+}
+
+/// Serialize a resolution record as datoms for the audit trail.
+///
+/// Produces datoms under the `:resolution/*` namespace that capture:
+/// - Which entity/attribute pair was in conflict
+/// - What the conflicting values were
+/// - What mode was used to resolve
+/// - What the winning value is
+///
+/// All datoms are asserted at the supplied `tx`, making the resolution
+/// decision a first-class, queryable fact in the store.
+///
+/// The resolution entity is content-addressed from the conflict's entity,
+/// attribute, and detection tx — so identical conflicts detected at the
+/// same time produce the same entity (idempotent).
+pub fn conflict_to_datoms(record: &ResolutionRecord, tx: TxId) -> Vec<Datom> {
+    let mut datoms = Vec::new();
+
+    // Create a content-addressed entity for this resolution record.
+    // Identity = BLAKE3(entity_bytes || attribute_str || detected_at_bytes)
+    let mut content = Vec::new();
+    content.extend_from_slice(record.conflict.entity.as_bytes());
+    content.extend_from_slice(record.conflict.attribute.as_str().as_bytes());
+    content.extend_from_slice(
+        &serde_json::to_vec(&record.conflict.detected_at).expect("TxId serialization cannot fail"),
+    );
+    let resolution_entity = EntityId::from_content(&content);
+
+    // :resolution/entity — ref to the entity that had the conflict
+    datoms.push(Datom::new(
+        resolution_entity,
+        Attribute::from_keyword(":resolution/entity"),
+        Value::Ref(record.conflict.entity),
+        tx,
+        Op::Assert,
+    ));
+
+    // :resolution/attribute — the conflicting attribute's keyword
+    datoms.push(Datom::new(
+        resolution_entity,
+        Attribute::from_keyword(":resolution/attribute"),
+        Value::Keyword(record.conflict.attribute.as_str().to_string()),
+        tx,
+        Op::Assert,
+    ));
+
+    // :resolution/mode — the resolution mode applied
+    datoms.push(Datom::new(
+        resolution_entity,
+        Attribute::from_keyword(":resolution/mode"),
+        Value::Keyword(record.resolution_mode.as_keyword().to_string()),
+        tx,
+        Op::Assert,
+    ));
+
+    // :resolution/winner — the resolved value (serialized as string for auditability)
+    let winner_str = match &record.resolved_value {
+        ResolvedValue::Single(v) => {
+            serde_json::to_string(v).expect("Value serialization cannot fail")
+        }
+        ResolvedValue::Multi(vs) => {
+            serde_json::to_string(vs).expect("Value serialization cannot fail")
+        }
+        ResolvedValue::None => "null".to_string(),
+    };
+    datoms.push(Datom::new(
+        resolution_entity,
+        Attribute::from_keyword(":resolution/winner"),
+        Value::String(winner_str),
+        tx,
+        Op::Assert,
+    ));
+
+    // :resolution/conflict-count — how many values were in conflict
+    datoms.push(Datom::new(
+        resolution_entity,
+        Attribute::from_keyword(":resolution/conflict-count"),
+        Value::Long(record.conflict.conflicting_values.len() as i64),
+        tx,
+        Op::Assert,
+    ));
+
+    datoms
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -379,5 +613,177 @@ mod tests {
 
         let view = live_entity(&store, entity);
         assert!(view.contains_key(&Attribute::from_keyword(":db/doc")));
+    }
+
+    // -----------------------------------------------------------------------
+    // ConflictEntity / ResolutionRecord / detect / resolve_with_trail / datoms
+    // -----------------------------------------------------------------------
+
+    /// Helper: create a store with two conflicting assertions on the same
+    /// (entity, attribute) pair from two different agents.
+    fn store_with_conflict() -> (Store, EntityId, Attribute) {
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/conflict-target");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        let agent_a = AgentId::from_name("alice");
+        let tx_a = crate::store::Transaction::new(
+            agent_a,
+            crate::datom::ProvenanceType::Observed,
+            "alice asserts",
+        )
+        .assert(entity, attr.clone(), Value::String("alice-value".into()))
+        .commit(&store)
+        .unwrap();
+        store.transact(tx_a).unwrap();
+
+        let agent_b = AgentId::from_name("bob");
+        let tx_b = crate::store::Transaction::new(
+            agent_b,
+            crate::datom::ProvenanceType::Observed,
+            "bob asserts",
+        )
+        .assert(entity, attr.clone(), Value::String("bob-value".into()))
+        .commit(&store)
+        .unwrap();
+        store.transact(tx_b).unwrap();
+
+        (store, entity, attr)
+    }
+
+    #[test]
+    fn detect_conflicts_finds_two_agent_conflict() {
+        let (store, entity, attr) = store_with_conflict();
+
+        let conflict = detect_conflicts(&store, entity, &attr);
+        assert!(
+            conflict.is_some(),
+            "two different values from two agents must be detected as a conflict"
+        );
+
+        let c = conflict.unwrap();
+        assert_eq!(c.entity, entity);
+        assert_eq!(c.attribute, attr);
+        assert_eq!(
+            c.conflicting_values.len(),
+            2,
+            "must have exactly 2 conflicting values"
+        );
+        assert_eq!(
+            c.conflicting_txs.len(),
+            2,
+            "must have exactly 2 conflicting txs"
+        );
+    }
+
+    #[test]
+    fn detect_conflicts_returns_none_for_single_value() {
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/single");
+        let attr = Attribute::from_keyword(":db/doc");
+        let agent = AgentId::from_name("solo");
+
+        let tx = crate::store::Transaction::new(
+            agent,
+            crate::datom::ProvenanceType::Observed,
+            "solo write",
+        )
+        .assert(entity, attr.clone(), Value::String("only-value".into()))
+        .commit(&store)
+        .unwrap();
+        store.transact(tx).unwrap();
+
+        assert!(
+            detect_conflicts(&store, entity, &attr).is_none(),
+            "single value must not be a conflict"
+        );
+    }
+
+    #[test]
+    fn resolve_with_trail_picks_lww_winner() {
+        let (store, entity, attr) = store_with_conflict();
+
+        let conflict = detect_conflicts(&store, entity, &attr).unwrap();
+        let record = resolve_with_trail(&conflict, store.schema());
+
+        assert_eq!(record.resolution_mode, ResolutionMode::Lww);
+        // LWW picks latest tx; bob's transaction is later, so bob wins.
+        match &record.resolved_value {
+            ResolvedValue::Single(v) => {
+                assert_eq!(
+                    *v,
+                    Value::String("bob-value".into()),
+                    "LWW must pick the value with the latest TxId"
+                );
+            }
+            other => panic!("expected Single, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn conflict_to_datoms_produces_audit_trail() {
+        let (store, entity, attr) = store_with_conflict();
+
+        let conflict = detect_conflicts(&store, entity, &attr).unwrap();
+        let record = resolve_with_trail(&conflict, store.schema());
+
+        let agent = AgentId::from_name("auditor");
+        let tx = TxId::new(999, 0, agent);
+        let datoms = conflict_to_datoms(&record, tx);
+
+        // Must produce exactly 5 datoms:
+        //   :resolution/entity, :resolution/attribute, :resolution/mode,
+        //   :resolution/winner, :resolution/conflict-count
+        assert_eq!(
+            datoms.len(),
+            5,
+            "resolution record must produce exactly 5 audit datoms"
+        );
+
+        // All datoms must share the same resolution entity and tx
+        let resolution_eid = datoms[0].entity;
+        for d in &datoms {
+            assert_eq!(d.entity, resolution_eid, "all datoms must share entity");
+            assert_eq!(d.tx, tx, "all datoms must use the supplied tx");
+            assert_eq!(d.op, crate::datom::Op::Assert, "all datoms must be asserts");
+        }
+
+        // Check attribute namespaces
+        let attr_names: Vec<&str> = datoms.iter().map(|d| d.attribute.as_str()).collect();
+        assert!(attr_names.contains(&":resolution/entity"));
+        assert!(attr_names.contains(&":resolution/attribute"));
+        assert!(attr_names.contains(&":resolution/mode"));
+        assert!(attr_names.contains(&":resolution/winner"));
+        assert!(attr_names.contains(&":resolution/conflict-count"));
+
+        // conflict-count datom must have Long(2)
+        let count_datom = datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == ":resolution/conflict-count")
+            .unwrap();
+        assert_eq!(count_datom.value, Value::Long(2));
+    }
+
+    #[test]
+    fn conflict_to_datoms_is_idempotent() {
+        let (store, entity, attr) = store_with_conflict();
+
+        let conflict = detect_conflicts(&store, entity, &attr).unwrap();
+        let record = resolve_with_trail(&conflict, store.schema());
+
+        let agent = AgentId::from_name("auditor");
+        let tx = TxId::new(999, 0, agent);
+
+        let d1 = conflict_to_datoms(&record, tx);
+        let d2 = conflict_to_datoms(&record, tx);
+
+        // Same input -> same output (deterministic content-addressed entity)
+        assert_eq!(d1.len(), d2.len());
+        for (a, b) in d1.iter().zip(d2.iter()) {
+            assert_eq!(
+                a, b,
+                "INV-RESOLUTION-002: datom generation must be deterministic"
+            );
+        }
     }
 }
