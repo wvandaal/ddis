@@ -2,6 +2,7 @@ use clap::Parser;
 
 mod commands;
 mod error;
+pub mod layout;
 pub mod output;
 
 /// Braid — DDIS datom store and coherence verification engine.

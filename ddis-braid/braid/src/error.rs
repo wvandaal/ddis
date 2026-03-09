@@ -5,6 +5,8 @@ pub enum BraidError {
     Kernel(braid_kernel::KernelError),
     /// IO error (filesystem, network).
     Io(std::io::Error),
+    /// EDN parse error.
+    Parse(String),
 }
 
 impl std::fmt::Display for BraidError {
@@ -12,6 +14,7 @@ impl std::fmt::Display for BraidError {
         match self {
             BraidError::Kernel(e) => write!(f, "{e}"),
             BraidError::Io(e) => write!(f, "io: {e}"),
+            BraidError::Parse(e) => write!(f, "parse: {e}"),
         }
     }
 }
@@ -21,6 +24,7 @@ impl std::error::Error for BraidError {
         match self {
             BraidError::Kernel(e) => Some(e),
             BraidError::Io(e) => Some(e),
+            BraidError::Parse(_) => None,
         }
     }
 }
@@ -34,5 +38,11 @@ impl From<braid_kernel::KernelError> for BraidError {
 impl From<std::io::Error> for BraidError {
     fn from(e: std::io::Error) -> Self {
         BraidError::Io(e)
+    }
+}
+
+impl From<braid_kernel::EdnParseError> for BraidError {
+    fn from(e: braid_kernel::EdnParseError) -> Self {
+        BraidError::Parse(e.to_string())
     }
 }

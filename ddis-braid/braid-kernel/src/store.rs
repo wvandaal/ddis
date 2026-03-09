@@ -272,6 +272,39 @@ impl Store {
         }
     }
 
+    /// Reconstruct a store from a set of datoms.
+    ///
+    /// Used by the LAYOUT ψ function to reconstruct a store from disk.
+    /// Rebuilds the schema and computes the frontier from datom TxIds.
+    pub fn from_datoms(datoms: BTreeSet<Datom>) -> Self {
+        let schema = Schema::from_datoms(&datoms);
+
+        // Reconstruct frontier from datom TxIds
+        let mut frontier: HashMap<AgentId, TxId> = HashMap::new();
+        let mut max_clock = TxId::new(0, 0, AgentId::from_name("braid:system"));
+        for d in &datoms {
+            let agent = d.tx.agent();
+            frontier
+                .entry(agent)
+                .and_modify(|existing| {
+                    if d.tx > *existing {
+                        *existing = d.tx;
+                    }
+                })
+                .or_insert(d.tx);
+            if d.tx > max_clock {
+                max_clock = d.tx;
+            }
+        }
+
+        Store {
+            datoms,
+            frontier,
+            schema,
+            clock: max_clock,
+        }
+    }
+
     /// Apply a committed transaction to the store.
     ///
     /// Inserts all datoms into the BTreeSet (dedup by content identity),
