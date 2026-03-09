@@ -4,8 +4,12 @@ use std::path::PathBuf;
 
 use clap::Subcommand;
 
+mod generate;
+mod guidance;
 mod harvest;
 mod init;
+mod log;
+mod merge;
 mod query;
 mod seed;
 mod status;
@@ -100,6 +104,66 @@ pub enum Command {
         agent: String,
     },
 
+    /// Display current guidance state: divergence, coherence, methodology score.
+    Guidance {
+        /// Path to the .braid directory.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent name to show guidance for.
+        #[arg(short, long, default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// Merge another store into the current store (CRDT set union).
+    Merge {
+        /// Path to the .braid directory (target).
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Path to the source .braid directory to merge from.
+        #[arg(short, long)]
+        source: PathBuf,
+    },
+
+    /// Browse the transaction log with filtering.
+    Log {
+        /// Path to the .braid directory.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Maximum number of transactions to show.
+        #[arg(short = 'n', long, default_value = "20")]
+        limit: usize,
+
+        /// Filter by agent name.
+        #[arg(short, long)]
+        agent: Option<String>,
+
+        /// Show individual datoms in each transaction.
+        #[arg(long)]
+        datoms: bool,
+    },
+
+    /// Generate a dynamic CLAUDE.md from the store.
+    Generate {
+        /// Path to the .braid directory.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Description of the task to work on.
+        #[arg(short, long)]
+        task: String,
+
+        /// Token budget for the generated CLAUDE.md.
+        #[arg(short, long, default_value = "4000")]
+        budget: usize,
+
+        /// Agent name for the generation context.
+        #[arg(short, long, default_value = "braid:user")]
+        agent: String,
+    },
+
     /// Verify integrity of the on-disk store.
     Verify {
         /// Path to the .braid directory.
@@ -147,6 +211,20 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             budget,
             agent,
         } => seed::run(&path, &task, budget, &agent),
+        Command::Guidance { path, agent } => guidance::run(&path, &agent),
+        Command::Merge { path, source } => merge::run(&path, &source),
+        Command::Log {
+            path,
+            limit,
+            agent,
+            datoms,
+        } => log::run(&path, limit, agent.as_deref(), datoms),
+        Command::Generate {
+            path,
+            task,
+            budget,
+            agent,
+        } => generate::run(&path, &task, budget, &agent),
         Command::Bootstrap { path, spec_dir } => {
             let layout = crate::layout::DiskLayout::open(&path)?;
             let elements = crate::bootstrap::parse_spec_dir(&spec_dir);
