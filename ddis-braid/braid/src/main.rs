@@ -1,5 +1,6 @@
 use clap::Parser;
 
+pub mod bootstrap;
 mod commands;
 mod error;
 pub mod layout;

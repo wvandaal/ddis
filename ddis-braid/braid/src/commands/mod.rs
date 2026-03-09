@@ -106,6 +106,17 @@ pub enum Command {
         #[arg(short, long, default_value = ".braid")]
         path: PathBuf,
     },
+
+    /// Self-bootstrap: parse spec/*.md and transact elements as datoms.
+    Bootstrap {
+        /// Path to the .braid directory.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Path to the spec directory.
+        #[arg(short, long, default_value = "spec")]
+        spec_dir: PathBuf,
+    },
 }
 
 /// Execute a CLI command and return the output string.
@@ -136,6 +147,40 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             budget,
             agent,
         } => seed::run(&path, &task, budget, &agent),
+        Command::Bootstrap { path, spec_dir } => {
+            let layout = crate::layout::DiskLayout::open(&path)?;
+            let elements = crate::bootstrap::parse_spec_dir(&spec_dir);
+            if elements.is_empty() {
+                return Ok("bootstrap: no spec elements found\n".to_string());
+            }
+            let agent = braid_kernel::datom::AgentId::from_name("braid:bootstrap");
+            let tx = crate::bootstrap::elements_to_tx(&elements, agent);
+            let datom_count = tx.datoms.len();
+            let file_path = layout.write_tx(&tx)?;
+
+            let invs = elements
+                .iter()
+                .filter(|e| e.kind == crate::bootstrap::SpecElementKind::Invariant)
+                .count();
+            let adrs = elements
+                .iter()
+                .filter(|e| e.kind == crate::bootstrap::SpecElementKind::Adr)
+                .count();
+            let negs = elements
+                .iter()
+                .filter(|e| e.kind == crate::bootstrap::SpecElementKind::NegativeCase)
+                .count();
+
+            Ok(format!(
+                "bootstrap: {} elements ({} INV, {} ADR, {} NEG) → {} datoms\n  → {}\n",
+                elements.len(),
+                invs,
+                adrs,
+                negs,
+                datom_count,
+                file_path.relative_path(),
+            ))
+        }
         Command::Verify { path } => {
             let layout = crate::layout::DiskLayout::open(&path)?;
             let report = layout.verify_integrity()?;
