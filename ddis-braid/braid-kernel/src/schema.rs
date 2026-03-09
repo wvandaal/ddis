@@ -367,6 +367,70 @@ impl Schema {
             }
         }
     }
+
+    /// Validate schema evolution: new schema must be a monotone extension (INV-SCHEMA-003).
+    ///
+    /// Rules:
+    /// - No attribute may be removed
+    /// - Value type may not change
+    /// - Cardinality may not narrow (Many → One is forbidden; One → Many is allowed)
+    ///
+    /// Returns a list of violations (empty = valid evolution).
+    pub fn validate_evolution(&self, new_schema: &Schema) -> Vec<SchemaEvolutionError> {
+        let mut errors = Vec::new();
+
+        for (attr, old_def) in &self.attrs {
+            match new_schema.attrs.get(attr) {
+                None => {
+                    errors.push(SchemaEvolutionError::AttributeRemoved(attr.clone()));
+                }
+                Some(new_def) => {
+                    if new_def.value_type != old_def.value_type {
+                        errors.push(SchemaEvolutionError::ValueTypeChanged {
+                            attr: attr.clone(),
+                            old: old_def.value_type,
+                            new: new_def.value_type,
+                        });
+                    }
+                    if old_def.cardinality == Cardinality::Many
+                        && new_def.cardinality == Cardinality::One
+                    {
+                        errors.push(SchemaEvolutionError::CardinalityNarrowed(attr.clone()));
+                    }
+                }
+            }
+        }
+
+        errors
+    }
+
+    /// Check if this schema is a superset of another (for merge compatibility).
+    pub fn is_superset_of(&self, other: &Schema) -> bool {
+        for attr in other.attrs.keys() {
+            if !self.attrs.contains_key(attr) {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+/// Error in schema evolution (INV-SCHEMA-003 violation).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum SchemaEvolutionError {
+    /// An existing attribute was removed (forbidden).
+    AttributeRemoved(Attribute),
+    /// An attribute's value type was changed (forbidden).
+    ValueTypeChanged {
+        /// The attribute.
+        attr: Attribute,
+        /// The old type.
+        old: ValueType,
+        /// The new type.
+        new: ValueType,
+    },
+    /// Cardinality narrowed from Many to One (forbidden).
+    CardinalityNarrowed(Attribute),
 }
 
 // ---------------------------------------------------------------------------
@@ -648,5 +712,102 @@ mod tests {
         assert!(ValueType::String.matches(&Value::String("hi".into())));
         assert!(!ValueType::String.matches(&Value::Long(1)));
         assert!(ValueType::Ref.matches(&Value::Ref(EntityId::from_content(b"x"))));
+    }
+
+    #[test]
+    fn evolution_reflexive() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+        let datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
+        let schema = Schema::from_datoms(&datoms);
+        let errors = schema.validate_evolution(&schema);
+        assert!(errors.is_empty(), "evolution(S, S) must be valid");
+    }
+
+    #[test]
+    fn evolution_detects_attribute_removal() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+        let datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
+        let full_schema = Schema::from_datoms(&datoms);
+        let empty_schema = Schema {
+            attrs: HashMap::new(),
+        };
+        let errors = full_schema.validate_evolution(&empty_schema);
+        assert_eq!(
+            errors.len(),
+            17,
+            "all 17 attributes should be flagged as removed"
+        );
+        assert!(errors
+            .iter()
+            .all(|e| matches!(e, SchemaEvolutionError::AttributeRemoved(_))));
+    }
+
+    #[test]
+    fn evolution_allows_new_attributes() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+        let datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
+        let old_schema = Schema::from_datoms(&datoms);
+
+        // Add a new attribute to the datom set
+        let mut new_datoms = datoms.clone();
+        let new_entity = EntityId::from_ident(":custom/attr");
+        new_datoms.insert(Datom::new(
+            new_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":custom/attr".into()),
+            tx,
+            Op::Assert,
+        ));
+        new_datoms.insert(Datom::new(
+            new_entity,
+            Attribute::from_keyword(":db/valueType"),
+            Value::Keyword(":db.type/string".into()),
+            tx,
+            Op::Assert,
+        ));
+        new_datoms.insert(Datom::new(
+            new_entity,
+            Attribute::from_keyword(":db/cardinality"),
+            Value::Keyword(":db.cardinality/one".into()),
+            tx,
+            Op::Assert,
+        ));
+        new_datoms.insert(Datom::new(
+            new_entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("Custom attribute".into()),
+            tx,
+            Op::Assert,
+        ));
+        new_datoms.insert(Datom::new(
+            new_entity,
+            Attribute::from_keyword(":db/resolutionMode"),
+            Value::Keyword(":resolution/lww".into()),
+            tx,
+            Op::Assert,
+        ));
+        let new_schema = Schema::from_datoms(&new_datoms);
+
+        assert_eq!(new_schema.len(), 18);
+        let errors = old_schema.validate_evolution(&new_schema);
+        assert!(errors.is_empty(), "adding attributes is valid evolution");
+    }
+
+    #[test]
+    fn is_superset_of() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+        let datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
+        let schema = Schema::from_datoms(&datoms);
+        let empty = Schema {
+            attrs: HashMap::new(),
+        };
+
+        assert!(schema.is_superset_of(&empty));
+        assert!(schema.is_superset_of(&schema));
+        assert!(!empty.is_superset_of(&schema));
     }
 }

@@ -18,7 +18,9 @@
 pub mod clause;
 pub mod evaluator;
 pub mod graph;
+pub mod stratum;
 
 pub use clause::{Binding, Clause, FindSpec, Pattern, QueryExpr};
 pub use evaluator::{evaluate, QueryResult};
 pub use graph::{critical_path, density, pagerank, scc, topo_sort};
+pub use stratum::{check_stage0, classify, Stratum};

@@ -11,6 +11,7 @@
 
 pub mod datom;
 pub mod error;
+pub mod layout;
 pub mod merge;
 pub mod query;
 pub mod resolution;
@@ -20,6 +21,10 @@ pub mod store;
 // Re-export core types at crate root for ergonomic access.
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 pub use error::KernelError;
+pub use layout::{
+    collect_datoms, deserialize_tx, serialize_tx, tx_content_hash, verify_content_hash,
+    ContentHash, EdnParseError, IntegrityError, IntegrityReport, LayoutConfig, TxFile, TxFilePath,
+};
 pub use merge::{
     detect_merge_conflicts, merge_stores, verify_frontier_advancement, verify_monotonicity,
 };

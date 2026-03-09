@@ -48,6 +48,14 @@ impl EntityId {
     pub fn as_bytes(&self) -> &[u8; 32] {
         &self.0
     }
+
+    /// Create an entity ID from raw bytes (for deserialization only).
+    ///
+    /// This bypasses the content-hash guarantee. Only use for deserializing
+    /// data that was previously serialized from a valid EntityId.
+    pub fn from_raw_bytes(bytes: [u8; 32]) -> Self {
+        EntityId(bytes)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -206,6 +214,21 @@ impl TxId {
         }
     }
 
+    /// Wall time (milliseconds since Unix epoch).
+    pub fn wall_time(&self) -> u64 {
+        self.wall_time
+    }
+
+    /// Logical counter for same-millisecond ordering.
+    pub fn logical(&self) -> u32 {
+        self.logical
+    }
+
+    /// The agent that created this transaction.
+    pub fn agent(&self) -> AgentId {
+        self.agent
+    }
+
     /// Tick the clock: advance to at least `now`, preserving monotonicity.
     ///
     /// If `now > self.wall_time`, resets logical to 0.
@@ -276,6 +299,11 @@ impl AgentId {
     /// Create an AgentId from raw UUID bytes.
     pub fn from_uuid(uuid: [u8; 16]) -> Self {
         AgentId(uuid)
+    }
+
+    /// Create an AgentId from raw bytes (for deserialization).
+    pub fn from_bytes(bytes: [u8; 16]) -> Self {
+        AgentId(bytes)
     }
 
     /// Access the raw 16-byte identifier.
