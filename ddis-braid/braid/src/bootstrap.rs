@@ -275,6 +275,10 @@ pub fn elements_to_tx(elements: &[SpecElement], agent: AgentId) -> TxFile {
         }
     }
 
+    // Extract dependency edges from traces-to references (INV-SCHEMA-009)
+    let dep_datoms = extract_dependency_datoms(elements, tx_id);
+    datoms.extend(dep_datoms);
+
     TxFile {
         tx_id,
         agent,
@@ -286,6 +290,124 @@ pub fn elements_to_tx(elements: &[SpecElement], agent: AgentId) -> TxFile {
         causal_predecessors: vec![],
         datoms,
     }
+}
+
+/// Extract dependency datoms from spec element bodies (INV-SCHEMA-009).
+///
+/// Scans element bodies for references to other spec elements (e.g., "INV-STORE-001",
+/// "ADR-SEED-002") and creates `:dep/from`, `:dep/to`, `:dep/type` datoms.
+///
+/// NEG-BOOTSTRAP-001: All dependency information is derived from the store (spec bodies),
+/// not from external hardcoded lists.
+pub fn extract_dependency_datoms(
+    elements: &[SpecElement],
+    tx_id: TxId,
+) -> Vec<braid_kernel::datom::Datom> {
+    use std::collections::HashSet;
+
+    // Build index of known element IDs
+    let known_ids: HashSet<&str> = elements.iter().map(|e| e.id.as_str()).collect();
+    let mut datoms = Vec::new();
+    let mut dep_count = 0_u32;
+
+    for elem in elements {
+        let from_entity = EntityId::from_ident(&format!(":spec/{}", elem.id.to_lowercase()));
+        let refs = extract_spec_references(&elem.body);
+
+        for ref_id in refs {
+            if ref_id == elem.id {
+                continue; // Skip self-references
+            }
+            if !known_ids.contains(ref_id.as_str()) {
+                continue; // Skip references to unknown elements
+            }
+
+            let to_entity = EntityId::from_ident(&format!(":spec/{}", ref_id.to_lowercase()));
+
+            // Create a unique entity for this dependency edge
+            let dep_entity = EntityId::from_ident(&format!(
+                ":dep/{}-to-{}",
+                elem.id.to_lowercase(),
+                ref_id.to_lowercase()
+            ));
+
+            // :dep/from → source element
+            datoms.push(braid_kernel::datom::Datom::new(
+                dep_entity,
+                Attribute::from_keyword(":dep/from"),
+                Value::Ref(from_entity),
+                tx_id,
+                Op::Assert,
+            ));
+
+            // :dep/to → target element
+            datoms.push(braid_kernel::datom::Datom::new(
+                dep_entity,
+                Attribute::from_keyword(":dep/to"),
+                Value::Ref(to_entity),
+                tx_id,
+                Op::Assert,
+            ));
+
+            // :dep/type → traces-to (the reference type)
+            let dep_type = if elem.body.contains("Traces to")
+                || elem.body.contains("traces to")
+                || elem.body.contains("Traces:")
+            {
+                ":dep.type/traces-to"
+            } else {
+                ":dep.type/references"
+            };
+            datoms.push(braid_kernel::datom::Datom::new(
+                dep_entity,
+                Attribute::from_keyword(":dep/type"),
+                Value::Keyword(dep_type.to_string()),
+                tx_id,
+                Op::Assert,
+            ));
+
+            dep_count += 1;
+        }
+    }
+
+    // Track dependency count for observability
+    if dep_count > 0 {
+        let dep_meta = EntityId::from_ident(":meta/dep-graph");
+        datoms.push(braid_kernel::datom::Datom::new(
+            dep_meta,
+            Attribute::from_keyword(":db/doc"),
+            Value::String(format!("{dep_count} dependency edges extracted")),
+            tx_id,
+            Op::Assert,
+        ));
+    }
+
+    datoms
+}
+
+/// Extract spec element IDs referenced in a body text.
+///
+/// Matches patterns like "INV-STORE-001", "ADR-SEED-002", "NEG-MUTATION-001".
+fn extract_spec_references(body: &str) -> Vec<String> {
+    let mut refs = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+
+    for word in body.split(|c: char| !c.is_alphanumeric() && c != '-') {
+        if (word.starts_with("INV-") || word.starts_with("ADR-") || word.starts_with("NEG-"))
+            && word.len() >= 10
+        {
+            // Validate it looks like a real ID: PREFIX-NAMESPACE-NNN
+            let parts: Vec<&str> = word.splitn(3, '-').collect();
+            if parts.len() == 3
+                && parts[2].chars().all(|c| c.is_ascii_digit())
+                && seen.insert(word.to_string())
+            {
+                refs.push(word.to_string());
+            }
+        }
+    }
+
+    refs
 }
 
 // ---------------------------------------------------------------------------
@@ -367,6 +489,61 @@ mod tests {
         // 1 element × 6 datoms each (ident, type, ns, doc, source, stage)
         assert_eq!(tx.datoms.len(), 6);
         assert_eq!(tx.provenance, ProvenanceType::Derived);
+    }
+
+    #[test]
+    fn extract_references_from_body() {
+        let body = "Traces to: INV-STORE-001, ADR-SEED-002.\nAlso see NEG-MUTATION-001.";
+        let refs = extract_spec_references(body);
+        assert_eq!(refs.len(), 3);
+        assert!(refs.contains(&"INV-STORE-001".to_string()));
+        assert!(refs.contains(&"ADR-SEED-002".to_string()));
+        assert!(refs.contains(&"NEG-MUTATION-001".to_string()));
+    }
+
+    #[test]
+    fn extract_references_deduplicates() {
+        let body = "INV-STORE-001 and then INV-STORE-001 again";
+        let refs = extract_spec_references(body);
+        assert_eq!(refs.len(), 1);
+    }
+
+    #[test]
+    fn extract_references_skips_invalid() {
+        let body = "INV-X is not valid. ADR- is incomplete.";
+        let refs = extract_spec_references(body);
+        assert!(refs.is_empty());
+    }
+
+    #[test]
+    fn dependency_datoms_generated() {
+        let elements = vec![
+            SpecElement {
+                id: "INV-STORE-001".into(),
+                kind: SpecElementKind::Invariant,
+                namespace: "STORE".into(),
+                title: "Append-Only".into(),
+                body: "The store is append-only.".into(),
+                source_file: "01-store.md".into(),
+                stage: Some(0),
+            },
+            SpecElement {
+                id: "INV-STORE-002".into(),
+                kind: SpecElementKind::Invariant,
+                namespace: "STORE".into(),
+                title: "Strict Growth".into(),
+                body: "Traces to: INV-STORE-001. Must grow.".into(),
+                source_file: "01-store.md".into(),
+                stage: Some(0),
+            },
+        ];
+
+        let agent = AgentId::from_name("test");
+        let tx_id = braid_kernel::datom::TxId::new(1, 0, agent);
+        let dep_datoms = extract_dependency_datoms(&elements, tx_id);
+
+        // INV-STORE-002 references INV-STORE-001 → 3 datoms (from, to, type) + 1 meta
+        assert_eq!(dep_datoms.len(), 4, "expected 3 dep datoms + 1 meta");
     }
 
     #[test]

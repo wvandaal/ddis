@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc e0a12d0a8f8e6864befba1315bdfa1f435162082cc0996e2126a45168c4b9939 # shrinks to g = DiGraph { adj: {"n0": {}}, rev: {"n0": {}} }

@@ -47,8 +47,8 @@ pub use merge::{
     detect_merge_conflicts, merge_stores, verify_frontier_advancement, verify_monotonicity,
 };
 pub use query::{
-    critical_path, density, evaluate, pagerank, scc, topo_sort, Binding, Clause, FindSpec, Pattern,
-    QueryExpr, QueryResult,
+    critical_path, density, edge_laplacian, evaluate, first_betti_number, pagerank, scc, topo_sort,
+    Binding, Clause, DenseMatrix, FindSpec, Pattern, QueryExpr, QueryResult,
 };
 pub use resolution::{
     conflict_to_datoms, detect_conflicts, resolve, resolve_with_trail, ConflictEntity, ConflictSet,

@@ -516,4 +516,252 @@ mod tests {
         let score = score_entity(&store, entity, &["ident"], 100);
         assert!(score > 0.0, "matching entity should have positive score");
     }
+
+    // -------------------------------------------------------------------
+    // Rate-distortion bound witnesses (proptest)
+    //
+    // Seed assembly is a lossy compression of the store subject to
+    // information-theoretic bounds. These tests witness:
+    //
+    // 1. Token budget monotonicity: larger budget => equal or larger output
+    // 2. Budget respect: output tokens never exceed budget
+    // 3. Relevance monotonicity: more relevant datoms => no decrease in output
+    // 4. Rate function: information retained decreases as budget decreases
+    // -------------------------------------------------------------------
+
+    mod rate_distortion_proptests {
+        use super::*;
+        use crate::datom::{AgentId, Attribute, ProvenanceType, Value};
+        use crate::proptest_strategies::arb_store;
+        use crate::store::Transaction;
+        use proptest::prelude::*;
+
+        fn count_state_entries(ctx: &AssembledContext) -> usize {
+            ctx.sections
+                .iter()
+                .map(|s| match s {
+                    ContextSection::State(entries) => entries.len(),
+                    _ => 0,
+                })
+                .sum()
+        }
+
+        fn state_token_sum(ctx: &AssembledContext) -> usize {
+            ctx.sections
+                .iter()
+                .map(|s| match s {
+                    ContextSection::State(entries) => {
+                        entries.iter().map(|e| e.tokens).sum::<usize>()
+                    }
+                    _ => 0,
+                })
+                .sum()
+        }
+
+        proptest! {
+            // RD-1: Budget respect -- seed output never exceeds the declared budget.
+            // This is INV-SEED-002 witnessed via proptest.
+            #[test]
+            fn rate_distortion_budget_respect(
+                store in arb_store(3),
+                budget in 50usize..5000,
+            ) {
+                let agent = AgentId::from_name("rd-test");
+                let seed = assemble_seed(&store, "test task", budget, agent);
+
+                prop_assert!(
+                    seed.context.total_tokens <= budget,
+                    "INV-SEED-002 violated: total_tokens ({}) > budget ({})",
+                    seed.context.total_tokens,
+                    budget
+                );
+            }
+
+            // RD-2: Fixed-projection budget monotonicity -- at the same
+            // projection level, more budget fits more or equal state entries.
+            // We pick two budgets in the same projection-level band (>2000)
+            // to hold projection constant, then verify entry count is monotone.
+            #[test]
+            fn rate_distortion_budget_monotonicity_fixed_projection(
+                store in arb_store(3),
+                budget_small in 2001usize..3000,
+            ) {
+                let budget_large = budget_small + 1000;
+
+                let neighborhood = SchemaNeighborhood {
+                    entities: store.entities().into_iter().collect(),
+                    attributes: vec![],
+                    entity_types: vec![],
+                };
+
+                let small_ctx = assemble(&store, &neighborhood, "test task", budget_small);
+                let large_ctx = assemble(&store, &neighborhood, "test task", budget_large);
+
+                // Both should use Full projection (budget > 2000)
+                prop_assert_eq!(
+                    small_ctx.projection_pattern,
+                    ProjectionLevel::Full,
+                    "Expected Full projection for budget {}",
+                    budget_small
+                );
+                prop_assert_eq!(
+                    large_ctx.projection_pattern,
+                    ProjectionLevel::Full,
+                    "Expected Full projection for budget {}",
+                    budget_large
+                );
+
+                let small_entries = count_state_entries(&small_ctx);
+                let large_entries = count_state_entries(&large_ctx);
+
+                prop_assert!(
+                    large_entries >= small_entries,
+                    "Budget monotonicity (fixed projection) violated: budget {} => {} entries, \
+                     budget {} => {} entries",
+                    budget_large, large_entries, budget_small, small_entries
+                );
+            }
+
+            // RD-3: Projection level monotonicity -- larger budgets produce equal
+            // or higher projection levels (more detail per entity).
+            #[test]
+            fn rate_distortion_projection_monotonicity(
+                store in arb_store(2),
+                budget_small in 50usize..500,
+            ) {
+                let budget_large = budget_small + 2000;
+                let neighborhood = SchemaNeighborhood::default();
+
+                let small_ctx = assemble(&store, &neighborhood, "task", budget_small);
+                let large_ctx = assemble(&store, &neighborhood, "task", budget_large);
+
+                prop_assert!(
+                    large_ctx.projection_pattern >= small_ctx.projection_pattern,
+                    "Projection monotonicity violated: larger budget selected lower projection \
+                     ({:?} < {:?})",
+                    large_ctx.projection_pattern,
+                    small_ctx.projection_pattern
+                );
+            }
+
+            // RD-4: Rate function -- at fixed projection level, state tokens
+            // consumed are non-decreasing as budget grows. This is the
+            // rate-distortion R(D): more budget => more information retained.
+            #[test]
+            fn rate_distortion_rate_function(
+                store in arb_store(3),
+                budget_small in 2001usize..3000,
+            ) {
+                let budget_large = budget_small + 1000;
+
+                let neighborhood = SchemaNeighborhood {
+                    entities: store.entities().into_iter().collect(),
+                    attributes: vec![],
+                    entity_types: vec![],
+                };
+
+                let small_ctx = assemble(&store, &neighborhood, "test", budget_small);
+                let large_ctx = assemble(&store, &neighborhood, "test", budget_large);
+
+                let small_tokens = state_token_sum(&small_ctx);
+                let large_tokens = state_token_sum(&large_ctx);
+
+                prop_assert!(
+                    large_tokens >= small_tokens,
+                    "Rate function violated: budget {} => {} state tokens, \
+                     budget {} => {} state tokens",
+                    budget_large, large_tokens, budget_small, small_tokens
+                );
+            }
+
+            // RD-5: Budget remaining is non-negative and consistent.
+            // total_tokens + budget_remaining <= budget.
+            #[test]
+            fn rate_distortion_budget_accounting(
+                store in arb_store(2),
+                budget in 50usize..5000,
+            ) {
+                let neighborhood = SchemaNeighborhood {
+                    entities: store.entities().into_iter().collect(),
+                    attributes: vec![],
+                    entity_types: vec![],
+                };
+
+                let ctx = assemble(&store, &neighborhood, "test", budget);
+
+                prop_assert!(
+                    ctx.total_tokens + ctx.budget_remaining <= budget,
+                    "Budget accounting violated: total ({}) + remaining ({}) > budget ({})",
+                    ctx.total_tokens,
+                    ctx.budget_remaining,
+                    budget
+                );
+            }
+
+            // RD-6: Relevance monotonicity -- adding datoms matching the task
+            // keywords to the store does not decrease the number of entities
+            // discovered by ASSOCIATE.
+            #[test]
+            fn rate_distortion_relevance_monotonicity(
+                store in arb_store(2),
+            ) {
+                let agent = AgentId::from_name("rd-test");
+                let task = "documentation";
+                let budget = 3000;
+
+                let seed_before = assemble_seed(&store, task, budget, agent);
+                let discovered_before = seed_before.entities_discovered;
+
+                // Add a datom that matches the task keyword "documentation"
+                let mut enriched = store.clone_store();
+                let enrich_agent = AgentId::from_name("enricher");
+                let entity = EntityId::from_ident(":test/enrichment");
+                let tx = Transaction::new(
+                    enrich_agent,
+                    ProvenanceType::Observed,
+                    "add relevant datom",
+                )
+                .assert(
+                    entity,
+                    Attribute::from_keyword(":db/doc"),
+                    Value::String("documentation for testing relevance".into()),
+                )
+                .commit(&enriched)
+                .unwrap();
+                enriched.transact(tx).unwrap();
+
+                let seed_after = assemble_seed(&enriched, task, budget, agent);
+                let discovered_after = seed_after.entities_discovered;
+
+                prop_assert!(
+                    discovered_after >= discovered_before,
+                    "Relevance monotonicity violated: adding relevant datoms decreased \
+                     entities discovered from {} to {}",
+                    discovered_before,
+                    discovered_after
+                );
+            }
+
+            // RD-7: Genesis store seed -- always well-formed with 5 sections
+            // and respects any budget.
+            #[test]
+            fn rate_distortion_genesis_wellformed(
+                budget in 100usize..5000,
+            ) {
+                let store = Store::genesis();
+                let agent = AgentId::from_name("rd-test");
+                let seed = assemble_seed(&store, "anything", budget, agent);
+
+                prop_assert_eq!(
+                    seed.context.sections.len(),
+                    5,
+                    "Seed must always have exactly 5 sections"
+                );
+                prop_assert!(
+                    seed.context.total_tokens <= budget,
+                    "Budget violated even for genesis store"
+                );
+            }
+        }
+    }
 }

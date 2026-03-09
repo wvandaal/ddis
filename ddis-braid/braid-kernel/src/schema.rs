@@ -810,4 +810,161 @@ mod tests {
         assert!(schema.is_superset_of(&schema));
         assert!(!empty.is_superset_of(&schema));
     }
+
+    // -------------------------------------------------------------------
+    // Schema semilattice witness (proptest)
+    //
+    // Schema forms a join-semilattice under set union. The schema is
+    // derived from the store's datom set, and store merge IS set union,
+    // so the semilattice properties of Schema are inherited from the
+    // semilattice properties of Store.merge(). We witness this directly:
+    // merge two stores, derive their schemas, verify the four
+    // semilattice axioms hold on the resulting attribute sets.
+    // -------------------------------------------------------------------
+
+    mod semilattice_proptests {
+        use super::*;
+        use crate::proptest_strategies::{arb_store, arb_store_pair};
+        use proptest::prelude::*;
+
+        fn schema_attr_set(schema: &Schema) -> BTreeSet<String> {
+            schema
+                .attributes()
+                .map(|(a, _)| a.as_str().to_string())
+                .collect()
+        }
+
+        proptest! {
+            // L1 — Closure: merging two stores produces a valid schema
+            // whose attribute set is the union of both input schemas.
+            #[test]
+            fn schema_semilattice_closure((s1, s2) in arb_store_pair(2)) {
+                let attrs_1 = schema_attr_set(s1.schema());
+                let attrs_2 = schema_attr_set(s2.schema());
+                let expected_union: BTreeSet<String> =
+                    attrs_1.union(&attrs_2).cloned().collect();
+
+                let mut merged = s1.clone_store();
+                merged.merge(&s2);
+                let merged_attrs = schema_attr_set(merged.schema());
+
+                // Merged schema contains at least the union of both inputs
+                for attr in &expected_union {
+                    prop_assert!(
+                        merged_attrs.contains(attr),
+                        "Closure violated: merged schema missing attribute {attr}"
+                    );
+                }
+                // Merged schema contains no attributes absent from either input
+                for attr in &merged_attrs {
+                    prop_assert!(
+                        attrs_1.contains(attr) || attrs_2.contains(attr),
+                        "Closure violated: merged schema has spurious attribute {attr}"
+                    );
+                }
+            }
+
+            // L2 — Commutativity: schema(A merge B) == schema(B merge A)
+            #[test]
+            fn schema_semilattice_commutativity((s1, s2) in arb_store_pair(2)) {
+                let mut left = s1.clone_store();
+                left.merge(&s2);
+
+                let mut right = s2.clone_store();
+                right.merge(&s1);
+
+                let left_attrs = schema_attr_set(left.schema());
+                let right_attrs = schema_attr_set(right.schema());
+
+                prop_assert_eq!(
+                    left_attrs, right_attrs,
+                    "Commutativity violated: schema(A∪B) != schema(B∪A)"
+                );
+            }
+
+            // L3 — Associativity: schema((A merge B) merge C) == schema(A merge (B merge C))
+            #[test]
+            fn schema_semilattice_associativity(
+                s1 in arb_store(2),
+                s2 in arb_store(2),
+                s3 in arb_store(2),
+            ) {
+                // (A ∪ B) ∪ C
+                let mut ab = s1.clone_store();
+                ab.merge(&s2);
+                ab.merge(&s3);
+
+                // A ∪ (B ∪ C)
+                let mut bc = s2.clone_store();
+                bc.merge(&s3);
+                let mut a_bc = s1.clone_store();
+                a_bc.merge(&bc);
+
+                let left_attrs = schema_attr_set(ab.schema());
+                let right_attrs = schema_attr_set(a_bc.schema());
+
+                prop_assert_eq!(
+                    left_attrs, right_attrs,
+                    "Associativity violated: schema((A∪B)∪C) != schema(A∪(B∪C))"
+                );
+            }
+
+            // L4 — Idempotency: schema(A merge A) == schema(A)
+            #[test]
+            fn schema_semilattice_idempotency(store in arb_store(3)) {
+                let before_attrs = schema_attr_set(store.schema());
+
+                let mut merged = store.clone_store();
+                merged.merge(&store);
+
+                let after_attrs = schema_attr_set(merged.schema());
+
+                prop_assert_eq!(
+                    before_attrs, after_attrs,
+                    "Idempotency violated: schema(A∪A) != schema(A)"
+                );
+            }
+
+            // Monotonicity witness: schema only grows under merge (INV-SCHEMA-003).
+            // schema(A) ⊆ schema(A merge B) for all A, B.
+            #[test]
+            fn schema_semilattice_monotonicity((s1, s2) in arb_store_pair(2)) {
+                let before_attrs = schema_attr_set(s1.schema());
+
+                let mut merged = s1.clone_store();
+                merged.merge(&s2);
+
+                let after_attrs = schema_attr_set(merged.schema());
+
+                for attr in &before_attrs {
+                    prop_assert!(
+                        after_attrs.contains(attr),
+                        "Monotonicity violated: attribute {attr} lost after merge"
+                    );
+                }
+            }
+
+            // Schema evolution compatibility: merged schema is a valid evolution
+            // of either input schema.
+            #[test]
+            fn schema_merge_is_valid_evolution((s1, s2) in arb_store_pair(2)) {
+                let mut merged = s1.clone_store();
+                merged.merge(&s2);
+
+                let errors_from_s1 = s1.schema().validate_evolution(merged.schema());
+                let errors_from_s2 = s2.schema().validate_evolution(merged.schema());
+
+                prop_assert!(
+                    errors_from_s1.is_empty(),
+                    "Merged schema is not a valid evolution of s1: {:?}",
+                    errors_from_s1
+                );
+                prop_assert!(
+                    errors_from_s2.is_empty(),
+                    "Merged schema is not a valid evolution of s2: {:?}",
+                    errors_from_s2
+                );
+            }
+        }
+    }
 }
