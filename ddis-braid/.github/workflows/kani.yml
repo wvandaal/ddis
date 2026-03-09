@@ -1,0 +1,96 @@
+name: Kani Verification
+
+on:
+  # Nightly schedule — bounded model checking is expensive
+  schedule:
+    - cron: '0 3 * * *'  # 3 AM UTC daily
+  # Manual trigger for on-demand verification
+  workflow_dispatch:
+  # Run on PRs that touch proof harnesses or core kernel code
+  pull_request:
+    paths:
+      - 'braid-kernel/src/kani_proofs.rs'
+      - 'braid-kernel/src/store.rs'
+      - 'braid-kernel/src/merge.rs'
+      - 'braid-kernel/src/datom.rs'
+      - 'braid-kernel/src/schema.rs'
+      - 'braid-kernel/src/resolution.rs'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Tier 1: Fast proofs (unwind <= 4) — runs on every trigger
+  kani-fast:
+    name: Kani Fast Proofs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Kani
+        uses: model-checking/kani-github-action@v1.1
+        with:
+          kani-version: 'latest'
+      - name: Run fast proofs (braid-kernel)
+        working-directory: braid-kernel
+        run: |
+          cargo kani --tests \
+            --default-unwind 4 \
+            --output-format terse \
+            2>&1 | tee kani-fast.log
+      - name: Upload fast proof log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kani-fast-log
+          path: braid-kernel/kani-fast.log
+
+  # Tier 2: Deep proofs (unwind <= 8) — nightly only
+  kani-nightly:
+    name: Kani Nightly Deep Proofs
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Kani
+        uses: model-checking/kani-github-action@v1.1
+        with:
+          kani-version: 'latest'
+      - name: Run deep proofs (braid-kernel)
+        working-directory: braid-kernel
+        run: |
+          cargo kani --tests \
+            --default-unwind 8 \
+            --output-format terse \
+            2>&1 | tee kani-nightly.log
+      - name: Upload nightly proof log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kani-nightly-log
+          path: braid-kernel/kani-nightly.log
+
+  # Tier 3: Exhaustive proofs (unwind <= 16) — weekly on Sunday
+  kani-weekly:
+    name: Kani Weekly Exhaustive Proofs
+    if: github.event_name == 'schedule' && contains('0', github.event.schedule)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Kani
+        uses: model-checking/kani-github-action@v1.1
+        with:
+          kani-version: 'latest'
+      - name: Run exhaustive proofs (braid-kernel)
+        working-directory: braid-kernel
+        run: |
+          cargo kani --tests \
+            --default-unwind 16 \
+            --output-format terse \
+            2>&1 | tee kani-weekly.log
+      - name: Upload weekly proof log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kani-weekly-log
+          path: braid-kernel/kani-weekly.log

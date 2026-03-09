@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  # Fast checks: fmt, clippy, test
+  check:
+    name: Check (fmt + clippy + test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Format check
+        run: cargo fmt --all --check
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Test (all stages)
+        run: cargo test --all-targets
+
+  # Stage feature matrix
+  stages:
+    name: Stage ${{ matrix.stage }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        stage: [stage0, stage1, stage2, stage3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build with feature ${{ matrix.stage }}
+        run: cargo build --no-default-features --features ${{ matrix.stage }}
+      - name: Test with feature ${{ matrix.stage }}
+        run: cargo test --no-default-features --features ${{ matrix.stage }}

@@ -14,6 +14,8 @@ pub mod datom;
 pub mod error;
 pub mod guidance;
 pub mod harvest;
+#[cfg(kani)]
+mod kani_proofs;
 pub mod layout;
 pub mod merge;
 #[cfg(test)]

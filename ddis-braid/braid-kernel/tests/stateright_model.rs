@@ -1,0 +1,625 @@
+//! Stateright bounded model checking for the Braid CRDT merge protocol.
+//!
+//! Verifies the algebraic properties of the G-Set CvRDT store under
+//! concurrent multi-agent transact and merge operations:
+//!
+//! - **INV-STORE-002**: Merge commutativity — `merge(A,B) = merge(B,A)`
+//! - **INV-STORE-003**: Merge associativity
+//! - **INV-STORE-004**: Merge idempotency — `merge(A,A) = A`
+//! - **INV-MERGE-001**: Set union semantics
+//! - **INV-MERGE-002**: Frontier monotonicity — frontiers never shrink
+//! - Eventual consistency: after all merges, all agents converge
+//!
+//! The model uses Stateright's exhaustive BFS checker to explore all
+//! possible interleavings of transact and merge operations across
+//! multiple concurrent agents.
+
+use std::collections::{BTreeMap, BTreeSet};
+use std::hash::Hash;
+
+use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, ProvenanceType, TxId, Value};
+use braid_kernel::merge::merge_stores;
+use braid_kernel::store::{Store, Transaction};
+
+use stateright::{Checker, Model, Property};
+
+// ---------------------------------------------------------------------------
+// Helper: reconstruct a Store from a serializable datom set
+// ---------------------------------------------------------------------------
+
+/// Reconstruct a Store from a BTreeSet<Datom>.
+///
+/// Store does not implement Clone/Hash/PartialEq, so we store datom sets
+/// in the model state and reconstruct Store on demand for operations.
+fn store_from_datoms(datoms: &BTreeSet<Datom>) -> Store {
+    Store::from_datoms(datoms.clone())
+}
+
+/// Extract the frontier from a Store as a BTreeMap (for Hash/Eq in state).
+fn frontier_snapshot(store: &Store) -> BTreeMap<AgentId, TxId> {
+    store.frontier().iter().map(|(k, v)| (*k, *v)).collect()
+}
+
+// ---------------------------------------------------------------------------
+// Model state: a world of N agents, each with a datom set + frontier
+// ---------------------------------------------------------------------------
+
+/// Snapshot of a single agent's store state, suitable for Stateright.
+///
+/// We capture the datom set and frontier — both support Hash/Eq.
+/// The full Store is reconstructed on demand via `Store::from_datoms`.
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+struct AgentSnapshot {
+    /// The canonical datom set.
+    datoms: BTreeSet<Datom>,
+    /// Per-agent frontier (vector clock).
+    frontier: BTreeMap<AgentId, TxId>,
+}
+
+impl AgentSnapshot {
+    fn from_store(store: &Store) -> Self {
+        AgentSnapshot {
+            datoms: store.datom_set().clone(),
+            frontier: frontier_snapshot(store),
+        }
+    }
+
+    /// Reconstruct the full Store from this snapshot.
+    fn to_store(&self) -> Store {
+        store_from_datoms(&self.datoms)
+    }
+}
+
+/// The global world state: one snapshot per agent, plus tracking of
+/// which data items each agent has transacted.
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+struct WorldState {
+    /// Per-agent store snapshots. Index = agent index.
+    agents: Vec<AgentSnapshot>,
+    /// Which data items each agent has transacted.
+    /// `transacted[agent_idx]` is a set of data item indices.
+    transacted: Vec<BTreeSet<usize>>,
+}
+
+// ---------------------------------------------------------------------------
+// Model actions
+// ---------------------------------------------------------------------------
+
+/// An action in the protocol model.
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+enum Action {
+    /// Agent `agent` transacts data item `data_item`.
+    Transact { agent: usize, data_item: usize },
+    /// Agent `target` merges from agent `source`.
+    Merge { target: usize, source: usize },
+}
+
+// ---------------------------------------------------------------------------
+// Protocol model: concurrent transact + merge with bounded state space
+// ---------------------------------------------------------------------------
+
+/// Configuration for the CRDT merge protocol model.
+///
+/// Models N agents that can each transact a bounded set of data items and
+/// merge pairwise. Stateright explores all interleavings exhaustively.
+struct CrdtMergeModel {
+    /// Number of concurrent agents.
+    num_agents: usize,
+    /// The data items that agents can transact.
+    /// Each is an (entity_ident, value) pair.
+    data_items: Vec<(&'static str, &'static str)>,
+    /// Agent IDs (derived from names).
+    agent_ids: Vec<AgentId>,
+    /// Maximum total transacted items to bound the state space.
+    max_transacted: usize,
+}
+
+impl CrdtMergeModel {
+    fn new(num_agents: usize, data_items: Vec<(&'static str, &'static str)>) -> Self {
+        let agent_ids: Vec<AgentId> = (0..num_agents)
+            .map(|i| AgentId::from_name(&format!("model-agent-{i}")))
+            .collect();
+        // Each agent can transact each item once
+        let max_transacted = num_agents * data_items.len();
+        CrdtMergeModel {
+            num_agents,
+            data_items,
+            agent_ids,
+            max_transacted,
+        }
+    }
+}
+
+impl Model for CrdtMergeModel {
+    type State = WorldState;
+    type Action = Action;
+
+    fn init_states(&self) -> Vec<Self::State> {
+        let genesis = Store::genesis();
+        let snapshot = AgentSnapshot::from_store(&genesis);
+        vec![WorldState {
+            agents: vec![snapshot; self.num_agents],
+            transacted: vec![BTreeSet::new(); self.num_agents],
+        }]
+    }
+
+    fn actions(&self, state: &Self::State, actions: &mut Vec<Self::Action>) {
+        // Transact actions: each agent can transact each data item at most once
+        for agent in 0..self.num_agents {
+            for (item_idx, _) in self.data_items.iter().enumerate() {
+                if !state.transacted[agent].contains(&item_idx) {
+                    actions.push(Action::Transact {
+                        agent,
+                        data_item: item_idx,
+                    });
+                }
+            }
+        }
+
+        // Merge actions: any agent can merge from any other agent
+        for target in 0..self.num_agents {
+            for source in 0..self.num_agents {
+                if target != source && state.agents[source].datoms != state.agents[target].datoms {
+                    actions.push(Action::Merge { target, source });
+                }
+            }
+        }
+    }
+
+    fn next_state(&self, last_state: &Self::State, action: Self::Action) -> Option<Self::State> {
+        let mut state = last_state.clone();
+
+        match action {
+            Action::Transact { agent, data_item } => {
+                let (entity_ident, value_str) = self.data_items[data_item];
+                let agent_id = self.agent_ids[agent];
+                let entity = EntityId::from_ident(entity_ident);
+
+                let mut store = state.agents[agent].to_store();
+                let tx = Transaction::new(agent_id, ProvenanceType::Observed, "model-tx")
+                    .assert(
+                        entity,
+                        Attribute::from_keyword(":db/doc"),
+                        Value::String(value_str.to_string()),
+                    )
+                    .commit(&store);
+
+                match tx {
+                    Ok(committed) => {
+                        let _ = store.transact(committed);
+                        state.agents[agent] = AgentSnapshot::from_store(&store);
+                        state.transacted[agent].insert(data_item);
+                    }
+                    Err(_) => return None,
+                }
+            }
+            Action::Merge { target, source } => {
+                let mut target_store = state.agents[target].to_store();
+                let source_store = state.agents[source].to_store();
+                merge_stores(&mut target_store, &source_store);
+                state.agents[target] = AgentSnapshot::from_store(&target_store);
+            }
+        }
+
+        Some(state)
+    }
+
+    fn properties(&self) -> Vec<Property<Self>> {
+        vec![
+            // SAFETY: Frontier monotonicity — no agent's frontier is empty
+            // (genesis always populates the system agent entry, and frontiers
+            // only grow through transact/merge). INV-MERGE-002.
+            Property::<Self>::always("frontier_monotonicity", |_model, state| {
+                state.agents.iter().all(|a| !a.frontier.is_empty())
+            }),
+            // SAFETY: Store monotonicity — every agent's store is a superset
+            // of the genesis datoms. INV-STORE-001.
+            Property::<Self>::always("store_monotonicity", |_model, state| {
+                let genesis = Store::genesis();
+                let genesis_datoms = genesis.datom_set();
+                state
+                    .agents
+                    .iter()
+                    .all(|a| genesis_datoms.is_subset(&a.datoms))
+            }),
+            // REACHABILITY: Eventual consistency — there exists a reachable state
+            // where all agents have transacted everything and all stores converge.
+            Property::<Self>::sometimes("eventual_consistency", |model, state| {
+                let all_transacted = state
+                    .transacted
+                    .iter()
+                    .all(|t| t.len() == model.data_items.len());
+                if !all_transacted {
+                    return false;
+                }
+                let first = &state.agents[0].datoms;
+                state.agents.iter().all(|a| &a.datoms == first)
+            }),
+        ]
+    }
+
+    fn within_boundary(&self, state: &Self::State) -> bool {
+        let total_transacted: usize = state.transacted.iter().map(|t| t.len()).sum();
+        total_transacted <= self.max_transacted
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Algebraic model: commutativity, associativity, idempotency, set union
+// ---------------------------------------------------------------------------
+
+/// State for the algebraic properties model.
+///
+/// Tracks three base stores and the results of various merge orderings.
+/// Stateright explores all orderings and checks that the algebraic laws hold.
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+struct AlgebraicState {
+    /// The three base stores (never modified).
+    base_a: BTreeSet<Datom>,
+    base_b: BTreeSet<Datom>,
+    base_c: BTreeSet<Datom>,
+    /// Accumulated merge results keyed by ordering label.
+    results: BTreeMap<String, BTreeSet<Datom>>,
+    /// Which computations have been done.
+    computed: BTreeSet<String>,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+enum AlgebraicAction {
+    /// merge(A, B)
+    ComputeAb,
+    /// merge(B, A)
+    ComputeBa,
+    /// merge(merge(A,B), C)
+    ComputeAbThenC,
+    /// merge(B, C)
+    ComputeBc,
+    /// merge(A, merge(B,C))
+    ComputeAThenBc,
+    /// merge(A, A) — idempotency
+    ComputeAa,
+}
+
+struct AlgebraicModel;
+
+impl AlgebraicModel {
+    /// Build a store with a unique datom for a given agent.
+    fn build_store(agent_name: &str, entity_ident: &str, value: &str) -> Store {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name(agent_name);
+        let entity = EntityId::from_ident(entity_ident);
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "algebraic-test")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String(value.to_string()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+        store
+    }
+
+    /// Merge two datom sets using the actual Store + merge_stores API.
+    fn merge_sets(a: &BTreeSet<Datom>, b: &BTreeSet<Datom>) -> BTreeSet<Datom> {
+        let mut store_a = store_from_datoms(a);
+        let store_b = store_from_datoms(b);
+        merge_stores(&mut store_a, &store_b);
+        store_a.datom_set().clone()
+    }
+}
+
+impl Model for AlgebraicModel {
+    type State = AlgebraicState;
+    type Action = AlgebraicAction;
+
+    fn init_states(&self) -> Vec<Self::State> {
+        let store_a = Self::build_store("alice", ":test/alpha", "value-alpha");
+        let store_b = Self::build_store("bob", ":test/beta", "value-beta");
+        let store_c = Self::build_store("carol", ":test/gamma", "value-gamma");
+
+        vec![AlgebraicState {
+            base_a: store_a.datom_set().clone(),
+            base_b: store_b.datom_set().clone(),
+            base_c: store_c.datom_set().clone(),
+            results: BTreeMap::new(),
+            computed: BTreeSet::new(),
+        }]
+    }
+
+    fn actions(&self, _state: &Self::State, actions: &mut Vec<Self::Action>) {
+        if !_state.computed.contains("ab") {
+            actions.push(AlgebraicAction::ComputeAb);
+        }
+        if !_state.computed.contains("ba") {
+            actions.push(AlgebraicAction::ComputeBa);
+        }
+        if _state.computed.contains("ab") && !_state.computed.contains("ab_c") {
+            actions.push(AlgebraicAction::ComputeAbThenC);
+        }
+        if !_state.computed.contains("bc") {
+            actions.push(AlgebraicAction::ComputeBc);
+        }
+        if _state.computed.contains("bc") && !_state.computed.contains("a_bc") {
+            actions.push(AlgebraicAction::ComputeAThenBc);
+        }
+        if !_state.computed.contains("aa") {
+            actions.push(AlgebraicAction::ComputeAa);
+        }
+    }
+
+    fn next_state(&self, last_state: &Self::State, action: Self::Action) -> Option<Self::State> {
+        let mut state = last_state.clone();
+        match action {
+            AlgebraicAction::ComputeAb => {
+                let result = AlgebraicModel::merge_sets(&state.base_a, &state.base_b);
+                state.results.insert("ab".to_string(), result);
+                state.computed.insert("ab".to_string());
+            }
+            AlgebraicAction::ComputeBa => {
+                let result = AlgebraicModel::merge_sets(&state.base_b, &state.base_a);
+                state.results.insert("ba".to_string(), result);
+                state.computed.insert("ba".to_string());
+            }
+            AlgebraicAction::ComputeAbThenC => {
+                let ab = state.results.get("ab").unwrap().clone();
+                let result = AlgebraicModel::merge_sets(&ab, &state.base_c);
+                state.results.insert("ab_c".to_string(), result);
+                state.computed.insert("ab_c".to_string());
+            }
+            AlgebraicAction::ComputeBc => {
+                let result = AlgebraicModel::merge_sets(&state.base_b, &state.base_c);
+                state.results.insert("bc".to_string(), result);
+                state.computed.insert("bc".to_string());
+            }
+            AlgebraicAction::ComputeAThenBc => {
+                let bc = state.results.get("bc").unwrap().clone();
+                let result = AlgebraicModel::merge_sets(&state.base_a, &bc);
+                state.results.insert("a_bc".to_string(), result);
+                state.computed.insert("a_bc".to_string());
+            }
+            AlgebraicAction::ComputeAa => {
+                let result = AlgebraicModel::merge_sets(&state.base_a, &state.base_a);
+                state.results.insert("aa".to_string(), result);
+                state.computed.insert("aa".to_string());
+            }
+        }
+        Some(state)
+    }
+
+    fn properties(&self) -> Vec<Property<Self>> {
+        vec![
+            // INV-STORE-002: Commutativity — merge(A,B) == merge(B,A)
+            Property::<Self>::always("commutativity", |_model, state| {
+                match (state.results.get("ab"), state.results.get("ba")) {
+                    (Some(ab), Some(ba)) => ab == ba,
+                    _ => true, // Not yet computed — vacuously true
+                }
+            }),
+            // INV-STORE-003: Associativity — merge(merge(A,B),C) == merge(A,merge(B,C))
+            Property::<Self>::always("associativity", |_model, state| {
+                match (state.results.get("ab_c"), state.results.get("a_bc")) {
+                    (Some(ab_c), Some(a_bc)) => ab_c == a_bc,
+                    _ => true,
+                }
+            }),
+            // INV-STORE-004: Idempotency — merge(A,A) == A
+            Property::<Self>::always("idempotency", |_model, state| {
+                match state.results.get("aa") {
+                    Some(aa) => *aa == state.base_a,
+                    None => true,
+                }
+            }),
+            // INV-MERGE-001: Set union — merge(A,B) is a superset of both A and B
+            Property::<Self>::always("set_union_semantics", |_model, state| {
+                match state.results.get("ab") {
+                    Some(ab) => state.base_a.is_subset(ab) && state.base_b.is_subset(ab),
+                    None => true,
+                }
+            }),
+            // Reachability: all six computations eventually complete
+            Property::<Self>::sometimes("all_computed", |_model, state| state.computed.len() == 6),
+        ]
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Frontier monotonicity model
+// ---------------------------------------------------------------------------
+
+/// Focused model that verifies frontier monotonicity (INV-MERGE-002)
+/// across transact and merge operations.
+///
+/// State: N agents, each with a datom set and frontier. Actions: transact
+/// (advances own frontier) or merge (advances frontier to pointwise max).
+/// Invariant: no frontier entry ever decreases below its initial value.
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+struct FrontierState {
+    /// Per-agent datom sets.
+    stores: Vec<BTreeSet<Datom>>,
+    /// Per-agent frontiers.
+    frontiers: Vec<BTreeMap<AgentId, TxId>>,
+    /// The initial frontier at genesis (used to verify monotonicity).
+    initial_frontiers: Vec<BTreeMap<AgentId, TxId>>,
+    /// Step counter for bounding.
+    step: usize,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+enum FrontierAction {
+    /// Agent at index transacts entity variant.
+    Transact(usize, usize),
+    /// Target agent merges from source agent.
+    Merge(usize, usize),
+}
+
+struct FrontierModel {
+    num_agents: usize,
+    agent_ids: Vec<AgentId>,
+    max_steps: usize,
+    entity_variants: usize,
+}
+
+impl FrontierModel {
+    fn new(num_agents: usize, entity_variants: usize, max_steps: usize) -> Self {
+        let agent_ids: Vec<AgentId> = (0..num_agents)
+            .map(|i| AgentId::from_name(&format!("frontier-agent-{i}")))
+            .collect();
+        FrontierModel {
+            num_agents,
+            agent_ids,
+            max_steps,
+            entity_variants,
+        }
+    }
+}
+
+impl Model for FrontierModel {
+    type State = FrontierState;
+    type Action = FrontierAction;
+
+    fn init_states(&self) -> Vec<Self::State> {
+        let genesis = Store::genesis();
+        let datoms = genesis.datom_set().clone();
+        let frontier: BTreeMap<AgentId, TxId> = frontier_snapshot(&genesis);
+
+        vec![FrontierState {
+            stores: vec![datoms.clone(); self.num_agents],
+            frontiers: vec![frontier.clone(); self.num_agents],
+            initial_frontiers: vec![frontier; self.num_agents],
+            step: 0,
+        }]
+    }
+
+    fn actions(&self, _state: &Self::State, actions: &mut Vec<Self::Action>) {
+        for agent in 0..self.num_agents {
+            for variant in 0..self.entity_variants {
+                actions.push(FrontierAction::Transact(agent, variant));
+            }
+        }
+        for target in 0..self.num_agents {
+            for source in 0..self.num_agents {
+                if target != source {
+                    actions.push(FrontierAction::Merge(target, source));
+                }
+            }
+        }
+    }
+
+    fn next_state(&self, last_state: &Self::State, action: Self::Action) -> Option<Self::State> {
+        let mut state = last_state.clone();
+        state.step += 1;
+
+        match action {
+            FrontierAction::Transact(agent_idx, variant) => {
+                let mut store = store_from_datoms(&state.stores[agent_idx]);
+                let agent_id = self.agent_ids[agent_idx];
+                let entity_ident = format!(":test/e{variant}");
+                let entity = EntityId::from_ident(&entity_ident);
+                let value_str = format!("v-{agent_idx}-{variant}-{}", state.step);
+
+                let tx = Transaction::new(agent_id, ProvenanceType::Observed, "frontier-test")
+                    .assert(
+                        entity,
+                        Attribute::from_keyword(":db/doc"),
+                        Value::String(value_str),
+                    );
+                match tx.commit(&store) {
+                    Ok(committed) => {
+                        let _ = store.transact(committed);
+                        state.stores[agent_idx] = store.datom_set().clone();
+                        state.frontiers[agent_idx] = frontier_snapshot(&store);
+                    }
+                    Err(_) => return None,
+                }
+            }
+            FrontierAction::Merge(target, source) => {
+                let mut target_store = store_from_datoms(&state.stores[target]);
+                let source_store = store_from_datoms(&state.stores[source]);
+                merge_stores(&mut target_store, &source_store);
+                state.stores[target] = target_store.datom_set().clone();
+                state.frontiers[target] = frontier_snapshot(&target_store);
+            }
+        }
+
+        Some(state)
+    }
+
+    fn properties(&self) -> Vec<Property<Self>> {
+        vec![
+            // INV-MERGE-002: Frontier monotonicity — every frontier entry
+            // must be >= the initial value. No entry disappears.
+            Property::<Self>::always("frontier_never_shrinks", |_model, state| {
+                for (agent_idx, frontier) in state.frontiers.iter().enumerate() {
+                    let initial = &state.initial_frontiers[agent_idx];
+                    for (agent_id, initial_tx) in initial {
+                        match frontier.get(agent_id) {
+                            Some(current_tx) if current_tx >= initial_tx => {}
+                            _ => return false,
+                        }
+                    }
+                }
+                true
+            }),
+            // Store monotonicity: genesis datoms always present.
+            Property::<Self>::always("genesis_preserved", |_model, state| {
+                let genesis = Store::genesis();
+                let genesis_datoms = genesis.datom_set();
+                state.stores.iter().all(|s| genesis_datoms.is_subset(s))
+            }),
+        ]
+    }
+
+    fn within_boundary(&self, state: &Self::State) -> bool {
+        state.step <= self.max_steps
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+/// INV-STORE-002, INV-STORE-003, INV-STORE-004, INV-MERGE-001:
+/// Algebraic properties (commutativity, associativity, idempotency, set union)
+/// verified by exhaustive state-space exploration.
+#[test]
+fn algebraic_properties_hold() {
+    AlgebraicModel
+        .checker()
+        .spawn_bfs()
+        .join()
+        .assert_properties();
+}
+
+/// INV-MERGE-002: Frontier monotonicity under concurrent transact + merge.
+/// 2 agents, 2 entity variants, bounded to 3 steps.
+#[test]
+fn frontier_monotonicity_holds() {
+    FrontierModel::new(2, 2, 3)
+        .checker()
+        .spawn_bfs()
+        .join()
+        .assert_properties();
+}
+
+/// Full protocol model: 2 agents, 2 data items, verifying eventual
+/// consistency, store monotonicity, and frontier monotonicity.
+#[test]
+fn protocol_convergence_2_agents() {
+    CrdtMergeModel::new(2, vec![(":test/x", "val-x"), (":test/y", "val-y")])
+        .checker()
+        .spawn_bfs()
+        .join()
+        .assert_properties();
+}
+
+/// Full protocol model: 3 agents, 1 data item. Explores the interleaving
+/// space for three concurrent agents with bounded state space.
+#[test]
+fn protocol_convergence_3_agents() {
+    CrdtMergeModel::new(3, vec![(":test/shared", "shared-val")])
+        .checker()
+        .spawn_bfs()
+        .join()
+        .assert_properties();
+}
