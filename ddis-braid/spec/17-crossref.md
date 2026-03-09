@@ -52,7 +52,9 @@ INV-STORE-004/005/006 (CRDT laws) ──→ INV-MERGE-002 (merge cascade)
                                     ──→ INV-SYNC-001 (consistent cut)
                                     ──→ INV-BILATERAL-001 (convergence)
 
-INV-STORE-008 (HLC monotonicity) ──→ INV-STORE-009 (frontier durability)
+INV-STORE-008 (genesis determinism) ──→ INV-STORE-014 (every command is transaction)
+
+INV-STORE-011 (HLC monotonicity) ──→ INV-STORE-009 (frontier durability)
                                    ──→ INV-SYNC-003 (topology independence)
 
 INV-SCHEMA-001 (genesis) ──→ INV-SCHEMA-002 (self-description)
@@ -109,8 +111,9 @@ INV-LAYOUT-001 (content-addressed) ──→ INV-TRILATERAL-007 (unified store s
 - Depth 3: INV-SEED-001, INV-DELIBERATION-001, INV-GUIDANCE-001
 - Depth 4: INV-BUDGET-004, INV-INTERFACE-007
 
-This confirms the implementation order: STORE → SCHEMA → QUERY → RESOLUTION → HARVEST
-→ SEED → MERGE → SYNC → SIGNAL → BILATERAL → DELIBERATION → GUIDANCE → BUDGET → INTERFACE.
+This confirms the implementation order: STORE → LAYOUT → SCHEMA → QUERY → RESOLUTION →
+HARVEST → SEED → MERGE → GUIDANCE → INTERFACE → TRILATERAL → SYNC → SIGNAL → BILATERAL →
+DELIBERATION → BUDGET.
 
 ### §17.3 Stage Mapping
 
@@ -232,21 +235,23 @@ Each failure mode (FAILURE_MODES.md) maps to the DDIS/Braid mechanisms that prev
 
 ### Backward Traceability (spec → ADRS.md): 100%
 
-All 126 spec ADR elements include `Traces to: ADRS` references linking back to the
+All 136 spec ADR elements include `Traces to: ADRS` references linking back to the
 design decisions that motivated them. 72/72 were verified during the V1 audit (R6);
 3 additional ADRs added post-audit also include backward links; 45 ADRs added in the
 ADR formalization pass (Session 013) all include backward links; 6 additional ADRs
-formalizing Stage 0 simplification decisions (Session 014) all include backward links.
+formalizing Stage 0 simplification decisions (Session 014) all include backward links;
+10 additional ADRs added in Phase 4 (Session 015) for LAYOUT and TRILATERAL namespaces
+all include backward links.
 
 ### Forward Traceability (ADRS.md → spec): 100%
 
-All 154 ADRS.md entries carry `Formalized as` or `Formalized across` forward annotations:
+All 159 ADRS.md entries carry `Formalized as` or `Formalized across` forward annotations:
 
 | Annotation Type | Count | Description |
 |-----------------|-------|-------------|
-| `Formalized as` / `Formalized across` | 154 | Entry has 1:1 or 1:N mapping to spec elements (INV, ADR, NEG) |
+| `Formalized as` / `Formalized across` | 159 | Entry has 1:1 or 1:N mapping to spec elements (INV, ADR, NEG) |
 | `Scope` (meta-level or implementation-level) | 0 | All former Scope entries formalized in Session 013 |
-| **Total** | **154** | **100% formalized** |
+| **Total** | **159** | **100% formalized** |
 
 ### Forward Annotation History
 
@@ -264,6 +269,10 @@ degree-product proxy), ADR-RESOLUTION-013 (conflict pipeline progressive activat
 ADR-MERGE-007 (merge cascade stub datoms), ADR-INTERFACE-010 (harvest warning
 turn-count proxy). Total ADRs increased from 120 to 126 (+6).
 
+**Phase 4 (LAYOUT + TRILATERAL, Session 015)**: 7 LAYOUT ADRs (ADR-LAYOUT-001–007)
+and 3 TRILATERAL ADRs (ADR-TRILATERAL-001–003) formalized. Total spec ADRs increased
+from 126 to 136 (+10).
+
 ---
 
 ## Appendix C: Verification Statistics (Final)
@@ -272,7 +281,7 @@ turn-count proxy). Total ADRs increased from 120 to 126 (+6).
 |--------|-------|----------|
 | Total INVs | 145 | — |
 | V:PROP | 143/145 | 98.6% |
-| V:TYPE (compile-time) | 10/145 | 6.9% |
+| V:TYPE (compile-time) | 11/145 | 7.6% |
 | V:PROP or V:TYPE or V:MODEL (minimum) | 145/145 | 100.0% |
 | V:KANI (critical) | 48/145 | 33.1% |
 | V:MODEL (protocol) | 14/145 | 9.7% |

@@ -1293,23 +1293,176 @@ items.
 
 ---
 
+### FM-022: Specification Modularization Drift
+
+**Discovered**: Session 015 (2026-03-08)
+**Trigger**: After the monolith spec was split into 16+ files and subsequent expansion passes
+added LAYOUT and TRILATERAL namespaces, cross-file counts, dependency references, and namespace
+enumerations were found to disagree across multiple files simultaneously.
+**Cross-References**: FM-006 (undetected cross-document drift), FM-008 (derived quantity staleness),
+INV-BILATERAL-002 (five-point coherence)
+**Status**: TESTABLE
+**Severity**: S0 — Structural
+**Divergence Type**: ST (Structural)
+
+**Formal violation predicate**: `∀file X, ∀file Y, ∀quantity Q: references(X, Q) ∧ references(Y, Q) ∧ source_of_truth(Y, Q) → value(X, Q) = value(Y, Q)` — a count or cross-reference in file X must agree with the source of truth in file Y after any spec modularization or expansion pass.
+
+**What happened**: When the monolith spec was split into 16+ files, cross-file counts, dependency
+references, and namespace enumerations became a persistent drift vector. Every expansion pass
+(adding LAYOUT, TRILATERAL) introduced stale counts in 3+ files simultaneously. Each individual
+file appeared locally coherent — internal references resolved, section numbering was consistent,
+prose was well-formed — but globally the files disagreed on counts, namespace lists, and
+cross-references.
+
+**Why this is a hard problem for agents**: Each spec file is locally coherent but globally
+inconsistent. Agents editing one file cannot easily verify all downstream references without
+full-project grep. The error is silent — no compilation step catches stale counts. An agent
+working on `spec/05-harvest.md` has no structural signal that `spec/README.md` or
+`spec/16-verification.md` now contains stale invariant counts. The modularization that makes
+specs manageable also makes cross-file coherence invisible.
+
+**Root cause**: Specification documents lack a structural integrity check equivalent to
+compilation. Cross-file invariants are maintained by convention, not by tooling. When a spec
+expansion adds new namespaces or invariants, every file that references counts or namespace
+lists must be manually updated — and the set of affected files is itself undocumented.
+
+**DDIS/Braid mechanism**: INV-BILATERAL-002 (five-point coherence), automated Phi measurement
+across spec files, self-bootstrap verification. The bilateral scan should detect count
+disagreements across files as a specific divergence class. Content-addressed specification
+elements (datoms with namespace, type, and ID) make counts derivable from queries rather than
+hardcoded — eliminating the root cause entirely once the store exists.
+
+**Acceptance criterion**: After any spec expansion pass, a verification script reports 0 count
+disagreements across all files. SLA: verification runs in <10s and catches 100% of stale counts.
+
+**Observations**:
+- LAYOUT and TRILATERAL namespace additions introduced stale counts in spec/README.md, spec/16-verification.md, and spec/00-preamble.md simultaneously
+- 3+ files required count updates per expansion pass, with no mechanism to discover affected files
+- Local coherence masked global inconsistency — individual file review did not detect the errors
+
+---
+
+### FM-023: Guide-Spec Temporal Gap
+
+**Discovered**: Session 015 (2026-03-08)
+**Trigger**: Guide files written during spec elaboration became systematically stale when the
+spec was revised to add LAYOUT/TRILATERAL namespaces. The V:KANI count in guide/10-verification.md
+disagreed with spec/16-verification.md by 7 invariants; function signatures in
+guide/13-trilateral.md used types not defined in the spec.
+**Cross-References**: FM-006 (undetected cross-document drift), FM-012 (type name divergence),
+FM-022 (spec modularization drift), INV-BILATERAL-002 (five-point coherence)
+**Status**: TESTABLE
+**Severity**: S0 — Structural
+**Divergence Type**: TE (Temporal)
+
+**Formal violation predicate**: `∀guide G, ∀spec S, ∀construct C: references(G, C) ∧ revised(S, C, t_rev) ∧ ¬updated(G, C, t_upd) ∧ t_upd > t_rev → stale(G, C)` — a guide file that references a spec construct revised at time t_rev must be updated at some time t_upd > t_rev; otherwise the reference is stale.
+
+**What happened**: Guide files written during spec elaboration became systematically stale when
+the spec was revised to add LAYOUT/TRILATERAL namespaces. The V:KANI count in
+guide/10-verification.md disagreed with spec/16-verification.md by 7 invariants; function
+signatures in guide/13-trilateral.md used types not defined in the spec. The temporal gap
+between spec revision and guide update was invisible — no mechanism flagged the inconsistency.
+
+**Why this is a hard problem for agents**: Guide files are downstream of spec files but have no
+structural dependency relationship. An agent editing spec/16-verification.md has no mechanism to
+discover that guide/10-verification.md must also be updated. The temporal gap between spec
+revision and guide update is invisible. The agent completing a spec revision experiences the
+work as "done" — the guide update is a separate task that exists only in the implicit dependency
+graph, which no tooling materializes.
+
+**Root cause**: One-directional authorship flow (spec to guide) without backward notification. The
+guide has no "subscription" to spec changes. Unlike code dependencies (where a type change
+causes a compile error in downstream files), spec-to-guide dependencies are maintained entirely
+by convention. When the convention fails — as it inevitably does under agent context pressure —
+the result is silent staleness.
+
+**DDIS/Braid mechanism**: INV-BILATERAL-002 (five-point coherence), TRILATERAL Phi metric
+extended to guide-to-spec boundary, harvest detection of guide staleness. The bilateral scan
+should treat guide files as downstream dependents of spec files and flag stale references. The
+harvest mechanism should detect when a spec revision did not propagate to dependent guides
+within the same session.
+
+**Acceptance criterion**: After any spec revision affecting counts or signatures, all downstream
+guide files are identified and updated within the same session. SLA: 0 stale guide references
+persist across a commit boundary.
+
+**Observations**:
+- guide/10-verification.md V:KANI count disagreed with spec/16-verification.md by 7 invariants after LAYOUT/TRILATERAL additions
+- guide/13-trilateral.md function signatures referenced types not defined in the spec
+- No mechanism existed to flag the guide as stale when the spec was revised
+- The temporal gap was discovered only during manual cross-file review, not by any automated check
+
+---
+
+### FM-024: Algebraic Proof Obligation Tracking
+
+**Discovered**: Session 015 (2026-03-08)
+**Trigger**: Review of spec invariants asserting algebraic properties (CRDT laws, semilattice
+properties, formality monotonicity) revealed that verification tags (V:PROP, V:KANI) indicate
+intent to verify but not whether the proof obligation has been discharged.
+**Cross-References**: FM-017 (incomplete formal proofs), FM-011 (verification tag inconsistency),
+INV-TRILATERAL-007 (unified store self-bootstrap)
+**Status**: TESTABLE
+**Severity**: S1 — Methodological
+**Divergence Type**: LO (Logical)
+
+**Formal violation predicate**: `∀inv I: asserts_algebraic(I, P) → ∃obligation O: tracks(O, I, P) ∧ O ∈ verification_plan` — every spec invariant that asserts an algebraic property (commutativity, associativity, monotonicity) must have a corresponding tracked proof obligation in the verification plan.
+
+**What happened**: Several spec invariants assert algebraic properties (e.g., CRDT laws,
+semilattice properties, formality monotonicity) but the verification plan tracks only
+verification methods (V:PROP, V:KANI), not whether the proof obligation itself has been
+discharged. An invariant can have V:KANI assigned but no actual harness written — the
+obligation exists on paper but not in CI. The gap between "this invariant should be checked
+by Kani" and "this invariant has a working Kani harness" is itself a form of divergence that
+the current tracking system cannot represent.
+
+**Why this is a hard problem for agents**: Verification tags indicate intent, not completion.
+There is no mechanism to distinguish "this invariant should be checked by Kani" from "this
+invariant has a working Kani harness." The gap between specification of verification and
+implementation of verification is itself a form of divergence. An agent reading `V:KANI` in a
+verification matrix reasonably concludes that Kani verification is planned — but "planned" and
+"implemented" look identical in the current tag system. The tag is a promise, not a receipt.
+
+**Root cause**: Verification plan tracks method assignment, not method execution status. Proof
+obligations are implicit in invariant statements, not explicitly tracked as entities. The
+verification matrix answers "how will we verify this?" but not "have we verified this?" These
+are fundamentally different questions that share the same column in the current format.
+
+**DDIS/Braid mechanism**: INV-TRILATERAL-007 (unified store self-bootstrap), verification status
+as datoms with lattice lifecycle (`:unverified` < `:harness-written` < `:harness-passing` <
+`:proven`). Each proof obligation becomes a first-class entity in the store with its own
+lifecycle. The lattice structure ensures monotonic progress — an obligation cannot regress from
+`:harness-passing` to `:harness-written` without a retraction datom recording the regression
+and its cause.
+
+**Acceptance criterion**: Every V:KANI-tagged invariant has a corresponding harness that
+compiles and passes. Proof obligation status is tracked as a lattice-valued datom. SLA: 100%
+harness coverage for Stage 0 V:KANI invariants before Stage 0 completion.
+
+**Observations**:
+- Multiple invariants have V:KANI tags assigned in the verification matrix but no corresponding harness exists
+- The verification matrix conflates method assignment (intent) with method execution (completion)
+- FM-017 previously identified 7 unproven + 2 broken algebraic properties — the current FM generalizes this to a tracking problem, not just a one-time gap
+
+---
+
 ## Statistics
 
 | Metric | Value |
 |--------|-------|
-| Total failure modes | 21 |
+| Total failure modes | 24 |
 | OBSERVED | 0 |
 | MAPPED | 1 (FM-003) |
-| TESTABLE | 20 (FM-001, FM-002, FM-004–FM-021) |
+| TESTABLE | 23 (FM-001, FM-002, FM-004–FM-024) |
 | VERIFIED | 0 |
 | UNMAPPED (design gaps) | 0 |
-| S0 (Structural) | 11 (FM-001, FM-004, FM-005, FM-006, FM-007, FM-008, FM-010, FM-012, FM-013, FM-017, FM-020) |
-| S1 (Methodological) | 7 (FM-002, FM-009, FM-011, FM-014, FM-016, FM-019, FM-021) |
+| S0 (Structural) | 13 (FM-001, FM-004, FM-005, FM-006, FM-007, FM-008, FM-010, FM-012, FM-013, FM-017, FM-020, FM-022, FM-023) |
+| S1 (Methodological) | 8 (FM-002, FM-009, FM-011, FM-014, FM-016, FM-019, FM-021, FM-024) |
 | S2 (Operational) | 3 (FM-003, FM-015, FM-018) |
 
 ### Coverage Summary
 
-All 21 observed failure modes map to DDIS/Braid mechanisms. FM-020 identified a partial
+All 24 observed failure modes map to DDIS/Braid mechanisms. FM-020 identified a partial
 design gap: DDIS has mechanisms for detecting divergence after it occurs but lacks a formal
 mechanism for preventing unauthorized decisions before they occur. The acceptance criterion
 for FM-020 requires a structural enforcement mechanism (decision gates as datom attributes
@@ -1318,14 +1471,16 @@ with status tracking), not just a procedural recommendation.
 FM-001 through FM-009 were discovered during Sessions 002-006. FM-010 through FM-019 were
 discovered during the V1 Fagan Inspection audit (Session 008+, 14 specialized audit agents).
 FM-020 was discovered during the post-audit accountability review (Session 010). FM-021
-was discovered during first-principles D1 scope review (Session 012).
+was discovered during first-principles D1 scope review (Session 012). FM-022 through FM-024
+were discovered during Session 015 (spec modularization review and verification audit).
 
 The FMs extend the catalog into three additional failure classes beyond the original three:
 
-**Class D — Specification Formalism Failures** (FM-010, FM-011, FM-017):
+**Class D — Specification Formalism Failures** (FM-010, FM-011, FM-017, FM-024):
 The specification itself contains formal errors (contradiction between element types,
-inconsistent metadata, unproven algebraic claims). These are distinct from cross-document
-coherence failures (Group B) because they occur *within* the spec, not *between* documents.
+inconsistent metadata, unproven algebraic claims, or untracked proof obligations). These are
+distinct from cross-document coherence failures (Group B) because they occur *within* the spec,
+not *between* documents.
 
 **Class E — Scope and Feasibility Gaps** (FM-016, FM-018, FM-019):
 The specification makes claims that are untestable (undefined token counting), unrealistic
@@ -1364,28 +1519,36 @@ they perform an audit — the artifacts look correct even when the process was v
 | FM-019 | Harvest heuristic with FP/FN calibration | >=90% externalized knowledge capture | Overclaimed as formal completeness | R3.4 reframed |
 | FM-020 | Decision gates + seed status tracking + harvest compliance | 100% user-gated items presented before implementation | 0% (19/19 items decided without review) | — (design gap identified) |
 | FM-021 | Bilateral scan + content-addressed deliverables + receipt verification | 100% verifiable deliverable claims | 62.5% (5/8 claimed notes actually written) | — (pre-implementation) |
+| FM-022 | Bilateral scan + automated Phi measurement + content-addressed counts | 0 count disagreements across files | 3+ stale files per expansion pass | — (pre-implementation) |
+| FM-023 | Bilateral scan + TRILATERAL Phi + harvest staleness detection | 0 stale guide references across commit boundary | 7 invariant count gap + stale signatures | — (pre-implementation) |
+| FM-024 | Proof obligation datoms + lattice lifecycle tracking | 100% V:KANI harness coverage for Stage 0 | Intent/completion conflated in V-tags | — (pre-implementation) |
 
 ### Failure Mode Clustering
 
-The 21 failure modes cluster into six groups by root mechanism:
+The 24 failure modes cluster into seven groups by root mechanism:
 
 **Group A — Knowledge Capture** (FM-001, FM-002, FM-003):
 Single-session failures where the agent's working knowledge exceeds what was externalized.
 Primary mechanism: Harvest + Provenance + Single-substrate query.
 
-**Group B — Cross-Document Coherence** (FM-004, FM-005, FM-006, FM-007, FM-008, FM-012, FM-013, FM-014, FM-015):
+**Group B — Cross-Document Coherence** (FM-004, FM-005, FM-006, FM-007, FM-008, FM-012, FM-013, FM-014, FM-015, FM-022, FM-023):
 Multi-session failures where documents produced by different agents in different sessions
-diverge without detection. Primary mechanisms: Bilateral loop + Drift detection + Content-
-addressed identity + Query-derived metrics. This remains the dominant cluster (9 of 19 FMs).
+diverge without detection. Includes spec modularization drift (FM-022) where expansion passes
+introduce stale counts across multiple files, and guide-spec temporal gaps (FM-023) where
+downstream documents become silently stale after upstream revisions. Primary mechanisms:
+Bilateral loop + Drift detection + Content-addressed identity + Query-derived metrics +
+automated Phi measurement. This remains the dominant cluster (11 of 24 FMs).
 
 **Group C — Decision Preservation** (FM-009):
 Multi-session failure where a settled decision is unknowingly relitigated because the
 deciding context was not loaded. Primary mechanism: Seed + Contradiction detection.
 
-**Group D — Specification Formalism Failures** (FM-010, FM-011, FM-017):
+**Group D — Specification Formalism Failures** (FM-010, FM-011, FM-017, FM-024):
 The specification itself contains formal errors — contradictions between element types,
-inconsistent metadata, or unproven algebraic claims. Primary mechanisms: 5-tier contradiction
-detection + formal proof obligations.
+inconsistent metadata, unproven algebraic claims, or untracked proof obligations. FM-024
+generalizes FM-017's observation (specific unproven properties) into a systematic tracking
+gap: verification tags indicate intent but not completion status. Primary mechanisms: 5-tier
+contradiction detection + formal proof obligations + proof obligation lifecycle tracking.
 
 **Group E — Scope and Feasibility Gaps** (FM-016, FM-018, FM-019):
 The specification makes claims that are untestable, unrealistic, or epistemologically

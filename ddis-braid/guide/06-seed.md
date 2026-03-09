@@ -40,11 +40,13 @@ pub struct SeedOutput {
 pub fn relevance_score(datom: &Datom, store: &Store, task: &str) -> f64;
 
 /// Generate dynamic CLAUDE.md from store state.
+/// Free function: generates formatted CLAUDE.md by querying the store.
 pub fn generate_claude_md(
     store: &Store,
-    task: &str,
+    focus: &str,
+    agent: AgentId,
     budget: usize,
-) -> String;
+) -> Result<String, SeedError>;
 
 /// Cue for ASSOCIATE — determines how schema neighborhood discovery starts.
 /// `depth` and `breadth` enforce INV-SEED-003 (ASSOCIATE Boundedness).
@@ -80,35 +82,63 @@ pub fn compress_seed(seed: &SeedOutput, budget: usize) -> SeedOutput;
   regardless of budget pressure.
 
 **State box** (internal design):
-- Three-stage pipeline: associate → assemble → compress.
-- **Associate**: Query store for task-relevant entities using keyword matching and
-  graph proximity. Score by relevance: α=0.5 (keyword match), β=0.3 (significance), γ=0.2 (recency).
-- **Assemble**: Build five-part structure from associated entities (ADR-SEED-004):
-  - Orientation: project metadata datoms + current phase.
-  - Constraints: relevant INVs, settled ADRs, negative cases for current task.
-  - State: transactions since last seed, frontier state, drift score.
-  - Warnings: drift signals, open questions, uncertainties, harvest alerts.
-  - Directive: next task, acceptance criteria, active guidance corrections.
-- **Compress**: If assembled seed exceeds budget, apply section compression priority (INV-SEED-004):
-  1. Compress **State** first (lowest marginal value; reconstructible from store queries)
-  2. Compress **Constraints** second (degrade to ID-only references, e.g., "INV-STORE-001")
-  3. Compress **Orientation** third (short, mostly fixed; compress but never omit entirely)
-  4. Compress **Warnings** fourth (safety-critical; high behavioral leverage per token)
-  5. Compress **Directive** last (directly controls agent behavior; most valuable per token)
-  Token allocation by remaining budget:
-  - \> 2000 tokens: full detail in all sections; pi_0 for State items
-  - 500-2000 tokens: compress State to pi_1; keep Constraints at full IDs
-  - 200-500 tokens: Orientation (50 tok) + Directive (100 tok) + top-3 Warnings only
-  - <= 200 tokens: single-line orientation + single-line directive + harvest warning if applicable
-  Demonstration density (INV-SEED-005): include >= 1 worked example per constraint cluster
-  when budget > 1000 tokens. A 30-token demonstration activates pattern-completion more
-  effectively than invariant statements alone.
+- Four-stage pipeline: **associate → query → assemble → compress** (spec/06-seed.md §6.1).
+  The formal composition is `SEED = assemble . query . associate` with compress as a
+  post-processing step on the assembled output.
+
+  **Stage 1 — ASSOCIATE**: Discover the schema neighborhood relevant to the task.
+  - Input: store + task description (or explicit entity seeds).
+  - Operation: keyword matching + graph proximity expansion.
+  - Output: `SchemaNeighborhood` — a set of relevant entities, attributes, and types.
+  - Bounded by `depth x breadth` (INV-SEED-003, defaults: depth=3, breadth=10).
+  - Traverses both structural schema edges and learned associations (ADR-SEED-005, Stage 1).
+
+  **Stage 2 — QUERY**: Retrieve the actual datom values for the discovered neighborhood.
+  - Input: schema neighborhood from ASSOCIATE.
+  - Operation: Datalog queries against the store for each relevant entity.
+  - Output: `QueryResult` — scored entity-datom pairs with relevance rankings.
+  - Scoring function: `score(e) = α*relevance(e, task) + β*significance(e) + γ*recency(e)`
+    where α=0.5, β=0.3, γ=0.2 (defaults, configurable as datoms).
+
+  **Stage 3 — ASSEMBLE**: Build the five-part seed structure from query results (ADR-SEED-004).
+  - Pre-allocate pinned intentions at π_0 (INV-SEED-006).
+  - Distribute remaining budget across sections:
+    - Orientation: project metadata datoms + current phase.
+    - Constraints: relevant INVs, settled ADRs, negative cases for current task.
+    - State: transactions since last seed, frontier state, drift score.
+    - Warnings: drift signals, open questions, uncertainties, harvest alerts.
+    - Directive: next task, acceptance criteria, active guidance corrections.
+  - Select projection level per entity based on remaining budget:
+    - \> 2000 tokens: π_0 (full datoms) for top entities, π_1 for others.
+    - 500-2000 tokens: π_1/π_2 for all entities.
+    - 200-500 tokens: π_2 for top entities, omit others.
+    - <= 200 tokens: single-line status + single guidance action.
+  - Insert demonstrations for constraint clusters when budget > 1000 tokens (INV-SEED-005).
+    A 30-token demonstration activates pattern-completion more effectively than invariant
+    statements alone.
+  - Check observation staleness (ADR-HARVEST-005): flag observations past their TTL.
+
+  **Stage 4 — COMPRESS**: Fit the assembled seed within the token budget.
+  - Section compression priority (INV-SEED-004, first to compress → last):
+    1. **State** first (lowest marginal value; reconstructible from store queries)
+    2. **Constraints** second (degrade to ID-only references, e.g., "INV-STORE-001")
+    3. **Orientation** third (short, mostly fixed; compress but never omit entirely)
+    4. **Warnings** fourth (safety-critical; high behavioral leverage per token)
+    5. **Directive** last (directly controls agent behavior; most valuable per token)
+  - Token allocation by remaining budget:
+    - \> 2000 tokens: full detail in all sections; π_0 for State items
+    - 500-2000 tokens: compress State to π_1; keep Constraints at full IDs
+    - 200-500 tokens: Orientation (50 tok) + Directive (100 tok) + top-3 Warnings only
+    - <= 200 tokens: single-line orientation + single-line directive + harvest warning if applicable
+  - Iteratively remove lowest-scored items until within budget. Never remove warnings or directive.
 
 **Clear box** (implementation):
 - `associate`: Tokenize task description → extract keywords → Datalog query:
   `[:find ?e ?score :where [?e :spec/id ?id] [(keyword-match ?id task-keywords) ?score]]`.
   For Stage 0, keyword matching is simple substring/overlap. Significance tracking deferred to Stage 1.
-- `assemble`: For each section, query store for relevant datoms. Format into markdown strings.
+- `query`: For each entity in the neighborhood, retrieve relevant datoms. Score by
+  `α*relevance + β*significance + γ*recency`. Return sorted entity-datom pairs.
+- `assemble`: For each section, format scored datoms into markdown strings.
   Token count estimated at 4 characters per token (rough approximation).
 - `compress`: If total tokens > budget, iteratively remove lowest-scored items from state
   and constraints sections until within budget. Never remove warnings or directive.
@@ -118,16 +148,36 @@ pub fn compress_seed(seed: &SeedOutput, budget: usize) -> SeedOutput;
 **Black box**: Generate a CLAUDE.md file from store state that optimizes the agent's session.
 
 **Clear box** (implementation):
-Seven-step pipeline (from spec/12-guidance.md):
-1. Load project metadata from store.
-2. Query for prior session demonstrations (harvest/seed examples from history).
-3. Query for constraints — only those passing the removal test at current k*.
-4. Compute current state: F(S), drift score, active basin, relevant INVs.
-5. Determine session objective from seed task.
-6. Select anti-drift footer based on current drift signals.
-7. Assemble into CLAUDE.md template (see guide/00-architecture.md §0.3).
 
-Token budget: ≤1000 tokens initially, shrinks as conversation k* decays.
+The canonical seven-step pipeline (from spec/06-seed.md §6.1 Level 0, GENERATE-CLAUDE-MD):
+
+| Step | Operation | What It Produces |
+|------|-----------|------------------|
+| 1 | **ASSOCIATE** with focus | Schema neighborhood relevant to the declared focus |
+| 2 | **QUERY** active intentions | What the agent should be working on (pinned at π_0) |
+| 3 | **QUERY** governing invariants | Which INVs constrain the current task |
+| 4 | **QUERY** uncertainty markers | What is uncertain in the relevant neighborhood |
+| 5 | **QUERY** competing branches | Are there parallel efforts on the same entities? |
+| 6 | **QUERY** drift patterns | What drift has been observed in recent sessions? |
+| 7 | **ASSEMBLE** at budget | Compress all query results into budget-aware output |
+
+Priority ordering within budget: `tools > task_context > risks > drift_corrections > seed_context`
+
+The output follows the unified five-part seed template (ADR-SEED-004):
+Orientation, Constraints, State, Warnings, Directive.
+
+Implementation-level mapping to the `generate_claude_md()` function:
+1. **Step 1 (ASSOCIATE)**: `associate(store, SemanticCue { text: focus })` — discover relevant entities.
+2. **Step 2 (active intentions)**: Query `:intention/*` entities with status `:active`.
+3. **Step 3 (governing INVs)**: Query `:spec/type = "invariant"` entities in the schema neighborhood.
+   Apply the removal test: only include constraints that would change agent behavior at current k*.
+4. **Step 4 (uncertainty)**: Query `:uncertainty/*` entities in the schema neighborhood.
+5. **Step 5 (competing branches)**: Query `:branch/*` entities with overlapping entity targets.
+   (Stage 0: no branches exist, this step produces empty results.)
+6. **Step 6 (drift patterns)**: Query `:drift/*` entities from recent harvest sessions.
+   Select anti-drift footer based on the most significant current drift signal.
+7. **Step 7 (ASSEMBLE)**: Format into CLAUDE.md template (see guide/00-architecture.md §0.3).
+   Token budget: ≤1000 tokens initially, shrinks as conversation k* decays.
 
 ---
 

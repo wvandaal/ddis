@@ -955,7 +955,7 @@ fails to correctly predict the appropriate strategy for most modules.
 
 ### ADR-INTERFACE-010: Harvest Warning Turn-Count Proxy at Stage 0
 
-**Traces to**: SEED §10 (staged roadmap), NEG-INTERFACE-003, ADR-HARVEST-007
+**Traces to**: SEED §10 (staged roadmap), NEG-INTERFACE-003, ADR-HARVEST-007, ADRS IB-012
 **Stage**: 0
 
 #### Problem

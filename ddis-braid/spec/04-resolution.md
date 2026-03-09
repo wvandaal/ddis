@@ -758,7 +758,7 @@ via the precedent query pattern (CR-007).
 
 ### ADR-RESOLUTION-009: BLAKE3 Hash Tie-Breaking for LWW
 
-**Traces to**: INV-RESOLUTION-005, ADR-STORE-013
+**Traces to**: INV-RESOLUTION-005, ADR-STORE-013, ADRS CR-009
 **Stage**: 0
 
 #### Problem
@@ -1213,7 +1213,7 @@ too concentrated or too diffuse.
 
 ### ADR-RESOLUTION-013: Conflict Pipeline Progressive Activation
 
-**Traces to**: SEED §10 (staged roadmap), INV-RESOLUTION-008
+**Traces to**: SEED §10 (staged roadmap), INV-RESOLUTION-008, ADRS CR-011
 **Stage**: 0
 
 #### Problem

@@ -6,7 +6,9 @@
 >
 > **Methodology**: Cleanroom three-box protocol (Mills). Each namespace proceeds:
 > Black box (contract) → State box (design) → Clear box (implementation).
-> The guide parallels the specification: `guide/NN-*.md` pairs with `spec/NN-*.md`.
+> The guide parallels the specification: `guide/NN-*.md` pairs with a corresponding
+> `spec/*.md` (see Spec Cross-Reference table below for exact mappings — numbering
+> diverges after guide/07).
 >
 > **LLM-Native Principle**: Every output surface consumed by an LLM is an optimized prompt.
 > CLI output, MCP descriptions, error messages, guidance footers, seed output, dynamic
@@ -42,6 +44,9 @@ For each namespace in build order:
 | INTERFACE | Prompt-engineering | LLM activation, output algebra, token budgets |
 | TRILATERAL | Coherence-theoretic | Divergence metrics, formality gradients, convergence monotonicity |
 
+> **Note**: Table rows follow cognitive-phase grouping, not implementation build order.
+> See §Build Order below for dependency-driven sequence.
+
 ### Reading order per namespace
 
 spec (what it must do) → guide (how to build it) → code (the implementation)
@@ -64,9 +69,9 @@ spec (what it must do) → guide (how to build it) → code (the implementation)
 | [08-guidance.md](08-guidance.md) | [12-guidance.md](../spec/12-guidance.md) | §7, §8 | GU-001–008 |
 | [09-interface.md](09-interface.md) | [14-interface.md](../spec/14-interface.md) | §8 | IB-001–012 |
 | [10-verification.md](10-verification.md) | [16-verification.md](../spec/16-verification.md) | — | — |
+| [10b-budget.md](10b-budget.md) | [13-budget.md](../spec/13-budget.md) | §7 | IB-004–007, IB-011 |
 | [11-worked-examples.md](11-worked-examples.md) | Multiple | §4, §5, §8, §10 | — |
 | [12-stages-1-4.md](12-stages-1-4.md) | [17-crossref.md](../spec/17-crossref.md) | §10 | — |
-| [10b-budget.md](10b-budget.md) | [13-budget.md](../spec/13-budget.md) | §7 | GU-001–008 |
 | [13-trilateral.md](13-trilateral.md) | [18-trilateral.md](../spec/18-trilateral.md) | §1, §2, §3, §5, §6 | CO-001, CO-004–005 |
 
 ---
@@ -180,19 +185,20 @@ up without manual re-explanation.
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| [00-architecture.md](00-architecture.md) | ~600 | Crate layout, type catalog, CLI/MCP specs, LLM-native design |
-| [01-store.md](01-store.md) | ~300 | STORE build plan — append-only datom store, CRDT algebra |
-| [01b-storage-layout.md](01b-storage-layout.md) | ~380 | LAYOUT build plan — content-addressed persistence, directory-union merge |
-| [02-schema.md](02-schema.md) | ~250 | SCHEMA build plan — genesis, axiomatic attributes, layers |
-| [03-query.md](03-query.md) | ~300 | QUERY build plan — Datalog engine, strata 0–1 |
-| [04-resolution.md](04-resolution.md) | ~250 | RESOLUTION build plan — per-attribute conflict handling |
-| [05-harvest.md](05-harvest.md) | ~250 | HARVEST build plan — epistemic gap detection, pipeline |
-| [06-seed.md](06-seed.md) | ~300 | SEED build plan — associate/assemble/compress, dynamic CLAUDE.md |
-| [07-merge-basic.md](07-merge-basic.md) | ~200 | MERGE Stage 0 subset — pure set union |
-| [08-guidance.md](08-guidance.md) | ~250 | GUIDANCE build plan — injection, anti-drift, spec-language |
-| [09-interface.md](09-interface.md) | ~300 | INTERFACE build plan — CLI modes, MCP tools, LLM surfaces |
-| [10-verification.md](10-verification.md) | ~300 | Verification pipeline, CI gates, coverage matrix |
-| [11-worked-examples.md](11-worked-examples.md) | ~550 | Self-bootstrap, session transcripts, Datalog queries |
-| [12-stages-1-4.md](12-stages-1-4.md) | ~200 | Future roadmap, extension points |
-| [10b-budget.md](10b-budget.md) | ~35 | BUDGET build plan stub (Stage 1) |
-| [13-trilateral.md](13-trilateral.md) | ~350 | TRILATERAL build plan — trilateral coherence model |
+| [00-architecture.md](00-architecture.md) | ~1080 | Crate layout, type catalog, CLI/MCP specs, LLM-native design |
+| [01-store.md](01-store.md) | ~310 | STORE build plan — append-only datom store, CRDT algebra |
+| [01b-storage-layout.md](01b-storage-layout.md) | ~780 | LAYOUT build plan — content-addressed persistence, directory-union merge |
+| [02-schema.md](02-schema.md) | ~340 | SCHEMA build plan — genesis, axiomatic attributes, layers |
+| [03-query.md](03-query.md) | ~530 | QUERY build plan — Datalog engine, strata 0–1 |
+| [04-resolution.md](04-resolution.md) | ~400 | RESOLUTION build plan — per-attribute conflict handling |
+| [05-harvest.md](05-harvest.md) | ~470 | HARVEST build plan — epistemic gap detection, pipeline |
+| [06-seed.md](06-seed.md) | ~280 | SEED build plan — associate/assemble/compress, dynamic CLAUDE.md |
+| [07-merge-basic.md](07-merge-basic.md) | ~340 | MERGE Stage 0 subset — pure set union |
+| [08-guidance.md](08-guidance.md) | ~660 | GUIDANCE build plan — injection, anti-drift, spec-language |
+| [09-interface.md](09-interface.md) | ~440 | INTERFACE build plan — CLI modes, MCP tools, LLM surfaces |
+| [10-verification.md](10-verification.md) | ~1550 | Verification pipeline, CI gates, coverage matrix |
+| [10b-budget.md](10b-budget.md) | ~30 | BUDGET build plan stub (Stage 1) |
+| [11-worked-examples.md](11-worked-examples.md) | ~1000 | Self-bootstrap, session transcripts, Datalog queries |
+| [12-stages-1-4.md](12-stages-1-4.md) | ~170 | Future roadmap, extension points |
+| [13-trilateral.md](13-trilateral.md) | ~380 | TRILATERAL build plan — trilateral coherence model |
+| [types.md](types.md) | ~2970 | Canonical Rust type catalog — single source of truth for all types |

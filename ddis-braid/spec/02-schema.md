@@ -178,6 +178,12 @@ Trilateral coherence attributes (Layer 2 — required for C7 self-verification):
 ```
 Intent namespace:
   :intent/noted         — Boolean    :one    lww    — Entity acknowledged, not yet formalized
+  :intent/decision      — String     :one    lww    — Decision text captured from conversation
+  :intent/rationale     — String     :one    lww    — Reasoning behind a decision
+  :intent/source        — String     :one    lww    — Origin context (conversation ID, user directive)
+  :intent/goal          — String     :one    lww    — Goal statement this entity represents
+  :intent/constraint    — String     :one    lww    — Constraint or boundary condition
+  :intent/preference    — String     :one    lww    — Non-binding preference or heuristic
 
 Implementation namespace:
   :impl/module          — String     :one    lww    — Source module path
@@ -191,7 +197,7 @@ Cross-boundary link:
   :spec/implements      — Ref        :many   multi  — Impl entity → spec entity it implements
 ```
 
-This gives 23 spec-element attributes plus 8 trilateral coherence attributes (31 total
+This gives 23 spec-element attributes plus 14 trilateral coherence attributes (37 total
 in Layer 2). Combined with the 17 axiomatic attributes and Layer 1 agent/provenance
 attributes, the Stage 0 schema is sufficient to represent all specification elements in
 the datom store with full fidelity across all three refinement levels and all element
@@ -775,7 +781,7 @@ The diamond patterns connect lattice algebra to coordination (INV-SCHEMA-008).
 
 ### ADR-SCHEMA-005: Owned Schema with Borrow API
 
-**Traces to**: C3, INV-SCHEMA-001
+**Traces to**: C3, INV-SCHEMA-001, ADRS SR-012
 **Stage**: 0
 
 #### Problem

@@ -94,6 +94,12 @@ impl Transaction<Applied> { fn tx_id, receipt }
 - `transact`: validate against schema → generate TxId → compute EntityId for tx metadata →
   insert datoms into BTreeSet → update indexes incrementally → update frontier → return receipt.
 - `merge`: BTreeSet union → index rebuild → frontier merge (pointwise max per agent).
+  **Two-level merge design**: `Store::merge(&mut self, other)` is the kernel-level algebraic
+  operation (set union over datoms, INV-STORE-004–006). The I/O-level filesystem operation
+  `merge_directories(src, dst)` in [guide/01b-storage-layout.md](01b-storage-layout.md)
+  handles file-level deduplication and directory union. Both implement INV-MERGE-001 at
+  different abstraction levels: kernel merge is pure math; directory merge is its physical
+  realization on the content-addressed storage layout.
 - `genesis`: hardcoded 17 axiomatic attributes as datoms. Verify hash matches compile-time constant.
 - `as_of`: filter datoms by `d.tx <= frontier_txid` → apply resolution per attribute.
 - Indexes are maintained incrementally on transact (not rebuilt from scratch).
@@ -113,11 +119,91 @@ Four standard index orderings, each a `BTreeMap` for ordered range scans:
 On persist, written to `.cache/` index files derived from content-addressed transaction files (see §0.3 Layout Directory Schema).
 On load, indexes are rebuilt from the datom set (derived, not authoritative).
 
+#### Index Rebuild Strategy
+
+When loading a store from the layout directory (via `load_store` in persistence.rs),
+indexes are rebuilt from scratch by iterating all datoms in the `BTreeSet`:
+
+1. **EAVT**: For each datom, insert with key `(entity, attribute, value, tx)`.
+2. **AEVT**: For each datom, insert with key `(attribute, entity, value, tx)`.
+3. **AVET**: For each datom where the attribute has `:db/unique`, insert with key
+   `(attribute, value, entity, tx)`. Only unique attributes are indexed here.
+4. **VAET**: For each datom where `value` is `Value::Ref(target)`, insert with key
+   `(value_ref, attribute, entity, tx)`. Only reference-valued datoms are indexed.
+
+This is O(N) where N is the total datom count. Incremental maintenance (on `transact`)
+inserts only the new transaction's datoms into existing indexes — not a full rebuild.
+The `.cache/` directory stores serialized indexes for faster cold start; if absent,
+`load_store` falls back to the full rebuild from the canonical `txns/` files
+(see guide/01b-storage-layout.md §1b.2 Store Loader, INV-LAYOUT-009).
+
 **Stage 2 extension (LIVE index, INV-STORE-012–013)**: Adds incremental resolution maintenance.
 When a datom is inserted, only affected (entity, attribute) pairs are re-resolved. The LIVE
 index caches `HashMap<(EntityId, Attribute), ResolvedValue>` with invalidation on insert.
 The Stage 0 index infrastructure supports this by providing efficient (entity, attribute) scans
 via EAVT.
+
+### Snapshot Isolation Semantics
+
+`store.datoms()` returns an iterator over the complete datom set at a fixed point in time.
+Because `Store` is an immutable value (C1), there is no concurrent mutation — a `&Store`
+reference sees a consistent snapshot by construction.
+
+`store.as_of(frontier)` returns a `SnapshotView` — a filtered view that includes only
+datoms with `tx <= frontier_txid` for the relevant agents. Resolution modes are applied
+per attribute to compute the current value at that frontier.
+
+```rust
+/// A read-only view of the store at a specific frontier.
+/// Constructed via Store::as_of(). Applies resolution to produce
+/// the "current" state as of the given frontier.
+pub struct SnapshotView<'a> {
+    store: &'a Store,
+    frontier: Frontier,
+}
+
+impl<'a> SnapshotView<'a> {
+    /// Current resolved value for an entity-attribute pair at this frontier.
+    pub fn current(&self, entity: EntityId, attr: &Attribute) -> Option<Value>;
+    /// All datoms visible at this frontier (before resolution).
+    pub fn datoms(&self) -> impl Iterator<Item = &Datom>;
+    /// Entity-centric view at this frontier.
+    pub fn entity(&self, id: EntityId) -> EntityView;
+}
+```
+
+Under the ArcSwap concurrency model (ADR-STORE-016, Stage 2+), each reader loads
+an `Arc<Store>` snapshot. Writers create a new `Store` value and swap the pointer
+atomically. In-flight reads on the old `Arc<Store>` continue undisturbed — this is
+the Datomic connection model. At Stage 0 (single-threaded CLI), snapshot isolation
+is trivially satisfied since there is only one reader/writer.
+
+### Error Types
+
+```rust
+/// Errors when applying a committed transaction to the store.
+pub enum TxApplyError {
+    /// Transaction with this TxId already exists in the store.
+    DuplicateTransaction(TxId),
+    /// Causal predecessor not found in store (INV-STORE-010).
+    MissingPredecessor(TxId),
+    /// Storage layer failure.
+    StorageFailure(String),
+}
+
+/// Errors when validating a transaction before commit.
+pub enum TxValidationError {
+    /// Attribute not found in schema.
+    SchemaViolation { attr: Attribute, expected: ValueType, got: ValueType },
+    /// Unknown attribute (not in genesis or any schema transaction).
+    UnknownAttribute(Attribute),
+    /// Retraction of a datom that was never asserted.
+    InvalidRetraction(EntityId, Attribute),
+}
+```
+
+See also: `LayoutError` in guide/01b-storage-layout.md, `SchemaError` in guide/02-schema.md,
+and the unified type catalog in guide/types.md.
 
 ### Transaction (Typestate)
 
@@ -298,5 +384,8 @@ mod kani_proofs {
 - [ ] All proptest properties pass (Gate 2)
 - [ ] All Kani harnesses pass (Gate 3)
 - [ ] Integration: genesis + transact + query round-trip works
+
+> **Note**: INV-STORE-013 (Concurrent Read Safety) three-box decomposition deferred to
+> Stage 2 (requires ArcSwap concurrency model per ADR-STORE-003).
 
 ---

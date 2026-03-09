@@ -49,6 +49,31 @@ pub fn merge_directories(src: &Path, dst: &Path) -> Result<MergeReceipt, LayoutE
 pub fn rebuild_cache(dir: &Path) -> Result<(), LayoutError>;
 ```
 
+### Error Types
+
+```rust
+/// Errors in the LAYOUT namespace (persistence layer).
+pub enum LayoutError {
+    /// Filesystem I/O failure (permissions, disk full, etc.).
+    Io(std::io::Error),
+    /// EDN deserialization failure (malformed transaction file).
+    Deserialize(String),
+    /// Content hash does not match filename — file is corrupt (INV-LAYOUT-001).
+    HashMismatch { expected: Blake3Hash, actual: Blake3Hash, path: PathBuf },
+    /// Layout directory does not exist or is missing required structure.
+    NotInitialized(PathBuf),
+}
+
+/// Result from verify_integrity: lists any corrupt or unparseable transaction files.
+pub struct IntegrityReport {
+    pub total_files: usize,
+    pub valid_files: usize,
+    pub corrupt_files: Vec<(PathBuf, LayoutError)>,
+}
+```
+
+See also the unified type catalog in guide/types.md for cross-namespace error type alignment.
+
 ---
 
 ## §1b.2 Three-Box Decomposition
@@ -387,6 +412,21 @@ pub fn load_store(dir: &Path) -> Result<Store, LayoutError> {
     }
 
     Ok(Store::from_datoms(datoms, frontier))
+    // Note: Store::from_datoms internally rebuilds all four indexes (EAVT, AEVT, VAET, AVET)
+    // by iterating the datom set. See guide/01-store.md §1.2 "Index Rebuild Strategy"
+    // for the per-index insertion rules (which datoms go into which index).
+}
+
+/// Rebuild the .cache/ index files from txns/ alone (INV-LAYOUT-009).
+/// This is the recovery path when .cache/ is missing, corrupt, or gitignored.
+pub fn rebuild_cache(dir: &Path) -> Result<(), LayoutError> {
+    let store = load_store(dir)?;
+    // Serialize each index (EAVT, AEVT, VAET, AVET) to .cache/ files.
+    // The serialized format is an implementation detail — these files are
+    // derived artifacts, not authoritative. Deleting .cache/ and re-running
+    // rebuild_cache produces identical results (INV-LAYOUT-009).
+    write_cached_indexes(dir, store.indexes())?;
+    Ok(())
 }
 ```
 

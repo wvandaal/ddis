@@ -27,12 +27,12 @@ engine, a harvest/seed lifecycle for durable knowledge across conversation bound
 reconciliation framework that maintains verifiable coherence between intent, specification,
 implementation, and observed behavior.
 
-The specification covers 14 namespaces organized into four waves:
+The specification covers 16 namespaces organized into four waves:
 
-- **Foundation** (Wave 1): STORE, SCHEMA, QUERY, RESOLUTION — the algebraic core
+- **Foundation** (Wave 1): STORE, LAYOUT, SCHEMA, QUERY, RESOLUTION — the algebraic core
 - **Lifecycle** (Wave 2): HARVEST, SEED, MERGE, SYNC — session and coordination mechanics
 - **Intelligence** (Wave 3): SIGNAL, BILATERAL, DELIBERATION, GUIDANCE, BUDGET, INTERFACE — steering and adaptation
-- **Integration** (Wave 4): Uncertainty register, verification plan, cross-reference index
+- **Integration** (Wave 4): TRILATERAL, Uncertainty register, verification plan, cross-reference index
 
 ### §0.2 Conventions
 

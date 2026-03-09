@@ -54,6 +54,18 @@ where:
 
 Target: `F(S) → 1.0`
 
+#### F(S) Component Mapping
+
+| Symbol | SEED.md Name | Description | Weight |
+|--------|-------------|-------------|--------|
+| V | coverage | Invariants verified / total | 0.18 |
+| C | coherence | Goals traced to invariants and back | 0.18 |
+| D | drift | Spec-impl divergence | 0.18 |
+| H | completeness | Harvest quality (FP/FN rates) | 0.13 |
+| K | commitment | Contradictions weighted by severity | 0.13 |
+| I | formality | Incompleteness gaps | 0.08 |
+| U | certainty | Mean uncertainty | 0.12 |
+
 ### §10.2 Level 1: State Machine Specification
 
 **State**: `Σ_bilateral = (divergence_map: Map<Boundary, Set<Gap>>, fitness: f64, cycle_count: u64, residuals: Set<DocumentedResidual>)`

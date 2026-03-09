@@ -65,6 +65,15 @@ where:
   D_SP(S) = |{e ∈ LIVE_S(S) | ¬∃ link: link.a = :spec/implements ∧ link.v = e}|
            + |{e ∈ LIVE_P(S) | ¬∃ link: link.a = :spec/implements ∧ link.e = e}|
 
+  Type semantics for cross-boundary links:
+  - D_IS uses String-valued :spec/traces-to links (spec/02-schema.md line 143):
+    an intent entity is "linked" if ANY spec entity has a :spec/traces-to String
+    value referencing it (e.g., "SEED §4 Axiom 2"). String presence, not Ref
+    entity resolution — traceability to SEED.md sections is inherently textual.
+  - D_SP uses Ref-valued :spec/implements links (spec/02-schema.md line 191):
+    a spec entity is "implemented" if ANY impl entity has a :spec/implements Ref
+    pointing to its entity ID. Ref resolution, not String matching.
+
   w₁, w₂ = boundary weights (configurable as datoms, default: w₁ = w₂ = 0.5)
 ```
 
@@ -312,7 +321,7 @@ pub enum AttrNamespace {
     Meta,  // cross-cutting: :db/*, :tx/*
 }
 
-pub fn classify_attribute(attr: &Keyword) -> AttrNamespace {
+pub fn classify_attribute(attr: &Attribute) -> AttrNamespace {
     match attr.namespace() {
         "intent" => AttrNamespace::Intent,
         "spec"   => AttrNamespace::Spec,
@@ -397,7 +406,7 @@ instead of LIVE_S.
 
 ### ADR-TRILATERAL-001: Unified Store with Three LIVE Views
 
-**Traces to**: SEED §4, INV-STORE-012, TRILATERAL_COHERENCE_MODEL.md §19
+**Traces to**: SEED §4, INV-STORE-012, TRILATERAL_COHERENCE_MODEL.md §19, ADRS IB-010, ADRS CO-008, ADRS CO-010
 **Stage**: 0
 
 #### Problem
@@ -506,7 +515,7 @@ exceeds 1000 lines (indicating EDN is more complex than assumed).
 
 ### ADR-TRILATERAL-003: Hooks for Invisible Convergence
 
-**Traces to**: SEED §5 (harvest/seed lifecycle), TRILATERAL_COHERENCE_MODEL.md §19
+**Traces to**: SEED §5 (harvest/seed lifecycle), TRILATERAL_COHERENCE_MODEL.md §19, ADRS IB-010
 **Stage**: 1
 
 #### Problem

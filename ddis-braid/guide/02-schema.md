@@ -220,6 +220,50 @@ For each, verify the lattice definition is complete (all 4 required properties p
 
 ---
 
+### Schema Evolution (Adding New Attributes)
+
+Schema evolution is an append-only operation (INV-SCHEMA-003). New attributes are added
+by transacting schema datoms — there is no DDL, no migration, and no `ALTER` equivalent.
+
+**Step-by-step workflow**:
+
+1. Define the new attribute as an `AttributeSpec`:
+   ```rust
+   let spec = AttributeSpec {
+       ident: Attribute::new(":task/status")?,
+       value_type: ValueType::Keyword,
+       cardinality: Cardinality::One,
+       doc: "Current status of a task entity".to_string(),
+       resolution_mode: ResolutionMode::LastWriterWins,
+       unique: None,
+       is_component: false,
+   };
+   ```
+
+2. Generate the schema datoms via `Schema::new_attribute`:
+   ```rust
+   let schema_datoms = store.schema().new_attribute(spec);
+   // Produces datoms: (:db/ident, :task/status), (:db/valueType, :keyword), etc.
+   ```
+
+3. Transact the schema datoms like any other datoms:
+   ```rust
+   let mut tx = Transaction::new(agent_id);
+   for datom in schema_datoms { tx.assert_datom(datom); }
+   let committed = tx.commit(store.schema())?;
+   store.transact(committed)?;
+   // Schema is now updated — store.schema() includes :task/status
+   ```
+
+**Constraints on evolution**:
+- Attributes can be added but never removed (INV-SCHEMA-003).
+- Attribute value types are immutable once set. Changing a value type requires
+  defining a new attribute (e.g., `:task/status-v2`) and retracting usage of the old one.
+- Layer ordering must be respected (INV-SCHEMA-006): a Layer 2 attribute cannot reference
+  types defined only in Layer 3+.
+- If the attribute uses lattice resolution, the lattice definition entity must be transacted
+  first (INV-SCHEMA-007).
+
 ### Schema and MVCC Snapshots (ADR-STORE-016)
 
 Schema is part of Store's MVCC snapshot. Three consequences for implementors:

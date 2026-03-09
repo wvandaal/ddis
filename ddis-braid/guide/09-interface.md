@@ -228,6 +228,57 @@ pub struct ToolDescription {
 // Test: assert all descriptions satisfy Q(D) — navigative, has_example, ≤100 tokens, semantic types
 ```
 
+### MCP Tool Response Format
+
+Every MCP tool response is a JSON-RPC 2.0 result with a structured payload. The response
+always includes both the structured data (for programmatic consumption) and an `agent_summary`
+field (pre-formatted agent-mode text with guidance footer). The rmcp crate handles JSON-RPC
+framing; Braid produces the `result` object.
+
+**Standard response envelope**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "<request-id>",
+  "result": {
+    "<domain-fields>": "...",
+    "agent_summary": "[LABEL] Context.\nContent.\n---\n↳ Guidance footer (INV ref)."
+  }
+}
+```
+
+**Per-tool result fields**:
+
+| Tool | Domain Fields | Example |
+|------|--------------|---------|
+| `braid_transact` | `tx_id`, `datom_count`, `new_datoms`, `store_size` | See guide/11 §11.5 |
+| `braid_query` | `bindings`, `stratum`, `count` | See guide/11 §11.5 |
+| `braid_status` | `datom_count`, `entity_count`, `frontier`, `drift` | — |
+| `braid_harvest` | `candidates`, `committed`, `drift_before`, `drift_after` | — |
+| `braid_seed` | `orientation`, `constraints`, `state`, `warnings`, `directive` | — |
+| `braid_guidance` | `methodology_score`, `routing`, `drift_signals` | — |
+
+**Error response** (follows INV-INTERFACE-009 four-part protocol):
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "<request-id>",
+  "error": {
+    "code": -32000,
+    "message": "attribute `:spec/bogus` not in schema",
+    "data": {
+      "what": "Unknown attribute",
+      "why": "Not in genesis or any schema transaction",
+      "recovery": {"action": "RetryWith", "hint": "Define attribute first, then retry"},
+      "spec_ref": "INV-SCHEMA-005"
+    }
+  }
+}
+```
+
+The `data.recovery` field is always present (NEG-INTERFACE-004). The `RecoveryAction` enum
+ensures totality at the type level — every `KernelError` variant maps to a recovery hint.
+
 ### Persistence Bridge
 
 **Black box**: Translate between kernel's in-memory `Store` and the on-disk Layout directory.

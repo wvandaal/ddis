@@ -943,7 +943,7 @@ architecture of the agent.
 
 ### ADR-GUIDANCE-008: Guidance Footer Progressive Enrichment at Stage 0
 
-**Traces to**: SEED §10 (staged roadmap), INV-GUIDANCE-001, INV-GUIDANCE-008
+**Traces to**: SEED §10 (staged roadmap), INV-GUIDANCE-001, INV-GUIDANCE-008, ADRS GU-010
 **Stage**: 0
 
 #### Problem
@@ -1036,7 +1036,7 @@ agents at a rate > 90% (proving the routing signal is not consumed).
 
 ### ADR-GUIDANCE-009: Betweenness Proxy via Degree Product at Stage 0
 
-**Traces to**: SEED §10 (staged roadmap), INV-GUIDANCE-009, INV-GUIDANCE-010, INV-QUERY-015
+**Traces to**: SEED §10 (staged roadmap), INV-GUIDANCE-009, INV-GUIDANCE-010, INV-QUERY-015, ADRS GU-011
 **Stage**: 0
 
 #### Problem
@@ -1178,6 +1178,29 @@ must not accumulate ineffective guidance that wastes agent attention budget.
 
 **proptest strategy**: Create learned guidance with low effectiveness scores.
 Run EVOLVE transitions. Verify pruning occurs within 5 sessions.
+
+---
+
+### §12.8 Decision-Gate Design Note (Stage 1)
+
+**Reference**: FM-020 (Decision-Gate Absence), C5 (Traceability)
+**Status**: Design note — to be promoted to INV-GUIDANCE-012 during Stage 1 spec expansion.
+
+Some entities may require explicit user approval before a decision is recorded. At Stage 1,
+a `:spec/decision-gate` attribute (Boolean, per-entity) will gate the transition from
+Proposed → Decided. The enforcement mechanism:
+
+- Gated entities follow lifecycle: Proposed → UnderReview → UserApproved → Decided
+- The transition UserApproved → Decided requires `:spec/user-approved` = true
+- The transition Proposed → Decided (bypassing the gate) is forbidden
+
+This design note defers full invariant formalization to Stage 1, avoiding a count cascade
+across spec/16-verification.md, spec/17-crossref.md, guide/README.md, and guide/10-verification.md.
+The mechanism addresses FM-020's concern that agent-initiated decisions may bypass human review
+for high-stakes specification changes.
+
+**Promotes to**: INV-GUIDANCE-012 (Stage 1)
+**Verification**: V:PROP, V:KANI (at Stage 1)
 
 ---
 

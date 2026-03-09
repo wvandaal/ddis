@@ -1397,7 +1397,7 @@ is the only option where the performance overhead of hashing is negligible relat
 
 ### ADR-STORE-014: Private EntityId Inner Field
 
-**Traces to**: SEED §4 Axiom 1, C2, INV-STORE-002
+**Traces to**: SEED §4 Axiom 1, C2, INV-STORE-002, ADRS FD-014
 **Stage**: 0
 
 #### Problem

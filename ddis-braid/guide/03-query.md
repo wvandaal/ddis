@@ -83,9 +83,10 @@ pub enum Clause {
 }
 
 pub enum Stratum {
-    S0_Primitive,      // Pure data lookup, no joins
-    S1_MonotonicJoin,  // Joins, recursion, no negation
-    // S2–S5 deferred to Stage 1+
+    S0_Primitive,           // Pure data lookup, no joins
+    S1_MonotonicJoin,       // Joins, recursion, no negation
+    S2_StratifiedNegation,  // Negation (Stage 1+, rejected in monotonic mode)
+    // S3_Aggregation, S4_Ffi, S5_External deferred to Stage 2+
 }
 
 // --- Graph Engine (INV-QUERY-012–021) ---
@@ -196,6 +197,46 @@ a crate emerges, re-evaluate. As of March 2026, none qualifies.
 
 ---
 
+### Error Types
+
+```rust
+/// Errors during query parsing.
+pub enum ParseError {
+    /// Unexpected token at the given byte offset.
+    UnexpectedToken { offset: usize, expected: String, found: String },
+    /// Unbound variable in find spec (not bound in any where clause).
+    UnboundVariable(String),
+    /// Unsafe rule: head variable not bound in body (INV-QUERY-006).
+    UnsafeRule { rule_name: String, unbound_var: String },
+    /// Empty query (no find spec or no where clauses).
+    EmptyQuery,
+}
+
+/// Errors during query evaluation.
+pub enum QueryError {
+    /// Query requires a higher stratum than the requested mode allows (INV-QUERY-005).
+    StratumViolation { query_stratum: Stratum, mode: QueryMode },
+    /// Parse failure (wraps ParseError).
+    Parse(ParseError),
+    /// Schema error: attribute referenced in query does not exist.
+    UnknownAttribute(Attribute),
+    /// Semi-naive evaluation did not converge (should not occur for safe Datalog).
+    EvaluationTimeout { iterations: u32 },
+}
+
+/// Errors from graph algorithm execution.
+pub enum GraphError {
+    /// Graph contains cycles — includes SCC decomposition for diagnostics.
+    CycleDetected(SCCResult),
+    /// No entities match the entity_type filter.
+    EmptyGraph,
+    /// PageRank or eigenvector did not converge within max iterations.
+    NonConvergence(u32),
+}
+```
+
+---
+
 ## §3.2 Three-Box Decomposition
 
 ### Query Engine
@@ -232,6 +273,9 @@ a crate emerges, re-evaluate. As of March 2026, none qualifies.
 - Index lookup: `[?e :db/ident ?name]` → scan AEVT index for attribute `:db/ident`.
 - Join: Nested loop join for Stage 0. Hash join optimization deferred to Stage 1.
 - Semi-naive delta: track new bindings per iteration → only join new bindings against old.
+- **Access log interaction**: Semi-naive evaluation (INV-QUERY-003) operates within a single
+  query execution. The access log (INV-STORE-009) records query datom reads but does not
+  affect evaluation strategy — the query engine sees a snapshot, not a live stream.
 
 ### Stratum Classification
 
@@ -240,9 +284,46 @@ a crate emerges, re-evaluate. As of March 2026, none qualifies.
 - S1: Joins and/or recursive rules, but no negation/aggregation.
 - S2+: Deferred. Query with negation in monotonic mode → `QueryError::StratumViolation`.
 
-**Clear box**:
-- Walk clauses: `NotClause` → Stratum 2+. `RuleApplication` → Stratum 1+.
-  Multiple `DataPattern` with shared variables → Stratum 1 (join).
+**Clear box** — stratum assignment algorithm:
+
+```rust
+pub fn classify_stratum(q: &ParsedQuery) -> Stratum {
+    let mut max_stratum = Stratum::S0_Primitive;
+
+    for clause in &q.where_clauses {
+        let clause_stratum = match clause {
+            // Single data pattern with no shared variables with other clauses → S0
+            Clause::DataPattern(..) => {
+                if shares_variables_with_other_clauses(clause, &q.where_clauses) {
+                    Stratum::S1_MonotonicJoin  // Join required
+                } else {
+                    Stratum::S0_Primitive      // Pure index lookup
+                }
+            }
+            // Rule application always requires fixpoint evaluation → S1+
+            Clause::RuleApplication(..) => Stratum::S1_MonotonicJoin,
+            // Or-clause with joins → S1
+            Clause::OrClause(..) => Stratum::S1_MonotonicJoin,
+            // Negation → S2+ (deferred, rejected in monotonic mode)
+            Clause::NotClause(..) => Stratum::S2_StratifiedNegation,
+            // Frontier clause does not affect stratum
+            Clause::Frontier(..) => Stratum::S0_Primitive,
+        };
+        max_stratum = max_stratum.max(clause_stratum);
+    }
+
+    // Recursive rules bump to at least S1
+    if !q.rules.is_empty() {
+        max_stratum = max_stratum.max(Stratum::S1_MonotonicJoin);
+    }
+
+    max_stratum
+}
+```
+
+The overall stratum is the maximum across all clauses. Mode-stratum compatibility
+(INV-QUERY-005) is checked at the `query()` entry point: if `mode == Monotonic` and
+`stratum >= S2`, return `Err(QueryError::StratumViolation { .. })`.
 
 ---
 

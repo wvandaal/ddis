@@ -856,7 +856,7 @@ produces too few DDRs to capture the rapid early-stage gap discovery rate).
 
 ### ADR-HARVEST-007: Turn-Count Proxy for Context Budget at Stage 0
 
-**Traces to**: SEED §10 (staged roadmap), INV-HARVEST-005, INV-HARVEST-007
+**Traces to**: SEED §10 (staged roadmap), INV-HARVEST-005, INV-HARVEST-007, ADRS LM-011
 **Stage**: 0
 
 #### Problem

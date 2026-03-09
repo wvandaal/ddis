@@ -125,13 +125,28 @@ pub fn count_unlinked_intent(store: &Store) -> usize {
     let intent_entities: HashSet<EntityId> = store.datoms()
         .filter(|d| classify_attribute(&d.attribute) == AttrNamespace::Intent)
         .map(|d| d.entity).collect();
-    let traced_targets: HashSet<EntityId> = store.datoms()
+    // :spec/traces-to is String-typed (spec/02-schema.md line 143): values are textual
+    // references like "SEED §4 Axiom 2", not entity Refs. An intent entity is "linked"
+    // if ANY spec entity has a :spec/traces-to String value referencing it.
+    let traced_targets: HashSet<String> = store.datoms()
         .filter(|d| d.attribute == Attribute::new(":spec/traces-to").unwrap() && d.op == Op::Assert)
-        .filter_map(|d| match &d.value { Value::Ref(e) => Some(*e), _ => None }).collect();
-    intent_entities.difference(&traced_targets).count()
+        .filter_map(|d| match &d.value { Value::String(s) => Some(s.clone()), _ => None }).collect();
+    // Count intent entities whose :intent/noted string does not appear in any traces-to value.
+    // This is a textual containment check — intent entities are "linked" when referenced by name.
+    intent_entities.iter()
+        .filter(|&ie| {
+            let noted: Option<String> = store.datoms()
+                .filter(|d| d.entity == *ie && d.attribute == Attribute::new(":intent/noted").unwrap())
+                .filter_map(|d| match &d.value { Value::String(s) => Some(s.clone()), _ => None })
+                .next();
+            match noted {
+                Some(ref n) => !traced_targets.iter().any(|t| t.contains(n)),
+                None => true,  // no :intent/noted → unlinked by definition
+            }
+        }).count()
 }
 // count_untraced_spec, count_unimplemented_spec, count_unlinked_impl follow the same pattern:
-// collect namespace entities, collect linked targets via :traces-to or :implements, set difference.
+// D_IS boundary uses String matching (:spec/traces-to); D_SP boundary uses Ref resolution (:spec/implements).
 ```
 
 ---
@@ -155,7 +170,7 @@ pub fn formality_level(store: &Store, entity: EntityId) -> u8 {
     let attrs: HashSet<&Attribute> = store.datoms()
         .filter(|d| d.entity == entity && d.op == Op::Assert)
         .map(|d| &d.attribute).collect();
-    let has = |name: &str| attrs.iter().any(|a| a.as_str() == name);
+    let has = |name: &str| attrs.iter().any(|a| a.name() == name);
 
     if has(":spec/witnessed") && has(":spec/challenged") && has(":spec/falsification")
         && has(":spec/traces-to") && has(":spec/id") && has(":spec/type") && has(":spec/statement")
@@ -169,9 +184,13 @@ pub fn formality_level(store: &Store, entity: EntityId) -> u8 {
 }
 ```
 
-Cascading if-else from highest to lowest. Retraction datoms are excluded by the
-`d.op == Op::Assert` filter -- retraction creates a new datom (C1) but the `has()`
-check considers only surviving assertions.
+Cascading if-else from highest to lowest. The `d.op == Op::Assert` filter is correct
+for LIVE projections because the LIVE index (INV-STORE-012) already resolves retractions:
+`store.datoms()` returns the LIVE-projected set where retracted datoms are absent. The
+explicit `Op::Assert` filter is defense-in-depth — if the function is ever called on raw
+store datoms instead of LIVE-projected datoms, it still produces correct results by
+excluding retraction datoms. Retraction creates a new datom (C1) but cannot remove the
+assertion datom from the LIVE projection.
 
 ---
 
@@ -198,7 +217,7 @@ check considers only surviving assertions.
   the trilateral elements are included in the EDNL bootstrap file.
 - Verification: after bootstrap, run:
   ```
-  braid query '[:find ?id :where [?e :spec/id ?id] [(clojure.string/starts-with? ?id "INV-TRILATERAL")]]'
+  braid query '[:find ?id :where [?e :spec/id ?id] [?e :spec/type "invariant"] [?e :spec/namespace "TRILATERAL"]]'
   ```
   to confirm all 7 invariants are present as datoms.
 - The self-referential property validates that `classify_attribute`, `live_spec`,
@@ -307,15 +326,31 @@ proptest! {
         prop_assert!(i.is_disjoint(&s) && s.is_disjoint(&p) && i.is_disjoint(&p));
     }
 
-    // NEG-TRILATERAL-003: Link addition never increases Phi.
-    fn neg_trilateral_003(store in arb_store_with_unlinked(5)) {
+    // NEG-TRILATERAL-003: Link addition never increases Phi (I↔S boundary).
+    // :spec/traces-to is String-typed (Fix 0.2): link value is the intent entity's noted text.
+    fn neg_trilateral_003_is(store in arb_store_with_unlinked(5)) {
         let phi_before = compute_phi(&store, 0.5, 0.5);
         let mut linked = store.clone();
-        if let Some((ie, se)) = find_unlinkable_pair(&store) {
-            linked.transact(vec![Datom {
-                entity: ie, attribute: Attribute::new(":spec/traces-to").unwrap(),
-                value: Value::Ref(se), tx: TxId::now(AgentId::test()), op: Op::Assert,
-            }]).ok();
+        if let Some((ie, se)) = find_unlinkable_pair_is(&store) {
+            // Use Transaction builder pattern (see guide/types.md §Test Constructors)
+            let tx = Transaction::build(AgentId::genesis())
+                .assert(se, Attribute::new(":spec/traces-to").unwrap(),
+                        Value::String(format!("entity-{}", ie)))
+                .commit(&mut linked);
+        }
+        prop_assert!(compute_phi(&linked, 0.5, 0.5) <= phi_before);
+    }
+
+    // NEG-TRILATERAL-003: Link addition never increases Phi (S↔P boundary).
+    // :spec/implements is Ref-typed: link value is the entity ID of the spec element.
+    fn neg_trilateral_003_sp(store in arb_store_with_unlinked(5)) {
+        let phi_before = compute_phi(&store, 0.5, 0.5);
+        let mut linked = store.clone();
+        if let Some((se, pe)) = find_unlinkable_pair_sp(&store) {
+            let tx = Transaction::build(AgentId::genesis())
+                .assert(pe, Attribute::new(":spec/implements").unwrap(),
+                        Value::Ref(se))
+                .commit(&mut linked);
         }
         prop_assert!(compute_phi(&linked, 0.5, 0.5) <= phi_before);
     }

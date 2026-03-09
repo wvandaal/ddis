@@ -10,6 +10,9 @@
 ## §11.1 Self-Bootstrap Demonstration
 
 The system's first act: transact its own specification elements as datoms (C7).
+The unified self-bootstrap obligation is formalized in INV-TRILATERAL-007
+(spec/18-trilateral.md): every trilateral store must bootstrap its own schema,
+spec elements, and verification metadata as datoms before any external data.
 
 ### Step 1: Genesis
 
@@ -44,7 +47,7 @@ Add attributes for managing specification elements:
 {:e #blake3 "a1b2..." :a :db/doc :v "Spec element ID (e.g., INV-STORE-001)" :tx #hlc "1709000001000-0-agent1" :op :assert}
 {:e #blake3 "a1b2..." :a :db/resolutionMode :v :lww :tx #hlc "1709000001000-0-agent1" :op :assert}
 {:e #blake3 "c3d4..." :a :db/ident :v :spec/type :tx #hlc "1709000001000-0-agent1" :op :assert}
-{:e #blake3 "c3d4..." :a :db/valueType :v :keyword :tx #hlc "1709000001000-0-agent1" :op :assert}
+{:e #blake3 "c3d4..." :a :db/valueType :v :string :tx #hlc "1709000001000-0-agent1" :op :assert}
 {:e #blake3 "c3d4..." :a :db/cardinality :v :one :tx #hlc "1709000001000-0-agent1" :op :assert}
 {:e #blake3 "c3d4..." :a :db/doc :v "Element type: invariant, adr, negative-case" :tx #hlc "1709000001000-0-agent1" :op :assert}
 {:e #blake3 "c3d4..." :a :db/resolutionMode :v :lww :tx #hlc "1709000001000-0-agent1" :op :assert}
@@ -92,7 +95,7 @@ Store: 121 datoms. Schema: 26 attributes (17 axiomatic + 9 spec).
 
 ```clojure
 {:e #blake3 "s9t0..." :a :spec/id :v "INV-STORE-001" :tx #hlc "1709000002000-0-agent1" :op :assert}
-{:e #blake3 "s9t0..." :a :spec/type :v :invariant :tx #hlc "1709000002000-0-agent1" :op :assert}
+{:e #blake3 "s9t0..." :a :spec/type :v "invariant" :tx #hlc "1709000002000-0-agent1" :op :assert}
 {:e #blake3 "s9t0..." :a :spec/namespace :v :STORE :tx #hlc "1709000002000-0-agent1" :op :assert}
 {:e #blake3 "s9t0..." :a :spec/statement :v "The datom store never deletes or mutates an existing datom. All state changes are new assertions." :tx #hlc "1709000002000-0-agent1" :op :assert}
 {:e #blake3 "s9t0..." :a :spec/falsification :v "Any operation that removes a datom or modifies the five-tuple of an existing datom." :tx #hlc "1709000002000-0-agent1" :op :assert}
@@ -185,7 +188,7 @@ $ braid transact --inline '{:spec/id "OBS-001" :spec/type "observation" \
 $ braid guidance --format agent
 
 [GUIDANCE] Drift: Basin A (spec-driven), 0 drift signals.
-Progress: STORE 3/13 INVs implemented (001, 002, 003). Next: INV-STORE-004 (commutativity).
+Progress: STORE 3/13 Stage 0 INVs implemented (001, 002, 003). Next: INV-STORE-004 (commutativity).
 Recommendation: Write proptest for merge commutativity before implementing merge.
 ---
 ↳ INV-STORE-004 is algebraic (Level 0). What property does `S₁ ∪ S₂ = S₂ ∪ S₁` require?
@@ -231,7 +234,7 @@ $ braid seed --task "Continue STORE implementation: INV-STORE-004 through 008" -
 [SEED] Session context assembled from 163 store datoms.
 
 ## Orientation
-Braid. Stage 0. STORE namespace. 3/13 INVs complete.
+Braid. Stage 0. STORE namespace. 3/13 Stage 0 INVs complete.
 
 ## Constraints
 - ADR-STORE-002: BLAKE3 (w=12, settled)
@@ -335,8 +338,9 @@ $ braid query '[:find ?id ?stmt
   INV-STORE-002  "Every transaction adds at least one datom..."
   INV-STORE-003  "Two datoms with identical five-tuples..."
   ...
+  INV-STORE-014  "Every DDIS command is a store transaction"
 ---
-↳ 13/14 STORE INVs in store (INV-STORE-013 is Stage 2, not yet transacted).
+↳ 13/13 Stage 0 STORE INVs in store (INV-STORE-013 is Stage 2, not yet transacted).
 ```
 
 ### Query 2: Dependency Graph Traversal
@@ -364,20 +368,21 @@ $ braid query '[:find ?ns (count ?e)
   :where [?e :spec/namespace ?ns]
          [?e :spec/type "invariant"]]' --format agent
 
-[QUERY] 9 results (Stratum 1, monotonic).
+[QUERY] 11 results (Stratum 1, monotonic).
   STORE        13
+  LAYOUT       11
   SCHEMA        7
   QUERY        10
   RESOLUTION    8
   HARVEST       5
-  SEED          4
-  MERGE         4
+  SEED          6
+  MERGE         5
   GUIDANCE      6
   INTERFACE     6
-  LAYOUT       11
   TRILATERAL    6
 ---
-↳ 83 Stage 0 INVs transacted across 11 namespaces (of 145 total).
+↳ 83 Stage 0 INVs transacted across 11 namespaces (of 145 total across 16 namespaces).
+  5 namespaces (SYNC, SIGNAL, BILATERAL, DELIBERATION, BUDGET) have no Stage 0 INVs.
 ```
 
 ### Query 4: Frontier-Relative Query
@@ -388,10 +393,10 @@ $ braid query '[:find ?id
          [?e :spec/stage 0]]'
   --mode monotonic --format agent
 
-[QUERY] 61 results (Stratum 0, monotonic).
-  INV-STORE-001, INV-STORE-002, ..., INV-INTERFACE-009
+[QUERY] 83 results (Stratum 0, monotonic).
+  INV-STORE-001, INV-STORE-002, ..., INV-TRILATERAL-006
 ---
-↳ All 61 Stage 0 invariants queryable. Full self-bootstrap complete.
+↳ All 83 Stage 0 elements queryable. Full self-bootstrap complete.
 ```
 
 ### Query 5: Resolution Mode Lookup
@@ -477,7 +482,7 @@ in a new Store atomically.
   "params": {
     "datoms": [
       {"entity_content": "INV-STORE-014", "attribute": ":spec/id", "value": {"String": "INV-STORE-014"}, "op": "assert"},
-      {"entity_content": "INV-STORE-014", "attribute": ":spec/type", "value": {"Keyword": "invariant"}, "op": "assert"},
+      {"entity_content": "INV-STORE-014", "attribute": ":spec/type", "value": {"String": "invariant"}, "op": "assert"},
       {"entity_content": "INV-STORE-014", "attribute": ":spec/statement", "value": {"String": "Every DDIS command is a store transaction"}, "op": "assert"}
     ],
     "provenance": "observed",
@@ -604,7 +609,7 @@ Transaction: `hlc:1709100000000-0-bootstrap`
 
 ```clojure
 {:e #blake3 "a7c9e2..." :a :spec/id :v "INV-STORE-001" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
-{:e #blake3 "a7c9e2..." :a :spec/type :v :invariant :tx #hlc "1709100000000-0-bootstrap" :op :assert}
+{:e #blake3 "a7c9e2..." :a :spec/type :v "invariant" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
 {:e #blake3 "a7c9e2..." :a :spec/namespace :v :STORE :tx #hlc "1709100000000-0-bootstrap" :op :assert}
 {:e #blake3 "a7c9e2..." :a :spec/statement :v "Append-Only Immutability" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
 {:e #blake3 "a7c9e2..." :a :spec/traces-to :v "SEED §4 Axiom 2" :tx #hlc "1709100000000-0-bootstrap" :op :assert}
@@ -648,7 +653,7 @@ The datom set for INV-STORE-001 viewed as a table (EAVT index order):
 Entity            Attribute             Value                                          Tx                    Op
 ────────────────  ────────────────────  ─────────────────────────────────────────────  ────────────────────  ──────
 blake3:a7c9e2..   :spec/id              "INV-STORE-001"                                hlc:..000-bootstrap   assert
-blake3:a7c9e2..   :spec/type            :invariant                                     hlc:..000-bootstrap   assert
+blake3:a7c9e2..   :spec/type            "invariant"                                    hlc:..000-bootstrap   assert
 blake3:a7c9e2..   :spec/namespace       :STORE                                         hlc:..000-bootstrap   assert
 blake3:a7c9e2..   :spec/statement       "Append-Only Immutability"                     hlc:..000-bootstrap   assert
 blake3:a7c9e2..   :spec/traces-to       "SEED §4 Axiom 2"                              hlc:..000-bootstrap   assert
@@ -692,7 +697,7 @@ $ braid query '[:find ?id ?stmt
   INV-STORE-002   "Strict Transaction Growth"
   INV-STORE-003   "Content-Addressed Identity"
   ...
-  INV-INTERFACE-009 "MCP Error Recovery"
+  INV-TRILATERAL-007 "Self-Bootstrap Obligation"
 ---
 ↳ Full self-bootstrap: all 83 Stage 0 invariants queryable from the store (C7).
 ```
@@ -704,18 +709,20 @@ $ braid query '[:find ?ns (count ?e)
   :where [?e :spec/stage 0]
          [?e :spec/namespace ?ns]]' --mode stratified --format agent
 
-[QUERY] 9 results (Stratum 1, stratified — aggregation requires stratification).
+[QUERY] 11 results (Stratum 1, stratified — aggregation requires stratification).
   STORE        13
+  LAYOUT       11
   SCHEMA        7
   QUERY        10
   RESOLUTION    8
   HARVEST       5
-  SEED          4
-  MERGE         4
+  SEED          6
+  MERGE         5
   GUIDANCE      6
-  INTERFACE     5
+  INTERFACE     6
+  TRILATERAL    6
 ---
-↳ 83 elements across 11 namespaces. Matches spec/16-verification.md matrix.
+↳ 83 elements across 11 namespaces (of 16 total). Matches spec/16-verification.md matrix.
 ```
 
 #### Query C: Elements with Level 0 Algebraic Laws
@@ -732,8 +739,8 @@ $ braid query '[:find ?id ?law
   INV-SCHEMA-001  "schema(S) ⊂ S"
   ...
 ---
-↳ 67 of 83 Stage 0 invariants have Level 0 laws. Remaining 16 are defined at Level 1
-  (state machine invariants without a standalone algebraic formulation).
+↳ 48 of 83 Stage 0 invariants have Level 0 algebraic laws. Remaining 35 are defined
+  at Level 1 (state machine invariants without a standalone algebraic formulation).
 ```
 
 #### Query D: Traceability — Which Invariants Trace to C1 (Append-Only)?
@@ -778,7 +785,7 @@ ADR-STORE-013 (BLAKE3 for Content Hashing) demonstrates the ADR-specific attribu
 
 ```clojure
 {:e #blake3 "f4d1b8..." :a :spec/id :v "ADR-STORE-013" :tx #hlc "1709100001000-0-bootstrap" :op :assert}
-{:e #blake3 "f4d1b8..." :a :spec/type :v :adr :tx #hlc "1709100001000-0-bootstrap" :op :assert}
+{:e #blake3 "f4d1b8..." :a :spec/type :v "adr" :tx #hlc "1709100001000-0-bootstrap" :op :assert}
 {:e #blake3 "f4d1b8..." :a :spec/namespace :v :STORE :tx #hlc "1709100001000-0-bootstrap" :op :assert}
 {:e #blake3 "f4d1b8..." :a :spec/statement :v "BLAKE3 for Content Hashing" :tx #hlc "1709100001000-0-bootstrap" :op :assert}
 {:e #blake3 "f4d1b8..." :a :spec/stage :v 0 :tx #hlc "1709100001000-0-bootstrap" :op :assert}

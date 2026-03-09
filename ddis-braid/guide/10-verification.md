@@ -24,9 +24,11 @@ properties; see spec §16 V:TYPE Scope Principle):
 - INV-STORE-003 (EntityId: content-addressed, no raw constructor)
 - INV-SCHEMA-003 (Schema monotonicity: no `remove_attribute` method, Attribute newtype)
 - INV-SCHEMA-004 (Schema validation gate: Transaction<Building>.commit(schema) typestate)
+- INV-LAYOUT-002 (DatomFile newtype: no raw path construction)
 - INV-QUERY-005 (QueryMode enum: parse-time stratum enforcement)
 - INV-QUERY-008 (FFI boundary: FfiFunction trait with pure marker)
 - INV-RESOLUTION-001 (ResolutionMode enum: exhaustive match)
+- INV-TRILATERAL-005 (PhiScore newtype: no raw f64 construction, must be in [0,1])
 - INV-INTERFACE-003 (MCP_TOOLS: fixed-size array)
 - INV-INTERFACE-009 (RecoveryAction enum exhaustive match)
 
@@ -63,7 +65,7 @@ inputs up to the configured bound.
 **Time**: Tiered — Gate 3a (every PR): <5 min; Gate 3b (nightly): <30 min;
 Gate 3c (weekly): <2 hours. See §10.1 below for the full tiered CI design.
 
-**Coverage**: 41 invariants (32.3%) with critical-path verification:
+**Coverage**: 48 invariants (33.1%) with critical-path verification:
 - All STORE CRDT laws (INV-STORE-004–008)
 - All SCHEMA bootstrap properties (INV-SCHEMA-001–002, 004)
 - All RESOLUTION algebraic laws (INV-RESOLUTION-002, 004–006)
@@ -74,7 +76,7 @@ Gate 3c (weekly): <2 hours. See §10.1 below for the full tiered CI design.
 
 **Configuration**:
 ```rust
-// Kani harness examples (2 of 41 — see full list below)
+// Kani harness examples (2 of 48 — see full list below)
 #[cfg(kani)]
 mod kani_proofs {
     use super::*;
@@ -110,7 +112,7 @@ mod kani_proofs {
 **Solver bounds**: `#[kani::unwind(8)]` for most harnesses. Increase to 16 for
 CRDT commutativity/associativity proofs (three-store merge scenarios).
 
-### Complete V:KANI Harness List (41 total)
+### Complete V:KANI Harness List (48 total)
 
 All INVs tagged V:KANI in the verification matrix (spec/16-verification.md §16.1),
 grouped by namespace. Each harness targets the **Level 2 implementation contract**
@@ -132,6 +134,11 @@ grouped by namespace. Each harness targets the **Level 2 implementation contract
 | SCHEMA | INV-SCHEMA-002 | Genesis completeness: exactly 17 axiomatic attributes | n/a (bootstrap) |
 | SCHEMA | INV-SCHEMA-004 | Schema validation: rejects malformed datoms | <=10 datoms |
 | SCHEMA | INV-SCHEMA-007 | Lattice definition completeness: all 4 required properties present | <=17 attributes |
+| LAYOUT | INV-LAYOUT-001 | Content-addressing: `Blake3(canonical(datom)) == address` | `STORE → LAYOUT` |
+| LAYOUT | INV-LAYOUT-003 | Index rebuild: EAVT/AEVT/VAET/AVET from directory scan | `STORE → LAYOUT` |
+| LAYOUT | INV-LAYOUT-004 | Merge commutativity: `merge(A,B) == merge(B,A)` at filesystem level | `STORE → LAYOUT` |
+| LAYOUT | INV-LAYOUT-007 | Genesis determinism: `genesis_directory() == genesis_directory()` | `STORE → LAYOUT` |
+| LAYOUT | INV-LAYOUT-011 | Canonical serialization round-trip | `LAYOUT` |
 | QUERY | INV-QUERY-001 | CALM compliance: Monotonic mode rejects negation/aggregation at parse time | <=10 clauses |
 | QUERY | INV-QUERY-004 | Branch visibility: snapshot isolation at fork point (trunk@fork + branch-only) | <=5 datoms, 1 branch |
 | QUERY | INV-QUERY-012 | Topological sort: Kahn's produces valid linear extension of DAG | <=8 vertices |
@@ -165,7 +172,7 @@ grouped by namespace. Each harness targets the **Level 2 implementation contract
 ### Gate 3 — Tiered Kani CI Design (spec Gate 5; from D3-kani-feasibility.md)
 
 The spec defines Gate 5 (Kani) as a three-tier pipeline (spec/16-verification.md §16.2).
-With 32 Stage 0 V:KANI harnesses, the tiers are:
+With 34 Stage 0 V:KANI harnesses, the tiers are:
 
 **Gate 3a: Fast Kani (every PR) — target < 5 min**
 - Trivial + simple harnesses only (~13 harnesses: type-level checks, simple set operations)
@@ -174,7 +181,7 @@ With 32 Stage 0 V:KANI harnesses, the tiers are:
 - Harnesses: STORE-001/003/008 (trivial), STORE-004-008/010 (simple set ops), SCHEMA-001/002 (bootstrap)
 
 **Gate 3b: Full Kani (nightly) — target < 30 min**
-- All 32 Stage 0 harnesses
+- All 34 Stage 0 harnesses
 - Per-harness solver selection (CaDiCaL for structural, Kissat for hash/bit-level)
 - Unwind: `#[kani::unwind(8)]` default, `#[kani::unwind(12)]` for graph algorithms
 
@@ -216,8 +223,8 @@ fn verify_store_commutativity() {
 **Harness count verification note**: The authoritative total from spec/16-verification.md
 is **48** V:KANI harnesses across all stages (STORE: 10, LAYOUT: 5, SCHEMA: 4, QUERY: 5,
 RESOLUTION: 6, HARVEST: 2, SEED: 2, MERGE: 5, SIGNAL: 3, DELIBERATION: 2, GUIDANCE: 1,
-BUDGET: 3). Of these, **32 are Stage 0** (STORE: 10, LAYOUT: 5, SCHEMA: 4, QUERY: 4,
-RESOLUTION: 6, HARVEST: 1, SEED: 2, MERGE: 2). The remaining 16 are Stage 1-3 and run
+BUDGET: 3). Of these, **34 are Stage 0** (STORE: 10, LAYOUT: 5, SCHEMA: 4, QUERY: 4,
+RESOLUTION: 6, HARVEST: 1, SEED: 2, MERGE: 2). The remaining 14 are Stage 1-3 and run
 in Gate 3b/3c.
 
 **Feasibility: 48/48 (100%).** See spec/16-verification.md §16.5 for the complete feasibility
@@ -229,10 +236,12 @@ assurance with per-category Kani strategies and bounds.
 
 **Time**: <30 minutes.
 
-**Coverage**: 12 invariants (9.4%) for protocol-level properties:
+**Coverage**: 14 invariants (9.7%) for protocol-level properties:
 - STORE CRDT algebra (INV-STORE-004–005, 013)
+- LAYOUT convergence (INV-LAYOUT-010)
 - MERGE cascade (INV-MERGE-002, 004)
-- SYNC barrier (INV-SYNC-001, 003)
+- QUERY fixpoint (INV-QUERY-010)
+- SYNC barrier (INV-SYNC-001–003)
 - DELIBERATION lifecycle (INV-DELIBERATION-001, 006)
 - RESOLUTION convergence (INV-RESOLUTION-003)
 - BILATERAL convergence (INV-BILATERAL-001)

@@ -116,7 +116,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Decision**: The datom store is the canonical substrate. It replaces the JSONL-based event stream used in the Go CLI.
 **Rationale**: JSONL events are sequential and file-scoped. Datoms are content-addressed and set-scoped. The datom model subsumes event-sourcing (events become transactions) while adding CRDT merge, multi-agent coordination, and graph-structured querying.
 **Rejected**: (B) JSONL as application layer with datom store underneath (dual source of truth, dual-write problem violating APP-INV-071); (C) JSONL as derived view projected from datom store (impedance mismatch between datom transactions and JSONL events; conceptual pollution of two mental models). Both rejected in favor of single canonical store.
-**Source**: Transcript 01:762–860 (Options A/B/C analysis)
+**Source**: SEED.md §4 (datom axioms); Transcript 01:762–860 (Options A/B/C analysis)
 **Formalized as**: ADR-STORE-018 in `spec/01-store.md`
 
 ### FD-010: Embedded Deployment Model
@@ -124,7 +124,7 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Decision**: Braid deploys as an embedded, single-process system (analogous to SQLite). No separate database server or daemon required.
 **Rationale**: Minimizes operational complexity. Agents invoke Braid as a CLI tool or link it as a library. The VPS-local deployment model means all agents share a filesystem, making a database server unnecessary.
 **Rejected**: Client-server database (unnecessary infrastructure at target scale); distributed database (overkill for single-VPS deployment).
-**Source**: Transcript 01 (embedded SQLite-style deployment)
+**Source**: SEED.md §4 (store algebra); Transcript 01 (embedded SQLite-style deployment)
 **Formalized as**: ADR-STORE-006 in `spec/01-store.md`
 
 ### FD-011: Rust as Implementation Language
@@ -132,14 +132,14 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Decision**: Braid is implemented in Rust. The query engine targets a purpose-built Rust binary as the final form.
 **Rationale**: Safety guarantees (ownership, lifetimes), performance (zero-cost abstractions for index operations), and ecosystem support for append-only file structures (redb, LMDB bindings). The user explicitly confirmed "I want the option a) approach" (Rust binary) for the query engine.
 **Rejected**: Go (current CLI language — but substrate divergence is fundamental per LM-001); Python (performance insufficient for index operations at scale).
-**Source**: Transcript 01 (Rust implementation); Transcript 04:2397 (user confirms Rust binary target)
+**Source**: SEED.md §8 (interface principles); Transcript 01 (Rust implementation); Transcript 04:2397 (user confirms Rust binary target)
 **Formalized as**: ADR-INTERFACE-007 in `spec/14-interface.md`
 
 ### FD-012: Every DDIS Command Is a Store Transaction
 
 **Decision**: Every DDIS command becomes a transaction against the datom store. The bilateral loop (discover → refine → crystallize → datoms; scan → absorb → drift → datoms) maps entirely to store operations.
 **Rationale**: If any DDIS operation produces state outside the store, that state cannot be queried, conflict-detected, or coherence-verified. The store is the sole truth.
-**Source**: Transcript 01:866–924 (architecture diagram, command-to-transaction mapping)
+**Source**: SEED.md §10 (every command is a transaction); Transcript 01:866–924 (architecture diagram, command-to-transaction mapping)
 **Formalized across**: INV-STORE-014, ADR-STORE-011 in `spec/01-store.md`
 
 ### FD-013: BLAKE3 for Content Hashing
@@ -332,14 +332,6 @@ Deployment model, storage implementation, schema layers, and index design.
 **Source**: Transcript 02:628–926 (lattice definitions throughout schema)
 **Formalized as**: ADR-SCHEMA-004 in `spec/02-schema.md`
 
-### SR-012: Owned Schema with Borrow API
-
-**Decision**: Store owns a `Schema` field internally, derived from schema datoms on load. Exposed via `store.schema() -> &Schema` (zero-cost borrow). Schema is reconstructed after schema-modifying transactions.
-**Rationale**: Avoids lifetime infection from Option A (borrow-based `Schema<'a>`), prevents divergence from Option B (copied data that can go stale). Maintains C3 because Schema is always derived from datoms — `Schema::from_store()` is the sole constructor.
-**Rejected**: (A) Borrow-based `Schema<'a>` (lifetime-infectious in Rust); (B) Independent copy (can diverge from store after construction).
-**Source**: C3, INV-SCHEMA-001
-**Formalized as**: ADR-SCHEMA-005 in `spec/02-schema.md`
-
 ### SR-011: Session State File as Coordination Point
 
 **Decision**: A session state file at `.ddis/session/context.json` serves as the coordination point between the Claude Code statusline hook and the CLI's budget system. Contains: `used_percentage`, `input_tokens`, `remaining_tokens`, `k_eff`, `quality_adjusted`, `output_budget`, `timestamp`, `session_id`.
@@ -347,6 +339,14 @@ Deployment model, storage implementation, schema layers, and index design.
 **Invariant**: `INV-SESSION-STATE-001`: session state file must be updated on every statusline render cycle.
 **Source**: Transcript 05:652–737
 **Formalized as**: INV-INTERFACE-004 in `spec/14-interface.md`
+
+### SR-012: Owned Schema with Borrow API
+
+**Decision**: Store owns a `Schema` field internally, derived from schema datoms on load. Exposed via `store.schema() -> &Schema` (zero-cost borrow). Schema is reconstructed after schema-modifying transactions.
+**Rationale**: Avoids lifetime infection from Option A (borrow-based `Schema<'a>`), prevents divergence from Option B (copied data that can go stale). Maintains C3 because Schema is always derived from datoms — `Schema::from_store()` is the sole constructor.
+**Rejected**: (A) Borrow-based `Schema<'a>` (lifetime-infectious in Rust); (B) Independent copy (can diverge from store after construction).
+**Source**: C3, INV-SCHEMA-001
+**Formalized as**: ADR-SCHEMA-005 in `spec/02-schema.md`
 
 ### SR-013: Free Functions Over Store Methods for Namespace Operations
 
@@ -429,6 +429,7 @@ Specifications for the canonical protocol operations.
 ### PO-001: TRANSACT — Seven-Field Type Signature
 
 **Decision**: TRANSACT requires: `agent`, `branch` (None=trunk), `datoms`, `causal_parents` (set of TxIds), `provenance` (ProvenanceType), `rationale` (string), `operation` (keyword: `:op/observe | :op/infer | :op/deliberate | :op/crystallize | :op/resolve`).
+**Rationale**: Rich transaction metadata is essential for causal tracing, provenance auditing, and conflict detection. Requiring causal parents makes the partial order explicit; requiring provenance type enables structural auditing of epistemic claims; requiring operation kind enables stratum-aware query classification.
 **Invariants**: `INV-TX-APPEND-001` (S ⊆ S'), `INV-TX-CAUSAL-001` (causal parents must reference known tx), `INV-TX-BRANCH-001` (branch tx cannot affect trunk), `INV-TX-PROVENANCE-001` (provenance structurally consistent), `INV-TX-FRONTIER-DURABLE-001` (frontier stored before response).
 **Source**: Transcript 04:1252–1342
 **Formalized across**: INV-STORE-002, INV-STORE-010 in `spec/01-store.md`; INV-SCHEMA-004 in `spec/02-schema.md`
@@ -436,6 +437,7 @@ Specifications for the canonical protocol operations.
 ### PO-002: ASSOCIATE — Two-Mode Schema Discovery
 
 **Decision**: Two modes: `SemanticCue` (natural language) or `ExplicitSeeds` (entity IDs). Returns SchemaNeighborhood (entities, attributes, types — not values). Bounded by `depth × breadth`.
+**Rationale**: Schema discovery must support both human-initiated exploration (natural language cues) and programmatic traversal (explicit entity seeds). Returning schema structure rather than values keeps ASSOCIATE in System 1 (fast, associative) and defers value retrieval to QUERY (System 2), preserving the dual-process architecture.
 **Invariants**: `INV-ASSOCIATE-BOUND-001` (size ≤ depth × breadth), `INV-ASSOCIATE-SIGNIFICANCE-001` (high-significance preferred), `INV-ASSOCIATE-LEARNED-001` (learned associations traversed alongside structural edges).
 **Source**: Transcript 04:1399–1451
 **Formalized as**: INV-SEED-003 in `spec/06-seed.md`
@@ -443,6 +445,7 @@ Specifications for the canonical protocol operations.
 ### PO-003: ASSEMBLE — Rate-Distortion Context Construction
 
 **Decision**: Takes query results + schema neighborhood + budget, produces assembled context using pyramid-level selection per entity. Priority: `score = α × relevance + β × significance + γ × recency` (defaults: 0.5, 0.3, 0.2).
+**Rationale**: Context assembly is a rate-distortion problem: maximize information value delivered to the agent while respecting the finite attention budget. Pyramid-level selection ensures structural coherence (dependencies included before dependents), while the weighted scoring prevents recency bias from dominating over relevance and accumulated significance.
 **Invariants**: `INV-ASSEMBLE-BUDGET-001` (≤ budget), `INV-ASSEMBLE-PYRAMID-001` (structural dependency coherence), `INV-ASSEMBLE-INTENTION-001` (intentions pinned at level 0), `INV-ASSEMBLE-PROJECTION-001` (record projection), `INV-ASSEMBLE-FRESHNESS-001` (check staleness, apply freshness-mode).
 **Source**: Transcript 04:1453–1522
 **Formalized across**: INV-SEED-002, INV-SEED-004, INV-SEED-006 in `spec/06-seed.md`
@@ -450,6 +453,7 @@ Specifications for the canonical protocol operations.
 ### PO-004: SIGNAL — Coordination as Datoms
 
 **Decision**: Every signal (Confusion, Conflict, UncertaintySpike, ResolutionProposal, DelegationRequest, GoalDrift, BranchReady, DeliberationTurn) is recorded as a datom.
+**Rationale**: Coordination events must be durable and queryable, not ephemeral messages. Recording signals as datoms means signal history participates in merge, conflict detection, and causal tracing like any other fact, and agents can reason over coordination patterns via the same Datalog apparatus used for domain queries.
 **Invariant**: `INV-SIGNAL-DATOM-001`: signal history must be queryable.
 **Source**: Transcript 04:1715–1769
 **Formalized across**: INV-SIGNAL-001, ADR-SIGNAL-001 in `spec/09-signal.md`
@@ -457,6 +461,7 @@ Specifications for the canonical protocol operations.
 ### PO-005: Confusion Signal as First-Class Protocol Operation
 
 **Decision**: `Confusion(cue)` with type (NeedMore, Contradictory, GoalUnclear, SchemaUnknown) triggers automatic re-ASSOCIATE + re-ASSEMBLE within one agent cycle — NOT a full round-trip.
+**Rationale**: Confusion is the most common failure mode in agent-store interaction. Handling it within a single cycle (rather than requiring a full round-trip through the human) turns retrieval failures into self-correcting loops, dramatically reducing latency and preventing agents from proceeding with insufficient context.
 **Invariant**: `INV-SIGNAL-CONFUSION-001`: confusion MUST trigger re-ASSOCIATE + re-ASSEMBLE within one cycle.
 **Source**: Transcript 04:49–61, 04:1754–1762
 **Formalized across**: INV-SIGNAL-002, NEG-SIGNAL-002 in `spec/09-signal.md`
@@ -464,6 +469,7 @@ Specifications for the canonical protocol operations.
 ### PO-006: MERGE — Epistemic Event with Cascade
 
 **Decision**: MERGE propagates consequences: invalidated queries, new conflicts, uncertainty deltas, stale projections. All cascade effects recorded as datoms. The cascade is a **deterministic function of the merged datom set** — it does not depend on which agent executes it, when, or in what order the input stores were supplied. This determinism property (INV-MERGE-010) is what restores L1 (commutativity) and L2 (associativity) at the total post-merge state level.
+**Rationale**: Bare set union (C4) is necessary but insufficient for coordination; agents need to know what changed and what broke. Making the cascade deterministic ensures that any agent running the same merge produces identical cascade datoms, preserving the CRDT algebraic properties even though MERGE produces secondary effects beyond the union itself.
 **Invariant**: `INV-MERGE-002` (cascade completeness), `INV-MERGE-010` (cascade determinism).
 **Source**: Transcript 04:64–78, 04:1642–1651; V1 Audit (Agent 10, R2.2)
 **Formalized across**: ADR-MERGE-001, ADR-MERGE-005, ADR-MERGE-007 in `spec/07-merge.md`
@@ -471,6 +477,7 @@ Specifications for the canonical protocol operations.
 ### PO-007: BRANCH — Six Sub-Operations with Competing-Branch Lock
 
 **Decision**: Fork, Commit, Combine (strategies: Union, SelectiveUnion, ConflictToDeliberation), Rebase, Abandon, Compare (criteria: FitnessScore, TestSuite, UncertaintyReduction, AgentReview, Custom). Competing branches locked from commit until comparison/deliberation.
+**Rationale**: The competing-branch lock prevents first-to-commit from winning by default, which would undermine the deliberation process. Requiring explicit comparison before commit ensures that the selection between competing approaches is an evaluated decision rather than a race condition.
 **Invariant**: `INV-BRANCH-COMPETE-001`, `INV-BRANCH-DELIBERATION-001` (ConflictToDeliberation opens deliberation).
 **Source**: Transcript 04:1524–1591
 **Formalized across**: INV-MERGE-004, ADR-MERGE-003, ADR-MERGE-004 in `spec/07-merge.md`
@@ -478,6 +485,7 @@ Specifications for the canonical protocol operations.
 ### PO-008: SUBSCRIBE — Pattern-Based Push Notifications
 
 **Decision**: Registers Datalog-like pattern filter with callback. Debounce parameter batches rapid-fire matches.
+**Rationale**: Polling-based coordination wastes agent attention budget and introduces latency. Push notifications via Datalog pattern matching allow agents to react to relevant store changes without continuously querying, while debouncing prevents cascading reactions during high-frequency transaction bursts.
 **Invariants**: `INV-SUBSCRIBE-COMPLETENESS-001` (fire for every match within refresh cycle), `INV-SUBSCRIBE-DEBOUNCE-001` (debounced notifications must batch within window).
 **Source**: Transcript 04:1772–1814
 **Formalized across**: INV-SIGNAL-003, ADR-SIGNAL-003 in `spec/09-signal.md`
@@ -485,6 +493,7 @@ Specifications for the canonical protocol operations.
 ### PO-009: GUIDANCE — Query over Guidance Graph
 
 **Decision**: Queries available action topology by evaluating guidance nodes' state predicates. Returns actions + optional lookahead tree (1–5 steps). Includes system-default and learned guidance.
+**Rationale**: Agents need methodologically-correct next actions, not just data. By querying a guidance graph whose nodes are state-predicate-gated, the system provides context-sensitive direction that adapts to the current store state, preventing methodology drift (Basin B capture) by continuously re-seeding the agent toward the DDIS workflow.
 **Invariants**: `INV-GUIDANCE-ALIGNMENT-001` (actions scored higher if they advance active intentions: `if postconditions(a) ∩ goals(i) ≠ ∅: score(a) += intention_alignment_bonus`), `INV-GUIDANCE-LEARNED-001` (learned guidance ranked by effectiveness).
 **Source**: Transcript 04:1816–1875
 **Formalized as**: ADR-GUIDANCE-006 in `spec/12-guidance.md`
@@ -492,6 +501,7 @@ Specifications for the canonical protocol operations.
 ### PO-010: SYNC-BARRIER — Topology-Dependent Frontier Exchange
 
 **Decision**: Topology-dependent (Option C): protocol provides primitives; deployment chooses topology. User confirmed "C for sure."
+**Rationale**: Hardcoding a sync topology would violate protocol topology-agnosticism (PD-005). By providing sync primitives rather than a fixed topology, deployments can choose the coordination pattern (star, mesh, hierarchical) that fits their agent configuration without protocol changes.
 **Invariants**: `INV-BARRIER-TIMEOUT-001` (resolve within timeout), `INV-BARRIER-CRASH-RECOVERY-001` (recovering agents can query barrier record).
 **Source**: Transcript 04:1960–1977
 **Formalized as**: ADR-SYNC-001, ADR-SYNC-003 in `spec/08-sync.md`
@@ -499,12 +509,14 @@ Specifications for the canonical protocol operations.
 ### PO-011: Agent Cycle as Ten-Step Composition
 
 **Decision**: (1) ASSOCIATE, (2) QUERY, (3) ASSEMBLE with guidance+intentions, (4) GUIDANCE lookahead=2, (5) agent policy evaluates, (6a) action → TRANSACT or (6b) confusion → re-ASSOCIATE/ASSEMBLE → retry, (7) learned association → TRANSACT(:inferred), (8) subtask → TRANSACT(intention update), (9) check incoming MERGE/signals, (10) repeat.
+**Rationale**: Defining the canonical agent cycle as a fixed composition of protocol operations ensures that every agent interaction follows the dual-process pattern (ASSOCIATE/QUERY/ASSEMBLE for System 1, then policy evaluation for System 2) and that confusion recovery, learned associations, and signal processing are never skipped.
 **Source**: Transcript 04:1880–1927
 **Formalized as**: ADR-INTERFACE-008 in `spec/14-interface.md`
 
 ### PO-012: Genesis Transaction
 
 **Decision**: Store begins with genesis transaction containing schema definitions. No causal parents. Root of the causal graph.
+**Rationale**: A deterministic, content-identical genesis ensures that all stores share a common root, which is a prerequisite for set-union merge (C4) to produce consistent results. Without identical genesis, independently created stores would diverge in their meta-schema, making merge undefined.
 **Invariant**: `INV-GENESIS-001`: Transaction tx=0 MUST contain exactly the axiomatic meta-schema attributes and nothing else. All stores begin from identical genesis state. `∀ S1, S2: S1|_{tx=0} = S2|_{tx=0}`. Verified by constant hash of tx=0 datom set.
 **Source**: Transcript 02:429–442
 **Formalized across**: INV-STORE-008 in `spec/01-store.md`; INV-SCHEMA-002 in `spec/02-schema.md`
@@ -512,12 +524,14 @@ Specifications for the canonical protocol operations.
 ### PO-013: QUERY — Datalog Evaluation with Four Invariants
 
 **Decision**: QUERY evaluates Datalog expressions against a specified frontier and branch. Four invariants: (1) `INV-QUERY-CALM-001`: monotonic-mode queries MUST NOT contain negation/aggregation; reject at parse time. (2) `INV-QUERY-BRANCH-001`: branch query visibility = `visible(b)`. (3) `INV-QUERY-SIGNIFICANCE-001`: every query generates access event in access log. (4) `INV-QUERY-DETERMINISM-001`: identical expressions at identical frontiers MUST return identical results.
+**Rationale**: The four invariants enforce CALM compliance (monotonic queries safe without coordination), branch isolation (snapshot semantics), Hebbian learning (access log feeds significance computation), and reproducibility (deterministic results enable caching and verification). Together they make QUERY both safe for concurrent execution and self-improving through usage tracking.
 **Source**: Transcript 04:1370–1397
 **Formalized across**: INV-QUERY-001, INV-QUERY-002, INV-QUERY-003, NEG-QUERY-001 in `spec/03-query.md`
 
 ### PO-014: GENERATE-CLAUDE-MD — Dynamic Instruction Generation
 
 **Decision**: Formal operation with signature `(focus, agent, budget)`. Seven-step process: ASSOCIATE, QUERY active intentions, QUERY governing invariants, QUERY uncertainty, QUERY competing branches, QUERY drift patterns, QUERY guidance topology, ASSEMBLE at budget. Priority ordering: tools > task context > risks > drift corrections > seed context.
+**Rationale**: Static CLAUDE.md cannot adapt to the agent's current task, observed drift patterns, or remaining attention budget. Dynamic generation collapses ambient awareness (Layer 0), guidance (Layer 3), and trajectory management into a single mechanism, ensuring that every session starts with instructions calibrated to what actually matters now rather than a generic document that decays in relevance.
 **Invariants**: `INV-CLAUDE-MD-RELEVANCE-001` (every section relevant to focus; falsified if removing a section wouldn't change behavior), `INV-CLAUDE-MD-IMPROVEMENT-001` (drift corrections derived from empirical data; corrections showing no effect after 5 sessions replaced).
 **Source**: Transcript 06:147–207
 **Formalized across**: INV-SEED-007, INV-SEED-008 in `spec/06-seed.md`; INV-GUIDANCE-007 in `spec/12-guidance.md`
@@ -585,6 +599,13 @@ Specifications for the canonical protocol operations.
 **Source**: Transcript 03:1052–1081
 **Formalized as**: ADR-QUERY-003 in `spec/03-query.md`
 
+### SQ-010: Datalog/Imperative Boundary for Derived Functions
+
+**Decision**: Three core computations CANNOT be expressed in pure Datalog: σ_a (requires entropy — grouping, division, logarithm), σ_c (requires bottom-up DAG traversal with memoization), spectral authority (requires linear algebra — SVD). These are DERIVED FUNCTIONS: Datalog provides the input query, a Rust function computes the result. σ_e uses count-distinct aggregation (borderline). The query engine must support a foreign-function interface for derived computations.
+**Rationale**: Establishes the boundary between declarative queries and imperative computation. Major architectural implication: three of four core coordination computations are derived functions.
+**Source**: Transcript 02:1318–1321 (σ_a), 02:1391 (σ_c), 02:1475–1476 (authority); Transcript 03:346–392, 03:422–466
+**Formalized as**: ADR-QUERY-004 in `spec/03-query.md`
+
 ### SQ-011: Full Graph Engine in Kernel
 
 **Decision**: Graph algorithms (PageRank, betweenness, critical path, SCC, k-core, etc.) are first-class kernel query operations alongside Datalog, with results stored as datoms.
@@ -592,13 +613,6 @@ Specifications for the canonical protocol operations.
 **Rejected**: (A) External tools (breaks store-as-sole-truth); (B) FFI derived functions (forces unnatural Datalog encoding of results).
 **Source**: ADRS SQ-004, FD-003
 **Formalized as**: ADR-QUERY-009 in `spec/03-query.md`
-
-### SQ-010: Datalog/Imperative Boundary for Derived Functions
-
-**Decision**: Three core computations CANNOT be expressed in pure Datalog: σ_a (requires entropy — grouping, division, logarithm), σ_c (requires bottom-up DAG traversal with memoization), spectral authority (requires linear algebra — SVD). These are DERIVED FUNCTIONS: Datalog provides the input query, a Rust function computes the result. σ_e uses count-distinct aggregation (borderline). The query engine must support a foreign-function interface for derived computations.
-**Rationale**: Establishes the boundary between declarative queries and imperative computation. Major architectural implication: three of four core coordination computations are derived functions.
-**Source**: Transcript 02:1318–1321 (σ_a), 02:1391 (σ_c), 02:1475–1476 (authority); Transcript 03:346–392, 03:422–466
-**Formalized as**: ADR-QUERY-004 in `spec/03-query.md`
 
 ### SQ-012: QueryExpr as Two-Variant Enum (Find + Pull)
 
@@ -736,6 +750,13 @@ Specifications for the canonical protocol operations.
 **Source**: Transcript 01:998–1011
 **Formalized as**: INV-RESOLUTION-004 in `spec/04-resolution.md`
 
+### CR-007: Precedent Query Pattern for Deliberations
+
+**Decision**: Concrete Datalog query pattern `find-precedent` locates past deliberations relevant to a current conflict by matching entity type and contested attributes.
+**Rationale**: Makes deliberation history a "case law system" — past decisions inform future conflicts.
+**Source**: Transcript 04:798–828
+**Formalized across**: INV-DELIBERATION-003, ADR-DELIBERATION-003 in `spec/11-deliberation.md`
+
 ### CR-008: Resolution at Query Time, Not Merge Time
 
 **Decision**: MERGE is pure set union; conflict resolution happens at query time in the LIVE index, not during MERGE.
@@ -752,13 +773,6 @@ Specifications for the canonical protocol operations.
 **Source**: INV-RESOLUTION-005, ADR-STORE-013
 **Formalized as**: ADR-RESOLUTION-009 in `spec/04-resolution.md`
 
-### CR-007: Precedent Query Pattern for Deliberations
-
-**Decision**: Concrete Datalog query pattern `find-precedent` locates past deliberations relevant to a current conflict by matching entity type and contested attributes.
-**Rationale**: Makes deliberation history a "case law system" — past decisions inform future conflicts.
-**Source**: Transcript 04:798–828
-**Formalized across**: INV-DELIBERATION-003, ADR-DELIBERATION-003 in `spec/11-deliberation.md`
-
 ### CR-010: Causal Independence via Predecessor Graph, Not HLC
 
 **Decision**: Causal independence in the conflict predicate is determined by reachability in the `causal_predecessors` graph (BFS/DFS over the transitive closure), NOT by HLC timestamp comparison. Two transactions T1, T2 are causally independent iff neither is transitively reachable from the other via predecessor links: `¬(T1 ≺ T2) ∧ ¬(T2 ≺ T1)`.
@@ -766,6 +780,12 @@ Specifications for the canonical protocol operations.
 **Alternatives rejected**: (A) HLC comparison — broken, total order can't express concurrency; (C) Vector clocks — requires fixed agent set, incompatible with Braid's open-agent model; (D) Interval tree clocks — complex, unfamiliar, marginal benefit over predecessor graph.
 **Source**: V1 Audit (Agent 10 algebraic audit), R2.3 (brai-2nl.3)
 **Formalized as**: INV-STORE-010 clarification (R2.3) in `spec/01-store.md`, verification harness §10.7.9 in `guide/10-verification.md`
+
+### CR-011: Conflict Pipeline Progressive Activation
+
+**Decision**: At Stage 0, the conflict pipeline is a simplified two-tier system: (1) detect conflicts via the causal predecessor graph, (2) route all conflicts to multi-value resolution. The full three-tier pipeline (conservative detection → severity scoring → routing to LWW/lattice/multi/delegation) activates progressively: severity scoring at Stage 1, delegation routing at Stage 2. This avoids building the full routing infrastructure before it's needed.
+**Source**: Session 014 (Stage 0 simplification decisions)
+**Formalized as**: ADR-RESOLUTION-013 in `spec/04-resolution.md`
 
 ---
 
@@ -985,6 +1005,12 @@ with smart defaults and progressive disclosure."
 **Source**: Transcript 05:1262–1568
 **Formalized as**: ADR-GUIDANCE-003 in `spec/12-guidance.md`
 
+### GU-008: Guidance-Intention Coherence (INV-GUIDANCE-ALIGNMENT-001)
+
+**Decision**: Actions scored higher if they advance active intentions: `if postconditions(a) ∩ goals(i) ≠ ∅: score(a) += intention_alignment_bonus`.
+**Source**: Transcript 04:1858–1875
+**Formalized across**: INV-GUIDANCE-003, INV-GUIDANCE-009, INV-GUIDANCE-010, ADR-GUIDANCE-005 in `spec/12-guidance.md`
+
 ### GU-009: Unified Guidance as M(t) x R(t) x T(t)
 
 **Decision**: Guidance composes three independently falsifiable scores: M(t) methodology adherence, R(t) graph-based work routing, and T(t) topology fitness. Each has its own invariant (INV-GUIDANCE-008, 010, 011), uses data-driven weights stored as datoms, and is computed at its designated stage (M(t) and R(t) at Stage 0, T(t) at Stage 2).
@@ -993,11 +1019,17 @@ with smart defaults and progressive disclosure."
 **Source**: ADRS GU-006, GU-007, GU-008
 **Formalized as**: ADR-GUIDANCE-005 in `spec/12-guidance.md`
 
-### GU-008: Guidance-Intention Coherence (INV-GUIDANCE-ALIGNMENT-001)
+### GU-010: Guidance Footer Progressive Enrichment
 
-**Decision**: Actions scored higher if they advance active intentions: `if postconditions(a) ∩ goals(i) ≠ ∅: score(a) += intention_alignment_bonus`.
-**Source**: Transcript 04:1858–1875
-**Formalized across**: INV-GUIDANCE-003, INV-GUIDANCE-009, INV-GUIDANCE-010, ADR-GUIDANCE-005 in `spec/12-guidance.md`
+**Decision**: At Stage 0, guidance footers use static patterns (methodology score M(t) with default weights, task list from LIVE store queries). Progressive enrichment activates at Stage 1 (budget-compressed sections via Q(t)) and Stage 2 (branch comparison summaries, topology fitness T(t)). This allows Stage 0 to ship guidance without the full Q(t)/T(t) machinery.
+**Source**: Session 014 (Stage 0 simplification decisions)
+**Formalized as**: ADR-GUIDANCE-008 in `spec/12-guidance.md`
+
+### GU-011: Betweenness Proxy via Degree Product
+
+**Decision**: At Stage 0, full betweenness centrality (O(V·E)) is replaced by a degree-product proxy: `proxy_betweenness(v) = in_degree(v) × out_degree(v)`. This captures the bridge-node intuition (nodes connecting many inputs to many outputs) at O(V) cost. Full Brandes algorithm activates at Stage 1 when the graph engine supports it.
+**Source**: Session 014 (Stage 0 simplification decisions)
+**Formalized as**: ADR-GUIDANCE-009 in `spec/12-guidance.md`
 
 ---
 
@@ -1101,6 +1133,12 @@ with smart defaults and progressive disclosure."
 **Source**: Transcript 07:329–343
 **Formalized as**: ADR-SEED-007 in `spec/06-seed.md`
 
+### LM-017: Dynamic CLAUDE.md Generation
+
+**Decision**: CLAUDE.md is dynamically generated from the datom store at session start as part of the seed assembly pipeline. It replaces the static CLAUDE.md with a version that adapts to observed drift patterns, current task context, and recent harvest quality. At Stage 0, CLAUDE.md is static; at Stage 1, generate_claude_md(store, task, budget) produces a budget-constrained document from store queries.
+**Source**: Transcript 05 (dynamic CLAUDE.md innovation); SEED.md §8
+**Formalized as**: ADR-SEED-006 in `spec/06-seed.md`
+
 ---
 
 ## Coherence & Reconciliation Decisions
@@ -1198,6 +1236,12 @@ with smart defaults and progressive disclosure."
 **Source**: Transcript 07:259–261
 **Formalized as**: ADR-BILATERAL-009 in `spec/10-bilateral.md`
 
+### CO-014: Extensible Reconciliation Architecture
+
+**Decision**: Taxonomy extensible by construction: new divergence types yield new detection queries and new deliberation patterns, all producing datoms in the same store. Resolution mechanism for all future types constrained to be datom-producing queries.
+**Source**: Transcript 07:315–317
+**Formalized as**: ADR-BILATERAL-010 in `spec/10-bilateral.md`
+
 ### CO-015: Divergence Metric as Weighted Boundary Sum
 
 **Decision**: Total divergence across the four-boundary chain (intent -> spec -> impl -> behavior) is quantified as `D(spec, impl) = Sigma_i w_i * |boundary_gap(i)|` where boundary weights reflect the cost of divergence at each boundary. Default: equal weights.
@@ -1205,12 +1249,6 @@ with smart defaults and progressive disclosure."
 **Uncertainty**: UNC-BILATERAL-002 — boundary weights may need per-project tuning. Confidence: 0.5.
 **Source**: ADRS CO-010
 **Formalized as**: ADR-BILATERAL-002 in `spec/10-bilateral.md`
-
-### CO-014: Extensible Reconciliation Architecture
-
-**Decision**: Taxonomy extensible by construction: new divergence types yield new detection queries and new deliberation patterns, all producing datoms in the same store. Resolution mechanism for all future types constrained to be datom-producing queries.
-**Source**: Transcript 07:315–317
-**Formalized as**: ADR-BILATERAL-010 in `spec/10-bilateral.md`
 
 ---
 

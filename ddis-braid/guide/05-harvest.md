@@ -78,12 +78,13 @@ pub fn accept_candidate(
     agent: AgentId,
 ) -> Transaction<Building>;
 
-/// Record harvest session metadata.
+/// Record harvest session metadata (aligned to spec/05-harvest.md §5.2).
+/// Committed/rejected candidate IDs are derived from HarvestResult.candidates
+/// via CandidateStatus — no separate lists needed.
 pub fn harvest_session_entity(
     result: &HarvestResult,
-    committed: &[usize],  // IDs of accepted candidates
-    rejected: &[usize],   // IDs of rejected candidates
     agent: AgentId,
+    topology: ReviewTopology,
 ) -> Transaction<Building>;
 
 pub struct SessionContext {
@@ -328,13 +329,73 @@ fresh-agent reviewer explicitly analyzes the transcript for un-externalized know
   For Stage 0: detection is LLM-assisted. The harvest command presents the session's
   transaction log and asks the agent to identify gaps. As the system matures, detection
   becomes increasingly automated.
-- **PROPOSE**: Each detected gap → HarvestCandidate. Confidence based on:
-  - Explicitly stated decision → 0.9+
-  - Implicit observation (inferred from behavior) → 0.5–0.7
-  - Dependency suggested by co-occurrence → 0.3–0.5
+- **PROPOSE**: Each detected gap → HarvestCandidate. Confidence scoring algorithm:
+
+  **Confidence computation** (how `candidate.confidence` is derived):
+  The confidence score reflects extraction certainty — how likely the detected gap represents
+  genuine un-transacted knowledge rather than noise. Scoring is category-dependent:
+
+  | Category | Signal Source | Confidence Range | Rationale |
+  |----------|-------------|------------------|-----------|
+  | Decision | Explicit decision language in conversation ("I chose X over Y") | 0.9–1.0 | Agent explicitly stated the choice |
+  | Decision | Implicit decision (behavioral change after analysis) | 0.6–0.8 | Inferred from action pattern |
+  | Observation | File read without corresponding observation datom | 0.7–0.9 | Mechanical detection, high reliability |
+  | Observation | Error encountered without uncertainty datom | 0.7–0.9 | Tool exit code is objective signal |
+  | Observation | Test run without result datom | 0.8–0.95 | Test outcomes are unambiguous |
+  | Dependency | Entity co-reference in same transaction | 0.5–0.7 | Structural signal, moderate noise |
+  | Dependency | Entity co-occurrence across transactions | 0.3–0.5 | Weaker correlation signal |
+  | Uncertainty | Hedge language detected ("might", "unclear", "not sure") | 0.4–0.6 | Language pattern matching, noisy |
+  | Uncertainty | Error without resolution in session | 0.5–0.7 | Unresolved error implies uncertainty |
+
+  For externalization annotations (INV-HARVEST-009, Stage 2+): `candidate.confidence =
+  max(annotation.confidence, 0.7)`. The 0.7 floor reflects that explicitly externalized
+  knowledge is higher-quality than heuristically detected knowledge.
+
+  **Weight computation** (how `candidate.weight` is derived):
+  Commitment weight estimates the downstream impact if the candidate is committed incorrectly.
+  Higher weight means the candidate should receive more careful review:
+  - Decision ADRs: weight = 0.7–1.0 (high commitment — hard to retract)
+  - Observation facts: weight = 0.1–0.3 (low commitment — easy to update)
+  - Dependency links: weight = 0.3–0.5 (moderate — affects query traversal)
+  - Uncertainty markers: weight = 0.1–0.2 (low commitment — designed to be revisited)
+
 - **REVIEW**: Stage 0 = single-agent self-review. Present candidates to agent for accept/reject.
 - **COMMIT**: Accepted candidates → `Transaction<Building>` → commit → transact.
 - **RECORD**: Create harvest session entity with metadata → transact.
+
+### FP/FN Calibration Parameters (INV-HARVEST-004, Stage 1)
+
+Although FP/FN calibration is a Stage 1 deliverable, the guide documents the calibration
+model here so Stage 0 can begin collecting the data needed for Stage 1 threshold adjustment.
+
+**Definitions**:
+- **False Positive (FP)**: A committed harvest candidate whose datoms are later retracted
+  (the knowledge turned out to be wrong or irrelevant).
+- **False Negative (FN)**: A rejected harvest candidate whose knowledge is later re-discovered
+  and committed by a subsequent session (the knowledge was valid but dismissed).
+
+**Calibration targets** (from spec/05-harvest.md §5.1 Level 0):
+- FP rate target: < 0.10 (fewer than 10% of committed candidates later retracted)
+- FN rate target: < 0.15 (fewer than 15% of rejected candidates later re-discovered)
+- When both rates exceed their targets simultaneously, improve the extractor itself
+  (detection heuristics, prompt templates), not just thresholds.
+
+**Threshold adjustment rules**:
+```
+if FP_rate > 0.10:
+    raise confidence threshold for auto-accept by 0.05
+    (require higher confidence before committing)
+if FN_rate > 0.15:
+    lower confidence threshold for candidate generation by 0.05
+    (detect more candidates even at lower confidence)
+if FP_rate > 0.10 AND FN_rate > 0.15:
+    extractor is broken — improve detection logic, not thresholds
+```
+
+**Stage 0 data collection**: Even though calibration is Stage 1, the harvest pipeline
+records all candidate decisions (accepted/rejected with confidence) as datoms. This enables
+Stage 1 to retroactively compute FP/FN rates from the Stage 0 harvest history. The data
+collection overhead is negligible (one datom per candidate decision).
 
 ---
 
@@ -400,8 +461,7 @@ proptest! {
     fn inv_harvest_002(store in arb_store(5), context in arb_session_context()) {
         let mut s = store;
         let result = harvest_pipeline(&s, &context);
-        let accepted: Vec<_> = result.candidates.iter().map(|c| c.id).collect();
-        let tx = harvest_session_entity(&result, &accepted, &[], context.agent);
+        let tx = harvest_session_entity(&result, context.agent, ReviewTopology::SelfReview);
         let committed = tx.commit(&s.schema()).unwrap();
         s.transact(committed).unwrap();
         // A HarvestSession entity exists with provenance
@@ -413,7 +473,7 @@ proptest! {
     fn inv_harvest_003(store in arb_store(5), context in arb_session_context()) {
         let mut s = store;
         let result = harvest_pipeline(&s, &context);
-        let tx = harvest_session_entity(&result, &[], &[], context.agent);
+        let tx = harvest_session_entity(&result, context.agent, ReviewTopology::SelfReview);
         let committed = tx.commit(&s.schema()).unwrap();
         s.transact(committed).unwrap();
         // Drift score is a datom on the session entity

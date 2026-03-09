@@ -12,6 +12,7 @@
 > where guide implements a Stage 0 subset of the spec's full definition.
 > `[SPEC-ONLY]` = defined in spec but absent from guide.
 > `[GUIDE-ONLY]` = defined in guide but absent from spec.
+> `[ALIGNED]` = previously divergent, now reconciled (see Notes for resolution history).
 
 ---
 
@@ -111,6 +112,7 @@ impl Attribute {
     pub fn new(keyword: &str) -> Result<Self, AttributeError>;
     pub fn namespace(&self) -> &str;
     pub fn name(&self) -> &str;
+    pub fn as_str(&self) -> &str { &self.0 }
 }
 ```
 
@@ -1432,6 +1434,37 @@ pub struct HarvestResult {
 }
 ```
 
+**Notes on `drift_score` types**: `HarvestSession.drift_score: u32` counts the number of
+observations (raw integer count) while `HarvestResult.drift_score: f64` captures the gap
+magnitude |Δ(t)| as a continuous metric. These are intentionally different types for
+different semantics — count vs. magnitude.
+
+---
+
+### ExternalizationAnnotation
+
+| Field | Value |
+|-------|-------|
+| **Namespace** | HARVEST |
+| **Stage** | 0 |
+| **Spec file** | -- |
+| **Guide files** | `guide/05-harvest.md` (section 5.2) |
+| **Status** | `[GUIDE-ONLY]` |
+
+```rust
+/// [GUIDE-ONLY] — Defined in guide/05-harvest.md, no spec coverage
+pub struct ExternalizationAnnotation {
+    pub category: HarvestCategory,
+    pub description: String,
+    pub response_id: usize,
+    pub confidence: f64,
+}
+```
+
+**Notes**: Represents an annotation produced by the harvest externalization pass. Each
+annotation marks a piece of in-context knowledge that should be promoted to a datom.
+`response_id` identifies the conversation turn where the knowledge was observed.
+
 ---
 
 ### HarvestQuality
@@ -1856,7 +1889,7 @@ pub enum SignalType {
     ResolutionProposal { deliberation: EntityId, position: EntityId },
     DelegationRequest { entity: EntityId, from: AgentId, to: AgentId },
     GoalDrift { intention: EntityId, observed_delta: f64 },
-    BranchReady { branch: EntityId, comparison_criteria: Vec<Criterion> },
+    BranchReady { branch: EntityId, comparison_criteria: Vec<ComparisonCriterion> },
     DeliberationTurn { deliberation: EntityId, position: EntityId },
 }
 ```
@@ -2911,7 +2944,36 @@ now defined in both spec and guide via QueryExpr reconciliation.
 
 ---
 
-*Total types cataloged: 113 (+9 new: Frontier, EntityView, SnapshotView, TxApplyError, QueryError, CandidateStatus enum, LwwClock enum, SchemaLayer enum, Stratum enum).
+*Total types cataloged: 114 (+10: Frontier, EntityView, SnapshotView, TxApplyError, QueryError, CandidateStatus enum, LwwClock enum, SchemaLayer enum, Stratum enum, ExternalizationAnnotation).
 Divergences: 0 remaining, 13 resolved (D1/R1.6, D2/R6.7b, D3/R1.10, D4/R1.10, D5/R6.7b, D6/R6.7b, D7/R6.7b, D8/R6.7b, D9/R4.1b, D10/R6.7b, D11, D12/R1.10, D13/R6.7d).
 Intentional stage scoping: 3 (S1: Value, S2: Stratum, S3: Clause deferred variants). Spec-only: 33 (Resolution, HarvestSession, ReviewTopology moved to AGREE per R4.3b).
-Guide-only: 12 (ParsedQuery, FindSpec, BindingSet moved to AGREE per R6.7b; TxReceipt, TxValidationError, SchemaError moved to AGREE per R4.1b/R4.2b).*
+Guide-only: 13 (ParsedQuery, FindSpec, BindingSet moved to AGREE per R6.7b; TxReceipt, TxValidationError, SchemaError moved to AGREE per R4.1b/R4.2b; ExternalizationAnnotation added).*
+
+---
+
+## Appendix: Auxiliary Types (Phantom / Forward-Referenced)
+
+The following types are referenced in spec or guide code but not yet fully defined in
+this catalog. Each is listed with its resolution status.
+
+| Type | Definition | Status |
+|------|-----------|--------|
+| `Indexes` | Internal `BTreeMap` collection — implementation detail of `Store` | Stage 0 internal |
+| `ProjectionPattern` | Pattern for context section filtering | Stage 1 |
+| `SignalPattern` | Signal matching predicate | Stage 3 |
+| `DatomRef` | Lightweight datom reference (entity + attribute) | impl detail |
+| `DisplayState` | TUI rendering state | Stage 4 |
+| `MCPPhase` | `enum { Uninitialized, Initialized, Shutdown }` (from spec/14-interface.md) | Stage 0 |
+| `ResolutionMethod` | `enum { Automatic, Manual, Delegated }` — resolution dispatch strategy | Stage 1 |
+| `Demonstration` | Exemplar demonstration instance | Stage 1 |
+| `DriftCorrection` | Drift remediation action record | Stage 1 |
+| `ValueTemplate` | Schema-driven value template for guided input | Stage 2 |
+| `PriorityFn` | `Box<dyn Fn(&Datom) -> f64>` — priority scoring function | Stage 2 |
+| `Variable` | `pub struct Variable(pub String)` — query engine internal | Stage 0 internal |
+| `BranchError` | Error type for branching operations | Stage 2 |
+| `SyncError` | Error type for sync operations | Stage 2 |
+| `SeedError` | Error type for seed assembly failures | Stage 0 |
+| `BudgetError` | Error type for budget exhaustion | Stage 1 |
+
+Types marked "Stage 0 internal" are implementation details that need not appear in the
+public API. Types marked "Stage N" are deferred to that implementation stage.

@@ -71,7 +71,7 @@ Every V:TYPE invariant in this spec also has V:PROP — there are no V:TYPE-only
 | INV-QUERY-005 | V:TYPE | V:PROP | rustc + proptest | compile + test | 0 |
 | INV-QUERY-006 | V:PROP | — | proptest | test | 0 |
 | INV-QUERY-007 | V:PROP | — | proptest | test | 0 |
-| INV-QUERY-008 | V:PROP | — | proptest | test | 1 |
+| INV-QUERY-008 | V:TYPE | V:PROP | rustc + proptest | compile + test | 1 |
 | INV-QUERY-009 | V:PROP | — | proptest | test | 1 |
 | INV-QUERY-010 | V:MODEL | — | stateright | model | 3 |
 | INV-QUERY-011 | V:PROP | — | proptest | test | 2 |
@@ -318,6 +318,9 @@ Protocols enforced at compile time via Rust's type system (zero runtime cost):
 | FFI boundary | `FfiFunction` trait with `pure` marker — host-language functions can't mutate store | type-level purity | INV-QUERY-008 |
 | Resolution mode | `ResolutionMode` enum — exhaustive match required | compile-time completeness | INV-RESOLUTION-001 |
 | MCP tool set | `const MCP_TOOLS: [MCPTool; 6]` — fixed-size array | compile-time tool count | INV-INTERFACE-003 |
+| MCP tool lifecycle | `MCPPhase { Uninitialized, Initialized, Shutdown }` — typestate for server lifecycle | phase transition guard | INV-INTERFACE-009 |
+| Content-addressed paths | `ContentAddress` phantom type — prevents arbitrary path construction | type-safe path identity | INV-LAYOUT-002 |
+| Attribute namespace | `AttrNamespace` enum — exhaustive match in `classify_attribute` | compile-time partition completeness | INV-TRILATERAL-005 |
 
 ### §16.4 Deductive Verification Candidates
 
@@ -384,7 +387,7 @@ verification method that cannot be practically executed.
 |--------|-------|----------|
 | Total invariants | 145 | — |
 | With V:PROP | 143 | 98.6% |
-| With V:TYPE (compile-time) | 10 | 6.9% |
+| With V:TYPE (compile-time) | 11 | 7.6% |
 | With V:PROP or V:TYPE or V:MODEL (minimum) | 145 | 100% |
 | With V:KANI | 48 | 33.1% |
 | With V:MODEL | 14 | 9.7% |
@@ -405,7 +408,7 @@ verification method that cannot be practically executed.
 **Stage**: 0
 
 #### Problem
-The 43 V:KANI-tagged invariants produce harnesses with varying complexity and
+The 48 V:KANI-tagged invariants produce harnesses with varying complexity and
 runtime cost. Running all harnesses on every PR would exceed the 15-minute CI
 gate budget (estimated 30+ minutes for the full set with default unwind bounds).
 Skipping Kani on PRs loses the verification benefit entirely.
@@ -419,12 +422,12 @@ C) **Three-tier CI pipeline** — partition harnesses by complexity and run subs
 **Option C.** Split Kani verification into three CI tiers:
 
 - **Tier 1: Fast (every PR, <5 min)** — approximately 13 trivial and simple harnesses covering append-only monotonicity, content-addressing structural properties, and parser rejection paths. These harnesses have small unwind bounds (<=5) and converge quickly. CaDiCaL as the default solver.
-- **Tier 2: Full (nightly, <30 min)** — all 24 Stage 0 harnesses with per-harness solver selection. Includes CRDT algebra, graph algorithm, and lifecycle guard harnesses that require higher unwind bounds.
+- **Tier 2: Full (nightly, <30 min)** — all 34 Stage 0 harnesses with per-harness solver selection. Includes CRDT algebra, graph algorithm, and lifecycle guard harnesses that require higher unwind bounds.
 - **Tier 3: Extended (weekly, <2 hours)** — all harnesses with increased unwind bounds for regression detection. Tests properties at larger input sizes to catch edge cases missed by the bounded Tier 1/2 runs.
 
 #### Formal Justification
 Running all harnesses on every PR (Option A) would block development velocity.
-The 24 Stage 0 Kani harnesses include graph algorithm verification (<=8 vertices),
+The 34 Stage 0 Kani harnesses include graph algorithm verification (<=8 vertices),
 CRDT algebra proofs (<=5 datoms/store), and branch visibility checks (<=5 datoms)
 — these are individually fast but collectively exceed 15 minutes when Kani's
 SMT solver explores the full state space. Nightly-only (Option B) means

@@ -189,6 +189,27 @@ pub fn detect_conflicts(
 **proptest strategy**: Generate two stores S₁ ⊂ S₂. Verify that
 `detect_conflicts(S₁, F₁) ⊇ detect_conflicts(S₂, F₂)` where F₁ ⊂ F₂.
 
+### Resolution Cascade: Lattice → LWW → Multi-Value Fallback
+
+The resolution engine follows a deterministic cascade when resolving a conflict set:
+
+1. **Lattice resolution** (if attribute has `ResolutionMode::Lattice`): Compute `join_L(v1, v2)`
+   using the lattice definition stored as datoms (C3). If the values are comparable in the partial
+   order, the least upper bound (LUB) is the resolved value. If the values are **incomparable**
+   (diamond lattice case), the lattice produces an error signal element and the conflict is
+   escalated to `RoutingTier::AgentNotification` for agent or human resolution.
+
+2. **LWW resolution** (default for all attributes without explicit mode): Pick the value with the
+   highest HLC timestamp. If timestamps are equal, break ties deterministically via BLAKE3 hash
+   comparison of the full datom content (ADR-RESOLUTION-009). LWW always produces a single winner.
+
+3. **Multi-value resolution** (for `:many` cardinality attributes): Keep all unretracted values.
+   No conflict is possible — all values coexist. This mode is opt-in via `ResolutionMode::MultiValue`.
+
+The cascade is **not a fallback chain** — each attribute has exactly one mode, declared in the schema.
+The ordering reflects design preference: lattice when domain semantics define a natural partial order,
+LWW as the safe default, multi-value when multiple concurrent values are the intended behavior.
+
 ### Three-Tier Routing (INV-RESOLUTION-007)
 
 **Black box** (contract):

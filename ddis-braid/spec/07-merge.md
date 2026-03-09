@@ -615,7 +615,7 @@ of forcing an immediate choice.
 
 ### ADR-MERGE-005: Cascade as Post-Merge Deterministic Layer
 
-**Traces to**: C4, INV-STORE-004, INV-MERGE-010
+**Traces to**: C4, INV-STORE-004, INV-MERGE-010, ADRS PO-006
 **Stage**: 0
 
 #### Problem
@@ -742,7 +742,7 @@ would be sufficient for all lock enforcement and audit trail needs.
 
 ### ADR-MERGE-007: Merge Cascade Stub Datoms at Stage 0
 
-**Traces to**: SEED §10 (staged roadmap), INV-MERGE-002, INV-MERGE-010
+**Traces to**: SEED §10 (staged roadmap), INV-MERGE-002, INV-MERGE-010, ADRS PO-006
 **Stage**: 0
 
 #### Problem

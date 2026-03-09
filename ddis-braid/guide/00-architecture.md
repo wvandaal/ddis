@@ -70,6 +70,40 @@ braid/                          ← Cargo workspace root
   IO boundary: reads files, writes to layout directory, serves MCP, prints output.
   The binary crate contains no invariant-bearing logic.
 
+### Re-Exports (`braid-kernel/src/lib.rs`)
+
+`braid-kernel` re-exports all public types so downstream crates use a single import root.
+The binary crate depends on `braid-kernel` and accesses all types via `braid_kernel::*`.
+
+```rust
+// braid-kernel/src/lib.rs
+
+pub mod datom;
+pub mod store;
+pub mod layout;
+pub mod schema;
+pub mod query;
+pub mod resolution;
+pub mod harvest;
+pub mod seed;
+pub mod guidance;
+pub mod methodology;
+pub mod derivation;
+pub mod routing;
+pub mod merge;
+pub mod trilateral;
+pub mod frontier;
+
+// Re-export core types at crate root for ergonomic access
+pub use datom::{Datom, EntityId, TxId, AgentId, Op, Value, Attribute, ProvenanceType};
+pub use store::{Store, Transaction, TxState, Building, Committed, Applied, TxData, TxReceipt};
+pub use schema::{Schema, AttributeSpec, AttributeDef, ValueType, Cardinality};
+pub use query::{QueryExpr, QueryResult, QueryMode, ParsedQuery, FindSpec, Stratum};
+pub use resolution::ResolutionMode;
+pub use frontier::Frontier;
+pub use merge::MergeReceipt;
+```
+
 ### Cargo.toml — Workspace Root
 
 ```toml
@@ -79,6 +113,7 @@ members = ["braid-kernel", "braid"]
 
 [workspace.dependencies]
 blake3 = "1"
+ordered-float = "4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 proptest = "1"
@@ -90,10 +125,11 @@ proptest = "1"
 [package]
 name = "braid-kernel"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 blake3 = { workspace = true }
+ordered-float = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
@@ -107,7 +143,7 @@ proptest = { workspace = true }
 [package]
 name = "braid"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 braid-kernel = { path = "../braid-kernel" }
@@ -305,6 +341,19 @@ pub struct Store {
     frontier: HashMap<AgentId, TxId>,
     schema:   Schema,
 }
+
+impl Store {
+    pub fn genesis() -> Self;
+    pub fn transact(&mut self, tx: Transaction<Committed>) -> Result<TxReceipt, TxApplyError>;
+    pub fn current(&self, entity: EntityId) -> EntityView;
+    pub fn as_of(&self, frontier: &Frontier) -> SnapshotView;
+    pub fn len(&self) -> usize;
+    pub fn datoms(&self) -> impl Iterator<Item = &Datom>;
+    pub fn frontier(&self) -> &HashMap<AgentId, TxId>;
+    pub fn schema(&self) -> &Schema;
+}
+// Note: merge is a free function (ADR-ARCHITECTURE-001):
+// pub fn merge(target: &mut Store, source: &Store) -> (MergeReceipt, CascadeReceipt);
 ```
 
 ### QueryMode (INV-QUERY-005)

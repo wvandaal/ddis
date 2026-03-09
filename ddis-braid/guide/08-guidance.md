@@ -245,6 +245,11 @@ pub struct RoutingDecision {
 the four formal constraints defined in INV-GUIDANCE-007 L0: constraint budget, ambient/active
 partition, demonstration density, effectiveness tracking.
 
+> **ExternalizationObligation** is a Stage 2 concept — a directive in the dynamic CLAUDE.md
+> that requires the agent to externalize specific knowledge before session end. The generated
+> CLAUDE.md may include obligations like "record the ADR for X before harvest." These obligations
+> feed into the harvest pipeline as pre-candidates with boosted confidence. See INV-HARVEST-009.
+
 **Clear box**:
 - Typestate pipeline ensures no stage is skipped:
   ```rust
@@ -282,6 +287,50 @@ partition, demonstration density, effectiveness tracking.
 - Check for schema evolution without subsequent validation → `schema_changes_unvalidated`.
 - Check for high-confidence harvest candidates not yet committed → `high_confidence_unharvested`.
 
+### Basin Competition Model (ADR-GUIDANCE-002)
+
+The guidance system is designed around a dynamical systems model of agent behavior.
+Two attractors compete for the agent's behavioral trajectory:
+
+- **Basin A (DDIS methodology)**: spec-language, formal reasoning, transact/query/harvest cycle.
+- **Basin B (pretrained patterns)**: generic coding advice, procedural checklist compliance.
+
+Without intervention, Basin B captures the trajectory within 15-20 turns. This is not a
+memory problem (bigger context only delays the crossover). It is a dynamical systems
+problem requiring continuous energy injection.
+
+**Formal model** (spec/12-guidance.md §12.1):
+```
+P(Basin_A, t) + P(Basin_B, t) = 1
+
+Without intervention: P(Basin_B, t) → 1 as t → ∞
+With guidance injection: P(Basin_A, t) maintained above threshold τ
+
+E_drift = E_preemption + E_injection + E_detection + E_gate + E_alarm + E_harvest
+Stable when: E_drift > E_decay (natural drift toward Basin B)
+```
+
+**Implementation**: Each anti-drift mechanism maps to a guidance topology node:
+
+| Mechanism | Energy Source | Topology Node Predicate | Footer Example |
+|-----------|-------------|------------------------|----------------|
+| Pre-emption | Dynamic CLAUDE.md | `store_has_drift_patterns()` | (emitted in CLAUDE.md, not footer) |
+| Injection | Guidance footer | `true` (every response) | `↳ Which INV does this satisfy?` |
+| Detection | Drift detector | `turns_without_ddis >= 5` | `↳ What divergence type does this address?` |
+| Gate | Schema validation | `schema_changed_unvalidated()` | `↳ Validate schema: INV-SCHEMA-004` |
+| Alarm | Budget warning | `k_eff < 0.15` | `↳ Q(t) = 0.12. Harvest now.` |
+| Harvest | Harvest prompt | `high_confidence_unharvested()` | `↳ Transact high-confidence candidate.` |
+
+Defense in depth: each mechanism covers the failure modes of the others. Pre-emption fails
+when agents skip the CLAUDE.md check. Injection fails when agents ignore the footer.
+Detection fails for novel drift patterns. No mechanism is a single point of failure.
+
+**Scoring**: The `guidance_footer` function evaluates all topology nodes and selects the
+highest-scoring action. The priority order (`budget_warning > harvest_prompt > drift_correction
+> general_guidance`) reflects the Basin A energy model: budget and harvest signals inject
+the most anti-drift energy (urgent, context-loss prevention), while general guidance provides
+continuous low-energy steering.
+
 ### M(t) Methodology Adherence (INV-GUIDANCE-008)
 
 **Black box** (contract):
@@ -300,7 +349,7 @@ partition, demonstration density, effectiveness tracking.
 - Weights loaded from `:guidance/m-weight` datoms. Default: `(0.25, 0.20, 0.15, 0.25, 0.15)`.
   **Note**: M(t) weights are loaded from store datoms at initialization, with code-level
   fallback to the defaults above. The genesis bootstrap datoms for these weights are
-  defined in `spec/02-schema.md` §2.2 (M(t) Default Weight Bootstrap Datoms).
+  defined in [spec/02-schema.md](../spec/02-schema.md) §2.2 (M(t) Default Weight Bootstrap Datoms).
 - Trend: compare current M(t) to rolling average of last 5. >5% up = Up, >5% down = Down.
 - Each measurement recorded as a datom for cross-session trend analysis.
 
@@ -497,7 +546,7 @@ rather than **instructive** language (teaching what it already knows):
 
 ```
 [GUIDANCE] M(t) = 0.82 ↑  [transact: 0.90, spec-lang: 0.85, query: 0.60, harvest: 0.90, guidance: 0.85]
-Drift: Basin A (spec-driven), 0 signals. Namespace: STORE (8/13 INVs verified).
+Drift: Basin A (spec-driven), 0 signals. Namespace: STORE (8/13 Stage 0 INVs verified).
 R(t): Next → INV-STORE-004 (impact: 0.87 — PR: 0.92, critical: yes, blockers: 4)
   Ready: 5 tasks | Blocked: 12 | Critical path: 8 remaining
 ---
