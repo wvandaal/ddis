@@ -1,0 +1,15 @@
+{:tx/id #hlc "7/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 3 candidates from task 'spec coverage audit and roadmap'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "401180313f60b86f5d673f3d434ecbd971e65053bb8a3e29505578745234c9c1" :a :db/doc :v "Datalog returns 0 for ALL queries, not just multi-clause joins. Even single-clause [:find ?e :where [?e :db/ident ?e]] returns 0. Bug is in pattern matching against store, not in join logic." :op :assert}
+   {:e #blake3 "43fee3c90c49c08cfd2f4ef54ab09fd8139608359dfa5e44d002f2b955145a4a" :a :db/doc :v "Datalog parser rejects underscore '_' as anonymous variable. Error: unrecognized token" :op :assert}
+   {:e #blake3 "09d249e10faa5a1e90a3e463f2477cd5743885b99164c3c33c4e551b9d7d53af" :a :db/doc :v "Attribute filter (query -a) works correctly — proves data IS in store" :op :assert}
+   {:e #blake3 "1796e5625982139cd734513b02133262a06c98600133d44a84660d79c0dd18f8" :a :db/ident :v :harvest/session-braid-user-7 :op :assert}
+   {:e #blake3 "1796e5625982139cd734513b02133262a06c98600133d44a84660d79c0dd18f8" :a :db/doc :v "Harvest session for task: spec coverage audit and roadmap" :op :assert}
+   {:e #blake3 "1796e5625982139cd734513b02133262a06c98600133d44a84660d79c0dd18f8" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "1796e5625982139cd734513b02133262a06c98600133d44a84660d79c0dd18f8" :a :harvest/candidate-count :v 3 :op :assert}
+   {:e #blake3 "1796e5625982139cd734513b02133262a06c98600133d44a84660d79c0dd18f8" :a :harvest/drift-score :v 1.0 :op :assert}
+ ]}
