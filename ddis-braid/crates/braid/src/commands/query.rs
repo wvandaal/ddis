@@ -357,9 +357,9 @@ fn parse_datalog(input: &str) -> Result<QueryExpr, BraidError> {
                 )));
             }
 
-            let entity = parse_term(&clause_tokens[0])?;
-            let attribute = parse_term(&clause_tokens[1])?;
-            let value = parse_term(&clause_tokens[2])?;
+            let entity = parse_term_at(&clause_tokens[0], TermPosition::Entity)?;
+            let attribute = parse_term_at(&clause_tokens[1], TermPosition::Attribute)?;
+            let value = parse_term_at(&clause_tokens[2], TermPosition::Value)?;
 
             clauses.push(Clause::Pattern(Pattern::new(entity, attribute, value)));
         } else if tok == "(" {
@@ -411,20 +411,49 @@ fn parse_datalog(input: &str) -> Result<QueryExpr, BraidError> {
     Ok(QueryExpr::new(find, clauses))
 }
 
-/// Parse a single token into a query `Term`.
-fn parse_term(token: &str) -> Result<Term, BraidError> {
-    if token.starts_with('?') {
-        // Variable
+/// Position in a pattern clause — determines how keywords are interpreted.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum TermPosition {
+    /// Entity position: keywords become `Term::Entity(EntityId::from_ident(kw))`.
+    Entity,
+    /// Attribute position: keywords become `Term::Attr(Attribute::from_keyword(kw))`.
+    Attribute,
+    /// Value position: keywords become `Term::Constant(Value::Keyword(kw))`.
+    Value,
+}
+
+/// Counter for generating unique anonymous variable names.
+static ANON_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Parse a single token into a query `Term`, using position to resolve keyword ambiguity.
+///
+/// Keywords (`:foo/bar`) have different semantics depending on position:
+/// - **Entity**: content-addressed entity ID via `EntityId::from_ident`
+/// - **Attribute**: attribute reference via `Attribute::from_keyword`
+/// - **Value**: constant keyword value via `Value::Keyword`
+///
+/// The anonymous variable `_` is supported and generates a unique internal variable
+/// name that won't appear in find results (standard Datalog convention).
+fn parse_term_at(token: &str, position: TermPosition) -> Result<Term, BraidError> {
+    if token == "_" {
+        // Anonymous variable: match anything, don't bind to a named variable.
+        // Generate a unique name so each `_` is independent.
+        let n = ANON_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        Ok(Term::Variable(format!("?__anon_{n}")))
+    } else if token.starts_with('?') {
+        // Named variable
         Ok(Term::Variable(token.to_string()))
     } else if token.starts_with('"') && token.ends_with('"') && token.len() >= 2 {
         // String literal — strip quotes
         let inner = &token[1..token.len() - 1];
         Ok(Term::Constant(Value::String(inner.to_string())))
     } else if token.starts_with(':') {
-        // Keyword — used as Attribute in the attribute position,
-        // or as a Constant(Keyword) in entity/value position.
-        // The evaluator handles both Term::Attr and Term::Constant(Keyword).
-        Ok(Term::Attr(Attribute::from_keyword(token)))
+        // Keyword — interpretation depends on position
+        match position {
+            TermPosition::Entity => Ok(Term::Entity(EntityId::from_ident(token))),
+            TermPosition::Attribute => Ok(Term::Attr(Attribute::from_keyword(token))),
+            TermPosition::Value => Ok(Term::Constant(Value::Keyword(token.to_string()))),
+        }
     } else if token == "true" {
         Ok(Term::Constant(Value::Boolean(true)))
     } else if token == "false" {
@@ -442,6 +471,11 @@ fn parse_term(token: &str) -> Result<Term, BraidError> {
             .map(|n| Term::Constant(Value::Long(n)))
             .map_err(|e| BraidError::Parse(format!("unrecognized token '{token}': {e}")))
     }
+}
+
+/// Parse a term in a predicate (not position-dependent — keywords default to value semantics).
+fn parse_term(token: &str) -> Result<Term, BraidError> {
+    parse_term_at(token, TermPosition::Value)
 }
 
 #[cfg(test)]
@@ -482,6 +516,23 @@ mod tests {
         }
 
         assert_eq!(query.where_clauses.len(), 2);
+
+        // Verify the keyword in value position is parsed as Constant(Keyword), not Attr
+        match &query.where_clauses[1] {
+            Clause::Pattern(p) => {
+                assert!(
+                    matches!(&p.value, Term::Constant(Value::Keyword(kw)) if kw == ":db.type/keyword"),
+                    "keyword in value position must be Term::Constant(Value::Keyword), got {:?}",
+                    p.value
+                );
+                assert!(
+                    matches!(&p.attribute, Term::Attr(a) if a.as_str() == ":db/valueType"),
+                    "keyword in attribute position must be Term::Attr, got {:?}",
+                    p.attribute
+                );
+            }
+            other => panic!("expected Pattern, got {other:?}"),
+        }
     }
 
     #[test]
@@ -560,6 +611,202 @@ mod tests {
                     "expected at least 18 rows, got {}",
                     rows.len()
                 );
+            }
+            other => panic!("expected Rel, got {other:?}"),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Position-aware term parsing tests (the fix for the Datalog bug)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn keyword_in_entity_position_becomes_entity_id() {
+        let input = "[:find ?v :where [:db/ident :db/doc ?v]]";
+        let query = parse_datalog(input).unwrap();
+
+        match &query.where_clauses[0] {
+            Clause::Pattern(p) => {
+                // Entity position: keyword → Term::Entity
+                assert!(
+                    matches!(&p.entity, Term::Entity(_)),
+                    "keyword in entity position must be Term::Entity, got {:?}",
+                    p.entity
+                );
+                // Attribute position: keyword → Term::Attr
+                assert!(
+                    matches!(&p.attribute, Term::Attr(a) if a.as_str() == ":db/doc"),
+                    "keyword in attribute position must be Term::Attr"
+                );
+            }
+            other => panic!("expected Pattern, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn keyword_in_value_position_becomes_constant_keyword() {
+        let input = "[:find ?e :where [?e :db/valueType :db.type/keyword]]";
+        let query = parse_datalog(input).unwrap();
+
+        match &query.where_clauses[0] {
+            Clause::Pattern(p) => {
+                assert!(
+                    matches!(&p.value, Term::Constant(Value::Keyword(kw)) if kw == ":db.type/keyword"),
+                    "keyword in value position must be Term::Constant(Value::Keyword), got {:?}",
+                    p.value
+                );
+            }
+            other => panic!("expected Pattern, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn anonymous_variable_supported() {
+        let input = "[:find ?e :where [?e :db/doc _]]";
+        let query = parse_datalog(input).unwrap();
+
+        match &query.where_clauses[0] {
+            Clause::Pattern(p) => {
+                // _ should become a unique internal variable
+                match &p.value {
+                    Term::Variable(v) => {
+                        assert!(
+                            v.starts_with("?__anon_"),
+                            "anonymous variable should be ?__anon_*, got {}",
+                            v
+                        );
+                    }
+                    other => panic!("expected Variable for _, got {other:?}"),
+                }
+            }
+            other => panic!("expected Pattern, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn multiple_anonymous_variables_are_independent() {
+        let input = "[:find ?e :where [?e _ _]]";
+        let query = parse_datalog(input).unwrap();
+
+        match &query.where_clauses[0] {
+            Clause::Pattern(p) => {
+                let attr_var = match &p.attribute {
+                    Term::Variable(v) => v.clone(),
+                    other => panic!("expected Variable, got {other:?}"),
+                };
+                let val_var = match &p.value {
+                    Term::Variable(v) => v.clone(),
+                    other => panic!("expected Variable, got {other:?}"),
+                };
+                assert_ne!(
+                    attr_var, val_var,
+                    "each _ must generate a unique variable name"
+                );
+            }
+            other => panic!("expected Pattern, got {other:?}"),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // THE critical regression tests: multi-clause joins via parsed Datalog
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn multi_clause_join_via_parser_returns_results() {
+        // This is the exact query that was failing before the fix:
+        // keyword :db.type/keyword in VALUE position was parsed as Term::Attr
+        // instead of Term::Constant(Value::Keyword), causing unify_value to fail.
+        let store = Store::genesis();
+        let input = "[:find ?name :where [?e :db/ident ?name] [?e :db/valueType :db.type/keyword]]";
+        let query = parse_datalog(input).unwrap();
+        let result = evaluate(&store, &query);
+
+        match result {
+            QueryResult::Rel(rows) => {
+                assert!(
+                    rows.len() >= 5,
+                    "multi-clause join must find keyword-typed attrs, got {} results",
+                    rows.len()
+                );
+                // Verify results contain known keyword-typed attributes
+                let names: Vec<String> = rows
+                    .iter()
+                    .filter_map(|row| match &row[0] {
+                        Value::Keyword(kw) => Some(kw.clone()),
+                        _ => None,
+                    })
+                    .collect();
+                assert!(
+                    names.contains(&":db/ident".to_string()),
+                    ":db/ident should be keyword-typed, found: {:?}",
+                    names
+                );
+            }
+            other => panic!("expected Rel, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn entity_keyword_in_query_resolves_correctly() {
+        // Query: find the doc for :db/ident using keyword in entity position
+        let store = Store::genesis();
+        let input = "[:find ?doc . :where [:db/ident :db/doc ?doc]]";
+        let query = parse_datalog(input).unwrap();
+        let result = evaluate(&store, &query);
+
+        match result {
+            QueryResult::Scalar(Some(Value::String(doc))) => {
+                assert_eq!(doc, "Attribute's keyword name");
+            }
+            other => panic!("expected Scalar(String), got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn anonymous_variable_query_returns_results() {
+        // Query with _ in value position should match any value
+        let store = Store::genesis();
+        let input = "[:find ?e :where [?e :db/doc _]]";
+        let query = parse_datalog(input).unwrap();
+        let result = evaluate(&store, &query);
+
+        match result {
+            QueryResult::Rel(rows) => {
+                assert!(
+                    rows.len() >= 18,
+                    "anonymous variable query should match all :db/doc datoms, got {}",
+                    rows.len()
+                );
+            }
+            other => panic!("expected Rel, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn three_clause_join_works() {
+        // Three clauses: entity has ident AND doc AND is keyword-typed
+        let store = Store::genesis();
+        let input = "[:find ?name ?doc :where \
+                      [?e :db/ident ?name] \
+                      [?e :db/doc ?doc] \
+                      [?e :db/valueType :db.type/keyword]]";
+        let query = parse_datalog(input).unwrap();
+        let result = evaluate(&store, &query);
+
+        match result {
+            QueryResult::Rel(rows) => {
+                assert!(
+                    !rows.is_empty(),
+                    "three-clause join must find at least one result"
+                );
+                // Every result should have both name (keyword) and doc (string)
+                for row in &rows {
+                    assert!(
+                        matches!(&row[0], Value::Keyword(_)),
+                        "name should be keyword"
+                    );
+                    assert!(matches!(&row[1], Value::String(_)), "doc should be string");
+                }
             }
             other => panic!("expected Rel, got {other:?}"),
         }
