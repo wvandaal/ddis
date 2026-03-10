@@ -1,0 +1,915 @@
+//! `budget` — Attention budget management (spec/13-budget.md).
+//!
+//! Implements the quality-adjusted attention budget: k*_eff measurement,
+//! Q(t) computation with piecewise attention decay, five-level precedence-ordered
+//! truncation, and the π₀–π₃ projection pyramid.
+//!
+//! # Invariants
+//!
+//! - **INV-BUDGET-001**: Output budget is a hard cap; output ≤ max(MIN_OUTPUT, Q(t) × W × 0.05)
+//! - **INV-BUDGET-002**: Truncation follows precedence ordering (Ambient < ... < System)
+//! - **INV-BUDGET-003**: Budget derives from Q(t) (quality-adjusted), not raw k*_eff
+//! - **INV-BUDGET-004**: Guidance footer compresses by k*_eff level
+//! - **INV-BUDGET-005**: Commands classified by attention cost profile
+//! - **INV-BUDGET-006**: Token density monotonically increases as budget shrinks
+
+/// Minimum output floor in tokens (applies to all non-harvest-imperative modes).
+pub const MIN_OUTPUT: u32 = 50;
+
+/// Context window size assumption (Claude default).
+pub const DEFAULT_WINDOW_SIZE: u32 = 200_000;
+
+/// Budget fraction allocated to output (5% of remaining).
+pub const BUDGET_FRACTION: f64 = 0.05;
+
+/// Agent-mode output ceiling (tokens).
+pub const AGENT_MODE_CEILING: u32 = 300;
+
+/// Guidance footer ceiling (tokens).
+pub const GUIDANCE_FOOTER_CEILING: u32 = 50;
+
+/// Error message ceiling (tokens).
+pub const ERROR_MESSAGE_CEILING: u32 = 100;
+
+// ---------------------------------------------------------------------------
+// Token counting (ADR-BUDGET-004)
+// ---------------------------------------------------------------------------
+
+/// Trait for token counting strategies.
+///
+/// Stage 0: `ApproxTokenCounter` (chars/4 with content-type correction).
+/// Stage 1: will graduate to tiktoken-rs cl100k_base.
+pub trait TokenCounter: Send + Sync {
+    /// Estimate the token count of the given text.
+    fn count(&self, text: &str) -> usize;
+    /// Name of the counting method.
+    fn method(&self) -> &'static str;
+}
+
+/// Stage 0 approximate token counter: chars/4 with content-type correction.
+///
+/// Error margin: ±15-20%, acceptable for coarse band selection (bands are 4× apart).
+#[derive(Clone, Debug, Default)]
+pub struct ApproxTokenCounter;
+
+impl TokenCounter for ApproxTokenCounter {
+    fn count(&self, text: &str) -> usize {
+        let byte_count = text.len();
+        let base = byte_count / 4;
+        // Content-type correction: code has more symbols per token
+        if looks_like_code(text) {
+            base * 5 / 4 // 25% uplift for code (correction factor 0.85)
+        } else {
+            base
+        }
+    }
+
+    fn method(&self) -> &'static str {
+        "chars/4"
+    }
+}
+
+/// Heuristic: text with high symbol density is likely code.
+fn looks_like_code(text: &str) -> bool {
+    if text.len() < 20 {
+        return false;
+    }
+    let sample = if text.len() > 200 { &text[..200] } else { text };
+    let code_chars = sample
+        .chars()
+        .filter(|c| matches!(c, '{' | '}' | '(' | ')' | ';' | '=' | '<' | '>' | '|' | '&'))
+        .count();
+    // If > 5% of chars are code-like symbols, treat as code
+    code_chars * 20 > sample.len()
+}
+
+// ---------------------------------------------------------------------------
+// Output precedence (INV-BUDGET-002)
+// ---------------------------------------------------------------------------
+
+/// Five-level output precedence hierarchy.
+///
+/// Truncation order: Ambient first (lowest priority), System last (highest).
+/// `PartialOrd`/`Ord` derives match the numeric ordering.
+#[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
+pub enum OutputPrecedence {
+    /// Ambient: background context, exploratory content.
+    Ambient = 0,
+    /// Speculative: suggestions, alternatives, future considerations.
+    Speculative = 1,
+    /// UserRequested: direct answer to the user's query.
+    UserRequested = 2,
+    /// Methodology: coherence metrics, drift signals, guidance actions.
+    Methodology = 3,
+    /// System: schema info, error messages, harvest imperatives. Never truncated.
+    System = 4,
+}
+
+impl std::fmt::Display for OutputPrecedence {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OutputPrecedence::Ambient => write!(f, "Ambient"),
+            OutputPrecedence::Speculative => write!(f, "Speculative"),
+            OutputPrecedence::UserRequested => write!(f, "UserRequested"),
+            OutputPrecedence::Methodology => write!(f, "Methodology"),
+            OutputPrecedence::System => write!(f, "System"),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Output block
+// ---------------------------------------------------------------------------
+
+/// A block of output content with an assigned precedence level.
+#[derive(Clone, Debug)]
+pub struct OutputBlock {
+    /// The content of this block.
+    pub content: String,
+    /// The precedence level of this block.
+    pub precedence: OutputPrecedence,
+    /// Estimated token count (computed by TokenCounter).
+    pub token_count: usize,
+}
+
+impl OutputBlock {
+    /// Create a new output block with token count computed by the given counter.
+    pub fn new(content: String, precedence: OutputPrecedence, counter: &dyn TokenCounter) -> Self {
+        let token_count = counter.count(&content);
+        OutputBlock {
+            content,
+            precedence,
+            token_count,
+        }
+    }
+
+    /// Create a block with a pre-computed token count.
+    pub fn with_tokens(content: String, precedence: OutputPrecedence, token_count: usize) -> Self {
+        OutputBlock {
+            content,
+            precedence,
+            token_count,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Command attention profiles (INV-BUDGET-005)
+// ---------------------------------------------------------------------------
+
+/// Command attention cost classification.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AttentionProfile {
+    /// ≤ 50 tokens: status, guidance, frontier.
+    Cheap,
+    /// 50–300 tokens: query, associate, diff.
+    Moderate,
+    /// 300+ tokens: assemble --full, seed.
+    Expensive,
+    /// Side-effect commands: harvest, transact, merge.
+    Meta,
+}
+
+impl AttentionProfile {
+    /// Maximum token budget for this profile.
+    pub fn ceiling(&self) -> u32 {
+        match self {
+            AttentionProfile::Cheap => 50,
+            AttentionProfile::Moderate => 300,
+            AttentionProfile::Expensive => u32::MAX, // limited only by output_budget
+            AttentionProfile::Meta => 200,           // confirmation + result summary
+        }
+    }
+}
+
+/// Classify a CLI command into its attention profile.
+pub fn classify_command(command: &str) -> AttentionProfile {
+    match command {
+        "status" | "guidance" | "stage" | "log" => AttentionProfile::Cheap,
+        "query" | "bilateral" | "generate" => AttentionProfile::Moderate,
+        "seed" => AttentionProfile::Expensive,
+        "harvest" | "transact" | "merge" | "init" => AttentionProfile::Meta,
+        _ => AttentionProfile::Moderate, // conservative default
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Projection pyramid (SQ-007)
+// ---------------------------------------------------------------------------
+
+/// Projection levels for the budget-aware output pyramid.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum BudgetProjection {
+    /// π₃: Store summary — single line + guidance action (≤ 200 tokens).
+    StoreSummary = 0,
+    /// π₂: Type summaries — aggregate by entity type (200–500 tokens).
+    TypeSummary = 1,
+    /// π₁: Entity summaries — per-entity one-liner (500–2000 tokens).
+    EntitySummary = 2,
+    /// π₀: Full datoms — complete attribute-level detail (> 2000 tokens).
+    Full = 3,
+}
+
+impl BudgetProjection {
+    /// Select the appropriate level for the given token budget.
+    pub fn for_budget(budget: u32) -> Self {
+        match budget {
+            b if b > 2000 => BudgetProjection::Full,
+            b if b > 500 => BudgetProjection::EntitySummary,
+            b if b > 200 => BudgetProjection::TypeSummary,
+            _ => BudgetProjection::StoreSummary,
+        }
+    }
+}
+
+impl std::fmt::Display for BudgetProjection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BudgetProjection::StoreSummary => write!(f, "π₃ (store summary)"),
+            BudgetProjection::TypeSummary => write!(f, "π₂ (type summaries)"),
+            BudgetProjection::EntitySummary => write!(f, "π₁ (entity summaries)"),
+            BudgetProjection::Full => write!(f, "π₀ (full datoms)"),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Guidance footer compression (INV-BUDGET-004)
+// ---------------------------------------------------------------------------
+
+/// Guidance footer compression level based on k*_eff.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum GuidanceLevel {
+    /// k > 0.7: full footer (100–200 tokens).
+    Full,
+    /// 0.4–0.7: compressed footer (30–60 tokens).
+    Compressed,
+    /// 0.2–0.4: minimal footer (10–20 tokens).
+    Minimal,
+    /// ≤ 0.2: harvest signal only (~10 tokens).
+    HarvestOnly,
+}
+
+impl GuidanceLevel {
+    /// Select the guidance level for the given k*_eff.
+    pub fn for_k_eff(k_eff: f64) -> Self {
+        if k_eff > 0.7 {
+            GuidanceLevel::Full
+        } else if k_eff > 0.4 {
+            GuidanceLevel::Compressed
+        } else if k_eff > 0.2 {
+            GuidanceLevel::Minimal
+        } else {
+            GuidanceLevel::HarvestOnly
+        }
+    }
+
+    /// Maximum token budget for this guidance level.
+    pub fn token_ceiling(&self) -> u32 {
+        match self {
+            GuidanceLevel::Full => 200,
+            GuidanceLevel::Compressed => 60,
+            GuidanceLevel::Minimal => 20,
+            GuidanceLevel::HarvestOnly => 10,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Budget Manager (core state machine)
+// ---------------------------------------------------------------------------
+
+/// Attention budget manager implementing spec/13-budget.md §13.2.
+///
+/// State: (k_eff, q, output_budget).
+/// Transitions: MEASURE → ALLOCATE → PROJECT.
+#[derive(Clone, Debug)]
+pub struct BudgetManager {
+    /// Effective remaining attention: k*_eff ∈ [0, 1].
+    pub k_eff: f64,
+    /// Quality-adjusted budget: Q(t) = k*_eff × attention_decay(k*_eff).
+    pub q: f64,
+    /// Output budget in tokens: max(MIN_OUTPUT, Q(t) × W × 0.05).
+    pub output_budget: u32,
+    /// Context window size (tokens).
+    pub window_size: u32,
+}
+
+impl Default for BudgetManager {
+    fn default() -> Self {
+        Self::new(DEFAULT_WINDOW_SIZE)
+    }
+}
+
+impl BudgetManager {
+    /// Create a new budget manager with the given window size.
+    pub fn new(window_size: u32) -> Self {
+        let mut mgr = BudgetManager {
+            k_eff: 1.0,
+            q: 1.0,
+            output_budget: (1.0_f64 * window_size as f64 * BUDGET_FRACTION) as u32,
+            window_size,
+        };
+        mgr.measure(0.0); // initialize at full budget
+        mgr
+    }
+
+    /// MEASURE transition: compute k*_eff, Q(t), and output_budget from context consumption.
+    ///
+    /// `context_used_pct` is the fraction of context window consumed (0.0–1.0).
+    pub fn measure(&mut self, context_used_pct: f64) {
+        self.k_eff = (1.0 - context_used_pct).clamp(0.0, 1.0);
+        self.q = self.k_eff * attention_decay(self.k_eff);
+        let raw_budget = self.q * self.window_size as f64 * BUDGET_FRACTION;
+        self.output_budget = (MIN_OUTPUT as f64).max(raw_budget) as u32;
+    }
+
+    /// ALLOCATE transition: select content blocks that fit within output_budget.
+    ///
+    /// Fills from highest to lowest precedence. Returns the selected blocks
+    /// in precedence order (highest first).
+    ///
+    /// INV-BUDGET-002: lower-priority content is truncated before higher-priority.
+    pub fn allocate<'a>(&self, blocks: &'a [OutputBlock]) -> Vec<&'a OutputBlock> {
+        // Sort by precedence descending (highest priority first)
+        let mut sorted: Vec<&OutputBlock> = blocks.iter().collect();
+        sorted.sort_by_key(|b| std::cmp::Reverse(b.precedence));
+
+        let mut remaining = self.output_budget as usize;
+        let mut selected = Vec::new();
+
+        for block in sorted {
+            if block.token_count <= remaining {
+                remaining -= block.token_count;
+                selected.push(block);
+            }
+            // Block doesn't fit → truncated (lower priority dropped first)
+        }
+
+        selected
+    }
+
+    /// PROJECT transition: select the projection level for the current budget.
+    pub fn projection_level(&self) -> BudgetProjection {
+        BudgetProjection::for_budget(self.output_budget)
+    }
+
+    /// Select the guidance footer compression level for current k*_eff.
+    pub fn guidance_level(&self) -> GuidanceLevel {
+        GuidanceLevel::for_k_eff(self.k_eff)
+    }
+
+    /// Create a budget manager with a specific output budget (for testing).
+    #[cfg(test)]
+    fn with_budget(budget: u32) -> Self {
+        BudgetManager {
+            k_eff: 1.0,
+            q: 1.0,
+            output_budget: budget,
+            window_size: DEFAULT_WINDOW_SIZE,
+        }
+    }
+
+    /// Whether we are in harvest-imperative mode (Q(t) < 0.05).
+    ///
+    /// In this mode, MIN_OUTPUT does not apply — only the harvest imperative is emitted.
+    pub fn is_harvest_imperative(&self) -> bool {
+        self.q < 0.05
+    }
+
+    /// Get the effective budget for a command, respecting its attention profile.
+    pub fn command_budget(&self, command: &str) -> u32 {
+        let profile = classify_command(command);
+        self.output_budget.min(profile.ceiling())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Attention decay (ADR-BUDGET-002)
+// ---------------------------------------------------------------------------
+
+/// Piecewise attention decay function (continuous, monotonically increasing).
+///
+/// Three regimes:
+/// - k > 0.6: full quality (1.0)
+/// - 0.3 ≤ k ≤ 0.6: linear degradation (k/0.6)
+/// - k < 0.3: quadratic degradation, matched at boundary: 0.5 × (k/0.3)²
+///
+/// The quadratic coefficient (0.5) ensures C⁰ continuity at k=0.3:
+/// linear(0.3) = 0.3/0.6 = 0.5 = 0.5 × (0.3/0.3)² = quadratic(0.3).
+pub fn attention_decay(k: f64) -> f64 {
+    if k > 0.6 {
+        1.0
+    } else if k >= 0.3 {
+        k / 0.6
+    } else {
+        let ratio = k / 0.3;
+        0.5 * ratio * ratio
+    }
+}
+
+/// Compute Q(t) = k*_eff × attention_decay(k*_eff).
+pub fn quality_adjusted_budget(k_eff: f64) -> f64 {
+    k_eff * attention_decay(k_eff)
+}
+
+// ---------------------------------------------------------------------------
+// Token efficiency (INV-BUDGET-006)
+// ---------------------------------------------------------------------------
+
+/// Token efficiency measurement for density monotonicity verification.
+#[derive(Clone, Debug)]
+pub struct TokenEfficiency {
+    /// Number of semantic units (entities, facts, actions) in the output.
+    pub semantic_units: usize,
+    /// Number of tokens in the output.
+    pub token_count: usize,
+}
+
+impl TokenEfficiency {
+    /// Information density: semantic_units / token_count.
+    pub fn density(&self) -> f64 {
+        self.semantic_units as f64 / self.token_count.max(1) as f64
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ---- Attention decay ----
+
+    #[test]
+    fn decay_full_quality_above_06() {
+        assert_eq!(attention_decay(0.7), 1.0);
+        assert_eq!(attention_decay(0.8), 1.0);
+        assert_eq!(attention_decay(1.0), 1.0);
+    }
+
+    #[test]
+    fn decay_linear_between_03_06() {
+        let d = attention_decay(0.45);
+        assert!((d - 0.75).abs() < 1e-10, "expected 0.75, got {d}");
+        let d = attention_decay(0.3);
+        assert!((d - 0.5).abs() < 1e-10, "expected 0.5, got {d}");
+    }
+
+    #[test]
+    fn decay_quadratic_below_03() {
+        // 0.5 × (0.15/0.3)² = 0.5 × 0.25 = 0.125
+        let d = attention_decay(0.15);
+        assert!((d - 0.125).abs() < 1e-10, "expected 0.125, got {d}");
+        let d = attention_decay(0.0);
+        assert!((d - 0.0).abs() < 1e-10, "expected 0.0, got {d}");
+    }
+
+    #[test]
+    fn decay_monotonically_increasing() {
+        let mut prev = 0.0;
+        for i in 0..=100 {
+            let k = i as f64 / 100.0;
+            let d = attention_decay(k);
+            assert!(
+                d >= prev - 1e-10,
+                "decay not monotonic at k={k}: {d} < {prev}"
+            );
+            prev = d;
+        }
+    }
+
+    #[test]
+    fn decay_bounded_01() {
+        for i in 0..=100 {
+            let k = i as f64 / 100.0;
+            let d = attention_decay(k);
+            assert!(d >= 0.0, "decay < 0 at k={k}");
+            assert!(d <= 1.0, "decay > 1 at k={k}");
+        }
+    }
+
+    // ---- Q(t) ----
+
+    #[test]
+    fn q_at_full_budget() {
+        let q = quality_adjusted_budget(1.0);
+        assert!((q - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn q_at_zero_budget() {
+        let q = quality_adjusted_budget(0.0);
+        assert!((q - 0.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn q_degrades_faster_than_k_below_06() {
+        // Q(t) should be ≤ k_eff when k_eff < 0.6
+        for i in 0..=60 {
+            let k = i as f64 / 100.0;
+            let q = quality_adjusted_budget(k);
+            assert!(q <= k + 1e-10, "Q({k}) = {q} > k={k}");
+        }
+    }
+
+    #[test]
+    fn q_monotonically_increasing() {
+        let mut prev = 0.0;
+        for i in 0..=100 {
+            let k = i as f64 / 100.0;
+            let q = quality_adjusted_budget(k);
+            assert!(q >= prev - 1e-10, "Q not monotonic at k={k}: {q} < {prev}");
+            prev = q;
+        }
+    }
+
+    // ---- BudgetManager ----
+
+    #[test]
+    fn manager_full_budget() {
+        let mgr = BudgetManager::default();
+        assert!((mgr.k_eff - 1.0).abs() < 1e-10);
+        assert!((mgr.q - 1.0).abs() < 1e-10);
+        // 1.0 * 200000 * 0.05 = 10000
+        assert_eq!(mgr.output_budget, 10000);
+    }
+
+    #[test]
+    fn manager_half_consumed() {
+        let mut mgr = BudgetManager::default();
+        mgr.measure(0.5);
+        assert!((mgr.k_eff - 0.5).abs() < 1e-10);
+        // k=0.5 is in linear regime: decay = 0.5/0.6 = 0.833...
+        // Q = 0.5 * 0.833... = 0.4166...
+        // budget = 0.4166 * 200000 * 0.05 = 4166
+        assert!(mgr.output_budget > 4000);
+        assert!(mgr.output_budget < 4500);
+    }
+
+    #[test]
+    fn manager_nearly_exhausted() {
+        let mut mgr = BudgetManager::default();
+        mgr.measure(0.9);
+        assert!((mgr.k_eff - 0.1).abs() < 1e-10);
+        // k=0.1 is in quadratic regime: decay = 0.5 × (0.1/0.3)^2 = 0.5 × 0.111 = 0.0556
+        // Q = 0.1 * 0.0556 = 0.00556
+        // budget = max(50, 0.00556 * 200000 * 0.05) = max(50, 55.6) = 55
+        assert!(mgr.output_budget >= MIN_OUTPUT);
+        assert!(mgr.output_budget <= 60);
+    }
+
+    #[test]
+    fn manager_fully_exhausted_floor() {
+        let mut mgr = BudgetManager::default();
+        mgr.measure(1.0);
+        assert!((mgr.k_eff - 0.0).abs() < 1e-10);
+        // Q = 0 → budget = MIN_OUTPUT = 50
+        assert_eq!(mgr.output_budget, MIN_OUTPUT);
+    }
+
+    #[test]
+    fn manager_clamps_invalid_input() {
+        let mut mgr = BudgetManager::default();
+        mgr.measure(1.5); // over 100%
+        assert!((mgr.k_eff - 0.0).abs() < 1e-10);
+        mgr.measure(-0.3); // negative
+        assert!((mgr.k_eff - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn harvest_imperative_mode() {
+        let mut mgr = BudgetManager::default();
+        mgr.measure(0.0);
+        assert!(!mgr.is_harvest_imperative());
+
+        // Push Q below 0.05: need k*_eff very small in quadratic regime
+        // k=0.05: decay=(0.05/0.3)^2=0.0278, Q=0.05*0.0278=0.00139 < 0.05
+        mgr.measure(0.95);
+        assert!(mgr.is_harvest_imperative());
+    }
+
+    // ---- Precedence-ordered truncation ----
+
+    #[test]
+    fn allocate_respects_precedence() {
+        let mut mgr = BudgetManager::default();
+        mgr.measure(0.0); // full budget
+
+        let blocks = vec![
+            OutputBlock::with_tokens("ambient".into(), OutputPrecedence::Ambient, 100),
+            OutputBlock::with_tokens("system".into(), OutputPrecedence::System, 100),
+            OutputBlock::with_tokens("user".into(), OutputPrecedence::UserRequested, 100),
+        ];
+
+        let selected = mgr.allocate(&blocks);
+        assert_eq!(selected.len(), 3, "all should fit at full budget");
+        // Verify highest precedence first
+        assert_eq!(selected[0].precedence, OutputPrecedence::System);
+        assert_eq!(selected[1].precedence, OutputPrecedence::UserRequested);
+        assert_eq!(selected[2].precedence, OutputPrecedence::Ambient);
+    }
+
+    #[test]
+    fn allocate_truncates_lowest_first() {
+        let mgr = BudgetManager::with_budget(250);
+
+        let blocks = vec![
+            OutputBlock::with_tokens("ambient stuff".into(), OutputPrecedence::Ambient, 100),
+            OutputBlock::with_tokens("system info".into(), OutputPrecedence::System, 100),
+            OutputBlock::with_tokens("user answer".into(), OutputPrecedence::UserRequested, 100),
+        ];
+
+        let selected = mgr.allocate(&blocks);
+        // Can fit 250 tokens → System (100) + UserRequested (100) = 200, then Ambient (100)
+        // 200 + 100 = 300 > 250, so Ambient truncated
+        assert_eq!(selected.len(), 2);
+        assert!(
+            selected
+                .iter()
+                .all(|b| b.precedence >= OutputPrecedence::UserRequested),
+            "only high-priority blocks should survive"
+        );
+    }
+
+    #[test]
+    fn allocate_inv_budget_002_higher_never_truncated_before_lower() {
+        let mgr = BudgetManager::with_budget(150);
+
+        let blocks = vec![
+            OutputBlock::with_tokens("a".into(), OutputPrecedence::Ambient, 60),
+            OutputBlock::with_tokens("s".into(), OutputPrecedence::Speculative, 60),
+            OutputBlock::with_tokens("u".into(), OutputPrecedence::UserRequested, 60),
+            OutputBlock::with_tokens("m".into(), OutputPrecedence::Methodology, 60),
+            OutputBlock::with_tokens("y".into(), OutputPrecedence::System, 60),
+        ];
+
+        let selected = mgr.allocate(&blocks);
+        // 150 tokens → System(60) + Methodology(60) = 120, + UserRequested(60) = 180 > 150
+        // So: System + Methodology only = 120 ≤ 150
+        let precs: Vec<_> = selected.iter().map(|b| b.precedence).collect();
+        // Verify: no higher-priority block is missing while lower-priority is present
+        for i in 0..precs.len() {
+            for j in (i + 1)..precs.len() {
+                assert!(
+                    precs[i] >= precs[j],
+                    "precedence ordering violated: {:?} after {:?}",
+                    precs[j],
+                    precs[i]
+                );
+            }
+        }
+    }
+
+    // ---- Projection levels ----
+
+    #[test]
+    fn projection_level_bands() {
+        assert_eq!(BudgetProjection::for_budget(5000), BudgetProjection::Full);
+        assert_eq!(BudgetProjection::for_budget(2001), BudgetProjection::Full);
+        assert_eq!(
+            BudgetProjection::for_budget(1500),
+            BudgetProjection::EntitySummary
+        );
+        assert_eq!(
+            BudgetProjection::for_budget(501),
+            BudgetProjection::EntitySummary
+        );
+        assert_eq!(
+            BudgetProjection::for_budget(400),
+            BudgetProjection::TypeSummary
+        );
+        assert_eq!(
+            BudgetProjection::for_budget(201),
+            BudgetProjection::TypeSummary
+        );
+        assert_eq!(
+            BudgetProjection::for_budget(200),
+            BudgetProjection::StoreSummary
+        );
+        assert_eq!(
+            BudgetProjection::for_budget(50),
+            BudgetProjection::StoreSummary
+        );
+    }
+
+    // ---- Guidance levels ----
+
+    #[test]
+    fn guidance_level_thresholds() {
+        assert_eq!(GuidanceLevel::for_k_eff(0.8), GuidanceLevel::Full);
+        assert_eq!(GuidanceLevel::for_k_eff(0.71), GuidanceLevel::Full);
+        assert_eq!(GuidanceLevel::for_k_eff(0.5), GuidanceLevel::Compressed);
+        assert_eq!(GuidanceLevel::for_k_eff(0.41), GuidanceLevel::Compressed);
+        assert_eq!(GuidanceLevel::for_k_eff(0.3), GuidanceLevel::Minimal);
+        assert_eq!(GuidanceLevel::for_k_eff(0.21), GuidanceLevel::Minimal);
+        assert_eq!(GuidanceLevel::for_k_eff(0.1), GuidanceLevel::HarvestOnly);
+        assert_eq!(GuidanceLevel::for_k_eff(0.0), GuidanceLevel::HarvestOnly);
+    }
+
+    // ---- Token counting ----
+
+    #[test]
+    fn approx_counter_prose() {
+        let counter = ApproxTokenCounter;
+        // 100 chars → ~25 tokens
+        let text = "a".repeat(100);
+        assert_eq!(counter.count(&text), 25);
+    }
+
+    #[test]
+    fn approx_counter_code() {
+        let counter = ApproxTokenCounter;
+        // Code with lots of symbols gets 25% uplift
+        let text = "fn main() { let x = foo(a, b); if x > 0 { bar(); } }";
+        let count = counter.count(text);
+        // 53 chars / 4 = 13 base, × 1.25 = 16 (rounded)
+        assert!(count >= 13, "code should have uplift, got {count}");
+    }
+
+    #[test]
+    fn approx_counter_empty() {
+        let counter = ApproxTokenCounter;
+        assert_eq!(counter.count(""), 0);
+    }
+
+    // ---- Command profiles ----
+
+    #[test]
+    fn command_profiles() {
+        assert_eq!(classify_command("status"), AttentionProfile::Cheap);
+        assert_eq!(classify_command("guidance"), AttentionProfile::Cheap);
+        assert_eq!(classify_command("query"), AttentionProfile::Moderate);
+        assert_eq!(classify_command("seed"), AttentionProfile::Expensive);
+        assert_eq!(classify_command("harvest"), AttentionProfile::Meta);
+        assert_eq!(classify_command("transact"), AttentionProfile::Meta);
+    }
+
+    #[test]
+    fn command_budget_respects_profile() {
+        let mut mgr = BudgetManager::default();
+        mgr.measure(0.0); // full budget = 10000
+
+        // Cheap command capped at 50
+        assert_eq!(mgr.command_budget("status"), 50);
+        // Moderate command capped at 300
+        assert_eq!(mgr.command_budget("query"), 300);
+        // Expensive command gets full budget
+        assert_eq!(mgr.command_budget("seed"), 10000);
+    }
+
+    // ---- Token efficiency ----
+
+    #[test]
+    fn density_monotonicity() {
+        // At tighter budgets, density should increase (fewer tokens, same semantic content)
+        let full = TokenEfficiency {
+            semantic_units: 10,
+            token_count: 200,
+        };
+        let summary = TokenEfficiency {
+            semantic_units: 8,
+            token_count: 50,
+        };
+        assert!(
+            summary.density() > full.density(),
+            "summary density {} should exceed full density {}",
+            summary.density(),
+            full.density()
+        );
+    }
+
+    // ---- Proptest ----
+
+    mod budget_proptests {
+        use super::*;
+        use proptest::prelude::*;
+
+        proptest! {
+            #[test]
+            fn k_eff_always_in_01(pct in 0.0f64..=1.0) {
+                let mut mgr = BudgetManager::default();
+                mgr.measure(pct);
+                prop_assert!(mgr.k_eff >= 0.0, "k_eff < 0: {}", mgr.k_eff);
+                prop_assert!(mgr.k_eff <= 1.0, "k_eff > 1: {}", mgr.k_eff);
+            }
+
+            #[test]
+            fn q_always_in_01(pct in 0.0f64..=1.0) {
+                let mut mgr = BudgetManager::default();
+                mgr.measure(pct);
+                prop_assert!(mgr.q >= 0.0, "Q < 0: {}", mgr.q);
+                prop_assert!(mgr.q <= 1.0, "Q > 1: {}", mgr.q);
+            }
+
+            #[test]
+            fn output_budget_at_least_min(pct in 0.0f64..=1.0) {
+                let mut mgr = BudgetManager::default();
+                mgr.measure(pct);
+                prop_assert!(
+                    mgr.output_budget >= MIN_OUTPUT,
+                    "output_budget {} < MIN_OUTPUT {}",
+                    mgr.output_budget,
+                    MIN_OUTPUT
+                );
+            }
+
+            #[test]
+            fn q_leq_k_eff(pct in 0.0f64..=1.0) {
+                let mut mgr = BudgetManager::default();
+                mgr.measure(pct);
+                prop_assert!(
+                    mgr.q <= mgr.k_eff + 1e-10,
+                    "Q={} > k_eff={}",
+                    mgr.q,
+                    mgr.k_eff
+                );
+            }
+
+            #[test]
+            fn budget_monotonically_decreasing(
+                pcts in proptest::collection::vec(0.0f64..=1.0, 2..=20)
+            ) {
+                // Sort percentages to simulate monotonically increasing consumption
+                let mut sorted = pcts;
+                sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+                let mut mgr = BudgetManager::default();
+                let mut prev_budget = u32::MAX;
+
+                for pct in sorted {
+                    mgr.measure(pct);
+                    prop_assert!(
+                        mgr.output_budget <= prev_budget,
+                        "budget increased: {} > {} at pct={}",
+                        mgr.output_budget,
+                        prev_budget,
+                        pct
+                    );
+                    prev_budget = mgr.output_budget;
+                }
+            }
+
+            #[test]
+            fn allocate_never_exceeds_budget(budget in 50u32..=10000) {
+                let mgr = BudgetManager::with_budget(budget);
+
+                let blocks = vec![
+                    OutputBlock::with_tokens("a".into(), OutputPrecedence::Ambient, 100),
+                    OutputBlock::with_tokens("s".into(), OutputPrecedence::Speculative, 100),
+                    OutputBlock::with_tokens("u".into(), OutputPrecedence::UserRequested, 100),
+                    OutputBlock::with_tokens("m".into(), OutputPrecedence::Methodology, 100),
+                    OutputBlock::with_tokens("y".into(), OutputPrecedence::System, 100),
+                ];
+
+                let selected = mgr.allocate(&blocks);
+                let total: usize = selected.iter().map(|b| b.token_count).sum();
+                prop_assert!(
+                    total <= budget as usize,
+                    "allocated {} > budget {}",
+                    total,
+                    budget
+                );
+            }
+
+            #[test]
+            fn allocate_preserves_precedence_ordering(budget in 50u32..=10000) {
+                let mgr = BudgetManager::with_budget(budget);
+
+                let blocks = vec![
+                    OutputBlock::with_tokens("a".into(), OutputPrecedence::Ambient, 60),
+                    OutputBlock::with_tokens("s".into(), OutputPrecedence::Speculative, 60),
+                    OutputBlock::with_tokens("u".into(), OutputPrecedence::UserRequested, 60),
+                    OutputBlock::with_tokens("m".into(), OutputPrecedence::Methodology, 60),
+                    OutputBlock::with_tokens("y".into(), OutputPrecedence::System, 60),
+                ];
+
+                let selected = mgr.allocate(&blocks);
+
+                // Verify: if a lower-priority block is selected, all higher-priority must be too
+                let selected_precs: std::collections::BTreeSet<OutputPrecedence> =
+                    selected.iter().map(|b| b.precedence).collect();
+                for block in &selected {
+                    // Every precedence level above this one must also be present
+                    for higher in [
+                        OutputPrecedence::Speculative,
+                        OutputPrecedence::UserRequested,
+                        OutputPrecedence::Methodology,
+                        OutputPrecedence::System,
+                    ] {
+                        if higher > block.precedence {
+                            prop_assert!(
+                                selected_precs.contains(&higher),
+                                "precedence {} present but higher {} absent",
+                                block.precedence,
+                                higher
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

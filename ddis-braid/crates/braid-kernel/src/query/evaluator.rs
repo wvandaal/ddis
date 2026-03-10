@@ -268,11 +268,42 @@ fn eval_predicate(op: &str, args: &[Term], binding: &Binding) -> bool {
     match (op, resolved.as_slice()) {
         ("=", [Some(a), Some(b)]) => a == b,
         ("!=", [Some(a), Some(b)]) => a != b,
-        (">", [Some(Value::Long(a)), Some(Value::Long(b))]) => a > b,
-        ("<", [Some(Value::Long(a)), Some(Value::Long(b))]) => a < b,
-        (">=", [Some(Value::Long(a)), Some(Value::Long(b))]) => a >= b,
-        ("<=", [Some(Value::Long(a)), Some(Value::Long(b))]) => a <= b,
+        (op @ (">" | "<" | ">=" | "<="), [Some(a), Some(b)]) => numeric_compare(op, a, b),
         _ => false,
+    }
+}
+
+/// Cross-type numeric comparison for Long, Instant, and Double.
+///
+/// Coerces all numeric types to f64 for comparison. This enables queries like
+/// `(> ?timestamp 0)` where ?timestamp binds to an Instant and 0 is a Long.
+/// Non-numeric types return false (the predicate doesn't match).
+fn numeric_compare(op: &str, a: &Value, b: &Value) -> bool {
+    let a_num = value_to_f64(a);
+    let b_num = value_to_f64(b);
+
+    match (a_num, b_num) {
+        (Some(a), Some(b)) => match op {
+            ">" => a > b,
+            "<" => a < b,
+            ">=" => a >= b,
+            "<=" => a <= b,
+            _ => false,
+        },
+        _ => false,
+    }
+}
+
+/// Coerce a Value to f64 for numeric comparison.
+///
+/// Long → i64 as f64, Instant → u64 as f64, Double → f64.
+/// All other types return None.
+fn value_to_f64(v: &Value) -> Option<f64> {
+    match v {
+        Value::Long(n) => Some(*n as f64),
+        Value::Instant(t) => Some(*t as f64),
+        Value::Double(d) => Some(d.into_inner()),
+        _ => None,
     }
 }
 

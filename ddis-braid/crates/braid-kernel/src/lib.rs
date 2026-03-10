@@ -11,6 +11,7 @@
 
 pub mod agent_md;
 pub mod bilateral;
+pub mod budget;
 pub mod datom;
 pub mod error;
 pub mod guidance;
@@ -38,6 +39,12 @@ pub use bilateral::{
     BilateralScan, BilateralState, Boundary, CoherenceConditions, ConditionResult,
     ConvergenceAnalysis, EntropyDecomposition, FitnessComponents, FitnessScore, Gap, GapSeverity,
     RenyiSpectrum, ScanResult, SpectralCertificate,
+};
+pub use budget::{
+    attention_decay, classify_command, quality_adjusted_budget, ApproxTokenCounter,
+    AttentionProfile, BudgetManager, BudgetProjection, GuidanceLevel, OutputBlock,
+    OutputPrecedence, TokenCounter, TokenEfficiency, AGENT_MODE_CEILING, BUDGET_FRACTION,
+    DEFAULT_WINDOW_SIZE, ERROR_MESSAGE_CEILING, GUIDANCE_FOOTER_CEILING, MIN_OUTPUT,
 };
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 pub use error::KernelError;
