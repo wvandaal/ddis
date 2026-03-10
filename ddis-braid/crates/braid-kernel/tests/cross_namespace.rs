@@ -362,7 +362,7 @@ fn store_harvest_seed_lifecycle() {
     assert!(store.len() >= pre_harvest_count, "Store must not shrink");
 
     // Phase 3: Seed — start fresh session
-    let seed = assemble_seed(&store, "Continue from chain 2 harvest", 2000, a);
+    let seed = assemble_seed(&store, "Continue work product task", 2000, a);
 
     assert!(
         seed.entities_discovered > 0,

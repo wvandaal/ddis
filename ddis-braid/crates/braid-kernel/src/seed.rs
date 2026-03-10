@@ -235,28 +235,62 @@ pub fn associate(store: &Store, cue: &AssociateCue) -> SchemaNeighborhood {
             depth,
             breadth,
         } => {
-            // Phase 1: Keyword matching to find seed entities
-            let keywords: Vec<&str> = text.split_whitespace().collect();
-            let mut seed_entities: Vec<EntityId> = Vec::new();
+            // Phase 1: TF-IDF-inspired relevance scoring to find seed entities
+            let query_tokens = tokenize_for_search(text);
 
+            // Build per-entity text corpus and compute document frequencies
+            let mut entity_texts: BTreeMap<EntityId, Vec<String>> = BTreeMap::new();
             for datom in store.datoms() {
                 if datom.op != Op::Assert {
                     continue;
                 }
-                if seed_entities.len() >= *breadth {
-                    break;
-                }
-
-                let matches = match &datom.value {
-                    Value::String(s) => keywords.iter().any(|kw| s.contains(kw)),
-                    Value::Keyword(k) => keywords.iter().any(|kw| k.contains(kw)),
-                    _ => false,
+                let tokens = match &datom.value {
+                    Value::String(s) => tokenize_for_search(s),
+                    Value::Keyword(k) => tokenize_for_search(k),
+                    _ => vec![],
                 };
+                // Also tokenize the attribute name for context
+                let attr_tokens = tokenize_for_search(datom.attribute.as_str());
+                let entry = entity_texts.entry(datom.entity).or_default();
+                entry.extend(tokens);
+                entry.extend(attr_tokens);
+            }
 
-                if matches && !seed_entities.contains(&datom.entity) {
-                    seed_entities.push(datom.entity);
+            let num_entities = entity_texts.len().max(1) as f64;
+
+            // Compute document frequency for each token
+            let mut doc_freq: BTreeMap<&str, usize> = BTreeMap::new();
+            for tokens in entity_texts.values() {
+                let unique: BTreeSet<&str> = tokens.iter().map(|s| s.as_str()).collect();
+                for token in unique {
+                    *doc_freq.entry(token).or_default() += 1;
                 }
             }
+
+            // Score each entity: sum of TF × IDF for matching query tokens
+            let mut scored: Vec<(EntityId, f64)> = entity_texts
+                .iter()
+                .map(|(entity, tokens)| {
+                    let mut score = 0.0_f64;
+                    for qt in &query_tokens {
+                        // Term frequency: how many times this query token appears
+                        let tf = tokens.iter().filter(|t| t.as_str() == qt).count() as f64;
+                        if tf > 0.0 {
+                            // Inverse document frequency: log(N / df)
+                            let df = doc_freq.get(qt.as_str()).copied().unwrap_or(1) as f64;
+                            let idf = (num_entities / df).ln().max(0.1);
+                            score += (1.0 + tf.ln()) * idf; // log-normalized TF × IDF
+                        }
+                    }
+                    (*entity, score)
+                })
+                .filter(|(_, score)| *score > 0.0)
+                .collect();
+
+            // Sort by score descending, take top breadth
+            scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+            let seed_entities: Vec<EntityId> =
+                scored.iter().take(*breadth).map(|(e, _)| *e).collect();
 
             // Phase 2: BFS expansion through reference graph
             let params = BfsParams {
@@ -437,6 +471,18 @@ fn score_entity(
     };
 
     0.5 * relevance + 0.3 * significance + 0.2 * recency
+}
+
+/// Tokenize text for search relevance scoring.
+///
+/// Splits on non-alphanumeric characters, lowercases, removes short tokens (< 2 chars),
+/// and splits compound identifiers (e.g., ":spec/inv-store-001" → ["spec", "inv", "store", "001"]).
+fn tokenize_for_search(text: &str) -> Vec<String> {
+    text.split(|c: char| !c.is_alphanumeric() && c != '-' && c != '_')
+        .flat_map(|word| word.split(['-', '_']))
+        .map(|w| w.to_lowercase())
+        .filter(|w| w.len() >= 2)
+        .collect()
 }
 
 /// Estimate token count for text (rough: 1 token ≈ 4 chars).
