@@ -10,7 +10,7 @@
 //! **State box**: `BTreeSet<Datom>` + `HashMap<AgentId, TxId>` frontier.
 //! **Clear box**: See implementation below.
 
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 
 use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
@@ -240,6 +240,11 @@ pub struct Store {
     schema: Schema,
     /// The current clock state for generating TxIds.
     clock: TxId,
+    /// Secondary index: entity → datoms for O(1) entity lookups (INV-STORE-IDX-001).
+    ///
+    /// Invariant: for every datom d in `datoms`, `entity_index[d.entity]` contains d.
+    /// Maintained incrementally on `transact()` and rebuilt on `merge()`/`from_datoms()`.
+    entity_index: BTreeMap<EntityId, Vec<Datom>>,
 }
 
 impl std::fmt::Debug for Store {
@@ -264,8 +269,10 @@ impl Store {
         let genesis_datoms = crate::schema::genesis_datoms(genesis_tx);
 
         let mut datoms = BTreeSet::new();
+        let mut entity_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
         for d in &genesis_datoms {
             datoms.insert(d.clone());
+            entity_index.entry(d.entity).or_default().push(d.clone());
         }
 
         let mut frontier = HashMap::new();
@@ -278,6 +285,7 @@ impl Store {
             frontier,
             schema,
             clock: genesis_tx,
+            entity_index,
         }
     }
 
@@ -288,9 +296,10 @@ impl Store {
     pub fn from_datoms(datoms: BTreeSet<Datom>) -> Self {
         let schema = Schema::from_datoms(&datoms);
 
-        // Reconstruct frontier from datom TxIds
+        // Reconstruct frontier and entity index from datoms
         let mut frontier: HashMap<AgentId, TxId> = HashMap::new();
         let mut max_clock = TxId::new(0, 0, AgentId::from_name("braid:system"));
+        let mut entity_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
         for d in &datoms {
             let agent = d.tx.agent();
             frontier
@@ -304,6 +313,7 @@ impl Store {
             if d.tx > max_clock {
                 max_clock = d.tx;
             }
+            entity_index.entry(d.entity).or_default().push(d.clone());
         }
 
         Store {
@@ -311,6 +321,7 @@ impl Store {
             frontier,
             schema,
             clock: max_clock,
+            entity_index,
         }
     }
 
@@ -333,13 +344,18 @@ impl Store {
         let mut datom_count = 0;
         let mut schema_changed = false;
 
-        // Snapshot existing entities before the loop — O(N) once, O(1) per lookup.
-        let pre_existing: HashSet<EntityId> = self.datoms.iter().map(|d| d.entity).collect();
+        // Use entity_index for O(1) existence check instead of O(N) scan.
+        let pre_existing: HashSet<EntityId> = self.entity_index.keys().copied().collect();
 
         // Insert the user datoms
         for datom in tx.datoms() {
             if self.datoms.insert(datom.clone()) {
                 datom_count += 1;
+                // Maintain entity index
+                self.entity_index
+                    .entry(datom.entity)
+                    .or_default()
+                    .push(datom.clone());
                 // Check if this entity is new (not in pre-existing set)
                 if !pre_existing.contains(&datom.entity) && !new_entities.contains(&datom.entity) {
                     new_entities.push(datom.entity);
@@ -358,7 +374,9 @@ impl Store {
         );
         let tx_meta_datoms = self.make_tx_metadata(tx_entity, tx_id, &tx_data);
         for d in tx_meta_datoms {
-            self.datoms.insert(d);
+            if self.datoms.insert(d.clone()) {
+                self.entity_index.entry(d.entity).or_default().push(d);
+            }
         }
 
         // Update frontier
@@ -414,8 +432,15 @@ impl Store {
             }
         }
 
-        // Rebuild schema from merged datoms
+        // Rebuild schema and entity index from merged datoms
         self.schema = Schema::from_datoms(&self.datoms);
+        self.entity_index = BTreeMap::new();
+        for d in &self.datoms {
+            self.entity_index
+                .entry(d.entity)
+                .or_default()
+                .push(d.clone());
+        }
 
         let after = self.datoms.len();
         MergeReceipt {
@@ -449,19 +474,34 @@ impl Store {
         &self.schema
     }
 
-    /// Get all datoms for a specific entity.
+    /// Get all datoms for a specific entity. O(1) via entity index.
     pub fn entity_datoms(&self, entity: EntityId) -> Vec<&Datom> {
-        self.datoms.iter().filter(|d| d.entity == entity).collect()
+        self.entity_index
+            .get(&entity)
+            .map(|datoms| datoms.iter().collect())
+            .unwrap_or_default()
     }
 
     /// Check if a transaction with the given ID exists in the store.
+    ///
+    /// Uses frontier for fast-path check, falls back to scan only if needed.
     pub fn has_transaction(&self, tx_id: &TxId) -> bool {
+        // Fast path: check frontier (most common case — recent transactions)
+        if self.frontier.values().any(|t| t == tx_id) {
+            return true;
+        }
+        // Slow path: linear scan (only reached for non-frontier transactions)
         self.datoms.iter().any(|d| &d.tx == tx_id)
     }
 
-    /// The set of all unique entities in the store.
+    /// The set of all unique entities in the store. O(1) via entity index keys.
     pub fn entities(&self) -> BTreeSet<EntityId> {
-        self.datoms.iter().map(|d| d.entity).collect()
+        self.entity_index.keys().copied().collect()
+    }
+
+    /// The number of unique entities in the store. O(1).
+    pub fn entity_count(&self) -> usize {
+        self.entity_index.len()
     }
 
     /// The canonical datom set (for merge comparison / testing).
@@ -476,6 +516,7 @@ impl Store {
             frontier: self.frontier.clone(),
             schema: self.schema.clone(),
             clock: self.clock,
+            entity_index: self.entity_index.clone(),
         }
     }
 
@@ -706,6 +747,78 @@ mod tests {
 
         let receipt = store.transact(tx).unwrap();
         assert_eq!(store.frontier()[&agent], receipt.tx_id);
+    }
+
+    #[test]
+    fn entity_index_consistent_with_datoms() {
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/indexed");
+        let tx = Transaction::new(system_agent(), ProvenanceType::Observed, "idx-test")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("indexed doc".into()),
+            )
+            .commit(&store)
+            .unwrap();
+
+        store.transact(tx).unwrap();
+
+        // entity_datoms via index must match linear scan
+        let indexed: Vec<&Datom> = store.entity_datoms(entity);
+        let scanned: Vec<&Datom> = store.datoms().filter(|d| d.entity == entity).collect();
+        assert_eq!(indexed.len(), scanned.len());
+        for d in &scanned {
+            assert!(indexed.contains(d));
+        }
+    }
+
+    #[test]
+    fn entity_count_matches_entities_set() {
+        let mut store = Store::genesis();
+        let e1 = EntityId::from_ident(":test/count-a");
+        let e2 = EntityId::from_ident(":test/count-b");
+
+        let tx = Transaction::new(system_agent(), ProvenanceType::Observed, "count-test")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("a".into()),
+            )
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("b".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        assert_eq!(store.entity_count(), store.entities().len());
+    }
+
+    #[test]
+    fn entity_index_survives_merge() {
+        let mut s1 = Store::genesis();
+        let s2 = Store::genesis();
+
+        let e = EntityId::from_ident(":test/merge-idx");
+        let tx = Transaction::new(system_agent(), ProvenanceType::Observed, "merge-idx")
+            .assert(
+                e,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("merged".into()),
+            )
+            .commit(&s1)
+            .unwrap();
+        s1.transact(tx).unwrap();
+
+        let mut merged = s2.clone_store();
+        merged.merge(&s1);
+
+        // Entity index must contain the merged entity
+        assert!(!merged.entity_datoms(e).is_empty());
+        assert_eq!(merged.entity_count(), merged.entities().len());
     }
 
     // -----------------------------------------------------------------------
@@ -1014,6 +1127,46 @@ mod tests {
                         );
                     }
                     prev_tx_id = Some(receipt.tx_id);
+                }
+            }
+
+            /// Entity index consistency: index matches linear scan after transactions.
+            #[test]
+            fn entity_index_consistency(
+                entities in proptest::collection::vec(arb_entity_id(), 1..=5),
+                values in proptest::collection::vec(arb_doc_value(), 1..=5),
+            ) {
+                let mut store = Store::genesis();
+                let agent = AgentId::from_name("proptest:idx");
+                let count = entities.len().min(values.len());
+
+                for i in 0..count {
+                    let tx = Transaction::new(agent, ProvenanceType::Observed, &format!("idx-{i}"))
+                        .assert(entities[i], Attribute::from_keyword(":db/doc"), values[i].clone())
+                        .commit(&store)
+                        .unwrap();
+                    store.transact(tx).unwrap();
+                }
+
+                // Verify: entity_count matches actual unique entities
+                let actual_entities: std::collections::BTreeSet<EntityId> =
+                    store.datoms().map(|d| d.entity).collect();
+                prop_assert_eq!(
+                    store.entity_count(),
+                    actual_entities.len(),
+                    "entity_count() inconsistent with datom scan"
+                );
+
+                // Verify: every entity's datoms match linear scan
+                for entity in &actual_entities {
+                    let indexed: Vec<&Datom> = store.entity_datoms(*entity);
+                    let scanned: Vec<&Datom> = store.datoms().filter(|d| d.entity == *entity).collect();
+                    prop_assert_eq!(
+                        indexed.len(),
+                        scanned.len(),
+                        "entity_datoms() count mismatch for {:?}",
+                        entity
+                    );
                 }
             }
         }

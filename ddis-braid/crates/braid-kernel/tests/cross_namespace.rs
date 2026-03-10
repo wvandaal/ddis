@@ -326,6 +326,7 @@ fn store_harvest_seed_lifecycle() {
     // Phase 2: Harvest
     let harvest_context = SessionContext {
         agent: a,
+        agent_name: "agent-a".into(),
         session_start_tx: TxId::new(1, 0, a),
         task_description: "Chain 2 lifecycle test".to_string(),
         session_knowledge: vec![
@@ -597,6 +598,7 @@ fn guidance_harvest_seed() {
     // Harvest with session context
     let harvest_context = SessionContext {
         agent: a,
+        agent_name: "agent-a".into(),
         session_start_tx: TxId::new(1, 0, a),
         task_description: "Guidance test".to_string(),
         session_knowledge: vec![(
@@ -1105,6 +1107,7 @@ fn full_end_to_end_pipeline() {
     // --- Phase 6: Harvest ---
     let harvest_ctx = SessionContext {
         agent: a,
+        agent_name: "agent-a".into(),
         session_start_tx: TxId::new(1, 0, a),
         task_description: "E2E test".to_string(),
         session_knowledge: vec![(

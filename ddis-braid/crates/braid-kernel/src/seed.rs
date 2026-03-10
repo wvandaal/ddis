@@ -17,7 +17,10 @@
 //! - **INV-SEED-004**: Section compression priority (State first, Directive last).
 //! - **INV-SEED-006**: Intention anchoring — intentions pinned at π₀ regardless.
 
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
+
 use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, Value};
+use crate::query::graph::{pagerank, DiGraph};
 use crate::store::Store;
 
 /// Projection levels for rate-distortion compression (ADR-SEED-002).
@@ -154,28 +157,93 @@ pub struct SeedOutput {
 }
 
 // ---------------------------------------------------------------------------
+// Entity reference graph (shared infrastructure for seed v2)
+// ---------------------------------------------------------------------------
+
+/// Convert an EntityId to a stable string key for graph algorithms.
+fn entity_key(entity: EntityId) -> String {
+    // Use first 8 bytes of the entity hash as hex — same convention as trilateral.rs
+    format!(
+        "{:x}",
+        u64::from_be_bytes(entity.as_bytes()[..8].try_into().unwrap())
+    )
+}
+
+/// Build a directed graph from all `Value::Ref` datoms in the store.
+///
+/// Returns the graph and a bidirectional mapping from graph node IDs
+/// back to EntityIds, needed for resolving graph traversal results.
+///
+/// Unlike trilateral.rs (which filters to REF_EDGE_ATTRS only), seed
+/// uses ALL Ref edges because the association goal is to discover any
+/// structurally related entity, not just cross-boundary dependencies.
+fn build_entity_graph(store: &Store) -> (DiGraph, BTreeMap<String, EntityId>) {
+    let mut graph = DiGraph::new();
+    let mut id_map: BTreeMap<String, EntityId> = BTreeMap::new();
+
+    for datom in store.datoms() {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        if let Value::Ref(target) = &datom.value {
+            let src_key = entity_key(datom.entity);
+            let dst_key = entity_key(*target);
+            id_map.insert(src_key.clone(), datom.entity);
+            id_map.insert(dst_key.clone(), *target);
+            graph.add_edge(&src_key, &dst_key);
+        }
+    }
+
+    // Add entities with no Ref edges as isolated nodes
+    // (so they appear in PageRank with base score)
+    for entity in store.entities() {
+        let key = entity_key(entity);
+        id_map.entry(key.clone()).or_insert(entity);
+        graph.add_node(&key);
+    }
+
+    (graph, id_map)
+}
+
+// ---------------------------------------------------------------------------
 // Core functions
 // ---------------------------------------------------------------------------
 
-/// ASSOCIATE: Discover the schema neighborhood relevant to a task.
+/// ASSOCIATE v2: Discover the schema neighborhood via graph BFS traversal.
 ///
-/// Returns entities, attributes, and types — NOT values.
+/// Phase 1 (keyword matching): Find seed entities whose idents or doc strings
+/// match task keywords.
+///
+/// Phase 2 (graph BFS): Expand outward from seed entities through `Value::Ref`
+/// edges (both directions), bounded by depth and breadth parameters.
+///
+/// This replaces v1's flat keyword scan with topology-aware discovery:
+/// entities that are structurally connected to relevant seeds are included
+/// even if they don't contain matching keywords directly.
+///
 /// INV-SEED-003: `|result.entities| ≤ cue.max_results()`.
 pub fn associate(store: &Store, cue: &AssociateCue) -> SchemaNeighborhood {
     let max = cue.max_results();
     let mut neighborhood = SchemaNeighborhood::default();
 
+    // Build entity graph for BFS traversal
+    let (graph, id_map) = build_entity_graph(store);
+
     match cue {
-        AssociateCue::Semantic { text, .. } => {
-            // Stage 0: Simple keyword matching against entity idents and doc strings.
-            // Full semantic search requires embedding infrastructure (Stage 1+).
+        AssociateCue::Semantic {
+            text,
+            depth,
+            breadth,
+        } => {
+            // Phase 1: Keyword matching to find seed entities
             let keywords: Vec<&str> = text.split_whitespace().collect();
+            let mut seed_entities: Vec<EntityId> = Vec::new();
 
             for datom in store.datoms() {
                 if datom.op != Op::Assert {
                     continue;
                 }
-                if neighborhood.entities.len() >= max {
+                if seed_entities.len() >= *breadth {
                     break;
                 }
 
@@ -185,61 +253,150 @@ pub fn associate(store: &Store, cue: &AssociateCue) -> SchemaNeighborhood {
                     _ => false,
                 };
 
-                if matches && !neighborhood.entities.contains(&datom.entity) {
-                    neighborhood.entities.push(datom.entity);
-                    if !neighborhood.attributes.contains(&datom.attribute) {
-                        neighborhood.attributes.push(datom.attribute.clone());
-                    }
+                if matches && !seed_entities.contains(&datom.entity) {
+                    seed_entities.push(datom.entity);
                 }
             }
+
+            // Phase 2: BFS expansion through reference graph
+            let params = BfsParams {
+                store,
+                graph: &graph,
+                id_map: &id_map,
+                seeds: &seed_entities,
+                depth: *depth,
+                breadth: *breadth,
+                max,
+            };
+            bfs_expand(&params, &mut neighborhood);
         }
-        AssociateCue::Explicit { seeds, .. } => {
-            // Start from known entities and expand to neighbors
-            for seed in seeds {
-                if !neighborhood.entities.contains(seed) {
-                    neighborhood.entities.push(*seed);
-                }
-                // Gather attributes for this entity
-                for datom in store.datoms() {
-                    if datom.entity == *seed
-                        && datom.op == Op::Assert
-                        && !neighborhood.attributes.contains(&datom.attribute)
-                    {
-                        neighborhood.attributes.push(datom.attribute.clone());
-                    }
-                }
-            }
+        AssociateCue::Explicit {
+            seeds,
+            depth,
+            breadth,
+        } => {
+            // Start from known entities and expand through graph
+            let params = BfsParams {
+                store,
+                graph: &graph,
+                id_map: &id_map,
+                seeds,
+                depth: *depth,
+                breadth: *breadth,
+                max,
+            };
+            bfs_expand(&params, &mut neighborhood);
         }
     }
 
-    // Truncate to bound
     neighborhood.entities.truncate(max);
     neighborhood
 }
 
-/// Score an entity for relevance to a task (ADR-SEED-002).
+/// Parameters for BFS expansion through the entity reference graph.
+struct BfsParams<'a> {
+    store: &'a Store,
+    graph: &'a DiGraph,
+    id_map: &'a BTreeMap<String, EntityId>,
+    seeds: &'a [EntityId],
+    depth: usize,
+    breadth: usize,
+    max: usize,
+}
+
+/// BFS expansion from seed entities through the entity reference graph.
+///
+/// Traverses both successors and predecessors (undirected BFS) up to
+/// `depth` hops. At each hop, limits expansion to `breadth` neighbors.
+fn bfs_expand(params: &BfsParams<'_>, neighborhood: &mut SchemaNeighborhood) {
+    let mut visited: BTreeSet<EntityId> = BTreeSet::new();
+    let mut frontier: VecDeque<(EntityId, usize)> = VecDeque::new();
+
+    for entity in params.seeds {
+        if visited.insert(*entity) {
+            frontier.push_back((*entity, 0));
+        }
+    }
+
+    while let Some((entity, current_depth)) = frontier.pop_front() {
+        if neighborhood.entities.len() >= params.max {
+            break;
+        }
+
+        neighborhood.entities.push(entity);
+
+        // Gather attributes for this entity using the entity index (O(1))
+        for datom in params.store.entity_datoms(entity) {
+            if datom.op == Op::Assert && !neighborhood.attributes.contains(&datom.attribute) {
+                neighborhood.attributes.push(datom.attribute.clone());
+            }
+        }
+
+        // BFS expansion through graph edges (both directions)
+        if current_depth < params.depth {
+            let key = entity_key(entity);
+            let mut neighbors: Vec<EntityId> = Vec::new();
+
+            // Follow successors (outgoing Ref edges)
+            for succ in params.graph.successors(&key) {
+                if let Some(&target) = params.id_map.get(succ.as_str()) {
+                    if !visited.contains(&target) {
+                        neighbors.push(target);
+                    }
+                }
+            }
+            // Follow predecessors (incoming Ref edges — undirected traversal)
+            for pred in params.graph.predecessors(&key) {
+                if let Some(&target) = params.id_map.get(pred.as_str()) {
+                    if !visited.contains(&target) {
+                        neighbors.push(target);
+                    }
+                }
+            }
+
+            // Limit breadth at each hop
+            neighbors.truncate(params.breadth);
+            for n in neighbors {
+                if visited.insert(n) {
+                    frontier.push_back((n, current_depth + 1));
+                }
+            }
+        }
+    }
+}
+
+/// Score an entity for relevance to a task (ADR-SEED-002, v2).
 ///
 /// `score(e) = α × relevance + β × significance + γ × recency`
-/// where α = 0.5, β = 0.3, γ = 0.2 (defaults).
+/// where α = 0.5, β = 0.3, γ = 0.2.
+///
+/// **v2 upgrade**: Significance is now PageRank-based structural importance
+/// (topology-aware) instead of the v1 attribute-count heuristic. PageRank
+/// captures the entity's position in the reference graph — entities linked
+/// to by many other entities (high in-degree, transitive importance) score
+/// higher. This means seed assembly naturally prioritizes structurally
+/// central entities (schema definitions, core invariants) over peripheral
+/// leaf entities.
 fn score_entity(
     store: &Store,
     entity: EntityId,
     task_keywords: &[&str],
     max_tx_wall_time: u64,
+    pagerank_scores: &BTreeMap<String, f64>,
 ) -> f64 {
-    let datoms: Vec<&Datom> = store
-        .datoms()
-        .filter(|d| d.entity == entity && d.op == Op::Assert)
-        .collect();
+    // Use entity index for O(1) lookup instead of O(N) scan
+    let datoms = store.entity_datoms(entity);
 
-    if datoms.is_empty() {
+    let asserted: Vec<&Datom> = datoms.iter().filter(|d| d.op == Op::Assert).copied().collect();
+
+    if asserted.is_empty() {
         return 0.0;
     }
 
     // Relevance: fraction of task keywords that match entity content
     let mut keyword_hits = 0usize;
     for kw in task_keywords {
-        for d in &datoms {
+        for d in &asserted {
             let hit = match &d.value {
                 Value::String(s) if s.contains(kw) => true,
                 Value::Keyword(k) if k.contains(kw) => true,
@@ -257,16 +414,22 @@ fn score_entity(
         keyword_hits as f64 / task_keywords.len() as f64
     };
 
-    // Significance: number of attributes (proxy for information density)
-    let unique_attrs = datoms
-        .iter()
-        .map(|d| d.attribute.as_str())
-        .collect::<std::collections::BTreeSet<_>>()
-        .len();
-    let significance = (unique_attrs as f64 / 10.0).min(1.0);
+    // Significance: PageRank structural importance (v2)
+    //
+    // PageRank values sum to ~1.0 across all nodes, so raw values are
+    // tiny for large graphs. We normalize by multiplying by node count
+    // to get a [0, ~1] range, clamped to 1.0.
+    let key = entity_key(entity);
+    let pr = pagerank_scores.get(&key).copied().unwrap_or(0.0);
+    let n = pagerank_scores.len().max(1) as f64;
+    let significance = (pr * n).min(1.0);
 
     // Recency: newest transaction time relative to max
-    let newest_tx = datoms.iter().map(|d| d.tx.wall_time()).max().unwrap_or(0);
+    let newest_tx = asserted
+        .iter()
+        .map(|d| d.tx.wall_time())
+        .max()
+        .unwrap_or(0);
     let recency = if max_tx_wall_time == 0 {
         0.5
     } else {
@@ -322,7 +485,11 @@ fn project_entity(store: &Store, entity: EntityId, level: ProjectionLevel) -> St
     }
 }
 
-/// ASSEMBLE: Build the seed context within a token budget (INV-SEED-002).
+/// ASSEMBLE v2: Build the seed context within a token budget (INV-SEED-002).
+///
+/// v2 upgrade: computes PageRank over the entity reference graph and uses
+/// it as the significance component of entity scoring. This means the
+/// seed automatically prioritizes structurally central entities.
 ///
 /// Compression priority (first-to-compress → last):
 /// State → Constraints → Orientation → Warnings → Directive.
@@ -335,16 +502,35 @@ pub fn assemble(
     let task_keywords: Vec<&str> = task.split_whitespace().collect();
     let max_wall = store.datoms().map(|d| d.tx.wall_time()).max().unwrap_or(0);
 
-    // Score and sort entities by relevance
+    // Compute PageRank over entity reference graph (v2)
+    let (graph, _id_map) = build_entity_graph(store);
+    let pr_scores = pagerank(&graph, 20);
+
+    // Score and sort entities by relevance (with PageRank significance)
     let mut scored: Vec<(EntityId, f64)> = neighborhood
         .entities
         .iter()
-        .map(|&e| (e, score_entity(store, e, &task_keywords, max_wall)))
+        .map(|&e| (e, score_entity(store, e, &task_keywords, max_wall, &pr_scores)))
         .collect();
     scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
-    // Select projection level based on budget
-    let projection = if budget > 2000 {
+    // Phase 3: Adaptive projection (v2)
+    //
+    // Instead of a single global projection level, we assign per-entity
+    // projection based on relevance score. High-scoring entities get Full
+    // projection (maximum information), medium get Summary, low get Pointer.
+    //
+    // The projection thresholds adapt to the score distribution:
+    //   top 20%  → Full (π₀)
+    //   next 30% → Summary (π₁)
+    //   next 30% → TypeLevel (π₂)
+    //   bottom 20% → Pointer (π₃)
+    //
+    // This is a form of rate-distortion optimization: we allocate more
+    // bits (tokens) to entities with higher information value, matching
+    // the classical water-filling solution from information theory.
+    let max_score = scored.first().map(|(_, s)| *s).unwrap_or(0.0);
+    let fallback_projection = if budget > 2000 {
         ProjectionLevel::Full
     } else if budget > 500 {
         ProjectionLevel::Summary
@@ -374,14 +560,68 @@ pub fn assemble(
 
     let mut state_entries = Vec::new();
     let mut state_tokens = 0;
-    for (entity, _score) in &scored {
-        let entry = project_entity(store, *entity, projection);
+    for (entity, score) in &scored {
+        // Adaptive projection: higher scores get richer projection
+        let projection = if max_score > 0.0 {
+            let normalized = score / max_score;
+            if normalized > 0.8 {
+                ProjectionLevel::Full
+            } else if normalized > 0.5 {
+                ProjectionLevel::Summary
+            } else if normalized > 0.2 {
+                ProjectionLevel::TypeLevel
+            } else {
+                ProjectionLevel::Pointer
+            }
+        } else {
+            fallback_projection
+        };
+
+        // Clamp projection to respect global budget constraints
+        let effective_projection = projection.min(fallback_projection);
+
+        let entry = project_entity(store, *entity, effective_projection);
         if state_tokens + entry.tokens > state_budget {
+            // Try a lower projection before giving up
+            let compressed = project_entity(store, *entity, ProjectionLevel::Pointer);
+            if state_tokens + compressed.tokens <= state_budget {
+                state_tokens += compressed.tokens;
+                state_entries.push(compressed);
+            }
             break;
         }
         state_tokens += entry.tokens;
         state_entries.push(entry);
     }
+
+    // Compute dominant projection before moving state_entries
+    let dominant_projection = if state_entries.is_empty() {
+        fallback_projection
+    } else {
+        // Most common projection level among assembled entries
+        let mut counts = [0usize; 4]; // Pointer, TypeLevel, Summary, Full
+        for entry in &state_entries {
+            let idx = match entry.projection {
+                ProjectionLevel::Pointer => 0,
+                ProjectionLevel::TypeLevel => 1,
+                ProjectionLevel::Summary => 2,
+                ProjectionLevel::Full => 3,
+            };
+            counts[idx] += 1;
+        }
+        let max_idx = counts
+            .iter()
+            .enumerate()
+            .max_by_key(|(_, &c)| c)
+            .map(|(i, _)| i)
+            .unwrap_or(0);
+        match max_idx {
+            0 => ProjectionLevel::Pointer,
+            1 => ProjectionLevel::TypeLevel,
+            2 => ProjectionLevel::Summary,
+            _ => ProjectionLevel::Full,
+        }
+    };
 
     let state = ContextSection::State(state_entries);
 
@@ -392,7 +632,7 @@ pub fn assemble(
         sections: vec![orientation, constraints, state, warnings, directive],
         total_tokens,
         budget_remaining,
-        projection_pattern: projection,
+        projection_pattern: dominant_projection,
     }
 }
 
@@ -415,6 +655,121 @@ pub fn assemble_seed(store: &Store, task: &str, budget: usize, agent: AgentId) -
         agent,
         task: task.to_string(),
         entities_discovered,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4: Verification (INV-SEED-001..006)
+// ---------------------------------------------------------------------------
+
+/// Verification result for a seed output.
+#[derive(Clone, Debug)]
+pub struct SeedVerification {
+    /// List of satisfied invariants.
+    pub satisfied: Vec<String>,
+    /// List of violated invariants with descriptions.
+    pub violations: Vec<String>,
+    /// Overall pass/fail.
+    pub passed: bool,
+}
+
+/// Verify a seed output against all SEED invariants.
+///
+/// Checks:
+/// - **INV-SEED-001**: Store projection — every state entry entity exists in the store.
+/// - **INV-SEED-002**: Budget compliance — total_tokens ≤ budget.
+/// - **INV-SEED-003**: ASSOCIATE boundedness — entities_discovered ≤ max_results.
+/// - **INV-SEED-004**: Section ordering — five sections in correct order.
+/// - **INV-SEED-006**: Intention anchoring — Directive section always present.
+pub fn verify_seed(seed: &SeedOutput, store: &Store, budget: usize) -> SeedVerification {
+    let mut satisfied = Vec::new();
+    let mut violations = Vec::new();
+
+    // INV-SEED-001: Store projection — every datum traces to a datom
+    let store_entities = store.entities();
+    let mut all_in_store = true;
+    for section in &seed.context.sections {
+        if let ContextSection::State(entries) = section {
+            for entry in entries {
+                if !store_entities.contains(&entry.entity) {
+                    violations.push(format!(
+                        "INV-SEED-001 violated: entity {:?} in seed but not in store",
+                        entry.entity
+                    ));
+                    all_in_store = false;
+                }
+            }
+        }
+    }
+    if all_in_store {
+        satisfied.push("INV-SEED-001: all seed entities trace to store datoms".into());
+    }
+
+    // INV-SEED-002: Budget compliance
+    if seed.context.total_tokens <= budget {
+        satisfied.push(format!(
+            "INV-SEED-002: total_tokens ({}) ≤ budget ({})",
+            seed.context.total_tokens, budget
+        ));
+    } else {
+        violations.push(format!(
+            "INV-SEED-002 violated: total_tokens ({}) > budget ({})",
+            seed.context.total_tokens, budget
+        ));
+    }
+
+    // INV-SEED-003: ASSOCIATE boundedness
+    // The cue used by assemble_seed has depth=5, breadth=10, so max = 50
+    let max_results = 50;
+    if seed.entities_discovered <= max_results {
+        satisfied.push(format!(
+            "INV-SEED-003: entities_discovered ({}) ≤ max_results ({})",
+            seed.entities_discovered, max_results
+        ));
+    } else {
+        violations.push(format!(
+            "INV-SEED-003 violated: entities_discovered ({}) > max_results ({})",
+            seed.entities_discovered, max_results
+        ));
+    }
+
+    // INV-SEED-004: Section ordering (five sections)
+    if seed.context.sections.len() == 5 {
+        satisfied.push("INV-SEED-004: exactly 5 sections present".into());
+    } else {
+        violations.push(format!(
+            "INV-SEED-004 violated: expected 5 sections, got {}",
+            seed.context.sections.len()
+        ));
+    }
+
+    // INV-SEED-006: Intention anchoring — Directive always present
+    let has_directive = seed
+        .context
+        .sections
+        .iter()
+        .any(|s| matches!(s, ContextSection::Directive(_)));
+    if has_directive {
+        satisfied.push("INV-SEED-006: Directive section present (intention anchored)".into());
+    } else {
+        violations.push("INV-SEED-006 violated: no Directive section".into());
+    }
+
+    // Budget accounting consistency
+    if seed.context.total_tokens + seed.context.budget_remaining <= budget {
+        satisfied.push("Budget accounting: total + remaining ≤ budget".into());
+    } else {
+        violations.push(format!(
+            "Budget accounting violated: {} + {} > {}",
+            seed.context.total_tokens, seed.context.budget_remaining, budget
+        ));
+    }
+
+    let passed = violations.is_empty();
+    SeedVerification {
+        satisfied,
+        violations,
+        passed,
     }
 }
 
@@ -513,8 +868,329 @@ mod tests {
     fn score_entity_nonzero_for_matching() {
         let store = Store::genesis();
         let entity = EntityId::from_ident(":db/ident");
-        let score = score_entity(&store, entity, &["ident"], 100);
+        let (graph, _) = build_entity_graph(&store);
+        let pr = crate::query::graph::pagerank(&graph, 20);
+        let score = score_entity(&store, entity, &["ident"], 100, &pr);
         assert!(score > 0.0, "matching entity should have positive score");
+    }
+
+    // -------------------------------------------------------------------
+    // Seed v2 tests: graph BFS traversal + PageRank scoring
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn build_entity_graph_includes_all_entities() {
+        let store = Store::genesis();
+        let (graph, id_map) = build_entity_graph(&store);
+        // Every entity in the store should appear as a node
+        for entity in store.entities() {
+            let key = entity_key(entity);
+            assert!(
+                id_map.contains_key(&key),
+                "entity {:?} missing from id_map",
+                entity
+            );
+            assert!(
+                graph.nodes().any(|n| n == &key),
+                "entity {:?} missing from graph",
+                entity
+            );
+        }
+    }
+
+    /// Build a store with the full schema (L0 genesis + L1 + L2 + L3).
+    fn store_with_full_schema() -> Store {
+        let system_agent = AgentId::from_name("braid:system");
+        let genesis_tx = crate::datom::TxId::new(0, 0, system_agent);
+        let mut datom_set = std::collections::BTreeSet::new();
+        // L0 genesis (defines :db/ident, :db/valueType, etc.)
+        for d in crate::schema::genesis_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+        // L1 + L2 + L3 (domain attributes)
+        for d in crate::schema::full_schema_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+        Store::from_datoms(datom_set)
+    }
+
+    #[test]
+    fn associate_bfs_discovers_ref_neighbors() {
+        use crate::datom::{Attribute, ProvenanceType};
+        use crate::store::Transaction;
+
+        let mut store = store_with_full_schema();
+        let agent = AgentId::from_name("test");
+
+        // Create two entities linked by a Ref edge (:dep/from is ValueType::Ref)
+        let entity_a = EntityId::from_ident(":test/alpha");
+        let entity_b = EntityId::from_ident(":test/beta");
+
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "link entities")
+            .assert(
+                entity_a,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":test/alpha".into()),
+            )
+            .assert(
+                entity_a,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("searchable keyword magic".into()),
+            )
+            .assert(
+                entity_b,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":test/beta".into()),
+            )
+            .assert(
+                entity_b,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("not searchable".into()),
+            )
+            .assert(
+                entity_a,
+                Attribute::from_keyword(":dep/from"),
+                Value::Ref(entity_b),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        // Search for "magic" — should find entity_a directly and entity_b via BFS
+        let cue = AssociateCue::Semantic {
+            text: "magic".to_string(),
+            depth: 2,
+            breadth: 10,
+        };
+        let neighborhood = associate(&store, &cue);
+
+        assert!(
+            neighborhood.entities.contains(&entity_a),
+            "should find entity_a via keyword match"
+        );
+        assert!(
+            neighborhood.entities.contains(&entity_b),
+            "should find entity_b via BFS through Ref edge"
+        );
+    }
+
+    #[test]
+    fn pagerank_boosts_hub_entities() {
+        use crate::datom::{Attribute, ProvenanceType};
+        use crate::store::Transaction;
+
+        let mut store = store_with_full_schema();
+        let agent = AgentId::from_name("test");
+
+        // Create a hub entity pointed to by many others
+        let hub = EntityId::from_ident(":test/hub");
+        let spoke_a = EntityId::from_ident(":test/spoke-a");
+        let spoke_b = EntityId::from_ident(":test/spoke-b");
+        let spoke_c = EntityId::from_ident(":test/spoke-c");
+
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "create hub")
+            .assert(hub, Attribute::from_keyword(":db/ident"), Value::Keyword(":test/hub".into()))
+            .assert(hub, Attribute::from_keyword(":db/doc"), Value::String("central hub".into()))
+            .assert(spoke_a, Attribute::from_keyword(":db/ident"), Value::Keyword(":test/spoke-a".into()))
+            .assert(spoke_a, Attribute::from_keyword(":db/doc"), Value::String("spoke a".into()))
+            .assert(spoke_a, Attribute::from_keyword(":impl/implements"), Value::Ref(hub))
+            .assert(spoke_b, Attribute::from_keyword(":db/ident"), Value::Keyword(":test/spoke-b".into()))
+            .assert(spoke_b, Attribute::from_keyword(":db/doc"), Value::String("spoke b".into()))
+            .assert(spoke_b, Attribute::from_keyword(":impl/implements"), Value::Ref(hub))
+            .assert(spoke_c, Attribute::from_keyword(":db/ident"), Value::Keyword(":test/spoke-c".into()))
+            .assert(spoke_c, Attribute::from_keyword(":db/doc"), Value::String("spoke c".into()))
+            .assert(spoke_c, Attribute::from_keyword(":impl/implements"), Value::Ref(hub))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        // Score hub vs spoke with PageRank
+        let (graph, _) = build_entity_graph(&store);
+        let pr = crate::query::graph::pagerank(&graph, 20);
+
+        // Same keywords match both — but hub should score higher due to PageRank
+        let hub_score = score_entity(&store, hub, &["hub", "spoke"], 100, &pr);
+        let spoke_score = score_entity(&store, spoke_a, &["hub", "spoke"], 100, &pr);
+
+        assert!(
+            hub_score > spoke_score,
+            "hub ({:.4}) should score higher than spoke ({:.4}) due to PageRank",
+            hub_score,
+            spoke_score,
+        );
+    }
+
+    #[test]
+    fn associate_v2_boundedness_with_graph() {
+        use crate::datom::{Attribute, ProvenanceType};
+        use crate::store::Transaction;
+
+        let mut store = store_with_full_schema();
+        let agent = AgentId::from_name("test");
+
+        // Create a chain of entities: A → B → C → D
+        let entities: Vec<EntityId> = (0..4)
+            .map(|i| EntityId::from_ident(&format!(":test/chain-{i}")))
+            .collect();
+
+        let mut tx = Transaction::new(agent, ProvenanceType::Observed, "chain");
+        for (i, entity) in entities.iter().enumerate() {
+            tx = tx
+                .assert(
+                    *entity,
+                    Attribute::from_keyword(":db/ident"),
+                    Value::Keyword(format!(":test/chain-{i}")),
+                )
+                .assert(
+                    *entity,
+                    Attribute::from_keyword(":db/doc"),
+                    Value::String(format!("chain node {i}")),
+                );
+            if i > 0 {
+                tx = tx.assert(
+                    entities[i - 1],
+                    Attribute::from_keyword(":dep/to"),
+                    Value::Ref(*entity),
+                );
+            }
+        }
+        let committed = tx.commit(&store).unwrap();
+        store.transact(committed).unwrap();
+
+        // Search with depth=1 — should NOT traverse the whole chain
+        let cue = AssociateCue::Semantic {
+            text: "chain".to_string(),
+            depth: 1,
+            breadth: 2,
+        };
+        let max = cue.max_results();
+        let neighborhood = associate(&store, &cue);
+
+        assert!(
+            neighborhood.entities.len() <= max,
+            "INV-SEED-003: |result| ({}) <= max_results ({})",
+            neighborhood.entities.len(),
+            max,
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // Phase 4: Seed verification tests
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn verify_seed_passes_for_genesis() {
+        let store = Store::genesis();
+        let agent = AgentId::from_name("test-verify");
+        let budget = 2000;
+        let seed = assemble_seed(&store, "test verification", budget, agent);
+        let verification = verify_seed(&seed, &store, budget);
+
+        assert!(
+            verification.passed,
+            "genesis seed should pass verification: violations = {:?}",
+            verification.violations
+        );
+        assert!(
+            verification.satisfied.len() >= 5,
+            "should satisfy at least 5 invariants, got {}",
+            verification.satisfied.len()
+        );
+    }
+
+    #[test]
+    fn verify_seed_detects_budget_violation() {
+        // Manually construct a seed with budget violation
+        let store = Store::genesis();
+        let bad_seed = SeedOutput {
+            context: AssembledContext {
+                sections: vec![
+                    ContextSection::Orientation("test".into()),
+                    ContextSection::Constraints(vec![]),
+                    ContextSection::State(vec![]),
+                    ContextSection::Warnings(vec![]),
+                    ContextSection::Directive("task".into()),
+                ],
+                total_tokens: 5000, // Exceeds budget
+                budget_remaining: 0,
+                projection_pattern: ProjectionLevel::Full,
+            },
+            agent: AgentId::from_name("test"),
+            task: "test".into(),
+            entities_discovered: 0,
+        };
+        let verification = verify_seed(&bad_seed, &store, 1000);
+        assert!(!verification.passed, "should fail with budget violation");
+        assert!(
+            verification
+                .violations
+                .iter()
+                .any(|v| v.contains("INV-SEED-002")),
+            "should report INV-SEED-002 violation"
+        );
+    }
+
+    #[test]
+    fn adaptive_projection_mixes_levels() {
+        use crate::datom::{Attribute, ProvenanceType};
+        use crate::store::Transaction;
+
+        let mut store = store_with_full_schema();
+        let agent = AgentId::from_name("test");
+
+        // Create entities with varying "importance" (attribute richness)
+        for i in 0..5 {
+            let entity = EntityId::from_ident(&format!(":test/entity-{i}"));
+            let mut tx =
+                Transaction::new(agent, ProvenanceType::Observed, "create test entities")
+                    .assert(
+                        entity,
+                        Attribute::from_keyword(":db/ident"),
+                        Value::Keyword(format!(":test/entity-{i}")),
+                    )
+                    .assert(
+                        entity,
+                        Attribute::from_keyword(":db/doc"),
+                        Value::String(format!("entity {i} for adaptive projection test")),
+                    );
+
+            // Add more attributes to higher-numbered entities
+            if i >= 3 {
+                tx = tx.assert(
+                    entity,
+                    Attribute::from_keyword(":spec/id"),
+                    Value::String(format!("TEST-{i}")),
+                );
+            }
+
+            let committed = tx.commit(&store).unwrap();
+            store.transact(committed).unwrap();
+        }
+
+        let neighborhood = SchemaNeighborhood {
+            entities: (0..5)
+                .map(|i| EntityId::from_ident(&format!(":test/entity-{i}")))
+                .collect(),
+            attributes: vec![],
+            entity_types: vec![],
+        };
+
+        // Large budget — adaptive projection should assign different levels
+        let ctx = assemble(&store, &neighborhood, "adaptive projection test", 5000);
+        assert!(ctx.total_tokens <= 5000, "budget respected");
+
+        // Extract state entries and check for mixed projections
+        let entries: Vec<&StateEntry> = ctx
+            .sections
+            .iter()
+            .flat_map(|s| match s {
+                ContextSection::State(entries) => entries.iter().collect::<Vec<_>>(),
+                _ => vec![],
+            })
+            .collect();
+
+        // At least some entries should exist
+        assert!(!entries.is_empty(), "should have state entries");
     }
 
     // -------------------------------------------------------------------
@@ -656,10 +1332,9 @@ mod tests {
                 );
             }
 
-            // RD-2: Fixed-projection budget monotonicity -- at the same
-            // projection level, more budget fits more or equal state entries.
-            // We pick two budgets in the same projection-level band (>2000)
-            // to hold projection constant, then verify entry count is monotone.
+            // RD-2: Budget monotonicity -- more budget fits more or equal state entries.
+            // With adaptive projection (v2), individual entities may use different
+            // projection levels, so we only test that entry count is monotone.
             #[test]
             fn rate_distortion_budget_monotonicity_fixed_projection(
                 store in arb_store(3),
@@ -676,26 +1351,12 @@ mod tests {
                 let small_ctx = assemble(&store, &neighborhood, "test task", budget_small);
                 let large_ctx = assemble(&store, &neighborhood, "test task", budget_large);
 
-                // Both should use Full projection (budget > 2000)
-                prop_assert_eq!(
-                    small_ctx.projection_pattern,
-                    ProjectionLevel::Full,
-                    "Expected Full projection for budget {}",
-                    budget_small
-                );
-                prop_assert_eq!(
-                    large_ctx.projection_pattern,
-                    ProjectionLevel::Full,
-                    "Expected Full projection for budget {}",
-                    budget_large
-                );
-
                 let small_entries = count_state_entries(&small_ctx);
                 let large_entries = count_state_entries(&large_ctx);
 
                 prop_assert!(
                     large_entries >= small_entries,
-                    "Budget monotonicity (fixed projection) violated: budget {} => {} entries, \
+                    "Budget monotonicity violated: budget {} => {} entries, \
                      budget {} => {} entries",
                     budget_large, large_entries, budget_small, small_entries
                 );

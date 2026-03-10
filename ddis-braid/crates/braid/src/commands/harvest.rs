@@ -42,6 +42,7 @@ pub fn run(
 
     let context = SessionContext {
         agent,
+        agent_name: agent_name.to_string(),
         session_start_tx: TxId::new(current_wall, 0, agent),
         task_description: task.to_string(),
         session_knowledge,
@@ -55,6 +56,14 @@ pub fn run(
         result.candidates.len()
     ));
     out.push_str(&format!("  drift_score: {:.2}\n", result.drift_score));
+    out.push_str(&format!(
+        "  session_entities: {} (tx-log extraction)\n",
+        result.session_entities
+    ));
+    out.push_str(&format!(
+        "  completeness_gaps: {}\n",
+        result.completeness_gaps
+    ));
     out.push_str(&format!(
         "  quality: {} total ({} high, {} medium, {} low)\n",
         result.quality.count,

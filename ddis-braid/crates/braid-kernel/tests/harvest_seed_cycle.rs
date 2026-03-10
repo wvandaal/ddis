@@ -108,6 +108,7 @@ fn harvest_seed_25_turn_cycle() {
 
     let harvest_context = SessionContext {
         agent,
+        agent_name: "test-agent".into(),
         session_start_tx: TxId::new(1, 0, agent),
         task_description: "25-turn validation test".to_string(),
         session_knowledge: vec![
@@ -300,6 +301,7 @@ fn harvest_seed_idempotency() {
 
     let context = SessionContext {
         agent,
+        agent_name: "test-agent".into(),
         session_start_tx: TxId::new(1, 0, agent),
         task_description: "Idempotency test".to_string(),
         session_knowledge: vec![],

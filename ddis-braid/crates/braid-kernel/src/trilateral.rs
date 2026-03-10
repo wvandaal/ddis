@@ -14,7 +14,8 @@
 
 use std::collections::BTreeSet;
 
-use crate::datom::{Attribute, Datom, EntityId, Op};
+use crate::datom::{Attribute, Datom, EntityId, Op, Value};
+use crate::query::graph::{first_betti_number, DiGraph};
 use crate::store::Store;
 
 // ---------------------------------------------------------------------------
@@ -58,7 +59,7 @@ pub const IMPL_ATTRS: &[&str] = &[
 ];
 
 /// Attribute namespace classification.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum AttrNamespace {
     /// Intent layer — decisions, goals, constraints.
     Intent,
@@ -340,24 +341,59 @@ pub struct CoherenceReport {
     pub isp_bypasses: usize,
 }
 
-/// Compute β₁ as a simple cycle proxy (Stage 0).
+/// Reference-type attributes that define edges in the entity graph.
 ///
-/// At Stage 0, we count entities that have both `:spec/traces-to` and
-/// `:impl/implements` pointing to the same or overlapping targets —
-/// indicating a potential circular dependency.
-/// Full eigendecomposition via nalgebra is deferred to Stage 1.
-fn compute_beta_1_proxy(_store: &Store) -> usize {
-    // Stage 0 proxy: count entities with bidirectional links
-    // (i.e., entity A references entity B and B references A)
-    // For now, return 0 — no cycle detection without full graph analysis.
-    // This is a conservative approximation (no false positives).
-    0
+/// These are the cross-boundary attributes whose `Value::Ref` targets
+/// create directed edges between entities. The resulting graph's β₁
+/// counts independent cycles (topological holes in the dependency structure).
+const REF_EDGE_ATTRS: &[&str] = &[
+    ":spec/traces-to",
+    ":impl/implements",
+    ":dep/from",
+    ":dep/to",
+    ":exploration/depends-on",
+    ":exploration/refines",
+    ":exploration/related-spec",
+];
+
+/// Compute the first Betti number β₁ from the store's entity reference graph.
+///
+/// Builds a directed graph from all `Value::Ref` datoms on cross-boundary
+/// attributes, then computes β₁ = dim(ker(L₁)) via edge Laplacian
+/// eigendecomposition (INV-QUERY-024).
+///
+/// β₁ = 0 means no structural cycles (the entity graph is a forest).
+/// β₁ > 0 counts independent cycles that may indicate contradictions
+/// or circular dependencies between specification elements.
+fn compute_beta_1(store: &Store) -> usize {
+    let mut graph = DiGraph::new();
+
+    for datom in store.datoms() {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        // Only consider known reference-edge attributes
+        if !REF_EDGE_ATTRS.contains(&datom.attribute.as_str()) {
+            continue;
+        }
+        if let Value::Ref(target) = &datom.value {
+            let src = format!("{:x}", u64::from_be_bytes(datom.entity.as_bytes()[..8].try_into().unwrap()));
+            let dst = format!("{:x}", u64::from_be_bytes(target.as_bytes()[..8].try_into().unwrap()));
+            graph.add_edge(&src, &dst);
+        }
+    }
+
+    if graph.node_count() < 2 {
+        return 0;
+    }
+
+    first_betti_number(&graph)
 }
 
 /// Check full coherence of the store (INV-TRILATERAL-009).
 pub fn check_coherence(store: &Store) -> CoherenceReport {
     let (phi, components) = compute_phi_default(store);
-    let beta_1 = compute_beta_1_proxy(store);
+    let beta_1 = compute_beta_1(store);
     let (live_i, live_s, live_p) = live_projections(store);
 
     // Count ISP bypasses
@@ -480,6 +516,115 @@ mod tests {
         assert_eq!(i.datom_count, 0);
         assert_eq!(s.datom_count, 0);
         assert_eq!(p.datom_count, 0);
+    }
+
+    #[test]
+    fn beta_1_zero_for_acyclic_refs() {
+        // A → B → C (chain, no cycles) ⇒ β₁ = 0
+        use crate::datom::{AgentId, TxId};
+        let mut datoms = Store::genesis().datom_set().clone();
+        let tx = TxId::new(1, 0, AgentId::from_name("test:beta1"));
+        let a = EntityId::from_ident(":test/a");
+        let b = EntityId::from_ident(":test/b");
+        let c = EntityId::from_ident(":test/c");
+
+        // A → B via :spec/traces-to
+        datoms.insert(Datom::new(
+            a,
+            Attribute::from_keyword(":spec/traces-to"),
+            Value::Ref(b),
+            tx,
+            Op::Assert,
+        ));
+        // B → C via :impl/implements
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":impl/implements"),
+            Value::Ref(c),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let beta_1 = compute_beta_1(&store);
+        assert_eq!(beta_1, 0, "acyclic graph should have β₁ = 0");
+    }
+
+    #[test]
+    fn beta_1_positive_for_cycle() {
+        // A → B → C → A (cycle) ⇒ β₁ > 0
+        use crate::datom::{AgentId, TxId};
+        let mut datoms = Store::genesis().datom_set().clone();
+        let tx = TxId::new(1, 0, AgentId::from_name("test:beta1"));
+        let a = EntityId::from_ident(":test/cycle-a");
+        let b = EntityId::from_ident(":test/cycle-b");
+        let c = EntityId::from_ident(":test/cycle-c");
+
+        datoms.insert(Datom::new(
+            a,
+            Attribute::from_keyword(":spec/traces-to"),
+            Value::Ref(b),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":spec/traces-to"),
+            Value::Ref(c),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            c,
+            Attribute::from_keyword(":spec/traces-to"),
+            Value::Ref(a),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let beta_1 = compute_beta_1(&store);
+        assert!(beta_1 > 0, "cycle graph should have β₁ > 0, got {beta_1}");
+    }
+
+    #[test]
+    fn coherence_report_detects_gaps_and_cycles() {
+        // Store with both spec entities (gaps) and a cycle ⇒ GapsAndCycles
+        use crate::datom::{AgentId, TxId};
+        let mut datoms = Store::genesis().datom_set().clone();
+        let tx = TxId::new(1, 0, AgentId::from_name("test:coherence"));
+        let a = EntityId::from_ident(":test/coherence-a");
+        let b = EntityId::from_ident(":test/coherence-b");
+
+        // Spec entity (creates D_SP gap — in spec but not in impl)
+        datoms.insert(Datom::new(
+            a,
+            Attribute::from_keyword(":spec/id"),
+            Value::String("INV-TEST-001".into()),
+            tx,
+            Op::Assert,
+        ));
+        // Create cycle: A → B → A via spec/traces-to
+        datoms.insert(Datom::new(
+            a,
+            Attribute::from_keyword(":spec/traces-to"),
+            Value::Ref(b),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":spec/traces-to"),
+            Value::Ref(a),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let report = check_coherence(&store);
+        assert!(report.phi > 0.0, "should have gaps");
+        assert!(report.beta_1 > 0, "should have cycles");
+        assert_eq!(report.quadrant, CoherenceQuadrant::GapsAndCycles);
     }
 
     // -------------------------------------------------------------------

@@ -380,6 +380,7 @@ fn tool_harvest(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
 
     let context = SessionContext {
         agent,
+        agent_name: "braid:mcp".into(),
         session_start_tx: TxId::new(current_wall, 0, agent),
         task_description: task.to_string(),
         session_knowledge,

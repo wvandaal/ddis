@@ -40,8 +40,9 @@ pub use guidance::{
     TaskRouting, Trend,
 };
 pub use harvest::{
-    candidate_to_datoms, harvest_pipeline, CandidateStatus, HarvestCandidate, HarvestCategory,
-    HarvestQuality, HarvestResult, SessionContext,
+    build_harvest_commit, candidate_to_datoms, harvest_pipeline, CandidateStatus,
+    HarvestCandidate, HarvestCategory, HarvestCommit, HarvestQuality, HarvestResult,
+    SessionContext,
 };
 pub use layout::{
     collect_datoms, deserialize_tx, serialize_tx, tx_content_hash, verify_content_hash,
@@ -69,8 +70,8 @@ pub use schema::{
     LAYER_3_COUNT,
 };
 pub use seed::{
-    assemble, assemble_seed, associate, AssembledContext, AssociateCue, ContextSection,
-    ProjectionLevel, SchemaNeighborhood, SeedOutput, StateEntry,
+    assemble, assemble_seed, associate, verify_seed, AssembledContext, AssociateCue,
+    ContextSection, ProjectionLevel, SchemaNeighborhood, SeedOutput, SeedVerification, StateEntry,
 };
 pub use stage::{capabilities, max_stage, stage_name};
 pub use store::{Frontier, MergeReceipt, Store, TxData, TxReceipt};
