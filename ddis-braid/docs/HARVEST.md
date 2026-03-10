@@ -2696,3 +2696,81 @@ merge/split recommendations, migration mechanics, breaking change inventory, ver
 2. **Move `PROPOSED_CODE_FILE_REORGANIZATION_PLAN.md`** to `docs/design/` (completed plan, not active root artifact).
 3. **Stage 1 work**: Pick up P3 backlog beads (brai-35s5 budget-aware output, brai-2g7o comonadic guidance).
 4. **Update AGENTS.md status** from "pre-Stage-0 specification phase" to "Stage 0 implementation" given current codebase maturity (288 tests, formal verification, complete spec).
+
+---
+
+## Session 021 — 2026-03-10 (Store-First Specification Pipeline)
+
+### What Was Accomplished
+
+**Store-first specification pipeline (brai-1bze)** — fully implemented and tested:
+
+1. **Schema Layer 3** (`schema.rs`): 20 exploration/discovery attributes across 3 groups:
+   - Exploration Identity (8): `:exploration/id`, `/source`, `/category`, `/confidence`, `/maturity`, `/body`, `/title`, `/tags`
+   - Promotion Lifecycle (7): `:promotion/status`, `/target-element`, `/target-namespace`, `/target-type`, `/promoted-tx`, `/phi-before`, `/phi-after`
+   - Exploration Cross-Reference (5): `:exploration/depends-on`, `/refines`, `/related-spec`, `/source-session`, `/evidence`
+   - Full test suite: 11 new tests (determinism, value types, evolution validity, ident uniqueness, layer dependency ordering)
+   - Total schema: 98 attributes (18 L0 + 24 L1 + 36 L2 + 20 L3)
+
+2. **`braid promote` command** (`promote.rs` kernel + `commands/promote.rs` CLI):
+   - Core promotion logic: takes exploration entity, adds `:element/*` + `:spec/*` + `:promotion/*` attributes
+   - Four invariants: INV-PROMOTE-001 (append-only), INV-PROMOTE-002 (dual identity), INV-PROMOTE-003 (Phi=0), INV-PROMOTE-004 (idempotency)
+   - Supports all three element types: invariant, ADR, negative case
+   - Batch promotion API
+   - Dual identity verification (has both :exploration/* and :element/* attrs)
+   - 6 unit tests + 1 integration test
+
+3. **`braid generate-spec` command** (`commands/generate_spec.rs`):
+   - Inverse bootstrap: renders store entities back to spec markdown
+   - Groups by namespace, sorts by element ID
+   - Renders invariants with statement/falsification/verification, ADRs with problem/decision, NEGs with violation
+   - Only writes files when content differs (idempotent)
+   - Supports namespace filtering
+
+4. **Promotion coherence integration test** (`cross_namespace.rs`):
+   - Full lifecycle: create exploration entity → promote → verify dual identity → verify idempotency
+   - Tests INV-PROMOTE-002 (dual identity holds post-promotion)
+   - Tests INV-PROMOTE-003 (Phi=0 by construction — same entity ID)
+   - Tests INV-PROMOTE-004 (re-promotion is no-op)
+
+**Bead management**: Created 3 epics + 21 sub-tasks:
+- brai-1bze (CLOSED): Store-first pipeline (4 sub-tasks, all closed)
+- brai-2wpi: Topology framework promotion (9 sub-tasks, blocked on brai-1bze — now unblocked)
+- brai-1yys: Coherence geometry promotion (8 sub-tasks, blocked on brai-1bze — now unblocked)
+- Inter-epic dependencies: topology + coherence both depend on store-first pipeline
+
+### Decisions Made
+
+1. **Layer 3 = Discovery/Exploration** — not Coordination (which becomes Layer 4). Rationale: exploration attributes are needed immediately for the store-first pipeline; coordination attributes come at Stage 3.
+
+2. **20 attributes in Layer 3** — 8 identity + 7 promotion + 5 cross-reference. Balanced: enough to capture the full exploration→spec lifecycle without over-engineering.
+
+3. **Same entity ID for exploration and spec** — the key insight. An exploration entity IS the spec entity after promotion. No separate entity, no mapping, no divergence. Phi=0 by construction.
+
+4. **PromoteArgs struct** for CLI — clippy's too-many-arguments lint drove the refactor from 11 params to a struct. Better API anyway.
+
+### Files Created/Modified
+
+- `crates/braid-kernel/src/schema.rs` — Layer 3 attributes + tests (+~250 lines)
+- `crates/braid-kernel/src/promote.rs` — NEW: promotion kernel logic (380 lines)
+- `crates/braid-kernel/src/lib.rs` — register promote module + re-exports
+- `crates/braid/src/commands/promote.rs` — NEW: CLI promote command (130 lines)
+- `crates/braid/src/commands/generate_spec.rs` — NEW: CLI generate-spec command (345 lines)
+- `crates/braid/src/commands/mod.rs` — register promote + generate-spec commands
+- `crates/braid-kernel/tests/cross_namespace.rs` — promotion coherence integration test (+120 lines)
+
+### Test Results
+
+- **305 tests passing** (was 288 at session start, +17 new)
+- Clippy clean, fmt clean
+- All 4 stateright model-checking tests pass
+
+### Open Questions
+
+None. The pipeline is complete and ready for use.
+
+### Recommended Next Action
+
+1. **Begin topology promotion** (brai-2wpi) — now unblocked. Start with brai-2wpi.1: T=(G,Phi,Sigma,Pi) core definition.
+2. **Begin coherence geometry promotion** (brai-1yys) — now unblocked. Can run in parallel with topology.
+3. **Stage 1 backlog**: brai-35s5 (budget-aware output), brai-2g7o (comonadic guidance) are independent and ready.

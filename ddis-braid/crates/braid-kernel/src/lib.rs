@@ -18,6 +18,7 @@ pub mod harvest;
 mod kani_proofs;
 pub mod layout;
 pub mod merge;
+pub mod promote;
 #[cfg(test)]
 pub mod proptest_strategies;
 pub mod query;
@@ -49,6 +50,10 @@ pub use layout::{
 pub use merge::{
     detect_merge_conflicts, merge_stores, verify_frontier_advancement, verify_monotonicity,
 };
+pub use promote::{
+    is_already_promoted, promote, promote_batch, verify_dual_identity, BatchPromotionResult,
+    DualIdentityCheck, PromotionRequest, PromotionResult, PromotionTargetType,
+};
 pub use query::{
     critical_path, density, edge_laplacian, evaluate, first_betti_number, pagerank, scc, topo_sort,
     Binding, Clause, DenseMatrix, FindSpec, Pattern, QueryExpr, QueryResult,
@@ -58,9 +63,10 @@ pub use resolution::{
     ResolutionRecord, ResolvedValue,
 };
 pub use schema::{
-    domain_schema_datoms, layer_1_attributes, layer_1_datoms, layer_2_attributes, layer_2_datoms,
-    AttributeDef, AttributeSpec, Cardinality, ResolutionMode, Schema, Uniqueness, ValueType,
-    LAYER_2_COUNT,
+    domain_schema_datoms, full_schema_datoms, layer_1_attributes, layer_1_datoms,
+    layer_2_attributes, layer_2_datoms, layer_3_attributes, layer_3_datoms, AttributeDef,
+    AttributeSpec, Cardinality, ResolutionMode, Schema, Uniqueness, ValueType, LAYER_2_COUNT,
+    LAYER_3_COUNT,
 };
 pub use seed::{
     assemble, assemble_seed, associate, AssembledContext, AssociateCue, ContextSection,

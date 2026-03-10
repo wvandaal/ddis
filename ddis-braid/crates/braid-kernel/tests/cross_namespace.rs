@@ -1150,3 +1150,153 @@ fn full_end_to_end_pipeline() {
     assert!(final_frontier.contains_key(&b));
     assert!(store.len() > initial_attr_count * 5); // Substantial data
 }
+
+/// Promotion coherence test: after promoting an exploration entity to a spec
+/// element, the entity has dual identity (exploration + element + promotion)
+/// and the promotion boundary has Phi=0 (perfect coherence between the two
+/// representations, since they share the same entity).
+///
+/// This is INV-PROMOTE-003: Phi on exploration-spec boundary = 0.
+#[test]
+fn promotion_coherence_verification() {
+    use braid_kernel::datom::Op;
+    use braid_kernel::promote::{
+        promote, verify_dual_identity, PromotionRequest, PromotionTargetType,
+    };
+    use braid_kernel::schema::{full_schema_datoms, genesis_datoms};
+
+    let a = agent("promote-test");
+    let genesis_tx = TxId::new(0, 0, a);
+    let schema_tx = TxId::new(1, 0, a);
+    let explore_tx = TxId::new(2, 0, a);
+    let promote_tx = TxId::new(3, 0, a);
+
+    // Build a store with all schema layers (L0+L1+L2+L3)
+    let mut datoms: BTreeSet<_> = genesis_datoms(genesis_tx).into_iter().collect();
+    for d in full_schema_datoms(schema_tx) {
+        datoms.insert(d);
+    }
+
+    // Create an exploration entity
+    let expl_entity = EntityId::from_ident(":exploration/topo-cold-start");
+    let exploration_datoms = vec![
+        braid_kernel::datom::Datom::new(
+            expl_entity,
+            Attribute::from_keyword(":exploration/id"),
+            Value::String("EXPL-TOPO-COLD-001".to_string()),
+            explore_tx,
+            Op::Assert,
+        ),
+        braid_kernel::datom::Datom::new(
+            expl_entity,
+            Attribute::from_keyword(":exploration/title"),
+            Value::String("Cold-start monotonic relaxation from mesh".to_string()),
+            explore_tx,
+            Op::Assert,
+        ),
+        braid_kernel::datom::Datom::new(
+            expl_entity,
+            Attribute::from_keyword(":exploration/category"),
+            Value::Keyword(":exploration.cat/theorem".to_string()),
+            explore_tx,
+            Op::Assert,
+        ),
+        braid_kernel::datom::Datom::new(
+            expl_entity,
+            Attribute::from_keyword(":exploration/confidence"),
+            Value::Double(0.85.into()),
+            explore_tx,
+            Op::Assert,
+        ),
+        braid_kernel::datom::Datom::new(
+            expl_entity,
+            Attribute::from_keyword(":exploration/body"),
+            Value::String(
+                "Cold-start begins from full mesh. Authority monotonically relaxes \
+                 from mesh to optimal topology as the system gains coherence data."
+                    .to_string(),
+            ),
+            explore_tx,
+            Op::Assert,
+        ),
+    ];
+    for d in exploration_datoms {
+        datoms.insert(d);
+    }
+
+    // Pre-promotion: entity has exploration but NOT element attrs
+    let check_before = verify_dual_identity(expl_entity, &datoms);
+    assert!(check_before.has_exploration, "should have exploration attrs");
+    assert!(!check_before.has_element, "should NOT have element attrs yet");
+    assert!(!check_before.is_valid, "INV-PROMOTE-002 should NOT hold yet");
+
+    // Promote to a formal invariant
+    let request = PromotionRequest {
+        entity: expl_entity,
+        target_element_id: "INV-TOPOLOGY-010".to_string(),
+        target_namespace: "TOPOLOGY".to_string(),
+        target_type: PromotionTargetType::Invariant,
+        statement: Some(
+            "Cold-start begins from full mesh topology. Authority monotonically \
+             relaxes as coherence data accumulates."
+                .to_string(),
+        ),
+        falsification: Some(
+            "Any cold-start that begins from a non-mesh topology, or any \
+             authority assignment that increases during convergence."
+                .to_string(),
+        ),
+        verification: Some("V:PROP".to_string()),
+        problem: None,
+        decision: None,
+    };
+
+    let result = promote(&request, &datoms, promote_tx);
+    assert!(!result.was_noop, "first promotion should produce datoms");
+    assert!(result.attrs_added >= 10, "should add element + inv + promotion attrs");
+
+    // Apply promotion datoms
+    for d in &result.datoms {
+        datoms.insert(d.clone());
+    }
+
+    // Post-promotion: entity has dual identity (INV-PROMOTE-002)
+    let check_after = verify_dual_identity(expl_entity, &datoms);
+    assert!(check_after.has_exploration, "exploration attrs preserved (C1)");
+    assert!(check_after.has_element, "element attrs added");
+    assert!(check_after.has_promotion, "promotion attrs added");
+    assert!(check_after.is_valid, "INV-PROMOTE-002 holds");
+
+    // INV-PROMOTE-003: Phi on exploration-spec boundary = 0
+    // Because the exploration entity IS the spec entity (same EntityId),
+    // there is zero divergence between them — they are the same datoms.
+    // Verify by checking that the :exploration/title and :element/id
+    // coexist on the same entity.
+    let has_expl_title = datoms.iter().any(|d| {
+        d.entity == expl_entity
+            && d.op == Op::Assert
+            && d.attribute.as_str() == ":exploration/title"
+    });
+    let has_element_id = datoms.iter().any(|d| {
+        d.entity == expl_entity
+            && d.op == Op::Assert
+            && d.attribute.as_str() == ":element/id"
+    });
+    let has_inv_statement = datoms.iter().any(|d| {
+        d.entity == expl_entity
+            && d.op == Op::Assert
+            && d.attribute.as_str() == ":inv/statement"
+    });
+    assert!(has_expl_title, "exploration title preserved");
+    assert!(has_element_id, "element ID present");
+    assert!(has_inv_statement, "invariant statement present");
+
+    // The Phi boundary is 0 by construction: same entity, no separate
+    // "spec representation" to diverge from. This is the key insight of
+    // the store-first pipeline.
+
+    // INV-PROMOTE-004: Idempotency — re-promoting should be a no-op
+    let result2 = promote(&request, &datoms, promote_tx);
+    assert!(result2.was_noop, "INV-PROMOTE-004: re-promotion is no-op");
+    assert_eq!(result2.datoms.len(), 0, "no new datoms on re-promotion");
+}

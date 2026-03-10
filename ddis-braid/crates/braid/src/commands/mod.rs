@@ -5,11 +5,13 @@ use std::path::PathBuf;
 use clap::Subcommand;
 
 mod generate;
+mod generate_spec;
 mod guidance;
 mod harvest;
 mod init;
 mod log;
 mod merge;
+mod promote;
 mod query;
 mod seed;
 mod status;
@@ -174,6 +176,68 @@ pub enum Command {
         path: PathBuf,
     },
 
+    /// Promote an exploration entity to a formal spec element (store-first pipeline).
+    Promote {
+        /// Path to the .braid directory.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Entity ident to promote (e.g., ":exploration/topo-cold-start").
+        #[arg(short, long)]
+        entity: String,
+
+        /// Target spec element ID (e.g., "INV-TOPOLOGY-001").
+        #[arg(long)]
+        target_id: String,
+
+        /// Target namespace (e.g., "TOPOLOGY").
+        #[arg(short, long)]
+        namespace: String,
+
+        /// Target element type: invariant, adr, negative-case.
+        #[arg(short = 't', long = "type")]
+        target_type: String,
+
+        /// Agent name performing the promotion.
+        #[arg(short, long, default_value = "braid:user")]
+        agent: String,
+
+        /// Formal statement text (for invariants).
+        #[arg(long)]
+        statement: Option<String>,
+
+        /// Falsification condition (for invariants and negative cases).
+        #[arg(long)]
+        falsification: Option<String>,
+
+        /// Verification method.
+        #[arg(long)]
+        verification: Option<String>,
+
+        /// Problem statement (for ADRs).
+        #[arg(long)]
+        problem: Option<String>,
+
+        /// Decision text (for ADRs).
+        #[arg(long)]
+        decision: Option<String>,
+    },
+
+    /// Generate spec markdown from store entities (inverse bootstrap).
+    GenerateSpec {
+        /// Path to the .braid directory.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Output directory for generated spec files.
+        #[arg(short, long, default_value = "spec")]
+        output: PathBuf,
+
+        /// Only generate for this namespace (e.g., "TOPOLOGY"). Omit for all.
+        #[arg(short, long)]
+        namespace: Option<String>,
+    },
+
     /// Self-bootstrap: parse spec/*.md and transact elements as datoms.
     Bootstrap {
         /// Path to the .braid directory.
@@ -245,6 +309,36 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             budget,
             agent,
         } => generate::run(&path, &task, budget, &agent),
+        Command::Promote {
+            path,
+            entity,
+            target_id,
+            namespace,
+            target_type,
+            agent,
+            statement,
+            falsification,
+            verification,
+            problem,
+            decision,
+        } => promote::run(promote::PromoteArgs {
+            path: &path,
+            entity_ident: &entity,
+            target_id: &target_id,
+            namespace: &namespace,
+            target_type: &target_type,
+            agent_name: &agent,
+            statement: statement.as_deref(),
+            falsification: falsification.as_deref(),
+            verification: verification.as_deref(),
+            problem: problem.as_deref(),
+            decision: decision.as_deref(),
+        }),
+        Command::GenerateSpec {
+            path,
+            output,
+            namespace,
+        } => generate_spec::run(&path, &output, namespace.as_deref()),
         Command::Bootstrap { path, spec_dir } => {
             let layout = crate::layout::DiskLayout::open(&path)?;
             let elements = crate::bootstrap::parse_spec_dir(&spec_dir);

@@ -11,7 +11,8 @@
 //! - **Layer 2** (Specification Elements): 36 rich-metadata attributes —
 //!   `:element/*`, `:inv/*`, `:adr/*`, `:neg/*`, `:dep/*`, `:session/*`,
 //!   `:methodology/*`, `:coherence/*`.
-//! - **Layers 3–5**: Discovery, Coordination, Workflow (future stages).
+//! - **Layer 3** (Discovery/Exploration): 20 attributes — `:exploration/*`, `:promotion/*`.
+//! - **Layers 4–5**: Coordination, Workflow (future stages).
 //!
 //! Each layer depends only on layers below it. Layer 0 is installed at genesis.
 //! Layers 1–2 are installed via schema-evolution transactions.
@@ -1133,6 +1134,179 @@ pub fn domain_schema_datoms(tx: TxId) -> Vec<Datom> {
     datoms
 }
 
+// ---------------------------------------------------------------------------
+// Layer 3 — Discovery/Exploration Attributes (INV-SCHEMA-006)
+// ---------------------------------------------------------------------------
+
+/// Number of Layer 3 exploration/discovery attributes.
+pub const LAYER_3_COUNT: usize = 20;
+
+/// The 20 Layer 3 (Discovery/Exploration) attributes.
+///
+/// These capture the lifecycle of exploratory knowledge — from initial
+/// discovery through promotion to formal specification elements. They enable
+/// the store-first specification pipeline where exploration entities gain
+/// `:spec/*` attributes via `braid promote` rather than being re-entered
+/// from markdown.
+///
+/// Organized into 3 groups:
+/// - Exploration Identity (8): source, category, confidence, maturity
+/// - Promotion Lifecycle (7): promotion status, target element, verification
+/// - Exploration Cross-Reference (5): links between exploration entities
+///
+/// Depends only on Layer 0 value types (INV-SCHEMA-006 layer ordering).
+pub fn layer_3_attributes() -> Vec<AttributeSpec> {
+    vec![
+        // =================================================================
+        // Exploration Identity Attributes (8) — where knowledge came from
+        // =================================================================
+        attr_unique(
+            ":exploration/id",
+            ValueType::String,
+            Cardinality::One,
+            "Exploration entity ID (e.g., EXPL-TOPO-001, EXPL-GEOM-002)",
+            Uniqueness::Identity,
+        ),
+        attr(
+            ":exploration/source",
+            ValueType::String,
+            Cardinality::One,
+            "Source document path or session ID where this knowledge originated",
+        ),
+        attr(
+            ":exploration/category",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Knowledge category: :exploration.cat/theorem, :exploration.cat/conjecture, :exploration.cat/definition, :exploration.cat/algorithm, :exploration.cat/design-decision, :exploration.cat/open-question",
+        ),
+        attr(
+            ":exploration/confidence",
+            ValueType::Double,
+            Cardinality::One,
+            "Epistemic confidence in this exploration entity (0.0-1.0)",
+        ),
+        attr(
+            ":exploration/maturity",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Maturity level: :exploration.maturity/sketch, :exploration.maturity/draft, :exploration.maturity/reviewed, :exploration.maturity/proven",
+        ),
+        attr(
+            ":exploration/body",
+            ValueType::String,
+            Cardinality::One,
+            "Full text content of the exploration entity",
+        ),
+        attr(
+            ":exploration/title",
+            ValueType::String,
+            Cardinality::One,
+            "Human-readable title of the exploration entity",
+        ),
+        attr_multi(
+            ":exploration/tags",
+            ValueType::Keyword,
+            Cardinality::Many,
+            "Taxonomy tags for discovery and filtering",
+        ),
+        // =================================================================
+        // Promotion Lifecycle Attributes (7) — store-first pipeline
+        // =================================================================
+        attr(
+            ":promotion/status",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Promotion status: :promotion.status/unpromoted, :promotion.status/candidate, :promotion.status/promoted, :promotion.status/rejected",
+        ),
+        attr(
+            ":promotion/target-element",
+            ValueType::String,
+            Cardinality::One,
+            "Target spec element ID after promotion (e.g., INV-TOPOLOGY-001)",
+        ),
+        attr(
+            ":promotion/target-namespace",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Target spec namespace: :element.ns/topology, :element.ns/coherence, etc.",
+        ),
+        attr(
+            ":promotion/target-type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Target element type: :element.type/invariant, :element.type/adr, :element.type/negative-case",
+        ),
+        attr(
+            ":promotion/promoted-tx",
+            ValueType::Ref,
+            Cardinality::One,
+            "Transaction ID of the promotion event",
+        ),
+        attr(
+            ":promotion/phi-before",
+            ValueType::Double,
+            Cardinality::One,
+            "Divergence Phi on exploration-spec boundary before promotion",
+        ),
+        attr(
+            ":promotion/phi-after",
+            ValueType::Double,
+            Cardinality::One,
+            "Divergence Phi on exploration-spec boundary after promotion (target: 0.0)",
+        ),
+        // =================================================================
+        // Exploration Cross-Reference Attributes (5)
+        // =================================================================
+        attr(
+            ":exploration/depends-on",
+            ValueType::Ref,
+            Cardinality::One,
+            "Reference to another exploration entity this one depends on",
+        ),
+        attr(
+            ":exploration/refines",
+            ValueType::Ref,
+            Cardinality::One,
+            "Reference to an exploration entity this one refines or supersedes",
+        ),
+        attr(
+            ":exploration/related-spec",
+            ValueType::Ref,
+            Cardinality::One,
+            "Reference to a spec element this exploration entity relates to",
+        ),
+        attr(
+            ":exploration/source-session",
+            ValueType::Ref,
+            Cardinality::One,
+            "Reference to the session entity where this was discovered",
+        ),
+        attr(
+            ":exploration/evidence",
+            ValueType::String,
+            Cardinality::One,
+            "Evidence supporting this exploration entity (proof sketch, test results, etc.)",
+        ),
+    ]
+}
+
+/// Produce datoms for all Layer 3 attributes.
+///
+/// These should be transacted as a schema-evolution transaction after Layer 2.
+/// Depends only on Layer 0 value types (INV-SCHEMA-006 layer ordering).
+pub fn layer_3_datoms(tx: TxId) -> Vec<Datom> {
+    schema_datoms_from_specs(&layer_3_attributes(), tx)
+}
+
+/// Produce all schema datoms through Layer 3 (Layers 1 + 2 + 3).
+///
+/// Full domain schema including exploration/discovery attributes.
+pub fn full_schema_datoms(tx: TxId) -> Vec<Datom> {
+    let mut datoms = domain_schema_datoms(tx);
+    datoms.extend(layer_3_datoms(tx));
+    datoms
+}
+
 /// Convert a list of `AttributeSpec`s into schema-defining datoms.
 ///
 /// Each attribute becomes an entity with 5 datoms:
@@ -1744,7 +1918,7 @@ mod tests {
     }
 
     #[test]
-    fn full_schema_has_78_attributes() {
+    fn domain_schema_has_78_attributes() {
         let agent = AgentId::from_name("braid:system");
         let genesis_tx = TxId::new(0, 0, agent);
         let domain_tx = TxId::new(1, 0, agent);
@@ -1759,7 +1933,224 @@ mod tests {
         assert_eq!(
             schema.len(),
             expected,
-            "Full schema (L0+L1+L2) must have {expected} attributes, got {}",
+            "Domain schema (L0+L1+L2) must have {expected} attributes, got {}",
+            schema.len()
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // Layer 3 tests — Discovery/Exploration Attributes
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn layer_3_produces_20_attributes() {
+        let specs = layer_3_attributes();
+        assert_eq!(
+            specs.len(),
+            LAYER_3_COUNT,
+            "Layer 3 must have exactly {LAYER_3_COUNT} exploration attributes"
+        );
+    }
+
+    #[test]
+    fn layer_3_datoms_are_deterministic() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(3, 0, agent);
+        let d1 = layer_3_datoms(tx);
+        let d2 = layer_3_datoms(tx);
+        assert_eq!(d1, d2, "Layer 3 datoms must be deterministic");
+    }
+
+    #[test]
+    fn layer_3_schema_from_datoms() {
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let domain_tx = TxId::new(1, 0, agent);
+        let l3_tx = TxId::new(3, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        for d in domain_schema_datoms(domain_tx) {
+            datoms.insert(d);
+        }
+        for d in layer_3_datoms(l3_tx) {
+            datoms.insert(d);
+        }
+        let schema = Schema::from_datoms(&datoms);
+        assert_eq!(
+            schema.len(),
+            18 + 24 + LAYER_2_COUNT + LAYER_3_COUNT,
+            "genesis(18) + L1(24) + L2({LAYER_2_COUNT}) + L3({LAYER_3_COUNT}) = {} attributes",
+            18 + 24 + LAYER_2_COUNT + LAYER_3_COUNT
+        );
+    }
+
+    #[test]
+    fn layer_3_has_correct_value_types() {
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let l3_tx = TxId::new(3, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        for d in layer_3_datoms(l3_tx) {
+            datoms.insert(d);
+        }
+        let schema = Schema::from_datoms(&datoms);
+
+        let cases: Vec<(&str, ValueType)> = vec![
+            (":exploration/id", ValueType::String),
+            (":exploration/source", ValueType::String),
+            (":exploration/category", ValueType::Keyword),
+            (":exploration/confidence", ValueType::Double),
+            (":exploration/maturity", ValueType::Keyword),
+            (":exploration/body", ValueType::String),
+            (":exploration/title", ValueType::String),
+            (":exploration/tags", ValueType::Keyword),
+            (":promotion/status", ValueType::Keyword),
+            (":promotion/target-element", ValueType::String),
+            (":promotion/target-namespace", ValueType::Keyword),
+            (":promotion/target-type", ValueType::Keyword),
+            (":promotion/promoted-tx", ValueType::Ref),
+            (":promotion/phi-before", ValueType::Double),
+            (":promotion/phi-after", ValueType::Double),
+            (":exploration/depends-on", ValueType::Ref),
+            (":exploration/refines", ValueType::Ref),
+            (":exploration/related-spec", ValueType::Ref),
+            (":exploration/source-session", ValueType::Ref),
+            (":exploration/evidence", ValueType::String),
+        ];
+
+        for (ident_str, expected_type) in cases {
+            let attr = Attribute::from_keyword(ident_str);
+            let def = schema
+                .attribute(&attr)
+                .unwrap_or_else(|| panic!("L3 missing {ident_str}"));
+            assert_eq!(
+                def.value_type, expected_type,
+                "{ident_str} should be {expected_type:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn layer_3_is_valid_evolution_of_l0_l1_l2() {
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let domain_tx = TxId::new(1, 0, agent);
+        let l3_tx = TxId::new(3, 0, agent);
+
+        // Build L0+L1+L2 schema
+        let mut l012_datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        for d in domain_schema_datoms(domain_tx) {
+            l012_datoms.insert(d);
+        }
+        let l012_schema = Schema::from_datoms(&l012_datoms);
+
+        // Build L0+L1+L2+L3 schema
+        let mut full_datoms = l012_datoms;
+        for d in layer_3_datoms(l3_tx) {
+            full_datoms.insert(d);
+        }
+        let l0123_schema = Schema::from_datoms(&full_datoms);
+
+        let errors = l012_schema.validate_evolution(&l0123_schema);
+        assert!(
+            errors.is_empty(),
+            "L3 must be a valid evolution of L0+L1+L2: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn all_layer_3_idents_are_unique() {
+        let specs = layer_3_attributes();
+        let mut seen = std::collections::HashSet::new();
+        for spec in &specs {
+            let ident = spec.ident.as_str().to_string();
+            assert!(seen.insert(ident.clone()), "Duplicate L3 ident: {ident}");
+        }
+    }
+
+    #[test]
+    fn no_layer_3_ident_collides_with_lower_layers() {
+        let l0 = axiomatic_attributes();
+        let l1 = layer_1_attributes();
+        let l2 = layer_2_attributes();
+        let l3 = layer_3_attributes();
+
+        let lower_idents: std::collections::HashSet<String> = l0
+            .iter()
+            .chain(l1.iter())
+            .chain(l2.iter())
+            .map(|s| s.ident.as_str().to_string())
+            .collect();
+
+        for spec in &l3 {
+            let ident = spec.ident.as_str().to_string();
+            assert!(
+                !lower_idents.contains(&ident),
+                "L3 ident {ident} collides with L0/L1/L2"
+            );
+        }
+    }
+
+    #[test]
+    fn layer_3_only_references_layer_0_types() {
+        let valid_l0_types = [
+            ValueType::String,
+            ValueType::Keyword,
+            ValueType::Boolean,
+            ValueType::Long,
+            ValueType::Double,
+            ValueType::Instant,
+            ValueType::Uuid,
+            ValueType::Ref,
+            ValueType::Bytes,
+        ];
+
+        for spec in &layer_3_attributes() {
+            assert!(
+                valid_l0_types.contains(&spec.value_type),
+                "L3 attribute {} uses non-L0 type {:?}",
+                spec.ident.as_str(),
+                spec.value_type
+            );
+        }
+    }
+
+    #[test]
+    fn full_schema_datoms_combines_all_layers() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(1, 0, agent);
+
+        let full = full_schema_datoms(tx);
+        let l1 = layer_1_datoms(tx);
+        let l2 = layer_2_datoms(tx);
+        let l3 = layer_3_datoms(tx);
+
+        assert_eq!(
+            full.len(),
+            l1.len() + l2.len() + l3.len(),
+            "full_schema_datoms must combine L1, L2, and L3"
+        );
+    }
+
+    #[test]
+    fn full_schema_has_98_attributes() {
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let full_tx = TxId::new(1, 0, agent);
+
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        for d in full_schema_datoms(full_tx) {
+            datoms.insert(d);
+        }
+        let schema = Schema::from_datoms(&datoms);
+
+        let expected = 18 + 24 + LAYER_2_COUNT + LAYER_3_COUNT; // 98
+        assert_eq!(
+            schema.len(),
+            expected,
+            "Full schema (L0+L1+L2+L3) must have {expected} attributes, got {}",
             schema.len()
         );
     }
