@@ -15,7 +15,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::datom::{Attribute, Datom, EntityId, Op, Value};
-use crate::query::graph::{first_betti_number, DenseMatrix, DiGraph};
+use crate::query::graph::{
+    first_betti_number, symmetric_eigen_decomposition, DenseMatrix, DiGraph,
+};
 use crate::store::Store;
 
 // ---------------------------------------------------------------------------
@@ -399,6 +401,9 @@ fn compute_beta_1(store: &Store) -> usize {
 }
 
 /// Check full coherence of the store (INV-TRILATERAL-009).
+///
+/// Includes von Neumann entropy (O(n³) eigendecomposition). For large stores
+/// where latency matters, use [`check_coherence_fast`] which skips entropy.
 pub fn check_coherence(store: &Store) -> CoherenceReport {
     let (phi, components) = compute_phi_default(store);
     let beta_1 = compute_beta_1(store);
@@ -429,6 +434,53 @@ pub fn check_coherence(store: &Store) -> CoherenceReport {
         live_impl: live_p.datom_count,
         isp_bypasses,
         entropy,
+    }
+}
+
+/// Lightweight coherence check — skips von Neumann entropy (O(n³)).
+///
+/// Returns the same CoherenceReport but with zeroed entropy fields.
+/// Use this when latency matters more than entropy metrics (e.g., budget mode,
+/// guidance, seed briefings).
+pub fn check_coherence_fast(store: &Store) -> CoherenceReport {
+    let (phi, components) = compute_phi_default(store);
+    let beta_1 = compute_beta_1(store);
+    let (live_i, live_s, live_p) = live_projections(store);
+
+    let all_entities: Vec<EntityId> = store.entities().into_iter().collect();
+    let isp_bypasses = all_entities
+        .iter()
+        .filter(|&&e| isp_check(store, e) == IspResult::SpecificationBypass)
+        .count();
+
+    let quadrant = match (phi > 0.0, beta_1 > 0) {
+        (false, false) => CoherenceQuadrant::Coherent,
+        (true, false) => CoherenceQuadrant::GapsOnly,
+        (false, true) => CoherenceQuadrant::CyclesOnly,
+        (true, true) => CoherenceQuadrant::GapsAndCycles,
+    };
+
+    let node_count = store.entity_count();
+    CoherenceReport {
+        phi,
+        components,
+        beta_1,
+        quadrant,
+        live_intent: live_i.datom_count,
+        live_spec: live_s.datom_count,
+        live_impl: live_p.datom_count,
+        isp_bypasses,
+        entropy: CoherenceEntropy {
+            entropy: 0.0,
+            max_entropy: if node_count > 0 {
+                (node_count as f64).log2()
+            } else {
+                0.0
+            },
+            normalized: 0.0,
+            effective_rank: 0,
+            node_count,
+        },
     }
 }
 
@@ -467,39 +519,30 @@ fn entity_key(entity: EntityId) -> String {
     )
 }
 
+/// Threshold for switching from dense Jacobi to stochastic Lanczos quadrature.
+const VN_DENSE_THRESHOLD: usize = 200;
+
+/// Number of probe vectors for stochastic Lanczos quadrature.
+const SLQ_PROBES: usize = 30;
+
+/// Number of Lanczos steps per probe for SLQ.
+const SLQ_LANCZOS_STEPS: usize = 50;
+
 /// Compute von Neumann entropy of the entity reference graph (INV-COHERENCE-001).
 ///
-/// Forms the adjacency matrix A from all `Value::Ref` datoms (both directed
-/// edges contribute symmetrically: A[i,j] = A[j,i] = 1 if i→j or j→i).
-/// Normalizes to density matrix ρ = A/Tr(A).
-/// Computes S(ρ) = -Σᵢ λᵢ log₂(λᵢ) via eigendecomposition.
+/// Forms the symmetrized adjacency matrix A from all `Value::Ref` datoms, adds
+/// unit self-loops, normalizes to density matrix ρ = A/Tr(A), then computes
+/// S(ρ) = -Tr(ρ log₂ ρ).
 ///
-/// For the symmetrized adjacency matrix with unit self-loops, ρ has all
-/// real non-negative eigenvalues (it's PSD after normalization by trace).
+/// **Adaptive algorithm selection:**
+/// - n ≤ 200: Dense Jacobi eigendecomposition (exact).
+/// - n > 200: Stochastic Lanczos Quadrature (SLQ) — estimates Tr(f(ρ))
+///   using random probe vectors and small tridiagonal eigendecompositions.
+///   Complexity: O(m·k·E) where m = 30 probes, k = 50 Lanczos steps, E = edges.
+///   This replaces the O(n³) Jacobi and makes entropy tractable at any scale.
 pub fn von_neumann_entropy(store: &Store) -> CoherenceEntropy {
-    // Collect all Value::Ref datoms (Op::Assert only) to build the entity graph.
-    let mut node_index: BTreeMap<String, usize> = BTreeMap::new();
-    let mut edges: Vec<(String, String)> = Vec::new();
+    let (n, adj) = build_symmetric_adj_sparse(store);
 
-    for datom in store.datoms() {
-        if datom.op != Op::Assert {
-            continue;
-        }
-        if let Value::Ref(target) = &datom.value {
-            let src = entity_key(datom.entity);
-            let dst = entity_key(*target);
-            // Register both nodes
-            let next_id = node_index.len();
-            node_index.entry(src.clone()).or_insert(next_id);
-            let next_id = node_index.len();
-            node_index.entry(dst.clone()).or_insert(next_id);
-            edges.push((src, dst));
-        }
-    }
-
-    let n = node_index.len();
-
-    // Edge case: no ref datoms → empty graph
     if n == 0 {
         return CoherenceEntropy {
             entropy: 0.0,
@@ -510,27 +553,14 @@ pub fn von_neumann_entropy(store: &Store) -> CoherenceEntropy {
         };
     }
 
-    // Build symmetric adjacency matrix with self-loops.
-    // A[i,i] = 1 for all nodes (ensures non-zero trace and PSD).
-    let mut a = DenseMatrix::zeros(n, n);
-
-    // Self-loops: A[i,i] = 1
-    for i in 0..n {
-        a.set(i, i, 1.0);
+    // Compute degree vector (adjacency + self-loop)
+    let mut degree = vec![1.0_f64; n]; // self-loops
+    for &(i, j) in &adj {
+        degree[i] += 1.0;
+        degree[j] += 1.0;
     }
+    let trace: f64 = degree.iter().sum();
 
-    // Symmetric edges: for i→j, set A[i,j] = 1 and A[j,i] = 1
-    for (src, dst) in &edges {
-        let i = node_index[src];
-        let j = node_index[dst];
-        a.set(i, j, 1.0);
-        a.set(j, i, 1.0);
-    }
-
-    // Compute trace = Σᵢ A[i,i]
-    let trace: f64 = (0..n).map(|i| a.get(i, i)).sum();
-
-    // Edge case: trace == 0 (shouldn't happen with self-loops, but guard)
     if trace < f64::EPSILON {
         return CoherenceEntropy {
             entropy: 0.0,
@@ -541,20 +571,57 @@ pub fn von_neumann_entropy(store: &Store) -> CoherenceEntropy {
         };
     }
 
-    // Normalize: ρ = A / trace (unit trace, PSD)
-    let mut rho = DenseMatrix::zeros(n, n);
-    for i in 0..n {
-        for j in 0..n {
-            rho.set(i, j, a.get(i, j) / trace);
+    if n <= VN_DENSE_THRESHOLD {
+        return von_neumann_dense(n, &adj, trace);
+    }
+
+    // Stochastic Lanczos Quadrature for large graphs
+    von_neumann_slq(n, &adj, trace)
+}
+
+/// Build sparse symmetric adjacency list from store's Ref datoms.
+/// Returns (node_count, edge_list) where edges are (i, j) index pairs (undirected).
+fn build_symmetric_adj_sparse(store: &Store) -> (usize, Vec<(usize, usize)>) {
+    let mut node_index: BTreeMap<String, usize> = BTreeMap::new();
+    let mut edges: Vec<(usize, usize)> = Vec::new();
+
+    for datom in store.datoms() {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        if let Value::Ref(target) = &datom.value {
+            let src = entity_key(datom.entity);
+            let dst = entity_key(*target);
+            let next_id = node_index.len();
+            let si = *node_index.entry(src).or_insert(next_id);
+            let next_id = node_index.len();
+            let di = *node_index.entry(dst).or_insert(next_id);
+            if si != di {
+                edges.push((si, di));
+            }
         }
     }
 
-    // Eigendecomposition of the symmetric density matrix
+    (node_index.len(), edges)
+}
+
+/// Dense Jacobi path for small graphs (n ≤ 200).
+fn von_neumann_dense(n: usize, edges: &[(usize, usize)], trace: f64) -> CoherenceEntropy {
+    let mut rho = DenseMatrix::zeros(n, n);
+
+    // Self-loops / trace
+    for i in 0..n {
+        rho.set(i, i, 1.0 / trace);
+    }
+
+    // Symmetric edges / trace
+    for &(i, j) in edges {
+        rho.set(i, j, 1.0 / trace);
+        rho.set(j, i, 1.0 / trace);
+    }
+
     let eigenvalues = rho.symmetric_eigenvalues();
 
-    // Clamp negative eigenvalues to 0 and renormalize so they sum to 1.
-    // Jacobi/Lanczos can produce small negative eigenvalues for near-singular
-    // matrices; these must be zeroed to maintain the density matrix interpretation.
     let eps = 1e-12;
     let clamped: Vec<f64> = eigenvalues.iter().map(|&l| l.max(0.0)).collect();
     let trace_sum: f64 = clamped.iter().sum();
@@ -564,7 +631,6 @@ pub fn von_neumann_entropy(store: &Store) -> CoherenceEntropy {
         clamped
     };
 
-    // S(ρ) = -Σᵢ λᵢ log₂(λᵢ) where λᵢ > 0
     let mut entropy = 0.0_f64;
     let mut effective_rank = 0usize;
 
@@ -575,7 +641,6 @@ pub fn von_neumann_entropy(store: &Store) -> CoherenceEntropy {
         }
     }
 
-    // Clamp to non-negative (numerical noise can produce tiny negatives)
     if entropy < 0.0 {
         entropy = 0.0;
     }
@@ -585,6 +650,153 @@ pub fn von_neumann_entropy(store: &Store) -> CoherenceEntropy {
         (entropy / max_entropy).min(1.0)
     } else {
         0.0
+    };
+
+    CoherenceEntropy {
+        entropy,
+        max_entropy,
+        normalized,
+        effective_rank,
+        node_count: n,
+    }
+}
+
+/// Stochastic Lanczos Quadrature (SLQ) for von Neumann entropy of large graphs.
+///
+/// Estimates S(ρ) = -Tr(ρ log₂ ρ) = Tr(f(ρ)) where f(x) = -x log₂ x.
+///
+/// Algorithm (Ubaru, Chen, Saad 2017):
+/// 1. For each of m random probe vectors v ~ {±1/√n}ⁿ (Rademacher):
+///    a. Run k-step Lanczos on ρ with starting vector v → tridiagonal T_k
+///    b. Eigendecompose T_k (k×k, cheap)
+///    c. Estimate vᵀ f(ρ) v ≈ Σⱼ (e₁ᵀ qⱼ)² f(θⱼ) where θⱼ are T_k's eigenvalues
+/// 2. Average: Tr(f(ρ)) ≈ (n/m) Σᵢ estimate_i
+///
+/// Effective rank estimated as exp(S) (exponential of entropy in nats).
+fn von_neumann_slq(n: usize, edges: &[(usize, usize)], trace: f64) -> CoherenceEntropy {
+    // Build CSR-like adjacency for fast matvec
+    let mut adj_list: Vec<Vec<usize>> = vec![Vec::new(); n];
+    for &(i, j) in edges {
+        adj_list[i].push(j);
+        adj_list[j].push(i);
+    }
+
+    // ρ = A / trace, where A has self-loops + symmetric edges
+    // Matvec: ρ·x = (1/trace) * (x + Σ_neighbors x[j]) for each row
+    let matvec = |x: &[f64], out: &mut [f64]| {
+        for i in 0..n {
+            let mut sum = x[i]; // self-loop
+            for &j in &adj_list[i] {
+                sum += x[j];
+            }
+            out[i] = sum / trace;
+        }
+    };
+
+    let m = SLQ_PROBES.min(n);
+    let k = SLQ_LANCZOS_STEPS.min(n);
+    let mut total_estimate = 0.0_f64;
+
+    // Deterministic seed for reproducibility (INV-QUERY-017: determinism)
+    let mut rng_state: u64 = 0x517cc1b727220a95; // fixed seed
+
+    for _probe in 0..m {
+        // Generate Rademacher vector: v[i] = ±1/√n
+        let scale = 1.0 / (n as f64).sqrt();
+        let mut v: Vec<f64> = Vec::with_capacity(n);
+        for _ in 0..n {
+            // xorshift64 for reproducibility
+            rng_state ^= rng_state << 13;
+            rng_state ^= rng_state >> 7;
+            rng_state ^= rng_state << 17;
+            v.push(if rng_state & 1 == 0 { scale } else { -scale });
+        }
+
+        // Lanczos iteration: produce tridiagonal T_k
+        let mut alphas = Vec::with_capacity(k); // diagonal
+        let mut betas = Vec::with_capacity(k); // sub-diagonal
+        let mut v_prev = vec![0.0_f64; n];
+        let mut v_curr = v;
+        let mut w = vec![0.0_f64; n];
+
+        for step in 0..k {
+            matvec(&v_curr, &mut w);
+
+            // α_j = v_j^T · w
+            let alpha: f64 = v_curr.iter().zip(w.iter()).map(|(a, b)| a * b).sum();
+            alphas.push(alpha);
+
+            // w = w - α_j * v_j - β_{j-1} * v_{j-1}
+            let beta_prev = if step > 0 { betas[step - 1] } else { 0.0 };
+            for i in 0..n {
+                w[i] -= alpha * v_curr[i] + beta_prev * v_prev[i];
+            }
+
+            // β_j = ||w||
+            let beta: f64 = w.iter().map(|x| x * x).sum::<f64>().sqrt();
+            if beta < 1e-14 {
+                // Invariant subspace found — pad remaining with zeros
+                for _ in step + 1..k {
+                    alphas.push(0.0);
+                    betas.push(0.0);
+                }
+                break;
+            }
+            betas.push(beta);
+
+            // v_{j+1} = w / β_j
+            v_prev = v_curr;
+            v_curr = w.iter().map(|&x| x / beta).collect();
+            w = vec![0.0; n];
+        }
+
+        // Eigendecompose the k×k tridiagonal matrix T_k via Jacobi
+        let kk = alphas.len();
+        let mut t = DenseMatrix::zeros(kk, kk);
+        for i in 0..kk {
+            t.set(i, i, alphas[i]);
+            if i + 1 < kk && i < betas.len() {
+                t.set(i, i + 1, betas[i]);
+                t.set(i + 1, i, betas[i]);
+            }
+        }
+
+        let (evals, evecs) = symmetric_eigen_decomposition(&t);
+
+        // Estimate: vᵀ f(ρ) v ≈ Σⱼ (e₁ᵀ qⱼ)² f(θⱼ)
+        // where e₁ = [1, 0, ..., 0] and qⱼ are eigenvectors of T_k
+        let eps = 1e-12;
+        let mut probe_estimate = 0.0_f64;
+        for (j, &eval) in evals.iter().enumerate() {
+            let theta = eval.max(0.0);
+            if theta > eps {
+                let weight = evecs.get(0, j); // e₁ᵀ qⱼ
+                let f_theta = -theta * theta.log2(); // -x log₂ x
+                probe_estimate += weight * weight * f_theta;
+            }
+        }
+
+        total_estimate += probe_estimate;
+    }
+
+    // S(ρ) ≈ n * (1/m) * Σ estimates
+    // But our vectors are normalized to 1/√n, so the estimate is already scaled:
+    // E[vᵀ f(ρ) v] = (1/n) Tr(f(ρ)) for Rademacher vectors scaled by 1/√n
+    // Therefore Tr(f(ρ)) = n * (total_estimate / m)
+    let entropy = (n as f64 * total_estimate / m as f64).max(0.0);
+
+    let max_entropy = (n as f64).log2();
+    let normalized = if max_entropy > 0.0 {
+        (entropy / max_entropy).min(1.0)
+    } else {
+        0.0
+    };
+
+    // Effective rank from entropy: exp₂(S) (2^S gives effective number of states)
+    let effective_rank = if entropy > 0.0 {
+        2.0_f64.powf(entropy).round() as usize
+    } else {
+        1
     };
 
     CoherenceEntropy {

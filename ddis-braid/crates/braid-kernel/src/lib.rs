@@ -35,9 +35,9 @@ pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, V
 pub use error::KernelError;
 pub use guidance::{
     build_footer, compute_methodology_score, compute_routing, default_derivation_rules,
-    derive_tasks, format_footer, DerivationRule, DerivedTask, GuidanceFooter,
-    MethodologyComponents, MethodologyScore, RoutingMetrics, SessionTelemetry, TaskNode,
-    TaskRouting, Trend,
+    derive_actions, derive_tasks, format_actions, format_footer, ActionCategory, DerivationRule,
+    DerivedTask, GuidanceAction, GuidanceFooter, MethodologyComponents, MethodologyScore,
+    RoutingMetrics, SessionTelemetry, TaskNode, TaskRouting, Trend,
 };
 pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, harvest_pipeline,
@@ -84,7 +84,8 @@ pub use seed::{
 pub use stage::{capabilities, max_stage, stage_name};
 pub use store::{Frontier, MergeReceipt, Store, TxData, TxReceipt};
 pub use trilateral::{
-    check_coherence, classify_attribute, compute_phi, compute_phi_default, formality_level,
-    isp_check, live_projections, von_neumann_entropy, AttrNamespace, CoherenceEntropy,
-    CoherenceQuadrant, CoherenceReport, DivergenceComponents, IspResult, LiveView,
+    check_coherence, check_coherence_fast, classify_attribute, compute_phi, compute_phi_default,
+    formality_level, isp_check, live_projections, von_neumann_entropy, AttrNamespace,
+    CoherenceEntropy, CoherenceQuadrant, CoherenceReport, DivergenceComponents, IspResult,
+    LiveView,
 };

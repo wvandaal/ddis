@@ -12,6 +12,7 @@ mod harvest;
 mod init;
 mod log;
 mod merge;
+mod observe;
 mod promote;
 mod query;
 mod retract;
@@ -23,52 +24,106 @@ mod transact;
 pub use crate::mcp;
 
 /// All subcommands available in the `braid` CLI.
+///
+/// Commands are organized by workflow phase:
+///   SETUP:     init, bootstrap, verify
+///   CAPTURE:   observe, transact, retract, promote
+///   QUERY:     query, status, log, analyze
+///   LIFECYCLE: harvest, seed, guidance, generate
+///   ADMIN:     merge, generate-spec, mcp
 #[derive(Subcommand)]
 pub enum Command {
-    /// Initialize a new braid store at the given path.
+    // ── SETUP ──────────────────────────────────────────────────────────
+    /// Create a new .braid store with schema datoms.
+    ///
+    /// Run once per project. Creates the directory and transacts all schema
+    /// attributes (Layer 1-3). Follow with `bootstrap` to load spec elements.
+    #[command(after_long_help = "Example:\n  braid init\n  braid init -p /tmp/mystore/.braid")]
     Init {
-        /// Path for the .braid directory (default: .braid in current dir).
+        /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
         path: PathBuf,
     },
 
-    /// Show store status: datom count, frontier, schema summary.
-    Status {
-        /// Path to the .braid directory.
+    // ── CAPTURE ────────────────────────────────────────────────────────
+    /// Capture a knowledge observation as an exploration entity.
+    ///
+    /// Fastest way to record what you learned. Creates a content-addressed
+    /// entity with :exploration/* attributes. Use instead of manual transact
+    /// for knowledge capture.
+    #[command(after_long_help = "\
+Examples:
+  braid observe \"merge is a bottleneck\" -c 0.8 --tag bottleneck
+  braid observe \"CRDT merge is commutative\" --category theorem --relates-to :spec/inv-store-004
+  braid observe \"query returns wrong results\" -c 0.3 --category conjecture")]
+    Observe {
+        /// The observation text.
+        text: String,
+
+        /// Epistemic confidence (0.0=uncertain, 1.0=certain).
+        #[arg(short, long, default_value = "0.7")]
+        confidence: f64,
+
+        /// Tags for filtering (repeatable).
+        #[arg(short, long, action = clap::ArgAction::Append)]
+        tag: Vec<String>,
+
+        /// Category: observation|conjecture|theorem|definition|algorithm|design-decision|open-question.
+        #[arg(long)]
+        category: Option<String>,
+
+        /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
         path: PathBuf,
-    },
 
-    /// Assert datoms into the store.
-    Transact {
-        /// Path to the .braid directory.
-        #[arg(short, long, default_value = ".braid")]
-        path: PathBuf,
-
-        /// Agent name performing the transaction.
+        /// Agent identity.
         #[arg(short, long, default_value = "braid:user")]
         agent: String,
 
-        /// Rationale for this transaction.
+        /// Cross-reference to a spec element (e.g., ":spec/inv-store-001").
+        #[arg(long)]
+        relates_to: Option<String>,
+    },
+
+    /// Assert datoms into the store (low-level).
+    ///
+    /// For structured data. Each -d flag takes 3 args: entity attribute value.
+    /// Prefer `observe` for knowledge capture, `transact` for schema/metadata.
+    #[command(after_long_help = "\
+Example:
+  braid transact -r \"add spec element\" -d :spec/inv-store-001 :db/doc \"Append-only store\"")]
+    Transact {
+        /// Store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(short, long, default_value = "braid:user")]
+        agent: String,
+
+        /// Why this transaction exists.
         #[arg(short, long)]
         rationale: String,
 
-        /// Assertions in "entity attribute value" format (repeatable).
+        /// Datom triples: entity attribute value (repeatable).
         #[arg(short = 'd', long = "datom", num_args = 3, action = clap::ArgAction::Append)]
         datoms: Vec<String>,
     },
 
-    /// Retract existing assertions from the store (append-only: creates retraction datoms).
+    /// Retract assertions (append-only: creates retraction datoms, never deletes).
+    #[command(after_long_help = "\
+Example:
+  braid retract -e :spec/inv-store-001 --attribute :db/doc")]
     Retract {
-        /// Path to the .braid directory.
+        /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
         path: PathBuf,
 
-        /// Agent name performing the retraction.
+        /// Agent identity.
         #[arg(short, long, default_value = "braid:user")]
         agent: String,
 
-        /// Entity ident to retract from (e.g., ":spec/inv-store-001").
+        /// Entity ident (e.g., ":spec/inv-store-001").
         #[arg(short, long)]
         entity: String,
 
@@ -76,170 +131,46 @@ pub enum Command {
         #[arg(long)]
         attribute: String,
 
-        /// Optional value filter — only retract assertions with this value.
+        /// Only retract if value matches this.
         #[arg(short, long)]
         value: Option<String>,
     },
 
-    /// Query the store using entity/attribute filters or Datalog.
-    Query {
-        /// Path to the .braid directory.
-        #[arg(short, long, default_value = ".braid")]
-        path: PathBuf,
-
-        /// Filter by entity (keyword ident).
-        #[arg(short, long)]
-        entity: Option<String>,
-
-        /// Filter by attribute (keyword).
-        #[arg(short, long)]
-        attribute: Option<String>,
-
-        /// Datalog query expression (e.g., '[:find ?e ?v :where [?e :db/doc ?v]]').
-        #[arg(long)]
-        datalog: Option<String>,
-    },
-
-    /// Run the harvest pipeline to detect knowledge gaps.
-    Harvest {
-        /// Path to the .braid directory.
-        #[arg(short, long, default_value = ".braid")]
-        path: PathBuf,
-
-        /// Agent name performing the harvest.
-        #[arg(short, long, default_value = "braid:user")]
-        agent: String,
-
-        /// Description of the task worked on.
-        #[arg(short, long)]
-        task: String,
-
-        /// Knowledge items in "key value" format (repeatable).
-        #[arg(short = 'k', long = "knowledge", num_args = 2, action = clap::ArgAction::Append)]
-        knowledge: Vec<String>,
-
-        /// Commit approved candidates to the store (persist as datoms).
-        #[arg(long)]
-        commit: bool,
-    },
-
-    /// Assemble a seed context for a new session.
-    Seed {
-        /// Path to the .braid directory.
-        #[arg(short, long, default_value = ".braid")]
-        path: PathBuf,
-
-        /// Description of the task to work on.
-        #[arg(short, long)]
-        task: String,
-
-        /// Token budget for the seed output.
-        #[arg(short, long, default_value = "2000")]
-        budget: usize,
-
-        /// Agent name for the seed.
-        #[arg(short, long, default_value = "braid:user")]
-        agent: String,
-    },
-
-    /// Display current guidance state: divergence, coherence, methodology score.
-    Guidance {
-        /// Path to the .braid directory.
-        #[arg(short, long, default_value = ".braid")]
-        path: PathBuf,
-
-        /// Agent name to show guidance for.
-        #[arg(short, long, default_value = "braid:user")]
-        agent: String,
-    },
-
-    /// Merge another store into the current store (CRDT set union).
-    Merge {
-        /// Path to the .braid directory (target).
-        #[arg(short, long, default_value = ".braid")]
-        path: PathBuf,
-
-        /// Path to the source .braid directory to merge from.
-        #[arg(short, long)]
-        source: PathBuf,
-    },
-
-    /// Browse the transaction log with filtering.
-    Log {
-        /// Path to the .braid directory.
-        #[arg(short, long, default_value = ".braid")]
-        path: PathBuf,
-
-        /// Maximum number of transactions to show.
-        #[arg(short = 'n', long, default_value = "20")]
-        limit: usize,
-
-        /// Filter by agent name.
-        #[arg(short, long)]
-        agent: Option<String>,
-
-        /// Show individual datoms in each transaction.
-        #[arg(long)]
-        datoms: bool,
-    },
-
-    /// Generate dynamic agent instructions from the store.
-    Generate {
-        /// Path to the .braid directory.
-        #[arg(short, long, default_value = ".braid")]
-        path: PathBuf,
-
-        /// Description of the task to work on.
-        #[arg(short, long)]
-        task: String,
-
-        /// Token budget for the generated agent instructions.
-        #[arg(short, long, default_value = "4000")]
-        budget: usize,
-
-        /// Agent name for the generation context.
-        #[arg(short, long, default_value = "braid:user")]
-        agent: String,
-    },
-
-    /// Verify integrity of the on-disk store.
-    Verify {
-        /// Path to the .braid directory.
-        #[arg(short, long, default_value = ".braid")]
-        path: PathBuf,
-    },
-
-    /// Promote an exploration entity to a formal spec element (store-first pipeline).
+    /// Promote an exploration → formal spec element (observation → invariant/ADR/neg).
+    #[command(after_long_help = "\
+Example:
+  braid promote -e :observation/merge-bottleneck --target-id INV-STORE-042 \
+    -n STORE -t invariant --statement \"Merge is O(n)\" --falsification \"Merge > O(n log n)\"")]
     Promote {
-        /// Path to the .braid directory.
+        /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
         path: PathBuf,
 
-        /// Entity ident to promote (e.g., ":exploration/topo-cold-start").
+        /// Entity ident to promote.
         #[arg(short, long)]
         entity: String,
 
-        /// Target spec element ID (e.g., "INV-TOPOLOGY-001").
+        /// Target spec element ID (e.g., "INV-STORE-042").
         #[arg(long)]
         target_id: String,
 
-        /// Target namespace (e.g., "TOPOLOGY").
+        /// Target namespace (e.g., "STORE").
         #[arg(short, long)]
         namespace: String,
 
-        /// Target element type: invariant, adr, negative-case.
+        /// Target type: invariant, adr, negative-case.
         #[arg(short = 't', long = "type")]
         target_type: String,
 
-        /// Agent name performing the promotion.
+        /// Agent identity.
         #[arg(short, long, default_value = "braid:user")]
         agent: String,
 
-        /// Formal statement text (for invariants).
+        /// Formal statement (invariants).
         #[arg(long)]
         statement: Option<String>,
 
-        /// Falsification condition (for invariants and negative cases).
+        /// Falsification condition (invariants, negative cases).
         #[arg(long)]
         falsification: Option<String>,
 
@@ -247,53 +178,249 @@ pub enum Command {
         #[arg(long)]
         verification: Option<String>,
 
-        /// Problem statement (for ADRs).
+        /// Problem statement (ADRs).
         #[arg(long)]
         problem: Option<String>,
 
-        /// Decision text (for ADRs).
+        /// Decision text (ADRs).
         #[arg(long)]
         decision: Option<String>,
     },
 
-    /// Generate spec markdown from store entities (inverse bootstrap).
-    GenerateSpec {
-        /// Path to the .braid directory.
+    // ── QUERY ──────────────────────────────────────────────────────────
+    /// Query the store: entity/attribute filter or Datalog.
+    ///
+    /// Three modes: (1) entity filter (-e), (2) attribute filter (-a),
+    /// (3) Datalog (--datalog). Datalog supports variables (?x), keywords (:ns/name),
+    /// anonymous wildcard (_), and multi-clause joins.
+    #[command(after_long_help = "\
+Examples:
+  braid query -e :spec/inv-store-001                           # all datoms for entity
+  braid query -a :db/doc                                       # all values of attribute
+  braid query --datalog '[:find ?e ?v :where [?e :db/doc ?v]]' # Datalog query
+  braid query --datalog '[:find ?e :where [?e :exploration/body _]]'  # wildcard")]
+    Query {
+        /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
         path: PathBuf,
 
-        /// Output directory for generated spec files.
-        #[arg(short, long, default_value = "spec")]
-        output: PathBuf,
-
-        /// Only generate for this namespace (e.g., "TOPOLOGY"). Omit for all.
+        /// Filter by entity ident (keyword).
         #[arg(short, long)]
-        namespace: Option<String>,
+        entity: Option<String>,
+
+        /// Filter by attribute (keyword).
+        #[arg(short, long)]
+        attribute: Option<String>,
+
+        /// Datalog expression: [:find ?vars :where [clauses]].
+        #[arg(long)]
+        datalog: Option<String>,
     },
 
-    /// Self-bootstrap: parse spec/*.md and transact elements as datoms.
-    Bootstrap {
-        /// Path to the .braid directory.
+    /// Show store summary: datom count, entity count, frontier, schema stats.
+    Status {
+        /// Store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+    },
+
+    /// Browse transaction log with optional agent filter.
+    #[command(after_long_help = "\
+Examples:
+  braid log -n 5               # last 5 transactions
+  braid log -a braid:user      # only this agent's transactions
+  braid log --datoms            # show individual datoms")]
+    Log {
+        /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
         path: PathBuf,
 
-        /// Path to the spec directory.
-        #[arg(short, long, default_value = "spec")]
-        spec_dir: PathBuf,
+        /// Max transactions to show.
+        #[arg(short = 'n', long, default_value = "20")]
+        limit: usize,
+
+        /// Filter by agent name.
+        #[arg(short, long)]
+        agent: Option<String>,
+
+        /// Include individual datoms per transaction.
+        #[arg(long)]
+        datoms: bool,
     },
 
-    /// Run comprehensive graph analytics on the store (coherence dashboard).
+    /// Graph analytics: topology, spectrum, curvature, coherence, actions.
+    ///
+    /// Default: adaptive output that maximizes information density.
+    /// Sections are emitted in priority order (actions > coherence > topology > spectral).
+    /// Use --full for the complete 14-algorithm dashboard.
+    #[command(after_long_help = "\
+Examples:
+  braid analyze                # adaptive: best info per token
+  braid analyze --budget 200   # explicit token cap
+  braid analyze --full         # complete 14-algorithm dashboard
+  braid analyze --force        # recompute ignoring cache")]
     Analyze {
-        /// Path to the .braid directory.
+        /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
         path: PathBuf,
 
         /// Force recomputation (ignore cache).
         #[arg(long)]
         force: bool,
+
+        /// Token budget: limits output to highest-priority sections.
+        /// Default: auto-calibrated based on store complexity.
+        #[arg(short, long)]
+        budget: Option<usize>,
+
+        /// Full 14-algorithm dashboard (verbose).
+        #[arg(long)]
+        full: bool,
     },
 
-    /// Run the MCP (Model Context Protocol) server over JSON-RPC stdio.
+    // ── LIFECYCLE ──────────────────────────────────────────────────────
+    /// End-of-session: extract knowledge gaps and commit discoveries.
+    ///
+    /// Scores knowledge items by novelty, specificity, and relevance.
+    /// Use --commit to persist approved candidates as datoms.
+    #[command(after_long_help = "\
+Example:
+  braid harvest -t \"implemented query engine\" -k gap \"missing join optimization\" --commit")]
+    Harvest {
+        /// Store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(short, long, default_value = "braid:user")]
+        agent: String,
+
+        /// Task description (what you worked on).
+        #[arg(short, long)]
+        task: String,
+
+        /// Knowledge items: key value (repeatable).
+        #[arg(short = 'k', long = "knowledge", num_args = 2, action = clap::ArgAction::Append)]
+        knowledge: Vec<String>,
+
+        /// Persist approved candidates to the store.
+        #[arg(long)]
+        commit: bool,
+    },
+
+    /// Start-of-session: assemble relevant context from the store.
+    ///
+    /// Produces a token-budgeted context document with the most relevant
+    /// entities, recent transactions, and methodology guidance for the task.
+    /// Use --for-human for a narrative briefing instead of structured sections.
+    #[command(after_long_help = "\
+Examples:
+  braid seed -t \"fix query engine joins\" -b 3000
+  braid seed -t \"implement harvest\" --for-human")]
+    Seed {
+        /// Store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Task description (what you will work on).
+        #[arg(short, long)]
+        task: String,
+
+        /// Token budget for output.
+        #[arg(short, long, default_value = "2000")]
+        budget: usize,
+
+        /// Agent identity.
+        #[arg(short, long, default_value = "braid:user")]
+        agent: String,
+
+        /// Emit a natural-language briefing (< 200 words) instead of structured sections.
+        #[arg(long)]
+        for_human: bool,
+    },
+
+    /// Show coherence metrics and prioritized next actions.
+    ///
+    /// Outputs: divergence (Φ), cycles (β₁), methodology score M(t),
+    /// and a ranked action list with suggested commands.
+    Guidance {
+        /// Store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(short, long, default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// Generate dynamic CLAUDE.md/AGENTS.md from store state.
+    #[command(after_long_help = "\
+Example:
+  braid generate -t \"implement harvest pipeline\" -b 4000 > CLAUDE.md")]
+    Generate {
+        /// Store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Task description.
+        #[arg(short, long)]
+        task: String,
+
+        /// Token budget for output.
+        #[arg(short, long, default_value = "4000")]
+        budget: usize,
+
+        /// Agent identity.
+        #[arg(short, long, default_value = "braid:user")]
+        agent: String,
+    },
+
+    // ── ADMIN ──────────────────────────────────────────────────────────
+    /// Verify on-disk store integrity (content hashes).
+    Verify {
+        /// Store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+    },
+
+    /// Merge another store into this one (CRDT set union, no conflicts).
+    Merge {
+        /// Target store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Source store to merge from.
+        #[arg(short, long)]
+        source: PathBuf,
+    },
+
+    /// Generate spec/*.md from store entities (inverse of bootstrap).
+    GenerateSpec {
+        /// Store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Output directory for spec files.
+        #[arg(short, long, default_value = "spec")]
+        output: PathBuf,
+
+        /// Filter to one namespace (e.g., "STORE"). Omit for all.
+        #[arg(short, long)]
+        namespace: Option<String>,
+    },
+
+    /// Load spec/*.md into the store as datoms (self-bootstrap).
+    Bootstrap {
+        /// Store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Spec directory to parse.
+        #[arg(short, long, default_value = "spec")]
+        spec_dir: PathBuf,
+    },
+
+    /// Start MCP server (JSON-RPC over stdio).
     Mcp {
         #[command(subcommand)]
         action: McpAction,
@@ -353,7 +480,8 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             task,
             budget,
             agent,
-        } => seed::run(&path, &task, budget, &agent),
+            for_human,
+        } => seed::run(&path, &task, budget, &agent, for_human),
         Command::Guidance { path, agent } => guidance::run(&path, &agent),
         Command::Merge { path, source } => merge::run(&path, &source),
         Command::Log {
@@ -449,11 +577,40 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
                 ))
             }
         }
-        Command::Analyze { path, force } => {
-            if force {
-                analyze::run_force(&path)
+        Command::Observe {
+            path,
+            text,
+            confidence,
+            tag,
+            category,
+            agent,
+            relates_to,
+        } => observe::run(observe::ObserveArgs {
+            path: &path,
+            text: &text,
+            confidence,
+            tags: &tag,
+            category: category.as_deref(),
+            agent: &agent,
+            relates_to: relates_to.as_deref(),
+        }),
+        Command::Analyze {
+            path,
+            force,
+            budget,
+            full,
+        } => {
+            if full || force {
+                if force {
+                    analyze::run_force(&path)
+                } else {
+                    analyze::run(&path)
+                }
             } else {
-                analyze::run(&path)
+                // Auto-calibrate budget: enough for coherence + actions + topology + spectral
+                // Explicit --budget overrides auto-calibration.
+                let b = budget.unwrap_or(500);
+                analyze::run_budget(&path, b, force)
             }
         }
         Command::Mcp { action } => match action {

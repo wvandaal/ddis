@@ -1,20 +1,37 @@
 //! `braid seed` — Assemble a seed context for a new session.
+//!
+//! Two modes:
+//! - **Structured** (default): sections with State, Constraints, Orientation, etc.
+//! - **Human** (`--for-human`): narrative briefing < 200 words with actions.
 
 use std::path::Path;
 
 use braid_kernel::datom::AgentId;
+use braid_kernel::guidance::{derive_actions, format_actions};
 use braid_kernel::seed::{assemble_seed, ContextSection};
+use braid_kernel::trilateral::check_coherence_fast;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
 
-pub fn run(path: &Path, task: &str, budget: usize, agent_name: &str) -> Result<String, BraidError> {
+pub fn run(
+    path: &Path,
+    task: &str,
+    budget: usize,
+    agent_name: &str,
+    for_human: bool,
+) -> Result<String, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
     let agent = AgentId::from_name(agent_name);
     let seed = assemble_seed(&store, task, budget, agent);
 
+    if for_human {
+        return format_human_briefing(&store, &seed, task);
+    }
+
+    // Structured output (default)
     let mut out = String::new();
     out.push_str(&format!("seed for: {}\n", seed.task));
     out.push_str(&format!(
@@ -71,6 +88,69 @@ pub fn run(path: &Path, task: &str, budget: usize, agent_name: &str) -> Result<S
                 out.push_str(&format!("## Directive\n{text}\n"));
             }
         }
+    }
+
+    Ok(out)
+}
+
+/// Format a narrative briefing for human or LLM orientation.
+///
+/// Target: < 200 words, structured as:
+/// 1. Store health summary (one line)
+/// 2. Task context (one line)
+/// 3. Open questions / warnings (numbered)
+/// 4. Priority action (from guidance)
+fn format_human_briefing(
+    store: &braid_kernel::Store,
+    seed: &braid_kernel::SeedOutput,
+    task: &str,
+) -> Result<String, BraidError> {
+    let coherence = check_coherence_fast(store);
+    let actions = derive_actions(store);
+
+    let mut out = String::new();
+    out.push_str("## Session Briefing\n\n");
+
+    // Store health
+    out.push_str(&format!(
+        "**Store**: {} datoms, {} entities. ",
+        store.len(),
+        store.entity_count(),
+    ));
+    out.push_str(&format!(
+        "Coherence: {:?} (Phi={:.1}, B1={}).\n\n",
+        coherence.quadrant, coherence.phi, coherence.beta_1,
+    ));
+
+    // Task
+    out.push_str(&format!(
+        "**Task**: {} ({} relevant entities found)\n\n",
+        task, seed.entities_discovered,
+    ));
+
+    // Warnings from seed
+    let warnings: Vec<&str> = seed
+        .context
+        .sections
+        .iter()
+        .filter_map(|s| match s {
+            ContextSection::Warnings(ws) => Some(ws.iter().map(|w| w.as_str()).collect::<Vec<_>>()),
+            _ => None,
+        })
+        .flatten()
+        .collect();
+
+    if !warnings.is_empty() {
+        out.push_str("**Open questions**:\n");
+        for (i, w) in warnings.iter().enumerate() {
+            out.push_str(&format!("{}. {}\n", i + 1, w));
+        }
+        out.push('\n');
+    }
+
+    // Actions from guidance
+    if !actions.is_empty() {
+        out.push_str(&format_actions(&actions));
     }
 
     Ok(out)

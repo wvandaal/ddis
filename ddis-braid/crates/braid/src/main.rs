@@ -7,9 +7,17 @@ pub mod layout;
 pub mod mcp;
 pub mod output;
 
-/// Braid — DDIS datom store and coherence verification engine.
+/// Braid — append-only datom store with CRDT merge, Datalog queries, and coherence verification.
+///
+/// Workflow: init → observe/transact → query → harvest → seed → guidance
+///
+/// Quick start:
+///   braid init                                          # create store
+///   braid observe "merge is a bottleneck" -c 0.8       # capture knowledge
+///   braid query --datalog '[:find ?e ?v :where [?e :db/doc ?v]]'  # query
+///   braid guidance                                      # what to do next
 #[derive(Parser)]
-#[command(name = "braid", version, about)]
+#[command(name = "braid", version, about, long_about)]
 struct Cli {
     #[command(subcommand)]
     command: commands::Command,

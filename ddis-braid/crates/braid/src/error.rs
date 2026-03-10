@@ -7,6 +7,8 @@ pub enum BraidError {
     Io(std::io::Error),
     /// EDN parse error.
     Parse(String),
+    /// Input validation error (bad arguments, out-of-range values).
+    Validation(String),
 }
 
 impl std::fmt::Display for BraidError {
@@ -15,6 +17,7 @@ impl std::fmt::Display for BraidError {
             BraidError::Kernel(e) => write!(f, "{e}"),
             BraidError::Io(e) => write!(f, "io: {e}"),
             BraidError::Parse(e) => write!(f, "parse: {e}"),
+            BraidError::Validation(e) => write!(f, "validation: {e}"),
         }
     }
 }
@@ -25,6 +28,7 @@ impl std::error::Error for BraidError {
             BraidError::Kernel(e) => Some(e),
             BraidError::Io(e) => Some(e),
             BraidError::Parse(_) => None,
+            BraidError::Validation(_) => None,
         }
     }
 }
@@ -63,6 +67,10 @@ impl BraidError {
                 "The input could not be parsed. \
                  Check the EDN syntax: keywords use colons (:ns/name), \
                  strings use double-quotes, and maps use curly braces."
+            }
+            BraidError::Validation(_) => {
+                "The input failed validation. \
+                 Check the allowed ranges and formats in `braid <command> --help`."
             }
         }
     }

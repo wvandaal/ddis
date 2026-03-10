@@ -1206,7 +1206,7 @@ pub fn persistence_distance(a: &PersistenceDiagram, b: &PersistenceDiagram) -> f
 ///
 /// Returns (eigenvalues sorted ascending, eigenvector matrix).
 /// The i-th column of the eigenvector matrix corresponds to eigenvalues[i].
-fn symmetric_eigen_decomposition(matrix: &DenseMatrix) -> (Vec<f64>, DenseMatrix) {
+pub fn symmetric_eigen_decomposition(matrix: &DenseMatrix) -> (Vec<f64>, DenseMatrix) {
     assert_eq!(matrix.rows, matrix.cols, "must be square");
     let n = matrix.rows;
     if n == 0 {
@@ -1740,7 +1740,7 @@ pub fn lanczos_k_smallest(
 ///
 /// This removes the hard node count limit: graphs of any size get spectral
 /// analysis, just with adaptive precision.
-const DENSE_THRESHOLD: usize = 1000;
+const DENSE_THRESHOLD: usize = 200;
 
 /// Number of eigenvalues to compute via Lanczos for large graphs.
 /// The first few eigenvalues capture the most important spectral information:

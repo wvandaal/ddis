@@ -1,11 +1,14 @@
-//! `braid guidance` — Display current methodology state and warnings.
+//! `braid guidance` — Display current methodology state, coherence, and actions.
+//!
+//! Shows diagnostics AND concrete next steps. Output is structured for LLM parsing:
+//! sections are labeled, actions include runnable commands, and metrics are numeric.
 
 use std::path::Path;
 
 use braid_kernel::guidance::{
-    build_footer, compute_methodology_score, format_footer, SessionTelemetry, Trend,
+    compute_methodology_score, derive_actions, format_actions, SessionTelemetry, Trend,
 };
-use braid_kernel::trilateral::check_coherence;
+use braid_kernel::trilateral::check_coherence_fast;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
@@ -15,41 +18,48 @@ pub fn run(path: &Path, agent_name: &str) -> Result<String, BraidError> {
     let store = layout.load_store()?;
 
     // Coherence report (Φ, β₁, quadrant)
-    let coherence = check_coherence(&store);
+    let coherence = check_coherence_fast(&store);
 
-    // Build methodology score from minimal telemetry
-    // (a real session would accumulate this; here we provide defaults)
-    let telemetry = SessionTelemetry {
-        total_turns: 0,
-        transact_turns: 0,
-        spec_language_turns: 0,
-        query_type_count: 0,
-        harvest_quality: 0.0,
-        history: vec![],
-    };
+    // Build methodology score from tx-count proxy telemetry
+    // Stage 0: telemetry defaults to zero (each CLI invocation is a separate process)
+    // The tx-count proxy provides harvest urgency via derive_actions()
+    let telemetry = SessionTelemetry::default();
     let score = compute_methodology_score(&telemetry);
 
-    // Build guidance footer
-    let footer = build_footer(&telemetry, &store, None, vec![]);
+    // Derive context-sensitive actions from store state
+    let actions = derive_actions(&store);
 
     let mut out = String::new();
-    out.push_str("guidance state:\n");
-    out.push_str(&format!("  agent: {agent_name}\n"));
-    out.push_str(&format!("  divergence (Φ): {:.4}\n", coherence.phi));
+
+    // Section 1: Store summary (terse)
     out.push_str(&format!(
-        "    D_IS (intent↔spec): {}\n",
-        coherence.components.d_is
+        "guidance: agent={} store={} entities={}\n",
+        agent_name,
+        store.len(),
+        store.entity_count(),
+    ));
+
+    // Section 2: Coherence metrics
+    out.push_str(&format!(
+        "coherence: phi={:.1} beta1={} quadrant={:?}\n",
+        coherence.phi, coherence.beta_1, coherence.quadrant,
     ));
     out.push_str(&format!(
-        "    D_SP (spec↔impl):   {}\n",
-        coherence.components.d_sp
+        "  D_IS={} D_SP={} ISP_bypasses={}\n",
+        coherence.components.d_is, coherence.components.d_sp, coherence.isp_bypasses,
     ));
     out.push_str(&format!(
-        "  coherence: {:?} (β₁={})\n",
-        coherence.quadrant, coherence.beta_1
+        "  LIVE: intent={} spec={} impl={}\n",
+        coherence.live_intent, coherence.live_spec, coherence.live_impl,
     ));
     out.push_str(&format!(
-        "  methodology score: {:.2} (trend: {})\n",
+        "  entropy: S_vN={:.3} normalized={:.3} effective_rank={:.1}\n",
+        coherence.entropy.entropy, coherence.entropy.normalized, coherence.entropy.effective_rank,
+    ));
+
+    // Section 3: Methodology score
+    out.push_str(&format!(
+        "methodology: M(t)={:.2} trend={}\n",
         score.score,
         match score.trend {
             Trend::Up => "up",
@@ -57,29 +67,12 @@ pub fn run(path: &Path, agent_name: &str) -> Result<String, BraidError> {
             Trend::Stable => "stable",
         }
     ));
-    out.push_str(&format!(
-        "    transact_frequency: {:.2}\n",
-        score.components.transact_frequency
-    ));
-    out.push_str(&format!(
-        "    spec_language_ratio: {:.2}\n",
-        score.components.spec_language_ratio
-    ));
-    out.push_str(&format!(
-        "    query_diversity: {:.2}\n",
-        score.components.query_diversity
-    ));
-    out.push_str(&format!(
-        "    harvest_quality: {:.2}\n",
-        score.components.harvest_quality
-    ));
-    out.push_str(&format!(
-        "  drift signal: {}\n",
-        if score.drift_signal { "YES" } else { "no" }
-    ));
-    out.push_str("\nguidance footer:\n");
-    out.push_str(&format_footer(&footer));
-    out.push('\n');
+    if score.drift_signal {
+        out.push_str("  WARNING: drift signal active (M(t) < 0.5)\n");
+    }
+
+    // Section 4: Actions (the key deliverable)
+    out.push_str(&format_actions(&actions));
 
     Ok(out)
 }

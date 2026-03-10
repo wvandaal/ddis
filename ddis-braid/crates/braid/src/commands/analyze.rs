@@ -568,3 +568,230 @@ pub fn run_force(path: &Path) -> Result<String, BraidError> {
 
     Ok(output)
 }
+
+/// Run with a token budget — emit sections in priority order until exhausted.
+///
+/// Section priorities (highest first):
+/// 1. Store summary (~30 tokens)
+/// 2. Trilateral coherence (~40 tokens)
+/// 3. Actions from guidance (~80 tokens)
+/// 4. Graph topology (~50 tokens)
+/// 5. Spectral: λ₂, Cheeger, entropy (~60 tokens)
+/// 6. Centrality top 5 (~80 tokens)
+/// 7. Curvature summary (~50 tokens)
+/// 8. Persistent homology (~60 tokens)
+/// 9. Namespace distribution (~120 tokens)
+pub fn run_budget(path: &Path, budget: usize, force: bool) -> Result<String, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    let mut out = String::new();
+    let mut tokens_used = 0_usize;
+
+    // Helper: estimate tokens (chars/4 heuristic, ADR-BUDGET-004)
+    let estimate_tokens = |s: &str| -> usize { s.len().div_ceil(4) };
+
+    // Macro: emit a section if budget allows
+    macro_rules! emit {
+        ($section:expr) => {{
+            let t = estimate_tokens(&$section);
+            if tokens_used + t <= budget {
+                out.push_str(&$section);
+                tokens_used += t;
+                true
+            } else {
+                false
+            }
+        }};
+    }
+
+    // Section 1: Store summary
+    let s1 = format!(
+        "analyze: {} datoms, {} entities\n",
+        store.len(),
+        store.entity_count(),
+    );
+    emit!(s1);
+
+    // Section 2: Trilateral coherence (fast — skips O(n³) entropy)
+    let coherence = braid_kernel::trilateral::check_coherence_fast(&store);
+    let s2 = format!(
+        "coherence: phi={:.1} beta1={} quadrant={:?} ISP_bypasses={}\n",
+        coherence.phi, coherence.beta_1, coherence.quadrant, coherence.isp_bypasses,
+    );
+    if !emit!(s2) {
+        return Ok(out);
+    }
+
+    // Section 3: Guidance actions
+    let actions = braid_kernel::guidance::derive_actions(&store);
+    let s3 = braid_kernel::guidance::format_actions(&actions);
+    if !emit!(s3) {
+        return Ok(out);
+    }
+
+    // Budget guard: skip expensive graph sections if budget nearly exhausted
+    let budget_remaining = budget.saturating_sub(tokens_used);
+    if budget_remaining < 50 {
+        out.push_str(&format!(
+            "(budget: {}/{} tokens used)\n",
+            tokens_used, budget
+        ));
+        return Ok(out);
+    }
+
+    // Section 4+: Graph analytics (requires graph construction)
+    let graph = build_entity_graph(&store);
+    let n = graph.node_count();
+    let components = scc(&graph);
+    let beta_1 = first_betti_number(&graph);
+    let s4 = format!(
+        "topology: {} nodes, {} edges, density={:.6}, SCC={}, B1={}\n",
+        n,
+        graph.edge_count(),
+        density(&graph),
+        components.len(),
+        beta_1,
+    );
+    if !emit!(s4) {
+        out.push_str(&format!(
+            "(budget: {}/{} tokens used)\n",
+            tokens_used, budget
+        ));
+        return Ok(out);
+    }
+
+    // Section 5: Spectral summary (Lanczos-adaptive: O(k·E) for large graphs)
+    if n >= 2 && budget.saturating_sub(tokens_used) >= 60 {
+        let sd = spectral_decomposition_adaptive(&graph);
+        let entropy = braid_kernel::trilateral::von_neumann_entropy(&store);
+        if let Some(ref sd) = sd {
+            let fiedler_result = fiedler_from_spectrum(sd);
+            let s5 = format!(
+                "spectral: lambda2={:.6} S_vN={:.3} effective_rank={}\n",
+                fiedler_result.algebraic_connectivity, entropy.entropy, entropy.effective_rank,
+            );
+            if !emit!(s5) {
+                out.push_str(&format!(
+                    "(budget: {}/{} tokens used)\n",
+                    tokens_used, budget
+                ));
+                return Ok(out);
+            }
+
+            // Section 5b: Cheeger
+            if let Some(ch) = cheeger(&graph) {
+                let s5b = format!(
+                    "  Cheeger: h={:.6} [{:.4} <= h <= {:.4}]\n",
+                    ch.cheeger_constant, ch.lower_bound, ch.upper_bound,
+                );
+                if !emit!(s5b) {
+                    out.push_str(&format!(
+                        "(budget: {}/{} tokens used)\n",
+                        tokens_used, budget
+                    ));
+                    return Ok(out);
+                }
+            }
+
+            // Section 5c: Kirchhoff
+            let is_partial = sd.eigenvalues.len() < n;
+            let ki = if is_partial {
+                kirchhoff_from_partial_spectrum(&sd.eigenvalues, n)
+            } else {
+                kirchhoff_from_spectrum(sd)
+            };
+            let s5c = format!(
+                "  Kirchhoff: {:.2} resistance={:.4}{}\n",
+                ki,
+                ki / (n * (n - 1)) as f64,
+                if is_partial { " (approx)" } else { "" },
+            );
+            if !emit!(s5c) {
+                out.push_str(&format!(
+                    "(budget: {}/{} tokens used)\n",
+                    tokens_used, budget
+                ));
+                return Ok(out);
+            }
+        }
+    }
+
+    // Section 6: Centrality top 5
+    if n >= 2 && budget.saturating_sub(tokens_used) >= 80 {
+        let pr = pagerank(&graph, 20);
+        let mut pr_sorted: Vec<_> = pr.iter().collect();
+        pr_sorted.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap_or(std::cmp::Ordering::Equal));
+        let mut s6 = String::from("PageRank top 5:\n");
+        for (name, score) in pr_sorted.iter().take(5) {
+            s6.push_str(&format!("  {:.4}  {}\n", score, name));
+        }
+        if !emit!(s6) {
+            out.push_str(&format!(
+                "(budget: {}/{} tokens used)\n",
+                tokens_used, budget
+            ));
+            return Ok(out);
+        }
+    }
+
+    // Section 7: Curvature summary (landmark-adaptive: O(k·(V+E)) for large graphs)
+    if n >= 2 && graph.edge_count() > 0 && budget.saturating_sub(tokens_used) >= 50 {
+        let curvatures = ricci_curvature_adaptive(&graph);
+        let summary = ricci_summary(&curvatures);
+        let s7 = format!(
+            "Ricci: mean={:.4} min={:.4} max={:.4} ({} pos, {} neg)\n",
+            summary.mean_curvature,
+            summary.min_curvature,
+            summary.max_curvature,
+            summary.positive_edges,
+            summary.negative_edges,
+        );
+        if !emit!(s7) {
+            out.push_str(&format!(
+                "(budget: {}/{} tokens used)\n",
+                tokens_used, budget
+            ));
+            return Ok(out);
+        }
+        if let Some((ref src, ref dst)) = summary.bottleneck_edge {
+            let s7b = format!(
+                "  bottleneck: {} → {} (k={:.4})\n",
+                src, dst, summary.min_curvature
+            );
+            let _ = emit!(s7b);
+        }
+    }
+
+    // Section 8: Persistent homology (very expensive — only with --force)
+    if !force {
+        // skip
+    } else {
+        let mut edges: Vec<(String, String)> = Vec::new();
+        for datom in store.datoms() {
+            if datom.op == Op::Assert {
+                if let Value::Ref(target) = &datom.value {
+                    edges.push((
+                        resolve_label(&store, datom.entity),
+                        resolve_label(&store, *target),
+                    ));
+                }
+            }
+        }
+        let diagram = persistent_homology(&edges);
+        let h0 = diagram.pairs.iter().filter(|p| p.dimension == 0).count();
+        let h1 = diagram.pairs.iter().filter(|p| p.dimension == 1).count();
+        let tp = total_persistence(&diagram);
+        let s8 = format!("homology: H0={} H1={} total_persistence={}\n", h0, h1, tp);
+        let _ = emit!(s8);
+    }
+
+    if !force {
+        out.push_str(&format!(
+            "(budget: {}/{} tokens used)\n",
+            tokens_used, budget
+        ));
+    }
+
+    Ok(out)
+}

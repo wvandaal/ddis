@@ -20,8 +20,9 @@
 
 use std::collections::BTreeMap;
 
-use crate::datom::EntityId;
+use crate::datom::{EntityId, Value};
 use crate::store::Store;
+use crate::trilateral::{check_coherence_fast, CoherenceQuadrant};
 
 // ---------------------------------------------------------------------------
 // M(t) — Methodology Adherence Score (INV-GUIDANCE-008)
@@ -519,6 +520,282 @@ pub fn derive_tasks(
             .unwrap_or(std::cmp::Ordering::Equal)
     });
     tasks
+}
+
+// ---------------------------------------------------------------------------
+// Actionable Guidance (INV-GUIDANCE-001, INV-GUIDANCE-003)
+// ---------------------------------------------------------------------------
+
+/// Category of a guidance action — what kind of intervention is needed.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ActionCategory {
+    /// Something is broken and needs fixing before other work.
+    Fix,
+    /// Knowledge should be captured before it's lost.
+    Harvest,
+    /// Disconnected entities should be linked.
+    Connect,
+    /// A structural anomaly should be investigated.
+    Observe,
+    /// Something needs deeper analysis.
+    Investigate,
+    /// The store needs initial data.
+    Bootstrap,
+}
+
+impl std::fmt::Display for ActionCategory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ActionCategory::Fix => write!(f, "FIX"),
+            ActionCategory::Harvest => write!(f, "HARVEST"),
+            ActionCategory::Connect => write!(f, "CONNECT"),
+            ActionCategory::Observe => write!(f, "OBSERVE"),
+            ActionCategory::Investigate => write!(f, "INVESTIGATE"),
+            ActionCategory::Bootstrap => write!(f, "BOOTSTRAP"),
+        }
+    }
+}
+
+/// A concrete, prioritized guidance action with an optional suggested command.
+///
+/// Each action tells the agent exactly what to do next and why.
+/// Actions are derived from store state analysis (R11–R16).
+#[derive(Clone, Debug)]
+pub struct GuidanceAction {
+    /// Priority (1 = highest, 5 = lowest).
+    pub priority: u8,
+    /// Action category.
+    pub category: ActionCategory,
+    /// One-line summary of what to do.
+    pub summary: String,
+    /// Suggested braid command to execute (if applicable).
+    pub command: Option<String>,
+    /// Spec elements this action relates to.
+    pub relates_to: Vec<String>,
+}
+
+/// Derive concrete actions from current store state.
+///
+/// Examines: store size, coherence metrics (Φ, β₁), tx count since last
+/// harvest session entity, ISP bypasses, and namespace curvature.
+///
+/// Rules:
+/// - R11: Empty/near-empty store → Bootstrap
+/// - R12: Tx count since last harvest > threshold → Harvest
+/// - R13: β₁ > 0 (cycles in entity graph) → Observe
+/// - R14: Φ > 0 (intent↔spec or spec↔impl gaps) → Connect
+/// - R15: ISP specification bypasses → Fix
+/// - R16: High entropy (structural disorder) → Investigate
+pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
+    let mut actions = Vec::new();
+    let datom_count = store.len();
+    let entity_count = store.entity_count();
+
+    // R11: Near-empty store → Bootstrap
+    if datom_count == 0 {
+        actions.push(GuidanceAction {
+            priority: 1,
+            category: ActionCategory::Bootstrap,
+            summary: "Store is empty. Initialize with spec elements.".into(),
+            command: Some("braid init && braid bootstrap".into()),
+            relates_to: vec!["INV-BOOTSTRAP-001".into()],
+        });
+        return actions; // No other actions make sense on empty store
+    }
+
+    // Check for non-schema entities (more useful than raw datom count)
+    let has_exploration_entities = store.datoms().any(|d| {
+        d.attribute.as_str() == ":exploration/body" || d.attribute.as_str() == ":exploration/source"
+    });
+
+    if entity_count < 10 && !has_exploration_entities {
+        actions.push(GuidanceAction {
+            priority: 1,
+            category: ActionCategory::Bootstrap,
+            summary: format!(
+                "Store has {entity_count} entities but no explorations. Seed initial knowledge."
+            ),
+            command: Some("braid observe \"<your first observation>\" --confidence 0.7".into()),
+            relates_to: vec!["INV-BOOTSTRAP-001".into()],
+        });
+    }
+
+    // R12: Tx count since last harvest → Harvest warning
+    // Proxy: count transactions since the most recent session/harvest entity
+    let tx_count = count_txns_since_last_harvest(store);
+    if tx_count >= 8 {
+        let urgency = if tx_count >= 15 { 1 } else { 2 };
+        actions.push(GuidanceAction {
+            priority: urgency,
+            category: ActionCategory::Harvest,
+            summary: format!(
+                "{tx_count} transactions since last harvest. Knowledge at risk of loss."
+            ),
+            command: Some("braid harvest --task \"<current task>\" --commit".into()),
+            relates_to: vec!["INV-HARVEST-005".into(), "ADR-HARVEST-007".into()],
+        });
+    }
+
+    // Run coherence analysis (fast — skips O(n³) entropy)
+    let coherence = check_coherence_fast(store);
+
+    // R13: β₁ > 0 (cycles) → Observe
+    if coherence.beta_1 > 0 {
+        actions.push(GuidanceAction {
+            priority: 3,
+            category: ActionCategory::Observe,
+            summary: format!(
+                "{} cycles in entity graph. May indicate circular dependencies.",
+                coherence.beta_1
+            ),
+            command: Some("braid analyze | grep B1".into()),
+            relates_to: vec!["INV-TRILATERAL-003".into()],
+        });
+    }
+
+    // R14: Φ > 0 (divergence gaps) → Connect
+    if coherence.phi > 0.0 {
+        let (action_text, cmd) = match coherence.quadrant {
+            CoherenceQuadrant::GapsOnly => (
+                format!(
+                    "Divergence Φ={:.1}. Gaps between intent/spec/impl layers.",
+                    coherence.phi
+                ),
+                "braid query --datalog '[:find ?e ?doc :where [?e :db/doc ?doc] [?e :db/ident ?i]]'"
+                    .to_string(),
+            ),
+            CoherenceQuadrant::GapsAndCycles => (
+                format!(
+                    "Divergence Φ={:.1} with {} cycles. Structural remediation needed.",
+                    coherence.phi, coherence.beta_1
+                ),
+                "braid analyze --force".to_string(),
+            ),
+            CoherenceQuadrant::CyclesOnly => (
+                format!("Cycles present (β₁={}) but no gaps.", coherence.beta_1),
+                "braid analyze | grep cycle".to_string(),
+            ),
+            CoherenceQuadrant::Coherent => (
+                "Store is coherent.".into(),
+                String::new(),
+            ),
+        };
+
+        if coherence.quadrant != CoherenceQuadrant::Coherent {
+            actions.push(GuidanceAction {
+                priority: if coherence.phi > 100.0 { 2 } else { 3 },
+                category: ActionCategory::Connect,
+                summary: action_text,
+                command: if cmd.is_empty() { None } else { Some(cmd) },
+                relates_to: vec!["INV-TRILATERAL-001".into(), "INV-TRILATERAL-004".into()],
+            });
+        }
+    }
+
+    // R15: ISP bypasses → Fix
+    if coherence.isp_bypasses > 0 {
+        actions.push(GuidanceAction {
+            priority: 2,
+            category: ActionCategory::Fix,
+            summary: format!(
+                "{} entities bypass ISP (have impl without spec). Add specifications.",
+                coherence.isp_bypasses
+            ),
+            command: Some(
+                "braid query -a :db/ident  # find entities, then add :spec/* attributes".into(),
+            ),
+            relates_to: vec!["INV-TRILATERAL-007".into()],
+        });
+    }
+
+    // R16: High entropy → Investigate
+    let s_vn = coherence.entropy.entropy;
+    if s_vn > 3.0 && entity_count > 20 {
+        actions.push(GuidanceAction {
+            priority: 4,
+            category: ActionCategory::Investigate,
+            summary: format!(
+                "High structural entropy S_vN={:.2}. Knowledge may be fragmenting.",
+                s_vn
+            ),
+            command: Some("braid analyze --force".into()),
+            relates_to: vec!["INV-TRILATERAL-004".into()],
+        });
+    }
+
+    // Sort by priority (ascending = highest priority first)
+    actions.sort_by_key(|a| a.priority);
+    actions
+}
+
+/// Count transactions since the last harvest-type entity.
+///
+/// Uses tx-count proxy: counts tx files whose wall_time exceeds the most
+/// recent transaction with provenance "braid:harvest" or "braid:observe".
+fn count_txns_since_last_harvest(store: &Store) -> usize {
+    // Find the latest harvest/observe transaction wall time
+    let mut latest_harvest_wall: u64 = 0;
+    for datom in store.datoms() {
+        if datom.attribute.as_str() == ":exploration/source" {
+            if let Value::String(ref s) = datom.value {
+                if s == "braid:harvest" || s == "braid:observe" {
+                    let wall = datom.tx.wall_time();
+                    if wall > latest_harvest_wall {
+                        latest_harvest_wall = wall;
+                    }
+                }
+            }
+        }
+    }
+
+    if latest_harvest_wall == 0 {
+        // No harvest ever — count all txns
+        store.frontier().len()
+    } else {
+        // Count distinct tx wall times after the last harvest
+        store
+            .frontier()
+            .values()
+            .filter(|tx| tx.wall_time() > latest_harvest_wall)
+            .count()
+    }
+}
+
+/// Format guidance actions as a compact, LLM-parseable string.
+///
+/// Output format (one action per line, structured for easy parsing):
+/// ```text
+/// actions:
+///   1. FIX: 3 entities bypass ISP → braid query -a :db/ident [INV-TRILATERAL-007]
+///   2. HARVEST: 12 txns since last harvest → braid harvest --task "..." [INV-HARVEST-005]
+///   3. CONNECT: Φ=210.6, gaps between layers → braid analyze --force [INV-TRILATERAL-001]
+/// ```
+pub fn format_actions(actions: &[GuidanceAction]) -> String {
+    if actions.is_empty() {
+        return "actions: none (store is coherent)\n".to_string();
+    }
+
+    let mut out = String::from("actions:\n");
+    for (i, action) in actions.iter().enumerate() {
+        let cmd_part = match &action.command {
+            Some(cmd) => format!(" → {cmd}"),
+            None => String::new(),
+        };
+        let refs = if action.relates_to.is_empty() {
+            String::new()
+        } else {
+            format!(" [{}]", action.relates_to.join(", "))
+        };
+        out.push_str(&format!(
+            "  {}. {}: {}{}{}\n",
+            i + 1,
+            action.category,
+            action.summary,
+            cmd_part,
+            refs,
+        ));
+    }
+    out
 }
 
 // ---------------------------------------------------------------------------
@@ -1021,5 +1298,106 @@ mod tests {
                 );
             }
         }
+    }
+
+    // -------------------------------------------------------------------
+    // Guidance Actions (A.4 — INV-GUIDANCE-001, INV-GUIDANCE-003)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn actions_on_empty_store_returns_bootstrap() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let actions = derive_actions(&store);
+        assert_eq!(
+            actions.len(),
+            1,
+            "empty store should produce exactly 1 action"
+        );
+        assert_eq!(actions[0].category, ActionCategory::Bootstrap);
+        assert_eq!(actions[0].priority, 1);
+        assert!(actions[0].command.is_some());
+    }
+
+    #[test]
+    fn actions_on_genesis_store_sorted_by_priority() {
+        let store = Store::genesis();
+        let actions = derive_actions(&store);
+        // Genesis store with only schema may or may not produce actions
+        // (depends on coherence state) — but if it does, they must be sorted
+        for window in actions.windows(2) {
+            assert!(
+                window[0].priority <= window[1].priority,
+                "actions must be sorted by ascending priority: {} <= {} violated",
+                window[0].priority,
+                window[1].priority,
+            );
+        }
+    }
+
+    #[test]
+    fn format_actions_empty() {
+        let formatted = format_actions(&[]);
+        assert!(formatted.contains("none"));
+    }
+
+    #[test]
+    fn format_actions_includes_category_and_command() {
+        let actions = vec![
+            GuidanceAction {
+                priority: 1,
+                category: ActionCategory::Fix,
+                summary: "Test issue".into(),
+                command: Some("braid query -a :db/ident".into()),
+                relates_to: vec!["INV-TEST-001".into()],
+            },
+            GuidanceAction {
+                priority: 3,
+                category: ActionCategory::Observe,
+                summary: "Cycles detected".into(),
+                command: None,
+                relates_to: vec![],
+            },
+        ];
+        let formatted = format_actions(&actions);
+        assert!(formatted.contains("FIX:"), "should contain FIX category");
+        assert!(
+            formatted.contains("braid query"),
+            "should contain suggested command"
+        );
+        assert!(
+            formatted.contains("INV-TEST-001"),
+            "should contain spec refs"
+        );
+        assert!(
+            formatted.contains("OBSERVE:"),
+            "should contain OBSERVE category"
+        );
+    }
+
+    #[test]
+    fn action_category_display() {
+        assert_eq!(format!("{}", ActionCategory::Fix), "FIX");
+        assert_eq!(format!("{}", ActionCategory::Harvest), "HARVEST");
+        assert_eq!(format!("{}", ActionCategory::Connect), "CONNECT");
+        assert_eq!(format!("{}", ActionCategory::Observe), "OBSERVE");
+        assert_eq!(format!("{}", ActionCategory::Investigate), "INVESTIGATE");
+        assert_eq!(format!("{}", ActionCategory::Bootstrap), "BOOTSTRAP");
+    }
+
+    #[test]
+    fn count_txns_since_last_harvest_on_empty() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        assert_eq!(count_txns_since_last_harvest(&store), 0);
+    }
+
+    #[test]
+    fn count_txns_since_last_harvest_on_genesis() {
+        let store = Store::genesis();
+        // Genesis has frontier entries but no harvest entities
+        let count = count_txns_since_last_harvest(&store);
+        assert!(
+            count > 0,
+            "genesis store with no harvests should report all txns"
+        );
     }
 }
