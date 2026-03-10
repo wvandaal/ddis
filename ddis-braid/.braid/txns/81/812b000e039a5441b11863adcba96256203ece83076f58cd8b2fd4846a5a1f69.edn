@@ -1,0 +1,18 @@
+{:tx/id #hlc "13/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Stage 1 target: budget-aware output, guidance injection, bilateral loop, interactive REPL"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "96c7fa637a40ddda0ade1822731a0391dd3c60de08646f5ae97667a0f3c7dea0" :a :db/ident :v :observation/stage-1-target-budget-aware-output-guidance-injection-bil :op :assert}
+   {:e #blake3 "96c7fa637a40ddda0ade1822731a0391dd3c60de08646f5ae97667a0f3c7dea0" :a :db/doc :v "Stage 1 target: budget-aware output, guidance injection, bilateral loop, interactive REPL" :op :assert}
+   {:e #blake3 "96c7fa637a40ddda0ade1822731a0391dd3c60de08646f5ae97667a0f3c7dea0" :a :exploration/body :v "Stage 1 target: budget-aware output, guidance injection, bilateral loop, interactive REPL" :op :assert}
+   {:e #blake3 "96c7fa637a40ddda0ade1822731a0391dd3c60de08646f5ae97667a0f3c7dea0" :a :exploration/content-hash :v #bytes "f480f19a884a3168cc3013444e0fc7c2fa021deabd805e640d97fcb75a2dc05a" :op :assert}
+   {:e #blake3 "96c7fa637a40ddda0ade1822731a0391dd3c60de08646f5ae97667a0f3c7dea0" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "96c7fa637a40ddda0ade1822731a0391dd3c60de08646f5ae97667a0f3c7dea0" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "96c7fa637a40ddda0ade1822731a0391dd3c60de08646f5ae97667a0f3c7dea0" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "96c7fa637a40ddda0ade1822731a0391dd3c60de08646f5ae97667a0f3c7dea0" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "96c7fa637a40ddda0ade1822731a0391dd3c60de08646f5ae97667a0f3c7dea0" :a :exploration/tags :v :tag/roadmap :op :assert}
+   {:e #blake3 "96c7fa637a40ddda0ade1822731a0391dd3c60de08646f5ae97667a0f3c7dea0" :a :exploration/tags :v :tag/stage-1 :op :assert}
+   {:e #blake3 "96c7fa637a40ddda0ade1822731a0391dd3c60de08646f5ae97667a0f3c7dea0" :a :exploration/tags :v :tag/target :op :assert}
+ ]}

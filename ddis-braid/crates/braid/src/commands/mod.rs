@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use clap::Subcommand;
 
 mod analyze;
+mod bilateral;
 mod generate;
 mod generate_spec;
 mod guidance;
@@ -191,14 +192,14 @@ Example:
     /// Query the store: entity/attribute filter or Datalog.
     ///
     /// Three modes: (1) entity filter (-e), (2) attribute filter (-a),
-    /// (3) Datalog (--datalog). Datalog supports variables (?x), keywords (:ns/name),
-    /// anonymous wildcard (_), and multi-clause joins.
+    /// (3) Datalog — pass as positional arg or --datalog flag.
+    /// Datalog auto-detected when arg starts with "[:find".
     #[command(after_long_help = "\
 Examples:
+  braid query '[:find ?e ?v :where [?e :db/doc ?v]]'          # Datalog (positional)
   braid query -e :spec/inv-store-001                           # all datoms for entity
   braid query -a :db/doc                                       # all values of attribute
-  braid query --datalog '[:find ?e ?v :where [?e :db/doc ?v]]' # Datalog query
-  braid query --datalog '[:find ?e :where [?e :exploration/body _]]'  # wildcard")]
+  braid query --datalog '[:find ?e :where [?e :exploration/body _]]'  # Datalog (explicit)")]
     Query {
         /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
@@ -215,6 +216,10 @@ Examples:
         /// Datalog expression: [:find ?vars :where [clauses]].
         #[arg(long)]
         datalog: Option<String>,
+
+        /// Positional Datalog expression (auto-detected from "[:find" prefix).
+        #[arg(value_name = "DATALOG_EXPR")]
+        positional_datalog: Option<String>,
 
         /// Output as JSON.
         #[arg(long)]
@@ -267,6 +272,46 @@ Examples:
         /// Full multi-line output per transaction.
         #[arg(short, long)]
         verbose: bool,
+    },
+
+    /// Run bilateral coherence verification: F(S) fitness, scans, CC-1..CC-5.
+    ///
+    /// Computes the 7-component fitness function F(S), forward (Spec→Impl)
+    /// and backward (Impl→Spec) coverage scans, five coherence conditions,
+    /// convergence analysis, and optional spectral certificate.
+    /// Use --verbose for full metrics. Use --spectral for the spectral certificate
+    /// (Fiedler, Cheeger, Rényi entropy, Ricci curvature).
+    #[command(after_long_help = "\
+Examples:
+  braid bilateral                    # terse: F(S) + CC status + scan summary
+  braid bilateral --verbose          # full metrics, all CC details, convergence
+  braid bilateral --spectral         # include spectral certificate
+  braid bilateral --commit           # persist cycle results as datoms
+  braid bilateral --json             # structured output")]
+    Bilateral {
+        /// Store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Include spectral certificate (Fiedler, Cheeger, Rényi, Ricci).
+        #[arg(short, long)]
+        spectral: bool,
+
+        /// Persist cycle results as datoms in the store.
+        #[arg(long)]
+        commit: bool,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
+
+        /// Full output with all metrics.
+        #[arg(short, long)]
+        verbose: bool,
+
+        /// Agent identity.
+        #[arg(short, long, default_value = "braid:user")]
+        agent: String,
     },
 
     /// Graph analytics: topology, spectrum, curvature, coherence, actions.
@@ -514,9 +559,12 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             entity,
             attribute,
             datalog,
+            positional_datalog,
             json,
         } => {
-            if let Some(ref dq) = datalog {
+            // Resolve Datalog: --datalog flag takes priority, then positional arg
+            let dq = datalog.or(positional_datalog);
+            if let Some(ref dq) = dq {
                 query::run_datalog(&path, dq, json)
             } else {
                 query::run(&path, entity.as_deref(), attribute.as_deref(), json)
@@ -641,6 +689,14 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
                 ))
             }
         }
+        Command::Bilateral {
+            path,
+            spectral,
+            commit,
+            json,
+            verbose,
+            agent,
+        } => bilateral::run(&path, &agent, spectral, commit, json, verbose),
         Command::Observe {
             path,
             text,

@@ -1,0 +1,17 @@
+{:tx/id #hlc "10/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "LLM-native interface complete: --json, --verbose, terse defaults, MCP redesign"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4bc5274499ace41ce44b4c3be2a82ca3c845aaf30d66b565af47979c78ae649b" :a :db/ident :v :observation/llm-native-interface-complete-json-verbose-terse-defa :op :assert}
+   {:e #blake3 "4bc5274499ace41ce44b4c3be2a82ca3c845aaf30d66b565af47979c78ae649b" :a :db/doc :v "LLM-native interface complete: --json, --verbose, terse defaults, MCP redesign" :op :assert}
+   {:e #blake3 "4bc5274499ace41ce44b4c3be2a82ca3c845aaf30d66b565af47979c78ae649b" :a :exploration/body :v "LLM-native interface complete: --json, --verbose, terse defaults, MCP redesign" :op :assert}
+   {:e #blake3 "4bc5274499ace41ce44b4c3be2a82ca3c845aaf30d66b565af47979c78ae649b" :a :exploration/content-hash :v #bytes "86e297cff33f5f6eb06725b92b856de0c5dd9aa855f464b23dbcc4e592918db7" :op :assert}
+   {:e #blake3 "4bc5274499ace41ce44b4c3be2a82ca3c845aaf30d66b565af47979c78ae649b" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "4bc5274499ace41ce44b4c3be2a82ca3c845aaf30d66b565af47979c78ae649b" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "4bc5274499ace41ce44b4c3be2a82ca3c845aaf30d66b565af47979c78ae649b" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4bc5274499ace41ce44b4c3be2a82ca3c845aaf30d66b565af47979c78ae649b" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4bc5274499ace41ce44b4c3be2a82ca3c845aaf30d66b565af47979c78ae649b" :a :exploration/tags :v :tag/roadmap :op :assert}
+   {:e #blake3 "4bc5274499ace41ce44b4c3be2a82ca3c845aaf30d66b565af47979c78ae649b" :a :exploration/tags :v :tag/llm-native :op :assert}
+ ]}

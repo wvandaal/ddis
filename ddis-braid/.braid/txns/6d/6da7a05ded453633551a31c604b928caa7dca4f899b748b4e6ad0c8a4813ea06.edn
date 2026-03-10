@@ -1,0 +1,25 @@
+{:tx/id #hlc "14/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :derived
+ :tx/rationale "Bilateral cycle 1: F(S)=0.2402"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :db/ident :v :bilateral/cycle-1 :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/fitness :v 0.24020590841949777 :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/validation :v 0.0 :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/coverage :v 0.0 :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/drift :v 0.6889217134416543 :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/harvest-quality :v 0.0 :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/contradiction :v 0.0 :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/incompleteness :v 0.0 :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/uncertainty :v 0.9683333333333334 :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/cc1-no-contradictions :v false :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/cc2-impl-satisfies-spec :v false :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/cc3-spec-approximates-intent :v true :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/cc4-agent-agreement :v false :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/cc5-methodology-adherence :v false :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/forward-coverage :v 0.0 :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/backward-coverage :v 1.0 :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/is-monotonic :v true :op :assert}
+   {:e #blake3 "9e8a7c9732f8d64e7ebcbba812bbe1a684b236c538465e6854fdcf4a2faea1b1" :a :bilateral/lyapunov :v 0.0 :op :assert}
+ ]}

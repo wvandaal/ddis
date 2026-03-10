@@ -1,0 +1,18 @@
+{:tx/id #hlc "11/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Phase C is current priority: budget-aware output, bilateral loop, REPL shell"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9701d1c959781b3116cda787e1f57e6922f95470ec43432cf853a96289563873" :a :db/ident :v :observation/phase-c-is-current-priority-budget-aware-output-bilateral :op :assert}
+   {:e #blake3 "9701d1c959781b3116cda787e1f57e6922f95470ec43432cf853a96289563873" :a :db/doc :v "Phase C is current priority: budget-aware output, bilateral loop, REPL shell" :op :assert}
+   {:e #blake3 "9701d1c959781b3116cda787e1f57e6922f95470ec43432cf853a96289563873" :a :exploration/body :v "Phase C is current priority: budget-aware output, bilateral loop, REPL shell" :op :assert}
+   {:e #blake3 "9701d1c959781b3116cda787e1f57e6922f95470ec43432cf853a96289563873" :a :exploration/content-hash :v #bytes "47a7b292e4fb215b595f497bef7e6349a3d4867b874bb534de67536260f9f7c3" :op :assert}
+   {:e #blake3 "9701d1c959781b3116cda787e1f57e6922f95470ec43432cf853a96289563873" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "9701d1c959781b3116cda787e1f57e6922f95470ec43432cf853a96289563873" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "9701d1c959781b3116cda787e1f57e6922f95470ec43432cf853a96289563873" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "9701d1c959781b3116cda787e1f57e6922f95470ec43432cf853a96289563873" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "9701d1c959781b3116cda787e1f57e6922f95470ec43432cf853a96289563873" :a :exploration/tags :v :tag/roadmap :op :assert}
+   {:e #blake3 "9701d1c959781b3116cda787e1f57e6922f95470ec43432cf853a96289563873" :a :exploration/tags :v :tag/phase-c :op :assert}
+   {:e #blake3 "9701d1c959781b3116cda787e1f57e6922f95470ec43432cf853a96289563873" :a :exploration/tags :v :tag/priority :op :assert}
+ ]}

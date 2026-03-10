@@ -1,0 +1,18 @@
+{:tx/id #hlc "12/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Stage 0 complete: 288 tests, 17912 LOC kernel, 10 CLI commands, formal verification"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c4f2e9b2c1ba92f1e938b31a1442d9e5a752f8664240d58d33367b78af6faa4a" :a :db/ident :v :observation/stage-0-complete-288-tests-17912-loc-kernel-10-cli-comman :op :assert}
+   {:e #blake3 "c4f2e9b2c1ba92f1e938b31a1442d9e5a752f8664240d58d33367b78af6faa4a" :a :db/doc :v "Stage 0 complete: 288 tests, 17912 LOC kernel, 10 CLI commands, formal verification" :op :assert}
+   {:e #blake3 "c4f2e9b2c1ba92f1e938b31a1442d9e5a752f8664240d58d33367b78af6faa4a" :a :exploration/body :v "Stage 0 complete: 288 tests, 17912 LOC kernel, 10 CLI commands, formal verification" :op :assert}
+   {:e #blake3 "c4f2e9b2c1ba92f1e938b31a1442d9e5a752f8664240d58d33367b78af6faa4a" :a :exploration/content-hash :v #bytes "de9b060fd71f7dd3305ff3db4381caaa26a548e8d996055e35c005aef882d8b8" :op :assert}
+   {:e #blake3 "c4f2e9b2c1ba92f1e938b31a1442d9e5a752f8664240d58d33367b78af6faa4a" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "c4f2e9b2c1ba92f1e938b31a1442d9e5a752f8664240d58d33367b78af6faa4a" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "c4f2e9b2c1ba92f1e938b31a1442d9e5a752f8664240d58d33367b78af6faa4a" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c4f2e9b2c1ba92f1e938b31a1442d9e5a752f8664240d58d33367b78af6faa4a" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c4f2e9b2c1ba92f1e938b31a1442d9e5a752f8664240d58d33367b78af6faa4a" :a :exploration/tags :v :tag/roadmap :op :assert}
+   {:e #blake3 "c4f2e9b2c1ba92f1e938b31a1442d9e5a752f8664240d58d33367b78af6faa4a" :a :exploration/tags :v :tag/stage-0 :op :assert}
+   {:e #blake3 "c4f2e9b2c1ba92f1e938b31a1442d9e5a752f8664240d58d33367b78af6faa4a" :a :exploration/tags :v :tag/milestone :op :assert}
+ ]}

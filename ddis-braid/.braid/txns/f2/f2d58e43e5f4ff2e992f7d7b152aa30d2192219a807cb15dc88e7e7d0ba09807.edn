@@ -1,0 +1,17 @@
+{:tx/id #hlc "9/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Phase B complete: harvest warnings, staleness model, crystallization guard, proptest safety, agent-md integration"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2b973c53881e1e7fa77936effdcba0369b9533cf5b6db7ebf47ae3eeff6873ad" :a :db/ident :v :observation/phase-b-complete-harvest-warnings-staleness-model-crystal :op :assert}
+   {:e #blake3 "2b973c53881e1e7fa77936effdcba0369b9533cf5b6db7ebf47ae3eeff6873ad" :a :db/doc :v "Phase B complete: harvest warnings, staleness model, crystallization guard, proptest safety, agent-md integration" :op :assert}
+   {:e #blake3 "2b973c53881e1e7fa77936effdcba0369b9533cf5b6db7ebf47ae3eeff6873ad" :a :exploration/body :v "Phase B complete: harvest warnings, staleness model, crystallization guard, proptest safety, agent-md integration" :op :assert}
+   {:e #blake3 "2b973c53881e1e7fa77936effdcba0369b9533cf5b6db7ebf47ae3eeff6873ad" :a :exploration/content-hash :v #bytes "0f4759b2b31a7adc497b4fce618e1a4de49e2552fc224c02030df27508783951" :op :assert}
+   {:e #blake3 "2b973c53881e1e7fa77936effdcba0369b9533cf5b6db7ebf47ae3eeff6873ad" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "2b973c53881e1e7fa77936effdcba0369b9533cf5b6db7ebf47ae3eeff6873ad" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "2b973c53881e1e7fa77936effdcba0369b9533cf5b6db7ebf47ae3eeff6873ad" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2b973c53881e1e7fa77936effdcba0369b9533cf5b6db7ebf47ae3eeff6873ad" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2b973c53881e1e7fa77936effdcba0369b9533cf5b6db7ebf47ae3eeff6873ad" :a :exploration/tags :v :tag/roadmap :op :assert}
+   {:e #blake3 "2b973c53881e1e7fa77936effdcba0369b9533cf5b6db7ebf47ae3eeff6873ad" :a :exploration/tags :v :tag/phase-b :op :assert}
+ ]}

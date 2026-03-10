@@ -1,0 +1,17 @@
+{:tx/id #hlc "8/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Phase A complete: Datalog bug fixed, observe command, adaptive analyze, SLQ entropy"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b123c767bcbfb9b415f094ec40647cae8a399cacbb8cf90047843979ca5fb246" :a :db/ident :v :observation/phase-a-complete-datalog-bug-fixed-observe-command-adapti :op :assert}
+   {:e #blake3 "b123c767bcbfb9b415f094ec40647cae8a399cacbb8cf90047843979ca5fb246" :a :db/doc :v "Phase A complete: Datalog bug fixed, observe command, adaptive analyze, SLQ entropy" :op :assert}
+   {:e #blake3 "b123c767bcbfb9b415f094ec40647cae8a399cacbb8cf90047843979ca5fb246" :a :exploration/body :v "Phase A complete: Datalog bug fixed, observe command, adaptive analyze, SLQ entropy" :op :assert}
+   {:e #blake3 "b123c767bcbfb9b415f094ec40647cae8a399cacbb8cf90047843979ca5fb246" :a :exploration/content-hash :v #bytes "c59ff8142e6ea085760619716f180ae269d13bffeccce08295d604b548aa4e86" :op :assert}
+   {:e #blake3 "b123c767bcbfb9b415f094ec40647cae8a399cacbb8cf90047843979ca5fb246" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "b123c767bcbfb9b415f094ec40647cae8a399cacbb8cf90047843979ca5fb246" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "b123c767bcbfb9b415f094ec40647cae8a399cacbb8cf90047843979ca5fb246" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b123c767bcbfb9b415f094ec40647cae8a399cacbb8cf90047843979ca5fb246" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b123c767bcbfb9b415f094ec40647cae8a399cacbb8cf90047843979ca5fb246" :a :exploration/tags :v :tag/roadmap :op :assert}
+   {:e #blake3 "b123c767bcbfb9b415f094ec40647cae8a399cacbb8cf90047843979ca5fb246" :a :exploration/tags :v :tag/phase-a :op :assert}
+ ]}
