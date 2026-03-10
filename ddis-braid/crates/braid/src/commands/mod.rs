@@ -13,7 +13,7 @@ mod harvest;
 mod init;
 mod log;
 mod merge;
-mod observe;
+pub(crate) mod observe;
 mod promote;
 mod query;
 mod retract;

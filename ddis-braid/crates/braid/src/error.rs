@@ -7,8 +7,12 @@ pub enum BraidError {
     Io(std::io::Error),
     /// EDN parse error.
     Parse(String),
+    /// Datalog query parse error (more specific hint than generic Parse).
+    DatalogParse(String),
     /// Input validation error (bad arguments, out-of-range values).
     Validation(String),
+    /// Query returned no results (not an error per se, but needs guidance).
+    EmptyResult(String),
 }
 
 impl std::fmt::Display for BraidError {
@@ -17,7 +21,9 @@ impl std::fmt::Display for BraidError {
             BraidError::Kernel(e) => write!(f, "{e}"),
             BraidError::Io(e) => write!(f, "io: {e}"),
             BraidError::Parse(e) => write!(f, "parse: {e}"),
+            BraidError::DatalogParse(e) => write!(f, "datalog: {e}"),
             BraidError::Validation(e) => write!(f, "validation: {e}"),
+            BraidError::EmptyResult(e) => write!(f, "no results: {e}"),
         }
     }
 }
@@ -27,8 +33,10 @@ impl std::error::Error for BraidError {
         match self {
             BraidError::Kernel(e) => Some(e),
             BraidError::Io(e) => Some(e),
-            BraidError::Parse(_) => None,
-            BraidError::Validation(_) => None,
+            BraidError::Parse(_)
+            | BraidError::DatalogParse(_)
+            | BraidError::Validation(_)
+            | BraidError::EmptyResult(_) => None,
         }
     }
 }
@@ -68,9 +76,21 @@ impl BraidError {
                  Check the EDN syntax: keywords use colons (:ns/name), \
                  strings use double-quotes, and maps use curly braces."
             }
+            BraidError::DatalogParse(_) => {
+                "Datalog syntax: [:find ?var :where [?var :attribute value]]. \
+                 Variables start with ?, attributes are keywords (:ns/name), \
+                 strings need double-quotes, numbers are bare. \
+                 Example: [:find ?e ?v :where [?e :db/doc ?v]]"
+            }
             BraidError::Validation(_) => {
                 "The input failed validation. \
                  Check the allowed ranges and formats in `braid <command> --help`."
+            }
+            BraidError::EmptyResult(_) => {
+                "No datoms matched your query. Try: \
+                 `braid query -a :db/ident` to list all entities, \
+                 `braid status` to see store contents, or \
+                 `braid find :db/doc` in the shell to browse."
             }
         }
     }

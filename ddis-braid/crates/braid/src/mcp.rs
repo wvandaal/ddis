@@ -190,6 +190,32 @@ fn tool_definitions() -> JsonValue {
                     "required": [],
                 }
             },
+            {
+                "name": "braid_observe",
+                "description": "Fastest way to capture knowledge. Records an observation with epistemic confidence (0.0-1.0). Use whenever you learn something, make a decision, or notice a pattern. Example: text='CRDT merge is commutative', confidence=0.9, category='theorem'.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "text": {
+                            "type": "string",
+                            "description": "The observation text — what you learned or noticed"
+                        },
+                        "confidence": {
+                            "type": "number",
+                            "description": "Epistemic confidence 0.0-1.0 (default 0.7). 1.0=certain, 0.5=unsure, 0.0=wild guess"
+                        },
+                        "category": {
+                            "type": "string",
+                            "description": "Optional: observation, conjecture, theorem, definition, algorithm, design-decision, open-question"
+                        },
+                        "relates_to": {
+                            "type": "string",
+                            "description": "Optional cross-reference to a spec element (e.g., ':spec/inv-store-001')"
+                        }
+                    },
+                    "required": ["text"],
+                }
+            },
         ]
     })
 }
@@ -211,6 +237,7 @@ fn call_tool(
         "braid_harvest" => tool_harvest(layout, arguments),
         "braid_seed" => tool_seed(layout, arguments),
         "braid_guidance" => tool_guidance(layout),
+        "braid_observe" => tool_observe(layout, arguments),
         _ => Ok(json!({
             "content": [{
                 "type": "text",
@@ -558,6 +585,39 @@ fn tool_guidance(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
     }))
 }
 
+/// `braid_observe` — Capture a knowledge observation.
+fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+    let text = args
+        .get("text")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| BraidError::Parse("missing required parameter: text".into()))?;
+
+    let confidence = args
+        .get("confidence")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.7);
+
+    let category = args.get("category").and_then(|v| v.as_str());
+    let relates_to = args.get("relates_to").and_then(|v| v.as_str());
+
+    let result = crate::commands::observe::run(crate::commands::observe::ObserveArgs {
+        path: &layout.root,
+        text,
+        confidence,
+        tags: &[],
+        category,
+        agent: "braid:mcp",
+        relates_to,
+    })?;
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": result,
+        }],
+    }))
+}
+
 // ---------------------------------------------------------------------------
 // Value parsing (reused from transact command)
 // ---------------------------------------------------------------------------
@@ -744,15 +804,15 @@ fn handle_tools_call(id: &JsonValue, params: &JsonValue, layout: &DiskLayout) ->
 mod tests {
     use super::*;
 
-    /// INV-INTERFACE-003: Exactly 6 tools exposed via MCP.
+    /// INV-INTERFACE-003: Expected number of tools exposed via MCP.
     #[test]
-    fn exactly_six_tools() {
+    fn expected_tool_count() {
         let defs = tool_definitions();
         let tools = defs["tools"].as_array().expect("tools must be an array");
         assert_eq!(
             tools.len(),
-            6,
-            "INV-INTERFACE-003: must expose exactly 6 tools"
+            7,
+            "INV-INTERFACE-003: must expose expected number of tools"
         );
     }
 
@@ -770,6 +830,7 @@ mod tests {
             "braid_harvest",
             "braid_seed",
             "braid_guidance",
+            "braid_observe",
         ];
 
         for exp in &expected {
@@ -952,6 +1013,6 @@ mod tests {
         let response = handle_tools_list(&id);
         assert_eq!(response["jsonrpc"], "2.0");
         let tools = response["result"]["tools"].as_array().unwrap();
-        assert_eq!(tools.len(), 6);
+        assert_eq!(tools.len(), 7);
     }
 }

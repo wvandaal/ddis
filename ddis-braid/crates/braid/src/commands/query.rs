@@ -267,7 +267,9 @@ fn tokenize(input: &str) -> Result<Vec<String>, BraidError> {
                     i += 1;
                 }
                 if i >= len {
-                    return Err(BraidError::Parse("unterminated string literal".to_string()));
+                    return Err(BraidError::DatalogParse(
+                        "unterminated string literal".to_string(),
+                    ));
                 }
                 let s: String = chars[start..i].iter().collect();
                 tokens.push(format!("\"{s}\""));
@@ -315,7 +317,7 @@ fn tokenize(input: &str) -> Result<Vec<String>, BraidError> {
                 tokens.push(word);
             }
             other => {
-                return Err(BraidError::Parse(format!(
+                return Err(BraidError::DatalogParse(format!(
                     "unexpected character '{other}' at position {i}"
                 )));
             }
@@ -341,20 +343,24 @@ fn is_delimiter(c: char) -> bool {
 fn parse_datalog(input: &str) -> Result<QueryExpr, BraidError> {
     let tokens = tokenize(input)?;
     if tokens.is_empty() {
-        return Err(BraidError::Parse("empty query".to_string()));
+        return Err(BraidError::DatalogParse("empty query".to_string()));
     }
 
     let mut pos = 0;
 
     // Expect opening bracket
     if tokens.get(pos).map(|s| s.as_str()) != Some("[") {
-        return Err(BraidError::Parse("query must start with '['".to_string()));
+        return Err(BraidError::DatalogParse(
+            "query must start with '['".to_string(),
+        ));
     }
     pos += 1;
 
     // Expect :find
     if tokens.get(pos).map(|s| s.as_str()) != Some(":find") {
-        return Err(BraidError::Parse("expected ':find' after '['".to_string()));
+        return Err(BraidError::DatalogParse(
+            "expected ':find' after '['".to_string(),
+        ));
     }
     pos += 1;
 
@@ -376,21 +382,21 @@ fn parse_datalog(input: &str) -> Result<QueryExpr, BraidError> {
                 pos += 1;
             }
         } else {
-            return Err(BraidError::Parse(format!(
+            return Err(BraidError::DatalogParse(format!(
                 "expected variable in :find clause, got '{tok}'"
             )));
         }
     }
 
     if find_vars.is_empty() {
-        return Err(BraidError::Parse(
+        return Err(BraidError::DatalogParse(
             ":find clause has no variables".to_string(),
         ));
     }
 
     // Expect :where
     if tokens.get(pos).map(|s| s.as_str()) != Some(":where") {
-        return Err(BraidError::Parse(
+        return Err(BraidError::DatalogParse(
             "expected ':where' after find variables".to_string(),
         ));
     }
@@ -413,12 +419,14 @@ fn parse_datalog(input: &str) -> Result<QueryExpr, BraidError> {
                 pos += 1;
             }
             if pos >= tokens.len() {
-                return Err(BraidError::Parse("unterminated where clause".to_string()));
+                return Err(BraidError::DatalogParse(
+                    "unterminated where clause".to_string(),
+                ));
             }
             pos += 1; // skip ']'
 
             if clause_tokens.len() != 3 {
-                return Err(BraidError::Parse(format!(
+                return Err(BraidError::DatalogParse(format!(
                     "where clause must have exactly 3 terms (entity, attribute, value), got {}",
                     clause_tokens.len()
                 )));
@@ -438,14 +446,14 @@ fn parse_datalog(input: &str) -> Result<QueryExpr, BraidError> {
                 pos += 1;
             }
             if pos >= tokens.len() {
-                return Err(BraidError::Parse(
+                return Err(BraidError::DatalogParse(
                     "unterminated predicate clause".to_string(),
                 ));
             }
             pos += 1; // skip ')'
 
             if pred_tokens.len() < 3 {
-                return Err(BraidError::Parse(format!(
+                return Err(BraidError::DatalogParse(format!(
                     "predicate clause needs at least 3 tokens (op arg1 arg2), got {}",
                     pred_tokens.len()
                 )));
@@ -457,14 +465,14 @@ fn parse_datalog(input: &str) -> Result<QueryExpr, BraidError> {
 
             clauses.push(Clause::Predicate { op, args: args? });
         } else {
-            return Err(BraidError::Parse(format!(
+            return Err(BraidError::DatalogParse(format!(
                 "expected '[' or '(' to start a where clause, got '{tok}'"
             )));
         }
     }
 
     if clauses.is_empty() {
-        return Err(BraidError::Parse(
+        return Err(BraidError::DatalogParse(
             ":where clause has no patterns".to_string(),
         ));
     }
@@ -530,13 +538,13 @@ fn parse_term_at(token: &str, position: TermPosition) -> Result<Term, BraidError
         token
             .parse::<f64>()
             .map(|f| Term::Constant(Value::Double(ordered_float::OrderedFloat(f))))
-            .map_err(|e| BraidError::Parse(format!("invalid number '{token}': {e}")))
+            .map_err(|e| BraidError::DatalogParse(format!("invalid number '{token}': {e}")))
     } else {
         // Try integer
         token
             .parse::<i64>()
             .map(|n| Term::Constant(Value::Long(n)))
-            .map_err(|e| BraidError::Parse(format!("unrecognized token '{token}': {e}")))
+            .map_err(|e| BraidError::DatalogParse(format!("unrecognized token '{token}': {e}")))
     }
 }
 
