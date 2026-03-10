@@ -213,24 +213,29 @@ is monotonically non-decreasing and all previously-observed datom tuples remain 
 
 ## The Staged Roadmap
 
-Work proceeds in stages. **You are currently in the pre-Stage-0 specification phase** unless
-explicitly told otherwise.
+Work proceeds in stages. **Stage 0 is complete.** The specification (`spec/`), implementation
+guide (`docs/guide/`), and gap analysis (`docs/audits/GAP_ANALYSIS.md`) are all produced.
+The kernel implementation has 288 passing tests, formal verification (Kani + Stateright),
+and full CI pipelines. **Current focus is Stage 1.**
 
-### Current Phase: Specification Production
+### Completed: Specification Production + Stage 0 Implementation
 
-The immediate work is producing three documents:
+The following are complete and serve as the foundation for all future stages:
 
-1. **`spec/`** — The DDIS-structured specification, modularized into one file per namespace.
-   Invariants with IDs and falsification conditions, ADRs with alternatives and rationale,
-   negative cases, explicit uncertainty markers. Every element individually addressable,
-   traceable to the seed, structured for eventual migration into the datom store.
-   See `spec/README.md` for the master index.
+1. **`spec/`** — 21 namespace specification files with invariants, ADRs, negative cases,
+   uncertainty markers. See `spec/README.md` for the master index.
 
-2. **docs/guide/** — Stage 0–4 deliverables, CLI command specs with examples,
-   CLAUDE.md template for the implementing agent, file formats, success criteria.
+2. **`docs/guide/`** — Stage 0–4 deliverables, CLI command specs, file formats, success criteria.
 
-3. **docs/audits/GAP_ANALYSIS.md** — Categorize every existing module in `../ddis-cli/` as ALIGNED,
-   DIVERGENT, EXTRA, BROKEN, or MISSING relative to the specification.
+3. **`docs/audits/GAP_ANALYSIS.md`** — Every existing module in `../ddis-cli/` categorized as
+   ALIGNED, DIVERGENT, EXTRA, BROKEN, or MISSING relative to the specification.
+
+4. **`crates/braid-kernel/`** — 17,912 LOC Rust: datom store, schema, query engine (Datalog
+   with stratification), harvest/seed lifecycle, merge with CRDT semantics, resolution modes,
+   trilateral coherence, guidance system, dynamic CLAUDE.md generation. 288 tests passing.
+
+5. **`crates/braid/`** — CLI binary with 10 commands: init, status, transact, query, harvest,
+   seed, guidance, merge, log, generate.
 
 ### Stage 0: Harvest/Seed Cycle (Target: 1–2 weeks implementation)
 
