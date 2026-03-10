@@ -1852,15 +1852,18 @@ const LANDMARK_COUNT: usize = 30;
 /// Compute Ricci curvature with landmark-based distance approximation for
 /// large graphs. Falls back to exact all-pairs BFS for small graphs.
 ///
-/// For n ≤ 500: exact all-pairs BFS (O(n·(n+m)))
-/// For n > 500: landmark-based approximation (O(k·(n+m)) where k = 30)
+/// For n ≤ 2000: exact all-pairs BFS (O(n·(n+m)), memory O(n²))
+/// For n > 2000: landmark-based approximation (O(k·(n+m)) where k = 30)
+///
+/// The threshold is 2000 because all-pairs BFS needs n² entries (4M for n=2000),
+/// which fits comfortably in memory. Above that, landmark approximation is used.
 pub fn ricci_curvature_adaptive(graph: &DiGraph) -> BTreeMap<(String, String), f64> {
     let n = graph.node_count();
     if n == 0 {
         return BTreeMap::new();
     }
 
-    if n <= 500 {
+    if n <= 2000 {
         // Small graph: exact computation
         return ollivier_ricci_curvature(graph);
     }

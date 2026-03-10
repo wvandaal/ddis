@@ -174,16 +174,29 @@ fn compute_dashboard(store: &Store, path: &Path) -> String {
         }
 
         if let Some(ref sd) = sd {
+            // Count connected components (multiplicity of λ ≈ 0)
+            let num_components = sd.eigenvalues.iter().filter(|&&l| l.abs() < 1e-6).count();
+            if num_components > 1 {
+                out.push_str(&format!(
+                    "  connected components (undirected): {}\n",
+                    num_components
+                ));
+            }
+
             let fiedler_result = fiedler_from_spectrum(sd);
             out.push_str(&format!(
                 "  algebraic connectivity (λ₂): {:.6}\n",
                 fiedler_result.algebraic_connectivity
             ));
-            out.push_str(&format!(
-                "  Fiedler partition: {} / {} nodes\n",
-                fiedler_result.partition.0.len(),
-                fiedler_result.partition.1.len()
-            ));
+            if fiedler_result.algebraic_connectivity > 1e-8 {
+                out.push_str(&format!(
+                    "  Fiedler partition: {} / {} nodes\n",
+                    fiedler_result.partition.0.len(),
+                    fiedler_result.partition.1.len()
+                ));
+            } else {
+                out.push_str("  Fiedler partition: N/A (graph is disconnected)\n");
+            }
             algo_count += 1;
         }
 
@@ -262,8 +275,8 @@ fn compute_dashboard(store: &Store, path: &Path) -> String {
     out.push_str("\n── Differential Geometry ──\n");
 
     if n >= 2 && e > 0 {
-        // Adaptive Ricci: exact BFS for n≤500, landmark-based for n>500
-        let is_approx = n > 500;
+        // Adaptive Ricci: exact BFS for n≤2000, landmark-based for n>2000
+        let is_approx = n > 2000;
         let curvatures = ricci_curvature_adaptive(&graph);
         let summary = ricci_summary(&curvatures);
 
