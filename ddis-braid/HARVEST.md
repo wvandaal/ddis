@@ -2514,3 +2514,86 @@ a missing datom meant downstream `log` display always showed "-" for rationale.
 
 1. **Stage 1 work** — P3 beads are ready (brai-35s5, brai-2g7o, brai-3oof, brai-25x2)
 2. **Spec revision** — Update `GENERATE-CLAUDE-MD` concept names in `spec/` to provider-neutral terminology
+
+---
+
+## Session 020 — 2026-03-09 (Coherence Geometry Exploration: Density Matrix + Information Geometry + Spectral Sequences)
+
+### Seed (Context Loaded)
+
+- Continuation of Sessions 017–018 (sheaf cohomology exploration → formal spec promotion).
+- User requested maximum mathematical ambition: unify ALL existing DDIS metrics (Φ, β₁, F(S), F(T),
+  persistence diagrams) under a single mathematical object — the coherence density matrix.
+- Three candidate explorations proposed and approved: Density Matrix, Information Geometry, Spectral Sequences.
+
+### What Was Accomplished
+
+Designed and wrote three comprehensive exploration documents under `exploration/coherence-geometry/`,
+totaling 1,614 lines. These establish a unified mathematical framework for coherence verification
+that subsumes all existing DDIS metrics.
+
+**00-density-matrix-coherence.md** (649 lines):
+- Agreement matrix A(e,a)ᵢⱼ = agreement_a(viewᵢ, viewⱼ) from resolution modes
+- Coherence density matrix ρ = A/n (positive semi-definite, unit-trace)
+- Von Neumann entropy S(ρ) as universal coherence metric (S=0 ⟺ full coherence)
+- Unification: Φ, β₁, F(S), F(T) all derivable from ρ's spectral decomposition
+- Thermodynamic interpretation: Second Law of Coherence, negentropy production, phase transitions
+- Entanglement-cycle correspondence: β₁ > 0 ⟺ non-separable correlations
+- ISP 3×3 density matrix with Rust implementation sketches
+- Resolved DQ-1: agreement function = resolution mode's metric (Theorem: agreement=1 ⟺ resolution is no-op)
+
+**01-information-geometry-manifold.md** (474 lines):
+- Bures metric on 𝒟ₙ (space of coherence density matrices) as Riemannian manifold
+- Geodesics give optimal transaction paths to coherence
+- Geodesic pursuit algorithm: greedy transaction selection by Bures distance reduction
+- Optimal seed construction via submodular maximization with (1-1/e) ≈ 0.632 approximation guarantee
+- Curvature interpretation: negative = many paths, mixed = sensitive region, divergent near purity
+- Merge convergence rate via CPTP maps and spectral gap
+- CLI integration sketches (`braid coherence --density`, `braid seed --optimal`)
+
+**02-spectral-sequence-verification.md** (491 lines):
+- Three-level filtration F₀ ⊆ F₁ ⊆ F₂ of coherence complex by abstraction level (I, S, P)
+- Spectral sequence pages: E₁ = per-level cohomology, d₁ = boundary maps (= Φ), d₂ = ISP bypass
+- E₂ degeneration criterion: formal early-termination guarantee
+- CALM alignment: E₁ = monotonic stratum, d₁/d₂ = non-monotonic stratum with sync barriers
+- Bilateral loop correspondence: AUTO_CYCLE = "compute through E₂", FULL_CYCLE = "compute through E₃"
+- Self-bootstrap: verifying the coherence framework's own ISP triangle
+- Stage 0 specialization: spectral sequence reduces to existing (Φ, β₁) algorithm
+- Rust implementation sketch with `rayon::join3` for parallel per-level computation
+
+### Key Design Decisions
+
+1. **Agreement = resolution mode metric**: LWW→Kronecker delta, Lattice→normalized lattice distance,
+   Multi→Jaccard similarity. No external oracles, no semantic similarity.
+2. **Filtration spectral sequence** (not Leray-Serre): Correct for discrete poset base. For 3-step
+   filtration, E₃ = E_∞ — finite convergence guaranteed.
+3. **Self-subsuming**: At Stage 0 (n=3), spectral sequence reduces to existing (Φ, β₁) check.
+   New capability appears at Stage 2+ (multi-agent, per-level H¹ non-zero).
+
+### Open Questions
+
+- Curvature computation cost for n > 10 (OQ-1, doc 01)
+- Non-uniform token budgets in seed optimization (OQ-2, doc 01)
+- CPTP model for dimension-changing transactions (OQ-3, doc 01)
+- Relative cohomology implementation for quotient complexes (OQ-1, doc 02)
+- Persistent spectral sequences (OQ-3, doc 02, most speculative)
+
+### Files Created
+
+| File | Lines | Content |
+|------|-------|---------|
+| `exploration/coherence-geometry/00-density-matrix-coherence.md` | 649 | Density matrix formalism |
+| `exploration/coherence-geometry/01-information-geometry-manifold.md` | 474 | Bures metric, geodesics, optimal seed |
+| `exploration/coherence-geometry/02-spectral-sequence-verification.md` | 491 | Spectral sequences, staged verification |
+
+### Failure Modes Discovered
+
+None new.
+
+### Recommended Next Action
+
+1. **Promote to formal spec**: Extract the cleanest results (density matrix construction, entropy metric,
+   staged verification algorithm) into spec elements, as done in Session 018 for sheaf cohomology.
+2. **Implement Stage 0 coherence density matrix**: The 3×3 ISP density matrix is trivially implementable
+   and would give `braid coherence --density` immediately.
+3. **Continue exploration**: Cross-project topology, observability/instrumentation, or signal system formalization.
