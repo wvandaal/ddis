@@ -3,12 +3,12 @@
 //! Implements the MCP protocol using newline-delimited JSON-RPC over stdin/stdout.
 //! Exposes braid-kernel functionality as MCP tools:
 //!
-//! - `braid_status`   — Store status (datom count, entity count, frontier)
+//! - `braid_status`   — Store status, coherence, methodology, and next actions
 //! - `braid_query`    — Query the store by entity/attribute filter
-//! - `braid_transact` — Assert a datom into the store
+//! - `braid_write`    — Assert a datom into the store
 //! - `braid_harvest`  — Run the harvest pipeline
 //! - `braid_seed`     — Generate a seed context for a new session
-//! - `braid_guidance` — Get methodology guidance footer
+//! - `braid_observe`  — Capture a knowledge observation
 //!
 //! # Protocol
 //!
@@ -28,11 +28,9 @@ use serde_json::{json, Value as JsonValue};
 use braid_kernel::datom::{
     AgentId, Attribute, EntityId, Op, ProvenanceType, TxId, Value as DatomValue,
 };
-use braid_kernel::guidance::{build_footer, compute_methodology_score, format_footer, Trend};
 use braid_kernel::harvest::{harvest_pipeline, SessionContext};
 use braid_kernel::layout::TxFile;
 use braid_kernel::seed::{assemble_seed, ContextSection};
-use braid_kernel::trilateral::check_coherence_fast;
 use ordered_float::OrderedFloat;
 
 use crate::error::BraidError;
@@ -119,8 +117,8 @@ fn tool_definitions() -> JsonValue {
                 }
             },
             {
-                "name": "braid_transact",
-                "description": "Assert a fact (datom) into the append-only store. Use to record decisions, link entities, or update attributes. The store never deletes — retractions are separate datoms. Example: entity=':adr/use-lanczos', attribute=':db/doc', value='Use Lanczos for spectral analysis on graphs > 200 nodes'.",
+                "name": "braid_write",
+                "description": "Assert a fact (datom) into the append-only store. Use to record decisions, link entities, or update attributes. The store never deletes — retractions are separate datoms. Example: entity=':adr/use-lanczos', attribute=':db/doc', value='Use Lanczos for spectral analysis'.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -182,15 +180,6 @@ fn tool_definitions() -> JsonValue {
                 }
             },
             {
-                "name": "braid_guidance",
-                "description": "What should I do next? Returns: coherence metrics (Φ, β₁, quadrant), methodology score, and prioritized actions with runnable commands. Use when stuck or between tasks. Example output: phi=210.6, actions: [CONNECT: Divergence with 83 cycles → braid analyze].",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {},
-                    "required": [],
-                }
-            },
-            {
                 "name": "braid_observe",
                 "description": "Fastest way to capture knowledge. Records an observation with epistemic confidence (0.0-1.0). Use whenever you learn something, make a decision, or notice a pattern. Example: text='CRDT merge is commutative', confidence=0.9, category='theorem'.",
                 "inputSchema": {
@@ -233,10 +222,9 @@ fn call_tool(
     match name {
         "braid_status" => tool_status(layout),
         "braid_query" => tool_query(layout, arguments),
-        "braid_transact" => tool_transact(layout, arguments),
+        "braid_write" => tool_write(layout, arguments),
         "braid_harvest" => tool_harvest(layout, arguments),
         "braid_seed" => tool_seed(layout, arguments),
-        "braid_guidance" => tool_guidance(layout),
         "braid_observe" => tool_observe(layout, arguments),
         _ => Ok(json!({
             "content": [{
@@ -329,8 +317,8 @@ fn tool_query(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidE
     }))
 }
 
-/// `braid_transact` — Assert a datom into the store.
-fn tool_transact(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+/// `braid_write` — Assert a datom into the store.
+fn tool_write(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
     let entity_str = args
         .get("entity")
         .and_then(|v| v.as_str())
@@ -355,13 +343,7 @@ fn tool_transact(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Bra
     let attribute = Attribute::from_keyword(attribute_str);
     let value = parse_value(value_str);
 
-    let current_wall = store
-        .frontier()
-        .values()
-        .map(|tx| tx.wall_time())
-        .max()
-        .unwrap_or(0);
-    let tx_id = TxId::new(current_wall + 1, 0, agent);
+    let tx_id = crate::commands::write::next_tx_id(&store, agent);
 
     let datom = braid_kernel::datom::Datom::new(entity, attribute, value, tx_id, Op::Assert);
 
@@ -403,17 +385,12 @@ fn tool_harvest(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
         }
     }
 
-    let current_wall = store
-        .frontier()
-        .values()
-        .map(|tx| tx.wall_time())
-        .max()
-        .unwrap_or(0);
+    let session_boundary = braid_kernel::guidance::last_harvest_wall_time(&store);
 
     let context = SessionContext {
         agent,
         agent_name: "braid:mcp".into(),
-        session_start_tx: TxId::new(current_wall, 0, agent),
+        session_start_tx: TxId::new(session_boundary, 0, agent),
         task_description: task.to_string(),
         session_knowledge,
     };
@@ -531,60 +508,6 @@ fn tool_seed(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidEr
     }))
 }
 
-/// `braid_guidance` — Get methodology guidance footer.
-fn tool_guidance(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
-    let store = layout.load_store()?;
-
-    let coherence = check_coherence_fast(&store);
-    let telemetry = braid_kernel::guidance::SessionTelemetry {
-        total_turns: 0,
-        transact_turns: 0,
-        spec_language_turns: 0,
-        query_type_count: 0,
-        harvest_quality: 0.0,
-        history: vec![],
-    };
-    let score = compute_methodology_score(&telemetry);
-    let footer = build_footer(&telemetry, &store, None, vec![]);
-
-    let mut out = String::new();
-    out.push_str(&format!("divergence (phi): {:.4}\n", coherence.phi));
-    out.push_str(&format!(
-        "D_IS (intent<->spec): {}\n",
-        coherence.components.d_is
-    ));
-    out.push_str(&format!(
-        "D_SP (spec<->impl): {}\n",
-        coherence.components.d_sp
-    ));
-    out.push_str(&format!(
-        "coherence: {:?} (beta_1={})\n",
-        coherence.quadrant, coherence.beta_1
-    ));
-    out.push_str(&format!(
-        "methodology_score: {:.2} (trend: {})\n",
-        score.score,
-        match score.trend {
-            Trend::Up => "up",
-            Trend::Down => "down",
-            Trend::Stable => "stable",
-        }
-    ));
-    out.push_str(&format!(
-        "drift_signal: {}\n\n",
-        if score.drift_signal { "YES" } else { "no" }
-    ));
-    out.push_str("--- guidance footer ---\n");
-    out.push_str(&format_footer(&footer));
-
-    Ok(json!({
-        "content": [{
-            "type": "text",
-            "text": out,
-        }],
-    }))
-}
-
 /// `braid_observe` — Capture a knowledge observation.
 fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
     let text = args
@@ -667,7 +590,7 @@ mod hex {
 ///
 /// The server is stateful: it keeps the `DiskLayout` open for the lifetime
 /// of the process. Each tool call reloads the store from disk (ensuring it
-/// sees any writes from `braid_transact`).
+/// sees any writes from `braid_write`).
 ///
 /// Protocol: newline-delimited JSON-RPC (one JSON object per line).
 pub fn serve(path: &Path) -> Result<(), BraidError> {
@@ -811,7 +734,7 @@ mod tests {
         let tools = defs["tools"].as_array().expect("tools must be an array");
         assert_eq!(
             tools.len(),
-            7,
+            6,
             "INV-INTERFACE-003: must expose expected number of tools"
         );
     }
@@ -826,10 +749,9 @@ mod tests {
         let expected = [
             "braid_status",
             "braid_query",
-            "braid_transact",
+            "braid_write",
             "braid_harvest",
             "braid_seed",
-            "braid_guidance",
             "braid_observe",
         ];
 
@@ -881,7 +803,7 @@ mod tests {
         let layout = DiskLayout::init(dir.path()).unwrap();
 
         // Tools that require no arguments
-        let no_arg_tools = ["braid_status", "braid_guidance"];
+        let no_arg_tools = ["braid_status"];
         for tool_name in &no_arg_tools {
             let result = call_tool(&layout, tool_name, &json!({}));
             assert!(result.is_ok(), "Tool {tool_name} should not error");
@@ -899,17 +821,17 @@ mod tests {
         let result = call_tool(&layout, "braid_query", &json!({}));
         assert!(result.is_ok(), "braid_query should not error");
 
-        // braid_transact
+        // braid_write
         let result = call_tool(
             &layout,
-            "braid_transact",
+            "braid_write",
             &json!({
                 "entity": ":test/entity",
                 "attribute": ":db/doc",
                 "value": "test value"
             }),
         );
-        assert!(result.is_ok(), "braid_transact should not error");
+        assert!(result.is_ok(), "braid_write should not error");
 
         // braid_harvest
         let result = call_tool(
@@ -969,10 +891,10 @@ mod tests {
         let initial = call_tool(&layout, "braid_status", &json!({})).unwrap();
         let initial_text = initial["content"][0]["text"].as_str().unwrap();
 
-        // Transact a datom
+        // Write a datom
         let _tx = call_tool(
             &layout,
-            "braid_transact",
+            "braid_write",
             &json!({
                 "entity": ":test/mcp-equiv",
                 "attribute": ":db/doc",
@@ -1013,6 +935,6 @@ mod tests {
         let response = handle_tools_list(&id);
         assert_eq!(response["jsonrpc"], "2.0");
         let tools = response["result"]["tools"].as_array().unwrap();
-        assert_eq!(tools.len(), 7);
+        assert_eq!(tools.len(), 6);
     }
 }

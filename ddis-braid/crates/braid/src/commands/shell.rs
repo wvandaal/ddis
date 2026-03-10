@@ -29,7 +29,7 @@ pub fn run(path: &Path) -> Result<String, BraidError> {
 
     eprintln!("braid shell (Ctrl-D or 'quit' to exit)");
     eprintln!("commands: status, show <entity>, find <attr>, observe <text>, datalog <expr>,");
-    eprintln!("          analyze, guidance, bilateral, log, help, quit");
+    eprintln!("          analyze, deep, log, help, quit");
 
     loop {
         eprint!("braid> ");
@@ -87,10 +87,22 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
 
         "help" | "h" | "?" => DispatchResult::Output(help_text()),
 
-        "status" | "st" => match super::status::run(path, false, false) {
-            Ok(s) => DispatchResult::Output(s),
-            Err(e) => DispatchResult::Error(e.to_string()),
-        },
+        "status" | "st" => {
+            match super::status::run(
+                path,
+                "braid:shell",
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+            ) {
+                Ok(s) => DispatchResult::Output(s),
+                Err(e) => DispatchResult::Error(e.to_string()),
+            }
+        }
 
         "show" | "s" => {
             if args.is_empty() {
@@ -147,13 +159,37 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
             Err(e) => DispatchResult::Error(e.to_string()),
         },
 
-        "guidance" | "g" => match super::guidance::run(path, "braid:shell", false, false) {
-            Ok(s) => DispatchResult::Output(s),
-            Err(e) => DispatchResult::Error(e.to_string()),
-        },
+        "guidance" | "g" => {
+            // Guidance absorbed into status (verbose mode shows full methodology)
+            match super::status::run(
+                path,
+                "braid:shell",
+                false,
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+            ) {
+                Ok(s) => DispatchResult::Output(s),
+                Err(e) => DispatchResult::Error(e.to_string()),
+            }
+        }
 
-        "bilateral" | "bi" => {
-            match super::bilateral::run(path, "braid:shell", false, false, false, false) {
+        "bilateral" | "bi" | "deep" => {
+            // Bilateral absorbed into status --deep
+            match super::status::run(
+                path,
+                "braid:shell",
+                false,
+                false,
+                true,
+                false,
+                false,
+                false,
+                false,
+            ) {
                 Ok(s) => DispatchResult::Output(s),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
@@ -172,14 +208,14 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
 fn help_text() -> String {
     "\
 commands:
-  status (st)              Store summary: datom/entity count, frontier
+  status (st)              Dashboard: datoms, coherence, M(t), next action
   show <entity> (s)        All datoms for an entity (e.g., show :spec/inv-store-001)
   find <attribute> (f)     All values of an attribute (e.g., find :db/doc)
   observe <text> (o)       Capture a knowledge observation (confidence 0.7)
   datalog <expr> (dl)      Datalog query (e.g., datalog [:find ?e :where [?e :db/doc ?v]])
   analyze (az)             Graph analytics (budget-aware, 200 token cap)
-  guidance (g)             Coherence metrics and next actions
-  bilateral (bi)           Bilateral fitness F(S) and coherence conditions
+  guidance (g)             Full methodology + all actions (= status --verbose)
+  deep (bi)                Bilateral F(S) + convergence (= status --deep)
   log (l)                  Last 10 transactions
   help (h, ?)              This help text
   quit (q, exit)           Exit the shell

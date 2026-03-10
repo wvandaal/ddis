@@ -1,3 +1,6 @@
+// Standalone entry points (run, run_force, run_json) are retained for potential
+// future direct use but currently only run_budget is called via status --deep.
+#![allow(dead_code)]
 //! `braid analyze` — Run comprehensive graph analytics on the store.
 //!
 //! Computes topological, spectral, cohomological, and differential-geometric

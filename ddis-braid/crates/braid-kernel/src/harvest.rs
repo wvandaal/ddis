@@ -141,6 +141,8 @@ struct EntityProfile {
     has_ident: bool,
     /// The ident value, if present.
     ident: Option<String>,
+    /// The :db/doc value, if present (for human-readable output).
+    doc: Option<String>,
     /// Number of cross-reference (Ref) values.
     ref_count: usize,
     /// Total datom count for this entity.
@@ -183,9 +185,9 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
             for gap in &gaps {
                 candidates.push(HarvestCandidate {
                     entity: profile.entity,
-                    assertions: vec![], // Gap detection only — no value to assert
+                    assertions: vec![],
                     category,
-                    confidence: confidence * 0.6, // Reduce confidence for gap-only candidates
+                    confidence: confidence * 0.6,
                     status: CandidateStatus::Proposed,
                     rationale: format!(
                         "Completeness gap: {} missing for {}",
@@ -194,6 +196,40 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
                     ),
                 });
             }
+        }
+
+        // Also surface each session entity as an Observation candidate
+        // so harvest always reports what happened during the session.
+        // Skip harvest-internal entities (they're bookkeeping, not knowledge).
+        let is_harvest_entity = profile
+            .attributes
+            .iter()
+            .any(|a| a.starts_with(":harvest/") || a.starts_with(":bilateral/"));
+        if !is_harvest_entity && gaps.is_empty() {
+            let label = profile
+                .ident
+                .as_deref()
+                .unwrap_or("unnamed entity")
+                .to_string();
+            let doc_summary = profile
+                .doc
+                .as_deref()
+                .map(|d| {
+                    if d.len() > 100 {
+                        format!(": {}...", &d[..100])
+                    } else {
+                        format!(": {d}")
+                    }
+                })
+                .unwrap_or_default();
+            candidates.push(HarvestCandidate {
+                entity: profile.entity,
+                assertions: vec![],
+                category,
+                confidence,
+                status: CandidateStatus::Proposed,
+                rationale: format!("Session entity: {label}{doc_summary}"),
+            });
         }
     }
 
@@ -285,6 +321,7 @@ fn build_profile(entity: EntityId, datoms: &[&Datom]) -> EntityProfile {
     let mut namespace_counts: BTreeMap<AttrNamespace, usize> = BTreeMap::new();
     let mut has_ident = false;
     let mut ident = None;
+    let mut doc = None;
     let mut ref_count = 0;
 
     for datom in datoms {
@@ -301,6 +338,12 @@ fn build_profile(entity: EntityId, datoms: &[&Datom]) -> EntityProfile {
             }
         }
 
+        if datom.attribute.as_str() == ":db/doc" {
+            if let Value::String(ref s) = datom.value {
+                doc = Some(s.clone());
+            }
+        }
+
         if matches!(&datom.value, Value::Ref(_)) {
             ref_count += 1;
         }
@@ -312,6 +355,7 @@ fn build_profile(entity: EntityId, datoms: &[&Datom]) -> EntityProfile {
         namespace_counts,
         has_ident,
         ident,
+        doc,
         ref_count,
         datom_count: datoms.len(),
     }
@@ -962,7 +1006,8 @@ mod tests {
         let context = SessionContext {
             agent,
             agent_name: "test-agent".into(),
-            session_start_tx: TxId::new(0, 0, agent),
+            // wall=1 excludes genesis (wall=0) from session entities
+            session_start_tx: TxId::new(1, 0, agent),
             task_description: "test session".to_string(),
             session_knowledge: vec![
                 (
@@ -990,7 +1035,8 @@ mod tests {
         let context = SessionContext {
             agent,
             agent_name: "test-agent".into(),
-            session_start_tx: TxId::new(0, 0, agent),
+            // wall=1 excludes genesis from session entities
+            session_start_tx: TxId::new(1, 0, agent),
             task_description: "test session".to_string(),
             session_knowledge: vec![(
                 ":db/ident".to_string(),
@@ -1037,7 +1083,8 @@ mod tests {
         let context = SessionContext {
             agent,
             agent_name: "test".into(),
-            session_start_tx: TxId::new(0, 0, agent),
+            // wall=1 excludes genesis from session entities
+            session_start_tx: TxId::new(1, 0, agent),
             task_description: "test".to_string(),
             session_knowledge: vec![
                 (
@@ -1119,6 +1166,7 @@ mod tests {
             namespace_counts: BTreeMap::from([(AttrNamespace::Spec, 2), (AttrNamespace::Meta, 1)]),
             has_ident: false,
             ident: None,
+            doc: None,
             ref_count: 0,
             datom_count: 3,
         };
@@ -1136,6 +1184,7 @@ mod tests {
             namespace_counts: BTreeMap::from([(AttrNamespace::Intent, 2)]),
             has_ident: false,
             ident: None,
+            doc: None,
             ref_count: 0,
             datom_count: 2,
         };
@@ -1153,6 +1202,7 @@ mod tests {
             namespace_counts: BTreeMap::from([(AttrNamespace::Meta, 1)]),
             has_ident: false,
             ident: None,
+            doc: None,
             ref_count: 0,
             datom_count: 1,
         };
@@ -1168,6 +1218,7 @@ mod tests {
             namespace_counts: BTreeMap::from([(AttrNamespace::Meta, 2), (AttrNamespace::Spec, 3)]),
             has_ident: true,
             ident: Some(":test/dense".to_string()),
+            doc: None,
             ref_count: 2,
             datom_count: 5,
         };
@@ -1230,6 +1281,7 @@ mod tests {
             ]),
             has_ident: true,
             ident: Some(":test/decision".to_string()),
+            doc: None,
             ref_count: 0,
             datom_count: 4,
         };
@@ -1254,6 +1306,7 @@ mod tests {
             namespace_counts: BTreeMap::from([(AttrNamespace::Impl, 3), (AttrNamespace::Meta, 1)]),
             has_ident: true,
             ident: Some(":test/impl".to_string()),
+            doc: None,
             ref_count: 1,
             datom_count: 4,
         };
@@ -1377,6 +1430,7 @@ mod tests {
             namespace_counts: BTreeMap::from([(AttrNamespace::Spec, 1)]),
             has_ident: false,
             ident: None,
+            doc: None,
             ref_count: 0,
             datom_count: 1,
         };

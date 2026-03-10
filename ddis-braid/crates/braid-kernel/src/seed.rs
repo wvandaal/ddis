@@ -205,6 +205,117 @@ fn build_entity_graph(store: &Store) -> (DiGraph, BTreeMap<String, EntityId>) {
     (graph, id_map)
 }
 
+/// Fallback seed selection: when keyword matching returns zero entities,
+/// select the most recently-modified entities. This handles generic tasks
+/// like "continue" or "overview" where the user wants orientation, not
+/// keyword-specific results.
+/// Build the Orientation section with store summary and last harvest context.
+fn build_orientation(store: &Store) -> String {
+    let mut parts = vec![format!("Braid datom store | {} datoms", store.len())];
+
+    // Find the most recent harvest session and its task
+    let mut latest_harvest_wall: u64 = 0;
+    let mut latest_harvest_entity: Option<EntityId> = None;
+    for datom in store.datoms() {
+        if datom.attribute.as_str() == ":harvest/agent" && datom.op == Op::Assert {
+            let wall = datom.tx.wall_time();
+            if wall > latest_harvest_wall {
+                latest_harvest_wall = wall;
+                latest_harvest_entity = Some(datom.entity);
+            }
+        }
+    }
+
+    if let Some(entity) = latest_harvest_entity {
+        // Get the harvest session's doc (contains task description)
+        for datom in store.datoms() {
+            if datom.entity == entity
+                && datom.attribute.as_str() == ":db/doc"
+                && datom.op == Op::Assert
+            {
+                if let Value::String(ref s) = datom.value {
+                    parts.push(format!("Last harvest: {s}"));
+                }
+                break;
+            }
+        }
+    }
+
+    // Count observations since last harvest
+    let mut obs_since_harvest = 0;
+    for datom in store.datoms() {
+        if datom.attribute.as_str() == ":exploration/source"
+            && datom.op == Op::Assert
+            && datom.tx.wall_time() > latest_harvest_wall
+        {
+            if let Value::String(ref s) = datom.value {
+                if s == "braid:observe" {
+                    obs_since_harvest += 1;
+                }
+            }
+        }
+    }
+    if obs_since_harvest > 0 {
+        parts.push(format!(
+            "{obs_since_harvest} observations since last harvest"
+        ));
+    }
+
+    parts.join("\n")
+}
+
+/// Discover open questions from observation entities.
+fn discover_open_questions(store: &Store) -> Vec<String> {
+    let mut questions = Vec::new();
+    // Find entities tagged as open-question
+    for datom in store.datoms() {
+        if datom.attribute.as_str() == ":exploration/category" && datom.op == Op::Assert {
+            if let Value::String(ref cat) = datom.value {
+                if cat == "open-question" || cat == "conjecture" {
+                    // Get the doc for this entity
+                    for d2 in store.datoms() {
+                        if d2.entity == datom.entity
+                            && d2.attribute.as_str() == ":db/doc"
+                            && d2.op == Op::Assert
+                        {
+                            if let Value::String(ref doc) = d2.value {
+                                let truncated = if doc.len() > 100 {
+                                    format!("{}...", &doc[..100])
+                                } else {
+                                    doc.clone()
+                                };
+                                questions.push(format!("[?] {truncated}"));
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    questions
+}
+
+fn fallback_recent_entities(store: &Store, limit: usize) -> Vec<EntityId> {
+    // Collect max wall_time per entity
+    let mut entity_recency: BTreeMap<EntityId, u64> = BTreeMap::new();
+    for datom in store.datoms() {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        let wall = datom.tx.wall_time();
+        let entry = entity_recency.entry(datom.entity).or_default();
+        if wall > *entry {
+            *entry = wall;
+        }
+    }
+
+    // Sort by recency (most recent first), then take top N
+    let mut by_recency: Vec<(EntityId, u64)> = entity_recency.into_iter().collect();
+    by_recency.sort_by_key(|b| std::cmp::Reverse(b.1));
+    by_recency.iter().take(limit).map(|(e, _)| *e).collect()
+}
+
 // ---------------------------------------------------------------------------
 // Core functions
 // ---------------------------------------------------------------------------
@@ -289,8 +400,15 @@ pub fn associate(store: &Store, cue: &AssociateCue) -> SchemaNeighborhood {
 
             // Sort by score descending, take top breadth
             scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-            let seed_entities: Vec<EntityId> =
+            let mut seed_entities: Vec<EntityId> =
                 scored.iter().take(*breadth).map(|(e, _)| *e).collect();
+
+            // Fallback: if keyword matching found nothing (generic tasks like
+            // "continue", "overview", "fix bugs"), seed with the most recent
+            // entities instead. This ensures seed always produces output.
+            if seed_entities.is_empty() {
+                seed_entities = fallback_recent_entities(store, *breadth);
+            }
 
             // Phase 2: BFS expansion through reference graph
             let params = BfsParams {
@@ -562,8 +680,45 @@ fn project_entity(store: &Store, entity: EntityId, level: ProjectionLevel) -> St
             format!("{} ({} attrs)", type_kw, datoms.len())
         }
         ProjectionLevel::Summary => {
-            let attrs: Vec<&str> = datoms.iter().map(|d| d.attribute.as_str()).collect();
-            format!("{}: [{}]", label, attrs.join(", "))
+            // Show the doc string (most informative single attribute) rather than
+            // a raw attribute list, which is useless for agent comprehension.
+            let doc = datoms
+                .iter()
+                .find(|d| d.attribute.as_str() == ":db/doc")
+                .and_then(|d| {
+                    if let Value::String(ref s) = d.value {
+                        Some(s.as_str())
+                    } else {
+                        None
+                    }
+                });
+            // Fall back to :exploration/body for observations
+            let body = doc.or_else(|| {
+                datoms
+                    .iter()
+                    .find(|d| d.attribute.as_str() == ":exploration/body")
+                    .and_then(|d| {
+                        if let Value::String(ref s) = d.value {
+                            Some(s.as_str())
+                        } else {
+                            None
+                        }
+                    })
+            });
+            match body {
+                Some(text) => {
+                    // Truncate long text to keep tokens reasonable
+                    let truncated = if text.len() > 120 {
+                        format!("{}...", &text[..120])
+                    } else {
+                        text.to_string()
+                    };
+                    format!("{} — {}", label, truncated)
+                }
+                None => {
+                    format!("{} ({} attrs)", label, datoms.len())
+                }
+            }
         }
         ProjectionLevel::Full => {
             let mut lines = Vec::new();
@@ -651,12 +806,18 @@ pub fn assemble(
     let directive = ContextSection::Directive(format!("Task: {task}"));
     let directive_tokens = estimate_tokens(task) + 6;
 
-    let orientation =
-        ContextSection::Orientation(format!("Braid datom store | {} datoms", store.len()));
-    let orientation_tokens = 10;
+    // Orientation: include last harvest session info if available
+    let orientation_text = build_orientation(store);
+    let orientation_tokens = estimate_tokens(&orientation_text);
+    let orientation = ContextSection::Orientation(orientation_text);
 
-    let warnings = ContextSection::Warnings(Vec::new());
-    let warnings_tokens = 0;
+    // Warnings: surface open questions from observations
+    let warning_lines = discover_open_questions(store);
+    let warnings_tokens = warning_lines
+        .iter()
+        .map(|w| estimate_tokens(w))
+        .sum::<usize>();
+    let warnings = ContextSection::Warnings(warning_lines);
 
     let constraints = ContextSection::Constraints(Vec::new());
     let constraints_tokens = 0;

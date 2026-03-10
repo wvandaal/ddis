@@ -1,9 +1,11 @@
 //! `braid harvest` — Run the harvest pipeline to detect knowledge gaps.
+//!
+//! Task is auto-detected from active session, git branch, or tx rationales.
 
 use std::path::Path;
 
 use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
-use braid_kernel::guidance::count_txns_since_last_harvest;
+use braid_kernel::guidance::{count_txns_since_last_harvest, last_harvest_wall_time};
 use braid_kernel::harvest::{
     candidate_to_datoms, crystallization_guard, harvest_pipeline, SessionContext,
     DEFAULT_CRYSTALLIZATION_THRESHOLD,
@@ -11,12 +13,88 @@ use braid_kernel::harvest::{
 use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
+use crate::git;
 use crate::layout::DiskLayout;
+
+/// Infer task description from store state and git branch.
+///
+/// Priority: active session > tx rationale > observation doc > git branch > "session work".
+fn infer_task(store: &braid_kernel::Store, path: &Path) -> (String, &'static str) {
+    // Check for active session entity
+    let session_entity = EntityId::from_ident(":session/current");
+    let session_datoms = store.entity_datoms(session_entity);
+    for d in &session_datoms {
+        if d.attribute == Attribute::from_keyword(":session/task")
+            && d.op == braid_kernel::datom::Op::Assert
+        {
+            if let Value::String(ref s) = d.value {
+                return (s.clone(), "session");
+            }
+        }
+    }
+
+    // Fall back to most recent tx rationale
+    let mut latest_wall = 0u64;
+    let mut latest_rationale = String::new();
+    for d in store.datoms() {
+        if d.attribute == Attribute::from_keyword(":tx/rationale")
+            && d.op == braid_kernel::datom::Op::Assert
+        {
+            let wall = d.tx.wall_time();
+            if wall > latest_wall {
+                if let Value::String(ref s) = d.value {
+                    latest_wall = wall;
+                    latest_rationale = s.clone();
+                }
+            }
+        }
+    }
+    if !latest_rationale.is_empty() {
+        return (latest_rationale, "tx rationale");
+    }
+
+    // Fall back to the most recent observation's doc (truncated)
+    let harvest_boundary = braid_kernel::guidance::last_harvest_wall_time(store);
+    let mut latest_obs_wall = 0u64;
+    let mut latest_obs_doc = String::new();
+    for d in store.datoms() {
+        if d.attribute == Attribute::from_keyword(":db/doc")
+            && d.op == braid_kernel::datom::Op::Assert
+            && d.tx.wall_time() > harvest_boundary
+        {
+            let wall = d.tx.wall_time();
+            if wall > latest_obs_wall {
+                if let Value::String(ref s) = d.value {
+                    latest_obs_wall = wall;
+                    latest_obs_doc = if s.len() > 80 {
+                        format!("{}...", &s[..80])
+                    } else {
+                        s.clone()
+                    };
+                }
+            }
+        }
+    }
+    if !latest_obs_doc.is_empty() {
+        return (latest_obs_doc, "observation");
+    }
+
+    // Fall back to git branch name
+    if let Some(root) = git::detect_git_root(path) {
+        if let Some(branch) = git::current_branch(&root) {
+            if branch != "main" && branch != "master" {
+                return (branch.replace(['-', '_'], " "), "git branch");
+            }
+        }
+    }
+
+    ("session work".to_string(), "default")
+}
 
 pub fn run(
     path: &Path,
     agent_name: &str,
-    task: &str,
+    task_override: Option<&str>,
     knowledge_raw: &[String],
     commit: bool,
     force: bool,
@@ -24,9 +102,22 @@ pub fn run(
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
-    // Check if there are new transactions to harvest
+    // Auto-detect or use explicit task
+    let (task, task_source) = match task_override {
+        Some(t) => (t.to_string(), "explicit"),
+        None => infer_task(&store, path),
+    };
+
     let tx_since_harvest = count_txns_since_last_harvest(&store);
     let harvest_warning = tx_since_harvest == 0 && knowledge_raw.is_empty();
+
+    // Session boundary for harvest pipeline context
+    let session_boundary = last_harvest_wall_time(&store);
+
+    // Collect git context (graceful degradation if not in a repo)
+    // Pass the session boundary timestamp — git.rs auto-detects whether
+    // it's a real Unix timestamp or a legacy sequential wall_time.
+    let git_ctx = git::changes_since(path, session_boundary);
 
     let agent = AgentId::from_name(agent_name);
 
@@ -42,18 +133,11 @@ pub fn run(
         .map(|chunk| (chunk[0].clone(), Value::String(chunk[1].clone())))
         .collect();
 
-    let current_wall = store
-        .frontier()
-        .values()
-        .map(|tx| tx.wall_time())
-        .max()
-        .unwrap_or(0);
-
     let context = SessionContext {
         agent,
         agent_name: agent_name.to_string(),
-        session_start_tx: TxId::new(current_wall, 0, agent),
-        task_description: task.to_string(),
+        session_start_tx: TxId::new(session_boundary, 0, agent),
+        task_description: task.clone(),
         session_knowledge,
     };
 
@@ -66,18 +150,15 @@ pub fn run(
             "  hint: transact new datoms before harvesting, or provide knowledge items\n\n",
         );
     }
+    out.push_str(&format!("harvest: \"{}\" ({})\n", task, task_source));
     out.push_str(&format!(
-        "harvest: {} candidate(s)\n",
-        result.candidates.len()
-    ));
-    out.push_str(&format!("  drift_score: {:.2}\n", result.drift_score));
-    out.push_str(&format!(
-        "  session_entities: {} (tx-log extraction)\n",
-        result.session_entities
+        "  candidates: {} | drift: {:.2}\n",
+        result.candidates.len(),
+        result.drift_score
     ));
     out.push_str(&format!(
-        "  completeness_gaps: {}\n",
-        result.completeness_gaps
+        "  session_entities: {} | completeness_gaps: {}\n",
+        result.session_entities, result.completeness_gaps
     ));
     out.push_str(&format!(
         "  quality: {} total ({} high, {} medium, {} low)\n",
@@ -87,11 +168,18 @@ pub fn run(
         result.quality.low_confidence,
     ));
 
+    // Git context (if available)
+    let git_line = git::format_git_context(&git_ctx);
+    if !git_line.is_empty() {
+        out.push_str(&git_line);
+        out.push('\n');
+    }
+
     if !result.candidates.is_empty() {
         out.push_str("\ncandidates:\n");
         for (i, c) in result.candidates.iter().enumerate() {
             out.push_str(&format!(
-                "  [{}] {:?} — {:?} (confidence: {:.2})\n      {}\n",
+                "  [{}] {:?} \u{2014} {:?} (confidence: {:.2})\n      {}\n",
                 i + 1,
                 c.category,
                 c.status,
@@ -100,43 +188,26 @@ pub fn run(
             ));
         }
     } else {
-        // Diagnostic feedback: explain why there are no candidates
         out.push_str("\ndiagnostic: no candidates found\n");
         if result.session_entities == 0 && context.session_knowledge.is_empty() {
             out.push_str(
                 "  reason: no session transactions detected and no knowledge items provided\n",
             );
-            out.push_str(
-                "  hint: the harvest pipeline scans for datoms with tx > session_start_tx\n",
-            );
-            out.push_str(&format!("  session_start: wall_time={}\n", current_wall));
-            out.push_str(&format!("  store_entities: {}\n", store.entity_count()));
-            out.push_str(
-                "  suggestion: transact new datoms via `braid transact` before harvesting,\n",
-            );
-            out.push_str(
-                "    or provide knowledge items: `braid harvest --task T key1 val1 key2 val2`\n",
-            );
+            out.push_str("  suggestion: use `braid observe` to capture knowledge, then harvest\n");
         } else if result.session_entities > 0 {
             out.push_str(
                 "  reason: session entities were found but all are already in the store\n",
             );
-            out.push_str("  hint: harvest only proposes entities not already present\n");
         } else {
             out.push_str(
                 "  reason: knowledge items provided but all correspond to existing entities\n",
-            );
-            out.push_str(
-                "  hint: the entities already exist in the store — nothing new to harvest\n",
             );
         }
     }
 
     // If --commit: apply crystallization guard then persist
     if commit && !result.candidates.is_empty() {
-        // Crystallization guard (INV-HARVEST-006): partition candidates by stability
         let candidates_to_commit = if force {
-            // --force bypasses crystallization guard
             out.push_str("\ncrystallization: bypassed (--force)\n");
             result.candidates.clone()
         } else {
@@ -150,7 +221,7 @@ pub fn run(
                 ));
                 for (c, score) in &guard.pending {
                     out.push_str(&format!(
-                        "  pending: {:?} (stability={:.2}, needs ≥{:.1})\n",
+                        "  pending: {:?} (stability={:.2}, needs \u{2265}{:.1})\n",
                         c.category, score, DEFAULT_CRYSTALLIZATION_THRESHOLD,
                     ));
                 }
@@ -164,7 +235,7 @@ pub fn run(
             return Ok(out);
         }
 
-        let harvest_tx_id = TxId::new(current_wall + 1, 0, agent);
+        let harvest_tx_id = super::write::next_tx_id(&store, agent);
         let mut all_datoms: Vec<Datom> = Vec::new();
 
         for candidate in &candidates_to_commit {
@@ -174,7 +245,11 @@ pub fn run(
 
         // Create HarvestSession entity (INV-HARVEST-002: provenance trail)
         let safe_agent = agent_name.replace(':', "-");
-        let session_ident = format!(":harvest/session-{}-{}", safe_agent, current_wall + 1);
+        let session_ident = format!(
+            ":harvest/session-{}-{}",
+            safe_agent,
+            harvest_tx_id.wall_time()
+        );
         let session_entity = EntityId::from_ident(&session_ident);
 
         all_datoms.push(Datom::new(
@@ -213,6 +288,22 @@ pub fn run(
             Op::Assert,
         ));
 
+        // Close active session if present
+        let active_session = EntityId::from_ident(":session/current");
+        let has_active = store
+            .entity_datoms(active_session)
+            .iter()
+            .any(|d| d.op == Op::Assert);
+        if has_active {
+            all_datoms.push(Datom::new(
+                active_session,
+                Attribute::from_keyword(":session/status"),
+                Value::Keyword(":session.status/closed".to_string()),
+                harvest_tx_id,
+                Op::Assert,
+            ));
+        }
+
         let tx_file = TxFile {
             tx_id: harvest_tx_id,
             agent,
@@ -230,11 +321,12 @@ pub fn run(
         let file_path = layout.write_tx(&tx_file)?;
 
         out.push_str(&format!(
-            "committed: {} datoms → {}\n",
+            "\ncommitted: {} datoms \u{2192} {}\n",
             datom_count,
             file_path.relative_path()
         ));
         out.push_str(&format!("  harvest session: {session_ident}\n"));
+        out.push_str("next session: braid seed\n");
     } else if commit && result.candidates.is_empty() {
         out.push_str("\nnothing to commit (no candidates)\n");
     }

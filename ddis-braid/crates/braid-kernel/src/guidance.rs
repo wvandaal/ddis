@@ -21,7 +21,7 @@
 use std::collections::BTreeMap;
 
 use crate::budget::GuidanceLevel;
-use crate::datom::{Attribute, EntityId, Value};
+use crate::datom::{Attribute, EntityId, Op, Value};
 use crate::store::Store;
 use crate::trilateral::{check_coherence_fast, CoherenceQuadrant};
 
@@ -890,32 +890,43 @@ pub fn build_command_footer(store: &Store, k_eff: Option<f64>) -> String {
 /// Uses tx-count proxy: counts tx files whose wall_time exceeds the most
 /// recent transaction with provenance "braid:harvest" or "braid:observe".
 pub fn count_txns_since_last_harvest(store: &Store) -> usize {
-    // Find the latest harvest/observe transaction wall time
-    let mut latest_harvest_wall: u64 = 0;
+    let boundary = last_harvest_wall_time(store);
+
+    if boundary == 0 {
+        // No harvest ever — count all distinct wall times
+        let walls: std::collections::BTreeSet<u64> =
+            store.datoms().map(|d| d.tx.wall_time()).collect();
+        walls.len()
+    } else {
+        // Count distinct wall times strictly after the last harvest
+        let walls: std::collections::BTreeSet<u64> = store
+            .datoms()
+            .filter(|d| d.tx.wall_time() > boundary)
+            .map(|d| d.tx.wall_time())
+            .collect();
+        walls.len()
+    }
+}
+
+/// Find the wall_time of the most recent harvest/observe transaction.
+///
+/// Returns 0 if no harvest or observation has ever been recorded.
+/// Used by the harvest CLI to determine the session boundary:
+/// datoms with tx.wall_time > this value are "this session's work."
+pub fn last_harvest_wall_time(store: &Store) -> u64 {
+    let mut latest: u64 = 0;
     for datom in store.datoms() {
-        if datom.attribute.as_str() == ":exploration/source" {
-            if let Value::String(ref s) = datom.value {
-                if s == "braid:harvest" || s == "braid:observe" {
-                    let wall = datom.tx.wall_time();
-                    if wall > latest_harvest_wall {
-                        latest_harvest_wall = wall;
-                    }
-                }
+        // Only harvest session commits define the session boundary.
+        // Observations are IN-session work and must NOT reset the boundary —
+        // otherwise harvest would never see them as "new since last harvest."
+        if datom.attribute.as_str() == ":harvest/agent" && datom.op == Op::Assert {
+            let wall = datom.tx.wall_time();
+            if wall > latest {
+                latest = wall;
             }
         }
     }
-
-    if latest_harvest_wall == 0 {
-        // No harvest ever — count all txns
-        store.frontier().len()
-    } else {
-        // Count distinct tx wall times after the last harvest
-        store
-            .frontier()
-            .values()
-            .filter(|tx| tx.wall_time() > latest_harvest_wall)
-            .count()
-    }
+    latest
 }
 
 /// Compute staleness for observations based on transaction distance.

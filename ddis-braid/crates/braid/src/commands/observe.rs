@@ -22,7 +22,7 @@
 
 use std::path::Path;
 
-use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
+use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, Value};
 use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
@@ -118,14 +118,8 @@ pub fn run(args: ObserveArgs<'_>) -> Result<String, BraidError> {
     let entity = EntityId::from_ident(&ident);
     let category = resolve_category(args.category);
 
-    // Generate TxId: advance past the store's current frontier
-    let current_wall = store
-        .frontier()
-        .values()
-        .map(|tx| tx.wall_time())
-        .max()
-        .unwrap_or(0);
-    let tx_id = TxId::new(current_wall + 1, 0, agent);
+    // Generate TxId: advance past the store's current frontier (Unix epoch seconds)
+    let tx_id = super::write::next_tx_id(&store, agent);
 
     // Compute BLAKE3 content hash for cross-session dedup (INV-HARVEST-006)
     let content_hash = blake3::hash(args.text.as_bytes());
@@ -299,7 +293,7 @@ mod tests {
         let path = dir.path().join(".braid");
 
         // Initialize store
-        crate::commands::init::run(&path).unwrap();
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
 
         // Observe
         let result = run(ObserveArgs {
@@ -346,7 +340,7 @@ mod tests {
     fn observe_validates_confidence_range() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path).unwrap();
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
 
         let result = run(ObserveArgs {
             path: &path,
@@ -364,7 +358,7 @@ mod tests {
     fn observe_validates_empty_text() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path).unwrap();
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
 
         let result = run(ObserveArgs {
             path: &path,
@@ -382,7 +376,7 @@ mod tests {
     fn observe_with_relates_to() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path).unwrap();
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
 
         let result = run(ObserveArgs {
             path: &path,
@@ -418,7 +412,7 @@ mod tests {
     fn observe_queryable_via_datalog() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path).unwrap();
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
 
         // Create observation
         run(ObserveArgs {
