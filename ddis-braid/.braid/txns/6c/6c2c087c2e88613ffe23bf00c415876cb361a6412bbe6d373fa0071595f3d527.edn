@@ -1,0 +1,17 @@
+{:tx/id #hlc "4/0/e1827f1d5c49c0d958d382475941a789"
+ :tx/agent "e1827f1d5c49c0d958d382475941a789"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 5 candidates from task 'Spectral graph analysis + Cheeger inequality + entity display UX'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a13834add829d2a6e186f760449a33c539dc97d08a68558905f0da56bb0b49c4" :a :db/doc :v "Cheeger inequality with sweep-cut computation" :op :assert}
+   {:e #blake3 "d6a47f32e95c6745d5ce6ca4aa8bc00dc9fbd89e56598ddd0c8c9f2c9a54f08e" :a :db/doc :v "Fiedler vector via Jacobi eigendecomposition" :op :assert}
+   {:e #blake3 "a80355b21ae991691228ac4e838ce937c1d2881e207ad68dbe6df29a27cbfc79" :a :db/doc :v "resolve_entity_label resolves EntityId to db/ident" :op :assert}
+   {:e #blake3 "5a07499f7d50eeb62e651aa65ecd4f676a57c6c428811c01b3ece509380fbe64" :a :db/doc :v "EntityId display opacity fixed" :op :assert}
+   {:e #blake3 "312656da4905d9f391167c71e93595e121203eeb95987f6c4668b5a6ec9b9b2d" :a :db/doc :v "Seed keyword matching too shallow" :op :assert}
+   {:e #blake3 "a7f8394d7cacd79123ffd7f621dc9411e4f8fe3c35185b7548c8a839a92f28e4" :a :db/ident :v :harvest/session-session-025-4 :op :assert}
+   {:e #blake3 "a7f8394d7cacd79123ffd7f621dc9411e4f8fe3c35185b7548c8a839a92f28e4" :a :db/doc :v "Harvest session for task: Spectral graph analysis + Cheeger inequality + entity display UX" :op :assert}
+   {:e #blake3 "a7f8394d7cacd79123ffd7f621dc9411e4f8fe3c35185b7548c8a839a92f28e4" :a :harvest/agent :v "session:025" :op :assert}
+   {:e #blake3 "a7f8394d7cacd79123ffd7f621dc9411e4f8fe3c35185b7548c8a839a92f28e4" :a :harvest/candidate-count :v 5 :op :assert}
+   {:e #blake3 "a7f8394d7cacd79123ffd7f621dc9411e4f8fe3c35185b7548c8a839a92f28e4" :a :harvest/drift-score :v 1.0 :op :assert}
+ ]}

@@ -1,0 +1,18 @@
+{:tx/id #hlc "5/0/e1827f1d5c49c0d958d382475941a789"
+ :tx/agent "e1827f1d5c49c0d958d382475941a789"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 6 candidates from task 'Sheaf cohomology + Datalog exposure + retraction'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "62eb3347566227acd03c2460750b0ddd31304743218589093835e0e46528732d" :a :db/doc :v "CellularSheaf with H0/H1 cohomology for conflict detection" :op :assert}
+   {:e #blake3 "34b4974972fdfd508dac815e23210d6627b4d61fb35a9465d645c36f2ef94d1e" :a :db/doc :v "constant_sheaf recovers ordinary graph cohomology" :op :assert}
+   {:e #blake3 "38b54ecbf00b4c5e18b4d14afef1023c5da857a1729016b791a641126edf81c1" :a :db/doc :v "conflict_sheaf detects irreconcilable agent disagreements via H1" :op :assert}
+   {:e #blake3 "14ba8753c44375722a45de0f4790029ceb6416c4d8df95dd62d57d817872e3f0" :a :db/doc :v "braid query --datalog [:find ?e :where [?e :db/doc ?v]]" :op :assert}
+   {:e #blake3 "0d3275229c14b4651f47d495fd4d04c4770589d662e0f915617d9f956f34edec" :a :db/doc :v "braid retract --entity :ident --attribute :attr creates retraction datoms" :op :assert}
+   {:e #blake3 "e404d87242a5e989745ec0024a214ab4b761282e15707a96dcef4f9423795f16" :a :db/doc :v "DenseMatrix::identity(n) for sheaf restriction maps" :op :assert}
+   {:e #blake3 "4b0c59f300db7f860d394297bb7b2d06703c79cf448894f7c6810887154b7ff5" :a :db/ident :v :harvest/session-session-025-5 :op :assert}
+   {:e #blake3 "4b0c59f300db7f860d394297bb7b2d06703c79cf448894f7c6810887154b7ff5" :a :db/doc :v "Harvest session for task: Sheaf cohomology + Datalog exposure + retraction" :op :assert}
+   {:e #blake3 "4b0c59f300db7f860d394297bb7b2d06703c79cf448894f7c6810887154b7ff5" :a :harvest/agent :v "session:025" :op :assert}
+   {:e #blake3 "4b0c59f300db7f860d394297bb7b2d06703c79cf448894f7c6810887154b7ff5" :a :harvest/candidate-count :v 6 :op :assert}
+   {:e #blake3 "4b0c59f300db7f860d394297bb7b2d06703c79cf448894f7c6810887154b7ff5" :a :harvest/drift-score :v 1.0 :op :assert}
+ ]}

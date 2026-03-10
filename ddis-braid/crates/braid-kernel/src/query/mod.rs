@@ -23,8 +23,9 @@ pub mod stratum;
 pub use clause::{Binding, Clause, FindSpec, Pattern, QueryExpr};
 pub use evaluator::{evaluate, QueryResult};
 pub use graph::{
-    betweenness_centrality, critical_path, density, edge_laplacian, first_betti_number, pagerank,
-    persistence_distance, persistent_homology, scc, topo_sort, total_persistence, BirthDeath,
-    DenseMatrix, DiGraph, PersistenceDiagram,
+    betweenness_centrality, cheeger, conflict_sheaf, constant_sheaf, critical_path, density,
+    edge_laplacian, fiedler, first_betti_number, graph_laplacian, pagerank, persistence_distance,
+    persistent_homology, scc, topo_sort, total_persistence, BirthDeath, CellularSheaf,
+    CheegerResult, DenseMatrix, DiGraph, FiedlerResult, PersistenceDiagram, SheafCohomology,
 };
 pub use stratum::{check_stage0, classify, Stratum};

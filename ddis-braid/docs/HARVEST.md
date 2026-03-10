@@ -3023,3 +3023,93 @@ Implement the mathematical frontier that makes Braid's kernel genuinely unpreced
 3. **Sheaf cohomology** (brai-299i) — H¹ obstruction as principled conflict detection
 4. **Topology framework spec** (brai-2wpi) — formal promotion to spec/19-topology.md
 5. **Coherence geometry spec** (brai-1yys) — formal promotion with Bures distance
+
+---
+
+## Session 025 — 2026-03-10 (Spectral Analysis + UX + Dog-Fooding)
+
+**Platform**: Claude Code (Opus 4.6)
+**Focus**: Cheeger inequality, Fiedler vector completion, EntityId display fix, CLI Datalog + retraction, intensive dog-fooding
+
+### What Was Accomplished
+
+#### 1. Cheeger Inequality (brai-1ge2)
+- Implemented `cheeger()` in `crates/braid-kernel/src/query/graph.rs`
+- `CheegerResult` struct with: algebraic_connectivity, cheeger_constant, lower/upper bounds, inequality_holds, min_cut_set
+- Sweep-cut computation using Fiedler-vector ordering for efficient subset enumeration
+- Exact enumeration for n ≤ 20, heuristic sweep for larger graphs
+- 4 unit tests (complete, path, star, two-cliques-bridge) + 1 proptest
+- **Mathematical significance**: λ₂/2 ≤ h(G) ≤ √(2λ₂) — spectral gap bounds expansion, detecting epistemic silos
+
+#### 2. Fiedler Vector Spectral Clustering (brai-2kv9, completed by agent)
+- `graph_laplacian()`: L = D - A symmetrized Laplacian
+- `symmetric_eigen_decomposition()`: Full Jacobi method with eigenvector accumulation
+- `fiedler()`: Second eigenvector of Laplacian, FiedlerResult with partition
+- 8 unit tests + 1 proptest (Laplacian is PSD)
+
+#### 3. EntityId Display Resolution (brai-3pmv, completed by agent)
+- `resolve_entity_label()`: resolves EntityId → `:db/ident` keyword or truncated hex
+- `format_value()`: strips Rust enum wrappers, resolves Ref values
+- Applied to both `query.rs` and `seed.rs` CLI output
+- Before: `[EntityId(0x01518652...) :dep/from EntityId(0x73a2b1...)]`
+- After: `[:spec/inv-guidance-001 :db/doc "Continuous Injection"]`
+
+#### 4. Harvest Diagnostic Feedback (brai-2gyj, completed prev session)
+- When 0 candidates: explains reason (no txns, all existing, knowledge covered)
+- Includes session_start wall_time, store entity count, actionable suggestion
+
+#### 5. Failure Modes FM-025 + FM-026
+- FM-025 (EntityId display opacity) — OBSERVED → FIXED
+- FM-026 (Seed keyword matching too shallow) — OBSERVED, needs TF-IDF/embedding
+
+#### 6. CLI Datalog + Retraction (in progress via background agents)
+- brai-1qdf: Datalog query syntax `braid query --datalog '[:find ?e :where ...]'`
+- brai-av8z: Retraction command `braid retract --entity ... --attribute ...`
+
+### Beads Closed This Session
+- `brai-3pmv`: EntityId display resolution
+- `brai-2kv9`: Fiedler vector spectral clustering
+- `brai-1ge2`: Cheeger inequality (pending commit)
+
+### Dog-Fooding Observations
+
+**Self-Bootstrap Loop Working:**
+1. Built Cheeger inequality + Fiedler vector (graph algorithms)
+2. Harvested knowledge items about the implementations → 5 candidates committed
+3. Queried harvest session back: `:harvest/session-session-025-4` shows all attributes cleanly
+4. **The store knows about its own algorithms** — this is self-bootstrap in action
+
+**What's Working Well:**
+- Entity ident resolution makes query output dramatically readable
+- Harvest → commit → query round-trip is seamless
+- `format_value()` strips enum wrappers — clean, human-readable output
+- 2655+ datoms in store, all queryable, schema-as-data working
+
+**What Needs Improvement:**
+- **AgentId display in `braid status`** still shows raw bytes — same class as FM-025
+- **`-k` flag syntax is awkward** — need to repeat `-k key val -k key val` instead of trailing positional args
+- **Warnings from in-progress agent work pollute output** — stderr/stdout separation needed
+- **Duplicate code**: `resolve_entity_label` and `format_value` exist identically in query.rs (CLI) and seed.rs (kernel) — should be shared
+- **Seed with "spectral graph analysis"** returns 1 entity despite 645+ (FM-026 confirmed)
+
+**Feeling of Using Braid:**
+The harvest/query round-trip feels *correct*. When I harvest knowledge items and then query them back, the experience is coherent — the store knows what I told it. The entity display fix was transformative; before it, query output was a wall of hex. Now it reads like a knowledge base. The gap between "what the tool knows" and "what I can see" has narrowed dramatically. The biggest remaining pain point is seed relevance (FM-026): asking for related knowledge returns almost nothing because keyword matching is too naive.
+
+### Quantitative Summary
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Tests passing | 361 | 370+ |
+| New functions | — | 5 (cheeger, graph_laplacian, symmetric_eigen_decomposition, fiedler, resolve_entity_label) |
+| New types | — | 3 (CheegerResult, FiedlerResult, + format_value helper) |
+| Beads closed | — | 3 (brai-3pmv, brai-2kv9, brai-1ge2) |
+| Failure modes | 24 | 26 (FM-025, FM-026 added) |
+| Store datoms | 2645 | 2655 (harvested 10 new datoms) |
+
+### Recommended Next Action
+
+1. **Deduplicate resolve_entity_label/format_value** — promote to kernel crate, use from CLI
+2. **Seed relevance scoring** (FM-026) — implement TF-IDF or embedding-based matching
+3. **Complete CLI Datalog + retraction** — massive dog-fooding enabler
+4. **Sheaf cohomology** (brai-299i) — H¹ obstruction for conflict detection
+5. **AgentId display in status** — same fix pattern as FM-025

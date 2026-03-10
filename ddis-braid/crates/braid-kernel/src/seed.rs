@@ -444,6 +444,52 @@ fn estimate_tokens(text: &str) -> usize {
     text.len().div_ceil(4)
 }
 
+/// Resolve an EntityId to a human-readable label.
+///
+/// If the entity has a `:db/ident` datom, returns the ident keyword.
+/// Otherwise, returns a truncated hex representation of the entity hash.
+fn resolve_entity_label(store: &Store, entity: EntityId) -> String {
+    for datom in store.entity_datoms(entity) {
+        if datom.attribute.as_str() == ":db/ident" {
+            if let Value::Keyword(kw) = &datom.value {
+                return kw.clone();
+            }
+        }
+    }
+    let bytes = entity.as_bytes();
+    format!(
+        "#{:02x}{:02x}{:02x}{:02x}\u{2026}",
+        bytes[0], bytes[1], bytes[2], bytes[3]
+    )
+}
+
+/// Format a Value for human-readable output.
+///
+/// Strips the enum variant wrapper so that `String("foo")` becomes `"foo"`,
+/// `Keyword(":ns/name")` becomes `:ns/name`, and `Ref(entity)` resolves to
+/// the target entity's ident.
+fn format_value(store: &Store, value: &Value) -> String {
+    match value {
+        Value::String(s) => format!("\"{}\"", s),
+        Value::Keyword(kw) => kw.clone(),
+        Value::Boolean(b) => b.to_string(),
+        Value::Long(n) => n.to_string(),
+        Value::Double(f) => f.to_string(),
+        Value::Instant(ms) => format!("#{ms}"),
+        Value::Uuid(bytes) => {
+            format!(
+                "#{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+                bytes[0], bytes[1], bytes[2], bytes[3],
+                bytes[4], bytes[5], bytes[6], bytes[7],
+                bytes[8], bytes[9], bytes[10], bytes[11],
+                bytes[12], bytes[13], bytes[14], bytes[15],
+            )
+        }
+        Value::Ref(target) => resolve_entity_label(store, *target),
+        Value::Bytes(b) => format!("#bytes[{}]", b.len()),
+    }
+}
+
 /// Project an entity at a given projection level.
 fn project_entity(store: &Store, entity: EntityId, level: ProjectionLevel) -> StateEntry {
     let datoms: Vec<&Datom> = store
@@ -451,28 +497,38 @@ fn project_entity(store: &Store, entity: EntityId, level: ProjectionLevel) -> St
         .filter(|d| d.entity == entity && d.op == Op::Assert)
         .collect();
 
+    let label = resolve_entity_label(store, entity);
+
     let content = match level {
-        ProjectionLevel::Pointer => {
-            format!("{:?}", entity)
-        }
+        ProjectionLevel::Pointer => label,
         ProjectionLevel::TypeLevel => {
             let type_kw = datoms
                 .iter()
                 .find(|d| d.attribute.as_str() == ":db/ident")
-                .map(|d| format!("{:?}", d.value))
-                .unwrap_or_else(|| format!("{:?}", entity));
+                .and_then(|d| {
+                    if let Value::Keyword(kw) = &d.value {
+                        Some(kw.clone())
+                    } else {
+                        None
+                    }
+                })
+                .unwrap_or_else(|| label.clone());
             format!("{} ({} attrs)", type_kw, datoms.len())
         }
         ProjectionLevel::Summary => {
             let attrs: Vec<&str> = datoms.iter().map(|d| d.attribute.as_str()).collect();
-            format!("{:?}: [{}]", entity, attrs.join(", "))
+            format!("{}: [{}]", label, attrs.join(", "))
         }
         ProjectionLevel::Full => {
             let mut lines = Vec::new();
             for d in &datoms {
-                lines.push(format!("  {} = {:?}", d.attribute.as_str(), d.value));
+                lines.push(format!(
+                    "  {} = {}",
+                    d.attribute.as_str(),
+                    format_value(store, &d.value)
+                ));
             }
-            format!("{:?}:\n{}", entity, lines.join("\n"))
+            format!("{}:\n{}", label, lines.join("\n"))
         }
     };
 
@@ -697,9 +753,10 @@ pub fn verify_seed(seed: &SeedOutput, store: &Store, budget: usize) -> SeedVerif
         if let ContextSection::State(entries) = section {
             for entry in entries {
                 if !store_entities.contains(&entry.entity) {
+                    let label = resolve_entity_label(store, entry.entity);
                     violations.push(format!(
-                        "INV-SEED-001 violated: entity {:?} in seed but not in store",
-                        entry.entity
+                        "INV-SEED-001 violated: entity {} in seed but not in store",
+                        label
                     ));
                     all_in_store = false;
                 }

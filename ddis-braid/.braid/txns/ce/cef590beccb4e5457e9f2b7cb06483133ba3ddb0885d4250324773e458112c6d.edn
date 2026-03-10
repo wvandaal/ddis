@@ -1,0 +1,18 @@
+{:tx/id #hlc "3/0/72197a647f2dbe5fdcc86bdbc815472d"
+ :tx/agent "72197a647f2dbe5fdcc86bdbc815472d"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 6 candidates from task 'Self-bootstrap and v2 design session'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ea511dc1cea657ed40021bf82274bd2005a1ce712877fc4f98b63dd31f537dd0" :a :db/doc :v "Current harvest is glorified set-difference requiring pre-structured input" :op :assert}
+   {:e #blake3 "1a042203838cc29f5faa78b2e9dbf4326a822214177bef4e5403a51b0f6f3ea0" :a :db/doc :v "Current seed association is substring matching not graph-aware" :op :assert}
+   {:e #blake3 "c0084f04cc0671857e356b1c6c4dc73816d5462f17cb0345667192b33f5e4884" :a :db/doc :v "25-turn test proves mechanical persistence not knowledge continuity" :op :assert}
+   {:e #blake3 "87d6e5bdec1b64b8d8668cfe28e8d5c30f03037c1622ca37e4067f978fae9598" :a :db/doc :v "Use Fisher information matrix for principled knowledge prioritization" :op :assert}
+   {:e #blake3 "e6b767f2bf6de46963fb5916b529db6669cb64a558ee8350ed0b976d4014ac97" :a :db/doc :v "Use Cech cohomology for automatic knowledge-uncertainty classification" :op :assert}
+   {:e #blake3 "d87f37003997e92fa2d9f39596328f3ea81e6fac8495ae7f3db76c98916ffecf" :a :db/doc :v "Use Kantorovich optimal transport for mathematically optimal seed assembly" :op :assert}
+   {:e #blake3 "a2b0f5d760c8aac5f694e6ee95e1e64eca09aa240bb4b5bc05c3ab43ddf76dcb" :a :db/ident :v :harvest/session-braid-self-3 :op :assert}
+   {:e #blake3 "a2b0f5d760c8aac5f694e6ee95e1e64eca09aa240bb4b5bc05c3ab43ddf76dcb" :a :db/doc :v "Harvest session for task: Self-bootstrap and v2 design session" :op :assert}
+   {:e #blake3 "a2b0f5d760c8aac5f694e6ee95e1e64eca09aa240bb4b5bc05c3ab43ddf76dcb" :a :harvest/agent :v "braid-self" :op :assert}
+   {:e #blake3 "a2b0f5d760c8aac5f694e6ee95e1e64eca09aa240bb4b5bc05c3ab43ddf76dcb" :a :harvest/candidate-count :v 6 :op :assert}
+   {:e #blake3 "a2b0f5d760c8aac5f694e6ee95e1e64eca09aa240bb4b5bc05c3ab43ddf76dcb" :a :harvest/drift-score :v 1.0 :op :assert}
+ ]}

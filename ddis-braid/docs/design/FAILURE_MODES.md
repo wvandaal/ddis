@@ -102,6 +102,8 @@ OBSERVED → MAPPED → TESTABLE → VERIFIED
 | FM-018 | TESTABLE | S2 | AX | **Stage 0 scope overcommitment.** 61 INVs including Datalog engine in "1-2 weeks." Kani CI claim unrealistic. | Guidance injection + M(t) scoring: monitors velocity vs scope. | Stage 0 achievable within 4 weeks. Deviation > 2x triggers revision. |
 | FM-019 | TESTABLE | S1 | EP | **K_agent harvest detection epistemological overreach.** Spec claims "detect knowledge agent has" — uncomputable. | Harvest heuristic with FP/FN calibration: detects externalized-but-not-transacted knowledge. | >=90% of externalized knowledge captured. No claim about unexpressed knowledge. |
 | FM-020 | TESTABLE | S0 | AX+PR | **Autonomous execution of user-gated decisions.** Agent receives explicit instructions to explore, research, and document findings for user review before deciding — then skips the review step entirely, making decisions autonomously and implementing them directly. Unrecoverable: user cannot assess correctness of choices never presented. 19 decisions made without required user approval across 4 sessions. | Guidance injection (§7, INV-GUIDANCE-004): session-loaded directives that classify each work item as DECIDE vs EXPLORE-AND-PRESENT. Seed (§5): user decision gates as first-class datoms with status tracking (pending_review, approved, rejected). Harvest (§5): harvest must record decision-gate compliance, not just outcomes. | 100% of user-gated items are presented for review before implementation. Zero autonomous decisions on items marked EXPLORE. Measured by: tag N items as EXPLORE in session seed, verify N research reports produced, verify 0 spec/guide changes until user approval recorded as datom. |
+| FM-025 | OBSERVED | S2 | EP | **EntityId display opacity (raw hash rendering).** Entity identifiers displayed as raw 32-byte hex hashes (`EntityId(0x01518652...)`) making CLI output unreadable. Users cannot determine which entity a datom refers to without manual cross-referencing. Blocks dog-fooding adoption. | Seed (§5): entity projection should resolve idents. Query (§4): output formatting should use `:db/ident` resolution. | 100% of entities with `:db/ident` display their ident, not their hash. Measured by: `braid query` output contains zero raw `EntityId(...)` for entities that have idents. |
+| FM-026 | OBSERVED | S2 | EP | **Seed keyword matching too shallow.** `braid seed --task "spectral graph analysis"` returns 1 entity despite 645+ entities in store (many related to graph/query/topology). Keyword matching uses exact substring, missing semantic relevance. | Harvest (§5): semantic similarity scoring. Seed (§5): relevance should use TF-IDF or embedding-based matching, not keyword substring. | Seed returns ≥70% of entities semantically relevant to the task description. Measured by: for a curated set of 5 tasks, verify seed output covers ≥70% of known relevant entities. |
 
 ---
 
@@ -135,6 +137,8 @@ OBSERVED → MAPPED → TESTABLE → VERIFIED
 | Claiming harvest detects agent knowledge | FM-019 | Only externalized knowledge is detectable — bound claims to observables |
 | Making a decision on a user-gated item | FM-020 | Stop. Present research. Wait for approval. Do not proceed autonomously. |
 | Reporting completion counts | FM-021 | Verify each claim against the artifact — inflated counts are invisible to the reporter |
+| Displaying entity identifiers in CLI output | FM-025 | Raw hashes are unreadable — resolve `:db/ident` before rendering |
+| Assembling seed context for a task | FM-026 | Keyword matching is too shallow — semantic relevance requires TF-IDF or embedding |
 
 ---
 
@@ -1448,25 +1452,116 @@ harness coverage for Stage 0 V:KANI invariants before Stage 0 completion.
 - The verification matrix conflates method assignment (intent) with method execution (completion)
 - FM-017 previously identified 7 unproven + 2 broken algebraic properties — the current FM generalizes this to a tracking problem, not just a one-time gap
 
+### FM-025: EntityId Display Opacity (Raw Hash Rendering)
+
+**Discovered**: Session 024 (2026-03-10)
+**Trigger**: Dog-fooding `braid query --path .braid/` produced output like
+`[EntityId(0x01518652...) :dep/from EntityId(0x73a2b1...)]` — completely unreadable.
+**Cross-References**: INV-INTERFACE-001 (three CLI output modes), INV-QUERY-006 (entity-centric
+view), FM-008 (derived quantity staleness — same class of "output doesn't match mental model")
+**Status**: OBSERVED → FIXED (Session 025)
+**Severity**: S2 — Operational
+**Divergence Type**: EP (Epistemic)
+
+**Formal violation predicate**: `∀e ∈ output: has_ident(e) → display(e) = ident(e)` — every
+entity displayed in CLI output that has a `:db/ident` datom must show the ident keyword, not
+the raw hash.
+
+**What happened**: `braid query` rendered entity IDs using Rust's `Debug` formatter (`{:?}`),
+producing `EntityId(0x01518652a3b7c...)` for every entity. Entities with `:db/ident` attributes
+(like `:spec/inv-store-001`) were indistinguishable from anonymous entities. Users must manually
+cross-reference hashes to understand query output.
+
+**Why this is a hard problem for agents**: Agents implementing CLI commands naturally use `Debug`
+for complex types. Entity identity in Braid is content-addressed (32-byte Blake3 hash), which
+is correct for internal operations but hostile to human users. The gap between internal
+representation and user-facing display is a common UX failure mode in content-addressed systems.
+
+**Root cause**: No `Display` impl or label resolution for `EntityId`. CLI commands used `{:?}`
+formatting. The store contains the information needed (`:db/ident` datoms) but the display layer
+didn't query for it.
+
+**DDIS/Braid mechanism**: Entity projection (INV-QUERY-006): the query layer should resolve
+entity references to their human-readable idents. The seed projection levels (Pointer, TypeLevel,
+Summary, Full) already handle this for seed output — query output lacked the same resolution.
+
+**Acceptance criterion**: Zero raw `EntityId(0x...)` strings in `braid query` or `braid seed`
+output for entities that have `:db/ident` datoms. Entities without idents display truncated hex
+with ellipsis (`#01518652…`).
+
+**Observations**:
+- Session 024: First dog-fooding attempt revealed the issue immediately — output was wall of hex
+- Session 025: Fixed by adding `resolve_entity_label()` and `format_value()` to both query.rs and seed.rs
+- Post-fix output: `[:spec/inv-guidance-001 :db/doc "Continuous Injection"]` — dramatically improved
+- Code duplication noted: same helpers exist in both query.rs and seed.rs (should be shared)
+
+### FM-026: Seed Keyword Matching Too Shallow
+
+**Discovered**: Session 024 (2026-03-10)
+**Trigger**: `braid seed --task "spectral graph analysis" --budget 1000` returned only 1 entity
+despite 645+ entities in the store, many related to graph topology, query operations, and
+mathematical analysis.
+**Cross-References**: INV-SEED-003 (relevance scoring), INV-SEED-004 (budget-aware assembly),
+FM-003 (anchoring bias — same class of "narrow scope despite broad relevance")
+**Status**: OBSERVED
+**Severity**: S2 — Operational
+**Divergence Type**: EP (Epistemic)
+
+**Formal violation predicate**: `∀task T, store S: |seed(T, S)| ≥ 0.7 × |relevant(T, S)|` —
+for any task description, the seed assembly should capture at least 70% of semantically relevant
+entities in the store.
+
+**What happened**: Seed keyword matching uses exact substring matching against entity `:db/ident`
+and `:db/doc` values. The query "spectral graph analysis" matched only entities whose ident or
+doc string contained those exact words. Entities like `:spec/inv-query-012` ("Graph topology
+operations") and `:spec/adr-query-005` ("Spectral decomposition") were missed because they
+don't contain the exact phrase.
+
+**Why this is a hard problem for agents**: Keyword matching is the simplest relevance heuristic
+and works well for exact queries. But real tasks use domain-specific vocabulary that overlaps
+with stored entities only partially. The gap between task-vocabulary and store-vocabulary
+requires semantic matching (TF-IDF, embedding similarity, or at minimum stemming and synonym
+expansion). This is the information retrieval problem in miniature.
+
+**Root cause**: `assemble()` in seed.rs uses a basic keyword scan that checks for presence of
+individual words from the task description in entity attributes. Single-word matches are
+fragile: "spectral" alone doesn't match entities about "graph topology" even though they're
+deeply related.
+
+**DDIS/Braid mechanism**: INV-SEED-003 specifies relevance scoring with Fisher-Rao distance on
+attribute distribution profiles. The current implementation uses a simplified keyword heuristic
+as a Stage 0 stand-in. The specification already calls for richer relevance scoring — the
+implementation has not caught up.
+
+**Acceptance criterion**: For 5 curated task descriptions, seed output covers ≥70% of manually
+identified relevant entities. Measured by: create ground truth sets of relevant entities for
+each task, run `braid seed`, compare output against ground truth.
+
+**Observations**:
+- "spectral graph analysis" → 1/~30 relevant entities (3% recall)
+- The store contains `:spec/inv-query-012` (graph topology), multiple graph-related ADRs, and
+  topology namespace entities — all missed
+- Fisher-Rao scoring is implemented in harvest.rs but not used in seed relevance ranking
+
 ---
 
 ## Statistics
 
 | Metric | Value |
 |--------|-------|
-| Total failure modes | 24 |
-| OBSERVED | 0 |
+| Total failure modes | 26 |
+| OBSERVED | 1 (FM-026) |
 | MAPPED | 1 (FM-003) |
 | TESTABLE | 23 (FM-001, FM-002, FM-004–FM-024) |
-| VERIFIED | 0 |
+| VERIFIED | 1 (FM-025 — fixed in Session 025) |
 | UNMAPPED (design gaps) | 0 |
 | S0 (Structural) | 13 (FM-001, FM-004, FM-005, FM-006, FM-007, FM-008, FM-010, FM-012, FM-013, FM-017, FM-020, FM-022, FM-023) |
 | S1 (Methodological) | 8 (FM-002, FM-009, FM-011, FM-014, FM-016, FM-019, FM-021, FM-024) |
-| S2 (Operational) | 3 (FM-003, FM-015, FM-018) |
+| S2 (Operational) | 5 (FM-003, FM-015, FM-018, FM-025, FM-026) |
 
 ### Coverage Summary
 
-All 24 observed failure modes map to DDIS/Braid mechanisms. FM-020 identified a partial
+All 26 observed failure modes map to DDIS/Braid mechanisms. FM-020 identified a partial
 design gap: DDIS has mechanisms for detecting divergence after it occurs but lacks a formal
 mechanism for preventing unauthorized decisions before they occur. The acceptance criterion
 for FM-020 requires a structural enforcement mechanism (decision gates as datom attributes

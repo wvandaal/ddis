@@ -56,10 +56,11 @@ pub use promote::{
     DualIdentityCheck, PromotionRequest, PromotionResult, PromotionTargetType,
 };
 pub use query::{
-    betweenness_centrality, critical_path, density, edge_laplacian, evaluate, first_betti_number,
-    pagerank, persistence_distance, persistent_homology, scc, topo_sort, total_persistence,
-    Binding, BirthDeath, Clause, DenseMatrix, DiGraph, FindSpec, Pattern, PersistenceDiagram,
-    QueryExpr, QueryResult,
+    betweenness_centrality, cheeger, conflict_sheaf, constant_sheaf, critical_path, density,
+    edge_laplacian, evaluate, fiedler, first_betti_number, graph_laplacian, pagerank,
+    persistence_distance, persistent_homology, scc, topo_sort, total_persistence, Binding,
+    BirthDeath, CellularSheaf, CheegerResult, Clause, DenseMatrix, DiGraph, FiedlerResult,
+    FindSpec, Pattern, PersistenceDiagram, QueryExpr, QueryResult, SheafCohomology,
 };
 pub use resolution::{
     conflict_to_datoms, detect_conflicts, resolve, resolve_with_trail, ConflictEntity, ConflictSet,

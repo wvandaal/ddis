@@ -1,0 +1,15 @@
+{:tx/id #hlc "2/0/7b572a4b7a77e0ef8800ce9876bf9df5"
+ :tx/agent "7b572a4b7a77e0ef8800ce9876bf9df5"
+ :tx/provenance :observed
+ :tx/rationale "Self-bootstrap session 022: ingest v2 design analysis"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "24c3bb1f67a0dbcc9b186e299318b15ebea8c6012bb36c925180c7c5fe2902e6" :a :db/doc :v "Bootstrap parsed 351 spec elements (154 INV, 145 ADR, 52 NEG) into 2536 datoms" :op :assert}
+   {:e #blake3 "888324d5b5e0f493a5e1471e3e287417b9a4bbc1e9637ea17d58b311f5d58670" :a :db/doc :v "Initial Phi=210.6, D_IS=0, D_SP=351. All spec elements lack implementation coverage" :op :assert}
+   {:e #blake3 "d5a5db89c4166f6e90a46fdf6bce7bf43897bc64bf5242b87a3dec74680bc498" :a :db/doc :v "GapsOnly (beta_1=0): no contradictions, pure spec-impl gaps" :op :assert}
+   {:e #blake3 "cf6885e04f38f38793d788fefe032d0dd7f68f845ad2561d95c3eafbbef7e4d1" :a :db/doc :v "Store persists between sessions via content-addressed tx files" :op :assert}
+   {:e #blake3 "52d56b87017cca7aa95140105b9eba75ef6143e44d895f90fac04044932158bc" :a :db/doc :v "Replace set-difference harvest with tx-log extraction + Fisher information scoring + Cech cohomology classification" :op :assert}
+   {:e #blake3 "e3a7eb5c5afbabe3f9bc1b6ff00c60ed7b6afd7be52a0eec7a995427d6066a16" :a :db/doc :v "Replace keyword matching with personalized PageRank association + eigenvector centrality ranking + adaptive projection" :op :assert}
+   {:e #blake3 "a515a54c74bd99eba0895a87138eda1f01ad487de82653569fdb17776f6dbb3b" :a :db/doc :v "Self-bootstrap is P0: proves C7, populates store, enables Phi computation, creates substrate for harvest/seed cycle" :op :assert}
+   {:e #blake3 "189e97d58487ad247f4019cc9607c211624dcdaccf452964bafa59b4270edd42" :a :db/doc :v "First seed discovered 50 entities in 1958 tokens but shows raw EntityId hashes instead of human-readable idents" :op :assert}
+ ]}

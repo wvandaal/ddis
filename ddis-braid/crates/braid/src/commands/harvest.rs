@@ -84,6 +84,37 @@ pub fn run(
                 c.rationale,
             ));
         }
+    } else {
+        // Diagnostic feedback: explain why there are no candidates
+        out.push_str("\ndiagnostic: no candidates found\n");
+        if result.session_entities == 0 && context.session_knowledge.is_empty() {
+            out.push_str(
+                "  reason: no session transactions detected and no knowledge items provided\n",
+            );
+            out.push_str(
+                "  hint: the harvest pipeline scans for datoms with tx > session_start_tx\n",
+            );
+            out.push_str(&format!("  session_start: wall_time={}\n", current_wall));
+            out.push_str(&format!("  store_entities: {}\n", store.entity_count()));
+            out.push_str(
+                "  suggestion: transact new datoms via `braid transact` before harvesting,\n",
+            );
+            out.push_str(
+                "    or provide knowledge items: `braid harvest --task T key1 val1 key2 val2`\n",
+            );
+        } else if result.session_entities > 0 {
+            out.push_str(
+                "  reason: session entities were found but all are already in the store\n",
+            );
+            out.push_str("  hint: harvest only proposes entities not already present\n");
+        } else {
+            out.push_str(
+                "  reason: knowledge items provided but all correspond to existing entities\n",
+            );
+            out.push_str(
+                "  hint: the entities already exist in the store — nothing new to harvest\n",
+            );
+        }
     }
 
     // If --commit: persist candidates as datoms + create HarvestSession entity

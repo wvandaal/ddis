@@ -13,6 +13,7 @@ mod log;
 mod merge;
 mod promote;
 mod query;
+mod retract;
 mod seed;
 mod status;
 mod transact;
@@ -56,7 +57,30 @@ pub enum Command {
         datoms: Vec<String>,
     },
 
-    /// Query the store using entity/attribute filters.
+    /// Retract existing assertions from the store (append-only: creates retraction datoms).
+    Retract {
+        /// Path to the .braid directory.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent name performing the retraction.
+        #[arg(short, long, default_value = "braid:user")]
+        agent: String,
+
+        /// Entity ident to retract from (e.g., ":spec/inv-store-001").
+        #[arg(short, long)]
+        entity: String,
+
+        /// Attribute to retract (e.g., ":db/doc").
+        #[arg(long)]
+        attribute: String,
+
+        /// Optional value filter — only retract assertions with this value.
+        #[arg(short, long)]
+        value: Option<String>,
+    },
+
+    /// Query the store using entity/attribute filters or Datalog.
     Query {
         /// Path to the .braid directory.
         #[arg(short, long, default_value = ".braid")]
@@ -69,6 +93,10 @@ pub enum Command {
         /// Filter by attribute (keyword).
         #[arg(short, long)]
         attribute: Option<String>,
+
+        /// Datalog query expression (e.g., '[:find ?e ?v :where [?e :db/doc ?v]]').
+        #[arg(long)]
+        datalog: Option<String>,
     },
 
     /// Run the harvest pipeline to detect knowledge gaps.
@@ -282,11 +310,25 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             rationale,
             datoms,
         } => transact::run(&path, &agent, &rationale, &datoms),
+        Command::Retract {
+            path,
+            agent,
+            entity,
+            attribute,
+            value,
+        } => retract::run(&path, &agent, &entity, &attribute, value.as_deref()),
         Command::Query {
             path,
             entity,
             attribute,
-        } => query::run(&path, entity.as_deref(), attribute.as_deref()),
+            datalog,
+        } => {
+            if let Some(ref dq) = datalog {
+                query::run_datalog(&path, dq)
+            } else {
+                query::run(&path, entity.as_deref(), attribute.as_deref())
+            }
+        }
         Command::Harvest {
             path,
             agent,
