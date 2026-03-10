@@ -1229,9 +1229,18 @@ fn promotion_coherence_verification() {
 
     // Pre-promotion: entity has exploration but NOT element attrs
     let check_before = verify_dual_identity(expl_entity, &datoms);
-    assert!(check_before.has_exploration, "should have exploration attrs");
-    assert!(!check_before.has_element, "should NOT have element attrs yet");
-    assert!(!check_before.is_valid, "INV-PROMOTE-002 should NOT hold yet");
+    assert!(
+        check_before.has_exploration,
+        "should have exploration attrs"
+    );
+    assert!(
+        !check_before.has_element,
+        "should NOT have element attrs yet"
+    );
+    assert!(
+        !check_before.is_valid,
+        "INV-PROMOTE-002 should NOT hold yet"
+    );
 
     // Promote to a formal invariant
     let request = PromotionRequest {
@@ -1256,7 +1265,10 @@ fn promotion_coherence_verification() {
 
     let result = promote(&request, &datoms, promote_tx);
     assert!(!result.was_noop, "first promotion should produce datoms");
-    assert!(result.attrs_added >= 10, "should add element + inv + promotion attrs");
+    assert!(
+        result.attrs_added >= 10,
+        "should add element + inv + promotion attrs"
+    );
 
     // Apply promotion datoms
     for d in &result.datoms {
@@ -1265,7 +1277,10 @@ fn promotion_coherence_verification() {
 
     // Post-promotion: entity has dual identity (INV-PROMOTE-002)
     let check_after = verify_dual_identity(expl_entity, &datoms);
-    assert!(check_after.has_exploration, "exploration attrs preserved (C1)");
+    assert!(
+        check_after.has_exploration,
+        "exploration attrs preserved (C1)"
+    );
     assert!(check_after.has_element, "element attrs added");
     assert!(check_after.has_promotion, "promotion attrs added");
     assert!(check_after.is_valid, "INV-PROMOTE-002 holds");
@@ -1281,14 +1296,10 @@ fn promotion_coherence_verification() {
             && d.attribute.as_str() == ":exploration/title"
     });
     let has_element_id = datoms.iter().any(|d| {
-        d.entity == expl_entity
-            && d.op == Op::Assert
-            && d.attribute.as_str() == ":element/id"
+        d.entity == expl_entity && d.op == Op::Assert && d.attribute.as_str() == ":element/id"
     });
     let has_inv_statement = datoms.iter().any(|d| {
-        d.entity == expl_entity
-            && d.op == Op::Assert
-            && d.attribute.as_str() == ":inv/statement"
+        d.entity == expl_entity && d.op == Op::Assert && d.attribute.as_str() == ":inv/statement"
     });
     assert!(has_expl_title, "exploration title preserved");
     assert!(has_element_id, "element ID present");

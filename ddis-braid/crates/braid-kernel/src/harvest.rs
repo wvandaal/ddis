@@ -412,7 +412,11 @@ fn ideal_distribution(category: HarvestCategory) -> [f64; 4] {
 ///
 /// Range: [0, π]. d_FR = 0 iff p = q; d_FR = π iff p ⊥ q.
 fn fisher_rao_distance(p: &[f64], q: &[f64]) -> f64 {
-    let bhattacharyya: f64 = p.iter().zip(q.iter()).map(|(pi, qi)| (pi * qi).sqrt()).sum();
+    let bhattacharyya: f64 = p
+        .iter()
+        .zip(q.iter())
+        .map(|(pi, qi)| (pi * qi).sqrt())
+        .sum();
     2.0 * bhattacharyya.clamp(0.0, 1.0).acos()
 }
 
@@ -597,7 +601,10 @@ pub fn build_harvest_commit(
     all_datoms.push(Datom::new(
         session_entity,
         Attribute::from_keyword(":db/doc"),
-        Value::String(format!("Harvest session for task: {}", context.task_description)),
+        Value::String(format!(
+            "Harvest session for task: {}",
+            context.task_description
+        )),
         tx_id,
         Op::Assert,
     ));
@@ -651,6 +658,187 @@ pub fn build_harvest_commit(
         candidate_count: result.candidates.len(),
         datom_count,
     }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6: FP/FN Calibration (INV-HARVEST-004)
+// ---------------------------------------------------------------------------
+
+/// Confusion matrix for harvest candidate calibration.
+///
+/// Compares proposed candidates against ground truth entity sets.
+/// - **True Positive**: Entity correctly proposed for harvesting.
+/// - **False Positive**: Entity proposed but should not have been (noise).
+/// - **False Negative**: Entity that should have been harvested but was missed.
+#[derive(Clone, Debug)]
+pub struct CalibrationResult {
+    /// True positives (correctly proposed entities).
+    pub true_positives: usize,
+    /// False positives (incorrectly proposed entities).
+    pub false_positives: usize,
+    /// False negatives (missed entities).
+    pub false_negatives: usize,
+    /// Precision = TP / (TP + FP). In [0, 1].
+    pub precision: f64,
+    /// Recall = TP / (TP + FN). In [0, 1].
+    pub recall: f64,
+    /// F₁ score = 2 * P * R / (P + R). Harmonic mean of precision and recall.
+    pub f1_score: f64,
+    /// Matthews Correlation Coefficient — balanced metric even with class imbalance.
+    /// MCC ∈ [-1, 1]. +1 = perfect, 0 = random, -1 = inverse.
+    pub mcc: f64,
+    /// Confidence-stratified metrics: (threshold, precision_at_threshold, recall_at_threshold).
+    pub stratified: Vec<(f64, f64, f64)>,
+}
+
+/// Calibrate harvest candidates against ground truth (INV-HARVEST-004).
+///
+/// Given a set of entities that *should* have been harvested (ground truth)
+/// and the actual harvest result, computes precision, recall, F₁, and MCC.
+///
+/// Also computes confidence-stratified metrics: at each confidence threshold
+/// (0.3, 0.5, 0.7, 0.9), what are the precision and recall for candidates
+/// above that threshold?
+///
+/// # Arguments
+///
+/// * `result` — The harvest pipeline result containing proposed candidates.
+/// * `ground_truth` — Entity IDs that should have been harvested.
+/// * `total_entities` — Total entity count in the store (for TN computation).
+pub fn calibrate_harvest(
+    result: &HarvestResult,
+    ground_truth: &BTreeSet<EntityId>,
+    total_entities: usize,
+) -> CalibrationResult {
+    // Proposed entity set (deduplicated — multiple candidates may target same entity)
+    let proposed: BTreeSet<EntityId> = result.candidates.iter().map(|c| c.entity).collect();
+
+    let true_positives = proposed.intersection(ground_truth).count();
+    let false_positives = proposed.difference(ground_truth).count();
+    let false_negatives = ground_truth.difference(&proposed).count();
+
+    // True negatives: entities neither proposed nor in ground truth
+    let true_negatives =
+        total_entities.saturating_sub(true_positives + false_positives + false_negatives);
+
+    let precision = if true_positives + false_positives == 0 {
+        1.0 // No predictions → vacuously precise
+    } else {
+        true_positives as f64 / (true_positives + false_positives) as f64
+    };
+
+    let recall = if ground_truth.is_empty() {
+        1.0 // No ground truth → vacuously complete
+    } else {
+        true_positives as f64 / ground_truth.len() as f64
+    };
+
+    let f1_score = if precision + recall == 0.0 {
+        0.0
+    } else {
+        2.0 * precision * recall / (precision + recall)
+    };
+
+    // Matthews Correlation Coefficient
+    // MCC = (TP*TN - FP*FN) / sqrt((TP+FP)(TP+FN)(TN+FP)(TN+FN))
+    let tp = true_positives as f64;
+    let fp = false_positives as f64;
+    let fn_ = false_negatives as f64;
+    let tn = true_negatives as f64;
+    let denom = ((tp + fp) * (tp + fn_) * (tn + fp) * (tn + fn_)).sqrt();
+    let mcc = if denom < 1e-15 {
+        0.0
+    } else {
+        (tp * tn - fp * fn_) / denom
+    };
+
+    // Confidence-stratified metrics
+    let thresholds = [0.3, 0.5, 0.7, 0.9];
+    let stratified = thresholds
+        .iter()
+        .map(|&threshold| {
+            let above: BTreeSet<EntityId> = result
+                .candidates
+                .iter()
+                .filter(|c| c.confidence >= threshold)
+                .map(|c| c.entity)
+                .collect();
+            let tp_at = above.intersection(ground_truth).count();
+            let fp_at = above.difference(ground_truth).count();
+            let p_at = if tp_at + fp_at == 0 {
+                1.0
+            } else {
+                tp_at as f64 / (tp_at + fp_at) as f64
+            };
+            let r_at = if ground_truth.is_empty() {
+                1.0
+            } else {
+                tp_at as f64 / ground_truth.len() as f64
+            };
+            (threshold, p_at, r_at)
+        })
+        .collect();
+
+    CalibrationResult {
+        true_positives,
+        false_positives,
+        false_negatives,
+        precision,
+        recall,
+        f1_score,
+        mcc,
+        stratified,
+    }
+}
+
+/// Compute the optimal confidence threshold that maximizes F₁.
+///
+/// Sweeps candidate confidence values and finds the threshold where
+/// F₁ is maximized. Returns (best_threshold, best_f1).
+pub fn optimal_threshold(result: &HarvestResult, ground_truth: &BTreeSet<EntityId>) -> (f64, f64) {
+    if result.candidates.is_empty() || ground_truth.is_empty() {
+        return (0.5, 0.0);
+    }
+
+    // Collect unique confidence values as potential thresholds
+    let mut thresholds: Vec<f64> = result.candidates.iter().map(|c| c.confidence).collect();
+    thresholds.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    thresholds.dedup();
+
+    let mut best_threshold = 0.5;
+    let mut best_f1 = 0.0;
+
+    for &threshold in &thresholds {
+        let above: BTreeSet<EntityId> = result
+            .candidates
+            .iter()
+            .filter(|c| c.confidence >= threshold)
+            .map(|c| c.entity)
+            .collect();
+
+        let tp = above.intersection(ground_truth).count() as f64;
+        let fp = above.difference(ground_truth).count() as f64;
+        let fn_ = ground_truth.difference(&above).count() as f64;
+
+        let p = if tp + fp == 0.0 { 1.0 } else { tp / (tp + fp) };
+        let r = if tp + fn_ == 0.0 {
+            1.0
+        } else {
+            tp / (tp + fn_)
+        };
+        let f1 = if p + r == 0.0 {
+            0.0
+        } else {
+            2.0 * p * r / (p + r)
+        };
+
+        if f1 > best_f1 {
+            best_f1 = f1;
+            best_threshold = threshold;
+        }
+    }
+
+    (best_threshold, best_f1)
 }
 
 // ---------------------------------------------------------------------------
@@ -824,10 +1012,7 @@ mod tests {
                 ":spec/element-type".to_string(),
                 ":db/doc".to_string(),
             ]),
-            namespace_counts: BTreeMap::from([
-                (AttrNamespace::Spec, 2),
-                (AttrNamespace::Meta, 1),
-            ]),
+            namespace_counts: BTreeMap::from([(AttrNamespace::Spec, 2), (AttrNamespace::Meta, 1)]),
             has_ident: false,
             ident: None,
             ref_count: 0,
@@ -876,10 +1061,7 @@ mod tests {
                 ":spec/element-type".to_string(),
                 ":spec/namespace".to_string(),
             ]),
-            namespace_counts: BTreeMap::from([
-                (AttrNamespace::Meta, 2),
-                (AttrNamespace::Spec, 3),
-            ]),
+            namespace_counts: BTreeMap::from([(AttrNamespace::Meta, 2), (AttrNamespace::Spec, 3)]),
             has_ident: true,
             ident: Some(":test/dense".to_string()),
             ref_count: 2,
@@ -965,10 +1147,7 @@ mod tests {
                 ":impl/implements".to_string(),
                 ":db/ident".to_string(),
             ]),
-            namespace_counts: BTreeMap::from([
-                (AttrNamespace::Impl, 3),
-                (AttrNamespace::Meta, 1),
-            ]),
+            namespace_counts: BTreeMap::from([(AttrNamespace::Impl, 3), (AttrNamespace::Meta, 1)]),
             has_ident: true,
             ident: Some(":test/impl".to_string()),
             ref_count: 1,
@@ -1036,7 +1215,11 @@ mod tests {
             .iter()
             .filter(|d| d.entity == session_entity)
             .collect();
-        assert_eq!(session_datoms.len(), 7, "session entity should have 7 datoms");
+        assert_eq!(
+            session_datoms.len(),
+            7,
+            "session entity should have 7 datoms"
+        );
 
         // Check :db/ident is present
         assert!(
@@ -1070,7 +1253,10 @@ mod tests {
 
         // Even with no candidates, session entity is created
         assert_eq!(commit.candidate_count, 0);
-        assert!(commit.datom_count > 0, "session entity datoms always present");
+        assert!(
+            commit.datom_count > 0,
+            "session entity datoms always present"
+        );
 
         // All datoms are assertions
         assert!(
@@ -1143,6 +1329,254 @@ mod tests {
             result.completeness_gaps > 0,
             "should detect completeness gaps for incomplete spec entity"
         );
+    }
+
+    // -------------------------------------------------------------------
+    // Phase 6: FP/FN Calibration tests (INV-HARVEST-004)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn calibration_perfect_precision_recall() {
+        let e1 = EntityId::from_ident(":test/cal-a");
+        let e2 = EntityId::from_ident(":test/cal-b");
+
+        let result = HarvestResult {
+            candidates: vec![
+                HarvestCandidate {
+                    entity: e1,
+                    assertions: vec![],
+                    category: HarvestCategory::Observation,
+                    confidence: 0.9,
+                    status: CandidateStatus::Proposed,
+                    rationale: "test".into(),
+                },
+                HarvestCandidate {
+                    entity: e2,
+                    assertions: vec![],
+                    category: HarvestCategory::Decision,
+                    confidence: 0.8,
+                    status: CandidateStatus::Proposed,
+                    rationale: "test".into(),
+                },
+            ],
+            drift_score: 0.5,
+            quality: HarvestQuality {
+                count: 2,
+                high_confidence: 2,
+                medium_confidence: 0,
+                low_confidence: 0,
+            },
+            session_entities: 2,
+            completeness_gaps: 0,
+        };
+
+        let ground_truth: BTreeSet<EntityId> = BTreeSet::from([e1, e2]);
+        let cal = calibrate_harvest(&result, &ground_truth, 10);
+
+        assert_eq!(cal.true_positives, 2);
+        assert_eq!(cal.false_positives, 0);
+        assert_eq!(cal.false_negatives, 0);
+        assert!((cal.precision - 1.0).abs() < 1e-10);
+        assert!((cal.recall - 1.0).abs() < 1e-10);
+        assert!((cal.f1_score - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn calibration_with_false_positives() {
+        let e1 = EntityId::from_ident(":test/fp-a");
+        let e2 = EntityId::from_ident(":test/fp-b");
+        let e3 = EntityId::from_ident(":test/fp-noise");
+
+        let result = HarvestResult {
+            candidates: vec![
+                HarvestCandidate {
+                    entity: e1,
+                    assertions: vec![],
+                    category: HarvestCategory::Observation,
+                    confidence: 0.9,
+                    status: CandidateStatus::Proposed,
+                    rationale: "real".into(),
+                },
+                HarvestCandidate {
+                    entity: e3,
+                    assertions: vec![],
+                    category: HarvestCategory::Observation,
+                    confidence: 0.3,
+                    status: CandidateStatus::Proposed,
+                    rationale: "noise".into(),
+                },
+            ],
+            drift_score: 0.5,
+            quality: HarvestQuality {
+                count: 2,
+                high_confidence: 1,
+                medium_confidence: 0,
+                low_confidence: 1,
+            },
+            session_entities: 2,
+            completeness_gaps: 0,
+        };
+
+        let ground_truth = BTreeSet::from([e1, e2]);
+        let cal = calibrate_harvest(&result, &ground_truth, 10);
+
+        assert_eq!(cal.true_positives, 1); // e1
+        assert_eq!(cal.false_positives, 1); // e3
+        assert_eq!(cal.false_negatives, 1); // e2
+        assert!((cal.precision - 0.5).abs() < 1e-10);
+        assert!((cal.recall - 0.5).abs() < 1e-10);
+    }
+
+    #[test]
+    fn calibration_mcc_perfect() {
+        let e1 = EntityId::from_ident(":test/mcc-a");
+        let result = HarvestResult {
+            candidates: vec![HarvestCandidate {
+                entity: e1,
+                assertions: vec![],
+                category: HarvestCategory::Observation,
+                confidence: 0.9,
+                status: CandidateStatus::Proposed,
+                rationale: "test".into(),
+            }],
+            drift_score: 0.5,
+            quality: HarvestQuality {
+                count: 1,
+                high_confidence: 1,
+                medium_confidence: 0,
+                low_confidence: 0,
+            },
+            session_entities: 1,
+            completeness_gaps: 0,
+        };
+        let ground_truth = BTreeSet::from([e1]);
+        let cal = calibrate_harvest(&result, &ground_truth, 5);
+        // Perfect prediction → MCC should be close to 1.0
+        assert!(
+            cal.mcc > 0.5,
+            "perfect prediction MCC should be high, got {}",
+            cal.mcc
+        );
+    }
+
+    #[test]
+    fn calibration_empty_candidates_empty_truth() {
+        let result = HarvestResult {
+            candidates: vec![],
+            drift_score: 0.0,
+            quality: HarvestQuality::default(),
+            session_entities: 0,
+            completeness_gaps: 0,
+        };
+        let ground_truth = BTreeSet::new();
+        let cal = calibrate_harvest(&result, &ground_truth, 10);
+        assert_eq!(cal.true_positives, 0);
+        assert_eq!(cal.false_positives, 0);
+        assert_eq!(cal.false_negatives, 0);
+        assert!((cal.precision - 1.0).abs() < 1e-10, "vacuous precision");
+        assert!((cal.recall - 1.0).abs() < 1e-10, "vacuous recall");
+    }
+
+    #[test]
+    fn calibration_stratified_monotone_recall() {
+        // Higher thresholds → fewer candidates → recall non-increasing
+        let e1 = EntityId::from_ident(":test/strat-a");
+        let e2 = EntityId::from_ident(":test/strat-b");
+        let result = HarvestResult {
+            candidates: vec![
+                HarvestCandidate {
+                    entity: e1,
+                    assertions: vec![],
+                    category: HarvestCategory::Observation,
+                    confidence: 0.9,
+                    status: CandidateStatus::Proposed,
+                    rationale: "high".into(),
+                },
+                HarvestCandidate {
+                    entity: e2,
+                    assertions: vec![],
+                    category: HarvestCategory::Observation,
+                    confidence: 0.4,
+                    status: CandidateStatus::Proposed,
+                    rationale: "low".into(),
+                },
+            ],
+            drift_score: 0.5,
+            quality: HarvestQuality {
+                count: 2,
+                high_confidence: 1,
+                medium_confidence: 0,
+                low_confidence: 1,
+            },
+            session_entities: 2,
+            completeness_gaps: 0,
+        };
+        let ground_truth = BTreeSet::from([e1, e2]);
+        let cal = calibrate_harvest(&result, &ground_truth, 10);
+
+        // Recall at lower threshold >= recall at higher threshold
+        for window in cal.stratified.windows(2) {
+            let (_, _, r_low) = window[0];
+            let (_, _, r_high) = window[1];
+            assert!(
+                r_low >= r_high - 1e-10,
+                "recall must be non-increasing with threshold: {} < {}",
+                r_low,
+                r_high
+            );
+        }
+    }
+
+    #[test]
+    fn optimal_threshold_finds_best_f1() {
+        let e1 = EntityId::from_ident(":test/opt-a");
+        let e2 = EntityId::from_ident(":test/opt-b");
+        let noise = EntityId::from_ident(":test/opt-noise");
+
+        let result = HarvestResult {
+            candidates: vec![
+                HarvestCandidate {
+                    entity: e1,
+                    assertions: vec![],
+                    category: HarvestCategory::Observation,
+                    confidence: 0.95,
+                    status: CandidateStatus::Proposed,
+                    rationale: "real".into(),
+                },
+                HarvestCandidate {
+                    entity: e2,
+                    assertions: vec![],
+                    category: HarvestCategory::Decision,
+                    confidence: 0.7,
+                    status: CandidateStatus::Proposed,
+                    rationale: "real".into(),
+                },
+                HarvestCandidate {
+                    entity: noise,
+                    assertions: vec![],
+                    category: HarvestCategory::Observation,
+                    confidence: 0.2,
+                    status: CandidateStatus::Proposed,
+                    rationale: "noise".into(),
+                },
+            ],
+            drift_score: 0.5,
+            quality: HarvestQuality {
+                count: 3,
+                high_confidence: 1,
+                medium_confidence: 1,
+                low_confidence: 1,
+            },
+            session_entities: 3,
+            completeness_gaps: 0,
+        };
+        let ground_truth = BTreeSet::from([e1, e2]);
+        let (threshold, f1) = optimal_threshold(&result, &ground_truth);
+
+        // Best threshold should exclude noise (0.2) but include both real entities
+        // At threshold = 0.7: TP=2, FP=0, FN=0, F1=1.0
+        assert!(f1 >= 0.9, "optimal F₁ should be near-perfect, got {f1}");
+        assert!(threshold >= 0.2, "threshold should be above noise level");
     }
 
     // -------------------------------------------------------------------
@@ -1247,6 +1681,39 @@ mod tests {
                         "datom count must match assertion count"
                     );
                 }
+            }
+
+            /// INV-HARVEST-004: Calibration metrics are bounded and consistent.
+            #[test]
+            fn calibration_metrics_bounded(ctx in arb_session_context()) {
+                let store = Store::genesis();
+                let result = harvest_pipeline(&store, &ctx);
+
+                // Use candidate entities as "ground truth" (perfect recall scenario)
+                let ground_truth: BTreeSet<EntityId> =
+                    result.candidates.iter().map(|c| c.entity).collect();
+                let cal = calibrate_harvest(&result, &ground_truth, store.entity_count());
+
+                prop_assert!(
+                    cal.precision >= 0.0 && cal.precision <= 1.0,
+                    "precision must be in [0, 1], got {}",
+                    cal.precision
+                );
+                prop_assert!(
+                    cal.recall >= 0.0 && cal.recall <= 1.0,
+                    "recall must be in [0, 1], got {}",
+                    cal.recall
+                );
+                prop_assert!(
+                    cal.f1_score >= 0.0 && cal.f1_score <= 1.0,
+                    "F₁ must be in [0, 1], got {}",
+                    cal.f1_score
+                );
+                prop_assert!(
+                    cal.mcc >= -1.0 && cal.mcc <= 1.0 + 1e-10,
+                    "MCC must be in [-1, 1], got {}",
+                    cal.mcc
+                );
             }
 
             /// v2: Session entities count is non-negative and bounded.

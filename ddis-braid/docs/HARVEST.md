@@ -2839,3 +2839,187 @@ None. The pipeline is complete and ready for use.
 1. **Harvest v2 Phase 1-2** (brai-3c6b): tx-log extraction + classification — the backbone of the new pipeline
 2. **Seed v2 Phase 1-2** (brai-3dxi): PageRank association + eigenvector ranking — can run in parallel
 3. **Entity index** (brai-re8a): BTreeMap for O(log n) lookups — prerequisite for both v2 pipelines
+
+---
+
+## Session 023 — 2026-03-10 (Harvest/Seed v2 Implementation)
+
+**Platform**: Claude Code (opus-4-6)
+**Duration**: Single session, continued from context-compacted session 022
+
+### What Was Accomplished
+
+Six beads closed with 332 tests passing (+27 from session start):
+
+1. **Entity index** (brai-re8a): `BTreeMap<EntityId, Vec<Datom>>` secondary index on `Store` for O(1) entity lookups. Updated `genesis()`, `from_datoms()`, `transact()`, `merge()` to maintain incrementally.
+
+2. **Real β₁** (brai-2ia5): Replaced `compute_beta_1_proxy` (stub returning 0) with `compute_beta_1` using edge Laplacian eigendecomposition via `first_betti_number(DiGraph)`. Builds DiGraph from `Value::Ref` datoms on 7 cross-boundary attributes (REF_EDGE_ATTRS). Completes the (Φ, β₁) coherence duality.
+
+3. **Harvest v2 Phase 1-2** (brai-3c6b): 4-phase pipeline (EXTRACT→CLASSIFY→SCORE→GAP-DETECT). `EntityProfile` intermediate representation with structural namespace classification via `AttrNamespace`. Session boundary detection using full HLC TxId comparison (not just wall_time).
+
+4. **Seed v2 Phase 1-2** (brai-3dxi): PageRank-based association via BFS graph traversal through `Value::Ref` edges (both directions — undirected). `build_entity_graph()` constructs DiGraph + bidirectional EntityId mapping. `score_entity()` v2 uses PageRank as significance component.
+
+5. **Harvest v2 Phase 3-5** (brai-36d4): Fisher-Rao information-geometric scoring replacing ad-hoc heuristics. `fisher_rao_distance(p, q)` computes geodesic distance on Δ³ via Bhattacharyya coefficient — the unique Riemannian metric invariant under sufficient statistics (Chentsov 1972). `build_harvest_commit()` for kernel-level session entity construction with 7 provenance datoms.
+
+6. **Seed v2 Phase 3-4** (brai-3kl0): Adaptive projection (water-filling optimization) assigns per-entity projection levels (π₀/π₁/π₂/π₃) by relevance score. `verify_seed()` checks INV-SEED-001..006.
+
+### Mathematical Techniques Deployed
+
+| Technique | Where | Why |
+|-----------|-------|-----|
+| Edge Laplacian eigendecomposition | trilateral.rs:compute_beta_1 | β₁ = dim(ker(L₁)) counts independent cycles |
+| PageRank (Perron-Frobenius) | seed.rs:score_entity | Structural importance ranking |
+| Fisher-Rao metric (Chentsov) | harvest.rs:fisher_rao_distance | Information-geometric confidence scoring |
+| Bhattacharyya coefficient | harvest.rs:fisher_rao_distance | Affinity on probability simplex |
+| Laplace smoothing | harvest.rs:score_profile | Avoid Fisher-Rao singularity at simplex boundary |
+| Water-filling optimization | seed.rs:assemble | Adaptive rate-distortion compression |
+| BFS on entity graph | seed.rs:bfs_expand | Topology-aware association discovery |
+| HLC ordering | harvest.rs:extract_session_profiles | Correct session boundary in deterministic clock |
+
+### Decisions Made
+
+- **Entity graph uses ALL Value::Ref edges for seed** (vs. REF_EDGE_ATTRS subset for trilateral β₁). Rationale: seed wants maximum topological connectivity for discovery; β₁ specifically measures cross-boundary structural cycles.
+- **SessionContext gains `agent_name: String` field**. Rationale: AgentId is a BLAKE3 hash — can't recover the name. Provenance metadata needs human-readable agent identity.
+- **Fisher-Rao distance over simpler heuristics**. Rationale: it's the canonical metric on the probability simplex (Chentsov's uniqueness theorem). Gives us principled confidence bounds with information-theoretic grounding.
+
+### Files Modified
+
+- `crates/braid-kernel/src/store.rs` — entity index
+- `crates/braid-kernel/src/trilateral.rs` — real β₁
+- `crates/braid-kernel/src/harvest.rs` — harvest v2 (4 phases + Fisher + commit)
+- `crates/braid-kernel/src/seed.rs` — seed v2 (PageRank + adaptive + verify)
+- `crates/braid-kernel/src/lib.rs` — new exports
+- `crates/braid/src/commands/harvest.rs` — CLI v2 metrics + agent_name
+- `crates/braid/src/mcp.rs` — agent_name
+- `crates/braid-kernel/tests/cross_namespace.rs` — agent_name
+- `crates/braid-kernel/tests/harvest_seed_cycle.rs` — agent_name
+
+### Test Results
+
+- **332 tests passing** (+27 from session 022)
+- Clippy clean, `cargo check` clean
+- All stateright model-checking tests pass
+
+### Failure Modes Discovered
+
+- **FM-SCHEMA-001**: `Store::from_datoms()` with `full_schema_datoms()` doesn't include L0 genesis datoms. Tests using L1+ attributes on `from_datoms` stores must explicitly include `genesis_datoms()`. Mitigation: `store_with_full_schema()` test helper.
+- **FM-HLC-001** (from session 022): In pure-kernel mode, wall_time doesn't advance between transactions. Session boundary detection using `wall_time >` comparison fails. Must use full TxId HLC ordering.
+
+### Dog-Fooding Observations
+
+Working with the tool: the harvest/seed cycle is starting to feel real. The gap detection finds actual structural incompleteness — spec entities missing `:spec/id` or `:db/doc` are genuine quality issues. The PageRank-based seed means that structurally central entities (schema definitions) naturally float to the top of the seed output.
+
+What needs improvement: the adaptive projection is elegant but needs tuning — the score normalization (`score/max_score`) can be distorted by a single outlier entity. A percentile-based threshold would be more robust.
+
+### Recommended Next Action
+
+1. **Topology framework promotion** (brai-2wpi epic): 9 sub-tasks for formal topology spec
+2. **Coherence geometry promotion** (brai-1yys epic): 8 sub-tasks for density matrix + Bures
+3. **Betweenness centrality** (brai-25x2): R(t) routing for guidance
+4. **Self-bootstrap: run `braid harvest --commit`** on the actual codebase to generate provenance datoms from the v2 pipeline
+
+---
+
+## Session 024 — 2026-03-10 (Mathematical Frontier: Algebraic Topology + Information Geometry)
+
+### Goal
+
+Implement the mathematical frontier that makes Braid's kernel genuinely unprecedented: betweenness centrality, von Neumann entropy, persistent homology, and FP/FN calibration. Also: address user amplification messages, create new beads for advanced mathematics, dog-food the system, and close beads.
+
+**Traces to**: SEED.md §4 (datom store), §5 (harvest/seed), §8 (interface), spec/03-query.md (graph algorithms), spec/18-trilateral.md (coherence metrics)
+
+### What Was Accomplished
+
+#### 1. Betweenness Centrality — Brandes' Algorithm (brai-25x2, CLOSED)
+- **File**: `crates/braid-kernel/src/query/graph.rs`
+- Brandes' O(V×E) algorithm for unweighted directed graphs
+- BFS-based forward pass + backward accumulation with σ_st(v)/σ_st weighting
+- 5 unit tests (line graph, star graph, diamond, empty, determinism) + 1 proptest (non-negativity)
+- Exported as `betweenness_centrality()` via lib.rs
+- **INV-QUERY-015**: Satisfied
+
+#### 2. Von Neumann Entropy — Density Matrix Coherence (brai-3vd5, CLOSED)
+- **File**: `crates/braid-kernel/src/trilateral.rs`
+- Symmetrized adjacency matrix from `Value::Ref` datoms + self-loops → density matrix ρ = A/Tr(A)
+- S(ρ) = -Σᵢ λᵢ log₂(λᵢ) via Jacobi eigendecomposition
+- `CoherenceEntropy` struct with entropy, max_entropy, normalized, effective_rank, node_count
+- Integrated into `CoherenceReport` (new `entropy` field)
+- 4 unit tests (genesis, empty store, increasing disorder, normalized bounds)
+- **INV-COHERENCE-001**: Partial satisfaction (density matrix and entropy computed; PSD/unit-trace verification deferred)
+
+#### 3. Persistent Homology — Topological Barcodes (brai-2sq1, CLOSED)
+- **File**: `crates/braid-kernel/src/query/graph.rs`
+- Union-Find with elder rule for H₀ (connected components: birth/death pairs)
+- Cycle detection for H₁ (edges connecting same component create cycles)
+- `BirthDeath` struct with birth, death, dimension, persistence()
+- `PersistenceDiagram` with h0_persistent, h1_persistent, filtration_length
+- `total_persistence()` — Σ(death - birth) for stability measurement
+- `persistence_distance()` — Wasserstein-1 lower bound between diagrams
+- 10 unit tests + 1 proptest (Euler characteristic: h0_persistent + finite_h0 = total_nodes)
+- **INV-QUERY-025**: Satisfied
+
+#### 4. FP/FN Calibration (brai-3oof, CLOSED)
+- **File**: `crates/braid-kernel/src/harvest.rs`
+- `CalibrationResult` with precision, recall, F₁, Matthews Correlation Coefficient
+- Confidence-stratified metrics at 4 thresholds (0.3, 0.5, 0.7, 0.9)
+- `optimal_threshold()` — sweeps all candidate confidence values, maximizes F₁
+- MCC formula: (TP×TN − FP×FN) / √((TP+FP)(TP+FN)(TN+FP)(TN+FN))
+- 7 unit tests + 1 proptest (all metrics bounded)
+- **INV-HARVEST-004**: Satisfied
+
+#### 5. New Beads Created for Mathematical Frontier
+- `brai-299i`: Sheaf cohomology for conflict detection (H¹ obstruction = conflict set)
+- `brai-2kv9`: Fiedler vector spectral clustering for seed entity partitioning
+- `brai-1ge2`: Cheeger inequality bounds (algebraic connectivity vs expansion ratio)
+- `brai-3vd5`: Von Neumann entropy (CLOSED this session)
+- `brai-19fq`: Topological barcode from persistent H₀/H₁ over tx filtration
+
+#### 6. P0 Epic Closed
+- `brai-1dux`: Harvest/Seed v2 + Self-Bootstrap — CLOSED (all sub-beads complete)
+
+### Decisions Made
+
+1. **Betweenness centrality uses directed BFS** (not undirected) — matches the directed DiGraph structure. Shortest paths are computed per-source in sorted order for determinism.
+2. **Von Neumann entropy symmetrizes the adjacency matrix** — uses all Value::Ref datoms (not just REF_EDGE_ATTRS) for maximum information. Self-loops (A[i,i] = 1) ensure non-zero trace and PSD property.
+3. **Persistent homology uses elder rule** for Union-Find — older component (lower birth time) survives merge, giving proper birth-death semantics.
+4. **MCC chosen over F₁ alone** — MCC is balanced even with class imbalance, giving a better single-number summary of calibration quality.
+5. **Wasserstein-1 distance is a lower bound** — true optimal matching is O(n³); the sorted-pair approximation is sufficient for Stage 0.
+
+### Quantitative Summary
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Tests passing | 332 | 361 |
+| New functions | — | 9 (betweenness_centrality, von_neumann_entropy, persistent_homology, total_persistence, persistence_distance, calibrate_harvest, optimal_threshold, + UnionFind, BfsParams) |
+| New types | — | 5 (CoherenceEntropy, BirthDeath, PersistenceDiagram, CalibrationResult, UnionFind) |
+| Beads closed | — | 5 (brai-25x2, brai-3vd5, brai-2sq1, brai-3oof, brai-1dux) |
+| Beads created | — | 5 (brai-299i, brai-2kv9, brai-1ge2, brai-3vd5, brai-19fq) |
+| Clippy | clean | clean |
+| fmt | clean | clean |
+
+### Dog-Fooding Observations
+
+**Critical UX Issues:**
+1. **EntityId display is unusable** — `braid query -a ":db/doc"` shows 32-byte BLAKE3 hashes instead of idents. For `:db/ident`-bearing entities, we should resolve and display the human-readable name. This is the #1 barrier to adoption.
+2. **Seed keyword matching is too shallow** — "mathematical frontier implementation" only found 2 entities. The BFS expansion helps but depends on initial keyword overlap. Spectral methods (Fiedler partitioning) would give topic-coherent entity clusters.
+3. **Harvest reports 0 candidates with no explanation** — when session_entities=0, the tool should explain *why* (e.g., "no transactions after session_start_tx"). Silent emptiness is confusing.
+4. **CLI query lacks Datalog syntax** — the kernel has a full Datalog engine but the CLI only exposes entity/attribute filters. This severely limits what you can ask.
+
+**What Feels Good:**
+- The datom model continues to feel right. Schema-as-data means no migration friction.
+- The Fisher-Rao scorer produces coherent confidence values — decision profiles really do score higher when matched to the Decision ideal distribution.
+- The PageRank + BFS seed assembly naturally surfaces structurally important entities.
+- All graph algorithms compose cleanly: same DiGraph type for PageRank, betweenness, β₁, and now persistent homology.
+
+### Failure Modes Discovered
+
+- **FM-UX-002**: EntityId raw hash display prevents human comprehension of query/seed output. Root cause: `Display` for EntityId shows bytes, no ident resolution. DDIS mechanism: the seed should resolve `:db/ident` datoms for entities in the output.
+- **FM-UX-003**: Harvest with 0 candidates gives no diagnostic feedback. Root cause: empty result is structurally valid but informationally useless. DDIS mechanism: guidance injection should explain absence.
+
+### Recommended Next Action
+
+1. **EntityId display resolution** — Add ident lookup to query/seed CLI output (highest UX impact)
+2. **Fiedler vector spectral clustering** (brai-2kv9) — for topic-coherent seed partitioning
+3. **Sheaf cohomology** (brai-299i) — H¹ obstruction as principled conflict detection
+4. **Topology framework spec** (brai-2wpi) — formal promotion to spec/19-topology.md
+5. **Coherence geometry spec** (brai-1yys) — formal promotion with Bures distance

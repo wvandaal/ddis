@@ -387,7 +387,11 @@ fn score_entity(
     // Use entity index for O(1) lookup instead of O(N) scan
     let datoms = store.entity_datoms(entity);
 
-    let asserted: Vec<&Datom> = datoms.iter().filter(|d| d.op == Op::Assert).copied().collect();
+    let asserted: Vec<&Datom> = datoms
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .copied()
+        .collect();
 
     if asserted.is_empty() {
         return 0.0;
@@ -425,11 +429,7 @@ fn score_entity(
     let significance = (pr * n).min(1.0);
 
     // Recency: newest transaction time relative to max
-    let newest_tx = asserted
-        .iter()
-        .map(|d| d.tx.wall_time())
-        .max()
-        .unwrap_or(0);
+    let newest_tx = asserted.iter().map(|d| d.tx.wall_time()).max().unwrap_or(0);
     let recency = if max_tx_wall_time == 0 {
         0.5
     } else {
@@ -510,7 +510,12 @@ pub fn assemble(
     let mut scored: Vec<(EntityId, f64)> = neighborhood
         .entities
         .iter()
-        .map(|&e| (e, score_entity(store, e, &task_keywords, max_wall, &pr_scores)))
+        .map(|&e| {
+            (
+                e,
+                score_entity(store, e, &task_keywords, max_wall, &pr_scores),
+            )
+        })
         .collect();
     scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
@@ -989,17 +994,61 @@ mod tests {
         let spoke_c = EntityId::from_ident(":test/spoke-c");
 
         let tx = Transaction::new(agent, ProvenanceType::Observed, "create hub")
-            .assert(hub, Attribute::from_keyword(":db/ident"), Value::Keyword(":test/hub".into()))
-            .assert(hub, Attribute::from_keyword(":db/doc"), Value::String("central hub".into()))
-            .assert(spoke_a, Attribute::from_keyword(":db/ident"), Value::Keyword(":test/spoke-a".into()))
-            .assert(spoke_a, Attribute::from_keyword(":db/doc"), Value::String("spoke a".into()))
-            .assert(spoke_a, Attribute::from_keyword(":impl/implements"), Value::Ref(hub))
-            .assert(spoke_b, Attribute::from_keyword(":db/ident"), Value::Keyword(":test/spoke-b".into()))
-            .assert(spoke_b, Attribute::from_keyword(":db/doc"), Value::String("spoke b".into()))
-            .assert(spoke_b, Attribute::from_keyword(":impl/implements"), Value::Ref(hub))
-            .assert(spoke_c, Attribute::from_keyword(":db/ident"), Value::Keyword(":test/spoke-c".into()))
-            .assert(spoke_c, Attribute::from_keyword(":db/doc"), Value::String("spoke c".into()))
-            .assert(spoke_c, Attribute::from_keyword(":impl/implements"), Value::Ref(hub))
+            .assert(
+                hub,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":test/hub".into()),
+            )
+            .assert(
+                hub,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("central hub".into()),
+            )
+            .assert(
+                spoke_a,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":test/spoke-a".into()),
+            )
+            .assert(
+                spoke_a,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("spoke a".into()),
+            )
+            .assert(
+                spoke_a,
+                Attribute::from_keyword(":impl/implements"),
+                Value::Ref(hub),
+            )
+            .assert(
+                spoke_b,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":test/spoke-b".into()),
+            )
+            .assert(
+                spoke_b,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("spoke b".into()),
+            )
+            .assert(
+                spoke_b,
+                Attribute::from_keyword(":impl/implements"),
+                Value::Ref(hub),
+            )
+            .assert(
+                spoke_c,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":test/spoke-c".into()),
+            )
+            .assert(
+                spoke_c,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("spoke c".into()),
+            )
+            .assert(
+                spoke_c,
+                Attribute::from_keyword(":impl/implements"),
+                Value::Ref(hub),
+            )
             .commit(&store)
             .unwrap();
         store.transact(tx).unwrap();
@@ -1141,18 +1190,17 @@ mod tests {
         // Create entities with varying "importance" (attribute richness)
         for i in 0..5 {
             let entity = EntityId::from_ident(&format!(":test/entity-{i}"));
-            let mut tx =
-                Transaction::new(agent, ProvenanceType::Observed, "create test entities")
-                    .assert(
-                        entity,
-                        Attribute::from_keyword(":db/ident"),
-                        Value::Keyword(format!(":test/entity-{i}")),
-                    )
-                    .assert(
-                        entity,
-                        Attribute::from_keyword(":db/doc"),
-                        Value::String(format!("entity {i} for adaptive projection test")),
-                    );
+            let mut tx = Transaction::new(agent, ProvenanceType::Observed, "create test entities")
+                .assert(
+                    entity,
+                    Attribute::from_keyword(":db/ident"),
+                    Value::Keyword(format!(":test/entity-{i}")),
+                )
+                .assert(
+                    entity,
+                    Attribute::from_keyword(":db/doc"),
+                    Value::String(format!("entity {i} for adaptive projection test")),
+                );
 
             // Add more attributes to higher-numbered entities
             if i >= 3 {

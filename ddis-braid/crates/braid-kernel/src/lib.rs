@@ -40,9 +40,9 @@ pub use guidance::{
     TaskRouting, Trend,
 };
 pub use harvest::{
-    build_harvest_commit, candidate_to_datoms, harvest_pipeline, CandidateStatus,
-    HarvestCandidate, HarvestCategory, HarvestCommit, HarvestQuality, HarvestResult,
-    SessionContext,
+    build_harvest_commit, calibrate_harvest, candidate_to_datoms, harvest_pipeline,
+    optimal_threshold, CalibrationResult, CandidateStatus, HarvestCandidate, HarvestCategory,
+    HarvestCommit, HarvestQuality, HarvestResult, SessionContext,
 };
 pub use layout::{
     collect_datoms, deserialize_tx, serialize_tx, tx_content_hash, verify_content_hash,
@@ -56,8 +56,10 @@ pub use promote::{
     DualIdentityCheck, PromotionRequest, PromotionResult, PromotionTargetType,
 };
 pub use query::{
-    critical_path, density, edge_laplacian, evaluate, first_betti_number, pagerank, scc, topo_sort,
-    Binding, Clause, DenseMatrix, FindSpec, Pattern, QueryExpr, QueryResult,
+    betweenness_centrality, critical_path, density, edge_laplacian, evaluate, first_betti_number,
+    pagerank, persistence_distance, persistent_homology, scc, topo_sort, total_persistence,
+    Binding, BirthDeath, Clause, DenseMatrix, DiGraph, FindSpec, Pattern, PersistenceDiagram,
+    QueryExpr, QueryResult,
 };
 pub use resolution::{
     conflict_to_datoms, detect_conflicts, resolve, resolve_with_trail, ConflictEntity, ConflictSet,
@@ -77,6 +79,6 @@ pub use stage::{capabilities, max_stage, stage_name};
 pub use store::{Frontier, MergeReceipt, Store, TxData, TxReceipt};
 pub use trilateral::{
     check_coherence, classify_attribute, compute_phi, compute_phi_default, formality_level,
-    isp_check, live_projections, AttrNamespace, CoherenceQuadrant, CoherenceReport,
-    DivergenceComponents, IspResult, LiveView,
+    isp_check, live_projections, von_neumann_entropy, AttrNamespace, CoherenceEntropy,
+    CoherenceQuadrant, CoherenceReport, DivergenceComponents, IspResult, LiveView,
 };

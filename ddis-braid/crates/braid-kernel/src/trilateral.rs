@@ -12,10 +12,10 @@
 //! - **INV-TRILATERAL-005**: Attribute namespace partitions are pairwise disjoint.
 //! - **INV-TRILATERAL-009**: (Φ, β₁) duality — Φ=0 ∧ β₁=0 iff coherent.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::datom::{Attribute, Datom, EntityId, Op, Value};
-use crate::query::graph::{first_betti_number, DiGraph};
+use crate::query::graph::{first_betti_number, DenseMatrix, DiGraph};
 use crate::store::Store;
 
 // ---------------------------------------------------------------------------
@@ -339,6 +339,8 @@ pub struct CoherenceReport {
     pub live_impl: usize,
     /// Number of entities with ISP specification bypasses.
     pub isp_bypasses: usize,
+    /// Von Neumann entropy of the entity reference graph.
+    pub entropy: CoherenceEntropy,
 }
 
 /// Reference-type attributes that define edges in the entity graph.
@@ -377,8 +379,14 @@ fn compute_beta_1(store: &Store) -> usize {
             continue;
         }
         if let Value::Ref(target) = &datom.value {
-            let src = format!("{:x}", u64::from_be_bytes(datom.entity.as_bytes()[..8].try_into().unwrap()));
-            let dst = format!("{:x}", u64::from_be_bytes(target.as_bytes()[..8].try_into().unwrap()));
+            let src = format!(
+                "{:x}",
+                u64::from_be_bytes(datom.entity.as_bytes()[..8].try_into().unwrap())
+            );
+            let dst = format!(
+                "{:x}",
+                u64::from_be_bytes(target.as_bytes()[..8].try_into().unwrap())
+            );
             graph.add_edge(&src, &dst);
         }
     }
@@ -395,6 +403,7 @@ pub fn check_coherence(store: &Store) -> CoherenceReport {
     let (phi, components) = compute_phi_default(store);
     let beta_1 = compute_beta_1(store);
     let (live_i, live_s, live_p) = live_projections(store);
+    let entropy = von_neumann_entropy(store);
 
     // Count ISP bypasses
     let all_entities: Vec<EntityId> = store.entities().into_iter().collect();
@@ -419,6 +428,160 @@ pub fn check_coherence(store: &Store) -> CoherenceReport {
         live_spec: live_s.datom_count,
         live_impl: live_p.datom_count,
         isp_bypasses,
+        entropy,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Von Neumann Entropy (INV-COHERENCE-001)
+// ---------------------------------------------------------------------------
+
+/// Von Neumann entropy coherence metrics.
+///
+/// S(ρ) = -Tr(ρ log₂ ρ) = -Σᵢ λᵢ log₂(λᵢ)
+/// where ρ = A/Tr(A) is the density matrix formed from the
+/// adjacency matrix of the entity reference graph.
+///
+/// Low entropy → concentrated, coherent structure.
+/// High entropy → dispersed, incoherent structure.
+/// Maximum entropy = log₂(n) for n-node graph (uniform distribution).
+#[derive(Clone, Debug)]
+pub struct CoherenceEntropy {
+    /// Von Neumann entropy S(ρ) in bits.
+    pub entropy: f64,
+    /// Maximum possible entropy log₂(n).
+    pub max_entropy: f64,
+    /// Normalized entropy S(ρ)/log₂(n) ∈ [0, 1].
+    pub normalized: f64,
+    /// Number of non-zero eigenvalues (effective rank).
+    pub effective_rank: usize,
+    /// Total nodes in the entity graph.
+    pub node_count: usize,
+}
+
+/// Helper: extract a hex key from an EntityId (same convention as seed.rs).
+fn entity_key(entity: EntityId) -> String {
+    format!(
+        "{:x}",
+        u64::from_be_bytes(entity.as_bytes()[..8].try_into().unwrap())
+    )
+}
+
+/// Compute von Neumann entropy of the entity reference graph (INV-COHERENCE-001).
+///
+/// Forms the adjacency matrix A from all `Value::Ref` datoms (both directed
+/// edges contribute symmetrically: A[i,j] = A[j,i] = 1 if i→j or j→i).
+/// Normalizes to density matrix ρ = A/Tr(A).
+/// Computes S(ρ) = -Σᵢ λᵢ log₂(λᵢ) via eigendecomposition.
+///
+/// For the symmetrized adjacency matrix with unit self-loops, ρ has all
+/// real non-negative eigenvalues (it's PSD after normalization by trace).
+pub fn von_neumann_entropy(store: &Store) -> CoherenceEntropy {
+    // Collect all Value::Ref datoms (Op::Assert only) to build the entity graph.
+    let mut node_index: BTreeMap<String, usize> = BTreeMap::new();
+    let mut edges: Vec<(String, String)> = Vec::new();
+
+    for datom in store.datoms() {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        if let Value::Ref(target) = &datom.value {
+            let src = entity_key(datom.entity);
+            let dst = entity_key(*target);
+            // Register both nodes
+            let next_id = node_index.len();
+            node_index.entry(src.clone()).or_insert(next_id);
+            let next_id = node_index.len();
+            node_index.entry(dst.clone()).or_insert(next_id);
+            edges.push((src, dst));
+        }
+    }
+
+    let n = node_index.len();
+
+    // Edge case: no ref datoms → empty graph
+    if n == 0 {
+        return CoherenceEntropy {
+            entropy: 0.0,
+            max_entropy: 0.0,
+            normalized: 0.0,
+            effective_rank: 0,
+            node_count: 0,
+        };
+    }
+
+    // Build symmetric adjacency matrix with self-loops.
+    // A[i,i] = 1 for all nodes (ensures non-zero trace and PSD).
+    let mut a = DenseMatrix::zeros(n, n);
+
+    // Self-loops: A[i,i] = 1
+    for i in 0..n {
+        a.set(i, i, 1.0);
+    }
+
+    // Symmetric edges: for i→j, set A[i,j] = 1 and A[j,i] = 1
+    for (src, dst) in &edges {
+        let i = node_index[src];
+        let j = node_index[dst];
+        a.set(i, j, 1.0);
+        a.set(j, i, 1.0);
+    }
+
+    // Compute trace = Σᵢ A[i,i]
+    let trace: f64 = (0..n).map(|i| a.get(i, i)).sum();
+
+    // Edge case: trace == 0 (shouldn't happen with self-loops, but guard)
+    if trace < f64::EPSILON {
+        return CoherenceEntropy {
+            entropy: 0.0,
+            max_entropy: (n as f64).log2(),
+            normalized: 0.0,
+            effective_rank: 0,
+            node_count: n,
+        };
+    }
+
+    // Normalize: ρ = A / trace (unit trace, PSD)
+    let mut rho = DenseMatrix::zeros(n, n);
+    for i in 0..n {
+        for j in 0..n {
+            rho.set(i, j, a.get(i, j) / trace);
+        }
+    }
+
+    // Eigendecomposition of the symmetric density matrix
+    let eigenvalues = rho.symmetric_eigenvalues();
+
+    // S(ρ) = -Σᵢ λᵢ log₂(λᵢ) where λᵢ > 0
+    let mut entropy = 0.0_f64;
+    let mut effective_rank = 0usize;
+    let eps = 1e-12;
+
+    for &lambda in &eigenvalues {
+        if lambda > eps {
+            effective_rank += 1;
+            entropy -= lambda * lambda.log2();
+        }
+    }
+
+    // Clamp to non-negative (numerical noise can produce tiny negatives)
+    if entropy < 0.0 {
+        entropy = 0.0;
+    }
+
+    let max_entropy = (n as f64).log2();
+    let normalized = if max_entropy > 0.0 {
+        (entropy / max_entropy).min(1.0)
+    } else {
+        0.0
+    };
+
+    CoherenceEntropy {
+        entropy,
+        max_entropy,
+        normalized,
+        effective_rank,
+        node_count: n,
     }
 }
 
@@ -1037,5 +1200,122 @@ mod tests {
                 }
             }
         }
+    }
+
+    // -------------------------------------------------------------------
+    // Von Neumann entropy (INV-COHERENCE-001)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn von_neumann_entropy_empty_store_is_zero() {
+        // Empty store (no ref datoms) -> no graph -> entropy = 0
+        let store = Store::genesis();
+        let entropy = von_neumann_entropy(&store);
+        // Genesis has no Value::Ref datoms, so entity graph is empty
+        assert_eq!(entropy.node_count, 0);
+        assert_eq!(entropy.entropy, 0.0);
+    }
+
+    #[test]
+    fn von_neumann_entropy_genesis_single_component() {
+        let store = Store::genesis();
+        let entropy = von_neumann_entropy(&store);
+        // Genesis has no Ref datoms -> no edges -> empty graph
+        assert!(entropy.entropy >= 0.0, "entropy must be non-negative");
+        assert!(
+            entropy.normalized <= 1.0 + 1e-10,
+            "normalized entropy must be <= 1"
+        );
+    }
+
+    #[test]
+    fn von_neumann_entropy_concentrated_vs_dispersed() {
+        use crate::datom::{AgentId, TxId};
+        let tx = TxId::new(1, 0, AgentId::from_name("test:entropy"));
+
+        // Fully connected 4-node graph (concentrated structure).
+        // The adjacency matrix is all-ones → rank-1 density matrix → S ≈ 0.
+        let mut datoms_connected = Store::genesis().datom_set().clone();
+        let a = EntityId::from_ident(":test/entropy-a");
+        let b = EntityId::from_ident(":test/entropy-b");
+        let c = EntityId::from_ident(":test/entropy-c");
+        let d = EntityId::from_ident(":test/entropy-d");
+        for &src in &[a, b, c, d] {
+            for &dst in &[a, b, c, d] {
+                if src != dst {
+                    datoms_connected.insert(Datom::new(
+                        src,
+                        Attribute::from_keyword(":dep/from"),
+                        Value::Ref(dst),
+                        tx,
+                        Op::Assert,
+                    ));
+                }
+            }
+        }
+        let store_connected = Store::from_datoms(datoms_connected);
+        let e_connected = von_neumann_entropy(&store_connected);
+
+        // Sparse chain: A → B, C → D (dispersed, two isolated pairs).
+        // The adjacency matrix has block-diagonal structure → higher effective rank → higher S.
+        let mut datoms_sparse = Store::genesis().datom_set().clone();
+        datoms_sparse.insert(Datom::new(
+            a,
+            Attribute::from_keyword(":dep/from"),
+            Value::Ref(b),
+            tx,
+            Op::Assert,
+        ));
+        datoms_sparse.insert(Datom::new(
+            c,
+            Attribute::from_keyword(":dep/from"),
+            Value::Ref(d),
+            tx,
+            Op::Assert,
+        ));
+        let store_sparse = Store::from_datoms(datoms_sparse);
+        let e_sparse = von_neumann_entropy(&store_sparse);
+
+        // Dispersed (sparse, disconnected) graph should have higher entropy
+        // than a fully connected graph (concentrated, low-rank structure).
+        assert!(
+            e_sparse.entropy > e_connected.entropy,
+            "dispersed graph should have higher entropy than concentrated: sparse={} vs connected={}",
+            e_sparse.entropy, e_connected.entropy
+        );
+        assert!(
+            e_sparse.effective_rank > e_connected.effective_rank,
+            "dispersed graph should have higher effective rank: {} vs {}",
+            e_sparse.effective_rank,
+            e_connected.effective_rank
+        );
+    }
+
+    #[test]
+    fn von_neumann_entropy_normalized_bounded() {
+        use crate::datom::{AgentId, TxId};
+        let tx = TxId::new(1, 0, AgentId::from_name("test:entropy-norm"));
+        let mut datoms = Store::genesis().datom_set().clone();
+        let a = EntityId::from_ident(":test/norm-a");
+        let b = EntityId::from_ident(":test/norm-b");
+        let c = EntityId::from_ident(":test/norm-c");
+        datoms.insert(Datom::new(
+            a,
+            Attribute::from_keyword(":dep/from"),
+            Value::Ref(b),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            b,
+            Attribute::from_keyword(":dep/from"),
+            Value::Ref(c),
+            tx,
+            Op::Assert,
+        ));
+        let store = Store::from_datoms(datoms);
+        let entropy = von_neumann_entropy(&store);
+        assert!(entropy.normalized >= 0.0, "normalized must be >= 0");
+        assert!(entropy.normalized <= 1.0 + 1e-10, "normalized must be <= 1");
     }
 }

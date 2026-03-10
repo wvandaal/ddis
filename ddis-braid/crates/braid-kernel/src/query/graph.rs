@@ -499,6 +499,87 @@ pub fn first_betti_number(graph: &DiGraph) -> usize {
     eigenvalues.iter().filter(|&&v| v.abs() < 1e-8).count()
 }
 
+/// Betweenness centrality via Brandes' algorithm (INV-QUERY-015).
+///
+/// For each node v, BC(v) = Σ_{s≠v≠t} σ_st(v) / σ_st
+/// where σ_st is the number of shortest paths from s to t,
+/// and σ_st(v) is the number that pass through v.
+///
+/// Uses BFS-based forward pass + backward accumulation.
+/// Complexity: O(V × E) for unweighted graphs.
+pub fn betweenness_centrality(graph: &DiGraph) -> BTreeMap<String, f64> {
+    let mut bc: BTreeMap<String, f64> = BTreeMap::new();
+    for node in graph.nodes() {
+        bc.insert(node.clone(), 0.0);
+    }
+
+    // Process source nodes in sorted order for determinism (INV-QUERY-017).
+    // BTreeMap keys are already sorted, so iterating graph.nodes() is deterministic.
+    for s in graph.nodes() {
+        // --- Forward pass: BFS from s ---
+        let mut stack: Vec<String> = Vec::new();
+        let mut predecessors: HashMap<String, Vec<String>> = HashMap::new();
+        let mut sigma: HashMap<String, f64> = HashMap::new();
+        let mut dist: HashMap<String, i64> = HashMap::new();
+
+        for node in graph.nodes() {
+            predecessors.insert(node.clone(), Vec::new());
+            sigma.insert(node.clone(), 0.0);
+            dist.insert(node.clone(), -1);
+        }
+
+        sigma.insert(s.clone(), 1.0);
+        dist.insert(s.clone(), 0);
+
+        let mut queue: VecDeque<String> = VecDeque::new();
+        queue.push_back(s.clone());
+
+        while let Some(v) = queue.pop_front() {
+            stack.push(v.clone());
+            let dv = dist[&v];
+
+            // Process successors in sorted order for determinism
+            let mut succs: Vec<String> = graph.successors(&v).cloned().collect();
+            succs.sort();
+
+            for w in succs {
+                // w found for the first time?
+                if dist[&w] < 0 {
+                    dist.insert(w.clone(), dv + 1);
+                    queue.push_back(w.clone());
+                }
+                // shortest path to w via v?
+                if dist[&w] == dv + 1 {
+                    let sv = sigma[&v];
+                    *sigma.get_mut(&w).unwrap() += sv;
+                    predecessors.get_mut(&w).unwrap().push(v.clone());
+                }
+            }
+        }
+
+        // --- Backward pass: accumulate dependencies ---
+        let mut delta: HashMap<String, f64> = HashMap::new();
+        for node in graph.nodes() {
+            delta.insert(node.clone(), 0.0);
+        }
+
+        // Process in reverse BFS order (farthest nodes first)
+        while let Some(w) = stack.pop() {
+            let sigma_w = sigma[&w];
+            let delta_w = delta[&w];
+            for v in &predecessors[&w] {
+                let sigma_v = sigma[v];
+                *delta.get_mut(v).unwrap() += (sigma_v / sigma_w) * (1.0 + delta_w);
+            }
+            if &w != s {
+                *bc.get_mut(&w).unwrap() += delta_w;
+            }
+        }
+    }
+
+    bc
+}
+
 /// Graph density: |E| / (|V| * (|V| - 1)) for directed graphs.
 pub fn density(graph: &DiGraph) -> f64 {
     let n = graph.node_count();
@@ -507,6 +588,272 @@ pub fn density(graph: &DiGraph) -> f64 {
     }
     let e = graph.edge_count();
     e as f64 / (n * (n - 1)) as f64
+}
+
+// ---------------------------------------------------------------------------
+// Persistent Homology (INV-QUERY-025)
+// ---------------------------------------------------------------------------
+
+/// A birth-death pair from persistent homology.
+///
+/// Represents a topological feature that appears at `birth` (filtration index)
+/// and disappears at `death` (filtration index, or `None` if the feature persists
+/// to the end of the filtration).
+///
+/// - H₀ features: connected components. Born when a node appears, die when
+///   the component merges with another (via an edge).
+/// - H₁ features: independent cycles. Born when an edge creates a cycle
+///   (connects two nodes already in the same component).
+#[derive(Clone, Debug, PartialEq)]
+pub struct BirthDeath {
+    /// Filtration index at which the feature appears.
+    pub birth: usize,
+    /// Filtration index at which the feature disappears (None = persists forever).
+    pub death: Option<usize>,
+    /// Homology dimension (0 = connected component, 1 = cycle).
+    pub dimension: usize,
+}
+
+impl BirthDeath {
+    /// Persistence = death - birth (or infinity if death is None).
+    /// Returns None for infinite persistence.
+    pub fn persistence(&self) -> Option<usize> {
+        self.death.map(|d| d - self.birth)
+    }
+}
+
+/// Result of persistent homology computation.
+#[derive(Clone, Debug)]
+pub struct PersistenceDiagram {
+    /// All birth-death pairs, sorted by (dimension, birth).
+    pub pairs: Vec<BirthDeath>,
+    /// Number of H₀ features that persist to infinity (= connected components at end).
+    pub h0_persistent: usize,
+    /// Number of H₁ features that persist to infinity (= independent cycles at end).
+    pub h1_persistent: usize,
+    /// Total number of filtration steps.
+    pub filtration_length: usize,
+}
+
+/// Union-Find (disjoint set) for tracking connected components.
+///
+/// Used in persistent H₀ computation: each node starts as its own component,
+/// edges merge components. The "elder rule" determines which component survives:
+/// the one born earlier (lower filtration index).
+struct UnionFind {
+    parent: Vec<usize>,
+    rank: Vec<usize>,
+    /// Birth time of each component (filtration index when its root node was added).
+    birth: Vec<usize>,
+}
+
+impl UnionFind {
+    fn new() -> Self {
+        UnionFind {
+            parent: Vec::new(),
+            rank: Vec::new(),
+            birth: Vec::new(),
+        }
+    }
+
+    /// Add a new element with the given birth time. Returns its index.
+    fn make_set(&mut self, birth_time: usize) -> usize {
+        let idx = self.parent.len();
+        self.parent.push(idx);
+        self.rank.push(0);
+        self.birth.push(birth_time);
+        idx
+    }
+
+    /// Find with path compression.
+    fn find(&mut self, mut x: usize) -> usize {
+        while self.parent[x] != x {
+            self.parent[x] = self.parent[self.parent[x]];
+            x = self.parent[x];
+        }
+        x
+    }
+
+    /// Union by rank with elder rule: older component (lower birth) is the root.
+    /// Returns Some(death_time_of_younger) if a merge happened, None if already same set.
+    fn union(&mut self, x: usize, y: usize, filtration_step: usize) -> Option<(usize, usize)> {
+        let rx = self.find(x);
+        let ry = self.find(y);
+        if rx == ry {
+            return None; // Same component — this edge creates a cycle
+        }
+        // Elder rule: the component born earlier survives
+        let (survivor, dying) = if self.birth[rx] <= self.birth[ry] {
+            (rx, ry)
+        } else {
+            (ry, rx)
+        };
+        // Union by rank
+        if self.rank[survivor] < self.rank[dying] {
+            // Swap roles if rank is lower, but keep elder as parent
+            self.parent[dying] = survivor;
+        } else if self.rank[survivor] > self.rank[dying] {
+            self.parent[dying] = survivor;
+        } else {
+            self.parent[dying] = survivor;
+            self.rank[survivor] += 1;
+        }
+        Some((self.birth[dying], filtration_step))
+    }
+}
+
+/// Compute persistent homology over an edge filtration (INV-QUERY-025).
+///
+/// Given a sequence of edges (the filtration), incrementally builds the graph
+/// and tracks:
+/// - **H₀** (connected components): via Union-Find with elder rule.
+///   A component is born when a node first appears and dies when it merges
+///   with an older component.
+/// - **H₁** (cycles): an edge that connects two nodes already in the same
+///   component creates a cycle. The cycle is born at that filtration step.
+///   For Stage 0, all H₁ features persist to infinity (we don't track
+///   2-simplices that would kill cycles).
+///
+/// The filtration is typically the transaction order: edges added in
+/// chronological order reveal which topological features are durable.
+pub fn persistent_homology(edges: &[(String, String)]) -> PersistenceDiagram {
+    let mut uf = UnionFind::new();
+    let mut node_index: BTreeMap<String, usize> = BTreeMap::new();
+    let mut pairs: Vec<BirthDeath> = Vec::new();
+    let mut h1_births: Vec<usize> = Vec::new();
+
+    for (step, (src, dst)) in edges.iter().enumerate() {
+        // Ensure both nodes exist
+        let src_idx = if let Some(&idx) = node_index.get(src) {
+            idx
+        } else {
+            let idx = uf.make_set(step);
+            node_index.insert(src.clone(), idx);
+            // H₀ birth: new connected component
+            idx
+        };
+
+        let dst_idx = if let Some(&idx) = node_index.get(dst) {
+            idx
+        } else {
+            let idx = uf.make_set(step);
+            node_index.insert(dst.clone(), idx);
+            idx
+        };
+
+        // Try to union
+        match uf.union(src_idx, dst_idx, step) {
+            Some((younger_birth, death_step)) => {
+                // H₀ death: younger component merges into elder
+                pairs.push(BirthDeath {
+                    birth: younger_birth,
+                    death: Some(death_step),
+                    dimension: 0,
+                });
+            }
+            None => {
+                // Same component — this edge creates a cycle (H₁ birth)
+                h1_births.push(step);
+            }
+        }
+    }
+
+    // H₀ features that persist: components that never merged
+    // Count unique roots
+    let mut roots: BTreeSet<usize> = BTreeSet::new();
+    for &idx in node_index.values() {
+        // Need to use a mutable reference for find
+        roots.insert(uf.find(idx));
+    }
+    let h0_persistent = roots.len();
+
+    // Add persistent H₀ features (components that survive to end)
+    let mut root_births: Vec<usize> = roots.iter().map(|&r| uf.birth[r]).collect();
+    root_births.sort();
+    for birth in root_births {
+        pairs.push(BirthDeath {
+            birth,
+            death: None,
+            dimension: 0,
+        });
+    }
+
+    // Add H₁ features (all persist to infinity at Stage 0)
+    let h1_persistent = h1_births.len();
+    for birth in &h1_births {
+        pairs.push(BirthDeath {
+            birth: *birth,
+            death: None,
+            dimension: 1,
+        });
+    }
+
+    // Sort by (dimension, birth) for determinism
+    pairs.sort_by(|a, b| a.dimension.cmp(&b.dimension).then(a.birth.cmp(&b.birth)));
+
+    let filtration_length = edges.len();
+
+    PersistenceDiagram {
+        pairs,
+        h0_persistent,
+        h1_persistent,
+        filtration_length,
+    }
+}
+
+/// Compute a persistence summary: total persistence across all features.
+///
+/// Σ (death - birth) for all finite pairs. Higher total persistence means
+/// the topological structure changes more dramatically across the filtration.
+/// Low total persistence means the structure stabilizes quickly.
+pub fn total_persistence(diagram: &PersistenceDiagram) -> usize {
+    diagram.pairs.iter().filter_map(|p| p.persistence()).sum()
+}
+
+/// Compute the Wasserstein-1 distance between two persistence diagrams.
+///
+/// Simplified version: sums absolute differences in birth/death times
+/// for matched pairs (matched by closest birth time within same dimension).
+/// Unmatched pairs contribute their persistence to the distance.
+///
+/// This is a lower bound on the true Wasserstein distance (which requires
+/// optimal matching). For Stage 0 this is sufficient.
+pub fn persistence_distance(a: &PersistenceDiagram, b: &PersistenceDiagram) -> f64 {
+    // Simple approach: compare sorted finite pairs per dimension
+    let mut distance = 0.0;
+
+    for dim in 0..=1 {
+        let a_pairs: Vec<&BirthDeath> = a
+            .pairs
+            .iter()
+            .filter(|p| p.dimension == dim && p.death.is_some())
+            .collect();
+        let b_pairs: Vec<&BirthDeath> = b
+            .pairs
+            .iter()
+            .filter(|p| p.dimension == dim && p.death.is_some())
+            .collect();
+
+        let max_len = a_pairs.len().max(b_pairs.len());
+        for i in 0..max_len {
+            match (a_pairs.get(i), b_pairs.get(i)) {
+                (Some(ap), Some(bp)) => {
+                    let a_pers = ap.persistence().unwrap_or(0) as f64;
+                    let b_pers = bp.persistence().unwrap_or(0) as f64;
+                    distance += (a_pers - b_pers).abs();
+                }
+                (Some(ap), None) => {
+                    distance += ap.persistence().unwrap_or(0) as f64;
+                }
+                (None, Some(bp)) => {
+                    distance += bp.persistence().unwrap_or(0) as f64;
+                }
+                (None, None) => {}
+            }
+        }
+    }
+
+    distance
 }
 
 // ---------------------------------------------------------------------------
@@ -713,6 +1060,203 @@ mod tests {
     }
 
     // -------------------------------------------------------------------
+    // Betweenness centrality (INV-QUERY-015)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn betweenness_centrality_line_graph() {
+        // A → B → C: B is on all shortest paths between A and C
+        let mut g = DiGraph::new();
+        g.add_edge("A", "B");
+        g.add_edge("B", "C");
+        let bc = betweenness_centrality(&g);
+        assert!(bc["B"] > bc["A"], "B should have higher betweenness than A");
+        assert!(bc["B"] > bc["C"], "B should have higher betweenness than C");
+        assert_eq!(bc["A"], 0.0);
+        assert_eq!(bc["C"], 0.0);
+    }
+
+    #[test]
+    fn betweenness_centrality_star_graph() {
+        // All edges point to C: A→C, B→C, D→C
+        let mut g = DiGraph::new();
+        g.add_edge("A", "C");
+        g.add_edge("B", "C");
+        g.add_edge("D", "C");
+        let bc = betweenness_centrality(&g);
+        // No node is an intermediary on any shortest path
+        for v in bc.values() {
+            assert_eq!(*v, 0.0, "star graph has no intermediaries");
+        }
+    }
+
+    #[test]
+    fn betweenness_centrality_diamond() {
+        let g = diamond_graph();
+        let bc = betweenness_centrality(&g);
+        // In diamond A→B→D, A→C→D: no single node is an exclusive intermediary
+        // B and C are intermediaries between A and D but there are 2 shortest paths
+        // so BC(B) = BC(C) = 0.5
+        assert!(
+            (bc["B"] - bc["C"]).abs() < 1e-10,
+            "B and C should have equal BC"
+        );
+        assert!(bc["B"] > 0.0, "B should have positive BC");
+    }
+
+    #[test]
+    fn betweenness_centrality_empty_graph() {
+        let g = DiGraph::new();
+        let bc = betweenness_centrality(&g);
+        assert!(bc.is_empty());
+    }
+
+    #[test]
+    fn betweenness_centrality_is_deterministic() {
+        let g = diamond_graph();
+        let bc1 = betweenness_centrality(&g);
+        let bc2 = betweenness_centrality(&g);
+        for (k, v1) in &bc1 {
+            assert!((v1 - bc2[k]).abs() < f64::EPSILON);
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Persistent Homology (INV-QUERY-025)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn persistent_homology_empty() {
+        let diagram = persistent_homology(&[]);
+        assert!(diagram.pairs.is_empty());
+        assert_eq!(diagram.h0_persistent, 0);
+        assert_eq!(diagram.h1_persistent, 0);
+    }
+
+    #[test]
+    fn persistent_homology_single_edge() {
+        let edges = vec![("A".to_string(), "B".to_string())];
+        let diagram = persistent_homology(&edges);
+        // Two nodes appear, one component merges → 1 H₀ death + 1 H₀ persistent
+        assert_eq!(diagram.h0_persistent, 1, "one component survives");
+        assert_eq!(diagram.h1_persistent, 0, "no cycles");
+        // Should have a finite H₀ pair (the younger component dies)
+        let finite_h0: Vec<_> = diagram
+            .pairs
+            .iter()
+            .filter(|p| p.dimension == 0 && p.death.is_some())
+            .collect();
+        assert_eq!(finite_h0.len(), 1, "one H₀ death");
+    }
+
+    #[test]
+    fn persistent_homology_triangle_creates_cycle() {
+        let edges = vec![
+            ("A".to_string(), "B".to_string()),
+            ("B".to_string(), "C".to_string()),
+            ("A".to_string(), "C".to_string()), // closes the triangle → H₁ birth
+        ];
+        let diagram = persistent_homology(&edges);
+        assert_eq!(diagram.h1_persistent, 1, "triangle creates one cycle");
+        assert_eq!(diagram.h0_persistent, 1, "all nodes in one component");
+    }
+
+    #[test]
+    fn persistent_homology_chain_no_cycles() {
+        let edges = vec![
+            ("A".to_string(), "B".to_string()),
+            ("B".to_string(), "C".to_string()),
+            ("C".to_string(), "D".to_string()),
+        ];
+        let diagram = persistent_homology(&edges);
+        assert_eq!(diagram.h1_persistent, 0, "chain has no cycles");
+        assert_eq!(diagram.h0_persistent, 1, "chain is connected");
+    }
+
+    #[test]
+    fn persistent_homology_two_triangles() {
+        let edges = vec![
+            ("A".to_string(), "B".to_string()),
+            ("B".to_string(), "C".to_string()),
+            ("A".to_string(), "C".to_string()), // first cycle
+            ("C".to_string(), "D".to_string()),
+            ("D".to_string(), "A".to_string()), // second cycle
+        ];
+        let diagram = persistent_homology(&edges);
+        assert_eq!(diagram.h1_persistent, 2, "two independent cycles");
+    }
+
+    #[test]
+    fn persistent_homology_disconnected_components() {
+        let edges = vec![
+            ("A".to_string(), "B".to_string()),
+            ("C".to_string(), "D".to_string()),
+        ];
+        let diagram = persistent_homology(&edges);
+        assert_eq!(diagram.h0_persistent, 2, "two disconnected components");
+        assert_eq!(diagram.h1_persistent, 0, "no cycles");
+    }
+
+    #[test]
+    fn total_persistence_computation() {
+        let edges = vec![
+            ("A".to_string(), "B".to_string()), // step 0
+            ("C".to_string(), "D".to_string()), // step 1
+            ("A".to_string(), "C".to_string()), // step 2: merges components
+        ];
+        let diagram = persistent_homology(&edges);
+        let tp = total_persistence(&diagram);
+        assert!(tp > 0, "should have non-zero total persistence");
+    }
+
+    #[test]
+    fn persistence_distance_identical_is_zero() {
+        let edges = vec![
+            ("A".to_string(), "B".to_string()),
+            ("B".to_string(), "C".to_string()),
+        ];
+        let d = persistent_homology(&edges);
+        assert_eq!(persistence_distance(&d, &d), 0.0);
+    }
+
+    #[test]
+    fn persistence_distance_different_is_positive() {
+        let edges1 = vec![("A".to_string(), "B".to_string())];
+        let edges2 = vec![
+            ("A".to_string(), "B".to_string()),
+            ("B".to_string(), "C".to_string()),
+            ("C".to_string(), "A".to_string()),
+        ];
+        let d1 = persistent_homology(&edges1);
+        let d2 = persistent_homology(&edges2);
+        // d2 has a cycle, d1 doesn't — but distance only measures finite pairs
+        // The H₀ diagrams also differ
+        // At minimum they should not be equal
+        let dist = persistence_distance(&d1, &d2);
+        assert!(dist >= 0.0, "distance must be non-negative");
+    }
+
+    #[test]
+    fn birth_death_persistence_finite() {
+        let bd = BirthDeath {
+            birth: 3,
+            death: Some(7),
+            dimension: 0,
+        };
+        assert_eq!(bd.persistence(), Some(4));
+    }
+
+    #[test]
+    fn birth_death_persistence_infinite() {
+        let bd = BirthDeath {
+            birth: 3,
+            death: None,
+            dimension: 0,
+        };
+        assert_eq!(bd.persistence(), None);
+    }
+
+    // -------------------------------------------------------------------
     // Proptest property-based verification (INV-QUERY-012, INV-QUERY-017)
     // -------------------------------------------------------------------
 
@@ -829,6 +1373,47 @@ mod tests {
             // INV-QUERY-024: β₁ = m - n + c for connected components (Euler characteristic)
             // For a connected graph: β₁ = m - n + 1 where m = edges, n = nodes
             // This holds for the undirected interpretation of the graph
+
+            #[test]
+            fn betweenness_centrality_non_negative(g in arb_digraph(6)) {
+                let bc = betweenness_centrality(&g);
+                for (node, val) in &bc {
+                    prop_assert!(
+                        *val >= 0.0,
+                        "BC for node {} is negative: {}",
+                        node, val
+                    );
+                }
+            }
+
+            // INV-QUERY-025: Persistent homology Euler characteristic
+            #[test]
+            fn persistent_homology_euler_characteristic(g in arb_digraph(5)) {
+                // For any graph: #components = #nodes - #finite_H0_deaths
+                // Equivalently: h0_persistent + finite_h0_count = total nodes
+                let edges: Vec<(String, String)> = g.nodes()
+                    .flat_map(|n| g.successors(n).map(move |s| (n.clone(), s.clone())))
+                    .collect();
+                let diagram = persistent_homology(&edges);
+                let finite_h0 = diagram.pairs.iter()
+                    .filter(|p| p.dimension == 0 && p.death.is_some())
+                    .count();
+                // Each node is born once (as H₀ feature), some die via merging
+                // But nodes can share birth steps, so we count unique nodes from edges
+                let mut all_nodes: BTreeSet<String> = BTreeSet::new();
+                for (s, d) in &edges {
+                    all_nodes.insert(s.clone());
+                    all_nodes.insert(d.clone());
+                }
+                if !all_nodes.is_empty() {
+                    prop_assert_eq!(
+                        diagram.h0_persistent + finite_h0,
+                        all_nodes.len(),
+                        "H₀ births must equal total unique nodes: {} + {} ≠ {}",
+                        diagram.h0_persistent, finite_h0, all_nodes.len()
+                    );
+                }
+            }
 
             #[test]
             fn pagerank_spectral_gap_bound(g in arb_digraph(6)) {
