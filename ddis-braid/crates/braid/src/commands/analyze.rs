@@ -14,9 +14,9 @@ use std::path::Path;
 use braid_kernel::datom::{EntityId, Op, Value};
 use braid_kernel::query::graph::{
     betweenness_centrality, cheeger, density, fiedler_from_spectrum, first_betti_number,
-    heat_kernel_from_spectrum, kirchhoff_from_spectrum, ollivier_ricci_curvature, pagerank,
-    persistent_homology, ricci_summary, scc, spectral_decomposition, structural_complexity,
-    total_persistence, DiGraph,
+    heat_kernel_from_spectrum, kirchhoff_from_partial_spectrum, kirchhoff_from_spectrum, pagerank,
+    persistent_homology, ricci_curvature_adaptive, ricci_summary, scc,
+    spectral_decomposition_adaptive, structural_complexity, total_persistence, DiGraph,
 };
 use braid_kernel::trilateral::{compute_phi_default, von_neumann_entropy};
 use braid_kernel::Store;
@@ -114,18 +114,6 @@ fn resolve_label(store: &Store, entity: EntityId) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// Spectral analysis upper bound
-// ---------------------------------------------------------------------------
-
-/// Maximum nodes for O(n³) spectral analysis (eigendecomposition).
-/// With the cyclic Jacobi algorithm and caching, graphs up to 1000 nodes
-/// are feasible. The cache ensures the O(n³) cost is paid only once.
-const SPECTRAL_LIMIT: usize = 1000;
-
-/// Maximum nodes for Ollivier-Ricci curvature (O(n²) all-pairs BFS + O(E×deg²)).
-const RICCI_LIMIT: usize = 500;
-
-// ---------------------------------------------------------------------------
 // Dashboard computation
 // ---------------------------------------------------------------------------
 
@@ -171,10 +159,19 @@ fn compute_dashboard(store: &Store, path: &Path) -> String {
     // --- Spectral Analysis ---
     out.push_str("\n── Spectral Analysis ──\n");
 
-    if (2..=SPECTRAL_LIMIT).contains(&n) {
-        // Compute eigendecomposition ONCE, reuse for all spectral metrics.
-        // This amortizes the O(n³) Jacobi cost across Fiedler, Kirchhoff, HKT.
-        let sd = spectral_decomposition(&graph);
+    if n >= 2 {
+        // Adaptive spectral decomposition: Jacobi for n≤1000, Lanczos for n>1000.
+        // Compute ONCE, reuse for all spectral metrics.
+        let sd = spectral_decomposition_adaptive(&graph);
+        let is_partial = sd.as_ref().is_some_and(|s| s.eigenvalues.len() < n);
+
+        if is_partial {
+            out.push_str(&format!(
+                "  (Lanczos: {} of {} eigenvalues computed)\n",
+                sd.as_ref().unwrap().eigenvalues.len(),
+                n
+            ));
+        }
 
         if let Some(ref sd) = sd {
             let fiedler_result = fiedler_from_spectrum(sd);
@@ -214,9 +211,17 @@ fn compute_dashboard(store: &Store, path: &Path) -> String {
         }
 
         if let Some(ref sd) = sd {
-            // Kirchhoff index (from shared eigenvalues)
-            let ki = kirchhoff_from_spectrum(sd);
-            out.push_str(&format!("  Kirchhoff index: {:.4}\n", ki));
+            // Kirchhoff index: exact for full spectrum, approximate for partial
+            let ki = if is_partial {
+                kirchhoff_from_partial_spectrum(&sd.eigenvalues, n)
+            } else {
+                kirchhoff_from_spectrum(sd)
+            };
+            out.push_str(&format!(
+                "  Kirchhoff index: {:.4}{}\n",
+                ki,
+                if is_partial { " (approx)" } else { "" }
+            ));
             let normalized_ki = ki / (n * (n - 1)) as f64;
             out.push_str(&format!(
                 "  normalized resistance: {:.4} (lower = more robust)\n",
@@ -231,23 +236,24 @@ fn compute_dashboard(store: &Store, path: &Path) -> String {
             for (t, z) in &hkt {
                 out.push_str(&format!(" [{:.2}]{:.2}", t, z));
             }
+            if is_partial {
+                out.push_str(" (partial spectrum)");
+            }
             out.push('\n');
             algo_count += 1;
         }
 
         // Von Neumann entropy (separate eigendecomposition on the ref-edge graph)
-        let entropy = von_neumann_entropy(store);
-        out.push_str(&format!(
-            "  von Neumann entropy: {:.4} / {:.4} (normalized: {:.4})\n",
-            entropy.entropy, entropy.max_entropy, entropy.normalized
-        ));
-        out.push_str(&format!("  effective rank: {}\n", entropy.effective_rank));
-        algo_count += 1;
-    } else if n > SPECTRAL_LIMIT {
-        out.push_str(&format!(
-            "  (skipped: {} nodes exceeds {}-node limit for O(n³) spectral)\n",
-            n, SPECTRAL_LIMIT
-        ));
+        // Only for graphs ≤ 2000 nodes (VN entropy needs full spectrum)
+        if n <= 2000 {
+            let entropy = von_neumann_entropy(store);
+            out.push_str(&format!(
+                "  von Neumann entropy: {:.4} / {:.4} (normalized: {:.4})\n",
+                entropy.entropy, entropy.max_entropy, entropy.normalized
+            ));
+            out.push_str(&format!("  effective rank: {}\n", entropy.effective_rank));
+            algo_count += 1;
+        }
     } else {
         out.push_str("  (need ≥ 2 nodes for spectral analysis)\n");
     }
@@ -255,9 +261,15 @@ fn compute_dashboard(store: &Store, path: &Path) -> String {
     // --- Differential Geometry ---
     out.push_str("\n── Differential Geometry ──\n");
 
-    if (2..=RICCI_LIMIT).contains(&n) && e > 0 {
-        let curvatures = ollivier_ricci_curvature(&graph);
+    if n >= 2 && e > 0 {
+        // Adaptive Ricci: exact BFS for n≤500, landmark-based for n>500
+        let is_approx = n > 500;
+        let curvatures = ricci_curvature_adaptive(&graph);
         let summary = ricci_summary(&curvatures);
+
+        if is_approx {
+            out.push_str("  (landmark-based approximation for large graph)\n");
+        }
         out.push_str(&format!(
             "  Ollivier-Ricci curvature: mean={:.4} min={:.4} max={:.4}\n",
             summary.mean_curvature, summary.min_curvature, summary.max_curvature
@@ -281,11 +293,6 @@ fn compute_dashboard(store: &Store, path: &Path) -> String {
             ));
         }
         algo_count += 1;
-    } else if n > RICCI_LIMIT {
-        out.push_str(&format!(
-            "  (skipped: {} nodes exceeds {}-node limit for Ricci curvature)\n",
-            n, RICCI_LIMIT
-        ));
     } else {
         out.push_str("  (need ≥ 2 nodes and ≥ 1 edge for curvature analysis)\n");
     }
@@ -307,27 +314,23 @@ fn compute_dashboard(store: &Store, path: &Path) -> String {
 
     out.push_str(&format!("  ref edges: {}\n", edges.len()));
 
-    if edges.len() <= 5000 {
-        let diagram = persistent_homology(&edges);
-        let h0_births = diagram.pairs.iter().filter(|p| p.dimension == 0).count();
-        let h0_deaths = diagram
-            .pairs
-            .iter()
-            .filter(|p| p.dimension == 0 && p.death.is_some())
-            .count();
-        let h1_pairs = diagram.pairs.iter().filter(|p| p.dimension == 1).count();
-        let tp = total_persistence(&diagram);
+    let diagram = persistent_homology(&edges);
+    let h0_births = diagram.pairs.iter().filter(|p| p.dimension == 0).count();
+    let h0_deaths = diagram
+        .pairs
+        .iter()
+        .filter(|p| p.dimension == 0 && p.death.is_some())
+        .count();
+    let h1_pairs = diagram.pairs.iter().filter(|p| p.dimension == 1).count();
+    let tp = total_persistence(&diagram);
 
-        out.push_str(&format!(
-            "  H₀ pairs: {} ({} births, {} merges)\n",
-            h0_births, h0_births, h0_deaths
-        ));
-        out.push_str(&format!("  H₁ pairs: {} (cycle formations)\n", h1_pairs));
-        out.push_str(&format!("  total persistence: {}\n", tp));
-        algo_count += 1;
-    } else {
-        out.push_str("  (skipped: too many edges for O(n²) persistent homology)\n");
-    }
+    out.push_str(&format!(
+        "  H₀ pairs: {} ({} births, {} merges)\n",
+        h0_births, h0_births, h0_deaths
+    ));
+    out.push_str(&format!("  H₁ pairs: {} (cycle formations)\n", h1_pairs));
+    out.push_str(&format!("  total persistence: {}\n", tp));
+    algo_count += 1;
 
     // Transaction-filtration barcode
     let sc = structural_complexity(store);
