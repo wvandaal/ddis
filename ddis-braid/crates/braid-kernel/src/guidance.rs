@@ -20,6 +20,7 @@
 
 use std::collections::BTreeMap;
 
+use crate::budget::GuidanceLevel;
 use crate::datom::{Attribute, EntityId, Value};
 use crate::store::Store;
 use crate::trilateral::{check_coherence_fast, CoherenceQuadrant};
@@ -379,6 +380,63 @@ pub fn format_footer(footer: &GuidanceFooter) -> String {
             format!("{line1}\n  Next: {action}{refs}")
         }
         None => line1,
+    }
+}
+
+/// Format a guidance footer at the specified compression level (INV-BUDGET-004).
+///
+/// Four levels matching the attention budget's guidance footer specification:
+/// - Full: complete M(t) dashboard with sub-metric checks (~100-200 tokens)
+/// - Compressed: one-line summary with top action (~30-60 tokens)
+/// - Minimal: M(t) score + abbreviated action (~10-20 tokens)
+/// - HarvestOnly: harvest imperative signal (~10 tokens)
+pub fn format_footer_at_level(footer: &GuidanceFooter, level: GuidanceLevel) -> String {
+    match level {
+        GuidanceLevel::Full => format_footer(footer),
+        GuidanceLevel::Compressed => {
+            let m = &footer.methodology;
+            let trend = match m.trend {
+                Trend::Up => "↑",
+                Trend::Down => "↓",
+                Trend::Stable => "→",
+            };
+            let next = match &footer.next_action {
+                Some(action) => {
+                    let refs = if footer.invariant_refs.is_empty() {
+                        String::new()
+                    } else {
+                        format!(" [{}]", footer.invariant_refs.join(", "))
+                    };
+                    format!(" | {action}{refs}")
+                }
+                None => String::new(),
+            };
+            format!(
+                "↳ M={:.2}{} S:{}{next}",
+                m.score, trend, footer.store_datom_count
+            )
+        }
+        GuidanceLevel::Minimal => {
+            let m = &footer.methodology;
+            match &footer.next_action {
+                Some(action) => {
+                    let short = if action.len() > 40 {
+                        &action[..40]
+                    } else {
+                        action.as_str()
+                    };
+                    format!("↳ M={:.2} → {short}", m.score)
+                }
+                None => format!("↳ M={:.2}", m.score),
+            }
+        }
+        GuidanceLevel::HarvestOnly => {
+            if footer.methodology.score < 0.3 {
+                "⚠ DRIFT: harvest now → braid harvest --commit".to_string()
+            } else {
+                "⚠ HARVEST: braid harvest --task \"...\" --commit".to_string()
+            }
+        }
     }
 }
 
@@ -750,6 +808,81 @@ pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
     // Sort by priority (ascending = highest priority first)
     actions.sort_by_key(|a| a.priority);
     actions
+}
+
+/// Modulate action priorities based on M(t) methodology adherence score.
+///
+/// When M(t) drops, agents are drifting from methodology into pretrained patterns.
+/// This function adjusts action priorities and injects corrective actions:
+///
+/// - **M(t) < 0.3** (crisis): Boost Fix/Harvest to P1, inject bilateral verification.
+/// - **M(t) < 0.5** (drift signal): Inject coherence checkpoint action.
+/// - **M(t) >= 0.5**: No modulation — agent is on track.
+///
+/// INV-GUIDANCE-003: Guidance adapts to drift signal.
+/// INV-GUIDANCE-004: Actions become more directive as M(t) drops.
+pub fn modulate_actions(actions: &mut Vec<GuidanceAction>, methodology_score: f64) {
+    if methodology_score < 0.3 {
+        // Crisis: all fix/harvest actions become top priority
+        for action in actions.iter_mut() {
+            if matches!(
+                action.category,
+                ActionCategory::Fix | ActionCategory::Harvest
+            ) {
+                action.priority = 1;
+            }
+        }
+        // Inject bilateral verification — the strongest corrective signal
+        actions.push(GuidanceAction {
+            priority: 1,
+            category: ActionCategory::Fix,
+            summary: format!(
+                "Methodology drift critical (M={methodology_score:.2}). Run bilateral verification."
+            ),
+            command: Some("braid bilateral --verbose".into()),
+            relates_to: vec!["INV-GUIDANCE-003".into(), "INV-GUIDANCE-004".into()],
+        });
+    } else if methodology_score < 0.5 {
+        // Drift signal: inject coherence checkpoint
+        actions.push(GuidanceAction {
+            priority: 2,
+            category: ActionCategory::Observe,
+            summary: format!(
+                "Drift signal active (M={methodology_score:.2}). Verify coherence before next task."
+            ),
+            command: Some("braid guidance --verbose".into()),
+            relates_to: vec!["INV-GUIDANCE-003".into()],
+        });
+    }
+    // Re-sort after modulation
+    actions.sort_by_key(|a| a.priority);
+}
+
+/// Build a guidance footer string for appending to any command output.
+///
+/// This is the entry point for INV-GUIDANCE-001 (continuous injection).
+/// Computes M(t), derives actions, modulates by drift score, picks the top
+/// action for the footer, and formats at the appropriate compression level.
+///
+/// `k_eff` is the current attention budget ratio (None defaults to 1.0 = full).
+pub fn build_command_footer(store: &Store, k_eff: Option<f64>) -> String {
+    let telemetry = SessionTelemetry::default();
+    let methodology = compute_methodology_score(&telemetry);
+    let mut actions = derive_actions(store);
+    modulate_actions(&mut actions, methodology.score);
+
+    let (next_action, invariant_refs) = if let Some(top) = actions.first() {
+        (
+            top.command.clone().or_else(|| Some(top.summary.clone())),
+            top.relates_to.clone(),
+        )
+    } else {
+        (None, vec![])
+    };
+
+    let footer = build_footer(&telemetry, store, next_action, invariant_refs);
+    let level = GuidanceLevel::for_k_eff(k_eff.unwrap_or(1.0));
+    format_footer_at_level(&footer, level)
 }
 
 /// Count transactions since the last harvest-type entity.
@@ -1714,5 +1847,441 @@ mod tests {
         let r17 = r17.unwrap();
         assert_eq!(r17.category, ActionCategory::Investigate);
         assert!(r17.summary.contains("staleness > 0.8"));
+    }
+
+    // -------------------------------------------------------------------
+    // Budget-aware footer compression (INV-BUDGET-004)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn format_footer_full_matches_original() {
+        let telemetry = SessionTelemetry {
+            total_turns: 7,
+            transact_turns: 5,
+            spec_language_turns: 6,
+            query_type_count: 3,
+            harvest_quality: 0.9,
+            history: vec![],
+        };
+        let store = Store::genesis();
+        let footer = build_footer(
+            &telemetry,
+            &store,
+            Some("braid query [:find ?e]".into()),
+            vec!["INV-STORE-003".into()],
+        );
+        let full = format_footer(&footer);
+        let at_level = format_footer_at_level(&footer, crate::budget::GuidanceLevel::Full);
+        assert_eq!(
+            full, at_level,
+            "Full level must match original format_footer"
+        );
+    }
+
+    #[test]
+    fn format_footer_compressed_is_one_line() {
+        let telemetry = SessionTelemetry::default();
+        let store = Store::genesis();
+        let footer = build_footer(
+            &telemetry,
+            &store,
+            Some("braid query [:find ?e]".into()),
+            vec!["INV-STORE-003".into()],
+        );
+        let compressed = format_footer_at_level(&footer, crate::budget::GuidanceLevel::Compressed);
+        assert!(
+            !compressed.contains('\n'),
+            "Compressed footer must be one line, got: {compressed}"
+        );
+        assert!(compressed.contains("M="), "must contain M= score");
+        assert!(compressed.contains("S:"), "must contain S: datom count");
+        assert!(
+            compressed.contains("INV-STORE-003"),
+            "must contain spec refs"
+        );
+    }
+
+    #[test]
+    fn format_footer_minimal_is_short() {
+        let telemetry = SessionTelemetry::default();
+        let store = Store::genesis();
+        let footer = build_footer(
+            &telemetry,
+            &store,
+            Some("braid query [:find ?e :where [?e :db/doc ?v]]".into()),
+            vec![],
+        );
+        let minimal = format_footer_at_level(&footer, crate::budget::GuidanceLevel::Minimal);
+        assert!(minimal.contains("M="), "must contain M= score");
+        assert!(
+            minimal.len() < 80,
+            "Minimal footer must be very short, got {} chars: {minimal}",
+            minimal.len()
+        );
+    }
+
+    #[test]
+    fn format_footer_harvest_only() {
+        let telemetry = SessionTelemetry::default();
+        let store = Store::genesis();
+        let footer_low = build_footer(
+            &telemetry,
+            &store,
+            Some("braid harvest --commit".into()),
+            vec![],
+        );
+        // Override methodology score for testing
+        let mut footer_low = footer_low;
+        footer_low.methodology.score = 0.2;
+        let harvest =
+            format_footer_at_level(&footer_low, crate::budget::GuidanceLevel::HarvestOnly);
+        assert!(
+            harvest.contains("DRIFT"),
+            "HarvestOnly with low M(t) should say DRIFT, got: {harvest}"
+        );
+
+        footer_low.methodology.score = 0.6;
+        let harvest =
+            format_footer_at_level(&footer_low, crate::budget::GuidanceLevel::HarvestOnly);
+        assert!(
+            harvest.contains("HARVEST"),
+            "HarvestOnly with decent M(t) should say HARVEST, got: {harvest}"
+        );
+    }
+
+    #[test]
+    fn format_footer_compression_monotonically_shorter() {
+        use crate::budget::GuidanceLevel;
+
+        let telemetry = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 8,
+            spec_language_turns: 7,
+            query_type_count: 3,
+            harvest_quality: 0.9,
+            history: vec![],
+        };
+        let store = Store::genesis();
+        let footer = build_footer(
+            &telemetry,
+            &store,
+            Some("braid query [:find ?e :where [?e :db/doc ?v]]".into()),
+            vec!["INV-STORE-003".into(), "INV-STORE-005".into()],
+        );
+
+        let full_len = format_footer_at_level(&footer, GuidanceLevel::Full).len();
+        let comp_len = format_footer_at_level(&footer, GuidanceLevel::Compressed).len();
+        let min_len = format_footer_at_level(&footer, GuidanceLevel::Minimal).len();
+        let harv_len = format_footer_at_level(&footer, GuidanceLevel::HarvestOnly).len();
+
+        assert!(
+            full_len >= comp_len,
+            "Full ({full_len}) must be >= Compressed ({comp_len})"
+        );
+        assert!(
+            comp_len >= min_len,
+            "Compressed ({comp_len}) must be >= Minimal ({min_len})"
+        );
+        // HarvestOnly may or may not be shorter than Minimal (depends on content)
+        // but it should be shorter than Full
+        assert!(
+            full_len >= harv_len,
+            "Full ({full_len}) must be >= HarvestOnly ({harv_len})"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // Drift-responsive action modulation (INV-GUIDANCE-003, INV-GUIDANCE-004)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn modulate_actions_crisis_mode() {
+        let mut actions = vec![
+            GuidanceAction {
+                priority: 3,
+                category: ActionCategory::Fix,
+                summary: "ISP bypasses".into(),
+                command: Some("braid query".into()),
+                relates_to: vec!["INV-TRILATERAL-007".into()],
+            },
+            GuidanceAction {
+                priority: 4,
+                category: ActionCategory::Observe,
+                summary: "Cycles detected".into(),
+                command: None,
+                relates_to: vec![],
+            },
+        ];
+
+        modulate_actions(&mut actions, 0.2); // Crisis: M(t) < 0.3
+
+        // Fix action should be boosted to P1
+        let fix = actions.iter().find(|a| a.summary.contains("ISP")).unwrap();
+        assert_eq!(
+            fix.priority, 1,
+            "Fix action should be boosted to P1 in crisis"
+        );
+
+        // Bilateral verification should be injected
+        let bilateral = actions
+            .iter()
+            .find(|a| a.summary.contains("drift critical"));
+        assert!(
+            bilateral.is_some(),
+            "Crisis should inject bilateral verification action"
+        );
+        assert_eq!(bilateral.unwrap().priority, 1);
+    }
+
+    #[test]
+    fn modulate_actions_drift_signal() {
+        let mut actions = vec![GuidanceAction {
+            priority: 3,
+            category: ActionCategory::Observe,
+            summary: "Cycles".into(),
+            command: None,
+            relates_to: vec![],
+        }];
+
+        modulate_actions(&mut actions, 0.4); // Warning: 0.3 <= M(t) < 0.5
+
+        // Should inject coherence checkpoint
+        let checkpoint = actions.iter().find(|a| a.summary.contains("Drift signal"));
+        assert!(
+            checkpoint.is_some(),
+            "Drift signal should inject coherence checkpoint"
+        );
+    }
+
+    #[test]
+    fn modulate_actions_no_change_when_healthy() {
+        let mut actions = vec![GuidanceAction {
+            priority: 3,
+            category: ActionCategory::Observe,
+            summary: "Cycles".into(),
+            command: None,
+            relates_to: vec![],
+        }];
+        let original_len = actions.len();
+
+        modulate_actions(&mut actions, 0.8); // Healthy: M(t) >= 0.5
+
+        assert_eq!(
+            actions.len(),
+            original_len,
+            "Healthy M(t) should not inject additional actions"
+        );
+    }
+
+    #[test]
+    fn modulate_actions_sorted_after_modulation() {
+        let mut actions = vec![
+            GuidanceAction {
+                priority: 4,
+                category: ActionCategory::Harvest,
+                summary: "harvest needed".into(),
+                command: Some("braid harvest".into()),
+                relates_to: vec![],
+            },
+            GuidanceAction {
+                priority: 2,
+                category: ActionCategory::Observe,
+                summary: "cycles".into(),
+                command: None,
+                relates_to: vec![],
+            },
+        ];
+
+        modulate_actions(&mut actions, 0.15); // Crisis
+
+        // After modulation, actions should be sorted by priority
+        for window in actions.windows(2) {
+            assert!(
+                window[0].priority <= window[1].priority,
+                "Actions must be sorted after modulation: P{} <= P{}",
+                window[0].priority,
+                window[1].priority,
+            );
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // build_command_footer (INV-GUIDANCE-001 entry point)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn build_command_footer_on_genesis() {
+        let store = Store::genesis();
+        let footer = build_command_footer(&store, None);
+        assert!(!footer.is_empty(), "footer must not be empty");
+        assert!(
+            footer.contains('↳') || footer.contains('⚠'),
+            "footer must contain guidance marker, got: {footer}"
+        );
+    }
+
+    #[test]
+    fn build_command_footer_respects_k_eff() {
+        let store = Store::genesis();
+
+        // Full budget → Full level footer (longest)
+        let full = build_command_footer(&store, Some(1.0));
+        // Low budget → more compressed
+        let compressed = build_command_footer(&store, Some(0.5));
+        // Very low → minimal
+        let minimal = build_command_footer(&store, Some(0.3));
+        // Exhausted → harvest only
+        let harvest = build_command_footer(&store, Some(0.1));
+
+        // Compression should generally reduce length
+        assert!(
+            full.len() >= harvest.len(),
+            "Full footer ({}) should be >= HarvestOnly ({})",
+            full.len(),
+            harvest.len()
+        );
+        // But all should be non-empty
+        assert!(!compressed.is_empty());
+        assert!(!minimal.is_empty());
+    }
+
+    #[test]
+    fn build_command_footer_on_empty_store() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let footer = build_command_footer(&store, None);
+        assert!(
+            !footer.is_empty(),
+            "footer on empty store must not be empty"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // Proptest: budget-aware compression properties
+    // -------------------------------------------------------------------
+
+    mod budget_compression_proptests {
+        use super::*;
+        use crate::budget::GuidanceLevel;
+        use proptest::prelude::*;
+
+        fn arb_k_eff() -> impl Strategy<Value = f64> {
+            0.0f64..=1.0
+        }
+
+        fn arb_footer() -> impl Strategy<Value = GuidanceFooter> {
+            (
+                0.0f64..1.0,   // score
+                0usize..10000, // datom count
+                0u32..100,     // turn
+            )
+                .prop_map(|(score, datom_count, turn)| {
+                    let components = MethodologyComponents {
+                        transact_frequency: score,
+                        spec_language_ratio: score,
+                        query_diversity: score.min(1.0),
+                        harvest_quality: score,
+                    };
+                    GuidanceFooter {
+                        methodology: MethodologyScore {
+                            score,
+                            components,
+                            trend: Trend::Stable,
+                            drift_signal: score < 0.5,
+                        },
+                        next_action: Some("braid query [:find ?e]".to_string()),
+                        invariant_refs: vec!["INV-TEST-001".to_string()],
+                        store_datom_count: datom_count,
+                        turn,
+                    }
+                })
+        }
+
+        proptest! {
+            #[test]
+            fn format_at_level_never_panics(footer in arb_footer(), k_eff in arb_k_eff()) {
+                let level = GuidanceLevel::for_k_eff(k_eff);
+                let formatted = format_footer_at_level(&footer, level);
+                prop_assert!(!formatted.is_empty(), "formatted footer must not be empty");
+            }
+
+            #[test]
+            fn full_level_always_longest(footer in arb_footer()) {
+                let full = format_footer_at_level(&footer, GuidanceLevel::Full);
+                let compressed = format_footer_at_level(&footer, GuidanceLevel::Compressed);
+                let minimal = format_footer_at_level(&footer, GuidanceLevel::Minimal);
+
+                prop_assert!(
+                    full.len() >= compressed.len(),
+                    "Full ({}) must be >= Compressed ({})",
+                    full.len(),
+                    compressed.len()
+                );
+                prop_assert!(
+                    compressed.len() >= minimal.len(),
+                    "Compressed ({}) must be >= Minimal ({})",
+                    compressed.len(),
+                    minimal.len()
+                );
+            }
+
+            #[test]
+            fn modulate_preserves_existing_actions(
+                m_score in 0.0f64..1.0,
+                num_actions in 0usize..5
+            ) {
+                let mut actions: Vec<GuidanceAction> = (0..num_actions)
+                    .map(|i| GuidanceAction {
+                        priority: (i as u8) + 1,
+                        category: ActionCategory::Observe,
+                        summary: format!("action-{i}"),
+                        command: None,
+                        relates_to: vec![],
+                    })
+                    .collect();
+                let original_summaries: Vec<String> =
+                    actions.iter().map(|a| a.summary.clone()).collect();
+
+                modulate_actions(&mut actions, m_score);
+
+                // All original actions must still be present
+                for summary in &original_summaries {
+                    prop_assert!(
+                        actions.iter().any(|a| &a.summary == summary),
+                        "Original action '{}' must survive modulation",
+                        summary
+                    );
+                }
+            }
+
+            #[test]
+            fn modulate_sorted_output(m_score in 0.0f64..1.0) {
+                let mut actions = vec![
+                    GuidanceAction {
+                        priority: 3,
+                        category: ActionCategory::Fix,
+                        summary: "test fix".into(),
+                        command: None,
+                        relates_to: vec![],
+                    },
+                    GuidanceAction {
+                        priority: 1,
+                        category: ActionCategory::Harvest,
+                        summary: "test harvest".into(),
+                        command: None,
+                        relates_to: vec![],
+                    },
+                ];
+
+                modulate_actions(&mut actions, m_score);
+
+                for window in actions.windows(2) {
+                    prop_assert!(
+                        window[0].priority <= window[1].priority,
+                        "Actions must be sorted after modulation at M={:.2}",
+                        m_score
+                    );
+                }
+            }
+        }
     }
 }

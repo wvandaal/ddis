@@ -1,6 +1,6 @@
 //! CLI command definitions and dispatch.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::Subcommand;
 
@@ -532,9 +532,81 @@ pub enum McpAction {
     },
 }
 
+/// Extract the store path from a command variant (if the command uses a store).
+fn store_path(cmd: &Command) -> Option<&Path> {
+    match cmd {
+        Command::Init { .. } | Command::Mcp { .. } => None,
+        Command::Status { path, .. }
+        | Command::Transact { path, .. }
+        | Command::Retract { path, .. }
+        | Command::Query { path, .. }
+        | Command::Harvest { path, .. }
+        | Command::Seed { path, .. }
+        | Command::Guidance { path, .. }
+        | Command::Generate { path, .. }
+        | Command::Merge { path, .. }
+        | Command::Log { path, .. }
+        | Command::Promote { path, .. }
+        | Command::GenerateSpec { path, .. }
+        | Command::Bootstrap { path, .. }
+        | Command::Verify { path, .. }
+        | Command::Bilateral { path, .. }
+        | Command::Observe { path, .. }
+        | Command::Analyze { path, .. } => Some(path),
+    }
+}
+
+/// Whether a command produces JSON output (footers must not corrupt JSON).
+fn is_json_output(cmd: &Command) -> bool {
+    matches!(
+        cmd,
+        Command::Query { json: true, .. }
+            | Command::Status { json: true, .. }
+            | Command::Log { json: true, .. }
+            | Command::Guidance { json: true, .. }
+            | Command::Bilateral { json: true, .. }
+            | Command::Analyze { json: true, .. }
+            | Command::Seed { json: true, .. }
+    )
+}
+
+/// Whether a command already includes guidance output (avoid duplication).
+fn is_guidance_command(cmd: &Command) -> bool {
+    matches!(cmd, Command::Guidance { .. })
+}
+
+/// Whether the command output may be piped to files (footers would corrupt).
+fn is_generative_output(cmd: &Command) -> bool {
+    matches!(
+        cmd,
+        Command::Generate { .. } | Command::GenerateSpec { .. } | Command::Seed { .. }
+    )
+}
+
+/// Try to append a guidance footer to command output (INV-GUIDANCE-001).
+///
+/// Best-effort: if the store can't be loaded, returns the original output
+/// unchanged. Skips footer for JSON, guidance, and generative commands.
+fn try_append_footer(output: String, path: &Path) -> String {
+    let Ok(layout) = crate::layout::DiskLayout::open(path) else {
+        return output;
+    };
+    let Ok(store) = layout.load_store() else {
+        return output;
+    };
+
+    let footer = braid_kernel::guidance::build_command_footer(&store, None);
+    format!("{output}{footer}\n")
+}
+
 /// Execute a CLI command and return the output string.
 pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
-    match cmd {
+    // Pre-extract metadata needed for footer injection (before cmd is consumed).
+    let path_for_footer = store_path(&cmd).map(|p| p.to_path_buf());
+    let skip_footer =
+        is_json_output(&cmd) || is_guidance_command(&cmd) || is_generative_output(&cmd);
+
+    let result = match cmd {
         Command::Init { path } => init::run(&path),
         Command::Status {
             path,
@@ -742,5 +814,11 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
                 Ok(String::new())
             }
         },
+    };
+
+    // INV-GUIDANCE-001: Append guidance footer to applicable command outputs.
+    match (result, path_for_footer) {
+        (Ok(output), Some(path)) if !skip_footer => Ok(try_append_footer(output, &path)),
+        (result, _) => result,
     }
 }
