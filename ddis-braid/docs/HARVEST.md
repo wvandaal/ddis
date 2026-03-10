@@ -3263,3 +3263,71 @@ The harvest/query round-trip feels *correct*. When I harvest knowledge items and
 
 **Start Phase A.1: Fix the Datalog multi-clause join bug.** This is P0, blocks everything.
 Investigation plan in bead brai-3u7v.1. Target: 4 hours, one focused session.
+
+---
+
+## Session 010 — 2026-03-10 (Phase C Completion: C.4–C.6)
+
+**Goal**: Complete remaining Phase C beads (Guidance v2, MCP completeness, Error recovery)
+**Commits**: f63d285, 315a96e, 64f8cdf, a74df1f
+
+### What Was Accomplished
+
+- **C.4 Guidance v2** (f63d285): Budget-aware footer compression with 4 levels
+  (Full/Compressed/Minimal/HarvestOnly), drift-responsive action modulation via M(t)
+  thresholds (crisis < 0.3, drift < 0.5, normal), continuous guidance injection
+  (INV-GUIDANCE-001) via `build_command_footer()`. 16 unit tests + 4 proptests.
+  - `crates/braid-kernel/src/guidance.rs`: +700 LOC (format_footer_at_level, modulate_actions,
+    build_command_footer)
+  - `crates/braid/src/commands/mod.rs`: footer injection pipeline (store_path, is_json_output,
+    is_guidance_command, is_generative_output, try_append_footer)
+
+- **C.3 Interactive Shell** (315a96e): Zero-dep REPL using pure std::io. 11 commands
+  (status/show/find/observe/datalog/analyze/guidance/bilateral/log/help/quit). Dispatches
+  to existing command functions. stderr for prompts, stdout for output.
+  - `crates/braid/src/commands/shell.rs`: ~170 LOC new file
+
+- **C.5 MCP Completeness** (64f8cdf): Added `braid_observe` as 7th MCP tool with
+  text/confidence/category/relates_to inputs. Updated tool count tests.
+  - `crates/braid/src/mcp.rs`: tool_observe() function + tool definition
+
+- **C.6 Error Recovery** (64f8cdf): Added `DatalogParse` and `EmptyResult` error variants
+  with targeted recovery_hint() messages. Migrated 16 Datalog parse errors in query.rs
+  from generic Parse to DatalogParse. Every BraidError variant now has actionable guidance.
+  - `crates/braid/src/error.rs`: 2 new variants + hints
+  - `crates/braid/src/commands/query.rs`: 16 error migrations
+
+- **Phase C Epic Closed**: All 6 sub-beads (C.1–C.6) complete. Epic brai-hvnw closed.
+  515 tests passing, clippy clean, fmt clean.
+
+### Decisions Made
+
+1. **Piecewise attention decay (0.5 coefficient)** — C⁰ continuous at k=0.3: quadratic
+   0.5(k/0.3)² matches linear k/0.6 at boundary. Unique degree-2 monomial through (0,0)
+   and (0.3, 0.5). C¹ (cubic spline) rejected: adds complexity for zero practical gain
+   given ±15-20% token counting error.
+
+2. **Footer injection architecture** — Pre-extract path/json-mode from Command enum before
+   consumption, append footer post-execution. Accepted minor perf hit of loading store
+   twice (command + footer) for clean centralized architecture.
+
+3. **Zero-dep shell** — Pure std::io instead of rustyline/reedline. No line editing, no
+   history. Appropriate for Stage 0 (fast exploration > polish). Can upgrade later.
+
+4. **DatalogParse vs Parse** — Separate error variant gives Datalog-specific recovery hints
+   (syntax examples, variable conventions) vs generic EDN syntax hints.
+
+### Open Questions
+
+1. **k*_eff source** — Currently hardcoded/optional. Need MCP response metadata or env var
+   for actual available token budget measurement.
+2. **SessionTelemetry** — Currently uses defaults. Need real access pattern tracking for
+   accurate methodology scores.
+
+### Recommended Next Action
+
+Phase C is complete. Next priorities from bead backlog:
+- **brai-1yys** (P1 epic): Coherence geometry spec — promote from exploration to formal spec
+- **brai-2wpi** (P1 epic): Topology framework spec — promote to spec/19-topology.md
+- **brai-3tym** (P2 epic): Phase D — Branching + Deliberation (Stage 2)
+- **brai-35s5** (P3): Budget-aware output integration (Stage 1 polish)
