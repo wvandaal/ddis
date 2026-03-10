@@ -9,7 +9,7 @@
 //! same inputs produce same outputs. This is the verification surface for
 //! all property-based testing and bounded model checking.
 
-pub mod claude_md;
+pub mod agent_md;
 pub mod datom;
 pub mod error;
 pub mod guidance;
@@ -29,7 +29,7 @@ pub mod store;
 pub mod trilateral;
 
 // Re-export core types at crate root for ergonomic access.
-pub use claude_md::{generate_claude_md, ClaudeMdConfig, ClaudeMdSection, GeneratedClaudeMd};
+pub use agent_md::{generate_agent_md, AgentMdConfig, AgentMdSection, GeneratedAgentMd};
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 pub use error::KernelError;
 pub use guidance::{

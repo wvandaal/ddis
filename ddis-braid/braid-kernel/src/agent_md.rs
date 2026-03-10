@@ -1,4 +1,4 @@
-//! Dynamic CLAUDE.md generation — session-specific agent instructions from store state.
+//! Dynamic agent instructions generation — session-specific agent instructions from store state.
 //!
 //! Generates an optimized LLM prompt document by querying the store for:
 //! 1. Task context (from seed assembly)
@@ -7,13 +7,17 @@
 //! 4. Methodology drift corrections
 //! 5. Self-improvement markers
 //!
+//! The output filename and title are configurable. The default filename is `AGENTS.md`
+//! (following the open standard at <https://agents.md/>), but any provider-specific
+//! filename (e.g., `CLAUDE.md`, `CODEX.md`) can be set via `AgentMdConfig`.
+//!
 //! # Invariants
 //!
-//! - **INV-SEED-007**: Dynamic CLAUDE.md is deterministic — same store state and
-//!   parameters always produce the same output.
+//! - **INV-SEED-007**: Dynamic agent instructions are deterministic — same store state
+//!   and parameters always produce the same output.
 //! - **INV-SEED-008**: Self-improvement tracking — corrections that are ineffective
 //!   after 5 sessions are replaced; effective ones are promoted.
-//! - **INV-GUIDANCE-007**: Dynamic CLAUDE.md as optimized prompt — adapts to
+//! - **INV-GUIDANCE-007**: Dynamic agent instructions as optimized prompt — adapts to
 //!   observed methodology drift patterns.
 
 use crate::datom::{AgentId, Attribute, EntityId, Value};
@@ -25,9 +29,9 @@ use crate::store::Store;
 // Configuration
 // ---------------------------------------------------------------------------
 
-/// Configuration for dynamic CLAUDE.md generation.
+/// Configuration for dynamic agent instructions generation.
 #[derive(Clone, Debug)]
-pub struct ClaudeMdConfig {
+pub struct AgentMdConfig {
     /// The task description for this session.
     pub task: String,
     /// The agent identity.
@@ -40,17 +44,23 @@ pub struct ClaudeMdConfig {
     pub max_uncertainties: usize,
     /// Maximum number of drift corrections to include.
     pub max_corrections: usize,
+    /// Document title (rendered as the H1 heading).
+    pub title: String,
+    /// Output filename (default: `AGENTS.md`).
+    pub output_filename: String,
 }
 
-impl Default for ClaudeMdConfig {
+impl Default for AgentMdConfig {
     fn default() -> Self {
-        ClaudeMdConfig {
+        AgentMdConfig {
             task: String::new(),
             agent: AgentId::from_name("braid:user"),
             budget: 4000,
             max_invariants: 20,
             max_uncertainties: 10,
             max_corrections: 5,
+            title: "Dynamic Agent Instructions".to_string(),
+            output_filename: "AGENTS.md".to_string(),
         }
     }
 }
@@ -59,9 +69,9 @@ impl Default for ClaudeMdConfig {
 // Sections
 // ---------------------------------------------------------------------------
 
-/// A section in the generated CLAUDE.md.
+/// A section in the generated agent instructions document.
 #[derive(Clone, Debug)]
-pub struct ClaudeMdSection {
+pub struct AgentMdSection {
     /// Section heading.
     pub heading: String,
     /// Section body (markdown).
@@ -70,22 +80,24 @@ pub struct ClaudeMdSection {
     pub tokens: usize,
 }
 
-/// The complete generated CLAUDE.md document.
+/// The complete generated agent instructions document.
 #[derive(Clone, Debug)]
-pub struct GeneratedClaudeMd {
+pub struct GeneratedAgentMd {
     /// All sections in priority order.
-    pub sections: Vec<ClaudeMdSection>,
+    pub sections: Vec<AgentMdSection>,
     /// The methodology score at generation time.
     pub methodology_score: f64,
     /// Total estimated tokens.
     pub total_tokens: usize,
+    /// Document title.
+    pub title: String,
 }
 
-impl GeneratedClaudeMd {
+impl GeneratedAgentMd {
     /// Render the complete document as a markdown string.
     pub fn render(&self) -> String {
         let mut out = String::with_capacity(self.total_tokens * 4);
-        out.push_str("# Dynamic CLAUDE.md\n\n");
+        out.push_str(&format!("# {}\n\n", self.title));
         out.push_str(&format!(
             "> Auto-generated from store state. Methodology score: {:.2}\n\n",
             self.methodology_score
@@ -106,7 +118,7 @@ impl GeneratedClaudeMd {
 // Generation pipeline
 // ---------------------------------------------------------------------------
 
-/// Generate a dynamic CLAUDE.md from store state.
+/// Generate dynamic agent instructions from store state.
 ///
 /// This is the 7-step pipeline:
 /// 1. ASSOCIATE with focus task
@@ -120,7 +132,7 @@ impl GeneratedClaudeMd {
 /// # Determinism (INV-SEED-007)
 ///
 /// Same store state + same config = same output. No randomness, no system clock.
-pub fn generate_claude_md(store: &Store, config: &ClaudeMdConfig) -> GeneratedClaudeMd {
+pub fn generate_agent_md(store: &Store, config: &AgentMdConfig) -> GeneratedAgentMd {
     let mut sections = Vec::new();
     let mut total_tokens = 0;
 
@@ -163,10 +175,11 @@ pub fn generate_claude_md(store: &Store, config: &ClaudeMdConfig) -> GeneratedCl
         sections.push(seed_section);
     }
 
-    GeneratedClaudeMd {
+    GeneratedAgentMd {
         sections,
         methodology_score,
         total_tokens,
+        title: config.title.clone(),
     }
 }
 
@@ -174,7 +187,7 @@ pub fn generate_claude_md(store: &Store, config: &ClaudeMdConfig) -> GeneratedCl
 // Section builders
 // ---------------------------------------------------------------------------
 
-fn build_task_section(store: &Store, config: &ClaudeMdConfig) -> ClaudeMdSection {
+fn build_task_section(store: &Store, config: &AgentMdConfig) -> AgentMdSection {
     let mut body = String::new();
 
     if !config.task.is_empty() {
@@ -201,14 +214,14 @@ fn build_task_section(store: &Store, config: &ClaudeMdConfig) -> ClaudeMdSection
     }
 
     let tokens = estimate_tokens(&body);
-    ClaudeMdSection {
+    AgentMdSection {
         heading: "Task Context".to_string(),
         body,
         tokens,
     }
 }
 
-fn build_invariant_section(store: &Store, config: &ClaudeMdConfig) -> ClaudeMdSection {
+fn build_invariant_section(store: &Store, config: &AgentMdConfig) -> AgentMdSection {
     let mut body = String::new();
     let invariants = query_spec_elements(store, ":spec.element/invariant", config.max_invariants);
 
@@ -225,14 +238,14 @@ fn build_invariant_section(store: &Store, config: &ClaudeMdConfig) -> ClaudeMdSe
     }
 
     let tokens = estimate_tokens(&body);
-    ClaudeMdSection {
+    AgentMdSection {
         heading: "Governing Invariants".to_string(),
         body,
         tokens,
     }
 }
 
-fn build_adr_section(store: &Store, config: &ClaudeMdConfig) -> ClaudeMdSection {
+fn build_adr_section(store: &Store, config: &AgentMdConfig) -> AgentMdSection {
     let mut body = String::new();
     let adrs = query_spec_elements(store, ":spec.element/adr", config.max_invariants);
 
@@ -252,14 +265,14 @@ fn build_adr_section(store: &Store, config: &ClaudeMdConfig) -> ClaudeMdSection 
     }
 
     let tokens = estimate_tokens(&body);
-    ClaudeMdSection {
+    AgentMdSection {
         heading: "Settled Decisions (ADRs)".to_string(),
         body,
         tokens,
     }
 }
 
-fn build_uncertainty_section(store: &Store, config: &ClaudeMdConfig) -> ClaudeMdSection {
+fn build_uncertainty_section(store: &Store, config: &AgentMdConfig) -> AgentMdSection {
     let mut body = String::new();
     let negs = query_spec_elements(
         store,
@@ -277,14 +290,14 @@ fn build_uncertainty_section(store: &Store, config: &ClaudeMdConfig) -> ClaudeMd
     }
 
     let tokens = estimate_tokens(&body);
-    ClaudeMdSection {
+    AgentMdSection {
         heading: "Risks & Negative Cases".to_string(),
         body,
         tokens,
     }
 }
 
-fn build_drift_section(store: &Store, config: &ClaudeMdConfig) -> ClaudeMdSection {
+fn build_drift_section(store: &Store, config: &AgentMdConfig) -> AgentMdSection {
     let mut body = String::new();
 
     // Query for methodology-related datoms (drift corrections)
@@ -303,14 +316,14 @@ fn build_drift_section(store: &Store, config: &ClaudeMdConfig) -> ClaudeMdSectio
     }
 
     let tokens = estimate_tokens(&body);
-    ClaudeMdSection {
+    AgentMdSection {
         heading: "Methodology Drift Corrections".to_string(),
         body,
         tokens,
     }
 }
 
-fn build_guidance_section(methodology_score: f64) -> ClaudeMdSection {
+fn build_guidance_section(methodology_score: f64) -> AgentMdSection {
     let mut body = String::new();
 
     body.push_str(&format!(
@@ -331,14 +344,14 @@ fn build_guidance_section(methodology_score: f64) -> ClaudeMdSection {
     body.push_str(&format!("{}\n", guidance));
 
     let tokens = estimate_tokens(&body);
-    ClaudeMdSection {
+    AgentMdSection {
         heading: "Methodology Score".to_string(),
         body,
         tokens,
     }
 }
 
-fn build_seed_section(store: &Store, config: &ClaudeMdConfig, budget: usize) -> ClaudeMdSection {
+fn build_seed_section(store: &Store, config: &AgentMdConfig, budget: usize) -> AgentMdSection {
     use crate::seed::ContextSection as CS;
 
     let seed = assemble_seed(store, &config.task, budget, config.agent);
@@ -385,7 +398,7 @@ fn build_seed_section(store: &Store, config: &ClaudeMdConfig, budget: usize) -> 
     }
 
     let tokens = seed.context.total_tokens;
-    ClaudeMdSection {
+    AgentMdSection {
         heading: "Seed Context".to_string(),
         body,
         tokens,
@@ -568,15 +581,15 @@ mod tests {
     }
 
     #[test]
-    fn generate_claude_md_is_deterministic() {
+    fn generate_agent_md_is_deterministic() {
         let store = bootstrap_store();
-        let config = ClaudeMdConfig {
+        let config = AgentMdConfig {
             task: "implement datom store".to_string(),
             ..Default::default()
         };
 
-        let doc1 = generate_claude_md(&store, &config);
-        let doc2 = generate_claude_md(&store, &config);
+        let doc1 = generate_agent_md(&store, &config);
+        let doc2 = generate_agent_md(&store, &config);
 
         assert_eq!(
             doc1.render(),
@@ -586,14 +599,14 @@ mod tests {
     }
 
     #[test]
-    fn generate_claude_md_has_all_sections() {
+    fn generate_agent_md_has_all_sections() {
         let store = bootstrap_store();
-        let config = ClaudeMdConfig {
+        let config = AgentMdConfig {
             task: "test task".to_string(),
             ..Default::default()
         };
 
-        let doc = generate_claude_md(&store, &config);
+        let doc = generate_agent_md(&store, &config);
 
         // Should have at least 6 sections: task, invariants, ADRs, risks, drift, methodology
         assert!(
@@ -612,14 +625,14 @@ mod tests {
     }
 
     #[test]
-    fn generate_claude_md_includes_spec_elements() {
+    fn generate_agent_md_includes_spec_elements() {
         let store = bootstrap_store();
-        let config = ClaudeMdConfig {
+        let config = AgentMdConfig {
             task: "verify store invariants".to_string(),
             ..Default::default()
         };
 
-        let doc = generate_claude_md(&store, &config);
+        let doc = generate_agent_md(&store, &config);
         let rendered = doc.render();
 
         assert!(
@@ -637,15 +650,15 @@ mod tests {
     }
 
     #[test]
-    fn generate_claude_md_respects_budget() {
+    fn generate_agent_md_respects_budget() {
         let store = bootstrap_store();
-        let config = ClaudeMdConfig {
+        let config = AgentMdConfig {
             task: "small task".to_string(),
             budget: 500,
             ..Default::default()
         };
 
-        let doc = generate_claude_md(&store, &config);
+        let doc = generate_agent_md(&store, &config);
         // Total tokens should be reasonable (budget is soft limit)
         assert!(
             doc.total_tokens < 2000,
@@ -655,14 +668,14 @@ mod tests {
     }
 
     #[test]
-    fn generate_claude_md_empty_store() {
+    fn generate_agent_md_empty_store() {
         let store = Store::genesis();
-        let config = ClaudeMdConfig {
+        let config = AgentMdConfig {
             task: "no bootstrap yet".to_string(),
             ..Default::default()
         };
 
-        let doc = generate_claude_md(&store, &config);
+        let doc = generate_agent_md(&store, &config);
         let rendered = doc.render();
 
         assert!(rendered.contains("No invariants in store"));

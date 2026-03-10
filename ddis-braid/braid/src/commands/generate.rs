@@ -1,15 +1,15 @@
-//! `braid generate` — Generate dynamic CLAUDE.md from the store.
+//! `braid generate` — Generate dynamic agent instructions from the store.
 //!
 //! This command implements the store-to-prompt pipeline:
 //! 1. Load the store from disk
-//! 2. Call `generate_claude_md()` from braid-kernel
-//! 3. Write the rendered markdown to `.braid/CLAUDE.md`
+//! 2. Call `generate_agent_md()` from braid-kernel
+//! 3. Write the rendered markdown to the configured output filename (default: `AGENTS.md`)
 //!
 //! Traces to: INV-SEED-007, INV-SEED-008, INV-GUIDANCE-007.
 
 use std::path::Path;
 
-use braid_kernel::claude_md::{generate_claude_md, ClaudeMdConfig};
+use braid_kernel::agent_md::{generate_agent_md, AgentMdConfig};
 use braid_kernel::datom::AgentId;
 
 use crate::error::BraidError;
@@ -19,18 +19,18 @@ pub fn run(path: &Path, task: &str, budget: usize, agent_name: &str) -> Result<S
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
-    let config = ClaudeMdConfig {
+    let config = AgentMdConfig {
         task: task.to_string(),
         agent: AgentId::from_name(agent_name),
         budget,
-        ..ClaudeMdConfig::default()
+        ..AgentMdConfig::default()
     };
 
-    let generated = generate_claude_md(&store, &config);
+    let generated = generate_agent_md(&store, &config);
 
-    // Render and write the CLAUDE.md to the store directory
+    // Render and write the agent instructions to the store directory
     let rendered = generated.render();
-    let output_path = path.join("CLAUDE.md");
+    let output_path = path.join(&config.output_filename);
     std::fs::write(&output_path, &rendered)?;
 
     let mut out = String::new();

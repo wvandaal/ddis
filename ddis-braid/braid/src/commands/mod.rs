@@ -148,7 +148,7 @@ pub enum Command {
         datoms: bool,
     },
 
-    /// Generate a dynamic CLAUDE.md from the store.
+    /// Generate dynamic agent instructions from the store.
     Generate {
         /// Path to the .braid directory.
         #[arg(short, long, default_value = ".braid")]
@@ -158,7 +158,7 @@ pub enum Command {
         #[arg(short, long)]
         task: String,
 
-        /// Token budget for the generated CLAUDE.md.
+        /// Token budget for the generated agent instructions.
         #[arg(short, long, default_value = "4000")]
         budget: usize,
 

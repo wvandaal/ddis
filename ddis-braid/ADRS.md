@@ -1361,6 +1361,29 @@ findings from `audits/stage-0/research/`.
 
 ---
 
+### ADR-AGENT-MD-001: Provider-Neutral Agent Instructions
+
+**Decision**: The kernel's agent instructions generator uses provider-neutral naming
+(`agent_md`, `AgentMdConfig`, `AGENTS.md`) rather than provider-specific naming
+(`claude_md`, `ClaudeMdConfig`, `CLAUDE.md`).
+
+**Alternatives rejected**:
+1. Keep `claude_md` — violates kernel neutrality principle; DDIS/Braid is a specification
+   standard, not a Claude-specific tool.
+2. Use `instructions` — too generic, loses the markdown-document semantic that `agent_md`
+   preserves while paralleling the AGENTS.md open standard (https://agents.md/).
+
+**Traces to**: SEED.md §8 (Interface Principles — the kernel must not be tied to any
+specific agent provider); C7 (Self-Bootstrap — DDIS specifies itself, not Claude).
+
+**Rationale**: DDIS/Braid is a specification standard and protocol. The kernel must be
+provider-neutral so that any agent (Claude, Codex, Gemini, Cursor, etc.) can consume its
+output. The AGENTS.md open standard provides an interoperable default filename.
+
+**Bead**: brai-1usv
+
+---
+
 *This document is maintained alongside `SEED.md` and `HARVEST.md` as part of the manual
 bootstrap methodology. When `SPEC.md` exists, each decision here should have a corresponding
 formal ADR element. When the datom store exists, each decision becomes a set of datoms and

@@ -247,23 +247,23 @@ fn harvest_seed_25_turn_cycle() {
     );
 
     // ---------------------------------------------------------------
-    // Phase 5: Dynamic CLAUDE.md generation
+    // Phase 5: Dynamic agent instructions generation
     // ---------------------------------------------------------------
-    let config = braid_kernel::claude_md::ClaudeMdConfig {
+    let config = braid_kernel::agent_md::AgentMdConfig {
         task: "Continue validation work".to_string(),
         agent,
         budget: 4000,
         ..Default::default()
     };
-    let generated = braid_kernel::claude_md::generate_claude_md(&store, &config);
+    let generated = braid_kernel::agent_md::generate_agent_md(&store, &config);
 
     assert!(
         !generated.sections.is_empty(),
-        "Generated CLAUDE.md should have sections"
+        "Generated agent instructions should have sections"
     );
     assert!(
         generated.total_tokens > 0,
-        "Generated CLAUDE.md should have tokens"
+        "Generated agent instructions should have tokens"
     );
     assert!(
         generated.methodology_score >= 0.0 && generated.methodology_score <= 1.0,
@@ -273,7 +273,7 @@ fn harvest_seed_25_turn_cycle() {
     // Verify the rendered output is valid markdown
     let rendered = generated.render();
     assert!(
-        rendered.contains("# Dynamic CLAUDE.md"),
+        rendered.contains("# Dynamic Agent Instructions"),
         "Rendered output should be a markdown document"
     );
     assert!(

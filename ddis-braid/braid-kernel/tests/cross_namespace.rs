@@ -8,7 +8,7 @@
 
 use std::collections::BTreeSet;
 
-use braid_kernel::claude_md::{generate_claude_md, ClaudeMdConfig};
+use braid_kernel::agent_md::{generate_agent_md, AgentMdConfig};
 use braid_kernel::datom::{AgentId, Attribute, EntityId, ProvenanceType, TxId, Value};
 use braid_kernel::guidance::{
     build_footer, compute_methodology_score, format_footer, SessionTelemetry,
@@ -957,14 +957,14 @@ fn multi_agent_coordination() {
 }
 
 // ===========================================================================
-// Chain 9 (Bonus): Store → Seed → CLAUDE.md Generation
+// Chain 9 (Bonus): Store → Seed → Agent Instructions Generation
 // ===========================================================================
 
-/// Dynamic CLAUDE.md generation from store state.
+/// Dynamic agent instructions generation from store state.
 ///
-/// INV chain: STORE-001 → SEED-001 → CLAUDE_MD (dynamic generation).
+/// INV chain: STORE-001 → SEED-001 → AGENT_MD (dynamic generation).
 #[test]
-fn store_seed_claude_md_generation() {
+fn store_seed_agent_md_generation() {
     let a = agent("test:chain9");
     let mut store = Store::genesis();
 
@@ -985,18 +985,18 @@ fn store_seed_claude_md_generation() {
     let seed = assemble_seed(&store, "Project item description", 2000, a);
     assert!(seed.entities_discovered > 0);
 
-    // Generate CLAUDE.md
-    let config = ClaudeMdConfig {
+    // Generate agent instructions
+    let config = AgentMdConfig {
         task: "Integration testing".to_string(),
         agent: a,
         budget: 4000,
         ..Default::default()
     };
-    let generated = generate_claude_md(&store, &config);
+    let generated = generate_agent_md(&store, &config);
 
     assert!(
         !generated.sections.is_empty(),
-        "CLAUDE.md must have sections"
+        "Agent instructions must have sections"
     );
     assert!(generated.total_tokens > 0, "Must have tokens");
     assert!(
@@ -1006,7 +1006,10 @@ fn store_seed_claude_md_generation() {
 
     // Render
     let rendered = generated.render();
-    assert!(rendered.contains("# Dynamic CLAUDE.md"), "Must be markdown");
+    assert!(
+        rendered.contains("# Dynamic Agent Instructions"),
+        "Must be markdown"
+    );
     assert!(rendered.contains("Methodology score"), "Must include M(t)");
 }
 

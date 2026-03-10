@@ -2382,3 +2382,40 @@ braid/ (binary, IO layer)
 
 **Next: Stage 1** — Budget-aware output, betweenness centrality, FP/FN calibration, comonadic guidance topology. The P3 beads (brai-35s5, brai-2g7o, brai-3oof, brai-25x2) are ready for implementation.
 
+---
+
+## Session 008 — 2026-03-09 (ADR-AGENT-MD-001: Provider-Neutral Agent Instructions)
+
+**Bead**: brai-1usv
+
+### What Was Accomplished
+
+- **ADR-AGENT-MD-001**: Removed all provider-specific naming from `braid-kernel`.
+  - Renamed `claude_md` module → `agent_md`
+  - Renamed types: `ClaudeMdConfig` → `AgentMdConfig`, `ClaudeMdSection` → `AgentMdSection`, `GeneratedClaudeMd` → `GeneratedAgentMd`
+  - Renamed function: `generate_claude_md()` → `generate_agent_md()`
+  - Added configurable `title` and `output_filename` fields to `AgentMdConfig`
+  - Default output filename changed from `CLAUDE.md` to `AGENTS.md` (open standard)
+  - Default title changed from `"# Dynamic CLAUDE.md"` to `"# Dynamic Agent Instructions"`
+  - Updated binary crate (`generate.rs`, `mod.rs`) to use new types and configurable filename
+  - Updated integration tests (`cross_namespace.rs`, `harvest_seed_cycle.rs`)
+  - All 288 tests passing, clippy clean, fmt clean, zero residual references
+
+### Decisions Made
+
+- **ADR-AGENT-MD-001** recorded in `ADRS.md` with full rationale, alternatives rejected, and traceability to SEED.md §8 and C7.
+- Chose `agent_md` over `instructions` — preserves the markdown-document semantic while being provider-neutral.
+- Spec-level concept names (e.g., `GENERATE-CLAUDE-MD` in spec/) left unchanged — these are formal spec identifiers that should be updated through a separate spec revision ADR.
+
+### Open Questions
+
+- Spec files (`spec/06-seed.md`, etc.) still reference "Dynamic CLAUDE.md" as a concept name. A separate spec revision should update these to "Dynamic Agent Instructions" with a new spec-level ADR.
+
+### Failure Modes Discovered
+
+None.
+
+### Recommended Next Action
+
+Spec revision: update `GENERATE-CLAUDE-MD` and related concept names in `spec/` to provider-neutral terminology, tracked via a separate ADR.
+
