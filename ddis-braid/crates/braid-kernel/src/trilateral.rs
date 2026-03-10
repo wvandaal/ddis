@@ -552,12 +552,23 @@ pub fn von_neumann_entropy(store: &Store) -> CoherenceEntropy {
     // Eigendecomposition of the symmetric density matrix
     let eigenvalues = rho.symmetric_eigenvalues();
 
+    // Clamp negative eigenvalues to 0 and renormalize so they sum to 1.
+    // Jacobi/Lanczos can produce small negative eigenvalues for near-singular
+    // matrices; these must be zeroed to maintain the density matrix interpretation.
+    let eps = 1e-12;
+    let clamped: Vec<f64> = eigenvalues.iter().map(|&l| l.max(0.0)).collect();
+    let trace_sum: f64 = clamped.iter().sum();
+    let normalized_evals: Vec<f64> = if trace_sum > eps {
+        clamped.iter().map(|&l| l / trace_sum).collect()
+    } else {
+        clamped
+    };
+
     // S(ρ) = -Σᵢ λᵢ log₂(λᵢ) where λᵢ > 0
     let mut entropy = 0.0_f64;
     let mut effective_rank = 0usize;
-    let eps = 1e-12;
 
-    for &lambda in &eigenvalues {
+    for &lambda in &normalized_evals {
         if lambda > eps {
             effective_rank += 1;
             entropy -= lambda * lambda.log2();
