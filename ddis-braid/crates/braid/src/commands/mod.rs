@@ -18,6 +18,7 @@ mod promote;
 mod query;
 mod retract;
 mod seed;
+pub(crate) mod shell;
 mod status;
 mod transact;
 
@@ -514,6 +515,20 @@ Example:
         spec_dir: PathBuf,
     },
 
+    /// Interactive exploration shell (zero external deps).
+    ///
+    /// Starts a readline loop for quick exploration. Type 'help' for commands.
+    /// Exit with Ctrl-D or 'quit'.
+    #[command(after_long_help = "\
+Example:
+  braid shell                    # start with default .braid store
+  braid shell -p /tmp/store      # start with custom store path")]
+    Shell {
+        /// Store directory path.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+    },
+
     /// Start MCP server (JSON-RPC over stdio).
     Mcp {
         #[command(subcommand)]
@@ -552,7 +567,8 @@ fn store_path(cmd: &Command) -> Option<&Path> {
         | Command::Verify { path, .. }
         | Command::Bilateral { path, .. }
         | Command::Observe { path, .. }
-        | Command::Analyze { path, .. } => Some(path),
+        | Command::Analyze { path, .. }
+        | Command::Shell { path, .. } => Some(path),
     }
 }
 
@@ -572,7 +588,7 @@ fn is_json_output(cmd: &Command) -> bool {
 
 /// Whether a command already includes guidance output (avoid duplication).
 fn is_guidance_command(cmd: &Command) -> bool {
-    matches!(cmd, Command::Guidance { .. })
+    matches!(cmd, Command::Guidance { .. } | Command::Shell { .. })
 }
 
 /// Whether the command output may be piped to files (footers would corrupt).
@@ -808,6 +824,7 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
                 analyze::run_budget(&path, b, force)
             }
         }
+        Command::Shell { path } => shell::run(&path),
         Command::Mcp { action } => match action {
             McpAction::Serve { path } => {
                 mcp::serve(&path)?;
