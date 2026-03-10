@@ -12,6 +12,8 @@
 //! - **INV-TRILATERAL-005**: Attribute namespace partitions are pairwise disjoint.
 //! - **INV-TRILATERAL-009**: (Φ, β₁) duality — Φ=0 ∧ β₁=0 iff coherent.
 
+use std::collections::BTreeSet;
+
 use crate::datom::{Attribute, Datom, EntityId, Op};
 use crate::store::Store;
 
@@ -100,9 +102,9 @@ pub struct LiveView {
 /// Each projection filters datoms by attribute namespace.
 /// Projections are monotone: adding datoms to the store can only grow a projection.
 pub fn live_projections(store: &Store) -> (LiveView, LiveView, LiveView) {
-    let mut intent_entities = Vec::new();
-    let mut spec_entities = Vec::new();
-    let mut impl_entities = Vec::new();
+    let mut intent_set = BTreeSet::new();
+    let mut spec_set = BTreeSet::new();
+    let mut impl_set = BTreeSet::new();
     let mut intent_count = 0usize;
     let mut spec_count = 0usize;
     let mut impl_count = 0usize;
@@ -114,21 +116,15 @@ pub fn live_projections(store: &Store) -> (LiveView, LiveView, LiveView) {
         match classify_attribute(&datom.attribute) {
             AttrNamespace::Intent => {
                 intent_count += 1;
-                if !intent_entities.contains(&datom.entity) {
-                    intent_entities.push(datom.entity);
-                }
+                intent_set.insert(datom.entity);
             }
             AttrNamespace::Spec => {
                 spec_count += 1;
-                if !spec_entities.contains(&datom.entity) {
-                    spec_entities.push(datom.entity);
-                }
+                spec_set.insert(datom.entity);
             }
             AttrNamespace::Impl => {
                 impl_count += 1;
-                if !impl_entities.contains(&datom.entity) {
-                    impl_entities.push(datom.entity);
-                }
+                impl_set.insert(datom.entity);
             }
             AttrNamespace::Meta => {} // Cross-cutting, not projected
         }
@@ -136,15 +132,15 @@ pub fn live_projections(store: &Store) -> (LiveView, LiveView, LiveView) {
 
     (
         LiveView {
-            entities: intent_entities,
+            entities: intent_set.into_iter().collect(),
             datom_count: intent_count,
         },
         LiveView {
-            entities: spec_entities,
+            entities: spec_set.into_iter().collect(),
             datom_count: spec_count,
         },
         LiveView {
-            entities: impl_entities,
+            entities: impl_set.into_iter().collect(),
             datom_count: impl_count,
         },
     )
@@ -174,18 +170,22 @@ pub struct DivergenceComponents {
 pub fn compute_phi(store: &Store, w_is: f64, w_sp: f64) -> (f64, DivergenceComponents) {
     let (live_i, live_s, live_p) = live_projections(store);
 
+    // Convert to BTreeSet for O(log n) lookup in set difference
+    let spec_set: BTreeSet<&EntityId> = live_s.entities.iter().collect();
+    let impl_set: BTreeSet<&EntityId> = live_p.entities.iter().collect();
+
     // D_IS: intent entities not covered by spec
     let d_is = live_i
         .entities
         .iter()
-        .filter(|e| !live_s.entities.contains(e))
+        .filter(|e| !spec_set.contains(e))
         .count();
 
     // D_SP: spec entities not covered by impl
     let d_sp = live_s
         .entities
         .iter()
-        .filter(|e| !live_p.entities.contains(e))
+        .filter(|e| !impl_set.contains(e))
         .count();
 
     let components = DivergenceComponents { d_is, d_sp };

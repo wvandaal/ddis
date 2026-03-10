@@ -212,10 +212,10 @@ mod tests {
         let result = evaluate(&store, &query);
         match result {
             QueryResult::Rel(rows) => {
-                // Should find at least the 17 axiomatic attribute docs + our test doc
+                // Should find at least the 18 axiomatic attribute docs + our test doc
                 assert!(
-                    rows.len() >= 18,
-                    "expected at least 18 rows, got {}",
+                    rows.len() >= 19,
+                    "expected at least 19 rows, got {}",
                     rows.len()
                 );
             }

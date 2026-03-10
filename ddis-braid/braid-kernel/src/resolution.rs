@@ -150,12 +150,14 @@ fn resolve_lww(active: &[(Value, TxId)]) -> ResolvedValue {
         .max_by(|(v1, tx1), (v2, tx2)| {
             tx1.cmp(tx2).then_with(|| {
                 // BLAKE3 tiebreaker for identical timestamps
-                let h1 = blake3::hash(&serde_json::to_vec(v1).unwrap());
-                let h2 = blake3::hash(&serde_json::to_vec(v2).unwrap());
+                let h1 =
+                    blake3::hash(&serde_json::to_vec(v1).expect("Value serialization cannot fail"));
+                let h2 =
+                    blake3::hash(&serde_json::to_vec(v2).expect("Value serialization cannot fail"));
                 h1.as_bytes().cmp(h2.as_bytes())
             })
         })
-        .unwrap();
+        .expect("active is non-empty (guarded by early return above)");
 
     ResolvedValue::Single(winner.0.clone())
 }

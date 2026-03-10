@@ -129,7 +129,16 @@ impl DiskLayout {
     }
 
     /// Read a transaction file by its hash.
+    ///
+    /// `hash_hex` must be a valid lowercase hex string of at least 2 characters
+    /// (BLAKE3 hashes are 64 hex chars). Returns an error for malformed input.
     pub fn read_tx(&self, hash_hex: &str) -> Result<TxFile, BraidError> {
+        if hash_hex.len() < 2 || !hash_hex.bytes().all(|b| b.is_ascii_hexdigit()) {
+            return Err(BraidError::Parse(format!(
+                "invalid tx hash: expected hex string >= 2 chars, got {:?}",
+                hash_hex
+            )));
+        }
         let prefix = &hash_hex[..2];
         let path = self
             .root

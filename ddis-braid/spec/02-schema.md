@@ -27,7 +27,7 @@ Self-reference: the meta-schema attributes describe themselves.
   e.g., :db/valueType has valueType :db.type/keyword
         :db/cardinality has cardinality :db.cardinality/one
 
-Formally: Let A₀ = {a₁, ..., a₁₇} be the 17 axiomatic meta-schema attributes.
+Formally: Let A₀ = {a₁, ..., a₁₈} be the 18 axiomatic meta-schema attributes.
 ∀ aᵢ ∈ A₀: ∃ datoms in S₀ (genesis) that define aᵢ using A₀ itself.
 The meta-schema is the fixed point of "attributes that describe attributes."
 ```
@@ -69,7 +69,7 @@ Optional:
 ```
 GENESIS() → S₀ containing exactly:
 
-For each of the 17 axiomatic attributes aᵢ:
+For each of the 18 axiomatic attributes aᵢ:
   (aᵢ, :db/ident,        <keyword>,     tx₀, Assert)
   (aᵢ, :db/valueType,    <type>,        tx₀, Assert)
   (aᵢ, :db/cardinality,  <cardinality>, tx₀, Assert)
@@ -213,7 +213,7 @@ Cross-boundary link:
 
 This gives 26 spec-element attributes (23 original + 3 typed relationship attributes:
 `:spec/affects`, `:spec/constrains`, `:spec/tests`) plus 14 trilateral coherence
-attributes (40 total in Layer 2). Combined with the 17 axiomatic attributes and Layer 1 agent/provenance
+attributes (40 total in Layer 2). Combined with the 18 axiomatic attributes and Layer 1 agent/provenance
 attributes, the Stage 0 schema is sufficient to represent all specification elements in
 the datom store with full fidelity across all three refinement levels and all element
 types (invariant, ADR, negative case, uncertainty).
@@ -248,7 +248,7 @@ POST:
 ### §2.3 Level 2: Interface Specification
 
 ```rust
-/// The 17 axiomatic attributes — hardcoded in the engine.
+/// The 18 axiomatic attributes — hardcoded in the engine.
 pub mod meta_schema {
     pub const DB_IDENT: Attribute = Attribute::from_keyword(":db/ident");
     pub const DB_VALUE_TYPE: Attribute = Attribute::from_keyword(":db/valueType");
@@ -317,7 +317,7 @@ impl Store {
 /// Six-layer schema architecture (INV-SCHEMA-006).
 /// Each layer depends only on layers below it; Stage 0 installs Layers 0–1.
 pub enum SchemaLayer {
-    MetaSchema,       // Layer 0: 17 axiomatic attributes (9 :db/*, 5 :lattice/*, 3 :tx/*)
+    MetaSchema,       // Layer 0: 18 axiomatic attributes (9 :db/*, 5 :lattice/*, 4 :tx/*)
     AgentProvenance,  // Layer 1: 3 types, 20 attributes (agent entity + tx metadata + provenance)
     DdisCore,         // Layer 2: 12 types, 72 attributes (spec elements, observations)
     Discovery,        // Layer 3: 5 types, 28 attributes (threads, findings)
@@ -413,14 +413,14 @@ config file, hardcoded enum, or separate database table).
 
 #### Level 0 (Algebraic Law)
 ```
-∀ aᵢ ∈ A₀ (the 17 axiomatic attributes):
+∀ aᵢ ∈ A₀ (the 18 axiomatic attributes):
   ∃ datoms in GENESIS() defining aᵢ
   AND those datoms use only attributes from A₀
   (the meta-schema is self-contained)
 ```
 
 #### Level 1 (State Invariant)
-The genesis transaction contains exactly the 17 axiomatic attribute definitions.
+The genesis transaction contains exactly the 18 axiomatic attribute definitions.
 Each attribute is fully specified (ident, valueType, cardinality at minimum).
 No non-meta-schema datoms exist in genesis.
 
@@ -518,7 +518,7 @@ impl Transaction<Building> {
 #### Level 1 (State Invariant)
 The `:db/ident` attribute has a datom `(:db/ident, :db/valueType, :db.type/keyword, tx₀, Assert)`.
 This datom describes `:db/ident`'s value type using the `:db/valueType` attribute, which is
-itself one of the 17 axiomatic attributes.
+itself one of the 18 axiomatic attributes.
 
 **Falsification**: Any axiomatic attribute whose definition requires an attribute outside A₀.
 
@@ -533,7 +533,7 @@ itself one of the 17 axiomatic attributes.
 #### Level 0 (Algebraic Law)
 ```
 Schema is organized into 6 layers:
-  Layer 0: Meta-schema (17 axiomatic attributes)        — Stage 0
+  Layer 0: Meta-schema (18 axiomatic attributes)        — Stage 0
   Layer 1: Agent & Provenance (2 types, 16 attributes)  — Stage 0
   Layer 2: DDIS Core (12 types, 72 attributes)          — Stage 0–1
   Layer 3: Discovery & Exploration (5 types, 28 attrs)  — Stage 1–2

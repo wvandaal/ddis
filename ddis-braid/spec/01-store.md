@@ -122,7 +122,7 @@ Bottom element:  ∅ ∈ P(D)
   is the initial operational state, with S₀ ⊋ ∅. The algebraic bottom is the
   empty set; the operational bottom is genesis. These are distinct:
     ∅ is the algebraic identity (S ∪ ∅ = S for all S).
-    S₀ is the smallest VALID store (contains the 17 axiomatic attributes).
+    S₀ is the smallest VALID store (contains the 18 axiomatic attributes).
 
 Top element:     Does not exist.
   D is the set of all POSSIBLE datoms. Since D is constructed from unbounded
@@ -703,7 +703,7 @@ Merging never loses datoms from either input.
 ```
 
 #### Level 1 (State Invariant)
-The genesis transaction installs exactly the 17 axiomatic meta-schema attributes.
+The genesis transaction installs exactly the 18 axiomatic meta-schema attributes.
 No other datoms exist. The hash of the genesis datom set is a compile-time constant.
 
 #### Level 2 (Implementation Contract)

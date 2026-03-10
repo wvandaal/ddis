@@ -2419,3 +2419,98 @@ None.
 
 Spec revision: update `GENERATE-CLAUDE-MD` and related concept names in `spec/` to provider-neutral terminology, tracked via a separate ADR.
 
+
+---
+
+## Session 009 — 2026-03-09 (Cleanroom Defect Remediation: DEF-001..004)
+
+**Bead**: brai-3chd
+**Platform**: Claude Code (Opus 4.6)
+
+### What Was Accomplished
+
+Systematic codebase audit with "cleanroom software engineering" methodology followed by
+formal defect specification (DDIS-structured) and rigorous implementation of all 4 fixes.
+
+#### Audit Phase
+
+Launched 4 parallel exploration agents covering all kernel modules. Confirmed 4 genuine
+defects and rejected 3 false positives through manual source verification.
+
+#### Defect Specification
+
+Created `DEFECT_SPEC.md` — DDIS-structured defect specifications (DEF-001 through DEF-004)
+with severity, root cause, invariant references, falsification conditions, and fix specifications.
+
+#### DEF-001 (HIGH): `:tx/rationale` Not Stored as Datom
+
+- **Root cause**: `make_tx_metadata()` created datoms for `:tx/time`, `:tx/agent`, `:tx/provenance`
+  but omitted `:tx/rationale`, even though `log` command searched for it.
+- **Fix**: Added `:tx/rationale` to Layer 0 axiomatic attributes in `schema.rs` (17→18 attrs).
+  Added datom creation in `store.rs::make_tx_metadata()`.
+- **Cascading updates**: All doc comments (17→18) across `schema.rs`, `store.rs`, `datom.rs`,
+  `evaluator.rs`. All test assertions (17→18, 41→42, 77→78, 18→19). Five spec files updated:
+  `01-store.md`, `01b-storage-layout.md`, `02-schema.md`, `15-uncertainty.md`, `17-crossref.md`.
+- **INV-SCHEMA-002**: Updated from 17 to 18 axiomatic attributes as fixed-point definition.
+
+#### DEF-002 (MEDIUM): `read_tx` Panics on Short Hash Input
+
+- **Root cause**: `hash_hex[..2]` slice without length check → panic on input < 2 chars.
+- **Fix**: Added hex validation and length guard returning `BraidError::Parse` in `layout.rs`.
+
+#### DEF-003 (MEDIUM): O(n²) Entity Dedup in `trilateral.rs`
+
+- **Root cause**: `Vec::contains()` in `live_projections()` loop = O(n) per iteration.
+  `compute_phi()` used `Vec` for set differences = O(n) per lookup.
+- **Fix**: Replaced with `BTreeSet::insert()` for O(n log n) dedup in `live_projections()`.
+  Added `BTreeSet` reference sets for O(log n) lookups in `compute_phi()`.
+
+#### DEF-004 (LOW): `.unwrap()` Without `.expect()` Message
+
+- **Root cause**: Three sites used `.unwrap()` on infallible serialization without documenting why.
+- **Fix**: Replaced with `.expect()` messages at `store.rs:356`, `resolution.rs:153-154`, `resolution.rs:158`.
+
+### Verification
+
+- **288 tests pass** (26 binary + 244 kernel + 11 cross-namespace + 3 harvest/seed + 4 stateright)
+- **0 clippy warnings** (`-D warnings`)
+- **Formatting clean** (`cargo fmt --check`)
+- **Zero residual issues** (grep verified)
+
+### Files Modified
+
+| File | Changes |
+|------|---------|
+| `braid-kernel/src/schema.rs` | `:tx/rationale` attribute added, all 17→18 updates, test assertion 18→19 |
+| `braid-kernel/src/store.rs` | `:tx/rationale` datom in `make_tx_metadata()`, proptest assertion, `.unwrap()` → `.expect()` |
+| `braid-kernel/src/datom.rs` | Doc comment 17→18 |
+| `braid-kernel/src/query/evaluator.rs` | Test assertion 18→19 |
+| `braid-kernel/src/resolution.rs` | `.unwrap()` → `.expect()` (3 sites) |
+| `braid-kernel/src/trilateral.rs` | `BTreeSet` dedup in `live_projections()` and `compute_phi()` |
+| `braid-kernel/tests/cross_namespace.rs` | Genesis attribute count 17→18 |
+| `braid/src/layout.rs` | Hex validation in `read_tx()` |
+| `spec/01-store.md` | 17→18 axiomatic attributes (3 occurrences) |
+| `spec/01b-storage-layout.md` | 17→18 axiomatic attributes |
+| `spec/02-schema.md` | 17→18, formal notation a₁₇→a₁₈, 3→4 `:tx/*` attrs |
+| `spec/15-uncertainty.md` | 17→18 axiomatic attributes |
+| `spec/17-crossref.md` | 17→18 axiomatic attributes |
+| `DEFECT_SPEC.md` | Created — DDIS-structured defect specifications |
+
+### Decisions Made
+
+| Decision | Rationale |
+|----------|-----------|
+| `:tx/rationale` as Layer 0 axiomatic | It's transaction metadata alongside `:tx/time`, `:tx/agent`, `:tx/provenance` — same category, same layer |
+| BTreeSet over HashSet for dedup | Deterministic iteration order (C2 content-addressable identity), consistent with rest of codebase |
+| `.expect()` over custom error handling | Serialization of `TxId` and `Value` cannot fail (all fields implement Serialize). Panic message documents the proof obligation. |
+| Update all spec files atomically | INV-SCHEMA-002 is a cross-cutting invariant. Leaving any reference at "17" would be a spec-impl divergence. |
+
+### Failure Modes Discovered
+
+None new. The `:tx/rationale` omission (DEF-001) is a variant of FM-004 (cascading incompleteness) —
+a missing datom meant downstream `log` display always showed "-" for rationale.
+
+### Recommended Next Action
+
+1. **Stage 1 work** — P3 beads are ready (brai-35s5, brai-2g7o, brai-3oof, brai-25x2)
+2. **Spec revision** — Update `GENERATE-CLAUDE-MD` concept names in `spec/` to provider-neutral terminology

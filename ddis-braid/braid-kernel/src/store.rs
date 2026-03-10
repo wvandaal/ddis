@@ -255,7 +255,7 @@ impl Store {
     /// Create a new store with the genesis transaction.
     ///
     /// Genesis is deterministic: same output every call (INV-STORE-008).
-    /// Contains the 17 axiomatic meta-schema attributes that define the
+    /// Contains the 18 axiomatic meta-schema attributes that define the
     /// schema system itself (INV-SCHEMA-002).
     pub fn genesis() -> Self {
         let system_agent = AgentId::from_name("braid:system");
@@ -353,7 +353,10 @@ impl Store {
         }
 
         // Record transaction metadata as datoms (INV-STORE-014)
-        let tx_entity = EntityId::from_content(&serde_json::to_vec(&tx_id).unwrap());
+        let tx_entity = EntityId::from_content(
+            &serde_json::to_vec(&tx_id)
+                .expect("TxId serialization cannot fail: all fields are serializable"),
+        );
         let tx_meta_datoms = self.make_tx_metadata(tx_entity, tx_id, &tx_data);
         for d in tx_meta_datoms {
             self.datoms.insert(d);
@@ -523,6 +526,15 @@ impl Store {
             Op::Assert,
         ));
 
+        // :tx/rationale
+        meta.push(Datom::new(
+            tx_entity,
+            Attribute::from_keyword(":tx/rationale"),
+            Value::String(tx_data.rationale.clone()),
+            tx_id,
+            Op::Assert,
+        ));
+
         meta
     }
 }
@@ -550,9 +562,9 @@ mod tests {
     #[test]
     fn genesis_has_axiomatic_attributes() {
         let store = Store::genesis();
-        // Genesis has 17 axiomatic attributes, each with multiple datoms
+        // Genesis has 18 axiomatic attributes, each with multiple datoms
         // (ident, valueType, cardinality, doc = 4 datoms per attr)
-        // Plus 3 tx metadata datoms for the genesis transaction
+        // Plus 4 tx metadata datoms for the genesis transaction
         assert!(!store.is_empty());
 
         // Check that :db/ident exists as an attribute
@@ -856,9 +868,11 @@ mod tests {
                 let has_time = tx_datoms.iter().any(|d| d.attribute.as_str() == ":tx/time");
                 let has_agent = tx_datoms.iter().any(|d| d.attribute.as_str() == ":tx/agent");
                 let has_prov = tx_datoms.iter().any(|d| d.attribute.as_str() == ":tx/provenance");
+                let has_rationale = tx_datoms.iter().any(|d| d.attribute.as_str() == ":tx/rationale");
                 prop_assert!(has_time, "INV-STORE-014: missing :tx/time");
                 prop_assert!(has_agent, "INV-STORE-014: missing :tx/agent");
                 prop_assert!(has_prov, "INV-STORE-014: missing :tx/provenance");
+                prop_assert!(has_rationale, "INV-STORE-014: missing :tx/rationale");
             }
 
             /// merge_stores (kernel-level) preserves all datoms from both inputs.

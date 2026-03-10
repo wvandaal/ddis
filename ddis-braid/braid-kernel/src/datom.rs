@@ -38,7 +38,7 @@ impl EntityId {
 
     /// Create an entity ID from a keyword identifier.
     ///
-    /// Used for the 17 axiomatic schema attributes whose identity IS their keyword.
+    /// Used for the 18 axiomatic schema attributes whose identity IS their keyword.
     /// `EntityId = BLAKE3(keyword_bytes)`.
     pub fn from_ident(keyword: &str) -> Self {
         Self::from_content(keyword.as_bytes())

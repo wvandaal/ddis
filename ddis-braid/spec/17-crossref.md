@@ -13,7 +13,7 @@
 | FOUNDATION | §1–§11 | LM-001–002, LM-008–009, AA-002, CO-006 | Braid-as-new-impl, methodology-before-tooling, self-bootstrap, structural coherence |
 | STORE | §4, §9, §11 | FD-001–012, AS-001–010, SR-001–011, PD-001–004, PO-001, PO-012, LM-007 | Append-only datom store, CRDT merge, content identity, HLC ordering, indexes |
 | LAYOUT | §4, §11 | SR-006, SR-007, SR-014, FD-007, FD-013 | Content-addressed transaction files, directory-union merge, filesystem isomorphism, canonical serialization |
-| SCHEMA | §4 | SR-008–010, FD-005, FD-008, SQ-008 | 17 axiomatic attributes, genesis, schema-as-data, six-layer architecture, value type union |
+| SCHEMA | §4 | SR-008–010, FD-005, FD-008, SQ-008 | 18 axiomatic attributes, genesis, schema-as-data, six-layer architecture, value type union |
 | QUERY | §4 | FD-003, SQ-001–010, PO-013, AS-007, AA-001, UA-009 | Datalog, CALM, six strata, FFI boundary, significance tracking, graph engine, stability score |
 | RESOLUTION | §4 | FD-005, CR-001–006, UA-003–005, UA-010–012 | Per-attribute resolution, conflict predicate, three-tier routing, spectral authority, delegation |
 | HARVEST | §5 | LM-005–006, LM-012–014, IB-012, CR-005, UA-007 | Epistemic gap detection, pipeline, FP/FN calibration, proactive warnings, staleness, DDR feedback |

@@ -1,12 +1,12 @@
 //! Schema-as-data: attribute definitions stored as datoms (C3).
 //!
 //! The schema is derived from the store, not stored separately. Schema
-//! evolution is a transaction, not a migration. The 17 axiomatic meta-schema
+//! evolution is a transaction, not a migration. The 18 axiomatic meta-schema
 //! attributes describe themselves (INV-SCHEMA-005).
 //!
 //! # Six-Layer Schema Architecture (INV-SCHEMA-006)
 //!
-//! - **Layer 0** (Meta-Schema): 17 axiomatic attributes — `:db/*`, `:lattice/*`, `:tx/*`.
+//! - **Layer 0** (Meta-Schema): 18 axiomatic attributes — `:db/*`, `:lattice/*`, `:tx/*`.
 //! - **Layer 1** (Trilateral): 24 domain attributes — `:intent/*`, `:spec/*`, `:impl/*`.
 //! - **Layer 2** (Specification Elements): 36 rich-metadata attributes —
 //!   `:element/*`, `:inv/*`, `:adr/*`, `:neg/*`, `:dep/*`, `:session/*`,
@@ -19,7 +19,7 @@
 //! # Invariants
 //!
 //! - **INV-SCHEMA-001**: Schema is a subset of the store, not separate DDL.
-//! - **INV-SCHEMA-002**: Genesis contains exactly 17 axiomatic attributes.
+//! - **INV-SCHEMA-002**: Genesis contains exactly 18 axiomatic attributes.
 //! - **INV-SCHEMA-003**: Schema can only grow (monotonicity).
 //! - **INV-SCHEMA-004**: Every transacted datom is validated against schema.
 //! - **INV-SCHEMA-005**: Axiomatic attributes describe themselves using A₀.
@@ -450,7 +450,7 @@ pub enum SchemaEvolutionError {
 // Genesis
 // ---------------------------------------------------------------------------
 
-/// Produce the genesis datom set — the 17 axiomatic meta-schema attributes.
+/// Produce the genesis datom set — the 18 axiomatic meta-schema attributes.
 ///
 /// Deterministic: same output every call (INV-STORE-008, INV-SCHEMA-002).
 pub fn genesis_datoms(genesis_tx: TxId) -> Vec<Datom> {
@@ -509,7 +509,7 @@ pub fn genesis_datoms(genesis_tx: TxId) -> Vec<Datom> {
     datoms
 }
 
-/// The 17 axiomatic meta-schema attributes (INV-SCHEMA-002).
+/// The 18 axiomatic meta-schema attributes (INV-SCHEMA-002).
 fn axiomatic_attributes() -> Vec<AttributeSpec> {
     vec![
         // Layer 0 — Meta-Schema (9 attributes)
@@ -598,7 +598,7 @@ fn axiomatic_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Top element",
         ),
-        // Transaction metadata (3 attributes)
+        // Transaction metadata (4 attributes)
         attr(
             ":tx/time",
             ValueType::Instant,
@@ -616,6 +616,12 @@ fn axiomatic_attributes() -> Vec<AttributeSpec> {
             ValueType::Keyword,
             Cardinality::One,
             "Provenance type",
+        ),
+        attr(
+            ":tx/rationale",
+            ValueType::String,
+            Cardinality::One,
+            "Human-readable rationale for the transaction",
         ),
     ]
 }
@@ -1196,12 +1202,12 @@ mod tests {
     use crate::datom::AgentId;
 
     #[test]
-    fn genesis_produces_17_attributes() {
+    fn genesis_produces_18_attributes() {
         let specs = axiomatic_attributes();
         assert_eq!(
             specs.len(),
-            17,
-            "INV-SCHEMA-002: exactly 17 axiomatic attributes"
+            18,
+            "INV-SCHEMA-002: exactly 18 axiomatic attributes"
         );
     }
 
@@ -1215,12 +1221,12 @@ mod tests {
     }
 
     #[test]
-    fn schema_from_genesis_has_17_attributes() {
+    fn schema_from_genesis_has_18_attributes() {
         let agent = AgentId::from_name("braid:system");
         let tx = TxId::new(0, 0, agent);
         let datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
         let schema = Schema::from_datoms(&datoms);
-        assert_eq!(schema.len(), 17);
+        assert_eq!(schema.len(), 18);
     }
 
     #[test]
@@ -1303,8 +1309,8 @@ mod tests {
         let errors = full_schema.validate_evolution(&empty_schema);
         assert_eq!(
             errors.len(),
-            17,
-            "all 17 attributes should be flagged as removed"
+            18,
+            "all 18 attributes should be flagged as removed"
         );
         assert!(errors
             .iter()
@@ -1358,7 +1364,7 @@ mod tests {
         ));
         let new_schema = Schema::from_datoms(&new_datoms);
 
-        assert_eq!(new_schema.len(), 18);
+        assert_eq!(new_schema.len(), 19);
         let errors = old_schema.validate_evolution(&new_schema);
         assert!(errors.is_empty(), "adding attributes is valid evolution");
     }
@@ -1412,7 +1418,7 @@ mod tests {
             datoms.insert(d);
         }
         let schema = Schema::from_datoms(&datoms);
-        assert_eq!(schema.len(), 17 + 24, "genesis + L1 = 41 attributes");
+        assert_eq!(schema.len(), 18 + 24, "genesis + L1 = 42 attributes");
     }
 
     #[test]
@@ -1538,9 +1544,9 @@ mod tests {
         let schema = Schema::from_datoms(&datoms);
         assert_eq!(
             schema.len(),
-            17 + 24 + LAYER_2_COUNT,
-            "genesis(17) + L1(24) + L2({LAYER_2_COUNT}) = {} attributes",
-            17 + 24 + LAYER_2_COUNT
+            18 + 24 + LAYER_2_COUNT,
+            "genesis(18) + L1(24) + L2({LAYER_2_COUNT}) = {} attributes",
+            18 + 24 + LAYER_2_COUNT
         );
     }
 
@@ -1738,7 +1744,7 @@ mod tests {
     }
 
     #[test]
-    fn full_schema_has_77_attributes() {
+    fn full_schema_has_78_attributes() {
         let agent = AgentId::from_name("braid:system");
         let genesis_tx = TxId::new(0, 0, agent);
         let domain_tx = TxId::new(1, 0, agent);
@@ -1749,7 +1755,7 @@ mod tests {
         }
         let schema = Schema::from_datoms(&datoms);
 
-        let expected = 17 + 24 + LAYER_2_COUNT; // 77
+        let expected = 18 + 24 + LAYER_2_COUNT; // 78
         assert_eq!(
             schema.len(),
             expected,
