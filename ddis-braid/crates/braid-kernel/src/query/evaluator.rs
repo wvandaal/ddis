@@ -3,12 +3,14 @@
 //! Evaluates queries against the store by matching patterns against datoms
 //! and unifying variables. Stage 0 supports strata 0-1 (monotonic).
 //!
-//! # Algorithm
+//! # Index-Aware Evaluation
 //!
-//! 1. Initialize binding set from first clause.
-//! 2. For each subsequent clause, join with existing bindings.
-//! 3. Apply predicate filters.
-//! 4. Project result to the find specification.
+//! Pattern matching selects the narrowest index based on bound terms:
+//! - Entity bound (constant or already-bound variable) → entity index O(k)
+//! - Attribute bound (constant) → attribute index O(k)
+//! - Neither → full scan O(N)
+//!
+//! This reduces multi-pattern join cost from O(N^k) to O(N × selectivity).
 
 use std::collections::HashMap;
 
@@ -34,7 +36,7 @@ pub fn evaluate(store: &Store, query: &QueryExpr) -> QueryResult {
             Clause::Pattern(pattern) => {
                 let mut new_bindings = Vec::new();
                 for binding in &bindings {
-                    let matches = match_pattern(store, pattern, binding);
+                    let matches = match_pattern_indexed(store, pattern, binding);
                     new_bindings.extend(matches);
                 }
                 new_bindings
@@ -66,39 +68,140 @@ pub fn evaluate(store: &Store, query: &QueryExpr) -> QueryResult {
     }
 }
 
-/// Match a pattern against all datoms, producing new bindings.
-fn match_pattern(store: &Store, pattern: &Pattern, existing: &Binding) -> Vec<Binding> {
-    let mut results = Vec::new();
+/// Resolve an entity term to a concrete EntityId if already bound.
+fn resolve_entity(term: &Term, binding: &Binding) -> Option<EntityId> {
+    match term {
+        Term::Entity(eid) => Some(*eid),
+        Term::Constant(Value::Ref(eid)) => Some(*eid),
+        Term::Variable(var) => match binding.get(var) {
+            Some(Value::Ref(eid)) => Some(*eid),
+            _ => None,
+        },
+        _ => None,
+    }
+}
 
+/// Resolve an attribute term to a concrete Attribute if it's a constant.
+fn resolve_attribute(term: &Term) -> Option<Attribute> {
+    match term {
+        Term::Attr(attr) => Some(attr.clone()),
+        Term::Constant(Value::Keyword(kw)) => Some(Attribute::from_keyword(kw)),
+        _ => None,
+    }
+}
+
+/// Index-aware pattern matching: select narrowest candidate set, then unify.
+///
+/// Strategy (INV-QUERY-PERF-001):
+/// 1. If entity is bound → use entity_index (typically ~5-10 datoms per entity)
+/// 2. Else if attribute is a constant → use attribute_index (~100s of datoms per attr)
+/// 3. Else → full scan (last resort)
+fn match_pattern_indexed(store: &Store, pattern: &Pattern, existing: &Binding) -> Vec<Binding> {
+    // Try entity index first (most selective)
+    if let Some(eid) = resolve_entity(&pattern.entity, existing) {
+        let candidates = store.entity_datoms(eid);
+        let mut results = Vec::with_capacity(candidates.len());
+        for datom in candidates {
+            if let Some(new_binding) = unify_datom(datom, pattern, existing) {
+                results.push(new_binding);
+            }
+        }
+        return results;
+    }
+
+    // Try attribute index (second most selective)
+    if let Some(attr) = resolve_attribute(&pattern.attribute) {
+        let candidates = store.attribute_datoms(&attr);
+        let mut results = Vec::with_capacity(candidates.len());
+        for datom in candidates {
+            if let Some(new_binding) = unify_datom(datom, pattern, existing) {
+                results.push(new_binding);
+            }
+        }
+        return results;
+    }
+
+    // Fallback: full scan
+    let mut results = Vec::new();
     for datom in store.datoms() {
         if let Some(new_binding) = unify_datom(datom, pattern, existing) {
             results.push(new_binding);
         }
     }
-
     results
 }
 
 /// Try to unify a datom with a pattern, extending the existing binding.
+///
+/// Defers binding clone until all three positions match, avoiding allocation
+/// on failed unification attempts.
 fn unify_datom(datom: &Datom, pattern: &Pattern, existing: &Binding) -> Option<Binding> {
+    // Pre-check constant positions without cloning the binding.
+    // This avoids HashMap allocation for the ~95% of datoms that fail early.
+    if !can_unify_entity(&datom.entity, &pattern.entity, existing) {
+        return None;
+    }
+    if !can_unify_attribute(&datom.attribute, &pattern.attribute, existing) {
+        return None;
+    }
+    if !can_unify_value(&datom.value, &pattern.value, existing) {
+        return None;
+    }
+
+    // All positions pass pre-check — now clone and bind.
     let mut binding = existing.clone();
 
-    // Match entity
+    // These should all succeed given the pre-check, but we re-check to bind variables.
     if !unify_entity(&datom.entity, &pattern.entity, &mut binding) {
         return None;
     }
-
-    // Match attribute
     if !unify_attribute(&datom.attribute, &pattern.attribute, &mut binding) {
         return None;
     }
-
-    // Match value
     if !unify_value(&datom.value, &pattern.value, &mut binding) {
         return None;
     }
 
     Some(binding)
+}
+
+/// Check if entity can unify without modifying the binding (read-only pre-check).
+fn can_unify_entity(entity: &EntityId, term: &Term, binding: &Binding) -> bool {
+    match term {
+        Term::Variable(var) => match binding.get(var) {
+            Some(existing) => *existing == Value::Ref(*entity),
+            None => true, // unbound variable always matches
+        },
+        Term::Entity(expected) => entity == expected,
+        Term::Constant(Value::Ref(expected)) => entity == expected,
+        _ => false,
+    }
+}
+
+/// Check if attribute can unify without modifying the binding (read-only pre-check).
+fn can_unify_attribute(attr: &Attribute, term: &Term, binding: &Binding) -> bool {
+    match term {
+        Term::Variable(var) => match binding.get(var) {
+            Some(existing) => *existing == Value::Keyword(attr.as_str().to_string()),
+            None => true,
+        },
+        Term::Attr(expected) => attr == expected,
+        Term::Constant(Value::Keyword(expected)) => attr.as_str() == expected,
+        _ => false,
+    }
+}
+
+/// Check if value can unify without modifying the binding (read-only pre-check).
+fn can_unify_value(value: &Value, term: &Term, binding: &Binding) -> bool {
+    match term {
+        Term::Variable(var) => match binding.get(var) {
+            Some(existing) => existing == value,
+            None => true,
+        },
+        Term::Constant(expected) => value == expected,
+        Term::Entity(eid) => matches!(value, Value::Ref(r) if r == eid),
+        _ => false,
+    }
 }
 
 fn unify_entity(entity: &EntityId, term: &Term, binding: &mut Binding) -> bool {
@@ -279,6 +382,95 @@ mod tests {
                     "expected at least 5 keyword-typed attrs, got {}",
                     rows.len()
                 );
+            }
+            _ => panic!("expected Rel result"),
+        }
+    }
+
+    #[test]
+    fn index_selects_entity_path() {
+        let store = Store::genesis();
+        let db_ident = EntityId::from_ident(":db/ident");
+
+        // Pattern with bound entity uses entity index (not full scan)
+        let pattern = Pattern::new(
+            Term::Entity(db_ident),
+            Term::Variable("?a".into()),
+            Term::Variable("?v".into()),
+        );
+        let binding = HashMap::new();
+        let results = match_pattern_indexed(&store, &pattern, &binding);
+
+        // :db/ident has multiple datoms (ident, doc, valueType, cardinality, etc.)
+        assert!(
+            !results.is_empty(),
+            "entity-indexed lookup should find datoms"
+        );
+        // Every result should have the correct entity
+        for b in &results {
+            // entity variable wasn't used (it was a constant), but we can verify
+            // by checking that all results are consistent
+            assert!(b.contains_key("?a"), "attribute variable should be bound");
+            assert!(b.contains_key("?v"), "value variable should be bound");
+        }
+    }
+
+    #[test]
+    fn index_selects_attribute_path() {
+        let store = Store::genesis();
+
+        // Pattern with bound attribute uses attribute index
+        let pattern = Pattern::new(
+            Term::Variable("?e".into()),
+            Term::Attr(Attribute::from_keyword(":db/ident")),
+            Term::Variable("?v".into()),
+        );
+        let binding = HashMap::new();
+        let results = match_pattern_indexed(&store, &pattern, &binding);
+
+        // Every entity with :db/ident should be found
+        assert!(
+            results.len() >= 18,
+            "attribute-indexed lookup should find all ident datoms, got {}",
+            results.len()
+        );
+    }
+
+    #[test]
+    fn join_uses_entity_index_on_second_pattern() {
+        let store = Store::genesis();
+
+        // Pattern 1: [?e :db/ident ?name] — uses attribute index
+        // Pattern 2: [?e :db/doc ?doc] — ?e is now bound → uses entity index!
+        let query = QueryExpr::new(
+            FindSpec::Rel(vec!["?name".into(), "?doc".into()]),
+            vec![
+                Clause::Pattern(Pattern::new(
+                    Term::Variable("?e".into()),
+                    Term::Attr(Attribute::from_keyword(":db/ident")),
+                    Term::Variable("?name".into()),
+                )),
+                Clause::Pattern(Pattern::new(
+                    Term::Variable("?e".into()),
+                    Term::Attr(Attribute::from_keyword(":db/doc")),
+                    Term::Variable("?doc".into()),
+                )),
+            ],
+        );
+
+        let result = evaluate(&store, &query);
+        match result {
+            QueryResult::Rel(rows) => {
+                // All 18 axiomatic attributes have both :db/ident and :db/doc
+                assert!(
+                    rows.len() >= 18,
+                    "join should find all attributes with ident+doc, got {}",
+                    rows.len()
+                );
+                // Verify each row has both name and doc
+                for row in &rows {
+                    assert_eq!(row.len(), 2, "each row should have name + doc");
+                }
             }
             _ => panic!("expected Rel result"),
         }

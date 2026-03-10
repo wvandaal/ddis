@@ -9,7 +9,7 @@
 //! - **INV-QUERY-006**: Entity-centric view via index scan.
 //! - **INV-QUERY-007**: CALM compliance — S0/S1 are monotone, no coordination needed.
 
-use super::clause::{Clause, QueryExpr};
+use super::clause::QueryExpr;
 
 /// The six strata of Datalog queries.
 ///
@@ -73,38 +73,27 @@ impl Stratum {
 ///
 /// Classification rules:
 /// - Empty where clauses → S0 (ground)
-/// - All clauses are patterns or equality predicates → S1 (monotone)
-/// - Any negation predicate (`!=`) → S2 (stratified negation)
+/// - All clauses are patterns or predicate filters → S1 (monotone)
 ///
-/// Note: S3–S5 require features not yet in our query AST (aggregation,
-/// recursion), so they're unreachable from current `QueryExpr`. The
-/// classifier still handles them for forward compatibility.
+/// Key distinction: `!=` as a predicate filter on bound variables is NOT
+/// stratified negation — it is a selection condition (like SQL WHERE x != y).
+/// True S2 would require negation-as-failure (`not` clauses), which is not
+/// yet in our AST. All current `Clause::Predicate` operations (including `!=`)
+/// are therefore monotone filters and classified as S1.
+///
+/// Note: S2–S5 require features not yet in our query AST (negation-as-failure,
+/// aggregation, recursion), so they're unreachable from current `QueryExpr`.
+/// The classifier still handles them for forward compatibility.
 pub fn classify(query: &QueryExpr) -> Stratum {
     if query.where_clauses.is_empty() {
         return Stratum::S0;
     }
 
-    let mut has_negation = false;
-
-    for clause in &query.where_clauses {
-        match clause {
-            Clause::Pattern(_) => {
-                // Patterns are always monotone (positive atoms)
-            }
-            Clause::Predicate { op, .. } => {
-                if op == "!=" {
-                    has_negation = true;
-                }
-                // Other predicates (=, >, <, >=, <=) are monotone filters
-            }
-        }
-    }
-
-    if has_negation {
-        Stratum::S2
-    } else {
-        Stratum::S1
-    }
+    // All currently expressible clauses (Pattern + Predicate filters) are
+    // monotone. != is a filter, not negation-as-failure.
+    // When we add Clause::Not (negation-as-failure), we'll classify as S2.
+    // When we add Clause::Aggregate, we'll classify as S3.
+    Stratum::S1
 }
 
 /// Check whether a query can be evaluated at Stage 0.
@@ -127,7 +116,7 @@ pub fn check_stage0(query: &QueryExpr) -> Result<Stratum, Stratum> {
 mod tests {
     use super::*;
     use crate::datom::{Attribute, Value};
-    use crate::query::clause::{FindSpec, Pattern, Term};
+    use crate::query::clause::{Clause, FindSpec, Pattern, Term};
 
     fn ground_query() -> QueryExpr {
         // Empty where clause → S0
@@ -167,8 +156,8 @@ mod tests {
         )
     }
 
-    fn negation_query() -> QueryExpr {
-        // Pattern + != predicate → S2
+    fn inequality_filter_query() -> QueryExpr {
+        // Pattern + != predicate filter → S1 (filter, not negation-as-failure)
         QueryExpr::new(
             FindSpec::Rel(vec!["?e".into()]),
             vec![
@@ -204,8 +193,10 @@ mod tests {
     }
 
     #[test]
-    fn classify_negation() {
-        assert_eq!(classify(&negation_query()), Stratum::S2);
+    fn classify_inequality_filter_is_monotone() {
+        // != as a predicate filter is still monotone (S1), not S2.
+        // S2 requires negation-as-failure (Clause::Not), not yet in AST.
+        assert_eq!(classify(&inequality_filter_query()), Stratum::S1);
     }
 
     #[test]
@@ -219,8 +210,9 @@ mod tests {
     }
 
     #[test]
-    fn stage0_rejects_s2() {
-        assert_eq!(check_stage0(&negation_query()), Err(Stratum::S2));
+    fn stage0_accepts_inequality_filter() {
+        // != as filter is evaluable at Stage 0
+        assert_eq!(check_stage0(&inequality_filter_query()), Ok(Stratum::S1));
     }
 
     #[test]
@@ -293,12 +285,13 @@ mod tests {
     mod stratum_proptests {
         use super::*;
         use crate::datom::{Attribute, Value};
-        use crate::query::clause::{FindSpec, Pattern, Term};
+        use crate::query::clause::{Clause, FindSpec, Pattern, Term};
         use proptest::prelude::*;
 
-        fn arb_monotone_op() -> impl Strategy<Value = String> {
+        fn arb_filter_op() -> impl Strategy<Value = String> {
             prop_oneof![
                 Just("=".to_string()),
+                Just("!=".to_string()),
                 Just(">".to_string()),
                 Just("<".to_string()),
                 Just(">=".to_string()),
@@ -306,45 +299,34 @@ mod tests {
             ]
         }
 
-        fn arb_monotone_clause() -> impl Strategy<Value = Clause> {
+        fn arb_clause() -> impl Strategy<Value = Clause> {
             prop_oneof![
                 Just(Clause::Pattern(Pattern::new(
                     Term::Variable("?e".into()),
                     Term::Attr(Attribute::from_keyword(":db/doc")),
                     Term::Variable("?v".into()),
                 ))),
-                arb_monotone_op().prop_map(|op| Clause::Predicate {
+                arb_filter_op().prop_map(|op| Clause::Predicate {
                     op,
                     args: vec![Term::Variable("?v".into()), Term::Constant(Value::Long(42)),],
                 }),
             ]
         }
 
-        fn arb_monotone_query() -> impl Strategy<Value = QueryExpr> {
-            proptest::collection::vec(arb_monotone_clause(), 1..=5)
+        fn arb_query() -> impl Strategy<Value = QueryExpr> {
+            proptest::collection::vec(arb_clause(), 1..=5)
                 .prop_map(|clauses| QueryExpr::new(FindSpec::Rel(vec!["?e".into()]), clauses))
-        }
-
-        fn arb_negation_query() -> impl Strategy<Value = QueryExpr> {
-            proptest::collection::vec(arb_monotone_clause(), 0..=3).prop_map(|mut clauses| {
-                clauses.push(Clause::Predicate {
-                    op: "!=".to_string(),
-                    args: vec![
-                        Term::Variable("?v".into()),
-                        Term::Constant(Value::String("excluded".into())),
-                    ],
-                });
-                QueryExpr::new(FindSpec::Rel(vec!["?e".into()]), clauses)
-            })
         }
 
         proptest! {
             #[test]
-            fn check_stage0_accepts_monotonic(q in arb_monotone_query()) {
+            fn all_current_ast_queries_are_stage0_evaluable(q in arb_query()) {
+                // All expressible queries (patterns + predicate filters including !=)
+                // are evaluable at Stage 0 because != is a filter, not negation-as-failure.
                 let result = check_stage0(&q);
                 prop_assert!(
                     result.is_ok(),
-                    "check_stage0 must accept monotone queries, got Err({:?})",
+                    "check_stage0 must accept all current AST queries, got Err({:?})",
                     result.unwrap_err()
                 );
                 let stratum = result.unwrap();
@@ -356,27 +338,7 @@ mod tests {
             }
 
             #[test]
-            fn check_stage0_rejects_non_monotonic(q in arb_negation_query()) {
-                let result = check_stage0(&q);
-                prop_assert!(
-                    result.is_err(),
-                    "check_stage0 must reject non-monotone queries with != predicate"
-                );
-                let stratum = result.unwrap_err();
-                prop_assert!(
-                    !stratum.is_monotone(),
-                    "rejected stratum {:?} must not be monotone",
-                    stratum
-                );
-                prop_assert!(
-                    stratum >= Stratum::S2,
-                    "rejected stratum {:?} must be S2+",
-                    stratum
-                );
-            }
-
-            #[test]
-            fn classify_is_deterministic(q in arb_monotone_query()) {
+            fn classify_is_deterministic(q in arb_query()) {
                 let s1 = classify(&q);
                 let s2 = classify(&q);
                 prop_assert_eq!(

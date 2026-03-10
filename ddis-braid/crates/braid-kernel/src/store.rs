@@ -245,6 +245,11 @@ pub struct Store {
     /// Invariant: for every datom d in `datoms`, `entity_index[d.entity]` contains d.
     /// Maintained incrementally on `transact()` and rebuilt on `merge()`/`from_datoms()`.
     entity_index: BTreeMap<EntityId, Vec<Datom>>,
+    /// Secondary index: attribute → datoms for O(1) attribute lookups (INV-STORE-IDX-002).
+    ///
+    /// Invariant: for every datom d in `datoms`, `attribute_index[d.attribute]` contains d.
+    /// Maintained incrementally on `transact()` and rebuilt on `merge()`/`from_datoms()`.
+    attribute_index: BTreeMap<Attribute, Vec<Datom>>,
 }
 
 impl std::fmt::Debug for Store {
@@ -270,9 +275,14 @@ impl Store {
 
         let mut datoms = BTreeSet::new();
         let mut entity_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
+        let mut attribute_index: BTreeMap<Attribute, Vec<Datom>> = BTreeMap::new();
         for d in &genesis_datoms {
             datoms.insert(d.clone());
             entity_index.entry(d.entity).or_default().push(d.clone());
+            attribute_index
+                .entry(d.attribute.clone())
+                .or_default()
+                .push(d.clone());
         }
 
         let mut frontier = HashMap::new();
@@ -286,6 +296,7 @@ impl Store {
             schema,
             clock: genesis_tx,
             entity_index,
+            attribute_index,
         }
     }
 
@@ -296,10 +307,11 @@ impl Store {
     pub fn from_datoms(datoms: BTreeSet<Datom>) -> Self {
         let schema = Schema::from_datoms(&datoms);
 
-        // Reconstruct frontier and entity index from datoms
+        // Reconstruct frontier, entity index, and attribute index from datoms
         let mut frontier: HashMap<AgentId, TxId> = HashMap::new();
         let mut max_clock = TxId::new(0, 0, AgentId::from_name("braid:system"));
         let mut entity_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
+        let mut attribute_index: BTreeMap<Attribute, Vec<Datom>> = BTreeMap::new();
         for d in &datoms {
             let agent = d.tx.agent();
             frontier
@@ -314,6 +326,10 @@ impl Store {
                 max_clock = d.tx;
             }
             entity_index.entry(d.entity).or_default().push(d.clone());
+            attribute_index
+                .entry(d.attribute.clone())
+                .or_default()
+                .push(d.clone());
         }
 
         Store {
@@ -322,6 +338,7 @@ impl Store {
             schema,
             clock: max_clock,
             entity_index,
+            attribute_index,
         }
     }
 
@@ -356,6 +373,11 @@ impl Store {
                     .entry(datom.entity)
                     .or_default()
                     .push(datom.clone());
+                // Maintain attribute index
+                self.attribute_index
+                    .entry(datom.attribute.clone())
+                    .or_default()
+                    .push(datom.clone());
                 // Check if this entity is new (not in pre-existing set)
                 if !pre_existing.contains(&datom.entity) && !new_entities.contains(&datom.entity) {
                     new_entities.push(datom.entity);
@@ -375,7 +397,14 @@ impl Store {
         let tx_meta_datoms = self.make_tx_metadata(tx_entity, tx_id, &tx_data);
         for d in tx_meta_datoms {
             if self.datoms.insert(d.clone()) {
-                self.entity_index.entry(d.entity).or_default().push(d);
+                self.entity_index
+                    .entry(d.entity)
+                    .or_default()
+                    .push(d.clone());
+                self.attribute_index
+                    .entry(d.attribute.clone())
+                    .or_default()
+                    .push(d);
             }
         }
 
@@ -432,12 +461,17 @@ impl Store {
             }
         }
 
-        // Rebuild schema and entity index from merged datoms
+        // Rebuild schema, entity index, and attribute index from merged datoms
         self.schema = Schema::from_datoms(&self.datoms);
         self.entity_index = BTreeMap::new();
+        self.attribute_index = BTreeMap::new();
         for d in &self.datoms {
             self.entity_index
                 .entry(d.entity)
+                .or_default()
+                .push(d.clone());
+            self.attribute_index
+                .entry(d.attribute.clone())
                 .or_default()
                 .push(d.clone());
         }
@@ -482,6 +516,14 @@ impl Store {
             .unwrap_or_default()
     }
 
+    /// Get all datoms for a specific attribute. O(1) via attribute index.
+    pub fn attribute_datoms(&self, attr: &Attribute) -> &[Datom] {
+        self.attribute_index
+            .get(attr)
+            .map(|v| v.as_slice())
+            .unwrap_or(&[])
+    }
+
     /// Check if a transaction with the given ID exists in the store.
     ///
     /// Uses frontier for fast-path check, falls back to scan only if needed.
@@ -517,6 +559,7 @@ impl Store {
             schema: self.schema.clone(),
             clock: self.clock,
             entity_index: self.entity_index.clone(),
+            attribute_index: self.attribute_index.clone(),
         }
     }
 
