@@ -1,0 +1,20 @@
+{:tx/id #hlc "6/0/1ed249d3b8d7ca257aa297950fe174bd"
+ :tx/agent "1ed249d3b8d7ca257aa297950fe174bd"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 8 candidates from task 'graph analytics self-analysis'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f029e8b66d584afafc32dae6f2df6638c3e60e68aaf5f11df4189b77e3574801" :a :db/doc :v "221 undirected connected components in 658-entity store" :op :assert}
+   {:e #blake3 "d71ff35f9c8a4101a578ba9307eda81558963250ccea40298b9524abe7839ed5" :a :db/doc :v "algebraic connectivity λ₂=0 confirms disconnected graph" :op :assert}
+   {:e #blake3 "39bdc058a6583ef124c113685fec9642b4de2586494acc456461c62b8d701b58" :a :db/doc :v "β₁=83 independent cycles (reference loops)" :op :assert}
+   {:e #blake3 "f5020c54df62f147382c7fc9d4211058a5aa5e760edb48dbd31c7c84fa2304dc" :a :db/doc :v "mean Ollivier-Ricci curvature κ=-0.08 (tree-like)" :op :assert}
+   {:e #blake3 "91a084bb1898de6aff9a81a99d0b99fce4f400788fcf8771a0c9f14355be7716" :a :db/doc :v "worst bottleneck κ=-0.45 at #09097bb1→:spec/neg-layout-005" :op :assert}
+   {:e #blake3 "e8619786b31461f97c24179cad193b64408f229d626ea05dbbc4d99c9abb06f9" :a :db/doc :v "highest PageRank: :spec/neg-layout-005 (0.0023)" :op :assert}
+   {:e #blake3 "3380f2ae4ddd15d73ba665361d18e7081baf56332a028fb4ca10d14a2942a3fb" :a :db/doc :v "Φ=210.6 with D_SP=351 spec→impl gap" :op :assert}
+   {:e #blake3 "030766f8e205799ddf6684826a23c8f840ccb21028cfff338efff7dde5059fb6" :a :db/doc :v "13 graph algorithms computed, all limit-free" :op :assert}
+   {:e #blake3 "b0e204a2703e3e5316a15fb6c8fa2a04330ac30a61ab4d512b6be4fd7219cb6f" :a :db/ident :v :harvest/session-braid-analyzer-6 :op :assert}
+   {:e #blake3 "b0e204a2703e3e5316a15fb6c8fa2a04330ac30a61ab4d512b6be4fd7219cb6f" :a :db/doc :v "Harvest session for task: graph analytics self-analysis" :op :assert}
+   {:e #blake3 "b0e204a2703e3e5316a15fb6c8fa2a04330ac30a61ab4d512b6be4fd7219cb6f" :a :harvest/agent :v "braid:analyzer" :op :assert}
+   {:e #blake3 "b0e204a2703e3e5316a15fb6c8fa2a04330ac30a61ab4d512b6be4fd7219cb6f" :a :harvest/candidate-count :v 8 :op :assert}
+   {:e #blake3 "b0e204a2703e3e5316a15fb6c8fa2a04330ac30a61ab4d512b6be4fd7219cb6f" :a :harvest/drift-score :v 0.5333333333333333 :op :assert}
+ ]}
