@@ -32,7 +32,7 @@ use braid_kernel::guidance::{build_footer, compute_methodology_score, format_foo
 use braid_kernel::harvest::{harvest_pipeline, SessionContext};
 use braid_kernel::layout::TxFile;
 use braid_kernel::seed::{assemble_seed, ContextSection};
-use braid_kernel::trilateral::check_coherence;
+use braid_kernel::trilateral::check_coherence_fast;
 use ordered_float::OrderedFloat;
 
 use crate::error::BraidError;
@@ -83,12 +83,17 @@ const INVALID_PARAMS: i64 = -32602;
 // ---------------------------------------------------------------------------
 
 /// Return the list of tools in MCP tools/list format.
+///
+/// Tool descriptions follow LLM-native design principles:
+/// - Lead with WHEN to use this tool (activation pattern)
+/// - Show a concrete example (demonstrations > constraints)
+/// - End with what the output looks like (set expectations)
 fn tool_definitions() -> JsonValue {
     json!({
         "tools": [
             {
                 "name": "braid_status",
-                "description": "Show store status: datom count, entity count, schema attributes, frontier.",
+                "description": "Use at session start to orient. Returns: datom count, entity count, transaction count, schema size, agent frontier. Example output: datoms: 2687, entities: 671, transactions: 8",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -97,17 +102,17 @@ fn tool_definitions() -> JsonValue {
             },
             {
                 "name": "braid_query",
-                "description": "Query the store by entity and/or attribute filter. Returns matching datoms.",
+                "description": "Search the knowledge store by entity and/or attribute. Use to find specific facts, check what's known about an entity, or list all values of an attribute. Example: entity=':spec/inv-store-001' returns all datoms about that invariant. Omit both filters to scan all asserted datoms (capped at 100).",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "entity": {
                             "type": "string",
-                            "description": "Entity keyword to filter by (e.g., ':spec/my-entity')."
+                            "description": "Entity keyword, e.g. ':spec/inv-store-001' or ':observation/my-note'"
                         },
                         "attribute": {
                             "type": "string",
-                            "description": "Attribute keyword to filter by (e.g., ':db/doc')."
+                            "description": "Attribute keyword, e.g. ':db/doc', ':spec/namespace', ':observation/confidence'"
                         }
                     },
                     "required": [],
@@ -115,25 +120,25 @@ fn tool_definitions() -> JsonValue {
             },
             {
                 "name": "braid_transact",
-                "description": "Assert a datom (entity, attribute, value) into the store.",
+                "description": "Assert a fact (datom) into the append-only store. Use to record decisions, link entities, or update attributes. The store never deletes — retractions are separate datoms. Example: entity=':adr/use-lanczos', attribute=':db/doc', value='Use Lanczos for spectral analysis on graphs > 200 nodes'.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "entity": {
                             "type": "string",
-                            "description": "Entity keyword (e.g., ':spec/my-entity')."
+                            "description": "Entity keyword (content-addressed: same keyword = same entity)"
                         },
                         "attribute": {
                             "type": "string",
-                            "description": "Attribute keyword (e.g., ':db/doc')."
+                            "description": "Attribute keyword. Common: :db/doc, :db/ident, :spec/namespace, :intent/rationale"
                         },
                         "value": {
                             "type": "string",
-                            "description": "Value to assert (parsed as integer, float, boolean, keyword, or string)."
+                            "description": "Value (auto-parsed: integers, floats, booleans, :keywords, or strings)"
                         },
                         "rationale": {
                             "type": "string",
-                            "description": "Human-readable rationale for this transaction."
+                            "description": "Why this fact is being asserted (becomes transaction provenance)"
                         }
                     },
                     "required": ["entity", "attribute", "value"],
@@ -141,17 +146,17 @@ fn tool_definitions() -> JsonValue {
             },
             {
                 "name": "braid_harvest",
-                "description": "Run the harvest pipeline to detect knowledge gaps and produce candidates.",
+                "description": "End-of-session: extract what you learned into the store. Use after 8+ transactions or when switching tasks. Detects knowledge gaps and produces harvest candidates. Call this before ending any work session.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "task": {
                             "type": "string",
-                            "description": "Description of the task worked on."
+                            "description": "What you were working on (becomes harvest provenance)"
                         },
                         "knowledge": {
                             "type": "object",
-                            "description": "Key-value pairs of session knowledge to harvest.",
+                            "description": "Key discoveries to persist, e.g. {\"performance\": \"Lanczos converges in 50 steps\"}",
                             "additionalProperties": { "type": "string" }
                         }
                     },
@@ -160,17 +165,17 @@ fn tool_definitions() -> JsonValue {
             },
             {
                 "name": "braid_seed",
-                "description": "Generate a seed context for a new session, assembled from the store.",
+                "description": "Start-of-session: load relevant context from the store. Returns orientation, constraints, state, warnings, and a directive — assembled by relevance to your task. Use this instead of manually reading files.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "task": {
                             "type": "string",
-                            "description": "Description of the task to work on."
+                            "description": "What you're about to work on (drives relevance scoring)"
                         },
                         "budget": {
                             "type": "integer",
-                            "description": "Token budget for the seed output (default: 2000)."
+                            "description": "Max tokens for output (default 2000, use 500 for quick orientation)"
                         }
                     },
                     "required": ["task"],
@@ -178,7 +183,7 @@ fn tool_definitions() -> JsonValue {
             },
             {
                 "name": "braid_guidance",
-                "description": "Get methodology guidance: divergence score, coherence quadrant, methodology score, and guidance footer.",
+                "description": "What should I do next? Returns: coherence metrics (Φ, β₁, quadrant), methodology score, and prioritized actions with runnable commands. Use when stuck or between tasks. Example output: phi=210.6, actions: [CONNECT: Divergence with 83 cycles → braid analyze].",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -503,7 +508,7 @@ fn tool_seed(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidEr
 fn tool_guidance(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
     let store = layout.load_store()?;
 
-    let coherence = check_coherence(&store);
+    let coherence = check_coherence_fast(&store);
     let telemetry = braid_kernel::guidance::SessionTelemetry {
         total_turns: 0,
         transact_turns: 0,

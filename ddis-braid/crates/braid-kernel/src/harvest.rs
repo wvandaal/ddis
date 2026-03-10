@@ -564,6 +564,110 @@ pub struct HarvestCommit {
     pub datom_count: usize,
 }
 
+// ---------------------------------------------------------------------------
+// Crystallization Guard (INV-HARVEST-006)
+// ---------------------------------------------------------------------------
+
+/// Default crystallization threshold: candidates must score ≥ 0.7 to commit.
+pub const DEFAULT_CRYSTALLIZATION_THRESHOLD: f64 = 0.7;
+
+/// Compute a stability score for a harvest candidate.
+///
+/// Stability = 0.6 * session_diversity + 0.4 * stated_confidence
+///
+/// Session diversity is based on how many times the same observation
+/// (by content hash) appears across different sessions. This rewards
+/// observations that have been independently confirmed.
+///
+/// - 1 session (first time): diversity = 0.3
+/// - 2 sessions: diversity = 0.7
+/// - 3+ sessions: diversity = 1.0
+///
+/// High-confidence (≥ 0.9) observations are fast-tracked with diversity = 0.8.
+pub fn stability_score(store: &Store, candidate: &HarvestCandidate) -> f64 {
+    let confidence = candidate.confidence;
+
+    // Fast-track: high-confidence observations bypass session diversity
+    if confidence >= 0.9 {
+        return 0.6 * 0.8 + 0.4 * confidence;
+    }
+
+    // Count session diversity via content hash matching
+    let content_hash_attr = Attribute::from_keyword(":exploration/content-hash");
+    let body_attr = Attribute::from_keyword(":exploration/body");
+
+    // Get candidate's body text
+    let body = candidate
+        .assertions
+        .iter()
+        .find(|(a, _)| *a == body_attr)
+        .and_then(|(_, v)| match v {
+            Value::String(s) => Some(s.clone()),
+            _ => None,
+        });
+
+    let session_diversity = if let Some(body_text) = body {
+        // Compute hash of candidate body
+        let hash = blake3::hash(body_text.as_bytes());
+        let hash_bytes = hash.as_bytes().to_vec();
+
+        // Count entities in store with matching content hash
+        let mut matching_sessions: BTreeSet<u64> = BTreeSet::new();
+        for datom in store.datoms() {
+            if datom.attribute == content_hash_attr
+                && datom.op == Op::Assert
+                && matches!(&datom.value, Value::Bytes(b) if *b == hash_bytes)
+            {
+                matching_sessions.insert(datom.tx.wall_time());
+            }
+        }
+
+        match matching_sessions.len() {
+            0 | 1 => 0.3, // First or only occurrence
+            2 => 0.7,     // Confirmed once
+            _ => 1.0,     // Well-established
+        }
+    } else {
+        0.3 // No body text → treat as first occurrence
+    };
+
+    0.6 * session_diversity + 0.4 * confidence
+}
+
+/// Apply the crystallization guard to a harvest result.
+///
+/// Returns a partition: (ready to commit, needs more observation).
+/// Candidates with stability_score ≥ threshold are ready.
+/// Candidates below threshold are returned as "pending" with their scores.
+pub fn crystallization_guard(
+    store: &Store,
+    result: &HarvestResult,
+    threshold: f64,
+) -> CrystallizationResult {
+    let mut ready = Vec::new();
+    let mut pending = Vec::new();
+
+    for candidate in &result.candidates {
+        let score = stability_score(store, candidate);
+        if score >= threshold {
+            ready.push((candidate.clone(), score));
+        } else {
+            pending.push((candidate.clone(), score));
+        }
+    }
+
+    CrystallizationResult { ready, pending }
+}
+
+/// Result of the crystallization guard.
+#[derive(Clone, Debug)]
+pub struct CrystallizationResult {
+    /// Candidates ready to commit (score ≥ threshold).
+    pub ready: Vec<(HarvestCandidate, f64)>,
+    /// Candidates that need more observation (score < threshold).
+    pub pending: Vec<(HarvestCandidate, f64)>,
+}
+
 /// Build a complete harvest commit from a pipeline result.
 ///
 /// Creates:

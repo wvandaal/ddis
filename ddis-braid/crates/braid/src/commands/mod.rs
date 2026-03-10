@@ -215,6 +215,10 @@ Examples:
         /// Datalog expression: [:find ?vars :where [clauses]].
         #[arg(long)]
         datalog: Option<String>,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
     },
 
     /// Show store summary: datom count, entity count, frontier, schema stats.
@@ -222,12 +226,21 @@ Examples:
         /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
         path: PathBuf,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
+
+        /// Full output with frontier details and per-agent breakdown.
+        #[arg(short, long)]
+        verbose: bool,
     },
 
     /// Browse transaction log with optional agent filter.
     #[command(after_long_help = "\
 Examples:
-  braid log -n 5               # last 5 transactions
+  braid log -n 5               # last 5 transactions (terse)
+  braid log -v                  # verbose with rationale/provenance
   braid log -a braid:user      # only this agent's transactions
   braid log --datoms            # show individual datoms")]
     Log {
@@ -246,6 +259,14 @@ Examples:
         /// Include individual datoms per transaction.
         #[arg(long)]
         datoms: bool,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
+
+        /// Full multi-line output per transaction.
+        #[arg(short, long)]
+        verbose: bool,
     },
 
     /// Graph analytics: topology, spectrum, curvature, coherence, actions.
@@ -276,6 +297,10 @@ Examples:
         /// Full 14-algorithm dashboard (verbose).
         #[arg(long)]
         full: bool,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
     },
 
     // ── LIFECYCLE ──────────────────────────────────────────────────────
@@ -283,9 +308,12 @@ Examples:
     ///
     /// Scores knowledge items by novelty, specificity, and relevance.
     /// Use --commit to persist approved candidates as datoms.
+    /// Crystallization guard (INV-HARVEST-006) gates commitment by stability.
+    /// Use --force to bypass the crystallization threshold.
     #[command(after_long_help = "\
-Example:
-  braid harvest -t \"implemented query engine\" -k gap \"missing join optimization\" --commit")]
+Examples:
+  braid harvest -t \"implemented query engine\" -k gap \"missing join optimization\" --commit
+  braid harvest -t \"bugfix\" --commit --force")]
     Harvest {
         /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
@@ -306,6 +334,10 @@ Example:
         /// Persist approved candidates to the store.
         #[arg(long)]
         commit: bool,
+
+        /// Bypass crystallization guard (commit all candidates regardless of stability).
+        #[arg(short, long)]
+        force: bool,
     },
 
     /// Start-of-session: assemble relevant context from the store.
@@ -313,10 +345,12 @@ Example:
     /// Produces a token-budgeted context document with the most relevant
     /// entities, recent transactions, and methodology guidance for the task.
     /// Use --for-human for a narrative briefing instead of structured sections.
+    /// Use --agent-md to also generate dynamic AGENTS.md from store state.
     #[command(after_long_help = "\
 Examples:
   braid seed -t \"fix query engine joins\" -b 3000
-  braid seed -t \"implement harvest\" --for-human")]
+  braid seed -t \"implement harvest\" --for-human
+  braid seed -t \"implement harvest\" --agent-md")]
     Seed {
         /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
@@ -337,12 +371,19 @@ Examples:
         /// Emit a natural-language briefing (< 200 words) instead of structured sections.
         #[arg(long)]
         for_human: bool,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
+
+        /// Also generate dynamic AGENTS.md from store state (ADR-SEED-006).
+        #[arg(long)]
+        agent_md: bool,
     },
 
     /// Show coherence metrics and prioritized next actions.
     ///
-    /// Outputs: divergence (Φ), cycles (β₁), methodology score M(t),
-    /// and a ranked action list with suggested commands.
+    /// Default: action-first terse output. Use --verbose for full metrics.
     Guidance {
         /// Store directory path.
         #[arg(short, long, default_value = ".braid")]
@@ -351,6 +392,14 @@ Examples:
         /// Agent identity.
         #[arg(short, long, default_value = "braid:user")]
         agent: String,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
+
+        /// Full output with all coherence metrics and methodology components.
+        #[arg(short, long)]
+        verbose: bool,
     },
 
     /// Generate dynamic CLAUDE.md/AGENTS.md from store state.
@@ -442,7 +491,11 @@ pub enum McpAction {
 pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
     match cmd {
         Command::Init { path } => init::run(&path),
-        Command::Status { path } => status::run(&path),
+        Command::Status {
+            path,
+            json,
+            verbose,
+        } => status::run(&path, json, verbose),
         Command::Transact {
             path,
             agent,
@@ -461,11 +514,12 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             entity,
             attribute,
             datalog,
+            json,
         } => {
             if let Some(ref dq) = datalog {
-                query::run_datalog(&path, dq)
+                query::run_datalog(&path, dq, json)
             } else {
-                query::run(&path, entity.as_deref(), attribute.as_deref())
+                query::run(&path, entity.as_deref(), attribute.as_deref(), json)
             }
         }
         Command::Harvest {
@@ -474,22 +528,32 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             task,
             knowledge,
             commit,
-        } => harvest::run(&path, &agent, &task, &knowledge, commit),
+            force,
+        } => harvest::run(&path, &agent, &task, &knowledge, commit, force),
         Command::Seed {
             path,
             task,
             budget,
             agent,
             for_human,
-        } => seed::run(&path, &task, budget, &agent, for_human),
-        Command::Guidance { path, agent } => guidance::run(&path, &agent),
+            json,
+            agent_md,
+        } => seed::run(&path, &task, budget, &agent, for_human, json, agent_md),
+        Command::Guidance {
+            path,
+            agent,
+            json,
+            verbose,
+        } => guidance::run(&path, &agent, json, verbose),
         Command::Merge { path, source } => merge::run(&path, &source),
         Command::Log {
             path,
             limit,
             agent,
             datoms,
-        } => log::run(&path, limit, agent.as_deref(), datoms),
+            json,
+            verbose,
+        } => log::run(&path, limit, agent.as_deref(), datoms, json, verbose),
         Command::Generate {
             path,
             task,
@@ -599,8 +663,11 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             force,
             budget,
             full,
+            json,
         } => {
-            if full || force {
+            if json {
+                analyze::run_json(&path)
+            } else if full || force {
                 if force {
                     analyze::run_force(&path)
                 } else {

@@ -127,7 +127,10 @@ pub fn run(args: ObserveArgs<'_>) -> Result<String, BraidError> {
         .unwrap_or(0);
     let tx_id = TxId::new(current_wall + 1, 0, agent);
 
-    // Build datom vector — 7 core assertions + tags + optional cross-ref
+    // Compute BLAKE3 content hash for cross-session dedup (INV-HARVEST-006)
+    let content_hash = blake3::hash(args.text.as_bytes());
+
+    // Build datom vector — 8 core assertions + tags + optional cross-ref
     let mut datoms = vec![
         // Core identity
         Datom::new(
@@ -149,6 +152,14 @@ pub fn run(args: ObserveArgs<'_>) -> Result<String, BraidError> {
             entity,
             Attribute::from_keyword(":exploration/body"),
             Value::String(args.text.to_string()),
+            tx_id,
+            Op::Assert,
+        ),
+        // Content hash for crystallization guard (INV-HARVEST-006)
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":exploration/content-hash"),
+            Value::Bytes(content_hash.as_bytes().to_vec()),
             tx_id,
             Op::Assert,
         ),
@@ -312,8 +323,8 @@ mod tests {
         let entity = EntityId::from_ident(":observation/merge-is-a-structural-bottleneck");
         let datoms = store.entity_datoms(entity);
         assert!(
-            datoms.len() >= 7,
-            "expected at least 7 datoms for observation entity, got {}",
+            datoms.len() >= 8,
+            "expected at least 8 datoms for observation entity (incl. content-hash), got {}",
             datoms.len()
         );
 

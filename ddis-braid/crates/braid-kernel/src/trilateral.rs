@@ -1426,6 +1426,319 @@ mod tests {
     }
 
     // -------------------------------------------------------------------
+    // B.4: Trilateral safety property verification (proptest)
+    // -------------------------------------------------------------------
+
+    mod safety_properties {
+        use super::*;
+        use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, TxId, Value};
+        use crate::store::Store;
+        use proptest::prelude::*;
+
+        /// Strategy that builds a store with ISP-layer datoms (intent, spec, impl).
+        /// Generates 1..=max_entities entities, each with a random subset of layers.
+        fn arb_isp_store(max_entities: usize) -> impl Strategy<Value = Store> {
+            let max_e = if max_entities == 0 { 1 } else { max_entities };
+            proptest::collection::vec(
+                // For each entity: (entity_name_suffix, has_intent, has_spec, has_impl)
+                (1u32..1000, any::<bool>(), any::<bool>(), any::<bool>()),
+                1..=max_e,
+            )
+            .prop_map(|entity_specs| {
+                let mut datoms = Store::genesis().datom_set().clone();
+                let tx = TxId::new(1, 0, AgentId::from_name("test:safety"));
+
+                for (suffix, has_intent, has_spec, has_impl) in &entity_specs {
+                    let e = EntityId::from_ident(&format!(":test/safety-entity-{suffix}"));
+                    if *has_intent {
+                        datoms.insert(Datom::new(
+                            e,
+                            Attribute::from_keyword(":intent/goal"),
+                            Value::String(format!("goal-{suffix}")),
+                            tx,
+                            Op::Assert,
+                        ));
+                    }
+                    if *has_spec {
+                        datoms.insert(Datom::new(
+                            e,
+                            Attribute::from_keyword(":spec/id"),
+                            Value::String(format!("INV-SAFETY-{suffix:03}")),
+                            tx,
+                            Op::Assert,
+                        ));
+                    }
+                    if *has_impl {
+                        datoms.insert(Datom::new(
+                            e,
+                            Attribute::from_keyword(":impl/file"),
+                            Value::String(format!("src/safety_{suffix}.rs")),
+                            tx,
+                            Op::Assert,
+                        ));
+                    }
+                }
+                Store::from_datoms(datoms)
+            })
+        }
+
+        /// Strategy for a pair of ISP stores where the second is a superset of the first.
+        /// The first store has a subset of layers; the second adds more layers to existing entities.
+        fn arb_isp_store_growth() -> impl Strategy<Value = (Store, Store)> {
+            proptest::collection::vec(
+                // (suffix, before_layers: [intent,spec,impl], after_layers: [intent,spec,impl])
+                // after_layers are OR'd with before_layers to guarantee superset
+                (1u32..500, any::<[bool; 3]>(), any::<[bool; 3]>()),
+                1..=5,
+            )
+            .prop_map(|specs| {
+                let tx = TxId::new(1, 0, AgentId::from_name("test:growth"));
+                let mut datoms_before = Store::genesis().datom_set().clone();
+                let mut datoms_after = Store::genesis().datom_set().clone();
+
+                let intent_attr = Attribute::from_keyword(":intent/goal");
+                let spec_attr = Attribute::from_keyword(":spec/id");
+                let impl_attr = Attribute::from_keyword(":impl/file");
+
+                for (suffix, before, after) in &specs {
+                    let e = EntityId::from_ident(&format!(":test/growth-entity-{suffix}"));
+
+                    // Before layers
+                    if before[0] {
+                        let d = Datom::new(
+                            e,
+                            intent_attr.clone(),
+                            Value::String(format!("g-{suffix}")),
+                            tx,
+                            Op::Assert,
+                        );
+                        datoms_before.insert(d.clone());
+                        datoms_after.insert(d);
+                    }
+                    if before[1] {
+                        let d = Datom::new(
+                            e,
+                            spec_attr.clone(),
+                            Value::String(format!("INV-G-{suffix:03}")),
+                            tx,
+                            Op::Assert,
+                        );
+                        datoms_before.insert(d.clone());
+                        datoms_after.insert(d);
+                    }
+                    if before[2] {
+                        let d = Datom::new(
+                            e,
+                            impl_attr.clone(),
+                            Value::String(format!("src/g_{suffix}.rs")),
+                            tx,
+                            Op::Assert,
+                        );
+                        datoms_before.insert(d.clone());
+                        datoms_after.insert(d);
+                    }
+
+                    // After layers: OR with before (superset guarantee)
+                    if after[0] && !before[0] {
+                        datoms_after.insert(Datom::new(
+                            e,
+                            intent_attr.clone(),
+                            Value::String(format!("g-{suffix}")),
+                            tx,
+                            Op::Assert,
+                        ));
+                    }
+                    if after[1] && !before[1] {
+                        datoms_after.insert(Datom::new(
+                            e,
+                            spec_attr.clone(),
+                            Value::String(format!("INV-G-{suffix:03}")),
+                            tx,
+                            Op::Assert,
+                        ));
+                    }
+                    if after[2] && !before[2] {
+                        datoms_after.insert(Datom::new(
+                            e,
+                            impl_attr.clone(),
+                            Value::String(format!("src/g_{suffix}.rs")),
+                            tx,
+                            Op::Assert,
+                        ));
+                    }
+                }
+
+                (
+                    Store::from_datoms(datoms_before),
+                    Store::from_datoms(datoms_after),
+                )
+            })
+        }
+
+        proptest! {
+            /// INV-TRILATERAL-003: Formality gradient is monotonically non-decreasing
+            /// as datoms are added. Adding datoms to an entity's ISP layers cannot
+            /// decrease its formality level.
+            #[test]
+            fn formality_level_monotone_under_growth((before, after) in arb_isp_store_growth()) {
+                // For every entity present in the "before" store, its formality level
+                // in the "after" (superset) store must be >= its level in "before".
+                let entities_before = before.entities();
+                for entity in &entities_before {
+                    let level_before = formality_level(&before, *entity);
+                    let level_after = formality_level(&after, *entity);
+                    prop_assert!(
+                        level_after >= level_before,
+                        "formality_level must not decrease: entity {:?} went from {} to {}",
+                        entity, level_before, level_after
+                    );
+                }
+            }
+
+            /// INV-TRILATERAL-001 (extended): LIVE projection entity counts are
+            /// monotonically non-decreasing as the store grows.
+            #[test]
+            fn live_projections_entity_count_monotone_under_growth((before, after) in arb_isp_store_growth()) {
+                let (i_before, s_before, p_before) = live_projections(&before);
+                let (i_after, s_after, p_after) = live_projections(&after);
+
+                prop_assert!(
+                    i_after.entities.len() >= i_before.entities.len(),
+                    "intent entity count must not shrink: {} < {}",
+                    i_after.entities.len(), i_before.entities.len()
+                );
+                prop_assert!(
+                    s_after.entities.len() >= s_before.entities.len(),
+                    "spec entity count must not shrink: {} < {}",
+                    s_after.entities.len(), s_before.entities.len()
+                );
+                prop_assert!(
+                    p_after.entities.len() >= p_before.entities.len(),
+                    "impl entity count must not shrink: {} < {}",
+                    p_after.entities.len(), p_before.entities.len()
+                );
+            }
+
+            /// INV-TRILATERAL-001 (datom counts): LIVE projection datom counts are
+            /// monotonically non-decreasing as the store grows.
+            #[test]
+            fn live_projections_datom_count_monotone_under_growth((before, after) in arb_isp_store_growth()) {
+                let (i_before, s_before, p_before) = live_projections(&before);
+                let (i_after, s_after, p_after) = live_projections(&after);
+
+                prop_assert!(
+                    i_after.datom_count >= i_before.datom_count,
+                    "intent datom count must not shrink: {} < {}",
+                    i_after.datom_count, i_before.datom_count
+                );
+                prop_assert!(
+                    s_after.datom_count >= s_before.datom_count,
+                    "spec datom count must not shrink: {} < {}",
+                    s_after.datom_count, s_before.datom_count
+                );
+                prop_assert!(
+                    p_after.datom_count >= p_before.datom_count,
+                    "impl datom count must not shrink: {} < {}",
+                    p_after.datom_count, p_before.datom_count
+                );
+            }
+
+            /// INV-TRILATERAL-007 (implied): isp_check is deterministic.
+            /// Running isp_check twice on the same store and entity must produce
+            /// identical results.
+            #[test]
+            fn isp_check_deterministic(store in arb_isp_store(5)) {
+                let entities = store.entities();
+                for entity in &entities {
+                    let result_a = isp_check(&store, *entity);
+                    let result_b = isp_check(&store, *entity);
+                    prop_assert_eq!(
+                        result_a, result_b,
+                        "isp_check must be deterministic for entity {:?}", entity
+                    );
+                }
+            }
+
+            /// check_coherence_fast produces consistent, valid results:
+            /// phi >= 0, beta_1 >= 0 (trivially true for usize), and quadrant
+            /// classification is consistent with (phi, beta_1) values.
+            #[test]
+            fn check_coherence_fast_consistent(store in arb_isp_store(5)) {
+                let report = check_coherence_fast(&store);
+
+                // Phi must be non-negative
+                prop_assert!(
+                    report.phi >= 0.0,
+                    "phi must be non-negative, got {}", report.phi
+                );
+
+                // Quadrant must be consistent with (phi, beta_1)
+                let expected_quadrant = match (report.phi > 0.0, report.beta_1 > 0) {
+                    (false, false) => CoherenceQuadrant::Coherent,
+                    (true, false) => CoherenceQuadrant::GapsOnly,
+                    (false, true) => CoherenceQuadrant::CyclesOnly,
+                    (true, true) => CoherenceQuadrant::GapsAndCycles,
+                };
+                prop_assert_eq!(
+                    report.quadrant, expected_quadrant,
+                    "quadrant {:?} inconsistent with phi={}, beta_1={}",
+                    report.quadrant, report.phi, report.beta_1
+                );
+
+                // Live counts must be non-negative (trivially true for usize,
+                // but verifies consistency with live_projections)
+                let (i, s, p) = live_projections(&store);
+                prop_assert_eq!(
+                    report.live_intent, i.datom_count,
+                    "live_intent inconsistent: report={}, projection={}",
+                    report.live_intent, i.datom_count
+                );
+                prop_assert_eq!(
+                    report.live_spec, s.datom_count,
+                    "live_spec inconsistent: report={}, projection={}",
+                    report.live_spec, s.datom_count
+                );
+                prop_assert_eq!(
+                    report.live_impl, p.datom_count,
+                    "live_impl inconsistent: report={}, projection={}",
+                    report.live_impl, p.datom_count
+                );
+            }
+
+            /// check_coherence_fast is deterministic: same store always produces
+            /// the same report.
+            #[test]
+            fn check_coherence_fast_deterministic(store in arb_isp_store(4)) {
+                let report_a = check_coherence_fast(&store);
+                let report_b = check_coherence_fast(&store);
+
+                prop_assert!(
+                    (report_a.phi - report_b.phi).abs() < f64::EPSILON,
+                    "phi not deterministic: {} vs {}", report_a.phi, report_b.phi
+                );
+                prop_assert_eq!(report_a.beta_1, report_b.beta_1);
+                prop_assert_eq!(report_a.quadrant, report_b.quadrant);
+                prop_assert_eq!(report_a.live_intent, report_b.live_intent);
+                prop_assert_eq!(report_a.live_spec, report_b.live_spec);
+                prop_assert_eq!(report_a.live_impl, report_b.live_impl);
+                prop_assert_eq!(report_a.isp_bypasses, report_b.isp_bypasses);
+            }
+
+            /// Formality levels are bounded [0, 4].
+            #[test]
+            fn formality_level_bounded(store in arb_isp_store(5)) {
+                for entity in &store.entities() {
+                    let level = formality_level(&store, *entity);
+                    prop_assert!(
+                        level <= 4,
+                        "formality_level must be <= 4, got {} for {:?}", level, entity
+                    );
+                }
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------
     // Von Neumann entropy (INV-COHERENCE-001)
     // -------------------------------------------------------------------
 

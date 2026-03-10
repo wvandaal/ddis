@@ -61,6 +61,7 @@ pub fn run(
     path: &Path,
     entity_filter: Option<&str>,
     attribute_filter: Option<&str>,
+    json: bool,
 ) -> Result<String, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
@@ -68,8 +69,7 @@ pub fn run(
     let entity_id = entity_filter.map(EntityId::from_ident);
     let attr = attribute_filter.map(Attribute::from_keyword);
 
-    let mut out = String::new();
-    let mut count = 0;
+    let mut results = Vec::new();
 
     for datom in store.datoms() {
         if datom.op != Op::Assert {
@@ -88,26 +88,93 @@ pub fn run(
 
         let entity_label = resolve_entity_label(&store, datom.entity);
         let value_str = format_value(&store, &datom.value);
-        out.push_str(&format!(
-            "[{} {} {}]\n",
+        results.push((
             entity_label,
-            datom.attribute.as_str(),
+            datom.attribute.as_str().to_string(),
             value_str,
         ));
-        count += 1;
     }
 
-    out.push_str(&format!("\n{count} datom(s)\n"));
+    if json {
+        let datoms_json: Vec<serde_json::Value> = results
+            .iter()
+            .map(|(e, a, v)| {
+                serde_json::json!({
+                    "entity": e,
+                    "attribute": a,
+                    "value": v,
+                })
+            })
+            .collect();
+        let result = serde_json::json!({
+            "count": results.len(),
+            "datoms": datoms_json,
+        });
+        return Ok(serde_json::to_string_pretty(&result).unwrap() + "\n");
+    }
+
+    let mut out = String::new();
+    for (entity_label, attr_str, value_str) in &results {
+        out.push_str(&format!("[{} {} {}]\n", entity_label, attr_str, value_str,));
+    }
+
+    out.push_str(&format!("\n{} datom(s)\n", results.len()));
     Ok(out)
 }
 
 /// Execute a Datalog query against the store and format results.
-pub fn run_datalog(path: &Path, datalog_src: &str) -> Result<String, BraidError> {
+pub fn run_datalog(path: &Path, datalog_src: &str, json: bool) -> Result<String, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
     let query = parse_datalog(datalog_src)?;
     let result = evaluate(&store, &query);
+
+    if json {
+        let json_result = match &result {
+            QueryResult::Rel(rows) => {
+                let columns: Vec<String> = if let FindSpec::Rel(vars) = &query.find {
+                    vars.clone()
+                } else {
+                    vec![]
+                };
+                let json_rows: Vec<serde_json::Value> = rows
+                    .iter()
+                    .map(|row| {
+                        let formatted: Vec<String> =
+                            row.iter().map(|v| format_value(&store, v)).collect();
+                        if columns.len() == formatted.len() {
+                            let map: serde_json::Map<String, serde_json::Value> = columns
+                                .iter()
+                                .zip(formatted.iter())
+                                .map(|(k, v)| (k.clone(), serde_json::Value::String(v.clone())))
+                                .collect();
+                            serde_json::Value::Object(map)
+                        } else {
+                            serde_json::json!(formatted)
+                        }
+                    })
+                    .collect();
+                serde_json::json!({
+                    "type": "rel",
+                    "columns": columns,
+                    "count": rows.len(),
+                    "rows": json_rows,
+                })
+            }
+            QueryResult::Scalar(val) => match val {
+                Some(v) => serde_json::json!({
+                    "type": "scalar",
+                    "value": format_value(&store, v),
+                }),
+                None => serde_json::json!({
+                    "type": "scalar",
+                    "value": null,
+                }),
+            },
+        };
+        return Ok(serde_json::to_string_pretty(&json_result).unwrap() + "\n");
+    }
 
     let mut out = String::new();
     match result {

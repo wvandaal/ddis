@@ -1,11 +1,13 @@
 //! `braid seed` — Assemble a seed context for a new session.
 //!
-//! Two modes:
+//! Three modes:
 //! - **Structured** (default): sections with State, Constraints, Orientation, etc.
 //! - **Human** (`--for-human`): narrative briefing < 200 words with actions.
+//! - **Agent MD** (`--agent-md`): generate dynamic AGENTS.md from store state.
 
 use std::path::Path;
 
+use braid_kernel::agent_md::{generate_agent_md, AgentMdConfig};
 use braid_kernel::datom::AgentId;
 use braid_kernel::guidance::{derive_actions, format_actions};
 use braid_kernel::seed::{assemble_seed, ContextSection};
@@ -20,12 +22,18 @@ pub fn run(
     budget: usize,
     agent_name: &str,
     for_human: bool,
+    json: bool,
+    agent_md: bool,
 ) -> Result<String, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
     let agent = AgentId::from_name(agent_name);
     let seed = assemble_seed(&store, task, budget, agent);
+
+    if json {
+        return format_json(&seed, budget);
+    }
 
     if for_human {
         return format_human_briefing(&store, &seed, task);
@@ -88,6 +96,28 @@ pub fn run(
                 out.push_str(&format!("## Directive\n{text}\n"));
             }
         }
+    }
+
+    // Agent MD generation: produce dynamic AGENTS.md alongside seed
+    if agent_md {
+        let config = AgentMdConfig {
+            task: task.to_string(),
+            agent,
+            budget,
+            ..AgentMdConfig::default()
+        };
+        let generated = generate_agent_md(&store, &config);
+        let rendered = generated.render();
+        let output_path = path.join(&config.output_filename);
+        std::fs::write(&output_path, &rendered)?;
+
+        out.push_str(&format!(
+            "\nagent-md: {} ({} sections, ~{} tokens) → {}\n",
+            config.output_filename,
+            generated.sections.len(),
+            generated.total_tokens,
+            output_path.display(),
+        ));
     }
 
     Ok(out)
@@ -154,4 +184,76 @@ fn format_human_briefing(
     }
 
     Ok(out)
+}
+
+/// Format seed output as JSON.
+fn format_json(seed: &braid_kernel::SeedOutput, budget: usize) -> Result<String, BraidError> {
+    let mut sections = Vec::new();
+
+    for section in &seed.context.sections {
+        match section {
+            ContextSection::Orientation(text) => {
+                sections.push(serde_json::json!({
+                    "type": "orientation",
+                    "text": text,
+                }));
+            }
+            ContextSection::Constraints(refs) => {
+                let constraints: Vec<serde_json::Value> = refs
+                    .iter()
+                    .map(|r| {
+                        serde_json::json!({
+                            "id": r.id,
+                            "summary": r.summary,
+                            "satisfied": r.satisfied,
+                        })
+                    })
+                    .collect();
+                sections.push(serde_json::json!({
+                    "type": "constraints",
+                    "items": constraints,
+                }));
+            }
+            ContextSection::State(entries) => {
+                let items: Vec<serde_json::Value> = entries
+                    .iter()
+                    .map(|e| {
+                        serde_json::json!({
+                            "content": e.content,
+                            "tokens": e.tokens,
+                            "projection": format!("{:?}", e.projection),
+                        })
+                    })
+                    .collect();
+                sections.push(serde_json::json!({
+                    "type": "state",
+                    "items": items,
+                }));
+            }
+            ContextSection::Warnings(warnings) => {
+                sections.push(serde_json::json!({
+                    "type": "warnings",
+                    "items": warnings,
+                }));
+            }
+            ContextSection::Directive(text) => {
+                sections.push(serde_json::json!({
+                    "type": "directive",
+                    "text": text,
+                }));
+            }
+        }
+    }
+
+    let result = serde_json::json!({
+        "task": seed.task,
+        "entities_discovered": seed.entities_discovered,
+        "tokens_used": seed.context.total_tokens,
+        "budget": budget,
+        "budget_remaining": seed.context.budget_remaining,
+        "projection": format!("{:?}", seed.context.projection_pattern),
+        "sections": sections,
+    });
+
+    Ok(serde_json::to_string_pretty(&result).unwrap() + "\n")
 }

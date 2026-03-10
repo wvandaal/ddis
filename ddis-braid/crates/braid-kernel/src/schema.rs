@@ -1139,7 +1139,7 @@ pub fn domain_schema_datoms(tx: TxId) -> Vec<Datom> {
 // ---------------------------------------------------------------------------
 
 /// Number of Layer 3 exploration/discovery attributes.
-pub const LAYER_3_COUNT: usize = 20;
+pub const LAYER_3_COUNT: usize = 21;
 
 /// The 20 Layer 3 (Discovery/Exploration) attributes.
 ///
@@ -1208,6 +1208,12 @@ pub fn layer_3_attributes() -> Vec<AttributeSpec> {
             ValueType::Keyword,
             Cardinality::Many,
             "Taxonomy tags for discovery and filtering",
+        ),
+        attr(
+            ":exploration/content-hash",
+            ValueType::Bytes,
+            Cardinality::One,
+            "BLAKE3 hash of :exploration/body for cross-session dedup (INV-HARVEST-006)",
         ),
         // =================================================================
         // Promotion Lifecycle Attributes (7) — store-first pipeline
@@ -2005,6 +2011,7 @@ mod tests {
             (":exploration/body", ValueType::String),
             (":exploration/title", ValueType::String),
             (":exploration/tags", ValueType::Keyword),
+            (":exploration/content-hash", ValueType::Bytes),
             (":promotion/status", ValueType::Keyword),
             (":promotion/target-element", ValueType::String),
             (":promotion/target-namespace", ValueType::Keyword),

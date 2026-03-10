@@ -35,14 +35,16 @@ pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, V
 pub use error::KernelError;
 pub use guidance::{
     build_footer, compute_methodology_score, compute_routing, default_derivation_rules,
-    derive_actions, derive_tasks, format_actions, format_footer, ActionCategory, DerivationRule,
-    DerivedTask, GuidanceAction, GuidanceFooter, MethodologyComponents, MethodologyScore,
-    RoutingMetrics, SessionTelemetry, TaskNode, TaskRouting, Trend,
+    derive_actions, derive_tasks, format_actions, format_footer, observation_staleness,
+    ActionCategory, DerivationRule, DerivedTask, GuidanceAction, GuidanceFooter,
+    MethodologyComponents, MethodologyScore, RoutingMetrics, SessionTelemetry, TaskNode,
+    TaskRouting, Trend,
 };
 pub use harvest::{
-    build_harvest_commit, calibrate_harvest, candidate_to_datoms, harvest_pipeline,
-    optimal_threshold, CalibrationResult, CandidateStatus, HarvestCandidate, HarvestCategory,
-    HarvestCommit, HarvestQuality, HarvestResult, SessionContext,
+    build_harvest_commit, calibrate_harvest, candidate_to_datoms, crystallization_guard,
+    harvest_pipeline, optimal_threshold, stability_score, CalibrationResult, CandidateStatus,
+    CrystallizationResult, HarvestCandidate, HarvestCategory, HarvestCommit, HarvestQuality,
+    HarvestResult, SessionContext, DEFAULT_CRYSTALLIZATION_THRESHOLD,
 };
 pub use layout::{
     collect_datoms, deserialize_tx, serialize_tx, tx_content_hash, verify_content_hash,

@@ -20,9 +20,14 @@
 
 use std::collections::BTreeMap;
 
-use crate::datom::{EntityId, Value};
+use crate::datom::{Attribute, EntityId, Value};
 use crate::store::Store;
 use crate::trilateral::{check_coherence_fast, CoherenceQuadrant};
+
+/// Decay rate per wall-time step for observation staleness.
+/// After 15 steps, 0.95^15 ≈ 0.4633, so an observation at confidence 0.8
+/// would have staleness = 1 - 0.8 * 0.4633 ≈ 0.63.
+const STALENESS_DECAY_RATE: f64 = 0.95;
 
 // ---------------------------------------------------------------------------
 // M(t) — Methodology Adherence Score (INV-GUIDANCE-008)
@@ -559,7 +564,7 @@ impl std::fmt::Display for ActionCategory {
 /// A concrete, prioritized guidance action with an optional suggested command.
 ///
 /// Each action tells the agent exactly what to do next and why.
-/// Actions are derived from store state analysis (R11–R16).
+/// Actions are derived from store state analysis (R11–R17).
 #[derive(Clone, Debug)]
 pub struct GuidanceAction {
     /// Priority (1 = highest, 5 = lowest).
@@ -586,6 +591,7 @@ pub struct GuidanceAction {
 /// - R14: Φ > 0 (intent↔spec or spec↔impl gaps) → Connect
 /// - R15: ISP specification bypasses → Fix
 /// - R16: High entropy (structural disorder) → Investigate
+/// - R17: Observation staleness > 0.8 → Investigate (ADR-HARVEST-005)
 pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
     let mut actions = Vec::new();
     let datom_count = store.len();
@@ -723,6 +729,24 @@ pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
         });
     }
 
+    // R17: Stale observations → Investigate
+    let stale_observations: Vec<(EntityId, f64)> = observation_staleness(store)
+        .into_iter()
+        .filter(|&(_, s)| s > 0.8)
+        .collect();
+    if !stale_observations.is_empty() {
+        actions.push(GuidanceAction {
+            priority: 3,
+            category: ActionCategory::Investigate,
+            summary: format!(
+                "{} observation(s) have staleness > 0.8. Review or re-observe.",
+                stale_observations.len()
+            ),
+            command: Some("braid query --datalog '[:find ?e ?body :where [?e :exploration/body ?body] [?e :exploration/source \"braid:observe\"]]'".into()),
+            relates_to: vec!["ADR-HARVEST-005".into()],
+        });
+    }
+
     // Sort by priority (ascending = highest priority first)
     actions.sort_by_key(|a| a.priority);
     actions
@@ -732,7 +756,7 @@ pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
 ///
 /// Uses tx-count proxy: counts tx files whose wall_time exceeds the most
 /// recent transaction with provenance "braid:harvest" or "braid:observe".
-fn count_txns_since_last_harvest(store: &Store) -> usize {
+pub fn count_txns_since_last_harvest(store: &Store) -> usize {
     // Find the latest harvest/observe transaction wall time
     let mut latest_harvest_wall: u64 = 0;
     for datom in store.datoms() {
@@ -759,6 +783,74 @@ fn count_txns_since_last_harvest(store: &Store) -> usize {
             .filter(|tx| tx.wall_time() > latest_harvest_wall)
             .count()
     }
+}
+
+/// Compute staleness for observations based on transaction distance.
+///
+/// Staleness = 1 - confidence * decay^(tx_distance)
+/// where tx_distance = current_max_wall_time - observation_wall_time
+/// and decay = 0.95 per transaction step.
+///
+/// Returns a vec of (entity_id, staleness) pairs for all observation entities
+/// found in the store. Staleness is in [0.0, 1.0] where 1.0 means fully stale.
+///
+/// Traces to: ADR-HARVEST-005 (observation staleness model).
+pub fn observation_staleness(store: &Store) -> Vec<(EntityId, f64)> {
+    // Find the max wall_time across the entire frontier
+    let max_wall: u64 = store
+        .frontier()
+        .values()
+        .map(|tx| tx.wall_time())
+        .max()
+        .unwrap_or(0);
+
+    // Collect observation entities: those with :exploration/confidence
+    // Build a map of entity -> (confidence, wall_time)
+    let conf_attr = Attribute::from_keyword(":exploration/confidence");
+    let source_attr = Attribute::from_keyword(":exploration/source");
+
+    let mut entity_confidence: BTreeMap<EntityId, f64> = BTreeMap::new();
+    let mut entity_wall_time: BTreeMap<EntityId, u64> = BTreeMap::new();
+    let mut observation_entities: std::collections::BTreeSet<EntityId> =
+        std::collections::BTreeSet::new();
+
+    for datom in store.datoms() {
+        if datom.attribute == source_attr {
+            if let Value::String(ref s) = datom.value {
+                if s == "braid:observe" || s == "braid:harvest" {
+                    observation_entities.insert(datom.entity);
+                }
+            }
+        }
+        if datom.attribute == conf_attr {
+            if let Value::Double(f) = datom.value {
+                entity_confidence.insert(datom.entity, f.into_inner());
+            }
+        }
+        // Track the wall_time of the tx that asserted each entity's datoms.
+        // Use the max wall_time across all datoms for that entity.
+        let wall = datom.tx.wall_time();
+        entity_wall_time
+            .entry(datom.entity)
+            .and_modify(|w| {
+                if wall > *w {
+                    *w = wall;
+                }
+            })
+            .or_insert(wall);
+    }
+
+    let mut results = Vec::new();
+    for entity in &observation_entities {
+        let confidence = entity_confidence.get(entity).copied().unwrap_or(0.5);
+        let obs_wall = entity_wall_time.get(entity).copied().unwrap_or(0);
+        let distance = max_wall.saturating_sub(obs_wall);
+        let decay = STALENESS_DECAY_RATE.powi(distance as i32);
+        let staleness = (1.0 - confidence * decay).clamp(0.0, 1.0);
+        results.push((*entity, staleness));
+    }
+
+    results
 }
 
 /// Format guidance actions as a compact, LLM-parseable string.
@@ -1399,5 +1491,228 @@ mod tests {
             count > 0,
             "genesis store with no harvests should report all txns"
         );
+    }
+
+    // -------------------------------------------------------------------
+    // Observation Staleness (B.2 — ADR-HARVEST-005)
+    // -------------------------------------------------------------------
+
+    /// Helper: build an observation entity as a set of datoms.
+    fn make_observation_datoms(
+        ident: &str,
+        body: &str,
+        confidence: f64,
+        wall_time: u64,
+    ) -> Vec<crate::datom::Datom> {
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        use ordered_float::OrderedFloat;
+
+        let entity = EntityId::from_ident(ident);
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(wall_time, 0, agent);
+
+        vec![
+            Datom::new(
+                entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(ident.to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                entity,
+                Attribute::from_keyword(":exploration/body"),
+                Value::String(body.to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                entity,
+                Attribute::from_keyword(":exploration/confidence"),
+                Value::Double(OrderedFloat(confidence)),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                entity,
+                Attribute::from_keyword(":exploration/source"),
+                Value::String("braid:observe".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ]
+    }
+
+    #[test]
+    fn staleness_empty_store() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let result = observation_staleness(&store);
+        assert!(result.is_empty(), "empty store has no observations");
+    }
+
+    #[test]
+    fn staleness_zero_for_fresh_observation() {
+        // Observation at wall_time=100, max_wall_time=100 → distance=0 → staleness = 1 - conf * 1.0
+        let mut datoms = std::collections::BTreeSet::new();
+        for d in make_observation_datoms(":observation/fresh", "fresh obs", 0.9, 100) {
+            datoms.insert(d);
+        }
+        let store = Store::from_datoms(datoms);
+        let result = observation_staleness(&store);
+        assert_eq!(result.len(), 1);
+        let (_, staleness) = result[0];
+        // staleness = 1 - 0.9 * 0.95^0 = 1 - 0.9 = 0.1
+        assert!(
+            (staleness - 0.1).abs() < 1e-10,
+            "fresh observation staleness should be 0.1, got {staleness}"
+        );
+    }
+
+    #[test]
+    fn staleness_increases_with_distance() {
+        // Two observations: one at wall_time=100, one at wall_time=80.
+        // Add a later tx at wall_time=115 to create distance.
+        let mut datoms = std::collections::BTreeSet::new();
+        for d in make_observation_datoms(":observation/recent", "recent", 0.8, 100) {
+            datoms.insert(d);
+        }
+        for d in make_observation_datoms(":observation/older", "older", 0.8, 80) {
+            datoms.insert(d);
+        }
+        // Add a non-observation datom at wall_time=115 to advance the frontier
+        {
+            use crate::datom::{AgentId, Datom, Op, TxId, Value};
+            let agent = AgentId::from_name("test");
+            let tx = TxId::new(115, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(":other/entity"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("advance frontier".to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+        let store = Store::from_datoms(datoms);
+        let result = observation_staleness(&store);
+        assert_eq!(result.len(), 2);
+
+        let staleness_map: BTreeMap<EntityId, f64> = result.into_iter().collect();
+        let s_recent = staleness_map[&EntityId::from_ident(":observation/recent")];
+        let s_older = staleness_map[&EntityId::from_ident(":observation/older")];
+
+        // recent: distance=15, staleness = 1 - 0.8 * 0.95^15
+        let expected_recent = 1.0 - 0.8 * STALENESS_DECAY_RATE.powi(15);
+        assert!(
+            (s_recent - expected_recent).abs() < 1e-10,
+            "recent staleness: expected {expected_recent}, got {s_recent}"
+        );
+
+        // older: distance=35, staleness = 1 - 0.8 * 0.95^35
+        let expected_older = 1.0 - 0.8 * STALENESS_DECAY_RATE.powi(35);
+        assert!(
+            (s_older - expected_older).abs() < 1e-10,
+            "older staleness: expected {expected_older}, got {s_older}"
+        );
+
+        assert!(
+            s_older > s_recent,
+            "older observation should be more stale: {s_older} > {s_recent}"
+        );
+    }
+
+    #[test]
+    fn staleness_formula_known_values() {
+        // Verify the specific example from the task description:
+        // After 15 transactions, confidence 0.8: staleness = 1 - 0.8 * 0.95^15 ≈ 0.63
+        let decay_15 = STALENESS_DECAY_RATE.powi(15);
+        let staleness = 1.0 - 0.8 * decay_15;
+        assert!(
+            (staleness - 0.6294).abs() < 0.001,
+            "staleness at distance=15, conf=0.8 should be ~0.63, got {staleness}"
+        );
+    }
+
+    #[test]
+    fn staleness_confidence_one_at_zero_distance() {
+        // confidence=1.0, distance=0 → staleness = 1 - 1.0 * 1.0 = 0.0
+        let mut datoms = std::collections::BTreeSet::new();
+        for d in make_observation_datoms(":observation/perfect", "perfect", 1.0, 50) {
+            datoms.insert(d);
+        }
+        let store = Store::from_datoms(datoms);
+        let result = observation_staleness(&store);
+        assert_eq!(result.len(), 1);
+        let (_, staleness) = result[0];
+        assert!(
+            staleness.abs() < 1e-10,
+            "conf=1.0 at distance=0 should have staleness=0.0, got {staleness}"
+        );
+    }
+
+    #[test]
+    fn staleness_confidence_zero_always_stale() {
+        // confidence=0.0 → staleness = 1 - 0 * anything = 1.0
+        let mut datoms = std::collections::BTreeSet::new();
+        for d in make_observation_datoms(":observation/uncertain", "uncertain", 0.0, 50) {
+            datoms.insert(d);
+        }
+        let store = Store::from_datoms(datoms);
+        let result = observation_staleness(&store);
+        assert_eq!(result.len(), 1);
+        let (_, staleness) = result[0];
+        assert!(
+            (staleness - 1.0).abs() < 1e-10,
+            "conf=0.0 should always be staleness=1.0, got {staleness}"
+        );
+    }
+
+    #[test]
+    fn r17_stale_observations_produce_investigate_action() {
+        // Create observations that are very stale (high distance, low confidence)
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Observation at wall_time=10, confidence=0.3
+        for d in make_observation_datoms(":observation/stale", "very stale", 0.3, 10) {
+            datoms.insert(d);
+        }
+
+        // Advance frontier far ahead to make it stale
+        {
+            use crate::datom::{AgentId, Datom, Op, TxId, Value};
+            let agent = AgentId::from_name("test");
+            let tx = TxId::new(200, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(":other/entity"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("future tx".to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+
+        // Verify the observation is stale enough
+        let stale = observation_staleness(&store);
+        assert_eq!(stale.len(), 1);
+        assert!(
+            stale[0].1 > 0.8,
+            "observation should be stale (>0.8), got {}",
+            stale[0].1
+        );
+
+        // Verify R17 fires
+        let actions = derive_actions(&store);
+        let r17 = actions
+            .iter()
+            .find(|a| a.relates_to.contains(&"ADR-HARVEST-005".to_string()));
+        assert!(
+            r17.is_some(),
+            "R17 should fire for stale observations. Actions: {:?}",
+            actions.iter().map(|a| &a.summary).collect::<Vec<_>>()
+        );
+        let r17 = r17.unwrap();
+        assert_eq!(r17.category, ActionCategory::Investigate);
+        assert!(r17.summary.contains("staleness > 0.8"));
     }
 }

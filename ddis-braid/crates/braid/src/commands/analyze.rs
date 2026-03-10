@@ -569,6 +569,141 @@ pub fn run_force(path: &Path) -> Result<String, BraidError> {
     Ok(output)
 }
 
+/// Run with JSON output — structured analytics for machine consumption.
+pub fn run_json(path: &Path) -> Result<String, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    let graph = build_entity_graph(&store);
+    let n = graph.node_count();
+    let e = graph.edge_count();
+
+    // Topology
+    let components = scc(&graph);
+    let beta_1 = first_betti_number(&graph);
+    let d = density(&graph);
+
+    // Coherence
+    let (phi, div_components) = compute_phi_default(&store);
+
+    let quadrant = match (phi > 0.0, beta_1 > 0) {
+        (false, false) => "Coherent",
+        (true, false) => "GapsOnly",
+        (false, true) => "CyclesOnly",
+        (true, true) => "GapsAndCycles",
+    };
+
+    // Spectral (if enough nodes)
+    let mut spectral = serde_json::json!(null);
+    if n >= 2 {
+        let sd = spectral_decomposition_adaptive(&graph);
+        if let Some(ref sd) = sd {
+            let fiedler_result = fiedler_from_spectrum(sd);
+            let is_partial = sd.eigenvalues.len() < n;
+            let ki = if is_partial {
+                kirchhoff_from_partial_spectrum(&sd.eigenvalues, n)
+            } else {
+                kirchhoff_from_spectrum(sd)
+            };
+            spectral = serde_json::json!({
+                "algebraic_connectivity": fiedler_result.algebraic_connectivity,
+                "kirchhoff_index": ki,
+                "normalized_resistance": ki / (n * (n - 1)) as f64,
+                "partial_spectrum": is_partial,
+            });
+        }
+        if n <= 2000 {
+            let entropy = von_neumann_entropy(&store);
+            spectral["von_neumann_entropy"] = serde_json::json!({
+                "entropy": entropy.entropy,
+                "max_entropy": entropy.max_entropy,
+                "normalized": entropy.normalized,
+                "effective_rank": entropy.effective_rank,
+            });
+        }
+    }
+
+    // Centrality
+    let mut centrality = serde_json::json!(null);
+    if n >= 2 {
+        let pr = pagerank(&graph, 20);
+        let bc = betweenness_centrality(&graph);
+
+        let mut pr_sorted: Vec<_> = pr.iter().collect();
+        pr_sorted.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap_or(std::cmp::Ordering::Equal));
+        let top_pagerank: Vec<serde_json::Value> = pr_sorted
+            .iter()
+            .take(5)
+            .map(|(name, score)| serde_json::json!({"entity": name, "score": score}))
+            .collect();
+
+        let mut bc_sorted: Vec<_> = bc.iter().collect();
+        bc_sorted.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap_or(std::cmp::Ordering::Equal));
+        let top_betweenness: Vec<serde_json::Value> = bc_sorted
+            .iter()
+            .take(5)
+            .map(|(name, score)| serde_json::json!({"entity": name, "score": score}))
+            .collect();
+
+        centrality = serde_json::json!({
+            "pagerank_top5": top_pagerank,
+            "betweenness_top5": top_betweenness,
+        });
+    }
+
+    // Curvature
+    let mut curvature = serde_json::json!(null);
+    if n >= 2 && e > 0 {
+        let curvatures = ricci_curvature_adaptive(&graph);
+        let summary = ricci_summary(&curvatures);
+        curvature = serde_json::json!({
+            "mean": summary.mean_curvature,
+            "min": summary.min_curvature,
+            "max": summary.max_curvature,
+            "positive_edges": summary.positive_edges,
+            "negative_edges": summary.negative_edges,
+            "bottleneck_edge": summary.bottleneck_edge,
+            "tightest_edge": summary.tightest_edge,
+        });
+    }
+
+    // Namespace distribution
+    let mut ns_counts: BTreeMap<String, usize> = BTreeMap::new();
+    for datom in store.datoms() {
+        if datom.op == Op::Assert && datom.attribute.as_str() == ":spec/namespace" {
+            if let Value::Keyword(ns) = &datom.value {
+                *ns_counts.entry(ns.clone()).or_default() += 1;
+            }
+        }
+    }
+
+    let result = serde_json::json!({
+        "store": path.display().to_string(),
+        "datom_count": store.len(),
+        "entity_count": store.entity_count(),
+        "topology": {
+            "nodes": n,
+            "edges": e,
+            "density": d,
+            "scc_count": components.len(),
+            "largest_scc": components.iter().max_by_key(|c| c.len()).map(|c| c.len()).unwrap_or(0),
+            "beta_1": beta_1,
+        },
+        "coherence": {
+            "phi": phi,
+            "d_is": div_components.d_is,
+            "d_sp": div_components.d_sp,
+            "quadrant": quadrant,
+        },
+        "spectral": spectral,
+        "centrality": centrality,
+        "curvature": curvature,
+        "namespaces": ns_counts,
+    });
+
+    Ok(serde_json::to_string_pretty(&result).unwrap() + "\n")
+}
+
 /// Run with a token budget — emit sections in priority order until exhausted.
 ///
 /// Section priorities (highest first):
