@@ -11,7 +11,7 @@ they expect, and how they behave during conflict resolution. Schema evolution is
 transaction, not a migration.
 
 **Traces to**: SEED.md §4, C3
-**ADRS.md sources**: FD-002, FD-008, SR-008, SR-009, SR-010, PO-012
+**docs/design/ADRS.md sources**: FD-002, FD-008, SR-008, SR-009, SR-010, PO-012
 
 ---
 
@@ -95,7 +95,7 @@ These defaults are overridable via subsequent transactions (schema-as-data, C3).
 ```
 
 These five weights sum to 1.0 and correspond to the five independently measurable
-components of the methodology score. See `guide/08-guidance.md` and
+components of the methodology score. See `docs/guide/08-guidance.md` and
 `spec/12-guidance.md` (INV-GUIDANCE-008) for the full M(t) computation.
 
 #### The 17 Axiomatic Attributes

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["braid-kernel", "braid"]
+members = ["crates/braid-kernel", "crates/braid"]
 
 [workspace.package]
 edition = "2021"

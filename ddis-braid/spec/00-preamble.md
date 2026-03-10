@@ -80,7 +80,7 @@ Every invariant is tagged with one or more verification methods:
 
 Every element traces to source documents:
 - `SEED §N` — Section N of SEED.md
-- `ADRS {CAT-NNN}` — Entry in ADRS.md (e.g., `ADRS FD-001`)
+- `ADRS {CAT-NNN}` — Entry in docs/design/ADRS.md (e.g., `ADRS FD-001`)
 - `T{NN}:{line}` — Transcript line reference (e.g., `T01:328` = Transcript 01, line 328)
 - `C{N}` — Hard constraint from CLAUDE.md (e.g., `C1` = append-only store)
 
@@ -98,7 +98,7 @@ Every element is assigned to an implementation stage:
 
 ### §0.3 Namespace Index
 
-| § | Namespace | SEED.md §§ | ADRS.md Categories | Wave | Est. Elements |
+| § | Namespace | SEED.md §§ | docs/design/ADRS.md Categories | Wave | Est. Elements |
 |---|-----------|------------|---------------------|------|---------------|
 | 1 | STORE | §4, §11 | FD-001–012, AS-001–010, SR-001–011 | 1 | ~15 INV, ~16 ADR, ~5 NEG |
 | 1b | LAYOUT | §4, §11 | SR-006, SR-007, SR-014, FD-007 | 1 | 11 INV, 7 ADR, 5 NEG |
@@ -191,7 +191,7 @@ the system is designed to enforce.
 - The Go CLI's 97 invariants and 74 ADRs inform but do not bind Braid's specification
 - No code from `../ddis-cli/` is ported line-by-line; design patterns may be adopted after
   verification against the Braid specification
-- GAP_ANALYSIS.md documents the relationship between Go CLI modules and Braid namespaces
+- docs/audits/GAP_ANALYSIS.md documents the relationship between Go CLI modules and Braid namespaces
 - The Go CLI remains operational for existing workflows during Braid development
 
 #### Falsification
@@ -215,7 +215,7 @@ methodology manually?
 A) **Wait for tooling** — Build the datom store first, then start using harvest/seed.
    Clean automation from the start, but no knowledge durability during the critical
    specification and early implementation phases.
-B) **Manual discipline first** — Practice harvest/seed by hand (HARVEST.md entries at
+B) **Manual discipline first** — Practice harvest/seed by hand (docs/HARVEST.md entries at
    session boundaries) before the tooling exists. Validates the methodology through use,
    generates the first dataset, but requires disciplined manual effort.
 C) **Lightweight automation** — Build a minimal script-based harvest/seed before the
@@ -224,7 +224,7 @@ C) **Lightweight automation** — Build a minimal script-based harvest/seed befo
 
 #### Decision
 **Option B.** Methodology precedes tooling. The manual harvest/seed discipline
-(HARVEST.md entries at session start and end) validates the methodology through direct
+(docs/HARVEST.md entries at session start and end) validates the methodology through direct
 practice before any code is written. The manual entries become the first dataset when the
 datom store is built — they are migrated into datoms as the system's first act.
 
@@ -236,8 +236,8 @@ implementation. This also satisfies C7 (self-bootstrap): the specification proce
 generates the first test data for the harvest/seed pipeline.
 
 #### Consequences
-- Every session ends with a harvest entry in HARVEST.md (NEG-006 in CLAUDE.md)
-- Every session starts by reading the latest HARVEST.md entry (the manual seed)
+- Every session ends with a harvest entry in docs/HARVEST.md (NEG-006 in CLAUDE.md)
+- Every session starts by reading the latest docs/HARVEST.md entry (the manual seed)
 - The manual entries are structured for eventual migration into the datom store
 - The discipline is non-negotiable even when it feels redundant — it IS the methodology
 

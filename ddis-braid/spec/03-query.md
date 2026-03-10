@@ -10,7 +10,7 @@ The query engine classifies queries into six strata of increasing power and cost
 CALM compliance determining which queries can run without coordination.
 
 **Traces to**: SEED.md §4
-**ADRS.md sources**: FD-003, SQ-001–010, PO-013, AA-001
+**docs/design/ADRS.md sources**: FD-003, SQ-001–010, PO-013, AA-001
 
 ---
 

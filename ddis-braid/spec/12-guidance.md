@@ -1047,7 +1047,7 @@ Betweenness centrality is computed by INV-QUERY-015, which is explicitly Stage 1
 it requires O(V × E) Brandes computation with the full query graph infrastructure.
 
 At Stage 0, the spec originally defaulted g₂ to a constant 0.5 for all tasks. However,
-the implementation guide (guide/08-guidance.md) specifies a degree-product proxy:
+the implementation guide (docs/guide/08-guidance.md) specifies a degree-product proxy:
 `proxy_betweenness(e) = in_degree(e) × out_degree(e) / max_product`. This constitutes
 a spec/guide divergence — the normative specification says "constant 0.5" while the
 implementation guide says "proxy via degree product."
@@ -1195,7 +1195,7 @@ Proposed → Decided. The enforcement mechanism:
 - The transition Proposed → Decided (bypassing the gate) is forbidden
 
 This design note defers full invariant formalization to Stage 1, avoiding a count cascade
-across spec/16-verification.md, spec/17-crossref.md, guide/README.md, and guide/10-verification.md.
+across spec/16-verification.md, spec/17-crossref.md, docs/guide/README.md, and docs/guide/10-verification.md.
 The mechanism addresses FM-020's concern that agent-initiated decisions may bypass human review
 for high-stakes specification changes.
 

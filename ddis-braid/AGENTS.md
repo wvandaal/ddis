@@ -53,37 +53,40 @@ reduce the quality.
 ddis-braid/                                     ← YOU ARE HERE
 ├── CLAUDE.md                                   ← This file (read first, every session)
 ├── SEED.md                                     ← The foundational design document (read second)
-├── references/                                 ← Reference docs & conversation history from related discussions 
-│   ├── AGENTIC_SYSTEMS_FORMAL_ANALYSIS.md      ← Formal analysis of the constituent parts of agentic systems in Feb 28, 2026
-│   ├── BRAID_IDEATION_TRANSCRIPT.md            ← Original log of conversation from full Braid ideation session. Analogous to `transcripts/` contents in single, unified Markdown doc
-│   └── DATOMIC_IN_RUST.md                      ← Exploration of cleanroom implementation of embedded Datomic/Datalog in Rust.
-├── transcripts/                                ← Conversation history from design sessions
-│   ├── journal.md                              ← Index of all transcripts with summaries
-│   ├── journal.txt                             ← Index of all transcripts with summaries (Raw TXT with JSON)
-│   ├── *.txt                                   ← Individual session transcripts (7 chapters, raw TXT with JSON)
-│   └── *.md                                    ← Individual session transcripts (7 chapters)
-├── onboarding.md                               ← Comprehensive guide to the existing DDIS project
-│
-│   (Created as work progresses:)
-├── SPEC.md                          ← Stub pointing to spec/ (original monolith, now modularized)
 ├── spec/                            ← Modularized specification (one file per namespace)
 │   ├── README.md                    ← Master index with wave grouping and reading order
 │   ├── 00-preamble.md               ← Shared definitions (conventions, verification tags, constraints)
 │   ├── 01-store.md – 14-interface.md  ← 14 namespace specifications (§1–§14)
 │   └── 15-uncertainty.md – 17-crossref.md  ← Integration sections (§15–§17 + Appendices)
-├── IMPLEMENTATION_GUIDE.md          ← Stub pointing to guide/ (modularized)
-├── guide/                           ← Modularized implementation guide (one file per namespace)
-│   ├── README.md                    ← Master index, build order, cognitive phase protocol
-│   ├── 00-architecture.md           ← Crate layout, type catalog, CLI/MCP specs, LLM-native design
-│   ├── 01-store.md – 09-interface.md  ← Per-namespace build plans (§1–§9)
-│   ├── 10-verification.md           ← Verification pipeline, CI gates, coverage matrix
-│   ├── 11-worked-examples.md        ← Self-bootstrap demo, session transcripts, Datalog queries
-│   └── 12-stages-1-4.md             ← Future roadmap, extension points
-├── GAP_ANALYSIS.md                  ← Existing code vs. specification comparison
-├── HARVEST.md                       ← Manual harvest log (session summaries, decisions)
-├── FAILURE_MODES.md                 ← Agentic failure mode catalog (test cases + acceptance criteria for DDIS/Braid)
-├── ADRS.md                          ← Design decision index (all settled choices with rationale)
-└── src/                             ← Implementation (Rust)
+├── crates/                          ← Implementation (Rust)
+│   ├── braid-kernel/                ← Core datom store, schema, query engine
+│   └── braid/                       ← CLI and higher-level APIs
+├── docs/                            ← All documentation
+│   ├── HARVEST.md                   ← Manual harvest log (session summaries, decisions)
+│   ├── design/                      ← Design documents
+│   │   ├── ADRS.md                  ← Design decision index (all settled choices with rationale)
+│   │   ├── FAILURE_MODES.md         ← Agentic failure mode catalog (test cases + acceptance criteria)
+│   │   └── DEFECT_SPEC.md           ← Defect specification
+│   ├── audits/                      ← Audit artifacts
+│   │   └── GAP_ANALYSIS.md          ← Existing code vs. specification comparison
+│   ├── guide/                       ← Modularized implementation guide (one file per namespace)
+│   │   ├── README.md                ← Master index, build order, cognitive phase protocol
+│   │   ├── 00-architecture.md       ← Crate layout, type catalog, CLI/MCP specs, LLM-native design
+│   │   ├── 01-store.md – 09-interface.md  ← Per-namespace build plans (§1–§9)
+│   │   ├── 10-verification.md       ← Verification pipeline, CI gates, coverage matrix
+│   │   ├── 11-worked-examples.md    ← Self-bootstrap demo, session transcripts, Datalog queries
+│   │   └── 12-stages-1-4.md         ← Future roadmap, extension points
+│   └── history/                     ← Historical reference material
+│       ├── onboarding.md            ← Comprehensive guide to the existing DDIS project
+│       ├── references/              ← Reference docs & conversation history from related discussions
+│       │   ├── AGENTIC_SYSTEMS_FORMAL_ANALYSIS.md
+│       │   ├── BRAID_IDEATION_TRANSCRIPT.md
+│       │   └── DATOMIC_IN_RUST.md
+│       └── transcripts/             ← Conversation history from design sessions
+│           ├── journal.md           ← Index of all transcripts with summaries
+│           ├── journal.txt          ← Index of all transcripts with summaries (Raw TXT with JSON)
+│           ├── *.txt                ← Individual session transcripts (7 chapters, raw TXT with JSON)
+│           └── *.md                 ← Individual session transcripts (7 chapters)
 ```
 
 ### Sibling Directories (Reference Material)
@@ -111,28 +114,28 @@ Read these in order when you need to understand the design:
    mechanisms, self-improvement loop, interface principles, existing codebase, staged roadmap,
    and design rationale. Everything traces back to this document.
 
-2. **`transcripts/journal.txt`** — Index of 7 design session transcripts with summaries. These
+2. **`docs/history/transcripts/journal.txt`** — Index of 7 design session transcripts with summaries. These
    contain the full reasoning behind every decision in the seed. Read individual transcripts
    only when you need the detailed rationale for a specific design choice.
 
-3. **`onboarding.md`** — Comprehensive guide to the existing DDIS project (the Go CLI). Covers
+3. **`docs/history/onboarding.md`** — Comprehensive guide to the existing DDIS project (the Go CLI). Covers
    the three-layer spec architecture, directory structure, bilateral cycle, event-sourcing model,
    and quality metrics. Use this to understand what exists, not what to build.
 
 4. **`../ddis-cli-spec/`** — The existing CLI specification. 97 invariants, 74 ADRs across 9
    modules. Reference for understanding how DDIS specifications are structured in practice.
 
-5. **`FAILURE_MODES.md`** — Agentic failure mode catalog. Documents real failures observed
+5. **`docs/design/FAILURE_MODES.md`** — Agentic failure mode catalog. Documents real failures observed
    when using AI agents for complex work (knowledge loss, provenance fabrication, anchoring
    bias, cascading incompleteness). Each entry maps to a DDIS/Braid mechanism and defines
    an acceptance criterion with SLA target. These are test cases for evaluating whether the
    methodology works — not a task tracker for ad-hoc fixes.
 
-6. **`GAP_ANALYSIS.md`** — Comprehensive analysis of the Go CLI (~62,500 LOC) against SEED.md.
+6. **`docs/audits/GAP_ANALYSIS.md`** — Comprehensive analysis of the Go CLI (~62,500 LOC) against SEED.md.
    Categorizes 38 packages as ALIGNED/DIVERGENT/EXTRA/BROKEN/MISSING. Use when understanding
    what exists in the Go CLI and how it maps to Braid's design.
 
-7. **`ADRS.md`** — Design decision index. All settled choices from design transcripts and
+7. **`docs/design/ADRS.md`** — Design decision index. All settled choices from design transcripts and
    sessions, with rationale, alternatives rejected, and transcript references. Lightweight
    precursor to formal ADR elements in `spec/`. Check before relitigating any decision.
 
@@ -148,8 +151,8 @@ Read these in order when you need to understand the design:
 
 Every session follows this pattern:
 
-**1. Orient.** Read this file. Check `HARVEST.md` for the latest session summary and pending
-decisions. Check `FAILURE_MODES.md` for open failure modes that may intersect your task.
+**1. Orient.** Read this file. Check `docs/HARVEST.md` for the latest session summary and pending
+decisions. Check `docs/design/FAILURE_MODES.md` for open failure modes that may intersect your task.
 If a specific task was assigned, locate it.
 
 **2. Plan.** Before writing any code or spec, state what you intend to do and why. Trace the
@@ -158,22 +161,22 @@ question whether the work should be done.
 
 **3. Execute.** Do the work. Follow the constraints below. Test everything testable. Document
 every design decision as an ADR. When you discover a process failure, methodology gap, or
-unexpected divergence, record it immediately in `FAILURE_MODES.md` with an FM-NNN ID.
+unexpected divergence, record it immediately in `docs/design/FAILURE_MODES.md` with an FM-NNN ID.
 
-**4. Harvest.** Before the session ends, append to `HARVEST.md`:
+**4. Harvest.** Before the session ends, append to `docs/HARVEST.md`:
    - What was accomplished (with file paths)
    - Decisions made (with rationale)
    - Open questions discovered
-   - Failure modes discovered (reference FM-NNN IDs from `FAILURE_MODES.md`)
+   - Failure modes discovered (reference FM-NNN IDs from `docs/design/FAILURE_MODES.md`)
    - Recommended next action for the following session
 
 ### The Manual Harvest/Seed Discipline
 
 Until the datom store exists and automates this, **practice the methodology by hand**:
 
-- At session start: read `HARVEST.md` to load prior session state (this is your "seed")
+- At session start: read `docs/HARVEST.md` to load prior session state (this is your "seed")
 - During work: note decisions, discoveries, and uncertainties as you go
-- At session end: write a harvest entry in `HARVEST.md` (this is your "harvest")
+- At session end: write a harvest entry in `docs/HARVEST.md` (this is your "harvest")
 
 This is not bookkeeping — it is the methodology itself. The tools will automate it later.
 Methodology precedes tooling.
@@ -223,10 +226,10 @@ The immediate work is producing three documents:
    traceable to the seed, structured for eventual migration into the datom store.
    See `spec/README.md` for the master index.
 
-2. **IMPLEMENTATION_GUIDE.md** — Stage 0–4 deliverables, CLI command specs with examples,
+2. **docs/guide/** — Stage 0–4 deliverables, CLI command specs with examples,
    CLAUDE.md template for the implementing agent, file formats, success criteria.
 
-3. **GAP_ANALYSIS.md** — Categorize every existing module in `../ddis-cli/` as ALIGNED,
+3. **docs/audits/GAP_ANALYSIS.md** — Categorize every existing module in `../ddis-cli/` as ALIGNED,
    DIVERGENT, EXTRA, BROKEN, or MISSING relative to the specification.
 
 ### Stage 0: Harvest/Seed Cycle (Target: 1–2 weeks implementation)
@@ -318,7 +321,7 @@ system should do must be either an invariant (with ID and falsification conditio
 prose that reads like a requirements document is not a DDIS specification.
 
 **NEG-006: Do not skip the harvest.** Every session must end with a harvest entry in
-`HARVEST.md`. A session without a harvest is knowledge lost. This is the single most
+`docs/HARVEST.md`. A session without a harvest is knowledge lost. This is the single most
 important discipline until the tooling automates it.
 
 **NEG-007: Do not treat uncertainty as a defect.** Where the specification isn't sure yet,
@@ -393,14 +396,14 @@ completeness, and formality. Target: F(S) → 1.0.
 
 These are settled. Do not revisit without finding a formal contradiction (NEG-002).
 
-The full design decision index is in **`ADRS.md`**, organized into:
+The full design decision index is in **`docs/design/ADRS.md`**, organized into:
 - **Foundational Decisions (FD-001–008)**: Append-only store, EAV, Datalog, content-addressable identity, schema-as-data, per-attribute resolution, self-bootstrap
 - **Protocol Decisions (PD-001–004)**: Agent working set W_α / patch branches, provenance typing lattice, crash-recovery model, at-least-once delivery
 - **Snapshot & Query Decisions (SQ-001–004)**: Local frontier default, frontier as datom attribute, Datalog frontier extension, stratum safety classification
 - **Lifecycle Decisions (LD-001–004)**: Braid as new implementation, manual harvest/seed, disposable conversations, reconciliation taxonomy
 
 Each entry includes rationale, alternatives rejected, and transcript references. Consult
-`ADRS.md` for the full record before proposing changes to any settled decision.
+`docs/design/ADRS.md` for the full record before proposing changes to any settled decision.
 
 </design_decisions>
 
@@ -412,8 +415,8 @@ Use this at the start and end of every session.
 
 ### Start of Session
 - [ ] Read this CLAUDE.md
-- [ ] Read latest entry in HARVEST.md
-- [ ] Check `FAILURE_MODES.md` for open failure modes that intersect your task
+- [ ] Read latest entry in docs/HARVEST.md
+- [ ] Check `docs/design/FAILURE_MODES.md` for open failure modes that intersect your task
 - [ ] Identify the specific task for this session
 - [ ] Trace the task to SEED.md section(s)
 - [ ] State the plan before executing
@@ -423,8 +426,8 @@ Use this at the start and end of every session.
 - [ ] All specification elements have IDs, types, traceability, and falsification conditions
 - [ ] No hard constraints (C1–C7) violated
 - [ ] No negative cases (NEG-001–NEG-008) triggered
-- [ ] Any new failure modes discovered during the session recorded in `FAILURE_MODES.md`
-- [ ] Harvest entry appended to HARVEST.md with:
+- [ ] Any new failure modes discovered during the session recorded in `docs/design/FAILURE_MODES.md`
+- [ ] Harvest entry appended to docs/HARVEST.md with:
   - What was accomplished
   - Decisions made with rationale
   - Open questions discovered
@@ -439,13 +442,13 @@ Use this at the start and end of every session.
 
 ## Using the Transcripts
 
-The `transcripts/` directory contains the complete reasoning history behind every design
+The `docs/history/transcripts/` directory contains the complete reasoning history behind every design
 decision. The transcripts are large — do not read them whole. Use them surgically:
 
-1. Check `transcripts/journal.md` for the summary index
+1. Check `docs/history/transcripts/journal.md` for the summary index
 2. Identify which transcript likely contains the reasoning you need
 3. Read only the relevant portions
-4. For more surgical, fine-grain precision, you can parse the contents of the corresponding `*.txt` files in `transcripts/`, each of which corresponds to the equivalently named `*.md` file.
+4. For more surgical, fine-grain precision, you can parse the contents of the corresponding `*.txt` files in `docs/history/transcripts/`, each of which corresponds to the equivalently named `*.md` file.
 
 ### Transcript Index (from journal.txt)
 
@@ -480,7 +483,7 @@ challenge, refine, absorb, discover, triage) shows which abstractions survived c
 reality. Consult it when the specification leaves something ambiguous.
 
 **How NOT to use it**: Do not port Go code to Rust line-by-line. Do not assume its architecture
-is correct for braid. The gap analysis (GAP_ANALYSIS.md) will determine which modules align
+is correct for braid. The gap analysis (docs/audits/GAP_ANALYSIS.md) will determine which modules align
 with the new specification and which diverge. Let the specification lead, not the legacy code.
 
 </existing_codebase_relationship>
@@ -508,7 +511,7 @@ SYNC, BILATERAL, SCHEMA, RESOLUTION, BUDGET, INTERFACE.
 The transcripts contain deeper reasoning than the seed. When the seed states a conclusion
 without full rationale, check the transcripts for the argument.
 
-### If your task is "Write IMPLEMENTATION_GUIDE.md"
+### If your task is "Write the implementation guide" (docs/guide/)
 
 Write for the agent that will build the system. Include:
 - Stage 0 deliverables with exact CLI command signatures and expected behaviors
@@ -517,7 +520,7 @@ Write for the agent that will build the system. Include:
 - Success criteria that are mechanically verifiable, not subjective
 - Worked examples: "here is a session transcript showing harvest/seed in action"
 
-### If your task is "Write GAP_ANALYSIS.md"
+### If your task is "Write docs/audits/GAP_ANALYSIS.md"
 
 For each internal package in `../ddis-cli/internal/`:
 1. Read the package's Go source
@@ -527,7 +530,7 @@ For each internal package in `../ddis-cli/internal/`:
 
 ### If your task is "Implement Stage 0"
 
-Read IMPLEMENTATION_GUIDE.md first. Then:
+Read `docs/guide/README.md` first. Then:
 1. Set up the project structure (Cargo workspace if Rust)
 2. Implement the datom store (append-only, content-addressed)
 3. Implement transact and query

@@ -304,7 +304,7 @@ Gate 7: miri (optional)   — cargo +nightly miri test
 targeting main; Gate 5b (full Kani) runs nightly; Gate 5c (extended Kani) runs weekly.
 Gate 6 runs nightly or on protocol-affecting changes. Gate 7 runs only if `unsafe` code
 appears (should never occur — `#![forbid(unsafe_code)]`). See §16.5 for Kani feasibility
-assurance and guide/10-verification.md §10.1 for the complete tiered CI design.
+assurance and docs/guide/10-verification.md §10.1 for the complete tiered CI design.
 
 **Failure handling**: A gate failure blocks merge. The implementing agent must fix the
 failing invariant before proceeding. Gate failures are recorded as datoms (CO-011).

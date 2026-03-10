@@ -11,7 +11,7 @@ it requires blocking until all participants report their frontiers. It is necess
 decisions that depend on the absence of certain facts (non-monotonic queries).
 
 **Traces to**: SEED.md §6
-**ADRS.md sources**: PO-010, SQ-001, SQ-004, PD-005
+**docs/design/ADRS.md sources**: PO-010, SQ-001, SQ-004, PD-005
 
 ---
 

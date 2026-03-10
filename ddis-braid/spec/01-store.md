@@ -10,7 +10,7 @@ implementation facts, observations, decisions, provenance — lives as datoms in
 append-only store. The store is a G-Set CvRDT: a grow-only set of datoms under set union.
 
 **Traces to**: SEED.md §4, §11
-**ADRS.md sources**: FD-001–012, AS-001–010, SR-001–011, PD-001, PD-003–004, PO-001, PO-012
+**docs/design/ADRS.md sources**: FD-001–012, AS-001–010, SR-001–011, PD-001, PD-003–004, PO-001, PO-012
 
 ---
 
@@ -1303,7 +1303,7 @@ store, potentially violating FD-012 (every command is a transaction).
 > **SUPERSEDED** by ADR-LAYOUT-001 (per-transaction files) and ADR-LAYOUT-005 (pure filesystem)
 > in [spec/01b-storage-layout.md](01b-storage-layout.md). Both Option A (trunk.ednl) and
 > Option B (redb target) are replaced by content-addressed per-transaction files with
-> directory-union merge. See SR-014 in ADRS.md.
+> directory-union merge. See SR-014 in docs/design/ADRS.md.
 
 **Traces to**: ADRS SR-006, SR-007
 **Stage**: 0

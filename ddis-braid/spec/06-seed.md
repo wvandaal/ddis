@@ -13,7 +13,7 @@ The seed collapses three concerns into one mechanism: ambient awareness (CLAUDE.
 guidance (methodology steering), and trajectory management (carry-over from prior sessions).
 
 **Traces to**: SEED.md §5, §8
-**ADRS.md sources**: IB-010, PO-002, PO-003, PO-014, GU-004, SQ-007
+**docs/design/ADRS.md sources**: IB-010, PO-002, PO-003, PO-014, GU-004, SQ-007
 
 ---
 
@@ -558,7 +558,7 @@ Active guidance→Directive. The guide's parts map similarly: Orientation→Orie
 Decisions→Constraints, Context→State, Warnings→Warnings, Task→Directive.
 
 #### Consequences
-- All documents (spec, guide, ADRS.md IB-010) reference the same template
+- All documents (spec, guide, docs/design/ADRS.md IB-010) reference the same template
 - "Constraints" is broader than "Invariants" — includes ADRs and negative cases
 - "Directive" is more action-oriented than "Active guidance"
 - The SeedOutput struct uses these five field names

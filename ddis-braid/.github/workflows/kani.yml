@@ -9,12 +9,12 @@ on:
   # Run on PRs that touch proof harnesses or core kernel code
   pull_request:
     paths:
-      - 'braid-kernel/src/kani_proofs.rs'
-      - 'braid-kernel/src/store.rs'
-      - 'braid-kernel/src/merge.rs'
-      - 'braid-kernel/src/datom.rs'
-      - 'braid-kernel/src/schema.rs'
-      - 'braid-kernel/src/resolution.rs'
+      - 'crates/braid-kernel/src/kani_proofs.rs'
+      - 'crates/braid-kernel/src/store.rs'
+      - 'crates/braid-kernel/src/merge.rs'
+      - 'crates/braid-kernel/src/datom.rs'
+      - 'crates/braid-kernel/src/schema.rs'
+      - 'crates/braid-kernel/src/resolution.rs'
 
 env:
   CARGO_TERM_COLOR: always
@@ -31,7 +31,7 @@ jobs:
         with:
           kani-version: 'latest'
       - name: Run fast proofs (braid-kernel)
-        working-directory: braid-kernel
+        working-directory: crates/braid-kernel
         run: |
           cargo kani --tests \
             --default-unwind 4 \
@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kani-fast-log
-          path: braid-kernel/kani-fast.log
+          path: crates/braid-kernel/kani-fast.log
 
   # Tier 2: Deep proofs (unwind <= 8) — nightly only
   kani-nightly:
@@ -56,7 +56,7 @@ jobs:
         with:
           kani-version: 'latest'
       - name: Run deep proofs (braid-kernel)
-        working-directory: braid-kernel
+        working-directory: crates/braid-kernel
         run: |
           cargo kani --tests \
             --default-unwind 8 \
@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kani-nightly-log
-          path: braid-kernel/kani-nightly.log
+          path: crates/braid-kernel/kani-nightly.log
 
   # Tier 3: Exhaustive proofs (unwind <= 16) — weekly on Sunday
   kani-weekly:
@@ -82,7 +82,7 @@ jobs:
         with:
           kani-version: 'latest'
       - name: Run exhaustive proofs (braid-kernel)
-        working-directory: braid-kernel
+        working-directory: crates/braid-kernel
         run: |
           cargo kani --tests \
             --default-unwind 16 \
@@ -93,4 +93,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kani-weekly-log
-          path: braid-kernel/kani-weekly.log
+          path: crates/braid-kernel/kani-weekly.log

@@ -11,7 +11,7 @@ uncertainty updates, and subscription notifications. The branching extension (W_
 branches) provides isolated workspaces with explicit commit to the shared store.
 
 **Traces to**: SEED.md §6
-**ADRS.md sources**: AS-001, AS-003–006, AS-010, PD-001, PD-004, PO-006, PO-007
+**docs/design/ADRS.md sources**: AS-001, AS-003–006, AS-010, PD-001, PD-004, PO-006, PO-007
 
 ---
 

@@ -938,7 +938,7 @@ The preference ordering minimizes total effort while ensuring all modules
 converge to specification compliance.
 
 #### Consequences
-- GAP_ANALYSIS.md categorizes every existing module as ALIGNED/DIVERGENT/EXTRA/BROKEN/MISSING
+- docs/audits/GAP_ANALYSIS.md categorizes every existing module as ALIGNED/DIVERGENT/EXTRA/BROKEN/MISSING
 - Each module receives one of the four strategies based on the priority matrix
 - The existing test suite is preserved and extended, not discarded
 - Braid's Rust implementation may wrap some Go modules initially (THIN WRAPPER) before eventually replacing them

@@ -84,7 +84,7 @@ The first four are **element types** — artifacts with IDs that become datoms i
 
 **Contradiction detection** operates in tiers of increasing subtlety: exact (identical claims with different values), logical (mutually exclusive implications), semantic (different words, same conflict), pragmatic (compatible in isolation, incompatible in practice), and axiological (internally consistent but misaligned with goals). These tiers surface divergence that simpler checks would miss.
 
-**The fitness function** quantifies convergence toward full coherence across multiple dimensions: coverage (every goal traces to invariants and back), depth (invariants are fully specified with violation conditions), coherence (no internal contradictions), completeness (no gaps between spec and implementation), formality (claims are falsifiable, not aspirational), certainty (uncertainty markers resolved toward commitment), and commitment (provisional decisions stabilized into ADRs). The formula F(S) is a weighted combination of these seven components (see ADRS.md: CO-009).
+**The fitness function** quantifies convergence toward full coherence across multiple dimensions: coverage (every goal traces to invariants and back), depth (invariants are fully specified with violation conditions), coherence (no internal contradictions), completeness (no gaps between spec and implementation), formality (claims are falsifiable, not aspirational), certainty (uncertainty markers resolved toward commitment), and commitment (provisional decisions stabilized into ADRs). The formula F(S) is a weighted combination of these seven components (see docs/design/ADRS.md: CO-009).
 
 **Explicit uncertainty markers** acknowledge what the specification doesn't know yet. Where a claim is provisional, it carries a confidence level and a description of what would resolve the uncertainty. This prevents the failure mode where aspirational prose reads like settled commitment, and agents implement uncertain claims as though they were axioms. Uncertainty is not a defect in the specification — it is information about where the specification needs more work. Every uncertainty marker requires:
 
@@ -157,7 +157,7 @@ Queries use a **Datomic-style Datalog dialect** with semi-naive evaluation and *
 
 Each agent maintains a **private working set W_α** — a two-tier store where uncommitted datoms are visible only locally; explicit `commit` promotes them to the shared store S (PD-001). The **crash-recovery model** recovers durable frontiers on restart; uncommitted W_α datoms replay or discard based on durability markers (PD-003). The canonical **TRANSACT** operation has a seven-field type signature: `(Store, Entity, Attribute, Value, TxData, CausalPredecessors, AgentID) → (Store', TxReceipt)` (PO-001). The **conflict predicate** is causal independence: two assertions conflict iff neither causally precedes the other and they target the same entity-attribute pair (CR-006).
 
-Further protocol-level decisions — provenance typing lattice (PD-002), at-least-once delivery (PD-004), branch operations with competing-branch locks (PO-007), merge cascade semantics (PO-006), confusion signals triggering re-ASSOCIATE (PO-005), and the ten-step agent cycle (PO-011) — are indexed with full rationale in **`ADRS.md`**.
+Further protocol-level decisions — provenance typing lattice (PD-002), at-least-once delivery (PD-004), branch operations with competing-branch locks (PO-007), merge cascade semantics (PO-006), confusion signals triggering re-ASSOCIATE (PO-005), and the ten-step agent cycle (PO-011) — are indexed with full rationale in **`docs/design/ADRS.md`**.
 
 ---
 
@@ -270,7 +270,7 @@ There is an existing **Go** implementation (`../ddis-cli/`) of approximately **6
 
 ### 9.2 Gap Analysis
 
-> **Canonical reference**: `GAP_ANALYSIS.md` contains the full module-by-module analysis (920 lines, 10 sections, 36 modules classified). What follows is a summary of the central findings and their implications for Braid. For per-module details, reusability assessments, stage impact analysis, and the complete ALIGNED/DIVERGENT/EXTRA/BROKEN/MISSING breakdown, see `GAP_ANALYSIS.md`.
+> **Canonical reference**: `docs/design/GAP_ANALYSIS.md` contains the full module-by-module analysis (920 lines, 10 sections, 36 modules classified). What follows is a summary of the central findings and their implications for Braid. For per-module details, reusability assessments, stage impact analysis, and the complete ALIGNED/DIVERGENT/EXTRA/BROKEN/MISSING breakdown, see `docs/design/GAP_ANALYSIS.md`.
 
 The gap analysis classifies every existing module and capability against the Braid specification established in sections 1–8 of this document:
 
@@ -296,7 +296,7 @@ Five capabilities required by SEED.md have no implementation in any form and blo
 4. **Seed operation** (§5) — start-of-session knowledge assembly.
 5. **Dynamic CLAUDE.md generation** (§6, §7) — adaptive operating instructions from drift patterns.
 
-Ten additional capabilities (agent frontiers, sync barriers, signal system, deliberation records, MCP interface, TUI, significance accumulation, schema-as-data, per-attribute resolution, agent working set / patch branches) are required at Stages 1–4. See `GAP_ANALYSIS.md` §4 for the complete list with staging.
+Ten additional capabilities (agent frontiers, sync barriers, signal system, deliberation records, MCP interface, TUI, significance accumulation, schema-as-data, per-attribute resolution, agent working set / patch branches) are required at Stages 1–4. See `docs/design/GAP_ANALYSIS.md` §4 for the complete list with staging.
 
 #### Key Empirical Finding: Bilateral Lifecycle Non-Adoption
 
@@ -372,9 +372,9 @@ The critical discipline: **practice the methodology before the tools exist.** Ha
 
 ### The Failure Mode Registry
 
-`FAILURE_MODES.md` is the live catalog of failure modes observed when using AI agents for complex, long-running work during the DDIS/Braid bootstrap. Each entry documents a real failure — knowledge lost across sessions, provenance fabricated, analysis scope anchored incorrectly — and maps it to the DDIS/Braid mechanism designed to prevent or detect that failure class. The entries serve as **test cases and acceptance criteria** for evaluating whether the methodology works: does the harvest mechanism catch ≥99% of dropped decisions? Does the provenance lattice eliminate fabricated attributions? Does the single-substrate store eliminate anchoring bias?
+`docs/design/FAILURE_MODES.md` is the live catalog of failure modes observed when using AI agents for complex, long-running work during the DDIS/Braid bootstrap. Each entry documents a real failure — knowledge lost across sessions, provenance fabricated, analysis scope anchored incorrectly — and maps it to the DDIS/Braid mechanism designed to prevent or detect that failure class. The entries serve as **test cases and acceptance criteria** for evaluating whether the methodology works: does the harvest mechanism catch ≥99% of dropped decisions? Does the provenance lattice eliminate fabricated attributions? Does the single-substrate store eliminate anchoring bias?
 
-When the datom store exists, each failure mode becomes a datom and `FAILURE_MODES.md` becomes a projection. Until then, it is the manual catalog. Agents must check it at session start (to avoid repeating known failure patterns) and record new failure modes immediately when discovered. The failure mode lifecycle (OBSERVED → MAPPED → TESTABLE → VERIFIED) tracks whether the methodology addresses the failure class, not whether a human has manually patched around it.
+When the datom store exists, each failure mode becomes a datom and `docs/design/FAILURE_MODES.md` becomes a projection. Until then, it is the manual catalog. Agents must check it at session start (to avoid repeating known failure patterns) and record new failure modes immediately when discovered. The failure mode lifecycle (OBSERVED → MAPPED → TESTABLE → VERIFIED) tracks whether the methodology addresses the failure class, not whether a human has manually patched around it.
 
 ---
 

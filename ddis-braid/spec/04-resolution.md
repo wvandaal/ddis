@@ -10,7 +10,7 @@ different semantics and different natural resolution strategies. The resolution 
 operates at query time over the LIVE index, not during merge (merge is pure set union).
 
 **Traces to**: SEED.md §4 Axiom 5
-**ADRS.md sources**: FD-005, CR-001–007
+**docs/design/ADRS.md sources**: FD-005, CR-001–007
 
 ---
 

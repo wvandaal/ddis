@@ -15,7 +15,7 @@ transforms the workflow from "fight to keep conversations alive" to "ride bounde
 waves, extracting knowledge at each crest."
 
 **Traces to**: SEED.md §5
-**ADRS.md sources**: LM-005–006, LM-011–013, IB-012, CR-005, UA-007
+**docs/design/ADRS.md sources**: LM-005–006, LM-011–013, IB-012, CR-005, UA-007
 
 ---
 
@@ -218,7 +218,7 @@ pub enum ReviewTopology {
 
 /// Harvest detection pipeline: scans agent's recent transactions and proposes candidates.
 /// Free function: harvest detection is a read-only pipeline that queries the store
-/// for un-transacted knowledge. See guide/05-harvest.md for the decomposed pipeline.
+/// for un-transacted knowledge. See docs/guide/05-harvest.md for the decomposed pipeline.
 pub fn harvest_pipeline(store: &Store, session_context: &SessionContext) -> HarvestResult;
 
 /// Accept a harvest candidate by building a transaction for commitment.

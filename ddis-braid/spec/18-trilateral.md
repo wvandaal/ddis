@@ -21,7 +21,7 @@ LIVE index concept to all three coherence boundaries).
 §3 (specification formalism), §5 (harvest/seed lifecycle), §6 (reconciliation
 mechanisms)
 **Source**: `exploration/coherence-convergence/TRILATERAL_COHERENCE_MODEL.md` §19
-**ADRS.md sources**: CO-008, CO-010, IB-010
+**docs/design/ADRS.md sources**: CO-008, CO-010, IB-010
 
 **Forward reference — Quadrilateral extension (Stage 3):** The trilateral
 model (Intent ↔ Spec ↔ Impl) extends to a quadrilateral (Intent ↔ Spec ↔

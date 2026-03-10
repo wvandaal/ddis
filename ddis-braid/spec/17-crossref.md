@@ -6,9 +6,9 @@
 > **Purpose**: Maps every element to its source documents, tracks inter-invariant
 > dependencies, and provides stage-based views for implementation planning.
 
-### §17.1 Namespace → SEED.md → ADRS.md
+### §17.1 Namespace → SEED.md → docs/design/ADRS.md
 
-| Namespace | SEED.md §§ | ADRS.md Categories | Primary Concerns |
+| Namespace | SEED.md §§ | docs/design/ADRS.md Categories | Primary Concerns |
 |-----------|------------|---------------------|-----------------|
 | FOUNDATION | §1–§11 | LM-001–002, LM-008–009, AA-002, CO-006 | Braid-as-new-impl, methodology-before-tooling, self-bootstrap, structural coherence |
 | STORE | §4, §9, §11 | FD-001–012, AS-001–010, SR-001–011, PD-001–004, PO-001, PO-012, LM-007 | Append-only datom store, CRDT merge, content identity, HLC ordering, indexes |
@@ -190,7 +190,7 @@ Every hard constraint (C1–C7) traces to specific invariants:
 
 ### §17.5 Failure Mode Traceability
 
-Each failure mode (FAILURE_MODES.md) maps to the DDIS/Braid mechanisms that prevent it:
+Each failure mode (docs/design/FAILURE_MODES.md) maps to the DDIS/Braid mechanisms that prevent it:
 
 | FM | Class | Preventing Invariants | Preventing ADRs |
 |----|-------|-----------------------|-----------------|
@@ -233,7 +233,7 @@ Each failure mode (FAILURE_MODES.md) maps to the DDIS/Braid mechanisms that prev
 
 ## Appendix B: Traceability Statistics
 
-### Backward Traceability (spec → ADRS.md): 100%
+### Backward Traceability (spec → docs/design/ADRS.md): 100%
 
 All 136 spec ADR elements include `Traces to: ADRS` references linking back to the
 design decisions that motivated them. 72/72 were verified during the V1 audit (R6);
@@ -243,9 +243,9 @@ formalizing Stage 0 simplification decisions (Session 014) all include backward 
 10 additional ADRs added in Phase 4 (Session 015) for LAYOUT and TRILATERAL namespaces
 all include backward links.
 
-### Forward Traceability (ADRS.md → spec): 100%
+### Forward Traceability (docs/design/ADRS.md → spec): 100%
 
-All 159 ADRS.md entries carry `Formalized as` or `Formalized across` forward annotations:
+All 159 docs/design/ADRS.md entries carry `Formalized as` or `Formalized across` forward annotations:
 
 | Annotation Type | Count | Description |
 |-----------------|-------|-------------|
