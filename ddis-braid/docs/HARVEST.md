@@ -3189,3 +3189,77 @@ The harvest/query round-trip feels *correct*. When I harvest knowledge items and
 2. **Cross-reference enrichment** — add inter-spec Ref edges (e.g., inv→inv dependencies, ADR→inv traceability) to make the graph structure richer
 3. **Spectral graph wavelets** — multi-scale analysis using heat kernel wavelets (already have the spectral decomposition infrastructure)
 4. **Budget-aware output** (Stage 1) — the dashboard is always full; should adapt to token budget
+
+---
+
+## Session 012 — 2026-03-10 (Comprehensive Assessment + Roadmap + Bead Structure)
+
+**Task**: Honest assessment of Braid's state, spec coverage audit, priority roadmap, comprehensive bead structure.
+**Traces to**: SEED.md §10 (Staged Roadmap), §8 (Interface Principles), C7 (Self-bootstrap)
+
+### What Was Accomplished
+
+1. **Comprehensive spec coverage audit** — Three parallel subagent audits across all 4 waves:
+   - Wave 1 (Foundation): ~94% complete (151 elements, 126 done, 24 partial, 1 missing)
+   - Wave 2 (Lifecycle): ~42% complete (66 elements, 17 done, 12 partial, 37 missing)
+   - Wave 3 (Intelligence): ~15% complete (103 elements, 8 done, 17 partial, 78 missing)
+   - Wave 4 (Integration): ~25% complete (33 elements, 5 done, 5 partial, 23 missing)
+   - **Overall: ~46% of total spec, ~78% of Stage 0**
+
+2. **Critical bug discovered**: Datalog multi-clause joins return 0 results for data that
+   exists (attribute filter finds 667 entities, Datalog join finds 0). This is a Stage 0
+   correctness defect that blocks all downstream features.
+
+3. **docs/design/STATE_OF_BRAID.md** — Comprehensive assessment document covering:
+   implementation vs spec, what works, what needs work, priority roadmap, optimism assessment
+
+4. **docs/design/LLM_NATIVE_INTERFACE.md** — LLM-first interface design guide:
+   7 cognitive principles, command naming conventions, output format tiers (π₀-π₃),
+   help text templates, error message templates, MCP description templates,
+   guidance footer design, composability patterns
+
+5. **33 new beads** organized into 5 phases + 1 cross-cutting concern:
+   - Phase A (P0): Correctness & UX Foundation — 5 tasks
+   - Phase B (P1): Complete Stage 0 — 5 tasks
+   - Phase C (P1): Stage 1 — 6 tasks
+   - Phase D (P2): Stage 2 — 3 tasks
+   - Phase E (P2-P3): Stage 3 — 3 tasks
+   - CROSS (P0): LLM-Native Interface — 4 tasks
+   - META: Self-bootstrap roadmap — 1 task
+   - Full dependency chain: A → B → C → D → E
+
+### Decisions Made
+
+1. **Fix Datalog before adding features** — Correctness > capability. The query engine is
+   the system's primary interface. A write-only store with broken reads is not a knowledge system.
+
+2. **LLM-first interface design** — Braid's primary users are AI coding agents. Every
+   interface surface optimized for LLM cognition: terse defaults (≤20 lines), structured
+   output (key:value), examples in help, actionable errors, composable entity IDs.
+
+3. **Phase structure** — 5 phases with clear dependency chain. Each phase has explicit
+   success criteria and spec traceability. No phase starts until its predecessor is complete.
+
+4. **Self-bootstrap the roadmap** — After observe command exists, transact roadmap items
+   into the braid store. The system tracks its own development (C7).
+
+5. **REPL as Stage 1 deliverable** — Interactive exploration mode transforms Braid from
+   "a tool you invoke" to "a partner you explore with."
+
+### Files Created
+
+- `docs/design/STATE_OF_BRAID.md` — comprehensive assessment + roadmap
+- `docs/design/LLM_NATIVE_INTERFACE.md` — LLM-first interface design guide
+
+### Open Questions
+
+1. **Datalog join root cause** — Is it variable binding, value type matching, entity ID
+   representation, or join ordering? Need investigation before fix.
+2. **REPL library** — rustyline vs reedline vs custom? Need to evaluate.
+3. **Budget measurement** — How to get k*_eff (available tokens) from inside a CLI tool?
+   Statusline hook? Environment variable? MCP response metadata?
+
+### Recommended Next Action
+
+**Start Phase A.1: Fix the Datalog multi-clause join bug.** This is P0, blocks everything.
+Investigation plan in bead brai-3u7v.1. Target: 4 hours, one focused session.
