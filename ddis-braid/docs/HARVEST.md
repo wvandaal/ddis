@@ -3113,3 +3113,79 @@ The harvest/query round-trip feels *correct*. When I harvest knowledge items and
 3. **Complete CLI Datalog + retraction** — massive dog-fooding enabler
 4. **Sheaf cohomology** (brai-299i) — H¹ obstruction for conflict detection
 5. **AgentId display in status** — same fix pattern as FM-025
+
+---
+
+## Session 011 — 2026-03-10 (Limit-Free Graph Analytics + Lanczos + Ricci)
+
+**Task**: Remove hard node-count limits from `braid analyze`, implement adaptive algorithms for unbounded scaling.
+**Traces to**: SEED.md §8 (Self-Improvement), §6 (Reconciliation), INV-QUERY-012..017
+
+### What Was Accomplished
+
+**Performance (prior session, committed this session):**
+- Fixed O(n⁴) → O(n³) cyclic Jacobi eigendecomposition (18T ops → ~n³ for n=658)
+- Index-based Brandes betweenness centrality (usize arrays, reusable buffers)
+- Euler characteristic β₁ = |E| - |V| + C in O(V+E) vs O(E³) edge Laplacian
+- Shared spectral decomposition: compute Laplacian spectrum once, reuse for Fiedler/Kirchhoff/HKT
+- Analytics caching in `.braid/.cache/analytics.json`
+
+**This session — limit-free adaptive algorithms:**
+1. `SparseLaplacian` — adjacency list + degree representation for O(m) matrix-vector products
+2. `lanczos_k_smallest` — Lanczos iteration: k smallest eigenvalues in O(k·m) vs O(n³) Jacobi
+3. `spectral_decomposition_adaptive` — Jacobi for n≤1000, Lanczos for n>1000
+4. `kirchhoff_from_partial_spectrum` — tail-estimated Kirchhoff from partial eigenvalues
+5. `ricci_curvature_adaptive` — exact BFS for n≤2000, landmark-based for n>2000
+6. `wasserstein_1_approx` — W₁ via approximate shortest-path metric
+7. Namespace-level Ricci curvature matrix — inter-domain structural analysis
+
+**Numerical robustness fixes:**
+- Clamped near-zero negative Laplacian eigenvalues (Jacobi artifacts → NaN in Cheeger)
+- Cheeger inequality vacuously true for disconnected graphs
+- VN entropy: clamp negative eigenvalues, renormalize density matrix spectrum (was 9.57 > max 8.84, now correctly 8.06/8.84)
+
+**Dog-fooding:**
+- Harvested 8 analytics insights into the store (connected components, spectral λ₂, β₁, Ricci mean/bottleneck, PageRank top, divergence Φ, algorithm count)
+- Store grew from 2666 → 2679 datoms
+- Dashboard now at 14 graph algorithms, all limit-free
+
+### Decisions Made
+
+1. **Lanczos threshold at n=1000** — below this, full Jacobi is faster due to overhead of Lanczos orthogonalization. Above, Lanczos computes 20 eigenvalues in O(20·m) vs O(n³).
+2. **Ricci exact threshold at n=2000** — all-pairs BFS needs n² memory (4M for n=2000), acceptable. Landmark approximation above that.
+3. **Landmark selection: PageRank + evenly spaced** — top PageRank nodes capture important structural positions; evenly spaced nodes ensure coverage of isolated components.
+4. **VN entropy eigenvalue clamping** — rather than switching to a numerically stable algorithm, clamp negative eigenvalues to 0 and renormalize. Pragmatic fix for the observed O(10⁻⁶) negative values.
+
+### Files Changed
+
+- `crates/braid-kernel/src/query/graph.rs` — +780 lines: SparseLaplacian, Lanczos, adaptive spectral/Ricci, 9 new tests
+- `crates/braid/src/commands/analyze.rs` — rewritten: removed all hard limits, namespace curvature matrix
+- `crates/braid-kernel/src/query/mod.rs` — updated re-exports
+- `crates/braid-kernel/src/lib.rs` — updated re-exports
+- `crates/braid-kernel/src/trilateral.rs` — VN entropy eigenvalue clamping fix
+
+### Quantitative Summary
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Tests passing | 397 | 405 |
+| Graph algorithms | 12 | 14 |
+| Hard node limits | 3 (1000, 500, 5000) | 0 |
+| New types | — | SparseLaplacian |
+| New functions | — | 6 (lanczos_k_smallest, spectral_decomposition_adaptive, kirchhoff_from_partial_spectrum, ricci_curvature_adaptive, wasserstein_1_approx, entity_namespace) |
+| VN entropy | 9.57 (INVALID) | 8.06 (correct) |
+| Store datoms | 2666 | 2679 |
+| Commits | — | 5 |
+
+### Open Questions
+
+1. **Betweenness centrality all zeros** — directed BC is inherently low for DAG-like stores. Should we add undirected betweenness as an alternative?
+2. **Largest SCC = 1** — the store has no strongly connected components. Is this expected for a spec-only store, or does it indicate missing cross-references?
+3. **Namespace curvature shows all edges as (tx) ↔ spec** — because Ref edges in bootstrap all originate from transaction entities. Need more inter-spec references for meaningful namespace-namespace curvature.
+
+### Recommended Next Action
+
+1. **Add undirected betweenness centrality** — for knowledge graphs, undirected paths are more meaningful
+2. **Cross-reference enrichment** — add inter-spec Ref edges (e.g., inv→inv dependencies, ADR→inv traceability) to make the graph structure richer
+3. **Spectral graph wavelets** — multi-scale analysis using heat kernel wavelets (already have the spectral decomposition infrastructure)
+4. **Budget-aware output** (Stage 1) — the dashboard is always full; should adapt to token budget
