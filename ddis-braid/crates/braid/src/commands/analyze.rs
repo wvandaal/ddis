@@ -97,6 +97,32 @@ fn build_entity_graph(store: &Store) -> DiGraph {
     graph
 }
 
+/// Resolve a display label to its namespace (or empty string if unknown).
+fn entity_namespace(store: &Store, label: &str) -> String {
+    // For labeled entities (e.g., ":spec/inv-store-001"), look up the namespace datom
+    for datom in store.datoms() {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        if datom.attribute.as_str() == ":db/ident" {
+            if let Value::Keyword(kw) = &datom.value {
+                if kw == label {
+                    // Found the entity — look for its namespace
+                    for d2 in store.entity_datoms(datom.entity) {
+                        if d2.attribute.as_str() == ":spec/namespace" {
+                            if let Value::Keyword(ns) = &d2.value {
+                                return ns.clone();
+                            }
+                        }
+                    }
+                    return String::new();
+                }
+            }
+        }
+    }
+    String::new()
+}
+
 /// Resolve an EntityId to a display label.
 fn resolve_label(store: &Store, entity: EntityId) -> String {
     for datom in store.entity_datoms(entity) {
@@ -305,6 +331,82 @@ fn compute_dashboard(store: &Store, path: &Path) -> String {
                 src, dst, summary.max_curvature
             ));
         }
+        // Namespace-level curvature: average κ for edges between namespaces.
+        // This reveals inter-domain structural relationships at the semantic level.
+        let mut ns_curvature_sum: BTreeMap<(String, String), (f64, usize)> = BTreeMap::new();
+
+        for ((src, dst), &kappa) in &curvatures {
+            let src_ns = entity_namespace(store, src);
+            let dst_ns = entity_namespace(store, dst);
+            let src_label = if src_ns.is_empty() {
+                "(tx)".to_string()
+            } else {
+                src_ns
+            };
+            let dst_label = if dst_ns.is_empty() {
+                "(tx)".to_string()
+            } else {
+                dst_ns
+            };
+            let key = if src_label <= dst_label {
+                (src_label, dst_label)
+            } else {
+                (dst_label, src_label)
+            };
+            let entry = ns_curvature_sum.entry(key).or_insert((0.0, 0));
+            entry.0 += kappa;
+            entry.1 += 1;
+        }
+
+        if !ns_curvature_sum.is_empty() {
+            // Sort by mean curvature (most negative first = biggest bottlenecks)
+            let mut ns_pairs: Vec<_> = ns_curvature_sum
+                .iter()
+                .map(|((a, b), (sum, count))| {
+                    let mean = sum / *count as f64;
+                    (a.clone(), b.clone(), mean, *count)
+                })
+                .collect();
+            ns_pairs.sort_by(|a, b| a.2.partial_cmp(&b.2).unwrap_or(std::cmp::Ordering::Equal));
+
+            out.push_str("  namespace curvature (inter-domain structure):\n");
+            // Bottom 3 (bottlenecks between domains)
+            out.push_str("    bottlenecks (negative κ = bridging):\n");
+            for (a, b, mean_k, count) in ns_pairs.iter().take(3) {
+                let label = if a == b {
+                    format!("{} (intra)", a)
+                } else {
+                    format!("{} ↔ {}", a, b)
+                };
+                out.push_str(&format!(
+                    "      κ={:+.4}  {} ({} edges)\n",
+                    mean_k, label, count
+                ));
+            }
+            // Top 3 (tightest clusters)
+            let positive_pairs: Vec<_> = ns_pairs.iter().rev().take(3).collect();
+            if positive_pairs
+                .first()
+                .is_some_and(|(_, _, k, _)| *k > 1e-10)
+            {
+                out.push_str("    clusters (positive κ = cohesion):\n");
+                for (a, b, mean_k, count) in &positive_pairs {
+                    if *mean_k > 1e-10 {
+                        let label = if a == b {
+                            format!("{} (intra)", a)
+                        } else {
+                            format!("{} ↔ {}", a, b)
+                        };
+                        out.push_str(&format!(
+                            "      κ={:+.4}  {} ({} edges)\n",
+                            mean_k, label, count
+                        ));
+                    }
+                }
+            }
+            algo_count += 1;
+        }
+
         algo_count += 1;
     } else {
         out.push_str("  (need ≥ 2 nodes and ≥ 1 edge for curvature analysis)\n");
