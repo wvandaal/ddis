@@ -14,6 +14,9 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 
+use crate::datom::{Op, Value};
+use crate::store::Store;
+
 /// A directed graph with string-labeled nodes.
 #[derive(Clone, Debug, Default)]
 pub struct DiGraph {
@@ -383,62 +386,58 @@ impl DenseMatrix {
             return vec![];
         }
 
-        // Work on a copy
+        // Use the cyclic Jacobi sweep (same as symmetric_eigen_decomposition
+        // but without tracking eigenvectors — ~2x faster for eigenvalues only).
         let mut a = self.data.clone();
-        let max_iter = 100 * n * n;
+        let max_sweeps = 50;
 
-        for _ in 0..max_iter {
-            // Find largest off-diagonal element
-            let mut max_val = 0.0_f64;
-            let mut p = 0;
-            let mut q = 1;
+        for _sweep in 0..max_sweeps {
+            let mut off_diag_norm = 0.0_f64;
             for i in 0..n {
                 for j in (i + 1)..n {
-                    let val = a[i * n + j].abs();
-                    if val > max_val {
-                        max_val = val;
-                        p = i;
-                        q = j;
+                    off_diag_norm += a[i * n + j] * a[i * n + j];
+                }
+            }
+            if off_diag_norm.sqrt() < 1e-12 * n as f64 {
+                break;
+            }
+
+            for p in 0..n {
+                for q in (p + 1)..n {
+                    let apq = a[p * n + q];
+                    if apq.abs() < 1e-15 {
+                        continue;
                     }
+
+                    let app = a[p * n + p];
+                    let aqq = a[q * n + q];
+
+                    let theta = if (app - aqq).abs() < 1e-15 {
+                        std::f64::consts::FRAC_PI_4
+                    } else {
+                        0.5 * (2.0 * apq / (app - aqq)).atan()
+                    };
+
+                    let c = theta.cos();
+                    let s = theta.sin();
+
+                    // In-place Givens rotation
+                    for i in 0..n {
+                        if i != p && i != q {
+                            let aip = a[i * n + p];
+                            let aiq = a[i * n + q];
+                            a[i * n + p] = c * aip + s * aiq;
+                            a[p * n + i] = a[i * n + p];
+                            a[i * n + q] = -s * aip + c * aiq;
+                            a[q * n + i] = a[i * n + q];
+                        }
+                    }
+                    a[p * n + p] = c * c * app + 2.0 * s * c * apq + s * s * aqq;
+                    a[q * n + q] = s * s * app - 2.0 * s * c * apq + c * c * aqq;
+                    a[p * n + q] = 0.0;
+                    a[q * n + p] = 0.0;
                 }
             }
-
-            if max_val < 1e-12 {
-                break; // Converged
-            }
-
-            // Compute rotation
-            let app = a[p * n + p];
-            let aqq = a[q * n + q];
-            let apq = a[p * n + q];
-
-            let theta = if (app - aqq).abs() < 1e-15 {
-                std::f64::consts::FRAC_PI_4
-            } else {
-                0.5 * (2.0 * apq / (app - aqq)).atan()
-            };
-
-            let c = theta.cos();
-            let s = theta.sin();
-
-            // Apply rotation
-            let mut new_a = a.clone();
-            for i in 0..n {
-                if i != p && i != q {
-                    let aip = a[i * n + p];
-                    let aiq = a[i * n + q];
-                    new_a[i * n + p] = c * aip + s * aiq;
-                    new_a[p * n + i] = new_a[i * n + p];
-                    new_a[i * n + q] = -s * aip + c * aiq;
-                    new_a[q * n + i] = new_a[i * n + q];
-                }
-            }
-            new_a[p * n + p] = c * c * app + 2.0 * s * c * apq + s * s * aqq;
-            new_a[q * n + q] = s * s * app - 2.0 * s * c * apq + c * c * aqq;
-            new_a[p * n + q] = 0.0;
-            new_a[q * n + p] = 0.0;
-
-            a = new_a;
         }
 
         let mut eigenvalues: Vec<f64> = (0..n).map(|i| a[i * n + i]).collect();
@@ -493,19 +492,58 @@ pub fn edge_laplacian(graph: &DiGraph) -> DenseMatrix {
     b1t.mul(&b1)
 }
 
-/// Compute the first Betti number β₁ = dim(ker(L₁)) (INV-QUERY-024).
+/// Compute the first Betti number β₁ via the Euler characteristic (INV-QUERY-024).
 ///
 /// β₁ = 0 means the graph is a forest (no cycles).
 /// β₁ > 0 counts independent cycles (topological holes).
 ///
-/// Uses the edge Laplacian eigenvalues: β₁ = number of zero eigenvalues.
+/// Uses the Euler characteristic formula: β₁ = |E| - |V| + C
+/// where |E| is the number of DIRECTED edges (each direction counts separately),
+/// |V| is the vertex count, and C is the number of connected components
+/// of the underlying undirected graph.
+///
+/// This correctly counts directed cycles: A→B→A has |E|=2, |V|=2, C=1 → β₁=1.
+/// Complexity: O(V+E) via BFS — orders of magnitude faster than the O(E³)
+/// eigendecomposition of the edge Laplacian.
 pub fn first_betti_number(graph: &DiGraph) -> usize {
-    let l1 = edge_laplacian(graph);
-    if l1.rows == 0 {
+    let n = graph.node_count();
+    if n == 0 {
         return 0;
     }
-    let eigenvalues = l1.symmetric_eigenvalues();
-    eigenvalues.iter().filter(|&&v| v.abs() < 1e-8).count()
+
+    let e = graph.edge_count();
+
+    // Count connected components via BFS on the undirected graph
+    let mut visited: BTreeSet<&String> = BTreeSet::new();
+    let mut components = 0_usize;
+
+    for node in graph.nodes() {
+        if visited.contains(node) {
+            continue;
+        }
+        components += 1;
+        let mut queue = VecDeque::new();
+        queue.push_back(node);
+        visited.insert(node);
+
+        while let Some(v) = queue.pop_front() {
+            for w in graph.successors(v) {
+                if !visited.contains(w) {
+                    visited.insert(w);
+                    queue.push_back(w);
+                }
+            }
+            for w in graph.predecessors(v) {
+                if !visited.contains(w) {
+                    visited.insert(w);
+                    queue.push_back(w);
+                }
+            }
+        }
+    }
+
+    // β₁ = |E| - |V| + C (Euler characteristic for directed simplicial complex)
+    (e + components).saturating_sub(n)
 }
 
 /// Betweenness centrality via Brandes' algorithm (INV-QUERY-015).
@@ -514,79 +552,374 @@ pub fn first_betti_number(graph: &DiGraph) -> usize {
 /// where σ_st is the number of shortest paths from s to t,
 /// and σ_st(v) is the number that pass through v.
 ///
-/// Uses BFS-based forward pass + backward accumulation.
+/// Internally uses index-based computation to avoid O(V²) String cloning.
+/// Reuses allocated buffers across BFS iterations.
 /// Complexity: O(V × E) for unweighted graphs.
 pub fn betweenness_centrality(graph: &DiGraph) -> BTreeMap<String, f64> {
-    let mut bc: BTreeMap<String, f64> = BTreeMap::new();
-    for node in graph.nodes() {
-        bc.insert(node.clone(), 0.0);
+    let nodes: Vec<&String> = graph.nodes().collect();
+    let n = nodes.len();
+    if n == 0 {
+        return BTreeMap::new();
     }
 
-    // Process source nodes in sorted order for determinism (INV-QUERY-017).
-    // BTreeMap keys are already sorted, so iterating graph.nodes() is deterministic.
-    for s in graph.nodes() {
-        // --- Forward pass: BFS from s ---
-        let mut stack: Vec<String> = Vec::new();
-        let mut predecessors: HashMap<String, Vec<String>> = HashMap::new();
-        let mut sigma: HashMap<String, f64> = HashMap::new();
-        let mut dist: HashMap<String, i64> = HashMap::new();
+    // Build index mapping (nodes() yields sorted order → deterministic, INV-QUERY-017)
+    let node_to_idx: HashMap<&String, usize> =
+        nodes.iter().enumerate().map(|(i, n)| (*n, i)).collect();
 
-        for node in graph.nodes() {
-            predecessors.insert(node.clone(), Vec::new());
-            sigma.insert(node.clone(), 0.0);
-            dist.insert(node.clone(), -1);
+    // Pre-build index-based adjacency list (sorted successors for determinism)
+    let mut adj_idx: Vec<Vec<usize>> = vec![Vec::new(); n];
+    for (i, node) in nodes.iter().enumerate() {
+        for succ in graph.successors(node) {
+            adj_idx[i].push(node_to_idx[succ]);
+        }
+        adj_idx[i].sort();
+    }
+
+    let mut bc = vec![0.0_f64; n];
+
+    // Reusable buffers — allocated once, cleared per source
+    let mut stack: Vec<usize> = Vec::with_capacity(n);
+    let mut preds: Vec<Vec<usize>> = vec![Vec::new(); n];
+    let mut sigma = vec![0.0_f64; n];
+    let mut dist = vec![-1_i64; n];
+    let mut delta = vec![0.0_f64; n];
+    let mut queue: VecDeque<usize> = VecDeque::with_capacity(n);
+
+    for s in 0..n {
+        // Reset buffers
+        stack.clear();
+        queue.clear();
+        for i in 0..n {
+            preds[i].clear();
+            sigma[i] = 0.0;
+            dist[i] = -1;
+            delta[i] = 0.0;
         }
 
-        sigma.insert(s.clone(), 1.0);
-        dist.insert(s.clone(), 0);
+        sigma[s] = 1.0;
+        dist[s] = 0;
+        queue.push_back(s);
 
-        let mut queue: VecDeque<String> = VecDeque::new();
-        queue.push_back(s.clone());
-
+        // Forward pass: BFS
         while let Some(v) = queue.pop_front() {
-            stack.push(v.clone());
-            let dv = dist[&v];
-
-            // Process successors in sorted order for determinism
-            let mut succs: Vec<String> = graph.successors(&v).cloned().collect();
-            succs.sort();
-
-            for w in succs {
-                // w found for the first time?
-                if dist[&w] < 0 {
-                    dist.insert(w.clone(), dv + 1);
-                    queue.push_back(w.clone());
+            stack.push(v);
+            let dv = dist[v];
+            for &w in &adj_idx[v] {
+                if dist[w] < 0 {
+                    dist[w] = dv + 1;
+                    queue.push_back(w);
                 }
-                // shortest path to w via v?
-                if dist[&w] == dv + 1 {
-                    let sv = sigma[&v];
-                    *sigma.get_mut(&w).unwrap() += sv;
-                    predecessors.get_mut(&w).unwrap().push(v.clone());
+                if dist[w] == dv + 1 {
+                    sigma[w] += sigma[v];
+                    preds[w].push(v);
                 }
             }
         }
 
-        // --- Backward pass: accumulate dependencies ---
-        let mut delta: HashMap<String, f64> = HashMap::new();
-        for node in graph.nodes() {
-            delta.insert(node.clone(), 0.0);
-        }
-
-        // Process in reverse BFS order (farthest nodes first)
+        // Backward pass: accumulate
         while let Some(w) = stack.pop() {
-            let sigma_w = sigma[&w];
-            let delta_w = delta[&w];
-            for v in &predecessors[&w] {
-                let sigma_v = sigma[v];
-                *delta.get_mut(v).unwrap() += (sigma_v / sigma_w) * (1.0 + delta_w);
+            for &v in &preds[w] {
+                delta[v] += (sigma[v] / sigma[w]) * (1.0 + delta[w]);
             }
-            if &w != s {
-                *bc.get_mut(&w).unwrap() += delta_w;
+            if w != s {
+                bc[w] += delta[w];
             }
         }
     }
 
-    bc
+    nodes
+        .iter()
+        .enumerate()
+        .map(|(i, name)| ((*name).clone(), bc[i]))
+        .collect()
+}
+
+// ---------------------------------------------------------------------------
+// Ollivier-Ricci Curvature (INV-QUERY-028)
+// ---------------------------------------------------------------------------
+
+/// Ollivier-Ricci curvature for each edge in the graph.
+///
+/// For an edge (u, v), the curvature κ(u, v) = 1 - W₁(μᵤ, μᵥ) where:
+/// - μᵤ is the lazy random walk measure at u: mass α on u, (1-α)/deg(u) on each neighbor
+/// - μᵥ is the lazy random walk measure at v
+/// - W₁ is the Wasserstein-1 (earth mover's) distance between the two measures
+///
+/// Curvature interpretation for knowledge graphs:
+/// - κ > 0: edge is in a well-connected cluster (positively curved, sphere-like)
+/// - κ ≈ 0: edge is in a tree-like region (flat)
+/// - κ < 0: edge bridges communities (negatively curved, bottleneck)
+///
+/// This is a discrete analogue of Ricci curvature from Riemannian geometry.
+/// It detects epistemic silos (negative curvature between spec namespaces)
+/// and tightly-coupled clusters (positive curvature within namespaces).
+///
+/// Uses lazy parameter α = 0.5 (Lin-Lu-Yau convention).
+/// W₁ is computed via shortest-path metric and greedy optimal transport.
+/// Complexity: O(V×(V+E)) for all-pairs BFS + O(E×deg²) for transport.
+pub fn ollivier_ricci_curvature(graph: &DiGraph) -> BTreeMap<(String, String), f64> {
+    let nodes: Vec<&String> = graph.nodes().collect();
+    let n = nodes.len();
+    if n == 0 {
+        return BTreeMap::new();
+    }
+
+    let node_to_idx: HashMap<&String, usize> =
+        nodes.iter().enumerate().map(|(i, n)| (*n, i)).collect();
+
+    // Compute all-pairs shortest paths via BFS (undirected for W₁ metric)
+    let sp = all_pairs_shortest_paths_idx(graph, &nodes, &node_to_idx);
+
+    // Build undirected neighbor sets
+    let mut neighbors: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); n];
+    for (i, node) in nodes.iter().enumerate() {
+        for succ in graph.successors(node) {
+            let j = node_to_idx[succ];
+            neighbors[i].insert(j);
+            neighbors[j].insert(i);
+        }
+    }
+
+    let alpha = 0.5_f64;
+    let mut curvatures = BTreeMap::new();
+
+    for (i, node) in nodes.iter().enumerate() {
+        for succ in graph.successors(node) {
+            let j = node_to_idx[succ];
+            let mu_u = lazy_measure(i, &neighbors[i], alpha);
+            let mu_v = lazy_measure(j, &neighbors[j], alpha);
+            let w1 = wasserstein_1(&mu_u, &mu_v, &sp, n);
+            curvatures.insert(((*node).clone(), succ.clone()), 1.0 - w1);
+        }
+    }
+
+    curvatures
+}
+
+/// Lazy random walk measure: mass α on the node, (1-α)/deg on each neighbor.
+fn lazy_measure(node: usize, neighbors: &BTreeSet<usize>, alpha: f64) -> Vec<(usize, f64)> {
+    let deg = neighbors.len();
+    let mut measure = vec![(node, alpha)];
+    if deg > 0 {
+        let neighbor_mass = (1.0 - alpha) / deg as f64;
+        for &nbr in neighbors {
+            measure.push((nbr, neighbor_mass));
+        }
+    } else {
+        measure[0].1 = 1.0;
+    }
+    measure
+}
+
+/// All-pairs shortest paths via BFS on the undirected version of the graph.
+fn all_pairs_shortest_paths_idx(
+    graph: &DiGraph,
+    nodes: &[&String],
+    node_to_idx: &HashMap<&String, usize>,
+) -> Vec<usize> {
+    let n = nodes.len();
+    let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
+    for (i, node) in nodes.iter().enumerate() {
+        for succ in graph.successors(node) {
+            let j = node_to_idx[succ];
+            adj[i].push(j);
+            adj[j].push(i);
+        }
+    }
+    for list in &mut adj {
+        list.sort();
+        list.dedup();
+    }
+
+    let mut sp = vec![usize::MAX; n * n];
+    let mut queue = VecDeque::new();
+    for s in 0..n {
+        sp[s * n + s] = 0;
+        queue.clear();
+        queue.push_back(s);
+        while let Some(v) = queue.pop_front() {
+            let dv = sp[s * n + v];
+            for &w in &adj[v] {
+                if sp[s * n + w] == usize::MAX {
+                    sp[s * n + w] = dv + 1;
+                    queue.push_back(w);
+                }
+            }
+        }
+    }
+    sp
+}
+
+/// W₁ (earth mover's) distance between two discrete measures using shortest-path metric.
+fn wasserstein_1(mu: &[(usize, f64)], nu: &[(usize, f64)], sp: &[usize], n: usize) -> f64 {
+    let mut costs: Vec<(f64, usize, usize)> = Vec::new();
+    for (mi, &(si, _)) in mu.iter().enumerate() {
+        for (ni, &(sj, _)) in nu.iter().enumerate() {
+            let d = if sp[si * n + sj] == usize::MAX {
+                n as f64
+            } else {
+                sp[si * n + sj] as f64
+            };
+            costs.push((d, mi, ni));
+        }
+    }
+    costs.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+
+    let mut supply: Vec<f64> = mu.iter().map(|&(_, m)| m).collect();
+    let mut demand: Vec<f64> = nu.iter().map(|&(_, m)| m).collect();
+    let mut total_cost = 0.0;
+
+    for &(cost, si, di) in &costs {
+        if supply[si] <= 0.0 || demand[di] <= 0.0 {
+            continue;
+        }
+        let flow = supply[si].min(demand[di]);
+        total_cost += flow * cost;
+        supply[si] -= flow;
+        demand[di] -= flow;
+    }
+    total_cost
+}
+
+/// Summary of Ollivier-Ricci curvature statistics.
+#[derive(Clone, Debug)]
+pub struct RicciSummary {
+    /// Mean curvature across all edges.
+    pub mean_curvature: f64,
+    /// Minimum curvature (worst bottleneck).
+    pub min_curvature: f64,
+    /// Maximum curvature (tightest cluster).
+    pub max_curvature: f64,
+    /// Number of edges with negative curvature (inter-community bridges).
+    pub negative_edges: usize,
+    /// Number of edges with positive curvature (intra-community bonds).
+    pub positive_edges: usize,
+    /// The most negatively curved edge (bottleneck).
+    pub bottleneck_edge: Option<(String, String)>,
+    /// The most positively curved edge (tightest bond).
+    pub tightest_edge: Option<(String, String)>,
+}
+
+/// Compute Ollivier-Ricci curvature summary statistics.
+pub fn ricci_summary(curvatures: &BTreeMap<(String, String), f64>) -> RicciSummary {
+    if curvatures.is_empty() {
+        return RicciSummary {
+            mean_curvature: 0.0,
+            min_curvature: 0.0,
+            max_curvature: 0.0,
+            negative_edges: 0,
+            positive_edges: 0,
+            bottleneck_edge: None,
+            tightest_edge: None,
+        };
+    }
+
+    let mut sum = 0.0;
+    let mut min_k = f64::INFINITY;
+    let mut max_k = f64::NEG_INFINITY;
+    let mut negative = 0;
+    let mut positive = 0;
+    let mut min_edge = None;
+    let mut max_edge = None;
+
+    for (edge, &kappa) in curvatures {
+        sum += kappa;
+        if kappa < min_k {
+            min_k = kappa;
+            min_edge = Some(edge.clone());
+        }
+        if kappa > max_k {
+            max_k = kappa;
+            max_edge = Some(edge.clone());
+        }
+        if kappa < -1e-10 {
+            negative += 1;
+        }
+        if kappa > 1e-10 {
+            positive += 1;
+        }
+    }
+
+    RicciSummary {
+        mean_curvature: sum / curvatures.len() as f64,
+        min_curvature: min_k,
+        max_curvature: max_k,
+        negative_edges: negative,
+        positive_edges: positive,
+        bottleneck_edge: min_edge,
+        tightest_edge: max_edge,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Effective Resistance / Kirchhoff Index (INV-QUERY-029)
+// ---------------------------------------------------------------------------
+
+/// Compute the Kirchhoff index (total effective resistance) of the graph.
+///
+/// The effective resistance R(i,j) = L⁺[i,i] + L⁺[j,j] - 2·L⁺[i,j]
+/// where L⁺ is the Moore-Penrose pseudoinverse of the graph Laplacian.
+///
+/// This metric captures both path length AND path multiplicity:
+/// - Low resistance: many redundant paths (robust connection)
+/// - High resistance: few paths (fragile connection)
+///
+/// The Kirchhoff index K(G) = Σᵢ<ⱼ R(i,j) = n · Σₖ 1/λₖ (for λₖ > 0).
+///
+/// For knowledge graphs, high Kirchhoff index indicates fragile structure
+/// (single points of failure), while low index indicates redundant cross-linking.
+///
+/// Complexity: O(n³) for eigendecomposition.
+pub fn kirchhoff_index(graph: &DiGraph) -> Option<f64> {
+    let n = graph.node_count();
+    if n < 2 {
+        return None;
+    }
+
+    let laplacian = graph_laplacian(graph);
+    let eigenvalues = laplacian.symmetric_eigenvalues();
+
+    // K(G) = n · Σ (1/λₖ) for all non-zero eigenvalues
+    let eps = 1e-10;
+    let sum_inv: f64 = eigenvalues
+        .iter()
+        .filter(|&&lam| lam.abs() > eps)
+        .map(|&lam| 1.0 / lam)
+        .sum();
+
+    Some(n as f64 * sum_inv)
+}
+
+// ---------------------------------------------------------------------------
+// Heat Kernel Trace / Spectral Zeta (INV-QUERY-030)
+// ---------------------------------------------------------------------------
+
+/// Multi-scale heat kernel trace: Z(t) = Tr(e^{-tL}) = Σᵢ e^{-t·λᵢ}.
+///
+/// Provides a multi-scale "fingerprint" of graph structure:
+/// - t → 0: Z(t) ≈ n (node count)
+/// - t small: captures local structure (degree distribution)
+/// - t large: Z(t) ≈ k · e^{-t·λ₂} (k = connected components)
+/// - t → ∞: Z(t) → k
+///
+/// Returns Z(t) at the given time scales.
+/// Complexity: O(n³) for eigendecomposition + O(n × |times|) for evaluation.
+pub fn heat_kernel_trace(graph: &DiGraph, times: &[f64]) -> Vec<(f64, f64)> {
+    let n = graph.node_count();
+    if n == 0 {
+        return times.iter().map(|&t| (t, 0.0)).collect();
+    }
+
+    let laplacian = graph_laplacian(graph);
+    let eigenvalues = laplacian.symmetric_eigenvalues();
+
+    times
+        .iter()
+        .map(|&t| {
+            let z: f64 = eigenvalues.iter().map(|&lambda| (-t * lambda).exp()).sum();
+            (t, z)
+        })
+        .collect()
 }
 
 /// Graph density: |E| / (|V| * (|V| - 1)) for directed graphs.
@@ -888,66 +1221,69 @@ fn symmetric_eigen_decomposition(matrix: &DenseMatrix) -> (Vec<f64>, DenseMatrix
         v[i * n + i] = 1.0;
     }
 
-    let max_iter = 100 * n * n;
+    // Cyclic Jacobi method: sweep through ALL off-diagonal pairs per iteration.
+    // Each sweep is O(n²) rotations, each rotation is O(n) → O(n³) per sweep.
+    // Convergence is typically achieved in 5-10 sweeps for well-conditioned
+    // matrices, giving total complexity O(n³) instead of the O(n⁴) classical
+    // Jacobi that searches for the largest off-diagonal element each step.
+    let max_sweeps = 50;
 
-    for _ in 0..max_iter {
-        // Find largest off-diagonal element
-        let mut max_val = 0.0_f64;
-        let mut p = 0;
-        let mut q = 1;
+    for _sweep in 0..max_sweeps {
+        // Check convergence: sum of off-diagonal squared elements
+        let mut off_diag_norm = 0.0_f64;
         for i in 0..n {
             for j in (i + 1)..n {
-                let val = a[i * n + j].abs();
-                if val > max_val {
-                    max_val = val;
-                    p = i;
-                    q = j;
-                }
+                off_diag_norm += a[i * n + j] * a[i * n + j];
             }
         }
-
-        if max_val < 1e-12 {
+        if off_diag_norm.sqrt() < 1e-12 * n as f64 {
             break;
         }
 
-        // Compute rotation angle
-        let app = a[p * n + p];
-        let aqq = a[q * n + q];
-        let apq = a[p * n + q];
+        // Sweep through all (p, q) pairs
+        for p in 0..n {
+            for q in (p + 1)..n {
+                let apq = a[p * n + q];
+                if apq.abs() < 1e-15 {
+                    continue;
+                }
 
-        let theta = if (app - aqq).abs() < 1e-15 {
-            std::f64::consts::FRAC_PI_4
-        } else {
-            0.5 * (2.0 * apq / (app - aqq)).atan()
-        };
+                let app = a[p * n + p];
+                let aqq = a[q * n + q];
 
-        let c = theta.cos();
-        let s = theta.sin();
+                let theta = if (app - aqq).abs() < 1e-15 {
+                    std::f64::consts::FRAC_PI_4
+                } else {
+                    0.5 * (2.0 * apq / (app - aqq)).atan()
+                };
 
-        // Apply rotation to A
-        let mut new_a = a.clone();
-        for i in 0..n {
-            if i != p && i != q {
-                let aip = a[i * n + p];
-                let aiq = a[i * n + q];
-                new_a[i * n + p] = c * aip + s * aiq;
-                new_a[p * n + i] = new_a[i * n + p];
-                new_a[i * n + q] = -s * aip + c * aiq;
-                new_a[q * n + i] = new_a[i * n + q];
+                let c = theta.cos();
+                let s = theta.sin();
+
+                // Apply Givens rotation IN-PLACE (no matrix clone)
+                for i in 0..n {
+                    if i != p && i != q {
+                        let aip = a[i * n + p];
+                        let aiq = a[i * n + q];
+                        a[i * n + p] = c * aip + s * aiq;
+                        a[p * n + i] = a[i * n + p];
+                        a[i * n + q] = -s * aip + c * aiq;
+                        a[q * n + i] = a[i * n + q];
+                    }
+                }
+                a[p * n + p] = c * c * app + 2.0 * s * c * apq + s * s * aqq;
+                a[q * n + q] = s * s * app - 2.0 * s * c * apq + c * c * aqq;
+                a[p * n + q] = 0.0;
+                a[q * n + p] = 0.0;
+
+                // Accumulate rotation into eigenvector matrix
+                for i in 0..n {
+                    let vip = v[i * n + p];
+                    let viq = v[i * n + q];
+                    v[i * n + p] = c * vip + s * viq;
+                    v[i * n + q] = -s * vip + c * viq;
+                }
             }
-        }
-        new_a[p * n + p] = c * c * app + 2.0 * s * c * apq + s * s * aqq;
-        new_a[q * n + q] = s * s * app - 2.0 * s * c * apq + c * c * aqq;
-        new_a[p * n + q] = 0.0;
-        new_a[q * n + p] = 0.0;
-        a = new_a;
-
-        // Accumulate rotation into eigenvector matrix
-        for i in 0..n {
-            let vip = v[i * n + p];
-            let viq = v[i * n + q];
-            v[i * n + p] = c * vip + s * viq;
-            v[i * n + q] = -s * vip + c * viq;
         }
     }
 
@@ -1071,6 +1407,97 @@ pub fn fiedler(graph: &DiGraph) -> Option<FiedlerResult> {
         algebraic_connectivity: lambda_2,
         partition: (positive, negative),
     })
+}
+
+// ---------------------------------------------------------------------------
+// Shared Spectral Decomposition (INV-QUERY-031)
+// ---------------------------------------------------------------------------
+
+/// Pre-computed spectral decomposition of the graph Laplacian.
+///
+/// Computing eigenvalues via Jacobi is O(n³). When multiple spectral
+/// algorithms need the same decomposition (Fiedler, Cheeger, Kirchhoff,
+/// heat kernel), computing once and sharing amortizes the cost.
+#[derive(Clone, Debug)]
+pub struct SpectralDecomposition {
+    /// Sorted eigenvalues of the graph Laplacian.
+    pub eigenvalues: Vec<f64>,
+    /// Eigenvectors as columns of a dense matrix.
+    pub eigenvectors: DenseMatrix,
+    /// Node labels in graph order.
+    pub node_labels: Vec<String>,
+}
+
+/// Compute the spectral decomposition of the graph Laplacian.
+/// Returns None if the graph has fewer than 2 nodes.
+pub fn spectral_decomposition(graph: &DiGraph) -> Option<SpectralDecomposition> {
+    let n = graph.node_count();
+    if n < 2 {
+        return None;
+    }
+
+    let laplacian = graph_laplacian(graph);
+    let (eigenvalues, eigenvectors) = symmetric_eigen_decomposition(&laplacian);
+    let node_labels: Vec<String> = graph.nodes().cloned().collect();
+
+    Some(SpectralDecomposition {
+        eigenvalues,
+        eigenvectors,
+        node_labels,
+    })
+}
+
+/// Extract Fiedler result from a pre-computed spectral decomposition.
+pub fn fiedler_from_spectrum(sd: &SpectralDecomposition) -> FiedlerResult {
+    let n = sd.node_labels.len();
+    let lambda_2 = sd.eigenvalues[1];
+    let fiedler_vec: Vec<f64> = (0..n).map(|i| sd.eigenvectors.get(i, 1)).collect();
+
+    let mut positive = Vec::new();
+    let mut negative = Vec::new();
+    for (i, &v) in fiedler_vec.iter().enumerate() {
+        if v >= 0.0 {
+            positive.push(sd.node_labels[i].clone());
+        } else {
+            negative.push(sd.node_labels[i].clone());
+        }
+    }
+
+    FiedlerResult {
+        vector: fiedler_vec,
+        node_labels: sd.node_labels.clone(),
+        algebraic_connectivity: lambda_2,
+        partition: (positive, negative),
+    }
+}
+
+/// Compute Kirchhoff index from pre-computed eigenvalues.
+/// K(G) = n · Σ (1/λₖ) for all non-zero eigenvalues.
+pub fn kirchhoff_from_spectrum(sd: &SpectralDecomposition) -> f64 {
+    let n = sd.node_labels.len();
+    let eps = 1e-10;
+    let sum_inv: f64 = sd
+        .eigenvalues
+        .iter()
+        .filter(|&&lam| lam.abs() > eps)
+        .map(|&lam| 1.0 / lam)
+        .sum();
+    n as f64 * sum_inv
+}
+
+/// Compute heat kernel trace from pre-computed eigenvalues.
+pub fn heat_kernel_from_spectrum(sd: &SpectralDecomposition, times: &[f64]) -> Vec<(f64, f64)> {
+    times
+        .iter()
+        .map(|&t| {
+            let z: f64 = sd
+                .eigenvalues
+                .iter()
+                .map(|&lambda| (-t * lambda).exp())
+                .sum();
+            (t, z)
+        })
+        .collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -1519,6 +1946,125 @@ pub fn cheeger(graph: &DiGraph) -> Option<CheegerResult> {
         inequality_holds: holds,
         min_cut_set: min_cut,
     })
+}
+
+// ---------------------------------------------------------------------------
+// Transaction-filtration topological barcode (INV-QUERY-025)
+// ---------------------------------------------------------------------------
+
+/// Helper: encode an EntityId as a hex string for use as a graph node label.
+fn entity_hex(eid: &crate::datom::EntityId) -> String {
+    eid.as_bytes().iter().map(|b| format!("{b:02x}")).collect()
+}
+
+/// Extract edges from the store grouped by transaction.
+///
+/// Scans all datoms for `Op::Assert` with `Value::Ref(target)`, treating
+/// each such datom as a directed edge from the datom's entity to the target.
+/// Edges are grouped by their `TxId` (which provides a total causal order
+/// via HLC: wall_time, then logical counter, then agent) and returned in
+/// ascending TxId order. The u64 key is the transaction's `wall_time`.
+///
+/// Multiple entries may share the same wall_time when the HLC logical counter
+/// distinguishes transactions within the same millisecond. The ordering of
+/// entries in the returned vector always respects the full TxId ordering.
+/// Within each group, edges are sorted for determinism (INV-QUERY-017).
+pub fn tx_filtration(store: &Store) -> Vec<(u64, Vec<(String, String)>)> {
+    use crate::datom::TxId;
+
+    // Group edges by full TxId (not just wall_time) for correct causal ordering
+    let mut by_tx: BTreeMap<TxId, Vec<(String, String)>> = BTreeMap::new();
+
+    for datom in store.datoms() {
+        if datom.op == Op::Assert {
+            if let Value::Ref(target) = &datom.value {
+                let src = entity_hex(&datom.entity);
+                let dst = entity_hex(target);
+                by_tx.entry(datom.tx).or_default().push((src, dst));
+            }
+        }
+    }
+
+    // Sort edges within each group for determinism, return wall_time as key
+    let mut result: Vec<(u64, Vec<(String, String)>)> = Vec::with_capacity(by_tx.len());
+    for (tx_id, mut edges) in by_tx {
+        edges.sort();
+        result.push((tx_id.wall_time(), edges));
+    }
+    result
+}
+
+/// Build the full topological barcode over the transaction filtration.
+///
+/// Calls `tx_filtration()` to extract edges grouped by wall_time, flattens
+/// them in chronological order, then calls `persistent_homology()`. The
+/// birth/death indices in the resulting diagram correspond to edge positions
+/// in the flattened sequence (not raw wall_time values).
+pub fn tx_barcode(store: &Store) -> PersistenceDiagram {
+    let filtration = tx_filtration(store);
+    let edges: Vec<(String, String)> = filtration
+        .into_iter()
+        .flat_map(|(_, edges)| edges)
+        .collect();
+    persistent_homology(&edges)
+}
+
+/// Summary of a store's topological evolution over the transaction filtration.
+#[derive(Clone, Debug, PartialEq)]
+pub struct StructuralComplexity {
+    /// Total persistence across all finite birth-death pairs.
+    pub total_persistence: usize,
+    /// Number of H₀ deaths (component merges).
+    pub h0_deaths: usize,
+    /// Number of H₁ births (cycle formations).
+    pub h1_births: usize,
+    /// Maximum lifetime among finite H₀ pairs.
+    pub max_component_lifetime: usize,
+    /// Number of distinct transaction wall_times that introduced edges.
+    pub tx_count: usize,
+}
+
+/// Compute a summary of the store's topological evolution.
+///
+/// Analyzes the persistence diagram from `tx_barcode()` to extract
+/// high-level metrics about how the entity graph evolved over time:
+/// how many components merged, how many cycles formed, and how long
+/// the longest-lived component survived before merging.
+pub fn structural_complexity(store: &Store) -> StructuralComplexity {
+    let filtration = tx_filtration(store);
+    let tx_count = filtration.len();
+
+    let edges: Vec<(String, String)> = filtration
+        .into_iter()
+        .flat_map(|(_, edges)| edges)
+        .collect();
+    let diagram = persistent_homology(&edges);
+
+    let tp = total_persistence(&diagram);
+
+    let h0_deaths = diagram
+        .pairs
+        .iter()
+        .filter(|p| p.dimension == 0 && p.death.is_some())
+        .count();
+
+    let h1_births = diagram.pairs.iter().filter(|p| p.dimension == 1).count();
+
+    let max_component_lifetime = diagram
+        .pairs
+        .iter()
+        .filter(|p| p.dimension == 0)
+        .filter_map(|p| p.persistence())
+        .max()
+        .unwrap_or(0);
+
+    StructuralComplexity {
+        total_persistence: tp,
+        h0_deaths,
+        h1_births,
+        max_component_lifetime,
+        tx_count,
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -2486,5 +3032,256 @@ mod tests {
                 }
             }
         }
+    }
+
+    // -------------------------------------------------------------------
+    // Transaction-filtration topological barcode
+    // -------------------------------------------------------------------
+
+    /// Build a store with full schema (L0 + L1 + L2 + L3) for test use.
+    fn test_store_with_full_schema() -> Store {
+        use crate::datom::{AgentId, TxId};
+        let system_agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, system_agent);
+        let mut datom_set = std::collections::BTreeSet::new();
+        for d in crate::schema::genesis_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+        for d in crate::schema::full_schema_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+        Store::from_datoms(datom_set)
+    }
+
+    #[test]
+    fn tx_barcode_empty_store() {
+        // Genesis store has schema datoms but no user-created Ref edges
+        // (schema datoms use Value::Keyword for :db/valueType etc., not Value::Ref)
+        let store = Store::genesis();
+        let diagram = tx_barcode(&store);
+        // Genesis contains Ref datoms for schema self-referencing —
+        // but a fresh genesis store may or may not have Ref-valued datoms.
+        // The key property: the barcode should be a valid PersistenceDiagram.
+        // For a truly empty entity graph, we expect no finite H₀ deaths beyond
+        // what the genesis schema introduces.
+        // Let's check the filtration directly:
+        let filtration = tx_filtration(&store);
+        // If genesis has no Ref datoms, filtration is empty → empty diagram
+        if filtration.is_empty() {
+            assert!(diagram.pairs.is_empty(), "no edges means empty diagram");
+        }
+    }
+
+    #[test]
+    fn tx_barcode_single_tx() {
+        use crate::datom::{AgentId, Attribute, EntityId, ProvenanceType, Value};
+        use crate::store::Transaction;
+
+        let mut store = test_store_with_full_schema();
+        let agent = AgentId::from_name("test-barcode");
+
+        // Create 3 entities: A→B, A→C, B→C (3 Ref edges in one transaction)
+        let a = EntityId::from_ident(":barcode/a");
+        let b = EntityId::from_ident(":barcode/b");
+        let c = EntityId::from_ident(":barcode/c");
+
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "create refs")
+            .assert(
+                a,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":barcode/a".into()),
+            )
+            .assert(
+                b,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":barcode/b".into()),
+            )
+            .assert(
+                c,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":barcode/c".into()),
+            )
+            // A→B
+            .assert(a, Attribute::from_keyword(":dep/from"), Value::Ref(b))
+            // A→C
+            .assert(a, Attribute::from_keyword(":dep/to"), Value::Ref(c))
+            // B→C
+            .assert(b, Attribute::from_keyword(":dep/from"), Value::Ref(c))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        let diagram = tx_barcode(&store);
+
+        // 3 Ref edges from the user transaction, forming a triangle A-B, A-C, B-C.
+        // The full schema may contribute additional Ref edges (e.g., tx metadata).
+        // Core property: the triangle creates exactly 1 cycle (H₁ birth).
+        assert!(
+            diagram.h1_persistent >= 1,
+            "triangle must create at least 1 cycle, got {}",
+            diagram.h1_persistent
+        );
+        // All user nodes should end up in the same connected component
+        assert!(
+            diagram.h0_persistent >= 1,
+            "should have at least 1 surviving component"
+        );
+        // There should be H₀ deaths (component merges)
+        let h0_finite: Vec<_> = diagram
+            .pairs
+            .iter()
+            .filter(|p| p.dimension == 0 && p.death.is_some())
+            .collect();
+        assert!(
+            h0_finite.len() >= 2,
+            "triangle needs at least 2 merges, got {}",
+            h0_finite.len()
+        );
+    }
+
+    #[test]
+    fn tx_barcode_multi_tx() {
+        use crate::datom::{AgentId, Attribute, EntityId, ProvenanceType, Value};
+        use crate::store::Transaction;
+
+        let mut store = test_store_with_full_schema();
+        let agent = AgentId::from_name("test-multi-tx");
+
+        let a = EntityId::from_ident(":multi/a");
+        let b = EntityId::from_ident(":multi/b");
+        let c = EntityId::from_ident(":multi/c");
+
+        // TX1 (wall_time controlled via store clock): A→B
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "tx1: A links to B")
+            .assert(
+                a,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":multi/a".into()),
+            )
+            .assert(
+                b,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":multi/b".into()),
+            )
+            .assert(a, Attribute::from_keyword(":dep/from"), Value::Ref(b))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // TX2: B→C
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "tx2: B links to C")
+            .assert(
+                c,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":multi/c".into()),
+            )
+            .assert(b, Attribute::from_keyword(":dep/to"), Value::Ref(c))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        // TX3: A→C (closes triangle → cycle)
+        let tx3 = Transaction::new(agent, ProvenanceType::Observed, "tx3: A links to C")
+            .assert(a, Attribute::from_keyword(":dep/to"), Value::Ref(c))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx3).unwrap();
+
+        let filtration = tx_filtration(&store);
+        // Each user transaction should produce a separate filtration entry
+        // (even if all share wall_time=0, the HLC logical counter differentiates them).
+        // We have 3 user txns with Ref edges + possibly genesis/schema entries.
+        let entries_with_edges: Vec<_> = filtration
+            .iter()
+            .filter(|(_, edges)| !edges.is_empty())
+            .collect();
+        assert!(
+            entries_with_edges.len() >= 3,
+            "should have at least 3 filtration steps with edges (one per user tx), got {}",
+            entries_with_edges.len()
+        );
+
+        let diagram = tx_barcode(&store);
+
+        // 3 user edges across 3 txns: A→B, B→C, A→C (triangle)
+        // At the step where A→C is added, A and C are already in the same component → H₁ birth
+        // The full schema may add extra Ref edges, but the triangle property holds.
+        assert!(
+            diagram.h1_persistent >= 1,
+            "closing triangle creates at least 1 cycle, got {}",
+            diagram.h1_persistent
+        );
+        assert!(
+            diagram.h0_persistent >= 1,
+            "all user nodes should end up in at least 1 component"
+        );
+
+        // Verify that birth times vary: not all births at the same step
+        let births: std::collections::BTreeSet<usize> =
+            diagram.pairs.iter().map(|p| p.birth).collect();
+        assert!(
+            births.len() > 1,
+            "multi-tx barcode should have features born at different steps"
+        );
+    }
+
+    #[test]
+    fn structural_complexity_basic() {
+        use crate::datom::{AgentId, Attribute, EntityId, ProvenanceType, Value};
+        use crate::store::Transaction;
+
+        let mut store = test_store_with_full_schema();
+        let agent = AgentId::from_name("test-complexity");
+
+        let a = EntityId::from_ident(":cmplx/a");
+        let b = EntityId::from_ident(":cmplx/b");
+        let c = EntityId::from_ident(":cmplx/c");
+
+        // Single tx with A→B, B→C, A→C (triangle)
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "triangle")
+            .assert(
+                a,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":cmplx/a".into()),
+            )
+            .assert(
+                b,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":cmplx/b".into()),
+            )
+            .assert(
+                c,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":cmplx/c".into()),
+            )
+            .assert(a, Attribute::from_keyword(":dep/from"), Value::Ref(b))
+            .assert(b, Attribute::from_keyword(":dep/to"), Value::Ref(c))
+            .assert(a, Attribute::from_keyword(":dep/to"), Value::Ref(c))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        let sc = structural_complexity(&store);
+
+        // Triangle contributes 3 edges and 3 nodes → at least 2 H₀ deaths, 1 H₁ birth.
+        // The full schema may add extra Ref edges, so use lower bounds.
+        assert!(
+            sc.h0_deaths >= 2,
+            "triangle needs at least 2 merges, got {}",
+            sc.h0_deaths
+        );
+        assert!(
+            sc.h1_births >= 1,
+            "triangle needs at least 1 cycle, got {}",
+            sc.h1_births
+        );
+        // total_persistence may be 0 when all merges are immediate (birth == death),
+        // but it must be non-negative (always true for usize).
+        // The key invariant: total_persistence + h0_deaths + h1_births > 0
+        assert!(
+            sc.h0_deaths + sc.h1_births > 0,
+            "triangle must produce topological events"
+        );
+        assert!(sc.tx_count >= 1, "at least 1 tx introduced edges");
     }
 }

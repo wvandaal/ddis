@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use clap::Subcommand;
 
+mod analyze;
 mod generate;
 mod generate_spec;
 mod guidance;
@@ -281,6 +282,17 @@ pub enum Command {
         spec_dir: PathBuf,
     },
 
+    /// Run comprehensive graph analytics on the store (coherence dashboard).
+    Analyze {
+        /// Path to the .braid directory.
+        #[arg(short, long, default_value = ".braid")]
+        path: PathBuf,
+
+        /// Force recomputation (ignore cache).
+        #[arg(long)]
+        force: bool,
+    },
+
     /// Run the MCP (Model Context Protocol) server over JSON-RPC stdio.
     Mcp {
         #[command(subcommand)]
@@ -435,6 +447,13 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
                     report.orphaned.len(),
                     report.total_files,
                 ))
+            }
+        }
+        Command::Analyze { path, force } => {
+            if force {
+                analyze::run_force(&path)
+            } else {
+                analyze::run(&path)
             }
         }
         Command::Mcp { action } => match action {

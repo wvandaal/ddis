@@ -24,8 +24,11 @@ pub use clause::{Binding, Clause, FindSpec, Pattern, QueryExpr};
 pub use evaluator::{evaluate, QueryResult};
 pub use graph::{
     betweenness_centrality, cheeger, conflict_sheaf, constant_sheaf, critical_path, density,
-    edge_laplacian, fiedler, first_betti_number, graph_laplacian, pagerank, persistence_distance,
-    persistent_homology, scc, topo_sort, total_persistence, BirthDeath, CellularSheaf,
-    CheegerResult, DenseMatrix, DiGraph, FiedlerResult, PersistenceDiagram, SheafCohomology,
+    edge_laplacian, fiedler, fiedler_from_spectrum, first_betti_number, graph_laplacian,
+    heat_kernel_from_spectrum, heat_kernel_trace, kirchhoff_from_spectrum, kirchhoff_index,
+    ollivier_ricci_curvature, pagerank, persistence_distance, persistent_homology, ricci_summary,
+    scc, spectral_decomposition, structural_complexity, topo_sort, total_persistence, tx_barcode,
+    tx_filtration, BirthDeath, CellularSheaf, CheegerResult, DenseMatrix, DiGraph, FiedlerResult,
+    PersistenceDiagram, RicciSummary, SheafCohomology, SpectralDecomposition, StructuralComplexity,
 };
 pub use stratum::{check_stage0, classify, Stratum};
