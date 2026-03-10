@@ -2,8 +2,9 @@
 
 use std::path::Path;
 
-use braid_kernel::datom::{AgentId, TxId, Value};
-use braid_kernel::harvest::{harvest_pipeline, SessionContext};
+use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
+use braid_kernel::harvest::{candidate_to_datoms, harvest_pipeline, SessionContext};
+use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
@@ -13,6 +14,7 @@ pub fn run(
     agent_name: &str,
     task: &str,
     knowledge_raw: &[String],
+    commit: bool,
 ) -> Result<String, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
@@ -73,6 +75,86 @@ pub fn run(
                 c.rationale,
             ));
         }
+    }
+
+    // If --commit: persist candidates as datoms + create HarvestSession entity
+    if commit && !result.candidates.is_empty() {
+        let harvest_tx_id = TxId::new(current_wall + 1, 0, agent);
+        let mut all_datoms: Vec<Datom> = Vec::new();
+
+        // Convert each candidate to datoms
+        for candidate in &result.candidates {
+            let candidate_datoms = candidate_to_datoms(candidate, harvest_tx_id);
+            all_datoms.extend(candidate_datoms);
+        }
+
+        // Create HarvestSession entity (INV-HARVEST-002: provenance trail)
+        // Sanitize agent name: replace colons with dashes for valid EDN keywords
+        let safe_agent = agent_name.replace(':', "-");
+        let session_ident = format!(":harvest/session-{}-{}", safe_agent, current_wall + 1);
+        let session_entity = EntityId::from_ident(&session_ident);
+
+        // :db/ident — session identity
+        all_datoms.push(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(session_ident.clone()),
+            harvest_tx_id,
+            Op::Assert,
+        ));
+        all_datoms.push(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String(format!("Harvest session for task: {task}")),
+            harvest_tx_id,
+            Op::Assert,
+        ));
+        all_datoms.push(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String(agent_name.to_string()),
+            harvest_tx_id,
+            Op::Assert,
+        ));
+        all_datoms.push(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":harvest/candidate-count"),
+            Value::Long(result.candidates.len() as i64),
+            harvest_tx_id,
+            Op::Assert,
+        ));
+        all_datoms.push(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":harvest/drift-score"),
+            Value::Double(ordered_float::OrderedFloat(result.drift_score)),
+            harvest_tx_id,
+            Op::Assert,
+        ));
+
+        let tx_file = TxFile {
+            tx_id: harvest_tx_id,
+            agent,
+            provenance: ProvenanceType::Observed,
+            rationale: format!(
+                "Harvest commit: {} candidates from task '{}'",
+                result.candidates.len(),
+                task
+            ),
+            causal_predecessors: vec![],
+            datoms: all_datoms,
+        };
+
+        let datom_count = tx_file.datoms.len();
+        let file_path = layout.write_tx(&tx_file)?;
+
+        out.push_str(&format!(
+            "\ncommitted: {} datoms → {}\n",
+            datom_count,
+            file_path.relative_path()
+        ));
+        out.push_str(&format!("  harvest session: {session_ident}\n"));
+    } else if commit && result.candidates.is_empty() {
+        out.push_str("\nnothing to commit (no candidates)\n");
     }
 
     Ok(out)

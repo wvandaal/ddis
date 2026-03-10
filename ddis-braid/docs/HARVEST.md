@@ -2774,3 +2774,68 @@ None. The pipeline is complete and ready for use.
 1. **Begin topology promotion** (brai-2wpi) — now unblocked. Start with brai-2wpi.1: T=(G,Phi,Sigma,Pi) core definition.
 2. **Begin coherence geometry promotion** (brai-1yys) — now unblocked. Can run in parallel with topology.
 3. **Stage 1 backlog**: brai-35s5 (budget-aware output), brai-2g7o (comonadic guidance) are independent and ready.
+
+---
+
+## Session 022 — 2026-03-09 (Harvest/Seed v2 Design + Self-Bootstrap + First E2E Cycle)
+
+### What Was Accomplished
+
+**1. Harvest/Seed v2 Design Document** (`docs/design/HARVEST_SEED_V2.md` — ~500 lines):
+- Comprehensive redesign based on external audit findings (reviewer identified harvest as "set-difference" weakness)
+- Mathematical foundations: sheaf cohomology (H⁰/H¹ for knowledge extraction), Fisher information matrix (principled prioritization), persistent homology (knowledge topology evolution), optimal transport (Wasserstein seed assembly)
+- Proposed invariants: INV-HARVEST-010 through 013, INV-SEED-010 through 012
+- Proposed ADRs: ADR-HARVEST-010 through 012
+- Priority matrix: P0 (self-bootstrap), P1 (entity index, β₁, harvest/seed v2 phases 1-2), P2 (Fisher scoring, adaptive assembly), P3 (persistent homology, optimal transport, spectral wavelets)
+- Schema attribute requirements, risk analysis, success metrics
+
+**2. Harvest `--commit` flag** (`commands/harvest.rs` — rewritten ~145 lines):
+- New `commit: bool` parameter on `run()` function
+- When `--commit`: converts candidates to datoms via `candidate_to_datoms()`, creates HarvestSession entity
+- Agent name sanitization: `braid:self` → `braid-self` to avoid EDN keyword parse error
+- Session entity carries 5 provenance attributes: `:db/ident`, `:db/doc`, `:harvest/agent`, `:harvest/candidate-count`, `:harvest/drift-score`
+- Writes as TxFile with `ProvenanceType::Observed`
+
+**3. First real end-to-end harvest/seed cycle**:
+- Init → Bootstrap (351 elements, 2536 datoms) → Transact observations → Harvest --commit (6 candidates, 11 datoms) → Seed (28 entities, 2767/3000 tokens)
+- Seed correctly surfaced: harvest spec elements, session findings, session decisions, and the HarvestSession entity itself
+- Final store state: 2,645 datoms, 645 entities, 4 transactions, integrity OK
+- **Proves constraint C7 (self-bootstrap)**: spec elements are the first data the system manages
+
+**4. Beads tracking**: 16 beads created with dependency chains across 4 priorities. 4 closed (brai-1d5i, brai-2q00, brai-gq8u, brai-230a).
+
+### Decisions Made
+
+1. **Sheaf cohomology over naive set-difference** for harvest: H⁰ gives consistent knowledge (harvest candidates), H¹ gives obstructions/contradictions (uncertainty markers). Čencov's theorem proves Fisher information is the unique invariant metric for knowledge prioritization. (ADR-HARVEST-010)
+
+2. **Optimal transport for seed assembly**: W₂ Wasserstein distance minimization under token budget constraints via Sinkhorn algorithm. Replaces heuristic scoring. (ADR-HARVEST-012)
+
+3. **Agent name sanitization in EDN keywords**: Colons in agent names (e.g., `braid:self`) create invalid nested keywords. Fix: replace `:` with `-` before keyword construction.
+
+### Files Created/Modified
+
+- `docs/design/HARVEST_SEED_V2.md` — NEW: v2 design document (~500 lines)
+- `crates/braid/src/commands/harvest.rs` — REWRITTEN: harvest --commit + HarvestSession entity (+86 lines)
+- `crates/braid/src/commands/mod.rs` — MODIFIED: added `commit: bool` field to Harvest variant (+7 lines)
+- `.braid/` — NEW: initialized store with 4 transactions (genesis, bootstrap, observation, harvest)
+- `.beads/issues.jsonl` — MODIFIED: 16 new beads for v2 work
+
+### Test Results
+
+- **305 tests passing** (unchanged from session start)
+- Clippy clean, fmt clean
+- All stateright model-checking tests pass
+
+### Open Questions
+
+1. Should the `.braid/` runtime directory be committed or gitignored? It's a runtime artifact but also serves as proof of the self-bootstrap.
+
+### Failure Modes Discovered
+
+- **FM-EDN-001**: Agent names containing colons produce invalid EDN keywords when used in entity idents. Root cause: EDN keyword syntax forbids nested colons. Mitigation: sanitize before keyword construction.
+
+### Recommended Next Action
+
+1. **Harvest v2 Phase 1-2** (brai-3c6b): tx-log extraction + classification — the backbone of the new pipeline
+2. **Seed v2 Phase 1-2** (brai-3dxi): PageRank association + eigenvector ranking — can run in parallel
+3. **Entity index** (brai-re8a): BTreeMap for O(log n) lookups — prerequisite for both v2 pipelines

@@ -88,6 +88,10 @@ pub enum Command {
         /// Knowledge items in "key value" format (repeatable).
         #[arg(short = 'k', long = "knowledge", num_args = 2, action = clap::ArgAction::Append)]
         knowledge: Vec<String>,
+
+        /// Commit approved candidates to the store (persist as datoms).
+        #[arg(long)]
+        commit: bool,
     },
 
     /// Assemble a seed context for a new session.
@@ -288,7 +292,8 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             agent,
             task,
             knowledge,
-        } => harvest::run(&path, &agent, &task, &knowledge),
+            commit,
+        } => harvest::run(&path, &agent, &task, &knowledge, commit),
         Command::Seed {
             path,
             task,
