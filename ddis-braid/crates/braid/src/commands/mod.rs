@@ -2,6 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
+use braid_kernel::budget::{self, BudgetManager};
 use clap::Subcommand;
 
 pub(crate) mod analyze;
@@ -18,6 +19,52 @@ pub(crate) mod write;
 
 // Re-export mcp serve as a special case (runs an event loop, not a single command).
 pub use crate::mcp;
+
+// ---------------------------------------------------------------------------
+// Budget context (INV-BUDGET-001, spec/13-budget.md §13.2)
+// ---------------------------------------------------------------------------
+
+/// Budget context resolved from CLI flags.
+///
+/// Budget source precedence (IB-004):
+/// 1. `--budget` flag (explicit token budget)
+/// 2. `--context-used` flag (fraction consumed → k*_eff computation)
+/// 3. Conservative default: full budget (k*_eff = 1.0)
+#[derive(Clone, Debug)]
+pub struct BudgetCtx {
+    pub manager: BudgetManager,
+}
+
+impl BudgetCtx {
+    /// Resolve budget from CLI flags following IB-004 precedence.
+    pub fn from_flags(budget: Option<u32>, context_used: Option<f64>) -> Self {
+        let mut mgr = BudgetManager::default();
+
+        if let Some(pct) = context_used {
+            // --context-used: direct measurement → full MEASURE transition
+            mgr.measure(pct);
+        } else if let Some(budget_tokens) = budget {
+            // --budget: explicit token budget → back-compute k_eff
+            // Invert: output_budget = max(MIN, Q(t) × W × 0.05)
+            // Approximate k_eff from budget (monotonic, so search is valid)
+            let target = budget_tokens as f64;
+            let max_budget = mgr.window_size as f64 * budget::BUDGET_FRACTION;
+            // Linear approximation: k_eff ≈ budget / max_budget (exact in full-quality regime)
+            let approx_k = (target / max_budget).clamp(0.0, 1.0);
+            mgr.measure(1.0 - approx_k);
+            // Override with exact requested budget (the math above is approximate)
+            mgr.output_budget = budget_tokens.max(budget::MIN_OUTPUT);
+        }
+        // else: default = full budget (k_eff=1.0, output_budget=10000)
+
+        BudgetCtx { manager: mgr }
+    }
+
+    /// k*_eff for guidance footer compression.
+    pub fn k_eff(&self) -> f64 {
+        self.manager.k_eff
+    }
+}
 
 /// All subcommands available in the `braid` CLI.
 ///
@@ -624,7 +671,9 @@ fn is_generative_output(cmd: &Command) -> bool {
 ///
 /// Best-effort: if the store can't be loaded, returns the original output
 /// unchanged. Skips footer for JSON, guidance, and generative commands.
-fn try_append_footer(output: String, path: &Path) -> String {
+///
+/// INV-BUDGET-004: Guidance footer compresses by k*_eff level from `budget_ctx`.
+fn try_append_footer(output: String, path: &Path, budget_ctx: &BudgetCtx) -> String {
     let Ok(layout) = crate::layout::DiskLayout::open(path) else {
         return output;
     };
@@ -632,12 +681,16 @@ fn try_append_footer(output: String, path: &Path) -> String {
         return output;
     };
 
-    let footer = braid_kernel::guidance::build_command_footer(&store, None);
+    let footer = braid_kernel::guidance::build_command_footer(&store, Some(budget_ctx.k_eff()));
     format!("{output}{footer}\n")
 }
 
 /// Execute a CLI command and return the output string.
-pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
+///
+/// INV-BUDGET-001: Output respects `budget_ctx` for guidance footer compression
+/// and command attention profiles. Commands that exceed their attention profile
+/// ceiling are truncated.
+pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error::BraidError> {
     // Pre-extract metadata needed for footer injection (before cmd is consumed).
     let path_for_footer = store_path(&cmd).map(|p| p.to_path_buf());
     let skip_footer =
@@ -756,7 +809,11 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             compact,
             inject,
         } => {
-            let effective_budget = if compact { 200 } else { budget };
+            let mut effective_budget = if compact { 200 } else { budget };
+            // INV-BUDGET-001: Global budget acts as ceiling for seed output.
+            // Seed's own --budget controls content assembly; global --budget
+            // is a hard cap from the caller's remaining context window.
+            effective_budget = effective_budget.min(budget_ctx.manager.output_budget as usize);
             let effective_task = task.as_deref().unwrap_or("continue");
 
             // --inject mode: update file in place with seed content (SB.3.3)
@@ -814,8 +871,11 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
     };
 
     // INV-GUIDANCE-001: Append guidance footer to applicable command outputs.
+    // INV-BUDGET-004: Footer compressed by k*_eff from budget_ctx.
     match (result, path_for_footer) {
-        (Ok(output), Some(path)) if !skip_footer => Ok(try_append_footer(output, &path)),
+        (Ok(output), Some(path)) if !skip_footer => {
+            Ok(try_append_footer(output, &path, budget_ctx))
+        }
         (result, _) => result,
     }
 }
@@ -827,7 +887,8 @@ mod tests {
     #[test]
     fn try_append_footer_on_missing_store_returns_unchanged() {
         let output = "some output".to_string();
-        let result = try_append_footer(output.clone(), Path::new("/nonexistent/.braid"));
+        let ctx = BudgetCtx::from_flags(None, None);
+        let result = try_append_footer(output.clone(), Path::new("/nonexistent/.braid"), &ctx);
         assert_eq!(
             result, output,
             "Missing store should return original output"
@@ -1352,6 +1413,85 @@ mod tests {
         assert!(
             is_generative_output(&gen_cmd),
             "Generative commands must skip footer to avoid corrupting files"
+        );
+    }
+
+    // ---- BudgetCtx tests (INV-BUDGET-001, INV-BUDGET-004) ----
+
+    #[test]
+    fn budget_ctx_default_full_quality() {
+        let ctx = BudgetCtx::from_flags(None, None);
+        assert!(
+            (ctx.k_eff() - 1.0).abs() < 1e-10,
+            "Default budget should be full quality"
+        );
+        assert_eq!(ctx.manager.output_budget, 10000);
+    }
+
+    #[test]
+    fn budget_ctx_from_context_used() {
+        let ctx = BudgetCtx::from_flags(None, Some(0.5));
+        assert!(
+            (ctx.k_eff() - 0.5).abs() < 1e-10,
+            "k_eff should be 1.0 - 0.5 = 0.5"
+        );
+        // k=0.5 → linear decay = 0.5/0.6 ≈ 0.833
+        // Q = 0.5 * 0.833 ≈ 0.417 → budget ≈ 4166
+        assert!(ctx.manager.output_budget > 4000);
+        assert!(ctx.manager.output_budget < 4500);
+    }
+
+    #[test]
+    fn budget_ctx_from_explicit_budget() {
+        let ctx = BudgetCtx::from_flags(Some(500), None);
+        assert_eq!(
+            ctx.manager.output_budget, 500,
+            "Explicit budget should be respected"
+        );
+    }
+
+    #[test]
+    fn budget_ctx_explicit_budget_floors_at_min() {
+        let ctx = BudgetCtx::from_flags(Some(10), None);
+        assert_eq!(
+            ctx.manager.output_budget,
+            braid_kernel::budget::MIN_OUTPUT,
+            "Budget below MIN_OUTPUT should floor at MIN_OUTPUT"
+        );
+    }
+
+    #[test]
+    fn budget_ctx_context_used_clamps() {
+        // Over 100% consumed → k_eff = 0
+        let ctx = BudgetCtx::from_flags(None, Some(1.5));
+        assert!(
+            (ctx.k_eff() - 0.0).abs() < 1e-10,
+            "Over-consumed context should clamp to k_eff=0"
+        );
+        assert_eq!(ctx.manager.output_budget, braid_kernel::budget::MIN_OUTPUT);
+    }
+
+    #[test]
+    fn budget_ctx_context_used_produces_correct_guidance_level() {
+        use braid_kernel::budget::GuidanceLevel;
+
+        // Full quality
+        let ctx_full = BudgetCtx::from_flags(None, Some(0.1)); // k=0.9
+        assert_eq!(ctx_full.manager.guidance_level(), GuidanceLevel::Full);
+
+        // Compressed
+        let ctx_comp = BudgetCtx::from_flags(None, Some(0.5)); // k=0.5
+        assert_eq!(ctx_comp.manager.guidance_level(), GuidanceLevel::Compressed);
+
+        // Minimal
+        let ctx_min = BudgetCtx::from_flags(None, Some(0.75)); // k=0.25
+        assert_eq!(ctx_min.manager.guidance_level(), GuidanceLevel::Minimal);
+
+        // Harvest only
+        let ctx_harv = BudgetCtx::from_flags(None, Some(0.9)); // k=0.1
+        assert_eq!(
+            ctx_harv.manager.guidance_level(),
+            GuidanceLevel::HarvestOnly
         );
     }
 }

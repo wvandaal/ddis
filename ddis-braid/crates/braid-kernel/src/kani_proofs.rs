@@ -654,3 +654,139 @@ fn prove_txid_tick_monotonicity() {
         "INV-STORE-011 violated: tick did not produce a strictly greater TxId",
     );
 }
+
+// ===========================================================================
+// BUDGET INVARIANTS (spec/13-budget.md)
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// INV-BUDGET-001: Output budget is a hard cap ≥ MIN_OUTPUT
+// ---------------------------------------------------------------------------
+
+/// **INV-BUDGET-001**: For any context consumption percentage, the output budget
+/// is always at least MIN_OUTPUT (50 tokens).
+///
+/// Proof strategy: symbolic context_used_pct ∈ [0, 1], verify after MEASURE
+/// that output_budget ≥ MIN_OUTPUT.
+///
+/// Falsification: output_budget < MIN_OUTPUT for any valid input.
+#[kani::proof]
+#[kani::unwind(2)]
+fn prove_budget_floor() {
+    let pct_bits: u32 = kani::any();
+    // Constrain to [0.0, 1.0] via integer mapping: pct = bits / 1000
+    kani::assume(pct_bits <= 1000);
+    let pct = pct_bits as f64 / 1000.0;
+
+    let mut mgr = crate::budget::BudgetManager::new(crate::budget::DEFAULT_WINDOW_SIZE);
+    mgr.measure(pct);
+
+    kani::assert(
+        mgr.output_budget >= crate::budget::MIN_OUTPUT,
+        "INV-BUDGET-001 violated: output_budget < MIN_OUTPUT",
+    );
+}
+
+// ---------------------------------------------------------------------------
+// INV-BUDGET-003: Q(t) = k_eff × attention_decay(k_eff), Q ∈ [0, 1]
+// ---------------------------------------------------------------------------
+
+/// **INV-BUDGET-003**: Q(t) is correctly computed from k_eff via the quality-adjusted
+/// formula, and is always in [0, 1].
+///
+/// Proof strategy: symbolic k_eff ∈ [0, 1], verify Q(t) ∈ [0, 1] and Q(t) ≤ k_eff.
+///
+/// Falsification: Q(t) > 1, Q(t) < 0, or Q(t) > k_eff for any valid k_eff.
+#[kani::proof]
+#[kani::unwind(2)]
+fn prove_q_bounded_and_dominated_by_k() {
+    let k_bits: u32 = kani::any();
+    kani::assume(k_bits <= 1000);
+    let k_eff = k_bits as f64 / 1000.0;
+
+    let q = crate::budget::quality_adjusted_budget(k_eff);
+
+    kani::assert(q >= 0.0, "INV-BUDGET-003 violated: Q(t) < 0");
+    kani::assert(q <= 1.0, "INV-BUDGET-003 violated: Q(t) > 1");
+    // Q(t) degrades faster than k_eff when attention_decay < 1
+    kani::assert(q <= k_eff + 1e-10, "INV-BUDGET-003 violated: Q(t) > k_eff");
+}
+
+// ---------------------------------------------------------------------------
+// INV-BUDGET-003 (cont): attention_decay continuity at boundaries
+// ---------------------------------------------------------------------------
+
+/// **INV-BUDGET-003 (continuity)**: The piecewise attention_decay function is
+/// C⁰ continuous at the regime boundaries (k=0.3 and k=0.6).
+///
+/// Proof strategy: evaluate at boundary points and verify matching values.
+///
+/// Falsification: attention_decay has a discontinuity at a regime boundary.
+#[kani::proof]
+#[kani::unwind(2)]
+fn prove_attention_decay_boundary_continuity() {
+    let decay = crate::budget::attention_decay;
+
+    // Boundary at k=0.3: linear regime gives 0.3/0.6 = 0.5
+    // Quadratic regime gives 0.5 * (0.3/0.3)^2 = 0.5
+    let linear_at_03 = 0.3_f64 / 0.6;
+    let quad_at_03 = 0.5 * (0.3_f64 / 0.3) * (0.3 / 0.3);
+    let actual_at_03 = decay(0.3);
+
+    kani::assert(
+        (linear_at_03 - quad_at_03).abs() < 1e-10,
+        "Boundary mismatch at k=0.3: linear != quadratic",
+    );
+    kani::assert(
+        (actual_at_03 - 0.5).abs() < 1e-10,
+        "attention_decay(0.3) != 0.5",
+    );
+
+    // Boundary at k=0.6: linear regime gives 0.6/0.6 = 1.0
+    // Full regime gives 1.0
+    let linear_at_06 = 0.6_f64 / 0.6;
+    let actual_at_06 = decay(0.6);
+
+    kani::assert((linear_at_06 - 1.0).abs() < 1e-10, "Linear at k=0.6 != 1.0");
+    kani::assert(
+        (actual_at_06 - 1.0).abs() < 1e-10,
+        "attention_decay(0.6) != 1.0",
+    );
+}
+
+// ---------------------------------------------------------------------------
+// INV-BUDGET-001 (cont): Budget monotonically decreasing with consumption
+// ---------------------------------------------------------------------------
+
+/// **INV-BUDGET-001 (monotonicity)**: As context consumption increases,
+/// the output budget never increases.
+///
+/// Proof strategy: two symbolic consumption values where pct1 < pct2,
+/// verify budget(pct1) >= budget(pct2).
+///
+/// Falsification: output_budget increases as more context is consumed.
+#[kani::proof]
+#[kani::unwind(2)]
+fn prove_budget_monotonically_decreasing() {
+    let p1_bits: u32 = kani::any();
+    let p2_bits: u32 = kani::any();
+    kani::assume(p1_bits <= 1000);
+    kani::assume(p2_bits <= 1000);
+    kani::assume(p1_bits <= p2_bits);
+
+    let pct1 = p1_bits as f64 / 1000.0;
+    let pct2 = p2_bits as f64 / 1000.0;
+
+    let mut mgr = crate::budget::BudgetManager::new(crate::budget::DEFAULT_WINDOW_SIZE);
+
+    mgr.measure(pct1);
+    let budget1 = mgr.output_budget;
+
+    mgr.measure(pct2);
+    let budget2 = mgr.output_budget;
+
+    kani::assert(
+        budget1 >= budget2,
+        "INV-BUDGET-001 violated: budget increased as context consumption grew",
+    );
+}

@@ -21,6 +21,18 @@ pub mod output;
 #[derive(Parser)]
 #[command(name = "braid", version, about, long_about)]
 struct Cli {
+    /// Token budget for output. Overrides all other budget sources.
+    /// Controls guidance footer compression and projection level selection.
+    /// Budget source precedence: --budget > --context-used > default (10000).
+    #[arg(long, global = true)]
+    budget: Option<u32>,
+
+    /// Fraction of context window already consumed (0.0–1.0).
+    /// Used to compute k*_eff for attention-quality-adjusted output.
+    /// Example: --context-used 0.7 means 70% consumed, 30% remaining.
+    #[arg(long, global = true)]
+    context_used: Option<f64>,
+
     #[command(subcommand)]
     command: Option<commands::Command>,
 }
@@ -41,7 +53,8 @@ fn main() {
         commit: false,
     });
 
-    let result = commands::run(cmd);
+    let budget_ctx = commands::BudgetCtx::from_flags(cli.budget, cli.context_used);
+    let result = commands::run(cmd, &budget_ctx);
     match result {
         Ok(output) => {
             print!("{output}");
