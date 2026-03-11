@@ -445,6 +445,52 @@ pub fn run(
             Op::Assert,
         ));
 
+        // Session delta: how much the store grew since last harvest.
+        // Incoming agents can see "last session added 126 datoms, 23 entities"
+        // which contextualizes the rate of progress.
+        {
+            let prev_datoms = store
+                .datoms()
+                .filter(|d| {
+                    d.attribute.as_str() == ":harvest/store-datom-count"
+                        && d.op == Op::Assert
+                        && d.tx.wall_time() < harvest_tx_id.wall_time()
+                })
+                .filter_map(|d| match d.value {
+                    Value::Long(n) => Some(n),
+                    _ => None,
+                })
+                .max()
+                .unwrap_or(0);
+            let prev_entities = store
+                .datoms()
+                .filter(|d| {
+                    d.attribute.as_str() == ":harvest/store-entity-count"
+                        && d.op == Op::Assert
+                        && d.tx.wall_time() < harvest_tx_id.wall_time()
+                })
+                .filter_map(|d| match d.value {
+                    Value::Long(n) => Some(n),
+                    _ => None,
+                })
+                .max()
+                .unwrap_or(0);
+            let delta_datoms = store.len() as i64 - prev_datoms;
+            let delta_entities = store.entity_count() as i64 - prev_entities;
+            if prev_datoms > 0 {
+                all_datoms.push(Datom::new(
+                    session_entity,
+                    Attribute::from_keyword(":harvest/delta-summary"),
+                    Value::String(format!(
+                        "+{} datoms, +{} entities",
+                        delta_datoms, delta_entities
+                    )),
+                    harvest_tx_id,
+                    Op::Assert,
+                ));
+            }
+        }
+
         // Close active session if present
         let active_session = EntityId::from_ident(":session/current");
         let has_active = store

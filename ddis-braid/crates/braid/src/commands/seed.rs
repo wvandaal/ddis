@@ -62,16 +62,35 @@ pub fn run(
             }
             ContextSection::Constraints(refs) => {
                 if !refs.is_empty() {
-                    out.push_str("## Constraints\n");
-                    for r in refs {
-                        let status = match r.satisfied {
-                            Some(true) => "✓",
-                            Some(false) => "✗",
-                            None => "?",
-                        };
-                        out.push_str(&format!("  [{status}] {}: {}\n", r.id, r.summary));
+                    // When ALL constraints have unknown status, compress to a single
+                    // dense line — individual [?] markers waste tokens for zero information.
+                    let any_known = refs.iter().any(|r| r.satisfied.is_some());
+                    if any_known {
+                        out.push_str("## Constraints\n");
+                        for r in refs {
+                            let status = match r.satisfied {
+                                Some(true) => "✓",
+                                Some(false) => "✗",
+                                None => "?",
+                            };
+                            out.push_str(&format!("  [{status}] {}: {}\n", r.id, r.summary));
+                        }
+                        out.push('\n');
+                    } else {
+                        // Compressed format: IDs with summaries, one per line, no [?] noise
+                        out.push_str("## Active Constraints\n");
+                        for r in refs.iter().take(8) {
+                            if r.summary.is_empty() {
+                                out.push_str(&format!("- {}\n", r.id));
+                            } else {
+                                out.push_str(&format!("- {} ({})\n", r.id, r.summary));
+                            }
+                        }
+                        if refs.len() > 8 {
+                            out.push_str(&format!("  ... and {} more\n", refs.len() - 8));
+                        }
+                        out.push('\n');
                     }
-                    out.push('\n');
                 }
             }
             ContextSection::State(entries) => {
@@ -80,7 +99,7 @@ pub fn run(
                     // E6: Group entities by semantic type for comprehension
                     let groups = group_state_entries(entries);
                     for (label, group) in &groups {
-                        if groups.len() > 1 {
+                        if !label.is_empty() {
                             out.push_str(&format!("{label}:\n"));
                         }
                         for entry in group {

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773249835/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Prompt-optimization applied to seed: seed output IS turn 1 of every conversation — it determines the trajectory basin. Three principles: (1) spec-language activates design-level reasoning substrate (Braid: append-only datom store), (2) project context cheat sheet gives agent instant working knowledge (types, patterns, commands), (3) observation history shows project arc (Phase A→B→C, Sessions 012→017). Convention: observations > 40 chars for quality. Synthetic state entries (project-context, key-observations, session-trajectory) bypass INV-SEED-001 entity check as derived aggregations."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0bda11c1a7006570c7c449171c54a81a901145a0dd6a9b52e933748246874a1c" :a :db/ident :v :observation/prompt-optimization-applied-to-seed-seed-output-is-turn-1-o :op :assert}
+   {:e #blake3 "0bda11c1a7006570c7c449171c54a81a901145a0dd6a9b52e933748246874a1c" :a :db/doc :v "Prompt-optimization applied to seed: seed output IS turn 1 of every conversation — it determines the trajectory basin. Three principles: (1) spec-language activates design-level reasoning substrate (Braid: append-only datom store), (2) project context cheat sheet gives agent instant working knowledge (types, patterns, commands), (3) observation history shows project arc (Phase A→B→C, Sessions 012→017). Convention: observations > 40 chars for quality. Synthetic state entries (project-context, key-observations, session-trajectory) bypass INV-SEED-001 entity check as derived aggregations." :op :assert}
+   {:e #blake3 "0bda11c1a7006570c7c449171c54a81a901145a0dd6a9b52e933748246874a1c" :a :exploration/body :v "Prompt-optimization applied to seed: seed output IS turn 1 of every conversation — it determines the trajectory basin. Three principles: (1) spec-language activates design-level reasoning substrate (Braid: append-only datom store), (2) project context cheat sheet gives agent instant working knowledge (types, patterns, commands), (3) observation history shows project arc (Phase A→B→C, Sessions 012→017). Convention: observations > 40 chars for quality. Synthetic state entries (project-context, key-observations, session-trajectory) bypass INV-SEED-001 entity check as derived aggregations." :op :assert}
+   {:e #blake3 "0bda11c1a7006570c7c449171c54a81a901145a0dd6a9b52e933748246874a1c" :a :exploration/content-hash :v #bytes "3b33aff1e8579d017f2db325ef452db5e58d08bfd5c8d9ea1404b6bece3f0b11" :op :assert}
+   {:e #blake3 "0bda11c1a7006570c7c449171c54a81a901145a0dd6a9b52e933748246874a1c" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "0bda11c1a7006570c7c449171c54a81a901145a0dd6a9b52e933748246874a1c" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "0bda11c1a7006570c7c449171c54a81a901145a0dd6a9b52e933748246874a1c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0bda11c1a7006570c7c449171c54a81a901145a0dd6a9b52e933748246874a1c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}
