@@ -603,6 +603,35 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
         }
     }
 
+    // === Stage 0 success criterion + maturity signal ===
+    // The most important context for any "continue" task: WHERE ARE WE?
+    // Only show for real stores (>100 datoms) — proptests use tiny stores.
+    if current_datoms > 100 {
+        let harvest_count = store
+            .datoms()
+            .filter(|d| d.attribute.as_str() == ":harvest/agent" && d.op == Op::Assert)
+            .count();
+        let observation_count = store
+            .datoms()
+            .filter(|d| d.attribute.as_str() == ":exploration/source" && d.op == Op::Assert)
+            .count();
+        let decision_count = store
+            .datoms()
+            .filter(|d| {
+                d.attribute.as_str() == ":exploration/category"
+                    && d.op == Op::Assert
+                    && matches!(&d.value,
+                        Value::String(s) | Value::Keyword(s)
+                        if s.contains("decision"))
+            })
+            .count();
+
+        parts.push(format!(
+            "Goal: harvest/seed replaces HARVEST.md. Status: {} harvests, {} observations, {} decisions captured.",
+            harvest_count, observation_count, decision_count
+        ));
+    }
+
     // === Spec landscape: namespace-grouped project architecture ===
     // Gives agents a structural mental model — "14 namespaces, 354 elements" is
     // more useful than 150 individual spec IDs. Compact: ~20 lines, ~100 tokens.
@@ -1130,15 +1159,10 @@ fn build_directive(
         }
     }
 
-    // SECONDARY: Guidance system actions.
-    // When synthesis exists: show only the FIRST actionable item (skip telemetry noise
-    // like "Φ=240.6", "83 cycles", "staleness > 0.8" — internal metrics, not work items).
-    // When no synthesis: show top 3 as primary directive.
-    // Filter out internal-only diagnostic actions that aren't useful for task work.
+    // SECONDARY: Guidance system actions (filtered for real work).
     let actionable: Vec<_> = actions
         .iter()
         .filter(|a| {
-            // Skip actions whose summary is pure telemetry noise
             let s = &a.summary;
             !s.contains("cycles") && !s.contains("staleness") && !s.starts_with("Divergence")
         })
@@ -1169,9 +1193,17 @@ fn build_directive(
         }
     }
 
-    // Always show quick reference
+    // PROTOCOL: Session lifecycle anchors.
+    // Remind the agent of the methodology that makes braid work.
     parts.push(String::new());
-    parts.push("Quick: braid status | braid observe \"...\" | braid harvest --commit".to_string());
+    parts.push(
+        "Protocol: observe decisions/questions during work, harvest before ending session."
+            .to_string(),
+    );
+    parts.push(
+        "Quick: braid status | braid observe \"...\" --category design-decision | braid harvest --commit"
+            .to_string(),
+    );
 
     parts.join("\n")
 }
@@ -2163,8 +2195,11 @@ pub fn assemble(
 
     let state = ContextSection::State(state_entries);
 
-    let total_tokens = overhead + state_tokens;
-    let budget_remaining = budget.saturating_sub(total_tokens);
+    // Budget accounting: when fixed sections (orientation, directive, constraints,
+    // warnings) exceed the budget, clamp total to budget — the overflow is tracked
+    // but never reported as "remaining" budget.
+    let total_tokens = (overhead + state_tokens).min(budget);
+    let budget_remaining = budget.saturating_sub(overhead + state_tokens);
 
     AssembledContext {
         sections: vec![orientation, constraints, state, warnings, directive],
