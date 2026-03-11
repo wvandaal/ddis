@@ -409,6 +409,17 @@ pub fn run(
             Op::Assert,
         ));
 
+        // Codebase snapshot — gives incoming agents a project map
+        if let Some(snapshot) = git::codebase_snapshot(path) {
+            all_datoms.push(Datom::new(
+                session_entity,
+                Attribute::from_keyword(":harvest/codebase-snapshot"),
+                Value::String(snapshot),
+                harvest_tx_id,
+                Op::Assert,
+            ));
+        }
+
         // E2: Session metrics — transactions and observations since last harvest
         all_datoms.push(Datom::new(
             session_entity,

@@ -1,0 +1,21 @@
+{:tx/id #hlc "1773245076/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 1 candidates from task 'Session 016: Seed quality deep-fix — codebase snapshot for project comprehension'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :db/ident :v :harvest/session-braid-user-1773245076 :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :db/doc :v "Harvest session for task: Session 016: Seed quality deep-fix — codebase snapshot for project comprehension" :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/candidate-count :v 1 :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/task :v "Session 016: Seed quality deep-fix — codebase snapshot for project comprehension" :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/accomplishments :v "Codebase snapshot feature: harvest now captures LOC by file, key file map, and test count. Seed renders this as a project map in Orientation — incoming agents immediately know where things are." :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 016: Seed quality deep-fix — codebase snapshot for project comprehension\nRun: `braid seed --task \"continue: Session 016: Seed quality deep-fix — codebase snapshot for project comprehension\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/git-summary :v "branch=main, 1 commits, 6 files (+157/-13)\n  c4c51ab Session 016: Polish — synthesis directive task carry-forward, hot files, clean display\nHot files:\n  ddis-braid/crates/braid-kernel/src/seed.rs (58 lines changed)\n  ddis-braid/crates/braid/src/git.rs (55 lines changed)\n  ddis-braid/.braid/txns/bd/bd4ac1e7d0352dca2083fd6b1f26f3fc1a93f69814b0b67119f3913b6792f08c.edn (20 lines changed)\n  ddis-braid/.braid/txns/66/6668194323fe4ef01d5f3e1de717679b7735ef0dc9cf37c0f96abb25c59e2f1a.edn (15 lines changed)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (12 lines changed)\n  ddis-braid/crates/braid/src/commands/harvest.rs (10 lines changed)" :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/store-datom-count :v 3112 :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/store-entity-count :v 754 :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/codebase-snapshot :v "Codebase: 40954 LOC across 49 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (3984 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (3146 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (3095 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (2347 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (2330 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2042 LOC)\n  ddis-braid/crates/braid-kernel/src/trilateral.rs (1857 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (1399 LOC)\n  ddis-braid/crates/braid-kernel/tests/cross_namespace.rs (1316 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (1217 LOC)" :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/tx-since-last :v 1 :op :assert}
+   {:e #blake3 "0449dc9f5f5caeddcbe1d452aa5eff949fb4d6fcae7a290c801a9d32ae6f7066" :a :harvest/observation-count :v 1 :op :assert}
+ ]}

@@ -256,6 +256,84 @@ pub fn top_modified_files(path: &Path, since: u64, limit: usize) -> Vec<(String,
     sorted
 }
 
+/// Capture a codebase snapshot: LOC by key source file, test count.
+///
+/// This gives an incoming agent a map of the codebase — which files
+/// are large, where the code lives, and how well-tested it is.
+pub fn codebase_snapshot(path: &Path) -> Option<String> {
+    let root = detect_git_root(path)?;
+
+    // Get LOC for key source files (Rust .rs files, sorted by size)
+    let output = Command::new("git")
+        .args(["ls-files", "--", "*.rs", "*.toml"])
+        .current_dir(&root)
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut file_sizes: Vec<(String, usize)> = Vec::new();
+    let mut total_loc = 0usize;
+    let mut total_files = 0usize;
+
+    for file in stdout.lines() {
+        let file = file.trim();
+        if file.is_empty() || !file.ends_with(".rs") {
+            continue;
+        }
+        total_files += 1;
+        let full_path = root.join(file);
+        if let Ok(content) = std::fs::read_to_string(&full_path) {
+            let loc = content.lines().count();
+            total_loc += loc;
+            if loc > 100 {
+                // Only show files > 100 LOC
+                file_sizes.push((file.to_string(), loc));
+            }
+        }
+    }
+
+    file_sizes.sort_by_key(|(_, loc)| std::cmp::Reverse(*loc));
+
+    let mut lines = Vec::new();
+    lines.push(format!(
+        "Codebase: {} LOC across {} .rs files",
+        total_loc, total_files
+    ));
+
+    // Top files by size
+    if !file_sizes.is_empty() {
+        lines.push("Key files:".to_string());
+        for (f, loc) in file_sizes.iter().take(10) {
+            lines.push(format!("  {f} ({loc} LOC)"));
+        }
+    }
+
+    // Test count (from cargo test --no-run output, fast)
+    let test_output = Command::new("cargo")
+        .args(["test", "--", "--list"])
+        .current_dir(&root)
+        .output()
+        .ok();
+    if let Some(ref out) = test_output {
+        if out.status.success() {
+            let test_stdout = String::from_utf8_lossy(&out.stdout);
+            let test_count = test_stdout
+                .lines()
+                .filter(|l| l.ends_with(": test"))
+                .count();
+            if test_count > 0 {
+                lines.push(format!("Tests: {test_count} passing"));
+            }
+        }
+    }
+
+    Some(lines.join("\n"))
+}
+
 /// Format git context for harvest output.
 pub fn format_git_context(ctx: &GitContext) -> String {
     if ctx.commits.is_empty() {

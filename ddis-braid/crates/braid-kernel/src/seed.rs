@@ -315,6 +315,8 @@ struct SessionExcerpt {
     git_summary: Option<String>,
     /// Synthesis directive from harvest (recommended next steps).
     synthesis_directive: Option<String>,
+    /// Codebase snapshot (LOC, key files, test count).
+    codebase_snapshot: Option<String>,
     /// Store datom count at harvest time (for delta tracking).
     store_datom_count: Option<i64>,
     /// Store entity count at harvest time.
@@ -445,6 +447,11 @@ fn discover_session_content(store: &Store, session_entity: EntityId) -> SessionE
                     excerpt.synthesis_directive = Some(s.clone());
                 }
             }
+            ":harvest/codebase-snapshot" => {
+                if let Value::String(ref s) = d.value {
+                    excerpt.codebase_snapshot = Some(s.clone());
+                }
+            }
             ":harvest/store-datom-count" => {
                 if let Value::Long(n) = d.value {
                     excerpt.store_datom_count = Some(n);
@@ -526,6 +533,15 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
         "Store: {} datoms, {} entities{}",
         current_datoms, current_entities, delta_str
     )];
+
+    // Codebase snapshot (from latest harvest with this data)
+    if let Some(latest) = excerpts.first() {
+        if let Some(ref snapshot) = latest.codebase_snapshot {
+            for line in snapshot.lines().take(12) {
+                parts.push(line.to_string());
+            }
+        }
+    }
 
     // === Last session narrative ===
     if let Some(latest) = excerpts.first() {
@@ -1421,6 +1437,9 @@ fn project_entity(store: &Store, entity: EntityId, level: ProjectionLevel) -> St
                 ":harvest/store-datom-count",
                 ":harvest/store-entity-count",
                 ":harvest/agent",
+                ":harvest/codebase-snapshot",
+                ":harvest/tx-since-last",
+                ":harvest/observation-count",
                 ":exploration/content-hash",
                 ":exploration/source",
                 ":exploration/maturity",

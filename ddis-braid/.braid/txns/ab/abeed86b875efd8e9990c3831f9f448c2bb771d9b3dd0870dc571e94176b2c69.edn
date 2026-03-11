@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773245071/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Codebase snapshot feature: harvest now captures LOC by file, key file map, and test count. Seed renders this as a project map in Orientation — incoming agents immediately know where things are."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7c871209ef1a9cf4d13b434e5a396fee06f4f467f1b570148a227fd2f188caee" :a :db/ident :v :observation/codebase-snapshot-feature-harvest-now-captures-loc-by-file :op :assert}
+   {:e #blake3 "7c871209ef1a9cf4d13b434e5a396fee06f4f467f1b570148a227fd2f188caee" :a :db/doc :v "Codebase snapshot feature: harvest now captures LOC by file, key file map, and test count. Seed renders this as a project map in Orientation — incoming agents immediately know where things are." :op :assert}
+   {:e #blake3 "7c871209ef1a9cf4d13b434e5a396fee06f4f467f1b570148a227fd2f188caee" :a :exploration/body :v "Codebase snapshot feature: harvest now captures LOC by file, key file map, and test count. Seed renders this as a project map in Orientation — incoming agents immediately know where things are." :op :assert}
+   {:e #blake3 "7c871209ef1a9cf4d13b434e5a396fee06f4f467f1b570148a227fd2f188caee" :a :exploration/content-hash :v #bytes "45cea4db359b84741c92c67c9e01824be85883f7f8bd4f76d99db65d6701994b" :op :assert}
+   {:e #blake3 "7c871209ef1a9cf4d13b434e5a396fee06f4f467f1b570148a227fd2f188caee" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "7c871209ef1a9cf4d13b434e5a396fee06f4f467f1b570148a227fd2f188caee" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "7c871209ef1a9cf4d13b434e5a396fee06f4f467f1b570148a227fd2f188caee" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7c871209ef1a9cf4d13b434e5a396fee06f4f467f1b570148a227fd2f188caee" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}
