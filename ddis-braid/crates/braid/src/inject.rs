@@ -260,7 +260,7 @@ pub fn format_for_injection(store: &Store, task: Option<&str>, budget: usize) ->
         }
     }
 
-    // Quick reference footer
+    // Quick reference footer — always include for inject (it adds the --inject command)
     out.push_str("### Quick Reference\n");
     out.push_str("```bash\n");
     out.push_str("braid status                           # Dashboard + next action\n");

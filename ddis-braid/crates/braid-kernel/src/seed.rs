@@ -23,6 +23,17 @@ use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, Value};
 use crate::query::graph::{pagerank, DiGraph};
 use crate::store::Store;
 
+/// Truncate a string at a char boundary, appending "..." if truncated.
+/// Safe for multi-byte UTF-8 (never panics on char boundaries).
+fn truncate_chars(s: &str, max_chars: usize) -> String {
+    if s.chars().count() <= max_chars {
+        s.to_string()
+    } else {
+        let truncated: String = s.chars().take(max_chars).collect();
+        format!("{truncated}...")
+    }
+}
+
 /// Projection levels for rate-distortion compression (ADR-SEED-002).
 ///
 /// Forms a total order: Full > Summary > TypeLevel > Pointer.
@@ -363,11 +374,7 @@ fn discover_session_content(store: &Store, session_entity: EntityId) -> SessionE
                     },
                     ":exploration/body" | ":db/doc" => {
                         if let Value::String(ref s) = d.value {
-                            body = if s.len() > 120 {
-                                format!("{}...", &s[..120])
-                            } else {
-                                s.clone()
-                            };
+                            body = truncate_chars(s, 300);
                         }
                     }
                     _ => {}
@@ -515,39 +522,24 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
         // Accomplishments (from :harvest/accomplishments datom)
         if !latest.accomplishments.is_empty() {
             parts.push("Accomplished:".to_string());
-            for a in latest.accomplishments.iter().take(5) {
-                let truncated = if a.len() > 150 {
-                    format!("{}...", &a[..150])
-                } else {
-                    a.clone()
-                };
-                parts.push(format!("  - {truncated}"));
+            for a in latest.accomplishments.iter().take(8) {
+                parts.push(format!("  - {}", truncate_chars(a, 500)));
             }
         }
 
         // Decisions with rationale (from :harvest/decisions datom)
         if !latest.decisions.is_empty() {
             parts.push("Decided:".to_string());
-            for d in latest.decisions.iter().take(5) {
-                let truncated = if d.len() > 150 {
-                    format!("{}...", &d[..150])
-                } else {
-                    d.clone()
-                };
-                parts.push(format!("  - {truncated}"));
+            for d in latest.decisions.iter().take(8) {
+                parts.push(format!("  - {}", truncate_chars(d, 500)));
             }
         }
 
         // Open questions (from :harvest/open-questions datom)
         if !latest.open_questions.is_empty() {
             parts.push("Open:".to_string());
-            for q in latest.open_questions.iter().take(3) {
-                let truncated = if q.len() > 120 {
-                    format!("{}...", &q[..120])
-                } else {
-                    q.clone()
-                };
-                parts.push(format!("  ? {truncated}"));
+            for q in latest.open_questions.iter().take(5) {
+                parts.push(format!("  ? {}", truncate_chars(q, 300)));
             }
         }
 
@@ -561,11 +553,10 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
 
         // Synthesis directive from last harvest (recommended next steps)
         if let Some(ref directive) = latest.synthesis_directive {
-            // Show the first 2 meaningful lines of the directive
             let meaningful: Vec<&str> = directive
                 .lines()
                 .filter(|l| !l.trim().is_empty() && !l.starts_with("---"))
-                .take(2)
+                .take(10)
                 .collect();
             if !meaningful.is_empty() {
                 parts.push("Last session recommended:".to_string());
@@ -630,12 +621,7 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
                         for d2 in store.entity_datoms(datom.entity) {
                             if d2.attribute.as_str() == ":db/doc" && d2.op == Op::Assert {
                                 if let Value::String(ref doc) = d2.value {
-                                    let truncated = if doc.len() > 100 {
-                                        format!("{}...", &doc[..100])
-                                    } else {
-                                        doc.clone()
-                                    };
-                                    obs_summaries.push(truncated);
+                                    obs_summaries.push(truncate_chars(doc, 200));
                                 }
                                 break;
                             }
@@ -679,13 +665,9 @@ fn discover_open_questions(store: &Store, task_keywords: &[String]) -> Vec<Strin
                 for d2 in store.entity_datoms(datom.entity) {
                     if d2.attribute.as_str() == ":db/doc" && d2.op == Op::Assert {
                         if let Value::String(ref doc) = d2.value {
-                            let truncated = if doc.len() > 100 {
-                                format!("{}...", &doc[..100])
-                            } else {
-                                doc.clone()
-                            };
-                            let score = keyword_relevance_score(&truncated, task_keywords);
-                            questions.push((score, format!("[?] {truncated}")));
+                            let text = truncate_chars(doc, 200);
+                            let score = keyword_relevance_score(&text, task_keywords);
+                            questions.push((score, format!("[?] {text}")));
                         }
                         break;
                     }
@@ -742,11 +724,7 @@ fn discover_constraints(store: &Store, task_keywords: &[String]) -> Vec<Constrai
             match d.attribute.as_str() {
                 ":db/doc" => {
                     if let Value::String(ref s) = d.value {
-                        summary = if s.len() > 60 {
-                            format!("{}...", &s[..60])
-                        } else {
-                            s.clone()
-                        };
+                        summary = truncate_chars(s, 120);
                     }
                 }
                 ":spec/type" => {
@@ -835,25 +813,47 @@ fn build_directive(
 ) -> String {
     let mut parts = vec![format!("Task: {task}")];
 
-    // Carry forward open questions from last session (Step 4: actionable directive)
+    // PRIMARY: Use synthesis directive from last harvest as the main directive.
+    // This is the most carefully crafted carry-forward context — it contains
+    // recommended next steps, open questions, and decisions not to relitigate.
+    let mut has_synthesis = false;
     if let Some(excerpt) = last_session {
+        if let Some(ref directive) = excerpt.synthesis_directive {
+            let meaningful: Vec<&str> = directive
+                .lines()
+                .filter(|l| !l.trim().is_empty() && !l.starts_with("---"))
+                .take(12)
+                .collect();
+            if !meaningful.is_empty() {
+                has_synthesis = true;
+                parts.push(String::new());
+                parts.push("From last harvest:".to_string());
+                for line in meaningful {
+                    parts.push(format!("  {line}"));
+                }
+            }
+        }
+
+        // Open questions from last session
         if !excerpt.open_questions.is_empty() {
             parts.push(String::new());
             parts.push("Open from last session:".to_string());
-            for q in excerpt.open_questions.iter().take(3) {
-                let truncated = if q.len() > 120 {
-                    format!("{}...", &q[..120])
-                } else {
-                    q.clone()
-                };
-                parts.push(format!("  ? {truncated}"));
+            for q in excerpt.open_questions.iter().take(5) {
+                parts.push(format!("  ? {}", truncate_chars(q, 300)));
             }
         }
     }
 
+    // SECONDARY: Guidance system actions (only if no synthesis directive,
+    // or as supplementary diagnostics)
     if !actions.is_empty() {
-        parts.push(String::new());
-        parts.push("Next actions:".to_string());
+        if has_synthesis {
+            parts.push(String::new());
+            parts.push("Store diagnostics:".to_string());
+        } else {
+            parts.push(String::new());
+            parts.push("Next actions:".to_string());
+        }
         for (i, action) in actions.iter().take(3).enumerate() {
             let category_label = format!("{:?}", action.category);
             parts.push(format!(
@@ -1306,13 +1306,7 @@ fn project_entity(store: &Store, entity: EntityId, level: ProjectionLevel) -> St
             });
             match body {
                 Some(text) => {
-                    // Truncate long text to keep tokens reasonable
-                    let truncated = if text.len() > 120 {
-                        format!("{}...", &text[..120])
-                    } else {
-                        text.to_string()
-                    };
-                    format!("{} — {}", label, truncated)
+                    format!("{} — {}", label, truncate_chars(text, 200))
                 }
                 None => {
                     format!("{} ({} attrs)", label, datoms.len())
@@ -1320,8 +1314,22 @@ fn project_entity(store: &Store, entity: EntityId, level: ProjectionLevel) -> St
             }
         }
         ProjectionLevel::Full => {
+            // Filter out harvest process metadata — noise for agents
+            const NOISE_ATTRS: &[&str] = &[
+                ":harvest/candidate-count",
+                ":harvest/drift-score",
+                ":harvest/store-datom-count",
+                ":harvest/store-entity-count",
+                ":harvest/agent",
+                ":exploration/content-hash",
+                ":exploration/source",
+                ":exploration/maturity",
+            ];
             let mut lines = Vec::new();
             for d in &datoms {
+                if NOISE_ATTRS.contains(&d.attribute.as_str()) {
+                    continue;
+                }
                 lines.push(format!(
                     "  {} = {}",
                     d.attribute.as_str(),
@@ -1461,22 +1469,27 @@ pub fn assemble(
         // Clamp projection to respect global budget constraints
         let effective_projection = projection.min(fallback_projection);
 
+        // Skip hex-hash entities before budget allocation (not after)
         let entry = project_entity(store, *entity, effective_projection);
+        if entry.content.starts_with('#') {
+            continue;
+        }
         if state_tokens + entry.tokens > state_budget {
-            // Try a lower projection before giving up
+            // Try a lower projection before skipping this entity
             let compressed = project_entity(store, *entity, ProjectionLevel::Pointer);
+            if compressed.content.starts_with('#') {
+                continue;
+            }
             if state_tokens + compressed.tokens <= state_budget {
                 state_tokens += compressed.tokens;
                 state_entries.push(compressed);
             }
-            break;
+            // Don't break — try remaining smaller entities
+            continue;
         }
         state_tokens += entry.tokens;
         state_entries.push(entry);
     }
-
-    // Filter hex-hash-only entities — zero information, wastes tokens (Wave 6: D2)
-    state_entries.retain(|e| !e.content.starts_with('#'));
 
     // Compute dominant projection before moving state_entries
     let dominant_projection = if state_entries.is_empty() {

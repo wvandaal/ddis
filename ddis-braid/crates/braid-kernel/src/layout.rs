@@ -429,12 +429,19 @@ impl<'a> EdnParser<'a> {
         self.skip_whitespace();
         self.expect("\"")?;
         let mut result = String::new();
+        // Iterate by char (not by byte) to correctly handle multi-byte UTF-8.
+        // Previous implementation used `as_bytes()[pos] as char` which corrupted
+        // every non-ASCII character (em-dash → â€", Greek Φ → Î¦, etc.).
         while self.pos < self.input.len() {
-            let ch = self.input.as_bytes()[self.pos];
-            if ch == b'"' {
+            let remaining = &self.input[self.pos..];
+            let ch = remaining
+                .chars()
+                .next()
+                .ok_or(EdnParseError::UnexpectedEof)?;
+            if ch == '"' {
                 self.pos += 1;
                 return Ok(result);
-            } else if ch == b'\\' {
+            } else if ch == '\\' {
                 self.pos += 1;
                 if self.pos >= self.input.len() {
                     return Err(EdnParseError::UnexpectedEof);
@@ -450,10 +457,11 @@ impl<'a> EdnParser<'a> {
                         result.push(other as char);
                     }
                 }
+                self.pos += 1;
             } else {
-                result.push(ch as char);
+                result.push(ch);
+                self.pos += ch.len_utf8();
             }
-            self.pos += 1;
         }
         Err(EdnParseError::UnexpectedEof)
     }
@@ -997,5 +1005,40 @@ mod tests {
         assert_eq!(parsed.causal_predecessors.len(), 2);
         assert_eq!(parsed.causal_predecessors[0], pred1);
         assert_eq!(parsed.causal_predecessors[1], pred2);
+    }
+
+    #[test]
+    fn utf8_string_round_trip() {
+        // Verify multi-byte UTF-8 characters survive serialize → deserialize
+        let agent = AgentId::from_name("test");
+        let tx = TxFile {
+            tx_id: TxId::new(42, 0, agent),
+            agent,
+            provenance: ProvenanceType::Observed,
+            rationale: "UTF-8 test: em-dash — Greek Φ subscript ₁ arrow → CJK 中文".to_string(),
+            causal_predecessors: vec![],
+            datoms: vec![Datom::new(
+                EntityId::from_ident(":test/utf8"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String(
+                    "Divergence Φ=240.6 — structural remediation → convergence ₁₂₃".to_string(),
+                ),
+                TxId::new(42, 0, agent),
+                Op::Assert,
+            )],
+        };
+        let bytes = serialize_tx(&tx);
+        let parsed = deserialize_tx(&bytes).unwrap();
+        assert_eq!(
+            parsed.rationale,
+            "UTF-8 test: em-dash — Greek Φ subscript ₁ arrow → CJK 中文"
+        );
+        match &parsed.datoms[0].value {
+            Value::String(s) => assert_eq!(
+                s,
+                "Divergence Φ=240.6 — structural remediation → convergence ₁₂₃"
+            ),
+            other => panic!("expected String, got {:?}", other),
+        }
     }
 }

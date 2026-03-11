@@ -1174,7 +1174,27 @@ pub fn synthesize_narrative(
     //    with confidence >= 0.5.
     let mut accomplished: Vec<Accomplishment> = Vec::new();
 
+    // Helper: resolve entity body text (the actual observation/knowledge content).
+    // Prefers :exploration/body > :db/doc > candidate rationale as fallback.
+    let resolve_body = |entity: EntityId, fallback: &str| -> String {
+        let datoms = store.entity_datoms(entity);
+        datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == ":exploration/body" && d.op == Op::Assert)
+            .or_else(|| {
+                datoms
+                    .iter()
+                    .find(|d| d.attribute.as_str() == ":db/doc" && d.op == Op::Assert)
+            })
+            .and_then(|d| match &d.value {
+                Value::String(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_else(|| fallback.to_string())
+    };
+
     // Helper: accumulate accomplishments from a category bucket.
+    // Uses the actual entity body text, not the candidate rationale metadata.
     let build_accomplishments =
         |bucket: &[&HarvestCandidate], cat: HarvestCategory, out: &mut Vec<Accomplishment>| {
             let qualifying: Vec<&HarvestCandidate> = bucket
@@ -1185,9 +1205,10 @@ pub fn synthesize_narrative(
             if qualifying.is_empty() {
                 return;
             }
+            // Build individual accomplishment summaries from entity body text
             let summary = qualifying
                 .iter()
-                .map(|c| c.rationale.as_str())
+                .map(|c| resolve_body(c.entity, &c.rationale))
                 .collect::<Vec<_>>()
                 .join("; ");
             let entities: Vec<EntityId> = qualifying.iter().map(|c| c.entity).collect();
@@ -1210,25 +1231,42 @@ pub fn synthesize_narrative(
     );
 
     // 3. Extract decisions with rationale from store.
+    //    Uses entity body text as summary (not candidate rationale metadata).
+    //    Checks both :intent/rationale and :exploration/rationale for decision reasoning.
+    //    Checks both :intent/alternatives and :exploration/alternatives.
     let narrative_decisions: Vec<NarrativeDecision> = decisions
         .iter()
         .map(|c| {
             let entity_datoms = store.entity_datoms(c.entity);
 
-            // Look for :intent/rationale
+            // Summary: use the actual entity body text
+            let summary = resolve_body(c.entity, &c.rationale);
+
+            // Rationale: check :exploration/rationale (braid observe --rationale)
+            // then :intent/rationale, then fall back to candidate rationale
             let rationale = entity_datoms
                 .iter()
-                .find(|d| d.attribute.as_str() == ":intent/rationale" && d.op == Op::Assert)
+                .find(|d| d.attribute.as_str() == ":exploration/rationale" && d.op == Op::Assert)
+                .or_else(|| {
+                    entity_datoms
+                        .iter()
+                        .find(|d| d.attribute.as_str() == ":intent/rationale" && d.op == Op::Assert)
+                })
                 .and_then(|d| match &d.value {
                     Value::String(s) => Some(s.clone()),
                     _ => None,
                 })
-                .unwrap_or_else(|| c.rationale.clone());
+                .unwrap_or_default();
 
-            // Look for :intent/alternatives (pipe-separated string)
+            // Alternatives: check :exploration/alternatives then :intent/alternatives
             let alternatives = entity_datoms
                 .iter()
-                .find(|d| d.attribute.as_str() == ":intent/alternatives" && d.op == Op::Assert)
+                .find(|d| d.attribute.as_str() == ":exploration/alternatives" && d.op == Op::Assert)
+                .or_else(|| {
+                    entity_datoms.iter().find(|d| {
+                        d.attribute.as_str() == ":intent/alternatives" && d.op == Op::Assert
+                    })
+                })
                 .and_then(|d| match &d.value {
                     Value::String(s) => Some(
                         s.split('|')
@@ -1240,7 +1278,7 @@ pub fn synthesize_narrative(
                 .unwrap_or_default();
 
             NarrativeDecision {
-                summary: c.rationale.clone(),
+                summary,
                 rationale,
                 alternatives,
             }
@@ -1263,7 +1301,7 @@ pub fn synthesize_narrative(
                 });
 
             OpenQuestion {
-                summary: c.rationale.clone(),
+                summary: resolve_body(c.entity, &c.rationale),
                 entity_ref,
             }
         })
@@ -2425,8 +2463,8 @@ mod tests {
         assert!(dec.alternatives.contains(&"relational tables".to_string()));
         assert!(dec.alternatives.contains(&"document store".to_string()));
         assert!(dec.alternatives.contains(&"graph DB".to_string()));
-        // Summary preserves the candidate rationale
-        assert_eq!(dec.summary, "Chose EAV model");
+        // Summary now resolves from entity body text (:db/doc), not candidate rationale
+        assert_eq!(dec.summary, "Chose EAV over relational model");
     }
 
     #[test]
@@ -2635,7 +2673,8 @@ mod tests {
         assert_eq!(summary.open_questions.len(), 1);
 
         let oq = &summary.open_questions[0];
-        assert_eq!(oq.summary, "CRDT vs OT merge strategy undecided");
+        // Summary now resolves from entity body text (:db/doc), not candidate rationale
+        assert_eq!(oq.summary, "Should we use CRDT or OT for merge?");
         // entity_ref should resolve from :db/ident
         assert!(
             oq.entity_ref.is_some(),
