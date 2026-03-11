@@ -3331,3 +3331,78 @@ Phase C is complete. Next priorities from bead backlog:
 - **brai-2wpi** (P1 epic): Topology framework spec — promote to spec/19-topology.md
 - **brai-3tym** (P2 epic): Phase D — Branching + Deliberation (Stage 2)
 - **brai-35s5** (P3): Budget-aware output integration (Stage 1 polish)
+
+---
+
+## Session 015 — 2026-03-11 (S0-FIX: Close the Harvest/Seed Gap)
+
+### Goal
+
+Fix the 10 defects preventing `braid harvest`/`braid seed` from replacing this file (HARVEST.md).
+Make the round-trip observe→harvest→seed produce sufficient context for a fresh agent session
+without reading HARVEST.md.
+
+### What Was Accomplished
+
+**10 defects fixed across 6 waves + 6 additional improvements (~1,050 LOC, 12 files):**
+
+1. **Wave 1 (B1)**: Fixed category value mismatch — `Value::Keyword(":exploration.cat/design-decision")` now matches in all 3 seed functions. Also fixed O(n²) performance in `discover_open_questions()`.
+
+2. **Wave 2 (A1)**: Harvest narrative persistence — `synthesize_narrative()` output (accomplishments, decisions, open questions, synthesis directive, task, git summary) stored as datoms on the harvest session entity. Seed reads them back.
+
+3. **Wave 3 (B2+B3)**: Task-aware seed — keyword extraction with "continue" fallback to last harvest task. Constraints sorted by observation cross-ref relevance + keyword match.
+
+4. **Wave 4 (C1+C2+C3)**: Fixed noise — store-derived telemetry replaces always-zero `SessionTelemetry::default()` at all 5 call sites. Phantom "braid analyze" replaced with valid commands. CC-2 suppressed when no `:impl/implements` datoms exist.
+
+5. **Wave 5 (A2)**: Git context persisted as `:harvest/git-summary` datom. Seed renders under "Changes:" heading.
+
+6. **Wave 6 (D1+D2)**: Budget utilization improved (breadth 10→25), hex hash entities filtered.
+
+**Additional improvements (Steps 1-6):**
+
+7. **Narrative orientation rewrite**: `build_orientation()` completely rewritten from entity-attribute dump to narrative briefing — "Last session: X / Accomplished: / Decided: / Open: / Changes: / Last session recommended:".
+
+8. **Structured observation capture**: `braid observe` now accepts `--rationale` and `--alternatives` flags, creating `:exploration/rationale` and `:exploration/alternatives` datoms.
+
+9. **Observation-based constraint boosting**: Observations with `--relates-to :spec/inv-foo` boost that spec's constraint ranking in seed output.
+
+10. **Synthesis directive carry-forward**: Last harvest's recommended next steps appear in seed's Directive section. Open questions from previous session shown.
+
+11. **Store delta tracking**: `:harvest/store-datom-count` and `:harvest/store-entity-count` persisted at harvest time. Seed shows "+N since last harvest".
+
+12. **State summaries**: Unharvested observation counts shown. Prior session excerpts compressed to one line each.
+
+**Files changed**: `seed.rs` (+905/-224), `harvest.rs` (+116), `observe.rs` (+42), `mod.rs` (+18), `guidance.rs` (+46/-), `bilateral.rs` (+42/-), `status.rs` (+8/-), `inject.rs` (+5/-), `mcp.rs` (+5), `shell.rs` (+2)
+
+**Tests**: 614 passing. All new functionality tested.
+
+**Dog-fooded**: Observed decisions with `--rationale`, harvested with `--commit`, verified seed output shows narrative context, relevant constraints, and next-step directives.
+
+### Decisions Made
+
+1. **Narrative over entity dump** (rationale: HARVEST.md's value is in *narrative* — what happened, why, what's next — not in raw data). `build_orientation()` rewrites use prose structure matching what humans write in HARVEST.md.
+
+2. **Observation cross-refs for constraint relevance** (rationale: agents naturally capture `--relates-to :spec/inv-foo` during work, creating a signal about which specs are relevant to current task. This is better than keyword matching alone).
+
+3. **Carry synthesis_directive to next seed** (rationale: HARVEST.md's "Recommended Next Action" is the most consistently useful section — it tells the next agent what to do. Without carrying this forward, seed lacks actionable direction).
+
+4. **Store metrics at harvest time** (rationale: enables "+N since last harvest" delta display, giving agents a sense of session magnitude without scanning transaction history).
+
+### Open Questions
+
+1. **Multi-session validation**: This session validated the round-trip on a single session's data. The definitive test is whether a *fresh agent* can be productive using *only* `braid seed` output across 3+ sessions. Bead brai-1e0s tracks this.
+
+2. **LLM synthesis quality**: The current `synthesize_narrative()` uses heuristic rules, not LLM calls. Bead brai-1rih tracks optional `--llm` flag for richer synthesis. May be unnecessary if the structured datom approach proves sufficient.
+
+3. **Budget utilization measurement**: Increased breadth from 10→25 but no instrumentation to measure actual token usage vs budget. Need to verify > 60% utilization on representative stores.
+
+### Failure Modes Observed
+
+- **FM-SESSION-DRIFT (confirmed)**: Session 014's premature closure was caused by M(t)=0.00 noise making real drift invisible. Fixed by Wave 4 (store-derived telemetry).
+- **FM-NARRATIVE-GAP (new)**: Even with all datoms correct, seed output was a list of entities/attributes, not a narrative. Agents need "what happened" framing, not "what exists" dumps. Fixed by narrative orientation rewrite.
+
+### Recommended Next Action
+
+- **brai-1e0s** (P1): Dog-food validation — work 3 sessions using only `braid seed` output (no HARVEST.md). If successful, archive HARVEST.md.
+- **brai-11gt** (P0): Close S0-CLOSE epic once dog-food validation passes.
+- Consider refreshing AGENTS.md injection: `braid seed --inject AGENTS.md --task "continue"`
