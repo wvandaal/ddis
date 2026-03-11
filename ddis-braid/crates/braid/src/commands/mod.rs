@@ -6,6 +6,7 @@ use braid_kernel::budget::{self, BudgetManager};
 use clap::Subcommand;
 
 pub(crate) mod analyze;
+mod bilateral;
 mod harvest;
 mod init;
 mod log;
@@ -264,6 +265,50 @@ Examples:
         /// Persist bilateral cycle results (with --deep).
         #[arg(long)]
         commit: bool,
+    },
+
+    // ── COHERENCE ──────────────────────────────────────────────────────
+    /// Run bilateral coherence scan: F(S) fitness, CC-1..CC-5, convergence.
+    ///
+    /// Focused alternative to `braid status --deep`. Shows coherence metrics
+    /// with actionable next steps. Use --commit to persist cycle results.
+    #[command(after_long_help = "\
+Examples:
+  braid bilateral                     # F(S) + CC pass/fail + next steps
+  braid bilateral --full              # full breakdown + spectral certificate
+  braid bilateral --history           # convergence trajectory over time
+  braid bilateral --json              # machine-readable output
+  braid bilateral --commit            # persist cycle results to store
+
+Workflow: braid bilateral → fix issues → braid bilateral --commit → track convergence")]
+    Bilateral {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Full F(S) breakdown with spectral certificate.
+        #[arg(long)]
+        full: bool,
+
+        /// Include spectral certificate (Phi, beta_1, entropy).
+        #[arg(long)]
+        spectral: bool,
+
+        /// Show convergence trajectory over time.
+        #[arg(long)]
+        history: bool,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
+
+        /// Persist bilateral cycle results to the store.
+        #[arg(long)]
+        commit: bool,
+
+        /// Agent identity (for commit provenance).
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
     },
 
     /// Browse transaction log with optional agent filter.
@@ -701,6 +746,7 @@ fn store_path(cmd: &Command) -> Option<&Path> {
         Command::Mcp { .. } => None,
         Command::Init { path, .. }
         | Command::Status { path, .. }
+        | Command::Bilateral { path, .. }
         | Command::Query { path, .. }
         | Command::Schema { path, .. }
         | Command::Harvest { path, .. }
@@ -794,6 +840,15 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
         } => status::run(
             &path, &agent, json, verbose, deep, spectral, full, verify, commit,
         ),
+        Command::Bilateral {
+            path,
+            full,
+            spectral,
+            history,
+            json,
+            commit,
+            agent,
+        } => bilateral::run(&path, &agent, full, spectral, history, json, commit),
         Command::Write { action } => match action {
             WriteAction::Assert {
                 path,
