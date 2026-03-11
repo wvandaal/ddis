@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773190193/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Completed both P1 spec promotion epics: spec/20-coherence.md (13 INV, 3 ADR, 3 NEG, 5 OQ) and spec/19-topology.md (16 INV, 7 ADR, 5 NEG, 5 OQ). Store at 2951 datoms. 47 spec elements from coherence+topology now in store. All Stage 0 beads closed (556 closed, 16 remaining are P2+ Stage 2-3)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2d2633f7c81251f8cff5c0609e8d18f085555068b54e72fd3412a3ec39fff20e" :a :db/ident :v :observation/completed-both-p1-spec-promotion-epics-spec20-coherencemd :op :assert}
+   {:e #blake3 "2d2633f7c81251f8cff5c0609e8d18f085555068b54e72fd3412a3ec39fff20e" :a :db/doc :v "Completed both P1 spec promotion epics: spec/20-coherence.md (13 INV, 3 ADR, 3 NEG, 5 OQ) and spec/19-topology.md (16 INV, 7 ADR, 5 NEG, 5 OQ). Store at 2951 datoms. 47 spec elements from coherence+topology now in store. All Stage 0 beads closed (556 closed, 16 remaining are P2+ Stage 2-3)." :op :assert}
+   {:e #blake3 "2d2633f7c81251f8cff5c0609e8d18f085555068b54e72fd3412a3ec39fff20e" :a :exploration/body :v "Completed both P1 spec promotion epics: spec/20-coherence.md (13 INV, 3 ADR, 3 NEG, 5 OQ) and spec/19-topology.md (16 INV, 7 ADR, 5 NEG, 5 OQ). Store at 2951 datoms. 47 spec elements from coherence+topology now in store. All Stage 0 beads closed (556 closed, 16 remaining are P2+ Stage 2-3)." :op :assert}
+   {:e #blake3 "2d2633f7c81251f8cff5c0609e8d18f085555068b54e72fd3412a3ec39fff20e" :a :exploration/content-hash :v #bytes "2574c74e896060bdef5ea46287e9b150745125b88dba3835d6ae413a59de4b3f" :op :assert}
+   {:e #blake3 "2d2633f7c81251f8cff5c0609e8d18f085555068b54e72fd3412a3ec39fff20e" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "2d2633f7c81251f8cff5c0609e8d18f085555068b54e72fd3412a3ec39fff20e" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "2d2633f7c81251f8cff5c0609e8d18f085555068b54e72fd3412a3ec39fff20e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2d2633f7c81251f8cff5c0609e8d18f085555068b54e72fd3412a3ec39fff20e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}
