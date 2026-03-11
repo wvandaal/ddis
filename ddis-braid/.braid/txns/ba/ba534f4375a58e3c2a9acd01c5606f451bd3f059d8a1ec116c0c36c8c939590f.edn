@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773259413/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Validation session 1 (P1.1) dogfood experience: Seed provided adequate orientation for budget work. Key gap: seed doesn't show the attribute vocabulary prominently enough — had to grep codebase to find existing budget module. The project context cheat sheet (LOC by file) was valuable for navigation. Open question: should seed include a 'recently added/modified files' section from git?"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2d02c77f945349bb4f0223a94b84fbc09a085c7bce98d8c7d78ecca4925903de" :a :db/ident :v :observation/validation-session-1-p11-dogfood-experience-seed-provide :op :assert}
+   {:e #blake3 "2d02c77f945349bb4f0223a94b84fbc09a085c7bce98d8c7d78ecca4925903de" :a :db/doc :v "Validation session 1 (P1.1) dogfood experience: Seed provided adequate orientation for budget work. Key gap: seed doesn't show the attribute vocabulary prominently enough — had to grep codebase to find existing budget module. The project context cheat sheet (LOC by file) was valuable for navigation. Open question: should seed include a 'recently added/modified files' section from git?" :op :assert}
+   {:e #blake3 "2d02c77f945349bb4f0223a94b84fbc09a085c7bce98d8c7d78ecca4925903de" :a :exploration/body :v "Validation session 1 (P1.1) dogfood experience: Seed provided adequate orientation for budget work. Key gap: seed doesn't show the attribute vocabulary prominently enough — had to grep codebase to find existing budget module. The project context cheat sheet (LOC by file) was valuable for navigation. Open question: should seed include a 'recently added/modified files' section from git?" :op :assert}
+   {:e #blake3 "2d02c77f945349bb4f0223a94b84fbc09a085c7bce98d8c7d78ecca4925903de" :a :exploration/content-hash :v #bytes "ab56785610677908570d9b034326743d3aa7ce112031376952cd521fea67729c" :op :assert}
+   {:e #blake3 "2d02c77f945349bb4f0223a94b84fbc09a085c7bce98d8c7d78ecca4925903de" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "2d02c77f945349bb4f0223a94b84fbc09a085c7bce98d8c7d78ecca4925903de" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "2d02c77f945349bb4f0223a94b84fbc09a085c7bce98d8c7d78ecca4925903de" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2d02c77f945349bb4f0223a94b84fbc09a085c7bce98d8c7d78ecca4925903de" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

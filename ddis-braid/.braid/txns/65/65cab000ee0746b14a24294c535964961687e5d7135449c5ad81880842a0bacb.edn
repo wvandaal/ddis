@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773260227/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 019 wave 2: Three major features implemented. (1) P1.1 budget-aware output pipeline: BudgetCtx, --budget/--context-used CLI flags, guidance footer compression by k*_eff, seed budget ceiling, 4 Kani proofs, 7 tests. (2) P3.1 braid session start/end: zero-ceremony lifecycle from 10 steps to 2 commands, auto-task from synthesis directive, 10 tests. (3) P4.2 braid bilateral standalone: F(S) + CC-1..CC-5 + convergence trajectory + JSON, actionable next steps, 1 test."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "64ca5f86ab7981abb8cefaa2f8631f82b41e92866791f27c1cfd4eda30f5896d" :a :db/ident :v :observation/session-019-wave-2-three-major-features-implemented-1-p1 :op :assert}
+   {:e #blake3 "64ca5f86ab7981abb8cefaa2f8631f82b41e92866791f27c1cfd4eda30f5896d" :a :db/doc :v "Session 019 wave 2: Three major features implemented. (1) P1.1 budget-aware output pipeline: BudgetCtx, --budget/--context-used CLI flags, guidance footer compression by k*_eff, seed budget ceiling, 4 Kani proofs, 7 tests. (2) P3.1 braid session start/end: zero-ceremony lifecycle from 10 steps to 2 commands, auto-task from synthesis directive, 10 tests. (3) P4.2 braid bilateral standalone: F(S) + CC-1..CC-5 + convergence trajectory + JSON, actionable next steps, 1 test." :op :assert}
+   {:e #blake3 "64ca5f86ab7981abb8cefaa2f8631f82b41e92866791f27c1cfd4eda30f5896d" :a :exploration/body :v "Session 019 wave 2: Three major features implemented. (1) P1.1 budget-aware output pipeline: BudgetCtx, --budget/--context-used CLI flags, guidance footer compression by k*_eff, seed budget ceiling, 4 Kani proofs, 7 tests. (2) P3.1 braid session start/end: zero-ceremony lifecycle from 10 steps to 2 commands, auto-task from synthesis directive, 10 tests. (3) P4.2 braid bilateral standalone: F(S) + CC-1..CC-5 + convergence trajectory + JSON, actionable next steps, 1 test." :op :assert}
+   {:e #blake3 "64ca5f86ab7981abb8cefaa2f8631f82b41e92866791f27c1cfd4eda30f5896d" :a :exploration/content-hash :v #bytes "1de3dea0547af21fe2581840d184c68a41571ce35437b2ec6d4d5688b7945349" :op :assert}
+   {:e #blake3 "64ca5f86ab7981abb8cefaa2f8631f82b41e92866791f27c1cfd4eda30f5896d" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "64ca5f86ab7981abb8cefaa2f8631f82b41e92866791f27c1cfd4eda30f5896d" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "64ca5f86ab7981abb8cefaa2f8631f82b41e92866791f27c1cfd4eda30f5896d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "64ca5f86ab7981abb8cefaa2f8631f82b41e92866791f27c1cfd4eda30f5896d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773259929/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session lifecycle commands implemented. braid session start: inject seed + show actionable summary with auto-task continuation. braid session end: harvest + re-inject + git guidance. 150 LOC in session.rs, 10 unit tests."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a38aa544b8517ddf8f15982b72577c763e1f0647a42a7dbe8346a0f292258639" :a :db/ident :v :observation/session-lifecycle-commands-implemented-braid-session-start :op :assert}
+   {:e #blake3 "a38aa544b8517ddf8f15982b72577c763e1f0647a42a7dbe8346a0f292258639" :a :db/doc :v "Session lifecycle commands implemented. braid session start: inject seed + show actionable summary with auto-task continuation. braid session end: harvest + re-inject + git guidance. 150 LOC in session.rs, 10 unit tests." :op :assert}
+   {:e #blake3 "a38aa544b8517ddf8f15982b72577c763e1f0647a42a7dbe8346a0f292258639" :a :exploration/body :v "Session lifecycle commands implemented. braid session start: inject seed + show actionable summary with auto-task continuation. braid session end: harvest + re-inject + git guidance. 150 LOC in session.rs, 10 unit tests." :op :assert}
+   {:e #blake3 "a38aa544b8517ddf8f15982b72577c763e1f0647a42a7dbe8346a0f292258639" :a :exploration/content-hash :v #bytes "64d834d0f789d4bdd6dc27a053ccc3f9caec9d11c4a3316b09a6d0e41c2b6749" :op :assert}
+   {:e #blake3 "a38aa544b8517ddf8f15982b72577c763e1f0647a42a7dbe8346a0f292258639" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "a38aa544b8517ddf8f15982b72577c763e1f0647a42a7dbe8346a0f292258639" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "a38aa544b8517ddf8f15982b72577c763e1f0647a42a7dbe8346a0f292258639" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a38aa544b8517ddf8f15982b72577c763e1f0647a42a7dbe8346a0f292258639" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

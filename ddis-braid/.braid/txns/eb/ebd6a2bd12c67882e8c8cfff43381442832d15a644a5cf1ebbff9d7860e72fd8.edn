@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773260234/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Dogfood feedback: (1) Session start/end feels like a major quality-of-life improvement — no more remembering the multi-step protocol. (2) The auto-task from synthesis directive is particularly elegant — sessions chain naturally. (3) bilateral --history sparkline gives immediate visual feedback on convergence. (4) Pain point: seed injection has a lag from stale binary — need to rebuild between observe and inject. (5) Friction: global --budget conflicts with subcommand --budget (clap global arg collision). Had to rename to --seed-budget."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e4a3ee4c018fdba8e669d62c063cb0d8924f932626811f65e725c3d79a6b96f9" :a :db/ident :v :observation/dogfood-feedback-1-session-startend-feels-like-a-major-q :op :assert}
+   {:e #blake3 "e4a3ee4c018fdba8e669d62c063cb0d8924f932626811f65e725c3d79a6b96f9" :a :db/doc :v "Dogfood feedback: (1) Session start/end feels like a major quality-of-life improvement — no more remembering the multi-step protocol. (2) The auto-task from synthesis directive is particularly elegant — sessions chain naturally. (3) bilateral --history sparkline gives immediate visual feedback on convergence. (4) Pain point: seed injection has a lag from stale binary — need to rebuild between observe and inject. (5) Friction: global --budget conflicts with subcommand --budget (clap global arg collision). Had to rename to --seed-budget." :op :assert}
+   {:e #blake3 "e4a3ee4c018fdba8e669d62c063cb0d8924f932626811f65e725c3d79a6b96f9" :a :exploration/body :v "Dogfood feedback: (1) Session start/end feels like a major quality-of-life improvement — no more remembering the multi-step protocol. (2) The auto-task from synthesis directive is particularly elegant — sessions chain naturally. (3) bilateral --history sparkline gives immediate visual feedback on convergence. (4) Pain point: seed injection has a lag from stale binary — need to rebuild between observe and inject. (5) Friction: global --budget conflicts with subcommand --budget (clap global arg collision). Had to rename to --seed-budget." :op :assert}
+   {:e #blake3 "e4a3ee4c018fdba8e669d62c063cb0d8924f932626811f65e725c3d79a6b96f9" :a :exploration/content-hash :v #bytes "ee3c607aa800f4471ab720bc457e00dbabfc4277f26a0f212eded4cce581649f" :op :assert}
+   {:e #blake3 "e4a3ee4c018fdba8e669d62c063cb0d8924f932626811f65e725c3d79a6b96f9" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "e4a3ee4c018fdba8e669d62c063cb0d8924f932626811f65e725c3d79a6b96f9" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "e4a3ee4c018fdba8e669d62c063cb0d8924f932626811f65e725c3d79a6b96f9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e4a3ee4c018fdba8e669d62c063cb0d8924f932626811f65e725c3d79a6b96f9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773259932/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 1 candidates from task 'P3.1 session lifecycle commands'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :db/ident :v :harvest/session-braid-user-1773259932 :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :db/doc :v "Harvest session for task: P3.1 session lifecycle commands" :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/candidate-count :v 1 :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/task :v "P3.1 session lifecycle commands" :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/accomplishments :v "Session lifecycle commands implemented. braid session start: inject seed + show actionable summary with auto-task continuation. braid session end: harvest + re-inject + git guidance. 150 LOC in session.rs, 10 unit tests." :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: P3.1 session lifecycle commands\nRun: `braid seed --task \"continue: P3.1 session lifecycle commands\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/git-summary :v "branch=main, 1 commits, 1 files (+33/-29)\n  e2fd7f2 Harvest session 019 + refresh AGENTS.md seed injection\nHot files:\n  ddis-braid/AGENTS.md (62 lines changed)" :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/store-datom-count :v 3281 :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/store-entity-count :v 770 :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/codebase-snapshot :v "Codebase: 42091 LOC across 49 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (3984 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (3647 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (3246 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (2347 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (2330 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2042 LOC)\n  ddis-braid/crates/braid-kernel/src/trilateral.rs (1857 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (1670 LOC)\n  ddis-braid/crates/braid-kernel/tests/cross_namespace.rs (1316 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (1217 LOC)" :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/tx-since-last :v 1 :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/observation-count :v 1 :op :assert}
+   {:e #blake3 "0b060f7f3dc5f9d5503f7f04811d6ac5075e3074fb7dc5fc4c94a4451e86431b" :a :harvest/delta-summary :v "+23 datoms, +2 entities" :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773260238/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 3 candidates from task 'Session 019: P1.1 budget pipeline + P3.1 session lifecycle + P4.2 bilateral CLI'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :db/ident :v :harvest/session-braid-user-1773260238 :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :db/doc :v "Harvest session for task: Session 019: P1.1 budget pipeline + P3.1 session lifecycle + P4.2 bilateral CLI" :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/candidate-count :v 3 :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/drift-score :v 1.5 :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/task :v "Session 019: P1.1 budget pipeline + P3.1 session lifecycle + P4.2 bilateral CLI" :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/accomplishments :v "Dogfood feedback: (1) Session start/end feels like a major quality-of-life improvement — no more remembering the multi-step protocol. (2) The auto-task from synthesis directive is particularly elegant — sessions chain naturally. (3) bilateral --history sparkline gives immediate visual feedback on convergence. (4) Pain point: seed injection has a lag from stale binary — need to rebuild between observe and inject. (5) Friction: global --budget conflicts with subcommand --budget (clap global arg collision). Had to rename to --seed-budget." :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 019: P1.1 budget pipeline + P3.1 session lifecycle + P4.2 bilateral CLI\nRun: `braid seed --task \"continue: Session 019: P1.1 budget pipeline + P3.1 session lifecycle + P4.2 bilateral CLI\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/git-summary :v "branch=main, 2 commits, 3 files (+887/-0)\n  e334767 P4.2: braid bilateral — standalone coherence scan CLI\n  1226c4b P3.1: braid session start/end — zero-ceremony lifecycle commands\nHot files:\n  ddis-braid/crates/braid/src/commands/bilateral.rs (407 lines changed)\n  ddis-braid/crates/braid/src/commands/session.rs (320 lines changed)\n  ddis-braid/crates/braid/src/commands/mod.rs (160 lines changed)" :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/store-datom-count :v 3312 :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/store-entity-count :v 773 :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/codebase-snapshot :v "Codebase: 42873 LOC across 51 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (3984 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (3647 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (3246 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (2347 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (2330 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2042 LOC)\n  ddis-braid/crates/braid-kernel/src/trilateral.rs (1857 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (1725 LOC)\n  ddis-braid/crates/braid-kernel/tests/cross_namespace.rs (1316 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (1217 LOC)" :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/tx-since-last :v 2 :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/observation-count :v 2 :op :assert}
+   {:e #blake3 "400627a7aa6d4522a4a2db4a79ca04d7acac5206eb467b7a8417e0362539010e" :a :harvest/delta-summary :v "+31 datoms, +3 entities" :op :assert}
+ ]}

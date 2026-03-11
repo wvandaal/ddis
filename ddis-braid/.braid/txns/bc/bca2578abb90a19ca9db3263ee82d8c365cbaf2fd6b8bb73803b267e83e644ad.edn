@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773259408/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 019 P1.1: Budget-aware output pipeline integrated. Global --budget and --context-used CLI flags flow k*_eff through BudgetCtx to guidance footer compression. Seed command respects global budget ceiling. P3.2: --commit now bypasses crystallization guard at Stage 0 (--guard re-enables). 4 Kani proofs verify INV-BUDGET-001 (floor), INV-BUDGET-003 (Q bounds), C⁰ continuity at k=0.3/0.6, monotonic budget decrease. 7 BudgetCtx unit tests. 623 total tests passing."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8861d8e117edbf6eb94f1d170fae77fa471b1a57a345ce6716cc17ed8e5175ac" :a :db/ident :v :observation/session-019-p11-budget-aware-output-pipeline-integrated-g :op :assert}
+   {:e #blake3 "8861d8e117edbf6eb94f1d170fae77fa471b1a57a345ce6716cc17ed8e5175ac" :a :db/doc :v "Session 019 P1.1: Budget-aware output pipeline integrated. Global --budget and --context-used CLI flags flow k*_eff through BudgetCtx to guidance footer compression. Seed command respects global budget ceiling. P3.2: --commit now bypasses crystallization guard at Stage 0 (--guard re-enables). 4 Kani proofs verify INV-BUDGET-001 (floor), INV-BUDGET-003 (Q bounds), C⁰ continuity at k=0.3/0.6, monotonic budget decrease. 7 BudgetCtx unit tests. 623 total tests passing." :op :assert}
+   {:e #blake3 "8861d8e117edbf6eb94f1d170fae77fa471b1a57a345ce6716cc17ed8e5175ac" :a :exploration/body :v "Session 019 P1.1: Budget-aware output pipeline integrated. Global --budget and --context-used CLI flags flow k*_eff through BudgetCtx to guidance footer compression. Seed command respects global budget ceiling. P3.2: --commit now bypasses crystallization guard at Stage 0 (--guard re-enables). 4 Kani proofs verify INV-BUDGET-001 (floor), INV-BUDGET-003 (Q bounds), C⁰ continuity at k=0.3/0.6, monotonic budget decrease. 7 BudgetCtx unit tests. 623 total tests passing." :op :assert}
+   {:e #blake3 "8861d8e117edbf6eb94f1d170fae77fa471b1a57a345ce6716cc17ed8e5175ac" :a :exploration/content-hash :v #bytes "26073cc33c0ed3567609811115b60cff93144501e0f97d83b00c2a571f59ed44" :op :assert}
+   {:e #blake3 "8861d8e117edbf6eb94f1d170fae77fa471b1a57a345ce6716cc17ed8e5175ac" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "8861d8e117edbf6eb94f1d170fae77fa471b1a57a345ce6716cc17ed8e5175ac" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "8861d8e117edbf6eb94f1d170fae77fa471b1a57a345ce6716cc17ed8e5175ac" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8861d8e117edbf6eb94f1d170fae77fa471b1a57a345ce6716cc17ed8e5175ac" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}
