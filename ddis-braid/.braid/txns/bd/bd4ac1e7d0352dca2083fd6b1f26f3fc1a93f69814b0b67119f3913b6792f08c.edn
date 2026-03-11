@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773244856/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 1 candidates from task 'Session 016: Seed quality deep-fix — make harvest/seed replace HARVEST.md'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :db/ident :v :harvest/session-braid-user-1773244856 :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :db/doc :v "Harvest session for task: Session 016: Seed quality deep-fix — make harvest/seed replace HARVEST.md" :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :harvest/candidate-count :v 1 :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :harvest/task :v "Session 016: Seed quality deep-fix — make harvest/seed replace HARVEST.md" :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :harvest/accomplishments :v "Session 016 polish: synthesis directive now carries forward the actual task instead of a monitoring command. Prior session accomplishments strip legacy 'Session entity:' prefix. Accomplishments split compound entries. Git summary includes top modified files for codebase orientation." :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 016: Seed quality deep-fix — make harvest/seed replace HARVEST.md\nRun: `braid seed --task \"continue: Session 016: Seed quality deep-fix — make harvest/seed replace HARVEST.md\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :harvest/git-summary :v "branch=main, 2 commits, 9 files (+290/-74)\n  ea9c1e8 Session 016: Beads closed, harvest committed, acceptance test passes\n  c5d152d Session 016: E2-E6 seed quality improvements (~120 LOC)\nHot files:\n  ddis-braid/crates/braid-kernel/src/seed.rs (144 lines changed)\n  ddis-braid/AGENTS.md (80 lines changed)\n  ddis-braid/crates/braid/src/inject.rs (28 lines changed)\n  ddis-braid/crates/braid/src/commands/harvest.rs (25 lines changed)\n  ddis-braid/.beads/issues.jsonl (24 lines changed)\n  ddis-braid/.braid/txns/d6/d69491e30a2c13be967ab2fcb349d4b0c7b2b874f8adb47df3a8a2a16c24f6b6.edn (20 lines changed)\n  ddis-braid/.braid/txns/3f/3fba7fd3547492b4b34a30591d3c752718dc24beb541336c06293b2d9518e599.edn (15 lines changed)\n  ddis-braid/.braid/txns/7b/7b29efb248006448e21ffaf94099ea736454b68828fd1424fcf9ce3de931f45e.edn (15 lines changed)" :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :harvest/store-datom-count :v 3091 :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :harvest/store-entity-count :v 752 :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :harvest/tx-since-last :v 1 :op :assert}
+   {:e #blake3 "dbeed53737f887874717d6a1da57ddd82fa843d04505e9390911e734f6ce06a9" :a :harvest/observation-count :v 1 :op :assert}
+ ]}

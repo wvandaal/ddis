@@ -358,7 +358,7 @@ pub fn run(
                 Op::Assert,
             ));
         }
-        // Git context summary (Wave 5: A2 fix)
+        // Git context summary (Wave 5: A2 fix + top modified files)
         let git_summary_text = if !git_ctx.commits.is_empty() {
             let mut lines = vec![format!(
                 "branch={}, {} commits, {} files (+{}/-{})",
@@ -370,6 +370,14 @@ pub fn run(
             )];
             for c in git_ctx.commits.iter().take(5) {
                 lines.push(format!("  {} {}", c.hash, c.subject));
+            }
+            // Top modified files — gives incoming agent a codebase map
+            let top_files = git::top_modified_files(path, session_boundary, 8);
+            if !top_files.is_empty() {
+                lines.push("Hot files:".to_string());
+                for (f, changes) in &top_files {
+                    lines.push(format!("  {f} ({changes} lines changed)"));
+                }
             }
             Some(lines.join("\n"))
         } else {

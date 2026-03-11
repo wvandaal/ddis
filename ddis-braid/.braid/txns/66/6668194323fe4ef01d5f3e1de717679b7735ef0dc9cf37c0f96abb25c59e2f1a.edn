@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773244852/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 016 polish: synthesis directive now carries forward the actual task instead of a monitoring command. Prior session accomplishments strip legacy 'Session entity:' prefix. Accomplishments split compound entries. Git summary includes top modified files for codebase orientation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "45de24e90ad67fddf659c07be6a4f6d407b27eb60a6b9fa8a65766b24cad1980" :a :db/ident :v :observation/session-016-polish-synthesis-directive-now-carries-forward :op :assert}
+   {:e #blake3 "45de24e90ad67fddf659c07be6a4f6d407b27eb60a6b9fa8a65766b24cad1980" :a :db/doc :v "Session 016 polish: synthesis directive now carries forward the actual task instead of a monitoring command. Prior session accomplishments strip legacy 'Session entity:' prefix. Accomplishments split compound entries. Git summary includes top modified files for codebase orientation." :op :assert}
+   {:e #blake3 "45de24e90ad67fddf659c07be6a4f6d407b27eb60a6b9fa8a65766b24cad1980" :a :exploration/body :v "Session 016 polish: synthesis directive now carries forward the actual task instead of a monitoring command. Prior session accomplishments strip legacy 'Session entity:' prefix. Accomplishments split compound entries. Git summary includes top modified files for codebase orientation." :op :assert}
+   {:e #blake3 "45de24e90ad67fddf659c07be6a4f6d407b27eb60a6b9fa8a65766b24cad1980" :a :exploration/content-hash :v #bytes "f8789025318eaba282da6383ff52e6389e82fb8cccc72654767d8132abc4524a" :op :assert}
+   {:e #blake3 "45de24e90ad67fddf659c07be6a4f6d407b27eb60a6b9fa8a65766b24cad1980" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "45de24e90ad67fddf659c07be6a4f6d407b27eb60a6b9fa8a65766b24cad1980" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "45de24e90ad67fddf659c07be6a4f6d407b27eb60a6b9fa8a65766b24cad1980" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "45de24e90ad67fddf659c07be6a4f6d407b27eb60a6b9fa8a65766b24cad1980" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

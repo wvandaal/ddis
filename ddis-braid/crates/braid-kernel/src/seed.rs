@@ -548,8 +548,20 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
         // Accomplishments (from :harvest/accomplishments datom)
         if !latest.accomplishments.is_empty() {
             parts.push("Accomplished:".to_string());
-            for a in latest.accomplishments.iter().take(8) {
-                parts.push(format!("  - {}", truncate_chars(a, 500)));
+            // Split compound accomplishments (joined with "; " during harvest)
+            let expanded: Vec<String> = latest
+                .accomplishments
+                .iter()
+                .flat_map(|a| {
+                    if a.contains("; ") && a.len() > 200 {
+                        a.split("; ").map(|s| s.to_string()).collect::<Vec<_>>()
+                    } else {
+                        vec![a.clone()]
+                    }
+                })
+                .collect();
+            for a in expanded.iter().take(8) {
+                parts.push(format!("  - {}", truncate_chars(a, 300)));
             }
         }
 
@@ -581,13 +593,21 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
         if let Some(ref directive) = latest.synthesis_directive {
             let meaningful: Vec<&str> = directive
                 .lines()
-                .filter(|l| !l.trim().is_empty() && !l.starts_with("---"))
-                .take(10)
+                .filter(|l| {
+                    let t = l.trim();
+                    !t.is_empty()
+                        && !t.starts_with("---")
+                        && !t.starts_with('#') // Strip markdown headers
+                        && !t.starts_with("Run: `braid seed") // Strip boilerplate
+                })
+                .take(8)
                 .collect();
             if !meaningful.is_empty() {
-                parts.push("Last session recommended:".to_string());
+                parts.push("Recommended:".to_string());
                 for line in meaningful {
-                    parts.push(format!("  {line}"));
+                    // Strip markdown bold markers
+                    let clean = line.replace("**", "");
+                    parts.push(format!("  {}", clean.trim()));
                 }
             }
         }
@@ -605,7 +625,18 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
                 .accomplishments
                 .iter()
                 .take(3)
-                .map(|a| truncate_chars(a, 200))
+                .map(|a| {
+                    // Strip legacy "Session entity: :namespace/ident:" prefix from pre-RC2 harvests
+                    let cleaned = if a.starts_with("Session entity: ") {
+                        a.split(": ")
+                            .nth(2)
+                            .map(|s| s.trim().to_string())
+                            .unwrap_or_else(|| a.clone())
+                    } else {
+                        a.clone()
+                    };
+                    truncate_chars(&cleaned, 200)
+                })
                 .collect();
             parts.push(format!("  Done: {}", top.join("; ")));
         }
@@ -883,15 +914,22 @@ fn build_directive(
         if let Some(ref directive) = excerpt.synthesis_directive {
             let meaningful: Vec<&str> = directive
                 .lines()
-                .filter(|l| !l.trim().is_empty() && !l.starts_with("---"))
-                .take(12)
+                .filter(|l| {
+                    let t = l.trim();
+                    !t.is_empty()
+                        && !t.starts_with("---")
+                        && !t.starts_with('#')
+                        && !t.starts_with("Run: `braid seed")
+                })
+                .take(8)
                 .collect();
             if !meaningful.is_empty() {
                 has_synthesis = true;
                 parts.push(String::new());
                 parts.push("From last harvest:".to_string());
                 for line in meaningful {
-                    parts.push(format!("  {line}"));
+                    let clean = line.replace("**", "");
+                    parts.push(format!("  {}", clean.trim()));
                 }
             }
         }

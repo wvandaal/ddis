@@ -1376,10 +1376,18 @@ pub fn synthesize_narrative(
             directive.push('\n');
         }
 
-        let next_task = next.as_deref().unwrap_or("continue current work");
+        // Prefer continuing the current task over a generic monitoring command.
+        // The guidance system's "next action" is a store health check, not a task.
+        let next_task = if task.len() > 5 && task != "continue" && task != "session work" {
+            format!("continue: {task}")
+        } else if let Some(ref n) = next {
+            n.clone()
+        } else {
+            "continue current work".to_string()
+        };
         directive.push_str(&format!("**Next session task**: {}\n", next_task));
         directive.push_str("Run: `braid seed --task \"");
-        directive.push_str(next_task);
+        directive.push_str(&next_task);
         directive.push_str("\"` to start the next session.\n");
 
         Some(directive)

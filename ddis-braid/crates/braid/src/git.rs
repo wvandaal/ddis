@@ -201,6 +201,61 @@ fn collect_diffstat(root: &Path, since: u64, use_timestamp: bool) -> (usize, usi
     (files.len(), insertions, deletions)
 }
 
+/// Collect top modified files by change count.
+pub fn top_modified_files(path: &Path, since: u64, limit: usize) -> Vec<(String, usize)> {
+    let root = match detect_git_root(path) {
+        Some(r) => r,
+        None => return Vec::new(),
+    };
+    let use_timestamp = since > 946_684_800;
+    let filter = if use_timestamp {
+        format!("--after={since}")
+    } else {
+        "--max-count=50".to_string()
+    };
+
+    let output = Command::new("git")
+        .args([
+            "log",
+            "--format=",
+            "--numstat",
+            &filter,
+            "--",
+            ".",
+            ":!.braid",
+            ":!.beads",
+        ])
+        .current_dir(&root)
+        .output();
+
+    let output = match output {
+        Ok(o) if o.status.success() => o,
+        _ => return Vec::new(),
+    };
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut file_changes: std::collections::BTreeMap<String, usize> =
+        std::collections::BTreeMap::new();
+
+    for line in stdout.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        let parts: Vec<&str> = line.split('\t').collect();
+        if parts.len() >= 3 {
+            let adds = parts[0].parse::<usize>().unwrap_or(0);
+            let dels = parts[1].parse::<usize>().unwrap_or(0);
+            *file_changes.entry(parts[2].to_string()).or_default() += adds + dels;
+        }
+    }
+
+    let mut sorted: Vec<(String, usize)> = file_changes.into_iter().collect();
+    sorted.sort_by_key(|(_, changes)| std::cmp::Reverse(*changes));
+    sorted.truncate(limit);
+    sorted
+}
+
 /// Format git context for harvest output.
 pub fn format_git_context(ctx: &GitContext) -> String {
     if ctx.commits.is_empty() {
