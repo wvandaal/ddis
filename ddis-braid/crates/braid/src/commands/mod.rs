@@ -297,7 +297,8 @@ Examples:
   braid harvest                                          # auto-detect, show candidates
   braid harvest --task \"implemented query engine\"         # explicit task override
   braid harvest --commit                                  # persist candidates
-  braid harvest --commit --force                          # bypass crystallization guard
+  braid harvest --commit --guard                          # commit with crystallization guard
+  braid harvest --commit --force                          # bypass crystallization guard (legacy)
   braid harvest --knowledge gap \"missing join optimization\" --commit
 
 Workflow:
@@ -324,12 +325,21 @@ Workflow:
         knowledge: Vec<String>,
 
         /// Persist approved candidates to the store.
+        /// At Stage 0, --commit bypasses the crystallization guard by default
+        /// (no external validators exist to benefit from staged crystallization).
+        /// Use --guard to explicitly enable the crystallization guard.
         #[arg(long)]
         commit: bool,
 
         /// Bypass crystallization guard (commit all candidates regardless of stability).
+        /// At Stage 0, --commit implies --force. This flag is retained for explicitness.
         #[arg(long, short = 'f')]
         force: bool,
+
+        /// Explicitly enable the crystallization guard (overrides Stage 0 default).
+        /// Useful when multiple agents contribute to knowledge maturation.
+        #[arg(long)]
+        guard: bool,
     },
 
     /// Start-of-session: assemble relevant context from the store.
@@ -721,7 +731,20 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             knowledge,
             commit,
             force,
-        } => harvest::run(&path, &agent, task.as_deref(), &knowledge, commit, force),
+            guard,
+        } => {
+            // Stage 0: --commit bypasses crystallization guard by default.
+            // --guard re-enables it. --force always bypasses (legacy compat).
+            let effective_force = force || (commit && !guard);
+            harvest::run(
+                &path,
+                &agent,
+                task.as_deref(),
+                &knowledge,
+                commit,
+                effective_force,
+            )
+        }
         Command::Seed {
             path,
             task,
@@ -892,6 +915,7 @@ mod tests {
             knowledge: vec![],
             commit: false,
             force: false,
+            guard: false,
         };
         assert!(!is_json_output(&harvest));
 
@@ -1132,6 +1156,7 @@ mod tests {
             knowledge: vec![],
             commit: false,
             force: false,
+            guard: false,
         };
         assert!(!is_json_output(&harvest), "Harvest must get footer");
         assert!(!is_generative_output(&harvest), "Harvest must get footer");
@@ -1232,6 +1257,7 @@ mod tests {
                 knowledge: vec![],
                 commit: false,
                 force: false,
+                guard: false,
             },
             Command::Seed {
                 path: PathBuf::from(".braid"),

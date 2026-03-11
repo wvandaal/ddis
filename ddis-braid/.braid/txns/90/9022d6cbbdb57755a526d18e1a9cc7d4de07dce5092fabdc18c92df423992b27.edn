@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773258237/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 019: Four-Pillar S0→S1 transition plan executed. Phase 0 complete: 25 beads created with full dependency graph, P3.2 implemented (--commit bypasses crystallization guard at Stage 0, --guard flag added), P1.0 executed (HARVEST.md archived), AGENTS.md updated to reference braid seed. brai-1e0s closed as subsumed by P1 validation beads."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8ece83c03ceefd2d74d978094d0dade1380be32e95997849cb0c188801fa4d12" :a :db/ident :v :observation/session-019-four-pillar-s0s1-transition-plan-executed-pha :op :assert}
+   {:e #blake3 "8ece83c03ceefd2d74d978094d0dade1380be32e95997849cb0c188801fa4d12" :a :db/doc :v "Session 019: Four-Pillar S0→S1 transition plan executed. Phase 0 complete: 25 beads created with full dependency graph, P3.2 implemented (--commit bypasses crystallization guard at Stage 0, --guard flag added), P1.0 executed (HARVEST.md archived), AGENTS.md updated to reference braid seed. brai-1e0s closed as subsumed by P1 validation beads." :op :assert}
+   {:e #blake3 "8ece83c03ceefd2d74d978094d0dade1380be32e95997849cb0c188801fa4d12" :a :exploration/body :v "Session 019: Four-Pillar S0→S1 transition plan executed. Phase 0 complete: 25 beads created with full dependency graph, P3.2 implemented (--commit bypasses crystallization guard at Stage 0, --guard flag added), P1.0 executed (HARVEST.md archived), AGENTS.md updated to reference braid seed. brai-1e0s closed as subsumed by P1 validation beads." :op :assert}
+   {:e #blake3 "8ece83c03ceefd2d74d978094d0dade1380be32e95997849cb0c188801fa4d12" :a :exploration/content-hash :v #bytes "78fb019687a92286213d3d35d54d02857e735a57a69d4a103d6c48eaa539238c" :op :assert}
+   {:e #blake3 "8ece83c03ceefd2d74d978094d0dade1380be32e95997849cb0c188801fa4d12" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "8ece83c03ceefd2d74d978094d0dade1380be32e95997849cb0c188801fa4d12" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "8ece83c03ceefd2d74d978094d0dade1380be32e95997849cb0c188801fa4d12" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8ece83c03ceefd2d74d978094d0dade1380be32e95997849cb0c188801fa4d12" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

@@ -62,7 +62,7 @@ ddis-braid/                                     ← YOU ARE HERE
 │   ├── braid-kernel/                ← Core datom store, schema, query engine
 │   └── braid/                       ← CLI and higher-level APIs
 ├── docs/                            ← All documentation
-│   ├── HARVEST.md                   ← Manual harvest log (session summaries, decisions)
+│   ├── HARVEST.md                   ← [ARCHIVED → docs/history/] Replaced by braid seed
 │   ├── design/                      ← Design documents
 │   │   ├── ADRS.md                  ← Design decision index (all settled choices with rationale)
 │   │   ├── FAILURE_MODES.md         ← Agentic failure mode catalog (test cases + acceptance criteria)
@@ -151,8 +151,9 @@ Read these in order when you need to understand the design:
 
 Every session follows this pattern:
 
-**1. Orient.** Read this file. Check `docs/HARVEST.md` for the latest session summary and pending
-decisions. Check `docs/design/FAILURE_MODES.md` for open failure modes that may intersect your task.
+**1. Orient.** Read this file. Read the braid-seed section below for prior session context,
+or run `braid seed --task "your task"` for a fresh context assembly.
+Check `docs/design/FAILURE_MODES.md` for open failure modes that may intersect your task.
 If a specific task was assigned, locate it.
 
 **2. Plan.** Before writing any code or spec, state what you intend to do and why. Trace the
@@ -163,23 +164,21 @@ question whether the work should be done.
 every design decision as an ADR. When you discover a process failure, methodology gap, or
 unexpected divergence, record it immediately in `docs/design/FAILURE_MODES.md` with an FM-NNN ID.
 
-**4. Harvest.** Before the session ends, append to `docs/HARVEST.md`:
-   - What was accomplished (with file paths)
-   - Decisions made (with rationale)
-   - Open questions discovered
-   - Failure modes discovered (reference FM-NNN IDs from `docs/design/FAILURE_MODES.md`)
-   - Recommended next action for the following session
+**4. Harvest.** Before the session ends, run `braid harvest --commit` to extract session
+knowledge into the store. Then run `braid seed --inject AGENTS.md` to refresh the seed
+section for the next session. The harvest captures accomplishments, decisions, open questions,
+and git context automatically.
 
-### The Manual Harvest/Seed Discipline
+### The Harvest/Seed Discipline
 
-Until the datom store exists and automates this, **practice the methodology by hand**:
+The datom store now automates the harvest/seed lifecycle:
 
-- At session start: read `docs/HARVEST.md` to load prior session state (this is your "seed")
-- During work: note decisions, discoveries, and uncertainties as you go
-- At session end: write a harvest entry in `docs/HARVEST.md` (this is your "harvest")
+- At session start: read the braid-seed section in this file (auto-injected by `braid seed --inject AGENTS.md`)
+- During work: run `braid observe "your insight" --confidence 0.8` to capture knowledge
+- At session end: run `braid harvest --commit` then `braid seed --inject AGENTS.md`
 
-This is not bookkeeping — it is the methodology itself. The tools will automate it later.
-Methodology precedes tooling.
+The store replaces `docs/HARVEST.md` (archived at `docs/history/HARVEST.md.archived`).
+Knowledge is captured as datoms, not as prose in a log file.
 
 ### Specification Methodology (DDIS-on-DDIS)
 
@@ -325,9 +324,9 @@ system should do must be either an invariant (with ID and falsification conditio
 (with alternatives and rationale), or a negative case (with violation condition). Unstructured
 prose that reads like a requirements document is not a DDIS specification.
 
-**NEG-006: Do not skip the harvest.** Every session must end with a harvest entry in
-`docs/HARVEST.md`. A session without a harvest is knowledge lost. This is the single most
-important discipline until the tooling automates it.
+**NEG-006: Do not skip the harvest.** Every session must end with `braid harvest --commit`.
+A session without a harvest is knowledge lost. Run `braid seed --inject AGENTS.md` after
+harvesting to refresh context for the next session.
 
 **NEG-007: Do not treat uncertainty as a defect.** Where the specification isn't sure yet,
 mark it with a confidence level and what would resolve it. Do not write aspirational prose
@@ -419,8 +418,8 @@ Each entry includes rationale, alternatives rejected, and transcript references.
 Use this at the start and end of every session.
 
 ### Start of Session
-- [ ] Read this CLAUDE.md
-- [ ] Read latest entry in docs/HARVEST.md
+- [ ] Read this AGENTS.md (especially the braid-seed section for prior session context)
+- [ ] Or run `braid seed --task "your task"` for fresh context assembly
 - [ ] Check `docs/design/FAILURE_MODES.md` for open failure modes that intersect your task
 - [ ] Identify the specific task for this session
 - [ ] Trace the task to SEED.md section(s)
@@ -432,12 +431,8 @@ Use this at the start and end of every session.
 - [ ] No hard constraints (C1–C7) violated
 - [ ] No negative cases (NEG-001–NEG-008) triggered
 - [ ] Any new failure modes discovered during the session recorded in `docs/design/FAILURE_MODES.md`
-- [ ] Harvest entry appended to docs/HARVEST.md with:
-  - What was accomplished
-  - Decisions made with rationale
-  - Open questions discovered
-  - Failure modes discovered (reference FM-NNN IDs)
-  - Recommended next action
+- [ ] Run `braid harvest --commit` to persist session knowledge
+- [ ] Run `braid seed --inject AGENTS.md` to refresh seed for next session
 
 </session_checklist>
 
@@ -451,50 +446,48 @@ Use this at the start and end of every session.
 
 <braid-seed>
 <!-- Generated by braid. Do not edit manually. Regenerate: braid seed --inject AGENTS.md -->
-<!-- Updated: 1773251948 | Store: 3221 datoms, 764 entities -->
+<!-- Updated: 1773258309 | Store: 3242 datoms, 766 entities -->
 
 ### Session Context
-Braid: append-only datom store (CRDT merge, content-addressed). 3221 datoms, 764 entities. Codebase: 41636 LOC across 49 .rs files
+Braid: append-only datom store (CRDT merge, content-addressed). 3242 datoms, 766 entities. Codebase: 41697 LOC across 49 .rs files
 Key files:
   ddis-braid/crates/braid-kernel/src/query/graph.rs (3984 LOC)
-  ddis-braid/crates/braid-kernel/src/seed.rs (3612 LOC)
+  ddis-braid/crates/braid-kernel/src/seed.rs (3647 LOC)
   ddis-braid/crates/braid-kernel/src/harvest.rs (3246 LOC)
   ddis-braid/crates/braid-kernel/src/schema.rs (2347 LOC)
   ddis-braid/crates/braid-kernel/src/guidance.rs (2330 LOC)
-Goal: harvest/seed replaces HARVEST.md. Status: 16 harvests, 26 observations, 17 decisions captured.
+Goal: harvest/seed replaces HARVEST.md. Status: 17 harvests, 27 observations, 18 decisions captured.
 Spec: 354 elements, 20 namespaces — BILATERAL(5/10/2) BOOTSTRAP(0/0/1) BUDGET(6/4/2) DELIBERATION(6/4/3) FOUNDATION(0/6) GUIDANCE(11/9/3) HARVEST(9/7/3) INTERFACE(12/11/4) LAYOUT(11/7/5) MERGE(10/7/3) QUERY(24/13/4) RESOLUTION(8/13/3) SCHEMA(9/8/3) SEED(8/7/2) SIGNAL(6/5/3) STORE(16/21/5) SYNC(5/3/2) TRILATERAL(10/6/4) UNCERTAINTY(0/4) VERIFICATION(0/1)
-Last session: Session 018: Harvest classification fix, directive enrichment, inject cleanup (1 txns, 1 observations, +25 datoms, +2 entities)
-  - Session 018 wave 2: inject path cleaned (removed **** empty-label noise), directive dedup (synthesis OR excerpt, not both), completeness gaps reclassified as Observation to prevent decision/uncertainty pollution
-  Decided: Prompt-optimization applied to seed: seed output IS turn 1 of every conversation — it determines the trajectory basin. Three principles: (1) spec-language activates design-level reasoning substrate (Braid: append-only datom store), (2) project contex...
-  Decided: Directive section improved: decisions carry forward with NEG-002 anchor, telemetry noise filtered (divergence/cycles/staleness), open questions shown prominently
-  ? How should seed handle multi-session continuity? Current: shows last 2-3 sessions. Gap: agent loses context from session N-4 and earlier. Possible: session chain summary with diminishing detail.
-  Changes: branch=main, 1 commits, 6 files (+234/-16)
-Prior: Session 017: Seed optimization deep dive — prompt-optimization theory applied, project context cheat...
-Prior: Session 016: Seed quality deep-fix — codebase snapshot for project comprehension — Codebase snapshot feature: harvest now captures LOC by file, key file map, and t...
+Last session: Session 019: Four-Pillar S0→S1 transition - Phase 0 setup (1 txns, 1 observations, +23 datoms, +2 entities)
+  Decided: Session 019: Four-Pillar S0→S1 transition plan executed. Phase 0 complete: 25 beads created with full dependency graph, P3.2 implemented (--commit bypasses crystallization guard at Stage 0, --guard flag added), P1.0 executed (HARVEST.md archived), AG...
+  Changes: branch=main, 3 commits, 5 files (+158/-67)
+Prior: Session 018: Harvest classification fix, directive enrichment, inject cleanup — Session 018 wave 2: inject path cleaned (removed **** empty-label noise), direct...
+Prior: Session 017: Seed optimization deep dive — prompt-optimization theory applied, project context cheat... — Prompt-optimization applied to seed: seed output IS turn 1 of every conversation...
 
 ### Active Constraints
 - [?] INV-INTERFACE-009 — Error Recovery Protocol Completeness
 - [?] INV-SEED-001 — Seed as Store Projection
 - [?] INV-SEED-005 — Demonstration Density
-- [?] NEG-HARVEST-001 — No Unharvested Session Termination
+- [?] NEG-DELIBERATION-003 — No Backward Lifecycle Transition
+- [?] ADR-BILATERAL-001 — Fitness Function Weights
+- [?] ADR-BILATERAL-002 — Divergence Metric as Weighted Boundary Sum
 - [?] ADR-BILATERAL-003 — Intent Validation as Periodic Session
-- [?] ADR-FOUNDATION-002 — Manual Harvest/Seed Before Tooling
-- [?] ADR-HARVEST-001 — Semi-Automated Over Fully Automatic
-- [?] ADR-HARVEST-002 — Conversations Disposable, Knowledge Durable
-- [?] ADR-HARVEST-003 — FP/FN Tracking for Calibration
-- [?] ADR-HARVEST-004 — Five Review Topologies
+- [?] ADR-BILATERAL-004 — Bilateral Authority Principle
+- [?] ADR-BILATERAL-005 — Reconciliation Taxonomy — Detect-Classify-Resolve
+- [?] ADR-BILATERAL-006 — Coherence Verification as Fundamental Problem
 
 ### Recent Entities
-- Project context: Stage 0: harvest/seed cycle replaces HARVEST.md
+- Project context: Stage 0
 Core: datom [e,a,v,tx,op]. Store = grow-only set (CRDT merge = set union). 54 distinct attributes in use.
 Crates: braid-kernel (store, schema, query, harvest, seed, guidance, merge), braid (CLI).
 CLI: braid {init, status, transact, query, harvest, seed, observe, guidance, merge, log, schema}.
 Patterns: Store::genesis() for tests. BraidError for errors. EntityId::from_ident(). Value::{String,Keyword,Long,Double}.
 Quality: cargo check && cargo clippy --all-targets -- -D warnings && cargo fmt --check && cargo test.
-Key attrs: :exploration/body(26), :exploration/category(26), :exploration/confidence(26), :exploration/content-hash(26), :exploration/maturity(26), :exploration/source(26), :exploration/tags(18), :harvest/agent(16), :harvest/candidate-count(16), :harvest/drift-score(16), :harvest/accomplishments(7), :harvest/store-datom-count(7), :harvest/store-entity-count(7), :harvest/synthesis-directive(7), :harvest/task(7)
+Key attrs: :exploration/body(27), :exploration/category(27), :exploration/confidence(27), :exploration/content-hash(27), :exploration/maturity(27), :exploration/source(27), :exploration/tags(18), :harvest/agent(17), :harvest/candidate-count(17), :harvest/drift-score(17), :harvest/store-datom-count(8), :harvest/store-entity-count(8), :harvest/task(8), :harvest/accomplishments(7), :harvest/git-summary(7)
 - Session history (oldest → newest):
   Session 015: Close the harvest/seed gap — make HARVEST.md unnecessary → Seed Orientation redesigned as narrative briefing
   Session 016: Seed quality deep-fix — make harvest/seed replace HARVEST... → Session 016: Deep-fix wave — RC1 UTF-8, RC2 entity body text...
+  Session 017: Seed optimization deep dive — prompt-optimization theory ... → Prompt-optimization applied to seed: seed output IS turn 1 o...
 - Key observations:
   - How should seed handle multi-session continuity? Current: shows last 2-3 sessions. Gap: agent loses context from session N-4 and earlier. Possible: se...
   - Session 017: Seed optimization deep dive — project context cheat sheet, spec landscape in Orientation, observation deduplication, dynamic observation ...
@@ -504,9 +497,7 @@ Key attrs: :exploration/body(26), :exploration/category(26), :exploration/confid
   - Session 016: Deep-fix wave — RC1 UTF-8, RC2 entity body text, RC3 char-safe truncation + budget allocator, RC4 synthesis directive placement, E1 noise...
   - Seed Orientation redesigned as narrative briefing: accomplishments, decisions with rationale, open questions, git changes, prior session summary, synt...
   - Session 015: Fixed 10 harvest/seed defects across 6 waves. Category matching (B1), narrative persistence (A1), task-aware constraints (B2/B3), real M(...
-  - Session 014: massive implementation wave — 30+ beads implemented across 5 waves. Query diagnostics, schema introspection, narrative harvest, session e...
   - Session 014 architecture: pipe-back-to-harness pattern — instead of calling external LLM API, harvest outputs a synthesis directive that the RUNNING a...
-  - Session 014: Confirmed Datalog multi-clause joins WORK (387 results for ident+doc join, 154 for element-type filter). Previous 'CRITICAL BUG' was fals...
   - CLI/API surface as optimized prompt: every aspect of the interface (command names, flags, error messages, output format, help text, signatures, diagno...
   - Completed both P1 spec promotion epics: spec/20-coherence.md (13 INV, 3 ADR, 3 NEG, 5 OQ) and spec/19-topology.md (16 INV, 7 ADR, 5 NEG, 5 OQ). Store ...
   - Session 012: Self-bootstrap complete (C7). Injection engine (inject.rs, 500+ LOC, 23 tests, lens laws verified). CLI braid seed --inject CLAUDE.md. Fi...
@@ -517,29 +508,28 @@ Key attrs: :exploration/body(26), :exploration/category(26), :exploration/confid
   - LLM-native interface complete: --json, --verbose, terse defaults, MCP redesign
   - Phase B complete: harvest warnings, staleness model, crystallization guard, proptest safety, agent-md integration
   - Phase A complete: Datalog bug fixed, observe command, adaptive analyze, SLQ entropy
-- :spec/neg-layout-005 — No Index as Source of Truth
-- :spec/inv-store-001 — Append-Only Immutability
-- :spec/inv-guidance-010 — R(t) Graph-Based Work Routing
-- :spec/inv-store-003 — Content-Addressable Identity
-- :spec/adr-interface-011 — "CLI Surface as Agent Prompt Engineering"
-- :spec/inv-interface-012 — "Zero-Result Query Diagnostics"
-- :spec/inv-interface-011 — "CLI Surface as Optimized Prompt"
-- :spec/inv-query-024 — First Betti Number from Laplacian Kernel
-- :spec/adr-trilateral-005 — Cohomological Complement to Divergence Metric
-- :spec/inv-trilateral-009 — Coherence Completeness — (Φ, β₁) Duality
-- ... and 5 more
+- :spec/adr-resolution-007 (5 attrs)
+- :spec/adr-resolution-006 (5 attrs)
+- :spec/adr-signal-005
+- :spec/adr-signal-001
+- :spec/adr-harvest-004
+- :spec/inv-seed-006
+- :spec/adr-seed-005
+- :spec/adr-signal-004
+- :spec/inv-schema-006
+- :spec/adr-foundation-005
+- ... and 19 more
+- :observation/session-019-four-pillar-s0s1-transition-plan-executed-pha — Session 019: Four-Pillar S0→S1 transition plan executed. Phase 0 complete: 25 beads created with full dependency graph, P3.2 implemented (--commit bypasses crystallization guard at Stage 0, --guard fl...
+- :observation/session-014-massive-implementation-wave-30-beads-impleme (8 attrs)
+- :observation/session-014-confirmed-datalog-multi-clause-joins-work-387 (8 attrs)
 
 ### Open Questions
 - [?] How should seed handle multi-session continuity? Current: shows last 2-3 sessions. Gap: agent loses context from session N-4 and earlier. Possible: session chain summary with diminishing detail.
 
 ### Next Actions
 
-Open from last session:
-  ? How should seed handle multi-session continuity? Current: shows last 2-3 sessions. Gap: agent loses context from session N-4 and earlier. Possible: session chain summary with diminishing detail.
-
 Decisions (settled, do not relitigate):
-  - Prompt-optimization applied to seed: seed output IS turn 1 of every conversation — it determines the trajectory basin. Three principles: (1) spec-language activates design-level reasoning substrate (B...
-  - Directive section improved: decisions carry forward with NEG-002 anchor, telemetry noise filtered (divergence/cycles/staleness), open questions shown prominently
+  - Session 019: Four-Pillar S0→S1 transition plan executed. Phase 0 complete: 25 beads created with full dependency graph, P3.2 implemented (--commit bypasses crystallization guard at Stage 0, --guard fl...
 
 Protocol: observe decisions/questions during work, harvest before ending session.
 Quick: braid status | braid observe "..." --category design-decision | braid harvest --commit
