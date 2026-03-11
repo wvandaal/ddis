@@ -233,6 +233,7 @@ fn harvest_seed_25_turn_cycle() {
         query_type_count: 1,
         harvest_quality: telemetry.harvest_quality,
         history: telemetry.history.clone(),
+        ..Default::default()
     };
     let new_score = compute_methodology_score(&new_session_telemetry);
     assert!(

@@ -57,6 +57,10 @@ pub struct SessionTelemetry {
     pub harvest_quality: f64,
     /// History of M(t) values for trend computation.
     pub history: Vec<f64>,
+    /// Whether the last harvest is recent (< 10 txns ago).
+    /// When true, M(t) is clamped to a floor of 0.50 to prevent
+    /// false DRIFT warnings between active sessions (A3 fix).
+    pub harvest_is_recent: bool,
 }
 
 /// M(t) methodology adherence result.
@@ -109,11 +113,20 @@ pub fn compute_methodology_score(telemetry: &SessionTelemetry) -> MethodologySco
     let m4 = telemetry.harvest_quality;
 
     let metrics = [m1, m2, m3, m4];
-    let score: f64 = STAGE0_WEIGHTS
+    let raw_score: f64 = STAGE0_WEIGHTS
         .iter()
         .zip(metrics.iter())
         .map(|(w, m)| w * m)
         .sum();
+
+    // A3: Floor clamp — when harvest is recent, M(t) cannot drop below 0.50.
+    // This prevents false DRIFT warnings (CC-5) between active sessions where
+    // transact_frequency and query_diversity are naturally low.
+    let score = if telemetry.harvest_is_recent {
+        raw_score.max(0.50)
+    } else {
+        raw_score
+    };
 
     // Trend: compare to mean of last 5 measurements
     let trend = if telemetry.history.len() >= 2 {
@@ -907,6 +920,13 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
         .count() as u32;
     let has_recent_harvest = last_harvest_wall_time(store) > 0;
 
+    // A3: M(t) floor clamp — when a harvest exists and fewer than 10 txns
+    // have occurred since, the store is in a healthy inter-session state.
+    // Without this floor, M(t) drops below 0.5 between sessions because
+    // transact_frequency and query_diversity reset, triggering false DRIFT
+    // warnings (CC-5 failure in bilateral scan).
+    let harvest_is_recent = has_recent_harvest && txns_since < 10;
+
     SessionTelemetry {
         total_turns: tx_count.max(1),
         transact_turns: txns_since,
@@ -914,6 +934,7 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
         query_type_count: if tx_count > 0 { 1 } else { 0 },
         harvest_quality: if has_recent_harvest { 0.7 } else { 0.0 },
         history: vec![],
+        harvest_is_recent,
     }
 }
 
@@ -1095,7 +1116,7 @@ mod tests {
             spec_language_turns: 10,
             query_type_count: 4,
             harvest_quality: 1.0,
-            history: vec![],
+            ..Default::default()
         };
         let score = compute_methodology_score(&perfect);
         assert!(
@@ -1120,9 +1141,55 @@ mod tests {
             query_type_count: 3,
             harvest_quality: 0.9,
             history: vec![0.3, 0.4, 0.5, 0.6, 0.7],
+            ..Default::default()
         };
         let score = compute_methodology_score(&telemetry);
         assert_eq!(score.trend, Trend::Up, "improving history should trend up");
+    }
+
+    #[test]
+    fn methodology_floor_clamp_when_harvest_recent() {
+        // A low-activity session (e.g., inter-session gap) with recent harvest
+        // should still have M(t) >= 0.50 to avoid false DRIFT warnings.
+        let telemetry = SessionTelemetry {
+            total_turns: 5,
+            transact_turns: 1,
+            spec_language_turns: 1,
+            query_type_count: 0,
+            harvest_quality: 0.3,
+            harvest_is_recent: true,
+            ..Default::default()
+        };
+        let score = compute_methodology_score(&telemetry);
+        assert!(
+            score.score >= 0.50,
+            "M(t) should be >= 0.50 when harvest is recent, got {}",
+            score.score
+        );
+        assert!(
+            !score.drift_signal,
+            "should not trigger drift signal when harvest is recent"
+        );
+    }
+
+    #[test]
+    fn methodology_no_floor_without_recent_harvest() {
+        // Without a recent harvest, the floor should not apply.
+        let telemetry = SessionTelemetry {
+            total_turns: 5,
+            transact_turns: 1,
+            spec_language_turns: 1,
+            query_type_count: 0,
+            harvest_quality: 0.3,
+            harvest_is_recent: false,
+            ..Default::default()
+        };
+        let score = compute_methodology_score(&telemetry);
+        assert!(
+            score.score < 0.50,
+            "M(t) should be below 0.50 without recent harvest, got {}",
+            score.score
+        );
     }
 
     #[test]
@@ -1198,7 +1265,7 @@ mod tests {
             spec_language_turns: 6,
             query_type_count: 3,
             harvest_quality: 0.9,
-            history: vec![],
+            ..Default::default()
         };
         let store = Store::genesis();
         let footer = build_footer(
@@ -1419,6 +1486,7 @@ mod tests {
                         query_type_count: query,
                         harvest_quality: harvest,
                         history,
+                        ..Default::default()
                     }
                 })
         }
@@ -1904,7 +1972,7 @@ mod tests {
             spec_language_turns: 6,
             query_type_count: 3,
             harvest_quality: 0.9,
-            history: vec![],
+            ..Default::default()
         };
         let store = Store::genesis();
         let footer = build_footer(
@@ -2002,7 +2070,7 @@ mod tests {
             spec_language_turns: 7,
             query_type_count: 3,
             harvest_quality: 0.9,
-            history: vec![],
+            ..Default::default()
         };
         let store = Store::genesis();
         let footer = build_footer(

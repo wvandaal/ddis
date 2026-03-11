@@ -501,7 +501,7 @@ fn compute_methodology_for_store(store: &Store) -> f64 {
         spec_language_turns: spec_count.min(255) as u32,
         query_type_count: entity_count.min(10) as u32,
         harvest_quality: if spec_count > 0 { 0.8 } else { 0.0 },
-        history: Vec::new(),
+        ..Default::default()
     };
 
     compute_methodology_score(&telemetry).score

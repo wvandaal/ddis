@@ -17,6 +17,7 @@ mod seed;
 mod session;
 pub(crate) mod shell;
 mod status;
+mod trace;
 pub(crate) mod write;
 
 // Re-export mcp serve as a special case (runs an event loop, not a single command).
@@ -311,6 +312,36 @@ Workflow: braid bilateral → fix issues → braid bilateral --commit → track 
         agent: String,
     },
 
+    /// Scan source files for spec references, create :impl/implements datoms.
+    ///
+    /// Scans Rust comments for INV-XXX-NNN, ADR-XXX-NNN, NEG-XXX-NNN patterns
+    /// and links code entities to spec entities in the store. Also marks
+    /// :spec/witnessed on spec elements referenced from test files.
+    #[command(after_long_help = "\
+Examples:
+  braid trace                          # dry-run: show what would be linked
+  braid trace --commit                 # write traceability datoms to store
+  braid trace --source crates/         # custom source directory
+
+Workflow: braid trace → review → braid trace --commit → braid bilateral")]
+    Trace {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Source directory to scan for Rust files.
+        #[arg(long, short = 's', default_value = "crates")]
+        source: PathBuf,
+
+        /// Write traceability datoms to the store.
+        #[arg(long)]
+        commit: bool,
+
+        /// Agent identity (for commit provenance).
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
     /// Browse transaction log with optional agent filter.
     #[command(after_long_help = "\
 Examples:
@@ -443,7 +474,7 @@ Workflow:
     /// Task auto-detected from last session if omitted.
     #[command(after_long_help = "\
 Examples:
-  braid seed --task \"fix query engine joins\" --budget 3000
+  braid seed --task \"fix query engine joins\" --seed-budget 3000
   braid seed                                    # continue last session's task
   braid seed --task \"implement harvest\" --for-human
   braid seed --task \"implement harvest\" --agent-md
@@ -457,9 +488,9 @@ Examples:
         #[arg(long, short = 't')]
         task: Option<String>,
 
-        /// Token budget for output.
-        #[arg(long, short = 'b', default_value = "2000")]
-        budget: usize,
+        /// Token budget for seed output (distinct from global --budget).
+        #[arg(long, default_value = "2000")]
+        seed_budget: usize,
 
         /// Agent identity.
         #[arg(long, short = 'a', default_value = "braid:user")]
@@ -747,6 +778,7 @@ fn store_path(cmd: &Command) -> Option<&Path> {
         Command::Init { path, .. }
         | Command::Status { path, .. }
         | Command::Bilateral { path, .. }
+        | Command::Trace { path, .. }
         | Command::Query { path, .. }
         | Command::Schema { path, .. }
         | Command::Harvest { path, .. }
@@ -849,6 +881,12 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
             commit,
             agent,
         } => bilateral::run(&path, &agent, full, spectral, history, json, commit),
+        Command::Trace {
+            path,
+            source,
+            commit,
+            agent,
+        } => trace::run(&path, &source, &agent, commit),
         Command::Write { action } => match action {
             WriteAction::Assert {
                 path,
@@ -939,7 +977,7 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
         Command::Seed {
             path,
             task,
-            budget,
+            seed_budget,
             agent,
             for_human,
             json,
@@ -947,7 +985,7 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
             compact,
             inject,
         } => {
-            let mut effective_budget = if compact { 200 } else { budget };
+            let mut effective_budget = if compact { 200 } else { seed_budget };
             // INV-BUDGET-001: Global budget acts as ceiling for seed output.
             // Seed's own --budget controls content assembly; global --budget
             // is a hard cap from the caller's remaining context window.
@@ -1103,7 +1141,7 @@ mod tests {
         let seed_json = Command::Seed {
             path: PathBuf::from(".braid"),
             task: None,
-            budget: 2000,
+            seed_budget: 2000,
             agent: "test".into(),
             for_human: false,
             json: true,
@@ -1152,7 +1190,7 @@ mod tests {
         let seed = Command::Seed {
             path: PathBuf::from(".braid"),
             task: None,
-            budget: 2000,
+            seed_budget: 2000,
             agent: "test".into(),
             for_human: false,
             json: false,
@@ -1341,7 +1379,7 @@ mod tests {
         let seed = Command::Seed {
             path: PathBuf::from(".braid"),
             task: None,
-            budget: 2000,
+            seed_budget: 2000,
             agent: "test".into(),
             for_human: false,
             json: false,
@@ -1483,7 +1521,7 @@ mod tests {
             Command::Seed {
                 path: PathBuf::from(".braid"),
                 task: None,
-                budget: 2000,
+                seed_budget: 2000,
                 agent: "test".into(),
                 for_human: false,
                 json: false,
@@ -1562,7 +1600,7 @@ mod tests {
         let gen_cmd = Command::Seed {
             path: PathBuf::from(".braid"),
             task: None,
-            budget: 2000,
+            seed_budget: 2000,
             agent: "test".into(),
             for_human: false,
             json: false,

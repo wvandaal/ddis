@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773268459/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 020 Phase A complete: braid trace scanner (350 LOC), M(t) floor clamp, witness marking. Results: 52 files scanned, 456 refs found, 191 resolved to 111/354 spec entities (28% coverage). 12 spec elements witnessed from test files. F(S) 0.2965 to 0.3658. Store grew from 3327 to 4103 datoms. All 651 tests passing."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "09b69e59407505b5bc019ea267e3fb7d872e52d9fe68bedc657dad9eaa941c29" :a :db/ident :v :observation/session-020-phase-a-complete-braid-trace-scanner-350-loc :op :assert}
+   {:e #blake3 "09b69e59407505b5bc019ea267e3fb7d872e52d9fe68bedc657dad9eaa941c29" :a :db/doc :v "Session 020 Phase A complete: braid trace scanner (350 LOC), M(t) floor clamp, witness marking. Results: 52 files scanned, 456 refs found, 191 resolved to 111/354 spec entities (28% coverage). 12 spec elements witnessed from test files. F(S) 0.2965 to 0.3658. Store grew from 3327 to 4103 datoms. All 651 tests passing." :op :assert}
+   {:e #blake3 "09b69e59407505b5bc019ea267e3fb7d872e52d9fe68bedc657dad9eaa941c29" :a :exploration/body :v "Session 020 Phase A complete: braid trace scanner (350 LOC), M(t) floor clamp, witness marking. Results: 52 files scanned, 456 refs found, 191 resolved to 111/354 spec entities (28% coverage). 12 spec elements witnessed from test files. F(S) 0.2965 to 0.3658. Store grew from 3327 to 4103 datoms. All 651 tests passing." :op :assert}
+   {:e #blake3 "09b69e59407505b5bc019ea267e3fb7d872e52d9fe68bedc657dad9eaa941c29" :a :exploration/content-hash :v #bytes "b23d08faf38692c42d8cb162d60c0333e1d66280815d42a90effc6cb75204977" :op :assert}
+   {:e #blake3 "09b69e59407505b5bc019ea267e3fb7d872e52d9fe68bedc657dad9eaa941c29" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "09b69e59407505b5bc019ea267e3fb7d872e52d9fe68bedc657dad9eaa941c29" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "09b69e59407505b5bc019ea267e3fb7d872e52d9fe68bedc657dad9eaa941c29" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "09b69e59407505b5bc019ea267e3fb7d872e52d9fe68bedc657dad9eaa941c29" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}
