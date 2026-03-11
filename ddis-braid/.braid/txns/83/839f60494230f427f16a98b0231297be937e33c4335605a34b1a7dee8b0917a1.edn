@@ -1,0 +1,40 @@
+{:tx/id #hlc "1773189401/0/85598e7c7e03cbdffb89a71b48caceab"
+ :tx/agent "85598e7c7e03cbdffb89a71b48caceab"
+ :tx/provenance :observed
+ :tx/rationale "Coherence geometry spec: INV-COHERENCE-009..013 + ADRs + NEGs (spectral sequence, CALM, entropy monotonicity, Bures metric, degeneration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "074c5c461289495f709c47e4d59514289ce9dbf2b20748d670b9692c33b5f040" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "074c5c461289495f709c47e4d59514289ce9dbf2b20748d670b9692c33b5f040" :a :spec/statement :v "Spectral Sequence Convergence: three-level filtration converges at E_3 = E_infty" :op :assert}
+   {:e #blake3 "074c5c461289495f709c47e4d59514289ce9dbf2b20748d670b9692c33b5f040" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "e1fa07e60e54b06c64c8daa67fb565c69e36d5402dae0276ed9ccef983e90b37" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "e1fa07e60e54b06c64c8daa67fb565c69e36d5402dae0276ed9ccef983e90b37" :a :spec/statement :v "E2 Degeneration Early Termination: d_1 = 0 implies total cohomology = direct sum" :op :assert}
+   {:e #blake3 "e1fa07e60e54b06c64c8daa67fb565c69e36d5402dae0276ed9ccef983e90b37" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "c03e945d0837b049e17e67b52063614d5a093e3b51fce42402702eeffd010027" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "c03e945d0837b049e17e67b52063614d5a093e3b51fce42402702eeffd010027" :a :spec/statement :v "Stage 0 Reduction: staged check reduces to (Phi, beta_1) at Stage 0" :op :assert}
+   {:e #blake3 "c03e945d0837b049e17e67b52063614d5a093e3b51fce42402702eeffd010027" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "075adc6019bac9b1a6f6443a7ba756a03bf1e099d348d904c50768c5abec90af" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "075adc6019bac9b1a6f6443a7ba756a03bf1e099d348d904c50768c5abec90af" :a :spec/statement :v "CALM Stratification: E_1 is monotonic, d_1/d_2 are non-monotonic" :op :assert}
+   {:e #blake3 "075adc6019bac9b1a6f6443a7ba756a03bf1e099d348d904c50768c5abec90af" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "2755fed31a289fd5d5102e3fee23204c4e0de10dbf5d4fb65f9393efbc3b0011" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "2755fed31a289fd5d5102e3fee23204c4e0de10dbf5d4fb65f9393efbc3b0011" :a :spec/statement :v "Entropy Monotonicity: S(t+1) >= S(t) without coordinated action (second law)" :op :assert}
+   {:e #blake3 "2755fed31a289fd5d5102e3fee23204c4e0de10dbf5d4fb65f9393efbc3b0011" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "dff8a4f7bc81731f6356366ab3c808059232138b6a775487197ea559cb6e54c2" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "dff8a4f7bc81731f6356366ab3c808059232138b6a775487197ea559cb6e54c2" :a :db/doc :v "Bures Distance as Canonical Coherence Metric" :op :assert}
+   {:e #blake3 "dff8a4f7bc81731f6356366ab3c808059232138b6a775487197ea559cb6e54c2" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "6fd28b4eef6f9aa5b2bf15bc410aa03190807a737cbdf33aec01702887026ade" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "6fd28b4eef6f9aa5b2bf15bc410aa03190807a737cbdf33aec01702887026ade" :a :db/doc :v "Spectral Degeneration as Early Termination" :op :assert}
+   {:e #blake3 "6fd28b4eef6f9aa5b2bf15bc410aa03190807a737cbdf33aec01702887026ade" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "b6737c5f040f4481ea7b52b3e5a984e6e1cfef4da311891f78b21cf6079e8e6a" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "b6737c5f040f4481ea7b52b3e5a984e6e1cfef4da311891f78b21cf6079e8e6a" :a :db/doc :v "F(S) Decomposition into State and Process Components" :op :assert}
+   {:e #blake3 "b6737c5f040f4481ea7b52b3e5a984e6e1cfef4da311891f78b21cf6079e8e6a" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "18c2a59cce417f8b68a5adca53bbd13d77e23b4b45f0f86c1849157017b0009f" :a :spec/type :v "negative-case" :op :assert}
+   {:e #blake3 "18c2a59cce417f8b68a5adca53bbd13d77e23b4b45f0f86c1849157017b0009f" :a :db/doc :v "Non-PSD Agreement Matrix: negative eigenvalue is defect" :op :assert}
+   {:e #blake3 "18c2a59cce417f8b68a5adca53bbd13d77e23b4b45f0f86c1849157017b0009f" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "1a0d3000b2cb4e35ad77132d49f1891e202be77e75f9fb3229d79b49b8cc52e9" :a :spec/type :v "negative-case" :op :assert}
+   {:e #blake3 "1a0d3000b2cb4e35ad77132d49f1891e202be77e75f9fb3229d79b49b8cc52e9" :a :db/doc :v "Unbounded Entropy: S > log(n) is mathematical error" :op :assert}
+   {:e #blake3 "1a0d3000b2cb4e35ad77132d49f1891e202be77e75f9fb3229d79b49b8cc52e9" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "06a3d843cf0933f3f7b60d0b2a65b9456cb3e4820100a5388339632726dae9de" :a :spec/type :v "negative-case" :op :assert}
+   {:e #blake3 "06a3d843cf0933f3f7b60d0b2a65b9456cb3e4820100a5388339632726dae9de" :a :db/doc :v "False Convergence: Bures distance increases after distance-reducing step" :op :assert}
+   {:e #blake3 "06a3d843cf0933f3f7b60d0b2a65b9456cb3e4820100a5388339632726dae9de" :a :spec/namespace :v "COHERENCE" :op :assert}
+ ]}

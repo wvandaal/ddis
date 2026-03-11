@@ -1,0 +1,19 @@
+{:tx/id #hlc "1773189363/0/85598e7c7e03cbdffb89a71b48caceab"
+ :tx/agent "85598e7c7e03cbdffb89a71b48caceab"
+ :tx/provenance :observed
+ :tx/rationale "Coherence geometry spec: INV-COHERENCE-001..003 (density matrix axioms, agreement-resolution consistency, entropy bounds)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c21c59397466ea92011da9504dd5b95c46cf0604e24cb6285072ded888b30ba8" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "c21c59397466ea92011da9504dd5b95c46cf0604e24cb6285072ded888b30ba8" :a :spec/statement :v "Density Matrix Axioms: rho >= 0, Tr(rho) = 1, rho = rho^T" :op :assert}
+   {:e #blake3 "c21c59397466ea92011da9504dd5b95c46cf0604e24cb6285072ded888b30ba8" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "c21c59397466ea92011da9504dd5b95c46cf0604e24cb6285072ded888b30ba8" :a :db/doc :v "Coherence density matrix satisfies PSD, unit-trace, symmetric" :op :assert}
+   {:e #blake3 "7e9ca443aea3b29fd40551d988ae07730387ccd75d39611427f032e400f0306c" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "7e9ca443aea3b29fd40551d988ae07730387ccd75d39611427f032e400f0306c" :a :spec/statement :v "Agreement-Resolution Consistency: agreement(v1,v2) = 1 iff resolve(v1,v2) = v1 = v2" :op :assert}
+   {:e #blake3 "7e9ca443aea3b29fd40551d988ae07730387ccd75d39611427f032e400f0306c" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "7e9ca443aea3b29fd40551d988ae07730387ccd75d39611427f032e400f0306c" :a :db/doc :v "Full agreement iff resolution is a no-op" :op :assert}
+   {:e #blake3 "d3170f92e692b5b6b5473807fc7b0485aa65a488161643179d2d8b79c70608d2" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "d3170f92e692b5b6b5473807fc7b0485aa65a488161643179d2d8b79c70608d2" :a :spec/statement :v "Entropy Bounds: 0 <= S(rho) <= log(n), S=0 iff pure state" :op :assert}
+   {:e #blake3 "d3170f92e692b5b6b5473807fc7b0485aa65a488161643179d2d8b79c70608d2" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "d3170f92e692b5b6b5473807fc7b0485aa65a488161643179d2d8b79c70608d2" :a :db/doc :v "Von Neumann entropy bounded by log of perspective count" :op :assert}
+ ]}

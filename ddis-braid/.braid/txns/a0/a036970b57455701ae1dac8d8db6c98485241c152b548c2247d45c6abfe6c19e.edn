@@ -1,0 +1,27 @@
+{:tx/id #hlc "1773189381/0/85598e7c7e03cbdffb89a71b48caceab"
+ :tx/agent "85598e7c7e03cbdffb89a71b48caceab"
+ :tx/provenance :observed
+ :tx/rationale "Coherence geometry spec: INV-COHERENCE-004..008 (geodesic pursuit, Bures monotonicity, submodular seed, Phi as rank deficiency, beta-1 as entanglement)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ad5c5ad1bfbeb241ec71b56120cb0e783565c6d4e0fc68b636ca5b177add114f" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "ad5c5ad1bfbeb241ec71b56120cb0e783565c6d4e0fc68b636ca5b177add114f" :a :spec/statement :v "Geodesic Pursuit Convergence: steps bounded by d_B^2 / delta_min^2" :op :assert}
+   {:e #blake3 "ad5c5ad1bfbeb241ec71b56120cb0e783565c6d4e0fc68b636ca5b177add114f" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "ad5c5ad1bfbeb241ec71b56120cb0e783565c6d4e0fc68b636ca5b177add114f" :a :db/doc :v "Geodesic pursuit on Bures manifold converges in bounded steps" :op :assert}
+   {:e #blake3 "9424f0af2a6346ff0b6cf58dca982bf1f4d6244251e9ab131ca8fd7f4ca607e6" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "9424f0af2a6346ff0b6cf58dca982bf1f4d6244251e9ab131ca8fd7f4ca607e6" :a :spec/statement :v "Bures Monotonicity: d_B(M(rho), target) <= d_B(rho, target) for any merge M" :op :assert}
+   {:e #blake3 "9424f0af2a6346ff0b6cf58dca982bf1f4d6244251e9ab131ca8fd7f4ca607e6" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "9424f0af2a6346ff0b6cf58dca982bf1f4d6244251e9ab131ca8fd7f4ca607e6" :a :db/doc :v "Merges never increase Bures distance to coherence target" :op :assert}
+   {:e #blake3 "f8d5f1062f0ea8bd582bf8656b91ff403f6500327e38cb4e6d68b95bea4c208a" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "f8d5f1062f0ea8bd582bf8656b91ff403f6500327e38cb4e6d68b95bea4c208a" :a :spec/statement :v "Submodular Seed Guarantee: greedy fidelity >= (1-1/e) * optimal fidelity" :op :assert}
+   {:e #blake3 "f8d5f1062f0ea8bd582bf8656b91ff403f6500327e38cb4e6d68b95bea4c208a" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "f8d5f1062f0ea8bd582bf8656b91ff403f6500327e38cb4e6d68b95bea4c208a" :a :db/doc :v "Greedy seed assembly achieves 63.2% approximation guarantee" :op :assert}
+   {:e #blake3 "bd2268383e1b2836f215bae7604552eb561e08ffc13e0374b674ccda1842df81" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "bd2268383e1b2836f215bae7604552eb561e08ffc13e0374b674ccda1842df81" :a :spec/statement :v "Phi as Rank Deficiency: Phi = count of non-pure per-boundary rho(e,a)" :op :assert}
+   {:e #blake3 "bd2268383e1b2836f215bae7604552eb561e08ffc13e0374b674ccda1842df81" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "bd2268383e1b2836f215bae7604552eb561e08ffc13e0374b674ccda1842df81" :a :db/doc :v "Divergence metric Phi reinterpreted as density matrix rank deficiency count" :op :assert}
+   {:e #blake3 "ca27249d8d942ac69adf128d12c90ac9e7a0ac1359a30f3e24bd57f92b4cf85d" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "ca27249d8d942ac69adf128d12c90ac9e7a0ac1359a30f3e24bd57f92b4cf85d" :a :spec/statement :v "Beta-1 as Entanglement Witness: beta_1 > 0 iff correlated incoherence (S_between > 0)" :op :assert}
+   {:e #blake3 "ca27249d8d942ac69adf128d12c90ac9e7a0ac1359a30f3e24bd57f92b4cf85d" :a :spec/namespace :v "COHERENCE" :op :assert}
+   {:e #blake3 "ca27249d8d942ac69adf128d12c90ac9e7a0ac1359a30f3e24bd57f92b4cf85d" :a :db/doc :v "First Betti number detects entangled (correlated) incoherence" :op :assert}
+ ]}
