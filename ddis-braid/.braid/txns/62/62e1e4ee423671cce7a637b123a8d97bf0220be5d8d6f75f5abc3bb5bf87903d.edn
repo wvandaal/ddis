@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773208042/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 8 candidates from task 'test harvest datom inspection'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "706bd6064e30c89c21e7f342f6f0371070b6d74770e6aad384a0212b044afd23" :a :db/ident :v :harvest/session-braid-user-1773208042 :op :assert}
+   {:e #blake3 "706bd6064e30c89c21e7f342f6f0371070b6d74770e6aad384a0212b044afd23" :a :db/doc :v "Harvest session for task: test harvest datom inspection" :op :assert}
+   {:e #blake3 "706bd6064e30c89c21e7f342f6f0371070b6d74770e6aad384a0212b044afd23" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "706bd6064e30c89c21e7f342f6f0371070b6d74770e6aad384a0212b044afd23" :a :harvest/candidate-count :v 8 :op :assert}
+   {:e #blake3 "706bd6064e30c89c21e7f342f6f0371070b6d74770e6aad384a0212b044afd23" :a :harvest/drift-score :v 1.0 :op :assert}
+ ]}

@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773241279/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 2 candidates from task 'Session 015: Close the harvest/seed gap — make HARVEST.md unnecessary'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8fd47e8a579bd52edebaae15e4b3c83fbf7510240635dc317e5eb1cbedb6fc66" :a :db/ident :v :harvest/session-braid-user-1773241279 :op :assert}
+   {:e #blake3 "8fd47e8a579bd52edebaae15e4b3c83fbf7510240635dc317e5eb1cbedb6fc66" :a :db/doc :v "Harvest session for task: Session 015: Close the harvest/seed gap — make HARVEST.md unnecessary" :op :assert}
+   {:e #blake3 "8fd47e8a579bd52edebaae15e4b3c83fbf7510240635dc317e5eb1cbedb6fc66" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "8fd47e8a579bd52edebaae15e4b3c83fbf7510240635dc317e5eb1cbedb6fc66" :a :harvest/candidate-count :v 2 :op :assert}
+   {:e #blake3 "8fd47e8a579bd52edebaae15e4b3c83fbf7510240635dc317e5eb1cbedb6fc66" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "8fd47e8a579bd52edebaae15e4b3c83fbf7510240635dc317e5eb1cbedb6fc66" :a :harvest/task :v "Session 015: Close the harvest/seed gap — make HARVEST.md unnecessary" :op :assert}
+   {:e #blake3 "8fd47e8a579bd52edebaae15e4b3c83fbf7510240635dc317e5eb1cbedb6fc66" :a :harvest/accomplishments :v "Session entity: :observation/seed-orientation-redesigned-as-narrative-briefing-accomplis: Seed Orientation redesigned as narrative briefing: accomplishments, decisions with rationale, open q...; Session entity: :observation/session-015-fixed-10-harvestseed-defects-across-6-waves-c: Session 015: Fixed 10 harvest/seed defects across 6 waves. Category matching (B1), narrative persist..." :op :assert}
+   {:e #blake3 "8fd47e8a579bd52edebaae15e4b3c83fbf7510240635dc317e5eb1cbedb6fc66" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: braid status --deep --full (Divergence Φ=240.6 with 83 cycles. Structural remediation needed.)\nRun: `braid seed --task \"braid status --deep --full (Divergence Φ=240.6 with 83 cycles. Structural remediation needed.)\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "8fd47e8a579bd52edebaae15e4b3c83fbf7510240635dc317e5eb1cbedb6fc66" :a :harvest/store-datom-count :v 3044 :op :assert}
+   {:e #blake3 "8fd47e8a579bd52edebaae15e4b3c83fbf7510240635dc317e5eb1cbedb6fc66" :a :harvest/store-entity-count :v 747 :op :assert}
+ ]}

@@ -523,6 +523,9 @@ fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
     let category = args.get("category").and_then(|v| v.as_str());
     let relates_to = args.get("relates_to").and_then(|v| v.as_str());
 
+    let rationale = args.get("rationale").and_then(|v| v.as_str());
+    let alternatives = args.get("alternatives").and_then(|v| v.as_str());
+
     let result = crate::commands::observe::run(crate::commands::observe::ObserveArgs {
         path: &layout.root,
         text,
@@ -531,6 +534,8 @@ fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
         category,
         agent: "braid:mcp",
         relates_to,
+        rationale,
+        alternatives,
     })?;
 
     Ok(json!({

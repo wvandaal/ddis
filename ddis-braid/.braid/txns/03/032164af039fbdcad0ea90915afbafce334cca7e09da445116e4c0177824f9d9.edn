@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773194620/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 014 architecture: pipe-back-to-harness pattern — instead of calling external LLM API, harvest outputs a synthesis directive that the RUNNING agent naturally processes. Agent IS the LLM. Harvest output IS the prompt. Combined with cass integration (15 agent format normalizers), this eliminates need for separate API key, daemon, or watcher. Multi-writer safety guaranteed by C1 (append-only), C2 (content-addressed), C4 (CRDT merge). DiskLayout write-once transaction files are inherently multi-writer safe."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f59256ee93237fdc4916a0cac22c8a2e58dd0b7273f3e171d305aa9413b9eb6f" :a :db/ident :v :observation/session-014-architecture-pipe-back-to-harness-pattern-ins :op :assert}
+   {:e #blake3 "f59256ee93237fdc4916a0cac22c8a2e58dd0b7273f3e171d305aa9413b9eb6f" :a :db/doc :v "Session 014 architecture: pipe-back-to-harness pattern — instead of calling external LLM API, harvest outputs a synthesis directive that the RUNNING agent naturally processes. Agent IS the LLM. Harvest output IS the prompt. Combined with cass integration (15 agent format normalizers), this eliminates need for separate API key, daemon, or watcher. Multi-writer safety guaranteed by C1 (append-only), C2 (content-addressed), C4 (CRDT merge). DiskLayout write-once transaction files are inherently multi-writer safe." :op :assert}
+   {:e #blake3 "f59256ee93237fdc4916a0cac22c8a2e58dd0b7273f3e171d305aa9413b9eb6f" :a :exploration/body :v "Session 014 architecture: pipe-back-to-harness pattern — instead of calling external LLM API, harvest outputs a synthesis directive that the RUNNING agent naturally processes. Agent IS the LLM. Harvest output IS the prompt. Combined with cass integration (15 agent format normalizers), this eliminates need for separate API key, daemon, or watcher. Multi-writer safety guaranteed by C1 (append-only), C2 (content-addressed), C4 (CRDT merge). DiskLayout write-once transaction files are inherently multi-writer safe." :op :assert}
+   {:e #blake3 "f59256ee93237fdc4916a0cac22c8a2e58dd0b7273f3e171d305aa9413b9eb6f" :a :exploration/content-hash :v #bytes "bab08f3fe3168bb4fa633cddc1ba6eb4b31e719b24ad2a8e695ffc52ffe827ee" :op :assert}
+   {:e #blake3 "f59256ee93237fdc4916a0cac22c8a2e58dd0b7273f3e171d305aa9413b9eb6f" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "f59256ee93237fdc4916a0cac22c8a2e58dd0b7273f3e171d305aa9413b9eb6f" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "f59256ee93237fdc4916a0cac22c8a2e58dd0b7273f3e171d305aa9413b9eb6f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f59256ee93237fdc4916a0cac22c8a2e58dd0b7273f3e171d305aa9413b9eb6f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

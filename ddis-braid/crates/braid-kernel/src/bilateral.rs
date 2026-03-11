@@ -47,7 +47,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
-use crate::guidance::{compute_methodology_score, SessionTelemetry};
+use crate::guidance::{compute_methodology_score, telemetry_from_store};
 use crate::query::graph::{
     cheeger, fiedler, graph_laplacian, ricci_curvature_adaptive, ricci_summary,
     spectral_decomposition_adaptive, tx_barcode, DiGraph,
@@ -323,9 +323,8 @@ pub fn compute_fitness(store: &Store) -> FitnessScore {
     // D: Drift — complement of normalized divergence Φ
     let drift = compute_drift_complement(store);
 
-    // H: Harvest quality — methodology score M(t) as proxy
-    // (Uses default telemetry since we don't track per-session telemetry in the store yet)
-    let telemetry = SessionTelemetry::default();
+    // H: Harvest quality — methodology score M(t) from store state
+    let telemetry = telemetry_from_store(store);
     let methodology = compute_methodology_score(&telemetry);
     let harvest_quality = methodology.score;
     if methodology.score == 0.0 {
@@ -667,18 +666,31 @@ pub fn evaluate_conditions(
     };
 
     // CC-2: Impl satisfies Spec
+    // Suppress when no :impl/implements datoms exist — vacuously true (Wave 4.3: C3)
     let cc2 = {
-        let c = scan.forward.coverage_ratio;
-        ConditionResult {
-            satisfied: c >= 1.0 - 1e-10,
-            confidence: c,
-            evidence: format!(
-                "{}/{} spec elements have implementation ({:.1}%)",
-                scan.forward.covered.len(),
-                scan.forward.covered.len() + scan.forward.gaps.len(),
-                c * 100.0,
-            ),
-            machine_evaluable: true,
+        let has_impl_datoms = store
+            .datoms()
+            .any(|d| d.attribute.as_str() == ":impl/implements" && d.op == Op::Assert);
+        if !has_impl_datoms {
+            ConditionResult {
+                satisfied: true,
+                confidence: 0.0,
+                evidence: "skipped — no :impl/implements datoms yet".into(),
+                machine_evaluable: true,
+            }
+        } else {
+            let c = scan.forward.coverage_ratio;
+            ConditionResult {
+                satisfied: c >= 1.0 - 1e-10,
+                confidence: c,
+                evidence: format!(
+                    "{}/{} spec elements have implementation ({:.1}%)",
+                    scan.forward.covered.len(),
+                    scan.forward.covered.len() + scan.forward.gaps.len(),
+                    c * 100.0,
+                ),
+                machine_evaluable: true,
+            }
         }
     };
 

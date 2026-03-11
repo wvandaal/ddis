@@ -205,13 +205,81 @@ fn build_entity_graph(store: &Store) -> (DiGraph, BTreeMap<String, EntityId>) {
     (graph, id_map)
 }
 
+/// Stopwords filtered from task descriptions during keyword extraction.
+const STOPWORDS: &[&str] = &[
+    "the", "a", "an", "is", "for", "to", "in", "of", "and", "or", "with", "on", "at", "by", "from",
+    "as", "it", "be", "do", "not", "this", "that", "are", "was", "were", "been", "has", "have",
+    "had", "will", "would", "can", "could", "should", "may", "might", "shall",
+];
+
+/// Extract task keywords for relevance scoring (Wave 3: B2+B3).
+///
+/// Split on whitespace, lowercase, filter stopwords. If the task is generic
+/// ("continue", "session work"), falls back to keywords from the most recent
+/// harvest session's `:harvest/task` attribute.
+fn extract_task_keywords(store: &Store, task: &str) -> Vec<String> {
+    let raw = task.to_lowercase();
+    let mut keywords: Vec<String> = raw
+        .split_whitespace()
+        .filter(|w| w.len() >= 2 && !STOPWORDS.contains(w))
+        .map(|w| w.to_string())
+        .collect();
+
+    // Fallback for generic tasks: use the most recent harvest's task
+    if keywords.is_empty() || keywords == ["continue"] || keywords == ["session", "work"] {
+        let mut latest_wall = 0u64;
+        let mut latest_task_entity = None;
+        for d in store.datoms() {
+            if d.attribute.as_str() == ":harvest/agent" && d.op == Op::Assert {
+                let wall = d.tx.wall_time();
+                if wall > latest_wall {
+                    latest_wall = wall;
+                    latest_task_entity = Some(d.entity);
+                }
+            }
+        }
+        if let Some(entity) = latest_task_entity {
+            for d in store.entity_datoms(entity) {
+                if d.attribute.as_str() == ":harvest/task" && d.op == Op::Assert {
+                    if let Value::String(ref t) = d.value {
+                        keywords = t
+                            .to_lowercase()
+                            .split_whitespace()
+                            .filter(|w| w.len() >= 2 && !STOPWORDS.contains(w))
+                            .map(|w| w.to_string())
+                            .collect();
+                    }
+                }
+            }
+        }
+    }
+
+    keywords
+}
+
+/// Score a text string for relevance to task keywords.
+///
+/// Returns a score in [0.0, 1.0] based on the fraction of keywords that
+/// appear (case-insensitive) in the text.
+fn keyword_relevance_score(text: &str, keywords: &[String]) -> f64 {
+    if keywords.is_empty() {
+        return 0.5; // neutral when no keywords
+    }
+    let lower = text.to_lowercase();
+    let hits = keywords
+        .iter()
+        .filter(|k| lower.contains(k.as_str()))
+        .count();
+    hits as f64 / keywords.len() as f64
+}
+
 /// Fallback seed selection: when keyword matching returns zero entities,
 /// select the most recently-modified entities. This handles generic tasks
 /// like "continue" or "overview" where the user wants orientation, not
 /// keyword-specific results.
 /// A harvest session summary for orientation context (SB.2.4).
+#[allow(dead_code)]
 struct HarvestSummary {
-    #[allow(dead_code)]
     entity: EntityId,
     wall_time: u64,
     doc: String,
@@ -228,6 +296,18 @@ struct SessionExcerpt {
     decisions: Vec<String>,
     /// Open questions remaining (from `:exploration/category` = "open-question").
     open_questions: Vec<String>,
+    /// What was accomplished (from `:harvest/accomplishments`).
+    accomplishments: Vec<String>,
+    /// Task description (from `:harvest/task`).
+    task: Option<String>,
+    /// Git context summary (from `:harvest/git-summary`).
+    git_summary: Option<String>,
+    /// Synthesis directive from harvest (recommended next steps).
+    synthesis_directive: Option<String>,
+    /// Store datom count at harvest time (for delta tracking).
+    store_datom_count: Option<i64>,
+    /// Store entity count at harvest time.
+    store_entity_count: Option<i64>,
 }
 
 /// Discover content from a harvest session entity.
@@ -295,10 +375,76 @@ fn discover_session_content(store: &Store, session_entity: EntityId) -> SessionE
             }
 
             match category.as_str() {
-                "design-decision" => excerpt.decisions.push(body),
-                "open-question" => excerpt.open_questions.push(body),
+                c if c == "design-decision" || c.ends_with("/design-decision") => {
+                    excerpt.decisions.push(body);
+                }
+                c if c == "open-question" || c.ends_with("/open-question") => {
+                    excerpt.open_questions.push(body);
+                }
                 _ => {}
             }
+        }
+    }
+
+    // Read harvest narrative attributes from the session entity (Wave 2.3)
+    for d in store.entity_datoms(session_entity) {
+        if d.op != Op::Assert {
+            continue;
+        }
+        match d.attribute.as_str() {
+            ":harvest/accomplishments" => {
+                if let Value::String(ref s) = d.value {
+                    excerpt
+                        .accomplishments
+                        .extend(s.lines().map(|l| l.to_string()));
+                }
+            }
+            ":harvest/decisions" => {
+                if let Value::String(ref s) = d.value {
+                    // Merge with observation-sourced decisions (avoid duplicates)
+                    for line in s.lines() {
+                        if !excerpt.decisions.iter().any(|d| d == line) {
+                            excerpt.decisions.push(line.to_string());
+                        }
+                    }
+                }
+            }
+            ":harvest/open-questions" => {
+                if let Value::String(ref s) = d.value {
+                    for line in s.lines() {
+                        let stripped = line.strip_prefix("[?] ").unwrap_or(line);
+                        if !excerpt.open_questions.iter().any(|q| q == stripped) {
+                            excerpt.open_questions.push(stripped.to_string());
+                        }
+                    }
+                }
+            }
+            ":harvest/task" => {
+                if let Value::String(ref s) = d.value {
+                    excerpt.task = Some(s.clone());
+                }
+            }
+            ":harvest/git-summary" => {
+                if let Value::String(ref s) = d.value {
+                    excerpt.git_summary = Some(s.clone());
+                }
+            }
+            ":harvest/synthesis-directive" => {
+                if let Value::String(ref s) = d.value {
+                    excerpt.synthesis_directive = Some(s.clone());
+                }
+            }
+            ":harvest/store-datom-count" => {
+                if let Value::Long(n) = d.value {
+                    excerpt.store_datom_count = Some(n);
+                }
+            }
+            ":harvest/store-entity-count" => {
+                if let Value::Long(n) = d.value {
+                    excerpt.store_entity_count = Some(n);
+                }
+            }
+            _ => {}
         }
     }
 
@@ -328,107 +474,148 @@ fn discover_recent_sessions(store: &Store, max_sessions: usize) -> Vec<SessionEx
         .collect()
 }
 
-/// Build the Orientation section with store summary and session history (SB.2.4).
+/// Build the Orientation section as narrative briefing (SB.2.4).
 ///
-/// Shows: store size, last 3 harvest sessions with task descriptions,
-/// structured session excerpts (decisions, open questions) from recent sessions,
-/// observation count since last harvest, and recent decisions.
-fn build_orientation(store: &Store) -> String {
-    let entity_count = store.entity_count();
+/// Produces prose output that reads like a session summary: what happened
+/// last session, what was decided, what's open, what changed. Designed so
+/// an incoming agent can orient immediately without reading HARVEST.md.
+fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
+    let current_datoms = store.len();
+    let current_entities = store.entity_count();
+
+    // Get session excerpts (newest first) — these contain the rich narrative data
+    let excerpts = discover_recent_sessions(store, 3);
+
+    // Show store size with delta from last harvest if available
+    let delta_str = if let Some(latest) = excerpts.first() {
+        if let Some(prev_datoms) = latest.store_datom_count {
+            let diff = current_datoms as i64 - prev_datoms;
+            if diff > 0 {
+                format!(" (+{diff} since last harvest)")
+            } else {
+                String::new()
+            }
+        } else {
+            String::new()
+        }
+    } else {
+        String::new()
+    };
     let mut parts = vec![format!(
-        "Braid datom store | {} datoms, {} entities",
-        store.len(),
-        entity_count
+        "Store: {} datoms, {} entities{}",
+        current_datoms, current_entities, delta_str
     )];
 
-    // Collect ALL harvest sessions, sorted by wall_time descending
-    let mut harvests: Vec<HarvestSummary> = Vec::new();
-    for datom in store.datoms() {
-        if datom.attribute.as_str() == ":harvest/agent" && datom.op == Op::Assert {
-            let entity = datom.entity;
-            let wall_time = datom.tx.wall_time();
+    // === Last session narrative ===
+    if let Some(latest) = excerpts.first() {
+        if let Some(ref task) = latest.task {
+            parts.push(format!("Last session: {task}"));
+        }
 
-            // Get doc and candidate count for this harvest session
-            let mut doc = String::new();
-            let mut candidate_count: i64 = 0;
-            for d in store.entity_datoms(entity) {
-                if d.op != Op::Assert {
-                    continue;
+        // Accomplishments (from :harvest/accomplishments datom)
+        if !latest.accomplishments.is_empty() {
+            parts.push("Accomplished:".to_string());
+            for a in latest.accomplishments.iter().take(5) {
+                let truncated = if a.len() > 150 {
+                    format!("{}...", &a[..150])
+                } else {
+                    a.clone()
+                };
+                parts.push(format!("  - {truncated}"));
+            }
+        }
+
+        // Decisions with rationale (from :harvest/decisions datom)
+        if !latest.decisions.is_empty() {
+            parts.push("Decided:".to_string());
+            for d in latest.decisions.iter().take(5) {
+                let truncated = if d.len() > 150 {
+                    format!("{}...", &d[..150])
+                } else {
+                    d.clone()
+                };
+                parts.push(format!("  - {truncated}"));
+            }
+        }
+
+        // Open questions (from :harvest/open-questions datom)
+        if !latest.open_questions.is_empty() {
+            parts.push("Open:".to_string());
+            for q in latest.open_questions.iter().take(3) {
+                let truncated = if q.len() > 120 {
+                    format!("{}...", &q[..120])
+                } else {
+                    q.clone()
+                };
+                parts.push(format!("  ? {truncated}"));
+            }
+        }
+
+        // Git context (from :harvest/git-summary datom)
+        if let Some(ref git) = latest.git_summary {
+            parts.push("Changes:".to_string());
+            for line in git.lines().take(4) {
+                parts.push(format!("  {line}"));
+            }
+        }
+
+        // Synthesis directive from last harvest (recommended next steps)
+        if let Some(ref directive) = latest.synthesis_directive {
+            // Show the first 2 meaningful lines of the directive
+            let meaningful: Vec<&str> = directive
+                .lines()
+                .filter(|l| !l.trim().is_empty() && !l.starts_with("---"))
+                .take(2)
+                .collect();
+            if !meaningful.is_empty() {
+                parts.push("Last session recommended:".to_string());
+                for line in meaningful {
+                    parts.push(format!("  {line}"));
                 }
-                match d.attribute.as_str() {
-                    ":db/doc" => {
-                        if let Value::String(ref s) = d.value {
-                            doc = if s.len() > 120 {
-                                format!("{}...", &s[..120])
-                            } else {
-                                s.clone()
-                            };
-                        }
+            }
+        }
+    }
+
+    // === Prior session (brief) ===
+    if excerpts.len() > 1 {
+        let prior = &excerpts[1];
+        if let Some(ref task) = prior.task {
+            parts.push(format!("Prior session: {task}"));
+        }
+        // Just show decision count + question count for prior sessions
+        if !prior.decisions.is_empty() || !prior.open_questions.is_empty() {
+            let mut summary_parts = Vec::new();
+            if !prior.decisions.is_empty() {
+                summary_parts.push(format!("{} decisions", prior.decisions.len()));
+            }
+            if !prior.open_questions.is_empty() {
+                summary_parts.push(format!("{} open questions", prior.open_questions.len()));
+            }
+            parts.push(format!("  {}", summary_parts.join(", ")));
+        }
+    }
+
+    // === Unharvested observations ===
+    let latest_harvest_wall = excerpts
+        .first()
+        .and_then(|_| {
+            // Find this session's wall_time from the harvest sessions
+            let mut latest = 0u64;
+            for d in store.datoms() {
+                if d.attribute.as_str() == ":harvest/agent" && d.op == Op::Assert {
+                    let w = d.tx.wall_time();
+                    if w > latest {
+                        latest = w;
                     }
-                    ":harvest/candidate-count" => {
-                        if let Value::Long(n) = d.value {
-                            candidate_count = n;
-                        }
-                    }
-                    _ => {}
                 }
             }
-
-            harvests.push(HarvestSummary {
-                entity,
-                wall_time,
-                doc,
-                candidate_count,
-            });
-        }
-    }
-    harvests.sort_by_key(|h| std::cmp::Reverse(h.wall_time));
-
-    // Show last 3 harvest sessions
-    let show_count = harvests.len().min(3);
-    if show_count > 0 {
-        let latest = &harvests[0];
-        parts.push(format!(
-            "Last harvest: {} ({} candidates)",
-            latest.doc, latest.candidate_count
-        ));
-        for h in harvests.iter().skip(1).take(show_count - 1) {
-            parts.push(format!(
-                "  Prior: {} ({} candidates)",
-                h.doc, h.candidate_count
-            ));
-        }
-    }
-
-    // Session detail from excerpts (S0.3.2: INV-SEED-005 demonstration density)
-    let excerpts = discover_recent_sessions(store, 2);
-    for (i, excerpt) in excerpts.iter().enumerate() {
-        if !excerpt.decisions.is_empty() {
-            let label = if i == 0 {
-                "Latest decisions"
+            if latest > 0 {
+                Some(latest)
             } else {
-                "Prior decisions"
-            };
-            parts.push(format!("{label}:"));
-            for d in excerpt.decisions.iter().take(2) {
-                parts.push(format!("  \u{2192} {d}"));
+                None
             }
-        }
-        if !excerpt.open_questions.is_empty() {
-            let label = if i == 0 {
-                "Open questions"
-            } else {
-                "Prior open"
-            };
-            parts.push(format!("{label}:"));
-            for q in excerpt.open_questions.iter().take(2) {
-                parts.push(format!("  ? {q}"));
-            }
-        }
-    }
-
-    // Count observations since last harvest
-    let latest_harvest_wall = harvests.first().map(|h| h.wall_time).unwrap_or(0);
+        })
+        .unwrap_or(0);
     let mut obs_since_harvest = 0;
     let mut obs_summaries: Vec<String> = Vec::new();
     for datom in store.datoms() {
@@ -439,13 +626,12 @@ fn build_orientation(store: &Store) -> String {
             if let Value::String(ref s) = datom.value {
                 if s == "braid:observe" {
                     obs_since_harvest += 1;
-                    // Get the doc for this observation (limit to 3)
                     if obs_summaries.len() < 3 {
                         for d2 in store.entity_datoms(datom.entity) {
                             if d2.attribute.as_str() == ":db/doc" && d2.op == Op::Assert {
                                 if let Value::String(ref doc) = d2.value {
-                                    let truncated = if doc.len() > 80 {
-                                        format!("{}...", &doc[..80])
+                                    let truncated = if doc.len() > 100 {
+                                        format!("{}...", &doc[..100])
                                     } else {
                                         doc.clone()
                                     };
@@ -461,40 +647,10 @@ fn build_orientation(store: &Store) -> String {
     }
     if obs_since_harvest > 0 {
         parts.push(format!(
-            "{obs_since_harvest} observations since last harvest"
+            "Unharvested: {obs_since_harvest} observations (run braid harvest --commit)"
         ));
         for obs in &obs_summaries {
             parts.push(format!("  - {obs}"));
-        }
-    }
-
-    // Surface recent decisions (entities with :intent/decision or design-decision category)
-    let mut decisions: Vec<String> = Vec::new();
-    for datom in store.datoms() {
-        if datom.attribute.as_str() == ":exploration/category" && datom.op == Op::Assert {
-            if let Value::String(ref cat) = datom.value {
-                if cat == "design-decision" || cat == "decision" {
-                    for d2 in store.entity_datoms(datom.entity) {
-                        if d2.attribute.as_str() == ":db/doc" && d2.op == Op::Assert {
-                            if let Value::String(ref doc) = d2.value {
-                                let truncated = if doc.len() > 80 {
-                                    format!("{}...", &doc[..80])
-                                } else {
-                                    doc.clone()
-                                };
-                                decisions.push(truncated);
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    if !decisions.is_empty() {
-        parts.push("Decisions:".to_string());
-        for d in decisions.iter().take(3) {
-            parts.push(format!("  - {d}"));
         }
     }
 
@@ -502,35 +658,44 @@ fn build_orientation(store: &Store) -> String {
 }
 
 /// Discover open questions from observation entities.
-fn discover_open_questions(store: &Store) -> Vec<String> {
-    let mut questions = Vec::new();
+///
+/// Accepts optional task keywords for relevance scoring (Wave 3: B2).
+fn discover_open_questions(store: &Store, task_keywords: &[String]) -> Vec<String> {
+    let mut questions: Vec<(f64, String)> = Vec::new();
     // Find entities tagged as open-question
     for datom in store.datoms() {
         if datom.attribute.as_str() == ":exploration/category" && datom.op == Op::Assert {
-            if let Value::String(ref cat) = datom.value {
-                if cat == "open-question" || cat == "conjecture" {
-                    // Get the doc for this entity
-                    for d2 in store.datoms() {
-                        if d2.entity == datom.entity
-                            && d2.attribute.as_str() == ":db/doc"
-                            && d2.op == Op::Assert
-                        {
-                            if let Value::String(ref doc) = d2.value {
-                                let truncated = if doc.len() > 100 {
-                                    format!("{}...", &doc[..100])
-                                } else {
-                                    doc.clone()
-                                };
-                                questions.push(format!("[?] {truncated}"));
-                            }
-                            break;
+            let cat_str = match &datom.value {
+                Value::String(s) => s.as_str(),
+                Value::Keyword(k) => k.as_str(),
+                _ => continue,
+            };
+            if cat_str == "open-question"
+                || cat_str == "conjecture"
+                || cat_str.ends_with("/open-question")
+                || cat_str.ends_with("/conjecture")
+            {
+                // Get the doc for this entity — use entity_datoms (O(1) index lookup)
+                for d2 in store.entity_datoms(datom.entity) {
+                    if d2.attribute.as_str() == ":db/doc" && d2.op == Op::Assert {
+                        if let Value::String(ref doc) = d2.value {
+                            let truncated = if doc.len() > 100 {
+                                format!("{}...", &doc[..100])
+                            } else {
+                                doc.clone()
+                            };
+                            let score = keyword_relevance_score(&truncated, task_keywords);
+                            questions.push((score, format!("[?] {truncated}")));
                         }
+                        break;
                     }
                 }
             }
         }
     }
-    questions
+    // Sort by relevance descending (task-relevant questions first)
+    questions.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+    questions.into_iter().map(|(_, q)| q).collect()
 }
 
 /// Discover active constraints from spec entities (SB.2.3).
@@ -538,7 +703,10 @@ fn discover_open_questions(store: &Store) -> Vec<String> {
 /// Scans for entities with `:spec/*` idents and extracts their type
 /// (invariant, ADR, negative-case) and description. Shows verification
 /// status by checking if the spec element has been bootstrapped.
-fn discover_constraints(store: &Store) -> Vec<ConstraintRef> {
+///
+/// When task keywords are provided, constraints matching the task are
+/// sorted to the top (Wave 3: B3 fix — previously alphabetical only).
+fn discover_constraints(store: &Store, task_keywords: &[String]) -> Vec<ConstraintRef> {
     let mut constraints = Vec::new();
     let mut seen = BTreeSet::new();
 
@@ -604,28 +772,84 @@ fn discover_constraints(store: &Store) -> Vec<ConstraintRef> {
         });
     }
 
-    // Sort by ID for deterministic output
-    constraints.sort_by(|a, b| a.id.cmp(&b.id));
+    // Collect spec entities referenced by recent observations (Step 3: constraint relevance)
+    let mut obs_referenced_specs: BTreeSet<String> = BTreeSet::new();
+    for datom in store.datoms() {
+        if datom.attribute.as_str() == ":exploration/related-spec" && datom.op == Op::Assert {
+            if let Value::Ref(target) = &datom.value {
+                // Resolve target entity's ident
+                for d in store.entity_datoms(*target) {
+                    if d.attribute.as_str() == ":db/ident" && d.op == Op::Assert {
+                        if let Value::Keyword(ref k) = d.value {
+                            let id = k.strip_prefix(":spec/").unwrap_or(k).to_uppercase();
+                            obs_referenced_specs.insert(id);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Sort by relevance: observation-referenced specs get highest boost,
+    // then task-keyword matching, then alphabetical tiebreaker
+    constraints.sort_by(|a, b| {
+        let obs_a = if obs_referenced_specs.contains(&a.id) {
+            1.0
+        } else {
+            0.0
+        };
+        let obs_b = if obs_referenced_specs.contains(&b.id) {
+            1.0
+        } else {
+            0.0
+        };
+        let kw_a = keyword_relevance_score(&format!("{} {}", a.id, a.summary), task_keywords);
+        let kw_b = keyword_relevance_score(&format!("{} {}", b.id, b.summary), task_keywords);
+        let score_a = obs_a + kw_a;
+        let score_b = obs_b + kw_b;
+        score_b
+            .partial_cmp(&score_a)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.id.cmp(&b.id))
+    });
 
     // Limit to top 10 to stay within budget
     constraints.truncate(10);
     constraints
 }
 
-/// Build Directive section with task and injected actions (SB.2.1, INV-SEED-005).
+/// Build Directive section with task, guidance actions, and last session context.
 ///
 /// Produces a structured directive with:
 /// 1. Task anchoring (INV-SEED-006: prevents basin drift)
-/// 2. Top 3 actions from guidance with runnable commands + spec refs
-/// 3. Quick-reference command block (budget permitting, INV-SEED-002)
+/// 2. Open questions from last session (carry-forward)
+/// 3. Top 3 actions from guidance with runnable commands + spec refs
+/// 4. Quick-reference command block (budget permitting, INV-SEED-002)
 ///
 /// Every element is copy-pasteable — the directive IS a prompt fragment.
 fn build_directive(
     task: &str,
     actions: &[crate::guidance::GuidanceAction],
     budget: usize,
+    last_session: Option<&SessionExcerpt>,
 ) -> String {
     let mut parts = vec![format!("Task: {task}")];
+
+    // Carry forward open questions from last session (Step 4: actionable directive)
+    if let Some(excerpt) = last_session {
+        if !excerpt.open_questions.is_empty() {
+            parts.push(String::new());
+            parts.push("Open from last session:".to_string());
+            for q in excerpt.open_questions.iter().take(3) {
+                let truncated = if q.len() > 120 {
+                    format!("{}...", &q[..120])
+                } else {
+                    q.clone()
+                };
+                parts.push(format!("  ? {truncated}"));
+            }
+        }
+    }
 
     if !actions.is_empty() {
         parts.push(String::new());
@@ -1131,7 +1355,8 @@ pub fn assemble(
     task: &str,
     budget: usize,
 ) -> AssembledContext {
-    let task_keywords: Vec<&str> = task.split_whitespace().collect();
+    let task_kw = extract_task_keywords(store, task);
+    let task_keywords: Vec<&str> = task_kw.iter().map(|s| s.as_str()).collect();
     let max_wall = store.datoms().map(|d| d.tx.wall_time()).max().unwrap_or(0);
 
     // Compute PageRank over entity reference graph (v2)
@@ -1179,19 +1404,23 @@ pub fn assemble(
 
     // Build sections
 
+    // Get last session excerpt for directive carry-forward
+    let recent = discover_recent_sessions(store, 1);
+    let last_session = recent.first();
+
     // Directive: task + action injection (SB.2.1)
     let actions = crate::guidance::derive_actions(store);
-    let directive_text = build_directive(task, &actions, budget);
+    let directive_text = build_directive(task, &actions, budget, last_session);
     let directive_tokens = estimate_tokens(&directive_text);
     let directive = ContextSection::Directive(directive_text);
 
     // Orientation: session history narrative (SB.2.4)
-    let orientation_text = build_orientation(store);
+    let orientation_text = build_orientation(store, &task_kw);
     let orientation_tokens = estimate_tokens(&orientation_text);
     let orientation = ContextSection::Orientation(orientation_text);
 
     // Warnings: surface open questions from observations
-    let warning_lines = discover_open_questions(store);
+    let warning_lines = discover_open_questions(store, &task_kw);
     let warnings_tokens = warning_lines
         .iter()
         .map(|w| estimate_tokens(w))
@@ -1199,7 +1428,7 @@ pub fn assemble(
     let warnings = ContextSection::Warnings(warning_lines);
 
     // Constraints: active invariants from spec entities (SB.2.3)
-    let constraint_refs = discover_constraints(store);
+    let constraint_refs = discover_constraints(store, &task_kw);
     let constraints_tokens = constraint_refs
         .iter()
         .map(|c| estimate_tokens(&c.id) + estimate_tokens(&c.summary) + 4)
@@ -1245,6 +1474,9 @@ pub fn assemble(
         state_tokens += entry.tokens;
         state_entries.push(entry);
     }
+
+    // Filter hex-hash-only entities — zero information, wastes tokens (Wave 6: D2)
+    state_entries.retain(|e| !e.content.starts_with('#'));
 
     // Compute dominant projection before moving state_entries
     let dominant_projection = if state_entries.is_empty() {
@@ -1294,8 +1526,8 @@ pub fn assemble(
 pub fn assemble_seed(store: &Store, task: &str, budget: usize, agent: AgentId) -> SeedOutput {
     let cue = AssociateCue::Semantic {
         text: task.to_string(),
-        depth: 5,
-        breadth: 10,
+        depth: 3,
+        breadth: 25,
     };
 
     let neighborhood = associate(store, &cue);
@@ -2269,7 +2501,7 @@ mod tests {
         let overlay = Store::from_datoms(raw_datoms);
         store.merge(&overlay);
 
-        let orientation = build_orientation(&store);
+        let orientation = build_orientation(&store, &[]);
         // Should contain the harvest session info
         assert!(
             orientation.contains("implement feature X"),
@@ -2297,7 +2529,7 @@ mod tests {
         }];
 
         // Budget >= 200: quick reference included
-        let directive = build_directive("test task", &actions, 2000);
+        let directive = build_directive("test task", &actions, 2000, None);
 
         // Should contain task anchoring
         assert!(directive.contains("Task: test task"));
@@ -2312,9 +2544,368 @@ mod tests {
         assert!(directive.contains("braid harvest --commit"));
 
         // Budget < 200: quick reference omitted (INV-SEED-002 takes precedence)
-        let compact = build_directive("test task", &actions, 50);
+        let compact = build_directive("test task", &actions, 50, None);
         assert!(compact.contains("Task: test task"));
         assert!(compact.contains("Test action"));
         assert!(!compact.contains("Quick reference:"));
+    }
+
+    // ── Wave 1: B1 category mismatch fix tests ──────────────────────────
+
+    #[test]
+    fn test_category_keyword_matching() {
+        use crate::datom::TxId;
+        // Test that discover_session_content finds Value::Keyword categories
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1000, 0, agent);
+        let obs_tx = TxId::new(1001, 1, agent);
+
+        // Harvest session entity
+        let session = EntityId::from_ident(":harvest/test-session-kw");
+        let obs = EntityId::from_ident(":obs/test-decision-kw");
+
+        let mut raw = BTreeSet::new();
+        raw.insert(Datom::new(
+            session,
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".into()),
+            tx,
+            Op::Assert,
+        ));
+        raw.insert(Datom::new(
+            obs,
+            Attribute::from_keyword(":exploration/source"),
+            Value::String("braid:observe".into()),
+            obs_tx,
+            Op::Assert,
+        ));
+        // Use Keyword variant (this is what braid observe stores)
+        raw.insert(Datom::new(
+            obs,
+            Attribute::from_keyword(":exploration/category"),
+            Value::Keyword(":exploration.cat/design-decision".into()),
+            obs_tx,
+            Op::Assert,
+        ));
+        raw.insert(Datom::new(
+            obs,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("Fisher-Rao for scoring".into()),
+            obs_tx,
+            Op::Assert,
+        ));
+
+        store.merge(&Store::from_datoms(raw));
+
+        let excerpt = discover_session_content(&store, session);
+        assert!(
+            !excerpt.decisions.is_empty(),
+            "Should find Keyword-stored decisions, got: {:?}",
+            excerpt
+        );
+        assert!(
+            excerpt.decisions.iter().any(|d| d.contains("Fisher-Rao")),
+            "Decision text should match: {:?}",
+            excerpt.decisions
+        );
+    }
+
+    #[test]
+    fn test_open_question_keyword() {
+        use crate::datom::TxId;
+        // Test that discover_open_questions finds Value::Keyword categories
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1000, 0, agent);
+
+        let obs = EntityId::from_ident(":obs/test-question-kw");
+        let mut raw = BTreeSet::new();
+        raw.insert(Datom::new(
+            obs,
+            Attribute::from_keyword(":exploration/category"),
+            Value::Keyword(":exploration.cat/open-question".into()),
+            tx,
+            Op::Assert,
+        ));
+        raw.insert(Datom::new(
+            obs,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("How to handle 3-agent merge?".into()),
+            tx,
+            Op::Assert,
+        ));
+
+        store.merge(&Store::from_datoms(raw));
+
+        let questions = discover_open_questions(&store, &[]);
+        assert!(
+            !questions.is_empty(),
+            "Should find Keyword-stored open questions"
+        );
+        assert!(
+            questions.iter().any(|q| q.contains("3-agent merge")),
+            "Question text should match: {:?}",
+            questions
+        );
+    }
+
+    #[test]
+    fn test_orientation_finds_keyword_decisions() {
+        use crate::datom::TxId;
+        // Test that build_orientation shows decisions from harvest session excerpts.
+        // Decisions are persisted via :harvest/decisions datoms on the session entity.
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1000, 0, agent);
+
+        // Create a harvest session entity with decisions
+        let session = EntityId::from_ident(":harvest/session-test-1000");
+        let mut raw = BTreeSet::new();
+        raw.insert(Datom::new(
+            session,
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".into()),
+            tx,
+            Op::Assert,
+        ));
+        raw.insert(Datom::new(
+            session,
+            Attribute::from_keyword(":harvest/task"),
+            Value::String("CRDT merge implementation".into()),
+            tx,
+            Op::Assert,
+        ));
+        raw.insert(Datom::new(
+            session,
+            Attribute::from_keyword(":harvest/decisions"),
+            Value::String("Use CRDT for merge (rationale: commutative by design)".into()),
+            tx,
+            Op::Assert,
+        ));
+        raw.insert(Datom::new(
+            session,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("Harvest session for task: CRDT merge implementation".into()),
+            tx,
+            Op::Assert,
+        ));
+
+        store.merge(&Store::from_datoms(raw));
+
+        let text = build_orientation(&store, &[]);
+        assert!(
+            text.contains("CRDT"),
+            "Orientation should include decisions from harvest session: {text}"
+        );
+    }
+
+    // ── Wave 3: Task-aware seed sections tests ──────────────────────────
+
+    #[test]
+    fn test_constraints_task_aware() {
+        use crate::datom::TxId;
+        // Constraints matching task keywords should sort first
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1000, 0, agent);
+
+        // Add spec entities: one QUERY, one BILATERAL
+        let spec_q = EntityId::from_ident(":spec/inv-query-001");
+        let spec_b = EntityId::from_ident(":spec/adr-bilateral-001");
+        let mut raw = BTreeSet::new();
+
+        for (entity, ident, doc) in [
+            (spec_q, ":spec/inv-query-001", "Datalog query completeness"),
+            (
+                spec_b,
+                ":spec/adr-bilateral-001",
+                "Fitness function weights",
+            ),
+        ] {
+            raw.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(ident.into()),
+                tx,
+                Op::Assert,
+            ));
+            raw.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String(doc.into()),
+                tx,
+                Op::Assert,
+            ));
+            raw.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":spec/type"),
+                Value::Keyword(":element.type/invariant".into()),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        store.merge(&Store::from_datoms(raw));
+
+        // Task "query" — QUERY constraint should be first
+        let kw = vec!["query".to_string()];
+        let constraints = discover_constraints(&store, &kw);
+        assert!(
+            !constraints.is_empty(),
+            "Should find constraints: {:?}",
+            constraints
+        );
+        assert!(
+            constraints[0].id.contains("QUERY"),
+            "QUERY constraint should be first for task 'query', got: {:?}",
+            constraints.iter().map(|c| &c.id).collect::<Vec<_>>()
+        );
+    }
+
+    // ── Wave 4: Telemetry/phantom tests ─────────────────────────────────
+
+    #[test]
+    fn test_telemetry_from_store_nonzero() {
+        use crate::guidance::telemetry_from_store;
+        let store = Store::genesis();
+        let telemetry = telemetry_from_store(&store);
+        // Genesis store has at least 1 transaction (genesis itself)
+        assert!(
+            telemetry.total_turns >= 1,
+            "total_turns should be >= 1, got {}",
+            telemetry.total_turns
+        );
+        let score = crate::guidance::compute_methodology_score(&telemetry);
+        assert!(
+            score.score > 0.0,
+            "M(t) should be > 0 for genesis store, got {}",
+            score.score
+        );
+    }
+
+    #[test]
+    fn test_phantom_commands_replaced() {
+        use crate::guidance::derive_actions;
+        let store = Store::genesis();
+        let actions = derive_actions(&store);
+        let all_commands: String = actions
+            .iter()
+            .filter_map(|a| a.command.as_ref())
+            .cloned()
+            .collect::<Vec<_>>()
+            .join(" ");
+        assert!(
+            !all_commands.contains("braid analyze"),
+            "Should not contain phantom 'braid analyze' command: {all_commands}"
+        );
+    }
+
+    // ── Wave 6: Budget/presentation tests ───────────────────────────────
+
+    #[test]
+    fn test_seed_no_hex_hashes() {
+        // Seed output should not contain raw hex entity hashes
+        let store = Store::genesis();
+        let agent = AgentId::from_name("test");
+        let seed = assemble_seed(&store, "test task", 3000, agent);
+
+        for section in &seed.context.sections {
+            if let ContextSection::State(entries) = section {
+                for entry in entries {
+                    assert!(
+                        !entry.content.starts_with('#'),
+                        "State entry should not be a hex hash: {}",
+                        entry.content
+                    );
+                }
+            }
+        }
+    }
+
+    // ── Wave 2.3: Harvest narrative round-trip tests ────────────────────
+
+    #[test]
+    fn test_seed_reads_harvest_narrative() {
+        use crate::datom::TxId;
+        // Verify harvest narrative datoms are read by seed
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(2000, 0, agent);
+
+        let session = EntityId::from_ident(":harvest/session-test-narr");
+        let mut raw = BTreeSet::new();
+
+        raw.insert(Datom::new(
+            session,
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".into()),
+            tx,
+            Op::Assert,
+        ));
+        raw.insert(Datom::new(
+            session,
+            Attribute::from_keyword(":harvest/task"),
+            Value::String("implement scoring engine".into()),
+            tx,
+            Op::Assert,
+        ));
+        raw.insert(Datom::new(
+            session,
+            Attribute::from_keyword(":harvest/accomplishments"),
+            Value::String("Built Fisher-Rao scorer\nAdded 15 tests".into()),
+            tx,
+            Op::Assert,
+        ));
+        raw.insert(Datom::new(
+            session,
+            Attribute::from_keyword(":harvest/decisions"),
+            Value::String(
+                "Use Fisher-Rao metric (rationale: information-geometric foundation)".into(),
+            ),
+            tx,
+            Op::Assert,
+        ));
+        raw.insert(Datom::new(
+            session,
+            Attribute::from_keyword(":harvest/git-summary"),
+            Value::String("branch=main, 3 commits, 5 files (+200/-50)".into()),
+            tx,
+            Op::Assert,
+        ));
+
+        store.merge(&Store::from_datoms(raw));
+
+        let excerpt = discover_session_content(&store, session);
+        assert!(
+            !excerpt.accomplishments.is_empty(),
+            "Should read accomplishments"
+        );
+        assert!(
+            excerpt.accomplishments.iter().any(|a| a.contains("Fisher")),
+            "Accomplishment should contain Fisher: {:?}",
+            excerpt.accomplishments
+        );
+        assert!(
+            excerpt.task.as_deref() == Some("implement scoring engine"),
+            "Task should be set: {:?}",
+            excerpt.task
+        );
+        assert!(
+            excerpt.git_summary.is_some(),
+            "Git summary should be set: {:?}",
+            excerpt.git_summary
+        );
+
+        // Verify orientation renders the new fields
+        let text = build_orientation(&store, &[]);
+        assert!(
+            text.contains("implement scoring engine"),
+            "Orientation should show task: {text}"
+        );
+        assert!(
+            text.contains("Accomplished"),
+            "Orientation should show accomplishments: {text}"
+        );
     }
 }

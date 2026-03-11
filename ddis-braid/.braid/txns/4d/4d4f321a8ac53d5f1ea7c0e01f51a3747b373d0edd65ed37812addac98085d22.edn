@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773205785/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 014: massive implementation wave — 30+ beads implemented across 5 waves. Query diagnostics, schema introspection, narrative harvest, session excerpts, exponential recency scoring, shell lifecycle, four-part errors, aggregate queries, task inference, pipe-back-to-harness. 606 tests, 0 failures."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "02c232b8db91ac149735e4f63dd28e32bfb73a5337e0e170c11bfabee180f7c7" :a :db/ident :v :observation/session-014-massive-implementation-wave-30-beads-impleme :op :assert}
+   {:e #blake3 "02c232b8db91ac149735e4f63dd28e32bfb73a5337e0e170c11bfabee180f7c7" :a :db/doc :v "Session 014: massive implementation wave — 30+ beads implemented across 5 waves. Query diagnostics, schema introspection, narrative harvest, session excerpts, exponential recency scoring, shell lifecycle, four-part errors, aggregate queries, task inference, pipe-back-to-harness. 606 tests, 0 failures." :op :assert}
+   {:e #blake3 "02c232b8db91ac149735e4f63dd28e32bfb73a5337e0e170c11bfabee180f7c7" :a :exploration/body :v "Session 014: massive implementation wave — 30+ beads implemented across 5 waves. Query diagnostics, schema introspection, narrative harvest, session excerpts, exponential recency scoring, shell lifecycle, four-part errors, aggregate queries, task inference, pipe-back-to-harness. 606 tests, 0 failures." :op :assert}
+   {:e #blake3 "02c232b8db91ac149735e4f63dd28e32bfb73a5337e0e170c11bfabee180f7c7" :a :exploration/content-hash :v #bytes "437dda4b5810299699a533de9f82a1de2002354cb59735fe69393f600c0e0802" :op :assert}
+   {:e #blake3 "02c232b8db91ac149735e4f63dd28e32bfb73a5337e0e170c11bfabee180f7c7" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "02c232b8db91ac149735e4f63dd28e32bfb73a5337e0e170c11bfabee180f7c7" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "02c232b8db91ac149735e4f63dd28e32bfb73a5337e0e170c11bfabee180f7c7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "02c232b8db91ac149735e4f63dd28e32bfb73a5337e0e170c11bfabee180f7c7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

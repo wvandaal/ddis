@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773241264/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 015: Fixed 10 harvest/seed defects across 6 waves. Category matching (B1), narrative persistence (A1), task-aware constraints (B2/B3), real M(t) (C1), phantom commands (C2), CC-2 suppression (C3), budget utilization (D1/D2). Then redesigned seed Orientation as narrative briefing, added --rationale/--alternatives to observe, observation-based constraint relevance, directive carry-forward, session metrics. 614 tests, 0 failures."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6bd7eef7c27bce78fb6b410add9089726312f4727c7c5777bad4b31dbb11f847" :a :db/ident :v :observation/session-015-fixed-10-harvestseed-defects-across-6-waves-c :op :assert}
+   {:e #blake3 "6bd7eef7c27bce78fb6b410add9089726312f4727c7c5777bad4b31dbb11f847" :a :db/doc :v "Session 015: Fixed 10 harvest/seed defects across 6 waves. Category matching (B1), narrative persistence (A1), task-aware constraints (B2/B3), real M(t) (C1), phantom commands (C2), CC-2 suppression (C3), budget utilization (D1/D2). Then redesigned seed Orientation as narrative briefing, added --rationale/--alternatives to observe, observation-based constraint relevance, directive carry-forward, session metrics. 614 tests, 0 failures." :op :assert}
+   {:e #blake3 "6bd7eef7c27bce78fb6b410add9089726312f4727c7c5777bad4b31dbb11f847" :a :exploration/body :v "Session 015: Fixed 10 harvest/seed defects across 6 waves. Category matching (B1), narrative persistence (A1), task-aware constraints (B2/B3), real M(t) (C1), phantom commands (C2), CC-2 suppression (C3), budget utilization (D1/D2). Then redesigned seed Orientation as narrative briefing, added --rationale/--alternatives to observe, observation-based constraint relevance, directive carry-forward, session metrics. 614 tests, 0 failures." :op :assert}
+   {:e #blake3 "6bd7eef7c27bce78fb6b410add9089726312f4727c7c5777bad4b31dbb11f847" :a :exploration/content-hash :v #bytes "80d9b280944513b098f5407626ee6e44a71f68a7015151dd17143b0a41b2d2f8" :op :assert}
+   {:e #blake3 "6bd7eef7c27bce78fb6b410add9089726312f4727c7c5777bad4b31dbb11f847" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "6bd7eef7c27bce78fb6b410add9089726312f4727c7c5777bad4b31dbb11f847" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "6bd7eef7c27bce78fb6b410add9089726312f4727c7c5777bad4b31dbb11f847" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6bd7eef7c27bce78fb6b410add9089726312f4727c7c5777bad4b31dbb11f847" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6bd7eef7c27bce78fb6b410add9089726312f4727c7c5777bad4b31dbb11f847" :a :exploration/related-spec :v #blake3 "9692346a3adf055502a95c727ebcaae6f141008c097740097512531804b44820" :op :assert}
+ ]}

@@ -18,7 +18,7 @@
 //! - **INV-GUIDANCE-009**: Task derivation completeness.
 //! - **INV-GUIDANCE-010**: R(t) graph-based work routing.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::budget::GuidanceLevel;
 use crate::datom::{Attribute, EntityId, Op, Value};
@@ -712,7 +712,7 @@ pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
                 "{} cycles in entity graph. May indicate circular dependencies.",
                 coherence.beta_1
             ),
-            command: Some("braid analyze | grep B1".into()),
+            command: Some("braid status --deep".into()),
             relates_to: vec!["INV-TRILATERAL-003".into()],
         });
     }
@@ -733,11 +733,11 @@ pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
                     "Divergence Φ={:.1} with {} cycles. Structural remediation needed.",
                     coherence.phi, coherence.beta_1
                 ),
-                "braid analyze --force".to_string(),
+                "braid status --deep --full".to_string(),
             ),
             CoherenceQuadrant::CyclesOnly => (
                 format!("Cycles present (β₁={}) but no gaps.", coherence.beta_1),
-                "braid analyze | grep cycle".to_string(),
+                "braid status --deep".to_string(),
             ),
             CoherenceQuadrant::Coherent => (
                 "Store is coherent.".into(),
@@ -782,7 +782,7 @@ pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
                 "High structural entropy S_vN={:.2}. Knowledge may be fragmenting.",
                 s_vn
             ),
-            command: Some("braid analyze --force".into()),
+            command: Some("braid status --deep --full".into()),
             relates_to: vec!["INV-TRILATERAL-004".into()],
         });
     }
@@ -866,7 +866,7 @@ pub fn modulate_actions(actions: &mut Vec<GuidanceAction>, methodology_score: f6
 ///
 /// `k_eff` is the current attention budget ratio (None defaults to 1.0 = full).
 pub fn build_command_footer(store: &Store, k_eff: Option<f64>) -> String {
-    let telemetry = SessionTelemetry::default();
+    let telemetry = telemetry_from_store(store);
     let methodology = compute_methodology_score(&telemetry);
     let mut actions = derive_actions(store);
     modulate_actions(&mut actions, methodology.score);
@@ -883,6 +883,38 @@ pub fn build_command_footer(store: &Store, k_eff: Option<f64>) -> String {
     let footer = build_footer(&telemetry, store, next_action, invariant_refs);
     let level = GuidanceLevel::for_k_eff(k_eff.unwrap_or(1.0));
     format_footer_at_level(&footer, level)
+}
+
+/// Derive session telemetry from the store state instead of using all-zero defaults.
+///
+/// This fixes C1 (M(t) always 0.00) by computing real values from the store:
+/// - `total_turns`: transaction count (proxy for turns)
+/// - `transact_turns`: transactions since last harvest
+/// - `spec_language_turns`: count of spec entities
+/// - `query_type_count`: 1 if any transactions, 0 otherwise
+/// - `harvest_quality`: 0.7 if recent harvest exists, 0.0 otherwise
+pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
+    let tx_walls: BTreeSet<u64> = store.datoms().map(|d| d.tx.wall_time()).collect();
+    let tx_count = tx_walls.len() as u32;
+    let txns_since = count_txns_since_last_harvest(store) as u32;
+    let spec_count = store
+        .datoms()
+        .filter(|d| {
+            d.attribute.as_str() == ":db/ident"
+                && d.op == Op::Assert
+                && matches!(&d.value, Value::Keyword(k) if k.starts_with(":spec/"))
+        })
+        .count() as u32;
+    let has_recent_harvest = last_harvest_wall_time(store) > 0;
+
+    SessionTelemetry {
+        total_turns: tx_count.max(1),
+        transact_turns: txns_since,
+        spec_language_turns: spec_count.min(tx_count),
+        query_type_count: if tx_count > 0 { 1 } else { 0 },
+        harvest_quality: if has_recent_harvest { 0.7 } else { 0.0 },
+        history: vec![],
+    }
 }
 
 /// Count transactions since the last harvest-type entity.
@@ -1004,7 +1036,7 @@ pub fn observation_staleness(store: &Store) -> Vec<(EntityId, f64)> {
 /// actions:
 ///   1. FIX: 3 entities bypass ISP → braid query -a :db/ident [INV-TRILATERAL-007]
 ///   2. HARVEST: 12 txns since last harvest → braid harvest --task "..." [INV-HARVEST-005]
-///   3. CONNECT: Φ=210.6, gaps between layers → braid analyze --force [INV-TRILATERAL-001]
+///   3. CONNECT: Φ=210.6, gaps between layers → braid status --deep --full [INV-TRILATERAL-001]
 /// ```
 pub fn format_actions(actions: &[GuidanceAction]) -> String {
     if actions.is_empty() {

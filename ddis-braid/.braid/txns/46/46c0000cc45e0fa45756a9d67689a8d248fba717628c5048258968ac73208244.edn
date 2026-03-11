@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773191536/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "checking phase A bug: datalog evaluator"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bcc9c28268308390c4dac61f9dff0c34ac76f49160078eb61dd1193275c4cc7b" :a :db/ident :v :observation/checking-phase-a-bug-datalog-evaluator :op :assert}
+   {:e #blake3 "bcc9c28268308390c4dac61f9dff0c34ac76f49160078eb61dd1193275c4cc7b" :a :db/doc :v "checking phase A bug: datalog evaluator" :op :assert}
+   {:e #blake3 "bcc9c28268308390c4dac61f9dff0c34ac76f49160078eb61dd1193275c4cc7b" :a :exploration/body :v "checking phase A bug: datalog evaluator" :op :assert}
+   {:e #blake3 "bcc9c28268308390c4dac61f9dff0c34ac76f49160078eb61dd1193275c4cc7b" :a :exploration/content-hash :v #bytes "aa6e639b757a42c19d001a8df4744164c6a14dd1f3d73427078aeb54efacae55" :op :assert}
+   {:e #blake3 "bcc9c28268308390c4dac61f9dff0c34ac76f49160078eb61dd1193275c4cc7b" :a :exploration/confidence :v 0.6 :op :assert}
+   {:e #blake3 "bcc9c28268308390c4dac61f9dff0c34ac76f49160078eb61dd1193275c4cc7b" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "bcc9c28268308390c4dac61f9dff0c34ac76f49160078eb61dd1193275c4cc7b" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "bcc9c28268308390c4dac61f9dff0c34ac76f49160078eb61dd1193275c4cc7b" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

@@ -37,6 +37,10 @@ pub struct ObserveArgs<'a> {
     pub category: Option<&'a str>,
     pub agent: &'a str,
     pub relates_to: Option<&'a str>,
+    /// Rationale for a design decision (why this choice was made).
+    pub rationale: Option<&'a str>,
+    /// Alternatives considered (for decisions).
+    pub alternatives: Option<&'a str>,
 }
 
 /// Generate a slug from observation text for the entity ident.
@@ -210,6 +214,28 @@ pub fn run(args: ObserveArgs<'_>) -> Result<String, BraidError> {
         ));
     }
 
+    // Add rationale for decision observations
+    if let Some(rationale) = args.rationale {
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":exploration/rationale"),
+            Value::String(rationale.to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+    }
+
+    // Add alternatives considered
+    if let Some(alternatives) = args.alternatives {
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":exploration/alternatives"),
+            Value::String(alternatives.to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+    }
+
     let tx = TxFile {
         tx_id,
         agent,
@@ -240,6 +266,12 @@ pub fn run(args: ObserveArgs<'_>) -> Result<String, BraidError> {
     }
     if let Some(relates_to) = args.relates_to {
         out.push_str(&format!("  relates-to: {relates_to}\n"));
+    }
+    if let Some(rationale) = args.rationale {
+        out.push_str(&format!("  rationale: {rationale}\n"));
+    }
+    if let Some(alternatives) = args.alternatives {
+        out.push_str(&format!("  alternatives: {alternatives}\n"));
     }
     out.push_str(&format!("  store: {new_total} datoms (+{datom_count})\n"));
     out.push_str(&format!("  tx: {}\n", file_path.relative_path()));
@@ -304,6 +336,8 @@ mod tests {
             category: None,
             agent: "test",
             relates_to: None,
+            rationale: None,
+            alternatives: None,
         })
         .unwrap();
 
@@ -350,6 +384,8 @@ mod tests {
             category: None,
             agent: "test",
             relates_to: None,
+            rationale: None,
+            alternatives: None,
         });
         assert!(result.is_err());
     }
@@ -368,6 +404,8 @@ mod tests {
             category: None,
             agent: "test",
             relates_to: None,
+            rationale: None,
+            alternatives: None,
         });
         assert!(result.is_err());
     }
@@ -386,6 +424,8 @@ mod tests {
             category: Some("theorem"),
             agent: "test",
             relates_to: Some(":spec/inv-store-004"),
+            rationale: None,
+            alternatives: None,
         })
         .unwrap();
 
@@ -423,6 +463,8 @@ mod tests {
             category: None,
             agent: "test",
             relates_to: None,
+            rationale: None,
+            alternatives: None,
         })
         .unwrap();
 

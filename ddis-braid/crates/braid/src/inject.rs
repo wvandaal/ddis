@@ -190,7 +190,7 @@ pub fn format_for_injection(store: &Store, task: Option<&str>, budget: usize) ->
     for section in &context.sections {
         match section {
             ContextSection::Orientation(text) => {
-                out.push_str("### Store Context\n");
+                out.push_str("### Session Context\n");
                 for line in text.lines() {
                     out.push_str(line);
                     out.push('\n');
@@ -338,7 +338,8 @@ pub struct InjectionQuality {
 pub fn assess_injection_quality(content: &str) -> InjectionQuality {
     let token_count = content.split_whitespace().count() * 4 / 3;
 
-    let has_store_context = content.contains("### Store Context");
+    let has_store_context =
+        content.contains("### Session Context") || content.contains("### Store Context");
     let has_constraints = content.contains("### Active Constraints");
     let has_entities = content.contains("### Recent Entities");
     let has_questions = content.contains("### Open Questions");

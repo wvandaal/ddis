@@ -20,7 +20,7 @@ use braid_kernel::bilateral::{
 use braid_kernel::datom::{AgentId, ProvenanceType};
 use braid_kernel::guidance::{
     compute_methodology_score, count_txns_since_last_harvest, derive_actions, format_actions,
-    SessionTelemetry, Trend,
+    telemetry_from_store, Trend,
 };
 use braid_kernel::layout::TxFile;
 use braid_kernel::trilateral::check_coherence_fast;
@@ -87,7 +87,7 @@ pub fn run(
 
     // ── Terse default: 6-line dashboard ──────────────────────────────────────
     let coherence = check_coherence_fast(&store);
-    let telemetry = SessionTelemetry::default();
+    let telemetry = telemetry_from_store(&store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(&store);
 
@@ -162,7 +162,7 @@ fn run_verbose(
     tx_since_harvest: usize,
 ) -> Result<String, BraidError> {
     let coherence = check_coherence_fast(store);
-    let telemetry = SessionTelemetry::default();
+    let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
 
@@ -300,7 +300,7 @@ fn run_json(
     spectral: bool,
 ) -> Result<String, BraidError> {
     let coherence = check_coherence_fast(store);
-    let telemetry = SessionTelemetry::default();
+    let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
 

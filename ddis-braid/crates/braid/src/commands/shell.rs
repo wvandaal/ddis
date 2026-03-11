@@ -136,6 +136,8 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 category: None,
                 agent: "braid:shell",
                 relates_to: None,
+                rationale: None,
+                alternatives: None,
             }) {
                 Ok(s) => DispatchResult::Output(s),
                 Err(e) => DispatchResult::Error(e.to_string()),

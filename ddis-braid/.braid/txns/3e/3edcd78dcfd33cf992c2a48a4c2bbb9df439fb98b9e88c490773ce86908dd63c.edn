@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773194222/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 014: Confirmed Datalog multi-clause joins WORK (387 results for ident+doc join, 154 for element-type filter). Previous 'CRITICAL BUG' was false alarm caused by wrong attribute names (:db/type instead of :spec/element-type). Root cause is schema discoverability gap, not evaluator defect. Created S0-CLOSE epic with 8 beads (S0.1-S0.7 + S0.2a LLM harvest). Formalized CLI-as-prompt principle as INV-INTERFACE-011, INV-INTERFACE-012, ADR-INTERFACE-011. Transacted 3 new spec elements (15 datoms). Store at 2996 datoms, 741 entities."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "961e4353bbb21b3f2be6701669863cc44193b7f288f25fa03ca5735e5de23c21" :a :db/ident :v :observation/session-014-confirmed-datalog-multi-clause-joins-work-387 :op :assert}
+   {:e #blake3 "961e4353bbb21b3f2be6701669863cc44193b7f288f25fa03ca5735e5de23c21" :a :db/doc :v "Session 014: Confirmed Datalog multi-clause joins WORK (387 results for ident+doc join, 154 for element-type filter). Previous 'CRITICAL BUG' was false alarm caused by wrong attribute names (:db/type instead of :spec/element-type). Root cause is schema discoverability gap, not evaluator defect. Created S0-CLOSE epic with 8 beads (S0.1-S0.7 + S0.2a LLM harvest). Formalized CLI-as-prompt principle as INV-INTERFACE-011, INV-INTERFACE-012, ADR-INTERFACE-011. Transacted 3 new spec elements (15 datoms). Store at 2996 datoms, 741 entities." :op :assert}
+   {:e #blake3 "961e4353bbb21b3f2be6701669863cc44193b7f288f25fa03ca5735e5de23c21" :a :exploration/body :v "Session 014: Confirmed Datalog multi-clause joins WORK (387 results for ident+doc join, 154 for element-type filter). Previous 'CRITICAL BUG' was false alarm caused by wrong attribute names (:db/type instead of :spec/element-type). Root cause is schema discoverability gap, not evaluator defect. Created S0-CLOSE epic with 8 beads (S0.1-S0.7 + S0.2a LLM harvest). Formalized CLI-as-prompt principle as INV-INTERFACE-011, INV-INTERFACE-012, ADR-INTERFACE-011. Transacted 3 new spec elements (15 datoms). Store at 2996 datoms, 741 entities." :op :assert}
+   {:e #blake3 "961e4353bbb21b3f2be6701669863cc44193b7f288f25fa03ca5735e5de23c21" :a :exploration/content-hash :v #bytes "6aaf456664a564db018be67a75a97f8f629ca5499c28d6eccaa2a36ea0614d9e" :op :assert}
+   {:e #blake3 "961e4353bbb21b3f2be6701669863cc44193b7f288f25fa03ca5735e5de23c21" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "961e4353bbb21b3f2be6701669863cc44193b7f288f25fa03ca5735e5de23c21" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "961e4353bbb21b3f2be6701669863cc44193b7f288f25fa03ca5735e5de23c21" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "961e4353bbb21b3f2be6701669863cc44193b7f288f25fa03ca5735e5de23c21" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

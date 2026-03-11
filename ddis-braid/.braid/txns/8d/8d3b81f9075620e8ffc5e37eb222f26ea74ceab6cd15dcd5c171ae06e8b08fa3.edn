@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773194150/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Formalize CLI-as-prompt principle: INV-INTERFACE-011"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4ae94bc98bfba251045c6b7713018fd5ce3d227f25e8a71f4bf54bb84eb499e8" :a :db/doc :v "\"CLI Surface as Optimized Prompt\"" :op :assert}
+   {:e #blake3 "4ae94bc98bfba251045c6b7713018fd5ce3d227f25e8a71f4bf54bb84eb499e8" :a :db/ident :v :spec/inv-interface-011 :op :assert}
+   {:e #blake3 "4ae94bc98bfba251045c6b7713018fd5ce3d227f25e8a71f4bf54bb84eb499e8" :a :spec/element-type :v :spec.element/invariant :op :assert}
+   {:e #blake3 "4ae94bc98bfba251045c6b7713018fd5ce3d227f25e8a71f4bf54bb84eb499e8" :a :spec/namespace :v :spec.ns/interface :op :assert}
+   {:e #blake3 "4ae94bc98bfba251045c6b7713018fd5ce3d227f25e8a71f4bf54bb84eb499e8" :a :spec/source-file :v "\"14-interface.md\"" :op :assert}
+ ]}

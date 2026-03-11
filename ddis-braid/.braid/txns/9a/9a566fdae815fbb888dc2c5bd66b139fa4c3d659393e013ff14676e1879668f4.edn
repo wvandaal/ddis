@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773194160/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Formalize CLI-as-prompt ADR: ADR-INTERFACE-011"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "82079ee5bb829692f31eac7ef0b345f51f493d1cbbf456ae608c16c2cd026c33" :a :db/doc :v "\"CLI Surface as Agent Prompt Engineering\"" :op :assert}
+   {:e #blake3 "82079ee5bb829692f31eac7ef0b345f51f493d1cbbf456ae608c16c2cd026c33" :a :db/ident :v :spec/adr-interface-011 :op :assert}
+   {:e #blake3 "82079ee5bb829692f31eac7ef0b345f51f493d1cbbf456ae608c16c2cd026c33" :a :spec/element-type :v :spec.element/adr :op :assert}
+   {:e #blake3 "82079ee5bb829692f31eac7ef0b345f51f493d1cbbf456ae608c16c2cd026c33" :a :spec/namespace :v :spec.ns/interface :op :assert}
+   {:e #blake3 "82079ee5bb829692f31eac7ef0b345f51f493d1cbbf456ae608c16c2cd026c33" :a :spec/source-file :v "\"14-interface.md\"" :op :assert}
+ ]}

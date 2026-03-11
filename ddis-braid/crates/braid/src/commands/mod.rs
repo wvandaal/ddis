@@ -96,6 +96,14 @@ Workflow: observe \u{2192} status (check) \u{2192} observe more \u{2192} harvest
         /// Cross-reference to a spec element (e.g., ":spec/inv-store-001").
         #[arg(long)]
         relates_to: Option<String>,
+
+        /// Rationale for a design decision (why this choice was made).
+        #[arg(long)]
+        rationale: Option<String>,
+
+        /// Alternatives considered (for decisions — what else was evaluated).
+        #[arg(long)]
+        alternatives: Option<String>,
     },
 
     /// Write datoms: assert, retract, promote, or export.
@@ -760,6 +768,8 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             category,
             agent,
             relates_to,
+            rationale,
+            alternatives,
         } => observe::run(observe::ObserveArgs {
             path: &path,
             text: &text,
@@ -768,6 +778,8 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             category: category.as_deref(),
             agent: &agent,
             relates_to: relates_to.as_deref(),
+            rationale: rationale.as_deref(),
+            alternatives: alternatives.as_deref(),
         }),
         Command::Shell { path } => shell::run(&path),
         Command::Mcp { action } => match action {
@@ -938,6 +950,8 @@ mod tests {
             path: PathBuf::from(".braid"),
             agent: "test".into(),
             relates_to: None,
+            rationale: None,
+            alternatives: None,
         };
         assert!(!is_generative_output(&observe));
     }
@@ -1104,6 +1118,8 @@ mod tests {
             category: None,
             agent: "test".into(),
             relates_to: None,
+            rationale: None,
+            alternatives: None,
         };
         assert!(!is_json_output(&observe), "Observe must get footer");
         assert!(!is_generative_output(&observe), "Observe must get footer");
@@ -1244,6 +1260,8 @@ mod tests {
                 category: None,
                 agent: "test".into(),
                 relates_to: None,
+                rationale: None,
+                alternatives: None,
             },
             Command::Schema {
                 path: PathBuf::from(".braid"),

@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773241269/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Seed Orientation redesigned as narrative briefing: accomplishments, decisions with rationale, open questions, git changes, prior session summary, synthesis directive carry-forward"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "54e80e34f7d292c388906cec5da8050e2d4fa5d16296ed0f7de8a0bdecd4b9d0" :a :db/ident :v :observation/seed-orientation-redesigned-as-narrative-briefing-accomplis :op :assert}
+   {:e #blake3 "54e80e34f7d292c388906cec5da8050e2d4fa5d16296ed0f7de8a0bdecd4b9d0" :a :db/doc :v "Seed Orientation redesigned as narrative briefing: accomplishments, decisions with rationale, open questions, git changes, prior session summary, synthesis directive carry-forward" :op :assert}
+   {:e #blake3 "54e80e34f7d292c388906cec5da8050e2d4fa5d16296ed0f7de8a0bdecd4b9d0" :a :exploration/body :v "Seed Orientation redesigned as narrative briefing: accomplishments, decisions with rationale, open questions, git changes, prior session summary, synthesis directive carry-forward" :op :assert}
+   {:e #blake3 "54e80e34f7d292c388906cec5da8050e2d4fa5d16296ed0f7de8a0bdecd4b9d0" :a :exploration/content-hash :v #bytes "2498aa94135f8ad4bb1c6d180cf80a21b2408a02e8d949e45345f1160d003015" :op :assert}
+   {:e #blake3 "54e80e34f7d292c388906cec5da8050e2d4fa5d16296ed0f7de8a0bdecd4b9d0" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "54e80e34f7d292c388906cec5da8050e2d4fa5d16296ed0f7de8a0bdecd4b9d0" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "54e80e34f7d292c388906cec5da8050e2d4fa5d16296ed0f7de8a0bdecd4b9d0" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "54e80e34f7d292c388906cec5da8050e2d4fa5d16296ed0f7de8a0bdecd4b9d0" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "54e80e34f7d292c388906cec5da8050e2d4fa5d16296ed0f7de8a0bdecd4b9d0" :a :exploration/related-spec :v #blake3 "f8aad9e52dd0215142a6c9b34de1e0af72221ed588c2421a0348716aeef00e99" :op :assert}
+   {:e #blake3 "54e80e34f7d292c388906cec5da8050e2d4fa5d16296ed0f7de8a0bdecd4b9d0" :a :exploration/rationale :v "Data was already in store from Wave 2 persistence but rendered as entity attribute dumps instead of prose" :op :assert}
+ ]}

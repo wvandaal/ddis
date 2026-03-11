@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773194159/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Formalize zero-result diagnostics: INV-INTERFACE-012"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f2e08b64c991bf214f5fed6f59cda7a828b3d88e2efa6405b908ad1217239a0e" :a :db/doc :v "\"Zero-Result Query Diagnostics\"" :op :assert}
+   {:e #blake3 "f2e08b64c991bf214f5fed6f59cda7a828b3d88e2efa6405b908ad1217239a0e" :a :db/ident :v :spec/inv-interface-012 :op :assert}
+   {:e #blake3 "f2e08b64c991bf214f5fed6f59cda7a828b3d88e2efa6405b908ad1217239a0e" :a :spec/element-type :v :spec.element/invariant :op :assert}
+   {:e #blake3 "f2e08b64c991bf214f5fed6f59cda7a828b3d88e2efa6405b908ad1217239a0e" :a :spec/namespace :v :spec.ns/interface :op :assert}
+   {:e #blake3 "f2e08b64c991bf214f5fed6f59cda7a828b3d88e2efa6405b908ad1217239a0e" :a :spec/source-file :v "\"14-interface.md\"" :op :assert}
+ ]}

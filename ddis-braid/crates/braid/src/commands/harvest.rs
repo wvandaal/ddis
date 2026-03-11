@@ -285,6 +285,122 @@ pub fn run(
             Op::Assert,
         ));
 
+        // Persist NarrativeSummary fields as datoms (Wave 2.2: A1 fix)
+        // Task description
+        all_datoms.push(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":harvest/task"),
+            Value::String(task.clone()),
+            harvest_tx_id,
+            Op::Assert,
+        ));
+        // Accomplishments: join summaries with newlines
+        if !narrative.accomplished.is_empty() {
+            let text = narrative
+                .accomplished
+                .iter()
+                .map(|a| a.summary.as_str())
+                .collect::<Vec<_>>()
+                .join("\n");
+            all_datoms.push(Datom::new(
+                session_entity,
+                Attribute::from_keyword(":harvest/accomplishments"),
+                Value::String(text),
+                harvest_tx_id,
+                Op::Assert,
+            ));
+        }
+        // Decisions: preserve rationale in serialized form
+        if !narrative.decisions.is_empty() {
+            let text = narrative
+                .decisions
+                .iter()
+                .map(|d| {
+                    if d.rationale.is_empty() {
+                        d.summary.clone()
+                    } else {
+                        format!("{} (rationale: {})", d.summary, d.rationale)
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("\n");
+            all_datoms.push(Datom::new(
+                session_entity,
+                Attribute::from_keyword(":harvest/decisions"),
+                Value::String(text),
+                harvest_tx_id,
+                Op::Assert,
+            ));
+        }
+        // Open questions: prefix with [?]
+        if !narrative.open_questions.is_empty() {
+            let text = narrative
+                .open_questions
+                .iter()
+                .map(|q| format!("[?] {}", q.summary))
+                .collect::<Vec<_>>()
+                .join("\n");
+            all_datoms.push(Datom::new(
+                session_entity,
+                Attribute::from_keyword(":harvest/open-questions"),
+                Value::String(text),
+                harvest_tx_id,
+                Op::Assert,
+            ));
+        }
+        // Synthesis directive
+        if let Some(ref directive) = narrative.synthesis_directive {
+            all_datoms.push(Datom::new(
+                session_entity,
+                Attribute::from_keyword(":harvest/synthesis-directive"),
+                Value::String(directive.clone()),
+                harvest_tx_id,
+                Op::Assert,
+            ));
+        }
+        // Git context summary (Wave 5: A2 fix)
+        let git_summary_text = if !git_ctx.commits.is_empty() {
+            let mut lines = vec![format!(
+                "branch={}, {} commits, {} files (+{}/-{})",
+                git_ctx.branch.as_deref().unwrap_or("?"),
+                git_ctx.commits.len(),
+                git_ctx.files_changed,
+                git_ctx.insertions,
+                git_ctx.deletions,
+            )];
+            for c in git_ctx.commits.iter().take(5) {
+                lines.push(format!("  {} {}", c.hash, c.subject));
+            }
+            Some(lines.join("\n"))
+        } else {
+            None
+        };
+        if let Some(ref git_text) = git_summary_text {
+            all_datoms.push(Datom::new(
+                session_entity,
+                Attribute::from_keyword(":harvest/git-summary"),
+                Value::String(git_text.clone()),
+                harvest_tx_id,
+                Op::Assert,
+            ));
+        }
+
+        // Store metrics: datom count at harvest time (enables session delta tracking)
+        all_datoms.push(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":harvest/store-datom-count"),
+            Value::Long(store.len() as i64),
+            harvest_tx_id,
+            Op::Assert,
+        ));
+        all_datoms.push(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":harvest/store-entity-count"),
+            Value::Long(store.entity_count() as i64),
+            harvest_tx_id,
+            Op::Assert,
+        ));
+
         // Close active session if present
         let active_session = EntityId::from_ident(":session/current");
         let has_active = store
