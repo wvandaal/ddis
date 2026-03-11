@@ -57,6 +57,7 @@ Read the preamble first. All namespace files reference it for shared definitions
 | [16-verification.md](16-verification.md) | Verification Plan | 271 | — | — |
 | [17-crossref.md](17-crossref.md) | Cross-Reference Index + Appendices A–C | 229 | — | — |
 | [18-trilateral.md](18-trilateral.md) | TRILATERAL — Trilateral Coherence Model | 1,233 | 0 | §1, §2, §3, §5, §6 |
+| [19-topology.md](19-topology.md) | TOPOLOGY — Coordination Topology Framework | ~650 | 3 | §4, §5, §6, §7, §10 |
 | [20-coherence.md](20-coherence.md) | COHERENCE — Coherence Geometry Framework | ~400 | 1+ | §1, §2, §4, §5, §6, §7 |
 
 ---

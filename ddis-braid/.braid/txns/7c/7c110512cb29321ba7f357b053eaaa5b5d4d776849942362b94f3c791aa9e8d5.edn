@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773190017/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Topology framework spec elements (INV-TOPOLOGY-001..005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :db/doc :v "Topology as Store Projection: T = LIVE_T(S) deterministic from store state" :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "8384e0d1752d50dee398f655e20c0f94dc942410d367bd93a07be31fec091bb2" :a :db/doc :v "Topology Independence of Ordering: LIVE converges regardless of merge topology" :op :assert}
+   {:e #blake3 "8384e0d1752d50dee398f655e20c0f94dc942410d367bd93a07be31fec091bb2" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "8384e0d1752d50dee398f655e20c0f94dc942410d367bd93a07be31fec091bb2" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :a :db/doc :v "Topology Decision Immutability: all decisions are append-only datoms" :op :assert}
+   {:e #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :db/doc :v "Composite Coupling Signal: 5 mechanisms, learnable weights, semilattice-preserving" :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :a :db/doc :v "Coupling-to-Topology Determinism: same inputs always produce same topology" :op :assert}
+   {:e #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+ ]}

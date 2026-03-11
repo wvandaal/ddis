@@ -1,0 +1,25 @@
+{:tx/id #hlc "1773190027/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Topology framework spec elements (INV-TOPOLOGY-006..011)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "232dc6914443273cdc31f2440ad670f5494b6b9e8ddcaeb54d1c7c953a4a639b" :a :db/doc :v "Monotonic Transition Safety: Tier M never decreases channel count" :op :assert}
+   {:e #blake3 "232dc6914443273cdc31f2440ad670f5494b6b9e8ddcaeb54d1c7c953a4a639b" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "232dc6914443273cdc31f2440ad670f5494b6b9e8ddcaeb54d1c7c953a4a639b" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "21d338e8884f7fcf853f6d4b6b57d8c07bc4e06fb24699e9c5504686de374a93" :a :db/doc :v "Grace Period Completeness: no in-flight data lost during Tier NM transition" :op :assert}
+   {:e #blake3 "21d338e8884f7fcf853f6d4b6b57d8c07bc4e06fb24699e9c5504686de374a93" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "21d338e8884f7fcf853f6d4b6b57d8c07bc4e06fb24699e9c5504686de374a93" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "e5e1296805795d8bd94a810876c9ae4de0e5eb6ca602562a8d9b6e36a10f0b82" :a :db/doc :v "Connectivity Preservation: agent graph connected after every enacted transition" :op :assert}
+   {:e #blake3 "e5e1296805795d8bd94a810876c9ae4de0e5eb6ca602562a8d9b6e36a10f0b82" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "e5e1296805795d8bd94a810876c9ae4de0e5eb6ca602562a8d9b6e36a10f0b82" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "f69f6c78db1b4ddaeda3b5e6619d8a12d2727109d7538bf3582660e95f0993b7" :a :db/doc :v "Rollback Safety: rollback is always monotonic (re-adding removed channels)" :op :assert}
+   {:e #blake3 "f69f6c78db1b4ddaeda3b5e6619d8a12d2727109d7538bf3582660e95f0993b7" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "f69f6c78db1b4ddaeda3b5e6619d8a12d2727109d7538bf3582660e95f0993b7" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "0ca5f609d4f92b73ac11a2b4d7e57a92ddca022eecb8ed45ba70b0a5b0ad41ed" :a :db/doc :v "Cold-Start Monotonic Relaxation: coordination intensity never increases without evidence" :op :assert}
+   {:e #blake3 "0ca5f609d4f92b73ac11a2b4d7e57a92ddca022eecb8ed45ba70b0a5b0ad41ed" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "0ca5f609d4f92b73ac11a2b4d7e57a92ddca022eecb8ed45ba70b0a5b0ad41ed" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "f00d67024dcb97d8a0d20e83a9bb6fa7238868fb4182fa6a759653ba928b27de" :a :db/doc :v "Cold-Start Safety Bound: cold-start intensity >= coupling-optimal intensity" :op :assert}
+   {:e #blake3 "f00d67024dcb97d8a0d20e83a9bb6fa7238868fb4182fa6a759653ba928b27de" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "f00d67024dcb97d8a0d20e83a9bb6fa7238868fb4182fa6a759653ba928b27de" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773190063/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Topology framework NEGs (001..005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d291eeeb6866548b86aa916d05e1c8c575769f6c2bf523015e9a0e66fab5eb63" :a :db/doc :v "No Topology Without Store Grounding: T must be derivable from S alone" :op :assert}
+   {:e #blake3 "d291eeeb6866548b86aa916d05e1c8c575769f6c2bf523015e9a0e66fab5eb63" :a :spec/type :v "negative-case" :op :assert}
+   {:e #blake3 "d291eeeb6866548b86aa916d05e1c8c575769f6c2bf523015e9a0e66fab5eb63" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "8953fe211f441b9b92a7af1fb4b95add50d77e6180912224583e890fc0cd1ee7" :a :db/doc :v "No Autonomous High-Commitment Scaling: C>0.5 always requires human approval" :op :assert}
+   {:e #blake3 "8953fe211f441b9b92a7af1fb4b95add50d77e6180912224583e890fc0cd1ee7" :a :spec/type :v "negative-case" :op :assert}
+   {:e #blake3 "8953fe211f441b9b92a7af1fb4b95add50d77e6180912224583e890fc0cd1ee7" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "b247019ffcc75953441eb20f4f05a84291d9625853b16c53aa13c6fd5abbbc4c" :a :db/doc :v "No Non-Monotonic Transition Without Barrier: channel removal requires Tier NM" :op :assert}
+   {:e #blake3 "b247019ffcc75953441eb20f4f05a84291d9625853b16c53aa13c6fd5abbbc4c" :a :spec/type :v "negative-case" :op :assert}
+   {:e #blake3 "b247019ffcc75953441eb20f4f05a84291d9625853b16c53aa13c6fd5abbbc4c" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "f5dc351c4a53e7a9ce9d26505ba79498e1e3d69b54a898ee152fbba0b9734c39" :a :db/doc :v "No Orphaned Agents: agent graph must remain connected after every transition" :op :assert}
+   {:e #blake3 "f5dc351c4a53e7a9ce9d26505ba79498e1e3d69b54a898ee152fbba0b9734c39" :a :spec/type :v "negative-case" :op :assert}
+   {:e #blake3 "f5dc351c4a53e7a9ce9d26505ba79498e1e3d69b54a898ee152fbba0b9734c39" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "d01d12ab381de64c6082ef1854abc1c9aef22a9d6288f8518bc903bec7bc6700" :a :db/doc :v "No Coupling Score Fabrication: scores must derive from observable store data" :op :assert}
+   {:e #blake3 "d01d12ab381de64c6082ef1854abc1c9aef22a9d6288f8518bc903bec7bc6700" :a :spec/type :v "negative-case" :op :assert}
+   {:e #blake3 "d01d12ab381de64c6082ef1854abc1c9aef22a9d6288f8518bc903bec7bc6700" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+ ]}

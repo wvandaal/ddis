@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773190037/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Topology framework spec elements (INV-TOPOLOGY-012..016)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5d81b920f7dc43a0035f14c365010144b8d8580590bd052471e75e799f0d48dc" :a :db/doc :v "F(T) Monotonic Improvement: bilateral loop maintains F(T) within noise margin" :op :assert}
+   {:e #blake3 "5d81b920f7dc43a0035f14c365010144b8d8580590bd052471e75e799f0d48dc" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "5d81b920f7dc43a0035f14c365010144b8d8580590bd052471e75e799f0d48dc" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "69796c27b5d5859c91e5f7fc04a4b466cf24c1d698870f0e9b6d4d61e65547fd" :a :db/doc :v "F(T)/F(S) Independence: topology and spec fitness are orthogonal (|r|<0.3)" :op :assert}
+   {:e #blake3 "69796c27b5d5859c91e5f7fc04a4b466cf24c1d698870f0e9b6d4d61e65547fd" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "69796c27b5d5859c91e5f7fc04a4b466cf24c1d698870f0e9b6d4d61e65547fd" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "3cc75a7c80aed741f8cbed517f20293eed572c48b4f569d23bf4dae3ac0ebb9a" :a :db/doc :v "F_total Quadrilateral Convergence: lambda*F(S)+(1-lambda)*F(T) converges to 1.0" :op :assert}
+   {:e #blake3 "3cc75a7c80aed741f8cbed517f20293eed572c48b4f569d23bf4dae3ac0ebb9a" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "3cc75a7c80aed741f8cbed517f20293eed572c48b4f569d23bf4dae3ac0ebb9a" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "f1c7754ea8ed2999347ab50f06227d13a2c79206994d2fba55707cada40128dc" :a :db/doc :v "Compiled Topology Dominance: compiled weakly dominates cold-start for spec-bearing projects" :op :assert}
+   {:e #blake3 "f1c7754ea8ed2999347ab50f06227d13a2c79206994d2fba55707cada40128dc" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "f1c7754ea8ed2999347ab50f06227d13a2c79206994d2fba55707cada40128dc" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "20e5468bae56373bcb7a99d9a458b444a42c5178532ef999e12cd07ce98cbfe2" :a :db/doc :v "PGO Prediction Error Monotonicity: error decreases after warm-up (>= 3 sessions)" :op :assert}
+   {:e #blake3 "20e5468bae56373bcb7a99d9a458b444a42c5178532ef999e12cd07ce98cbfe2" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "20e5468bae56373bcb7a99d9a458b444a42c5178532ef999e12cd07ce98cbfe2" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+ ]}

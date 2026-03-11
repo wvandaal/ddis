@@ -1,0 +1,28 @@
+{:tx/id #hlc "1773190052/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Topology framework ADRs (001..007)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6710a79bd170783a15b00562e76a4c6c38c004f43bd94e3dc0844a379318082d" :a :db/doc :v "Composite Coupling with Learnable Weights: 5 mechanisms, bilateral feedback" :op :assert}
+   {:e #blake3 "6710a79bd170783a15b00562e76a4c6c38c004f43bd94e3dc0844a379318082d" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "6710a79bd170783a15b00562e76a4c6c38c004f43bd94e3dc0844a379318082d" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :db/doc :v "CALM-Stratified Transitions: monotonic=no barrier, non-monotonic=barrier+grace" :op :assert}
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "033e9564165a36b617f98555c034bcf4303e158361927c50e44002b6c88141aa" :a :db/doc :v "Scaling Authority A(d)=R(1-C)T: 3-tier (auto/recommend/human) with earned trust" :op :assert}
+   {:e #blake3 "033e9564165a36b617f98555c034bcf4303e158361927c50e44002b6c88141aa" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "033e9564165a36b617f98555c034bcf4303e158361927c50e44002b6c88141aa" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :db/doc :v "Topology as Compilation: AOT from spec structure + JIT fallback + PGO refinement" :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "a091353b9a8d503c2dce7484f4c370ec35eb6663d5e545228e1aa2b381326c71" :a :db/doc :v "Two-Tier Substrate: ephemeral messages + harvested datoms (not all coordination as datoms)" :op :assert}
+   {:e #blake3 "a091353b9a8d503c2dce7484f4c370ec35eb6663d5e545228e1aa2b381326c71" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "a091353b9a8d503c2dce7484f4c370ec35eb6663d5e545228e1aa2b381326c71" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "f3c4aa1a3e218e1d7e966686c9d7168156ad785d1eb212d8c8d0c963c225d77b" :a :db/doc :v "Human/AI Isomorphism: unified coordination algebra, differences via provenance lattice" :op :assert}
+   {:e #blake3 "f3c4aa1a3e218e1d7e966686c9d7168156ad785d1eb212d8c8d0c963c225d77b" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "f3c4aa1a3e218e1d7e966686c9d7168156ad785d1eb212d8c8d0c963c225d77b" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "b8e4c2e9e3cb80c2103c89537c7e7fa455468112588cbaad188931d6afc727b4" :a :db/doc :v "Seven-Dimensional F(T): throughput, conflict, staleness, overhead, balance, blocking, knowledge loss" :op :assert}
+   {:e #blake3 "b8e4c2e9e3cb80c2103c89537c7e7fa455468112588cbaad188931d6afc727b4" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "b8e4c2e9e3cb80c2103c89537c7e7fa455468112588cbaad188931d6afc727b4" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+ ]}
