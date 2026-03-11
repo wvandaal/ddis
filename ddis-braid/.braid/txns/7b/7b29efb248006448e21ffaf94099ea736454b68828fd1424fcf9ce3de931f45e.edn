@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773244449/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Seed quality assessment: Pre-fix seed was 3/10 — truncated metadata dumps, broken UTF-8, lost synthesis directives. Post-fix targets: entity body text in accomplishments, char-safe truncation, synthesis directive as primary content, semantic entity grouping, open question carry-forward across sessions, 2-3 session trajectory."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e4cf47008b4e8bff381d754e7420760c68541d475880d59c6ee831b48ce2dc88" :a :db/ident :v :observation/seed-quality-assessment-pre-fix-seed-was-310-truncated-m :op :assert}
+   {:e #blake3 "e4cf47008b4e8bff381d754e7420760c68541d475880d59c6ee831b48ce2dc88" :a :db/doc :v "Seed quality assessment: Pre-fix seed was 3/10 — truncated metadata dumps, broken UTF-8, lost synthesis directives. Post-fix targets: entity body text in accomplishments, char-safe truncation, synthesis directive as primary content, semantic entity grouping, open question carry-forward across sessions, 2-3 session trajectory." :op :assert}
+   {:e #blake3 "e4cf47008b4e8bff381d754e7420760c68541d475880d59c6ee831b48ce2dc88" :a :exploration/body :v "Seed quality assessment: Pre-fix seed was 3/10 — truncated metadata dumps, broken UTF-8, lost synthesis directives. Post-fix targets: entity body text in accomplishments, char-safe truncation, synthesis directive as primary content, semantic entity grouping, open question carry-forward across sessions, 2-3 session trajectory." :op :assert}
+   {:e #blake3 "e4cf47008b4e8bff381d754e7420760c68541d475880d59c6ee831b48ce2dc88" :a :exploration/content-hash :v #bytes "ac371e560b614eb5f386f30e9ec87459db65de660b0060e61837c06a4532faae" :op :assert}
+   {:e #blake3 "e4cf47008b4e8bff381d754e7420760c68541d475880d59c6ee831b48ce2dc88" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "e4cf47008b4e8bff381d754e7420760c68541d475880d59c6ee831b48ce2dc88" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "e4cf47008b4e8bff381d754e7420760c68541d475880d59c6ee831b48ce2dc88" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e4cf47008b4e8bff381d754e7420760c68541d475880d59c6ee831b48ce2dc88" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

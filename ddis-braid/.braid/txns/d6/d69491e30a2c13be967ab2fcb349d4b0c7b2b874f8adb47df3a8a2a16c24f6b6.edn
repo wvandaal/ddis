@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773244457/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 2 candidates from task 'Session 016: Seed quality deep-fix — make harvest/seed replace HARVEST.md'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :db/ident :v :harvest/session-braid-user-1773244457 :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :db/doc :v "Harvest session for task: Session 016: Seed quality deep-fix — make harvest/seed replace HARVEST.md" :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :harvest/candidate-count :v 2 :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :harvest/task :v "Session 016: Seed quality deep-fix — make harvest/seed replace HARVEST.md" :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :harvest/accomplishments :v "Session 016: Deep-fix wave — RC1 UTF-8, RC2 entity body text, RC3 char-safe truncation + budget allocator, RC4 synthesis directive placement, E1 noise filter, E4 enriched rationale. E2 session metrics, E3 question carry-forward, E5 prior session depth, E6 semantic grouping.; Seed quality assessment: Pre-fix seed was 3/10 — truncated metadata dumps, broken UTF-8, lost synthesis directives. Post-fix targets: entity body text in accomplishments, char-safe truncation, synthesis directive as primary content, semantic entity grouping, open question carry-forward across sessions, 2-3 session trajectory." :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: braid status --deep --full (Divergence Φ=240.6 with 83 cycles. Structural remediation needed.)\nRun: `braid seed --task \"braid status --deep --full (Divergence Φ=240.6 with 83 cycles. Structural remediation needed.)\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :harvest/git-summary :v "branch=main, 3 commits, 27 files (+1512/-322)\n  340dede Session 016: Seed quality deep-fix — RC1-RC4 + E1 + E4 (~200 LOC)\n  4e8dfdc Harvest: Session 015 — S0-FIX complete, 10 defects fixed, harvest/seed gap closed\n  bb55080 Session 015: S0-FIX — close the harvest/seed gap (10 defects, ~1050 LOC)" :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :harvest/store-datom-count :v 3070 :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :harvest/store-entity-count :v 750 :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :harvest/tx-since-last :v 2 :op :assert}
+   {:e #blake3 "c219852765b6dd0ae5a5fecc415df18bec32809eba480c305c50645baeba3223" :a :harvest/observation-count :v 2 :op :assert}
+ ]}

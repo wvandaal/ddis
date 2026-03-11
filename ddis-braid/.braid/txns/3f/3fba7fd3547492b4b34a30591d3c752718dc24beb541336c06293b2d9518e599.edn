@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773244444/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 016: Deep-fix wave — RC1 UTF-8, RC2 entity body text, RC3 char-safe truncation + budget allocator, RC4 synthesis directive placement, E1 noise filter, E4 enriched rationale. E2 session metrics, E3 question carry-forward, E5 prior session depth, E6 semantic grouping."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "87b7ff86cdc801c0b8a9ba14e9dbe61fbe1567397c63dd2edbafb90f03580fc1" :a :db/ident :v :observation/session-016-deep-fix-wave-rc1-utf-8-rc2-entity-body-text :op :assert}
+   {:e #blake3 "87b7ff86cdc801c0b8a9ba14e9dbe61fbe1567397c63dd2edbafb90f03580fc1" :a :db/doc :v "Session 016: Deep-fix wave — RC1 UTF-8, RC2 entity body text, RC3 char-safe truncation + budget allocator, RC4 synthesis directive placement, E1 noise filter, E4 enriched rationale. E2 session metrics, E3 question carry-forward, E5 prior session depth, E6 semantic grouping." :op :assert}
+   {:e #blake3 "87b7ff86cdc801c0b8a9ba14e9dbe61fbe1567397c63dd2edbafb90f03580fc1" :a :exploration/body :v "Session 016: Deep-fix wave — RC1 UTF-8, RC2 entity body text, RC3 char-safe truncation + budget allocator, RC4 synthesis directive placement, E1 noise filter, E4 enriched rationale. E2 session metrics, E3 question carry-forward, E5 prior session depth, E6 semantic grouping." :op :assert}
+   {:e #blake3 "87b7ff86cdc801c0b8a9ba14e9dbe61fbe1567397c63dd2edbafb90f03580fc1" :a :exploration/content-hash :v #bytes "a9b9b484308e275337c482df8ec119b8ce4003c8af5e2581bc9d318cd466c4cb" :op :assert}
+   {:e #blake3 "87b7ff86cdc801c0b8a9ba14e9dbe61fbe1567397c63dd2edbafb90f03580fc1" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "87b7ff86cdc801c0b8a9ba14e9dbe61fbe1567397c63dd2edbafb90f03580fc1" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "87b7ff86cdc801c0b8a9ba14e9dbe61fbe1567397c63dd2edbafb90f03580fc1" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "87b7ff86cdc801c0b8a9ba14e9dbe61fbe1567397c63dd2edbafb90f03580fc1" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}
