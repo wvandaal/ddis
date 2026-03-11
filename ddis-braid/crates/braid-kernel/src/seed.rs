@@ -1078,6 +1078,8 @@ fn build_directive(
 
     // PRIMARY: Use synthesis directive from last harvest as the main directive.
     // Detect "thin" directives (just task echoes) and supplement with context.
+    // When synthesis is rich, it already contains decisions + open questions — don't
+    // duplicate them from the excerpt. When thin, fall through to excerpt fields.
     let mut has_rich_synthesis = false;
     if let Some(excerpt) = last_session {
         if let Some(ref directive) = excerpt.synthesis_directive {
@@ -1089,7 +1091,7 @@ fn build_directive(
                         && !t.starts_with("---")
                         && !t.starts_with('#')
                         && !t.starts_with("Run: `braid seed")
-                        && !t.starts_with("Next session task:")
+                        && !t.starts_with("**Next session task**:")
                 })
                 .collect();
 
@@ -1103,15 +1105,27 @@ fn build_directive(
                     parts.push(format!("  {}", clean.trim()));
                 }
             }
-            // Thin synthesis (just task name): fall through to guidance actions
+            // Thin synthesis (just task name): fall through to excerpt fields
         }
 
-        // Open questions from last session — always show, these are high-value carry-forward
-        if !excerpt.open_questions.is_empty() {
-            parts.push(String::new());
-            parts.push("Open from last session:".to_string());
-            for q in excerpt.open_questions.iter().take(5) {
-                parts.push(format!("  ? {}", truncate_chars(q, 200)));
+        // When synthesis is thin (or absent), show excerpt fields directly
+        if !has_rich_synthesis {
+            // Open questions — high-value carry-forward
+            if !excerpt.open_questions.is_empty() {
+                parts.push(String::new());
+                parts.push("Open from last session:".to_string());
+                for q in excerpt.open_questions.iter().take(5) {
+                    parts.push(format!("  ? {}", truncate_chars(q, 200)));
+                }
+            }
+
+            // Decisions — anchor "do not relitigate" (NEG-002)
+            if !excerpt.decisions.is_empty() {
+                parts.push(String::new());
+                parts.push("Decisions (settled, do not relitigate):".to_string());
+                for d in excerpt.decisions.iter().take(5) {
+                    parts.push(format!("  - {}", truncate_chars(d, 200)));
+                }
             }
         }
     }
@@ -1120,9 +1134,15 @@ fn build_directive(
     // When synthesis exists: show only the FIRST actionable item (skip telemetry noise
     // like "Φ=240.6", "83 cycles", "staleness > 0.8" — internal metrics, not work items).
     // When no synthesis: show top 3 as primary directive.
-    // All guidance actions — show them but clean up the display.
-    // Internal telemetry details are stripped from the summary text.
-    let actionable: Vec<_> = actions.iter().collect();
+    // Filter out internal-only diagnostic actions that aren't useful for task work.
+    let actionable: Vec<_> = actions
+        .iter()
+        .filter(|a| {
+            // Skip actions whose summary is pure telemetry noise
+            let s = &a.summary;
+            !s.contains("cycles") && !s.contains("staleness") && !s.starts_with("Divergence")
+        })
+        .collect();
     if has_rich_synthesis {
         // Rich synthesis exists — show at most 1 supplementary action
         if let Some(action) = actionable.first() {
@@ -1147,11 +1167,11 @@ fn build_directive(
                 parts.push(format!("     run: {cmd}"));
             }
         }
-        parts.push(String::new());
-        parts.push(
-            "Quick: braid status | braid observe \"...\" | braid harvest --commit".to_string(),
-        );
     }
+
+    // Always show quick reference
+    parts.push(String::new());
+    parts.push("Quick: braid status | braid observe \"...\" | braid harvest --commit".to_string());
 
     parts.join("\n")
 }
@@ -1850,6 +1870,35 @@ pub fn assemble(
                 if let Some(test_line) = snapshot.lines().find(|l| l.starts_with("Tests:")) {
                     cheat.push(test_line.to_string());
                 }
+            }
+
+            // Add key attribute vocabulary — show agent-facing attributes (for queries/observations)
+            // Skip infrastructure attrs (spec/*, dep/*, schema/*) — agents don't query those.
+            // Focus on harvest/*, exploration/*, intent/*, impl/* — the working vocabulary.
+            let mut attr_counts: BTreeMap<&str, usize> = BTreeMap::new();
+            for d in store.datoms() {
+                if d.op == Op::Assert {
+                    *attr_counts.entry(d.attribute.as_str()).or_default() += 1;
+                }
+            }
+            let mut sorted_attrs: Vec<_> = attr_counts.into_iter().collect();
+            sorted_attrs.sort_by_key(|(_, c)| std::cmp::Reverse(*c));
+            let key_attrs: Vec<_> = sorted_attrs
+                .iter()
+                .filter(|(a, _)| {
+                    // Show working vocabulary: harvest, exploration, intent, impl, bilateral
+                    // Skip infrastructure: db/*, schema/*, spec/*, dep/*
+                    !a.starts_with(":db/")
+                        && !a.starts_with(":schema/")
+                        && !a.starts_with(":spec/")
+                        && !a.starts_with(":dep/")
+                        && !a.starts_with(":spec.")
+                })
+                .take(15)
+                .map(|(a, c)| format!("{a}({c})"))
+                .collect();
+            if !key_attrs.is_empty() {
+                cheat.push(format!("Key attrs: {}", key_attrs.join(", ")));
             }
 
             let cheat_text = cheat.join("\n");

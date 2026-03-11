@@ -137,6 +137,9 @@ struct EntityProfile {
     entity: EntityId,
     /// All attributes asserted for this entity.
     attributes: BTreeSet<String>,
+    /// Exploration category value (from `:exploration/category`), if present.
+    /// Used to classify open-question/design-decision observations correctly.
+    exploration_category: Option<String>,
     /// Namespace classification counts.
     namespace_counts: BTreeMap<AttrNamespace, usize>,
     /// Whether the entity has a :db/ident (named entity).
@@ -188,7 +191,9 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
                 candidates.push(HarvestCandidate {
                     entity: profile.entity,
                     assertions: vec![],
-                    category,
+                    // Gaps are metadata completeness issues, not semantic content —
+                    // always Observation to avoid polluting Decision/Uncertainty lists
+                    category: HarvestCategory::Observation,
                     confidence: confidence * 0.6,
                     status: CandidateStatus::Proposed,
                     rationale: format!(
@@ -325,6 +330,7 @@ fn build_profile(entity: EntityId, datoms: &[&Datom]) -> EntityProfile {
     let mut ident = None;
     let mut doc = None;
     let mut ref_count = 0;
+    let mut exploration_category = None;
 
     for datom in datoms {
         let attr_str = datom.attribute.as_str().to_string();
@@ -346,6 +352,18 @@ fn build_profile(entity: EntityId, datoms: &[&Datom]) -> EntityProfile {
             }
         }
 
+        // Extract exploration category for classify_profile
+        if datom.attribute.as_str() == ":exploration/category" && datom.op == Op::Assert {
+            let cat = match &datom.value {
+                Value::String(s) => Some(s.clone()),
+                Value::Keyword(k) => Some(k.clone()),
+                _ => None,
+            };
+            if cat.is_some() {
+                exploration_category = cat;
+            }
+        }
+
         if matches!(&datom.value, Value::Ref(_)) {
             ref_count += 1;
         }
@@ -354,6 +372,7 @@ fn build_profile(entity: EntityId, datoms: &[&Datom]) -> EntityProfile {
     EntityProfile {
         entity,
         attributes,
+        exploration_category,
         namespace_counts,
         has_ident,
         ident,
@@ -402,6 +421,29 @@ fn classify_profile(profile: &EntityProfile) -> HarvestCategory {
         }
         Some(AttrNamespace::Impl) => HarvestCategory::Dependency,
         _ => {
+            // Check exploration/category value for observation classification.
+            // Observations via `braid observe --category X` have :exploration/* attrs
+            // which classify as Meta namespace. The CATEGORY VALUE determines whether
+            // this is a decision, open question, or plain observation.
+            if let Some(ref cat) = profile.exploration_category {
+                let c = cat.as_str();
+                if c == "design-decision"
+                    || c == "decision"
+                    || c.ends_with("/design-decision")
+                    || c.ends_with("/decision")
+                {
+                    return HarvestCategory::Decision;
+                }
+                if c == "open-question"
+                    || c == "conjecture"
+                    || c == "question"
+                    || c.ends_with("/open-question")
+                    || c.ends_with("/conjecture")
+                {
+                    return HarvestCategory::Uncertainty;
+                }
+            }
+
             // Meta-only or no dominant namespace — infer from attributes
             if profile.ref_count > 2 {
                 HarvestCategory::Dependency
@@ -1581,6 +1623,7 @@ mod tests {
                 ":spec/element-type".to_string(),
                 ":db/doc".to_string(),
             ]),
+            exploration_category: None,
             namespace_counts: BTreeMap::from([(AttrNamespace::Spec, 2), (AttrNamespace::Meta, 1)]),
             has_ident: false,
             ident: None,
@@ -1599,6 +1642,7 @@ mod tests {
                 ":intent/decision".to_string(),
                 ":intent/rationale".to_string(),
             ]),
+            exploration_category: None,
             namespace_counts: BTreeMap::from([(AttrNamespace::Intent, 2)]),
             has_ident: false,
             ident: None,
@@ -1613,10 +1657,62 @@ mod tests {
     }
 
     #[test]
+    fn classify_exploration_category_decision() {
+        // Observations with exploration_category "design-decision" should classify as Decision
+        let profile = EntityProfile {
+            entity: EntityId::from_ident(":test/obs-decision"),
+            attributes: BTreeSet::from([
+                ":exploration/body".to_string(),
+                ":exploration/category".to_string(),
+                ":exploration/source".to_string(),
+                ":db/ident".to_string(),
+            ]),
+            exploration_category: Some(":exploration.cat/design-decision".to_string()),
+            namespace_counts: BTreeMap::from([(AttrNamespace::Meta, 4)]),
+            has_ident: true,
+            ident: Some(":test/obs-decision".to_string()),
+            doc: None,
+            ref_count: 0,
+            datom_count: 4,
+        };
+        assert_eq!(
+            classify_profile(&profile),
+            HarvestCategory::Decision,
+            "observation with category design-decision should classify as Decision"
+        );
+    }
+
+    #[test]
+    fn classify_exploration_category_open_question() {
+        // Observations with exploration_category "open-question" should classify as Uncertainty
+        let profile = EntityProfile {
+            entity: EntityId::from_ident(":test/obs-question"),
+            attributes: BTreeSet::from([
+                ":exploration/body".to_string(),
+                ":exploration/category".to_string(),
+                ":db/ident".to_string(),
+            ]),
+            exploration_category: Some("open-question".to_string()),
+            namespace_counts: BTreeMap::from([(AttrNamespace::Meta, 3)]),
+            has_ident: true,
+            ident: Some(":test/obs-question".to_string()),
+            doc: None,
+            ref_count: 0,
+            datom_count: 3,
+        };
+        assert_eq!(
+            classify_profile(&profile),
+            HarvestCategory::Uncertainty,
+            "observation with category open-question should classify as Uncertainty"
+        );
+    }
+
+    #[test]
     fn score_profile_rewards_density() {
         let sparse = EntityProfile {
             entity: EntityId::from_ident(":test/sparse"),
             attributes: BTreeSet::from([":db/doc".to_string()]),
+            exploration_category: None,
             namespace_counts: BTreeMap::from([(AttrNamespace::Meta, 1)]),
             has_ident: false,
             ident: None,
@@ -1633,6 +1729,7 @@ mod tests {
                 ":spec/element-type".to_string(),
                 ":spec/namespace".to_string(),
             ]),
+            exploration_category: None,
             namespace_counts: BTreeMap::from([(AttrNamespace::Meta, 2), (AttrNamespace::Spec, 3)]),
             has_ident: true,
             ident: Some(":test/dense".to_string()),
@@ -1693,6 +1790,7 @@ mod tests {
                 ":intent/alternatives".to_string(),
                 ":db/doc".to_string(),
             ]),
+            exploration_category: None,
             namespace_counts: BTreeMap::from([
                 (AttrNamespace::Intent, 3),
                 (AttrNamespace::Meta, 1),
@@ -1721,6 +1819,7 @@ mod tests {
                 ":impl/implements".to_string(),
                 ":db/ident".to_string(),
             ]),
+            exploration_category: None,
             namespace_counts: BTreeMap::from([(AttrNamespace::Impl, 3), (AttrNamespace::Meta, 1)]),
             has_ident: true,
             ident: Some(":test/impl".to_string()),
@@ -1845,6 +1944,7 @@ mod tests {
         let profile = EntityProfile {
             entity: EntityId::from_ident(":test/incomplete-spec"),
             attributes: BTreeSet::from([":spec/element-type".to_string()]),
+            exploration_category: None,
             namespace_counts: BTreeMap::from([(AttrNamespace::Spec, 1)]),
             has_ident: false,
             ident: None,

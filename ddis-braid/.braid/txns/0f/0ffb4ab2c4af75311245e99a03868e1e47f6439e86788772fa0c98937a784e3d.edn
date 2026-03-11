@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773250549/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix: harvest classify_profile now reads exploration/category values to correctly classify open-question/design-decision observations as Uncertainty/Decision (was always Observation)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f55dba874095dc11510d84fa959750c722c88ac2bce17e456c21a4a1f63bc26f" :a :db/ident :v :observation/fix-harvest-classify-profile-now-reads-explorationcategory :op :assert}
+   {:e #blake3 "f55dba874095dc11510d84fa959750c722c88ac2bce17e456c21a4a1f63bc26f" :a :db/doc :v "Fix: harvest classify_profile now reads exploration/category values to correctly classify open-question/design-decision observations as Uncertainty/Decision (was always Observation)" :op :assert}
+   {:e #blake3 "f55dba874095dc11510d84fa959750c722c88ac2bce17e456c21a4a1f63bc26f" :a :exploration/body :v "Fix: harvest classify_profile now reads exploration/category values to correctly classify open-question/design-decision observations as Uncertainty/Decision (was always Observation)" :op :assert}
+   {:e #blake3 "f55dba874095dc11510d84fa959750c722c88ac2bce17e456c21a4a1f63bc26f" :a :exploration/content-hash :v #bytes "bb2a72ac82b8ff201782b1dcdb8e79f2adeb934f59b76fb8730f435e33910121" :op :assert}
+   {:e #blake3 "f55dba874095dc11510d84fa959750c722c88ac2bce17e456c21a4a1f63bc26f" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "f55dba874095dc11510d84fa959750c722c88ac2bce17e456c21a4a1f63bc26f" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "f55dba874095dc11510d84fa959750c722c88ac2bce17e456c21a4a1f63bc26f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f55dba874095dc11510d84fa959750c722c88ac2bce17e456c21a4a1f63bc26f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

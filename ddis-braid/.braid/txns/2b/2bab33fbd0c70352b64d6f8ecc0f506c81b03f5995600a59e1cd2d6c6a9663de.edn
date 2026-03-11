@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773250559/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "How should seed handle multi-session continuity? Current: shows last 2-3 sessions. Gap: agent loses context from session N-4 and earlier. Possible: session chain summary with diminishing detail."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "259ffa013c7190d17e01c1d8c4236dac297d22307332920201c16497efcc94cf" :a :db/ident :v :observation/how-should-seed-handle-multi-session-continuity-current-sh :op :assert}
+   {:e #blake3 "259ffa013c7190d17e01c1d8c4236dac297d22307332920201c16497efcc94cf" :a :db/doc :v "How should seed handle multi-session continuity? Current: shows last 2-3 sessions. Gap: agent loses context from session N-4 and earlier. Possible: session chain summary with diminishing detail." :op :assert}
+   {:e #blake3 "259ffa013c7190d17e01c1d8c4236dac297d22307332920201c16497efcc94cf" :a :exploration/body :v "How should seed handle multi-session continuity? Current: shows last 2-3 sessions. Gap: agent loses context from session N-4 and earlier. Possible: session chain summary with diminishing detail." :op :assert}
+   {:e #blake3 "259ffa013c7190d17e01c1d8c4236dac297d22307332920201c16497efcc94cf" :a :exploration/content-hash :v #bytes "c5de4ce9231b962864f4d94459d6d370101ec8ed23d39bafbfbc3d996eaa45dc" :op :assert}
+   {:e #blake3 "259ffa013c7190d17e01c1d8c4236dac297d22307332920201c16497efcc94cf" :a :exploration/confidence :v 0.6 :op :assert}
+   {:e #blake3 "259ffa013c7190d17e01c1d8c4236dac297d22307332920201c16497efcc94cf" :a :exploration/category :v :exploration.cat/open-question :op :assert}
+   {:e #blake3 "259ffa013c7190d17e01c1d8c4236dac297d22307332920201c16497efcc94cf" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "259ffa013c7190d17e01c1d8c4236dac297d22307332920201c16497efcc94cf" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}
