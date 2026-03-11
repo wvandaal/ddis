@@ -319,6 +319,10 @@ struct SessionExcerpt {
     store_datom_count: Option<i64>,
     /// Store entity count at harvest time.
     store_entity_count: Option<i64>,
+    /// Transactions since last harvest (E2 metric).
+    tx_since_last: Option<i64>,
+    /// Observations recorded this session (E2 metric).
+    observation_count: Option<i64>,
 }
 
 /// Discover content from a harvest session entity.
@@ -451,6 +455,16 @@ fn discover_session_content(store: &Store, session_entity: EntityId) -> SessionE
                     excerpt.store_entity_count = Some(n);
                 }
             }
+            ":harvest/tx-since-last" => {
+                if let Value::Long(n) = d.value {
+                    excerpt.tx_since_last = Some(n);
+                }
+            }
+            ":harvest/observation-count" => {
+                if let Value::Long(n) = d.value {
+                    excerpt.observation_count = Some(n);
+                }
+            }
             _ => {}
         }
     }
@@ -516,7 +530,19 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
     // === Last session narrative ===
     if let Some(latest) = excerpts.first() {
         if let Some(ref task) = latest.task {
-            parts.push(format!("Last session: {task}"));
+            // E2: Include session metrics inline with task
+            let mut meta_parts = Vec::new();
+            if let Some(tx) = latest.tx_since_last {
+                meta_parts.push(format!("{tx} txns"));
+            }
+            if let Some(obs) = latest.observation_count {
+                meta_parts.push(format!("{obs} observations"));
+            }
+            if meta_parts.is_empty() {
+                parts.push(format!("Last session: {task}"));
+            } else {
+                parts.push(format!("Last session: {task} ({})", meta_parts.join(", ")));
+            }
         }
 
         // Accomplishments (from :harvest/accomplishments datom)
@@ -567,22 +593,33 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
         }
     }
 
-    // === Prior session (brief) ===
-    if excerpts.len() > 1 {
-        let prior = &excerpts[1];
+    // === Prior sessions (2-3 session trajectory) ===
+    for (i, prior) in excerpts.iter().skip(1).enumerate() {
+        let label = if i == 0 { "Prior session" } else { "Earlier" };
         if let Some(ref task) = prior.task {
-            parts.push(format!("Prior session: {task}"));
+            parts.push(format!("{label}: {task}"));
         }
-        // Just show decision count + question count for prior sessions
-        if !prior.decisions.is_empty() || !prior.open_questions.is_empty() {
-            let mut summary_parts = Vec::new();
-            if !prior.decisions.is_empty() {
-                summary_parts.push(format!("{} decisions", prior.decisions.len()));
-            }
-            if !prior.open_questions.is_empty() {
-                summary_parts.push(format!("{} open questions", prior.open_questions.len()));
-            }
-            parts.push(format!("  {}", summary_parts.join(", ")));
+        // Show key accomplishments and decisions for trajectory context
+        if !prior.accomplishments.is_empty() {
+            let top: Vec<_> = prior
+                .accomplishments
+                .iter()
+                .take(3)
+                .map(|a| truncate_chars(a, 200))
+                .collect();
+            parts.push(format!("  Done: {}", top.join("; ")));
+        }
+        if !prior.decisions.is_empty() {
+            let top: Vec<_> = prior
+                .decisions
+                .iter()
+                .take(3)
+                .map(|d| truncate_chars(d, 200))
+                .collect();
+            parts.push(format!("  Decided: {}", top.join("; ")));
+        }
+        if !prior.open_questions.is_empty() {
+            parts.push(format!("  Open: {} questions", prior.open_questions.len()));
         }
     }
 
@@ -675,6 +712,31 @@ fn discover_open_questions(store: &Store, task_keywords: &[String]) -> Vec<Strin
             }
         }
     }
+    // E3: Carry forward open questions from prior harvest sessions.
+    // Questions that were recorded in a harvest but not yet resolved should
+    // still appear as warnings so they don't get silently dropped.
+    let mut seen_texts: BTreeSet<String> = questions.iter().map(|(_, q)| q.clone()).collect();
+    for datom in store.datoms() {
+        if datom.attribute.as_str() == ":harvest/open-questions" && datom.op == Op::Assert {
+            if let Value::String(ref s) = datom.value {
+                for line in s.lines() {
+                    let stripped = line.strip_prefix("[?] ").unwrap_or(line).trim();
+                    if stripped.is_empty() {
+                        continue;
+                    }
+                    let text = truncate_chars(stripped, 200);
+                    let formatted = format!("[?] {text}");
+                    if !seen_texts.contains(&formatted) {
+                        seen_texts.insert(formatted.clone());
+                        let score = keyword_relevance_score(&text, task_keywords);
+                        // Slight penalty for older questions (from harvest vs direct observation)
+                        questions.push((score * 0.8, formatted));
+                    }
+                }
+            }
+        }
+    }
+
     // Sort by relevance descending (task-relevant questions first)
     questions.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
     questions.into_iter().map(|(_, q)| q).collect()
@@ -1553,6 +1615,58 @@ pub fn assemble_seed(store: &Store, task: &str, budget: usize, agent: AgentId) -
         task: task.to_string(),
         entities_discovered,
     }
+}
+
+/// Group state entries by semantic type for comprehension (E6).
+///
+/// Classifies entities by their ident prefix into labeled groups:
+/// Specifications, Observations, Harvest Sessions, Schema, Other.
+/// Returns groups in a stable order with human-readable labels.
+pub fn group_state_entries(entries: &[StateEntry]) -> Vec<(String, Vec<&StateEntry>)> {
+    let mut specs: Vec<&StateEntry> = Vec::new();
+    let mut observations: Vec<&StateEntry> = Vec::new();
+    let mut harvests: Vec<&StateEntry> = Vec::new();
+    let mut schema: Vec<&StateEntry> = Vec::new();
+    let mut other: Vec<&StateEntry> = Vec::new();
+
+    for entry in entries {
+        let c = &entry.content;
+        if c.starts_with(":spec/") || c.contains(":spec/") {
+            specs.push(entry);
+        } else if c.starts_with(":observation/") || c.contains(":observation/") {
+            observations.push(entry);
+        } else if c.starts_with(":harvest/") || c.contains(":harvest/") {
+            harvests.push(entry);
+        } else if c.starts_with(":db/") || c.contains(":db/") {
+            schema.push(entry);
+        } else {
+            other.push(entry);
+        }
+    }
+
+    let mut groups = Vec::new();
+    if !specs.is_empty() {
+        groups.push((format!("Specifications ({} entities)", specs.len()), specs));
+    }
+    if !observations.is_empty() {
+        groups.push((
+            format!("Observations ({} entities)", observations.len()),
+            observations,
+        ));
+    }
+    if !harvests.is_empty() {
+        groups.push((
+            format!("Harvest sessions ({} entities)", harvests.len()),
+            harvests,
+        ));
+    }
+    if !schema.is_empty() {
+        groups.push((format!("Schema ({} entities)", schema.len()), schema));
+    }
+    if !other.is_empty() {
+        groups.push((format!("Other ({} entities)", other.len()), other));
+    }
+    groups
 }
 
 // ---------------------------------------------------------------------------

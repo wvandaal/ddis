@@ -401,6 +401,31 @@ pub fn run(
             Op::Assert,
         ));
 
+        // E2: Session metrics — transactions and observations since last harvest
+        all_datoms.push(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":harvest/tx-since-last"),
+            Value::Long(tx_since_harvest as i64),
+            harvest_tx_id,
+            Op::Assert,
+        ));
+        // Count observations in this session window
+        let obs_count = store
+            .datoms()
+            .filter(|d| {
+                d.attribute.as_str() == ":exploration/source"
+                    && d.op == Op::Assert
+                    && d.tx.wall_time() > session_boundary
+            })
+            .count();
+        all_datoms.push(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":harvest/observation-count"),
+            Value::Long(obs_count as i64),
+            harvest_tx_id,
+            Op::Assert,
+        ));
+
         // Close active session if present
         let active_session = EntityId::from_ident(":session/current");
         let has_active = store

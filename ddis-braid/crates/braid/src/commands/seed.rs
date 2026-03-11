@@ -10,7 +10,7 @@ use std::path::Path;
 use braid_kernel::agent_md::{generate_agent_md, AgentMdConfig};
 use braid_kernel::datom::AgentId;
 use braid_kernel::guidance::{derive_actions, format_actions};
-use braid_kernel::seed::{assemble_seed, ContextSection};
+use braid_kernel::seed::{assemble_seed, group_state_entries, ContextSection};
 use braid_kernel::trilateral::check_coherence_fast;
 
 use crate::error::BraidError;
@@ -77,8 +77,15 @@ pub fn run(
             ContextSection::State(entries) => {
                 if !entries.is_empty() {
                     out.push_str("## State\n");
-                    for entry in entries {
-                        out.push_str(&format!("{}\n", entry.content));
+                    // E6: Group entities by semantic type for comprehension
+                    let groups = group_state_entries(entries);
+                    for (label, group) in &groups {
+                        if groups.len() > 1 {
+                            out.push_str(&format!("{label}:\n"));
+                        }
+                        for entry in group {
+                            out.push_str(&format!("  {}\n", entry.content));
+                        }
                     }
                     out.push('\n');
                 }

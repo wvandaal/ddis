@@ -27,7 +27,7 @@
 //! Traces to: C7 (self-bootstrap), INV-SEED-001 (store projection),
 //! INV-SEED-002 (budget compliance), ADR-INTERFACE-002 (agent-mode style).
 
-use braid_kernel::seed::{self, AssociateCue, ContextSection};
+use braid_kernel::seed::{self, group_state_entries, AssociateCue, ContextSection};
 use braid_kernel::store::Store;
 
 /// An injection point found in the text between `<braid-seed>` tags.
@@ -218,20 +218,18 @@ pub fn format_for_injection(store: &Store, task: Option<&str>, budget: usize) ->
             ContextSection::State(entries) => {
                 if !entries.is_empty() {
                     out.push_str("### Recent Entities\n");
-                    // Show entities with meaningful content, skip hash-only entities
-                    let meaningful: Vec<_> = entries
-                        .iter()
-                        .filter(|e| !e.content.starts_with('#'))
-                        .take(15)
-                        .collect();
-                    for entry in &meaningful {
-                        out.push_str(&format!("- {}\n", entry.content));
-                    }
-                    if entries.len() > meaningful.len() {
-                        out.push_str(&format!(
-                            "- ... and {} more entities\n",
-                            entries.len() - meaningful.len()
-                        ));
+                    // E6: Group by semantic type for comprehension
+                    let groups = group_state_entries(entries);
+                    for (label, group) in &groups {
+                        if groups.len() > 1 {
+                            out.push_str(&format!("**{label}**\n"));
+                        }
+                        for entry in group.iter().take(10) {
+                            out.push_str(&format!("- {}\n", entry.content));
+                        }
+                        if group.len() > 10 {
+                            out.push_str(&format!("- ... and {} more\n", group.len() - 10));
+                        }
                     }
                     out.push('\n');
                 }
