@@ -123,6 +123,46 @@ pub fn run(
     Ok(out)
 }
 
+/// Inject seed context into a file's `<braid-seed>` tags (SB.3.3).
+///
+/// Reads the target file, finds the injection point, generates content
+/// from the store, replaces the tagged section, and writes back.
+/// Content outside the tags is never modified (lens law).
+pub fn run_inject(
+    store_path: &Path,
+    inject_path: &Path,
+    task: &str,
+    budget: usize,
+) -> Result<String, BraidError> {
+    let layout = DiskLayout::open(store_path)?;
+    let store = layout.load_store()?;
+
+    // Read the target file
+    let file_content = std::fs::read_to_string(inject_path)?;
+
+    // Find injection point
+    let point = crate::inject::find_injection_point(&file_content)
+        .map_err(|e| BraidError::Parse(format!("{e}")))?;
+
+    // Generate content
+    let content = crate::inject::format_for_injection(&store, Some(task), budget);
+    let token_estimate = content.split_whitespace().count() * 4 / 3; // ~tokens
+
+    // Inject
+    let result = crate::inject::inject(&file_content, &point, &content);
+
+    // Write back
+    std::fs::write(inject_path, &result)?;
+
+    Ok(format!(
+        "injected: ~{} tokens → {} ({} datoms, {} entities)\n",
+        token_estimate,
+        inject_path.display(),
+        store.len(),
+        store.entity_count(),
+    ))
+}
+
 /// Format a narrative briefing for human or LLM orientation.
 ///
 /// Target: < 200 words, structured as:

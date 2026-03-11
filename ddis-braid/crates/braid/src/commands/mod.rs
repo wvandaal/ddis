@@ -315,6 +315,14 @@ Examples:
         /// Compact mode: <200 tokens, orientation + top entities + directive only.
         #[arg(long)]
         compact: bool,
+
+        /// Inject seed context into a file's <braid-seed> tags (C7: self-bootstrap).
+        ///
+        /// Reads the file, finds <braid-seed>...</braid-seed> tags, replaces
+        /// content between them with dynamically generated context from the store,
+        /// and writes the file back. Content outside tags is never modified.
+        #[arg(long)]
+        inject: Option<PathBuf>,
     },
 
     // ── ADMIN ──────────────────────────────────────────────────────────
@@ -653,9 +661,16 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
             json,
             agent_md,
             compact,
+            inject,
         } => {
             let effective_budget = if compact { 200 } else { budget };
             let effective_task = task.as_deref().unwrap_or("continue");
+
+            // --inject mode: update file in place with seed content (SB.3.3)
+            if let Some(ref inject_path) = inject {
+                return seed::run_inject(&path, inject_path, effective_task, effective_budget);
+            }
+
             seed::run(
                 &path,
                 effective_task,

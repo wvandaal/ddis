@@ -209,40 +209,90 @@ fn build_entity_graph(store: &Store) -> (DiGraph, BTreeMap<String, EntityId>) {
 /// select the most recently-modified entities. This handles generic tasks
 /// like "continue" or "overview" where the user wants orientation, not
 /// keyword-specific results.
-/// Build the Orientation section with store summary and last harvest context.
-fn build_orientation(store: &Store) -> String {
-    let mut parts = vec![format!("Braid datom store | {} datoms", store.len())];
+/// A harvest session summary for orientation context (SB.2.4).
+struct HarvestSummary {
+    #[allow(dead_code)]
+    entity: EntityId,
+    wall_time: u64,
+    doc: String,
+    candidate_count: i64,
+}
 
-    // Find the most recent harvest session and its task
-    let mut latest_harvest_wall: u64 = 0;
-    let mut latest_harvest_entity: Option<EntityId> = None;
+/// Build the Orientation section with store summary and session history (SB.2.4).
+///
+/// Shows: store size, last 3 harvest sessions with task descriptions,
+/// observation count since last harvest, and recent decisions.
+fn build_orientation(store: &Store) -> String {
+    let entity_count = store.entity_count();
+    let mut parts = vec![format!(
+        "Braid datom store | {} datoms, {} entities",
+        store.len(),
+        entity_count
+    )];
+
+    // Collect ALL harvest sessions, sorted by wall_time descending
+    let mut harvests: Vec<HarvestSummary> = Vec::new();
     for datom in store.datoms() {
         if datom.attribute.as_str() == ":harvest/agent" && datom.op == Op::Assert {
-            let wall = datom.tx.wall_time();
-            if wall > latest_harvest_wall {
-                latest_harvest_wall = wall;
-                latest_harvest_entity = Some(datom.entity);
+            let entity = datom.entity;
+            let wall_time = datom.tx.wall_time();
+
+            // Get doc and candidate count for this harvest session
+            let mut doc = String::new();
+            let mut candidate_count: i64 = 0;
+            for d in store.entity_datoms(entity) {
+                if d.op != Op::Assert {
+                    continue;
+                }
+                match d.attribute.as_str() {
+                    ":db/doc" => {
+                        if let Value::String(ref s) = d.value {
+                            doc = if s.len() > 120 {
+                                format!("{}...", &s[..120])
+                            } else {
+                                s.clone()
+                            };
+                        }
+                    }
+                    ":harvest/candidate-count" => {
+                        if let Value::Long(n) = d.value {
+                            candidate_count = n;
+                        }
+                    }
+                    _ => {}
+                }
             }
+
+            harvests.push(HarvestSummary {
+                entity,
+                wall_time,
+                doc,
+                candidate_count,
+            });
         }
     }
+    harvests.sort_by_key(|h| std::cmp::Reverse(h.wall_time));
 
-    if let Some(entity) = latest_harvest_entity {
-        // Get the harvest session's doc (contains task description)
-        for datom in store.datoms() {
-            if datom.entity == entity
-                && datom.attribute.as_str() == ":db/doc"
-                && datom.op == Op::Assert
-            {
-                if let Value::String(ref s) = datom.value {
-                    parts.push(format!("Last harvest: {s}"));
-                }
-                break;
-            }
+    // Show last 3 harvest sessions
+    let show_count = harvests.len().min(3);
+    if show_count > 0 {
+        let latest = &harvests[0];
+        parts.push(format!(
+            "Last harvest: {} ({} candidates)",
+            latest.doc, latest.candidate_count
+        ));
+        for h in harvests.iter().skip(1).take(show_count - 1) {
+            parts.push(format!(
+                "  Prior: {} ({} candidates)",
+                h.doc, h.candidate_count
+            ));
         }
     }
 
     // Count observations since last harvest
+    let latest_harvest_wall = harvests.first().map(|h| h.wall_time).unwrap_or(0);
     let mut obs_since_harvest = 0;
+    let mut obs_summaries: Vec<String> = Vec::new();
     for datom in store.datoms() {
         if datom.attribute.as_str() == ":exploration/source"
             && datom.op == Op::Assert
@@ -251,6 +301,22 @@ fn build_orientation(store: &Store) -> String {
             if let Value::String(ref s) = datom.value {
                 if s == "braid:observe" {
                     obs_since_harvest += 1;
+                    // Get the doc for this observation (limit to 3)
+                    if obs_summaries.len() < 3 {
+                        for d2 in store.entity_datoms(datom.entity) {
+                            if d2.attribute.as_str() == ":db/doc" && d2.op == Op::Assert {
+                                if let Value::String(ref doc) = d2.value {
+                                    let truncated = if doc.len() > 80 {
+                                        format!("{}...", &doc[..80])
+                                    } else {
+                                        doc.clone()
+                                    };
+                                    obs_summaries.push(truncated);
+                                }
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -259,6 +325,39 @@ fn build_orientation(store: &Store) -> String {
         parts.push(format!(
             "{obs_since_harvest} observations since last harvest"
         ));
+        for obs in &obs_summaries {
+            parts.push(format!("  - {obs}"));
+        }
+    }
+
+    // Surface recent decisions (entities with :intent/decision or design-decision category)
+    let mut decisions: Vec<String> = Vec::new();
+    for datom in store.datoms() {
+        if datom.attribute.as_str() == ":exploration/category" && datom.op == Op::Assert {
+            if let Value::String(ref cat) = datom.value {
+                if cat == "design-decision" || cat == "decision" {
+                    for d2 in store.entity_datoms(datom.entity) {
+                        if d2.attribute.as_str() == ":db/doc" && d2.op == Op::Assert {
+                            if let Value::String(ref doc) = d2.value {
+                                let truncated = if doc.len() > 80 {
+                                    format!("{}...", &doc[..80])
+                                } else {
+                                    doc.clone()
+                                };
+                                decisions.push(truncated);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if !decisions.is_empty() {
+        parts.push("Decisions:".to_string());
+        for d in decisions.iter().take(3) {
+            parts.push(format!("  - {d}"));
+        }
     }
 
     parts.join("\n")
@@ -294,6 +393,114 @@ fn discover_open_questions(store: &Store) -> Vec<String> {
         }
     }
     questions
+}
+
+/// Discover active constraints from spec entities (SB.2.3).
+///
+/// Scans for entities with `:spec/*` idents and extracts their type
+/// (invariant, ADR, negative-case) and description. Shows verification
+/// status by checking if the spec element has been bootstrapped.
+fn discover_constraints(store: &Store) -> Vec<ConstraintRef> {
+    let mut constraints = Vec::new();
+    let mut seen = BTreeSet::new();
+
+    for datom in store.datoms() {
+        if datom.attribute.as_str() != ":db/ident" || datom.op != Op::Assert {
+            continue;
+        }
+        let ident = match &datom.value {
+            Value::Keyword(k) => k.clone(),
+            _ => continue,
+        };
+        // Only spec entities
+        if !ident.starts_with(":spec/") {
+            continue;
+        }
+        if !seen.insert(datom.entity) {
+            continue;
+        }
+
+        // Extract the spec element ID from the ident (e.g., ":spec/inv-store-001" → "INV-STORE-001")
+        let id = ident
+            .strip_prefix(":spec/")
+            .unwrap_or(&ident)
+            .to_uppercase();
+
+        // Get the doc/summary
+        let mut summary = String::new();
+        let mut has_spec_type = false;
+        for d in store.entity_datoms(datom.entity) {
+            if d.op != Op::Assert {
+                continue;
+            }
+            match d.attribute.as_str() {
+                ":db/doc" => {
+                    if let Value::String(ref s) = d.value {
+                        summary = if s.len() > 60 {
+                            format!("{}...", &s[..60])
+                        } else {
+                            s.clone()
+                        };
+                    }
+                }
+                ":spec/type" => {
+                    has_spec_type = true;
+                }
+                _ => {}
+            }
+        }
+
+        // Only include if it has a spec type (actual spec element, not metadata)
+        if !has_spec_type && summary.is_empty() {
+            continue;
+        }
+
+        // Determine satisfaction status based on whether it's an invariant
+        // with known verification. For now, None = unknown.
+        let satisfied = None;
+
+        constraints.push(ConstraintRef {
+            id,
+            summary,
+            satisfied,
+        });
+    }
+
+    // Sort by ID for deterministic output
+    constraints.sort_by(|a, b| a.id.cmp(&b.id));
+
+    // Limit to top 10 to stay within budget
+    constraints.truncate(10);
+    constraints
+}
+
+/// Build Directive section with task and injected actions (SB.2.1).
+///
+/// Takes the top 3 actions from guidance and formats them as copy-pasteable
+/// commands with spec references.
+fn build_directive(task: &str, actions: &[crate::guidance::GuidanceAction]) -> String {
+    let mut parts = vec![format!("Task: {task}")];
+
+    if !actions.is_empty() {
+        parts.push(String::new());
+        parts.push("Next actions:".to_string());
+        for (i, action) in actions.iter().take(3).enumerate() {
+            parts.push(format!(
+                "  {}. {:?} — {}",
+                i + 1,
+                action.category,
+                action.summary
+            ));
+            if let Some(ref cmd) = action.command {
+                parts.push(format!("     run: {cmd}"));
+            }
+            if !action.relates_to.is_empty() {
+                parts.push(format!("     ref: {}", action.relates_to.join(", ")));
+            }
+        }
+    }
+
+    parts.join("\n")
 }
 
 fn fallback_recent_entities(store: &Store, limit: usize) -> Vec<EntityId> {
@@ -580,12 +787,24 @@ fn score_entity(
     let n = pagerank_scores.len().max(1) as f64;
     let significance = (pr * n).min(1.0);
 
-    // Recency: newest transaction time relative to max
+    // Recency: exponential decay normalized by time range (SB.2.2).
+    //
+    // Uses exp(-λ * normalized_delta) where:
+    //   delta = max_wall - entity_wall (how old is this entity)
+    //   normalized_delta = delta / time_range (scale to [0, 1])
+    //   λ = 3.0 (decay constant: midpoint entity ≈ 0.22, oldest ≈ 0.05)
+    //
+    // Scale-invariant: works identically for legacy sequential wall_times
+    // (range 0-17) and Unix timestamps (range in seconds).
     let newest_tx = asserted.iter().map(|d| d.tx.wall_time()).max().unwrap_or(0);
-    let recency = if max_tx_wall_time == 0 {
-        0.5
+    let min_wall = store.datoms().map(|d| d.tx.wall_time()).min().unwrap_or(0);
+    let time_range = max_tx_wall_time.saturating_sub(min_wall);
+    let recency = if time_range == 0 {
+        1.0 // All entities at same time → equally recent
     } else {
-        newest_tx as f64 / max_tx_wall_time as f64
+        let delta = max_tx_wall_time.saturating_sub(newest_tx);
+        let normalized = delta as f64 / time_range as f64;
+        (-3.0 * normalized).exp()
     };
 
     0.5 * relevance + 0.3 * significance + 0.2 * recency
@@ -803,10 +1022,14 @@ pub fn assemble(
     };
 
     // Build sections
-    let directive = ContextSection::Directive(format!("Task: {task}"));
-    let directive_tokens = estimate_tokens(task) + 6;
 
-    // Orientation: include last harvest session info if available
+    // Directive: task + action injection (SB.2.1)
+    let actions = crate::guidance::derive_actions(store);
+    let directive_text = build_directive(task, &actions);
+    let directive_tokens = estimate_tokens(&directive_text);
+    let directive = ContextSection::Directive(directive_text);
+
+    // Orientation: session history narrative (SB.2.4)
     let orientation_text = build_orientation(store);
     let orientation_tokens = estimate_tokens(&orientation_text);
     let orientation = ContextSection::Orientation(orientation_text);
@@ -819,8 +1042,13 @@ pub fn assemble(
         .sum::<usize>();
     let warnings = ContextSection::Warnings(warning_lines);
 
-    let constraints = ContextSection::Constraints(Vec::new());
-    let constraints_tokens = 0;
+    // Constraints: active invariants from spec entities (SB.2.3)
+    let constraint_refs = discover_constraints(store);
+    let constraints_tokens = constraint_refs
+        .iter()
+        .map(|c| estimate_tokens(&c.id) + estimate_tokens(&c.summary) + 4)
+        .sum::<usize>();
+    let constraints = ContextSection::Constraints(constraint_refs);
 
     // Allocate remaining budget to state entries
     let overhead = directive_tokens + orientation_tokens + warnings_tokens + constraints_tokens;

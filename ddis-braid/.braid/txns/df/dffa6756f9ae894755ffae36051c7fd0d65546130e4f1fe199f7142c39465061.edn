@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773188820/0/85598e7c7e03cbdffb89a71b48caceab"
+ :tx/agent "85598e7c7e03cbdffb89a71b48caceab"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 7 candidates from task 'Session 012: C7 self-bootstrap, injection engine, unix wall_time'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fc1e65077c0eeb408079ed8924100128cc6f6a5f104d2de25520eaced8c75e7d" :a :db/doc :v "inject.rs implements AGENTS.md tag injection with lens laws" :op :assert}
+   {:e #blake3 "0799409fe2e1d39948b0bdda7e76f5622c4b94fa70d8d2d52b5e2f52084383a5" :a :db/doc :v "git.rs collects git history for auto-harvest" :op :assert}
+   {:e #blake3 "7f244f460f1f7c0faea11a6308d6121a778bce2a82939dec3d7eb77b09fc9b25" :a :db/doc :v "TxId wall_time migrated to Unix epoch seconds" :op :assert}
+   {:e #blake3 "4b93495eafe39009883cf2f95416e5b3fc8a8147c69ec8980b8bd85cdc22e336" :a :db/doc :v "Exponential recency weighting exp(-3*normalized_delta) in seed scoring" :op :assert}
+   {:e #blake3 "508fd4fc01645b342bf13ff634f171b6d503a610d91b71322bc35925ac54fa0e" :a :db/doc :v "23 tests including 3 lens laws verified" :op :assert}
+   {:e #blake3 "32f496f01aae18104b6f06651201445ef553dd84945f2e58f0603ebb75740476" :a :db/ident :v :harvest/session-braid-opus-1773188820 :op :assert}
+   {:e #blake3 "32f496f01aae18104b6f06651201445ef553dd84945f2e58f0603ebb75740476" :a :db/doc :v "Harvest session for task: Session 012: C7 self-bootstrap, injection engine, unix wall_time" :op :assert}
+   {:e #blake3 "32f496f01aae18104b6f06651201445ef553dd84945f2e58f0603ebb75740476" :a :harvest/agent :v "braid:opus" :op :assert}
+   {:e #blake3 "32f496f01aae18104b6f06651201445ef553dd84945f2e58f0603ebb75740476" :a :harvest/candidate-count :v 7 :op :assert}
+   {:e #blake3 "32f496f01aae18104b6f06651201445ef553dd84945f2e58f0603ebb75740476" :a :harvest/drift-score :v 0.875 :op :assert}
+ ]}

@@ -4,6 +4,7 @@ pub mod bootstrap;
 mod commands;
 mod error;
 pub mod git;
+pub mod inject;
 pub mod layout;
 pub mod mcp;
 pub mod output;

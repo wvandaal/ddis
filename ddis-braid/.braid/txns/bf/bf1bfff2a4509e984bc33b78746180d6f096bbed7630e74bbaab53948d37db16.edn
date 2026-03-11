@@ -1,0 +1,18 @@
+{:tx/id #hlc "16/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "UX overhaul session 011: command consolidation 17→10 complete, seed/harvest pipeline fixed with recency fallback and session boundary correction"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d35c20dc767d5afe4b989a022d852da11a8f52da2fd145017abb04e048974d41" :a :db/ident :v :observation/ux-overhaul-session-011-command-consolidation-1710-complet :op :assert}
+   {:e #blake3 "d35c20dc767d5afe4b989a022d852da11a8f52da2fd145017abb04e048974d41" :a :db/doc :v "UX overhaul session 011: command consolidation 17→10 complete, seed/harvest pipeline fixed with recency fallback and session boundary correction" :op :assert}
+   {:e #blake3 "d35c20dc767d5afe4b989a022d852da11a8f52da2fd145017abb04e048974d41" :a :exploration/body :v "UX overhaul session 011: command consolidation 17→10 complete, seed/harvest pipeline fixed with recency fallback and session boundary correction" :op :assert}
+   {:e #blake3 "d35c20dc767d5afe4b989a022d852da11a8f52da2fd145017abb04e048974d41" :a :exploration/content-hash :v #bytes "91f418efddc2783d2f83be77a9a9d5aba7d7c2ff53a12b227e66ee08aa7511df" :op :assert}
+   {:e #blake3 "d35c20dc767d5afe4b989a022d852da11a8f52da2fd145017abb04e048974d41" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "d35c20dc767d5afe4b989a022d852da11a8f52da2fd145017abb04e048974d41" :a :exploration/category :v :exploration.cat/status-report :op :assert}
+   {:e #blake3 "d35c20dc767d5afe4b989a022d852da11a8f52da2fd145017abb04e048974d41" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d35c20dc767d5afe4b989a022d852da11a8f52da2fd145017abb04e048974d41" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d35c20dc767d5afe4b989a022d852da11a8f52da2fd145017abb04e048974d41" :a :exploration/tags :v :tag/ux :op :assert}
+   {:e #blake3 "d35c20dc767d5afe4b989a022d852da11a8f52da2fd145017abb04e048974d41" :a :exploration/tags :v :tag/harvest :op :assert}
+   {:e #blake3 "d35c20dc767d5afe4b989a022d852da11a8f52da2fd145017abb04e048974d41" :a :exploration/tags :v :tag/seed :op :assert}
+ ]}

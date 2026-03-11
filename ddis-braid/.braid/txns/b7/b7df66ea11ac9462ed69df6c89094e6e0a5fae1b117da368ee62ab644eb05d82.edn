@@ -1,0 +1,12 @@
+{:tx/id #hlc "15/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 6 candidates from task 'Stage 1 target: budget-aware output, guidance injection, bilateral loop, interac...'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "957e30780a355fc02c4334e6530fdec4ab31c6b12e88b12afb98ccab523bb005" :a :db/ident :v :harvest/session-braid-user-15 :op :assert}
+   {:e #blake3 "957e30780a355fc02c4334e6530fdec4ab31c6b12e88b12afb98ccab523bb005" :a :db/doc :v "Harvest session for task: Stage 1 target: budget-aware output, guidance injection, bilateral loop, interac..." :op :assert}
+   {:e #blake3 "957e30780a355fc02c4334e6530fdec4ab31c6b12e88b12afb98ccab523bb005" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "957e30780a355fc02c4334e6530fdec4ab31c6b12e88b12afb98ccab523bb005" :a :harvest/candidate-count :v 6 :op :assert}
+   {:e #blake3 "957e30780a355fc02c4334e6530fdec4ab31c6b12e88b12afb98ccab523bb005" :a :harvest/drift-score :v 0.8571428571428571 :op :assert}
+ ]}

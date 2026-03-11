@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773188791/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 012: Self-bootstrap complete (C7). Injection engine (inject.rs, 500+ LOC, 23 tests, lens laws verified). CLI braid seed --inject CLAUDE.md. First live injection: 560 tokens, 2784 datoms, 680 entities. SB.3.1-3.4 + SB.4 beads closed. Git context module (git.rs) with smart timestamp detection. Unix wall_time migration. Exponential recency weighting (lambda=3.0, scale-invariant). Session history in seed orientation. Constraint discovery. Action injection in directive."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "16b912c0aed7768aa61f474c63113b172b09229e19a7b8da8216d7bac007dd9f" :a :db/ident :v :observation/session-012-self-bootstrap-complete-c7-injection-engine :op :assert}
+   {:e #blake3 "16b912c0aed7768aa61f474c63113b172b09229e19a7b8da8216d7bac007dd9f" :a :db/doc :v "Session 012: Self-bootstrap complete (C7). Injection engine (inject.rs, 500+ LOC, 23 tests, lens laws verified). CLI braid seed --inject CLAUDE.md. First live injection: 560 tokens, 2784 datoms, 680 entities. SB.3.1-3.4 + SB.4 beads closed. Git context module (git.rs) with smart timestamp detection. Unix wall_time migration. Exponential recency weighting (lambda=3.0, scale-invariant). Session history in seed orientation. Constraint discovery. Action injection in directive." :op :assert}
+   {:e #blake3 "16b912c0aed7768aa61f474c63113b172b09229e19a7b8da8216d7bac007dd9f" :a :exploration/body :v "Session 012: Self-bootstrap complete (C7). Injection engine (inject.rs, 500+ LOC, 23 tests, lens laws verified). CLI braid seed --inject CLAUDE.md. First live injection: 560 tokens, 2784 datoms, 680 entities. SB.3.1-3.4 + SB.4 beads closed. Git context module (git.rs) with smart timestamp detection. Unix wall_time migration. Exponential recency weighting (lambda=3.0, scale-invariant). Session history in seed orientation. Constraint discovery. Action injection in directive." :op :assert}
+   {:e #blake3 "16b912c0aed7768aa61f474c63113b172b09229e19a7b8da8216d7bac007dd9f" :a :exploration/content-hash :v #bytes "59f54a75c497e0aff074f83b465e4370a513f3b9ba48248e03ebefeb83242497" :op :assert}
+   {:e #blake3 "16b912c0aed7768aa61f474c63113b172b09229e19a7b8da8216d7bac007dd9f" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "16b912c0aed7768aa61f474c63113b172b09229e19a7b8da8216d7bac007dd9f" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "16b912c0aed7768aa61f474c63113b172b09229e19a7b8da8216d7bac007dd9f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "16b912c0aed7768aa61f474c63113b172b09229e19a7b8da8216d7bac007dd9f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}
