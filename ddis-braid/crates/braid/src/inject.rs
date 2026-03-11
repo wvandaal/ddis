@@ -310,6 +310,112 @@ fn in_code_block(pos: usize, ranges: &[(usize, usize)]) -> bool {
     ranges.iter().any(|&(start, end)| pos >= start && pos < end)
 }
 
+/// Quality metrics for injected content (S0.5.2).
+///
+/// Assesses whether the generated injection provides adequate
+/// context for an agent reading the AGENTS.md file.
+#[derive(Clone, Debug)]
+pub struct InjectionQuality {
+    /// Total estimated tokens in the injection.
+    pub token_count: usize,
+    /// Number of sections present (max 5: context, constraints, entities, questions, actions).
+    pub section_count: usize,
+    /// Whether the quick reference block is present.
+    pub has_quick_reference: bool,
+    /// Whether at least one next action is present.
+    pub has_next_action: bool,
+    /// Whether store context (datom/entity counts) is present.
+    pub has_store_context: bool,
+    /// Overall quality score: 0.0 (useless) to 1.0 (complete).
+    pub score: f64,
+}
+
+/// Assess the quality of injection content.
+///
+/// Scans the generated markdown for expected sections and computes
+/// a composite quality score. Used for self-diagnostics: if injection
+/// quality drops below threshold, the guidance system can flag it.
+pub fn assess_injection_quality(content: &str) -> InjectionQuality {
+    let token_count = content.split_whitespace().count() * 4 / 3;
+
+    let has_store_context = content.contains("### Store Context");
+    let has_constraints = content.contains("### Active Constraints");
+    let has_entities = content.contains("### Recent Entities");
+    let has_questions = content.contains("### Open Questions");
+    let has_actions = content.contains("### Next Actions");
+    let has_quick_reference = content.contains("### Quick Reference");
+    let has_next_action = content.contains("run: braid") || content.contains("next:");
+
+    let section_count = [
+        has_store_context,
+        has_constraints,
+        has_entities,
+        has_questions,
+        has_actions,
+    ]
+    .iter()
+    .filter(|&&b| b)
+    .count();
+
+    // Composite score: weighted sum of quality indicators
+    // Store context is critical (0.25), actions are critical (0.25),
+    // sections contribute proportionally, quick ref is a bonus
+    let mut score = 0.0;
+    if has_store_context {
+        score += 0.25;
+    }
+    if has_next_action {
+        score += 0.25;
+    }
+    score += section_count as f64 * 0.08; // 5 sections × 0.08 = 0.40
+    if has_quick_reference {
+        score += 0.10;
+    }
+
+    InjectionQuality {
+        token_count,
+        section_count,
+        has_quick_reference,
+        has_next_action,
+        has_store_context,
+        score: score.min(1.0),
+    }
+}
+
+/// Check if an injected section is stale based on its embedded timestamp.
+///
+/// Parses the `<!-- Updated: TIMESTAMP -->` comment from injection content
+/// and compares against the current time. Returns the age in seconds,
+/// or None if no timestamp found.
+pub fn injection_age_seconds(content: &str) -> Option<u64> {
+    // Look for: <!-- Updated: 1234567890 | Store: ... -->
+    let marker = "<!-- Updated: ";
+    let start = content.find(marker)?;
+    let after = start + marker.len();
+    let end = content[after..].find(' ').map(|p| after + p)?;
+    let timestamp_str = &content[after..end];
+    let timestamp: u64 = timestamp_str.parse().ok()?;
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
+    Some(now.saturating_sub(timestamp))
+}
+
+/// Whether the injection content is considered stale.
+///
+/// Threshold: 1 hour (3600 seconds). After one hour of work,
+/// the store state has likely changed enough that the injected
+/// context is no longer representative.
+pub fn is_injection_stale(content: &str) -> bool {
+    match injection_age_seconds(content) {
+        Some(age) => age > 3600,
+        None => true, // No timestamp = definitely stale
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -595,5 +701,88 @@ mod tests {
         let r2 = inject(&r1, &p2, &content);
 
         assert_eq!(r1, r2, "full round-trip must be idempotent");
+    }
+
+    // ── S0.5.2: Injection quality metrics tests ──────────────────────────────
+
+    #[test]
+    fn quality_assessment_complete_content() {
+        let content = "\
+### Store Context
+Braid datom store | 100 datoms, 50 entities
+
+### Active Constraints
+- [?] ADR-TEST-001 — Test constraint
+
+### Recent Entities
+- :spec/inv-test-001 — Test entity
+
+### Open Questions
+- [?] Some open question
+
+### Next Actions
+Next actions:
+  1. Connect — Test action
+     run: braid status
+
+### Quick Reference
+```bash
+braid status
+```
+";
+        let quality = assess_injection_quality(content);
+        assert_eq!(quality.section_count, 5);
+        assert!(quality.has_store_context);
+        assert!(quality.has_next_action);
+        assert!(quality.has_quick_reference);
+        assert!(
+            quality.score > 0.9,
+            "Complete content should score >0.9, got {}",
+            quality.score
+        );
+    }
+
+    #[test]
+    fn quality_assessment_minimal_content() {
+        let content = "### Store Context\nsome content\n";
+        let quality = assess_injection_quality(content);
+        assert_eq!(quality.section_count, 1);
+        assert!(quality.has_store_context);
+        assert!(!quality.has_next_action);
+        assert!(
+            quality.score < 0.5,
+            "Minimal content should score <0.5, got {}",
+            quality.score
+        );
+    }
+
+    // ── S0.5.3: Injection stale detection tests ─────────────────────────────
+
+    #[test]
+    fn injection_age_parses_timestamp() {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let content = format!("<!-- Updated: {} | Store: 100 datoms -->", now);
+        let age = injection_age_seconds(&content);
+        assert!(age.is_some());
+        assert!(age.unwrap() < 5, "Just-generated content should be <5s old");
+    }
+
+    #[test]
+    fn injection_age_old_timestamp() {
+        let content = "<!-- Updated: 1000000000 | Store: 100 datoms -->";
+        let age = injection_age_seconds(content);
+        assert!(age.is_some());
+        assert!(age.unwrap() > 3600, "Old timestamp should be stale");
+        assert!(is_injection_stale(content));
+    }
+
+    #[test]
+    fn injection_age_no_timestamp() {
+        let content = "No timestamp here";
+        assert!(injection_age_seconds(content).is_none());
+        assert!(is_injection_stale(content), "No timestamp means stale");
     }
 }

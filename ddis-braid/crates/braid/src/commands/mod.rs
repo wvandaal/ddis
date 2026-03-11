@@ -10,6 +10,7 @@ mod init;
 mod log;
 pub(crate) mod observe;
 mod query;
+mod schema;
 mod seed;
 pub(crate) mod shell;
 mod status;
@@ -38,7 +39,12 @@ pub enum Command {
 Examples:
   braid init
   braid init --path /tmp/mystore/.braid
-  braid init --spec-dir spec    # auto-bootstrap spec elements")]
+  braid init --spec-dir spec    # auto-bootstrap spec elements
+
+After init:
+  braid observe \"project started\" --confidence 1.0     # first observation
+  braid status                                          # verify store
+  braid seed --inject AGENTS.md                         # configure agent context")]
     Init {
         /// Store directory path.
         #[arg(long, short = 'p', default_value = ".braid")]
@@ -59,7 +65,10 @@ Examples:
 Examples:
   braid observe \"merge is a bottleneck\" --confidence 0.8 --tag bottleneck
   braid observe \"CRDT merge is commutative\" --category theorem --relates-to :spec/inv-store-004
-  braid observe \"query returns wrong results\" --confidence 0.3 --category conjecture")]
+  braid observe \"query returns wrong results\" --confidence 0.3 --category conjecture
+
+Categories: observation, conjecture, theorem, definition, algorithm, design-decision, open-question
+Workflow: observe \u{2192} status (check) \u{2192} observe more \u{2192} harvest (commit)")]
     Observe {
         /// The observation text.
         text: String,
@@ -118,7 +127,10 @@ Examples:
   braid query '[:find ?e ?v :where [?e :db/doc ?v]]'          # Datalog (positional)
   braid query --entity :spec/inv-store-001                     # all datoms for entity
   braid query --attribute :db/doc                              # all values of attribute
-  braid query --datalog '[:find ?e :where [?e :exploration/body _]]'  # Datalog (explicit)")]
+  braid query --datalog '[:find ?e :where [?e :exploration/body _]]'  # Datalog (explicit)
+
+Result format: [entity attribute value tx op] \u{2014} one line per datom
+Empty results? Try: braid query --attribute :db/ident  # list known entities")]
     Query {
         /// Store directory path.
         #[arg(long, short = 'p', default_value = ".braid")]
@@ -158,7 +170,8 @@ Examples:
   braid status --deep                  # bilateral F(S) + graph analytics
   braid status --deep --spectral       # include spectral certificate
   braid status --verify                # integrity check
-  braid status --json                  # structured output")]
+  braid status --json                  # structured output
+  braid status --json | jq '.coherence'  # extract specific fields")]
     Status {
         /// Store directory path.
         #[arg(long, short = 'p', default_value = ".braid")]
@@ -203,7 +216,9 @@ Examples:
   braid log --limit 5                 # last 5 transactions (terse)
   braid log --verbose                  # verbose with rationale/provenance
   braid log --agent braid:user         # only this agent's transactions
-  braid log --datoms                   # show individual datoms")]
+  braid log --datoms                   # show individual datoms
+
+Workflow: braid log --limit 3 \u{2192} see recent \u{2192} braid status \u{2192} decide next")]
     Log {
         /// Store directory path.
         #[arg(long, short = 'p', default_value = ".braid")]
@@ -230,6 +245,38 @@ Examples:
         verbose: bool,
     },
 
+    /// Inspect the datom store schema: attributes, types, cardinality.
+    ///
+    /// Lists all known attributes with their type, cardinality, and documentation.
+    /// Optimized for AI agent consumption: provides the information needed to
+    /// write correct queries and transactions (INV-INTERFACE-011).
+    #[command(after_long_help = "\
+Examples:
+  braid schema                                # list all attributes
+  braid schema --pattern ':db/*'              # filter by namespace glob
+  braid schema --pattern ':spec/*' --verbose  # full details with usage counts
+  braid schema --json                         # structured JSON output
+  braid schema --pattern harvest              # substring match
+
+Workflow: braid schema \u{2192} pick attributes \u{2192} braid query --attribute :attr/name")]
+    Schema {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Filter attributes by pattern (glob with * or substring match).
+        #[arg(long)]
+        pattern: Option<String>,
+
+        /// Show full details per attribute (type, cardinality, resolution, usage count).
+        #[arg(long)]
+        verbose: bool,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
+    },
+
     // ── LIFECYCLE ──────────────────────────────────────────────────────
     /// End-of-session: extract knowledge and commit discoveries.
     ///
@@ -243,7 +290,14 @@ Examples:
   braid harvest --task \"implemented query engine\"         # explicit task override
   braid harvest --commit                                  # persist candidates
   braid harvest --commit --force                          # bypass crystallization guard
-  braid harvest --knowledge gap \"missing join optimization\" --commit")]
+  braid harvest --knowledge gap \"missing join optimization\" --commit
+
+Workflow:
+  braid observe \"found auth bug\" --confidence 0.8        # capture during session
+  braid observe \"decided JWT\" --category design-decision  # record decisions
+  braid harvest                                          # review candidates at session end
+  braid harvest --commit                                  # persist to store
+  braid seed --task \"continue\"                            # next session picks up")]
     Harvest {
         /// Store directory path.
         #[arg(long, short = 'p', default_value = ".braid")]
@@ -504,6 +558,7 @@ fn store_path(cmd: &Command) -> Option<&Path> {
         Command::Init { path, .. }
         | Command::Status { path, .. }
         | Command::Query { path, .. }
+        | Command::Schema { path, .. }
         | Command::Harvest { path, .. }
         | Command::Seed { path, .. }
         | Command::Merge { path, .. }
@@ -525,6 +580,7 @@ fn is_json_output(cmd: &Command) -> bool {
         cmd,
         Command::Query { json: true, .. }
             | Command::Status { json: true, .. }
+            | Command::Schema { json: true, .. }
             | Command::Log { json: true, .. }
             | Command::Seed { json: true, .. }
     )
@@ -644,6 +700,12 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
                 query::run(&path, entity.as_deref(), attribute.as_deref(), json)
             }
         }
+        Command::Schema {
+            path,
+            pattern,
+            verbose,
+            json,
+        } => schema::run(&path, pattern.as_deref(), verbose, json),
         Command::Harvest {
             path,
             agent,
@@ -720,6 +782,533 @@ pub fn run(cmd: Command) -> Result<String, crate::error::BraidError> {
     match (result, path_for_footer) {
         (Ok(output), Some(path)) if !skip_footer => Ok(try_append_footer(output, &path)),
         (result, _) => result,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn try_append_footer_on_missing_store_returns_unchanged() {
+        let output = "some output".to_string();
+        let result = try_append_footer(output.clone(), Path::new("/nonexistent/.braid"));
+        assert_eq!(
+            result, output,
+            "Missing store should return original output"
+        );
+    }
+
+    #[test]
+    fn is_json_output_detects_all_json_variants() {
+        let query_json = Command::Query {
+            path: PathBuf::from(".braid"),
+            entity: None,
+            attribute: None,
+            datalog: None,
+            positional_datalog: None,
+            json: true,
+        };
+        assert!(is_json_output(&query_json));
+
+        let query_no_json = Command::Query {
+            path: PathBuf::from(".braid"),
+            entity: None,
+            attribute: None,
+            datalog: None,
+            positional_datalog: None,
+            json: false,
+        };
+        assert!(!is_json_output(&query_no_json));
+
+        let status_json = Command::Status {
+            path: PathBuf::from(".braid"),
+            json: true,
+            verbose: false,
+            deep: false,
+            spectral: false,
+            full: false,
+            verify: false,
+            agent: "test".into(),
+            commit: false,
+        };
+        assert!(is_json_output(&status_json));
+
+        let log_json = Command::Log {
+            path: PathBuf::from(".braid"),
+            limit: 20,
+            agent: None,
+            datoms: false,
+            json: true,
+            verbose: false,
+        };
+        assert!(is_json_output(&log_json));
+
+        let seed_json = Command::Seed {
+            path: PathBuf::from(".braid"),
+            task: None,
+            budget: 2000,
+            agent: "test".into(),
+            for_human: false,
+            json: true,
+            agent_md: false,
+            compact: false,
+            inject: None,
+        };
+        assert!(is_json_output(&seed_json));
+    }
+
+    #[test]
+    fn is_json_output_false_for_non_json_commands() {
+        let status_no_json = Command::Status {
+            path: PathBuf::from(".braid"),
+            json: false,
+            verbose: false,
+            deep: false,
+            spectral: false,
+            full: false,
+            verify: false,
+            agent: "test".into(),
+            commit: false,
+        };
+        assert!(!is_json_output(&status_no_json));
+
+        let harvest = Command::Harvest {
+            path: PathBuf::from(".braid"),
+            agent: "test".into(),
+            task: None,
+            knowledge: vec![],
+            commit: false,
+            force: false,
+        };
+        assert!(!is_json_output(&harvest));
+
+        let init = Command::Init {
+            path: PathBuf::from(".braid"),
+            spec_dir: PathBuf::from("spec"),
+        };
+        assert!(!is_json_output(&init));
+    }
+
+    #[test]
+    fn is_generative_output_detects_seed() {
+        let seed = Command::Seed {
+            path: PathBuf::from(".braid"),
+            task: None,
+            budget: 2000,
+            agent: "test".into(),
+            for_human: false,
+            json: false,
+            agent_md: false,
+            compact: false,
+            inject: None,
+        };
+        assert!(is_generative_output(&seed));
+    }
+
+    #[test]
+    fn is_generative_output_detects_export() {
+        let export = Command::Write {
+            action: WriteAction::Export {
+                path: PathBuf::from(".braid"),
+                output: PathBuf::from("spec"),
+                namespace: None,
+            },
+        };
+        assert!(is_generative_output(&export));
+    }
+
+    #[test]
+    fn is_generative_output_false_for_non_generative() {
+        let query = Command::Query {
+            path: PathBuf::from(".braid"),
+            entity: None,
+            attribute: None,
+            datalog: None,
+            positional_datalog: None,
+            json: false,
+        };
+        assert!(!is_generative_output(&query));
+
+        let observe = Command::Observe {
+            text: "test".into(),
+            confidence: 0.7,
+            tag: vec![],
+            category: None,
+            path: PathBuf::from(".braid"),
+            agent: "test".into(),
+            relates_to: None,
+        };
+        assert!(!is_generative_output(&observe));
+    }
+
+    #[test]
+    fn shell_is_guidance_command() {
+        let shell = Command::Shell {
+            path: PathBuf::from(".braid"),
+        };
+        assert!(is_guidance_command(&shell));
+    }
+
+    #[test]
+    fn non_shell_is_not_guidance_command() {
+        let status = Command::Status {
+            path: PathBuf::from(".braid"),
+            json: false,
+            verbose: false,
+            deep: false,
+            spectral: false,
+            full: false,
+            verify: false,
+            agent: "test".into(),
+            commit: false,
+        };
+        assert!(!is_guidance_command(&status));
+    }
+
+    #[test]
+    fn store_path_extracts_correctly() {
+        let status = Command::Status {
+            path: PathBuf::from("/tmp/test/.braid"),
+            json: false,
+            verbose: false,
+            deep: false,
+            spectral: false,
+            full: false,
+            verify: false,
+            agent: "test".into(),
+            commit: false,
+        };
+        assert_eq!(store_path(&status), Some(Path::new("/tmp/test/.braid")));
+
+        let query = Command::Query {
+            path: PathBuf::from("/data/.braid"),
+            entity: None,
+            attribute: None,
+            datalog: None,
+            positional_datalog: None,
+            json: false,
+        };
+        assert_eq!(store_path(&query), Some(Path::new("/data/.braid")));
+
+        let write_assert = Command::Write {
+            action: WriteAction::Assert {
+                path: PathBuf::from("/w/.braid"),
+                agent: "test".into(),
+                rationale: "test".into(),
+                datoms: vec![],
+            },
+        };
+        assert_eq!(store_path(&write_assert), Some(Path::new("/w/.braid")));
+    }
+
+    #[test]
+    fn store_path_returns_none_for_mcp() {
+        let mcp = Command::Mcp {
+            action: McpAction::Serve {
+                path: PathBuf::from(".braid"),
+            },
+        };
+        assert_eq!(store_path(&mcp), None);
+    }
+
+    // ── INV-INTERFACE-011 audit: CLI surface as optimized prompt ─────────
+    // Every command must be verified for LLM-friendly output:
+    //   1. Guidance footer coverage (INV-GUIDANCE-001)
+    //   2. Help text with demonstrations (ADR-INTERFACE-002)
+    //   3. Error messages with four-part protocol (INV-INTERFACE-009)
+    //   4. Terse by default, verbose opt-in
+
+    #[test]
+    fn audit_all_commands_have_help_text() {
+        // INV-INTERFACE-011: every subcommand must have discoverable help text
+        // so LLM agents can self-orient from --help output alone.
+        use clap::CommandFactory;
+        let app = crate::Cli::command();
+
+        for subcmd in app.get_subcommands() {
+            let name = subcmd.get_name().to_string();
+            let has_help = subcmd.get_after_long_help().is_some()
+                || subcmd.get_long_about().is_some()
+                || subcmd.get_about().is_some();
+            assert!(
+                has_help,
+                "Command '{name}' must have help text (INV-INTERFACE-011)"
+            );
+        }
+    }
+
+    #[test]
+    fn audit_top_level_commands_have_examples() {
+        // ADR-INTERFACE-002: commands should have demonstrations in help.
+        // Top-level commands that agents use directly must include Examples
+        // in after_long_help. Structural subcommands (mcp) are exempt.
+        use clap::CommandFactory;
+        let app = crate::Cli::command();
+
+        let exempt = ["mcp", "merge"]; // structural/admin, not agent-facing
+        for subcmd in app.get_subcommands() {
+            let name = subcmd.get_name().to_string();
+            if exempt.contains(&name.as_str()) {
+                continue;
+            }
+            let has_examples = subcmd
+                .get_after_long_help()
+                .map(|h| h.to_string().contains("Examples"))
+                .unwrap_or(false);
+            assert!(
+                has_examples,
+                "Command '{name}' must have Examples in help (ADR-INTERFACE-002)"
+            );
+        }
+    }
+
+    #[test]
+    fn audit_footer_injection_coverage() {
+        // INV-GUIDANCE-001: all non-JSON, non-generative, non-guidance commands
+        // must receive a guidance footer. Verify the skip predicates are correct.
+
+        // Commands that MUST skip footers:
+        let json_query = Command::Query {
+            path: PathBuf::from(".braid"),
+            entity: None,
+            attribute: None,
+            datalog: None,
+            positional_datalog: None,
+            json: true,
+        };
+        assert!(is_json_output(&json_query), "JSON query must skip footer");
+
+        let seed = Command::Seed {
+            path: PathBuf::from(".braid"),
+            task: None,
+            budget: 2000,
+            agent: "test".into(),
+            for_human: false,
+            json: false,
+            agent_md: false,
+            compact: false,
+            inject: None,
+        };
+        assert!(
+            is_generative_output(&seed),
+            "Seed must skip footer (generative)"
+        );
+
+        // Commands that MUST get footers:
+        let observe = Command::Observe {
+            path: PathBuf::from(".braid"),
+            text: "test".into(),
+            confidence: 0.7,
+            tag: vec![],
+            category: None,
+            agent: "test".into(),
+            relates_to: None,
+        };
+        assert!(!is_json_output(&observe), "Observe must get footer");
+        assert!(!is_generative_output(&observe), "Observe must get footer");
+        assert!(!is_guidance_command(&observe), "Observe must get footer");
+
+        let harvest = Command::Harvest {
+            path: PathBuf::from(".braid"),
+            agent: "test".into(),
+            task: None,
+            knowledge: vec![],
+            commit: false,
+            force: false,
+        };
+        assert!(!is_json_output(&harvest), "Harvest must get footer");
+        assert!(!is_generative_output(&harvest), "Harvest must get footer");
+    }
+
+    #[test]
+    fn audit_write_subcommands_have_examples() {
+        // ADR-INTERFACE-002: write subcommands are the primary structured
+        // mutation surface; each must have Examples for agent discoverability.
+        use clap::CommandFactory;
+        let app = crate::Cli::command();
+
+        let write_cmd = app
+            .get_subcommands()
+            .find(|c| c.get_name() == "write")
+            .expect("write command must exist");
+
+        for subcmd in write_cmd.get_subcommands() {
+            let name = subcmd.get_name().to_string();
+            let has_examples = subcmd
+                .get_after_long_help()
+                .map(|h| h.to_string().contains("Examples"))
+                .unwrap_or(false);
+            assert!(
+                has_examples,
+                "Write subcommand '{name}' must have Examples (ADR-INTERFACE-002)"
+            );
+        }
+    }
+
+    #[test]
+    fn audit_terse_default_verbose_opt_in() {
+        // INV-INTERFACE-011: output must be terse by default, verbose opt-in.
+        // Commands with verbosity controls must default to terse (verbose=false).
+        use clap::CommandFactory;
+        let app = crate::Cli::command();
+
+        // Status has --verbose and --deep flags (both default false).
+        let status_cmd = app
+            .get_subcommands()
+            .find(|c| c.get_name() == "status")
+            .expect("status command must exist");
+
+        let verbose_arg = status_cmd.get_arguments().find(|a| a.get_id() == "verbose");
+        assert!(
+            verbose_arg.is_some(),
+            "Status must have --verbose flag for opt-in verbosity"
+        );
+
+        // Log has --verbose flag.
+        let log_cmd = app
+            .get_subcommands()
+            .find(|c| c.get_name() == "log")
+            .expect("log command must exist");
+
+        let log_verbose = log_cmd.get_arguments().find(|a| a.get_id() == "verbose");
+        assert!(
+            log_verbose.is_some(),
+            "Log must have --verbose flag for opt-in verbosity"
+        );
+    }
+
+    #[test]
+    fn audit_all_store_commands_have_path_flag() {
+        // INV-INTERFACE-011: every store-using command must accept --path
+        // so agents can specify non-default store locations.
+        // Verify via the store_path() extractor: every command except Mcp
+        // must return Some.
+
+        let commands_with_paths = [
+            Command::Init {
+                path: PathBuf::from(".braid"),
+                spec_dir: PathBuf::from("spec"),
+            },
+            Command::Status {
+                path: PathBuf::from(".braid"),
+                json: false,
+                verbose: false,
+                deep: false,
+                spectral: false,
+                full: false,
+                verify: false,
+                agent: "test".into(),
+                commit: false,
+            },
+            Command::Query {
+                path: PathBuf::from(".braid"),
+                entity: None,
+                attribute: None,
+                datalog: None,
+                positional_datalog: None,
+                json: false,
+            },
+            Command::Harvest {
+                path: PathBuf::from(".braid"),
+                agent: "test".into(),
+                task: None,
+                knowledge: vec![],
+                commit: false,
+                force: false,
+            },
+            Command::Seed {
+                path: PathBuf::from(".braid"),
+                task: None,
+                budget: 2000,
+                agent: "test".into(),
+                for_human: false,
+                json: false,
+                agent_md: false,
+                compact: false,
+                inject: None,
+            },
+            Command::Log {
+                path: PathBuf::from(".braid"),
+                limit: 20,
+                agent: None,
+                datoms: false,
+                json: false,
+                verbose: false,
+            },
+            Command::Observe {
+                path: PathBuf::from(".braid"),
+                text: "test".into(),
+                confidence: 0.7,
+                tag: vec![],
+                category: None,
+                agent: "test".into(),
+                relates_to: None,
+            },
+            Command::Schema {
+                path: PathBuf::from(".braid"),
+                pattern: None,
+                verbose: false,
+                json: false,
+            },
+            Command::Shell {
+                path: PathBuf::from(".braid"),
+            },
+            Command::Merge {
+                path: PathBuf::from(".braid"),
+                source: PathBuf::from("/tmp"),
+            },
+        ];
+
+        for cmd in &commands_with_paths {
+            assert!(
+                store_path(cmd).is_some(),
+                "Store-using command must have extractable path (INV-INTERFACE-011)"
+            );
+        }
+    }
+
+    #[test]
+    fn footer_skip_logic_is_consistent() {
+        // JSON output should skip footer
+        let json_cmd = Command::Query {
+            path: PathBuf::from(".braid"),
+            entity: None,
+            attribute: None,
+            datalog: None,
+            positional_datalog: None,
+            json: true,
+        };
+        assert!(
+            is_json_output(&json_cmd),
+            "JSON commands must skip footer to avoid corrupting output"
+        );
+
+        // Guidance commands should skip footer (avoid double injection)
+        let guidance_cmd = Command::Shell {
+            path: PathBuf::from(".braid"),
+        };
+        assert!(
+            is_guidance_command(&guidance_cmd),
+            "Guidance commands must skip footer to avoid duplication"
+        );
+
+        // Generative output should skip footer (avoid corrupting piped output)
+        let gen_cmd = Command::Seed {
+            path: PathBuf::from(".braid"),
+            task: None,
+            budget: 2000,
+            agent: "test".into(),
+            for_human: false,
+            json: false,
+            agent_md: false,
+            compact: false,
+            inject: None,
+        };
+        assert!(
+            is_generative_output(&gen_cmd),
+            "Generative commands must skip footer to avoid corrupting files"
+        );
     }
 }
 

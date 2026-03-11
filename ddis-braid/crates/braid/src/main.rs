@@ -47,8 +47,7 @@ fn main() {
             print!("{output}");
         }
         Err(e) => {
-            eprintln!("error: {e}");
-            eprintln!("hint: {}", e.recovery_hint());
+            eprintln!("{e}");
             std::process::exit(1);
         }
     }

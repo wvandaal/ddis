@@ -218,9 +218,120 @@ struct HarvestSummary {
     candidate_count: i64,
 }
 
+/// Excerpt from a harvest session (S0.3.1: INV-SEED-001).
+///
+/// This is a projection of the session's causal cone in the datom graph.
+/// Provides the essential "what happened" for each prior session.
+#[derive(Clone, Debug, Default)]
+struct SessionExcerpt {
+    /// Design decisions made (from `:exploration/category` = "design-decision").
+    decisions: Vec<String>,
+    /// Open questions remaining (from `:exploration/category` = "open-question").
+    open_questions: Vec<String>,
+}
+
+/// Discover content from a harvest session entity.
+///
+/// Extracts the session's decisions and open questions by scanning datoms
+/// in the temporal neighborhood of the session entity.
+fn discover_session_content(store: &Store, session_entity: EntityId) -> SessionExcerpt {
+    let mut excerpt = SessionExcerpt::default();
+
+    // Extract wall_time from the session entity's transaction
+    let session_wall_time = store
+        .entity_datoms(session_entity)
+        .first()
+        .map(|d| d.tx.wall_time());
+
+    // Find observations temporally close to this session.
+    // Look for observations with wall_time within 3600 seconds (1 hour) of session.
+    if let Some(session_time) = session_wall_time {
+        let window_start = session_time.saturating_sub(3600);
+        let window_end = session_time.saturating_add(60); // small future buffer
+
+        for datom in store.datoms() {
+            if datom.op != Op::Assert {
+                continue;
+            }
+            if datom.attribute.as_str() != ":exploration/source" {
+                continue;
+            }
+
+            let obs_time = datom.tx.wall_time();
+            if obs_time < window_start || obs_time > window_end {
+                continue;
+            }
+
+            // This is an observation in our time window - check its category
+            let entity = datom.entity;
+            let mut category = String::new();
+            let mut body = String::new();
+
+            for d in store.entity_datoms(entity) {
+                if d.op != Op::Assert {
+                    continue;
+                }
+                match d.attribute.as_str() {
+                    ":exploration/category" => match &d.value {
+                        Value::String(ref s) => {
+                            category.clone_from(s);
+                        }
+                        Value::Keyword(ref k) => {
+                            category.clone_from(k);
+                        }
+                        _ => {}
+                    },
+                    ":exploration/body" | ":db/doc" => {
+                        if let Value::String(ref s) = d.value {
+                            body = if s.len() > 120 {
+                                format!("{}...", &s[..120])
+                            } else {
+                                s.clone()
+                            };
+                        }
+                    }
+                    _ => {}
+                }
+            }
+
+            match category.as_str() {
+                "design-decision" => excerpt.decisions.push(body),
+                "open-question" => excerpt.open_questions.push(body),
+                _ => {}
+            }
+        }
+    }
+
+    excerpt
+}
+
+/// Discover session excerpts for the N most recent harvest sessions.
+///
+/// Returns excerpts sorted by recency (newest first), limited to `max_sessions`.
+fn discover_recent_sessions(store: &Store, max_sessions: usize) -> Vec<SessionExcerpt> {
+    // Collect harvest session entities
+    let mut sessions: Vec<(EntityId, u64)> = Vec::new();
+    for datom in store.datoms() {
+        if datom.attribute.as_str() == ":harvest/agent" && datom.op == Op::Assert {
+            sessions.push((datom.entity, datom.tx.wall_time()));
+        }
+    }
+
+    // Sort by wall_time descending
+    sessions.sort_by_key(|(_, t)| std::cmp::Reverse(*t));
+    sessions.truncate(max_sessions);
+
+    // Discover content for each
+    sessions
+        .iter()
+        .map(|(entity, _)| discover_session_content(store, *entity))
+        .collect()
+}
+
 /// Build the Orientation section with store summary and session history (SB.2.4).
 ///
 /// Shows: store size, last 3 harvest sessions with task descriptions,
+/// structured session excerpts (decisions, open questions) from recent sessions,
 /// observation count since last harvest, and recent decisions.
 fn build_orientation(store: &Store) -> String {
     let entity_count = store.entity_count();
@@ -286,6 +397,33 @@ fn build_orientation(store: &Store) -> String {
                 "  Prior: {} ({} candidates)",
                 h.doc, h.candidate_count
             ));
+        }
+    }
+
+    // Session detail from excerpts (S0.3.2: INV-SEED-005 demonstration density)
+    let excerpts = discover_recent_sessions(store, 2);
+    for (i, excerpt) in excerpts.iter().enumerate() {
+        if !excerpt.decisions.is_empty() {
+            let label = if i == 0 {
+                "Latest decisions"
+            } else {
+                "Prior decisions"
+            };
+            parts.push(format!("{label}:"));
+            for d in excerpt.decisions.iter().take(2) {
+                parts.push(format!("  \u{2192} {d}"));
+            }
+        }
+        if !excerpt.open_questions.is_empty() {
+            let label = if i == 0 {
+                "Open questions"
+            } else {
+                "Prior open"
+            };
+            parts.push(format!("{label}:"));
+            for q in excerpt.open_questions.iter().take(2) {
+                parts.push(format!("  ? {q}"));
+            }
         }
     }
 
@@ -474,21 +612,30 @@ fn discover_constraints(store: &Store) -> Vec<ConstraintRef> {
     constraints
 }
 
-/// Build Directive section with task and injected actions (SB.2.1).
+/// Build Directive section with task and injected actions (SB.2.1, INV-SEED-005).
 ///
-/// Takes the top 3 actions from guidance and formats them as copy-pasteable
-/// commands with spec references.
-fn build_directive(task: &str, actions: &[crate::guidance::GuidanceAction]) -> String {
+/// Produces a structured directive with:
+/// 1. Task anchoring (INV-SEED-006: prevents basin drift)
+/// 2. Top 3 actions from guidance with runnable commands + spec refs
+/// 3. Quick-reference command block (budget permitting, INV-SEED-002)
+///
+/// Every element is copy-pasteable — the directive IS a prompt fragment.
+fn build_directive(
+    task: &str,
+    actions: &[crate::guidance::GuidanceAction],
+    budget: usize,
+) -> String {
     let mut parts = vec![format!("Task: {task}")];
 
     if !actions.is_empty() {
         parts.push(String::new());
         parts.push("Next actions:".to_string());
         for (i, action) in actions.iter().take(3).enumerate() {
+            let category_label = format!("{:?}", action.category);
             parts.push(format!(
-                "  {}. {:?} — {}",
+                "  {}. {} — {}",
                 i + 1,
-                action.category,
+                category_label,
                 action.summary
             ));
             if let Some(ref cmd) = action.command {
@@ -498,6 +645,15 @@ fn build_directive(task: &str, actions: &[crate::guidance::GuidanceAction]) -> S
                 parts.push(format!("     ref: {}", action.relates_to.join(", ")));
             }
         }
+    }
+
+    // Quick reference block — only when budget allows (INV-SEED-002 > INV-SEED-005)
+    if budget >= 200 {
+        parts.push(String::new());
+        parts.push("Quick reference:".to_string());
+        parts.push("  braid status                     # Dashboard + next action".to_string());
+        parts.push("  braid observe \"...\" --confidence 0.7  # Capture knowledge".to_string());
+        parts.push("  braid harvest --commit           # End-of-session extraction".to_string());
     }
 
     parts.join("\n")
@@ -1025,7 +1181,7 @@ pub fn assemble(
 
     // Directive: task + action injection (SB.2.1)
     let actions = crate::guidance::derive_actions(store);
-    let directive_text = build_directive(task, &actions);
+    let directive_text = build_directive(task, &actions, budget);
     let directive_tokens = estimate_tokens(&directive_text);
     let directive = ContextSection::Directive(directive_text);
 
@@ -2043,5 +2199,122 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn test_orientation_includes_session_decisions() {
+        use crate::datom::{Attribute, TxId};
+        use std::collections::BTreeSet;
+
+        let mut store = store_with_full_schema();
+        let agent = AgentId::from_name("test-agent");
+        let tx_id = TxId::new(1000, 1, agent);
+
+        // Build raw datoms for a harvest session + a decision observation.
+        // Use raw datoms + merge to bypass schema validation (harvest attributes
+        // are not in the L0-L3 schema — they are domain attributes added at runtime).
+        let session_id = EntityId::from_ident(":harvest/session-test");
+        let obs_id = EntityId::from_ident(":observation/decision-1");
+
+        let mut raw_datoms = BTreeSet::new();
+
+        // Harvest session entity
+        raw_datoms.insert(Datom::new(
+            session_id,
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test-agent".into()),
+            tx_id,
+            Op::Assert,
+        ));
+        raw_datoms.insert(Datom::new(
+            session_id,
+            Attribute::from_keyword(":harvest/task"),
+            Value::String("implement feature X".into()),
+            tx_id,
+            Op::Assert,
+        ));
+        raw_datoms.insert(Datom::new(
+            session_id,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("Harvest session for task: implement feature X".into()),
+            tx_id,
+            Op::Assert,
+        ));
+
+        // Decision observation (same wall_time so it falls in the 1-hour window)
+        let obs_tx = TxId::new(1001, 1, agent);
+        raw_datoms.insert(Datom::new(
+            obs_id,
+            Attribute::from_keyword(":exploration/source"),
+            Value::String("braid:observe".into()),
+            obs_tx,
+            Op::Assert,
+        ));
+        raw_datoms.insert(Datom::new(
+            obs_id,
+            Attribute::from_keyword(":exploration/category"),
+            Value::String("design-decision".into()),
+            obs_tx,
+            Op::Assert,
+        ));
+        raw_datoms.insert(Datom::new(
+            obs_id,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("Decided to use hash-join strategy".into()),
+            obs_tx,
+            Op::Assert,
+        ));
+
+        // Merge raw datoms into the schema-aware store
+        let overlay = Store::from_datoms(raw_datoms);
+        store.merge(&overlay);
+
+        let orientation = build_orientation(&store);
+        // Should contain the harvest session info
+        assert!(
+            orientation.contains("implement feature X"),
+            "Should contain task goal, got: {}",
+            orientation
+        );
+        // Should contain decision from the session excerpt
+        assert!(
+            orientation.contains("hash-join") || orientation.contains("decisions"),
+            "Orientation should surface session decisions: {}",
+            orientation
+        );
+    }
+
+    #[test]
+    fn test_directive_includes_quick_reference() {
+        use crate::guidance::{ActionCategory, GuidanceAction};
+
+        let actions = vec![GuidanceAction {
+            category: ActionCategory::Connect,
+            summary: "Test action".into(),
+            command: Some("braid query --entity :spec/test".into()),
+            relates_to: vec!["INV-STORE-001".into()],
+            priority: 1,
+        }];
+
+        // Budget >= 200: quick reference included
+        let directive = build_directive("test task", &actions, 2000);
+
+        // Should contain task anchoring
+        assert!(directive.contains("Task: test task"));
+        // Should contain the action
+        assert!(directive.contains("Test action"));
+        assert!(directive.contains("braid query --entity :spec/test"));
+        assert!(directive.contains("INV-STORE-001"));
+        // Should contain quick reference block
+        assert!(directive.contains("Quick reference:"));
+        assert!(directive.contains("braid status"));
+        assert!(directive.contains("braid observe"));
+        assert!(directive.contains("braid harvest --commit"));
+
+        // Budget < 200: quick reference omitted (INV-SEED-002 takes precedence)
+        let compact = build_directive("test task", &actions, 50);
+        assert!(compact.contains("Task: test task"));
+        assert!(compact.contains("Test action"));
+        assert!(!compact.contains("Quick reference:"));
     }
 }

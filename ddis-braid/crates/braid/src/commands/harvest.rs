@@ -7,8 +7,8 @@ use std::path::Path;
 use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 use braid_kernel::guidance::{count_txns_since_last_harvest, last_harvest_wall_time};
 use braid_kernel::harvest::{
-    candidate_to_datoms, crystallization_guard, harvest_pipeline, SessionContext,
-    DEFAULT_CRYSTALLIZATION_THRESHOLD,
+    candidate_to_datoms, crystallization_guard, harvest_pipeline, infer_task_description,
+    synthesize_narrative, SessionContext, DEFAULT_CRYSTALLIZATION_THRESHOLD,
 };
 use braid_kernel::layout::TxFile;
 
@@ -18,22 +18,29 @@ use crate::layout::DiskLayout;
 
 /// Infer task description from store state and git branch.
 ///
-/// Priority: active session > tx rationale > observation doc > git branch > "session work".
+/// Delegates to the kernel's `infer_task_description` for store-based signals
+/// (session entity, observation body, namespace frequency), then augments
+/// with CLI-specific signals (tx rationale, git branch) when the kernel
+/// returns low-confidence results.
+///
+/// Priority: session entity (0.95) > tx rationale > observation (0.6) >
+///           namespace freq (0.3) > git branch > fallback (0.1).
 fn infer_task(store: &braid_kernel::Store, path: &Path) -> (String, &'static str) {
-    // Check for active session entity
-    let session_entity = EntityId::from_ident(":session/current");
-    let session_datoms = store.entity_datoms(session_entity);
-    for d in &session_datoms {
-        if d.attribute == Attribute::from_keyword(":session/task")
-            && d.op == braid_kernel::datom::Op::Assert
-        {
-            if let Value::String(ref s) = d.value {
-                return (s.clone(), "session");
-            }
-        }
+    // Try kernel multi-signal inference first
+    let (kernel_task, kernel_source, kernel_confidence) = infer_task_description(store);
+
+    // High-confidence kernel results (session entity, observation) are authoritative
+    if kernel_confidence >= 0.5 {
+        let label = match kernel_source.as_str() {
+            "session entity" => "session",
+            "recent observation" => "observation",
+            _ => "kernel",
+        };
+        return (kernel_task, label);
     }
 
-    // Fall back to most recent tx rationale
+    // For low-confidence kernel results, try CLI-specific signals first:
+    // tx rationale (not available in kernel because it's a store-internal attribute)
     let mut latest_wall = 0u64;
     let mut latest_rationale = String::new();
     for d in store.datoms() {
@@ -53,30 +60,13 @@ fn infer_task(store: &braid_kernel::Store, path: &Path) -> (String, &'static str
         return (latest_rationale, "tx rationale");
     }
 
-    // Fall back to the most recent observation's doc (truncated)
-    let harvest_boundary = braid_kernel::guidance::last_harvest_wall_time(store);
-    let mut latest_obs_wall = 0u64;
-    let mut latest_obs_doc = String::new();
-    for d in store.datoms() {
-        if d.attribute == Attribute::from_keyword(":db/doc")
-            && d.op == braid_kernel::datom::Op::Assert
-            && d.tx.wall_time() > harvest_boundary
-        {
-            let wall = d.tx.wall_time();
-            if wall > latest_obs_wall {
-                if let Value::String(ref s) = d.value {
-                    latest_obs_wall = wall;
-                    latest_obs_doc = if s.len() > 80 {
-                        format!("{}...", &s[..80])
-                    } else {
-                        s.clone()
-                    };
-                }
-            }
-        }
-    }
-    if !latest_obs_doc.is_empty() {
-        return (latest_obs_doc, "observation");
+    // Kernel namespace-frequency signal (confidence 0.3) beats git branch
+    if kernel_confidence >= 0.2 {
+        let label = match kernel_source.as_str() {
+            "namespace frequency" => "namespace",
+            _ => "kernel",
+        };
+        return (kernel_task, label);
     }
 
     // Fall back to git branch name
@@ -203,6 +193,13 @@ pub fn run(
                 "  reason: knowledge items provided but all correspond to existing entities\n",
             );
         }
+    }
+
+    // Pipe-back-to-harness: synthesis directive for the running agent (S0.2a.2)
+    let narrative = synthesize_narrative(&store, &result.candidates, &task);
+    if let Some(ref directive) = narrative.synthesis_directive {
+        out.push('\n');
+        out.push_str(directive);
     }
 
     // If --commit: apply crystallization guard then persist

@@ -57,9 +57,10 @@ pub use guidance::{
 };
 pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, crystallization_guard,
-    harvest_pipeline, optimal_threshold, stability_score, CalibrationResult, CandidateStatus,
-    CrystallizationResult, HarvestCandidate, HarvestCategory, HarvestCommit, HarvestQuality,
-    HarvestResult, SessionContext, DEFAULT_CRYSTALLIZATION_THRESHOLD,
+    harvest_pipeline, infer_task_description, optimal_threshold, stability_score,
+    CalibrationResult, CandidateStatus, CrystallizationResult, HarvestCandidate, HarvestCategory,
+    HarvestCommit, HarvestQuality, HarvestResult, SessionContext,
+    DEFAULT_CRYSTALLIZATION_THRESHOLD,
 };
 pub use layout::{
     collect_datoms, deserialize_tx, serialize_tx, tx_content_hash, verify_content_hash,
@@ -73,16 +74,16 @@ pub use promote::{
     DualIdentityCheck, PromotionRequest, PromotionResult, PromotionTargetType,
 };
 pub use query::{
-    betweenness_centrality, cheeger, conflict_sheaf, constant_sheaf, critical_path, density,
-    edge_laplacian, evaluate, fiedler, fiedler_from_spectrum, first_betti_number, graph_laplacian,
-    heat_kernel_from_spectrum, heat_kernel_trace, kirchhoff_from_partial_spectrum,
+    aggregate, betweenness_centrality, cheeger, conflict_sheaf, constant_sheaf, critical_path,
+    density, edge_laplacian, evaluate, fiedler, fiedler_from_spectrum, first_betti_number,
+    graph_laplacian, heat_kernel_from_spectrum, heat_kernel_trace, kirchhoff_from_partial_spectrum,
     kirchhoff_from_spectrum, kirchhoff_index, lanczos_k_smallest, ollivier_ricci_curvature,
     pagerank, persistence_distance, persistent_homology, ricci_curvature_adaptive, ricci_summary,
     scc, spectral_decomposition, spectral_decomposition_adaptive, structural_complexity, topo_sort,
-    total_persistence, tx_barcode, tx_filtration, Binding, BirthDeath, CellularSheaf,
-    CheegerResult, Clause, DenseMatrix, DiGraph, FiedlerResult, FindSpec, Pattern,
-    PersistenceDiagram, QueryExpr, QueryResult, RicciSummary, SheafCohomology, SparseLaplacian,
-    SpectralDecomposition, StructuralComplexity,
+    total_persistence, tx_barcode, tx_filtration, AggregateFunction, AggregateSpec, Binding,
+    BirthDeath, CellularSheaf, CheegerResult, Clause, DenseMatrix, DiGraph, FiedlerResult,
+    FindSpec, Pattern, PersistenceDiagram, QueryExpr, QueryResult, RicciSummary, SheafCohomology,
+    SparseLaplacian, SpectralDecomposition, StructuralComplexity,
 };
 pub use resolution::{
     conflict_to_datoms, detect_conflicts, resolve, resolve_with_trail, ConflictEntity, ConflictSet,

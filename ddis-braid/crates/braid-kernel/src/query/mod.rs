@@ -15,11 +15,13 @@
 //! - **INV-QUERY-013**: Critical path analysis.
 //! - **INV-QUERY-014**: Graph density computation.
 
+pub mod aggregate;
 pub mod clause;
 pub mod evaluator;
 pub mod graph;
 pub mod stratum;
 
+pub use aggregate::{aggregate, AggregateFunction, AggregateSpec};
 pub use clause::{Binding, Clause, FindSpec, Pattern, QueryExpr};
 pub use evaluator::{evaluate, QueryResult};
 pub use graph::{
