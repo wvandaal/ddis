@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773250979/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 018 wave 2: inject path cleaned (removed **** empty-label noise), directive dedup (synthesis OR excerpt, not both), completeness gaps reclassified as Observation to prevent decision/uncertainty pollution"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fde6bc4556d075aa630000e474fe8354fc1c8feb89a2af45a60b4b64b3ce3936" :a :db/ident :v :observation/session-018-wave-2-inject-path-cleaned-removed-empty :op :assert}
+   {:e #blake3 "fde6bc4556d075aa630000e474fe8354fc1c8feb89a2af45a60b4b64b3ce3936" :a :db/doc :v "Session 018 wave 2: inject path cleaned (removed **** empty-label noise), directive dedup (synthesis OR excerpt, not both), completeness gaps reclassified as Observation to prevent decision/uncertainty pollution" :op :assert}
+   {:e #blake3 "fde6bc4556d075aa630000e474fe8354fc1c8feb89a2af45a60b4b64b3ce3936" :a :exploration/body :v "Session 018 wave 2: inject path cleaned (removed **** empty-label noise), directive dedup (synthesis OR excerpt, not both), completeness gaps reclassified as Observation to prevent decision/uncertainty pollution" :op :assert}
+   {:e #blake3 "fde6bc4556d075aa630000e474fe8354fc1c8feb89a2af45a60b4b64b3ce3936" :a :exploration/content-hash :v #bytes "fc3850de65eeaa8d0c898fcce4e74e22285388c129a925498aba48d47e1d0f79" :op :assert}
+   {:e #blake3 "fde6bc4556d075aa630000e474fe8354fc1c8feb89a2af45a60b4b64b3ce3936" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "fde6bc4556d075aa630000e474fe8354fc1c8feb89a2af45a60b4b64b3ce3936" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "fde6bc4556d075aa630000e474fe8354fc1c8feb89a2af45a60b4b64b3ce3936" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "fde6bc4556d075aa630000e474fe8354fc1c8feb89a2af45a60b4b64b3ce3936" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+ ]}

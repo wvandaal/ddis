@@ -221,7 +221,7 @@ pub fn format_for_injection(store: &Store, task: Option<&str>, budget: usize) ->
                     // E6: Group by semantic type for comprehension
                     let groups = group_state_entries(entries);
                     for (label, group) in &groups {
-                        if groups.len() > 1 {
+                        if groups.len() > 1 && !label.is_empty() {
                             out.push_str(&format!("**{label}**\n"));
                         }
                         for entry in group.iter().take(10) {

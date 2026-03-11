@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773250984/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 1 candidates from task 'Session 018: Harvest classification fix, directive enrichment, inject cleanup'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :db/ident :v :harvest/session-braid-user-1773250984 :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :db/doc :v "Harvest session for task: Session 018: Harvest classification fix, directive enrichment, inject cleanup" :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/candidate-count :v 1 :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/task :v "Session 018: Harvest classification fix, directive enrichment, inject cleanup" :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/accomplishments :v "Session 018 wave 2: inject path cleaned (removed **** empty-label noise), directive dedup (synthesis OR excerpt, not both), completeness gaps reclassified as Observation to prevent decision/uncertainty pollution" :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 018: Harvest classification fix, directive enrichment, inject cleanup\nRun: `braid seed --task \"continue: Session 018: Harvest classification fix, directive enrichment, inject cleanup\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/git-summary :v "branch=main, 1 commits, 6 files (+234/-16)\n  f444ef2 Session 018: Harvest classification fix + directive enrichment\nHot files:\n  ddis-braid/crates/braid-kernel/src/harvest.rs (102 lines changed)\n  ddis-braid/crates/braid-kernel/src/seed.rs (79 lines changed)\n  ddis-braid/.braid/txns/0d/0dc308c0a1acc37e422ad7dff371b45407c2643b99805f2050f18647dc149725.edn (24 lines changed)\n  ddis-braid/.braid/txns/0f/0ffb4ab2c4af75311245e99a03868e1e47f6439e86788772fa0c98937a784e3d.edn (15 lines changed)\n  ddis-braid/.braid/txns/2b/2bab33fbd0c70352b64d6f8ecc0f506c81b03f5995600a59e1cd2d6c6a9663de.edn (15 lines changed)\n  ddis-braid/.braid/txns/47/47fedc92ec50c62f4d91de06c10ce2099e776e2232ece3106a6f338f29bab23f.edn (15 lines changed)" :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/store-datom-count :v 3206 :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/store-entity-count :v 763 :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/codebase-snapshot :v "Codebase: 41636 LOC across 49 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (3984 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (3612 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (3246 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (2347 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (2330 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2042 LOC)\n  ddis-braid/crates/braid-kernel/src/trilateral.rs (1857 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (1399 LOC)\n  ddis-braid/crates/braid-kernel/tests/cross_namespace.rs (1316 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (1217 LOC)" :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/tx-since-last :v 1 :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/observation-count :v 1 :op :assert}
+   {:e #blake3 "c954610d1e225ea6ab7a6f7ee75de3c5a9d79d820be37041c003d4b3e3f47328" :a :harvest/delta-summary :v "+25 datoms, +2 entities" :op :assert}
+ ]}
