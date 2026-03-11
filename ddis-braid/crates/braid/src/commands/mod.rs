@@ -13,6 +13,7 @@ pub(crate) mod observe;
 mod query;
 mod schema;
 mod seed;
+mod session;
 pub(crate) mod shell;
 mod status;
 pub(crate) mod write;
@@ -444,6 +445,29 @@ Examples:
         inject: Option<PathBuf>,
     },
 
+    // ── SESSION LIFECYCLE ──────────────────────────────────────────────
+    /// Session lifecycle: start and end sessions with one command.
+    ///
+    /// `braid session start` — inject seed + show actionable summary.
+    /// `braid session end`   — harvest + re-inject + show git guidance.
+    ///
+    /// Replaces the multi-step start/end protocol with two commands.
+    #[command(
+        subcommand_required = true,
+        after_long_help = "\
+Examples:
+  braid session start                                 # auto-continue from last harvest
+  braid session start --task \"implement budget output\" # explicit task
+  braid session end                                   # harvest + inject + guide
+  braid session end --task \"completed budget pipeline\" # override task
+
+Workflow: session start → observe → work → observe → session end"
+    )]
+    Session {
+        #[command(subcommand)]
+        action: SessionAction,
+    },
+
     // ── ADMIN ──────────────────────────────────────────────────────────
     /// Interactive exploration shell (zero external deps).
     ///
@@ -616,6 +640,61 @@ pub enum McpAction {
     },
 }
 
+/// Session lifecycle subcommands.
+#[derive(Subcommand)]
+pub enum SessionAction {
+    /// Start a session: inject seed into AGENTS.md, show actionable summary.
+    ///
+    /// Task is auto-detected from the last harvest's synthesis directive.
+    /// Override with --task.
+    Start {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Task description. If omitted, reads from last harvest's synthesis directive.
+        #[arg(long, short = 't')]
+        task: Option<String>,
+
+        /// File to inject seed into.
+        #[arg(long, default_value = "AGENTS.md")]
+        inject: PathBuf,
+
+        /// Token budget for seed injection (distinct from global --budget).
+        #[arg(long, default_value = "2000")]
+        seed_budget: usize,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// End a session: harvest, re-inject seed, show git guidance.
+    ///
+    /// Does NOT run git commands — shows guidance only.
+    End {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Task description override.
+        #[arg(long, short = 't')]
+        task: Option<String>,
+
+        /// File to inject seed into after harvest.
+        #[arg(long, default_value = "AGENTS.md")]
+        inject: PathBuf,
+
+        /// Token budget for seed injection (distinct from global --budget).
+        #[arg(long, default_value = "2000")]
+        seed_budget: usize,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+}
+
 /// Extract the store path from a command variant (if the command uses a store).
 fn store_path(cmd: &Command) -> Option<&Path> {
     match cmd {
@@ -630,6 +709,9 @@ fn store_path(cmd: &Command) -> Option<&Path> {
         | Command::Log { path, .. }
         | Command::Observe { path, .. }
         | Command::Shell { path, .. } => Some(path),
+        Command::Session { action } => match action {
+            SessionAction::Start { path, .. } | SessionAction::End { path, .. } => Some(path),
+        },
         Command::Write { action } => match action {
             WriteAction::Assert { path, .. }
             | WriteAction::Retract { path, .. }
@@ -661,6 +743,7 @@ fn is_generative_output(cmd: &Command) -> bool {
     matches!(
         cmd,
         Command::Seed { .. }
+            | Command::Session { .. }
             | Command::Write {
                 action: WriteAction::Export { .. }
             }
@@ -861,6 +944,28 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
             rationale: rationale.as_deref(),
             alternatives: alternatives.as_deref(),
         }),
+        Command::Session { action } => match action {
+            SessionAction::Start {
+                path,
+                task,
+                inject,
+                seed_budget,
+                agent,
+            } => {
+                let eff = seed_budget.min(budget_ctx.manager.output_budget as usize);
+                session::run_start(&path, &inject, task.as_deref(), eff, &agent)
+            }
+            SessionAction::End {
+                path,
+                task,
+                inject,
+                seed_budget,
+                agent,
+            } => {
+                let eff = seed_budget.min(budget_ctx.manager.output_budget as usize);
+                session::run_end(&path, &inject, task.as_deref(), eff, &agent)
+            }
+        },
         Command::Shell { path } => shell::run(&path),
         Command::Mcp { action } => match action {
             McpAction::Serve { path } => {
