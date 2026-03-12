@@ -26,6 +26,7 @@
 pub mod agent_md;
 pub mod bilateral;
 pub mod budget;
+pub mod config;
 pub mod datom;
 pub mod error;
 pub mod guidance;
@@ -49,17 +50,20 @@ pub mod trilateral;
 // Re-export core types at crate root for ergonomic access.
 pub use agent_md::{generate_agent_md, AgentMdConfig, AgentMdSection, GeneratedAgentMd};
 pub use bilateral::{
-    analyze_convergence, backward_scan, compute_fitness, cycle_to_datoms, evaluate_conditions,
-    format_terse, format_verbose, forward_scan, load_trajectory, run_cycle, spectral_certificate,
-    BilateralScan, BilateralState, Boundary, CoherenceConditions, ConditionResult,
-    ConvergenceAnalysis, EntropyDecomposition, FitnessComponents, FitnessScore, Gap, GapSeverity,
-    RenyiSpectrum, ScanResult, SpectralCertificate,
+    analyze_convergence, backward_scan, compute_fitness, cycle_to_datoms, depth_weight,
+    evaluate_conditions, format_terse, format_verbose, forward_scan, load_trajectory, run_cycle,
+    spectral_certificate, BilateralScan, BilateralState, Boundary, CoherenceConditions,
+    ConditionResult, ConvergenceAnalysis, EntropyDecomposition, FitnessComponents, FitnessScore,
+    Gap, GapSeverity, RenyiSpectrum, ScanResult, SpectralCertificate,
 };
 pub use budget::{
     attention_decay, classify_command, quality_adjusted_budget, ApproxTokenCounter,
     AttentionProfile, BudgetManager, BudgetProjection, GuidanceLevel, OutputBlock,
     OutputPrecedence, TokenCounter, TokenEfficiency, AGENT_MODE_CEILING, BUDGET_FRACTION,
     DEFAULT_WINDOW_SIZE, ERROR_MESSAGE_CEILING, GUIDANCE_FOOTER_CEILING, MIN_OUTPUT,
+};
+pub use config::{
+    all_config, defaults as config_defaults, get_config, get_config_or, set_config_datoms,
 };
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 pub use error::KernelError;

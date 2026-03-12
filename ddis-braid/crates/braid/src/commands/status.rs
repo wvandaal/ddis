@@ -27,7 +27,9 @@ use braid_kernel::trilateral::check_coherence_fast;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
+/// Run status and return structured CommandOutput (INV-INTERFACE-001: three output modes).
 #[allow(clippy::too_many_arguments)]
 pub fn run(
     path: &Path,
@@ -39,24 +41,22 @@ pub fn run(
     full: bool,
     verify: bool,
     commit: bool,
-) -> Result<String, BraidError> {
-    // Verify mode: just check integrity
+) -> Result<CommandOutput, BraidError> {
+    // Verify mode: just check integrity — simple string output
     if verify {
         let layout = DiskLayout::open(path)?;
         let report = layout.verify_integrity()?;
-        if report.is_clean() {
-            return Ok(format!(
-                "integrity: OK ({} files verified)\n",
-                report.verified
-            ));
+        let msg = if report.is_clean() {
+            format!("integrity: OK ({} files verified)\n", report.verified)
         } else {
-            return Ok(format!(
+            format!(
                 "integrity: FAILED ({} corrupted, {} orphaned out of {})\n",
                 report.corrupted.len(),
                 report.orphaned.len(),
                 report.total_files,
-            ));
-        }
+            )
+        };
+        return Ok(CommandOutput::from_human(msg));
     }
 
     let layout = DiskLayout::open(path)?;
@@ -64,32 +64,61 @@ pub fn run(
     let hashes = layout.list_tx_hashes()?;
     let tx_since_harvest = count_txns_since_last_harvest(&store);
 
-    if json {
-        return run_json(
-            path,
-            &store,
-            &hashes,
-            tx_since_harvest,
-            agent_name,
-            deep,
-            spectral,
-        );
-    }
-
-    // Deep mode: bilateral F(S) + optional graph analytics
+    // Deep mode: bilateral F(S) + optional graph analytics (string-based for now)
     if deep {
-        return run_deep(path, &store, agent_name, spectral, full, commit);
+        return run_deep(path, &store, agent_name, spectral, full, commit)
+            .map(CommandOutput::from_human);
     }
 
-    if verbose {
-        return run_verbose(path, agent_name, &store, &hashes, tx_since_harvest);
+    // Build JSON representation (always computed — reused for --json and structured output)
+    let json_value = build_json(
+        path,
+        &store,
+        &hashes,
+        tx_since_harvest,
+        agent_name,
+        false,
+        spectral,
+    );
+
+    // Build human representation
+    let human = if verbose {
+        build_verbose(path, agent_name, &store, &hashes, tx_since_harvest)
+    } else {
+        build_terse(path, &store, &hashes, tx_since_harvest)
+    };
+
+    // Build agent representation (compact, ≤300 tokens, three-part structure)
+    let agent_output = build_agent(path, &store, &hashes, tx_since_harvest);
+
+    // If --json flag was used, return JSON as human output too (backward compat)
+    if json {
+        let json_str = serde_json::to_string_pretty(&json_value).unwrap() + "\n";
+        return Ok(CommandOutput {
+            json: json_value,
+            agent: agent_output,
+            human: json_str,
+        });
     }
 
-    // ── Terse default: 6-line dashboard ──────────────────────────────────────
-    let coherence = check_coherence_fast(&store);
-    let telemetry = telemetry_from_store(&store);
+    Ok(CommandOutput {
+        json: json_value,
+        agent: agent_output,
+        human,
+    })
+}
+
+/// Build the terse dashboard string (default mode).
+fn build_terse(
+    path: &Path,
+    store: &braid_kernel::Store,
+    hashes: &[String],
+    tx_since_harvest: usize,
+) -> String {
+    let coherence = check_coherence_fast(store);
+    let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
-    let actions = derive_actions(&store);
+    let actions = derive_actions(store);
 
     let harvest_tag = if tx_since_harvest >= 15 {
         " OVERDUE"
@@ -135,10 +164,10 @@ pub fn run(
     ));
 
     // Task summary (D4.1: INV-INTERFACE-011)
-    let (open, in_progress, closed) = braid_kernel::task_counts(&store);
+    let (open, in_progress, closed) = braid_kernel::task_counts(store);
     let total = open + in_progress + closed;
     if total > 0 {
-        let ready_count = braid_kernel::compute_ready_set(&store).len();
+        let ready_count = braid_kernel::compute_ready_set(store).len();
         let blocked = open - ready_count;
         let mut task_line = format!("tasks: {open} open");
         if in_progress > 0 {
@@ -166,17 +195,89 @@ pub fn run(
         out.push_str("next: none\n");
     }
 
-    Ok(out)
+    out
+}
+
+/// Build agent-mode three-part structure (INV-OUTPUT-002, ≤300 tokens).
+fn build_agent(
+    path: &Path,
+    store: &braid_kernel::Store,
+    hashes: &[String],
+    tx_since_harvest: usize,
+) -> AgentOutput {
+    let coherence = check_coherence_fast(store);
+    let telemetry = telemetry_from_store(store);
+    let score = compute_methodology_score(&telemetry);
+    let actions = derive_actions(store);
+
+    let trend_str = match score.trend {
+        Trend::Up => "up",
+        Trend::Down => "down",
+        Trend::Stable => "stable",
+    };
+
+    let harvest_status = if tx_since_harvest >= 15 {
+        "OVERDUE"
+    } else if tx_since_harvest >= 8 {
+        "due"
+    } else {
+        "ok"
+    };
+
+    // Context: what store this is about
+    let context = format!(
+        "store: {} ({} datoms, {} entities, {} txns)",
+        path.display(),
+        store.len(),
+        store.entity_count(),
+        hashes.len(),
+    );
+
+    // Content: coherence + methodology + harvest + tasks
+    let mut content = format!(
+        "coherence: Phi={:.1} B1={} {:?} | M(t)={:.2} {}\nharvest: {} tx since last ({})",
+        coherence.phi,
+        coherence.beta_1,
+        coherence.quadrant,
+        score.score,
+        trend_str,
+        tx_since_harvest,
+        harvest_status,
+    );
+
+    let (open, in_progress, _closed) = braid_kernel::task_counts(store);
+    let total_open = open + in_progress;
+    if total_open > 0 {
+        let ready_count = braid_kernel::compute_ready_set(store).len();
+        content.push_str(&format!(
+            " | tasks: {} open ({} ready)",
+            total_open, ready_count
+        ));
+    }
+
+    // Footer: next action as a runnable command
+    let footer = if let Some(action) = actions.first() {
+        let cmd = action.command.as_deref().unwrap_or(&action.summary);
+        format!("next: {cmd}")
+    } else {
+        "next: braid observe \"...\" --confidence 0.7".to_string()
+    };
+
+    AgentOutput {
+        context,
+        content,
+        footer,
+    }
 }
 
 /// Full verbose output with all metrics and actions.
-fn run_verbose(
+fn build_verbose(
     path: &Path,
     agent_name: &str,
     store: &braid_kernel::Store,
     hashes: &[String],
     tx_since_harvest: usize,
-) -> Result<String, BraidError> {
+) -> String {
     let coherence = check_coherence_fast(store);
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
@@ -242,7 +343,7 @@ fn run_verbose(
     // All actions
     out.push_str(&format_actions(&actions));
 
-    Ok(out)
+    out
 }
 
 /// Deep mode: bilateral F(S) + graph analytics + convergence.
@@ -305,8 +406,8 @@ fn run_deep(
     Ok(out)
 }
 
-/// JSON output with all structured data.
-fn run_json(
+/// Build JSON value with all structured data.
+fn build_json(
     path: &Path,
     store: &braid_kernel::Store,
     hashes: &[String],
@@ -314,7 +415,7 @@ fn run_json(
     agent_name: &str,
     deep: bool,
     spectral: bool,
-) -> Result<String, BraidError> {
+) -> serde_json::Value {
     let coherence = check_coherence_fast(store);
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
@@ -400,5 +501,5 @@ fn run_json(
         });
     }
 
-    Ok(serde_json::to_string_pretty(&result).unwrap() + "\n")
+    result
 }

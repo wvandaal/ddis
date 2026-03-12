@@ -194,7 +194,7 @@ pub fn run_end(
 
     // Step 1: Harvest with commit (Stage 0: force=true bypasses guard)
     let harvest_output = harvest::run(path, agent_name, task, &[], true, true)?;
-    out.push_str(&harvest_output);
+    out.push_str(&harvest_output.human);
 
     // Step 2: Re-inject seed for next session
     // Reload store to include the harvest commit just written

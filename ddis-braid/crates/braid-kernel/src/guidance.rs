@@ -920,18 +920,83 @@ pub fn build_command_footer(store: &Store, k_eff: Option<f64>) -> String {
     let mut actions = derive_actions(store);
     modulate_actions(&mut actions, methodology.score);
 
+    let level = GuidanceLevel::for_k_eff(k_eff.unwrap_or(1.0));
+
     let (next_action, invariant_refs) = if let Some(top) = actions.first() {
+        let mut refs = top.relates_to.clone();
+        // At Full level, resolve spec references to one-line summaries
+        if level == GuidanceLevel::Full {
+            refs = refs
+                .into_iter()
+                .map(|r| {
+                    if let Some(summary) = resolve_spec_summary(store, &r) {
+                        format!("{r} ({summary})")
+                    } else {
+                        r
+                    }
+                })
+                .collect();
+        }
         (
             top.command.clone().or_else(|| Some(top.summary.clone())),
-            top.relates_to.clone(),
+            refs,
         )
     } else {
         (None, vec![])
     };
 
     let footer = build_footer(&telemetry, store, next_action, invariant_refs);
-    let level = GuidanceLevel::for_k_eff(k_eff.unwrap_or(1.0));
     format_footer_at_level(&footer, level)
+}
+
+/// Look up the `:spec/statement` for a spec element by ID, truncated to 80 chars.
+///
+/// Used by guidance footer at Full level to resolve spec references into
+/// human-readable one-line summaries. The agent sees what the constraint says
+/// without looking it up.
+fn resolve_spec_summary(store: &Store, spec_id: &str) -> Option<String> {
+    // Normalize: "INV-STORE-003" → ":spec/inv-store-003"
+    let ident = format!(":spec/{}", spec_id.to_lowercase());
+    let entity = EntityId::from_ident(&ident);
+    let datoms = store.entity_datoms(entity);
+    if datoms.is_empty() {
+        return None;
+    }
+
+    // Prefer :spec/statement, fall back to :db/doc
+    let mut statement = None;
+    let mut doc = None;
+    for d in &datoms {
+        if d.op != Op::Assert {
+            continue;
+        }
+        match d.attribute.as_str() {
+            ":spec/statement" | ":inv/statement" => {
+                if let Value::String(ref s) = d.value {
+                    statement = Some(s.clone());
+                }
+            }
+            ":db/doc" => {
+                if let Value::String(ref s) = d.value {
+                    doc = Some(s.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let text = statement.or(doc)?;
+    Some(truncate_for_footer(&text, 80))
+}
+
+/// Truncate a string to `max_chars` with "..." suffix if needed.
+fn truncate_for_footer(s: &str, max_chars: usize) -> String {
+    if s.chars().count() <= max_chars {
+        s.to_string()
+    } else {
+        let truncated: String = s.chars().take(max_chars - 3).collect();
+        format!("{truncated}...")
+    }
 }
 
 /// Derive session telemetry from the store state instead of using all-zero defaults.

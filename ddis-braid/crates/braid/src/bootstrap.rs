@@ -53,6 +53,193 @@ impl SpecElementKind {
     }
 }
 
+/// Structured sub-fields extracted from a spec element body.
+///
+/// Parsing rules: line-by-line scan for **bold**: markers and #### headings.
+/// Multi-line captures stop at the next **bold**: marker, #### heading, or double newline.
+#[derive(Clone, Debug, Default)]
+pub struct BodyFields {
+    /// INV Level 0 law / NEG safety property.
+    pub statement: Option<String>,
+    /// "This is violated if..." / "This is violated when..."
+    pub falsification: Option<String>,
+    /// "Traces to: SEED §4, ADRS FD-001"
+    pub traces_to: Option<String>,
+    /// "V:TYPE, V:PROP, V:KANI"
+    pub verification: Option<String>,
+    /// ADR problem statement.
+    pub problem: Option<String>,
+    /// ADR decision text.
+    pub decision: Option<String>,
+    /// ADR consequences.
+    pub consequences: Option<String>,
+}
+
+/// Extract structured sub-fields from a spec element body.
+///
+/// Uses line-by-line scanning (no regex crate) to match actual patterns in spec/*.md:
+/// - `**Traces to**:` / `**Traces**:` → traces_to
+/// - `**Verification**:` → verification
+/// - `**Falsification**:` → falsification (multi-line capture)
+/// - `**Safety property**:` → statement (for NEGs)
+/// - `**Statement**:` / `**Formal statement**:` → statement
+/// - `#### Level 0 (Algebraic Law)` → extract text after heading as statement
+/// - `#### Problem` → problem (capture until next `####`)
+/// - `#### Decision` → decision (capture until next `####`)
+/// - `#### Consequences` → consequences (capture until next `####`)
+pub fn extract_body_fields(body: &str, kind: SpecElementKind) -> BodyFields {
+    let mut fields = BodyFields::default();
+    let lines: Vec<&str> = body.lines().collect();
+    let mut i = 0;
+
+    while i < lines.len() {
+        let trimmed = lines[i].trim();
+
+        // One-line bold markers: **Key**: rest-of-line
+        if let Some(rest) =
+            strip_bold_prefix(trimmed, "Traces to").or_else(|| strip_bold_prefix(trimmed, "Traces"))
+        {
+            fields.traces_to = Some(rest.trim().to_string());
+            i += 1;
+            continue;
+        }
+        if let Some(rest) = strip_bold_prefix(trimmed, "Verification") {
+            fields.verification = Some(rest.trim().to_string());
+            i += 1;
+            continue;
+        }
+        if let Some(rest) = strip_bold_prefix(trimmed, "Statement")
+            .or_else(|| strip_bold_prefix(trimmed, "Formal statement"))
+        {
+            fields.statement = Some(rest.trim().to_string());
+            i += 1;
+            continue;
+        }
+        if let Some(rest) = strip_bold_prefix(trimmed, "Safety property") {
+            fields.statement = Some(rest.trim().to_string());
+            i += 1;
+            continue;
+        }
+
+        // Multi-line bold markers: **Falsification**: capture until next **bold**: or blank line
+        if let Some(first_line) = strip_bold_prefix(trimmed, "Falsification") {
+            let captured = capture_multiline(first_line, &lines, i + 1);
+            fields.falsification = Some(captured);
+            i += 1;
+            continue;
+        }
+
+        // #### Level 0 headings: capture text after heading as statement (for INVs)
+        if kind == SpecElementKind::Invariant
+            && trimmed.starts_with("#### Level 0")
+            && fields.statement.is_none()
+        {
+            let captured = capture_until_heading(&lines, i + 1, "####");
+            if !captured.is_empty() {
+                fields.statement = Some(captured);
+            }
+            i += 1;
+            continue;
+        }
+
+        // #### section headings for ADRs
+        if kind == SpecElementKind::Adr {
+            if trimmed.starts_with("#### Problem") && fields.problem.is_none() {
+                fields.problem = Some(capture_until_heading(&lines, i + 1, "####"));
+                i += 1;
+                continue;
+            }
+            if trimmed.starts_with("#### Decision") && fields.decision.is_none() {
+                fields.decision = Some(capture_until_heading(&lines, i + 1, "####"));
+                i += 1;
+                continue;
+            }
+            if trimmed.starts_with("#### Consequences") && fields.consequences.is_none() {
+                fields.consequences = Some(capture_until_heading(&lines, i + 1, "####"));
+                i += 1;
+                continue;
+            }
+        }
+
+        i += 1;
+    }
+
+    fields
+}
+
+/// Strip a `**prefix**:` pattern from a line, returning the rest after the colon.
+fn strip_bold_prefix<'a>(line: &'a str, prefix: &str) -> Option<&'a str> {
+    // Match: **prefix**: rest  or  **prefix:**: rest
+    let marker = format!("**{}**:", prefix);
+    if let Some(rest) = line.strip_prefix(&marker) {
+        return Some(rest);
+    }
+    let marker2 = format!("**{}:**", prefix);
+    if let Some(rest) = line.strip_prefix(&marker2) {
+        return Some(rest);
+    }
+    // Also match without trailing ** for "**Traces to**: SEED §4"
+    let marker3 = format!("**{}**", prefix);
+    if let Some(rest) = line.strip_prefix(&marker3) {
+        if let Some(rest) = rest.strip_prefix(':') {
+            return Some(rest);
+        }
+    }
+    None
+}
+
+/// Capture text from a bold-marker line through subsequent lines until
+/// the next **bold**: marker, #### heading, or double-blank-line.
+fn capture_multiline(first_line: &str, lines: &[&str], start: usize) -> String {
+    let mut parts = Vec::new();
+    let first = first_line.trim();
+    if !first.is_empty() {
+        parts.push(first.to_string());
+    }
+    let mut i = start;
+    let mut blank_count = 0;
+    while i < lines.len() {
+        let trimmed = lines[i].trim();
+        if trimmed.is_empty() {
+            blank_count += 1;
+            if blank_count >= 2 {
+                break;
+            }
+            i += 1;
+            continue;
+        }
+        blank_count = 0;
+        // Stop at next bold marker or heading
+        if (trimmed.starts_with("**") && trimmed.contains("**:"))
+            || trimmed.starts_with("####")
+            || trimmed.starts_with("### ")
+            || trimmed.starts_with("---")
+        {
+            break;
+        }
+        parts.push(trimmed.to_string());
+        i += 1;
+    }
+    parts.join(" ").trim().to_string()
+}
+
+/// Capture lines from start until the next `####` heading or `---` separator.
+fn capture_until_heading(lines: &[&str], start: usize, heading_prefix: &str) -> String {
+    let mut parts = Vec::new();
+    let mut i = start;
+    while i < lines.len() {
+        let trimmed = lines[i].trim();
+        if trimmed.starts_with(heading_prefix) || trimmed.starts_with("---") {
+            break;
+        }
+        if !trimmed.is_empty() {
+            parts.push(trimmed.to_string());
+        }
+        i += 1;
+    }
+    parts.join(" ").trim().to_string()
+}
+
 /// Parse a spec markdown file and extract all specification elements.
 pub fn parse_spec_file(path: &Path) -> Vec<SpecElement> {
     let content = match std::fs::read_to_string(path) {
@@ -276,6 +463,92 @@ pub fn elements_to_tx(elements: &[SpecElement], agent: AgentId) -> TxFile {
                 Op::Assert,
             ));
         }
+
+        // Phase A: Store body text and structured sub-fields (self-bootstrap fix).
+        // Previously only titles were stored; now the full constraint content flows
+        // into the store so the seed can surface it to agents.
+        if !elem.body.is_empty() {
+            datoms.push(braid_kernel::datom::Datom::new(
+                entity,
+                Attribute::from_keyword(":element/body"),
+                Value::String(elem.body.clone()),
+                tx_id,
+                Op::Assert,
+            ));
+        }
+
+        let fields = extract_body_fields(&elem.body, elem.kind);
+
+        if let Some(ref stmt) = fields.statement {
+            datoms.push(braid_kernel::datom::Datom::new(
+                entity,
+                Attribute::from_keyword(":spec/statement"),
+                Value::String(stmt.clone()),
+                tx_id,
+                Op::Assert,
+            ));
+        }
+        if let Some(ref fals) = fields.falsification {
+            datoms.push(braid_kernel::datom::Datom::new(
+                entity,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String(fals.clone()),
+                tx_id,
+                Op::Assert,
+            ));
+        }
+        if let Some(ref traces) = fields.traces_to {
+            datoms.push(braid_kernel::datom::Datom::new(
+                entity,
+                Attribute::from_keyword(":element/traces-to"),
+                Value::String(traces.clone()),
+                tx_id,
+                Op::Assert,
+            ));
+        }
+        if let Some(ref verif) = fields.verification {
+            datoms.push(braid_kernel::datom::Datom::new(
+                entity,
+                Attribute::from_keyword(":spec/verification"),
+                Value::String(verif.clone()),
+                tx_id,
+                Op::Assert,
+            ));
+        }
+        // ADR-specific fields
+        if elem.kind == SpecElementKind::Adr {
+            if let Some(ref prob) = fields.problem {
+                datoms.push(braid_kernel::datom::Datom::new(
+                    entity,
+                    Attribute::from_keyword(":adr/problem"),
+                    Value::String(prob.clone()),
+                    tx_id,
+                    Op::Assert,
+                ));
+            }
+            if let Some(ref dec) = fields.decision {
+                datoms.push(braid_kernel::datom::Datom::new(
+                    entity,
+                    Attribute::from_keyword(":adr/decision"),
+                    Value::String(dec.clone()),
+                    tx_id,
+                    Op::Assert,
+                ));
+            }
+        }
+        // NEG-specific: falsification doubles as violation
+        if elem.kind == SpecElementKind::NegativeCase {
+            let violation = fields.falsification.as_ref().or(fields.statement.as_ref());
+            if let Some(v) = violation {
+                datoms.push(braid_kernel::datom::Datom::new(
+                    entity,
+                    Attribute::from_keyword(":neg/violation"),
+                    Value::String(v.to_string()),
+                    tx_id,
+                    Op::Assert,
+                ));
+            }
+        }
     }
 
     // Extract dependency edges from traces-to references (INV-SCHEMA-009)
@@ -489,9 +762,199 @@ mod tests {
         let agent = AgentId::from_name("braid:bootstrap");
         let tx = elements_to_tx(&elements, agent);
 
-        // 1 element × 6 datoms each (ident, type, ns, doc, source, stage)
-        assert_eq!(tx.datoms.len(), 6);
+        // 1 element × (6 core + 1 :element/body) = 7 datoms minimum
+        // Body text "The store never deletes." has no sub-fields, so only body added.
+        assert!(
+            tx.datoms.len() >= 7,
+            "expected >=7 datoms (6 core + body), got {}",
+            tx.datoms.len()
+        );
         assert_eq!(tx.provenance, ProvenanceType::Derived);
+
+        // Verify :element/body datom exists
+        let has_body = tx.datoms.iter().any(|d| {
+            d.attribute.as_str() == ":element/body"
+                && matches!(&d.value, Value::String(s) if s == "The store never deletes.")
+        });
+        assert!(has_body, "should have :element/body datom");
+    }
+
+    #[test]
+    fn extract_body_fields_inv() {
+        // Real-world INV body pattern from spec/14-interface.md
+        let body = "\
+**Traces to**: ADRS IB-002
+**Verification**: `V:PROP`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+The CLI produces output in exactly one of three modes per invocation:
+Json (machine-parseable), Agent (budget-constrained), Human (TTY-formatted).
+Mode selection is explicit (flag) or inferred from terminal context.
+
+#### Level 1 (State Invariant)
+Every CLI_COMMAND invocation selects exactly one mode.
+
+**Falsification**: A CLI command produces mixed-mode output (e.g., JSON with
+TTY escape codes, or agent-mode output without budget constraint).";
+
+        let fields = extract_body_fields(body, SpecElementKind::Invariant);
+        assert!(
+            fields.traces_to.as_deref() == Some("ADRS IB-002"),
+            "traces_to: {:?}",
+            fields.traces_to
+        );
+        assert!(
+            fields.verification.as_deref() == Some("`V:PROP`"),
+            "verification: {:?}",
+            fields.verification
+        );
+        assert!(
+            fields.statement.is_some(),
+            "statement should be extracted from Level 0"
+        );
+        assert!(
+            fields.statement.as_ref().unwrap().contains("three modes"),
+            "statement: {:?}",
+            fields.statement
+        );
+        assert!(
+            fields.falsification.is_some(),
+            "falsification should be extracted"
+        );
+        assert!(
+            fields
+                .falsification
+                .as_ref()
+                .unwrap()
+                .contains("mixed-mode"),
+            "falsification: {:?}",
+            fields.falsification
+        );
+    }
+
+    #[test]
+    fn extract_body_fields_adr() {
+        let body = "\
+**Traces to**: ADRS IB-002
+**Verification**: `V:PROP`
+
+#### Problem
+How should the CLI format output for different consumers?
+
+#### Decision
+Three output modes with explicit selection.
+
+#### Consequences
+Agent mode requires token budgeting.";
+
+        let fields = extract_body_fields(body, SpecElementKind::Adr);
+        assert_eq!(
+            fields.problem.as_deref(),
+            Some("How should the CLI format output for different consumers?")
+        );
+        assert_eq!(
+            fields.decision.as_deref(),
+            Some("Three output modes with explicit selection.")
+        );
+        assert_eq!(
+            fields.consequences.as_deref(),
+            Some("Agent mode requires token budgeting.")
+        );
+        assert!(fields.traces_to.is_some());
+    }
+
+    #[test]
+    fn extract_body_fields_neg() {
+        let body = "\
+**Safety property**: No tool response may omit the guidance footer.
+**Falsification**: A CLI command in agent mode returns output without
+the trailing guidance section.";
+
+        let fields = extract_body_fields(body, SpecElementKind::NegativeCase);
+        assert!(
+            fields
+                .statement
+                .as_ref()
+                .unwrap()
+                .contains("guidance footer"),
+            "statement: {:?}",
+            fields.statement
+        );
+        assert!(
+            fields
+                .falsification
+                .as_ref()
+                .unwrap()
+                .contains("agent mode"),
+            "falsification: {:?}",
+            fields.falsification
+        );
+    }
+
+    #[test]
+    fn extract_body_fields_empty() {
+        let fields = extract_body_fields("", SpecElementKind::Invariant);
+        assert!(fields.statement.is_none());
+        assert!(fields.falsification.is_none());
+        assert!(fields.traces_to.is_none());
+        assert!(fields.verification.is_none());
+        assert!(fields.problem.is_none());
+        assert!(fields.decision.is_none());
+        assert!(fields.consequences.is_none());
+    }
+
+    #[test]
+    fn elements_to_tx_stores_body_subfields() {
+        let body = "\
+**Traces to**: SEED §4
+**Verification**: `V:TYPE`
+**Stage**: 0
+
+#### Level 0 (Algebraic Law)
+The store is append-only.
+
+**Falsification**: Any deletion from the store.";
+
+        let elements = vec![SpecElement {
+            id: "INV-STORE-001".into(),
+            kind: SpecElementKind::Invariant,
+            namespace: "STORE".into(),
+            title: "Append-Only".into(),
+            body: body.into(),
+            source_file: "01-store.md".into(),
+            stage: Some(0),
+        }];
+
+        let agent = AgentId::from_name("test");
+        let tx = elements_to_tx(&elements, agent);
+
+        let has_statement = tx
+            .datoms
+            .iter()
+            .any(|d| d.attribute.as_str() == ":spec/statement");
+        let has_falsification = tx
+            .datoms
+            .iter()
+            .any(|d| d.attribute.as_str() == ":spec/falsification");
+        let has_body = tx
+            .datoms
+            .iter()
+            .any(|d| d.attribute.as_str() == ":element/body");
+        let has_traces = tx
+            .datoms
+            .iter()
+            .any(|d| d.attribute.as_str() == ":element/traces-to");
+        let has_verif = tx
+            .datoms
+            .iter()
+            .any(|d| d.attribute.as_str() == ":spec/verification");
+
+        assert!(has_body, "should store :element/body");
+        assert!(has_statement, "should store :spec/statement");
+        assert!(has_falsification, "should store :spec/falsification");
+        assert!(has_traces, "should store :element/traces-to");
+        assert!(has_verif, "should store :spec/verification");
     }
 
     #[test]

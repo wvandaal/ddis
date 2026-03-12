@@ -564,7 +564,7 @@ fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
     Ok(json!({
         "content": [{
             "type": "text",
-            "text": result,
+            "text": result.human,
         }],
     }))
 }

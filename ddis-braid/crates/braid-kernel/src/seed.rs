@@ -151,6 +151,10 @@ pub struct ConstraintRef {
     pub id: String,
     /// Brief description.
     pub summary: String,
+    /// Constraint statement text (from `:spec/statement`).
+    pub statement: Option<String>,
+    /// Falsification condition text (from `:spec/falsification`).
+    pub falsification: Option<String>,
     /// Whether this constraint is currently satisfied.
     pub satisfied: Option<bool>,
 }
@@ -1098,8 +1102,10 @@ fn discover_constraints(store: &Store, task_keywords: &[String]) -> Vec<Constrai
             .unwrap_or(&ident)
             .to_uppercase();
 
-        // Get the doc/summary
+        // Get the doc/summary and body sub-fields
         let mut summary = String::new();
+        let mut statement = None;
+        let mut falsification = None;
         let mut has_spec_type = false;
         for d in store.entity_datoms(datom.entity) {
             if d.op != Op::Assert {
@@ -1113,6 +1119,16 @@ fn discover_constraints(store: &Store, task_keywords: &[String]) -> Vec<Constrai
                 }
                 ":spec/type" => {
                     has_spec_type = true;
+                }
+                ":spec/statement" | ":inv/statement" => {
+                    if let Value::String(ref s) = d.value {
+                        statement = Some(truncate_chars(s, 200));
+                    }
+                }
+                ":spec/falsification" | ":inv/falsification" => {
+                    if let Value::String(ref s) = d.value {
+                        falsification = Some(truncate_chars(s, 200));
+                    }
                 }
                 _ => {}
             }
@@ -1130,6 +1146,8 @@ fn discover_constraints(store: &Store, task_keywords: &[String]) -> Vec<Constrai
         constraints.push(ConstraintRef {
             id,
             summary,
+            statement,
+            falsification,
             satisfied,
         });
     }

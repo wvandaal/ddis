@@ -7,15 +7,18 @@ use clap::Subcommand;
 
 pub(crate) mod analyze;
 mod bilateral;
+mod config;
 mod harvest;
 mod init;
 mod log;
 pub(crate) mod observe;
+pub mod orientation;
 mod query;
 mod schema;
 mod seed;
 pub(crate) mod session;
 pub(crate) mod shell;
+mod spec;
 mod status;
 mod task;
 mod trace;
@@ -82,11 +85,10 @@ impl BudgetCtx {
 #[derive(Subcommand)]
 pub enum Command {
     // ── SETUP ──────────────────────────────────────────────────────────
-    /// Create a new .braid store with schema datoms.
+    /// Create store, detect environment, record config as datoms.
     ///
-    /// Run once per project. Creates the directory and transacts all schema
-    /// attributes (Layer 1-3). If a spec/ directory exists, auto-bootstraps
-    /// spec elements into the store.
+    /// `braid init` → .braid/ + AGENTS.md + seed injected.
+    /// Auto-detects git, language, tools. Bootstraps spec/ if present.
     #[command(after_long_help = "\
 Examples:
   braid init
@@ -108,11 +110,10 @@ After init:
     },
 
     // ── CAPTURE ────────────────────────────────────────────────────────
-    /// Capture a knowledge observation as an exploration entity.
+    /// Capture knowledge as content-addressed entity.
     ///
-    /// Fastest way to record what you learned. Creates a content-addressed
-    /// entity with :exploration/* attributes. Use instead of write for
-    /// knowledge capture.
+    /// `braid observe "CRDT merge commutes" -c 0.9` → entity :exploration/crdt-merge-commutes.
+    /// Creates :exploration/* datoms. Use for knowledge capture during work.
     #[command(after_long_help = "\
 Examples:
   braid observe \"merge is a bottleneck\" --confidence 0.8 --tag bottleneck
@@ -177,11 +178,10 @@ Examples:
     },
 
     // ── QUERY ──────────────────────────────────────────────────────────
-    /// Query the store: entity/attribute filter or Datalog.
+    /// Datalog or entity/attribute filter.
     ///
-    /// Three modes: (1) entity filter (--entity), (2) attribute filter (--attribute),
-    /// (3) Datalog -- pass as positional arg or --datalog flag.
-    /// Datalog auto-detected when arg starts with "[:find".
+    /// `braid query '[:find ?e :where [?e :spec/type "invariant"]]'` → matching entities.
+    /// Three modes: Datalog (positional or --datalog), entity filter (--entity), attribute filter (--attribute).
     #[command(after_long_help = "\
 Examples:
   braid query '[:find ?e ?v :where [?e :db/doc ?v]]'          # Datalog (positional)
@@ -217,12 +217,10 @@ Empty results? Try: braid query --attribute :db/ident  # list known entities")]
         json: bool,
     },
 
-    /// Show store status, coherence, methodology, and next actions.
+    /// Where you are: F(S), M(t), tasks, next action.
     ///
-    /// Default: terse 6-line dashboard with top action.
-    /// --verbose: full methodology breakdown, all actions.
-    /// --deep: bilateral F(S) fitness, graph analytics, convergence.
-    /// --verify: check on-disk integrity (content hashes).
+    /// `braid status` → store: 9k datoms, F(S)=0.77, next: trace 3 gaps.
+    /// Progressive: bare → --verbose → --deep (bilateral F(S) + analytics).
     #[command(after_long_help = "\
 Examples:
   braid status                         # terse dashboard with next action
@@ -249,12 +247,12 @@ Examples:
         #[arg(long)]
         deep: bool,
 
-        /// Include spectral certificate (with --deep).
-        #[arg(long)]
+        /// Include spectral certificate (with --deep). Implied by --deep.
+        #[arg(long, hide = true)]
         spectral: bool,
 
-        /// Full 14-algorithm dashboard (with --deep).
-        #[arg(long)]
+        /// Full 14-algorithm dashboard (with --deep). Implied by --deep.
+        #[arg(long, hide = true)]
         full: bool,
 
         /// Verify on-disk store integrity (content hashes).
@@ -271,10 +269,10 @@ Examples:
     },
 
     // ── COHERENCE ──────────────────────────────────────────────────────
-    /// Run bilateral coherence scan: F(S) fitness, CC-1..CC-5, convergence.
+    /// Coherence: F(S) + CC-1..5 + convergence.
     ///
-    /// Focused alternative to `braid status --deep`. Shows coherence metrics
-    /// with actionable next steps. Use --commit to persist cycle results.
+    /// `braid bilateral` → F(S)=0.77, CC=4/5, next: trace 3 gaps.
+    /// Focused coherence view. Use --commit to persist cycle results.
     #[command(after_long_help = "\
 Examples:
   braid bilateral                     # F(S) + CC pass/fail + next steps
@@ -314,11 +312,10 @@ Workflow: braid bilateral → fix issues → braid bilateral --commit → track 
         agent: String,
     },
 
-    /// Scan source files for spec references, create :impl/implements datoms.
+    /// Link code to spec: scan source for INV/ADR/NEG references.
     ///
-    /// Scans Rust comments for INV-XXX-NNN, ADR-XXX-NNN, NEG-XXX-NNN patterns
-    /// and links code entities to spec entities in the store. Also marks
-    /// :spec/witnessed on spec elements referenced from test files.
+    /// `braid trace --commit` → 869 :impl/implements datoms, 259 :spec/witnessed.
+    /// Scans Rust comments for spec element IDs, creates traceability datoms.
     #[command(after_long_help = "\
 Examples:
   braid trace                          # dry-run: show what would be linked
@@ -344,7 +341,9 @@ Workflow: braid trace → review → braid trace --commit → braid bilateral")]
         agent: String,
     },
 
-    /// Browse transaction log with optional agent filter.
+    /// Browse transactions, newest first.
+    ///
+    /// `braid log --limit 5` → 5 txns with agent, rationale, datom count.
     #[command(after_long_help = "\
 Examples:
   braid log --limit 5                 # last 5 transactions (terse)
@@ -379,11 +378,10 @@ Workflow: braid log --limit 3 \u{2192} see recent \u{2192} braid status \u{2192}
         verbose: bool,
     },
 
-    /// Inspect the datom store schema: attributes, types, cardinality.
+    /// Attribute discovery: types, cardinality, resolution modes.
     ///
-    /// Lists all known attributes with their type, cardinality, and documentation.
-    /// Optimized for AI agent consumption: provides the information needed to
-    /// write correct queries and transactions (INV-INTERFACE-011).
+    /// `braid schema --pattern ':spec/*'` → 11 spec attributes with types.
+    /// Provides the info needed to write correct queries and transactions.
     #[command(after_long_help = "\
 Examples:
   braid schema                                # list all attributes
@@ -412,12 +410,10 @@ Workflow: braid schema \u{2192} pick attributes \u{2192} braid query --attribute
     },
 
     // ── LIFECYCLE ──────────────────────────────────────────────────────
-    /// End-of-session: extract knowledge and commit discoveries.
+    /// End-of-session: observations → datoms.
     ///
-    /// Scores knowledge items by novelty, specificity, and relevance.
-    /// Use --commit to persist approved candidates as datoms.
-    /// Crystallization guard (INV-HARVEST-006) gates commitment by stability.
-    /// Task auto-detected from active session, git branch, or recent tx rationales.
+    /// `braid harvest --commit` → 5 candidates crystallized, 12 datoms.
+    /// Scores by novelty/specificity/relevance. Task auto-detected from session context.
     #[command(after_long_help = "\
 Examples:
   braid harvest                                          # auto-detect, show candidates
@@ -468,12 +464,10 @@ Workflow:
         guard: bool,
     },
 
-    /// Start-of-session: assemble relevant context from the store.
+    /// Start-of-session: store → agent context.
     ///
-    /// Produces a token-budgeted context document with the most relevant
-    /// entities, recent transactions, and methodology guidance for the task.
-    /// Creates an active session entity for harvest auto-detection.
-    /// Task auto-detected from last session if omitted.
+    /// `braid seed --task "my work"` → 5-section briefing under token budget.
+    /// Assembles relevant entities, recent txns, methodology guidance for the task.
     #[command(after_long_help = "\
 Examples:
   braid seed --task \"fix query engine joins\" --seed-budget 3000
@@ -603,6 +597,42 @@ Workflow: braid task ready → pick top → braid task update <id> --status in-p
         action: TaskAction,
     },
 
+    // ── CONFIGURATION ──────────────────────────────────────────────────
+    /// Read, write, or list configuration (stored as datoms, not files).
+    ///
+    /// Config lives in the store (ADR-INTERFACE-005). No .braid/config.toml.
+    /// Unset keys fall back to built-in defaults.
+    #[command(after_long_help = "\
+Examples:
+  braid config                           # list all config
+  braid config output.default-mode       # get a value
+  braid config output.default-mode json  # set a value
+  braid config --reset output.default-mode  # revert to default
+
+Built-in keys: output.default-mode, output.token-budget, harvest.auto-commit,
+  harvest.confidence-floor, session.auto-start, trace.source-dirs, git.enabled")]
+    Config {
+        /// Config key.
+        #[arg(value_name = "KEY")]
+        key: Option<String>,
+
+        /// Config value (set mode).
+        #[arg(value_name = "VALUE")]
+        value: Option<String>,
+
+        /// Reset key to default.
+        #[arg(long)]
+        reset: bool,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
     // ── ADMIN ──────────────────────────────────────────────────────────
     /// Interactive exploration shell (zero external deps).
     ///
@@ -633,6 +663,162 @@ Examples:
     Mcp {
         #[command(subcommand)]
         action: McpAction,
+    },
+
+    // ── SHORTCUTS (WP6) ──────────────────────────────────────────────
+    /// Top unblocked task + claim command.
+    ///
+    /// `braid next` → T-42: implement merge → `braid go T-42`.
+    /// Use --skip to skip a specific task.
+    #[command(after_long_help = "\
+Examples:
+  braid next                  # show top ready task
+  braid next --skip t-aB3c   # skip a task, show the next one
+
+Workflow: braid next → braid go <id> → work → braid done <id>")]
+    Next {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Skip this task ID (show the next one).
+        #[arg(long)]
+        skip: Option<String>,
+    },
+
+    /// Close a task (shortcut for `braid task close`).
+    ///
+    /// Closes the current or specified task with reason "completed".
+    #[command(after_long_help = "\
+Examples:
+  braid done t-aB3c            # close specific task
+  braid done t-aB3c t-xY2z     # close multiple tasks
+
+Workflow: braid go <id> → work → braid done <id>")]
+    Done {
+        /// Task ID(s) to close.
+        ids: Vec<String>,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// Quick observation (shortcut for `braid observe` with defaults).
+    ///
+    /// Creates an observation with confidence 0.7 and category "observation".
+    /// For decisions, use `braid observe --category design-decision` instead.
+    #[command(after_long_help = "\
+Examples:
+  braid note \"The merge path needs optimization\"
+  braid note \"Found a bug in query joins\" --confidence 0.9
+
+Workflow: braid note \"...\" → braid status → braid note \"...\" → braid harvest")]
+    Note {
+        /// The observation text.
+        text: String,
+
+        /// Epistemic confidence (default: 0.7).
+        #[arg(long, short = 'c', default_value = "0.7")]
+        confidence: f64,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// Claim a task (shortcut for `braid task update --status in-progress`).
+    #[command(after_long_help = "\
+Examples:
+  braid go t-aB3c             # start working on task
+
+Workflow: braid next → braid go <id> → work → braid done <id>")]
+    Go {
+        /// Task ID to claim.
+        id: String,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
+    // ── SPEC MANAGEMENT (WP5) ────────────────────────────────────────
+    /// Create and manage spec elements with zero friction.
+    ///
+    /// Auto-detects type from ID prefix (INV-, ADR-, NEG-).
+    /// Creates the entity with all required attributes in one command.
+    #[command(after_long_help = "\
+Examples:
+  braid spec create INV-OUTPUT-001 \"Mode Resolution Determinism\" \\
+    --statement \"Given identical inputs, resolve() returns the same Mode\" \\
+    --falsification \"Two calls with identical inputs return different modes\"
+  braid spec create ADR-INTERFACE-010 \"Config as Datoms\" \\
+    --problem \"Where to store configuration\" \\
+    --decision \"Store IS the configuration (no config files)\"
+  braid spec create NEG-MUTATION-001 \"No In-Place Mutation\" \\
+    --statement \"Store never mutates existing datoms\" \\
+    --falsification \"Any operation modifies a datom tuple in place\"")]
+    Spec {
+        #[command(subcommand)]
+        action: SpecAction,
+    },
+}
+
+/// Spec subcommands (WP5).
+#[derive(Subcommand)]
+pub enum SpecAction {
+    /// Create a new spec element (INV, ADR, or NEG).
+    Create {
+        /// Spec element ID (e.g., INV-OUTPUT-001, ADR-INTERFACE-010, NEG-MUTATION-001).
+        /// Type is auto-detected from prefix.
+        id: String,
+
+        /// Title / short description.
+        title: String,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Formal statement (invariants and negative cases).
+        #[arg(long)]
+        statement: Option<String>,
+
+        /// Falsification condition (invariants and negative cases).
+        #[arg(long)]
+        falsification: Option<String>,
+
+        /// Problem statement (ADRs).
+        #[arg(long)]
+        problem: Option<String>,
+
+        /// Decision text (ADRs).
+        #[arg(long)]
+        decision: Option<String>,
+
+        /// Traces to (SEED.md section or spec reference).
+        #[arg(long)]
+        traces_to: Option<String>,
+
+        /// Epistemic confidence (0.0-1.0).
+        #[arg(long, short = 'c')]
+        confidence: Option<f64>,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
     },
 }
 
@@ -980,7 +1166,12 @@ fn store_path(cmd: &Command) -> Option<&Path> {
         | Command::Log { path, .. }
         | Command::Observe { path, .. }
         | Command::Shell { path, .. }
-        | Command::Wrap { path, .. } => Some(path),
+        | Command::Wrap { path, .. }
+        | Command::Config { path, .. }
+        | Command::Next { path, .. }
+        | Command::Done { path, .. }
+        | Command::Note { path, .. }
+        | Command::Go { path, .. } => Some(path),
         Command::Session { action } => match action {
             SessionAction::Start { path, .. } | SessionAction::End { path, .. } => Some(path),
         },
@@ -1000,11 +1191,18 @@ fn store_path(cmd: &Command) -> Option<&Path> {
             | WriteAction::Promote { path, .. }
             | WriteAction::Export { path, .. } => Some(path),
         },
+        Command::Spec { action } => match action {
+            SpecAction::Create { path, .. } => Some(path),
+        },
     }
 }
 
 /// Whether a command produces JSON output (footers must not corrupt JSON).
-fn is_json_output(cmd: &Command) -> bool {
+fn is_json_output(cmd: &Command, mode: crate::output::OutputMode) -> bool {
+    // Global --format json overrides per-command --json flags
+    if mode == crate::output::OutputMode::Json {
+        return true;
+    }
     matches!(
         cmd,
         Command::Query { json: true, .. }
@@ -1012,6 +1210,7 @@ fn is_json_output(cmd: &Command) -> bool {
             | Command::Schema { json: true, .. }
             | Command::Log { json: true, .. }
             | Command::Seed { json: true, .. }
+            | Command::Bilateral { json: true, .. }
     )
 }
 
@@ -1033,36 +1232,157 @@ fn is_generative_output(cmd: &Command) -> bool {
     )
 }
 
-/// Try to append a guidance footer to command output (INV-GUIDANCE-001).
-///
-/// Best-effort: if the store can't be loaded, returns the original output
-/// unchanged. Skips footer for JSON, guidance, and generative commands.
-///
-/// INV-BUDGET-004: Guidance footer compresses by k*_eff level from `budget_ctx`.
-fn try_append_footer(output: String, path: &Path, budget_ctx: &BudgetCtx) -> String {
-    let Ok(layout) = crate::layout::DiskLayout::open(path) else {
-        return output;
-    };
-    let Ok(store) = layout.load_store() else {
-        return output;
-    };
-
-    let footer = braid_kernel::guidance::build_command_footer(&store, Some(budget_ctx.k_eff()));
-    format!("{output}{footer}\n")
+/// Inject a guidance footer into all three representations of a CommandOutput.
+fn inject_footer(
+    mut cmd_output: crate::output::CommandOutput,
+    footer_text: &str,
+) -> crate::output::CommandOutput {
+    // Human mode: append as suffix
+    cmd_output.human.push('\n');
+    cmd_output.human.push_str(footer_text);
+    // Agent mode: set the designated footer field
+    cmd_output.agent.footer = footer_text.to_string();
+    // JSON mode: add as _guidance field
+    if let serde_json::Value::Object(ref mut map) = cmd_output.json {
+        map.insert("_guidance".to_string(), serde_json::json!(footer_text));
+    }
+    cmd_output
 }
 
-/// Execute a CLI command and return the output string.
+/// Apply guidance footer to a CommandOutput if applicable.
+///
+/// INV-GUIDANCE-001: Every non-JSON, non-generative tool response includes guidance.
+/// This is the single injection point — all commands route through here.
+fn maybe_inject_footer(
+    cmd_output: crate::output::CommandOutput,
+    skip_footer: bool,
+    path: Option<&Path>,
+    budget_ctx: &BudgetCtx,
+) -> crate::output::CommandOutput {
+    if skip_footer {
+        return cmd_output;
+    }
+    match path.and_then(|p| try_build_footer(p, budget_ctx)) {
+        Some(footer_text) => inject_footer(cmd_output, &footer_text),
+        None => cmd_output,
+    }
+}
+
+/// Build a guidance footer string (INV-GUIDANCE-001).
+///
+/// Best-effort: if the store can't be loaded, returns None.
+///
+/// INV-BUDGET-004: Guidance footer compresses by k*_eff level from `budget_ctx`.
+fn try_build_footer(path: &Path, budget_ctx: &BudgetCtx) -> Option<String> {
+    let layout = crate::layout::DiskLayout::open(path).ok()?;
+    let store = layout.load_store().ok()?;
+    let footer = braid_kernel::guidance::build_command_footer(&store, Some(budget_ctx.k_eff()));
+    if footer.is_empty() {
+        None
+    } else {
+        Some(footer)
+    }
+}
+
+/// Resolve the store path: if the default `.braid` doesn't exist in CWD,
+/// walk up the directory tree to find it (like git finds `.git/`).
+fn resolve_store_path(path: PathBuf) -> PathBuf {
+    if path.is_dir() {
+        return path;
+    }
+    // Only auto-detect when using the default ".braid" path
+    if path == Path::new(".braid") {
+        if let Ok(cwd) = std::env::current_dir() {
+            if let Some(found) = crate::layout::find_braid_root(&cwd) {
+                return found;
+            }
+        }
+    }
+    path // Return original (will error at open time with a clear message)
+}
+
+/// Rewrite all `path` fields in a Command to resolved paths.
+fn resolve_command_paths(mut cmd: Command) -> Command {
+    match &mut cmd {
+        Command::Mcp { .. } => {}
+        Command::Init { path, .. }
+        | Command::Status { path, .. }
+        | Command::Bilateral { path, .. }
+        | Command::Trace { path, .. }
+        | Command::Query { path, .. }
+        | Command::Schema { path, .. }
+        | Command::Harvest { path, .. }
+        | Command::Seed { path, .. }
+        | Command::Merge { path, .. }
+        | Command::Log { path, .. }
+        | Command::Observe { path, .. }
+        | Command::Shell { path, .. }
+        | Command::Wrap { path, .. }
+        | Command::Config { path, .. }
+        | Command::Next { path, .. }
+        | Command::Done { path, .. }
+        | Command::Note { path, .. }
+        | Command::Go { path, .. } => {
+            *path = resolve_store_path(path.clone());
+        }
+        Command::Session { action } => match action {
+            SessionAction::Start { path, .. } | SessionAction::End { path, .. } => {
+                *path = resolve_store_path(path.clone());
+            }
+        },
+        Command::Task { action } => match action {
+            TaskAction::Create { path, .. }
+            | TaskAction::List { path, .. }
+            | TaskAction::Ready { path, .. }
+            | TaskAction::Show { path, .. }
+            | TaskAction::Close { path, .. }
+            | TaskAction::Update { path, .. }
+            | TaskAction::Dep { path, .. }
+            | TaskAction::Import { path, .. } => {
+                *path = resolve_store_path(path.clone());
+            }
+        },
+        Command::Write { action } => match action {
+            WriteAction::Assert { path, .. }
+            | WriteAction::Retract { path, .. }
+            | WriteAction::Promote { path, .. }
+            | WriteAction::Export { path, .. } => {
+                *path = resolve_store_path(path.clone());
+            }
+        },
+        Command::Spec { action } => match action {
+            SpecAction::Create { path, .. } => {
+                *path = resolve_store_path(path.clone());
+            }
+        },
+    }
+    cmd
+}
+
+/// Execute a CLI command and return structured output.
 ///
 /// INV-BUDGET-001: Output respects `budget_ctx` for guidance footer compression
 /// and command attention profiles. Commands that exceed their attention profile
 /// ceiling are truncated.
-pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error::BraidError> {
+///
+/// All commands return `CommandOutput` via the `from_human()` bridge until
+/// individually converted to native tri-mode output (Phase C).
+pub fn run(
+    cmd: Command,
+    budget_ctx: &BudgetCtx,
+    mode: crate::output::OutputMode,
+) -> Result<crate::output::CommandOutput, crate::error::BraidError> {
+    use crate::output::CommandOutput;
+
+    // Resolve .braid path by walking up directory tree (like git finds .git/).
+    let cmd = resolve_command_paths(cmd);
+
     // Pre-extract metadata needed for footer injection (before cmd is consumed).
     let path_for_footer = store_path(&cmd).map(|p| p.to_path_buf());
     let skip_footer =
-        is_json_output(&cmd) || is_guidance_command(&cmd) || is_generative_output(&cmd);
+        is_json_output(&cmd, mode) || is_guidance_command(&cmd) || is_generative_output(&cmd);
 
-    let result = match cmd {
+    let result: Result<String, crate::error::BraidError> = match cmd {
         Command::Init { path, spec_dir } => init::run(&path, &spec_dir),
         Command::Status {
             path,
@@ -1074,9 +1394,21 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
             verify,
             agent,
             commit,
-        } => status::run(
-            &path, &agent, json, verbose, deep, spectral, full, verify, commit,
-        ),
+        } => {
+            // --deep implies --full and --spectral (progressive disclosure).
+            let full = full || deep;
+            let spectral = spectral || deep;
+            // Status returns CommandOutput natively — need special handling.
+            let cmd_output = status::run(
+                &path, &agent, json, verbose, deep, spectral, full, verify, commit,
+            )?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Bilateral {
             path,
             full,
@@ -1170,14 +1502,20 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
             // Stage 0: --commit bypasses crystallization guard by default.
             // --guard re-enables it. --force always bypasses (legacy compat).
             let effective_force = force || (commit && !guard);
-            harvest::run(
+            let cmd_output = harvest::run(
                 &path,
                 &agent,
                 task.as_deref(),
                 &knowledge,
                 commit,
                 effective_force,
-            )
+            )?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
         }
         Command::Seed {
             path,
@@ -1199,7 +1537,8 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
 
             // --inject mode: update file in place with seed content (SB.3.3)
             if let Some(ref inject_path) = inject {
-                return seed::run_inject(&path, inject_path, effective_task, effective_budget);
+                return seed::run_inject(&path, inject_path, effective_task, effective_budget)
+                    .map(CommandOutput::from_human);
             }
 
             seed::run(
@@ -1231,17 +1570,25 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
             relates_to,
             rationale,
             alternatives,
-        } => observe::run(observe::ObserveArgs {
-            path: &path,
-            text: &text,
-            confidence,
-            tags: &tag,
-            category: category.as_deref(),
-            agent: &agent,
-            relates_to: relates_to.as_deref(),
-            rationale: rationale.as_deref(),
-            alternatives: alternatives.as_deref(),
-        }),
+        } => {
+            let cmd_output = observe::run(observe::ObserveArgs {
+                path: &path,
+                text: &text,
+                confidence,
+                tags: &tag,
+                category: category.as_deref(),
+                agent: &agent,
+                relates_to: relates_to.as_deref(),
+                rationale: rationale.as_deref(),
+                alternatives: alternatives.as_deref(),
+            })?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Session { action } => match action {
             SessionAction::Start {
                 path,
@@ -1294,7 +1641,15 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
                 labels: &labels,
             }),
             TaskAction::List { path, all } => task::list(&path, all),
-            TaskAction::Ready { path } => task::ready(&path),
+            TaskAction::Ready { path } => {
+                let cmd_output = task::ready(&path)?;
+                return Ok(maybe_inject_footer(
+                    cmd_output,
+                    skip_footer,
+                    path_for_footer.as_deref(),
+                    budget_ctx,
+                ));
+            }
             TaskAction::Show { id, path } => task::show(&path, &id),
             TaskAction::Close {
                 ids,
@@ -1316,6 +1671,13 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
             } => task::dep_add(&path, &from, &to, &agent),
             TaskAction::Import { path, beads, agent } => task::import_beads(&path, &beads, &agent),
         },
+        Command::Config {
+            key,
+            value,
+            reset,
+            path,
+            agent,
+        } => config::run(&path, key.as_deref(), value.as_deref(), reset, &agent),
         Command::Shell { path } => shell::run(&path),
         Command::Mcp { action } => match action {
             McpAction::Serve { path } => {
@@ -1323,35 +1685,101 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
                 Ok(String::new())
             }
         },
+
+        // ── Shortcuts (WP6: delegates to existing handlers) ──────────
+        Command::Next { path, skip } => {
+            let cmd_output = task::next(&path, skip.as_deref())?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
+        Command::Done { ids, path, agent } => task::close(&path, &ids, "completed", &agent),
+        Command::Note {
+            text,
+            confidence,
+            path,
+            agent,
+        } => {
+            let cmd_output = observe::run(observe::ObserveArgs {
+                path: &path,
+                text: &text,
+                confidence,
+                tags: &[],
+                category: Some("observation"),
+                agent: &agent,
+                relates_to: None,
+                rationale: None,
+                alternatives: None,
+            })?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
+        Command::Go { id, path, agent } => task::update(&path, &id, "in-progress", &agent),
+        Command::Spec { action } => match action {
+            SpecAction::Create {
+                id,
+                title,
+                path,
+                statement,
+                falsification,
+                problem,
+                decision,
+                traces_to,
+                confidence,
+                agent,
+            } => spec::run_create(spec::CreateArgs {
+                path: &path,
+                id: &id,
+                title: &title,
+                statement: statement.as_deref(),
+                falsification: falsification.as_deref(),
+                problem: problem.as_deref(),
+                decision: decision.as_deref(),
+                traces_to: traces_to.as_deref(),
+                confidence,
+                agent: &agent,
+            }),
+        },
     };
 
-    // INV-GUIDANCE-001: Append guidance footer to applicable command outputs.
+    // INV-GUIDANCE-001: Inject guidance footer into applicable command outputs.
     // INV-BUDGET-004: Footer compressed by k*_eff from budget_ctx.
-    match (result, path_for_footer) {
-        (Ok(output), Some(path)) if !skip_footer => {
-            Ok(try_append_footer(output, &path, budget_ctx))
+    match result {
+        Ok(output) => {
+            let cmd_output = CommandOutput::from_human(output);
+            Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ))
         }
-        (result, _) => result,
+        Err(e) => Err(e),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::output::OutputMode;
 
     #[test]
-    fn try_append_footer_on_missing_store_returns_unchanged() {
-        let output = "some output".to_string();
+    fn try_build_footer_on_missing_store_returns_none() {
         let ctx = BudgetCtx::from_flags(None, None);
-        let result = try_append_footer(output.clone(), Path::new("/nonexistent/.braid"), &ctx);
-        assert_eq!(
-            result, output,
-            "Missing store should return original output"
-        );
+        let result = try_build_footer(Path::new("/nonexistent/.braid"), &ctx);
+        assert!(result.is_none(), "Missing store should return None");
     }
 
     #[test]
     fn is_json_output_detects_all_json_variants() {
+        let h = OutputMode::Human; // default mode for testing per-command flags
         let query_json = Command::Query {
             path: PathBuf::from(".braid"),
             entity: None,
@@ -1360,7 +1788,7 @@ mod tests {
             positional_datalog: None,
             json: true,
         };
-        assert!(is_json_output(&query_json));
+        assert!(is_json_output(&query_json, h));
 
         let query_no_json = Command::Query {
             path: PathBuf::from(".braid"),
@@ -1370,7 +1798,7 @@ mod tests {
             positional_datalog: None,
             json: false,
         };
-        assert!(!is_json_output(&query_no_json));
+        assert!(!is_json_output(&query_no_json, h));
 
         let status_json = Command::Status {
             path: PathBuf::from(".braid"),
@@ -1383,7 +1811,7 @@ mod tests {
             agent: "test".into(),
             commit: false,
         };
-        assert!(is_json_output(&status_json));
+        assert!(is_json_output(&status_json, h));
 
         let log_json = Command::Log {
             path: PathBuf::from(".braid"),
@@ -1393,7 +1821,7 @@ mod tests {
             json: true,
             verbose: false,
         };
-        assert!(is_json_output(&log_json));
+        assert!(is_json_output(&log_json, h));
 
         let seed_json = Command::Seed {
             path: PathBuf::from(".braid"),
@@ -1406,11 +1834,24 @@ mod tests {
             compact: false,
             inject: None,
         };
-        assert!(is_json_output(&seed_json));
+        assert!(is_json_output(&seed_json, h));
+
+        // Phase 0A fix: Bilateral --json must be detected (was missing).
+        let bilateral_json = Command::Bilateral {
+            path: PathBuf::from(".braid"),
+            full: false,
+            spectral: false,
+            history: false,
+            json: true,
+            commit: false,
+            agent: "test".into(),
+        };
+        assert!(is_json_output(&bilateral_json, h));
     }
 
     #[test]
     fn is_json_output_false_for_non_json_commands() {
+        let h = OutputMode::Human;
         let status_no_json = Command::Status {
             path: PathBuf::from(".braid"),
             json: false,
@@ -1422,7 +1863,7 @@ mod tests {
             agent: "test".into(),
             commit: false,
         };
-        assert!(!is_json_output(&status_no_json));
+        assert!(!is_json_output(&status_no_json, h));
 
         let harvest = Command::Harvest {
             path: PathBuf::from(".braid"),
@@ -1433,13 +1874,30 @@ mod tests {
             force: false,
             guard: false,
         };
-        assert!(!is_json_output(&harvest));
+        assert!(!is_json_output(&harvest, h));
 
         let init = Command::Init {
             path: PathBuf::from(".braid"),
             spec_dir: PathBuf::from("spec"),
         };
-        assert!(!is_json_output(&init));
+        assert!(!is_json_output(&init, h));
+    }
+
+    #[test]
+    fn is_json_output_global_mode_overrides() {
+        // Even if per-command --json is false, global OutputMode::Json wins
+        let status_no_json = Command::Status {
+            path: PathBuf::from(".braid"),
+            json: false,
+            verbose: false,
+            deep: false,
+            spectral: false,
+            full: false,
+            verify: false,
+            agent: "test".into(),
+            commit: false,
+        };
+        assert!(is_json_output(&status_no_json, OutputMode::Json));
     }
 
     #[test]
@@ -1631,7 +2089,11 @@ mod tests {
             positional_datalog: None,
             json: true,
         };
-        assert!(is_json_output(&json_query), "JSON query must skip footer");
+        let h = OutputMode::Human;
+        assert!(
+            is_json_output(&json_query, h),
+            "JSON query must skip footer"
+        );
 
         let seed = Command::Seed {
             path: PathBuf::from(".braid"),
@@ -1661,7 +2123,7 @@ mod tests {
             rationale: None,
             alternatives: None,
         };
-        assert!(!is_json_output(&observe), "Observe must get footer");
+        assert!(!is_json_output(&observe, h), "Observe must get footer");
         assert!(!is_generative_output(&observe), "Observe must get footer");
         assert!(!is_guidance_command(&observe), "Observe must get footer");
 
@@ -1674,7 +2136,7 @@ mod tests {
             force: false,
             guard: false,
         };
-        assert!(!is_json_output(&harvest), "Harvest must get footer");
+        assert!(!is_json_output(&harvest, h), "Harvest must get footer");
         assert!(!is_generative_output(&harvest), "Harvest must get footer");
     }
 
@@ -1830,6 +2292,7 @@ mod tests {
 
     #[test]
     fn footer_skip_logic_is_consistent() {
+        let h = OutputMode::Human;
         // JSON output should skip footer
         let json_cmd = Command::Query {
             path: PathBuf::from(".braid"),
@@ -1840,7 +2303,7 @@ mod tests {
             json: true,
         };
         assert!(
-            is_json_output(&json_cmd),
+            is_json_output(&json_cmd, h),
             "JSON commands must skip footer to avoid corrupting output"
         );
 

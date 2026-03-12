@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773344036/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Phase 0-1-2AB-4AB complete: bilateral JSON fix, --skip implementation, POSIX command -v, .braid auto-detect, agent-first piped default, footer dedup (7→1), help text demonstrations, status --deep progressive disclosure, AGENTS.md auto-creation, install.sh polish. E2E chain verified. Found and fixed init.rs project_root bug (empty parent path)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ab9147636259083f75246680240a500e84f8b845de65dcabfd69f2ad05a9f4d9" :a :db/ident :v :observation/phase-0-1-2ab-4ab-complete-bilateral-json-fix-skip-imple :op :assert}
+   {:e #blake3 "ab9147636259083f75246680240a500e84f8b845de65dcabfd69f2ad05a9f4d9" :a :db/doc :v "Phase 0-1-2AB-4AB complete: bilateral JSON fix, --skip implementation, POSIX command -v, .braid auto-detect, agent-first piped default, footer dedup (7→1), help text demonstrations, status --deep progressive disclosure, AGENTS.md auto-creation, install.sh polish. E2E chain verified. Found and fixed init.rs project_root bug (empty parent path)." :op :assert}
+   {:e #blake3 "ab9147636259083f75246680240a500e84f8b845de65dcabfd69f2ad05a9f4d9" :a :exploration/body :v "Phase 0-1-2AB-4AB complete: bilateral JSON fix, --skip implementation, POSIX command -v, .braid auto-detect, agent-first piped default, footer dedup (7→1), help text demonstrations, status --deep progressive disclosure, AGENTS.md auto-creation, install.sh polish. E2E chain verified. Found and fixed init.rs project_root bug (empty parent path)." :op :assert}
+   {:e #blake3 "ab9147636259083f75246680240a500e84f8b845de65dcabfd69f2ad05a9f4d9" :a :exploration/content-hash :v #bytes "c033e2e10a7859302b995198ef651f58600bb73ffec00c59e56b4416673949bb" :op :assert}
+   {:e #blake3 "ab9147636259083f75246680240a500e84f8b845de65dcabfd69f2ad05a9f4d9" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "ab9147636259083f75246680240a500e84f8b845de65dcabfd69f2ad05a9f4d9" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "ab9147636259083f75246680240a500e84f8b845de65dcabfd69f2ad05a9f4d9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "ab9147636259083f75246680240a500e84f8b845de65dcabfd69f2ad05a9f4d9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "ab9147636259083f75246680240a500e84f8b845de65dcabfd69f2ad05a9f4d9" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

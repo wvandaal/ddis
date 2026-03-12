@@ -318,6 +318,25 @@ pub struct BilateralState {
 }
 
 // ===========================================================================
+// Verification Depth — WP9 F(S) Honesty
+// ===========================================================================
+
+/// Map verification depth level to weight for depth-weighted F(S) components.
+///
+/// Depth lattice: Unverified(0) < Syntactic(1) < Structural(2) < Property(3) < Formal(4)
+/// Weight mapping makes comment-only traceability (Level 1) worth 15% of a formal proof.
+pub fn depth_weight(depth: i64) -> f64 {
+    match depth {
+        0 => 0.0,
+        1 => 0.15,
+        2 => 0.4,
+        3 => 0.7,
+        4 => 1.0,
+        _ => 0.0,
+    }
+}
+
+// ===========================================================================
 // F(S) Fitness Function — 7-component weighted sum
 // ===========================================================================
 
@@ -327,15 +346,18 @@ pub struct BilateralState {
 ///
 /// Each component is in [0, 1]. F(S) ∈ [0, 1] by construction.
 /// Components that cannot be measured are flagged in `unmeasured`.
+///
+/// V and C use depth-weighted metrics when `:impl/verification-depth` and
+/// `:spec/verification-depth` datoms are present (WP9). When no depth datoms
+/// exist, falls back to legacy binary counting for backwards compatibility.
 pub fn compute_fitness(store: &Store) -> FitnessScore {
     let mut unmeasured = Vec::new();
 
-    // V: Validation score — fraction of spec elements with witness evidence
+    // V: Validation score — depth-weighted witness verification
     let validation = compute_validation(store);
 
-    // C: Coverage — forward scan coverage ratio
-    let forward = forward_scan(store);
-    let coverage = forward.coverage_ratio;
+    // C: Coverage — depth-weighted implementation coverage
+    let coverage = compute_depth_weighted_coverage(store);
 
     // D: Drift — complement of normalized divergence Φ
     let drift = compute_drift_complement(store);
@@ -385,12 +407,21 @@ pub fn compute_fitness(store: &Store) -> FitnessScore {
     }
 }
 
-/// V: Fraction of spec elements with `:spec/witnessed` = true.
+/// V: Depth-weighted validation score.
+///
+/// When `:spec/verification-depth` datoms exist, uses depth weights:
+///   V = Σ(depth_weight(depth_i)) / (|spec_elements| × depth_weight(4))
+///
+/// Falls back to binary `:spec/witnessed` counting when no depth datoms are present,
+/// ensuring backwards compatibility with stores that predate WP9.
 fn compute_validation(store: &Store) -> f64 {
-    let witnessed_attr = Attribute::from_keyword(":spec/witnessed");
     let spec_type_attr = Attribute::from_keyword(":spec/element-type");
+    let spec_depth_attr = Attribute::from_keyword(":spec/verification-depth");
+    let witnessed_attr = Attribute::from_keyword(":spec/witnessed");
 
     let mut spec_count = 0u64;
+    let mut depth_sum = 0.0f64;
+    let mut has_any_depth = false;
     let mut witnessed_count = 0u64;
 
     for entity in store.entities() {
@@ -402,6 +433,22 @@ fn compute_validation(store: &Store) -> f64 {
             continue;
         }
         spec_count += 1;
+
+        // Check for depth datom (WP9 path)
+        let depth = datoms
+            .iter()
+            .rfind(|d| d.attribute == spec_depth_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                Value::Long(v) => Some(*v),
+                _ => None,
+            });
+
+        if let Some(d) = depth {
+            has_any_depth = true;
+            depth_sum += depth_weight(d);
+        }
+
+        // Also count binary witnesses for fallback
         let is_witnessed = datoms.iter().any(|d| {
             d.attribute == witnessed_attr
                 && d.op == Op::Assert
@@ -415,7 +462,88 @@ fn compute_validation(store: &Store) -> f64 {
     if spec_count == 0 {
         return 1.0; // Vacuously true
     }
-    witnessed_count as f64 / spec_count as f64
+
+    if has_any_depth {
+        // WP9 depth-weighted: normalize against max possible (all at depth 4)
+        let max_possible = spec_count as f64 * depth_weight(4);
+        (depth_sum / max_possible).clamp(0.0, 1.0)
+    } else {
+        // Legacy binary: fraction witnessed
+        witnessed_count as f64 / spec_count as f64
+    }
+}
+
+/// C: Depth-weighted implementation coverage.
+///
+/// When `:impl/verification-depth` datoms exist, uses depth weights:
+///   C = Σ(max_depth_weight per spec element) / (|spec_elements| × depth_weight(4))
+///
+/// Falls back to binary forward_scan coverage_ratio when no depth datoms are present.
+fn compute_depth_weighted_coverage(store: &Store) -> f64 {
+    let spec_type_attr = Attribute::from_keyword(":spec/element-type");
+    let implements_attr = Attribute::from_keyword(":impl/implements");
+    let impl_depth_attr = Attribute::from_keyword(":impl/verification-depth");
+
+    // Build map: spec entity → max verification depth across all impl entities
+    let mut spec_max_depth: HashMap<EntityId, i64> = HashMap::new();
+    let mut has_any_depth = false;
+
+    for datom in store.datoms() {
+        if datom.attribute == implements_attr && datom.op == Op::Assert {
+            if let Value::Ref(spec_entity) = &datom.value {
+                let impl_entity = datom.entity;
+                // Get depth for this impl entity.
+                // Default to 1 (syntactic) for impl links without explicit depth —
+                // they passed the trace scanner which is Level 1 verification.
+                let explicit_depth = store
+                    .entity_datoms(impl_entity)
+                    .iter()
+                    .rfind(|d| d.attribute == impl_depth_attr && d.op == Op::Assert)
+                    .and_then(|d| match &d.value {
+                        Value::Long(v) => Some(*v),
+                        _ => None,
+                    });
+
+                let depth = explicit_depth.unwrap_or(1); // syntactic baseline
+
+                if explicit_depth.is_some() {
+                    has_any_depth = true;
+                }
+
+                let entry = spec_max_depth.entry(*spec_entity).or_insert(0);
+                if depth > *entry {
+                    *entry = depth;
+                }
+            }
+        }
+    }
+
+    // Count total spec elements
+    let mut spec_count = 0u64;
+    for entity in store.entities() {
+        let datoms = store.entity_datoms(entity);
+        let is_spec = datoms
+            .iter()
+            .any(|d| d.attribute == spec_type_attr && d.op == Op::Assert);
+        if is_spec {
+            spec_count += 1;
+        }
+    }
+
+    if spec_count == 0 {
+        return 1.0; // Vacuously true
+    }
+
+    if has_any_depth {
+        // WP9 depth-weighted coverage
+        let depth_sum: f64 = spec_max_depth.values().map(|&d| depth_weight(d)).sum();
+        let max_possible = spec_count as f64 * depth_weight(4);
+        (depth_sum / max_possible).clamp(0.0, 1.0)
+    } else {
+        // Legacy binary: use forward_scan
+        let forward = forward_scan(store);
+        forward.coverage_ratio
+    }
 }
 
 /// D: 1 - Φ/Φ_max where Φ_max = max(1, entity_count).

@@ -291,6 +291,27 @@ impl DiskLayout {
     }
 }
 
+/// Walk up from `start` looking for a `.braid/` directory.
+///
+/// Mirrors git's `.git/` discovery. Returns the path to the `.braid/` dir if found.
+/// Used when `--path .braid` (the default) doesn't exist in the current directory.
+pub fn find_braid_root(start: &Path) -> Option<PathBuf> {
+    let mut current = start.to_path_buf();
+    // Canonicalize if possible for reliable traversal
+    if let Ok(canonical) = current.canonicalize() {
+        current = canonical;
+    }
+    loop {
+        let candidate = current.join(".braid");
+        if candidate.is_dir() {
+            return Some(candidate);
+        }
+        if !current.pop() {
+            return None;
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -298,7 +319,31 @@ impl DiskLayout {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
     use tempfile::TempDir;
+
+    #[test]
+    fn find_braid_root_from_subdir() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join(".braid");
+        DiskLayout::init(&root).unwrap();
+
+        // Create a subdirectory
+        let subdir = tmp.path().join("src").join("deep");
+        fs::create_dir_all(&subdir).unwrap();
+
+        // find_braid_root should walk up and find .braid/
+        let found = find_braid_root(&subdir);
+        assert!(found.is_some(), "should find .braid from subdir");
+        assert!(found.unwrap().ends_with(".braid"));
+    }
+
+    #[test]
+    fn find_braid_root_returns_none_when_absent() {
+        let tmp = TempDir::new().unwrap();
+        let found = find_braid_root(tmp.path());
+        assert!(found.is_none(), "should return None when no .braid exists");
+    }
 
     #[test]
     fn init_creates_structure() {

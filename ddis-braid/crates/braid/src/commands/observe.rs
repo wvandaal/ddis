@@ -34,6 +34,7 @@ use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
 /// Arguments for the observe command.
 pub struct ObserveArgs<'a> {
@@ -106,7 +107,7 @@ fn resolve_category(cat: Option<&str>) -> String {
     }
 }
 
-pub fn run(args: ObserveArgs<'_>) -> Result<String, BraidError> {
+pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     // Validate inputs
     if args.text.trim().is_empty() {
         return Err(BraidError::Validation(
@@ -270,33 +271,54 @@ pub fn run(args: ObserveArgs<'_>) -> Result<String, BraidError> {
 
     // Count new store size (current + new datoms)
     let new_total = store.datoms().count() + datom_count;
+    let cat_short = resolve_category(args.category)
+        .strip_prefix(":exploration.cat/")
+        .unwrap_or("observation")
+        .to_string();
 
-    let mut out = String::new();
-    out.push_str(&format!("observed: {ident}\n"));
-    out.push_str(&format!(
+    // Human output (backward compat)
+    let mut human = String::new();
+    human.push_str(&format!("observed: {ident}\n"));
+    human.push_str(&format!(
         "  confidence: {:.1} | category: {} | datoms: {}\n",
-        args.confidence,
-        resolve_category(args.category)
-            .strip_prefix(":exploration.cat/")
-            .unwrap_or("observation"),
-        datom_count
+        args.confidence, cat_short, datom_count
     ));
     if !args.tags.is_empty() {
-        out.push_str(&format!("  tags: {}\n", args.tags.join(", ")));
+        human.push_str(&format!("  tags: {}\n", args.tags.join(", ")));
     }
     if let Some(relates_to) = args.relates_to {
-        out.push_str(&format!("  relates-to: {relates_to}\n"));
+        human.push_str(&format!("  relates-to: {relates_to}\n"));
     }
     if let Some(rationale) = args.rationale {
-        out.push_str(&format!("  rationale: {rationale}\n"));
+        human.push_str(&format!("  rationale: {rationale}\n"));
     }
     if let Some(alternatives) = args.alternatives {
-        out.push_str(&format!("  alternatives: {alternatives}\n"));
+        human.push_str(&format!("  alternatives: {alternatives}\n"));
     }
-    out.push_str(&format!("  store: {new_total} datoms (+{datom_count})\n"));
-    out.push_str(&format!("  tx: {}\n", file_path.relative_path()));
+    human.push_str(&format!("  store: {new_total} datoms (+{datom_count})\n"));
+    human.push_str(&format!("  tx: {}\n", file_path.relative_path()));
 
-    Ok(out)
+    // JSON output
+    let json = serde_json::json!({
+        "entity": ident,
+        "confidence": args.confidence,
+        "category": cat_short,
+        "datoms_added": datom_count,
+        "store_total": new_total,
+        "tx": file_path.relative_path(),
+    });
+
+    // Agent output (three-part structure, ≤300 tokens)
+    let agent = AgentOutput {
+        context: format!(
+            "observed: {ident} (confidence={:.1}, category={cat_short})",
+            args.confidence,
+        ),
+        content: format!("store: {new_total} datoms (+{datom_count})"),
+        footer: "next: braid status".to_string(),
+    };
+
+    Ok(CommandOutput { json, agent, human })
 }
 
 /// Find the most recent active session entity for observation linking (B4).
@@ -387,9 +409,11 @@ mod tests {
         })
         .unwrap();
 
-        assert!(result.contains("observed: :observation/merge-is-a-structural-bottleneck"));
-        assert!(result.contains("confidence: 0.8"));
-        assert!(result.contains("tags: bottleneck, graph"));
+        assert!(result
+            .human
+            .contains("observed: :observation/merge-is-a-structural-bottleneck"));
+        assert!(result.human.contains("confidence: 0.8"));
+        assert!(result.human.contains("tags: bottleneck, graph"));
 
         // Verify entity exists in store
         let layout = DiskLayout::open(&path).unwrap();
@@ -475,8 +499,8 @@ mod tests {
         })
         .unwrap();
 
-        assert!(result.contains("relates-to: :spec/inv-store-004"));
-        assert!(result.contains("category: theorem"));
+        assert!(result.human.contains("relates-to: :spec/inv-store-004"));
+        assert!(result.human.contains("category: theorem"));
     }
 
     #[test]

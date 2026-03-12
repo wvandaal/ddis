@@ -162,6 +162,7 @@ dependencies = [
  "blake3",
  "braid-kernel",
  "clap",
+ "libc",
  "ordered-float",
  "predicates",
  "proptest",

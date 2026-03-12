@@ -99,7 +99,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 false,
                 false,
             ) {
-                Ok(s) => DispatchResult::Output(s),
+                Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
         }
@@ -139,7 +139,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 rationale: None,
                 alternatives: None,
             }) {
-                Ok(s) => DispatchResult::Output(s),
+                Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
         }
@@ -174,7 +174,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 false,
                 false,
             ) {
-                Ok(s) => DispatchResult::Output(s),
+                Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
         }
@@ -192,7 +192,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 false,
                 false,
             ) {
-                Ok(s) => DispatchResult::Output(s),
+                Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
         }
@@ -213,7 +213,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
         "harvest" | "hv" => {
             let task = if args.is_empty() { None } else { Some(args) };
             match super::harvest::run(path, "braid:shell", task, &[], false, false) {
-                Ok(s) => DispatchResult::Output(s),
+                Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
         }

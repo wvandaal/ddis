@@ -15,6 +15,7 @@ use braid_kernel::layout::TxFile;
 use crate::error::BraidError;
 use crate::git;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
 /// Infer task description from store state and git branch.
 ///
@@ -88,7 +89,7 @@ pub fn run(
     knowledge_raw: &[String],
     commit: bool,
     force: bool,
-) -> Result<String, BraidError> {
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -166,8 +167,19 @@ pub fn run(
     }
 
     if !result.candidates.is_empty() {
+        // WP7: Progressive disclosure — filter display by confidence floor
+        let confidence_floor: f64 =
+            braid_kernel::config::get_config(&store, "harvest.confidence-floor")
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0.3);
+
+        let (visible, filtered): (Vec<_>, Vec<_>) = result
+            .candidates
+            .iter()
+            .partition(|c| c.confidence >= confidence_floor);
+
         out.push_str("\ncandidates:\n");
-        for (i, c) in result.candidates.iter().enumerate() {
+        for (i, c) in visible.iter().enumerate() {
             out.push_str(&format!(
                 "  [{}] {:?} \u{2014} {:?} (confidence: {:.2})\n      {}\n",
                 i + 1,
@@ -175,6 +187,13 @@ pub fn run(
                 c.status,
                 c.confidence,
                 c.rationale,
+            ));
+        }
+        if !filtered.is_empty() {
+            out.push_str(&format!(
+                "  ({} below threshold {:.1}, use --verbose for details)\n",
+                filtered.len(),
+                confidence_floor,
             ));
         }
     } else {
@@ -244,7 +263,13 @@ pub fn run(
         if candidates_to_commit.is_empty() {
             out.push_str("nothing committed (all candidates below crystallization threshold)\n");
             out.push_str("  hint: use --force to bypass, or re-observe to increase stability\n");
-            return Ok(out);
+            return Ok(build_harvest_output(
+                out,
+                &task,
+                task_source,
+                &result,
+                false,
+            ));
         }
 
         let harvest_tx_id = super::write::next_tx_id(&store, agent);
@@ -549,7 +574,87 @@ pub fn run(
         out.push_str("\nnothing to commit (no candidates)\n");
     }
 
-    Ok(out)
+    let committed = commit && !result.candidates.is_empty();
+    Ok(build_harvest_output(
+        out,
+        &task,
+        task_source,
+        &result,
+        committed,
+    ))
+}
+
+/// Build a `CommandOutput` from the harvest results.
+fn build_harvest_output(
+    human: String,
+    task: &str,
+    task_source: &str,
+    result: &braid_kernel::harvest::HarvestResult,
+    committed: bool,
+) -> CommandOutput {
+    let candidate_count = result.candidates.len();
+    let committed_count = result
+        .candidates
+        .iter()
+        .filter(|c| matches!(c.status, braid_kernel::harvest::CandidateStatus::Committed))
+        .count();
+    let proposed = result
+        .candidates
+        .iter()
+        .filter(|c| {
+            matches!(
+                c.status,
+                braid_kernel::harvest::CandidateStatus::Proposed
+                    | braid_kernel::harvest::CandidateStatus::UnderReview
+            )
+        })
+        .count();
+    let rejected = candidate_count - committed_count - proposed;
+
+    // JSON output
+    let json = serde_json::json!({
+        "task": task,
+        "task_source": task_source,
+        "candidate_count": candidate_count,
+        "drift_score": result.drift_score,
+        "session_entities": result.session_entities,
+        "quality": {
+            "total": result.quality.count,
+            "high": result.quality.high_confidence,
+            "medium": result.quality.medium_confidence,
+            "low": result.quality.low_confidence,
+        },
+        "committed": committed,
+    });
+
+    // Agent output (three-part, ≤300 tokens)
+    let context = format!("harvest: \"{task}\" ({task_source})");
+    let content = format!(
+        "candidates: {} ({}c/{}p/{}r) | drift={:.2} | quality={}h/{}m/{}l",
+        candidate_count,
+        committed_count,
+        proposed,
+        rejected,
+        result.drift_score,
+        result.quality.high_confidence,
+        result.quality.medium_confidence,
+        result.quality.low_confidence,
+    );
+    let footer = if committed {
+        "next: braid seed --inject AGENTS.md".to_string()
+    } else {
+        "next: braid harvest --commit".to_string()
+    };
+
+    CommandOutput {
+        json,
+        agent: AgentOutput {
+            context,
+            content,
+            footer,
+        },
+        human,
+    }
 }
 
 /// Find open tasks whose :task/traces-to spec elements all have :impl/implements links.

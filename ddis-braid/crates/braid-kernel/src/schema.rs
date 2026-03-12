@@ -1346,7 +1346,7 @@ pub fn full_schema_datoms(tx: TxId) -> Vec<Datom> {
 // ---------------------------------------------------------------------------
 
 /// Number of Layer 4 workflow/coordination attributes.
-pub const LAYER_4_COUNT: usize = 25;
+pub const LAYER_4_COUNT: usize = 32;
 
 /// The Layer 4 (Workflow/Coordination) attributes.
 ///
@@ -1530,6 +1530,55 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             ValueType::Long,
             Cardinality::One,
             "Wall-clock time (unix seconds) when the comment was created",
+        ),
+        // =================================================================
+        // Config (4) — configuration as datoms (ADR-INTERFACE-005, WP2)
+        // =================================================================
+        attr_unique(
+            ":config/key",
+            ValueType::String,
+            Cardinality::One,
+            "Configuration key name (e.g., output.default-mode)",
+            Uniqueness::Identity,
+        ),
+        attr(
+            ":config/value",
+            ValueType::String,
+            Cardinality::One,
+            "Configuration value (string-encoded)",
+        ),
+        attr(
+            ":config/scope",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Configuration scope: :config.scope/global, :config.scope/project, :config.scope/session",
+        ),
+        attr(
+            ":config/description",
+            ValueType::String,
+            Cardinality::One,
+            "What this config key controls",
+        ),
+        // =================================================================
+        // Verification Depth (3) — F(S) honesty (WP9, INV-DEPTH-001..003)
+        // =================================================================
+        attr(
+            ":impl/verification-depth",
+            ValueType::Long,
+            Cardinality::One,
+            "Verification depth level (0=unverified, 1=syntactic, 2=structural, 3=property, 4=formal). Lattice-resolved: monotonically non-decreasing.",
+        ),
+        attr(
+            ":impl/verification-evidence",
+            ValueType::String,
+            Cardinality::One,
+            "How the verification depth was determined (e.g., 'test_inv_store_001 found at line 42')",
+        ),
+        attr(
+            ":spec/verification-depth",
+            ValueType::Long,
+            Cardinality::One,
+            "Highest verification depth achieved across all :impl entities for this spec element",
         ),
     ]
 }

@@ -67,23 +67,33 @@ pub fn run(
                     let any_known = refs.iter().any(|r| r.satisfied.is_some());
                     if any_known {
                         out.push_str("## Constraints\n");
-                        for r in refs {
+                        for (i, r) in refs.iter().enumerate() {
                             let status = match r.satisfied {
                                 Some(true) => "✓",
                                 Some(false) => "✗",
                                 None => "?",
                             };
                             out.push_str(&format!("  [{status}] {}: {}\n", r.id, r.summary));
+                            if i < 3 {
+                                if let Some(ref stmt) = r.statement {
+                                    out.push_str(&format!("    > {stmt}\n"));
+                                }
+                            }
                         }
                         out.push('\n');
                     } else {
                         // Compressed format: IDs with summaries, one per line, no [?] noise
                         out.push_str("## Active Constraints\n");
-                        for r in refs.iter().take(8) {
+                        for (i, r) in refs.iter().take(8).enumerate() {
                             if r.summary.is_empty() {
                                 out.push_str(&format!("- {}\n", r.id));
                             } else {
                                 out.push_str(&format!("- {} ({})\n", r.id, r.summary));
+                            }
+                            if i < 3 {
+                                if let Some(ref stmt) = r.statement {
+                                    out.push_str(&format!("  > {stmt}\n"));
+                                }
                             }
                         }
                         if refs.len() > 8 {

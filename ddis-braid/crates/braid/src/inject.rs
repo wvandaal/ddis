@@ -200,7 +200,7 @@ pub fn format_for_injection(store: &Store, task: Option<&str>, budget: usize) ->
             ContextSection::Constraints(refs) => {
                 if !refs.is_empty() {
                     out.push_str("### Active Constraints\n");
-                    for c in refs {
+                    for (i, c) in refs.iter().enumerate() {
                         let status = match c.satisfied {
                             Some(true) => "[ok]",
                             Some(false) => "[!!]",
@@ -210,6 +210,12 @@ pub fn format_for_injection(store: &Store, task: Option<&str>, budget: usize) ->
                             out.push_str(&format!("- {} {}\n", status, c.id));
                         } else {
                             out.push_str(&format!("- {} {} — {}\n", status, c.id, c.summary));
+                        }
+                        // Surface constraint statement text for top 3 task-relevant constraints
+                        if i < 3 {
+                            if let Some(ref stmt) = c.statement {
+                                out.push_str(&format!("  > {}\n", stmt));
+                            }
                         }
                     }
                     out.push('\n');

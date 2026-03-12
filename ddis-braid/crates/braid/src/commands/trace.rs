@@ -109,6 +109,18 @@ fn parse_spec_ref(s: &str) -> Option<String> {
 // Source file scanning
 // ---------------------------------------------------------------------------
 
+/// Verification depth levels (INV-DEPTH-001: monotonically non-decreasing lattice).
+///
+/// Level 0 — Unverified:    Comment contains spec ref, no validation
+/// Level 1 — Syntactic:     Spec ref found AND impl entity references the right file/module
+/// Level 2 — Structural:    Level 1 AND test exists in the same module
+/// Level 3 — Property:      Level 2 AND test directly names the spec element
+/// Level 4 — Formal:        Level 3 AND Kani proof or Stateright model covers the invariant
+const DEPTH_SYNTACTIC: i64 = 1;
+const DEPTH_STRUCTURAL: i64 = 2;
+const DEPTH_PROPERTY: i64 = 3;
+const DEPTH_FORMAL: i64 = 4;
+
 /// A traced reference found in a source file.
 #[derive(Clone, Debug)]
 struct TraceRef {
@@ -118,6 +130,10 @@ struct TraceRef {
     file: String,
     /// Whether this was found in a test file
     is_test: bool,
+    /// Verification depth (1-4), computed from context analysis
+    verification_depth: i64,
+    /// Evidence for the depth determination
+    verification_evidence: String,
 }
 
 /// Scan a Rust source file for spec references in comments.
@@ -125,6 +141,12 @@ struct TraceRef {
 /// Only extracts references from comment lines (`//`, `///`, `//!`).
 /// Skips references inside code blocks in doc comments to avoid false positives
 /// (FM-TRACE-001).
+///
+/// WP9: Also computes verification depth per reference:
+/// - Level 1 (Syntactic): Comment contains spec ref
+/// - Level 2 (Structural): Level 1 AND test exists in the same file/module
+/// - Level 3 (Property): Level 2 AND a test names the spec element
+/// - Level 4 (Formal): Level 3 AND a Kani proof or Stateright model covers it
 fn scan_file(path: &Path, relative: &str) -> Vec<TraceRef> {
     let content = match std::fs::read_to_string(path) {
         Ok(c) => c,
@@ -149,6 +171,11 @@ fn scan_file(path: &Path, relative: &str) -> Vec<TraceRef> {
 
     // The test evidence boundary: lines at or after (cfg_test_line - 20) are test evidence.
     let test_start_line = cfg_test_line.map(|l| l.saturating_sub(20));
+
+    // WP9: Pre-scan for depth detection evidence
+    let has_kani = content.contains("#[kani::proof]");
+    let has_stateright = content.contains("stateright") && content.contains("Checker");
+    let has_proptest = content.contains("proptest!") || content.contains("prop_assert");
 
     let mut refs = Vec::new();
     let mut in_code_block = false;
@@ -175,15 +202,92 @@ fn scan_file(path: &Path, relative: &str) -> Vec<TraceRef> {
         }
 
         for spec_ref in extract_spec_refs(trimmed) {
+            // WP9: Compute verification depth
+            let ref_lower = spec_ref.to_lowercase().replace('-', "_");
+            let (depth, evidence) = compute_depth(
+                &spec_ref,
+                &ref_lower,
+                &content,
+                is_test,
+                has_kani,
+                has_stateright,
+                has_proptest,
+                relative,
+                line_num,
+            );
+
             refs.push(TraceRef {
                 spec_ref,
                 file: relative.to_string(),
                 is_test,
+                verification_depth: depth,
+                verification_evidence: evidence,
             });
         }
     }
 
     refs
+}
+
+/// Compute verification depth for a spec reference in context (WP9).
+///
+/// Returns (depth, evidence_description).
+#[allow(clippy::too_many_arguments)]
+fn compute_depth(
+    spec_ref: &str,
+    ref_lower: &str,
+    content: &str,
+    is_test: bool,
+    has_kani: bool,
+    has_stateright: bool,
+    has_proptest: bool,
+    file: &str,
+    _line_num: usize,
+) -> (i64, String) {
+    // Level 4: Formal verification (Kani proof or Stateright model naming the spec ref)
+    if has_kani && content.contains(ref_lower) && content.contains("#[kani::proof]") {
+        return (
+            DEPTH_FORMAL,
+            format!("Kani proof references {spec_ref} in {file}"),
+        );
+    }
+    if has_stateright && content.contains(ref_lower) {
+        return (
+            DEPTH_FORMAL,
+            format!("Stateright model references {spec_ref} in {file}"),
+        );
+    }
+
+    // Level 3: Property-based test naming the spec element
+    if is_test && has_proptest && content.contains(ref_lower) {
+        return (
+            DEPTH_PROPERTY,
+            format!("Proptest names {spec_ref} in {file}"),
+        );
+    }
+    // Also Level 3: #[test] function whose name contains the spec ref
+    if is_test && content.contains(&format!("fn test_{ref_lower}"))
+        || content.contains(&format!("fn {ref_lower}"))
+    {
+        return (
+            DEPTH_PROPERTY,
+            format!("Test function names {spec_ref} in {file}"),
+        );
+    }
+
+    // Level 2: Structural — test exists in same module (but doesn't name the spec ref)
+    if is_test {
+        return (
+            DEPTH_STRUCTURAL,
+            format!("Test file references {spec_ref} in {file}"),
+        );
+    }
+
+    // Level 1: Syntactic — comment reference only, no test evidence
+    (
+        DEPTH_SYNTACTIC,
+        format!("Comment references {spec_ref} in {file}"),
+    )
 }
 
 /// Check if a line is a Rust comment.
@@ -296,6 +400,10 @@ struct ResolvedLink {
     file: String,
     /// Module path (derived from file path)
     module: String,
+    /// Verification depth (WP9)
+    verification_depth: i64,
+    /// How depth was determined
+    verification_evidence: String,
 }
 
 /// Generate datoms for resolved trace links.
@@ -335,6 +443,24 @@ fn generate_impl_datoms(links: &[ResolvedLink], tx_id: TxId) -> Vec<braid_kernel
             link.entity,
             Attribute::from_keyword(":impl/module"),
             Value::String(link.module.clone()),
+            tx_id,
+            Op::Assert,
+        ));
+
+        // WP9: :impl/verification-depth — how deeply verified this link is
+        datoms.push(braid_kernel::datom::Datom::new(
+            link.entity,
+            Attribute::from_keyword(":impl/verification-depth"),
+            Value::Long(link.verification_depth),
+            tx_id,
+            Op::Assert,
+        ));
+
+        // WP9: :impl/verification-evidence — how depth was determined
+        datoms.push(braid_kernel::datom::Datom::new(
+            link.entity,
+            Attribute::from_keyword(":impl/verification-evidence"),
+            Value::String(link.verification_evidence.clone()),
             tx_id,
             Op::Assert,
         ));
@@ -461,6 +587,8 @@ pub fn run(
                         spec_entity,
                         file: trace_ref.file.clone(),
                         module: module_from_path(&trace_ref.file),
+                        verification_depth: trace_ref.verification_depth,
+                        verification_evidence: trace_ref.verification_evidence.clone(),
                     });
                 }
             }
@@ -514,6 +642,31 @@ pub fn run(
         out.push_str(&format!(" (+{} new)", witnessed_specs.len()));
     }
     out.push('\n');
+
+    // WP9: Show verification depth distribution
+    if !resolved_links.is_empty() {
+        let mut depth_counts = [0usize; 5]; // depth 0-4
+        for link in &resolved_links {
+            let idx = (link.verification_depth as usize).min(4);
+            depth_counts[idx] += 1;
+        }
+        out.push_str("Verification depth: ");
+        let mut parts = Vec::new();
+        let labels = [
+            "L0:Unverified",
+            "L1:Syntactic",
+            "L2:Structural",
+            "L3:Property",
+            "L4:Formal",
+        ];
+        for (i, label) in labels.iter().enumerate() {
+            if depth_counts[i] > 0 {
+                parts.push(format!("{}={}", label, depth_counts[i]));
+            }
+        }
+        out.push_str(&parts.join(", "));
+        out.push('\n');
+    }
 
     // Show unresolved refs (FM-TRACE-002 warnings)
     if !unresolved.is_empty() {

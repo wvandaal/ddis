@@ -9,15 +9,14 @@ pub mod layout;
 pub mod mcp;
 pub mod output;
 
-/// Braid — append-only datom store with CRDT merge, Datalog queries, and coherence verification.
-///
-/// Workflow: init → observe → query → status → harvest → seed
+/// Braid — append-only datom store for human/AI coherence verification.
 ///
 /// Quick start:
-///   braid init                                          # create store
-///   braid observe "merge is a bottleneck" -c 0.8       # capture knowledge
-///   braid query '[:find ?e ?v :where [?e :db/doc ?v]]' # query
-///   braid status                                        # dashboard + next action
+///   braid init                              # create store, detect env, inject seed
+///   braid status                            # F(S)=0.77, M(t)=0.82, next action
+///   braid observe "insight" -c 0.8          # capture knowledge as datom
+///   braid harvest --commit                  # end-of-session: crystallize
+///   braid seed --inject AGENTS.md           # refresh context for next session
 #[derive(Parser)]
 #[command(name = "braid", version, about, long_about)]
 struct Cli {
@@ -33,12 +32,36 @@ struct Cli {
     #[arg(long, global = true)]
     context_used: Option<f64>,
 
+    /// Output format: json, agent, or human.
+    ///
+    /// Resolution priority (INV-OUTPUT-001):
+    ///   1. --format flag (this)
+    ///   2. BRAID_OUTPUT env var
+    ///   3. TTY detection: interactive terminal → human
+    ///   4. Default: agent (AI agents are the primary consumer)
+    #[arg(long, global = true)]
+    format: Option<String>,
+
+    /// Show orientation prompt for AI agents (complete workflow guide).
+    #[arg(long)]
+    orientation: bool,
+
     #[command(subcommand)]
     command: Option<commands::Command>,
 }
 
 fn main() {
     let cli = Cli::parse();
+
+    // Resolve output mode once (INV-OUTPUT-001: deterministic resolution)
+    let mode = output::resolve_mode(cli.format.as_deref());
+
+    // --orientation: output the complete agent onboarding prompt
+    if cli.orientation {
+        let orientation = commands::orientation::build_orientation(mode);
+        print!("{orientation}");
+        return;
+    }
 
     // Default: bare `braid` shows terse status dashboard
     let cmd = cli.command.unwrap_or(commands::Command::Status {
@@ -54,10 +77,10 @@ fn main() {
     });
 
     let budget_ctx = commands::BudgetCtx::from_flags(cli.budget, cli.context_used);
-    let result = commands::run(cmd, &budget_ctx);
+    let result = commands::run(cmd, &budget_ctx, mode);
     match result {
-        Ok(output) => {
-            print!("{output}");
+        Ok(cmd_output) => {
+            print!("{}", cmd_output.render(mode));
         }
         Err(e) => {
             eprintln!("{e}");

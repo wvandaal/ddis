@@ -25,6 +25,7 @@ use braid_kernel::EntityId;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
 use super::session::ensure_layer_4_public;
 
@@ -149,17 +150,20 @@ pub fn list(path: &Path, show_all: bool) -> Result<String, BraidError> {
 }
 
 /// Show ready tasks (unblocked open tasks sorted by priority).
-pub fn ready(path: &Path) -> Result<String, BraidError> {
+pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
     let ready_set = compute_ready_set(&store);
     if ready_set.is_empty() {
-        return Ok("No ready tasks. Create one: braid task \"title\"\n".to_string());
+        return Ok(CommandOutput::from_human(
+            "No ready tasks. Create one: braid task \"title\"\n".to_string(),
+        ));
     }
 
-    let mut out = String::new();
-    out.push_str(&format!("Ready tasks ({} unblocked):\n", ready_set.len()));
+    // Human output (backward compat)
+    let mut human = String::new();
+    human.push_str(&format!("Ready tasks ({} unblocked):\n", ready_set.len()));
 
     for t in &ready_set {
         let type_short = t
@@ -171,20 +175,163 @@ pub fn ready(path: &Path) -> Result<String, BraidError> {
         } else {
             format!(" [traces: {}]", t.traces_to.len())
         };
-        out.push_str(&format!(
+        human.push_str(&format!(
             "  P{}  {:7}  {}  \"{}\"{}\n",
             t.priority, type_short, t.id, t.title, traces
         ));
     }
 
     if let Some(top) = ready_set.first() {
-        out.push_str(&format!(
+        human.push_str(&format!(
             "Top pick: {} — run: braid task update {} --status in-progress\n",
             top.id, top.id
         ));
     }
 
-    Ok(out)
+    // JSON output
+    let tasks_json: Vec<serde_json::Value> = ready_set
+        .iter()
+        .map(|t| {
+            let type_short = t
+                .task_type
+                .strip_prefix(":task.type/")
+                .unwrap_or(&t.task_type);
+            serde_json::json!({
+                "id": t.id,
+                "title": t.title,
+                "priority": t.priority,
+                "type": type_short,
+                "traces_to_count": t.traces_to.len(),
+            })
+        })
+        .collect();
+    let json = serde_json::json!({
+        "ready_count": ready_set.len(),
+        "tasks": tasks_json,
+    });
+
+    // Agent output (three-part, ≤300 tokens)
+    let mut content_lines = Vec::new();
+    for t in ready_set.iter().take(5) {
+        let type_short = t
+            .task_type
+            .strip_prefix(":task.type/")
+            .unwrap_or(&t.task_type);
+        content_lines.push(format!(
+            "  [P{}] {} \"{}\" ({})",
+            t.priority, t.id, t.title, type_short
+        ));
+    }
+    if ready_set.len() > 5 {
+        content_lines.push(format!("  ... and {} more", ready_set.len() - 5));
+    }
+
+    let top_id = ready_set.first().map(|t| t.id.as_str()).unwrap_or("?");
+    let agent = AgentOutput {
+        context: format!("ready: {} tasks", ready_set.len()),
+        content: content_lines.join("\n"),
+        footer: format!("claim: braid go {top_id}"),
+    };
+
+    Ok(CommandOutput { json, agent, human })
+}
+
+/// Show the top ready task, optionally skipping a specific task ID.
+///
+/// When `skip` is provided, filters out the matching task before selecting top pick.
+pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    let mut ready_set = compute_ready_set(&store);
+
+    // Filter out skipped task
+    if let Some(skip_id) = skip {
+        ready_set.retain(|t| t.id != skip_id);
+    }
+
+    if ready_set.is_empty() {
+        let msg = if skip.is_some() {
+            "No other ready tasks (after skipping). Create one: braid task \"title\"\n"
+        } else {
+            "No ready tasks. Create one: braid task \"title\"\n"
+        };
+        return Ok(CommandOutput::from_human(msg.to_string()));
+    }
+
+    // Human output
+    let mut human = String::new();
+    human.push_str(&format!("Ready tasks ({} unblocked):\n", ready_set.len()));
+
+    for t in &ready_set {
+        let type_short = t
+            .task_type
+            .strip_prefix(":task.type/")
+            .unwrap_or(&t.task_type);
+        let traces = if t.traces_to.is_empty() {
+            String::new()
+        } else {
+            format!(" [traces: {}]", t.traces_to.len())
+        };
+        human.push_str(&format!(
+            "  P{}  {:7}  {}  \"{}\"{}\n",
+            t.priority, type_short, t.id, t.title, traces
+        ));
+    }
+
+    if let Some(top) = ready_set.first() {
+        human.push_str(&format!(
+            "Top pick: {} — run: braid go {}\n",
+            top.id, top.id
+        ));
+    }
+
+    // JSON output
+    let tasks_json: Vec<serde_json::Value> = ready_set
+        .iter()
+        .map(|t| {
+            let type_short = t
+                .task_type
+                .strip_prefix(":task.type/")
+                .unwrap_or(&t.task_type);
+            serde_json::json!({
+                "id": t.id,
+                "title": t.title,
+                "priority": t.priority,
+                "type": type_short,
+                "traces_to_count": t.traces_to.len(),
+            })
+        })
+        .collect();
+    let json = serde_json::json!({
+        "ready_count": ready_set.len(),
+        "tasks": tasks_json,
+    });
+
+    // Agent output
+    let mut content_lines = Vec::new();
+    for t in ready_set.iter().take(5) {
+        let type_short = t
+            .task_type
+            .strip_prefix(":task.type/")
+            .unwrap_or(&t.task_type);
+        content_lines.push(format!(
+            "  [P{}] {} \"{}\" ({})",
+            t.priority, t.id, t.title, type_short
+        ));
+    }
+    if ready_set.len() > 5 {
+        content_lines.push(format!("  ... and {} more", ready_set.len() - 5));
+    }
+
+    let top_id = ready_set.first().map(|t| t.id.as_str()).unwrap_or("?");
+    let agent = AgentOutput {
+        context: format!("ready: {} tasks", ready_set.len()),
+        content: content_lines.join("\n"),
+        footer: format!("claim: braid go {top_id}"),
+    };
+
+    Ok(CommandOutput { json, agent, human })
 }
 
 /// Show detailed info about a task.
@@ -618,8 +765,8 @@ mod tests {
         dep_add(&path, &id_b, &id_a, "test").unwrap();
 
         let result = ready(&path).unwrap();
-        assert!(result.contains("Task A"));
+        assert!(result.human.contains("Task A"));
         // Task B is blocked by A, so it shouldn't appear in ready
-        assert!(!result.contains(&format!("{}  \"Task B\"", id_b)));
+        assert!(!result.human.contains(&format!("{}  \"Task B\"", id_b)));
     }
 }

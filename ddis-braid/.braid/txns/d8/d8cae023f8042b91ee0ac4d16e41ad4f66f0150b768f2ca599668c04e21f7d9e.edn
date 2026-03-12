@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773329532/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 022: Self-Healing Braid — implemented 4-phase plan to close the self-bootstrap gap. Phase A: body parser stores spec element body text as datoms (statements, falsification conditions, traces-to). Phase B: wired output pipeline — CommandOutput::render(mode) is now the single rendering path for all commands. Phase C: converted status, observe, harvest, task ready to native CommandOutput with tri-mode output (JSON/Agent/Human). Phase D: enhanced init with auto-trace and auto-inject."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "faec21713e6c3831619ccd501b5c7a748c643a2211256b86187de3e1de325e81" :a :db/ident :v :observation/session-022-self-healing-braid-implemented-4-phase-plan-t :op :assert}
+   {:e #blake3 "faec21713e6c3831619ccd501b5c7a748c643a2211256b86187de3e1de325e81" :a :db/doc :v "Session 022: Self-Healing Braid — implemented 4-phase plan to close the self-bootstrap gap. Phase A: body parser stores spec element body text as datoms (statements, falsification conditions, traces-to). Phase B: wired output pipeline — CommandOutput::render(mode) is now the single rendering path for all commands. Phase C: converted status, observe, harvest, task ready to native CommandOutput with tri-mode output (JSON/Agent/Human). Phase D: enhanced init with auto-trace and auto-inject." :op :assert}
+   {:e #blake3 "faec21713e6c3831619ccd501b5c7a748c643a2211256b86187de3e1de325e81" :a :exploration/body :v "Session 022: Self-Healing Braid — implemented 4-phase plan to close the self-bootstrap gap. Phase A: body parser stores spec element body text as datoms (statements, falsification conditions, traces-to). Phase B: wired output pipeline — CommandOutput::render(mode) is now the single rendering path for all commands. Phase C: converted status, observe, harvest, task ready to native CommandOutput with tri-mode output (JSON/Agent/Human). Phase D: enhanced init with auto-trace and auto-inject." :op :assert}
+   {:e #blake3 "faec21713e6c3831619ccd501b5c7a748c643a2211256b86187de3e1de325e81" :a :exploration/content-hash :v #bytes "8d537016f1948d04c0ec8bb2e0c2bc6fa4afdfd360a9f615dbbff8e0ca91ba3b" :op :assert}
+   {:e #blake3 "faec21713e6c3831619ccd501b5c7a748c643a2211256b86187de3e1de325e81" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "faec21713e6c3831619ccd501b5c7a748c643a2211256b86187de3e1de325e81" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "faec21713e6c3831619ccd501b5c7a748c643a2211256b86187de3e1de325e81" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "faec21713e6c3831619ccd501b5c7a748c643a2211256b86187de3e1de325e81" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "faec21713e6c3831619ccd501b5c7a748c643a2211256b86187de3e1de325e81" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

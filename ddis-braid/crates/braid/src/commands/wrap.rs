@@ -159,7 +159,7 @@ pub fn run(
             "WARN"
         }
     ));
-    out.push_str(&observe_result);
+    out.push_str(&observe_result.human);
 
     Ok(out)
 }
