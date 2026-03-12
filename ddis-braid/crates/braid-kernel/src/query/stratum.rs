@@ -8,6 +8,14 @@
 //! - **INV-QUERY-005**: Strata 0-1 at Stage 0 (S2+ rejected).
 //! - **INV-QUERY-006**: Entity-centric view via index scan.
 //! - **INV-QUERY-007**: CALM compliance — S0/S1 are monotone, no coordination needed.
+//! - **INV-QUERY-009**: Bilateral query symmetry.
+//! - **INV-QUERY-011**: Projection reification.
+//!
+//! # Design Decisions
+//!
+//! - ADR-QUERY-003: Six-stratum classification.
+//! - ADR-QUERY-005: Local frontier as default query scope.
+//! - ADR-QUERY-006: Frontier as datom attribute.
 
 use super::clause::QueryExpr;
 
@@ -112,6 +120,8 @@ pub fn check_stage0(query: &QueryExpr) -> Result<Stratum, Stratum> {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-QUERY-005, INV-QUERY-006, INV-QUERY-001,
+// ADR-QUERY-003, NEG-QUERY-001, NEG-QUERY-003
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -177,21 +187,26 @@ mod tests {
         )
     }
 
+    // Verifies: ADR-QUERY-003 — Six-Stratum Classification
     #[test]
     fn classify_ground_query() {
         assert_eq!(classify(&ground_query()), Stratum::S0);
     }
 
+    // Verifies: ADR-QUERY-003 — Six-Stratum Classification
     #[test]
     fn classify_simple_pattern() {
         assert_eq!(classify(&simple_pattern_query()), Stratum::S1);
     }
 
+    // Verifies: ADR-QUERY-003 — Six-Stratum Classification
     #[test]
     fn classify_equality_predicate() {
         assert_eq!(classify(&equality_predicate_query()), Stratum::S1);
     }
 
+    // Verifies: INV-QUERY-005 — Stratum Safety
+    // Verifies: INV-QUERY-001 — CALM Compliance (monotone filter)
     #[test]
     fn classify_inequality_filter_is_monotone() {
         // != as a predicate filter is still monotone (S1), not S2.
@@ -215,6 +230,7 @@ mod tests {
         assert_eq!(check_stage0(&inequality_filter_query()), Ok(Stratum::S1));
     }
 
+    // Verifies: ADR-QUERY-003 — Six-Stratum Classification (ordering)
     #[test]
     fn stratum_ordering() {
         assert!(Stratum::S0 < Stratum::S1);
@@ -224,6 +240,8 @@ mod tests {
         assert!(Stratum::S4 < Stratum::S5);
     }
 
+    // Verifies: INV-QUERY-001 — CALM Compliance (monotone classification)
+    // Verifies: NEG-QUERY-001 — No Non-Monotonic Queries in Monotonic Mode
     #[test]
     fn monotone_classification() {
         assert!(Stratum::S0.is_monotone());
@@ -234,6 +252,7 @@ mod tests {
         assert!(!Stratum::S5.is_monotone());
     }
 
+    // Verifies: INV-QUERY-005 — Stratum Safety (Stage 0 evaluability)
     #[test]
     fn evaluable_stage0_classification() {
         assert!(Stratum::S0.is_evaluable_stage0());
@@ -244,6 +263,7 @@ mod tests {
         assert!(!Stratum::S5.is_evaluable_stage0());
     }
 
+    // Verifies: INV-QUERY-002 — Query Determinism
     #[test]
     fn classification_is_deterministic() {
         let q = simple_pattern_query();
@@ -252,6 +272,8 @@ mod tests {
         assert_eq!(s1, s2);
     }
 
+    // Verifies: INV-QUERY-001 — CALM Compliance (comparison predicates monotone)
+    // Verifies: INV-QUERY-005 — Stratum Safety
     #[test]
     fn comparison_predicates_are_monotone() {
         // >, <, >=, <= are all monotone filters
@@ -280,6 +302,9 @@ mod tests {
 
     // -------------------------------------------------------------------
     // Proptest: stratum classification properties
+    // Verifies: INV-QUERY-005 — Stratum Safety
+    // Verifies: INV-QUERY-006 — Semi-Naive Termination
+    // Verifies: NEG-QUERY-003 — No Unbounded Query Evaluation
     // -------------------------------------------------------------------
 
     mod stratum_proptests {

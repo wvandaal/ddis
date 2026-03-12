@@ -15,7 +15,19 @@
 //! - **INV-SEED-002**: Budget compliance — output ≤ declared budget.
 //! - **INV-SEED-003**: ASSOCIATE boundedness — `|result| ≤ depth × breadth`.
 //! - **INV-SEED-004**: Section compression priority (State first, Directive last).
+//! - **INV-SEED-005**: Demonstration density — worked examples included.
 //! - **INV-SEED-006**: Intention anchoring — intentions pinned at π₀ regardless.
+//!
+//! # Design Decisions
+//!
+//! - ADR-SEED-003: Spec-language over instruction-language in seed output.
+//! - ADR-SEED-005: Four knowledge types (state, constraint, observation, action).
+//! - ADR-SEED-007: Seed document eleven-section structure.
+//!
+//! # Negative Cases
+//!
+//! - NEG-SEED-001: No fabricated context — every seed datum traces to a datom.
+//! - NEG-SEED-002: No budget overflow — output strictly within declared limit.
 
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
@@ -691,6 +703,86 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
                     })
                     .collect::<Vec<_>>()
                     .join(" ")
+            ));
+        }
+    }
+
+    // === B2: Attribute vocabulary (top-N per layer, from actual store usage) ===
+    // Gives incoming agents the schema context to write correct queries.
+    if current_datoms > 100 {
+        let mut attr_counts: BTreeMap<String, usize> = BTreeMap::new();
+        for d in store.datoms() {
+            if d.op == Op::Assert && !d.attribute.as_str().starts_with(":db/") {
+                *attr_counts
+                    .entry(d.attribute.as_str().to_string())
+                    .or_default() += 1;
+            }
+        }
+        if !attr_counts.is_empty() {
+            // Group by layer prefix and show top attrs by count
+            let mut trilateral = Vec::new();
+            let mut elements = Vec::new();
+            let mut exploration = Vec::new();
+            let mut task_attrs = Vec::new();
+
+            let mut sorted: Vec<_> = attr_counts.iter().collect();
+            sorted.sort_by(|a, b| b.1.cmp(a.1));
+
+            for (attr, count) in sorted.iter().take(30) {
+                let entry = format!("{}({})", attr, count);
+                if attr.starts_with(":intent/")
+                    || attr.starts_with(":spec/")
+                    || attr.starts_with(":impl/")
+                {
+                    trilateral.push(entry);
+                } else if attr.starts_with(":element/")
+                    || attr.starts_with(":inv/")
+                    || attr.starts_with(":adr/")
+                {
+                    elements.push(entry);
+                } else if attr.starts_with(":exploration/") || attr.starts_with(":harvest/") {
+                    exploration.push(entry);
+                } else if attr.starts_with(":task/")
+                    || attr.starts_with(":plan/")
+                    || attr.starts_with(":session/")
+                {
+                    task_attrs.push(entry);
+                }
+            }
+
+            let mut vocab = String::from("Key attrs:");
+            if !trilateral.is_empty() {
+                vocab.push_str(&format!(" {}", trilateral.join(", ")));
+            }
+            if !exploration.is_empty() {
+                vocab.push_str(&format!(", {}", exploration.join(", ")));
+            }
+            if !task_attrs.is_empty() {
+                vocab.push_str(&format!(", {}", task_attrs.join(", ")));
+            }
+            parts.push(vocab);
+        }
+    }
+
+    // === Task summary (D4: seed integration) ===
+    {
+        let tasks = crate::task::all_tasks(store);
+        if !tasks.is_empty() {
+            let open = tasks
+                .iter()
+                .filter(|t| t.status == crate::task::TaskStatus::Open)
+                .count();
+            let ready = crate::task::compute_ready_set(store);
+            let blocked = open.saturating_sub(ready.len());
+            let top = ready
+                .first()
+                .map(|t| format!(" | Top: {} P{} \"{}\"", t.id, t.priority, t.title));
+            parts.push(format!(
+                "Tasks: {} open ({} ready, {} blocked){}",
+                open,
+                ready.len(),
+                blocked,
+                top.unwrap_or_default(),
             ));
         }
     }
@@ -2407,11 +2499,17 @@ pub fn verify_seed(seed: &SeedOutput, store: &Store, budget: usize) -> SeedVerif
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-SEED-001, INV-SEED-002, INV-SEED-003, INV-SEED-004,
+// INV-SEED-005, INV-SEED-006, INV-SEED-007, INV-SEED-008,
+// ADR-SEED-001, ADR-SEED-002, ADR-SEED-003, ADR-SEED-004,
+// ADR-SEED-005, ADR-SEED-006,
+// NEG-SEED-001, NEG-SEED-002
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::datom::AgentId;
 
+    // Verifies: INV-SEED-003 — ASSOCIATE Boundedness
     #[test]
     fn associate_boundedness() {
         let store = Store::genesis();
@@ -2428,6 +2526,7 @@ mod tests {
         );
     }
 
+    // Verifies: INV-SEED-001 — Seed as Store Projection
     #[test]
     fn associate_explicit_includes_seeds() {
         let store = Store::genesis();
@@ -2441,6 +2540,8 @@ mod tests {
         assert!(neighborhood.entities.contains(&seed_entity));
     }
 
+    // Verifies: INV-SEED-002 — Budget Compliance
+    // Verifies: NEG-SEED-002 — No Budget Overflow
     #[test]
     fn assemble_respects_budget() {
         let store = Store::genesis();
@@ -2459,6 +2560,8 @@ mod tests {
         );
     }
 
+    // Verifies: INV-SEED-004 — Section Compression Priority
+    // Verifies: ADR-SEED-002 — Rate-Distortion Assembly
     #[test]
     fn assemble_selects_projection_by_budget() {
         let store = Store::genesis();
@@ -2477,6 +2580,8 @@ mod tests {
         assert_eq!(tiny.projection_pattern, ProjectionLevel::Pointer);
     }
 
+    // Verifies: INV-SEED-001 — Seed as Store Projection
+    // Verifies: ADR-SEED-004 — Unified Five-Part Seed Template
     #[test]
     fn assemble_seed_end_to_end() {
         let store = Store::genesis();
@@ -2752,6 +2857,8 @@ mod tests {
     // Phase 4: Seed verification tests
     // -------------------------------------------------------------------
 
+    // Verifies: INV-SEED-001 — Seed as Store Projection (verification)
+    // Verifies: NEG-SEED-001 — No Fabricated Context
     #[test]
     fn verify_seed_passes_for_genesis() {
         let store = Store::genesis();
@@ -2772,6 +2879,8 @@ mod tests {
         );
     }
 
+    // Verifies: INV-SEED-002 — Budget Compliance (violation detection)
+    // Verifies: NEG-SEED-002 — No Budget Overflow
     #[test]
     fn verify_seed_detects_budget_violation() {
         // Manually construct a seed with budget violation
@@ -3178,6 +3287,8 @@ mod tests {
         }
     }
 
+    // Verifies: INV-SEED-006 — Intention Anchoring
+    // Verifies: ADR-SEED-003 — Spec-Language Over Instruction-Language
     #[test]
     fn test_orientation_includes_session_decisions() {
         use crate::datom::{Attribute, TxId};
@@ -3438,6 +3549,8 @@ mod tests {
 
     // ── Wave 3: Task-aware seed sections tests ──────────────────────────
 
+    // Verifies: INV-SEED-006 — Intention Anchoring (task-aware constraints)
+    // Verifies: INV-GUIDANCE-009 — Task Derivation Completeness
     #[test]
     fn test_constraints_task_aware() {
         use crate::datom::TxId;
@@ -3561,6 +3674,8 @@ mod tests {
 
     // ── Wave 2.3: Harvest narrative round-trip tests ────────────────────
 
+    // Verifies: INV-SEED-007 — Dynamic CLAUDE.md Relevance
+    // Verifies: ADR-SEED-006 — Dynamic CLAUDE.md Generation
     #[test]
     fn test_seed_reads_harvest_narrative() {
         use crate::datom::TxId;

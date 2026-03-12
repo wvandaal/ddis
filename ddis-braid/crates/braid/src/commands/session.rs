@@ -11,8 +11,9 @@
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use braid_kernel::datom::Op;
+use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, Value};
 use braid_kernel::guidance::{count_txns_since_last_harvest, last_harvest_wall_time};
+use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
@@ -34,10 +35,13 @@ pub fn run_start(
     inject_path: &Path,
     task: Option<&str>,
     budget: usize,
-    _agent_name: &str,
+    agent_name: &str,
 ) -> Result<String, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
+
+    // B4: Ensure Layer 4 schema is installed (for session/task attributes)
+    ensure_layer_4(&layout, &store)?;
 
     // Resolve task: explicit > last harvest directive > fallback
     let (resolved_task, task_source) = match task {
@@ -48,7 +52,58 @@ pub fn run_start(
         },
     };
 
-    // Inject seed into target file
+    // B4: Create persistent session entity
+    let agent = AgentId::from_name(agent_name);
+    let wall_time = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let session_ident = format!(":session/s-{}", wall_time);
+    let session_entity = EntityId::from_ident(&session_ident);
+    let tx_id = super::write::next_tx_id(&store, agent);
+
+    let session_datoms = vec![
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(session_ident.clone()),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/task"),
+            Value::String(resolved_task.clone()),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/started-at"),
+            Value::Long(wall_time as i64),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/status"),
+            Value::Keyword(":session.status/active".to_string()),
+            tx_id,
+            Op::Assert,
+        ),
+    ];
+
+    let tx = TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Observed,
+        rationale: format!("Session start: {resolved_task}"),
+        causal_predecessors: vec![],
+        datoms: session_datoms,
+    };
+    layout.write_tx(&tx)?;
+
+    // Inject seed into target file (reload store to include session entity)
     let inject_output = seed::run_inject(path, inject_path, &resolved_task, budget)?;
 
     // Compute session context
@@ -70,6 +125,13 @@ pub fn run_start(
         harvest_age,
         tx_since_harvest,
     ));
+
+    // B3: Show git diff since last session
+    let git_diff = git_changes_summary();
+    if !git_diff.is_empty() {
+        out.push_str(&git_diff);
+    }
+
     out.push_str(
         "Next: braid observe \"...\" to capture knowledge | braid session end when done\n",
     );
@@ -103,6 +165,28 @@ pub fn run_end(
              Use `braid observe` to capture knowledge first."
                 .into(),
         ));
+    }
+
+    // B4: Close the active session entity
+    if let Some(session_entity) = find_active_session(&store) {
+        let agent = AgentId::from_name(agent_name);
+        let tx_id = super::write::next_tx_id(&store, agent);
+        let close_datom = Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/status"),
+            Value::Keyword(":session.status/closed".to_string()),
+            tx_id,
+            Op::Assert,
+        );
+        let tx = TxFile {
+            tx_id,
+            agent,
+            provenance: ProvenanceType::Observed,
+            rationale: "Session end".to_string(),
+            causal_predecessors: vec![],
+            datoms: vec![close_datom],
+        };
+        layout.write_tx(&tx)?;
     }
 
     let mut out = String::new();
@@ -217,6 +301,89 @@ fn format_age(wall_time: u64) -> String {
     } else {
         let days = elapsed / 86400;
         format!("{} day{} ago", days, if days == 1 { "" } else { "s" })
+    }
+}
+
+/// Ensure Layer 4 schema attributes exist in the store (public for task.rs).
+pub fn ensure_layer_4_public(
+    layout: &DiskLayout,
+    store: &braid_kernel::Store,
+) -> Result<(), BraidError> {
+    ensure_layer_4(layout, store)
+}
+
+/// Ensure Layer 4 schema attributes exist in the store.
+///
+/// Writes a schema-evolution transaction if Layer 4 is not yet installed.
+/// This is idempotent — second call is a no-op.
+fn ensure_layer_4(layout: &DiskLayout, store: &braid_kernel::Store) -> Result<(), BraidError> {
+    if braid_kernel::has_layer_4(store.datom_set()) {
+        return Ok(());
+    }
+
+    let agent = AgentId::from_name("braid:schema");
+    let tx_id = super::write::next_tx_id(store, agent);
+    let datoms = braid_kernel::layer_4_datoms(tx_id);
+
+    let tx = TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Observed,
+        rationale: "Schema evolution: install Layer 4 (task/plan/session) attributes".to_string(),
+        causal_predecessors: vec![],
+        datoms,
+    };
+    layout.write_tx(&tx)?;
+    Ok(())
+}
+
+/// Find the most recent active session entity.
+fn find_active_session(store: &braid_kernel::Store) -> Option<EntityId> {
+    let mut latest_wall = 0i64;
+    let mut latest_entity = None;
+
+    for d in store.datoms() {
+        if d.attribute.as_str() == ":session/started-at" && d.op == Op::Assert {
+            if let Value::Long(wall) = d.value {
+                if wall > latest_wall {
+                    // Check if this session is still active
+                    let has_active = store.entity_datoms(d.entity).iter().any(|ed| {
+                        ed.attribute.as_str() == ":session/status"
+                            && ed.op == Op::Assert
+                            && matches!(&ed.value, Value::Keyword(k) if k == ":session.status/active")
+                    });
+                    if has_active {
+                        latest_wall = wall;
+                        latest_entity = Some(d.entity);
+                    }
+                }
+            }
+        }
+    }
+
+    latest_entity
+}
+
+/// B3: Get a compact summary of git changes since last session.
+///
+/// Best-effort: returns empty string if git is not available or not a repo.
+fn git_changes_summary() -> String {
+    let output = std::process::Command::new("git")
+        .args(["diff", "--stat", "HEAD~1"])
+        .output();
+
+    match output {
+        Ok(o) if o.status.success() => {
+            let stat = String::from_utf8_lossy(&o.stdout);
+            let lines: Vec<&str> = stat.lines().collect();
+            if let Some(summary) = lines.last() {
+                if summary.contains("changed") {
+                    return format!("Changes since last commit: {summary}\n");
+                }
+            }
+            String::new()
+        }
+        _ => String::new(),
     }
 }
 

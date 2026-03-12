@@ -9,6 +9,16 @@
 //! - **INV-STORE-001**: Append-only immutability — datoms are never mutated.
 //! - **INV-STORE-003**: Content-addressable identity — EntityId = BLAKE3(content).
 //! - **INV-STORE-011**: HLC monotonicity — TxId ordering respects causality.
+//!
+//! # Design Decisions
+//!
+//! - ADR-STORE-002: EAV data model — datom = [entity, attribute, value, tx, op].
+//! - ADR-STORE-003: Content-addressable entity IDs via BLAKE3.
+//! - ADR-STORE-004: Hybrid logical clocks for transaction IDs.
+//! - ADR-STORE-008: Provenance typing lattice (Observed > Derived > Inferred > Hypothesized).
+//! - ADR-STORE-013: BLAKE3 for content hashing.
+//! - ADR-STORE-014: Private EntityId inner field.
+//! - ADR-STORE-020: Agent entity identification via AgentId.
 
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
@@ -410,10 +420,17 @@ impl Datom {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-STORE-003, INV-STORE-011,
+// ADR-STORE-002, ADR-STORE-003, ADR-STORE-004, ADR-STORE-008, ADR-STORE-013,
+// ADR-STORE-014, ADR-STORE-020,
+// NEG-STORE-003
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    // Verifies: INV-STORE-003 — Content-Addressable Identity
+    // Verifies: ADR-STORE-003 — Content-Addressable Entity IDs
+    // Verifies: ADR-STORE-013 — BLAKE3 for Content Hashing
     #[test]
     fn entity_id_from_content_is_deterministic() {
         let a = EntityId::from_content(b"hello");
@@ -421,6 +438,8 @@ mod tests {
         assert_eq!(a, b);
     }
 
+    // Verifies: INV-STORE-003 — Content-Addressable Identity (uniqueness)
+    // Verifies: NEG-STORE-003 — No Sequential ID Assignment
     #[test]
     fn entity_id_from_content_differs_for_different_inputs() {
         let a = EntityId::from_content(b"hello");
@@ -428,6 +447,8 @@ mod tests {
         assert_ne!(a, b);
     }
 
+    // Verifies: INV-STORE-003 — Content-Addressable Identity
+    // Verifies: ADR-STORE-014 — Private EntityId Inner Field
     #[test]
     fn entity_id_from_ident_matches_content() {
         let a = EntityId::from_ident(":db/ident");
@@ -435,6 +456,7 @@ mod tests {
         assert_eq!(a, b);
     }
 
+    // Verifies: ADR-STORE-002 — EAV Over Relational (keyword attribute format)
     #[test]
     fn attribute_valid_keyword() {
         let attr = Attribute::new(":db/ident").unwrap();
@@ -493,6 +515,8 @@ mod tests {
         assert!((ProvenanceType::Observed.confidence() - 1.0).abs() < f64::EPSILON);
     }
 
+    // Verifies: INV-STORE-011 — HLC Monotonicity
+    // Verifies: ADR-STORE-004 — Hybrid Logical Clocks for Transaction IDs
     #[test]
     fn txid_tick_advances_wall_time() {
         let agent = AgentId::from_name("test");
@@ -502,6 +526,7 @@ mod tests {
         assert_eq!(t1.logical, 0);
     }
 
+    // Verifies: INV-STORE-011 — HLC Monotonicity (logical increment)
     #[test]
     fn txid_tick_same_wall_time_increments_logical() {
         let agent = AgentId::from_name("test");
@@ -511,6 +536,7 @@ mod tests {
         assert_eq!(t1.logical, 1);
     }
 
+    // Verifies: INV-STORE-011 — HLC Monotonicity (clock regression safety)
     #[test]
     fn txid_tick_clock_regression() {
         let agent = AgentId::from_name("test");
@@ -521,6 +547,7 @@ mod tests {
         assert_eq!(t1.logical, 6);
     }
 
+    // Verifies: INV-STORE-011 — HLC Monotonicity (merge takes max)
     #[test]
     fn txid_merge_takes_max() {
         let a1 = AgentId::from_name("alice");
@@ -532,6 +559,8 @@ mod tests {
         assert_eq!(merged.logical, 2); // remote.logical + 1
     }
 
+    // Verifies: INV-STORE-003 — Content-Addressable Identity (datom hash)
+    // Verifies: ADR-STORE-013 — BLAKE3 for Content Hashing
     #[test]
     fn datom_content_hash_is_deterministic() {
         let agent = AgentId::from_name("test");

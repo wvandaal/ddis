@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773272667/0/0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/agent "0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/provenance :observed
+ :tx/rationale "Spec entity for NEG-MUTATION-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a492cb31e1c8c7c3823e667c3ba60ef6b10d4f3ae30ee84a76b43bb086ea3cc3" :a :spec/element-type :v :spec.element-type/negative-case :op :assert}
+   {:e #blake3 "a492cb31e1c8c7c3823e667c3ba60ef6b10d4f3ae30ee84a76b43bb086ea3cc3" :a :element/id :v "NEG-MUTATION-001" :op :assert}
+   {:e #blake3 "a492cb31e1c8c7c3823e667c3ba60ef6b10d4f3ae30ee84a76b43bb086ea3cc3" :a :spec/id :v "NEG-MUTATION-001" :op :assert}
+ ]}

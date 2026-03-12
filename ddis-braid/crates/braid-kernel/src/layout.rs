@@ -19,8 +19,30 @@
 //! - **INV-LAYOUT-001**: Content-addressed file identity (filename = BLAKE3(bytes)).
 //! - **INV-LAYOUT-002**: Transaction file immutability (write-once).
 //! - **INV-LAYOUT-003**: Directory-store isomorphism (φ/ψ round-trip).
+//! - **INV-LAYOUT-004**: Merge as directory union — merging layouts = union of files.
+//! - **INV-LAYOUT-006**: Transport independence — layout works over any file transport.
 //! - **INV-LAYOUT-008**: EDN serialization is canonical (deterministic, injective).
 //! - **INV-LAYOUT-009**: EDN deserialization inverts serialization.
+//! - **INV-LAYOUT-010**: Concurrent write safety via O_CREAT|O_EXCL.
+//! - **INV-LAYOUT-011**: Canonical serialization determinism.
+//!
+//! # Design Decisions
+//!
+//! - ADR-LAYOUT-001: Per-transaction files over single append log.
+//! - ADR-LAYOUT-002: Content-addressed naming over sequential naming.
+//! - ADR-LAYOUT-003: EDN serialization format.
+//! - ADR-LAYOUT-004: Hash-prefix directory sharding.
+//! - ADR-LAYOUT-005: Pure filesystem over database backend.
+//! - ADR-LAYOUT-006: O_CREAT|O_EXCL over flock for concurrency.
+//! - ADR-LAYOUT-007: Genesis as standalone file.
+//!
+//! # Negative Cases
+//!
+//! - NEG-LAYOUT-001: No in-place file modification.
+//! - NEG-LAYOUT-002: No file deletion.
+//! - NEG-LAYOUT-003: No merge via file append.
+//! - NEG-LAYOUT-004: No transport-specific merge logic.
+//! - NEG-LAYOUT-005: No index as source of truth.
 
 use std::collections::BTreeSet;
 use std::fmt;
@@ -797,6 +819,12 @@ pub fn collect_datoms(tx_files: &[TxFile]) -> BTreeSet<Datom> {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-LAYOUT-001, INV-LAYOUT-002, INV-LAYOUT-003, INV-LAYOUT-004,
+// INV-LAYOUT-005, INV-LAYOUT-006, INV-LAYOUT-007, INV-LAYOUT-009,
+// INV-LAYOUT-010, INV-LAYOUT-011,
+// ADR-LAYOUT-001, ADR-LAYOUT-002, ADR-LAYOUT-003, ADR-LAYOUT-005,
+// ADR-LAYOUT-006, ADR-LAYOUT-007,
+// NEG-LAYOUT-001, NEG-LAYOUT-002, NEG-LAYOUT-003, NEG-LAYOUT-005
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -830,6 +858,8 @@ mod tests {
         }
     }
 
+    // Verifies: INV-LAYOUT-011 — Canonical Serialization Determinism
+    // Verifies: ADR-LAYOUT-003 — EDN Serialization Format
     #[test]
     fn serialize_round_trip() {
         let tx = sample_tx();
@@ -853,6 +883,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-LAYOUT-011 — Canonical Serialization Determinism
     #[test]
     fn serialize_is_deterministic() {
         let tx = sample_tx();
@@ -861,6 +892,8 @@ mod tests {
         assert_eq!(bytes1, bytes2, "EDN serialization must be deterministic");
     }
 
+    // Verifies: INV-LAYOUT-001 — Content-Addressed File Identity
+    // Verifies: ADR-LAYOUT-002 — Content-Addressed Naming Over Sequential Naming
     #[test]
     fn content_hash_is_deterministic() {
         let tx = sample_tx();
@@ -869,6 +902,7 @@ mod tests {
         assert_eq!(h1, h2);
     }
 
+    // Verifies: INV-LAYOUT-001 — Content-Addressed File Identity
     #[test]
     fn content_hash_differs_for_different_content() {
         let tx1 = sample_tx();
@@ -879,6 +913,8 @@ mod tests {
         assert_ne!(h1, h2);
     }
 
+    // Verifies: INV-LAYOUT-008 — Sharded Directory Scalability
+    // Verifies: ADR-LAYOUT-004 — Hash-Prefix Directory Sharding
     #[test]
     fn tx_file_path_from_hash() {
         let tx = sample_tx();
@@ -889,6 +925,7 @@ mod tests {
         assert!(path.relative_path().starts_with("txns/"));
     }
 
+    // Verifies: INV-LAYOUT-005 — Integrity Self-Verification
     #[test]
     fn verify_content_hash_positive() {
         let tx = sample_tx();
@@ -897,6 +934,7 @@ mod tests {
         assert!(verify_content_hash(&bytes, &hash));
     }
 
+    // Verifies: INV-LAYOUT-005 — Integrity Self-Verification (negative case)
     #[test]
     fn verify_content_hash_negative() {
         let tx = sample_tx();
@@ -905,6 +943,8 @@ mod tests {
         assert!(!verify_content_hash(&bytes, &wrong_hash));
     }
 
+    // Verifies: INV-LAYOUT-011 — Canonical Serialization Determinism (all value types)
+    // Verifies: ADR-LAYOUT-003 — EDN Serialization Format
     #[test]
     fn value_types_round_trip() {
         let agent = AgentId::from_name("test");
@@ -948,6 +988,8 @@ mod tests {
         }
     }
 
+    // Verifies: INV-LAYOUT-009 — Index Derivability
+    // Verifies: NEG-LAYOUT-005 — No Index as Source of Truth
     #[test]
     fn collect_datoms_deduplicates() {
         let tx1 = sample_tx();
@@ -957,6 +999,8 @@ mod tests {
         assert_eq!(datoms.len(), 2);
     }
 
+    // Verifies: INV-LAYOUT-005 — Integrity Self-Verification (report)
+    // Verifies: INV-LAYOUT-003 — Directory-Store Isomorphism
     #[test]
     fn integrity_report_clean() {
         let report = IntegrityReport {

@@ -202,6 +202,21 @@ pub fn run(
         out.push_str(directive);
     }
 
+    // D4.4: Propose closing tasks whose traces-to spec elements now have impl coverage
+    let closeable = find_closeable_tasks(&store);
+    if !closeable.is_empty() {
+        out.push_str(&format!(
+            "\ntask proposals ({} potentially closeable):\n",
+            closeable.len()
+        ));
+        for (id, title, covered, total) in &closeable {
+            out.push_str(&format!(
+                "  {id} \"{title}\" — {covered}/{total} traced specs implemented\n"
+            ));
+        }
+        out.push_str("  close with: braid task close <id> --reason \"impl complete\"\n");
+    }
+
     // If --commit: apply crystallization guard then persist
     if commit && !result.candidates.is_empty() {
         let candidates_to_commit = if force {
@@ -535,4 +550,45 @@ pub fn run(
     }
 
     Ok(out)
+}
+
+/// Find open tasks whose :task/traces-to spec elements all have :impl/implements links.
+///
+/// Returns Vec<(task_id, title, covered_count, total_traces)> for tasks where
+/// covered_count == total_traces (all traced specs are implemented).
+fn find_closeable_tasks(store: &braid_kernel::Store) -> Vec<(String, String, usize, usize)> {
+    use braid_kernel::datom::Op;
+    use braid_kernel::task::{all_tasks, TaskStatus};
+
+    let impl_attr = braid_kernel::datom::Attribute::from_keyword(":impl/implements");
+
+    // Build set of spec entities that have :impl/implements links
+    let mut implemented: std::collections::HashSet<braid_kernel::datom::EntityId> =
+        std::collections::HashSet::new();
+    for d in store.datoms() {
+        if d.attribute == impl_attr && d.op == Op::Assert {
+            if let braid_kernel::datom::Value::Ref(spec) = &d.value {
+                implemented.insert(*spec);
+            }
+        }
+    }
+
+    let mut closeable = Vec::new();
+    for task in all_tasks(store) {
+        // Only open/in-progress tasks with traces-to refs
+        if task.status == TaskStatus::Closed || task.traces_to.is_empty() {
+            continue;
+        }
+        let total = task.traces_to.len();
+        let covered = task
+            .traces_to
+            .iter()
+            .filter(|e| implemented.contains(e))
+            .count();
+        if covered == total {
+            closeable.push((task.id, task.title, covered, total));
+        }
+    }
+
+    closeable
 }

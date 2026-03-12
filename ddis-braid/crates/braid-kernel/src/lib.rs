@@ -8,6 +8,20 @@
 //! no filesystem access, and no network. Every function is deterministic:
 //! same inputs produce same outputs. This is the verification surface for
 //! all property-based testing and bounded model checking.
+//!
+//! # Foundation Design Decisions
+//!
+//! - ADR-FOUNDATION-001: Braid replaces Go CLI — new implementation from spec.
+//! - ADR-FOUNDATION-003: D-centric agent system formalism.
+//! - ADR-FOUNDATION-004: Specification uses DDIS formalism (INV/ADR/NEG).
+//! - ADR-FOUNDATION-005: Structural over procedural coherence.
+//! - ADR-FOUNDATION-006: Self-bootstrap fixed-point property (C7).
+//! - ADR-STORE-007: File-backed store with Git transport.
+//! - ADR-STORE-009: Crash-recovery model (replay from durable tx files).
+//! - ADR-STORE-010: At-least-once delivery semantics.
+//! - ADR-STORE-017: Datom store over vector DB / RAG.
+//! - ADR-STORE-018: Datom store replaces JSONL event stream.
+//! - ADR-VERIFICATION-001: Property-based testing + model checking.
 
 pub mod agent_md;
 pub mod bilateral;
@@ -29,6 +43,7 @@ pub mod schema;
 pub mod seed;
 pub mod stage;
 pub mod store;
+pub mod task;
 pub mod trilateral;
 
 // Re-export core types at crate root for ergonomic access.
@@ -90,10 +105,10 @@ pub use resolution::{
     ResolutionRecord, ResolvedValue,
 };
 pub use schema::{
-    domain_schema_datoms, full_schema_datoms, layer_1_attributes, layer_1_datoms,
-    layer_2_attributes, layer_2_datoms, layer_3_attributes, layer_3_datoms, AttributeDef,
-    AttributeSpec, Cardinality, ResolutionMode, Schema, Uniqueness, ValueType, LAYER_2_COUNT,
-    LAYER_3_COUNT,
+    domain_schema_datoms, full_schema_datoms, has_layer_4, layer_1_attributes, layer_1_datoms,
+    layer_2_attributes, layer_2_datoms, layer_3_attributes, layer_3_datoms, layer_4_attributes,
+    layer_4_datoms, layer_4_evolution_tx, AttributeDef, AttributeSpec, Cardinality, ResolutionMode,
+    Schema, Uniqueness, ValueType, LAYER_2_COUNT, LAYER_3_COUNT, LAYER_4_COUNT,
 };
 pub use seed::{
     assemble, assemble_seed, associate, verify_seed, AssembledContext, AssociateCue,
@@ -101,6 +116,12 @@ pub use seed::{
 };
 pub use stage::{capabilities, max_stage, stage_name};
 pub use store::{Frontier, MergeReceipt, Store, TxData, TxReceipt};
+pub use task::{
+    all_tasks, check_dependency_acyclicity, close_task_datoms, compute_ready_set,
+    create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, resolve_task_status,
+    task_counts, task_summary, update_status_datom, CreateTaskParams, TaskStatus, TaskSummary,
+    TaskType,
+};
 pub use trilateral::{
     check_coherence, check_coherence_fast, classify_attribute, compute_phi, compute_phi_default,
     formality_level, isp_check, live_projections, von_neumann_entropy, AttrNamespace,

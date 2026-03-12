@@ -1,3 +1,8 @@
+// Witnesses: INV-STORE-001, INV-STORE-002, INV-STORE-004, INV-STORE-006,
+//   INV-STORE-007, INV-MERGE-001, INV-MERGE-002, INV-MERGE-008, INV-MERGE-009,
+//   ADR-STORE-001, ADR-STORE-005, ADR-MERGE-001,
+//   NEG-STORE-001, NEG-STORE-004, NEG-MERGE-001
+
 //! Stateright bounded model checking for the Braid CRDT merge protocol.
 //!
 //! Verifies the algebraic properties of the G-Set CvRDT store under
@@ -579,7 +584,10 @@ impl Model for FrontierModel {
 // Tests
 // ---------------------------------------------------------------------------
 
-/// INV-STORE-002, INV-STORE-003, INV-STORE-004, INV-MERGE-001:
+// Verifies: INV-STORE-002, INV-STORE-004, INV-STORE-006, INV-MERGE-001,
+//   ADR-STORE-001, ADR-STORE-005, ADR-MERGE-001, NEG-MERGE-001
+// (Exhaustive BFS model checking of CRDT algebraic properties.)
+/// INV-STORE-002, INV-STORE-004, INV-MERGE-001:
 /// Algebraic properties (commutativity, associativity, idempotency, set union)
 /// verified by exhaustive state-space exploration.
 #[test]
@@ -591,6 +599,9 @@ fn algebraic_properties_hold() {
         .assert_properties();
 }
 
+// Verifies: INV-STORE-001, INV-MERGE-002, INV-MERGE-008, INV-MERGE-009,
+//   INV-STORE-007, NEG-STORE-004
+// (Frontier monotonicity: frontiers never shrink under concurrent transact + merge.)
 /// INV-MERGE-002: Frontier monotonicity under concurrent transact + merge.
 /// 2 agents, 2 entity variants, bounded to 3 steps.
 #[test]
@@ -602,6 +613,9 @@ fn frontier_monotonicity_holds() {
         .assert_properties();
 }
 
+// Verifies: INV-STORE-001, INV-STORE-002, INV-STORE-007, INV-MERGE-001,
+//   INV-MERGE-002, INV-MERGE-008, INV-MERGE-009, ADR-MERGE-001
+// (Protocol convergence: 2 agents, eventual consistency, store + frontier monotonicity.)
 /// Full protocol model: 2 agents, 2 data items, verifying eventual
 /// consistency, store monotonicity, and frontier monotonicity.
 #[test]
@@ -613,6 +627,9 @@ fn protocol_convergence_2_agents() {
         .assert_properties();
 }
 
+// Verifies: INV-STORE-001, INV-STORE-002, INV-STORE-007, INV-MERGE-001,
+//   INV-MERGE-002, INV-MERGE-008, INV-MERGE-009, ADR-MERGE-001, NEG-STORE-001
+// (Protocol convergence: 3 agents, explores larger interleaving space.)
 /// Full protocol model: 3 agents, 1 data item. Explores the interleaving
 /// space for three concurrent agents with bounded state space.
 #[test]

@@ -16,6 +16,21 @@
 //! - **INV-STAGE-001**: Stage flags are cumulative (stage1 implies stage0).
 //! - **INV-STAGE-002**: Type definitions compile at all stages.
 //! - **INV-STAGE-003**: No dead code in default (stage0) builds.
+//!
+//! # Stage-Gated Spec Namespaces
+//!
+//! Stage 0 (current): STORE, SCHEMA, QUERY, HARVEST, SEED, GUIDANCE,
+//!   MERGE (basic), RESOLUTION (LWW only), LAYOUT, BILATERAL, TRILATERAL, BUDGET
+//! Stage 2: DELIBERATION (INV-DELIBERATION-001 through INV-DELIBERATION-006),
+//!   MERGE (branching: INV-MERGE-003 through INV-MERGE-007)
+//! Stage 3: SYNC (INV-SYNC-001 through INV-SYNC-005)
+//!
+//! Design decisions for staged activation:
+//! - ADR-STORE-012: Three-phase implementation path (Stage 0 → 1 → 2+).
+//! - ADR-DELIBERATION-004: Crystallization guard over immediate commit.
+//! - ADR-SYNC-001: Barrier as explicit coordination point.
+//! - ADR-SYNC-002: Topology-agnostic protocol.
+//! - ADR-SYNC-003: Barrier timeout over blocking.
 
 /// The current maximum compiled stage.
 ///

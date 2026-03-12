@@ -27,8 +27,25 @@
 //! - **INV-HARVEST-002**: Monotonic extension (store grows, never shrinks).
 //! - **INV-HARVEST-003**: Quality metrics (FP rate, FN rate, drift_score).
 //! - **INV-HARVEST-005**: Pipeline correctness (5-step state machine).
+//! - **INV-HARVEST-007**: Bounded conversation lifecycle.
+//! - **INV-HARVEST-008**: Delegation topology support.
 //! - **INV-HARVEST-010**: Tx-log extraction completeness.
 //! - **INV-HARVEST-011**: Classification accuracy (structural, not heuristic).
+//!
+//! # Design Decisions
+//!
+//! - ADR-HARVEST-001: Semi-automated over fully automatic harvest.
+//! - ADR-HARVEST-002: Conversations disposable, knowledge durable.
+//! - ADR-HARVEST-003: FP/FN tracking for calibration.
+//! - ADR-HARVEST-004: Five review topologies (self, peer, lead, team, automated).
+//! - ADR-HARVEST-006: DDR feedback loop for harvest quality improvement.
+//! - ADR-HARVEST-007: Turn-count proxy for context budget at Stage 0.
+//!
+//! # Negative Cases
+//!
+//! - NEG-HARVEST-001: No unharvested session termination.
+//! - NEG-HARVEST-002: No harvest data loss.
+//! - NEG-HARVEST-003: No premature crystallization.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -186,22 +203,28 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
         let gaps = detect_gaps(profile, category);
 
         if !gaps.is_empty() {
-            completeness_gaps += gaps.len();
-            for gap in &gaps {
-                candidates.push(HarvestCandidate {
-                    entity: profile.entity,
-                    assertions: vec![],
-                    // Gaps are metadata completeness issues, not semantic content —
-                    // always Observation to avoid polluting Decision/Uncertainty lists
-                    category: HarvestCategory::Observation,
-                    confidence: confidence * 0.6,
-                    status: CandidateStatus::Proposed,
-                    rationale: format!(
-                        "Completeness gap: {} missing for {}",
-                        gap,
-                        profile.ident.as_deref().unwrap_or("unnamed entity")
-                    ),
-                });
+            // B1: Apply confidence floor to filter noise (INV-HARVEST-012).
+            // Low-confidence entities (conf * 0.6 < 0.3) produce gap candidates
+            // that are metadata noise, not actionable.
+            let gap_confidence = confidence * 0.6;
+            if gap_confidence >= 0.15 {
+                completeness_gaps += gaps.len();
+                for gap in &gaps {
+                    candidates.push(HarvestCandidate {
+                        entity: profile.entity,
+                        assertions: vec![],
+                        // Gaps are metadata completeness issues, not semantic content —
+                        // always Observation to avoid polluting Decision/Uncertainty lists
+                        category: HarvestCategory::Observation,
+                        confidence: gap_confidence,
+                        status: CandidateStatus::Proposed,
+                        rationale: format!(
+                            "Completeness gap: {} missing for {}",
+                            gap,
+                            profile.ident.as_deref().unwrap_or("unnamed entity")
+                        ),
+                    });
+                }
             }
         }
 
@@ -1453,11 +1476,18 @@ pub fn synthesize_narrative(
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-HARVEST-001, INV-HARVEST-002, INV-HARVEST-003, INV-HARVEST-004,
+// INV-HARVEST-005, INV-HARVEST-006, INV-HARVEST-007, INV-HARVEST-009,
+// ADR-HARVEST-001, ADR-HARVEST-002, ADR-HARVEST-003, ADR-HARVEST-005,
+// ADR-HARVEST-006, ADR-HARVEST-007,
+// NEG-HARVEST-002, NEG-HARVEST-003
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::datom::AgentId;
 
+    // Verifies: INV-HARVEST-001 — Harvest Monotonicity (new knowledge detected)
+    // Verifies: ADR-HARVEST-001 — Semi-Automated Over Fully Automatic
     #[test]
     fn harvest_detects_new_knowledge() {
         let store = Store::genesis();
@@ -1486,6 +1516,7 @@ mod tests {
         assert!(result.drift_score > 0.0);
     }
 
+    // Verifies: INV-HARVEST-001 — Harvest Monotonicity (idempotent on existing)
     #[test]
     fn harvest_skips_existing_knowledge() {
         let store = Store::genesis();
@@ -1508,6 +1539,7 @@ mod tests {
         assert_eq!(result.candidates.len(), 0);
     }
 
+    // Verifies: INV-HARVEST-002 — Harvest Provenance Trail
     #[test]
     fn candidate_to_datoms_produces_correct_count() {
         let agent = AgentId::from_name("test");
@@ -1535,6 +1567,8 @@ mod tests {
         assert!(datoms.iter().all(|d| d.op == Op::Assert));
     }
 
+    // Verifies: INV-HARVEST-003 — Drift Score Recording
+    // Verifies: INV-HARVEST-004 — FP/FN Calibration
     #[test]
     fn quality_metrics_computed_correctly() {
         let store = Store::genesis();
@@ -1573,6 +1607,7 @@ mod tests {
     // v2: Tx-log extraction tests
     // -------------------------------------------------------------------
 
+    // Verifies: INV-HARVEST-009 — Continuous Externalization Protocol
     #[test]
     fn extract_session_profiles_finds_new_entities() {
         use crate::datom::ProvenanceType;
@@ -1841,6 +1876,8 @@ mod tests {
     // v2 Phase 4-5: Session entity + commit tests
     // -------------------------------------------------------------------
 
+    // Verifies: INV-HARVEST-002 — Harvest Provenance Trail
+    // Verifies: ADR-HARVEST-002 — Conversations Disposable, Knowledge Durable
     #[test]
     fn build_harvest_commit_creates_session_entity() {
         let agent = AgentId::from_name("test:harvester");
@@ -1939,6 +1976,7 @@ mod tests {
         );
     }
 
+    // Verifies: INV-HARVEST-005 — Proactive Warning
     #[test]
     fn detect_gaps_finds_missing_spec_attrs() {
         let profile = EntityProfile {
@@ -2011,6 +2049,8 @@ mod tests {
     // Phase 6: FP/FN Calibration tests (INV-HARVEST-004)
     // -------------------------------------------------------------------
 
+    // Verifies: INV-HARVEST-004 — FP/FN Calibration
+    // Verifies: ADR-HARVEST-003 — FP/FN Tracking for Calibration
     #[test]
     fn calibration_perfect_precision_recall() {
         let e1 = EntityId::from_ident(":test/cal-a");
@@ -2057,6 +2097,7 @@ mod tests {
         assert!((cal.f1_score - 1.0).abs() < 1e-10);
     }
 
+    // Verifies: INV-HARVEST-004 — FP/FN Calibration
     #[test]
     fn calibration_with_false_positives() {
         let e1 = EntityId::from_ident(":test/fp-a");

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773271097/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: E1: Run braid trace --commit on new code"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1795d6b623ad737c128930f43d422f845b9a271ea67036e4bac7f7e660db8bc9" :a :db/ident :v :task/t-5e13 :op :assert}
+   {:e #blake3 "1795d6b623ad737c128930f43d422f845b9a271ea67036e4bac7f7e660db8bc9" :a :task/id :v "t-5e13" :op :assert}
+   {:e #blake3 "1795d6b623ad737c128930f43d422f845b9a271ea67036e4bac7f7e660db8bc9" :a :task/title :v "E1: Run braid trace --commit on new code" :op :assert}
+   {:e #blake3 "1795d6b623ad737c128930f43d422f845b9a271ea67036e4bac7f7e660db8bc9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1795d6b623ad737c128930f43d422f845b9a271ea67036e4bac7f7e660db8bc9" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "1795d6b623ad737c128930f43d422f845b9a271ea67036e4bac7f7e660db8bc9" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "1795d6b623ad737c128930f43d422f845b9a271ea67036e4bac7f7e660db8bc9" :a :task/created-at :v 1773271094 :op :assert}
+   {:e #blake3 "1795d6b623ad737c128930f43d422f845b9a271ea67036e4bac7f7e660db8bc9" :a :task/source :v "braid:task" :op :assert}
+ ]}

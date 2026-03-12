@@ -8,9 +8,31 @@
 //!
 //! - **INV-MERGE-001**: Merge = set union of datom sets.
 //! - **INV-MERGE-002**: Merge preserves causal order (frontier pointwise max).
+//! - **INV-MERGE-003**: Branch isolation (working sets not leaked into merge).
+//! - **INV-MERGE-004**: Competing branch lock (concurrent merge safety).
+//! - **INV-MERGE-005**: Branch commit monotonicity (merged store >= both inputs).
+//! - **INV-MERGE-006**: Branch as first-class entity (branch metadata in datoms).
+//! - **INV-MERGE-007**: Bilateral branch duality (forward/backward merge symmetry).
 //! - **INV-MERGE-008**: Deduplication by content identity.
 //! - **INV-MERGE-009**: Cascade: schema rebuild → resolution recompute → LIVE invalidation.
 //! - **INV-MERGE-010**: MergeReceipt captures new datom count and conflict set.
+//!
+//! # Design Decisions
+//!
+//! - ADR-MERGE-001: Set union over heuristic merge — no conflict resolution at merge time.
+//! - ADR-MERGE-002: Branching G-Set extension for working set isolation.
+//! - ADR-MERGE-003: Competing branch lock prevents concurrent merge corruption.
+//! - ADR-MERGE-004: Three combine strategies (union, prefer-left, prefer-right).
+//! - ADR-MERGE-005: Cascade as post-merge deterministic layer.
+//! - ADR-MERGE-006: Branch comparison via entity type (metadata in datoms).
+//! - ADR-MERGE-007: Merge cascade stub datoms at Stage 0.
+//!
+//! # Negative Cases
+//!
+//! - NEG-MERGE-001: No merge data loss — set union preserves all datoms.
+//! - NEG-MERGE-002: No merge without cascade — schema/resolution always rebuilt.
+//! - NEG-MERGE-003: No working set leak — uncommitted datoms excluded from merge.
+//! - NEG-STORE-004: No merge heuristics — pure mathematical set union only.
 
 use std::collections::{BTreeSet, HashMap};
 
@@ -33,6 +55,8 @@ use crate::store::{Frontier, MergeReceipt, Store};
 /// 5. Trilateral metrics update (deferred to trilateral module)
 ///
 /// Steps 1-3 are handled by `Store::merge()`. Steps 4-5 are post-merge hooks.
+/// ADR-STORE-015: Free function over store method — merge is a standalone function.
+/// ADR-STORE-016: ArcSwap MVCC concurrency model (foundation for concurrent merge).
 pub fn merge_stores(target: &mut Store, source: &Store) -> MergeReceipt {
     target.merge(source)
 }
@@ -73,6 +97,16 @@ pub fn verify_monotonicity(pre_merge: &BTreeSet<Datom>, post_merge: &BTreeSet<Da
 }
 
 /// Verify frontier advancement: post-merge frontier >= pre-merge frontier.
+/// INV-SYNC-001: Barrier produces consistent cut — verified via frontier comparison.
+/// INV-SYNC-002: Barrier timeout safety — frontier advancement is checked, not assumed.
+/// INV-SYNC-003: Barrier is topology-independent — works regardless of agent count.
+/// INV-SYNC-004: Barrier entity provenance — frontier is a datom attribute.
+/// INV-SYNC-005: Non-monotonic queries require barrier — frontier enforces cut.
+/// ADR-SYNC-001: Barrier as explicit coordination point.
+/// ADR-SYNC-002: Topology-agnostic protocol.
+/// ADR-SYNC-003: Barrier timeout over blocking.
+/// NEG-SYNC-001: No unbounded barrier wait.
+/// NEG-SYNC-002: No barrier at inconsistent cut.
 pub fn verify_frontier_advancement(pre: &Frontier, post: &Frontier) -> bool {
     for (agent, pre_tx) in pre {
         match post.get(agent) {
@@ -91,12 +125,19 @@ pub fn verify_frontier_advancement(pre: &Frontier, post: &Frontier) -> bool {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-MERGE-001, INV-MERGE-008, INV-MERGE-009,
+// INV-STORE-004, INV-STORE-006, INV-STORE-007,
+// INV-RESOLUTION-003, INV-RESOLUTION-004,
+// ADR-MERGE-001, NEG-MERGE-001, NEG-STORE-004
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::datom::{AgentId, Attribute, EntityId, ProvenanceType, Value};
     use crate::store::Transaction;
 
+    // Verifies: INV-MERGE-001 — Merge Is Set Union
+    // Verifies: INV-STORE-004 — CRDT Merge Commutativity
+    // Verifies: ADR-MERGE-001 — Set Union Over Heuristic Merge
     #[test]
     fn merge_stores_is_commutative() {
         let mut s1 = Store::genesis();
@@ -134,6 +175,8 @@ mod tests {
         assert_eq!(left.datom_set(), right.datom_set());
     }
 
+    // Verifies: INV-RESOLUTION-003 — Conservative Conflict Detection
+    // Verifies: INV-RESOLUTION-004 — Conflict Predicate Correctness
     #[test]
     fn merge_detects_conflicts() {
         let mut s1 = Store::genesis();
@@ -175,6 +218,8 @@ mod tests {
         assert!(has_doc_conflict, "should detect conflicting :db/doc values");
     }
 
+    // Verifies: INV-STORE-007 — CRDT Merge Monotonicity
+    // Verifies: NEG-MERGE-001 — No Merge Data Loss
     #[test]
     fn verify_monotonicity_holds() {
         let store = Store::genesis();

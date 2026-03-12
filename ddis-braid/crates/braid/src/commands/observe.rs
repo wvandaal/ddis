@@ -19,6 +19,13 @@
 //!
 //! Entity ID is `EntityId::from_ident(":observation/{slug}")` where slug is
 //! derived from the body text, ensuring content-addressable identity (C2).
+//!
+//! # Uncertainty Design Decisions
+//!
+//! - ADR-UNCERTAINTY-001: Confidence as first-class attribute (0.0-1.0 scale).
+//! - ADR-UNCERTAINTY-002: Uncertainty as explicit datom, not absence of data.
+//! - ADR-UNCERTAINTY-003: Category taxonomy for epistemic classification.
+//! - ADR-UNCERTAINTY-004: Maturity lifecycle (conjecture → theorem → axiom).
 
 use std::path::Path;
 
@@ -202,6 +209,19 @@ pub fn run(args: ObserveArgs<'_>) -> Result<String, BraidError> {
         ));
     }
 
+    // B4: Auto-link to current session (INV-SESSION-001)
+    // Look up the most recent active session entity via :session/status
+    let active_session = find_active_session(&store);
+    if let Some(session_entity) = active_session {
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":exploration/source-session"),
+            Value::Ref(session_entity),
+            tx_id,
+            Op::Assert,
+        ));
+    }
+
     // Add cross-reference if provided
     if let Some(relates_to) = args.relates_to {
         let target = EntityId::from_ident(relates_to);
@@ -277,6 +297,32 @@ pub fn run(args: ObserveArgs<'_>) -> Result<String, BraidError> {
     out.push_str(&format!("  tx: {}\n", file_path.relative_path()));
 
     Ok(out)
+}
+
+/// Find the most recent active session entity for observation linking (B4).
+fn find_active_session(store: &braid_kernel::Store) -> Option<EntityId> {
+    let mut latest_wall = 0i64;
+    let mut latest_entity = None;
+
+    for d in store.datoms() {
+        if d.attribute.as_str() == ":session/started-at" && d.op == Op::Assert {
+            if let braid_kernel::datom::Value::Long(wall) = d.value {
+                if wall > latest_wall {
+                    let has_active = store.entity_datoms(d.entity).iter().any(|ed| {
+                        ed.attribute.as_str() == ":session/status"
+                            && ed.op == Op::Assert
+                            && matches!(&ed.value, braid_kernel::datom::Value::Keyword(k) if k == ":session.status/active")
+                    });
+                    if has_active {
+                        latest_wall = wall;
+                        latest_entity = Some(d.entity);
+                    }
+                }
+            }
+        }
+    }
+
+    latest_entity
 }
 
 #[cfg(test)]

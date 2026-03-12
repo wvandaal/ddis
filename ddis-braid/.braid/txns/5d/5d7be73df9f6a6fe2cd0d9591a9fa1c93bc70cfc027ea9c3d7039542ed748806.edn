@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773271127/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Trace scan shows 34 unresolved refs — new invariants from Phase B/C/D (INV-TASK-001..004, INV-WRAP-001..002, INV-SESSION-001, INV-TRACE-001..002, ADR-TASK-001, etc.) need spec entities created in the store. This is the X2 cross-cutting task from the plan. Creating these will increase Coverage from 111/354 to ~140/380+ and also increase the spec element total."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d5777342e301f06d92cd675b95d6834eb798869feaf16aa53b80917479d81745" :a :db/ident :v :observation/trace-scan-shows-34-unresolved-refs-new-invariants-from-ph :op :assert}
+   {:e #blake3 "d5777342e301f06d92cd675b95d6834eb798869feaf16aa53b80917479d81745" :a :db/doc :v "Trace scan shows 34 unresolved refs — new invariants from Phase B/C/D (INV-TASK-001..004, INV-WRAP-001..002, INV-SESSION-001, INV-TRACE-001..002, ADR-TASK-001, etc.) need spec entities created in the store. This is the X2 cross-cutting task from the plan. Creating these will increase Coverage from 111/354 to ~140/380+ and also increase the spec element total." :op :assert}
+   {:e #blake3 "d5777342e301f06d92cd675b95d6834eb798869feaf16aa53b80917479d81745" :a :exploration/body :v "Trace scan shows 34 unresolved refs — new invariants from Phase B/C/D (INV-TASK-001..004, INV-WRAP-001..002, INV-SESSION-001, INV-TRACE-001..002, ADR-TASK-001, etc.) need spec entities created in the store. This is the X2 cross-cutting task from the plan. Creating these will increase Coverage from 111/354 to ~140/380+ and also increase the spec element total." :op :assert}
+   {:e #blake3 "d5777342e301f06d92cd675b95d6834eb798869feaf16aa53b80917479d81745" :a :exploration/content-hash :v #bytes "8fce03f0167534b9798f65b1cf4e6bd3d678ae5130f90c78c3d0990d61a2dbf4" :op :assert}
+   {:e #blake3 "d5777342e301f06d92cd675b95d6834eb798869feaf16aa53b80917479d81745" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d5777342e301f06d92cd675b95d6834eb798869feaf16aa53b80917479d81745" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "d5777342e301f06d92cd675b95d6834eb798869feaf16aa53b80917479d81745" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d5777342e301f06d92cd675b95d6834eb798869feaf16aa53b80917479d81745" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d5777342e301f06d92cd675b95d6834eb798869feaf16aa53b80917479d81745" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

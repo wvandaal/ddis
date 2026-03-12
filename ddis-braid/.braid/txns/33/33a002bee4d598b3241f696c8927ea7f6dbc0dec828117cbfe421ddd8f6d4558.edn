@@ -1,0 +1,23 @@
+{:tx/id #hlc "1773271137/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create spec entities for Phase B/C/D invariants"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "80024ad12584d69b47ffdfc316dfc62c6b70c4ab3475d0573fe2771b0ac49c97" :a :element/id :v "INV-TASK-001" :op :assert}
+   {:e #blake3 "80024ad12584d69b47ffdfc316dfc62c6b70c4ab3475d0573fe2771b0ac49c97" :a :inv/statement :v "Task status transitions monotonically via lattice join: open < in-progress < closed" :op :assert}
+   {:e #blake3 "80024ad12584d69b47ffdfc316dfc62c6b70c4ab3475d0573fe2771b0ac49c97" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "80024ad12584d69b47ffdfc316dfc62c6b70c4ab3475d0573fe2771b0ac49c97" :a :spec/namespace :v "TASK" :op :assert}
+   {:e #blake3 "d94bde0142abb2592efb608ef4f01e5c689f4d3a6ef4a4a1b8c01e5e5151a9f5" :a :element/id :v "INV-TASK-002" :op :assert}
+   {:e #blake3 "d94bde0142abb2592efb608ef4f01e5c689f4d3a6ef4a4a1b8c01e5e5151a9f5" :a :inv/statement :v "The directed graph of :task/depends-on edges is acyclic (DAG)" :op :assert}
+   {:e #blake3 "d94bde0142abb2592efb608ef4f01e5c689f4d3a6ef4a4a1b8c01e5e5151a9f5" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "d94bde0142abb2592efb608ef4f01e5c689f4d3a6ef4a4a1b8c01e5e5151a9f5" :a :spec/namespace :v "TASK" :op :assert}
+   {:e #blake3 "b2673ca03363936959c5c266f9a2f1d8d76d4e67d8c24528afd79d51eae3e527" :a :element/id :v "INV-TASK-003" :op :assert}
+   {:e #blake3 "b2673ca03363936959c5c266f9a2f1d8d76d4e67d8c24528afd79d51eae3e527" :a :inv/statement :v "A task is ready iff status=open AND all depends-on targets have status=closed" :op :assert}
+   {:e #blake3 "b2673ca03363936959c5c266f9a2f1d8d76d4e67d8c24528afd79d51eae3e527" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "b2673ca03363936959c5c266f9a2f1d8d76d4e67d8c24528afd79d51eae3e527" :a :spec/namespace :v "TASK" :op :assert}
+   {:e #blake3 "825eac2e7cc8567efb22983f849732e00b3b989283dac7ec8595c777a5ce4f15" :a :element/id :v "INV-TASK-004" :op :assert}
+   {:e #blake3 "825eac2e7cc8567efb22983f849732e00b3b989283dac7ec8595c777a5ce4f15" :a :inv/statement :v "Ready-set sorted by priority ascending, then created_at ascending" :op :assert}
+   {:e #blake3 "825eac2e7cc8567efb22983f849732e00b3b989283dac7ec8595c777a5ce4f15" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "825eac2e7cc8567efb22983f849732e00b3b989283dac7ec8595c777a5ce4f15" :a :spec/namespace :v "TASK" :op :assert}
+ ]}

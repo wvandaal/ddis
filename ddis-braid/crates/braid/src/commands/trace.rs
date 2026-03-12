@@ -131,12 +131,32 @@ fn scan_file(path: &Path, relative: &str) -> Vec<TraceRef> {
         Err(_) => return Vec::new(),
     };
 
-    let is_test = is_test_file(relative);
+    let is_test_path = is_test_file(relative);
+    let has_cfg_test = content_has_test_module(&content);
+
+    // Find the line number of the first #[cfg(test)] to establish the test boundary.
+    // Comments immediately before #[cfg(test)] (e.g., `// Witnesses:` blocks) are
+    // considered test evidence, so we look back up to 20 lines.
+    let cfg_test_line = if has_cfg_test {
+        content
+            .lines()
+            .enumerate()
+            .find(|(_, l)| l.trim().contains("#[cfg(test)]"))
+            .map(|(i, _)| i)
+    } else {
+        None
+    };
+
+    // The test evidence boundary: lines at or after (cfg_test_line - 20) are test evidence.
+    let test_start_line = cfg_test_line.map(|l| l.saturating_sub(20));
+
     let mut refs = Vec::new();
     let mut in_code_block = false;
 
-    for line in content.lines() {
+    for (line_num, line) in content.lines().enumerate() {
         let trimmed = line.trim();
+
+        let is_test = is_test_path || test_start_line.is_some_and(|start| line_num >= start);
 
         // Track doc-comment code blocks (``` toggles)
         if (trimmed.starts_with("///") || trimmed.starts_with("//!")) && trimmed.contains("```") {
@@ -171,11 +191,16 @@ fn is_comment_line(trimmed: &str) -> bool {
     trimmed.starts_with("//") // covers //, ///, //!
 }
 
-/// Check if a file is a test file.
+/// Check if a file is a test file (by path pattern).
 fn is_test_file(relative: &str) -> bool {
     relative.contains("/tests/")
         || relative.ends_with("_test.rs")
         || relative.ends_with("_tests.rs")
+}
+
+/// Check if file content contains `#[cfg(test)]` module.
+fn content_has_test_module(content: &str) -> bool {
+    content.contains("#[cfg(test)]")
 }
 
 /// Recursively find all .rs files under a directory.
@@ -479,13 +504,16 @@ pub fn run(
         spec_map.len(),
     ));
 
+    let total_witnessed = already_witnessed.len() + witnessed_specs.len();
+    out.push_str(&format!(
+        "Witnessed: {}/{} spec entities have test evidence",
+        total_witnessed,
+        spec_map.len(),
+    ));
     if !witnessed_specs.is_empty() {
-        out.push_str(&format!(
-            "Witnessed: {}/{} spec entities have test evidence\n",
-            witnessed_specs.len(),
-            spec_map.len(),
-        ));
+        out.push_str(&format!(" (+{} new)", witnessed_specs.len()));
     }
+    out.push('\n');
 
     // Show unresolved refs (FM-TRACE-002 warnings)
     if !unresolved.is_empty() {

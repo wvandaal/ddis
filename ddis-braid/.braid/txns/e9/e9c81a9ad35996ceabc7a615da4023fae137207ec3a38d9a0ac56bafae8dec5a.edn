@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773271569/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e111"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4398cd7492a055025492149188d78da133f983b387d663c87c8b64973e66949c" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "4398cd7492a055025492149188d78da133f983b387d663c87c8b64973e66949c" :a :task/closed-at :v 1773271568 :op :assert}
+   {:e #blake3 "4398cd7492a055025492149188d78da133f983b387d663c87c8b64973e66949c" :a :task/close-reason :v "Status integration complete — task summary shows in dashboard" :op :assert}
+ ]}

@@ -9,8 +9,27 @@
 //! - **INV-TRILATERAL-001**: Three LIVE projections are monotone functions of the store.
 //! - **INV-TRILATERAL-002**: Φ computable from store alone (no external state).
 //! - **INV-TRILATERAL-003**: Formality gradient monotonically non-decreasing.
+//! - **INV-TRILATERAL-004**: Convergence monotonicity — Φ non-increasing under bilateral ops.
 //! - **INV-TRILATERAL-005**: Attribute namespace partitions are pairwise disjoint.
+//! - **INV-TRILATERAL-006**: Divergence as Datalog program.
 //! - **INV-TRILATERAL-009**: (Φ, β₁) duality — Φ=0 ∧ β₁=0 iff coherent.
+//! - **INV-TRILATERAL-010**: Persistent cohomology over transaction filtration.
+//!
+//! # Design Decisions
+//!
+//! - ADR-TRILATERAL-001: Unified store with three LIVE views.
+//! - ADR-TRILATERAL-002: EDNL as interchange format.
+//! - ADR-TRILATERAL-003: Hooks for invisible convergence.
+//! - ADR-TRILATERAL-004: N-lateral extensibility.
+//! - ADR-TRILATERAL-005: Cohomological complement to divergence metric.
+//! - ADR-TRILATERAL-006: F₂ coefficients for initial cohomology.
+//!
+//! # Negative Cases
+//!
+//! - NEG-TRILATERAL-001: No cross-view contamination between I/S/P projections.
+//! - NEG-TRILATERAL-002: No external state for divergence — all from store.
+//! - NEG-TRILATERAL-003: No divergence increase from convergence operations.
+//! - NEG-TRILATERAL-004: No Φ-only coherence declaration (β₁ also required).
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -812,10 +831,18 @@ fn von_neumann_slq(n: usize, edges: &[(usize, usize)], trace: f64) -> CoherenceE
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-TRILATERAL-001, INV-TRILATERAL-002, INV-TRILATERAL-003,
+// INV-TRILATERAL-004, INV-TRILATERAL-005, INV-TRILATERAL-006,
+// INV-TRILATERAL-007, INV-TRILATERAL-008, INV-TRILATERAL-009,
+// INV-TRILATERAL-010,
+// ADR-TRILATERAL-001, ADR-TRILATERAL-002, ADR-TRILATERAL-005, ADR-TRILATERAL-006,
+// NEG-TRILATERAL-001, NEG-TRILATERAL-002, NEG-TRILATERAL-003, NEG-TRILATERAL-004
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    // Verifies: INV-TRILATERAL-005 — Attribute Namespace Partitioning
+    // Verifies: NEG-TRILATERAL-001 — No Cross-View Contamination
     #[test]
     fn attribute_partition_is_disjoint() {
         // INV-TRILATERAL-005: partitions are pairwise disjoint
@@ -828,6 +855,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-TRILATERAL-005 — Attribute Namespace Partitioning
     #[test]
     fn classify_known_attributes() {
         assert_eq!(
@@ -848,6 +876,8 @@ mod tests {
         );
     }
 
+    // Verifies: INV-TRILATERAL-002 — Divergence as Live Metric
+    // Verifies: NEG-TRILATERAL-002 — No External State for Divergence
     #[test]
     fn genesis_store_has_zero_divergence() {
         // Genesis store has only meta attributes → Φ = 0
@@ -858,6 +888,7 @@ mod tests {
         assert_eq!(components.d_sp, 0);
     }
 
+    // Verifies: INV-TRILATERAL-007 — Unified Store Self-Bootstrap
     #[test]
     fn genesis_store_is_coherent() {
         let store = Store::genesis();
@@ -866,6 +897,7 @@ mod tests {
         assert_eq!(report.isp_bypasses, 0);
     }
 
+    // Verifies: INV-TRILATERAL-003 — Formality Gradient
     #[test]
     fn formality_level_meta_only() {
         let store = Store::genesis();
@@ -874,6 +906,7 @@ mod tests {
         assert_eq!(formality_level(&store, entity), 0);
     }
 
+    // Verifies: INV-TRILATERAL-008 — ISP Specification Bypass Detection
     #[test]
     fn isp_check_no_data() {
         let store = Store::genesis();
@@ -881,6 +914,8 @@ mod tests {
         assert_eq!(isp_check(&store, entity), IspResult::NoData);
     }
 
+    // Verifies: INV-TRILATERAL-009 — Coherence Completeness (Phi, beta_1 Duality)
+    // Verifies: NEG-TRILATERAL-004 — No Phi-Only Coherence Declaration
     #[test]
     fn coherence_quadrant_classification() {
         assert_eq!(
@@ -894,6 +929,9 @@ mod tests {
         );
     }
 
+    // Verifies: INV-TRILATERAL-001 — Three LIVE Projections
+    // Verifies: INV-TRILATERAL-004 — Convergence Monotonicity
+    // Verifies: ADR-TRILATERAL-001 — Unified Store with Three LIVE Views
     #[test]
     fn live_projections_monotone_on_genesis() {
         let store = Store::genesis();
@@ -904,6 +942,8 @@ mod tests {
         assert_eq!(p.datom_count, 0);
     }
 
+    // Verifies: INV-TRILATERAL-009 — Coherence Completeness (beta_1 = 0 for acyclic)
+    // Verifies: INV-QUERY-024 — First Betti Number from Laplacian Kernel
     #[test]
     fn beta_1_zero_for_acyclic_refs() {
         // A → B → C (chain, no cycles) ⇒ β₁ = 0
@@ -936,6 +976,7 @@ mod tests {
         assert_eq!(beta_1, 0, "acyclic graph should have β₁ = 0");
     }
 
+    // Verifies: INV-TRILATERAL-009 — Coherence Completeness (beta_1 > 0 for cycle)
     #[test]
     fn beta_1_positive_for_cycle() {
         // A → B → C → A (cycle) ⇒ β₁ > 0
@@ -973,6 +1014,8 @@ mod tests {
         assert!(beta_1 > 0, "cycle graph should have β₁ > 0, got {beta_1}");
     }
 
+    // Verifies: INV-TRILATERAL-006 — Divergence as Datalog Program
+    // Verifies: INV-TRILATERAL-002 — Divergence as Live Metric
     #[test]
     fn coherence_report_detects_gaps_and_cycles() {
         // Store with both spec entities (gaps) and a cycle ⇒ GapsAndCycles
@@ -1742,6 +1785,8 @@ mod tests {
     // Von Neumann entropy (INV-COHERENCE-001)
     // -------------------------------------------------------------------
 
+    // Verifies: INV-TRILATERAL-002 — Divergence as Live Metric
+    // Verifies: ADR-TRILATERAL-005 — Cohomological Complement to Divergence Metric
     #[test]
     fn von_neumann_entropy_empty_store_is_zero() {
         // Empty store (no ref datoms) -> no graph -> entropy = 0

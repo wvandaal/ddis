@@ -1,3 +1,17 @@
+// Witnesses: INV-STORE-001, INV-STORE-003, INV-STORE-004, INV-STORE-006, INV-STORE-007,
+//   INV-SCHEMA-001, INV-SCHEMA-002, INV-SCHEMA-003, INV-QUERY-001, INV-QUERY-002,
+//   INV-MERGE-001, INV-MERGE-008, INV-MERGE-009,
+//   INV-HARVEST-001, INV-HARVEST-002, INV-SEED-001, INV-SEED-002,
+//   INV-TRILATERAL-001, INV-TRILATERAL-002, INV-TRILATERAL-003, INV-TRILATERAL-004,
+//   INV-GUIDANCE-001, INV-GUIDANCE-003,
+//   INV-RESOLUTION-001, INV-RESOLUTION-002, INV-RESOLUTION-003,
+//   INV-LAYOUT-001, INV-LAYOUT-003, INV-LAYOUT-005,
+//   INV-BILATERAL-001,
+//   ADR-STORE-003, ADR-SCHEMA-001, ADR-QUERY-001, ADR-MERGE-001,
+//   ADR-HARVEST-001, ADR-SEED-001, ADR-TRILATERAL-001, ADR-TRILATERAL-002,
+//   ADR-GUIDANCE-001, ADR-RESOLUTION-001, ADR-LAYOUT-002,
+//   NEG-STORE-001, NEG-TRILATERAL-001, NEG-TRILATERAL-002
+
 //! Cross-namespace integration tests — verify invariant chains ACROSS module boundaries.
 //!
 //! Each test exercises a multi-namespace pipeline, asserting that invariants from
@@ -154,6 +168,9 @@ fn agent(name: &str) -> AgentId {
 // Chain 1: Store → Query → Trilateral
 // ===========================================================================
 
+// Verifies: INV-STORE-001, INV-QUERY-001, INV-TRILATERAL-001, INV-TRILATERAL-002,
+//   INV-TRILATERAL-003, INV-SCHEMA-001, INV-SCHEMA-003
+// (Chain 1: Store -> Query -> Trilateral coherence for fully linked ISP entity.)
 /// Transact ISP datoms → query them → verify coherence (Phi).
 ///
 /// INV chain: STORE-001 (append-only) → QUERY-001 (Datalog) → TRILATERAL-002 (Phi).
@@ -236,6 +253,9 @@ fn store_query_trilateral_coherence() {
     assert_eq!(report.isp_bypasses, 0);
 }
 
+// Verifies: INV-STORE-001, INV-TRILATERAL-002, INV-TRILATERAL-004,
+//   NEG-TRILATERAL-001, NEG-TRILATERAL-002
+// (Intent-only entity produces Phi > 0, gap detection works correctly.)
 /// Transact an intent-only entity → verify Phi > 0 (gap detected).
 ///
 /// Verifies that the trilateral model correctly detects missing spec/impl coverage.
@@ -300,6 +320,9 @@ fn store_query_trilateral_gaps_detected() {
 // Chain 2: Store → Harvest → Seed → Store (lifecycle continuity)
 // ===========================================================================
 
+// Verifies: INV-STORE-001, INV-HARVEST-001, INV-HARVEST-002, INV-SEED-001,
+//   INV-SEED-002, ADR-HARVEST-001, ADR-SEED-001
+// (Chain 2: Harvest detects knowledge gaps, seed assembles context, store persists.)
 /// Full harvest/seed lifecycle: work → harvest → seed → verify continuity.
 ///
 /// INV chain: STORE-001 → HARVEST-001 (gap detection) → SEED-001 (assembly) → STORE-001 (persistence).
@@ -407,6 +430,10 @@ fn store_harvest_seed_lifecycle() {
 // Chain 3: Store → Merge → Resolution
 // ===========================================================================
 
+// Verifies: INV-STORE-001, INV-MERGE-001, INV-MERGE-008, INV-MERGE-009,
+//   INV-RESOLUTION-001, INV-RESOLUTION-002, INV-RESOLUTION-003,
+//   ADR-MERGE-001, ADR-RESOLUTION-001
+// (Chain 3: Merge is set union, conflicts detected, LWW resolution deterministic.)
 /// Merge two stores → detect conflicts → resolve via LWW.
 ///
 /// INV chain: STORE-001 → MERGE-001 (set union) → RESOLUTION-001 (per-attribute mode).
@@ -488,6 +515,9 @@ fn store_merge_resolution() {
 // Chain 4: Schema → Store → Query
 // ===========================================================================
 
+// Verifies: INV-SCHEMA-001, INV-SCHEMA-002, INV-SCHEMA-003, INV-STORE-001,
+//   INV-QUERY-001, INV-QUERY-002, ADR-SCHEMA-001, ADR-STORE-003, ADR-QUERY-001
+// (Chain 4: Schema-as-data attributes, genesis completeness, monotonic schema growth.)
 /// Schema defines attributes → transact with schema validation → query with type safety.
 ///
 /// INV chain: SCHEMA-001 (schema-as-data) → STORE-001 → QUERY-001.
@@ -552,6 +582,9 @@ fn schema_store_query() {
 // Chain 5: Guidance → Harvest → Seed
 // ===========================================================================
 
+// Verifies: INV-GUIDANCE-001, INV-GUIDANCE-003, INV-HARVEST-001, INV-SEED-001,
+//   ADR-GUIDANCE-001
+// (Chain 5: M(t) methodology score drives harvest timing, seed carries warnings.)
 /// Methodology score drives harvest timing → seed carries warnings.
 ///
 /// INV chain: GUIDANCE-001 (M(t)) → HARVEST-001 → SEED-001.
@@ -624,6 +657,10 @@ fn guidance_harvest_seed() {
 // Chain 6: Bootstrap → Store → Query → Trilateral
 // ===========================================================================
 
+// Verifies: INV-STORE-001, INV-QUERY-001, INV-QUERY-002, INV-TRILATERAL-001,
+//   INV-TRILATERAL-002, INV-TRILATERAL-003, INV-TRILATERAL-004,
+//   INV-BILATERAL-001, ADR-TRILATERAL-001, ADR-TRILATERAL-002
+// (Chain 6: Self-bootstrap C7 — spec elements as datoms, query, trilateral verification.)
 /// Spec elements as datoms → query → coherence verification.
 ///
 /// INV chain: C7 (self-bootstrap) → STORE-001 → QUERY-001 → TRILATERAL-002.
@@ -764,6 +801,9 @@ fn bootstrap_store_query_trilateral() {
 // Chain 7: Store → Layout → Store (round-trip)
 // ===========================================================================
 
+// Verifies: INV-STORE-001, INV-STORE-003, INV-LAYOUT-001, INV-LAYOUT-003,
+//   INV-LAYOUT-005, ADR-LAYOUT-002
+// (Chain 7: Serialize/deserialize round-trip, content hash verification, determinism.)
 /// Serialize transactions → deserialize → verify round-trip identity.
 ///
 /// INV chain: STORE-001 → LAYOUT (canonical EDN) → STORE-001 (content-addressed).
@@ -836,6 +876,11 @@ fn store_layout_store_round_trip() {
 // Chain 8: Multi-Agent Coordination
 // ===========================================================================
 
+// Verifies: INV-STORE-001, INV-STORE-004, INV-STORE-006, INV-STORE-007,
+//   INV-MERGE-001, INV-MERGE-008, INV-MERGE-009,
+//   INV-TRILATERAL-001, INV-TRILATERAL-002,
+//   ADR-MERGE-001, NEG-STORE-001
+// (Chain 8: Two agents merge independently — commutativity, frontier monotonicity.)
 /// Two agents → independent work → merge → resolve → verify frontier.
 ///
 /// INV chain: STORE-001 → MERGE-001 (commutativity) → RESOLUTION-002 (determinism) → SYNC (frontier).
@@ -962,6 +1007,9 @@ fn multi_agent_coordination() {
 // Chain 9 (Bonus): Store → Seed → Agent Instructions Generation
 // ===========================================================================
 
+// Verifies: INV-STORE-001, INV-SEED-001, INV-SEED-002, INV-GUIDANCE-001,
+//   ADR-SEED-001, ADR-GUIDANCE-001
+// (Chain 9: Dynamic agent instructions from store state — seed + guidance.)
 /// Dynamic agent instructions generation from store state.
 ///
 /// INV chain: STORE-001 → SEED-001 → AGENT_MD (dynamic generation).
@@ -1019,6 +1067,14 @@ fn store_seed_agent_md_generation() {
 // Chain 10 (Bonus): Full End-to-End Pipeline
 // ===========================================================================
 
+// Verifies: INV-STORE-001, INV-STORE-003, INV-STORE-004, INV-STORE-006,
+//   INV-SCHEMA-001, INV-SCHEMA-003, INV-QUERY-001,
+//   INV-MERGE-001, INV-MERGE-008, INV-MERGE-009,
+//   INV-TRILATERAL-001, INV-TRILATERAL-002, INV-TRILATERAL-003,
+//   INV-HARVEST-001, INV-SEED-001,
+//   INV-LAYOUT-001, INV-LAYOUT-003,
+//   ADR-STORE-003, ADR-SCHEMA-001, ADR-MERGE-001, ADR-LAYOUT-002
+// (Chain 10: Full end-to-end pipeline covering all major namespace boundaries.)
 /// Complete pipeline: schema → transact → query → trilateral → harvest → seed → merge.
 ///
 /// Exercises the maximum number of namespace boundaries in a single test.
@@ -1154,6 +1210,10 @@ fn full_end_to_end_pipeline() {
     assert!(store.len() > initial_attr_count * 5); // Substantial data
 }
 
+// Verifies: INV-STORE-001, INV-STORE-003, INV-STORE-006,
+//   INV-TRILATERAL-001, INV-TRILATERAL-002,
+//   ADR-STORE-003, ADR-SCHEMA-001
+// (Promotion coherence: dual identity verification, Phi=0 by construction.)
 /// Promotion coherence test: after promoting an exploration entity to a spec
 /// element, the entity has dual identity (exploration + element + promotion)
 /// and the promotion boundary has Phi=0 (perfect coherence between the two

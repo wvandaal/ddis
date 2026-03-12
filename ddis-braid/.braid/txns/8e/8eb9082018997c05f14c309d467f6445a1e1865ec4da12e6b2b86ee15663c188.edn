@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773271089/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D4.1: Status integration — task summary in dashboard"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4398cd7492a055025492149188d78da133f983b387d663c87c8b64973e66949c" :a :db/ident :v :task/t-e111 :op :assert}
+   {:e #blake3 "4398cd7492a055025492149188d78da133f983b387d663c87c8b64973e66949c" :a :task/id :v "t-e111" :op :assert}
+   {:e #blake3 "4398cd7492a055025492149188d78da133f983b387d663c87c8b64973e66949c" :a :task/title :v "D4.1: Status integration — task summary in dashboard" :op :assert}
+   {:e #blake3 "4398cd7492a055025492149188d78da133f983b387d663c87c8b64973e66949c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4398cd7492a055025492149188d78da133f983b387d663c87c8b64973e66949c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4398cd7492a055025492149188d78da133f983b387d663c87c8b64973e66949c" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "4398cd7492a055025492149188d78da133f983b387d663c87c8b64973e66949c" :a :task/created-at :v 1773271088 :op :assert}
+   {:e #blake3 "4398cd7492a055025492149188d78da133f983b387d663c87c8b64973e66949c" :a :task/source :v "braid:task" :op :assert}
+ ]}

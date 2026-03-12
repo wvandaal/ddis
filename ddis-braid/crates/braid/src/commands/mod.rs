@@ -14,10 +14,12 @@ pub(crate) mod observe;
 mod query;
 mod schema;
 mod seed;
-mod session;
+pub(crate) mod session;
 pub(crate) mod shell;
 mod status;
+mod task;
 mod trace;
+mod wrap;
 pub(crate) mod write;
 
 // Re-export mcp serve as a special case (runs an event loop, not a single command).
@@ -544,6 +546,63 @@ Workflow: session start → observe → work → observe → session end"
         action: SessionAction,
     },
 
+    // ── CAPTURE (continued) ────────────────────────────────────────────
+    /// Run a command and auto-observe failures/warnings.
+    ///
+    /// Proxies subprocess output to the terminal in real time. On failure or
+    /// warnings, creates an observation automatically. Clean success = no
+    /// observation (INV-WRAP-001).
+    #[command(after_long_help = "\
+Examples:
+  braid wrap cargo test                    # auto-observe test failures
+  braid wrap cargo clippy -- -D warnings   # auto-observe warnings
+  braid wrap cargo fmt --check             # auto-observe format issues
+  braid wrap ./scripts/e2e.sh              # any command
+
+Workflow: braid wrap cargo test → fix failures → braid wrap cargo test")]
+    Wrap {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+
+        /// Timeout in seconds (0 = no timeout).
+        #[arg(long, default_value = "0")]
+        timeout: u64,
+
+        /// The command and its arguments.
+        #[arg(trailing_var_arg = true, required = true)]
+        cmd: Vec<String>,
+    },
+
+    // ── TASK MANAGEMENT ─────────────────────────────────────────────────
+    /// Issue tracking as datoms — create, list, close, depend.
+    ///
+    /// Tasks are first-class store entities with lattice-resolved status
+    /// (INV-TASK-001) and DAG dependencies (INV-TASK-002).
+    #[command(
+        subcommand_required = true,
+        after_long_help = "\
+Examples:
+  braid task create \"Fix harvest noise\" --priority 1 --type bug
+  braid task list                        # open tasks
+  braid task ready                       # unblocked, sorted by priority
+  braid task show <id>                   # full detail
+  braid task close <id> --reason done
+  braid task update <id> --status in-progress
+  braid task dep <from-id> <to-id>       # add dependency edge
+  braid task import --beads .beads/issues.jsonl
+
+Workflow: braid task ready → pick top → braid task update <id> --status in-progress → work → braid task close <id>"
+    )]
+    Task {
+        #[command(subcommand)]
+        action: TaskAction,
+    },
+
     // ── ADMIN ──────────────────────────────────────────────────────────
     /// Interactive exploration shell (zero external deps).
     ///
@@ -574,6 +633,140 @@ Examples:
     Mcp {
         #[command(subcommand)]
         action: McpAction,
+    },
+}
+
+/// Task subcommands.
+#[derive(Subcommand)]
+pub enum TaskAction {
+    /// Create a new task.
+    Create {
+        /// Task title.
+        title: String,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Priority: 0=critical, 1=high, 2=medium, 3=low, 4=backlog.
+        #[arg(long, default_value = "2")]
+        priority: i64,
+
+        /// Type: task, bug, feature, epic, question, docs.
+        #[arg(long = "type", default_value = "task")]
+        task_type: String,
+
+        /// Description (longer detail).
+        #[arg(long)]
+        description: Option<String>,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+
+        /// Spec element references (repeatable).
+        #[arg(long = "traces-to", action = clap::ArgAction::Append)]
+        traces_to: Vec<String>,
+
+        /// Labels (repeatable).
+        #[arg(long = "label", action = clap::ArgAction::Append)]
+        labels: Vec<String>,
+    },
+
+    /// List tasks (open by default, --all for everything).
+    List {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Include closed tasks.
+        #[arg(long)]
+        all: bool,
+    },
+
+    /// Show ready (unblocked) tasks sorted by priority.
+    Ready {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+    },
+
+    /// Show detailed info about a specific task.
+    Show {
+        /// Task ID (e.g., t-aB3c).
+        id: String,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+    },
+
+    /// Close one or more tasks.
+    Close {
+        /// Task ID(s) to close.
+        ids: Vec<String>,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Reason for closing.
+        #[arg(long, default_value = "completed")]
+        reason: String,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// Update a task's status.
+    Update {
+        /// Task ID.
+        id: String,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// New status: open, in-progress, closed.
+        #[arg(long)]
+        status: String,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// Add a dependency edge between tasks.
+    Dep {
+        /// Source task (the one that depends).
+        from: String,
+
+        /// Target task (the one depended upon).
+        to: String,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+
+    /// Import tasks from a beads JSONL file.
+    Import {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Path to beads JSONL file.
+        #[arg(long)]
+        beads: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
     },
 }
 
@@ -786,9 +979,20 @@ fn store_path(cmd: &Command) -> Option<&Path> {
         | Command::Merge { path, .. }
         | Command::Log { path, .. }
         | Command::Observe { path, .. }
-        | Command::Shell { path, .. } => Some(path),
+        | Command::Shell { path, .. }
+        | Command::Wrap { path, .. } => Some(path),
         Command::Session { action } => match action {
             SessionAction::Start { path, .. } | SessionAction::End { path, .. } => Some(path),
+        },
+        Command::Task { action } => match action {
+            TaskAction::Create { path, .. }
+            | TaskAction::List { path, .. }
+            | TaskAction::Ready { path, .. }
+            | TaskAction::Show { path, .. }
+            | TaskAction::Close { path, .. }
+            | TaskAction::Update { path, .. }
+            | TaskAction::Dep { path, .. }
+            | TaskAction::Import { path, .. } => Some(path),
         },
         Command::Write { action } => match action {
             WriteAction::Assert { path, .. }
@@ -822,6 +1026,7 @@ fn is_generative_output(cmd: &Command) -> bool {
         cmd,
         Command::Seed { .. }
             | Command::Session { .. }
+            | Command::Wrap { .. }
             | Command::Write {
                 action: WriteAction::Export { .. }
             }
@@ -1058,6 +1263,58 @@ pub fn run(cmd: Command, budget_ctx: &BudgetCtx) -> Result<String, crate::error:
                 let eff = seed_budget.min(budget_ctx.manager.output_budget as usize);
                 session::run_end(&path, &inject, task.as_deref(), eff, &agent)
             }
+        },
+        Command::Wrap {
+            path,
+            agent,
+            timeout,
+            cmd,
+        } => {
+            let timeout_opt = if timeout == 0 { None } else { Some(timeout) };
+            wrap::run(&path, &agent, &cmd, timeout_opt)
+        }
+        Command::Task { action } => match action {
+            TaskAction::Create {
+                title,
+                path,
+                priority,
+                task_type,
+                description,
+                agent,
+                traces_to,
+                labels,
+            } => task::create(task::CreateArgs {
+                path: &path,
+                title: &title,
+                description: description.as_deref(),
+                priority,
+                task_type: &task_type,
+                agent: &agent,
+                traces_to: &traces_to,
+                labels: &labels,
+            }),
+            TaskAction::List { path, all } => task::list(&path, all),
+            TaskAction::Ready { path } => task::ready(&path),
+            TaskAction::Show { id, path } => task::show(&path, &id),
+            TaskAction::Close {
+                ids,
+                path,
+                reason,
+                agent,
+            } => task::close(&path, &ids, &reason, &agent),
+            TaskAction::Update {
+                id,
+                path,
+                status,
+                agent,
+            } => task::update(&path, &id, &status, &agent),
+            TaskAction::Dep {
+                from,
+                to,
+                path,
+                agent,
+            } => task::dep_add(&path, &from, &to, &agent),
+            TaskAction::Import { path, beads, agent } => task::import_beads(&path, &beads, &agent),
         },
         Command::Shell { path } => shell::run(&path),
         Command::Mcp { action } => match action {

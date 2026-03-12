@@ -25,6 +25,25 @@
 //! - **INV-SCHEMA-004**: Every transacted datom is validated against schema.
 //! - **INV-SCHEMA-005**: Axiomatic attributes describe themselves using A₀.
 //! - **INV-SCHEMA-006**: Six-layer architecture with dependency ordering.
+//! - **INV-SCHEMA-007**: Lattice definition completeness.
+//! - **INV-SCHEMA-008**: Diamond lattice signal generation.
+//!
+//! # Design Decisions
+//!
+//! - ADR-SCHEMA-001: Schema-as-data over external DDL.
+//! - ADR-SCHEMA-002: 17 axiomatic attributes (expanded to 18 with :lattice/order).
+//! - ADR-SCHEMA-003: Six-layer architecture with dependency ordering.
+//! - ADR-SCHEMA-004: Twelve named lattices for resolution.
+//! - ADR-SCHEMA-005: Owned schema with borrow API.
+//! - ADR-SCHEMA-006: Value type union (9 variants at Stage 0).
+//! - ADR-SCHEMA-007: Typed spec element relationships.
+//! - ADR-SCHEMA-008: Coordination lattice pre-registration.
+//!
+//! # Negative Cases
+//!
+//! - NEG-SCHEMA-001: No external schema — schema lives in the store.
+//! - NEG-SCHEMA-002: No schema deletion — schema attributes only grow.
+//! - NEG-SCHEMA-003: No circular layer dependencies.
 
 use std::collections::{BTreeSet, HashMap};
 
@@ -362,6 +381,14 @@ impl Schema {
             .get(attr)
             .map(|def| def.resolution_mode)
             .unwrap_or(ResolutionMode::Lww)
+    }
+
+    /// Cardinality for an attribute (defaults to One if unknown).
+    pub fn cardinality(&self, attr: &Attribute) -> Cardinality {
+        self.attrs
+            .get(attr)
+            .map(|def| def.cardinality)
+            .unwrap_or(Cardinality::One)
     }
 
     /// Validate a datom against the schema (INV-SCHEMA-004).
@@ -1310,7 +1337,230 @@ pub fn layer_3_datoms(tx: TxId) -> Vec<Datom> {
 pub fn full_schema_datoms(tx: TxId) -> Vec<Datom> {
     let mut datoms = domain_schema_datoms(tx);
     datoms.extend(layer_3_datoms(tx));
+    datoms.extend(layer_4_datoms(tx));
     datoms
+}
+
+// ---------------------------------------------------------------------------
+// Layer 4 — Workflow / Coordination Attributes (INV-SCHEMA-006)
+// ---------------------------------------------------------------------------
+
+/// Number of Layer 4 workflow/coordination attributes.
+pub const LAYER_4_COUNT: usize = 25;
+
+/// The Layer 4 (Workflow/Coordination) attributes.
+///
+/// Organized into 4 groups:
+/// - Session Extensions (2): persistent session status and wall-clock time
+/// - Task Core (10): issue tracking as datoms — replaces external issue trackers
+/// - Task Lifecycle (4): creation, closure, sourcing
+/// - Plan (5): plan documents linked to tasks and spec elements
+/// - Comment (4): per-task discussion as datoms
+///
+/// Task status uses lattice resolution (open < in-progress < closed) to ensure
+/// monotonic progression under CRDT merge (INV-TASK-001). Dependencies form
+/// a DAG (INV-TASK-002) enforced at insertion time.
+///
+/// Depends only on Layer 0 value types (INV-SCHEMA-006 layer ordering).
+pub fn layer_4_attributes() -> Vec<AttributeSpec> {
+    vec![
+        // =================================================================
+        // Session Extensions (2) — persistent session identity
+        // =================================================================
+        attr(
+            ":session/started-at",
+            ValueType::Long,
+            Cardinality::One,
+            "Wall-clock time (unix seconds) when the session started",
+        ),
+        attr(
+            ":session/status",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Session lifecycle status: :session.status/active, :session.status/closed",
+        ),
+        // =================================================================
+        // Task Core (10) — issue tracking as datoms (INV-TASK-001..004)
+        // =================================================================
+        attr_unique(
+            ":task/id",
+            ValueType::String,
+            Cardinality::One,
+            "Short task ID (e.g., t-aB3c)",
+            Uniqueness::Identity,
+        ),
+        attr(
+            ":task/title",
+            ValueType::String,
+            Cardinality::One,
+            "Human-readable task title",
+        ),
+        attr(
+            ":task/description",
+            ValueType::String,
+            Cardinality::One,
+            "Detailed task description",
+        ),
+        attr(
+            ":task/status",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Task status (lattice-resolved): :task.status/open, :task.status/in-progress, :task.status/closed",
+        ),
+        attr(
+            ":task/priority",
+            ValueType::Long,
+            Cardinality::One,
+            "Priority level: 0=critical, 1=high, 2=medium, 3=low, 4=backlog",
+        ),
+        attr(
+            ":task/type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Task type: :task.type/task, :task.type/bug, :task.type/feature, :task.type/epic, :task.type/question, :task.type/docs",
+        ),
+        attr_multi(
+            ":task/labels",
+            ValueType::Keyword,
+            Cardinality::Many,
+            "Categorical labels for filtering and grouping",
+        ),
+        attr_multi(
+            ":task/depends-on",
+            ValueType::Ref,
+            Cardinality::Many,
+            "Dependency edges to other task entities (must form a DAG, INV-TASK-002)",
+        ),
+        attr_multi(
+            ":task/traces-to",
+            ValueType::Ref,
+            Cardinality::Many,
+            "Links to spec/observation entities this task relates to",
+        ),
+        attr(
+            ":task/parent",
+            ValueType::Ref,
+            Cardinality::One,
+            "Parent epic entity (for task hierarchy)",
+        ),
+        // =================================================================
+        // Task Lifecycle (4) — creation, closure, sourcing
+        // =================================================================
+        attr(
+            ":task/created-at",
+            ValueType::Long,
+            Cardinality::One,
+            "Wall-clock time (unix seconds) when the task was created",
+        ),
+        attr(
+            ":task/closed-at",
+            ValueType::Long,
+            Cardinality::One,
+            "Wall-clock time (unix seconds) when the task was closed",
+        ),
+        attr(
+            ":task/close-reason",
+            ValueType::String,
+            Cardinality::One,
+            "Why the task was closed",
+        ),
+        attr(
+            ":task/source",
+            ValueType::String,
+            Cardinality::One,
+            "Origin of the task (e.g., beads:brai-114c, manual, harvest)",
+        ),
+        // =================================================================
+        // Plan (5) — structured plans as datoms
+        // =================================================================
+        attr_unique(
+            ":plan/id",
+            ValueType::String,
+            Cardinality::One,
+            "Plan identifier",
+            Uniqueness::Identity,
+        ),
+        attr(
+            ":plan/title",
+            ValueType::String,
+            Cardinality::One,
+            "Plan name",
+        ),
+        attr(
+            ":plan/body",
+            ValueType::String,
+            Cardinality::One,
+            "Full markdown content of the plan",
+        ),
+        attr(
+            ":plan/status",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Plan lifecycle status: :plan.status/draft, :plan.status/active, :plan.status/completed",
+        ),
+        attr_multi(
+            ":plan/tasks",
+            ValueType::Ref,
+            Cardinality::Many,
+            "Task entities covered by this plan",
+        ),
+        // =================================================================
+        // Comment (4) — per-task discussion as datoms
+        // =================================================================
+        attr(
+            ":comment/body",
+            ValueType::String,
+            Cardinality::One,
+            "Comment text content",
+        ),
+        attr(
+            ":comment/author",
+            ValueType::String,
+            Cardinality::One,
+            "Author of the comment",
+        ),
+        attr(
+            ":comment/task",
+            ValueType::Ref,
+            Cardinality::One,
+            "Back-reference to the task entity this comment belongs to",
+        ),
+        attr(
+            ":comment/created-at",
+            ValueType::Long,
+            Cardinality::One,
+            "Wall-clock time (unix seconds) when the comment was created",
+        ),
+    ]
+}
+
+/// Produce datoms for all Layer 4 attributes.
+///
+/// These should be transacted as a schema-evolution transaction after Layer 3.
+/// Depends only on Layer 0 value types (INV-SCHEMA-006 layer ordering).
+pub fn layer_4_datoms(tx: TxId) -> Vec<Datom> {
+    schema_datoms_from_specs(&layer_4_attributes(), tx)
+}
+
+/// Check if Layer 4 schema attributes are installed in a set of datoms.
+///
+/// Returns true if `:task/id` attribute is registered (canary check).
+pub fn has_layer_4(datoms: &BTreeSet<Datom>) -> bool {
+    datoms.iter().any(|d| {
+        d.attribute.as_str() == ":db/ident"
+            && matches!(&d.value, Value::Keyword(k) if k == ":task/id")
+    })
+}
+
+/// Generate a Layer 4 schema evolution transaction.
+///
+/// Returns None if Layer 4 is already installed.
+pub fn layer_4_evolution_tx(datoms: &BTreeSet<Datom>, tx: TxId) -> Option<Vec<Datom>> {
+    if has_layer_4(datoms) {
+        None
+    } else {
+        Some(layer_4_datoms(tx))
+    }
 }
 
 /// Convert a list of `AttributeSpec`s into schema-defining datoms.
@@ -1376,11 +1626,18 @@ fn schema_datoms_from_specs(specs: &[AttributeSpec], tx: TxId) -> Vec<Datom> {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-SCHEMA-001, INV-SCHEMA-002, INV-SCHEMA-003, INV-SCHEMA-004,
+// INV-SCHEMA-005, INV-SCHEMA-006, INV-SCHEMA-007, INV-SCHEMA-009,
+// ADR-SCHEMA-001, ADR-SCHEMA-002, ADR-SCHEMA-003, ADR-SCHEMA-005, ADR-SCHEMA-006,
+// ADR-SCHEMA-007, ADR-SCHEMA-008,
+// NEG-SCHEMA-001, NEG-SCHEMA-002, NEG-SCHEMA-003, NEG-BOOTSTRAP-001
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::datom::AgentId;
 
+    // Verifies: INV-SCHEMA-002 — Genesis Completeness
+    // Verifies: ADR-SCHEMA-002 — 17 Axiomatic Attributes
     #[test]
     fn genesis_produces_18_attributes() {
         let specs = axiomatic_attributes();
@@ -1391,6 +1648,7 @@ mod tests {
         );
     }
 
+    // Verifies: INV-STORE-008 — Genesis Determinism
     #[test]
     fn genesis_datoms_are_deterministic() {
         let agent = AgentId::from_name("braid:system");
@@ -1400,6 +1658,8 @@ mod tests {
         assert_eq!(d1, d2, "INV-STORE-008: genesis is deterministic");
     }
 
+    // Verifies: INV-SCHEMA-001 — Schema-as-Data
+    // Verifies: ADR-SCHEMA-001 — Schema-as-Data Over DDL
     #[test]
     fn schema_from_genesis_has_18_attributes() {
         let agent = AgentId::from_name("braid:system");
@@ -1409,6 +1669,7 @@ mod tests {
         assert_eq!(schema.len(), 18);
     }
 
+    // Verifies: INV-SCHEMA-004 — Schema Validation on Transact
     #[test]
     fn schema_validates_correct_datom() {
         let agent = AgentId::from_name("braid:system");
@@ -1443,6 +1704,8 @@ mod tests {
         assert!(schema.validate_datom(&bad).is_err());
     }
 
+    // Verifies: INV-SCHEMA-004 — Schema Validation on Transact (rejection path)
+    // Verifies: NEG-SCHEMA-001 — No External Schema
     #[test]
     fn schema_rejects_unknown_attribute() {
         let agent = AgentId::from_name("braid:system");
@@ -1460,6 +1723,7 @@ mod tests {
         assert!(schema.validate_datom(&unknown).is_err());
     }
 
+    // Verifies: ADR-SCHEMA-006 — Value Type Union
     #[test]
     fn value_type_matches() {
         assert!(ValueType::String.matches(&Value::String("hi".into())));
@@ -1467,6 +1731,8 @@ mod tests {
         assert!(ValueType::Ref.matches(&Value::Ref(EntityId::from_content(b"x"))));
     }
 
+    // Verifies: INV-SCHEMA-003 — Schema Monotonicity (reflexive evolution)
+    // Verifies: NEG-SCHEMA-002 — No Schema Deletion
     #[test]
     fn evolution_reflexive() {
         let agent = AgentId::from_name("braid:system");
@@ -1477,6 +1743,8 @@ mod tests {
         assert!(errors.is_empty(), "evolution(S, S) must be valid");
     }
 
+    // Verifies: NEG-SCHEMA-002 — No Schema Deletion (detects removal)
+    // Verifies: INV-SCHEMA-003 — Schema Monotonicity
     #[test]
     fn evolution_detects_attribute_removal() {
         let agent = AgentId::from_name("braid:system");
@@ -1497,6 +1765,7 @@ mod tests {
             .all(|e| matches!(e, SchemaEvolutionError::AttributeRemoved(_))));
     }
 
+    // Verifies: INV-SCHEMA-003 — Schema Monotonicity (additive evolution)
     #[test]
     fn evolution_allows_new_attributes() {
         let agent = AgentId::from_name("braid:system");
@@ -1549,6 +1818,7 @@ mod tests {
         assert!(errors.is_empty(), "adding attributes is valid evolution");
     }
 
+    // Verifies: INV-SCHEMA-003 — Schema Monotonicity (superset check)
     #[test]
     fn is_superset_of() {
         let agent = AgentId::from_name("braid:system");
@@ -1566,8 +1836,12 @@ mod tests {
 
     // -------------------------------------------------------------------
     // Layer 1 tests — Trilateral Domain Attributes
+    // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture
+    // Verifies: ADR-SCHEMA-003 — Six-Layer Architecture
+    // Verifies: NEG-SCHEMA-003 — No Circular Layer Dependencies
     // -------------------------------------------------------------------
 
+    // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture
     #[test]
     fn layer_1_produces_24_attributes() {
         let specs = layer_1_attributes();
@@ -1578,6 +1852,7 @@ mod tests {
         );
     }
 
+    // Verifies: INV-STORE-008 — Genesis Determinism (layer 1)
     #[test]
     fn layer_1_datoms_are_deterministic() {
         let agent = AgentId::from_name("braid:system");
@@ -1587,6 +1862,7 @@ mod tests {
         assert_eq!(d1, d2, "Layer 1 datoms must be deterministic");
     }
 
+    // Verifies: INV-SCHEMA-001 — Schema-as-Data (layer 1)
     #[test]
     fn layer_1_schema_from_datoms() {
         let agent = AgentId::from_name("braid:system");
@@ -1601,6 +1877,8 @@ mod tests {
         assert_eq!(schema.len(), 18 + 24, "genesis + L1 = 42 attributes");
     }
 
+    // Verifies: ADR-SCHEMA-006 — Value Type Union
+    // Verifies: ADR-SCHEMA-007 — Typed Spec Element Relationships
     #[test]
     fn layer_1_has_correct_value_types() {
         let agent = AgentId::from_name("braid:system");
@@ -1661,6 +1939,8 @@ mod tests {
         );
     }
 
+    // Verifies: INV-SCHEMA-003 — Schema Monotonicity (L1 valid evolution)
+    // Verifies: NEG-SCHEMA-003 — No Circular Layer Dependencies
     #[test]
     fn layer_1_is_valid_evolution_of_genesis() {
         let agent = AgentId::from_name("braid:system");
@@ -1686,8 +1966,12 @@ mod tests {
 
     // -------------------------------------------------------------------
     // Layer 2 tests — Specification Element Attributes
+    // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture
+    // Verifies: INV-SCHEMA-009 — Spec Dependency Graph Completeness
+    // Verifies: ADR-SCHEMA-007 — Typed Spec Element Relationships
     // -------------------------------------------------------------------
 
+    // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture (layer 2 count)
     #[test]
     fn layer_2_produces_36_attributes() {
         let specs = layer_2_attributes();
@@ -1698,6 +1982,7 @@ mod tests {
         );
     }
 
+    // Verifies: INV-STORE-008 — Genesis Determinism (layer 2)
     #[test]
     fn layer_2_datoms_are_deterministic() {
         let agent = AgentId::from_name("braid:system");
@@ -1707,6 +1992,7 @@ mod tests {
         assert_eq!(d1, d2, "Layer 2 datoms must be deterministic");
     }
 
+    // Verifies: INV-SCHEMA-001 — Schema-as-Data (layer 2)
     #[test]
     fn layer_2_schema_from_datoms() {
         let agent = AgentId::from_name("braid:system");
@@ -1730,6 +2016,9 @@ mod tests {
         );
     }
 
+    // Verifies: ADR-SCHEMA-006 — Value Type Union
+    // Verifies: ADR-SCHEMA-007 — Typed Spec Element Relationships
+    // Verifies: INV-SCHEMA-009 — Spec Dependency Graph Completeness
     #[test]
     fn layer_2_has_correct_value_types() {
         let agent = AgentId::from_name("braid:system");
@@ -1802,6 +2091,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-STORE-003 — Content-Addressable Identity (element ID uniqueness)
     #[test]
     fn layer_2_element_id_has_unique_identity() {
         let specs = layer_2_attributes();
@@ -1816,6 +2106,7 @@ mod tests {
         );
     }
 
+    // Verifies: ADR-SCHEMA-007 — Typed Spec Element Relationships
     #[test]
     fn layer_2_adr_alternatives_is_cardinality_many() {
         let specs = layer_2_attributes();
@@ -1830,6 +2121,7 @@ mod tests {
         );
     }
 
+    // Verifies: ADR-SCHEMA-007 — Typed Spec Element Relationships
     #[test]
     fn layer_2_element_traces_to_is_cardinality_many() {
         let specs = layer_2_attributes();
@@ -1844,6 +2136,8 @@ mod tests {
         );
     }
 
+    // Verifies: INV-SCHEMA-003 — Schema Monotonicity (L2 valid evolution)
+    // Verifies: NEG-SCHEMA-003 — No Circular Layer Dependencies
     #[test]
     fn layer_2_is_valid_evolution_of_genesis_plus_l1() {
         let agent = AgentId::from_name("braid:system");
@@ -1873,6 +2167,7 @@ mod tests {
         );
     }
 
+    // Verifies: INV-STORE-003 — Content-Addressable Identity
     #[test]
     fn all_layer_2_idents_are_unique() {
         let specs = layer_2_attributes();
@@ -1883,6 +2178,8 @@ mod tests {
         }
     }
 
+    // Verifies: NEG-SCHEMA-003 — No Circular Layer Dependencies
+    // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture
     #[test]
     fn no_layer_2_ident_collides_with_layer_0_or_1() {
         let l0 = axiomatic_attributes();
@@ -1946,8 +2243,11 @@ mod tests {
 
     // -------------------------------------------------------------------
     // Layer 3 tests — Discovery/Exploration Attributes
+    // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture
+    // Verifies: ADR-SCHEMA-003 — Six-Layer Architecture
     // -------------------------------------------------------------------
 
+    // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture (layer 3)
     #[test]
     fn layer_3_produces_20_attributes() {
         let specs = layer_3_attributes();
@@ -1958,6 +2258,7 @@ mod tests {
         );
     }
 
+    // Verifies: INV-STORE-008 — Genesis Determinism (layer 3)
     #[test]
     fn layer_3_datoms_are_deterministic() {
         let agent = AgentId::from_name("braid:system");
@@ -1967,6 +2268,7 @@ mod tests {
         assert_eq!(d1, d2, "Layer 3 datoms must be deterministic");
     }
 
+    // Verifies: INV-SCHEMA-001 — Schema-as-Data (layer 3)
     #[test]
     fn layer_3_schema_from_datoms() {
         let agent = AgentId::from_name("braid:system");
@@ -1990,6 +2292,7 @@ mod tests {
         );
     }
 
+    // Verifies: ADR-SCHEMA-006 — Value Type Union (layer 3)
     #[test]
     fn layer_3_has_correct_value_types() {
         let agent = AgentId::from_name("braid:system");
@@ -2038,6 +2341,8 @@ mod tests {
         }
     }
 
+    // Verifies: INV-SCHEMA-003 — Schema Monotonicity (L3 valid evolution)
+    // Verifies: NEG-SCHEMA-003 — No Circular Layer Dependencies
     #[test]
     fn layer_3_is_valid_evolution_of_l0_l1_l2() {
         let agent = AgentId::from_name("braid:system");
@@ -2067,6 +2372,7 @@ mod tests {
         );
     }
 
+    // Verifies: INV-STORE-003 — Content-Addressable Identity (L3)
     #[test]
     fn all_layer_3_idents_are_unique() {
         let specs = layer_3_attributes();
@@ -2077,6 +2383,7 @@ mod tests {
         }
     }
 
+    // Verifies: NEG-SCHEMA-003 — No Circular Layer Dependencies
     #[test]
     fn no_layer_3_ident_collides_with_lower_layers() {
         let l0 = axiomatic_attributes();
@@ -2100,6 +2407,8 @@ mod tests {
         }
     }
 
+    // Verifies: NEG-SCHEMA-003 — No Circular Layer Dependencies
+    // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture
     #[test]
     fn layer_3_only_references_layer_0_types() {
         let valid_l0_types = [
@@ -2124,6 +2433,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture
     #[test]
     fn full_schema_datoms_combines_all_layers() {
         let agent = AgentId::from_name("braid:system");
@@ -2133,14 +2443,17 @@ mod tests {
         let l1 = layer_1_datoms(tx);
         let l2 = layer_2_datoms(tx);
         let l3 = layer_3_datoms(tx);
+        let l4 = layer_4_datoms(tx);
 
         assert_eq!(
             full.len(),
-            l1.len() + l2.len() + l3.len(),
-            "full_schema_datoms must combine L1, L2, and L3"
+            l1.len() + l2.len() + l3.len() + l4.len(),
+            "full_schema_datoms must combine L1, L2, L3, and L4"
         );
     }
 
+    // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture (full count)
+    // Verifies: INV-SCHEMA-005 — Meta-Schema Self-Description
     #[test]
     fn full_schema_has_98_attributes() {
         let agent = AgentId::from_name("braid:system");
@@ -2153,7 +2466,7 @@ mod tests {
         }
         let schema = Schema::from_datoms(&datoms);
 
-        let expected = 18 + 24 + LAYER_2_COUNT + LAYER_3_COUNT; // 98
+        let expected = 18 + 24 + LAYER_2_COUNT + LAYER_3_COUNT + LAYER_4_COUNT; // 123
         assert_eq!(
             schema.len(),
             expected,
@@ -2162,6 +2475,8 @@ mod tests {
         );
     }
 
+    // Verifies: NEG-SCHEMA-003 — No Circular Layer Dependencies
+    // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture
     #[test]
     fn layer_2_only_references_layer_0_types() {
         // All L2 value types must be basic types available in L0.
@@ -2190,6 +2505,9 @@ mod tests {
 
     // -------------------------------------------------------------------
     // Schema semilattice witness (proptest)
+    // Witnesses: INV-SCHEMA-003, INV-SCHEMA-007, INV-STORE-004,
+    // INV-STORE-005, INV-STORE-006, INV-STORE-007,
+    // ADR-SCHEMA-005, ADR-SCHEMA-008
     //
     // Schema forms a join-semilattice under set union. The schema is
     // derived from the store's datom set, and store merge IS set union,

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773271096/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D4.4: Harvest auto-close proposals"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f6d2f4a3c8a531c9d99bec8e36711773b1655f09b4b5d24181c74a83cc7e03fd" :a :db/ident :v :task/t-4cb2 :op :assert}
+   {:e #blake3 "f6d2f4a3c8a531c9d99bec8e36711773b1655f09b4b5d24181c74a83cc7e03fd" :a :task/id :v "t-4cb2" :op :assert}
+   {:e #blake3 "f6d2f4a3c8a531c9d99bec8e36711773b1655f09b4b5d24181c74a83cc7e03fd" :a :task/title :v "D4.4: Harvest auto-close proposals" :op :assert}
+   {:e #blake3 "f6d2f4a3c8a531c9d99bec8e36711773b1655f09b4b5d24181c74a83cc7e03fd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f6d2f4a3c8a531c9d99bec8e36711773b1655f09b4b5d24181c74a83cc7e03fd" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f6d2f4a3c8a531c9d99bec8e36711773b1655f09b4b5d24181c74a83cc7e03fd" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "f6d2f4a3c8a531c9d99bec8e36711773b1655f09b4b5d24181c74a83cc7e03fd" :a :task/created-at :v 1773271094 :op :assert}
+   {:e #blake3 "f6d2f4a3c8a531c9d99bec8e36711773b1655f09b4b5d24181c74a83cc7e03fd" :a :task/source :v "braid:task" :op :assert}
+ ]}

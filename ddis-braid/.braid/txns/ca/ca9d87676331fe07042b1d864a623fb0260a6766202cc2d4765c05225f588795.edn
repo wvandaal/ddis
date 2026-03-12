@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773272648/0/0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/agent "0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/provenance :observed
+ :tx/rationale "Spec entity for INV-HARVEST-011"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "110b8735728b4f8182d2942441e8c81712d2bb4b1f65f2d25cbe19c03d7230ad" :a :spec/element-type :v :spec.element-type/invariant :op :assert}
+   {:e #blake3 "110b8735728b4f8182d2942441e8c81712d2bb4b1f65f2d25cbe19c03d7230ad" :a :element/id :v "INV-HARVEST-011" :op :assert}
+   {:e #blake3 "110b8735728b4f8182d2942441e8c81712d2bb4b1f65f2d25cbe19c03d7230ad" :a :spec/id :v "INV-HARVEST-011" :op :assert}
+ ]}

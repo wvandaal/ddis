@@ -11,6 +11,18 @@
 //! - Neither → full scan O(N)
 //!
 //! This reduces multi-pattern join cost from O(N^k) to O(N × selectivity).
+//!
+//! # Invariants
+//!
+//! - INV-QUERY-001: Semi-naive fixpoint convergence (Knaster-Tarski).
+//! - INV-QUERY-002: Query determinism — same store + same query = same result.
+//! - INV-QUERY-008: FFI boundary purity — no external effects.
+//! - INV-QUERY-010: Topology-agnostic results — query results independent of graph shape.
+//!
+//! # Design Decisions
+//!
+//! - ADR-QUERY-002: Semi-naive bottom-up evaluation.
+//! - ADR-QUERY-004: FFI for derived functions (pure Rust).
 
 use std::collections::HashMap;
 
@@ -311,12 +323,17 @@ fn value_to_f64(v: &Value) -> Option<f64> {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-QUERY-001, INV-QUERY-002, INV-QUERY-005,
+// ADR-QUERY-001, ADR-QUERY-002, ADR-QUERY-005,
+// NEG-QUERY-002, NEG-QUERY-003
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::datom::{AgentId, ProvenanceType};
     use crate::store::Transaction;
 
+    // Verifies: ADR-QUERY-001 — Datalog Over SQL
+    // Verifies: ADR-QUERY-002 — Semi-Naive Bottom-Up Evaluation
     #[test]
     fn query_find_all_doc_attributes() {
         let mut store = Store::genesis();
@@ -357,6 +374,7 @@ mod tests {
         }
     }
 
+    // Verifies: ADR-QUERY-005 — Local Frontier as Default
     #[test]
     fn query_with_entity_filter() {
         let store = Store::genesis();
@@ -381,6 +399,8 @@ mod tests {
         }
     }
 
+    // Verifies: INV-QUERY-001 — CALM Compliance (monotonic join)
+    // Verifies: ADR-QUERY-002 — Semi-Naive Bottom-Up Evaluation
     #[test]
     fn query_with_join() {
         let store = Store::genesis();
@@ -418,6 +438,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-STORE-012 — LIVE Index Correctness (entity path selection)
     #[test]
     fn index_selects_entity_path() {
         let store = Store::genesis();
@@ -446,6 +467,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-STORE-012 — LIVE Index Correctness (attribute path selection)
     #[test]
     fn index_selects_attribute_path() {
         let store = Store::genesis();
@@ -467,6 +489,8 @@ mod tests {
         );
     }
 
+    // Verifies: INV-STORE-012 — LIVE Index Correctness (join via index)
+    // Verifies: INV-QUERY-001 — CALM Compliance
     #[test]
     fn join_uses_entity_index_on_second_pattern() {
         let store = Store::genesis();
@@ -509,6 +533,8 @@ mod tests {
 
     // -------------------------------------------------------------------
     // Proptest: evaluate determinism
+    // Verifies: INV-QUERY-002 — Query Determinism
+    // Verifies: NEG-QUERY-002 — No Query Side Effects
     // -------------------------------------------------------------------
 
     mod evaluator_proptests {

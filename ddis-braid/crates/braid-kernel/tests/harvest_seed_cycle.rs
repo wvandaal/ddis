@@ -1,3 +1,13 @@
+// Witnesses: INV-STORE-001, INV-STORE-002, INV-STORE-003,
+//   INV-HARVEST-001, INV-HARVEST-002, INV-HARVEST-003, INV-HARVEST-004, INV-HARVEST-005,
+//   INV-SEED-001, INV-SEED-002, INV-SEED-003, INV-SEED-004,
+//   INV-GUIDANCE-001, INV-GUIDANCE-003,
+//   INV-TRILATERAL-001, INV-TRILATERAL-002,
+//   ADR-HARVEST-001, ADR-HARVEST-002, ADR-HARVEST-003,
+//   ADR-SEED-001, ADR-SEED-002,
+//   ADR-GUIDANCE-001,
+//   NEG-HARVEST-001, NEG-HARVEST-002, NEG-SEED-001
+
 //! 25-Turn Harvest/Seed Cycle Validation — THE Stage 0 Success Criterion.
 //!
 //! Validates: "Work 25 turns, harvest, start fresh with seed — new session
@@ -57,6 +67,11 @@ fn simulate_turn(
     }
 }
 
+// Verifies: INV-STORE-001, INV-STORE-002, INV-HARVEST-001, INV-HARVEST-002,
+//   INV-HARVEST-003, INV-HARVEST-005, INV-SEED-001, INV-SEED-002, INV-SEED-003,
+//   INV-SEED-004, INV-GUIDANCE-001, INV-GUIDANCE-003, INV-TRILATERAL-001,
+//   ADR-HARVEST-001, ADR-SEED-001, ADR-GUIDANCE-001
+// (The Stage 0 success criterion: 25 turns, harvest, seed — continuity without re-explanation.)
 #[test]
 fn harvest_seed_25_turn_cycle() {
     let agent = AgentId::from_name("test:validation");
@@ -284,6 +299,9 @@ fn harvest_seed_25_turn_cycle() {
     );
 }
 
+// Verifies: INV-STORE-001, INV-STORE-006, INV-HARVEST-001, INV-HARVEST-002,
+//   INV-HARVEST-004, ADR-HARVEST-002, NEG-HARVEST-001, NEG-HARVEST-002
+// (Harvest idempotency: multiple harvests produce identical results, no store corruption.)
 /// Test that the harvest/seed cycle is idempotent:
 /// multiple harvests don't corrupt the store.
 #[test]
@@ -330,6 +348,9 @@ fn harvest_seed_idempotency() {
     );
 }
 
+// Verifies: INV-STORE-001, INV-STORE-003, INV-SEED-001, INV-SEED-002,
+//   INV-HARVEST-001, ADR-SEED-001, ADR-SEED-002, ADR-HARVEST-003, NEG-SEED-001
+// (Multi-session continuity: two agents, seed discovers previous session entities.)
 /// Test the full seed → work → harvest → seed → work cycle across sessions.
 #[test]
 fn multi_session_continuity() {

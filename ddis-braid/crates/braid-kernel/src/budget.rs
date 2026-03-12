@@ -12,6 +12,15 @@
 //! - **INV-BUDGET-004**: Guidance footer compresses by k*_eff level
 //! - **INV-BUDGET-005**: Commands classified by attention cost profile
 //! - **INV-BUDGET-006**: Token density monotonically increases as budget shrinks
+//!
+//! # Design Decisions
+//!
+//! - ADR-BUDGET-001: Measured context over heuristic.
+//! - ADR-BUDGET-003: Rate-distortion framework for compression.
+//!
+//! # Negative Cases
+//!
+//! - NEG-BUDGET-002: No high-priority truncation before low.
 
 /// Minimum output floor in tokens (applies to all non-harvest-imperative modes).
 pub const MIN_OUTPUT: u32 = 50;
@@ -437,12 +446,18 @@ impl TokenEfficiency {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-BUDGET-001, INV-BUDGET-002, INV-BUDGET-003,
+// INV-BUDGET-004, INV-BUDGET-005, INV-BUDGET-006,
+// ADR-BUDGET-001, ADR-BUDGET-002, ADR-BUDGET-003, ADR-BUDGET-004,
+// NEG-BUDGET-001, NEG-BUDGET-002
 #[cfg(test)]
 mod tests {
     use super::*;
 
     // ---- Attention decay ----
+    // Verifies: ADR-BUDGET-002 — Piecewise Attention Decay
 
+    // Verifies: INV-BUDGET-003 — Quality-Adjusted Degradation
     #[test]
     fn decay_full_quality_above_06() {
         assert_eq!(attention_decay(0.7), 1.0);
@@ -528,6 +543,8 @@ mod tests {
 
     // ---- BudgetManager ----
 
+    // Verifies: INV-BUDGET-001 — Output Budget as Hard Cap
+    // Verifies: ADR-BUDGET-001 — Measured Context Over Heuristic
     #[test]
     fn manager_full_budget() {
         let mgr = BudgetManager::default();
@@ -593,6 +610,8 @@ mod tests {
 
     // ---- Precedence-ordered truncation ----
 
+    // Verifies: INV-BUDGET-002 — Precedence-Ordered Truncation
+    // Verifies: NEG-BUDGET-002 — No High-Priority Truncation Before Low
     #[test]
     fn allocate_respects_precedence() {
         let mut mgr = BudgetManager::default();
@@ -612,6 +631,8 @@ mod tests {
         assert_eq!(selected[2].precedence, OutputPrecedence::Ambient);
     }
 
+    // Verifies: INV-BUDGET-002 — Precedence-Ordered Truncation
+    // Verifies: NEG-BUDGET-001 — No Budget Overflow
     #[test]
     fn allocate_truncates_lowest_first() {
         let mgr = BudgetManager::with_budget(250);
@@ -634,6 +655,8 @@ mod tests {
         );
     }
 
+    // Verifies: INV-BUDGET-002 — Precedence-Ordered Truncation
+    // Verifies: NEG-BUDGET-002 — No High-Priority Truncation Before Low
     #[test]
     fn allocate_inv_budget_002_higher_never_truncated_before_lower() {
         let mgr = BudgetManager::with_budget(150);
@@ -697,6 +720,7 @@ mod tests {
 
     // ---- Guidance levels ----
 
+    // Verifies: INV-BUDGET-004 — Guidance Compression by Budget
     #[test]
     fn guidance_level_thresholds() {
         assert_eq!(GuidanceLevel::for_k_eff(0.8), GuidanceLevel::Full);
@@ -711,6 +735,7 @@ mod tests {
 
     // ---- Token counting ----
 
+    // Verifies: ADR-BUDGET-004 — Tokenization via Chars/4 Approximation
     #[test]
     fn approx_counter_prose() {
         let counter = ApproxTokenCounter;
@@ -737,6 +762,7 @@ mod tests {
 
     // ---- Command profiles ----
 
+    // Verifies: INV-BUDGET-005 — Command Attention Profile
     #[test]
     fn command_profiles() {
         assert_eq!(classify_command("status"), AttentionProfile::Cheap);
@@ -747,6 +773,8 @@ mod tests {
         assert_eq!(classify_command("transact"), AttentionProfile::Meta);
     }
 
+    // Verifies: INV-BUDGET-005 — Command Attention Profile
+    // Verifies: INV-BUDGET-001 — Output Budget as Hard Cap
     #[test]
     fn command_budget_respects_profile() {
         let mut mgr = BudgetManager::default();
@@ -762,6 +790,7 @@ mod tests {
 
     // ---- Token efficiency ----
 
+    // Verifies: INV-BUDGET-006 — Token Efficiency as Testable Property
     #[test]
     fn density_monotonicity() {
         // At tighter budgets, density should increase (fewer tokens, same semantic content)

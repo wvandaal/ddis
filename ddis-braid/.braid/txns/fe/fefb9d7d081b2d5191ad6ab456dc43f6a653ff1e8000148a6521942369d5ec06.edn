@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773272631/0/0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/agent "0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/provenance :observed
+ :tx/rationale "Spec entity for ADR-EAV-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "be41661603f75373acb9dc55632512d5cd755d062b418b87add98f0ecf54cae8" :a :spec/element-type :v :spec.element-type/adr :op :assert}
+   {:e #blake3 "be41661603f75373acb9dc55632512d5cd755d062b418b87add98f0ecf54cae8" :a :element/id :v "ADR-EAV-001" :op :assert}
+   {:e #blake3 "be41661603f75373acb9dc55632512d5cd755d062b418b87add98f0ecf54cae8" :a :spec/id :v "ADR-EAV-001" :op :assert}
+ ]}

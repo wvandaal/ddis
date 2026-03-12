@@ -14,9 +14,28 @@
 //!
 //! - **INV-GUIDANCE-001**: Continuous injection — every response gets a footer.
 //! - **INV-GUIDANCE-002**: Spec-language phrasing — references formal structures.
+//! - **INV-GUIDANCE-005**: Learned guidance effectiveness tracking.
+//! - **INV-GUIDANCE-006**: Lookahead via branch simulation.
 //! - **INV-GUIDANCE-008**: M(t) = Σ wᵢ × mᵢ(t), where Σ wᵢ = 1.
 //! - **INV-GUIDANCE-009**: Task derivation completeness.
 //! - **INV-GUIDANCE-010**: R(t) graph-based work routing.
+//! - **INV-GUIDANCE-011**: T(t) topology fitness.
+//!
+//! # Design Decisions
+//!
+//! - ADR-GUIDANCE-001: Comonadic topology over flat rules.
+//! - ADR-GUIDANCE-002: Basin competition as central failure model.
+//! - ADR-GUIDANCE-003: Six integrated mechanisms over single solution.
+//! - ADR-GUIDANCE-004: Spec-language over instruction-language.
+//! - ADR-GUIDANCE-005: Unified guidance as M(t) ⊗ R(t) ⊗ T(t).
+//! - ADR-GUIDANCE-006: Query over guidance graph.
+//! - ADR-GUIDANCE-007: System 1/System 2 diagnosis.
+//!
+//! # Negative Cases
+//!
+//! - NEG-GUIDANCE-001: No tool response without footer.
+//! - NEG-GUIDANCE-002: No lookahead branch leak.
+//! - NEG-GUIDANCE-003: No ineffective guidance persistence.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -64,6 +83,8 @@ pub struct SessionTelemetry {
 }
 
 /// M(t) methodology adherence result.
+/// INV-SIGNAL-001: Signal as datom — drift_signal is emitted as a store event.
+/// INV-SIGNAL-004: Severity-ordered routing — drift triggers at M(t) < 0.5.
 #[derive(Clone, Debug)]
 pub struct MethodologyScore {
     /// Composite score M(t) ∈ [0, 1].
@@ -617,6 +638,8 @@ pub enum ActionCategory {
     Investigate,
     /// The store needs initial data.
     Bootstrap,
+    /// A task is ready to work on.
+    Work,
 }
 
 impl std::fmt::Display for ActionCategory {
@@ -628,6 +651,7 @@ impl std::fmt::Display for ActionCategory {
             ActionCategory::Observe => write!(f, "OBSERVE"),
             ActionCategory::Investigate => write!(f, "INVESTIGATE"),
             ActionCategory::Bootstrap => write!(f, "BOOTSTRAP"),
+            ActionCategory::Work => write!(f, "WORK"),
         }
     }
 }
@@ -635,7 +659,7 @@ impl std::fmt::Display for ActionCategory {
 /// A concrete, prioritized guidance action with an optional suggested command.
 ///
 /// Each action tells the agent exactly what to do next and why.
-/// Actions are derived from store state analysis (R11–R17).
+/// Actions are derived from store state analysis (R11–R18).
 #[derive(Clone, Debug)]
 pub struct GuidanceAction {
     /// Priority (1 = highest, 5 = lowest).
@@ -815,6 +839,18 @@ pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
             ),
             command: Some("braid query --datalog '[:find ?e ?body :where [?e :exploration/body ?body] [?e :exploration/source \"braid:observe\"]]'".into()),
             relates_to: vec!["ADR-HARVEST-005".into()],
+        });
+    }
+
+    // R18: Top-priority ready task → Work (INV-TASK-003, INV-TASK-004)
+    let ready_set = crate::task::compute_ready_set(store);
+    if let Some(top) = ready_set.first() {
+        actions.push(GuidanceAction {
+            priority: top.priority.min(3) as u8 + 1, // P0→1, P1→2, P2→3, P3+→4
+            category: ActionCategory::Work,
+            summary: format!("P{} task ready: {} \"{}\"", top.priority, top.id, top.title),
+            command: Some(format!("braid task update {} --status in-progress", top.id)),
+            relates_to: vec![],
         });
     }
 
@@ -1091,22 +1127,33 @@ pub fn format_actions(actions: &[GuidanceAction]) -> String {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-GUIDANCE-001, INV-GUIDANCE-002, INV-GUIDANCE-003,
+// INV-GUIDANCE-004, INV-GUIDANCE-005, INV-GUIDANCE-007,
+// INV-GUIDANCE-008, INV-GUIDANCE-009, INV-GUIDANCE-010, INV-GUIDANCE-011,
+// ADR-GUIDANCE-001, ADR-GUIDANCE-002, ADR-GUIDANCE-003, ADR-GUIDANCE-004,
+// ADR-GUIDANCE-005, ADR-GUIDANCE-006, ADR-GUIDANCE-007,
+// ADR-GUIDANCE-008, ADR-GUIDANCE-009,
+// NEG-GUIDANCE-001, NEG-GUIDANCE-002, NEG-GUIDANCE-003
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    // Verifies: INV-GUIDANCE-008 — M(t) Methodology Adherence Score
+    // Verifies: ADR-GUIDANCE-005 — Unified Guidance as M(t) x R(t) x T(t)
     #[test]
     fn methodology_score_weights_sum_to_one() {
         let sum: f64 = STAGE0_WEIGHTS.iter().sum();
         assert!((sum - 1.0).abs() < 1e-10, "weights must sum to 1.0");
     }
 
+    // Verifies: INV-GUIDANCE-010 — R(t) Graph-Based Work Routing
     #[test]
     fn routing_weights_sum_to_one() {
         let sum: f64 = ROUTING_WEIGHTS.iter().sum();
         assert!((sum - 1.0).abs() < 1e-10, "weights must sum to 1.0");
     }
 
+    // Verifies: INV-GUIDANCE-008 — M(t) Methodology Adherence Score (bounds)
     #[test]
     fn methodology_score_bounds() {
         // Perfect session
@@ -1132,6 +1179,7 @@ mod tests {
         assert!(score.drift_signal, "empty session triggers drift signal");
     }
 
+    // Verifies: INV-GUIDANCE-004 — Drift Detection Responsiveness
     #[test]
     fn methodology_trend_detection() {
         let telemetry = SessionTelemetry {
@@ -1147,6 +1195,7 @@ mod tests {
         assert_eq!(score.trend, Trend::Up, "improving history should trend up");
     }
 
+    // Verifies: INV-GUIDANCE-008 — M(t) Methodology Adherence Score (floor clamp)
     #[test]
     fn methodology_floor_clamp_when_harvest_recent() {
         // A low-activity session (e.g., inter-session gap) with recent harvest
@@ -1192,6 +1241,8 @@ mod tests {
         );
     }
 
+    // Verifies: INV-GUIDANCE-010 — R(t) Graph-Based Work Routing
+    // Verifies: INV-GUIDANCE-009 — Task Derivation Completeness
     #[test]
     fn routing_returns_only_ready_tasks() {
         let e1 = EntityId::from_ident(":task/a");
@@ -1240,6 +1291,7 @@ mod tests {
         assert!(routings.is_empty());
     }
 
+    // Verifies: INV-GUIDANCE-009 — Task Derivation Completeness
     #[test]
     fn derive_tasks_produces_correct_count() {
         let artifacts = vec![
@@ -1257,6 +1309,9 @@ mod tests {
         assert!(tasks[0].priority >= tasks[tasks.len() - 1].priority);
     }
 
+    // Verifies: INV-GUIDANCE-001 — Continuous Injection
+    // Verifies: INV-GUIDANCE-007 — Dynamic CLAUDE.md as Optimized Prompt
+    // Verifies: NEG-GUIDANCE-001 — No Tool Response Without Footer
     #[test]
     fn footer_format_includes_all_components() {
         let telemetry = SessionTelemetry {
@@ -1787,6 +1842,8 @@ mod tests {
         ]
     }
 
+    // Verifies: INV-GUIDANCE-005 — Learned Guidance Effectiveness Tracking
+    // Verifies: ADR-HARVEST-005 — Observation Staleness Model
     #[test]
     fn staleness_empty_store() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
@@ -1910,6 +1967,8 @@ mod tests {
         );
     }
 
+    // Verifies: INV-GUIDANCE-005 — Learned Guidance Effectiveness Tracking
+    // Verifies: NEG-GUIDANCE-003 — No Ineffective Guidance Persistence
     #[test]
     fn r17_stale_observations_produce_investigate_action() {
         // Create observations that are very stale (high distance, low confidence)
@@ -1989,6 +2048,9 @@ mod tests {
         );
     }
 
+    // Verifies: INV-GUIDANCE-002 — Spec-Language Phrasing
+    // Verifies: ADR-GUIDANCE-004 — Spec-Language Over Instruction-Language
+    // Verifies: ADR-GUIDANCE-008 — Guidance Footer Progressive Enrichment at Stage 0
     #[test]
     fn format_footer_compressed_is_one_line() {
         let telemetry = SessionTelemetry::default();
@@ -2105,6 +2167,9 @@ mod tests {
     // Drift-responsive action modulation (INV-GUIDANCE-003, INV-GUIDANCE-004)
     // -------------------------------------------------------------------
 
+    // Verifies: INV-GUIDANCE-003 — Intention-Action Coherence
+    // Verifies: ADR-GUIDANCE-002 — Basin Competition as Central Failure Model
+    // Verifies: ADR-GUIDANCE-007 — System 1/System 2 Diagnosis
     #[test]
     fn modulate_actions_crisis_mode() {
         let mut actions = vec![
@@ -2144,6 +2209,7 @@ mod tests {
         assert_eq!(bilateral.unwrap().priority, 1);
     }
 
+    // Verifies: INV-GUIDANCE-004 — Drift Detection Responsiveness
     #[test]
     fn modulate_actions_drift_signal() {
         let mut actions = vec![GuidanceAction {
@@ -2220,6 +2286,8 @@ mod tests {
     // build_command_footer (INV-GUIDANCE-001 entry point)
     // -------------------------------------------------------------------
 
+    // Verifies: INV-GUIDANCE-001 — Continuous Injection (command footer)
+    // Verifies: ADR-GUIDANCE-006 — Query over Guidance Graph
     #[test]
     fn build_command_footer_on_genesis() {
         let store = Store::genesis();

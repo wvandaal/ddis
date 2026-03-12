@@ -1,0 +1,25 @@
+{:tx/id #hlc "1773272699/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :derived
+ :tx/rationale "Bilateral cycle 2: F(S)=0.5414"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :db/ident :v :bilateral/cycle-2 :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/fitness :v 0.5413686183108607 :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/validation :v 0.04509283819628647 :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/coverage :v 0.3348729792147806 :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/drift :v 0.7598890942698706 :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/harvest-quality :v 0.594004424778761 :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/contradiction :v 0.9987082487543827 :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/incompleteness :v 0.23885941644562417 :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/uncertainty :v 0.916944444444444 :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/cc1-no-contradictions :v false :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/cc2-impl-satisfies-spec :v false :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/cc3-spec-approximates-intent :v true :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/cc4-agent-agreement :v false :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/cc5-methodology-adherence :v true :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/forward-coverage :v 0.3348729792147806 :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/backward-coverage :v 1.0 :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/is-monotonic :v true :op :assert}
+   {:e #blake3 "6ec7460fbeaf977cbbfba83b57b4872160a3b07b8e365398f8a209f85ee13d5b" :a :bilateral/lyapunov :v 0.8126039042783478 :op :assert}
+ ]}

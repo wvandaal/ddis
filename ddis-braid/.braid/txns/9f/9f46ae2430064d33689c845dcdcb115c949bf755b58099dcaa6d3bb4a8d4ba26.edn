@@ -1,0 +1,35 @@
+{:tx/id #hlc "1773271149/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create spec entities for wrap, session, trace invariants and ADRs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "19286f53f619275f9987a8d8b4ee413481ba30394218e4237c296ba8dd63b595" :a :element/id :v "INV-WRAP-001" :op :assert}
+   {:e #blake3 "19286f53f619275f9987a8d8b4ee413481ba30394218e4237c296ba8dd63b595" :a :inv/statement :v "Clean subprocess success produces zero observations" :op :assert}
+   {:e #blake3 "19286f53f619275f9987a8d8b4ee413481ba30394218e4237c296ba8dd63b595" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "19286f53f619275f9987a8d8b4ee413481ba30394218e4237c296ba8dd63b595" :a :spec/namespace :v "WRAP" :op :assert}
+   {:e #blake3 "9a9b82b7923aa511f93b8676b9514878fd88f9df518b422d6ecc078dd22400e9" :a :element/id :v "INV-WRAP-002" :op :assert}
+   {:e #blake3 "9a9b82b7923aa511f93b8676b9514878fd88f9df518b422d6ecc078dd22400e9" :a :inv/statement :v "Every failed subprocess invocation produces exactly one observation" :op :assert}
+   {:e #blake3 "9a9b82b7923aa511f93b8676b9514878fd88f9df518b422d6ecc078dd22400e9" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "9a9b82b7923aa511f93b8676b9514878fd88f9df518b422d6ecc078dd22400e9" :a :spec/namespace :v "WRAP" :op :assert}
+   {:e #blake3 "7bd2100354344c20a098dc0c6646a526a7c2afa18f08c216d1b3bdd1e65bc724" :a :element/id :v "INV-SESSION-001" :op :assert}
+   {:e #blake3 "7bd2100354344c20a098dc0c6646a526a7c2afa18f08c216d1b3bdd1e65bc724" :a :inv/statement :v "Every observation during an active session references the session entity" :op :assert}
+   {:e #blake3 "7bd2100354344c20a098dc0c6646a526a7c2afa18f08c216d1b3bdd1e65bc724" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "7bd2100354344c20a098dc0c6646a526a7c2afa18f08c216d1b3bdd1e65bc724" :a :spec/namespace :v "SESSION" :op :assert}
+   {:e #blake3 "ab8fd97c1e1f599c279044bfd57b68524dae82617baa5e69c0e117e20a7e1796" :a :element/id :v "INV-TRACE-001" :op :assert}
+   {:e #blake3 "ab8fd97c1e1f599c279044bfd57b68524dae82617baa5e69c0e117e20a7e1796" :a :inv/statement :v "Every spec ID in a Rust comment that resolves to a store entity produces exactly one impl/implements datom" :op :assert}
+   {:e #blake3 "ab8fd97c1e1f599c279044bfd57b68524dae82617baa5e69c0e117e20a7e1796" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "ab8fd97c1e1f599c279044bfd57b68524dae82617baa5e69c0e117e20a7e1796" :a :spec/namespace :v "TRACE" :op :assert}
+   {:e #blake3 "da6f859b49a268d983bfdb0850a60fa443754ae7507e916e8eec31025102ac6e" :a :element/id :v "INV-TRACE-002" :op :assert}
+   {:e #blake3 "da6f859b49a268d983bfdb0850a60fa443754ae7507e916e8eec31025102ac6e" :a :inv/statement :v "braid trace --commit run twice produces the same datom count (idempotency)" :op :assert}
+   {:e #blake3 "da6f859b49a268d983bfdb0850a60fa443754ae7507e916e8eec31025102ac6e" :a :spec/type :v "invariant" :op :assert}
+   {:e #blake3 "da6f859b49a268d983bfdb0850a60fa443754ae7507e916e8eec31025102ac6e" :a :spec/namespace :v "TRACE" :op :assert}
+   {:e #blake3 "48068bd6c0272519d8519fc28bd727ab7ff4acedf3b98f3da047893b7652e856" :a :element/id :v "ADR-TASK-001" :op :assert}
+   {:e #blake3 "48068bd6c0272519d8519fc28bd727ab7ff4acedf3b98f3da047893b7652e856" :a :adr/decision :v "Tasks as datoms in the braid store, not separate issue tracker" :op :assert}
+   {:e #blake3 "48068bd6c0272519d8519fc28bd727ab7ff4acedf3b98f3da047893b7652e856" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "48068bd6c0272519d8519fc28bd727ab7ff4acedf3b98f3da047893b7652e856" :a :spec/namespace :v "TASK" :op :assert}
+   {:e #blake3 "40b1da871116ab35192b4f12f373159933c307fb0de9c55b68e45c5175a8031d" :a :element/id :v "ADR-TRACE-001" :op :assert}
+   {:e #blake3 "40b1da871116ab35192b4f12f373159933c307fb0de9c55b68e45c5175a8031d" :a :adr/decision :v "Comment-based traceability scanning over annotation macros" :op :assert}
+   {:e #blake3 "40b1da871116ab35192b4f12f373159933c307fb0de9c55b68e45c5175a8031d" :a :spec/type :v "adr" :op :assert}
+   {:e #blake3 "40b1da871116ab35192b4f12f373159933c307fb0de9c55b68e45c5175a8031d" :a :spec/namespace :v "TRACE" :op :assert}
+ ]}

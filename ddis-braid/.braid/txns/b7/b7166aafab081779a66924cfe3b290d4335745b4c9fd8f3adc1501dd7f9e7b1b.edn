@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773271095/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D4.3: Bilateral integration — untracked gap metric"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9623504bf17189ea2f7ed1652a2b369d1e5050b537e3e6c81df4be7fcc16ac9d" :a :db/ident :v :task/t-c473 :op :assert}
+   {:e #blake3 "9623504bf17189ea2f7ed1652a2b369d1e5050b537e3e6c81df4be7fcc16ac9d" :a :task/id :v "t-c473" :op :assert}
+   {:e #blake3 "9623504bf17189ea2f7ed1652a2b369d1e5050b537e3e6c81df4be7fcc16ac9d" :a :task/title :v "D4.3: Bilateral integration — untracked gap metric" :op :assert}
+   {:e #blake3 "9623504bf17189ea2f7ed1652a2b369d1e5050b537e3e6c81df4be7fcc16ac9d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9623504bf17189ea2f7ed1652a2b369d1e5050b537e3e6c81df4be7fcc16ac9d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "9623504bf17189ea2f7ed1652a2b369d1e5050b537e3e6c81df4be7fcc16ac9d" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "9623504bf17189ea2f7ed1652a2b369d1e5050b537e3e6c81df4be7fcc16ac9d" :a :task/created-at :v 1773271094 :op :assert}
+   {:e #blake3 "9623504bf17189ea2f7ed1652a2b369d1e5050b537e3e6c81df4be7fcc16ac9d" :a :task/source :v "braid:task" :op :assert}
+ ]}

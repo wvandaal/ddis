@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773272646/0/0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/agent "0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/provenance :observed
+ :tx/rationale "Spec entity for INV-COHERENCE-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c21c59397466ea92011da9504dd5b95c46cf0604e24cb6285072ded888b30ba8" :a :spec/element-type :v :spec.element-type/invariant :op :assert}
+   {:e #blake3 "c21c59397466ea92011da9504dd5b95c46cf0604e24cb6285072ded888b30ba8" :a :element/id :v "INV-COHERENCE-001" :op :assert}
+   {:e #blake3 "c21c59397466ea92011da9504dd5b95c46cf0604e24cb6285072ded888b30ba8" :a :spec/id :v "INV-COHERENCE-001" :op :assert}
+ ]}

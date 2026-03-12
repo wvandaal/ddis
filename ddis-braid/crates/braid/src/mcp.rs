@@ -17,8 +17,31 @@
 //!
 //! # Invariants
 //!
+//! - **INV-INTERFACE-002**: MCP as thin wrapper — delegates to kernel functions.
+//! - **INV-INTERFACE-004**: Statusline zero-cost to agent.
+//! - **INV-INTERFACE-005**: TUI subscription liveness (via MCP server).
+//! - **INV-INTERFACE-006**: Human signal injection (via MCP write tool).
+//! - **INV-INTERFACE-007**: Proactive harvest warning (in status response).
 //! - **INV-INTERFACE-009**: Three output modes (JSON for MCP, agent, human).
 //! - **INV-STORE-001**: All mutations go through the append-only store.
+//!
+//! # Design Decisions
+//!
+//! - ADR-INTERFACE-001: Five layers plus statusline bridge.
+//! - ADR-INTERFACE-003: Store-mediated trajectory management.
+//! - ADR-INTERFACE-004: Library-mode persistent MCP server via rmcp.
+//! - ADR-INTERFACE-005: Configurable heuristic parameters with progressive disclosure.
+//! - ADR-INTERFACE-006: Ten protocol primitives.
+//! - ADR-INTERFACE-009: Staged alignment strategy for existing codebase.
+//! - ADR-INTERFACE-010: Harvest warning turn-count proxy at Stage 0.
+//! - ADR-INTERFACE-011: Command help as agent context.
+//!
+//! # Negative Cases
+//!
+//! - NEG-INTERFACE-001: No authoritative non-store state.
+//! - NEG-INTERFACE-002: No MCP logic duplication (all logic in kernel).
+//! - NEG-INTERFACE-003: No harvest warning suppression.
+//! - NEG-INTERFACE-004: No error without recovery hint.
 
 use std::io::{self, BufRead, Write};
 use std::path::Path;

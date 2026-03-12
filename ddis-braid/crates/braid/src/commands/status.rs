@@ -134,6 +134,22 @@ pub fn run(
         tx_since_harvest, harvest_tag,
     ));
 
+    // Task summary (D4.1: INV-INTERFACE-011)
+    let (open, in_progress, closed) = braid_kernel::task_counts(&store);
+    let total = open + in_progress + closed;
+    if total > 0 {
+        let ready_count = braid_kernel::compute_ready_set(&store).len();
+        let blocked = open - ready_count;
+        let mut task_line = format!("tasks: {open} open");
+        if in_progress > 0 {
+            task_line.push_str(&format!(", {in_progress} active"));
+        }
+        task_line.push_str(&format!(
+            " ({ready_count} ready, {blocked} blocked) | {closed} closed\n"
+        ));
+        out.push_str(&task_line);
+    }
+
     // Top action with copy-pasteable command
     if let Some(action) = actions.first() {
         let cmd = action.command.as_deref().unwrap_or("-");

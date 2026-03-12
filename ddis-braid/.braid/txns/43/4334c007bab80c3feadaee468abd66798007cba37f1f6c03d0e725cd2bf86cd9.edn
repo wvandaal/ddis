@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773272650/0/0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/agent "0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/provenance :observed
+ :tx/rationale "Spec entity for INV-PROMOTE-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dd1855b2e8b357e76bc91b1cdaea206ba9b332e97c46ace46a8c40cf91fe089a" :a :spec/element-type :v :spec.element-type/invariant :op :assert}
+   {:e #blake3 "dd1855b2e8b357e76bc91b1cdaea206ba9b332e97c46ace46a8c40cf91fe089a" :a :element/id :v "INV-PROMOTE-001" :op :assert}
+   {:e #blake3 "dd1855b2e8b357e76bc91b1cdaea206ba9b332e97c46ace46a8c40cf91fe089a" :a :spec/id :v "INV-PROMOTE-001" :op :assert}
+ ]}

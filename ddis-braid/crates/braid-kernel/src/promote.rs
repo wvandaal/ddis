@@ -381,6 +381,11 @@ pub struct BatchPromotionResult {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-STORE-001, INV-STORE-003, INV-SCHEMA-001, ADR-STORE-003,
+//   ADR-SCHEMA-001, NEG-STORE-001
+// (Promotion exercises append-only datom construction, content-addressable identity,
+//  schema-as-data patterns, and preserves exploration attributes per C1.)
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -428,6 +433,8 @@ mod tests {
         (e, datoms)
     }
 
+    // Verifies: INV-STORE-001, INV-STORE-003, INV-SCHEMA-001, ADR-STORE-003
+    // (Promotion adds element/promotion attrs as new datoms — append-only, content-addressed.)
     #[test]
     fn promote_adds_element_and_promotion_attrs() {
         let (entity, existing) = exploration_entity("topo-001");
@@ -473,6 +480,8 @@ mod tests {
                 && d.value == Value::Keyword(":promotion.status/promoted".to_string())));
     }
 
+    // Verifies: INV-STORE-001, INV-STORE-006
+    // (Idempotent re-promotion produces no new datoms — append-only store is unchanged.)
     #[test]
     fn promote_is_idempotent() {
         let (entity, mut existing) = exploration_entity("topo-002");
@@ -506,6 +515,8 @@ mod tests {
         assert_eq!(result2.datoms.len(), 0);
     }
 
+    // Verifies: INV-STORE-001, ADR-STORE-003, ADR-SCHEMA-001
+    // (ADR promotion uses schema-as-data attributes — :adr/problem, :adr/decision.)
     #[test]
     fn promote_adr_adds_adr_specific_attrs() {
         let (entity, existing) = exploration_entity("adr-001");
@@ -538,6 +549,8 @@ mod tests {
             .any(|d| d.attribute.as_str() == ":adr/decision"));
     }
 
+    // Verifies: INV-TRILATERAL-001, INV-TRILATERAL-002
+    // (Dual identity verification — entity has both exploration and element attributes.)
     #[test]
     fn verify_dual_identity_after_promotion() {
         let (entity, mut existing) = exploration_entity("dual-001");
@@ -575,6 +588,8 @@ mod tests {
         assert!(check_after.is_valid);
     }
 
+    // Verifies: INV-STORE-001, INV-STORE-003
+    // (Batch promotion transacts multiple entities at once — append-only, content-addressed.)
     #[test]
     fn batch_promotion() {
         let (e1, existing1) = exploration_entity("batch-001");
@@ -618,6 +633,8 @@ mod tests {
         assert!(!result.datoms.is_empty());
     }
 
+    // Verifies: INV-STORE-001, ADR-STORE-003, ADR-SCHEMA-001
+    // (Negative case promotion uses schema-as-data attributes — :neg/violation.)
     #[test]
     fn promote_neg_adds_violation_attr() {
         let (entity, existing) = exploration_entity("neg-001");

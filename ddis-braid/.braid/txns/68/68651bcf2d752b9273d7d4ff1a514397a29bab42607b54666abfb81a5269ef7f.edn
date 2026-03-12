@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773271094/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D4.2: Guidance integration — task priority in next action"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e6a7b5dc728fb45521514d934be29ad029cd2d2b5fe657457e1ba3f7143ab8e3" :a :db/ident :v :task/t-05bd :op :assert}
+   {:e #blake3 "e6a7b5dc728fb45521514d934be29ad029cd2d2b5fe657457e1ba3f7143ab8e3" :a :task/id :v "t-05bd" :op :assert}
+   {:e #blake3 "e6a7b5dc728fb45521514d934be29ad029cd2d2b5fe657457e1ba3f7143ab8e3" :a :task/title :v "D4.2: Guidance integration — task priority in next action" :op :assert}
+   {:e #blake3 "e6a7b5dc728fb45521514d934be29ad029cd2d2b5fe657457e1ba3f7143ab8e3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e6a7b5dc728fb45521514d934be29ad029cd2d2b5fe657457e1ba3f7143ab8e3" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e6a7b5dc728fb45521514d934be29ad029cd2d2b5fe657457e1ba3f7143ab8e3" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "e6a7b5dc728fb45521514d934be29ad029cd2d2b5fe657457e1ba3f7143ab8e3" :a :task/created-at :v 1773271093 :op :assert}
+   {:e #blake3 "e6a7b5dc728fb45521514d934be29ad029cd2d2b5fe657457e1ba3f7143ab8e3" :a :task/source :v "braid:task" :op :assert}
+ ]}

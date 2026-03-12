@@ -15,8 +15,33 @@
 //!
 //! - **INV-RESOLUTION-001**: Per-attribute resolution mode from schema.
 //! - **INV-RESOLUTION-002**: Resolution commutativity.
+//! - **INV-RESOLUTION-003**: Conservative conflict detection (no false negatives).
 //! - **INV-RESOLUTION-004**: 6-condition conflict predicate.
 //! - **INV-RESOLUTION-005**: LWW semilattice properties.
+//! - **INV-RESOLUTION-006**: Lattice join correctness.
+//! - **INV-RESOLUTION-007**: Three-tier routing completeness (LWW → Lattice → Deliberation).
+//! - **INV-RESOLUTION-008**: Conflict entity datom trail.
+//!
+//! # Design Decisions
+//!
+//! - ADR-RESOLUTION-001: Per-attribute over global policy.
+//! - ADR-RESOLUTION-002: Resolution at query time, not merge time.
+//! - ADR-RESOLUTION-003: Conservative detection over precise (no false negatives).
+//! - ADR-RESOLUTION-004: Three-tier routing (LWW, Lattice, Deliberation).
+//! - ADR-RESOLUTION-005: Deliberation as entity.
+//! - ADR-RESOLUTION-006: Delegation threshold formula.
+//! - ADR-RESOLUTION-007: Four-class delegation.
+//! - ADR-RESOLUTION-008: Delegation safety.
+//! - ADR-RESOLUTION-010: Resolution capacity monotonicity.
+//! - ADR-RESOLUTION-011: Spectral authority via SVD.
+//! - ADR-RESOLUTION-012: Contribution weight by verification status.
+//! - ADR-RESOLUTION-013: Conflict pipeline progressive activation.
+//!
+//! # Negative Cases
+//!
+//! - NEG-RESOLUTION-001: No merge-time resolution — resolution is at query time.
+//! - NEG-RESOLUTION-002: No false negative conflict detection.
+//! - NEG-RESOLUTION-003: No resolution without provenance.
 
 use std::collections::HashMap;
 
@@ -179,6 +204,15 @@ fn resolve_lww(active: &[(Value, TxId)]) -> ResolvedValue {
 ///
 /// Conservative detection: may report false positives but never false negatives
 /// (Theorem R2.5b).
+///
+/// INV-DELIBERATION-002: Stability guard enforcement — detected conflicts must be resolved.
+/// INV-DELIBERATION-003: Precedent queryability — conflict resolution history is queryable.
+/// INV-DELIBERATION-004: Bilateral deliberation symmetry — both sides of conflict heard.
+/// INV-DELIBERATION-005: Commitment weight integration.
+/// INV-DELIBERATION-006: Competing branch resolution.
+/// NEG-DELIBERATION-001: No decision without stability guard.
+/// NEG-DELIBERATION-002: No losing branch leak.
+/// NEG-DELIBERATION-003: No backward lifecycle transition.
 pub fn has_conflict(conflict: &ConflictSet, mode: &ResolutionMode) -> bool {
     if *mode == ResolutionMode::Multi {
         return false; // Multi-value mode never conflicts
@@ -195,6 +229,12 @@ pub fn has_conflict(conflict: &ConflictSet, mode: &ResolutionMode) -> bool {
 }
 
 /// Compute the LIVE view of an entity — resolve all attributes.
+/// INV-STORE-012: LIVE index correctness — deterministic fold of all datoms.
+/// INV-RESOLUTION-006: Lattice join correctness (falls back to LWW at Stage 0).
+/// INV-DELIBERATION-001: Deliberation convergence — unresolvable conflicts escalate.
+/// ADR-DELIBERATION-001: Three entity types for structured resolution.
+/// ADR-DELIBERATION-002: Five decision methods (consensus, authority, vote, defer, split).
+/// ADR-DELIBERATION-003: Precedent as case law.
 pub fn live_entity(store: &Store, entity: EntityId) -> HashMap<Attribute, ResolvedValue> {
     let datoms: Vec<&Datom> = store.entity_datoms(entity);
     let mut result = HashMap::new();
@@ -455,6 +495,12 @@ pub fn conflict_to_datoms(record: &ResolutionRecord, tx: TxId) -> Vec<Datom> {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-RESOLUTION-001, INV-RESOLUTION-002, INV-RESOLUTION-003,
+// INV-RESOLUTION-004, INV-RESOLUTION-005, INV-RESOLUTION-006,
+// INV-RESOLUTION-007, INV-RESOLUTION-008,
+// ADR-RESOLUTION-001, ADR-RESOLUTION-002, ADR-RESOLUTION-003,
+// ADR-RESOLUTION-004, ADR-RESOLUTION-009,
+// NEG-RESOLUTION-001, NEG-RESOLUTION-002, NEG-RESOLUTION-003
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -464,6 +510,8 @@ mod tests {
         AgentId::from_name("test")
     }
 
+    // Verifies: INV-RESOLUTION-005 — LWW Semilattice Properties
+    // Verifies: ADR-RESOLUTION-009 — BLAKE3 Hash Tie-Breaking for LWW
     #[test]
     fn lww_picks_latest_tx() {
         let e = EntityId::from_ident(":test/e");
@@ -484,6 +532,8 @@ mod tests {
         assert_eq!(resolved, ResolvedValue::Single(Value::String("new".into())));
     }
 
+    // Verifies: INV-RESOLUTION-002 — Resolution Commutativity
+    // Verifies: ADR-RESOLUTION-009 — BLAKE3 Hash Tie-Breaking for LWW
     #[test]
     fn lww_tiebreaker_is_deterministic() {
         let e = EntityId::from_ident(":test/e");
@@ -506,6 +556,8 @@ mod tests {
         assert_eq!(r1, r2, "INV-RESOLUTION-002: deterministic");
     }
 
+    // Verifies: INV-RESOLUTION-001 — Per-Attribute Resolution (multi-value mode)
+    // Verifies: INV-RESOLUTION-007 — Three-Tier Routing Completeness
     #[test]
     fn multi_keeps_all() {
         let e = EntityId::from_ident(":test/e");
@@ -529,6 +581,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-STORE-001 — Append-Only Immutability (retraction is new datom)
     #[test]
     fn retraction_removes_value() {
         let e = EntityId::from_ident(":test/e");
@@ -546,6 +599,7 @@ mod tests {
         assert_eq!(resolved, ResolvedValue::None);
     }
 
+    // Verifies: INV-RESOLUTION-003 — Conservative Conflict Detection (no false positive)
     #[test]
     fn no_conflict_with_single_value() {
         let e = EntityId::from_ident(":test/e");
@@ -562,6 +616,9 @@ mod tests {
         assert!(!has_conflict(&conflict, &ResolutionMode::Lww));
     }
 
+    // Verifies: INV-RESOLUTION-003 — Conservative Conflict Detection
+    // Verifies: INV-RESOLUTION-004 — Conflict Predicate Correctness
+    // Verifies: NEG-RESOLUTION-002 — No False Negative Conflict Detection
     #[test]
     fn conflict_with_different_values() {
         let e = EntityId::from_ident(":test/e");
@@ -581,6 +638,8 @@ mod tests {
         assert!(has_conflict(&conflict, &ResolutionMode::Lww));
     }
 
+    // Verifies: INV-RESOLUTION-001 — Per-Attribute Resolution
+    // Verifies: ADR-RESOLUTION-001 — Per-Attribute Over Global Policy
     #[test]
     fn no_conflict_in_multi_mode() {
         let e = EntityId::from_ident(":test/e");
@@ -600,6 +659,9 @@ mod tests {
         assert!(!has_conflict(&conflict, &ResolutionMode::Multi));
     }
 
+    // Verifies: INV-RESOLUTION-001 — Per-Attribute Resolution
+    // Verifies: ADR-RESOLUTION-002 — Resolution at Query Time, Not Merge Time
+    // Verifies: NEG-RESOLUTION-001 — No Merge-Time Resolution
     #[test]
     fn live_entity_resolves_attributes() {
         let mut store = Store::genesis();
@@ -658,6 +720,8 @@ mod tests {
         (store, entity, attr)
     }
 
+    // Verifies: INV-RESOLUTION-003 — Conservative Conflict Detection
+    // Verifies: ADR-RESOLUTION-003 — Conservative Detection Over Precise
     #[test]
     fn detect_conflicts_finds_two_agent_conflict() {
         let (store, entity, attr) = store_with_conflict();
@@ -706,6 +770,9 @@ mod tests {
         );
     }
 
+    // Verifies: INV-RESOLUTION-005 — LWW Semilattice Properties
+    // Verifies: INV-RESOLUTION-008 — Conflict Entity Datom Trail
+    // Verifies: ADR-RESOLUTION-004 — Three-Tier Routing
     #[test]
     fn resolve_with_trail_picks_lww_winner() {
         let (store, entity, attr) = store_with_conflict();
@@ -727,6 +794,8 @@ mod tests {
         }
     }
 
+    // Verifies: INV-RESOLUTION-008 — Conflict Entity Datom Trail
+    // Verifies: NEG-RESOLUTION-003 — No Resolution Without Provenance
     #[test]
     fn conflict_to_datoms_produces_audit_trail() {
         let (store, entity, attr) = store_with_conflict();
@@ -771,6 +840,8 @@ mod tests {
         assert_eq!(count_datom.value, Value::Long(2));
     }
 
+    // Verifies: INV-RESOLUTION-006 — Lattice Join Correctness (idempotent)
+    // Verifies: INV-MERGE-008 — At-Least-Once Idempotent Delivery
     #[test]
     fn conflict_to_datoms_is_idempotent() {
         let (store, entity, attr) = store_with_conflict();

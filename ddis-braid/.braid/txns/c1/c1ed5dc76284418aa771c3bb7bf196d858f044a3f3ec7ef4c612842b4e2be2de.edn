@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773272656/0/0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/agent "0fb2443fb13ed34e2d9b22abb8858215"
+ :tx/provenance :observed
+ :tx/rationale "Spec entity for INV-QUERY-028"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3a03c54e7813723548c604bc06c8b31b41bd75a6b3c37d96c9a983a91fafabb1" :a :spec/element-type :v :spec.element-type/invariant :op :assert}
+   {:e #blake3 "3a03c54e7813723548c604bc06c8b31b41bd75a6b3c37d96c9a983a91fafabb1" :a :element/id :v "INV-QUERY-028" :op :assert}
+   {:e #blake3 "3a03c54e7813723548c604bc06c8b31b41bd75a6b3c37d96c9a983a91fafabb1" :a :spec/id :v "INV-QUERY-028" :op :assert}
+ ]}

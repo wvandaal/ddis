@@ -3,6 +3,9 @@
 //!
 //! This implements constraint C7 (Self-Bootstrap): DDIS specifies itself.
 //! The specification elements become the first dataset the system manages.
+//!
+//! ADR-FOUNDATION-004: Specification uses DDIS formalism (INV/ADR/NEG).
+//! ADR-FOUNDATION-006: Self-bootstrap fixed-point property.
 
 use std::path::Path;
 

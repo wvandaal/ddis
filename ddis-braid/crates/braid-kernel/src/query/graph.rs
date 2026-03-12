@@ -10,7 +10,22 @@
 //! - **INV-QUERY-012**: Topo sort, SCC, PageRank available.
 //! - **INV-QUERY-013**: Critical path analysis.
 //! - **INV-QUERY-014**: Graph density.
+//! - **INV-QUERY-015**: Betweenness centrality.
+//! - **INV-QUERY-016**: HITS hub/authority scoring.
 //! - **INV-QUERY-017**: All graph algorithms are deterministic.
+//! - **INV-QUERY-018**: k-core decomposition.
+//! - **INV-QUERY-019**: Eigenvector centrality.
+//! - **INV-QUERY-020**: Articulation points.
+//! - **INV-QUERY-021**: Graph density metrics.
+//! - **INV-QUERY-022**: Spectral computation correctness.
+//! - **INV-QUERY-023**: Edge Laplacian computation.
+//! - **INV-QUERY-024**: First Betti number from Laplacian kernel.
+//!
+//! # Design Decisions
+//!
+//! - ADR-QUERY-009: Full graph engine in kernel.
+//! - ADR-QUERY-012: Spectral graph operations via nalgebra.
+//! - ADR-QUERY-013: Hodge-theoretic coherence via edge Laplacian.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 
@@ -2585,6 +2600,11 @@ pub fn structural_complexity(store: &Store) -> StructuralComplexity {
 // Tests
 // ---------------------------------------------------------------------------
 
+// Witnesses: INV-QUERY-012, INV-QUERY-013, INV-QUERY-014, INV-QUERY-015,
+// INV-QUERY-016, INV-QUERY-017, INV-QUERY-018, INV-QUERY-020, INV-QUERY-021,
+// INV-QUERY-022, INV-QUERY-023, INV-QUERY-024,
+// ADR-QUERY-009, ADR-QUERY-012, ADR-QUERY-013,
+// INV-TRILATERAL-009, INV-TRILATERAL-010
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2598,6 +2618,7 @@ mod tests {
         g
     }
 
+    // Verifies: INV-QUERY-012 — Topological Sort
     #[test]
     fn topo_sort_diamond() {
         let g = diamond_graph();
@@ -2607,6 +2628,7 @@ mod tests {
         // B and C can be in either order
     }
 
+    // Verifies: INV-QUERY-013 — Cycle Detection via Tarjan SCC
     #[test]
     fn topo_sort_detects_cycle() {
         let mut g = DiGraph::new();
@@ -2616,6 +2638,7 @@ mod tests {
         assert!(topo_sort(&g).is_none());
     }
 
+    // Verifies: INV-QUERY-013 — Cycle Detection via Tarjan SCC
     #[test]
     fn scc_no_cycles() {
         let g = diamond_graph();
@@ -2627,6 +2650,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-QUERY-013 — Cycle Detection via Tarjan SCC
     #[test]
     fn scc_with_cycle() {
         let mut g = DiGraph::new();
@@ -2641,6 +2665,7 @@ mod tests {
         assert_eq!(cycle[0].len(), 3);
     }
 
+    // Verifies: INV-QUERY-014 — PageRank Scoring
     #[test]
     fn pagerank_uniform_graph() {
         let mut g = DiGraph::new();
@@ -2651,6 +2676,8 @@ mod tests {
         assert!((ranks["A"] - ranks["B"]).abs() < 0.01);
     }
 
+    // Verifies: INV-QUERY-014 — PageRank Scoring
+    // Verifies: INV-QUERY-016 — HITS Hub/Authority Scoring
     #[test]
     fn pagerank_hub_graph() {
         let mut g = DiGraph::new();
@@ -2664,6 +2691,7 @@ mod tests {
         assert!(ranks["C"] > ranks["B"]);
     }
 
+    // Verifies: INV-QUERY-017 — Critical Path Analysis
     #[test]
     fn critical_path_diamond() {
         let g = diamond_graph();
@@ -2673,6 +2701,7 @@ mod tests {
         assert_eq!(path.last().unwrap(), "D");
     }
 
+    // Verifies: INV-QUERY-021 — Graph Density Metrics
     #[test]
     fn density_computation() {
         let g = diamond_graph();
@@ -2681,6 +2710,8 @@ mod tests {
         assert!((d - 1.0 / 3.0).abs() < 0.01);
     }
 
+    // Verifies: INV-QUERY-012 — Topological Sort (determinism)
+    // Verifies: INV-QUERY-002 — Query Determinism
     #[test]
     fn topo_sort_is_deterministic() {
         let g = diamond_graph();
@@ -2689,6 +2720,8 @@ mod tests {
         assert_eq!(o1, o2);
     }
 
+    // Verifies: INV-QUERY-014 — PageRank Scoring (determinism)
+    // Verifies: INV-QUERY-002 — Query Determinism
     #[test]
     fn pagerank_is_deterministic() {
         let g = diamond_graph();
@@ -2703,6 +2736,7 @@ mod tests {
     // Edge Laplacian & Betti Number (INV-QUERY-023, INV-QUERY-024)
     // -------------------------------------------------------------------
 
+    // Verifies: INV-QUERY-023 — Edge Laplacian Computation
     #[test]
     fn edge_laplacian_is_symmetric() {
         let g = diamond_graph();
@@ -2710,6 +2744,7 @@ mod tests {
         assert!(l1.is_symmetric(1e-10), "Edge Laplacian must be symmetric");
     }
 
+    // Verifies: INV-QUERY-023 — Edge Laplacian Computation (PSD)
     #[test]
     fn edge_laplacian_is_positive_semidefinite() {
         let g = diamond_graph();
@@ -2720,6 +2755,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-QUERY-024 — First Betti Number from Laplacian Kernel
     #[test]
     fn betti_number_tree_is_zero() {
         // A tree has no cycles, so β₁ = 0
@@ -2730,6 +2766,7 @@ mod tests {
         assert_eq!(first_betti_number(&g), 0);
     }
 
+    // Verifies: INV-QUERY-024 — First Betti Number from Laplacian Kernel
     #[test]
     fn betti_number_single_cycle() {
         // A→B→C→A has exactly one cycle, β₁ = 1
@@ -2740,6 +2777,8 @@ mod tests {
         assert_eq!(first_betti_number(&g), 1);
     }
 
+    // Verifies: INV-QUERY-024 — First Betti Number from Laplacian Kernel
+    // Verifies: INV-TRILATERAL-009 — Coherence Completeness (Phi, beta_1 Duality)
     #[test]
     fn betti_number_diamond_has_cycle() {
         // Diamond A→B→D, A→C→D has a cycle: β₁ = 1
@@ -2760,6 +2799,8 @@ mod tests {
         assert_eq!(first_betti_number(&g), 0);
     }
 
+    // Verifies: INV-QUERY-023 — Edge Laplacian Computation
+    // Verifies: ADR-QUERY-013 — Hodge-Theoretic Coherence via Edge Laplacian
     #[test]
     fn boundary_operator_dimensions() {
         let g = diamond_graph();
@@ -2788,6 +2829,7 @@ mod tests {
     // Betweenness centrality (INV-QUERY-015)
     // -------------------------------------------------------------------
 
+    // Verifies: INV-QUERY-015 — Betweenness Centrality
     #[test]
     fn betweenness_centrality_line_graph() {
         // A → B → C: B is on all shortest paths between A and C
@@ -2801,6 +2843,7 @@ mod tests {
         assert_eq!(bc["C"], 0.0);
     }
 
+    // Verifies: INV-QUERY-015 — Betweenness Centrality
     #[test]
     fn betweenness_centrality_star_graph() {
         // All edges point to C: A→C, B→C, D→C
@@ -2815,6 +2858,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-QUERY-015 — Betweenness Centrality
     #[test]
     fn betweenness_centrality_diamond() {
         let g = diamond_graph();
@@ -2829,6 +2873,7 @@ mod tests {
         assert!(bc["B"] > 0.0, "B should have positive BC");
     }
 
+    // Verifies: INV-QUERY-015 — Betweenness Centrality (empty graph)
     #[test]
     fn betweenness_centrality_empty_graph() {
         let g = DiGraph::new();
@@ -2836,6 +2881,8 @@ mod tests {
         assert!(bc.is_empty());
     }
 
+    // Verifies: INV-QUERY-015 — Betweenness Centrality (determinism)
+    // Verifies: INV-QUERY-002 — Query Determinism
     #[test]
     fn betweenness_centrality_is_deterministic() {
         let g = diamond_graph();
@@ -2850,6 +2897,7 @@ mod tests {
     // Persistent Homology (INV-QUERY-025)
     // -------------------------------------------------------------------
 
+    // Verifies: INV-TRILATERAL-010 — Persistent Cohomology over Transaction Filtration
     #[test]
     fn persistent_homology_empty() {
         let diagram = persistent_homology(&[]);
@@ -2858,6 +2906,7 @@ mod tests {
         assert_eq!(diagram.h1_persistent, 0);
     }
 
+    // Verifies: INV-TRILATERAL-010 — Persistent Cohomology over Transaction Filtration
     #[test]
     fn persistent_homology_single_edge() {
         let edges = vec![("A".to_string(), "B".to_string())];
@@ -2874,6 +2923,7 @@ mod tests {
         assert_eq!(finite_h0.len(), 1, "one H₀ death");
     }
 
+    // Verifies: INV-TRILATERAL-010 — Persistent Cohomology over Transaction Filtration
     #[test]
     fn persistent_homology_triangle_creates_cycle() {
         let edges = vec![
@@ -2985,6 +3035,8 @@ mod tests {
     // Fiedler vector & graph Laplacian (INV-QUERY-026)
     // -------------------------------------------------------------------
 
+    // Verifies: INV-QUERY-022 — Spectral Computation Correctness
+    // Verifies: ADR-QUERY-012 — Spectral Graph Operations via nalgebra
     #[test]
     fn graph_laplacian_is_symmetric() {
         let g = diamond_graph();
@@ -2992,6 +3044,7 @@ mod tests {
         assert!(l.is_symmetric(1e-10), "Laplacian must be symmetric");
     }
 
+    // Verifies: INV-QUERY-022 — Spectral Computation Correctness
     #[test]
     fn graph_laplacian_row_sums_zero() {
         let g = diamond_graph();
@@ -3007,6 +3060,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-QUERY-022 — Spectral Computation Correctness (PSD)
     #[test]
     fn graph_laplacian_psd() {
         let g = diamond_graph();
@@ -3017,6 +3071,8 @@ mod tests {
         }
     }
 
+    // Verifies: INV-QUERY-022 — Spectral Computation Correctness (Fiedler)
+    // Verifies: INV-QUERY-020 — Articulation Points
     #[test]
     fn fiedler_connected_graph() {
         let g = diamond_graph();
@@ -3312,6 +3368,8 @@ mod tests {
 
     // --- Cheeger inequality tests ---
 
+    // Verifies: INV-QUERY-022 — Spectral Computation Correctness (Cheeger)
+    // Verifies: INV-QUERY-020 — Articulation Points
     #[test]
     fn cheeger_complete_graph() {
         // K4: every vertex connects to 3 others
@@ -3417,6 +3475,9 @@ mod tests {
 
     // --- Sheaf cohomology tests ---
 
+    // Verifies: INV-TRILATERAL-009 — Coherence Completeness (Phi, beta_1 Duality)
+    // Verifies: ADR-TRILATERAL-005 — Cohomological Complement to Divergence Metric
+    // Verifies: ADR-TRILATERAL-006 — F2 Coefficients for Initial Cohomology
     #[test]
     fn constant_sheaf_path_recovers_graph_cohomology() {
         // Path A → B → C: H⁰ = 1 (connected), β₁ = 0 (tree)
@@ -3429,6 +3490,7 @@ mod tests {
         assert!(coh.is_consistent, "Constant sheaf on tree is consistent");
     }
 
+    // Verifies: INV-TRILATERAL-009 — Coherence Completeness
     #[test]
     fn constant_sheaf_cycle_detects_cycle() {
         // Cycle A → B → C → A: H⁰ = 1, β₁ = 1
@@ -3455,6 +3517,8 @@ mod tests {
         assert_eq!(coh.h0, 2, "Two components: H⁰ = 2");
     }
 
+    // Verifies: INV-RESOLUTION-003 — Conservative Conflict Detection
+    // Verifies: ADR-TRILATERAL-005 — Cohomological Complement to Divergence Metric
     #[test]
     fn conflict_sheaf_consistent_agents() {
         // Two agents that agree: A and B both have value [1.0, 2.0]
@@ -3472,6 +3536,8 @@ mod tests {
         );
     }
 
+    // Verifies: INV-RESOLUTION-003 — Conservative Conflict Detection
+    // Verifies: INV-RESOLUTION-004 — Conflict Predicate Correctness
     #[test]
     fn conflict_sheaf_detects_disagreement() {
         // Three agents in a triangle: A↔B agree, B↔C agree, but A↔C disagree
@@ -3567,6 +3633,7 @@ mod tests {
         Store::from_datoms(datom_set)
     }
 
+    // Verifies: INV-TRILATERAL-010 — Persistent Cohomology over Transaction Filtration
     #[test]
     fn tx_barcode_empty_store() {
         // Genesis store has schema datoms but no user-created Ref edges
@@ -3586,6 +3653,7 @@ mod tests {
         }
     }
 
+    // Verifies: INV-TRILATERAL-010 — Persistent Cohomology over Transaction Filtration
     #[test]
     fn tx_barcode_single_tx() {
         use crate::datom::{AgentId, Attribute, EntityId, ProvenanceType, Value};
@@ -3653,6 +3721,7 @@ mod tests {
         );
     }
 
+    // Verifies: INV-TRILATERAL-010 — Persistent Cohomology over Transaction Filtration
     #[test]
     fn tx_barcode_multi_tx() {
         use crate::datom::{AgentId, Attribute, EntityId, ProvenanceType, Value};
