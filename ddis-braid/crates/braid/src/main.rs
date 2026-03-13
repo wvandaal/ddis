@@ -83,7 +83,7 @@ fn main() {
             print!("{}", cmd_output.render(mode));
         }
         Err(e) => {
-            eprintln!("{e}");
+            eprint!("{}", e.render(mode));
             std::process::exit(1);
         }
     }

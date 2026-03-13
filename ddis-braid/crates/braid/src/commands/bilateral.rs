@@ -17,12 +17,15 @@ use std::path::Path;
 use braid_kernel::bilateral::{
     cycle_to_datoms, format_terse as bilateral_format_terse,
     format_verbose as bilateral_format_verbose, load_trajectory, run_cycle,
+    W_CONTRADICTION, W_COVERAGE, W_DRIFT, W_HARVEST, W_INCOMPLETENESS, W_UNCERTAINTY,
+    W_VALIDATION,
 };
 use braid_kernel::datom::{AgentId, ProvenanceType};
 use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
 /// Run the bilateral coherence scan.
 pub fn run(
@@ -31,9 +34,9 @@ pub fn run(
     full: bool,
     spectral: bool,
     history: bool,
-    json: bool,
+    _json: bool,
     commit: bool,
-) -> Result<String, BraidError> {
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -43,24 +46,21 @@ pub fn run(
     // Run the bilateral cycle
     let state = run_cycle(&store, &trajectory, spectral || full);
 
-    if json {
-        return format_json(&state);
-    }
+    // ── Human output (unchanged from prior behavior) ─────────────────
 
-    if history {
-        return format_history(&state, &trajectory);
-    }
-
-    // Default or full text output
-    let mut out = if full {
+    let mut human = if history {
+        format_history_text(&state, &trajectory)?
+    } else if full {
         bilateral_format_verbose(&state)
     } else {
         bilateral_format_terse(&state)
     };
 
-    // Actionable next steps
-    out.push('\n');
-    out.push_str(&format_next_steps(&state));
+    // Actionable next steps (human output only, not history)
+    if !history {
+        human.push('\n');
+        human.push_str(&format_next_steps(&state));
+    }
 
     // Commit bilateral results if requested
     if commit {
@@ -82,14 +82,234 @@ pub fn run(
         };
 
         let file_path = layout.write_tx(&tx)?;
-        out.push_str(&format!(
+        human.push_str(&format!(
             "\ncommitted: {} datoms \u{2192} {}\n",
             datom_count,
             file_path.relative_path()
         ));
     }
 
-    Ok(out)
+    // ── Structured JSON ──────────────────────────────────────────────
+
+    let structured_json = build_structured_json(&state);
+
+    // ── Agent output (self-explanatory computation semantics) ────────
+
+    let agent_output = build_agent_output(&state);
+
+    Ok(CommandOutput {
+        json: structured_json,
+        agent: agent_output,
+        human,
+    })
+}
+
+/// Build structured JSON with full semantic field names and descriptions.
+fn build_structured_json(state: &braid_kernel::bilateral::BilateralState) -> serde_json::Value {
+    let c = &state.fitness.components;
+    let cc = &state.conditions;
+    let fwd = &state.scan.forward;
+    let bwd = &state.scan.backward;
+
+    let mut result = serde_json::json!({
+        "fitness": {
+            "total": state.fitness.total,
+            "components": {
+                "validation": {
+                    "score": c.validation,
+                    "weight": W_VALIDATION,
+                    "description": "depth-weighted witness coverage (L1=0.15, L2=0.4, L3=0.7, L4=1.0 per spec element)"
+                },
+                "coverage": {
+                    "score": c.coverage,
+                    "weight": W_COVERAGE,
+                    "description": "depth-weighted impl coverage — how thoroughly impl entities trace to spec (L1=syntactic/0.15, L2=structural/0.4, L3=property/0.7, L4=formal/1.0)"
+                },
+                "drift": {
+                    "score": c.drift,
+                    "weight": W_DRIFT,
+                    "description": "1 minus normalized divergence (phi/phi_max) — measures spec-impl alignment"
+                },
+                "harvest_quality": {
+                    "score": c.harvest_quality,
+                    "weight": W_HARVEST,
+                    "description": "methodology adherence score M(t) — how consistently harvest/seed discipline is followed"
+                },
+                "contradiction": {
+                    "score": c.contradiction,
+                    "weight": W_CONTRADICTION,
+                    "description": "1 minus contradiction ratio — fraction of spec elements free of contradictions"
+                },
+                "incompleteness": {
+                    "score": c.incompleteness,
+                    "weight": W_INCOMPLETENESS,
+                    "description": "1 minus incomplete ratio — fraction of spec elements with statements, falsification, and traces-to"
+                },
+                "uncertainty": {
+                    "score": c.uncertainty,
+                    "weight": W_UNCERTAINTY,
+                    "description": "1 minus mean uncertainty across spec elements with confidence markers"
+                }
+            },
+            "unmeasured": &state.fitness.unmeasured,
+        },
+        "coherence": {
+            "overall": cc.overall,
+            "conditions": [
+                {
+                    "id": "CC-1",
+                    "name": "no contradictions",
+                    "satisfied": cc.cc1_no_contradictions.satisfied,
+                    "confidence": cc.cc1_no_contradictions.confidence,
+                    "evidence": cc.cc1_no_contradictions.evidence,
+                    "machine_evaluable": cc.cc1_no_contradictions.machine_evaluable,
+                },
+                {
+                    "id": "CC-2",
+                    "name": "impl satisfies spec",
+                    "satisfied": cc.cc2_impl_satisfies_spec.satisfied,
+                    "confidence": cc.cc2_impl_satisfies_spec.confidence,
+                    "evidence": cc.cc2_impl_satisfies_spec.evidence,
+                    "machine_evaluable": cc.cc2_impl_satisfies_spec.machine_evaluable,
+                },
+                {
+                    "id": "CC-3",
+                    "name": "spec approximates intent",
+                    "satisfied": cc.cc3_spec_approximates_intent.satisfied,
+                    "confidence": cc.cc3_spec_approximates_intent.confidence,
+                    "evidence": cc.cc3_spec_approximates_intent.evidence,
+                    "machine_evaluable": cc.cc3_spec_approximates_intent.machine_evaluable,
+                },
+                {
+                    "id": "CC-4",
+                    "name": "agent agreement",
+                    "satisfied": cc.cc4_agent_agreement.satisfied,
+                    "confidence": cc.cc4_agent_agreement.confidence,
+                    "evidence": cc.cc4_agent_agreement.evidence,
+                    "machine_evaluable": cc.cc4_agent_agreement.machine_evaluable,
+                },
+                {
+                    "id": "CC-5",
+                    "name": "methodology adherence",
+                    "satisfied": cc.cc5_methodology_adherence.satisfied,
+                    "confidence": cc.cc5_methodology_adherence.confidence,
+                    "evidence": cc.cc5_methodology_adherence.evidence,
+                    "machine_evaluable": cc.cc5_methodology_adherence.machine_evaluable,
+                },
+            ],
+        },
+        "scan": {
+            "forward": format!("{}/{}", fwd.covered.len(), fwd.covered.len() + fwd.gaps.len()),
+            "forward_ratio": fwd.coverage_ratio,
+            "forward_gaps": fwd.gaps.len(),
+            "backward": format!("{}/{}", bwd.covered.len(), bwd.covered.len() + bwd.gaps.len()),
+            "backward_ratio": bwd.coverage_ratio,
+            "backward_gaps": bwd.gaps.len(),
+        },
+        "convergence": {
+            "trajectory": state.convergence.trajectory,
+            "monotonic": state.convergence.is_monotonic,
+            "lyapunov_exponent": state.convergence.lyapunov_exponent,
+            "convergence_rate": state.convergence.convergence_rate,
+            "steps_to_target": state.convergence.steps_to_target,
+        },
+        "cycle_count": state.cycle_count,
+    });
+
+    // Add spectral certificate if present
+    if let Some(ref spectral) = state.spectral {
+        result["spectral"] = serde_json::json!({
+            "fiedler_value": spectral.fiedler_value,
+            "cheeger_constant": spectral.cheeger_constant,
+            "spectral_gap": spectral.spectral_gap,
+            "mean_ricci": spectral.mean_ricci,
+            "min_ricci": spectral.min_ricci,
+            "convergence_rate_bound": spectral.convergence_rate_bound,
+            "mixing_time_bound": spectral.mixing_time_bound,
+        });
+    }
+
+    result
+}
+
+/// Build agent output with self-explanatory computation semantics.
+///
+/// Each component is described by its FULL NAME and what improves it,
+/// so an AI agent reading this never needs to investigate source code.
+fn build_agent_output(state: &braid_kernel::bilateral::BilateralState) -> AgentOutput {
+    let c = &state.fitness.components;
+    let cc = &state.conditions;
+    let fwd = &state.scan.forward;
+
+    // Context line: summary with failing conditions called out
+    let failing_cc: Vec<&str> = [
+        (cc.cc1_no_contradictions.satisfied, "CC-1"),
+        (cc.cc2_impl_satisfies_spec.satisfied, "CC-2"),
+        (cc.cc3_spec_approximates_intent.satisfied, "CC-3"),
+        (cc.cc4_agent_agreement.satisfied, "CC-4"),
+        (cc.cc5_methodology_adherence.satisfied, "CC-5"),
+    ]
+    .iter()
+    .filter(|(sat, _)| !sat)
+    .map(|(_, name)| *name)
+    .collect();
+
+    let fwd_total = fwd.covered.len() + fwd.gaps.len();
+    let cc_summary = if failing_cc.is_empty() {
+        "all CC PASS".to_string()
+    } else {
+        format!("{} FAIL", failing_cc.join(", "))
+    };
+    let context = format!(
+        "bilateral: F(S)={:.4}, cycle {}, {} (fwd {}/{} impl coverage)",
+        state.fitness.total,
+        state.cycle_count,
+        cc_summary,
+        fwd.covered.len(),
+        fwd_total,
+    );
+
+    // Content: the human output is already good for content
+    let content = format!(
+        "F(S) = {total:.4} = {wv}*validation({v:.2}) + {wc}*coverage({c:.2}) + {wd}*drift({d:.2}) \
+         + {wh}*harvest({h:.2}) + {wk}*contradiction({k:.2}) + {wi}*incompleteness({i:.2}) \
+         + {wu}*uncertainty({u:.2})",
+        total = state.fitness.total,
+        wv = W_VALIDATION, v = c.validation,
+        wc = W_COVERAGE, c = c.coverage,
+        wd = W_DRIFT, d = c.drift,
+        wh = W_HARVEST, h = c.harvest_quality,
+        wk = W_CONTRADICTION, k = c.contradiction,
+        wi = W_INCOMPLETENESS, i = c.incompleteness,
+        wu = W_UNCERTAINTY, u = c.uncertainty,
+    );
+
+    // Footer: identify weakest component with improvement advice
+    let components = [
+        ("validation", c.validation, "depth-weighted witness coverage. Improve: add :spec/witnessed datoms or increase :spec/verification-depth"),
+        ("coverage", c.coverage, "depth-weighted impl-to-spec tracing. Most links are L1/syntactic (15% weight). Improve: write tests naming spec elements for L2/L3. Run: braid trace --commit"),
+        ("drift", c.drift, "spec-impl alignment. Improve: fix divergences shown in scan gaps"),
+        ("harvest_quality", c.harvest_quality, "methodology adherence M(t). Improve: run braid harvest --commit at session end"),
+        ("contradiction", c.contradiction, "spec consistency. Improve: resolve contradictions in spec elements"),
+        ("incompleteness", c.incompleteness, "spec completeness (statements + falsification + traces-to). Improve: add missing spec fields"),
+        ("uncertainty", c.uncertainty, "spec confidence levels. Improve: resolve uncertain spec elements"),
+    ];
+
+    let weakest = components
+        .iter()
+        .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+        .unwrap();
+
+    let footer = format!(
+        "weakest: {} ({:.2}, {})",
+        weakest.0, weakest.1, weakest.2,
+    );
+
+    AgentOutput {
+        context,
+        content,
+        footer,
+    }
 }
 
 /// Generate actionable next steps from bilateral state.
@@ -161,7 +381,7 @@ fn format_next_steps(state: &braid_kernel::bilateral::BilateralState) -> String 
 }
 
 /// Format the convergence trajectory as a text-mode sparkline.
-fn format_history(
+fn format_history_text(
     state: &braid_kernel::bilateral::BilateralState,
     trajectory: &[f64],
 ) -> Result<String, BraidError> {
@@ -244,78 +464,8 @@ fn format_history(
     Ok(out)
 }
 
-/// Format bilateral state as JSON.
-fn format_json(state: &braid_kernel::bilateral::BilateralState) -> Result<String, BraidError> {
-    let c = &state.fitness.components;
-    let cc = &state.conditions;
-
-    let mut result = serde_json::json!({
-        "fitness": {
-            "total": state.fitness.total,
-            "components": {
-                "validation": c.validation,
-                "coverage": c.coverage,
-                "drift": c.drift,
-                "harvest_quality": c.harvest_quality,
-                "contradiction": c.contradiction,
-                "incompleteness": c.incompleteness,
-                "uncertainty": c.uncertainty,
-            },
-        },
-        "conditions": {
-            "overall": cc.overall,
-            "cc1_no_contradictions": {
-                "satisfied": cc.cc1_no_contradictions.satisfied,
-                "detail": cc.cc1_no_contradictions.evidence,
-            },
-            "cc2_impl_satisfies_spec": {
-                "satisfied": cc.cc2_impl_satisfies_spec.satisfied,
-                "detail": cc.cc2_impl_satisfies_spec.evidence,
-            },
-            "cc3_spec_approximates_intent": {
-                "satisfied": cc.cc3_spec_approximates_intent.satisfied,
-                "detail": cc.cc3_spec_approximates_intent.evidence,
-            },
-            "cc4_agent_agreement": {
-                "satisfied": cc.cc4_agent_agreement.satisfied,
-                "detail": cc.cc4_agent_agreement.evidence,
-            },
-            "cc5_methodology_adherence": {
-                "satisfied": cc.cc5_methodology_adherence.satisfied,
-                "detail": cc.cc5_methodology_adherence.evidence,
-            },
-        },
-        "convergence": {
-            "trajectory": state.convergence.trajectory,
-            "is_monotonic": state.convergence.is_monotonic,
-            "lyapunov_exponent": state.convergence.lyapunov_exponent,
-            "convergence_rate": state.convergence.convergence_rate,
-            "steps_to_target": state.convergence.steps_to_target,
-        },
-        "cycle_count": state.cycle_count,
-        "scan": {
-            "forward_coverage": state.scan.forward.coverage_ratio,
-            "backward_coverage": state.scan.backward.coverage_ratio,
-            "forward_gaps": state.scan.forward.gaps.len(),
-            "backward_gaps": state.scan.backward.gaps.len(),
-        },
-    });
-
-    // Add spectral certificate if present
-    if let Some(ref spectral) = state.spectral {
-        result["spectral"] = serde_json::json!({
-            "fiedler_value": spectral.fiedler_value,
-            "cheeger_constant": spectral.cheeger_constant,
-            "spectral_gap": spectral.spectral_gap,
-            "mean_ricci": spectral.mean_ricci,
-            "min_ricci": spectral.min_ricci,
-            "convergence_rate_bound": spectral.convergence_rate_bound,
-            "mixing_time_bound": spectral.mixing_time_bound,
-        });
-    }
-
-    Ok(serde_json::to_string_pretty(&result).unwrap() + "\n")
-}
+// format_json removed — structured JSON now built by build_structured_json() above,
+// and rendered by CommandOutput::render(OutputMode::Json).
 
 // ---------------------------------------------------------------------------
 // Tests

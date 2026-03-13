@@ -15,6 +15,7 @@ use braid_kernel::trilateral::check_coherence_fast;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
 pub fn run(
     path: &Path,
@@ -24,7 +25,7 @@ pub fn run(
     for_human: bool,
     json: bool,
     agent_md: bool,
-) -> Result<String, BraidError> {
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -32,11 +33,13 @@ pub fn run(
     let seed = assemble_seed(&store, task, budget, agent);
 
     if json {
-        return format_json(&seed, budget);
+        let human = format_json(&seed, budget)?;
+        return Ok(CommandOutput::from_human(human));
     }
 
     if for_human {
-        return format_human_briefing(&store, &seed, task);
+        let human = format_human_briefing(&store, &seed, task)?;
+        return Ok(CommandOutput::from_human(human));
     }
 
     // Structured output (default)
@@ -156,7 +159,47 @@ pub fn run(
         ));
     }
 
-    Ok(out)
+    // Build section names for structured JSON
+    let section_names: Vec<&str> = seed
+        .context
+        .sections
+        .iter()
+        .map(|s| match s {
+            ContextSection::Orientation(_) => "orientation",
+            ContextSection::Constraints(_) => "constraints",
+            ContextSection::State(_) => "state",
+            ContextSection::Warnings(_) => "warnings",
+            ContextSection::Directive(_) => "directive",
+        })
+        .collect();
+
+    let json = serde_json::json!({
+        "mode": "seed",
+        "task": seed.task,
+        "tokens": seed.context.total_tokens,
+        "budget": budget,
+        "datoms": store.len(),
+        "entities": store.entity_count(),
+        "sections": section_names,
+    });
+
+    let agent_out = AgentOutput {
+        context: format!(
+            "seed: {} ({} tokens, {} entities)",
+            seed.task,
+            seed.context.total_tokens,
+            store.entity_count(),
+        ),
+        content: out.clone(),
+        footer: "start: braid session start | observe: braid observe '...' --confidence 0.X"
+            .to_string(),
+    };
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
+        human: out,
+    })
 }
 
 /// Inject seed context into a file's `<braid-seed>` tags (SB.3.3).
@@ -169,7 +212,7 @@ pub fn run_inject(
     inject_path: &Path,
     task: &str,
     budget: usize,
-) -> Result<String, BraidError> {
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(store_path)?;
     let store = layout.load_store()?;
 
@@ -190,13 +233,34 @@ pub fn run_inject(
     // Write back
     std::fs::write(inject_path, &result)?;
 
-    Ok(format!(
+    let target = inject_path.display().to_string();
+    let human = format!(
         "injected: ~{} tokens → {} ({} datoms, {} entities)\n",
-        token_estimate,
-        inject_path.display(),
-        store.len(),
-        store.entity_count(),
-    ))
+        token_estimate, target, store.len(), store.entity_count(),
+    );
+
+    let json = serde_json::json!({
+        "mode": "inject",
+        "target": target,
+        "tokens": token_estimate,
+        "datoms": store.len(),
+        "entities": store.entity_count(),
+    });
+
+    let agent_out = AgentOutput {
+        context: format!("injected: ~{} tokens → {}", token_estimate, target),
+        content: human.clone(),
+        footer: format!(
+            "verify: cat {} | refresh: braid seed --inject {}",
+            target, target,
+        ),
+    };
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
+        human,
+    })
 }
 
 /// Format a narrative briefing for human or LLM orientation.

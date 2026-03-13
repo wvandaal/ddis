@@ -9,6 +9,7 @@ use braid_kernel::{evaluate, Clause, FindSpec, Pattern, QueryExpr, Store};
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
 /// Resolve an EntityId to a human-readable label.
 ///
@@ -62,7 +63,7 @@ pub fn run(
     entity_filter: Option<&str>,
     attribute_filter: Option<&str>,
     json: bool,
-) -> Result<String, BraidError> {
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -95,7 +96,8 @@ pub fn run(
         ));
     }
 
-    if json {
+    // --- Human output ---
+    let human = if json {
         let datoms_json: Vec<serde_json::Value> = results
             .iter()
             .map(|(e, a, v)| {
@@ -110,27 +112,61 @@ pub fn run(
             "count": results.len(),
             "datoms": datoms_json,
         });
-        return Ok(serde_json::to_string_pretty(&result).unwrap() + "\n");
-    }
+        serde_json::to_string_pretty(&result).unwrap() + "\n"
+    } else {
+        let mut out = String::new();
+        for (entity_label, attr_str, value_str) in &results {
+            out.push_str(&format!("[{} {} {}]\n", entity_label, attr_str, value_str));
+        }
+        out.push_str(&format!("\n{} datom(s)\n", results.len()));
+        out
+    };
 
-    let mut out = String::new();
-    for (entity_label, attr_str, value_str) in &results {
-        out.push_str(&format!("[{} {} {}]\n", entity_label, attr_str, value_str,));
-    }
+    // --- Structured JSON (always present, regardless of --json flag) ---
+    let datoms_json: Vec<serde_json::Value> = results
+        .iter()
+        .map(|(e, a, v)| {
+            serde_json::json!({
+                "entity": e,
+                "attribute": a,
+                "value": v,
+            })
+        })
+        .collect();
+    let structured_json = serde_json::json!({
+        "mode": "datom",
+        "count": results.len(),
+        "entity_filter": entity_filter,
+        "attribute_filter": attribute_filter,
+        "datoms": datoms_json,
+    });
 
-    out.push_str(&format!("\n{} datom(s)\n", results.len()));
-    Ok(out)
+    // --- Agent output ---
+    let entity_desc = entity_filter.unwrap_or("*");
+    let attr_desc = attribute_filter.unwrap_or("*");
+    let agent = AgentOutput {
+        context: format!("query: {} datoms (entity={}, attribute={})", results.len(), entity_desc, attr_desc),
+        content: human.clone(),
+        footer: "refine: add filters | explore: braid schema --pattern ':spec/*'".to_string(),
+    };
+
+    Ok(CommandOutput {
+        json: structured_json,
+        agent,
+        human,
+    })
 }
 
 /// Execute a Datalog query against the store and format results.
-pub fn run_datalog(path: &Path, datalog_src: &str, json: bool) -> Result<String, BraidError> {
+pub fn run_datalog(path: &Path, datalog_src: &str, json: bool) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
     let query = parse_datalog(datalog_src)?;
     let result = evaluate(&store, &query);
 
-    if json {
+    // --- Human output ---
+    let (human, result_count) = if json {
         let json_result = match &result {
             QueryResult::Rel(rows) => {
                 let columns: Vec<String> = if let FindSpec::Rel(vars) = &query.find {
@@ -173,38 +209,108 @@ pub fn run_datalog(path: &Path, datalog_src: &str, json: bool) -> Result<String,
                 }),
             },
         };
-        return Ok(serde_json::to_string_pretty(&json_result).unwrap() + "\n");
-    }
+        let count = match &result {
+            QueryResult::Rel(rows) => rows.len(),
+            QueryResult::Scalar(Some(_)) => 1,
+            QueryResult::Scalar(None) => 0,
+        };
+        (serde_json::to_string_pretty(&json_result).unwrap() + "\n", count)
+    } else {
+        let mut out = String::new();
+        let count;
+        match &result {
+            QueryResult::Rel(rows) => {
+                // Header: variable names from the find spec
+                if let FindSpec::Rel(vars) = &query.find {
+                    out.push_str(&vars.join("\t"));
+                    out.push('\n');
+                    out.push_str(&"-".repeat(vars.len() * 16));
+                    out.push('\n');
+                }
+                for row in rows {
+                    let formatted: Vec<String> =
+                        row.iter().map(|v| format_value(&store, v)).collect();
+                    out.push_str(&formatted.join("\t"));
+                    out.push('\n');
+                }
+                out.push_str(&format!("\n{} result(s)\n", rows.len()));
+                count = rows.len();
+            }
+            QueryResult::Scalar(val) => match val {
+                Some(v) => {
+                    out.push_str(&format_value(&store, v));
+                    out.push('\n');
+                    count = 1;
+                }
+                None => {
+                    out.push_str("(no result)\n");
+                    count = 0;
+                }
+            },
+        }
+        (out, count)
+    };
 
-    let mut out = String::new();
-    match result {
+    // --- Structured JSON (always present, regardless of --json flag) ---
+    let structured_json = match &result {
         QueryResult::Rel(rows) => {
-            // Header: variable names from the find spec
-            if let FindSpec::Rel(vars) = &query.find {
-                out.push_str(&vars.join("\t"));
-                out.push('\n');
-                out.push_str(&"-".repeat(vars.len() * 16));
-                out.push('\n');
-            }
-            for row in &rows {
-                let formatted: Vec<String> = row.iter().map(|v| format_value(&store, v)).collect();
-                out.push_str(&formatted.join("\t"));
-                out.push('\n');
-            }
-            out.push_str(&format!("\n{} result(s)\n", rows.len()));
+            let columns: Vec<String> = if let FindSpec::Rel(vars) = &query.find {
+                vars.clone()
+            } else {
+                vec![]
+            };
+            let json_rows: Vec<serde_json::Value> = rows
+                .iter()
+                .map(|row| {
+                    let formatted: Vec<String> =
+                        row.iter().map(|v| format_value(&store, v)).collect();
+                    if columns.len() == formatted.len() {
+                        let map: serde_json::Map<String, serde_json::Value> = columns
+                            .iter()
+                            .zip(formatted.iter())
+                            .map(|(k, v)| (k.clone(), serde_json::Value::String(v.clone())))
+                            .collect();
+                        serde_json::Value::Object(map)
+                    } else {
+                        serde_json::json!(formatted)
+                    }
+                })
+                .collect();
+            serde_json::json!({
+                "mode": "datalog",
+                "count": rows.len(),
+                "query": datalog_src,
+                "results": json_rows,
+            })
         }
         QueryResult::Scalar(val) => match val {
-            Some(v) => {
-                out.push_str(&format_value(&store, &v));
-                out.push('\n');
-            }
-            None => {
-                out.push_str("(no result)\n");
-            }
+            Some(v) => serde_json::json!({
+                "mode": "datalog",
+                "count": 1,
+                "query": datalog_src,
+                "results": [format_value(&store, v)],
+            }),
+            None => serde_json::json!({
+                "mode": "datalog",
+                "count": 0,
+                "query": datalog_src,
+                "results": [],
+            }),
         },
-    }
+    };
 
-    Ok(out)
+    // --- Agent output ---
+    let agent = AgentOutput {
+        context: format!("datalog: {} results", result_count),
+        content: human.clone(),
+        footer: "refine: braid query '...' | schema: braid schema".to_string(),
+    };
+
+    Ok(CommandOutput {
+        json: structured_json,
+        agent,
+        human,
+    })
 }
 
 // ---------------------------------------------------------------------------

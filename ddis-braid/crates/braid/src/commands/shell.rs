@@ -109,7 +109,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 return DispatchResult::Error("usage: show <entity-ident>".into());
             }
             match super::query::run(path, Some(args), None, false) {
-                Ok(s) => DispatchResult::Output(s),
+                Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
         }
@@ -119,7 +119,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 return DispatchResult::Error("usage: find <attribute>".into());
             }
             match super::query::run(path, None, Some(args), false) {
-                Ok(s) => DispatchResult::Output(s),
+                Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
         }
@@ -151,7 +151,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 );
             }
             match super::query::run_datalog(path, args, false) {
-                Ok(s) => DispatchResult::Output(s),
+                Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
         }
@@ -198,14 +198,14 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
         }
 
         "log" | "l" => match super::log::run(path, 10, None, false, false, false) {
-            Ok(s) => DispatchResult::Output(s),
+            Ok(co) => DispatchResult::Output(co.human),
             Err(e) => DispatchResult::Error(e.to_string()),
         },
 
         "seed" | "sd" => {
             let task = if args.is_empty() { "continue" } else { args };
             match super::seed::run(path, task, 500, "braid:shell", true, false, false) {
-                Ok(s) => DispatchResult::Output(s),
+                Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
         }

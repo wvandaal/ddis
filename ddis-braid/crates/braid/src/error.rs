@@ -133,6 +133,50 @@ impl BraidError {
     pub fn recovery_hint(&self) -> &'static str {
         self.error_info().fix
     }
+
+    /// Render this error as mode-aware output (INV-INTERFACE-009, Phase 2D).
+    ///
+    /// Errors are first-class outputs in the prompt architecture:
+    /// - JSON: structured `{"error": {what, why, fix, spec_ref}}` for machine parsing
+    /// - Agent: navigative three-part (context=what, content=why, footer=fix+ref)
+    /// - Human: four-part text format (error/why/fix/ref)
+    pub fn render(&self, mode: crate::output::OutputMode) -> String {
+        let info = self.error_info();
+        let detail = self.detail_string();
+
+        match mode {
+            crate::output::OutputMode::Json => {
+                let json = serde_json::json!({
+                    "error": {
+                        "what": info.what,
+                        "why": detail,
+                        "fix": info.fix,
+                        "spec_ref": info.spec_ref,
+                    }
+                });
+                serde_json::to_string_pretty(&json).unwrap_or_else(|_| "{}".to_string())
+            }
+            crate::output::OutputMode::Agent => {
+                format!(
+                    "error: {}\n\n{}\n\nfix: {} | ref: {}\n",
+                    info.what, detail, info.fix, info.spec_ref,
+                )
+            }
+            crate::output::OutputMode::Human => self.to_string(),
+        }
+    }
+
+    /// Extract the variant-specific detail string.
+    fn detail_string(&self) -> String {
+        match self {
+            BraidError::Kernel(e) => e.to_string(),
+            BraidError::Io(e) => e.to_string(),
+            BraidError::Parse(e)
+            | BraidError::DatalogParse(e)
+            | BraidError::Validation(e)
+            | BraidError::EmptyResult(e) => e.clone(),
+        }
+    }
 }
 
 impl From<braid_kernel::KernelError> for BraidError {
@@ -206,5 +250,55 @@ mod tests {
     fn recovery_hint_delegates_to_error_info() {
         let err = BraidError::Parse("test".into());
         assert_eq!(err.recovery_hint(), err.error_info().fix);
+    }
+
+    // Phase 2D: mode-aware error rendering tests
+
+    #[test]
+    fn render_json_has_structured_error() {
+        let err = BraidError::Parse("unexpected '}'".into());
+        let rendered = err.render(crate::output::OutputMode::Json);
+        let parsed: serde_json::Value = serde_json::from_str(&rendered).unwrap();
+        let error_obj = &parsed["error"];
+        assert_eq!(error_obj["what"], "parse error");
+        assert_eq!(error_obj["why"], "unexpected '}'");
+        assert!(error_obj["fix"].as_str().unwrap().contains("EDN"));
+        assert_eq!(error_obj["spec_ref"], "INV-INTERFACE-009");
+    }
+
+    #[test]
+    fn render_agent_has_navigative_structure() {
+        let err = BraidError::Io(std::io::Error::new(std::io::ErrorKind::NotFound, "test"));
+        let rendered = err.render(crate::output::OutputMode::Agent);
+        assert!(rendered.starts_with("error: store not found"));
+        assert!(rendered.contains("fix: braid init"));
+        assert!(rendered.contains("ref: INV-STORE-001"));
+    }
+
+    #[test]
+    fn render_human_matches_display() {
+        let err = BraidError::Validation("bad input".into());
+        let rendered = err.render(crate::output::OutputMode::Human);
+        assert_eq!(rendered, err.to_string());
+    }
+
+    #[test]
+    fn render_json_all_variants_parseable() {
+        let variants: Vec<BraidError> = vec![
+            BraidError::Parse("test".into()),
+            BraidError::DatalogParse("bad query".into()),
+            BraidError::Validation("out of range".into()),
+            BraidError::EmptyResult("no matches".into()),
+            BraidError::Io(std::io::Error::other("disk full")),
+        ];
+        for v in &variants {
+            let json_str = v.render(crate::output::OutputMode::Json);
+            let parsed: Result<serde_json::Value, _> = serde_json::from_str(&json_str);
+            assert!(parsed.is_ok(), "JSON must parse for {:?}", v);
+            let parsed = parsed.unwrap();
+            assert!(parsed["error"]["what"].is_string());
+            assert!(parsed["error"]["fix"].is_string());
+            assert!(parsed["error"]["spec_ref"].is_string());
+        }
     }
 }

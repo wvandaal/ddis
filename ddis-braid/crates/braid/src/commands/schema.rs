@@ -12,6 +12,7 @@ use braid_kernel::Attribute;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
 /// Run the schema introspection command.
 pub fn run(
@@ -19,7 +20,7 @@ pub fn run(
     pattern: Option<&str>,
     verbose: bool,
     json: bool,
-) -> Result<String, BraidError> {
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
     let schema = store.schema();
@@ -43,24 +44,45 @@ pub fn run(
     // Sort alphabetically by attribute name.
     attrs.sort_by_key(|(a, _)| a.as_str().to_string());
 
-    if json {
-        return format_json(&attrs);
-    }
-
-    if attrs.is_empty() {
+    // Build the human-readable output.
+    let human = if attrs.is_empty() {
         let known_ns = get_namespaces(schema);
-        return Ok(format!(
+        format!(
             "No attributes match '{}'\nKnown namespaces: {}\nTry: braid schema --pattern ':db/*' or braid schema --pattern ':spec/*'\n",
             pattern.unwrap_or(""),
             known_ns.join(", ")
-        ));
-    }
-
-    if verbose {
-        format_verbose(&store, &attrs)
+        )
+    } else if json {
+        // Legacy --json flag: produce the JSON string as human output.
+        let structured = build_structured_json(&attrs);
+        serde_json::to_string_pretty(&structured).unwrap() + "\n"
+    } else if verbose {
+        format_verbose(&store, &attrs)?
     } else {
-        format_terse(&attrs)
-    }
+        format_terse(&attrs)?
+    };
+
+    // Build structured JSON (always, regardless of --json flag).
+    let structured_json = build_structured_json(&attrs);
+
+    // Build agent output.
+    let context = if let Some(pat) = pattern {
+        format!("schema: {} attributes (pattern: {})", attrs.len(), pat)
+    } else {
+        format!("schema: {} attributes", attrs.len())
+    };
+
+    let agent = AgentOutput {
+        context,
+        content: human.clone(),
+        footer: "explore: braid query '[:find ?e :where [?e :db/doc ?v]]' | filter: braid schema --pattern ':spec/*'".to_string(),
+    };
+
+    Ok(CommandOutput {
+        json: structured_json,
+        agent,
+        human,
+    })
 }
 
 /// Terse two-column table: attribute, type, cardinality, doc (truncated).
@@ -134,13 +156,13 @@ fn format_verbose(
     Ok(out)
 }
 
-/// JSON output: array of attribute objects.
-fn format_json(attrs: &[(&Attribute, &AttributeDef)]) -> Result<String, BraidError> {
+/// Build structured JSON value for the attribute list.
+fn build_structured_json(attrs: &[(&Attribute, &AttributeDef)]) -> serde_json::Value {
     let entries: Vec<serde_json::Value> = attrs
         .iter()
         .map(|(attr, def)| {
             let mut obj = serde_json::json!({
-                "attribute": attr.as_str(),
+                "name": attr.as_str(),
                 "type": type_short_name(def),
                 "cardinality": cardinality_short_name(def),
                 "resolution": resolution_short_name(def),
@@ -156,11 +178,10 @@ fn format_json(attrs: &[(&Attribute, &AttributeDef)]) -> Result<String, BraidErr
         })
         .collect();
 
-    let result = serde_json::json!({
+    serde_json::json!({
         "count": entries.len(),
         "attributes": entries,
-    });
-    Ok(serde_json::to_string_pretty(&result).unwrap() + "\n")
+    })
 }
 
 /// Extract unique namespace prefixes for the empty-result suggestion.

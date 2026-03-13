@@ -1383,7 +1383,15 @@ pub fn run(
         is_json_output(&cmd, mode) || is_guidance_command(&cmd) || is_generative_output(&cmd);
 
     let result: Result<String, crate::error::BraidError> = match cmd {
-        Command::Init { path, spec_dir } => init::run(&path, &spec_dir),
+        Command::Init { path, spec_dir } => {
+            let cmd_output = init::run(&path, &spec_dir)?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Status {
             path,
             json,
@@ -1417,7 +1425,15 @@ pub fn run(
             json,
             commit,
             agent,
-        } => bilateral::run(&path, &agent, full, spectral, history, json, commit),
+        } => {
+            let cmd_output = bilateral::run(&path, &agent, full, spectral, history, json, commit)?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Trace {
             path,
             source,
@@ -1478,18 +1494,32 @@ pub fn run(
             json,
         } => {
             let dq = datalog.or(positional_datalog);
-            if let Some(ref dq) = dq {
-                query::run_datalog(&path, dq, json)
+            let cmd_output = if let Some(ref dq) = dq {
+                query::run_datalog(&path, dq, json)?
             } else {
-                query::run(&path, entity.as_deref(), attribute.as_deref(), json)
-            }
+                query::run(&path, entity.as_deref(), attribute.as_deref(), json)?
+            };
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
         }
         Command::Schema {
             path,
             pattern,
             verbose,
             json,
-        } => schema::run(&path, pattern.as_deref(), verbose, json),
+        } => {
+            let cmd_output = schema::run(&path, pattern.as_deref(), verbose, json)?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Harvest {
             path,
             agent,
@@ -1537,11 +1567,17 @@ pub fn run(
 
             // --inject mode: update file in place with seed content (SB.3.3)
             if let Some(ref inject_path) = inject {
-                return seed::run_inject(&path, inject_path, effective_task, effective_budget)
-                    .map(CommandOutput::from_human);
+                let cmd_output =
+                    seed::run_inject(&path, inject_path, effective_task, effective_budget)?;
+                return Ok(maybe_inject_footer(
+                    cmd_output,
+                    skip_footer,
+                    path_for_footer.as_deref(),
+                    budget_ctx,
+                ));
             }
 
-            seed::run(
+            let cmd_output = seed::run(
                 &path,
                 effective_task,
                 effective_budget,
@@ -1549,7 +1585,13 @@ pub fn run(
                 for_human,
                 json,
                 agent_md,
-            )
+            )?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
         }
         Command::Merge { path, source } => merge::run(&path, &source),
         Command::Log {
@@ -1559,7 +1601,10 @@ pub fn run(
             datoms,
             json,
             verbose,
-        } => log::run(&path, limit, agent.as_deref(), datoms, json, verbose),
+        } => {
+            let cmd_output = log::run(&path, limit, agent.as_deref(), datoms, json, verbose)?;
+            return Ok(maybe_inject_footer(cmd_output, skip_footer, path_for_footer.as_deref(), budget_ctx));
+        }
         Command::Observe {
             path,
             text,
@@ -1677,7 +1722,10 @@ pub fn run(
             reset,
             path,
             agent,
-        } => config::run(&path, key.as_deref(), value.as_deref(), reset, &agent),
+        } => {
+            let cmd_output = config::run(&path, key.as_deref(), value.as_deref(), reset, &agent)?;
+            return Ok(maybe_inject_footer(cmd_output, skip_footer, path_for_footer.as_deref(), budget_ctx));
+        }
         Command::Shell { path } => shell::run(&path),
         Command::Mcp { action } => match action {
             McpAction::Serve { path } => {

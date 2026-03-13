@@ -113,7 +113,7 @@ pub fn run_start(
 
     let mut out = String::new();
     out.push_str("Session started.\n");
-    out.push_str(&inject_output);
+    out.push_str(&inject_output.human);
     out.push_str(&format!(
         "Task: {} (source: {})\n",
         resolved_task, task_source
@@ -200,7 +200,7 @@ pub fn run_end(
     // Reload store to include the harvest commit just written
     let task_for_inject = task.unwrap_or("continue");
     let inject_output = seed::run_inject(path, inject_path, task_for_inject, budget)?;
-    out.push_str(&format!("\nRefreshed seed: {}", inject_output));
+    out.push_str(&format!("\nRefreshed seed: {}", inject_output.human));
 
     // Step 3: Git guidance (advisory only — does NOT run git commands)
     out.push_str("\nNext steps (manual):\n");

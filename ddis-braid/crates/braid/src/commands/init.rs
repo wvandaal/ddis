@@ -13,6 +13,7 @@ use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
 /// Detection results from scanning the project environment.
 struct Detection {
@@ -30,7 +31,7 @@ struct Detection {
 /// - Records config datoms for detection results
 /// - Optionally bootstraps spec elements from spec_dir
 /// - Idempotent: re-running refreshes detection without duplicating data
-pub fn run(path: &Path, spec_dir: &Path) -> Result<String, BraidError> {
+pub fn run(path: &Path, spec_dir: &Path) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::init(path)?;
     let hashes = layout.list_tx_hashes()?;
     let store = layout.load_store()?;
@@ -143,6 +144,8 @@ pub fn run(path: &Path, spec_dir: &Path) -> Result<String, BraidError> {
     }
 
     // --- Auto-bootstrap spec elements ---
+    let mut bootstrap_element_count: usize = 0;
+    let mut bootstrap_datom_count: usize = 0;
     if spec_dir.is_dir() {
         let elements = crate::bootstrap::parse_spec_dir(spec_dir);
         if !elements.is_empty() {
@@ -163,6 +166,9 @@ pub fn run(path: &Path, spec_dir: &Path) -> Result<String, BraidError> {
                 .iter()
                 .filter(|e| e.kind == crate::bootstrap::SpecElementKind::NegativeCase)
                 .count();
+
+            bootstrap_element_count = elements.len();
+            bootstrap_datom_count = datom_count;
 
             out.push_str(&format!(
                 "  bootstrap: {} elements ({} INV, {} ADR, {} NEG) \u{2192} {} datoms\n    \u{2192} {}\n",
@@ -193,6 +199,7 @@ pub fn run(path: &Path, spec_dir: &Path) -> Result<String, BraidError> {
     // --- Auto-inject seed section into AGENTS.md/CLAUDE.md (D1) ---
     let agents_md = project_root.join("AGENTS.md");
     let claude_md = project_root.join("CLAUDE.md");
+    let mut agents_md_created = false;
     let mut inject_target = if agents_md.is_file() {
         Some(agents_md.clone())
     } else if claude_md.is_file() {
@@ -226,6 +233,7 @@ braid seed --inject AGENTS.md             # Refresh this section
             out.push_str(&format!("  AGENTS.md: create failed ({e})\n"));
         } else {
             out.push_str("  created: AGENTS.md (with <braid-seed> tags)\n");
+            agents_md_created = true;
             inject_target = Some(agents_md);
         }
     }
@@ -245,7 +253,87 @@ braid seed --inject AGENTS.md             # Refresh this section
     // --- Next steps guidance ---
     out.push_str("\nready: braid status | workflow: observe \u{2192} harvest \u{2192} seed\n");
 
-    Ok(out)
+    // --- Build structured output ---
+
+    // Reload store to get final counts (after config + bootstrap + trace txns)
+    let final_store = layout.load_store()?;
+    let final_hashes = layout.list_tx_hashes()?;
+    let final_datom_count = final_store.len();
+    let final_txn_count = final_hashes.len();
+
+    let action_str = if is_reinit { "reinit" } else { "init" };
+
+    // Collect available tools
+    let available_tools: Vec<&str> = detection
+        .tools
+        .iter()
+        .filter(|(_, a)| *a)
+        .map(|(n, _)| *n)
+        .collect();
+
+    // Build JSON
+    let mut json = serde_json::json!({
+        "action": action_str,
+        "path": path.display().to_string(),
+        "store": {
+            "txns": final_txn_count,
+            "datoms": final_datom_count,
+        },
+        "detection": {
+            "git": detection.git_present,
+            "git_branch": detection.git_branch,
+            "language": detection.lang.unwrap_or("unknown"),
+            "loc": detection.total_loc,
+        },
+        "tools": available_tools,
+    });
+
+    // Add bootstrap info if spec elements were processed
+    if bootstrap_element_count > 0 {
+        json.as_object_mut().unwrap().insert(
+            "bootstrap".to_string(),
+            serde_json::json!({
+                "elements": bootstrap_element_count,
+                "datoms": bootstrap_datom_count,
+            }),
+        );
+    }
+
+    // Agents.md status
+    let agents_md_status = if inject_target.is_some() {
+        if agents_md_created {
+            "created"
+        } else {
+            "existing"
+        }
+    } else {
+        "null"
+    };
+    json.as_object_mut().unwrap().insert(
+        "agents_md".to_string(),
+        if agents_md_status == "null" {
+            serde_json::Value::Null
+        } else {
+            serde_json::Value::String(agents_md_status.to_string())
+        },
+    );
+
+    let agent_output = AgentOutput {
+        context: format!(
+            "init: {} ({}, {} datoms)",
+            path.display(),
+            action_str,
+            final_datom_count
+        ),
+        content: out.clone(),
+        footer: "next: braid status | workflow: observe \u{2192} harvest \u{2192} seed".to_string(),
+    };
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_output,
+        human: out,
+    })
 }
 
 /// Detect the project environment: git, language, tools.
