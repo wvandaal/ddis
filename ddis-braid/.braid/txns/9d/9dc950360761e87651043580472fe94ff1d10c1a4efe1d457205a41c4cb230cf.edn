@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773699894/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Wave 3 coherence gate IMPLEMENTED: coherence.rs ~500 LOC. Tier 1 exact contradiction detection, Tier 2 logical contradiction (polarity inversion + numeric bound conflict). 13 tests passing. INV-TRANSACT-COHERENCE-001 implemented. Hard rejection by default, --force escape next."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "987fd914c28f48d4f71e67651d53818cdebcfcbc6913730bfbdab89b74314985" :a :db/ident :v :observation/wave-3-coherence-gate-implemented-coherencers-500-loc-ti :op :assert}
+   {:e #blake3 "987fd914c28f48d4f71e67651d53818cdebcfcbc6913730bfbdab89b74314985" :a :db/doc :v "Wave 3 coherence gate IMPLEMENTED: coherence.rs ~500 LOC. Tier 1 exact contradiction detection, Tier 2 logical contradiction (polarity inversion + numeric bound conflict). 13 tests passing. INV-TRANSACT-COHERENCE-001 implemented. Hard rejection by default, --force escape next." :op :assert}
+   {:e #blake3 "987fd914c28f48d4f71e67651d53818cdebcfcbc6913730bfbdab89b74314985" :a :exploration/body :v "Wave 3 coherence gate IMPLEMENTED: coherence.rs ~500 LOC. Tier 1 exact contradiction detection, Tier 2 logical contradiction (polarity inversion + numeric bound conflict). 13 tests passing. INV-TRANSACT-COHERENCE-001 implemented. Hard rejection by default, --force escape next." :op :assert}
+   {:e #blake3 "987fd914c28f48d4f71e67651d53818cdebcfcbc6913730bfbdab89b74314985" :a :exploration/content-hash :v #bytes "95208f1c282395a8bfaf5d62ddd6ac466fea2fc345703bb5cf8ed9c5dfbd2980" :op :assert}
+   {:e #blake3 "987fd914c28f48d4f71e67651d53818cdebcfcbc6913730bfbdab89b74314985" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "987fd914c28f48d4f71e67651d53818cdebcfcbc6913730bfbdab89b74314985" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "987fd914c28f48d4f71e67651d53818cdebcfcbc6913730bfbdab89b74314985" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "987fd914c28f48d4f71e67651d53818cdebcfcbc6913730bfbdab89b74314985" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "987fd914c28f48d4f71e67651d53818cdebcfcbc6913730bfbdab89b74314985" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
