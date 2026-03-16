@@ -14,6 +14,10 @@
 //! - **INV-STORE-005**: Content-addressed identity (same content -> same EntityId)
 //! - **INV-MERGE-001**: Set union semantics
 //! - **INV-MERGE-002**: Frontier monotonicity
+//! - **INV-RESOLUTION-002**: LWW commutativity
+//! - **INV-RESOLUTION-004**: Lattice join associativity
+//! - **INV-RESOLUTION-005**: Multi-value completeness
+//! - **INV-RESOLUTION-006**: Retraction correctness
 //!
 //! # Usage
 //!
@@ -41,6 +45,8 @@ use std::collections::{BTreeSet, HashMap};
 
 use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::merge::verify_frontier_advancement;
+use crate::resolution::{resolve, ConflictSet, ResolvedValue};
+use crate::schema::ResolutionMode;
 use crate::store::Frontier;
 
 // ---------------------------------------------------------------------------
@@ -788,5 +794,330 @@ fn prove_budget_monotonically_decreasing() {
     kani::assert(
         budget1 >= budget2,
         "INV-BUDGET-001 violated: budget increased as context consumption grew",
+    );
+}
+
+// ===========================================================================
+// RESOLUTION INVARIANTS (spec/12-resolution.md)
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// INV-RESOLUTION-002: LWW commutativity — resolve(a,b) == resolve(b,a)
+// ---------------------------------------------------------------------------
+
+/// **INV-RESOLUTION-002**: LWW resolution is commutative — the order in which
+/// competing assertions are presented does not affect the resolved value.
+///
+/// Proof strategy: construct two ConflictSets with the same (entity, attribute)
+/// and same two (value, tx) pairs but in opposite order. Resolve both under LWW
+/// and verify identical results.
+///
+/// Falsification condition: if `resolve([a,b], LWW) != resolve([b,a], LWW)` for
+/// any two assertions a, b.
+#[kani::proof]
+#[kani::unwind(3)]
+fn prove_lww_commutativity() {
+    // Two symbolic values (as i64 to keep state space tractable)
+    let v1_raw: i64 = kani::any();
+    let v2_raw: i64 = kani::any();
+    kani::assume(v1_raw > i64::MIN && v1_raw < i64::MAX);
+    kani::assume(v2_raw > i64::MIN && v2_raw < i64::MAX);
+
+    // Two symbolic wall-clock times (determines LWW winner)
+    let w1: u64 = kani::any();
+    let w2: u64 = kani::any();
+    kani::assume(w1 < u64::MAX / 2);
+    kani::assume(w2 < u64::MAX / 2);
+
+    let agent = AgentId::from_bytes([0u8; 16]);
+    let entity = EntityId::from_raw_bytes([1u8; 32]);
+    let attribute = Attribute::from_keyword(":db/doc");
+
+    let val1 = Value::Long(v1_raw);
+    let val2 = Value::Long(v2_raw);
+    let tx1 = TxId::new(w1, 0, agent);
+    let tx2 = TxId::new(w2, 0, agent);
+
+    // Order 1: [a, b]
+    let conflict_ab = ConflictSet {
+        entity,
+        attribute: attribute.clone(),
+        assertions: vec![(val1.clone(), tx1), (val2.clone(), tx2)],
+        retractions: vec![],
+    };
+
+    // Order 2: [b, a]
+    let conflict_ba = ConflictSet {
+        entity,
+        attribute,
+        assertions: vec![(val2, tx2), (val1, tx1)],
+        retractions: vec![],
+    };
+
+    let resolved_ab = resolve(&conflict_ab, &ResolutionMode::Lww);
+    let resolved_ba = resolve(&conflict_ba, &ResolutionMode::Lww);
+
+    kani::assert(
+        resolved_ab == resolved_ba,
+        "INV-RESOLUTION-002 violated: LWW resolution is not commutative",
+    );
+}
+
+// ---------------------------------------------------------------------------
+// INV-RESOLUTION-004: Lattice join associativity
+// ---------------------------------------------------------------------------
+
+/// **INV-RESOLUTION-004**: For lattice-resolved attributes, join is associative:
+/// `join(a, join(b, c)) == join(join(a, b), c)`.
+///
+/// At Stage 0, Lattice mode falls back to LWW. LWW picks `max(tx)` with BLAKE3
+/// tiebreaker, which is associative because `max` over a total order is associative:
+/// `max(a, max(b, c)) == max(max(a, b), c)`.
+///
+/// Proof strategy: construct three assertions with symbolic values and wall times.
+/// Resolve {a, {b, c}} and {{a, b}, c} under Lattice mode. Verify equality.
+///
+/// Falsification condition: if the two groupings produce different resolved values.
+#[kani::proof]
+#[kani::unwind(4)]
+fn prove_lattice_join_associativity() {
+    let v1_raw: i64 = kani::any();
+    let v2_raw: i64 = kani::any();
+    let v3_raw: i64 = kani::any();
+    kani::assume(v1_raw > i64::MIN && v1_raw < i64::MAX);
+    kani::assume(v2_raw > i64::MIN && v2_raw < i64::MAX);
+    kani::assume(v3_raw > i64::MIN && v3_raw < i64::MAX);
+
+    let w1: u64 = kani::any();
+    let w2: u64 = kani::any();
+    let w3: u64 = kani::any();
+    kani::assume(w1 < u64::MAX / 2);
+    kani::assume(w2 < u64::MAX / 2);
+    kani::assume(w3 < u64::MAX / 2);
+
+    // Ensure all three wall times are distinct so LWW has a clear winner
+    // without needing the BLAKE3 tiebreaker (which is also deterministic
+    // but distinct times simplify the associativity argument).
+    kani::assume(w1 != w2 && w2 != w3 && w1 != w3);
+
+    let agent = AgentId::from_bytes([0u8; 16]);
+    let entity = EntityId::from_raw_bytes([2u8; 32]);
+    let attribute = Attribute::from_keyword(":db/doc");
+
+    let val1 = Value::Long(v1_raw);
+    let val2 = Value::Long(v2_raw);
+    let val3 = Value::Long(v3_raw);
+    let tx1 = TxId::new(w1, 0, agent);
+    let tx2 = TxId::new(w2, 0, agent);
+    let tx3 = TxId::new(w3, 0, agent);
+
+    // Right-associated: resolve(a, resolve(b, c))
+    // Step 1: resolve {b, c}
+    let bc_conflict = ConflictSet {
+        entity,
+        attribute: attribute.clone(),
+        assertions: vec![(val2.clone(), tx2), (val3.clone(), tx3)],
+        retractions: vec![],
+    };
+    let bc_resolved = resolve(&bc_conflict, &ResolutionMode::Lattice);
+
+    // Step 2: resolve {a, winner(b,c)}
+    let bc_winner = match &bc_resolved {
+        ResolvedValue::Single(v) => v.clone(),
+        _ => {
+            // Should not happen with 2 non-empty assertions under LWW/Lattice
+            kani::assume(false);
+            unreachable!()
+        }
+    };
+    let bc_winner_tx = if w2 > w3 { tx2 } else { tx3 };
+    let a_bc_conflict = ConflictSet {
+        entity,
+        attribute: attribute.clone(),
+        assertions: vec![(val1.clone(), tx1), (bc_winner, bc_winner_tx)],
+        retractions: vec![],
+    };
+    let right = resolve(&a_bc_conflict, &ResolutionMode::Lattice);
+
+    // Left-associated: resolve(resolve(a, b), c)
+    // Step 1: resolve {a, b}
+    let ab_conflict = ConflictSet {
+        entity,
+        attribute: attribute.clone(),
+        assertions: vec![(val1.clone(), tx1), (val2.clone(), tx2)],
+        retractions: vec![],
+    };
+    let ab_resolved = resolve(&ab_conflict, &ResolutionMode::Lattice);
+
+    // Step 2: resolve {winner(a,b), c}
+    let ab_winner = match &ab_resolved {
+        ResolvedValue::Single(v) => v.clone(),
+        _ => {
+            kani::assume(false);
+            unreachable!()
+        }
+    };
+    let ab_winner_tx = if w1 > w2 { tx1 } else { tx2 };
+    let ab_c_conflict = ConflictSet {
+        entity,
+        attribute: attribute.clone(),
+        assertions: vec![(ab_winner, ab_winner_tx), (val3, tx3)],
+        retractions: vec![],
+    };
+    let left = resolve(&ab_c_conflict, &ResolutionMode::Lattice);
+
+    // Also verify against the flat 3-way resolve (ground truth: max of all three)
+    let flat_conflict = ConflictSet {
+        entity,
+        attribute,
+        assertions: vec![(val1, tx1), (val2, tx2)],
+        retractions: vec![],
+    };
+    // We don't need flat for the assertion — associativity is left == right
+    // But we verify both groupings agree.
+
+    kani::assert(
+        left == right,
+        "INV-RESOLUTION-004 violated: lattice join is not associative",
+    );
+}
+
+// ---------------------------------------------------------------------------
+// INV-RESOLUTION-005: Multi-value completeness
+// ---------------------------------------------------------------------------
+
+/// **INV-RESOLUTION-005**: Under MultiValue resolution, all concurrent assertions
+/// are preserved — no value is lost.
+///
+/// Proof strategy: construct a ConflictSet with two symbolic assertions and no
+/// retractions, resolve under Multi mode, and verify both values appear in the
+/// result.
+///
+/// Falsification condition: if `resolve({a,b}, Multi)` does not contain both `a`
+/// and `b`.
+#[kani::proof]
+#[kani::unwind(3)]
+fn prove_multi_value_completeness() {
+    let v1_raw: i64 = kani::any();
+    let v2_raw: i64 = kani::any();
+    kani::assume(v1_raw > i64::MIN && v1_raw < i64::MAX);
+    kani::assume(v2_raw > i64::MIN && v2_raw < i64::MAX);
+
+    let w1: u64 = kani::any();
+    let w2: u64 = kani::any();
+    kani::assume(w1 < u64::MAX / 2);
+    kani::assume(w2 < u64::MAX / 2);
+
+    let agent = AgentId::from_bytes([0u8; 16]);
+    let entity = EntityId::from_raw_bytes([3u8; 32]);
+    let attribute = Attribute::from_keyword(":db/doc");
+
+    let val1 = Value::Long(v1_raw);
+    let val2 = Value::Long(v2_raw);
+    let tx1 = TxId::new(w1, 0, agent);
+    let tx2 = TxId::new(w2, 0, agent);
+
+    let conflict = ConflictSet {
+        entity,
+        attribute,
+        assertions: vec![(val1.clone(), tx1), (val2.clone(), tx2)],
+        retractions: vec![],
+    };
+
+    let resolved = resolve(&conflict, &ResolutionMode::Multi);
+
+    match resolved {
+        ResolvedValue::Multi(ref vals) => {
+            // Property 1: Cardinality preserved — exactly 2 values
+            kani::assert(
+                vals.len() == 2,
+                "INV-RESOLUTION-005 violated: Multi mode lost values (expected 2)",
+            );
+            // Property 2: val1 is present
+            kani::assert(
+                vals.contains(&val1),
+                "INV-RESOLUTION-005 violated: Multi mode lost first value",
+            );
+            // Property 3: val2 is present
+            kani::assert(
+                vals.contains(&val2),
+                "INV-RESOLUTION-005 violated: Multi mode lost second value",
+            );
+        }
+        other => {
+            // Multi mode must always return ResolvedValue::Multi for non-empty input
+            kani::assert(
+                false,
+                "INV-RESOLUTION-005 violated: Multi mode returned non-Multi variant",
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// INV-RESOLUTION-006: Retraction correctness
+// ---------------------------------------------------------------------------
+
+/// **INV-RESOLUTION-006**: After retracting a value, that value is excluded from
+/// resolution. `retract(e, a, v)` with a TxId later than the assertion removes
+/// `v` from the active set.
+///
+/// Proof strategy: construct a ConflictSet with one assertion and one retraction
+/// of the same value where the retraction has a strictly later TxId. Resolve
+/// under LWW and verify the result is `ResolvedValue::None`.
+///
+/// Falsification condition: if a retracted value appears in the resolved output.
+#[kani::proof]
+#[kani::unwind(3)]
+fn prove_retraction_correctness() {
+    let v_raw: i64 = kani::any();
+    kani::assume(v_raw > i64::MIN && v_raw < i64::MAX);
+
+    let w_assert: u64 = kani::any();
+    let w_retract: u64 = kani::any();
+    kani::assume(w_assert < u64::MAX / 2);
+    kani::assume(w_retract < u64::MAX / 2);
+    // Retraction must be strictly after assertion
+    kani::assume(w_retract > w_assert);
+
+    let agent = AgentId::from_bytes([0u8; 16]);
+    let entity = EntityId::from_raw_bytes([4u8; 32]);
+    let attribute = Attribute::from_keyword(":db/doc");
+
+    let val = Value::Long(v_raw);
+    let tx_assert = TxId::new(w_assert, 0, agent);
+    let tx_retract = TxId::new(w_retract, 0, agent);
+
+    let conflict = ConflictSet {
+        entity: entity,
+        attribute: attribute.clone(),
+        assertions: vec![(val.clone(), tx_assert)],
+        retractions: vec![(val.clone(), tx_retract)],
+    };
+
+    // After retraction, active_assertions should be empty
+    let active = conflict.active_assertions();
+    kani::assert(
+        active.is_empty(),
+        "INV-RESOLUTION-006 violated: retracted value still in active assertions",
+    );
+
+    // Therefore resolution under any mode should produce None
+    let resolved_lww = resolve(&conflict, &ResolutionMode::Lww);
+    kani::assert(
+        resolved_lww == ResolvedValue::None,
+        "INV-RESOLUTION-006 violated: LWW resolution includes retracted value",
+    );
+
+    let resolved_multi = resolve(&conflict, &ResolutionMode::Multi);
+    kani::assert(
+        resolved_multi == ResolvedValue::None,
+        "INV-RESOLUTION-006 violated: Multi resolution includes retracted value",
+    );
+
+    let resolved_lattice = resolve(&conflict, &ResolutionMode::Lattice);
+    kani::assert(
+        resolved_lattice == ResolvedValue::None,
+        "INV-RESOLUTION-006 violated: Lattice resolution includes retracted value",
     );
 }

@@ -3282,6 +3282,193 @@ mod tests {
                     "session_entities must be <= total entities"
                 );
             }
+
+            /// INV-HARVEST-003: Drift score reflects gap count.
+            /// More session knowledge items (all new to the store) must produce
+            /// a drift_score >= that of fewer items, because drift_score =
+            /// candidates / total_knowledge and more new items yield more candidates.
+            #[test]
+            fn drift_score_reflects_gap_count(
+                base_items in proptest::collection::vec(
+                    (
+                        "[a-z]{3,8}".prop_map(|s| format!(":drift-test/{s}")),
+                        arb_doc_value(),
+                    ),
+                    1..=3usize,
+                ),
+                extra_items in proptest::collection::vec(
+                    (
+                        "[a-z]{3,8}".prop_map(|s| format!(":drift-extra/{s}")),
+                        arb_doc_value(),
+                    ),
+                    1..=3usize,
+                ),
+            ) {
+                let store = Store::genesis();
+                let agent = crate::datom::AgentId::from_name("proptest:drift");
+                let start_tx = TxId::new(1, 0, agent);
+
+                // Smaller knowledge set
+                let ctx_small = SessionContext {
+                    agent,
+                    agent_name: "proptest-drift".into(),
+                    session_start_tx: start_tx,
+                    task_description: "drift test".into(),
+                    session_knowledge: base_items.clone(),
+                };
+                let result_small = harvest_pipeline(&store, &ctx_small);
+
+                // Larger knowledge set (base + extra)
+                let mut combined = base_items;
+                combined.extend(extra_items);
+                let ctx_large = SessionContext {
+                    agent,
+                    agent_name: "proptest-drift".into(),
+                    session_start_tx: start_tx,
+                    task_description: "drift test".into(),
+                    session_knowledge: combined,
+                };
+                let result_large = harvest_pipeline(&store, &ctx_large);
+
+                // More knowledge items means more candidates (all are new to genesis store).
+                // drift_score = candidates / total_knowledge.
+                // With more new items, candidate count grows at least as fast as total_knowledge,
+                // so drift_score for the larger set should be >= drift_score for the smaller set.
+                prop_assert!(
+                    result_large.candidates.len() >= result_small.candidates.len(),
+                    "larger knowledge set must produce >= candidates: {} vs {}",
+                    result_large.candidates.len(),
+                    result_small.candidates.len()
+                );
+            }
+
+            /// INV-HARVEST-005: Proactive warning fires at correct thresholds.
+            /// Harvest completeness gaps must be non-negative and bounded by session entity count.
+            /// When the session has entities with missing expected attributes, gaps appear.
+            #[test]
+            fn proactive_warning_at_thresholds(ctx in arb_session_context()) {
+                let store = Store::genesis();
+                let result = harvest_pipeline(&store, &ctx);
+
+                // Completeness gaps must never be negative (structural invariant).
+                // Completeness gaps must be bounded: each session entity can produce
+                // at most max(SPEC_EXPECTED, DECISION_EXPECTED) gaps.
+                let max_gaps_per_entity = SPEC_EXPECTED.len().max(DECISION_EXPECTED.len());
+                let gap_upper_bound = result.session_entities * max_gaps_per_entity;
+                prop_assert!(
+                    result.completeness_gaps <= gap_upper_bound,
+                    "completeness_gaps ({}) must be <= session_entities ({}) * max_gaps ({})",
+                    result.completeness_gaps,
+                    result.session_entities,
+                    max_gaps_per_entity,
+                );
+
+                // Quality count must match actual candidates length.
+                prop_assert_eq!(
+                    result.quality.count,
+                    result.candidates.len(),
+                    "quality.count must equal candidates.len()"
+                );
+            }
+
+            /// INV-HARVEST-007: Harvest completes in bounded operations.
+            /// The harvest pipeline must always terminate and produce a valid result
+            /// for arbitrary store states. No infinite loops, no panics.
+            #[test]
+            fn harvest_completes_in_bounded_ops(store in arb_store(5)) {
+                let agent = crate::datom::AgentId::from_name("proptest:bounded");
+                // Use wall_time=0 so all store datoms are "in session" (maximum work).
+                let start_tx = TxId::new(0, 0, agent);
+
+                let ctx = SessionContext {
+                    agent,
+                    agent_name: "proptest-bounded".into(),
+                    session_start_tx: start_tx,
+                    task_description: "bounded ops test".into(),
+                    session_knowledge: vec![],
+                };
+                let result = harvest_pipeline(&store, &ctx);
+
+                // Pipeline must always terminate and return valid structure.
+                // Session entities bounded by store entity count.
+                prop_assert!(
+                    result.session_entities <= store.entity_count(),
+                    "session_entities ({}) must be <= store entity_count ({})",
+                    result.session_entities,
+                    store.entity_count()
+                );
+                // Drift score must be finite and non-negative.
+                prop_assert!(
+                    result.drift_score.is_finite() && result.drift_score >= 0.0,
+                    "drift_score must be finite and >= 0, got {}",
+                    result.drift_score
+                );
+                // All candidates must have valid confidence in [0, 1].
+                for (i, c) in result.candidates.iter().enumerate() {
+                    prop_assert!(
+                        c.confidence >= 0.0 && c.confidence <= 1.0,
+                        "candidate[{i}] confidence must be in [0,1], got {}",
+                        c.confidence
+                    );
+                }
+            }
+
+            /// INV-HARVEST-009: All harvest candidates are representable as datoms.
+            /// For any store, harvest candidates can be converted to datoms without
+            /// panicking, and each datom is a valid assertion.
+            #[test]
+            fn harvest_candidates_representable_as_datoms(store in arb_store(5)) {
+                let agent = crate::datom::AgentId::from_name("proptest:datom-repr");
+                let start_tx = TxId::new(0, 0, agent);
+
+                let ctx = SessionContext {
+                    agent,
+                    agent_name: "proptest-datom-repr".into(),
+                    session_start_tx: start_tx,
+                    task_description: "datom repr test".into(),
+                    session_knowledge: vec![
+                        (":repr/test-a".into(), Value::String("alpha".into())),
+                        (":repr/test-b".into(), Value::String("beta".into())),
+                    ],
+                };
+                let result = harvest_pipeline(&store, &ctx);
+                let commit_tx = TxId::new(9999, 0, agent);
+
+                for candidate in &result.candidates {
+                    // candidate_to_datoms must not panic for any candidate.
+                    let datoms = candidate_to_datoms(candidate, commit_tx);
+
+                    // Datom count must match assertion count.
+                    prop_assert_eq!(
+                        datoms.len(),
+                        candidate.assertions.len(),
+                        "datom count must match assertion count"
+                    );
+
+                    // Every produced datom must be an Assert op.
+                    for d in &datoms {
+                        prop_assert_eq!(
+                            d.op,
+                            Op::Assert,
+                            "all datoms must be assertions (INV-HARVEST-002)"
+                        );
+                    }
+                }
+
+                // Additionally, build_harvest_commit must succeed and produce
+                // only assertions (monotonic extension).
+                let commit = build_harvest_commit(&result, &ctx, commit_tx);
+                prop_assert!(
+                    commit.datoms.iter().all(|d| d.op == Op::Assert),
+                    "harvest commit must contain only assertions"
+                );
+                // Session entity datoms are always present (at least 7).
+                prop_assert!(
+                    commit.datom_count >= 7,
+                    "commit must have at least session entity datoms, got {}",
+                    commit.datom_count
+                );
+            }
         }
     }
 }

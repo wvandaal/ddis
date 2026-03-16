@@ -2711,4 +2711,201 @@ mod tests {
             }
         }
     }
+
+    // ===================================================================
+    // Property-Based Tests (INV-SCHEMA-004, INV-SCHEMA-005, INV-SCHEMA-006)
+    // ===================================================================
+
+    mod proptests {
+        use super::*;
+        use crate::proptest_strategies::{arb_entity_id, arb_store, arb_tx_id};
+        use proptest::prelude::*;
+
+        // INV-SCHEMA-004: Schema validation gate.
+        //
+        // For every attribute with a defined value type in the genesis schema,
+        // a datom bearing a mismatched value type MUST be rejected by
+        // schema.validate_datom(). We generate arbitrary entity/tx IDs and
+        // pair each known-type attribute with a deliberately wrong Value variant.
+        proptest! {
+            #[test]
+            fn schema_rejects_wrong_value_types(
+                entity in arb_entity_id(),
+                tx in arb_tx_id(),
+            ) {
+                let agent = crate::datom::AgentId::from_name("braid:system");
+                let genesis_tx = TxId::new(0, 0, agent);
+                let datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+                let schema = Schema::from_datoms(&datoms);
+
+                // For each attribute in the genesis schema, pick a value of the wrong type
+                // and assert that validate_datom rejects it.
+                for (attr, def) in schema.attributes() {
+                    let wrong_value = match def.value_type {
+                        // Attribute expects String -> supply Long
+                        ValueType::String => Value::Long(42),
+                        // Attribute expects Keyword -> supply Boolean
+                        ValueType::Keyword => Value::Boolean(true),
+                        // Attribute expects Boolean -> supply String
+                        ValueType::Boolean => Value::String("not-a-bool".into()),
+                        // Attribute expects Long -> supply String
+                        ValueType::Long => Value::String("not-a-long".into()),
+                        // Attribute expects Double -> supply Long
+                        ValueType::Double => Value::Long(99),
+                        // Attribute expects Instant -> supply String
+                        ValueType::Instant => Value::String("not-an-instant".into()),
+                        // Attribute expects Uuid -> supply Long
+                        ValueType::Uuid => Value::Long(0),
+                        // Attribute expects Ref -> supply String
+                        ValueType::Ref => Value::String("not-a-ref".into()),
+                        // Attribute expects Bytes -> supply Long
+                        ValueType::Bytes => Value::Long(1),
+                    };
+
+                    let bad_datom = Datom::new(
+                        entity,
+                        attr.clone(),
+                        wrong_value,
+                        tx,
+                        Op::Assert,
+                    );
+
+                    let result = schema.validate_datom(&bad_datom);
+                    prop_assert!(
+                        result.is_err(),
+                        "INV-SCHEMA-004 violated: validate_datom accepted wrong type for {}",
+                        attr.as_str()
+                    );
+
+                    // Verify the error is specifically a SchemaViolation, not UnknownAttribute
+                    match result.unwrap_err() {
+                        StoreError::SchemaViolation { attr: err_attr, .. } => {
+                            prop_assert_eq!(
+                                err_attr.as_str(),
+                                attr.as_str(),
+                                "SchemaViolation should reference the offending attribute"
+                            );
+                        }
+                        other => {
+                            prop_assert!(
+                                false,
+                                "Expected SchemaViolation for {}, got: {:?}",
+                                attr.as_str(),
+                                other
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        // INV-SCHEMA-005: Schema query API consistency.
+        //
+        // For any store, calling schema.attributes() twice yields the same
+        // set of attribute idents. The schema is a deterministic projection
+        // of the datom set — repeated queries must return identical results.
+        proptest! {
+            #[test]
+            fn schema_attributes_returns_consistent_results(store in arb_store(3)) {
+                let schema = store.schema();
+
+                let first: BTreeSet<String> = schema
+                    .attributes()
+                    .map(|(a, _)| a.as_str().to_string())
+                    .collect();
+
+                let second: BTreeSet<String> = schema
+                    .attributes()
+                    .map(|(a, _)| a.as_str().to_string())
+                    .collect();
+
+                prop_assert_eq!(
+                    first, second,
+                    "INV-SCHEMA-005 violated: schema.attributes() returned different results on consecutive calls"
+                );
+
+                // Also verify each attribute's definition is consistent between calls
+                for (attr, def) in schema.attributes() {
+                    let looked_up = schema.attribute(attr);
+                    prop_assert!(
+                        looked_up.is_some(),
+                        "Attribute {} from attributes() not found via attribute()",
+                        attr.as_str()
+                    );
+                    let looked_up = looked_up.unwrap();
+                    prop_assert_eq!(
+                        def.value_type, looked_up.value_type,
+                        "Value type mismatch for {} between attributes() and attribute()",
+                        attr.as_str()
+                    );
+                    prop_assert_eq!(
+                        def.cardinality, looked_up.cardinality,
+                        "Cardinality mismatch for {} between attributes() and attribute()",
+                        attr.as_str()
+                    );
+                }
+            }
+        }
+
+        // INV-SCHEMA-006: Schema error messages.
+        //
+        // Every error produced by schema validation (UnknownAttribute and
+        // SchemaViolation) must have a non-empty Display string. This ensures
+        // agents and humans always get actionable error descriptions.
+        proptest! {
+            #[test]
+            fn schema_validation_errors_have_nonempty_descriptions(
+                entity in arb_entity_id(),
+                tx in arb_tx_id(),
+            ) {
+                let agent = crate::datom::AgentId::from_name("braid:system");
+                let genesis_tx = TxId::new(0, 0, agent);
+                let datoms: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+                let schema = Schema::from_datoms(&datoms);
+
+                // Case 1: Unknown attribute error has non-empty description
+                let unknown_datom = Datom::new(
+                    entity,
+                    Attribute::from_keyword(":nonexistent/attr"),
+                    Value::String("test".into()),
+                    tx,
+                    Op::Assert,
+                );
+                let err = schema.validate_datom(&unknown_datom).unwrap_err();
+                let msg = format!("{err}");
+                prop_assert!(
+                    !msg.is_empty(),
+                    "INV-SCHEMA-006 violated: UnknownAttribute error has empty description"
+                );
+                prop_assert!(
+                    msg.contains("nonexistent"),
+                    "UnknownAttribute error should mention the attribute name, got: {msg}"
+                );
+
+                // Case 2: SchemaViolation error has non-empty description
+                // Use :db/doc (expects String) with a Long value
+                let type_mismatch_datom = Datom::new(
+                    entity,
+                    Attribute::from_keyword(":db/doc"),
+                    Value::Long(42),
+                    tx,
+                    Op::Assert,
+                );
+                let err = schema.validate_datom(&type_mismatch_datom).unwrap_err();
+                let msg = format!("{err}");
+                prop_assert!(
+                    !msg.is_empty(),
+                    "INV-SCHEMA-006 violated: SchemaViolation error has empty description"
+                );
+                prop_assert!(
+                    msg.contains("db/doc") || msg.contains(":db/doc"),
+                    "SchemaViolation error should mention the attribute, got: {msg}"
+                );
+                prop_assert!(
+                    msg.contains("expected") || msg.contains("got"),
+                    "SchemaViolation error should describe the type mismatch, got: {msg}"
+                );
+            }
+        }
+    }
 }

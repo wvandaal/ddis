@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773693475/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session progress: 6 beads closed (XC.1 strategies, W1C.1/6 proptests, W2A.1 signal types, W2B.1 HITS, W2B.2 k-Core). 50 new tests, total 558 passing (up from 508). New modules: signal.rs (10 tests), HITS + k-Core in graph.rs (9 tests), bilateral proptests (8 tests), proptest strategies (8 tests). 6 parallel Opus subagents in flight (Kani, schema/harvest/seed/guidance/trilateral proptests)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb65329b62bbbc3510a7c154365e92ed5d7fe6442662d05e12535d24e032c39d" :a :db/ident :v :observation/session-progress-6-beads-closed-xc1-strategies-w1c16-p :op :assert}
+   {:e #blake3 "fb65329b62bbbc3510a7c154365e92ed5d7fe6442662d05e12535d24e032c39d" :a :db/doc :v "Session progress: 6 beads closed (XC.1 strategies, W1C.1/6 proptests, W2A.1 signal types, W2B.1 HITS, W2B.2 k-Core). 50 new tests, total 558 passing (up from 508). New modules: signal.rs (10 tests), HITS + k-Core in graph.rs (9 tests), bilateral proptests (8 tests), proptest strategies (8 tests). 6 parallel Opus subagents in flight (Kani, schema/harvest/seed/guidance/trilateral proptests)." :op :assert}
+   {:e #blake3 "fb65329b62bbbc3510a7c154365e92ed5d7fe6442662d05e12535d24e032c39d" :a :exploration/body :v "Session progress: 6 beads closed (XC.1 strategies, W1C.1/6 proptests, W2A.1 signal types, W2B.1 HITS, W2B.2 k-Core). 50 new tests, total 558 passing (up from 508). New modules: signal.rs (10 tests), HITS + k-Core in graph.rs (9 tests), bilateral proptests (8 tests), proptest strategies (8 tests). 6 parallel Opus subagents in flight (Kani, schema/harvest/seed/guidance/trilateral proptests)." :op :assert}
+   {:e #blake3 "fb65329b62bbbc3510a7c154365e92ed5d7fe6442662d05e12535d24e032c39d" :a :exploration/content-hash :v #bytes "c90b39efeb82c3f50810a27005d38fdafcff357293abaf44ba9c6568479f975e" :op :assert}
+   {:e #blake3 "fb65329b62bbbc3510a7c154365e92ed5d7fe6442662d05e12535d24e032c39d" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "fb65329b62bbbc3510a7c154365e92ed5d7fe6442662d05e12535d24e032c39d" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "fb65329b62bbbc3510a7c154365e92ed5d7fe6442662d05e12535d24e032c39d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "fb65329b62bbbc3510a7c154365e92ed5d7fe6442662d05e12535d24e032c39d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "fb65329b62bbbc3510a7c154365e92ed5d7fe6442662d05e12535d24e032c39d" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

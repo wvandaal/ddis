@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773693927/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "W1C near-complete: 564 tests passing (up from 508). Bilateral +8, layout +6, store (pre-existing). Background agents adding schema, harvest, seed, guidance, trilateral proptests. Signal module created. HITS + k-Core algorithms added. Stateright ResolutionModel verified."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f7428c514e402b27ec2618a5cdd85c193cecf59fefc10d6cfb89ab00faadf454" :a :db/ident :v :observation/w1c-near-complete-564-tests-passing-up-from-508-bilatera :op :assert}
+   {:e #blake3 "f7428c514e402b27ec2618a5cdd85c193cecf59fefc10d6cfb89ab00faadf454" :a :db/doc :v "W1C near-complete: 564 tests passing (up from 508). Bilateral +8, layout +6, store (pre-existing). Background agents adding schema, harvest, seed, guidance, trilateral proptests. Signal module created. HITS + k-Core algorithms added. Stateright ResolutionModel verified." :op :assert}
+   {:e #blake3 "f7428c514e402b27ec2618a5cdd85c193cecf59fefc10d6cfb89ab00faadf454" :a :exploration/body :v "W1C near-complete: 564 tests passing (up from 508). Bilateral +8, layout +6, store (pre-existing). Background agents adding schema, harvest, seed, guidance, trilateral proptests. Signal module created. HITS + k-Core algorithms added. Stateright ResolutionModel verified." :op :assert}
+   {:e #blake3 "f7428c514e402b27ec2618a5cdd85c193cecf59fefc10d6cfb89ab00faadf454" :a :exploration/content-hash :v #bytes "7dfdb7a0a1a3e9c5e4fc2c4d8339ac16a40b3f7411e02341dbd719c86b2f6520" :op :assert}
+   {:e #blake3 "f7428c514e402b27ec2618a5cdd85c193cecf59fefc10d6cfb89ab00faadf454" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "f7428c514e402b27ec2618a5cdd85c193cecf59fefc10d6cfb89ab00faadf454" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "f7428c514e402b27ec2618a5cdd85c193cecf59fefc10d6cfb89ab00faadf454" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f7428c514e402b27ec2618a5cdd85c193cecf59fefc10d6cfb89ab00faadf454" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f7428c514e402b27ec2618a5cdd85c193cecf59fefc10d6cfb89ab00faadf454" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

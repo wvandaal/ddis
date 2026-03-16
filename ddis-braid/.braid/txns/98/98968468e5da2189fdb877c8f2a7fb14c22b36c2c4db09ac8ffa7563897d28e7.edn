@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773687955/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Stages 1-2 formal design plan: 5 waves (Formal Closure, Stage 1 Completion, Transact-Time Coherence, Coherence Compiler, Spec Distillation, Multi-Agent Staging). Target: F(S) 0.65→0.85+, V 0.64→0.80+, C 0.15→0.50+. ~4100 new LOC, ~192 manual tests, ~85-100 generated tests, 23 new INVs."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e87b2a96ca0fa85b4a9f6887e6c2e2cd841e2d21566593a0808b9d962176ccd4" :a :db/ident :v :observation/stages-1-2-formal-design-plan-5-waves-formal-closure-stag :op :assert}
+   {:e #blake3 "e87b2a96ca0fa85b4a9f6887e6c2e2cd841e2d21566593a0808b9d962176ccd4" :a :db/doc :v "Stages 1-2 formal design plan: 5 waves (Formal Closure, Stage 1 Completion, Transact-Time Coherence, Coherence Compiler, Spec Distillation, Multi-Agent Staging). Target: F(S) 0.65→0.85+, V 0.64→0.80+, C 0.15→0.50+. ~4100 new LOC, ~192 manual tests, ~85-100 generated tests, 23 new INVs." :op :assert}
+   {:e #blake3 "e87b2a96ca0fa85b4a9f6887e6c2e2cd841e2d21566593a0808b9d962176ccd4" :a :exploration/body :v "Stages 1-2 formal design plan: 5 waves (Formal Closure, Stage 1 Completion, Transact-Time Coherence, Coherence Compiler, Spec Distillation, Multi-Agent Staging). Target: F(S) 0.65→0.85+, V 0.64→0.80+, C 0.15→0.50+. ~4100 new LOC, ~192 manual tests, ~85-100 generated tests, 23 new INVs." :op :assert}
+   {:e #blake3 "e87b2a96ca0fa85b4a9f6887e6c2e2cd841e2d21566593a0808b9d962176ccd4" :a :exploration/content-hash :v #bytes "e744b1b188c1d9a96913afed3bc3f0852935b31157ba34094478cfbff6291d67" :op :assert}
+   {:e #blake3 "e87b2a96ca0fa85b4a9f6887e6c2e2cd841e2d21566593a0808b9d962176ccd4" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "e87b2a96ca0fa85b4a9f6887e6c2e2cd841e2d21566593a0808b9d962176ccd4" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "e87b2a96ca0fa85b4a9f6887e6c2e2cd841e2d21566593a0808b9d962176ccd4" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e87b2a96ca0fa85b4a9f6887e6c2e2cd841e2d21566593a0808b9d962176ccd4" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "e87b2a96ca0fa85b4a9f6887e6c2e2cd841e2d21566593a0808b9d962176ccd4" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

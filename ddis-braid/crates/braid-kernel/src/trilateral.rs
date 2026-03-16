@@ -1319,7 +1319,7 @@ mod tests {
 
     mod proptests {
         use super::*;
-        use crate::datom::{Attribute, Datom, Op};
+        use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, TxId, Value};
         use crate::proptest_strategies::*;
         use proptest::prelude::*;
 
@@ -1464,6 +1464,152 @@ mod tests {
                         s
                     );
                 }
+            }
+
+            // ---------------------------------------------------------------
+            // INV-TRILATERAL-004: Convergence monotonicity — adding a LINK
+            // that closes a specific boundary gap (:spec/traces-to closes
+            // intent-spec, :impl/implements closes spec-impl) must not
+            // increase the gap count for that boundary.
+            // ---------------------------------------------------------------
+
+            /// INV-TRILATERAL-004: Adding a :spec/traces-to or :impl/implements
+            /// link for an entity that has a gap in that boundary must not
+            /// increase the corresponding gap component (D_IS or D_SP).
+            /// The overall Phi may shift between components (e.g., closing an
+            /// intent-spec gap may reveal a spec-impl gap), but the targeted
+            /// boundary's gap count is monotonically non-increasing under
+            /// link operations that address it.
+            #[test]
+            fn inv_trilateral_004_convergence_under_link_ops(
+                suffix in 1u32..500,
+                has_intent in any::<bool>(),
+                has_spec in any::<bool>(),
+                has_impl in any::<bool>(),
+                add_spec_link in any::<bool>(),
+            ) {
+                let tx = TxId::new(1, 0, AgentId::from_name("test:conv004"));
+                let e = EntityId::from_ident(&format!(":test/conv-entity-{suffix}"));
+                let mut datoms_before = Store::genesis().datom_set().clone();
+
+                if has_intent {
+                    datoms_before.insert(Datom::new(
+                        e,
+                        Attribute::from_keyword(":intent/goal"),
+                        Value::String(format!("goal-{suffix}")),
+                        tx,
+                        Op::Assert,
+                    ));
+                }
+                if has_spec {
+                    datoms_before.insert(Datom::new(
+                        e,
+                        Attribute::from_keyword(":spec/id"),
+                        Value::String(format!("INV-CONV-{suffix:03}")),
+                        tx,
+                        Op::Assert,
+                    ));
+                }
+                if has_impl {
+                    datoms_before.insert(Datom::new(
+                        e,
+                        Attribute::from_keyword(":impl/file"),
+                        Value::String(format!("src/conv_{suffix}.rs")),
+                        tx,
+                        Op::Assert,
+                    ));
+                }
+
+                let store_before = Store::from_datoms(datoms_before.clone());
+                let (_, comp_before) = compute_phi_default(&store_before);
+                let mut datoms_after = datoms_before;
+
+                if add_spec_link {
+                    // LINK operation: add :spec/traces-to (closes intent-spec gap)
+                    // This adds a spec-layer datom for entity e.
+                    let target = EntityId::from_ident(":test/conv-target");
+                    datoms_after.insert(Datom::new(
+                        e,
+                        Attribute::from_keyword(":spec/traces-to"),
+                        Value::Ref(target),
+                        tx,
+                        Op::Assert,
+                    ));
+                    let store_after = Store::from_datoms(datoms_after);
+                    let (_, comp_after) = compute_phi_default(&store_after);
+
+                    // Adding a spec-layer datom can only reduce or maintain D_IS
+                    // (the intent-spec gap), never increase it, because the entity
+                    // now appears in the spec projection.
+                    prop_assert!(
+                        comp_after.d_is <= comp_before.d_is,
+                        "D_IS must not increase after adding :spec/traces-to link: {} > {}",
+                        comp_after.d_is,
+                        comp_before.d_is,
+                    );
+                } else {
+                    // LINK operation: add :impl/implements (closes spec-impl gap)
+                    let target = EntityId::from_ident(":test/conv-target");
+                    datoms_after.insert(Datom::new(
+                        e,
+                        Attribute::from_keyword(":impl/implements"),
+                        Value::Ref(target),
+                        tx,
+                        Op::Assert,
+                    ));
+                    let store_after = Store::from_datoms(datoms_after);
+                    let (_, comp_after) = compute_phi_default(&store_after);
+
+                    // Adding an impl-layer datom can only reduce or maintain D_SP
+                    // (the spec-impl gap), never increase it.
+                    prop_assert!(
+                        comp_after.d_sp <= comp_before.d_sp,
+                        "D_SP must not increase after adding :impl/implements link: {} > {}",
+                        comp_after.d_sp,
+                        comp_before.d_sp,
+                    );
+                }
+            }
+
+            // ---------------------------------------------------------------
+            // INV-TRILATERAL-006: Phi is computable via Datalog — for any
+            // store, compute_phi_default produces a non-negative finite value
+            // without panicking. This verifies the computability claim: the
+            // divergence metric is a total function over all valid stores.
+            // ---------------------------------------------------------------
+
+            /// INV-TRILATERAL-006: For any arbitrary store, compute_phi_default
+            /// completes without panic and returns a non-negative, finite value.
+            /// This is the computability property: Phi is defined for all stores.
+            #[test]
+            fn inv_trilateral_006_phi_computable_for_any_store(store in arb_store(5)) {
+                let (phi, components) = compute_phi_default(&store);
+
+                // Phi must be non-negative (gap counts are non-negative, weights are positive)
+                prop_assert!(
+                    phi >= 0.0,
+                    "Phi must be non-negative for any store, got {}",
+                    phi,
+                );
+
+                // Phi must be finite (no NaN or infinity)
+                prop_assert!(
+                    phi.is_finite(),
+                    "Phi must be finite for any store, got {}",
+                    phi,
+                );
+
+                // Components must be internally consistent with Phi:
+                // Phi = 0.4 * D_IS + 0.6 * D_SP (default weights)
+                let expected = 0.4 * components.d_is as f64 + 0.6 * components.d_sp as f64;
+                prop_assert!(
+                    (phi - expected).abs() < f64::EPSILON,
+                    "Phi ({}) must equal 0.4*D_IS + 0.6*D_SP = 0.4*{} + 0.6*{} = {}",
+                    phi,
+                    components.d_is,
+                    components.d_sp,
+                    expected,
+                );
             }
         }
     }

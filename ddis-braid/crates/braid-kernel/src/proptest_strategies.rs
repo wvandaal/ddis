@@ -222,6 +222,237 @@ pub fn arb_binding_name() -> impl Strategy<Value = String> {
 }
 
 // ---------------------------------------------------------------------------
+// DiGraph strategies (XC.1 — INV-QUERY-016, INV-QUERY-018)
+// ---------------------------------------------------------------------------
+
+/// Strategy for arbitrary directed graphs with configurable size bounds.
+///
+/// Generates graphs with node labels "n0", "n1", ..., "n{max_nodes-1}"
+/// and random edges between them. Supports self-loops.
+///
+/// # Traces To
+/// - INV-QUERY-016 (HITS convergence)
+/// - INV-QUERY-018 (k-Core decomposition)
+pub fn arb_digraph(
+    max_nodes: usize,
+    max_edges: usize,
+) -> impl Strategy<Value = crate::query::graph::DiGraph> {
+    let max_n = if max_nodes == 0 { 1 } else { max_nodes };
+    let max_e = if max_edges == 0 { 1 } else { max_edges };
+    (
+        1..=max_n,
+        proptest::collection::vec((0..max_n, 0..max_n), 0..max_e),
+    )
+        .prop_map(move |(n, edges)| {
+            let mut g = crate::query::graph::DiGraph::new();
+            let n = n.min(max_n);
+            for i in 0..n {
+                g.add_node(&format!("n{i}"));
+            }
+            for (src, dst) in edges {
+                if src < n && dst < n {
+                    g.add_edge(&format!("n{src}"), &format!("n{dst}"));
+                }
+            }
+            g
+        })
+}
+
+/// Strategy for connected directed graphs (at least a spanning path).
+///
+/// Ensures the graph has a path from n0 to n{n-1} so graph algorithms
+/// that require connectivity don't degenerate.
+pub fn arb_connected_digraph(
+    max_nodes: usize,
+) -> impl Strategy<Value = crate::query::graph::DiGraph> {
+    let max_n = if max_nodes < 2 { 2 } else { max_nodes };
+    (
+        2..=max_n,
+        proptest::collection::vec((0..max_n, 0..max_n), 0..max_n * 2),
+    )
+        .prop_map(move |(n, extra_edges)| {
+            let mut g = crate::query::graph::DiGraph::new();
+            let n = n.min(max_n);
+            for i in 0..n {
+                g.add_node(&format!("n{i}"));
+            }
+            // Spanning path: n0 → n1 → ... → n{n-1}
+            for i in 0..n - 1 {
+                g.add_edge(&format!("n{i}"), &format!("n{}", i + 1));
+            }
+            // Additional random edges
+            for (src, dst) in extra_edges {
+                if src < n && dst < n {
+                    g.add_edge(&format!("n{src}"), &format!("n{dst}"));
+                }
+            }
+            g
+        })
+}
+
+// ---------------------------------------------------------------------------
+// Clause / Query strategies (XC.1 — INV-QUERY-004..008)
+// ---------------------------------------------------------------------------
+
+/// Strategy for a Term (variable or constant).
+pub fn arb_term() -> impl Strategy<Value = crate::query::clause::Term> {
+    use crate::query::clause::Term;
+    prop_oneof![
+        arb_binding_name().prop_map(Term::Variable),
+        arb_value().prop_map(Term::Constant),
+        arb_entity_id().prop_map(Term::Entity),
+        arb_attribute().prop_map(Term::Attr),
+    ]
+}
+
+/// Strategy for a variable-only Term (used in patterns where we want bindings).
+pub fn arb_variable_term() -> impl Strategy<Value = crate::query::clause::Term> {
+    arb_binding_name().prop_map(crate::query::clause::Term::Variable)
+}
+
+/// Strategy for a Pattern (entity, attribute, value positions).
+///
+/// Generates patterns where at least one position is a variable (otherwise
+/// the pattern is a ground fact check, which is valid but less interesting).
+pub fn arb_pattern() -> impl Strategy<Value = crate::query::clause::Pattern> {
+    use crate::query::clause::Pattern;
+    // At least entity is a variable to ensure the pattern binds something
+    (arb_variable_term(), arb_term(), arb_term()).prop_map(|(e, a, v)| Pattern::new(e, a, v))
+}
+
+/// Strategy for a Clause (pattern or predicate).
+pub fn arb_clause() -> impl Strategy<Value = crate::query::clause::Clause> {
+    use crate::query::clause::Clause;
+    prop_oneof![
+        // Pattern clause (most common)
+        arb_pattern().prop_map(Clause::Pattern),
+        // Predicate clause
+        (
+            prop_oneof![
+                Just(">".into()),
+                Just("<".into()),
+                Just("=".into()),
+                Just("!=".into())
+            ],
+            proptest::collection::vec(arb_term(), 2..=3),
+        )
+            .prop_map(|(op, args)| Clause::Predicate { op, args }),
+    ]
+}
+
+/// Strategy for a FindSpec.
+pub fn arb_find_spec() -> impl Strategy<Value = crate::query::clause::FindSpec> {
+    use crate::query::clause::FindSpec;
+    prop_oneof![
+        proptest::collection::vec(arb_binding_name(), 1..=4).prop_map(FindSpec::Rel),
+        arb_binding_name().prop_map(FindSpec::Scalar),
+    ]
+}
+
+/// Strategy for a complete QueryExpr.
+pub fn arb_query_expr() -> impl Strategy<Value = crate::query::clause::QueryExpr> {
+    (
+        arb_find_spec(),
+        proptest::collection::vec(arb_clause(), 1..=4),
+    )
+        .prop_map(|(find, clauses)| crate::query::clause::QueryExpr::new(find, clauses))
+}
+
+// ---------------------------------------------------------------------------
+// Bilateral strategies (XC.1 — INV-BILATERAL-001..005)
+// ---------------------------------------------------------------------------
+
+/// Strategy for FitnessComponents with values in [0, 1].
+///
+/// Each component is independently generated in the valid range.
+/// This is for testing bilateral computations, NOT for testing that
+/// compute_fitness() produces correct values (that's a different test).
+pub fn arb_fitness_components() -> impl Strategy<Value = crate::bilateral::FitnessComponents> {
+    use crate::bilateral::FitnessComponents;
+    (
+        0.0f64..=1.0,
+        0.0f64..=1.0,
+        0.0f64..=1.0,
+        0.0f64..=1.0,
+        0.0f64..=1.0,
+        0.0f64..=1.0,
+        0.0f64..=1.0,
+    )
+        .prop_map(|(v, c, d, h, k, i, u)| FitnessComponents {
+            validation: v,
+            coverage: c,
+            drift: d,
+            harvest_quality: h,
+            contradiction: k,
+            incompleteness: i,
+            uncertainty: u,
+        })
+}
+
+/// Strategy for FitnessScore with valid total = weighted sum.
+///
+/// The total is computed from components using the standard weights,
+/// ensuring internal consistency. Unmeasured components are empty.
+pub fn arb_fitness_score() -> impl Strategy<Value = crate::bilateral::FitnessScore> {
+    use crate::bilateral::FitnessScore;
+    arb_fitness_components().prop_map(|components| {
+        // Standard weights from spec: V=0.15, C=0.20, D=0.15, H=0.10, K=0.15, I=0.15, U=0.10
+        let total = 0.15 * components.validation
+            + 0.20 * components.coverage
+            + 0.15 * components.drift
+            + 0.10 * components.harvest_quality
+            + 0.15 * components.contradiction
+            + 0.15 * components.incompleteness
+            + 0.10 * components.uncertainty;
+        FitnessScore {
+            total,
+            components,
+            unmeasured: vec![],
+        }
+    })
+}
+
+/// Strategy for a trajectory of F(S) values (for convergence analysis).
+///
+/// Generates a sequence of fitness scores in [0, 1]. May or may not
+/// be monotonically increasing (testing convergence detection).
+pub fn arb_fitness_trajectory(max_len: usize) -> impl Strategy<Value = Vec<f64>> {
+    let max = if max_len == 0 { 1 } else { max_len };
+    proptest::collection::vec(0.0f64..=1.0, 1..=max)
+}
+
+/// Strategy for a monotonically non-decreasing fitness trajectory.
+///
+/// For testing INV-BILATERAL-001: F(S) must be monotonically non-decreasing
+/// across well-formed transitions.
+pub fn arb_monotone_trajectory(max_len: usize) -> impl Strategy<Value = Vec<f64>> {
+    let max = if max_len == 0 { 1 } else { max_len };
+    proptest::collection::vec(0.0f64..=1.0, 1..=max).prop_map(|mut vals| {
+        vals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        vals
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Layout / Transaction strategies (XC.1 — INV-LAYOUT-001..006)
+// ---------------------------------------------------------------------------
+
+/// Strategy for a committed transaction (ready for layout serialization).
+///
+/// The transaction contains 1-5 schema-compliant datoms and valid
+/// transaction metadata. Returns the transaction along with its datoms
+/// for verification (since committed transactions seal their contents).
+pub fn arb_transaction_datoms(max_datoms: usize) -> impl Strategy<Value = Vec<Datom>> {
+    let max = if max_datoms == 0 { 1 } else { max_datoms };
+    proptest::collection::vec(arb_schema_compliant_datom(), 1..=max)
+}
+
+/// Strategy for pairs of transactions (for merge/diff testing).
+pub fn arb_transaction_pair() -> impl Strategy<Value = (Vec<Datom>, Vec<Datom>)> {
+    (arb_transaction_datoms(5), arb_transaction_datoms(5))
+}
+
+// ---------------------------------------------------------------------------
 // Tests for the strategies themselves
 // ---------------------------------------------------------------------------
 
@@ -299,6 +530,72 @@ mod tests {
         #[test]
         fn nonempty_stores_have_user_data(store in arb_nonempty_store()) {
             prop_assert!(store.len() > Store::genesis().len());
+        }
+
+        // === New XC.1 strategy tests ===
+
+        /// Generated digraphs have the expected node count.
+        #[test]
+        fn digraphs_have_valid_structure(g in arb_digraph(8, 16)) {
+            prop_assert!(g.node_count() <= 8);
+            prop_assert!(g.edge_count() <= 16);
+        }
+
+        /// Connected digraphs have at least n-1 edges (spanning path).
+        #[test]
+        fn connected_digraphs_have_spanning_path(g in arb_connected_digraph(6)) {
+            let n = g.node_count();
+            prop_assert!(n >= 2);
+            // At least spanning path edges exist
+            prop_assert!(g.edge_count() >= n - 1);
+        }
+
+        /// Generated clauses are well-formed (all variants constructible).
+        #[test]
+        fn clauses_are_constructible(c in arb_clause()) {
+            // Just verify no panic during construction
+            let _ = format!("{c:?}");
+        }
+
+        /// Generated query expressions have at least one clause.
+        #[test]
+        fn query_exprs_have_clauses(q in arb_query_expr()) {
+            prop_assert!(!q.where_clauses.is_empty());
+        }
+
+        /// Fitness components are all in [0, 1].
+        #[test]
+        fn fitness_components_bounded(fc in arb_fitness_components()) {
+            prop_assert!(fc.validation >= 0.0 && fc.validation <= 1.0);
+            prop_assert!(fc.coverage >= 0.0 && fc.coverage <= 1.0);
+            prop_assert!(fc.drift >= 0.0 && fc.drift <= 1.0);
+            prop_assert!(fc.harvest_quality >= 0.0 && fc.harvest_quality <= 1.0);
+            prop_assert!(fc.contradiction >= 0.0 && fc.contradiction <= 1.0);
+            prop_assert!(fc.incompleteness >= 0.0 && fc.incompleteness <= 1.0);
+            prop_assert!(fc.uncertainty >= 0.0 && fc.uncertainty <= 1.0);
+        }
+
+        /// Fitness score total is in [0, 1] (weighted sum of bounded components).
+        #[test]
+        fn fitness_score_bounded(fs in arb_fitness_score()) {
+            prop_assert!(fs.total >= 0.0 && fs.total <= 1.0,
+                "F(S) = {} out of [0,1]", fs.total);
+        }
+
+        /// Monotone trajectories are actually non-decreasing.
+        #[test]
+        fn monotone_trajectories_are_sorted(vals in arb_monotone_trajectory(10)) {
+            for w in vals.windows(2) {
+                prop_assert!(w[0] <= w[1],
+                    "Not monotone: {} > {}", w[0], w[1]);
+            }
+        }
+
+        /// Transaction datom strategies produce non-empty sets.
+        #[test]
+        fn transaction_datoms_nonempty(datoms in arb_transaction_datoms(5)) {
+            prop_assert!(!datoms.is_empty());
+            prop_assert!(datoms.len() <= 5);
         }
     }
 }

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773694346/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session complete: 13 beads closed. Wave 1C proptest expansion COMPLETE (8/9 subtasks, +44 proptests exceeding target of 35). W1B.1 Stateright ResolutionModel done. W2A.1 signal types module created. W2B.1+2 HITS and k-Core algorithms implemented. XC.1 strategies unblocked 4 downstream items. Quality gate: 584 tests passing, 0 clippy warnings, all Stateright models green."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "eecf03d67c51e534f83a887fc844b02e9c39fa8ec96da8652956d90852420b94" :a :db/ident :v :observation/session-complete-13-beads-closed-wave-1c-proptest-expansio :op :assert}
+   {:e #blake3 "eecf03d67c51e534f83a887fc844b02e9c39fa8ec96da8652956d90852420b94" :a :db/doc :v "Session complete: 13 beads closed. Wave 1C proptest expansion COMPLETE (8/9 subtasks, +44 proptests exceeding target of 35). W1B.1 Stateright ResolutionModel done. W2A.1 signal types module created. W2B.1+2 HITS and k-Core algorithms implemented. XC.1 strategies unblocked 4 downstream items. Quality gate: 584 tests passing, 0 clippy warnings, all Stateright models green." :op :assert}
+   {:e #blake3 "eecf03d67c51e534f83a887fc844b02e9c39fa8ec96da8652956d90852420b94" :a :exploration/body :v "Session complete: 13 beads closed. Wave 1C proptest expansion COMPLETE (8/9 subtasks, +44 proptests exceeding target of 35). W1B.1 Stateright ResolutionModel done. W2A.1 signal types module created. W2B.1+2 HITS and k-Core algorithms implemented. XC.1 strategies unblocked 4 downstream items. Quality gate: 584 tests passing, 0 clippy warnings, all Stateright models green." :op :assert}
+   {:e #blake3 "eecf03d67c51e534f83a887fc844b02e9c39fa8ec96da8652956d90852420b94" :a :exploration/content-hash :v #bytes "47134f6147cdf4a836bb58f2e22f56d0ffa5c3ced0d84e26999198f2255b9f86" :op :assert}
+   {:e #blake3 "eecf03d67c51e534f83a887fc844b02e9c39fa8ec96da8652956d90852420b94" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "eecf03d67c51e534f83a887fc844b02e9c39fa8ec96da8652956d90852420b94" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "eecf03d67c51e534f83a887fc844b02e9c39fa8ec96da8652956d90852420b94" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "eecf03d67c51e534f83a887fc844b02e9c39fa8ec96da8652956d90852420b94" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "eecf03d67c51e534f83a887fc844b02e9c39fa8ec96da8652956d90852420b94" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

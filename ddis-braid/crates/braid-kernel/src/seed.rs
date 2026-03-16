@@ -3777,4 +3777,215 @@ mod tests {
             "Orientation should show accomplishments: {text}"
         );
     }
+
+    // -------------------------------------------------------------------
+    // INV-SEED-004/005/006 property-based tests
+    // -------------------------------------------------------------------
+
+    mod proptests {
+        use super::*;
+        use crate::datom::{AgentId, Attribute, TxId, Value};
+        use crate::proptest_strategies::arb_store;
+        use proptest::prelude::*;
+
+        // ── INV-SEED-004: Section Compression Priority ──────────────────
+        //
+        // Under budget pressure, State compresses first, Directive last.
+        // Property: for any store, a tight budget still yields a non-empty
+        // Directive section (containing the task), while the State section
+        // may have fewer entries than under a generous budget.
+        proptest! {
+            #[test]
+            fn compression_priority_directive_survives(
+                store in arb_store(3),
+                tight_budget in 50usize..300,
+            ) {
+                let agent = AgentId::from_name("inv004-test");
+                let task = "compression priority check";
+                let generous_budget = tight_budget + 3000;
+
+                let tight_seed = assemble_seed(&store, task, tight_budget, agent);
+                let generous_seed = assemble_seed(&store, task, generous_budget, agent);
+
+                // Both seeds must have exactly 5 sections (Orientation, Constraints,
+                // State, Warnings, Directive) — structural invariant.
+                prop_assert_eq!(tight_seed.context.sections.len(), 5);
+                prop_assert_eq!(generous_seed.context.sections.len(), 5);
+
+                // INV-SEED-004 core: Directive section always present and contains
+                // the task — it is the LAST section to compress.
+                let tight_directive = tight_seed.context.sections.iter().find_map(|s| {
+                    if let ContextSection::Directive(ref d) = s { Some(d.clone()) } else { None }
+                });
+                prop_assert!(
+                    tight_directive.is_some(),
+                    "Directive section must exist even under tight budget"
+                );
+                prop_assert!(
+                    tight_directive.as_ref().unwrap().contains("Task:"),
+                    "Directive must contain task anchoring under tight budget, got: {:?}",
+                    tight_directive
+                );
+
+                // State compresses first: under tight budget, state entry count
+                // should be <= state entry count under generous budget.
+                let tight_state_count: usize = tight_seed.context.sections.iter()
+                    .map(|s| match s {
+                        ContextSection::State(entries) => entries.len(),
+                        _ => 0,
+                    })
+                    .sum();
+                let generous_state_count: usize = generous_seed.context.sections.iter()
+                    .map(|s| match s {
+                        ContextSection::State(entries) => entries.len(),
+                        _ => 0,
+                    })
+                    .sum();
+
+                prop_assert!(
+                    generous_state_count >= tight_state_count,
+                    "INV-SEED-004: State should absorb compression first — \
+                     generous ({}) should have >= tight ({}) state entries",
+                    generous_state_count,
+                    tight_state_count
+                );
+            }
+        }
+
+        // ── INV-SEED-005: Demonstration Density ─────────────────────────
+        //
+        // When budget > 1000 and the store has 2+ spec elements in the
+        // same namespace (a constraint cluster), the seed should include
+        // at least one spec entity as a demonstration in the State section.
+        proptest! {
+            #[test]
+            fn demonstration_density_when_cluster_exists(
+                budget in 1500usize..5000,
+            ) {
+                // Build a store with a constraint cluster: 3 spec elements in
+                // the STORE namespace, forming a cluster of related constraints.
+                let mut store = store_with_full_schema();
+                let agent = AgentId::from_name("inv005-test");
+                let tx = TxId::new(5000, 0, agent);
+
+                let mut raw = std::collections::BTreeSet::new();
+                for (ident, doc) in [
+                    (":spec/inv-store-001", "Append-Only Immutability"),
+                    (":spec/inv-store-003", "Content-Addressable Identity"),
+                    (":spec/inv-store-005", "Transaction Atomicity"),
+                ] {
+                    let entity = EntityId::from_ident(ident);
+                    raw.insert(Datom::new(
+                        entity,
+                        Attribute::from_keyword(":db/ident"),
+                        Value::Keyword(ident.into()),
+                        tx,
+                        Op::Assert,
+                    ));
+                    raw.insert(Datom::new(
+                        entity,
+                        Attribute::from_keyword(":db/doc"),
+                        Value::String(doc.into()),
+                        tx,
+                        Op::Assert,
+                    ));
+                    raw.insert(Datom::new(
+                        entity,
+                        Attribute::from_keyword(":spec/type"),
+                        Value::Keyword(":element.type/invariant".into()),
+                        tx,
+                        Op::Assert,
+                    ));
+                }
+                store.merge(&Store::from_datoms(raw));
+
+                let seed = assemble_seed(&store, "store immutability", budget, agent);
+
+                // With budget > 1000 and 3 related constraints in the STORE
+                // namespace, the seed should include at least one spec entity
+                // as a demonstration in the State section.
+                let state_entries: Vec<&StateEntry> = seed.context.sections.iter()
+                    .flat_map(|s| match s {
+                        ContextSection::State(entries) => entries.iter().collect::<Vec<_>>(),
+                        _ => vec![],
+                    })
+                    .collect();
+
+                // Check: at least one state entry references a spec entity
+                // (either by content containing ":spec/" or by the entity itself).
+                let has_spec_demo = state_entries.iter().any(|e| {
+                    e.content.contains(":spec/") || e.content.contains("INV-STORE")
+                        || e.content.contains("Append-Only") || e.content.contains("Content-Addressable")
+                        || e.content.contains("Transaction Atomicity")
+                });
+
+                // Also check constraints section has the cluster
+                let constraint_count: usize = seed.context.sections.iter()
+                    .map(|s| match s {
+                        ContextSection::Constraints(refs) => refs.len(),
+                        _ => 0,
+                    })
+                    .sum();
+
+                // Only assert demonstration density when the constraints section
+                // actually picked up the cluster (constraint discovery is keyword-scored,
+                // so with task "store immutability" these should score highly).
+                if constraint_count >= 2 {
+                    prop_assert!(
+                        has_spec_demo,
+                        "INV-SEED-005: with {} constraints and budget {}, \
+                         expected at least one spec demonstration in State. \
+                         State entries: {:?}",
+                        constraint_count,
+                        budget,
+                        state_entries.iter().map(|e| &e.content).collect::<Vec<_>>()
+                    );
+                }
+            }
+        }
+
+        // ── INV-SEED-006: Intention Anchoring ───────────────────────────
+        //
+        // When a task directive is provided, it appears in the seed output's
+        // Directive section regardless of budget pressure.
+        proptest! {
+            #[test]
+            fn intention_anchoring_task_always_present(
+                store in arb_store(3),
+                budget in 50usize..5000,
+                task_suffix in "[a-z ]{3,30}",
+            ) {
+                let agent = AgentId::from_name("inv006-test");
+                let task = format!("implement {}", task_suffix.trim());
+
+                let seed = assemble_seed(&store, &task, budget, agent);
+
+                // INV-SEED-006: The task appears in the Directive section
+                // at full fidelity (pi_0), regardless of budget pressure.
+                let directive_text = seed.context.sections.iter().find_map(|s| {
+                    if let ContextSection::Directive(ref d) = s { Some(d.clone()) } else { None }
+                });
+
+                prop_assert!(
+                    directive_text.is_some(),
+                    "INV-SEED-006: Directive section must always be present"
+                );
+
+                let directive = directive_text.unwrap();
+                prop_assert!(
+                    directive.contains(&format!("Task: {}", task)),
+                    "INV-SEED-006: Directive must contain the exact task string. \
+                     Expected 'Task: {}' in: {}",
+                    task,
+                    directive
+                );
+
+                // Also verify the task is preserved in the SeedOutput metadata
+                prop_assert_eq!(
+                    &seed.task, &task,
+                    "SeedOutput.task must match the provided task"
+                );
+            }
+        }
+    }
 }

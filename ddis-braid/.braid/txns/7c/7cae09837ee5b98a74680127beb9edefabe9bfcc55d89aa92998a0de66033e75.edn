@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773366247/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Phase 2D error rendering: BraidError.render(mode) integrates errors into the output mode pipeline. JSON mode: structured {error: {what, why, fix, spec_ref}}. Agent mode: three-part navigative (error context | detail | fix+ref footer). Human mode: existing four-part preserved. main.rs: eprintln → eprint(e.render(mode)). Errors are now first-class prompt architecture citizens — zero-exploration recovery for AI agents."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9ece5c923b9c566719e85ca7452096d4ec10b8523d06faae2a89adb2206e2959" :a :db/ident :v :observation/phase-2d-error-rendering-braiderrorrendermode-integrates :op :assert}
+   {:e #blake3 "9ece5c923b9c566719e85ca7452096d4ec10b8523d06faae2a89adb2206e2959" :a :db/doc :v "Phase 2D error rendering: BraidError.render(mode) integrates errors into the output mode pipeline. JSON mode: structured {error: {what, why, fix, spec_ref}}. Agent mode: three-part navigative (error context | detail | fix+ref footer). Human mode: existing four-part preserved. main.rs: eprintln → eprint(e.render(mode)). Errors are now first-class prompt architecture citizens — zero-exploration recovery for AI agents." :op :assert}
+   {:e #blake3 "9ece5c923b9c566719e85ca7452096d4ec10b8523d06faae2a89adb2206e2959" :a :exploration/body :v "Phase 2D error rendering: BraidError.render(mode) integrates errors into the output mode pipeline. JSON mode: structured {error: {what, why, fix, spec_ref}}. Agent mode: three-part navigative (error context | detail | fix+ref footer). Human mode: existing four-part preserved. main.rs: eprintln → eprint(e.render(mode)). Errors are now first-class prompt architecture citizens — zero-exploration recovery for AI agents." :op :assert}
+   {:e #blake3 "9ece5c923b9c566719e85ca7452096d4ec10b8523d06faae2a89adb2206e2959" :a :exploration/content-hash :v #bytes "d73fb2cf11b96cbbc2bc41bf2d8f5f57cb71e5cabb3fe6311f59019d3d255f16" :op :assert}
+   {:e #blake3 "9ece5c923b9c566719e85ca7452096d4ec10b8523d06faae2a89adb2206e2959" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "9ece5c923b9c566719e85ca7452096d4ec10b8523d06faae2a89adb2206e2959" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "9ece5c923b9c566719e85ca7452096d4ec10b8523d06faae2a89adb2206e2959" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "9ece5c923b9c566719e85ca7452096d4ec10b8523d06faae2a89adb2206e2959" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "9ece5c923b9c566719e85ca7452096d4ec10b8523d06faae2a89adb2206e2959" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

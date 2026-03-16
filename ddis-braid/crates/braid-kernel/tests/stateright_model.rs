@@ -640,3 +640,186 @@ fn protocol_convergence_3_agents() {
         .join()
         .assert_properties();
 }
+
+// ===========================================================================
+// Resolution Model (W1B.1 — INV-RESOLUTION-003)
+// ===========================================================================
+//
+// Verifies: INV-RESOLUTION-002, INV-RESOLUTION-003, INV-RESOLUTION-005,
+//   ADR-RESOLUTION-001, ADR-RESOLUTION-002
+//
+// Models 2 agents writing concurrently to the same (entity, attribute) pair.
+// Under MultiValue resolution, ALL values must be preserved.
+// Resolution commutativity: resolve(agent_a_view) = resolve(agent_b_view)
+// after both agents have merged.
+
+/// State for the resolution model: 2 agents, concurrent writes to same (e,a).
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+struct ResolutionState {
+    /// Agent A's datom set.
+    agent_a: BTreeSet<Datom>,
+    /// Agent B's datom set.
+    agent_b: BTreeSet<Datom>,
+    /// Which agents have written their value.
+    a_written: bool,
+    b_written: bool,
+    /// Whether agents have merged.
+    a_merged: bool,
+    b_merged: bool,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+enum ResolutionAction {
+    /// Agent A writes value "val-a" to (entity, :db/doc).
+    WriteA,
+    /// Agent B writes value "val-b" to (entity, :db/doc).
+    WriteB,
+    /// Agent A merges from Agent B.
+    MergeA,
+    /// Agent B merges from Agent A.
+    MergeB,
+}
+
+struct ResolutionModel;
+
+impl Model for ResolutionModel {
+    type State = ResolutionState;
+    type Action = ResolutionAction;
+
+    fn init_states(&self) -> Vec<Self::State> {
+        let genesis = Store::genesis();
+        let datoms = genesis.datom_set().clone();
+        vec![ResolutionState {
+            agent_a: datoms.clone(),
+            agent_b: datoms,
+            a_written: false,
+            b_written: false,
+            a_merged: false,
+            b_merged: false,
+        }]
+    }
+
+    fn actions(&self, state: &Self::State, actions: &mut Vec<Self::Action>) {
+        if !state.a_written {
+            actions.push(ResolutionAction::WriteA);
+        }
+        if !state.b_written {
+            actions.push(ResolutionAction::WriteB);
+        }
+        // Can merge after writing (not before — nothing to merge)
+        if state.a_written && state.b_written && !state.a_merged {
+            actions.push(ResolutionAction::MergeA);
+        }
+        if state.a_written && state.b_written && !state.b_merged {
+            actions.push(ResolutionAction::MergeB);
+        }
+    }
+
+    fn next_state(&self, last_state: &Self::State, action: Self::Action) -> Option<Self::State> {
+        let mut state = last_state.clone();
+        let entity = EntityId::from_ident(":test/resolution-entity");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        match action {
+            ResolutionAction::WriteA => {
+                let agent_id = AgentId::from_name("resolution-agent-a");
+                let mut store = store_from_datoms(&state.agent_a);
+                let tx = Transaction::new(agent_id, ProvenanceType::Observed, "agent-a-write")
+                    .assert(entity, attr, Value::String("val-a".into()))
+                    .commit(&store);
+                if let Ok(committed) = tx {
+                    let _ = store.transact(committed);
+                    state.agent_a = store.datom_set().clone();
+                    state.a_written = true;
+                }
+            }
+            ResolutionAction::WriteB => {
+                let agent_id = AgentId::from_name("resolution-agent-b");
+                let mut store = store_from_datoms(&state.agent_b);
+                let tx = Transaction::new(agent_id, ProvenanceType::Observed, "agent-b-write")
+                    .assert(entity, attr, Value::String("val-b".into()))
+                    .commit(&store);
+                if let Ok(committed) = tx {
+                    let _ = store.transact(committed);
+                    state.agent_b = store.datom_set().clone();
+                    state.b_written = true;
+                }
+            }
+            ResolutionAction::MergeA => {
+                let mut store_a = store_from_datoms(&state.agent_a);
+                let store_b = store_from_datoms(&state.agent_b);
+                merge_stores(&mut store_a, &store_b);
+                state.agent_a = store_a.datom_set().clone();
+                state.a_merged = true;
+            }
+            ResolutionAction::MergeB => {
+                let mut store_b = store_from_datoms(&state.agent_b);
+                let store_a = store_from_datoms(&state.agent_a);
+                merge_stores(&mut store_b, &store_a);
+                state.agent_b = store_b.datom_set().clone();
+                state.b_merged = true;
+            }
+        }
+
+        Some(state)
+    }
+
+    fn properties(&self) -> Vec<Property<Self>> {
+        vec![
+            // SAFETY: After both agents merge, their datom sets are identical.
+            // INV-RESOLUTION-002: Resolution commutativity.
+            Property::<Self>::always("merge_convergence", |_model, state| {
+                if state.a_merged && state.b_merged {
+                    state.agent_a == state.agent_b
+                } else {
+                    true // Property only checked after both merge
+                }
+            }),
+            // SAFETY: Multi-value preservation — both val-a and val-b present
+            // in the merged store. INV-RESOLUTION-005.
+            Property::<Self>::always("multi_value_preserved", |_model, state| {
+                if state.a_merged && state.b_merged {
+                    let val_a = Value::String("val-a".into());
+                    let val_b = Value::String("val-b".into());
+                    let has_a = state.agent_a.iter().any(|d| d.value == val_a);
+                    let has_b = state.agent_a.iter().any(|d| d.value == val_b);
+                    has_a && has_b
+                } else {
+                    true
+                }
+            }),
+            // SAFETY: No datom loss — merged stores have at least as many datoms
+            // as each individual store. INV-STORE-007 / INV-MERGE-001.
+            Property::<Self>::always("no_datom_loss", |_model, state| {
+                if state.a_merged {
+                    // After merge, A should have at least as many datoms as B had
+                    state.agent_a.len() >= state.agent_b.len()
+                        || !state.b_written
+                } else {
+                    true
+                }
+            }),
+            // REACHABILITY: Both agents can eventually merge to identical state.
+            Property::<Self>::sometimes("eventual_merge_convergence", |_model, state| {
+                state.a_merged && state.b_merged && state.agent_a == state.agent_b
+            }),
+        ]
+    }
+
+    fn within_boundary(&self, _state: &Self::State) -> bool {
+        true // Small state space, always within bounds
+    }
+}
+
+// Verifies: INV-RESOLUTION-002, INV-RESOLUTION-003, INV-RESOLUTION-005,
+//   ADR-RESOLUTION-001, ADR-RESOLUTION-002
+/// Resolution model: 2 agents write different values to same (entity, attribute),
+/// then merge. Verifies commutativity, multi-value preservation, and convergence.
+#[test]
+fn resolution_model_commutativity_and_preservation() {
+    ResolutionModel
+        .checker()
+        .spawn_bfs()
+        .join()
+        .assert_properties();
+}

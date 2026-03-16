@@ -1,0 +1,19 @@
+{:tx/id #hlc "1773364544/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :derived
+ :tx/rationale "braid trace: 2 impl links, 0 witness marks"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f7ec12f47a483bb3842ae5e41adbfd5739509d109ce6233f19982dfe89408abc" :a :db/ident :v :impl/braid-kernel.src.guidance.inv-store-003 :op :assert}
+   {:e #blake3 "f7ec12f47a483bb3842ae5e41adbfd5739509d109ce6233f19982dfe89408abc" :a :impl/implements :v #blake3 "bed990329010060fbee0d763448857bb4d3e63b624317673b4fbfff9b7098f31" :op :assert}
+   {:e #blake3 "f7ec12f47a483bb3842ae5e41adbfd5739509d109ce6233f19982dfe89408abc" :a :impl/file :v "braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "f7ec12f47a483bb3842ae5e41adbfd5739509d109ce6233f19982dfe89408abc" :a :impl/module :v "braid_kernel::guidance" :op :assert}
+   {:e #blake3 "f7ec12f47a483bb3842ae5e41adbfd5739509d109ce6233f19982dfe89408abc" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "f7ec12f47a483bb3842ae5e41adbfd5739509d109ce6233f19982dfe89408abc" :a :impl/verification-evidence :v "Comment references INV-STORE-003 in braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "646e2fc0e752bd5c8732858ccf818496756eea6eeb10399183ce51e74ac4175d" :a :db/ident :v :impl/braid.src.commands.status.inv-interface-001 :op :assert}
+   {:e #blake3 "646e2fc0e752bd5c8732858ccf818496756eea6eeb10399183ce51e74ac4175d" :a :impl/implements :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "646e2fc0e752bd5c8732858ccf818496756eea6eeb10399183ce51e74ac4175d" :a :impl/file :v "braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "646e2fc0e752bd5c8732858ccf818496756eea6eeb10399183ce51e74ac4175d" :a :impl/module :v "braid::commands::status" :op :assert}
+   {:e #blake3 "646e2fc0e752bd5c8732858ccf818496756eea6eeb10399183ce51e74ac4175d" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "646e2fc0e752bd5c8732858ccf818496756eea6eeb10399183ce51e74ac4175d" :a :impl/verification-evidence :v "Comment references INV-INTERFACE-001 in braid/src/commands/status.rs" :op :assert}
+ ]}

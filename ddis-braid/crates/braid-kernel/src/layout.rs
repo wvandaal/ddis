@@ -1085,4 +1085,178 @@ mod tests {
             other => panic!("expected String, got {:?}", other),
         }
     }
+
+    // ===================================================================
+    // Property-Based Tests (W1C.9 — INV-LAYOUT-001..006)
+    // ===================================================================
+
+    mod proptests {
+        use super::*;
+        use crate::proptest_strategies::{
+            arb_agent_id, arb_doc_value, arb_entity_id, arb_tx_id,
+        };
+        use proptest::prelude::*;
+
+        /// Build a TxFile from arbitrary datoms for testing.
+        fn arb_tx_file(
+            datoms: Vec<Datom>,
+            agent: AgentId,
+            tx_id: TxId,
+        ) -> TxFile {
+            TxFile {
+                tx_id,
+                agent,
+                provenance: ProvenanceType::Observed,
+                rationale: "proptest".into(),
+                causal_predecessors: vec![],
+                datoms,
+            }
+        }
+
+        proptest! {
+            /// INV-LAYOUT-001: Content-addressed identity — same content = same hash.
+            ///
+            /// Two TxFiles with identical content produce identical content hashes.
+            /// This is the foundation of content-addressable storage.
+            #[test]
+            fn inv_layout_001_content_identity(
+                agent in arb_agent_id(),
+                tx in arb_tx_id(),
+                entity in arb_entity_id(),
+                value in arb_doc_value(),
+            ) {
+                let datom = Datom::new(entity, Attribute::from_keyword(":db/doc"), value, tx, Op::Assert);
+                let tx1 = arb_tx_file(vec![datom.clone()], agent, tx);
+                let tx2 = arb_tx_file(vec![datom], agent, tx);
+                let h1 = tx_content_hash(&tx1);
+                let h2 = tx_content_hash(&tx2);
+                prop_assert_eq!(h1, h2, "INV-LAYOUT-001: identical content → different hash");
+            }
+
+            /// INV-LAYOUT-001 (collision resistance): Different content → different hash.
+            ///
+            /// Two TxFiles with different rationales should (with overwhelming probability)
+            /// produce different content hashes.
+            #[test]
+            fn inv_layout_001_collision_resistance(
+                agent in arb_agent_id(),
+                tx in arb_tx_id(),
+            ) {
+                let tx1 = TxFile {
+                    tx_id: tx,
+                    agent,
+                    provenance: ProvenanceType::Observed,
+                    rationale: "rationale-a".into(),
+                    causal_predecessors: vec![],
+                    datoms: vec![],
+                };
+                let tx2 = TxFile {
+                    tx_id: tx,
+                    agent,
+                    provenance: ProvenanceType::Observed,
+                    rationale: "rationale-b".into(),
+                    causal_predecessors: vec![],
+                    datoms: vec![],
+                };
+                let h1 = tx_content_hash(&tx1);
+                let h2 = tx_content_hash(&tx2);
+                prop_assert_ne!(h1, h2, "INV-LAYOUT-001: different content → same hash (collision!)");
+            }
+
+            /// INV-LAYOUT-003: Serialization round-trip — deserialize(serialize(tx)) = tx.
+            ///
+            /// For arbitrary TxFiles, the EDN serialization/deserialization is lossless.
+            #[test]
+            fn inv_layout_003_serialization_round_trip(
+                agent in arb_agent_id(),
+                tx_id in arb_tx_id(),
+                entity in arb_entity_id(),
+                value in arb_doc_value(),
+            ) {
+                let datom = Datom::new(entity, Attribute::from_keyword(":db/doc"), value.clone(), tx_id, Op::Assert);
+                let tx = arb_tx_file(vec![datom], agent, tx_id);
+                let bytes = serialize_tx(&tx);
+                let parsed = deserialize_tx(&bytes);
+                prop_assert!(parsed.is_ok(), "INV-LAYOUT-003: serialization not invertible: {:?}", parsed.err());
+                let parsed = parsed.unwrap();
+                prop_assert_eq!(parsed.tx_id, tx.tx_id);
+                prop_assert_eq!(parsed.agent, tx.agent);
+                prop_assert_eq!(parsed.datoms.len(), tx.datoms.len());
+                if !tx.datoms.is_empty() {
+                    prop_assert_eq!(parsed.datoms[0].value.clone(), value);
+                }
+            }
+
+            /// INV-LAYOUT-004: Merge = directory union — collect_datoms union is superset.
+            ///
+            /// Given two transaction files, collect_datoms of both contains all datoms from each.
+            #[test]
+            fn inv_layout_004_merge_union(
+                agent1 in arb_agent_id(),
+                agent2 in arb_agent_id(),
+                tx1 in arb_tx_id(),
+                tx2 in arb_tx_id(),
+                entity1 in arb_entity_id(),
+                entity2 in arb_entity_id(),
+                value1 in arb_doc_value(),
+                value2 in arb_doc_value(),
+            ) {
+                let d1 = Datom::new(entity1, Attribute::from_keyword(":db/doc"), value1, tx1, Op::Assert);
+                let d2 = Datom::new(entity2, Attribute::from_keyword(":db/doc"), value2, tx2, Op::Assert);
+                let txf1 = arb_tx_file(vec![d1.clone()], agent1, tx1);
+                let txf2 = arb_tx_file(vec![d2.clone()], agent2, tx2);
+
+                let merged = collect_datoms(&[txf1, txf2]);
+                prop_assert!(merged.contains(&d1), "INV-LAYOUT-004: datom from tx1 lost in merge");
+                prop_assert!(merged.contains(&d2), "INV-LAYOUT-004: datom from tx2 lost in merge");
+            }
+
+            /// INV-LAYOUT-005: Content hash verification — verify(bytes, hash(bytes)) = true.
+            #[test]
+            fn inv_layout_005_hash_verification(
+                agent in arb_agent_id(),
+                tx_id in arb_tx_id(),
+            ) {
+                let tx = TxFile {
+                    tx_id,
+                    agent,
+                    provenance: ProvenanceType::Observed,
+                    rationale: "verify-test".into(),
+                    causal_predecessors: vec![],
+                    datoms: vec![],
+                };
+                let bytes = serialize_tx(&tx);
+                let hash = ContentHash::of(&bytes);
+                prop_assert!(
+                    verify_content_hash(&bytes, &hash),
+                    "INV-LAYOUT-005: content hash verification failed"
+                );
+            }
+
+            /// INV-LAYOUT-008: Serialization path is deterministic — same TxFile, same bytes.
+            #[test]
+            fn inv_layout_008_shard_prefix_deterministic(
+                agent in arb_agent_id(),
+                tx_id in arb_tx_id(),
+            ) {
+                let tx = TxFile {
+                    tx_id,
+                    agent,
+                    provenance: ProvenanceType::Observed,
+                    rationale: "shard-test".into(),
+                    causal_predecessors: vec![],
+                    datoms: vec![],
+                };
+                let hash = tx_content_hash(&tx);
+                let path1 = TxFilePath::from_hash(&hash);
+                let path2 = TxFilePath::from_hash(&hash);
+                prop_assert_eq!(
+                    path1.relative_path(), path2.relative_path(),
+                    "INV-LAYOUT-008: same hash → different paths"
+                );
+                // Shard is first 2 hex chars of hash
+                prop_assert_eq!(path1.shard.len(), 2, "shard should be 2 hex chars");
+            }
+        }
+    }
 }

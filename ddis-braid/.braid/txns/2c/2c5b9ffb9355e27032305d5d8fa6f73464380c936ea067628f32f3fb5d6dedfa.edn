@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773365119/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FM: Bilateral output uses opaque single-letter component labels (V,C,D,H,K,I,U) without explaining what they measure or how to improve them. C=0.15 required source code investigation to understand it means depth-weighted coverage. Agent output must make computation semantics transparent — each component should show: what it measures, why it's at its current value, and what action improves it. This is a CLI-as-Prompt violation: output failed to activate understanding."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e217943e2fa02f07baeebeab76438861584988299b131d5ff0ad7c7e80e0891e" :a :db/ident :v :observation/fm-bilateral-output-uses-opaque-single-letter-component-lab :op :assert}
+   {:e #blake3 "e217943e2fa02f07baeebeab76438861584988299b131d5ff0ad7c7e80e0891e" :a :db/doc :v "FM: Bilateral output uses opaque single-letter component labels (V,C,D,H,K,I,U) without explaining what they measure or how to improve them. C=0.15 required source code investigation to understand it means depth-weighted coverage. Agent output must make computation semantics transparent — each component should show: what it measures, why it's at its current value, and what action improves it. This is a CLI-as-Prompt violation: output failed to activate understanding." :op :assert}
+   {:e #blake3 "e217943e2fa02f07baeebeab76438861584988299b131d5ff0ad7c7e80e0891e" :a :exploration/body :v "FM: Bilateral output uses opaque single-letter component labels (V,C,D,H,K,I,U) without explaining what they measure or how to improve them. C=0.15 required source code investigation to understand it means depth-weighted coverage. Agent output must make computation semantics transparent — each component should show: what it measures, why it's at its current value, and what action improves it. This is a CLI-as-Prompt violation: output failed to activate understanding." :op :assert}
+   {:e #blake3 "e217943e2fa02f07baeebeab76438861584988299b131d5ff0ad7c7e80e0891e" :a :exploration/content-hash :v #bytes "e8a62d52aba618aa054661544eb38a312faf4b953da292f42c03296323e3e71f" :op :assert}
+   {:e #blake3 "e217943e2fa02f07baeebeab76438861584988299b131d5ff0ad7c7e80e0891e" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "e217943e2fa02f07baeebeab76438861584988299b131d5ff0ad7c7e80e0891e" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "e217943e2fa02f07baeebeab76438861584988299b131d5ff0ad7c7e80e0891e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e217943e2fa02f07baeebeab76438861584988299b131d5ff0ad7c7e80e0891e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "e217943e2fa02f07baeebeab76438861584988299b131d5ff0ad7c7e80e0891e" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

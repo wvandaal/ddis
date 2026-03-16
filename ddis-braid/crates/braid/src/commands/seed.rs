@@ -236,7 +236,10 @@ pub fn run_inject(
     let target = inject_path.display().to_string();
     let human = format!(
         "injected: ~{} tokens → {} ({} datoms, {} entities)\n",
-        token_estimate, target, store.len(), store.entity_count(),
+        token_estimate,
+        target,
+        store.len(),
+        store.entity_count(),
     );
 
     let json = serde_json::json!({

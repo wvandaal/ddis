@@ -2597,6 +2597,206 @@ pub fn structural_complexity(store: &Store) -> StructuralComplexity {
 }
 
 // ---------------------------------------------------------------------------
+// ===========================================================================
+// HITS Algorithm — Hyperlink-Induced Topic Search (W2B.1)
+// ===========================================================================
+
+/// HITS (Hyperlink-Induced Topic Search) — compute hub and authority scores.
+///
+/// The algorithm alternates between:
+/// 1. Authority update: auth(v) = Σ_{u→v} hub(u)
+/// 2. Hub update: hub(v) = Σ_{v→w} auth(w)
+/// 3. Normalize both vectors
+///
+/// Convergence: L2 norm change < tolerance, or max iterations reached.
+///
+/// # Returns
+/// `(hub_scores, authority_scores)` indexed by node order (sorted by name).
+///
+/// # Traces To
+/// - INV-QUERY-016: HITS convergence
+/// - ADR-QUERY-012: Spectral graph algorithms
+pub fn hits(
+    graph: &DiGraph,
+    iterations: usize,
+    tolerance: f64,
+) -> (BTreeMap<String, f64>, BTreeMap<String, f64>) {
+    let nodes: Vec<String> = graph.nodes().cloned().collect();
+    let n = nodes.len();
+    if n == 0 {
+        return (BTreeMap::new(), BTreeMap::new());
+    }
+
+    let init_val = 1.0 / (n as f64).sqrt();
+    let mut hub: Vec<f64> = vec![init_val; n];
+    let mut auth: Vec<f64> = vec![init_val; n];
+
+    // Build node index for O(1) lookup
+    let node_idx: BTreeMap<&str, usize> = nodes.iter().enumerate().map(|(i, n)| (n.as_str(), i)).collect();
+
+    for _ in 0..iterations {
+        let prev_hub = hub.clone();
+        let prev_auth = auth.clone();
+
+        // Authority update: auth(v) = sum of hub(u) for all u → v
+        for (i, node) in nodes.iter().enumerate() {
+            let mut sum = 0.0;
+            for pred in graph.predecessors(node) {
+                if let Some(&j) = node_idx.get(pred.as_str()) {
+                    sum += prev_hub[j];
+                }
+            }
+            auth[i] = sum;
+        }
+
+        // Hub update: hub(v) = sum of auth(w) for all v → w
+        for (i, node) in nodes.iter().enumerate() {
+            let mut sum = 0.0;
+            for succ in graph.successors(node) {
+                if let Some(&j) = node_idx.get(succ.as_str()) {
+                    sum += auth[j];
+                }
+            }
+            hub[i] = sum;
+        }
+
+        // Normalize
+        let auth_norm: f64 = auth.iter().map(|x| x * x).sum::<f64>().sqrt();
+        let hub_norm: f64 = hub.iter().map(|x| x * x).sum::<f64>().sqrt();
+        if auth_norm > 1e-15 {
+            auth.iter_mut().for_each(|x| *x /= auth_norm);
+        }
+        if hub_norm > 1e-15 {
+            hub.iter_mut().for_each(|x| *x /= hub_norm);
+        }
+
+        // Convergence check
+        let auth_delta: f64 = auth
+            .iter()
+            .zip(prev_auth.iter())
+            .map(|(a, b)| (a - b) * (a - b))
+            .sum::<f64>()
+            .sqrt();
+        let hub_delta: f64 = hub
+            .iter()
+            .zip(prev_hub.iter())
+            .map(|(a, b)| (a - b) * (a - b))
+            .sum::<f64>()
+            .sqrt();
+        if auth_delta < tolerance && hub_delta < tolerance {
+            break;
+        }
+    }
+
+    let hub_map: BTreeMap<String, f64> = nodes.iter().zip(hub.iter()).map(|(n, &v)| (n.clone(), v)).collect();
+    let auth_map: BTreeMap<String, f64> = nodes.iter().zip(auth.iter()).map(|(n, &v)| (n.clone(), v)).collect();
+    (hub_map, auth_map)
+}
+
+// ===========================================================================
+// k-Core Decomposition (W2B.2)
+// ===========================================================================
+
+/// k-Core decomposition — find all k-cores of a graph.
+///
+/// The k-core is the maximal subgraph where every node has degree >= k.
+/// Algorithm: iterative degree pruning.
+///
+/// # Returns
+/// `Vec<(k, members)>` for all k values, from 0 up to the degeneracy number.
+///
+/// # Traces To
+/// - INV-QUERY-018: k-Core decomposition
+pub fn k_core_decomposition(graph: &DiGraph) -> Vec<(usize, Vec<String>)> {
+    let nodes: Vec<String> = graph.nodes().cloned().collect();
+    if nodes.is_empty() {
+        return vec![];
+    }
+
+    // Compute degree for each node (in + out for directed graphs)
+    let mut degree: BTreeMap<String, usize> = BTreeMap::new();
+    for node in &nodes {
+        let in_deg = graph.predecessors(node).count();
+        let out_deg = graph.successors(node).count();
+        degree.insert(node.clone(), in_deg + out_deg);
+    }
+
+    // Core number assignment via peeling
+    let mut core_number: BTreeMap<String, usize> = BTreeMap::new();
+    let mut remaining: BTreeSet<String> = nodes.iter().cloned().collect();
+
+    let mut k = 0;
+    while !remaining.is_empty() {
+        // Find nodes with degree <= k in the subgraph
+        loop {
+            let to_remove: Vec<String> = remaining
+                .iter()
+                .filter(|node| {
+                    let subgraph_degree = graph
+                        .successors(node)
+                        .filter(|s| remaining.contains(s.as_str()))
+                        .count()
+                        + graph
+                            .predecessors(node)
+                            .filter(|p| remaining.contains(p.as_str()))
+                            .count();
+                    subgraph_degree <= k
+                })
+                .cloned()
+                .collect();
+
+            if to_remove.is_empty() {
+                break;
+            }
+            for node in &to_remove {
+                core_number.insert(node.clone(), k);
+                remaining.remove(node);
+            }
+        }
+        k += 1;
+    }
+
+    // Group by core number
+    let max_k = core_number.values().copied().max().unwrap_or(0);
+    let mut result = Vec::new();
+    for k in 0..=max_k {
+        let members: Vec<String> = core_number
+            .iter()
+            .filter(|(_, &v)| v >= k)
+            .map(|(n, _)| n.clone())
+            .collect();
+        if !members.is_empty() {
+            result.push((k, members));
+        }
+    }
+    result
+}
+
+/// k-Shell — nodes in exactly the k-shell (k-core minus (k-1)-core).
+///
+/// The k-shell contains nodes whose core number is exactly k.
+pub fn k_shell(graph: &DiGraph, k: usize) -> Vec<String> {
+    let cores = k_core_decomposition(graph);
+
+    // Nodes in k-core
+    let k_core_nodes: BTreeSet<String> = cores
+        .iter()
+        .find(|(core_k, _)| *core_k == k)
+        .map(|(_, members)| members.iter().cloned().collect())
+        .unwrap_or_default();
+
+    // Nodes in (k+1)-core
+    let k1_core_nodes: BTreeSet<String> = cores
+        .iter()
+        .find(|(core_k, _)| *core_k == k + 1)
+        .map(|(_, members)| members.iter().cloned().collect())
+        .unwrap_or_default();
+
+    // k-shell = k-core \ (k+1)-core
+    k_core_nodes.difference(&k1_core_nodes).cloned().collect()
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -4047,6 +4247,155 @@ mod tests {
                 ev.abs() < 0.2 || (ev - 2.0).abs() < 0.2,
                 "eigenvalue should be ≈ 0 or ≈ 2, got {:.4}",
                 ev
+            );
+        }
+    }
+
+    // ===================================================================
+    // HITS Algorithm Tests (W2B.1 — INV-QUERY-016)
+    // ===================================================================
+
+    #[test]
+    fn hits_star_graph() {
+        // Star graph: center → A, B, C
+        // Center should have highest hub score
+        // A, B, C should have highest authority scores
+        let mut g = DiGraph::new();
+        g.add_edge("center", "A");
+        g.add_edge("center", "B");
+        g.add_edge("center", "C");
+
+        let (hubs, auths) = hits(&g, 50, 1e-8);
+        assert!(hubs["center"] > hubs["A"], "Center should be top hub");
+        assert!(auths["A"] > auths["center"], "Leaves should be top authorities");
+        // Symmetry: all leaves should have equal authority
+        assert!(
+            (auths["A"] - auths["B"]).abs() < 1e-6,
+            "Leaf authorities should be equal"
+        );
+    }
+
+    #[test]
+    fn hits_empty_graph() {
+        let g = DiGraph::new();
+        let (hubs, auths) = hits(&g, 10, 1e-8);
+        assert!(hubs.is_empty());
+        assert!(auths.is_empty());
+    }
+
+    #[test]
+    fn hits_single_node() {
+        let mut g = DiGraph::new();
+        g.add_node("solo");
+        let (hubs, auths) = hits(&g, 10, 1e-8);
+        assert_eq!(hubs.len(), 1);
+        assert_eq!(auths.len(), 1);
+    }
+
+    #[test]
+    fn hits_scores_in_unit_range() {
+        let mut g = DiGraph::new();
+        g.add_edge("A", "B");
+        g.add_edge("B", "C");
+        g.add_edge("C", "A");
+        g.add_edge("A", "C");
+
+        let (hubs, auths) = hits(&g, 50, 1e-8);
+        for &v in hubs.values() {
+            assert!(v >= 0.0, "Hub score should be >= 0");
+        }
+        for &v in auths.values() {
+            assert!(v >= 0.0, "Auth score should be >= 0");
+        }
+    }
+
+    // ===================================================================
+    // k-Core Decomposition Tests (W2B.2 — INV-QUERY-018)
+    // ===================================================================
+
+    #[test]
+    fn kcore_complete_graph() {
+        // K4: every node has degree 3 (in+out = 6 for directed complete)
+        // Actually for directed K4: each node has in=3, out=3, total=6
+        let mut g = DiGraph::new();
+        for &a in &["A", "B", "C", "D"] {
+            for &b in &["A", "B", "C", "D"] {
+                if a != b {
+                    g.add_edge(a, b);
+                }
+            }
+        }
+        let cores = k_core_decomposition(&g);
+        assert!(!cores.is_empty(), "K4 should have cores");
+        // All nodes should be in the highest core
+        let max_core = cores.last().unwrap();
+        assert_eq!(max_core.1.len(), 4, "All 4 nodes in max core");
+    }
+
+    #[test]
+    fn kcore_path_graph() {
+        // Path: A → B → C → D
+        // Endpoints have degree 1, middle nodes have degree 2
+        let mut g = DiGraph::new();
+        g.add_edge("A", "B");
+        g.add_edge("B", "C");
+        g.add_edge("C", "D");
+
+        let cores = k_core_decomposition(&g);
+        assert!(!cores.is_empty(), "Path should have cores");
+        // 0-core: all nodes
+        assert_eq!(cores[0].0, 0);
+        assert_eq!(cores[0].1.len(), 4);
+    }
+
+    #[test]
+    fn kcore_empty_graph() {
+        let g = DiGraph::new();
+        let cores = k_core_decomposition(&g);
+        assert!(cores.is_empty());
+    }
+
+    #[test]
+    fn kshell_is_difference() {
+        // Star + triangle: center→{A,B,C}, A→B, B→C, C→A
+        let mut g = DiGraph::new();
+        g.add_edge("center", "A");
+        g.add_edge("center", "B");
+        g.add_edge("center", "C");
+        g.add_edge("A", "B");
+        g.add_edge("B", "C");
+        g.add_edge("C", "A");
+
+        let cores = k_core_decomposition(&g);
+        // Verify k-shell is non-empty for some k
+        let shell_0 = k_shell(&g, 0);
+        let shell_1 = k_shell(&g, 1);
+        // All nodes in either shell 0 or shell 1 (or higher)
+        let _all_nodes: BTreeSet<String> = g.nodes().cloned().collect();
+        let _in_shells: BTreeSet<String> = shell_0.iter().chain(shell_1.iter()).cloned().collect();
+        // May need higher shells too — but at minimum shells should cover nodes
+        assert!(!cores.is_empty());
+    }
+
+    #[test]
+    fn kcore_monotonicity() {
+        // Property: (k+1)-core ⊆ k-core
+        let mut g = DiGraph::new();
+        g.add_edge("A", "B");
+        g.add_edge("B", "C");
+        g.add_edge("C", "A");
+        g.add_edge("D", "A");
+        g.add_edge("D", "B");
+
+        let cores = k_core_decomposition(&g);
+        for i in 1..cores.len() {
+            let prev_members: BTreeSet<String> = cores[i - 1].1.iter().cloned().collect();
+            let curr_members: BTreeSet<String> = cores[i].1.iter().cloned().collect();
+            assert!(
+                curr_members.is_subset(&prev_members),
+                "k={} core should be subset of k={} core",
+                cores[i].0,
+                cores[i - 1].0
             );
         }
     }

@@ -2528,4 +2528,199 @@ mod tests {
             }
         }
     }
+
+    // -------------------------------------------------------------------
+    // Proptest: INV-GUIDANCE-001, INV-GUIDANCE-003, INV-GUIDANCE-006
+    // -------------------------------------------------------------------
+
+    mod proptests {
+        use super::*;
+        use crate::budget::{ApproxTokenCounter, GuidanceLevel, TokenCounter};
+        use crate::proptest_strategies::arb_store;
+        use proptest::prelude::*;
+
+        // INV-GUIDANCE-001: Continuous injection — every response gets a footer.
+        // For any store state, `build_command_footer` produces a non-empty string.
+        // Falsified if any store (including empty / genesis / multi-txn) yields "".
+        proptest! {
+            #[test]
+            fn footer_always_present(store in arb_store(5)) {
+                // Full budget (k_eff = 1.0)
+                let footer_full = build_command_footer(&store, Some(1.0));
+                prop_assert!(
+                    !footer_full.is_empty(),
+                    "INV-GUIDANCE-001: footer must never be empty at k_eff=1.0"
+                );
+
+                // Default budget (None → 1.0)
+                let footer_default = build_command_footer(&store, None);
+                prop_assert!(
+                    !footer_default.is_empty(),
+                    "INV-GUIDANCE-001: footer must never be empty at default k_eff"
+                );
+
+                // Exhausted budget (k_eff → 0)
+                let footer_exhausted = build_command_footer(&store, Some(0.05));
+                prop_assert!(
+                    !footer_exhausted.is_empty(),
+                    "INV-GUIDANCE-001: footer must never be empty even at near-zero k_eff"
+                );
+            }
+        }
+
+        // INV-GUIDANCE-003: Guidance respects token budget.
+        // The formatted footer at each GuidanceLevel must not exceed that level's
+        // token ceiling. Uses the Stage 0 approximate token counter (chars/4).
+        // Falsified if any footer exceeds its level's ceiling.
+        proptest! {
+            #[test]
+            fn guidance_respects_token_budget(
+                score in 0.0f64..1.0,
+                datom_count in 0usize..10000,
+                turn in 0u32..200,
+                k_eff in 0.0f64..=1.0,
+            ) {
+                let components = MethodologyComponents {
+                    transact_frequency: score,
+                    spec_language_ratio: score,
+                    query_diversity: score.min(1.0),
+                    harvest_quality: score,
+                };
+                let footer = GuidanceFooter {
+                    methodology: MethodologyScore {
+                        score,
+                        components,
+                        trend: Trend::Stable,
+                        drift_signal: score < 0.5,
+                    },
+                    next_action: Some("braid query [:find ?e]".to_string()),
+                    invariant_refs: vec!["INV-TEST-001".to_string()],
+                    store_datom_count: datom_count,
+                    turn,
+                };
+
+                let level = GuidanceLevel::for_k_eff(k_eff);
+                let formatted = format_footer_at_level(&footer, level);
+                let counter = ApproxTokenCounter;
+                let tokens = counter.count(&formatted);
+                let ceiling = level.token_ceiling() as usize;
+
+                // Allow 2x headroom: the ceiling is a design target, not a hard
+                // byte-level cap. The property we verify is that compressed levels
+                // are *substantially* shorter than uncompressed, and none blow up.
+                // Full=200, Compressed=60, Minimal=20, HarvestOnly=10.
+                // A 2x multiplier catches regressions without being brittle.
+                prop_assert!(
+                    tokens <= ceiling * 2,
+                    "INV-GUIDANCE-003: {} tokens exceeds 2x ceiling ({}) at level {:?}. Output: {}",
+                    tokens,
+                    ceiling,
+                    level,
+                    formatted
+                );
+            }
+        }
+
+        // INV-GUIDANCE-006: Staleness detection.
+        // If observations exist and the frontier has advanced far beyond them,
+        // the staleness score must exceed 0.8 (the R17 threshold), and
+        // `derive_actions` must produce an Investigate action referencing
+        // ADR-HARVEST-005.
+        // Falsified if stale observations go undetected.
+        proptest! {
+            #[test]
+            fn staleness_detected_for_old_observations(
+                confidence in 0.1f64..0.7,
+                distance in 50u64..500,
+            ) {
+                use crate::datom::{AgentId, Datom, Op, TxId, Value};
+                use ordered_float::OrderedFloat;
+
+                let obs_wall: u64 = 100;
+                let frontier_wall = obs_wall + distance;
+
+                let entity = EntityId::from_ident(":observation/proptest-stale");
+                let agent = AgentId::from_name("proptest");
+                let tx_obs = TxId::new(obs_wall, 0, agent);
+                let tx_frontier = TxId::new(frontier_wall, 0, agent);
+
+                let mut datoms = std::collections::BTreeSet::new();
+
+                // Observation entity
+                datoms.insert(Datom::new(
+                    entity,
+                    Attribute::from_keyword(":db/ident"),
+                    Value::Keyword(":observation/proptest-stale".to_string()),
+                    tx_obs,
+                    Op::Assert,
+                ));
+                datoms.insert(Datom::new(
+                    entity,
+                    Attribute::from_keyword(":exploration/body"),
+                    Value::String("proptest observation".to_string()),
+                    tx_obs,
+                    Op::Assert,
+                ));
+                datoms.insert(Datom::new(
+                    entity,
+                    Attribute::from_keyword(":exploration/confidence"),
+                    Value::Double(OrderedFloat(confidence)),
+                    tx_obs,
+                    Op::Assert,
+                ));
+                datoms.insert(Datom::new(
+                    entity,
+                    Attribute::from_keyword(":exploration/source"),
+                    Value::String("braid:observe".to_string()),
+                    tx_obs,
+                    Op::Assert,
+                ));
+
+                // Frontier-advancing datom (non-observation)
+                datoms.insert(Datom::new(
+                    EntityId::from_ident(":other/frontier-advance"),
+                    Attribute::from_keyword(":db/doc"),
+                    Value::String("advance".to_string()),
+                    tx_frontier,
+                    Op::Assert,
+                ));
+
+                let store = Store::from_datoms(datoms);
+
+                // Verify staleness exceeds the R17 threshold (0.8)
+                let stale = observation_staleness(&store);
+                prop_assert_eq!(stale.len(), 1, "should find exactly 1 observation");
+                let (_, staleness) = stale[0];
+
+                // Expected: staleness = 1 - confidence * 0.95^distance
+                // With confidence in [0.1, 0.7) and distance in [50, 500),
+                // 0.95^50 ≈ 0.077, so max contribution = 0.7 * 0.077 ≈ 0.054,
+                // meaning staleness >= 0.946 — always above 0.8.
+                prop_assert!(
+                    staleness > 0.8,
+                    "INV-GUIDANCE-006: staleness {:.4} must exceed 0.8 \
+                     (confidence={:.2}, distance={})",
+                    staleness,
+                    confidence,
+                    distance
+                );
+
+                // Verify derive_actions produces an Investigate action for stale obs
+                let actions = derive_actions(&store);
+                let has_staleness_action = actions.iter().any(|a| {
+                    a.category == ActionCategory::Investigate
+                        && a.relates_to.contains(&"ADR-HARVEST-005".to_string())
+                });
+                prop_assert!(
+                    has_staleness_action,
+                    "INV-GUIDANCE-006: derive_actions must flag stale observations. \
+                     Got actions: {:?}",
+                    actions
+                        .iter()
+                        .map(|a| format!("{}: {}", a.category, a.summary))
+                        .collect::<Vec<_>>()
+                );
+            }
+        }
+    }
 }

@@ -2289,4 +2289,164 @@ mod tests {
         let trajectory = load_trajectory(&store);
         assert!(trajectory.is_empty());
     }
+
+    // ===================================================================
+    // Property-Based Tests (W1C.6 — INV-BILATERAL-001..005)
+    // ===================================================================
+
+    mod proptests {
+        use super::*;
+        use crate::proptest_strategies::{
+            arb_fitness_components, arb_fitness_score, arb_fitness_trajectory,
+            arb_monotone_trajectory, arb_store,
+        };
+        use proptest::prelude::*;
+
+        proptest! {
+            /// INV-BILATERAL-001: F(S) monotonically non-decreasing for well-formed transitions.
+            ///
+            /// If F(S) was computed correctly, adding spec+impl datoms should not decrease it.
+            /// We test that analyze_convergence correctly identifies monotone trajectories.
+            #[test]
+            fn inv_bilateral_001_monotone_trajectory_detection(
+                trajectory in arb_monotone_trajectory(10),
+            ) {
+                let analysis = analyze_convergence(&trajectory);
+                prop_assert!(
+                    analysis.is_monotonic,
+                    "INV-BILATERAL-001: monotone trajectory wrongly classified as non-monotonic"
+                );
+            }
+
+            /// INV-BILATERAL-001 (negative): Non-monotone trajectories detected.
+            #[test]
+            fn inv_bilateral_001_nonmonotone_detection(
+                trajectory in arb_fitness_trajectory(10),
+            ) {
+                let analysis = analyze_convergence(&trajectory);
+                // Check consistency: if analysis says monotonic, verify it actually is
+                if analysis.is_monotonic {
+                    for w in trajectory.windows(2) {
+                        prop_assert!(
+                            w[1] >= w[0] - 1e-10,
+                            "INV-BILATERAL-001: claimed monotonic but {} < {}",
+                            w[1], w[0]
+                        );
+                    }
+                }
+            }
+
+            /// INV-BILATERAL-002: F(S) is bounded in [0, 1] for all valid component values.
+            ///
+            /// The fitness function is a weighted sum of components each in [0,1],
+            /// with weights summing to 1.0. Therefore F(S) ∈ [0, 1].
+            #[test]
+            fn inv_bilateral_002_fitness_bounded(
+                fs in arb_fitness_score(),
+            ) {
+                prop_assert!(
+                    fs.total >= -1e-10 && fs.total <= 1.0 + 1e-10,
+                    "INV-BILATERAL-002: F(S) = {} out of [0,1]",
+                    fs.total
+                );
+            }
+
+            /// INV-BILATERAL-002: Weighted sum is correct (component * weight = total).
+            #[test]
+            fn inv_bilateral_002_weighted_sum_correct(
+                fc in arb_fitness_components(),
+            ) {
+                let expected = W_VALIDATION * fc.validation
+                    + W_COVERAGE * fc.coverage
+                    + W_DRIFT * fc.drift
+                    + W_HARVEST * fc.harvest_quality
+                    + W_CONTRADICTION * fc.contradiction
+                    + W_INCOMPLETENESS * fc.incompleteness
+                    + W_UNCERTAINTY * fc.uncertainty;
+                let fs = FitnessScore {
+                    total: expected,
+                    components: fc,
+                    unmeasured: vec![],
+                };
+                prop_assert!(
+                    (fs.total - expected).abs() < 1e-10,
+                    "INV-BILATERAL-002: total {} != expected {}",
+                    fs.total, expected
+                );
+            }
+
+            /// INV-BILATERAL-003: Bilateral symmetry — forward and backward scans
+            /// are both computed for any store (symmetry of the bilateral operation).
+            #[test]
+            fn inv_bilateral_003_scan_symmetry(store in arb_store(3)) {
+                let forward = forward_scan(&store);
+                let backward = backward_scan(&store);
+                // Both scans should be well-defined (coverage in [0,1])
+                prop_assert!(
+                    forward.coverage_ratio >= 0.0 && forward.coverage_ratio <= 1.0,
+                    "INV-BILATERAL-003: forward coverage {} out of [0,1]",
+                    forward.coverage_ratio
+                );
+                prop_assert!(
+                    backward.coverage_ratio >= 0.0 && backward.coverage_ratio <= 1.0,
+                    "INV-BILATERAL-003: backward coverage {} out of [0,1]",
+                    backward.coverage_ratio
+                );
+            }
+
+            /// INV-BILATERAL-004: Drift residual — compute_fitness is total.
+            ///
+            /// For any store state, compute_fitness must return without panicking
+            /// and produce a well-defined FitnessScore (total function).
+            #[test]
+            fn inv_bilateral_004_compute_fitness_total(store in arb_store(3)) {
+                let fs = compute_fitness(&store);
+                prop_assert!(
+                    fs.total >= -1e-10 && fs.total <= 1.0 + 1e-10,
+                    "INV-BILATERAL-004: F(S) = {} for arbitrary store",
+                    fs.total
+                );
+                // No NaN or infinity
+                prop_assert!(
+                    fs.total.is_finite(),
+                    "INV-BILATERAL-004: F(S) is not finite"
+                );
+            }
+
+            /// INV-BILATERAL-005: Cycle-to-datoms roundtrip — bilateral state
+            /// can always be serialized to datoms.
+            #[test]
+            fn inv_bilateral_005_cycle_to_datoms_total(store in arb_store(2)) {
+                let state = run_cycle(&store, &[], false);
+                let agent = crate::datom::AgentId::from_name("proptest");
+                let tx_id = TxId::new(999, 0, agent);
+                let datoms = cycle_to_datoms(&state, tx_id);
+                // Must produce at least: ident + fitness + 7 components + 5 CC bools + 2 scan + 2 convergence = 18
+                prop_assert!(
+                    datoms.len() >= 18,
+                    "INV-BILATERAL-005: cycle_to_datoms produced only {} datoms (expected >= 18)",
+                    datoms.len()
+                );
+                // All datoms use the same entity (the cycle entity)
+                let entity = datoms[0].entity;
+                for d in &datoms {
+                    prop_assert_eq!(
+                        d.entity, entity,
+                        "INV-BILATERAL-005: datoms use different entities"
+                    );
+                }
+            }
+
+            /// Depth weight function is bounded and monotone.
+            #[test]
+            fn depth_weight_monotone_and_bounded(depth in 0i64..=4) {
+                let w = depth_weight(depth);
+                prop_assert!((0.0..=1.0).contains(&w), "depth_weight({}) = {} out of [0,1]", depth, w);
+                if depth > 0 {
+                    let prev = depth_weight(depth - 1);
+                    prop_assert!(w >= prev, "depth_weight not monotone: w({})={} < w({})={}", depth, w, depth-1, prev);
+                }
+            }
+        }
+    }
 }

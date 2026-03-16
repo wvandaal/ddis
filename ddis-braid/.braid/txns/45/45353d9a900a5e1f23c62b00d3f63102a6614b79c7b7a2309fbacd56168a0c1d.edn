@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773366238/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Phase 3 native CommandOutput: 9 commands converted from from_human() bridge — bilateral, config, query, log, schema, seed, init + observe (prior session). Each returns structured JSON, AgentOutput with context/content/footer, and human text. Bilateral opacity failure mode resolved: each F(S) component now has score, weight, AND description with depth-weight lattice explanation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "328fe0b31f2bd46352d0aa68a1a43fdb8ba4251015d31a0bad6d143583ec94f1" :a :db/ident :v :observation/phase-3-native-commandoutput-9-commands-converted-from-from :op :assert}
+   {:e #blake3 "328fe0b31f2bd46352d0aa68a1a43fdb8ba4251015d31a0bad6d143583ec94f1" :a :db/doc :v "Phase 3 native CommandOutput: 9 commands converted from from_human() bridge — bilateral, config, query, log, schema, seed, init + observe (prior session). Each returns structured JSON, AgentOutput with context/content/footer, and human text. Bilateral opacity failure mode resolved: each F(S) component now has score, weight, AND description with depth-weight lattice explanation." :op :assert}
+   {:e #blake3 "328fe0b31f2bd46352d0aa68a1a43fdb8ba4251015d31a0bad6d143583ec94f1" :a :exploration/body :v "Phase 3 native CommandOutput: 9 commands converted from from_human() bridge — bilateral, config, query, log, schema, seed, init + observe (prior session). Each returns structured JSON, AgentOutput with context/content/footer, and human text. Bilateral opacity failure mode resolved: each F(S) component now has score, weight, AND description with depth-weight lattice explanation." :op :assert}
+   {:e #blake3 "328fe0b31f2bd46352d0aa68a1a43fdb8ba4251015d31a0bad6d143583ec94f1" :a :exploration/content-hash :v #bytes "8c4a8b2dbaa45a871457868af08a162d171043e21847fcdfadd2bfbd628899b1" :op :assert}
+   {:e #blake3 "328fe0b31f2bd46352d0aa68a1a43fdb8ba4251015d31a0bad6d143583ec94f1" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "328fe0b31f2bd46352d0aa68a1a43fdb8ba4251015d31a0bad6d143583ec94f1" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "328fe0b31f2bd46352d0aa68a1a43fdb8ba4251015d31a0bad6d143583ec94f1" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "328fe0b31f2bd46352d0aa68a1a43fdb8ba4251015d31a0bad6d143583ec94f1" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "328fe0b31f2bd46352d0aa68a1a43fdb8ba4251015d31a0bad6d143583ec94f1" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773366252/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 8 candidates from task 'Session 021: Phase B+C+D completion, D4 integrations, validation'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :db/ident :v :harvest/session-braid-user-1773366252 :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :db/doc :v "Harvest session for task: Session 021: Phase B+C+D completion, D4 integrations, validation" :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/candidate-count :v 8 :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/drift-score :v 1.6 :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/task :v "Session 021: Phase B+C+D completion, D4 integrations, validation" :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/accomplishments :v "Session entity: :impl/braid.src.commands.status.inv-interface-001; Session entity: :impl/braid-kernel.src.guidance.inv-store-003" :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Session 021: Phase B+C+D completion, D4 integrations, validation\nRun: `braid seed --task \"continue: Session 021: Phase B+C+D completion, D4 integrations, validation\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/git-summary :v "branch=main, 4 commits, 43 files (+9116/-629)\n  52cda27 Close Phase 3 + Phase 2D beads: 8 tasks resolved\n  1d1425d Session 023 Phase 3+2D: Native CommandOutput for 9 commands + mode-aware errors\n  ea36f4f Close 35 beads: CLI-as-Prompt P0-P4 + S1-INTERFACE WP1-WP8\n  6390ee9 Session 022: CLI-as-Prompt architecture — agent-first output pipeline\nHot files:\n  ddis-braid/.braid/txns/5f/5f5b5f825cd8b796cad32b402187261d02ec131736fc722e987c0cd659fa7530.edn (4252 lines changed)\n  ddis-braid/crates/braid/src/commands/mod.rs (743 lines changed)\n  ddis-braid/crates/braid/src/bootstrap.rs (467 lines changed)\n  ddis-braid/crates/braid/src/commands/init.rs (407 lines changed)\n  ddis-braid/crates/braid/src/commands/bilateral.rs (328 lines changed)\n  ddis-braid/crates/braid/src/commands/config.rs (297 lines changed)\n  ddis-braid/crates/braid/src/output.rs (274 lines changed)\n  ddis-braid/crates/braid/src/commands/spec.rs (255 lines changed)" :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/store-datom-count :v 9299 :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/store-entity-count :v 1562 :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/codebase-snapshot :v "Codebase: 51190 LOC across 59 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4053 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (3780 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (3287 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (2714 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (2531 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (2531 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2292 LOC)\n  ddis-braid/crates/braid-kernel/src/trilateral.rs (1902 LOC)\n  ddis-braid/crates/braid-kernel/tests/cross_namespace.rs (1376 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (1294 LOC)" :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/tx-since-last :v 4 :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/observation-count :v 3 :op :assert}
+   {:e #blake3 "78f87a832b3c999adbd1fde2c872359ab6a1c261187197945737da61b8f105f4" :a :harvest/delta-summary :v "+51 datoms, +6 entities" :op :assert}
+ ]}
