@@ -80,6 +80,9 @@ fn main() {
     let result = commands::run(cmd, &budget_ctx, mode);
     match result {
         Ok(cmd_output) => {
+            // INV-BUDGET-001: enforce token ceiling as the last gate before rendering.
+            // JSON mode is exempt — agents need complete structured data.
+            let cmd_output = commands::apply_budget_gate(cmd_output, mode, &budget_ctx);
             print!("{}", cmd_output.render(mode));
         }
         Err(e) => {

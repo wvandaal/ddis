@@ -108,7 +108,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
             if args.is_empty() {
                 return DispatchResult::Error("usage: show <entity-ident>".into());
             }
-            match super::query::run(path, Some(args), None, false) {
+            match super::query::run(path, Some(args), None, None, false) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
@@ -118,7 +118,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
             if args.is_empty() {
                 return DispatchResult::Error("usage: find <attribute>".into());
             }
-            match super::query::run(path, None, Some(args), false) {
+            match super::query::run(path, None, Some(args), None, false) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
@@ -150,7 +150,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                     "usage: datalog [:find ?e :where [?e :db/doc ?v]]".into(),
                 );
             }
-            match super::query::run_datalog(path, args, false) {
+            match super::query::run_datalog(path, args, None, false) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }

@@ -3,13 +3,49 @@
 use std::path::Path;
 
 use braid_kernel::datom::{Attribute, EntityId, Op, Value};
+#[cfg(test)]
+use braid_kernel::evaluate;
 use braid_kernel::query::clause::Term;
-use braid_kernel::query::evaluator::QueryResult;
-use braid_kernel::{evaluate, Clause, FindSpec, Pattern, QueryExpr, Store};
+use braid_kernel::query::evaluator::{evaluate_with_frontier, QueryResult};
+use braid_kernel::store::Frontier;
+use braid_kernel::{Clause, FindSpec, Pattern, QueryExpr, Store};
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
 use crate::output::{AgentOutput, CommandOutput};
+
+/// Parse a `--frontier` flag value into a `Frontier`.
+///
+/// Supported values:
+/// - `"current"` — snapshot of the latest tx per agent (vector clock).
+/// - `"tx:N"` — all datoms up to wall-time N (e.g., `"tx:1773000000"`).
+/// - `None` — no frontier (all datoms visible).
+fn parse_frontier(store: &Store, spec: Option<&str>) -> Result<Option<Frontier>, BraidError> {
+    match spec {
+        None => Ok(None),
+        Some("current") => Ok(Some(Frontier::current(store))),
+        Some(s) if s.starts_with("tx:") => {
+            let wall_str = &s[3..];
+            let wall_time: u64 = wall_str.parse().map_err(|_| {
+                BraidError::Validation(format!(
+                    "invalid frontier tx wall-time '{wall_str}': expected integer (e.g., tx:1773000000)"
+                ))
+            })?;
+            // Build a TxId at the given wall-time for cutoff comparison.
+            // We use a zero agent and zero logical counter — Frontier::at compares
+            // by <= on the full TxId ordering, which is wall_time-primary.
+            let cutoff = braid_kernel::datom::TxId::new(
+                wall_time,
+                u32::MAX,
+                braid_kernel::datom::AgentId::from_name("__frontier_cutoff__"),
+            );
+            Ok(Some(Frontier::at(store, cutoff)))
+        }
+        Some(other) => Err(BraidError::Validation(format!(
+            "unknown frontier value '{other}': expected 'current' or 'tx:N'"
+        ))),
+    }
+}
 
 /// Resolve an EntityId to a human-readable label.
 ///
@@ -62,10 +98,13 @@ pub fn run(
     path: &Path,
     entity_filter: Option<&str>,
     attribute_filter: Option<&str>,
+    frontier_spec: Option<&str>,
     json: bool,
 ) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
+
+    let frontier = parse_frontier(&store, frontier_spec)?;
 
     let entity_id = entity_filter.map(EntityId::from_ident);
     let attr = attribute_filter.map(Attribute::from_keyword);
@@ -75,6 +114,12 @@ pub fn run(
     for datom in store.datoms() {
         if datom.op != Op::Assert {
             continue;
+        }
+        // Apply frontier filter if specified
+        if let Some(ref f) = frontier {
+            if !f.contains(datom) {
+                continue;
+            }
         }
         if let Some(eid) = entity_id {
             if datom.entity != eid {
@@ -166,13 +211,16 @@ pub fn run(
 pub fn run_datalog(
     path: &Path,
     datalog_src: &str,
+    frontier_spec: Option<&str>,
     json: bool,
 ) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
+    let frontier = parse_frontier(&store, frontier_spec)?;
+
     let query = parse_datalog(datalog_src)?;
-    let result = evaluate(&store, &query);
+    let result = evaluate_with_frontier(&store, &query, frontier.as_ref());
 
     // --- Human output ---
     let (human, result_count) = if json {

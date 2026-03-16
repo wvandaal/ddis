@@ -212,6 +212,14 @@ Empty results? Try: braid query --attribute :db/ident  # list known entities")]
         #[arg(value_name = "DATALOG_EXPR")]
         positional_datalog: Option<String>,
 
+        /// Frontier scope: "current" (latest per-agent), "tx:N" (up to tx wall-time N),
+        /// or omitted (all datoms visible).
+        ///
+        /// Restricts query results to datoms visible within the specified frontier.
+        /// Useful for time-travel queries and agent-scoped views.
+        #[arg(long)]
+        frontier: Option<String>,
+
         /// Output as JSON.
         #[arg(long)]
         json: bool,
@@ -1268,6 +1276,44 @@ fn maybe_inject_footer(
     }
 }
 
+/// Apply the budget gate to a `CommandOutput` (INV-BUDGET-001).
+///
+/// Enforces `budget_ctx.manager.output_budget` as a hard token ceiling on
+/// the human and agent text representations. JSON output is **never**
+/// truncated — agents consuming structured data need every field intact.
+///
+/// Intended to be called in `main()` after `commands::run()` returns and
+/// before `CommandOutput::render()`. This is the last gate in the pipeline.
+pub fn apply_budget_gate(
+    mut output: crate::output::CommandOutput,
+    mode: crate::output::OutputMode,
+    budget_ctx: &BudgetCtx,
+) -> crate::output::CommandOutput {
+    // JSON mode: never truncate — agents need complete structured data.
+    if mode == crate::output::OutputMode::Json {
+        return output;
+    }
+
+    let ceiling = budget_ctx.manager.output_budget as usize;
+
+    // Enforce ceiling on the human-readable representation.
+    output.human = budget::enforce_ceiling(&output.human, ceiling);
+
+    // Enforce ceiling on the agent-mode rendered text.
+    let agent_rendered = output.agent.render();
+    let gated = budget::enforce_ceiling(&agent_rendered, ceiling);
+    if gated != agent_rendered {
+        // The agent output was truncated — replace content with the gated text
+        // while preserving the three-part structure as best we can.
+        // Context and footer stay; content absorbs the truncation.
+        output.agent.content = gated;
+        output.agent.context = String::new();
+        output.agent.footer = String::new();
+    }
+
+    output
+}
+
 /// Build a guidance footer string (INV-GUIDANCE-001).
 ///
 /// Best-effort: if the store can't be loaded, returns None.
@@ -1491,13 +1537,20 @@ pub fn run(
             attribute,
             datalog,
             positional_datalog,
+            frontier,
             json,
         } => {
             let dq = datalog.or(positional_datalog);
             let cmd_output = if let Some(ref dq) = dq {
-                query::run_datalog(&path, dq, json)?
+                query::run_datalog(&path, dq, frontier.as_deref(), json)?
             } else {
-                query::run(&path, entity.as_deref(), attribute.as_deref(), json)?
+                query::run(
+                    &path,
+                    entity.as_deref(),
+                    attribute.as_deref(),
+                    frontier.as_deref(),
+                    json,
+                )?
             };
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -1844,6 +1897,7 @@ mod tests {
             attribute: None,
             datalog: None,
             positional_datalog: None,
+            frontier: None,
             json: true,
         };
         assert!(is_json_output(&query_json, h));
@@ -1854,6 +1908,7 @@ mod tests {
             attribute: None,
             datalog: None,
             positional_datalog: None,
+            frontier: None,
             json: false,
         };
         assert!(!is_json_output(&query_no_json, h));
@@ -1994,6 +2049,7 @@ mod tests {
             attribute: None,
             datalog: None,
             positional_datalog: None,
+            frontier: None,
             json: false,
         };
         assert!(!is_generative_output(&query));
@@ -2057,6 +2113,7 @@ mod tests {
             attribute: None,
             datalog: None,
             positional_datalog: None,
+            frontier: None,
             json: false,
         };
         assert_eq!(store_path(&query), Some(Path::new("/data/.braid")));
@@ -2145,6 +2202,7 @@ mod tests {
             attribute: None,
             datalog: None,
             positional_datalog: None,
+            frontier: None,
             json: true,
         };
         let h = OutputMode::Human;
@@ -2284,6 +2342,7 @@ mod tests {
                 attribute: None,
                 datalog: None,
                 positional_datalog: None,
+                frontier: None,
                 json: false,
             },
             Command::Harvest {
@@ -2358,6 +2417,7 @@ mod tests {
             attribute: None,
             datalog: None,
             positional_datalog: None,
+            frontier: None,
             json: true,
         };
         assert!(
@@ -2468,6 +2528,152 @@ mod tests {
         assert_eq!(
             ctx_harv.manager.guidance_level(),
             GuidanceLevel::HarvestOnly
+        );
+    }
+
+    // ---- Budget gate tests (W2C.2 + W2C.3: enforce_ceiling wiring) ----
+
+    // Verifies: INV-BUDGET-001 — Budget gate truncates long output
+    #[test]
+    fn budget_gate_truncates_long_output() {
+        use crate::output::{AgentOutput, CommandOutput};
+
+        let long_text = "word ".repeat(400); // ~2000 chars → ~500 tokens
+        let co = CommandOutput {
+            json: serde_json::json!({"data": &long_text}),
+            agent: AgentOutput {
+                context: String::new(),
+                content: long_text.clone(),
+                footer: String::new(),
+            },
+            human: long_text.clone(),
+        };
+
+        // Explicit budget of 50 tokens — forces truncation.
+        let ctx = BudgetCtx::from_flags(Some(50), None);
+        let gated = apply_budget_gate(co, OutputMode::Human, &ctx);
+
+        assert!(
+            gated.human.len() < long_text.len(),
+            "human output should be truncated (got {} vs original {})",
+            gated.human.len(),
+            long_text.len()
+        );
+        assert!(
+            gated.human.contains("[...truncated:"),
+            "truncated output must contain truncation notice"
+        );
+    }
+
+    // Verifies: INV-BUDGET-001 — Short output passes through unchanged
+    #[test]
+    fn budget_gate_passthrough_for_short_output() {
+        use crate::output::{AgentOutput, CommandOutput};
+
+        let short_text = "ok: 3 datoms".to_string(); // ~3 tokens
+        let co = CommandOutput {
+            json: serde_json::json!({"status": "ok"}),
+            agent: AgentOutput {
+                context: String::new(),
+                content: short_text.clone(),
+                footer: String::new(),
+            },
+            human: short_text.clone(),
+        };
+
+        // Even a tight budget (50 tokens) is plenty for 3 tokens of output.
+        let ctx = BudgetCtx::from_flags(Some(50), None);
+        let gated = apply_budget_gate(co, OutputMode::Human, &ctx);
+
+        assert_eq!(
+            gated.human, short_text,
+            "short output must pass through unchanged"
+        );
+        assert_eq!(
+            gated.agent.content, short_text,
+            "short agent content must pass through unchanged"
+        );
+    }
+
+    // Verifies: INV-BUDGET-001 — JSON output is NEVER truncated
+    #[test]
+    fn budget_gate_json_never_truncated() {
+        use crate::output::{AgentOutput, CommandOutput};
+
+        let long_text = "word ".repeat(400); // ~500 tokens
+        let json_data = serde_json::json!({"results": [1, 2, 3], "detail": &long_text});
+        let co = CommandOutput {
+            json: json_data.clone(),
+            agent: AgentOutput {
+                context: String::new(),
+                content: long_text.clone(),
+                footer: String::new(),
+            },
+            human: long_text.clone(),
+        };
+
+        // Very tight budget (50 tokens) — JSON must still be untouched.
+        let ctx = BudgetCtx::from_flags(Some(50), None);
+        let gated = apply_budget_gate(co, OutputMode::Json, &ctx);
+
+        assert_eq!(gated.json, json_data, "JSON output must never be truncated");
+        // When mode is JSON, human/agent should also be untouched (no processing).
+        assert_eq!(
+            gated.human, long_text,
+            "in JSON mode, human field should be untouched"
+        );
+    }
+
+    // Verifies: INV-BUDGET-001 — Agent mode truncation works
+    #[test]
+    fn budget_gate_truncates_agent_mode() {
+        use crate::output::{AgentOutput, CommandOutput};
+
+        let long_content = "entity ".repeat(300); // ~525 tokens
+        let co = CommandOutput {
+            json: serde_json::json!({"data": "irrelevant"}),
+            agent: AgentOutput {
+                context: "store: 9k datoms".into(),
+                content: long_content.clone(),
+                footer: "next: braid status".into(),
+            },
+            human: "short human".into(),
+        };
+
+        let ctx = BudgetCtx::from_flags(Some(50), None);
+        let gated = apply_budget_gate(co, OutputMode::Agent, &ctx);
+
+        // Agent output was truncated — the content field now holds the gated text.
+        assert!(
+            gated.agent.content.contains("[...truncated:")
+                || gated.agent.render().len() < long_content.len(),
+            "agent output should be truncated when over budget"
+        );
+    }
+
+    // Verifies: INV-BUDGET-001 — Default full budget does not truncate
+    #[test]
+    fn budget_gate_default_full_budget_passthrough() {
+        use crate::output::{AgentOutput, CommandOutput};
+
+        // Default budget is 10000 tokens — typical output is well under that.
+        let text = "store: 9314 datoms, 1563 entities. F(S)=0.77".to_string();
+        let co = CommandOutput {
+            json: serde_json::json!({"status": "ok"}),
+            agent: AgentOutput {
+                context: String::new(),
+                content: text.clone(),
+                footer: String::new(),
+            },
+            human: text.clone(),
+        };
+
+        let ctx = BudgetCtx::from_flags(None, None); // default = 10000 tokens
+        let gated = apply_budget_gate(co, OutputMode::Human, &ctx);
+
+        assert_eq!(
+            gated.human, text,
+            "default budget should not truncate normal output"
         );
     }
 }

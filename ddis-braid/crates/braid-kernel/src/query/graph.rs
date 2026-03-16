@@ -4414,4 +4414,133 @@ mod tests {
             );
         }
     }
+
+    // -------------------------------------------------------------------
+    // W2B.3: Property tests for HITS + k-Core (INV-QUERY-016, INV-QUERY-018)
+    // -------------------------------------------------------------------
+
+    mod hits_kcore_proptests {
+        use super::*;
+        use crate::proptest_strategies::arb_digraph;
+        use proptest::prelude::*;
+
+        proptest! {
+            #![proptest_config(ProptestConfig::with_cases(200))]
+
+            // INV-QUERY-016: HITS convergence — all scores must be non-negative.
+            #[test]
+            fn hits_scores_non_negative(g in arb_digraph(8, 20)) {
+                let (hubs, auths) = hits(&g, 100, 1e-10);
+                for (node, score) in &hubs {
+                    prop_assert!(
+                        *score >= 0.0,
+                        "HITS hub score for node {} is negative: {}",
+                        node, score
+                    );
+                }
+                for (node, score) in &auths {
+                    prop_assert!(
+                        *score >= 0.0,
+                        "HITS authority score for node {} is negative: {}",
+                        node, score
+                    );
+                }
+            }
+
+            // INV-QUERY-016: HITS normalization — sum of squared scores ≈ 1.
+            // After normalization, ||hub||_2 = 1 and ||auth||_2 = 1 (when non-zero).
+            #[test]
+            fn hits_scores_normalized(g in arb_digraph(8, 20)) {
+                if g.node_count() == 0 {
+                    return Ok(());
+                }
+                let (hubs, auths) = hits(&g, 100, 1e-10);
+
+                let hub_l2: f64 = hubs.values().map(|s| s * s).sum::<f64>().sqrt();
+                let auth_l2: f64 = auths.values().map(|s| s * s).sum::<f64>().sqrt();
+
+                // If all scores are zero (isolated nodes, no edges), the norm is 0.
+                // Otherwise, the L2 norm should be approximately 1.0 after normalization.
+                if hub_l2 > 1e-12 {
+                    prop_assert!(
+                        (hub_l2 - 1.0).abs() < 1e-6,
+                        "HITS hub L2 norm should be ~1.0, got {}",
+                        hub_l2
+                    );
+                }
+                if auth_l2 > 1e-12 {
+                    prop_assert!(
+                        (auth_l2 - 1.0).abs() < 1e-6,
+                        "HITS authority L2 norm should be ~1.0, got {}",
+                        auth_l2
+                    );
+                }
+            }
+
+            // INV-QUERY-018: k-core monotonicity — (k+1)-core ⊆ k-core.
+            // The k-core decomposition returns nested sets: higher k means fewer nodes.
+            #[test]
+            fn kcore_monotonicity_property(g in arb_digraph(8, 20)) {
+                let cores = k_core_decomposition(&g);
+                for i in 1..cores.len() {
+                    let prev_members: BTreeSet<String> =
+                        cores[i - 1].1.iter().cloned().collect();
+                    let curr_members: BTreeSet<String> =
+                        cores[i].1.iter().cloned().collect();
+                    prop_assert!(
+                        curr_members.is_subset(&prev_members),
+                        "k={} core must be subset of k={} core. \
+                         Extra nodes: {:?}",
+                        cores[i].0,
+                        cores[i - 1].0,
+                        curr_members.difference(&prev_members).collect::<Vec<_>>()
+                    );
+                }
+            }
+
+            // INV-QUERY-018: k-core idempotency — k_core of the induced subgraph
+            // equals k_core of the original graph (for the same k).
+            // If we extract the k-core members and build the induced subgraph,
+            // running k_core_decomposition again at that k should return the same set.
+            #[test]
+            fn kcore_idempotency(g in arb_digraph(8, 20)) {
+                let cores = k_core_decomposition(&g);
+                for (k, members) in &cores {
+                    if members.is_empty() {
+                        continue;
+                    }
+                    // Build induced subgraph on k-core members
+                    let member_set: BTreeSet<String> = members.iter().cloned().collect();
+                    let mut induced = DiGraph::new();
+                    for node in &member_set {
+                        induced.add_node(node);
+                    }
+                    for node in &member_set {
+                        for succ in g.successors(node) {
+                            if member_set.contains(succ.as_str()) {
+                                induced.add_edge(node, succ);
+                            }
+                        }
+                    }
+
+                    // The k-core of the induced subgraph at level k should
+                    // contain exactly the same nodes.
+                    let induced_cores = k_core_decomposition(&induced);
+                    let induced_k_members: BTreeSet<String> = induced_cores
+                        .iter()
+                        .find(|(kk, _)| *kk == *k)
+                        .map(|(_, m)| m.iter().cloned().collect())
+                        .unwrap_or_default();
+
+                    prop_assert_eq!(
+                        &member_set,
+                        &induced_k_members,
+                        "k-core at k={} should be idempotent on induced subgraph. \
+                         Original: {:?}, Induced: {:?}",
+                        k, member_set, induced_k_members
+                    );
+                }
+            }
+        }
+    }
 }

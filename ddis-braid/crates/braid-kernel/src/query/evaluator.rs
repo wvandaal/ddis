@@ -1414,4 +1414,294 @@ mod tests {
             }
         }
     }
+
+    // -------------------------------------------------------------------
+    // W2E.4: Frontier query tests — verify frontier-scoped queries
+    // return correct subsets of full query results.
+    //
+    // Verifies: INV-QUERY-007 — Frontier as queryable attribute
+    // Verifies: ADR-QUERY-005 — Local Frontier as Default
+    // -------------------------------------------------------------------
+
+    // Verifies: frontier at a specific transaction excludes later datoms
+    #[test]
+    fn frontier_at_tx_excludes_later_datoms() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test-agent");
+
+        // Transaction 1: add entity alpha
+        let entity_alpha = EntityId::from_ident(":test/alpha");
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "tx1")
+            .assert(
+                entity_alpha,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alpha doc".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let tx1_receipt = store.transact(tx1).unwrap();
+        let tx1_id = tx1_receipt.tx_id;
+
+        // Build frontier as-of tx1
+        let frontier_at_tx1 = Frontier::at(&store, tx1_id);
+
+        // Transaction 2: add entity beta (AFTER frontier cutoff)
+        let entity_beta = EntityId::from_ident(":test/beta");
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "tx2")
+            .assert(
+                entity_beta,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("beta doc".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        // Query all :db/doc datoms
+        let query = QueryExpr::new(
+            FindSpec::Rel(vec!["?e".into(), "?v".into()]),
+            vec![Clause::Pattern(Pattern::new(
+                Term::Variable("?e".into()),
+                Term::Attr(Attribute::from_keyword(":db/doc")),
+                Term::Variable("?v".into()),
+            ))],
+        );
+
+        let full = evaluate(&store, &query);
+        let scoped = evaluate_with_frontier(&store, &query, Some(&frontier_at_tx1));
+
+        let full_rows = match &full {
+            QueryResult::Rel(rows) => rows,
+            _ => panic!("expected Rel"),
+        };
+        let scoped_rows = match &scoped {
+            QueryResult::Rel(rows) => rows,
+            _ => panic!("expected Rel"),
+        };
+
+        // Full should see both alpha and beta; scoped only alpha (and genesis)
+        assert!(
+            scoped_rows.len() < full_rows.len(),
+            "frontier-at-tx1 should exclude tx2 datoms: scoped={}, full={}",
+            scoped_rows.len(),
+            full_rows.len()
+        );
+
+        // Scoped must contain alpha doc
+        let has_alpha = scoped_rows
+            .iter()
+            .any(|row| row[1] == Value::String("alpha doc".into()));
+        assert!(has_alpha, "alpha doc must be visible at frontier_at_tx1");
+
+        // Scoped must NOT contain beta doc
+        let has_beta = scoped_rows
+            .iter()
+            .any(|row| row[1] == Value::String("beta doc".into()));
+        assert!(!has_beta, "beta doc must NOT be visible at frontier_at_tx1");
+    }
+
+    // Verifies: Datalog query under frontier scoping returns correct subset
+    #[test]
+    fn frontier_scoped_datalog_returns_correct_subset() {
+        let mut store = Store::genesis();
+        let agent_a = AgentId::from_name("agent-a");
+        let agent_b = AgentId::from_name("agent-b");
+
+        // Agent A: create entity with doc
+        let entity_a = EntityId::from_ident(":test/entity-a");
+        let tx_a = Transaction::new(agent_a, ProvenanceType::Observed, "agent-a tx")
+            .assert(
+                entity_a,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("A-doc".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx_a).unwrap();
+
+        // Capture frontier before agent B
+        let frontier_before_b = Frontier::current(&store);
+
+        // Agent B: create another entity with doc
+        let entity_b = EntityId::from_ident(":test/entity-b");
+        let tx_b = Transaction::new(agent_b, ProvenanceType::Observed, "agent-b tx")
+            .assert(
+                entity_b,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("B-doc".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx_b).unwrap();
+
+        // Single-pattern query: find all entities with :db/doc
+        let query = QueryExpr::new(
+            FindSpec::Rel(vec!["?e".into(), "?doc".into()]),
+            vec![Clause::Pattern(Pattern::new(
+                Term::Variable("?e".into()),
+                Term::Attr(Attribute::from_keyword(":db/doc")),
+                Term::Variable("?doc".into()),
+            ))],
+        );
+
+        let full_result = evaluate(&store, &query);
+        let scoped_result = evaluate_with_frontier(&store, &query, Some(&frontier_before_b));
+
+        let full_rows = match &full_result {
+            QueryResult::Rel(rows) => rows,
+            _ => panic!("expected Rel"),
+        };
+        let scoped_rows = match &scoped_result {
+            QueryResult::Rel(rows) => rows,
+            _ => panic!("expected Rel"),
+        };
+
+        // Scoped must be a strict subset of full (B's datom excluded)
+        assert!(
+            scoped_rows.len() < full_rows.len(),
+            "frontier-scoped query should return fewer rows: scoped={}, full={}",
+            scoped_rows.len(),
+            full_rows.len()
+        );
+
+        // Full should contain B-doc; scoped should not
+        let full_has_b = full_rows
+            .iter()
+            .any(|row| row.iter().any(|v| *v == Value::String("B-doc".into())));
+        let scoped_has_b = scoped_rows
+            .iter()
+            .any(|row| row.iter().any(|v| *v == Value::String("B-doc".into())));
+        assert!(full_has_b, "full query must see B-doc");
+        assert!(!scoped_has_b, "frontier-scoped query must NOT see B-doc");
+
+        // Scoped must contain A-doc (agent A's data is within the frontier)
+        let scoped_has_a = scoped_rows
+            .iter()
+            .any(|row| row.iter().any(|v| *v == Value::String("A-doc".into())));
+        assert!(scoped_has_a, "frontier-scoped query must see A-doc");
+    }
+
+    // Verifies: scalar Datalog query under frontier scoping
+    #[test]
+    fn frontier_scoped_scalar_query() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test-agent");
+
+        // Add a unique entity with a doc we can find via scalar query
+        let entity = EntityId::from_ident(":test/scalar-target");
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "scalar test")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("scalar doc value".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        // Capture frontier including the entity
+        let frontier_with_entity = Frontier::current(&store);
+
+        // Scalar query: find the doc for this specific entity
+        let query = QueryExpr::new(
+            FindSpec::Scalar("?doc".into()),
+            vec![Clause::Pattern(Pattern::new(
+                Term::Entity(entity),
+                Term::Attr(Attribute::from_keyword(":db/doc")),
+                Term::Variable("?doc".into()),
+            ))],
+        );
+
+        // Full query should find it
+        let full = evaluate(&store, &query);
+        assert!(
+            matches!(&full, QueryResult::Scalar(Some(Value::String(s))) if s == "scalar doc value"),
+            "full scalar query should find doc: {:?}",
+            full
+        );
+
+        // Frontier-scoped query should also find it (entity was added before frontier)
+        let scoped = evaluate_with_frontier(&store, &query, Some(&frontier_with_entity));
+        assert!(
+            matches!(&scoped, QueryResult::Scalar(Some(Value::String(s))) if s == "scalar doc value"),
+            "frontier-scoped scalar query should find doc: {:?}",
+            scoped
+        );
+
+        // Empty frontier should NOT find it
+        let empty_frontier = Frontier::new();
+        let empty_scoped = evaluate_with_frontier(&store, &query, Some(&empty_frontier));
+        assert!(
+            matches!(&empty_scoped, QueryResult::Scalar(None)),
+            "empty frontier should yield no result: {:?}",
+            empty_scoped
+        );
+    }
+
+    // Verifies: frontier scoping is monotonic — growing store does not shrink scoped results
+    #[test]
+    fn frontier_scoping_is_monotonic_under_store_growth() {
+        let mut store = Store::genesis();
+        let agent_a = AgentId::from_name("agent-a");
+        let agent_b = AgentId::from_name("agent-b");
+
+        // Agent A adds data
+        let entity = EntityId::from_ident(":test/mono");
+        let tx_a = Transaction::new(agent_a, ProvenanceType::Observed, "initial")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("initial value".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx_a).unwrap();
+
+        // Capture frontier after A's transaction
+        let frontier_a = Frontier::current(&store);
+
+        let query = QueryExpr::new(
+            FindSpec::Rel(vec!["?e".into(), "?v".into()]),
+            vec![Clause::Pattern(Pattern::new(
+                Term::Variable("?e".into()),
+                Term::Attr(Attribute::from_keyword(":db/doc")),
+                Term::Variable("?v".into()),
+            ))],
+        );
+
+        // Count scoped results before store growth
+        let scoped_before = evaluate_with_frontier(&store, &query, Some(&frontier_a));
+        let count_before = match &scoped_before {
+            QueryResult::Rel(rows) => rows.len(),
+            _ => panic!("expected Rel"),
+        };
+
+        // Agent B adds more data (store grows)
+        let entity_b = EntityId::from_ident(":test/extra");
+        let tx_b = Transaction::new(agent_b, ProvenanceType::Observed, "extra")
+            .assert(
+                entity_b,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("extra value".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx_b).unwrap();
+
+        // Re-run scoped query with same frontier on grown store
+        let scoped_after = evaluate_with_frontier(&store, &query, Some(&frontier_a));
+        let count_after = match &scoped_after {
+            QueryResult::Rel(rows) => rows.len(),
+            _ => panic!("expected Rel"),
+        };
+
+        // Frontier-scoped results must not decrease when store grows
+        // (the frontier gates visibility; new datoms outside the frontier
+        // don't affect existing scoped results)
+        assert_eq!(
+            count_before, count_after,
+            "frontier-scoped results must be stable under store growth: {} vs {}",
+            count_before, count_after
+        );
+    }
 }

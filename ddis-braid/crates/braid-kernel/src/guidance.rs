@@ -39,10 +39,123 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::budget::GuidanceLevel;
+use crate::budget::{quality_adjusted_budget, GuidanceLevel};
 use crate::datom::{Attribute, EntityId, Op, Value};
 use crate::store::Store;
 use crate::trilateral::{check_coherence_fast, CoherenceQuadrant};
+
+// ---------------------------------------------------------------------------
+// Harvest Warning Level (Q(t)-based thresholds)
+// ---------------------------------------------------------------------------
+
+/// Harvest urgency level derived from Q(t) attention decay.
+///
+/// Replaces heuristic tx-count thresholds with the attention decay model
+/// from spec/13-budget.md. Q(t) = k*_eff x attention_decay(k*_eff) maps
+/// directly to urgency bands:
+///
+/// - Q(t) > 0.6  -> None (plenty of budget remaining)
+/// - Q(t) in [0.3, 0.6] -> Info (context filling, harvest recommended)
+/// - Q(t) in [0.15, 0.3] -> Warn (harvest soon)
+/// - Q(t) < 0.15 -> Critical (harvest immediately)
+///
+/// INV-HARVEST-005: Proactive warning fires at correct thresholds.
+/// ADR-BUDGET-001: Measured context over heuristic.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum HarvestWarningLevel {
+    /// Q(t) > 0.6: no warning needed.
+    None,
+    /// Q(t) in [0.3, 0.6]: context filling, harvest recommended.
+    Info,
+    /// Q(t) in [0.15, 0.3]: harvest soon.
+    Warn,
+    /// Q(t) < 0.15: context nearly exhausted, harvest immediately.
+    Critical,
+}
+
+impl HarvestWarningLevel {
+    /// Human-readable message for this warning level.
+    pub fn message(&self) -> &'static str {
+        match self {
+            HarvestWarningLevel::None => "",
+            HarvestWarningLevel::Info => "context filling \u{2014} harvest recommended",
+            HarvestWarningLevel::Warn => "harvest soon: braid harvest --commit",
+            HarvestWarningLevel::Critical => "HARVEST NOW: context nearly exhausted",
+        }
+    }
+
+    /// Suggested action command for this warning level.
+    pub fn suggested_action(&self) -> Option<&'static str> {
+        match self {
+            HarvestWarningLevel::None => Option::None,
+            HarvestWarningLevel::Info => Some("braid harvest --task \"<current task>\" --commit"),
+            HarvestWarningLevel::Warn => Some("braid harvest --commit"),
+            HarvestWarningLevel::Critical => Some("braid harvest --commit"),
+        }
+    }
+
+    /// Whether this level should be displayed (anything above None).
+    pub fn is_active(&self) -> bool {
+        !matches!(self, HarvestWarningLevel::None)
+    }
+
+    /// Map to GuidanceAction priority (1=highest, 3=lowest).
+    pub fn to_priority(&self) -> u8 {
+        match self {
+            HarvestWarningLevel::None => 4,
+            HarvestWarningLevel::Info => 3,
+            HarvestWarningLevel::Warn => 2,
+            HarvestWarningLevel::Critical => 1,
+        }
+    }
+}
+
+impl std::fmt::Display for HarvestWarningLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            HarvestWarningLevel::None => write!(f, ""),
+            HarvestWarningLevel::Info => write!(f, "[harvest recommended]"),
+            HarvestWarningLevel::Warn => {
+                write!(f, "[\u{26a0} harvest soon]")
+            }
+            HarvestWarningLevel::Critical => {
+                write!(f, "[\u{26a0} HARVEST NOW]")
+            }
+        }
+    }
+}
+
+/// Compute harvest warning level from Q(t) attention quality.
+///
+/// Q(t) = k*_eff x attention_decay(k*_eff) is the quality-adjusted budget.
+/// This maps Q(t) to four urgency bands:
+///
+/// - Q(t) > 0.6  -> None
+/// - Q(t) in [0.3, 0.6] -> Info
+/// - Q(t) in [0.15, 0.3] -> Warn
+/// - Q(t) < 0.15 -> Critical
+///
+/// INV-HARVEST-005: Proactive warning fires at correct thresholds.
+/// ADR-BUDGET-001: Measured context over heuristic.
+pub fn harvest_warning_level(q_t: f64) -> HarvestWarningLevel {
+    if q_t > 0.6 {
+        HarvestWarningLevel::None
+    } else if q_t >= 0.3 {
+        HarvestWarningLevel::Info
+    } else if q_t >= 0.15 {
+        HarvestWarningLevel::Warn
+    } else {
+        HarvestWarningLevel::Critical
+    }
+}
+
+/// Compute harvest warning level from k*_eff (convenience wrapper).
+///
+/// Converts k*_eff to Q(t) via `quality_adjusted_budget()`, then applies thresholds.
+pub fn harvest_warning_from_k_eff(k_eff: f64) -> HarvestWarningLevel {
+    let q_t = quality_adjusted_budget(k_eff);
+    harvest_warning_level(q_t)
+}
 
 /// Decay rate per wall-time step for observation staleness.
 /// After 15 steps, 0.95^15 ≈ 0.4633, so an observation at confidence 0.8
@@ -365,6 +478,8 @@ pub struct GuidanceFooter {
     pub store_datom_count: usize,
     /// Current turn number.
     pub turn: u32,
+    /// Q(t) harvest warning level (derived from attention budget when available).
+    pub harvest_warning: HarvestWarningLevel,
 }
 
 /// Format a guidance footer as a compact string (ADR-GUIDANCE-008).
@@ -426,7 +541,14 @@ pub fn format_footer(footer: &GuidanceFooter) -> String {
 /// - HarvestOnly: harvest imperative signal (~10 tokens)
 pub fn format_footer_at_level(footer: &GuidanceFooter, level: GuidanceLevel) -> String {
     match level {
-        GuidanceLevel::Full => format_footer(footer),
+        GuidanceLevel::Full => {
+            let mut out = format_footer(footer);
+            // Append Q(t) harvest warning when active
+            if footer.harvest_warning.is_active() {
+                out.push_str(&format!("\n  {}", footer.harvest_warning));
+            }
+            out
+        }
         GuidanceLevel::Compressed => {
             let m = &footer.methodology;
             let trend = match m.trend {
@@ -445,13 +567,23 @@ pub fn format_footer_at_level(footer: &GuidanceFooter, level: GuidanceLevel) -> 
                 }
                 None => String::new(),
             };
+            // Append Q(t) harvest warning when Warn or Critical
+            let hw = if footer.harvest_warning >= HarvestWarningLevel::Warn {
+                format!(" {}", footer.harvest_warning)
+            } else {
+                String::new()
+            };
             format!(
-                "↳ M={:.2}{} S:{}{next}",
+                "↳ M={:.2}{} S:{}{next}{hw}",
                 m.score, trend, footer.store_datom_count
             )
         }
         GuidanceLevel::Minimal => {
             let m = &footer.methodology;
+            // At minimal level, Critical harvest warning overrides the action
+            if footer.harvest_warning == HarvestWarningLevel::Critical {
+                return format!("↳ M={:.2} {}", m.score, footer.harvest_warning);
+            }
             match &footer.next_action {
                 Some(action) => {
                     let short = if action.len() > 40 {
@@ -465,29 +597,64 @@ pub fn format_footer_at_level(footer: &GuidanceFooter, level: GuidanceLevel) -> 
             }
         }
         GuidanceLevel::HarvestOnly => {
-            if footer.methodology.score < 0.3 {
-                "⚠ DRIFT: harvest now → braid harvest --commit".to_string()
+            // Q(t)-based message when available, else M(t)-based fallback
+            if footer.harvest_warning.is_active() {
+                match footer.harvest_warning {
+                    HarvestWarningLevel::Critical => {
+                        "\u{26a0} HARVEST NOW: context nearly exhausted \u{2192} braid harvest --commit"
+                            .to_string()
+                    }
+                    HarvestWarningLevel::Warn => {
+                        "\u{26a0} harvest soon \u{2192} braid harvest --commit".to_string()
+                    }
+                    _ => {
+                        "\u{26a0} HARVEST: braid harvest --task \"...\" --commit".to_string()
+                    }
+                }
+            } else if footer.methodology.score < 0.3 {
+                "\u{26a0} DRIFT: harvest now \u{2192} braid harvest --commit".to_string()
             } else {
-                "⚠ HARVEST: braid harvest --task \"...\" --commit".to_string()
+                "\u{26a0} HARVEST: braid harvest --task \"...\" --commit".to_string()
             }
         }
     }
 }
 
 /// Build a guidance footer from current session state.
+///
+/// Defaults to `HarvestWarningLevel::None`. Use `build_footer_with_budget`
+/// to include Q(t)-based harvest warnings.
 pub fn build_footer(
     telemetry: &SessionTelemetry,
     store: &Store,
     next_action: Option<String>,
     invariant_refs: Vec<String>,
 ) -> GuidanceFooter {
+    build_footer_with_budget(telemetry, store, next_action, invariant_refs, None)
+}
+
+/// Build a guidance footer with optional Q(t) budget signal.
+///
+/// When `q_t` is `Some`, the footer includes a Q(t)-based harvest warning level.
+/// When `None`, defaults to `HarvestWarningLevel::None`.
+pub fn build_footer_with_budget(
+    telemetry: &SessionTelemetry,
+    store: &Store,
+    next_action: Option<String>,
+    invariant_refs: Vec<String>,
+    q_t: Option<f64>,
+) -> GuidanceFooter {
     let methodology = compute_methodology_score(telemetry);
+    let harvest_warning = q_t
+        .map(harvest_warning_level)
+        .unwrap_or(HarvestWarningLevel::None);
     GuidanceFooter {
         methodology,
         next_action,
         invariant_refs,
         store_datom_count: store.len(),
         turn: telemetry.total_turns,
+        harvest_warning,
     }
 }
 
@@ -681,13 +848,22 @@ pub struct GuidanceAction {
 ///
 /// Rules:
 /// - R11: Empty/near-empty store → Bootstrap
-/// - R12: Tx count since last harvest > threshold → Harvest
+/// - R12: Q(t)-based harvest warning (falls back to tx count when Q(t) unavailable)
 /// - R13: β₁ > 0 (cycles in entity graph) → Observe
 /// - R14: Φ > 0 (intent↔spec or spec↔impl gaps) → Connect
 /// - R15: ISP specification bypasses → Fix
 /// - R16: High entropy (structural disorder) → Investigate
 /// - R17: Observation staleness > 0.8 → Investigate (ADR-HARVEST-005)
 pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
+    derive_actions_with_budget(store, None)
+}
+
+/// Derive concrete actions with optional Q(t) budget signal.
+///
+/// When `q_t` is `Some`, R12 uses Q(t)-based thresholds from the attention
+/// decay model (ADR-BUDGET-001). When `None`, falls back to the heuristic
+/// tx-count threshold (8/15 transactions).
+pub fn derive_actions_with_budget(store: &Store, q_t: Option<f64>) -> Vec<GuidanceAction> {
     let mut actions = Vec::new();
     let datom_count = store.len();
     let entity_count = store.entity_count();
@@ -721,20 +897,42 @@ pub fn derive_actions(store: &Store) -> Vec<GuidanceAction> {
         });
     }
 
-    // R12: Tx count since last harvest → Harvest warning
-    // Proxy: count transactions since the most recent session/harvest entity
+    // R12: Harvest warning — Q(t)-based when budget signal available, tx-count fallback otherwise.
+    // ADR-BUDGET-001: Measured context over heuristic.
     let tx_count = count_txns_since_last_harvest(store);
-    if tx_count >= 8 {
-        let urgency = if tx_count >= 15 { 1 } else { 2 };
-        actions.push(GuidanceAction {
-            priority: urgency,
-            category: ActionCategory::Harvest,
-            summary: format!(
-                "{tx_count} transactions since last harvest. Knowledge at risk of loss."
-            ),
-            command: Some("braid harvest --task \"<current task>\" --commit".into()),
-            relates_to: vec!["INV-HARVEST-005".into(), "ADR-HARVEST-007".into()],
-        });
+    if let Some(q) = q_t {
+        // Q(t)-based thresholds from attention decay model
+        let level = harvest_warning_level(q);
+        if level.is_active() {
+            actions.push(GuidanceAction {
+                priority: level.to_priority(),
+                category: ActionCategory::Harvest,
+                summary: format!(
+                    "Q(t)={q:.2}: {} ({tx_count} txns since last harvest)",
+                    level.message()
+                ),
+                command: level.suggested_action().map(String::from),
+                relates_to: vec![
+                    "INV-HARVEST-005".into(),
+                    "ADR-BUDGET-001".into(),
+                    "ADR-HARVEST-007".into(),
+                ],
+            });
+        }
+    } else {
+        // Fallback: heuristic tx-count threshold (pre-Q(t) behavior)
+        if tx_count >= 8 {
+            let urgency = if tx_count >= 15 { 1 } else { 2 };
+            actions.push(GuidanceAction {
+                priority: urgency,
+                category: ActionCategory::Harvest,
+                summary: format!(
+                    "{tx_count} transactions since last harvest. Knowledge at risk of loss."
+                ),
+                command: Some("braid harvest --task \"<current task>\" --commit".into()),
+                relates_to: vec!["INV-HARVEST-005".into(), "ADR-HARVEST-007".into()],
+            });
+        }
     }
 
     // Run coherence analysis (fast — skips O(n³) entropy)
@@ -917,7 +1115,9 @@ pub fn modulate_actions(actions: &mut Vec<GuidanceAction>, methodology_score: f6
 pub fn build_command_footer(store: &Store, k_eff: Option<f64>) -> String {
     let telemetry = telemetry_from_store(store);
     let methodology = compute_methodology_score(&telemetry);
-    let mut actions = derive_actions(store);
+    // Pass Q(t) to derive_actions so R12 uses attention-decay thresholds
+    let q_t = k_eff.map(quality_adjusted_budget);
+    let mut actions = derive_actions_with_budget(store, q_t);
     modulate_actions(&mut actions, methodology.score);
 
     let level = GuidanceLevel::for_k_eff(k_eff.unwrap_or(1.0));
@@ -945,7 +1145,7 @@ pub fn build_command_footer(store: &Store, k_eff: Option<f64>) -> String {
         (None, vec![])
     };
 
-    let footer = build_footer(&telemetry, store, next_action, invariant_refs);
+    let footer = build_footer_with_budget(&telemetry, store, next_action, invariant_refs, q_t);
     format_footer_at_level(&footer, level)
 }
 
@@ -2436,6 +2636,7 @@ mod tests {
                         invariant_refs: vec!["INV-TEST-001".to_string()],
                         store_datom_count: datom_count,
                         turn,
+                        harvest_warning: HarvestWarningLevel::None,
                     }
                 })
         }
@@ -2597,6 +2798,7 @@ mod tests {
                     invariant_refs: vec!["INV-TEST-001".to_string()],
                     store_datom_count: datom_count,
                     turn,
+                    harvest_warning: HarvestWarningLevel::None,
                 };
 
                 let level = GuidanceLevel::for_k_eff(k_eff);
@@ -2722,5 +2924,366 @@ mod tests {
                 );
             }
         }
+    }
+
+    // -------------------------------------------------------------------
+    // HarvestWarningLevel (Q(t)-based thresholds)
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-HARVEST-005 — Proactive warning fires at correct thresholds.
+    // Verifies: ADR-BUDGET-001 — Measured context over heuristic.
+    #[test]
+    fn harvest_warning_level_none_above_06() {
+        assert_eq!(harvest_warning_level(0.61), HarvestWarningLevel::None);
+        assert_eq!(harvest_warning_level(0.7), HarvestWarningLevel::None);
+        assert_eq!(harvest_warning_level(0.9), HarvestWarningLevel::None);
+        assert_eq!(harvest_warning_level(1.0), HarvestWarningLevel::None);
+    }
+
+    #[test]
+    fn harvest_warning_level_info_between_03_06() {
+        assert_eq!(harvest_warning_level(0.6), HarvestWarningLevel::Info);
+        assert_eq!(harvest_warning_level(0.45), HarvestWarningLevel::Info);
+        assert_eq!(harvest_warning_level(0.3), HarvestWarningLevel::Info);
+    }
+
+    #[test]
+    fn harvest_warning_level_warn_between_015_03() {
+        assert_eq!(harvest_warning_level(0.29), HarvestWarningLevel::Warn);
+        assert_eq!(harvest_warning_level(0.2), HarvestWarningLevel::Warn);
+        assert_eq!(harvest_warning_level(0.15), HarvestWarningLevel::Warn);
+    }
+
+    #[test]
+    fn harvest_warning_level_critical_below_015() {
+        assert_eq!(harvest_warning_level(0.14), HarvestWarningLevel::Critical);
+        assert_eq!(harvest_warning_level(0.05), HarvestWarningLevel::Critical);
+        assert_eq!(harvest_warning_level(0.0), HarvestWarningLevel::Critical);
+    }
+
+    // Verifies: threshold boundaries are exact
+    #[test]
+    fn harvest_warning_level_boundary_precision() {
+        // 0.6 is Info (inclusive lower bound of [0.3, 0.6])
+        assert_eq!(harvest_warning_level(0.6), HarvestWarningLevel::Info);
+        // 0.6 + epsilon is None
+        assert_eq!(
+            harvest_warning_level(0.6 + f64::EPSILON),
+            HarvestWarningLevel::None
+        );
+        // 0.3 is Info
+        assert_eq!(harvest_warning_level(0.3), HarvestWarningLevel::Info);
+        // 0.3 - epsilon is Warn
+        assert_eq!(
+            harvest_warning_level(0.3 - f64::EPSILON),
+            HarvestWarningLevel::Warn
+        );
+        // 0.15 is Warn
+        assert_eq!(harvest_warning_level(0.15), HarvestWarningLevel::Warn);
+        // 0.15 - epsilon is Critical
+        assert_eq!(
+            harvest_warning_level(0.15 - f64::EPSILON),
+            HarvestWarningLevel::Critical
+        );
+    }
+
+    #[test]
+    fn harvest_warning_from_k_eff_full_budget() {
+        // k_eff=1.0 → Q(t)=1.0 → None
+        assert_eq!(harvest_warning_from_k_eff(1.0), HarvestWarningLevel::None);
+    }
+
+    #[test]
+    fn harvest_warning_from_k_eff_half_budget() {
+        // k_eff=0.5 → decay=0.5/0.6=0.833 → Q(t)=0.5*0.833=0.417 → Info
+        assert_eq!(harvest_warning_from_k_eff(0.5), HarvestWarningLevel::Info);
+    }
+
+    #[test]
+    fn harvest_warning_from_k_eff_low_budget() {
+        // k_eff=0.1 → decay=0.5*(0.1/0.3)^2=0.0556 → Q(t)=0.1*0.0556=0.00556 → Critical
+        assert_eq!(
+            harvest_warning_from_k_eff(0.1),
+            HarvestWarningLevel::Critical
+        );
+    }
+
+    #[test]
+    fn harvest_warning_from_k_eff_zero() {
+        // k_eff=0.0 → Q(t)=0.0 → Critical
+        assert_eq!(
+            harvest_warning_from_k_eff(0.0),
+            HarvestWarningLevel::Critical
+        );
+    }
+
+    #[test]
+    fn harvest_warning_level_ordering() {
+        // HarvestWarningLevel derives Ord; verify ordering
+        assert!(HarvestWarningLevel::None < HarvestWarningLevel::Info);
+        assert!(HarvestWarningLevel::Info < HarvestWarningLevel::Warn);
+        assert!(HarvestWarningLevel::Warn < HarvestWarningLevel::Critical);
+    }
+
+    #[test]
+    fn harvest_warning_level_is_active() {
+        assert!(!HarvestWarningLevel::None.is_active());
+        assert!(HarvestWarningLevel::Info.is_active());
+        assert!(HarvestWarningLevel::Warn.is_active());
+        assert!(HarvestWarningLevel::Critical.is_active());
+    }
+
+    #[test]
+    fn harvest_warning_level_messages_non_empty_when_active() {
+        assert!(HarvestWarningLevel::None.message().is_empty());
+        assert!(!HarvestWarningLevel::Info.message().is_empty());
+        assert!(!HarvestWarningLevel::Warn.message().is_empty());
+        assert!(!HarvestWarningLevel::Critical.message().is_empty());
+    }
+
+    #[test]
+    fn harvest_warning_level_suggested_actions() {
+        assert!(HarvestWarningLevel::None.suggested_action().is_none());
+        assert!(HarvestWarningLevel::Info.suggested_action().is_some());
+        assert!(HarvestWarningLevel::Warn.suggested_action().is_some());
+        assert!(HarvestWarningLevel::Critical.suggested_action().is_some());
+        // All active levels suggest braid harvest
+        for level in [
+            HarvestWarningLevel::Info,
+            HarvestWarningLevel::Warn,
+            HarvestWarningLevel::Critical,
+        ] {
+            let action = level.suggested_action().unwrap();
+            assert!(
+                action.contains("braid harvest"),
+                "level {:?} should suggest braid harvest, got: {}",
+                level,
+                action
+            );
+        }
+    }
+
+    #[test]
+    fn harvest_warning_level_to_priority() {
+        // Critical = 1, Warn = 2, Info = 3, None = 4
+        assert_eq!(HarvestWarningLevel::Critical.to_priority(), 1);
+        assert_eq!(HarvestWarningLevel::Warn.to_priority(), 2);
+        assert_eq!(HarvestWarningLevel::Info.to_priority(), 3);
+        assert_eq!(HarvestWarningLevel::None.to_priority(), 4);
+    }
+
+    #[test]
+    fn harvest_warning_level_display() {
+        assert_eq!(format!("{}", HarvestWarningLevel::None), "");
+        assert!(format!("{}", HarvestWarningLevel::Info).contains("harvest recommended"));
+        assert!(format!("{}", HarvestWarningLevel::Warn).contains("harvest soon"));
+        assert!(format!("{}", HarvestWarningLevel::Critical).contains("HARVEST NOW"));
+    }
+
+    // Verifies: derive_actions_with_budget uses Q(t) when provided
+    #[test]
+    fn derive_actions_with_budget_uses_qt_thresholds() {
+        let store = Store::genesis();
+        // Q(t)=0.1 → Critical → should produce Harvest action at priority 1
+        let actions = derive_actions_with_budget(&store, Some(0.1));
+        let harvest_actions: Vec<_> = actions
+            .iter()
+            .filter(|a| a.category == ActionCategory::Harvest)
+            .collect();
+        assert!(
+            !harvest_actions.is_empty(),
+            "Q(t)=0.1 should produce a harvest action"
+        );
+        assert_eq!(
+            harvest_actions[0].priority, 1,
+            "Critical Q(t) should produce priority 1 action"
+        );
+        assert!(
+            harvest_actions[0].summary.contains("Q(t)=0.10"),
+            "summary should include Q(t) value, got: {}",
+            harvest_actions[0].summary
+        );
+    }
+
+    #[test]
+    fn derive_actions_with_budget_no_harvest_at_high_qt() {
+        let store = Store::genesis();
+        // Q(t)=0.8 → None → no harvest action
+        let actions = derive_actions_with_budget(&store, Some(0.8));
+        let harvest_actions: Vec<_> = actions
+            .iter()
+            .filter(|a| a.category == ActionCategory::Harvest)
+            .collect();
+        assert!(
+            harvest_actions.is_empty(),
+            "Q(t)=0.8 should not produce harvest action"
+        );
+    }
+
+    #[test]
+    fn derive_actions_without_budget_uses_tx_fallback() {
+        let store = Store::genesis();
+        // Without Q(t), R12 uses tx-count heuristic
+        let actions = derive_actions_with_budget(&store, None);
+        // Verify no action references Q(t) — should be tx-count based if any
+        for action in &actions {
+            if action.category == ActionCategory::Harvest {
+                assert!(
+                    !action.summary.contains("Q(t)"),
+                    "without Q(t), harvest action should not reference Q(t)"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn build_command_footer_passes_qt_to_actions() {
+        let store = Store::genesis();
+        // k_eff=0.1 → Q(t)=0.00556 → Critical → HarvestOnly level
+        // At HarvestOnly level, footer should mention harvest
+        let footer = build_command_footer(&store, Some(0.1));
+        assert!(
+            footer.contains("HARVEST") || footer.contains("harvest"),
+            "footer at k_eff=0.1 should mention harvest, got: {footer}"
+        );
+    }
+
+    #[test]
+    fn build_footer_with_budget_sets_warning_level() {
+        let telemetry = SessionTelemetry::default();
+        let store = Store::genesis();
+        let footer = build_footer_with_budget(&telemetry, &store, None, vec![], Some(0.1));
+        assert_eq!(
+            footer.harvest_warning,
+            HarvestWarningLevel::Critical,
+            "Q(t)=0.1 should set Critical warning level"
+        );
+    }
+
+    #[test]
+    fn build_footer_without_budget_defaults_to_none() {
+        let telemetry = SessionTelemetry::default();
+        let store = Store::genesis();
+        let footer = build_footer(&telemetry, &store, None, vec![]);
+        assert_eq!(
+            footer.harvest_warning,
+            HarvestWarningLevel::None,
+            "without Q(t), warning level should be None"
+        );
+    }
+
+    #[test]
+    fn format_footer_full_includes_qt_warning_when_active() {
+        let telemetry = SessionTelemetry {
+            total_turns: 5,
+            harvest_quality: 0.9,
+            harvest_is_recent: true,
+            ..Default::default()
+        };
+        let store = Store::genesis();
+        let footer = build_footer_with_budget(
+            &telemetry,
+            &store,
+            Some("braid harvest --commit".into()),
+            vec![],
+            Some(0.2), // Warn level
+        );
+        let formatted = format_footer_at_level(&footer, GuidanceLevel::Full);
+        assert!(
+            formatted.contains("harvest soon"),
+            "Full footer with Warn level should show harvest soon, got: {formatted}"
+        );
+    }
+
+    #[test]
+    fn format_footer_full_no_qt_warning_when_inactive() {
+        let telemetry = SessionTelemetry {
+            total_turns: 5,
+            harvest_quality: 0.9,
+            harvest_is_recent: true,
+            ..Default::default()
+        };
+        let store = Store::genesis();
+        let footer = build_footer_with_budget(
+            &telemetry,
+            &store,
+            None,
+            vec![],
+            Some(0.8), // None level
+        );
+        let formatted = format_footer_at_level(&footer, GuidanceLevel::Full);
+        assert!(
+            !formatted.contains("harvest soon") && !formatted.contains("HARVEST NOW"),
+            "Full footer at Q(t)=0.8 should not show harvest warning, got: {formatted}"
+        );
+    }
+
+    #[test]
+    fn format_footer_compressed_includes_critical_warning() {
+        let telemetry = SessionTelemetry {
+            total_turns: 5,
+            harvest_quality: 0.9,
+            harvest_is_recent: true,
+            ..Default::default()
+        };
+        let store = Store::genesis();
+        let footer = build_footer_with_budget(
+            &telemetry,
+            &store,
+            None,
+            vec![],
+            Some(0.05), // Critical
+        );
+        let formatted = format_footer_at_level(&footer, GuidanceLevel::Compressed);
+        assert!(
+            formatted.contains("HARVEST NOW"),
+            "Compressed footer with Critical should show HARVEST NOW, got: {formatted}"
+        );
+    }
+
+    #[test]
+    fn format_footer_harvest_only_uses_qt_warning() {
+        let telemetry = SessionTelemetry {
+            total_turns: 5,
+            harvest_quality: 0.9,
+            harvest_is_recent: true,
+            ..Default::default()
+        };
+        let store = Store::genesis();
+        let footer = build_footer_with_budget(
+            &telemetry,
+            &store,
+            Some("braid harvest --commit".into()),
+            vec![],
+            Some(0.05), // Critical
+        );
+        let formatted = format_footer_at_level(&footer, GuidanceLevel::HarvestOnly);
+        assert!(
+            formatted.contains("HARVEST NOW"),
+            "HarvestOnly with Critical Q(t) should show HARVEST NOW, got: {formatted}"
+        );
+    }
+
+    #[test]
+    fn format_footer_minimal_critical_overrides_action() {
+        let telemetry = SessionTelemetry {
+            total_turns: 5,
+            harvest_quality: 0.9,
+            harvest_is_recent: true,
+            ..Default::default()
+        };
+        let store = Store::genesis();
+        let footer = build_footer_with_budget(
+            &telemetry,
+            &store,
+            Some("braid query [:find ?e :where [?e :db/ident]]".into()),
+            vec![],
+            Some(0.05), // Critical
+        );
+        let formatted = format_footer_at_level(&footer, GuidanceLevel::Minimal);
+        assert!(
+            formatted.contains("HARVEST NOW"),
+            "Minimal footer at Critical should override action with HARVEST NOW, got: {formatted}"
+        );
     }
 }

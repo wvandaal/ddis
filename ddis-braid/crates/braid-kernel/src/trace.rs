@@ -203,13 +203,9 @@ pub fn scan_source(source: &str, file_path: &str) -> BTreeSet<TraceLink> {
 /// Extract a function name from a line like `fn foo_bar(` or `pub fn baz(`.
 fn extract_fn_name(line: &str) -> Option<String> {
     let trimmed = line.trim();
-    let after_fn = if trimmed.starts_with("pub fn ") {
-        &trimmed[7..]
-    } else if trimmed.starts_with("fn ") {
-        &trimmed[3..]
-    } else {
-        return None;
-    };
+    let after_fn = trimmed
+        .strip_prefix("pub fn ")
+        .or_else(|| trimmed.strip_prefix("fn "))?;
 
     // Take characters until ( or < or whitespace
     let name: String = after_fn

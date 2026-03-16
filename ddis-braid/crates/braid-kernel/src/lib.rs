@@ -71,11 +71,13 @@ pub use config::{
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 pub use error::KernelError;
 pub use guidance::{
-    build_command_footer, build_footer, compute_methodology_score, compute_routing,
-    default_derivation_rules, derive_actions, derive_tasks, format_actions, format_footer,
-    format_footer_at_level, modulate_actions, observation_staleness, ActionCategory,
-    DerivationRule, DerivedTask, GuidanceAction, GuidanceFooter, MethodologyComponents,
-    MethodologyScore, RoutingMetrics, SessionTelemetry, TaskNode, TaskRouting, Trend,
+    build_command_footer, build_footer, build_footer_with_budget, compute_methodology_score,
+    compute_routing, default_derivation_rules, derive_actions, derive_actions_with_budget,
+    derive_tasks, format_actions, format_footer, format_footer_at_level,
+    harvest_warning_from_k_eff, harvest_warning_level, modulate_actions, observation_staleness,
+    ActionCategory, DerivationRule, DerivedTask, GuidanceAction, GuidanceFooter,
+    HarvestWarningLevel, MethodologyComponents, MethodologyScore, RoutingMetrics, SessionTelemetry,
+    TaskNode, TaskRouting, Trend,
 };
 pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, crystallization_guard,
