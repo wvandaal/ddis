@@ -46,6 +46,7 @@ pub mod signal;
 pub mod stage;
 pub mod store;
 pub mod task;
+pub mod trace;
 pub mod trilateral;
 
 // Re-export core types at crate root for ergonomic access.
@@ -132,6 +133,9 @@ pub use task::{
     create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, resolve_task_status,
     task_counts, task_summary, update_status_datom, CreateTaskParams, TaskStatus, TaskSummary,
     TaskType,
+};
+pub use trace::{
+    links_to_datoms, scan_source, summarize, TraceLink, TraceSummary, VerificationDepth,
 };
 pub use trilateral::{
     check_coherence, check_coherence_fast, classify_attribute, compute_phi, compute_phi_default,
