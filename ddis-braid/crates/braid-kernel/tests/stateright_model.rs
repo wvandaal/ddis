@@ -1070,13 +1070,10 @@ impl Model for BilateralConvergenceModel {
                     .all(|f| f.0 >= 0.0 && f.0 <= 1.0)
             }),
             // REACHABILITY: All gaps can be closed and all specs witnessed.
-            Property::<Self>::sometimes(
-                "all_gaps_closed_and_witnessed",
-                |model, state| {
-                    state.gaps_closed.len() == model.num_specs
-                        && state.witnesses_added.len() == model.num_specs
-                },
-            ),
+            Property::<Self>::sometimes("all_gaps_closed_and_witnessed", |model, state| {
+                state.gaps_closed.len() == model.num_specs
+                    && state.witnesses_added.len() == model.num_specs
+            }),
         ]
     }
 

@@ -1112,6 +1112,304 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // Frontier unit tests (W2E.1)
+    // Witnesses: INV-STORE-016 (Frontier Computability),
+    //            INV-QUERY-007 (Frontier as Queryable Data),
+    //            ADR-STORE-021 (Frontier Representation)
+    // -----------------------------------------------------------------------
+
+    // Verifies: INV-STORE-016 — Frontier::current captures all agents
+    // Verifies: ADR-STORE-021 — Frontier Representation
+    #[test]
+    fn frontier_current_captures_all_agents() {
+        let mut store = Store::genesis();
+
+        // Transact with two different agents
+        let alice = AgentId::from_name("alice");
+        let bob = AgentId::from_name("bob");
+
+        let e1 = EntityId::from_ident(":test/alice-data");
+        let tx1 = Transaction::new(alice, ProvenanceType::Observed, "alice tx")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alice's doc".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        let e2 = EntityId::from_ident(":test/bob-data");
+        let tx2 = Transaction::new(bob, ProvenanceType::Observed, "bob tx")
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("bob's doc".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt2 = store.transact(tx2).unwrap();
+
+        let frontier = Frontier::current(&store);
+
+        // Both agents must be present
+        assert!(frontier.contains_key(&alice), "alice missing from frontier");
+        assert!(frontier.contains_key(&bob), "bob missing from frontier");
+
+        // Their max TxIds must match the receipts
+        assert_eq!(
+            frontier.max_tx_for(&alice),
+            Some(receipt1.tx_id),
+            "alice tx_id mismatch"
+        );
+        assert_eq!(
+            frontier.max_tx_for(&bob),
+            Some(receipt2.tx_id),
+            "bob tx_id mismatch"
+        );
+
+        // System agent from genesis must also be present
+        let system = AgentId::from_name("braid:system");
+        assert!(
+            frontier.contains_key(&system),
+            "system agent missing from frontier"
+        );
+    }
+
+    // Verifies: INV-QUERY-007 — Frontier::at filters correctly by tx_id
+    #[test]
+    fn frontier_at_filters_by_tx_id() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        // First transaction
+        let e1 = EntityId::from_ident(":test/at-first");
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "first")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("first".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        // Second transaction
+        let e2 = EntityId::from_ident(":test/at-second");
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "second")
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("second".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt2 = store.transact(tx2).unwrap();
+
+        // Frontier at receipt1 should show the agent with receipt1.tx_id
+        let frontier_at_1 = Frontier::at(&store, receipt1.tx_id);
+        assert_eq!(
+            frontier_at_1.max_tx_for(&agent),
+            Some(receipt1.tx_id),
+            "frontier at tx1 should cap agent at tx1"
+        );
+
+        // Frontier at receipt2 should show the agent with receipt2.tx_id
+        let frontier_at_2 = Frontier::at(&store, receipt2.tx_id);
+        assert_eq!(
+            frontier_at_2.max_tx_for(&agent),
+            Some(receipt2.tx_id),
+            "frontier at tx2 should cap agent at tx2"
+        );
+
+        // The frontier at receipt1 must not advance past receipt1
+        let max_at_1 = frontier_at_1.max_tx_for(&agent).unwrap();
+        assert!(
+            max_at_1 <= receipt1.tx_id,
+            "frontier at tx1 leaked later transaction: {:?} > {:?}",
+            max_at_1,
+            receipt1.tx_id
+        );
+
+        // Falsification check: no TxId in frontier_at_1 exceeds cutoff
+        for (_agent, tx_id) in &frontier_at_1 {
+            assert!(
+                *tx_id <= receipt1.tx_id,
+                "frontier at tx1 contains tx > cutoff"
+            );
+        }
+    }
+
+    // Verifies: INV-QUERY-007 — frontier.contains returns true within, false beyond
+    #[test]
+    fn frontier_contains_filters_datoms() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        // First transaction
+        let e1 = EntityId::from_ident(":test/contains-first");
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "first")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("first".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        // Second transaction
+        let e2 = EntityId::from_ident(":test/contains-second");
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "second")
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("second".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let _receipt2 = store.transact(tx2).unwrap();
+
+        // Frontier at receipt1
+        let frontier_at_1 = Frontier::at(&store, receipt1.tx_id);
+
+        // Datoms from tx1 should be within the frontier
+        let tx1_datoms: Vec<_> = store
+            .datoms()
+            .filter(|d| d.tx == receipt1.tx_id)
+            .collect();
+        assert!(
+            !tx1_datoms.is_empty(),
+            "must have datoms from the first transaction"
+        );
+        for d in &tx1_datoms {
+            assert!(
+                frontier_at_1.contains(d),
+                "datom from tx1 should be within frontier_at_1"
+            );
+        }
+
+        // Datoms from tx2 should NOT be within the frontier at tx1
+        let tx2_datoms: Vec<_> = store
+            .datoms()
+            .filter(|d| d.tx == _receipt2.tx_id)
+            .collect();
+        assert!(
+            !tx2_datoms.is_empty(),
+            "must have datoms from the second transaction"
+        );
+        for d in &tx2_datoms {
+            assert!(
+                !frontier_at_1.contains(d),
+                "datom from tx2 should NOT be within frontier_at_1"
+            );
+        }
+
+        // Current frontier should contain ALL datoms
+        let current = Frontier::current(&store);
+        for d in store.datoms() {
+            assert!(
+                current.contains(d),
+                "current frontier must contain every datom in the store"
+            );
+        }
+    }
+
+    // Verifies: ADR-STORE-021 — Frontier max_tx_for returns None for unknown agents
+    #[test]
+    fn frontier_max_tx_for_unknown_agent_returns_none() {
+        let store = Store::genesis();
+        let frontier = Frontier::current(&store);
+        let unknown = AgentId::from_name("never-transacted");
+        assert_eq!(
+            frontier.max_tx_for(&unknown),
+            None,
+            "unknown agent should return None"
+        );
+    }
+
+    // Verifies: INV-STORE-016 — Frontier from_datoms matches stored frontier
+    #[test]
+    fn frontier_current_matches_store_frontier() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        let e = EntityId::from_ident(":test/match");
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "match test")
+            .assert(
+                e,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("match".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        let current = Frontier::current(&store);
+        let stored = store.frontier();
+
+        // current() must equal the stored frontier
+        assert_eq!(
+            current.len(),
+            stored.len(),
+            "agent count must match"
+        );
+        for (agent, tx_id) in stored {
+            assert_eq!(
+                current.max_tx_for(agent),
+                Some(*tx_id),
+                "tx_id mismatch for agent {:?}",
+                agent
+            );
+        }
+    }
+
+    // Verifies: INV-QUERY-007 — Frontier::at with multi-agent store
+    #[test]
+    fn frontier_at_multi_agent() {
+        let mut store = Store::genesis();
+        let alice = AgentId::from_name("alice");
+        let bob = AgentId::from_name("bob");
+
+        // Alice transacts first
+        let e1 = EntityId::from_ident(":test/alice-multi");
+        let tx1 = Transaction::new(alice, ProvenanceType::Observed, "alice")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alice".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt_alice = store.transact(tx1).unwrap();
+
+        // Bob transacts second
+        let e2 = EntityId::from_ident(":test/bob-multi");
+        let tx2 = Transaction::new(bob, ProvenanceType::Observed, "bob")
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("bob".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let _receipt_bob = store.transact(tx2).unwrap();
+
+        // Frontier at alice's tx should include alice but not bob
+        let frontier_at_alice = Frontier::at(&store, receipt_alice.tx_id);
+        assert!(
+            frontier_at_alice.contains_key(&alice),
+            "alice should be in frontier at her tx"
+        );
+        // Bob should not be in the frontier at alice's tx because
+        // bob transacted after alice
+        assert!(
+            !frontier_at_alice.contains_key(&bob),
+            "bob should NOT be in frontier at alice's tx"
+        );
+    }
+
+    // -----------------------------------------------------------------------
     // Proptest property-based verification suite (14 STORE invariants)
     // Witnesses: INV-STORE-001, INV-STORE-002, INV-STORE-003, INV-STORE-004,
     // INV-STORE-005, INV-STORE-006, INV-STORE-007, INV-STORE-008,
@@ -1471,6 +1769,69 @@ mod tests {
                         scanned.len(),
                         "entity_datoms() count mismatch for {:?}",
                         entity
+                    );
+                }
+            }
+
+            // ---------------------------------------------------------------
+            // Frontier proptests (W2E.1)
+            // Witnesses: INV-STORE-016, INV-QUERY-007
+            // ---------------------------------------------------------------
+
+            /// INV-STORE-016 + INV-QUERY-007: For any store, its current frontier
+            /// contains every datom in the store. This is the fundamental
+            /// correctness property: the current frontier is a complete view.
+            #[test]
+            fn frontier_current_contains_all_datoms(store in arb_store(3)) {
+                let frontier = Frontier::current(&store);
+                for datom in store.datoms() {
+                    prop_assert!(
+                        frontier.contains(datom),
+                        "current frontier must contain every datom — failed for tx {:?}",
+                        datom.tx
+                    );
+                }
+            }
+
+            /// INV-QUERY-007: Frontier::at never includes tx > cutoff.
+            /// For any store and any tx in the store, Frontier::at(cutoff) must
+            /// not contain any datom beyond the cutoff.
+            #[test]
+            fn frontier_at_respects_cutoff(
+                store in arb_store(3),
+            ) {
+                // Pick the genesis tx_id as cutoff (always present)
+                let system_agent = AgentId::from_name("braid:system");
+                let genesis_tx = TxId::new(0, 0, system_agent);
+                let frontier = Frontier::at(&store, genesis_tx);
+
+                // No tx in the frontier should exceed the cutoff
+                for (_agent, tx_id) in &frontier {
+                    prop_assert!(
+                        *tx_id <= genesis_tx,
+                        "frontier at genesis contains tx > genesis: {:?}",
+                        tx_id
+                    );
+                }
+            }
+
+            /// INV-STORE-016: Frontier::current matches store.frontier() exactly.
+            #[test]
+            fn frontier_current_equals_stored(store in arb_store(3)) {
+                let current = Frontier::current(&store);
+                let stored = store.frontier();
+
+                prop_assert_eq!(
+                    current.len(),
+                    stored.len(),
+                    "agent count mismatch between current() and stored frontier"
+                );
+                for (agent, tx_id) in stored {
+                    prop_assert_eq!(
+                        current.max_tx_for(agent),
+                        Some(*tx_id),
+                        "tx_id mismatch for agent {:?}",
+                        agent
                     );
                 }
             }
