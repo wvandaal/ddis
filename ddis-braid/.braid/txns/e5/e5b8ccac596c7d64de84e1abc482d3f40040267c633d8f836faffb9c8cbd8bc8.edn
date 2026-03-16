@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773697400/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "W1D.1 trace scanner implemented: trace.rs (~400 LOC). Pure computation module that reads Rust source as strings and extracts spec references (INV/ADR/NEG) with depth classification (L1-L4). 12 tests passing. Handles: comment refs, unit tests, proptests, Kani proofs, Stateright models. Retroactive claim: comments before test functions get the test depth. Dog-fooding next: scan our own codebase."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "000c5d54e163b133d4cc97ca94631e4b2eca00d8b6cc365ed5a338b0e2960271" :a :db/ident :v :observation/w1d1-trace-scanner-implemented-tracers-400-loc-pure-c :op :assert}
+   {:e #blake3 "000c5d54e163b133d4cc97ca94631e4b2eca00d8b6cc365ed5a338b0e2960271" :a :db/doc :v "W1D.1 trace scanner implemented: trace.rs (~400 LOC). Pure computation module that reads Rust source as strings and extracts spec references (INV/ADR/NEG) with depth classification (L1-L4). 12 tests passing. Handles: comment refs, unit tests, proptests, Kani proofs, Stateright models. Retroactive claim: comments before test functions get the test depth. Dog-fooding next: scan our own codebase." :op :assert}
+   {:e #blake3 "000c5d54e163b133d4cc97ca94631e4b2eca00d8b6cc365ed5a338b0e2960271" :a :exploration/body :v "W1D.1 trace scanner implemented: trace.rs (~400 LOC). Pure computation module that reads Rust source as strings and extracts spec references (INV/ADR/NEG) with depth classification (L1-L4). 12 tests passing. Handles: comment refs, unit tests, proptests, Kani proofs, Stateright models. Retroactive claim: comments before test functions get the test depth. Dog-fooding next: scan our own codebase." :op :assert}
+   {:e #blake3 "000c5d54e163b133d4cc97ca94631e4b2eca00d8b6cc365ed5a338b0e2960271" :a :exploration/content-hash :v #bytes "1e2501dcb5cc03279516ce41d487743daedb55a034088b390e11d7eccf62dd23" :op :assert}
+   {:e #blake3 "000c5d54e163b133d4cc97ca94631e4b2eca00d8b6cc365ed5a338b0e2960271" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "000c5d54e163b133d4cc97ca94631e4b2eca00d8b6cc365ed5a338b0e2960271" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "000c5d54e163b133d4cc97ca94631e4b2eca00d8b6cc365ed5a338b0e2960271" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "000c5d54e163b133d4cc97ca94631e4b2eca00d8b6cc365ed5a338b0e2960271" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "000c5d54e163b133d4cc97ca94631e4b2eca00d8b6cc365ed5a338b0e2960271" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

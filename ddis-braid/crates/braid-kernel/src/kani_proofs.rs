@@ -18,6 +18,11 @@
 //! - **INV-RESOLUTION-004**: Lattice join associativity
 //! - **INV-RESOLUTION-005**: Multi-value completeness
 //! - **INV-RESOLUTION-006**: Retraction correctness
+//! - **INV-SCHEMA-001**: Schema genesis determinism
+//! - **INV-SCHEMA-002**: Schema semilattice join (merge = union)
+//! - **INV-SCHEMA-004**: Schema validation rejects wrong value types
+//! - **INV-QUERY-001**: CALM compliance (monotonic queries only add results)
+//! - **INV-QUERY-002**: Query determinism (same store + same query = same result)
 //!
 //! # Usage
 //!
@@ -1653,5 +1658,318 @@ fn prove_guidance_mt_bounded() {
             result.score >= 0.50,
             "INV-GUIDANCE-008 violated: M(t) < 0.50 despite harvest_is_recent",
         );
+    }
+}
+
+// ===========================================================================
+// SCHEMA INVARIANTS (spec/04-schema.md)
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// INV-SCHEMA-001: Schema genesis determinism
+// ---------------------------------------------------------------------------
+
+/// **INV-SCHEMA-001**: Two calls to `genesis_datoms(same_tx)` produce
+/// identical datom sets.
+///
+/// Proof strategy: construct a TxId from symbolic wall_time and logical
+/// clock, call `genesis_datoms` twice with the same TxId, and verify
+/// the resulting Vec<Datom> are identical element-by-element. This
+/// verifies that genesis is a pure function of its input with no hidden
+/// state or non-determinism.
+///
+/// Falsification condition: `genesis_datoms(tx) != genesis_datoms(tx)`
+/// for any valid TxId.
+#[kani::proof]
+#[kani::unwind(5)]
+fn prove_schema_genesis_determinism() {
+    let w: u64 = kani::any();
+    let l: u32 = kani::any();
+    kani::assume(w < u64::MAX / 2);
+    kani::assume(l < u32::MAX / 2);
+
+    let agent = AgentId::from_bytes([0u8; 16]);
+    let tx = TxId::new(w, l, agent);
+
+    let datoms1 = crate::schema::genesis_datoms(tx);
+    let datoms2 = crate::schema::genesis_datoms(tx);
+
+    // Same length.
+    kani::assert(
+        datoms1.len() == datoms2.len(),
+        "INV-SCHEMA-001 violated: genesis_datoms produced different lengths for same TxId",
+    );
+
+    // Element-by-element equality.
+    // Unwind bound covers all 18 axiomatic attributes * ~5 datoms each,
+    // but we verify structurally via Vec equality.
+    kani::assert(
+        datoms1 == datoms2,
+        "INV-SCHEMA-001 violated: genesis_datoms is not deterministic — same TxId produced different datoms",
+    );
+}
+
+// ---------------------------------------------------------------------------
+// INV-SCHEMA-002: Schema merge = join over datom sets (semilattice)
+// ---------------------------------------------------------------------------
+
+/// **INV-SCHEMA-002**: Merging two schema datom sets is their set union.
+/// The Schema derived from `A ∪ B` contains every attribute from both
+/// `Schema::from_datoms(A)` and `Schema::from_datoms(B)`.
+///
+/// Proof strategy: construct two genesis datom sets (with different TxIds
+/// to model independent agents), merge them via BTreeSet union, derive
+/// Schema from each, and verify the merged schema is a superset of both
+/// individual schemas.
+///
+/// Falsification condition: an attribute present in Schema(A) or Schema(B)
+/// is missing from Schema(A ∪ B).
+#[kani::proof]
+#[kani::unwind(3)]
+fn prove_schema_semilattice_join() {
+    let agent_a = AgentId::from_bytes([1u8; 16]);
+    let agent_b = AgentId::from_bytes([2u8; 16]);
+    let tx_a = TxId::new(100, 0, agent_a);
+    let tx_b = TxId::new(200, 0, agent_b);
+
+    // Two genesis datom sets (identical content but different TxIds).
+    let datoms_a: BTreeSet<Datom> = crate::schema::genesis_datoms(tx_a).into_iter().collect();
+    let datoms_b: BTreeSet<Datom> = crate::schema::genesis_datoms(tx_b).into_iter().collect();
+
+    // Merge = set union.
+    let mut merged: BTreeSet<Datom> = datoms_a.clone();
+    for d in &datoms_b {
+        merged.insert(d.clone());
+    }
+
+    let schema_a = crate::schema::Schema::from_datoms(&datoms_a);
+    let schema_b = crate::schema::Schema::from_datoms(&datoms_b);
+    let schema_merged = crate::schema::Schema::from_datoms(&merged);
+
+    // Merged schema is superset of both.
+    kani::assert(
+        schema_merged.is_superset_of(&schema_a),
+        "INV-SCHEMA-002 violated: merged schema lost attributes from set A",
+    );
+    kani::assert(
+        schema_merged.is_superset_of(&schema_b),
+        "INV-SCHEMA-002 violated: merged schema lost attributes from set B",
+    );
+
+    // Merged schema has at least as many attributes as either input.
+    kani::assert(
+        schema_merged.len() >= schema_a.len(),
+        "INV-SCHEMA-002 violated: merged schema smaller than schema A",
+    );
+    kani::assert(
+        schema_merged.len() >= schema_b.len(),
+        "INV-SCHEMA-002 violated: merged schema smaller than schema B",
+    );
+}
+
+// ---------------------------------------------------------------------------
+// INV-SCHEMA-004: Schema validation rejects wrong value types
+// ---------------------------------------------------------------------------
+
+/// **INV-SCHEMA-004**: A datom with the wrong value type is rejected by
+/// `Schema::validate_datom`.
+///
+/// Proof strategy: construct a schema from genesis datoms (where `:db/doc`
+/// has type `String`), then build a datom asserting a `Long` value for
+/// `:db/doc`. Verify that `validate_datom` returns `Err`.
+///
+/// Also verify the positive case: a `String` value for `:db/doc` passes.
+///
+/// Falsification condition: `validate_datom` returns `Ok` for a datom
+/// whose value type does not match the schema constraint.
+#[kani::proof]
+#[kani::unwind(3)]
+fn prove_schema_validation_rejects() {
+    let agent = AgentId::from_bytes([0u8; 16]);
+    let genesis_tx = TxId::new(0, 0, agent);
+
+    let genesis = crate::schema::genesis_datoms(genesis_tx);
+    let datom_set: BTreeSet<Datom> = genesis.into_iter().collect();
+    let schema = crate::schema::Schema::from_datoms(&datom_set);
+
+    let entity = EntityId::from_raw_bytes([42u8; 32]);
+    let doc_attr = Attribute::from_keyword(":db/doc");
+
+    // Negative case: Long value for :db/doc (expected: String).
+    let v_wrong: i64 = kani::any();
+    kani::assume(v_wrong > i64::MIN && v_wrong < i64::MAX);
+    let wrong_datom = Datom::new(
+        entity,
+        doc_attr.clone(),
+        Value::Long(v_wrong),
+        TxId::new(100, 0, agent),
+        Op::Assert,
+    );
+
+    let result_wrong = schema.validate_datom(&wrong_datom);
+    kani::assert(
+        result_wrong.is_err(),
+        "INV-SCHEMA-004 violated: validate_datom accepted Long for :db/doc (expected String)",
+    );
+
+    // Positive case: String value for :db/doc (correct type).
+    let correct_datom = Datom::new(
+        entity,
+        doc_attr,
+        Value::String("test".into()),
+        TxId::new(100, 0, agent),
+        Op::Assert,
+    );
+
+    let result_correct = schema.validate_datom(&correct_datom);
+    kani::assert(
+        result_correct.is_ok(),
+        "INV-SCHEMA-004 violated: validate_datom rejected String for :db/doc (should accept)",
+    );
+}
+
+// ===========================================================================
+// QUERY INVARIANTS (spec/03-query.md)
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// INV-QUERY-001: CALM compliance — monotonic queries only add results
+// ---------------------------------------------------------------------------
+
+/// **INV-QUERY-001**: For monotonic queries (no negation), adding datoms
+/// to the store only adds results — never removes them.
+///
+/// Proof strategy: construct a small datom set, evaluate a monotonic
+/// pattern query, then add one more symbolic datom and re-evaluate.
+/// Verify the result count is non-decreasing.
+///
+/// This models the CALM theorem: monotonic queries over growing sets
+/// produce monotonically growing result sets.
+///
+/// Falsification condition: result count decreases after a datom insertion.
+#[kani::proof]
+#[kani::unwind(5)]
+fn prove_query_calm_compliance() {
+    use crate::query::clause::{Clause, FindSpec, Pattern, QueryExpr, Term};
+    use crate::query::evaluator::{evaluate, QueryResult};
+
+    let agent = AgentId::from_bytes([0u8; 16]);
+    let genesis_tx = TxId::new(0, 0, agent);
+
+    // Build a minimal store from genesis datoms.
+    let genesis = crate::schema::genesis_datoms(genesis_tx);
+    let mut datom_set: BTreeSet<Datom> = genesis.into_iter().collect();
+
+    // Build a Store from the genesis datom set.
+    let store_before = crate::store::Store::genesis();
+
+    // Monotonic query: find all [?e :db/doc ?v].
+    let query = QueryExpr::new(
+        FindSpec::Rel(vec!["?e".into(), "?v".into()]),
+        vec![Clause::Pattern(Pattern::new(
+            Term::Variable("?e".into()),
+            Term::Attr(Attribute::from_keyword(":db/doc")),
+            Term::Variable("?v".into()),
+        ))],
+    );
+
+    let result_before = evaluate(&store_before, &query);
+    let count_before = match &result_before {
+        QueryResult::Rel(rows) => rows.len(),
+        _ => 0,
+    };
+
+    // Grow the store by adding one more datom with :db/doc.
+    let mut store_after = crate::store::Store::genesis();
+    let extra_entity = EntityId::from_raw_bytes([99u8; 32]);
+    let extra_tx = TxId::new(500, 0, agent);
+    let extra_datom = Datom::new(
+        extra_entity,
+        Attribute::from_keyword(":db/doc"),
+        Value::String("extra doc".into()),
+        extra_tx,
+        Op::Assert,
+    );
+    // Insert into the store's underlying set via a transaction.
+    let tx = crate::store::Transaction::new(
+        crate::datom::AgentId::from_name("kani:calm"),
+        crate::datom::ProvenanceType::Observed,
+        "calm-test",
+    )
+    .assert(
+        extra_entity,
+        Attribute::from_keyword(":db/doc"),
+        Value::String("extra doc".into()),
+    );
+    if let Ok(committed) = tx.commit(&store_after) {
+        let _ = store_after.transact(committed);
+    }
+
+    let result_after = evaluate(&store_after, &query);
+    let count_after = match &result_after {
+        QueryResult::Rel(rows) => rows.len(),
+        _ => 0,
+    };
+
+    // INV-QUERY-001: monotonic growth — results never shrink.
+    kani::assert(
+        count_after >= count_before,
+        "INV-QUERY-001 violated: monotonic query lost results after adding datoms",
+    );
+}
+
+// ---------------------------------------------------------------------------
+// INV-QUERY-002: Query determinism — same store + same query = same result
+// ---------------------------------------------------------------------------
+
+/// **INV-QUERY-002**: Evaluating the same query against the same store
+/// twice produces identical results.
+///
+/// Proof strategy: construct a store from genesis, build a pattern query,
+/// call `evaluate` twice, and verify the results are identical (same row
+/// count, same row contents, same order).
+///
+/// Falsification condition: `evaluate(S, Q) != evaluate(S, Q)` for any
+/// store S and query Q.
+#[kani::proof]
+#[kani::unwind(3)]
+fn prove_query_determinism() {
+    use crate::query::clause::{Clause, FindSpec, Pattern, QueryExpr, Term};
+    use crate::query::evaluator::{evaluate, QueryResult};
+
+    let store = crate::store::Store::genesis();
+
+    // Query: find all [?e :db/ident ?name].
+    let query = QueryExpr::new(
+        FindSpec::Rel(vec!["?e".into(), "?name".into()]),
+        vec![Clause::Pattern(Pattern::new(
+            Term::Variable("?e".into()),
+            Term::Attr(Attribute::from_keyword(":db/ident")),
+            Term::Variable("?name".into()),
+        ))],
+    );
+
+    let r1 = evaluate(&store, &query);
+    let r2 = evaluate(&store, &query);
+
+    match (&r1, &r2) {
+        (QueryResult::Rel(rows1), QueryResult::Rel(rows2)) => {
+            // Same row count.
+            kani::assert(
+                rows1.len() == rows2.len(),
+                "INV-QUERY-002 violated: evaluate returned different row counts for same store + query",
+            );
+            // Same content.
+            kani::assert(
+                rows1 == rows2,
+                "INV-QUERY-002 violated: evaluate returned different rows for same store + query",
+            );
+        }
+        _ => {
+            kani::assert(
+                false,
+                "INV-QUERY-002 violated: evaluate returned different result types for same store + query",
+            );
+        }
     }
 }

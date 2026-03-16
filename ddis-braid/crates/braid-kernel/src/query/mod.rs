@@ -57,7 +57,7 @@ pub mod stratum;
 
 pub use aggregate::{aggregate, AggregateFunction, AggregateSpec};
 pub use clause::{Binding, Clause, FindSpec, Pattern, QueryExpr};
-pub use evaluator::{evaluate, QueryResult};
+pub use evaluator::{evaluate, evaluate_with_frontier, QueryResult};
 pub use graph::{
     betweenness_centrality, cheeger, conflict_sheaf, constant_sheaf, critical_path, density,
     edge_laplacian, fiedler, fiedler_from_spectrum, first_betti_number, graph_laplacian,

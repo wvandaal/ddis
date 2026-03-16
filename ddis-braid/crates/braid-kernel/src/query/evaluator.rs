@@ -28,7 +28,7 @@ use std::collections::HashMap;
 
 use crate::datom::{Attribute, Datom, EntityId, Value};
 use crate::query::clause::{Binding, Clause, FindSpec, Pattern, QueryExpr, Term};
-use crate::store::Store;
+use crate::store::{Frontier, Store};
 
 /// Result of evaluating a query.
 #[derive(Clone, Debug)]
@@ -39,8 +39,41 @@ pub enum QueryResult {
     Scalar(Option<Value>),
 }
 
-/// Evaluate a query against the store.
+/// Evaluate a query against the store (all datoms visible).
+///
+/// Delegates to [`evaluate_with_frontier`] with `frontier = None`.
 pub fn evaluate(store: &Store, query: &QueryExpr) -> QueryResult {
+    evaluate_with_frontier(store, query, None)
+}
+
+/// Evaluate a query against the store, optionally scoped to a frontier.
+///
+/// When `frontier` is `Some(f)`, only datoms where `f.contains(datom)` are
+/// visible to pattern matching. This enables agent-scoped queries: an agent
+/// sees only the datoms that were present at the time its frontier was captured.
+///
+/// When `frontier` is `None`, all datoms in the store are visible (equivalent
+/// to calling [`evaluate`]).
+///
+/// # Invariants
+///
+/// - INV-QUERY-002: Determinism — same store + same query + same frontier = same result.
+/// - INV-QUERY-007: Frontier as queryable attribute — frontier scoping is a first-class
+///   query parameter, not an afterthought filter.
+/// - ADR-QUERY-005: Local frontier as default query scope.
+///
+/// # Frontier Subset Property
+///
+/// For any frontier `f` and query `q`:
+///   `results(store, q, Some(f)) ⊆ results(store, q, None)`
+///
+/// This follows from the fact that frontier filtering can only remove datom
+/// candidates, never add them.
+pub fn evaluate_with_frontier(
+    store: &Store,
+    query: &QueryExpr,
+    frontier: Option<&Frontier>,
+) -> QueryResult {
     let mut bindings: Vec<Binding> = vec![HashMap::new()]; // start with empty binding
 
     for clause in &query.where_clauses {
@@ -48,7 +81,7 @@ pub fn evaluate(store: &Store, query: &QueryExpr) -> QueryResult {
             Clause::Pattern(pattern) => {
                 let mut new_bindings = Vec::new();
                 for binding in &bindings {
-                    let matches = match_pattern_indexed(store, pattern, binding);
+                    let matches = match_pattern_frontier(store, pattern, binding, frontier);
                     new_bindings.extend(matches);
                 }
                 new_bindings
@@ -141,6 +174,67 @@ fn match_pattern_indexed(store: &Store, pattern: &Pattern, existing: &Binding) -
         }
     }
     results
+}
+
+/// Frontier-aware pattern matching: delegates to [`match_pattern_indexed`] when
+/// no frontier is active, otherwise applies `frontier.contains(datom)` as a
+/// pre-filter before unification.
+///
+/// The frontier filter is applied at the innermost level (per-datom) so that
+/// index selection still narrows the candidate set first. This preserves the
+/// O(k) entity-index and O(k) attribute-index fast paths.
+fn match_pattern_frontier(
+    store: &Store,
+    pattern: &Pattern,
+    existing: &Binding,
+    frontier: Option<&Frontier>,
+) -> Vec<Binding> {
+    match frontier {
+        None => match_pattern_indexed(store, pattern, existing),
+        Some(f) => {
+            // Use the same index-selection strategy as match_pattern_indexed,
+            // but apply the frontier filter to each candidate before unification.
+
+            // Try entity index first (most selective)
+            if let Some(eid) = resolve_entity(&pattern.entity, existing) {
+                let candidates = store.entity_datoms(eid);
+                let mut results = Vec::with_capacity(candidates.len());
+                for datom in candidates {
+                    if f.contains(datom) {
+                        if let Some(new_binding) = unify_datom(datom, pattern, existing) {
+                            results.push(new_binding);
+                        }
+                    }
+                }
+                return results;
+            }
+
+            // Try attribute index (second most selective)
+            if let Some(attr) = resolve_attribute(&pattern.attribute) {
+                let candidates = store.attribute_datoms(&attr);
+                let mut results = Vec::with_capacity(candidates.len());
+                for datom in candidates {
+                    if f.contains(datom) {
+                        if let Some(new_binding) = unify_datom(datom, pattern, existing) {
+                            results.push(new_binding);
+                        }
+                    }
+                }
+                return results;
+            }
+
+            // Fallback: full scan with frontier filter
+            let mut results = Vec::new();
+            for datom in store.datoms() {
+                if f.contains(datom) {
+                    if let Some(new_binding) = unify_datom(datom, pattern, existing) {
+                        results.push(new_binding);
+                    }
+                }
+            }
+            results
+        }
+    }
 }
 
 /// Try to unify a datom with a pattern, extending the existing binding.
@@ -532,6 +626,208 @@ mod tests {
     }
 
     // -------------------------------------------------------------------
+    // Frontier-scoped query evaluation
+    // Verifies: INV-QUERY-007 — Frontier as queryable attribute
+    // Verifies: ADR-QUERY-005 — Local Frontier as Default
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-QUERY-007 — Frontier scoping excludes datoms beyond frontier
+    #[test]
+    fn frontier_filters_datoms_beyond_cutoff() {
+        let mut store = Store::genesis();
+        let agent_a = AgentId::from_name("agent-a");
+        let agent_b = AgentId::from_name("agent-b");
+
+        // Agent A transacts first
+        let entity_a = EntityId::from_ident(":test/alpha");
+        let tx_a = Transaction::new(agent_a, ProvenanceType::Observed, "agent-a tx")
+            .assert(
+                entity_a,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alpha doc".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx_a).unwrap();
+
+        // Capture frontier BEFORE agent B transacts
+        let frontier_before_b = Frontier::current(&store);
+
+        // Agent B transacts after
+        let entity_b = EntityId::from_ident(":test/beta");
+        let tx_b = Transaction::new(agent_b, ProvenanceType::Observed, "agent-b tx")
+            .assert(
+                entity_b,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("beta doc".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx_b).unwrap();
+
+        // Full query (no frontier) should see both
+        let query = QueryExpr::new(
+            FindSpec::Rel(vec!["?e".into(), "?v".into()]),
+            vec![Clause::Pattern(Pattern::new(
+                Term::Variable("?e".into()),
+                Term::Attr(Attribute::from_keyword(":db/doc")),
+                Term::Variable("?v".into()),
+            ))],
+        );
+
+        let full_result = evaluate(&store, &query);
+        let full_rows = match &full_result {
+            QueryResult::Rel(rows) => rows,
+            _ => panic!("expected Rel"),
+        };
+
+        // Frontier-scoped query should exclude agent B's datoms
+        let scoped_result = evaluate_with_frontier(&store, &query, Some(&frontier_before_b));
+        let scoped_rows = match &scoped_result {
+            QueryResult::Rel(rows) => rows,
+            _ => panic!("expected Rel"),
+        };
+
+        // Scoped must be strictly fewer than full (agent B's doc is excluded)
+        assert!(
+            scoped_rows.len() < full_rows.len(),
+            "frontier-scoped query should return fewer rows: scoped={}, full={}",
+            scoped_rows.len(),
+            full_rows.len()
+        );
+
+        // Agent A's entity should be visible in scoped results
+        let has_alpha = scoped_rows
+            .iter()
+            .any(|row| row[1] == Value::String("alpha doc".into()));
+        assert!(
+            has_alpha,
+            "agent-a's datom should be visible through frontier"
+        );
+
+        // Agent B's entity should NOT be visible in scoped results
+        let has_beta = scoped_rows
+            .iter()
+            .any(|row| row[1] == Value::String("beta doc".into()));
+        assert!(
+            !has_beta,
+            "agent-b's datom should NOT be visible through pre-b frontier"
+        );
+    }
+
+    // Verifies: ADR-QUERY-005 — None frontier returns same as evaluate()
+    #[test]
+    fn none_frontier_matches_evaluate() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("test-agent");
+        let entity = EntityId::from_ident(":test/gamma");
+
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "test tx")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("gamma doc".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        let query = QueryExpr::new(
+            FindSpec::Rel(vec!["?e".into(), "?v".into()]),
+            vec![Clause::Pattern(Pattern::new(
+                Term::Variable("?e".into()),
+                Term::Attr(Attribute::from_keyword(":db/doc")),
+                Term::Variable("?v".into()),
+            ))],
+        );
+
+        let direct = evaluate(&store, &query);
+        let via_none = evaluate_with_frontier(&store, &query, None);
+
+        let direct_rows = match &direct {
+            QueryResult::Rel(rows) => rows,
+            _ => panic!("expected Rel"),
+        };
+        let none_rows = match &via_none {
+            QueryResult::Rel(rows) => rows,
+            _ => panic!("expected Rel"),
+        };
+
+        assert_eq!(
+            direct_rows.len(),
+            none_rows.len(),
+            "evaluate() and evaluate_with_frontier(None) must return same row count"
+        );
+        assert_eq!(
+            direct_rows, none_rows,
+            "evaluate() and evaluate_with_frontier(None) must return identical rows"
+        );
+    }
+
+    // Verifies: INV-QUERY-007 — Frontier scoping with entity-index path
+    #[test]
+    fn frontier_scoping_works_with_entity_index() {
+        let mut store = Store::genesis();
+        let agent_a = AgentId::from_name("agent-a");
+        let agent_b = AgentId::from_name("agent-b");
+
+        // Both agents write to the SAME entity (different attributes)
+        let shared_entity = EntityId::from_ident(":test/shared");
+
+        let tx_a = Transaction::new(agent_a, ProvenanceType::Observed, "a writes")
+            .assert(
+                shared_entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("from agent a".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx_a).unwrap();
+
+        let frontier_after_a = Frontier::current(&store);
+
+        let tx_b = Transaction::new(agent_b, ProvenanceType::Observed, "b writes")
+            .assert(
+                shared_entity,
+                Attribute::from_keyword(":tx/rationale"),
+                Value::String("from agent b".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx_b).unwrap();
+
+        // Query with bound entity (triggers entity-index path)
+        let query = QueryExpr::new(
+            FindSpec::Rel(vec!["?a".into(), "?v".into()]),
+            vec![Clause::Pattern(Pattern::new(
+                Term::Entity(shared_entity),
+                Term::Variable("?a".into()),
+                Term::Variable("?v".into()),
+            ))],
+        );
+
+        let full = evaluate(&store, &query);
+        let scoped = evaluate_with_frontier(&store, &query, Some(&frontier_after_a));
+
+        let full_rows = match &full {
+            QueryResult::Rel(rows) => rows,
+            _ => panic!("expected Rel"),
+        };
+        let scoped_rows = match &scoped {
+            QueryResult::Rel(rows) => rows,
+            _ => panic!("expected Rel"),
+        };
+
+        // Full should have datoms from both agents; scoped should exclude agent B's
+        assert!(
+            scoped_rows.len() < full_rows.len(),
+            "entity-index scoped query should exclude agent-b datoms: scoped={}, full={}",
+            scoped_rows.len(),
+            full_rows.len()
+        );
+    }
+
+    // -------------------------------------------------------------------
     // Proptest: evaluate determinism
     // Verifies: INV-QUERY-002 — Query Determinism
     // Verifies: NEG-QUERY-002 — No Query Side Effects
@@ -620,6 +916,129 @@ mod tests {
                         i, a, b
                     );
                 }
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Proptest: Frontier subset property
+    // Verifies: INV-QUERY-007 — Frontier as queryable attribute
+    // Verifies: ADR-QUERY-005 — Local Frontier as Default
+    //
+    // For any store, query, and frontier:
+    //   results(store, q, Some(f)) ⊆ results(store, q, None)
+    // -------------------------------------------------------------------
+
+    mod frontier_proptests {
+        use super::*;
+        use crate::datom::{AgentId, ProvenanceType};
+        use crate::proptest_strategies::arb_store;
+        use crate::store::Transaction;
+        use proptest::prelude::*;
+        use std::collections::HashSet;
+
+        fn doc_query() -> QueryExpr {
+            QueryExpr::new(
+                FindSpec::Rel(vec!["?e".into(), "?v".into()]),
+                vec![Clause::Pattern(Pattern::new(
+                    Term::Variable("?e".into()),
+                    Term::Attr(Attribute::from_keyword(":db/doc")),
+                    Term::Variable("?v".into()),
+                ))],
+            )
+        }
+
+        fn rows_to_set(result: &QueryResult) -> HashSet<Vec<Value>> {
+            match result {
+                QueryResult::Rel(rows) => rows.iter().cloned().collect(),
+                _ => panic!("expected Rel"),
+            }
+        }
+
+        proptest! {
+            /// Frontier-scoped results are always a subset of full results.
+            ///
+            /// We build a store with a base set of transactions, capture the
+            /// frontier, add more transactions, then verify that querying with
+            /// the earlier frontier returns a subset of the full query.
+            #[test]
+            fn frontier_results_subset_of_full(
+                base_store in arb_store(3),
+                extra_entities in proptest::collection::vec(
+                    (crate::proptest_strategies::arb_entity_id(),
+                     crate::proptest_strategies::arb_doc_value()),
+                    1..=5
+                ),
+            ) {
+                // Capture frontier at current store state
+                let frontier_before = Frontier::current(&base_store);
+
+                // Grow the store with a DIFFERENT agent so frontier_before
+                // does not cover the new datoms
+                let mut grown = base_store;
+                let new_agent = AgentId::from_name("proptest:frontier-extra");
+                let mut tx = Transaction::new(
+                    new_agent,
+                    ProvenanceType::Observed,
+                    "extra datoms",
+                );
+                for (entity, value) in extra_entities {
+                    tx = tx.assert(
+                        entity,
+                        Attribute::from_keyword(":db/doc"),
+                        value,
+                    );
+                }
+                if let Ok(committed) = tx.commit(&grown) {
+                    let _ = grown.transact(committed);
+                }
+
+                let query = doc_query();
+                let full_set = rows_to_set(&evaluate(&grown, &query));
+                let scoped_set = rows_to_set(
+                    &evaluate_with_frontier(&grown, &query, Some(&frontier_before)),
+                );
+
+                // Every row in scoped must also appear in full
+                for row in &scoped_set {
+                    prop_assert!(
+                        full_set.contains(row),
+                        "frontier-scoped row not in full results: {:?}",
+                        row
+                    );
+                }
+
+                // Scoped should have no more rows than full
+                prop_assert!(
+                    scoped_set.len() <= full_set.len(),
+                    "frontier-scoped has MORE rows ({}) than full ({})",
+                    scoped_set.len(),
+                    full_set.len()
+                );
+            }
+
+            /// evaluate_with_frontier(None) is identical to evaluate().
+            #[test]
+            fn none_frontier_equals_evaluate(store in arb_store(3)) {
+                let query = doc_query();
+                let direct = evaluate(&store, &query);
+                let via_none = evaluate_with_frontier(&store, &query, None);
+
+                let direct_set = rows_to_set(&direct);
+                let none_set = rows_to_set(&via_none);
+
+                prop_assert_eq!(
+                    direct_set.len(),
+                    none_set.len(),
+                    "None frontier should match evaluate(): {} vs {}",
+                    direct_set.len(),
+                    none_set.len()
+                );
+                prop_assert_eq!(
+                    direct_set,
+                    none_set,
+                    "None frontier should produce identical row set",
+                );
             }
         }
     }

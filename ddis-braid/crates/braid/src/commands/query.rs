@@ -145,7 +145,12 @@ pub fn run(
     let entity_desc = entity_filter.unwrap_or("*");
     let attr_desc = attribute_filter.unwrap_or("*");
     let agent = AgentOutput {
-        context: format!("query: {} datoms (entity={}, attribute={})", results.len(), entity_desc, attr_desc),
+        context: format!(
+            "query: {} datoms (entity={}, attribute={})",
+            results.len(),
+            entity_desc,
+            attr_desc
+        ),
         content: human.clone(),
         footer: "refine: add filters | explore: braid schema --pattern ':spec/*'".to_string(),
     };
@@ -158,7 +163,11 @@ pub fn run(
 }
 
 /// Execute a Datalog query against the store and format results.
-pub fn run_datalog(path: &Path, datalog_src: &str, json: bool) -> Result<CommandOutput, BraidError> {
+pub fn run_datalog(
+    path: &Path,
+    datalog_src: &str,
+    json: bool,
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -214,7 +223,10 @@ pub fn run_datalog(path: &Path, datalog_src: &str, json: bool) -> Result<Command
             QueryResult::Scalar(Some(_)) => 1,
             QueryResult::Scalar(None) => 0,
         };
-        (serde_json::to_string_pretty(&json_result).unwrap() + "\n", count)
+        (
+            serde_json::to_string_pretty(&json_result).unwrap() + "\n",
+            count,
+        )
     } else {
         let mut out = String::new();
         let count;
