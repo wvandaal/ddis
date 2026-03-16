@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773697803/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "WAVE 1 FORMALLY CLOSED. All subtasks complete: 29 Kani harnesses, 8 Stateright models, 50+ proptests, trace depth pipeline. 604 tests passing. Wave 2 in progress: 6 parallel agents working on budget pipeline, Q(t) warnings, frontier queries, graph tests. Wave 2 has 13 open beads, targeting full closure."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "19f72b63b18a68f678f1d0cfbc08e75f31b6cc6370d21e175872700420f56b9c" :a :db/ident :v :observation/wave-1-formally-closed-all-subtasks-complete-29-kani-harne :op :assert}
+   {:e #blake3 "19f72b63b18a68f678f1d0cfbc08e75f31b6cc6370d21e175872700420f56b9c" :a :db/doc :v "WAVE 1 FORMALLY CLOSED. All subtasks complete: 29 Kani harnesses, 8 Stateright models, 50+ proptests, trace depth pipeline. 604 tests passing. Wave 2 in progress: 6 parallel agents working on budget pipeline, Q(t) warnings, frontier queries, graph tests. Wave 2 has 13 open beads, targeting full closure." :op :assert}
+   {:e #blake3 "19f72b63b18a68f678f1d0cfbc08e75f31b6cc6370d21e175872700420f56b9c" :a :exploration/body :v "WAVE 1 FORMALLY CLOSED. All subtasks complete: 29 Kani harnesses, 8 Stateright models, 50+ proptests, trace depth pipeline. 604 tests passing. Wave 2 in progress: 6 parallel agents working on budget pipeline, Q(t) warnings, frontier queries, graph tests. Wave 2 has 13 open beads, targeting full closure." :op :assert}
+   {:e #blake3 "19f72b63b18a68f678f1d0cfbc08e75f31b6cc6370d21e175872700420f56b9c" :a :exploration/content-hash :v #bytes "603ec20abdd11158a0ec8cf3eae789b912c78b3396d77138e8f55bccce1f830f" :op :assert}
+   {:e #blake3 "19f72b63b18a68f678f1d0cfbc08e75f31b6cc6370d21e175872700420f56b9c" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "19f72b63b18a68f678f1d0cfbc08e75f31b6cc6370d21e175872700420f56b9c" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "19f72b63b18a68f678f1d0cfbc08e75f31b6cc6370d21e175872700420f56b9c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "19f72b63b18a68f678f1d0cfbc08e75f31b6cc6370d21e175872700420f56b9c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "19f72b63b18a68f678f1d0cfbc08e75f31b6cc6370d21e175872700420f56b9c" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

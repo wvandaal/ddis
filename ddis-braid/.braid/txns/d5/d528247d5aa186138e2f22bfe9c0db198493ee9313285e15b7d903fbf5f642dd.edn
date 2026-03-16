@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773697720/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 18 candidates from task 'Session 021: Phase B+C+D completion, D4 integrations, validation'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :db/ident :v :harvest/session-braid-user-1773697720 :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :db/doc :v "Harvest session for task: Session 021: Phase B+C+D completion, D4 integrations, validation" :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :harvest/candidate-count :v 18 :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :harvest/drift-score :v 2.0 :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :harvest/task :v "Session 021: Phase B+C+D completion, D4 integrations, validation" :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :harvest/git-summary :v "branch=main, 9 commits, 39 files (+7274/-191)\n  b2f49dc Wave 1 continued: Kani Schema/Query, Stateright Layout/Query, Frontier eval, trace depth\n  3d345e0 W1D.1: Trace link scanner — pure kernel module for spec reference extraction\n  bd1f0b5 W2E.1: Upgrade Frontier from type alias to proper struct with query API\n  ba57fce Fix clippy manual_str_repeat in budget test\n  029f4b3 Wave 1+2 batch 3: 8 Kani harnesses, BilateralConvergenceModel, query proptests\nHot files:\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (1211 lines changed)\n  ddis-braid/crates/braid-kernel/tests/stateright_model.rs (880 lines changed)\n  ddis-braid/crates/braid-kernel/src/query/evaluator.rs (797 lines changed)\n  ddis-braid/crates/braid-kernel/src/trace.rs (598 lines changed)\n  ddis-braid/crates/braid-kernel/src/store.rs (574 lines changed)\n  ddis-braid/crates/braid-kernel/src/signal.rs (542 lines changed)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (372 lines changed)\n  ddis-braid/crates/braid-kernel/src/proptest_strategies.rs (297 lines changed)" :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :harvest/store-datom-count :v 9395 :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :harvest/store-entity-count :v 1572 :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :harvest/codebase-snapshot :v "Codebase: 57918 LOC across 61 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4417 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (3991 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (3474 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (2911 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (2726 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (2541 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/trilateral.rs (2048 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (1975 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (1830 LOC)" :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :harvest/tx-since-last :v 9 :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :harvest/observation-count :v 9 :op :assert}
+   {:e #blake3 "262aa56572f901f875633b610cc04d0d87f008d31a4cc13207ffc8b9e2ec3c78" :a :harvest/delta-summary :v "+96 datoms, +10 entities" :op :assert}
+ ]}

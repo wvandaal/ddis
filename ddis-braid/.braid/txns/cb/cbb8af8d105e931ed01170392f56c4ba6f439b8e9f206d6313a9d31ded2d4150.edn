@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773697711/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Wave 1 implementation COMPLETE: W1A Kani (29 harnesses), W1B Stateright (6 models), W1C Proptests (50+ new across 9 modules), W1D Trace (scanner + depth pipeline). 604 tests passing. About to run gate check."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5090e181342142ad4a7af328a7d8fa7469107d7fc881f1ef84230daab4e19638" :a :db/ident :v :observation/wave-1-implementation-complete-w1a-kani-29-harnesses-w1b :op :assert}
+   {:e #blake3 "5090e181342142ad4a7af328a7d8fa7469107d7fc881f1ef84230daab4e19638" :a :db/doc :v "Wave 1 implementation COMPLETE: W1A Kani (29 harnesses), W1B Stateright (6 models), W1C Proptests (50+ new across 9 modules), W1D Trace (scanner + depth pipeline). 604 tests passing. About to run gate check." :op :assert}
+   {:e #blake3 "5090e181342142ad4a7af328a7d8fa7469107d7fc881f1ef84230daab4e19638" :a :exploration/body :v "Wave 1 implementation COMPLETE: W1A Kani (29 harnesses), W1B Stateright (6 models), W1C Proptests (50+ new across 9 modules), W1D Trace (scanner + depth pipeline). 604 tests passing. About to run gate check." :op :assert}
+   {:e #blake3 "5090e181342142ad4a7af328a7d8fa7469107d7fc881f1ef84230daab4e19638" :a :exploration/content-hash :v #bytes "0e549b9003d707de0ac81549661e258f4b452c26330f4112acfa991319415a14" :op :assert}
+   {:e #blake3 "5090e181342142ad4a7af328a7d8fa7469107d7fc881f1ef84230daab4e19638" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "5090e181342142ad4a7af328a7d8fa7469107d7fc881f1ef84230daab4e19638" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "5090e181342142ad4a7af328a7d8fa7469107d7fc881f1ef84230daab4e19638" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5090e181342142ad4a7af328a7d8fa7469107d7fc881f1ef84230daab4e19638" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5090e181342142ad4a7af328a7d8fa7469107d7fc881f1ef84230daab4e19638" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
