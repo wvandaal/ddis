@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773699332/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "WAVE 2 FORMALLY CLOSED. All subtasks complete: Signal subsystem (W2A), HITS+k-Core (W2B), Budget pipeline (W2C), Q(t) warnings (W2D), Frontier queries (W2E). 638 tests passing. Wave 3 (transact-time coherence) now unblocked."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7adf3aaf088f05784bd76c34cff4e6d6033b7f6aba2e7c38b6413af3225df883" :a :db/ident :v :observation/wave-2-formally-closed-all-subtasks-complete-signal-subsys :op :assert}
+   {:e #blake3 "7adf3aaf088f05784bd76c34cff4e6d6033b7f6aba2e7c38b6413af3225df883" :a :db/doc :v "WAVE 2 FORMALLY CLOSED. All subtasks complete: Signal subsystem (W2A), HITS+k-Core (W2B), Budget pipeline (W2C), Q(t) warnings (W2D), Frontier queries (W2E). 638 tests passing. Wave 3 (transact-time coherence) now unblocked." :op :assert}
+   {:e #blake3 "7adf3aaf088f05784bd76c34cff4e6d6033b7f6aba2e7c38b6413af3225df883" :a :exploration/body :v "WAVE 2 FORMALLY CLOSED. All subtasks complete: Signal subsystem (W2A), HITS+k-Core (W2B), Budget pipeline (W2C), Q(t) warnings (W2D), Frontier queries (W2E). 638 tests passing. Wave 3 (transact-time coherence) now unblocked." :op :assert}
+   {:e #blake3 "7adf3aaf088f05784bd76c34cff4e6d6033b7f6aba2e7c38b6413af3225df883" :a :exploration/content-hash :v #bytes "2825e24bd1a0e68f1be7b39d0ec1ba0298917c1f6c56938f31f044feb9929c33" :op :assert}
+   {:e #blake3 "7adf3aaf088f05784bd76c34cff4e6d6033b7f6aba2e7c38b6413af3225df883" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "7adf3aaf088f05784bd76c34cff4e6d6033b7f6aba2e7c38b6413af3225df883" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "7adf3aaf088f05784bd76c34cff4e6d6033b7f6aba2e7c38b6413af3225df883" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7adf3aaf088f05784bd76c34cff4e6d6033b7f6aba2e7c38b6413af3225df883" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7adf3aaf088f05784bd76c34cff4e6d6033b7f6aba2e7c38b6413af3225df883" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

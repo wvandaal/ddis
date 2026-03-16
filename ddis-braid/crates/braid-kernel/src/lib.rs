@@ -26,6 +26,7 @@
 pub mod agent_md;
 pub mod bilateral;
 pub mod budget;
+pub mod coherence;
 pub mod config;
 pub mod datom;
 pub mod error;
@@ -64,6 +65,9 @@ pub use budget::{
     OutputBlock, OutputPrecedence, TokenCounter, TokenEfficiency, AGENT_MODE_CEILING,
     BUDGET_FRACTION, DEFAULT_WINDOW_SIZE, ERROR_MESSAGE_CEILING, GUIDANCE_FOOTER_CEILING,
     MIN_OUTPUT,
+};
+pub use coherence::{
+    coherence_check, tier1_check, tier2_check, CoherenceTier, CoherenceViolation,
 };
 pub use config::{
     all_config, defaults as config_defaults, get_config, get_config_or, set_config_datoms,
