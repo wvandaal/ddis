@@ -219,10 +219,195 @@ pub struct TxReceipt {
 // ---------------------------------------------------------------------------
 
 /// Per-agent latest transaction ID. Equivalent to a vector clock.
-/// ADR-STORE-021: Frontier as HashMap<AgentId, TxId> (vector clock representation).
-/// INV-STORE-009: Frontier is durably stored and recoverable after crash.
-/// INV-STORE-016: Frontier computable from datom set alone.
-pub type Frontier = HashMap<AgentId, TxId>;
+///
+/// Wraps `HashMap<AgentId, TxId>` with construction methods for frontier-scoped
+/// queries (INV-QUERY-007) and snapshot views.
+///
+/// # Invariants
+///
+/// - **ADR-STORE-021**: Frontier as HashMap<AgentId, TxId> (vector clock representation).
+/// - **INV-STORE-009**: Frontier is durably stored and recoverable after crash.
+/// - **INV-STORE-016**: Frontier computable from datom set alone.
+///
+/// # Construction
+///
+/// - `Frontier::current(store)` — snapshot of the latest tx per agent.
+/// - `Frontier::at(store, tx_id)` — all datoms up to the given tx_id.
+/// - `Frontier::new()` — empty frontier (for manual construction).
+///
+/// # Three-Box Decomposition
+///
+/// **Black box**: Vector clock with contains/max_tx_for queries.
+/// **State box**: `HashMap<AgentId, TxId>` inner map.
+/// **Clear box**: See methods below.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Frontier {
+    /// Inner map from agent to that agent's latest known transaction.
+    inner: HashMap<AgentId, TxId>,
+}
+
+impl Frontier {
+    /// Create an empty frontier.
+    ///
+    /// Used for manual construction (kani proofs, merge logic, etc.).
+    pub fn new() -> Self {
+        Frontier {
+            inner: HashMap::new(),
+        }
+    }
+
+    /// Snapshot the current frontier from a store: latest tx per agent.
+    ///
+    /// INV-STORE-016: Frontier computable from datom set alone.
+    ///
+    /// Returns the same data as `store.frontier()` but as a fresh owned value.
+    /// Use when you need an independent copy of the frontier for comparison
+    /// (e.g., pre/post merge verification).
+    pub fn current(store: &Store) -> Frontier {
+        store.frontier().clone()
+    }
+
+    /// Compute the frontier as-of a given TxId.
+    ///
+    /// Returns a frontier containing, for each agent, the maximum TxId that
+    /// is `<= cutoff`. Datoms with `tx > cutoff` are excluded. This enables
+    /// time-travel queries: "what did the store look like at transaction T?"
+    ///
+    /// INV-QUERY-007: Frontier as queryable data — enables "what does agent X
+    /// know at time T?" as an ordinary query.
+    ///
+    /// **Falsification**: If the returned frontier contains any TxId > cutoff.
+    pub fn at(store: &Store, cutoff: TxId) -> Frontier {
+        let mut inner = HashMap::new();
+        for datom in store.datoms() {
+            if datom.tx <= cutoff {
+                let agent = datom.tx.agent();
+                inner
+                    .entry(agent)
+                    .and_modify(|existing: &mut TxId| {
+                        if datom.tx > *existing {
+                            *existing = datom.tx;
+                        }
+                    })
+                    .or_insert(datom.tx);
+            }
+        }
+        Frontier { inner }
+    }
+
+    /// Check whether a datom falls within this frontier.
+    ///
+    /// A datom is "within" the frontier if the frontier records a TxId for the
+    /// datom's agent that is `>=` the datom's TxId. In other words, the agent
+    /// that produced this datom had already reached (or passed) this transaction
+    /// at the time the frontier was captured.
+    ///
+    /// **Falsification**: Returns true for a datom whose tx is strictly greater
+    /// than the frontier's max tx for that agent.
+    pub fn contains(&self, datom: &Datom) -> bool {
+        let agent = datom.tx.agent();
+        match self.inner.get(&agent) {
+            Some(frontier_tx) => datom.tx <= *frontier_tx,
+            None => false,
+        }
+    }
+
+    /// The maximum TxId recorded for a specific agent, if any.
+    ///
+    /// Returns `None` if the agent has no transactions in this frontier.
+    pub fn max_tx_for(&self, agent: &AgentId) -> Option<TxId> {
+        self.inner.get(agent).copied()
+    }
+
+    /// The number of agents in this frontier.
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    /// Whether this frontier is empty (no agents).
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+
+    /// Iterator over (agent, tx_id) pairs.
+    pub fn iter(&self) -> impl Iterator<Item = (&AgentId, &TxId)> {
+        self.inner.iter()
+    }
+
+    /// Iterator over the TxId values.
+    pub fn values(&self) -> impl Iterator<Item = &TxId> {
+        self.inner.values()
+    }
+
+    /// Check if the frontier contains a specific agent.
+    pub fn contains_key(&self, agent: &AgentId) -> bool {
+        self.inner.contains_key(agent)
+    }
+
+    /// Get the TxId for a specific agent, if present.
+    pub fn get(&self, agent: &AgentId) -> Option<&TxId> {
+        self.inner.get(agent)
+    }
+
+    /// Insert or update the TxId for an agent.
+    pub fn insert(&mut self, agent: AgentId, tx: TxId) -> Option<TxId> {
+        self.inner.insert(agent, tx)
+    }
+
+    /// Get a mutable entry for an agent (for pointwise-max merge logic).
+    pub fn entry(
+        &mut self,
+        agent: AgentId,
+    ) -> std::collections::hash_map::Entry<'_, AgentId, TxId> {
+        self.inner.entry(agent)
+    }
+}
+
+impl Default for Frontier {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Index by `&AgentId` for ergonomic access (e.g., `frontier[&agent]`).
+impl std::ops::Index<&AgentId> for Frontier {
+    type Output = TxId;
+
+    fn index(&self, agent: &AgentId) -> &TxId {
+        &self.inner[agent]
+    }
+}
+
+/// Construct a `Frontier` from a `HashMap<AgentId, TxId>`.
+///
+/// Used in kani proofs and tests that build frontiers manually.
+impl From<HashMap<AgentId, TxId>> for Frontier {
+    fn from(map: HashMap<AgentId, TxId>) -> Self {
+        Frontier { inner: map }
+    }
+}
+
+/// Iterate over `&Frontier` by reference (borrows agent and tx_id).
+///
+/// Enables `for (agent, tx_id) in &frontier { ... }` loops.
+impl<'a> IntoIterator for &'a Frontier {
+    type Item = (&'a AgentId, &'a TxId);
+    type IntoIter = std::collections::hash_map::Iter<'a, AgentId, TxId>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.inner.iter()
+    }
+}
+
+/// Consume a `Frontier` into an iterator of owned (AgentId, TxId) pairs.
+impl IntoIterator for Frontier {
+    type Item = (AgentId, TxId);
+    type IntoIter = std::collections::hash_map::IntoIter<AgentId, TxId>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.inner.into_iter()
+    }
+}
 
 // ---------------------------------------------------------------------------
 // MergeReceipt
@@ -309,7 +494,7 @@ impl Store {
                 .push(d.clone());
         }
 
-        let mut frontier = HashMap::new();
+        let mut frontier = Frontier::new();
         frontier.insert(system_agent, genesis_tx);
 
         let schema = Schema::from_datoms(&datoms);
@@ -334,7 +519,7 @@ impl Store {
         let schema = Schema::from_datoms(&datoms);
 
         // Reconstruct frontier, entity index, and attribute index from datoms
-        let mut frontier: HashMap<AgentId, TxId> = HashMap::new();
+        let mut frontier = Frontier::new();
         let mut max_clock = TxId::new(0, 0, AgentId::from_name("braid:system"));
         let mut entity_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
         let mut attribute_index: BTreeMap<Attribute, Vec<Datom>> = BTreeMap::new();

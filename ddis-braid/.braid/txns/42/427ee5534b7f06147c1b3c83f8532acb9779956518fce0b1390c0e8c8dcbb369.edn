@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773694405/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Committed and pushed: 3341259 'Wave 1+2 execution: +76 tests, signal module, HITS/k-Core, proptest expansion'. 28 files changed, +3316/-31 lines. 13 beads closed. Git status clean, main and master synced."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1e4b6be00bdf132f75c753d1448bb91a718047b08dfa3da38509b3e462d18b17" :a :db/ident :v :observation/committed-and-pushed-3341259-wave-12-execution-76-tests :op :assert}
+   {:e #blake3 "1e4b6be00bdf132f75c753d1448bb91a718047b08dfa3da38509b3e462d18b17" :a :db/doc :v "Committed and pushed: 3341259 'Wave 1+2 execution: +76 tests, signal module, HITS/k-Core, proptest expansion'. 28 files changed, +3316/-31 lines. 13 beads closed. Git status clean, main and master synced." :op :assert}
+   {:e #blake3 "1e4b6be00bdf132f75c753d1448bb91a718047b08dfa3da38509b3e462d18b17" :a :exploration/body :v "Committed and pushed: 3341259 'Wave 1+2 execution: +76 tests, signal module, HITS/k-Core, proptest expansion'. 28 files changed, +3316/-31 lines. 13 beads closed. Git status clean, main and master synced." :op :assert}
+   {:e #blake3 "1e4b6be00bdf132f75c753d1448bb91a718047b08dfa3da38509b3e462d18b17" :a :exploration/content-hash :v #bytes "168f94e36188076a99874bcee1ead389228529e3329c3d7801f734458424fbf3" :op :assert}
+   {:e #blake3 "1e4b6be00bdf132f75c753d1448bb91a718047b08dfa3da38509b3e462d18b17" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "1e4b6be00bdf132f75c753d1448bb91a718047b08dfa3da38509b3e462d18b17" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "1e4b6be00bdf132f75c753d1448bb91a718047b08dfa3da38509b3e462d18b17" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1e4b6be00bdf132f75c753d1448bb91a718047b08dfa3da38509b3e462d18b17" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1e4b6be00bdf132f75c753d1448bb91a718047b08dfa3da38509b3e462d18b17" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

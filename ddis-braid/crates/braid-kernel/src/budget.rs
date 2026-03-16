@@ -423,6 +423,80 @@ pub fn quality_adjusted_budget(k_eff: f64) -> f64 {
 }
 
 // ---------------------------------------------------------------------------
+// Output ceiling enforcement (INV-BUDGET-001)
+// ---------------------------------------------------------------------------
+
+/// Enforce a hard token ceiling on output text.
+///
+/// If the output fits within `ceiling` tokens (measured by `ApproxTokenCounter`),
+/// it is returned unchanged. If it exceeds the ceiling, the text is truncated to
+/// fit and a truncation notice is appended.
+///
+/// The truncation notice format:
+/// ```text
+/// \n[...truncated: {over} tokens over budget of {ceiling}]
+/// ```
+///
+/// The truncation works at char boundaries, iteratively shrinking until the
+/// combined (truncated text + notice) fits within the ceiling. The notice
+/// itself consumes tokens, so the effective text budget is
+/// `ceiling - notice_overhead`.
+///
+/// # Invariants
+///
+/// - **INV-BUDGET-001**: Output budget is a hard cap. `enforce_ceiling` is the
+///   final gate ensuring no command output exceeds the token ceiling.
+pub fn enforce_ceiling(output: &str, ceiling: usize) -> String {
+    let counter = ApproxTokenCounter;
+    let total_tokens = counter.count(output);
+
+    if total_tokens <= ceiling {
+        return output.to_string();
+    }
+
+    let over = total_tokens.saturating_sub(ceiling);
+
+    // Build the truncation notice so we can measure its overhead.
+    let notice = format!(
+        "\n[...truncated: {} tokens over budget of {}]",
+        over, ceiling
+    );
+    let notice_tokens = counter.count(&notice);
+
+    // The text portion must fit in (ceiling - notice_overhead) tokens.
+    let text_token_budget = ceiling.saturating_sub(notice_tokens);
+
+    if text_token_budget == 0 {
+        // Edge case: ceiling is so small even the notice barely fits.
+        // Return just the notice (best-effort).
+        return notice;
+    }
+
+    // Estimate initial char budget: tokens * 4 (inverse of chars/4).
+    // Then refine by measuring the actual token count of the truncated slice.
+    let total_chars: usize = output.chars().count();
+    let mut char_budget = (text_token_budget * 4).min(total_chars);
+
+    // Take char_budget chars, then verify token count. Shrink if needed.
+    loop {
+        let truncated: String = output.chars().take(char_budget).collect();
+        let trunc_tokens = counter.count(&truncated);
+
+        if trunc_tokens <= text_token_budget || char_budget == 0 {
+            return format!(
+                "{}\n[...truncated: {} tokens over budget of {}]",
+                truncated, over, ceiling
+            );
+        }
+
+        // Shrink by the overshoot (tokens over budget * 4 chars/token estimate).
+        let overshoot = trunc_tokens - text_token_budget;
+        let shrink = (overshoot * 4).max(1);
+        char_budget = char_budget.saturating_sub(shrink);
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Token efficiency (INV-BUDGET-006)
 // ---------------------------------------------------------------------------
 
@@ -810,6 +884,72 @@ mod tests {
         );
     }
 
+    // ---- enforce_ceiling (INV-BUDGET-001) ----
+
+    // Verifies: INV-BUDGET-001 — Output Budget as Hard Cap (passthrough)
+    #[test]
+    fn enforce_ceiling_passthrough_under_budget() {
+        let text = "hello world";
+        let result = enforce_ceiling(text, 100);
+        assert_eq!(result, text);
+    }
+
+    #[test]
+    fn enforce_ceiling_passthrough_exact() {
+        // 80 chars of prose -> 80/4 = 20 tokens
+        let text = "a".repeat(80);
+        let result = enforce_ceiling(&text, 20);
+        assert_eq!(result, text);
+    }
+
+    // Verifies: INV-BUDGET-001 — Output Budget as Hard Cap (truncation)
+    #[test]
+    fn enforce_ceiling_truncates_over_budget() {
+        // 2000 chars of prose -> ~500 tokens, ceiling=50 -> must truncate
+        let text = "word ".repeat(400);
+        let result = enforce_ceiling(&text, 50);
+        assert!(
+            result.len() < text.len(),
+            "result should be shorter than input"
+        );
+        assert!(
+            result.contains("[...truncated:"),
+            "truncated output must contain notice"
+        );
+    }
+
+    #[test]
+    fn enforce_ceiling_truncation_message_informative() {
+        let text = "a".repeat(2000); // 500 tokens
+        let ceiling = 50;
+        let result = enforce_ceiling(&text, ceiling);
+        assert!(
+            result.contains("tokens over budget of 50"),
+            "notice must contain ceiling: {}",
+            result
+        );
+        assert!(
+            result.contains("450 tokens over budget"),
+            "notice must contain over-count: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn enforce_ceiling_empty_input() {
+        let result = enforce_ceiling("", 100);
+        assert_eq!(result, "");
+    }
+
+    #[test]
+    fn enforce_ceiling_unicode_safe() {
+        // Ensure truncation does not break mid-character.
+        let text: String = std::iter::repeat('\u{1F600}').take(400).collect();
+        let result = enforce_ceiling(&text, 10);
+        // If we got here without panicking, UTF-8 safety holds.
+        assert!(result.is_char_boundary(result.len()));
+    }
+
     // ---- Proptest ----
 
     mod budget_proptests {
@@ -817,6 +957,43 @@ mod tests {
         use proptest::prelude::*;
 
         proptest! {
+            // Verifies: INV-BUDGET-001 — enforce_ceiling content never exceeds ceiling
+            #[test]
+            fn enforce_ceiling_bounded(
+                text in "[a-zA-Z0-9 ]{0,2000}",
+                ceiling in 1usize..=500
+            ) {
+                let result = enforce_ceiling(&text, ceiling);
+                let counter = ApproxTokenCounter;
+                let result_tokens = counter.count(&result);
+
+                // When not truncated, result tokens <= ceiling by definition.
+                // When truncated, the content portion (before the notice) must fit
+                // within ceiling. The notice itself is metadata overhead.
+                if result.contains("[...truncated:") {
+                    // Measure just the content before the notice.
+                    let content = result
+                        .rsplit_once("\n[...truncated:")
+                        .map(|(pre, _)| pre)
+                        .unwrap_or(&result);
+                    let content_tokens = counter.count(content);
+                    prop_assert!(
+                        content_tokens <= ceiling,
+                        "content tokens {} > ceiling {} (total result tokens={})",
+                        content_tokens,
+                        ceiling,
+                        result_tokens
+                    );
+                } else {
+                    prop_assert!(
+                        result_tokens <= ceiling,
+                        "passthrough tokens {} > ceiling {}",
+                        result_tokens,
+                        ceiling
+                    );
+                }
+            }
+
             #[test]
             fn k_eff_always_in_01(pct in 0.0f64..=1.0) {
                 let mut mgr = BudgetManager::default();

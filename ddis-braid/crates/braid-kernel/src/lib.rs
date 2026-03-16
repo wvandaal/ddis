@@ -58,10 +58,11 @@ pub use bilateral::{
     Gap, GapSeverity, RenyiSpectrum, ScanResult, SpectralCertificate,
 };
 pub use budget::{
-    attention_decay, classify_command, quality_adjusted_budget, ApproxTokenCounter,
-    AttentionProfile, BudgetManager, BudgetProjection, GuidanceLevel, OutputBlock,
-    OutputPrecedence, TokenCounter, TokenEfficiency, AGENT_MODE_CEILING, BUDGET_FRACTION,
-    DEFAULT_WINDOW_SIZE, ERROR_MESSAGE_CEILING, GUIDANCE_FOOTER_CEILING, MIN_OUTPUT,
+    attention_decay, classify_command, enforce_ceiling, quality_adjusted_budget,
+    ApproxTokenCounter, AttentionProfile, BudgetManager, BudgetProjection, GuidanceLevel,
+    OutputBlock, OutputPrecedence, TokenCounter, TokenEfficiency, AGENT_MODE_CEILING,
+    BUDGET_FRACTION, DEFAULT_WINDOW_SIZE, ERROR_MESSAGE_CEILING, GUIDANCE_FOOTER_CEILING,
+    MIN_OUTPUT,
 };
 pub use config::{
     all_config, defaults as config_defaults, get_config, get_config_or, set_config_datoms,

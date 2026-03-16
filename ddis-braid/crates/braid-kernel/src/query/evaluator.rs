@@ -623,4 +623,376 @@ mod tests {
             }
         }
     }
+
+    // -------------------------------------------------------------------
+    // Proptest: INV-QUERY-004..008
+    // Verifies: INV-QUERY-004 — Stratum Classification Determinism
+    // Verifies: INV-QUERY-005 — Query Mode Output Correctness
+    // Verifies: INV-QUERY-006 — Monotonic Growth Under Store Growth
+    // Verifies: INV-QUERY-007 — Aggregation Preserves Grouping
+    // Verifies: INV-QUERY-008 — Query API Purity
+    // -------------------------------------------------------------------
+
+    mod proptests {
+        use super::*;
+        use crate::datom::{AgentId, ProvenanceType};
+        use crate::proptest_strategies::{arb_doc_value, arb_entity_id, arb_query_expr, arb_store};
+        use crate::query::aggregate::{aggregate, AggregateFunction, AggregateSpec};
+        use crate::query::stratum::classify;
+        use crate::store::Transaction;
+        use ordered_float::OrderedFloat;
+        use proptest::prelude::*;
+
+        // ---------------------------------------------------------------
+        // INV-QUERY-004: Stratum classification is deterministic.
+        // For any query, classify() returns the same stratum twice.
+        // ---------------------------------------------------------------
+
+        proptest! {
+            #[test]
+            fn stratum_classification_is_deterministic(q in arb_query_expr()) {
+                let s1 = classify(&q);
+                let s2 = classify(&q);
+                prop_assert_eq!(
+                    s1, s2,
+                    "INV-QUERY-004: classify() must be deterministic: {:?} vs {:?}",
+                    s1, s2
+                );
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // INV-QUERY-005: Query modes produce expected output.
+        // Pattern queries (FindSpec::Rel) return Rel; scalar queries
+        // (FindSpec::Scalar) return Scalar.
+        // ---------------------------------------------------------------
+
+        proptest! {
+            #[test]
+            fn rel_query_returns_rel(store in arb_store(3)) {
+                // Build a Rel-mode query against the store
+                let query = QueryExpr::new(
+                    FindSpec::Rel(vec!["?e".into(), "?v".into()]),
+                    vec![Clause::Pattern(Pattern::new(
+                        Term::Variable("?e".into()),
+                        Term::Attr(Attribute::from_keyword(":db/doc")),
+                        Term::Variable("?v".into()),
+                    ))],
+                );
+                let result = evaluate(&store, &query);
+                match result {
+                    QueryResult::Rel(rows) => {
+                        // Each row must have exactly as many columns as the find spec
+                        for row in &rows {
+                            prop_assert_eq!(
+                                row.len(),
+                                2,
+                                "INV-QUERY-005: Rel row must have 2 columns, got {}",
+                                row.len()
+                            );
+                        }
+                    }
+                    QueryResult::Scalar(_) => {
+                        prop_assert!(
+                            false,
+                            "INV-QUERY-005: Rel query must return Rel, got Scalar"
+                        );
+                    }
+                }
+            }
+
+            #[test]
+            fn scalar_query_returns_scalar(store in arb_store(3)) {
+                // Build a Scalar-mode query against the store
+                let query = QueryExpr::new(
+                    FindSpec::Scalar("?v".into()),
+                    vec![Clause::Pattern(Pattern::new(
+                        Term::Variable("?e".into()),
+                        Term::Attr(Attribute::from_keyword(":db/doc")),
+                        Term::Variable("?v".into()),
+                    ))],
+                );
+                let result = evaluate(&store, &query);
+                match result {
+                    QueryResult::Scalar(_) => {
+                        // Scalar is correct -- value may be Some or None
+                    }
+                    QueryResult::Rel(_) => {
+                        prop_assert!(
+                            false,
+                            "INV-QUERY-005: Scalar query must return Scalar, got Rel"
+                        );
+                    }
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // INV-QUERY-006: Stratified evaluation correctness.
+        // For monotonic queries (no negation), results are monotonically
+        // growing with store growth -- adding datoms never removes results.
+        // ---------------------------------------------------------------
+
+        proptest! {
+            #[test]
+            fn monotonic_query_grows_with_store(
+                base_store in arb_store(2),
+                extra_entities in proptest::collection::vec(
+                    (arb_entity_id(), arb_doc_value()), 1..=5
+                ),
+            ) {
+                // Evaluate a monotonic query on the base store
+                let query = QueryExpr::new(
+                    FindSpec::Rel(vec!["?e".into(), "?v".into()]),
+                    vec![Clause::Pattern(Pattern::new(
+                        Term::Variable("?e".into()),
+                        Term::Attr(Attribute::from_keyword(":db/doc")),
+                        Term::Variable("?v".into()),
+                    ))],
+                );
+                let before = evaluate(&base_store, &query);
+                let before_count = match &before {
+                    QueryResult::Rel(rows) => rows.len(),
+                    _ => panic!("expected Rel"),
+                };
+
+                // Grow the store by adding more datoms
+                let mut grown_store = base_store;
+                let agent = AgentId::from_name("proptest:growth");
+                let mut tx =
+                    Transaction::new(agent, ProvenanceType::Observed, "growth");
+                for (entity, value) in extra_entities {
+                    tx = tx.assert(
+                        entity,
+                        Attribute::from_keyword(":db/doc"),
+                        value,
+                    );
+                }
+                if let Ok(committed) = tx.commit(&grown_store) {
+                    let _ = grown_store.transact(committed);
+                }
+
+                // Evaluate the same query on the grown store
+                let after = evaluate(&grown_store, &query);
+                let after_count = match &after {
+                    QueryResult::Rel(rows) => rows.len(),
+                    _ => panic!("expected Rel"),
+                };
+
+                prop_assert!(
+                    after_count >= before_count,
+                    "INV-QUERY-006: monotonic query must not lose results on store growth: \
+                     before={}, after={}",
+                    before_count,
+                    after_count
+                );
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // INV-QUERY-007: Aggregation preserves grouping.
+        // count/sum/min/max return results consistent with manual
+        // computation on known data.
+        // ---------------------------------------------------------------
+
+        proptest! {
+            #[test]
+            fn aggregation_count_matches_row_count(store in arb_store(3)) {
+                // Evaluate a Rel query to get raw rows
+                let query = QueryExpr::new(
+                    FindSpec::Rel(vec!["?e".into(), "?v".into()]),
+                    vec![Clause::Pattern(Pattern::new(
+                        Term::Variable("?e".into()),
+                        Term::Attr(Attribute::from_keyword(":db/doc")),
+                        Term::Variable("?v".into()),
+                    ))],
+                );
+                let result = evaluate(&store, &query);
+                let raw_count = match &result {
+                    QueryResult::Rel(rows) => rows.len(),
+                    _ => panic!("expected Rel"),
+                };
+
+                // Apply COUNT aggregation
+                let agg = aggregate(
+                    &result,
+                    &[AggregateSpec {
+                        function: AggregateFunction::Count,
+                        column: 0,
+                        output_name: "count".into(),
+                    }],
+                    &[],
+                );
+                match &agg {
+                    QueryResult::Rel(rows) if !rows.is_empty() => {
+                        let expected = Value::Long(raw_count as i64);
+                        prop_assert_eq!(
+                            &rows[0][0],
+                            &expected,
+                            "INV-QUERY-007: COUNT must equal raw row count: \
+                             expected {}, got {:?}",
+                            raw_count,
+                            &rows[0][0]
+                        );
+                    }
+                    QueryResult::Rel(rows) if rows.is_empty() => {
+                        // Empty result means no aggregation output; raw_count must be 0
+                        prop_assert_eq!(
+                            raw_count,
+                            0,
+                            "INV-QUERY-007: empty agg output but raw_count = {}",
+                            raw_count
+                        );
+                    }
+                    other => {
+                        prop_assert!(
+                            false,
+                            "INV-QUERY-007: expected Rel from aggregate, got {:?}",
+                            other
+                        );
+                    }
+                }
+            }
+
+            #[test]
+            fn aggregation_min_max_consistent(
+                values in proptest::collection::vec(1i64..=1000, 1..=20)
+            ) {
+                // Build a synthetic Rel result from known Long values
+                let rows: Vec<Vec<Value>> = values
+                    .iter()
+                    .map(|&v| vec![Value::Long(v)])
+                    .collect();
+                let result = QueryResult::Rel(rows);
+
+                let expected_min = *values.iter().min().unwrap();
+                let expected_max = *values.iter().max().unwrap();
+                let expected_sum: f64 = values.iter().map(|&v| v as f64).sum();
+
+                // MIN
+                let min_agg = aggregate(
+                    &result,
+                    &[AggregateSpec {
+                        function: AggregateFunction::Min,
+                        column: 0,
+                        output_name: "min".into(),
+                    }],
+                    &[],
+                );
+                match &min_agg {
+                    QueryResult::Rel(rows) => {
+                        let expected = Value::Long(expected_min);
+                        prop_assert_eq!(
+                            &rows[0][0],
+                            &expected,
+                            "INV-QUERY-007: MIN mismatch: expected {}, got {:?}",
+                            expected_min,
+                            &rows[0][0]
+                        );
+                    }
+                    _ => prop_assert!(false, "expected Rel"),
+                }
+
+                // MAX
+                let max_agg = aggregate(
+                    &result,
+                    &[AggregateSpec {
+                        function: AggregateFunction::Max,
+                        column: 0,
+                        output_name: "max".into(),
+                    }],
+                    &[],
+                );
+                match &max_agg {
+                    QueryResult::Rel(rows) => {
+                        let expected = Value::Long(expected_max);
+                        prop_assert_eq!(
+                            &rows[0][0],
+                            &expected,
+                            "INV-QUERY-007: MAX mismatch: expected {}, got {:?}",
+                            expected_max,
+                            &rows[0][0]
+                        );
+                    }
+                    _ => prop_assert!(false, "expected Rel"),
+                }
+
+                // SUM
+                let sum_agg = aggregate(
+                    &result,
+                    &[AggregateSpec {
+                        function: AggregateFunction::Sum,
+                        column: 0,
+                        output_name: "sum".into(),
+                    }],
+                    &[],
+                );
+                match &sum_agg {
+                    QueryResult::Rel(rows) => {
+                        let expected = Value::Double(OrderedFloat(expected_sum));
+                        prop_assert_eq!(
+                            &rows[0][0],
+                            &expected,
+                            "INV-QUERY-007: SUM mismatch: expected {}, got {:?}",
+                            expected_sum,
+                            &rows[0][0]
+                        );
+                    }
+                    _ => prop_assert!(false, "expected Rel"),
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // INV-QUERY-008: Query API is pure.
+        // evaluate(store, query) called twice returns identical results.
+        // ---------------------------------------------------------------
+
+        proptest! {
+            #[test]
+            fn evaluate_is_pure(store in arb_store(3), q in arb_query_expr()) {
+                let r1 = evaluate(&store, &q);
+                let r2 = evaluate(&store, &q);
+
+                match (&r1, &r2) {
+                    (QueryResult::Rel(rows1), QueryResult::Rel(rows2)) => {
+                        prop_assert_eq!(
+                            rows1.len(),
+                            rows2.len(),
+                            "INV-QUERY-008: purity -- row count diverged: {} vs {}",
+                            rows1.len(),
+                            rows2.len()
+                        );
+                        for (i, (a, b)) in
+                            rows1.iter().zip(rows2.iter()).enumerate()
+                        {
+                            prop_assert_eq!(
+                                a,
+                                b,
+                                "INV-QUERY-008: purity -- row {} differs: {:?} vs {:?}",
+                                i,
+                                a,
+                                b
+                            );
+                        }
+                    }
+                    (QueryResult::Scalar(v1), QueryResult::Scalar(v2)) => {
+                        prop_assert_eq!(
+                            v1,
+                            v2,
+                            "INV-QUERY-008: purity -- scalar diverged: {:?} vs {:?}",
+                            v1,
+                            v2
+                        );
+                    }
+                    _ => {
+                        prop_assert!(
+                            false,
+                            "INV-QUERY-008: purity -- result type changed between calls"
+                        );
+                    }
+                }
+            }
+        }
+    }
 }

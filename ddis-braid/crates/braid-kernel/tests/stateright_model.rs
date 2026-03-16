@@ -1,7 +1,7 @@
 // Witnesses: INV-STORE-001, INV-STORE-002, INV-STORE-004, INV-STORE-006,
 //   INV-STORE-007, INV-MERGE-001, INV-MERGE-002, INV-MERGE-008, INV-MERGE-009,
-//   ADR-STORE-001, ADR-STORE-005, ADR-MERGE-001,
-//   NEG-STORE-001, NEG-STORE-004, NEG-MERGE-001
+//   INV-BILATERAL-001, ADR-STORE-001, ADR-STORE-005, ADR-MERGE-001,
+//   NEG-STORE-001, NEG-STORE-004, NEG-MERGE-001, NEG-BILATERAL-001
 
 //! Stateright bounded model checking for the Braid CRDT merge protocol.
 //!
@@ -818,6 +818,281 @@ impl Model for ResolutionModel {
 #[test]
 fn resolution_model_commutativity_and_preservation() {
     ResolutionModel
+        .checker()
+        .spawn_bfs()
+        .join()
+        .assert_properties();
+}
+
+// ===========================================================================
+// Bilateral Convergence Model (INV-BILATERAL-001)
+// ===========================================================================
+//
+// Verifies: INV-BILATERAL-001, NEG-BILATERAL-001
+//
+// Models the gap-closing operations that bilateral cycles produce.
+// INV-BILATERAL-001 states: ∀ cycle n: F(S_{n+1}) ≥ F(S_n) — the fitness
+// function never decreases across bilateral cycles.
+//
+// A bilateral cycle scans for divergence (coverage gaps, unwitnessed specs)
+// and produces gap-closing operations. This model starts with a store
+// containing 3 spec entities that have coverage and witness gaps, then
+// explores ALL orderings of gap-closing operations:
+//   - CloseGap(i): add an impl link for spec i (increases coverage C)
+//   - AddWitness(i): add witness for spec i (increases validation V)
+//
+// After each operation, F(S) is recomputed. The model verifies that F(S)
+// never decreases — each gap-closing operation is monotonically
+// non-decreasing in the fitness lattice.
+//
+// State space: 3 specs × 2 operation types × all interleavings = small
+// enough for exhaustive BFS.
+
+use braid_kernel::bilateral::compute_fitness;
+use braid_kernel::datom::Op;
+use braid_kernel::schema::{full_schema_datoms, genesis_datoms};
+use ordered_float::OrderedFloat;
+
+/// State for the bilateral convergence model.
+///
+/// Tracks the datom set, which gaps have been closed, which specs have
+/// been witnessed, and the F(S) trajectory.
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+struct BilateralConvergenceState {
+    /// The datom set representing the store.
+    datoms: BTreeSet<Datom>,
+    /// Which spec entities have had their coverage gap closed (impl link added).
+    gaps_closed: BTreeSet<usize>,
+    /// Which spec entities have been witnessed.
+    witnesses_added: BTreeSet<usize>,
+    /// F(S) trajectory: recorded after each gap-closing operation.
+    fitness_trajectory: Vec<OrderedFloat<f64>>,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+enum BilateralAction {
+    /// Close a coverage gap: add an impl link for spec entity at index.
+    CloseGap(usize),
+    /// Add a witness for spec entity at index.
+    AddWitness(usize),
+}
+
+/// Configuration for the bilateral convergence model.
+struct BilateralConvergenceModel {
+    /// Number of pre-existing spec entities with gaps.
+    num_specs: usize,
+    /// Transaction ID for datom construction.
+    tx_id: TxId,
+    /// Initial datom set (genesis + schema + spec entities with gaps).
+    init_datoms: BTreeSet<Datom>,
+}
+
+impl BilateralConvergenceModel {
+    fn new(num_specs: usize) -> Self {
+        let agent_id = AgentId::from_name("bilateral-model-agent");
+        let tx_id = TxId::new(1, 0, agent_id);
+
+        // Build initial store: genesis + schema + spec entities (all with gaps)
+        let system_agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, system_agent);
+        let mut datom_set = BTreeSet::new();
+        for d in genesis_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+        for d in full_schema_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+
+        // Add spec entities that lack impl links and witnesses (= gaps)
+        for i in 0..num_specs {
+            let ident = format!(":spec/inv-bilateral-model-{i:03}");
+            let entity = EntityId::from_ident(&ident);
+            datom_set.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(ident),
+                tx_id,
+                Op::Assert,
+            ));
+            datom_set.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":spec/element-type"),
+                Value::Keyword(":spec.type/invariant".into()),
+                tx_id,
+                Op::Assert,
+            ));
+            datom_set.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":spec/statement"),
+                Value::String(format!("Model invariant {i}")),
+                tx_id,
+                Op::Assert,
+            ));
+            datom_set.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String(format!("Violated if model check {i} fails")),
+                tx_id,
+                Op::Assert,
+            ));
+        }
+
+        BilateralConvergenceModel {
+            num_specs,
+            tx_id,
+            init_datoms: datom_set,
+        }
+    }
+
+    /// Create datoms for an impl link closing the gap for spec at index.
+    fn impl_datoms(&self, index: usize) -> Vec<Datom> {
+        let spec_ident = format!(":spec/inv-bilateral-model-{index:03}");
+        let impl_ident = format!(":impl/bilateral-model-impl-{index:03}");
+        let spec_entity = EntityId::from_ident(&spec_ident);
+        let impl_entity = EntityId::from_ident(&impl_ident);
+        vec![
+            Datom::new(
+                impl_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(impl_ident),
+                self.tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                impl_entity,
+                Attribute::from_keyword(":impl/implements"),
+                Value::Ref(spec_entity),
+                self.tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                impl_entity,
+                Attribute::from_keyword(":impl/module"),
+                Value::String("bilateral-model".into()),
+                self.tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                impl_entity,
+                Attribute::from_keyword(":impl/file"),
+                Value::String("tests/stateright_model.rs".into()),
+                self.tx_id,
+                Op::Assert,
+            ),
+        ]
+    }
+
+    /// Create a witness datom for spec at index.
+    fn witness_datom(&self, index: usize) -> Datom {
+        let spec_ident = format!(":spec/inv-bilateral-model-{index:03}");
+        let entity = EntityId::from_ident(&spec_ident);
+        Datom::new(
+            entity,
+            Attribute::from_keyword(":spec/witnessed"),
+            Value::Boolean(true),
+            self.tx_id,
+            Op::Assert,
+        )
+    }
+}
+
+impl Model for BilateralConvergenceModel {
+    type State = BilateralConvergenceState;
+    type Action = BilateralAction;
+
+    fn init_states(&self) -> Vec<Self::State> {
+        // Compute initial F(S) for the store with all gaps open.
+        let store = Store::from_datoms(self.init_datoms.clone());
+        let f0 = compute_fitness(&store);
+        vec![BilateralConvergenceState {
+            datoms: self.init_datoms.clone(),
+            gaps_closed: BTreeSet::new(),
+            witnesses_added: BTreeSet::new(),
+            fitness_trajectory: vec![OrderedFloat(f0.total)],
+        }]
+    }
+
+    fn actions(&self, state: &Self::State, actions: &mut Vec<Self::Action>) {
+        for i in 0..self.num_specs {
+            // Can close gap if not already closed.
+            if !state.gaps_closed.contains(&i) {
+                actions.push(BilateralAction::CloseGap(i));
+            }
+            // Can add witness if not already witnessed.
+            if !state.witnesses_added.contains(&i) {
+                actions.push(BilateralAction::AddWitness(i));
+            }
+        }
+    }
+
+    fn next_state(&self, last_state: &Self::State, action: Self::Action) -> Option<Self::State> {
+        let mut state = last_state.clone();
+
+        match action {
+            BilateralAction::CloseGap(index) => {
+                for d in self.impl_datoms(index) {
+                    state.datoms.insert(d);
+                }
+                state.gaps_closed.insert(index);
+            }
+            BilateralAction::AddWitness(index) => {
+                state.datoms.insert(self.witness_datom(index));
+                state.witnesses_added.insert(index);
+            }
+        }
+
+        // Compute F(S) after the operation.
+        let store = Store::from_datoms(state.datoms.clone());
+        let fitness = compute_fitness(&store);
+        state.fitness_trajectory.push(OrderedFloat(fitness.total));
+
+        Some(state)
+    }
+
+    fn properties(&self) -> Vec<Property<Self>> {
+        vec![
+            // SAFETY: INV-BILATERAL-001 — Monotonic convergence.
+            // Each gap-closing operation produces F(S) >= previous F(S).
+            // NEG-BILATERAL-001: No fitness regression.
+            Property::<Self>::always("bilateral_monotonic_convergence", |_model, state| {
+                for window in state.fitness_trajectory.windows(2) {
+                    if window[1] < window[0] {
+                        return false;
+                    }
+                }
+                true
+            }),
+            // SAFETY: F(S) is always in [0, 1].
+            Property::<Self>::always("fitness_bounded", |_model, state| {
+                state
+                    .fitness_trajectory
+                    .iter()
+                    .all(|f| f.0 >= 0.0 && f.0 <= 1.0)
+            }),
+            // REACHABILITY: All gaps can be closed and all specs witnessed.
+            Property::<Self>::sometimes(
+                "all_gaps_closed_and_witnessed",
+                |model, state| {
+                    state.gaps_closed.len() == model.num_specs
+                        && state.witnesses_added.len() == model.num_specs
+                },
+            ),
+        ]
+    }
+
+    fn within_boundary(&self, _state: &Self::State) -> bool {
+        true // Actions are self-bounding via gaps_closed/witnesses_added sets
+    }
+}
+
+// Verifies: INV-BILATERAL-001, NEG-BILATERAL-001
+/// Bilateral convergence model: 3 spec entities with coverage and witness
+/// gaps. Explores all orderings of gap-closing operations (CloseGap,
+/// AddWitness) and verifies F(S) is monotonically non-decreasing across
+/// all interleavings (INV-BILATERAL-001).
+#[test]
+fn bilateral_convergence_monotonic() {
+    BilateralConvergenceModel::new(3)
         .checker()
         .spawn_bfs()
         .join()
