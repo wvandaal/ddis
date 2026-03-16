@@ -944,7 +944,7 @@ mod tests {
     #[test]
     fn enforce_ceiling_unicode_safe() {
         // Ensure truncation does not break mid-character.
-        let text: String = std::iter::repeat('\u{1F600}').take(400).collect();
+        let text: String = "\u{1F600}".repeat(400);
         let result = enforce_ceiling(&text, 10);
         // If we got here without panicking, UTF-8 safety holds.
         assert!(result.is_char_boundary(result.len()));
