@@ -793,8 +793,7 @@ impl Model for ResolutionModel {
             Property::<Self>::always("no_datom_loss", |_model, state| {
                 if state.a_merged {
                     // After merge, A should have at least as many datoms as B had
-                    state.agent_a.len() >= state.agent_b.len()
-                        || !state.b_written
+                    state.agent_a.len() >= state.agent_b.len() || !state.b_written
                 } else {
                     true
                 }

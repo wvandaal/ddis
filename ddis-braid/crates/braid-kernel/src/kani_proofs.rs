@@ -1625,14 +1625,8 @@ fn prove_guidance_mt_bounded() {
     let result = crate::guidance::compute_methodology_score(&telemetry);
 
     // INV-GUIDANCE-008: M(t) in [0, 1].
-    kani::assert(
-        result.score >= 0.0,
-        "INV-GUIDANCE-008 violated: M(t) < 0",
-    );
-    kani::assert(
-        result.score <= 1.0,
-        "INV-GUIDANCE-008 violated: M(t) > 1",
-    );
+    kani::assert(result.score >= 0.0, "INV-GUIDANCE-008 violated: M(t) < 0");
+    kani::assert(result.score <= 1.0, "INV-GUIDANCE-008 violated: M(t) > 1");
 
     // Sub-metric bounds: each m_i in [0, 1].
     kani::assert(

@@ -2632,7 +2632,11 @@ pub fn hits(
     let mut auth: Vec<f64> = vec![init_val; n];
 
     // Build node index for O(1) lookup
-    let node_idx: BTreeMap<&str, usize> = nodes.iter().enumerate().map(|(i, n)| (n.as_str(), i)).collect();
+    let node_idx: BTreeMap<&str, usize> = nodes
+        .iter()
+        .enumerate()
+        .map(|(i, n)| (n.as_str(), i))
+        .collect();
 
     for _ in 0..iterations {
         let prev_hub = hub.clone();
@@ -2688,8 +2692,16 @@ pub fn hits(
         }
     }
 
-    let hub_map: BTreeMap<String, f64> = nodes.iter().zip(hub.iter()).map(|(n, &v)| (n.clone(), v)).collect();
-    let auth_map: BTreeMap<String, f64> = nodes.iter().zip(auth.iter()).map(|(n, &v)| (n.clone(), v)).collect();
+    let hub_map: BTreeMap<String, f64> = nodes
+        .iter()
+        .zip(hub.iter())
+        .map(|(n, &v)| (n.clone(), v))
+        .collect();
+    let auth_map: BTreeMap<String, f64> = nodes
+        .iter()
+        .zip(auth.iter())
+        .map(|(n, &v)| (n.clone(), v))
+        .collect();
     (hub_map, auth_map)
 }
 
@@ -4267,7 +4279,10 @@ mod tests {
 
         let (hubs, auths) = hits(&g, 50, 1e-8);
         assert!(hubs["center"] > hubs["A"], "Center should be top hub");
-        assert!(auths["A"] > auths["center"], "Leaves should be top authorities");
+        assert!(
+            auths["A"] > auths["center"],
+            "Leaves should be top authorities"
+        );
         // Symmetry: all leaves should have equal authority
         assert!(
             (auths["A"] - auths["B"]).abs() < 1e-6,

@@ -16,9 +16,8 @@ use std::path::Path;
 
 use braid_kernel::bilateral::{
     cycle_to_datoms, format_terse as bilateral_format_terse,
-    format_verbose as bilateral_format_verbose, load_trajectory, run_cycle,
-    W_CONTRADICTION, W_COVERAGE, W_DRIFT, W_HARVEST, W_INCOMPLETENESS, W_UNCERTAINTY,
-    W_VALIDATION,
+    format_verbose as bilateral_format_verbose, load_trajectory, run_cycle, W_CONTRADICTION,
+    W_COVERAGE, W_DRIFT, W_HARVEST, W_INCOMPLETENESS, W_UNCERTAINTY, W_VALIDATION,
 };
 use braid_kernel::datom::{AgentId, ProvenanceType};
 use braid_kernel::layout::TxFile;
@@ -270,7 +269,8 @@ fn build_agent_output(state: &braid_kernel::bilateral::BilateralState) -> AgentO
     );
 
     // Content: the human output is already good for content
-    let content = format!(
+    let content =
+        format!(
         "F(S) = {total:.4} = {wv}*validation({v:.2}) + {wc}*coverage({c:.2}) + {wd}*drift({d:.2}) \
          + {wh}*harvest({h:.2}) + {wk}*contradiction({k:.2}) + {wi}*incompleteness({i:.2}) \
          + {wu}*uncertainty({u:.2})",
@@ -300,10 +300,7 @@ fn build_agent_output(state: &braid_kernel::bilateral::BilateralState) -> AgentO
         .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
         .unwrap();
 
-    let footer = format!(
-        "weakest: {} ({:.2}, {})",
-        weakest.0, weakest.1, weakest.2,
-    );
+    let footer = format!("weakest: {} ({:.2}, {})", weakest.0, weakest.1, weakest.2,);
 
     AgentOutput {
         context,

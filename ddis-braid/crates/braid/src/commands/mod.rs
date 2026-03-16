@@ -1603,7 +1603,12 @@ pub fn run(
             verbose,
         } => {
             let cmd_output = log::run(&path, limit, agent.as_deref(), datoms, json, verbose)?;
-            return Ok(maybe_inject_footer(cmd_output, skip_footer, path_for_footer.as_deref(), budget_ctx));
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
         }
         Command::Observe {
             path,
@@ -1724,7 +1729,12 @@ pub fn run(
             agent,
         } => {
             let cmd_output = config::run(&path, key.as_deref(), value.as_deref(), reset, &agent)?;
-            return Ok(maybe_inject_footer(cmd_output, skip_footer, path_for_footer.as_deref(), budget_ctx));
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
         }
         Command::Shell { path } => shell::run(&path),
         Command::Mcp { action } => match action {

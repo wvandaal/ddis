@@ -1274,10 +1274,7 @@ mod tests {
         let frontier_at_1 = Frontier::at(&store, receipt1.tx_id);
 
         // Datoms from tx1 should be within the frontier
-        let tx1_datoms: Vec<_> = store
-            .datoms()
-            .filter(|d| d.tx == receipt1.tx_id)
-            .collect();
+        let tx1_datoms: Vec<_> = store.datoms().filter(|d| d.tx == receipt1.tx_id).collect();
         assert!(
             !tx1_datoms.is_empty(),
             "must have datoms from the first transaction"
@@ -1290,10 +1287,7 @@ mod tests {
         }
 
         // Datoms from tx2 should NOT be within the frontier at tx1
-        let tx2_datoms: Vec<_> = store
-            .datoms()
-            .filter(|d| d.tx == _receipt2.tx_id)
-            .collect();
+        let tx2_datoms: Vec<_> = store.datoms().filter(|d| d.tx == _receipt2.tx_id).collect();
         assert!(
             !tx2_datoms.is_empty(),
             "must have datoms from the second transaction"
@@ -1349,11 +1343,7 @@ mod tests {
         let stored = store.frontier();
 
         // current() must equal the stored frontier
-        assert_eq!(
-            current.len(),
-            stored.len(),
-            "agent count must match"
-        );
+        assert_eq!(current.len(), stored.len(), "agent count must match");
         for (agent, tx_id) in stored {
             assert_eq!(
                 current.max_tx_for(agent),

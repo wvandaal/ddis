@@ -76,7 +76,12 @@ fn run_get(path: &Path, key: &str) -> Result<CommandOutput, BraidError> {
     Ok(CommandOutput { json, agent, human })
 }
 
-fn run_set(path: &Path, key: &str, value: &str, agent_name: &str) -> Result<CommandOutput, BraidError> {
+fn run_set(
+    path: &Path,
+    key: &str,
+    value: &str,
+    agent_name: &str,
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -251,5 +256,9 @@ fn run_list(path: &Path) -> Result<CommandOutput, BraidError> {
         footer: "verify: braid config | set: braid config <key> <value>".into(),
     };
 
-    Ok(CommandOutput { json, agent, human: out })
+    Ok(CommandOutput {
+        json,
+        agent,
+        human: out,
+    })
 }

@@ -145,10 +145,7 @@ pub fn dispatch(signal: &Signal) -> SignalAction {
 /// ADR-SIGNAL-001: Signal as first-class datom.
 /// Each signal becomes an entity with typed attributes.
 pub fn signal_to_datoms(signal: &Signal, tx_id: TxId) -> Vec<Datom> {
-    let ident = format!(
-        ":signal/{}",
-        signal.timestamp
-    );
+    let ident = format!(":signal/{}", signal.timestamp);
     let entity = EntityId::from_ident(&ident);
 
     vec![
@@ -377,7 +374,10 @@ mod tests {
             ..Default::default()
         };
         let signal = detect_confusion(&detector, test_source(), 2000);
-        assert!(signal.is_some(), "Declining M(t)<0.5 should trigger confusion");
+        assert!(
+            signal.is_some(),
+            "Declining M(t)<0.5 should trigger confusion"
+        );
         let s = signal.unwrap();
         assert!(s.severity.is_medium());
     }
@@ -392,7 +392,10 @@ mod tests {
             ..Default::default()
         };
         let signal = detect_confusion(&detector, test_source(), 3000);
-        assert!(signal.is_some(), "Zero diversity for 7 turns should trigger");
+        assert!(
+            signal.is_some(),
+            "Zero diversity for 7 turns should trigger"
+        );
         let s = signal.unwrap();
         assert!(s.severity.is_low());
     }
@@ -407,7 +410,10 @@ mod tests {
             ..Default::default()
         };
         let signal = detect_confusion(&detector, test_source(), 4000);
-        assert!(signal.is_none(), "Healthy session should not trigger confusion");
+        assert!(
+            signal.is_none(),
+            "Healthy session should not trigger confusion"
+        );
     }
 
     // --- Signal dispatch ---

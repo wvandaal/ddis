@@ -1092,17 +1092,11 @@ mod tests {
 
     mod proptests {
         use super::*;
-        use crate::proptest_strategies::{
-            arb_agent_id, arb_doc_value, arb_entity_id, arb_tx_id,
-        };
+        use crate::proptest_strategies::{arb_agent_id, arb_doc_value, arb_entity_id, arb_tx_id};
         use proptest::prelude::*;
 
         /// Build a TxFile from arbitrary datoms for testing.
-        fn arb_tx_file(
-            datoms: Vec<Datom>,
-            agent: AgentId,
-            tx_id: TxId,
-        ) -> TxFile {
+        fn arb_tx_file(datoms: Vec<Datom>, agent: AgentId, tx_id: TxId) -> TxFile {
             TxFile {
                 tx_id,
                 agent,
