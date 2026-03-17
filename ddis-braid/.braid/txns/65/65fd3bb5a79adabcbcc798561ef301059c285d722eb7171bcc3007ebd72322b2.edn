@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773733911/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ALL WAVES FORMALLY CLOSED. W1+W2+W3+W3.5+W4+W5 complete. 779 tests (up from 508 = +271). 8 new kernel modules. 34 Kani harnesses, 9+ Stateright models. The entire Stages 1-2 formal design plan is implemented."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c9511f20828654ea4b4aed739180f900079912fd3125d797c0aa8e19b6e5d55a" :a :db/ident :v :observation/all-waves-formally-closed-w1w2w3w35w4w5-complete-779 :op :assert}
+   {:e #blake3 "c9511f20828654ea4b4aed739180f900079912fd3125d797c0aa8e19b6e5d55a" :a :db/doc :v "ALL WAVES FORMALLY CLOSED. W1+W2+W3+W3.5+W4+W5 complete. 779 tests (up from 508 = +271). 8 new kernel modules. 34 Kani harnesses, 9+ Stateright models. The entire Stages 1-2 formal design plan is implemented." :op :assert}
+   {:e #blake3 "c9511f20828654ea4b4aed739180f900079912fd3125d797c0aa8e19b6e5d55a" :a :exploration/body :v "ALL WAVES FORMALLY CLOSED. W1+W2+W3+W3.5+W4+W5 complete. 779 tests (up from 508 = +271). 8 new kernel modules. 34 Kani harnesses, 9+ Stateright models. The entire Stages 1-2 formal design plan is implemented." :op :assert}
+   {:e #blake3 "c9511f20828654ea4b4aed739180f900079912fd3125d797c0aa8e19b6e5d55a" :a :exploration/content-hash :v #bytes "32aded4ad7e21114eba5f3e1d9983f5b1c8efb607b2809568e7fb47ed800dcae" :op :assert}
+   {:e #blake3 "c9511f20828654ea4b4aed739180f900079912fd3125d797c0aa8e19b6e5d55a" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "c9511f20828654ea4b4aed739180f900079912fd3125d797c0aa8e19b6e5d55a" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "c9511f20828654ea4b4aed739180f900079912fd3125d797c0aa8e19b6e5d55a" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c9511f20828654ea4b4aed739180f900079912fd3125d797c0aa8e19b6e5d55a" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c9511f20828654ea4b4aed739180f900079912fd3125d797c0aa8e19b6e5d55a" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

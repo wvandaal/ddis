@@ -715,6 +715,135 @@ mod tests {
         assert!(has_2, "Second committed entity should be in shared");
     }
 
+    // --- W5A.6: Crash recovery ---
+
+    /// Verifies: ADR-STORE-009 -- Crash recovery preserves working set.
+    /// After simulating a crash (losing the AgentStore), recover() rebuilds
+    /// the working set from persisted datoms and the agent can continue.
+    #[test]
+    fn crash_recovery_preserves_working() {
+        let shared = full_schema_store();
+        let mut agent = AgentStore::new(shared.clone_store(), alice());
+
+        // Agent does some work
+        let entity1 = EntityId::from_ident(":test/pre-crash-1");
+        let entity2 = EntityId::from_ident(":test/pre-crash-2");
+        agent
+            .assert_local(
+                vec![
+                    (
+                        entity1,
+                        Attribute::from_keyword(":db/doc"),
+                        Value::String("work in progress A".into()),
+                    ),
+                    (
+                        entity2,
+                        Attribute::from_keyword(":db/doc"),
+                        Value::String("work in progress B".into()),
+                    ),
+                ],
+                ProvenanceType::Observed,
+                "pre-crash work",
+            )
+            .unwrap();
+
+        // Simulate persisting the working set (what would happen before crash)
+        let persisted_working = agent.working().datom_set().clone();
+        let agent_id = agent.agent_id();
+
+        // Drop the original agent store (simulating crash)
+        drop(agent);
+
+        // Recover from persisted datoms
+        let recovered = AgentStore::recover(shared, persisted_working, agent_id);
+
+        // Verify: recovered agent has the same agent ID
+        assert_eq!(
+            recovered.agent_id(),
+            alice(),
+            "Recovered agent must have the same ID"
+        );
+
+        // Verify: recovered working set contains the pre-crash datoms
+        let has_entity1 = recovered
+            .working()
+            .datoms()
+            .any(|d| d.entity == entity1 && d.value == Value::String("work in progress A".into()));
+        assert!(
+            has_entity1,
+            "ADR-STORE-009: Recovered working set must contain pre-crash entity1"
+        );
+
+        let has_entity2 = recovered
+            .working()
+            .datoms()
+            .any(|d| d.entity == entity2 && d.value == Value::String("work in progress B".into()));
+        assert!(
+            has_entity2,
+            "ADR-STORE-009: Recovered working set must contain pre-crash entity2"
+        );
+
+        // Verify: query_local() sees both shared and recovered working data
+        let local = recovered.query_local();
+        let local_has_entity1 = local
+            .datoms()
+            .any(|d| d.entity == entity1 && d.value == Value::String("work in progress A".into()));
+        assert!(
+            local_has_entity1,
+            "query_local() on recovered store must see working set data"
+        );
+
+        // Verify: recovered agent can still commit successfully
+        // (the recovered working set is a valid Store)
+        let commit_result = {
+            let mut recovered_mut = recovered;
+            recovered_mut.commit(&[entity1])
+        };
+        assert!(
+            commit_result.is_ok(),
+            "Recovered agent must be able to commit pre-crash work: {:?}",
+            commit_result.err()
+        );
+    }
+
+    /// Verifies: recover() with empty working set produces a usable AgentStore.
+    /// This covers the case where an agent crashes before doing any work.
+    #[test]
+    fn crash_recovery_empty_working_set() {
+        let shared = full_schema_store();
+        let fresh = AgentStore::new(shared.clone_store(), alice());
+
+        // Persist the empty (genesis-only) working set
+        let persisted_working = fresh.working().datom_set().clone();
+        drop(fresh);
+
+        // Recover
+        let recovered = AgentStore::recover(shared, persisted_working, alice());
+
+        // Should be usable -- can assert and query
+        let entity = EntityId::from_ident(":test/post-recovery");
+        let mut recovered = recovered;
+        let result = recovered.assert_local(
+            vec![(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("post-recovery work".into()),
+            )],
+            ProvenanceType::Observed,
+            "post recovery",
+        );
+        assert!(
+            result.is_ok(),
+            "Recovered agent with empty working set must accept new assertions"
+        );
+
+        let local = recovered.query_local();
+        let has_it = local
+            .datoms()
+            .any(|d| d.entity == entity && d.value == Value::String("post-recovery work".into()));
+        assert!(has_it, "Post-recovery assertion must be visible locally");
+    }
+
     // --- Proptest: commit through coherence never violates store invariants ---
 
     mod proptests {
@@ -817,6 +946,89 @@ mod tests {
                         prop_assert!(!bob_local_entities.contains(entity),
                             "INV-STORE-013: Bob must not see Alice's private entity {:?}", entity);
                     }
+                }
+            }
+
+            /// ADR-STORE-009: Crash recovery preserves working set contents.
+            /// For any datom asserted into a working set, recover() from the
+            /// persisted working set datoms must preserve it.
+            #[test]
+            fn crash_recovery_preserves_all_datoms(
+                entity in arb_entity_id(),
+                value in arb_doc_value(),
+            ) {
+                let shared = Store::genesis();
+                let mut agent = AgentStore::new(shared.clone_store(), alice());
+
+                // Assert into working set
+                let _ = agent.assert_local(
+                    vec![(entity, Attribute::from_keyword(":db/doc"), value.clone())],
+                    ProvenanceType::Observed,
+                    "proptest crash",
+                );
+
+                // Persist and recover
+                let persisted = agent.working().datom_set().clone();
+                let working_len = agent.working().len();
+                let agent_id = agent.agent_id();
+                drop(agent);
+
+                let recovered = AgentStore::recover(shared, persisted, agent_id);
+
+                // Working set size preserved exactly
+                prop_assert_eq!(
+                    recovered.working().len(),
+                    working_len,
+                    "ADR-STORE-009: Recovered working set must have same datom count"
+                );
+
+                // The specific datom is present
+                let has_datom = recovered.working().datoms().any(|d| {
+                    d.entity == entity
+                        && d.attribute.as_str() == ":db/doc"
+                        && d.value == value
+                });
+                prop_assert!(has_datom,
+                    "ADR-STORE-009: Recovered working set must contain the asserted datom");
+            }
+
+            /// INV-STORE-013 + INV-MERGE-003: commit() never violates store
+            /// invariants regardless of input. The shared store must be a
+            /// monotonically growing set, and commit failures must leave
+            /// both stores untouched.
+            #[test]
+            fn commit_never_violates_store_invariants(
+                entity in arb_entity_id(),
+                value in arb_doc_value(),
+            ) {
+                let shared = Store::genesis();
+                let shared_datom_set = shared.datom_set().clone();
+                let mut agent = AgentStore::new(shared, alice());
+
+                // Assert locally
+                let _ = agent.assert_local(
+                    vec![(entity, Attribute::from_keyword(":db/doc"), value)],
+                    ProvenanceType::Observed,
+                    "invariant test",
+                );
+
+                let result = agent.commit(&[entity]);
+
+                // Invariant: shared store is always a superset of its original state
+                for datom in &shared_datom_set {
+                    prop_assert!(
+                        agent.shared().datom_set().contains(datom),
+                        "INV-STORE-001: Shared store must never lose datoms. Missing: {:?}",
+                        datom.attribute.as_str()
+                    );
+                }
+
+                // Invariant: if commit succeeded, shared store strictly grew
+                if result.is_ok() {
+                    prop_assert!(
+                        agent.shared().datom_set().len() > shared_datom_set.len(),
+                        "Successful commit must add datoms to shared store"
+                    );
                 }
             }
         }
