@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773788998/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI: Add observe vs write assert disambiguation in help text (activation clarity)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "457febb0658efb84f8993d136a9a6ed31a967d005f392847d29521a27f23cbdb" :a :db/ident :v :task/t-616b :op :assert}
+   {:e #blake3 "457febb0658efb84f8993d136a9a6ed31a967d005f392847d29521a27f23cbdb" :a :task/created-at :v 1773788992 :op :assert}
+   {:e #blake3 "457febb0658efb84f8993d136a9a6ed31a967d005f392847d29521a27f23cbdb" :a :task/id :v "t-616b" :op :assert}
+   {:e #blake3 "457febb0658efb84f8993d136a9a6ed31a967d005f392847d29521a27f23cbdb" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "457febb0658efb84f8993d136a9a6ed31a967d005f392847d29521a27f23cbdb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "457febb0658efb84f8993d136a9a6ed31a967d005f392847d29521a27f23cbdb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "457febb0658efb84f8993d136a9a6ed31a967d005f392847d29521a27f23cbdb" :a :task/title :v "CLI: Add observe vs write assert disambiguation in help text (activation clarity)" :op :assert}
+   {:e #blake3 "457febb0658efb84f8993d136a9a6ed31a967d005f392847d29521a27f23cbdb" :a :task/type :v :task.type/docs :op :assert}
+ ]}

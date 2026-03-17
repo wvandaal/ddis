@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773788851/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: LLM Surface Optimization — API-as-Prompt (INV-INTERFACE-008 + ADR-INTERFACE-011)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :db/ident :v :task/t-83ce :op :assert}
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :task/created-at :v 1773788850 :op :assert}
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :task/id :v "t-83ce" :op :assert}
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :task/title :v "EPIC: LLM Surface Optimization — API-as-Prompt (INV-INTERFACE-008 + ADR-INTERFACE-011)" :op :assert}
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :task/type :v :task.type/epic :op :assert}
+ ]}

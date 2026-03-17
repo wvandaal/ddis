@@ -247,7 +247,7 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
                 .as_deref()
                 .map(|d| {
                     if d.len() > 100 {
-                        format!(": {}...", &d[..d.floor_char_boundary(100)])
+                        format!(": {}...", crate::budget::safe_truncate_bytes(d, 100))
                     } else {
                         format!(": {d}")
                     }
@@ -1091,7 +1091,7 @@ pub fn infer_task_description(store: &Store) -> (String, String, f64) {
         {
             if let Value::String(ref body) = datom.value {
                 let truncated = if body.len() > 80 {
-                    format!("{}...", &body[..body.floor_char_boundary(80)])
+                    crate::budget::safe_truncate_display(body, 80)
                 } else {
                     body.clone()
                 };

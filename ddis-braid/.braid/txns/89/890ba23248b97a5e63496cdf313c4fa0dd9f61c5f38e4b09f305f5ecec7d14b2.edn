@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773788989/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: MCP: Include orientation in initialize response (ADR-INTERFACE-011, basin activation)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7756cabc853178ae86badea14fe70e2e00752525811017d47f528aeeba889c12" :a :db/ident :v :task/t-c2c2 :op :assert}
+   {:e #blake3 "7756cabc853178ae86badea14fe70e2e00752525811017d47f528aeeba889c12" :a :task/created-at :v 1773788988 :op :assert}
+   {:e #blake3 "7756cabc853178ae86badea14fe70e2e00752525811017d47f528aeeba889c12" :a :task/id :v "t-c2c2" :op :assert}
+   {:e #blake3 "7756cabc853178ae86badea14fe70e2e00752525811017d47f528aeeba889c12" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "7756cabc853178ae86badea14fe70e2e00752525811017d47f528aeeba889c12" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7756cabc853178ae86badea14fe70e2e00752525811017d47f528aeeba889c12" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7756cabc853178ae86badea14fe70e2e00752525811017d47f528aeeba889c12" :a :task/title :v "MCP: Include orientation in initialize response (ADR-INTERFACE-011, basin activation)" :op :assert}
+   {:e #blake3 "7756cabc853178ae86badea14fe70e2e00752525811017d47f528aeeba889c12" :a :task/type :v :task.type/feature :op :assert}
+ ]}

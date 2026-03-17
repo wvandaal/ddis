@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773788992/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Guidance: Actionable sub-metric hints in footer (INV-GUIDANCE-002, demonstration-over-constraint)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f19f782fc6451022e3741fe9e6c5414257fabf3ee41756482082b1adb910b012" :a :db/ident :v :task/t-a8b9 :op :assert}
+   {:e #blake3 "f19f782fc6451022e3741fe9e6c5414257fabf3ee41756482082b1adb910b012" :a :task/created-at :v 1773788989 :op :assert}
+   {:e #blake3 "f19f782fc6451022e3741fe9e6c5414257fabf3ee41756482082b1adb910b012" :a :task/id :v "t-a8b9" :op :assert}
+   {:e #blake3 "f19f782fc6451022e3741fe9e6c5414257fabf3ee41756482082b1adb910b012" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f19f782fc6451022e3741fe9e6c5414257fabf3ee41756482082b1adb910b012" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f19f782fc6451022e3741fe9e6c5414257fabf3ee41756482082b1adb910b012" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f19f782fc6451022e3741fe9e6c5414257fabf3ee41756482082b1adb910b012" :a :task/title :v "Guidance: Actionable sub-metric hints in footer (INV-GUIDANCE-002, demonstration-over-constraint)" :op :assert}
+   {:e #blake3 "f19f782fc6451022e3741fe9e6c5414257fabf3ee41756482082b1adb910b012" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -572,24 +572,24 @@ pub fn format_footer(footer: &GuidanceFooter) -> String {
         Trend::Stable => "→",
     };
 
-    let check = |v: f64| {
+    let check_with_hint = |v: f64, hint: &str| -> String {
         if v >= 0.7 {
-            "✓"
+            "✓".to_string()
         } else if v >= 0.4 {
-            "△"
+            "△".to_string()
         } else {
-            "✗"
+            format!("✗→{hint}")
         }
     };
 
     let line1 = format!(
-        "↳ M(t): {:.2} {} (transact: {} | spec-lang: {} | query-div: {} | harvest: {}) | Store: {} datoms | Turn {}",
+        "↳ M(t): {:.2} {} (tx: {} | spec-lang: {} | q-div: {} | harvest: {}) | Store: {} datoms | Turn {}",
         m.score,
         trend,
-        check(m.components.transact_frequency),
-        check(m.components.spec_language_ratio),
-        check(m.components.query_diversity),
-        check(m.components.harvest_quality),
+        check_with_hint(m.components.transact_frequency, "write"),
+        check_with_hint(m.components.spec_language_ratio, "trace"),
+        check_with_hint(m.components.query_diversity, "query"),
+        check_with_hint(m.components.harvest_quality, "harvest"),
         footer.store_datom_count,
         footer.turn,
     );
@@ -661,11 +661,7 @@ pub fn format_footer_at_level(footer: &GuidanceFooter, level: GuidanceLevel) -> 
             }
             match &footer.next_action {
                 Some(action) => {
-                    let short = if action.len() > 40 {
-                        &action[..action.floor_char_boundary(40)]
-                    } else {
-                        action.as_str()
-                    };
+                    let short = crate::budget::safe_truncate_bytes(action, 40);
                     format!("↳ M={:.2} → {short}", m.score)
                 }
                 None => format!("↳ M={:.2}", m.score),
@@ -1136,10 +1132,7 @@ pub fn derive_actions_with_budget(store: &Store, q_t: Option<f64>) -> Vec<Guidan
                 "R(t) top: \"{}\" (impact={:.2}) — {}",
                 top.label, top.impact, task_id
             ),
-            command: Some(format!(
-                "braid task update {} --status in-progress",
-                task_id
-            )),
+            command: Some(format!("braid go {}", task_id)),
             relates_to: vec!["INV-GUIDANCE-010".into()],
         });
     }

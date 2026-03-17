@@ -22,6 +22,57 @@
 //!
 //! - NEG-BUDGET-002: No high-priority truncation before low.
 
+// ---------------------------------------------------------------------------
+// Safe string truncation (replaces all floor_char_boundary usage)
+// ---------------------------------------------------------------------------
+
+/// Truncate a string to at most `max_bytes` bytes, backing up to a char boundary.
+///
+/// This is a self-contained replacement for `str::floor_char_boundary` that
+/// cannot panic regardless of input. It uses only `str::is_char_boundary`,
+/// which is a trivial byte-class check (stable since Rust 1.9).
+///
+/// # Guarantees
+///
+/// 1. The returned slice is always a valid `&str` (no mid-codepoint splits)
+/// 2. `result.len() <= max_bytes`
+/// 3. The function never panics, even on adversarial input
+/// 4. If `max_bytes >= s.len()`, returns `s` unchanged
+///
+/// # Why not `str::floor_char_boundary`?
+///
+/// In practice, `floor_char_boundary` has exhibited panics in optimized (release)
+/// builds on nightly Rust. Since this function guards every string truncation in
+/// the codebase, we use an explicit walk-back loop that depends only on
+/// `is_char_boundary` — the simplest possible UTF-8 predicate.
+#[inline]
+pub fn safe_truncate_bytes(s: &str, max_bytes: usize) -> &str {
+    if max_bytes >= s.len() {
+        return s;
+    }
+    let mut end = max_bytes;
+    // Walk back at most 4 bytes (max UTF-8 char width) to find a boundary.
+    // is_char_boundary(0) is always true, so this terminates.
+    while !s.is_char_boundary(end) {
+        end -= 1;
+    }
+    // SAFETY: end is guaranteed to be a char boundary by the loop above,
+    // and end <= max_bytes < s.len(), so the slice is in bounds.
+    &s[..end]
+}
+
+/// Truncate a string to at most `max_bytes` bytes, appending "..." if truncated.
+///
+/// Convenience wrapper around [`safe_truncate_bytes`] for display contexts.
+pub fn safe_truncate_display(s: &str, max_bytes: usize) -> String {
+    if s.len() <= max_bytes {
+        return s.to_string();
+    }
+    // Reserve 3 bytes for "..."
+    let truncated = safe_truncate_bytes(s, max_bytes.saturating_sub(3));
+    format!("{truncated}...")
+}
+
 /// Minimum output floor in tokens (applies to all non-harvest-imperative modes).
 pub const MIN_OUTPUT: u32 = 50;
 
@@ -83,18 +134,20 @@ fn looks_like_code(text: &str) -> bool {
     if text.len() < 20 {
         return false;
     }
-    // Use floor_char_boundary to avoid slicing inside a multi-byte UTF-8 char.
-    let sample = if text.len() > 200 {
-        &text[..text.floor_char_boundary(200)]
-    } else {
-        text
-    };
-    let code_chars = sample
-        .chars()
-        .filter(|c| matches!(c, '{' | '}' | '(' | ')' | ';' | '=' | '<' | '>' | '|' | '&'))
-        .count();
+    // Use char iterator (not byte slicing) to avoid UTF-8 boundary panics.
+    let mut total = 0usize;
+    let mut code_chars = 0usize;
+    for ch in text.chars().take(200) {
+        total += 1;
+        if matches!(
+            ch,
+            '{' | '}' | '(' | ')' | ';' | '=' | '<' | '>' | '|' | '&'
+        ) {
+            code_chars += 1;
+        }
+    }
     // If > 5% of chars are code-like symbols, treat as code
-    code_chars * 20 > sample.len()
+    code_chars * 20 > total
 }
 
 // ---------------------------------------------------------------------------
@@ -533,6 +586,116 @@ impl TokenEfficiency {
 mod tests {
     use super::*;
 
+    // ---- safe_truncate_bytes ----
+
+    #[test]
+    fn truncate_bytes_ascii_no_change() {
+        assert_eq!(safe_truncate_bytes("hello", 10), "hello");
+    }
+
+    #[test]
+    fn truncate_bytes_ascii_exact() {
+        assert_eq!(safe_truncate_bytes("hello", 5), "hello");
+    }
+
+    #[test]
+    fn truncate_bytes_ascii_cut() {
+        assert_eq!(safe_truncate_bytes("hello", 3), "hel");
+    }
+
+    #[test]
+    fn truncate_bytes_empty() {
+        assert_eq!(safe_truncate_bytes("", 0), "");
+        assert_eq!(safe_truncate_bytes("", 100), "");
+    }
+
+    #[test]
+    fn truncate_bytes_zero_max() {
+        assert_eq!(safe_truncate_bytes("hello", 0), "");
+    }
+
+    #[test]
+    fn truncate_bytes_2byte_char_boundary() {
+        // é is 2 bytes (0xC3, 0xA9). "café" = [99, 97, 102, C3, A9] = 5 bytes
+        let s = "café";
+        assert_eq!(s.len(), 5);
+        // Truncate at 4: lands inside é → backs up to 3
+        assert_eq!(safe_truncate_bytes(s, 4), "caf");
+        // Truncate at 5: full string
+        assert_eq!(safe_truncate_bytes(s, 5), "café");
+        // Truncate at 3: before é starts
+        assert_eq!(safe_truncate_bytes(s, 3), "caf");
+    }
+
+    #[test]
+    fn truncate_bytes_3byte_char_boundary() {
+        // ✗ is 3 bytes (E2 9C 97). "a✗b" = [61, E2, 9C, 97, 62] = 5 bytes
+        let s = "a✗b";
+        assert_eq!(s.len(), 5);
+        // Truncate at 2: inside ✗ → backs up to 1 ("a")
+        assert_eq!(safe_truncate_bytes(s, 2), "a");
+        // Truncate at 3: inside ✗ → backs up to 1 ("a")
+        assert_eq!(safe_truncate_bytes(s, 3), "a");
+        // Truncate at 4: after ✗, before b
+        assert_eq!(safe_truncate_bytes(s, 4), "a✗");
+    }
+
+    #[test]
+    fn truncate_bytes_4byte_char_boundary() {
+        // 😀 is 4 bytes (F0 9F 98 80)
+        let s = "a😀b";
+        assert_eq!(s.len(), 6);
+        // Truncate at 2,3,4: all inside 😀 → backs up to 1 ("a")
+        assert_eq!(safe_truncate_bytes(s, 2), "a");
+        assert_eq!(safe_truncate_bytes(s, 3), "a");
+        assert_eq!(safe_truncate_bytes(s, 4), "a");
+        // Truncate at 5: after 😀, before b
+        assert_eq!(safe_truncate_bytes(s, 5), "a😀");
+    }
+
+    #[test]
+    fn truncate_bytes_mixed_unicode_at_200() {
+        // Reproduce the exact bug: output with ✗ and △ near byte 200
+        let mut s = String::new();
+        // Fill to ~198 bytes with ASCII
+        s.push_str(&"x".repeat(198));
+        // △ is 3 bytes (E2 96 B3). Starts at byte 198.
+        s.push('△');
+        s.push_str("more");
+        // Truncate at 200: inside △ → backs up to 198
+        assert_eq!(safe_truncate_bytes(&s, 200), &s[..198]);
+        // Truncate at 201: complete △
+        assert_eq!(safe_truncate_bytes(&s, 201), &s[..201]);
+    }
+
+    #[test]
+    fn truncate_bytes_all_multibyte() {
+        // String of only 3-byte chars: each at 0,3,6,9,...
+        let s = "✓✗△✓✗△✓✗△";
+        // Truncate at every possible byte position: must never panic
+        for i in 0..=s.len() + 5 {
+            let result = safe_truncate_bytes(s, i);
+            assert!(result.len() <= i.min(s.len()));
+            // Verify result is valid UTF-8 (would panic on invalid slice)
+            let _ = result.chars().count();
+        }
+    }
+
+    #[test]
+    fn truncate_display_adds_ellipsis() {
+        assert_eq!(safe_truncate_display("hello world", 8), "hello...");
+        assert_eq!(safe_truncate_display("hi", 10), "hi");
+    }
+
+    #[test]
+    fn truncate_display_unicode_safe() {
+        // "a✗b" (5 bytes), truncate display at 5: "a✗" + "..." would need safe boundary
+        let result = safe_truncate_display("a✗b✗c", 5);
+        // Must not panic and must be valid UTF-8
+        assert!(result.ends_with("..."));
+        assert!(result.len() <= 8); // max 5 content + 3 "..."
+    }
+
     // ---- Attention decay ----
     // Verifies: ADR-BUDGET-002 — Piecewise Attention Decay
 
@@ -962,6 +1125,41 @@ mod tests {
         use proptest::prelude::*;
 
         proptest! {
+            // ---- safe_truncate_bytes proptests ----
+
+            #[test]
+            fn safe_truncate_bytes_never_panics(
+                s in "\\PC{0,500}",
+                max_bytes in 0usize..=600
+            ) {
+                let result = safe_truncate_bytes(&s, max_bytes);
+                // Must not exceed max_bytes
+                prop_assert!(result.len() <= max_bytes.min(s.len()));
+                // Must be valid UTF-8 (the fact that it's &str guarantees this,
+                // but we verify by iterating chars)
+                let _ = result.chars().count();
+            }
+
+            #[test]
+            fn safe_truncate_bytes_preserves_content(
+                s in "[a-z]{0,200}",
+                max_bytes in 0usize..=300
+            ) {
+                let result = safe_truncate_bytes(&s, max_bytes);
+                // For ASCII, truncation should be exact
+                prop_assert!(s.starts_with(result));
+            }
+
+            #[test]
+            fn safe_truncate_display_never_panics(
+                s in "\\PC{0,500}",
+                max_bytes in 0usize..=600
+            ) {
+                let result = safe_truncate_display(&s, max_bytes);
+                // Must be valid UTF-8
+                let _ = result.chars().count();
+            }
+
             // Verifies: INV-BUDGET-001 — enforce_ceiling content never exceeds ceiling
             #[test]
             fn enforce_ceiling_bounded(

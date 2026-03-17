@@ -712,62 +712,10 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
         }
     }
 
-    // === B2: Attribute vocabulary (top-N per layer, from actual store usage) ===
-    // Gives incoming agents the schema context to write correct queries.
-    if current_datoms > 100 {
-        let mut attr_counts: BTreeMap<String, usize> = BTreeMap::new();
-        for d in store.datoms() {
-            if d.op == Op::Assert && !d.attribute.as_str().starts_with(":db/") {
-                *attr_counts
-                    .entry(d.attribute.as_str().to_string())
-                    .or_default() += 1;
-            }
-        }
-        if !attr_counts.is_empty() {
-            // Group by layer prefix and show top attrs by count
-            let mut trilateral = Vec::new();
-            let mut elements = Vec::new();
-            let mut exploration = Vec::new();
-            let mut task_attrs = Vec::new();
-
-            let mut sorted: Vec<_> = attr_counts.iter().collect();
-            sorted.sort_by(|a, b| b.1.cmp(a.1));
-
-            for (attr, count) in sorted.iter().take(30) {
-                let entry = format!("{}({})", attr, count);
-                if attr.starts_with(":intent/")
-                    || attr.starts_with(":spec/")
-                    || attr.starts_with(":impl/")
-                {
-                    trilateral.push(entry);
-                } else if attr.starts_with(":element/")
-                    || attr.starts_with(":inv/")
-                    || attr.starts_with(":adr/")
-                {
-                    elements.push(entry);
-                } else if attr.starts_with(":exploration/") || attr.starts_with(":harvest/") {
-                    exploration.push(entry);
-                } else if attr.starts_with(":task/")
-                    || attr.starts_with(":plan/")
-                    || attr.starts_with(":session/")
-                {
-                    task_attrs.push(entry);
-                }
-            }
-
-            let mut vocab = String::from("Key attrs:");
-            if !trilateral.is_empty() {
-                vocab.push_str(&format!(" {}", trilateral.join(", ")));
-            }
-            if !exploration.is_empty() {
-                vocab.push_str(&format!(", {}", exploration.join(", ")));
-            }
-            if !task_attrs.is_empty() {
-                vocab.push_str(&format!(", {}", task_attrs.join(", ")));
-            }
-            parts.push(vocab);
-        }
-    }
+    // B2: Attribute vocabulary removed — parasitic content per k* management.
+    // Raw attr counts (:impl/file(871), :exploration/body(43)) consume ~200 tokens
+    // with zero agent value. Schema vocabulary is in the spec; agents discover
+    // working attrs through braid query, not memorization of frequency tables.
 
     // === Task summary (D4: seed integration) ===
     {
@@ -1304,15 +1252,10 @@ fn build_directive(
         }
     }
 
-    // PROTOCOL: Session lifecycle anchors.
-    // Remind the agent of the methodology that makes braid work.
+    // Single-line protocol anchor (replaces verbose Quick Reference — k* management).
     parts.push(String::new());
     parts.push(
-        "Protocol: observe decisions/questions during work, harvest before ending session."
-            .to_string(),
-    );
-    parts.push(
-        "Quick: braid status | braid observe \"...\" --category design-decision | braid harvest --commit"
+        "Protocol: observe → status → observe → harvest --commit | seed --inject AGENTS.md"
             .to_string(),
     );
 
@@ -2097,11 +2040,24 @@ pub fn assemble(
         .map(|d| d.entity)
         .collect();
 
+    // Helper: check if entity has :impl/ ident (parasitic — zero agent value).
+    let is_impl_entity = |eid: EntityId| -> bool {
+        store.entity_datoms(eid).iter().any(|d| {
+            d.attribute.as_str() == ":db/ident"
+                && d.op == Op::Assert
+                && matches!(&d.value, Value::Keyword(k) if k.starts_with(":impl/"))
+        })
+    };
+
     let mut state_entries = Vec::new();
     let mut state_tokens = 0;
     for (entity, score) in &scored {
         // Skip harvest entities — their content is already rendered in Orientation
         if harvest_entities.contains(entity) {
+            continue;
+        }
+        // Skip :impl/ entities — parasitic content with zero agent value (k* management)
+        if is_impl_entity(*entity) {
             continue;
         }
 
@@ -2218,34 +2174,9 @@ pub fn assemble(
                 }
             }
 
-            // Add key attribute vocabulary — show agent-facing attributes (for queries/observations)
-            // Skip infrastructure attrs (spec/*, dep/*, schema/*) — agents don't query those.
-            // Focus on harvest/*, exploration/*, intent/*, impl/* — the working vocabulary.
-            let mut attr_counts: BTreeMap<&str, usize> = BTreeMap::new();
-            for d in store.datoms() {
-                if d.op == Op::Assert {
-                    *attr_counts.entry(d.attribute.as_str()).or_default() += 1;
-                }
-            }
-            let mut sorted_attrs: Vec<_> = attr_counts.into_iter().collect();
-            sorted_attrs.sort_by_key(|(_, c)| std::cmp::Reverse(*c));
-            let key_attrs: Vec<_> = sorted_attrs
-                .iter()
-                .filter(|(a, _)| {
-                    // Show working vocabulary: harvest, exploration, intent, impl, bilateral
-                    // Skip infrastructure: db/*, schema/*, spec/*, dep/*
-                    !a.starts_with(":db/")
-                        && !a.starts_with(":schema/")
-                        && !a.starts_with(":spec/")
-                        && !a.starts_with(":dep/")
-                        && !a.starts_with(":spec.")
-                })
-                .take(15)
-                .map(|(a, c)| format!("{a}({c})"))
-                .collect();
-            if !key_attrs.is_empty() {
-                cheat.push(format!("Key attrs: {}", key_attrs.join(", ")));
-            }
+            // Key attrs removed — parasitic content (k* management).
+            // ~200 tokens of ":impl/file(871), :exploration/body(43)" has zero agent value.
+            // Agents discover working vocabulary through braid query, not frequency tables.
 
             let cheat_text = cheat.join("\n");
             let cheat_tokens = cheat_text.split_whitespace().count() * 4 / 3;
@@ -2458,6 +2389,7 @@ pub fn assemble(
                                 || k.starts_with(":spec/")
                                 || k.starts_with(":spec.")
                                 || k.starts_with(":exploration")
+                                || k.starts_with(":impl/")
                         }
                         _ => false,
                     }
@@ -3631,7 +3563,7 @@ mod tests {
     }
 
     #[test]
-    fn test_directive_includes_quick_reference() {
+    fn test_directive_includes_protocol_line() {
         use crate::guidance::{ActionCategory, GuidanceAction};
 
         let actions = vec![GuidanceAction {
@@ -3642,7 +3574,7 @@ mod tests {
             priority: 1,
         }];
 
-        // No synthesis → actions shown with quick reference
+        // No synthesis → actions shown with protocol line
         let directive = build_directive("test task", &actions, 2000, None);
 
         // Should contain task anchoring
@@ -3650,9 +3582,9 @@ mod tests {
         // Should contain the action
         assert!(directive.contains("Test action"));
         assert!(directive.contains("braid query --entity :spec/test"));
-        // Should contain compressed quick reference
-        assert!(directive.contains("braid status"));
-        assert!(directive.contains("braid harvest --commit"));
+        // Should contain compressed protocol line (replaces verbose Quick Reference)
+        assert!(directive.contains("Protocol:"));
+        assert!(directive.contains("harvest --commit"));
     }
 
     // ── Wave 1: B1 category mismatch fix tests ──────────────────────────

@@ -277,7 +277,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                     .and_then(|d| {
                         if let braid_kernel::Value::String(ref s) = d.value {
                             Some(if s.len() > 60 {
-                                format!("{}...", &s[..s.floor_char_boundary(60)])
+                                braid_kernel::safe_truncate_display(s, 60)
                             } else {
                                 s.clone()
                             })
@@ -370,7 +370,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                         .and_then(|d| {
                             if let braid_kernel::Value::String(ref s) = d.value {
                                 Some(if s.len() > 80 {
-                                    format!("{}...", &s[..s.floor_char_boundary(80)])
+                                    braid_kernel::safe_truncate_display(s, 80)
                                 } else {
                                     s.clone()
                                 })

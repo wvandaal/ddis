@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773788852/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: MCP: Add Datalog parameter to braid_query (INV-QUERY-002, INV-INTERFACE-010)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c9a1979464a1b2f66d13d311a81f8f9f2856a589106b847d7bcbec7f7fb648a3" :a :db/ident :v :task/t-0eec :op :assert}
+   {:e #blake3 "c9a1979464a1b2f66d13d311a81f8f9f2856a589106b847d7bcbec7f7fb648a3" :a :task/created-at :v 1773788850 :op :assert}
+   {:e #blake3 "c9a1979464a1b2f66d13d311a81f8f9f2856a589106b847d7bcbec7f7fb648a3" :a :task/id :v "t-0eec" :op :assert}
+   {:e #blake3 "c9a1979464a1b2f66d13d311a81f8f9f2856a589106b847d7bcbec7f7fb648a3" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c9a1979464a1b2f66d13d311a81f8f9f2856a589106b847d7bcbec7f7fb648a3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c9a1979464a1b2f66d13d311a81f8f9f2856a589106b847d7bcbec7f7fb648a3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c9a1979464a1b2f66d13d311a81f8f9f2856a589106b847d7bcbec7f7fb648a3" :a :task/title :v "MCP: Add Datalog parameter to braid_query (INV-QUERY-002, INV-INTERFACE-010)" :op :assert}
+   {:e #blake3 "c9a1979464a1b2f66d13d311a81f8f9f2856a589106b847d7bcbec7f7fb648a3" :a :task/type :v :task.type/feature :op :assert}
+ ]}

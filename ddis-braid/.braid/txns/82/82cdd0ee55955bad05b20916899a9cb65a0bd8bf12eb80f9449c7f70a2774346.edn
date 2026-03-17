@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773788997/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: MCP: Update all tool descriptions to pass INV-INTERFACE-008 quality check (navigative + example + <=100 tokens)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a38c0bad2892332ea262e7957992be0b32511436b621e16afc08b55e05bc524a" :a :db/ident :v :task/t-eaab :op :assert}
+   {:e #blake3 "a38c0bad2892332ea262e7957992be0b32511436b621e16afc08b55e05bc524a" :a :task/created-at :v 1773788992 :op :assert}
+   {:e #blake3 "a38c0bad2892332ea262e7957992be0b32511436b621e16afc08b55e05bc524a" :a :task/id :v "t-eaab" :op :assert}
+   {:e #blake3 "a38c0bad2892332ea262e7957992be0b32511436b621e16afc08b55e05bc524a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a38c0bad2892332ea262e7957992be0b32511436b621e16afc08b55e05bc524a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a38c0bad2892332ea262e7957992be0b32511436b621e16afc08b55e05bc524a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a38c0bad2892332ea262e7957992be0b32511436b621e16afc08b55e05bc524a" :a :task/title :v "MCP: Update all tool descriptions to pass INV-INTERFACE-008 quality check (navigative + example + <=100 tokens)" :op :assert}
+   {:e #blake3 "a38c0bad2892332ea262e7957992be0b32511436b621e16afc08b55e05bc524a" :a :task/type :v :task.type/task :op :assert}
+ ]}

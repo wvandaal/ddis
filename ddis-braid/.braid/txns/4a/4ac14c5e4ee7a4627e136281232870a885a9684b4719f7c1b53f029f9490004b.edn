@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773788994/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Guidance: Wire turn-count k* proxy to compression ladder (ADR-INTERFACE-010, INV-BUDGET-004)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d20338554e5996e19e92c1e81cd6de41377ff98019f883e8afabe7e3811ca9be" :a :db/ident :v :task/t-f62e :op :assert}
+   {:e #blake3 "d20338554e5996e19e92c1e81cd6de41377ff98019f883e8afabe7e3811ca9be" :a :task/created-at :v 1773788990 :op :assert}
+   {:e #blake3 "d20338554e5996e19e92c1e81cd6de41377ff98019f883e8afabe7e3811ca9be" :a :task/id :v "t-f62e" :op :assert}
+   {:e #blake3 "d20338554e5996e19e92c1e81cd6de41377ff98019f883e8afabe7e3811ca9be" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "d20338554e5996e19e92c1e81cd6de41377ff98019f883e8afabe7e3811ca9be" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d20338554e5996e19e92c1e81cd6de41377ff98019f883e8afabe7e3811ca9be" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d20338554e5996e19e92c1e81cd6de41377ff98019f883e8afabe7e3811ca9be" :a :task/title :v "Guidance: Wire turn-count k* proxy to compression ladder (ADR-INTERFACE-010, INV-BUDGET-004)" :op :assert}
+   {:e #blake3 "d20338554e5996e19e92c1e81cd6de41377ff98019f883e8afabe7e3811ca9be" :a :task/type :v :task.type/task :op :assert}
+ ]}

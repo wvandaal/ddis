@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773788991/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Seed: Remove parasitic content — attr counts, impl idents, redundant quick-ref (k* management)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8972c68301a7ef88aec333189afa1973e8016903df6be65a6a16b40df16a8a7a" :a :db/ident :v :task/t-bbf3 :op :assert}
+   {:e #blake3 "8972c68301a7ef88aec333189afa1973e8016903df6be65a6a16b40df16a8a7a" :a :task/created-at :v 1773788989 :op :assert}
+   {:e #blake3 "8972c68301a7ef88aec333189afa1973e8016903df6be65a6a16b40df16a8a7a" :a :task/id :v "t-bbf3" :op :assert}
+   {:e #blake3 "8972c68301a7ef88aec333189afa1973e8016903df6be65a6a16b40df16a8a7a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8972c68301a7ef88aec333189afa1973e8016903df6be65a6a16b40df16a8a7a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8972c68301a7ef88aec333189afa1973e8016903df6be65a6a16b40df16a8a7a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8972c68301a7ef88aec333189afa1973e8016903df6be65a6a16b40df16a8a7a" :a :task/title :v "Seed: Remove parasitic content — attr counts, impl idents, redundant quick-ref (k* management)" :op :assert}
+   {:e #blake3 "8972c68301a7ef88aec333189afa1973e8016903df6be65a6a16b40df16a8a7a" :a :task/type :v :task.type/task :op :assert}
+ ]}

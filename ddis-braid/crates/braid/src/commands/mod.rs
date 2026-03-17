@@ -122,7 +122,10 @@ Examples:
   braid observe \"query returns wrong results\" --confidence 0.3 --category conjecture
 
 Categories: observation, conjecture, theorem, definition, algorithm, design-decision, open-question
-Workflow: observe \u{2192} status (check) \u{2192} observe more \u{2192} harvest (commit)")]
+Workflow: observe \u{2192} status (check) \u{2192} observe more \u{2192} harvest (commit)
+
+Use `braid observe` for knowledge capture (decisions, questions, findings).
+Use `braid write assert` for raw datom mutations (schema, spec links).")]
     Observe {
         /// The observation text.
         text: String,
@@ -631,11 +634,11 @@ Examples:
   braid task ready                       # unblocked, sorted by priority
   braid task show <id>                   # full detail
   braid task close <id> --reason done
-  braid task update <id> --status in-progress
+  braid go <id>                           # claim and start work
   braid task dep <from-id> <to-id>       # add dependency edge
   braid task import --beads .beads/issues.jsonl
 
-Workflow: braid task ready → pick top → braid task update <id> --status in-progress → work → braid task close <id>"
+Workflow: braid task ready → pick top → braid go <id> → work → braid task close <id>"
     )]
     Task {
         #[command(subcommand)]
@@ -1063,7 +1066,9 @@ pub enum WriteAction {
     #[command(after_long_help = "\
 Examples:
   braid write assert --rationale \"add spec\" --datom :spec/inv-001 :db/doc \"Append-only\"
-  braid write assert -r \"link entities\" -d :spec/inv-001 :spec/traces-to \"SEED.md s4\"")]
+  braid write assert -r \"link entities\" -d :spec/inv-001 :spec/traces-to \"SEED.md s4\"
+
+For knowledge capture, use `braid observe` instead (adds provenance and confidence).")]
     Assert {
         /// Store directory path.
         #[arg(long, short = 'p', default_value = ".braid")]

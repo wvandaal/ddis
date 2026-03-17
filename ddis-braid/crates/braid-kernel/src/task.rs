@@ -500,11 +500,9 @@ pub fn compute_ready_set(store: &Store) -> Vec<TaskSummary> {
         .into_iter()
         .filter(|t| {
             t.status == TaskStatus::Open
-                && t.depends_on.iter().all(|dep| {
-                    status_map
-                        .get(dep)
-                        .is_none_or(|s| *s == TaskStatus::Closed)
-                })
+                && t.depends_on
+                    .iter()
+                    .all(|dep| status_map.get(dep).is_none_or(|s| *s == TaskStatus::Closed))
         })
         .collect();
 

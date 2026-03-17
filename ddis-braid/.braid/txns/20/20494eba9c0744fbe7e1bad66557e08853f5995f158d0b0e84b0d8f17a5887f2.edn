@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773790349/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: This is a really long task title that includes Unicode symbols: ✓ ✗ △ → ← ↑ ↓ and more text to push past the 200 byte boundary where the old code would panic on UTF-8 boundary issues with floor_char_boundary"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "308d636431b6eee972c5f7ff076f3f605805ed1d553078254328ea5a6f35af1f" :a :db/ident :v :task/t-dae9 :op :assert}
+   {:e #blake3 "308d636431b6eee972c5f7ff076f3f605805ed1d553078254328ea5a6f35af1f" :a :task/created-at :v 1773790348 :op :assert}
+   {:e #blake3 "308d636431b6eee972c5f7ff076f3f605805ed1d553078254328ea5a6f35af1f" :a :task/id :v "t-dae9" :op :assert}
+   {:e #blake3 "308d636431b6eee972c5f7ff076f3f605805ed1d553078254328ea5a6f35af1f" :a :task/priority :v 4 :op :assert}
+   {:e #blake3 "308d636431b6eee972c5f7ff076f3f605805ed1d553078254328ea5a6f35af1f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "308d636431b6eee972c5f7ff076f3f605805ed1d553078254328ea5a6f35af1f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "308d636431b6eee972c5f7ff076f3f605805ed1d553078254328ea5a6f35af1f" :a :task/title :v "This is a really long task title that includes Unicode symbols: ✓ ✗ △ → ← ↑ ↓ and more text to push past the 200 byte boundary where the old code would panic on UTF-8 boundary issues with floor_char_boundary" :op :assert}
+   {:e #blake3 "308d636431b6eee972c5f7ff076f3f605805ed1d553078254328ea5a6f35af1f" :a :task/type :v :task.type/task :op :assert}
+ ]}

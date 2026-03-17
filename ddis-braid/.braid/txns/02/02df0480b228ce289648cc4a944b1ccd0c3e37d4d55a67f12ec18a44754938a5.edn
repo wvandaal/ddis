@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773778514/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Wave 1 CLI/MCP LLM optimization complete: 6 fixes — footer now recommends braid bilateral (not hanging --deep), F(S) in status, no spec body in footer, task ready shows all tasks, braid next returns single R(t)-routed task with impact_score, MCP status delegates to CLI pipeline"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "91a9d425339734768b47495fd7e147db27e708e9fc50a874b8ea624684be0412" :a :db/doc :v "Wave 1 CLI/MCP LLM optimization complete: 6 fixes — footer now recommends braid bilateral (not hanging --deep), F(S) in status, no spec body in footer, task ready shows all tasks, braid next returns single R(t)-routed task with impact_score, MCP status delegates to CLI pipeline" :op :assert}
+   {:e #blake3 "91a9d425339734768b47495fd7e147db27e708e9fc50a874b8ea624684be0412" :a :db/ident :v :observation/wave-1-climcp-llm-optimization-complete-6-fixes-footer-n :op :assert}
+   {:e #blake3 "91a9d425339734768b47495fd7e147db27e708e9fc50a874b8ea624684be0412" :a :exploration/body :v "Wave 1 CLI/MCP LLM optimization complete: 6 fixes — footer now recommends braid bilateral (not hanging --deep), F(S) in status, no spec body in footer, task ready shows all tasks, braid next returns single R(t)-routed task with impact_score, MCP status delegates to CLI pipeline" :op :assert}
+   {:e #blake3 "91a9d425339734768b47495fd7e147db27e708e9fc50a874b8ea624684be0412" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "91a9d425339734768b47495fd7e147db27e708e9fc50a874b8ea624684be0412" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "91a9d425339734768b47495fd7e147db27e708e9fc50a874b8ea624684be0412" :a :exploration/content-hash :v #bytes "9266bef00baffd8cc2c4e3d22e7baefe886788db933320fb3e782cce9072e9ab" :op :assert}
+   {:e #blake3 "91a9d425339734768b47495fd7e147db27e708e9fc50a874b8ea624684be0412" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "91a9d425339734768b47495fd7e147db27e708e9fc50a874b8ea624684be0412" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "91a9d425339734768b47495fd7e147db27e708e9fc50a874b8ea624684be0412" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

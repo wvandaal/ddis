@@ -68,10 +68,10 @@ pub use bilateral::{
 pub use branch::{branch_datoms, compare_branches, create_branch, merge_branch, prune_branch};
 pub use budget::{
     attention_decay, classify_command, enforce_ceiling, quality_adjusted_budget,
-    ApproxTokenCounter, AttentionProfile, BudgetManager, BudgetProjection, GuidanceLevel,
-    OutputBlock, OutputPrecedence, TokenCounter, TokenEfficiency, AGENT_MODE_CEILING,
-    BUDGET_FRACTION, DEFAULT_WINDOW_SIZE, ERROR_MESSAGE_CEILING, GUIDANCE_FOOTER_CEILING,
-    MIN_OUTPUT,
+    safe_truncate_bytes, safe_truncate_display, ApproxTokenCounter, AttentionProfile,
+    BudgetManager, BudgetProjection, GuidanceLevel, OutputBlock, OutputPrecedence, TokenCounter,
+    TokenEfficiency, AGENT_MODE_CEILING, BUDGET_FRACTION, DEFAULT_WINDOW_SIZE,
+    ERROR_MESSAGE_CEILING, GUIDANCE_FOOTER_CEILING, MIN_OUTPUT,
 };
 pub use coherence::{
     coherence_check, tier1_check, tier2_check, transact_with_coherence, CoherenceError,

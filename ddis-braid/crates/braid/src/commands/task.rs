@@ -15,8 +15,8 @@
 use std::path::Path;
 
 use braid_kernel::datom::{AgentId, ProvenanceType, Value};
-use braid_kernel::layout::TxFile;
 use braid_kernel::guidance::compute_routing_from_store;
+use braid_kernel::layout::TxFile;
 use braid_kernel::task::{
     self, check_dependency_acyclicity, close_task_datoms, compute_ready_set, dep_add_datom,
     find_task_by_id, generate_task_id, task_counts, task_summary, update_status_datom,
@@ -184,7 +184,7 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
 
     if let Some(top) = ready_set.first() {
         human.push_str(&format!(
-            "Top pick: {} — run: braid task update {} --status in-progress\n",
+            "Top pick: {} — run: braid go {}\n",
             top.id, top.id
         ));
     }
@@ -321,7 +321,10 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
 
     // Agent output — single task, claim command, context
     let agent = AgentOutput {
-        context: format!("next: [P{}] {} \"{}\" ({}{})", top.priority, top.id, top.title, type_short, impact_str),
+        context: format!(
+            "next: [P{}] {} \"{}\" ({}{})",
+            top.priority, top.id, top.title, type_short, impact_str
+        ),
         content: format!("claim: braid go {}", top.id),
         footer: format!("{} total ready | all: braid task ready", ready_count),
     };

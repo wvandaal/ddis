@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773790704/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-dae9"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "308d636431b6eee972c5f7ff076f3f605805ed1d553078254328ea5a6f35af1f" :a :task/close-reason :v "Test task for Unicode boundary stress test" :op :assert}
+   {:e #blake3 "308d636431b6eee972c5f7ff076f3f605805ed1d553078254328ea5a6f35af1f" :a :task/closed-at :v 1773790702 :op :assert}
+   {:e #blake3 "308d636431b6eee972c5f7ff076f3f605805ed1d553078254328ea5a6f35af1f" :a :task/status :v :task.status/closed :op :assert}
+ ]}

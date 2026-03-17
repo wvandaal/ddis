@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773788995/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI: Suppress global flag repetition in subcommand help (ADR-INTERFACE-011, k* management)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1ddeb2008ecce2f851b99dcb6868d89047692ac8ccc18e3df4a95704071fad8b" :a :db/ident :v :task/t-23d5 :op :assert}
+   {:e #blake3 "1ddeb2008ecce2f851b99dcb6868d89047692ac8ccc18e3df4a95704071fad8b" :a :task/created-at :v 1773788991 :op :assert}
+   {:e #blake3 "1ddeb2008ecce2f851b99dcb6868d89047692ac8ccc18e3df4a95704071fad8b" :a :task/id :v "t-23d5" :op :assert}
+   {:e #blake3 "1ddeb2008ecce2f851b99dcb6868d89047692ac8ccc18e3df4a95704071fad8b" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1ddeb2008ecce2f851b99dcb6868d89047692ac8ccc18e3df4a95704071fad8b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1ddeb2008ecce2f851b99dcb6868d89047692ac8ccc18e3df4a95704071fad8b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1ddeb2008ecce2f851b99dcb6868d89047692ac8ccc18e3df4a95704071fad8b" :a :task/title :v "CLI: Suppress global flag repetition in subcommand help (ADR-INTERFACE-011, k* management)" :op :assert}
+   {:e #blake3 "1ddeb2008ecce2f851b99dcb6868d89047692ac8ccc18e3df4a95704071fad8b" :a :task/type :v :task.type/task :op :assert}
+ ]}
