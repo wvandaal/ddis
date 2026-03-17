@@ -96,14 +96,15 @@ fn local_query_sees_shared_plus_working() {
     // Add something to shared first
     let shared_entity = EntityId::from_ident(":test/shared-data");
     let tx = braid_kernel::datom::TxId::new(50, 0, agent);
-    let committed = braid_kernel::store::Transaction::new(agent, ProvenanceType::Observed, "shared")
-        .assert(
-            shared_entity,
-            Attribute::from_keyword(":db/doc"),
-            Value::String("shared data".into()),
-        )
-        .commit(&shared)
-        .unwrap();
+    let committed =
+        braid_kernel::store::Transaction::new(agent, ProvenanceType::Observed, "shared")
+            .assert(
+                shared_entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("shared data".into()),
+            )
+            .commit(&shared)
+            .unwrap();
     shared.transact(committed).unwrap();
 
     let mut store = AgentStore::new(shared, agent);

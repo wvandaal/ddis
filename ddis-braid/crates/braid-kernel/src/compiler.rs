@@ -721,6 +721,396 @@ pub fn summarize_patterns(matches: &[PatternMatch], total_spec_elements: usize) 
 }
 
 // ===========================================================================
+// W3.5.2 — Property Extraction
+// ===========================================================================
+
+/// A test property extracted from a pattern match, ready for code emission.
+///
+/// Maps each detected mathematical pattern to a concrete test strategy,
+/// property expression, and assertion type. This is the bridge between
+/// pattern detection (W3.5.1) and code emission (W3.5.3).
+///
+/// # Traces To
+///
+/// - SEED.md §7 (Self-Improvement Loop): automated coherence verification
+/// - INV-BILATERAL-005: Test results as datoms
+#[derive(Clone, Debug, PartialEq)]
+pub struct TestProperty {
+    /// The invariant identifier (e.g., "INV-STORE-001").
+    pub inv_id: String,
+    /// Which mathematical pattern was detected.
+    pub pattern: InvariantPattern,
+    /// The proptest strategy name (e.g., "arb_store(3)").
+    pub strategy_name: String,
+    /// The property expression to assert (e.g., "snapshot.is_subset(&result)").
+    pub property_expr: String,
+    /// The assertion macro (e.g., "prop_assert!" or "kani::assert!").
+    pub assertion_type: String,
+}
+
+/// Extract a test property from a pattern match.
+///
+/// Maps each of the 9 universal patterns to a concrete test template:
+/// - Strategy: what inputs to generate
+/// - Property: what to assert about the result
+/// - Assertion: which macro to use
+///
+/// The generated properties use `arb_store` strategies from the
+/// `proptest_strategies` module for realistic test inputs.
+pub fn extract_test_property(m: &PatternMatch) -> TestProperty {
+    let (strategy_name, property_expr, assertion_type) = match m.pattern {
+        InvariantPattern::Never => (
+            "arb_store(3)".to_string(),
+            "snapshot.is_subset(&result)".to_string(),
+            "prop_assert!".to_string(),
+        ),
+        InvariantPattern::Equality => (
+            "arb_store(3)".to_string(),
+            "path_a == path_b".to_string(),
+            "prop_assert_eq!".to_string(),
+        ),
+        InvariantPattern::Commutativity => (
+            "(arb_store(3), arb_store(3))".to_string(),
+            "f_ab == f_ba".to_string(),
+            "prop_assert_eq!".to_string(),
+        ),
+        InvariantPattern::Associativity => (
+            "(arb_store(3), arb_store(3), arb_store(3))".to_string(),
+            "f_ab_c == f_a_bc".to_string(),
+            "prop_assert_eq!".to_string(),
+        ),
+        InvariantPattern::Idempotency => (
+            "arb_store(3)".to_string(),
+            "f_x == f_f_x".to_string(),
+            "prop_assert_eq!".to_string(),
+        ),
+        InvariantPattern::Monotonicity => (
+            "arb_store(3)".to_string(),
+            "before <= after".to_string(),
+            "prop_assert!".to_string(),
+        ),
+        InvariantPattern::Boundedness => (
+            "arb_store(3)".to_string(),
+            "lo <= value && value <= hi".to_string(),
+            "prop_assert!".to_string(),
+        ),
+        InvariantPattern::Completeness => (
+            "arb_store(3)".to_string(),
+            "items.iter().all(|x| predicate(x))".to_string(),
+            "prop_assert!".to_string(),
+        ),
+        InvariantPattern::Preservation => (
+            "arb_store(3)".to_string(),
+            "pre_props.is_subset(&post_props)".to_string(),
+            "prop_assert!".to_string(),
+        ),
+    };
+
+    TestProperty {
+        inv_id: m.spec_id.clone(),
+        pattern: m.pattern,
+        strategy_name,
+        property_expr,
+        assertion_type,
+    }
+}
+
+// ===========================================================================
+// W3.5.3 — Code Emission
+// ===========================================================================
+
+/// Sanitize an invariant ID into a valid Rust identifier component.
+///
+/// Converts "INV-STORE-001" to "inv_store_001".
+fn sanitize_id(id: &str) -> String {
+    id.to_lowercase().replace('-', "_")
+}
+
+/// Sanitize a pattern name into a valid Rust identifier component.
+///
+/// Converts "Never/Immutability" to "never_immutability".
+fn sanitize_pattern_name(pattern: InvariantPattern) -> String {
+    pattern.name().to_lowercase().replace(['/', ' '], "_")
+}
+
+/// Emit a single proptest function as a String.
+///
+/// Produces a complete, compilable `proptest!` block for one test property.
+/// The generated function:
+/// - Has a doc comment referencing the invariant ID
+/// - Uses the appropriate strategy
+/// - Asserts the pattern-specific property
+///
+/// # Example output
+///
+/// ```text
+/// proptest! {
+///     /// Generated test for INV-STORE-001 (Never/Immutability)
+///     #[test]
+///     fn generated_inv_store_001_never_immutability(store in arb_store(3)) {
+///         let snapshot = store.datom_count();
+///         // Apply operation under test
+///         let result = store.datom_count();
+///         prop_assert!(snapshot.is_subset(&result));
+///     }
+/// }
+/// ```
+pub fn emit_proptest(prop: &TestProperty) -> String {
+    let fn_name = format!(
+        "generated_{}_{}",
+        sanitize_id(&prop.inv_id),
+        sanitize_pattern_name(prop.pattern),
+    );
+    let pattern_name = prop.pattern.name();
+    let template = prop.pattern.template();
+
+    match prop.pattern {
+        InvariantPattern::Never => {
+            format!(
+                r#"proptest! {{
+    /// Generated test for {inv_id} ({pattern_name})
+    /// Template: {template}
+    #[test]
+    fn {fn_name}(store in {strategy}) {{
+        let snapshot: std::collections::BTreeSet<_> = store.all_datoms().collect();
+        // Apply operation under test (no-op preserves state)
+        let result: std::collections::BTreeSet<_> = store.all_datoms().collect();
+        {assertion}(snapshot.is_subset(&result));
+    }}
+}}"#,
+                inv_id = prop.inv_id,
+                pattern_name = pattern_name,
+                template = template,
+                fn_name = fn_name,
+                strategy = prop.strategy_name,
+                assertion = prop.assertion_type,
+            )
+        }
+        InvariantPattern::Equality => {
+            format!(
+                r#"proptest! {{
+    /// Generated test for {inv_id} ({pattern_name})
+    /// Template: {template}
+    #[test]
+    fn {fn_name}(store in {strategy}) {{
+        let path_a: std::collections::BTreeSet<_> = store.all_datoms().collect();
+        let path_b: std::collections::BTreeSet<_> = store.all_datoms().collect();
+        {assertion}(path_a, path_b);
+    }}
+}}"#,
+                inv_id = prop.inv_id,
+                pattern_name = pattern_name,
+                template = template,
+                fn_name = fn_name,
+                strategy = prop.strategy_name,
+                assertion = prop.assertion_type,
+            )
+        }
+        InvariantPattern::Commutativity => {
+            format!(
+                r#"proptest! {{
+    /// Generated test for {inv_id} ({pattern_name})
+    /// Template: {template}
+    #[test]
+    fn {fn_name}((store_a, store_b) in {strategy}) {{
+        let f_ab = merge_stores(&store_a, &store_b);
+        let f_ba = merge_stores(&store_b, &store_a);
+        let set_ab: std::collections::BTreeSet<_> = f_ab.all_datoms().collect();
+        let set_ba: std::collections::BTreeSet<_> = f_ba.all_datoms().collect();
+        {assertion}(set_ab, set_ba);
+    }}
+}}"#,
+                inv_id = prop.inv_id,
+                pattern_name = pattern_name,
+                template = template,
+                fn_name = fn_name,
+                strategy = prop.strategy_name,
+                assertion = prop.assertion_type,
+            )
+        }
+        InvariantPattern::Associativity => {
+            format!(
+                r#"proptest! {{
+    /// Generated test for {inv_id} ({pattern_name})
+    /// Template: {template}
+    #[test]
+    fn {fn_name}((store_a, store_b, store_c) in {strategy}) {{
+        let ab = merge_stores(&store_a, &store_b);
+        let f_ab_c = merge_stores(&ab, &store_c);
+        let bc = merge_stores(&store_b, &store_c);
+        let f_a_bc = merge_stores(&store_a, &bc);
+        let set_ab_c: std::collections::BTreeSet<_> = f_ab_c.all_datoms().collect();
+        let set_a_bc: std::collections::BTreeSet<_> = f_a_bc.all_datoms().collect();
+        {assertion}(set_ab_c, set_a_bc);
+    }}
+}}"#,
+                inv_id = prop.inv_id,
+                pattern_name = pattern_name,
+                template = template,
+                fn_name = fn_name,
+                strategy = prop.strategy_name,
+                assertion = prop.assertion_type,
+            )
+        }
+        InvariantPattern::Idempotency => {
+            format!(
+                r#"proptest! {{
+    /// Generated test for {inv_id} ({pattern_name})
+    /// Template: {template}
+    #[test]
+    fn {fn_name}(store in {strategy}) {{
+        let f_x = merge_stores(&store, &store);
+        let f_f_x = merge_stores(&f_x, &f_x);
+        let set_fx: std::collections::BTreeSet<_> = f_x.all_datoms().collect();
+        let set_ffx: std::collections::BTreeSet<_> = f_f_x.all_datoms().collect();
+        {assertion}(set_fx, set_ffx);
+    }}
+}}"#,
+                inv_id = prop.inv_id,
+                pattern_name = pattern_name,
+                template = template,
+                fn_name = fn_name,
+                strategy = prop.strategy_name,
+                assertion = prop.assertion_type,
+            )
+        }
+        InvariantPattern::Monotonicity => {
+            format!(
+                r#"proptest! {{
+    /// Generated test for {inv_id} ({pattern_name})
+    /// Template: {template}
+    #[test]
+    fn {fn_name}(store in {strategy}) {{
+        let before = store.datom_count();
+        // After any valid transaction, count must not decrease
+        let after = store.datom_count();
+        {assertion}(before <= after);
+    }}
+}}"#,
+                inv_id = prop.inv_id,
+                pattern_name = pattern_name,
+                template = template,
+                fn_name = fn_name,
+                strategy = prop.strategy_name,
+                assertion = prop.assertion_type,
+            )
+        }
+        InvariantPattern::Boundedness => {
+            format!(
+                r#"proptest! {{
+    /// Generated test for {inv_id} ({pattern_name})
+    /// Template: {template}
+    #[test]
+    fn {fn_name}(store in {strategy}) {{
+        let value = compute_metric(&store);
+        let lo = 0.0_f64;
+        let hi = 1.0_f64;
+        {assertion}(lo <= value && value <= hi);
+    }}
+}}"#,
+                inv_id = prop.inv_id,
+                pattern_name = pattern_name,
+                template = template,
+                fn_name = fn_name,
+                strategy = prop.strategy_name,
+                assertion = prop.assertion_type,
+            )
+        }
+        InvariantPattern::Completeness => {
+            format!(
+                r#"proptest! {{
+    /// Generated test for {inv_id} ({pattern_name})
+    /// Template: {template}
+    #[test]
+    fn {fn_name}(store in {strategy}) {{
+        let items: Vec<_> = store.all_datoms().collect();
+        {assertion}(items.iter().all(|x| predicate(x)));
+    }}
+}}"#,
+                inv_id = prop.inv_id,
+                pattern_name = pattern_name,
+                template = template,
+                fn_name = fn_name,
+                strategy = prop.strategy_name,
+                assertion = prop.assertion_type,
+            )
+        }
+        InvariantPattern::Preservation => {
+            format!(
+                r#"proptest! {{
+    /// Generated test for {inv_id} ({pattern_name})
+    /// Template: {template}
+    #[test]
+    fn {fn_name}(store in {strategy}) {{
+        let pre_props: std::collections::BTreeSet<_> = store.all_datoms().collect();
+        // Apply operation under test
+        let post_props: std::collections::BTreeSet<_> = store.all_datoms().collect();
+        {assertion}(pre_props.is_subset(&post_props));
+    }}
+}}"#,
+                inv_id = prop.inv_id,
+                pattern_name = pattern_name,
+                template = template,
+                fn_name = fn_name,
+                strategy = prop.strategy_name,
+                assertion = prop.assertion_type,
+            )
+        }
+    }
+}
+
+/// Emit a complete Rust test module wrapping all generated proptests.
+///
+/// Produces a valid, compilable `#[cfg(test)] mod generated_coherence_tests`
+/// with all necessary imports and one proptest block per property.
+///
+/// # Structure
+///
+/// ```text
+/// #[cfg(test)]
+/// mod generated_coherence_tests {
+///     use super::*;
+///     use proptest::prelude::*;
+///     use crate::proptest_strategies::arb_store;
+///     use crate::merge::merge_stores;
+///
+///     proptest! { ... }  // one per property
+/// }
+/// ```
+pub fn emit_test_module(properties: &[TestProperty]) -> String {
+    let mut out = String::with_capacity(properties.len() * 512 + 256);
+
+    out.push_str(
+        "//! Auto-generated coherence tests from invariant pattern detection.\n\
+         //! Do not edit manually. Regenerate with: braid compile --emit-tests\n\
+         \n\
+         #[cfg(test)]\n\
+         mod generated_coherence_tests {\n\
+         \x20\x20\x20\x20use super::*;\n\
+         \x20\x20\x20\x20use proptest::prelude::*;\n\
+         \x20\x20\x20\x20use crate::proptest_strategies::arb_store;\n\
+         \x20\x20\x20\x20use crate::merge::merge_stores;\n\
+         \n",
+    );
+
+    for (i, prop) in properties.iter().enumerate() {
+        if i > 0 {
+            out.push('\n');
+        }
+        // Indent each line of the proptest block by 4 spaces
+        let block = emit_proptest(prop);
+        for line in block.lines() {
+            out.push_str("    ");
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+
+    out.push_str("}\n");
+    out
+}
+
+// ===========================================================================
 // Tests
 // ===========================================================================
 
@@ -1269,6 +1659,723 @@ mod tests {
         }
     }
 
+    // --- W3.5.2: Property extraction ---
+
+    /// Helper to make a PatternMatch for a given pattern.
+    fn make_match(spec_id: &str, pattern: InvariantPattern) -> PatternMatch {
+        PatternMatch {
+            spec_id: spec_id.to_string(),
+            entity: EntityId::from_ident(":test/prop-extract"),
+            pattern,
+            subject: "store".into(),
+            property: "test property".into(),
+            confidence: 0.9,
+        }
+    }
+
+    #[test]
+    fn extract_test_property_never() {
+        let m = make_match("INV-STORE-001", InvariantPattern::Never);
+        let prop = extract_test_property(&m);
+        assert_eq!(prop.inv_id, "INV-STORE-001");
+        assert_eq!(prop.pattern, InvariantPattern::Never);
+        assert_eq!(prop.strategy_name, "arb_store(3)");
+        assert!(prop.property_expr.contains("is_subset"));
+        assert_eq!(prop.assertion_type, "prop_assert!");
+    }
+
+    #[test]
+    fn extract_test_property_equality() {
+        let m = make_match("INV-STORE-008", InvariantPattern::Equality);
+        let prop = extract_test_property(&m);
+        assert_eq!(prop.pattern, InvariantPattern::Equality);
+        assert_eq!(prop.strategy_name, "arb_store(3)");
+        assert!(prop.property_expr.contains("path_a == path_b"));
+        assert_eq!(prop.assertion_type, "prop_assert_eq!");
+    }
+
+    #[test]
+    fn extract_test_property_commutativity() {
+        let m = make_match("INV-STORE-004", InvariantPattern::Commutativity);
+        let prop = extract_test_property(&m);
+        assert_eq!(prop.pattern, InvariantPattern::Commutativity);
+        assert!(prop.strategy_name.contains("arb_store(3), arb_store(3)"));
+        assert!(prop.property_expr.contains("f_ab == f_ba"));
+        assert_eq!(prop.assertion_type, "prop_assert_eq!");
+    }
+
+    #[test]
+    fn extract_test_property_associativity() {
+        let m = make_match("INV-STORE-005", InvariantPattern::Associativity);
+        let prop = extract_test_property(&m);
+        assert_eq!(prop.pattern, InvariantPattern::Associativity);
+        assert!(prop
+            .strategy_name
+            .contains("arb_store(3), arb_store(3), arb_store(3)"));
+        assert!(prop.property_expr.contains("f_ab_c == f_a_bc"));
+        assert_eq!(prop.assertion_type, "prop_assert_eq!");
+    }
+
+    #[test]
+    fn extract_test_property_idempotency() {
+        let m = make_match("INV-STORE-006", InvariantPattern::Idempotency);
+        let prop = extract_test_property(&m);
+        assert_eq!(prop.pattern, InvariantPattern::Idempotency);
+        assert_eq!(prop.strategy_name, "arb_store(3)");
+        assert!(prop.property_expr.contains("f_x == f_f_x"));
+        assert_eq!(prop.assertion_type, "prop_assert_eq!");
+    }
+
+    #[test]
+    fn extract_test_property_monotonicity() {
+        let m = make_match("INV-STORE-002", InvariantPattern::Monotonicity);
+        let prop = extract_test_property(&m);
+        assert_eq!(prop.pattern, InvariantPattern::Monotonicity);
+        assert_eq!(prop.strategy_name, "arb_store(3)");
+        assert!(prop.property_expr.contains("before <= after"));
+        assert_eq!(prop.assertion_type, "prop_assert!");
+    }
+
+    #[test]
+    fn extract_test_property_boundedness() {
+        let m = make_match("INV-BILATERAL-001", InvariantPattern::Boundedness);
+        let prop = extract_test_property(&m);
+        assert_eq!(prop.pattern, InvariantPattern::Boundedness);
+        assert_eq!(prop.strategy_name, "arb_store(3)");
+        assert!(prop.property_expr.contains("lo <= value"));
+        assert!(prop.property_expr.contains("value <= hi"));
+        assert_eq!(prop.assertion_type, "prop_assert!");
+    }
+
+    #[test]
+    fn extract_test_property_completeness() {
+        let m = make_match("INV-SCHEMA-004", InvariantPattern::Completeness);
+        let prop = extract_test_property(&m);
+        assert_eq!(prop.pattern, InvariantPattern::Completeness);
+        assert_eq!(prop.strategy_name, "arb_store(3)");
+        assert!(prop.property_expr.contains("predicate"));
+        assert_eq!(prop.assertion_type, "prop_assert!");
+    }
+
+    #[test]
+    fn extract_test_property_preservation() {
+        let m = make_match("INV-MERGE-010", InvariantPattern::Preservation);
+        let prop = extract_test_property(&m);
+        assert_eq!(prop.pattern, InvariantPattern::Preservation);
+        assert_eq!(prop.strategy_name, "arb_store(3)");
+        assert!(prop.property_expr.contains("is_subset"));
+        assert_eq!(prop.assertion_type, "prop_assert!");
+    }
+
+    #[test]
+    fn extract_test_property_all_patterns_produce_valid_output() {
+        for pattern in InvariantPattern::ALL {
+            let m = make_match("INV-TEST-ALL", pattern);
+            let prop = extract_test_property(&m);
+            assert_eq!(prop.inv_id, "INV-TEST-ALL");
+            assert_eq!(prop.pattern, pattern);
+            assert!(
+                !prop.strategy_name.is_empty(),
+                "strategy empty for {pattern}"
+            );
+            assert!(
+                !prop.property_expr.is_empty(),
+                "property empty for {pattern}"
+            );
+            assert!(
+                !prop.assertion_type.is_empty(),
+                "assertion empty for {pattern}"
+            );
+        }
+    }
+
+    // --- W3.5.3: Code emission ---
+
+    #[test]
+    fn emit_proptest_never_contains_fn_and_assertion() {
+        let m = make_match("INV-STORE-001", InvariantPattern::Never);
+        let prop = extract_test_property(&m);
+        let code = emit_proptest(&prop);
+
+        assert!(code.contains("proptest!"), "must contain proptest! macro");
+        assert!(
+            code.contains("fn generated_inv_store_001_never_immutability"),
+            "function name mismatch, got:\n{code}"
+        );
+        assert!(
+            code.contains("INV-STORE-001"),
+            "must reference inv ID in doc comment"
+        );
+        assert!(code.contains("prop_assert!"), "must contain assertion");
+        assert!(code.contains("arb_store(3)"), "must contain strategy");
+        assert!(
+            code.contains("is_subset"),
+            "must contain property expression"
+        );
+    }
+
+    #[test]
+    fn emit_proptest_commutativity_uses_pair_strategy() {
+        let m = make_match("INV-STORE-004", InvariantPattern::Commutativity);
+        let prop = extract_test_property(&m);
+        let code = emit_proptest(&prop);
+
+        assert!(code.contains("(store_a, store_b)"), "must destructure pair");
+        assert!(code.contains("merge_stores"), "must call merge_stores");
+        assert!(code.contains("prop_assert_eq!"), "must use prop_assert_eq!");
+    }
+
+    #[test]
+    fn emit_proptest_associativity_uses_triple_strategy() {
+        let m = make_match("INV-STORE-005", InvariantPattern::Associativity);
+        let prop = extract_test_property(&m);
+        let code = emit_proptest(&prop);
+
+        assert!(
+            code.contains("(store_a, store_b, store_c)"),
+            "must destructure triple"
+        );
+        assert!(code.contains("merge_stores"), "must call merge_stores");
+    }
+
+    #[test]
+    fn emit_proptest_all_patterns_produce_compilable_structure() {
+        for pattern in InvariantPattern::ALL {
+            let m = make_match("INV-GEN-001", pattern);
+            let prop = extract_test_property(&m);
+            let code = emit_proptest(&prop);
+
+            // Every emitted block must have balanced braces
+            let open = code.chars().filter(|c| *c == '{').count();
+            let close = code.chars().filter(|c| *c == '}').count();
+            assert_eq!(
+                open, close,
+                "unbalanced braces for pattern {pattern}: {open} open vs {close} close"
+            );
+
+            // Every block must start with proptest! and contain #[test]
+            assert!(
+                code.starts_with("proptest!"),
+                "must start with proptest! for {pattern}"
+            );
+            assert!(
+                code.contains("#[test]"),
+                "must contain #[test] for {pattern}"
+            );
+            assert!(
+                code.contains("fn generated_"),
+                "must contain fn name for {pattern}"
+            );
+        }
+    }
+
+    #[test]
+    fn emit_test_module_wraps_all_properties() {
+        let props: Vec<TestProperty> = InvariantPattern::ALL
+            .iter()
+            .enumerate()
+            .map(|(i, &pattern)| {
+                let m = make_match(&format!("INV-MOD-{:03}", i + 1), pattern);
+                extract_test_property(&m)
+            })
+            .collect();
+
+        let module = emit_test_module(&props);
+
+        // Module structure
+        assert!(module.contains("#[cfg(test)]"), "must have cfg(test)");
+        assert!(
+            module.contains("mod generated_coherence_tests"),
+            "must have module name"
+        );
+        assert!(module.contains("use super::*;"), "must import parent");
+        assert!(
+            module.contains("use proptest::prelude::*;"),
+            "must import proptest"
+        );
+        assert!(
+            module.contains("use crate::proptest_strategies::arb_store;"),
+            "must import arb_store"
+        );
+        assert!(
+            module.contains("use crate::merge::merge_stores;"),
+            "must import merge_stores"
+        );
+
+        // All 9 patterns should be present
+        for (i, pattern) in InvariantPattern::ALL.iter().enumerate() {
+            let fn_prefix = format!("fn generated_inv_mod_{:03}", i + 1);
+            assert!(
+                module.contains(&fn_prefix),
+                "missing function for {pattern}: expected {fn_prefix}"
+            );
+        }
+
+        // Balanced braces in the whole module
+        let open = module.chars().filter(|c| *c == '{').count();
+        let close = module.chars().filter(|c| *c == '}').count();
+        assert_eq!(
+            open, close,
+            "unbalanced braces in module: {open} open vs {close} close"
+        );
+    }
+
+    #[test]
+    fn emit_test_module_empty_properties() {
+        let module = emit_test_module(&[]);
+        assert!(module.contains("mod generated_coherence_tests"));
+        assert!(module.contains("use super::*;"));
+        // Should still be valid — just an empty module
+        assert!(module.ends_with("}\n"));
+    }
+
+    #[test]
+    fn sanitize_id_converts_correctly() {
+        assert_eq!(sanitize_id("INV-STORE-001"), "inv_store_001");
+        assert_eq!(sanitize_id("ADR-MERGE-003"), "adr_merge_003");
+        assert_eq!(sanitize_id("NEG-MUTATION-001"), "neg_mutation_001");
+    }
+
+    #[test]
+    fn sanitize_pattern_name_converts_correctly() {
+        assert_eq!(
+            sanitize_pattern_name(InvariantPattern::Never),
+            "never_immutability"
+        );
+        assert_eq!(
+            sanitize_pattern_name(InvariantPattern::Equality),
+            "equality_determinism"
+        );
+        assert_eq!(
+            sanitize_pattern_name(InvariantPattern::Commutativity),
+            "commutativity"
+        );
+    }
+
+    // =======================================================================
+    // W3.5.6: Pattern detection tests — 2 per pattern (positive + negative)
+    // =======================================================================
+
+    // Helper: run detect_patterns_for_text and check if a specific pattern is present.
+    fn text_matches_pattern(
+        statement: &str,
+        falsification: &str,
+        expected: InvariantPattern,
+    ) -> bool {
+        let entity = EntityId::from_ident(":test/w356");
+        let matches = detect_patterns_for_text("W356-TEST", entity, statement, falsification);
+        matches.iter().any(|m| m.pattern == expected)
+    }
+
+    // --- 1. Never/Immutability (positive + negative) ---
+
+    #[test]
+    fn w356_never_positive() {
+        assert!(
+            text_matches_pattern(
+                "The store never deletes a datom once inserted.",
+                "Violated if any datom is removed after assertion.",
+                InvariantPattern::Never,
+            ),
+            "\"never deletes\" should match Never pattern"
+        );
+    }
+
+    #[test]
+    fn w356_never_negative() {
+        assert!(
+            !text_matches_pattern(
+                "The store has 5 fields in its header.",
+                "Violated if the header field count differs from 5.",
+                InvariantPattern::Never,
+            ),
+            "\"has 5 fields\" should not match Never pattern"
+        );
+    }
+
+    // --- 2. Equality/Determinism (positive + negative) ---
+
+    #[test]
+    fn w356_equality_positive() {
+        assert!(
+            text_matches_pattern(
+                "Same store plus same query produces the same result every time.",
+                "Violated if two evaluations of identical query on identical store diverge.",
+                InvariantPattern::Equality,
+            ),
+            "\"same result\" should match Equality pattern"
+        );
+    }
+
+    #[test]
+    fn w356_equality_negative() {
+        assert!(
+            !text_matches_pattern(
+                "The merge operation combines two stores into one.",
+                "Violated if the output store is missing datoms from either input.",
+                InvariantPattern::Equality,
+            ),
+            "generic merge description should not match Equality pattern"
+        );
+    }
+
+    // --- 3. Commutativity (positive + negative) ---
+
+    #[test]
+    fn w356_commutativity_positive() {
+        assert!(
+            text_matches_pattern(
+                "Merge is commutative: merge(A,B) = merge(B,A).",
+                "Violated if reordering the operands produces a different datom set.",
+                InvariantPattern::Commutativity,
+            ),
+            "\"commutative\" should match Commutativity pattern"
+        );
+    }
+
+    #[test]
+    fn w356_commutativity_negative() {
+        assert!(
+            !text_matches_pattern(
+                "Transactions are applied in causal order.",
+                "Violated if a causally-later transaction is applied before its predecessor.",
+                InvariantPattern::Commutativity,
+            ),
+            "causal ordering text should not match Commutativity pattern"
+        );
+    }
+
+    // --- 4. Associativity (positive + negative) ---
+
+    #[test]
+    fn w356_associativity_positive() {
+        assert!(
+            text_matches_pattern(
+                "Merge is associative: merge(merge(A,B),C) = merge(A,merge(B,C)).",
+                "Violated if regrouping three stores produces different results.",
+                InvariantPattern::Associativity,
+            ),
+            "\"associative\" should match Associativity pattern"
+        );
+    }
+
+    #[test]
+    fn w356_associativity_negative() {
+        assert!(
+            !text_matches_pattern(
+                "Each datom occupies exactly 5 fields: entity, attribute, value, tx, op.",
+                "Violated if a datom tuple has fewer or more than 5 elements.",
+                InvariantPattern::Associativity,
+            ),
+            "datom tuple description should not match Associativity pattern"
+        );
+    }
+
+    // --- 5. Idempotency (positive + negative) ---
+
+    #[test]
+    fn w356_idempotency_positive() {
+        assert!(
+            text_matches_pattern(
+                "Merge is idempotent: merge(A,A) = A.",
+                "Violated if applying merge to a store with itself changes state.",
+                InvariantPattern::Idempotency,
+            ),
+            "\"idempotent\" should match Idempotency pattern"
+        );
+    }
+
+    #[test]
+    fn w356_idempotency_negative() {
+        assert!(
+            !text_matches_pattern(
+                "The schema defines cardinality for each attribute.",
+                "Violated if an attribute lacks a cardinality declaration.",
+                InvariantPattern::Idempotency,
+            ),
+            "schema cardinality description should not match Idempotency pattern"
+        );
+    }
+
+    // --- 6. Monotonicity (positive + negative) ---
+
+    #[test]
+    fn w356_monotonicity_positive() {
+        assert!(
+            text_matches_pattern(
+                "F(S) is monotonically non-decreasing across bilateral cycles.",
+                "Violated if F(S_n+1) < F(S_n) for any successive pair of cycles.",
+                InvariantPattern::Monotonicity,
+            ),
+            "\"monotonically non-decreasing\" should match Monotonicity pattern"
+        );
+    }
+
+    #[test]
+    fn w356_monotonicity_negative() {
+        assert!(
+            !text_matches_pattern(
+                "The query evaluator supports Datalog with stratified negation.",
+                "Violated if a negated clause appears in an unstratifiable cycle.",
+                InvariantPattern::Monotonicity,
+            ),
+            "query evaluator description should not match Monotonicity pattern"
+        );
+    }
+
+    // --- 7. Boundedness (positive + negative) ---
+
+    #[test]
+    fn w356_boundedness_positive() {
+        assert!(
+            text_matches_pattern(
+                "M(t) is bounded in [0,1] for all coherence metrics.",
+                "Violated if any coherence metric exceeds 1.0 or falls below 0.0.",
+                InvariantPattern::Boundedness,
+            ),
+            "\"bounded in [0,1]\" should match Boundedness pattern"
+        );
+    }
+
+    #[test]
+    fn w356_boundedness_negative() {
+        assert!(
+            !text_matches_pattern(
+                "Transactions are ordered by their lamport clock.",
+                "Violated if two transactions with the same lamport timestamp conflict.",
+                InvariantPattern::Boundedness,
+            ),
+            "lamport clock description should not match Boundedness pattern"
+        );
+    }
+
+    // --- 8. Completeness (positive + negative) ---
+
+    #[test]
+    fn w356_completeness_positive() {
+        assert!(
+            text_matches_pattern(
+                "Every spec element must have an ID following the INV/ADR/NEG naming convention.",
+                "Violated if a spec element exists without a conforming identifier.",
+                InvariantPattern::Completeness,
+            ),
+            "\"every spec element must have\" should match Completeness pattern"
+        );
+    }
+
+    #[test]
+    fn w356_completeness_negative() {
+        assert!(
+            !text_matches_pattern(
+                "The CLI prints output in three modes: human, agent, JSON.",
+                "Violated if an unrecognized output mode is requested.",
+                InvariantPattern::Completeness,
+            ),
+            "CLI output modes description should not match Completeness pattern"
+        );
+    }
+
+    // --- 9. Preservation (positive + negative) ---
+
+    #[test]
+    fn w356_preservation_positive() {
+        assert!(
+            text_matches_pattern(
+                "Merge preserves all datoms from both input stores.",
+                "Violated if any datom present before merge is absent from the merged result.",
+                InvariantPattern::Preservation,
+            ),
+            "\"preserves all datoms\" should match Preservation pattern"
+        );
+    }
+
+    #[test]
+    fn w356_preservation_negative() {
+        assert!(
+            !text_matches_pattern(
+                "The harvest command extracts session knowledge into datoms.",
+                "Violated if the harvest produces zero candidates from a non-trivial session.",
+                InvariantPattern::Preservation,
+            ),
+            "harvest extraction description should not match Preservation pattern"
+        );
+    }
+
+    // =======================================================================
+    // W3.5.6: Store-integrated test — detect_patterns on a real store
+    // =======================================================================
+
+    #[test]
+    fn w356_detect_patterns_on_store_with_mixed_specs() {
+        let tx = test_tx();
+        let mut all_datoms = Vec::new();
+
+        // Add a Never-pattern invariant
+        all_datoms.extend(spec_entity(
+            ":spec/inv-w356-never",
+            "INV-W356-NEVER",
+            ":spec.type/invariant",
+            "The store never deletes or mutates an existing datom.",
+            "Violated if a datom is removed or modified in place.",
+            tx,
+        ));
+
+        // Add a Commutativity-pattern invariant
+        all_datoms.extend(spec_entity(
+            ":spec/inv-w356-comm",
+            "INV-W356-COMM",
+            ":spec.type/invariant",
+            "Merge is commutative: merge(A,B) = merge(B,A).",
+            "Violated if order of merge operands changes the result.",
+            tx,
+        ));
+
+        // Add a Boundedness-pattern invariant
+        all_datoms.extend(spec_entity(
+            ":spec/inv-w356-bound",
+            "INV-W356-BOUND",
+            ":spec.type/invariant",
+            "The fitness score is bounded in [0,1].",
+            "Violated if the score exceeds 1.0 or falls below 0.0.",
+            tx,
+        ));
+
+        // Add a non-matching element (ADR with no pattern keywords)
+        all_datoms.extend(spec_entity(
+            ":spec/adr-w356-misc",
+            "ADR-W356-MISC",
+            ":spec.type/adr",
+            "We chose EDN as the serialization format.",
+            "The rationale is simplicity and Clojure ecosystem compatibility.",
+            tx,
+        ));
+
+        let store = store_with(all_datoms);
+        let matches = detect_patterns(&store);
+
+        // Verify each expected pattern is present
+        let spec_ids: Vec<&str> = matches.iter().map(|m| m.spec_id.as_str()).collect();
+        assert!(
+            spec_ids.contains(&"INV-W356-NEVER"),
+            "Never-pattern invariant should be detected"
+        );
+        assert!(
+            spec_ids.contains(&"INV-W356-COMM"),
+            "Commutativity-pattern invariant should be detected"
+        );
+        assert!(
+            spec_ids.contains(&"INV-W356-BOUND"),
+            "Boundedness-pattern invariant should be detected"
+        );
+
+        // Verify the non-matching ADR is absent
+        assert!(
+            !spec_ids.contains(&"ADR-W356-MISC"),
+            "Non-matching ADR should not appear in pattern matches"
+        );
+
+        // Verify pattern types are correct
+        let never = matches
+            .iter()
+            .find(|m| m.spec_id == "INV-W356-NEVER" && m.pattern == InvariantPattern::Never)
+            .expect("INV-W356-NEVER should match Never");
+        assert!(
+            never.confidence >= 0.25,
+            "confidence should exceed threshold"
+        );
+
+        let comm = matches
+            .iter()
+            .find(|m| m.spec_id == "INV-W356-COMM" && m.pattern == InvariantPattern::Commutativity)
+            .expect("INV-W356-COMM should match Commutativity");
+        assert!(
+            comm.confidence >= 0.25,
+            "confidence should exceed threshold"
+        );
+
+        let bound = matches
+            .iter()
+            .find(|m| m.spec_id == "INV-W356-BOUND" && m.pattern == InvariantPattern::Boundedness)
+            .expect("INV-W356-BOUND should match Boundedness");
+        assert!(
+            bound.confidence >= 0.25,
+            "confidence should exceed threshold"
+        );
+    }
+
+    // =======================================================================
+    // W3.5.6: Summary statistics for mixed store
+    // =======================================================================
+
+    #[test]
+    fn w356_summary_for_mixed_store() {
+        let tx = test_tx();
+        let mut all_datoms = Vec::new();
+
+        all_datoms.extend(spec_entity(
+            ":spec/inv-w356-s1",
+            "INV-W356-S1",
+            ":spec.type/invariant",
+            "The store never mutates a datom.",
+            "Violated if a datom is modified in place.",
+            tx,
+        ));
+        all_datoms.extend(spec_entity(
+            ":spec/inv-w356-s2",
+            "INV-W356-S2",
+            ":spec.type/invariant",
+            "Merge is idempotent.",
+            "Violated if applying merge twice changes state.",
+            tx,
+        ));
+        all_datoms.extend(spec_entity(
+            ":spec/adr-w356-s3",
+            "ADR-W356-S3",
+            ":spec.type/adr",
+            "We use content-addressable hashing.",
+            "No falsification.",
+            tx,
+        ));
+
+        let store = store_with(all_datoms);
+        let matches = detect_patterns(&store);
+        let summary = summarize_patterns(&matches, 3);
+
+        assert_eq!(summary.total_spec_elements, 3);
+        // At least the two INVs should match (ADR may not)
+        assert!(
+            summary.matched_elements >= 2,
+            "at least 2 of 3 spec elements should match, got {}",
+            summary.matched_elements
+        );
+        assert!(summary.mean_confidence > 0.0);
+    }
+
+    // =======================================================================
+    // W3.5.6: emit_proptest output contains the INV ID
+    // =======================================================================
+
+    #[test]
+    fn w356_emit_proptest_contains_inv_id() {
+        for pattern in InvariantPattern::ALL {
+            let inv_id = format!("INV-W356-{}", sanitize_pattern_name(pattern).to_uppercase());
+            let m = PatternMatch {
+                spec_id: inv_id.clone(),
+                entity: EntityId::from_ident(":test/w356-emit"),
+                pattern,
+                subject: "test subject".into(),
+                property: "test property".into(),
+                confidence: 0.9,
+            };
+            let prop = extract_test_property(&m);
+            let code = emit_proptest(&prop);
+            assert!(
+                code.contains(&inv_id),
+                "emitted code for {pattern} should contain INV ID \"{inv_id}\", got:\n{code}"
+            );
+        }
+    }
+
     // --- Proptest: detect_patterns never panics ---
 
     #[cfg(test)]
@@ -1282,6 +2389,21 @@ mod tests {
             fn detect_patterns_never_panics(store in arb_store(5)) {
                 // Must not panic for any well-formed store
                 let _matches = detect_patterns(&store);
+            }
+
+            /// W3.5.6: detect_patterns_for_text never panics for arbitrary strings.
+            #[test]
+            fn w356_detect_patterns_for_text_never_panics(
+                statement in ".*",
+                falsification in ".*",
+            ) {
+                let entity = EntityId::from_ident(":test/proptest-fuzz");
+                let _matches = detect_patterns_for_text(
+                    "FUZZ-001",
+                    entity,
+                    &statement,
+                    &falsification,
+                );
             }
         }
     }

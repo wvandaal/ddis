@@ -248,6 +248,35 @@ impl AgentStore {
     pub fn agent_id(&self) -> AgentId {
         self.agent_id
     }
+
+    /// Reconstruct an AgentStore from persisted datom sets after a crash.
+    ///
+    /// When an agent crashes, its working set may have been persisted to disk
+    /// (using the same layout format as the trunk). This function rebuilds
+    /// the AgentStore from the shared store and the recovered working datoms.
+    ///
+    /// The working set is reconstructed via `Store::from_datoms()`, which
+    /// rebuilds the schema, frontier, and indexes from the raw datom set.
+    ///
+    /// # Invariants
+    ///
+    /// - ADR-STORE-009: Crash-recovery model (replay from durable datoms).
+    /// - INV-STORE-013: Working set isolation preserved after recovery.
+    /// - INV-STORE-016: Frontier computability -- frontier derived from datom set alone.
+    ///
+    /// # Traces To
+    ///
+    /// - SEED.md section 4 (Design Commitment #2: append-only)
+    /// - spec/01-store.md (INV-STORE-009, INV-STORE-013)
+    /// - docs/history/transcripts/04-datom-protocol-interface-design.md (PQ3: crash-recovery)
+    pub fn recover(shared: Store, working_datoms: BTreeSet<Datom>, agent_id: AgentId) -> Self {
+        let working = Store::from_datoms(working_datoms);
+        AgentStore {
+            shared,
+            working,
+            agent_id,
+        }
+    }
 }
 
 // ===========================================================================

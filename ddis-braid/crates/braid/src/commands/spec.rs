@@ -1,7 +1,11 @@
-//! `braid spec create` — Zero-friction spec element creation (WP5).
+//! `braid spec` — Spec element creation and proposal review (WP5, W4B.3).
 //!
-//! Creates a spec entity with all required attributes in one command.
-//! Auto-detects type from ID prefix: INV- → invariant, ADR- → adr, NEG- → negative-case.
+//! Subcommands:
+//! - `create`: Zero-friction spec element creation. Auto-detects type from ID prefix.
+//! - `review`: List pending proposals (confidence < 0.9) awaiting human review.
+//! - `accept <id>`: Accept a proposal, promoting it to a first-class spec element.
+//! - `reject <id> --reason "..."`: Reject a proposal with rationale.
+//! - `history`: Show all proposals with their lifecycle status.
 //!
 //! Traces to: C5 (traceability), C6 (falsifiability), INV-INTERFACE-011 (CLI as prompt).
 
@@ -9,9 +13,12 @@ use std::path::Path;
 
 use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, Value};
 use braid_kernel::layout::TxFile;
+use braid_kernel::proposal;
+use braid_kernel::Store;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
 /// Arguments for `braid spec create`.
 pub struct CreateArgs<'a> {
@@ -184,6 +191,560 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<String, BraidError> {
         datom_count,
         store.datom_set().len(),
     ))
+}
+
+// ---------------------------------------------------------------------------
+// review — list pending proposals (W4B.3)
+// ---------------------------------------------------------------------------
+
+/// Run `braid spec review`: list pending proposals awaiting human review.
+///
+/// Queries the store for all proposals with status `:proposal.status/proposed`
+/// and confidence below the auto-accept threshold (0.9). Sorted by confidence
+/// descending (highest first).
+pub fn run_review(path: &Path) -> Result<CommandOutput, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    let pending = proposal::pending_proposals(&store);
+    let threshold = proposal::auto_accept_threshold();
+
+    if pending.is_empty() {
+        let human = "No pending proposals.\n\nnext: braid harvest --commit (to generate proposals from observations)\n".to_string();
+        return Ok(CommandOutput {
+            json: serde_json::json!({ "proposals": [], "count": 0 }),
+            agent: AgentOutput {
+                context: "spec review: 0 pending proposals".to_string(),
+                content: "No proposals awaiting review.".to_string(),
+                footer: "generate: braid harvest --commit | ref: W4B.3 proposal review".to_string(),
+            },
+            human,
+        });
+    }
+
+    // Build structured data for all three output modes.
+    let mut json_proposals = Vec::new();
+    let mut human_lines = Vec::new();
+    let mut agent_lines = Vec::new();
+
+    human_lines.push(format!(
+        "Pending proposals: {} (auto-accept threshold: {:.1})\n",
+        pending.len(),
+        threshold
+    ));
+
+    for (i, (entity, suggested_id, confidence)) in pending.iter().enumerate() {
+        let entity_hex = format_entity_short(&store, *entity);
+        let statement = extract_proposal_field(&store, *entity, ":proposal/statement");
+        let ptype = extract_proposal_field(&store, *entity, ":proposal/type");
+        let traces_to = extract_proposal_field(&store, *entity, ":proposal/traces-to");
+        let auto_eligible = *confidence >= threshold;
+
+        json_proposals.push(serde_json::json!({
+            "index": i + 1,
+            "entity": entity_hex,
+            "suggested_id": suggested_id,
+            "confidence": confidence,
+            "type": ptype,
+            "statement": statement,
+            "traces_to": traces_to,
+            "auto_eligible": auto_eligible,
+        }));
+
+        let type_label = ptype
+            .as_deref()
+            .unwrap_or("unknown")
+            .strip_prefix(":proposal.type/")
+            .unwrap_or("unknown");
+        let auto_tag = if auto_eligible {
+            " [auto-eligible]"
+        } else {
+            ""
+        };
+
+        human_lines.push(format!(
+            "  {}. {} ({}, confidence={:.2}){}\n     {}\n     entity: {}\n",
+            i + 1,
+            suggested_id,
+            type_label,
+            confidence,
+            auto_tag,
+            statement.as_deref().unwrap_or("(no statement)"),
+            entity_hex,
+        ));
+
+        agent_lines.push(format!(
+            "{}. {} ({}, c={:.2}){}: {}",
+            i + 1,
+            suggested_id,
+            type_label,
+            confidence,
+            auto_tag,
+            truncate(statement.as_deref().unwrap_or(""), 80),
+        ));
+    }
+
+    let human = human_lines.join("")
+        + "\nnext: braid spec accept <entity> | braid spec reject <entity> --reason \"...\"\n";
+
+    let agent_content = agent_lines.join("\n");
+
+    Ok(CommandOutput {
+        json: serde_json::json!({
+            "proposals": json_proposals,
+            "count": pending.len(),
+            "auto_accept_threshold": threshold,
+        }),
+        agent: AgentOutput {
+            context: format!("spec review: {} pending proposals", pending.len()),
+            content: agent_content,
+            footer: "accept: braid spec accept <entity> | reject: braid spec reject <entity> --reason \"...\"".to_string(),
+        },
+        human,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// accept — promote a proposal to a spec element (W4B.3)
+// ---------------------------------------------------------------------------
+
+/// Run `braid spec accept <id>`: accept a pending proposal.
+///
+/// Finds the proposal entity by matching `<id>` against either the entity hex
+/// prefix or the `:proposal/suggested-id`. Transitions status to accepted and
+/// generates `:spec/*` datoms via promotion.
+pub fn run_accept(path: &Path, id: &str, agent: &str) -> Result<CommandOutput, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    let proposal_entity = resolve_proposal_entity(&store, id)?;
+
+    let agent_id = AgentId::from_name(agent);
+    let tx_id = super::write::next_tx_id(&store, agent_id);
+
+    let accept_datoms = proposal::accept_proposal(&store, proposal_entity, tx_id);
+    if accept_datoms.is_empty() {
+        return Err(BraidError::Validation(format!(
+            "Cannot accept proposal '{}': entity not found, already accepted, or already rejected.",
+            id
+        )));
+    }
+
+    let suggested_id = extract_proposal_field(&store, proposal_entity, ":proposal/suggested-id")
+        .unwrap_or_else(|| id.to_string());
+    let entity_hex = format_entity_short(&store, proposal_entity);
+
+    let datom_count = accept_datoms.len();
+    let tx = TxFile {
+        tx_id,
+        agent: agent_id,
+        provenance: ProvenanceType::Observed,
+        rationale: format!("spec accept: {} ({})", suggested_id, entity_hex),
+        causal_predecessors: vec![],
+        datoms: accept_datoms,
+    };
+
+    layout.write_tx(&tx)?;
+
+    let store = layout.load_store()?;
+    let total = store.datom_set().len();
+
+    let human = format!(
+        "accepted: {} (entity: {})\npromoted to spec element with {} datoms\nstore: {} total datoms\n\nnext: braid trace --commit | braid status\n",
+        suggested_id, entity_hex, datom_count, total,
+    );
+
+    Ok(CommandOutput {
+        json: serde_json::json!({
+            "action": "accepted",
+            "suggested_id": suggested_id,
+            "entity": entity_hex,
+            "datoms_added": datom_count,
+            "store_total": total,
+        }),
+        agent: AgentOutput {
+            context: format!("spec accept: {} promoted to spec element", suggested_id),
+            content: format!("+{} datoms (entity: {})", datom_count, entity_hex),
+            footer: "next: braid trace --commit | braid spec review".to_string(),
+        },
+        human,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// reject — reject a proposal with rationale (W4B.3)
+// ---------------------------------------------------------------------------
+
+/// Run `braid spec reject <id> --reason "..."`: reject a pending proposal.
+///
+/// Transitions the proposal status to rejected and records the rationale.
+pub fn run_reject(
+    path: &Path,
+    id: &str,
+    reason: &str,
+    agent: &str,
+) -> Result<CommandOutput, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    let proposal_entity = resolve_proposal_entity(&store, id)?;
+
+    let agent_id = AgentId::from_name(agent);
+    let tx_id = super::write::next_tx_id(&store, agent_id);
+    let reviewer = EntityId::from_ident(&format!(":agent/{}", agent));
+
+    let reject_datoms = proposal::reject_proposal(proposal_entity, reason, reviewer, tx_id);
+
+    let suggested_id = extract_proposal_field(&store, proposal_entity, ":proposal/suggested-id")
+        .unwrap_or_else(|| id.to_string());
+    let entity_hex = format_entity_short(&store, proposal_entity);
+
+    let datom_count = reject_datoms.len();
+    let tx = TxFile {
+        tx_id,
+        agent: agent_id,
+        provenance: ProvenanceType::Observed,
+        rationale: format!("spec reject: {} — {}", suggested_id, reason),
+        causal_predecessors: vec![],
+        datoms: reject_datoms,
+    };
+
+    layout.write_tx(&tx)?;
+
+    let human = format!(
+        "rejected: {} (entity: {})\nreason: {}\n\nnext: braid spec review | braid spec history\n",
+        suggested_id, entity_hex, reason,
+    );
+
+    Ok(CommandOutput {
+        json: serde_json::json!({
+            "action": "rejected",
+            "suggested_id": suggested_id,
+            "entity": entity_hex,
+            "reason": reason,
+            "datoms_added": datom_count,
+        }),
+        agent: AgentOutput {
+            context: format!("spec reject: {} rejected", suggested_id),
+            content: format!("reason: {}", truncate(reason, 120)),
+            footer: "next: braid spec review | braid spec history".to_string(),
+        },
+        human,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// history — show all proposals with lifecycle status (W4B.3)
+// ---------------------------------------------------------------------------
+
+/// Run `braid spec history`: show all proposals (accepted, rejected, pending).
+///
+/// Queries every entity with a `:proposal/status` attribute and displays its
+/// full lifecycle status. Sorted by transaction time (newest first).
+pub fn run_history(path: &Path) -> Result<CommandOutput, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    let status_attr = Attribute::from_keyword(":proposal/status");
+    let status_datoms = store.attribute_datoms(&status_attr);
+
+    // Collect unique proposal entities from status datoms.
+    let mut seen = std::collections::BTreeSet::new();
+    let mut entities: Vec<EntityId> = Vec::new();
+    for d in status_datoms.iter() {
+        if d.op == Op::Assert && seen.insert(d.entity) {
+            entities.push(d.entity);
+        }
+    }
+
+    if entities.is_empty() {
+        let human = "No proposals found.\n\nnext: braid harvest --commit (to generate proposals)\n"
+            .to_string();
+        return Ok(CommandOutput {
+            json: serde_json::json!({ "proposals": [], "count": 0 }),
+            agent: AgentOutput {
+                context: "spec history: 0 proposals".to_string(),
+                content: "No proposals in the store.".to_string(),
+                footer: "generate: braid harvest --commit".to_string(),
+            },
+            human,
+        });
+    }
+
+    // Build proposal records with latest status for each entity.
+    struct ProposalRecord {
+        entity_hex: String,
+        suggested_id: String,
+        confidence: f64,
+        ptype: String,
+        status: String,
+        statement: Option<String>,
+        review_note: Option<String>,
+        latest_tx_wall: u64,
+    }
+
+    let mut records: Vec<ProposalRecord> = Vec::new();
+
+    for entity in &entities {
+        let edatoms = store.entity_datoms(*entity);
+
+        let latest_status = edatoms
+            .iter()
+            .filter(|d| d.attribute.as_str() == ":proposal/status" && d.op == Op::Assert)
+            .max_by_key(|d| d.tx.wall_time)
+            .and_then(|d| {
+                if let Value::Keyword(ref k) = d.value {
+                    Some((k.clone(), d.tx.wall_time))
+                } else {
+                    None
+                }
+            });
+
+        let (status, latest_tx_wall) = match latest_status {
+            Some((s, t)) => (s, t),
+            None => continue,
+        };
+
+        let suggested_id =
+            extract_proposal_field(&store, *entity, ":proposal/suggested-id").unwrap_or_default();
+        let confidence = edatoms
+            .iter()
+            .find_map(|d| {
+                if d.attribute.as_str() == ":proposal/confidence" && d.op == Op::Assert {
+                    if let Value::Double(ordered_float::OrderedFloat(c)) = d.value {
+                        return Some(c);
+                    }
+                }
+                None
+            })
+            .unwrap_or(0.0);
+        let ptype = extract_proposal_field(&store, *entity, ":proposal/type").unwrap_or_default();
+        let statement = extract_proposal_field(&store, *entity, ":proposal/statement");
+        let review_note = extract_proposal_field(&store, *entity, ":proposal/review-note");
+        let entity_hex = format_entity_short(&store, *entity);
+
+        records.push(ProposalRecord {
+            entity_hex,
+            suggested_id,
+            confidence,
+            ptype,
+            status,
+            statement,
+            review_note,
+            latest_tx_wall,
+        });
+    }
+
+    // Sort by latest tx wall time descending (newest first).
+    records.sort_by_key(|r| std::cmp::Reverse(r.latest_tx_wall));
+
+    // Count by status.
+    let mut n_proposed = 0usize;
+    let mut n_accepted = 0usize;
+    let mut n_rejected = 0usize;
+    for r in &records {
+        match r.status.as_str() {
+            ":proposal.status/proposed" => n_proposed += 1,
+            ":proposal.status/accepted" => n_accepted += 1,
+            ":proposal.status/rejected" => n_rejected += 1,
+            _ => {}
+        }
+    }
+
+    let mut json_proposals = Vec::new();
+    let mut human_lines = Vec::new();
+    let mut agent_lines = Vec::new();
+
+    human_lines.push(format!(
+        "Proposal history: {} total ({} pending, {} accepted, {} rejected)\n\n",
+        records.len(),
+        n_proposed,
+        n_accepted,
+        n_rejected,
+    ));
+
+    for (i, r) in records.iter().enumerate() {
+        let status_label = r
+            .status
+            .strip_prefix(":proposal.status/")
+            .unwrap_or(&r.status);
+        let type_label = r.ptype.strip_prefix(":proposal.type/").unwrap_or(&r.ptype);
+        let status_icon = match status_label {
+            "proposed" => "[?]",
+            "accepted" => "[+]",
+            "rejected" => "[-]",
+            _ => "[.]",
+        };
+
+        json_proposals.push(serde_json::json!({
+            "index": i + 1,
+            "entity": r.entity_hex,
+            "suggested_id": r.suggested_id,
+            "confidence": r.confidence,
+            "type": r.ptype,
+            "status": r.status,
+            "statement": r.statement,
+            "review_note": r.review_note,
+        }));
+
+        let note_suffix = match &r.review_note {
+            Some(note) => format!("\n     note: {}", note),
+            None => String::new(),
+        };
+
+        human_lines.push(format!(
+            "  {} {}. {} ({}, c={:.2}) — {}\n     {}\n     entity: {}{}\n",
+            status_icon,
+            i + 1,
+            r.suggested_id,
+            type_label,
+            r.confidence,
+            status_label,
+            r.statement.as_deref().unwrap_or("(no statement)"),
+            r.entity_hex,
+            note_suffix,
+        ));
+
+        agent_lines.push(format!(
+            "{} {} ({}, c={:.2}) — {}",
+            status_icon, r.suggested_id, type_label, r.confidence, status_label,
+        ));
+    }
+
+    let human = human_lines.join("")
+        + "\nnext: braid spec review (pending only) | braid spec accept/reject <entity>\n";
+    let agent_content = agent_lines.join("\n");
+
+    Ok(CommandOutput {
+        json: serde_json::json!({
+            "proposals": json_proposals,
+            "count": records.len(),
+            "proposed": n_proposed,
+            "accepted": n_accepted,
+            "rejected": n_rejected,
+        }),
+        agent: AgentOutput {
+            context: format!(
+                "spec history: {} proposals ({} pending, {} accepted, {} rejected)",
+                records.len(),
+                n_proposed,
+                n_accepted,
+                n_rejected,
+            ),
+            content: agent_content,
+            footer: "review: braid spec review | accept: braid spec accept <entity>".to_string(),
+        },
+        human,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/// Resolve a user-provided proposal identifier to an EntityId.
+///
+/// Matches against:
+/// 1. Entity hex prefix (e.g., "a1b2c3d4" matches an entity starting with those bytes)
+/// 2. Suggested ID (e.g., "INV-STORE-017")
+/// 3. Exact entity hex (full 64-char hex string)
+fn resolve_proposal_entity(store: &Store, id: &str) -> Result<EntityId, BraidError> {
+    let status_attr = Attribute::from_keyword(":proposal/status");
+    let status_datoms = store.attribute_datoms(&status_attr);
+
+    // Collect unique proposal entities.
+    let mut seen = std::collections::BTreeSet::new();
+    let mut proposal_entities: Vec<EntityId> = Vec::new();
+    for d in status_datoms.iter() {
+        if d.op == Op::Assert && seen.insert(d.entity) {
+            proposal_entities.push(d.entity);
+        }
+    }
+
+    // Try matching by suggested-id first (most natural).
+    for entity in &proposal_entities {
+        if let Some(sid) = extract_proposal_field(store, *entity, ":proposal/suggested-id") {
+            if sid == id || sid.eq_ignore_ascii_case(id) {
+                return Ok(*entity);
+            }
+        }
+    }
+
+    // Try matching by entity hex prefix.
+    let id_lower = id.to_lowercase();
+    let mut hex_matches: Vec<EntityId> = Vec::new();
+    for entity in &proposal_entities {
+        let hex = encode_hex(entity.as_bytes());
+        if hex.starts_with(&id_lower) || hex == id_lower {
+            hex_matches.push(*entity);
+        }
+    }
+
+    match hex_matches.len() {
+        0 => Err(BraidError::Validation(format!(
+            "No proposal found matching '{}'. Run 'braid spec review' to list pending proposals.",
+            id
+        ))),
+        1 => Ok(hex_matches[0]),
+        n => Err(BraidError::Validation(format!(
+            "Ambiguous proposal identifier '{}': matches {} entities. Use a longer hex prefix or the suggested ID.",
+            id, n
+        ))),
+    }
+}
+
+/// Extract a string-valued proposal field from an entity's datoms.
+fn extract_proposal_field(store: &Store, entity: EntityId, attr: &str) -> Option<String> {
+    store.entity_datoms(entity).into_iter().find_map(|d| {
+        if d.attribute.as_str() == attr && d.op == Op::Assert {
+            match &d.value {
+                Value::String(s) => Some(s.clone()),
+                Value::Keyword(k) => Some(k.clone()),
+                _ => None,
+            }
+        } else {
+            None
+        }
+    })
+}
+
+/// Format an entity as a short hex string for display.
+///
+/// Tries `:db/ident` first (e.g., `:spec/inv-store-001`), falls back to
+/// truncated hex (8 chars).
+fn format_entity_short(store: &Store, entity: EntityId) -> String {
+    for datom in store.entity_datoms(entity) {
+        if datom.attribute.as_str() == ":db/ident" {
+            if let Value::Keyword(kw) = &datom.value {
+                return kw.clone();
+            }
+        }
+    }
+    let bytes = entity.as_bytes();
+    format!(
+        "{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]
+    )
+}
+
+/// Encode bytes as lowercase hexadecimal string.
+fn encode_hex(bytes: &[u8]) -> String {
+    const HEX_CHARS: &[u8; 16] = b"0123456789abcdef";
+    let mut s = String::with_capacity(bytes.len() * 2);
+    for &b in bytes {
+        s.push(HEX_CHARS[(b >> 4) as usize] as char);
+        s.push(HEX_CHARS[(b & 0x0f) as usize] as char);
+    }
+    s
+}
+
+/// Truncate a string to at most `max_len` characters, appending "..." if truncated.
+fn truncate(s: &str, max_len: usize) -> String {
+    if s.len() <= max_len {
+        s.to_string()
+    } else {
+        format!("{}...", &s[..max_len.saturating_sub(3)])
+    }
 }
 
 /// Extract namespace from spec ID: INV-STORE-001 → STORE

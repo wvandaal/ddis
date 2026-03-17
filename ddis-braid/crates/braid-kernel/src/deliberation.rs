@@ -41,6 +41,7 @@
 
 use std::collections::BTreeSet;
 
+use crate::coherence::{CoherenceTier, CoherenceViolation};
 use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::store::Store;
 
@@ -407,6 +408,141 @@ pub fn check_stability(store: &Store, deliberation: EntityId) -> StabilityScore 
 }
 
 // ===========================================================================
+// Coherence Gate → Deliberation Bridge
+// ===========================================================================
+
+/// Convert a Tier 2 coherence violation into a Deliberation entity with
+/// both positions (existing spec + proposed spec) recorded as Position entities.
+///
+/// When the coherence gate detects a logical contradiction between spec elements,
+/// this function creates the deliberation machinery so agents can resolve
+/// the conflict through the structured decision pipeline rather than simply
+/// rejecting the transaction.
+///
+/// Returns the deliberation entity ID and all datoms to transact (deliberation +
+/// two positions: one for the existing spec element, one for the proposed).
+///
+/// # Invariants
+///
+/// - INV-DELIBERATION-001: Deliberation starts in Open status.
+/// - INV-DELIBERATION-002: Both positions reference the deliberation.
+///
+/// # Traces To
+///
+/// - spec/07-deliberation.md (coherence → deliberation bridge)
+/// - ADR-RESOLUTION-005 (Deliberation as entity)
+pub fn coherence_violation_to_deliberation(
+    violation: &CoherenceViolation,
+    tx_id: TxId,
+) -> (EntityId, Vec<Datom>) {
+    // Determine topic from the violation description
+    let topic = format!(
+        "coherence-{}-{}",
+        match violation.tier {
+            CoherenceTier::Tier1Exact => "tier1-exact",
+            CoherenceTier::Tier2Logical => "tier2-logical",
+        },
+        violation.offending_datom.entity.as_bytes()[..4]
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect::<String>()
+    );
+
+    // Contested attribute is the one from the offending datom
+    let contested_attrs = vec![violation.offending_datom.attribute.clone()];
+
+    // Open the deliberation
+    let (delib_entity, mut datoms) = open_deliberation(&topic, &contested_attrs, tx_id);
+
+    // Position A: the existing spec element (what the store already has)
+    let existing_stance = format!("existing: {}", &violation.existing_context);
+    let existing_rationale = format!(
+        "The store already contains this value. Context: {}",
+        violation.existing_context
+    );
+    let existing_ident = format!(":position/existing-{}", tx_id.wall_time());
+    let existing_pos = EntityId::from_ident(&existing_ident);
+
+    let existing_datoms = vec![
+        Datom::new(
+            existing_pos,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(existing_ident),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            existing_pos,
+            Attribute::from_keyword(":position/deliberation"),
+            Value::Ref(delib_entity),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            existing_pos,
+            Attribute::from_keyword(":position/stance"),
+            Value::String(existing_stance),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            existing_pos,
+            Attribute::from_keyword(":position/rationale"),
+            Value::String(existing_rationale),
+            tx_id,
+            Op::Assert,
+        ),
+    ];
+
+    // Position B: the proposed (offending) datom
+    let proposed_value_desc = format!("{:?}", violation.offending_datom.value);
+    let proposed_stance = format!("proposed: {}", &proposed_value_desc);
+    let proposed_rationale = format!(
+        "The transaction proposes this new value. Fix hint: {}",
+        violation.fix_hint
+    );
+    let proposed_ident = format!(":position/proposed-{}", tx_id.wall_time());
+    let proposed_pos = EntityId::from_ident(&proposed_ident);
+
+    let proposed_datoms = vec![
+        Datom::new(
+            proposed_pos,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(proposed_ident),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            proposed_pos,
+            Attribute::from_keyword(":position/deliberation"),
+            Value::Ref(delib_entity),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            proposed_pos,
+            Attribute::from_keyword(":position/stance"),
+            Value::String(proposed_stance),
+            tx_id,
+            Op::Assert,
+        ),
+        Datom::new(
+            proposed_pos,
+            Attribute::from_keyword(":position/rationale"),
+            Value::String(proposed_rationale),
+            tx_id,
+            Op::Assert,
+        ),
+    ];
+
+    // Combine all datoms
+    datoms.extend(existing_datoms);
+    datoms.extend(proposed_datoms);
+
+    (delib_entity, datoms)
+}
+
+// ===========================================================================
 // Tests
 // ===========================================================================
 
@@ -563,5 +699,308 @@ mod tests {
         assert!(DeliberationStatus::Open < DeliberationStatus::Active);
         assert!(DeliberationStatus::Active < DeliberationStatus::Decided);
         assert!(DeliberationStatus::Decided < DeliberationStatus::Stalled);
+    }
+
+    // --- W5B.5: Comprehensive deliberation tests ---
+
+    /// Verifies: INV-DELIBERATION-001 -- Deliberation lifecycle traverses
+    /// Open -> Active (implicit via positions) -> Decided.
+    /// The full lifecycle: open a deliberation, add positions, decide,
+    /// and verify the store reflects the Decided status.
+    #[test]
+    fn deliberation_reaches_decided_from_positions() {
+        let agent = test_agent();
+
+        // 1. Open deliberation
+        let (delib, delib_datoms) = open_deliberation("lifecycle-test", &[], test_tx(100));
+
+        // Verify starts Open
+        let status = delib_datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == ":deliberation/status")
+            .unwrap();
+        assert_eq!(
+            status.value,
+            Value::Keyword(":deliberation.status/open".into()),
+            "Deliberation must start in Open status"
+        );
+
+        // 2. Add two positions
+        let (pos_a, pos_a_datoms) = add_position(
+            delib,
+            "keep-append-only",
+            "Simpler model, proven CRDT merge",
+            &[],
+            agent,
+            test_tx(200),
+        );
+        let (_pos_b, pos_b_datoms) = add_position(
+            delib,
+            "allow-mutation",
+            "Performance optimization",
+            &[],
+            agent,
+            test_tx(300),
+        );
+
+        // 3. Decide in favor of position A
+        let (decision, decision_datoms) = decide(
+            delib,
+            pos_a,
+            DecisionMethod::Authority,
+            "Architecture team decided: append-only aligns with C1",
+            test_tx(400),
+        );
+
+        // 4. Build a store with all datoms and verify
+        let mut all_datoms = Store::genesis().datom_set().clone();
+        for d in delib_datoms
+            .iter()
+            .chain(pos_a_datoms.iter())
+            .chain(pos_b_datoms.iter())
+            .chain(decision_datoms.iter())
+        {
+            all_datoms.insert(d.clone());
+        }
+        let store = Store::from_datoms(all_datoms);
+
+        // Verify: decision entity references deliberation
+        let decision_delib = store
+            .entity_datoms(decision)
+            .into_iter()
+            .find(|d| d.attribute.as_str() == ":decision/deliberation")
+            .expect("Decision must reference a deliberation");
+        assert_eq!(decision_delib.value, Value::Ref(delib));
+
+        // Verify: decision chose position A
+        let chosen = store
+            .entity_datoms(decision)
+            .into_iter()
+            .find(|d| d.attribute.as_str() == ":decision/chosen")
+            .expect("Decision must reference the chosen position");
+        assert_eq!(chosen.value, Value::Ref(pos_a));
+
+        // Verify: deliberation status is Decided (latest assertion wins in store)
+        let delib_datoms_in_store = store.entity_datoms(delib);
+        let decided_status = delib_datoms_in_store.iter().any(|d| {
+            d.attribute.as_str() == ":deliberation/status"
+                && d.value == Value::Keyword(":deliberation.status/decided".into())
+        });
+        assert!(
+            decided_status,
+            "Deliberation must have a Decided status datom after decide()"
+        );
+    }
+
+    /// Verifies: INV-DELIBERATION-003 -- Precedent queryable after decision.
+    /// After a deliberation reaches Decided, find_precedent() must return it
+    /// when queried with matching keywords.
+    #[test]
+    fn precedent_queryable_after_decision() {
+        let agent = test_agent();
+
+        // Create and decide a deliberation about "store mutability"
+        let (delib, delib_datoms) = open_deliberation(
+            "store mutability policy",
+            &[Attribute::from_keyword(":store/mutability")],
+            test_tx(100),
+        );
+        let (pos, pos_datoms) = add_position(
+            delib,
+            "append-only",
+            "CRDT requires it",
+            &[],
+            agent,
+            test_tx(200),
+        );
+        let (_, decision_datoms) = decide(
+            delib,
+            pos,
+            DecisionMethod::Consensus,
+            "Unanimous agreement",
+            test_tx(300),
+        );
+
+        // Build store
+        let mut all_datoms = Store::genesis().datom_set().clone();
+        for d in delib_datoms
+            .iter()
+            .chain(pos_datoms.iter())
+            .chain(decision_datoms.iter())
+        {
+            all_datoms.insert(d.clone());
+        }
+        let store = Store::from_datoms(all_datoms);
+
+        // Query precedent with matching keywords
+        let precedents = find_precedent(&store, &["store", "mutability"]);
+        assert!(
+            precedents.contains(&delib),
+            "INV-DELIBERATION-003: Decided deliberation must be found as precedent. Got: {:?}",
+            precedents
+        );
+
+        // Query with non-matching keywords should NOT return it
+        let no_match = find_precedent(&store, &["network", "protocol"]);
+        assert!(
+            !no_match.contains(&delib),
+            "Precedent search must not match unrelated keywords"
+        );
+    }
+
+    /// Verifies: INV-DELIBERATION-004 -- Stability score converges to 1.0
+    /// for unanimous positions. As more positions with the same stance are
+    /// added, the stability score must remain at 1.0.
+    #[test]
+    fn stability_score_converges_to_1_for_unanimous() {
+        let agent = test_agent();
+        let (delib, delib_datoms) = open_deliberation("convergence-test", &[], test_tx(100));
+
+        // Add progressively more positions, all with the same stance
+        let mut all_datoms = Store::genesis().datom_set().clone();
+        for d in &delib_datoms {
+            all_datoms.insert(d.clone());
+        }
+
+        for i in 1u64..=5 {
+            let (_, pos_datoms) = add_position(
+                delib,
+                "unanimous-stance",
+                &format!("reason {i}"),
+                &[],
+                agent,
+                test_tx(100 + i * 100),
+            );
+            for d in &pos_datoms {
+                all_datoms.insert(d.clone());
+            }
+
+            let store = Store::from_datoms(all_datoms.clone());
+            let stability = check_stability(&store, delib);
+
+            assert_eq!(
+                stability.total_positions, i as usize,
+                "After {i} positions, total should be {i}"
+            );
+            assert!(
+                stability.is_unanimous,
+                "All positions have the same stance -- must be unanimous at step {i}"
+            );
+            assert!(
+                (stability.score - 1.0).abs() < 1e-10,
+                "INV-DELIBERATION-004: Unanimous positions must yield score 1.0, got {}",
+                stability.score
+            );
+        }
+    }
+
+    /// Verifies: Coherence violation -> deliberation bridge.
+    /// A Tier 2 CoherenceViolation is converted into a Deliberation entity
+    /// with two Position entities (existing vs proposed).
+    #[test]
+    fn coherence_violation_creates_deliberation() {
+        use crate::coherence::{CoherenceTier, CoherenceViolation};
+
+        let tx = test_tx(500);
+
+        // Simulate a Tier 2 logical contradiction
+        let violation = CoherenceViolation {
+            tier: CoherenceTier::Tier2Logical,
+            offending_datom: Datom::new(
+                EntityId::from_ident(":spec/new-inv"),
+                Attribute::from_keyword(":spec/statement"),
+                Value::String("The store must allow mutation".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            existing_context: "Existing spec :spec/inv-store-001: \"The store must never mutate\""
+                .to_string(),
+            description: "Tier 2 polarity inversion: 'must' vs 'must not'".to_string(),
+            fix_hint: "Open a deliberation to resolve the conflict.".to_string(),
+        };
+
+        let (delib_entity, datoms) = coherence_violation_to_deliberation(&violation, tx);
+
+        // 1. Deliberation entity exists with Open status
+        let delib_status = datoms
+            .iter()
+            .find(|d| d.entity == delib_entity && d.attribute.as_str() == ":deliberation/status");
+        assert!(delib_status.is_some(), "Deliberation entity must exist");
+        assert_eq!(
+            delib_status.unwrap().value,
+            Value::Keyword(":deliberation.status/open".into()),
+            "INV-DELIBERATION-001: Must start in Open status"
+        );
+
+        // 2. Topic contains tier information
+        let topic = datoms
+            .iter()
+            .find(|d| d.entity == delib_entity && d.attribute.as_str() == ":deliberation/topic");
+        assert!(topic.is_some(), "Deliberation must have a topic");
+        if let Value::String(t) = &topic.unwrap().value {
+            assert!(
+                t.contains("tier2-logical"),
+                "Topic must contain tier info, got: {t}"
+            );
+        }
+
+        // 3. Two positions exist, both referencing the deliberation
+        let position_refs: Vec<&Datom> = datoms
+            .iter()
+            .filter(|d| {
+                d.attribute.as_str() == ":position/deliberation"
+                    && d.value == Value::Ref(delib_entity)
+            })
+            .collect();
+        assert_eq!(
+            position_refs.len(),
+            2,
+            "INV-DELIBERATION-002: Must have exactly 2 positions (existing + proposed)"
+        );
+
+        // 4. One position has "existing" stance, one has "proposed" stance
+        let stances: Vec<&str> = datoms
+            .iter()
+            .filter(|d| d.attribute.as_str() == ":position/stance")
+            .filter_map(|d| match &d.value {
+                Value::String(s) => Some(s.as_str()),
+                _ => None,
+            })
+            .collect();
+        assert!(
+            stances.iter().any(|s| s.starts_with("existing:")),
+            "Must have an 'existing' position. Stances: {:?}",
+            stances
+        );
+        assert!(
+            stances.iter().any(|s| s.starts_with("proposed:")),
+            "Must have a 'proposed' position. Stances: {:?}",
+            stances
+        );
+
+        // 5. Contested attribute recorded
+        let contested = datoms.iter().find(|d| {
+            d.entity == delib_entity && d.attribute.as_str() == ":deliberation/contested-attrs"
+        });
+        assert!(
+            contested.is_some(),
+            "Deliberation must record contested attributes"
+        );
+        assert_eq!(
+            contested.unwrap().value,
+            Value::String(":spec/statement".to_string()),
+            "Contested attribute must match the offending datom's attribute"
+        );
+
+        // 6. All datoms can be inserted into a store without error
+        let mut all_datoms = Store::genesis().datom_set().clone();
+        for d in &datoms {
+            all_datoms.insert(d.clone());
+        }
+        let store = Store::from_datoms(all_datoms);
+        assert!(
+            store.entity_datoms(delib_entity).len() >= 3,
+            "Deliberation entity must have ident + topic + status + contested-attrs"
+        );
     }
 }

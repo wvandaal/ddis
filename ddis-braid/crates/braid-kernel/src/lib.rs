@@ -26,6 +26,7 @@
 pub mod agent_md;
 pub mod agent_store;
 pub mod bilateral;
+pub mod branch;
 pub mod budget;
 pub mod coherence;
 pub mod compiler;
@@ -64,6 +65,7 @@ pub use bilateral::{
     ConditionResult, ConvergenceAnalysis, EntropyDecomposition, FitnessComponents, FitnessScore,
     Gap, GapSeverity, RenyiSpectrum, ScanResult, SpectralCertificate,
 };
+pub use branch::{branch_datoms, compare_branches, create_branch, merge_branch, prune_branch};
 pub use budget::{
     attention_decay, classify_command, enforce_ceiling, quality_adjusted_budget,
     ApproxTokenCounter, AttentionProfile, BudgetManager, BudgetProjection, GuidanceLevel,
@@ -76,16 +78,17 @@ pub use coherence::{
     CoherenceTier, CoherenceViolation,
 };
 pub use compiler::{
-    detect_patterns, detect_patterns_for_text, summarize_patterns, InvariantPattern, PatternMatch,
-    PatternSummary,
+    detect_patterns, detect_patterns_for_text, emit_proptest, emit_test_module,
+    extract_test_property, summarize_patterns, InvariantPattern, PatternMatch, PatternSummary,
+    TestProperty,
 };
 pub use config::{
     all_config, defaults as config_defaults, get_config, get_config_or, set_config_datoms,
 };
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 pub use deliberation::{
-    add_position, check_stability, decide, find_precedent, open_deliberation, DecisionMethod,
-    DeliberationStatus, StabilityScore,
+    add_position, check_stability, coherence_violation_to_deliberation, decide, find_precedent,
+    open_deliberation, DecisionMethod, DeliberationStatus, StabilityScore,
 };
 pub use error::KernelError;
 pub use guidance::{
@@ -118,7 +121,8 @@ pub use promote::{
     DualIdentityCheck, PromotionRequest, PromotionResult, PromotionTargetType,
 };
 pub use proposal::{
-    accept_proposal, auto_accept_threshold, pending_proposals, proposal_to_datoms, reject_proposal,
+    accept_proposal, accept_with_coherence_check, auto_accept_threshold, pending_proposals,
+    proposal_to_datoms, reject_proposal,
 };
 pub use query::{
     aggregate, betweenness_centrality, cheeger, conflict_sheaf, constant_sheaf, critical_path,

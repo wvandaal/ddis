@@ -11,7 +11,7 @@
 //! - **Layer 2** (Specification Elements): 36 rich-metadata attributes —
 //!   `:element/*`, `:inv/*`, `:adr/*`, `:neg/*`, `:dep/*`, `:session/*`,
 //!   `:methodology/*`, `:coherence/*`.
-//! - **Layer 3** (Discovery/Exploration): 31 attributes — `:exploration/*`, `:promotion/*`, `:proposal/*`.
+//! - **Layer 3** (Discovery/Exploration): 36 attributes — `:exploration/*`, `:promotion/*`, `:proposal/*`, `:branch/*`, `:tx/branch`.
 //! - **Layers 4–5**: Coordination, Workflow (future stages).
 //!
 //! Each layer depends only on layers below it. Layer 0 is installed at genesis.
@@ -1171,10 +1171,10 @@ pub fn domain_schema_datoms(tx: TxId) -> Vec<Datom> {
 // Layer 3 — Discovery/Exploration Attributes (INV-SCHEMA-006)
 // ---------------------------------------------------------------------------
 
-/// Number of Layer 3 exploration/discovery/proposal attributes.
-pub const LAYER_3_COUNT: usize = 31;
+/// Number of Layer 3 exploration/discovery/proposal/branch attributes.
+pub const LAYER_3_COUNT: usize = 36;
 
-/// The 31 Layer 3 (Discovery/Exploration/Proposal) attributes.
+/// The 36 Layer 3 (Discovery/Exploration/Proposal/Branch) attributes.
 ///
 /// These capture the lifecycle of exploratory knowledge — from initial
 /// discovery through promotion to formal specification elements. They enable
@@ -1182,11 +1182,12 @@ pub const LAYER_3_COUNT: usize = 31;
 /// `:spec/*` attributes via `braid promote` rather than being re-entered
 /// from markdown.
 ///
-/// Organized into 4 groups:
+/// Organized into 5 groups:
 /// - Exploration Identity (9): source, category, confidence, maturity, content-hash
 /// - Promotion Lifecycle (7): promotion status, target element, verification
 /// - Exploration Cross-Reference (5): links between exploration entities
 /// - Proposal Lifecycle (10): spec proposals with review workflow
+/// - Branch Metadata (5): branch entities and per-transaction branch tagging
 ///
 /// Depends only on Layer 0 value types (INV-SCHEMA-006 layer ordering).
 pub fn layer_3_attributes() -> Vec<AttributeSpec> {
@@ -1389,6 +1390,40 @@ pub fn layer_3_attributes() -> Vec<AttributeSpec> {
             ValueType::String,
             Cardinality::One,
             "Reviewer rationale for accepting or rejecting the proposal",
+        ),
+        // =================================================================
+        // Branch Metadata Attributes (5) — branch operations (INV-MERGE-006)
+        // =================================================================
+        attr(
+            ":tx/branch",
+            ValueType::String,
+            Cardinality::One,
+            "Branch name on this transaction — filters datom set into branch view",
+        ),
+        attr_unique(
+            ":branch/name",
+            ValueType::String,
+            Cardinality::One,
+            "Branch entity name (unique identity for the branch)",
+            Uniqueness::Identity,
+        ),
+        attr(
+            ":branch/status",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Branch lifecycle status: :branch.status/active, :branch.status/merged, :branch.status/abandoned",
+        ),
+        attr(
+            ":branch/purpose",
+            ValueType::String,
+            Cardinality::One,
+            "Why this branch exists — human-readable rationale",
+        ),
+        attr(
+            ":branch/parent",
+            ValueType::Ref,
+            Cardinality::One,
+            "Reference to the parent branch entity",
         ),
     ]
 }
