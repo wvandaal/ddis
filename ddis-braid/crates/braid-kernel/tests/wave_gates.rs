@@ -198,7 +198,7 @@ fn add_observation(
         .assert(
             entity,
             Attribute::from_keyword(":exploration/category"),
-            Value::String(category.to_string()),
+            Value::Keyword(category.to_string()),
         )
         .assert(
             entity,
@@ -213,7 +213,7 @@ fn add_observation(
         .assert(
             entity,
             Attribute::from_keyword(":exploration/maturity"),
-            Value::String("seed".to_string()),
+            Value::Keyword(":exploration.maturity/sketch".to_string()),
         )
         .assert(
             entity,
@@ -522,7 +522,7 @@ fn w4_gate_closed_distillation_loop() {
 #[test]
 fn w4_dogfood_distill_from_own_sessions() {
     let agent = test_agent("w4-dogfood");
-    let mut store = Store::genesis();
+    let mut store = full_schema_store();
 
     // Real braid design decisions as observations
     let decisions: Vec<(&str, &str, &str, f64)> = vec![

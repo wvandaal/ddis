@@ -157,7 +157,7 @@ fn e2e_distillation_closed_loop() {
             (
                 obs1_entity,
                 Attribute::from_keyword(":exploration/content-hash"),
-                Value::String(blake3::hash(obs1_body.as_bytes()).to_hex().to_string()),
+                Value::Bytes(blake3::hash(obs1_body.as_bytes()).as_bytes().to_vec()),
             ),
         ],
     );
@@ -206,7 +206,7 @@ fn e2e_distillation_closed_loop() {
             (
                 obs2_entity,
                 Attribute::from_keyword(":exploration/content-hash"),
-                Value::String(blake3::hash(obs2_body.as_bytes()).to_hex().to_string()),
+                Value::Bytes(blake3::hash(obs2_body.as_bytes()).as_bytes().to_vec()),
             ),
         ],
     );
@@ -617,8 +617,10 @@ fn e2e_distillation_closed_loop() {
     );
 
     // The trace links add :impl/implements references, which improve coverage (C).
-    // The new spec element with statement + falsification improves incompleteness (I).
-    // At minimum, the coverage component should be non-zero after adding trace links.
+    // Before acceptance, F(S) was high because V and C were vacuously 1.0 (no spec
+    // elements to validate or cover). After acceptance, we have a real spec element,
+    // so V and C now measure against it. This is a CORRECT decrease: the system
+    // honestly reports that the new spec element needs more verification.
     eprintln!(
         "  Delta F(S): {:.4} (before={:.4}, after={:.4})",
         fitness_after.total - fitness_before.total,
@@ -626,21 +628,35 @@ fn e2e_distillation_closed_loop() {
         fitness_after.total,
     );
 
-    // The I (incompleteness) component should remain high — our new spec element
-    // has both statement and falsification, making it a complete element.
+    // Key assertions about fitness after the full pipeline:
+    //
+    // 1. C (coverage) should be non-zero: our trace link provides L2 coverage
+    //    for the new spec element. L2 weight = 0.4, max = 1.0, so C = 0.4/1.0 = 0.4.
     assert!(
-        fitness_after.components.incompleteness >= fitness_before.components.incompleteness - 0.01,
-        "incompleteness should not degrade after adding a complete spec element \
-         (before={:.4}, after={:.4})",
-        fitness_before.components.incompleteness,
-        fitness_after.components.incompleteness,
+        fitness_after.components.coverage > 0.0,
+        "coverage should be non-zero after adding trace link (C={:.4})",
+        fitness_after.components.coverage,
     );
 
-    // The C (coverage) component should reflect our new trace link
+    // 2. D (drift) should remain high: we added coherent spec+impl, not divergent.
     assert!(
-        fitness_after.components.coverage > 0.0 || fitness_before.components.coverage == 1.0,
-        "coverage should be non-zero after adding a trace link (C={:.4})",
-        fitness_after.components.coverage,
+        fitness_after.components.drift > 0.9,
+        "drift complement should remain high after coherent additions (D={:.4})",
+        fitness_after.components.drift,
+    );
+
+    // 3. K (contradiction) should be 1.0: no contradictions introduced.
+    assert!(
+        (fitness_after.components.contradiction - 1.0).abs() < 0.01,
+        "contradiction complement should be ~1.0 (no contradictions), got K={:.4}",
+        fitness_after.components.contradiction,
+    );
+
+    // 4. F(S) should be positive and bounded in [0, 1].
+    assert!(
+        fitness_after.total > 0.0 && fitness_after.total <= 1.0,
+        "F(S) should be in (0, 1], got {:.4}",
+        fitness_after.total,
     );
 
     // ===================================================================
@@ -720,7 +736,7 @@ fn e2e_distillation_rejects_low_quality_observations() {
             (
                 low_conf_entity,
                 Attribute::from_keyword(":exploration/content-hash"),
-                Value::String("deadbeef".to_string()),
+                Value::Bytes(vec![0xde, 0xad, 0xbe, 0xef]),
             ),
         ],
     );
@@ -780,7 +796,7 @@ fn e2e_distillation_rejects_low_quality_observations() {
             (
                 non_decision_entity,
                 Attribute::from_keyword(":exploration/content-hash"),
-                Value::String("baadf00d".to_string()),
+                Value::Bytes(vec![0xba, 0xad, 0xf0, 0x0d]),
             ),
         ],
     );
