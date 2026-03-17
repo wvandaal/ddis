@@ -79,7 +79,7 @@ pub fn run_assert(
 
     let agent = AgentId::from_name(agent_name);
 
-    if datoms_raw.len() % 3 != 0 {
+    if !datoms_raw.len().is_multiple_of(3) {
         return Err(BraidError::Parse(
             "datoms must be triples: entity attribute value".into(),
         ));

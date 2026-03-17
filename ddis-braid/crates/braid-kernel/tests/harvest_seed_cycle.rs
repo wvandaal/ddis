@@ -54,11 +54,11 @@ fn simulate_turn(
             telemetry.transact_turns += 1;
 
             // Simulate spec-language usage every 3rd turn
-            if turn % 3 == 0 {
+            if turn.is_multiple_of(3) {
                 telemetry.spec_language_turns += 1;
             }
             // Simulate query diversity
-            if turn % 5 == 0 && telemetry.query_type_count < 4 {
+            if turn.is_multiple_of(5) && telemetry.query_type_count < 4 {
                 telemetry.query_type_count += 1;
             }
             true

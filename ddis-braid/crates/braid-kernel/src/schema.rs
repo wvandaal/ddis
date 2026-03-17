@@ -2044,7 +2044,11 @@ mod tests {
             datoms.insert(d);
         }
         let schema = Schema::from_datoms(&datoms);
-        assert_eq!(schema.len(), GENESIS_ATTR_COUNT + LAYER_1_COUNT, "genesis + L1 attributes");
+        assert_eq!(
+            schema.len(),
+            GENESIS_ATTR_COUNT + LAYER_1_COUNT,
+            "genesis + L1 attributes"
+        );
     }
 
     // Verifies: ADR-SCHEMA-006 — Value Type Union
@@ -2636,7 +2640,8 @@ mod tests {
         }
         let schema = Schema::from_datoms(&datoms);
 
-        let expected = GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT + LAYER_3_COUNT + LAYER_4_COUNT;
+        let expected =
+            GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT + LAYER_3_COUNT + LAYER_4_COUNT;
         assert_eq!(
             schema.len(),
             expected,

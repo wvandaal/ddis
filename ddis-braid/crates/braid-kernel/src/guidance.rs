@@ -461,6 +461,81 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
     routings
 }
 
+/// Build `TaskNode` list from the live store and compute R(t) routing.
+///
+/// This bridges the gap between the datom-level task representation (`:task/*`
+/// attributes) and the graph-based routing algorithm (`compute_routing`).
+///
+/// Steps:
+/// 1. `all_tasks(store)` to collect every `TaskSummary`.
+/// 2. Build a `Vec<TaskNode>` with priority mapped to a boost factor,
+///    reverse-edge (`blocks`) computation, and non-task dependency filtering.
+/// 3. Call `compute_routing()` with the constructed graph.
+///
+/// **INV-GUIDANCE-010**: R(t) routing over real store tasks.
+pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
+    let summaries = crate::task::all_tasks(store);
+    if summaries.is_empty() {
+        return Vec::new();
+    }
+
+    // Collect the set of known task entities for dependency filtering.
+    let task_entities: BTreeSet<EntityId> = summaries.iter().map(|t| t.entity).collect();
+
+    // Build reverse-edge map: for each task, who does it block?
+    let mut blocks_map: BTreeMap<EntityId, Vec<EntityId>> = BTreeMap::new();
+    for t in &summaries {
+        for dep in &t.depends_on {
+            if task_entities.contains(dep) {
+                blocks_map.entry(*dep).or_default().push(t.entity);
+            }
+        }
+    }
+
+    // Convert TaskSummary -> TaskNode
+    let nodes: Vec<TaskNode> = summaries
+        .iter()
+        .map(|t| {
+            // Map priority 0..4 -> boost 1.0, 0.8, 0.6, 0.4, 0.2
+            let priority_boost = match t.priority {
+                0 => 1.0,
+                1 => 0.8,
+                2 => 0.6,
+                3 => 0.4,
+                _ => 0.2, // 4 or any out-of-range
+            };
+
+            // Filter depends_on to only reference known task entities
+            let depends_on: Vec<EntityId> = t
+                .depends_on
+                .iter()
+                .filter(|d| task_entities.contains(d))
+                .copied()
+                .collect();
+
+            let blocks = blocks_map.get(&t.entity).cloned().unwrap_or_default();
+
+            TaskNode {
+                entity: t.entity,
+                label: t.title.clone(),
+                priority_boost,
+                done: t.status == crate::task::TaskStatus::Closed,
+                depends_on,
+                blocks,
+                created_at: t.created_at,
+            }
+        })
+        .collect();
+
+    // Use wall-clock now for staleness normalization
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
+    compute_routing(&nodes, now)
+}
+
 // ---------------------------------------------------------------------------
 // Guidance Footer (INV-GUIDANCE-001)
 // ---------------------------------------------------------------------------
@@ -1040,15 +1115,32 @@ pub fn derive_actions_with_budget(store: &Store, q_t: Option<f64>) -> Vec<Guidan
         });
     }
 
-    // R18: Top-priority ready task → Work (INV-TASK-003, INV-TASK-004)
-    let ready_set = crate::task::compute_ready_set(store);
-    if let Some(top) = ready_set.first() {
+    // R18: R(t) graph-routed task → Work (INV-GUIDANCE-010, INV-TASK-003)
+    //
+    // Uses compute_routing_from_store to rank ready tasks by composite impact
+    // (PageRank, betweenness, critical path, blocker ratio, staleness, priority)
+    // rather than simple priority ordering. A P2 task that unblocks 5 others
+    // can rank above a P1 task that unblocks nothing.
+    let routed = compute_routing_from_store(store);
+    if let Some(top) = routed.first() {
+        // Look up the TaskSummary for the routed entity to get short ID
+        let task_info = crate::task::task_summary(store, top.entity);
+        let (task_id, priority) = match &task_info {
+            Some(t) => (t.id.clone(), t.priority),
+            None => ("?".into(), 2),
+        };
         actions.push(GuidanceAction {
-            priority: top.priority.min(3) as u8 + 1, // P0→1, P1→2, P2→3, P3+→4
+            priority: priority.min(3) as u8 + 1, // P0→1, P1→2, P2→3, P3+→4
             category: ActionCategory::Work,
-            summary: format!("P{} task ready: {} \"{}\"", top.priority, top.id, top.title),
-            command: Some(format!("braid task update {} --status in-progress", top.id)),
-            relates_to: vec![],
+            summary: format!(
+                "R(t) top: \"{}\" (impact={:.2}) — {}",
+                top.label, top.impact, task_id
+            ),
+            command: Some(format!(
+                "braid task update {} --status in-progress",
+                task_id
+            )),
+            relates_to: vec!["INV-GUIDANCE-010".into()],
         });
     }
 
@@ -3284,6 +3376,233 @@ mod tests {
         assert!(
             formatted.contains("HARVEST NOW"),
             "Minimal footer at Critical should override action with HARVEST NOW, got: {formatted}"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // compute_routing_from_store tests (INV-GUIDANCE-010)
+    // -------------------------------------------------------------------
+
+    /// Create a store with full schema for task tests (mirrors task.rs test helper).
+    fn routing_test_store() -> Store {
+        use crate::datom::AgentId;
+        use crate::schema::{full_schema_datoms, genesis_datoms};
+        let agent = AgentId::from_name("test");
+        let genesis_tx = crate::datom::TxId::new(0, 0, agent);
+        let mut datoms = std::collections::BTreeSet::new();
+        for d in genesis_datoms(genesis_tx) {
+            datoms.insert(d);
+        }
+        for d in full_schema_datoms(genesis_tx) {
+            datoms.insert(d);
+        }
+        Store::from_datoms(datoms)
+    }
+
+    /// Rebuild a store from its datoms plus additional datoms.
+    fn routing_store_with(
+        store: &Store,
+        extra: impl IntoIterator<Item = crate::datom::Datom>,
+    ) -> Store {
+        let mut datoms = store.datom_set().clone();
+        for d in extra {
+            datoms.insert(d);
+        }
+        Store::from_datoms(datoms)
+    }
+
+    // Verifies: INV-GUIDANCE-010 — R(t) routing from empty store
+    #[test]
+    fn routing_from_store_empty_returns_empty() {
+        let store = Store::genesis();
+        let routed = compute_routing_from_store(&store);
+        assert!(
+            routed.is_empty(),
+            "genesis store with no tasks should produce empty routing"
+        );
+    }
+
+    // Verifies: INV-GUIDANCE-010 — R(t) routes real store tasks
+    #[test]
+    fn routing_from_store_with_tasks_returns_ranked() {
+        use crate::datom::AgentId;
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let store = routing_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = crate::datom::TxId::new(1, 0, agent);
+
+        // Create three tasks with different priorities
+        let (_, datoms_a) = create_task_datoms(CreateTaskParams {
+            title: "High prio task",
+            description: None,
+            priority: 0,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, datoms_a);
+
+        let (_, datoms_b) = create_task_datoms(CreateTaskParams {
+            title: "Medium prio task",
+            description: None,
+            priority: 2,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, datoms_b);
+
+        let (_, datoms_c) = create_task_datoms(CreateTaskParams {
+            title: "Low prio task",
+            description: None,
+            priority: 4,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, datoms_c);
+
+        let routed = compute_routing_from_store(&store);
+        assert_eq!(routed.len(), 3, "all three tasks should be ready (no deps)");
+
+        // All should have positive impact scores
+        for r in &routed {
+            assert!(
+                r.impact > 0.0,
+                "task '{}' should have positive impact, got {}",
+                r.label,
+                r.impact
+            );
+        }
+
+        // Results should be sorted by descending impact
+        for w in routed.windows(2) {
+            assert!(
+                w[0].impact >= w[1].impact,
+                "routing must be descending: {} >= {} violated",
+                w[0].impact,
+                w[1].impact
+            );
+        }
+    }
+
+    // Verifies: INV-GUIDANCE-010 — R(t) impact-based ranking differs from priority
+    //
+    // A P2 task that unblocks 5 others should rank above a P1 task that unblocks
+    // nothing. This proves that R(t) considers graph structure, not just priority.
+    #[test]
+    fn routing_from_store_graph_impact_beats_priority() {
+        use crate::datom::AgentId;
+        use crate::task::{
+            create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, CreateTaskParams,
+            TaskType,
+        };
+
+        let store = routing_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = crate::datom::TxId::new(1, 0, agent);
+
+        // Create a P1 "island" task (high priority but blocks nothing)
+        let (_, datoms_island) = create_task_datoms(CreateTaskParams {
+            title: "Island P1 task",
+            description: None,
+            priority: 1,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, datoms_island);
+        let island_entity = find_task_by_id(&store, &generate_task_id("Island P1 task")).unwrap();
+
+        // Create a P2 "hub" task (lower priority but blocks 5 tasks)
+        let (_, datoms_hub) = create_task_datoms(CreateTaskParams {
+            title: "Hub P2 task",
+            description: None,
+            priority: 2,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, datoms_hub);
+        let hub_entity = find_task_by_id(&store, &generate_task_id("Hub P2 task")).unwrap();
+
+        // Create 5 downstream tasks that depend on the hub
+        for i in 0..5 {
+            let title = format!("Downstream task {i}");
+            let (_, datoms_down) = create_task_datoms(CreateTaskParams {
+                title: &title,
+                description: None,
+                priority: 3,
+                task_type: TaskType::Task,
+                tx,
+                traces_to: &[],
+                labels: &[],
+            });
+            let store_tmp = routing_store_with(&store, datoms_down);
+            let down_entity = find_task_by_id(&store_tmp, &generate_task_id(&title)).unwrap();
+            // Each downstream depends on the hub
+            let store_tmp =
+                routing_store_with(&store_tmp, vec![dep_add_datom(down_entity, hub_entity, tx)]);
+            // Reassign store (accumulate)
+            // We need to build up incrementally
+            let mut all_datoms = store_tmp.datom_set().clone();
+            // Merge back
+            for d in store.datom_set().iter() {
+                all_datoms.insert(d.clone());
+            }
+            let _ = Store::from_datoms(all_datoms);
+        }
+
+        // Rebuild properly: create all downstream tasks in one shot
+        let mut accumulated = store.datom_set().clone();
+        for i in 0..5 {
+            let title = format!("Downstream task {i}");
+            let (_, datoms_down) = create_task_datoms(CreateTaskParams {
+                title: &title,
+                description: None,
+                priority: 3,
+                task_type: TaskType::Task,
+                tx,
+                traces_to: &[],
+                labels: &[],
+            });
+            for d in datoms_down {
+                accumulated.insert(d);
+            }
+            let down_entity = EntityId::from_ident(&format!(":task/{}", generate_task_id(&title)));
+            accumulated.insert(dep_add_datom(down_entity, hub_entity, tx));
+        }
+        let store = Store::from_datoms(accumulated);
+
+        let routed = compute_routing_from_store(&store);
+
+        // The hub task and the island task should both be in the ready set
+        // (hub has no deps, island has no deps; downstream tasks are blocked)
+        let hub_routing = routed.iter().find(|r| r.entity == hub_entity);
+        let island_routing = routed.iter().find(|r| r.entity == island_entity);
+
+        assert!(
+            hub_routing.is_some(),
+            "hub task should be in routed results"
+        );
+        assert!(
+            island_routing.is_some(),
+            "island task should be in routed results"
+        );
+
+        let hub_impact = hub_routing.unwrap().impact;
+        let island_impact = island_routing.unwrap().impact;
+
+        assert!(
+            hub_impact > island_impact,
+            "P2 hub (impact={hub_impact:.4}) should rank above P1 island \
+             (impact={island_impact:.4}) because hub unblocks 5 tasks"
         );
     }
 }

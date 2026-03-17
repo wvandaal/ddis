@@ -113,7 +113,7 @@ pub fn run(
     let agent = AgentId::from_name(agent_name);
 
     // Parse knowledge pairs: each group of 2 strings = (key, value)
-    if knowledge_raw.len() % 2 != 0 {
+    if !knowledge_raw.len().is_multiple_of(2) {
         return Err(BraidError::Parse(
             "knowledge items must be pairs: key value".into(),
         ));

@@ -4,7 +4,7 @@ members = ["crates/braid-kernel", "crates/braid"]
 
 [workspace.package]
 edition = "2021"
-rust-version = "1.75"
+rust-version = "1.91"
 
 # Optimize in dev builds — eigendecomposition, graph algorithms,
 # and entity resolution are unusable without optimization on stores with > 100 entities.

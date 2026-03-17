@@ -95,7 +95,7 @@ fn local_query_sees_shared_plus_working() {
 
     // Add something to shared first
     let shared_entity = EntityId::from_ident(":test/shared-data");
-    let tx = braid_kernel::datom::TxId::new(50, 0, agent);
+    let _tx = braid_kernel::datom::TxId::new(50, 0, agent);
     let committed =
         braid_kernel::store::Transaction::new(agent, ProvenanceType::Observed, "shared")
             .assert(
@@ -169,20 +169,20 @@ fn multi_agent_stress_4_agents() {
 
     // Phase 2: Each agent commits 2 entities
     let mut total_committed = 0;
-    for i in 0..4 {
+    for (i, agent) in agents.iter_mut().enumerate().take(4) {
         let entities: Vec<EntityId> = (0..2)
             .map(|j| EntityId::from_ident(&format!(":stress/agent{i}-item{j}")))
             .collect();
 
-        match agents[i].commit(&entities) {
+        match agent.commit(&entities) {
             Ok(_) => total_committed += 1,
             Err(e) => eprintln!("Agent {i} commit failed: {e:?}"),
         }
     }
 
     // Phase 3: Verify isolation
-    for i in 0..4 {
-        let local = agents[i].query_local();
+    for (i, agent) in agents.iter().enumerate().take(4) {
+        let local = agent.query_local();
         // Each agent should see at least genesis + its 10 local datoms
         assert!(
             local.len() > genesis_len,

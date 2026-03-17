@@ -93,12 +93,12 @@ pub use deliberation::{
 pub use error::KernelError;
 pub use guidance::{
     build_command_footer, build_footer, build_footer_with_budget, compute_methodology_score,
-    compute_routing, default_derivation_rules, derive_actions, derive_actions_with_budget,
-    derive_tasks, format_actions, format_footer, format_footer_at_level,
-    harvest_warning_from_k_eff, harvest_warning_level, modulate_actions, observation_staleness,
-    ActionCategory, DerivationRule, DerivedTask, GuidanceAction, GuidanceFooter,
-    HarvestWarningLevel, MethodologyComponents, MethodologyScore, RoutingMetrics, SessionTelemetry,
-    TaskNode, TaskRouting, Trend,
+    compute_routing, compute_routing_from_store, default_derivation_rules, derive_actions,
+    derive_actions_with_budget, derive_tasks, format_actions, format_footer,
+    format_footer_at_level, harvest_warning_from_k_eff, harvest_warning_level, modulate_actions,
+    observation_staleness, ActionCategory, DerivationRule, DerivedTask, GuidanceAction,
+    GuidanceFooter, HarvestWarningLevel, MethodologyComponents, MethodologyScore, RoutingMetrics,
+    SessionTelemetry, TaskNode, TaskRouting, Trend,
 };
 pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, classify_spec_candidate,
@@ -145,8 +145,8 @@ pub use schema::{
     domain_schema_datoms, full_schema_datoms, has_layer_4, layer_1_attributes, layer_1_datoms,
     layer_2_attributes, layer_2_datoms, layer_3_attributes, layer_3_datoms, layer_4_attributes,
     layer_4_datoms, layer_4_evolution_tx, AttributeDef, AttributeSpec, Cardinality, ResolutionMode,
-    Schema, Uniqueness, ValueType, GENESIS_ATTR_COUNT, LAYER_1_COUNT, LAYER_2_COUNT,
-    LAYER_3_COUNT, LAYER_4_COUNT,
+    Schema, Uniqueness, ValueType, GENESIS_ATTR_COUNT, LAYER_1_COUNT, LAYER_2_COUNT, LAYER_3_COUNT,
+    LAYER_4_COUNT,
 };
 pub use seed::{
     assemble, assemble_seed, associate, verify_seed, AssembledContext, AssociateCue,

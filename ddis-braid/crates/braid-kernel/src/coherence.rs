@@ -148,8 +148,8 @@ pub fn tier1_check(store: &Store, new_datoms: &[Datom]) -> Result<(), CoherenceV
                 // ADR-COHERENCE-001: Check if this transaction RETRACTS the
                 // existing value. If so, this is a valid state machine transition
                 // (retract old → assert new), not a contradiction.
-                let old_retracted = retractions_in_tx
-                    .contains(&(datom.entity, &datom.attribute, &existing.value));
+                let old_retracted =
+                    retractions_in_tx.contains(&(datom.entity, &datom.attribute, &existing.value));
 
                 if old_retracted {
                     // Valid transition: old value retracted, new value asserted.

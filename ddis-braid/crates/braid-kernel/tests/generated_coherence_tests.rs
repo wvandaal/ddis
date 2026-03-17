@@ -24,6 +24,6 @@ mod generated_coherence_tests {
         //   - Valid Rust identifiers (underscores not colons)
         //   - Defined helper functions or inline assertions
         //   - Non-tautological property checks (actual mutations before assertions)
-        assert!(true, "Regenerate with: braid compile --emit-tests");
+        // No-op: regenerate with `braid compile --emit-tests`
     }
 }

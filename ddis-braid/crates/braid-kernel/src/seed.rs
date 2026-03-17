@@ -34,6 +34,7 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, Value};
 use crate::query::graph::{pagerank, DiGraph};
 use crate::store::Store;
+use crate::task::{all_tasks, task_summary, TaskStatus, TaskSummary};
 
 /// Extract session number from task strings like "Session 016: ..." or "continue: Session 016: ...".
 /// Returns the numeric part (e.g., "016") for deduplication across same-session harvests.
@@ -1318,6 +1319,182 @@ fn build_directive(
     parts.join("\n")
 }
 
+// ---------------------------------------------------------------------------
+// INV-SEED-006: Intention Anchoring — pi_0 pinning for active intentions
+// ---------------------------------------------------------------------------
+
+/// Context for active intentions, rendered at full detail (pi_0).
+///
+/// INV-SEED-006: Active intentions are pinned at full detail regardless of
+/// budget pressure. The intention context is pre-allocated from the budget
+/// before any other content is considered.
+#[derive(Clone, Debug)]
+pub struct IntentionContext {
+    /// Rendered intention text at pi_0 (full detail).
+    pub text: String,
+    /// Estimated token cost of the intention context.
+    pub tokens: usize,
+    /// Number of active (in-progress) tasks found.
+    pub active_count: usize,
+    /// Whether the explicit task string matched a store task.
+    pub task_matched: bool,
+}
+
+/// Query the store for in-progress tasks and build intention context at pi_0.
+///
+/// INV-SEED-006: Every active intention appears at full projection level,
+/// regardless of budget. This function:
+///
+/// 1. Queries all tasks with status = InProgress
+/// 2. If an explicit task string was passed, resolves it against store tasks
+/// 3. Renders each intention at pi_0 with: title, type, priority,
+///    dependencies, traces-to spec elements, description
+/// 4. Returns the rendered text and its token cost for budget pre-allocation
+///
+/// When the store has no in-progress tasks and no explicit task match,
+/// returns an empty context (zero tokens).
+fn build_intention_context(store: &Store, task: &str) -> IntentionContext {
+    let tasks = all_tasks(store);
+    let in_progress: Vec<&TaskSummary> = tasks
+        .iter()
+        .filter(|t| t.status == TaskStatus::InProgress)
+        .collect();
+
+    // Check if the explicit task string matches any store task (by title substring)
+    let task_lower = task.to_lowercase();
+    let explicit_match: Option<&TaskSummary> = tasks.iter().find(|t| {
+        let title_lower = t.title.to_lowercase();
+        // Match if: task contains the title, title contains the task,
+        // or the task ID appears in the task string
+        title_lower.contains(&task_lower)
+            || task_lower.contains(&title_lower)
+            || task_lower.contains(&t.id.to_lowercase())
+    });
+
+    // Collect unique task entities to render (in-progress + explicit match)
+    let mut seen = BTreeSet::new();
+    let mut intention_tasks: Vec<&TaskSummary> = Vec::new();
+    for t in &in_progress {
+        if seen.insert(t.entity) {
+            intention_tasks.push(t);
+        }
+    }
+    let task_matched = if let Some(matched) = explicit_match {
+        if seen.insert(matched.entity) {
+            intention_tasks.push(matched);
+        }
+        true
+    } else {
+        false
+    };
+
+    if intention_tasks.is_empty() {
+        return IntentionContext {
+            text: String::new(),
+            tokens: 0,
+            active_count: 0,
+            task_matched: false,
+        };
+    }
+
+    let active_count = intention_tasks.len();
+    let mut lines = Vec::new();
+    lines.push(format!(
+        "Active intentions ({} task{}):",
+        active_count,
+        if active_count == 1 { "" } else { "s" }
+    ));
+
+    for t in &intention_tasks {
+        // pi_0: full detail rendering
+        let priority_label = match t.priority {
+            0 => "P0/critical",
+            1 => "P1/high",
+            2 => "P2/medium",
+            3 => "P3/low",
+            _ => "P4/backlog",
+        };
+        let type_label = t
+            .task_type
+            .strip_prefix(":task.type/")
+            .unwrap_or(&t.task_type);
+        let status_label = match t.status {
+            TaskStatus::Open => "open",
+            TaskStatus::InProgress => "in-progress",
+            TaskStatus::Closed => "closed",
+        };
+
+        lines.push(format!(
+            "  [{id}] {title} ({type_label}, {priority_label}, {status_label})",
+            id = t.id,
+            title = t.title,
+        ));
+
+        // Description (query store directly since TaskSummary omits it)
+        for d in store.entity_datoms(t.entity) {
+            if d.attribute.as_str() == ":task/description" && d.op == Op::Assert {
+                if let Value::String(ref desc) = d.value {
+                    lines.push(format!("    Description: {}", truncate_chars(desc, 200)));
+                }
+            }
+        }
+
+        // Dependencies: resolve titles of dependent tasks
+        if !t.depends_on.is_empty() {
+            let dep_labels: Vec<String> = t
+                .depends_on
+                .iter()
+                .filter_map(|dep_eid| {
+                    task_summary(store, *dep_eid).map(|dep| format!("{} ({})", dep.title, dep.id))
+                })
+                .collect();
+            if !dep_labels.is_empty() {
+                lines.push(format!("    Depends on: {}", dep_labels.join(", ")));
+            }
+        }
+
+        // Blocked-by: find tasks that depend on this one
+        let blocking: Vec<String> = tasks
+            .iter()
+            .filter(|other| other.depends_on.contains(&t.entity))
+            .map(|other| format!("{} ({})", other.title, other.id))
+            .collect();
+        if !blocking.is_empty() {
+            lines.push(format!("    Blocks: {}", blocking.join(", ")));
+        }
+
+        // Traces-to: resolve spec element idents
+        if !t.traces_to.is_empty() {
+            let spec_labels: Vec<String> = t
+                .traces_to
+                .iter()
+                .map(|spec_eid| resolve_entity_label(store, *spec_eid))
+                .collect();
+            lines.push(format!("    Traces to: {}", spec_labels.join(", ")));
+        }
+
+        // Labels
+        if !t.labels.is_empty() {
+            let label_names: Vec<&str> = t
+                .labels
+                .iter()
+                .map(|l| l.strip_prefix(":label/").unwrap_or(l.as_str()))
+                .collect();
+            lines.push(format!("    Labels: {}", label_names.join(", ")));
+        }
+    }
+
+    let text = lines.join("\n");
+    let tokens = estimate_tokens(&text);
+
+    IntentionContext {
+        text,
+        tokens,
+        active_count,
+        task_matched,
+    }
+}
+
 fn fallback_recent_entities(store: &Store, limit: usize) -> Vec<EntityId> {
     // Collect max wall_time per entity
     let mut entity_recency: BTreeMap<EntityId, u64> = BTreeMap::new();
@@ -1851,13 +2028,39 @@ pub fn assemble(
 
     // Build sections
 
+    // ── INV-SEED-006: Pre-allocate intention context at pi_0 ──────────────
+    //
+    // Active intentions (in-progress tasks) are pinned at full detail
+    // and their budget cost is pre-allocated BEFORE other content.
+    // If B_pinned >= total budget, still include intentions (they override
+    // everything else) but emit a note about budget exhaustion.
+    let intention = build_intention_context(store, task);
+    let intention_tokens = intention.tokens;
+
     // Get last session excerpt for directive carry-forward
     let recent = discover_recent_sessions(store, 1);
     let last_session = recent.first();
 
-    // Directive: task + action injection (SB.2.1)
+    // Directive: task + action injection (SB.2.1) + intention anchoring
     let actions = crate::guidance::derive_actions(store);
-    let directive_text = build_directive(task, &actions, budget, last_session);
+    let base_directive_text = build_directive(task, &actions, budget, last_session);
+
+    // Augment directive with intention context (INV-SEED-006).
+    // Intention context is injected AFTER the task line, before other content,
+    // ensuring it is the first thing the agent sees after the task anchor.
+    let directive_text = if !intention.text.is_empty() {
+        let budget_note = if intention_tokens >= budget {
+            "\n[Note: Intention context exhausts budget — other sections compressed]"
+        } else {
+            ""
+        };
+        format!(
+            "{}\n\n{}{}\n",
+            base_directive_text, intention.text, budget_note
+        )
+    } else {
+        base_directive_text
+    };
     let directive_tokens = estimate_tokens(&directive_text);
     let directive = ContextSection::Directive(directive_text);
 
@@ -1882,7 +2085,8 @@ pub fn assemble(
         .sum::<usize>();
     let constraints = ContextSection::Constraints(constraint_refs);
 
-    // Allocate remaining budget to state entries
+    // Allocate remaining budget to state entries.
+    // Intention tokens are already counted within directive_tokens.
     let overhead = directive_tokens + orientation_tokens + warnings_tokens + constraints_tokens;
     let state_budget = budget.saturating_sub(overhead);
 
@@ -2483,14 +2687,50 @@ pub fn verify_seed(seed: &SeedOutput, store: &Store, budget: usize) -> SeedVerif
         ));
     }
 
-    // INV-SEED-006: Intention anchoring — Directive always present
-    let has_directive = seed
-        .context
-        .sections
-        .iter()
-        .any(|s| matches!(s, ContextSection::Directive(_)));
-    if has_directive {
+    // INV-SEED-006: Intention anchoring — Directive always present AND
+    // in-progress tasks appear at pi_0 in the directive section.
+    let directive_text = seed.context.sections.iter().find_map(|s| {
+        if let ContextSection::Directive(ref d) = s {
+            Some(d.clone())
+        } else {
+            None
+        }
+    });
+    if let Some(ref d_text) = directive_text {
         satisfied.push("INV-SEED-006: Directive section present (intention anchored)".into());
+
+        // Strengthened check: verify in-progress tasks appear in directive
+        let in_progress_tasks: Vec<TaskSummary> = all_tasks(store)
+            .into_iter()
+            .filter(|t| t.status == TaskStatus::InProgress)
+            .collect();
+        let mut all_anchored = true;
+        for task in &in_progress_tasks {
+            // Each in-progress task should appear by ID or title in the directive
+            if !d_text.contains(&task.id) && !d_text.contains(&task.title) {
+                violations.push(format!(
+                    "INV-SEED-006 violated: in-progress task '{}' ({}) not anchored in Directive",
+                    task.title, task.id
+                ));
+                all_anchored = false;
+            }
+        }
+        if !in_progress_tasks.is_empty() && all_anchored {
+            satisfied.push(format!(
+                "INV-SEED-006: all {} in-progress task(s) anchored at pi_0",
+                in_progress_tasks.len()
+            ));
+        }
+
+        // Verify task string appears in directive
+        if !d_text.contains(&format!("Task: {}", seed.task)) {
+            violations.push(format!(
+                "INV-SEED-006 violated: explicit task '{}' not found in Directive",
+                seed.task
+            ));
+        } else {
+            satisfied.push("INV-SEED-006: explicit task string present in Directive".into());
+        }
     } else {
         violations.push("INV-SEED-006 violated: no Directive section".into());
     }
@@ -3987,5 +4227,391 @@ mod tests {
                 );
             }
         }
+
+        // ── INV-SEED-006: Intention anchoring with in-progress tasks ────
+        proptest! {
+            #[test]
+            fn intention_anchoring_in_progress_tasks_pinned(
+                budget in 50usize..5000,
+            ) {
+                // Build a store with an in-progress task and verify it appears
+                // in the seed directive at pi_0, regardless of budget.
+                let mut store = store_with_full_schema();
+                let agent = AgentId::from_name("inv006-task-test");
+                let tx = crate::datom::TxId::new(1000, 0, agent);
+
+                // Create a task and set it to InProgress
+                let (entity, task_datoms) = crate::task::create_task_datoms(
+                    crate::task::CreateTaskParams {
+                        title: "Implement intention anchoring",
+                        description: Some("Pin active intentions at pi_0 in seed"),
+                        priority: 1,
+                        task_type: crate::task::TaskType::Task,
+                        tx,
+                        traces_to: &[],
+                        labels: &["seed".to_string()],
+                    },
+                );
+                let overlay = Store::from_datoms(task_datoms.into_iter().collect());
+                store.merge(&overlay);
+
+                // Advance status to InProgress
+                let tx2 = crate::datom::TxId::new(1001, 0, agent);
+                let status_datom =
+                    crate::task::update_status_datom(entity, TaskStatus::InProgress, tx2);
+                let overlay2 = Store::from_datoms(
+                    std::iter::once(status_datom).collect(),
+                );
+                store.merge(&overlay2);
+
+                let seed = assemble_seed(
+                    &store,
+                    "implement intention anchoring",
+                    budget,
+                    agent,
+                );
+
+                // The directive must contain the task title and ID
+                let directive_text = seed.context.sections.iter().find_map(|s| {
+                    if let ContextSection::Directive(ref d) = s {
+                        Some(d.clone())
+                    } else {
+                        None
+                    }
+                });
+
+                prop_assert!(
+                    directive_text.is_some(),
+                    "INV-SEED-006: Directive section must be present"
+                );
+
+                let directive = directive_text.unwrap();
+                prop_assert!(
+                    directive.contains("Implement intention anchoring"),
+                    "INV-SEED-006: in-progress task title must appear in Directive. Got: {}",
+                    &directive[..directive.len().min(500)]
+                );
+                prop_assert!(
+                    directive.contains("Active intentions"),
+                    "INV-SEED-006: intention context header must appear in Directive. Got: {}",
+                    &directive[..directive.len().min(500)]
+                );
+                prop_assert!(
+                    directive.contains("P1/high"),
+                    "INV-SEED-006: task priority must appear at pi_0 detail. Got: {}",
+                    &directive[..directive.len().min(500)]
+                );
+            }
+        }
+    }
+
+    // ── INV-SEED-006: Unit tests for intention anchoring ────────────────
+
+    // Verifies: INV-SEED-006 — In-progress task details at pi_0
+    #[test]
+    fn intention_context_with_in_progress_task() {
+        use crate::datom::TxId;
+
+        let mut store = store_with_full_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1000, 0, agent);
+
+        // Create a task
+        let (entity, task_datoms) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
+                title: "Fix seed budget overflow",
+                description: Some("The seed assembly exceeds declared budget under pressure"),
+                priority: 0,
+                task_type: crate::task::TaskType::Bug,
+                tx,
+                traces_to: &[],
+                labels: &["kernel".to_string()],
+            });
+        let overlay = Store::from_datoms(task_datoms.into_iter().collect());
+        store.merge(&overlay);
+
+        // Advance to InProgress
+        let tx2 = TxId::new(1001, 0, agent);
+        let status_datom = crate::task::update_status_datom(entity, TaskStatus::InProgress, tx2);
+        let overlay2 = Store::from_datoms(std::iter::once(status_datom).collect());
+        store.merge(&overlay2);
+
+        let ctx = build_intention_context(&store, "fix budget overflow");
+
+        // Should find the in-progress task
+        assert_eq!(ctx.active_count, 1, "Should find 1 active intention");
+        assert!(
+            ctx.tokens > 0,
+            "Intention context should have nonzero tokens"
+        );
+        assert!(
+            ctx.text.contains("Fix seed budget overflow"),
+            "Should contain task title: {}",
+            ctx.text
+        );
+        assert!(
+            ctx.text.contains("P0/critical"),
+            "Should contain priority at pi_0: {}",
+            ctx.text
+        );
+        assert!(
+            ctx.text.contains("bug"),
+            "Should contain task type at pi_0: {}",
+            ctx.text
+        );
+        assert!(
+            ctx.text.contains("Description:"),
+            "Should contain description at pi_0: {}",
+            ctx.text
+        );
+        assert!(
+            ctx.text.contains("seed assembly exceeds"),
+            "Should contain description text: {}",
+            ctx.text
+        );
+        assert!(
+            ctx.text.contains("kernel"),
+            "Should contain label at pi_0: {}",
+            ctx.text
+        );
+    }
+
+    // Verifies: INV-SEED-006 — No crash when store has no tasks
+    #[test]
+    fn intention_context_empty_store_no_crash() {
+        let store = Store::genesis();
+        let ctx = build_intention_context(&store, "implement feature");
+
+        assert_eq!(ctx.active_count, 0);
+        assert_eq!(ctx.tokens, 0);
+        assert!(ctx.text.is_empty());
+        assert!(!ctx.task_matched);
+    }
+
+    // Verifies: INV-SEED-006 — Open tasks (not in-progress) are NOT anchored
+    #[test]
+    fn intention_context_ignores_open_tasks() {
+        use crate::datom::TxId;
+
+        let mut store = store_with_full_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1000, 0, agent);
+
+        // Create a task but leave it Open (don't advance to InProgress)
+        let (_entity, task_datoms) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
+                title: "Future work item",
+                description: None,
+                priority: 3,
+                task_type: crate::task::TaskType::Task,
+                tx,
+                traces_to: &[],
+                labels: &[],
+            });
+        let overlay = Store::from_datoms(task_datoms.into_iter().collect());
+        store.merge(&overlay);
+
+        // An unrelated task string — no in-progress tasks, no match
+        let ctx = build_intention_context(&store, "something else entirely");
+
+        // No in-progress tasks, and task string doesn't match the open task
+        assert_eq!(ctx.active_count, 0);
+        assert_eq!(ctx.tokens, 0);
+    }
+
+    // Verifies: INV-SEED-006 — Intention appears even with tiny budget (pi_0 pinning)
+    #[test]
+    fn intention_anchoring_survives_tiny_budget() {
+        use crate::datom::TxId;
+
+        let mut store = store_with_full_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1000, 0, agent);
+
+        // Create an in-progress task
+        let (entity, task_datoms) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
+                title: "Critical production fix",
+                description: Some("System is down, need immediate fix"),
+                priority: 0,
+                task_type: crate::task::TaskType::Bug,
+                tx,
+                traces_to: &[],
+                labels: &["urgent".to_string()],
+            });
+        let overlay = Store::from_datoms(task_datoms.into_iter().collect());
+        store.merge(&overlay);
+
+        let tx2 = TxId::new(1001, 0, agent);
+        let status_datom = crate::task::update_status_datom(entity, TaskStatus::InProgress, tx2);
+        let overlay2 = Store::from_datoms(std::iter::once(status_datom).collect());
+        store.merge(&overlay2);
+
+        // Assemble with a very small budget (50 tokens)
+        let seed = assemble_seed(&store, "fix production", 50, agent);
+
+        // The directive MUST still contain the intention context
+        let directive_text = seed.context.sections.iter().find_map(|s| {
+            if let ContextSection::Directive(ref d) = s {
+                Some(d.clone())
+            } else {
+                None
+            }
+        });
+
+        assert!(
+            directive_text.is_some(),
+            "Directive section must be present even with tiny budget"
+        );
+        let directive = directive_text.unwrap();
+        assert!(
+            directive.contains("Critical production fix"),
+            "INV-SEED-006: intention must survive tiny budget. Got: {}",
+            directive
+        );
+        assert!(
+            directive.contains("Active intentions"),
+            "INV-SEED-006: intention header must survive tiny budget. Got: {}",
+            directive
+        );
+    }
+
+    // Verifies: INV-SEED-006 — verify_seed detects missing in-progress task
+    #[test]
+    fn verify_seed_detects_unanchored_intention() {
+        use crate::datom::TxId;
+
+        let mut store = store_with_full_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1000, 0, agent);
+
+        // Create an in-progress task
+        let (entity, task_datoms) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
+                title: "Anchored task",
+                description: None,
+                priority: 2,
+                task_type: crate::task::TaskType::Task,
+                tx,
+                traces_to: &[],
+                labels: &[],
+            });
+        let overlay = Store::from_datoms(task_datoms.into_iter().collect());
+        store.merge(&overlay);
+
+        let tx2 = TxId::new(1001, 0, agent);
+        let status_datom = crate::task::update_status_datom(entity, TaskStatus::InProgress, tx2);
+        let overlay2 = Store::from_datoms(std::iter::once(status_datom).collect());
+        store.merge(&overlay2);
+
+        // Assemble normally — should pass verification
+        let seed = assemble_seed(&store, "anchored task", 3000, agent);
+        let verification = verify_seed(&seed, &store, 3000);
+
+        assert!(
+            verification.passed,
+            "Seed with anchored in-progress task should pass verification. Violations: {:?}",
+            verification.violations
+        );
+        assert!(
+            verification
+                .satisfied
+                .iter()
+                .any(|s| s.contains("in-progress task(s) anchored")),
+            "Should report in-progress tasks anchored. Satisfied: {:?}",
+            verification.satisfied
+        );
+    }
+
+    // Verifies: INV-SEED-006 — Dependency and trace-to info at pi_0
+    #[test]
+    fn intention_context_includes_dependencies_and_traces() {
+        use crate::datom::TxId;
+
+        let mut store = store_with_full_schema();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1000, 0, agent);
+
+        // Create a spec entity to trace to
+        let spec_entity = EntityId::from_ident(":spec/inv-seed-006");
+        let mut spec_datoms = BTreeSet::new();
+        spec_datoms.insert(Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":spec/inv-seed-006".into()),
+            tx,
+            Op::Assert,
+        ));
+        store.merge(&Store::from_datoms(spec_datoms));
+
+        // Create a dependency task (closed)
+        let (dep_entity, dep_datoms) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
+                title: "Prerequisite task",
+                description: None,
+                priority: 2,
+                task_type: crate::task::TaskType::Task,
+                tx,
+                traces_to: &[],
+                labels: &[],
+            });
+        let overlay = Store::from_datoms(dep_datoms.into_iter().collect());
+        store.merge(&overlay);
+        // Close the dep
+        let tx_close = TxId::new(1001, 0, agent);
+        let close_datoms = crate::task::close_task_datoms(dep_entity, "done", tx_close);
+        let overlay_close = Store::from_datoms(close_datoms.into_iter().collect());
+        store.merge(&overlay_close);
+
+        // Create the main in-progress task with dependencies and traces
+        let tx2 = TxId::new(1002, 0, agent);
+        let (main_entity, main_datoms) =
+            crate::task::create_task_datoms(crate::task::CreateTaskParams {
+                title: "Main active task",
+                description: Some("Task with deps and traces"),
+                priority: 1,
+                task_type: crate::task::TaskType::Feature,
+                tx: tx2,
+                traces_to: &[spec_entity],
+                labels: &[],
+            });
+        let overlay_main = Store::from_datoms(main_datoms.into_iter().collect());
+        store.merge(&overlay_main);
+
+        // Add dependency edge: main -> dep
+        let dep_datom = crate::task::dep_add_datom(main_entity, dep_entity, tx2);
+        let overlay_dep = Store::from_datoms(std::iter::once(dep_datom).collect());
+        store.merge(&overlay_dep);
+
+        // Advance main task to InProgress
+        let tx3 = TxId::new(1003, 0, agent);
+        let status_datom =
+            crate::task::update_status_datom(main_entity, TaskStatus::InProgress, tx3);
+        let overlay_status = Store::from_datoms(std::iter::once(status_datom).collect());
+        store.merge(&overlay_status);
+
+        let ctx = build_intention_context(&store, "main active task");
+
+        // pi_0: Should include dependency and trace information
+        assert!(
+            ctx.text.contains("Depends on:"),
+            "Should show dependency at pi_0: {}",
+            ctx.text
+        );
+        assert!(
+            ctx.text.contains("Prerequisite task"),
+            "Should show dep title at pi_0: {}",
+            ctx.text
+        );
+        assert!(
+            ctx.text.contains("Traces to:"),
+            "Should show traces-to at pi_0: {}",
+            ctx.text
+        );
+        assert!(
+            ctx.text.contains(":spec/inv-seed-006"),
+            "Should show spec element ref at pi_0: {}",
+            ctx.text
+        );
     }
 }

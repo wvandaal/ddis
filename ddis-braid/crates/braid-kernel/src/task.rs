@@ -503,7 +503,7 @@ pub fn compute_ready_set(store: &Store) -> Vec<TaskSummary> {
                 && t.depends_on.iter().all(|dep| {
                     status_map
                         .get(dep)
-                        .map_or(true, |s| *s == TaskStatus::Closed)
+                        .is_none_or(|s| *s == TaskStatus::Closed)
                 })
         })
         .collect();
