@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773775064/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-acf0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e3703446c29b84febbc4c03d26b2f151e633baa47152c99154689f3e45506ab" :a :task/close-reason :v "Implemented build_intention_context() — INV-SEED-006 intention anchoring" :op :assert}
+   {:e #blake3 "2e3703446c29b84febbc4c03d26b2f151e633baa47152c99154689f3e45506ab" :a :task/closed-at :v 1773775062 :op :assert}
+   {:e #blake3 "2e3703446c29b84febbc4c03d26b2f151e633baa47152c99154689f3e45506ab" :a :task/status :v :task.status/closed :op :assert}
+ ]}
