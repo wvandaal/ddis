@@ -436,7 +436,7 @@ genesis.edn is a compile-time constant.
   contents(L₁.genesis.edn) = contents(L₂.genesis.edn)
   BLAKE3(L₁.genesis.edn) = BLAKE3(L₂.genesis.edn)
 
-The genesis transaction defines the 18 axiomatic meta-schema attributes (SR-008).
+The genesis transaction defines the 19 axiomatic meta-schema attributes (SR-008).
 Its content is fixed at compile time — every Braid instance starts from the same seed.
 
 This is the physical realization of INV-STORE-010 (genesis determinism, INV-SCHEMA-001).

@@ -313,16 +313,16 @@ Deployment model, storage implementation, schema layers, and index design.
 **Note**: flock coordination superseded by SR-014 / ADR-LAYOUT-006 (O_CREAT|O_EXCL structural concurrency). See `spec/01b-storage-layout.md`.
 **Note**: Both SR-006 and SR-007 map to ADR-STORE-007 (now superseded by ADR-STORE-014). SR-006 covered file layout decisions; SR-007 covered coordination mechanism.
 
-### SR-008: Axiomatic Meta-Schema — 17 Bootstrap Attributes
+### SR-008: Axiomatic Meta-Schema — 19 Bootstrap Attributes
 
-**Decision**: The meta-schema consists of exactly 17 axiomatic attributes hardcoded in the engine (not defined by datoms): `:db/ident`, `:db/valueType`, `:db/cardinality`, `:db/doc`, `:db/unique`, `:db/isComponent`, `:db/resolutionMode`, `:db/latticeOrder`, `:db/lwwClock`, plus lattice definition attributes (`:lattice/ident`, `:lattice/elements`, `:lattice/comparator`, `:lattice/bottom`, `:lattice/top`), plus transaction provenance attributes (`:tx/time` (Instant), `:tx/agent` (Ref->AgentId), `:tx/provenance` (String)). Value types include non-standard `:db.type/json` and `:db.type/tuple`. Three LWW clock options: `:hlc`, `:wall`, `:agent-rank`.
-**Rationale**: The meta-schema is the self-describing foundation — the only attributes not defined by datoms. Everything else in the store is defined by datoms that reference these 17 attributes.
+**Decision**: The meta-schema consists of exactly 19 axiomatic attributes hardcoded in the engine (not defined by datoms): `:db/ident`, `:db/valueType`, `:db/cardinality`, `:db/doc`, `:db/unique`, `:db/isComponent`, `:db/resolutionMode`, `:db/latticeOrder`, `:db/lwwClock`, plus lattice definition attributes (`:lattice/ident`, `:lattice/elements`, `:lattice/comparator`, `:lattice/bottom`, `:lattice/top`), plus transaction provenance attributes (`:tx/time` (Instant), `:tx/agent` (Ref->AgentId), `:tx/provenance` (String), `:tx/rationale` (String), `:tx/coherence-override` (String)). Value types include non-standard `:db.type/json` and `:db.type/tuple`. Three LWW clock options: `:hlc`, `:wall`, `:agent-rank`.
+**Rationale**: The meta-schema is the self-describing foundation — the only attributes not defined by datoms. Everything else in the store is defined by datoms that reference these 19 attributes.
 **Source**: Transcript 02:379–420
 **Formalized as**: ADR-SCHEMA-002 in `spec/02-schema.md`
 
 ### SR-009: Six-Layer Schema Architecture
 
-**Decision**: Schema organized into 6 layers: Layer 0 (Meta-schema, 17 axiomatic attributes), Layer 1 (Agent & Provenance, 2 types, 16 attributes, 1 lattice), Layer 2 (DDIS Core, 12 types, 72 attributes, 5 lattices), Layer 3 (Discovery & Exploration, 5 types, 28 attributes, 3 lattices), Layer 4 (Coordination & Uncertainty, 7 types, 35 attributes, 2 lattices), Layer 5 (Workflow & Task, 5 types, 27 attributes, 1 lattice). Total: 31 base entity types, ~195 attributes, 12 lattice definitions.
+**Decision**: Schema organized into 6 layers: Layer 0 (Meta-schema, 19 axiomatic attributes), Layer 1 (Agent & Provenance, 2 types, 16 attributes, 1 lattice), Layer 2 (DDIS Core, 12 types, 72 attributes, 5 lattices), Layer 3 (Discovery & Exploration, 5 types, 28 attributes, 3 lattices), Layer 4 (Coordination & Uncertainty, 7 types, 35 attributes, 2 lattices), Layer 5 (Workflow & Task, 5 types, 27 attributes, 1 lattice). Total: 31 base entity types, ~195 attributes, 12 lattice definitions.
 **Rationale**: The user chose "Approach 2: Full domain model" over minimal schema. The schema IS the ontology — it determines what the system can think about. The 6-layer structure enables incremental implementation.
 **Note**: Protocol extensions (Transcript 04) add 15 more entity types, bringing total to ~46 types, ~300 attributes, ~16 lattices.
 **Source**: Transcript 02:356–942 (user choice at 369, full schema)

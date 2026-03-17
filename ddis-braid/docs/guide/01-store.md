@@ -105,7 +105,7 @@ impl Transaction<Applied> { fn tx_id, receipt }
   handles file-level deduplication and directory union. Both implement INV-MERGE-001 at
   different abstraction levels: kernel merge is pure math; directory merge is its physical
   realization on the content-addressed storage layout.
-- `genesis`: hardcoded 17 axiomatic attributes as datoms. Verify hash matches compile-time constant.
+- `genesis`: hardcoded 19 axiomatic attributes as datoms. Verify hash matches compile-time constant.
 - `as_of`: filter datoms by `d.tx <= frontier_txid` → apply resolution per attribute.
 - Indexes are maintained incrementally on transact (not rebuilt from scratch).
 

@@ -136,10 +136,10 @@ grouped by namespace. Each harness targets the **Level 2 implementation contract
 | STORE | INV-STORE-008 | Genesis determinism: `genesis() = genesis()` | n/a (pure fn) |
 | STORE | INV-STORE-010 | Causal ordering: predecessor `<` successor in HLC | <=5 datoms |
 | STORE | INV-STORE-012 | LIVE index matches manual resolution | <=5 values/attr |
-| SCHEMA | INV-SCHEMA-001 | Schema-as-data: schema extracted only from datoms | <=17 attributes |
-| SCHEMA | INV-SCHEMA-002 | Genesis completeness: exactly 17 axiomatic attributes | n/a (bootstrap) |
+| SCHEMA | INV-SCHEMA-001 | Schema-as-data: schema extracted only from datoms | <=19 attributes |
+| SCHEMA | INV-SCHEMA-002 | Genesis completeness: exactly 19 axiomatic attributes | n/a (bootstrap) |
 | SCHEMA | INV-SCHEMA-004 | Schema validation: rejects malformed datoms | <=10 datoms |
-| SCHEMA | INV-SCHEMA-007 | Lattice definition completeness: all 4 required properties present | <=17 attributes |
+| SCHEMA | INV-SCHEMA-007 | Lattice definition completeness: all 4 required properties present | <=19 attributes |
 | LAYOUT | INV-LAYOUT-001 | Content-addressing: `Blake3(canonical(datom)) == address` | `STORE → LAYOUT` |
 | LAYOUT | INV-LAYOUT-003 | Index rebuild: EAVT/AEVT/VAET/AVET from directory scan | `STORE → LAYOUT` |
 | LAYOUT | INV-LAYOUT-004 | Merge commutativity: `merge(A,B) == merge(B,A)` at filesystem level | `STORE → LAYOUT` |

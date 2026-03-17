@@ -372,7 +372,7 @@ not by Kani.
 | Append-only / monotonicity | STORE-001/002/007/008, HARVEST-001, MERGE-001/008 | Verify datom count non-decreasing after bounded op sequences | <=20 ops |
 | Content-addressing | STORE-003/010 | Stub hash with simpler function; verify structural properties | <=5 datoms |
 | CRDT algebra | STORE-004/005/006, RESOLUTION-002/005/006 | Two/three bounded stores; verify algebraic law on merge | <=5 datoms/store |
-| Schema validation | SCHEMA-001/002/004/007 | Bounded attribute set; verify rejection of invalid datoms and lattice definition completeness | <=17 attributes |
+| Schema validation | SCHEMA-001/002/004/007 | Bounded attribute set; verify rejection of invalid datoms and lattice definition completeness | <=19 attributes |
 | Graph algorithms | QUERY-012/013/017 | Bounded adjacency matrix; verify sort/SCC/critical path | <=8 vertices |
 | Parser rejection | QUERY-001 | Enumerate AST node combinations; verify mode enforcement | <=10 clauses |
 | Branch visibility | QUERY-004 | Bounded store + branch fork; verify visibility set | <=5 datoms, 1 branch |

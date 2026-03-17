@@ -488,7 +488,7 @@ proptest! {
   `txns/{hash[0..2]}/{hash}.edn` (participation in standard operations).
 - Both copies have identical content — verified by `verify_integrity`.
 - Calling `init_layout` twice on the same directory is idempotent.
-- The genesis transaction defines the 17 axiomatic meta-schema attributes (SR-008).
+- The genesis transaction defines the 19 axiomatic meta-schema attributes (SR-008).
 
 **State box** (internal design):
 - Create directory tree: `txns/`, `heads/`, `.cache/`.

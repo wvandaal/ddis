@@ -652,7 +652,7 @@ braid init .braid/
 ```
 
 1. Create empty store (BTreeSet = ∅)
-2. Transact genesis datoms: 17 axiomatic meta-schema attributes (INV-SCHEMA-002)
+2. Transact genesis datoms: 19 axiomatic meta-schema attributes (INV-SCHEMA-002)
 3. Store now recognizes `:db/ident`, `:db/valueType`, etc.
 4. Schema module can validate subsequent transactions
 
@@ -788,7 +788,7 @@ Every agent-mode response follows this three-part structure:
 ```
 [STORE] Transacted 31 datoms (INV-STORE-001..014) in tx hlc:1709000000000-0-agent1.
 Store: 48 datoms, frontier: {agent1: hlc:1709000000000-0-agent1}.
-Genesis + spec bootstrap complete. Schema: 17 axiomatic + 14 spec attributes.
+Genesis + spec bootstrap complete. Schema: 19 axiomatic + 14 spec attributes.
 ---
 ↳ What divergence type does this address? (C7: self-bootstrap)
   Next: `braid query '[:find ?id :where [?e :spec/type "invariant"] [?e :spec/id ?id]]'`
@@ -1050,7 +1050,7 @@ Three high-urgency uncertainties (spec/15-uncertainty.md) share a resolution pat
 
 | Uncertainty | Uncertain Value | Resolution |
 |-------------|----------------|------------|
-| UNC-SCHEMA-001 | 17 axiomatic attributes sufficient? | Make attribute list a configurable genesis template. Instrument: log any "attribute not found" errors during Stage 0. Resolve: if 0 failures over 50 sessions, confirm sufficiency. |
+| UNC-SCHEMA-001 | 19 axiomatic attributes sufficient? | Make attribute list a configurable genesis template. Instrument: log any "attribute not found" errors during Stage 0. Resolve: if 0 failures over 50 sessions, confirm sufficiency. |
 | UNC-HARVEST-001 | Q(t) < 0.15 and < 0.05 thresholds | Make thresholds configurable datoms (`:braid/harvest-warn-threshold`, `:braid/harvest-only-threshold`). Instrument: log Q(t) at harvest time. Resolve: compute optimal threshold from harvest outcome data. |
 | UNC-GUIDANCE-001 | Basin B crossover at 15–20 turns | Make crossover point a configurable datom (`:braid/drift-crossover`). Instrument: log turn count when agent first skips DDIS step. Resolve: compute empirical crossover from instrumentation data. |
 

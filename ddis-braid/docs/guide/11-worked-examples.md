@@ -32,9 +32,9 @@ Schema: uninitialized.
 ```
 $ braid transact --genesis --format agent
 
-[STORE] Genesis: 17 axiomatic attributes installed in tx hlc:0-0-system.
-Store: 85 datoms (17 attributes × 5 meta-properties each). Frontier: {system: tx_0}.
-Schema: 17 attributes. Self-description verified: all meta-schema attributes describe themselves.
+[STORE] Genesis: 19 axiomatic attributes installed in tx hlc:0-0-system.
+Store: 95 datoms (19 attributes × 5 meta-properties each). Frontier: {system: tx_0}.
+Schema: 19 attributes. Self-description verified: all meta-schema attributes describe themselves.
 ---
 ↳ Genesis complete (INV-SCHEMA-001, INV-SCHEMA-002). Next: define spec-element attributes
   for self-bootstrap. `braid transact --file spec-schema.ednl`
@@ -93,7 +93,7 @@ Add attributes for managing specification elements.
 $ braid transact --file spec-schema.ednl --format agent
 
 [STORE] Transacted 36 datoms (9 spec attributes defined) in tx hlc:1709000001000-0-agent1.
-Store: 121 datoms. Schema: 26 attributes (17 axiomatic + 9 spec).
+Store: 131 datoms. Schema: 28 attributes (19 axiomatic + 9 spec).
 ---
 ↳ Schema extended (INV-SCHEMA-004). Next: transact INV-STORE-001 as the first spec datom.
   Self-bootstrap begins (C7).
@@ -188,7 +188,7 @@ Last tx: spec-bootstrap (tx_2). Frontier: {agent1: tx_2}. Drift: 0.0.
 Store: 147 datoms. 13 spec elements transacted.
 
 ## Warnings
-UNC-SCHEMA-001: 17 axiomatic attributes — verify sufficiency during implementation.
+UNC-SCHEMA-001: 19 axiomatic attributes — verify sufficiency during implementation.
 
 ## Directive
 Implement Store::transact per INV-STORE-001 (append-only) and INV-STORE-002 (strict growth).
@@ -665,14 +665,14 @@ spec's cleanroom refinement chain.
 
 ### §11.6.3 Resulting Datom Set (After INV-STORE-001 Bootstrap)
 
-Assuming genesis (85 datoms) + spec-element schema (21 attrs x ~4 datoms each = ~84 datoms)
+Assuming genesis (95 datoms) + spec-element schema (21 attrs x ~4 datoms each = ~84 datoms)
 have already been transacted:
 
 ```
 $ braid status --format agent
 
-[STATUS] Store: 185 datoms. 17 axiomatic + 21 spec-element attributes defined.
-Entities: 39 (17 meta-schema attrs + 21 spec attrs + 1 INV-STORE-001).
+[STATUS] Store: 195 datoms. 19 axiomatic + 21 spec-element attributes defined.
+Entities: 41 (19 meta-schema attrs + 21 spec attrs + 1 INV-STORE-001).
 Frontier: {bootstrap: tx_2}.
 ---
 ↳ Self-bootstrap in progress: 1/83 Stage 0 elements transacted.

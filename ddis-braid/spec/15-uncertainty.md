@@ -282,20 +282,21 @@ regardless, but the quality of decisions may suffer).
 **Confidence**: 0.85
 **Stage affected**: 0
 
-**Claim**: Exactly 18 axiomatic meta-schema attributes are sufficient to bootstrap
+**Claim**: Exactly 19 axiomatic meta-schema attributes are sufficient to bootstrap
 the full schema system.
 
 **Why uncertain**: The original 17 were identified through design analysis (Transcript
-02:379–420). `:tx/rationale` was added during Stage 0 implementation when the audit
-revealed transaction rationale was not being stored as a datom (DEF-001). The count
-is now 18 (9 `:db/*`, 5 `:lattice/*`, 4 `:tx/*`).
+02:379–420). `:tx/rationale` and `:tx/coherence-override` were added during Stage 0
+implementation when the audit revealed transaction rationale and coherence gate audit
+trails were not being stored as datoms (DEF-001). The count is now 19 (9 `:db/*`,
+5 `:lattice/*`, 5 `:tx/*`).
 
 **Impact if wrong**: Schema system cannot express a required concept. Workaround:
 add attributes at Layer 1+ (non-breaking) or revise genesis (breaking — all stores
 become incompatible).
 
 **Resolution**: Implement genesis transaction during Stage 0. Attempt to define all
-Layer 1–5 schema using only the 18 axiomatic attributes. Any failure reveals a gap.
+Layer 1–5 schema using only the 19 axiomatic attributes. Any failure reveals a gap.
 
 **What breaks**: INV-SCHEMA-001 (genesis completeness), INV-SCHEMA-008 (self-description).
 

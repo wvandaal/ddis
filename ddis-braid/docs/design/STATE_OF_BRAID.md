@@ -38,7 +38,7 @@ guidance actionable, add a REPL. Then Stage 1.
 |-----------|----------|------|---------|---------|-------|-------|
 | STORE | 42 | 31 | 10 | 1 | 0 | CRDT axioms proven. LIVE index deferred. |
 | LAYOUT | 23 | 23 | 0 | 0 | 0 | **Complete.** Content-addressed, write-once. |
-| SCHEMA | 21 | 21 | 0 | 0 | 0 | **Complete.** 18 axiomatic attrs, 6 layers. |
+| SCHEMA | 21 | 21 | 0 | 0 | 0 | **Complete.** 19 axiomatic attrs, 6 layers. |
 | QUERY | 41 | 35 | 6 | 0 | 0 | Graph engine excellent. **Datalog joins broken.** |
 | RESOLUTION | 24 | 16 | 8 | 0 | 0 | Core modes done. Routing/delegation S1+. |
 | **Total** | **151** | **126** | **24** | **1** | | |
@@ -141,7 +141,7 @@ exact BFS for n<=2000, landmark for n>2000). PageRank, betweenness, Ricci curvat
 decomposition, persistent homology, sheaf cohomology, heat kernel. 3,984 lines, well-tested.
 
 ### 3.4 Schema-as-Data
-18 axiomatic attributes bootstrap Layer 0, which describes itself. Schema evolution is a
+19 axiomatic attributes bootstrap Layer 0, which describes itself. Schema evolution is a
 transaction, not a migration. 6-layer architecture with verified dependency ordering.
 This eliminates an entire class of versioning problems.
 

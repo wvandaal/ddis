@@ -205,7 +205,7 @@ Active namespace: STORE. Spec: spec/01-store.md.
 ## State
 Last 3 transactions: genesis (tx_0), schema extension (tx_1), spec-bootstrap (tx_2).
 Frontier: {agent1: tx_2}. Drift: 0.0. Store: 147 datoms.
-Active uncertainties: UNC-SCHEMA-001 (17 attributes sufficient? confidence=0.85).
+Active uncertainties: UNC-SCHEMA-001 (19 attributes sufficient? confidence=0.85).
 
 ## Warnings
 None.

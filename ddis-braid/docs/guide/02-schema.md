@@ -78,11 +78,11 @@ pub enum Uniqueness { Identity, Value }
 
 ```rust
 pub mod genesis {
-    /// The 17 axiomatic meta-schema attributes.
+    /// The 19 axiomatic meta-schema attributes.
     /// These are compile-time constants — the EntityId for each is derived from
     /// the keyword via `EntityId::from_ident(keyword)` (see types.md canonical form).
     /// Note: blake3 hashing is an internal implementation detail of from_ident().
-    pub const AXIOMATIC_ATTRIBUTES: [AttributeSpec; 17] = [
+    pub const AXIOMATIC_ATTRIBUTES: [AttributeSpec; 19] = [
         // Layer 0 — Meta-Schema (9 attributes)
         attr(":db/ident",           ValueType::Keyword, One, "Attribute's keyword name"),
         attr(":db/valueType",       ValueType::Keyword, One, "Value type constraint"),
@@ -118,7 +118,7 @@ pub mod genesis {
 
 **Black box** (contract):
 - INV-SCHEMA-001: Schema-as-Data — schema is a subset of the store, not a separate DDL (C3).
-- INV-SCHEMA-002: Genesis Completeness — genesis tx contains exactly 17 axiomatic attributes, self-contained.
+- INV-SCHEMA-002: Genesis Completeness — genesis tx contains exactly 19 axiomatic attributes, self-contained.
 - INV-SCHEMA-003: Schema Monotonicity — schema can only grow; attributes are never removed.
 - INV-SCHEMA-004: Schema Validation on Transact — no undefined attribute or mistyped value enters the store.
 - INV-SCHEMA-005: Meta-Schema Self-Description — axiomatic attributes describe themselves using only A₀.
@@ -146,7 +146,7 @@ pub mod genesis {
 
 **Black box** (contract):
 - INV-SCHEMA-006: Schema organized into 6 layers with dependency ordering:
-  Layer 0 (Meta-schema, 17 axiomatic) → Layer 1 (Agent & Provenance) → Layer 2 (DDIS Core) →
+  Layer 0 (Meta-schema, 19 axiomatic) → Layer 1 (Agent & Provenance) → Layer 2 (DDIS Core) →
   Layer 3 (Discovery) → Layer 4 (Coordination) → Layer 5 (Workflow).
   Each layer depends only on layers below it. Stages 0–4 introduce layers progressively.
 
@@ -159,7 +159,7 @@ pub mod genesis {
 **Clear box** (implementation):
 ```rust
 pub enum SchemaLayer {
-    MetaSchema,       // Layer 0: 17 axiomatic attributes
+    MetaSchema,       // Layer 0: 19 axiomatic attributes
     AgentProvenance,  // Layer 1: agent, provenance types
     DdisCore,         // Layer 2: spec types, harvest, seed
     Discovery,        // Layer 3: search, exploration
@@ -301,7 +301,7 @@ Schema is part of Store's MVCC snapshot. Three consequences for implementors:
 
 ```
 [SCHEMA] Added attribute :task/status (Keyword, :one, resolution: lattice).
-Schema: 18 attributes (17 axiomatic + 1 user-defined).
+Schema: 20 attributes (19 axiomatic + 1 user-defined).
 ---
 ↳ Which schema layer does this attribute belong to? (See: INV-SCHEMA-006)
 ```
@@ -328,11 +328,11 @@ proptest! {
         assert!(schema.attributes().count() > 0);
     }
 
-    // INV-SCHEMA-002: Genesis Completeness (exactly 17 axiomatic attributes)
+    // INV-SCHEMA-002: Genesis Completeness (exactly 19 axiomatic attributes)
     fn inv_schema_002() {
         let store = Store::genesis();
         let schema = store.schema();
-        assert_eq!(schema.attributes().count(), 17);
+        assert_eq!(schema.attributes().count(), 19);
     }
 
     // INV-SCHEMA-005: Meta-Schema Self-Description
@@ -372,7 +372,7 @@ INV-SCHEMA-001, 002, 004 have V:KANI tags. INV-SCHEMA-005 has V:PROP tag.
 ## §2.6 Implementation Checklist
 
 - [ ] `Schema`, `AttributeSpec`, `AttributeDef`, `ValueType`, `Cardinality` types defined
-- [ ] 17 axiomatic attributes as compile-time constants
+- [ ] 19 axiomatic attributes as compile-time constants
 - [ ] `genesis_datoms()` produces deterministic datom set
 - [ ] `Schema::from_store()` reconstructs schema from datoms
 - [ ] `Schema::validate_datom()` checks attribute existence and type
