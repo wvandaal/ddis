@@ -265,7 +265,7 @@ fn extract_task_from_directive(directive: &str) -> String {
         .collect::<Vec<_>>()
         .join(" ");
     if clean.len() > 120 {
-        format!("{}...", &clean[..117])
+        format!("{}...", &clean[..clean.floor_char_boundary(117)])
     } else {
         clean
     }

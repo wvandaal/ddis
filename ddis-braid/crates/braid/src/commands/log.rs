@@ -217,7 +217,7 @@ pub fn run(
     // --- Build AgentOutput ---
     // Truncate content to ~200 tokens (~800 chars) if needed
     let content = if human.len() > 800 {
-        format!("{}...", &human[..797])
+        format!("{}...", &human[..human.floor_char_boundary(797)])
     } else {
         human.clone()
     };

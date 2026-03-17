@@ -587,7 +587,7 @@ pub fn format_footer_at_level(footer: &GuidanceFooter, level: GuidanceLevel) -> 
             match &footer.next_action {
                 Some(action) => {
                     let short = if action.len() > 40 {
-                        &action[..40]
+                        &action[..action.floor_char_boundary(40)]
                     } else {
                         action.as_str()
                     };

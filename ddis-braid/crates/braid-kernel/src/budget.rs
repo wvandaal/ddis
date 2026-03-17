@@ -83,7 +83,12 @@ fn looks_like_code(text: &str) -> bool {
     if text.len() < 20 {
         return false;
     }
-    let sample = if text.len() > 200 { &text[..200] } else { text };
+    // Use floor_char_boundary to avoid slicing inside a multi-byte UTF-8 char.
+    let sample = if text.len() > 200 {
+        &text[..text.floor_char_boundary(200)]
+    } else {
+        text
+    };
     let code_chars = sample
         .chars()
         .filter(|c| matches!(c, '{' | '}' | '(' | ')' | ';' | '=' | '<' | '>' | '|' | '&'))
