@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773734335/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session complete. Stages 1-2 formal design plan fully implemented. 14 commits, 783 tests (+275 from 508), 8 new kernel modules (signal, trace, coherence, compiler, proposal, deliberation, agent_store, branch), 34 Kani harnesses, 9+ Stateright models, 100+ proptests. All 6 waves closed. Store: 9506 datoms, 1583 entities. Self-bootstrap validated: braid harvest captured all session knowledge. Zero-defect target: 0 test failures."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c0d5e5bea0b9e48c9655f4b4bdf140fd11a3126fbeab851434715c3f97297ec6" :a :db/ident :v :observation/session-complete-stages-1-2-formal-design-plan-fully-implem :op :assert}
+   {:e #blake3 "c0d5e5bea0b9e48c9655f4b4bdf140fd11a3126fbeab851434715c3f97297ec6" :a :db/doc :v "Session complete. Stages 1-2 formal design plan fully implemented. 14 commits, 783 tests (+275 from 508), 8 new kernel modules (signal, trace, coherence, compiler, proposal, deliberation, agent_store, branch), 34 Kani harnesses, 9+ Stateright models, 100+ proptests. All 6 waves closed. Store: 9506 datoms, 1583 entities. Self-bootstrap validated: braid harvest captured all session knowledge. Zero-defect target: 0 test failures." :op :assert}
+   {:e #blake3 "c0d5e5bea0b9e48c9655f4b4bdf140fd11a3126fbeab851434715c3f97297ec6" :a :exploration/body :v "Session complete. Stages 1-2 formal design plan fully implemented. 14 commits, 783 tests (+275 from 508), 8 new kernel modules (signal, trace, coherence, compiler, proposal, deliberation, agent_store, branch), 34 Kani harnesses, 9+ Stateright models, 100+ proptests. All 6 waves closed. Store: 9506 datoms, 1583 entities. Self-bootstrap validated: braid harvest captured all session knowledge. Zero-defect target: 0 test failures." :op :assert}
+   {:e #blake3 "c0d5e5bea0b9e48c9655f4b4bdf140fd11a3126fbeab851434715c3f97297ec6" :a :exploration/content-hash :v #bytes "4be6ddceea11f611ece318e85a2edeb8dbaaf92179b57c87d0f61dda64091a98" :op :assert}
+   {:e #blake3 "c0d5e5bea0b9e48c9655f4b4bdf140fd11a3126fbeab851434715c3f97297ec6" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "c0d5e5bea0b9e48c9655f4b4bdf140fd11a3126fbeab851434715c3f97297ec6" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "c0d5e5bea0b9e48c9655f4b4bdf140fd11a3126fbeab851434715c3f97297ec6" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c0d5e5bea0b9e48c9655f4b4bdf140fd11a3126fbeab851434715c3f97297ec6" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c0d5e5bea0b9e48c9655f4b4bdf140fd11a3126fbeab851434715c3f97297ec6" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
