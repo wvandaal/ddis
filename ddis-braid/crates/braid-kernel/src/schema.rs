@@ -1,17 +1,17 @@
 //! Schema-as-data: attribute definitions stored as datoms (C3).
 //!
 //! The schema is derived from the store, not stored separately. Schema
-//! evolution is a transaction, not a migration. The 18 axiomatic meta-schema
+//! evolution is a transaction, not a migration. The axiomatic meta-schema
 //! attributes describe themselves (INV-SCHEMA-005).
 //!
 //! # Six-Layer Schema Architecture (INV-SCHEMA-006)
 //!
-//! - **Layer 0** (Meta-Schema): 18 axiomatic attributes — `:db/*`, `:lattice/*`, `:tx/*`.
-//! - **Layer 1** (Trilateral): 24 domain attributes — `:intent/*`, `:spec/*`, `:impl/*`.
-//! - **Layer 2** (Specification Elements): 36 rich-metadata attributes —
+//! - **Layer 0** (Meta-Schema): `GENESIS_ATTR_COUNT` axiomatic attributes — `:db/*`, `:lattice/*`, `:tx/*`.
+//! - **Layer 1** (Trilateral): `LAYER_1_COUNT` domain attributes — `:intent/*`, `:spec/*`, `:impl/*`.
+//! - **Layer 2** (Specification Elements): `LAYER_2_COUNT` rich-metadata attributes —
 //!   `:element/*`, `:inv/*`, `:adr/*`, `:neg/*`, `:dep/*`, `:session/*`,
 //!   `:methodology/*`, `:coherence/*`.
-//! - **Layer 3** (Discovery/Exploration): 36 attributes — `:exploration/*`, `:promotion/*`, `:proposal/*`, `:branch/*`, `:tx/branch`.
+//! - **Layer 3** (Discovery/Exploration): `LAYER_3_COUNT` attributes — `:exploration/*`, `:promotion/*`, `:signal/*`, `:proposal/*`, `:branch/*`.
 //! - **Layers 4–5**: Coordination, Workflow (future stages).
 //!
 //! Each layer depends only on layers below it. Layer 0 is installed at genesis.
@@ -20,7 +20,7 @@
 //! # Invariants
 //!
 //! - **INV-SCHEMA-001**: Schema is a subset of the store, not separate DDL.
-//! - **INV-SCHEMA-002**: Genesis contains exactly 18 axiomatic attributes.
+//! - **INV-SCHEMA-002**: Genesis contains exactly `GENESIS_ATTR_COUNT` axiomatic attributes.
 //! - **INV-SCHEMA-003**: Schema can only grow (monotonicity).
 //! - **INV-SCHEMA-004**: Every transacted datom is validated against schema.
 //! - **INV-SCHEMA-005**: Axiomatic attributes describe themselves using A₀.
@@ -31,7 +31,7 @@
 //! # Design Decisions
 //!
 //! - ADR-SCHEMA-001: Schema-as-data over external DDL.
-//! - ADR-SCHEMA-002: 17 axiomatic attributes (expanded to 18 with :lattice/order).
+//! - ADR-SCHEMA-002: Axiomatic attributes (see `GENESIS_ATTR_COUNT`).
 //! - ADR-SCHEMA-003: Six-layer architecture with dependency ordering.
 //! - ADR-SCHEMA-004: Twelve named lattices for resolution.
 //! - ADR-SCHEMA-005: Owned schema with borrow API.
@@ -478,7 +478,21 @@ pub enum SchemaEvolutionError {
 // Genesis
 // ---------------------------------------------------------------------------
 
-/// Produce the genesis datom set — the 18 axiomatic meta-schema attributes.
+/// Number of axiomatic meta-schema attributes (Layer 0).
+///
+/// This count includes the 9 `:db/*` meta-schema attributes, 5 `:lattice/*`
+/// definition attributes, and 5 `:tx/*` transaction metadata attributes
+/// (including `:tx/coherence-override` for the coherence gate audit trail).
+///
+/// INV-SCHEMA-002: Genesis contains exactly this many axiomatic attributes.
+pub const GENESIS_ATTR_COUNT: usize = 19;
+
+/// Number of Layer 1 (Trilateral) attributes.
+///
+/// Intent (7) + Spec (11) + Impl (6) = 24 domain attributes.
+pub const LAYER_1_COUNT: usize = 24;
+
+/// Produce the genesis datom set — the axiomatic meta-schema attributes.
 ///
 /// Deterministic: same output every call (INV-STORE-008, INV-SCHEMA-002).
 pub fn genesis_datoms(genesis_tx: TxId) -> Vec<Datom> {
@@ -537,7 +551,8 @@ pub fn genesis_datoms(genesis_tx: TxId) -> Vec<Datom> {
     datoms
 }
 
-/// The 19 axiomatic meta-schema attributes (INV-SCHEMA-002).
+/// The axiomatic meta-schema attributes (INV-SCHEMA-002).
+/// Count must equal `GENESIS_ATTR_COUNT`.
 fn axiomatic_attributes() -> Vec<AttributeSpec> {
     vec![
         // Layer 0 — Meta-Schema (9 attributes)
@@ -713,7 +728,8 @@ fn attr_unique(
 // Layer 1 — Trilateral Domain Attributes (INV-SCHEMA-006)
 // ---------------------------------------------------------------------------
 
-/// The 24 Layer 1 (Trilateral) attributes: Intent (7) + Spec (11) + Impl (6).
+/// The Layer 1 (Trilateral) attributes: Intent (7) + Spec (11) + Impl (6).
+/// Count must equal `LAYER_1_COUNT`.
 ///
 /// These are the domain attributes used by the trilateral coherence model
 /// (Intent <-> Specification <-> Implementation). They depend only on Layer 0
@@ -1793,12 +1809,12 @@ mod tests {
     // Verifies: INV-SCHEMA-002 — Genesis Completeness
     // Verifies: ADR-SCHEMA-002 — 17 Axiomatic Attributes
     #[test]
-    fn genesis_produces_18_attributes() {
+    fn genesis_produces_correct_attribute_count() {
         let specs = axiomatic_attributes();
         assert_eq!(
             specs.len(),
-            19,
-            "INV-SCHEMA-002: exactly 19 axiomatic attributes (18 original + :tx/coherence-override)"
+            GENESIS_ATTR_COUNT,
+            "INV-SCHEMA-002: axiomatic attributes must match GENESIS_ATTR_COUNT"
         );
     }
 
@@ -1815,12 +1831,12 @@ mod tests {
     // Verifies: INV-SCHEMA-001 — Schema-as-Data
     // Verifies: ADR-SCHEMA-001 — Schema-as-Data Over DDL
     #[test]
-    fn schema_from_genesis_has_18_attributes() {
+    fn schema_from_genesis_has_correct_count() {
         let agent = AgentId::from_name("braid:system");
         let tx = TxId::new(0, 0, agent);
         let datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
         let schema = Schema::from_datoms(&datoms);
-        assert_eq!(schema.len(), 19);
+        assert_eq!(schema.len(), GENESIS_ATTR_COUNT);
     }
 
     // Verifies: INV-SCHEMA-004 — Schema Validation on Transact
@@ -1911,8 +1927,8 @@ mod tests {
         let errors = full_schema.validate_evolution(&empty_schema);
         assert_eq!(
             errors.len(),
-            19,
-            "all 19 attributes should be flagged as removed"
+            GENESIS_ATTR_COUNT,
+            "all genesis attributes should be flagged as removed"
         );
         assert!(errors
             .iter()
@@ -1967,7 +1983,7 @@ mod tests {
         ));
         let new_schema = Schema::from_datoms(&new_datoms);
 
-        assert_eq!(new_schema.len(), 20); // 19 genesis + 1 custom
+        assert_eq!(new_schema.len(), GENESIS_ATTR_COUNT + 1); // genesis + 1 custom
         let errors = old_schema.validate_evolution(&new_schema);
         assert!(errors.is_empty(), "adding attributes is valid evolution");
     }
@@ -1997,12 +2013,12 @@ mod tests {
 
     // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture
     #[test]
-    fn layer_1_produces_24_attributes() {
+    fn layer_1_produces_correct_count() {
         let specs = layer_1_attributes();
         assert_eq!(
             specs.len(),
-            24,
-            "Layer 1 must have exactly 24 trilateral attributes"
+            LAYER_1_COUNT,
+            "Layer 1 must have exactly {LAYER_1_COUNT} trilateral attributes"
         );
     }
 
@@ -2028,7 +2044,7 @@ mod tests {
             datoms.insert(d);
         }
         let schema = Schema::from_datoms(&datoms);
-        assert_eq!(schema.len(), 19 + 24, "genesis + L1 = 43 attributes");
+        assert_eq!(schema.len(), GENESIS_ATTR_COUNT + LAYER_1_COUNT, "genesis + L1 attributes");
     }
 
     // Verifies: ADR-SCHEMA-006 — Value Type Union
@@ -2127,7 +2143,7 @@ mod tests {
 
     // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture (layer 2 count)
     #[test]
-    fn layer_2_produces_36_attributes() {
+    fn layer_2_produces_correct_count() {
         let specs = layer_2_attributes();
         assert_eq!(
             specs.len(),
@@ -2164,9 +2180,9 @@ mod tests {
         let schema = Schema::from_datoms(&datoms);
         assert_eq!(
             schema.len(),
-            19 + 24 + LAYER_2_COUNT,
-            "genesis(19) + L1(24) + L2({LAYER_2_COUNT}) = {} attributes",
-            19 + 24 + LAYER_2_COUNT
+            GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT,
+            "genesis({GENESIS_ATTR_COUNT}) + L1({LAYER_1_COUNT}) + L2({LAYER_2_COUNT}) = {} attributes",
+            GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT
         );
     }
 
@@ -2375,7 +2391,7 @@ mod tests {
     }
 
     #[test]
-    fn domain_schema_has_78_attributes() {
+    fn domain_schema_has_correct_count() {
         let agent = AgentId::from_name("braid:system");
         let genesis_tx = TxId::new(0, 0, agent);
         let domain_tx = TxId::new(1, 0, agent);
@@ -2386,7 +2402,7 @@ mod tests {
         }
         let schema = Schema::from_datoms(&datoms);
 
-        let expected = 19 + 24 + LAYER_2_COUNT; // 79
+        let expected = GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT;
         assert_eq!(
             schema.len(),
             expected,
@@ -2403,7 +2419,7 @@ mod tests {
 
     // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture (layer 3)
     #[test]
-    fn layer_3_produces_31_attributes() {
+    fn layer_3_produces_correct_count() {
         let specs = layer_3_attributes();
         assert_eq!(
             specs.len(),
@@ -2440,9 +2456,9 @@ mod tests {
         let schema = Schema::from_datoms(&datoms);
         assert_eq!(
             schema.len(),
-            19 + 24 + LAYER_2_COUNT + LAYER_3_COUNT,
-            "genesis(19) + L1(24) + L2({LAYER_2_COUNT}) + L3({LAYER_3_COUNT}) = {} attributes",
-            19 + 24 + LAYER_2_COUNT + LAYER_3_COUNT
+            GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT + LAYER_3_COUNT,
+            "genesis({GENESIS_ATTR_COUNT}) + L1({LAYER_1_COUNT}) + L2({LAYER_2_COUNT}) + L3({LAYER_3_COUNT}) = {} attributes",
+            GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT + LAYER_3_COUNT
         );
     }
 
@@ -2609,7 +2625,7 @@ mod tests {
     // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture (full count)
     // Verifies: INV-SCHEMA-005 — Meta-Schema Self-Description
     #[test]
-    fn full_schema_has_141_attributes() {
+    fn full_schema_has_correct_total_count() {
         let agent = AgentId::from_name("braid:system");
         let genesis_tx = TxId::new(0, 0, agent);
         let full_tx = TxId::new(1, 0, agent);
@@ -2620,7 +2636,7 @@ mod tests {
         }
         let schema = Schema::from_datoms(&datoms);
 
-        let expected = 19 + 24 + LAYER_2_COUNT + LAYER_3_COUNT + LAYER_4_COUNT;
+        let expected = GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT + LAYER_3_COUNT + LAYER_4_COUNT;
         assert_eq!(
             schema.len(),
             expected,

@@ -145,7 +145,8 @@ pub use schema::{
     domain_schema_datoms, full_schema_datoms, has_layer_4, layer_1_attributes, layer_1_datoms,
     layer_2_attributes, layer_2_datoms, layer_3_attributes, layer_3_datoms, layer_4_attributes,
     layer_4_datoms, layer_4_evolution_tx, AttributeDef, AttributeSpec, Cardinality, ResolutionMode,
-    Schema, Uniqueness, ValueType, LAYER_2_COUNT, LAYER_3_COUNT, LAYER_4_COUNT,
+    Schema, Uniqueness, ValueType, GENESIS_ATTR_COUNT, LAYER_1_COUNT, LAYER_2_COUNT,
+    LAYER_3_COUNT, LAYER_4_COUNT,
 };
 pub use seed::{
     assemble, assemble_seed, associate, verify_seed, AssembledContext, AssociateCue,
