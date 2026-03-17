@@ -14,7 +14,7 @@
 use std::path::Path;
 
 use braid_kernel::bilateral::{
-    cycle_to_datoms, format_terse as bilateral_format_terse,
+    compute_fitness, cycle_to_datoms, format_terse as bilateral_format_terse,
     format_verbose as bilateral_format_verbose, load_trajectory, run_cycle,
 };
 use braid_kernel::datom::{AgentId, ProvenanceType};
@@ -119,6 +119,8 @@ fn build_terse(
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
+    // F(S) uses compute_fitness (no spectral analysis — fast, deterministic)
+    let fitness = compute_fitness(store);
 
     let harvest_tag = if tx_since_harvest >= 15 {
         " OVERDUE"
@@ -143,7 +145,8 @@ fn build_terse(
         hashes.len(),
     ));
     out.push_str(&format!(
-        "coherence: Phi={:.1} B1={} {:?} | M(t)={:.2} {}{}\n",
+        "coherence: F(S)={:.2} Phi={:.1} B1={} {:?} | M(t)={:.2} {}{}\n",
+        fitness.total,
         coherence.phi,
         coherence.beta_1,
         coherence.quadrant,
@@ -209,6 +212,8 @@ fn build_agent(
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
+    // F(S) uses compute_fitness (no spectral analysis — fast, deterministic)
+    let fitness = compute_fitness(store);
 
     let trend_str = match score.trend {
         Trend::Up => "up",
@@ -233,9 +238,10 @@ fn build_agent(
         hashes.len(),
     );
 
-    // Content: coherence + methodology + harvest + tasks
+    // Content: coherence + F(S) + methodology + harvest + tasks
     let mut content = format!(
-        "coherence: Phi={:.1} B1={} {:?} | M(t)={:.2} {}\nharvest: {} tx since last ({})",
+        "coherence: F(S)={:.2} Phi={:.1} B1={} {:?} | M(t)={:.2} {}\nharvest: {} tx since last ({})",
+        fitness.total,
         coherence.phi,
         coherence.beta_1,
         coherence.quadrant,

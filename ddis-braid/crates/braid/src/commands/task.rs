@@ -16,6 +16,7 @@ use std::path::Path;
 
 use braid_kernel::datom::{AgentId, ProvenanceType, Value};
 use braid_kernel::layout::TxFile;
+use braid_kernel::guidance::compute_routing_from_store;
 use braid_kernel::task::{
     self, check_dependency_acyclicity, close_task_datoms, compute_ready_set, dep_add_datom,
     find_task_by_id, generate_task_id, task_counts, task_summary, update_status_datom,
@@ -210,9 +211,11 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
         "tasks": tasks_json,
     });
 
-    // Agent output (three-part, ≤300 tokens)
+    // Agent output: show all ready tasks — truncation harms agent priority decisions.
+    // Agents need the full list to make informed choices; "... and N more" forces
+    // a follow-up round-trip. Human mode uses the human string (already shows all).
     let mut content_lines = Vec::new();
-    for t in ready_set.iter().take(5) {
+    for t in &ready_set {
         let type_short = t
             .task_type
             .strip_prefix(":task.type/")
@@ -221,9 +224,6 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
             "  [P{}] {} \"{}\" ({})",
             t.priority, t.id, t.title, type_short
         ));
-    }
-    if ready_set.len() > 5 {
-        content_lines.push(format!("  ... and {} more", ready_set.len() - 5));
     }
 
     let top_id = ready_set.first().map(|t| t.id.as_str()).unwrap_or("?");
@@ -238,7 +238,12 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
 
 /// Show the top ready task, optionally skipping a specific task ID.
 ///
-/// When `skip` is provided, filters out the matching task before selecting top pick.
+/// Returns the SINGLE highest-impact ready task with its claim command.
+/// Uses R(t) graph-based routing (INV-GUIDANCE-010) when tasks exist in the
+/// store; falls back to highest-priority ordering otherwise.
+///
+/// For the full list, use `braid task ready`.
+/// When `skip` is provided, filters out the matching task before selecting.
 pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
@@ -259,76 +264,66 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
         return Ok(CommandOutput::from_human(msg.to_string()));
     }
 
-    // Human output
-    let mut human = String::new();
-    human.push_str(&format!("Ready tasks ({} unblocked):\n", ready_set.len()));
+    // Attempt R(t) routing to pick the highest-impact task.
+    // Falls back to top of priority-sorted ready_set if routing returns nothing.
+    let routing = compute_routing_from_store(&store);
+    let top = if let Some(routed) = routing.first() {
+        // Find the matching TaskSummary in ready_set
+        let matched = ready_set.iter().find(|t| {
+            // Route entity encodes as :task/<id> — match by id suffix
+            let ident = format!(":task/{}", t.id);
+            routed.entity == braid_kernel::EntityId::from_ident(&ident)
+        });
+        matched.or_else(|| ready_set.first())
+    } else {
+        ready_set.first()
+    };
 
-    for t in &ready_set {
-        let type_short = t
-            .task_type
-            .strip_prefix(":task.type/")
-            .unwrap_or(&t.task_type);
-        let traces = if t.traces_to.is_empty() {
-            String::new()
-        } else {
-            format!(" [traces: {}]", t.traces_to.len())
-        };
-        human.push_str(&format!(
-            "  P{}  {:7}  {}  \"{}\"{}\n",
-            t.priority, type_short, t.id, t.title, traces
-        ));
-    }
+    let top = match top {
+        Some(t) => t,
+        None => return Ok(CommandOutput::from_human("No ready tasks.\n".to_string())),
+    };
 
-    if let Some(top) = ready_set.first() {
-        human.push_str(&format!(
-            "Top pick: {} — run: braid go {}\n",
-            top.id, top.id
-        ));
-    }
-
-    // JSON output
-    let tasks_json: Vec<serde_json::Value> = ready_set
+    // Find R(t) impact score for the selected task
+    let impact_score = routing
         .iter()
-        .map(|t| {
-            let type_short = t
-                .task_type
-                .strip_prefix(":task.type/")
-                .unwrap_or(&t.task_type);
-            serde_json::json!({
-                "id": t.id,
-                "title": t.title,
-                "priority": t.priority,
-                "type": type_short,
-                "traces_to_count": t.traces_to.len(),
-            })
+        .find(|r| {
+            let ident = format!(":task/{}", top.id);
+            r.entity == braid_kernel::EntityId::from_ident(&ident)
         })
-        .collect();
+        .map(|r| r.impact);
+
+    let type_short = top
+        .task_type
+        .strip_prefix(":task.type/")
+        .unwrap_or(&top.task_type);
+    let impact_str = impact_score
+        .map(|s| format!(", impact={:.2}", s))
+        .unwrap_or_default();
+    let ready_count = ready_set.len();
+
+    // Human output
+    let human = format!(
+        "next: [P{}] {} \"{}\"\nclaim: braid go {}\n({} total ready — see all: braid task ready)\n",
+        top.priority, top.id, top.title, top.id, ready_count
+    );
+
+    // JSON output — includes impact_score for programmatic consumers
     let json = serde_json::json!({
-        "ready_count": ready_set.len(),
-        "tasks": tasks_json,
+        "id": top.id,
+        "title": top.title,
+        "priority": top.priority,
+        "type": type_short,
+        "impact_score": impact_score,
+        "claim_command": format!("braid go {}", top.id),
+        "ready_count": ready_count,
     });
 
-    // Agent output
-    let mut content_lines = Vec::new();
-    for t in ready_set.iter().take(5) {
-        let type_short = t
-            .task_type
-            .strip_prefix(":task.type/")
-            .unwrap_or(&t.task_type);
-        content_lines.push(format!(
-            "  [P{}] {} \"{}\" ({})",
-            t.priority, t.id, t.title, type_short
-        ));
-    }
-    if ready_set.len() > 5 {
-        content_lines.push(format!("  ... and {} more", ready_set.len() - 5));
-    }
-
-    let top_id = ready_set.first().map(|t| t.id.as_str()).unwrap_or("?");
+    // Agent output — single task, claim command, context
     let agent = AgentOutput {
-        context: format!("ready: {} tasks", ready_set.len()),
-        content: content_lines.join("\n"),
-        footer: format!("claim: braid go {top_id}"),
+        context: format!("next: [P{}] {} \"{}\" ({}{})", top.priority, top.id, top.title, type_short, impact_str),
+        content: format!("claim: braid go {}", top.id),
+        footer: format!("{} total ready | all: braid task ready", ready_count),
     };
 
     Ok(CommandOutput { json, agent, human })

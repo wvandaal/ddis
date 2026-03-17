@@ -19,7 +19,7 @@ mod seed;
 pub(crate) mod session;
 pub(crate) mod shell;
 mod spec;
-mod status;
+pub(crate) mod status;
 mod task;
 mod trace;
 mod verify;

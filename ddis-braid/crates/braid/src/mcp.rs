@@ -260,30 +260,26 @@ fn call_tool(
 }
 
 /// `braid_status` — Show store status.
+///
+/// Returns the same rich dashboard as `braid status` CLI (agent mode):
+/// F(S), M(t), coherence, harvest warning, task counts, and next action.
+/// This is the primary orientation tool — use at session start.
 fn tool_status(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
-    let store = layout.load_store()?;
-    let hashes = layout.list_tx_hashes()?;
+    let output = crate::commands::status::run(
+        layout.root.as_path(),
+        "braid:mcp",
+        false, // json
+        false, // verbose
+        false, // deep
+        false, // spectral
+        false, // full
+        false, // verify
+        false, // commit
+    )?;
 
-    let frontier: Vec<JsonValue> = store
-        .frontier()
-        .iter()
-        .map(|(agent, tx_id)| {
-            json!({
-                "agent": hex::encode(agent.as_bytes()),
-                "wall_time": tx_id.wall_time(),
-                "logical": tx_id.logical(),
-            })
-        })
-        .collect();
-
-    let text = format!(
-        "datoms: {}\ntransactions: {}\nentities: {}\nschema_attributes: {}\nfrontier_agents: {}",
-        store.len(),
-        hashes.len(),
-        store.entities().len(),
-        store.schema().len(),
-        frontier.len(),
-    );
+    // Render agent-mode output as MCP text content
+    use crate::output::OutputMode;
+    let text = output.render(OutputMode::Agent);
 
     Ok(json!({
         "content": [{
