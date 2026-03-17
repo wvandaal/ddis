@@ -114,7 +114,7 @@ fn tool_definitions() -> JsonValue {
         "tools": [
             {
                 "name": "braid_status",
-                "description": "Use at session start to orient. Returns: datom count, entity count, transaction count, schema size, agent frontier. Example output: datoms: 2687, entities: 671, transactions: 8",
+                "description": "Session orientation dashboard. Returns F(S) fitness, M(t) methodology score, coherence metrics, task counts, and next R(t)-routed action. Example: → F(S)=0.66, M(t)=0.50, 231 open tasks, next: braid go t-aB3c",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -123,7 +123,7 @@ fn tool_definitions() -> JsonValue {
             },
             {
                 "name": "braid_query",
-                "description": "Search the knowledge store by entity and/or attribute. Use to find specific facts, check what's known about an entity, or list all values of an attribute. Example: entity=':spec/inv-store-001' returns all datoms about that invariant. Omit both filters to scan all asserted datoms (capped at 100).",
+                "description": "Search the datom store by entity and/or attribute. Example: entity=':spec/inv-store-001' → all facts about that invariant. Omit both to scan all asserted datoms (capped at 100).",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -141,7 +141,7 @@ fn tool_definitions() -> JsonValue {
             },
             {
                 "name": "braid_write",
-                "description": "Assert a fact (datom) into the append-only store. Use to record decisions, link entities, or update attributes. The store never deletes — retractions are separate datoms. Example: entity=':adr/use-lanczos', attribute=':db/doc', value='Use Lanczos for spectral analysis'.",
+                "description": "Assert a datom [entity, attribute, value] into the append-only store. For schema links and metadata. Example: entity=':adr/use-lanczos', attribute=':db/doc', value='Use Lanczos'. For knowledge capture, prefer braid_observe.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -167,7 +167,7 @@ fn tool_definitions() -> JsonValue {
             },
             {
                 "name": "braid_harvest",
-                "description": "End-of-session: extract what you learned into the store. Use after 8+ transactions or when switching tasks. Detects knowledge gaps and produces harvest candidates. Call this before ending any work session.",
+                "description": "End-of-session: extract knowledge into the store. Example: task='fix merge' → 5 candidates, 12 datoms persisted. Detects knowledge gaps. Call before ending any work session.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -186,7 +186,7 @@ fn tool_definitions() -> JsonValue {
             },
             {
                 "name": "braid_seed",
-                "description": "Start-of-session: load relevant context from the store. Returns orientation, constraints, state, warnings, and a directive — assembled by relevance to your task. Use this instead of manually reading files.",
+                "description": "Start-of-session: load task-relevant context. Returns Identity + Demonstration + Constraints + State + Directive (5 sections, <=budget tokens). Example: task='fix merge', budget=2000 → targeted context assembly.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -203,8 +203,71 @@ fn tool_definitions() -> JsonValue {
                 }
             },
             {
+                "name": "braid_task_ready",
+                "description": "List unblocked tasks ranked by R(t) impact. Returns task IDs, titles, priority, and claim commands. Example: → [{id:'t-aB3c', title:'Fix merge', priority:1, claim:'braid go t-aB3c'}]",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                }
+            },
+            {
+                "name": "braid_task_go",
+                "description": "Claim a task and set status to in-progress. Use after picking from braid_task_ready. Example: id='t-aB3c' → 'claimed: t-aB3c'",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Task ID (e.g., 't-aB3c')"
+                        }
+                    },
+                    "required": ["id"],
+                }
+            },
+            {
+                "name": "braid_task_close",
+                "description": "Close a completed task. Example: id='t-aB3c', reason='Implemented and tested' → 'closed: t-aB3c'",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Task ID to close"
+                        },
+                        "reason": {
+                            "type": "string",
+                            "description": "Why this task is complete (becomes provenance)"
+                        }
+                    },
+                    "required": ["id"],
+                }
+            },
+            {
+                "name": "braid_task_create",
+                "description": "Create a new task in the store. Returns the generated task ID. Example: title='Fix merge cascade', priority=1, type='bug' → 'created: t-xY9z'",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "title": {
+                            "type": "string",
+                            "description": "Task title — concise, actionable"
+                        },
+                        "priority": {
+                            "type": "integer",
+                            "description": "0=critical, 1=high, 2=medium (default), 3=low, 4=backlog"
+                        },
+                        "task_type": {
+                            "type": "string",
+                            "description": "task (default), bug, feature, epic, test, docs"
+                        }
+                    },
+                    "required": ["title"],
+                }
+            },
+            {
                 "name": "braid_observe",
-                "description": "Fastest way to capture knowledge. Records an observation with epistemic confidence (0.0-1.0). Use whenever you learn something, make a decision, or notice a pattern. Example: text='CRDT merge is commutative', confidence=0.9, category='theorem'.",
+                "description": "Capture knowledge with epistemic confidence. Use for decisions, questions, findings. Example: text='CRDT merge commutes', confidence=0.9, category='theorem' → datom stored.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -249,6 +312,10 @@ fn call_tool(
         "braid_harvest" => tool_harvest(layout, arguments),
         "braid_seed" => tool_seed(layout, arguments),
         "braid_observe" => tool_observe(layout, arguments),
+        "braid_task_ready" => tool_task_ready(layout),
+        "braid_task_go" => tool_task_go(layout, arguments),
+        "braid_task_close" => tool_task_close(layout, arguments),
+        "braid_task_create" => tool_task_create(layout, arguments),
         _ => Ok(json!({
             "content": [{
                 "type": "text",
@@ -566,6 +633,165 @@ fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
 }
 
 // ---------------------------------------------------------------------------
+// Task management tools (t-a0df: INV-TASK-001..004)
+// ---------------------------------------------------------------------------
+
+/// `braid_task_ready` — List unblocked tasks ranked by R(t) impact.
+fn tool_task_ready(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
+    let store = layout.load_store()?;
+    let ready = braid_kernel::compute_ready_set(&store);
+
+    if ready.is_empty() {
+        return Ok(json!({
+            "content": [{"type": "text", "text": "No ready tasks (all blocked or closed)."}],
+        }));
+    }
+
+    let mut lines = Vec::new();
+    lines.push(format!("{} task(s) ready:\n", ready.len()));
+    for t in ready.iter().take(15) {
+        let type_label = t.task_type.trim_start_matches(":task.type/");
+        lines.push(format!(
+            "  [P{}] {} \"{}\" ({}) → braid go {}",
+            t.priority,
+            t.id,
+            braid_kernel::safe_truncate_bytes(&t.title, 80),
+            type_label,
+            t.id,
+        ));
+    }
+
+    Ok(json!({
+        "content": [{"type": "text", "text": lines.join("\n")}],
+    }))
+}
+
+/// `braid_task_go` — Claim a task (set status=in-progress).
+fn tool_task_go(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+    let id = args
+        .get("id")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| BraidError::Parse("missing required parameter: id".into()))?;
+
+    let store = layout.load_store()?;
+    let agent = AgentId::from_name("braid:mcp");
+
+    let task_entity = braid_kernel::find_task_by_id(&store, id)
+        .ok_or_else(|| BraidError::Parse(format!("task not found: {id}")))?;
+
+    let tx_id = crate::commands::write::next_tx_id(&store, agent);
+    let datom =
+        braid_kernel::update_status_datom(task_entity, braid_kernel::TaskStatus::InProgress, tx_id);
+    let tx = TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Observed,
+        rationale: format!("MCP: claim task {id}"),
+        causal_predecessors: vec![],
+        datoms: vec![datom],
+    };
+    layout.write_tx(&tx)?;
+
+    // Get title for confirmation message
+    let title = braid_kernel::task_summary(&store, task_entity)
+        .map(|t| t.title.clone())
+        .unwrap_or_else(|| id.to_string());
+
+    Ok(json!({
+        "content": [{"type": "text", "text": format!("claimed: {id} \"{title}\"")}],
+    }))
+}
+
+/// `braid_task_close` — Close a completed task.
+fn tool_task_close(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+    let id = args
+        .get("id")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| BraidError::Parse("missing required parameter: id".into()))?;
+    let reason = args
+        .get("reason")
+        .and_then(|v| v.as_str())
+        .unwrap_or("completed");
+
+    let store = layout.load_store()?;
+    let agent = AgentId::from_name("braid:mcp");
+
+    let task_entity = braid_kernel::find_task_by_id(&store, id)
+        .ok_or_else(|| BraidError::Parse(format!("task not found: {id}")))?;
+
+    let tx_id = crate::commands::write::next_tx_id(&store, agent);
+    let datoms = braid_kernel::close_task_datoms(task_entity, reason, tx_id);
+    let tx = TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Observed,
+        rationale: format!("MCP: close task {id} — {reason}"),
+        causal_predecessors: vec![],
+        datoms,
+    };
+    layout.write_tx(&tx)?;
+
+    let title = braid_kernel::task_summary(&store, task_entity)
+        .map(|t| t.title.clone())
+        .unwrap_or_else(|| id.to_string());
+
+    Ok(json!({
+        "content": [{"type": "text", "text": format!("closed: {id} \"{title}\"")}],
+    }))
+}
+
+/// `braid_task_create` — Create a new task.
+fn tool_task_create(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
+    let title = args
+        .get("title")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| BraidError::Parse("missing required parameter: title".into()))?;
+    let priority = args.get("priority").and_then(|v| v.as_i64()).unwrap_or(2);
+    let task_type_str = args
+        .get("task_type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("task");
+
+    let task_type = match task_type_str {
+        "bug" => braid_kernel::TaskType::Bug,
+        "feature" => braid_kernel::TaskType::Feature,
+        "epic" => braid_kernel::TaskType::Epic,
+        "docs" => braid_kernel::TaskType::Docs,
+        "question" => braid_kernel::TaskType::Question,
+        _ => braid_kernel::TaskType::Task,
+    };
+
+    let store = layout.load_store()?;
+    let agent = AgentId::from_name("braid:mcp");
+    let tx_id = crate::commands::write::next_tx_id(&store, agent);
+
+    let params = braid_kernel::CreateTaskParams {
+        title,
+        description: None,
+        priority,
+        task_type,
+        tx: tx_id,
+        traces_to: &[],
+        labels: &[],
+    };
+    let (_entity, datoms) = braid_kernel::create_task_datoms(params);
+    let task_id = braid_kernel::generate_task_id(title);
+    let tx = TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Observed,
+        rationale: format!("MCP: create task \"{title}\""),
+        causal_predecessors: vec![],
+        datoms,
+    };
+    layout.write_tx(&tx)?;
+
+    Ok(json!({
+        "content": [{"type": "text", "text": format!("created: {task_id} \"{title}\" (P{priority} {task_type_str})")}],
+    }))
+}
+
+// ---------------------------------------------------------------------------
 // Value parsing (reused from transact command)
 // ---------------------------------------------------------------------------
 
@@ -662,7 +888,7 @@ pub fn serve(path: &Path) -> Result<(), BraidError> {
         let is_notification = msg.get("id").is_none();
 
         let response = match method {
-            "initialize" => handle_initialize(&id, &params),
+            "initialize" => handle_initialize(&id, &params, &layout),
             "initialized" => {
                 // Client acknowledgement — no response needed.
                 if is_notification {
@@ -696,7 +922,33 @@ fn write_response(writer: &mut impl Write, response: &JsonValue) {
 }
 
 /// Handle `initialize` — return server info and capabilities.
-fn handle_initialize(id: &JsonValue, _params: &JsonValue) -> JsonValue {
+///
+/// INV-INTERFACE-008: The instructions field provides basin activation —
+/// a ~100 token orientation that anchors the agent's reasoning trajectory
+/// before any tool calls. Uses live store metrics when available.
+fn handle_initialize(id: &JsonValue, _params: &JsonValue, layout: &DiskLayout) -> JsonValue {
+    // Build dynamic instructions from store state (best-effort).
+    let instructions = match layout.load_store() {
+        Ok(store) => {
+            let datoms = store.len();
+            let entities = store.entity_count();
+            let telemetry = braid_kernel::guidance::telemetry_from_store(&store);
+            let m = braid_kernel::compute_methodology_score(&telemetry);
+            format!(
+                "Braid: append-only datom store (CRDT merge, content-addressed). \
+                 {} datoms, {} entities, M(t)={:.2}. \
+                 Workflow: braid_status (orient) → braid_task_ready (pick) → \
+                 braid_task_go (claim) → work → braid_observe (capture) → \
+                 braid_harvest (persist). Use spec-language: reference INV/ADR IDs.",
+                datoms, entities, m.score,
+            )
+        }
+        Err(_) => "Braid: append-only datom store. \
+                    Workflow: braid_status → braid_task_ready → braid_task_go → \
+                    work → braid_observe → braid_harvest."
+            .to_string(),
+    };
+
     jsonrpc_ok(
         id,
         json!({
@@ -709,6 +961,7 @@ fn handle_initialize(id: &JsonValue, _params: &JsonValue) -> JsonValue {
             "serverInfo": {
                 "name": SERVER_NAME,
                 "version": SERVER_VERSION,
+                "instructions": instructions,
             },
         }),
     )
@@ -720,6 +973,10 @@ fn handle_tools_list(id: &JsonValue) -> JsonValue {
 }
 
 /// Handle `tools/call` — dispatch to the appropriate tool.
+///
+/// INV-GUIDANCE-001: Every tool response includes an M(t) guidance footer.
+/// This is the MCP equivalent of the CLI's `try_build_footer` — ensuring
+/// methodology adherence signals are continuous, not optional.
 fn handle_tools_call(id: &JsonValue, params: &JsonValue, layout: &DiskLayout) -> JsonValue {
     let name = match params.get("name").and_then(|v| v.as_str()) {
         Some(n) => n,
@@ -729,7 +986,11 @@ fn handle_tools_call(id: &JsonValue, params: &JsonValue, layout: &DiskLayout) ->
     let arguments = params.get("arguments").cloned().unwrap_or(json!({}));
 
     match call_tool(layout, name, &arguments) {
-        Ok(result) => jsonrpc_ok(id, result),
+        Ok(mut result) => {
+            // INV-GUIDANCE-001: Append M(t) footer to every successful response.
+            append_guidance_footer(&mut result, layout);
+            jsonrpc_ok(id, result)
+        }
         Err(e) => jsonrpc_ok(
             id,
             json!({
@@ -740,6 +1001,32 @@ fn handle_tools_call(id: &JsonValue, params: &JsonValue, layout: &DiskLayout) ->
                 "isError": true,
             }),
         ),
+    }
+}
+
+/// Append the guidance footer (M(t) + next action) to an MCP tool response.
+///
+/// Modifies the last text content block in the response by appending the
+/// footer string. Best-effort: if store load fails, no footer is appended
+/// (graceful degradation per ADR-INTERFACE-010).
+fn append_guidance_footer(result: &mut JsonValue, layout: &DiskLayout) {
+    let store = match layout.load_store() {
+        Ok(s) => s,
+        Err(_) => return, // graceful degradation
+    };
+    let footer = braid_kernel::guidance::build_command_footer(&store, None);
+    if footer.is_empty() {
+        return;
+    }
+    // Append footer to the last text content block.
+    if let Some(content) = result.get_mut("content").and_then(|c| c.as_array_mut()) {
+        if let Some(last) = content.last_mut() {
+            if let Some(text) = last.get_mut("text") {
+                if let Some(s) = text.as_str() {
+                    *text = JsonValue::String(format!("{s}\n\n{footer}"));
+                }
+            }
+        }
     }
 }
 
@@ -758,8 +1045,8 @@ mod tests {
         let tools = defs["tools"].as_array().expect("tools must be an array");
         assert_eq!(
             tools.len(),
-            6,
-            "INV-INTERFACE-003: must expose expected number of tools"
+            10,
+            "INV-INTERFACE-003: must expose expected number of tools (6 core + 4 task)"
         );
     }
 
@@ -777,6 +1064,10 @@ mod tests {
             "braid_harvest",
             "braid_seed",
             "braid_observe",
+            "braid_task_ready",
+            "braid_task_go",
+            "braid_task_close",
+            "braid_task_create",
         ];
 
         for exp in &expected {
@@ -942,7 +1233,10 @@ mod tests {
     #[test]
     fn initialize_response_format() {
         let id = json!(1);
-        let response = handle_initialize(&id, &json!({}));
+        // Create a temp store for the test
+        let dir = tempfile::tempdir().unwrap();
+        let layout = DiskLayout::init(dir.path()).unwrap();
+        let response = handle_initialize(&id, &json!({}), &layout);
         assert_eq!(response["jsonrpc"], "2.0");
         assert_eq!(response["id"], 1);
         let result = &response["result"];
@@ -950,6 +1244,16 @@ mod tests {
         assert!(result["capabilities"].is_object());
         assert!(result["serverInfo"].is_object());
         assert_eq!(result["serverInfo"]["name"], SERVER_NAME);
+        // Task 2: instructions field must be present with orientation
+        let instructions = result["serverInfo"]["instructions"].as_str();
+        assert!(
+            instructions.is_some(),
+            "serverInfo.instructions must be present"
+        );
+        assert!(
+            instructions.unwrap().contains("Braid"),
+            "instructions must contain orientation"
+        );
     }
 
     /// tools/list response contains all tool definitions.
@@ -959,6 +1263,6 @@ mod tests {
         let response = handle_tools_list(&id);
         assert_eq!(response["jsonrpc"], "2.0");
         let tools = response["result"]["tools"].as_array().unwrap();
-        assert_eq!(tools.len(), 6);
+        assert_eq!(tools.len(), 10, "6 core + 4 task tools");
     }
 }
