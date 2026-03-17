@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773754485/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Generated 127 proptest functions (932 lines) from 86 spec element pattern matches via braid verify --generate. Patterns: Never(20), Equality(28), Commutativity(5), Associativity(10), Idempotency(5), Monotonicity(18), Boundedness(9), Completeness(25), Preservation(7). This is the Coherence Compiler in action — specs become tests automatically."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "64831af0dec8d6079536b4432ad60f1d83c62b3996b7011a31c25f649b50bb06" :a :db/ident :v :observation/generated-127-proptest-functions-932-lines-from-86-spec-el :op :assert}
+   {:e #blake3 "64831af0dec8d6079536b4432ad60f1d83c62b3996b7011a31c25f649b50bb06" :a :db/doc :v "Generated 127 proptest functions (932 lines) from 86 spec element pattern matches via braid verify --generate. Patterns: Never(20), Equality(28), Commutativity(5), Associativity(10), Idempotency(5), Monotonicity(18), Boundedness(9), Completeness(25), Preservation(7). This is the Coherence Compiler in action — specs become tests automatically." :op :assert}
+   {:e #blake3 "64831af0dec8d6079536b4432ad60f1d83c62b3996b7011a31c25f649b50bb06" :a :exploration/body :v "Generated 127 proptest functions (932 lines) from 86 spec element pattern matches via braid verify --generate. Patterns: Never(20), Equality(28), Commutativity(5), Associativity(10), Idempotency(5), Monotonicity(18), Boundedness(9), Completeness(25), Preservation(7). This is the Coherence Compiler in action — specs become tests automatically." :op :assert}
+   {:e #blake3 "64831af0dec8d6079536b4432ad60f1d83c62b3996b7011a31c25f649b50bb06" :a :exploration/content-hash :v #bytes "986ad46d6a6e8d4492d618bb23ae480cb67cd2e64266b355aafe537ef0e46edb" :op :assert}
+   {:e #blake3 "64831af0dec8d6079536b4432ad60f1d83c62b3996b7011a31c25f649b50bb06" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "64831af0dec8d6079536b4432ad60f1d83c62b3996b7011a31c25f649b50bb06" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "64831af0dec8d6079536b4432ad60f1d83c62b3996b7011a31c25f649b50bb06" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "64831af0dec8d6079536b4432ad60f1d83c62b3996b7011a31c25f649b50bb06" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "64831af0dec8d6079536b4432ad60f1d83c62b3996b7011a31c25f649b50bb06" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
