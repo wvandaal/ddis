@@ -314,7 +314,7 @@ fn w35_gate_generated_code_structure() {
     );
 
     // Extract test properties from matches
-    let properties: Vec<_> = matches.iter().map(|m| extract_test_property(m)).collect();
+    let properties: Vec<_> = matches.iter().map(extract_test_property).collect();
     assert!(
         !properties.is_empty(),
         "extract_test_property must produce at least one property"
@@ -544,10 +544,11 @@ fn w4_dogfood_distill_from_own_sessions() {
         ),
         (
             ":observation/neg-no-deletion",
-            "The store must not allow deletion of datoms. Retractions are new datoms, \
-             not removals. Direct deletion is forbidden and prohibited by the protocol.",
-            "design-decision",
-            0.88,
+            "Direct deletion of datoms is forbidden and prohibited by the protocol. \
+             Retractions are new datoms, not removals. The system prevents and avoids \
+             any operation that removes existing data.",
+            "observation",
+            0.75,
         ),
         (
             ":observation/adr-crdt-merge",
@@ -614,11 +615,16 @@ fn w4_dogfood_distill_from_own_sessions() {
         total
     );
 
-    // Run harvest pipeline to verify end-to-end
+    // Run harvest pipeline to verify end-to-end.
+    // session_start_tx must be before the observation transactions. Since
+    // full_schema_store() has clock at wall_time=0, our observations got
+    // TxIds at wall_time=0 with logical > 0. Use the genesis TxId so all
+    // observation datoms satisfy datom.tx > session_start_tx.
+    let system_agent = AgentId::from_name("braid:system");
     let context = SessionContext {
         agent,
         agent_name: "w4-dogfood".into(),
-        session_start_tx: TxId::new(1, 0, agent),
+        session_start_tx: TxId::new(0, 0, system_agent),
         task_description: "Dogfood: distill braid's own design decisions".into(),
         session_knowledge: vec![],
     };
