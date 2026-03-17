@@ -233,8 +233,22 @@ pub fn accept_proposal(store: &Store, proposal_entity: EntityId, accept_tx: TxId
         None
     });
 
+    // ADR-COHERENCE-001: Status transitions use retract-then-assert.
+    // The retraction withdraws the old status value, then the assertion
+    // sets the new value. This is the algebraically correct mechanism for
+    // state machine transitions in an append-only store — the coherence
+    // gate recognizes this pair as a valid transition, not a contradiction.
+    let old_status_value = current_status.unwrap(); // safe: we matched Some above
     let mut datoms = vec![
-        // Transition status to accepted using the provided tx_id.
+        // Step 1: Retract the old status (withdraw previous assertion)
+        Datom::new(
+            proposal_entity,
+            Attribute::from_keyword(":proposal/status"),
+            Value::Keyword(old_status_value),
+            accept_tx,
+            Op::Retract,
+        ),
+        // Step 2: Assert the new status
         Datom::new(
             proposal_entity,
             Attribute::from_keyword(":proposal/status"),
@@ -337,7 +351,16 @@ pub fn reject_proposal(
     reviewer: EntityId,
     tx_id: TxId,
 ) -> Vec<Datom> {
+    // ADR-COHERENCE-001: Retract the old status before asserting the new one.
+    // We retract :proposed since that's the only status from which rejection is valid.
     vec![
+        Datom::new(
+            proposal_entity,
+            Attribute::from_keyword(":proposal/status"),
+            Value::Keyword(":proposal.status/proposed".to_string()),
+            tx_id,
+            Op::Retract,
+        ),
         Datom::new(
             proposal_entity,
             Attribute::from_keyword(":proposal/status"),
@@ -407,34 +430,12 @@ pub fn accept_with_coherence_check(
         ));
     }
 
-    // Step 2: Separate spec-promotion datoms from lifecycle datoms.
+    // Step 2: Build a transaction from the acceptance datoms.
     //
-    // The :proposal/status transition (proposed -> accepted) is a legitimate LWW
-    // update on a Cardinality::One attribute. The coherence gate would reject it
-    // as a Tier 1 exact contradiction because the existing value differs. That is
-    // correct behavior for the coherence checker in general, but status transitions
-    // are an expected part of the proposal lifecycle — not a specification
-    // contradiction.
-    //
-    // We run coherence_check only on the spec-promotion datoms (:spec/*, :element/*).
-    // If those pass, we transact the full set (status + spec).
-    let spec_datoms: Vec<Datom> = accept_datoms
-        .iter()
-        .filter(|d| {
-            let a = d.attribute.as_str();
-            a.starts_with(":spec/") || a.starts_with(":element/")
-        })
-        .cloned()
-        .collect();
-
-    // Step 3: Run coherence check on spec-promotion datoms only.
-    // If a proposed spec element contradicts an existing one (Tier 2 polarity
-    // inversion, numeric bound conflict, etc.), reject the proposal.
-    if !spec_datoms.is_empty() {
-        crate::coherence::coherence_check(store, &spec_datoms)?;
-    }
-
-    // Step 4: Coherence passed — build and transact the full set of datoms.
+    // ADR-COHERENCE-001: Status transitions use retract-then-assert.
+    // accept_proposal() emits a Retract(old_status) + Assert(new_status) pair.
+    // The coherence gate recognizes this as a valid state machine transition,
+    // not a contradiction. No force=true needed — the algebra handles it.
     let mut tx_builder = Transaction::new(
         tx_id.agent(),
         ProvenanceType::Derived,
@@ -454,13 +455,17 @@ pub fn accept_with_coherence_check(
     }
     let committed_tx = tx_builder.commit(store)?;
 
-    // Step 5: Apply the transaction to the store.
-    // We already verified coherence on the spec datoms above. The full transaction
-    // includes the :proposal/status LWW transition which the coherence gate would
-    // flag as Tier 1 exact contradiction. Using force=true is safe here because:
-    //   (a) spec datoms were already coherence-checked in Step 3
-    //   (b) the status transition is expected lifecycle behavior, not a contradiction
-    transact_with_coherence(store, committed_tx, true)
+    // Step 3: Apply with full coherence checking (force=false).
+    //
+    // The coherence gate will:
+    // - Tier 1: See the retract-then-assert pair for :proposal/status and
+    //   recognize it as a valid transition (ADR-COHERENCE-001).
+    // - Tier 2: Check any :spec/* datoms for logical contradictions with
+    //   existing spec elements. If a contradiction is found, the proposal
+    //   is rejected and the store is unchanged.
+    //
+    // No force=true. No special-casing. The algebra is correct.
+    transact_with_coherence(store, committed_tx, false)
 }
 
 /// Query the store for all pending proposals (status = proposed).
@@ -650,7 +655,7 @@ mod tests {
     }
 
     #[test]
-    fn reject_proposal_produces_three_datoms() {
+    fn reject_proposal_produces_datoms() {
         let proposal_entity = EntityId::from_ident(":test/proposal-1");
         let reviewer = EntityId::from_ident(":agent/reviewer-1");
         let agent = AgentId::from_name("test:agent");
@@ -663,15 +668,21 @@ mod tests {
             tx,
         );
 
-        assert_eq!(datoms.len(), 3);
+        // 4 datoms: retract old status + assert new status + reviewer + note
+        assert_eq!(datoms.len(), 4);
 
-        let status = datoms
+        // ADR-COHERENCE-001: retract-then-assert pair
+        let status_assert = datoms
             .iter()
-            .find(|d| d.attribute.as_str() == ":proposal/status");
+            .find(|d| d.attribute.as_str() == ":proposal/status" && d.op == Op::Assert);
         assert_eq!(
-            status.unwrap().value,
+            status_assert.unwrap().value,
             Value::Keyword(":proposal.status/rejected".to_string())
         );
+        let status_retract = datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == ":proposal/status" && d.op == Op::Retract);
+        assert!(status_retract.is_some(), "should retract old status");
 
         let note = datoms
             .iter()
@@ -768,12 +779,17 @@ mod tests {
         let accept_datoms = accept_proposal(&store, p_entity, tx2);
         assert!(!accept_datoms.is_empty(), "accept should produce datoms");
 
-        // Should contain status transition to accepted.
-        let status = accept_datoms
+        // Should contain retract-then-assert for status transition (ADR-COHERENCE-001).
+        let status_retract = accept_datoms
             .iter()
-            .find(|d| d.attribute.as_str() == ":proposal/status");
+            .find(|d| d.attribute.as_str() == ":proposal/status" && d.op == Op::Retract);
+        assert!(status_retract.is_some(), "should retract old status");
+
+        let status_assert = accept_datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == ":proposal/status" && d.op == Op::Assert);
         assert_eq!(
-            status.unwrap().value,
+            status_assert.unwrap().value,
             Value::Keyword(":proposal.status/accepted".to_string())
         );
 

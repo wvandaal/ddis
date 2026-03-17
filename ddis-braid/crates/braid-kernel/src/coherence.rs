@@ -91,14 +91,29 @@ impl std::fmt::Display for CoherenceViolation {
 /// Check new datoms for Tier 1 (exact) contradictions against the store.
 ///
 /// Two datoms contradict at Tier 1 if they assert different values for the
-/// same (entity, attribute) pair under Cardinality::One and neither is a
-/// retraction, and the resolution mode is not Multi.
+/// same (entity, attribute) pair under Cardinality::One, the resolution mode
+/// is not Multi, AND the transaction does not retract the existing value.
+///
+/// **ADR-COHERENCE-001**: A retract-then-assert pair within the same
+/// transaction is a valid state machine transition, not a contradiction.
+/// This is the algebraically correct mechanism for lifecycle operations
+/// (proposal status transitions, deliberation status changes, etc.) in an
+/// append-only EAV store.
 ///
 /// Performance: O(|new_datoms| × O(index_lookup)) — sub-millisecond for
 /// typical transactions (5-50 datoms).
 #[allow(clippy::result_large_err)]
 pub fn tier1_check(store: &Store, new_datoms: &[Datom]) -> Result<(), CoherenceViolation> {
     let schema = store.schema();
+
+    // Pre-compute the set of (entity, attribute, value) triples being retracted
+    // in this transaction. A retraction in the same transaction as an assertion
+    // signals a valid state transition (ADR-COHERENCE-001).
+    let retractions_in_tx: std::collections::BTreeSet<(EntityId, &Attribute, &Value)> = new_datoms
+        .iter()
+        .filter(|d| d.op == Op::Retract)
+        .map(|d| (d.entity, &d.attribute, &d.value))
+        .collect();
 
     for datom in new_datoms {
         // Only check assertions (retractions are always valid)
@@ -130,6 +145,18 @@ pub fn tier1_check(store: &Store, new_datoms: &[Datom]) -> Result<(), CoherenceV
 
         if let Some(existing) = existing_value {
             if existing.value != datom.value {
+                // ADR-COHERENCE-001: Check if this transaction RETRACTS the
+                // existing value. If so, this is a valid state machine transition
+                // (retract old → assert new), not a contradiction.
+                let old_retracted = retractions_in_tx
+                    .contains(&(datom.entity, &datom.attribute, &existing.value));
+
+                if old_retracted {
+                    // Valid transition: old value retracted, new value asserted.
+                    // This is how lifecycle operations work in an append-only store.
+                    continue;
+                }
+
                 return Err(CoherenceViolation {
                     tier: CoherenceTier::Tier1Exact,
                     offending_datom: datom.clone(),
@@ -596,6 +623,131 @@ mod tests {
             Op::Retract,
         )];
         assert!(tier1_check(&store, &datoms).is_ok());
+    }
+
+    // --- ADR-COHERENCE-001: Retract-then-assert is a valid transition ---
+
+    #[test]
+    fn tier1_allows_retract_then_assert_transition() {
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/lifecycle");
+        let agent = test_agent();
+
+        // Establish initial value
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "initial status")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("proposed".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Retract old value + assert new value in the SAME transaction
+        let new_tx = TxId::new(200, 0, agent);
+        let datoms = vec![
+            Datom::new(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("proposed".into()),
+                new_tx,
+                Op::Retract, // withdraw old
+            ),
+            Datom::new(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("accepted".into()),
+                new_tx,
+                Op::Assert, // assert new
+            ),
+        ];
+
+        // This should PASS — retract-then-assert is a valid state transition
+        let result = tier1_check(&store, &datoms);
+        assert!(
+            result.is_ok(),
+            "ADR-COHERENCE-001: retract-then-assert must be a valid transition, got: {:?}",
+            result.err()
+        );
+    }
+
+    #[test]
+    fn tier1_still_rejects_assert_without_retract() {
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/no-retract");
+        let agent = test_agent();
+
+        // Establish initial value
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "initial")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("old-value".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Assert new value WITHOUT retracting old — this IS a contradiction
+        let new_tx = TxId::new(200, 0, agent);
+        let datoms = vec![Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("new-value-no-retract".into()),
+            new_tx,
+            Op::Assert,
+        )];
+
+        let result = tier1_check(&store, &datoms);
+        assert!(
+            result.is_err(),
+            "Assert without retract should still be rejected as Tier 1 contradiction"
+        );
+    }
+
+    #[test]
+    fn tier1_rejects_wrong_retract_value() {
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/wrong-retract");
+        let agent = test_agent();
+
+        // Establish initial value "alpha"
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "initial")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alpha".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Retract "beta" (wrong value!) + assert "gamma"
+        // This should FAIL — the retraction doesn't match the existing value
+        let new_tx = TxId::new(200, 0, agent);
+        let datoms = vec![
+            Datom::new(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("beta".into()), // WRONG: existing is "alpha"
+                new_tx,
+                Op::Retract,
+            ),
+            Datom::new(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("gamma".into()),
+                new_tx,
+                Op::Assert,
+            ),
+        ];
+
+        let result = tier1_check(&store, &datoms);
+        assert!(
+            result.is_err(),
+            "Retracting the wrong value should not bypass the coherence gate"
+        );
     }
 
     #[test]

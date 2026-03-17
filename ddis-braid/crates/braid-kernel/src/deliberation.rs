@@ -298,7 +298,24 @@ pub fn decide(
             tx_id,
             Op::Assert,
         ),
-        // Update deliberation status to Decided
+        // ADR-COHERENCE-001: Status transition uses retract-then-assert.
+        // Retract the previous status (Open or Active — retract both to be safe;
+        // retracting a non-existent value is harmless in an append-only store).
+        Datom::new(
+            deliberation,
+            Attribute::from_keyword(":deliberation/status"),
+            Value::Keyword(DeliberationStatus::Open.as_keyword().to_string()),
+            tx_id,
+            Op::Retract,
+        ),
+        Datom::new(
+            deliberation,
+            Attribute::from_keyword(":deliberation/status"),
+            Value::Keyword(DeliberationStatus::Active.as_keyword().to_string()),
+            tx_id,
+            Op::Retract,
+        ),
+        // Assert the new status
         Datom::new(
             deliberation,
             Attribute::from_keyword(":deliberation/status"),
@@ -626,13 +643,22 @@ mod tests {
             .find(|d| d.attribute.as_str() == ":decision/deliberation");
         assert_eq!(delib_ref.unwrap().value, Value::Ref(delib_entity));
 
-        // Check status updated to Decided
-        let status = decision_datoms
+        // ADR-COHERENCE-001: Check retract-then-assert status transition
+        let status_assert = decision_datoms
             .iter()
-            .find(|d| d.attribute.as_str() == ":deliberation/status");
+            .find(|d| d.attribute.as_str() == ":deliberation/status" && d.op == Op::Assert);
         assert_eq!(
-            status.unwrap().value,
+            status_assert.unwrap().value,
             Value::Keyword(":deliberation.status/decided".into())
+        );
+        // Retractions for previous statuses should also be present
+        let status_retracts: Vec<_> = decision_datoms
+            .iter()
+            .filter(|d| d.attribute.as_str() == ":deliberation/status" && d.op == Op::Retract)
+            .collect();
+        assert!(
+            !status_retracts.is_empty(),
+            "ADR-COHERENCE-001: decide() must retract old status"
         );
     }
 
