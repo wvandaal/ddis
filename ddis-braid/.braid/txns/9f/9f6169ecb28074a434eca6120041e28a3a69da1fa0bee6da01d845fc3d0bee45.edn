@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773772129/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 022: 11-agent comprehensive audit + Phase 0 fixes + 228-task self-bootstrap. Key insight: priority inversion (infrastructure over purpose). Three systemic patterns identified: priority inversion, library-not-wired, false witness inflation. Four axiological drift patterns documented. Inflection point identified: wire R(t) to real tasks + intention anchoring = system directs its own construction. Execution plan is hand-compiled topology — its terminal state is its own obsolescence."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1cea57014d86fd82223afd459b329e6d4d10d2fca77b99a1de0c0056e5ee5519" :a :db/doc :v "Session 022: 11-agent comprehensive audit + Phase 0 fixes + 228-task self-bootstrap. Key insight: priority inversion (infrastructure over purpose). Three systemic patterns identified: priority inversion, library-not-wired, false witness inflation. Four axiological drift patterns documented. Inflection point identified: wire R(t) to real tasks + intention anchoring = system directs its own construction. Execution plan is hand-compiled topology — its terminal state is its own obsolescence." :op :assert}
+   {:e #blake3 "1cea57014d86fd82223afd459b329e6d4d10d2fca77b99a1de0c0056e5ee5519" :a :db/ident :v :observation/session-022-11-agent-comprehensive-audit-phase-0-fixes :op :assert}
+   {:e #blake3 "1cea57014d86fd82223afd459b329e6d4d10d2fca77b99a1de0c0056e5ee5519" :a :exploration/body :v "Session 022: 11-agent comprehensive audit + Phase 0 fixes + 228-task self-bootstrap. Key insight: priority inversion (infrastructure over purpose). Three systemic patterns identified: priority inversion, library-not-wired, false witness inflation. Four axiological drift patterns documented. Inflection point identified: wire R(t) to real tasks + intention anchoring = system directs its own construction. Execution plan is hand-compiled topology — its terminal state is its own obsolescence." :op :assert}
+   {:e #blake3 "1cea57014d86fd82223afd459b329e6d4d10d2fca77b99a1de0c0056e5ee5519" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "1cea57014d86fd82223afd459b329e6d4d10d2fca77b99a1de0c0056e5ee5519" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "1cea57014d86fd82223afd459b329e6d4d10d2fca77b99a1de0c0056e5ee5519" :a :exploration/content-hash :v #bytes "bb701a2d219c85b2b7b96651617e53f06908e498c6a544c4db9281ef108e87b8" :op :assert}
+   {:e #blake3 "1cea57014d86fd82223afd459b329e6d4d10d2fca77b99a1de0c0056e5ee5519" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1cea57014d86fd82223afd459b329e6d4d10d2fca77b99a1de0c0056e5ee5519" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1cea57014d86fd82223afd459b329e6d4d10d2fca77b99a1de0c0056e5ee5519" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
