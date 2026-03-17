@@ -63,7 +63,7 @@ impl EntityId {
     ///
     /// This bypasses the content-hash guarantee. Only use for deserializing
     /// data that was previously serialized from a valid EntityId.
-    pub fn from_raw_bytes(bytes: [u8; 32]) -> Self {
+    pub(crate) fn from_raw_bytes(bytes: [u8; 32]) -> Self {
         EntityId(bytes)
     }
 }

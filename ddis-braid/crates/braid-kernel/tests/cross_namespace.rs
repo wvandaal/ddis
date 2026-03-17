@@ -526,11 +526,13 @@ fn schema_store_query() {
     let a = agent("test:chain4");
     let mut store = Store::genesis();
 
-    // Genesis schema has exactly 18 axiomatic attributes (INV-SCHEMA-002)
+    // Genesis schema has exactly 19 axiomatic attributes (INV-SCHEMA-002)
+    // 9 :db/* + 5 :lattice/* + 5 :tx/* (including :tx/rationale, :tx/coherence-override)
     let genesis_attr_count = store.schema().len();
     assert_eq!(
-        genesis_attr_count, 18,
-        "INV-SCHEMA-002: genesis has 18 attributes"
+        genesis_attr_count,
+        braid_kernel::GENESIS_ATTR_COUNT,
+        "INV-SCHEMA-002: genesis has GENESIS_ATTR_COUNT attributes"
     );
 
     // Register a custom attribute via schema-as-data (C3)

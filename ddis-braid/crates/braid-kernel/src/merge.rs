@@ -97,16 +97,13 @@ pub fn verify_monotonicity(pre_merge: &BTreeSet<Datom>, post_merge: &BTreeSet<Da
 }
 
 /// Verify frontier advancement: post-merge frontier >= pre-merge frontier.
-/// INV-SYNC-001: Barrier produces consistent cut — verified via frontier comparison.
-/// INV-SYNC-002: Barrier timeout safety — frontier advancement is checked, not assumed.
-/// INV-SYNC-003: Barrier is topology-independent — works regardless of agent count.
-/// INV-SYNC-004: Barrier entity provenance — frontier is a datom attribute.
-/// INV-SYNC-005: Non-monotonic queries require barrier — frontier enforces cut.
-/// ADR-SYNC-001: Barrier as explicit coordination point.
-/// ADR-SYNC-002: Topology-agnostic protocol.
-/// ADR-SYNC-003: Barrier timeout over blocking.
-/// NEG-SYNC-001: No unbounded barrier wait.
-/// NEG-SYNC-002: No barrier at inconsistent cut.
+///
+/// This checks a necessary precondition for merge correctness (frontiers never
+/// shrink), NOT the full SYNC barrier protocol. SYNC invariants (INV-SYNC-001
+/// through INV-SYNC-005) require actual barrier semantics with participant
+/// exchange, timeout safety, and consistent cuts — none of which are implemented
+/// here. Those are Stage 3 deliverables. This function is a simple monotonicity
+/// check used by merge verification.
 pub fn verify_frontier_advancement(pre: &Frontier, post: &Frontier) -> bool {
     for (agent, pre_tx) in pre {
         match post.get(agent) {

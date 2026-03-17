@@ -223,14 +223,22 @@ pub fn serialize_tx(tx: &TxFile) -> Vec<u8> {
     out.push_str("\n :tx/rationale ");
     write_edn_string(&mut out, &tx.rationale);
     out.push_str("\n :tx/causal-predecessors [");
-    for (i, pred) in tx.causal_predecessors.iter().enumerate() {
+    // INV-LAYOUT-011: Canonical serialization requires sorted causal predecessors.
+    let mut sorted_preds: Vec<_> = tx.causal_predecessors.iter().collect();
+    sorted_preds.sort();
+    for (i, pred) in sorted_preds.iter().enumerate() {
         if i > 0 {
             out.push(' ');
         }
         write_hlc(&mut out, pred);
     }
     out.push_str("]\n :datoms [\n");
-    for datom in &tx.datoms {
+    // INV-LAYOUT-011: Canonical serialization requires sorted datoms.
+    // Sort by (entity, attribute, value, op) to ensure identical logical
+    // transactions produce identical byte sequences regardless of insertion order.
+    let mut sorted_datoms: Vec<_> = tx.datoms.iter().collect();
+    sorted_datoms.sort();
+    for datom in &sorted_datoms {
         out.push_str("   ");
         write_datom(&mut out, datom);
         out.push('\n');
