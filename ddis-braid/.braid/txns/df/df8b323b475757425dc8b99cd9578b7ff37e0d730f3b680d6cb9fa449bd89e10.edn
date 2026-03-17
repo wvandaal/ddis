@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773722242/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ALL FIVE WAVES now have core implementation. W1+W2 closed. W3: coherence gate with --force + audit trail. W3.5: 9-pattern compiler. W4: spec distillation pipeline (classify + propose + accept/reject). W5: AgentStore + deliberation. 725 tests, 6 new kernel modules. Session produced +217 tests total."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "66c15802fdff07166e5268e4bc9a9571498e0909d686e78202ab29a3db784236" :a :db/ident :v :observation/all-five-waves-now-have-core-implementation-w1w2-closed-w :op :assert}
+   {:e #blake3 "66c15802fdff07166e5268e4bc9a9571498e0909d686e78202ab29a3db784236" :a :db/doc :v "ALL FIVE WAVES now have core implementation. W1+W2 closed. W3: coherence gate with --force + audit trail. W3.5: 9-pattern compiler. W4: spec distillation pipeline (classify + propose + accept/reject). W5: AgentStore + deliberation. 725 tests, 6 new kernel modules. Session produced +217 tests total." :op :assert}
+   {:e #blake3 "66c15802fdff07166e5268e4bc9a9571498e0909d686e78202ab29a3db784236" :a :exploration/body :v "ALL FIVE WAVES now have core implementation. W1+W2 closed. W3: coherence gate with --force + audit trail. W3.5: 9-pattern compiler. W4: spec distillation pipeline (classify + propose + accept/reject). W5: AgentStore + deliberation. 725 tests, 6 new kernel modules. Session produced +217 tests total." :op :assert}
+   {:e #blake3 "66c15802fdff07166e5268e4bc9a9571498e0909d686e78202ab29a3db784236" :a :exploration/content-hash :v #bytes "1ade5f35a458cb0bc9cf122201b937aba23820545939a19f481317d2b4684a43" :op :assert}
+   {:e #blake3 "66c15802fdff07166e5268e4bc9a9571498e0909d686e78202ab29a3db784236" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "66c15802fdff07166e5268e4bc9a9571498e0909d686e78202ab29a3db784236" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "66c15802fdff07166e5268e4bc9a9571498e0909d686e78202ab29a3db784236" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "66c15802fdff07166e5268e4bc9a9571498e0909d686e78202ab29a3db784236" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "66c15802fdff07166e5268e4bc9a9571498e0909d686e78202ab29a3db784236" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

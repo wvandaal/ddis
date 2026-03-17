@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773732703/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Wave 3 formally closed. Coherence gate operational: tier1+tier2+force+audit. 17 coherence tests. W3-GATE unlocks W4+W5 remaining work."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d02753a4f3a892bbb6386c2e7f3fac045cbbb1f7d97ec0fc21da14be274a745b" :a :db/ident :v :observation/wave-3-formally-closed-coherence-gate-operational-tier1ti :op :assert}
+   {:e #blake3 "d02753a4f3a892bbb6386c2e7f3fac045cbbb1f7d97ec0fc21da14be274a745b" :a :db/doc :v "Wave 3 formally closed. Coherence gate operational: tier1+tier2+force+audit. 17 coherence tests. W3-GATE unlocks W4+W5 remaining work." :op :assert}
+   {:e #blake3 "d02753a4f3a892bbb6386c2e7f3fac045cbbb1f7d97ec0fc21da14be274a745b" :a :exploration/body :v "Wave 3 formally closed. Coherence gate operational: tier1+tier2+force+audit. 17 coherence tests. W3-GATE unlocks W4+W5 remaining work." :op :assert}
+   {:e #blake3 "d02753a4f3a892bbb6386c2e7f3fac045cbbb1f7d97ec0fc21da14be274a745b" :a :exploration/content-hash :v #bytes "304e6d5838ff13ef0d4a7afeea43b0edc29dd304c88bc9b1b5aa76a229ed3748" :op :assert}
+   {:e #blake3 "d02753a4f3a892bbb6386c2e7f3fac045cbbb1f7d97ec0fc21da14be274a745b" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d02753a4f3a892bbb6386c2e7f3fac045cbbb1f7d97ec0fc21da14be274a745b" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "d02753a4f3a892bbb6386c2e7f3fac045cbbb1f7d97ec0fc21da14be274a745b" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d02753a4f3a892bbb6386c2e7f3fac045cbbb1f7d97ec0fc21da14be274a745b" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d02753a4f3a892bbb6386c2e7f3fac045cbbb1f7d97ec0fc21da14be274a745b" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
