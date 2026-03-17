@@ -33,7 +33,7 @@
 //! - INV-BILATERAL-005: Test results as datoms
 //! - ADR-FOUNDATION-005: Structural over procedural coherence
 
-use crate::datom::{Attribute, EntityId, Op, Value};
+use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::store::Store;
 
 // ===========================================================================
@@ -1108,6 +1108,95 @@ pub fn emit_test_module(properties: &[TestProperty]) -> String {
 
     out.push_str("}\n");
     out
+}
+
+// ===========================================================================
+// W3.5.7 — Pattern-to-Trace Datom Conversion
+// ===========================================================================
+
+/// Convert detected pattern matches into L3 (Property) trace datoms.
+///
+/// For each `PatternMatch`, creates an impl entity with:
+/// - `:db/ident` — content-addressed from (spec_id, pattern, source)
+/// - `:impl/implements` — `Value::Ref` pointing to the spec entity
+/// - `:impl/verification-depth` — `3` (L3: Property-based)
+/// - `:impl/file` — `"compiler"` (the module that detected the pattern)
+/// - `:impl/module` — `"compiler"` (module name)
+///
+/// This creates the same datom structure as `trace::links_to_datoms` but
+/// for compiler-detected patterns rather than source-scanned trace links.
+/// The L3 depth reflects that pattern detection is a form of property
+/// verification: the compiler has identified which mathematical property
+/// the invariant expresses.
+///
+/// # Traces To
+///
+/// - INV-BILATERAL-002 (CC — depth-weighted coverage)
+/// - INV-BILATERAL-005 (Test results as datoms)
+/// - C7 (Self-bootstrap): the compiler's own patterns become store data
+pub fn patterns_to_trace_datoms(matches: &[PatternMatch], tx_id: TxId) -> Vec<Datom> {
+    let mut datoms = Vec::new();
+
+    for m in matches {
+        // Content-addressed impl entity from (spec_id, pattern, source)
+        let impl_ident = format!(
+            ":impl/compiler.{}.{}",
+            sanitize_id(&m.spec_id),
+            sanitize_pattern_name(m.pattern),
+        );
+        let impl_entity = EntityId::from_ident(&impl_ident);
+
+        // Spec entity reference
+        let spec_ident = format!(":spec/{}", m.spec_id.to_lowercase());
+        let spec_entity = EntityId::from_ident(&spec_ident);
+
+        // :db/ident
+        datoms.push(Datom::new(
+            impl_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(impl_ident.clone()),
+            tx_id,
+            Op::Assert,
+        ));
+
+        // :impl/implements → spec entity ref
+        datoms.push(Datom::new(
+            impl_entity,
+            Attribute::from_keyword(":impl/implements"),
+            Value::Ref(spec_entity),
+            tx_id,
+            Op::Assert,
+        ));
+
+        // :impl/verification-depth → 3 (L3: Property-based)
+        datoms.push(Datom::new(
+            impl_entity,
+            Attribute::from_keyword(":impl/verification-depth"),
+            Value::Long(3),
+            tx_id,
+            Op::Assert,
+        ));
+
+        // :impl/file → compiler
+        datoms.push(Datom::new(
+            impl_entity,
+            Attribute::from_keyword(":impl/file"),
+            Value::String("compiler".to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+
+        // :impl/module → compiler
+        datoms.push(Datom::new(
+            impl_entity,
+            Attribute::from_keyword(":impl/module"),
+            Value::String("compiler".to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+    }
+
+    datoms
 }
 
 // ===========================================================================
@@ -2374,6 +2463,500 @@ mod tests {
                 "emitted code for {pattern} should contain INV ID \"{inv_id}\", got:\n{code}"
             );
         }
+    }
+
+    // =======================================================================
+    // W3.5.7: Self-bootstrap — compiler generates tests for its own INVs
+    // =======================================================================
+
+    /// The compiler's own invariants, when added to the store as spec elements,
+    /// should be detectable by the compiler's own pattern engine. This validates
+    /// C7 (self-bootstrap): the system verifies its own specification.
+    #[test]
+    fn self_bootstrap_compiler_generates_own_tests() {
+        let tx = test_tx();
+        let mut all_datoms = Vec::new();
+
+        // The compiler's own invariants as spec elements in the store:
+        //
+        // 1. "detect_patterns never panics" → Never pattern
+        //    (from the proptest in this module: detect_patterns_never_panics)
+        all_datoms.extend(spec_entity(
+            ":spec/inv-compiler-001",
+            "INV-COMPILER-001",
+            ":spec.type/invariant",
+            "detect_patterns never panics for any well-formed store. \
+             The function must not panic or abort regardless of input.",
+            "Violated if detect_patterns panics, aborts, or triggers undefined behavior \
+             on any store reachable from Store::genesis() plus arbitrary valid transactions.",
+            tx,
+        ));
+
+        // 2. "same store + same patterns = same result" → Equality pattern
+        all_datoms.extend(spec_entity(
+            ":spec/inv-compiler-002",
+            "INV-COMPILER-002",
+            ":spec.type/invariant",
+            "Pattern detection is deterministic: the same store always produces \
+             the same result set. Two calls to detect_patterns on an identical \
+             store produce identical output.",
+            "Violated if two evaluations of detect_patterns on the same store \
+             diverge in their match set, ordering, or confidence values.",
+            tx,
+        ));
+
+        // 3. "match count is bounded by spec element count" → Boundedness pattern
+        //    (each spec element can match at most 9 patterns)
+        all_datoms.extend(spec_entity(
+            ":spec/inv-compiler-003",
+            "INV-COMPILER-003",
+            ":spec.type/invariant",
+            "The number of pattern matches is bounded: at most 9 matches per \
+             spec element (one per universal pattern). The total match count \
+             does not exceed 9 times the spec element count.",
+            "Violated if detect_patterns returns more than 9 * |spec_elements| \
+             matches, or if any single spec_id appears more than 9 times.",
+            tx,
+        ));
+
+        // 4. "keyword table covers all 9 patterns" → Completeness pattern
+        all_datoms.extend(spec_entity(
+            ":spec/inv-compiler-004",
+            "INV-COMPILER-004",
+            ":spec.type/invariant",
+            "The keyword table must have entries for every pattern in \
+             InvariantPattern::ALL. For all patterns p, keyword_table() \
+             contains a PatternKeywords with pattern == p.",
+            "Violated if any InvariantPattern variant lacks a corresponding \
+             entry in the keyword table, causing that pattern to never match.",
+            tx,
+        ));
+
+        // Step 2: Run detect_patterns on a store containing the compiler's own INVs
+        let store = store_with(all_datoms);
+        let matches = detect_patterns(&store);
+
+        // Step 3: Verify the compiler detects patterns in its own INVs
+
+        // INV-COMPILER-001 should match Never pattern
+        let never_hits: Vec<_> = matches
+            .iter()
+            .filter(|m| m.spec_id == "INV-COMPILER-001" && m.pattern == InvariantPattern::Never)
+            .collect();
+        assert!(
+            !never_hits.is_empty(),
+            "INV-COMPILER-001 (\"never panics\") should match Never pattern. \
+             All matches: {:?}",
+            matches
+                .iter()
+                .filter(|m| m.spec_id == "INV-COMPILER-001")
+                .collect::<Vec<_>>()
+        );
+
+        // INV-COMPILER-002 should match Equality/Determinism pattern
+        let eq_hits: Vec<_> = matches
+            .iter()
+            .filter(|m| m.spec_id == "INV-COMPILER-002" && m.pattern == InvariantPattern::Equality)
+            .collect();
+        assert!(
+            !eq_hits.is_empty(),
+            "INV-COMPILER-002 (\"deterministic, same result\") should match Equality pattern. \
+             All matches: {:?}",
+            matches
+                .iter()
+                .filter(|m| m.spec_id == "INV-COMPILER-002")
+                .collect::<Vec<_>>()
+        );
+
+        // INV-COMPILER-003 should match Boundedness pattern
+        let bound_hits: Vec<_> = matches
+            .iter()
+            .filter(|m| {
+                m.spec_id == "INV-COMPILER-003" && m.pattern == InvariantPattern::Boundedness
+            })
+            .collect();
+        assert!(
+            !bound_hits.is_empty(),
+            "INV-COMPILER-003 (\"bounded, at most 9\") should match Boundedness pattern. \
+             All matches: {:?}",
+            matches
+                .iter()
+                .filter(|m| m.spec_id == "INV-COMPILER-003")
+                .collect::<Vec<_>>()
+        );
+
+        // INV-COMPILER-004 should match Completeness pattern
+        let comp_hits: Vec<_> = matches
+            .iter()
+            .filter(|m| {
+                m.spec_id == "INV-COMPILER-004" && m.pattern == InvariantPattern::Completeness
+            })
+            .collect();
+        assert!(
+            !comp_hits.is_empty(),
+            "INV-COMPILER-004 (\"for all patterns, every pattern\") should match Completeness. \
+             All matches: {:?}",
+            matches
+                .iter()
+                .filter(|m| m.spec_id == "INV-COMPILER-004")
+                .collect::<Vec<_>>()
+        );
+
+        // Step 4: Generate test code via emit_proptest for each match
+        let compiler_matches: Vec<_> = matches
+            .iter()
+            .filter(|m| m.spec_id.starts_with("INV-COMPILER-"))
+            .collect();
+        assert!(
+            compiler_matches.len() >= 4,
+            "compiler should detect at least 4 patterns across its own INVs, got {}",
+            compiler_matches.len()
+        );
+
+        for m in &compiler_matches {
+            let prop = extract_test_property(m);
+            let code = emit_proptest(&prop);
+
+            // Step 5: Verify the generated code contains the compiler's INV IDs
+            assert!(
+                code.contains(&m.spec_id),
+                "generated proptest for {} should contain INV ID in doc comment, got:\n{}",
+                m.spec_id,
+                code
+            );
+
+            // Generated code should be structurally valid
+            let open = code.chars().filter(|c| *c == '{').count();
+            let close = code.chars().filter(|c| *c == '}').count();
+            assert_eq!(
+                open, close,
+                "generated code for {} has unbalanced braces: {} open vs {} close",
+                m.spec_id, open, close
+            );
+        }
+
+        // Bonus: emit a full test module from the compiler's own patterns
+        let props: Vec<TestProperty> = compiler_matches
+            .iter()
+            .map(|m| extract_test_property(m))
+            .collect();
+        let module = emit_test_module(&props);
+        assert!(
+            module.contains("mod generated_coherence_tests"),
+            "self-bootstrap module should have the standard module wrapper"
+        );
+        for m in &compiler_matches {
+            assert!(
+                module.contains(&m.spec_id),
+                "self-bootstrap module should reference {}",
+                m.spec_id
+            );
+        }
+    }
+
+    // =======================================================================
+    // W3.5.7: emit_test_module produces valid Rust module structure
+    // =======================================================================
+
+    #[test]
+    fn emit_test_module_produces_valid_rust_module_structure() {
+        // Generate a module with a representative mix of patterns
+        let patterns_to_test = [
+            ("INV-STRUCT-001", InvariantPattern::Never),
+            ("INV-STRUCT-002", InvariantPattern::Equality),
+            ("INV-STRUCT-003", InvariantPattern::Commutativity),
+            ("INV-STRUCT-004", InvariantPattern::Monotonicity),
+            ("INV-STRUCT-005", InvariantPattern::Boundedness),
+        ];
+
+        let props: Vec<TestProperty> = patterns_to_test
+            .iter()
+            .map(|(id, pat)| {
+                let m = make_match(id, *pat);
+                extract_test_property(&m)
+            })
+            .collect();
+
+        let module = emit_test_module(&props);
+
+        // 1. Balanced braces (fundamental structural validity)
+        let open_braces = module.chars().filter(|c| *c == '{').count();
+        let close_braces = module.chars().filter(|c| *c == '}').count();
+        assert_eq!(
+            open_braces, close_braces,
+            "module has unbalanced braces: {} open vs {} close\n---\n{}",
+            open_braces, close_braces, module
+        );
+
+        // 2. Balanced parentheses
+        let open_parens = module.chars().filter(|c| *c == '(').count();
+        let close_parens = module.chars().filter(|c| *c == ')').count();
+        assert_eq!(
+            open_parens, close_parens,
+            "module has unbalanced parentheses: {} open vs {} close",
+            open_parens, close_parens
+        );
+
+        // 3. Required imports present
+        assert!(
+            module.contains("use super::*;"),
+            "module must import parent scope"
+        );
+        assert!(
+            module.contains("use proptest::prelude::*;"),
+            "module must import proptest prelude"
+        );
+        assert!(
+            module.contains("use crate::proptest_strategies::arb_store;"),
+            "module must import arb_store strategy"
+        );
+        assert!(
+            module.contains("use crate::merge::merge_stores;"),
+            "module must import merge_stores for commutativity/associativity tests"
+        );
+
+        // 4. Module wrapper structure
+        assert!(
+            module.contains("#[cfg(test)]"),
+            "module must have cfg(test) attribute"
+        );
+        assert!(
+            module.contains("mod generated_coherence_tests"),
+            "module must be named generated_coherence_tests"
+        );
+
+        // 5. Each test function is present with correct naming
+        for (id, _) in &patterns_to_test {
+            let sanitized = sanitize_id(id);
+            let fn_prefix = format!("fn generated_{}_", sanitized);
+            assert!(
+                module.contains(&fn_prefix),
+                "module must contain function for {id}: expected prefix \"{fn_prefix}\""
+            );
+        }
+
+        // 6. Module ends correctly (closing brace + newline)
+        assert!(
+            module.ends_with("}\n"),
+            "module must end with closing brace and newline"
+        );
+
+        // 7. Auto-generated header present
+        assert!(
+            module.contains("Auto-generated coherence tests"),
+            "module must have auto-generated header comment"
+        );
+
+        // 8. Each proptest! block contains #[test] attribute
+        let test_attr_count = module.matches("#[test]").count();
+        assert_eq!(
+            test_attr_count,
+            patterns_to_test.len(),
+            "module must have exactly one #[test] per property ({} expected, {} found)",
+            patterns_to_test.len(),
+            test_attr_count
+        );
+    }
+
+    // =======================================================================
+    // W3.5.7: patterns_to_trace_datoms creates L3 links for each match
+    // =======================================================================
+
+    #[test]
+    fn patterns_to_trace_datoms_creates_l3_links() {
+        let tx = test_tx();
+
+        // Create pattern matches covering different patterns
+        let test_matches = vec![
+            PatternMatch {
+                spec_id: "INV-STORE-001".into(),
+                entity: EntityId::from_ident(":spec/inv-store-001"),
+                pattern: InvariantPattern::Never,
+                subject: "datom store".into(),
+                property: "no deletion".into(),
+                confidence: 0.9,
+            },
+            PatternMatch {
+                spec_id: "INV-STORE-004".into(),
+                entity: EntityId::from_ident(":spec/inv-store-004"),
+                pattern: InvariantPattern::Commutativity,
+                subject: "merge".into(),
+                property: "order independence".into(),
+                confidence: 0.85,
+            },
+            PatternMatch {
+                spec_id: "INV-BILATERAL-001".into(),
+                entity: EntityId::from_ident(":spec/inv-bilateral-001"),
+                pattern: InvariantPattern::Boundedness,
+                subject: "fitness function".into(),
+                property: "bounded in [0,1]".into(),
+                confidence: 0.75,
+            },
+        ];
+
+        let datoms = patterns_to_trace_datoms(&test_matches, tx);
+
+        // Each match should produce exactly 5 datoms:
+        //   :db/ident, :impl/implements, :impl/verification-depth, :impl/file, :impl/module
+        assert_eq!(
+            datoms.len(),
+            test_matches.len() * 5,
+            "expected {} datoms (5 per match), got {}",
+            test_matches.len() * 5,
+            datoms.len()
+        );
+
+        // Verify each match produced the correct datoms
+        for m in &test_matches {
+            let impl_ident = format!(
+                ":impl/compiler.{}.{}",
+                sanitize_id(&m.spec_id),
+                sanitize_pattern_name(m.pattern),
+            );
+            let impl_entity = EntityId::from_ident(&impl_ident);
+
+            // 1. :db/ident datom exists
+            let ident_datom = datoms
+                .iter()
+                .find(|d| d.entity == impl_entity && d.attribute.as_str() == ":db/ident")
+                .unwrap_or_else(|| {
+                    panic!(
+                        "missing :db/ident datom for {}, impl_ident={}",
+                        m.spec_id, impl_ident
+                    )
+                });
+            assert_eq!(
+                ident_datom.value,
+                Value::Keyword(impl_ident.clone()),
+                "ident value mismatch for {}",
+                m.spec_id
+            );
+
+            // 2. :impl/implements → spec entity ref
+            let impl_datom = datoms
+                .iter()
+                .find(|d| d.entity == impl_entity && d.attribute.as_str() == ":impl/implements")
+                .unwrap_or_else(|| panic!("missing :impl/implements datom for {}", m.spec_id));
+            let spec_ident = format!(":spec/{}", m.spec_id.to_lowercase());
+            let expected_ref = EntityId::from_ident(&spec_ident);
+            assert_eq!(
+                impl_datom.value,
+                Value::Ref(expected_ref),
+                ":impl/implements should reference spec entity for {}",
+                m.spec_id
+            );
+
+            // 3. :impl/verification-depth == 3 (L3: Property-based)
+            let depth_datom = datoms
+                .iter()
+                .find(|d| {
+                    d.entity == impl_entity && d.attribute.as_str() == ":impl/verification-depth"
+                })
+                .unwrap_or_else(|| {
+                    panic!("missing :impl/verification-depth datom for {}", m.spec_id)
+                });
+            assert_eq!(
+                depth_datom.value,
+                Value::Long(3),
+                "verification depth should be L3 (3) for {}",
+                m.spec_id
+            );
+
+            // 4. :impl/file == "compiler"
+            let file_datom = datoms
+                .iter()
+                .find(|d| d.entity == impl_entity && d.attribute.as_str() == ":impl/file")
+                .unwrap_or_else(|| panic!("missing :impl/file datom for {}", m.spec_id));
+            assert_eq!(
+                file_datom.value,
+                Value::String("compiler".to_string()),
+                ":impl/file should be \"compiler\" for {}",
+                m.spec_id
+            );
+
+            // 5. :impl/module == "compiler"
+            let module_datom = datoms
+                .iter()
+                .find(|d| d.entity == impl_entity && d.attribute.as_str() == ":impl/module")
+                .unwrap_or_else(|| panic!("missing :impl/module datom for {}", m.spec_id));
+            assert_eq!(
+                module_datom.value,
+                Value::String("compiler".to_string()),
+                ":impl/module should be \"compiler\" for {}",
+                m.spec_id
+            );
+
+            // 6. All datoms are Assert operations
+            let match_datoms: Vec<_> = datoms.iter().filter(|d| d.entity == impl_entity).collect();
+            for d in &match_datoms {
+                assert_eq!(
+                    d.op,
+                    Op::Assert,
+                    "all datoms should be Assert for {}",
+                    m.spec_id
+                );
+            }
+
+            // 7. All datoms reference the correct transaction
+            for d in &match_datoms {
+                assert_eq!(
+                    d.tx, tx,
+                    "all datoms should reference the provided tx for {}",
+                    m.spec_id
+                );
+            }
+        }
+    }
+
+    /// Verify patterns_to_trace_datoms with empty input produces empty output.
+    #[test]
+    fn patterns_to_trace_datoms_empty_input() {
+        let tx = test_tx();
+        let datoms = patterns_to_trace_datoms(&[], tx);
+        assert!(
+            datoms.is_empty(),
+            "empty pattern matches should produce empty datoms"
+        );
+    }
+
+    /// Verify that different patterns for the same spec_id produce distinct entities.
+    #[test]
+    fn patterns_to_trace_datoms_distinct_entities_per_pattern() {
+        let tx = test_tx();
+        let matches = vec![
+            PatternMatch {
+                spec_id: "INV-BILATERAL-001".into(),
+                entity: EntityId::from_ident(":spec/inv-bilateral-001"),
+                pattern: InvariantPattern::Boundedness,
+                subject: "fitness".into(),
+                property: "bounded".into(),
+                confidence: 0.8,
+            },
+            PatternMatch {
+                spec_id: "INV-BILATERAL-001".into(),
+                entity: EntityId::from_ident(":spec/inv-bilateral-001"),
+                pattern: InvariantPattern::Monotonicity,
+                subject: "fitness".into(),
+                property: "non-decreasing".into(),
+                confidence: 0.7,
+            },
+        ];
+
+        let datoms = patterns_to_trace_datoms(&matches, tx);
+
+        // Should have 10 datoms (5 per match)
+        assert_eq!(datoms.len(), 10);
+
+        // The two impl entities should be different (different patterns)
+        let ident_datoms: Vec<_> = datoms
+            .iter()
+            .filter(|d| d.attribute.as_str() == ":db/ident")
+            .collect();
+        assert_eq!(ident_datoms.len(), 2);
+        assert_ne!(
+            ident_datoms[0].entity, ident_datoms[1].entity,
+            "different patterns for the same spec_id must produce distinct entities"
+        );
     }
 
     // --- Proptest: detect_patterns never panics ---

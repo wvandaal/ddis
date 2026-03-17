@@ -22,6 +22,7 @@ mod spec;
 mod status;
 mod task;
 mod trace;
+mod verify;
 mod wrap;
 pub(crate) mod write;
 
@@ -347,6 +348,42 @@ Workflow: braid trace → review → braid trace --commit → braid bilateral")]
         /// Agent identity (for commit provenance).
         #[arg(long, short = 'a', default_value = "braid:user")]
         agent: String,
+    },
+
+    /// Verification status and coherence test generation.
+    ///
+    /// `braid verify` → coverage: 85% (340/400 matched).
+    /// `braid verify --generate` → emit proptest module from spec patterns.
+    /// `braid verify --generate --dry-run` → preview matches without emitting.
+    #[command(after_long_help = "\
+Examples:
+  braid verify                                # verification status + coverage
+  braid verify --generate                     # emit coherence test module
+  braid verify --generate --dry-run           # preview matches (no code)
+  braid verify --generate --namespace STORE   # only STORE invariants
+  braid verify --json                         # structured output
+
+Workflow: braid verify → braid verify --generate --dry-run → braid verify --generate > tests/gen.rs")]
+    Verify {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Generate a Rust test module from detected patterns.
+        #[arg(long)]
+        generate: bool,
+
+        /// Show matches without generating code (use with --generate).
+        #[arg(long)]
+        dry_run: bool,
+
+        /// Filter to a specific namespace (e.g., STORE, MERGE, QUERY).
+        #[arg(long, short = 'n')]
+        namespace: Option<String>,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
     },
 
     /// Browse transactions, newest first.
@@ -1231,7 +1268,8 @@ fn store_path(cmd: &Command) -> Option<&Path> {
         | Command::Next { path, .. }
         | Command::Done { path, .. }
         | Command::Note { path, .. }
-        | Command::Go { path, .. } => Some(path),
+        | Command::Go { path, .. }
+        | Command::Verify { path, .. } => Some(path),
         Command::Session { action } => match action {
             SessionAction::Start { path, .. } | SessionAction::End { path, .. } => Some(path),
         },
@@ -1275,6 +1313,7 @@ fn is_json_output(cmd: &Command, mode: crate::output::OutputMode) -> bool {
             | Command::Log { json: true, .. }
             | Command::Seed { json: true, .. }
             | Command::Bilateral { json: true, .. }
+            | Command::Verify { json: true, .. }
     )
 }
 
@@ -1424,7 +1463,8 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
         | Command::Next { path, .. }
         | Command::Done { path, .. }
         | Command::Note { path, .. }
-        | Command::Go { path, .. } => {
+        | Command::Go { path, .. }
+        | Command::Verify { path, .. } => {
             *path = resolve_store_path(path.clone());
         }
         Command::Session { action } => match action {
@@ -1546,6 +1586,21 @@ pub fn run(
             commit,
             agent,
         } => trace::run(&path, &source, &agent, commit),
+        Command::Verify {
+            path,
+            generate,
+            dry_run,
+            namespace,
+            json: _,
+        } => {
+            let cmd_output = verify::run(&path, generate, dry_run, namespace.as_deref())?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Write { action } => match action {
             WriteAction::Assert {
                 path,
