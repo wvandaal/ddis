@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773753466/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-DELIBERATION-004: Stability Convergence. The stability score for a deliberation with all unanimous positions is 1.0. For N positions with K unique stances, stability = max_frequency/N. Falsification: unanimous positions produce stability != 1.0."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "688918e2b7755ef03b4fae0dd41cbfee15ac0444e82a397ca367ca790c61c64e" :a :db/ident :v :observation/inv-deliberation-004-stability-convergence-the-stability-s :op :assert}
+   {:e #blake3 "688918e2b7755ef03b4fae0dd41cbfee15ac0444e82a397ca367ca790c61c64e" :a :db/doc :v "INV-DELIBERATION-004: Stability Convergence. The stability score for a deliberation with all unanimous positions is 1.0. For N positions with K unique stances, stability = max_frequency/N. Falsification: unanimous positions produce stability != 1.0." :op :assert}
+   {:e #blake3 "688918e2b7755ef03b4fae0dd41cbfee15ac0444e82a397ca367ca790c61c64e" :a :exploration/body :v "INV-DELIBERATION-004: Stability Convergence. The stability score for a deliberation with all unanimous positions is 1.0. For N positions with K unique stances, stability = max_frequency/N. Falsification: unanimous positions produce stability != 1.0." :op :assert}
+   {:e #blake3 "688918e2b7755ef03b4fae0dd41cbfee15ac0444e82a397ca367ca790c61c64e" :a :exploration/content-hash :v #bytes "1d934a215a541b9a9b8f219fa426f70af39d0db1b18e3d70a6434e393a941ca0" :op :assert}
+   {:e #blake3 "688918e2b7755ef03b4fae0dd41cbfee15ac0444e82a397ca367ca790c61c64e" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "688918e2b7755ef03b4fae0dd41cbfee15ac0444e82a397ca367ca790c61c64e" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "688918e2b7755ef03b4fae0dd41cbfee15ac0444e82a397ca367ca790c61c64e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "688918e2b7755ef03b4fae0dd41cbfee15ac0444e82a397ca367ca790c61c64e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "688918e2b7755ef03b4fae0dd41cbfee15ac0444e82a397ca367ca790c61c64e" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

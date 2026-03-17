@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773753465/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-DELIBERATION-003: Precedent Queryability. After a Decision is recorded, the resolved Deliberation is discoverable via find_precedent() for matching topic keywords. Falsification: a decided deliberation is not returned by find_precedent with its topic words."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ff3b811c3657a725ea282c60297cdf5f9e11d49e0acc3701ffc831e62b6ceac1" :a :db/ident :v :observation/inv-deliberation-003-precedent-queryability-after-a-decisi :op :assert}
+   {:e #blake3 "ff3b811c3657a725ea282c60297cdf5f9e11d49e0acc3701ffc831e62b6ceac1" :a :db/doc :v "INV-DELIBERATION-003: Precedent Queryability. After a Decision is recorded, the resolved Deliberation is discoverable via find_precedent() for matching topic keywords. Falsification: a decided deliberation is not returned by find_precedent with its topic words." :op :assert}
+   {:e #blake3 "ff3b811c3657a725ea282c60297cdf5f9e11d49e0acc3701ffc831e62b6ceac1" :a :exploration/body :v "INV-DELIBERATION-003: Precedent Queryability. After a Decision is recorded, the resolved Deliberation is discoverable via find_precedent() for matching topic keywords. Falsification: a decided deliberation is not returned by find_precedent with its topic words." :op :assert}
+   {:e #blake3 "ff3b811c3657a725ea282c60297cdf5f9e11d49e0acc3701ffc831e62b6ceac1" :a :exploration/content-hash :v #bytes "e7add4e962a209d6094098ec125f9bb0434c6bd85550e12cca1e03928e54534c" :op :assert}
+   {:e #blake3 "ff3b811c3657a725ea282c60297cdf5f9e11d49e0acc3701ffc831e62b6ceac1" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "ff3b811c3657a725ea282c60297cdf5f9e11d49e0acc3701ffc831e62b6ceac1" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "ff3b811c3657a725ea282c60297cdf5f9e11d49e0acc3701ffc831e62b6ceac1" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "ff3b811c3657a725ea282c60297cdf5f9e11d49e0acc3701ffc831e62b6ceac1" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "ff3b811c3657a725ea282c60297cdf5f9e11d49e0acc3701ffc831e62b6ceac1" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

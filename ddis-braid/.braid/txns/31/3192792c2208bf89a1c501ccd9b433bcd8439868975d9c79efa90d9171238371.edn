@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773753462/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-STORE-013: W_alpha Working Set Isolation. For all agents alpha, beta where alpha != beta: query(W_alpha) intersect visible(beta) = empty set. The working set of one agent is invisible to all other agents. Falsification: any datom in agent alpha's working set that appears in agent beta's query results."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e9d4d4490d1fba12d802497b3061121ebb4d3ecd48634fb20a0eb10333dbe776" :a :db/ident :v :observation/inv-store-013-w-alpha-working-set-isolation-for-all-agents :op :assert}
+   {:e #blake3 "e9d4d4490d1fba12d802497b3061121ebb4d3ecd48634fb20a0eb10333dbe776" :a :db/doc :v "INV-STORE-013: W_alpha Working Set Isolation. For all agents alpha, beta where alpha != beta: query(W_alpha) intersect visible(beta) = empty set. The working set of one agent is invisible to all other agents. Falsification: any datom in agent alpha's working set that appears in agent beta's query results." :op :assert}
+   {:e #blake3 "e9d4d4490d1fba12d802497b3061121ebb4d3ecd48634fb20a0eb10333dbe776" :a :exploration/body :v "INV-STORE-013: W_alpha Working Set Isolation. For all agents alpha, beta where alpha != beta: query(W_alpha) intersect visible(beta) = empty set. The working set of one agent is invisible to all other agents. Falsification: any datom in agent alpha's working set that appears in agent beta's query results." :op :assert}
+   {:e #blake3 "e9d4d4490d1fba12d802497b3061121ebb4d3ecd48634fb20a0eb10333dbe776" :a :exploration/content-hash :v #bytes "eb14d29d2afb269407d3c3d06b876cba4a336b3f8310afe2b6acaee20386d764" :op :assert}
+   {:e #blake3 "e9d4d4490d1fba12d802497b3061121ebb4d3ecd48634fb20a0eb10333dbe776" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "e9d4d4490d1fba12d802497b3061121ebb4d3ecd48634fb20a0eb10333dbe776" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "e9d4d4490d1fba12d802497b3061121ebb4d3ecd48634fb20a0eb10333dbe776" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e9d4d4490d1fba12d802497b3061121ebb4d3ecd48634fb20a0eb10333dbe776" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "e9d4d4490d1fba12d802497b3061121ebb4d3ecd48634fb20a0eb10333dbe776" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

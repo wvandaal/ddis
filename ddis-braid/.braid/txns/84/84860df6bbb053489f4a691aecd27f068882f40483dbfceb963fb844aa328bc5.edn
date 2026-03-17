@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773753464/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-DELIBERATION-002: Position-Deliberation Reference. Every Position entity references exactly one Deliberation entity via :position/deliberation. Falsification: a Position entity exists with zero or more than one deliberation reference."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "83dd4b3e7c16161d1f784f2afc1c85aab9d8782d35887074b41b46bf26f3e5a7" :a :db/ident :v :observation/inv-deliberation-002-position-deliberation-reference-every :op :assert}
+   {:e #blake3 "83dd4b3e7c16161d1f784f2afc1c85aab9d8782d35887074b41b46bf26f3e5a7" :a :db/doc :v "INV-DELIBERATION-002: Position-Deliberation Reference. Every Position entity references exactly one Deliberation entity via :position/deliberation. Falsification: a Position entity exists with zero or more than one deliberation reference." :op :assert}
+   {:e #blake3 "83dd4b3e7c16161d1f784f2afc1c85aab9d8782d35887074b41b46bf26f3e5a7" :a :exploration/body :v "INV-DELIBERATION-002: Position-Deliberation Reference. Every Position entity references exactly one Deliberation entity via :position/deliberation. Falsification: a Position entity exists with zero or more than one deliberation reference." :op :assert}
+   {:e #blake3 "83dd4b3e7c16161d1f784f2afc1c85aab9d8782d35887074b41b46bf26f3e5a7" :a :exploration/content-hash :v #bytes "36428494e21d4bf875a72da1a7d11c9ea73828a87021530c882366971fa1f6d6" :op :assert}
+   {:e #blake3 "83dd4b3e7c16161d1f784f2afc1c85aab9d8782d35887074b41b46bf26f3e5a7" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "83dd4b3e7c16161d1f784f2afc1c85aab9d8782d35887074b41b46bf26f3e5a7" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "83dd4b3e7c16161d1f784f2afc1c85aab9d8782d35887074b41b46bf26f3e5a7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "83dd4b3e7c16161d1f784f2afc1c85aab9d8782d35887074b41b46bf26f3e5a7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "83dd4b3e7c16161d1f784f2afc1c85aab9d8782d35887074b41b46bf26f3e5a7" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

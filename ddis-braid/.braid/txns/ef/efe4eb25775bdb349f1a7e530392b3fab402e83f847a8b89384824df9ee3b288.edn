@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773753467/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-DELIBERATION-005: Decision Method Strength Ordering. Decision methods are ordered by strength: Automated < HumanOverride < Authority < Majority < Consensus. Falsification: DecisionMethod::Consensus <= DecisionMethod::Majority."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a2e23699da977e2702c1cfa984003f49b2d204a7dc986969e9ff17818ff848a8" :a :db/ident :v :observation/inv-deliberation-005-decision-method-strength-ordering-dec :op :assert}
+   {:e #blake3 "a2e23699da977e2702c1cfa984003f49b2d204a7dc986969e9ff17818ff848a8" :a :db/doc :v "INV-DELIBERATION-005: Decision Method Strength Ordering. Decision methods are ordered by strength: Automated < HumanOverride < Authority < Majority < Consensus. Falsification: DecisionMethod::Consensus <= DecisionMethod::Majority." :op :assert}
+   {:e #blake3 "a2e23699da977e2702c1cfa984003f49b2d204a7dc986969e9ff17818ff848a8" :a :exploration/body :v "INV-DELIBERATION-005: Decision Method Strength Ordering. Decision methods are ordered by strength: Automated < HumanOverride < Authority < Majority < Consensus. Falsification: DecisionMethod::Consensus <= DecisionMethod::Majority." :op :assert}
+   {:e #blake3 "a2e23699da977e2702c1cfa984003f49b2d204a7dc986969e9ff17818ff848a8" :a :exploration/content-hash :v #bytes "7f5204bcb7b627c6b0859b95e88d0146434742f2ce7fa1f142bc9398767a9253" :op :assert}
+   {:e #blake3 "a2e23699da977e2702c1cfa984003f49b2d204a7dc986969e9ff17818ff848a8" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "a2e23699da977e2702c1cfa984003f49b2d204a7dc986969e9ff17818ff848a8" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "a2e23699da977e2702c1cfa984003f49b2d204a7dc986969e9ff17818ff848a8" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a2e23699da977e2702c1cfa984003f49b2d204a7dc986969e9ff17818ff848a8" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a2e23699da977e2702c1cfa984003f49b2d204a7dc986969e9ff17818ff848a8" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

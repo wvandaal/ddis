@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773753463/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-DELIBERATION-001: Deliberation Lifecycle Well-Ordering. The deliberation status lifecycle is a well-ordered lattice: Open < Active < Decided | Stalled < Contested < Superseded. No status transition skips a level. Falsification: a deliberation entity transitions from Open directly to Decided without passing through Active."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e3ff52b2282f1759db90cd9aea3eb6acd37ea7fee7fda0d0395f3dfb2fc70a47" :a :db/ident :v :observation/inv-deliberation-001-deliberation-lifecycle-well-ordering :op :assert}
+   {:e #blake3 "e3ff52b2282f1759db90cd9aea3eb6acd37ea7fee7fda0d0395f3dfb2fc70a47" :a :db/doc :v "INV-DELIBERATION-001: Deliberation Lifecycle Well-Ordering. The deliberation status lifecycle is a well-ordered lattice: Open < Active < Decided | Stalled < Contested < Superseded. No status transition skips a level. Falsification: a deliberation entity transitions from Open directly to Decided without passing through Active." :op :assert}
+   {:e #blake3 "e3ff52b2282f1759db90cd9aea3eb6acd37ea7fee7fda0d0395f3dfb2fc70a47" :a :exploration/body :v "INV-DELIBERATION-001: Deliberation Lifecycle Well-Ordering. The deliberation status lifecycle is a well-ordered lattice: Open < Active < Decided | Stalled < Contested < Superseded. No status transition skips a level. Falsification: a deliberation entity transitions from Open directly to Decided without passing through Active." :op :assert}
+   {:e #blake3 "e3ff52b2282f1759db90cd9aea3eb6acd37ea7fee7fda0d0395f3dfb2fc70a47" :a :exploration/content-hash :v #bytes "9e7a5d6f396bc1b8893a8f95ba8fccf69329f0397ee038acc588d806c7b8ba62" :op :assert}
+   {:e #blake3 "e3ff52b2282f1759db90cd9aea3eb6acd37ea7fee7fda0d0395f3dfb2fc70a47" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "e3ff52b2282f1759db90cd9aea3eb6acd37ea7fee7fda0d0395f3dfb2fc70a47" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "e3ff52b2282f1759db90cd9aea3eb6acd37ea7fee7fda0d0395f3dfb2fc70a47" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e3ff52b2282f1759db90cd9aea3eb6acd37ea7fee7fda0d0395f3dfb2fc70a47" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "e3ff52b2282f1759db90cd9aea3eb6acd37ea7fee7fda0d0395f3dfb2fc70a47" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
