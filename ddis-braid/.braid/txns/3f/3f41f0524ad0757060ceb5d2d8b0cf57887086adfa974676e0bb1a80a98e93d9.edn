@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767640/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Persist derived tasks as datoms (INV-GUIDANCE-009)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "02b95512a85f65a85d15d56471b556d6c1e5f49a0a08d15092d7730340bdceba" :a :db/ident :v :task/t-203d :op :assert}
+   {:e #blake3 "02b95512a85f65a85d15d56471b556d6c1e5f49a0a08d15092d7730340bdceba" :a :task/created-at :v 1773767639 :op :assert}
+   {:e #blake3 "02b95512a85f65a85d15d56471b556d6c1e5f49a0a08d15092d7730340bdceba" :a :task/id :v "t-203d" :op :assert}
+   {:e #blake3 "02b95512a85f65a85d15d56471b556d6c1e5f49a0a08d15092d7730340bdceba" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "02b95512a85f65a85d15d56471b556d6c1e5f49a0a08d15092d7730340bdceba" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "02b95512a85f65a85d15d56471b556d6c1e5f49a0a08d15092d7730340bdceba" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "02b95512a85f65a85d15d56471b556d6c1e5f49a0a08d15092d7730340bdceba" :a :task/title :v "S1: Persist derived tasks as datoms (INV-GUIDANCE-009)" :op :assert}
+   {:e #blake3 "02b95512a85f65a85d15d56471b556d6c1e5f49a0a08d15092d7730340bdceba" :a :task/type :v :task.type/task :op :assert}
+ ]}

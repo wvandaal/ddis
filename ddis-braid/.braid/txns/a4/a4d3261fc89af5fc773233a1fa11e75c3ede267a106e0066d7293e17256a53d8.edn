@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769783/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement four-part guidance footer structure (next action, methodology, context ptr, harvest status)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2ee37e5ab32b0cd48edd3c6a394dadf341d8669f85fa0e13915fcc21fdfaef75" :a :db/ident :v :task/t-e7cd :op :assert}
+   {:e #blake3 "2ee37e5ab32b0cd48edd3c6a394dadf341d8669f85fa0e13915fcc21fdfaef75" :a :task/created-at :v 1773769780 :op :assert}
+   {:e #blake3 "2ee37e5ab32b0cd48edd3c6a394dadf341d8669f85fa0e13915fcc21fdfaef75" :a :task/id :v "t-e7cd" :op :assert}
+   {:e #blake3 "2ee37e5ab32b0cd48edd3c6a394dadf341d8669f85fa0e13915fcc21fdfaef75" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2ee37e5ab32b0cd48edd3c6a394dadf341d8669f85fa0e13915fcc21fdfaef75" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2ee37e5ab32b0cd48edd3c6a394dadf341d8669f85fa0e13915fcc21fdfaef75" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2ee37e5ab32b0cd48edd3c6a394dadf341d8669f85fa0e13915fcc21fdfaef75" :a :task/title :v "S1: Implement four-part guidance footer structure (next action, methodology, context ptr, harvest status)" :op :assert}
+   {:e #blake3 "2ee37e5ab32b0cd48edd3c6a394dadf341d8669f85fa0e13915fcc21fdfaef75" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769738/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Remove false SYNC witness claims from merge.rs (5 false witnesses)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0b8d26c06cbfe1764918de95e563e0b11d23ec8fbd476a2e1a8eb20c9c9d26de" :a :db/ident :v :task/t-61ff :op :assert}
+   {:e #blake3 "0b8d26c06cbfe1764918de95e563e0b11d23ec8fbd476a2e1a8eb20c9c9d26de" :a :task/created-at :v 1773769736 :op :assert}
+   {:e #blake3 "0b8d26c06cbfe1764918de95e563e0b11d23ec8fbd476a2e1a8eb20c9c9d26de" :a :task/id :v "t-61ff" :op :assert}
+   {:e #blake3 "0b8d26c06cbfe1764918de95e563e0b11d23ec8fbd476a2e1a8eb20c9c9d26de" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "0b8d26c06cbfe1764918de95e563e0b11d23ec8fbd476a2e1a8eb20c9c9d26de" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0b8d26c06cbfe1764918de95e563e0b11d23ec8fbd476a2e1a8eb20c9c9d26de" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0b8d26c06cbfe1764918de95e563e0b11d23ec8fbd476a2e1a8eb20c9c9d26de" :a :task/title :v "S0-CLOSE: Remove false SYNC witness claims from merge.rs (5 false witnesses)" :op :assert}
+   {:e #blake3 "0b8d26c06cbfe1764918de95e563e0b11d23ec8fbd476a2e1a8eb20c9c9d26de" :a :task/type :v :task.type/bug :op :assert}
+ ]}

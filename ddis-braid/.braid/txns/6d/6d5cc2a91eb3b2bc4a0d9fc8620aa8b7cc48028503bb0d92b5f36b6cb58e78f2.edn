@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769795/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement CC-3 staleness detection with cycle counter and warning"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "73bc164c3b66cc57c3cb14457a1702c7d2514da725b0b18c21b4e2bfde9848f2" :a :db/ident :v :task/t-0c30 :op :assert}
+   {:e #blake3 "73bc164c3b66cc57c3cb14457a1702c7d2514da725b0b18c21b4e2bfde9848f2" :a :task/created-at :v 1773769794 :op :assert}
+   {:e #blake3 "73bc164c3b66cc57c3cb14457a1702c7d2514da725b0b18c21b4e2bfde9848f2" :a :task/id :v "t-0c30" :op :assert}
+   {:e #blake3 "73bc164c3b66cc57c3cb14457a1702c7d2514da725b0b18c21b4e2bfde9848f2" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "73bc164c3b66cc57c3cb14457a1702c7d2514da725b0b18c21b4e2bfde9848f2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "73bc164c3b66cc57c3cb14457a1702c7d2514da725b0b18c21b4e2bfde9848f2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "73bc164c3b66cc57c3cb14457a1702c7d2514da725b0b18c21b4e2bfde9848f2" :a :task/title :v "S1: Implement CC-3 staleness detection with cycle counter and warning" :op :assert}
+   {:e #blake3 "73bc164c3b66cc57c3cb14457a1702c7d2514da725b0b18c21b4e2bfde9848f2" :a :task/type :v :task.type/task :op :assert}
+ ]}

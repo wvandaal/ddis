@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769803/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement INV-MERGE-009 cascade logic (schema rebuild -> resolution recompute -> LIVE invalidation)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1bb422a251f7ff48798fe43cfcea1e0ad0b2c70d645a47f898b77f0825354b9a" :a :db/ident :v :task/t-bec2 :op :assert}
+   {:e #blake3 "1bb422a251f7ff48798fe43cfcea1e0ad0b2c70d645a47f898b77f0825354b9a" :a :task/created-at :v 1773769802 :op :assert}
+   {:e #blake3 "1bb422a251f7ff48798fe43cfcea1e0ad0b2c70d645a47f898b77f0825354b9a" :a :task/id :v "t-bec2" :op :assert}
+   {:e #blake3 "1bb422a251f7ff48798fe43cfcea1e0ad0b2c70d645a47f898b77f0825354b9a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1bb422a251f7ff48798fe43cfcea1e0ad0b2c70d645a47f898b77f0825354b9a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1bb422a251f7ff48798fe43cfcea1e0ad0b2c70d645a47f898b77f0825354b9a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1bb422a251f7ff48798fe43cfcea1e0ad0b2c70d645a47f898b77f0825354b9a" :a :task/title :v "S1: Implement INV-MERGE-009 cascade logic (schema rebuild -> resolution recompute -> LIVE invalidation)" :op :assert}
+   {:e #blake3 "1bb422a251f7ff48798fe43cfcea1e0ad0b2c70d645a47f898b77f0825354b9a" :a :task/type :v :task.type/task :op :assert}
+ ]}

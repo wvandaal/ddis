@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770495/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: F(S) monotonically non-decreasing under task completion (proptest)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :db/ident :v :task/t-a6df :op :assert}
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :task/created-at :v 1773770494 :op :assert}
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :task/id :v "t-a6df" :op :assert}
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :task/title :v "TEST: F(S) monotonically non-decreasing under task completion (proptest)" :op :assert}
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :task/type :v :task.type/task :op :assert}
+ ]}

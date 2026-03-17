@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769788/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement statusline bridge (INV-INTERFACE-004)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f86465448c7b0d26e852d0d05f04783e786025f7f9aab06e277f435bd7268a6b" :a :db/ident :v :task/t-6ffd :op :assert}
+   {:e #blake3 "f86465448c7b0d26e852d0d05f04783e786025f7f9aab06e277f435bd7268a6b" :a :task/created-at :v 1773769787 :op :assert}
+   {:e #blake3 "f86465448c7b0d26e852d0d05f04783e786025f7f9aab06e277f435bd7268a6b" :a :task/id :v "t-6ffd" :op :assert}
+   {:e #blake3 "f86465448c7b0d26e852d0d05f04783e786025f7f9aab06e277f435bd7268a6b" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f86465448c7b0d26e852d0d05f04783e786025f7f9aab06e277f435bd7268a6b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f86465448c7b0d26e852d0d05f04783e786025f7f9aab06e277f435bd7268a6b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f86465448c7b0d26e852d0d05f04783e786025f7f9aab06e277f435bd7268a6b" :a :task/title :v "S1: Implement statusline bridge (INV-INTERFACE-004)" :op :assert}
+   {:e #blake3 "f86465448c7b0d26e852d0d05f04783e786025f7f9aab06e277f435bd7268a6b" :a :task/type :v :task.type/task :op :assert}
+ ]}

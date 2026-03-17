@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767573/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement Bilateral Boundary four-variant enum (INV-BILATERAL-003)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "72fbd173f245cf0469730ce17c3b0249cfc78fb0335f112e8f3b5f518bfa99f4" :a :db/ident :v :task/t-ceaf :op :assert}
+   {:e #blake3 "72fbd173f245cf0469730ce17c3b0249cfc78fb0335f112e8f3b5f518bfa99f4" :a :task/created-at :v 1773767572 :op :assert}
+   {:e #blake3 "72fbd173f245cf0469730ce17c3b0249cfc78fb0335f112e8f3b5f518bfa99f4" :a :task/id :v "t-ceaf" :op :assert}
+   {:e #blake3 "72fbd173f245cf0469730ce17c3b0249cfc78fb0335f112e8f3b5f518bfa99f4" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "72fbd173f245cf0469730ce17c3b0249cfc78fb0335f112e8f3b5f518bfa99f4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "72fbd173f245cf0469730ce17c3b0249cfc78fb0335f112e8f3b5f518bfa99f4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "72fbd173f245cf0469730ce17c3b0249cfc78fb0335f112e8f3b5f518bfa99f4" :a :task/title :v "S1: Implement Bilateral Boundary four-variant enum (INV-BILATERAL-003)" :op :assert}
+   {:e #blake3 "72fbd173f245cf0469730ce17c3b0249cfc78fb0335f112e8f3b5f518bfa99f4" :a :task/type :v :task.type/task :op :assert}
+ ]}

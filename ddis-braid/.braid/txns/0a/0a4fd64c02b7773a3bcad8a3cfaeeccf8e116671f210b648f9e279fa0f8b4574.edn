@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769739/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement 7-step session lifecycle state machine (orient/plan/execute/monitor/harvest/seed/handoff)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f000b3d42fe1cb1c800f38d62394146e91c2cad27685ee4a3b55798703ba13e3" :a :db/ident :v :task/t-8c2c :op :assert}
+   {:e #blake3 "f000b3d42fe1cb1c800f38d62394146e91c2cad27685ee4a3b55798703ba13e3" :a :task/created-at :v 1773769738 :op :assert}
+   {:e #blake3 "f000b3d42fe1cb1c800f38d62394146e91c2cad27685ee4a3b55798703ba13e3" :a :task/id :v "t-8c2c" :op :assert}
+   {:e #blake3 "f000b3d42fe1cb1c800f38d62394146e91c2cad27685ee4a3b55798703ba13e3" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f000b3d42fe1cb1c800f38d62394146e91c2cad27685ee4a3b55798703ba13e3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f000b3d42fe1cb1c800f38d62394146e91c2cad27685ee4a3b55798703ba13e3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f000b3d42fe1cb1c800f38d62394146e91c2cad27685ee4a3b55798703ba13e3" :a :task/title :v "S1: Implement 7-step session lifecycle state machine (orient/plan/execute/monitor/harvest/seed/handoff)" :op :assert}
+   {:e #blake3 "f000b3d42fe1cb1c800f38d62394146e91c2cad27685ee4a3b55798703ba13e3" :a :task/type :v :task.type/feature :op :assert}
+ ]}

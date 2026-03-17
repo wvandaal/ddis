@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769705/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0: Add weight and reconciliation_type to HarvestCandidate (spec/05-harvest.md:171)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f3cc9a3d07a3dc243c4889102f7160dfb1172770299bc5461631105397e539f" :a :db/ident :v :task/t-90ca :op :assert}
+   {:e #blake3 "8f3cc9a3d07a3dc243c4889102f7160dfb1172770299bc5461631105397e539f" :a :task/created-at :v 1773769704 :op :assert}
+   {:e #blake3 "8f3cc9a3d07a3dc243c4889102f7160dfb1172770299bc5461631105397e539f" :a :task/id :v "t-90ca" :op :assert}
+   {:e #blake3 "8f3cc9a3d07a3dc243c4889102f7160dfb1172770299bc5461631105397e539f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8f3cc9a3d07a3dc243c4889102f7160dfb1172770299bc5461631105397e539f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8f3cc9a3d07a3dc243c4889102f7160dfb1172770299bc5461631105397e539f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8f3cc9a3d07a3dc243c4889102f7160dfb1172770299bc5461631105397e539f" :a :task/title :v "S0: Add weight and reconciliation_type to HarvestCandidate (spec/05-harvest.md:171)" :op :assert}
+   {:e #blake3 "8f3cc9a3d07a3dc243c4889102f7160dfb1172770299bc5461631105397e539f" :a :task/type :v :task.type/bug :op :assert}
+ ]}

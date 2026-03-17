@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769804/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement FM-013 phantom type verification against store schema"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :db/ident :v :task/t-09cc :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/created-at :v 1773769802 :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/id :v "t-09cc" :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/title :v "S1: Implement FM-013 phantom type verification against store schema" :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/type :v :task.type/task :op :assert}
+ ]}

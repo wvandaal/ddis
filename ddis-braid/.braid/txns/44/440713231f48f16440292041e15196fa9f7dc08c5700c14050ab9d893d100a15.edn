@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770510/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: E2E Stage 0 lifecycle — init, transact, query, harvest, seed, bilateral (e2e script)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "248ec669a18eeb9b2548674efd46ec4e16c568b7bc9dfc1b67558c1355b05e79" :a :db/ident :v :task/t-e0e2 :op :assert}
+   {:e #blake3 "248ec669a18eeb9b2548674efd46ec4e16c568b7bc9dfc1b67558c1355b05e79" :a :task/created-at :v 1773770509 :op :assert}
+   {:e #blake3 "248ec669a18eeb9b2548674efd46ec4e16c568b7bc9dfc1b67558c1355b05e79" :a :task/id :v "t-e0e2" :op :assert}
+   {:e #blake3 "248ec669a18eeb9b2548674efd46ec4e16c568b7bc9dfc1b67558c1355b05e79" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "248ec669a18eeb9b2548674efd46ec4e16c568b7bc9dfc1b67558c1355b05e79" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "248ec669a18eeb9b2548674efd46ec4e16c568b7bc9dfc1b67558c1355b05e79" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "248ec669a18eeb9b2548674efd46ec4e16c568b7bc9dfc1b67558c1355b05e79" :a :task/title :v "TEST: E2E Stage 0 lifecycle — init, transact, query, harvest, seed, bilateral (e2e script)" :op :assert}
+   {:e #blake3 "248ec669a18eeb9b2548674efd46ec4e16c568b7bc9dfc1b67558c1355b05e79" :a :task/type :v :task.type/task :op :assert}
+ ]}

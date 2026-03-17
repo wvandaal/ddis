@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767536/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement M(t) fifth component — guidance_compliance (INV-GUIDANCE-008)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8bc5af8bfbc05ccd5eee5952902fd1ba496d6e1c3aaf05e747f4423bc2475873" :a :db/ident :v :task/t-c016 :op :assert}
+   {:e #blake3 "8bc5af8bfbc05ccd5eee5952902fd1ba496d6e1c3aaf05e747f4423bc2475873" :a :task/created-at :v 1773767535 :op :assert}
+   {:e #blake3 "8bc5af8bfbc05ccd5eee5952902fd1ba496d6e1c3aaf05e747f4423bc2475873" :a :task/id :v "t-c016" :op :assert}
+   {:e #blake3 "8bc5af8bfbc05ccd5eee5952902fd1ba496d6e1c3aaf05e747f4423bc2475873" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "8bc5af8bfbc05ccd5eee5952902fd1ba496d6e1c3aaf05e747f4423bc2475873" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8bc5af8bfbc05ccd5eee5952902fd1ba496d6e1c3aaf05e747f4423bc2475873" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8bc5af8bfbc05ccd5eee5952902fd1ba496d6e1c3aaf05e747f4423bc2475873" :a :task/title :v "S1: Implement M(t) fifth component — guidance_compliance (INV-GUIDANCE-008)" :op :assert}
+   {:e #blake3 "8bc5af8bfbc05ccd5eee5952902fd1ba496d6e1c3aaf05e747f4423bc2475873" :a :task/type :v :task.type/task :op :assert}
+ ]}

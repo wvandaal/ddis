@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770326/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Stage 1 Budget-Aware Output Pipeline (INV-BUDGET-001..006)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :db/ident :v :task/t-f1b1 :op :assert}
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :task/created-at :v 1773770325 :op :assert}
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :task/id :v "t-f1b1" :op :assert}
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :task/title :v "EPIC: Stage 1 Budget-Aware Output Pipeline (INV-BUDGET-001..006)" :op :assert}
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :task/type :v :task.type/epic :op :assert}
+ ]}

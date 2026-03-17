@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769629/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-SUB: Add ensure_agent_entity() auto-creation in transact()"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0ca45b3ac69e3052a9d6a41059d6167a92d29b2a8dc466eabba116efc830c6fa" :a :db/ident :v :task/t-df46 :op :assert}
+   {:e #blake3 "0ca45b3ac69e3052a9d6a41059d6167a92d29b2a8dc466eabba116efc830c6fa" :a :task/created-at :v 1773769628 :op :assert}
+   {:e #blake3 "0ca45b3ac69e3052a9d6a41059d6167a92d29b2a8dc466eabba116efc830c6fa" :a :task/id :v "t-df46" :op :assert}
+   {:e #blake3 "0ca45b3ac69e3052a9d6a41059d6167a92d29b2a8dc466eabba116efc830c6fa" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0ca45b3ac69e3052a9d6a41059d6167a92d29b2a8dc466eabba116efc830c6fa" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0ca45b3ac69e3052a9d6a41059d6167a92d29b2a8dc466eabba116efc830c6fa" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0ca45b3ac69e3052a9d6a41059d6167a92d29b2a8dc466eabba116efc830c6fa" :a :task/title :v "S0-SUB: Add ensure_agent_entity() auto-creation in transact()" :op :assert}
+   {:e #blake3 "0ca45b3ac69e3052a9d6a41059d6167a92d29b2a8dc466eabba116efc830c6fa" :a :task/type :v :task.type/task :op :assert}
+ ]}

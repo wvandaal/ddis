@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769695/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY-SUB: Implement actual predicate/compute_metric helper functions for coherence tests"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c5cfbfc32052919894851b62d0e49d23feefef962d3e2ae18575666861eddb4a" :a :db/ident :v :task/t-5e62 :op :assert}
+   {:e #blake3 "c5cfbfc32052919894851b62d0e49d23feefef962d3e2ae18575666861eddb4a" :a :task/created-at :v 1773769693 :op :assert}
+   {:e #blake3 "c5cfbfc32052919894851b62d0e49d23feefef962d3e2ae18575666861eddb4a" :a :task/id :v "t-5e62" :op :assert}
+   {:e #blake3 "c5cfbfc32052919894851b62d0e49d23feefef962d3e2ae18575666861eddb4a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c5cfbfc32052919894851b62d0e49d23feefef962d3e2ae18575666861eddb4a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c5cfbfc32052919894851b62d0e49d23feefef962d3e2ae18575666861eddb4a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c5cfbfc32052919894851b62d0e49d23feefef962d3e2ae18575666861eddb4a" :a :task/title :v "VERIFY-SUB: Implement actual predicate/compute_metric helper functions for coherence tests" :op :assert}
+   {:e #blake3 "c5cfbfc32052919894851b62d0e49d23feefef962d3e2ae18575666861eddb4a" :a :task/type :v :task.type/bug :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769755/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement FM-002 provenance structural audit (not just type enum)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "84e92fddf1e14929701bfb8075f0091cc492c15e1d4cb881a200fd518e5f29d2" :a :db/ident :v :task/t-a0cf :op :assert}
+   {:e #blake3 "84e92fddf1e14929701bfb8075f0091cc492c15e1d4cb881a200fd518e5f29d2" :a :task/created-at :v 1773769754 :op :assert}
+   {:e #blake3 "84e92fddf1e14929701bfb8075f0091cc492c15e1d4cb881a200fd518e5f29d2" :a :task/id :v "t-a0cf" :op :assert}
+   {:e #blake3 "84e92fddf1e14929701bfb8075f0091cc492c15e1d4cb881a200fd518e5f29d2" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "84e92fddf1e14929701bfb8075f0091cc492c15e1d4cb881a200fd518e5f29d2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "84e92fddf1e14929701bfb8075f0091cc492c15e1d4cb881a200fd518e5f29d2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "84e92fddf1e14929701bfb8075f0091cc492c15e1d4cb881a200fd518e5f29d2" :a :task/title :v "S1: Implement FM-002 provenance structural audit (not just type enum)" :op :assert}
+   {:e #blake3 "84e92fddf1e14929701bfb8075f0091cc492c15e1d4cb881a200fd518e5f29d2" :a :task/type :v :task.type/task :op :assert}
+ ]}

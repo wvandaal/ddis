@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769797/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Fix spec/17-crossref.md TRILATERAL count from 7 to 10"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :db/ident :v :task/t-61f7 :op :assert}
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :task/created-at :v 1773769796 :op :assert}
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :task/id :v "t-61f7" :op :assert}
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :task/title :v "SPEC: Fix spec/17-crossref.md TRILATERAL count from 7 to 10" :op :assert}
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :task/type :v :task.type/docs :op :assert}
+ ]}

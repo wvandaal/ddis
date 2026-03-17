@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769713/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-SUB: Implement intention entity querying from store"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cd778265d8c524207ab9e84d24029bd551caf5a856396125934fd6c4062921b6" :a :db/ident :v :task/t-5910 :op :assert}
+   {:e #blake3 "cd778265d8c524207ab9e84d24029bd551caf5a856396125934fd6c4062921b6" :a :task/created-at :v 1773769710 :op :assert}
+   {:e #blake3 "cd778265d8c524207ab9e84d24029bd551caf5a856396125934fd6c4062921b6" :a :task/id :v "t-5910" :op :assert}
+   {:e #blake3 "cd778265d8c524207ab9e84d24029bd551caf5a856396125934fd6c4062921b6" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "cd778265d8c524207ab9e84d24029bd551caf5a856396125934fd6c4062921b6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cd778265d8c524207ab9e84d24029bd551caf5a856396125934fd6c4062921b6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cd778265d8c524207ab9e84d24029bd551caf5a856396125934fd6c4062921b6" :a :task/title :v "S0-SUB: Implement intention entity querying from store" :op :assert}
+   {:e #blake3 "cd778265d8c524207ab9e84d24029bd551caf5a856396125934fd6c4062921b6" :a :task/type :v :task.type/task :op :assert}
+ ]}

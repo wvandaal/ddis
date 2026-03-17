@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767488/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY: Add proptest for canonical serialization order independence"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c8917d64f08f9aa72718b14c87969450afb6c8137eee4203eccf922fbfe6892e" :a :db/ident :v :task/t-1890 :op :assert}
+   {:e #blake3 "c8917d64f08f9aa72718b14c87969450afb6c8137eee4203eccf922fbfe6892e" :a :task/created-at :v 1773767487 :op :assert}
+   {:e #blake3 "c8917d64f08f9aa72718b14c87969450afb6c8137eee4203eccf922fbfe6892e" :a :task/id :v "t-1890" :op :assert}
+   {:e #blake3 "c8917d64f08f9aa72718b14c87969450afb6c8137eee4203eccf922fbfe6892e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c8917d64f08f9aa72718b14c87969450afb6c8137eee4203eccf922fbfe6892e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c8917d64f08f9aa72718b14c87969450afb6c8137eee4203eccf922fbfe6892e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c8917d64f08f9aa72718b14c87969450afb6c8137eee4203eccf922fbfe6892e" :a :task/title :v "VERIFY: Add proptest for canonical serialization order independence" :op :assert}
+   {:e #blake3 "c8917d64f08f9aa72718b14c87969450afb6c8137eee4203eccf922fbfe6892e" :a :task/type :v :task.type/task :op :assert}
+ ]}

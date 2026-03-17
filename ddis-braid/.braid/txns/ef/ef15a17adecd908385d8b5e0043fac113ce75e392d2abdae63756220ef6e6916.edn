@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769756/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-SUB: Wire cascade into Store::merge return type"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d4491b18b3953d850705bdb08163e318bce14ee678d0da0fef60cffd5d1e24e6" :a :db/ident :v :task/t-6094 :op :assert}
+   {:e #blake3 "d4491b18b3953d850705bdb08163e318bce14ee678d0da0fef60cffd5d1e24e6" :a :task/created-at :v 1773769755 :op :assert}
+   {:e #blake3 "d4491b18b3953d850705bdb08163e318bce14ee678d0da0fef60cffd5d1e24e6" :a :task/id :v "t-6094" :op :assert}
+   {:e #blake3 "d4491b18b3953d850705bdb08163e318bce14ee678d0da0fef60cffd5d1e24e6" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "d4491b18b3953d850705bdb08163e318bce14ee678d0da0fef60cffd5d1e24e6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d4491b18b3953d850705bdb08163e318bce14ee678d0da0fef60cffd5d1e24e6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d4491b18b3953d850705bdb08163e318bce14ee678d0da0fef60cffd5d1e24e6" :a :task/title :v "S0-SUB: Wire cascade into Store::merge return type" :op :assert}
+   {:e #blake3 "d4491b18b3953d850705bdb08163e318bce14ee678d0da0fef60cffd5d1e24e6" :a :task/type :v :task.type/task :op :assert}
+ ]}

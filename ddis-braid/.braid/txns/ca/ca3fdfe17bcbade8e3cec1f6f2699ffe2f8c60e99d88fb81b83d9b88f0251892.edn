@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769813/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Wire merge to deliberation dispatch (aleatory divergence pipeline)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "50cc1329edea5acbcc68a65fa4fbbdfb3e3828e2acc256897ac34ed7599fdd6a" :a :db/ident :v :task/t-8c21 :op :assert}
+   {:e #blake3 "50cc1329edea5acbcc68a65fa4fbbdfb3e3828e2acc256897ac34ed7599fdd6a" :a :task/created-at :v 1773769812 :op :assert}
+   {:e #blake3 "50cc1329edea5acbcc68a65fa4fbbdfb3e3828e2acc256897ac34ed7599fdd6a" :a :task/id :v "t-8c21" :op :assert}
+   {:e #blake3 "50cc1329edea5acbcc68a65fa4fbbdfb3e3828e2acc256897ac34ed7599fdd6a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "50cc1329edea5acbcc68a65fa4fbbdfb3e3828e2acc256897ac34ed7599fdd6a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "50cc1329edea5acbcc68a65fa4fbbdfb3e3828e2acc256897ac34ed7599fdd6a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "50cc1329edea5acbcc68a65fa4fbbdfb3e3828e2acc256897ac34ed7599fdd6a" :a :task/title :v "S1: Wire merge to deliberation dispatch (aleatory divergence pipeline)" :op :assert}
+   {:e #blake3 "50cc1329edea5acbcc68a65fa4fbbdfb3e3828e2acc256897ac34ed7599fdd6a" :a :task/type :v :task.type/task :op :assert}
+ ]}

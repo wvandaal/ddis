@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767325/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-PREP: Convert remaining from_human() commands to native output (INV-INTERFACE-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "20a3d3ce53c102d729faf14a51fdbcc0108cdb3f65055a0f2cf626d4321b343e" :a :db/ident :v :task/t-7761 :op :assert}
+   {:e #blake3 "20a3d3ce53c102d729faf14a51fdbcc0108cdb3f65055a0f2cf626d4321b343e" :a :task/created-at :v 1773767324 :op :assert}
+   {:e #blake3 "20a3d3ce53c102d729faf14a51fdbcc0108cdb3f65055a0f2cf626d4321b343e" :a :task/id :v "t-7761" :op :assert}
+   {:e #blake3 "20a3d3ce53c102d729faf14a51fdbcc0108cdb3f65055a0f2cf626d4321b343e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "20a3d3ce53c102d729faf14a51fdbcc0108cdb3f65055a0f2cf626d4321b343e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "20a3d3ce53c102d729faf14a51fdbcc0108cdb3f65055a0f2cf626d4321b343e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "20a3d3ce53c102d729faf14a51fdbcc0108cdb3f65055a0f2cf626d4321b343e" :a :task/title :v "S1-PREP: Convert remaining from_human() commands to native output (INV-INTERFACE-001)" :op :assert}
+   {:e #blake3 "20a3d3ce53c102d729faf14a51fdbcc0108cdb3f65055a0f2cf626d4321b343e" :a :task/type :v :task.type/task :op :assert}
+ ]}

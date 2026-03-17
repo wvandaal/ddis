@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769714/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Fix guide type catalog — CascadeReceipt in guide but absent from impl"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2397d8d820278a4da21d983b4154d2c4d013d6614ed4187a60de2aaab51ab720" :a :db/ident :v :task/t-3c97 :op :assert}
+   {:e #blake3 "2397d8d820278a4da21d983b4154d2c4d013d6614ed4187a60de2aaab51ab720" :a :task/created-at :v 1773769711 :op :assert}
+   {:e #blake3 "2397d8d820278a4da21d983b4154d2c4d013d6614ed4187a60de2aaab51ab720" :a :task/id :v "t-3c97" :op :assert}
+   {:e #blake3 "2397d8d820278a4da21d983b4154d2c4d013d6614ed4187a60de2aaab51ab720" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2397d8d820278a4da21d983b4154d2c4d013d6614ed4187a60de2aaab51ab720" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2397d8d820278a4da21d983b4154d2c4d013d6614ed4187a60de2aaab51ab720" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2397d8d820278a4da21d983b4154d2c4d013d6614ed4187a60de2aaab51ab720" :a :task/title :v "SPEC: Fix guide type catalog — CascadeReceipt in guide but absent from impl" :op :assert}
+   {:e #blake3 "2397d8d820278a4da21d983b4154d2c4d013d6614ed4187a60de2aaab51ab720" :a :task/type :v :task.type/docs :op :assert}
+ ]}

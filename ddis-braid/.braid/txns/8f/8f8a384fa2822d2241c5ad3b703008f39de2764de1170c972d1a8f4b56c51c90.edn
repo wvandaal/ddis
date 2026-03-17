@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770443/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: MCP guidance footer present in all tool responses (integration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fdcc408fd569985d629f43c6cc7a19dec414dafd4a5c3857a9b45e59b581aed1" :a :db/ident :v :task/t-a4a6 :op :assert}
+   {:e #blake3 "fdcc408fd569985d629f43c6cc7a19dec414dafd4a5c3857a9b45e59b581aed1" :a :task/created-at :v 1773770442 :op :assert}
+   {:e #blake3 "fdcc408fd569985d629f43c6cc7a19dec414dafd4a5c3857a9b45e59b581aed1" :a :task/id :v "t-a4a6" :op :assert}
+   {:e #blake3 "fdcc408fd569985d629f43c6cc7a19dec414dafd4a5c3857a9b45e59b581aed1" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "fdcc408fd569985d629f43c6cc7a19dec414dafd4a5c3857a9b45e59b581aed1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "fdcc408fd569985d629f43c6cc7a19dec414dafd4a5c3857a9b45e59b581aed1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fdcc408fd569985d629f43c6cc7a19dec414dafd4a5c3857a9b45e59b581aed1" :a :task/title :v "TEST: MCP guidance footer present in all tool responses (integration)" :op :assert}
+   {:e #blake3 "fdcc408fd569985d629f43c6cc7a19dec414dafd4a5c3857a9b45e59b581aed1" :a :task/type :v :task.type/task :op :assert}
+ ]}

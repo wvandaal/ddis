@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769683/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY: Add test for INV-INTERFACE-005 TUI subscription liveness"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0f39a35c98c9fcf735e163ef56df8eb411934017b3b9874c6515b3f1b47199a9" :a :db/ident :v :task/t-7ea3 :op :assert}
+   {:e #blake3 "0f39a35c98c9fcf735e163ef56df8eb411934017b3b9874c6515b3f1b47199a9" :a :task/created-at :v 1773769681 :op :assert}
+   {:e #blake3 "0f39a35c98c9fcf735e163ef56df8eb411934017b3b9874c6515b3f1b47199a9" :a :task/id :v "t-7ea3" :op :assert}
+   {:e #blake3 "0f39a35c98c9fcf735e163ef56df8eb411934017b3b9874c6515b3f1b47199a9" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "0f39a35c98c9fcf735e163ef56df8eb411934017b3b9874c6515b3f1b47199a9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0f39a35c98c9fcf735e163ef56df8eb411934017b3b9874c6515b3f1b47199a9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0f39a35c98c9fcf735e163ef56df8eb411934017b3b9874c6515b3f1b47199a9" :a :task/title :v "VERIFY: Add test for INV-INTERFACE-005 TUI subscription liveness" :op :assert}
+   {:e #blake3 "0f39a35c98c9fcf735e163ef56df8eb411934017b3b9874c6515b3f1b47199a9" :a :task/type :v :task.type/task :op :assert}
+ ]}

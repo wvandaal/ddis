@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767372/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-PREP: Uncomment and implement SignalType variants (INV-SIGNAL-006)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "400c993dbd1e55a209d9fbbee6ec9c9454449932197ab2cb21f2d0e5ad8bfd2a" :a :db/ident :v :task/t-4417 :op :assert}
+   {:e #blake3 "400c993dbd1e55a209d9fbbee6ec9c9454449932197ab2cb21f2d0e5ad8bfd2a" :a :task/created-at :v 1773767371 :op :assert}
+   {:e #blake3 "400c993dbd1e55a209d9fbbee6ec9c9454449932197ab2cb21f2d0e5ad8bfd2a" :a :task/id :v "t-4417" :op :assert}
+   {:e #blake3 "400c993dbd1e55a209d9fbbee6ec9c9454449932197ab2cb21f2d0e5ad8bfd2a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "400c993dbd1e55a209d9fbbee6ec9c9454449932197ab2cb21f2d0e5ad8bfd2a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "400c993dbd1e55a209d9fbbee6ec9c9454449932197ab2cb21f2d0e5ad8bfd2a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "400c993dbd1e55a209d9fbbee6ec9c9454449932197ab2cb21f2d0e5ad8bfd2a" :a :task/title :v "S1-PREP: Uncomment and implement SignalType variants (INV-SIGNAL-006)" :op :assert}
+   {:e #blake3 "400c993dbd1e55a209d9fbbee6ec9c9454449932197ab2cb21f2d0e5ad8bfd2a" :a :task/type :v :task.type/task :op :assert}
+ ]}

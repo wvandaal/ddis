@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769768/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY: Add Store::merge associativity proptest (exists in Kani but not unit/proptest)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8cd18977219c0651bb98d40cd4e19fd9d3f90aeafaebd2c76ac90476d77fb683" :a :db/ident :v :task/t-27e0 :op :assert}
+   {:e #blake3 "8cd18977219c0651bb98d40cd4e19fd9d3f90aeafaebd2c76ac90476d77fb683" :a :task/created-at :v 1773769766 :op :assert}
+   {:e #blake3 "8cd18977219c0651bb98d40cd4e19fd9d3f90aeafaebd2c76ac90476d77fb683" :a :task/id :v "t-27e0" :op :assert}
+   {:e #blake3 "8cd18977219c0651bb98d40cd4e19fd9d3f90aeafaebd2c76ac90476d77fb683" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "8cd18977219c0651bb98d40cd4e19fd9d3f90aeafaebd2c76ac90476d77fb683" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8cd18977219c0651bb98d40cd4e19fd9d3f90aeafaebd2c76ac90476d77fb683" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8cd18977219c0651bb98d40cd4e19fd9d3f90aeafaebd2c76ac90476d77fb683" :a :task/title :v "VERIFY: Add Store::merge associativity proptest (exists in Kani but not unit/proptest)" :op :assert}
+   {:e #blake3 "8cd18977219c0651bb98d40cd4e19fd9d3f90aeafaebd2c76ac90476d77fb683" :a :task/type :v :task.type/task :op :assert}
+ ]}

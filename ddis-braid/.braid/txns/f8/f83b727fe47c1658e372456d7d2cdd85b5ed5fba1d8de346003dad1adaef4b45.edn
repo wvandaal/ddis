@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769627/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-SUB: Implement SnapshotView struct"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4f24874d190ce547cb4314ff0c5e7320c2810bc9256b7ecac4974f4255e1ccd8" :a :db/ident :v :task/t-74be :op :assert}
+   {:e #blake3 "4f24874d190ce547cb4314ff0c5e7320c2810bc9256b7ecac4974f4255e1ccd8" :a :task/created-at :v 1773769626 :op :assert}
+   {:e #blake3 "4f24874d190ce547cb4314ff0c5e7320c2810bc9256b7ecac4974f4255e1ccd8" :a :task/id :v "t-74be" :op :assert}
+   {:e #blake3 "4f24874d190ce547cb4314ff0c5e7320c2810bc9256b7ecac4974f4255e1ccd8" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4f24874d190ce547cb4314ff0c5e7320c2810bc9256b7ecac4974f4255e1ccd8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4f24874d190ce547cb4314ff0c5e7320c2810bc9256b7ecac4974f4255e1ccd8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4f24874d190ce547cb4314ff0c5e7320c2810bc9256b7ecac4974f4255e1ccd8" :a :task/title :v "S0-SUB: Implement SnapshotView struct" :op :assert}
+   {:e #blake3 "4f24874d190ce547cb4314ff0c5e7320c2810bc9256b7ecac4974f4255e1ccd8" :a :task/type :v :task.type/task :op :assert}
+ ]}

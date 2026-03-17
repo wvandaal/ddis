@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767480/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY: Fix code generator for coherence tests (braid compile --emit-tests)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1d8b30f95629f70849c52f01caf59bb747b6ea81e5c3ffd942470249eb13b0a9" :a :db/ident :v :task/t-b2f0 :op :assert}
+   {:e #blake3 "1d8b30f95629f70849c52f01caf59bb747b6ea81e5c3ffd942470249eb13b0a9" :a :task/created-at :v 1773767479 :op :assert}
+   {:e #blake3 "1d8b30f95629f70849c52f01caf59bb747b6ea81e5c3ffd942470249eb13b0a9" :a :task/id :v "t-b2f0" :op :assert}
+   {:e #blake3 "1d8b30f95629f70849c52f01caf59bb747b6ea81e5c3ffd942470249eb13b0a9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1d8b30f95629f70849c52f01caf59bb747b6ea81e5c3ffd942470249eb13b0a9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1d8b30f95629f70849c52f01caf59bb747b6ea81e5c3ffd942470249eb13b0a9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1d8b30f95629f70849c52f01caf59bb747b6ea81e5c3ffd942470249eb13b0a9" :a :task/title :v "VERIFY: Fix code generator for coherence tests (braid compile --emit-tests)" :op :assert}
+   {:e #blake3 "1d8b30f95629f70849c52f01caf59bb747b6ea81e5c3ffd942470249eb13b0a9" :a :task/type :v :task.type/bug :op :assert}
+ ]}

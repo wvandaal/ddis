@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767248/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Fix seed budget check — not tautological (NEG-SEED-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a32e340be6cc8d8679625f254f6cd1ca30da67f426845091cc2656113977937d" :a :db/ident :v :task/t-ee9a :op :assert}
+   {:e #blake3 "a32e340be6cc8d8679625f254f6cd1ca30da67f426845091cc2656113977937d" :a :task/created-at :v 1773767247 :op :assert}
+   {:e #blake3 "a32e340be6cc8d8679625f254f6cd1ca30da67f426845091cc2656113977937d" :a :task/id :v "t-ee9a" :op :assert}
+   {:e #blake3 "a32e340be6cc8d8679625f254f6cd1ca30da67f426845091cc2656113977937d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a32e340be6cc8d8679625f254f6cd1ca30da67f426845091cc2656113977937d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a32e340be6cc8d8679625f254f6cd1ca30da67f426845091cc2656113977937d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a32e340be6cc8d8679625f254f6cd1ca30da67f426845091cc2656113977937d" :a :task/title :v "S0-CLOSE: Fix seed budget check — not tautological (NEG-SEED-002)" :op :assert}
+   {:e #blake3 "a32e340be6cc8d8679625f254f6cd1ca30da67f426845091cc2656113977937d" :a :task/type :v :task.type/bug :op :assert}
+ ]}

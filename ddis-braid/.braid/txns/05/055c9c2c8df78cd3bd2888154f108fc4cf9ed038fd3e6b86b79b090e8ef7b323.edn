@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767240/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Implement INV-SEED-006 intention anchoring"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e3703446c29b84febbc4c03d26b2f151e633baa47152c99154689f3e45506ab" :a :db/ident :v :task/t-acf0 :op :assert}
+   {:e #blake3 "2e3703446c29b84febbc4c03d26b2f151e633baa47152c99154689f3e45506ab" :a :task/created-at :v 1773767239 :op :assert}
+   {:e #blake3 "2e3703446c29b84febbc4c03d26b2f151e633baa47152c99154689f3e45506ab" :a :task/id :v "t-acf0" :op :assert}
+   {:e #blake3 "2e3703446c29b84febbc4c03d26b2f151e633baa47152c99154689f3e45506ab" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2e3703446c29b84febbc4c03d26b2f151e633baa47152c99154689f3e45506ab" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2e3703446c29b84febbc4c03d26b2f151e633baa47152c99154689f3e45506ab" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2e3703446c29b84febbc4c03d26b2f151e633baa47152c99154689f3e45506ab" :a :task/title :v "S0-CLOSE: Implement INV-SEED-006 intention anchoring" :op :assert}
+   {:e #blake3 "2e3703446c29b84febbc4c03d26b2f151e633baa47152c99154689f3e45506ab" :a :task/type :v :task.type/task :op :assert}
+ ]}

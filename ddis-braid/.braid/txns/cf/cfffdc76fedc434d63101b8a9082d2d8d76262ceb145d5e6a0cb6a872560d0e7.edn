@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769710/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Add Stage 3 deferral note to TOPOLOGY namespace in spec/README.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f7d29cc2b1588a3065c5774b6d404922303ce49f8bd45ea453d9d71edc634e63" :a :db/ident :v :task/t-420f :op :assert}
+   {:e #blake3 "f7d29cc2b1588a3065c5774b6d404922303ce49f8bd45ea453d9d71edc634e63" :a :task/created-at :v 1773769708 :op :assert}
+   {:e #blake3 "f7d29cc2b1588a3065c5774b6d404922303ce49f8bd45ea453d9d71edc634e63" :a :task/id :v "t-420f" :op :assert}
+   {:e #blake3 "f7d29cc2b1588a3065c5774b6d404922303ce49f8bd45ea453d9d71edc634e63" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "f7d29cc2b1588a3065c5774b6d404922303ce49f8bd45ea453d9d71edc634e63" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f7d29cc2b1588a3065c5774b6d404922303ce49f8bd45ea453d9d71edc634e63" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f7d29cc2b1588a3065c5774b6d404922303ce49f8bd45ea453d9d71edc634e63" :a :task/title :v "SPEC: Add Stage 3 deferral note to TOPOLOGY namespace in spec/README.md" :op :assert}
+   {:e #blake3 "f7d29cc2b1588a3065c5774b6d404922303ce49f8bd45ea453d9d71edc634e63" :a :task/type :v :task.type/docs :op :assert}
+ ]}

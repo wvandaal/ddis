@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769801/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Validate lattice definitions for all 4 required properties (INV-SCHEMA-007)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d4aecdc26e47fa928abc4225b395242e643a25cb5040c7a52e89bbd5c6f40443" :a :db/ident :v :task/t-1e2a :op :assert}
+   {:e #blake3 "d4aecdc26e47fa928abc4225b395242e643a25cb5040c7a52e89bbd5c6f40443" :a :task/created-at :v 1773769799 :op :assert}
+   {:e #blake3 "d4aecdc26e47fa928abc4225b395242e643a25cb5040c7a52e89bbd5c6f40443" :a :task/id :v "t-1e2a" :op :assert}
+   {:e #blake3 "d4aecdc26e47fa928abc4225b395242e643a25cb5040c7a52e89bbd5c6f40443" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "d4aecdc26e47fa928abc4225b395242e643a25cb5040c7a52e89bbd5c6f40443" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d4aecdc26e47fa928abc4225b395242e643a25cb5040c7a52e89bbd5c6f40443" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d4aecdc26e47fa928abc4225b395242e643a25cb5040c7a52e89bbd5c6f40443" :a :task/title :v "S0-CLOSE: Validate lattice definitions for all 4 required properties (INV-SCHEMA-007)" :op :assert}
+   {:e #blake3 "d4aecdc26e47fa928abc4225b395242e643a25cb5040c7a52e89bbd5c6f40443" :a :task/type :v :task.type/task :op :assert}
+ ]}

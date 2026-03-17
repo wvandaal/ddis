@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769746/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Fix conflict_to_datoms to use registered attributes (INV-RESOLUTION-008)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dc371f982aa135722ab1c51606ea49b5f1fa53cdc640c58cc444797c12d8ed7d" :a :db/ident :v :task/t-551e :op :assert}
+   {:e #blake3 "dc371f982aa135722ab1c51606ea49b5f1fa53cdc640c58cc444797c12d8ed7d" :a :task/created-at :v 1773769744 :op :assert}
+   {:e #blake3 "dc371f982aa135722ab1c51606ea49b5f1fa53cdc640c58cc444797c12d8ed7d" :a :task/id :v "t-551e" :op :assert}
+   {:e #blake3 "dc371f982aa135722ab1c51606ea49b5f1fa53cdc640c58cc444797c12d8ed7d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "dc371f982aa135722ab1c51606ea49b5f1fa53cdc640c58cc444797c12d8ed7d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "dc371f982aa135722ab1c51606ea49b5f1fa53cdc640c58cc444797c12d8ed7d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "dc371f982aa135722ab1c51606ea49b5f1fa53cdc640c58cc444797c12d8ed7d" :a :task/title :v "S0-CLOSE: Fix conflict_to_datoms to use registered attributes (INV-RESOLUTION-008)" :op :assert}
+   {:e #blake3 "dc371f982aa135722ab1c51606ea49b5f1fa53cdc640c58cc444797c12d8ed7d" :a :task/type :v :task.type/bug :op :assert}
+ ]}

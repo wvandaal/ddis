@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773770175/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-61ff"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0b8d26c06cbfe1764918de95e563e0b11d23ec8fbd476a2e1a8eb20c9c9d26de" :a :task/close-reason :v "Phase 0: removed false SYNC witnesses from merge.rs" :op :assert}
+   {:e #blake3 "0b8d26c06cbfe1764918de95e563e0b11d23ec8fbd476a2e1a8eb20c9c9d26de" :a :task/closed-at :v 1773770174 :op :assert}
+   {:e #blake3 "0b8d26c06cbfe1764918de95e563e0b11d23ec8fbd476a2e1a8eb20c9c9d26de" :a :task/status :v :task.status/closed :op :assert}
+ ]}

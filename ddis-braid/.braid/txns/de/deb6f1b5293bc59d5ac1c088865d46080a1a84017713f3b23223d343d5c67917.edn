@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769708/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Reconcile INV-MERGE-002 definition between code (frontier monotonicity) and spec (cascade completeness)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "034de4709af0f054377f060c2b671c4ffae75988b8cf75bd9385ef50de71204a" :a :db/ident :v :task/t-fdb0 :op :assert}
+   {:e #blake3 "034de4709af0f054377f060c2b671c4ffae75988b8cf75bd9385ef50de71204a" :a :task/created-at :v 1773769707 :op :assert}
+   {:e #blake3 "034de4709af0f054377f060c2b671c4ffae75988b8cf75bd9385ef50de71204a" :a :task/id :v "t-fdb0" :op :assert}
+   {:e #blake3 "034de4709af0f054377f060c2b671c4ffae75988b8cf75bd9385ef50de71204a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "034de4709af0f054377f060c2b671c4ffae75988b8cf75bd9385ef50de71204a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "034de4709af0f054377f060c2b671c4ffae75988b8cf75bd9385ef50de71204a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "034de4709af0f054377f060c2b671c4ffae75988b8cf75bd9385ef50de71204a" :a :task/title :v "SPEC: Reconcile INV-MERGE-002 definition between code (frontier monotonicity) and spec (cascade completeness)" :op :assert}
+   {:e #blake3 "034de4709af0f054377f060c2b671c4ffae75988b8cf75bd9385ef50de71204a" :a :task/type :v :task.type/docs :op :assert}
+ ]}

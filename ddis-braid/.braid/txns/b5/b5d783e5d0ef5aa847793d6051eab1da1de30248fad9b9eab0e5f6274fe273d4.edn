@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770447/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: MCP store persists across calls via ArcSwap (integration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "634aaff876527fe9c832f7695a9c2eac7c3072c90cbf885693f90ec0c2ea22dd" :a :db/ident :v :task/t-a4db :op :assert}
+   {:e #blake3 "634aaff876527fe9c832f7695a9c2eac7c3072c90cbf885693f90ec0c2ea22dd" :a :task/created-at :v 1773770446 :op :assert}
+   {:e #blake3 "634aaff876527fe9c832f7695a9c2eac7c3072c90cbf885693f90ec0c2ea22dd" :a :task/id :v "t-a4db" :op :assert}
+   {:e #blake3 "634aaff876527fe9c832f7695a9c2eac7c3072c90cbf885693f90ec0c2ea22dd" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "634aaff876527fe9c832f7695a9c2eac7c3072c90cbf885693f90ec0c2ea22dd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "634aaff876527fe9c832f7695a9c2eac7c3072c90cbf885693f90ec0c2ea22dd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "634aaff876527fe9c832f7695a9c2eac7c3072c90cbf885693f90ec0c2ea22dd" :a :task/title :v "TEST: MCP store persists across calls via ArcSwap (integration)" :op :assert}
+   {:e #blake3 "634aaff876527fe9c832f7695a9c2eac7c3072c90cbf885693f90ec0c2ea22dd" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769693/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY-SUB: Fix function name generation in coherence compiler (replace colons/slashes with underscores)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "88699c453c022973235e84e20b2966e2e895b62a1706e8910129ad6415c7fba5" :a :db/ident :v :task/t-c5a6 :op :assert}
+   {:e #blake3 "88699c453c022973235e84e20b2966e2e895b62a1706e8910129ad6415c7fba5" :a :task/created-at :v 1773769691 :op :assert}
+   {:e #blake3 "88699c453c022973235e84e20b2966e2e895b62a1706e8910129ad6415c7fba5" :a :task/id :v "t-c5a6" :op :assert}
+   {:e #blake3 "88699c453c022973235e84e20b2966e2e895b62a1706e8910129ad6415c7fba5" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "88699c453c022973235e84e20b2966e2e895b62a1706e8910129ad6415c7fba5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "88699c453c022973235e84e20b2966e2e895b62a1706e8910129ad6415c7fba5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "88699c453c022973235e84e20b2966e2e895b62a1706e8910129ad6415c7fba5" :a :task/title :v "VERIFY-SUB: Fix function name generation in coherence compiler (replace colons/slashes with underscores)" :op :assert}
+   {:e #blake3 "88699c453c022973235e84e20b2966e2e895b62a1706e8910129ad6415c7fba5" :a :task/type :v :task.type/bug :op :assert}
+ ]}

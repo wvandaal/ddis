@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767549/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement GuidanceTopology comonadic structure (ADR-GUIDANCE-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "27e513572746ba94994310870194a0c5d04e579c6d7aff114b05487efc4a759d" :a :db/ident :v :task/t-54a0 :op :assert}
+   {:e #blake3 "27e513572746ba94994310870194a0c5d04e579c6d7aff114b05487efc4a759d" :a :task/created-at :v 1773767548 :op :assert}
+   {:e #blake3 "27e513572746ba94994310870194a0c5d04e579c6d7aff114b05487efc4a759d" :a :task/id :v "t-54a0" :op :assert}
+   {:e #blake3 "27e513572746ba94994310870194a0c5d04e579c6d7aff114b05487efc4a759d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "27e513572746ba94994310870194a0c5d04e579c6d7aff114b05487efc4a759d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "27e513572746ba94994310870194a0c5d04e579c6d7aff114b05487efc4a759d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "27e513572746ba94994310870194a0c5d04e579c6d7aff114b05487efc4a759d" :a :task/title :v "S1: Implement GuidanceTopology comonadic structure (ADR-GUIDANCE-001)" :op :assert}
+   {:e #blake3 "27e513572746ba94994310870194a0c5d04e579c6d7aff114b05487efc4a759d" :a :task/type :v :task.type/feature :op :assert}
+ ]}

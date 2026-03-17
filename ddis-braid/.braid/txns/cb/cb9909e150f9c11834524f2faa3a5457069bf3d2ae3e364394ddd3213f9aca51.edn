@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767309/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-PREP: Implement MCP braid_guidance tool (INV-INTERFACE-003)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a2f94be2368bba8a568be6f368c9653db5eeb8412414ad254a5a48261a4c1c3a" :a :db/ident :v :task/t-6baa :op :assert}
+   {:e #blake3 "a2f94be2368bba8a568be6f368c9653db5eeb8412414ad254a5a48261a4c1c3a" :a :task/created-at :v 1773767308 :op :assert}
+   {:e #blake3 "a2f94be2368bba8a568be6f368c9653db5eeb8412414ad254a5a48261a4c1c3a" :a :task/id :v "t-6baa" :op :assert}
+   {:e #blake3 "a2f94be2368bba8a568be6f368c9653db5eeb8412414ad254a5a48261a4c1c3a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a2f94be2368bba8a568be6f368c9653db5eeb8412414ad254a5a48261a4c1c3a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a2f94be2368bba8a568be6f368c9653db5eeb8412414ad254a5a48261a4c1c3a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a2f94be2368bba8a568be6f368c9653db5eeb8412414ad254a5a48261a4c1c3a" :a :task/title :v "S1-PREP: Implement MCP braid_guidance tool (INV-INTERFACE-003)" :op :assert}
+   {:e #blake3 "a2f94be2368bba8a568be6f368c9653db5eeb8412414ad254a5a48261a4c1c3a" :a :task/type :v :task.type/task :op :assert}
+ ]}

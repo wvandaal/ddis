@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767212/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Implement Store::as_of for temporal queries (INV-STORE-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7c446a3a47a1820f573ab1a769f7834287527749462ebc78ad42f536b7eff8f4" :a :db/ident :v :task/t-2935 :op :assert}
+   {:e #blake3 "7c446a3a47a1820f573ab1a769f7834287527749462ebc78ad42f536b7eff8f4" :a :task/created-at :v 1773767211 :op :assert}
+   {:e #blake3 "7c446a3a47a1820f573ab1a769f7834287527749462ebc78ad42f536b7eff8f4" :a :task/id :v "t-2935" :op :assert}
+   {:e #blake3 "7c446a3a47a1820f573ab1a769f7834287527749462ebc78ad42f536b7eff8f4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7c446a3a47a1820f573ab1a769f7834287527749462ebc78ad42f536b7eff8f4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7c446a3a47a1820f573ab1a769f7834287527749462ebc78ad42f536b7eff8f4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7c446a3a47a1820f573ab1a769f7834287527749462ebc78ad42f536b7eff8f4" :a :task/title :v "S0-CLOSE: Implement Store::as_of for temporal queries (INV-STORE-005)" :op :assert}
+   {:e #blake3 "7c446a3a47a1820f573ab1a769f7834287527749462ebc78ad42f536b7eff8f4" :a :task/type :v :task.type/task :op :assert}
+ ]}

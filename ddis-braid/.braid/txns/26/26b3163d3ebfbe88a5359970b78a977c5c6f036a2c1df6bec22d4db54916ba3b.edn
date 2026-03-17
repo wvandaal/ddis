@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769712/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Add SYNC stage clarity note — frontier comparison is precursor, not SYNC witness"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2d8f0d49421d76d1c396d978f9f9768152881f4b906c693bf7a0b5b7fa4ca251" :a :db/ident :v :task/t-645d :op :assert}
+   {:e #blake3 "2d8f0d49421d76d1c396d978f9f9768152881f4b906c693bf7a0b5b7fa4ca251" :a :task/created-at :v 1773769710 :op :assert}
+   {:e #blake3 "2d8f0d49421d76d1c396d978f9f9768152881f4b906c693bf7a0b5b7fa4ca251" :a :task/id :v "t-645d" :op :assert}
+   {:e #blake3 "2d8f0d49421d76d1c396d978f9f9768152881f4b906c693bf7a0b5b7fa4ca251" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2d8f0d49421d76d1c396d978f9f9768152881f4b906c693bf7a0b5b7fa4ca251" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2d8f0d49421d76d1c396d978f9f9768152881f4b906c693bf7a0b5b7fa4ca251" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2d8f0d49421d76d1c396d978f9f9768152881f4b906c693bf7a0b5b7fa4ca251" :a :task/title :v "SPEC: Add SYNC stage clarity note — frontier comparison is precursor, not SYNC witness" :op :assert}
+   {:e #blake3 "2d8f0d49421d76d1c396d978f9f9768152881f4b906c693bf7a0b5b7fa4ca251" :a :task/type :v :task.type/docs :op :assert}
+ ]}

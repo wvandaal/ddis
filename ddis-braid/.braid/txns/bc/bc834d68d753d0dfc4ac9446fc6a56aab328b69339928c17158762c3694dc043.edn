@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769796/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Extend bilateral scan to cover all 4 boundary types (not just SpecImpl)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e4e34e3ed29d6f754d87932daa3238fd9fe5b5bc5c16c48c20dc0c0d6cac599c" :a :db/ident :v :task/t-792a :op :assert}
+   {:e #blake3 "e4e34e3ed29d6f754d87932daa3238fd9fe5b5bc5c16c48c20dc0c0d6cac599c" :a :task/created-at :v 1773769795 :op :assert}
+   {:e #blake3 "e4e34e3ed29d6f754d87932daa3238fd9fe5b5bc5c16c48c20dc0c0d6cac599c" :a :task/id :v "t-792a" :op :assert}
+   {:e #blake3 "e4e34e3ed29d6f754d87932daa3238fd9fe5b5bc5c16c48c20dc0c0d6cac599c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e4e34e3ed29d6f754d87932daa3238fd9fe5b5bc5c16c48c20dc0c0d6cac599c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e4e34e3ed29d6f754d87932daa3238fd9fe5b5bc5c16c48c20dc0c0d6cac599c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e4e34e3ed29d6f754d87932daa3238fd9fe5b5bc5c16c48c20dc0c0d6cac599c" :a :task/title :v "S1: Extend bilateral scan to cover all 4 boundary types (not just SpecImpl)" :op :assert}
+   {:e #blake3 "e4e34e3ed29d6f754d87932daa3238fd9fe5b5bc5c16c48c20dc0c0d6cac599c" :a :task/type :v :task.type/task :op :assert}
+ ]}

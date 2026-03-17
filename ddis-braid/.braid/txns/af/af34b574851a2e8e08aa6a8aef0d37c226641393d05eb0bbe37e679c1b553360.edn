@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767170/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Fix MergeReceipt to include duplicate_datoms and frontier_delta (INV-MERGE-009)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0eba64ddcc8bd2ed68563e87a41c687ce563675349f768fcaec6c2d8c08ad704" :a :db/ident :v :task/t-2cc1 :op :assert}
+   {:e #blake3 "0eba64ddcc8bd2ed68563e87a41c687ce563675349f768fcaec6c2d8c08ad704" :a :task/created-at :v 1773767169 :op :assert}
+   {:e #blake3 "0eba64ddcc8bd2ed68563e87a41c687ce563675349f768fcaec6c2d8c08ad704" :a :task/id :v "t-2cc1" :op :assert}
+   {:e #blake3 "0eba64ddcc8bd2ed68563e87a41c687ce563675349f768fcaec6c2d8c08ad704" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "0eba64ddcc8bd2ed68563e87a41c687ce563675349f768fcaec6c2d8c08ad704" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0eba64ddcc8bd2ed68563e87a41c687ce563675349f768fcaec6c2d8c08ad704" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0eba64ddcc8bd2ed68563e87a41c687ce563675349f768fcaec6c2d8c08ad704" :a :task/title :v "S0-CLOSE: Fix MergeReceipt to include duplicate_datoms and frontier_delta (INV-MERGE-009)" :op :assert}
+   {:e #blake3 "0eba64ddcc8bd2ed68563e87a41c687ce563675349f768fcaec6c2d8c08ad704" :a :task/type :v :task.type/task :op :assert}
+ ]}

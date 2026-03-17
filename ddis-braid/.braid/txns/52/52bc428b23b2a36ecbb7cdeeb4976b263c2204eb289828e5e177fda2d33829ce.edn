@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769625/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-SUB: Implement VAET index (reverse reference lookup)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "86258c924d93183001527a1ec2ebf5e4341f52208bf9cb153c3545260a004f5b" :a :db/ident :v :task/t-9ff3 :op :assert}
+   {:e #blake3 "86258c924d93183001527a1ec2ebf5e4341f52208bf9cb153c3545260a004f5b" :a :task/created-at :v 1773769624 :op :assert}
+   {:e #blake3 "86258c924d93183001527a1ec2ebf5e4341f52208bf9cb153c3545260a004f5b" :a :task/id :v "t-9ff3" :op :assert}
+   {:e #blake3 "86258c924d93183001527a1ec2ebf5e4341f52208bf9cb153c3545260a004f5b" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "86258c924d93183001527a1ec2ebf5e4341f52208bf9cb153c3545260a004f5b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "86258c924d93183001527a1ec2ebf5e4341f52208bf9cb153c3545260a004f5b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "86258c924d93183001527a1ec2ebf5e4341f52208bf9cb153c3545260a004f5b" :a :task/title :v "S1-SUB: Implement VAET index (reverse reference lookup)" :op :assert}
+   {:e #blake3 "86258c924d93183001527a1ec2ebf5e4341f52208bf9cb153c3545260a004f5b" :a :task/type :v :task.type/task :op :assert}
+ ]}

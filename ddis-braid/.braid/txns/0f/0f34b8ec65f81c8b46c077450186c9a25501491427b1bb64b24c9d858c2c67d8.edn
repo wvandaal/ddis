@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770467/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: Frontier stored as :tx/frontier datom, queryable via Datalog (integration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "759f530de034ce8706df3a7da554b0293742b7169be6de97af5435367ae47484" :a :db/ident :v :task/t-50d8 :op :assert}
+   {:e #blake3 "759f530de034ce8706df3a7da554b0293742b7169be6de97af5435367ae47484" :a :task/created-at :v 1773770466 :op :assert}
+   {:e #blake3 "759f530de034ce8706df3a7da554b0293742b7169be6de97af5435367ae47484" :a :task/id :v "t-50d8" :op :assert}
+   {:e #blake3 "759f530de034ce8706df3a7da554b0293742b7169be6de97af5435367ae47484" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "759f530de034ce8706df3a7da554b0293742b7169be6de97af5435367ae47484" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "759f530de034ce8706df3a7da554b0293742b7169be6de97af5435367ae47484" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "759f530de034ce8706df3a7da554b0293742b7169be6de97af5435367ae47484" :a :task/title :v "TEST: Frontier stored as :tx/frontier datom, queryable via Datalog (integration)" :op :assert}
+   {:e #blake3 "759f530de034ce8706df3a7da554b0293742b7169be6de97af5435367ae47484" :a :task/type :v :task.type/task :op :assert}
+ ]}

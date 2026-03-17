@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769670/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement aleatory divergence detection (agent-vs-agent conflict signals)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3bb703d0b05bbad7496f6b27f47eb98ca5be6eb074aee4566bc6cf4b2b1e5a04" :a :db/ident :v :task/t-1417 :op :assert}
+   {:e #blake3 "3bb703d0b05bbad7496f6b27f47eb98ca5be6eb074aee4566bc6cf4b2b1e5a04" :a :task/created-at :v 1773769669 :op :assert}
+   {:e #blake3 "3bb703d0b05bbad7496f6b27f47eb98ca5be6eb074aee4566bc6cf4b2b1e5a04" :a :task/id :v "t-1417" :op :assert}
+   {:e #blake3 "3bb703d0b05bbad7496f6b27f47eb98ca5be6eb074aee4566bc6cf4b2b1e5a04" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3bb703d0b05bbad7496f6b27f47eb98ca5be6eb074aee4566bc6cf4b2b1e5a04" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3bb703d0b05bbad7496f6b27f47eb98ca5be6eb074aee4566bc6cf4b2b1e5a04" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3bb703d0b05bbad7496f6b27f47eb98ca5be6eb074aee4566bc6cf4b2b1e5a04" :a :task/title :v "S1: Implement aleatory divergence detection (agent-vs-agent conflict signals)" :op :assert}
+   {:e #blake3 "3bb703d0b05bbad7496f6b27f47eb98ca5be6eb074aee4566bc6cf4b2b1e5a04" :a :task/type :v :task.type/task :op :assert}
+ ]}

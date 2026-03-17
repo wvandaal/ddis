@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770390/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: :resolution/* attributes pass schema validation on transact (integration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0b0566208b772d7adf5d396879fab360d783ed9b260585e3f8cd752d749b20da" :a :db/ident :v :task/t-8dd8 :op :assert}
+   {:e #blake3 "0b0566208b772d7adf5d396879fab360d783ed9b260585e3f8cd752d749b20da" :a :task/created-at :v 1773770389 :op :assert}
+   {:e #blake3 "0b0566208b772d7adf5d396879fab360d783ed9b260585e3f8cd752d749b20da" :a :task/id :v "t-8dd8" :op :assert}
+   {:e #blake3 "0b0566208b772d7adf5d396879fab360d783ed9b260585e3f8cd752d749b20da" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0b0566208b772d7adf5d396879fab360d783ed9b260585e3f8cd752d749b20da" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0b0566208b772d7adf5d396879fab360d783ed9b260585e3f8cd752d749b20da" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0b0566208b772d7adf5d396879fab360d783ed9b260585e3f8cd752d749b20da" :a :task/title :v "TEST: :resolution/* attributes pass schema validation on transact (integration)" :op :assert}
+   {:e #blake3 "0b0566208b772d7adf5d396879fab360d783ed9b260585e3f8cd752d749b20da" :a :task/type :v :task.type/task :op :assert}
+ ]}

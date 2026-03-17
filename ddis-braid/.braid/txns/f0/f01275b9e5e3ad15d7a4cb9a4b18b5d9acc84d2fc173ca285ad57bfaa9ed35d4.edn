@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767396/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-PREP: Implement commitment weight for decisions (INV-DELIBERATION-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6587ccbc7b2549425ffe23e9370c6f1a677bda3e192abaad818580c5f2d998e5" :a :db/ident :v :task/t-d558 :op :assert}
+   {:e #blake3 "6587ccbc7b2549425ffe23e9370c6f1a677bda3e192abaad818580c5f2d998e5" :a :task/created-at :v 1773767395 :op :assert}
+   {:e #blake3 "6587ccbc7b2549425ffe23e9370c6f1a677bda3e192abaad818580c5f2d998e5" :a :task/id :v "t-d558" :op :assert}
+   {:e #blake3 "6587ccbc7b2549425ffe23e9370c6f1a677bda3e192abaad818580c5f2d998e5" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6587ccbc7b2549425ffe23e9370c6f1a677bda3e192abaad818580c5f2d998e5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6587ccbc7b2549425ffe23e9370c6f1a677bda3e192abaad818580c5f2d998e5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6587ccbc7b2549425ffe23e9370c6f1a677bda3e192abaad818580c5f2d998e5" :a :task/title :v "S1-PREP: Implement commitment weight for decisions (INV-DELIBERATION-005)" :op :assert}
+   {:e #blake3 "6587ccbc7b2549425ffe23e9370c6f1a677bda3e192abaad818580c5f2d998e5" :a :task/type :v :task.type/task :op :assert}
+ ]}

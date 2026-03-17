@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767470/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Document attention_decay continuity fix as ADR (spec formula has discontinuity)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "eca83264afb084009be193831f0ee224b91401abbfcd0fe8d94e9d84040eb595" :a :db/ident :v :task/t-0f32 :op :assert}
+   {:e #blake3 "eca83264afb084009be193831f0ee224b91401abbfcd0fe8d94e9d84040eb595" :a :task/created-at :v 1773767469 :op :assert}
+   {:e #blake3 "eca83264afb084009be193831f0ee224b91401abbfcd0fe8d94e9d84040eb595" :a :task/id :v "t-0f32" :op :assert}
+   {:e #blake3 "eca83264afb084009be193831f0ee224b91401abbfcd0fe8d94e9d84040eb595" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "eca83264afb084009be193831f0ee224b91401abbfcd0fe8d94e9d84040eb595" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "eca83264afb084009be193831f0ee224b91401abbfcd0fe8d94e9d84040eb595" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "eca83264afb084009be193831f0ee224b91401abbfcd0fe8d94e9d84040eb595" :a :task/title :v "SPEC: Document attention_decay continuity fix as ADR (spec formula has discontinuity)" :op :assert}
+   {:e #blake3 "eca83264afb084009be193831f0ee224b91401abbfcd0fe8d94e9d84040eb595" :a :task/type :v :task.type/docs :op :assert}
+ ]}

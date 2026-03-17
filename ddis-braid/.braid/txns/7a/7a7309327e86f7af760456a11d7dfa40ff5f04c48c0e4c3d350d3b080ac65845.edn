@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769614/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement read command provenance recording in agent working set (INV-STORE-014)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b05b985cf50048f370746efba26e3af04248f9e9f9cecf0f27772ee0d354c65a" :a :db/ident :v :task/t-d124 :op :assert}
+   {:e #blake3 "b05b985cf50048f370746efba26e3af04248f9e9f9cecf0f27772ee0d354c65a" :a :task/created-at :v 1773769613 :op :assert}
+   {:e #blake3 "b05b985cf50048f370746efba26e3af04248f9e9f9cecf0f27772ee0d354c65a" :a :task/id :v "t-d124" :op :assert}
+   {:e #blake3 "b05b985cf50048f370746efba26e3af04248f9e9f9cecf0f27772ee0d354c65a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "b05b985cf50048f370746efba26e3af04248f9e9f9cecf0f27772ee0d354c65a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b05b985cf50048f370746efba26e3af04248f9e9f9cecf0f27772ee0d354c65a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b05b985cf50048f370746efba26e3af04248f9e9f9cecf0f27772ee0d354c65a" :a :task/title :v "S1: Implement read command provenance recording in agent working set (INV-STORE-014)" :op :assert}
+   {:e #blake3 "b05b985cf50048f370746efba26e3af04248f9e9f9cecf0f27772ee0d354c65a" :a :task/type :v :task.type/task :op :assert}
+ ]}

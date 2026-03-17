@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769762/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S2: Align branch.rs with Branching G-Set model (currently filter-based)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "819577e93cfd1a7e198bfce045876f8213be35cadb5f468449ec44a11e0f5fb2" :a :db/ident :v :task/t-69b7 :op :assert}
+   {:e #blake3 "819577e93cfd1a7e198bfce045876f8213be35cadb5f468449ec44a11e0f5fb2" :a :task/created-at :v 1773769760 :op :assert}
+   {:e #blake3 "819577e93cfd1a7e198bfce045876f8213be35cadb5f468449ec44a11e0f5fb2" :a :task/id :v "t-69b7" :op :assert}
+   {:e #blake3 "819577e93cfd1a7e198bfce045876f8213be35cadb5f468449ec44a11e0f5fb2" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "819577e93cfd1a7e198bfce045876f8213be35cadb5f468449ec44a11e0f5fb2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "819577e93cfd1a7e198bfce045876f8213be35cadb5f468449ec44a11e0f5fb2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "819577e93cfd1a7e198bfce045876f8213be35cadb5f468449ec44a11e0f5fb2" :a :task/title :v "S2: Align branch.rs with Branching G-Set model (currently filter-based)" :op :assert}
+   {:e #blake3 "819577e93cfd1a7e198bfce045876f8213be35cadb5f468449ec44a11e0f5fb2" :a :task/type :v :task.type/feature :op :assert}
+ ]}

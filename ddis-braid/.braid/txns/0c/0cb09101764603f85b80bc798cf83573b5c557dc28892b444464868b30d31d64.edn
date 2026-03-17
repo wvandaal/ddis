@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769718/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Catalogue 47 excluded elements in spec/17-crossref.md for bilateral checking"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7dd6c22bf79f171ec88816eca48bf1a49f25abd552de65b03a8073c52039e44f" :a :db/ident :v :task/t-fdf1 :op :assert}
+   {:e #blake3 "7dd6c22bf79f171ec88816eca48bf1a49f25abd552de65b03a8073c52039e44f" :a :task/created-at :v 1773769717 :op :assert}
+   {:e #blake3 "7dd6c22bf79f171ec88816eca48bf1a49f25abd552de65b03a8073c52039e44f" :a :task/id :v "t-fdf1" :op :assert}
+   {:e #blake3 "7dd6c22bf79f171ec88816eca48bf1a49f25abd552de65b03a8073c52039e44f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "7dd6c22bf79f171ec88816eca48bf1a49f25abd552de65b03a8073c52039e44f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7dd6c22bf79f171ec88816eca48bf1a49f25abd552de65b03a8073c52039e44f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7dd6c22bf79f171ec88816eca48bf1a49f25abd552de65b03a8073c52039e44f" :a :task/title :v "SPEC: Catalogue 47 excluded elements in spec/17-crossref.md for bilateral checking" :op :assert}
+   {:e #blake3 "7dd6c22bf79f171ec88816eca48bf1a49f25abd552de65b03a8073c52039e44f" :a :task/type :v :task.type/docs :op :assert}
+ ]}

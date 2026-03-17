@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769698/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY: Commit proptest regression files to VCS"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0a4c21736aebb23c27f787087d29fac4c72e24c1468ee9bf9bf96bb127e0d0ee" :a :db/ident :v :task/t-4713 :op :assert}
+   {:e #blake3 "0a4c21736aebb23c27f787087d29fac4c72e24c1468ee9bf9bf96bb127e0d0ee" :a :task/created-at :v 1773769696 :op :assert}
+   {:e #blake3 "0a4c21736aebb23c27f787087d29fac4c72e24c1468ee9bf9bf96bb127e0d0ee" :a :task/id :v "t-4713" :op :assert}
+   {:e #blake3 "0a4c21736aebb23c27f787087d29fac4c72e24c1468ee9bf9bf96bb127e0d0ee" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "0a4c21736aebb23c27f787087d29fac4c72e24c1468ee9bf9bf96bb127e0d0ee" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0a4c21736aebb23c27f787087d29fac4c72e24c1468ee9bf9bf96bb127e0d0ee" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0a4c21736aebb23c27f787087d29fac4c72e24c1468ee9bf9bf96bb127e0d0ee" :a :task/title :v "VERIFY: Commit proptest regression files to VCS" :op :assert}
+   {:e #blake3 "0a4c21736aebb23c27f787087d29fac4c72e24c1468ee9bf9bf96bb127e0d0ee" :a :task/type :v :task.type/task :op :assert}
+ ]}

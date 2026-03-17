@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773770176/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1b91"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7cc7d8ca8e2f3d9ed71980130a1913dc228a9de3d0c51acf29614099eabdce6b" :a :task/close-reason :v "Phase 0: restricted from_raw_bytes to pub(crate)" :op :assert}
+   {:e #blake3 "7cc7d8ca8e2f3d9ed71980130a1913dc228a9de3d0c51acf29614099eabdce6b" :a :task/closed-at :v 1773770175 :op :assert}
+   {:e #blake3 "7cc7d8ca8e2f3d9ed71980130a1913dc228a9de3d0c51acf29614099eabdce6b" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770352/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Verification Coverage — Zero-Defect Assurance"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :db/ident :v :task/t-9440 :op :assert}
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :task/created-at :v 1773770351 :op :assert}
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :task/id :v "t-9440" :op :assert}
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :task/title :v "EPIC: Verification Coverage — Zero-Defect Assurance" :op :assert}
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :task/type :v :task.type/epic :op :assert}
+ ]}

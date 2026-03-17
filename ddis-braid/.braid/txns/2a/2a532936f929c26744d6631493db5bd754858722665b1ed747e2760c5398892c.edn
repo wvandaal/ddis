@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770336/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Stage 1 Guidance Topology + Anti-Drift (INV-GUIDANCE-001..011)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e036b14f2597f09cd51d78a71f3296e277b0575ec60dc2d191e61d610e2e987d" :a :db/ident :v :task/t-44b1 :op :assert}
+   {:e #blake3 "e036b14f2597f09cd51d78a71f3296e277b0575ec60dc2d191e61d610e2e987d" :a :task/created-at :v 1773770335 :op :assert}
+   {:e #blake3 "e036b14f2597f09cd51d78a71f3296e277b0575ec60dc2d191e61d610e2e987d" :a :task/id :v "t-44b1" :op :assert}
+   {:e #blake3 "e036b14f2597f09cd51d78a71f3296e277b0575ec60dc2d191e61d610e2e987d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e036b14f2597f09cd51d78a71f3296e277b0575ec60dc2d191e61d610e2e987d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e036b14f2597f09cd51d78a71f3296e277b0575ec60dc2d191e61d610e2e987d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e036b14f2597f09cd51d78a71f3296e277b0575ec60dc2d191e61d610e2e987d" :a :task/title :v "EPIC: Stage 1 Guidance Topology + Anti-Drift (INV-GUIDANCE-001..011)" :op :assert}
+   {:e #blake3 "e036b14f2597f09cd51d78a71f3296e277b0575ec60dc2d191e61d610e2e987d" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770322/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Stage 1 Signal + Deliberation Pipeline (INV-SIGNAL + INV-DELIBERATION)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f5ef8d02e9bc6c542212a130479fc8adef73a8e4b87ddbbb494743f6a1624b8b" :a :db/ident :v :task/t-66bd :op :assert}
+   {:e #blake3 "f5ef8d02e9bc6c542212a130479fc8adef73a8e4b87ddbbb494743f6a1624b8b" :a :task/created-at :v 1773770321 :op :assert}
+   {:e #blake3 "f5ef8d02e9bc6c542212a130479fc8adef73a8e4b87ddbbb494743f6a1624b8b" :a :task/id :v "t-66bd" :op :assert}
+   {:e #blake3 "f5ef8d02e9bc6c542212a130479fc8adef73a8e4b87ddbbb494743f6a1624b8b" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f5ef8d02e9bc6c542212a130479fc8adef73a8e4b87ddbbb494743f6a1624b8b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f5ef8d02e9bc6c542212a130479fc8adef73a8e4b87ddbbb494743f6a1624b8b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f5ef8d02e9bc6c542212a130479fc8adef73a8e4b87ddbbb494743f6a1624b8b" :a :task/title :v "EPIC: Stage 1 Signal + Deliberation Pipeline (INV-SIGNAL + INV-DELIBERATION)" :op :assert}
+   {:e #blake3 "f5ef8d02e9bc6c542212a130479fc8adef73a8e4b87ddbbb494743f6a1624b8b" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767317/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-PREP: Wire R(t) routing to real store tasks (INV-GUIDANCE-010)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8721f2bb033f236d066b7dc0bd0a9d0517a5877576f6f6fa6264ce9d4bb932ba" :a :db/ident :v :task/t-f2f3 :op :assert}
+   {:e #blake3 "8721f2bb033f236d066b7dc0bd0a9d0517a5877576f6f6fa6264ce9d4bb932ba" :a :task/created-at :v 1773767316 :op :assert}
+   {:e #blake3 "8721f2bb033f236d066b7dc0bd0a9d0517a5877576f6f6fa6264ce9d4bb932ba" :a :task/id :v "t-f2f3" :op :assert}
+   {:e #blake3 "8721f2bb033f236d066b7dc0bd0a9d0517a5877576f6f6fa6264ce9d4bb932ba" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8721f2bb033f236d066b7dc0bd0a9d0517a5877576f6f6fa6264ce9d4bb932ba" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8721f2bb033f236d066b7dc0bd0a9d0517a5877576f6f6fa6264ce9d4bb932ba" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8721f2bb033f236d066b7dc0bd0a9d0517a5877576f6f6fa6264ce9d4bb932ba" :a :task/title :v "S1-PREP: Wire R(t) routing to real store tasks (INV-GUIDANCE-010)" :op :assert}
+   {:e #blake3 "8721f2bb033f236d066b7dc0bd0a9d0517a5877576f6f6fa6264ce9d4bb932ba" :a :task/type :v :task.type/task :op :assert}
+ ]}

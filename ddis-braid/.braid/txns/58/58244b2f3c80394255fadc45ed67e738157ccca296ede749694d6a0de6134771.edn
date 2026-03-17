@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770397/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: Kani proof for cascade completeness (bounded model check)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5064e2db929baddbedc1186a4c4849512a62dbb53d9c82a49e079d6a16c4d183" :a :db/ident :v :task/t-3c50 :op :assert}
+   {:e #blake3 "5064e2db929baddbedc1186a4c4849512a62dbb53d9c82a49e079d6a16c4d183" :a :task/created-at :v 1773770396 :op :assert}
+   {:e #blake3 "5064e2db929baddbedc1186a4c4849512a62dbb53d9c82a49e079d6a16c4d183" :a :task/id :v "t-3c50" :op :assert}
+   {:e #blake3 "5064e2db929baddbedc1186a4c4849512a62dbb53d9c82a49e079d6a16c4d183" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5064e2db929baddbedc1186a4c4849512a62dbb53d9c82a49e079d6a16c4d183" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5064e2db929baddbedc1186a4c4849512a62dbb53d9c82a49e079d6a16c4d183" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5064e2db929baddbedc1186a4c4849512a62dbb53d9c82a49e079d6a16c4d183" :a :task/title :v "TEST: Kani proof for cascade completeness (bounded model check)" :op :assert}
+   {:e #blake3 "5064e2db929baddbedc1186a4c4849512a62dbb53d9c82a49e079d6a16c4d183" :a :task/type :v :task.type/task :op :assert}
+ ]}

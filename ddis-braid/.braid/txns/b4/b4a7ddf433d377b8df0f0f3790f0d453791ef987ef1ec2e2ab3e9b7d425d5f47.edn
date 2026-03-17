@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769715/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-SUB: Implement BudgetExhaustedByIntentions signal"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "deb7cc1651d1ac20bf0b1522b10855870edd41ab665dc89ebfd7addd25028d59" :a :db/ident :v :task/t-4a9e :op :assert}
+   {:e #blake3 "deb7cc1651d1ac20bf0b1522b10855870edd41ab665dc89ebfd7addd25028d59" :a :task/created-at :v 1773769712 :op :assert}
+   {:e #blake3 "deb7cc1651d1ac20bf0b1522b10855870edd41ab665dc89ebfd7addd25028d59" :a :task/id :v "t-4a9e" :op :assert}
+   {:e #blake3 "deb7cc1651d1ac20bf0b1522b10855870edd41ab665dc89ebfd7addd25028d59" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "deb7cc1651d1ac20bf0b1522b10855870edd41ab665dc89ebfd7addd25028d59" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "deb7cc1651d1ac20bf0b1522b10855870edd41ab665dc89ebfd7addd25028d59" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "deb7cc1651d1ac20bf0b1522b10855870edd41ab665dc89ebfd7addd25028d59" :a :task/title :v "S0-SUB: Implement BudgetExhaustedByIntentions signal" :op :assert}
+   {:e #blake3 "deb7cc1651d1ac20bf0b1522b10855870edd41ab665dc89ebfd7addd25028d59" :a :task/type :v :task.type/task :op :assert}
+ ]}

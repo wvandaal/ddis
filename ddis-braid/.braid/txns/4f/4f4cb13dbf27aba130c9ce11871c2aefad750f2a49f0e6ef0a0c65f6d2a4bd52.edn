@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769737/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Align SEED.md 70/85/95% thresholds with spec Q(t) levels and code 4-level system"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4e08eb2559a35907d8b517f9c4b73760f849c249b9bcfc9a5bcb09f012092178" :a :db/ident :v :task/t-b42a :op :assert}
+   {:e #blake3 "4e08eb2559a35907d8b517f9c4b73760f849c249b9bcfc9a5bcb09f012092178" :a :task/created-at :v 1773769735 :op :assert}
+   {:e #blake3 "4e08eb2559a35907d8b517f9c4b73760f849c249b9bcfc9a5bcb09f012092178" :a :task/id :v "t-b42a" :op :assert}
+   {:e #blake3 "4e08eb2559a35907d8b517f9c4b73760f849c249b9bcfc9a5bcb09f012092178" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "4e08eb2559a35907d8b517f9c4b73760f849c249b9bcfc9a5bcb09f012092178" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4e08eb2559a35907d8b517f9c4b73760f849c249b9bcfc9a5bcb09f012092178" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4e08eb2559a35907d8b517f9c4b73760f849c249b9bcfc9a5bcb09f012092178" :a :task/title :v "SPEC: Align SEED.md 70/85/95% thresholds with spec Q(t) levels and code 4-level system" :op :assert}
+   {:e #blake3 "4e08eb2559a35907d8b517f9c4b73760f849c249b9bcfc9a5bcb09f012092178" :a :task/type :v :task.type/docs :op :assert}
+ ]}

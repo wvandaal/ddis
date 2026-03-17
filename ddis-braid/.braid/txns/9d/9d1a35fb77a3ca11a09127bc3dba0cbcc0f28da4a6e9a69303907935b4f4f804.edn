@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769626/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-SUB: Implement AVET index (unique/range lookup)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "289c92c957e88cf370e5cd0aa79cdda4a77338f1391c3d89e8d05e67920d030a" :a :db/ident :v :task/t-5b1e :op :assert}
+   {:e #blake3 "289c92c957e88cf370e5cd0aa79cdda4a77338f1391c3d89e8d05e67920d030a" :a :task/created-at :v 1773769625 :op :assert}
+   {:e #blake3 "289c92c957e88cf370e5cd0aa79cdda4a77338f1391c3d89e8d05e67920d030a" :a :task/id :v "t-5b1e" :op :assert}
+   {:e #blake3 "289c92c957e88cf370e5cd0aa79cdda4a77338f1391c3d89e8d05e67920d030a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "289c92c957e88cf370e5cd0aa79cdda4a77338f1391c3d89e8d05e67920d030a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "289c92c957e88cf370e5cd0aa79cdda4a77338f1391c3d89e8d05e67920d030a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "289c92c957e88cf370e5cd0aa79cdda4a77338f1391c3d89e8d05e67920d030a" :a :task/title :v "S1-SUB: Implement AVET index (unique/range lookup)" :op :assert}
+   {:e #blake3 "289c92c957e88cf370e5cd0aa79cdda4a77338f1391c3d89e8d05e67920d030a" :a :task/type :v :task.type/task :op :assert}
+ ]}

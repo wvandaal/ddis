@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769657/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: META: Datalog Promise — implement recursive query/fixpoint or document scope limitation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a3205cea7798e15a86cb2d6cb9ac6eb2c22156a647d937153445d37311bea06d" :a :db/ident :v :task/t-d2d6 :op :assert}
+   {:e #blake3 "a3205cea7798e15a86cb2d6cb9ac6eb2c22156a647d937153445d37311bea06d" :a :task/created-at :v 1773769656 :op :assert}
+   {:e #blake3 "a3205cea7798e15a86cb2d6cb9ac6eb2c22156a647d937153445d37311bea06d" :a :task/id :v "t-d2d6" :op :assert}
+   {:e #blake3 "a3205cea7798e15a86cb2d6cb9ac6eb2c22156a647d937153445d37311bea06d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a3205cea7798e15a86cb2d6cb9ac6eb2c22156a647d937153445d37311bea06d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a3205cea7798e15a86cb2d6cb9ac6eb2c22156a647d937153445d37311bea06d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a3205cea7798e15a86cb2d6cb9ac6eb2c22156a647d937153445d37311bea06d" :a :task/title :v "META: Datalog Promise — implement recursive query/fixpoint or document scope limitation" :op :assert}
+   {:e #blake3 "a3205cea7798e15a86cb2d6cb9ac6eb2c22156a647d937153445d37311bea06d" :a :task/type :v :task.type/task :op :assert}
+ ]}

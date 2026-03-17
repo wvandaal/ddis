@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769748/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Implement INV-MERGE-010 cascade determinism receipt"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c5b378298543889ef4619451026f51740b3a6860d34c74e9b2f4109d761f5760" :a :db/ident :v :task/t-2a09 :op :assert}
+   {:e #blake3 "c5b378298543889ef4619451026f51740b3a6860d34c74e9b2f4109d761f5760" :a :task/created-at :v 1773769747 :op :assert}
+   {:e #blake3 "c5b378298543889ef4619451026f51740b3a6860d34c74e9b2f4109d761f5760" :a :task/id :v "t-2a09" :op :assert}
+   {:e #blake3 "c5b378298543889ef4619451026f51740b3a6860d34c74e9b2f4109d761f5760" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c5b378298543889ef4619451026f51740b3a6860d34c74e9b2f4109d761f5760" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c5b378298543889ef4619451026f51740b3a6860d34c74e9b2f4109d761f5760" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c5b378298543889ef4619451026f51740b3a6860d34c74e9b2f4109d761f5760" :a :task/title :v "S0-CLOSE: Implement INV-MERGE-010 cascade determinism receipt" :op :assert}
+   {:e #blake3 "c5b378298543889ef4619451026f51740b3a6860d34c74e9b2f4109d761f5760" :a :task/type :v :task.type/task :op :assert}
+ ]}

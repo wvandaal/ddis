@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769709/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Wire calibrate_harvest() into harvest pipeline for runtime FP/FN tracking"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6c4383048d24483facc410871053864868144367f3af8d74bd55bfb437d8da2c" :a :db/ident :v :task/t-78db :op :assert}
+   {:e #blake3 "6c4383048d24483facc410871053864868144367f3af8d74bd55bfb437d8da2c" :a :task/created-at :v 1773769707 :op :assert}
+   {:e #blake3 "6c4383048d24483facc410871053864868144367f3af8d74bd55bfb437d8da2c" :a :task/id :v "t-78db" :op :assert}
+   {:e #blake3 "6c4383048d24483facc410871053864868144367f3af8d74bd55bfb437d8da2c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6c4383048d24483facc410871053864868144367f3af8d74bd55bfb437d8da2c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6c4383048d24483facc410871053864868144367f3af8d74bd55bfb437d8da2c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6c4383048d24483facc410871053864868144367f3af8d74bd55bfb437d8da2c" :a :task/title :v "S1: Wire calibrate_harvest() into harvest pipeline for runtime FP/FN tracking" :op :assert}
+   {:e #blake3 "6c4383048d24483facc410871053864868144367f3af8d74bd55bfb437d8da2c" :a :task/type :v :task.type/task :op :assert}
+ ]}

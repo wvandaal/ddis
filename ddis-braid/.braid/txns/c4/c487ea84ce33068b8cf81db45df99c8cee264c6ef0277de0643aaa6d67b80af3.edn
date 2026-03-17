@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769782/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement HITS and k-Core graph algorithms (INV-QUERY-015, INV-QUERY-016)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "118dcae2d7ce38db0a692aed082d9d3b517f874962f5e03931e44d94051b9dd0" :a :db/ident :v :task/t-5a39 :op :assert}
+   {:e #blake3 "118dcae2d7ce38db0a692aed082d9d3b517f874962f5e03931e44d94051b9dd0" :a :task/created-at :v 1773769780 :op :assert}
+   {:e #blake3 "118dcae2d7ce38db0a692aed082d9d3b517f874962f5e03931e44d94051b9dd0" :a :task/id :v "t-5a39" :op :assert}
+   {:e #blake3 "118dcae2d7ce38db0a692aed082d9d3b517f874962f5e03931e44d94051b9dd0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "118dcae2d7ce38db0a692aed082d9d3b517f874962f5e03931e44d94051b9dd0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "118dcae2d7ce38db0a692aed082d9d3b517f874962f5e03931e44d94051b9dd0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "118dcae2d7ce38db0a692aed082d9d3b517f874962f5e03931e44d94051b9dd0" :a :task/title :v "S1: Implement HITS and k-Core graph algorithms (INV-QUERY-015, INV-QUERY-016)" :op :assert}
+   {:e #blake3 "118dcae2d7ce38db0a692aed082d9d3b517f874962f5e03931e44d94051b9dd0" :a :task/type :v :task.type/feature :op :assert}
+ ]}

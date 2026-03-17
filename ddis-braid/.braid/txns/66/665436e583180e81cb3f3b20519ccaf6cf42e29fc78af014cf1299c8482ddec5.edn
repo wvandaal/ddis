@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770308/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Stage 0 Harvest/Seed Lifecycle Completeness (INV-HARVEST + INV-SEED)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :db/ident :v :task/t-a704 :op :assert}
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :task/created-at :v 1773770307 :op :assert}
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :task/id :v "t-a704" :op :assert}
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :task/title :v "EPIC: Stage 0 Harvest/Seed Lifecycle Completeness (INV-HARVEST + INV-SEED)" :op :assert}
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769753/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-SUB: Implement CascadeReceipt struct"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "339a4aff17410cccce8bf513b9f217dc4149054a53ed3db19d71a016713634e0" :a :db/ident :v :task/t-f869 :op :assert}
+   {:e #blake3 "339a4aff17410cccce8bf513b9f217dc4149054a53ed3db19d71a016713634e0" :a :task/created-at :v 1773769752 :op :assert}
+   {:e #blake3 "339a4aff17410cccce8bf513b9f217dc4149054a53ed3db19d71a016713634e0" :a :task/id :v "t-f869" :op :assert}
+   {:e #blake3 "339a4aff17410cccce8bf513b9f217dc4149054a53ed3db19d71a016713634e0" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "339a4aff17410cccce8bf513b9f217dc4149054a53ed3db19d71a016713634e0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "339a4aff17410cccce8bf513b9f217dc4149054a53ed3db19d71a016713634e0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "339a4aff17410cccce8bf513b9f217dc4149054a53ed3db19d71a016713634e0" :a :task/title :v "S0-SUB: Implement CascadeReceipt struct" :op :assert}
+   {:e #blake3 "339a4aff17410cccce8bf513b9f217dc4149054a53ed3db19d71a016713634e0" :a :task/type :v :task.type/task :op :assert}
+ ]}

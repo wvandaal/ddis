@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769612/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Remove INV-STORE-013 from transact() doc comment (it is Stage 2)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ba364935f149f1cbc1669767db5de71aa76bbc725893614ac62c31a730f09808" :a :db/ident :v :task/t-51f3 :op :assert}
+   {:e #blake3 "ba364935f149f1cbc1669767db5de71aa76bbc725893614ac62c31a730f09808" :a :task/created-at :v 1773769611 :op :assert}
+   {:e #blake3 "ba364935f149f1cbc1669767db5de71aa76bbc725893614ac62c31a730f09808" :a :task/id :v "t-51f3" :op :assert}
+   {:e #blake3 "ba364935f149f1cbc1669767db5de71aa76bbc725893614ac62c31a730f09808" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "ba364935f149f1cbc1669767db5de71aa76bbc725893614ac62c31a730f09808" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ba364935f149f1cbc1669767db5de71aa76bbc725893614ac62c31a730f09808" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ba364935f149f1cbc1669767db5de71aa76bbc725893614ac62c31a730f09808" :a :task/title :v "SPEC: Remove INV-STORE-013 from transact() doc comment (it is Stage 2)" :op :assert}
+   {:e #blake3 "ba364935f149f1cbc1669767db5de71aa76bbc725893614ac62c31a730f09808" :a :task/type :v :task.type/docs :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769692/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Extend scc() to return SCCResult with condensation DAG and has_cycles"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "82c3f1726a93d5e65ce2229a80c722a45e4b014b90a6006b5b7b884a351cc235" :a :db/ident :v :task/t-c12b :op :assert}
+   {:e #blake3 "82c3f1726a93d5e65ce2229a80c722a45e4b014b90a6006b5b7b884a351cc235" :a :task/created-at :v 1773769691 :op :assert}
+   {:e #blake3 "82c3f1726a93d5e65ce2229a80c722a45e4b014b90a6006b5b7b884a351cc235" :a :task/id :v "t-c12b" :op :assert}
+   {:e #blake3 "82c3f1726a93d5e65ce2229a80c722a45e4b014b90a6006b5b7b884a351cc235" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "82c3f1726a93d5e65ce2229a80c722a45e4b014b90a6006b5b7b884a351cc235" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "82c3f1726a93d5e65ce2229a80c722a45e4b014b90a6006b5b7b884a351cc235" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "82c3f1726a93d5e65ce2229a80c722a45e4b014b90a6006b5b7b884a351cc235" :a :task/title :v "S1: Extend scc() to return SCCResult with condensation DAG and has_cycles" :op :assert}
+   {:e #blake3 "82c3f1726a93d5e65ce2229a80c722a45e4b014b90a6006b5b7b884a351cc235" :a :task/type :v :task.type/feature :op :assert}
+ ]}

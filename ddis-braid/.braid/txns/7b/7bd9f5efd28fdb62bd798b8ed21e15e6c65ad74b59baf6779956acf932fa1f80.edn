@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767590/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement frontier durability — persist before response (INV-STORE-009)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6b0cf21e42bca36e0bff53d321bb54d2a4cd71e42af8fb806fa5d0f424c64e8c" :a :db/ident :v :task/t-c1e1 :op :assert}
+   {:e #blake3 "6b0cf21e42bca36e0bff53d321bb54d2a4cd71e42af8fb806fa5d0f424c64e8c" :a :task/created-at :v 1773767589 :op :assert}
+   {:e #blake3 "6b0cf21e42bca36e0bff53d321bb54d2a4cd71e42af8fb806fa5d0f424c64e8c" :a :task/id :v "t-c1e1" :op :assert}
+   {:e #blake3 "6b0cf21e42bca36e0bff53d321bb54d2a4cd71e42af8fb806fa5d0f424c64e8c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6b0cf21e42bca36e0bff53d321bb54d2a4cd71e42af8fb806fa5d0f424c64e8c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6b0cf21e42bca36e0bff53d321bb54d2a4cd71e42af8fb806fa5d0f424c64e8c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6b0cf21e42bca36e0bff53d321bb54d2a4cd71e42af8fb806fa5d0f424c64e8c" :a :task/title :v "S1: Implement frontier durability — persist before response (INV-STORE-009)" :op :assert}
+   {:e #blake3 "6b0cf21e42bca36e0bff53d321bb54d2a4cd71e42af8fb806fa5d0f424c64e8c" :a :task/type :v :task.type/task :op :assert}
+ ]}

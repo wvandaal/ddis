@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769694/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Add Collection and Tuple variants to FindSpec enum"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4d8e0863a1b26463626c32a46a28075b0b67490b1ddbc7c346045e63c115e455" :a :db/ident :v :task/t-cec8 :op :assert}
+   {:e #blake3 "4d8e0863a1b26463626c32a46a28075b0b67490b1ddbc7c346045e63c115e455" :a :task/created-at :v 1773769692 :op :assert}
+   {:e #blake3 "4d8e0863a1b26463626c32a46a28075b0b67490b1ddbc7c346045e63c115e455" :a :task/id :v "t-cec8" :op :assert}
+   {:e #blake3 "4d8e0863a1b26463626c32a46a28075b0b67490b1ddbc7c346045e63c115e455" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "4d8e0863a1b26463626c32a46a28075b0b67490b1ddbc7c346045e63c115e455" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4d8e0863a1b26463626c32a46a28075b0b67490b1ddbc7c346045e63c115e455" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4d8e0863a1b26463626c32a46a28075b0b67490b1ddbc7c346045e63c115e455" :a :task/title :v "S1: Add Collection and Tuple variants to FindSpec enum" :op :assert}
+   {:e #blake3 "4d8e0863a1b26463626c32a46a28075b0b67490b1ddbc7c346045e63c115e455" :a :task/type :v :task.type/feature :op :assert}
+ ]}

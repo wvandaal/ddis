@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770501/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: Contradiction detection Tiers 3-5 find real contradictions (integration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e14da133a2303222154474aa0d12f5e6c86f0c06a7745b012e76ac01a072d924" :a :db/ident :v :task/t-309e :op :assert}
+   {:e #blake3 "e14da133a2303222154474aa0d12f5e6c86f0c06a7745b012e76ac01a072d924" :a :task/created-at :v 1773770500 :op :assert}
+   {:e #blake3 "e14da133a2303222154474aa0d12f5e6c86f0c06a7745b012e76ac01a072d924" :a :task/id :v "t-309e" :op :assert}
+   {:e #blake3 "e14da133a2303222154474aa0d12f5e6c86f0c06a7745b012e76ac01a072d924" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e14da133a2303222154474aa0d12f5e6c86f0c06a7745b012e76ac01a072d924" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e14da133a2303222154474aa0d12f5e6c86f0c06a7745b012e76ac01a072d924" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e14da133a2303222154474aa0d12f5e6c86f0c06a7745b012e76ac01a072d924" :a :task/title :v "TEST: Contradiction detection Tiers 3-5 find real contradictions (integration)" :op :assert}
+   {:e #blake3 "e14da133a2303222154474aa0d12f5e6c86f0c06a7745b012e76ac01a072d924" :a :task/type :v :task.type/task :op :assert}
+ ]}

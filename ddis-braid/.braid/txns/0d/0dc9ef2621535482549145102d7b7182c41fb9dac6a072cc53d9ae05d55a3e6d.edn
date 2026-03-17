@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769814/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement FM-011 automated verification matrix-vs-body reconciliation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "031d9fa78fecdcc0f400a19aef0a5e2a7a28dbb9bd147d0f29fe22a16d6606e9" :a :db/ident :v :task/t-54a9 :op :assert}
+   {:e #blake3 "031d9fa78fecdcc0f400a19aef0a5e2a7a28dbb9bd147d0f29fe22a16d6606e9" :a :task/created-at :v 1773769813 :op :assert}
+   {:e #blake3 "031d9fa78fecdcc0f400a19aef0a5e2a7a28dbb9bd147d0f29fe22a16d6606e9" :a :task/id :v "t-54a9" :op :assert}
+   {:e #blake3 "031d9fa78fecdcc0f400a19aef0a5e2a7a28dbb9bd147d0f29fe22a16d6606e9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "031d9fa78fecdcc0f400a19aef0a5e2a7a28dbb9bd147d0f29fe22a16d6606e9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "031d9fa78fecdcc0f400a19aef0a5e2a7a28dbb9bd147d0f29fe22a16d6606e9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "031d9fa78fecdcc0f400a19aef0a5e2a7a28dbb9bd147d0f29fe22a16d6606e9" :a :task/title :v "S1: Implement FM-011 automated verification matrix-vs-body reconciliation" :op :assert}
+   {:e #blake3 "031d9fa78fecdcc0f400a19aef0a5e2a7a28dbb9bd147d0f29fe22a16d6606e9" :a :task/type :v :task.type/task :op :assert}
+ ]}

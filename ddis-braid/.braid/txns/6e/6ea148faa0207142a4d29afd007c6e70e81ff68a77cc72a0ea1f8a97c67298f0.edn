@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769757/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement FM-006 per-projection frontier tracking for staleness detection"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c66274e97146184043b33edea70e0d19ad0f67a6ddc8a7ff84d8a104027e0067" :a :db/ident :v :task/t-25bc :op :assert}
+   {:e #blake3 "c66274e97146184043b33edea70e0d19ad0f67a6ddc8a7ff84d8a104027e0067" :a :task/created-at :v 1773769755 :op :assert}
+   {:e #blake3 "c66274e97146184043b33edea70e0d19ad0f67a6ddc8a7ff84d8a104027e0067" :a :task/id :v "t-25bc" :op :assert}
+   {:e #blake3 "c66274e97146184043b33edea70e0d19ad0f67a6ddc8a7ff84d8a104027e0067" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c66274e97146184043b33edea70e0d19ad0f67a6ddc8a7ff84d8a104027e0067" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c66274e97146184043b33edea70e0d19ad0f67a6ddc8a7ff84d8a104027e0067" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c66274e97146184043b33edea70e0d19ad0f67a6ddc8a7ff84d8a104027e0067" :a :task/title :v "S1: Implement FM-006 per-projection frontier tracking for staleness detection" :op :assert}
+   {:e #blake3 "c66274e97146184043b33edea70e0d19ad0f67a6ddc8a7ff84d8a104027e0067" :a :task/type :v :task.type/task :op :assert}
+ ]}

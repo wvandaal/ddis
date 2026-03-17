@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770417/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: DeliberationStatus partial order — Stalled and Decided incomparable (unit)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5c89a77b52cceedec24a6db32292727bc0516efb83b5f6e05df648ca517ebe92" :a :db/ident :v :task/t-7d75 :op :assert}
+   {:e #blake3 "5c89a77b52cceedec24a6db32292727bc0516efb83b5f6e05df648ca517ebe92" :a :task/created-at :v 1773770416 :op :assert}
+   {:e #blake3 "5c89a77b52cceedec24a6db32292727bc0516efb83b5f6e05df648ca517ebe92" :a :task/id :v "t-7d75" :op :assert}
+   {:e #blake3 "5c89a77b52cceedec24a6db32292727bc0516efb83b5f6e05df648ca517ebe92" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5c89a77b52cceedec24a6db32292727bc0516efb83b5f6e05df648ca517ebe92" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5c89a77b52cceedec24a6db32292727bc0516efb83b5f6e05df648ca517ebe92" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5c89a77b52cceedec24a6db32292727bc0516efb83b5f6e05df648ca517ebe92" :a :task/title :v "TEST: DeliberationStatus partial order — Stalled and Decided incomparable (unit)" :op :assert}
+   {:e #blake3 "5c89a77b52cceedec24a6db32292727bc0516efb83b5f6e05df648ca517ebe92" :a :task/type :v :task.type/task :op :assert}
+ ]}

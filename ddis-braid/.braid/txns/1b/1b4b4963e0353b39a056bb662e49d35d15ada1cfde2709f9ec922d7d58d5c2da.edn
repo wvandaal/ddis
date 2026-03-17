@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769793/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Add target: EntityId field to Signal struct"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cae16e2e2342fe9fc0777d3818ea15c492cc688c28846eaa24e65c30aedd4f51" :a :db/ident :v :task/t-0945 :op :assert}
+   {:e #blake3 "cae16e2e2342fe9fc0777d3818ea15c492cc688c28846eaa24e65c30aedd4f51" :a :task/created-at :v 1773769792 :op :assert}
+   {:e #blake3 "cae16e2e2342fe9fc0777d3818ea15c492cc688c28846eaa24e65c30aedd4f51" :a :task/id :v "t-0945" :op :assert}
+   {:e #blake3 "cae16e2e2342fe9fc0777d3818ea15c492cc688c28846eaa24e65c30aedd4f51" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "cae16e2e2342fe9fc0777d3818ea15c492cc688c28846eaa24e65c30aedd4f51" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cae16e2e2342fe9fc0777d3818ea15c492cc688c28846eaa24e65c30aedd4f51" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cae16e2e2342fe9fc0777d3818ea15c492cc688c28846eaa24e65c30aedd4f51" :a :task/title :v "S1: Add target: EntityId field to Signal struct" :op :assert}
+   {:e #blake3 "cae16e2e2342fe9fc0777d3818ea15c492cc688c28846eaa24e65c30aedd4f51" :a :task/type :v :task.type/task :op :assert}
+ ]}

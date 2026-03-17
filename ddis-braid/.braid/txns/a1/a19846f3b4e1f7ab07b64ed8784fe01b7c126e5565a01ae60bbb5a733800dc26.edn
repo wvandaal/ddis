@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769711/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement constraint cluster detection in seed assembly (INV-SEED-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "abeda7c8b9638fa2b064de620dfb255fa76f96602cf156d0054f9e36ac61818c" :a :db/ident :v :task/t-7aaa :op :assert}
+   {:e #blake3 "abeda7c8b9638fa2b064de620dfb255fa76f96602cf156d0054f9e36ac61818c" :a :task/created-at :v 1773769709 :op :assert}
+   {:e #blake3 "abeda7c8b9638fa2b064de620dfb255fa76f96602cf156d0054f9e36ac61818c" :a :task/id :v "t-7aaa" :op :assert}
+   {:e #blake3 "abeda7c8b9638fa2b064de620dfb255fa76f96602cf156d0054f9e36ac61818c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "abeda7c8b9638fa2b064de620dfb255fa76f96602cf156d0054f9e36ac61818c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "abeda7c8b9638fa2b064de620dfb255fa76f96602cf156d0054f9e36ac61818c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "abeda7c8b9638fa2b064de620dfb255fa76f96602cf156d0054f9e36ac61818c" :a :task/title :v "S1: Implement constraint cluster detection in seed assembly (INV-SEED-005)" :op :assert}
+   {:e #blake3 "abeda7c8b9638fa2b064de620dfb255fa76f96602cf156d0054f9e36ac61818c" :a :task/type :v :task.type/feature :op :assert}
+ ]}

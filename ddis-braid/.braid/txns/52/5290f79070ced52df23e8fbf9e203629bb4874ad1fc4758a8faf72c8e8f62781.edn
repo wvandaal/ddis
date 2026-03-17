@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767334/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-PREP: Implement Datalog text parser (INV-QUERY-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "23c8669378423fea97e8d32856acadb8d14acfe1090ab26ecf1dcbdea81cb697" :a :db/ident :v :task/t-5faf :op :assert}
+   {:e #blake3 "23c8669378423fea97e8d32856acadb8d14acfe1090ab26ecf1dcbdea81cb697" :a :task/created-at :v 1773767333 :op :assert}
+   {:e #blake3 "23c8669378423fea97e8d32856acadb8d14acfe1090ab26ecf1dcbdea81cb697" :a :task/id :v "t-5faf" :op :assert}
+   {:e #blake3 "23c8669378423fea97e8d32856acadb8d14acfe1090ab26ecf1dcbdea81cb697" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "23c8669378423fea97e8d32856acadb8d14acfe1090ab26ecf1dcbdea81cb697" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "23c8669378423fea97e8d32856acadb8d14acfe1090ab26ecf1dcbdea81cb697" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "23c8669378423fea97e8d32856acadb8d14acfe1090ab26ecf1dcbdea81cb697" :a :task/title :v "S1-PREP: Implement Datalog text parser (INV-QUERY-002)" :op :assert}
+   {:e #blake3 "23c8669378423fea97e8d32856acadb8d14acfe1090ab26ecf1dcbdea81cb697" :a :task/type :v :task.type/feature :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770438/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: BudgetManager::allocate truncates by precedence order (proptest)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bd3bebf10581e5e7e68f27528ba07fa749147b422cb45f296c74cf2e2b1f67b0" :a :db/ident :v :task/t-78fd :op :assert}
+   {:e #blake3 "bd3bebf10581e5e7e68f27528ba07fa749147b422cb45f296c74cf2e2b1f67b0" :a :task/created-at :v 1773770437 :op :assert}
+   {:e #blake3 "bd3bebf10581e5e7e68f27528ba07fa749147b422cb45f296c74cf2e2b1f67b0" :a :task/id :v "t-78fd" :op :assert}
+   {:e #blake3 "bd3bebf10581e5e7e68f27528ba07fa749147b422cb45f296c74cf2e2b1f67b0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "bd3bebf10581e5e7e68f27528ba07fa749147b422cb45f296c74cf2e2b1f67b0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bd3bebf10581e5e7e68f27528ba07fa749147b422cb45f296c74cf2e2b1f67b0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bd3bebf10581e5e7e68f27528ba07fa749147b422cb45f296c74cf2e2b1f67b0" :a :task/title :v "TEST: BudgetManager::allocate truncates by precedence order (proptest)" :op :assert}
+   {:e #blake3 "bd3bebf10581e5e7e68f27528ba07fa749147b422cb45f296c74cf2e2b1f67b0" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769745/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Align guide confidence ranges with Fisher-Rao scoring model in harvest.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7c941c469addc475159642234ad5adb9c4154f3d95835b6d38b29b473a3046c9" :a :db/ident :v :task/t-3f0f :op :assert}
+   {:e #blake3 "7c941c469addc475159642234ad5adb9c4154f3d95835b6d38b29b473a3046c9" :a :task/created-at :v 1773769743 :op :assert}
+   {:e #blake3 "7c941c469addc475159642234ad5adb9c4154f3d95835b6d38b29b473a3046c9" :a :task/id :v "t-3f0f" :op :assert}
+   {:e #blake3 "7c941c469addc475159642234ad5adb9c4154f3d95835b6d38b29b473a3046c9" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "7c941c469addc475159642234ad5adb9c4154f3d95835b6d38b29b473a3046c9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7c941c469addc475159642234ad5adb9c4154f3d95835b6d38b29b473a3046c9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7c941c469addc475159642234ad5adb9c4154f3d95835b6d38b29b473a3046c9" :a :task/title :v "SPEC: Align guide confidence ranges with Fisher-Rao scoring model in harvest.rs" :op :assert}
+   {:e #blake3 "7c941c469addc475159642234ad5adb9c4154f3d95835b6d38b29b473a3046c9" :a :task/type :v :task.type/docs :op :assert}
+ ]}

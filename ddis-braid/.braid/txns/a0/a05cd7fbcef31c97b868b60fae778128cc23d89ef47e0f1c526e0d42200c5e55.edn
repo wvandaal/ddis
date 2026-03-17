@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769736/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Restrict EntityId::from_raw_bytes to pub(crate) (INV-STORE-003 safety)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7cc7d8ca8e2f3d9ed71980130a1913dc228a9de3d0c51acf29614099eabdce6b" :a :db/ident :v :task/t-1b91 :op :assert}
+   {:e #blake3 "7cc7d8ca8e2f3d9ed71980130a1913dc228a9de3d0c51acf29614099eabdce6b" :a :task/created-at :v 1773769735 :op :assert}
+   {:e #blake3 "7cc7d8ca8e2f3d9ed71980130a1913dc228a9de3d0c51acf29614099eabdce6b" :a :task/id :v "t-1b91" :op :assert}
+   {:e #blake3 "7cc7d8ca8e2f3d9ed71980130a1913dc228a9de3d0c51acf29614099eabdce6b" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "7cc7d8ca8e2f3d9ed71980130a1913dc228a9de3d0c51acf29614099eabdce6b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7cc7d8ca8e2f3d9ed71980130a1913dc228a9de3d0c51acf29614099eabdce6b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7cc7d8ca8e2f3d9ed71980130a1913dc228a9de3d0c51acf29614099eabdce6b" :a :task/title :v "S0-CLOSE: Restrict EntityId::from_raw_bytes to pub(crate) (INV-STORE-003 safety)" :op :assert}
+   {:e #blake3 "7cc7d8ca8e2f3d9ed71980130a1913dc228a9de3d0c51acf29614099eabdce6b" :a :task/type :v :task.type/bug :op :assert}
+ ]}

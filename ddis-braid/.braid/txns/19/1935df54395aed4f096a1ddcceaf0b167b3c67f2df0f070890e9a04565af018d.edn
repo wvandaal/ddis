@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769721/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Align SEED.md Stage 0 with guide Stage 0a/0b sub-staging"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "56ac8c9a9eca32b1ec2a0071f4d612f872503cd0b693b55b24aff2dec9e54f76" :a :db/ident :v :task/t-f18f :op :assert}
+   {:e #blake3 "56ac8c9a9eca32b1ec2a0071f4d612f872503cd0b693b55b24aff2dec9e54f76" :a :task/created-at :v 1773769720 :op :assert}
+   {:e #blake3 "56ac8c9a9eca32b1ec2a0071f4d612f872503cd0b693b55b24aff2dec9e54f76" :a :task/id :v "t-f18f" :op :assert}
+   {:e #blake3 "56ac8c9a9eca32b1ec2a0071f4d612f872503cd0b693b55b24aff2dec9e54f76" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "56ac8c9a9eca32b1ec2a0071f4d612f872503cd0b693b55b24aff2dec9e54f76" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "56ac8c9a9eca32b1ec2a0071f4d612f872503cd0b693b55b24aff2dec9e54f76" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "56ac8c9a9eca32b1ec2a0071f4d612f872503cd0b693b55b24aff2dec9e54f76" :a :task/title :v "SPEC: Align SEED.md Stage 0 with guide Stage 0a/0b sub-staging" :op :assert}
+   {:e #blake3 "56ac8c9a9eca32b1ec2a0071f4d612f872503cd0b693b55b24aff2dec9e54f76" :a :task/type :v :task.type/docs :op :assert}
+ ]}

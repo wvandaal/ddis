@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769740/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Reconcile SeedOutput struct between spec (nested) and guide (flat)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "905ae5209ed6f95883dcd1ba722c47487beaacd944157c69beb87758b3570581" :a :db/ident :v :task/t-dcb2 :op :assert}
+   {:e #blake3 "905ae5209ed6f95883dcd1ba722c47487beaacd944157c69beb87758b3570581" :a :task/created-at :v 1773769738 :op :assert}
+   {:e #blake3 "905ae5209ed6f95883dcd1ba722c47487beaacd944157c69beb87758b3570581" :a :task/id :v "t-dcb2" :op :assert}
+   {:e #blake3 "905ae5209ed6f95883dcd1ba722c47487beaacd944157c69beb87758b3570581" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "905ae5209ed6f95883dcd1ba722c47487beaacd944157c69beb87758b3570581" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "905ae5209ed6f95883dcd1ba722c47487beaacd944157c69beb87758b3570581" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "905ae5209ed6f95883dcd1ba722c47487beaacd944157c69beb87758b3570581" :a :task/title :v "SPEC: Reconcile SeedOutput struct between spec (nested) and guide (flat)" :op :assert}
+   {:e #blake3 "905ae5209ed6f95883dcd1ba722c47487beaacd944157c69beb87758b3570581" :a :task/type :v :task.type/docs :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769664/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement full conflict lifecycle pipeline (INV-RESOLUTION-008) — 6 datom-producing steps"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a89721b4811fc6b919068ed670688edbcc340a56d87802f3a75dfc6cc7582d78" :a :db/ident :v :task/t-3754 :op :assert}
+   {:e #blake3 "a89721b4811fc6b919068ed670688edbcc340a56d87802f3a75dfc6cc7582d78" :a :task/created-at :v 1773769663 :op :assert}
+   {:e #blake3 "a89721b4811fc6b919068ed670688edbcc340a56d87802f3a75dfc6cc7582d78" :a :task/id :v "t-3754" :op :assert}
+   {:e #blake3 "a89721b4811fc6b919068ed670688edbcc340a56d87802f3a75dfc6cc7582d78" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a89721b4811fc6b919068ed670688edbcc340a56d87802f3a75dfc6cc7582d78" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a89721b4811fc6b919068ed670688edbcc340a56d87802f3a75dfc6cc7582d78" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a89721b4811fc6b919068ed670688edbcc340a56d87802f3a75dfc6cc7582d78" :a :task/title :v "S1: Implement full conflict lifecycle pipeline (INV-RESOLUTION-008) — 6 datom-producing steps" :op :assert}
+   {:e #blake3 "a89721b4811fc6b919068ed670688edbcc340a56d87802f3a75dfc6cc7582d78" :a :task/type :v :task.type/feature :op :assert}
+ ]}

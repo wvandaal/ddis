@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769696/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Document Clause::Predicate in spec/03-query.md (exists in code, not in spec)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7a9cb05d24d114e03f02a23ebdadea78acb4ff09f7c2bcb248b8f39dbaca1b70" :a :db/ident :v :task/t-1396 :op :assert}
+   {:e #blake3 "7a9cb05d24d114e03f02a23ebdadea78acb4ff09f7c2bcb248b8f39dbaca1b70" :a :task/created-at :v 1773769694 :op :assert}
+   {:e #blake3 "7a9cb05d24d114e03f02a23ebdadea78acb4ff09f7c2bcb248b8f39dbaca1b70" :a :task/id :v "t-1396" :op :assert}
+   {:e #blake3 "7a9cb05d24d114e03f02a23ebdadea78acb4ff09f7c2bcb248b8f39dbaca1b70" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "7a9cb05d24d114e03f02a23ebdadea78acb4ff09f7c2bcb248b8f39dbaca1b70" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7a9cb05d24d114e03f02a23ebdadea78acb4ff09f7c2bcb248b8f39dbaca1b70" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7a9cb05d24d114e03f02a23ebdadea78acb4ff09f7c2bcb248b8f39dbaca1b70" :a :task/title :v "SPEC: Document Clause::Predicate in spec/03-query.md (exists in code, not in spec)" :op :assert}
+   {:e #blake3 "7a9cb05d24d114e03f02a23ebdadea78acb4ff09f7c2bcb248b8f39dbaca1b70" :a :task/type :v :task.type/docs :op :assert}
+ ]}

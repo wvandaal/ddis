@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769651/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Rename Schema::from_datoms to from_store in spec/guide or vice versa"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1a5565f3d4b4047de5b6758749d9d0e071c39bd4b8115fc6dbb6195af2c06230" :a :db/ident :v :task/t-050e :op :assert}
+   {:e #blake3 "1a5565f3d4b4047de5b6758749d9d0e071c39bd4b8115fc6dbb6195af2c06230" :a :task/created-at :v 1773769650 :op :assert}
+   {:e #blake3 "1a5565f3d4b4047de5b6758749d9d0e071c39bd4b8115fc6dbb6195af2c06230" :a :task/id :v "t-050e" :op :assert}
+   {:e #blake3 "1a5565f3d4b4047de5b6758749d9d0e071c39bd4b8115fc6dbb6195af2c06230" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "1a5565f3d4b4047de5b6758749d9d0e071c39bd4b8115fc6dbb6195af2c06230" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1a5565f3d4b4047de5b6758749d9d0e071c39bd4b8115fc6dbb6195af2c06230" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1a5565f3d4b4047de5b6758749d9d0e071c39bd4b8115fc6dbb6195af2c06230" :a :task/title :v "SPEC: Rename Schema::from_datoms to from_store in spec/guide or vice versa" :op :assert}
+   {:e #blake3 "1a5565f3d4b4047de5b6758749d9d0e071c39bd4b8115fc6dbb6195af2c06230" :a :task/type :v :task.type/docs :op :assert}
+ ]}

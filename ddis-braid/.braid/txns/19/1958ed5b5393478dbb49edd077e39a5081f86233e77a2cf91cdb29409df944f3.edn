@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769682/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement GraphDensityMetrics struct with 6 fields (INV-QUERY-021)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d9cac4724573a2fd0672c42c6ba5d923375822aefabfb599a546e1cdd596cace" :a :db/ident :v :task/t-4569 :op :assert}
+   {:e #blake3 "d9cac4724573a2fd0672c42c6ba5d923375822aefabfb599a546e1cdd596cace" :a :task/created-at :v 1773769680 :op :assert}
+   {:e #blake3 "d9cac4724573a2fd0672c42c6ba5d923375822aefabfb599a546e1cdd596cace" :a :task/id :v "t-4569" :op :assert}
+   {:e #blake3 "d9cac4724573a2fd0672c42c6ba5d923375822aefabfb599a546e1cdd596cace" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "d9cac4724573a2fd0672c42c6ba5d923375822aefabfb599a546e1cdd596cace" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d9cac4724573a2fd0672c42c6ba5d923375822aefabfb599a546e1cdd596cace" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d9cac4724573a2fd0672c42c6ba5d923375822aefabfb599a546e1cdd596cace" :a :task/title :v "S1: Implement GraphDensityMetrics struct with 6 fields (INV-QUERY-021)" :op :assert}
+   {:e #blake3 "d9cac4724573a2fd0672c42c6ba5d923375822aefabfb599a546e1cdd596cace" :a :task/type :v :task.type/feature :op :assert}
+ ]}

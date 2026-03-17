@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767668/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Fix task ID collision risk — expand from 4 hex chars to 8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bee506491f931de078b3d71cab31b4665a1dffc1d685ace2c83a5603b54345cf" :a :db/ident :v :task/t-2e60 :op :assert}
+   {:e #blake3 "bee506491f931de078b3d71cab31b4665a1dffc1d685ace2c83a5603b54345cf" :a :task/created-at :v 1773767667 :op :assert}
+   {:e #blake3 "bee506491f931de078b3d71cab31b4665a1dffc1d685ace2c83a5603b54345cf" :a :task/id :v "t-2e60" :op :assert}
+   {:e #blake3 "bee506491f931de078b3d71cab31b4665a1dffc1d685ace2c83a5603b54345cf" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "bee506491f931de078b3d71cab31b4665a1dffc1d685ace2c83a5603b54345cf" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bee506491f931de078b3d71cab31b4665a1dffc1d685ace2c83a5603b54345cf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bee506491f931de078b3d71cab31b4665a1dffc1d685ace2c83a5603b54345cf" :a :task/title :v "S1: Fix task ID collision risk — expand from 4 hex chars to 8" :op :assert}
+   {:e #blake3 "bee506491f931de078b3d71cab31b4665a1dffc1d685ace2c83a5603b54345cf" :a :task/type :v :task.type/bug :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767406/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Update spec/README.md to include TOPOLOGY and COHERENCE namespaces"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ba2ff9168fb3672510e5607dc93031986f6418e1bc35182e3bb9c2ccd336036b" :a :db/ident :v :task/t-0470 :op :assert}
+   {:e #blake3 "ba2ff9168fb3672510e5607dc93031986f6418e1bc35182e3bb9c2ccd336036b" :a :task/created-at :v 1773767405 :op :assert}
+   {:e #blake3 "ba2ff9168fb3672510e5607dc93031986f6418e1bc35182e3bb9c2ccd336036b" :a :task/id :v "t-0470" :op :assert}
+   {:e #blake3 "ba2ff9168fb3672510e5607dc93031986f6418e1bc35182e3bb9c2ccd336036b" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "ba2ff9168fb3672510e5607dc93031986f6418e1bc35182e3bb9c2ccd336036b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ba2ff9168fb3672510e5607dc93031986f6418e1bc35182e3bb9c2ccd336036b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ba2ff9168fb3672510e5607dc93031986f6418e1bc35182e3bb9c2ccd336036b" :a :task/title :v "SPEC: Update spec/README.md to include TOPOLOGY and COHERENCE namespaces" :op :assert}
+   {:e #blake3 "ba2ff9168fb3672510e5607dc93031986f6418e1bc35182e3bb9c2ccd336036b" :a :task/type :v :task.type/docs :op :assert}
+ ]}

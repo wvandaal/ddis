@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769643/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-SUB: Implement LatticeDef struct with join/bottom/top"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2dd1b1dbc2a2a538b9fbc8b8f53565b6da946f3ae5e76ceb71d233b9c7fc39c3" :a :db/ident :v :task/t-da96 :op :assert}
+   {:e #blake3 "2dd1b1dbc2a2a538b9fbc8b8f53565b6da946f3ae5e76ceb71d233b9c7fc39c3" :a :task/created-at :v 1773769642 :op :assert}
+   {:e #blake3 "2dd1b1dbc2a2a538b9fbc8b8f53565b6da946f3ae5e76ceb71d233b9c7fc39c3" :a :task/id :v "t-da96" :op :assert}
+   {:e #blake3 "2dd1b1dbc2a2a538b9fbc8b8f53565b6da946f3ae5e76ceb71d233b9c7fc39c3" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2dd1b1dbc2a2a538b9fbc8b8f53565b6da946f3ae5e76ceb71d233b9c7fc39c3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2dd1b1dbc2a2a538b9fbc8b8f53565b6da946f3ae5e76ceb71d233b9c7fc39c3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2dd1b1dbc2a2a538b9fbc8b8f53565b6da946f3ae5e76ceb71d233b9c7fc39c3" :a :task/title :v "S1-SUB: Implement LatticeDef struct with join/bottom/top" :op :assert}
+   {:e #blake3 "2dd1b1dbc2a2a538b9fbc8b8f53565b6da946f3ae5e76ceb71d233b9c7fc39c3" :a :task/type :v :task.type/task :op :assert}
+ ]}

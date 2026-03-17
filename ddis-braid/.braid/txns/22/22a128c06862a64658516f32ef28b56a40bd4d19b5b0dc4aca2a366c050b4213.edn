@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769759/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Fix merge.rs INV-MERGE-008 docstring from deduplication to idempotent delivery"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :db/ident :v :task/t-e8be :op :assert}
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :task/created-at :v 1773769757 :op :assert}
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :task/id :v "t-e8be" :op :assert}
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :task/title :v "SPEC: Fix merge.rs INV-MERGE-008 docstring from deduplication to idempotent delivery" :op :assert}
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :task/type :v :task.type/docs :op :assert}
+ ]}

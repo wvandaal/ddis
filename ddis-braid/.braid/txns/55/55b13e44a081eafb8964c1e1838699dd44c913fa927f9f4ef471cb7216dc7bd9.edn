@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769767/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement FM-012 automated cross-document type name verification"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e0620e7146a23226584bfc92d3c94a75ce53ac59845c4ace1e20cedc4e356821" :a :db/ident :v :task/t-5d4e :op :assert}
+   {:e #blake3 "e0620e7146a23226584bfc92d3c94a75ce53ac59845c4ace1e20cedc4e356821" :a :task/created-at :v 1773769766 :op :assert}
+   {:e #blake3 "e0620e7146a23226584bfc92d3c94a75ce53ac59845c4ace1e20cedc4e356821" :a :task/id :v "t-5d4e" :op :assert}
+   {:e #blake3 "e0620e7146a23226584bfc92d3c94a75ce53ac59845c4ace1e20cedc4e356821" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e0620e7146a23226584bfc92d3c94a75ce53ac59845c4ace1e20cedc4e356821" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e0620e7146a23226584bfc92d3c94a75ce53ac59845c4ace1e20cedc4e356821" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e0620e7146a23226584bfc92d3c94a75ce53ac59845c4ace1e20cedc4e356821" :a :task/title :v "S1: Implement FM-012 automated cross-document type name verification" :op :assert}
+   {:e #blake3 "e0620e7146a23226584bfc92d3c94a75ce53ac59845c4ace1e20cedc4e356821" :a :task/type :v :task.type/task :op :assert}
+ ]}

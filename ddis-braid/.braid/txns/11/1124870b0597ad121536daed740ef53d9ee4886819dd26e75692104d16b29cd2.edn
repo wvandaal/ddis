@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769770/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Fix merge_stores docstring cascade steps to match spec (currently describes infra maintenance)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7da2bf48e5311906511722e2259c0c936f9b84e8c61f63d6889add337bf67dc1" :a :db/ident :v :task/t-6623 :op :assert}
+   {:e #blake3 "7da2bf48e5311906511722e2259c0c936f9b84e8c61f63d6889add337bf67dc1" :a :task/created-at :v 1773769768 :op :assert}
+   {:e #blake3 "7da2bf48e5311906511722e2259c0c936f9b84e8c61f63d6889add337bf67dc1" :a :task/id :v "t-6623" :op :assert}
+   {:e #blake3 "7da2bf48e5311906511722e2259c0c936f9b84e8c61f63d6889add337bf67dc1" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "7da2bf48e5311906511722e2259c0c936f9b84e8c61f63d6889add337bf67dc1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7da2bf48e5311906511722e2259c0c936f9b84e8c61f63d6889add337bf67dc1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7da2bf48e5311906511722e2259c0c936f9b84e8c61f63d6889add337bf67dc1" :a :task/title :v "SPEC: Fix merge_stores docstring cascade steps to match spec (currently describes infra maintenance)" :op :assert}
+   {:e #blake3 "7da2bf48e5311906511722e2259c0c936f9b84e8c61f63d6889add337bf67dc1" :a :task/type :v :task.type/docs :op :assert}
+ ]}

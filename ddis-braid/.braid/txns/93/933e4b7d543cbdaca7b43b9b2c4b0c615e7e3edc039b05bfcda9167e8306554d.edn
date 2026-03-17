@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770433/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: Seed budget check detects actual overflow (not clamped) (unit + proptest)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "02f69079a39e9b36ee350d2cff29c0e1229c39b9c9ce1beca089d11cab88e969" :a :db/ident :v :task/t-247b :op :assert}
+   {:e #blake3 "02f69079a39e9b36ee350d2cff29c0e1229c39b9c9ce1beca089d11cab88e969" :a :task/created-at :v 1773770432 :op :assert}
+   {:e #blake3 "02f69079a39e9b36ee350d2cff29c0e1229c39b9c9ce1beca089d11cab88e969" :a :task/id :v "t-247b" :op :assert}
+   {:e #blake3 "02f69079a39e9b36ee350d2cff29c0e1229c39b9c9ce1beca089d11cab88e969" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "02f69079a39e9b36ee350d2cff29c0e1229c39b9c9ce1beca089d11cab88e969" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "02f69079a39e9b36ee350d2cff29c0e1229c39b9c9ce1beca089d11cab88e969" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "02f69079a39e9b36ee350d2cff29c0e1229c39b9c9ce1beca089d11cab88e969" :a :task/title :v "TEST: Seed budget check detects actual overflow (not clamped) (unit + proptest)" :op :assert}
+   {:e #blake3 "02f69079a39e9b36ee350d2cff29c0e1229c39b9c9ce1beca089d11cab88e969" :a :task/type :v :task.type/task :op :assert}
+ ]}

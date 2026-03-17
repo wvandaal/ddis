@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770385/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: ResolutionMode::Lattice carries lattice_id EntityId (unit test)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :db/ident :v :task/t-b926 :op :assert}
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :task/created-at :v 1773770384 :op :assert}
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :task/id :v "t-b926" :op :assert}
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :task/title :v "TEST: ResolutionMode::Lattice carries lattice_id EntityId (unit test)" :op :assert}
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :task/type :v :task.type/task :op :assert}
+ ]}

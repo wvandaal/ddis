@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769714/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-SUB: Implement pi_0 pinning for active intentions"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "064fb51e4efac893c0e13e1c4a454233bfef5e9433d12e92ba9dc76b93cd5855" :a :db/ident :v :task/t-5b3a :op :assert}
+   {:e #blake3 "064fb51e4efac893c0e13e1c4a454233bfef5e9433d12e92ba9dc76b93cd5855" :a :task/created-at :v 1773769711 :op :assert}
+   {:e #blake3 "064fb51e4efac893c0e13e1c4a454233bfef5e9433d12e92ba9dc76b93cd5855" :a :task/id :v "t-5b3a" :op :assert}
+   {:e #blake3 "064fb51e4efac893c0e13e1c4a454233bfef5e9433d12e92ba9dc76b93cd5855" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "064fb51e4efac893c0e13e1c4a454233bfef5e9433d12e92ba9dc76b93cd5855" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "064fb51e4efac893c0e13e1c4a454233bfef5e9433d12e92ba9dc76b93cd5855" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "064fb51e4efac893c0e13e1c4a454233bfef5e9433d12e92ba9dc76b93cd5855" :a :task/title :v "S0-SUB: Implement pi_0 pinning for active intentions" :op :assert}
+   {:e #blake3 "064fb51e4efac893c0e13e1c4a454233bfef5e9433d12e92ba9dc76b93cd5855" :a :task/type :v :task.type/task :op :assert}
+ ]}

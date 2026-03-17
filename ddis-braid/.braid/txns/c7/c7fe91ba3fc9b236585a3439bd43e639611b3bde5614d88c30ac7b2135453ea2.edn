@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767689/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Convert task list/create/show/close/update to CommandOutput"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "39578d89a35b340bf535c26a070c5c3aff59bc7822f027f1c848a36624370528" :a :db/ident :v :task/t-bf74 :op :assert}
+   {:e #blake3 "39578d89a35b340bf535c26a070c5c3aff59bc7822f027f1c848a36624370528" :a :task/created-at :v 1773767688 :op :assert}
+   {:e #blake3 "39578d89a35b340bf535c26a070c5c3aff59bc7822f027f1c848a36624370528" :a :task/id :v "t-bf74" :op :assert}
+   {:e #blake3 "39578d89a35b340bf535c26a070c5c3aff59bc7822f027f1c848a36624370528" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "39578d89a35b340bf535c26a070c5c3aff59bc7822f027f1c848a36624370528" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "39578d89a35b340bf535c26a070c5c3aff59bc7822f027f1c848a36624370528" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "39578d89a35b340bf535c26a070c5c3aff59bc7822f027f1c848a36624370528" :a :task/title :v "S1: Convert task list/create/show/close/update to CommandOutput" :op :assert}
+   {:e #blake3 "39578d89a35b340bf535c26a070c5c3aff59bc7822f027f1c848a36624370528" :a :task/type :v :task.type/task :op :assert}
+ ]}

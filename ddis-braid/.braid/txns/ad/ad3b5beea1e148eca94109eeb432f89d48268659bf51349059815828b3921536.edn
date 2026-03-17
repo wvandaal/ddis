@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769758/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Document Rust adaptation of merge as method (guide already notes this)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cb51c6b86157dadae3dbaab36347ab7ff9144bc60b9d996a9e28cb7090a2c28c" :a :db/ident :v :task/t-3abc :op :assert}
+   {:e #blake3 "cb51c6b86157dadae3dbaab36347ab7ff9144bc60b9d996a9e28cb7090a2c28c" :a :task/created-at :v 1773769755 :op :assert}
+   {:e #blake3 "cb51c6b86157dadae3dbaab36347ab7ff9144bc60b9d996a9e28cb7090a2c28c" :a :task/id :v "t-3abc" :op :assert}
+   {:e #blake3 "cb51c6b86157dadae3dbaab36347ab7ff9144bc60b9d996a9e28cb7090a2c28c" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "cb51c6b86157dadae3dbaab36347ab7ff9144bc60b9d996a9e28cb7090a2c28c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cb51c6b86157dadae3dbaab36347ab7ff9144bc60b9d996a9e28cb7090a2c28c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cb51c6b86157dadae3dbaab36347ab7ff9144bc60b9d996a9e28cb7090a2c28c" :a :task/title :v "SPEC: Document Rust adaptation of merge as method (guide already notes this)" :op :assert}
+   {:e #blake3 "cb51c6b86157dadae3dbaab36347ab7ff9144bc60b9d996a9e28cb7090a2c28c" :a :task/type :v :task.type/docs :op :assert}
+ ]}

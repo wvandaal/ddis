@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769760/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement FM-009 semantic contradiction detection (Tiers 3-5)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e6f31aa3e6b733326ed4ee337f7cb559c16537cff42388ac4cce68043335afe8" :a :db/ident :v :task/t-640e :op :assert}
+   {:e #blake3 "e6f31aa3e6b733326ed4ee337f7cb559c16537cff42388ac4cce68043335afe8" :a :task/created-at :v 1773769757 :op :assert}
+   {:e #blake3 "e6f31aa3e6b733326ed4ee337f7cb559c16537cff42388ac4cce68043335afe8" :a :task/id :v "t-640e" :op :assert}
+   {:e #blake3 "e6f31aa3e6b733326ed4ee337f7cb559c16537cff42388ac4cce68043335afe8" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e6f31aa3e6b733326ed4ee337f7cb559c16537cff42388ac4cce68043335afe8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e6f31aa3e6b733326ed4ee337f7cb559c16537cff42388ac4cce68043335afe8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e6f31aa3e6b733326ed4ee337f7cb559c16537cff42388ac4cce68043335afe8" :a :task/title :v "S1: Implement FM-009 semantic contradiction detection (Tiers 3-5)" :op :assert}
+   {:e #blake3 "e6f31aa3e6b733326ed4ee337f7cb559c16537cff42388ac4cce68043335afe8" :a :task/type :v :task.type/task :op :assert}
+ ]}

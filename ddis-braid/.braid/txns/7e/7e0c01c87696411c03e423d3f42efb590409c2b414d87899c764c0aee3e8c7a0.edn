@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767267/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Align harvest warning thresholds with spec (INV-HARVEST-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "782ec30519b892f2e5add8a5c6976832ea96c76405cc1a2a3de9b9a42572e16e" :a :db/ident :v :task/t-ca63 :op :assert}
+   {:e #blake3 "782ec30519b892f2e5add8a5c6976832ea96c76405cc1a2a3de9b9a42572e16e" :a :task/created-at :v 1773767266 :op :assert}
+   {:e #blake3 "782ec30519b892f2e5add8a5c6976832ea96c76405cc1a2a3de9b9a42572e16e" :a :task/id :v "t-ca63" :op :assert}
+   {:e #blake3 "782ec30519b892f2e5add8a5c6976832ea96c76405cc1a2a3de9b9a42572e16e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "782ec30519b892f2e5add8a5c6976832ea96c76405cc1a2a3de9b9a42572e16e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "782ec30519b892f2e5add8a5c6976832ea96c76405cc1a2a3de9b9a42572e16e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "782ec30519b892f2e5add8a5c6976832ea96c76405cc1a2a3de9b9a42572e16e" :a :task/title :v "S0-CLOSE: Align harvest warning thresholds with spec (INV-HARVEST-005)" :op :assert}
+   {:e #blake3 "782ec30519b892f2e5add8a5c6976832ea96c76405cc1a2a3de9b9a42572e16e" :a :task/type :v :task.type/bug :op :assert}
+ ]}

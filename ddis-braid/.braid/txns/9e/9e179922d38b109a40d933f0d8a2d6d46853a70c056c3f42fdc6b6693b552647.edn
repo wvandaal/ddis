@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769681/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY: Add test for INV-INTERFACE-002 MCP thin wrapper property"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "07186e7e3b3a6ad5c701a55852e4556dad917a66e00c6cc8f2cc75c19c350f98" :a :db/ident :v :task/t-a267 :op :assert}
+   {:e #blake3 "07186e7e3b3a6ad5c701a55852e4556dad917a66e00c6cc8f2cc75c19c350f98" :a :task/created-at :v 1773769680 :op :assert}
+   {:e #blake3 "07186e7e3b3a6ad5c701a55852e4556dad917a66e00c6cc8f2cc75c19c350f98" :a :task/id :v "t-a267" :op :assert}
+   {:e #blake3 "07186e7e3b3a6ad5c701a55852e4556dad917a66e00c6cc8f2cc75c19c350f98" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "07186e7e3b3a6ad5c701a55852e4556dad917a66e00c6cc8f2cc75c19c350f98" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "07186e7e3b3a6ad5c701a55852e4556dad917a66e00c6cc8f2cc75c19c350f98" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "07186e7e3b3a6ad5c701a55852e4556dad917a66e00c6cc8f2cc75c19c350f98" :a :task/title :v "VERIFY: Add test for INV-INTERFACE-002 MCP thin wrapper property" :op :assert}
+   {:e #blake3 "07186e7e3b3a6ad5c701a55852e4556dad917a66e00c6cc8f2cc75c19c350f98" :a :task/type :v :task.type/task :op :assert}
+ ]}

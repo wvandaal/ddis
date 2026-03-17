@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769684/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY: Add test for INV-INTERFACE-006 human signal injection"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b547392eec834c2b7e9e32a0e784e18fddaab11198d406c35296187d540bf878" :a :db/ident :v :task/t-d9d5 :op :assert}
+   {:e #blake3 "b547392eec834c2b7e9e32a0e784e18fddaab11198d406c35296187d540bf878" :a :task/created-at :v 1773769681 :op :assert}
+   {:e #blake3 "b547392eec834c2b7e9e32a0e784e18fddaab11198d406c35296187d540bf878" :a :task/id :v "t-d9d5" :op :assert}
+   {:e #blake3 "b547392eec834c2b7e9e32a0e784e18fddaab11198d406c35296187d540bf878" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "b547392eec834c2b7e9e32a0e784e18fddaab11198d406c35296187d540bf878" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b547392eec834c2b7e9e32a0e784e18fddaab11198d406c35296187d540bf878" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b547392eec834c2b7e9e32a0e784e18fddaab11198d406c35296187d540bf878" :a :task/title :v "VERIFY: Add test for INV-INTERFACE-006 human signal injection" :op :assert}
+   {:e #blake3 "b547392eec834c2b7e9e32a0e784e18fddaab11198d406c35296187d540bf878" :a :task/type :v :task.type/task :op :assert}
+ ]}

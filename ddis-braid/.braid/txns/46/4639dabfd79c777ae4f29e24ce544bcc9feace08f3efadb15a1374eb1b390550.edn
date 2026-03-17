@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770365/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: Merge cascade produces 5-step datom trail (proptest + integration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "89267b34092bf5b141890ef4f41d5c297e3f6fc9628c6e5ef694089f3630b857" :a :db/ident :v :task/t-7bf9 :op :assert}
+   {:e #blake3 "89267b34092bf5b141890ef4f41d5c297e3f6fc9628c6e5ef694089f3630b857" :a :task/created-at :v 1773770364 :op :assert}
+   {:e #blake3 "89267b34092bf5b141890ef4f41d5c297e3f6fc9628c6e5ef694089f3630b857" :a :task/id :v "t-7bf9" :op :assert}
+   {:e #blake3 "89267b34092bf5b141890ef4f41d5c297e3f6fc9628c6e5ef694089f3630b857" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "89267b34092bf5b141890ef4f41d5c297e3f6fc9628c6e5ef694089f3630b857" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "89267b34092bf5b141890ef4f41d5c297e3f6fc9628c6e5ef694089f3630b857" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "89267b34092bf5b141890ef4f41d5c297e3f6fc9628c6e5ef694089f3630b857" :a :task/title :v "TEST: Merge cascade produces 5-step datom trail (proptest + integration)" :op :assert}
+   {:e #blake3 "89267b34092bf5b141890ef4f41d5c297e3f6fc9628c6e5ef694089f3630b857" :a :task/type :v :task.type/task :op :assert}
+ ]}

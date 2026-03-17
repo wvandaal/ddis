@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767414/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Update spec/00-preamble.md namespace list to include all 22 namespaces"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e400b76fa397d8443b350645e33d7706594bb0d0c1f78b22bf549870a9cfa14a" :a :db/ident :v :task/t-dfc7 :op :assert}
+   {:e #blake3 "e400b76fa397d8443b350645e33d7706594bb0d0c1f78b22bf549870a9cfa14a" :a :task/created-at :v 1773767413 :op :assert}
+   {:e #blake3 "e400b76fa397d8443b350645e33d7706594bb0d0c1f78b22bf549870a9cfa14a" :a :task/id :v "t-dfc7" :op :assert}
+   {:e #blake3 "e400b76fa397d8443b350645e33d7706594bb0d0c1f78b22bf549870a9cfa14a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e400b76fa397d8443b350645e33d7706594bb0d0c1f78b22bf549870a9cfa14a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e400b76fa397d8443b350645e33d7706594bb0d0c1f78b22bf549870a9cfa14a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e400b76fa397d8443b350645e33d7706594bb0d0c1f78b22bf549870a9cfa14a" :a :task/title :v "SPEC: Update spec/00-preamble.md namespace list to include all 22 namespaces" :op :assert}
+   {:e #blake3 "e400b76fa397d8443b350645e33d7706594bb0d0c1f78b22bf549870a9cfa14a" :a :task/type :v :task.type/docs :op :assert}
+ ]}

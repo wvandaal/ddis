@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769731/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Sort datoms before hashing in serialize_tx (INV-LAYOUT-011 canonical serialization)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f72e106dd2533813c6935992c7c21d55d79026b2453c20c79e2226c4eb7b901" :a :db/ident :v :task/t-5346 :op :assert}
+   {:e #blake3 "8f72e106dd2533813c6935992c7c21d55d79026b2453c20c79e2226c4eb7b901" :a :task/created-at :v 1773769730 :op :assert}
+   {:e #blake3 "8f72e106dd2533813c6935992c7c21d55d79026b2453c20c79e2226c4eb7b901" :a :task/id :v "t-5346" :op :assert}
+   {:e #blake3 "8f72e106dd2533813c6935992c7c21d55d79026b2453c20c79e2226c4eb7b901" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "8f72e106dd2533813c6935992c7c21d55d79026b2453c20c79e2226c4eb7b901" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8f72e106dd2533813c6935992c7c21d55d79026b2453c20c79e2226c4eb7b901" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8f72e106dd2533813c6935992c7c21d55d79026b2453c20c79e2226c4eb7b901" :a :task/title :v "S0-CLOSE: Sort datoms before hashing in serialize_tx (INV-LAYOUT-011 canonical serialization)" :op :assert}
+   {:e #blake3 "8f72e106dd2533813c6935992c7c21d55d79026b2453c20c79e2226c4eb7b901" :a :task/type :v :task.type/bug :op :assert}
+ ]}

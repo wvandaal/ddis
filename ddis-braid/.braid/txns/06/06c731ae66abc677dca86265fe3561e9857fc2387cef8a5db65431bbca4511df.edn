@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767364/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-PREP: Add missing Clause AST variants — Rules, OrClause, Frontier (INV-QUERY-006)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "462040f17d409933da2dc404540fe85e892f721b2d639f964d11c6c1a1be7aac" :a :db/ident :v :task/t-e8d4 :op :assert}
+   {:e #blake3 "462040f17d409933da2dc404540fe85e892f721b2d639f964d11c6c1a1be7aac" :a :task/created-at :v 1773767363 :op :assert}
+   {:e #blake3 "462040f17d409933da2dc404540fe85e892f721b2d639f964d11c6c1a1be7aac" :a :task/id :v "t-e8d4" :op :assert}
+   {:e #blake3 "462040f17d409933da2dc404540fe85e892f721b2d639f964d11c6c1a1be7aac" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "462040f17d409933da2dc404540fe85e892f721b2d639f964d11c6c1a1be7aac" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "462040f17d409933da2dc404540fe85e892f721b2d639f964d11c6c1a1be7aac" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "462040f17d409933da2dc404540fe85e892f721b2d639f964d11c6c1a1be7aac" :a :task/title :v "S1-PREP: Add missing Clause AST variants — Rules, OrClause, Frontier (INV-QUERY-006)" :op :assert}
+   {:e #blake3 "462040f17d409933da2dc404540fe85e892f721b2d639f964d11c6c1a1be7aac" :a :task/type :v :task.type/task :op :assert}
+ ]}

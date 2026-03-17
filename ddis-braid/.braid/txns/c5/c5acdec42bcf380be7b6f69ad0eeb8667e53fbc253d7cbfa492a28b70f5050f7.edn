@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769697/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY-SUB: Replace tautological no-op templates with meaningful property checks"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e4665517f6040e0435a84e24def31227da5c9abcd2da6e4ea04d34177d5a3b44" :a :db/ident :v :task/t-9755 :op :assert}
+   {:e #blake3 "e4665517f6040e0435a84e24def31227da5c9abcd2da6e4ea04d34177d5a3b44" :a :task/created-at :v 1773769694 :op :assert}
+   {:e #blake3 "e4665517f6040e0435a84e24def31227da5c9abcd2da6e4ea04d34177d5a3b44" :a :task/id :v "t-9755" :op :assert}
+   {:e #blake3 "e4665517f6040e0435a84e24def31227da5c9abcd2da6e4ea04d34177d5a3b44" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e4665517f6040e0435a84e24def31227da5c9abcd2da6e4ea04d34177d5a3b44" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e4665517f6040e0435a84e24def31227da5c9abcd2da6e4ea04d34177d5a3b44" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e4665517f6040e0435a84e24def31227da5c9abcd2da6e4ea04d34177d5a3b44" :a :task/title :v "VERIFY-SUB: Replace tautological no-op templates with meaningful property checks" :op :assert}
+   {:e #blake3 "e4665517f6040e0435a84e24def31227da5c9abcd2da6e4ea04d34177d5a3b44" :a :task/type :v :task.type/bug :op :assert}
+ ]}

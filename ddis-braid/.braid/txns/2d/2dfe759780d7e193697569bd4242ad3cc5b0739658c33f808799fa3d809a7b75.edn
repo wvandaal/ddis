@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770408/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: Agent entities auto-created with :agent/ident on first transact (integration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8ee7721c7ece8fcc8e5ce6e1791551ac1233f944d13e58e822e96b0c2df1cc1a" :a :db/ident :v :task/t-f2bc :op :assert}
+   {:e #blake3 "8ee7721c7ece8fcc8e5ce6e1791551ac1233f944d13e58e822e96b0c2df1cc1a" :a :task/created-at :v 1773770407 :op :assert}
+   {:e #blake3 "8ee7721c7ece8fcc8e5ce6e1791551ac1233f944d13e58e822e96b0c2df1cc1a" :a :task/id :v "t-f2bc" :op :assert}
+   {:e #blake3 "8ee7721c7ece8fcc8e5ce6e1791551ac1233f944d13e58e822e96b0c2df1cc1a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8ee7721c7ece8fcc8e5ce6e1791551ac1233f944d13e58e822e96b0c2df1cc1a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8ee7721c7ece8fcc8e5ce6e1791551ac1233f944d13e58e822e96b0c2df1cc1a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8ee7721c7ece8fcc8e5ce6e1791551ac1233f944d13e58e822e96b0c2df1cc1a" :a :task/title :v "TEST: Agent entities auto-created with :agent/ident on first transact (integration)" :op :assert}
+   {:e #blake3 "8ee7721c7ece8fcc8e5ce6e1791551ac1233f944d13e58e822e96b0c2df1cc1a" :a :task/type :v :task.type/task :op :assert}
+ ]}

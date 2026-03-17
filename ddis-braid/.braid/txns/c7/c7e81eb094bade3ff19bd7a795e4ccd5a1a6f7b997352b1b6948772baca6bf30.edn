@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767301/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-PREP: Fix MCP store reload — implement ArcSwap persistence (INV-INTERFACE-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "71bc17d568453e775d9a873937e1065770878172f0292d053c038d4c8da00357" :a :db/ident :v :task/t-f637 :op :assert}
+   {:e #blake3 "71bc17d568453e775d9a873937e1065770878172f0292d053c038d4c8da00357" :a :task/created-at :v 1773767300 :op :assert}
+   {:e #blake3 "71bc17d568453e775d9a873937e1065770878172f0292d053c038d4c8da00357" :a :task/id :v "t-f637" :op :assert}
+   {:e #blake3 "71bc17d568453e775d9a873937e1065770878172f0292d053c038d4c8da00357" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "71bc17d568453e775d9a873937e1065770878172f0292d053c038d4c8da00357" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "71bc17d568453e775d9a873937e1065770878172f0292d053c038d4c8da00357" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "71bc17d568453e775d9a873937e1065770878172f0292d053c038d4c8da00357" :a :task/title :v "S1-PREP: Fix MCP store reload — implement ArcSwap persistence (INV-INTERFACE-002)" :op :assert}
+   {:e #blake3 "71bc17d568453e775d9a873937e1065770878172f0292d053c038d4c8da00357" :a :task/type :v :task.type/task :op :assert}
+ ]}

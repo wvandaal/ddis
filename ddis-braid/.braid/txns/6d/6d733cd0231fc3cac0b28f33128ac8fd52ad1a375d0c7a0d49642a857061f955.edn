@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769800/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement detection mechanisms for 6 missing reconciliation taxonomy types"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a9496f5bdf5a511b03c22cb074ec676d6b649f9a28e5211cd99f59c3071ee053" :a :db/ident :v :task/t-1cea :op :assert}
+   {:e #blake3 "a9496f5bdf5a511b03c22cb074ec676d6b649f9a28e5211cd99f59c3071ee053" :a :task/created-at :v 1773769799 :op :assert}
+   {:e #blake3 "a9496f5bdf5a511b03c22cb074ec676d6b649f9a28e5211cd99f59c3071ee053" :a :task/id :v "t-1cea" :op :assert}
+   {:e #blake3 "a9496f5bdf5a511b03c22cb074ec676d6b649f9a28e5211cd99f59c3071ee053" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a9496f5bdf5a511b03c22cb074ec676d6b649f9a28e5211cd99f59c3071ee053" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a9496f5bdf5a511b03c22cb074ec676d6b649f9a28e5211cd99f59c3071ee053" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a9496f5bdf5a511b03c22cb074ec676d6b649f9a28e5211cd99f59c3071ee053" :a :task/title :v "S1: Implement detection mechanisms for 6 missing reconciliation taxonomy types" :op :assert}
+   {:e #blake3 "a9496f5bdf5a511b03c22cb074ec676d6b649f9a28e5211cd99f59c3071ee053" :a :task/type :v :task.type/feature :op :assert}
+ ]}

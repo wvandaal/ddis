@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769667/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Add INV-SCHEMA-009 (Spec Dependency Graph) to guide implementation checklist"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "473c2c81ba3b6859e151a30d49eb5c8a8ef8be3ff9f18ea0f5b81d058c75b334" :a :db/ident :v :task/t-d380 :op :assert}
+   {:e #blake3 "473c2c81ba3b6859e151a30d49eb5c8a8ef8be3ff9f18ea0f5b81d058c75b334" :a :task/created-at :v 1773769666 :op :assert}
+   {:e #blake3 "473c2c81ba3b6859e151a30d49eb5c8a8ef8be3ff9f18ea0f5b81d058c75b334" :a :task/id :v "t-d380" :op :assert}
+   {:e #blake3 "473c2c81ba3b6859e151a30d49eb5c8a8ef8be3ff9f18ea0f5b81d058c75b334" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "473c2c81ba3b6859e151a30d49eb5c8a8ef8be3ff9f18ea0f5b81d058c75b334" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "473c2c81ba3b6859e151a30d49eb5c8a8ef8be3ff9f18ea0f5b81d058c75b334" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "473c2c81ba3b6859e151a30d49eb5c8a8ef8be3ff9f18ea0f5b81d058c75b334" :a :task/title :v "SPEC: Add INV-SCHEMA-009 (Spec Dependency Graph) to guide implementation checklist" :op :assert}
+   {:e #blake3 "473c2c81ba3b6859e151a30d49eb5c8a8ef8be3ff9f18ea0f5b81d058c75b334" :a :task/type :v :task.type/docs :op :assert}
+ ]}

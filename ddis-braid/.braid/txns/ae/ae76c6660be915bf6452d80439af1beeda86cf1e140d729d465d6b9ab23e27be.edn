@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769685/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Align QueryResult type with spec (bindings, stratum, mode, provenance_tx)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9f5a29e81c652bfc6585724ca79ad13a176f9275ed328e5601d9d4b39b414957" :a :db/ident :v :task/t-8ef2 :op :assert}
+   {:e #blake3 "9f5a29e81c652bfc6585724ca79ad13a176f9275ed328e5601d9d4b39b414957" :a :task/created-at :v 1773769682 :op :assert}
+   {:e #blake3 "9f5a29e81c652bfc6585724ca79ad13a176f9275ed328e5601d9d4b39b414957" :a :task/id :v "t-8ef2" :op :assert}
+   {:e #blake3 "9f5a29e81c652bfc6585724ca79ad13a176f9275ed328e5601d9d4b39b414957" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "9f5a29e81c652bfc6585724ca79ad13a176f9275ed328e5601d9d4b39b414957" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9f5a29e81c652bfc6585724ca79ad13a176f9275ed328e5601d9d4b39b414957" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9f5a29e81c652bfc6585724ca79ad13a176f9275ed328e5601d9d4b39b414957" :a :task/title :v "S1: Align QueryResult type with spec (bindings, stratum, mode, provenance_tx)" :op :assert}
+   {:e #blake3 "9f5a29e81c652bfc6585724ca79ad13a176f9275ed328e5601d9d4b39b414957" :a :task/type :v :task.type/task :op :assert}
+ ]}

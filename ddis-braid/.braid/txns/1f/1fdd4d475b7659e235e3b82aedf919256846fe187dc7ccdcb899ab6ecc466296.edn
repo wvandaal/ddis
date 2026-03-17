@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767343/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-PREP: Add QueryMode enum and mode-stratum compatibility (INV-QUERY-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7468037bcaed271e10b19d0ac33c2d2a86887655ea109a8086fc2bd1c4adf245" :a :db/ident :v :task/t-8325 :op :assert}
+   {:e #blake3 "7468037bcaed271e10b19d0ac33c2d2a86887655ea109a8086fc2bd1c4adf245" :a :task/created-at :v 1773767342 :op :assert}
+   {:e #blake3 "7468037bcaed271e10b19d0ac33c2d2a86887655ea109a8086fc2bd1c4adf245" :a :task/id :v "t-8325" :op :assert}
+   {:e #blake3 "7468037bcaed271e10b19d0ac33c2d2a86887655ea109a8086fc2bd1c4adf245" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7468037bcaed271e10b19d0ac33c2d2a86887655ea109a8086fc2bd1c4adf245" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7468037bcaed271e10b19d0ac33c2d2a86887655ea109a8086fc2bd1c4adf245" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7468037bcaed271e10b19d0ac33c2d2a86887655ea109a8086fc2bd1c4adf245" :a :task/title :v "S1-PREP: Add QueryMode enum and mode-stratum compatibility (INV-QUERY-005)" :op :assert}
+   {:e #blake3 "7468037bcaed271e10b19d0ac33c2d2a86887655ea109a8086fc2bd1c4adf245" :a :task/type :v :task.type/task :op :assert}
+ ]}

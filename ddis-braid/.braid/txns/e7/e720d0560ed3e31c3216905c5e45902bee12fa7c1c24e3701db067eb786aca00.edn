@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769669/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0: Fix :impl/implements to Cardinality::Many with multi resolution (schema.rs:860)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "51816daa1804d0e6359975e98dec357bd2d224de1c2692581479583ae167ef25" :a :db/ident :v :task/t-16fe :op :assert}
+   {:e #blake3 "51816daa1804d0e6359975e98dec357bd2d224de1c2692581479583ae167ef25" :a :task/created-at :v 1773769668 :op :assert}
+   {:e #blake3 "51816daa1804d0e6359975e98dec357bd2d224de1c2692581479583ae167ef25" :a :task/id :v "t-16fe" :op :assert}
+   {:e #blake3 "51816daa1804d0e6359975e98dec357bd2d224de1c2692581479583ae167ef25" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "51816daa1804d0e6359975e98dec357bd2d224de1c2692581479583ae167ef25" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "51816daa1804d0e6359975e98dec357bd2d224de1c2692581479583ae167ef25" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "51816daa1804d0e6359975e98dec357bd2d224de1c2692581479583ae167ef25" :a :task/title :v "S0: Fix :impl/implements to Cardinality::Many with multi resolution (schema.rs:860)" :op :assert}
+   {:e #blake3 "51816daa1804d0e6359975e98dec357bd2d224de1c2692581479583ae167ef25" :a :task/type :v :task.type/bug :op :assert}
+ ]}

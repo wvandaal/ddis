@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767180/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Fix INV-MERGE-002 Kani proof to verify cascade (not frontier monotonicity)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "96c9541177ad8618633a7d565543d5242b0f772e63d8ce7f3303dab3a96797f2" :a :db/ident :v :task/t-8ef5 :op :assert}
+   {:e #blake3 "96c9541177ad8618633a7d565543d5242b0f772e63d8ce7f3303dab3a96797f2" :a :task/created-at :v 1773767179 :op :assert}
+   {:e #blake3 "96c9541177ad8618633a7d565543d5242b0f772e63d8ce7f3303dab3a96797f2" :a :task/id :v "t-8ef5" :op :assert}
+   {:e #blake3 "96c9541177ad8618633a7d565543d5242b0f772e63d8ce7f3303dab3a96797f2" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "96c9541177ad8618633a7d565543d5242b0f772e63d8ce7f3303dab3a96797f2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "96c9541177ad8618633a7d565543d5242b0f772e63d8ce7f3303dab3a96797f2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "96c9541177ad8618633a7d565543d5242b0f772e63d8ce7f3303dab3a96797f2" :a :task/title :v "S0-CLOSE: Fix INV-MERGE-002 Kani proof to verify cascade (not frontier monotonicity)" :op :assert}
+   {:e #blake3 "96c9541177ad8618633a7d565543d5242b0f772e63d8ce7f3303dab3a96797f2" :a :task/type :v :task.type/bug :op :assert}
+ ]}

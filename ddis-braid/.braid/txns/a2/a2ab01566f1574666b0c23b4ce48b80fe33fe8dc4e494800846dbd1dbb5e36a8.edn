@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769663/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement store-wide detect_conflicts(store, frontier) -> Vec<ConflictSet>"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "84ab1b7ba2d7516ed2c9d0b1002a64fbf2c76580478009eebf31cfdda313eeaf" :a :db/ident :v :task/t-bbc1 :op :assert}
+   {:e #blake3 "84ab1b7ba2d7516ed2c9d0b1002a64fbf2c76580478009eebf31cfdda313eeaf" :a :task/created-at :v 1773769662 :op :assert}
+   {:e #blake3 "84ab1b7ba2d7516ed2c9d0b1002a64fbf2c76580478009eebf31cfdda313eeaf" :a :task/id :v "t-bbc1" :op :assert}
+   {:e #blake3 "84ab1b7ba2d7516ed2c9d0b1002a64fbf2c76580478009eebf31cfdda313eeaf" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "84ab1b7ba2d7516ed2c9d0b1002a64fbf2c76580478009eebf31cfdda313eeaf" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "84ab1b7ba2d7516ed2c9d0b1002a64fbf2c76580478009eebf31cfdda313eeaf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "84ab1b7ba2d7516ed2c9d0b1002a64fbf2c76580478009eebf31cfdda313eeaf" :a :task/title :v "S1: Implement store-wide detect_conflicts(store, frontier) -> Vec<ConflictSet>" :op :assert}
+   {:e #blake3 "84ab1b7ba2d7516ed2c9d0b1002a64fbf2c76580478009eebf31cfdda313eeaf" :a :task/type :v :task.type/feature :op :assert}
+ ]}

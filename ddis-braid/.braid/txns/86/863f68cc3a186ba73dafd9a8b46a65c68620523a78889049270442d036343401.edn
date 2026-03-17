@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769648/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-SUB: Implement diamond lattice error signal for incomparable values"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e77d51d50fb756e51b09b2c9db3fe1012b764329d9e8f5cd9ab3338c65299712" :a :db/ident :v :task/t-f08b :op :assert}
+   {:e #blake3 "e77d51d50fb756e51b09b2c9db3fe1012b764329d9e8f5cd9ab3338c65299712" :a :task/created-at :v 1773769646 :op :assert}
+   {:e #blake3 "e77d51d50fb756e51b09b2c9db3fe1012b764329d9e8f5cd9ab3338c65299712" :a :task/id :v "t-f08b" :op :assert}
+   {:e #blake3 "e77d51d50fb756e51b09b2c9db3fe1012b764329d9e8f5cd9ab3338c65299712" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e77d51d50fb756e51b09b2c9db3fe1012b764329d9e8f5cd9ab3338c65299712" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e77d51d50fb756e51b09b2c9db3fe1012b764329d9e8f5cd9ab3338c65299712" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e77d51d50fb756e51b09b2c9db3fe1012b764329d9e8f5cd9ab3338c65299712" :a :task/title :v "S1-SUB: Implement diamond lattice error signal for incomparable values" :op :assert}
+   {:e #blake3 "e77d51d50fb756e51b09b2c9db3fe1012b764329d9e8f5cd9ab3338c65299712" :a :task/type :v :task.type/task :op :assert}
+ ]}

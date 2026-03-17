@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767220/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Fix DeliberationStatus — do NOT derive Ord (spec says partial order)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a753662b72e4cae6f4e16f510159c32c438335c06f9c65cd89d3a6400d41893a" :a :db/ident :v :task/t-77a9 :op :assert}
+   {:e #blake3 "a753662b72e4cae6f4e16f510159c32c438335c06f9c65cd89d3a6400d41893a" :a :task/created-at :v 1773767219 :op :assert}
+   {:e #blake3 "a753662b72e4cae6f4e16f510159c32c438335c06f9c65cd89d3a6400d41893a" :a :task/id :v "t-77a9" :op :assert}
+   {:e #blake3 "a753662b72e4cae6f4e16f510159c32c438335c06f9c65cd89d3a6400d41893a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a753662b72e4cae6f4e16f510159c32c438335c06f9c65cd89d3a6400d41893a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a753662b72e4cae6f4e16f510159c32c438335c06f9c65cd89d3a6400d41893a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a753662b72e4cae6f4e16f510159c32c438335c06f9c65cd89d3a6400d41893a" :a :task/title :v "S0-CLOSE: Fix DeliberationStatus — do NOT derive Ord (spec says partial order)" :op :assert}
+   {:e #blake3 "a753662b72e4cae6f4e16f510159c32c438335c06f9c65cd89d3a6400d41893a" :a :task/type :v :task.type/bug :op :assert}
+ ]}

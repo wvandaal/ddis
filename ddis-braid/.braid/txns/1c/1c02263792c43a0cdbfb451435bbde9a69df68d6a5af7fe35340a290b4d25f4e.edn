@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769668/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement consequential divergence detection (uncertainty tensor sigma_e/sigma_a/sigma_c)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "39efb59f805a31882593e9b272b4e9a43881b033ac77a2e7b2591516f7d83f27" :a :db/ident :v :task/t-49ae :op :assert}
+   {:e #blake3 "39efb59f805a31882593e9b272b4e9a43881b033ac77a2e7b2591516f7d83f27" :a :task/created-at :v 1773769667 :op :assert}
+   {:e #blake3 "39efb59f805a31882593e9b272b4e9a43881b033ac77a2e7b2591516f7d83f27" :a :task/id :v "t-49ae" :op :assert}
+   {:e #blake3 "39efb59f805a31882593e9b272b4e9a43881b033ac77a2e7b2591516f7d83f27" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "39efb59f805a31882593e9b272b4e9a43881b033ac77a2e7b2591516f7d83f27" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "39efb59f805a31882593e9b272b4e9a43881b033ac77a2e7b2591516f7d83f27" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "39efb59f805a31882593e9b272b4e9a43881b033ac77a2e7b2591516f7d83f27" :a :task/title :v "S1: Implement consequential divergence detection (uncertainty tensor sigma_e/sigma_a/sigma_c)" :op :assert}
+   {:e #blake3 "39efb59f805a31882593e9b272b4e9a43881b033ac77a2e7b2591516f7d83f27" :a :task/type :v :task.type/task :op :assert}
+ ]}

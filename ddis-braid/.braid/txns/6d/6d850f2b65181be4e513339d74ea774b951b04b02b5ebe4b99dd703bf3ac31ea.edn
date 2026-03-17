@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769647/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-SUB: Implement lattice lub() computation in resolve()"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "604efda4b75f3e2338dd5c3c783373612288e5f62ec5f4892687f1f59643e66f" :a :db/ident :v :task/t-194c :op :assert}
+   {:e #blake3 "604efda4b75f3e2338dd5c3c783373612288e5f62ec5f4892687f1f59643e66f" :a :task/created-at :v 1773769646 :op :assert}
+   {:e #blake3 "604efda4b75f3e2338dd5c3c783373612288e5f62ec5f4892687f1f59643e66f" :a :task/id :v "t-194c" :op :assert}
+   {:e #blake3 "604efda4b75f3e2338dd5c3c783373612288e5f62ec5f4892687f1f59643e66f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "604efda4b75f3e2338dd5c3c783373612288e5f62ec5f4892687f1f59643e66f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "604efda4b75f3e2338dd5c3c783373612288e5f62ec5f4892687f1f59643e66f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "604efda4b75f3e2338dd5c3c783373612288e5f62ec5f4892687f1f59643e66f" :a :task/title :v "S1-SUB: Implement lattice lub() computation in resolve()" :op :assert}
+   {:e #blake3 "604efda4b75f3e2338dd5c3c783373612288e5f62ec5f4892687f1f59643e66f" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769781/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement T(t) topology fitness metric (INV-GUIDANCE-011)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ea51468711cdc4f8c8ed67a662487d1c887f803115aad271191a85b2e3d5a24b" :a :db/ident :v :task/t-d568 :op :assert}
+   {:e #blake3 "ea51468711cdc4f8c8ed67a662487d1c887f803115aad271191a85b2e3d5a24b" :a :task/created-at :v 1773769779 :op :assert}
+   {:e #blake3 "ea51468711cdc4f8c8ed67a662487d1c887f803115aad271191a85b2e3d5a24b" :a :task/id :v "t-d568" :op :assert}
+   {:e #blake3 "ea51468711cdc4f8c8ed67a662487d1c887f803115aad271191a85b2e3d5a24b" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "ea51468711cdc4f8c8ed67a662487d1c887f803115aad271191a85b2e3d5a24b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ea51468711cdc4f8c8ed67a662487d1c887f803115aad271191a85b2e3d5a24b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ea51468711cdc4f8c8ed67a662487d1c887f803115aad271191a85b2e3d5a24b" :a :task/title :v "S1: Implement T(t) topology fitness metric (INV-GUIDANCE-011)" :op :assert}
+   {:e #blake3 "ea51468711cdc4f8c8ed67a662487d1c887f803115aad271191a85b2e3d5a24b" :a :task/type :v :task.type/feature :op :assert}
+ ]}

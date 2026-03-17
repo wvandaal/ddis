@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769652/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement Schema::new_attribute(spec) -> Vec<Datom> public API"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6fe48b198c993290881fbf15ec9c91d466fa45e9b74ba2dd465a0f3d52f69f20" :a :db/ident :v :task/t-20b8 :op :assert}
+   {:e #blake3 "6fe48b198c993290881fbf15ec9c91d466fa45e9b74ba2dd465a0f3d52f69f20" :a :task/created-at :v 1773769651 :op :assert}
+   {:e #blake3 "6fe48b198c993290881fbf15ec9c91d466fa45e9b74ba2dd465a0f3d52f69f20" :a :task/id :v "t-20b8" :op :assert}
+   {:e #blake3 "6fe48b198c993290881fbf15ec9c91d466fa45e9b74ba2dd465a0f3d52f69f20" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6fe48b198c993290881fbf15ec9c91d466fa45e9b74ba2dd465a0f3d52f69f20" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6fe48b198c993290881fbf15ec9c91d466fa45e9b74ba2dd465a0f3d52f69f20" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6fe48b198c993290881fbf15ec9c91d466fa45e9b74ba2dd465a0f3d52f69f20" :a :task/title :v "S1: Implement Schema::new_attribute(spec) -> Vec<Datom> public API" :op :assert}
+   {:e #blake3 "6fe48b198c993290881fbf15ec9c91d466fa45e9b74ba2dd465a0f3d52f69f20" :a :task/type :v :task.type/feature :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767675/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Add MCP task management tools"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8c4ee66f6e0558bdc74e2e2561baec536bf78ee95aba5b70712e2874d5fc8ce1" :a :db/ident :v :task/t-a0df :op :assert}
+   {:e #blake3 "8c4ee66f6e0558bdc74e2e2561baec536bf78ee95aba5b70712e2874d5fc8ce1" :a :task/created-at :v 1773767674 :op :assert}
+   {:e #blake3 "8c4ee66f6e0558bdc74e2e2561baec536bf78ee95aba5b70712e2874d5fc8ce1" :a :task/id :v "t-a0df" :op :assert}
+   {:e #blake3 "8c4ee66f6e0558bdc74e2e2561baec536bf78ee95aba5b70712e2874d5fc8ce1" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "8c4ee66f6e0558bdc74e2e2561baec536bf78ee95aba5b70712e2874d5fc8ce1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8c4ee66f6e0558bdc74e2e2561baec536bf78ee95aba5b70712e2874d5fc8ce1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8c4ee66f6e0558bdc74e2e2561baec536bf78ee95aba5b70712e2874d5fc8ce1" :a :task/title :v "S1: Add MCP task management tools" :op :assert}
+   {:e #blake3 "8c4ee66f6e0558bdc74e2e2561baec536bf78ee95aba5b70712e2874d5fc8ce1" :a :task/type :v :task.type/feature :op :assert}
+ ]}

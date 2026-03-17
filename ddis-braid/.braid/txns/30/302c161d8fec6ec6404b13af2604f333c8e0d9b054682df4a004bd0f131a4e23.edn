@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769779/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement Layer 4.5 statusline bridge (.ddis/session/context.json)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "21fd0d23ad777df0143be2ac029e8fd6af49ac3685085e48366a3ef8a904bc12" :a :db/ident :v :task/t-c60f :op :assert}
+   {:e #blake3 "21fd0d23ad777df0143be2ac029e8fd6af49ac3685085e48366a3ef8a904bc12" :a :task/created-at :v 1773769778 :op :assert}
+   {:e #blake3 "21fd0d23ad777df0143be2ac029e8fd6af49ac3685085e48366a3ef8a904bc12" :a :task/id :v "t-c60f" :op :assert}
+   {:e #blake3 "21fd0d23ad777df0143be2ac029e8fd6af49ac3685085e48366a3ef8a904bc12" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "21fd0d23ad777df0143be2ac029e8fd6af49ac3685085e48366a3ef8a904bc12" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "21fd0d23ad777df0143be2ac029e8fd6af49ac3685085e48366a3ef8a904bc12" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "21fd0d23ad777df0143be2ac029e8fd6af49ac3685085e48366a3ef8a904bc12" :a :task/title :v "S1: Implement Layer 4.5 statusline bridge (.ddis/session/context.json)" :op :assert}
+   {:e #blake3 "21fd0d23ad777df0143be2ac029e8fd6af49ac3685085e48366a3ef8a904bc12" :a :task/type :v :task.type/feature :op :assert}
+ ]}

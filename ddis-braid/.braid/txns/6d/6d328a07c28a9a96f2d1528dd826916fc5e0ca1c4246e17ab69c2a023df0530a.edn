@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769799/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S2: Implement coherence density matrix with agreement functions (INV-COHERENCE-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bcb82ef1b48cb23f961dbc8afb8888bfdc68ad8451329a1823102fead41ece3b" :a :db/ident :v :task/t-b54b :op :assert}
+   {:e #blake3 "bcb82ef1b48cb23f961dbc8afb8888bfdc68ad8451329a1823102fead41ece3b" :a :task/created-at :v 1773769797 :op :assert}
+   {:e #blake3 "bcb82ef1b48cb23f961dbc8afb8888bfdc68ad8451329a1823102fead41ece3b" :a :task/id :v "t-b54b" :op :assert}
+   {:e #blake3 "bcb82ef1b48cb23f961dbc8afb8888bfdc68ad8451329a1823102fead41ece3b" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "bcb82ef1b48cb23f961dbc8afb8888bfdc68ad8451329a1823102fead41ece3b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bcb82ef1b48cb23f961dbc8afb8888bfdc68ad8451329a1823102fead41ece3b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bcb82ef1b48cb23f961dbc8afb8888bfdc68ad8451329a1823102fead41ece3b" :a :task/title :v "S2: Implement coherence density matrix with agreement functions (INV-COHERENCE-001)" :op :assert}
+   {:e #blake3 "bcb82ef1b48cb23f961dbc8afb8888bfdc68ad8451329a1823102fead41ece3b" :a :task/type :v :task.type/feature :op :assert}
+ ]}

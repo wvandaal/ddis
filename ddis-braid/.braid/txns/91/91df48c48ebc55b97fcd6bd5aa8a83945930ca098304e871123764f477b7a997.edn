@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769707/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement :observation/* attribute staleness tracking in harvest pipeline"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "34232d3e2559be2a63d465c98fadcff7b6744c676bd7955d6eec66a46e9ae14f" :a :db/ident :v :task/t-1a5c :op :assert}
+   {:e #blake3 "34232d3e2559be2a63d465c98fadcff7b6744c676bd7955d6eec66a46e9ae14f" :a :task/created-at :v 1773769706 :op :assert}
+   {:e #blake3 "34232d3e2559be2a63d465c98fadcff7b6744c676bd7955d6eec66a46e9ae14f" :a :task/id :v "t-1a5c" :op :assert}
+   {:e #blake3 "34232d3e2559be2a63d465c98fadcff7b6744c676bd7955d6eec66a46e9ae14f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "34232d3e2559be2a63d465c98fadcff7b6744c676bd7955d6eec66a46e9ae14f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "34232d3e2559be2a63d465c98fadcff7b6744c676bd7955d6eec66a46e9ae14f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "34232d3e2559be2a63d465c98fadcff7b6744c676bd7955d6eec66a46e9ae14f" :a :task/title :v "S1: Implement :observation/* attribute staleness tracking in harvest pipeline" :op :assert}
+   {:e #blake3 "34232d3e2559be2a63d465c98fadcff7b6744c676bd7955d6eec66a46e9ae14f" :a :task/type :v :task.type/feature :op :assert}
+ ]}

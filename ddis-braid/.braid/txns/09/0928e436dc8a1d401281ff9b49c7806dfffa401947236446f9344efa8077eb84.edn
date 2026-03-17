@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769672/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S2: Implement temporal divergence detection (cross-agent frontier comparison)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6772d2a990de517ed89b9c6919fb859ae9a56a0580eb4289937ac5eb9c3dd948" :a :db/ident :v :task/t-50ea :op :assert}
+   {:e #blake3 "6772d2a990de517ed89b9c6919fb859ae9a56a0580eb4289937ac5eb9c3dd948" :a :task/created-at :v 1773769671 :op :assert}
+   {:e #blake3 "6772d2a990de517ed89b9c6919fb859ae9a56a0580eb4289937ac5eb9c3dd948" :a :task/id :v "t-50ea" :op :assert}
+   {:e #blake3 "6772d2a990de517ed89b9c6919fb859ae9a56a0580eb4289937ac5eb9c3dd948" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "6772d2a990de517ed89b9c6919fb859ae9a56a0580eb4289937ac5eb9c3dd948" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6772d2a990de517ed89b9c6919fb859ae9a56a0580eb4289937ac5eb9c3dd948" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6772d2a990de517ed89b9c6919fb859ae9a56a0580eb4289937ac5eb9c3dd948" :a :task/title :v "S2: Implement temporal divergence detection (cross-agent frontier comparison)" :op :assert}
+   {:e #blake3 "6772d2a990de517ed89b9c6919fb859ae9a56a0580eb4289937ac5eb9c3dd948" :a :task/type :v :task.type/task :op :assert}
+ ]}

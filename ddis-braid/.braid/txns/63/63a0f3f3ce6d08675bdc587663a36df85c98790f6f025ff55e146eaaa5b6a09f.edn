@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770370/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: CascadeReceipt fields match MergeReceipt (unit test)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b169be6131e69cd9b238e443b173546d841311b7384e84422557e3e494b6fce3" :a :db/ident :v :task/t-4a9b :op :assert}
+   {:e #blake3 "b169be6131e69cd9b238e443b173546d841311b7384e84422557e3e494b6fce3" :a :task/created-at :v 1773770369 :op :assert}
+   {:e #blake3 "b169be6131e69cd9b238e443b173546d841311b7384e84422557e3e494b6fce3" :a :task/id :v "t-4a9b" :op :assert}
+   {:e #blake3 "b169be6131e69cd9b238e443b173546d841311b7384e84422557e3e494b6fce3" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b169be6131e69cd9b238e443b173546d841311b7384e84422557e3e494b6fce3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b169be6131e69cd9b238e443b173546d841311b7384e84422557e3e494b6fce3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b169be6131e69cd9b238e443b173546d841311b7384e84422557e3e494b6fce3" :a :task/title :v "TEST: CascadeReceipt fields match MergeReceipt (unit test)" :op :assert}
+   {:e #blake3 "b169be6131e69cd9b238e443b173546d841311b7384e84422557e3e494b6fce3" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767649/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement lattice resolution (not LWW fallback) (INV-RESOLUTION-006)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "26a1314e3617667997cf94d1b86d977f33c713d0b34386605be2cd7f16c4dad3" :a :db/ident :v :task/t-72f2 :op :assert}
+   {:e #blake3 "26a1314e3617667997cf94d1b86d977f33c713d0b34386605be2cd7f16c4dad3" :a :task/created-at :v 1773767648 :op :assert}
+   {:e #blake3 "26a1314e3617667997cf94d1b86d977f33c713d0b34386605be2cd7f16c4dad3" :a :task/id :v "t-72f2" :op :assert}
+   {:e #blake3 "26a1314e3617667997cf94d1b86d977f33c713d0b34386605be2cd7f16c4dad3" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "26a1314e3617667997cf94d1b86d977f33c713d0b34386605be2cd7f16c4dad3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "26a1314e3617667997cf94d1b86d977f33c713d0b34386605be2cd7f16c4dad3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "26a1314e3617667997cf94d1b86d977f33c713d0b34386605be2cd7f16c4dad3" :a :task/title :v "S1: Implement lattice resolution (not LWW fallback) (INV-RESOLUTION-006)" :op :assert}
+   {:e #blake3 "26a1314e3617667997cf94d1b86d977f33c713d0b34386605be2cd7f16c4dad3" :a :task/type :v :task.type/task :op :assert}
+ ]}

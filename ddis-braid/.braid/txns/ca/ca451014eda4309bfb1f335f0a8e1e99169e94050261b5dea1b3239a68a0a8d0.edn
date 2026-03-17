@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769655/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: META: Reconciliation Taxonomy Inversion — implement 6 missing divergence type detectors"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "467a48e5d8afcbaf8b93f673de5aa5427c2910b5bd1f94550ac2586fa5bb2904" :a :db/ident :v :task/t-b547 :op :assert}
+   {:e #blake3 "467a48e5d8afcbaf8b93f673de5aa5427c2910b5bd1f94550ac2586fa5bb2904" :a :task/created-at :v 1773769654 :op :assert}
+   {:e #blake3 "467a48e5d8afcbaf8b93f673de5aa5427c2910b5bd1f94550ac2586fa5bb2904" :a :task/id :v "t-b547" :op :assert}
+   {:e #blake3 "467a48e5d8afcbaf8b93f673de5aa5427c2910b5bd1f94550ac2586fa5bb2904" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "467a48e5d8afcbaf8b93f673de5aa5427c2910b5bd1f94550ac2586fa5bb2904" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "467a48e5d8afcbaf8b93f673de5aa5427c2910b5bd1f94550ac2586fa5bb2904" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "467a48e5d8afcbaf8b93f673de5aa5427c2910b5bd1f94550ac2586fa5bb2904" :a :task/title :v "META: Reconciliation Taxonomy Inversion — implement 6 missing divergence type detectors" :op :assert}
+   {:e #blake3 "467a48e5d8afcbaf8b93f673de5aa5427c2910b5bd1f94550ac2586fa5bb2904" :a :task/type :v :task.type/task :op :assert}
+ ]}

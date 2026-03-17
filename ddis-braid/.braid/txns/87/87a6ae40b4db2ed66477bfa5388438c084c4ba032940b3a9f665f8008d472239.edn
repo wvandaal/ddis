@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769666/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement SchemaValidationError enum with 5 spec variants"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "83b7b8687f42afd14eb9c39f23b298975353d2079fe1a3aebc9135bd780b9eef" :a :db/ident :v :task/t-841c :op :assert}
+   {:e #blake3 "83b7b8687f42afd14eb9c39f23b298975353d2079fe1a3aebc9135bd780b9eef" :a :task/created-at :v 1773769665 :op :assert}
+   {:e #blake3 "83b7b8687f42afd14eb9c39f23b298975353d2079fe1a3aebc9135bd780b9eef" :a :task/id :v "t-841c" :op :assert}
+   {:e #blake3 "83b7b8687f42afd14eb9c39f23b298975353d2079fe1a3aebc9135bd780b9eef" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "83b7b8687f42afd14eb9c39f23b298975353d2079fe1a3aebc9135bd780b9eef" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "83b7b8687f42afd14eb9c39f23b298975353d2079fe1a3aebc9135bd780b9eef" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "83b7b8687f42afd14eb9c39f23b298975353d2079fe1a3aebc9135bd780b9eef" :a :task/title :v "S1: Implement SchemaValidationError enum with 5 spec variants" :op :assert}
+   {:e #blake3 "83b7b8687f42afd14eb9c39f23b298975353d2079fe1a3aebc9135bd780b9eef" :a :task/type :v :task.type/feature :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769720/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Add witness quality column to spec/16-verification.md to flag false witnesses"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3d81f6b19a60e8fc10cb5aed3a1988fcdc979eb7c3f2e3a4832a77757e3c08f0" :a :db/ident :v :task/t-b5da :op :assert}
+   {:e #blake3 "3d81f6b19a60e8fc10cb5aed3a1988fcdc979eb7c3f2e3a4832a77757e3c08f0" :a :task/created-at :v 1773769719 :op :assert}
+   {:e #blake3 "3d81f6b19a60e8fc10cb5aed3a1988fcdc979eb7c3f2e3a4832a77757e3c08f0" :a :task/id :v "t-b5da" :op :assert}
+   {:e #blake3 "3d81f6b19a60e8fc10cb5aed3a1988fcdc979eb7c3f2e3a4832a77757e3c08f0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3d81f6b19a60e8fc10cb5aed3a1988fcdc979eb7c3f2e3a4832a77757e3c08f0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3d81f6b19a60e8fc10cb5aed3a1988fcdc979eb7c3f2e3a4832a77757e3c08f0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3d81f6b19a60e8fc10cb5aed3a1988fcdc979eb7c3f2e3a4832a77757e3c08f0" :a :task/title :v "SPEC: Add witness quality column to spec/16-verification.md to flag false witnesses" :op :assert}
+   {:e #blake3 "3d81f6b19a60e8fc10cb5aed3a1988fcdc979eb7c3f2e3a4832a77757e3c08f0" :a :task/type :v :task.type/docs :op :assert}
+ ]}

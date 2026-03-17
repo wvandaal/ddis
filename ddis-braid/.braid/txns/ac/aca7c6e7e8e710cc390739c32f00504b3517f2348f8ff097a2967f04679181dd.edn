@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769706/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0: Add reason String to CandidateStatus::Rejected variant"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e915c6ebc69e7cd55d5d29d915c7028e3ae7bca9415fa2bd2492e7b9b270ddf9" :a :db/ident :v :task/t-74ff :op :assert}
+   {:e #blake3 "e915c6ebc69e7cd55d5d29d915c7028e3ae7bca9415fa2bd2492e7b9b270ddf9" :a :task/created-at :v 1773769705 :op :assert}
+   {:e #blake3 "e915c6ebc69e7cd55d5d29d915c7028e3ae7bca9415fa2bd2492e7b9b270ddf9" :a :task/id :v "t-74ff" :op :assert}
+   {:e #blake3 "e915c6ebc69e7cd55d5d29d915c7028e3ae7bca9415fa2bd2492e7b9b270ddf9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e915c6ebc69e7cd55d5d29d915c7028e3ae7bca9415fa2bd2492e7b9b270ddf9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e915c6ebc69e7cd55d5d29d915c7028e3ae7bca9415fa2bd2492e7b9b270ddf9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e915c6ebc69e7cd55d5d29d915c7028e3ae7bca9415fa2bd2492e7b9b270ddf9" :a :task/title :v "S0: Add reason String to CandidateStatus::Rejected variant" :op :assert}
+   {:e #blake3 "e915c6ebc69e7cd55d5d29d915c7028e3ae7bca9415fa2bd2492e7b9b270ddf9" :a :task/type :v :task.type/bug :op :assert}
+ ]}

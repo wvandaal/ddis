@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769677/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-SUB: Implement extract_subgraph(store, entity_type, dep_attr) -> DiGraph"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8a19221fdc2e1a61b77feb392d72b7ecb0d8a49fdbc4469a23e658b86cd2442e" :a :db/ident :v :task/t-eafd :op :assert}
+   {:e #blake3 "8a19221fdc2e1a61b77feb392d72b7ecb0d8a49fdbc4469a23e658b86cd2442e" :a :task/created-at :v 1773769676 :op :assert}
+   {:e #blake3 "8a19221fdc2e1a61b77feb392d72b7ecb0d8a49fdbc4469a23e658b86cd2442e" :a :task/id :v "t-eafd" :op :assert}
+   {:e #blake3 "8a19221fdc2e1a61b77feb392d72b7ecb0d8a49fdbc4469a23e658b86cd2442e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "8a19221fdc2e1a61b77feb392d72b7ecb0d8a49fdbc4469a23e658b86cd2442e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8a19221fdc2e1a61b77feb392d72b7ecb0d8a49fdbc4469a23e658b86cd2442e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8a19221fdc2e1a61b77feb392d72b7ecb0d8a49fdbc4469a23e658b86cd2442e" :a :task/title :v "S1-SUB: Implement extract_subgraph(store, entity_type, dep_attr) -> DiGraph" :op :assert}
+   {:e #blake3 "8a19221fdc2e1a61b77feb392d72b7ecb0d8a49fdbc4469a23e658b86cd2442e" :a :task/type :v :task.type/task :op :assert}
+ ]}

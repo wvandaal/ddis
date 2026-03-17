@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769615/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Update guide/01b-storage-layout.md persistence.rs reference to layout.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e792aff1a0df977d4937bcfee5456d613c48b31623478bb6b7e3f51f43b05ac9" :a :db/ident :v :task/t-a0f6 :op :assert}
+   {:e #blake3 "e792aff1a0df977d4937bcfee5456d613c48b31623478bb6b7e3f51f43b05ac9" :a :task/created-at :v 1773769614 :op :assert}
+   {:e #blake3 "e792aff1a0df977d4937bcfee5456d613c48b31623478bb6b7e3f51f43b05ac9" :a :task/id :v "t-a0f6" :op :assert}
+   {:e #blake3 "e792aff1a0df977d4937bcfee5456d613c48b31623478bb6b7e3f51f43b05ac9" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "e792aff1a0df977d4937bcfee5456d613c48b31623478bb6b7e3f51f43b05ac9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e792aff1a0df977d4937bcfee5456d613c48b31623478bb6b7e3f51f43b05ac9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e792aff1a0df977d4937bcfee5456d613c48b31623478bb6b7e3f51f43b05ac9" :a :task/title :v "SPEC: Update guide/01b-storage-layout.md persistence.rs reference to layout.rs" :op :assert}
+   {:e #blake3 "e792aff1a0df977d4937bcfee5456d613c48b31623478bb6b7e3f51f43b05ac9" :a :task/type :v :task.type/docs :op :assert}
+ ]}

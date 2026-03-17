@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769798/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Integration-test INV-LAYOUT-010 concurrent write safety (O_CREAT|O_EXCL)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7620fcd223bc663360ca6fd3f59a018ed1c1dacb1d091331dc1c0eed91637608" :a :db/ident :v :task/t-2c4c :op :assert}
+   {:e #blake3 "7620fcd223bc663360ca6fd3f59a018ed1c1dacb1d091331dc1c0eed91637608" :a :task/created-at :v 1773769797 :op :assert}
+   {:e #blake3 "7620fcd223bc663360ca6fd3f59a018ed1c1dacb1d091331dc1c0eed91637608" :a :task/id :v "t-2c4c" :op :assert}
+   {:e #blake3 "7620fcd223bc663360ca6fd3f59a018ed1c1dacb1d091331dc1c0eed91637608" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7620fcd223bc663360ca6fd3f59a018ed1c1dacb1d091331dc1c0eed91637608" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7620fcd223bc663360ca6fd3f59a018ed1c1dacb1d091331dc1c0eed91637608" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7620fcd223bc663360ca6fd3f59a018ed1c1dacb1d091331dc1c0eed91637608" :a :task/title :v "S0-CLOSE: Integration-test INV-LAYOUT-010 concurrent write safety (O_CREAT|O_EXCL)" :op :assert}
+   {:e #blake3 "7620fcd223bc663360ca6fd3f59a018ed1c1dacb1d091331dc1c0eed91637608" :a :task/type :v :task.type/task :op :assert}
+ ]}

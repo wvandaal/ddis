@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770428/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: Seed intention anchoring — task appears at pi_0 regardless of budget (integration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "69ca5034457930848d473d02fc38374e920937de5ce61894f3b466ed1fd14476" :a :db/ident :v :task/t-04f4 :op :assert}
+   {:e #blake3 "69ca5034457930848d473d02fc38374e920937de5ce61894f3b466ed1fd14476" :a :task/created-at :v 1773770427 :op :assert}
+   {:e #blake3 "69ca5034457930848d473d02fc38374e920937de5ce61894f3b466ed1fd14476" :a :task/id :v "t-04f4" :op :assert}
+   {:e #blake3 "69ca5034457930848d473d02fc38374e920937de5ce61894f3b466ed1fd14476" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "69ca5034457930848d473d02fc38374e920937de5ce61894f3b466ed1fd14476" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "69ca5034457930848d473d02fc38374e920937de5ce61894f3b466ed1fd14476" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "69ca5034457930848d473d02fc38374e920937de5ce61894f3b466ed1fd14476" :a :task/title :v "TEST: Seed intention anchoring — task appears at pi_0 regardless of budget (integration)" :op :assert}
+   {:e #blake3 "69ca5034457930848d473d02fc38374e920937de5ce61894f3b466ed1fd14476" :a :task/type :v :task.type/task :op :assert}
+ ]}

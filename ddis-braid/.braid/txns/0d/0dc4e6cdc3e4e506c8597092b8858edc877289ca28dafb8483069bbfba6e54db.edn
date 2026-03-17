@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769785/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Replace status command tx-count harvest heuristic with Q(t)-based (INV-INTERFACE-007)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dc11a83bdfd336c8940d606a02b551ae91388677619106aedf5fae0d0d4f152d" :a :db/ident :v :task/t-f249 :op :assert}
+   {:e #blake3 "dc11a83bdfd336c8940d606a02b551ae91388677619106aedf5fae0d0d4f152d" :a :task/created-at :v 1773769782 :op :assert}
+   {:e #blake3 "dc11a83bdfd336c8940d606a02b551ae91388677619106aedf5fae0d0d4f152d" :a :task/id :v "t-f249" :op :assert}
+   {:e #blake3 "dc11a83bdfd336c8940d606a02b551ae91388677619106aedf5fae0d0d4f152d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "dc11a83bdfd336c8940d606a02b551ae91388677619106aedf5fae0d0d4f152d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "dc11a83bdfd336c8940d606a02b551ae91388677619106aedf5fae0d0d4f152d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "dc11a83bdfd336c8940d606a02b551ae91388677619106aedf5fae0d0d4f152d" :a :task/title :v "S1: Replace status command tx-count harvest heuristic with Q(t)-based (INV-INTERFACE-007)" :op :assert}
+   {:e #blake3 "dc11a83bdfd336c8940d606a02b551ae91388677619106aedf5fae0d0d4f152d" :a :task/type :v :task.type/task :op :assert}
+ ]}

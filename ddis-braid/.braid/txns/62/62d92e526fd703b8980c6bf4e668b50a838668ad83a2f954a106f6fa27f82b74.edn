@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767508/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY: Add MIRI CI job for unsafe code detection (T4 coverage)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "413fbe060ecfcbb5eb4b74f2c0acfea58cfe39ae81e45f1a3483f35157492036" :a :db/ident :v :task/t-f74e :op :assert}
+   {:e #blake3 "413fbe060ecfcbb5eb4b74f2c0acfea58cfe39ae81e45f1a3483f35157492036" :a :task/created-at :v 1773767507 :op :assert}
+   {:e #blake3 "413fbe060ecfcbb5eb4b74f2c0acfea58cfe39ae81e45f1a3483f35157492036" :a :task/id :v "t-f74e" :op :assert}
+   {:e #blake3 "413fbe060ecfcbb5eb4b74f2c0acfea58cfe39ae81e45f1a3483f35157492036" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "413fbe060ecfcbb5eb4b74f2c0acfea58cfe39ae81e45f1a3483f35157492036" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "413fbe060ecfcbb5eb4b74f2c0acfea58cfe39ae81e45f1a3483f35157492036" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "413fbe060ecfcbb5eb4b74f2c0acfea58cfe39ae81e45f1a3483f35157492036" :a :task/title :v "VERIFY: Add MIRI CI job for unsafe code detection (T4 coverage)" :op :assert}
+   {:e #blake3 "413fbe060ecfcbb5eb4b74f2c0acfea58cfe39ae81e45f1a3483f35157492036" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767581/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement session termination detection for NEG-HARVEST-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7f9b8f594b65bb51e661c50a786b9abfe197e4b29281f73d3bd3338544ce29ba" :a :db/ident :v :task/t-e6d7 :op :assert}
+   {:e #blake3 "7f9b8f594b65bb51e661c50a786b9abfe197e4b29281f73d3bd3338544ce29ba" :a :task/created-at :v 1773767580 :op :assert}
+   {:e #blake3 "7f9b8f594b65bb51e661c50a786b9abfe197e4b29281f73d3bd3338544ce29ba" :a :task/id :v "t-e6d7" :op :assert}
+   {:e #blake3 "7f9b8f594b65bb51e661c50a786b9abfe197e4b29281f73d3bd3338544ce29ba" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7f9b8f594b65bb51e661c50a786b9abfe197e4b29281f73d3bd3338544ce29ba" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7f9b8f594b65bb51e661c50a786b9abfe197e4b29281f73d3bd3338544ce29ba" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7f9b8f594b65bb51e661c50a786b9abfe197e4b29281f73d3bd3338544ce29ba" :a :task/title :v "S1: Implement session termination detection for NEG-HARVEST-001" :op :assert}
+   {:e #blake3 "7f9b8f594b65bb51e661c50a786b9abfe197e4b29281f73d3bd3338544ce29ba" :a :task/type :v :task.type/task :op :assert}
+ ]}

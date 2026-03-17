@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769792/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement discrete Severity lattice (Low/Medium/High/Critical) replacing f64"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "53fb9910cfee5133c1eb834309d299062b451aaa218072457275c463ae5551de" :a :db/ident :v :task/t-d946 :op :assert}
+   {:e #blake3 "53fb9910cfee5133c1eb834309d299062b451aaa218072457275c463ae5551de" :a :task/created-at :v 1773769791 :op :assert}
+   {:e #blake3 "53fb9910cfee5133c1eb834309d299062b451aaa218072457275c463ae5551de" :a :task/id :v "t-d946" :op :assert}
+   {:e #blake3 "53fb9910cfee5133c1eb834309d299062b451aaa218072457275c463ae5551de" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "53fb9910cfee5133c1eb834309d299062b451aaa218072457275c463ae5551de" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "53fb9910cfee5133c1eb834309d299062b451aaa218072457275c463ae5551de" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "53fb9910cfee5133c1eb834309d299062b451aaa218072457275c463ae5551de" :a :task/title :v "S1: Implement discrete Severity lattice (Low/Medium/High/Critical) replacing f64" :op :assert}
+   {:e #blake3 "53fb9910cfee5133c1eb834309d299062b451aaa218072457275c463ae5551de" :a :task/type :v :task.type/task :op :assert}
+ ]}

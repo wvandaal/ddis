@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769784/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement access log and Hebbian significance tracking (INV-QUERY-008, INV-QUERY-009)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "534211a63cebb8123721e3b380fe018e5f7a7fdb96c44fdd937d4b528cb62881" :a :db/ident :v :task/t-b764 :op :assert}
+   {:e #blake3 "534211a63cebb8123721e3b380fe018e5f7a7fdb96c44fdd937d4b528cb62881" :a :task/created-at :v 1773769781 :op :assert}
+   {:e #blake3 "534211a63cebb8123721e3b380fe018e5f7a7fdb96c44fdd937d4b528cb62881" :a :task/id :v "t-b764" :op :assert}
+   {:e #blake3 "534211a63cebb8123721e3b380fe018e5f7a7fdb96c44fdd937d4b528cb62881" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "534211a63cebb8123721e3b380fe018e5f7a7fdb96c44fdd937d4b528cb62881" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "534211a63cebb8123721e3b380fe018e5f7a7fdb96c44fdd937d4b528cb62881" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "534211a63cebb8123721e3b380fe018e5f7a7fdb96c44fdd937d4b528cb62881" :a :task/title :v "S1: Implement access log and Hebbian significance tracking (INV-QUERY-008, INV-QUERY-009)" :op :assert}
+   {:e #blake3 "534211a63cebb8123721e3b380fe018e5f7a7fdb96c44fdd937d4b528cb62881" :a :task/type :v :task.type/task :op :assert}
+ ]}

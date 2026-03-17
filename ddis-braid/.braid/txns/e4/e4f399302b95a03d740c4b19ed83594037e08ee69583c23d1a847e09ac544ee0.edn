@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767229/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Implement deliberation stability guard (INV-DELIBERATION-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a0f76838fb68b718f09dcccd9a84d633e672999f78d143edba286788b6f77549" :a :db/ident :v :task/t-0d9c :op :assert}
+   {:e #blake3 "a0f76838fb68b718f09dcccd9a84d633e672999f78d143edba286788b6f77549" :a :task/created-at :v 1773767228 :op :assert}
+   {:e #blake3 "a0f76838fb68b718f09dcccd9a84d633e672999f78d143edba286788b6f77549" :a :task/id :v "t-0d9c" :op :assert}
+   {:e #blake3 "a0f76838fb68b718f09dcccd9a84d633e672999f78d143edba286788b6f77549" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a0f76838fb68b718f09dcccd9a84d633e672999f78d143edba286788b6f77549" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a0f76838fb68b718f09dcccd9a84d633e672999f78d143edba286788b6f77549" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a0f76838fb68b718f09dcccd9a84d633e672999f78d143edba286788b6f77549" :a :task/title :v "S0-CLOSE: Implement deliberation stability guard (INV-DELIBERATION-002)" :op :assert}
+   {:e #blake3 "a0f76838fb68b718f09dcccd9a84d633e672999f78d143edba286788b6f77549" :a :task/type :v :task.type/task :op :assert}
+ ]}

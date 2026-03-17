@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767452/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Fix INV-MERGE-009/010 ID swap between spec and code"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0cd88ce8437247eaff1e2b0ce29d2ad87d538e8a89f3b4f92072256407888aed" :a :db/ident :v :task/t-4be5 :op :assert}
+   {:e #blake3 "0cd88ce8437247eaff1e2b0ce29d2ad87d538e8a89f3b4f92072256407888aed" :a :task/created-at :v 1773767451 :op :assert}
+   {:e #blake3 "0cd88ce8437247eaff1e2b0ce29d2ad87d538e8a89f3b4f92072256407888aed" :a :task/id :v "t-4be5" :op :assert}
+   {:e #blake3 "0cd88ce8437247eaff1e2b0ce29d2ad87d538e8a89f3b4f92072256407888aed" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "0cd88ce8437247eaff1e2b0ce29d2ad87d538e8a89f3b4f92072256407888aed" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0cd88ce8437247eaff1e2b0ce29d2ad87d538e8a89f3b4f92072256407888aed" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0cd88ce8437247eaff1e2b0ce29d2ad87d538e8a89f3b4f92072256407888aed" :a :task/title :v "SPEC: Fix INV-MERGE-009/010 ID swap between spec and code" :op :assert}
+   {:e #blake3 "0cd88ce8437247eaff1e2b0ce29d2ad87d538e8a89f3b4f92072256407888aed" :a :task/type :v :task.type/docs :op :assert}
+ ]}

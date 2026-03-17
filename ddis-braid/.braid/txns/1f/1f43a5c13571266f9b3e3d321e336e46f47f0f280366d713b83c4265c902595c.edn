@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769741/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC: Update spec/06-seed.md to reference agent_md module (not seed module) for CLAUDE.md generation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9eb5492823b78889b580a7eaafecf85e8c69f0b0881045b9efade951a1b7bb76" :a :db/ident :v :task/t-3e1f :op :assert}
+   {:e #blake3 "9eb5492823b78889b580a7eaafecf85e8c69f0b0881045b9efade951a1b7bb76" :a :task/created-at :v 1773769740 :op :assert}
+   {:e #blake3 "9eb5492823b78889b580a7eaafecf85e8c69f0b0881045b9efade951a1b7bb76" :a :task/id :v "t-3e1f" :op :assert}
+   {:e #blake3 "9eb5492823b78889b580a7eaafecf85e8c69f0b0881045b9efade951a1b7bb76" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "9eb5492823b78889b580a7eaafecf85e8c69f0b0881045b9efade951a1b7bb76" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9eb5492823b78889b580a7eaafecf85e8c69f0b0881045b9efade951a1b7bb76" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9eb5492823b78889b580a7eaafecf85e8c69f0b0881045b9efade951a1b7bb76" :a :task/title :v "SPEC: Update spec/06-seed.md to reference agent_md module (not seed module) for CLAUDE.md generation" :op :assert}
+   {:e #blake3 "9eb5492823b78889b580a7eaafecf85e8c69f0b0881045b9efade951a1b7bb76" :a :task/type :v :task.type/docs :op :assert}
+ ]}

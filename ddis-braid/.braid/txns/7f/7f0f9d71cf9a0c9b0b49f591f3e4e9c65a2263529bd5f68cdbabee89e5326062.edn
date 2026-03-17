@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767275/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S0-CLOSE: Fix layout read_tx to verify content hash on read (INV-LAYOUT-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c575af3c8455bf4b534f6fd7b9702be379d95d229e224e4c7baaf119c3921642" :a :db/ident :v :task/t-f684 :op :assert}
+   {:e #blake3 "c575af3c8455bf4b534f6fd7b9702be379d95d229e224e4c7baaf119c3921642" :a :task/created-at :v 1773767274 :op :assert}
+   {:e #blake3 "c575af3c8455bf4b534f6fd7b9702be379d95d229e224e4c7baaf119c3921642" :a :task/id :v "t-f684" :op :assert}
+   {:e #blake3 "c575af3c8455bf4b534f6fd7b9702be379d95d229e224e4c7baaf119c3921642" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c575af3c8455bf4b534f6fd7b9702be379d95d229e224e4c7baaf119c3921642" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c575af3c8455bf4b534f6fd7b9702be379d95d229e224e4c7baaf119c3921642" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c575af3c8455bf4b534f6fd7b9702be379d95d229e224e4c7baaf119c3921642" :a :task/title :v "S0-CLOSE: Fix layout read_tx to verify content hash on read (INV-LAYOUT-005)" :op :assert}
+   {:e #blake3 "c575af3c8455bf4b534f6fd7b9702be379d95d229e224e4c7baaf119c3921642" :a :task/type :v :task.type/bug :op :assert}
+ ]}

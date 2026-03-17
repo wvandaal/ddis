@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770298/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Stage 0 Merge Cascade (INV-MERGE-001..010)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "51438736666734c892cf055948ef3a0140d7fad23c60b358b198fb3b51cd5a87" :a :db/ident :v :task/t-bcee :op :assert}
+   {:e #blake3 "51438736666734c892cf055948ef3a0140d7fad23c60b358b198fb3b51cd5a87" :a :task/created-at :v 1773770297 :op :assert}
+   {:e #blake3 "51438736666734c892cf055948ef3a0140d7fad23c60b358b198fb3b51cd5a87" :a :task/id :v "t-bcee" :op :assert}
+   {:e #blake3 "51438736666734c892cf055948ef3a0140d7fad23c60b358b198fb3b51cd5a87" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "51438736666734c892cf055948ef3a0140d7fad23c60b358b198fb3b51cd5a87" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "51438736666734c892cf055948ef3a0140d7fad23c60b358b198fb3b51cd5a87" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "51438736666734c892cf055948ef3a0140d7fad23c60b358b198fb3b51cd5a87" :a :task/title :v "EPIC: Stage 0 Merge Cascade (INV-MERGE-001..010)" :op :assert}
+   {:e #blake3 "51438736666734c892cf055948ef3a0140d7fad23c60b358b198fb3b51cd5a87" :a :task/type :v :task.type/epic :op :assert}
+ ]}

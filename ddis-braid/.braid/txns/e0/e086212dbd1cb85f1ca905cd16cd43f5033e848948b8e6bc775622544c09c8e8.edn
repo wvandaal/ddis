@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770423/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: Stability guard rejects premature DECIDE (6 conditions, unit test)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4c4da504cf78bb208d849470ad79dfa2f28a0b5a51cf47dd9a45fb012204af93" :a :db/ident :v :task/t-47e9 :op :assert}
+   {:e #blake3 "4c4da504cf78bb208d849470ad79dfa2f28a0b5a51cf47dd9a45fb012204af93" :a :task/created-at :v 1773770422 :op :assert}
+   {:e #blake3 "4c4da504cf78bb208d849470ad79dfa2f28a0b5a51cf47dd9a45fb012204af93" :a :task/id :v "t-47e9" :op :assert}
+   {:e #blake3 "4c4da504cf78bb208d849470ad79dfa2f28a0b5a51cf47dd9a45fb012204af93" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4c4da504cf78bb208d849470ad79dfa2f28a0b5a51cf47dd9a45fb012204af93" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4c4da504cf78bb208d849470ad79dfa2f28a0b5a51cf47dd9a45fb012204af93" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4c4da504cf78bb208d849470ad79dfa2f28a0b5a51cf47dd9a45fb012204af93" :a :task/title :v "TEST: Stability guard rejects premature DECIDE (6 conditions, unit test)" :op :assert}
+   {:e #blake3 "4c4da504cf78bb208d849470ad79dfa2f28a0b5a51cf47dd9a45fb012204af93" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770402/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: Store::as_of returns correct datom subset for historical tx (unit + proptest)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8c351a5429898349534767482b45ca5cc06228b526bbfc5c84c19ebf9dd85636" :a :db/ident :v :task/t-0b7a :op :assert}
+   {:e #blake3 "8c351a5429898349534767482b45ca5cc06228b526bbfc5c84c19ebf9dd85636" :a :task/created-at :v 1773770401 :op :assert}
+   {:e #blake3 "8c351a5429898349534767482b45ca5cc06228b526bbfc5c84c19ebf9dd85636" :a :task/id :v "t-0b7a" :op :assert}
+   {:e #blake3 "8c351a5429898349534767482b45ca5cc06228b526bbfc5c84c19ebf9dd85636" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8c351a5429898349534767482b45ca5cc06228b526bbfc5c84c19ebf9dd85636" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8c351a5429898349534767482b45ca5cc06228b526bbfc5c84c19ebf9dd85636" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8c351a5429898349534767482b45ca5cc06228b526bbfc5c84c19ebf9dd85636" :a :task/title :v "TEST: Store::as_of returns correct datom subset for historical tx (unit + proptest)" :op :assert}
+   {:e #blake3 "8c351a5429898349534767482b45ca5cc06228b526bbfc5c84c19ebf9dd85636" :a :task/type :v :task.type/task :op :assert}
+ ]}

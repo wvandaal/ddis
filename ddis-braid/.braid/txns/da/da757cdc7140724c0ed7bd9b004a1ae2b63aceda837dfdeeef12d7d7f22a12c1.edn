@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769658/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: META: Lattice Resolution Collapse — full pipeline from type to resolution to signal"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "840fa908efb3c6c46dbfba48d107347935108181440ac080444e9ea4c8604417" :a :db/ident :v :task/t-adff :op :assert}
+   {:e #blake3 "840fa908efb3c6c46dbfba48d107347935108181440ac080444e9ea4c8604417" :a :task/created-at :v 1773769657 :op :assert}
+   {:e #blake3 "840fa908efb3c6c46dbfba48d107347935108181440ac080444e9ea4c8604417" :a :task/id :v "t-adff" :op :assert}
+   {:e #blake3 "840fa908efb3c6c46dbfba48d107347935108181440ac080444e9ea4c8604417" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "840fa908efb3c6c46dbfba48d107347935108181440ac080444e9ea4c8604417" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "840fa908efb3c6c46dbfba48d107347935108181440ac080444e9ea4c8604417" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "840fa908efb3c6c46dbfba48d107347935108181440ac080444e9ea4c8604417" :a :task/title :v "META: Lattice Resolution Collapse — full pipeline from type to resolution to signal" :op :assert}
+   {:e #blake3 "840fa908efb3c6c46dbfba48d107347935108181440ac080444e9ea4c8604417" :a :task/type :v :task.type/task :op :assert}
+ ]}

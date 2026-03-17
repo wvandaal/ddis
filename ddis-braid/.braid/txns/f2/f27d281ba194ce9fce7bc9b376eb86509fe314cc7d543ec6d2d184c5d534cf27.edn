@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767516/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFY: Add INV-SEED-005 + INV-SEED-006 integration test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "341110f6e319999ba0759687d300838a1824fde5b8ab373c83f3febd7791e15d" :a :db/ident :v :task/t-6ee6 :op :assert}
+   {:e #blake3 "341110f6e319999ba0759687d300838a1824fde5b8ab373c83f3febd7791e15d" :a :task/created-at :v 1773767515 :op :assert}
+   {:e #blake3 "341110f6e319999ba0759687d300838a1824fde5b8ab373c83f3febd7791e15d" :a :task/id :v "t-6ee6" :op :assert}
+   {:e #blake3 "341110f6e319999ba0759687d300838a1824fde5b8ab373c83f3febd7791e15d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "341110f6e319999ba0759687d300838a1824fde5b8ab373c83f3febd7791e15d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "341110f6e319999ba0759687d300838a1824fde5b8ab373c83f3febd7791e15d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "341110f6e319999ba0759687d300838a1824fde5b8ab373c83f3febd7791e15d" :a :task/title :v "VERIFY: Add INV-SEED-005 + INV-SEED-006 integration test" :op :assert}
+   {:e #blake3 "341110f6e319999ba0759687d300838a1824fde5b8ab373c83f3febd7791e15d" :a :task/type :v :task.type/task :op :assert}
+ ]}

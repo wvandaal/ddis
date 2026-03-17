@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767292/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-PREP: Add guidance footer to MCP tool responses (INV-GUIDANCE-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "be6552992b7ebe1fe3b726f005bdcbdbc1a170790e10180f43da44f05efa06fd" :a :db/ident :v :task/t-c399 :op :assert}
+   {:e #blake3 "be6552992b7ebe1fe3b726f005bdcbdbc1a170790e10180f43da44f05efa06fd" :a :task/created-at :v 1773767291 :op :assert}
+   {:e #blake3 "be6552992b7ebe1fe3b726f005bdcbdbc1a170790e10180f43da44f05efa06fd" :a :task/id :v "t-c399" :op :assert}
+   {:e #blake3 "be6552992b7ebe1fe3b726f005bdcbdbc1a170790e10180f43da44f05efa06fd" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "be6552992b7ebe1fe3b726f005bdcbdbc1a170790e10180f43da44f05efa06fd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "be6552992b7ebe1fe3b726f005bdcbdbc1a170790e10180f43da44f05efa06fd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "be6552992b7ebe1fe3b726f005bdcbdbc1a170790e10180f43da44f05efa06fd" :a :task/title :v "S1-PREP: Add guidance footer to MCP tool responses (INV-GUIDANCE-001)" :op :assert}
+   {:e #blake3 "be6552992b7ebe1fe3b726f005bdcbdbc1a170790e10180f43da44f05efa06fd" :a :task/type :v :task.type/task :op :assert}
+ ]}

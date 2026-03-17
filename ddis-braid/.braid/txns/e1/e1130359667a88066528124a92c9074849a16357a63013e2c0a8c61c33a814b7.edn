@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770452/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: R(t) routing uses real store tasks, not synthetic (integration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aec96b47016e0b8b4b4e5ab024fc5588063785a0769fd7b227b4638d867b0c7c" :a :db/ident :v :task/t-6ece :op :assert}
+   {:e #blake3 "aec96b47016e0b8b4b4e5ab024fc5588063785a0769fd7b227b4638d867b0c7c" :a :task/created-at :v 1773770451 :op :assert}
+   {:e #blake3 "aec96b47016e0b8b4b4e5ab024fc5588063785a0769fd7b227b4638d867b0c7c" :a :task/id :v "t-6ece" :op :assert}
+   {:e #blake3 "aec96b47016e0b8b4b4e5ab024fc5588063785a0769fd7b227b4638d867b0c7c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "aec96b47016e0b8b4b4e5ab024fc5588063785a0769fd7b227b4638d867b0c7c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "aec96b47016e0b8b4b4e5ab024fc5588063785a0769fd7b227b4638d867b0c7c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "aec96b47016e0b8b4b4e5ab024fc5588063785a0769fd7b227b4638d867b0c7c" :a :task/title :v "TEST: R(t) routing uses real store tasks, not synthetic (integration)" :op :assert}
+   {:e #blake3 "aec96b47016e0b8b4b4e5ab024fc5588063785a0769fd7b227b4638d867b0c7c" :a :task/type :v :task.type/task :op :assert}
+ ]}

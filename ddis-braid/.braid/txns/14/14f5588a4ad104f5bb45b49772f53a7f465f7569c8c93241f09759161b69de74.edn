@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770505/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: Canonical serialization order-independent — same datoms different order same hash (proptest)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "34ce242e9aadee8198b4f050e0c3ff2dcb2b8506565e84b59ad9a13d47c8b339" :a :db/ident :v :task/t-b12d :op :assert}
+   {:e #blake3 "34ce242e9aadee8198b4f050e0c3ff2dcb2b8506565e84b59ad9a13d47c8b339" :a :task/created-at :v 1773770504 :op :assert}
+   {:e #blake3 "34ce242e9aadee8198b4f050e0c3ff2dcb2b8506565e84b59ad9a13d47c8b339" :a :task/id :v "t-b12d" :op :assert}
+   {:e #blake3 "34ce242e9aadee8198b4f050e0c3ff2dcb2b8506565e84b59ad9a13d47c8b339" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "34ce242e9aadee8198b4f050e0c3ff2dcb2b8506565e84b59ad9a13d47c8b339" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "34ce242e9aadee8198b4f050e0c3ff2dcb2b8506565e84b59ad9a13d47c8b339" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "34ce242e9aadee8198b4f050e0c3ff2dcb2b8506565e84b59ad9a13d47c8b339" :a :task/title :v "TEST: Canonical serialization order-independent — same datoms different order same hash (proptest)" :op :assert}
+   {:e #blake3 "34ce242e9aadee8198b4f050e0c3ff2dcb2b8506565e84b59ad9a13d47c8b339" :a :task/type :v :task.type/task :op :assert}
+ ]}

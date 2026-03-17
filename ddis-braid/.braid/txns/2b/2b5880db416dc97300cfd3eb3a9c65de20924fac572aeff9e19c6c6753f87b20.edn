@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773767565/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement error RecoveryAction enum (INV-INTERFACE-009)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "39e5dded92c4301565e865453758baf92395eca07d3dbc0c53f10aa17d827f13" :a :db/ident :v :task/t-98e2 :op :assert}
+   {:e #blake3 "39e5dded92c4301565e865453758baf92395eca07d3dbc0c53f10aa17d827f13" :a :task/created-at :v 1773767564 :op :assert}
+   {:e #blake3 "39e5dded92c4301565e865453758baf92395eca07d3dbc0c53f10aa17d827f13" :a :task/id :v "t-98e2" :op :assert}
+   {:e #blake3 "39e5dded92c4301565e865453758baf92395eca07d3dbc0c53f10aa17d827f13" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "39e5dded92c4301565e865453758baf92395eca07d3dbc0c53f10aa17d827f13" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "39e5dded92c4301565e865453758baf92395eca07d3dbc0c53f10aa17d827f13" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "39e5dded92c4301565e865453758baf92395eca07d3dbc0c53f10aa17d827f13" :a :task/title :v "S1: Implement error RecoveryAction enum (INV-INTERFACE-009)" :op :assert}
+   {:e #blake3 "39e5dded92c4301565e865453758baf92395eca07d3dbc0c53f10aa17d827f13" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770312/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Stage 0 Schema Validation + Lattice Types (INV-SCHEMA-004..009)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :db/ident :v :task/t-edf3 :op :assert}
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :task/created-at :v 1773770311 :op :assert}
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :task/id :v "t-edf3" :op :assert}
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :task/title :v "EPIC: Stage 0 Schema Validation + Lattice Types (INV-SCHEMA-004..009)" :op :assert}
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :task/type :v :task.type/epic :op :assert}
+ ]}

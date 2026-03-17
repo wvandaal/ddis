@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773770462/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: QueryMode::Monotonic rejects S2+ queries (unit test)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f61cadf2ce706009f1789a25de6a6c83e238543c77d18aee621da66a51769fb" :a :db/ident :v :task/t-7b0e :op :assert}
+   {:e #blake3 "8f61cadf2ce706009f1789a25de6a6c83e238543c77d18aee621da66a51769fb" :a :task/created-at :v 1773770461 :op :assert}
+   {:e #blake3 "8f61cadf2ce706009f1789a25de6a6c83e238543c77d18aee621da66a51769fb" :a :task/id :v "t-7b0e" :op :assert}
+   {:e #blake3 "8f61cadf2ce706009f1789a25de6a6c83e238543c77d18aee621da66a51769fb" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "8f61cadf2ce706009f1789a25de6a6c83e238543c77d18aee621da66a51769fb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8f61cadf2ce706009f1789a25de6a6c83e238543c77d18aee621da66a51769fb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8f61cadf2ce706009f1789a25de6a6c83e238543c77d18aee621da66a51769fb" :a :task/title :v "TEST: QueryMode::Monotonic rejects S2+ queries (unit test)" :op :assert}
+   {:e #blake3 "8f61cadf2ce706009f1789a25de6a6c83e238543c77d18aee621da66a51769fb" :a :task/type :v :task.type/task :op :assert}
+ ]}

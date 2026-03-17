@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773769675/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S2: Implement semi-naive fixpoint evaluation with delta tracking (INV-QUERY-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9cafd21f495e297320fa038c11c037fb7933d8fb2e971b6eacc1c0c1398feebc" :a :db/ident :v :task/t-dd14 :op :assert}
+   {:e #blake3 "9cafd21f495e297320fa038c11c037fb7933d8fb2e971b6eacc1c0c1398feebc" :a :task/created-at :v 1773769674 :op :assert}
+   {:e #blake3 "9cafd21f495e297320fa038c11c037fb7933d8fb2e971b6eacc1c0c1398feebc" :a :task/id :v "t-dd14" :op :assert}
+   {:e #blake3 "9cafd21f495e297320fa038c11c037fb7933d8fb2e971b6eacc1c0c1398feebc" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "9cafd21f495e297320fa038c11c037fb7933d8fb2e971b6eacc1c0c1398feebc" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9cafd21f495e297320fa038c11c037fb7933d8fb2e971b6eacc1c0c1398feebc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9cafd21f495e297320fa038c11c037fb7933d8fb2e971b6eacc1c0c1398feebc" :a :task/title :v "S2: Implement semi-naive fixpoint evaluation with delta tracking (INV-QUERY-001)" :op :assert}
+   {:e #blake3 "9cafd21f495e297320fa038c11c037fb7933d8fb2e971b6eacc1c0c1398feebc" :a :task/type :v :task.type/feature :op :assert}
+ ]}
