@@ -1829,6 +1829,111 @@ fn prove_schema_validation_rejects() {
 }
 
 // ===========================================================================
+// COHERENCE INVARIANTS (coherence.rs — INV-TRANSACT-COHERENCE-001)
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// INV-TRANSACT-COHERENCE-001a: Tier 1 rejects contradictory values
+// ---------------------------------------------------------------------------
+
+/// **INV-TRANSACT-COHERENCE-001a**: Two symbolic values for the same (entity,
+/// attribute) under Cardinality::One are rejected by `tier1_check`.
+///
+/// Proof strategy: construct a genesis store (which has `:db/doc` as
+/// Cardinality::One), transact a datom, then build a second datom with a
+/// *different* symbolic value for the same (entity, attribute). Verify
+/// that `tier1_check` returns `Err(CoherenceViolation)` with tier = Tier1Exact.
+///
+/// Falsification condition: `tier1_check` returns `Ok` when two distinct values
+/// are asserted for the same (entity, attribute) under Cardinality::One.
+#[kani::proof]
+#[kani::unwind(4)]
+fn prove_tier1_rejects_contradiction() {
+    // Two symbolic values (must be distinct for contradiction).
+    let v1_raw: i64 = kani::any();
+    let v2_raw: i64 = kani::any();
+    kani::assume(v1_raw > i64::MIN && v1_raw < i64::MAX);
+    kani::assume(v2_raw > i64::MIN && v2_raw < i64::MAX);
+    kani::assume(v1_raw != v2_raw); // Must differ to be a contradiction.
+
+    let agent = AgentId::from_bytes([0u8; 16]);
+    let entity = EntityId::from_raw_bytes([10u8; 32]);
+    let attr = Attribute::from_keyword(":db/doc"); // Cardinality::One in genesis schema.
+
+    // Build a store from genesis and insert the first value.
+    // We model this at the datom set level since Store::genesis() is heavyweight
+    // but the coherence check only needs entity_datoms() and schema().
+    let genesis_tx = TxId::new(0, 0, agent);
+    let genesis = crate::schema::genesis_datoms(genesis_tx);
+    let mut datom_set: std::collections::BTreeSet<Datom> = genesis.into_iter().collect();
+
+    // Insert first assertion.
+    let tx1 = TxId::new(100, 0, agent);
+    let d1 = Datom::new(entity, attr.clone(), Value::Long(v1_raw), tx1, Op::Assert);
+    datom_set.insert(d1);
+
+    let store = crate::store::Store::from_datoms(datom_set);
+
+    // Build conflicting datom with different value.
+    let tx2 = TxId::new(200, 0, agent);
+    let d2 = Datom::new(entity, attr, Value::Long(v2_raw), tx2, Op::Assert);
+    let new_datoms = [d2];
+
+    // Tier 1 MUST reject: `:db/doc` is Cardinality::One, values differ.
+    let result = crate::coherence::tier1_check(&store, &new_datoms);
+    kani::assert(
+        result.is_err(),
+        "INV-TRANSACT-COHERENCE-001a violated: tier1_check accepted contradictory values for Cardinality::One attribute",
+    );
+}
+
+// ---------------------------------------------------------------------------
+// INV-TRANSACT-COHERENCE-001b: Tier 1 allows same value
+// ---------------------------------------------------------------------------
+
+/// **INV-TRANSACT-COHERENCE-001b**: When the same value is asserted again for
+/// (entity, attribute) under Cardinality::One, `tier1_check` returns `Ok`.
+///
+/// Proof strategy: insert a symbolic value into the store, then build a
+/// new datom asserting the identical value. Verify `tier1_check` returns `Ok`.
+/// This is the idempotent assertion case — not a contradiction.
+///
+/// Falsification condition: `tier1_check` returns `Err` when the new value
+/// equals the existing value.
+#[kani::proof]
+#[kani::unwind(4)]
+fn prove_tier1_allows_same_value() {
+    let v_raw: i64 = kani::any();
+    kani::assume(v_raw > i64::MIN && v_raw < i64::MAX);
+
+    let agent = AgentId::from_bytes([0u8; 16]);
+    let entity = EntityId::from_raw_bytes([11u8; 32]);
+    let attr = Attribute::from_keyword(":db/doc"); // Cardinality::One.
+
+    // Build store with the value already present.
+    let genesis_tx = TxId::new(0, 0, agent);
+    let genesis = crate::schema::genesis_datoms(genesis_tx);
+    let mut datom_set: std::collections::BTreeSet<Datom> = genesis.into_iter().collect();
+
+    let tx1 = TxId::new(100, 0, agent);
+    let d1 = Datom::new(entity, attr.clone(), Value::Long(v_raw), tx1, Op::Assert);
+    datom_set.insert(d1);
+
+    let store = crate::store::Store::from_datoms(datom_set);
+
+    // Same value again — should be allowed (idempotent assertion).
+    let tx2 = TxId::new(200, 0, agent);
+    let d2 = Datom::new(entity, attr, Value::Long(v_raw), tx2, Op::Assert);
+    let new_datoms = [d2];
+
+    let result = crate::coherence::tier1_check(&store, &new_datoms);
+    kani::assert(
+        result.is_ok(),
+        "INV-TRANSACT-COHERENCE-001b violated: tier1_check rejected same-value assertion for Cardinality::One attribute",
+    );
+}
+
+// ===========================================================================
 // QUERY INVARIANTS (spec/03-query.md)
 // ===========================================================================
 

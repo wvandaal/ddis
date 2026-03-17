@@ -777,6 +777,38 @@ impl Store {
         }
     }
 
+    /// Compute the tx metadata entity ID for a given TxId.
+    ///
+    /// This is deterministic: `tx_entity_id(tx) == tx_entity_id(tx)`.
+    /// Used by `transact()` to record `:tx/*` metadata and by
+    /// `transact_with_coherence()` to attach the `:tx/coherence-override` audit trail.
+    pub fn tx_entity_id(tx_id: TxId) -> EntityId {
+        EntityId::from_content(
+            &serde_json::to_vec(&tx_id)
+                .expect("TxId serialization cannot fail: all fields are serializable"),
+        )
+    }
+
+    /// Inject a single metadata datom into the store, maintaining all indexes.
+    ///
+    /// This is a crate-internal escape hatch for post-transact metadata injection.
+    /// It preserves the append-only invariant (INV-STORE-001) — only inserts, never
+    /// deletes or mutates. Used by `transact_with_coherence()` to attach the
+    /// `:tx/coherence-override` audit trail after the typestate-sealed transaction
+    /// has been applied.
+    pub(crate) fn inject_metadata_datom(&mut self, datom: Datom) {
+        if self.datoms.insert(datom.clone()) {
+            self.entity_index
+                .entry(datom.entity)
+                .or_default()
+                .push(datom.clone());
+            self.attribute_index
+                .entry(datom.attribute.clone())
+                .or_default()
+                .push(datom);
+        }
+    }
+
     /// Generate the next TxId for the given agent, advancing the HLC.
     /// ADR-STORE-004: Hybrid logical clocks for transaction IDs.
     /// INV-STORE-015: Agent entity completeness — each agent's frontier tracked.

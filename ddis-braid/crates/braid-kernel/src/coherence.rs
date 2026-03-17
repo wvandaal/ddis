@@ -42,8 +42,9 @@
 //! - spec/01-store.md (INV-STORE-001, INV-TRANSACT-COHERENCE-001)
 
 use crate::datom::{Attribute, Datom, EntityId, Op, Value};
-use crate::schema::{Cardinality, ResolutionMode, Schema};
-use crate::store::Store;
+use crate::error::StoreError;
+use crate::schema::{Cardinality, ResolutionMode};
+use crate::store::{Committed, Store, Transaction, TxReceipt};
 
 // ===========================================================================
 // CoherenceViolation
@@ -95,6 +96,7 @@ impl std::fmt::Display for CoherenceViolation {
 ///
 /// Performance: O(|new_datoms| × O(index_lookup)) — sub-millisecond for
 /// typical transactions (5-50 datoms).
+#[allow(clippy::result_large_err)]
 pub fn tier1_check(store: &Store, new_datoms: &[Datom]) -> Result<(), CoherenceViolation> {
     let schema = store.schema();
 
@@ -169,6 +171,7 @@ pub fn tier1_check(store: &Store, new_datoms: &[Datom]) -> Result<(), CoherenceV
 /// 2. Polarity inversion: "must" vs "must not" on the same subject
 /// 3. Numeric bound conflict: threshold > X vs threshold < X
 /// 4. Governance overlap: two INVs claim authority over same (entity, attribute)
+#[allow(clippy::result_large_err)]
 pub fn tier2_check(store: &Store, new_datoms: &[Datom]) -> Result<(), CoherenceViolation> {
     // Collect new spec entities
     let new_spec_entities: Vec<EntityId> = new_datoms
@@ -188,9 +191,9 @@ pub fn tier2_check(store: &Store, new_datoms: &[Datom]) -> Result<(), CoherenceV
     let statement_attr = Attribute::from_keyword(":spec/statement");
 
     for &entity in &new_spec_entities {
-        let new_statement = new_datoms.iter().find(|d| {
-            d.entity == entity && d.attribute == statement_attr && d.op == Op::Assert
-        });
+        let new_statement = new_datoms
+            .iter()
+            .find(|d| d.entity == entity && d.attribute == statement_attr && d.op == Op::Assert);
 
         let new_statement_text = match new_statement {
             Some(d) => match &d.value {
@@ -254,8 +257,10 @@ fn check_polarity_inversion(
         || (new_has_must_not && existing_has_must && !existing_has_must_not)
     {
         // Check for word overlap (heuristic: >50% shared significant words)
-        let new_words: std::collections::BTreeSet<&str> =
-            new_lower.split_whitespace().filter(|w| w.len() > 3).collect();
+        let new_words: std::collections::BTreeSet<&str> = new_lower
+            .split_whitespace()
+            .filter(|w| w.len() > 3)
+            .collect();
         let existing_words: std::collections::BTreeSet<&str> = existing_lower
             .split_whitespace()
             .filter(|w| w.len() > 3)
@@ -308,8 +313,10 @@ fn check_numeric_bound_conflict(
     // Conflict: one says > and the other says < on overlapping terms
     if (new_gt && existing_lt) || (new_lt && existing_gt) {
         // Check for significant word overlap
-        let new_words: std::collections::BTreeSet<&str> =
-            new_lower.split_whitespace().filter(|w| w.len() > 3).collect();
+        let new_words: std::collections::BTreeSet<&str> = new_lower
+            .split_whitespace()
+            .filter(|w| w.len() > 3)
+            .collect();
         let existing_words: std::collections::BTreeSet<&str> = existing_lower
             .split_whitespace()
             .filter(|w| w.len() > 3)
@@ -353,10 +360,120 @@ fn check_numeric_bound_conflict(
 ///
 /// Returns Ok(()) if no contradictions found, Err(violation) otherwise.
 /// This is the function called by `transact_with_coherence()`.
+#[allow(clippy::result_large_err)]
 pub fn coherence_check(store: &Store, new_datoms: &[Datom]) -> Result<(), CoherenceViolation> {
     tier1_check(store, new_datoms)?;
     tier2_check(store, new_datoms)?;
     Ok(())
+}
+
+// ===========================================================================
+// CoherenceError — wraps both StoreError and CoherenceViolation
+// ===========================================================================
+
+/// Error from `transact_with_coherence()`.
+///
+/// This enum captures the two failure modes of a coherence-gated transaction:
+/// - **Violation**: The coherence check detected a contradiction (Tier 1 or Tier 2)
+///   and `force` was false. Boxed to keep the enum small (CoherenceViolation is >200 bytes).
+/// - **StoreError**: The underlying `Store::transact()` failed (schema validation,
+///   empty transaction, etc.).
+#[derive(Clone, Debug)]
+pub enum CoherenceError {
+    /// A coherence violation blocked the transaction (force=false).
+    /// Boxed because `CoherenceViolation` is large (>200 bytes).
+    Violation(Box<CoherenceViolation>),
+    /// The underlying store operation failed.
+    StoreError(StoreError),
+}
+
+impl std::fmt::Display for CoherenceError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CoherenceError::Violation(v) => write!(f, "coherence violation: {v}"),
+            CoherenceError::StoreError(e) => write!(f, "store error: {e}"),
+        }
+    }
+}
+
+impl std::error::Error for CoherenceError {}
+
+impl From<StoreError> for CoherenceError {
+    fn from(e: StoreError) -> Self {
+        CoherenceError::StoreError(e)
+    }
+}
+
+impl From<CoherenceViolation> for CoherenceError {
+    fn from(v: CoherenceViolation) -> Self {
+        CoherenceError::Violation(Box::new(v))
+    }
+}
+
+// ===========================================================================
+// transact_with_coherence — coherence-gated transact with --force bypass
+// ===========================================================================
+
+/// Transact with coherence gate and optional `--force` bypass.
+///
+/// This is the "unsafe block" pattern for DDIS: the coherence gate is the
+/// default type-system-level enforcement, and `force=true` is the explicit
+/// opt-out that leaves a visible audit trail.
+///
+/// # Behavior
+///
+/// - **`force=false`**: Runs `coherence_check(store, tx.datoms())`. If the check
+///   finds a contradiction, returns `Err(CoherenceError::Violation)` and the
+///   store is unchanged.
+/// - **`force=true`**: Skips the coherence check entirely. After the transaction
+///   is applied, injects an additional `:tx/coherence-override = true` datom on
+///   the transaction's metadata entity. This creates the audit trail — any
+///   future query can find forced transactions via this attribute.
+/// - In both cases, if the underlying `store.transact()` fails (schema validation,
+///   empty transaction, etc.), returns `Err(CoherenceError::StoreError)`.
+///
+/// # Typestate Constraint
+///
+/// The `Transaction<Committed>` typestate seals the datom set — no datoms can be
+/// added after `commit()`. The audit trail datom is therefore injected directly
+/// into the store as post-transact metadata (same entity as the tx metadata),
+/// not by modifying the committed transaction.
+///
+/// # Invariants
+///
+/// - **INV-TRANSACT-COHERENCE-001**: When `force=false`, contradictions prevent
+///   the transaction from being applied.
+/// - **INV-STORE-001**: The audit trail datom is an assertion (append-only).
+/// - **C5 (Traceability)**: The `:tx/coherence-override` attribute makes forced
+///   transactions discoverable.
+pub fn transact_with_coherence(
+    store: &mut Store,
+    tx: Transaction<Committed>,
+    force: bool,
+) -> Result<TxReceipt, CoherenceError> {
+    // Step 1: Run coherence check unless force is set
+    if !force {
+        coherence_check(store, tx.datoms())?;
+    }
+
+    // Step 2: Apply the transaction to the store
+    let tx_id = tx.tx_id();
+    let receipt = store.transact(tx)?;
+
+    // Step 3: If forced, inject the audit trail datom
+    if force {
+        let tx_entity = Store::tx_entity_id(tx_id);
+        let override_datom = Datom::new(
+            tx_entity,
+            Attribute::from_keyword(":tx/coherence-override"),
+            Value::Boolean(true),
+            tx_id,
+            Op::Assert,
+        );
+        store.inject_metadata_datom(override_datom);
+    }
+
+    Ok(receipt)
 }
 
 // ===========================================================================
@@ -646,6 +763,189 @@ mod tests {
         assert_eq!(result.unwrap_err().tier, CoherenceTier::Tier1Exact);
     }
 
+    // --- transact_with_coherence tests ---
+
+    #[test]
+    fn transact_with_coherence_rejects_contradiction_when_not_forced() {
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/coherence-gate");
+        let agent = test_agent();
+
+        // First transaction: establish a value
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "first value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("original".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Second transaction: conflicting value, force=false
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "conflicting value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("conflict".into()),
+            )
+            .commit(&store)
+            .unwrap();
+
+        let datom_count_before = store.len();
+        let result = transact_with_coherence(&mut store, tx2, false);
+        assert!(
+            result.is_err(),
+            "Should reject contradiction when force=false"
+        );
+        match result.unwrap_err() {
+            CoherenceError::Violation(v) => {
+                assert_eq!(v.tier, CoherenceTier::Tier1Exact);
+            }
+            CoherenceError::StoreError(e) => {
+                panic!("Expected CoherenceError::Violation, got StoreError: {e}");
+            }
+        }
+        // Store unchanged
+        assert_eq!(store.len(), datom_count_before);
+    }
+
+    #[test]
+    fn transact_with_coherence_allows_contradiction_when_forced() {
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/force-override");
+        let agent = test_agent();
+
+        // First transaction: establish a value
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "first value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("original".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Second transaction: conflicting value, force=true
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "forced override")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("overridden".into()),
+            )
+            .commit(&store)
+            .unwrap();
+
+        let result = transact_with_coherence(&mut store, tx2, true);
+        assert!(result.is_ok(), "Should allow contradiction when force=true");
+    }
+
+    #[test]
+    fn force_mode_creates_coherence_override_audit_trail() {
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/audit-trail");
+        let agent = test_agent();
+
+        // First transaction: establish a value
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "first value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("original".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        // Second transaction: conflicting value, force=true
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "forced with audit")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("forced-value".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let tx2_id = tx2.tx_id();
+
+        let receipt = transact_with_coherence(&mut store, tx2, true).unwrap();
+        assert_eq!(receipt.tx_id, tx2_id);
+
+        // Verify the audit trail datom exists
+        let tx_entity = Store::tx_entity_id(tx2_id);
+        let tx_datoms = store.entity_datoms(tx_entity);
+        let override_datom = tx_datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == ":tx/coherence-override" && d.op == Op::Assert);
+        assert!(
+            override_datom.is_some(),
+            "Force mode must create :tx/coherence-override audit trail datom"
+        );
+        assert_eq!(
+            override_datom.unwrap().value,
+            Value::Boolean(true),
+            "Audit trail datom must be true"
+        );
+    }
+
+    #[test]
+    fn valid_transaction_passes_regardless_of_force_flag() {
+        // A non-conflicting transaction should succeed with both force=false and force=true.
+        let mut store = Store::genesis();
+        let agent = test_agent();
+
+        // force=false with valid (non-conflicting) transaction
+        let entity_a = EntityId::from_ident(":test/valid-a");
+        let tx_a = Transaction::new(agent, ProvenanceType::Observed, "valid no-force")
+            .assert(
+                entity_a,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("value-a".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let result_a = transact_with_coherence(&mut store, tx_a, false);
+        assert!(result_a.is_ok(), "Valid tx should pass with force=false");
+
+        // force=true with valid (non-conflicting) transaction
+        let entity_b = EntityId::from_ident(":test/valid-b");
+        let tx_b = Transaction::new(agent, ProvenanceType::Observed, "valid with-force")
+            .assert(
+                entity_b,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("value-b".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let result_b = transact_with_coherence(&mut store, tx_b, true);
+        assert!(result_b.is_ok(), "Valid tx should pass with force=true");
+
+        // Verify: force=true on a valid transaction still creates the audit trail
+        let receipt_b = result_b.unwrap();
+        let tx_entity = Store::tx_entity_id(receipt_b.tx_id);
+        let tx_datoms = store.entity_datoms(tx_entity);
+        let has_override = tx_datoms
+            .iter()
+            .any(|d| d.attribute.as_str() == ":tx/coherence-override");
+        assert!(
+            has_override,
+            "force=true should create audit trail even for valid transactions"
+        );
+
+        // Verify: force=false does NOT create audit trail
+        let receipt_a = result_a.unwrap();
+        let tx_entity_a = Store::tx_entity_id(receipt_a.tx_id);
+        let tx_datoms_a = store.entity_datoms(tx_entity_a);
+        let has_override_a = tx_datoms_a
+            .iter()
+            .any(|d| d.attribute.as_str() == ":tx/coherence-override");
+        assert!(
+            !has_override_a,
+            "force=false should NOT create audit trail datom"
+        );
+    }
+
     // --- Property tests ---
 
     mod proptests {
@@ -722,6 +1022,126 @@ mod tests {
                 )];
                 prop_assert!(coherence_check(&store, &datoms).is_ok(),
                     "Retractions should never trigger coherence violations");
+            }
+
+            /// INV-TRANSACT-COHERENCE-001: tier1_check totality.
+            ///
+            /// For arbitrary stores and arbitrary new datoms, tier1_check never
+            /// panics. It always returns either Ok or Err — no unwinding, no
+            /// undefined behavior. This is the totality property: the coherence
+            /// gate is a total function over its domain.
+            #[test]
+            fn tier1_never_panics(
+                store in arb_store(3),
+                entity in arb_entity_id(),
+                value in arb_doc_value(),
+                op in crate::proptest_strategies::arb_op(),
+            ) {
+                let agent = AgentId::from_name("proptest:totality");
+                let tx_id = TxId::new(999, 0, agent);
+                let datoms = vec![Datom::new(
+                    entity,
+                    Attribute::from_keyword(":db/doc"),
+                    value,
+                    tx_id,
+                    op,
+                )];
+                // The function must not panic — just assert it returns something.
+                let _result = tier1_check(&store, &datoms);
+            }
+
+            /// INV-TRANSACT-COHERENCE-001: tier2_check returns Ok for non-spec datoms.
+            ///
+            /// For arbitrary stores, tier2_check on non-spec attributes always
+            /// returns Ok — no false positives. Tier 2 only fires for `:spec/*`
+            /// attributes; data transactions must never be rejected by Tier 2.
+            #[test]
+            fn tier2_no_false_positives_on_data(
+                store in arb_store(3),
+                entity in arb_entity_id(),
+                value in arb_doc_value(),
+            ) {
+                let agent = AgentId::from_name("proptest:tier2-fp");
+                let tx_id = TxId::new(999, 0, agent);
+
+                // Use non-spec attributes: :db/doc and :tx/rationale
+                // Both are non-:spec/* so Tier 2 must always return Ok.
+                let datoms_doc = vec![Datom::new(
+                    entity,
+                    Attribute::from_keyword(":db/doc"),
+                    value.clone(),
+                    tx_id,
+                    Op::Assert,
+                )];
+                prop_assert!(
+                    tier2_check(&store, &datoms_doc).is_ok(),
+                    "Tier 2 must not reject non-spec attribute :db/doc"
+                );
+
+                let datoms_rationale = vec![Datom::new(
+                    entity,
+                    Attribute::from_keyword(":tx/rationale"),
+                    value,
+                    tx_id,
+                    Op::Assert,
+                )];
+                prop_assert!(
+                    tier2_check(&store, &datoms_rationale).is_ok(),
+                    "Tier 2 must not reject non-spec attribute :tx/rationale"
+                );
+            }
+
+            /// INV-TRANSACT-COHERENCE-001 + INV-STORE-001: Store invariant preservation.
+            ///
+            /// For any datom that passes tier1_check, inserting it into the store
+            /// preserves the store's fundamental invariants:
+            /// - Store size does not decrease (append-only, INV-STORE-001)
+            /// - Genesis datoms remain present (INV-STORE-007)
+            /// - Frontier is non-empty (INV-MERGE-002)
+            #[test]
+            fn tier1_pass_preserves_store_invariants(
+                store in arb_store(3),
+                entity in arb_entity_id(),
+                value in arb_doc_value(),
+            ) {
+                let agent = AgentId::from_name("proptest:invariants");
+                let tx_id = TxId::new(999, 0, agent);
+                let datom = Datom::new(
+                    entity,
+                    Attribute::from_keyword(":db/doc"),
+                    value,
+                    tx_id,
+                    Op::Assert,
+                );
+
+                let check = tier1_check(&store, std::slice::from_ref(&datom));
+                if check.is_ok() {
+                    // Datom passed coherence — insert it into the datom set.
+                    let mut datoms_set = store.datom_set().clone();
+                    let size_before = datoms_set.len();
+
+                    datoms_set.insert(datom);
+                    let new_store = Store::from_datoms(datoms_set.clone());
+
+                    // INV-STORE-001: size never decreases.
+                    prop_assert!(
+                        datoms_set.len() >= size_before,
+                        "Store size decreased after inserting coherent datom"
+                    );
+
+                    // INV-STORE-007: genesis datoms present.
+                    let genesis = Store::genesis();
+                    prop_assert!(
+                        genesis.datom_set().is_subset(&datoms_set),
+                        "Genesis datoms lost after inserting coherent datom"
+                    );
+
+                    // INV-MERGE-002: frontier non-empty.
+                    prop_assert!(
+                        !new_store.frontier().is_empty(),
+                        "Frontier empty after inserting coherent datom"
+                    );
+                }
             }
         }
     }

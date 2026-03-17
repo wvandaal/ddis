@@ -24,11 +24,14 @@
 //! - ADR-VERIFICATION-001: Property-based testing + model checking.
 
 pub mod agent_md;
+pub mod agent_store;
 pub mod bilateral;
 pub mod budget;
 pub mod coherence;
+pub mod compiler;
 pub mod config;
 pub mod datom;
+pub mod deliberation;
 pub mod error;
 pub mod guidance;
 pub mod harvest;
@@ -37,6 +40,7 @@ mod kani_proofs;
 pub mod layout;
 pub mod merge;
 pub mod promote;
+pub mod proposal;
 #[cfg(test)]
 pub mod proptest_strategies;
 pub mod query;
@@ -52,6 +56,7 @@ pub mod trilateral;
 
 // Re-export core types at crate root for ergonomic access.
 pub use agent_md::{generate_agent_md, AgentMdConfig, AgentMdSection, GeneratedAgentMd};
+pub use agent_store::{AgentStore, CommitError};
 pub use bilateral::{
     analyze_convergence, backward_scan, compute_fitness, cycle_to_datoms, depth_weight,
     evaluate_conditions, format_terse, format_verbose, forward_scan, load_trajectory, run_cycle,
@@ -67,12 +72,21 @@ pub use budget::{
     MIN_OUTPUT,
 };
 pub use coherence::{
-    coherence_check, tier1_check, tier2_check, CoherenceTier, CoherenceViolation,
+    coherence_check, tier1_check, tier2_check, transact_with_coherence, CoherenceError,
+    CoherenceTier, CoherenceViolation,
+};
+pub use compiler::{
+    detect_patterns, detect_patterns_for_text, summarize_patterns, InvariantPattern, PatternMatch,
+    PatternSummary,
 };
 pub use config::{
     all_config, defaults as config_defaults, get_config, get_config_or, set_config_datoms,
 };
 pub use datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
+pub use deliberation::{
+    add_position, check_stability, decide, find_precedent, open_deliberation, DecisionMethod,
+    DeliberationStatus, StabilityScore,
+};
 pub use error::KernelError;
 pub use guidance::{
     build_command_footer, build_footer, build_footer_with_budget, compute_methodology_score,
@@ -84,10 +98,12 @@ pub use guidance::{
     TaskNode, TaskRouting, Trend,
 };
 pub use harvest::{
-    build_harvest_commit, calibrate_harvest, candidate_to_datoms, crystallization_guard,
-    harvest_pipeline, infer_task_description, optimal_threshold, stability_score,
-    CalibrationResult, CandidateStatus, CrystallizationResult, HarvestCandidate, HarvestCategory,
-    HarvestCommit, HarvestQuality, HarvestResult, SessionContext,
+    build_harvest_commit, calibrate_harvest, candidate_to_datoms, classify_spec_candidate,
+    contains_negative_constraint, contains_universal_quantifier, crystallization_guard,
+    harvest_pipeline, has_alternatives, infer_task_description, optimal_threshold, propose_adr,
+    propose_invariant, propose_negative, stability_score, CalibrationResult, CandidateStatus,
+    CrystallizationResult, HarvestCandidate, HarvestCategory, HarvestCommit, HarvestQuality,
+    HarvestResult, SessionContext, SpecCandidate, SpecCandidateType,
     DEFAULT_CRYSTALLIZATION_THRESHOLD,
 };
 pub use layout::{
@@ -100,6 +116,9 @@ pub use merge::{
 pub use promote::{
     is_already_promoted, promote, promote_batch, verify_dual_identity, BatchPromotionResult,
     DualIdentityCheck, PromotionRequest, PromotionResult, PromotionTargetType,
+};
+pub use proposal::{
+    accept_proposal, auto_accept_threshold, pending_proposals, proposal_to_datoms, reject_proposal,
 };
 pub use query::{
     aggregate, betweenness_centrality, cheeger, conflict_sheaf, constant_sheaf, critical_path,

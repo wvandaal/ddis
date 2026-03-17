@@ -11,7 +11,7 @@
 //! - **Layer 2** (Specification Elements): 36 rich-metadata attributes —
 //!   `:element/*`, `:inv/*`, `:adr/*`, `:neg/*`, `:dep/*`, `:session/*`,
 //!   `:methodology/*`, `:coherence/*`.
-//! - **Layer 3** (Discovery/Exploration): 20 attributes — `:exploration/*`, `:promotion/*`.
+//! - **Layer 3** (Discovery/Exploration): 31 attributes — `:exploration/*`, `:promotion/*`, `:proposal/*`.
 //! - **Layers 4–5**: Coordination, Workflow (future stages).
 //!
 //! Each layer depends only on layers below it. Layer 0 is installed at genesis.
@@ -537,7 +537,7 @@ pub fn genesis_datoms(genesis_tx: TxId) -> Vec<Datom> {
     datoms
 }
 
-/// The 18 axiomatic meta-schema attributes (INV-SCHEMA-002).
+/// The 19 axiomatic meta-schema attributes (INV-SCHEMA-002).
 fn axiomatic_attributes() -> Vec<AttributeSpec> {
     vec![
         // Layer 0 — Meta-Schema (9 attributes)
@@ -626,7 +626,7 @@ fn axiomatic_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Top element",
         ),
-        // Transaction metadata (4 attributes)
+        // Transaction metadata (5 attributes)
         attr(
             ":tx/time",
             ValueType::Instant,
@@ -650,6 +650,12 @@ fn axiomatic_attributes() -> Vec<AttributeSpec> {
             ValueType::String,
             Cardinality::One,
             "Human-readable rationale for the transaction",
+        ),
+        attr(
+            ":tx/coherence-override",
+            ValueType::Boolean,
+            Cardinality::One,
+            "Audit trail: true when --force bypassed coherence gate",
         ),
     ]
 }
@@ -1165,10 +1171,10 @@ pub fn domain_schema_datoms(tx: TxId) -> Vec<Datom> {
 // Layer 3 — Discovery/Exploration Attributes (INV-SCHEMA-006)
 // ---------------------------------------------------------------------------
 
-/// Number of Layer 3 exploration/discovery attributes.
-pub const LAYER_3_COUNT: usize = 21;
+/// Number of Layer 3 exploration/discovery/proposal attributes.
+pub const LAYER_3_COUNT: usize = 31;
 
-/// The 20 Layer 3 (Discovery/Exploration) attributes.
+/// The 31 Layer 3 (Discovery/Exploration/Proposal) attributes.
 ///
 /// These capture the lifecycle of exploratory knowledge — from initial
 /// discovery through promotion to formal specification elements. They enable
@@ -1176,10 +1182,11 @@ pub const LAYER_3_COUNT: usize = 21;
 /// `:spec/*` attributes via `braid promote` rather than being re-entered
 /// from markdown.
 ///
-/// Organized into 3 groups:
-/// - Exploration Identity (8): source, category, confidence, maturity
+/// Organized into 4 groups:
+/// - Exploration Identity (9): source, category, confidence, maturity, content-hash
 /// - Promotion Lifecycle (7): promotion status, target element, verification
 /// - Exploration Cross-Reference (5): links between exploration entities
+/// - Proposal Lifecycle (10): spec proposals with review workflow
 ///
 /// Depends only on Layer 0 value types (INV-SCHEMA-006 layer ordering).
 pub fn layer_3_attributes() -> Vec<AttributeSpec> {
@@ -1319,6 +1326,69 @@ pub fn layer_3_attributes() -> Vec<AttributeSpec> {
             ValueType::String,
             Cardinality::One,
             "Evidence supporting this exploration entity (proof sketch, test results, etc.)",
+        ),
+        // =================================================================
+        // Proposal Lifecycle Attributes (10) — spec proposal review workflow
+        // =================================================================
+        attr(
+            ":proposal/type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Proposal element type: :proposal.type/invariant, :proposal.type/adr, :proposal.type/negative-case",
+        ),
+        attr(
+            ":proposal/status",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Review status: :proposal.status/proposed, :proposal.status/reviewed, :proposal.status/accepted, :proposal.status/rejected",
+        ),
+        attr(
+            ":proposal/source",
+            ValueType::Ref,
+            Cardinality::One,
+            "Reference to the entity that triggered this proposal (e.g., exploration or harvest entity)",
+        ),
+        attr(
+            ":proposal/suggested-id",
+            ValueType::String,
+            Cardinality::One,
+            "Suggested spec element ID (e.g., INV-STORE-017, ADR-MERGE-005, NEG-SCHEMA-004)",
+        ),
+        attr(
+            ":proposal/statement",
+            ValueType::String,
+            Cardinality::One,
+            "The proposed formal statement text for invariants or negative cases",
+        ),
+        attr(
+            ":proposal/falsification",
+            ValueType::String,
+            Cardinality::One,
+            "Proposed falsification condition: how to verify violation (C6)",
+        ),
+        attr(
+            ":proposal/traces-to",
+            ValueType::String,
+            Cardinality::One,
+            "SEED.md section reference that motivates this proposal (C5 traceability)",
+        ),
+        attr(
+            ":proposal/confidence",
+            ValueType::Double,
+            Cardinality::One,
+            "Classification confidence for the proposal (0.0-1.0). Auto-accept threshold: 0.9",
+        ),
+        attr(
+            ":proposal/reviewer",
+            ValueType::Ref,
+            Cardinality::One,
+            "Reference to the agent or human entity that reviewed this proposal",
+        ),
+        attr(
+            ":proposal/review-note",
+            ValueType::String,
+            Cardinality::One,
+            "Reviewer rationale for accepting or rejecting the proposal",
         ),
     ]
 }
@@ -1692,8 +1762,8 @@ mod tests {
         let specs = axiomatic_attributes();
         assert_eq!(
             specs.len(),
-            18,
-            "INV-SCHEMA-002: exactly 18 axiomatic attributes"
+            19,
+            "INV-SCHEMA-002: exactly 19 axiomatic attributes (18 original + :tx/coherence-override)"
         );
     }
 
@@ -1715,7 +1785,7 @@ mod tests {
         let tx = TxId::new(0, 0, agent);
         let datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
         let schema = Schema::from_datoms(&datoms);
-        assert_eq!(schema.len(), 18);
+        assert_eq!(schema.len(), 19);
     }
 
     // Verifies: INV-SCHEMA-004 — Schema Validation on Transact
@@ -1806,8 +1876,8 @@ mod tests {
         let errors = full_schema.validate_evolution(&empty_schema);
         assert_eq!(
             errors.len(),
-            18,
-            "all 18 attributes should be flagged as removed"
+            19,
+            "all 19 attributes should be flagged as removed"
         );
         assert!(errors
             .iter()
@@ -1862,7 +1932,7 @@ mod tests {
         ));
         let new_schema = Schema::from_datoms(&new_datoms);
 
-        assert_eq!(new_schema.len(), 19);
+        assert_eq!(new_schema.len(), 20); // 19 genesis + 1 custom
         let errors = old_schema.validate_evolution(&new_schema);
         assert!(errors.is_empty(), "adding attributes is valid evolution");
     }
@@ -1923,7 +1993,7 @@ mod tests {
             datoms.insert(d);
         }
         let schema = Schema::from_datoms(&datoms);
-        assert_eq!(schema.len(), 18 + 24, "genesis + L1 = 42 attributes");
+        assert_eq!(schema.len(), 19 + 24, "genesis + L1 = 43 attributes");
     }
 
     // Verifies: ADR-SCHEMA-006 — Value Type Union
@@ -2059,9 +2129,9 @@ mod tests {
         let schema = Schema::from_datoms(&datoms);
         assert_eq!(
             schema.len(),
-            18 + 24 + LAYER_2_COUNT,
-            "genesis(18) + L1(24) + L2({LAYER_2_COUNT}) = {} attributes",
-            18 + 24 + LAYER_2_COUNT
+            19 + 24 + LAYER_2_COUNT,
+            "genesis(19) + L1(24) + L2({LAYER_2_COUNT}) = {} attributes",
+            19 + 24 + LAYER_2_COUNT
         );
     }
 
@@ -2281,7 +2351,7 @@ mod tests {
         }
         let schema = Schema::from_datoms(&datoms);
 
-        let expected = 18 + 24 + LAYER_2_COUNT; // 78
+        let expected = 19 + 24 + LAYER_2_COUNT; // 79
         assert_eq!(
             schema.len(),
             expected,
@@ -2298,7 +2368,7 @@ mod tests {
 
     // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture (layer 3)
     #[test]
-    fn layer_3_produces_20_attributes() {
+    fn layer_3_produces_31_attributes() {
         let specs = layer_3_attributes();
         assert_eq!(
             specs.len(),
@@ -2335,9 +2405,9 @@ mod tests {
         let schema = Schema::from_datoms(&datoms);
         assert_eq!(
             schema.len(),
-            18 + 24 + LAYER_2_COUNT + LAYER_3_COUNT,
-            "genesis(18) + L1(24) + L2({LAYER_2_COUNT}) + L3({LAYER_3_COUNT}) = {} attributes",
-            18 + 24 + LAYER_2_COUNT + LAYER_3_COUNT
+            19 + 24 + LAYER_2_COUNT + LAYER_3_COUNT,
+            "genesis(19) + L1(24) + L2({LAYER_2_COUNT}) + L3({LAYER_3_COUNT}) = {} attributes",
+            19 + 24 + LAYER_2_COUNT + LAYER_3_COUNT
         );
     }
 
@@ -2504,7 +2574,7 @@ mod tests {
     // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture (full count)
     // Verifies: INV-SCHEMA-005 — Meta-Schema Self-Description
     #[test]
-    fn full_schema_has_98_attributes() {
+    fn full_schema_has_141_attributes() {
         let agent = AgentId::from_name("braid:system");
         let genesis_tx = TxId::new(0, 0, agent);
         let full_tx = TxId::new(1, 0, agent);
@@ -2515,7 +2585,7 @@ mod tests {
         }
         let schema = Schema::from_datoms(&datoms);
 
-        let expected = 18 + 24 + LAYER_2_COUNT + LAYER_3_COUNT + LAYER_4_COUNT; // 123
+        let expected = 19 + 24 + LAYER_2_COUNT + LAYER_3_COUNT + LAYER_4_COUNT;
         assert_eq!(
             schema.len(),
             expected,

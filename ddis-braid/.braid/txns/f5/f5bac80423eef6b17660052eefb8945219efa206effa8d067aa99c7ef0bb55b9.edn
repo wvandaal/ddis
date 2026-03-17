@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773717251/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Deliberation pipeline implemented: deliberation.rs ~400 LOC. open_deliberation, add_position, decide, find_precedent, check_stability. Status lifecycle (Open->Active->Decided|Stalled->Contested->Superseded). DecisionMethod ordering (Automated<HumanOverride<Authority<Majority<Consensus). StabilityScore. 7 tests passing."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8cfedf6dc0a99176d80b6f27c8c0368824e1e93324427628810ec16f91c9e671" :a :db/ident :v :observation/deliberation-pipeline-implemented-deliberationrs-400-loc :op :assert}
+   {:e #blake3 "8cfedf6dc0a99176d80b6f27c8c0368824e1e93324427628810ec16f91c9e671" :a :db/doc :v "Deliberation pipeline implemented: deliberation.rs ~400 LOC. open_deliberation, add_position, decide, find_precedent, check_stability. Status lifecycle (Open->Active->Decided|Stalled->Contested->Superseded). DecisionMethod ordering (Automated<HumanOverride<Authority<Majority<Consensus). StabilityScore. 7 tests passing." :op :assert}
+   {:e #blake3 "8cfedf6dc0a99176d80b6f27c8c0368824e1e93324427628810ec16f91c9e671" :a :exploration/body :v "Deliberation pipeline implemented: deliberation.rs ~400 LOC. open_deliberation, add_position, decide, find_precedent, check_stability. Status lifecycle (Open->Active->Decided|Stalled->Contested->Superseded). DecisionMethod ordering (Automated<HumanOverride<Authority<Majority<Consensus). StabilityScore. 7 tests passing." :op :assert}
+   {:e #blake3 "8cfedf6dc0a99176d80b6f27c8c0368824e1e93324427628810ec16f91c9e671" :a :exploration/content-hash :v #bytes "e61d3a88ea90577610879b59bd495f105f9c666cd67a4052789167ea8062fb2f" :op :assert}
+   {:e #blake3 "8cfedf6dc0a99176d80b6f27c8c0368824e1e93324427628810ec16f91c9e671" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "8cfedf6dc0a99176d80b6f27c8c0368824e1e93324427628810ec16f91c9e671" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "8cfedf6dc0a99176d80b6f27c8c0368824e1e93324427628810ec16f91c9e671" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8cfedf6dc0a99176d80b6f27c8c0368824e1e93324427628810ec16f91c9e671" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8cfedf6dc0a99176d80b6f27c8c0368824e1e93324427628810ec16f91c9e671" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

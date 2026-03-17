@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773700004/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SESSION COMPLETE: Waves 1+2 closed, Wave 3 core implemented. 11 commits, 651+ tests (up from 508 = +143). Three new modules: signal.rs, trace.rs, coherence.rs. 34 Kani harnesses (was 17), 9 Stateright models (was 4). Budget gate wired, Q(t) warnings, frontier queries, HITS/k-Core. The transact-time coherence gate is operational."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d89d3031a05e5c9d536f480ab425867e050e8eeba6384c7b2871b1b44fd28063" :a :db/ident :v :observation/session-complete-waves-12-closed-wave-3-core-implemented :op :assert}
+   {:e #blake3 "d89d3031a05e5c9d536f480ab425867e050e8eeba6384c7b2871b1b44fd28063" :a :db/doc :v "SESSION COMPLETE: Waves 1+2 closed, Wave 3 core implemented. 11 commits, 651+ tests (up from 508 = +143). Three new modules: signal.rs, trace.rs, coherence.rs. 34 Kani harnesses (was 17), 9 Stateright models (was 4). Budget gate wired, Q(t) warnings, frontier queries, HITS/k-Core. The transact-time coherence gate is operational." :op :assert}
+   {:e #blake3 "d89d3031a05e5c9d536f480ab425867e050e8eeba6384c7b2871b1b44fd28063" :a :exploration/body :v "SESSION COMPLETE: Waves 1+2 closed, Wave 3 core implemented. 11 commits, 651+ tests (up from 508 = +143). Three new modules: signal.rs, trace.rs, coherence.rs. 34 Kani harnesses (was 17), 9 Stateright models (was 4). Budget gate wired, Q(t) warnings, frontier queries, HITS/k-Core. The transact-time coherence gate is operational." :op :assert}
+   {:e #blake3 "d89d3031a05e5c9d536f480ab425867e050e8eeba6384c7b2871b1b44fd28063" :a :exploration/content-hash :v #bytes "a10284fa7affc9e28b6677cca86e9bbae1c5cc28573630b4c4ee3b10ff7e2b88" :op :assert}
+   {:e #blake3 "d89d3031a05e5c9d536f480ab425867e050e8eeba6384c7b2871b1b44fd28063" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d89d3031a05e5c9d536f480ab425867e050e8eeba6384c7b2871b1b44fd28063" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "d89d3031a05e5c9d536f480ab425867e050e8eeba6384c7b2871b1b44fd28063" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d89d3031a05e5c9d536f480ab425867e050e8eeba6384c7b2871b1b44fd28063" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d89d3031a05e5c9d536f480ab425867e050e8eeba6384c7b2871b1b44fd28063" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
