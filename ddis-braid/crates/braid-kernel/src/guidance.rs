@@ -52,24 +52,27 @@ use crate::trilateral::{check_coherence_fast, CoherenceQuadrant};
 ///
 /// Replaces heuristic tx-count thresholds with the attention decay model
 /// from spec/13-budget.md. Q(t) = k*_eff x attention_decay(k*_eff) maps
-/// directly to urgency bands:
+/// directly to urgency bands aligned with INV-HARVEST-005:
 ///
 /// - Q(t) > 0.6  -> None (plenty of budget remaining)
-/// - Q(t) in [0.3, 0.6] -> Info (context filling, harvest recommended)
-/// - Q(t) in [0.15, 0.3] -> Warn (harvest soon)
-/// - Q(t) < 0.15 -> Critical (harvest immediately)
+/// - Q(t) in [0.15, 0.6] -> Info (context filling, harvest recommended)
+/// - Q(t) in [0.05, 0.15) -> Warn (harvest warning — spec threshold Q(t) < 0.15)
+/// - Q(t) < 0.05 -> Critical (harvest-only mode — spec threshold Q(t) < 0.05)
 ///
 /// INV-HARVEST-005: Proactive warning fires at correct thresholds.
+///   - L0: "Q(t) < 0.15 => response includes harvest warning"
+///   - L0: "Q(t) < 0.05 => response = ONLY harvest imperative"
+///
 /// ADR-BUDGET-001: Measured context over heuristic.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum HarvestWarningLevel {
     /// Q(t) > 0.6: no warning needed.
     None,
-    /// Q(t) in [0.3, 0.6]: context filling, harvest recommended.
+    /// Q(t) in [0.15, 0.6]: context filling, harvest recommended.
     Info,
-    /// Q(t) in [0.15, 0.3]: harvest soon.
+    /// Q(t) in [0.05, 0.15): harvest warning (INV-HARVEST-005 L0: Q(t) < 0.15).
     Warn,
-    /// Q(t) < 0.15: context nearly exhausted, harvest immediately.
+    /// Q(t) < 0.05: harvest-only mode (INV-HARVEST-005 L0: Q(t) < 0.05).
     Critical,
 }
 
@@ -128,21 +131,21 @@ impl std::fmt::Display for HarvestWarningLevel {
 /// Compute harvest warning level from Q(t) attention quality.
 ///
 /// Q(t) = k*_eff x attention_decay(k*_eff) is the quality-adjusted budget.
-/// This maps Q(t) to four urgency bands:
+/// This maps Q(t) to four urgency bands aligned with INV-HARVEST-005:
 ///
 /// - Q(t) > 0.6  -> None
-/// - Q(t) in [0.3, 0.6] -> Info
-/// - Q(t) in [0.15, 0.3] -> Warn
-/// - Q(t) < 0.15 -> Critical
+/// - Q(t) in [0.15, 0.6] -> Info
+/// - Q(t) in [0.05, 0.15) -> Warn (spec: "Q(t) < 0.15 => harvest warning")
+/// - Q(t) < 0.05 -> Critical (spec: "Q(t) < 0.05 => harvest-only mode")
 ///
 /// INV-HARVEST-005: Proactive warning fires at correct thresholds.
 /// ADR-BUDGET-001: Measured context over heuristic.
 pub fn harvest_warning_level(q_t: f64) -> HarvestWarningLevel {
     if q_t > 0.6 {
         HarvestWarningLevel::None
-    } else if q_t >= 0.3 {
-        HarvestWarningLevel::Info
     } else if q_t >= 0.15 {
+        HarvestWarningLevel::Info
+    } else if q_t >= 0.05 {
         HarvestWarningLevel::Warn
     } else {
         HarvestWarningLevel::Critical
@@ -2982,51 +2985,72 @@ mod tests {
         assert_eq!(harvest_warning_level(1.0), HarvestWarningLevel::None);
     }
 
+    // INV-HARVEST-005: Info at [0.15, 0.6]
     #[test]
-    fn harvest_warning_level_info_between_03_06() {
+    fn harvest_warning_level_info_between_015_06() {
         assert_eq!(harvest_warning_level(0.6), HarvestWarningLevel::Info);
         assert_eq!(harvest_warning_level(0.45), HarvestWarningLevel::Info);
         assert_eq!(harvest_warning_level(0.3), HarvestWarningLevel::Info);
+        assert_eq!(harvest_warning_level(0.2), HarvestWarningLevel::Info);
+        assert_eq!(harvest_warning_level(0.15), HarvestWarningLevel::Info);
     }
 
+    // INV-HARVEST-005: Warn at [0.05, 0.15) — spec: "Q(t) < 0.15 => harvest warning"
     #[test]
-    fn harvest_warning_level_warn_between_015_03() {
-        assert_eq!(harvest_warning_level(0.29), HarvestWarningLevel::Warn);
-        assert_eq!(harvest_warning_level(0.2), HarvestWarningLevel::Warn);
-        assert_eq!(harvest_warning_level(0.15), HarvestWarningLevel::Warn);
+    fn harvest_warning_level_warn_between_005_015() {
+        assert_eq!(harvest_warning_level(0.14), HarvestWarningLevel::Warn);
+        assert_eq!(harvest_warning_level(0.1), HarvestWarningLevel::Warn);
+        assert_eq!(harvest_warning_level(0.05), HarvestWarningLevel::Warn);
     }
 
+    // INV-HARVEST-005: Critical below 0.05 — spec: "Q(t) < 0.05 => harvest-only mode"
     #[test]
-    fn harvest_warning_level_critical_below_015() {
-        assert_eq!(harvest_warning_level(0.14), HarvestWarningLevel::Critical);
-        assert_eq!(harvest_warning_level(0.05), HarvestWarningLevel::Critical);
+    fn harvest_warning_level_critical_below_005() {
+        assert_eq!(harvest_warning_level(0.049), HarvestWarningLevel::Critical);
+        assert_eq!(harvest_warning_level(0.01), HarvestWarningLevel::Critical);
         assert_eq!(harvest_warning_level(0.0), HarvestWarningLevel::Critical);
     }
 
-    // Verifies: threshold boundaries are exact
+    // Verifies: threshold boundaries are exact per INV-HARVEST-005
     #[test]
     fn harvest_warning_level_boundary_precision() {
-        // 0.6 is Info (inclusive lower bound of [0.3, 0.6])
+        // 0.6 is Info (inclusive lower bound of [0.15, 0.6])
         assert_eq!(harvest_warning_level(0.6), HarvestWarningLevel::Info);
         // 0.6 + epsilon is None
         assert_eq!(
             harvest_warning_level(0.6 + f64::EPSILON),
             HarvestWarningLevel::None
         );
-        // 0.3 is Info
-        assert_eq!(harvest_warning_level(0.3), HarvestWarningLevel::Info);
-        // 0.3 - epsilon is Warn
-        assert_eq!(
-            harvest_warning_level(0.3 - f64::EPSILON),
-            HarvestWarningLevel::Warn
-        );
-        // 0.15 is Warn
-        assert_eq!(harvest_warning_level(0.15), HarvestWarningLevel::Warn);
-        // 0.15 - epsilon is Critical
+        // 0.15 is Info (inclusive lower bound of [0.15, 0.6])
+        assert_eq!(harvest_warning_level(0.15), HarvestWarningLevel::Info);
+        // 0.15 - epsilon is Warn (spec: Q(t) < 0.15 => harvest warning)
         assert_eq!(
             harvest_warning_level(0.15 - f64::EPSILON),
+            HarvestWarningLevel::Warn
+        );
+        // 0.05 is Warn (inclusive lower bound of [0.05, 0.15))
+        assert_eq!(harvest_warning_level(0.05), HarvestWarningLevel::Warn);
+        // 0.05 - epsilon is Critical (spec: Q(t) < 0.05 => harvest-only)
+        assert_eq!(
+            harvest_warning_level(0.05 - f64::EPSILON),
             HarvestWarningLevel::Critical
         );
+    }
+
+    // INV-HARVEST-005 spec-alignment: the two thresholds from the L0 definition.
+    // L0: "Q(t) < 0.15 => response includes harvest warning"
+    // L0: "Q(t) < 0.05 => response = ONLY harvest imperative"
+    #[test]
+    fn harvest_warning_spec_alignment_inv_harvest_005() {
+        // Above 0.15: no harvest warning in response (None or Info — Info is advisory)
+        assert!(harvest_warning_level(0.16) < HarvestWarningLevel::Warn);
+        // Below 0.15: harvest warning in response (Warn or Critical)
+        assert!(harvest_warning_level(0.14) >= HarvestWarningLevel::Warn);
+        // Above 0.05: response may include non-harvest content
+        assert!(harvest_warning_level(0.06) < HarvestWarningLevel::Critical);
+        // Below 0.05: response = ONLY harvest imperative (Critical)
+        assert_eq!(harvest_warning_level(0.04), HarvestWarningLevel::Critical);
+        assert_eq!(harvest_warning_level(0.0), HarvestWarningLevel::Critical);
     }
 
     #[test]
@@ -3126,22 +3150,22 @@ mod tests {
     #[test]
     fn derive_actions_with_budget_uses_qt_thresholds() {
         let store = Store::genesis();
-        // Q(t)=0.1 → Critical → should produce Harvest action at priority 1
-        let actions = derive_actions_with_budget(&store, Some(0.1));
+        // Q(t)=0.03 → Critical → should produce Harvest action at priority 1
+        let actions = derive_actions_with_budget(&store, Some(0.03));
         let harvest_actions: Vec<_> = actions
             .iter()
             .filter(|a| a.category == ActionCategory::Harvest)
             .collect();
         assert!(
             !harvest_actions.is_empty(),
-            "Q(t)=0.1 should produce a harvest action"
+            "Q(t)=0.03 should produce a harvest action"
         );
         assert_eq!(
             harvest_actions[0].priority, 1,
             "Critical Q(t) should produce priority 1 action"
         );
         assert!(
-            harvest_actions[0].summary.contains("Q(t)=0.10"),
+            harvest_actions[0].summary.contains("Q(t)=0.03"),
             "summary should include Q(t) value, got: {}",
             harvest_actions[0].summary
         );
@@ -3194,11 +3218,19 @@ mod tests {
     fn build_footer_with_budget_sets_warning_level() {
         let telemetry = SessionTelemetry::default();
         let store = Store::genesis();
-        let footer = build_footer_with_budget(&telemetry, &store, None, vec![], Some(0.1));
+        // Q(t)=0.1 is Warn per INV-HARVEST-005 (0.05 <= 0.1 < 0.15)
+        let footer_warn = build_footer_with_budget(&telemetry, &store, None, vec![], Some(0.1));
         assert_eq!(
-            footer.harvest_warning,
+            footer_warn.harvest_warning,
+            HarvestWarningLevel::Warn,
+            "Q(t)=0.1 should set Warn warning level"
+        );
+        // Q(t)=0.03 is Critical per INV-HARVEST-005 (< 0.05)
+        let footer_crit = build_footer_with_budget(&telemetry, &store, None, vec![], Some(0.03));
+        assert_eq!(
+            footer_crit.harvest_warning,
             HarvestWarningLevel::Critical,
-            "Q(t)=0.1 should set Critical warning level"
+            "Q(t)=0.03 should set Critical warning level"
         );
     }
 
@@ -3223,12 +3255,13 @@ mod tests {
             ..Default::default()
         };
         let store = Store::genesis();
+        // Q(t)=0.1 is Warn per INV-HARVEST-005 (0.05 <= 0.1 < 0.15)
         let footer = build_footer_with_budget(
             &telemetry,
             &store,
             Some("braid harvest --commit".into()),
             vec![],
-            Some(0.2), // Warn level
+            Some(0.1), // Warn level per new spec-aligned thresholds
         );
         let formatted = format_footer_at_level(&footer, GuidanceLevel::Full);
         assert!(
@@ -3274,7 +3307,7 @@ mod tests {
             &store,
             None,
             vec![],
-            Some(0.05), // Critical
+            Some(0.03), // Critical per INV-HARVEST-005 (< 0.05)
         );
         let formatted = format_footer_at_level(&footer, GuidanceLevel::Compressed);
         assert!(
@@ -3297,7 +3330,7 @@ mod tests {
             &store,
             Some("braid harvest --commit".into()),
             vec![],
-            Some(0.05), // Critical
+            Some(0.03), // Critical per INV-HARVEST-005 (< 0.05)
         );
         let formatted = format_footer_at_level(&footer, GuidanceLevel::HarvestOnly);
         assert!(
@@ -3320,7 +3353,7 @@ mod tests {
             &store,
             Some("braid query [:find ?e :where [?e :db/ident]]".into()),
             vec![],
-            Some(0.05), // Critical
+            Some(0.03), // Critical per INV-HARVEST-005 (< 0.05)
         );
         let formatted = format_footer_at_level(&footer, GuidanceLevel::Minimal);
         assert!(

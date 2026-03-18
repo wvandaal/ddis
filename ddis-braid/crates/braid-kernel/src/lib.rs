@@ -158,7 +158,7 @@ pub use signal::{
     ConfusionDetector, Severity, Signal, SignalAction, SignalType,
 };
 pub use stage::{capabilities, max_stage, stage_name};
-pub use store::{Frontier, MergeReceipt, Store, TxData, TxReceipt};
+pub use store::{Frontier, MergeCascadeReceipt, MergeReceipt, Store, TxData, TxReceipt};
 pub use task::{
     all_tasks, check_dependency_acyclicity, close_task_datoms, compute_ready_set,
     create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, resolve_task_status,

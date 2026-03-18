@@ -304,9 +304,100 @@ pub fn add_position(
     (entity, datoms)
 }
 
-/// Record a decision for a deliberation.
+/// Default stability minimum threshold.
+///
+/// INV-DELIBERATION-002: No decision is recorded unless `stability >= STABILITY_MIN`.
+/// UNC-DELIBERATION-001: This default of 0.7 may be adjusted per entity type
+/// after Stage 2 calibration. Stored as a configurable datom at `:config/stability-min`.
+pub const STABILITY_MIN: f64 = 0.7;
+
+/// Error returned when a decision fails the stability guard.
+///
+/// INV-DELIBERATION-002: Stability Guard Enforcement.
+#[derive(Clone, Debug)]
+pub struct StabilityError {
+    /// The deliberation that failed the guard.
+    pub deliberation: EntityId,
+    /// The measured stability score.
+    pub score: f64,
+    /// The required minimum.
+    pub required: f64,
+    /// Number of positions at the time of the check.
+    pub position_count: usize,
+}
+
+impl std::fmt::Display for StabilityError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "stability guard failed: score {:.2} < required {:.2} ({} positions)",
+            self.score, self.required, self.position_count
+        )
+    }
+}
+
+impl std::error::Error for StabilityError {}
+
+/// Record a decision for a deliberation with stability guard enforcement.
+///
+/// INV-DELIBERATION-002: `decide(d) => stability(d.chosen) >= stability_min`.
+/// Checks `check_stability(store, deliberation)` before generating decision datoms.
+/// Returns `Err(StabilityError)` if the stability score is below `STABILITY_MIN`.
+///
+/// Minimum requirements for the guard to pass:
+/// - At least 2 positions submitted (ensures meaningful deliberation)
+/// - Stability score >= STABILITY_MIN (0.7 default)
+///
+/// # Traces To
+///
+/// - spec/11-deliberation.md INV-DELIBERATION-002
+/// - UNC-DELIBERATION-001 (threshold calibration)
+pub fn decide_with_guard(
+    store: &Store,
+    deliberation: EntityId,
+    chosen_position: EntityId,
+    method: DecisionMethod,
+    rationale: &str,
+    tx_id: TxId,
+) -> Result<(EntityId, Vec<Datom>), StabilityError> {
+    let stability = check_stability(store, deliberation);
+
+    // Guard: minimum position count (need at least 2 positions for meaningful deliberation)
+    if stability.total_positions < 2 {
+        return Err(StabilityError {
+            deliberation,
+            score: stability.score,
+            required: STABILITY_MIN,
+            position_count: stability.total_positions,
+        });
+    }
+
+    // Guard: stability score must meet minimum threshold
+    if stability.score < STABILITY_MIN {
+        return Err(StabilityError {
+            deliberation,
+            score: stability.score,
+            required: STABILITY_MIN,
+            position_count: stability.total_positions,
+        });
+    }
+
+    Ok(decide(
+        deliberation,
+        chosen_position,
+        method,
+        rationale,
+        tx_id,
+    ))
+}
+
+/// Record a decision for a deliberation (unchecked — no stability guard).
 ///
 /// INV-DELIBERATION-005: Decision method matches available positions.
+///
+/// **Prefer `decide_with_guard`** which enforces INV-DELIBERATION-002.
+/// This unchecked variant exists for cases where the caller has already
+/// verified stability externally, or for backward compatibility in tests.
 pub fn decide(
     deliberation: EntityId,
     chosen_position: EntityId,
@@ -1096,6 +1187,250 @@ mod tests {
         assert!(
             store.entity_datoms(delib_entity).len() >= 3,
             "Deliberation entity must have ident + topic + status + contested-attrs"
+        );
+    }
+
+    // --- INV-DELIBERATION-002: Stability Guard Enforcement tests ---
+
+    /// Verifies: INV-DELIBERATION-002 — decide_with_guard rejects unstable deliberations.
+    /// A deliberation with a split vote (score = 0.5) must be rejected.
+    #[test]
+    fn stability_guard_rejects_split_vote() {
+        let agent = test_agent();
+
+        let (delib, delib_datoms) = open_deliberation("guard-split", &[], test_tx(100));
+        let (pos_a, pos_a_datoms) =
+            add_position(delib, "option-a", "faster", &[], agent, test_tx(200));
+        let (_, pos_b_datoms) = add_position(delib, "option-b", "safer", &[], agent, test_tx(300));
+
+        let mut all_datoms = Store::genesis().datom_set().clone();
+        for d in delib_datoms
+            .iter()
+            .chain(pos_a_datoms.iter())
+            .chain(pos_b_datoms.iter())
+        {
+            all_datoms.insert(d.clone());
+        }
+        let store = Store::from_datoms(all_datoms);
+
+        // Stability is 0.5 (split vote), below STABILITY_MIN (0.7)
+        let result = decide_with_guard(
+            &store,
+            delib,
+            pos_a,
+            DecisionMethod::Authority,
+            "trying to decide a split vote",
+            test_tx(400),
+        );
+
+        assert!(
+            result.is_err(),
+            "INV-DELIBERATION-002: decide_with_guard must reject split vote (stability 0.5 < 0.7)"
+        );
+        let err = result.unwrap_err();
+        assert!(
+            err.score < STABILITY_MIN,
+            "error must report score below STABILITY_MIN"
+        );
+        assert_eq!(err.position_count, 2);
+    }
+
+    /// Verifies: INV-DELIBERATION-002 — decide_with_guard accepts unanimous deliberations.
+    /// A deliberation where all positions agree (score = 1.0) must pass.
+    #[test]
+    fn stability_guard_accepts_unanimous() {
+        let agent = test_agent();
+
+        let (delib, delib_datoms) = open_deliberation("guard-unanimous", &[], test_tx(100));
+        let (pos_a, pos_a_datoms) =
+            add_position(delib, "agree", "reason 1", &[], agent, test_tx(200));
+        let (_, pos_b_datoms) = add_position(delib, "agree", "reason 2", &[], agent, test_tx(300));
+
+        let mut all_datoms = Store::genesis().datom_set().clone();
+        for d in delib_datoms
+            .iter()
+            .chain(pos_a_datoms.iter())
+            .chain(pos_b_datoms.iter())
+        {
+            all_datoms.insert(d.clone());
+        }
+        let store = Store::from_datoms(all_datoms);
+
+        // Stability is 1.0 (unanimous), well above STABILITY_MIN (0.7)
+        let result = decide_with_guard(
+            &store,
+            delib,
+            pos_a,
+            DecisionMethod::Consensus,
+            "unanimous agreement",
+            test_tx(400),
+        );
+
+        assert!(
+            result.is_ok(),
+            "INV-DELIBERATION-002: decide_with_guard must accept unanimous (stability 1.0 >= 0.7)"
+        );
+        let (decision_entity, decision_datoms) = result.unwrap();
+        // Verify decision entity was created
+        let has_delib_ref = decision_datoms
+            .iter()
+            .any(|d| d.attribute.as_str() == ":decision/deliberation");
+        assert!(has_delib_ref, "decision must reference deliberation");
+        assert_ne!(
+            decision_entity, delib,
+            "decision entity must differ from deliberation entity"
+        );
+    }
+
+    /// Verifies: INV-DELIBERATION-002 — decide_with_guard rejects when too few positions.
+    /// A deliberation with fewer than 2 positions must be rejected regardless of score.
+    #[test]
+    fn stability_guard_rejects_insufficient_positions() {
+        let agent = test_agent();
+
+        let (delib, delib_datoms) = open_deliberation("guard-single", &[], test_tx(100));
+        let (pos, pos_datoms) = add_position(
+            delib,
+            "only-option",
+            "no alternatives",
+            &[],
+            agent,
+            test_tx(200),
+        );
+
+        let mut all_datoms = Store::genesis().datom_set().clone();
+        for d in delib_datoms.iter().chain(pos_datoms.iter()) {
+            all_datoms.insert(d.clone());
+        }
+        let store = Store::from_datoms(all_datoms);
+
+        // Only 1 position — guard must reject even though score would be 1.0
+        let result = decide_with_guard(
+            &store,
+            delib,
+            pos,
+            DecisionMethod::Authority,
+            "single position",
+            test_tx(300),
+        );
+
+        assert!(
+            result.is_err(),
+            "INV-DELIBERATION-002: must reject with only 1 position"
+        );
+        assert_eq!(result.unwrap_err().position_count, 1);
+    }
+
+    /// Verifies: INV-DELIBERATION-002 — majority vote passes guard.
+    /// 3 positions with 2 agreeing (score = 0.67) is below STABILITY_MIN,
+    /// so the guard must reject it.
+    #[test]
+    fn stability_guard_rejects_weak_majority() {
+        let agent = test_agent();
+
+        let (delib, delib_datoms) = open_deliberation("guard-majority", &[], test_tx(100));
+        let (pos_a, pos_a_datoms) =
+            add_position(delib, "option-a", "reason 1", &[], agent, test_tx(200));
+        let (_, pos_a2_datoms) =
+            add_position(delib, "option-a", "reason 2", &[], agent, test_tx(300));
+        let (_, pos_b_datoms) =
+            add_position(delib, "option-b", "dissent", &[], agent, test_tx(400));
+
+        let mut all_datoms = Store::genesis().datom_set().clone();
+        for d in delib_datoms
+            .iter()
+            .chain(pos_a_datoms.iter())
+            .chain(pos_a2_datoms.iter())
+            .chain(pos_b_datoms.iter())
+        {
+            all_datoms.insert(d.clone());
+        }
+        let store = Store::from_datoms(all_datoms);
+
+        // Stability = 2/3 = 0.667, below STABILITY_MIN (0.7)
+        let result = decide_with_guard(
+            &store,
+            delib,
+            pos_a,
+            DecisionMethod::Majority,
+            "two out of three",
+            test_tx(500),
+        );
+
+        assert!(
+            result.is_err(),
+            "INV-DELIBERATION-002: 2/3 majority (0.67) is below STABILITY_MIN (0.7)"
+        );
+    }
+
+    /// Verifies: decide_with_guard passes with strong majority (>= 0.7).
+    /// 4 positions: 3 agree + 1 dissent → score = 0.75 >= 0.7 → pass.
+    #[test]
+    fn stability_guard_accepts_strong_majority() {
+        let agent = test_agent();
+
+        let (delib, delib_datoms) = open_deliberation("guard-strong", &[], test_tx(100));
+        let (pos_a, pos_a_datoms) = add_position(delib, "option-a", "r1", &[], agent, test_tx(200));
+        let (_, pos_a2_datoms) = add_position(delib, "option-a", "r2", &[], agent, test_tx(300));
+        let (_, pos_a3_datoms) = add_position(delib, "option-a", "r3", &[], agent, test_tx(400));
+        let (_, pos_b_datoms) =
+            add_position(delib, "option-b", "dissent", &[], agent, test_tx(500));
+
+        let mut all_datoms = Store::genesis().datom_set().clone();
+        for d in delib_datoms
+            .iter()
+            .chain(pos_a_datoms.iter())
+            .chain(pos_a2_datoms.iter())
+            .chain(pos_a3_datoms.iter())
+            .chain(pos_b_datoms.iter())
+        {
+            all_datoms.insert(d.clone());
+        }
+        let store = Store::from_datoms(all_datoms);
+
+        // Stability = 3/4 = 0.75 >= 0.7 → pass
+        let result = decide_with_guard(
+            &store,
+            delib,
+            pos_a,
+            DecisionMethod::Majority,
+            "three out of four",
+            test_tx(600),
+        );
+
+        assert!(
+            result.is_ok(),
+            "INV-DELIBERATION-002: 3/4 majority (0.75) meets STABILITY_MIN (0.7)"
+        );
+    }
+
+    /// Verifies: STABILITY_MIN constant matches UNC-DELIBERATION-001 default.
+    #[test]
+    fn stability_min_matches_spec_default() {
+        assert!(
+            (STABILITY_MIN - 0.7).abs() < f64::EPSILON,
+            "STABILITY_MIN must be 0.7 per UNC-DELIBERATION-001"
+        );
+    }
+
+    /// Verifies: StabilityError provides useful diagnostic information.
+    #[test]
+    fn stability_error_display() {
+        let err = StabilityError {
+            deliberation: EntityId::from_ident(":test/delib"),
+            score: 0.5,
+            required: 0.7,
+            position_count: 2,
+        };
+        let msg = format!("{err}");
+        assert!(msg.contains("0.50"), "error message must show score");
+        assert!(
+            msg.contains("0.70"),
+            "error message must show required threshold"
+        );
+        assert!(
+            msg.contains("2 positions"),
+            "error message must show position count"
         );
     }
 }

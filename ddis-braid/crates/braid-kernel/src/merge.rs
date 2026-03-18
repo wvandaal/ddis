@@ -755,6 +755,235 @@ mod tests {
     }
 
     // -------------------------------------------------------------------
+    // merge_with_cascade integration tests
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-MERGE-009 — merge_with_cascade runs cascade automatically
+    // Verifies: ADR-MERGE-007 — Cascade stub datoms transacted into store
+    // Verifies: NEG-MERGE-002 — No merge without cascade
+    #[test]
+    fn merge_with_cascade_conflicting_stores() {
+        let mut s1 = Store::genesis();
+        let mut s2 = Store::genesis();
+
+        let entity = EntityId::from_ident(":test/cascade-wire");
+        let a1 = AgentId::from_name("alice");
+        let a2 = AgentId::from_name("bob");
+
+        // Two agents assert different values for same entity+attribute
+        let tx1 = Transaction::new(a1, ProvenanceType::Observed, "alice's value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alice says".into()),
+            )
+            .commit(&s1)
+            .unwrap();
+        s1.transact(tx1).unwrap();
+
+        let tx2 = Transaction::new(a2, ProvenanceType::Observed, "bob's value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("bob says".into()),
+            )
+            .commit(&s2)
+            .unwrap();
+        s2.transact(tx2).unwrap();
+
+        let pre_datom_count = s1.len();
+        let receipt = s1.merge_with_cascade(&s2, a1);
+
+        // MergeReceipt: new datoms from s2
+        assert!(
+            receipt.merge.new_datoms > 0,
+            "merge should introduce new datoms from s2"
+        );
+
+        // CascadeReceipt: conflicts detected
+        assert!(
+            receipt.cascade.conflicts_detected > 0,
+            "cascade should detect conflicts on :db/doc"
+        );
+
+        // CascadeReceipt: exactly 7 stub datoms
+        assert_eq!(
+            receipt.cascade.stub_datoms.len(),
+            7,
+            "ADR-MERGE-007: cascade must produce exactly 7 stub datoms"
+        );
+
+        // CascadeReceipt: steps_completed == 1 at Stage 0
+        assert_eq!(
+            receipt.cascade.steps_completed, 1,
+            "Stage 0: only step 1 is real"
+        );
+
+        // Stub datoms are now IN the store
+        let post_datom_count = s1.len();
+        assert!(
+            post_datom_count >= pre_datom_count + receipt.merge.new_datoms + 7,
+            "store should contain merge datoms + 7 cascade stubs: \
+             pre={pre_datom_count}, post={post_datom_count}, \
+             new_merge={}, stubs=7",
+            receipt.merge.new_datoms,
+        );
+
+        // Verify cascade stubs are queryable in the store
+        let cascade_status: Vec<_> = s1
+            .datoms()
+            .filter(|d| d.attribute == Attribute::from_keyword(":merge/cascade-status"))
+            .collect();
+        assert!(
+            !cascade_status.is_empty(),
+            "store must contain :merge/cascade-status datom after merge_with_cascade"
+        );
+        assert_eq!(
+            cascade_status[0].value,
+            Value::Keyword(":stub".into()),
+            "cascade-status should be :stub at Stage 0"
+        );
+    }
+
+    // Verifies: INV-MERGE-009 — cascade stubs generated even with 0 conflicts
+    // Verifies: ADR-MERGE-007 — stubs always produced
+    #[test]
+    fn merge_with_cascade_disjoint_stores() {
+        let mut s1 = Store::genesis();
+        let mut s2 = Store::genesis();
+
+        let a1 = AgentId::from_name("alice");
+        let a2 = AgentId::from_name("bob");
+
+        // Disjoint entities — no conflicts
+        let tx1 = Transaction::new(a1, ProvenanceType::Observed, "a")
+            .assert(
+                EntityId::from_ident(":test/disjoint-a"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alice".into()),
+            )
+            .commit(&s1)
+            .unwrap();
+        s1.transact(tx1).unwrap();
+
+        let tx2 = Transaction::new(a2, ProvenanceType::Observed, "b")
+            .assert(
+                EntityId::from_ident(":test/disjoint-b"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("bob".into()),
+            )
+            .commit(&s2)
+            .unwrap();
+        s2.transact(tx2).unwrap();
+
+        let receipt = s1.merge_with_cascade(&s2, a1);
+
+        assert!(receipt.merge.new_datoms > 0, "disjoint merge adds datoms");
+        assert_eq!(
+            receipt.cascade.conflicts_detected, 0,
+            "disjoint entities produce no conflicts"
+        );
+        assert_eq!(
+            receipt.cascade.stub_datoms.len(),
+            7,
+            "stubs always produced even with 0 conflicts"
+        );
+
+        // Stubs are in the store
+        let triggered: Vec<_> = s1
+            .datoms()
+            .filter(|d| d.attribute == Attribute::from_keyword(":merge/cascade-triggered"))
+            .collect();
+        assert!(
+            !triggered.is_empty(),
+            "cascade-triggered datom must be in store"
+        );
+    }
+
+    // Verifies: Edge case — merging identical stores
+    // 0 new datoms, 0 conflicts, but stubs still generated and injected
+    #[test]
+    fn merge_with_cascade_identical_stores() {
+        let s1 = Store::genesis();
+        let s2 = Store::genesis();
+
+        let agent = AgentId::from_name("test-agent");
+        let pre_count = s1.len();
+
+        let mut target = s1.clone_store();
+        let receipt = target.merge_with_cascade(&s2, agent);
+
+        assert_eq!(
+            receipt.merge.new_datoms, 0,
+            "identical stores should produce 0 new datoms"
+        );
+        assert_eq!(
+            receipt.cascade.conflicts_detected, 0,
+            "identical stores should produce 0 conflicts"
+        );
+        assert_eq!(
+            receipt.cascade.stub_datoms.len(),
+            7,
+            "stubs always produced even for identical stores"
+        );
+
+        // Store grew by exactly 7 (the cascade stubs)
+        assert_eq!(
+            target.len(),
+            pre_count + 7,
+            "store should grow by exactly 7 cascade stub datoms"
+        );
+    }
+
+    // Verifies: cascade stubs have correct provenance (cascade_agent)
+    #[test]
+    fn merge_with_cascade_stubs_have_correct_agent() {
+        let mut s1 = Store::genesis();
+        let s2 = Store::genesis();
+
+        let merge_agent = AgentId::from_name("merge-operator");
+        let receipt = s1.merge_with_cascade(&s2, merge_agent);
+
+        // All stub datoms should reference the cascade agent
+        for stub in &receipt.cascade.stub_datoms {
+            assert_eq!(
+                stub.tx.agent, merge_agent,
+                "cascade stub datom TxId must reference the cascade_agent"
+            );
+        }
+    }
+
+    // Verifies: cascade stubs are queryable via attribute index
+    #[test]
+    fn merge_with_cascade_stubs_indexed() {
+        let mut s1 = Store::genesis();
+        let s2 = Store::genesis();
+
+        let agent = AgentId::from_name("indexer");
+        s1.merge_with_cascade(&s2, agent);
+
+        // Query all cascade-related attributes
+        let cascade_attrs = [
+            ":merge/cascade-status",
+            ":merge/cascade-triggered",
+            ":merge/duplicate-count",
+            ":cascade/cache-invalidation",
+            ":cascade/secondary-conflicts",
+            ":cascade/uncertainty-delta",
+            ":cascade/projection-staleness",
+        ];
+
+        for attr_str in &cascade_attrs {
+            let attr = Attribute::from_keyword(attr_str);
+            let found = s1.datoms().any(|d| d.attribute == attr);
+            assert!(
+                found,
+                "cascade attribute {attr_str} must be queryable in store after merge_with_cascade"
+            );
+        }
+    }
+
+    // -------------------------------------------------------------------
     // Property-based tests (proptest)
     // -------------------------------------------------------------------
 
@@ -822,6 +1051,40 @@ mod tests {
                 prop_assert!(
                     verify_monotonicity(&pre, merged.datom_set()),
                     "INV-STORE-007: target store datoms must be a subset of post-merge datoms"
+                );
+            }
+
+            // Verifies: ADR-MERGE-007 — cascade stubs always exactly 7 datoms
+            // Verifies: INV-MERGE-010 — cascade determinism (same inputs → same outputs)
+            #[test]
+            fn cascade_stubs_always_seven_datoms((s1, s2) in arb_store_pair(2)) {
+                let mut target = s1.clone_store();
+                let agent = AgentId::from_name("prop-agent");
+                let receipt = target.merge_with_cascade(&s2, agent);
+
+                prop_assert_eq!(
+                    receipt.cascade.stub_datoms.len(),
+                    7,
+                    "ADR-MERGE-007: cascade must always produce exactly 7 stub datoms"
+                );
+            }
+
+            // Verifies: INV-MERGE-010 — cascade determinism
+            // Same inputs produce same cascade stub datoms
+            #[test]
+            fn cascade_stubs_deterministic((s1, s2) in arb_store_pair(2)) {
+                let agent = AgentId::from_name("det-agent");
+
+                let mut target_a = s1.clone_store();
+                let receipt_a = target_a.merge_with_cascade(&s2, agent);
+
+                let mut target_b = s1.clone_store();
+                let receipt_b = target_b.merge_with_cascade(&s2, agent);
+
+                prop_assert_eq!(
+                    receipt_a.cascade.stub_datoms,
+                    receipt_b.cascade.stub_datoms,
+                    "INV-MERGE-010: cascade stubs must be deterministic"
                 );
             }
         }

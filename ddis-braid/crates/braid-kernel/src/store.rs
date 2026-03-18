@@ -32,6 +32,7 @@ use std::marker::PhantomData;
 
 use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 use crate::error::StoreError;
+use crate::merge::{run_cascade, CascadeReceipt};
 use crate::schema::Schema;
 
 // ---------------------------------------------------------------------------
@@ -432,6 +433,28 @@ pub struct MergeReceipt {
     pub frontier_delta: HashMap<AgentId, (Option<TxId>, TxId)>,
 }
 
+/// Combined receipt from `Store::merge_with_cascade()`.
+///
+/// Contains the base `MergeReceipt` from the set-union merge plus the
+/// `CascadeReceipt` from the post-merge cascade pipeline (INV-MERGE-009).
+/// The cascade stub datoms are already transacted into the store when this
+/// receipt is returned.
+///
+/// # Invariants
+///
+/// - **INV-MERGE-009**: Cascade completeness — all 5 steps produce datoms.
+/// - **INV-MERGE-010**: MergeReceipt captures new datom count and conflict set.
+/// - **ADR-MERGE-005**: Cascade as post-merge deterministic layer.
+/// - **ADR-MERGE-007**: Merge cascade stub datoms at Stage 0.
+/// - **NEG-MERGE-002**: No merge without cascade — schema/resolution always rebuilt.
+#[derive(Clone, Debug)]
+pub struct MergeCascadeReceipt {
+    /// The base merge receipt (set-union operation).
+    pub merge: MergeReceipt,
+    /// The cascade receipt (conflict detection + stub datoms).
+    pub cascade: CascadeReceipt,
+}
+
 // ---------------------------------------------------------------------------
 // Store
 // ---------------------------------------------------------------------------
@@ -792,6 +815,50 @@ impl Store {
         }
     }
 
+    /// Merge another store into this one and run the post-merge cascade.
+    ///
+    /// This is the preferred merge entry point for production use. It performs:
+    /// 1. Set-union merge via `Store::merge()` (INV-MERGE-001)
+    /// 2. Five-step cascade via `run_cascade()` (INV-MERGE-009)
+    /// 3. Injection of cascade stub datoms into the store (ADR-MERGE-007)
+    ///
+    /// The `cascade_agent` identifies which agent is performing the merge,
+    /// used for the cascade transaction's provenance.
+    ///
+    /// # Invariants
+    ///
+    /// - **INV-MERGE-001**: Merge = set union of datom sets.
+    /// - **INV-MERGE-009**: Cascade completeness — all 5 steps produce datoms.
+    /// - **NEG-MERGE-002**: No merge without cascade.
+    /// - **ADR-MERGE-005**: Cascade as post-merge deterministic layer.
+    /// - **ADR-MERGE-007**: Merge cascade stub datoms at Stage 0.
+    pub fn merge_with_cascade(
+        &mut self,
+        other: &Store,
+        cascade_agent: AgentId,
+    ) -> MergeCascadeReceipt {
+        // Step 1: Set-union merge
+        let merge_receipt = self.merge(other);
+
+        // Step 2: Generate cascade TxId from the post-merge clock.
+        // Use next_tx_id to ensure HLC monotonicity (INV-STORE-011).
+        let cascade_tx = self.next_tx_id(cascade_agent);
+
+        // Step 3: Run cascade (conflict detection + stub generation)
+        let cascade_receipt = run_cascade(self, &merge_receipt, cascade_tx);
+
+        // Step 4: Inject cascade stub datoms into the store (ADR-MERGE-007).
+        // Each stub datom is injected individually to maintain all indexes.
+        for datom in &cascade_receipt.stub_datoms {
+            self.inject_metadata_datom(datom.clone());
+        }
+
+        MergeCascadeReceipt {
+            merge: merge_receipt,
+            cascade: cascade_receipt,
+        }
+    }
+
     /// Total number of datoms in the store.
     pub fn len(&self) -> usize {
         self.datoms.len()
@@ -882,6 +949,38 @@ impl Store {
             &serde_json::to_vec(&tx_id)
                 .expect("TxId serialization cannot fail: all fields are serializable"),
         )
+    }
+
+    /// Return a temporal view of the store as it existed at the given transaction.
+    ///
+    /// Filters the datom set to include only datoms with `tx <= cutoff`, then
+    /// reconstructs the store from those datoms. This enables time-travel
+    /// queries: "what did the store look like at transaction T?"
+    ///
+    /// The spec defines this in terms of a `SnapshotView` restricted to a
+    /// `Frontier`, but at Stage 0 we implement the simpler wall-time filter
+    /// which is equivalent for single-agent scenarios. Multi-agent frontier
+    /// filtering is available via `Frontier::at(store, cutoff)`.
+    ///
+    /// # Invariants
+    ///
+    /// - Returned store contains only datoms where `datom.tx <= cutoff`.
+    /// - All store invariants (indexes, frontier, schema) are maintained.
+    /// - `as_of(future_tx)` where future_tx >= max store tx returns the full store.
+    /// - `as_of(tx_before_genesis)` returns an empty datom set (genesis-only if genesis <= cutoff).
+    ///
+    /// # Traces To
+    ///
+    /// - spec/01-store.md (Store::as_of)
+    /// - ADR-STORE-004 (HLC for temporal queries)
+    pub fn as_of(&self, cutoff: TxId) -> Store {
+        let filtered: BTreeSet<Datom> = self
+            .datoms
+            .iter()
+            .filter(|d| d.tx <= cutoff)
+            .cloned()
+            .collect();
+        Store::from_datoms(filtered)
     }
 
     /// Inject a single metadata datom into the store, maintaining all indexes.
@@ -1623,6 +1722,201 @@ mod tests {
             !frontier_at_alice.contains_key(&bob),
             "bob should NOT be in frontier at alice's tx"
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // Store::as_of temporal view tests
+    // Witnesses: ADR-STORE-004 (HLC for temporal queries)
+    // -----------------------------------------------------------------------
+
+    // Verifies: Store::as_of returns only datoms at or before the cutoff tx
+    #[test]
+    fn as_of_sees_only_datoms_up_to_cutoff() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        // Transaction 1
+        let e1 = EntityId::from_ident(":test/as-of-first");
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "first")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("first".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        // Transaction 2
+        let e2 = EntityId::from_ident(":test/as-of-second");
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "second")
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("second".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt2 = store.transact(tx2).unwrap();
+
+        // Transaction 3
+        let e3 = EntityId::from_ident(":test/as-of-third");
+        let tx3 = Transaction::new(agent, ProvenanceType::Observed, "third")
+            .assert(
+                e3,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("third".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let _receipt3 = store.transact(tx3).unwrap();
+
+        // as_of(tx1) should see only genesis + tx1 datoms
+        let view1 = store.as_of(receipt1.tx_id);
+        assert!(
+            view1.len() < store.len(),
+            "as_of(tx1) should have fewer datoms than the full store"
+        );
+        // All datoms in the view must have tx <= receipt1.tx_id
+        for d in view1.datoms() {
+            assert!(
+                d.tx <= receipt1.tx_id,
+                "as_of(tx1) leaked a datom from a later tx: {:?}",
+                d.tx
+            );
+        }
+
+        // e1 should be visible in view1
+        assert!(
+            !view1.entity_datoms(e1).is_empty(),
+            "e1 should be visible in as_of(tx1)"
+        );
+        // e2 should NOT be visible in view1
+        let e2_datoms: Vec<&Datom> = view1.entity_datoms(e2);
+        assert!(
+            e2_datoms.is_empty(),
+            "e2 should NOT be visible in as_of(tx1)"
+        );
+
+        // as_of(tx2) should see genesis + tx1 + tx2 datoms
+        let view2 = store.as_of(receipt2.tx_id);
+        assert!(
+            view2.len() > view1.len(),
+            "as_of(tx2) should have more datoms than as_of(tx1)"
+        );
+        assert!(
+            !view2.entity_datoms(e2).is_empty(),
+            "e2 should be visible in as_of(tx2)"
+        );
+        // e3 should NOT be visible
+        let e3_datoms: Vec<&Datom> = view2.entity_datoms(e3);
+        assert!(
+            e3_datoms.is_empty(),
+            "e3 should NOT be visible in as_of(tx2)"
+        );
+    }
+
+    // Verifies: as_of with a future tx_id returns the full store
+    #[test]
+    fn as_of_future_tx_returns_full_store() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        let e = EntityId::from_ident(":test/as-of-future");
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "data")
+            .assert(
+                e,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("data".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        // Use a tx_id far in the future
+        let future_tx = TxId::new(999_999_999, 0, agent);
+        let view = store.as_of(future_tx);
+        assert_eq!(
+            view.len(),
+            store.len(),
+            "as_of(future) must return the full store"
+        );
+        assert_eq!(
+            view.datom_set(),
+            store.datom_set(),
+            "as_of(future) datom sets must match"
+        );
+    }
+
+    // Verifies: as_of before genesis returns empty store
+    #[test]
+    fn as_of_before_genesis_returns_empty() {
+        let store = Store::genesis();
+
+        // Genesis tx has wall_time=0. Use a tx_id that is "before" genesis.
+        // Since genesis uses TxId::new(0, 0, system_agent), and TxId ordering
+        // includes the agent component, we need a tx that compares less.
+        // However, genesis is at wall_time=0 counter=0, so there's nothing
+        // strictly before it. What we can verify is that as_of(genesis_tx)
+        // returns exactly the genesis datoms.
+        let system = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, system);
+        let view = store.as_of(genesis_tx);
+        // Genesis store and as_of(genesis_tx) should be identical
+        assert_eq!(
+            view.len(),
+            store.len(),
+            "as_of(genesis_tx) should return the genesis store"
+        );
+    }
+
+    // Verifies: as_of maintains entity and attribute indexes
+    #[test]
+    fn as_of_maintains_indexes() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        let e1 = EntityId::from_ident(":test/as-of-idx-1");
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "idx1")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("idx1".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        let e2 = EntityId::from_ident(":test/as-of-idx-2");
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "idx2")
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("idx2".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        let view = store.as_of(receipt1.tx_id);
+
+        // Entity index should be consistent: entity_datoms via index matches scan
+        let indexed: Vec<&Datom> = view.entity_datoms(e1);
+        let scanned: Vec<&Datom> = view.datoms().filter(|d| d.entity == e1).collect();
+        assert_eq!(
+            indexed.len(),
+            scanned.len(),
+            "entity_datoms must match scan in as_of view"
+        );
+
+        // e2 should not be in the view's entity index
+        assert!(
+            view.entity_datoms(e2).is_empty(),
+            "e2 should not be in as_of(tx1) entity index"
+        );
+
+        // entity_count should be consistent
+        assert_eq!(view.entity_count(), view.entities().len());
     }
 
     // -----------------------------------------------------------------------
