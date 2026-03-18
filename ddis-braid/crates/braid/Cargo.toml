@@ -13,6 +13,7 @@ stage3 = ["stage2", "braid-kernel/stage3"]
 
 [dependencies]
 braid-kernel = { path = "../braid-kernel" }
+bincode = "1"
 blake3 = { workspace = true }
 clap = { version = "4", features = ["derive"] }
 libc = "0.2"

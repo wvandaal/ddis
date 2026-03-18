@@ -734,7 +734,29 @@ impl Store {
                     self.attribute_index
                         .entry(d.attribute.clone())
                         .or_default()
-                        .push(d);
+                        .push(d.clone());
+                    // VAET: index Ref-valued datoms (ADR-STORE-005, INV-STORE-IDX-003)
+                    if let Value::Ref(target) = &d.value {
+                        self.vaet_index.entry(*target).or_default().push(d.clone());
+                    }
+                    // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-IDX-004)
+                    if d.op == Op::Assert {
+                        self.avet_index
+                            .entry((d.attribute.clone(), d.value.clone()))
+                            .or_default()
+                            .push(d.clone());
+                        // LIVE: LWW — highest tx wins (INV-STORE-012)
+                        let key = (d.entity, d.attribute.clone());
+                        self.live_view
+                            .entry(key)
+                            .and_modify(|(v, tx)| {
+                                if d.tx > *tx {
+                                    *v = d.value.clone();
+                                    *tx = d.tx;
+                                }
+                            })
+                            .or_insert((d.value.clone(), d.tx));
+                    }
                 }
             }
             if !new_entities.contains(&agent_entity_id) {
@@ -756,6 +778,31 @@ impl Store {
                     .entry(datom.attribute.clone())
                     .or_default()
                     .push(datom.clone());
+                // VAET: index Ref-valued datoms (ADR-STORE-005, INV-STORE-IDX-003)
+                if let Value::Ref(target) = &datom.value {
+                    self.vaet_index
+                        .entry(*target)
+                        .or_default()
+                        .push(datom.clone());
+                }
+                // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-IDX-004)
+                if datom.op == Op::Assert {
+                    self.avet_index
+                        .entry((datom.attribute.clone(), datom.value.clone()))
+                        .or_default()
+                        .push(datom.clone());
+                    // LIVE: LWW — highest tx wins (INV-STORE-012)
+                    let key = (datom.entity, datom.attribute.clone());
+                    self.live_view
+                        .entry(key)
+                        .and_modify(|(v, tx)| {
+                            if datom.tx > *tx {
+                                *v = datom.value.clone();
+                                *tx = datom.tx;
+                            }
+                        })
+                        .or_insert((datom.value.clone(), datom.tx));
+                }
                 // Check if this entity is new (not in pre-existing set)
                 if !pre_existing.contains(&datom.entity) && !new_entities.contains(&datom.entity) {
                     new_entities.push(datom.entity);
@@ -782,7 +829,29 @@ impl Store {
                 self.attribute_index
                     .entry(d.attribute.clone())
                     .or_default()
-                    .push(d);
+                    .push(d.clone());
+                // VAET: index Ref-valued datoms (ADR-STORE-005, INV-STORE-IDX-003)
+                if let Value::Ref(target) = &d.value {
+                    self.vaet_index.entry(*target).or_default().push(d.clone());
+                }
+                // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-IDX-004)
+                if d.op == Op::Assert {
+                    self.avet_index
+                        .entry((d.attribute.clone(), d.value.clone()))
+                        .or_default()
+                        .push(d.clone());
+                    // LIVE: LWW — highest tx wins (INV-STORE-012)
+                    let key = (d.entity, d.attribute.clone());
+                    self.live_view
+                        .entry(key)
+                        .and_modify(|(v, tx)| {
+                            if d.tx > *tx {
+                                *v = d.value.clone();
+                                *tx = d.tx;
+                            }
+                        })
+                        .or_insert((d.value.clone(), d.tx));
+                }
             }
         }
 
@@ -843,10 +912,13 @@ impl Store {
             }
         }
 
-        // Rebuild schema, entity index, and attribute index from merged datoms
+        // Rebuild all indexes from merged datoms (ADR-STORE-005)
         self.schema = Schema::from_datoms(&self.datoms);
         self.entity_index = BTreeMap::new();
         self.attribute_index = BTreeMap::new();
+        self.vaet_index = BTreeMap::new();
+        self.avet_index = BTreeMap::new();
+        self.live_view = BTreeMap::new();
         for d in &self.datoms {
             self.entity_index
                 .entry(d.entity)
@@ -856,6 +928,27 @@ impl Store {
                 .entry(d.attribute.clone())
                 .or_default()
                 .push(d.clone());
+            // VAET: index Ref-valued datoms (INV-STORE-IDX-003)
+            if let Value::Ref(target) = &d.value {
+                self.vaet_index.entry(*target).or_default().push(d.clone());
+            }
+            // AVET + LIVE: index Assert datoms (INV-STORE-IDX-004, INV-STORE-012)
+            if d.op == Op::Assert {
+                self.avet_index
+                    .entry((d.attribute.clone(), d.value.clone()))
+                    .or_default()
+                    .push(d.clone());
+                let key = (d.entity, d.attribute.clone());
+                self.live_view
+                    .entry(key)
+                    .and_modify(|(v, tx)| {
+                        if d.tx > *tx {
+                            *v = d.value.clone();
+                            *tx = d.tx;
+                        }
+                    })
+                    .or_insert((d.value.clone(), d.tx));
+            }
         }
 
         let after = self.datoms.len();

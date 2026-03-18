@@ -8,6 +8,7 @@
 //!
 //! Pattern matching selects the narrowest index based on bound terms:
 //! - Entity bound (constant or already-bound variable) → entity index O(k)
+//! - Attribute + value both bound → AVET index O(1) (typically 1-5 datoms)
 //! - Attribute bound (constant) → attribute index O(k)
 //! - Neither → full scan O(N)
 //!
@@ -165,8 +166,9 @@ fn resolve_attribute(term: &Term) -> Option<Attribute> {
 ///
 /// Strategy (INV-QUERY-PERF-001):
 /// 1. If entity is bound → use entity_index (typically ~5-10 datoms per entity)
-/// 2. Else if attribute is a constant → use attribute_index (~100s of datoms per attr)
-/// 3. Else → full scan (last resort)
+/// 2. Else if attribute AND value are both bound → use AVET index (typically 1-5 datoms)
+/// 3. Else if attribute is a constant → use attribute_index (~100s of datoms per attr)
+/// 4. Else → full scan (last resort)
 fn match_pattern_indexed(store: &Store, pattern: &Pattern, existing: &Binding) -> Vec<Binding> {
     // Try entity index first (most selective)
     if let Some(eid) = resolve_entity(&pattern.entity, existing) {

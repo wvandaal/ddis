@@ -15,6 +15,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::time::SystemTime;
 
 use braid_kernel::datom::{AgentId, Datom, TxId};
 use braid_kernel::layout::{
@@ -22,8 +23,28 @@ use braid_kernel::layout::{
     TxFile, TxFilePath,
 };
 use braid_kernel::Store;
+use serde::{Deserialize, Serialize};
 
 use crate::error::BraidError;
+
+// ---------------------------------------------------------------------------
+// Cache metadata — persisted at .braid/.cache/meta.json
+// ---------------------------------------------------------------------------
+
+/// Cache metadata for freshness validation.
+///
+/// The `txn_fingerprint` is a BLAKE3 hash of the sorted, concatenated tx hashes.
+/// If the set of transaction files changes (add, remove, corrupt), the fingerprint
+/// changes and the cache is invalidated.
+#[derive(Serialize, Deserialize, Debug)]
+struct CacheMeta {
+    /// BLAKE3 hash of sorted tx hash list — changes when any txn file is added/removed.
+    txn_fingerprint: String,
+    /// Number of datoms when the cache was written (diagnostic, not used for validation).
+    datom_count: usize,
+    /// Unix timestamp (seconds) when the cache was written.
+    created_at: u64,
+}
 
 /// On-disk layout handle.
 ///
@@ -193,12 +214,118 @@ impl DiskLayout {
         Ok(hashes)
     }
 
+    // -------------------------------------------------------------------
+    // Cache persistence (.braid/.cache/)
+    // -------------------------------------------------------------------
+
+    /// Path to the cache directory: `.braid/.cache/`.
+    pub fn cache_dir(&self) -> PathBuf {
+        self.root.join(".cache")
+    }
+
+    /// Compute a fingerprint of the txns/ directory.
+    ///
+    /// The fingerprint is the BLAKE3 hash of the sorted, newline-joined tx hashes.
+    /// Any change to the set of transaction files (add, remove, rename) changes
+    /// the fingerprint and invalidates the cache.
+    fn txn_fingerprint(&self, hashes: &[String]) -> String {
+        let joined = hashes.join("\n");
+        ContentHash::of(joined.as_bytes()).to_hex()
+    }
+
+    /// Write the store's datom set to `.braid/.cache/datoms.bin` with a
+    /// freshness metadata file at `.braid/.cache/meta.json`.
+    ///
+    /// The cache contains a bincode-serialized `Vec<Datom>` (sorted, since
+    /// they come from the BTreeSet). Loading from cache avoids parsing N
+    /// individual EDN transaction files and is the fast path for `load_store()`.
+    pub fn write_index_cache(&self, store: &Store) -> Result<(), BraidError> {
+        let cache_dir = self.cache_dir();
+        fs::create_dir_all(&cache_dir)?;
+
+        // Serialize datoms as a sorted Vec via bincode.
+        let datoms: Vec<Datom> = store.datoms().cloned().collect();
+        let encoded = bincode::serialize(&datoms)
+            .map_err(|e| BraidError::Parse(format!("bincode serialize: {e}")))?;
+
+        // Write datoms.bin atomically: write to .tmp, then rename.
+        let bin_path = cache_dir.join("datoms.bin");
+        let tmp_path = cache_dir.join("datoms.bin.tmp");
+        fs::write(&tmp_path, &encoded)?;
+        fs::rename(&tmp_path, &bin_path)?;
+
+        // Write meta.json.
+        let hashes = self.list_tx_hashes()?;
+        let fingerprint = self.txn_fingerprint(&hashes);
+        let now = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        let meta = CacheMeta {
+            txn_fingerprint: fingerprint,
+            datom_count: datoms.len(),
+            created_at: now,
+        };
+        let meta_json =
+            serde_json::to_string_pretty(&meta).map_err(|e| BraidError::Parse(e.to_string()))?;
+        let meta_path = cache_dir.join("meta.json");
+        let meta_tmp = cache_dir.join("meta.json.tmp");
+        fs::write(&meta_tmp, meta_json)?;
+        fs::rename(&meta_tmp, &meta_path)?;
+
+        Ok(())
+    }
+
+    /// Try to read the cached datom set from `.braid/.cache/datoms.bin`.
+    ///
+    /// Returns `None` if the cache is missing, stale, or corrupt.
+    /// "Stale" means the txn_fingerprint in meta.json does not match the
+    /// current txns/ directory contents.
+    fn read_index_cache(&self, current_fingerprint: &str) -> Option<BTreeSet<Datom>> {
+        let cache_dir = self.cache_dir();
+
+        // 1. Read and validate meta.json.
+        let meta_bytes = fs::read(cache_dir.join("meta.json")).ok()?;
+        let meta: CacheMeta = serde_json::from_slice(&meta_bytes).ok()?;
+
+        if meta.txn_fingerprint != current_fingerprint {
+            return None; // Cache is stale.
+        }
+
+        // 2. Read and deserialize datoms.bin.
+        let bin_bytes = fs::read(cache_dir.join("datoms.bin")).ok()?;
+        let datoms: Vec<Datom> = bincode::deserialize(&bin_bytes).ok()?;
+
+        // Quick sanity check: datom count should match meta.
+        if datoms.len() != meta.datom_count {
+            return None; // Corrupt cache.
+        }
+
+        Some(datoms.into_iter().collect())
+    }
+
     /// Load the entire store from the layout (ψ function).
     ///
     /// This is `ψ(L) = ⋃ { tx.datoms | tx ∈ L.txns }`.
     /// Reconstructs the Store from all transaction files.
+    ///
+    /// **Cache fast path**: If `.braid/.cache/datoms.bin` exists and is fresh
+    /// (txn_fingerprint matches the current txns/ directory), the store is
+    /// reconstructed from the cached datom set instead of parsing individual
+    /// EDN transaction files. This avoids O(N) file reads + EDN parses.
+    ///
+    /// After a slow-path load, the cache is written for subsequent calls.
     pub fn load_store(&self) -> Result<Store, BraidError> {
         let hashes = self.list_tx_hashes()?;
+        let fingerprint = self.txn_fingerprint(&hashes);
+
+        // Fast path: try loading from cache.
+        if let Some(datoms) = self.read_index_cache(&fingerprint) {
+            return Ok(Store::from_datoms(datoms));
+        }
+
+        // Slow path: parse all transaction files.
         let mut all_datoms: BTreeSet<Datom> = BTreeSet::new();
         let mut frontier: HashMap<AgentId, TxId> = HashMap::new();
 
@@ -222,7 +349,12 @@ impl DiskLayout {
             }
         }
 
-        Ok(Store::from_datoms(all_datoms))
+        let store = Store::from_datoms(all_datoms);
+
+        // Write cache for next time (best-effort — do not fail the load on cache write error).
+        let _ = self.write_index_cache(&store);
+
+        Ok(store)
     }
 
     /// Verify integrity of all transaction files.
@@ -624,6 +756,186 @@ mod tests {
         assert!(
             err_msg.contains("INV-LAYOUT-005") || err_msg.contains("content hash mismatch"),
             "Error should reference INV-LAYOUT-005: {err_msg}"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // Cache persistence tests
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn load_store_creates_cache_on_first_load() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join(".braid");
+        let layout = DiskLayout::init(&root).unwrap();
+
+        // Cache should not exist yet (init does not populate it).
+        assert!(
+            !root.join(".cache").join("datoms.bin").exists(),
+            "cache should not exist before first load_store"
+        );
+
+        let _store = layout.load_store().unwrap();
+
+        // After load_store, cache should be populated.
+        assert!(
+            root.join(".cache").join("datoms.bin").exists(),
+            "datoms.bin should exist after load_store"
+        );
+        assert!(
+            root.join(".cache").join("meta.json").exists(),
+            "meta.json should exist after load_store"
+        );
+    }
+
+    #[test]
+    fn load_store_uses_cache_on_second_load() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join(".braid");
+        let layout = DiskLayout::init(&root).unwrap();
+
+        // First load: slow path, writes cache.
+        let store1 = layout.load_store().unwrap();
+        let datoms1: BTreeSet<_> = store1.datoms().cloned().collect();
+
+        // Second load: should use cache fast path and produce identical store.
+        let store2 = layout.load_store().unwrap();
+        let datoms2: BTreeSet<_> = store2.datoms().cloned().collect();
+
+        assert_eq!(
+            datoms1, datoms2,
+            "cached load must produce identical datom set"
+        );
+    }
+
+    #[test]
+    fn cache_invalidated_by_new_transaction() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join(".braid");
+        let layout = DiskLayout::init(&root).unwrap();
+
+        // First load populates cache.
+        let store1 = layout.load_store().unwrap();
+        let count1 = store1.len();
+
+        // Write a new transaction.
+        let agent = AgentId::from_name("cache-test-agent");
+        let tx_id = TxId::new(3000, 0, agent);
+        let entity = braid_kernel::datom::EntityId::from_ident(":test/cache-invalidation");
+
+        let tx = TxFile {
+            tx_id,
+            agent,
+            provenance: braid_kernel::datom::ProvenanceType::Observed,
+            rationale: "cache invalidation test".to_string(),
+            causal_predecessors: vec![],
+            datoms: vec![braid_kernel::datom::Datom {
+                entity,
+                attribute: braid_kernel::datom::Attribute::from_keyword(":db/doc"),
+                value: braid_kernel::datom::Value::String("new datom".to_string()),
+                tx: tx_id,
+                op: braid_kernel::datom::Op::Assert,
+            }],
+        };
+        layout.write_tx(&tx).unwrap();
+
+        // Second load should detect stale cache and reload from txns/.
+        let store2 = layout.load_store().unwrap();
+        assert!(
+            store2.len() > count1,
+            "store should have more datoms after new tx: {} vs {}",
+            store2.len(),
+            count1,
+        );
+    }
+
+    #[test]
+    fn cache_handles_corrupt_datoms_bin() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join(".braid");
+        let layout = DiskLayout::init(&root).unwrap();
+
+        // Populate cache.
+        let store1 = layout.load_store().unwrap();
+        let datoms1: BTreeSet<_> = store1.datoms().cloned().collect();
+
+        // Corrupt datoms.bin.
+        fs::write(root.join(".cache").join("datoms.bin"), b"garbage").unwrap();
+
+        // Should fall through to slow path and produce correct result.
+        let store2 = layout.load_store().unwrap();
+        let datoms2: BTreeSet<_> = store2.datoms().cloned().collect();
+
+        assert_eq!(
+            datoms1, datoms2,
+            "corrupt cache should fall back to slow path"
+        );
+    }
+
+    #[test]
+    fn cache_handles_missing_meta_json() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join(".braid");
+        let layout = DiskLayout::init(&root).unwrap();
+
+        // Populate cache.
+        let store1 = layout.load_store().unwrap();
+        let datoms1: BTreeSet<_> = store1.datoms().cloned().collect();
+
+        // Delete meta.json but keep datoms.bin.
+        fs::remove_file(root.join(".cache").join("meta.json")).unwrap();
+
+        // Should fall through to slow path.
+        let store2 = layout.load_store().unwrap();
+        let datoms2: BTreeSet<_> = store2.datoms().cloned().collect();
+
+        assert_eq!(
+            datoms1, datoms2,
+            "missing meta.json should fall back to slow path"
+        );
+    }
+
+    #[test]
+    fn write_index_cache_is_idempotent() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join(".braid");
+        let layout = DiskLayout::init(&root).unwrap();
+
+        let store = layout.load_store().unwrap();
+
+        // Write cache twice — should not fail and should produce identical files.
+        layout.write_index_cache(&store).unwrap();
+        let meta1 = fs::read(root.join(".cache").join("meta.json")).unwrap();
+        let bin1 = fs::read(root.join(".cache").join("datoms.bin")).unwrap();
+
+        layout.write_index_cache(&store).unwrap();
+        let meta2 = fs::read(root.join(".cache").join("meta.json")).unwrap();
+        let bin2 = fs::read(root.join(".cache").join("datoms.bin")).unwrap();
+
+        // datoms.bin must be byte-identical (deterministic serialization).
+        assert_eq!(bin1, bin2, "datoms.bin should be deterministic");
+        // meta.json may differ in created_at but txn_fingerprint and datom_count should match.
+        let m1: CacheMeta = serde_json::from_slice(&meta1).unwrap();
+        let m2: CacheMeta = serde_json::from_slice(&meta2).unwrap();
+        assert_eq!(m1.txn_fingerprint, m2.txn_fingerprint);
+        assert_eq!(m1.datom_count, m2.datom_count);
+    }
+
+    #[test]
+    fn cache_meta_records_correct_datom_count() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join(".braid");
+        let layout = DiskLayout::init(&root).unwrap();
+
+        let store = layout.load_store().unwrap();
+        let expected_count = store.len();
+
+        let meta_bytes = fs::read(root.join(".cache").join("meta.json")).unwrap();
+        let meta: CacheMeta = serde_json::from_slice(&meta_bytes).unwrap();
+
+        assert_eq!(
+            meta.datom_count, expected_count,
+            "meta.datom_count should match store.len()"
         );
     }
 }
