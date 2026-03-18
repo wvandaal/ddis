@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773838331/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3258"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "49b12ff1f77328351db31bf8a8638cd29224a5610f6ede6ea665b7e9f7ca5793" :a :task/close-reason :v "EAVT already existed as BTreeSet<Datom>, range API deferred to evaluator wiring" :op :assert}
+   {:e #blake3 "49b12ff1f77328351db31bf8a8638cd29224a5610f6ede6ea665b7e9f7ca5793" :a :task/closed-at :v 1773838330 :op :assert}
+   {:e #blake3 "49b12ff1f77328351db31bf8a8638cd29224a5610f6ede6ea665b7e9f7ca5793" :a :task/status :v :task.status/closed :op :assert}
+ ]}

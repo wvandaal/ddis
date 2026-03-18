@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773838332/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-4e24"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ce86c369e82c9f27a0fe4dcc54f52d81f3a440d1546c1f6a9d2f27cf95d16218" :a :task/close-reason :v "AEVT already existed as attribute_index, upgraded in from_datoms + inject" :op :assert}
+   {:e #blake3 "ce86c369e82c9f27a0fe4dcc54f52d81f3a440d1546c1f6a9d2f27cf95d16218" :a :task/closed-at :v 1773838330 :op :assert}
+   {:e #blake3 "ce86c369e82c9f27a0fe4dcc54f52d81f3a440d1546c1f6a9d2f27cf95d16218" :a :task/status :v :task.status/closed :op :assert}
+ ]}

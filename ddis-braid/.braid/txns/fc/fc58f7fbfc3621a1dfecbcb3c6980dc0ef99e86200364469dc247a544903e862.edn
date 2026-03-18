@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773838334/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1e70"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aa036cae20a5c2e7ffcf295af83c2efaa7c0aa285639a47b81bb0e51cd2d0d30" :a :task/close-reason :v "AVET index: BTreeMap<(Attribute, Value), Vec<Datom>>, 3 maintenance paths" :op :assert}
+   {:e #blake3 "aa036cae20a5c2e7ffcf295af83c2efaa7c0aa285639a47b81bb0e51cd2d0d30" :a :task/closed-at :v 1773838332 :op :assert}
+   {:e #blake3 "aa036cae20a5c2e7ffcf295af83c2efaa7c0aa285639a47b81bb0e51cd2d0d30" :a :task/status :v :task.status/closed :op :assert}
+ ]}

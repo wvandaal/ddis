@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773838333/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e063"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "40c047b9476815542241239ec4b9d5e5a23a8f4e0dc99c814af033527a12d535" :a :task/close-reason :v "VAET index: BTreeMap<EntityId, Vec<Datom>> for Ref values, 3 maintenance paths" :op :assert}
+   {:e #blake3 "40c047b9476815542241239ec4b9d5e5a23a8f4e0dc99c814af033527a12d535" :a :task/closed-at :v 1773838331 :op :assert}
+   {:e #blake3 "40c047b9476815542241239ec4b9d5e5a23a8f4e0dc99c814af033527a12d535" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773836877/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DOG-FOOD UPDATE (post C1+A): Score now 8/10 UX, 9.5/10 arch. Key insight: self-inspection (META-0) was PREREQUISITE for everything — couldn't verify C1 constants removed or A task-set works without query pagination. Dynamic schema counts eliminate entire class of bugs. task set closes workflow gap felt all session. NEG-HARVEST-001 at fixed threshold=8 is too aggressive during bulk task work — validates D1 adaptive urgency design. New friction: task set output doesn't show old→new value. The instrument must be fixed before measuring — deepest conviction about this project."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5328774239565c31f38847a51797754c8390c07e1d175dfde7c79e25ea02211d" :a :db/doc :v "DOG-FOOD UPDATE (post C1+A): Score now 8/10 UX, 9.5/10 arch. Key insight: self-inspection (META-0) was PREREQUISITE for everything — couldn't verify C1 constants removed or A task-set works without query pagination. Dynamic schema counts eliminate entire class of bugs. task set closes workflow gap felt all session. NEG-HARVEST-001 at fixed threshold=8 is too aggressive during bulk task work — validates D1 adaptive urgency design. New friction: task set output doesn't show old→new value. The instrument must be fixed before measuring — deepest conviction about this project." :op :assert}
+   {:e #blake3 "5328774239565c31f38847a51797754c8390c07e1d175dfde7c79e25ea02211d" :a :db/ident :v :observation/dog-food-update-post-c1a-score-now-810-ux-9510-arch :op :assert}
+   {:e #blake3 "5328774239565c31f38847a51797754c8390c07e1d175dfde7c79e25ea02211d" :a :exploration/body :v "DOG-FOOD UPDATE (post C1+A): Score now 8/10 UX, 9.5/10 arch. Key insight: self-inspection (META-0) was PREREQUISITE for everything — couldn't verify C1 constants removed or A task-set works without query pagination. Dynamic schema counts eliminate entire class of bugs. task set closes workflow gap felt all session. NEG-HARVEST-001 at fixed threshold=8 is too aggressive during bulk task work — validates D1 adaptive urgency design. New friction: task set output doesn't show old→new value. The instrument must be fixed before measuring — deepest conviction about this project." :op :assert}
+   {:e #blake3 "5328774239565c31f38847a51797754c8390c07e1d175dfde7c79e25ea02211d" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "5328774239565c31f38847a51797754c8390c07e1d175dfde7c79e25ea02211d" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "5328774239565c31f38847a51797754c8390c07e1d175dfde7c79e25ea02211d" :a :exploration/content-hash :v #bytes "43239c9bca757117d3b262d9b70afee6937832b671f913dfa3c613a116c9580b" :op :assert}
+   {:e #blake3 "5328774239565c31f38847a51797754c8390c07e1d175dfde7c79e25ea02211d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5328774239565c31f38847a51797754c8390c07e1d175dfde7c79e25ea02211d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5328774239565c31f38847a51797754c8390c07e1d175dfde7c79e25ea02211d" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
