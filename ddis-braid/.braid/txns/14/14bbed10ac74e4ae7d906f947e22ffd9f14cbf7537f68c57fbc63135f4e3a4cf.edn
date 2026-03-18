@@ -1,0 +1,21 @@
+{:tx/id #hlc "1773875133/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 3 candidates from task 'Session 021: Phase B+C+D completion, D4 integrations, validation'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :db/doc :v "Harvest session for task: Session 021: Phase B+C+D completion, D4 integrations, validation" :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :db/ident :v :harvest/session-braid-user-1773875133 :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/candidate-count :v 3 :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/codebase-snapshot :v "Codebase: 84938 LOC across 74 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (6741 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (4667 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3569 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3312 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (3054 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2106 LOC)" :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/delta-summary :v "+32 datoms, +1 entities" :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/git-summary :v "branch=main, 3 commits, 9 files (+165/-71)\n  cc31f4d SPECID-2: Wire SpecId into crystallization_candidates\n  4f7bf88 CENSUS-3: Wire census into session start + update capability_scan\n  26d4daa Session 025 harvest + CENSUS-1 + SPECID-1 closures\nHot files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (123 lines changed)\n  ddis-braid/crates/braid/src/commands/session.rs (32 lines changed)\n  ddis-braid/.braid/txns/22/22be139dd7239c0b293b1376016801774f337d4eef6cb69843851fe2b3dc0453.edn (21 lines changed)\n  ddis-braid/.braid/txns/3f/3f1319aa7deee9ebebfe49a1b61eccbd64d17a9545942bc57e54d78a8c304cd6.edn (12 lines changed)\n  ddis-braid/.braid/txns/81/81465bb43fb7008660af6a4cacb2a67c32eddc3ea4c345d471fe4ff0824a44dd.edn (12 lines changed)\n  ddis-braid/.braid/txns/aa/aad284d5ec24251d119c9234c2ab8e1e119e1b19c8bb86418070b3803dc240f7.edn (12 lines changed)\n  ddis-braid/.braid/txns/50/502aa95accc9334ee143b1e025c5b0ea6701511a40228ddc488f9b07b1a8b277.edn (8 lines changed)\n  ddis-braid/.braid/txns/62/62d7ab89a51aa6a54de75c00c37078c4d46c1ef69d95e139bbe665abbeac429b.edn (8 lines changed)" :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/recommended-tasks :v "t-a856,t-9e32,t-18cc" :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/store-datom-count :v 16373 :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/store-entity-count :v 2260 :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/task :v "Session 021: Phase B+C+D completion, D4 integrations, validation" :op :assert}
+   {:e #blake3 "0298ce70c4670f728215980f6b7a642c1b4018e95842b59db5986dffa1d0fab7" :a :harvest/tx-since-last :v 6 :op :assert}
+ ]}
