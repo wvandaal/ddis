@@ -530,10 +530,7 @@ fn build_verbose(
     // Methodology gaps (INV-GUIDANCE-021: unified gap dashboard)
     let gaps = methodology_gaps(store);
     if !gaps.is_empty() {
-        out.push_str(&format!(
-            "methodology gaps: {} total\n",
-            gaps.total()
-        ));
+        out.push_str(&format!("methodology gaps: {} total\n", gaps.total()));
         if gaps.crystallization > 0 {
             out.push_str(&format!(
                 "  crystallization: {} uncrystallized spec IDs (run: braid spec create <ID>)\n",

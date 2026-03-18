@@ -353,9 +353,7 @@ pub fn inject_methodology(text: &str, store: &Store, k_eff: f64) -> String {
                 Ok(seed_point) => {
                     let mut result = String::with_capacity(text.len() + tagged.len() + 80);
                     result.push_str(&text[..seed_point.tag_start]);
-                    result.push_str(
-                        "## Live Methodology (auto-generated: HOW to work)\n\n",
-                    );
+                    result.push_str("## Live Methodology (auto-generated: HOW to work)\n\n");
                     result.push_str(&tagged);
                     result.push('\n');
                     result.push_str(&text[seed_point.tag_start..]);

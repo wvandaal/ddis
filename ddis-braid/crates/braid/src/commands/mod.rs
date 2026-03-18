@@ -814,6 +814,40 @@ Workflow: braid next → braid go <id> → work → braid done <id>")]
         agent: String,
     },
 
+    // ── TRANSACT (alias for write assert) ───────────────────────────
+    /// Assert datoms (alias for `write assert`).
+    ///
+    /// `braid transact --datom :e :a "v"` → asserts datoms into the store.
+    /// Identical to `write assert` but with optional rationale (defaults to
+    /// "manual assertion via braid transact").
+    #[command(
+        name = "transact",
+        after_long_help = "\
+Examples:
+  braid transact --datom :spec/inv-001 :db/doc \"Append-only\"
+  braid transact -r \"add spec\" --datom :spec/inv-001 :db/doc \"Append-only\"
+  braid transact -d :spec/inv-001 :spec/traces-to \"SEED.md s4\"
+
+Equivalent to `braid write assert`. For knowledge capture, use `braid observe` instead."
+    )]
+    Transact {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+
+        /// Why this transaction exists (defaults to "manual assertion via braid transact").
+        #[arg(long, short = 'r')]
+        rationale: Option<String>,
+
+        /// Datom triples: entity attribute value (repeatable).
+        #[arg(long = "datom", short = 'd', num_args = 3, action = clap::ArgAction::Append)]
+        datoms: Vec<String>,
+    },
+
     // ── SPEC MANAGEMENT (WP5, W4B.3) ────────────────────────────────
     /// Create, review, accept, reject, and inspect spec proposals.
     ///
@@ -1316,7 +1350,8 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
         | Command::Done { path, .. }
         | Command::Note { path, .. }
         | Command::Go { path, .. }
-        | Command::Verify { path, .. } => Some(path),
+        | Command::Verify { path, .. }
+        | Command::Transact { path, .. } => Some(path),
         Command::Session { action } => match action {
             SessionAction::Start { path, .. } | SessionAction::End { path, .. } => Some(path),
         },
@@ -1402,6 +1437,7 @@ pub fn command_name_for(cmd: &Command) -> &'static str {
         Command::Go { .. } => "go",
         Command::Spec { .. } => "spec",
         Command::Verify { .. } => "verify",
+        Command::Transact { .. } => "transact",
     }
 }
 
@@ -1584,7 +1620,8 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
         | Command::Done { path, .. }
         | Command::Note { path, .. }
         | Command::Go { path, .. }
-        | Command::Verify { path, .. } => {
+        | Command::Verify { path, .. }
+        | Command::Transact { path, .. } => {
             *path = resolve_store_path(path.clone());
         }
         Command::Session { action } => match action {
@@ -2160,6 +2197,16 @@ pub fn run(
                 budget_ctx,
                 footer_cmd_name,
             ));
+        }
+        Command::Transact {
+            path,
+            agent,
+            rationale,
+            datoms,
+        } => {
+            let rationale =
+                rationale.unwrap_or_else(|| "manual assertion via braid transact".to_string());
+            write::run_assert(&path, &agent, &rationale, &datoms)
         }
         Command::Spec { action } => match action {
             SpecAction::Create {
