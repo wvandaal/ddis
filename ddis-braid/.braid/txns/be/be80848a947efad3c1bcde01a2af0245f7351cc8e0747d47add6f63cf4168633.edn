@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773845654/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b924"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d09506b4fc1763d6f8a1ea38bcecf143a3a2495dc191aa56dc7a0f9995cfa0ea" :a :task/close-reason :v "Compressed: worst_metric_command(), 4 tests" :op :assert}
+   {:e #blake3 "d09506b4fc1763d6f8a1ea38bcecf143a3a2495dc191aa56dc7a0f9995cfa0ea" :a :task/closed-at :v 1773845651 :op :assert}
+   {:e #blake3 "d09506b4fc1763d6f8a1ea38bcecf143a3a2495dc191aa56dc7a0f9995cfa0ea" :a :task/status :v :task.status/closed :op :assert}
+ ]}

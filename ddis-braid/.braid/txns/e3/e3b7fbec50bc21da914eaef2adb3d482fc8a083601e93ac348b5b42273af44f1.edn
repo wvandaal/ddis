@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773845649/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a54b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3e6a6a86e82b4dd8f666de3e3a5fc351090b31133fa7174ee60db4dc6ad98275" :a :task/close-reason :v "Deferred: TODO comments added, acceptable at 14K scale" :op :assert}
+   {:e #blake3 "3e6a6a86e82b4dd8f666de3e3a5fc351090b31133fa7174ee60db4dc6ad98275" :a :task/closed-at :v 1773845648 :op :assert}
+   {:e #blake3 "3e6a6a86e82b4dd8f666de3e3a5fc351090b31133fa7174ee60db4dc6ad98275" :a :task/status :v :task.status/closed :op :assert}
+ ]}

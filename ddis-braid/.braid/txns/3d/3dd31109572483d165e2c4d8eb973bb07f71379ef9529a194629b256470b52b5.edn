@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773845653/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e276"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bfba3a23b0221a7589016e78e7c1a14e53b73b7edfac03b3076f035de07dca30" :a :task/close-reason :v "ActivityMode enum: Implementation/Specification/Mixed, 5 tests" :op :assert}
+   {:e #blake3 "bfba3a23b0221a7589016e78e7c1a14e53b73b7edfac03b3076f035de07dca30" :a :task/closed-at :v 1773845651 :op :assert}
+   {:e #blake3 "bfba3a23b0221a7589016e78e7c1a14e53b73b7edfac03b3076f035de07dca30" :a :task/status :v :task.status/closed :op :assert}
+ ]}

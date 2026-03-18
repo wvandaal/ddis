@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773845655/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 6 candidates from task 'C2.15+B1+B2: typed routing + executable footer'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :db/doc :v "Harvest session for task: C2.15+B1+B2: typed routing + executable footer" :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :db/ident :v :harvest/session-braid-user-1773845655 :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :harvest/candidate-count :v 6 :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :harvest/codebase-snapshot :v "Codebase: 80640 LOC across 72 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/seed.rs (4631 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (4244 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3569 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3203 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (3054 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2106 LOC)" :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :harvest/delta-summary :v "+35 datoms, +1 entities" :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :harvest/git-summary :v "branch=main, 2 commits, 19 files (+728/-48)\n  efe7005 C2.15 + B1 + B2: Legacy deferred, typed routing, executable footer\n  77f8136 C2.10-C2.14 closed: cache + evaluator + graph wiring (1134 tests)\nHot files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (585 lines changed)\n  ddis-braid/crates/braid-kernel/src/task.rs (23 lines changed)\n  ddis-braid/.braid/txns/a4/a4e5b188d00becab035d9541af7e0879d781603dd84728ce668f97663937609e.edn (20 lines changed)\n  ddis-braid/.braid/txns/19/19167712f0e94de1d28427ab0cfa5e10bcb092cc397ae759540acd29db66fd46.edn (10 lines changed)\n  ddis-braid/.braid/txns/39/39c9ff87155b2dbc51036afe5068d5e2c38dba437e2b2bf0665db107e0d57841.edn (10 lines changed)\n  ddis-braid/.braid/txns/70/70a0a49b48c42369aa2d2f0e89f51ce1adc7e76bdf90ee627ef1a191054f6365.edn (10 lines changed)\n  ddis-braid/.braid/txns/7b/7bf62cbbebc3ab893ebfd79215969c43e708d5ca8c60ac85a52b314ae75e7671.edn (10 lines changed)\n  ddis-braid/.braid/txns/9a/9ab416c8e1bc4f59af40f2571410af064a5663e6b28f2302c2d672ba37a8bb8f.edn (10 lines changed)" :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :harvest/store-datom-count :v 14154 :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :harvest/store-entity-count :v 2043 :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :harvest/task :v "C2.15+B1+B2: typed routing + executable footer" :op :assert}
+   {:e #blake3 "7378c312cc452b04aad42df249e3be996fc17cf7012fe5a3250f0c037787cbc9" :a :harvest/tx-since-last :v 10 :op :assert}
+ ]}
