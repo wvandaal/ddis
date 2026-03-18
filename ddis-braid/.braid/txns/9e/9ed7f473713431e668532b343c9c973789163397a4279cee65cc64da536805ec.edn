@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773803623/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 4 candidates from task 'S1-PREP wave: budget wiring + clause AST + exit warning'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :db/doc :v "Harvest session for task: S1-PREP wave: budget wiring + clause AST + exit warning" :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :db/ident :v :harvest/session-braid-user-1773803623 :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :harvest/candidate-count :v 4 :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :harvest/codebase-snapshot :v "Codebase: 76347 LOC across 72 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/seed.rs (4631 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (3747 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3133 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3028 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (2350 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2106 LOC)" :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :harvest/delta-summary :v "+29 datoms, +1 entities" :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :harvest/git-summary :v "branch=main, 2 commits, 27 files (+576/-32)\n  f07a828 S1-PREP wave: BudgetManager wiring, Clause AST, session exit warning\n  0683f23 Session harvest: wave 5 (9 tasks closed, 1079 tests)\nHot files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (156 lines changed)\n  ddis-braid/crates/braid/src/commands/mod.rs (154 lines changed)\n  ddis-braid/crates/braid/src/main.rs (27 lines changed)\n  ddis-braid/crates/braid-kernel/src/query/clause.rs (25 lines changed)\n  ddis-braid/crates/braid-kernel/src/query/evaluator.rs (25 lines changed)\n  ddis-braid/crates/braid-kernel/src/query/stratum.rs (22 lines changed)\n  ddis-braid/.braid/txns/77/77fd2f1050d948b1c5def9c507b0c1b77db04fd91ddc1f41fc486a702d173745.edn (20 lines changed)\n  ddis-braid/crates/braid-kernel/src/budget.rs (11 lines changed)" :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :harvest/store-datom-count :v 12126 :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :harvest/store-entity-count :v 1844 :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :harvest/task :v "S1-PREP wave: budget wiring + clause AST + exit warning" :op :assert}
+   {:e #blake3 "477d97d549a26a0ba3d8d950fb8bff9c30c5866b63ea6c634bfbf118a8aadde2" :a :harvest/tx-since-last :v 8 :op :assert}
+ ]}

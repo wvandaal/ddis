@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773803615/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-5faf"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "23c8669378423fea97e8d32856acadb8d14acfe1090ab26ecf1dcbdea81cb697" :a :task/close-reason :v "Already complete: parse_datalog handles all required syntax, 17 tests" :op :assert}
+   {:e #blake3 "23c8669378423fea97e8d32856acadb8d14acfe1090ab26ecf1dcbdea81cb697" :a :task/closed-at :v 1773803613 :op :assert}
+   {:e #blake3 "23c8669378423fea97e8d32856acadb8d14acfe1090ab26ecf1dcbdea81cb697" :a :task/status :v :task.status/closed :op :assert}
+ ]}

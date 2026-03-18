@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773803616/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e8d4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "462040f17d409933da2dc404540fe85e892f721b2d639f964d11c6c1a1be7aac" :a :task/close-reason :v "Rule/Or/Frontier Clause variants, S2 stratum classification, fail-safe eval" :op :assert}
+   {:e #blake3 "462040f17d409933da2dc404540fe85e892f721b2d639f964d11c6c1a1be7aac" :a :task/closed-at :v 1773803614 :op :assert}
+   {:e #blake3 "462040f17d409933da2dc404540fe85e892f721b2d639f964d11c6c1a1be7aac" :a :task/status :v :task.status/closed :op :assert}
+ ]}
