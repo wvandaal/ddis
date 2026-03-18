@@ -2335,73 +2335,51 @@ pub struct Capability {
 /// Checks for presence of specific attribute patterns or entity idents that
 /// indicate a subsystem is operational, not just specified.
 pub fn capability_scan(store: &Store) -> Vec<Capability> {
-    let has_attr_prefix = |prefix: &str| -> bool {
-        store
-            .datoms()
-            .any(|d| d.attribute.as_str().starts_with(prefix))
-    };
-    let has_ident = |ident: &str| -> bool {
-        !store
-            .avet_lookup(
-                &Attribute::from_keyword(":db/ident"),
-                &Value::Keyword(ident.to_string()),
-            )
-            .is_empty()
-    };
+    // CENSUS-3: Prefer :capability/* datoms from session start (INV-REFLEXIVE-001).
+    // If census datoms exist, use them (authoritative). Otherwise fall back to
+    // run_census() for stores that haven't had a session start yet.
+    let cap_attr = Attribute::from_keyword(":capability/status");
+    let display_attr = Attribute::from_keyword(":capability/display-name");
+    let census_datoms = store.attribute_datoms(&cap_attr);
 
-    // LIVE index: check if the store's live_view is functional by testing a
-    // known entity. If the store was loaded from datoms, the live_view is populated.
-    let live_working = store
-        .live_value(
-            EntityId::from_ident(":db/ident"),
-            &Attribute::from_keyword(":db/ident"),
-        )
-        .is_some()
-        || !store.is_empty(); // Any non-empty store has a live_view
-
-    // .cache/ persistence: the DiskLayout writes datoms.bin + meta.json to .cache/.
-    // Detection: if the store was loaded with datoms, cache infrastructure exists.
-    // We check for :config/* idents OR any store with layout config.
-    let cache_working = has_ident(":config/cache-enabled") || has_ident(":config/tools-cargo");
-
-    // MCP: compiled into the binary — always available if the CLI exists.
-    // Runtime detection via config ident or simple presence check.
-    let mcp_working = has_ident(":config/mcp-enabled") || has_ident(":config/tools-cargo");
-
-    vec![
-        Capability {
-            name: "LIVE index".to_string(),
-            implemented: live_working,
-        },
-        Capability {
-            name: ".cache/ persistence".to_string(),
-            implemented: cache_working,
-        },
-        Capability {
-            name: "WITNESS system".to_string(),
-            implemented: has_attr_prefix(":witness/"),
-        },
-        Capability {
-            name: "Adaptive guidance (AGP)".to_string(),
-            implemented: true, // GuidanceContext is implemented
-        },
-        Capability {
-            name: "Harvest/Seed lifecycle".to_string(),
-            implemented: has_attr_prefix(":harvest/"),
-        },
-        Capability {
-            name: "R(t) task routing".to_string(),
-            implemented: has_attr_prefix(":task/"),
-        },
-        Capability {
-            name: "Datalog query".to_string(),
-            implemented: true, // Query engine is implemented
-        },
-        Capability {
-            name: "MCP interface".to_string(),
-            implemented: mcp_working,
-        },
-    ]
+    if !census_datoms.is_empty() {
+        // Use persisted census data from session start
+        census_datoms
+            .iter()
+            .filter(|d| d.op == Op::Assert)
+            .map(|d| {
+                let display_name = store
+                    .entity_datoms(d.entity)
+                    .iter()
+                    .find(|ed| ed.attribute == display_attr && ed.op == Op::Assert)
+                    .and_then(|ed| match &ed.value {
+                        Value::String(s) => Some(s.clone()),
+                        _ => None,
+                    })
+                    .unwrap_or_default();
+                let implemented = match &d.value {
+                    Value::Keyword(k) => k.contains("implemented"),
+                    _ => false,
+                };
+                Capability {
+                    name: display_name,
+                    implemented,
+                }
+            })
+            .collect()
+    } else {
+        // Fallback: run census directly (no session start yet)
+        crate::census::run_census(store)
+            .into_iter()
+            .map(|r| {
+                let implemented = r.is_implemented();
+                Capability {
+                    name: r.display_name,
+                    implemented,
+                }
+            })
+            .collect()
+    }
 }
 
 /// Generate the `<braid-methodology>` section content from store state (INV-GUIDANCE-022).

@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773874306/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-dbc6fab1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "809a88232738e98ed652ee6aa97a84df72f1798d5faed1ccb45b3dd68870cf62" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "809a88232738e98ed652ee6aa97a84df72f1798d5faed1ccb45b3dd68870cf62" :a :task/closed-at :v 1773874305 :op :assert}
+   {:e #blake3 "809a88232738e98ed652ee6aa97a84df72f1798d5faed1ccb45b3dd68870cf62" :a :task/completion-evidence :v "run_census already implemented in CENSUS-1 with all 8 subsystems. Test census_returns_all_subsystems passes." :op :assert}
+   {:e #blake3 "809a88232738e98ed652ee6aa97a84df72f1798d5faed1ccb45b3dd68870cf62" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "809a88232738e98ed652ee6aa97a84df72f1798d5faed1ccb45b3dd68870cf62" :a :task/status :v :task.status/closed :op :assert}
+ ]}

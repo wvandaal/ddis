@@ -94,13 +94,43 @@ pub fn run_start(
         ),
     ];
 
+    // CENSUS-3: Assert capability census datoms at session start (INV-REFLEXIVE-001).
+    // Each subsystem's implementation status is recorded as :capability/* datoms,
+    // making the system's self-knowledge queryable and traceable.
+    let mut all_datoms = session_datoms;
+    let census_results = braid_kernel::census::run_census(&store);
+    for result in &census_results {
+        let cap_entity = EntityId::from_ident(&result.ident());
+        all_datoms.push(Datom::new(
+            cap_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(result.ident()),
+            tx_id,
+            Op::Assert,
+        ));
+        all_datoms.push(Datom::new(
+            cap_entity,
+            Attribute::from_keyword(":capability/status"),
+            Value::Keyword(result.status_keyword()),
+            tx_id,
+            Op::Assert,
+        ));
+        all_datoms.push(Datom::new(
+            cap_entity,
+            Attribute::from_keyword(":capability/display-name"),
+            Value::String(result.display_name.clone()),
+            tx_id,
+            Op::Assert,
+        ));
+    }
+
     let tx = TxFile {
         tx_id,
         agent,
         provenance: ProvenanceType::Observed,
         rationale: format!("Session start: {resolved_task}"),
         causal_predecessors: vec![],
-        datoms: session_datoms,
+        datoms: all_datoms,
     };
     layout.write_tx(&tx)?;
 
