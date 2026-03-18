@@ -488,11 +488,14 @@ pub fn parse_spec_refs(title: &str) -> Vec<String> {
         // Check if any prefix starts here
         let mut matched_prefix: Option<&str> = None;
         for prefix in &prefixes {
-            if i + prefix.len() <= len && &title[i..i + prefix.len()] == *prefix {
-                // Ensure word boundary: start of string or non-alphanumeric before prefix
-                if i == 0 || !bytes[i - 1].is_ascii_alphanumeric() {
-                    matched_prefix = Some(prefix);
-                    break;
+            // Use .get() for safe UTF-8 boundary handling — never panic on multi-byte chars.
+            if let Some(slice) = title.get(i..i + prefix.len()) {
+                if slice == *prefix {
+                    // Ensure word boundary: start of string or non-alphanumeric before prefix
+                    if i == 0 || !bytes[i - 1].is_ascii_alphanumeric() {
+                        matched_prefix = Some(prefix);
+                        break;
+                    }
                 }
             }
         }

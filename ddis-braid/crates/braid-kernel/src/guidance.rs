@@ -1698,12 +1698,15 @@ fn extract_spec_ids(text: &str) -> Vec<String> {
         // Check if any prefix starts here
         let mut matched_prefix: Option<&str> = None;
         for prefix in &prefixes {
-            if i + prefix.len() <= len && &text[i..i + prefix.len()] == *prefix {
-                // Ensure this is a word boundary: either start of string or
-                // preceding char is not alphanumeric/underscore/hyphen
-                if i == 0 || !bytes[i - 1].is_ascii_alphanumeric() {
-                    matched_prefix = Some(prefix);
-                    break;
+            // Use .get() for safe UTF-8 boundary handling — never panic on multi-byte chars.
+            if let Some(slice) = text.get(i..i + prefix.len()) {
+                if slice == *prefix {
+                    // Ensure this is a word boundary: either start of string or
+                    // preceding char is not alphanumeric/underscore/hyphen
+                    if i == 0 || !bytes[i - 1].is_ascii_alphanumeric() {
+                        matched_prefix = Some(prefix);
+                        break;
+                    }
                 }
             }
         }
