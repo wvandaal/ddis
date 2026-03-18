@@ -283,6 +283,156 @@ impl GuidanceContext {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Session Working Set (INV-GUIDANCE-010, SWS-1)
+// ---------------------------------------------------------------------------
+
+/// The session working set — temporal locality for R(t) routing.
+///
+/// Tracks what the agent is actively engaging RIGHT NOW, not all historical
+/// in-progress tasks. Uses temporal discrimination: only tasks whose status
+/// changed to in-progress AFTER the session boundary are "active."
+///
+/// Session boundary = max(session.started_at, last_harvest_wall_time, now - 3600).
+#[derive(Clone, Debug)]
+pub struct SessionWorkingSet {
+    /// Tasks set to in-progress AFTER the session boundary (not stale claims).
+    pub active_tasks: Vec<EntityId>,
+    /// Tasks created after the session boundary.
+    pub session_created_tasks: BTreeSet<EntityId>,
+    /// Tasks sharing an EPIC parent with any active task.
+    pub epic_siblings: BTreeSet<EntityId>,
+    /// The computed session boundary (unix seconds).
+    pub session_boundary: u64,
+}
+
+impl SessionWorkingSet {
+    /// Build the working set from store state. Pure function, no IO.
+    pub fn from_store(store: &Store) -> Self {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        let session_start = Self::find_session_start(store);
+        let harvest_boundary = last_harvest_wall_time(store);
+        let fallback = now.saturating_sub(3600);
+        let session_boundary = session_start.max(harvest_boundary).max(fallback);
+
+        let all_tasks = crate::task::all_tasks(store);
+
+        // Active tasks: in-progress AND status-change tx is after session_boundary
+        let active_tasks: Vec<EntityId> = all_tasks
+            .iter()
+            .filter(|t| t.status == crate::task::TaskStatus::InProgress)
+            .filter(|t| {
+                store.entity_datoms(t.entity).iter().any(|d| {
+                    d.attribute.as_str() == ":task/status"
+                        && d.op == Op::Assert
+                        && d.tx.wall_time() > session_boundary
+                })
+            })
+            .map(|t| t.entity)
+            .collect();
+
+        // Session-created tasks
+        let session_created_tasks: BTreeSet<EntityId> = all_tasks
+            .iter()
+            .filter(|t| {
+                t.created_at > session_boundary && t.status != crate::task::TaskStatus::Closed
+            })
+            .map(|t| t.entity)
+            .collect();
+
+        // EPIC siblings: for each active task, find EPIC parents, collect children
+        let active_set: BTreeSet<EntityId> = active_tasks.iter().copied().collect();
+        let mut epic_siblings = BTreeSet::new();
+        let task_type_map: BTreeMap<EntityId, String> = all_tasks
+            .iter()
+            .map(|t| (t.entity, t.task_type.clone()))
+            .collect();
+
+        for active_entity in &active_tasks {
+            if let Some(active_task) = all_tasks.iter().find(|t| t.entity == *active_entity) {
+                for dep in &active_task.depends_on {
+                    let is_epic = task_type_map
+                        .get(dep)
+                        .map(|t| t.contains("epic"))
+                        .unwrap_or(false);
+                    if is_epic {
+                        for t in &all_tasks {
+                            if t.depends_on.contains(dep)
+                                && !active_set.contains(&t.entity)
+                                && t.status != crate::task::TaskStatus::Closed
+                            {
+                                epic_siblings.insert(t.entity);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        SessionWorkingSet {
+            active_tasks,
+            session_created_tasks,
+            epic_siblings,
+            session_boundary,
+        }
+    }
+
+    /// Find the most recent active session's start time.
+    fn find_session_start(store: &Store) -> u64 {
+        let mut latest_start: u64 = 0;
+        let started_attr = Attribute::from_keyword(":session/started-at");
+        let status_attr = Attribute::from_keyword(":session/status");
+        for datom in store.attribute_datoms(&started_attr) {
+            if datom.op != Op::Assert {
+                continue;
+            }
+            if let Value::Long(wall) = datom.value {
+                let wall = wall as u64;
+                let is_active = store.entity_datoms(datom.entity).iter().any(|d| {
+                    d.attribute == status_attr
+                        && d.op == Op::Assert
+                        && matches!(&d.value, Value::Keyword(k) if k.contains("active"))
+                });
+                if is_active && wall > latest_start {
+                    latest_start = wall;
+                }
+            }
+        }
+        latest_start
+    }
+
+    /// Returns true if the working set is empty.
+    pub fn is_empty(&self) -> bool {
+        self.active_tasks.is_empty()
+            && self.session_created_tasks.is_empty()
+            && self.epic_siblings.is_empty()
+    }
+}
+
+/// Compute the session boost for a task entity (SWS-2).
+///
+/// Returns a multiplier: 3.0 (active), 2.0 (epic sibling), 1.5 (session-created), 1.0 (default).
+/// Takes the HIGHEST category when a task is in multiple sets.
+pub fn session_boost(entity: EntityId, working_set: &SessionWorkingSet) -> f64 {
+    if working_set.active_tasks.contains(&entity) {
+        3.0
+    } else if working_set.epic_siblings.contains(&entity) {
+        2.0
+    } else if working_set.session_created_tasks.contains(&entity) {
+        1.5
+    } else {
+        1.0
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Methodology Score (INV-GUIDANCE-008)
+// ---------------------------------------------------------------------------
+
 /// M(t) methodology adherence result.
 /// INV-SIGNAL-001: Signal as datom — drift_signal is emitted as a store event.
 /// INV-SIGNAL-004: Severity-ordered routing — drift triggers at M(t) < 0.5.
@@ -441,6 +591,9 @@ pub struct RoutingMetrics {
     /// Measures how well the task's spec references resolve in the store.
     /// Applied as a post-factor in `compute_routing_from_store`.
     pub spec_anchor: f64,
+    /// Session boost factor (1.0, 1.5, 2.0, or 3.0).
+    /// Temporal locality: tasks actively claimed this session get priority.
+    pub session_boost: f64,
 }
 
 /// R(t) routing weights (defaults from spec).
@@ -546,7 +699,8 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
                 priority_boost,
                 type_multiplier: tm,
                 urgency_decay: ud,
-                spec_anchor: 1.0, // default; overridden by compute_routing_from_store
+                spec_anchor: 1.0,
+                session_boost: 1.0,
             };
 
             let values = [
@@ -661,16 +815,36 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
         .unwrap_or_default()
         .as_secs();
 
-    // Compute base routing, then apply spec_anchor_factor as a post-multiplier.
-    // Unanchored tasks (spec refs don't resolve) get 0.3× impact, making them sink.
-    // (SFE-3.2: Wire spec_anchor_factor into R(t) routing)
+    // Compute base routing, then apply post-multipliers:
+    // 1. spec_anchor_factor: unanchored tasks sink (0.3×)
+    // 2. session_boost: active tasks dominate (additive + multiplicative hybrid)
     let mut routings = compute_routing(&nodes, now);
+    let working_set = SessionWorkingSet::from_store(store);
+
     for r in &mut routings {
+        // Spec anchor (SFE-3.2)
         let anchor = spec_anchor_factor(store, r.entity);
         r.metrics.spec_anchor = anchor;
         r.impact *= anchor;
+
+        // Session boost (SWS-2/SWS-3): HYBRID additive + multiplicative
+        // Multiplicative alone fails for leaf nodes (3.0 × 0.01 = 0.03, still low).
+        // Additive alone ignores base quality (all active tasks equal).
+        // Hybrid: multiply by boost AND add a floor that guarantees active tasks
+        // rank above any cold task. The additive floor = 0.5 (well above max cold impact ~0.15).
+        let boost = session_boost(r.entity, &working_set);
+        r.metrics.session_boost = boost;
+        if boost > 1.0 {
+            let additive_floor = match boost as u32 {
+                3 => 0.5,  // active: guaranteed top
+                2 => 0.3,  // epic sibling: guaranteed above cold
+                _ => 0.15, // session-created: slight lift
+            };
+            r.impact = r.impact * boost + additive_floor;
+        }
     }
-    // Re-sort after applying anchor factor (may change relative order)
+
+    // Re-sort after applying all post-factors
     routings.sort_by(|a, b| {
         b.impact
             .partial_cmp(&a.impact)

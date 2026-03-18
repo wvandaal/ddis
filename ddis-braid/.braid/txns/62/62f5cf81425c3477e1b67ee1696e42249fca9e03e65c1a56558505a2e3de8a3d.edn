@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773869245/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Set t-a7be status=open"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1051956f914fb22cab1a4d98b895a9cde911836c6774f811b6c240124700788e" :a :task/status :v :task.status/open :op :assert}
+ ]}
