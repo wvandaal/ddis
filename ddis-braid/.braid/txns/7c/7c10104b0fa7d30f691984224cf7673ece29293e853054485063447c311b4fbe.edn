@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773865295/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: KEFF-2: Implement sigmoid-weighted fusion estimator (INV-REFLEXIVE-002). BACKGROUND: estimate_k_eff(evidence: &EvidenceVector) -> f64 computes k̂_eff = 1.0 - Σ(wᵢ × sigmoid(eᵢ/τᵢ)). Default weights: tx_count(0.35), wall_elapsed(0.20), velocity(0.15), output_estimate(0.20), observe_count(0.10). Default thresholds: tx_count(30), wall_elapsed(3600), velocity(3.0), output(50000), observe(15). sigmoid(x) = 1/(1+e^(-x)). Clamped to [0.05, 1.0]. TRACES TO: INV-REFLEXIVE-002. FILE: crates/braid-kernel/src/budget.rs. ACCEPTANCE: estimate_k_eff with zero evidence returns ~1.0. estimate_k_eff with high evidence returns ~0.1."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a96bdc3f45508e5d0f85178e92a7d13a01001301da094f0bf61f0f8bb4fa0ba9" :a :db/ident :v :task/t-cc321f28 :op :assert}
+   {:e #blake3 "a96bdc3f45508e5d0f85178e92a7d13a01001301da094f0bf61f0f8bb4fa0ba9" :a :task/created-at :v 1773865294 :op :assert}
+   {:e #blake3 "a96bdc3f45508e5d0f85178e92a7d13a01001301da094f0bf61f0f8bb4fa0ba9" :a :task/id :v "t-cc321f28" :op :assert}
+   {:e #blake3 "a96bdc3f45508e5d0f85178e92a7d13a01001301da094f0bf61f0f8bb4fa0ba9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a96bdc3f45508e5d0f85178e92a7d13a01001301da094f0bf61f0f8bb4fa0ba9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a96bdc3f45508e5d0f85178e92a7d13a01001301da094f0bf61f0f8bb4fa0ba9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a96bdc3f45508e5d0f85178e92a7d13a01001301da094f0bf61f0f8bb4fa0ba9" :a :task/title :v "KEFF-2: Implement sigmoid-weighted fusion estimator (INV-REFLEXIVE-002). BACKGROUND: estimate_k_eff(evidence: &EvidenceVector) -> f64 computes k̂_eff = 1.0 - Σ(wᵢ × sigmoid(eᵢ/τᵢ)). Default weights: tx_count(0.35), wall_elapsed(0.20), velocity(0.15), output_estimate(0.20), observe_count(0.10). Default thresholds: tx_count(30), wall_elapsed(3600), velocity(3.0), output(50000), observe(15). sigmoid(x) = 1/(1+e^(-x)). Clamped to [0.05, 1.0]. TRACES TO: INV-REFLEXIVE-002. FILE: crates/braid-kernel/src/budget.rs. ACCEPTANCE: estimate_k_eff with zero evidence returns ~1.0. estimate_k_eff with high evidence returns ~0.1." :op :assert}
+   {:e #blake3 "a96bdc3f45508e5d0f85178e92a7d13a01001301da094f0bf61f0f8bb4fa0ba9" :a :task/type :v :task.type/task :op :assert}
+ ]}

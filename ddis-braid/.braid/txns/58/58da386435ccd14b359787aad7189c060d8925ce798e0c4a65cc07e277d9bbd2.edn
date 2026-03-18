@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773865181/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-QUOTE: Comprehensive tests for universal containment quoting (INV-REFLEXIVE-004). TESTS: (1) find_tagged_section basic — finds correct content for 'seed', 'methodology'. (2) Containment symmetric — literal seed tag inside methodology is ignored and vice versa. (3) Code block exclusion — tags in code blocks are ignored. (4) Future tag type — find_tagged_section(text, 'witness') works without code changes. (5) Absent tag — returns NoOpenTag. (6) Multiple same-type tags — returns MultipleOpenTags. (7) Three-way containment — seed, methodology, witness all coexist, each finds only its own tags. (8) find_all_braid_tag_ranges returns correct ranges for multiple tag types. (9) Backward compat — find_injection_point and find_methodology_point still pass all original tests. TRACES TO: INV-REFLEXIVE-004. ACCEPTANCE: All 9+ tests pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6a188190a6af2922861be438d3cc3674e9199ea3ebb659d9163e8cd49446f3d3" :a :db/ident :v :task/t-460f6b18 :op :assert}
+   {:e #blake3 "6a188190a6af2922861be438d3cc3674e9199ea3ebb659d9163e8cd49446f3d3" :a :task/created-at :v 1773865180 :op :assert}
+   {:e #blake3 "6a188190a6af2922861be438d3cc3674e9199ea3ebb659d9163e8cd49446f3d3" :a :task/id :v "t-460f6b18" :op :assert}
+   {:e #blake3 "6a188190a6af2922861be438d3cc3674e9199ea3ebb659d9163e8cd49446f3d3" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6a188190a6af2922861be438d3cc3674e9199ea3ebb659d9163e8cd49446f3d3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6a188190a6af2922861be438d3cc3674e9199ea3ebb659d9163e8cd49446f3d3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6a188190a6af2922861be438d3cc3674e9199ea3ebb659d9163e8cd49446f3d3" :a :task/title :v "TEST-QUOTE: Comprehensive tests for universal containment quoting (INV-REFLEXIVE-004). TESTS: (1) find_tagged_section basic — finds correct content for 'seed', 'methodology'. (2) Containment symmetric — literal seed tag inside methodology is ignored and vice versa. (3) Code block exclusion — tags in code blocks are ignored. (4) Future tag type — find_tagged_section(text, 'witness') works without code changes. (5) Absent tag — returns NoOpenTag. (6) Multiple same-type tags — returns MultipleOpenTags. (7) Three-way containment — seed, methodology, witness all coexist, each finds only its own tags. (8) find_all_braid_tag_ranges returns correct ranges for multiple tag types. (9) Backward compat — find_injection_point and find_methodology_point still pass all original tests. TRACES TO: INV-REFLEXIVE-004. ACCEPTANCE: All 9+ tests pass." :op :assert}
+   {:e #blake3 "6a188190a6af2922861be438d3cc3674e9199ea3ebb659d9163e8cd49446f3d3" :a :task/type :v :task.type/test :op :assert}
+ ]}

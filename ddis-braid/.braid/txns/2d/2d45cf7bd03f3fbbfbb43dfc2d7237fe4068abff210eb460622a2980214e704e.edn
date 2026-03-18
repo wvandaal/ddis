@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773865114/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Seed Display Quality — eliminate noise markers and truncation artifacts (INV-SEED-005, INV-INTERFACE-008). BACKGROUND: Three display issues degrade seed output quality: (1) [?] markers on constraints/warnings look like broken characters and convey zero information when all constraints are unknown, (2) truncate_chars cuts mid-sentence with trailing ... producing broken text, (3) constraint status markers are noisy when all statuses are None. These waste agent attention tokens (k*) on noise instead of signal. GOAL: Seed output reads as clean, natural prose with no rendering artifacts. Truncation occurs at sentence boundaries. Status markers only appear when they convey information. TRACES TO: INV-SEED-005 (Demonstration Density), INV-INTERFACE-008 (LLM Output Quality), ADR-INTERFACE-011 (API-as-Prompt). ACCEPTANCE: braid seed output contains no [?] markers, no trailing ..., and constraint section uses clean formatting."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :db/ident :v :task/t-856e8769 :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/created-at :v 1773865113 :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/id :v "t-856e8769" :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/title :v "EPIC: Seed Display Quality — eliminate noise markers and truncation artifacts (INV-SEED-005, INV-INTERFACE-008). BACKGROUND: Three display issues degrade seed output quality: (1) [?] markers on constraints/warnings look like broken characters and convey zero information when all constraints are unknown, (2) truncate_chars cuts mid-sentence with trailing ... producing broken text, (3) constraint status markers are noisy when all statuses are None. These waste agent attention tokens (k*) on noise instead of signal. GOAL: Seed output reads as clean, natural prose with no rendering artifacts. Truncation occurs at sentence boundaries. Status markers only appear when they convey information. TRACES TO: INV-SEED-005 (Demonstration Density), INV-INTERFACE-008 (LLM Output Quality), ADR-INTERFACE-011 (API-as-Prompt). ACCEPTANCE: braid seed output contains no [?] markers, no trailing ..., and constraint section uses clean formatting." :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/traces-to :v #blake3 "f8aad9e52dd0215142a6c9b34de1e0af72221ed588c2421a0348716aeef00e99" :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/type :v :task.type/epic :op :assert}
+ ]}

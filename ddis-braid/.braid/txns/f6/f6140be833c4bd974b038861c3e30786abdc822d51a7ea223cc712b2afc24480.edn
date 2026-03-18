@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773865148/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-DISP: Unit + integration tests for display quality fixes (INV-SEED-005). BACKGROUND: Verify all three display fixes work correctly and don't regress. TESTS: (1) Unit: truncate_chars at sentence boundary — input with '. ' in last 40% → truncates there. (2) Unit: truncate_chars without sentence boundary → falls back to word boundary. (3) Unit: truncate_chars short input → returns unchanged. (4) Unit: discover_open_questions output has no [?] prefix. (5) Integration: braid seed CLI output contains no [?] markers. (6) Integration: braid seed --inject output contains no [?] markers. (7) Unit: constraint formatting with all-unknown → no status markers. (8) Unit: constraint formatting with mixed status → only [ok]/[!!] shown. (9) Proptest: truncate_chars never produces trailing '...'. TRACES TO: INV-SEED-005. ACCEPTANCE: All 9+ tests pass. cargo test grep for '[?]' in test assertions updated."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :db/ident :v :task/t-30d44635 :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/created-at :v 1773865147 :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/id :v "t-30d44635" :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/title :v "TEST-DISP: Unit + integration tests for display quality fixes (INV-SEED-005). BACKGROUND: Verify all three display fixes work correctly and don't regress. TESTS: (1) Unit: truncate_chars at sentence boundary — input with '. ' in last 40% → truncates there. (2) Unit: truncate_chars without sentence boundary → falls back to word boundary. (3) Unit: truncate_chars short input → returns unchanged. (4) Unit: discover_open_questions output has no [?] prefix. (5) Integration: braid seed CLI output contains no [?] markers. (6) Integration: braid seed --inject output contains no [?] markers. (7) Unit: constraint formatting with all-unknown → no status markers. (8) Unit: constraint formatting with mixed status → only [ok]/[!!] shown. (9) Proptest: truncate_chars never produces trailing '...'. TRACES TO: INV-SEED-005. ACCEPTANCE: All 9+ tests pass. cargo test grep for '[?]' in test assertions updated." :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/traces-to :v #blake3 "f8aad9e52dd0215142a6c9b34de1e0af72221ed588c2421a0348716aeef00e99" :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/type :v :task.type/test :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773865321/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DOCARCH-1: Add framing headers before dynamic sections in seed --inject (INV-REFLEXIVE-005). BACKGROUND: The <braid-methodology> and <braid-seed> sections appear in AGENTS.md without context — a reader encounters auto-generated content with no explanation of what it is or why it's there. Progressive disclosure requires: at each level, the reader understands what they're reading. FIX: inject_methodology adds a one-line header before the tag: '## Live Methodology (auto-generated: HOW to work)'. The braid-seed section already has surrounding prose ('## Dynamic Store Context'). Ensure both sections have contextual headers that explain: (a) what it contains, (b) that it's auto-generated, (c) how methodology and seed relate (methodology = HOW, seed = WHAT). TRACES TO: INV-REFLEXIVE-005, INV-INTERFACE-008, ADR-INTERFACE-011. FILE: crates/braid/src/inject.rs. ACCEPTANCE: After seed --inject, both dynamic sections have contextual headers."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "235f25d8c55c45c9aad3532175708a9f29a9600b4a6a1d5de6e62d6258bf326a" :a :db/ident :v :task/t-e2362c80 :op :assert}
+   {:e #blake3 "235f25d8c55c45c9aad3532175708a9f29a9600b4a6a1d5de6e62d6258bf326a" :a :task/created-at :v 1773865320 :op :assert}
+   {:e #blake3 "235f25d8c55c45c9aad3532175708a9f29a9600b4a6a1d5de6e62d6258bf326a" :a :task/id :v "t-e2362c80" :op :assert}
+   {:e #blake3 "235f25d8c55c45c9aad3532175708a9f29a9600b4a6a1d5de6e62d6258bf326a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "235f25d8c55c45c9aad3532175708a9f29a9600b4a6a1d5de6e62d6258bf326a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "235f25d8c55c45c9aad3532175708a9f29a9600b4a6a1d5de6e62d6258bf326a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "235f25d8c55c45c9aad3532175708a9f29a9600b4a6a1d5de6e62d6258bf326a" :a :task/title :v "DOCARCH-1: Add framing headers before dynamic sections in seed --inject (INV-REFLEXIVE-005). BACKGROUND: The <braid-methodology> and <braid-seed> sections appear in AGENTS.md without context — a reader encounters auto-generated content with no explanation of what it is or why it's there. Progressive disclosure requires: at each level, the reader understands what they're reading. FIX: inject_methodology adds a one-line header before the tag: '## Live Methodology (auto-generated: HOW to work)'. The braid-seed section already has surrounding prose ('## Dynamic Store Context'). Ensure both sections have contextual headers that explain: (a) what it contains, (b) that it's auto-generated, (c) how methodology and seed relate (methodology = HOW, seed = WHAT). TRACES TO: INV-REFLEXIVE-005, INV-INTERFACE-008, ADR-INTERFACE-011. FILE: crates/braid/src/inject.rs. ACCEPTANCE: After seed --inject, both dynamic sections have contextual headers." :op :assert}
+   {:e #blake3 "235f25d8c55c45c9aad3532175708a9f29a9600b4a6a1d5de6e62d6258bf326a" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "235f25d8c55c45c9aad3532175708a9f29a9600b4a6a1d5de6e62d6258bf326a" :a :task/type :v :task.type/task :op :assert}
+ ]}

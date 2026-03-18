@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773865213/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-SPECID: Unit + proptest for SpecId bijection (INV-REFLEXIVE-003). TESTS: (1) normalize known IDs — INV-STORE-001, ADR-GUIDANCE-022, NEG-MERGE-003. (2) denormalize known idents — :spec/inv-store-001, :spec/adr-guidance-022. (3) Round-trip: denormalize(normalize(h)) = h for all valid h. (4) Proptest: generate random valid spec IDs (3-letter type × namespace × 3-digit number), verify bijection holds. (5) Case insensitivity: INV-Store-001 normalizes same as INV-STORE-001. (6) Invalid input: normalize('not-a-spec-id') returns None/Err. (7) Backward compat: existing store idents produced by old code are parseable by SpecId::denormalize. TRACES TO: INV-REFLEXIVE-003. ACCEPTANCE: All tests pass including proptest with 1000+ cases."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :db/ident :v :task/t-2ac17985 :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/created-at :v 1773865212 :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/id :v "t-2ac17985" :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/title :v "TEST-SPECID: Unit + proptest for SpecId bijection (INV-REFLEXIVE-003). TESTS: (1) normalize known IDs — INV-STORE-001, ADR-GUIDANCE-022, NEG-MERGE-003. (2) denormalize known idents — :spec/inv-store-001, :spec/adr-guidance-022. (3) Round-trip: denormalize(normalize(h)) = h for all valid h. (4) Proptest: generate random valid spec IDs (3-letter type × namespace × 3-digit number), verify bijection holds. (5) Case insensitivity: INV-Store-001 normalizes same as INV-STORE-001. (6) Invalid input: normalize('not-a-spec-id') returns None/Err. (7) Backward compat: existing store idents produced by old code are parseable by SpecId::denormalize. TRACES TO: INV-REFLEXIVE-003. ACCEPTANCE: All tests pass including proptest with 1000+ cases." :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/traces-to :v #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/type :v :task.type/test :op :assert}
+ ]}

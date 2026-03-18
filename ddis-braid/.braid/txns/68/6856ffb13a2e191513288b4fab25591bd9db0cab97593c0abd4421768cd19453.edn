@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773865210/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPECID-1: Implement SpecId newtype with normalize/denormalize bijection (INV-REFLEXIVE-003). BACKGROUND: Create a SpecId type in datom.rs or a new spec_id.rs module. normalize('INV-GUIDANCE-022') = ':spec/inv-guidance-022'. denormalize(':spec/inv-guidance-022') = 'INV-GUIDANCE-022'. Handles all patterns: INV-*, ADR-*, NEG-*. Case-insensitive normalization (INV-Store-001 and INV-STORE-001 both → :spec/inv-store-001). Implement From<&str> that auto-detects which form is provided. Implement Display for human form, as_ident() for store form. FORMAL PROPERTY: normalize is a homomorphism from the free monoid of human-readable IDs to the store ident space. denormalize is its left-inverse. TRACES TO: INV-REFLEXIVE-003, C5. FILE: crates/braid-kernel/src/spec_id.rs (new). ACCEPTANCE: SpecId::normalize('INV-GUIDANCE-022').as_ident() == ':spec/inv-guidance-022'. SpecId::denormalize(':spec/inv-guidance-022').human_form() == 'INV-GUIDANCE-022'."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "98c8022f90bc89cb03b441a8345e2cb566fd83719441f5e92daee34f753557ff" :a :db/ident :v :task/t-4c358a77 :op :assert}
+   {:e #blake3 "98c8022f90bc89cb03b441a8345e2cb566fd83719441f5e92daee34f753557ff" :a :task/created-at :v 1773865209 :op :assert}
+   {:e #blake3 "98c8022f90bc89cb03b441a8345e2cb566fd83719441f5e92daee34f753557ff" :a :task/id :v "t-4c358a77" :op :assert}
+   {:e #blake3 "98c8022f90bc89cb03b441a8345e2cb566fd83719441f5e92daee34f753557ff" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "98c8022f90bc89cb03b441a8345e2cb566fd83719441f5e92daee34f753557ff" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "98c8022f90bc89cb03b441a8345e2cb566fd83719441f5e92daee34f753557ff" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "98c8022f90bc89cb03b441a8345e2cb566fd83719441f5e92daee34f753557ff" :a :task/title :v "SPECID-1: Implement SpecId newtype with normalize/denormalize bijection (INV-REFLEXIVE-003). BACKGROUND: Create a SpecId type in datom.rs or a new spec_id.rs module. normalize('INV-GUIDANCE-022') = ':spec/inv-guidance-022'. denormalize(':spec/inv-guidance-022') = 'INV-GUIDANCE-022'. Handles all patterns: INV-*, ADR-*, NEG-*. Case-insensitive normalization (INV-Store-001 and INV-STORE-001 both → :spec/inv-store-001). Implement From<&str> that auto-detects which form is provided. Implement Display for human form, as_ident() for store form. FORMAL PROPERTY: normalize is a homomorphism from the free monoid of human-readable IDs to the store ident space. denormalize is its left-inverse. TRACES TO: INV-REFLEXIVE-003, C5. FILE: crates/braid-kernel/src/spec_id.rs (new). ACCEPTANCE: SpecId::normalize('INV-GUIDANCE-022').as_ident() == ':spec/inv-guidance-022'. SpecId::denormalize(':spec/inv-guidance-022').human_form() == 'INV-GUIDANCE-022'." :op :assert}
+   {:e #blake3 "98c8022f90bc89cb03b441a8345e2cb566fd83719441f5e92daee34f753557ff" :a :task/traces-to :v #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :op :assert}
+   {:e #blake3 "98c8022f90bc89cb03b441a8345e2cb566fd83719441f5e92daee34f753557ff" :a :task/type :v :task.type/task :op :assert}
+ ]}

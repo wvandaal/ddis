@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773865767/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INVESTIGATION: crystallization_candidates — checking if the 55+ 'uncrystallized' IDs are genuine gaps or false positives. Key logic: extract_spec_ids returns UPPERCASE (INV-GUIDANCE-022), crystallized set stores id_part.to_uppercase() from :spec/ ident. Comparison should match. Hypothesis: many observation bodies reference spec IDs that DON'T have :spec/falsification (they're mentioned but never formally crystallized). This would be a TRUE positive, not a false positive."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "75c79ba8bd5c6577aef65cc7704c1bdd74164164f795f54e38de032754534928" :a :db/doc :v "INVESTIGATION: crystallization_candidates — checking if the 55+ 'uncrystallized' IDs are genuine gaps or false positives. Key logic: extract_spec_ids returns UPPERCASE (INV-GUIDANCE-022), crystallized set stores id_part.to_uppercase() from :spec/ ident. Comparison should match. Hypothesis: many observation bodies reference spec IDs that DON'T have :spec/falsification (they're mentioned but never formally crystallized). This would be a TRUE positive, not a false positive." :op :assert}
+   {:e #blake3 "75c79ba8bd5c6577aef65cc7704c1bdd74164164f795f54e38de032754534928" :a :db/ident :v :observation/investigation-crystallization-candidates-checking-if-the :op :assert}
+   {:e #blake3 "75c79ba8bd5c6577aef65cc7704c1bdd74164164f795f54e38de032754534928" :a :exploration/body :v "INVESTIGATION: crystallization_candidates — checking if the 55+ 'uncrystallized' IDs are genuine gaps or false positives. Key logic: extract_spec_ids returns UPPERCASE (INV-GUIDANCE-022), crystallized set stores id_part.to_uppercase() from :spec/ ident. Comparison should match. Hypothesis: many observation bodies reference spec IDs that DON'T have :spec/falsification (they're mentioned but never formally crystallized). This would be a TRUE positive, not a false positive." :op :assert}
+   {:e #blake3 "75c79ba8bd5c6577aef65cc7704c1bdd74164164f795f54e38de032754534928" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "75c79ba8bd5c6577aef65cc7704c1bdd74164164f795f54e38de032754534928" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "75c79ba8bd5c6577aef65cc7704c1bdd74164164f795f54e38de032754534928" :a :exploration/content-hash :v #bytes "5f959374e83d8c97956e83daf1e47578ae50f02a05316cb0cb78d2f0646cc98e" :op :assert}
+   {:e #blake3 "75c79ba8bd5c6577aef65cc7704c1bdd74164164f795f54e38de032754534928" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "75c79ba8bd5c6577aef65cc7704c1bdd74164164f795f54e38de032754534928" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "75c79ba8bd5c6577aef65cc7704c1bdd74164164f795f54e38de032754534928" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773865145/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DISP-2: Replace truncate_chars with sentence-boundary-aware truncation (INV-SEED-005). BACKGROUND: Current truncate_chars (seed.rs line 54) hard-cuts at char count and appends '...' — producing broken sentences like 'The error algebra E has a total recovery function R: E → RecoveryHint. For every error variant e ∈ E, R(e)...'. FIX: New implementation searches for natural break points in priority order: sentence end ('. ') > semicolon ('; ') > comma (', ') > em-dash (' — ') > word boundary (' '). Search window is last 40% of allowed range. No trailing ellipsis — the text simply ends at a natural point. This preserves meaning while respecting budget. TRACES TO: INV-SEED-005, INV-INTERFACE-008, ADR-INTERFACE-011. FILE: crates/braid-kernel/src/seed.rs. ACCEPTANCE: braid seed output contains no trailing '...' in any section. All truncated text ends at a sentence or clause boundary."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4495b54c87e383c883b84cb2ebcc79a559e5b61e289548c496ebf14dec67e220" :a :db/ident :v :task/t-0745ad40 :op :assert}
+   {:e #blake3 "4495b54c87e383c883b84cb2ebcc79a559e5b61e289548c496ebf14dec67e220" :a :task/created-at :v 1773865144 :op :assert}
+   {:e #blake3 "4495b54c87e383c883b84cb2ebcc79a559e5b61e289548c496ebf14dec67e220" :a :task/id :v "t-0745ad40" :op :assert}
+   {:e #blake3 "4495b54c87e383c883b84cb2ebcc79a559e5b61e289548c496ebf14dec67e220" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4495b54c87e383c883b84cb2ebcc79a559e5b61e289548c496ebf14dec67e220" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4495b54c87e383c883b84cb2ebcc79a559e5b61e289548c496ebf14dec67e220" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4495b54c87e383c883b84cb2ebcc79a559e5b61e289548c496ebf14dec67e220" :a :task/title :v "DISP-2: Replace truncate_chars with sentence-boundary-aware truncation (INV-SEED-005). BACKGROUND: Current truncate_chars (seed.rs line 54) hard-cuts at char count and appends '...' — producing broken sentences like 'The error algebra E has a total recovery function R: E → RecoveryHint. For every error variant e ∈ E, R(e)...'. FIX: New implementation searches for natural break points in priority order: sentence end ('. ') > semicolon ('; ') > comma (', ') > em-dash (' — ') > word boundary (' '). Search window is last 40% of allowed range. No trailing ellipsis — the text simply ends at a natural point. This preserves meaning while respecting budget. TRACES TO: INV-SEED-005, INV-INTERFACE-008, ADR-INTERFACE-011. FILE: crates/braid-kernel/src/seed.rs. ACCEPTANCE: braid seed output contains no trailing '...' in any section. All truncated text ends at a sentence or clause boundary." :op :assert}
+   {:e #blake3 "4495b54c87e383c883b84cb2ebcc79a559e5b61e289548c496ebf14dec67e220" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "4495b54c87e383c883b84cb2ebcc79a559e5b61e289548c496ebf14dec67e220" :a :task/traces-to :v #blake3 "f8aad9e52dd0215142a6c9b34de1e0af72221ed588c2421a0348716aeef00e99" :op :assert}
+   {:e #blake3 "4495b54c87e383c883b84cb2ebcc79a559e5b61e289548c496ebf14dec67e220" :a :task/type :v :task.type/task :op :assert}
+ ]}

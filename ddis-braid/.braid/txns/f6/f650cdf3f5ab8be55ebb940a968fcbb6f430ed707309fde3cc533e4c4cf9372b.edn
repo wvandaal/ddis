@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773865293/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Multi-Signal k_eff Estimation — self-calibrating Bayesian estimator (INV-REFLEXIVE-002). BACKGROUND: k_eff estimation currently uses a single proxy (total_turns from telemetry). This is inaccurate: at 15k datoms the proxy gives k*=0.15 even at session START. The real k_eff has MULTIPLE observable correlates: tx_count, wall_elapsed, tx_velocity, cumulative_output_tokens, observe_count. ROOT CAUSE: Latent variable inference with a single noisy feature. SOLUTION: Multi-signal fusion: k̂_eff = 1.0 - Σ(wᵢ × sigmoid(eᵢ/τᵢ)), where weights wᵢ and thresholds τᵢ are calibrated from the store's own session history. When --context-used is provided, record (evidence_vector, actual_k) as calibration datum. Over sessions, the estimator improves autonomously — C7 self-bootstrap applied to the observation apparatus. TRACES TO: INV-BUDGET-004, ADR-BUDGET-002, INV-HARVEST-005. ACCEPTANCE: |k̂_eff - k_true| ≤ 0.15 for sessions where --context-used is provided."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6b1ea7d68dd6087c7acd09107b7ef91b507403cb2d82c3782ee788811ce6e21c" :a :db/ident :v :task/t-f535d211 :op :assert}
+   {:e #blake3 "6b1ea7d68dd6087c7acd09107b7ef91b507403cb2d82c3782ee788811ce6e21c" :a :task/created-at :v 1773865292 :op :assert}
+   {:e #blake3 "6b1ea7d68dd6087c7acd09107b7ef91b507403cb2d82c3782ee788811ce6e21c" :a :task/id :v "t-f535d211" :op :assert}
+   {:e #blake3 "6b1ea7d68dd6087c7acd09107b7ef91b507403cb2d82c3782ee788811ce6e21c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6b1ea7d68dd6087c7acd09107b7ef91b507403cb2d82c3782ee788811ce6e21c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6b1ea7d68dd6087c7acd09107b7ef91b507403cb2d82c3782ee788811ce6e21c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6b1ea7d68dd6087c7acd09107b7ef91b507403cb2d82c3782ee788811ce6e21c" :a :task/title :v "EPIC: Multi-Signal k_eff Estimation — self-calibrating Bayesian estimator (INV-REFLEXIVE-002). BACKGROUND: k_eff estimation currently uses a single proxy (total_turns from telemetry). This is inaccurate: at 15k datoms the proxy gives k*=0.15 even at session START. The real k_eff has MULTIPLE observable correlates: tx_count, wall_elapsed, tx_velocity, cumulative_output_tokens, observe_count. ROOT CAUSE: Latent variable inference with a single noisy feature. SOLUTION: Multi-signal fusion: k̂_eff = 1.0 - Σ(wᵢ × sigmoid(eᵢ/τᵢ)), where weights wᵢ and thresholds τᵢ are calibrated from the store's own session history. When --context-used is provided, record (evidence_vector, actual_k) as calibration datum. Over sessions, the estimator improves autonomously — C7 self-bootstrap applied to the observation apparatus. TRACES TO: INV-BUDGET-004, ADR-BUDGET-002, INV-HARVEST-005. ACCEPTANCE: |k̂_eff - k_true| ≤ 0.15 for sessions where --context-used is provided." :op :assert}
+   {:e #blake3 "6b1ea7d68dd6087c7acd09107b7ef91b507403cb2d82c3782ee788811ce6e21c" :a :task/traces-to :v #blake3 "204ebfa13a978aedae517e69fc1eda83f20d032569914f5061259b591ab5c0fd" :op :assert}
+   {:e #blake3 "6b1ea7d68dd6087c7acd09107b7ef91b507403cb2d82c3782ee788811ce6e21c" :a :task/traces-to :v #blake3 "be63bdefa9441ff6f33b9506359b9b99706fa5ebafbe291935c8cfca52c9f30f" :op :assert}
+   {:e #blake3 "6b1ea7d68dd6087c7acd09107b7ef91b507403cb2d82c3782ee788811ce6e21c" :a :task/type :v :task.type/epic :op :assert}
+ ]}

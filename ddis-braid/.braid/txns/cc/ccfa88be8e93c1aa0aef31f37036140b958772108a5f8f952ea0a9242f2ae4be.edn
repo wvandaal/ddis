@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773865258/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-CENSUS: Unit + integration tests for capability census (INV-REFLEXIVE-001). TESTS: (1) Unit: CensusResult for LIVE index returns Implemented for non-empty store. (2) Unit: CensusResult for WITNESS returns SpecOnly (not yet implemented). (3) Integration: Store::genesis followed by census → 8 results. (4) Integration: braid query --attribute :capability/status returns 8 datoms. (5) Unit: capability_scan after census → zero false negatives. (6) Unit: generate_methodology_section with census data → only SpecOnly subsystems in constraints. (7) Regression: DMP methodology section no longer shows .cache/ or MCP as unimplemented. TRACES TO: INV-REFLEXIVE-001. ACCEPTANCE: All 7+ tests pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4f362298e9bd6a1941cf4ce75a56eb2235af6713e2f556a1428ae86388bcf8e2" :a :db/ident :v :task/t-d88ef41d :op :assert}
+   {:e #blake3 "4f362298e9bd6a1941cf4ce75a56eb2235af6713e2f556a1428ae86388bcf8e2" :a :task/created-at :v 1773865256 :op :assert}
+   {:e #blake3 "4f362298e9bd6a1941cf4ce75a56eb2235af6713e2f556a1428ae86388bcf8e2" :a :task/id :v "t-d88ef41d" :op :assert}
+   {:e #blake3 "4f362298e9bd6a1941cf4ce75a56eb2235af6713e2f556a1428ae86388bcf8e2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4f362298e9bd6a1941cf4ce75a56eb2235af6713e2f556a1428ae86388bcf8e2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4f362298e9bd6a1941cf4ce75a56eb2235af6713e2f556a1428ae86388bcf8e2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4f362298e9bd6a1941cf4ce75a56eb2235af6713e2f556a1428ae86388bcf8e2" :a :task/title :v "TEST-CENSUS: Unit + integration tests for capability census (INV-REFLEXIVE-001). TESTS: (1) Unit: CensusResult for LIVE index returns Implemented for non-empty store. (2) Unit: CensusResult for WITNESS returns SpecOnly (not yet implemented). (3) Integration: Store::genesis followed by census → 8 results. (4) Integration: braid query --attribute :capability/status returns 8 datoms. (5) Unit: capability_scan after census → zero false negatives. (6) Unit: generate_methodology_section with census data → only SpecOnly subsystems in constraints. (7) Regression: DMP methodology section no longer shows .cache/ or MCP as unimplemented. TRACES TO: INV-REFLEXIVE-001. ACCEPTANCE: All 7+ tests pass." :op :assert}
+   {:e #blake3 "4f362298e9bd6a1941cf4ce75a56eb2235af6713e2f556a1428ae86388bcf8e2" :a :task/type :v :task.type/test :op :assert}
+ ]}

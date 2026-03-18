@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773865297/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: KEFF-4: Self-calibration from session history (INV-REFLEXIVE-002). BACKGROUND: When --context-used is provided, record a calibration datum: (EvidenceVector, actual_k_eff) as :calibration/* datoms. Implement calibrate_weights(store) that fits wᵢ, τᵢ using least-squares against accumulated calibration data. Requires ≥5 calibration points. Falls back to default weights when insufficient data. This is C7 self-bootstrap applied to the estimation apparatus — the system improves its own k_eff estimator from its own usage history. TRACES TO: INV-REFLEXIVE-002, C7. FILE: crates/braid-kernel/src/budget.rs. ACCEPTANCE: After 5+ sessions with --context-used, calibrated weights produce lower estimation error than defaults."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :db/ident :v :task/t-60e174bd :op :assert}
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/created-at :v 1773865296 :op :assert}
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/id :v "t-60e174bd" :op :assert}
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/title :v "KEFF-4: Self-calibration from session history (INV-REFLEXIVE-002). BACKGROUND: When --context-used is provided, record a calibration datum: (EvidenceVector, actual_k_eff) as :calibration/* datoms. Implement calibrate_weights(store) that fits wᵢ, τᵢ using least-squares against accumulated calibration data. Requires ≥5 calibration points. Falls back to default weights when insufficient data. This is C7 self-bootstrap applied to the estimation apparatus — the system improves its own k_eff estimator from its own usage history. TRACES TO: INV-REFLEXIVE-002, C7. FILE: crates/braid-kernel/src/budget.rs. ACCEPTANCE: After 5+ sessions with --context-used, calibrated weights produce lower estimation error than defaults." :op :assert}
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/type :v :task.type/task :op :assert}
+ ]}

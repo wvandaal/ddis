@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773865298/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-KEFF: Unit + proptest for multi-signal k_eff estimation (INV-REFLEXIVE-002). TESTS: (1) Unit: EvidenceVector::from_store on empty store → all zeros. (2) Unit: estimate_k_eff(zero_evidence) ≈ 1.0. (3) Unit: estimate_k_eff(max_evidence) ≈ 0.05. (4) Unit: monotonicity — more evidence → lower k_eff. (5) Proptest: estimate_k_eff always in [0.05, 1.0] for arbitrary evidence. (6) Unit: sigmoid function properties — sigmoid(0) = 0.5, sigmoid(large) ≈ 1.0. (7) Integration: braid session start + 20 observations + estimate → k_eff < 0.8. (8) Unit: calibrate_weights with synthetic data converges to correct weights. TRACES TO: INV-REFLEXIVE-002. ACCEPTANCE: All 8+ tests pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :db/ident :v :task/t-be03b366 :op :assert}
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/created-at :v 1773865297 :op :assert}
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/id :v "t-be03b366" :op :assert}
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/title :v "TEST-KEFF: Unit + proptest for multi-signal k_eff estimation (INV-REFLEXIVE-002). TESTS: (1) Unit: EvidenceVector::from_store on empty store → all zeros. (2) Unit: estimate_k_eff(zero_evidence) ≈ 1.0. (3) Unit: estimate_k_eff(max_evidence) ≈ 0.05. (4) Unit: monotonicity — more evidence → lower k_eff. (5) Proptest: estimate_k_eff always in [0.05, 1.0] for arbitrary evidence. (6) Unit: sigmoid function properties — sigmoid(0) = 0.5, sigmoid(large) ≈ 1.0. (7) Integration: braid session start + 20 observations + estimate → k_eff < 0.8. (8) Unit: calibrate_weights with synthetic data converges to correct weights. TRACES TO: INV-REFLEXIVE-002. ACCEPTANCE: All 8+ tests pass." :op :assert}
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/type :v :task.type/test :op :assert}
+ ]}

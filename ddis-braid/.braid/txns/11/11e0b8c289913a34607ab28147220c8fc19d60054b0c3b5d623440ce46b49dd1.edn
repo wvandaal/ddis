@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773865294/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: KEFF-1: Implement EvidenceVector struct and multi-signal collector (INV-REFLEXIVE-002, INV-BUDGET-004). BACKGROUND: Define EvidenceVector { tx_count_since_session: u32, wall_elapsed_seconds: u64, tx_velocity_per_min: f64, cumulative_output_estimate: u32, observe_count: u32 }. Implement EvidenceVector::from_store(store) that computes all fields from store state. The tx_count uses count_txns_since_last_harvest. The wall_elapsed uses session entity :session/started-at vs now(). The observe_count counts :exploration/* entities since session start. TRACES TO: INV-REFLEXIVE-002, INV-BUDGET-004. FILE: crates/braid-kernel/src/budget.rs. ACCEPTANCE: EvidenceVector::from_store on test store returns correct values for all 5 fields."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8624db0a6c42941aa0c734e35326a00967101baa020a49b16420b5874b53611e" :a :db/ident :v :task/t-bfc3eb3a :op :assert}
+   {:e #blake3 "8624db0a6c42941aa0c734e35326a00967101baa020a49b16420b5874b53611e" :a :task/created-at :v 1773865293 :op :assert}
+   {:e #blake3 "8624db0a6c42941aa0c734e35326a00967101baa020a49b16420b5874b53611e" :a :task/id :v "t-bfc3eb3a" :op :assert}
+   {:e #blake3 "8624db0a6c42941aa0c734e35326a00967101baa020a49b16420b5874b53611e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "8624db0a6c42941aa0c734e35326a00967101baa020a49b16420b5874b53611e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8624db0a6c42941aa0c734e35326a00967101baa020a49b16420b5874b53611e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8624db0a6c42941aa0c734e35326a00967101baa020a49b16420b5874b53611e" :a :task/title :v "KEFF-1: Implement EvidenceVector struct and multi-signal collector (INV-REFLEXIVE-002, INV-BUDGET-004). BACKGROUND: Define EvidenceVector { tx_count_since_session: u32, wall_elapsed_seconds: u64, tx_velocity_per_min: f64, cumulative_output_estimate: u32, observe_count: u32 }. Implement EvidenceVector::from_store(store) that computes all fields from store state. The tx_count uses count_txns_since_last_harvest. The wall_elapsed uses session entity :session/started-at vs now(). The observe_count counts :exploration/* entities since session start. TRACES TO: INV-REFLEXIVE-002, INV-BUDGET-004. FILE: crates/braid-kernel/src/budget.rs. ACCEPTANCE: EvidenceVector::from_store on test store returns correct values for all 5 fields." :op :assert}
+   {:e #blake3 "8624db0a6c42941aa0c734e35326a00967101baa020a49b16420b5874b53611e" :a :task/traces-to :v #blake3 "be63bdefa9441ff6f33b9506359b9b99706fa5ebafbe291935c8cfca52c9f30f" :op :assert}
+   {:e #blake3 "8624db0a6c42941aa0c734e35326a00967101baa020a49b16420b5874b53611e" :a :task/type :v :task.type/task :op :assert}
+ ]}

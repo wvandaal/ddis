@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773865147/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DISP-3: Clean constraint status formatting in inject.rs and seed CLI (INV-INTERFACE-008). BACKGROUND: inject.rs lines 208-212 add [?]/[ok]/[!!] status markers to every constraint. When ALL constraints have unknown status (the common case at Stage 0), every line shows [?] — pure noise. seed.rs lines 103-106 have a similar issue. FIX: Check if any constraint has known status. If not, skip status markers entirely — show ID + summary only. If some are known, show markers only on known-status constraints (omit marker for None). This follows the principle: only display information that changes the reader's model. TRACES TO: INV-INTERFACE-008, ADR-INTERFACE-011. FILES: crates/braid/src/inject.rs lines 204-226, crates/braid/src/commands/seed.rs lines 95-136. ACCEPTANCE: When all constraints are unknown, no status markers appear. When some are known, only [ok]/[!!] appear (no [?])."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "58164e6aa2f507f06feaa76170d7bef4e57601fe372379d58a6628ce54f17279" :a :db/ident :v :task/t-5211f7aa :op :assert}
+   {:e #blake3 "58164e6aa2f507f06feaa76170d7bef4e57601fe372379d58a6628ce54f17279" :a :task/created-at :v 1773865146 :op :assert}
+   {:e #blake3 "58164e6aa2f507f06feaa76170d7bef4e57601fe372379d58a6628ce54f17279" :a :task/id :v "t-5211f7aa" :op :assert}
+   {:e #blake3 "58164e6aa2f507f06feaa76170d7bef4e57601fe372379d58a6628ce54f17279" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "58164e6aa2f507f06feaa76170d7bef4e57601fe372379d58a6628ce54f17279" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "58164e6aa2f507f06feaa76170d7bef4e57601fe372379d58a6628ce54f17279" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "58164e6aa2f507f06feaa76170d7bef4e57601fe372379d58a6628ce54f17279" :a :task/title :v "DISP-3: Clean constraint status formatting in inject.rs and seed CLI (INV-INTERFACE-008). BACKGROUND: inject.rs lines 208-212 add [?]/[ok]/[!!] status markers to every constraint. When ALL constraints have unknown status (the common case at Stage 0), every line shows [?] — pure noise. seed.rs lines 103-106 have a similar issue. FIX: Check if any constraint has known status. If not, skip status markers entirely — show ID + summary only. If some are known, show markers only on known-status constraints (omit marker for None). This follows the principle: only display information that changes the reader's model. TRACES TO: INV-INTERFACE-008, ADR-INTERFACE-011. FILES: crates/braid/src/inject.rs lines 204-226, crates/braid/src/commands/seed.rs lines 95-136. ACCEPTANCE: When all constraints are unknown, no status markers appear. When some are known, only [ok]/[!!] appear (no [?])." :op :assert}
+   {:e #blake3 "58164e6aa2f507f06feaa76170d7bef4e57601fe372379d58a6628ce54f17279" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "58164e6aa2f507f06feaa76170d7bef4e57601fe372379d58a6628ce54f17279" :a :task/type :v :task.type/task :op :assert}
+ ]}

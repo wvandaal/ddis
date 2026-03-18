@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773865296/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: KEFF-3: Wire multi-signal estimator into GuidanceContext and seed --inject (INV-REFLEXIVE-002). BACKGROUND: GuidanceContext::from_store currently defaults k_eff to 1.0 when None. Change to: compute EvidenceVector, call estimate_k_eff, use as default. seed.rs run_inject currently uses GuidanceContext::from_store with k_eff=None. This will now get the multi-signal estimate instead of always 1.0. TRACES TO: INV-REFLEXIVE-002, INV-GUIDANCE-022. FILES: crates/braid-kernel/src/guidance.rs, crates/braid/src/commands/seed.rs. ACCEPTANCE: braid seed --inject on a store with many transactions produces k_eff < 1.0 without --context-used flag."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cd007d32db3d3481c6fb57b8fd6fb06eee49fbb04d4f16fbe2232d50a4b57cbb" :a :db/ident :v :task/t-31aaf692 :op :assert}
+   {:e #blake3 "cd007d32db3d3481c6fb57b8fd6fb06eee49fbb04d4f16fbe2232d50a4b57cbb" :a :task/created-at :v 1773865295 :op :assert}
+   {:e #blake3 "cd007d32db3d3481c6fb57b8fd6fb06eee49fbb04d4f16fbe2232d50a4b57cbb" :a :task/id :v "t-31aaf692" :op :assert}
+   {:e #blake3 "cd007d32db3d3481c6fb57b8fd6fb06eee49fbb04d4f16fbe2232d50a4b57cbb" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "cd007d32db3d3481c6fb57b8fd6fb06eee49fbb04d4f16fbe2232d50a4b57cbb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cd007d32db3d3481c6fb57b8fd6fb06eee49fbb04d4f16fbe2232d50a4b57cbb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cd007d32db3d3481c6fb57b8fd6fb06eee49fbb04d4f16fbe2232d50a4b57cbb" :a :task/title :v "KEFF-3: Wire multi-signal estimator into GuidanceContext and seed --inject (INV-REFLEXIVE-002). BACKGROUND: GuidanceContext::from_store currently defaults k_eff to 1.0 when None. Change to: compute EvidenceVector, call estimate_k_eff, use as default. seed.rs run_inject currently uses GuidanceContext::from_store with k_eff=None. This will now get the multi-signal estimate instead of always 1.0. TRACES TO: INV-REFLEXIVE-002, INV-GUIDANCE-022. FILES: crates/braid-kernel/src/guidance.rs, crates/braid/src/commands/seed.rs. ACCEPTANCE: braid seed --inject on a store with many transactions produces k_eff < 1.0 without --context-used flag." :op :assert}
+   {:e #blake3 "cd007d32db3d3481c6fb57b8fd6fb06eee49fbb04d4f16fbe2232d50a4b57cbb" :a :task/type :v :task.type/task :op :assert}
+ ]}

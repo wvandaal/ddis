@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773865257/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CENSUS-3: Assert :capability/* datoms at store initialization (INV-REFLEXIVE-001). BACKGROUND: When the store is loaded (DiskLayout::load_store or Store::genesis), run all census functions and assert datoms: [:capability/live-index :capability/status :implemented ...]. These are regular datoms — append-only, content-addressed, queryable. Rewrite capability_scan to query :capability/status instead of probing attribute prefixes. Generate methodology section from query results instead of heuristic probes. TRACES TO: INV-REFLEXIVE-001, C1 (Append-Only). FILE: crates/braid/src/layout.rs, crates/braid-kernel/src/guidance.rs. ACCEPTANCE: braid query --attribute :capability/status returns all 8 subsystems with correct status."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d60af44a95c00005386aa6457ea28f09af9742353c0b4c6cbb7ee889a526b153" :a :db/ident :v :task/t-e8c5933b :op :assert}
+   {:e #blake3 "d60af44a95c00005386aa6457ea28f09af9742353c0b4c6cbb7ee889a526b153" :a :task/created-at :v 1773865255 :op :assert}
+   {:e #blake3 "d60af44a95c00005386aa6457ea28f09af9742353c0b4c6cbb7ee889a526b153" :a :task/id :v "t-e8c5933b" :op :assert}
+   {:e #blake3 "d60af44a95c00005386aa6457ea28f09af9742353c0b4c6cbb7ee889a526b153" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "d60af44a95c00005386aa6457ea28f09af9742353c0b4c6cbb7ee889a526b153" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d60af44a95c00005386aa6457ea28f09af9742353c0b4c6cbb7ee889a526b153" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d60af44a95c00005386aa6457ea28f09af9742353c0b4c6cbb7ee889a526b153" :a :task/title :v "CENSUS-3: Assert :capability/* datoms at store initialization (INV-REFLEXIVE-001). BACKGROUND: When the store is loaded (DiskLayout::load_store or Store::genesis), run all census functions and assert datoms: [:capability/live-index :capability/status :implemented ...]. These are regular datoms — append-only, content-addressed, queryable. Rewrite capability_scan to query :capability/status instead of probing attribute prefixes. Generate methodology section from query results instead of heuristic probes. TRACES TO: INV-REFLEXIVE-001, C1 (Append-Only). FILE: crates/braid/src/layout.rs, crates/braid-kernel/src/guidance.rs. ACCEPTANCE: braid query --attribute :capability/status returns all 8 subsystems with correct status." :op :assert}
+   {:e #blake3 "d60af44a95c00005386aa6457ea28f09af9742353c0b4c6cbb7ee889a526b153" :a :task/type :v :task.type/task :op :assert}
+ ]}

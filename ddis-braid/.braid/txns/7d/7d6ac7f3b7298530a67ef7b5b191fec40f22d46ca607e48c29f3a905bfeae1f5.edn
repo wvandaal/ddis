@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773865211/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPECID-2: Wire SpecId into all spec reference boundaries (INV-REFLEXIVE-003). BACKGROUND: Replace raw string matching with SpecId at every boundary: (1) parse_spec_refs in task.rs — returns Vec<SpecId> not Vec<String>, (2) resolve_spec_refs in task.rs — uses SpecId::as_ident() for store lookup, (3) crystallization_candidates in guidance.rs — uses SpecId for comparison, (4) extract_spec_ids in guidance.rs — returns Vec<SpecId>. Each site currently does its own lowercase/prefix transformation. After this change, ONE function (SpecId::normalize) handles all cases. TRACES TO: INV-REFLEXIVE-003, INV-GUIDANCE-021. FILES: crates/braid-kernel/src/task.rs, crates/braid-kernel/src/guidance.rs. ACCEPTANCE: crystallization_candidates returns correct count (investigate: current 55 should drop significantly)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f7dabd00937b067871341ffab047b7d4577c21eb18a4a29bbd14d0f81b80faef" :a :db/ident :v :task/t-298bc0d6 :op :assert}
+   {:e #blake3 "f7dabd00937b067871341ffab047b7d4577c21eb18a4a29bbd14d0f81b80faef" :a :task/created-at :v 1773865210 :op :assert}
+   {:e #blake3 "f7dabd00937b067871341ffab047b7d4577c21eb18a4a29bbd14d0f81b80faef" :a :task/id :v "t-298bc0d6" :op :assert}
+   {:e #blake3 "f7dabd00937b067871341ffab047b7d4577c21eb18a4a29bbd14d0f81b80faef" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f7dabd00937b067871341ffab047b7d4577c21eb18a4a29bbd14d0f81b80faef" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f7dabd00937b067871341ffab047b7d4577c21eb18a4a29bbd14d0f81b80faef" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f7dabd00937b067871341ffab047b7d4577c21eb18a4a29bbd14d0f81b80faef" :a :task/title :v "SPECID-2: Wire SpecId into all spec reference boundaries (INV-REFLEXIVE-003). BACKGROUND: Replace raw string matching with SpecId at every boundary: (1) parse_spec_refs in task.rs — returns Vec<SpecId> not Vec<String>, (2) resolve_spec_refs in task.rs — uses SpecId::as_ident() for store lookup, (3) crystallization_candidates in guidance.rs — uses SpecId for comparison, (4) extract_spec_ids in guidance.rs — returns Vec<SpecId>. Each site currently does its own lowercase/prefix transformation. After this change, ONE function (SpecId::normalize) handles all cases. TRACES TO: INV-REFLEXIVE-003, INV-GUIDANCE-021. FILES: crates/braid-kernel/src/task.rs, crates/braid-kernel/src/guidance.rs. ACCEPTANCE: crystallization_candidates returns correct count (investigate: current 55 should drop significantly)." :op :assert}
+   {:e #blake3 "f7dabd00937b067871341ffab047b7d4577c21eb18a4a29bbd14d0f81b80faef" :a :task/type :v :task.type/task :op :assert}
+ ]}

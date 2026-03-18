@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773865180/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: QUOTE-2: Update inject_methodology to use find_tagged_section (INV-REFLEXIVE-004). BACKGROUND: inject_methodology currently calls find_methodology_point which has its own exclusion logic. Update to use the generic function. Also update the injection path — when creating a NEW methodology section (no existing tags), use find_tagged_section('seed') to locate the insertion point (before seed). TRACES TO: INV-REFLEXIVE-004. FILE: crates/braid/src/inject.rs. ACCEPTANCE: inject_methodology works identically to before but uses the generic function internally."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "81f84bf2c6f481c2c5c9b498de636f3886949a7ce9cb2abd2d5e5e9387a3774e" :a :db/ident :v :task/t-1a1b94d8 :op :assert}
+   {:e #blake3 "81f84bf2c6f481c2c5c9b498de636f3886949a7ce9cb2abd2d5e5e9387a3774e" :a :task/created-at :v 1773865179 :op :assert}
+   {:e #blake3 "81f84bf2c6f481c2c5c9b498de636f3886949a7ce9cb2abd2d5e5e9387a3774e" :a :task/id :v "t-1a1b94d8" :op :assert}
+   {:e #blake3 "81f84bf2c6f481c2c5c9b498de636f3886949a7ce9cb2abd2d5e5e9387a3774e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "81f84bf2c6f481c2c5c9b498de636f3886949a7ce9cb2abd2d5e5e9387a3774e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "81f84bf2c6f481c2c5c9b498de636f3886949a7ce9cb2abd2d5e5e9387a3774e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "81f84bf2c6f481c2c5c9b498de636f3886949a7ce9cb2abd2d5e5e9387a3774e" :a :task/title :v "QUOTE-2: Update inject_methodology to use find_tagged_section (INV-REFLEXIVE-004). BACKGROUND: inject_methodology currently calls find_methodology_point which has its own exclusion logic. Update to use the generic function. Also update the injection path — when creating a NEW methodology section (no existing tags), use find_tagged_section('seed') to locate the insertion point (before seed). TRACES TO: INV-REFLEXIVE-004. FILE: crates/braid/src/inject.rs. ACCEPTANCE: inject_methodology works identically to before but uses the generic function internally." :op :assert}
+   {:e #blake3 "81f84bf2c6f481c2c5c9b498de636f3886949a7ce9cb2abd2d5e5e9387a3774e" :a :task/type :v :task.type/task :op :assert}
+ ]}

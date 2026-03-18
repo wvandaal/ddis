@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773865254/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CENSUS-1: Define CensusResult type and census trait (INV-REFLEXIVE-001). BACKGROUND: Each subsystem needs a standardized way to report its capabilities. Define: enum CensusStatus { Implemented, SpecOnly, Partial(String) }. struct CensusResult { name: String, status: CensusStatus, version: Option<String> }. trait Censusable { fn census() -> CensusResult; }. This trait allows compile-time enumeration of all subsystems. TRACES TO: INV-REFLEXIVE-001, C3. FILE: crates/braid-kernel/src/census.rs (new). ACCEPTANCE: CensusResult can represent all current subsystem states."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2d34224e8307dd1a660425fffbd29b5757a146826acf715491d211d55ed26b0b" :a :db/ident :v :task/t-6cc43f08 :op :assert}
+   {:e #blake3 "2d34224e8307dd1a660425fffbd29b5757a146826acf715491d211d55ed26b0b" :a :task/created-at :v 1773865253 :op :assert}
+   {:e #blake3 "2d34224e8307dd1a660425fffbd29b5757a146826acf715491d211d55ed26b0b" :a :task/id :v "t-6cc43f08" :op :assert}
+   {:e #blake3 "2d34224e8307dd1a660425fffbd29b5757a146826acf715491d211d55ed26b0b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2d34224e8307dd1a660425fffbd29b5757a146826acf715491d211d55ed26b0b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2d34224e8307dd1a660425fffbd29b5757a146826acf715491d211d55ed26b0b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2d34224e8307dd1a660425fffbd29b5757a146826acf715491d211d55ed26b0b" :a :task/title :v "CENSUS-1: Define CensusResult type and census trait (INV-REFLEXIVE-001). BACKGROUND: Each subsystem needs a standardized way to report its capabilities. Define: enum CensusStatus { Implemented, SpecOnly, Partial(String) }. struct CensusResult { name: String, status: CensusStatus, version: Option<String> }. trait Censusable { fn census() -> CensusResult; }. This trait allows compile-time enumeration of all subsystems. TRACES TO: INV-REFLEXIVE-001, C3. FILE: crates/braid-kernel/src/census.rs (new). ACCEPTANCE: CensusResult can represent all current subsystem states." :op :assert}
+   {:e #blake3 "2d34224e8307dd1a660425fffbd29b5757a146826acf715491d211d55ed26b0b" :a :task/type :v :task.type/task :op :assert}
+ ]}

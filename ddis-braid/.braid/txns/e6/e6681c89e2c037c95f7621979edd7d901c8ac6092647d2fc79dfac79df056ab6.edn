@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773864684/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "STRUCTURAL INSIGHT: All 5 dog-food friction points share a common root — the system lacks a formal model of its own observation apparatus. It can observe external state (store, files, git) but cannot observe: (1) its own compiled capabilities, (2) the agent's internal state, (3) the precise human↔machine identifier mapping, (4) the use/mention distinction in its own syntax, (5) the reader's cognitive model. This is REFLEXIVE DIVERGENCE — a ninth divergence type missing from the reconciliation taxonomy."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "72f286655144956fd6a97d1b059b417dfe5d918cc123003c0583c2209f2232c0" :a :db/doc :v "STRUCTURAL INSIGHT: All 5 dog-food friction points share a common root — the system lacks a formal model of its own observation apparatus. It can observe external state (store, files, git) but cannot observe: (1) its own compiled capabilities, (2) the agent's internal state, (3) the precise human↔machine identifier mapping, (4) the use/mention distinction in its own syntax, (5) the reader's cognitive model. This is REFLEXIVE DIVERGENCE — a ninth divergence type missing from the reconciliation taxonomy." :op :assert}
+   {:e #blake3 "72f286655144956fd6a97d1b059b417dfe5d918cc123003c0583c2209f2232c0" :a :db/ident :v :observation/structural-insight-all-5-dog-food-friction-points-share-a-c :op :assert}
+   {:e #blake3 "72f286655144956fd6a97d1b059b417dfe5d918cc123003c0583c2209f2232c0" :a :exploration/body :v "STRUCTURAL INSIGHT: All 5 dog-food friction points share a common root — the system lacks a formal model of its own observation apparatus. It can observe external state (store, files, git) but cannot observe: (1) its own compiled capabilities, (2) the agent's internal state, (3) the precise human↔machine identifier mapping, (4) the use/mention distinction in its own syntax, (5) the reader's cognitive model. This is REFLEXIVE DIVERGENCE — a ninth divergence type missing from the reconciliation taxonomy." :op :assert}
+   {:e #blake3 "72f286655144956fd6a97d1b059b417dfe5d918cc123003c0583c2209f2232c0" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "72f286655144956fd6a97d1b059b417dfe5d918cc123003c0583c2209f2232c0" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "72f286655144956fd6a97d1b059b417dfe5d918cc123003c0583c2209f2232c0" :a :exploration/content-hash :v #bytes "ae2b796188e6262c6dd73e5e291bc73facee9d0281d931beb8588486ef4b1679" :op :assert}
+   {:e #blake3 "72f286655144956fd6a97d1b059b417dfe5d918cc123003c0583c2209f2232c0" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "72f286655144956fd6a97d1b059b417dfe5d918cc123003c0583c2209f2232c0" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "72f286655144956fd6a97d1b059b417dfe5d918cc123003c0583c2209f2232c0" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
