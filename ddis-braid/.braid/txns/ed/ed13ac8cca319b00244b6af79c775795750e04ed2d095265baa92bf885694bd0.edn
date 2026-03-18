@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810862/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DOCS-W2: Add WITNESS to spec/17-crossref.md namespace table + dependency graph"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8ef9a4e3a66ce1911087b15716697b1bee14022db3134e59723b1771662ea6c9" :a :db/ident :v :task/t-2aa6 :op :assert}
+   {:e #blake3 "8ef9a4e3a66ce1911087b15716697b1bee14022db3134e59723b1771662ea6c9" :a :task/created-at :v 1773810840 :op :assert}
+   {:e #blake3 "8ef9a4e3a66ce1911087b15716697b1bee14022db3134e59723b1771662ea6c9" :a :task/id :v "t-2aa6" :op :assert}
+   {:e #blake3 "8ef9a4e3a66ce1911087b15716697b1bee14022db3134e59723b1771662ea6c9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "8ef9a4e3a66ce1911087b15716697b1bee14022db3134e59723b1771662ea6c9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8ef9a4e3a66ce1911087b15716697b1bee14022db3134e59723b1771662ea6c9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8ef9a4e3a66ce1911087b15716697b1bee14022db3134e59723b1771662ea6c9" :a :task/title :v "DOCS-W2: Add WITNESS to spec/17-crossref.md namespace table + dependency graph" :op :assert}
+   {:e #blake3 "8ef9a4e3a66ce1911087b15716697b1bee14022db3134e59723b1771662ea6c9" :a :task/type :v :task.type/docs :op :assert}
+ ]}

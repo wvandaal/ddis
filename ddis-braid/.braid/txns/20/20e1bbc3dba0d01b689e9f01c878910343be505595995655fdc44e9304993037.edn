@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810857/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-W5: INV-WITNESS-010 decorrelated verdicts — proptest: 3 independent subagents produce different verdict distributions"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d0d746a97759e133d00e6ff0d03091ffaf66df86cff0ff2a7ffce788714ba5f1" :a :db/ident :v :task/t-402f :op :assert}
+   {:e #blake3 "d0d746a97759e133d00e6ff0d03091ffaf66df86cff0ff2a7ffce788714ba5f1" :a :task/created-at :v 1773810837 :op :assert}
+   {:e #blake3 "d0d746a97759e133d00e6ff0d03091ffaf66df86cff0ff2a7ffce788714ba5f1" :a :task/id :v "t-402f" :op :assert}
+   {:e #blake3 "d0d746a97759e133d00e6ff0d03091ffaf66df86cff0ff2a7ffce788714ba5f1" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "d0d746a97759e133d00e6ff0d03091ffaf66df86cff0ff2a7ffce788714ba5f1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d0d746a97759e133d00e6ff0d03091ffaf66df86cff0ff2a7ffce788714ba5f1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d0d746a97759e133d00e6ff0d03091ffaf66df86cff0ff2a7ffce788714ba5f1" :a :task/title :v "TEST-W5: INV-WITNESS-010 decorrelated verdicts — proptest: 3 independent subagents produce different verdict distributions" :op :assert}
+   {:e #blake3 "d0d746a97759e133d00e6ff0d03091ffaf66df86cff0ff2a7ffce788714ba5f1" :a :task/type :v :task.type/task :op :assert}
+ ]}

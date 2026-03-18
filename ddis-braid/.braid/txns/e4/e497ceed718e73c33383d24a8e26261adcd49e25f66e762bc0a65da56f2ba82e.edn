@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810853/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-W1: INV-WITNESS-001 triple-hash invalidation — proptest: random mutations to spec/test/falsification trigger stale (V:PROP + V:KANI)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0e15ce90938f0d515cdf6ce1bcc6b697af0345e7635b1a2d68ad9b0f5f157abc" :a :db/ident :v :task/t-e851 :op :assert}
+   {:e #blake3 "0e15ce90938f0d515cdf6ce1bcc6b697af0345e7635b1a2d68ad9b0f5f157abc" :a :task/created-at :v 1773810834 :op :assert}
+   {:e #blake3 "0e15ce90938f0d515cdf6ce1bcc6b697af0345e7635b1a2d68ad9b0f5f157abc" :a :task/id :v "t-e851" :op :assert}
+   {:e #blake3 "0e15ce90938f0d515cdf6ce1bcc6b697af0345e7635b1a2d68ad9b0f5f157abc" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0e15ce90938f0d515cdf6ce1bcc6b697af0345e7635b1a2d68ad9b0f5f157abc" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0e15ce90938f0d515cdf6ce1bcc6b697af0345e7635b1a2d68ad9b0f5f157abc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0e15ce90938f0d515cdf6ce1bcc6b697af0345e7635b1a2d68ad9b0f5f157abc" :a :task/title :v "TEST-W1: INV-WITNESS-001 triple-hash invalidation — proptest: random mutations to spec/test/falsification trigger stale (V:PROP + V:KANI)" :op :assert}
+   {:e #blake3 "0e15ce90938f0d515cdf6ce1bcc6b697af0345e7635b1a2d68ad9b0f5f157abc" :a :task/type :v :task.type/task :op :assert}
+ ]}

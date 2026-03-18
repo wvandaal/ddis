@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810834/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P1.1: Add 11 :witness/* attributes to Layer 4 schema (INV-WITNESS-006, spec/21-witness.md §21.6)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :db/ident :v :task/t-a856 :op :assert}
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/created-at :v 1773810822 :op :assert}
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/id :v "t-a856" :op :assert}
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/title :v "WITNESS-P1.1: Add 11 :witness/* attributes to Layer 4 schema (INV-WITNESS-006, spec/21-witness.md §21.6)" :op :assert}
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/type :v :task.type/task :op :assert}
+ ]}

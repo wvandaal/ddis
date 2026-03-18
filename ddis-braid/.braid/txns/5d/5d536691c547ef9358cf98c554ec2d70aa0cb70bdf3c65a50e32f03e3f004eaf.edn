@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773810824/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c925"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "94672359f6509212a69446ea95546ee13f0bf03c9661e7393d1bfd2e07889e1a" :a :task/close-reason :v "Superseded: restructured in audit pass with proper INV-WITNESS refs + dependency ordering" :op :assert}
+   {:e #blake3 "94672359f6509212a69446ea95546ee13f0bf03c9661e7393d1bfd2e07889e1a" :a :task/closed-at :v 1773810816 :op :assert}
+   {:e #blake3 "94672359f6509212a69446ea95546ee13f0bf03c9661e7393d1bfd2e07889e1a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

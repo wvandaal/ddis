@@ -36,6 +36,34 @@ of the three hashes changes. This creates a triple-lock that detects:
 2. **Test weakening** → `test_body_hash` changes → stale
 3. **Contract mutation** → `falsification_hash` changes → stale
 
+**Entity identity (C2 compliance)**: FBW entity IDs are content-addressed:
+```
+fbw_entity = EntityId::from_content(
+    BLAKE3(inv_entity_bytes ∥ test_fn_name_bytes ∥ source_file_bytes)
+)
+```
+Two agents independently witnessing the same invariant with the same test produce
+the SAME entity (C2: identity by content). Versioned witnesses (same inv/test, different
+hashes) are new assertions on the same entity — the append-only store (C1) preserves
+the full history.
+
+**Stage-Depth Mapping**:
+
+| Stage | Min Depth | Max Depth | Evidence Sources | Challenge Levels |
+|-------|-----------|-----------|-----------------|-----------------|
+| 0 | L1 | L1 | Comments only (pre-witness) | None (no witness system) |
+| 1 | L1 | L2 | Comments, unit tests | 0 (keyword), 2–5 (mechanical) |
+| 2 | L2 | L3 | Tests, proptests, LLM-as-judge | 0–5 (all, LLM for Level 0) |
+| 3+ | L2 | L4 | Tests, proofs, Kani, stateright | 0–5 + SMT for Level 1 |
+
+**Per-Stage Verdict Rules**:
+
+| Stage | Levels Active | Missing Level Handling | Confirmation Threshold |
+|-------|--------------|----------------------|----------------------|
+| 1 | 0 (keyword), 2, 3, 4, 5 | Level 1 (Formal): skip, base score unaffected | ≥ 0.85 |
+| 2 | 0–5 (all) | None missing | ≥ 0.85 |
+| 3+ | 0–5 + SMT extension | None missing | ≥ 0.90 (higher bar with more tools) |
+
 ### §21.2 Invariants
 
 #### INV-WITNESS-001: Triple-Hash Auto-Invalidation
@@ -390,7 +418,10 @@ Witnesses that bypass the challenge protocol are ceremonial, not verification.
 
 ### §21.6 Schema Attributes
 
-New Layer 5 attributes for the witness system:
+Layer 4 attributes (Coordination Infrastructure) for the witness system.
+Witness attributes belong in Layer 4 (not a new Layer 5) because witnesses are
+coordination artifacts — they record verification provenance across agents and
+sessions, alongside the existing Layer 4 task/plan/session attributes.
 
 | Attribute | ValueType | Cardinality | Resolution | Description |
 |-----------|-----------|-------------|------------|-------------|
@@ -519,7 +550,7 @@ context that produced the code or test being evaluated. The evaluator has access
 the implementation reasoning and may rubber-stamp due to self-serving bias or
 k*-depleted sycophancy.
 **Verification**: V:PROP — verify that challenge execution spawns a separate context
-(Agent tool call with no shared state). V:ARCH — architectural review confirming no
+(Agent tool call with no shared state). V:PROP — architectural review confirming no
 shared mutable state between producer and verifier contexts.
 
 ---
@@ -554,7 +585,7 @@ the test, not confirm it.
 context (e.g., 3 sequential LLM calls within a single Agent), producing correlated
 outputs.
 **Verification**: V:PROP — verify that majority_vote implementation spawns N independent
-Agents. V:ARCH — no shared mutable state between verdict contexts.
+Agents. V:PROP — no shared mutable state between verdict contexts.
 
 ---
 
@@ -706,19 +737,50 @@ but all 3 verdicts were produced within the same Agent invocation.
 
 ---
 
-### §21.11 Complete Gap Closure Matrix
+### §21.11 Complete Verification Stack Coverage
 
-| Gap | Invariants | ADRs | NEGs | Status |
-|-----|-----------|------|------|--------|
-| 1: Test-Falsification Alignment | INV-WITNESS-002 | ADR-WITNESS-002 | NEG-WITNESS-005 | CLOSED |
-| 2: Test Content Stability | INV-WITNESS-001, 005, 006 | ADR-WITNESS-001 | NEG-WITNESS-002 | CLOSED |
-| 3: Harness/Property Correctness | INV-WITNESS-008 | — | NEG-WITNESS-005 | CLOSED |
-| 4: Systematic Evaluation Bias | INV-WITNESS-009, 010 | ADR-WITNESS-004 | NEG-WITNESS-004, 006 | CLOSED |
-| 5: Semantic Impl Correctness | INV-WITNESS-011, 012 | — | — | CLOSED |
+Every failure mode from the verification stack audit maps to a detection layer.
+The WITNESS namespace closes the 7 previously-uncovered failure modes:
 
-All five gaps have at least one invariant with a falsification condition, at least one
-detection mechanism, and a clear implementation path. No gap relies solely on human
-review or process discipline — each has a mechanical detection component.
+| Failure Mode | Pre-Witness Detection | Witness Detection | Invariant(s) | Stage |
+|---|---|---|---|---|
+| Wrong types | L1 compiler | — (already covered) | — | 0 |
+| Missing enum arm | L1 compiler | — | — | 0 |
+| Specific known bug | L4 unit test | — | — | 0 |
+| Edge case bug | L5 proptest | — | — | 0 |
+| Bug within bounds | L6 Kani | — | — | 0 |
+| Protocol race | L7 stateright | — | — | 0 |
+| Unimplemented spec | L8 trace, L9 bilateral | — | — | 0 |
+| Spec contradiction | L11 contradiction | — | — | 0 |
+| **Test weakening** | **NOTHING** | **test_body_hash change → stale** | **INV-WITNESS-001, 005** | **1** |
+| **Tautological test** | **NOTHING** | **alignment score = 0** | **INV-WITNESS-002, NEG-005** | **1** |
+| **Wrong property tested** | **NOTHING** | **harness alignment < 0.5** | **INV-WITNESS-008** | **1** |
+| **Wrong Kani harness** | **NOTHING** | **harness alignment < 0.5** | **INV-WITNESS-008** | **1** |
+| **Semantic impl error** | L4/L5 (partial) | **completeness guard + boundary gen** | **INV-WITNESS-011, 012** | **1, 2+** |
+| **Bulk LLM sycophancy** | **NOTHING** | **subagent cognitive independence** | **INV-WITNESS-009, 010** | **1** |
+| **Test exists verifies nothing** | **NOTHING** | **alignment + completeness guard** | **INV-WITNESS-002, 011** | **1** |
+
+**Closure assessment**: All 7 GAP rows have mechanical detection at Stage 1.
+Gap 5 (semantic impl error) has detection + signal at Stage 1, automated fix
+(boundary test generation) at Stage 2+. This is honest: "detect at S1, fix at S2+"
+rather than claiming full closure at S1.
+
+### §21.12 Verification Plan (WITNESS INV)
+
+| ID | Primary V:TAG | Secondary | Tool | CI Gate | Stage |
+|----|---------------|-----------|------|---------|-------|
+| INV-WITNESS-001 | V:PROP | V:KANI | proptest + kani | test + kani | 1 |
+| INV-WITNESS-002 | V:PROP | — | proptest | test | 1 |
+| INV-WITNESS-003 | V:PROP | — | proptest | test | 1 |
+| INV-WITNESS-004 | V:PROP | V:KANI | proptest + kani | test + kani | 1 |
+| INV-WITNESS-005 | V:PROP | — | proptest | test | 1 |
+| INV-WITNESS-006 | V:PROP | — | proptest | test | 1 |
+| INV-WITNESS-007 | V:PROP | — | proptest | test | 1 |
+| INV-WITNESS-008 | V:PROP | — | proptest | test | 1 |
+| INV-WITNESS-009 | V:PROP | — | proptest | test | 1 |
+| INV-WITNESS-010 | V:PROP | — | proptest | test | 1 |
+| INV-WITNESS-011 | V:PROP | — | proptest | test | 1 |
+| INV-WITNESS-012 | V:PROP | — | proptest | test | 2 |
 
 ---
 

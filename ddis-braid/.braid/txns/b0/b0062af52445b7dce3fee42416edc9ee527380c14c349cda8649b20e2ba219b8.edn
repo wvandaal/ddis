@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810846/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P4.5: Implement self-witnessing guard — reject self-produced challenges (NEG-WITNESS-004)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b05fd4e46384f2dd4652943a4e998de9f90e824183ce29800c656c41cc25f806" :a :db/ident :v :task/t-4e50 :op :assert}
+   {:e #blake3 "b05fd4e46384f2dd4652943a4e998de9f90e824183ce29800c656c41cc25f806" :a :task/created-at :v 1773810830 :op :assert}
+   {:e #blake3 "b05fd4e46384f2dd4652943a4e998de9f90e824183ce29800c656c41cc25f806" :a :task/id :v "t-4e50" :op :assert}
+   {:e #blake3 "b05fd4e46384f2dd4652943a4e998de9f90e824183ce29800c656c41cc25f806" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b05fd4e46384f2dd4652943a4e998de9f90e824183ce29800c656c41cc25f806" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b05fd4e46384f2dd4652943a4e998de9f90e824183ce29800c656c41cc25f806" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b05fd4e46384f2dd4652943a4e998de9f90e824183ce29800c656c41cc25f806" :a :task/title :v "WITNESS-P4.5: Implement self-witnessing guard — reject self-produced challenges (NEG-WITNESS-004)" :op :assert}
+   {:e #blake3 "b05fd4e46384f2dd4652943a4e998de9f90e824183ce29800c656c41cc25f806" :a :task/type :v :task.type/task :op :assert}
+ ]}

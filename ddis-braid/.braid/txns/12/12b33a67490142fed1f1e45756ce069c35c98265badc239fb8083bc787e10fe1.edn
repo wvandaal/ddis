@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810840/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P3.3: Implement monotonic depth guard — reject L_n < L_max without deliberation (INV-WITNESS-003)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "09ad4ac21bf4cf294531672f409b1fc2e6765fa0dbfb927b4616dccd20542af3" :a :db/ident :v :task/t-fb08 :op :assert}
+   {:e #blake3 "09ad4ac21bf4cf294531672f409b1fc2e6765fa0dbfb927b4616dccd20542af3" :a :task/created-at :v 1773810826 :op :assert}
+   {:e #blake3 "09ad4ac21bf4cf294531672f409b1fc2e6765fa0dbfb927b4616dccd20542af3" :a :task/id :v "t-fb08" :op :assert}
+   {:e #blake3 "09ad4ac21bf4cf294531672f409b1fc2e6765fa0dbfb927b4616dccd20542af3" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "09ad4ac21bf4cf294531672f409b1fc2e6765fa0dbfb927b4616dccd20542af3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "09ad4ac21bf4cf294531672f409b1fc2e6765fa0dbfb927b4616dccd20542af3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "09ad4ac21bf4cf294531672f409b1fc2e6765fa0dbfb927b4616dccd20542af3" :a :task/title :v "WITNESS-P3.3: Implement monotonic depth guard — reject L_n < L_max without deliberation (INV-WITNESS-003)" :op :assert}
+   {:e #blake3 "09ad4ac21bf4cf294531672f409b1fc2e6765fa0dbfb927b4616dccd20542af3" :a :task/type :v :task.type/task :op :assert}
+ ]}

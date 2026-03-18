@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773810667/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT RESULTS for spec/21-witness.md — 5 critical issues: (1) V:ARCH undefined — replace with V:PROP, (2) WITNESS missing from verification plan §16, (3) Layer 5 undefined in schema spec — reclassify to Layer 4 coordination, (4) FBW entity identity unspecified — must be content-addressed per C2, (5) Task traceability — tasks exist in store but titles need explicit INV-WITNESS-NNN refs. Also 4 important + 4 minor. All fixable before implementation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "05e868bb14b75064f4129dd128f8dbe86c772eef686ccb41f35ae889751f4aa3" :a :db/doc :v "AUDIT RESULTS for spec/21-witness.md — 5 critical issues: (1) V:ARCH undefined — replace with V:PROP, (2) WITNESS missing from verification plan §16, (3) Layer 5 undefined in schema spec — reclassify to Layer 4 coordination, (4) FBW entity identity unspecified — must be content-addressed per C2, (5) Task traceability — tasks exist in store but titles need explicit INV-WITNESS-NNN refs. Also 4 important + 4 minor. All fixable before implementation." :op :assert}
+   {:e #blake3 "05e868bb14b75064f4129dd128f8dbe86c772eef686ccb41f35ae889751f4aa3" :a :db/ident :v :observation/audit-results-for-spec21-witnessmd-5-critical-issues-1 :op :assert}
+   {:e #blake3 "05e868bb14b75064f4129dd128f8dbe86c772eef686ccb41f35ae889751f4aa3" :a :exploration/body :v "AUDIT RESULTS for spec/21-witness.md — 5 critical issues: (1) V:ARCH undefined — replace with V:PROP, (2) WITNESS missing from verification plan §16, (3) Layer 5 undefined in schema spec — reclassify to Layer 4 coordination, (4) FBW entity identity unspecified — must be content-addressed per C2, (5) Task traceability — tasks exist in store but titles need explicit INV-WITNESS-NNN refs. Also 4 important + 4 minor. All fixable before implementation." :op :assert}
+   {:e #blake3 "05e868bb14b75064f4129dd128f8dbe86c772eef686ccb41f35ae889751f4aa3" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "05e868bb14b75064f4129dd128f8dbe86c772eef686ccb41f35ae889751f4aa3" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "05e868bb14b75064f4129dd128f8dbe86c772eef686ccb41f35ae889751f4aa3" :a :exploration/content-hash :v #bytes "0c781133c239cea9ce6f678da021297c2226f98f13e459a839fa8e69bdcc04c7" :op :assert}
+   {:e #blake3 "05e868bb14b75064f4129dd128f8dbe86c772eef686ccb41f35ae889751f4aa3" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "05e868bb14b75064f4129dd128f8dbe86c772eef686ccb41f35ae889751f4aa3" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "05e868bb14b75064f4129dd128f8dbe86c772eef686ccb41f35ae889751f4aa3" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

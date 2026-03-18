@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810851/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P6.2: Implement braid challenge CLI — run 6-level protocol, show verdict breakdown"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fbdd8c3fd8e839e8b832dc49ef57313e9b9d6c94f7ca66886f08bb2f437d4373" :a :db/ident :v :task/t-3b08 :op :assert}
+   {:e #blake3 "fbdd8c3fd8e839e8b832dc49ef57313e9b9d6c94f7ca66886f08bb2f437d4373" :a :task/created-at :v 1773810833 :op :assert}
+   {:e #blake3 "fbdd8c3fd8e839e8b832dc49ef57313e9b9d6c94f7ca66886f08bb2f437d4373" :a :task/id :v "t-3b08" :op :assert}
+   {:e #blake3 "fbdd8c3fd8e839e8b832dc49ef57313e9b9d6c94f7ca66886f08bb2f437d4373" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "fbdd8c3fd8e839e8b832dc49ef57313e9b9d6c94f7ca66886f08bb2f437d4373" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "fbdd8c3fd8e839e8b832dc49ef57313e9b9d6c94f7ca66886f08bb2f437d4373" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fbdd8c3fd8e839e8b832dc49ef57313e9b9d6c94f7ca66886f08bb2f437d4373" :a :task/title :v "WITNESS-P6.2: Implement braid challenge CLI — run 6-level protocol, show verdict breakdown" :op :assert}
+   {:e #blake3 "fbdd8c3fd8e839e8b832dc49ef57313e9b9d6c94f7ca66886f08bb2f437d4373" :a :task/type :v :task.type/feature :op :assert}
+ ]}

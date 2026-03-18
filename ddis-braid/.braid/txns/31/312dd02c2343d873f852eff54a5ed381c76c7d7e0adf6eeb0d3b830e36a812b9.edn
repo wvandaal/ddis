@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810838/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P3.1: Implement detect_stale_witnesses(store) — compare all 3 hashes against current artifacts (INV-WITNESS-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c50579bde8cf1098a796b4063556ae4e30c5e223733cd056b25f1e097b7c3ea2" :a :db/ident :v :task/t-59f9 :op :assert}
+   {:e #blake3 "c50579bde8cf1098a796b4063556ae4e30c5e223733cd056b25f1e097b7c3ea2" :a :task/created-at :v 1773810825 :op :assert}
+   {:e #blake3 "c50579bde8cf1098a796b4063556ae4e30c5e223733cd056b25f1e097b7c3ea2" :a :task/id :v "t-59f9" :op :assert}
+   {:e #blake3 "c50579bde8cf1098a796b4063556ae4e30c5e223733cd056b25f1e097b7c3ea2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c50579bde8cf1098a796b4063556ae4e30c5e223733cd056b25f1e097b7c3ea2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c50579bde8cf1098a796b4063556ae4e30c5e223733cd056b25f1e097b7c3ea2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c50579bde8cf1098a796b4063556ae4e30c5e223733cd056b25f1e097b7c3ea2" :a :task/title :v "WITNESS-P3.1: Implement detect_stale_witnesses(store) — compare all 3 hashes against current artifacts (INV-WITNESS-001)" :op :assert}
+   {:e #blake3 "c50579bde8cf1098a796b4063556ae4e30c5e223733cd056b25f1e097b7c3ea2" :a :task/type :v :task.type/task :op :assert}
+ ]}

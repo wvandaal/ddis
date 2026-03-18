@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810858/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-W6: Full witness→challenge→verdict E2E pipeline — integration test with real store, real trace, real challenge"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0ea7148451914488edb2aa008421ac46c1976eaed1df3e60d17b0a1f02a9e14a" :a :db/ident :v :task/t-2f6e :op :assert}
+   {:e #blake3 "0ea7148451914488edb2aa008421ac46c1976eaed1df3e60d17b0a1f02a9e14a" :a :task/created-at :v 1773810837 :op :assert}
+   {:e #blake3 "0ea7148451914488edb2aa008421ac46c1976eaed1df3e60d17b0a1f02a9e14a" :a :task/id :v "t-2f6e" :op :assert}
+   {:e #blake3 "0ea7148451914488edb2aa008421ac46c1976eaed1df3e60d17b0a1f02a9e14a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0ea7148451914488edb2aa008421ac46c1976eaed1df3e60d17b0a1f02a9e14a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0ea7148451914488edb2aa008421ac46c1976eaed1df3e60d17b0a1f02a9e14a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0ea7148451914488edb2aa008421ac46c1976eaed1df3e60d17b0a1f02a9e14a" :a :task/title :v "TEST-W6: Full witness→challenge→verdict E2E pipeline — integration test with real store, real trace, real challenge" :op :assert}
+   {:e #blake3 "0ea7148451914488edb2aa008421ac46c1976eaed1df3e60d17b0a1f02a9e14a" :a :task/type :v :task.type/task :op :assert}
+ ]}

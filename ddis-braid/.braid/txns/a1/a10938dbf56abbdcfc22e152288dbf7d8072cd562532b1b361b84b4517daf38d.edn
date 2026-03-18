@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810847/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P5.1: Wire stale witnesses into F(S).validation component — stale=0 contribution (INV-WITNESS-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "53b38a875aaa334c1199698a9a039894c8ca8b7ff7d1b519d195439d99c806a6" :a :db/ident :v :task/t-7480 :op :assert}
+   {:e #blake3 "53b38a875aaa334c1199698a9a039894c8ca8b7ff7d1b519d195439d99c806a6" :a :task/created-at :v 1773810830 :op :assert}
+   {:e #blake3 "53b38a875aaa334c1199698a9a039894c8ca8b7ff7d1b519d195439d99c806a6" :a :task/id :v "t-7480" :op :assert}
+   {:e #blake3 "53b38a875aaa334c1199698a9a039894c8ca8b7ff7d1b519d195439d99c806a6" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "53b38a875aaa334c1199698a9a039894c8ca8b7ff7d1b519d195439d99c806a6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "53b38a875aaa334c1199698a9a039894c8ca8b7ff7d1b519d195439d99c806a6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "53b38a875aaa334c1199698a9a039894c8ca8b7ff7d1b519d195439d99c806a6" :a :task/title :v "WITNESS-P5.1: Wire stale witnesses into F(S).validation component — stale=0 contribution (INV-WITNESS-005)" :op :assert}
+   {:e #blake3 "53b38a875aaa334c1199698a9a039894c8ca8b7ff7d1b519d195439d99c806a6" :a :task/type :v :task.type/task :op :assert}
+ ]}

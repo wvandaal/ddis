@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810859/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-W7: E2E script scripts/e2e_witness.sh — 15+ checks covering all 12 INV-WITNESS with detailed logging"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "311c8572f84cfadc2a53cccbdeabc6f25d67248b4d0660e5d8bc9b1862875d5e" :a :db/ident :v :task/t-a919 :op :assert}
+   {:e #blake3 "311c8572f84cfadc2a53cccbdeabc6f25d67248b4d0660e5d8bc9b1862875d5e" :a :task/created-at :v 1773810838 :op :assert}
+   {:e #blake3 "311c8572f84cfadc2a53cccbdeabc6f25d67248b4d0660e5d8bc9b1862875d5e" :a :task/id :v "t-a919" :op :assert}
+   {:e #blake3 "311c8572f84cfadc2a53cccbdeabc6f25d67248b4d0660e5d8bc9b1862875d5e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "311c8572f84cfadc2a53cccbdeabc6f25d67248b4d0660e5d8bc9b1862875d5e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "311c8572f84cfadc2a53cccbdeabc6f25d67248b4d0660e5d8bc9b1862875d5e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "311c8572f84cfadc2a53cccbdeabc6f25d67248b4d0660e5d8bc9b1862875d5e" :a :task/title :v "TEST-W7: E2E script scripts/e2e_witness.sh — 15+ checks covering all 12 INV-WITNESS with detailed logging" :op :assert}
+   {:e #blake3 "311c8572f84cfadc2a53cccbdeabc6f25d67248b4d0660e5d8bc9b1862875d5e" :a :task/type :v :task.type/task :op :assert}
+ ]}

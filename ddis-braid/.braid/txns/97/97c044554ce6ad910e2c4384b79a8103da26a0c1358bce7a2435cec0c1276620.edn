@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810863/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BUG-W0: Revert MCP Datalog test weakening — fix evaluator zero-result bug, restore strict assertions (INV-QUERY-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "006dceab7ba8c6afc125e7bba78b636a8f3b714afe4ac58303108c5b2f972e28" :a :db/ident :v :task/t-8185 :op :assert}
+   {:e #blake3 "006dceab7ba8c6afc125e7bba78b636a8f3b714afe4ac58303108c5b2f972e28" :a :task/created-at :v 1773810841 :op :assert}
+   {:e #blake3 "006dceab7ba8c6afc125e7bba78b636a8f3b714afe4ac58303108c5b2f972e28" :a :task/id :v "t-8185" :op :assert}
+   {:e #blake3 "006dceab7ba8c6afc125e7bba78b636a8f3b714afe4ac58303108c5b2f972e28" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "006dceab7ba8c6afc125e7bba78b636a8f3b714afe4ac58303108c5b2f972e28" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "006dceab7ba8c6afc125e7bba78b636a8f3b714afe4ac58303108c5b2f972e28" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "006dceab7ba8c6afc125e7bba78b636a8f3b714afe4ac58303108c5b2f972e28" :a :task/title :v "BUG-W0: Revert MCP Datalog test weakening — fix evaluator zero-result bug, restore strict assertions (INV-QUERY-002)" :op :assert}
+   {:e #blake3 "006dceab7ba8c6afc125e7bba78b636a8f3b714afe4ac58303108c5b2f972e28" :a :task/type :v :task.type/bug :op :assert}
+ ]}

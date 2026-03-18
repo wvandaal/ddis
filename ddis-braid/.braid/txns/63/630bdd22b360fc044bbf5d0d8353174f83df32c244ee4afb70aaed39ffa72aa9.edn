@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810849/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P5.3: Extend FBW to Kani harnesses + proptests — harness_body_hash extraction (INV-WITNESS-008)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e14274c614e3765c4170341244df15c3cd32b6e98968ee895453a528a48373a9" :a :db/ident :v :task/t-6e27 :op :assert}
+   {:e #blake3 "e14274c614e3765c4170341244df15c3cd32b6e98968ee895453a528a48373a9" :a :task/created-at :v 1773810832 :op :assert}
+   {:e #blake3 "e14274c614e3765c4170341244df15c3cd32b6e98968ee895453a528a48373a9" :a :task/id :v "t-6e27" :op :assert}
+   {:e #blake3 "e14274c614e3765c4170341244df15c3cd32b6e98968ee895453a528a48373a9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e14274c614e3765c4170341244df15c3cd32b6e98968ee895453a528a48373a9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e14274c614e3765c4170341244df15c3cd32b6e98968ee895453a528a48373a9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e14274c614e3765c4170341244df15c3cd32b6e98968ee895453a528a48373a9" :a :task/title :v "WITNESS-P5.3: Extend FBW to Kani harnesses + proptests — harness_body_hash extraction (INV-WITNESS-008)" :op :assert}
+   {:e #blake3 "e14274c614e3765c4170341244df15c3cd32b6e98968ee895453a528a48373a9" :a :task/type :v :task.type/task :op :assert}
+ ]}

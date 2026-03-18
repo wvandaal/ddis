@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810856/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-W4: INV-WITNESS-009 cognitive independence — architecture test: subagent has no shared state with producer"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "60445dbf6ab7b28f39259920e03dc557a20756b4717879b2486852bc2135b475" :a :db/ident :v :task/t-2037 :op :assert}
+   {:e #blake3 "60445dbf6ab7b28f39259920e03dc557a20756b4717879b2486852bc2135b475" :a :task/created-at :v 1773810836 :op :assert}
+   {:e #blake3 "60445dbf6ab7b28f39259920e03dc557a20756b4717879b2486852bc2135b475" :a :task/id :v "t-2037" :op :assert}
+   {:e #blake3 "60445dbf6ab7b28f39259920e03dc557a20756b4717879b2486852bc2135b475" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "60445dbf6ab7b28f39259920e03dc557a20756b4717879b2486852bc2135b475" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "60445dbf6ab7b28f39259920e03dc557a20756b4717879b2486852bc2135b475" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "60445dbf6ab7b28f39259920e03dc557a20756b4717879b2486852bc2135b475" :a :task/title :v "TEST-W4: INV-WITNESS-009 cognitive independence — architecture test: subagent has no shared state with producer" :op :assert}
+   {:e #blake3 "60445dbf6ab7b28f39259920e03dc557a20756b4717879b2486852bc2135b475" :a :task/type :v :task.type/task :op :assert}
+ ]}

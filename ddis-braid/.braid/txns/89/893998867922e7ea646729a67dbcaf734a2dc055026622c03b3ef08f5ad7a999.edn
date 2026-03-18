@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810861/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DOCS-W1: Add FM-027..FM-033 to docs/design/FAILURE_MODES.md with acceptance criteria"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5f25bd034d956eadc0ade461e9ae09eaeb8ccfece332a7aea2b64b804c7056c1" :a :db/ident :v :task/t-947a :op :assert}
+   {:e #blake3 "5f25bd034d956eadc0ade461e9ae09eaeb8ccfece332a7aea2b64b804c7056c1" :a :task/created-at :v 1773810839 :op :assert}
+   {:e #blake3 "5f25bd034d956eadc0ade461e9ae09eaeb8ccfece332a7aea2b64b804c7056c1" :a :task/id :v "t-947a" :op :assert}
+   {:e #blake3 "5f25bd034d956eadc0ade461e9ae09eaeb8ccfece332a7aea2b64b804c7056c1" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "5f25bd034d956eadc0ade461e9ae09eaeb8ccfece332a7aea2b64b804c7056c1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5f25bd034d956eadc0ade461e9ae09eaeb8ccfece332a7aea2b64b804c7056c1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5f25bd034d956eadc0ade461e9ae09eaeb8ccfece332a7aea2b64b804c7056c1" :a :task/title :v "DOCS-W1: Add FM-027..FM-033 to docs/design/FAILURE_MODES.md with acceptance criteria" :op :assert}
+   {:e #blake3 "5f25bd034d956eadc0ade461e9ae09eaeb8ccfece332a7aea2b64b804c7056c1" :a :task/type :v :task.type/docs :op :assert}
+ ]}

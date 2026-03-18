@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810842/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P4.1: Implement 6-level challenge protocol — challenge(fbw) → Verdict (INV-WITNESS-004, §21.3)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5f6eb1d6da730e33b8789192ed2229f04dad3ac8f2f5635f0f4af45fc04d8560" :a :db/ident :v :task/t-5135 :op :assert}
+   {:e #blake3 "5f6eb1d6da730e33b8789192ed2229f04dad3ac8f2f5635f0f4af45fc04d8560" :a :task/created-at :v 1773810827 :op :assert}
+   {:e #blake3 "5f6eb1d6da730e33b8789192ed2229f04dad3ac8f2f5635f0f4af45fc04d8560" :a :task/id :v "t-5135" :op :assert}
+   {:e #blake3 "5f6eb1d6da730e33b8789192ed2229f04dad3ac8f2f5635f0f4af45fc04d8560" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5f6eb1d6da730e33b8789192ed2229f04dad3ac8f2f5635f0f4af45fc04d8560" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5f6eb1d6da730e33b8789192ed2229f04dad3ac8f2f5635f0f4af45fc04d8560" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5f6eb1d6da730e33b8789192ed2229f04dad3ac8f2f5635f0f4af45fc04d8560" :a :task/title :v "WITNESS-P4.1: Implement 6-level challenge protocol — challenge(fbw) → Verdict (INV-WITNESS-004, §21.3)" :op :assert}
+   {:e #blake3 "5f6eb1d6da730e33b8789192ed2229f04dad3ac8f2f5635f0f4af45fc04d8560" :a :task/type :v :task.type/task :op :assert}
+ ]}

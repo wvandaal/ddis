@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810850/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P6.1: Implement braid witness CLI — record, check, refresh, list subcommands"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "710a996c1d055b54a325ad42f66e9746c07e28f3e2c2dd1c4b7004c9eaeee0e2" :a :db/ident :v :task/t-5f6d :op :assert}
+   {:e #blake3 "710a996c1d055b54a325ad42f66e9746c07e28f3e2c2dd1c4b7004c9eaeee0e2" :a :task/created-at :v 1773810832 :op :assert}
+   {:e #blake3 "710a996c1d055b54a325ad42f66e9746c07e28f3e2c2dd1c4b7004c9eaeee0e2" :a :task/id :v "t-5f6d" :op :assert}
+   {:e #blake3 "710a996c1d055b54a325ad42f66e9746c07e28f3e2c2dd1c4b7004c9eaeee0e2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "710a996c1d055b54a325ad42f66e9746c07e28f3e2c2dd1c4b7004c9eaeee0e2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "710a996c1d055b54a325ad42f66e9746c07e28f3e2c2dd1c4b7004c9eaeee0e2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "710a996c1d055b54a325ad42f66e9746c07e28f3e2c2dd1c4b7004c9eaeee0e2" :a :task/title :v "WITNESS-P6.1: Implement braid witness CLI — record, check, refresh, list subcommands" :op :assert}
+   {:e #blake3 "710a996c1d055b54a325ad42f66e9746c07e28f3e2c2dd1c4b7004c9eaeee0e2" :a :task/type :v :task.type/feature :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810843/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P4.2: Implement evidence accumulation verdict algorithm (ADR-WITNESS-004, APP-ADR-039 port)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "41ba9607b5c957cb2b206d19a6ce1b373d89c0d4100d0af61fb81b70f7c085a6" :a :db/ident :v :task/t-e2b1 :op :assert}
+   {:e #blake3 "41ba9607b5c957cb2b206d19a6ce1b373d89c0d4100d0af61fb81b70f7c085a6" :a :task/created-at :v 1773810828 :op :assert}
+   {:e #blake3 "41ba9607b5c957cb2b206d19a6ce1b373d89c0d4100d0af61fb81b70f7c085a6" :a :task/id :v "t-e2b1" :op :assert}
+   {:e #blake3 "41ba9607b5c957cb2b206d19a6ce1b373d89c0d4100d0af61fb81b70f7c085a6" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "41ba9607b5c957cb2b206d19a6ce1b373d89c0d4100d0af61fb81b70f7c085a6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "41ba9607b5c957cb2b206d19a6ce1b373d89c0d4100d0af61fb81b70f7c085a6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "41ba9607b5c957cb2b206d19a6ce1b373d89c0d4100d0af61fb81b70f7c085a6" :a :task/title :v "WITNESS-P4.2: Implement evidence accumulation verdict algorithm (ADR-WITNESS-004, APP-ADR-039 port)" :op :assert}
+   {:e #blake3 "41ba9607b5c957cb2b206d19a6ce1b373d89c0d4100d0af61fb81b70f7c085a6" :a :task/type :v :task.type/task :op :assert}
+ ]}

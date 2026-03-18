@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810841/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P3.4: Implement verification completeness guard — signal for L1-only current-stage INVs (INV-WITNESS-011)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1ee0f6e868429e474bb6a1d2d6dfd8d19cd42a67b090686f1866f74a2ef3b656" :a :db/ident :v :task/t-acfc :op :assert}
+   {:e #blake3 "1ee0f6e868429e474bb6a1d2d6dfd8d19cd42a67b090686f1866f74a2ef3b656" :a :task/created-at :v 1773810827 :op :assert}
+   {:e #blake3 "1ee0f6e868429e474bb6a1d2d6dfd8d19cd42a67b090686f1866f74a2ef3b656" :a :task/id :v "t-acfc" :op :assert}
+   {:e #blake3 "1ee0f6e868429e474bb6a1d2d6dfd8d19cd42a67b090686f1866f74a2ef3b656" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1ee0f6e868429e474bb6a1d2d6dfd8d19cd42a67b090686f1866f74a2ef3b656" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1ee0f6e868429e474bb6a1d2d6dfd8d19cd42a67b090686f1866f74a2ef3b656" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1ee0f6e868429e474bb6a1d2d6dfd8d19cd42a67b090686f1866f74a2ef3b656" :a :task/title :v "WITNESS-P3.4: Implement verification completeness guard — signal for L1-only current-stage INVs (INV-WITNESS-011)" :op :assert}
+   {:e #blake3 "1ee0f6e868429e474bb6a1d2d6dfd8d19cd42a67b090686f1866f74a2ef3b656" :a :task/type :v :task.type/task :op :assert}
+ ]}

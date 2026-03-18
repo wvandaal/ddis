@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810848/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P5.2: Wire auto-task filing on challenge refutation — BUG task with INV ref (INV-WITNESS-007)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a42fdfcb85adbd1d2f37836ccbd633bce7e32ecb48965c12dbe106b27824a6ce" :a :db/ident :v :task/t-d0bb :op :assert}
+   {:e #blake3 "a42fdfcb85adbd1d2f37836ccbd633bce7e32ecb48965c12dbe106b27824a6ce" :a :task/created-at :v 1773810831 :op :assert}
+   {:e #blake3 "a42fdfcb85adbd1d2f37836ccbd633bce7e32ecb48965c12dbe106b27824a6ce" :a :task/id :v "t-d0bb" :op :assert}
+   {:e #blake3 "a42fdfcb85adbd1d2f37836ccbd633bce7e32ecb48965c12dbe106b27824a6ce" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a42fdfcb85adbd1d2f37836ccbd633bce7e32ecb48965c12dbe106b27824a6ce" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a42fdfcb85adbd1d2f37836ccbd633bce7e32ecb48965c12dbe106b27824a6ce" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a42fdfcb85adbd1d2f37836ccbd633bce7e32ecb48965c12dbe106b27824a6ce" :a :task/title :v "WITNESS-P5.2: Wire auto-task filing on challenge refutation — BUG task with INV ref (INV-WITNESS-007)" :op :assert}
+   {:e #blake3 "a42fdfcb85adbd1d2f37836ccbd633bce7e32ecb48965c12dbe106b27824a6ce" :a :task/type :v :task.type/task :op :assert}
+ ]}

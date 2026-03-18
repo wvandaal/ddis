@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810836/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P2.2: Implement FBW entity construction — content-addressed from (inv, test_fn, source) per C2 (ADR-WITNESS-003)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4c82f462d41253715b8d7f086c12bbbb9e4b6299475c1e5082fe349a82ba44e2" :a :db/ident :v :task/t-e52f :op :assert}
+   {:e #blake3 "4c82f462d41253715b8d7f086c12bbbb9e4b6299475c1e5082fe349a82ba44e2" :a :task/created-at :v 1773810823 :op :assert}
+   {:e #blake3 "4c82f462d41253715b8d7f086c12bbbb9e4b6299475c1e5082fe349a82ba44e2" :a :task/id :v "t-e52f" :op :assert}
+   {:e #blake3 "4c82f462d41253715b8d7f086c12bbbb9e4b6299475c1e5082fe349a82ba44e2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4c82f462d41253715b8d7f086c12bbbb9e4b6299475c1e5082fe349a82ba44e2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4c82f462d41253715b8d7f086c12bbbb9e4b6299475c1e5082fe349a82ba44e2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4c82f462d41253715b8d7f086c12bbbb9e4b6299475c1e5082fe349a82ba44e2" :a :task/title :v "WITNESS-P2.2: Implement FBW entity construction — content-addressed from (inv, test_fn, source) per C2 (ADR-WITNESS-003)" :op :assert}
+   {:e #blake3 "4c82f462d41253715b8d7f086c12bbbb9e4b6299475c1e5082fe349a82ba44e2" :a :task/type :v :task.type/task :op :assert}
+ ]}

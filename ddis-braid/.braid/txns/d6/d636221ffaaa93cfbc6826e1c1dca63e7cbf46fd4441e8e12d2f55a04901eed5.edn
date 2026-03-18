@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810855/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-W3: INV-WITNESS-008 harness alignment — integration: wrong-property harness detected (e.g., frontier proof for cascade INV)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :db/ident :v :task/t-4488 :op :assert}
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :task/created-at :v 1773810836 :op :assert}
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :task/id :v "t-4488" :op :assert}
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :task/title :v "TEST-W3: INV-WITNESS-008 harness alignment — integration: wrong-property harness detected (e.g., frontier proof for cascade INV)" :op :assert}
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :task/type :v :task.type/task :op :assert}
+ ]}

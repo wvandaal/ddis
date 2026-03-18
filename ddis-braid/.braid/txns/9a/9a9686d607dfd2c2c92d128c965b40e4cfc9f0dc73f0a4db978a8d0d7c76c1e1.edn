@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810854/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-W2: INV-WITNESS-002 alignment scoring — unit tests: tautological=0, relevant>0.3, strong>0.5 + proptest keyword extraction"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e17fca37260b8d9b4eb31ff0784663d8f6b2eca1a27837a143fc432f71142d0" :a :db/ident :v :task/t-52f6 :op :assert}
+   {:e #blake3 "2e17fca37260b8d9b4eb31ff0784663d8f6b2eca1a27837a143fc432f71142d0" :a :task/created-at :v 1773810835 :op :assert}
+   {:e #blake3 "2e17fca37260b8d9b4eb31ff0784663d8f6b2eca1a27837a143fc432f71142d0" :a :task/id :v "t-52f6" :op :assert}
+   {:e #blake3 "2e17fca37260b8d9b4eb31ff0784663d8f6b2eca1a27837a143fc432f71142d0" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2e17fca37260b8d9b4eb31ff0784663d8f6b2eca1a27837a143fc432f71142d0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2e17fca37260b8d9b4eb31ff0784663d8f6b2eca1a27837a143fc432f71142d0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2e17fca37260b8d9b4eb31ff0784663d8f6b2eca1a27837a143fc432f71142d0" :a :task/title :v "TEST-W2: INV-WITNESS-002 alignment scoring — unit tests: tautological=0, relevant>0.3, strong>0.5 + proptest keyword extraction" :op :assert}
+   {:e #blake3 "2e17fca37260b8d9b4eb31ff0784663d8f6b2eca1a27837a143fc432f71142d0" :a :task/type :v :task.type/task :op :assert}
+ ]}

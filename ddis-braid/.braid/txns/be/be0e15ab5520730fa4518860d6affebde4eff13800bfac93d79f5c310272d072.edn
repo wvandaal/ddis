@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810839/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS-P3.2: Implement falsification alignment scoring — keyword Jaccard at Stage 1 (INV-WITNESS-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a4067f38b26e1977c12992fc432c6da67004cd35d87140a2957fa0b946b75104" :a :db/ident :v :task/t-b163 :op :assert}
+   {:e #blake3 "a4067f38b26e1977c12992fc432c6da67004cd35d87140a2957fa0b946b75104" :a :task/created-at :v 1773810825 :op :assert}
+   {:e #blake3 "a4067f38b26e1977c12992fc432c6da67004cd35d87140a2957fa0b946b75104" :a :task/id :v "t-b163" :op :assert}
+   {:e #blake3 "a4067f38b26e1977c12992fc432c6da67004cd35d87140a2957fa0b946b75104" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a4067f38b26e1977c12992fc432c6da67004cd35d87140a2957fa0b946b75104" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a4067f38b26e1977c12992fc432c6da67004cd35d87140a2957fa0b946b75104" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a4067f38b26e1977c12992fc432c6da67004cd35d87140a2957fa0b946b75104" :a :task/title :v "WITNESS-P3.2: Implement falsification alignment scoring — keyword Jaccard at Stage 1 (INV-WITNESS-002)" :op :assert}
+   {:e #blake3 "a4067f38b26e1977c12992fc432c6da67004cd35d87140a2957fa0b946b75104" :a :task/type :v :task.type/task :op :assert}
+ ]}
