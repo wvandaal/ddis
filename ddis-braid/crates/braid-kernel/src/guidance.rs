@@ -1690,6 +1690,11 @@ fn extract_spec_ids(text: &str) -> Vec<String> {
 
     let mut i = 0;
     while i < len {
+        // Skip multi-byte UTF-8 continuation bytes — prefixes are ASCII-only.
+        if !text.is_char_boundary(i) {
+            i += 1;
+            continue;
+        }
         // Check if any prefix starts here
         let mut matched_prefix: Option<&str> = None;
         for prefix in &prefixes {
