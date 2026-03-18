@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773845795/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DOG-FOOD (post B1+B2): Typed routing immediately found the Datalog bug (t-613c) — the original sin. type_multiplier=1.0 for bugs correctly outranks P2 tasks. Executable footer is dramatically better: paste-ready commands at low k* are zero-interpretation. One issue: 'braid observe ... --confidence 0.8' has placeholder '...' that agents might paste literally. Need D5 auto-observation to generate the actual text. Score: 8.5/10 UX (was 8.0)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1ad869eb3a739f8f6814a7e0a06c190cd440cde83e13ab1d18b1f64e12e7c076" :a :db/doc :v "DOG-FOOD (post B1+B2): Typed routing immediately found the Datalog bug (t-613c) — the original sin. type_multiplier=1.0 for bugs correctly outranks P2 tasks. Executable footer is dramatically better: paste-ready commands at low k* are zero-interpretation. One issue: 'braid observe ... --confidence 0.8' has placeholder '...' that agents might paste literally. Need D5 auto-observation to generate the actual text. Score: 8.5/10 UX (was 8.0)." :op :assert}
+   {:e #blake3 "1ad869eb3a739f8f6814a7e0a06c190cd440cde83e13ab1d18b1f64e12e7c076" :a :db/ident :v :observation/dog-food-post-b1b2-typed-routing-immediately-found-the-d :op :assert}
+   {:e #blake3 "1ad869eb3a739f8f6814a7e0a06c190cd440cde83e13ab1d18b1f64e12e7c076" :a :exploration/body :v "DOG-FOOD (post B1+B2): Typed routing immediately found the Datalog bug (t-613c) — the original sin. type_multiplier=1.0 for bugs correctly outranks P2 tasks. Executable footer is dramatically better: paste-ready commands at low k* are zero-interpretation. One issue: 'braid observe ... --confidence 0.8' has placeholder '...' that agents might paste literally. Need D5 auto-observation to generate the actual text. Score: 8.5/10 UX (was 8.0)." :op :assert}
+   {:e #blake3 "1ad869eb3a739f8f6814a7e0a06c190cd440cde83e13ab1d18b1f64e12e7c076" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "1ad869eb3a739f8f6814a7e0a06c190cd440cde83e13ab1d18b1f64e12e7c076" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "1ad869eb3a739f8f6814a7e0a06c190cd440cde83e13ab1d18b1f64e12e7c076" :a :exploration/content-hash :v #bytes "c7a328b689c1c4f3774328d889d04d246079889a06f23d216cdb6fcb80da25dd" :op :assert}
+   {:e #blake3 "1ad869eb3a739f8f6814a7e0a06c190cd440cde83e13ab1d18b1f64e12e7c076" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1ad869eb3a739f8f6814a7e0a06c190cd440cde83e13ab1d18b1f64e12e7c076" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1ad869eb3a739f8f6814a7e0a06c190cd440cde83e13ab1d18b1f64e12e7c076" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773846284/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8185"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "006dceab7ba8c6afc125e7bba78b636a8f3b714afe4ac58303108c5b2f972e28" :a :task/close-reason :v "Same as t-613c — strict assertions restored, evaluator works correctly." :op :assert}
+   {:e #blake3 "006dceab7ba8c6afc125e7bba78b636a8f3b714afe4ac58303108c5b2f972e28" :a :task/closed-at :v 1773846283 :op :assert}
+   {:e #blake3 "006dceab7ba8c6afc125e7bba78b636a8f3b714afe4ac58303108c5b2f972e28" :a :task/status :v :task.status/closed :op :assert}
+ ]}
