@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773813434/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: META-3: After all workstreams complete, run the master E2E validation: scripts/e2e_llm_surface.sh (25 checks) + scripts/e2e_witness.sh (15 checks) + scripts/e2e_task_ergonomics.sh (8 checks) + scripts/e2e_guidance.sh (10 checks) + scripts/e2e_store_indexes.sh (12 checks) + scripts/e2e_harvest_seed.sh (12 checks) = 82 total checks. ALL must pass. TRACES TO: INV-INTERFACE-008, INV-BILATERAL-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0512f7d9f23394432a0f66d686d950edcce7060e082f97781356bd53b8ad3c5e" :a :db/ident :v :task/t-c4a6dc85 :op :assert}
+   {:e #blake3 "0512f7d9f23394432a0f66d686d950edcce7060e082f97781356bd53b8ad3c5e" :a :task/created-at :v 1773813432 :op :assert}
+   {:e #blake3 "0512f7d9f23394432a0f66d686d950edcce7060e082f97781356bd53b8ad3c5e" :a :task/id :v "t-c4a6dc85" :op :assert}
+   {:e #blake3 "0512f7d9f23394432a0f66d686d950edcce7060e082f97781356bd53b8ad3c5e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0512f7d9f23394432a0f66d686d950edcce7060e082f97781356bd53b8ad3c5e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0512f7d9f23394432a0f66d686d950edcce7060e082f97781356bd53b8ad3c5e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0512f7d9f23394432a0f66d686d950edcce7060e082f97781356bd53b8ad3c5e" :a :task/title :v "META-3: After all workstreams complete, run the master E2E validation: scripts/e2e_llm_surface.sh (25 checks) + scripts/e2e_witness.sh (15 checks) + scripts/e2e_task_ergonomics.sh (8 checks) + scripts/e2e_guidance.sh (10 checks) + scripts/e2e_store_indexes.sh (12 checks) + scripts/e2e_harvest_seed.sh (12 checks) = 82 total checks. ALL must pass. TRACES TO: INV-INTERFACE-008, INV-BILATERAL-001." :op :assert}
+   {:e #blake3 "0512f7d9f23394432a0f66d686d950edcce7060e082f97781356bd53b8ad3c5e" :a :task/type :v :task.type/task :op :assert}
+ ]}

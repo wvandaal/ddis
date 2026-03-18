@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773813432/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: META-1: After C1 (dynamic counts) + META-0 (query fix) are done, run full task inventory audit using braid query --attribute :task/title --no-limit to verify ALL workstream tasks exist without collision. Create FM-034 entry in FAILURE_MODES.md documenting the birthday collision discovery. TRACES TO: FM-034, INV-BILATERAL-005."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "260a2e19446f8e082f1084c6e92f11a96d65f59c37939bd43a9a7c666e9bb136" :a :db/ident :v :task/t-25d125f2 :op :assert}
+   {:e #blake3 "260a2e19446f8e082f1084c6e92f11a96d65f59c37939bd43a9a7c666e9bb136" :a :task/created-at :v 1773813430 :op :assert}
+   {:e #blake3 "260a2e19446f8e082f1084c6e92f11a96d65f59c37939bd43a9a7c666e9bb136" :a :task/id :v "t-25d125f2" :op :assert}
+   {:e #blake3 "260a2e19446f8e082f1084c6e92f11a96d65f59c37939bd43a9a7c666e9bb136" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "260a2e19446f8e082f1084c6e92f11a96d65f59c37939bd43a9a7c666e9bb136" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "260a2e19446f8e082f1084c6e92f11a96d65f59c37939bd43a9a7c666e9bb136" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "260a2e19446f8e082f1084c6e92f11a96d65f59c37939bd43a9a7c666e9bb136" :a :task/title :v "META-1: After C1 (dynamic counts) + META-0 (query fix) are done, run full task inventory audit using braid query --attribute :task/title --no-limit to verify ALL workstream tasks exist without collision. Create FM-034 entry in FAILURE_MODES.md documenting the birthday collision discovery. TRACES TO: FM-034, INV-BILATERAL-005." :op :assert}
+   {:e #blake3 "260a2e19446f8e082f1084c6e92f11a96d65f59c37939bd43a9a7c666e9bb136" :a :task/type :v :task.type/task :op :assert}
+ ]}

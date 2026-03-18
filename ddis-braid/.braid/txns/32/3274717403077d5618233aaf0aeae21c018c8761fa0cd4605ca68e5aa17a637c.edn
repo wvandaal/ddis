@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773813431/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: META-0: Fix query output truncation for self-inspection at scale (t-7b5bee77). MUST BE DONE BEFORE any bulk task creation or audit. Without this, braid cannot verify its own task data. Three changes: (1) Reclassify braid query from AttentionProfile::Moderate to uncapped (or add --no-limit flag), (2) Add --count flag for headless counting, (3) Add --offset/--limit for pagination. This is a 30-minute fix that unblocks the entire execution plan. TRACES TO: INV-BUDGET-005, INV-INTERFACE-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "01e2ef6541481fc420c1bf96e5ca6bfba3e7ced05193569fac648f1a4e449eab" :a :db/ident :v :task/t-83013809 :op :assert}
+   {:e #blake3 "01e2ef6541481fc420c1bf96e5ca6bfba3e7ced05193569fac648f1a4e449eab" :a :task/created-at :v 1773813430 :op :assert}
+   {:e #blake3 "01e2ef6541481fc420c1bf96e5ca6bfba3e7ced05193569fac648f1a4e449eab" :a :task/id :v "t-83013809" :op :assert}
+   {:e #blake3 "01e2ef6541481fc420c1bf96e5ca6bfba3e7ced05193569fac648f1a4e449eab" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "01e2ef6541481fc420c1bf96e5ca6bfba3e7ced05193569fac648f1a4e449eab" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "01e2ef6541481fc420c1bf96e5ca6bfba3e7ced05193569fac648f1a4e449eab" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "01e2ef6541481fc420c1bf96e5ca6bfba3e7ced05193569fac648f1a4e449eab" :a :task/title :v "META-0: Fix query output truncation for self-inspection at scale (t-7b5bee77). MUST BE DONE BEFORE any bulk task creation or audit. Without this, braid cannot verify its own task data. Three changes: (1) Reclassify braid query from AttentionProfile::Moderate to uncapped (or add --no-limit flag), (2) Add --count flag for headless counting, (3) Add --offset/--limit for pagination. This is a 30-minute fix that unblocks the entire execution plan. TRACES TO: INV-BUDGET-005, INV-INTERFACE-001." :op :assert}
+   {:e #blake3 "01e2ef6541481fc420c1bf96e5ca6bfba3e7ced05193569fac648f1a4e449eab" :a :task/type :v :task.type/task :op :assert}
+ ]}

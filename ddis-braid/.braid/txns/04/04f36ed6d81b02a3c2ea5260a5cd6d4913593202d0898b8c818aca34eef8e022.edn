@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773813433/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: META-2: After C2 (quad-index) is done, benchmark braid status + braid query + braid seed latency at current store size (13K datoms). If all < 50ms, proceed to B/D. If any > 100ms, optimize before continuing. TRACES TO: ADR-STORE-005."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bbe99f958a6ede2b9c61e13c220b7d6cfe6a69b89cda5da3f4eb6980486b507b" :a :db/ident :v :task/t-cbe10e77 :op :assert}
+   {:e #blake3 "bbe99f958a6ede2b9c61e13c220b7d6cfe6a69b89cda5da3f4eb6980486b507b" :a :task/created-at :v 1773813431 :op :assert}
+   {:e #blake3 "bbe99f958a6ede2b9c61e13c220b7d6cfe6a69b89cda5da3f4eb6980486b507b" :a :task/id :v "t-cbe10e77" :op :assert}
+   {:e #blake3 "bbe99f958a6ede2b9c61e13c220b7d6cfe6a69b89cda5da3f4eb6980486b507b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "bbe99f958a6ede2b9c61e13c220b7d6cfe6a69b89cda5da3f4eb6980486b507b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bbe99f958a6ede2b9c61e13c220b7d6cfe6a69b89cda5da3f4eb6980486b507b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bbe99f958a6ede2b9c61e13c220b7d6cfe6a69b89cda5da3f4eb6980486b507b" :a :task/title :v "META-2: After C2 (quad-index) is done, benchmark braid status + braid query + braid seed latency at current store size (13K datoms). If all < 50ms, proceed to B/D. If any > 100ms, optimize before continuing. TRACES TO: ADR-STORE-005." :op :assert}
+   {:e #blake3 "bbe99f958a6ede2b9c61e13c220b7d6cfe6a69b89cda5da3f4eb6980486b507b" :a :task/type :v :task.type/task :op :assert}
+ ]}

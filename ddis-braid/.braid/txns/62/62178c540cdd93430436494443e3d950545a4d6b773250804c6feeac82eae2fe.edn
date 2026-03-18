@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773813399/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1: Implement FM-013 phantom type verification against store schema (RECOVERED — original t-09cc lost to birthday collision with C2.9 task. See Session 024 audit.)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "15ce48be69a03031949d3a9679073a26f990c3b34b9db08dfc15d6168c64dcf4" :a :db/ident :v :task/t-25b60f6a :op :assert}
+   {:e #blake3 "15ce48be69a03031949d3a9679073a26f990c3b34b9db08dfc15d6168c64dcf4" :a :task/created-at :v 1773813398 :op :assert}
+   {:e #blake3 "15ce48be69a03031949d3a9679073a26f990c3b34b9db08dfc15d6168c64dcf4" :a :task/id :v "t-25b60f6a" :op :assert}
+   {:e #blake3 "15ce48be69a03031949d3a9679073a26f990c3b34b9db08dfc15d6168c64dcf4" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "15ce48be69a03031949d3a9679073a26f990c3b34b9db08dfc15d6168c64dcf4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "15ce48be69a03031949d3a9679073a26f990c3b34b9db08dfc15d6168c64dcf4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "15ce48be69a03031949d3a9679073a26f990c3b34b9db08dfc15d6168c64dcf4" :a :task/title :v "S1: Implement FM-013 phantom type verification against store schema (RECOVERED — original t-09cc lost to birthday collision with C2.9 task. See Session 024 audit.)" :op :assert}
+   {:e #blake3 "15ce48be69a03031949d3a9679073a26f990c3b34b9db08dfc15d6168c64dcf4" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773813400/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FM-034: Task ID Birthday Collision. At 375 tasks with 4-hex-char IDs (65536 space), birthday probability = 66%. Confirmed: t-09cc had two task titles (FM-013 overwritten by C2.9). Root cause: generate_task_id used &hex[..4]. Fix: increased to &hex[..8] (4B space). Detection mechanism: query for entities with multiple :task/title datoms. Acceptance criterion: zero entities with >1 distinct title value. Maps to INV-STORE-003 (content-addressable identity). THIS FAILURE MODE WAS DISCOVERED BY THE SYSTEM AUDITING ITSELF — C7 self-bootstrap in action."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4e74175dd33cf4b5bbf770b8193eb70fa04bc3276e37dc7d399b4dee2cc5fa16" :a :db/doc :v "FM-034: Task ID Birthday Collision. At 375 tasks with 4-hex-char IDs (65536 space), birthday probability = 66%. Confirmed: t-09cc had two task titles (FM-013 overwritten by C2.9). Root cause: generate_task_id used &hex[..4]. Fix: increased to &hex[..8] (4B space). Detection mechanism: query for entities with multiple :task/title datoms. Acceptance criterion: zero entities with >1 distinct title value. Maps to INV-STORE-003 (content-addressable identity). THIS FAILURE MODE WAS DISCOVERED BY THE SYSTEM AUDITING ITSELF — C7 self-bootstrap in action." :op :assert}
+   {:e #blake3 "4e74175dd33cf4b5bbf770b8193eb70fa04bc3276e37dc7d399b4dee2cc5fa16" :a :db/ident :v :observation/fm-034-task-id-birthday-collision-at-375-tasks-with-4-hex :op :assert}
+   {:e #blake3 "4e74175dd33cf4b5bbf770b8193eb70fa04bc3276e37dc7d399b4dee2cc5fa16" :a :exploration/body :v "FM-034: Task ID Birthday Collision. At 375 tasks with 4-hex-char IDs (65536 space), birthday probability = 66%. Confirmed: t-09cc had two task titles (FM-013 overwritten by C2.9). Root cause: generate_task_id used &hex[..4]. Fix: increased to &hex[..8] (4B space). Detection mechanism: query for entities with multiple :task/title datoms. Acceptance criterion: zero entities with >1 distinct title value. Maps to INV-STORE-003 (content-addressable identity). THIS FAILURE MODE WAS DISCOVERED BY THE SYSTEM AUDITING ITSELF — C7 self-bootstrap in action." :op :assert}
+   {:e #blake3 "4e74175dd33cf4b5bbf770b8193eb70fa04bc3276e37dc7d399b4dee2cc5fa16" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "4e74175dd33cf4b5bbf770b8193eb70fa04bc3276e37dc7d399b4dee2cc5fa16" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "4e74175dd33cf4b5bbf770b8193eb70fa04bc3276e37dc7d399b4dee2cc5fa16" :a :exploration/content-hash :v #bytes "dde7e4ef8d1814facfb7d1d2a0c237d6facaae4c8153751b447439009bd277f9" :op :assert}
+   {:e #blake3 "4e74175dd33cf4b5bbf770b8193eb70fa04bc3276e37dc7d399b4dee2cc5fa16" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4e74175dd33cf4b5bbf770b8193eb70fa04bc3276e37dc7d399b4dee2cc5fa16" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4e74175dd33cf4b5bbf770b8193eb70fa04bc3276e37dc7d399b4dee2cc5fa16" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

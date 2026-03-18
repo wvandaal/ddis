@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773813401/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P1-BUG: Query output truncation hides task data at scale — braid query --attribute :task/title shows only ~10 of 375 datoms due to enforce_ceiling. BACKGROUND: During the task audit, we couldn't verify workstream task existence because enforce_ceiling truncated the query output at ~300 tokens. At 375 tasks, the full title list is ~15K tokens — far beyond the 300-token Cheap command ceiling. This means braid CANNOT audit its own task store via CLI queries at scale. FIX: (a) braid query should use Moderate ceiling (300 tokens) not Cheap, (b) add --limit and --offset pagination to braid query, (c) add braid query --count for headless datom counting. TRACES TO: INV-BUDGET-005 (command attention profiles), INV-INTERFACE-001. DISCOVERED: Session 024 audit — the system couldn't inspect itself."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b169b82cba8eb8143e54e187e4f367e23b8a5eb4ee05559b27d3b2765e5e47eb" :a :db/ident :v :task/t-7b5bee77 :op :assert}
+   {:e #blake3 "b169b82cba8eb8143e54e187e4f367e23b8a5eb4ee05559b27d3b2765e5e47eb" :a :task/created-at :v 1773813400 :op :assert}
+   {:e #blake3 "b169b82cba8eb8143e54e187e4f367e23b8a5eb4ee05559b27d3b2765e5e47eb" :a :task/id :v "t-7b5bee77" :op :assert}
+   {:e #blake3 "b169b82cba8eb8143e54e187e4f367e23b8a5eb4ee05559b27d3b2765e5e47eb" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b169b82cba8eb8143e54e187e4f367e23b8a5eb4ee05559b27d3b2765e5e47eb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b169b82cba8eb8143e54e187e4f367e23b8a5eb4ee05559b27d3b2765e5e47eb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b169b82cba8eb8143e54e187e4f367e23b8a5eb4ee05559b27d3b2765e5e47eb" :a :task/title :v "P1-BUG: Query output truncation hides task data at scale — braid query --attribute :task/title shows only ~10 of 375 datoms due to enforce_ceiling. BACKGROUND: During the task audit, we couldn't verify workstream task existence because enforce_ceiling truncated the query output at ~300 tokens. At 375 tasks, the full title list is ~15K tokens — far beyond the 300-token Cheap command ceiling. This means braid CANNOT audit its own task store via CLI queries at scale. FIX: (a) braid query should use Moderate ceiling (300 tokens) not Cheap, (b) add --limit and --offset pagination to braid query, (c) add braid query --count for headless datom counting. TRACES TO: INV-BUDGET-005 (command attention profiles), INV-INTERFACE-001. DISCOVERED: Session 024 audit — the system couldn't inspect itself." :op :assert}
+   {:e #blake3 "b169b82cba8eb8143e54e187e4f367e23b8a5eb4ee05559b27d3b2765e5e47eb" :a :task/type :v :task.type/bug :op :assert}
+ ]}

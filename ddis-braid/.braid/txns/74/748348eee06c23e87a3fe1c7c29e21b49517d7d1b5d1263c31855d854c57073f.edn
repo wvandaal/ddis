@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773813449/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 10 candidates from task 'Revised execution plan: audit findings + collision repair + meta tasks + priority order'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :db/doc :v "Harvest session for task: Revised execution plan: audit findings + collision repair + meta tasks + priority order" :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :db/ident :v :harvest/session-braid-user-1773813449 :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/accomplishments :v "Session entity: :task/t-83013809; Session entity: :task/t-c4a6dc85; Session entity: :task/t-25b60f6a; Session entity: :task/t-25d125f2; Session entity: :task/t-7b5bee77; Session entity: :task/t-cbe10e77" :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/candidate-count :v 10 :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/codebase-snapshot :v "Codebase: 78866 LOC across 72 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/seed.rs (4631 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (3747 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3278 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3117 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (2824 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2106 LOC)" :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/delta-summary :v "+81 datoms, +9 entities" :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/drift-score :v 1.25 :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/git-summary :v "branch=main, 1 commits, 6 files (+88/-0)\n  1913b23 Session harvest: P0 birthday collision fix + task audit results\nHot files:\n  ddis-braid/.braid/txns/47/47ef12256e39e7a1c13d02a419fb93e6ce74b30ecdb883635465fc74aa7acbd4.edn (22 lines changed)\n  ddis-braid/.braid/txns/39/390a7ec1678e4f9bf4d15fc10a65d789438af0b03325958f0d7808340082a464.edn (16 lines changed)\n  ddis-braid/.braid/txns/80/806c189b2b86f32f289ce14af46686fbfb887c1a805250c23bb45e182c68971e.edn (15 lines changed)\n  ddis-braid/.braid/txns/a3/a393060878d283ce869172d46bd5b0075d6aea72d065ac5774b44cabe25de0cb.edn (15 lines changed)\n  ddis-braid/.braid/txns/86/868e8cd73f0938e74fd95a214dd1a87eac46bcb3eae6c5e067de82504b0fb541.edn (10 lines changed)\n  ddis-braid/.braid/txns/9c/9cfec53c10e31757799c97a6b32bed28e9e34fcd5584a4b8fa50676c7255abe7.edn (10 lines changed)" :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/observation-count :v 2 :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/store-datom-count :v 13933 :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/store-entity-count :v 2035 :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: Revised execution plan: audit findings + collision repair + meta tasks + priority order\nRun: `braid seed --task \"continue: Revised execution plan: audit findings + collision repair + meta tasks + priority order\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/task :v "Revised execution plan: audit findings + collision repair + meta tasks + priority order" :op :assert}
+   {:e #blake3 "182f4d84221b69ca515f47c8f5a85b5481f3cef9221f292a5a9de12875e51e0b" :a :harvest/tx-since-last :v 8 :op :assert}
+ ]}
