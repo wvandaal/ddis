@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773877366/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-CLI-SET-FLAGS: Tests for --title/--priority/--status/--type flags on task set (INV-INTERFACE-008). TESTS: (1) braid task set t-xxx --title 'new' changes title. (2) braid task set t-xxx title 'new' still works (positional backward compat). (3) braid task set t-xxx --priority 0 changes priority. (4) braid task set t-xxx --status closed changes status. (5) Both flag and positional: flag wins. (6) No flag and no positional: error. TRACES TO: INV-INTERFACE-008. ACCEPTANCE: All 6 tests pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :db/ident :v :task/t-ea2dc38d :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/created-at :v 1773877365 :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/id :v "t-ea2dc38d" :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/title :v "TEST-CLI-SET-FLAGS: Tests for --title/--priority/--status/--type flags on task set (INV-INTERFACE-008). TESTS: (1) braid task set t-xxx --title 'new' changes title. (2) braid task set t-xxx title 'new' still works (positional backward compat). (3) braid task set t-xxx --priority 0 changes priority. (4) braid task set t-xxx --status closed changes status. (5) Both flag and positional: flag wins. (6) No flag and no positional: error. TRACES TO: INV-INTERFACE-008. ACCEPTANCE: All 6 tests pass." :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/type :v :task.type/test :op :assert}
+ ]}
