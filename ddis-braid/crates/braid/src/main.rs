@@ -23,13 +23,13 @@ struct Cli {
     /// Token budget for output. Overrides all other budget sources.
     /// Controls guidance footer compression and projection level selection.
     /// Budget source precedence: --budget > --context-used > default (10000).
-    #[arg(long, global = true)]
+    #[arg(long, global = true, hide_long_help = true)]
     budget: Option<u32>,
 
     /// Fraction of context window already consumed (0.0–1.0).
     /// Used to compute k*_eff for attention-quality-adjusted output.
     /// Example: --context-used 0.7 means 70% consumed, 30% remaining.
-    #[arg(long, global = true)]
+    #[arg(long, global = true, hide_long_help = true)]
     context_used: Option<f64>,
 
     /// Output format: json, agent, or human.
@@ -39,7 +39,7 @@ struct Cli {
     ///   2. BRAID_OUTPUT env var
     ///   3. TTY detection: interactive terminal → human
     ///   4. Default: agent (AI agents are the primary consumer)
-    #[arg(long, global = true)]
+    #[arg(long, global = true, hide_long_help = true)]
     format: Option<String>,
 
     /// Show orientation prompt for AI agents (complete workflow guide).

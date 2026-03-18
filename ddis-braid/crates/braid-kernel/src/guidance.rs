@@ -1205,7 +1205,23 @@ pub fn build_command_footer(store: &Store, k_eff: Option<f64>) -> String {
     let mut actions = derive_actions_with_budget(store, q_t);
     modulate_actions(&mut actions, methodology.score);
 
-    let level = GuidanceLevel::for_k_eff(k_eff.unwrap_or(1.0));
+    // ADR-INTERFACE-010: Turn-count k* proxy at Stage 0.
+    // When no measured k_eff is available, estimate attention consumption from
+    // the store's transaction count since last harvest. More turns = less budget.
+    // Acceptance: turn 5 → Full, turn 25 → Compressed, turn 45 → Minimal.
+    let effective_k = k_eff.unwrap_or_else(|| {
+        let tx_count = telemetry.total_turns;
+        if tx_count <= 10 {
+            1.0
+        } else if tx_count <= 30 {
+            0.5
+        } else if tx_count <= 50 {
+            0.3
+        } else {
+            0.15
+        }
+    });
+    let level = GuidanceLevel::for_k_eff(effective_k);
 
     let (next_action, invariant_refs) = if let Some(top) = actions.first() {
         // Emit spec IDs only — no body inlining in footer.

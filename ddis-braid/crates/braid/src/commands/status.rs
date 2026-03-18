@@ -284,10 +284,17 @@ fn build_verbose(
     hashes: &[String],
     tx_since_harvest: usize,
 ) -> String {
+    use braid_kernel::bilateral::{
+        W_CONTRADICTION, W_COVERAGE, W_DRIFT, W_HARVEST, W_INCOMPLETENESS, W_UNCERTAINTY,
+        W_VALIDATION,
+    };
+    use braid_kernel::guidance::compute_routing_from_store;
+
     let coherence = check_coherence_fast(store);
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
+    let fitness = compute_fitness(store);
 
     let mut out = String::new();
     out.push_str(&format!(
@@ -314,17 +321,85 @@ fn build_verbose(
         "  entropy: S_vN={:.3} normalized={:.3} effective_rank={:.1}\n",
         coherence.entropy.entropy, coherence.entropy.normalized, coherence.entropy.effective_rank,
     ));
+
+    // F(S) formula breakdown with component weights and values
+    let c = &fitness.components;
+    out.push_str(&format!(
+        "F(S) = {:.2} = {:.2}*validation({:.2}) + {:.2}*coverage({:.2}) + {:.2}*drift({:.2}) + {:.2}*harvest({:.2}) + {:.2}*contradiction({:.2}) + {:.2}*incompleteness({:.2}) + {:.2}*uncertainty({:.2})\n",
+        fitness.total,
+        W_VALIDATION, c.validation,
+        W_COVERAGE, c.coverage,
+        W_DRIFT, c.drift,
+        W_HARVEST, c.harvest_quality,
+        W_CONTRADICTION, c.contradiction,
+        W_INCOMPLETENESS, c.incompleteness,
+        W_UNCERTAINTY, c.uncertainty,
+    ));
+
+    // Weakest component identification with improvement suggestion
+    let components: [(&str, f64, &str); 7] = [
+        ("validation", c.validation, "braid verify"),
+        ("coverage", c.coverage, "braid trace"),
+        ("drift", c.drift, "braid status --deep"),
+        (
+            "harvest_quality",
+            c.harvest_quality,
+            "braid harvest --commit",
+        ),
+        (
+            "contradiction",
+            c.contradiction,
+            "braid query [:find ?e :where [?e :spec/element-type \"invariant\"]]",
+        ),
+        (
+            "incompleteness",
+            c.incompleteness,
+            "braid observe \"...\" --confidence 0.8",
+        ),
+        (
+            "uncertainty",
+            c.uncertainty,
+            "braid observe \"...\" --confidence 0.9",
+        ),
+    ];
+    if let Some((name, val, cmd)) = components
+        .iter()
+        .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+    {
+        out.push_str(&format!(
+            "Weakest: {} ({:.2}) \u{2014} improve: {}\n",
+            name, val, cmd,
+        ));
+    }
+
+    // M(t) sub-metric details with thresholds and pass/fail
+    let m = &score.components;
+    let trend_str = match score.trend {
+        Trend::Up => "up",
+        Trend::Down => "down",
+        Trend::Stable => "stable",
+    };
     out.push_str(&format!(
         "methodology: M(t)={:.2} trend={}\n",
-        score.score,
-        match score.trend {
-            Trend::Up => "up",
-            Trend::Down => "down",
-            Trend::Stable => "stable",
-        }
+        score.score, trend_str,
     ));
     if score.drift_signal {
         out.push_str("  WARNING: drift signal active (M(t) < 0.5)\n");
+    }
+    // Sub-metrics: name, value, weight, threshold (healthy = above 0.4)
+    let sub_metrics: [(&str, f64, f64, f64); 4] = [
+        ("transact_frequency", m.transact_frequency, 0.30, 0.40),
+        ("spec_language_ratio", m.spec_language_ratio, 0.23, 0.30),
+        ("query_diversity", m.query_diversity, 0.17, 0.25),
+        ("harvest_quality", m.harvest_quality, 0.30, 0.50),
+    ];
+    out.push_str("M(t) sub-metrics:\n");
+    for (name, val, weight, threshold) in &sub_metrics {
+        let status = if *val >= *threshold { "above" } else { "below" };
+        out.push_str(&format!(
+            "  {}: {:.2} (weight: {:.2}, threshold: {:.2}) \u{2014} {}\n",
+            name, val, weight, threshold, status,
+        ));
     }
 
     // Harvest health
@@ -346,8 +421,23 @@ fn build_verbose(
         out.push_str(&format!("  {:?}: wall={}\n", agent, tx_id.wall_time()));
     }
 
-    // All actions
+    // All R(t) actions (guidance-derived)
     out.push_str(&format_actions(&actions));
+
+    // R(t) task routing (graph-based, INV-GUIDANCE-010)
+    let routings = compute_routing_from_store(store);
+    if !routings.is_empty() {
+        out.push_str("All R(t) actions:\n");
+        for (i, r) in routings.iter().enumerate() {
+            out.push_str(&format!(
+                "  [{}] WORK: \"{}\" (impact={:.2}) \u{2192} braid go {}\n",
+                i + 1,
+                r.label,
+                r.impact,
+                r.label,
+            ));
+        }
+    }
 
     out
 }
