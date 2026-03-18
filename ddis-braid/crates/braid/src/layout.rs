@@ -477,6 +477,102 @@ mod tests {
         assert_eq!(read_back.datoms.len(), 1);
     }
 
+    // Verifies: INV-LAYOUT-010 — Concurrent Write Safety (O_CREAT|O_EXCL)
+    //
+    // Two threads writing the SAME transaction (identical content hash) concurrently:
+    // exactly one create_new(true) succeeds, the other gets AlreadyExists and is
+    // silently absorbed. The file exists with correct content afterward.
+    #[test]
+    fn concurrent_writes_to_same_hash_are_safe() {
+        use std::sync::{Arc, Barrier};
+        use std::thread;
+
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join(".braid");
+        let _layout = DiskLayout::init(&root).unwrap();
+
+        // Build a deterministic transaction (both threads will write the same bytes)
+        let agent = AgentId::from_name("concurrent-agent");
+        let tx_id = TxId::new(5000, 0, agent);
+        let entity = braid_kernel::datom::EntityId::from_ident(":test/concurrent");
+
+        let tx = TxFile {
+            tx_id,
+            agent,
+            provenance: braid_kernel::datom::ProvenanceType::Observed,
+            rationale: "concurrent write test".to_string(),
+            causal_predecessors: vec![],
+            datoms: vec![braid_kernel::datom::Datom {
+                entity,
+                attribute: braid_kernel::datom::Attribute::from_keyword(":db/doc"),
+                value: braid_kernel::datom::Value::String("concurrent value".to_string()),
+                tx: tx_id,
+                op: braid_kernel::datom::Op::Assert,
+            }],
+        };
+
+        // Pre-compute the expected hash so we can verify afterward
+        let bytes = braid_kernel::layout::serialize_tx(&tx);
+        let expected_hash = braid_kernel::layout::ContentHash::of(&bytes);
+        let expected_hex = expected_hash.to_hex();
+
+        // Share the layout root and tx across threads
+        let root_arc = Arc::new(root.clone());
+        let tx_arc = Arc::new(tx);
+        let barrier = Arc::new(Barrier::new(2));
+
+        let handles: Vec<_> = (0..2)
+            .map(|_| {
+                let root_c = Arc::clone(&root_arc);
+                let tx_c = Arc::clone(&tx_arc);
+                let barrier_c = Arc::clone(&barrier);
+                thread::spawn(move || {
+                    let layout = DiskLayout::open(&root_c).unwrap();
+                    // Synchronize: both threads hit the barrier, then race to write
+                    barrier_c.wait();
+                    layout.write_tx(&tx_c)
+                })
+            })
+            .collect();
+
+        let results: Vec<_> = handles.into_iter().map(|h| h.join().unwrap()).collect();
+
+        // Both must succeed (one creates, the other gets AlreadyExists → Ok)
+        for (i, r) in results.iter().enumerate() {
+            assert!(
+                r.is_ok(),
+                "INV-LAYOUT-010: thread {i} should succeed, got: {:?}",
+                r.as_ref().err()
+            );
+        }
+
+        // The file must exist with the correct content
+        let prefix = &expected_hex[..2];
+        let full_path = root
+            .join("txns")
+            .join(prefix)
+            .join(format!("{expected_hex}.edn"));
+        assert!(
+            full_path.exists(),
+            "INV-LAYOUT-010: tx file must exist after concurrent writes"
+        );
+
+        let on_disk = fs::read(&full_path).unwrap();
+        let on_disk_hash = braid_kernel::layout::ContentHash::of(&on_disk);
+        assert_eq!(
+            on_disk_hash.to_hex(),
+            expected_hex,
+            "INV-LAYOUT-010: on-disk content must match expected hash"
+        );
+
+        // Verify the file is readable and matches the original transaction
+        let layout = DiskLayout::open(&root).unwrap();
+        let read_back = layout.read_tx(&expected_hex).unwrap();
+        assert_eq!(read_back.tx_id, tx_arc.tx_id);
+        assert_eq!(read_back.rationale, tx_arc.rationale);
+        assert_eq!(read_back.datoms.len(), 1);
+    }
+
     // Verifies: INV-LAYOUT-005 — Content hash verified on read
     #[test]
     fn read_tx_verifies_content_hash() {

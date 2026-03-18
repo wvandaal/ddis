@@ -298,6 +298,15 @@ fn tool_definitions() -> JsonValue {
                     "required": ["text"],
                 }
             },
+            {
+                "name": "braid_guidance",
+                "description": "Full methodology dashboard: M(t) sub-metrics, all R(t) actions with commands, drift status. Example: → M(t)=0.50, 5 actions ranked by impact.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                }
+            },
         ]
     })
 }
@@ -319,6 +328,7 @@ fn call_tool(
         "braid_harvest" => tool_harvest(layout, arguments),
         "braid_seed" => tool_seed(layout, arguments),
         "braid_observe" => tool_observe(layout, arguments),
+        "braid_guidance" => tool_guidance(layout),
         "braid_task_ready" => tool_task_ready(layout),
         "braid_task_go" => tool_task_go(layout, arguments),
         "braid_task_close" => tool_task_close(layout, arguments),
@@ -688,6 +698,86 @@ fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
     }))
 }
 
+/// `braid_guidance` — Full methodology dashboard (INV-INTERFACE-003).
+///
+/// Returns M(t) score with sub-metric breakdown, all R(t)-routed actions
+/// with commands, F(S) fitness summary, and drift status. This is the
+/// verbose methodology view — use `braid_status` for quick orientation.
+fn tool_guidance(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
+    use braid_kernel::bilateral::compute_fitness;
+    use braid_kernel::guidance::{
+        compute_methodology_score, compute_routing_from_store, derive_actions, format_actions,
+        telemetry_from_store, Trend,
+    };
+
+    let store = layout.load_store()?;
+    let telemetry = telemetry_from_store(&store);
+    let score = compute_methodology_score(&telemetry);
+    let actions = derive_actions(&store);
+    let routings = compute_routing_from_store(&store);
+    let fitness = compute_fitness(&store);
+
+    let mut out = String::new();
+
+    // M(t) headline
+    let trend_str = match score.trend {
+        Trend::Up => "up",
+        Trend::Down => "down",
+        Trend::Stable => "stable",
+    };
+    out.push_str(&format!(
+        "methodology: M(t)={:.2} trend={}\n",
+        score.score, trend_str,
+    ));
+    if score.drift_signal {
+        out.push_str("WARNING: drift signal active (M(t) < 0.5)\n");
+    }
+
+    // M(t) sub-metric breakdown
+    let m = &score.components;
+    let sub_metrics: [(&str, f64, f64, f64); 4] = [
+        ("transact_frequency", m.transact_frequency, 0.30, 0.40),
+        ("spec_language_ratio", m.spec_language_ratio, 0.23, 0.30),
+        ("query_diversity", m.query_diversity, 0.17, 0.25),
+        ("harvest_quality", m.harvest_quality, 0.30, 0.50),
+    ];
+    out.push_str("M(t) sub-metrics:\n");
+    for (name, val, weight, threshold) in &sub_metrics {
+        let status = if *val >= *threshold { "above" } else { "below" };
+        out.push_str(&format!(
+            "  {}: {:.2} (weight: {:.2}, threshold: {:.2}) \u{2014} {}\n",
+            name, val, weight, threshold, status,
+        ));
+    }
+
+    // F(S) summary
+    out.push_str(&format!("fitness: F(S)={:.2}\n", fitness.total));
+
+    // All guidance-derived actions
+    out.push_str(&format_actions(&actions));
+
+    // R(t) task routing
+    if !routings.is_empty() {
+        out.push_str("R(t) task routing:\n");
+        for (i, r) in routings.iter().enumerate() {
+            out.push_str(&format!(
+                "  [{}] \"{}\" (impact={:.2}) \u{2192} braid go {}\n",
+                i + 1,
+                r.label,
+                r.impact,
+                r.label,
+            ));
+        }
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": out,
+        }],
+    }))
+}
+
 // ---------------------------------------------------------------------------
 // Task management tools (t-a0df: INV-TASK-001..004)
 // ---------------------------------------------------------------------------
@@ -897,6 +987,18 @@ mod hex {
 /// The server is stateful: it keeps the `DiskLayout` open for the lifetime
 /// of the process. Each tool call reloads the store from disk (ensuring it
 /// sees any writes from `braid_write`).
+///
+/// # Store Reload Strategy (INV-INTERFACE-002)
+///
+/// Currently reloads the store from disk on every tool call via `layout.load_store()`.
+/// This is correct — the store always reflects the latest writes — but incurs
+/// I/O on every call. Stage 1 optimization: use `arc_swap::ArcSwap<Store>` to
+/// cache the store in memory and atomically swap after write tools
+/// (`braid_write`, `braid_task_go`, `braid_task_close`, `braid_task_create`,
+/// `braid_harvest`, `braid_observe`). Read tools (`braid_status`, `braid_query`,
+/// `braid_seed`, `braid_guidance`, `braid_task_ready`) would read the cached
+/// pointer with zero I/O. Key invariant: store must ALWAYS reflect the latest
+/// writes — stale reads are a correctness bug.
 ///
 /// Protocol: newline-delimited JSON-RPC (one JSON object per line).
 pub fn serve(path: &Path) -> Result<(), BraidError> {
@@ -1123,8 +1225,8 @@ mod tests {
         let tools = defs["tools"].as_array().expect("tools must be an array");
         assert_eq!(
             tools.len(),
-            10,
-            "INV-INTERFACE-003: must expose expected number of tools (6 core + 4 task)"
+            11,
+            "INV-INTERFACE-003: must expose expected number of tools (7 core + 4 task)"
         );
     }
 
@@ -1142,6 +1244,7 @@ mod tests {
             "braid_harvest",
             "braid_seed",
             "braid_observe",
+            "braid_guidance",
             "braid_task_ready",
             "braid_task_go",
             "braid_task_close",
@@ -1237,6 +1340,18 @@ mod tests {
         // braid_seed
         let result = call_tool(&layout, "braid_seed", &json!({ "task": "continue work" }));
         assert!(result.is_ok(), "braid_seed should not error");
+
+        // braid_guidance
+        let result = call_tool(&layout, "braid_guidance", &json!({}));
+        assert!(result.is_ok(), "braid_guidance should not error");
+        let response = result.unwrap();
+        let content = response["content"].as_array().expect("content must exist");
+        assert!(!content.is_empty(), "braid_guidance must produce content");
+        assert_ne!(
+            response.get("isError").and_then(|v| v.as_bool()),
+            Some(true),
+            "braid_guidance should not be an error"
+        );
     }
 
     /// INV-INTERFACE-010: Unknown tool returns isError=true.
@@ -1252,6 +1367,46 @@ mod tests {
             response["isError"].as_bool(),
             Some(true),
             "Unknown tool must set isError=true"
+        );
+    }
+
+    /// INV-INTERFACE-003: braid_guidance returns M(t), sub-metrics, actions.
+    #[test]
+    fn guidance_tool_returns_methodology_dashboard() {
+        let dir = tempfile::tempdir().unwrap();
+        let layout = DiskLayout::init(dir.path()).unwrap();
+
+        let result = call_tool(&layout, "braid_guidance", &json!({}));
+        assert!(
+            result.is_ok(),
+            "braid_guidance should succeed on fresh store"
+        );
+        let response = result.unwrap();
+        let text = response["content"][0]["text"].as_str().unwrap();
+
+        // Must contain M(t) headline
+        assert!(
+            text.contains("methodology: M(t)="),
+            "guidance must show M(t) score. Got: {text}"
+        );
+        // Must contain sub-metrics
+        assert!(
+            text.contains("M(t) sub-metrics:"),
+            "guidance must show sub-metric breakdown. Got: {text}"
+        );
+        assert!(
+            text.contains("transact_frequency"),
+            "guidance must show transact_frequency. Got: {text}"
+        );
+        // Must contain F(S)
+        assert!(
+            text.contains("fitness: F(S)="),
+            "guidance must show fitness score. Got: {text}"
+        );
+        // Must contain actions section
+        assert!(
+            text.contains("actions:"),
+            "guidance must show actions section. Got: {text}"
         );
     }
 
@@ -1341,7 +1496,7 @@ mod tests {
         let response = handle_tools_list(&id);
         assert_eq!(response["jsonrpc"], "2.0");
         let tools = response["result"]["tools"].as_array().unwrap();
-        assert_eq!(tools.len(), 10, "6 core + 4 task tools");
+        assert_eq!(tools.len(), 11, "7 core + 4 task tools");
     }
 
     // -----------------------------------------------------------------------

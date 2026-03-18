@@ -145,9 +145,9 @@ pub use resolution::{
 pub use schema::{
     domain_schema_datoms, full_schema_datoms, has_layer_4, layer_1_attributes, layer_1_datoms,
     layer_2_attributes, layer_2_datoms, layer_3_attributes, layer_3_datoms, layer_4_attributes,
-    layer_4_datoms, layer_4_evolution_tx, AttributeDef, AttributeSpec, Cardinality, ResolutionMode,
-    Schema, Uniqueness, ValueType, GENESIS_ATTR_COUNT, LAYER_1_COUNT, LAYER_2_COUNT, LAYER_3_COUNT,
-    LAYER_4_COUNT,
+    layer_4_datoms, layer_4_evolution_tx, validate_lattice, AttributeDef, AttributeSpec,
+    Cardinality, ResolutionMode, Schema, Uniqueness, ValueType, GENESIS_ATTR_COUNT, LAYER_1_COUNT,
+    LAYER_2_COUNT, LAYER_3_COUNT, LAYER_4_COUNT,
 };
 pub use seed::{
     assemble, assemble_seed, associate, verify_seed, AssembledContext, AssociateCue,
@@ -158,7 +158,9 @@ pub use signal::{
     ConfusionDetector, Severity, Signal, SignalAction, SignalType,
 };
 pub use stage::{capabilities, max_stage, stage_name};
-pub use store::{Frontier, MergeCascadeReceipt, MergeReceipt, Store, TxData, TxReceipt};
+pub use store::{
+    Frontier, MergeCascadeReceipt, MergeReceipt, SnapshotView, Store, TxData, TxReceipt,
+};
 pub use task::{
     all_tasks, check_dependency_acyclicity, close_task_datoms, compute_ready_set,
     create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, resolve_task_status,

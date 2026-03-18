@@ -230,6 +230,88 @@ impl ResolutionMode {
 }
 
 // ---------------------------------------------------------------------------
+// INV-SCHEMA-007: Lattice property validation
+// ---------------------------------------------------------------------------
+
+/// Validate that a `ResolutionMode` satisfies the four required algebraic
+/// properties for a lattice join: closure, commutativity, associativity,
+/// and idempotency.
+///
+/// At Stage 0, the only lattice operation is `max` (the LWW fallback).
+/// For non-`Lattice` modes (LWW and Multi), validation trivially succeeds
+/// because their semantics are built into the store rather than user-defined.
+///
+/// # INV-SCHEMA-007
+///
+/// **Statement**: Every lattice used in `ResolutionMode::Lattice` must satisfy:
+/// 1. **Closure**: `join(a, b)` produces a value in the same domain.
+/// 2. **Commutativity**: `join(a, b) = join(b, a)`.
+/// 3. **Associativity**: `join(join(a, b), c) = join(a, join(b, c))`.
+/// 4. **Idempotency**: `join(a, a) = a`.
+///
+/// **Falsification**: Any pair `(a, b)` for which the lattice join violates
+/// any of the four properties.
+pub fn validate_lattice(mode: &ResolutionMode) -> Result<(), String> {
+    match mode {
+        ResolutionMode::Lww | ResolutionMode::Multi => {
+            // LWW and Multi are not user-defined lattices; their resolution
+            // semantics are structural (HLC ordering and set-union respectively).
+            Ok(())
+        }
+        ResolutionMode::Lattice { .. } => {
+            // At Stage 0, the only lattice operation is `max` over `Value::Long`.
+            // Verify the four properties hold for `max`:
+            validate_max_lattice()
+        }
+    }
+}
+
+/// Validate that `max` over `i64` satisfies all four lattice properties.
+///
+/// This is the Stage 0 lattice — used as the LWW fallback join. Future
+/// stages may support user-defined lattices; at that point this function
+/// will dispatch to the lattice entity's comparator.
+fn validate_max_lattice() -> Result<(), String> {
+    // We verify the four properties using representative values.
+    // The proptest in the test module provides exhaustive coverage.
+    let test_values: &[i64] = &[i64::MIN, -1, 0, 1, i64::MAX];
+
+    for &a in test_values {
+        // P4: Idempotency — max(a, a) = a
+        if a.max(a) != a {
+            return Err(format!("Idempotency violated: max({a}, {a}) != {a}"));
+        }
+
+        for &b in test_values {
+            // P1: Closure — max(a, b) is an i64 (trivially true for i64::max)
+            let join_ab = a.max(b);
+            let _ = join_ab; // Closure: result is i64
+
+            // P2: Commutativity — max(a, b) = max(b, a)
+            let join_ba = b.max(a);
+            if join_ab != join_ba {
+                return Err(format!(
+                    "Commutativity violated: max({a}, {b}) = {join_ab} != max({b}, {a}) = {join_ba}"
+                ));
+            }
+
+            for &c in test_values {
+                // P3: Associativity — max(max(a, b), c) = max(a, max(b, c))
+                let left = (a.max(b)).max(c);
+                let right = a.max(b.max(c));
+                if left != right {
+                    return Err(format!(
+                        "Associativity violated: max(max({a}, {b}), {c}) = {left} != max({a}, max({b}, {c})) = {right}"
+                    ));
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
 // AttributeSpec + AttributeDef
 // ---------------------------------------------------------------------------
 
@@ -3128,6 +3210,62 @@ mod tests {
                     "SchemaViolation error should describe the type mismatch, got: {msg}"
                 );
             }
+        }
+
+        // INV-SCHEMA-007: Lattice property validation.
+        //
+        // For arbitrary pairs of i64 values, the `max` lattice join must
+        // satisfy all four algebraic properties: closure, commutativity,
+        // associativity, and idempotency.
+        proptest! {
+            #[test]
+            fn max_lattice_commutativity(a: i64, b: i64) {
+                prop_assert_eq!(
+                    a.max(b),
+                    b.max(a),
+                    "Commutativity violated for max({}, {})", a, b
+                );
+            }
+
+            #[test]
+            fn max_lattice_associativity(a: i64, b: i64, c: i64) {
+                prop_assert_eq!(
+                    (a.max(b)).max(c),
+                    a.max(b.max(c)),
+                    "Associativity violated for max(max({}, {}), {})", a, b, c
+                );
+            }
+
+            #[test]
+            fn max_lattice_idempotency(a: i64) {
+                prop_assert_eq!(
+                    a.max(a),
+                    a,
+                    "Idempotency violated for max({}, {})", a, a
+                );
+            }
+        }
+
+        // INV-SCHEMA-007: validate_lattice returns Ok for all three modes.
+        #[test]
+        fn validate_lattice_accepts_all_modes() {
+            use super::validate_lattice;
+
+            assert!(
+                validate_lattice(&ResolutionMode::Lww).is_ok(),
+                "LWW should pass lattice validation (not a user-defined lattice)"
+            );
+            assert!(
+                validate_lattice(&ResolutionMode::Multi).is_ok(),
+                "Multi should pass lattice validation (not a user-defined lattice)"
+            );
+            assert!(
+                validate_lattice(&ResolutionMode::Lattice {
+                    lattice_id: EntityId::ZERO,
+                })
+                .is_ok(),
+                "Lattice (max) should pass all four property checks"
+            );
         }
     }
 }

@@ -983,6 +983,30 @@ impl Store {
         Store::from_datoms(filtered)
     }
 
+    /// Return a lightweight, read-only, point-in-time view of the store.
+    ///
+    /// Unlike `as_of()`, this borrows the store rather than cloning it.
+    /// The view filters all queries to include only datoms where `d.tx <= cutoff`.
+    ///
+    /// # Traces To
+    ///
+    /// - spec/01-store.md (SnapshotView)
+    /// - ADR-STORE-004 (HLC for temporal queries)
+    ///
+    /// # Invariants
+    ///
+    /// - All datoms returned by `datoms()` have `d.tx <= cutoff`.
+    /// - `len()` equals the count of datoms where `d.tx <= cutoff`.
+    /// - `entity_count()` counts only entities that have at least one datom with `d.tx <= cutoff`.
+    /// - `entity_datoms(e)` returns only datoms for entity `e` where `d.tx <= cutoff`.
+    /// - Results are identical to those from `Store::as_of(cutoff)` (modulo ownership).
+    pub fn snapshot(&self, cutoff: TxId) -> SnapshotView<'_> {
+        SnapshotView {
+            store: self,
+            cutoff,
+        }
+    }
+
     /// Inject a single metadata datom into the store, maintaining all indexes.
     ///
     /// This is a crate-internal escape hatch for post-transact metadata injection.
@@ -1061,6 +1085,76 @@ impl Store {
         ));
 
         meta
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SnapshotView — Lightweight Point-in-Time View
+// ---------------------------------------------------------------------------
+
+/// A read-only, point-in-time view of the store that borrows rather than clones.
+///
+/// `SnapshotView` is the zero-copy alternative to `Store::as_of()`. Where
+/// `as_of()` produces an owned `Store` by cloning and filtering the datom set,
+/// `SnapshotView` borrows the original store and filters on each access.
+///
+/// # Invariants
+///
+/// - **All returned datoms have `d.tx <= cutoff`.**
+/// - **Results are identical to `Store::as_of(cutoff)`** — same datoms, same
+///   entity counts, same entity_datoms results (modulo ownership).
+///
+/// # Traces To
+///
+/// - spec/01-store.md (SnapshotView)
+/// - ADR-STORE-004 (HLC for temporal queries)
+pub struct SnapshotView<'a> {
+    /// The underlying store (borrowed).
+    store: &'a Store,
+    /// The transaction cutoff — only datoms with `tx <= cutoff` are visible.
+    cutoff: TxId,
+}
+
+impl<'a> SnapshotView<'a> {
+    /// Iterator over all visible datoms (those with `tx <= cutoff`), in EAVT order.
+    pub fn datoms(&self) -> impl Iterator<Item = &'a Datom> {
+        let cutoff = self.cutoff;
+        self.store.datoms.iter().filter(move |d| d.tx <= cutoff)
+    }
+
+    /// Total number of visible datoms.
+    pub fn len(&self) -> usize {
+        self.datoms().count()
+    }
+
+    /// Whether the snapshot is empty (no visible datoms).
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// Count of unique entities that have at least one visible datom.
+    pub fn entity_count(&self) -> usize {
+        let cutoff = self.cutoff;
+        self.store
+            .entity_index
+            .iter()
+            .filter(|(_, datoms)| datoms.iter().any(|d| d.tx <= cutoff))
+            .count()
+    }
+
+    /// All visible datoms for a specific entity (filtered to `tx <= cutoff`).
+    pub fn entity_datoms(&self, entity: EntityId) -> Vec<&'a Datom> {
+        let cutoff = self.cutoff;
+        self.store
+            .entity_index
+            .get(&entity)
+            .map(|datoms| datoms.iter().filter(|d| d.tx <= cutoff).collect())
+            .unwrap_or_default()
+    }
+
+    /// The transaction cutoff for this snapshot.
+    pub fn cutoff(&self) -> TxId {
+        self.cutoff
     }
 }
 
@@ -1917,6 +2011,238 @@ mod tests {
 
         // entity_count should be consistent
         assert_eq!(view.entity_count(), view.entities().len());
+    }
+
+    // -----------------------------------------------------------------------
+    // SnapshotView tests
+    // Witnesses: ADR-STORE-004 (HLC for temporal queries)
+    // -----------------------------------------------------------------------
+
+    // Verifies: SnapshotView.len() matches Store::as_of().len()
+    #[test]
+    fn snapshot_view_matches_as_of_len() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        // Add two transactions
+        let e1 = EntityId::from_ident(":test/snap-1");
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "snap-1")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("snap-1".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        let e2 = EntityId::from_ident(":test/snap-2");
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "snap-2")
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("snap-2".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt2 = store.transact(tx2).unwrap();
+
+        // SnapshotView at tx1 must match as_of(tx1)
+        let snap1 = store.snapshot(receipt1.tx_id);
+        let as_of1 = store.as_of(receipt1.tx_id);
+        assert_eq!(
+            snap1.len(),
+            as_of1.len(),
+            "SnapshotView.len() must equal as_of().len() at tx1"
+        );
+
+        // SnapshotView at tx2 must match as_of(tx2)
+        let snap2 = store.snapshot(receipt2.tx_id);
+        let as_of2 = store.as_of(receipt2.tx_id);
+        assert_eq!(
+            snap2.len(),
+            as_of2.len(),
+            "SnapshotView.len() must equal as_of().len() at tx2"
+        );
+    }
+
+    // Verifies: SnapshotView.datoms() returns exactly the same datoms as as_of()
+    #[test]
+    fn snapshot_view_datoms_match_as_of() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        let e1 = EntityId::from_ident(":test/snap-datoms-1");
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "datoms-1")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("datoms-1".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        let e2 = EntityId::from_ident(":test/snap-datoms-2");
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "datoms-2")
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("datoms-2".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        let snap = store.snapshot(receipt1.tx_id);
+        let as_of = store.as_of(receipt1.tx_id);
+
+        // Collect both into BTreeSets for comparison
+        let snap_set: BTreeSet<&Datom> = snap.datoms().collect();
+        let as_of_set: BTreeSet<&Datom> = as_of.datoms().collect();
+        assert_eq!(
+            snap_set, as_of_set,
+            "SnapshotView.datoms() must return the same datoms as as_of()"
+        );
+
+        // All datoms must have tx <= cutoff
+        for d in snap.datoms() {
+            assert!(
+                d.tx <= receipt1.tx_id,
+                "SnapshotView leaked datom with tx {:?} > cutoff {:?}",
+                d.tx,
+                receipt1.tx_id
+            );
+        }
+    }
+
+    // Verifies: SnapshotView.entity_count() matches as_of().entity_count()
+    #[test]
+    fn snapshot_view_entity_count_matches_as_of() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        let e1 = EntityId::from_ident(":test/snap-ec-1");
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "ec-1")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("ec-1".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        let e2 = EntityId::from_ident(":test/snap-ec-2");
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "ec-2")
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("ec-2".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        let snap = store.snapshot(receipt1.tx_id);
+        let as_of = store.as_of(receipt1.tx_id);
+        assert_eq!(
+            snap.entity_count(),
+            as_of.entity_count(),
+            "SnapshotView.entity_count() must equal as_of().entity_count()"
+        );
+    }
+
+    // Verifies: SnapshotView.entity_datoms() matches as_of().entity_datoms()
+    #[test]
+    fn snapshot_view_entity_datoms_match_as_of() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        let e1 = EntityId::from_ident(":test/snap-ed-1");
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "ed-1")
+            .assert(
+                e1,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("ed-1".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+
+        let e2 = EntityId::from_ident(":test/snap-ed-2");
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "ed-2")
+            .assert(
+                e2,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("ed-2".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        let snap = store.snapshot(receipt1.tx_id);
+        let as_of = store.as_of(receipt1.tx_id);
+
+        // e1 should be visible in both
+        let snap_e1: Vec<&Datom> = snap.entity_datoms(e1);
+        let as_of_e1: Vec<&Datom> = as_of.entity_datoms(e1);
+        assert_eq!(
+            snap_e1.len(),
+            as_of_e1.len(),
+            "entity_datoms(e1) count must match between SnapshotView and as_of"
+        );
+
+        // e2 should not be visible in either (tx2 > receipt1.tx_id)
+        let snap_e2: Vec<&Datom> = snap.entity_datoms(e2);
+        assert!(
+            snap_e2.is_empty(),
+            "e2 should not be visible in snapshot at tx1"
+        );
+    }
+
+    // Verifies: SnapshotView at future tx returns full store
+    #[test]
+    fn snapshot_view_future_tx_returns_full_store() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        let e = EntityId::from_ident(":test/snap-future");
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "future")
+            .assert(
+                e,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("future".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx).unwrap();
+
+        let future_tx = TxId::new(999_999_999, 0, agent);
+        let snap = store.snapshot(future_tx);
+        assert_eq!(
+            snap.len(),
+            store.len(),
+            "snapshot(future) must see all datoms"
+        );
+    }
+
+    // Verifies: SnapshotView.is_empty() consistency
+    #[test]
+    fn snapshot_view_is_empty_consistency() {
+        let store = Store::genesis();
+        let system = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, system);
+
+        // Genesis snapshot should not be empty (genesis datoms exist at tx 0)
+        let snap = store.snapshot(genesis_tx);
+        assert!(!snap.is_empty());
+        // is_empty() and len() must agree: genesis snapshot has datoms
+        let snap_empty = snap.is_empty();
+        let snap_len = snap.len();
+        assert!(!snap_empty, "genesis snapshot should not be empty");
+        assert!(snap_len >= 1, "genesis snapshot should have datoms");
+        assert_eq!(snap_empty, snap_len == 0, "is_empty/len consistency");
     }
 
     // -----------------------------------------------------------------------
