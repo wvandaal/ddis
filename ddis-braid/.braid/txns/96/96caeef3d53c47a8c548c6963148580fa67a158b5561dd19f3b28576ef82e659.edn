@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773876770/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Set t-66d780b9 title=SWS-1: SessionWorkingSet with TEMPORAL DISCRIMINATION (INV-GUIDANCE-010). REVISED: active_tasks only includes tasks set in-progress AFTER session_boundary = max(session.started_at, last_harvest, now-3600). Stale in-progress tasks excluded. IMPLEMENTED AND CLOSED."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "848aae1a8dcf7c15a4014018669bb1ff05912b117557dfe6dc98c0da68f2bdc1" :a :task/title :v "SWS-1: SessionWorkingSet with TEMPORAL DISCRIMINATION (INV-GUIDANCE-010). REVISED: active_tasks only includes tasks set in-progress AFTER session_boundary = max(session.started_at, last_harvest, now-3600). Stale in-progress tasks excluded. IMPLEMENTED AND CLOSED." :op :assert}
+ ]}

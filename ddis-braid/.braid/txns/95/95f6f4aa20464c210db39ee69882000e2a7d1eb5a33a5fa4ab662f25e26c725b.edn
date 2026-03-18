@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773876769/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Set t-e8c5933b title=CENSUS-3: Assert capability datoms at SESSION START, not store load (INV-REFLEXIVE-001). REVISED: Census runs at braid session start, creating :capability/* datoms. capability_scan reads these instead of probing attribute prefixes. IMPLEMENTED AND CLOSED."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d60af44a95c00005386aa6457ea28f09af9742353c0b4c6cbb7ee889a526b153" :a :task/title :v "CENSUS-3: Assert capability datoms at SESSION START, not store load (INV-REFLEXIVE-001). REVISED: Census runs at braid session start, creating :capability/* datoms. capability_scan reads these instead of probing attribute prefixes. IMPLEMENTED AND CLOSED." :op :assert}
+ ]}

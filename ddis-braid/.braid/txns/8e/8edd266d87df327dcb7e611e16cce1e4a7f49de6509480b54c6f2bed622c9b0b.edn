@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773876753/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-TASK-SET-FLAGS: Add --title/--priority/--status/--type flags to braid task set (INV-INTERFACE-008). BACKGROUND: braid task create uses flag syntax (--title, --priority), but task set uses positional (braid task set id attr value). Agents naturally use flag syntax from create experience, leading to silent failures. FIX: Accept both: 'braid task set t-xxx --title new-title' AND 'braid task set t-xxx title new-title'. Flag form preferred when both present. IMPLEMENTATION: Add Optional<String> fields for title, priority, status, type to TaskAction::Set. In the handler, use flag values when present, fall back to positional. ~15 LOC. TRACES TO: INV-INTERFACE-008. FILE: crates/braid/src/commands/mod.rs. ACCEPTANCE: braid task set t-xxx --title 'new' works. braid task set t-xxx title 'new' still works."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :db/ident :v :task/t-dc8005ef :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/created-at :v 1773876752 :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/id :v "t-dc8005ef" :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/title :v "CLI-TASK-SET-FLAGS: Add --title/--priority/--status/--type flags to braid task set (INV-INTERFACE-008). BACKGROUND: braid task create uses flag syntax (--title, --priority), but task set uses positional (braid task set id attr value). Agents naturally use flag syntax from create experience, leading to silent failures. FIX: Accept both: 'braid task set t-xxx --title new-title' AND 'braid task set t-xxx title new-title'. Flag form preferred when both present. IMPLEMENTATION: Add Optional<String> fields for title, priority, status, type to TaskAction::Set. In the handler, use flag values when present, fall back to positional. ~15 LOC. TRACES TO: INV-INTERFACE-008. FILE: crates/braid/src/commands/mod.rs. ACCEPTANCE: braid task set t-xxx --title 'new' works. braid task set t-xxx title 'new' still works." :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/type :v :task.type/task :op :assert}
+ ]}

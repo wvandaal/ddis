@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773876752/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CLI-QUIET: Add --quiet/-q global flag to suppress guidance footer without suppressing errors (INV-INTERFACE-008). BACKGROUND: Agents use '2>/dev/null' to suppress the M(t) guidance footer, but this also hides errors. 13 task revisions failed silently in Session 025 because exit-code-2 errors were suppressed. ROOT CAUSE: guidance footer and errors share stderr — suppressing one suppresses both. FIX: Add global --quiet/-q flag. When set, skip the guidance footer (the M(t) line + 'Next:' line). Errors still go to stderr normally. Agents use 'braid task set t-xxx title ... -q' instead of '2>/dev/null'. IMPLEMENTATION: Add quiet: bool to the global Clap args. In main.rs, check quiet flag before appending footer. ~10 LOC. TRACES TO: INV-INTERFACE-008, ADR-INTERFACE-011. FILE: crates/braid/src/main.rs, crates/braid/src/commands/mod.rs. ACCEPTANCE: braid status -q shows output without M(t) footer. braid task set t-xxx title bad-value -q shows error on stderr."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :db/ident :v :task/t-76c4a1b4 :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/created-at :v 1773876751 :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/id :v "t-76c4a1b4" :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/title :v "CLI-QUIET: Add --quiet/-q global flag to suppress guidance footer without suppressing errors (INV-INTERFACE-008). BACKGROUND: Agents use '2>/dev/null' to suppress the M(t) guidance footer, but this also hides errors. 13 task revisions failed silently in Session 025 because exit-code-2 errors were suppressed. ROOT CAUSE: guidance footer and errors share stderr — suppressing one suppresses both. FIX: Add global --quiet/-q flag. When set, skip the guidance footer (the M(t) line + 'Next:' line). Errors still go to stderr normally. Agents use 'braid task set t-xxx title ... -q' instead of '2>/dev/null'. IMPLEMENTATION: Add quiet: bool to the global Clap args. In main.rs, check quiet flag before appending footer. ~10 LOC. TRACES TO: INV-INTERFACE-008, ADR-INTERFACE-011. FILE: crates/braid/src/main.rs, crates/braid/src/commands/mod.rs. ACCEPTANCE: braid status -q shows output without M(t) footer. braid task set t-xxx title bad-value -q shows error on stderr." :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/type :v :task.type/task :op :assert}
+ ]}
