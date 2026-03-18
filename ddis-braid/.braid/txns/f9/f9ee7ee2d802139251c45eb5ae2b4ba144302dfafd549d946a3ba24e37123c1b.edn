@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773836686/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a3e1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f2c460f16a3f913875b3dae8871abcae82dad645a135c6c76f052620dd71b18a" :a :task/close-reason :v "Already implemented: task.rs:475 batch close with single TxFile" :op :assert}
+   {:e #blake3 "f2c460f16a3f913875b3dae8871abcae82dad645a135c6c76f052620dd71b18a" :a :task/closed-at :v 1773836685 :op :assert}
+   {:e #blake3 "f2c460f16a3f913875b3dae8871abcae82dad645a135c6c76f052620dd71b18a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

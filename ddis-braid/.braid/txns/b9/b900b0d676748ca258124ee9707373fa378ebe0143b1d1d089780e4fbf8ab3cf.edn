@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773835850/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1f1b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a18c02471983bd40dfe206908911ed3e3c3ea4200c3617497b33c152ebab8fbc" :a :task/close-reason :v "Regression guard: add attr → no test break, delete attr → test fail" :op :assert}
+   {:e #blake3 "a18c02471983bd40dfe206908911ed3e3c3ea4200c3617497b33c152ebab8fbc" :a :task/closed-at :v 1773835849 :op :assert}
+   {:e #blake3 "a18c02471983bd40dfe206908911ed3e3c3ea4200c3617497b33c152ebab8fbc" :a :task/status :v :task.status/closed :op :assert}
+ ]}

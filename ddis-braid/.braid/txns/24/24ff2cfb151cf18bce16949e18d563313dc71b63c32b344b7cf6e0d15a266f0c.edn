@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773834610/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-fecb"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ff277ffe34ade13f2bc3cc0a236cb86ff0b950f1efee38f7d064120df72f8713" :a :task/close-reason :v "Superseded by TEST-C2a through TEST-C2f (6 comprehensive tests)" :op :assert}
+   {:e #blake3 "ff277ffe34ade13f2bc3cc0a236cb86ff0b950f1efee38f7d064120df72f8713" :a :task/closed-at :v 1773834608 :op :assert}
+   {:e #blake3 "ff277ffe34ade13f2bc3cc0a236cb86ff0b950f1efee38f7d064120df72f8713" :a :task/status :v :task.status/closed :op :assert}
+ ]}

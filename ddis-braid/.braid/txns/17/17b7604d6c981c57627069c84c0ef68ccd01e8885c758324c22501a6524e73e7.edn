@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773836687/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8c96"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b4128c5fd5b0f2f58246ff3cc11d6274c1b2a55699a1168d19c4437bc953afc6" :a :task/close-reason :v "Already implemented: TaskAction::Close accepts Vec<String>" :op :assert}
+   {:e #blake3 "b4128c5fd5b0f2f58246ff3cc11d6274c1b2a55699a1168d19c4437bc953afc6" :a :task/closed-at :v 1773836685 :op :assert}
+   {:e #blake3 "b4128c5fd5b0f2f58246ff3cc11d6274c1b2a55699a1168d19c4437bc953afc6" :a :task/status :v :task.status/closed :op :assert}
+ ]}

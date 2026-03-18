@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773834611/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-77bf"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/close-reason :v "Superseded by t-dd06 (E2E-WC REVISED with 12 ADR-STORE-005 checks)" :op :assert}
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/closed-at :v 1773834609 :op :assert}
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/status :v :task.status/closed :op :assert}
+ ]}

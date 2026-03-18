@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773834608/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ff0c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b1451c40167abac7e2622d3eb686d43a56c56a5b0a43d4ac3d489fe5513cacd2" :a :task/close-reason :v "COLLISION VICTIM + superseded by t-e063 (VAET) in ADR-STORE-005 expansion" :op :assert}
+   {:e #blake3 "b1451c40167abac7e2622d3eb686d43a56c56a5b0a43d4ac3d489fe5513cacd2" :a :task/closed-at :v 1773834607 :op :assert}
+   {:e #blake3 "b1451c40167abac7e2622d3eb686d43a56c56a5b0a43d4ac3d489fe5513cacd2" :a :task/status :v :task.status/closed :op :assert}
+ ]}

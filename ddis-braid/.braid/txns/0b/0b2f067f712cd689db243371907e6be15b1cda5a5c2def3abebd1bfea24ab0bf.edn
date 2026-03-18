@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773836841/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 17 candidates from task 'C1 dynamic counts + A task ergonomics + META-0 query pagination'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :db/doc :v "Harvest session for task: C1 dynamic counts + A task ergonomics + META-0 query pagination" :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :db/ident :v :harvest/session-braid-user-1773836841 :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/accomplishments :v "Session entity: :task/t-3eebcea3" :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/candidate-count :v 17 :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/codebase-snapshot :v "Codebase: 79576 LOC across 72 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/seed.rs (4631 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (3747 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3569 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3203 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (2824 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2106 LOC)" :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/delta-summary :v "+76 datoms, +3 entities" :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/drift-score :v 1.0625 :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/git-summary :v "branch=main, 3 commits, 8 files (+668/-86)\n  2b08495 Workstream A: Task ergonomics — generic set + dep add restructure\n  a1f2715 C1: Dynamic schema counts — eliminate FM-008 derived quantity staleness\n  ff04989 Full task audit: 383 tasks, 2 collisions repaired, inventory verified\nHot files:\n  ddis-braid/crates/braid-kernel/src/schema.rs (415 lines changed)\n  ddis-braid/crates/braid-kernel/src/task.rs (153 lines changed)\n  ddis-braid/crates/braid/src/commands/mod.rs (71 lines changed)\n  ddis-braid/crates/braid/src/commands/task.rs (60 lines changed)\n  ddis-braid/.braid/txns/b8/b8ce058497d14f0413dae82ca483817bc06ef5c5b1935e090696417ea2d7e5db.edn (16 lines changed)\n  ddis-braid/.braid/txns/44/444a001c185c6ad2b28c1719bf0dcf02e2a1ca873bb589f267e6593728ebb6c5.edn (15 lines changed)\n  ddis-braid/crates/braid-kernel/src/lib.rs (12 lines changed)\n  ddis-braid/crates/braid-kernel/tests/cross_namespace.rs (12 lines changed)" :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/observation-count :v 1 :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/store-datom-count :v 14031 :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/store-entity-count :v 2039 :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: C1 dynamic counts + A task ergonomics + META-0 query pagination\nRun: `braid seed --task \"continue: C1 dynamic counts + A task ergonomics + META-0 query pagination\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/task :v "C1 dynamic counts + A task ergonomics + META-0 query pagination" :op :assert}
+   {:e #blake3 "cf85e4627efd9350538fb82287a3680b445b9370856b2389cf6e0cdd78e2c5e4" :a :harvest/tx-since-last :v 22 :op :assert}
+ ]}

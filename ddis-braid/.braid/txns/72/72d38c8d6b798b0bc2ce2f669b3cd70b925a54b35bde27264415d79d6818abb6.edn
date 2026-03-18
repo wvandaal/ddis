@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773834606/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8a93"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4cbe2206ee5fc48487606343ac0f37a2d20b25c4a2d60f151e4b0d160609b107" :a :task/close-reason :v "Superseded by t-3258 (EAVT covering index) in ADR-STORE-005 expansion" :op :assert}
+   {:e #blake3 "4cbe2206ee5fc48487606343ac0f37a2d20b25c4a2d60f151e4b0d160609b107" :a :task/closed-at :v 1773834605 :op :assert}
+   {:e #blake3 "4cbe2206ee5fc48487606343ac0f37a2d20b25c4a2d60f151e4b0d160609b107" :a :task/status :v :task.status/closed :op :assert}
+ ]}
