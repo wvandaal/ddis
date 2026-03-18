@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773872375/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-CBV: Comprehensive tests for Completion-Bound Verification (INV-TASK-006). TESTS: (1) extract_acceptance_criteria finds 'ACCEPTANCE:' text. (2) extract_acceptance_criteria with no acceptance → empty vec. (3) parse_verification_pattern recognizes 'braid query' pattern. (4) parse_verification_pattern returns None for non-executable text. (5) braid done with passing acceptance → closes. (6) braid done with failing acceptance → blocks closure. (7) braid done --force → closes with :task/completion-method = :force. (8) braid done --attest → records evidence datom. (9) Batch close applies CBV per task. (10) Tasks without acceptance criteria close normally (backward compat). TRACES TO: INV-TASK-006. ACCEPTANCE: All 10 tests pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d21c12fe53d31f7dd9ad0bdd7f579da8cb73cd513cc0a5db7aeb7991ef42155a" :a :db/ident :v :task/t-50e29712 :op :assert}
+   {:e #blake3 "d21c12fe53d31f7dd9ad0bdd7f579da8cb73cd513cc0a5db7aeb7991ef42155a" :a :task/created-at :v 1773872374 :op :assert}
+   {:e #blake3 "d21c12fe53d31f7dd9ad0bdd7f579da8cb73cd513cc0a5db7aeb7991ef42155a" :a :task/id :v "t-50e29712" :op :assert}
+   {:e #blake3 "d21c12fe53d31f7dd9ad0bdd7f579da8cb73cd513cc0a5db7aeb7991ef42155a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "d21c12fe53d31f7dd9ad0bdd7f579da8cb73cd513cc0a5db7aeb7991ef42155a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d21c12fe53d31f7dd9ad0bdd7f579da8cb73cd513cc0a5db7aeb7991ef42155a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d21c12fe53d31f7dd9ad0bdd7f579da8cb73cd513cc0a5db7aeb7991ef42155a" :a :task/title :v "TEST-CBV: Comprehensive tests for Completion-Bound Verification (INV-TASK-006). TESTS: (1) extract_acceptance_criteria finds 'ACCEPTANCE:' text. (2) extract_acceptance_criteria with no acceptance → empty vec. (3) parse_verification_pattern recognizes 'braid query' pattern. (4) parse_verification_pattern returns None for non-executable text. (5) braid done with passing acceptance → closes. (6) braid done with failing acceptance → blocks closure. (7) braid done --force → closes with :task/completion-method = :force. (8) braid done --attest → records evidence datom. (9) Batch close applies CBV per task. (10) Tasks without acceptance criteria close normally (backward compat). TRACES TO: INV-TASK-006. ACCEPTANCE: All 10 tests pass." :op :assert}
+   {:e #blake3 "d21c12fe53d31f7dd9ad0bdd7f579da8cb73cd513cc0a5db7aeb7991ef42155a" :a :task/type :v :task.type/test :op :assert}
+ ]}

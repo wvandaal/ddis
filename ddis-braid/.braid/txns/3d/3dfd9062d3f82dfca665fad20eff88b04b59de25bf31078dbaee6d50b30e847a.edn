@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773872372/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CBV-1: Extract acceptance criteria from task description text (INV-TASK-006). BACKGROUND: Task descriptions contain 'ACCEPTANCE:' sections with specific testable criteria. Currently this text is ignored at completion time. FIX: Add extract_acceptance_criteria(store, task_entity) -> Vec<String> that scans the task title/description for text after 'ACCEPTANCE:' and returns each criterion as a separate string. Handle multi-line acceptance with indentation. Handle both 'ACCEPTANCE:' and 'Acceptance:' patterns. TRACES TO: INV-TASK-006. FILE: crates/braid-kernel/src/task.rs. ACCEPTANCE: extract_acceptance_criteria on task with 'ACCEPTANCE: query returns 5 results' returns vec!['query returns 5 results']."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7bfa1cb15a93e54ee05d0b931d11feae935fd106751de7bdc0be7d3900bfdb4d" :a :db/ident :v :task/t-74ee88b9 :op :assert}
+   {:e #blake3 "7bfa1cb15a93e54ee05d0b931d11feae935fd106751de7bdc0be7d3900bfdb4d" :a :task/created-at :v 1773872371 :op :assert}
+   {:e #blake3 "7bfa1cb15a93e54ee05d0b931d11feae935fd106751de7bdc0be7d3900bfdb4d" :a :task/id :v "t-74ee88b9" :op :assert}
+   {:e #blake3 "7bfa1cb15a93e54ee05d0b931d11feae935fd106751de7bdc0be7d3900bfdb4d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7bfa1cb15a93e54ee05d0b931d11feae935fd106751de7bdc0be7d3900bfdb4d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7bfa1cb15a93e54ee05d0b931d11feae935fd106751de7bdc0be7d3900bfdb4d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7bfa1cb15a93e54ee05d0b931d11feae935fd106751de7bdc0be7d3900bfdb4d" :a :task/title :v "CBV-1: Extract acceptance criteria from task description text (INV-TASK-006). BACKGROUND: Task descriptions contain 'ACCEPTANCE:' sections with specific testable criteria. Currently this text is ignored at completion time. FIX: Add extract_acceptance_criteria(store, task_entity) -> Vec<String> that scans the task title/description for text after 'ACCEPTANCE:' and returns each criterion as a separate string. Handle multi-line acceptance with indentation. Handle both 'ACCEPTANCE:' and 'Acceptance:' patterns. TRACES TO: INV-TASK-006. FILE: crates/braid-kernel/src/task.rs. ACCEPTANCE: extract_acceptance_criteria on task with 'ACCEPTANCE: query returns 5 results' returns vec!['query returns 5 results']." :op :assert}
+   {:e #blake3 "7bfa1cb15a93e54ee05d0b931d11feae935fd106751de7bdc0be7d3900bfdb4d" :a :task/type :v :task.type/task :op :assert}
+ ]}

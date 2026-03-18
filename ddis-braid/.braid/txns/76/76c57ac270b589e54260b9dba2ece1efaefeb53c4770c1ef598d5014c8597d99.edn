@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773872373/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CBV-2: Parse executable verification patterns from acceptance criteria text (INV-TASK-006). BACKGROUND: Some acceptance criteria contain executable patterns: 'braid query --attribute :harvest/recommended-tasks returns comma-separated task IDs' → run the query and check result. 'All N tests pass' → run cargo test. 'braid status shows...' → run status and check. Implement parse_verification_pattern(criterion: &str) -> Option<VerificationPattern>. Patterns: (1) 'braid query ...' → QueryCheck { query_args, expected_pattern }, (2) 'cargo test' / 'tests pass' → TestCheck, (3) 'braid status ...' → StatusCheck { expected_pattern }. Return None for criteria that can't be automated. TRACES TO: INV-TASK-006. FILE: crates/braid-kernel/src/task.rs. ACCEPTANCE: parse_verification_pattern('braid query --attribute :x returns 5') returns Some(QueryCheck)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5289ad78a55fe6bf36f089f4b0a6b42f087b64bb690426873bbacc0fa5f60d51" :a :db/ident :v :task/t-74c2b9b7 :op :assert}
+   {:e #blake3 "5289ad78a55fe6bf36f089f4b0a6b42f087b64bb690426873bbacc0fa5f60d51" :a :task/created-at :v 1773872372 :op :assert}
+   {:e #blake3 "5289ad78a55fe6bf36f089f4b0a6b42f087b64bb690426873bbacc0fa5f60d51" :a :task/id :v "t-74c2b9b7" :op :assert}
+   {:e #blake3 "5289ad78a55fe6bf36f089f4b0a6b42f087b64bb690426873bbacc0fa5f60d51" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5289ad78a55fe6bf36f089f4b0a6b42f087b64bb690426873bbacc0fa5f60d51" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5289ad78a55fe6bf36f089f4b0a6b42f087b64bb690426873bbacc0fa5f60d51" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5289ad78a55fe6bf36f089f4b0a6b42f087b64bb690426873bbacc0fa5f60d51" :a :task/title :v "CBV-2: Parse executable verification patterns from acceptance criteria text (INV-TASK-006). BACKGROUND: Some acceptance criteria contain executable patterns: 'braid query --attribute :harvest/recommended-tasks returns comma-separated task IDs' → run the query and check result. 'All N tests pass' → run cargo test. 'braid status shows...' → run status and check. Implement parse_verification_pattern(criterion: &str) -> Option<VerificationPattern>. Patterns: (1) 'braid query ...' → QueryCheck { query_args, expected_pattern }, (2) 'cargo test' / 'tests pass' → TestCheck, (3) 'braid status ...' → StatusCheck { expected_pattern }. Return None for criteria that can't be automated. TRACES TO: INV-TASK-006. FILE: crates/braid-kernel/src/task.rs. ACCEPTANCE: parse_verification_pattern('braid query --attribute :x returns 5') returns Some(QueryCheck)." :op :assert}
+   {:e #blake3 "5289ad78a55fe6bf36f089f4b0a6b42f087b64bb690426873bbacc0fa5f60d51" :a :task/type :v :task.type/task :op :assert}
+ ]}
