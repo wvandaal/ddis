@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773792730/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Wave 2 LLM optimization complete: 12 tasks implemented across 5 batches. Unicode safety overhaul (safe_truncate_bytes replaces all floor_char_boundary), R18 braid go, sub-metric hints, seed parasitic removal, MCP guidance footer injection, 4 MCP task tools, MCP orientation, tool description audit, k* turn-count proxy, help flag suppression, status verbose, E2E validation (25/25). 1037 tests, clippy clean."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2fcf3ebb3a53c94145282a953208db0e650534690d8f3584b55e70cb81423e91" :a :db/doc :v "Wave 2 LLM optimization complete: 12 tasks implemented across 5 batches. Unicode safety overhaul (safe_truncate_bytes replaces all floor_char_boundary), R18 braid go, sub-metric hints, seed parasitic removal, MCP guidance footer injection, 4 MCP task tools, MCP orientation, tool description audit, k* turn-count proxy, help flag suppression, status verbose, E2E validation (25/25). 1037 tests, clippy clean." :op :assert}
+   {:e #blake3 "2fcf3ebb3a53c94145282a953208db0e650534690d8f3584b55e70cb81423e91" :a :db/ident :v :observation/wave-2-llm-optimization-complete-12-tasks-implemented-acros :op :assert}
+   {:e #blake3 "2fcf3ebb3a53c94145282a953208db0e650534690d8f3584b55e70cb81423e91" :a :exploration/body :v "Wave 2 LLM optimization complete: 12 tasks implemented across 5 batches. Unicode safety overhaul (safe_truncate_bytes replaces all floor_char_boundary), R18 braid go, sub-metric hints, seed parasitic removal, MCP guidance footer injection, 4 MCP task tools, MCP orientation, tool description audit, k* turn-count proxy, help flag suppression, status verbose, E2E validation (25/25). 1037 tests, clippy clean." :op :assert}
+   {:e #blake3 "2fcf3ebb3a53c94145282a953208db0e650534690d8f3584b55e70cb81423e91" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "2fcf3ebb3a53c94145282a953208db0e650534690d8f3584b55e70cb81423e91" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "2fcf3ebb3a53c94145282a953208db0e650534690d8f3584b55e70cb81423e91" :a :exploration/content-hash :v #bytes "01c37973df3eea61f58a812772370f22c7396403e62ce922e11835a8c859caba" :op :assert}
+   {:e #blake3 "2fcf3ebb3a53c94145282a953208db0e650534690d8f3584b55e70cb81423e91" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2fcf3ebb3a53c94145282a953208db0e650534690d8f3584b55e70cb81423e91" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2fcf3ebb3a53c94145282a953208db0e650534690d8f3584b55e70cb81423e91" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
