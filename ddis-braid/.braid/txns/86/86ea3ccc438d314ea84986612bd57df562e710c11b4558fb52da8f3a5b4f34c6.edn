@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773867019/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize INV-REFLEXIVE-004: Injection Tag Containment"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b619970e5c805b1157b95ce4617d9c0c7dfa85147ef208e6dbf86bfb2451ea2b" :a :db/ident :v :spec/inv-reflexive-004 :op :assert}
+   {:e #blake3 "b619970e5c805b1157b95ce4617d9c0c7dfa85147ef208e6dbf86bfb2451ea2b" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "b619970e5c805b1157b95ce4617d9c0c7dfa85147ef208e6dbf86bfb2451ea2b" :a :spec/falsification :v "Adding braid-witness requires modifying existing find functions OR literal tag in content matches as real" :op :assert}
+   {:e #blake3 "b619970e5c805b1157b95ce4617d9c0c7dfa85147ef208e6dbf86bfb2451ea2b" :a :spec/namespace :v "REFLEXIVE" :op :assert}
+   {:e #blake3 "b619970e5c805b1157b95ce4617d9c0c7dfa85147ef208e6dbf86bfb2451ea2b" :a :spec/source-file :v "spec/22-reflexive.md" :op :assert}
+   {:e #blake3 "b619970e5c805b1157b95ce4617d9c0c7dfa85147ef208e6dbf86bfb2451ea2b" :a :spec/statement :v "Content inside any braid-* tag is mention-mode. find_tagged_section excludes all other braid regions." :op :assert}
+   {:e #blake3 "b619970e5c805b1157b95ce4617d9c0c7dfa85147ef208e6dbf86bfb2451ea2b" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

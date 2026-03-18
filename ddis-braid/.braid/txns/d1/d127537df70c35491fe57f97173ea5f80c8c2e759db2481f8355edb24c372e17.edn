@@ -1,0 +1,13 @@
+{:tx/id #hlc "1773867021/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize ADR-REFLEXIVE-001: Ninth Divergence Type"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b951f00ae507f07f5fd3d4ac4c8b137b5a39512647b6057fbc8a141480dd63ed" :a :adr/decision :v "Reflexive Divergence as dedicated ninth type" :op :assert}
+   {:e #blake3 "b951f00ae507f07f5fd3d4ac4c8b137b5a39512647b6057fbc8a141480dd63ed" :a :adr/problem :v "Reconciliation taxonomy has 8 divergence types but none covers system self-knowledge" :op :assert}
+   {:e #blake3 "b951f00ae507f07f5fd3d4ac4c8b137b5a39512647b6057fbc8a141480dd63ed" :a :db/ident :v :spec/adr-reflexive-001 :op :assert}
+   {:e #blake3 "b951f00ae507f07f5fd3d4ac4c8b137b5a39512647b6057fbc8a141480dd63ed" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "b951f00ae507f07f5fd3d4ac4c8b137b5a39512647b6057fbc8a141480dd63ed" :a :spec/namespace :v "REFLEXIVE" :op :assert}
+   {:e #blake3 "b951f00ae507f07f5fd3d4ac4c8b137b5a39512647b6057fbc8a141480dd63ed" :a :spec/source-file :v "spec/22-reflexive.md" :op :assert}
+ ]}

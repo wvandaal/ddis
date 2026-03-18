@@ -347,11 +347,15 @@ pub fn inject_methodology(text: &str, store: &Store, k_eff: f64) -> String {
             result
         }
         Err(InjectionError::NoOpenTag) => {
-            // No existing tags — insert BEFORE <braid-seed>
+            // No existing tags — insert BEFORE <braid-seed> with contextual header
+            // (INV-REFLEXIVE-005: every dynamic section has a self-documenting header)
             match find_injection_point(text) {
                 Ok(seed_point) => {
-                    let mut result = String::with_capacity(text.len() + tagged.len());
+                    let mut result = String::with_capacity(text.len() + tagged.len() + 80);
                     result.push_str(&text[..seed_point.tag_start]);
+                    result.push_str(
+                        "## Live Methodology (auto-generated: HOW to work)\n\n",
+                    );
                     result.push_str(&tagged);
                     result.push('\n');
                     result.push_str(&text[seed_point.tag_start..]);

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773867020/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize INV-REFLEXIVE-005: Dynamic Section Self-Documentation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5fb30dbfa9ffaa485189df6f2272fe7b9805b186dde008fd2c63d320b79b8001" :a :db/ident :v :spec/inv-reflexive-005 :op :assert}
+   {:e #blake3 "5fb30dbfa9ffaa485189df6f2272fe7b9805b186dde008fd2c63d320b79b8001" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "5fb30dbfa9ffaa485189df6f2272fe7b9805b186dde008fd2c63d320b79b8001" :a :spec/falsification :v "After seed --inject, dynamic section exists without preceding contextual header" :op :assert}
+   {:e #blake3 "5fb30dbfa9ffaa485189df6f2272fe7b9805b186dde008fd2c63d320b79b8001" :a :spec/namespace :v "REFLEXIVE" :op :assert}
+   {:e #blake3 "5fb30dbfa9ffaa485189df6f2272fe7b9805b186dde008fd2c63d320b79b8001" :a :spec/source-file :v "spec/22-reflexive.md" :op :assert}
+   {:e #blake3 "5fb30dbfa9ffaa485189df6f2272fe7b9805b186dde008fd2c63d320b79b8001" :a :spec/statement :v "Every auto-generated section has contextual header explaining content and relationship" :op :assert}
+   {:e #blake3 "5fb30dbfa9ffaa485189df6f2272fe7b9805b186dde008fd2c63d320b79b8001" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

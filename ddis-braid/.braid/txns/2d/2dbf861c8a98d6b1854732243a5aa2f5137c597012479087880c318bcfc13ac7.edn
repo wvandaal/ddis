@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773867017/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize INV-REFLEXIVE-002: k_eff Estimation Fidelity"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "163706fcf0d59962667981c2418973eed3405e8d3b47ecc749ecfec59f6a9b2b" :a :db/ident :v :spec/inv-reflexive-002 :op :assert}
+   {:e #blake3 "163706fcf0d59962667981c2418973eed3405e8d3b47ecc749ecfec59f6a9b2b" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "163706fcf0d59962667981c2418973eed3405e8d3b47ecc749ecfec59f6a9b2b" :a :spec/falsification :v "System estimates k_eff=0.8 when actual is 0.3 and no calibration data recorded" :op :assert}
+   {:e #blake3 "163706fcf0d59962667981c2418973eed3405e8d3b47ecc749ecfec59f6a9b2b" :a :spec/namespace :v "REFLEXIVE" :op :assert}
+   {:e #blake3 "163706fcf0d59962667981c2418973eed3405e8d3b47ecc749ecfec59f6a9b2b" :a :spec/source-file :v "spec/22-reflexive.md" :op :assert}
+   {:e #blake3 "163706fcf0d59962667981c2418973eed3405e8d3b47ecc749ecfec59f6a9b2b" :a :spec/statement :v "k_eff estimation error within 0.15 with probability 0.9 using multi-signal sigmoid fusion" :op :assert}
+   {:e #blake3 "163706fcf0d59962667981c2418973eed3405e8d3b47ecc749ecfec59f6a9b2b" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

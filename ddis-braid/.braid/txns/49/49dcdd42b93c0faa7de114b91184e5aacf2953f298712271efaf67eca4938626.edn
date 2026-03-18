@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773867022/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize NEG-REFLEXIVE-001..003"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "080e3523b064e37a2f3b662686ccd440f5bb66ff62c75f5ea235af051b1ea715" :a :db/ident :v :spec/neg-reflexive-003 :op :assert}
+   {:e #blake3 "080e3523b064e37a2f3b662686ccd440f5bb66ff62c75f5ea235af051b1ea715" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "080e3523b064e37a2f3b662686ccd440f5bb66ff62c75f5ea235af051b1ea715" :a :spec/falsification :v "Adding new braid-* tag type requires modifying existing find/inject functions" :op :assert}
+   {:e #blake3 "080e3523b064e37a2f3b662686ccd440f5bb66ff62c75f5ea235af051b1ea715" :a :spec/namespace :v "REFLEXIVE" :op :assert}
+   {:e #blake3 "080e3523b064e37a2f3b662686ccd440f5bb66ff62c75f5ea235af051b1ea715" :a :spec/source-file :v "spec/22-reflexive.md" :op :assert}
+   {:e #blake3 "ae58bfbce293f23d510f5788fb19aae88ec92a59f11ba3d8af62fd81d4fca7eb" :a :db/ident :v :spec/neg-reflexive-002 :op :assert}
+   {:e #blake3 "ae58bfbce293f23d510f5788fb19aae88ec92a59f11ba3d8af62fd81d4fca7eb" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "ae58bfbce293f23d510f5788fb19aae88ec92a59f11ba3d8af62fd81d4fca7eb" :a :spec/falsification :v "Code performs spec ID normalization outside SpecId type" :op :assert}
+   {:e #blake3 "ae58bfbce293f23d510f5788fb19aae88ec92a59f11ba3d8af62fd81d4fca7eb" :a :spec/namespace :v "REFLEXIVE" :op :assert}
+   {:e #blake3 "ae58bfbce293f23d510f5788fb19aae88ec92a59f11ba3d8af62fd81d4fca7eb" :a :spec/source-file :v "spec/22-reflexive.md" :op :assert}
+   {:e #blake3 "f1a664dd9b9a34902d7e507008ca9d6daea90dfff996b03b6ef43764b8e64695" :a :db/ident :v :spec/neg-reflexive-001 :op :assert}
+   {:e #blake3 "f1a664dd9b9a34902d7e507008ca9d6daea90dfff996b03b6ef43764b8e64695" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "f1a664dd9b9a34902d7e507008ca9d6daea90dfff996b03b6ef43764b8e64695" :a :spec/falsification :v "System reports compiled functional subsystem as NOT YET IMPLEMENTED" :op :assert}
+   {:e #blake3 "f1a664dd9b9a34902d7e507008ca9d6daea90dfff996b03b6ef43764b8e64695" :a :spec/namespace :v "REFLEXIVE" :op :assert}
+   {:e #blake3 "f1a664dd9b9a34902d7e507008ca9d6daea90dfff996b03b6ef43764b8e64695" :a :spec/source-file :v "spec/22-reflexive.md" :op :assert}
+ ]}

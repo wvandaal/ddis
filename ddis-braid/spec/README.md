@@ -60,6 +60,7 @@ Read the preamble first. All namespace files reference it for shared definitions
 | [19-topology.md](19-topology.md) | TOPOLOGY — Coordination Topology Framework | ~650 | 3 | §4, §5, §6, §7, §10 |
 | [20-coherence.md](20-coherence.md) | COHERENCE — Coherence Geometry Framework | ~400 | 1+ | §1, §2, §4, §5, §6, §7 |
 | [21-witness.md](21-witness.md) | WITNESS — Falsification-Bound Verification | ~450 | 1 | §3, §6, §7 |
+| [22-reflexive.md](22-reflexive.md) | REFLEXIVE — Reflexive Divergence (Ninth Type) | ~250 | 1 | §6, §7, §8 |
 
 ---
 

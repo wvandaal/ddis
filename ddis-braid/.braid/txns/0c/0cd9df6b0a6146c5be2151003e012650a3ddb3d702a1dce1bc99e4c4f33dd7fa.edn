@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773866390/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "WORKTREE AUDIT: agent-afa3cfd8 worktree is 124 commits behind main. Its 2 uncommitted changes (lib.rs re-export + seed.rs SessionExcerpt/discover_session_content/discover_recent_sessions) are already present in current main — they were implemented in a later session. No unique work to harvest. Safe to remove."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "501969d55e813c13840ff443489e2cca9e2166c9ccdb971ec7db005461b35db0" :a :db/doc :v "WORKTREE AUDIT: agent-afa3cfd8 worktree is 124 commits behind main. Its 2 uncommitted changes (lib.rs re-export + seed.rs SessionExcerpt/discover_session_content/discover_recent_sessions) are already present in current main — they were implemented in a later session. No unique work to harvest. Safe to remove." :op :assert}
+   {:e #blake3 "501969d55e813c13840ff443489e2cca9e2166c9ccdb971ec7db005461b35db0" :a :db/ident :v :observation/worktree-audit-agent-afa3cfd8-worktree-is-124-commits-behin :op :assert}
+   {:e #blake3 "501969d55e813c13840ff443489e2cca9e2166c9ccdb971ec7db005461b35db0" :a :exploration/body :v "WORKTREE AUDIT: agent-afa3cfd8 worktree is 124 commits behind main. Its 2 uncommitted changes (lib.rs re-export + seed.rs SessionExcerpt/discover_session_content/discover_recent_sessions) are already present in current main — they were implemented in a later session. No unique work to harvest. Safe to remove." :op :assert}
+   {:e #blake3 "501969d55e813c13840ff443489e2cca9e2166c9ccdb971ec7db005461b35db0" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "501969d55e813c13840ff443489e2cca9e2166c9ccdb971ec7db005461b35db0" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "501969d55e813c13840ff443489e2cca9e2166c9ccdb971ec7db005461b35db0" :a :exploration/content-hash :v #bytes "6dd308571b44d81639cb467898caf5a8c9915c9c73c373eed06e18d55adff327" :op :assert}
+   {:e #blake3 "501969d55e813c13840ff443489e2cca9e2166c9ccdb971ec7db005461b35db0" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "501969d55e813c13840ff443489e2cca9e2166c9ccdb971ec7db005461b35db0" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "501969d55e813c13840ff443489e2cca9e2166c9ccdb971ec7db005461b35db0" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

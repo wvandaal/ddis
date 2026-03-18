@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773867018/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize INV-REFLEXIVE-003: Spec ID Bijection"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cee99c935a0e174ba7e4cba94d27e8947b9e4d67be5e41a380345067cea95bc0" :a :db/ident :v :spec/inv-reflexive-003 :op :assert}
+   {:e #blake3 "cee99c935a0e174ba7e4cba94d27e8947b9e4d67be5e41a380345067cea95bc0" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "cee99c935a0e174ba7e4cba94d27e8947b9e4d67be5e41a380345067cea95bc0" :a :spec/falsification :v "Two human spec IDs normalize to same store ident OR ad-hoc normalization outside SpecId" :op :assert}
+   {:e #blake3 "cee99c935a0e174ba7e4cba94d27e8947b9e4d67be5e41a380345067cea95bc0" :a :spec/namespace :v "REFLEXIVE" :op :assert}
+   {:e #blake3 "cee99c935a0e174ba7e4cba94d27e8947b9e4d67be5e41a380345067cea95bc0" :a :spec/source-file :v "spec/22-reflexive.md" :op :assert}
+   {:e #blake3 "cee99c935a0e174ba7e4cba94d27e8947b9e4d67be5e41a380345067cea95bc0" :a :spec/statement :v "normalize/denormalize form total injective pair. Single SpecId type at every boundary." :op :assert}
+   {:e #blake3 "cee99c935a0e174ba7e4cba94d27e8947b9e4d67be5e41a380345067cea95bc0" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}
