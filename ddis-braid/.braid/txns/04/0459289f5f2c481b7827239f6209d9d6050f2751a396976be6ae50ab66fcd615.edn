@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773850985/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 15 candidates from task 'SFE wiring + COF contextual hints + budget fix'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :db/doc :v "Harvest session for task: SFE wiring + COF contextual hints + budget fix" :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :db/ident :v :harvest/session-braid-user-1773850985 :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/accomplishments :v "Session entity: :task/t-112893a9" :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/candidate-count :v 15 :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/codebase-snapshot :v "Codebase: 82204 LOC across 72 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (5329 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (4631 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3569 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3250 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (3054 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2106 LOC)" :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/delta-summary :v "+81 datoms, +4 entities" :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/drift-score :v 1.1538461538461537 :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/git-summary :v "branch=main, 3 commits, 31 files (+2234/-50)\n  6948aba SFE wiring + COF contextual hints + budget fix (1196 tests)\n  ae3763a SFE core: crystallization_candidates + parse_spec_refs + resolve + anchor_factor\n  988cea6 FM-035: Spec-First Enforcement — crystallized spec + 14 tasks\nHot files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (1117 lines changed)\n  ddis-braid/spec/12-guidance.md (279 lines changed)\n  ddis-braid/crates/braid-kernel/src/task.rs (228 lines changed)\n  ddis-braid/crates/braid/src/commands/task.rs (174 lines changed)\n  ddis-braid/crates/braid/src/commands/mod.rs (57 lines changed)\n  ddis-braid/crates/braid/src/commands/status.rs (33 lines changed)\n  ddis-braid/crates/braid-kernel/src/lib.rs (32 lines changed)\n  ddis-braid/.braid/txns/55/553ea874f7e560a7d56180cdc209df69be69dc13c77d92aaad6c7e9299f5e37b.edn (22 lines changed)" :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/observation-count :v 2 :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/store-datom-count :v 14611 :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/store-entity-count :v 2089 :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: SFE wiring + COF contextual hints + budget fix\nRun: `braid seed --task \"continue: SFE wiring + COF contextual hints + budget fix\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/task :v "SFE wiring + COF contextual hints + budget fix" :op :assert}
+   {:e #blake3 "af6f6290a9ed9c1b18248ee5d1a1b60e457e4781d3e15111d42f285a08fa67a7" :a :harvest/tx-since-last :v 21 :op :assert}
+ ]}

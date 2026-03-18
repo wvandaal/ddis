@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773850972/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-32c5763b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6546ab26185704ad46ca36eae0f033d12cc3fa0ddd440d37a71bbbbfeb0a0a5a" :a :task/close-reason :v "crystallization_candidates: state-machine parser, 10 tests" :op :assert}
+   {:e #blake3 "6546ab26185704ad46ca36eae0f033d12cc3fa0ddd440d37a71bbbbfeb0a0a5a" :a :task/closed-at :v 1773850971 :op :assert}
+   {:e #blake3 "6546ab26185704ad46ca36eae0f033d12cc3fa0ddd440d37a71bbbbfeb0a0a5a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

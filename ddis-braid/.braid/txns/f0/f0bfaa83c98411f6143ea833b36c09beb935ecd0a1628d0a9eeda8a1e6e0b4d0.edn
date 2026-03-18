@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773850978/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f37a0095"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d2e002f23ad7b3fd2172c12cac44a6ad017e4ae4450a98095290a860d64784ba" :a :task/close-reason :v "Wired into task create: :task/traces-to Ref + warnings, 2 tests" :op :assert}
+   {:e #blake3 "d2e002f23ad7b3fd2172c12cac44a6ad017e4ae4450a98095290a860d64784ba" :a :task/closed-at :v 1773850976 :op :assert}
+   {:e #blake3 "d2e002f23ad7b3fd2172c12cac44a6ad017e4ae4450a98095290a860d64784ba" :a :task/status :v :task.status/closed :op :assert}
+ ]}

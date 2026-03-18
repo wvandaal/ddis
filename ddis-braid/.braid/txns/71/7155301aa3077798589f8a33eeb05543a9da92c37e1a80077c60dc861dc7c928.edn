@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773849335/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX: Reclassify next/done/go from Cheap to Moderate attention profile (INV-BUDGET-005). BACKGROUND: These commands produce confirmation + guidance footer (~80 tokens) but were classified as Cheap (50 token ceiling), truncating the M(t) footer. The footer is the primary methodology steering signal — truncating it defeats INV-GUIDANCE-001. Spec updated in spec/13-budget.md. Code already fixed in budget.rs classify_command. ACCEPTANCE: braid go t-xxxx shows full footer without truncation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "87ed5803bc53c6be2a6d69cd7302fcd8171707288af575d726ac268445b767ee" :a :db/ident :v :task/t-112893a9 :op :assert}
+   {:e #blake3 "87ed5803bc53c6be2a6d69cd7302fcd8171707288af575d726ac268445b767ee" :a :task/created-at :v 1773849334 :op :assert}
+   {:e #blake3 "87ed5803bc53c6be2a6d69cd7302fcd8171707288af575d726ac268445b767ee" :a :task/id :v "t-112893a9" :op :assert}
+   {:e #blake3 "87ed5803bc53c6be2a6d69cd7302fcd8171707288af575d726ac268445b767ee" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "87ed5803bc53c6be2a6d69cd7302fcd8171707288af575d726ac268445b767ee" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "87ed5803bc53c6be2a6d69cd7302fcd8171707288af575d726ac268445b767ee" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "87ed5803bc53c6be2a6d69cd7302fcd8171707288af575d726ac268445b767ee" :a :task/title :v "FIX: Reclassify next/done/go from Cheap to Moderate attention profile (INV-BUDGET-005). BACKGROUND: These commands produce confirmation + guidance footer (~80 tokens) but were classified as Cheap (50 token ceiling), truncating the M(t) footer. The footer is the primary methodology steering signal — truncating it defeats INV-GUIDANCE-001. Spec updated in spec/13-budget.md. Code already fixed in budget.rs classify_command. ACCEPTANCE: braid go t-xxxx shows full footer without truncation." :op :assert}
+   {:e #blake3 "87ed5803bc53c6be2a6d69cd7302fcd8171707288af575d726ac268445b767ee" :a :task/type :v :task.type/bug :op :assert}
+ ]}
