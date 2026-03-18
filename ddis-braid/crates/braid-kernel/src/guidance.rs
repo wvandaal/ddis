@@ -607,6 +607,56 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
 }
 
 // ---------------------------------------------------------------------------
+// Spec Anchor Factor (SFE-3.1)
+// ---------------------------------------------------------------------------
+
+/// Compute the spec anchor factor for a task.
+///
+/// Measures how well a task's spec references resolve against the store.
+/// Used to weight guidance recommendations: well-anchored tasks (all refs
+/// resolve to formal spec elements) get full weight; unanchored tasks
+/// (no refs resolve, or refs point to nonexistent elements) are discounted.
+///
+/// Returns:
+/// - `1.0` if all refs resolve (or no refs at all — vacuously true)
+/// - `0.7` if some but not all refs resolve (partial anchoring)
+/// - `0.3` if no refs resolve (completely unanchored)
+///
+/// A ref "resolves" when its `:spec/{id-lowercase}` entity has a
+/// `:spec/falsification` attribute (formal spec element, not observation).
+pub fn spec_anchor_factor(store: &Store, task_entity: EntityId) -> f64 {
+    // Extract title from the task's datoms
+    let title = store
+        .entity_datoms(task_entity)
+        .iter()
+        .find(|d| d.attribute.as_str() == ":task/title" && d.op == crate::datom::Op::Assert)
+        .and_then(|d| match &d.value {
+            Value::String(s) => Some(s.clone()),
+            _ => None,
+        });
+
+    let title = match title {
+        Some(t) => t,
+        None => return 1.0, // No title => no refs => vacuously 1.0
+    };
+
+    let refs = crate::task::parse_spec_refs(&title);
+    if refs.is_empty() {
+        return 1.0;
+    }
+
+    let (resolved, _unresolved) = crate::task::resolve_spec_refs(store, &refs);
+    let ratio = resolved.len() as f64 / refs.len() as f64;
+    if ratio >= 1.0 {
+        1.0
+    } else if ratio > 0.0 {
+        0.7
+    } else {
+        0.3
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Guidance Footer (INV-GUIDANCE-001)
 // ---------------------------------------------------------------------------
 
@@ -1547,12 +1597,130 @@ pub fn format_actions(actions: &[GuidanceAction]) -> String {
 }
 
 // ---------------------------------------------------------------------------
+// Crystallization Gap Detection (INV-GUIDANCE-018)
+// ---------------------------------------------------------------------------
+
+/// Extract spec-like IDs from a text string.
+///
+/// Matches patterns: `INV-{NAMESPACE}-{NNN}`, `ADR-{NAMESPACE}-{NNN}`,
+/// `NEG-{NAMESPACE}-{NNN}` where NAMESPACE is one or more uppercase letters
+/// and NNN is one or more digits.
+///
+/// Returns unique, sorted results.
+fn extract_spec_ids(text: &str) -> Vec<String> {
+    let prefixes = ["INV-", "ADR-", "NEG-"];
+    let mut results = BTreeSet::new();
+    let bytes = text.as_bytes();
+    let len = bytes.len();
+
+    let mut i = 0;
+    while i < len {
+        // Check if any prefix starts here
+        let mut matched_prefix: Option<&str> = None;
+        for prefix in &prefixes {
+            if i + prefix.len() <= len && &text[i..i + prefix.len()] == *prefix {
+                // Ensure this is a word boundary: either start of string or
+                // preceding char is not alphanumeric/underscore/hyphen
+                if i == 0 || !bytes[i - 1].is_ascii_alphanumeric() {
+                    matched_prefix = Some(prefix);
+                    break;
+                }
+            }
+        }
+
+        if let Some(prefix) = matched_prefix {
+            let after_prefix = i + prefix.len();
+            // Expect NAMESPACE: one or more uppercase ASCII letters
+            let ns_start = after_prefix;
+            let mut ns_end = ns_start;
+            while ns_end < len && bytes[ns_end].is_ascii_uppercase() {
+                ns_end += 1;
+            }
+            if ns_end > ns_start && ns_end < len && bytes[ns_end] == b'-' {
+                // Expect digits after the hyphen
+                let digit_start = ns_end + 1;
+                let mut digit_end = digit_start;
+                while digit_end < len && bytes[digit_end].is_ascii_digit() {
+                    digit_end += 1;
+                }
+                if digit_end > digit_start {
+                    results.insert(text[i..digit_end].to_string());
+                    i = digit_end;
+                    continue;
+                }
+            }
+        }
+        i += 1;
+    }
+
+    results.into_iter().collect()
+}
+
+/// Detect observations that contain spec-like IDs (INV-*, ADR-*, NEG-*)
+/// but haven't been crystallized into formal spec elements.
+/// Returns (observation_entity, extracted_id) pairs.
+///
+/// An observation is crystallized if a `:spec/{id-lowercase}` entity exists
+/// in the store AND that entity has a `:spec/falsification` datom (indicating
+/// a formal element, not just another observation mentioning the ID).
+///
+/// INV-GUIDANCE-018: Crystallization Gap Detection.
+pub fn crystallization_candidates(store: &Store) -> Vec<(EntityId, String)> {
+    let body_attr = Attribute::from_keyword(":exploration/body");
+    let falsification_attr = Attribute::from_keyword(":spec/falsification");
+
+    // Step 1: Collect observation entities and their body text.
+    // Observations are entities with :exploration/body attribute.
+    let mut obs_bodies: BTreeMap<EntityId, String> = BTreeMap::new();
+    for datom in store.attribute_datoms(&body_attr) {
+        if datom.op == Op::Assert {
+            if let Value::String(ref s) = datom.value {
+                obs_bodies.insert(datom.entity, s.clone());
+            }
+        }
+    }
+
+    // Step 2: Build a set of formally crystallized spec IDs.
+    // A spec element is "crystallized" if it has :spec/falsification.
+    let mut crystallized: BTreeSet<String> = BTreeSet::new();
+    for datom in store.attribute_datoms(&falsification_attr) {
+        if datom.op == Op::Assert {
+            // Look up the :db/ident for this entity to extract the spec ID
+            let ident_attr = Attribute::from_keyword(":db/ident");
+            for ident_datom in store.entity_datoms(datom.entity) {
+                if ident_datom.attribute == ident_attr && ident_datom.op == Op::Assert {
+                    if let Value::Keyword(ref kw) = ident_datom.value {
+                        if let Some(id_part) = kw.strip_prefix(":spec/") {
+                            crystallized.insert(id_part.to_uppercase());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Step 3: For each observation, extract spec IDs and check if uncrystallized.
+    let mut candidates = Vec::new();
+    for (entity, body) in &obs_bodies {
+        let ids = extract_spec_ids(body);
+        for id in ids {
+            if !crystallized.contains(&id) {
+                candidates.push((*entity, id));
+            }
+        }
+    }
+
+    candidates
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 // Witnesses: INV-GUIDANCE-001, INV-GUIDANCE-002, INV-GUIDANCE-003,
 // INV-GUIDANCE-004, INV-GUIDANCE-005, INV-GUIDANCE-007,
 // INV-GUIDANCE-008, INV-GUIDANCE-009, INV-GUIDANCE-010, INV-GUIDANCE-011,
+// INV-GUIDANCE-018,
 // ADR-GUIDANCE-001, ADR-GUIDANCE-002, ADR-GUIDANCE-003, ADR-GUIDANCE-004,
 // ADR-GUIDANCE-005, ADR-GUIDANCE-006, ADR-GUIDANCE-007,
 // ADR-GUIDANCE-008, ADR-GUIDANCE-009,
@@ -4239,6 +4407,359 @@ mod tests {
             hub_impact > island_impact,
             "P2 hub (impact={hub_impact:.4}) should rank above P1 island \
              (impact={island_impact:.4}) because hub unblocks 5 tasks"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // SFE-1.1: extract_spec_ids (unit helper)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn extract_spec_ids_basic() {
+        let ids = extract_spec_ids("We should check INV-STORE-001 and ADR-MERGE-005");
+        assert_eq!(ids, vec!["ADR-MERGE-005", "INV-STORE-001"]);
+    }
+
+    #[test]
+    fn extract_spec_ids_neg_pattern() {
+        let ids = extract_spec_ids("Violation of NEG-WITNESS-005 detected");
+        assert_eq!(ids, vec!["NEG-WITNESS-005"]);
+    }
+
+    #[test]
+    fn extract_spec_ids_no_matches() {
+        let ids = extract_spec_ids("This text has no spec references");
+        assert!(ids.is_empty());
+    }
+
+    #[test]
+    fn extract_spec_ids_deduplicates() {
+        let ids = extract_spec_ids("INV-FOO-001 appears twice: INV-FOO-001");
+        assert_eq!(ids, vec!["INV-FOO-001"]);
+    }
+
+    #[test]
+    fn extract_spec_ids_ignores_lowercase_namespace() {
+        let ids = extract_spec_ids("INV-store-001");
+        assert!(ids.is_empty());
+    }
+
+    #[test]
+    fn extract_spec_ids_ignores_no_digits() {
+        let ids = extract_spec_ids("INV-STORE-");
+        assert!(ids.is_empty());
+    }
+
+    // -------------------------------------------------------------------
+    // SFE-1.1: crystallization_candidates
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-GUIDANCE-018 — Crystallization Gap Detection
+    #[test]
+    fn crystallization_candidates_detects_uncrystallized() {
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Create an observation that mentions INV-FOO-001
+        let obs_entity = EntityId::from_ident(":obs/test-obs-1");
+        datoms.insert(Datom::new(
+            obs_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":obs/test-obs-1".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            obs_entity,
+            Attribute::from_keyword(":exploration/body"),
+            Value::String("Need to formalize INV-FOO-001 as a proper invariant".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // No :spec/inv-foo-001 entity exists → should be detected as candidate
+        let store = Store::from_datoms(datoms);
+        let candidates = crystallization_candidates(&store);
+
+        assert_eq!(candidates.len(), 1, "should detect one uncrystallized ref");
+        assert_eq!(candidates[0].0, obs_entity);
+        assert_eq!(candidates[0].1, "INV-FOO-001");
+    }
+
+    // Verifies: INV-GUIDANCE-018 — Already crystallized refs are excluded
+    #[test]
+    fn crystallization_candidates_excludes_crystallized() {
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Create an observation mentioning INV-BAR-002
+        let obs_entity = EntityId::from_ident(":obs/test-obs-2");
+        datoms.insert(Datom::new(
+            obs_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":obs/test-obs-2".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            obs_entity,
+            Attribute::from_keyword(":exploration/body"),
+            Value::String("Working on INV-BAR-002 compliance".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // Create the formal spec element :spec/inv-bar-002 WITH :spec/falsification
+        let spec_entity = EntityId::from_ident(":spec/inv-bar-002");
+        datoms.insert(Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":spec/inv-bar-002".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":spec/falsification"),
+            Value::String("Violated if bar metric exceeds threshold".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let candidates = crystallization_candidates(&store);
+
+        assert!(
+            candidates.is_empty(),
+            "crystallized ref should not appear as candidate, got: {candidates:?}"
+        );
+    }
+
+    // Verifies: INV-GUIDANCE-018 — Empty store produces no candidates
+    #[test]
+    fn crystallization_candidates_empty_store() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let candidates = crystallization_candidates(&store);
+        assert!(candidates.is_empty());
+    }
+
+    // Verifies: INV-GUIDANCE-018 — Spec entity without falsification is not crystallized
+    #[test]
+    fn crystallization_candidates_spec_without_falsification() {
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Observation mentioning INV-QUX-003
+        let obs_entity = EntityId::from_ident(":obs/test-obs-3");
+        datoms.insert(Datom::new(
+            obs_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":obs/test-obs-3".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            obs_entity,
+            Attribute::from_keyword(":exploration/body"),
+            Value::String("Consider adding INV-QUX-003 formally".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // Spec entity exists but WITHOUT :spec/falsification (incomplete)
+        let spec_entity = EntityId::from_ident(":spec/inv-qux-003");
+        datoms.insert(Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":spec/inv-qux-003".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":spec/statement"),
+            Value::String("Some statement".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let candidates = crystallization_candidates(&store);
+
+        assert_eq!(
+            candidates.len(),
+            1,
+            "spec entity without falsification should still be uncrystallized"
+        );
+        assert_eq!(candidates[0].1, "INV-QUX-003");
+    }
+
+    // -----------------------------------------------------------------------
+    // SFE-3.1: spec_anchor_factor
+    // -----------------------------------------------------------------------
+
+    // Verifies: spec anchor factor returns 1.0 when all refs resolve.
+    #[test]
+    fn anchor_factor_all_resolved() {
+        use crate::datom::{AgentId, Attribute, Datom, Op, TxId};
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let store = routing_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        // Create a spec element with :spec/falsification
+        let spec_entity = EntityId::from_ident(":spec/inv-store-001");
+        let spec_datoms = vec![
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-store-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("Any mutation of existing datom".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+        let store = routing_store_with(&store, spec_datoms);
+
+        // Create a task referencing INV-STORE-001
+        let (task_entity, task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Fix INV-STORE-001 violation",
+            description: None,
+            priority: 1,
+            task_type: TaskType::Bug,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, task_datoms);
+
+        let factor = spec_anchor_factor(&store, task_entity);
+        assert!(
+            (factor - 1.0).abs() < f64::EPSILON,
+            "all refs resolved => 1.0, got {factor}"
+        );
+    }
+
+    // Verifies: spec anchor factor returns 0.3 when no refs resolve.
+    #[test]
+    fn anchor_factor_none_resolved() {
+        use crate::datom::{AgentId, TxId};
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let store = routing_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        // Create a task referencing a nonexistent spec element
+        let (task_entity, task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Fix INV-FAKE-999 issue",
+            description: None,
+            priority: 1,
+            task_type: TaskType::Bug,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, task_datoms);
+
+        let factor = spec_anchor_factor(&store, task_entity);
+        assert!(
+            (factor - 0.3).abs() < f64::EPSILON,
+            "no refs resolved => 0.3, got {factor}"
+        );
+    }
+
+    // Verifies: spec anchor factor returns 1.0 when task has no spec refs.
+    #[test]
+    fn anchor_factor_no_refs() {
+        use crate::datom::{AgentId, TxId};
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let store = routing_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        // Create a task with no spec refs in the title
+        let (task_entity, task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Fix a simple bug",
+            description: None,
+            priority: 1,
+            task_type: TaskType::Bug,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, task_datoms);
+
+        let factor = spec_anchor_factor(&store, task_entity);
+        assert!(
+            (factor - 1.0).abs() < f64::EPSILON,
+            "no refs in title => 1.0, got {factor}"
+        );
+    }
+
+    // Verifies: spec anchor factor returns 0.7 when some refs resolve.
+    #[test]
+    fn anchor_factor_partial_resolved() {
+        use crate::datom::{AgentId, Attribute, Datom, Op, TxId};
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let store = routing_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        // Create one spec element with :spec/falsification
+        let spec_entity = EntityId::from_ident(":spec/inv-store-001");
+        let spec_datoms = vec![
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-store-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("Any mutation of existing datom".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+        let store = routing_store_with(&store, spec_datoms);
+
+        // Create a task referencing both a real and a nonexistent spec element
+        let (task_entity, task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Fix INV-STORE-001 and INV-FAKE-999",
+            description: None,
+            priority: 1,
+            task_type: TaskType::Bug,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, task_datoms);
+
+        let factor = spec_anchor_factor(&store, task_entity);
+        assert!(
+            (factor - 0.7).abs() < f64::EPSILON,
+            "partial resolution => 0.7, got {factor}"
         );
     }
 }

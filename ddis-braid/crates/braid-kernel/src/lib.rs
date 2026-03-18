@@ -93,10 +93,11 @@ pub use deliberation::{
 pub use error::KernelError;
 pub use guidance::{
     build_command_footer, build_footer, build_footer_with_budget, compute_methodology_score,
-    compute_routing, compute_routing_from_store, default_derivation_rules, derive_actions,
-    derive_actions_with_budget, derive_tasks, detect_activity_mode, format_actions, format_footer,
-    format_footer_at_level, harvest_warning_from_k_eff, harvest_warning_level, modulate_actions,
-    observation_staleness, should_warn_on_exit, ActionCategory, ActivityMode, DerivationRule,
+    compute_routing, compute_routing_from_store, crystallization_candidates,
+    default_derivation_rules, derive_actions, derive_actions_with_budget, derive_tasks,
+    detect_activity_mode, format_actions, format_footer, format_footer_at_level,
+    harvest_warning_from_k_eff, harvest_warning_level, modulate_actions, observation_staleness,
+    should_warn_on_exit, spec_anchor_factor, ActionCategory, ActivityMode, DerivationRule,
     DerivedTask, GuidanceAction, GuidanceFooter, HarvestWarningLevel, MethodologyComponents,
     MethodologyScore, RoutingMetrics, SessionTelemetry, TaskNode, TaskRouting, Trend,
 };
@@ -166,9 +167,9 @@ pub use store::{
 };
 pub use task::{
     all_tasks, check_dependency_acyclicity, close_task_datoms, compute_ready_set,
-    create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, resolve_task_status,
-    set_attribute_datom, task_counts, task_summary, update_status_datom, CreateTaskParams,
-    TaskStatus, TaskSummary, TaskType,
+    create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, parse_spec_refs,
+    resolve_spec_refs, resolve_task_status, set_attribute_datom, task_counts, task_summary,
+    update_status_datom, CreateTaskParams, TaskStatus, TaskSummary, TaskType,
 };
 pub use trace::{
     links_to_datoms, scan_source, summarize, TraceLink, TraceSummary, VerificationDepth,

@@ -454,6 +454,103 @@ pub fn set_attribute_datom(
 }
 
 // ---------------------------------------------------------------------------
+// Spec reference extraction and resolution (SFE-2.1, SFE-2.2)
+// ---------------------------------------------------------------------------
+
+/// Extract spec element IDs from a task title string.
+///
+/// Matches patterns: `INV-{NAMESPACE}-{NNN}`, `ADR-{NAMESPACE}-{NNN}`,
+/// `NEG-{NAMESPACE}-{NNN}` where NAMESPACE is one or more uppercase ASCII
+/// letters and NNN is one or more digits.
+///
+/// Returns unique, sorted list.
+///
+/// # Examples
+///
+/// ```
+/// use braid_kernel::task::parse_spec_refs;
+/// let refs = parse_spec_refs("Fix merge (INV-MERGE-001, ADR-MERGE-005)");
+/// assert_eq!(refs, vec!["ADR-MERGE-005", "INV-MERGE-001"]);
+/// ```
+pub fn parse_spec_refs(title: &str) -> Vec<String> {
+    let prefixes = ["INV-", "ADR-", "NEG-"];
+    let mut results = BTreeSet::new();
+    let bytes = title.as_bytes();
+    let len = bytes.len();
+
+    let mut i = 0;
+    while i < len {
+        // Check if any prefix starts here
+        let mut matched_prefix: Option<&str> = None;
+        for prefix in &prefixes {
+            if i + prefix.len() <= len && &title[i..i + prefix.len()] == *prefix {
+                // Ensure word boundary: start of string or non-alphanumeric before prefix
+                if i == 0 || !bytes[i - 1].is_ascii_alphanumeric() {
+                    matched_prefix = Some(prefix);
+                    break;
+                }
+            }
+        }
+
+        if let Some(prefix) = matched_prefix {
+            let after_prefix = i + prefix.len();
+            // Expect NAMESPACE: one or more uppercase ASCII letters
+            let ns_start = after_prefix;
+            let mut ns_end = ns_start;
+            while ns_end < len && bytes[ns_end].is_ascii_uppercase() {
+                ns_end += 1;
+            }
+            if ns_end > ns_start && ns_end < len && bytes[ns_end] == b'-' {
+                // Expect digits after the hyphen
+                let digit_start = ns_end + 1;
+                let mut digit_end = digit_start;
+                while digit_end < len && bytes[digit_end].is_ascii_digit() {
+                    digit_end += 1;
+                }
+                if digit_end > digit_start {
+                    results.insert(title[i..digit_end].to_string());
+                    i = digit_end;
+                    continue;
+                }
+            }
+        }
+        i += 1;
+    }
+
+    results.into_iter().collect()
+}
+
+/// Resolve spec references against the store.
+///
+/// Returns `(resolved, unresolved)` where:
+/// - `resolved`: pairs of (original ID string, entity ID) for refs that exist
+///   in the store as formal spec elements (have `:spec/falsification` attribute).
+/// - `unresolved`: ID strings that either don't exist or lack falsification
+///   (observations, not formal spec elements).
+///
+/// A ref is "resolved" if an entity `:spec/{id-lowercase}` exists with
+/// a `:spec/falsification` attribute (formal spec element, not observation).
+pub fn resolve_spec_refs(store: &Store, refs: &[String]) -> (Vec<(String, EntityId)>, Vec<String>) {
+    let mut resolved = Vec::new();
+    let mut unresolved = Vec::new();
+    for ref_id in refs {
+        let ident = format!(":spec/{}", ref_id.to_lowercase());
+        let entity = EntityId::from_ident(&ident);
+        // Check if this entity has :spec/falsification
+        let has_falsification = store
+            .entity_datoms(entity)
+            .iter()
+            .any(|d| d.attribute.as_str() == ":spec/falsification" && d.op == Op::Assert);
+        if has_falsification {
+            resolved.push((ref_id.clone(), entity));
+        } else {
+            unresolved.push(ref_id.clone());
+        }
+    }
+    (resolved, unresolved)
+}
+
+// ---------------------------------------------------------------------------
 // Task queries
 // ---------------------------------------------------------------------------
 
@@ -1065,5 +1162,136 @@ mod tests {
             resolve_task_status(&store, entity),
             Some(TaskStatus::Closed)
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // SFE-2.1: parse_spec_refs
+    // -----------------------------------------------------------------------
+
+    // Verifies: INV-TASK-005
+    // (Spec ref extraction from task titles — sorted, deduplicated results.)
+    #[test]
+    fn parse_spec_refs_extracts_multiple() {
+        let refs = parse_spec_refs("Fix merge (INV-MERGE-001, ADR-MERGE-005)");
+        // BTreeSet-based: sorted lexicographically
+        assert_eq!(refs, vec!["ADR-MERGE-005", "INV-MERGE-001"]);
+    }
+
+    #[test]
+    fn parse_spec_refs_extracts_neg() {
+        let refs = parse_spec_refs("Handle NEG-STORE-001 violation");
+        assert_eq!(refs, vec!["NEG-STORE-001"]);
+    }
+
+    #[test]
+    fn parse_spec_refs_no_refs() {
+        let refs = parse_spec_refs("No spec refs here");
+        assert!(refs.is_empty());
+    }
+
+    #[test]
+    fn parse_spec_refs_deduplicates() {
+        let refs = parse_spec_refs("Multiple INV-STORE-001 and INV-STORE-001 duplicates");
+        assert_eq!(refs, vec!["INV-STORE-001"]);
+    }
+
+    #[test]
+    fn parse_spec_refs_mixed_types() {
+        let refs = parse_spec_refs("INV-QUERY-001 + ADR-GUIDANCE-013 + NEG-MERGE-002");
+        // Sorted: ADR- < INV- < NEG-
+        assert_eq!(
+            refs,
+            vec!["ADR-GUIDANCE-013", "INV-QUERY-001", "NEG-MERGE-002"]
+        );
+    }
+
+    #[test]
+    fn parse_spec_refs_accepts_varying_digit_counts() {
+        // One or more digits is valid; sorted lexicographically
+        let refs = parse_spec_refs("INV-STORE-01 and INV-STORE-0001");
+        assert_eq!(refs, vec!["INV-STORE-0001", "INV-STORE-01"]);
+    }
+
+    #[test]
+    fn parse_spec_refs_ignores_lowercase_namespace() {
+        let refs = parse_spec_refs("INV-store-001");
+        assert!(refs.is_empty());
+    }
+
+    // -----------------------------------------------------------------------
+    // SFE-2.2: resolve_spec_refs
+    // -----------------------------------------------------------------------
+
+    // Verifies: INV-TASK-005
+    // (Existing spec element with :spec/falsification resolves; nonexistent doesn't.)
+    #[test]
+    fn resolve_spec_refs_resolves_existing() {
+        let store = test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        // Create a spec element entity with :spec/falsification
+        let spec_entity = EntityId::from_ident(":spec/inv-store-001");
+        let spec_datoms = vec![
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-store-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("Any mutation of existing datom".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+        let store = store_with(&store, spec_datoms);
+
+        let refs = vec!["INV-STORE-001".to_string(), "INV-FAKE-999".to_string()];
+        let (resolved, unresolved) = resolve_spec_refs(&store, &refs);
+
+        assert_eq!(resolved.len(), 1);
+        assert_eq!(resolved[0].0, "INV-STORE-001");
+        assert_eq!(resolved[0].1, spec_entity);
+
+        assert_eq!(unresolved, vec!["INV-FAKE-999"]);
+    }
+
+    #[test]
+    fn resolve_spec_refs_empty_input() {
+        let store = test_store();
+        let (resolved, unresolved) = resolve_spec_refs(&store, &[]);
+        assert!(resolved.is_empty());
+        assert!(unresolved.is_empty());
+    }
+
+    #[test]
+    fn resolve_spec_refs_requires_falsification() {
+        let store = test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        // Create a spec entity WITHOUT :spec/falsification (observation, not formal)
+        let spec_entity = EntityId::from_ident(":spec/inv-store-002");
+        let spec_datoms = vec![Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":spec/inv-store-002".to_string()),
+            tx,
+            Op::Assert,
+        )];
+        let store = store_with(&store, spec_datoms);
+
+        let refs = vec!["INV-STORE-002".to_string()];
+        let (resolved, unresolved) = resolve_spec_refs(&store, &refs);
+
+        assert!(
+            resolved.is_empty(),
+            "entity without falsification should not resolve"
+        );
+        assert_eq!(unresolved, vec!["INV-STORE-002"]);
     }
 }

@@ -19,8 +19,8 @@ use braid_kernel::guidance::compute_routing_from_store;
 use braid_kernel::layout::TxFile;
 use braid_kernel::task::{
     self, check_dependency_acyclicity, close_task_datoms, compute_ready_set, dep_add_datom,
-    find_task_by_id, generate_task_id, set_attribute_datom, task_counts, task_summary,
-    update_status_datom, CreateTaskParams, TaskStatus, TaskType,
+    find_task_by_id, generate_task_id, parse_spec_refs, resolve_spec_refs, set_attribute_datom,
+    task_counts, task_summary, update_status_datom, CreateTaskParams, TaskStatus, TaskType,
 };
 use braid_kernel::EntityId;
 
@@ -62,8 +62,18 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
     let agent_id = AgentId::from_name(agent);
     let tx_id = super::write::next_tx_id(&store, agent_id);
 
-    // Resolve traces-to references
-    let trace_entities: Vec<EntityId> = traces_to.iter().map(|s| EntityId::from_ident(s)).collect();
+    // SFE-2.3: Extract spec refs from title and resolve against the store
+    let title_refs = parse_spec_refs(title);
+    let (resolved_refs, unresolved_refs) = resolve_spec_refs(&store, &title_refs);
+
+    // Combine explicit traces-to with resolved spec refs from title
+    let mut trace_entities: Vec<EntityId> =
+        traces_to.iter().map(|s| EntityId::from_ident(s)).collect();
+    for (_, entity_id) in &resolved_refs {
+        if !trace_entities.contains(entity_id) {
+            trace_entities.push(*entity_id);
+        }
+    }
 
     let (entity, datoms) = task::create_task_datoms(CreateTaskParams {
         title,
@@ -74,6 +84,19 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         traces_to: &trace_entities,
         labels,
     });
+
+    // Build warnings for unresolved refs
+    let mut warnings = Vec::new();
+    for ref_id in &unresolved_refs {
+        warnings.push(format!(
+            "\u{26a0} {ref_id} not found in store. Crystallize first: braid spec create {ref_id}"
+        ));
+    }
+
+    // Print unresolved warnings to stderr
+    for w in &warnings {
+        eprintln!("{w}");
+    }
 
     let tx = TxFile {
         tx_id,
@@ -90,13 +113,24 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
     let task_id = generate_task_id(title);
     let type_short = task_type.strip_prefix(":task.type/").unwrap_or(task_type);
 
+    // Collect all traces-to IDs for output (explicit + resolved from title)
+    let mut all_traces: Vec<String> = traces_to.to_vec();
+    for (ref_id, _) in &resolved_refs {
+        if !all_traces.contains(ref_id) {
+            all_traces.push(ref_id.clone());
+        }
+    }
+
     let mut human = String::new();
     human.push_str(&format!("created: {task_id} \"{title}\"\n"));
     human.push_str(&format!(
         "  P{priority} {type_short} | {datom_count} datoms | entity: :task/{task_id}\n"
     ));
-    if !traces_to.is_empty() {
-        human.push_str(&format!("  traces-to: {}\n", traces_to.join(", ")));
+    if !all_traces.is_empty() {
+        human.push_str(&format!("  traces-to: {}\n", all_traces.join(", ")));
+    }
+    for w in &warnings {
+        human.push_str(&format!("  {w}\n"));
     }
     let _ = entity; // used for entity creation
 
@@ -107,7 +141,8 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         "type": type_short,
         "datom_count": datom_count,
         "entity": format!(":task/{task_id}"),
-        "traces_to": traces_to,
+        "traces_to": all_traces,
+        "unresolved_refs": unresolved_refs,
     });
 
     let agent = AgentOutput {
@@ -997,5 +1032,130 @@ mod tests {
         assert!(result.human.contains("Task A"));
         // Task B is blocked by A, so it shouldn't appear in ready
         assert!(!result.human.contains(&format!("{}  \"Task B\"", id_b)));
+    }
+
+    // Verifies: SFE-2.3
+    // (Task create with valid INV in title produces :task/traces-to datom
+    //  when the spec element exists in the store.)
+    #[test]
+    fn create_task_with_valid_spec_ref_produces_traces_to() {
+        use braid_kernel::datom::{AgentId, Attribute, Datom, Op, TxId, Value};
+        use braid_kernel::task::find_task_by_id;
+
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".braid");
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+
+        // First, manually transact a spec element with :spec/falsification
+        let layout = crate::layout::DiskLayout::open(&path).unwrap();
+        let agent_id = AgentId::from_name("test");
+        let tx_id = TxId::new(999, 0, agent_id);
+        let spec_entity = braid_kernel::EntityId::from_ident(":spec/inv-store-001");
+        let spec_datoms = vec![
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-store-001".to_string()),
+                tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("Any mutation of existing datom".to_string()),
+                tx_id,
+                Op::Assert,
+            ),
+        ];
+        let spec_tx = braid_kernel::layout::TxFile {
+            tx_id,
+            agent: agent_id,
+            provenance: braid_kernel::datom::ProvenanceType::Observed,
+            rationale: "Test: create spec element".to_string(),
+            causal_predecessors: vec![],
+            datoms: spec_datoms,
+        };
+        layout.write_tx(&spec_tx).unwrap();
+
+        // Now create a task referencing INV-STORE-001 in its title
+        let result = create(CreateArgs {
+            path: &path,
+            title: "Fix INV-STORE-001 violation",
+            description: None,
+            priority: 1,
+            task_type: "bug",
+            agent: "test",
+            traces_to: &[],
+            labels: &[],
+        })
+        .unwrap();
+
+        // Verify the output mentions traces-to
+        assert!(
+            result.human.contains("INV-STORE-001"),
+            "human output should mention the resolved spec ref: {}",
+            result.human
+        );
+
+        // Verify JSON output includes the resolved ref
+        let traces = result.json["traces_to"].as_array().unwrap();
+        assert!(
+            traces.iter().any(|v| v.as_str() == Some("INV-STORE-001")),
+            "JSON traces_to should include INV-STORE-001: {:?}",
+            traces
+        );
+
+        // Verify the store has :task/traces-to datom
+        let store = layout.load_store().unwrap();
+        let task_id = generate_task_id("Fix INV-STORE-001 violation");
+        let task_entity = find_task_by_id(&store, &task_id).expect("task should exist");
+        let task_datoms = store.entity_datoms(task_entity);
+        let has_traces_to = task_datoms.iter().any(|d| {
+            d.attribute.as_str() == ":task/traces-to"
+                && d.op == Op::Assert
+                && matches!(d.value, Value::Ref(e) if e == spec_entity)
+        });
+        assert!(
+            has_traces_to,
+            "task should have :task/traces-to datom pointing to spec entity"
+        );
+    }
+
+    // Verifies: SFE-2.3
+    // (Task create with invalid INV in title includes warning in output.)
+    #[test]
+    fn create_task_with_invalid_spec_ref_warns() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".braid");
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+
+        let result = create(CreateArgs {
+            path: &path,
+            title: "Fix INV-FAKE-999 issue",
+            description: None,
+            priority: 1,
+            task_type: "bug",
+            agent: "test",
+            traces_to: &[],
+            labels: &[],
+        })
+        .unwrap();
+
+        // Verify the human output contains the warning
+        assert!(
+            result.human.contains("INV-FAKE-999 not found in store"),
+            "human output should warn about unresolved ref: {}",
+            result.human
+        );
+
+        // Verify JSON output includes unresolved_refs
+        let unresolved = result.json["unresolved_refs"].as_array().unwrap();
+        assert!(
+            unresolved
+                .iter()
+                .any(|v| v.as_str() == Some("INV-FAKE-999")),
+            "JSON unresolved_refs should include INV-FAKE-999: {:?}",
+            unresolved
+        );
     }
 }
