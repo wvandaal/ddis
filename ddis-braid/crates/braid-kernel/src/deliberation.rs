@@ -52,7 +52,23 @@ use crate::store::Store;
 /// Deliberation status lifecycle.
 ///
 /// INV-DELIBERATION-001: Well-ordered lifecycle.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+///
+/// This is a PARTIAL order, not a total order. Some status pairs are
+/// incomparable (e.g., Decided and Stalled are both successors of Active
+/// but neither precedes the other). Only `PartialOrd` is implemented; `Ord`
+/// is intentionally absent.
+///
+/// The defined orderings are:
+///   Open < Active
+///   Active < Decided
+///   Active < Stalled
+///   Stalled < Contested
+///   Decided < Superseded
+///   Contested < Superseded
+///
+/// For deterministic sorting (e.g., in BTreeSet keys), use
+/// [`DeliberationStatus::sort_key`] which provides a numeric code.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum DeliberationStatus {
     /// Newly opened, awaiting positions.
     Open,
@@ -68,7 +84,46 @@ pub enum DeliberationStatus {
     Superseded,
 }
 
+impl PartialOrd for DeliberationStatus {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        if self == other {
+            return Some(std::cmp::Ordering::Equal);
+        }
+        use std::cmp::Ordering::*;
+        use DeliberationStatus::*;
+        match (self, other) {
+            (Open, Active | Decided | Stalled | Contested | Superseded) => Some(Less),
+            (Active | Decided | Stalled | Contested | Superseded, Open) => Some(Greater),
+            (Active, Decided | Stalled | Contested | Superseded) => Some(Less),
+            (Decided | Stalled | Contested | Superseded, Active) => Some(Greater),
+            (Stalled, Contested | Superseded) => Some(Less),
+            (Contested | Superseded, Stalled) => Some(Greater),
+            (Decided, Superseded) => Some(Less),
+            (Superseded, Decided) => Some(Greater),
+            (Contested, Superseded) => Some(Less),
+            (Superseded, Contested) => Some(Greater),
+            // Decided vs Stalled: INCOMPARABLE
+            (Decided, Stalled) | (Stalled, Decided) => None,
+            // Decided vs Contested: INCOMPARABLE
+            (Decided, Contested) | (Contested, Decided) => None,
+            _ => Some(Equal),
+        }
+    }
+}
+
 impl DeliberationStatus {
+    /// Numeric sort key for deterministic ordering in collections.
+    pub fn sort_key(self) -> u8 {
+        match self {
+            Self::Open => 0,
+            Self::Active => 1,
+            Self::Decided => 2,
+            Self::Stalled => 3,
+            Self::Contested => 4,
+            Self::Superseded => 5,
+        }
+    }
+
     /// Convert to keyword for datom storage.
     pub fn as_keyword(&self) -> &'static str {
         match self {
@@ -721,10 +776,24 @@ mod tests {
 
     #[test]
     fn deliberation_status_lifecycle() {
-        // Open < Active < Decided
         assert!(DeliberationStatus::Open < DeliberationStatus::Active);
         assert!(DeliberationStatus::Active < DeliberationStatus::Decided);
-        assert!(DeliberationStatus::Decided < DeliberationStatus::Stalled);
+        assert!(DeliberationStatus::Active < DeliberationStatus::Stalled);
+        // Decided and Stalled are INCOMPARABLE (partial order)
+        assert_eq!(
+            DeliberationStatus::Decided.partial_cmp(&DeliberationStatus::Stalled),
+            None
+        );
+        assert_eq!(
+            DeliberationStatus::Stalled.partial_cmp(&DeliberationStatus::Decided),
+            None
+        );
+        assert!(DeliberationStatus::Decided < DeliberationStatus::Superseded);
+        assert!(DeliberationStatus::Contested < DeliberationStatus::Superseded);
+        assert!(DeliberationStatus::Stalled < DeliberationStatus::Contested);
+        // sort_key provides a total order for collection use
+        assert!(DeliberationStatus::Open.sort_key() < DeliberationStatus::Active.sort_key());
+        assert!(DeliberationStatus::Decided.sort_key() < DeliberationStatus::Superseded.sort_key());
     }
 
     // --- W5B.5: Comprehensive deliberation tests ---

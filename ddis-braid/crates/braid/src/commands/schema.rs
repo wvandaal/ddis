@@ -228,7 +228,7 @@ fn cardinality_short_name(def: &AttributeDef) -> &'static str {
 fn resolution_short_name(def: &AttributeDef) -> &'static str {
     match def.resolution_mode {
         braid_kernel::schema::ResolutionMode::Lww => "lww",
-        braid_kernel::schema::ResolutionMode::Lattice => "lattice",
+        braid_kernel::schema::ResolutionMode::Lattice { .. } => "lattice",
         braid_kernel::schema::ResolutionMode::Multi => "multi",
     }
 }

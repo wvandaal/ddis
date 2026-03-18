@@ -178,7 +178,7 @@ pub struct StateEntry {
 pub struct AssembledContext {
     /// Ordered sections of the seed output.
     pub sections: Vec<ContextSection>,
-    /// Total estimated token count.
+    /// Total estimated token count (post-compression, respects budget).
     pub total_tokens: usize,
     /// Remaining budget after assembly.
     pub budget_remaining: usize,
@@ -2442,11 +2442,92 @@ pub fn assemble(
 
     let state = ContextSection::State(state_entries);
 
-    // Budget accounting: when fixed sections (orientation, directive, constraints,
-    // warnings) exceed the budget, clamp total to budget — the overflow is tracked
-    // but never reported as "remaining" budget.
-    let total_tokens = (overhead + state_tokens).min(budget);
-    let budget_remaining = budget.saturating_sub(overhead + state_tokens);
+    // Budget enforcement (NEG-SEED-002): when overhead + state exceeds budget,
+    // compress sections in priority order (State already capped, then Constraints,
+    // Orientation, Warnings; Directive is last-to-compress).
+    //
+    // Previously total_tokens was clamped via .min(budget), making verify_seed's
+    // budget check tautological. Now we enforce the budget by truncating content.
+    let raw_total = overhead + state_tokens;
+    let (orientation, constraints, warnings) = if raw_total > budget {
+        let mut excess = raw_total - budget;
+
+        // Compress constraints first (lowest priority among fixed sections)
+        let new_constraints = if excess > 0 {
+            if let ContextSection::Constraints(ref refs) = constraints {
+                let mut kept = refs.clone();
+                while excess > 0 && !kept.is_empty() {
+                    let last = kept.pop().unwrap();
+                    let saved = estimate_tokens(&last.id) + estimate_tokens(&last.summary) + 4;
+                    excess = excess.saturating_sub(saved);
+                }
+                ContextSection::Constraints(kept)
+            } else {
+                constraints
+            }
+        } else {
+            constraints
+        };
+
+        // Compress orientation next
+        let new_orientation = if excess > 0 {
+            if let ContextSection::Orientation(ref text) = orientation {
+                if excess >= orientation_tokens {
+                    excess = excess.saturating_sub(orientation_tokens);
+                    ContextSection::Orientation(String::new())
+                } else {
+                    let target_bytes = (orientation_tokens.saturating_sub(excess)) * 4;
+                    let truncated = crate::budget::safe_truncate_bytes(text, target_bytes);
+                    let saved = orientation_tokens.saturating_sub(estimate_tokens(truncated));
+                    excess = excess.saturating_sub(saved);
+                    ContextSection::Orientation(truncated.to_string())
+                }
+            } else {
+                orientation
+            }
+        } else {
+            orientation
+        };
+
+        // Compress warnings next
+        let new_warnings = if excess > 0 {
+            if let ContextSection::Warnings(ref lines) = warnings {
+                let mut kept = lines.clone();
+                while excess > 0 && !kept.is_empty() {
+                    let last = kept.pop().unwrap();
+                    let saved = estimate_tokens(&last);
+                    excess = excess.saturating_sub(saved);
+                }
+                ContextSection::Warnings(kept)
+            } else {
+                warnings
+            }
+        } else {
+            warnings
+        };
+
+        (new_orientation, new_constraints, new_warnings)
+    } else {
+        (orientation, constraints, warnings)
+    };
+
+    // Recompute total from surviving (possibly compressed) sections
+    let recomputed_overhead = match &orientation {
+        ContextSection::Orientation(t) => estimate_tokens(t),
+        _ => 0,
+    } + match &constraints {
+        ContextSection::Constraints(refs) => refs
+            .iter()
+            .map(|c| estimate_tokens(&c.id) + estimate_tokens(&c.summary) + 4)
+            .sum::<usize>(),
+        _ => 0,
+    } + match &warnings {
+        ContextSection::Warnings(lines) => lines.iter().map(|w| estimate_tokens(w)).sum::<usize>(),
+        _ => 0,
+    } + directive_tokens;
+
+    let total_tokens = recomputed_overhead + state_tokens;
+    let budget_remaining = budget.saturating_sub(total_tokens);
 
     AssembledContext {
         sections: vec![orientation, constraints, state, warnings, directive],

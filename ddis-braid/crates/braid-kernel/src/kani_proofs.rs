@@ -924,7 +924,12 @@ fn prove_lattice_join_associativity() {
         assertions: vec![(val2.clone(), tx2), (val3.clone(), tx3)],
         retractions: vec![],
     };
-    let bc_resolved = resolve(&bc_conflict, &ResolutionMode::Lattice);
+    let bc_resolved = resolve(
+        &bc_conflict,
+        &ResolutionMode::Lattice {
+            lattice_id: EntityId::ZERO,
+        },
+    );
 
     // Step 2: resolve {a, winner(b,c)}
     let bc_winner = match &bc_resolved {
@@ -942,7 +947,12 @@ fn prove_lattice_join_associativity() {
         assertions: vec![(val1.clone(), tx1), (bc_winner, bc_winner_tx)],
         retractions: vec![],
     };
-    let right = resolve(&a_bc_conflict, &ResolutionMode::Lattice);
+    let right = resolve(
+        &a_bc_conflict,
+        &ResolutionMode::Lattice {
+            lattice_id: EntityId::ZERO,
+        },
+    );
 
     // Left-associated: resolve(resolve(a, b), c)
     // Step 1: resolve {a, b}
@@ -952,7 +962,12 @@ fn prove_lattice_join_associativity() {
         assertions: vec![(val1.clone(), tx1), (val2.clone(), tx2)],
         retractions: vec![],
     };
-    let ab_resolved = resolve(&ab_conflict, &ResolutionMode::Lattice);
+    let ab_resolved = resolve(
+        &ab_conflict,
+        &ResolutionMode::Lattice {
+            lattice_id: EntityId::ZERO,
+        },
+    );
 
     // Step 2: resolve {winner(a,b), c}
     let ab_winner = match &ab_resolved {
@@ -969,7 +984,12 @@ fn prove_lattice_join_associativity() {
         assertions: vec![(ab_winner, ab_winner_tx), (val3, tx3)],
         retractions: vec![],
     };
-    let left = resolve(&ab_c_conflict, &ResolutionMode::Lattice);
+    let left = resolve(
+        &ab_c_conflict,
+        &ResolutionMode::Lattice {
+            lattice_id: EntityId::ZERO,
+        },
+    );
 
     // Also verify against the flat 3-way resolve (ground truth: max of all three)
     let flat_conflict = ConflictSet {
@@ -1120,7 +1140,12 @@ fn prove_retraction_correctness() {
         "INV-RESOLUTION-006 violated: Multi resolution includes retracted value",
     );
 
-    let resolved_lattice = resolve(&conflict, &ResolutionMode::Lattice);
+    let resolved_lattice = resolve(
+        &conflict,
+        &ResolutionMode::Lattice {
+            lattice_id: EntityId::ZERO,
+        },
+    );
     kani::assert(
         resolved_lattice == ResolvedValue::None,
         "INV-RESOLUTION-006 violated: Lattice resolution includes retracted value",

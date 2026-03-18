@@ -69,6 +69,8 @@ pub enum StoreError {
     DuplicateTransaction(String),
     /// Empty transaction.
     EmptyTransaction,
+    /// Causal predecessor not found in the store (INV-STORE-010).
+    InvalidCausalPredecessor(String),
 }
 
 impl std::fmt::Display for StoreError {
@@ -86,6 +88,9 @@ impl std::fmt::Display for StoreError {
             ),
             StoreError::DuplicateTransaction(id) => write!(f, "duplicate transaction: {id}"),
             StoreError::EmptyTransaction => write!(f, "empty transaction"),
+            StoreError::InvalidCausalPredecessor(id) => {
+                write!(f, "causal predecessor not found: {id}")
+            }
         }
     }
 }
@@ -113,6 +118,12 @@ impl StoreError {
             StoreError::EmptyTransaction => {
                 "Supply at least one datom assertion. \
                  Use `braid transact -d entity attribute value` to add datoms."
+            }
+            StoreError::InvalidCausalPredecessor(_) => {
+                "A causal predecessor transaction was not found in the store. \
+                 Ensure the predecessor transaction has been committed before \
+                 creating a transaction that depends on it. \
+                 Use `braid log` to list committed transactions."
             }
         }
     }

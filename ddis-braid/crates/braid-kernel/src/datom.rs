@@ -38,6 +38,13 @@ use crate::error::SchemaError;
 pub struct EntityId([u8; 32]);
 
 impl EntityId {
+    /// The all-zeros entity ID, used as a sentinel/placeholder value.
+    ///
+    /// This is NOT a valid content-addressed identity -- it exists only for
+    /// cases where a real EntityId is not yet known (e.g., `ResolutionMode::Lattice`
+    /// parsed from a keyword before the `:db/latticeOrder` ref is resolved).
+    pub const ZERO: EntityId = EntityId([0u8; 32]);
+
     /// Create an entity ID from arbitrary content bytes.
     ///
     /// `EntityId = BLAKE3(content)`. Deterministic: same bytes → same ID.

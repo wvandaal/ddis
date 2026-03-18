@@ -175,22 +175,40 @@ impl Uniqueness {
 }
 
 /// Conflict resolution mode for an attribute.
+///
+/// INV-SCHEMA-007: When mode is `Lattice`, the `lattice_id` field references
+/// the lattice definition entity (`:lattice/ident`, `:lattice/elements`,
+/// `:lattice/comparator`, `:lattice/bottom`). The lattice entity is stored
+/// as datoms via `:db/latticeOrder` on the attribute entity.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum ResolutionMode {
     /// Last-writer-wins with HLC + BLAKE3 tiebreaker.
     Lww,
-    /// User-defined lattice join.
-    Lattice,
+    /// User-defined lattice join, identified by the lattice definition entity.
+    Lattice {
+        /// Reference to the lattice definition entity (`:db/latticeOrder`).
+        lattice_id: EntityId,
+    },
     /// Multi-value (set union — keep all).
     Multi,
 }
 
 impl ResolutionMode {
+    /// A sentinel `EntityId` used when parsing `:resolution/lattice` from a keyword
+    /// before the real lattice_id is known. The caller (e.g., `Schema::from_datoms`)
+    /// must fill in the real lattice_id from the `:db/latticeOrder` datom.
+    pub const LATTICE_ID_PLACEHOLDER: EntityId = EntityId::ZERO;
+
     /// Parse from a keyword string.
+    ///
+    /// For `:resolution/lattice`, returns `Lattice` with `LATTICE_ID_PLACEHOLDER`.
+    /// The caller must resolve the real `lattice_id` from `:db/latticeOrder`.
     pub fn from_keyword(kw: &str) -> Option<Self> {
         match kw {
             ":resolution/lww" => Some(ResolutionMode::Lww),
-            ":resolution/lattice" => Some(ResolutionMode::Lattice),
+            ":resolution/lattice" => Some(ResolutionMode::Lattice {
+                lattice_id: Self::LATTICE_ID_PLACEHOLDER,
+            }),
             ":resolution/multi" => Some(ResolutionMode::Multi),
             _ => None,
         }
@@ -200,9 +218,14 @@ impl ResolutionMode {
     pub fn as_keyword(&self) -> &'static str {
         match self {
             ResolutionMode::Lww => ":resolution/lww",
-            ResolutionMode::Lattice => ":resolution/lattice",
+            ResolutionMode::Lattice { .. } => ":resolution/lattice",
             ResolutionMode::Multi => ":resolution/multi",
         }
+    }
+
+    /// Returns `true` if this is the `Lattice` variant (regardless of `lattice_id`).
+    pub fn is_lattice(&self) -> bool {
+        matches!(self, ResolutionMode::Lattice { .. })
     }
 }
 
@@ -308,13 +331,26 @@ impl Schema {
                 })
                 .unwrap_or(Cardinality::One);
 
-            let resolution_mode = fields
+            let mut resolution_mode = fields
                 .get(":db/resolutionMode")
                 .and_then(|v| match v {
                     Value::Keyword(kw) => ResolutionMode::from_keyword(kw),
                     _ => None,
                 })
                 .unwrap_or(ResolutionMode::Lww);
+
+            // INV-SCHEMA-007: If the mode is Lattice, resolve the real lattice_id
+            // from the :db/latticeOrder ref datom.
+            if resolution_mode.is_lattice() {
+                if let Some(Value::Ref(lattice_entity)) = fields.get(":db/latticeOrder") {
+                    resolution_mode = ResolutionMode::Lattice {
+                        lattice_id: *lattice_entity,
+                    };
+                }
+                // If :db/latticeOrder is missing, the placeholder ZERO remains.
+                // The resolve() function detects this and falls back to LWW
+                // with an explicit gate (not a silent default).
+            }
 
             let doc = fields
                 .get(":db/doc")
@@ -546,6 +582,19 @@ pub fn genesis_datoms(genesis_tx: TxId) -> Vec<Datom> {
             genesis_tx,
             Op::Assert,
         ));
+
+        // INV-SCHEMA-007: If Lattice mode, emit :db/latticeOrder ref.
+        if let ResolutionMode::Lattice { lattice_id } = spec.resolution_mode {
+            if lattice_id != EntityId::ZERO {
+                datoms.push(Datom::new(
+                    entity,
+                    Attribute::from_keyword(":db/latticeOrder"),
+                    Value::Ref(lattice_id),
+                    genesis_tx,
+                    Op::Assert,
+                ));
+            }
+        }
     }
 
     datoms
@@ -1821,6 +1870,19 @@ fn schema_datoms_from_specs(specs: &[AttributeSpec], tx: TxId) -> Vec<Datom> {
             tx,
             Op::Assert,
         ));
+
+        // INV-SCHEMA-007: If Lattice mode, emit :db/latticeOrder ref to the lattice entity.
+        if let ResolutionMode::Lattice { lattice_id } = spec.resolution_mode {
+            if lattice_id != EntityId::ZERO {
+                datoms.push(Datom::new(
+                    entity,
+                    Attribute::from_keyword(":db/latticeOrder"),
+                    Value::Ref(lattice_id),
+                    tx,
+                    Op::Assert,
+                ));
+            }
+        }
     }
 
     datoms

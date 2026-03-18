@@ -152,13 +152,10 @@ impl Transaction<Building> {
             store.schema.validate_datom(datom)?;
         }
 
-        // Validate causal predecessors exist
+        // Validate causal predecessors exist (INV-STORE-010)
         for pred in &self.tx_data.causal_predecessors {
             if !store.has_transaction(pred) {
-                return Err(StoreError::DuplicateTransaction(format!(
-                    "causal predecessor not found: {:?}",
-                    pred
-                )));
+                return Err(StoreError::InvalidCausalPredecessor(format!("{:?}", pred)));
             }
         }
 

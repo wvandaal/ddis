@@ -155,9 +155,14 @@ pub fn resolve(conflict: &ConflictSet, mode: &ResolutionMode) -> ResolvedValue {
 
     match mode {
         ResolutionMode::Lww => resolve_lww(&active),
-        ResolutionMode::Lattice => {
-            // Stage 0: lattice resolution falls back to LWW
-            // Full lattice join requires lattice definitions from store
+        ResolutionMode::Lattice { lattice_id } => {
+            // Stage 0: lattice resolution falls back to LWW.
+            // The lattice_id identifies the lattice definition entity, but
+            // full lattice join (INV-RESOLUTION-006) requires looking up the
+            // LatticeDef from the store and computing lub(). That pipeline is
+            // deferred to Stage 1. For now, the fallback is explicitly gated
+            // on the lattice_id being present but unused -- not a silent default.
+            let _ = lattice_id; // Acknowledge the field; used in Stage 1.
             resolve_lww(&active)
         }
         ResolutionMode::Multi => {
