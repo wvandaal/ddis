@@ -822,6 +822,147 @@ pub fn task_counts(store: &Store) -> (usize, usize, usize) {
 // ---------------------------------------------------------------------------
 
 // Witnesses: INV-STORE-001, INV-STORE-003, INV-SCHEMA-001, INV-RESOLUTION-001,
+// ---------------------------------------------------------------------------
+// Completion-Bound Verification (INV-TASK-006, CBV-1/CBV-2)
+// ---------------------------------------------------------------------------
+
+/// Extract acceptance criteria from a task's title/description.
+///
+/// Scans for "ACCEPTANCE:" (case-insensitive) and returns the text after it
+/// as a list of criteria (split by ". " for multiple criteria in one line).
+///
+/// INV-TASK-006: Completion Evidence Protocol.
+pub fn extract_acceptance_criteria(store: &Store, task_entity: EntityId) -> Vec<String> {
+    // Get the task title (which contains the description in braid's model)
+    let mut title = String::new();
+    for d in store.entity_datoms(task_entity) {
+        if d.attribute.as_str() == ":task/title" && d.op == crate::datom::Op::Assert {
+            if let crate::datom::Value::String(ref s) = d.value {
+                title = s.clone();
+                break;
+            }
+        }
+    }
+
+    if title.is_empty() {
+        return Vec::new();
+    }
+
+    // Find "ACCEPTANCE:" or "Acceptance:" (case-insensitive)
+    let lower = title.to_lowercase();
+    let acceptance_pos = lower.find("acceptance:");
+    if acceptance_pos.is_none() {
+        return Vec::new();
+    }
+
+    let start = acceptance_pos.unwrap() + "acceptance:".len();
+    let remainder = title[start..].trim();
+
+    // Split on sentence boundaries for multiple criteria
+    remainder
+        .split(". ")
+        .map(|s| s.trim().trim_end_matches('.').to_string())
+        .filter(|s| !s.is_empty())
+        .collect()
+}
+
+/// A verification pattern parsed from acceptance criteria text.
+///
+/// Stage 1: presence-based checks only (no command execution).
+#[derive(Clone, Debug, PartialEq)]
+pub enum VerificationPattern {
+    /// Check if a store attribute has any datoms.
+    QueryPresence {
+        /// The attribute keyword to check (e.g., ":harvest/recommended-tasks").
+        attribute: String,
+    },
+    /// Check if store datom count exceeds a threshold.
+    StoreSize {
+        /// Minimum datom count required.
+        min_datoms: usize,
+    },
+    /// Non-automatable criterion — requires manual attestation.
+    Manual {
+        /// Human-readable description of what to verify.
+        description: String,
+    },
+}
+
+/// Parse a single acceptance criterion into a verification pattern.
+///
+/// Returns `QueryPresence` for "query ... returns" patterns,
+/// `StoreSize` for "N datoms" patterns, `Manual` for everything else.
+///
+/// INV-TASK-006: Stage 1 presence checks only.
+pub fn parse_verification_pattern(criterion: &str) -> VerificationPattern {
+    let lower = criterion.to_lowercase();
+
+    // Pattern: "query :attr/name returns" or "braid query --attribute :attr returns"
+    if lower.contains("query") && lower.contains("returns") {
+        // Extract attribute name: look for :namespace/name pattern
+        if let Some(attr_start) = criterion.find(':') {
+            let after_colon = &criterion[attr_start..];
+            let attr_end = after_colon
+                .find(|c: char| c.is_whitespace())
+                .unwrap_or(after_colon.len());
+            let attr = &after_colon[..attr_end];
+            if attr.contains('/') {
+                return VerificationPattern::QueryPresence {
+                    attribute: attr.to_string(),
+                };
+            }
+        }
+    }
+
+    // Pattern: "N datoms" or "store has N"
+    if lower.contains("datom") {
+        for word in criterion.split_whitespace() {
+            if let Ok(n) = word.parse::<usize>() {
+                return VerificationPattern::StoreSize { min_datoms: n };
+            }
+        }
+    }
+
+    // Everything else is manual
+    VerificationPattern::Manual {
+        description: criterion.to_string(),
+    }
+}
+
+/// Run a verification pattern against the store.
+///
+/// Returns `Ok(())` if the check passes, `Err(reason)` if it fails.
+pub fn run_verification(store: &Store, pattern: &VerificationPattern) -> Result<(), String> {
+    match pattern {
+        VerificationPattern::QueryPresence { attribute } => {
+            let attr = crate::datom::Attribute::from_keyword(attribute);
+            let datoms = store.attribute_datoms(&attr);
+            if datoms.is_empty() {
+                Err(format!(
+                    "QueryPresence FAILED: no datoms with attribute {attribute}"
+                ))
+            } else {
+                Ok(())
+            }
+        }
+        VerificationPattern::StoreSize { min_datoms } => {
+            if store.len() >= *min_datoms {
+                Ok(())
+            } else {
+                Err(format!(
+                    "StoreSize FAILED: store has {} datoms, need {min_datoms}",
+                    store.len()
+                ))
+            }
+        }
+        VerificationPattern::Manual { description } => {
+            // Manual checks always "pass" in automated mode —
+            // the agent must use --attest to provide evidence
+            Err(format!("MANUAL: requires attestation — {description}"))
+        }
+    }
+}
+
 //   ADR-STORE-003, ADR-RESOLUTION-001
 // (Task module exercises datom construction via the append-only store,
 //  content-addressable identity, schema-as-data patterns, and lattice
@@ -1301,5 +1442,125 @@ mod tests {
             "entity without falsification should not resolve"
         );
         assert_eq!(unresolved, vec!["INV-STORE-002"]);
+    }
+
+    // -------------------------------------------------------------------
+    // Completion-Bound Verification (INV-TASK-006)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn extract_acceptance_criteria_finds_text() {
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+        let title =
+            "Task title. ACCEPTANCE: query :harvest/recommended-tasks returns comma-separated IDs";
+        let (_, datoms) = create_task_datoms(CreateTaskParams {
+            title,
+            description: None,
+            priority: 1,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = Store::from_datoms(datoms.into_iter().collect());
+        // Find the actual task entity from the store
+        let tasks = all_tasks(&store);
+        assert!(!tasks.is_empty(), "should find the task");
+        let criteria = extract_acceptance_criteria(&store, tasks[0].entity);
+        assert!(!criteria.is_empty(), "should find acceptance criteria");
+        assert!(
+            criteria[0].contains("query"),
+            "should contain the query criterion"
+        );
+    }
+
+    #[test]
+    fn extract_acceptance_criteria_empty_when_no_acceptance() {
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+        let (_, datoms) = create_task_datoms(CreateTaskParams {
+            title: "Task without acceptance criteria",
+            description: None,
+            priority: 1,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = Store::from_datoms(datoms.into_iter().collect());
+        let tasks = all_tasks(&store);
+        let criteria = extract_acceptance_criteria(&store, tasks[0].entity);
+        assert!(criteria.is_empty(), "should find no criteria");
+    }
+
+    #[test]
+    fn parse_verification_pattern_query_presence() {
+        let p = parse_verification_pattern(
+            "query :harvest/recommended-tasks returns comma-separated IDs",
+        );
+        assert!(matches!(p, VerificationPattern::QueryPresence { .. }));
+        if let VerificationPattern::QueryPresence { attribute } = p {
+            assert_eq!(attribute, ":harvest/recommended-tasks");
+        }
+    }
+
+    #[test]
+    fn parse_verification_pattern_manual_fallback() {
+        let p = parse_verification_pattern("All output should look clean");
+        assert!(matches!(p, VerificationPattern::Manual { .. }));
+    }
+
+    #[test]
+    fn parse_verification_pattern_store_size() {
+        let p = parse_verification_pattern("store has 1000 datoms after transacting");
+        assert!(matches!(
+            p,
+            VerificationPattern::StoreSize { min_datoms: 1000 }
+        ));
+    }
+
+    #[test]
+    fn run_verification_query_presence_passes() {
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+        let mut datoms = std::collections::BTreeSet::new();
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":test/entity"),
+            Attribute::from_keyword(":test/attr"),
+            Value::String("value".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        let store = Store::from_datoms(datoms);
+        let pattern = VerificationPattern::QueryPresence {
+            attribute: ":test/attr".to_string(),
+        };
+        assert!(run_verification(&store, &pattern).is_ok());
+    }
+
+    #[test]
+    fn run_verification_query_presence_fails() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let pattern = VerificationPattern::QueryPresence {
+            attribute: ":nonexistent/attr".to_string(),
+        };
+        assert!(run_verification(&store, &pattern).is_err());
+    }
+
+    #[test]
+    fn run_verification_store_size_passes() {
+        let store = Store::genesis();
+        let pattern = VerificationPattern::StoreSize { min_datoms: 1 };
+        assert!(run_verification(&store, &pattern).is_ok());
+    }
+
+    #[test]
+    fn run_verification_manual_returns_err() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let pattern = VerificationPattern::Manual {
+            description: "check manually".to_string(),
+        };
+        assert!(run_verification(&store, &pattern).is_err());
     }
 }

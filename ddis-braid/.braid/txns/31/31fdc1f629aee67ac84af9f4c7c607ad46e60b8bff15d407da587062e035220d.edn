@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773872648/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "manual assertion via braid transact"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7f0892ad4e22135a1664af0a436f4b790e8c1c5a2d035ef5f4812f44a3e5da6b" :a :db/ident :v :spec/inv-task-006 :op :assert}
+   {:e #blake3 "7f0892ad4e22135a1664af0a436f4b790e8c1c5a2d035ef5f4812f44a3e5da6b" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "7f0892ad4e22135a1664af0a436f4b790e8c1c5a2d035ef5f4812f44a3e5da6b" :a :spec/falsification :v "Agent closes a task via braid done without providing evidence and the closure is accepted without recording completion-method" :op :assert}
+   {:e #blake3 "7f0892ad4e22135a1664af0a436f4b790e8c1c5a2d035ef5f4812f44a3e5da6b" :a :spec/namespace :v "TASK" :op :assert}
+   {:e #blake3 "7f0892ad4e22135a1664af0a436f4b790e8c1c5a2d035ef5f4812f44a3e5da6b" :a :spec/source-file :v "spec/22-reflexive.md" :op :assert}
+   {:e #blake3 "7f0892ad4e22135a1664af0a436f4b790e8c1c5a2d035ef5f4812f44a3e5da6b" :a :spec/statement :v "Completion Evidence Protocol: braid done extracts acceptance criteria from task description and requires verification, attestation, or explicit force bypass before Closed transition" :op :assert}
+   {:e #blake3 "7f0892ad4e22135a1664af0a436f4b790e8c1c5a2d035ef5f4812f44a3e5da6b" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}
