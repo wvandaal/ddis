@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773846775/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: COF-1.1: Implement contextual_observation_hint(cmd, output_json) -> String in guidance.rs. BACKGROUND: Pure function mapping command name + output JSON to a natural-language sentence. Template-based at Stage 0: task-close extracts title+reason, query extracts entity+count, status extracts F(S)+M(t), trace extracts coverage%, bilateral extracts fitness+gaps. Returns empty string for commands that don't produce knowledge (init, mcp, observe, harvest). TRACES TO: INV-GUIDANCE-014. ACCEPTANCE: after 'braid task close t-xxxx --reason done', hint is 'Completed: {actual title} — done', NOT '...'. V:PROP — test each command template."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2b3e88523195ab9c24c13bab791d5117dd7eb62856c81d22c54fcf3cf4b319cf" :a :db/ident :v :task/t-14f70d6f :op :assert}
+   {:e #blake3 "2b3e88523195ab9c24c13bab791d5117dd7eb62856c81d22c54fcf3cf4b319cf" :a :task/created-at :v 1773846773 :op :assert}
+   {:e #blake3 "2b3e88523195ab9c24c13bab791d5117dd7eb62856c81d22c54fcf3cf4b319cf" :a :task/id :v "t-14f70d6f" :op :assert}
+   {:e #blake3 "2b3e88523195ab9c24c13bab791d5117dd7eb62856c81d22c54fcf3cf4b319cf" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2b3e88523195ab9c24c13bab791d5117dd7eb62856c81d22c54fcf3cf4b319cf" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2b3e88523195ab9c24c13bab791d5117dd7eb62856c81d22c54fcf3cf4b319cf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2b3e88523195ab9c24c13bab791d5117dd7eb62856c81d22c54fcf3cf4b319cf" :a :task/title :v "COF-1.1: Implement contextual_observation_hint(cmd, output_json) -> String in guidance.rs. BACKGROUND: Pure function mapping command name + output JSON to a natural-language sentence. Template-based at Stage 0: task-close extracts title+reason, query extracts entity+count, status extracts F(S)+M(t), trace extracts coverage%, bilateral extracts fitness+gaps. Returns empty string for commands that don't produce knowledge (init, mcp, observe, harvest). TRACES TO: INV-GUIDANCE-014. ACCEPTANCE: after 'braid task close t-xxxx --reason done', hint is 'Completed: {actual title} — done', NOT '...'. V:PROP — test each command template." :op :assert}
+   {:e #blake3 "2b3e88523195ab9c24c13bab791d5117dd7eb62856c81d22c54fcf3cf4b319cf" :a :task/type :v :task.type/task :op :assert}
+ ]}

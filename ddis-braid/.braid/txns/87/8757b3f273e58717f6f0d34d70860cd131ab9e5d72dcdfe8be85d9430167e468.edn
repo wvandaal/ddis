@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773846783/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: E2E-COF: scripts/e2e_contextual_observation.sh — 8+ checks: (1) footer after task-close contains task title, (2) footer after query contains entity, (3) footer after status contains F(S), (4) footer after observe has no hint (no meta-observation), (5) hint confidence matches command type, (6) compressed footer is paste-ready with real content, (7) no '...' placeholder in any known command footer, (8) contextual hint length < 120 chars. TRACES TO: INV-GUIDANCE-014."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :db/ident :v :task/t-b59ee192 :op :assert}
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/created-at :v 1773846781 :op :assert}
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/id :v "t-b59ee192" :op :assert}
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/title :v "E2E-COF: scripts/e2e_contextual_observation.sh — 8+ checks: (1) footer after task-close contains task title, (2) footer after query contains entity, (3) footer after status contains F(S), (4) footer after observe has no hint (no meta-observation), (5) hint confidence matches command type, (6) compressed footer is paste-ready with real content, (7) no '...' placeholder in any known command footer, (8) contextual hint length < 120 chars. TRACES TO: INV-GUIDANCE-014." :op :assert}
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/type :v :task.type/test :op :assert}
+ ]}

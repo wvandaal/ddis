@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773846808/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-GUIDANCE-016: Contextual Confidence Calibration. The inferred confidence for an auto-observation matches the epistemic certainty of the command type: task-close=0.9 (agent knows what it did), status=0.8 (metrics are factual), query=0.7 (results are contextual), bilateral=0.8 (coherence is measured). Falsification: an auto-observation from task-close has confidence < 0.85 or > 0.95. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5c88be952db5a7d0c935b8d5028cb3d1f1d3401ee8b14750f3bbc45fcca04fb2" :a :db/doc :v "INV-GUIDANCE-016: Contextual Confidence Calibration. The inferred confidence for an auto-observation matches the epistemic certainty of the command type: task-close=0.9 (agent knows what it did), status=0.8 (metrics are factual), query=0.7 (results are contextual), bilateral=0.8 (coherence is measured). Falsification: an auto-observation from task-close has confidence < 0.85 or > 0.95. V:PROP." :op :assert}
+   {:e #blake3 "5c88be952db5a7d0c935b8d5028cb3d1f1d3401ee8b14750f3bbc45fcca04fb2" :a :db/ident :v :observation/inv-guidance-016-contextual-confidence-calibration-the-inf :op :assert}
+   {:e #blake3 "5c88be952db5a7d0c935b8d5028cb3d1f1d3401ee8b14750f3bbc45fcca04fb2" :a :exploration/body :v "INV-GUIDANCE-016: Contextual Confidence Calibration. The inferred confidence for an auto-observation matches the epistemic certainty of the command type: task-close=0.9 (agent knows what it did), status=0.8 (metrics are factual), query=0.7 (results are contextual), bilateral=0.8 (coherence is measured). Falsification: an auto-observation from task-close has confidence < 0.85 or > 0.95. V:PROP." :op :assert}
+   {:e #blake3 "5c88be952db5a7d0c935b8d5028cb3d1f1d3401ee8b14750f3bbc45fcca04fb2" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "5c88be952db5a7d0c935b8d5028cb3d1f1d3401ee8b14750f3bbc45fcca04fb2" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "5c88be952db5a7d0c935b8d5028cb3d1f1d3401ee8b14750f3bbc45fcca04fb2" :a :exploration/content-hash :v #bytes "ec58334736f8d0cb4a10591c0da51766e990ea69864abc4fbd02ccc8ac5ba870" :op :assert}
+   {:e #blake3 "5c88be952db5a7d0c935b8d5028cb3d1f1d3401ee8b14750f3bbc45fcca04fb2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5c88be952db5a7d0c935b8d5028cb3d1f1d3401ee8b14750f3bbc45fcca04fb2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5c88be952db5a7d0c935b8d5028cb3d1f1d3401ee8b14750f3bbc45fcca04fb2" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773846776/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: COF-1.2: Wire contextual hint into guidance footer pipeline — pass cmd_name + output JSON to format_footer. BACKGROUND: Currently format_footer only sees store telemetry (M(t), turn count). To generate contextual hints, it needs the command name and key output fields. Two approaches: (A) Pass cmd_name as parameter to build_command_footer (cleanest), or (B) Store the last command output in a thread-local (hacky). Choose A. Modify build_command_footer signature to accept optional (cmd_name, output_summary) tuple. When present, generate contextual hint. When absent (e.g., MCP calls), fall back to existing behavior. TRACES TO: INV-GUIDANCE-014, INV-GUIDANCE-002."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1136e02f32e243fa101679abb9af6f390231eac87578cb25c47e698ca38e19a5" :a :db/ident :v :task/t-85d9f611 :op :assert}
+   {:e #blake3 "1136e02f32e243fa101679abb9af6f390231eac87578cb25c47e698ca38e19a5" :a :task/created-at :v 1773846774 :op :assert}
+   {:e #blake3 "1136e02f32e243fa101679abb9af6f390231eac87578cb25c47e698ca38e19a5" :a :task/id :v "t-85d9f611" :op :assert}
+   {:e #blake3 "1136e02f32e243fa101679abb9af6f390231eac87578cb25c47e698ca38e19a5" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1136e02f32e243fa101679abb9af6f390231eac87578cb25c47e698ca38e19a5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1136e02f32e243fa101679abb9af6f390231eac87578cb25c47e698ca38e19a5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1136e02f32e243fa101679abb9af6f390231eac87578cb25c47e698ca38e19a5" :a :task/title :v "COF-1.2: Wire contextual hint into guidance footer pipeline — pass cmd_name + output JSON to format_footer. BACKGROUND: Currently format_footer only sees store telemetry (M(t), turn count). To generate contextual hints, it needs the command name and key output fields. Two approaches: (A) Pass cmd_name as parameter to build_command_footer (cleanest), or (B) Store the last command output in a thread-local (hacky). Choose A. Modify build_command_footer signature to accept optional (cmd_name, output_summary) tuple. When present, generate contextual hint. When absent (e.g., MCP calls), fall back to existing behavior. TRACES TO: INV-GUIDANCE-014, INV-GUIDANCE-002." :op :assert}
+   {:e #blake3 "1136e02f32e243fa101679abb9af6f390231eac87578cb25c47e698ca38e19a5" :a :task/type :v :task.type/task :op :assert}
+ ]}

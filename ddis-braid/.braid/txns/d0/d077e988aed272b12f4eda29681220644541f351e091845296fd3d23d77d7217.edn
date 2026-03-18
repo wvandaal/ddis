@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773846780/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-COF-1: contextual_observation_hint generates correct text for each command type. Unit tests: (1) task-close → includes title and reason, (2) query → includes entity and count, (3) status → includes F(S), (4) observe → returns empty (no meta-observation), (5) unknown command → returns empty. Proptest: hint text never contains placeholder '...' for known command types. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9fffad590d864865c385b14e74133228948148a7c5aae1d130403340659b714b" :a :db/ident :v :task/t-bac10aca :op :assert}
+   {:e #blake3 "9fffad590d864865c385b14e74133228948148a7c5aae1d130403340659b714b" :a :task/created-at :v 1773846778 :op :assert}
+   {:e #blake3 "9fffad590d864865c385b14e74133228948148a7c5aae1d130403340659b714b" :a :task/id :v "t-bac10aca" :op :assert}
+   {:e #blake3 "9fffad590d864865c385b14e74133228948148a7c5aae1d130403340659b714b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9fffad590d864865c385b14e74133228948148a7c5aae1d130403340659b714b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9fffad590d864865c385b14e74133228948148a7c5aae1d130403340659b714b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9fffad590d864865c385b14e74133228948148a7c5aae1d130403340659b714b" :a :task/title :v "TEST-COF-1: contextual_observation_hint generates correct text for each command type. Unit tests: (1) task-close → includes title and reason, (2) query → includes entity and count, (3) status → includes F(S), (4) observe → returns empty (no meta-observation), (5) unknown command → returns empty. Proptest: hint text never contains placeholder '...' for known command types. V:PROP." :op :assert}
+   {:e #blake3 "9fffad590d864865c385b14e74133228948148a7c5aae1d130403340659b714b" :a :task/type :v :task.type/test :op :assert}
+ ]}

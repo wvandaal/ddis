@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773846781/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-COF-2: Footer at Compressed level shows contextual command, not placeholder. Integration test: (1) run braid-task-close in test, (2) capture footer output, (3) assert footer contains the closed task's title, NOT '...'. Also test: footer after query contains entity ident. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1c879d9080917641012833faf42dbcbb57d867214a70afdf3e8f69d0dd8c8a06" :a :db/ident :v :task/t-b4f26895 :op :assert}
+   {:e #blake3 "1c879d9080917641012833faf42dbcbb57d867214a70afdf3e8f69d0dd8c8a06" :a :task/created-at :v 1773846779 :op :assert}
+   {:e #blake3 "1c879d9080917641012833faf42dbcbb57d867214a70afdf3e8f69d0dd8c8a06" :a :task/id :v "t-b4f26895" :op :assert}
+   {:e #blake3 "1c879d9080917641012833faf42dbcbb57d867214a70afdf3e8f69d0dd8c8a06" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1c879d9080917641012833faf42dbcbb57d867214a70afdf3e8f69d0dd8c8a06" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1c879d9080917641012833faf42dbcbb57d867214a70afdf3e8f69d0dd8c8a06" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1c879d9080917641012833faf42dbcbb57d867214a70afdf3e8f69d0dd8c8a06" :a :task/title :v "TEST-COF-2: Footer at Compressed level shows contextual command, not placeholder. Integration test: (1) run braid-task-close in test, (2) capture footer output, (3) assert footer contains the closed task's title, NOT '...'. Also test: footer after query contains entity ident. V:PROP." :op :assert}
+   {:e #blake3 "1c879d9080917641012833faf42dbcbb57d867214a70afdf3e8f69d0dd8c8a06" :a :task/type :v :task.type/test :op :assert}
+ ]}

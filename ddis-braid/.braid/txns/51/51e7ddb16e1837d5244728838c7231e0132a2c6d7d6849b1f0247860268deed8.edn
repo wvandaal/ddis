@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773846779/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: COF-2.2: Wire ObservationCandidate buffer into harvest pipeline — merge auto-candidates with explicit observations. BACKGROUND: The harvest pipeline currently processes only explicit braid-observe datoms. Add a step that merges ObservationCandidate buffer entries into the candidate pool before scoring. Auto-candidates get a 0.5x weight multiplier (less confident than explicit observations). The harvest's surprisal scoring (D3) then filters low-value auto-candidates while promoting high-value ones. TRACES TO: INV-HARVEST-001, D3 design (surprisal filtering)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c45ce32a96d751ef5e6f4de258e2681e0efcf3239ea712d43503c53696cb25b8" :a :db/ident :v :task/t-aebad28b :op :assert}
+   {:e #blake3 "c45ce32a96d751ef5e6f4de258e2681e0efcf3239ea712d43503c53696cb25b8" :a :task/created-at :v 1773846777 :op :assert}
+   {:e #blake3 "c45ce32a96d751ef5e6f4de258e2681e0efcf3239ea712d43503c53696cb25b8" :a :task/id :v "t-aebad28b" :op :assert}
+   {:e #blake3 "c45ce32a96d751ef5e6f4de258e2681e0efcf3239ea712d43503c53696cb25b8" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c45ce32a96d751ef5e6f4de258e2681e0efcf3239ea712d43503c53696cb25b8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c45ce32a96d751ef5e6f4de258e2681e0efcf3239ea712d43503c53696cb25b8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c45ce32a96d751ef5e6f4de258e2681e0efcf3239ea712d43503c53696cb25b8" :a :task/title :v "COF-2.2: Wire ObservationCandidate buffer into harvest pipeline — merge auto-candidates with explicit observations. BACKGROUND: The harvest pipeline currently processes only explicit braid-observe datoms. Add a step that merges ObservationCandidate buffer entries into the candidate pool before scoring. Auto-candidates get a 0.5x weight multiplier (less confident than explicit observations). The harvest's surprisal scoring (D3) then filters low-value auto-candidates while promoting high-value ones. TRACES TO: INV-HARVEST-001, D3 design (surprisal filtering)." :op :assert}
+   {:e #blake3 "c45ce32a96d751ef5e6f4de258e2681e0efcf3239ea712d43503c53696cb25b8" :a :task/type :v :task.type/task :op :assert}
+ ]}

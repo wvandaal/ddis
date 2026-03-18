@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773846807/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-GUIDANCE-015: Observation Candidate Completeness. For every command C in {task-close, query, status, trace, bilateral, schema}, the ObservationCandidate buffer contains an entry derived from C's output within the same session. The buffer is the dual of the harvest pipeline: harvest extracts from store, buffer extracts from session. Falsification: a task-close command runs but no ObservationCandidate with the task's title exists in the buffer. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "819f95df247b63f9afd6f4a05a3ee1152c0fcf2384cf0ec376a4b2d50fb3e1d7" :a :db/doc :v "INV-GUIDANCE-015: Observation Candidate Completeness. For every command C in {task-close, query, status, trace, bilateral, schema}, the ObservationCandidate buffer contains an entry derived from C's output within the same session. The buffer is the dual of the harvest pipeline: harvest extracts from store, buffer extracts from session. Falsification: a task-close command runs but no ObservationCandidate with the task's title exists in the buffer. V:PROP." :op :assert}
+   {:e #blake3 "819f95df247b63f9afd6f4a05a3ee1152c0fcf2384cf0ec376a4b2d50fb3e1d7" :a :db/ident :v :observation/inv-guidance-015-observation-candidate-completeness-for-ev :op :assert}
+   {:e #blake3 "819f95df247b63f9afd6f4a05a3ee1152c0fcf2384cf0ec376a4b2d50fb3e1d7" :a :exploration/body :v "INV-GUIDANCE-015: Observation Candidate Completeness. For every command C in {task-close, query, status, trace, bilateral, schema}, the ObservationCandidate buffer contains an entry derived from C's output within the same session. The buffer is the dual of the harvest pipeline: harvest extracts from store, buffer extracts from session. Falsification: a task-close command runs but no ObservationCandidate with the task's title exists in the buffer. V:PROP." :op :assert}
+   {:e #blake3 "819f95df247b63f9afd6f4a05a3ee1152c0fcf2384cf0ec376a4b2d50fb3e1d7" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "819f95df247b63f9afd6f4a05a3ee1152c0fcf2384cf0ec376a4b2d50fb3e1d7" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "819f95df247b63f9afd6f4a05a3ee1152c0fcf2384cf0ec376a4b2d50fb3e1d7" :a :exploration/content-hash :v #bytes "bf799e8c45b345c66525016757bc2256e37770ce8b13ddf7f8c04bec9c0d8d4f" :op :assert}
+   {:e #blake3 "819f95df247b63f9afd6f4a05a3ee1152c0fcf2384cf0ec376a4b2d50fb3e1d7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "819f95df247b63f9afd6f4a05a3ee1152c0fcf2384cf0ec376a4b2d50fb3e1d7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "819f95df247b63f9afd6f4a05a3ee1152c0fcf2384cf0ec376a4b2d50fb3e1d7" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

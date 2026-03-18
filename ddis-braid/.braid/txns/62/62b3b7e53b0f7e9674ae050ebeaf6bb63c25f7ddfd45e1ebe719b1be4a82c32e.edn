@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773846782/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-COF-3: ObservationCandidate buffer accumulates from command outputs. Integration test: (1) run 3 commands (close, query, status), (2) verify buffer has 3 candidates, (3) verify each candidate has correct content/confidence/category. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "50f5348ffb5cb9830705e2d2ea75cdaad3efadc2dceafa77c2eb464023f92a2d" :a :db/ident :v :task/t-d672739e :op :assert}
+   {:e #blake3 "50f5348ffb5cb9830705e2d2ea75cdaad3efadc2dceafa77c2eb464023f92a2d" :a :task/created-at :v 1773846780 :op :assert}
+   {:e #blake3 "50f5348ffb5cb9830705e2d2ea75cdaad3efadc2dceafa77c2eb464023f92a2d" :a :task/id :v "t-d672739e" :op :assert}
+   {:e #blake3 "50f5348ffb5cb9830705e2d2ea75cdaad3efadc2dceafa77c2eb464023f92a2d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "50f5348ffb5cb9830705e2d2ea75cdaad3efadc2dceafa77c2eb464023f92a2d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "50f5348ffb5cb9830705e2d2ea75cdaad3efadc2dceafa77c2eb464023f92a2d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "50f5348ffb5cb9830705e2d2ea75cdaad3efadc2dceafa77c2eb464023f92a2d" :a :task/title :v "TEST-COF-3: ObservationCandidate buffer accumulates from command outputs. Integration test: (1) run 3 commands (close, query, status), (2) verify buffer has 3 candidates, (3) verify each candidate has correct content/confidence/category. V:PROP." :op :assert}
+   {:e #blake3 "50f5348ffb5cb9830705e2d2ea75cdaad3efadc2dceafa77c2eb464023f92a2d" :a :task/type :v :task.type/test :op :assert}
+ ]}

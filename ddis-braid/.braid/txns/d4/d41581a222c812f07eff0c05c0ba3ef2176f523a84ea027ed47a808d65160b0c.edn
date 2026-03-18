@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773846774/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Contextual Observation Funnel — command output as knowledge source (INV-GUIDANCE-014, ADR-GUIDANCE-013)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3823bdf96bf73bcdd179d18241e8de10931b8a4dec866a02a80d34d936ad98df" :a :db/ident :v :task/t-fd7fa24c :op :assert}
+   {:e #blake3 "3823bdf96bf73bcdd179d18241e8de10931b8a4dec866a02a80d34d936ad98df" :a :task/created-at :v 1773846773 :op :assert}
+   {:e #blake3 "3823bdf96bf73bcdd179d18241e8de10931b8a4dec866a02a80d34d936ad98df" :a :task/id :v "t-fd7fa24c" :op :assert}
+   {:e #blake3 "3823bdf96bf73bcdd179d18241e8de10931b8a4dec866a02a80d34d936ad98df" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3823bdf96bf73bcdd179d18241e8de10931b8a4dec866a02a80d34d936ad98df" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3823bdf96bf73bcdd179d18241e8de10931b8a4dec866a02a80d34d936ad98df" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3823bdf96bf73bcdd179d18241e8de10931b8a4dec866a02a80d34d936ad98df" :a :task/title :v "EPIC: Contextual Observation Funnel — command output as knowledge source (INV-GUIDANCE-014, ADR-GUIDANCE-013)" :op :assert}
+   {:e #blake3 "3823bdf96bf73bcdd179d18241e8de10931b8a4dec866a02a80d34d936ad98df" :a :task/type :v :task.type/epic :op :assert}
+ ]}

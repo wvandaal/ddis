@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773846806/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "NEG-GUIDANCE-001: No Placeholder Observations. A guidance footer MUST NOT suggest 'braid observe \"...\"' with literal placeholder text when a contextual hint is derivable from the command that just ran. The system knows what happened (command name + output JSON) — using a placeholder when content is available is a knowledge loss. Violation: footer after 'braid task close t-xxxx --reason done' contains '...' instead of the closed task's title."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "868b111fad4efb139ca97b80ec57d426cb11816626dcc4eac6bc83bf4473a25d" :a :db/doc :v "NEG-GUIDANCE-001: No Placeholder Observations. A guidance footer MUST NOT suggest 'braid observe \"...\"' with literal placeholder text when a contextual hint is derivable from the command that just ran. The system knows what happened (command name + output JSON) — using a placeholder when content is available is a knowledge loss. Violation: footer after 'braid task close t-xxxx --reason done' contains '...' instead of the closed task's title." :op :assert}
+   {:e #blake3 "868b111fad4efb139ca97b80ec57d426cb11816626dcc4eac6bc83bf4473a25d" :a :db/ident :v :observation/neg-guidance-001-no-placeholder-observations-a-guidance-fo :op :assert}
+   {:e #blake3 "868b111fad4efb139ca97b80ec57d426cb11816626dcc4eac6bc83bf4473a25d" :a :exploration/body :v "NEG-GUIDANCE-001: No Placeholder Observations. A guidance footer MUST NOT suggest 'braid observe \"...\"' with literal placeholder text when a contextual hint is derivable from the command that just ran. The system knows what happened (command name + output JSON) — using a placeholder when content is available is a knowledge loss. Violation: footer after 'braid task close t-xxxx --reason done' contains '...' instead of the closed task's title." :op :assert}
+   {:e #blake3 "868b111fad4efb139ca97b80ec57d426cb11816626dcc4eac6bc83bf4473a25d" :a :exploration/category :v :exploration.cat/definition :op :assert}
+   {:e #blake3 "868b111fad4efb139ca97b80ec57d426cb11816626dcc4eac6bc83bf4473a25d" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "868b111fad4efb139ca97b80ec57d426cb11816626dcc4eac6bc83bf4473a25d" :a :exploration/content-hash :v #bytes "35e63d2f3fd7f3593fac71cd2fd875494750ff2753cc6df15271e4a6ee6fb7f9" :op :assert}
+   {:e #blake3 "868b111fad4efb139ca97b80ec57d426cb11816626dcc4eac6bc83bf4473a25d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "868b111fad4efb139ca97b80ec57d426cb11816626dcc4eac6bc83bf4473a25d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "868b111fad4efb139ca97b80ec57d426cb11816626dcc4eac6bc83bf4473a25d" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773846778/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: COF-2.1: Implement ObservationCandidate buffer — session-level Vec<ObservationCandidate> accumulated from command outputs. BACKGROUND: Each command output passes through contextual_observation_hint(). If the hint is non-empty, an ObservationCandidate is created with (content, confidence, category, source_cmd, timestamp). These accumulate in a buffer (not transacted). At harvest time, the buffer is merged with explicit braid-observe observations, giving the harvest pipeline a richer candidate pool. The buffer is the DUAL of the harvest pipeline: harvest extracts knowledge from the store; the buffer extracts knowledge from the session. Together they close the knowledge flow gap. TRACES TO: INV-HARVEST-002 (lossless knowledge), D5 design."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb191a0b546b65834475309b49c2215b07a79f4acb3f36f1fd58a09ff5755a27" :a :db/ident :v :task/t-7d01add9 :op :assert}
+   {:e #blake3 "fb191a0b546b65834475309b49c2215b07a79f4acb3f36f1fd58a09ff5755a27" :a :task/created-at :v 1773846776 :op :assert}
+   {:e #blake3 "fb191a0b546b65834475309b49c2215b07a79f4acb3f36f1fd58a09ff5755a27" :a :task/id :v "t-7d01add9" :op :assert}
+   {:e #blake3 "fb191a0b546b65834475309b49c2215b07a79f4acb3f36f1fd58a09ff5755a27" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "fb191a0b546b65834475309b49c2215b07a79f4acb3f36f1fd58a09ff5755a27" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "fb191a0b546b65834475309b49c2215b07a79f4acb3f36f1fd58a09ff5755a27" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fb191a0b546b65834475309b49c2215b07a79f4acb3f36f1fd58a09ff5755a27" :a :task/title :v "COF-2.1: Implement ObservationCandidate buffer — session-level Vec<ObservationCandidate> accumulated from command outputs. BACKGROUND: Each command output passes through contextual_observation_hint(). If the hint is non-empty, an ObservationCandidate is created with (content, confidence, category, source_cmd, timestamp). These accumulate in a buffer (not transacted). At harvest time, the buffer is merged with explicit braid-observe observations, giving the harvest pipeline a richer candidate pool. The buffer is the DUAL of the harvest pipeline: harvest extracts knowledge from the store; the buffer extracts knowledge from the session. Together they close the knowledge flow gap. TRACES TO: INV-HARVEST-002 (lossless knowledge), D5 design." :op :assert}
+   {:e #blake3 "fb191a0b546b65834475309b49c2215b07a79f4acb3f36f1fd58a09ff5755a27" :a :task/type :v :task.type/task :op :assert}
+ ]}

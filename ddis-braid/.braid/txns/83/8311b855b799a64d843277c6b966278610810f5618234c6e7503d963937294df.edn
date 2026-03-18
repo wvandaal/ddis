@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773846717/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-GUIDANCE-014: Contextual Observation Hint. For every command C that produces knowledge (task close, query, status, trace, bilateral), the guidance footer includes a paste-ready observation derived from C's output: contextual_observation_hint(cmd, output) -> String. The hint captures WHAT happened (from command name), WHAT was learned (from output JSON fields), and HOW confident (from command type). Falsification: the footer after a knowledge-producing command contains a placeholder ('...') instead of a contextual sentence derived from the command's output. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a660d779f28bc5de950b852997ec1b79907dd1c6246204cfb5817ad11d93eca2" :a :db/doc :v "INV-GUIDANCE-014: Contextual Observation Hint. For every command C that produces knowledge (task close, query, status, trace, bilateral), the guidance footer includes a paste-ready observation derived from C's output: contextual_observation_hint(cmd, output) -> String. The hint captures WHAT happened (from command name), WHAT was learned (from output JSON fields), and HOW confident (from command type). Falsification: the footer after a knowledge-producing command contains a placeholder ('...') instead of a contextual sentence derived from the command's output. V:PROP." :op :assert}
+   {:e #blake3 "a660d779f28bc5de950b852997ec1b79907dd1c6246204cfb5817ad11d93eca2" :a :db/ident :v :observation/inv-guidance-014-contextual-observation-hint-for-every-com :op :assert}
+   {:e #blake3 "a660d779f28bc5de950b852997ec1b79907dd1c6246204cfb5817ad11d93eca2" :a :exploration/body :v "INV-GUIDANCE-014: Contextual Observation Hint. For every command C that produces knowledge (task close, query, status, trace, bilateral), the guidance footer includes a paste-ready observation derived from C's output: contextual_observation_hint(cmd, output) -> String. The hint captures WHAT happened (from command name), WHAT was learned (from output JSON fields), and HOW confident (from command type). Falsification: the footer after a knowledge-producing command contains a placeholder ('...') instead of a contextual sentence derived from the command's output. V:PROP." :op :assert}
+   {:e #blake3 "a660d779f28bc5de950b852997ec1b79907dd1c6246204cfb5817ad11d93eca2" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "a660d779f28bc5de950b852997ec1b79907dd1c6246204cfb5817ad11d93eca2" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "a660d779f28bc5de950b852997ec1b79907dd1c6246204cfb5817ad11d93eca2" :a :exploration/content-hash :v #bytes "e8cfd10c200d3e1ba325375bf45ff8f8b7f1f11e9c8f71c77777b8881f72858c" :op :assert}
+   {:e #blake3 "a660d779f28bc5de950b852997ec1b79907dd1c6246204cfb5817ad11d93eca2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a660d779f28bc5de950b852997ec1b79907dd1c6246204cfb5817ad11d93eca2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a660d779f28bc5de950b852997ec1b79907dd1c6246204cfb5817ad11d93eca2" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
