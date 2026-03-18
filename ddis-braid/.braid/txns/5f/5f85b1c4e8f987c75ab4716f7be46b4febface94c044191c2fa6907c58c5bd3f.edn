@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773870452/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-602874ae"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "290bab5f0f9032ba31a9de4ae043195251fb40d0fc138876aa40c74c7b8b9d36" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "290bab5f0f9032ba31a9de4ae043195251fb40d0fc138876aa40c74c7b8b9d36" :a :task/closed-at :v 1773870451 :op :assert}
+   {:e #blake3 "290bab5f0f9032ba31a9de4ae043195251fb40d0fc138876aa40c74c7b8b9d36" :a :task/status :v :task.status/closed :op :assert}
+ ]}
