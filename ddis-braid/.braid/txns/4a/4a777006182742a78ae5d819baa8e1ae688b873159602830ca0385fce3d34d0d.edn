@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773814794/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7b5bee77"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b169b82cba8eb8143e54e187e4f367e23b8a5eb4ee05559b27d3b2765e5e47eb" :a :task/close-reason :v "Covered by t-83013809 META-0 implementation" :op :assert}
+   {:e #blake3 "b169b82cba8eb8143e54e187e4f367e23b8a5eb4ee05559b27d3b2765e5e47eb" :a :task/closed-at :v 1773814792 :op :assert}
+   {:e #blake3 "b169b82cba8eb8143e54e187e4f367e23b8a5eb4ee05559b27d3b2765e5e47eb" :a :task/status :v :task.status/closed :op :assert}
+ ]}
