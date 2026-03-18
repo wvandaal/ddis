@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773802204/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-90ca"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f3cc9a3d07a3dc243c4889102f7160dfb1172770299bc5461631105397e539f" :a :task/close-reason :v "weight + reconciliation_type fields, 28 test sites updated" :op :assert}
+   {:e #blake3 "8f3cc9a3d07a3dc243c4889102f7160dfb1172770299bc5461631105397e539f" :a :task/closed-at :v 1773802203 :op :assert}
+   {:e #blake3 "8f3cc9a3d07a3dc243c4889102f7160dfb1172770299bc5461631105397e539f" :a :task/status :v :task.status/closed :op :assert}
+ ]}

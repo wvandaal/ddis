@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773802208/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-5e62"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c5cfbfc32052919894851b62d0e49d23feefef962d3e2ae18575666861eddb4a" :a :task/close-reason :v "Real predicate + compute_metric implementations" :op :assert}
+   {:e #blake3 "c5cfbfc32052919894851b62d0e49d23feefef962d3e2ae18575666861eddb4a" :a :task/closed-at :v 1773802205 :op :assert}
+   {:e #blake3 "c5cfbfc32052919894851b62d0e49d23feefef962d3e2ae18575666861eddb4a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

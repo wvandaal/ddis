@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773802207/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c5a6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "88699c453c022973235e84e20b2966e2e895b62a1706e8910129ad6415c7fba5" :a :task/close-reason :v "sanitize_id: colons/slashes/dots/hyphens → underscores" :op :assert}
+   {:e #blake3 "88699c453c022973235e84e20b2966e2e895b62a1706e8910129ad6415c7fba5" :a :task/closed-at :v 1773802205 :op :assert}
+   {:e #blake3 "88699c453c022973235e84e20b2966e2e895b62a1706e8910129ad6415c7fba5" :a :task/status :v :task.status/closed :op :assert}
+ ]}

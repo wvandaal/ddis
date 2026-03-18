@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773802209/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-2033"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0219ffd8b1a5c77e8002f238bdf0bb3b8a4dd068c7a69fd11ba12d8caeddeba8" :a :task/close-reason :v "Anti-drift warning when M(t)<0.5 in MCP responses" :op :assert}
+   {:e #blake3 "0219ffd8b1a5c77e8002f238bdf0bb3b8a4dd068c7a69fd11ba12d8caeddeba8" :a :task/closed-at :v 1773802206 :op :assert}
+   {:e #blake3 "0219ffd8b1a5c77e8002f238bdf0bb3b8a4dd068c7a69fd11ba12d8caeddeba8" :a :task/status :v :task.status/closed :op :assert}
+ ]}

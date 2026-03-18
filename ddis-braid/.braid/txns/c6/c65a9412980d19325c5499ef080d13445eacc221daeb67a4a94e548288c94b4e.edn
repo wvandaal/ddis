@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773802210/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-fdb0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "034de4709af0f054377f060c2b671c4ffae75988b8cf75bd9385ef50de71204a" :a :task/close-reason :v "INV-MERGE-002 → Merge Cascade Completeness in 4 files" :op :assert}
+   {:e #blake3 "034de4709af0f054377f060c2b671c4ffae75988b8cf75bd9385ef50de71204a" :a :task/closed-at :v 1773802206 :op :assert}
+   {:e #blake3 "034de4709af0f054377f060c2b671c4ffae75988b8cf75bd9385ef50de71204a" :a :task/status :v :task.status/closed :op :assert}
+ ]}
