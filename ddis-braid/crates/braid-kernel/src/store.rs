@@ -492,6 +492,18 @@ pub struct Store {
     /// Invariant: for every datom d in `datoms`, `attribute_index[d.attribute]` contains d.
     /// Maintained incrementally on `transact()` and rebuilt on `merge()`/`from_datoms()`.
     attribute_index: BTreeMap<Attribute, Vec<Datom>>,
+    /// VAET index: target_entity → referencing datoms (INV-STORE-IDX-003, ADR-STORE-005).
+    ///
+    /// Only indexes Ref-valued datoms. Enables O(1) reverse reference traversal:
+    /// "who references entity E?" Used by PageRank, betweenness, cascade detection.
+    /// Maintained incrementally on `transact()` and rebuilt on `merge()`/`from_datoms()`.
+    vaet_index: BTreeMap<EntityId, Vec<Datom>>,
+    /// AVET index: (attribute, value) → datoms (INV-STORE-IDX-004, ADR-STORE-005).
+    ///
+    /// Enables unique lookups and range scans: "which entity has :db/ident = ':spec/inv-001'?"
+    /// Used by Datalog evaluator for attribute-value bound clause optimization.
+    /// Maintained incrementally on `transact()` and rebuilt on `merge()`/`from_datoms()`.
+    avet_index: BTreeMap<(Attribute, Value), Vec<Datom>>,
 }
 
 impl std::fmt::Debug for Store {
@@ -518,6 +530,8 @@ impl Store {
         let mut datoms = BTreeSet::new();
         let mut entity_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
         let mut attribute_index: BTreeMap<Attribute, Vec<Datom>> = BTreeMap::new();
+        let mut vaet_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
+        let mut avet_index: BTreeMap<(Attribute, Value), Vec<Datom>> = BTreeMap::new();
         for d in &genesis_datoms {
             datoms.insert(d.clone());
             entity_index.entry(d.entity).or_default().push(d.clone());
@@ -525,6 +539,15 @@ impl Store {
                 .entry(d.attribute.clone())
                 .or_default()
                 .push(d.clone());
+            if let Value::Ref(target) = &d.value {
+                vaet_index.entry(*target).or_default().push(d.clone());
+            }
+            if d.op == Op::Assert {
+                avet_index
+                    .entry((d.attribute.clone(), d.value.clone()))
+                    .or_default()
+                    .push(d.clone());
+            }
         }
 
         let mut frontier = Frontier::new();
@@ -539,6 +562,8 @@ impl Store {
             clock: genesis_tx,
             entity_index,
             attribute_index,
+            vaet_index,
+            avet_index,
         }
     }
 
@@ -556,6 +581,8 @@ impl Store {
         let mut max_clock = TxId::new(0, 0, AgentId::from_name("braid:system"));
         let mut entity_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
         let mut attribute_index: BTreeMap<Attribute, Vec<Datom>> = BTreeMap::new();
+        let mut vaet_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
+        let mut avet_index: BTreeMap<(Attribute, Value), Vec<Datom>> = BTreeMap::new();
         for d in &datoms {
             let agent = d.tx.agent();
             frontier
@@ -574,6 +601,17 @@ impl Store {
                 .entry(d.attribute.clone())
                 .or_default()
                 .push(d.clone());
+            // VAET: index Ref-valued datoms by target entity (ADR-STORE-005)
+            if let Value::Ref(target) = &d.value {
+                vaet_index.entry(*target).or_default().push(d.clone());
+            }
+            // AVET: index by (attribute, value) for unique/range lookups (ADR-STORE-005)
+            if d.op == Op::Assert {
+                avet_index
+                    .entry((d.attribute.clone(), d.value.clone()))
+                    .or_default()
+                    .push(d.clone());
+            }
         }
 
         Store {
@@ -583,6 +621,8 @@ impl Store {
             clock: max_clock,
             entity_index,
             attribute_index,
+            vaet_index,
+            avet_index,
         }
     }
 
@@ -936,6 +976,8 @@ impl Store {
             clock: self.clock,
             entity_index: self.entity_index.clone(),
             attribute_index: self.attribute_index.clone(),
+            vaet_index: self.vaet_index.clone(),
+            avet_index: self.avet_index.clone(),
         }
     }
 
@@ -983,6 +1025,32 @@ impl Store {
         Store::from_datoms(filtered)
     }
 
+    // -----------------------------------------------------------------------
+    // ADR-STORE-005: Quad-index query API
+    // -----------------------------------------------------------------------
+
+    /// All datoms referencing the given entity via Ref values (VAET index).
+    ///
+    /// Returns datoms where `d.value == Value::Ref(target)`. O(1) lookup.
+    /// Used by graph algorithms (PageRank, betweenness, cascade detection).
+    pub fn vaet_referencing(&self, target: EntityId) -> &[Datom] {
+        self.vaet_index
+            .get(&target)
+            .map(|v| v.as_slice())
+            .unwrap_or(&[])
+    }
+
+    /// All datoms for a specific (attribute, value) pair (AVET index).
+    ///
+    /// Returns assert datoms where `d.attribute == attr && d.value == value`.
+    /// O(1) lookup. Used for unique lookups (`:db/ident = :spec/inv-001`).
+    pub fn avet_lookup(&self, attr: &Attribute, value: &Value) -> &[Datom] {
+        self.avet_index
+            .get(&(attr.clone(), value.clone()))
+            .map(|v| v.as_slice())
+            .unwrap_or(&[])
+    }
+
     /// Return a lightweight, read-only, point-in-time view of the store.
     ///
     /// Unlike `as_of()`, this borrows the store rather than cloning it.
@@ -1023,7 +1091,21 @@ impl Store {
             self.attribute_index
                 .entry(datom.attribute.clone())
                 .or_default()
-                .push(datom);
+                .push(datom.clone());
+            // VAET: index Ref-valued datoms (ADR-STORE-005)
+            if let Value::Ref(target) = &datom.value {
+                self.vaet_index
+                    .entry(*target)
+                    .or_default()
+                    .push(datom.clone());
+            }
+            // AVET: index by (attribute, value) for assert datoms (ADR-STORE-005)
+            if datom.op == Op::Assert {
+                self.avet_index
+                    .entry((datom.attribute.clone(), datom.value.clone()))
+                    .or_default()
+                    .push(datom);
+            }
         }
     }
 
