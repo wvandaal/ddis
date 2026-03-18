@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847383/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SFE-1.1: Implement crystallization_candidates(store) — scan observations for uncrystallized spec IDs (INV-GUIDANCE-018). BACKGROUND: Observations containing 'INV-*', 'ADR-*', 'NEG-*' that don't have corresponding :spec/* entities with :spec/falsification are crystallization candidates. Returns Vec<(observation_entity, extracted_id)>. Pure kernel function in guidance.rs. ACCEPTANCE: store with observation 'INV-FOO-001: ...' but no :spec/inv-foo-001 entity → candidate detected."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6546ab26185704ad46ca36eae0f033d12cc3fa0ddd440d37a71bbbbfeb0a0a5a" :a :db/ident :v :task/t-32c5763b :op :assert}
+   {:e #blake3 "6546ab26185704ad46ca36eae0f033d12cc3fa0ddd440d37a71bbbbfeb0a0a5a" :a :task/created-at :v 1773847382 :op :assert}
+   {:e #blake3 "6546ab26185704ad46ca36eae0f033d12cc3fa0ddd440d37a71bbbbfeb0a0a5a" :a :task/id :v "t-32c5763b" :op :assert}
+   {:e #blake3 "6546ab26185704ad46ca36eae0f033d12cc3fa0ddd440d37a71bbbbfeb0a0a5a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6546ab26185704ad46ca36eae0f033d12cc3fa0ddd440d37a71bbbbfeb0a0a5a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6546ab26185704ad46ca36eae0f033d12cc3fa0ddd440d37a71bbbbfeb0a0a5a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6546ab26185704ad46ca36eae0f033d12cc3fa0ddd440d37a71bbbbfeb0a0a5a" :a :task/title :v "SFE-1.1: Implement crystallization_candidates(store) — scan observations for uncrystallized spec IDs (INV-GUIDANCE-018). BACKGROUND: Observations containing 'INV-*', 'ADR-*', 'NEG-*' that don't have corresponding :spec/* entities with :spec/falsification are crystallization candidates. Returns Vec<(observation_entity, extracted_id)>. Pure kernel function in guidance.rs. ACCEPTANCE: store with observation 'INV-FOO-001: ...' but no :spec/inv-foo-001 entity → candidate detected." :op :assert}
+   {:e #blake3 "6546ab26185704ad46ca36eae0f033d12cc3fa0ddd440d37a71bbbbfeb0a0a5a" :a :task/type :v :task.type/task :op :assert}
+ ]}

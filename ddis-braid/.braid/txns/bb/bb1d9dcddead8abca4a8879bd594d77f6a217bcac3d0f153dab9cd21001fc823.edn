@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773847215/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-GUIDANCE-017: Spec Anchor Factor in R(t). Task impact score includes spec_anchor_factor: 1.0 if all spec refs resolve (or no refs), 0.7 if partial, 0.3 if none resolve. This deprioritizes unanchored tasks without blocking them. Formally: impact(T) = base_impact × type_multiplier × urgency_decay × spec_anchor_factor(T). Falsification: two tasks with identical graph position but one unanchored (0 resolved refs) and one anchored (all resolved) receive the same impact score. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7b7b0a1d40ca851ad8ff7b55ad306be60851df42dda8ee48a1df891af24d84cb" :a :db/doc :v "INV-GUIDANCE-017: Spec Anchor Factor in R(t). Task impact score includes spec_anchor_factor: 1.0 if all spec refs resolve (or no refs), 0.7 if partial, 0.3 if none resolve. This deprioritizes unanchored tasks without blocking them. Formally: impact(T) = base_impact × type_multiplier × urgency_decay × spec_anchor_factor(T). Falsification: two tasks with identical graph position but one unanchored (0 resolved refs) and one anchored (all resolved) receive the same impact score. V:PROP." :op :assert}
+   {:e #blake3 "7b7b0a1d40ca851ad8ff7b55ad306be60851df42dda8ee48a1df891af24d84cb" :a :db/ident :v :observation/inv-guidance-017-spec-anchor-factor-in-rt-task-impact-sc :op :assert}
+   {:e #blake3 "7b7b0a1d40ca851ad8ff7b55ad306be60851df42dda8ee48a1df891af24d84cb" :a :exploration/body :v "INV-GUIDANCE-017: Spec Anchor Factor in R(t). Task impact score includes spec_anchor_factor: 1.0 if all spec refs resolve (or no refs), 0.7 if partial, 0.3 if none resolve. This deprioritizes unanchored tasks without blocking them. Formally: impact(T) = base_impact × type_multiplier × urgency_decay × spec_anchor_factor(T). Falsification: two tasks with identical graph position but one unanchored (0 resolved refs) and one anchored (all resolved) receive the same impact score. V:PROP." :op :assert}
+   {:e #blake3 "7b7b0a1d40ca851ad8ff7b55ad306be60851df42dda8ee48a1df891af24d84cb" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "7b7b0a1d40ca851ad8ff7b55ad306be60851df42dda8ee48a1df891af24d84cb" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "7b7b0a1d40ca851ad8ff7b55ad306be60851df42dda8ee48a1df891af24d84cb" :a :exploration/content-hash :v #bytes "8bf563d7d9b5184190036eebf72c4f00534178e98551b67cb471c3da9b0ae5da" :op :assert}
+   {:e #blake3 "7b7b0a1d40ca851ad8ff7b55ad306be60851df42dda8ee48a1df891af24d84cb" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7b7b0a1d40ca851ad8ff7b55ad306be60851df42dda8ee48a1df891af24d84cb" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7b7b0a1d40ca851ad8ff7b55ad306be60851df42dda8ee48a1df891af24d84cb" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

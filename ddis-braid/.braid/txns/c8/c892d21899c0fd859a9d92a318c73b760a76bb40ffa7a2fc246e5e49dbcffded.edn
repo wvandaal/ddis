@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847389/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SFE-3.2: Wire spec_anchor_factor into compute_routing impact score (INV-GUIDANCE-017). BACKGROUND: impact = base × type_multiplier × urgency_decay × spec_anchor_factor. Unanchored tasks naturally sink in routing. ACCEPTANCE: braid next deprioritizes unanchored task vs identical anchored task."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "64d7ccd931e6d2808493ab4072b02f8627689847c7ef4b436de4fce2c52e32dc" :a :db/ident :v :task/t-4c803ad9 :op :assert}
+   {:e #blake3 "64d7ccd931e6d2808493ab4072b02f8627689847c7ef4b436de4fce2c52e32dc" :a :task/created-at :v 1773847388 :op :assert}
+   {:e #blake3 "64d7ccd931e6d2808493ab4072b02f8627689847c7ef4b436de4fce2c52e32dc" :a :task/id :v "t-4c803ad9" :op :assert}
+   {:e #blake3 "64d7ccd931e6d2808493ab4072b02f8627689847c7ef4b436de4fce2c52e32dc" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "64d7ccd931e6d2808493ab4072b02f8627689847c7ef4b436de4fce2c52e32dc" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "64d7ccd931e6d2808493ab4072b02f8627689847c7ef4b436de4fce2c52e32dc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "64d7ccd931e6d2808493ab4072b02f8627689847c7ef4b436de4fce2c52e32dc" :a :task/title :v "SFE-3.2: Wire spec_anchor_factor into compute_routing impact score (INV-GUIDANCE-017). BACKGROUND: impact = base × type_multiplier × urgency_decay × spec_anchor_factor. Unanchored tasks naturally sink in routing. ACCEPTANCE: braid next deprioritizes unanchored task vs identical anchored task." :op :assert}
+   {:e #blake3 "64d7ccd931e6d2808493ab4072b02f8627689847c7ef4b436de4fce2c52e32dc" :a :task/type :v :task.type/task :op :assert}
+ ]}

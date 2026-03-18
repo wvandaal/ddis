@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847394/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: E2E-SFE: scripts/e2e_spec_first.sh — 10+ checks: (1) crystallization gap detected for observation with spec ID, (2) gap count in braid status, (3) task create with resolved ref creates traces-to datom, (4) task create with unresolved ref emits warning, (5) unanchored task has lower R(t) impact, (6) no phantom refs (NEG-TASK-001), (7) observation with INV-* but no spec entity → candidate, (8) after braid spec create → candidate resolved. TRACES TO: INV-GUIDANCE-018, INV-TASK-005, INV-GUIDANCE-017."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "eceb2bad96595edd2a3c844c54af30a756a1ca9946d1b5fff77fb285c35d5353" :a :db/ident :v :task/t-540f3dab :op :assert}
+   {:e #blake3 "eceb2bad96595edd2a3c844c54af30a756a1ca9946d1b5fff77fb285c35d5353" :a :task/created-at :v 1773847393 :op :assert}
+   {:e #blake3 "eceb2bad96595edd2a3c844c54af30a756a1ca9946d1b5fff77fb285c35d5353" :a :task/id :v "t-540f3dab" :op :assert}
+   {:e #blake3 "eceb2bad96595edd2a3c844c54af30a756a1ca9946d1b5fff77fb285c35d5353" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "eceb2bad96595edd2a3c844c54af30a756a1ca9946d1b5fff77fb285c35d5353" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "eceb2bad96595edd2a3c844c54af30a756a1ca9946d1b5fff77fb285c35d5353" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "eceb2bad96595edd2a3c844c54af30a756a1ca9946d1b5fff77fb285c35d5353" :a :task/title :v "E2E-SFE: scripts/e2e_spec_first.sh — 10+ checks: (1) crystallization gap detected for observation with spec ID, (2) gap count in braid status, (3) task create with resolved ref creates traces-to datom, (4) task create with unresolved ref emits warning, (5) unanchored task has lower R(t) impact, (6) no phantom refs (NEG-TASK-001), (7) observation with INV-* but no spec entity → candidate, (8) after braid spec create → candidate resolved. TRACES TO: INV-GUIDANCE-018, INV-TASK-005, INV-GUIDANCE-017." :op :assert}
+   {:e #blake3 "eceb2bad96595edd2a3c844c54af30a756a1ca9946d1b5fff77fb285c35d5353" :a :task/type :v :task.type/test :op :assert}
+ ]}

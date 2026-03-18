@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847385/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SFE-2.1: Implement parse_spec_refs(title) — extract INV-*/ADR-*/NEG-* references from task title text (INV-TASK-005). BACKGROUND: Regex-based extraction of spec element IDs from task title strings. Returns Vec<String> of extracted IDs (e.g., ['INV-STORE-001', 'ADR-GUIDANCE-013']). Pure function. ACCEPTANCE: 'Fix merge (INV-MERGE-001, ADR-MERGE-005)' → ['INV-MERGE-001', 'ADR-MERGE-005']."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8c4a8d5ef93e000a6d3ba3c7cb5dc4a37ac0bdfa510dba9e8d1d3393504d562f" :a :db/ident :v :task/t-7202642d :op :assert}
+   {:e #blake3 "8c4a8d5ef93e000a6d3ba3c7cb5dc4a37ac0bdfa510dba9e8d1d3393504d562f" :a :task/created-at :v 1773847384 :op :assert}
+   {:e #blake3 "8c4a8d5ef93e000a6d3ba3c7cb5dc4a37ac0bdfa510dba9e8d1d3393504d562f" :a :task/id :v "t-7202642d" :op :assert}
+   {:e #blake3 "8c4a8d5ef93e000a6d3ba3c7cb5dc4a37ac0bdfa510dba9e8d1d3393504d562f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8c4a8d5ef93e000a6d3ba3c7cb5dc4a37ac0bdfa510dba9e8d1d3393504d562f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8c4a8d5ef93e000a6d3ba3c7cb5dc4a37ac0bdfa510dba9e8d1d3393504d562f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8c4a8d5ef93e000a6d3ba3c7cb5dc4a37ac0bdfa510dba9e8d1d3393504d562f" :a :task/title :v "SFE-2.1: Implement parse_spec_refs(title) — extract INV-*/ADR-*/NEG-* references from task title text (INV-TASK-005). BACKGROUND: Regex-based extraction of spec element IDs from task title strings. Returns Vec<String> of extracted IDs (e.g., ['INV-STORE-001', 'ADR-GUIDANCE-013']). Pure function. ACCEPTANCE: 'Fix merge (INV-MERGE-001, ADR-MERGE-005)' → ['INV-MERGE-001', 'ADR-MERGE-005']." :op :assert}
+   {:e #blake3 "8c4a8d5ef93e000a6d3ba3c7cb5dc4a37ac0bdfa510dba9e8d1d3393504d562f" :a :task/type :v :task.type/task :op :assert}
+ ]}

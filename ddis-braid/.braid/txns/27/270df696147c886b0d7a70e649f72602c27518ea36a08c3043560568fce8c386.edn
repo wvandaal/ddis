@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773847217/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "NEG-TASK-001: No Silent Phantom References. A task MUST NOT contain a spec reference (INV-*, ADR-*, NEG-*) in its title that is silently dropped without either (a) creating a structural :task/traces-to Ref datom, or (b) emitting a warning to the user. Violation: 'braid task create ... (INV-FOO-999)' completes with no warning and no :task/traces-to datom, but INV-FOO-999 does not exist in the store."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8047879d0f881f8d5130f84f3cc1af7345b6865b6c679bf047123c4fb8ee302d" :a :db/doc :v "NEG-TASK-001: No Silent Phantom References. A task MUST NOT contain a spec reference (INV-*, ADR-*, NEG-*) in its title that is silently dropped without either (a) creating a structural :task/traces-to Ref datom, or (b) emitting a warning to the user. Violation: 'braid task create ... (INV-FOO-999)' completes with no warning and no :task/traces-to datom, but INV-FOO-999 does not exist in the store." :op :assert}
+   {:e #blake3 "8047879d0f881f8d5130f84f3cc1af7345b6865b6c679bf047123c4fb8ee302d" :a :db/ident :v :observation/neg-task-001-no-silent-phantom-references-a-task-must-not :op :assert}
+   {:e #blake3 "8047879d0f881f8d5130f84f3cc1af7345b6865b6c679bf047123c4fb8ee302d" :a :exploration/body :v "NEG-TASK-001: No Silent Phantom References. A task MUST NOT contain a spec reference (INV-*, ADR-*, NEG-*) in its title that is silently dropped without either (a) creating a structural :task/traces-to Ref datom, or (b) emitting a warning to the user. Violation: 'braid task create ... (INV-FOO-999)' completes with no warning and no :task/traces-to datom, but INV-FOO-999 does not exist in the store." :op :assert}
+   {:e #blake3 "8047879d0f881f8d5130f84f3cc1af7345b6865b6c679bf047123c4fb8ee302d" :a :exploration/category :v :exploration.cat/definition :op :assert}
+   {:e #blake3 "8047879d0f881f8d5130f84f3cc1af7345b6865b6c679bf047123c4fb8ee302d" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "8047879d0f881f8d5130f84f3cc1af7345b6865b6c679bf047123c4fb8ee302d" :a :exploration/content-hash :v #bytes "15f8ce9aa64dfac09850f745bc56a744c615512121b54852c9d011fc613a65a9" :op :assert}
+   {:e #blake3 "8047879d0f881f8d5130f84f3cc1af7345b6865b6c679bf047123c4fb8ee302d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8047879d0f881f8d5130f84f3cc1af7345b6865b6c679bf047123c4fb8ee302d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8047879d0f881f8d5130f84f3cc1af7345b6865b6c679bf047123c4fb8ee302d" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

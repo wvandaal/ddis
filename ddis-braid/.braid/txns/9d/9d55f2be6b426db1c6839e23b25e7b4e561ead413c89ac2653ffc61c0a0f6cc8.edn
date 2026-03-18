@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847395/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC-CRYSTALLIZE: Formalize ALL observation-level spec elements into spec files. Audit store for observations containing INV-*/ADR-*/NEG-* IDs. For each, add to appropriate spec file (spec/01-store.md, spec/12-guidance.md, spec/05-harvest.md, spec/06-seed.md) with full falsification condition, verification tag, stage. Then transact via braid spec create. This is the one-time backfill; after SFE implementation, the crystallization gap detector prevents future accumulation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "988b8317a508e514b6bcaf4b9bb7185a24018b1b0db0486170987d2436a245d7" :a :db/ident :v :task/t-f25ce039 :op :assert}
+   {:e #blake3 "988b8317a508e514b6bcaf4b9bb7185a24018b1b0db0486170987d2436a245d7" :a :task/created-at :v 1773847394 :op :assert}
+   {:e #blake3 "988b8317a508e514b6bcaf4b9bb7185a24018b1b0db0486170987d2436a245d7" :a :task/id :v "t-f25ce039" :op :assert}
+   {:e #blake3 "988b8317a508e514b6bcaf4b9bb7185a24018b1b0db0486170987d2436a245d7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "988b8317a508e514b6bcaf4b9bb7185a24018b1b0db0486170987d2436a245d7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "988b8317a508e514b6bcaf4b9bb7185a24018b1b0db0486170987d2436a245d7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "988b8317a508e514b6bcaf4b9bb7185a24018b1b0db0486170987d2436a245d7" :a :task/title :v "SPEC-CRYSTALLIZE: Formalize ALL observation-level spec elements into spec files. Audit store for observations containing INV-*/ADR-*/NEG-* IDs. For each, add to appropriate spec file (spec/01-store.md, spec/12-guidance.md, spec/05-harvest.md, spec/06-seed.md) with full falsification condition, verification tag, stage. Then transact via braid spec create. This is the one-time backfill; after SFE implementation, the crystallization gap detector prevents future accumulation." :op :assert}
+   {:e #blake3 "988b8317a508e514b6bcaf4b9bb7185a24018b1b0db0486170987d2436a245d7" :a :task/type :v :task.type/task :op :assert}
+ ]}

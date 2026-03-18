@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847387/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SFE-2.3: Wire parse+resolve into braid task create — emit warnings for unresolved refs, create :task/traces-to Ref datoms for resolved refs (INV-TASK-005, NEG-TASK-001). BACKGROUND: After creating task datoms, parse title for spec refs, resolve each, create structural links for resolved ones, warn on stderr for unresolved. Warning format: '⚠ INV-FOO-999 not found in store. Crystallize first: braid spec create INV-FOO-999'. ACCEPTANCE: creating a task with resolved INV produces :task/traces-to datom; with unresolved INV produces warning."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d2e002f23ad7b3fd2172c12cac44a6ad017e4ae4450a98095290a860d64784ba" :a :db/ident :v :task/t-f37a0095 :op :assert}
+   {:e #blake3 "d2e002f23ad7b3fd2172c12cac44a6ad017e4ae4450a98095290a860d64784ba" :a :task/created-at :v 1773847386 :op :assert}
+   {:e #blake3 "d2e002f23ad7b3fd2172c12cac44a6ad017e4ae4450a98095290a860d64784ba" :a :task/id :v "t-f37a0095" :op :assert}
+   {:e #blake3 "d2e002f23ad7b3fd2172c12cac44a6ad017e4ae4450a98095290a860d64784ba" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "d2e002f23ad7b3fd2172c12cac44a6ad017e4ae4450a98095290a860d64784ba" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d2e002f23ad7b3fd2172c12cac44a6ad017e4ae4450a98095290a860d64784ba" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d2e002f23ad7b3fd2172c12cac44a6ad017e4ae4450a98095290a860d64784ba" :a :task/title :v "SFE-2.3: Wire parse+resolve into braid task create — emit warnings for unresolved refs, create :task/traces-to Ref datoms for resolved refs (INV-TASK-005, NEG-TASK-001). BACKGROUND: After creating task datoms, parse title for spec refs, resolve each, create structural links for resolved ones, warn on stderr for unresolved. Warning format: '⚠ INV-FOO-999 not found in store. Crystallize first: braid spec create INV-FOO-999'. ACCEPTANCE: creating a task with resolved INV produces :task/traces-to datom; with unresolved INV produces warning." :op :assert}
+   {:e #blake3 "d2e002f23ad7b3fd2172c12cac44a6ad017e4ae4450a98095290a860d64784ba" :a :task/type :v :task.type/task :op :assert}
+ ]}

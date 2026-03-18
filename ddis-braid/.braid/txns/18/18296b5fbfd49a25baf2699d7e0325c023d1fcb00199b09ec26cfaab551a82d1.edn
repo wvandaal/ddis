@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847382/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Spec-First Enforcement — crystallization gap detection + spec-anchored task creation (FM-035, INV-GUIDANCE-018, INV-TASK-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "64c3cf2a5bec99c042f5bc96a93bb53667daff402acffd3a770e410790e31714" :a :db/ident :v :task/t-304e0e2a :op :assert}
+   {:e #blake3 "64c3cf2a5bec99c042f5bc96a93bb53667daff402acffd3a770e410790e31714" :a :task/created-at :v 1773847381 :op :assert}
+   {:e #blake3 "64c3cf2a5bec99c042f5bc96a93bb53667daff402acffd3a770e410790e31714" :a :task/id :v "t-304e0e2a" :op :assert}
+   {:e #blake3 "64c3cf2a5bec99c042f5bc96a93bb53667daff402acffd3a770e410790e31714" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "64c3cf2a5bec99c042f5bc96a93bb53667daff402acffd3a770e410790e31714" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "64c3cf2a5bec99c042f5bc96a93bb53667daff402acffd3a770e410790e31714" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "64c3cf2a5bec99c042f5bc96a93bb53667daff402acffd3a770e410790e31714" :a :task/title :v "EPIC: Spec-First Enforcement — crystallization gap detection + spec-anchored task creation (FM-035, INV-GUIDANCE-018, INV-TASK-005)" :op :assert}
+   {:e #blake3 "64c3cf2a5bec99c042f5bc96a93bb53667daff402acffd3a770e410790e31714" :a :task/type :v :task.type/epic :op :assert}
+ ]}

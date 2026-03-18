@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847391/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-SFE-2: parse_spec_refs extracts all ID patterns from task titles (unit + proptest). Unit: various title formats. Proptest: random strings with embedded spec IDs. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "085e5c2f7e15bcadde4d8b961026dbf8897b2be2b60772620d416ffbabd906e9" :a :db/ident :v :task/t-c60ee97f :op :assert}
+   {:e #blake3 "085e5c2f7e15bcadde4d8b961026dbf8897b2be2b60772620d416ffbabd906e9" :a :task/created-at :v 1773847390 :op :assert}
+   {:e #blake3 "085e5c2f7e15bcadde4d8b961026dbf8897b2be2b60772620d416ffbabd906e9" :a :task/id :v "t-c60ee97f" :op :assert}
+   {:e #blake3 "085e5c2f7e15bcadde4d8b961026dbf8897b2be2b60772620d416ffbabd906e9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "085e5c2f7e15bcadde4d8b961026dbf8897b2be2b60772620d416ffbabd906e9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "085e5c2f7e15bcadde4d8b961026dbf8897b2be2b60772620d416ffbabd906e9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "085e5c2f7e15bcadde4d8b961026dbf8897b2be2b60772620d416ffbabd906e9" :a :task/title :v "TEST-SFE-2: parse_spec_refs extracts all ID patterns from task titles (unit + proptest). Unit: various title formats. Proptest: random strings with embedded spec IDs. V:PROP." :op :assert}
+   {:e #blake3 "085e5c2f7e15bcadde4d8b961026dbf8897b2be2b60772620d416ffbabd906e9" :a :task/type :v :task.type/test :op :assert}
+ ]}

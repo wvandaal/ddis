@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773847214/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-TASK-005: Spec Anchor Resolution. For every task T with spec references R(T) parsed from T.title, each reference r in R(T) either: (a) resolves to a spec entity in the store (structural :task/traces-to Ref datom created), or (b) is flagged as unresolved with a warning. Formally: |resolved(R(T))| + |unresolved(R(T))| = |R(T)|. No reference is silently dropped. Falsification: a task title contains 'INV-STORE-001' but neither a :task/traces-to datom exists nor a warning was emitted. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e2681320396074fbda6854bb1a9f6e5abc590f02bc0626a33f54660b3c9b65e3" :a :db/doc :v "INV-TASK-005: Spec Anchor Resolution. For every task T with spec references R(T) parsed from T.title, each reference r in R(T) either: (a) resolves to a spec entity in the store (structural :task/traces-to Ref datom created), or (b) is flagged as unresolved with a warning. Formally: |resolved(R(T))| + |unresolved(R(T))| = |R(T)|. No reference is silently dropped. Falsification: a task title contains 'INV-STORE-001' but neither a :task/traces-to datom exists nor a warning was emitted. V:PROP." :op :assert}
+   {:e #blake3 "e2681320396074fbda6854bb1a9f6e5abc590f02bc0626a33f54660b3c9b65e3" :a :db/ident :v :observation/inv-task-005-spec-anchor-resolution-for-every-task-t-with :op :assert}
+   {:e #blake3 "e2681320396074fbda6854bb1a9f6e5abc590f02bc0626a33f54660b3c9b65e3" :a :exploration/body :v "INV-TASK-005: Spec Anchor Resolution. For every task T with spec references R(T) parsed from T.title, each reference r in R(T) either: (a) resolves to a spec entity in the store (structural :task/traces-to Ref datom created), or (b) is flagged as unresolved with a warning. Formally: |resolved(R(T))| + |unresolved(R(T))| = |R(T)|. No reference is silently dropped. Falsification: a task title contains 'INV-STORE-001' but neither a :task/traces-to datom exists nor a warning was emitted. V:PROP." :op :assert}
+   {:e #blake3 "e2681320396074fbda6854bb1a9f6e5abc590f02bc0626a33f54660b3c9b65e3" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "e2681320396074fbda6854bb1a9f6e5abc590f02bc0626a33f54660b3c9b65e3" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "e2681320396074fbda6854bb1a9f6e5abc590f02bc0626a33f54660b3c9b65e3" :a :exploration/content-hash :v #bytes "41e8a4f731b0f047b598888a007e291d8759f5ef507b6629a8413ea6fbf529ab" :op :assert}
+   {:e #blake3 "e2681320396074fbda6854bb1a9f6e5abc590f02bc0626a33f54660b3c9b65e3" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "e2681320396074fbda6854bb1a9f6e5abc590f02bc0626a33f54660b3c9b65e3" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e2681320396074fbda6854bb1a9f6e5abc590f02bc0626a33f54660b3c9b65e3" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

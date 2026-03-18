@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847393/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-SFE-4: spec_anchor_factor correctly penalizes unanchored tasks in routing (proptest). Two tasks at same graph position: one anchored (all refs resolve), one unanchored (no refs resolve). Anchored task MUST have higher impact. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "02f19c0a4aff9cfe49dfe5d81c32b996fa37f3c7f48505038c4f506579f54b85" :a :db/ident :v :task/t-8a1a9fdf :op :assert}
+   {:e #blake3 "02f19c0a4aff9cfe49dfe5d81c32b996fa37f3c7f48505038c4f506579f54b85" :a :task/created-at :v 1773847392 :op :assert}
+   {:e #blake3 "02f19c0a4aff9cfe49dfe5d81c32b996fa37f3c7f48505038c4f506579f54b85" :a :task/id :v "t-8a1a9fdf" :op :assert}
+   {:e #blake3 "02f19c0a4aff9cfe49dfe5d81c32b996fa37f3c7f48505038c4f506579f54b85" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "02f19c0a4aff9cfe49dfe5d81c32b996fa37f3c7f48505038c4f506579f54b85" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "02f19c0a4aff9cfe49dfe5d81c32b996fa37f3c7f48505038c4f506579f54b85" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "02f19c0a4aff9cfe49dfe5d81c32b996fa37f3c7f48505038c4f506579f54b85" :a :task/title :v "TEST-SFE-4: spec_anchor_factor correctly penalizes unanchored tasks in routing (proptest). Two tasks at same graph position: one anchored (all refs resolve), one unanchored (no refs resolve). Anchored task MUST have higher impact. V:PROP." :op :assert}
+   {:e #blake3 "02f19c0a4aff9cfe49dfe5d81c32b996fa37f3c7f48505038c4f506579f54b85" :a :task/type :v :task.type/test :op :assert}
+ ]}

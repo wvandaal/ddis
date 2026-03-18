@@ -1204,3 +1204,282 @@ for high-stakes specification changes.
 
 ---
 
+### §12.9 Spec-Anchored Task Creation (FM-035 Prevention)
+
+> **Purpose**: Prevent the ideation-to-task skip failure mode (FM-035) where agents
+> create tasks referencing nonexistent spec elements. The solution is structural
+> observability — parse spec references at task creation time, resolve them against
+> the store, and make unanchored tasks visible through warnings and routing penalties.
+
+#### INV-GUIDANCE-013: Typed Edge Routing
+
+**Traces to**: SEED.md §7, ADR-GUIDANCE-001 (comonadic structure)
+**Type**: Invariant
+**Stage**: 1
+**Statement**: R(t) edge weights include `type_multiplier(downstream.task_type)`.
+Implementation tasks weight 1.0, test 0.8, spec 0.6, docs 0.3, epic 0.0.
+
+```
+∀ edge (a → b) in task DAG:
+  weight(a → b) = base_weight × type_multiplier(b.task_type) × urgency_decay(b.age)
+```
+
+**Falsification**: R(t) ranks a docs-unblocking task above an impl-unblocking task
+at equal base PageRank.
+**Verification**: V:PROP
+
+---
+
+#### INV-GUIDANCE-014: Contextual Observation Hint
+
+**Traces to**: SEED.md §7, ADR-GUIDANCE-013 (contextual hint over placeholder)
+**Type**: Invariant
+**Stage**: 1
+**Statement**: For every command C that produces knowledge (task close, query, status,
+trace, bilateral), the guidance footer includes a paste-ready observation derived from
+C's output: `contextual_observation_hint(cmd, output_json) → String`.
+
+```
+∀ cmd ∈ {task-close, query, status, trace, bilateral, schema}:
+  footer(cmd) contains contextual_observation_hint(cmd, output(cmd))
+  ∧ contextual_observation_hint(cmd, output(cmd)) ≠ "..."
+```
+
+**Falsification**: The footer after a knowledge-producing command contains a
+placeholder `"..."` instead of a contextual sentence derived from the command's output.
+**Verification**: V:PROP
+
+---
+
+#### INV-GUIDANCE-015: Observation Candidate Completeness
+
+**Traces to**: INV-HARVEST-002 (lossless knowledge), ADR-GUIDANCE-014
+**Type**: Invariant
+**Stage**: 2
+**Statement**: For every command C in the knowledge set, the ObservationCandidate
+buffer contains an entry derived from C's output within the same session.
+
+```
+∀ cmd ∈ knowledge_commands, ∀ session S:
+  cmd executed in S → ∃ candidate ∈ buffer(S) with source_cmd = cmd
+```
+
+**Falsification**: A task-close command runs but no ObservationCandidate with the
+task's title exists in the buffer.
+**Verification**: V:PROP
+
+---
+
+#### INV-GUIDANCE-016: Contextual Confidence Calibration
+
+**Traces to**: ADR-GUIDANCE-013
+**Type**: Invariant
+**Stage**: 1
+**Statement**: Auto-observation confidence matches the epistemic certainty of the
+command type: task-close=0.9, status=0.8, query=0.7, bilateral=0.8.
+
+```
+∀ candidate with source_cmd = C:
+  |candidate.confidence - calibrated_confidence(C)| < 0.05
+```
+
+**Falsification**: An auto-observation from task-close has confidence < 0.85 or > 0.95.
+**Verification**: V:PROP
+
+---
+
+#### INV-GUIDANCE-017: Spec Anchor Factor in R(t)
+
+**Traces to**: SEED.md §3 (C5 Traceability), FM-035
+**Type**: Invariant
+**Stage**: 1
+**Statement**: Task impact score includes `spec_anchor_factor`: 1.0 if all spec refs
+resolve (or task has no refs), 0.7 if partial resolution, 0.3 if no refs resolve.
+
+```
+impact(T) = base_impact × type_multiplier × urgency_decay × spec_anchor_factor(T)
+
+where spec_anchor_factor(T):
+  |resolved(refs(T))| = |refs(T)| > 0  → 1.0  (fully anchored)
+  0 < |resolved(refs(T))| < |refs(T)|  → 0.7  (partially anchored)
+  |resolved(refs(T))| = 0 ∧ |refs(T)| > 0 → 0.3  (unanchored)
+  |refs(T)| = 0                         → 1.0  (no refs — no penalty)
+```
+
+**Falsification**: Two tasks with identical graph position, one fully anchored and
+one unanchored, receive the same impact score.
+**Verification**: V:PROP
+
+---
+
+#### INV-TASK-005: Spec Anchor Resolution
+
+**Traces to**: SEED.md §3 (C5 Traceability), FM-035
+**Type**: Invariant
+**Stage**: 1
+**Statement**: For every task T with spec references R(T) parsed from T.title,
+each reference r ∈ R(T) either resolves to a store entity (`:task/traces-to` Ref
+datom created) or is flagged as unresolved with a warning.
+
+```
+∀ r ∈ R(T): resolved(r) ∨ warned(r)
+|resolved(R(T))| + |unresolved(R(T))| = |R(T)|
+```
+
+**Falsification**: A task title contains "INV-STORE-001" but neither a `:task/traces-to`
+datom exists nor a warning was emitted at creation time.
+**Verification**: V:PROP
+
+---
+
+#### ADR-GUIDANCE-013: Contextual Hint Over Static Placeholder
+
+**Traces to**: SEED.md §7, prompt-optimization k* theory
+**Stage**: 1
+
+##### Problem
+Paste-ready commands in the footer use `"..."` placeholder. At low k*, agents paste
+literally, creating meaningless observations. The guidance system knows WHAT the agent
+should do but not WHAT the agent just learned.
+
+##### Options
+A) **Static placeholder** — agents paste `"..."` literally. Zero knowledge capture.
+B) **Store-derived hint** — circular; store already has what it knows.
+C) **Reflection prompt** — fails at low k* (basin trapping prevents mode switch).
+D) **Command-output-derived contextual hint** — extracts knowledge from what just happened.
+
+##### Decision
+**Option D.** Natural transformation η: CommandOutput → ObservationCandidate.
+The command name tells us what happened; the output tells us what was learned.
+
+##### Falsification
+The contextual hint generates observations that are too generic ("Completed: task")
+or too verbose (>120 chars) to be useful at low k*.
+
+---
+
+#### ADR-GUIDANCE-014: Lazy Candidate Accumulation Over Immediate Transaction
+
+**Traces to**: INV-STORE-001 (append-only), INV-HARVEST-001
+**Stage**: 2
+
+##### Problem
+Auto-transacting every command output creates O(N) datoms per session.
+
+##### Options
+A) **Immediate transact** — store bloat, O(N) mechanical observations.
+B) **Lazy buffer + harvest integration** — accumulate candidates, filter at harvest via surprisal.
+C) **Discard** — knowledge loss.
+
+##### Decision
+**Option B.** ObservationCandidates accumulate in a session buffer.
+The harvest pipeline's surprisal scoring (D3) promotes high-value candidates
+and filters low-value ones. Lazy = no store growth until harvest.
+
+##### Falsification
+The buffer grows unboundedly in long sessions, consuming memory. Mitigation:
+cap buffer at 100 entries, evict lowest-confidence entries.
+
+---
+
+#### ADR-TASK-002: Parse-and-Resolve Over Prescriptive Gate
+
+**Traces to**: ADR-GUIDANCE-043 (observe over prescribe), FM-035
+**Stage**: 1
+
+##### Problem
+Agents skip spec crystallization, creating tasks that reference nonexistent spec elements.
+
+##### Options
+A) **Prescriptive gate** — block task creation if refs unresolved. Creates adversarial
+   dynamics; agents omit refs to avoid gate.
+B) **Parse-and-resolve with warning + routing penalty** — structural observability
+   without blocking.
+
+##### Decision
+**Option B.** Parse refs from title, warn on unresolved, deprioritize in R(t).
+The bilateral scan provides the final backstop. This follows ADR-GUIDANCE-043:
+process rules decay under k* pressure; structural visibility persists.
+
+##### Falsification
+Agents consistently ignore warnings and create unanchored tasks despite the
+routing penalty. The penalty (0.3×) is insufficient to change behavior.
+
+---
+
+#### NEG-GUIDANCE-001: No Placeholder Observations
+
+**Traces to**: INV-GUIDANCE-014
+**Type**: Negative Case
+**Statement**: A guidance footer MUST NOT suggest `braid observe "..."` with literal
+placeholder text when a contextual hint is derivable from the command that just ran.
+**Violation**: Footer after `braid task close` contains `"..."` instead of the task's title.
+
+---
+
+#### INV-GUIDANCE-018: Crystallization Gap Detection
+
+**Traces to**: SEED.md §7 (Self-Improvement Loop), FM-035
+**Type**: Invariant
+**Stage**: 1
+**Statement**: The guidance system detects observations that contain spec-like
+identifiers (INV-*, ADR-*, NEG-*) but have NOT been crystallized into formal
+spec elements. These are **crystallization candidates** — insights captured as
+observations that should be formalized with falsification conditions, verification
+tags, and stage assignments.
+
+```
+crystallization_candidates(S) = {
+  obs ∈ S |
+    obs.attribute = :exploration/body ∧
+    obs.value matches /INV-[A-Z]+-\d+|ADR-[A-Z]+-\d+|NEG-[A-Z]+-\d+/ ∧
+    ¬∃ spec ∈ S: spec.ident matches the extracted ID
+}
+
+∀ session with |crystallization_candidates(S)| > 0:
+  ∃ signal(type=:signal.type/crystallization-gap,
+           count=|crystallization_candidates(S)|)
+```
+
+**Detection**: Scan observations for spec-like IDs, check if corresponding
+`:spec/*` entities exist with `:spec/falsification` attributes. If not,
+the observation is uncrystallized.
+
+**Surfacing**: The guidance footer and `braid status` output show:
+```
+⚠ N observations contain spec-like IDs but are not formal spec elements.
+  Crystallize: braid spec create <ID>
+```
+
+**Falsification**: An observation contains "INV-GUIDANCE-014: ..." but no
+entity `:spec/inv-guidance-014` exists with a `:spec/falsification` attribute,
+AND no crystallization gap signal has been emitted.
+**Verification**: V:PROP
+
+---
+
+#### NEG-GUIDANCE-002: No Uncrystallized Spec References in Tasks
+
+**Traces to**: INV-GUIDANCE-018, INV-TASK-005, FM-035
+**Type**: Negative Case
+**Statement**: A task MUST NOT reference a spec ID that exists ONLY as an observation
+(`:exploration/body` containing the ID) but not as a formal spec element
+(`:spec/falsification`). The observation is a promise of formalization, not the
+formalization itself. The task must reference the formal element, not the observation.
+**Violation**: Task "Implement INV-GUIDANCE-014" has `:task/traces-to` pointing to
+an observation entity, not a spec entity with `:spec/falsification`.
+
+---
+
+#### NEG-TASK-001: No Silent Phantom References
+
+**Traces to**: INV-TASK-005
+**Type**: Negative Case
+**Statement**: A task MUST NOT contain a spec reference (INV-*, ADR-*, NEG-*) in its
+title that is silently dropped without either creating a structural `:task/traces-to`
+Ref datom or emitting a warning.
+**Violation**: `braid task create "... (INV-FOO-999)"` completes with no warning
+and no `:task/traces-to` datom, and INV-FOO-999 does not exist in the store.
+
+---
+

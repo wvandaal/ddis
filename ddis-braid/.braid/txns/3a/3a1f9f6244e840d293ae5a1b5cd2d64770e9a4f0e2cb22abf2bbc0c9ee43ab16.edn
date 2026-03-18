@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847388/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SFE-3.1: Implement spec_anchor_factor(store, task) — compute anchor score from resolved/total refs (INV-GUIDANCE-017). BACKGROUND: all resolved=1.0, partial=0.7, none resolved with refs=0.3, no refs=1.0. Used as multiplicative factor in R(t) impact computation. ACCEPTANCE: task with 2/2 resolved → 1.0, task with 1/2 → 0.7, task with 0/2 → 0.3, task with no refs → 1.0."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c920f64aaa9a4807c35350164b70b66e469b3209dbae39f181ee78bca72fb458" :a :db/ident :v :task/t-8d6b4389 :op :assert}
+   {:e #blake3 "c920f64aaa9a4807c35350164b70b66e469b3209dbae39f181ee78bca72fb458" :a :task/created-at :v 1773847387 :op :assert}
+   {:e #blake3 "c920f64aaa9a4807c35350164b70b66e469b3209dbae39f181ee78bca72fb458" :a :task/id :v "t-8d6b4389" :op :assert}
+   {:e #blake3 "c920f64aaa9a4807c35350164b70b66e469b3209dbae39f181ee78bca72fb458" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c920f64aaa9a4807c35350164b70b66e469b3209dbae39f181ee78bca72fb458" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c920f64aaa9a4807c35350164b70b66e469b3209dbae39f181ee78bca72fb458" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c920f64aaa9a4807c35350164b70b66e469b3209dbae39f181ee78bca72fb458" :a :task/title :v "SFE-3.1: Implement spec_anchor_factor(store, task) — compute anchor score from resolved/total refs (INV-GUIDANCE-017). BACKGROUND: all resolved=1.0, partial=0.7, none resolved with refs=0.3, no refs=1.0. Used as multiplicative factor in R(t) impact computation. ACCEPTANCE: task with 2/2 resolved → 1.0, task with 1/2 → 0.7, task with 0/2 → 0.3, task with no refs → 1.0." :op :assert}
+   {:e #blake3 "c920f64aaa9a4807c35350164b70b66e469b3209dbae39f181ee78bca72fb458" :a :task/type :v :task.type/task :op :assert}
+ ]}

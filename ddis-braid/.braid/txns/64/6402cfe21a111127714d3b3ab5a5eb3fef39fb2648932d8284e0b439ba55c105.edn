@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847386/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SFE-2.2: Implement resolve_spec_refs(store, refs) — check which refs exist as formal spec entities (INV-TASK-005). BACKGROUND: For each extracted ID, check if an entity :spec/{id-lowercase} exists with :spec/falsification attribute (formal spec element, not just observation). Returns (resolved: Vec<EntityId>, unresolved: Vec<String>). ACCEPTANCE: 'INV-STORE-001' resolves (exists in store), 'INV-FOO-999' does not."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "603be4f03bd05e889aebba238e6851444bf982b23d54ad1635d87589d52166c8" :a :db/ident :v :task/t-01a912df :op :assert}
+   {:e #blake3 "603be4f03bd05e889aebba238e6851444bf982b23d54ad1635d87589d52166c8" :a :task/created-at :v 1773847385 :op :assert}
+   {:e #blake3 "603be4f03bd05e889aebba238e6851444bf982b23d54ad1635d87589d52166c8" :a :task/id :v "t-01a912df" :op :assert}
+   {:e #blake3 "603be4f03bd05e889aebba238e6851444bf982b23d54ad1635d87589d52166c8" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "603be4f03bd05e889aebba238e6851444bf982b23d54ad1635d87589d52166c8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "603be4f03bd05e889aebba238e6851444bf982b23d54ad1635d87589d52166c8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "603be4f03bd05e889aebba238e6851444bf982b23d54ad1635d87589d52166c8" :a :task/title :v "SFE-2.2: Implement resolve_spec_refs(store, refs) — check which refs exist as formal spec entities (INV-TASK-005). BACKGROUND: For each extracted ID, check if an entity :spec/{id-lowercase} exists with :spec/falsification attribute (formal spec element, not just observation). Returns (resolved: Vec<EntityId>, unresolved: Vec<String>). ACCEPTANCE: 'INV-STORE-001' resolves (exists in store), 'INV-FOO-999' does not." :op :assert}
+   {:e #blake3 "603be4f03bd05e889aebba238e6851444bf982b23d54ad1635d87589d52166c8" :a :task/type :v :task.type/task :op :assert}
+ ]}

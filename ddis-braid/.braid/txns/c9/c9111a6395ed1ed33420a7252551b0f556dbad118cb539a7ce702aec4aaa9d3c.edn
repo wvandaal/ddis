@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847392/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-SFE-3: task creation with resolved refs creates :task/traces-to datoms (integration). Create spec entity, create task referencing it, verify Ref datom exists. Also: create task with unresolved ref, verify warning emitted. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "867154d9e47d71c00cceaaa485c05820dfcd41187e86e0d88ff2a6697b0fff6a" :a :db/ident :v :task/t-4cf6f0ef :op :assert}
+   {:e #blake3 "867154d9e47d71c00cceaaa485c05820dfcd41187e86e0d88ff2a6697b0fff6a" :a :task/created-at :v 1773847391 :op :assert}
+   {:e #blake3 "867154d9e47d71c00cceaaa485c05820dfcd41187e86e0d88ff2a6697b0fff6a" :a :task/id :v "t-4cf6f0ef" :op :assert}
+   {:e #blake3 "867154d9e47d71c00cceaaa485c05820dfcd41187e86e0d88ff2a6697b0fff6a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "867154d9e47d71c00cceaaa485c05820dfcd41187e86e0d88ff2a6697b0fff6a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "867154d9e47d71c00cceaaa485c05820dfcd41187e86e0d88ff2a6697b0fff6a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "867154d9e47d71c00cceaaa485c05820dfcd41187e86e0d88ff2a6697b0fff6a" :a :task/title :v "TEST-SFE-3: task creation with resolved refs creates :task/traces-to datoms (integration). Create spec entity, create task referencing it, verify Ref datom exists. Also: create task with unresolved ref, verify warning emitted. V:PROP." :op :assert}
+   {:e #blake3 "867154d9e47d71c00cceaaa485c05820dfcd41187e86e0d88ff2a6697b0fff6a" :a :task/type :v :task.type/test :op :assert}
+ ]}

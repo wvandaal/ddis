@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773847384/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SFE-1.2: Wire crystallization gap signal into braid status + guidance footer (INV-GUIDANCE-018). BACKGROUND: When crystallization_candidates(store) is non-empty, emit signal in status output: 'N observations contain spec-like IDs but are not formal spec elements. Crystallize: braid spec create <ID>'. Also surface in guidance footer when M(t) spec-language sub-metric is low. ACCEPTANCE: braid status shows crystallization gap count when uncrystallized observations exist."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "165ae3c81503333346e7547bd428ed1c60307ccdf9068552c3ed9bc13cbd5f06" :a :db/ident :v :task/t-c495e9ba :op :assert}
+   {:e #blake3 "165ae3c81503333346e7547bd428ed1c60307ccdf9068552c3ed9bc13cbd5f06" :a :task/created-at :v 1773847383 :op :assert}
+   {:e #blake3 "165ae3c81503333346e7547bd428ed1c60307ccdf9068552c3ed9bc13cbd5f06" :a :task/id :v "t-c495e9ba" :op :assert}
+   {:e #blake3 "165ae3c81503333346e7547bd428ed1c60307ccdf9068552c3ed9bc13cbd5f06" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "165ae3c81503333346e7547bd428ed1c60307ccdf9068552c3ed9bc13cbd5f06" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "165ae3c81503333346e7547bd428ed1c60307ccdf9068552c3ed9bc13cbd5f06" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "165ae3c81503333346e7547bd428ed1c60307ccdf9068552c3ed9bc13cbd5f06" :a :task/title :v "SFE-1.2: Wire crystallization gap signal into braid status + guidance footer (INV-GUIDANCE-018). BACKGROUND: When crystallization_candidates(store) is non-empty, emit signal in status output: 'N observations contain spec-like IDs but are not formal spec elements. Crystallize: braid spec create <ID>'. Also surface in guidance footer when M(t) spec-language sub-metric is low. ACCEPTANCE: braid status shows crystallization gap count when uncrystallized observations exist." :op :assert}
+   {:e #blake3 "165ae3c81503333346e7547bd428ed1c60307ccdf9068552c3ed9bc13cbd5f06" :a :task/type :v :task.type/task :op :assert}
+ ]}
