@@ -42,11 +42,12 @@ pub fn run(
     verify: bool,
     commit: bool,
 ) -> Result<CommandOutput, BraidError> {
-    // Verify mode: just check integrity — simple string output
+    // Verify mode: check integrity with structured output
     if verify {
         let layout = DiskLayout::open(path)?;
         let report = layout.verify_integrity()?;
-        let msg = if report.is_clean() {
+        let is_clean = report.is_clean();
+        let human = if is_clean {
             format!("integrity: OK ({} files verified)\n", report.verified)
         } else {
             format!(
@@ -56,7 +57,36 @@ pub fn run(
                 report.total_files,
             )
         };
-        return Ok(CommandOutput::from_human(msg));
+        let json = serde_json::json!({
+            "integrity": if is_clean { "ok" } else { "failed" },
+            "verified": report.verified,
+            "corrupted": report.corrupted.len(),
+            "orphaned": report.orphaned.len(),
+            "total_files": report.total_files,
+        });
+        let agent = AgentOutput {
+            context: format!(
+                "integrity: {} ({} files)",
+                if is_clean { "OK" } else { "FAILED" },
+                report.total_files,
+            ),
+            content: if is_clean {
+                format!("{} files verified, 0 errors", report.verified)
+            } else {
+                format!(
+                    "{} corrupted, {} orphaned out of {}",
+                    report.corrupted.len(),
+                    report.orphaned.len(),
+                    report.total_files,
+                )
+            },
+            footer: if is_clean {
+                "status: braid status".to_string()
+            } else {
+                "fix: check .braid/txns/ for corrupted files".to_string()
+            },
+        };
+        return Ok(CommandOutput { json, agent, human });
     }
 
     let layout = DiskLayout::open(path)?;
@@ -64,10 +94,44 @@ pub fn run(
     let hashes = layout.list_tx_hashes()?;
     let tx_since_harvest = count_txns_since_last_harvest(&store);
 
-    // Deep mode: bilateral F(S) + optional graph analytics (string-based for now)
+    // Deep mode: bilateral F(S) + optional graph analytics
     if deep {
-        return run_deep(path, &store, agent_name, spectral, full, commit)
-            .map(CommandOutput::from_human);
+        let deep_str = run_deep(path, &store, agent_name, spectral, full, commit)?;
+        let fitness = compute_fitness(&store);
+        let json = serde_json::json!({
+            "mode": "deep",
+            "fitness": fitness.total,
+            "components": {
+                "validation": fitness.components.validation,
+                "coverage": fitness.components.coverage,
+                "drift": fitness.components.drift,
+                "harvest_quality": fitness.components.harvest_quality,
+                "contradiction": fitness.components.contradiction,
+                "incompleteness": fitness.components.incompleteness,
+                "uncertainty": fitness.components.uncertainty,
+            },
+            "output": deep_str,
+        });
+        let agent = AgentOutput {
+            context: format!("status --deep: F(S)={:.2}", fitness.total),
+            content: format!(
+                "V={:.2} C={:.2} D={:.2} H={:.2} K={:.2} I={:.2} U={:.2}",
+                fitness.components.validation,
+                fitness.components.coverage,
+                fitness.components.drift,
+                fitness.components.harvest_quality,
+                fitness.components.contradiction,
+                fitness.components.incompleteness,
+                fitness.components.uncertainty,
+            ),
+            footer: "improve: braid status --verbose | commit: braid status --deep --commit"
+                .to_string(),
+        };
+        return Ok(CommandOutput {
+            json,
+            agent,
+            human: deep_str,
+        });
     }
 
     // Build JSON representation (always computed — reused for --json and structured output)

@@ -1037,7 +1037,10 @@ impl Store {
         self.clock.tick(now, agent)
     }
 
-    /// Produce transaction metadata datoms (INV-STORE-014).
+    /// Produce transaction metadata datoms (INV-STORE-014, INV-QUERY-007).
+    ///
+    /// Includes `:tx/frontier` — a ref from the agent entity to this tx entity,
+    /// recording the agent's frontier at transaction time (ADR-QUERY-006).
     fn make_tx_metadata(&self, tx_entity: EntityId, tx_id: TxId, tx_data: &TxData) -> Vec<Datom> {
         let mut meta = Vec::new();
 
@@ -1080,6 +1083,17 @@ impl Store {
             tx_entity,
             Attribute::from_keyword(":tx/rationale"),
             Value::String(tx_data.rationale.clone()),
+            tx_id,
+            Op::Assert,
+        ));
+
+        // :tx/frontier — record the agent's latest tx as a datom on the agent entity.
+        // This makes the frontier queryable via ordinary Datalog (INV-QUERY-007, ADR-QUERY-006).
+        // The datom is [agent_entity, :tx/frontier, Ref(tx_entity), current_tx, Assert].
+        meta.push(Datom::new(
+            agent_entity,
+            Attribute::from_keyword(":tx/frontier"),
+            Value::Ref(tx_entity),
             tx_id,
             Op::Assert,
         ));
@@ -1350,6 +1364,140 @@ mod tests {
         let tx = Transaction::new(system_agent(), ProvenanceType::Observed, "empty");
         let result = tx.commit(&store);
         assert!(matches!(result, Err(StoreError::EmptyTransaction)));
+    }
+
+    // Verifies: INV-QUERY-007 — Frontier as queryable attribute
+    // Verifies: ADR-QUERY-006 — Frontier as datom attribute
+    // After transacting, :tx/frontier datom should be asserted on the agent entity,
+    // pointing at the tx entity. The frontier recorded as a datom must match the
+    // store's in-memory frontier for the transacting agent.
+    #[test]
+    fn transact_records_tx_frontier_datom() {
+        let mut store = Store::genesis();
+
+        let agent = AgentId::from_name("frontier-test-agent");
+        let agent_entity_id = EntityId::from_content(agent.as_bytes());
+
+        let entity = EntityId::from_ident(":test/frontier-test");
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "frontier test")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("frontier test doc".into()),
+            )
+            .commit(&store)
+            .unwrap();
+
+        let receipt = store.transact(tx).unwrap();
+        let tx_id = receipt.tx_id;
+
+        // The tx entity is content-addressed from the TxId
+        let tx_entity = EntityId::from_content(
+            &serde_json::to_vec(&tx_id).expect("TxId serialization cannot fail"),
+        );
+
+        // The agent entity should have a :tx/frontier datom pointing at the tx entity
+        let agent_datoms: Vec<&Datom> = store.entity_datoms(agent_entity_id);
+        let frontier_datoms: Vec<&&Datom> = agent_datoms
+            .iter()
+            .filter(|d| d.attribute.as_str() == ":tx/frontier")
+            .collect();
+
+        assert!(
+            !frontier_datoms.is_empty(),
+            "INV-QUERY-007: agent entity must have :tx/frontier datom after transact"
+        );
+
+        // The most recent :tx/frontier datom should point at the tx entity
+        let latest_frontier = frontier_datoms
+            .iter()
+            .max_by_key(|d| d.tx)
+            .expect("should have at least one frontier datom");
+
+        assert_eq!(
+            latest_frontier.value,
+            Value::Ref(tx_entity),
+            "INV-QUERY-007: :tx/frontier must reference the transaction entity"
+        );
+
+        // The in-memory frontier should match: agent's latest tx is the one we just transacted
+        let mem_frontier = store.frontier();
+        let mem_tx = mem_frontier
+            .max_tx_for(&agent)
+            .expect("agent must be in frontier after transact");
+        assert_eq!(
+            mem_tx, tx_id,
+            "ADR-QUERY-006: in-memory frontier must match the transacted tx"
+        );
+    }
+
+    // Verifies: INV-QUERY-007 — Frontier datom advances on subsequent transactions
+    #[test]
+    fn tx_frontier_advances_on_subsequent_transact() {
+        let mut store = Store::genesis();
+
+        let agent = AgentId::from_name("frontier-advance-agent");
+        let agent_entity_id = EntityId::from_content(agent.as_bytes());
+
+        // First transaction
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "first")
+            .assert(
+                EntityId::from_ident(":test/frontier-first"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("first".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt1 = store.transact(tx1).unwrap();
+        let tx1_id = receipt1.tx_id;
+        let tx1_entity = EntityId::from_content(&serde_json::to_vec(&tx1_id).unwrap());
+
+        // Second transaction
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "second")
+            .assert(
+                EntityId::from_ident(":test/frontier-second"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("second".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        let receipt2 = store.transact(tx2).unwrap();
+        let tx2_id = receipt2.tx_id;
+        let tx2_entity = EntityId::from_content(&serde_json::to_vec(&tx2_id).unwrap());
+
+        // Agent entity should have two :tx/frontier datoms (one per transaction)
+        let agent_datoms: Vec<&Datom> = store.entity_datoms(agent_entity_id);
+        let frontier_datoms: Vec<&&Datom> = agent_datoms
+            .iter()
+            .filter(|d| d.attribute.as_str() == ":tx/frontier")
+            .collect();
+
+        assert!(
+            frontier_datoms.len() >= 2,
+            "INV-QUERY-007: agent entity should have frontier datoms from both transactions, got {}",
+            frontier_datoms.len()
+        );
+
+        // Both tx entities should appear as frontier values
+        let frontier_refs: Vec<&Value> = frontier_datoms.iter().map(|d| &d.value).collect();
+        assert!(
+            frontier_refs.contains(&&Value::Ref(tx1_entity)),
+            "first tx entity must appear in :tx/frontier datoms"
+        );
+        assert!(
+            frontier_refs.contains(&&Value::Ref(tx2_entity)),
+            "second tx entity must appear in :tx/frontier datoms"
+        );
+
+        // In-memory frontier should be at the second (latest) tx
+        let mem_tx = store
+            .frontier()
+            .max_tx_for(&agent)
+            .expect("agent must be in frontier");
+        assert_eq!(
+            mem_tx, tx2_id,
+            "in-memory frontier must point to the latest tx"
+        );
     }
 
     // Verifies: INV-STORE-004 — CRDT Merge Commutativity

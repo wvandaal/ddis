@@ -198,7 +198,21 @@ fn run_generate(store: &Store, dry_run: bool, namespace: Option<&str>) -> Comman
         } else {
             "No pattern matches found. Spec elements may lack :spec/statement or :spec/falsification text.".to_string()
         };
-        return CommandOutput::from_human(msg);
+        let json = serde_json::json!({
+            "match_count": 0,
+            "property_count": 0,
+            "namespace_filter": namespace,
+        });
+        let agent = AgentOutput {
+            context: "verify --generate: 0 matches".to_string(),
+            content: msg.clone(),
+            footer: "check: braid verify (status) | add: braid spec create".to_string(),
+        };
+        return CommandOutput {
+            json,
+            agent,
+            human: msg,
+        };
     }
 
     let code = emit_test_module(&properties);

@@ -43,7 +43,7 @@ pub struct CreateArgs<'a> {
 }
 
 /// Create a new task.
-pub fn create(args: CreateArgs<'_>) -> Result<String, BraidError> {
+pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
     let CreateArgs {
         path,
         title,
@@ -90,32 +90,52 @@ pub fn create(args: CreateArgs<'_>) -> Result<String, BraidError> {
     let task_id = generate_task_id(title);
     let type_short = task_type.strip_prefix(":task.type/").unwrap_or(task_type);
 
-    let mut out = String::new();
-    out.push_str(&format!("created: {task_id} \"{title}\"\n"));
-    out.push_str(&format!(
+    let mut human = String::new();
+    human.push_str(&format!("created: {task_id} \"{title}\"\n"));
+    human.push_str(&format!(
         "  P{priority} {type_short} | {datom_count} datoms | entity: :task/{task_id}\n"
     ));
     if !traces_to.is_empty() {
-        out.push_str(&format!("  traces-to: {}\n", traces_to.join(", ")));
+        human.push_str(&format!("  traces-to: {}\n", traces_to.join(", ")));
     }
     let _ = entity; // used for entity creation
 
-    Ok(out)
+    let json = serde_json::json!({
+        "id": task_id,
+        "title": title,
+        "priority": priority,
+        "type": type_short,
+        "datom_count": datom_count,
+        "entity": format!(":task/{task_id}"),
+        "traces_to": traces_to,
+    });
+
+    let agent = AgentOutput {
+        context: format!("created: {task_id} \"{title}\""),
+        content: format!(
+            "P{priority} {type_short} | {datom_count} datoms | entity: :task/{task_id}"
+        ),
+        footer: format!("claim: braid go {task_id} | list: braid task list"),
+    };
+
+    Ok(CommandOutput { json, agent, human })
 }
 
 /// List tasks (all or filtered by status).
-pub fn list(path: &Path, show_all: bool) -> Result<String, BraidError> {
+pub fn list(path: &Path, show_all: bool) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
     let tasks = task::all_tasks(&store);
     if tasks.is_empty() {
-        return Ok("No tasks found. Create one: braid task \"title\"\n".to_string());
+        return Ok(CommandOutput::from_human(
+            "No tasks found. Create one: braid task \"title\"\n".to_string(),
+        ));
     }
 
     let (open, in_progress, closed) = task_counts(&store);
-    let mut out = String::new();
-    out.push_str(&format!(
+    let mut human = String::new();
+    human.push_str(&format!(
         "Tasks: {} total ({} open, {} in-progress, {} closed)\n",
         tasks.len(),
         open,
@@ -123,6 +143,7 @@ pub fn list(path: &Path, show_all: bool) -> Result<String, BraidError> {
         closed
     ));
 
+    let mut tasks_json = Vec::new();
     for t in &tasks {
         if !show_all && t.status == TaskStatus::Closed {
             continue;
@@ -141,13 +162,54 @@ pub fn list(path: &Path, show_all: bool) -> Result<String, BraidError> {
         } else {
             format!(" [{}]", t.traces_to.len())
         };
-        out.push_str(&format!(
+        human.push_str(&format!(
             "  P{} {:4} {:4}  {}  \"{}\"{}\n",
             t.priority, type_short, status, t.id, t.title, traces
         ));
+        tasks_json.push(serde_json::json!({
+            "id": t.id,
+            "title": t.title,
+            "priority": t.priority,
+            "type": type_short,
+            "status": status,
+            "traces_to_count": t.traces_to.len(),
+        }));
     }
 
-    Ok(out)
+    let json = serde_json::json!({
+        "total": tasks.len(),
+        "open": open,
+        "in_progress": in_progress,
+        "closed": closed,
+        "tasks": tasks_json,
+    });
+
+    let agent = AgentOutput {
+        context: format!(
+            "tasks: {} total ({} open, {} in-progress, {} closed)",
+            tasks.len(),
+            open,
+            in_progress,
+            closed,
+        ),
+        content: tasks_json
+            .iter()
+            .take(10)
+            .map(|t| {
+                format!(
+                    "[P{}] {} {} \"{}\"",
+                    t["priority"],
+                    t["id"].as_str().unwrap_or("?"),
+                    t["status"].as_str().unwrap_or("?"),
+                    t["title"].as_str().unwrap_or("?"),
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n"),
+        footer: "ready: braid task ready | next: braid next".to_string(),
+    };
+
+    Ok(CommandOutput { json, agent, human })
 }
 
 /// Show ready tasks (unblocked open tasks sorted by priority).
@@ -333,7 +395,7 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
 }
 
 /// Show detailed info about a task.
-pub fn show(path: &Path, task_id: &str) -> Result<String, BraidError> {
+pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -353,33 +415,60 @@ pub fn show(path: &Path, task_id: &str) -> Result<String, BraidError> {
         .strip_prefix(":task.type/")
         .unwrap_or(&t.task_type);
 
-    let mut out = String::new();
-    out.push_str(&format!("{} \"{}\"\n", t.id, t.title));
-    out.push_str(&format!(
+    let mut human = String::new();
+    human.push_str(&format!("{} \"{}\"\n", t.id, t.title));
+    human.push_str(&format!(
         "  status: {status} | priority: P{} | type: {type_short}\n",
         t.priority
     ));
     if !t.labels.is_empty() {
-        out.push_str(&format!("  labels: {}\n", t.labels.join(", ")));
+        human.push_str(&format!("  labels: {}\n", t.labels.join(", ")));
     }
     if !t.depends_on.is_empty() {
-        out.push_str(&format!("  depends-on: {} task(s)\n", t.depends_on.len()));
+        human.push_str(&format!("  depends-on: {} task(s)\n", t.depends_on.len()));
     }
     if !t.traces_to.is_empty() {
-        out.push_str(&format!(
+        human.push_str(&format!(
             "  traces-to: {} spec element(s)\n",
             t.traces_to.len()
         ));
     }
     if let Some(ref source) = t.source {
-        out.push_str(&format!("  source: {source}\n"));
+        human.push_str(&format!("  source: {source}\n"));
     }
     if let Some(ref reason) = t.close_reason {
-        out.push_str(&format!("  close-reason: {reason}\n"));
+        human.push_str(&format!("  close-reason: {reason}\n"));
     }
-    out.push_str(&format!("  entity: :task/{}\n", t.id));
+    human.push_str(&format!("  entity: :task/{}\n", t.id));
 
-    Ok(out)
+    let json = serde_json::json!({
+        "id": t.id,
+        "title": t.title,
+        "status": status,
+        "priority": t.priority,
+        "type": type_short,
+        "labels": t.labels,
+        "depends_on_count": t.depends_on.len(),
+        "traces_to_count": t.traces_to.len(),
+        "source": t.source,
+        "close_reason": t.close_reason,
+        "entity": format!(":task/{}", t.id),
+    });
+
+    let agent = AgentOutput {
+        context: format!("{} \"{}\"", t.id, t.title),
+        content: format!(
+            "status: {} | P{} {} | deps: {} | traces: {}",
+            status,
+            t.priority,
+            type_short,
+            t.depends_on.len(),
+            t.traces_to.len(),
+        ),
+        footer: format!("claim: braid go {} | close: braid done {}", t.id, t.id),
+    };
+
+    Ok(CommandOutput { json, agent, human })
 }
 
 /// Close one or more tasks.
@@ -388,7 +477,7 @@ pub fn close(
     task_ids: &[String],
     reason: &str,
     agent: &str,
-) -> Result<String, BraidError> {
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
     ensure_layer_4_public(&layout, &store)?;
@@ -421,15 +510,37 @@ pub fn close(
     };
     layout.write_tx(&tx)?;
 
-    let mut out = String::new();
+    let mut human = String::new();
     for id in &closed_ids {
-        out.push_str(&format!("closed: {id}\n"));
+        human.push_str(&format!("closed: {id}\n"));
     }
-    Ok(out)
+
+    let json = serde_json::json!({
+        "closed": closed_ids,
+        "count": closed_ids.len(),
+        "reason": reason,
+    });
+
+    let agent = AgentOutput {
+        context: format!("closed: {} task(s)", closed_ids.len()),
+        content: closed_ids
+            .iter()
+            .map(|id| format!("closed: {id}"))
+            .collect::<Vec<_>>()
+            .join("\n"),
+        footer: "next: braid task ready | status: braid status".to_string(),
+    };
+
+    Ok(CommandOutput { json, agent, human })
 }
 
 /// Update a task's status.
-pub fn update(path: &Path, task_id: &str, status: &str, agent: &str) -> Result<String, BraidError> {
+pub fn update(
+    path: &Path,
+    task_id: &str,
+    status: &str,
+    agent: &str,
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
     ensure_layer_4_public(&layout, &store)?;
@@ -457,11 +568,29 @@ pub fn update(path: &Path, task_id: &str, status: &str, agent: &str) -> Result<S
     };
     layout.write_tx(&tx)?;
 
-    Ok(format!("updated: {task_id} → {status}\n"))
+    let human = format!("updated: {task_id} \u{2192} {status}\n");
+
+    let json = serde_json::json!({
+        "id": task_id,
+        "status": status,
+    });
+
+    let agent = AgentOutput {
+        context: format!("updated: {task_id} \u{2192} {status}"),
+        content: String::new(),
+        footer: format!("show: braid task show {task_id}"),
+    };
+
+    Ok(CommandOutput { json, agent, human })
 }
 
 /// Add a dependency edge.
-pub fn dep_add(path: &Path, from_id: &str, to_id: &str, agent: &str) -> Result<String, BraidError> {
+pub fn dep_add(
+    path: &Path,
+    from_id: &str,
+    to_id: &str,
+    agent: &str,
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
     ensure_layer_4_public(&layout, &store)?;
@@ -489,11 +618,28 @@ pub fn dep_add(path: &Path, from_id: &str, to_id: &str, agent: &str) -> Result<S
     };
     layout.write_tx(&tx)?;
 
-    Ok(format!("dependency: {from_id} depends on {to_id}\n"))
+    let human = format!("dependency: {from_id} depends on {to_id}\n");
+
+    let json = serde_json::json!({
+        "from": from_id,
+        "to": to_id,
+    });
+
+    let agent = AgentOutput {
+        context: format!("dependency: {from_id} depends on {to_id}"),
+        content: String::new(),
+        footer: "ready: braid task ready".to_string(),
+    };
+
+    Ok(CommandOutput { json, agent, human })
 }
 
 /// Import tasks from a beads JSONL file.
-pub fn import_beads(path: &Path, beads_path: &Path, agent: &str) -> Result<String, BraidError> {
+pub fn import_beads(
+    path: &Path,
+    beads_path: &Path,
+    agent: &str,
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
     ensure_layer_4_public(&layout, &store)?;
@@ -574,9 +720,22 @@ pub fn import_beads(path: &Path, beads_path: &Path, agent: &str) -> Result<Strin
     }
 
     if all_datoms.is_empty() {
-        return Ok(format!(
-            "import: 0 new tasks ({skipped} already imported)\n"
-        ));
+        let human = format!("import: 0 new tasks ({skipped} already imported)\n");
+        let json = serde_json::json!({
+            "imported": 0,
+            "datom_count": 0,
+            "skipped": skipped,
+        });
+        let agent_out = AgentOutput {
+            context: format!("import: 0 new tasks ({skipped} skipped)"),
+            content: String::new(),
+            footer: "list: braid task list".to_string(),
+        };
+        return Ok(CommandOutput {
+            json,
+            agent: agent_out,
+            human,
+        });
     }
 
     let tx = TxFile {
@@ -590,9 +749,25 @@ pub fn import_beads(path: &Path, beads_path: &Path, agent: &str) -> Result<Strin
     let datom_count = tx.datoms.len();
     layout.write_tx(&tx)?;
 
-    Ok(format!(
-        "import: {imported} tasks, {datom_count} datoms ({skipped} skipped)\n"
-    ))
+    let human = format!("import: {imported} tasks, {datom_count} datoms ({skipped} skipped)\n");
+
+    let json = serde_json::json!({
+        "imported": imported,
+        "datom_count": datom_count,
+        "skipped": skipped,
+    });
+
+    let agent_out = AgentOutput {
+        context: format!("import: {imported} tasks, {datom_count} datoms"),
+        content: format!("{skipped} skipped (already imported)"),
+        footer: "list: braid task list | ready: braid task ready".to_string(),
+    };
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
+        human,
+    })
 }
 
 /// Minimal bead parsed from JSONL.
@@ -715,7 +890,7 @@ mod tests {
         assert_eq!(bead.task_type, "epic");
     }
 
-    fn create_test_task(path: &Path, title: &str, priority: i64) -> String {
+    fn create_test_task(path: &Path, title: &str, priority: i64) -> CommandOutput {
         create(CreateArgs {
             path,
             title,
@@ -739,10 +914,10 @@ mod tests {
         crate::commands::init::run(&path, Path::new("spec")).unwrap();
 
         let result = create_test_task(&path, "Test task", 2);
-        assert!(result.contains("created:"));
+        assert!(result.human.contains("created:"));
 
         let list_result = list(&path, false).unwrap();
-        assert!(result.contains("Test task") || list_result.contains("Test task"));
+        assert!(result.human.contains("Test task") || list_result.human.contains("Test task"));
     }
 
     // Verifies: INV-STORE-001, INV-INTERFACE-001, INV-INTERFACE-011,

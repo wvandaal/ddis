@@ -20,6 +20,7 @@ use std::process::{Command, Stdio};
 
 use super::observe::{self, ObserveArgs};
 use crate::error::BraidError;
+use crate::output::{AgentOutput, CommandOutput};
 
 /// Classification of subprocess result.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -49,7 +50,7 @@ pub fn run(
     agent: &str,
     cmd_args: &[String],
     timeout_secs: Option<u64>,
-) -> Result<String, BraidError> {
+) -> Result<CommandOutput, BraidError> {
     if cmd_args.is_empty() {
         return Err(BraidError::Validation(
             "braid wrap requires a command to run".to_string(),
@@ -129,13 +130,34 @@ pub fn run(
     // Classify result
     let summary = classify_result(exit_code, &cmd_str, &stdout_buf, &stderr_buf);
 
-    let mut out = String::new();
-    out.push_str(&format!("wrap: `{cmd_str}` exited {exit_code}\n"));
+    let mut human = String::new();
+    human.push_str(&format!("wrap: `{cmd_str}` exited {exit_code}\n"));
+
+    let result_label = match summary.class {
+        ResultClass::Clean => "clean",
+        ResultClass::Warn => "WARN",
+        ResultClass::Fail => "FAIL",
+    };
 
     // INV-WRAP-001: Clean success → no observation
     if summary.class == ResultClass::Clean {
-        out.push_str("  result: clean (no observation)\n");
-        return Ok(out);
+        human.push_str("  result: clean (no observation)\n");
+        let json = serde_json::json!({
+            "command": cmd_str,
+            "exit_code": exit_code,
+            "result": "clean",
+            "observed": false,
+        });
+        let agent_out = AgentOutput {
+            context: format!("wrap: `{cmd_str}` clean (exit {exit_code})"),
+            content: String::new(),
+            footer: String::new(),
+        };
+        return Ok(CommandOutput {
+            json,
+            agent: agent_out,
+            human,
+        });
     }
 
     // INV-WRAP-002: Fail/Warn → create observation
@@ -151,17 +173,35 @@ pub fn run(
         alternatives: None,
     })?;
 
-    out.push_str(&format!(
-        "  result: {} → auto-observed\n",
-        if summary.class == ResultClass::Fail {
-            "FAIL"
-        } else {
-            "WARN"
-        }
+    human.push_str(&format!(
+        "  result: {} \u{2192} auto-observed\n",
+        result_label
     ));
-    out.push_str(&observe_result.human);
+    human.push_str(&observe_result.human);
 
-    Ok(out)
+    let json = serde_json::json!({
+        "command": cmd_str,
+        "exit_code": exit_code,
+        "result": result_label,
+        "observed": true,
+        "category": summary.category,
+        "confidence": summary.confidence,
+    });
+
+    let agent_out = AgentOutput {
+        context: format!("wrap: `{cmd_str}` {} (exit {})", result_label, exit_code),
+        content: format!(
+            "auto-observed as {} (c={:.2})",
+            summary.category, summary.confidence
+        ),
+        footer: "review: braid log --limit 1".to_string(),
+    };
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
+        human,
+    })
 }
 
 /// Classify subprocess output into Clean/Warn/Fail with a summary body.

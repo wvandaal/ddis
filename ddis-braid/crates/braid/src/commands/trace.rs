@@ -17,6 +17,7 @@ use braid_kernel::store::Store;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
 // ---------------------------------------------------------------------------
 // Spec reference pattern
@@ -523,7 +524,7 @@ pub fn run(
     source: &Path,
     agent_name: &str,
     commit: bool,
-) -> Result<String, BraidError> {
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -617,8 +618,8 @@ pub fn run(
         existing_impl_targets.union(&new_targets).copied().collect();
 
     // Format output
-    let mut out = String::new();
-    out.push_str(&format!(
+    let mut human = String::new();
+    human.push_str(&format!(
         "Trace scan: {} files, {} refs found, {} new, {} existing, {} unresolved\n",
         files.len(),
         all_refs.len(),
@@ -626,31 +627,31 @@ pub fn run(
         skipped_existing,
         unresolved.len(),
     ));
-    out.push_str(&format!(
+    human.push_str(&format!(
         "Spec coverage: {}/{} spec entities have :impl/implements links\n",
         covered_specs.len(),
         spec_map.len(),
     ));
 
     let total_witnessed = already_witnessed.len() + witnessed_specs.len();
-    out.push_str(&format!(
+    human.push_str(&format!(
         "Witnessed: {}/{} spec entities have test evidence",
         total_witnessed,
         spec_map.len(),
     ));
     if !witnessed_specs.is_empty() {
-        out.push_str(&format!(" (+{} new)", witnessed_specs.len()));
+        human.push_str(&format!(" (+{} new)", witnessed_specs.len()));
     }
-    out.push('\n');
+    human.push('\n');
 
     // WP9: Show verification depth distribution
+    let mut depth_counts = [0usize; 5]; // depth 0-4
     if !resolved_links.is_empty() {
-        let mut depth_counts = [0usize; 5]; // depth 0-4
         for link in &resolved_links {
             let idx = (link.verification_depth as usize).min(4);
             depth_counts[idx] += 1;
         }
-        out.push_str("Verification depth: ");
+        human.push_str("Verification depth: ");
         let mut parts = Vec::new();
         let labels = [
             "L0:Unverified",
@@ -664,19 +665,24 @@ pub fn run(
                 parts.push(format!("{}={}", label, depth_counts[i]));
             }
         }
-        out.push_str(&parts.join(", "));
-        out.push('\n');
+        human.push_str(&parts.join(", "));
+        human.push('\n');
     }
 
     // Show unresolved refs (FM-TRACE-002 warnings)
+    let unresolved_list: Vec<serde_json::Value> = unresolved
+        .iter()
+        .map(|(r, c)| serde_json::json!({ "ref": r, "count": c }))
+        .collect();
     if !unresolved.is_empty() {
-        out.push_str(&format!("\nUnresolved refs ({}):\n", unresolved.len()));
+        human.push_str(&format!("\nUnresolved refs ({}):\n", unresolved.len()));
         for (ref_str, count) in &unresolved {
-            out.push_str(&format!("  {} ({}x)\n", ref_str, count));
+            human.push_str(&format!("  {} ({}x)\n", ref_str, count));
         }
     }
 
     // Commit if requested
+    let mut committed_datoms = 0usize;
     if commit {
         let agent = AgentId::from_name(agent_name);
         let tx_id = super::write::next_tx_id(&store, agent);
@@ -687,6 +693,7 @@ pub fn run(
         datoms.extend(witness_datoms);
 
         let datom_count = datoms.len();
+        committed_datoms = datom_count;
         if datom_count > 0 {
             let tx = TxFile {
                 tx_id,
@@ -702,7 +709,7 @@ pub fn run(
             };
 
             let file_path = layout.write_tx(&tx)?;
-            out.push_str(&format!(
+            human.push_str(&format!(
                 "\nCommitted: {} datoms ({} impl + {} witness) \u{2192} {}\n",
                 datom_count,
                 datom_count - witness_count,
@@ -710,13 +717,78 @@ pub fn run(
                 file_path.relative_path(),
             ));
         } else {
-            out.push_str("\nNothing to commit (no resolved refs).\n");
+            human.push_str("\nNothing to commit (no resolved refs).\n");
         }
     } else {
-        out.push_str("\nDry run. Use --commit to write traceability datoms.\n");
+        human.push_str("\nDry run. Use --commit to write traceability datoms.\n");
     }
 
-    Ok(out)
+    let coverage_pct = if spec_map.is_empty() {
+        0.0
+    } else {
+        (covered_specs.len() as f64 / spec_map.len() as f64) * 100.0
+    };
+
+    let json = serde_json::json!({
+        "files_scanned": files.len(),
+        "refs_found": all_refs.len(),
+        "new_links": resolved_links.len(),
+        "existing_links": skipped_existing,
+        "unresolved_count": unresolved.len(),
+        "unresolved": unresolved_list,
+        "spec_coverage": {
+            "covered": covered_specs.len(),
+            "total": spec_map.len(),
+            "pct": (coverage_pct * 100.0).round() / 100.0,
+        },
+        "witnessed": {
+            "total": total_witnessed,
+            "new": witnessed_specs.len(),
+            "spec_total": spec_map.len(),
+        },
+        "depth": {
+            "L0": depth_counts[0],
+            "L1": depth_counts[1],
+            "L2": depth_counts[2],
+            "L3": depth_counts[3],
+            "L4": depth_counts[4],
+        },
+        "committed": commit,
+        "committed_datoms": committed_datoms,
+    });
+
+    let agent_out = AgentOutput {
+        context: format!(
+            "trace: {} files, {} refs, {}/{} spec coverage ({:.0}%)",
+            files.len(),
+            all_refs.len(),
+            covered_specs.len(),
+            spec_map.len(),
+            coverage_pct,
+        ),
+        content: format!(
+            "{} new links, {} existing, {} unresolved | witnessed: {}/{}",
+            resolved_links.len(),
+            skipped_existing,
+            unresolved.len(),
+            total_witnessed,
+            spec_map.len(),
+        ),
+        footer: if commit {
+            format!(
+                "committed: {} datoms | next: braid status",
+                committed_datoms
+            )
+        } else {
+            "commit: braid trace --commit".to_string()
+        },
+    };
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
+        human,
+    })
 }
 
 // ---------------------------------------------------------------------------

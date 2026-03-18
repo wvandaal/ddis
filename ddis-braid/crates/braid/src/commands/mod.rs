@@ -1568,8 +1568,8 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
 /// and command attention profiles. Commands that exceed their attention profile
 /// ceiling are truncated.
 ///
-/// All commands return `CommandOutput` via the `from_human()` bridge until
-/// individually converted to native tri-mode output (Phase C).
+/// Most commands return `CommandOutput` with native tri-mode output.
+/// Remaining `from_human()` bridge: write assert/retract/promote/export, shell, mcp.
 pub fn run(
     cmd: Command,
     budget_ctx: &BudgetCtx,
@@ -1642,7 +1642,15 @@ pub fn run(
             source,
             commit,
             agent,
-        } => trace::run(&path, &source, &agent, commit),
+        } => {
+            let cmd_output = trace::run(&path, &source, &agent, commit)?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Verify {
             path,
             generate,
@@ -1818,7 +1826,15 @@ pub fn run(
                 budget_ctx,
             ));
         }
-        Command::Merge { path, source } => merge::run(&path, &source),
+        Command::Merge { path, source } => {
+            let cmd_output = merge::run(&path, &source)?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Log {
             path,
             limit,
@@ -1864,28 +1880,38 @@ pub fn run(
                 budget_ctx,
             ));
         }
-        Command::Session { action } => match action {
-            SessionAction::Start {
-                path,
-                task,
-                inject,
-                seed_budget,
-                agent,
-            } => {
-                let eff = seed_budget.min(budget_ctx.manager.command_budget("session") as usize);
-                session::run_start(&path, &inject, task.as_deref(), eff, &agent)
-            }
-            SessionAction::End {
-                path,
-                task,
-                inject,
-                seed_budget,
-                agent,
-            } => {
-                let eff = seed_budget.min(budget_ctx.manager.command_budget("session") as usize);
-                session::run_end(&path, &inject, task.as_deref(), eff, &agent)
-            }
-        },
+        Command::Session { action } => {
+            let cmd_output = match action {
+                SessionAction::Start {
+                    path,
+                    task,
+                    inject,
+                    seed_budget,
+                    agent,
+                } => {
+                    let eff =
+                        seed_budget.min(budget_ctx.manager.command_budget("session") as usize);
+                    session::run_start(&path, &inject, task.as_deref(), eff, &agent)?
+                }
+                SessionAction::End {
+                    path,
+                    task,
+                    inject,
+                    seed_budget,
+                    agent,
+                } => {
+                    let eff =
+                        seed_budget.min(budget_ctx.manager.command_budget("session") as usize);
+                    session::run_end(&path, &inject, task.as_deref(), eff, &agent)?
+                }
+            };
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Wrap {
             path,
             agent,
@@ -1893,59 +1919,67 @@ pub fn run(
             cmd,
         } => {
             let timeout_opt = if timeout == 0 { None } else { Some(timeout) };
-            wrap::run(&path, &agent, &cmd, timeout_opt)
+            let cmd_output = wrap::run(&path, &agent, &cmd, timeout_opt)?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
         }
-        Command::Task { action } => match action {
-            TaskAction::Create {
-                title,
-                path,
-                priority,
-                task_type,
-                description,
-                agent,
-                traces_to,
-                labels,
-            } => task::create(task::CreateArgs {
-                path: &path,
-                title: &title,
-                description: description.as_deref(),
-                priority,
-                task_type: &task_type,
-                agent: &agent,
-                traces_to: &traces_to,
-                labels: &labels,
-            }),
-            TaskAction::List { path, all } => task::list(&path, all),
-            TaskAction::Ready { path } => {
-                let cmd_output = task::ready(&path)?;
-                return Ok(maybe_inject_footer(
-                    cmd_output,
-                    skip_footer,
-                    path_for_footer.as_deref(),
-                    budget_ctx,
-                ));
-            }
-            TaskAction::Show { id, path } => task::show(&path, &id),
-            TaskAction::Close {
-                ids,
-                path,
-                reason,
-                agent,
-            } => task::close(&path, &ids, &reason, &agent),
-            TaskAction::Update {
-                id,
-                path,
-                status,
-                agent,
-            } => task::update(&path, &id, &status, &agent),
-            TaskAction::Dep {
-                from,
-                to,
-                path,
-                agent,
-            } => task::dep_add(&path, &from, &to, &agent),
-            TaskAction::Import { path, beads, agent } => task::import_beads(&path, &beads, &agent),
-        },
+        Command::Task { action } => {
+            let cmd_output = match action {
+                TaskAction::Create {
+                    title,
+                    path,
+                    priority,
+                    task_type,
+                    description,
+                    agent,
+                    traces_to,
+                    labels,
+                } => task::create(task::CreateArgs {
+                    path: &path,
+                    title: &title,
+                    description: description.as_deref(),
+                    priority,
+                    task_type: &task_type,
+                    agent: &agent,
+                    traces_to: &traces_to,
+                    labels: &labels,
+                })?,
+                TaskAction::List { path, all } => task::list(&path, all)?,
+                TaskAction::Ready { path } => task::ready(&path)?,
+                TaskAction::Show { id, path } => task::show(&path, &id)?,
+                TaskAction::Close {
+                    ids,
+                    path,
+                    reason,
+                    agent,
+                } => task::close(&path, &ids, &reason, &agent)?,
+                TaskAction::Update {
+                    id,
+                    path,
+                    status,
+                    agent,
+                } => task::update(&path, &id, &status, &agent)?,
+                TaskAction::Dep {
+                    from,
+                    to,
+                    path,
+                    agent,
+                } => task::dep_add(&path, &from, &to, &agent)?,
+                TaskAction::Import { path, beads, agent } => {
+                    task::import_beads(&path, &beads, &agent)?
+                }
+            };
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Config {
             key,
             value,
@@ -1979,7 +2013,15 @@ pub fn run(
                 budget_ctx,
             ));
         }
-        Command::Done { ids, path, agent } => task::close(&path, &ids, "completed", &agent),
+        Command::Done { ids, path, agent } => {
+            let cmd_output = task::close(&path, &ids, "completed", &agent)?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Note {
             text,
             confidence,
@@ -2004,7 +2046,15 @@ pub fn run(
                 budget_ctx,
             ));
         }
-        Command::Go { id, path, agent } => task::update(&path, &id, "in-progress", &agent),
+        Command::Go { id, path, agent } => {
+            let cmd_output = task::update(&path, &id, "in-progress", &agent)?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+            ));
+        }
         Command::Spec { action } => match action {
             SpecAction::Create {
                 id,
@@ -2017,18 +2067,26 @@ pub fn run(
                 traces_to,
                 confidence,
                 agent,
-            } => spec::run_create(spec::CreateArgs {
-                path: &path,
-                id: &id,
-                title: &title,
-                statement: statement.as_deref(),
-                falsification: falsification.as_deref(),
-                problem: problem.as_deref(),
-                decision: decision.as_deref(),
-                traces_to: traces_to.as_deref(),
-                confidence,
-                agent: &agent,
-            }),
+            } => {
+                let cmd_output = spec::run_create(spec::CreateArgs {
+                    path: &path,
+                    id: &id,
+                    title: &title,
+                    statement: statement.as_deref(),
+                    falsification: falsification.as_deref(),
+                    problem: problem.as_deref(),
+                    decision: decision.as_deref(),
+                    traces_to: traces_to.as_deref(),
+                    confidence,
+                    agent: &agent,
+                })?;
+                return Ok(maybe_inject_footer(
+                    cmd_output,
+                    skip_footer,
+                    path_for_footer.as_deref(),
+                    budget_ctx,
+                ));
+            }
             SpecAction::Review { path } => {
                 let cmd_output = spec::run_review(&path)?;
                 return Ok(maybe_inject_footer(
@@ -2967,8 +3025,9 @@ mod merge {
 
     use crate::error::BraidError;
     use crate::layout::DiskLayout;
+    use crate::output::{AgentOutput, CommandOutput};
 
-    pub fn run(path: &Path, source_path: &Path) -> Result<String, BraidError> {
+    pub fn run(path: &Path, source_path: &Path) -> Result<CommandOutput, BraidError> {
         let layout = DiskLayout::open(path)?;
         let mut store = layout.load_store()?;
 
@@ -2996,33 +3055,63 @@ mod merge {
             }
         }
 
-        let mut out = String::new();
-        out.push_str(&format!(
+        let mut human = String::new();
+        human.push_str(&format!(
             "merge: {} \u{2192} {}\n",
             source_path.display(),
             path.display()
         ));
-        out.push_str(&format!(
+        human.push_str(&format!(
             "  datoms: {} \u{2192} {} (+{})\n",
             pre_len,
             store.len(),
             receipt.new_datoms
         ));
-        out.push_str(&format!("  new tx files: {new_files}\n"));
-        out.push_str(&format!(
+        human.push_str(&format!("  new tx files: {new_files}\n"));
+        human.push_str(&format!(
             "  frontier agents: {} \u{2192} {}\n",
             pre_frontier.len(),
             store.frontier().len()
         ));
-        out.push_str(&format!(
+        human.push_str(&format!(
             "  monotonicity: {}\n",
             if monotonic { "OK" } else { "VIOLATED" }
         ));
-        out.push_str(&format!(
+        human.push_str(&format!(
             "  frontier advancement: {}\n",
             if frontier_advanced { "OK" } else { "NO CHANGE" }
         ));
 
-        Ok(out)
+        let json = serde_json::json!({
+            "source": source_path.display().to_string(),
+            "target": path.display().to_string(),
+            "datoms_before": pre_len,
+            "datoms_after": store.len(),
+            "new_datoms": receipt.new_datoms,
+            "new_tx_files": new_files,
+            "frontier_agents_before": pre_frontier.len(),
+            "frontier_agents_after": store.frontier().len(),
+            "monotonicity": monotonic,
+            "frontier_advanced": frontier_advanced,
+        });
+
+        let agent = AgentOutput {
+            context: format!(
+                "merge: {} \u{2192} {} (+{} datoms)",
+                source_path.display(),
+                path.display(),
+                receipt.new_datoms,
+            ),
+            content: format!(
+                "datoms: {} \u{2192} {} | tx files: +{} | monotonicity: {}",
+                pre_len,
+                store.len(),
+                new_files,
+                if monotonic { "OK" } else { "VIOLATED" },
+            ),
+            footer: "verify: braid status --verify".to_string(),
+        };
+
+        Ok(CommandOutput { json, agent, human })
     }
 }

@@ -34,12 +34,41 @@ pub fn run(
 
     if json {
         let human = format_json(&seed, budget)?;
-        return Ok(CommandOutput::from_human(human));
+        let json_val = serde_json::from_str::<serde_json::Value>(&human)
+            .unwrap_or_else(|_| serde_json::json!({ "output": &human }));
+        let agent_out = AgentOutput {
+            context: format!(
+                "seed --json: {} entities, {} tokens",
+                seed.entities_discovered, seed.context.total_tokens
+            ),
+            content: human.clone(),
+            footer: "start: braid session start | observe: braid observe '...'".to_string(),
+        };
+        return Ok(CommandOutput {
+            json: json_val,
+            agent: agent_out,
+            human,
+        });
     }
 
     if for_human {
         let human = format_human_briefing(&store, &seed, task)?;
-        return Ok(CommandOutput::from_human(human));
+        let json_val = serde_json::json!({
+            "mode": "human-briefing",
+            "task": seed.task,
+            "entities_discovered": seed.entities_discovered,
+            "tokens": seed.context.total_tokens,
+        });
+        let agent_out = AgentOutput {
+            context: format!("seed --for-human: \"{}\"", seed.task),
+            content: human.clone(),
+            footer: "start: braid session start | observe: braid observe '...'".to_string(),
+        };
+        return Ok(CommandOutput {
+            json: json_val,
+            agent: agent_out,
+            human,
+        });
     }
 
     // Structured output (default)

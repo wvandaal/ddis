@@ -599,11 +599,12 @@ pub enum SchemaEvolutionError {
 /// Number of axiomatic meta-schema attributes (Layer 0).
 ///
 /// This count includes the 9 `:db/*` meta-schema attributes, 5 `:lattice/*`
-/// definition attributes, and 5 `:tx/*` transaction metadata attributes
-/// (including `:tx/coherence-override` for the coherence gate audit trail).
+/// definition attributes, and 6 `:tx/*` transaction metadata attributes
+/// (including `:tx/coherence-override` for the coherence gate audit trail
+/// and `:tx/frontier` for per-agent frontier tracking per INV-QUERY-007).
 ///
 /// INV-SCHEMA-002: Genesis contains exactly this many axiomatic attributes.
-pub const GENESIS_ATTR_COUNT: usize = 19;
+pub const GENESIS_ATTR_COUNT: usize = 20;
 
 /// Number of Layer 1 (Trilateral) attributes.
 ///
@@ -772,7 +773,7 @@ fn axiomatic_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Top element",
         ),
-        // Transaction metadata (5 attributes)
+        // Transaction metadata (6 attributes)
         attr(
             ":tx/time",
             ValueType::Instant,
@@ -802,6 +803,12 @@ fn axiomatic_attributes() -> Vec<AttributeSpec> {
             ValueType::Boolean,
             Cardinality::One,
             "Audit trail: true when --force bypassed coherence gate",
+        ),
+        attr(
+            ":tx/frontier",
+            ValueType::Ref,
+            Cardinality::One,
+            "Agent's latest tx at time of this transaction (INV-QUERY-007, ADR-QUERY-006)",
         ),
     ]
 }

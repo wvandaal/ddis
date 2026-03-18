@@ -184,9 +184,13 @@ pub fn run(path: &Path, spec_dir: &Path) -> Result<CommandOutput, BraidError> {
         match super::trace::run(path, &project_root, "braid:init", true) {
             Ok(trace_output) => {
                 // Extract just the summary line from trace output
-                if let Some(summary) = trace_output.lines().find(|l| l.starts_with("trace:")) {
+                if let Some(summary) = trace_output
+                    .human
+                    .lines()
+                    .find(|l| l.starts_with("Trace scan:"))
+                {
                     out.push_str(&format!("  {summary}\n"));
-                } else if !trace_output.is_empty() {
+                } else if !trace_output.human.is_empty() {
                     out.push_str(&format!("  trace: {} LOC scanned\n", detection.total_loc));
                 }
             }

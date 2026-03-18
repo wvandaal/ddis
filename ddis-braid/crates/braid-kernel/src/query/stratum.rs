@@ -120,6 +120,67 @@ pub fn classify(query: &QueryExpr) -> Stratum {
     Stratum::S1
 }
 
+/// Query evaluation mode (INV-QUERY-005).
+///
+/// Controls the evaluation strategy for the query engine. Each mode supports
+/// a subset of the strata — `compatible_with()` encodes the compatibility
+/// matrix.
+///
+/// # Compatibility Matrix
+///
+/// | Mode        | S0  | S1  | S2  | S3  | S4  | S5  |
+/// |-------------|-----|-----|-----|-----|-----|-----|
+/// | BottomUp    |  Y  |  Y  |  Y  |  N  |  N  |  N  |
+/// | TopDown     |  Y  |  Y  |  Y  |  Y  |  Y  |  Y  |
+/// | Incremental |  Y  |  Y  |  N  |  N  |  N  |  N  |
+///
+/// # Design Decisions
+///
+/// - ADR-QUERY-002: Naive bottom-up evaluation (with stratification) over top-down.
+/// - ADR-QUERY-003: Six-stratum classification.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum QueryMode {
+    /// Naive bottom-up fixpoint evaluation. Stage 0 default.
+    /// Supports S0–S2 (ground, monotone, stratified negation).
+    BottomUp,
+    /// Top-down (goal-directed) evaluation. Stage 1+.
+    /// Supports all strata (S0–S5).
+    TopDown,
+    /// Incremental maintenance. Stage 2+.
+    /// Supports S0–S1 (monotone only — CALM-compliant, no coordination needed).
+    Incremental,
+}
+
+impl QueryMode {
+    /// Whether this mode can evaluate queries at the given stratum.
+    ///
+    /// Encodes the mode-stratum compatibility matrix per INV-QUERY-005.
+    ///
+    /// **Falsification**: Returns `true` for a (mode, stratum) pair not in the
+    /// compatibility matrix, or `false` for a pair that is in it.
+    pub fn compatible_with(self, stratum: Stratum) -> bool {
+        match self {
+            // BottomUp: S0, S1, S2 — ground, monotone, stratified negation.
+            // S3 (aggregation) requires top-down for efficient computation.
+            QueryMode::BottomUp => matches!(stratum, Stratum::S0 | Stratum::S1 | Stratum::S2),
+            // TopDown: all strata — goal-directed evaluation handles everything.
+            QueryMode::TopDown => true,
+            // Incremental: S0, S1 only — monotone queries are CALM-compliant
+            // and can be maintained incrementally without coordination.
+            QueryMode::Incremental => matches!(stratum, Stratum::S0 | Stratum::S1),
+        }
+    }
+
+    /// Human-readable name.
+    pub fn name(&self) -> &'static str {
+        match self {
+            QueryMode::BottomUp => "BottomUp (Stage 0 default)",
+            QueryMode::TopDown => "TopDown (Stage 1+)",
+            QueryMode::Incremental => "Incremental (Stage 2+)",
+        }
+    }
+}
+
 /// Check whether a query can be evaluated at Stage 0.
 ///
 /// Returns `Ok(stratum)` if evaluable, `Err(stratum)` if not.
@@ -314,6 +375,105 @@ mod tests {
                 "predicate {op} should be classified as S1"
             );
         }
+    }
+
+    // -------------------------------------------------------------------
+    // QueryMode — Mode-Stratum Compatibility Matrix
+    // Verifies: INV-QUERY-005 — Mode-Stratum Compatibility
+    // Verifies: ADR-QUERY-002 — Naive Bottom-Up Evaluation
+    // Verifies: ADR-QUERY-003 — Six-Stratum Classification
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-QUERY-005 — BottomUp supports S0, S1, S2 only
+    #[test]
+    fn bottomup_compatibility() {
+        assert!(QueryMode::BottomUp.compatible_with(Stratum::S0));
+        assert!(QueryMode::BottomUp.compatible_with(Stratum::S1));
+        assert!(QueryMode::BottomUp.compatible_with(Stratum::S2));
+        assert!(!QueryMode::BottomUp.compatible_with(Stratum::S3));
+        assert!(!QueryMode::BottomUp.compatible_with(Stratum::S4));
+        assert!(!QueryMode::BottomUp.compatible_with(Stratum::S5));
+    }
+
+    // Verifies: INV-QUERY-005 — TopDown supports all strata
+    #[test]
+    fn topdown_compatibility() {
+        assert!(QueryMode::TopDown.compatible_with(Stratum::S0));
+        assert!(QueryMode::TopDown.compatible_with(Stratum::S1));
+        assert!(QueryMode::TopDown.compatible_with(Stratum::S2));
+        assert!(QueryMode::TopDown.compatible_with(Stratum::S3));
+        assert!(QueryMode::TopDown.compatible_with(Stratum::S4));
+        assert!(QueryMode::TopDown.compatible_with(Stratum::S5));
+    }
+
+    // Verifies: INV-QUERY-005 — Incremental supports S0, S1 only (CALM-compliant)
+    #[test]
+    fn incremental_compatibility() {
+        assert!(QueryMode::Incremental.compatible_with(Stratum::S0));
+        assert!(QueryMode::Incremental.compatible_with(Stratum::S1));
+        assert!(!QueryMode::Incremental.compatible_with(Stratum::S2));
+        assert!(!QueryMode::Incremental.compatible_with(Stratum::S3));
+        assert!(!QueryMode::Incremental.compatible_with(Stratum::S4));
+        assert!(!QueryMode::Incremental.compatible_with(Stratum::S5));
+    }
+
+    // Verifies: INV-QUERY-005 — Incremental is a subset of BottomUp capability
+    #[test]
+    fn incremental_subset_of_bottomup() {
+        for stratum in &[
+            Stratum::S0,
+            Stratum::S1,
+            Stratum::S2,
+            Stratum::S3,
+            Stratum::S4,
+            Stratum::S5,
+        ] {
+            if QueryMode::Incremental.compatible_with(*stratum) {
+                assert!(
+                    QueryMode::BottomUp.compatible_with(*stratum),
+                    "Incremental accepts {:?} but BottomUp does not — invariant violated",
+                    stratum
+                );
+            }
+        }
+    }
+
+    // Verifies: INV-QUERY-005 — BottomUp is a subset of TopDown capability
+    #[test]
+    fn bottomup_subset_of_topdown() {
+        for stratum in &[
+            Stratum::S0,
+            Stratum::S1,
+            Stratum::S2,
+            Stratum::S3,
+            Stratum::S4,
+            Stratum::S5,
+        ] {
+            if QueryMode::BottomUp.compatible_with(*stratum) {
+                assert!(
+                    QueryMode::TopDown.compatible_with(*stratum),
+                    "BottomUp accepts {:?} but TopDown does not — invariant violated",
+                    stratum
+                );
+            }
+        }
+    }
+
+    // Verifies: ADR-QUERY-002 — BottomUp as Stage 0 default supports Stage 0 evaluable strata
+    #[test]
+    fn bottomup_covers_stage0_evaluable() {
+        assert!(QueryMode::BottomUp.compatible_with(Stratum::S0));
+        assert!(QueryMode::BottomUp.compatible_with(Stratum::S1));
+        // S0 and S1 are the Stage 0 evaluable strata
+        assert!(Stratum::S0.is_evaluable_stage0());
+        assert!(Stratum::S1.is_evaluable_stage0());
+    }
+
+    #[test]
+    fn query_mode_names() {
+        assert!(QueryMode::BottomUp.name().contains("BottomUp"));
+        assert!(QueryMode::TopDown.name().contains("TopDown"));
+        assert!(QueryMode::Incremental.name().contains("Incremental"));
     }
 
     // -------------------------------------------------------------------

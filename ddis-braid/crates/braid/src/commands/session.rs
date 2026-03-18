@@ -17,6 +17,7 @@ use braid_kernel::layout::TxFile;
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
+use crate::output::{AgentOutput, CommandOutput};
 
 use super::{harvest, seed};
 
@@ -36,7 +37,7 @@ pub fn run_start(
     task: Option<&str>,
     budget: usize,
     agent_name: &str,
-) -> Result<String, BraidError> {
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -111,14 +112,14 @@ pub fn run_start(
     let last_harvest = last_harvest_wall_time(&store);
     let harvest_age = format_age(last_harvest);
 
-    let mut out = String::new();
-    out.push_str("Session started.\n");
-    out.push_str(&inject_output.human);
-    out.push_str(&format!(
+    let mut human = String::new();
+    human.push_str("Session started.\n");
+    human.push_str(&inject_output.human);
+    human.push_str(&format!(
         "Task: {} (source: {})\n",
         resolved_task, task_source
     ));
-    out.push_str(&format!(
+    human.push_str(&format!(
         "Store: {} datoms, {} entities | Last harvest: {} | {} tx since\n",
         store.len(),
         store.entity_count(),
@@ -129,14 +130,43 @@ pub fn run_start(
     // B3: Show git diff since last session
     let git_diff = git_changes_summary();
     if !git_diff.is_empty() {
-        out.push_str(&git_diff);
+        human.push_str(&git_diff);
     }
 
-    out.push_str(
+    human.push_str(
         "Next: braid observe \"...\" to capture knowledge | braid session end when done\n",
     );
 
-    Ok(out)
+    let json = serde_json::json!({
+        "action": "session_start",
+        "task": resolved_task,
+        "task_source": task_source,
+        "session_entity": session_ident,
+        "datoms": store.len(),
+        "entities": store.entity_count(),
+        "tx_since_harvest": tx_since_harvest,
+        "last_harvest": harvest_age,
+    });
+
+    let agent_out = AgentOutput {
+        context: format!(
+            "session started: \"{}\" ({} datoms, {} entities)",
+            resolved_task,
+            store.len(),
+            store.entity_count(),
+        ),
+        content: format!(
+            "task: {} (source: {}) | harvest: {} ({} tx since)",
+            resolved_task, task_source, harvest_age, tx_since_harvest,
+        ),
+        footer: "observe: braid observe \"...\" | end: braid session end".to_string(),
+    };
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
+        human,
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -153,7 +183,7 @@ pub fn run_end(
     task: Option<&str>,
     budget: usize,
     agent_name: &str,
-) -> Result<String, BraidError> {
+) -> Result<CommandOutput, BraidError> {
     // Check for observations since last harvest — refuse if nothing to harvest
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
@@ -189,25 +219,46 @@ pub fn run_end(
         layout.write_tx(&tx)?;
     }
 
-    let mut out = String::new();
-    out.push_str("Ending session...\n\n");
+    let mut human = String::new();
+    human.push_str("Ending session...\n\n");
 
     // Step 1: Harvest with commit (Stage 0: force=true bypasses guard)
     let harvest_output = harvest::run(path, agent_name, task, &[], true, true)?;
-    out.push_str(&harvest_output.human);
+    human.push_str(&harvest_output.human);
 
     // Step 2: Re-inject seed for next session
     // Reload store to include the harvest commit just written
     let task_for_inject = task.unwrap_or("continue");
     let inject_output = seed::run_inject(path, inject_path, task_for_inject, budget)?;
-    out.push_str(&format!("\nRefreshed seed: {}", inject_output.human));
+    human.push_str(&format!("\nRefreshed seed: {}", inject_output.human));
 
     // Step 3: Git guidance (advisory only — does NOT run git commands)
-    out.push_str("\nNext steps (manual):\n");
-    out.push_str("  git add -A && git commit -m \"Session NNN: ...\"\n");
-    out.push_str("  git push\n");
+    human.push_str("\nNext steps (manual):\n");
+    human.push_str("  git add -A && git commit -m \"Session NNN: ...\"\n");
+    human.push_str("  git push\n");
 
-    Ok(out)
+    let json = serde_json::json!({
+        "action": "session_end",
+        "harvest": harvest_output.json,
+        "seed_inject": inject_output.json,
+        "tx_since_harvest": tx_since_harvest,
+    });
+
+    let agent_out = AgentOutput {
+        context: "session ended: harvested + seed refreshed".to_string(),
+        content: format!(
+            "{} tx harvested | seed re-injected to {}",
+            tx_since_harvest,
+            inject_path.display(),
+        ),
+        footer: "git: git add -A && git commit && git push".to_string(),
+    };
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
+        human,
+    })
 }
 
 // ---------------------------------------------------------------------------

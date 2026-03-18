@@ -70,4 +70,4 @@ pub use graph::{
     FiedlerResult, PersistenceDiagram, RicciSummary, SheafCohomology, SparseLaplacian,
     SpectralDecomposition, StructuralComplexity,
 };
-pub use stratum::{check_stage0, classify, Stratum};
+pub use stratum::{check_stage0, classify, QueryMode, Stratum};

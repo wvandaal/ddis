@@ -35,7 +35,7 @@ pub struct CreateArgs<'a> {
 }
 
 /// Run `braid spec create`.
-pub fn run_create(args: CreateArgs<'_>) -> Result<String, BraidError> {
+pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
     // Auto-detect type from ID prefix
     let element_type = if args.id.starts_with("INV-") {
         "invariant"
@@ -182,15 +182,32 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<String, BraidError> {
 
     // Reload to get updated counts
     let store = layout.load_store()?;
+    let total = store.datom_set().len();
 
-    Ok(format!(
+    let human = format!(
         "created: {} ({}, namespace={})\nstore: +{} datoms ({} total)\n\nnext: braid trace --commit (to link implementations) | ref: C5 traceability\n",
-        ident,
-        element_type,
-        namespace,
-        datom_count,
-        store.datom_set().len(),
-    ))
+        ident, element_type, namespace, datom_count, total,
+    );
+
+    let json = serde_json::json!({
+        "ident": ident,
+        "id": args.id,
+        "element_type": element_type,
+        "namespace": namespace,
+        "datom_count": datom_count,
+        "store_total": total,
+    });
+
+    let agent = AgentOutput {
+        context: format!(
+            "spec create: {} ({}, ns={})",
+            ident, element_type, namespace
+        ),
+        content: format!("+{} datoms ({} total)", datom_count, total),
+        footer: "trace: braid trace --commit | review: braid spec review".to_string(),
+    };
+
+    Ok(CommandOutput { json, agent, human })
 }
 
 // ---------------------------------------------------------------------------

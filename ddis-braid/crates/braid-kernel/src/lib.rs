@@ -126,17 +126,17 @@ pub use proposal::{
     proposal_to_datoms, reject_proposal,
 };
 pub use query::{
-    aggregate, betweenness_centrality, cheeger, conflict_sheaf, constant_sheaf, critical_path,
-    density, edge_laplacian, evaluate, fiedler, fiedler_from_spectrum, first_betti_number,
-    graph_laplacian, heat_kernel_from_spectrum, heat_kernel_trace, hits, k_core_decomposition,
-    k_shell, kirchhoff_from_partial_spectrum, kirchhoff_from_spectrum, kirchhoff_index,
-    lanczos_k_smallest, ollivier_ricci_curvature, pagerank, persistence_distance,
-    persistent_homology, ricci_curvature_adaptive, ricci_summary, scc, spectral_decomposition,
-    spectral_decomposition_adaptive, structural_complexity, topo_sort, total_persistence,
-    tx_barcode, tx_filtration, AggregateFunction, AggregateSpec, Binding, BirthDeath,
-    CellularSheaf, CheegerResult, Clause, DenseMatrix, DiGraph, FiedlerResult, FindSpec, Pattern,
-    PersistenceDiagram, QueryExpr, QueryResult, RicciSummary, SheafCohomology, SparseLaplacian,
-    SpectralDecomposition, StructuralComplexity,
+    aggregate, betweenness_centrality, check_stage0, cheeger, classify, conflict_sheaf,
+    constant_sheaf, critical_path, density, edge_laplacian, evaluate, fiedler,
+    fiedler_from_spectrum, first_betti_number, graph_laplacian, heat_kernel_from_spectrum,
+    heat_kernel_trace, hits, k_core_decomposition, k_shell, kirchhoff_from_partial_spectrum,
+    kirchhoff_from_spectrum, kirchhoff_index, lanczos_k_smallest, ollivier_ricci_curvature,
+    pagerank, persistence_distance, persistent_homology, ricci_curvature_adaptive, ricci_summary,
+    scc, spectral_decomposition, spectral_decomposition_adaptive, structural_complexity, topo_sort,
+    total_persistence, tx_barcode, tx_filtration, AggregateFunction, AggregateSpec, Binding,
+    BirthDeath, CellularSheaf, CheegerResult, Clause, DenseMatrix, DiGraph, FiedlerResult,
+    FindSpec, Pattern, PersistenceDiagram, QueryExpr, QueryMode, QueryResult, RicciSummary,
+    SheafCohomology, SparseLaplacian, SpectralDecomposition, Stratum, StructuralComplexity,
 };
 pub use resolution::{
     conflict_to_datoms, detect_conflicts, has_conflict, live_entity, resolve, resolve_with_trail,
@@ -154,8 +154,11 @@ pub use seed::{
     ContextSection, ProjectionLevel, SchemaNeighborhood, SeedOutput, SeedVerification, StateEntry,
 };
 pub use signal::{
-    corrective_footer, count_signals, detect_confusion, dispatch, signal_to_datoms,
-    ConfusionDetector, Severity, Signal, SignalAction, SignalType,
+    corrective_footer, count_signals, detect_aleatory, detect_all_divergence, detect_axiological,
+    detect_confusion, detect_consequential, detect_logical, detect_procedural,
+    detect_procedural_with_threshold, detect_temporal, detect_temporal_with_threshold, dispatch,
+    signal_to_datoms, ConfusionDetector, DivergenceType, Severity, Signal, SignalAction,
+    SignalType,
 };
 pub use stage::{capabilities, max_stage, stage_name};
 pub use store::{
