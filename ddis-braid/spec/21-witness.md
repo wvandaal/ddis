@@ -414,10 +414,322 @@ stale → valid (re-witnessed after challenge confirms)
 {valid, stale} → contradicted (conflicting verdicts from different agents)
 ```
 
-### §21.7 Uncertainty Register
+---
+
+## §21.8 Closing the Five Verification Gaps
+
+The verification stack audit (Session 024) identified five gaps where errors can
+slip through ALL existing layers. This section specifies the solution for each gap,
+with the principle: **every gap gets exactly one mechanism that closes it completely**.
+
+### Gap 1: Test-to-Falsification Alignment → Level 0 Challenge (INV-WITNESS-002)
+
+**Already specified above.** The falsification alignment score A(test, falsification)
+verifies that the test's assertions exercise the invariant's violation condition.
+Staged: keyword overlap (S1) → LLM-as-judge (S2) → SMT entailment (S3+).
+
+No additional invariants needed — INV-WITNESS-002 fully closes this gap.
+
+### Gap 2: Test Content Stability → Triple-Hash Lock (INV-WITNESS-001)
+
+**Already specified above.** The test_body_hash component of the FBW triple detects
+any modification to the test body, including weakening. Combined with INV-WITNESS-005
+(stale witnesses reduce F(S)), weakened tests cause immediate fitness degradation.
+
+No additional invariants needed — INV-WITNESS-001 + INV-WITNESS-005 fully close this gap.
+
+### Gap 3: Harness/Property Correctness → Verification Regression Detection
+
+**The problem**: A Kani harness or proptest property can verify the WRONG thing.
+The INV-MERGE-002 Kani proof checked frontier monotonicity instead of cascade
+completeness for months. No existing layer detects "proof verifies wrong property."
+
+**The solution**: Extend the FBW to cover harnesses and properties, not just tests.
+The falsification alignment check (Level 0) applies to ALL verification evidence:
+
+#### INV-WITNESS-008: Harness-Falsification Binding
+
+**Traces to**: SEED.md §3 (C6 Falsifiability), INV-VERIFICATION-001
+**Type**: Invariant
+**Stage**: 1
+**Statement**: Every V:KANI harness and V:MODEL model check that claims to verify an
+invariant must have a corresponding FBW with falsification alignment score ≥ 0.5
+(property coverage level). The harness's assertions must be semantically related to
+the invariant's falsification condition.
+
+```
+∀ harness h with spec_ref(h) = inv:
+  ∃ fbw ∈ FBW(inv):
+    fbw.depth ∈ {L3, L4}
+    fbw.test_body_hash = BLAKE3(normalize(body(h)))
+    A(h, inv.falsification) ≥ 0.5
+```
+
+**Falsification**: A Kani harness references INV-MERGE-002 (cascade completeness) but
+its assertions only check `store.len() >= pre_len` (frontier monotonicity, which is
+INV-STORE-001). Alignment score against cascade falsification = 0.1. This should be
+detected and flagged.
+**Verification**: V:PROP — construct harness with mismatched assertions, verify A < 0.5.
+
+---
+
+### Gap 4: Systematic Evaluation Bias → Cognitive Independence
+
+**The problem**: The Go CLI's 3-run majority vote calls the SAME model 3 times within
+the SAME conversation context. At turn 45 with depleted k*, this produces 3 correlated
+sycophantic responses — not independence. The prompt-optimization theory (k* decay,
+basin trapping) predicts this: a context-depleted agent cannot switch from implementation
+mode to adversarial verification mode.
+
+**The solution**: Challenge execution MUST occur in cognitively independent contexts.
+In braid, this means Agent subagents with:
+- **Fresh k*** — no shared conversation history (full attention budget)
+- **No self-serving bias** — subagent never saw the implementation reasoning
+- **Verification-specific basin** — prompt targeted at finding violations, not confirming
+
+#### INV-WITNESS-009: Cognitive Independence of Challenge
+
+**Traces to**: SEED.md §7 (Self-Improvement Loop), prompt-optimization k* theory
+**Type**: Invariant
+**Stage**: 1
+**Statement**: Every challenge evaluation at Level 0 (falsification alignment) and
+Level 4 (practical execution) MUST be executed in a context that is cognitively
+independent from the context that produced the artifact being verified. Two contexts
+are cognitively independent iff:
+
+```
+independent(ctx_producer, ctx_verifier) ⟺
+  (1) ctx_verifier.conversation_history ∩ ctx_producer.conversation_history = ∅
+      (no shared turns — fresh k*)
+  (2) ctx_verifier.prompt does NOT contain ctx_producer.reasoning
+      (no access to implementation rationale — prevents self-serving bias)
+  (3) ctx_verifier.prompt.basin ∈ {adversarial, verification}
+      (targeted at finding violations, not confirming expectations)
+```
+
+In the braid architecture, this is satisfied by spawning Agent subagents for challenge
+evaluation. Each subagent:
+- Starts with an empty conversation (full k* = 1.0)
+- Receives ONLY: invariant statement, falsification condition, test source code
+- Does NOT receive: implementation reasoning, prior conversation, other witnesses
+- Has a verification-specific system prompt emphasizing adversarial evaluation
+
+**Falsification**: A challenge evaluation is performed within the same conversation
+context that produced the code or test being evaluated. The evaluator has access to
+the implementation reasoning and may rubber-stamp due to self-serving bias or
+k*-depleted sycophancy.
+**Verification**: V:PROP — verify that challenge execution spawns a separate context
+(Agent tool call with no shared state). V:ARCH — architectural review confirming no
+shared mutable state between producer and verifier contexts.
+
+---
+
+#### INV-WITNESS-010: Decorrelated Multi-Verdict
+
+**Traces to**: APP-INV-055 (Statistical Soundness), prompt-optimization basin theory
+**Type**: Invariant
+**Stage**: 1
+**Statement**: When multiple challenge verdicts are aggregated (majority vote), each
+verdict MUST come from a decorrelated cognitive context. Specifically:
+
+```
+∀ majority_vote(fbw) with verdicts v₁, v₂, ..., vₙ:
+  ∀ i ≠ j: independent(ctx(vᵢ), ctx(vⱼ))
+```
+
+Three API calls to the same model within the same conversation are NOT decorrelated
+(they share context, k*, and basin). Three independent Agent subagents ARE decorrelated
+(each has fresh context, full k*, and can be prompted differently).
+
+**Implementation**: At Stage 1, spawn 3 independent subagents using the Agent tool:
+- Subagent 1: "Does this test verify the falsification condition? Respond: yes/no/unclear."
+- Subagent 2: "What property does this test actually verify? Compare to the falsification."
+- Subagent 3: "Can you construct an input that satisfies the falsification condition but passes the test?"
+
+The three prompts are deliberately DIFFERENT (not the same prompt 3x) to further
+decorrelate responses. The third prompt is adversarial — it asks the model to BREAK
+the test, not confirm it.
+
+**Falsification**: A majority vote aggregates verdicts from the same conversation
+context (e.g., 3 sequential LLM calls within a single Agent), producing correlated
+outputs.
+**Verification**: V:PROP — verify that majority_vote implementation spawns N independent
+Agents. V:ARCH — no shared mutable state between verdict contexts.
+
+---
+
+#### ADR-WITNESS-004: Subagent-Based Challenge over Same-Context Majority Vote
+
+**Traces to**: prompt-optimization skill §trajectory-dynamics, APP-ADR-039
+**Stage**: 1
+
+##### Problem
+The Go CLI's 3-run majority vote (APP-INV-055) calls the same model 3 times with the
+same prompt in the same session. The prompt-optimization theory predicts that at high
+turn counts (k* < 0.5), the 3 calls produce correlated outputs because they share
+the same degraded context. This is systematic evaluation bias — the majority vote
+provides statistical confidence that is illusory because the samples are not independent.
+
+##### Options
+A) **Same-context majority vote** (Go CLI pattern) — 3 API calls, same prompt, same session.
+B) **Multi-model majority vote** — 3 API calls to DIFFERENT models (Haiku, Sonnet, Opus).
+C) **Independent subagent vote** — 3 Agent subagents, each with fresh context, different
+   prompts, no access to implementation reasoning.
+
+##### Decision
+**Option C.** Independent subagent vote. Each subagent is:
+- A fresh Agent tool invocation (full k* = 1.0, empty conversation history)
+- Given a DIFFERENT evaluation prompt (one confirmatory, one comparative, one adversarial)
+- Provided ONLY the invariant, falsification, and test code (no implementation context)
+
+This provides genuine statistical independence because the cognitive contexts are
+structurally separated, not just API-call separated. The cost is higher (3 Agent
+invocations vs 3 API calls) but the independence guarantee is absolute rather than
+statistical.
+
+##### Falsification
+The subagent-based approach is too slow for bulk evaluation (>10 seconds per invariant
+vs <1 second for API calls). Mitigation: use the fast API-call approach for Levels 1-3
+(which are mechanical, not judgment-based) and reserve subagent evaluation for Levels 0
+and 4-5 (which require judgment). This gives O(1) latency for structural checks and
+O(N_subagents) latency only for the semantic checks that actually benefit from independence.
+
+---
+
+### Gap 5: Semantic Implementation Correctness → Behavioral Boundary Testing
+
+**The problem**: All structural layers verify that code EXISTS and LINKS to spec, but
+none verify that the code DOES WHAT THE SPEC SAYS. The bilateral scan sees "INV-STORE-001
+is implemented in store.rs" but never runs a test to check append-only behavior.
+
+**The solution**: The challenge protocol's Level 4 (Practical Execution) already addresses
+this — it runs the actual test. But the gap is that Level 4 only runs if a test EXISTS.
+The deeper issue is: what about invariants with no test at all?
+
+#### INV-WITNESS-011: Verification Completeness Guard
+
+**Traces to**: INV-BILATERAL-001 (Fitness Convergence), SEED.md §3 (C5 Traceability)
+**Type**: Invariant
+**Stage**: 1
+**Statement**: Every Stage N invariant (where N ≤ current stage) MUST have at least one
+FBW at depth L2+ (test or higher). An invariant at the current stage with only L1
+witnesses (comments) or no witnesses at all is a verification gap that MUST be surfaced
+as a signal.
+
+```
+∀ inv with stage(inv) ≤ current_stage:
+  max_depth(FBW(inv)) ≥ L2
+  ∨ ∃ signal(inv, type=:signal.type/verification-gap)
+```
+
+**Falsification**: An invariant at the current stage has only L1 witnesses but no
+verification gap signal has been emitted.
+**Verification**: V:PROP — construct store with L1-only invariants, verify signal emitted.
+
+---
+
+#### INV-WITNESS-012: Behavioral Boundary Test Generation
+
+**Traces to**: SEED.md §3 (C6 Falsifiability), INV-VERIFICATION-001
+**Type**: Invariant
+**Stage**: 2+
+**Statement**: For every invariant with a machine-parseable falsification condition, the
+system CAN generate a behavioral boundary test — a test that exercises the exact
+boundary between compliant and non-compliant behavior as defined by the falsification.
+
+```
+∀ inv with parseable(inv.falsification):
+  ∃ test_template = generate_boundary_test(inv.falsification)
+  test_template.positive_case satisfies inv.statement
+  test_template.negative_case satisfies inv.falsification
+```
+
+At Stage 2, this uses the existing verification compiler (compiler.rs) pattern detection
+plus LLM-as-judge generation. At Stage 3+, this uses SMT-guided test generation.
+
+**Falsification**: An invariant has a parseable falsification condition but the system
+cannot generate a test template that distinguishes compliant from non-compliant behavior.
+**Verification**: V:PROP — use compiler pattern detection to generate tests, verify they
+compile and exercise the boundary.
+
+---
+
+### §21.9 Negative Cases (Extended)
+
+#### NEG-WITNESS-004: No Self-Witnessing
+
+**Traces to**: INV-WITNESS-009 (Cognitive Independence)
+**Type**: Negative Case
+**Statement**: The agent that PRODUCES an implementation artifact (code, test, harness)
+MUST NOT be the sole challenger of its own work. At least one challenge verdict must
+come from a cognitively independent context.
+**Violation**: All challenge verdicts for an FBW come from the same conversation context
+that produced the code being verified.
+
+---
+
+#### NEG-WITNESS-005: No Tautological Verification
+
+**Traces to**: INV-WITNESS-002 (Falsification Alignment), NEG-SEED-002
+**Type**: Negative Case
+**Statement**: A test that always passes regardless of implementation behavior (e.g.,
+`assert!(true)`, `assert!(result.is_ok())` when result is always Ok) is NOT valid
+verification evidence. The FBW alignment score for such tests must be 0.
+**Violation**: An FBW exists with `alignment_score > 0` for a test whose assertions
+are tautological (cannot fail for any implementation of the function under test).
+
+---
+
+#### NEG-WITNESS-006: No Correlated Majority
+
+**Traces to**: INV-WITNESS-010 (Decorrelated Multi-Verdict)
+**Type**: Negative Case
+**Statement**: A majority vote where all verdicts come from the same cognitive context
+(same conversation, same k*, same basin) is NOT a valid majority. The vote provides
+no more confidence than a single evaluation.
+**Violation**: A majority_vote result is recorded with `confidence = 0.95` (unanimous)
+but all 3 verdicts were produced within the same Agent invocation.
+
+---
+
+### §21.10 Failure Modes Addressed
+
+| FM ID | Gap | Failure Mode | Solution | Detection |
+|-------|-----|-------------|----------|-----------|
+| FM-027 | 1 | Test names invariant but verifies nothing relevant | INV-WITNESS-002: falsification alignment | Level 0 keyword/LLM/SMT check |
+| FM-028 | 2 | Test weakened (assertions loosened) to hide bug | INV-WITNESS-001: test_body_hash change | Triple-hash auto-invalidation |
+| FM-029 | 3 | Kani harness proves wrong property | INV-WITNESS-008: harness-falsification binding | Alignment score for harnesses |
+| FM-030 | 4 | LLM rubber-stamps bulk witnesses (sycophancy) | INV-WITNESS-009 + 010: cognitive independence | Subagent decorrelated evaluation |
+| FM-031 | 5 | Code exists, links to spec, but is semantically wrong | INV-WITNESS-011: verification completeness + Level 4 | Gap signal + practical execution |
+| FM-032 | 5 | No test exists for current-stage invariant | INV-WITNESS-011: completeness guard | Signal emission for L1-only |
+| FM-033 | 3+5 | Generated test is tautological (assert!(true)) | NEG-WITNESS-005 + INV-WITNESS-002 | Alignment score = 0 for tautologies |
+
+---
+
+### §21.11 Complete Gap Closure Matrix
+
+| Gap | Invariants | ADRs | NEGs | Status |
+|-----|-----------|------|------|--------|
+| 1: Test-Falsification Alignment | INV-WITNESS-002 | ADR-WITNESS-002 | NEG-WITNESS-005 | CLOSED |
+| 2: Test Content Stability | INV-WITNESS-001, 005, 006 | ADR-WITNESS-001 | NEG-WITNESS-002 | CLOSED |
+| 3: Harness/Property Correctness | INV-WITNESS-008 | — | NEG-WITNESS-005 | CLOSED |
+| 4: Systematic Evaluation Bias | INV-WITNESS-009, 010 | ADR-WITNESS-004 | NEG-WITNESS-004, 006 | CLOSED |
+| 5: Semantic Impl Correctness | INV-WITNESS-011, 012 | — | — | CLOSED |
+
+All five gaps have at least one invariant with a falsification condition, at least one
+detection mechanism, and a clear implementation path. No gap relies solely on human
+review or process discipline — each has a mechanical detection component.
+
+---
+
+### §21.12 Uncertainty Register (Extended)
 
 | ID | Element | Confidence | Resolution Trigger |
 |----|---------|------------|-------------------|
 | UNC-WITNESS-001 | Keyword extraction quality for Level 0 alignment | 0.6 | Stage 2 LLM-as-judge replaces keyword matching |
 | UNC-WITNESS-002 | Whitespace normalization completeness | 0.8 | Edge case testing with macro-heavy Rust code |
 | UNC-WITNESS-003 | BLAKE3 collision resistance for test bodies | 0.99 | Theoretical — 2^128 collision resistance |
+| UNC-WITNESS-004 | Subagent latency for bulk evaluation | 0.7 | Benchmark: 3 subagents × 145 invariants at Stage 1 |
+| UNC-WITNESS-005 | Adversarial prompt effectiveness for decorrelated vote | 0.6 | Empirical testing of "break this test" prompt quality |
+| UNC-WITNESS-006 | Tautology detection accuracy (assert!(true) patterns) | 0.8 | AST-level assertion analysis at Stage 2 |
+| UNC-WITNESS-007 | Boundary test generation coverage for parseable falsifications | 0.5 | Depends on compiler.rs pattern detection maturity |

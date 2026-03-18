@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810296/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DOCS: Add FM-027 through FM-033 to FAILURE_MODES.md (7 new failure modes)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bb24cb525b7c385108a790004e556dfbde281fb790ca882f263cd3ef8ef6651a" :a :db/ident :v :task/t-ce16 :op :assert}
+   {:e #blake3 "bb24cb525b7c385108a790004e556dfbde281fb790ca882f263cd3ef8ef6651a" :a :task/created-at :v 1773810291 :op :assert}
+   {:e #blake3 "bb24cb525b7c385108a790004e556dfbde281fb790ca882f263cd3ef8ef6651a" :a :task/id :v "t-ce16" :op :assert}
+   {:e #blake3 "bb24cb525b7c385108a790004e556dfbde281fb790ca882f263cd3ef8ef6651a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "bb24cb525b7c385108a790004e556dfbde281fb790ca882f263cd3ef8ef6651a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bb24cb525b7c385108a790004e556dfbde281fb790ca882f263cd3ef8ef6651a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bb24cb525b7c385108a790004e556dfbde281fb790ca882f263cd3ef8ef6651a" :a :task/title :v "DOCS: Add FM-027 through FM-033 to FAILURE_MODES.md (7 new failure modes)" :op :assert}
+   {:e #blake3 "bb24cb525b7c385108a790004e556dfbde281fb790ca882f263cd3ef8ef6651a" :a :task/type :v :task.type/docs :op :assert}
+ ]}

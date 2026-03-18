@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773810272/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "NEG-WITNESS-005: No Tautological Verification. Tests that always pass (assert!(true)) get alignment_score = 0. Not valid evidence regardless of depth level."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f4b3fa97d189761d0ad26fd85a2a62ee75ca48ecde76fa791dc445ed9abd74bb" :a :db/doc :v "NEG-WITNESS-005: No Tautological Verification. Tests that always pass (assert!(true)) get alignment_score = 0. Not valid evidence regardless of depth level." :op :assert}
+   {:e #blake3 "f4b3fa97d189761d0ad26fd85a2a62ee75ca48ecde76fa791dc445ed9abd74bb" :a :db/ident :v :observation/neg-witness-005-no-tautological-verification-tests-that-al :op :assert}
+   {:e #blake3 "f4b3fa97d189761d0ad26fd85a2a62ee75ca48ecde76fa791dc445ed9abd74bb" :a :exploration/body :v "NEG-WITNESS-005: No Tautological Verification. Tests that always pass (assert!(true)) get alignment_score = 0. Not valid evidence regardless of depth level." :op :assert}
+   {:e #blake3 "f4b3fa97d189761d0ad26fd85a2a62ee75ca48ecde76fa791dc445ed9abd74bb" :a :exploration/category :v :exploration.cat/definition :op :assert}
+   {:e #blake3 "f4b3fa97d189761d0ad26fd85a2a62ee75ca48ecde76fa791dc445ed9abd74bb" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "f4b3fa97d189761d0ad26fd85a2a62ee75ca48ecde76fa791dc445ed9abd74bb" :a :exploration/content-hash :v #bytes "8247dcbcc89b55a3072fabc6de1f514aff5f64e02e551424aacca4d68c84423d" :op :assert}
+   {:e #blake3 "f4b3fa97d189761d0ad26fd85a2a62ee75ca48ecde76fa791dc445ed9abd74bb" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f4b3fa97d189761d0ad26fd85a2a62ee75ca48ecde76fa791dc445ed9abd74bb" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f4b3fa97d189761d0ad26fd85a2a62ee75ca48ecde76fa791dc445ed9abd74bb" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

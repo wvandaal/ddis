@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773810270/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-WITNESS-012: Behavioral Boundary Test Generation. For parseable falsification conditions, system generates boundary tests distinguishing compliant from non-compliant. Uses compiler.rs patterns + LLM at Stage 2+. Closes Gap 5."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "af4fb24ca84ffeff3ed1febeae3151fa1e7d782858fe4d4946867d8c238a8399" :a :db/doc :v "INV-WITNESS-012: Behavioral Boundary Test Generation. For parseable falsification conditions, system generates boundary tests distinguishing compliant from non-compliant. Uses compiler.rs patterns + LLM at Stage 2+. Closes Gap 5." :op :assert}
+   {:e #blake3 "af4fb24ca84ffeff3ed1febeae3151fa1e7d782858fe4d4946867d8c238a8399" :a :db/ident :v :observation/inv-witness-012-behavioral-boundary-test-generation-for-pa :op :assert}
+   {:e #blake3 "af4fb24ca84ffeff3ed1febeae3151fa1e7d782858fe4d4946867d8c238a8399" :a :exploration/body :v "INV-WITNESS-012: Behavioral Boundary Test Generation. For parseable falsification conditions, system generates boundary tests distinguishing compliant from non-compliant. Uses compiler.rs patterns + LLM at Stage 2+. Closes Gap 5." :op :assert}
+   {:e #blake3 "af4fb24ca84ffeff3ed1febeae3151fa1e7d782858fe4d4946867d8c238a8399" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "af4fb24ca84ffeff3ed1febeae3151fa1e7d782858fe4d4946867d8c238a8399" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "af4fb24ca84ffeff3ed1febeae3151fa1e7d782858fe4d4946867d8c238a8399" :a :exploration/content-hash :v #bytes "1d4c282cf99c413759e5b53a1a8d257062c6cfaa1766a3c87aff62a237f9f173" :op :assert}
+   {:e #blake3 "af4fb24ca84ffeff3ed1febeae3151fa1e7d782858fe4d4946867d8c238a8399" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "af4fb24ca84ffeff3ed1febeae3151fa1e7d782858fe4d4946867d8c238a8399" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "af4fb24ca84ffeff3ed1febeae3151fa1e7d782858fe4d4946867d8c238a8399" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

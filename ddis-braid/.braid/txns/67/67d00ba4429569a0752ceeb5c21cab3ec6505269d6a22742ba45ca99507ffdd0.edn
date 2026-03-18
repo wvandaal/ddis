@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810294/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: INV-WITNESS-010 decorrelated prompts produce different verdicts (proptest)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "db5ef56b67d6ab308f67b2b267a103851029e99662411a3567c75d0674b23314" :a :db/ident :v :task/t-f79c :op :assert}
+   {:e #blake3 "db5ef56b67d6ab308f67b2b267a103851029e99662411a3567c75d0674b23314" :a :task/created-at :v 1773810290 :op :assert}
+   {:e #blake3 "db5ef56b67d6ab308f67b2b267a103851029e99662411a3567c75d0674b23314" :a :task/id :v "t-f79c" :op :assert}
+   {:e #blake3 "db5ef56b67d6ab308f67b2b267a103851029e99662411a3567c75d0674b23314" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "db5ef56b67d6ab308f67b2b267a103851029e99662411a3567c75d0674b23314" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "db5ef56b67d6ab308f67b2b267a103851029e99662411a3567c75d0674b23314" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "db5ef56b67d6ab308f67b2b267a103851029e99662411a3567c75d0674b23314" :a :task/title :v "TEST: INV-WITNESS-010 decorrelated prompts produce different verdicts (proptest)" :op :assert}
+   {:e #blake3 "db5ef56b67d6ab308f67b2b267a103851029e99662411a3567c75d0674b23314" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810289/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS: Implement self-witnessing guard — reject challenges from same context (NEG-WITNESS-004)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6a8999c76bc6c9fd3afdee66ddd220d0751b239bffb5b358791baa4cafacdd2a" :a :db/ident :v :task/t-6e38 :op :assert}
+   {:e #blake3 "6a8999c76bc6c9fd3afdee66ddd220d0751b239bffb5b358791baa4cafacdd2a" :a :task/created-at :v 1773810287 :op :assert}
+   {:e #blake3 "6a8999c76bc6c9fd3afdee66ddd220d0751b239bffb5b358791baa4cafacdd2a" :a :task/id :v "t-6e38" :op :assert}
+   {:e #blake3 "6a8999c76bc6c9fd3afdee66ddd220d0751b239bffb5b358791baa4cafacdd2a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6a8999c76bc6c9fd3afdee66ddd220d0751b239bffb5b358791baa4cafacdd2a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6a8999c76bc6c9fd3afdee66ddd220d0751b239bffb5b358791baa4cafacdd2a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6a8999c76bc6c9fd3afdee66ddd220d0751b239bffb5b358791baa4cafacdd2a" :a :task/title :v "WITNESS: Implement self-witnessing guard — reject challenges from same context (NEG-WITNESS-004)" :op :assert}
+   {:e #blake3 "6a8999c76bc6c9fd3afdee66ddd220d0751b239bffb5b358791baa4cafacdd2a" :a :task/type :v :task.type/task :op :assert}
+ ]}

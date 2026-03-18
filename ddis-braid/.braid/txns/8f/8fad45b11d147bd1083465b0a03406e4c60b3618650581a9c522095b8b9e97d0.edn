@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773810273/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "NEG-WITNESS-006: No Correlated Majority. Majority vote from same context provides no more confidence than single eval. Must be decorrelated (different subagent invocations)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d9b45a25259d3bdac77cea0808eac22aed82e84bb6b2c210a7b2c64e35d5b083" :a :db/doc :v "NEG-WITNESS-006: No Correlated Majority. Majority vote from same context provides no more confidence than single eval. Must be decorrelated (different subagent invocations)." :op :assert}
+   {:e #blake3 "d9b45a25259d3bdac77cea0808eac22aed82e84bb6b2c210a7b2c64e35d5b083" :a :db/ident :v :observation/neg-witness-006-no-correlated-majority-majority-vote-from :op :assert}
+   {:e #blake3 "d9b45a25259d3bdac77cea0808eac22aed82e84bb6b2c210a7b2c64e35d5b083" :a :exploration/body :v "NEG-WITNESS-006: No Correlated Majority. Majority vote from same context provides no more confidence than single eval. Must be decorrelated (different subagent invocations)." :op :assert}
+   {:e #blake3 "d9b45a25259d3bdac77cea0808eac22aed82e84bb6b2c210a7b2c64e35d5b083" :a :exploration/category :v :exploration.cat/definition :op :assert}
+   {:e #blake3 "d9b45a25259d3bdac77cea0808eac22aed82e84bb6b2c210a7b2c64e35d5b083" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d9b45a25259d3bdac77cea0808eac22aed82e84bb6b2c210a7b2c64e35d5b083" :a :exploration/content-hash :v #bytes "f21f9ffc3f10d518c09b1dc0097b64005ae3d7fb421c4338ee60165ccf60cb71" :op :assert}
+   {:e #blake3 "d9b45a25259d3bdac77cea0808eac22aed82e84bb6b2c210a7b2c64e35d5b083" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d9b45a25259d3bdac77cea0808eac22aed82e84bb6b2c210a7b2c64e35d5b083" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d9b45a25259d3bdac77cea0808eac22aed82e84bb6b2c210a7b2c64e35d5b083" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810293/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: INV-WITNESS-009 subagent isolation provides genuine independence (architecture)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bdd4829c144862138aac7811396f57569e39790968ab7cd832353f9a7f3d9a26" :a :db/ident :v :task/t-4498 :op :assert}
+   {:e #blake3 "bdd4829c144862138aac7811396f57569e39790968ab7cd832353f9a7f3d9a26" :a :task/created-at :v 1773810289 :op :assert}
+   {:e #blake3 "bdd4829c144862138aac7811396f57569e39790968ab7cd832353f9a7f3d9a26" :a :task/id :v "t-4498" :op :assert}
+   {:e #blake3 "bdd4829c144862138aac7811396f57569e39790968ab7cd832353f9a7f3d9a26" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "bdd4829c144862138aac7811396f57569e39790968ab7cd832353f9a7f3d9a26" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bdd4829c144862138aac7811396f57569e39790968ab7cd832353f9a7f3d9a26" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bdd4829c144862138aac7811396f57569e39790968ab7cd832353f9a7f3d9a26" :a :task/title :v "TEST: INV-WITNESS-009 subagent isolation provides genuine independence (architecture)" :op :assert}
+   {:e #blake3 "bdd4829c144862138aac7811396f57569e39790968ab7cd832353f9a7f3d9a26" :a :task/type :v :task.type/task :op :assert}
+ ]}

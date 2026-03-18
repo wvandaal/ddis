@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773810271/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "NEG-WITNESS-004: No Self-Witnessing. Agent that produces artifact must not be sole challenger. At least one challenge from cognitively independent context. Prevents rubber-stamping own work."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "778c3f140ee5e8869296980a8440d6f004d3e2e66caccdc456e156659fc7aa82" :a :db/doc :v "NEG-WITNESS-004: No Self-Witnessing. Agent that produces artifact must not be sole challenger. At least one challenge from cognitively independent context. Prevents rubber-stamping own work." :op :assert}
+   {:e #blake3 "778c3f140ee5e8869296980a8440d6f004d3e2e66caccdc456e156659fc7aa82" :a :db/ident :v :observation/neg-witness-004-no-self-witnessing-agent-that-produces-art :op :assert}
+   {:e #blake3 "778c3f140ee5e8869296980a8440d6f004d3e2e66caccdc456e156659fc7aa82" :a :exploration/body :v "NEG-WITNESS-004: No Self-Witnessing. Agent that produces artifact must not be sole challenger. At least one challenge from cognitively independent context. Prevents rubber-stamping own work." :op :assert}
+   {:e #blake3 "778c3f140ee5e8869296980a8440d6f004d3e2e66caccdc456e156659fc7aa82" :a :exploration/category :v :exploration.cat/definition :op :assert}
+   {:e #blake3 "778c3f140ee5e8869296980a8440d6f004d3e2e66caccdc456e156659fc7aa82" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "778c3f140ee5e8869296980a8440d6f004d3e2e66caccdc456e156659fc7aa82" :a :exploration/content-hash :v #bytes "a83023e6613ab1965f63216780e42f9094347a5db13efce30ab1def4d14d6fed" :op :assert}
+   {:e #blake3 "778c3f140ee5e8869296980a8440d6f004d3e2e66caccdc456e156659fc7aa82" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "778c3f140ee5e8869296980a8440d6f004d3e2e66caccdc456e156659fc7aa82" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "778c3f140ee5e8869296980a8440d6f004d3e2e66caccdc456e156659fc7aa82" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

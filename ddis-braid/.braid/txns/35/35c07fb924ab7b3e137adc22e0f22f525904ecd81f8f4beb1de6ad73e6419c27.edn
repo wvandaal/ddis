@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773810269/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-WITNESS-011: Verification Completeness Guard. Every current-stage invariant must have L2+ FBW or emit verification-gap signal. Catches: invariants with only comments (L1) and no real tests. Closes Gap 5."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "53c65dcaa89673f979f4ecaf5ea13cc06edc93435d502fd00cd2283413f65258" :a :db/doc :v "INV-WITNESS-011: Verification Completeness Guard. Every current-stage invariant must have L2+ FBW or emit verification-gap signal. Catches: invariants with only comments (L1) and no real tests. Closes Gap 5." :op :assert}
+   {:e #blake3 "53c65dcaa89673f979f4ecaf5ea13cc06edc93435d502fd00cd2283413f65258" :a :db/ident :v :observation/inv-witness-011-verification-completeness-guard-every-curr :op :assert}
+   {:e #blake3 "53c65dcaa89673f979f4ecaf5ea13cc06edc93435d502fd00cd2283413f65258" :a :exploration/body :v "INV-WITNESS-011: Verification Completeness Guard. Every current-stage invariant must have L2+ FBW or emit verification-gap signal. Catches: invariants with only comments (L1) and no real tests. Closes Gap 5." :op :assert}
+   {:e #blake3 "53c65dcaa89673f979f4ecaf5ea13cc06edc93435d502fd00cd2283413f65258" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "53c65dcaa89673f979f4ecaf5ea13cc06edc93435d502fd00cd2283413f65258" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "53c65dcaa89673f979f4ecaf5ea13cc06edc93435d502fd00cd2283413f65258" :a :exploration/content-hash :v #bytes "fe08f2e8a6b1b56e241ce8fb7c4fac9f5497f2cb8722385738f4308c234c7a6f" :op :assert}
+   {:e #blake3 "53c65dcaa89673f979f4ecaf5ea13cc06edc93435d502fd00cd2283413f65258" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "53c65dcaa89673f979f4ecaf5ea13cc06edc93435d502fd00cd2283413f65258" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "53c65dcaa89673f979f4ecaf5ea13cc06edc93435d502fd00cd2283413f65258" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

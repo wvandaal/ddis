@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810287/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS: Implement subagent-based challenge execution — Agent tool isolation (INV-WITNESS-009)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "94672359f6509212a69446ea95546ee13f0bf03c9661e7393d1bfd2e07889e1a" :a :db/ident :v :task/t-c925 :op :assert}
+   {:e #blake3 "94672359f6509212a69446ea95546ee13f0bf03c9661e7393d1bfd2e07889e1a" :a :task/created-at :v 1773810285 :op :assert}
+   {:e #blake3 "94672359f6509212a69446ea95546ee13f0bf03c9661e7393d1bfd2e07889e1a" :a :task/id :v "t-c925" :op :assert}
+   {:e #blake3 "94672359f6509212a69446ea95546ee13f0bf03c9661e7393d1bfd2e07889e1a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "94672359f6509212a69446ea95546ee13f0bf03c9661e7393d1bfd2e07889e1a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "94672359f6509212a69446ea95546ee13f0bf03c9661e7393d1bfd2e07889e1a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "94672359f6509212a69446ea95546ee13f0bf03c9661e7393d1bfd2e07889e1a" :a :task/title :v "WITNESS: Implement subagent-based challenge execution — Agent tool isolation (INV-WITNESS-009)" :op :assert}
+   {:e #blake3 "94672359f6509212a69446ea95546ee13f0bf03c9661e7393d1bfd2e07889e1a" :a :task/type :v :task.type/task :op :assert}
+ ]}

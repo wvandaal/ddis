@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773810267/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-WITNESS-009: Cognitive Independence of Challenge. Challenge evaluation MUST occur in cognitively independent context: fresh k* (no shared history), no access to implementation reasoning, verification-specific basin. Structural separation via Agent subagents. Closes Gap 4."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7a8e486e7cf4d9ccf0593390c9a111b3b64d3351050de9134ecbb11a1ddcb997" :a :db/doc :v "INV-WITNESS-009: Cognitive Independence of Challenge. Challenge evaluation MUST occur in cognitively independent context: fresh k* (no shared history), no access to implementation reasoning, verification-specific basin. Structural separation via Agent subagents. Closes Gap 4." :op :assert}
+   {:e #blake3 "7a8e486e7cf4d9ccf0593390c9a111b3b64d3351050de9134ecbb11a1ddcb997" :a :db/ident :v :observation/inv-witness-009-cognitive-independence-of-challenge-challe :op :assert}
+   {:e #blake3 "7a8e486e7cf4d9ccf0593390c9a111b3b64d3351050de9134ecbb11a1ddcb997" :a :exploration/body :v "INV-WITNESS-009: Cognitive Independence of Challenge. Challenge evaluation MUST occur in cognitively independent context: fresh k* (no shared history), no access to implementation reasoning, verification-specific basin. Structural separation via Agent subagents. Closes Gap 4." :op :assert}
+   {:e #blake3 "7a8e486e7cf4d9ccf0593390c9a111b3b64d3351050de9134ecbb11a1ddcb997" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "7a8e486e7cf4d9ccf0593390c9a111b3b64d3351050de9134ecbb11a1ddcb997" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "7a8e486e7cf4d9ccf0593390c9a111b3b64d3351050de9134ecbb11a1ddcb997" :a :exploration/content-hash :v #bytes "17286242470f5d5f6d272f43eb8db76911a7ba21eeea91b5060766b175ea6b97" :op :assert}
+   {:e #blake3 "7a8e486e7cf4d9ccf0593390c9a111b3b64d3351050de9134ecbb11a1ddcb997" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7a8e486e7cf4d9ccf0593390c9a111b3b64d3351050de9134ecbb11a1ddcb997" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7a8e486e7cf4d9ccf0593390c9a111b3b64d3351050de9134ecbb11a1ddcb997" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

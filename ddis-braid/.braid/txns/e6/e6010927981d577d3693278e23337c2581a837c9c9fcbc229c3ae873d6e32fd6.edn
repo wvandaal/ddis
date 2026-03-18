@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810295/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: NEG-WITNESS-005 tautological tests get alignment_score = 0 (unit)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7423e336c811d953e30f54f23774628aab38b5305de9230d9535b155f0cffabd" :a :db/ident :v :task/t-ce4b :op :assert}
+   {:e #blake3 "7423e336c811d953e30f54f23774628aab38b5305de9230d9535b155f0cffabd" :a :task/created-at :v 1773810290 :op :assert}
+   {:e #blake3 "7423e336c811d953e30f54f23774628aab38b5305de9230d9535b155f0cffabd" :a :task/id :v "t-ce4b" :op :assert}
+   {:e #blake3 "7423e336c811d953e30f54f23774628aab38b5305de9230d9535b155f0cffabd" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7423e336c811d953e30f54f23774628aab38b5305de9230d9535b155f0cffabd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7423e336c811d953e30f54f23774628aab38b5305de9230d9535b155f0cffabd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7423e336c811d953e30f54f23774628aab38b5305de9230d9535b155f0cffabd" :a :task/title :v "TEST: NEG-WITNESS-005 tautological tests get alignment_score = 0 (unit)" :op :assert}
+   {:e #blake3 "7423e336c811d953e30f54f23774628aab38b5305de9230d9535b155f0cffabd" :a :task/type :v :task.type/task :op :assert}
+ ]}

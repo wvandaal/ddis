@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810291/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS: Implement boundary test generation from falsification conditions (INV-WITNESS-012)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a312731831bef30c6c1c65f79b959d2d330e9d314dc8c02357dfa11c031a10db" :a :db/ident :v :task/t-b0a8 :op :assert}
+   {:e #blake3 "a312731831bef30c6c1c65f79b959d2d330e9d314dc8c02357dfa11c031a10db" :a :task/created-at :v 1773810288 :op :assert}
+   {:e #blake3 "a312731831bef30c6c1c65f79b959d2d330e9d314dc8c02357dfa11c031a10db" :a :task/id :v "t-b0a8" :op :assert}
+   {:e #blake3 "a312731831bef30c6c1c65f79b959d2d330e9d314dc8c02357dfa11c031a10db" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a312731831bef30c6c1c65f79b959d2d330e9d314dc8c02357dfa11c031a10db" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a312731831bef30c6c1c65f79b959d2d330e9d314dc8c02357dfa11c031a10db" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a312731831bef30c6c1c65f79b959d2d330e9d314dc8c02357dfa11c031a10db" :a :task/title :v "WITNESS: Implement boundary test generation from falsification conditions (INV-WITNESS-012)" :op :assert}
+   {:e #blake3 "a312731831bef30c6c1c65f79b959d2d330e9d314dc8c02357dfa11c031a10db" :a :task/type :v :task.type/feature :op :assert}
+ ]}

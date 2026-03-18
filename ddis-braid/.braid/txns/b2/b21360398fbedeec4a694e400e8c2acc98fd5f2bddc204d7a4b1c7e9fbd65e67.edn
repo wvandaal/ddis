@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773809581/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Stepping back to do first-principles verification stack audit. Before adding witness complexity, need to map: what each layer checks, what it catches, what it misses, where the gaps are. The user is right that I was building on top of incomplete understanding."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6b41c2f3d12fb64c11d64f956d655962a53c9f0d1a84c96740ac100d1e4da508" :a :db/doc :v "Stepping back to do first-principles verification stack audit. Before adding witness complexity, need to map: what each layer checks, what it catches, what it misses, where the gaps are. The user is right that I was building on top of incomplete understanding." :op :assert}
+   {:e #blake3 "6b41c2f3d12fb64c11d64f956d655962a53c9f0d1a84c96740ac100d1e4da508" :a :db/ident :v :observation/stepping-back-to-do-first-principles-verification-stack-audi :op :assert}
+   {:e #blake3 "6b41c2f3d12fb64c11d64f956d655962a53c9f0d1a84c96740ac100d1e4da508" :a :exploration/body :v "Stepping back to do first-principles verification stack audit. Before adding witness complexity, need to map: what each layer checks, what it catches, what it misses, where the gaps are. The user is right that I was building on top of incomplete understanding." :op :assert}
+   {:e #blake3 "6b41c2f3d12fb64c11d64f956d655962a53c9f0d1a84c96740ac100d1e4da508" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "6b41c2f3d12fb64c11d64f956d655962a53c9f0d1a84c96740ac100d1e4da508" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "6b41c2f3d12fb64c11d64f956d655962a53c9f0d1a84c96740ac100d1e4da508" :a :exploration/content-hash :v #bytes "7568f144949526adff3b5b53b6036944aec902e0d5b347d16fb2a4eb86ed6ea4" :op :assert}
+   {:e #blake3 "6b41c2f3d12fb64c11d64f956d655962a53c9f0d1a84c96740ac100d1e4da508" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6b41c2f3d12fb64c11d64f956d655962a53c9f0d1a84c96740ac100d1e4da508" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6b41c2f3d12fb64c11d64f956d655962a53c9f0d1a84c96740ac100d1e4da508" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

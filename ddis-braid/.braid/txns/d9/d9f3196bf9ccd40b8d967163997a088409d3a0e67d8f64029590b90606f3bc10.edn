@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773810292/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: INV-WITNESS-008 harness alignment catches wrong-property proofs (integration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c7ae530f612684adfe7cdea272dd6300c71883d31b36b5eef756c1371adc59f2" :a :db/ident :v :task/t-8e3d :op :assert}
+   {:e #blake3 "c7ae530f612684adfe7cdea272dd6300c71883d31b36b5eef756c1371adc59f2" :a :task/created-at :v 1773810288 :op :assert}
+   {:e #blake3 "c7ae530f612684adfe7cdea272dd6300c71883d31b36b5eef756c1371adc59f2" :a :task/id :v "t-8e3d" :op :assert}
+   {:e #blake3 "c7ae530f612684adfe7cdea272dd6300c71883d31b36b5eef756c1371adc59f2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c7ae530f612684adfe7cdea272dd6300c71883d31b36b5eef756c1371adc59f2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c7ae530f612684adfe7cdea272dd6300c71883d31b36b5eef756c1371adc59f2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c7ae530f612684adfe7cdea272dd6300c71883d31b36b5eef756c1371adc59f2" :a :task/title :v "TEST: INV-WITNESS-008 harness alignment catches wrong-property proofs (integration)" :op :assert}
+   {:e #blake3 "c7ae530f612684adfe7cdea272dd6300c71883d31b36b5eef756c1371adc59f2" :a :task/type :v :task.type/task :op :assert}
+ ]}

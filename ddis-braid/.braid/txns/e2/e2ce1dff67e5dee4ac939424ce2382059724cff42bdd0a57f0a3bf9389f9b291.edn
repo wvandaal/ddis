@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773810266/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-WITNESS-008: Harness-Falsification Binding. Every V:KANI/V:MODEL harness must have FBW with falsification alignment >= 0.5. Catches: Kani proof verifying wrong property (e.g., INV-MERGE-002 frontier monotonicity instead of cascade completeness). Closes Gap 3."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dd740685f55c4e91d82a7bb30b246ef9fd52680fbf305c109ca8ba40c881b97d" :a :db/doc :v "INV-WITNESS-008: Harness-Falsification Binding. Every V:KANI/V:MODEL harness must have FBW with falsification alignment >= 0.5. Catches: Kani proof verifying wrong property (e.g., INV-MERGE-002 frontier monotonicity instead of cascade completeness). Closes Gap 3." :op :assert}
+   {:e #blake3 "dd740685f55c4e91d82a7bb30b246ef9fd52680fbf305c109ca8ba40c881b97d" :a :db/ident :v :observation/inv-witness-008-harness-falsification-binding-every-vkani :op :assert}
+   {:e #blake3 "dd740685f55c4e91d82a7bb30b246ef9fd52680fbf305c109ca8ba40c881b97d" :a :exploration/body :v "INV-WITNESS-008: Harness-Falsification Binding. Every V:KANI/V:MODEL harness must have FBW with falsification alignment >= 0.5. Catches: Kani proof verifying wrong property (e.g., INV-MERGE-002 frontier monotonicity instead of cascade completeness). Closes Gap 3." :op :assert}
+   {:e #blake3 "dd740685f55c4e91d82a7bb30b246ef9fd52680fbf305c109ca8ba40c881b97d" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "dd740685f55c4e91d82a7bb30b246ef9fd52680fbf305c109ca8ba40c881b97d" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "dd740685f55c4e91d82a7bb30b246ef9fd52680fbf305c109ca8ba40c881b97d" :a :exploration/content-hash :v #bytes "ba8fe8a3be4c8a3a4ecaff61a0f20fe55c1ca1c402195dce418c7c3cfddfc397" :op :assert}
+   {:e #blake3 "dd740685f55c4e91d82a7bb30b246ef9fd52680fbf305c109ca8ba40c881b97d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "dd740685f55c4e91d82a7bb30b246ef9fd52680fbf305c109ca8ba40c881b97d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "dd740685f55c4e91d82a7bb30b246ef9fd52680fbf305c109ca8ba40c881b97d" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
