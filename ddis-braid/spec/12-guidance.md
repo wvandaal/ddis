@@ -1483,3 +1483,166 @@ and no `:task/traces-to` datom, and INV-FOO-999 does not exist in the store.
 
 ---
 
+### §12.10 Adaptive Guidance Protocol (AGP)
+
+> **Purpose**: Make the guidance system context-aware — adapting behavior, intensity,
+> and content to the agent's current cognitive and operational state. Addresses four
+> dog-food friction points that share a single root cause: context-blind guidance.
+>
+> **Root cause**: The guidance system treats agents as stateless functions. It emits
+> the same signals regardless of k* budget, activity mode, tx velocity, peer agent
+> activity, or session phase. The result: guidance is either too noisy (bulk-ops mode)
+> or too quiet (deep-analysis mode), and never adapts to cognitive capacity.
+
+#### GuidanceContext (Core State)
+
+```
+GuidanceContext = {
+    k_eff: f64,               // attention budget [0,1]
+    activity_mode: Mode,      // Implementation | Specification | BulkOps | Analysis
+    tx_velocity: f64,         // transactions per minute (rolling 5-min window)
+    agent_count: u32,         // active agents from frontier (recent tx)
+    crystallization_gap: u32, // uncrystallized spec IDs (INV-GUIDANCE-018)
+    unanchored_tasks: u32,    // tasks with unresolved spec refs (INV-TASK-005)
+    untested_invs: u32,       // current-stage INVs with only L1 witnesses
+    stale_witnesses: u32,     // FBWs invalidated by spec/test changes
+}
+```
+
+The context is computed once per command from store telemetry and feeds into
+all guidance outputs: routing, footer, status dashboard, harvest urgency.
+
+---
+
+#### INV-GUIDANCE-019: Velocity-Adaptive Harvest Urgency
+
+**Traces to**: INV-HARVEST-005 (Proactive Warning), NEG-HARVEST-001, D1 design
+**Type**: Invariant
+**Stage**: 1
+**Statement**: The harvest warning threshold adapts to transaction velocity.
+High-velocity sessions (bulk operations) get a higher threshold; low-velocity
+sessions (deep analysis) get a lower threshold.
+
+```
+dynamic_threshold(velocity: f64) -> u32 =
+    if velocity > 5.0  → 30   // bulk ops: 6× default, ~6 min at 5tx/min
+    if velocity > 1.0  → 15   // normal pace: 2× default
+    else               → 8    // slow pace: original threshold
+
+harvest_urgency = max(
+    tx_since_harvest / dynamic_threshold(tx_velocity),
+    minutes_since_harvest / 30,
+    high_value_unharvested / 3,
+    if k_eff < 0.3 then 1.0 else 0.0
+)
+
+Warning fires when harvest_urgency >= 1.0.
+```
+
+**Information-theoretic justification**: High-velocity transactions have low
+surprisal (routine task closures). Harvesting them is low-value. Low-velocity
+transactions have high surprisal (each carries genuine knowledge). The
+threshold inversely correlates with information content per transaction.
+
+**Falsification**: During a bulk-close session (>5 tx/min), the harvest warning
+fires at 8 transactions instead of 30. Or: during deep analysis (<1 tx/min),
+the warning doesn't fire until 30 transactions.
+**Verification**: V:PROP
+
+---
+
+#### INV-GUIDANCE-020: Crate Contention Avoidance in R(t)
+
+**Traces to**: ADR-STORE-005 (file-backed store), INV-GUIDANCE-010 (R(t))
+**Type**: Invariant
+**Stage**: 1
+**Statement**: When multiple agents are active (detected from frontier),
+R(t) routing deprioritizes tasks that would modify the same compilation
+unit (Rust crate) as a recently-active peer agent.
+
+```
+crate_contention_factor(task, store) =
+    let likely_crate = infer_crate(task.title)  // "braid-kernel" or "braid"
+    let peer_crates = recently_modified_crates(store.frontier, exclude=self)
+    if likely_crate ∈ peer_crates → 0.5
+    else → 1.0
+
+impact(T) = base × type_mult × urgency × anchor × contention
+```
+
+Crate inference from task title: tasks mentioning "store", "schema", "query",
+"guidance", "harvest", "seed", "merge", "resolution" → braid-kernel.
+Tasks mentioning "CLI", "MCP", "command", "layout" → braid.
+
+**Falsification**: Two agents are active, both routed to tasks in braid-kernel,
+causing compile lock contention despite the contention factor being available.
+**Verification**: V:PROP
+
+---
+
+#### INV-GUIDANCE-021: Unified Methodology Gap Dashboard
+
+**Traces to**: INV-BILATERAL-001 (Fitness Convergence), SEED.md §7
+**Type**: Invariant
+**Stage**: 1
+**Statement**: `braid status` displays a unified `⚠ methodology gaps` section
+when ANY gap type has a non-zero count. All implemented gap detectors are
+aggregated into a single dashboard:
+
+```
+methodology_gaps(store) = {
+    crystallization: crystallization_candidates(store).len(),
+    unanchored: count_unanchored_tasks(store),
+    untested: count_untested_current_stage_invs(store),
+    stale_witnesses: count_stale_witnesses(store),
+}
+
+∀ gap_type with count > 0: gap_type appears in braid status output
+∀ gap_type with count = 0: gap_type is omitted (no noise)
+```
+
+**Falsification**: A gap type has count > 0 but does not appear in `braid status`.
+**Verification**: V:PROP
+
+---
+
+#### ADR-GUIDANCE-015: Adaptive Context Over Static Thresholds
+
+**Traces to**: prompt-optimization k* theory, ADR-GUIDANCE-043
+**Stage**: 1
+
+##### Problem
+The guidance system uses static thresholds (harvest at 8 tx, Cheap at 50 tokens,
+Full footer at k*>0.7) that are correct on average but wrong for specific contexts
+(bulk operations, multi-agent sessions, depleted k*).
+
+##### Options
+A) **Static thresholds** (current) — simple, predictable, wrong 30% of the time.
+B) **User-configurable thresholds** — complex, requires user understanding.
+C) **Adaptive thresholds from GuidanceContext** — computes thresholds from
+   observable state (velocity, agent count, k*, gap counts).
+
+##### Decision
+**Option C.** GuidanceContext assembles all observable signals into a single
+struct. Each threshold is a function of context, not a constant. The agent
+experiences context-appropriate guidance without configuration.
+
+##### Falsification
+Adaptive thresholds oscillate between states (e.g., velocity fluctuates around
+5.0 causing threshold to flip between 15 and 30 every minute). Mitigation:
+hysteresis — once threshold increases, it stays high for at least 2 minutes.
+
+---
+
+#### NEG-GUIDANCE-003: No Context-Blind Harvest Warning
+
+**Traces to**: INV-GUIDANCE-019
+**Type**: Negative Case
+**Statement**: The harvest warning MUST NOT fire at a fixed threshold regardless
+of transaction velocity. A bulk-close session producing 30 routine transactions
+in 5 minutes MUST NOT receive 4 harvest warnings.
+**Violation**: Agent closes 30 tasks in 5 minutes and receives >=4 harvest warnings
+(one every ~8 transactions) despite the operations being mechanical, not knowledge-creating.
+
+---
+

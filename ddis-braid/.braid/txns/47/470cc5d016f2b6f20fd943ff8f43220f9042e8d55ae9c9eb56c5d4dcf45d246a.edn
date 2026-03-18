@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773851426/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INSIGHT: tx_velocity is the key signal for harvest urgency. During bulk task closures, tx/min > 5 → mechanical work, not knowledge creation. The 8-tx threshold fires every 90 seconds, producing noise. During deep analysis, tx/min < 1 → each transaction carries genuine knowledge. The threshold should scale: dynamic_threshold(v) = if v>5 then 30 elif v>1 then 15 else 8. This is the information-theoretic view: high-velocity transactions have low surprisal (routine), so harvesting them is low-value. Low-velocity transactions have high surprisal, so harvesting sooner is high-value."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4cfc268269d3b3eee85317324afb4a451401073ecba90fbe02e236b1460bebc0" :a :db/doc :v "INSIGHT: tx_velocity is the key signal for harvest urgency. During bulk task closures, tx/min > 5 → mechanical work, not knowledge creation. The 8-tx threshold fires every 90 seconds, producing noise. During deep analysis, tx/min < 1 → each transaction carries genuine knowledge. The threshold should scale: dynamic_threshold(v) = if v>5 then 30 elif v>1 then 15 else 8. This is the information-theoretic view: high-velocity transactions have low surprisal (routine), so harvesting them is low-value. Low-velocity transactions have high surprisal, so harvesting sooner is high-value." :op :assert}
+   {:e #blake3 "4cfc268269d3b3eee85317324afb4a451401073ecba90fbe02e236b1460bebc0" :a :db/ident :v :observation/insight-tx-velocity-is-the-key-signal-for-harvest-urgency :op :assert}
+   {:e #blake3 "4cfc268269d3b3eee85317324afb4a451401073ecba90fbe02e236b1460bebc0" :a :exploration/body :v "INSIGHT: tx_velocity is the key signal for harvest urgency. During bulk task closures, tx/min > 5 → mechanical work, not knowledge creation. The 8-tx threshold fires every 90 seconds, producing noise. During deep analysis, tx/min < 1 → each transaction carries genuine knowledge. The threshold should scale: dynamic_threshold(v) = if v>5 then 30 elif v>1 then 15 else 8. This is the information-theoretic view: high-velocity transactions have low surprisal (routine), so harvesting them is low-value. Low-velocity transactions have high surprisal, so harvesting sooner is high-value." :op :assert}
+   {:e #blake3 "4cfc268269d3b3eee85317324afb4a451401073ecba90fbe02e236b1460bebc0" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "4cfc268269d3b3eee85317324afb4a451401073ecba90fbe02e236b1460bebc0" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "4cfc268269d3b3eee85317324afb4a451401073ecba90fbe02e236b1460bebc0" :a :exploration/content-hash :v #bytes "c1fa7c93dc03239ef3ec630b9d55d69eb1249c9d73d7c5960d4ec283f7c0a78c" :op :assert}
+   {:e #blake3 "4cfc268269d3b3eee85317324afb4a451401073ecba90fbe02e236b1460bebc0" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4cfc268269d3b3eee85317324afb4a451401073ecba90fbe02e236b1460bebc0" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4cfc268269d3b3eee85317324afb4a451401073ecba90fbe02e236b1460bebc0" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
