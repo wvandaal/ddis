@@ -483,26 +483,36 @@ pub fn all_tasks(store: &Store) -> Vec<TaskSummary> {
     tasks
 }
 
-/// Compute the ready set: open tasks with all dependencies closed.
+/// Compute the ready set: open tasks with all dependencies satisfied.
 ///
 /// INV-TASK-003: A task is "ready" iff status = Open AND all `:task/depends-on`
-/// targets have status = Closed.
+/// targets are either: (a) Closed, (b) not found, or (c) an EPIC (type=epic).
+///
+/// EPICs are container tasks — their children execute in parallel, not sequentially.
+/// A leaf task depending on an EPIC means "belongs to this epic", not "blocked by it."
 ///
 /// INV-TASK-004: Sorted by priority (ascending), then created_at (ascending).
 pub fn compute_ready_set(store: &Store) -> Vec<TaskSummary> {
     let tasks = all_tasks(store);
 
-    // Build status lookup for all tasks
+    // Build status + type lookup for all tasks
     let status_map: HashMap<EntityId, TaskStatus> =
         tasks.iter().map(|t| (t.entity, t.status)).collect();
+    let type_map: HashMap<EntityId, String> = tasks
+        .iter()
+        .map(|t| (t.entity, t.task_type.clone()))
+        .collect();
 
     let mut ready: Vec<TaskSummary> = tasks
         .into_iter()
         .filter(|t| {
             t.status == TaskStatus::Open
-                && t.depends_on
-                    .iter()
-                    .all(|dep| status_map.get(dep).is_none_or(|s| *s == TaskStatus::Closed))
+                && t.depends_on.iter().all(|dep| {
+                    // Dependency satisfied if: closed, unknown, or an EPIC (container)
+                    let is_closed = status_map.get(dep).is_none_or(|s| *s == TaskStatus::Closed);
+                    let is_epic = type_map.get(dep).is_some_and(|ty| *ty == ":task.type/epic");
+                    is_closed || is_epic
+                })
         })
         .collect();
 
