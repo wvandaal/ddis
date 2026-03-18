@@ -362,20 +362,26 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
     }
 
     // Attempt R(t) routing to pick the highest-impact task.
-    // Skip zero-impact tasks (EPICs have type_multiplier=0.0).
+    // The routing includes session-boosted in-progress tasks, so we match against
+    // ALL open/in-progress tasks (not just the ready_set which excludes in-progress).
     // Falls back to top of priority-sorted ready_set if routing returns nothing.
+    let all_tasks = braid_kernel::task::all_tasks(&store);
     let routing = compute_routing_from_store(&store);
     let top = {
-        // Find the first non-zero-impact routed task that's in the ready_set
+        // Find the first non-zero-impact routed task, matching against all open/in-progress
         let matched = routing.iter().find_map(|routed| {
             if routed.impact <= 0.0 {
                 return None; // Skip EPICs and other zero-impact tasks
             }
-            ready_set.iter().find(|t| {
-                let ident = format!(":task/{}", t.id);
-                routed.entity == braid_kernel::EntityId::from_ident(&ident)
+            // First try matching in all_tasks (includes in-progress / session-boosted)
+            all_tasks.iter().find(|t| {
+                t.status != braid_kernel::task::TaskStatus::Closed && {
+                    let ident = format!(":task/{}", t.id);
+                    routed.entity == braid_kernel::EntityId::from_ident(&ident)
+                }
             })
         });
+        // Fall back to ready_set if no routing match
         matched.or_else(|| ready_set.first())
     };
 
