@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773852617/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P1-AUDIT: Codebase-wide Unicode safety audit — replace ALL str[byte..byte] indexing with .get() or safe_truncate_bytes. BACKGROUND: Third recurrence of the same bug class. Pattern: str[i..j] panics when i or j lands inside multi-byte UTF-8. grep for '&text[' and '&title[' and '&s[' and similar patterns in all .rs files. Replace each with .get(i..j) or safe_truncate_bytes. Add a test with §, ✗, 😀 characters in every function that does string indexing. Consider: add a clippy deny rule or custom lint for raw str indexing. TRACES TO: INV-STORE-003 (content safety). ACCEPTANCE: zero panics when any braid command processes UTF-8 task titles with §, ✗, △, 😀 characters."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8a0d9d30ebb450654dde00e3ce25f18e0ad25554a63309fb4536ffcf0f5ef3ac" :a :db/ident :v :task/t-6cb74a33 :op :assert}
+   {:e #blake3 "8a0d9d30ebb450654dde00e3ce25f18e0ad25554a63309fb4536ffcf0f5ef3ac" :a :task/created-at :v 1773852616 :op :assert}
+   {:e #blake3 "8a0d9d30ebb450654dde00e3ce25f18e0ad25554a63309fb4536ffcf0f5ef3ac" :a :task/id :v "t-6cb74a33" :op :assert}
+   {:e #blake3 "8a0d9d30ebb450654dde00e3ce25f18e0ad25554a63309fb4536ffcf0f5ef3ac" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8a0d9d30ebb450654dde00e3ce25f18e0ad25554a63309fb4536ffcf0f5ef3ac" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8a0d9d30ebb450654dde00e3ce25f18e0ad25554a63309fb4536ffcf0f5ef3ac" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8a0d9d30ebb450654dde00e3ce25f18e0ad25554a63309fb4536ffcf0f5ef3ac" :a :task/title :v "P1-AUDIT: Codebase-wide Unicode safety audit — replace ALL str[byte..byte] indexing with .get() or safe_truncate_bytes. BACKGROUND: Third recurrence of the same bug class. Pattern: str[i..j] panics when i or j lands inside multi-byte UTF-8. grep for '&text[' and '&title[' and '&s[' and similar patterns in all .rs files. Replace each with .get(i..j) or safe_truncate_bytes. Add a test with §, ✗, 😀 characters in every function that does string indexing. Consider: add a clippy deny rule or custom lint for raw str indexing. TRACES TO: INV-STORE-003 (content safety). ACCEPTANCE: zero panics when any braid command processes UTF-8 task titles with §, ✗, △, 😀 characters." :op :assert}
+   {:e #blake3 "8a0d9d30ebb450654dde00e3ce25f18e0ad25554a63309fb4536ffcf0f5ef3ac" :a :task/traces-to :v #blake3 "bed990329010060fbee0d763448857bb4d3e63b624317673b4fbfff9b7098f31" :op :assert}
+   {:e #blake3 "8a0d9d30ebb450654dde00e3ce25f18e0ad25554a63309fb4536ffcf0f5ef3ac" :a :task/type :v :task.type/bug :op :assert}
+ ]}

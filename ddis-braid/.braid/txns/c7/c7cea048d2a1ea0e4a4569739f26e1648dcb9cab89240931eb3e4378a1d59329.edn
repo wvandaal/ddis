@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773853108/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INSIGHT: The methodology-as-live-projection principle. Seed is a live projection of WHAT to work on (task-relevant context). Dynamic AGENTS.md is a live projection of HOW to work (methodology adapted to state). Together they form the complete agent orientation: WHAT + HOW. The seed changes per task; the methodology changes per store state. Both are derived from the datom store — nothing is hardcoded. This is C7 (self-bootstrap) applied to the methodology layer: the system specifies HOW to use itself, and that specification adapts as the system evolves."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a5136c547a2183f41a1105f3de45cf11fe7a51264b9456a0b03165a01f0061ca" :a :db/doc :v "INSIGHT: The methodology-as-live-projection principle. Seed is a live projection of WHAT to work on (task-relevant context). Dynamic AGENTS.md is a live projection of HOW to work (methodology adapted to state). Together they form the complete agent orientation: WHAT + HOW. The seed changes per task; the methodology changes per store state. Both are derived from the datom store — nothing is hardcoded. This is C7 (self-bootstrap) applied to the methodology layer: the system specifies HOW to use itself, and that specification adapts as the system evolves." :op :assert}
+   {:e #blake3 "a5136c547a2183f41a1105f3de45cf11fe7a51264b9456a0b03165a01f0061ca" :a :db/ident :v :observation/insight-the-methodology-as-live-projection-principle-seed :op :assert}
+   {:e #blake3 "a5136c547a2183f41a1105f3de45cf11fe7a51264b9456a0b03165a01f0061ca" :a :exploration/body :v "INSIGHT: The methodology-as-live-projection principle. Seed is a live projection of WHAT to work on (task-relevant context). Dynamic AGENTS.md is a live projection of HOW to work (methodology adapted to state). Together they form the complete agent orientation: WHAT + HOW. The seed changes per task; the methodology changes per store state. Both are derived from the datom store — nothing is hardcoded. This is C7 (self-bootstrap) applied to the methodology layer: the system specifies HOW to use itself, and that specification adapts as the system evolves." :op :assert}
+   {:e #blake3 "a5136c547a2183f41a1105f3de45cf11fe7a51264b9456a0b03165a01f0061ca" :a :exploration/category :v :exploration.cat/conjecture :op :assert}
+   {:e #blake3 "a5136c547a2183f41a1105f3de45cf11fe7a51264b9456a0b03165a01f0061ca" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "a5136c547a2183f41a1105f3de45cf11fe7a51264b9456a0b03165a01f0061ca" :a :exploration/content-hash :v #bytes "bc51f75e75bc543c5f7cca354fe509b84cb9457cdf2e596e4f334185a4f48e18" :op :assert}
+   {:e #blake3 "a5136c547a2183f41a1105f3de45cf11fe7a51264b9456a0b03165a01f0061ca" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a5136c547a2183f41a1105f3de45cf11fe7a51264b9456a0b03165a01f0061ca" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a5136c547a2183f41a1105f3de45cf11fe7a51264b9456a0b03165a01f0061ca" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

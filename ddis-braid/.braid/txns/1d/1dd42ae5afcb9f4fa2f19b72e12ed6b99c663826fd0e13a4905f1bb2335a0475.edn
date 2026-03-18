@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773853109/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INSIGHT: Position in the prompt matters. The dynamic methodology section should be at the TOP of AGENTS.md (before the static content) because it occupies the highest-k* position — the agent reads it first, with maximum attention. The braid-seed section is at the BOTTOM because it's task-specific (loaded after orientation). Methodology first, then context. This matches the prompt-optimization principle: structure over content at the beginning, content over structure later."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3d6e7895ccfb66e012d235172d318eb77cb644456d362fae51f920f510c732b9" :a :db/doc :v "INSIGHT: Position in the prompt matters. The dynamic methodology section should be at the TOP of AGENTS.md (before the static content) because it occupies the highest-k* position — the agent reads it first, with maximum attention. The braid-seed section is at the BOTTOM because it's task-specific (loaded after orientation). Methodology first, then context. This matches the prompt-optimization principle: structure over content at the beginning, content over structure later." :op :assert}
+   {:e #blake3 "3d6e7895ccfb66e012d235172d318eb77cb644456d362fae51f920f510c732b9" :a :db/ident :v :observation/insight-position-in-the-prompt-matters-the-dynamic-methodo :op :assert}
+   {:e #blake3 "3d6e7895ccfb66e012d235172d318eb77cb644456d362fae51f920f510c732b9" :a :exploration/body :v "INSIGHT: Position in the prompt matters. The dynamic methodology section should be at the TOP of AGENTS.md (before the static content) because it occupies the highest-k* position — the agent reads it first, with maximum attention. The braid-seed section is at the BOTTOM because it's task-specific (loaded after orientation). Methodology first, then context. This matches the prompt-optimization principle: structure over content at the beginning, content over structure later." :op :assert}
+   {:e #blake3 "3d6e7895ccfb66e012d235172d318eb77cb644456d362fae51f920f510c732b9" :a :exploration/category :v :exploration.cat/conjecture :op :assert}
+   {:e #blake3 "3d6e7895ccfb66e012d235172d318eb77cb644456d362fae51f920f510c732b9" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "3d6e7895ccfb66e012d235172d318eb77cb644456d362fae51f920f510c732b9" :a :exploration/content-hash :v #bytes "5c704ba6c85b6fd5dff548c825410359725a15e45ab8fb027ae307126b152539" :op :assert}
+   {:e #blake3 "3d6e7895ccfb66e012d235172d318eb77cb644456d362fae51f920f510c732b9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "3d6e7895ccfb66e012d235172d318eb77cb644456d362fae51f920f510c732b9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "3d6e7895ccfb66e012d235172d318eb77cb644456d362fae51f920f510c732b9" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
