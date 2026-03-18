@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773806989/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b547"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "467a48e5d8afcbaf8b93f673de5aa5427c2910b5bd1f94550ac2586fa5bb2904" :a :task/close-reason :v "DivergenceType enum, 6 detectors, detect_all_divergence, 15 tests" :op :assert}
+   {:e #blake3 "467a48e5d8afcbaf8b93f673de5aa5427c2910b5bd1f94550ac2586fa5bb2904" :a :task/closed-at :v 1773806987 :op :assert}
+   {:e #blake3 "467a48e5d8afcbaf8b93f673de5aa5427c2910b5bd1f94550ac2586fa5bb2904" :a :task/status :v :task.status/closed :op :assert}
+ ]}

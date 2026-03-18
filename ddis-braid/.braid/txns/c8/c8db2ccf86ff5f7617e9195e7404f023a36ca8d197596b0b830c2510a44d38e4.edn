@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773806987/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8325"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7468037bcaed271e10b19d0ac33c2d2a86887655ea109a8086fc2bd1c4adf245" :a :task/close-reason :v "QueryMode enum: BottomUp/TopDown/Incremental, 8 compatibility tests" :op :assert}
+   {:e #blake3 "7468037bcaed271e10b19d0ac33c2d2a86887655ea109a8086fc2bd1c4adf245" :a :task/closed-at :v 1773806985 :op :assert}
+   {:e #blake3 "7468037bcaed271e10b19d0ac33c2d2a86887655ea109a8086fc2bd1c4adf245" :a :task/status :v :task.status/closed :op :assert}
+ ]}
