@@ -17,7 +17,7 @@
 //! - ADR-QUERY-005: Local frontier as default query scope.
 //! - ADR-QUERY-006: Frontier as datom attribute.
 
-use super::clause::QueryExpr;
+use super::clause::{Clause, QueryExpr};
 
 /// The six strata of Datalog queries.
 ///
@@ -97,10 +97,26 @@ pub fn classify(query: &QueryExpr) -> Stratum {
         return Stratum::S0;
     }
 
-    // All currently expressible clauses (Pattern + Predicate filters) are
-    // monotone. != is a filter, not negation-as-failure.
+    // Check for Stage 1+ clause variants that require higher strata.
+    // Rule, Or, and Frontier clauses are at least S2 (non-monotonic potential).
     // When we add Clause::Not (negation-as-failure), we'll classify as S2.
     // When we add Clause::Aggregate, we'll classify as S3.
+    for clause in &query.where_clauses {
+        match clause {
+            Clause::Pattern(_) | Clause::Predicate { .. } => {
+                // S1: monotone pattern matching and predicate filters.
+            }
+            Clause::Rule { .. } | Clause::Or(_) | Clause::Frontier { .. } => {
+                // S2: these clause types may introduce non-monotonic behavior
+                // (rules can be recursive, or-branches may diverge, frontiers
+                // compare across agent views). Classified as S2 to trigger
+                // Stage 0 rejection via check_stage0.
+                return Stratum::S2;
+            }
+        }
+    }
+
+    // All clauses are Pattern or Predicate — monotone, S1.
     Stratum::S1
 }
 

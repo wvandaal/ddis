@@ -1328,6 +1328,31 @@ pub fn last_harvest_wall_time(store: &Store) -> u64 {
     latest
 }
 
+/// Check whether the CLI should warn about an unharvested session on exit.
+///
+/// NEG-HARVEST-001: No Unharvested Session Termination.
+/// Safety property: every session that ends with uncommitted observations MUST
+/// have issued at least one harvest warning before termination.
+///
+/// Uses the ADR-HARVEST-007 turn-count proxy: if tx_since_harvest >= 8,
+/// the agent has done meaningful work that risks being lost without harvest.
+/// Returns `Some(warning_message)` if a warning should be shown, `None` otherwise.
+///
+/// The threshold of 8 comes from the heuristic tx-count threshold in
+/// `derive_actions_with_budget` (R12 fallback), which triggers harvest
+/// guidance at >= 8 transactions since last harvest.
+pub fn should_warn_on_exit(store: &Store) -> Option<String> {
+    let tx_since = count_txns_since_last_harvest(store);
+    if tx_since >= 8 {
+        Some(format!(
+            "\u{26a0} NEG-HARVEST-001: {tx_since} transactions since last harvest. \
+             Run: braid harvest --commit"
+        ))
+    } else {
+        None
+    }
+}
+
 /// Compute staleness for observations based on transaction distance.
 ///
 /// Staleness = 1 - confidence * decay^(tx_distance)
@@ -2099,6 +2124,137 @@ mod tests {
         assert!(
             count > 0,
             "genesis store with no harvests should report all txns"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // NEG-HARVEST-001: Session termination detection
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn should_warn_on_exit_empty_store_no_warning() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        assert!(
+            should_warn_on_exit(&store).is_none(),
+            "empty store should not trigger exit warning"
+        );
+    }
+
+    #[test]
+    fn should_warn_on_exit_below_threshold_no_warning() {
+        // Genesis store has schema txns but typically < 8 distinct wall times
+        // when there's been no actual session work. Build a small store manually
+        // with fewer than 8 transactions since last harvest.
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Simulate a harvest at wall_time=100
+        let harvest_tx = TxId::new(100, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-100"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // Add 5 transactions after the harvest (below threshold of 8)
+        for i in 1..=5 {
+            let tx = TxId::new(100 + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":work/item-{i}")),
+                Attribute::from_keyword(":db/doc"),
+                Value::String(format!("work item {i}")),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        assert!(
+            should_warn_on_exit(&store).is_none(),
+            "5 txns since harvest (< 8 threshold) should not warn"
+        );
+    }
+
+    #[test]
+    fn should_warn_on_exit_at_threshold_warns() {
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Simulate a harvest at wall_time=100
+        let harvest_tx = TxId::new(100, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-100"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // Add exactly 8 transactions after the harvest (at threshold)
+        for i in 1..=8 {
+            let tx = TxId::new(100 + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":work/item-{i}")),
+                Attribute::from_keyword(":db/doc"),
+                Value::String(format!("work item {i}")),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        let warning = should_warn_on_exit(&store);
+        assert!(
+            warning.is_some(),
+            "8 txns since harvest should trigger warning"
+        );
+        let msg = warning.unwrap();
+        assert!(
+            msg.contains("NEG-HARVEST-001"),
+            "warning must reference the spec element: {msg}"
+        );
+        assert!(
+            msg.contains("8 transactions"),
+            "warning must include the transaction count: {msg}"
+        );
+        assert!(
+            msg.contains("braid harvest --commit"),
+            "warning must include the recovery command: {msg}"
+        );
+    }
+
+    #[test]
+    fn should_warn_on_exit_well_above_threshold_warns() {
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // No harvest at all — simulate 15 transactions of work
+        for i in 1..=15 {
+            let tx = TxId::new(i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":work/item-{i}")),
+                Attribute::from_keyword(":db/doc"),
+                Value::String(format!("work item {i}")),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        let warning = should_warn_on_exit(&store);
+        assert!(
+            warning.is_some(),
+            "15 txns with no harvest ever should trigger warning"
+        );
+        let msg = warning.unwrap();
+        assert!(
+            msg.contains("15 transactions"),
+            "warning must include the transaction count: {msg}"
         );
     }
 

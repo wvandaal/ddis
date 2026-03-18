@@ -77,13 +77,34 @@ fn main() {
     });
 
     let budget_ctx = commands::BudgetCtx::from_flags(cli.budget, cli.context_used);
+    // Extract metadata before cmd is consumed by run().
+    let cmd_name = commands::command_name_for(&cmd);
+    let skip_exit_warning = commands::is_harvest_command(&cmd);
+    let exit_warn_path = commands::store_path(&cmd).map(|p| p.to_path_buf());
     let result = commands::run(cmd, &budget_ctx, mode);
     match result {
         Ok(cmd_output) => {
-            // INV-BUDGET-001: enforce token ceiling as the last gate before rendering.
-            // JSON mode is exempt — agents need complete structured data.
-            let cmd_output = commands::apply_budget_gate(cmd_output, mode, &budget_ctx);
+            // INV-BUDGET-001 + INV-BUDGET-005: enforce per-command token ceiling
+            // as the last gate before rendering. JSON mode is exempt.
+            let cmd_output = commands::apply_budget_gate(cmd_output, mode, &budget_ctx, cmd_name);
             print!("{}", cmd_output.render(mode));
+
+            // NEG-HARVEST-001: warn on exit if unharvested work is at risk.
+            // Skip for harvest commands (they just harvested) and JSON mode
+            // (structured output should not have side-channel stderr noise).
+            if !skip_exit_warning && mode != output::OutputMode::Json {
+                if let Some(ref path) = exit_warn_path {
+                    if let Ok(lo) = layout::DiskLayout::open(path) {
+                        if let Ok(store) = lo.load_store() {
+                            if let Some(warning) =
+                                braid_kernel::guidance::should_warn_on_exit(&store)
+                            {
+                                eprintln!("{warning}");
+                            }
+                        }
+                    }
+                }
+            }
         }
         Err(e) => {
             eprint!("{}", e.render(mode));

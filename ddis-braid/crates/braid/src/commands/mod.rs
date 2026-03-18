@@ -1253,7 +1253,7 @@ pub enum SessionAction {
 }
 
 /// Extract the store path from a command variant (if the command uses a store).
-fn store_path(cmd: &Command) -> Option<&Path> {
+pub fn store_path(cmd: &Command) -> Option<&Path> {
     match cmd {
         Command::Mcp { .. } => None,
         Command::Init { path, .. }
@@ -1327,6 +1327,53 @@ fn is_guidance_command(cmd: &Command) -> bool {
     matches!(cmd, Command::Shell { .. })
 }
 
+/// Extract the command name string for budget classification (INV-BUDGET-005).
+///
+/// Returns the lowercase command name matching `budget::classify_command` expectations.
+/// Public so `main()` can extract the name before `run()` consumes the command.
+pub fn command_name_for(cmd: &Command) -> &'static str {
+    match cmd {
+        Command::Init { .. } => "init",
+        Command::Status { .. } => "status",
+        Command::Bilateral { .. } => "bilateral",
+        Command::Trace { .. } => "trace",
+        Command::Query { .. } => "query",
+        Command::Schema { .. } => "schema",
+        Command::Harvest { .. } => "harvest",
+        Command::Seed { .. } => "seed",
+        Command::Merge { .. } => "merge",
+        Command::Log { .. } => "log",
+        Command::Observe { .. } => "observe",
+        Command::Session { .. } => "session",
+        Command::Shell { .. } => "shell",
+        Command::Wrap { .. } => "wrap",
+        Command::Write { .. } => "write",
+        Command::Task { .. } => "task",
+        Command::Config { .. } => "config",
+        Command::Mcp { .. } => "mcp",
+        Command::Next { .. } => "next",
+        Command::Done { .. } => "done",
+        Command::Note { .. } => "note",
+        Command::Go { .. } => "go",
+        Command::Spec { .. } => "spec",
+        Command::Verify { .. } => "verify",
+    }
+}
+
+/// Whether the command performs a harvest (NEG-HARVEST-001 exit warning is unnecessary).
+///
+/// Commands that harvest internally: `harvest`, `session end`.
+/// Public so `main()` can decide whether to check for exit warnings.
+pub fn is_harvest_command(cmd: &Command) -> bool {
+    matches!(
+        cmd,
+        Command::Harvest { .. }
+            | Command::Session {
+                action: SessionAction::End { .. }
+            }
+    )
+}
+
 /// Whether the command output may be piped to files (footers would corrupt).
 fn is_generative_output(cmd: &Command) -> bool {
     matches!(
@@ -1376,11 +1423,14 @@ fn maybe_inject_footer(
     }
 }
 
-/// Apply the budget gate to a `CommandOutput` (INV-BUDGET-001).
+/// Apply the budget gate to a `CommandOutput` (INV-BUDGET-001, INV-BUDGET-005).
 ///
-/// Enforces `budget_ctx.manager.output_budget` as a hard token ceiling on
-/// the human and agent text representations. JSON output is **never**
-/// truncated — agents consuming structured data need every field intact.
+/// Enforces the per-command budget (attention profile ceiling capped by global
+/// output_budget) as a hard token ceiling on human and agent text representations.
+/// JSON output is **never** truncated — agents need complete structured data.
+///
+/// `cmd_name` is the lowercase command name (e.g., "status", "query") used by
+/// `BudgetManager::command_budget()` to look up the command's attention profile.
 ///
 /// Intended to be called in `main()` after `commands::run()` returns and
 /// before `CommandOutput::render()`. This is the last gate in the pipeline.
@@ -1388,13 +1438,15 @@ pub fn apply_budget_gate(
     mut output: crate::output::CommandOutput,
     mode: crate::output::OutputMode,
     budget_ctx: &BudgetCtx,
+    cmd_name: &str,
 ) -> crate::output::CommandOutput {
     // JSON mode: never truncate — agents need complete structured data.
     if mode == crate::output::OutputMode::Json {
         return output;
     }
 
-    let ceiling = budget_ctx.manager.output_budget as usize;
+    // INV-BUDGET-005: per-command ceiling = min(global output_budget, profile ceiling).
+    let ceiling = budget_ctx.manager.command_budget(cmd_name) as usize;
 
     // Enforce ceiling on the human-readable representation.
     output.human = budget::enforce_ceiling(&output.human, ceiling);
@@ -1732,10 +1784,10 @@ pub fn run(
             inject,
         } => {
             let mut effective_budget = if compact { 200 } else { seed_budget };
-            // INV-BUDGET-001: Global budget acts as ceiling for seed output.
-            // Seed's own --budget controls content assembly; global --budget
-            // is a hard cap from the caller's remaining context window.
-            effective_budget = effective_budget.min(budget_ctx.manager.output_budget as usize);
+            // INV-BUDGET-001 + INV-BUDGET-005: command_budget("seed") applies
+            // both the global output_budget and the seed attention profile ceiling.
+            effective_budget =
+                effective_budget.min(budget_ctx.manager.command_budget("seed") as usize);
             let effective_task = task.as_deref().unwrap_or("continue");
 
             // --inject mode: update file in place with seed content (SB.3.3)
@@ -1820,7 +1872,7 @@ pub fn run(
                 seed_budget,
                 agent,
             } => {
-                let eff = seed_budget.min(budget_ctx.manager.output_budget as usize);
+                let eff = seed_budget.min(budget_ctx.manager.command_budget("session") as usize);
                 session::run_start(&path, &inject, task.as_deref(), eff, &agent)
             }
             SessionAction::End {
@@ -1830,7 +1882,7 @@ pub fn run(
                 seed_budget,
                 agent,
             } => {
-                let eff = seed_budget.min(budget_ctx.manager.output_budget as usize);
+                let eff = seed_budget.min(budget_ctx.manager.command_budget("session") as usize);
                 session::run_end(&path, &inject, task.as_deref(), eff, &agent)
             }
         },
@@ -2712,7 +2764,7 @@ mod tests {
 
         // Explicit budget of 50 tokens — forces truncation.
         let ctx = BudgetCtx::from_flags(Some(50), None);
-        let gated = apply_budget_gate(co, OutputMode::Human, &ctx);
+        let gated = apply_budget_gate(co, OutputMode::Human, &ctx, "query");
 
         assert!(
             gated.human.len() < long_text.len(),
@@ -2744,7 +2796,7 @@ mod tests {
 
         // Even a tight budget (50 tokens) is plenty for 3 tokens of output.
         let ctx = BudgetCtx::from_flags(Some(50), None);
-        let gated = apply_budget_gate(co, OutputMode::Human, &ctx);
+        let gated = apply_budget_gate(co, OutputMode::Human, &ctx, "query");
 
         assert_eq!(
             gated.human, short_text,
@@ -2775,7 +2827,7 @@ mod tests {
 
         // Very tight budget (50 tokens) — JSON must still be untouched.
         let ctx = BudgetCtx::from_flags(Some(50), None);
-        let gated = apply_budget_gate(co, OutputMode::Json, &ctx);
+        let gated = apply_budget_gate(co, OutputMode::Json, &ctx, "query");
 
         assert_eq!(gated.json, json_data, "JSON output must never be truncated");
         // When mode is JSON, human/agent should also be untouched (no processing).
@@ -2802,7 +2854,7 @@ mod tests {
         };
 
         let ctx = BudgetCtx::from_flags(Some(50), None);
-        let gated = apply_budget_gate(co, OutputMode::Agent, &ctx);
+        let gated = apply_budget_gate(co, OutputMode::Agent, &ctx, "query");
 
         // Agent output was truncated — the content field now holds the gated text.
         assert!(
@@ -2830,12 +2882,80 @@ mod tests {
         };
 
         let ctx = BudgetCtx::from_flags(None, None); // default = 10000 tokens
-        let gated = apply_budget_gate(co, OutputMode::Human, &ctx);
+        let gated = apply_budget_gate(co, OutputMode::Human, &ctx, "query");
 
         assert_eq!(
             gated.human, text,
             "default budget should not truncate normal output"
         );
+    }
+
+    // Verifies: INV-BUDGET-005 — Per-command ceiling respects attention profile
+    #[test]
+    fn budget_gate_respects_command_attention_profile() {
+        use crate::output::{AgentOutput, CommandOutput};
+
+        // "status" is Cheap (ceiling=50). Even with a generous global budget,
+        // the per-command ceiling should cap the output.
+        let text = "word ".repeat(100); // ~125 tokens, above Cheap ceiling of 50
+        let co = CommandOutput {
+            json: serde_json::json!({"status": "ok"}),
+            agent: AgentOutput {
+                context: String::new(),
+                content: text.clone(),
+                footer: String::new(),
+            },
+            human: text.clone(),
+        };
+
+        // Global budget is 10000 (default), but "status" profile ceiling is 50.
+        let ctx = BudgetCtx::from_flags(None, None);
+        let gated = apply_budget_gate(co, OutputMode::Human, &ctx, "status");
+
+        assert!(
+            gated.human.len() < text.len(),
+            "status output should be capped by Cheap attention profile (50 tokens), \
+             got {} vs original {}",
+            gated.human.len(),
+            text.len()
+        );
+    }
+
+    // Verifies: INV-BUDGET-005 — command_name_for maps all Command variants
+    #[test]
+    fn command_name_for_covers_all_variants() {
+        // Spot-check a few representative commands
+        let init = Command::Init {
+            path: PathBuf::from(".braid"),
+            spec_dir: PathBuf::from("spec"),
+        };
+        assert_eq!(command_name_for(&init), "init");
+
+        let status = Command::Status {
+            path: PathBuf::from(".braid"),
+            json: false,
+            verbose: false,
+            deep: false,
+            spectral: false,
+            full: false,
+            verify: false,
+            agent: "test".into(),
+            commit: false,
+        };
+        assert_eq!(command_name_for(&status), "status");
+
+        let seed = Command::Seed {
+            path: PathBuf::from(".braid"),
+            task: None,
+            seed_budget: 2000,
+            agent: "test".into(),
+            for_human: false,
+            json: false,
+            agent_md: false,
+            compact: false,
+            inject: None,
+        };
+        assert_eq!(command_name_for(&seed), "seed");
     }
 }
 

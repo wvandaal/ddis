@@ -36,6 +36,31 @@ pub enum Clause {
         /// Arguments (variable names or constants).
         args: Vec<Term>,
     },
+    /// A named rule invocation (Stage 1+).
+    ///
+    /// Rules allow factoring common clause patterns into reusable named abstractions.
+    /// The evaluator rejects these at Stage 0 with a clear error message.
+    Rule {
+        /// The rule name (e.g., `"ancestor"`, `"transitive-dep"`).
+        name: String,
+        /// Arguments passed to the rule.
+        args: Vec<Term>,
+    },
+    /// Disjunction: at least one branch (conjunction of clauses) must match (Stage 1+).
+    ///
+    /// Each inner `Vec<Clause>` is a conjunction; the outer vec is the disjunction.
+    /// The evaluator rejects these at Stage 0 with a clear error message.
+    Or(Vec<Vec<Clause>>),
+    /// Frontier-scoped pattern: restricts enclosed clauses to a specific agent frontier (Stage 1+).
+    ///
+    /// Used for temporal queries that compare state across different agent views.
+    /// The evaluator rejects these at Stage 0 with a clear error message.
+    Frontier {
+        /// The agent whose frontier to use, or None for the current agent.
+        agent: Option<Term>,
+        /// Clauses evaluated within this frontier scope.
+        clauses: Vec<Clause>,
+    },
 }
 
 /// A single term in a pattern or predicate.

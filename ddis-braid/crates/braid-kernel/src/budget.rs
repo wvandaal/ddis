@@ -252,10 +252,13 @@ impl AttentionProfile {
 /// Classify a CLI command into its attention profile.
 pub fn classify_command(command: &str) -> AttentionProfile {
     match command {
-        "status" | "guidance" | "stage" | "log" => AttentionProfile::Cheap,
-        "query" | "bilateral" | "generate" => AttentionProfile::Moderate,
-        "seed" => AttentionProfile::Expensive,
-        "harvest" | "transact" | "merge" | "init" => AttentionProfile::Meta,
+        "status" | "guidance" | "stage" | "log" | "config" | "next" | "done" | "go" => {
+            AttentionProfile::Cheap
+        }
+        "query" | "bilateral" | "generate" | "schema" | "trace" | "verify" | "spec" | "task"
+        | "note" => AttentionProfile::Moderate,
+        "seed" | "session" => AttentionProfile::Expensive,
+        "harvest" | "transact" | "merge" | "init" | "observe" | "write" => AttentionProfile::Meta,
         _ => AttentionProfile::Moderate, // conservative default
     }
 }

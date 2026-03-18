@@ -230,9 +230,13 @@ fn check_clause_selectivity(
                 let binding: HashMap<String, Value> = HashMap::new();
                 count_pattern_matches(store, pattern, &binding)
             }
-            Clause::Predicate { .. } => {
+            Clause::Predicate { .. }
+            | Clause::Rule { .. }
+            | Clause::Or(_)
+            | Clause::Frontier { .. } => {
                 // Predicates filter bindings — without input bindings we
-                // cannot evaluate them standalone. Report 0.
+                // cannot evaluate them standalone.
+                // Rule/Or/Frontier are Stage 1+ — no standalone count.
                 0
             }
         };

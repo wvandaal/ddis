@@ -91,6 +91,31 @@ pub fn evaluate_with_frontier(
                 .into_iter()
                 .filter(|b| eval_predicate(op, args, b))
                 .collect(),
+            Clause::Rule { name, .. } => {
+                // Stage 1+ feature: named rule invocations are not yet evaluated.
+                // Return empty bindings to signal no matches (fail-safe).
+                eprintln!(
+                    "warning: Rule clause '{name}' is a Stage 1+ feature — \
+                     skipping (no results). Upgrade to Stage 1 for rule evaluation."
+                );
+                vec![]
+            }
+            Clause::Or(_) => {
+                // Stage 1+ feature: disjunctive clauses are not yet evaluated.
+                eprintln!(
+                    "warning: Or clause is a Stage 1+ feature — \
+                     skipping (no results). Upgrade to Stage 1 for disjunction."
+                );
+                vec![]
+            }
+            Clause::Frontier { .. } => {
+                // Stage 1+ feature: frontier-scoped patterns are not yet evaluated.
+                eprintln!(
+                    "warning: Frontier clause is a Stage 1+ feature — \
+                     skipping (no results). Upgrade to Stage 1 for temporal queries."
+                );
+                vec![]
+            }
         };
     }
 
