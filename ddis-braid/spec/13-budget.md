@@ -251,11 +251,16 @@ of a minimal harvest signal.
 #### Level 0 (Algebraic Law)
 Commands are classified by attention cost:
 ```
-CHEAP    (≤ 50 tokens):  status, guidance, frontier, branch ls
-MODERATE (50–300):        associate, query, assemble, diff
-EXPENSIVE (300+):         assemble --full, seed
-META     (side effects):  harvest, transact, merge
+CHEAP    (≤ 50 tokens):  status, guidance, config, log
+MODERATE (50–300):        query, bilateral, schema, trace, verify, spec, task, next, done, go
+EXPENSIVE (300+):         seed, session
+META     (side effects):  harvest, transact, merge, init, observe, write
 ```
+
+**Note**: `next`, `done`, and `go` produce confirmation + guidance footer (~80 tokens).
+Classified as MODERATE because the guidance footer (with M(t) sub-metrics and
+paste-ready commands) is the primary methodology steering signal — truncating it
+defeats the purpose of the guidance system (INV-GUIDANCE-001).
 
 The budget manager adjusts output to stay within the allocated cost.
 

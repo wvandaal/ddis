@@ -92,14 +92,15 @@ pub use deliberation::{
 };
 pub use error::KernelError;
 pub use guidance::{
-    build_command_footer, build_footer, build_footer_with_budget, compute_methodology_score,
-    compute_routing, compute_routing_from_store, crystallization_candidates,
-    default_derivation_rules, derive_actions, derive_actions_with_budget, derive_tasks,
-    detect_activity_mode, format_actions, format_footer, format_footer_at_level,
-    harvest_warning_from_k_eff, harvest_warning_level, modulate_actions, observation_staleness,
-    should_warn_on_exit, spec_anchor_factor, ActionCategory, ActivityMode, DerivationRule,
-    DerivedTask, GuidanceAction, GuidanceFooter, HarvestWarningLevel, MethodologyComponents,
-    MethodologyScore, RoutingMetrics, SessionTelemetry, TaskNode, TaskRouting, Trend,
+    build_command_footer, build_command_footer_with_hint, build_footer, build_footer_with_budget,
+    compute_methodology_score, compute_routing, compute_routing_from_store,
+    contextual_observation_hint, crystallization_candidates, default_derivation_rules,
+    derive_actions, derive_actions_with_budget, derive_tasks, detect_activity_mode, format_actions,
+    format_footer, format_footer_at_level, harvest_warning_from_k_eff, harvest_warning_level,
+    modulate_actions, observation_staleness, should_warn_on_exit, spec_anchor_factor,
+    ActionCategory, ActivityMode, ContextualHint, DerivationRule, DerivedTask, GuidanceAction,
+    GuidanceFooter, HarvestWarningLevel, MethodologyComponents, MethodologyScore, RoutingMetrics,
+    SessionTelemetry, TaskNode, TaskRouting, Trend,
 };
 pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, classify_spec_candidate,

@@ -252,9 +252,10 @@ impl AttentionProfile {
 /// Classify a CLI command into its attention profile.
 pub fn classify_command(command: &str) -> AttentionProfile {
     match command {
-        "status" | "guidance" | "stage" | "log" | "config" | "next" | "done" | "go" => {
-            AttentionProfile::Cheap
-        }
+        "status" | "guidance" | "stage" | "log" | "config" => AttentionProfile::Cheap,
+        // next/done/go produce confirmation + guidance footer that exceeds 50 tokens.
+        // Classified as Moderate (300 tokens) to avoid truncating the footer.
+        "next" | "done" | "go" => AttentionProfile::Moderate,
         "query" | "bilateral" | "generate" | "schema" | "trace" | "verify" | "spec" | "task"
         | "note" => AttentionProfile::Moderate,
         "seed" | "session" => AttentionProfile::Expensive,

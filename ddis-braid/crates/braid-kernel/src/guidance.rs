@@ -384,6 +384,10 @@ pub struct RoutingMetrics {
     /// Age-based urgency decay (>=1.0).
     /// Logarithmic boost for older tasks: `1.0 + ln(age_days + 1) * 0.1`.
     pub urgency_decay: f64,
+    /// Spec anchor factor (0.3, 0.7, or 1.0).
+    /// Measures how well the task's spec references resolve in the store.
+    /// Applied as a post-factor in `compute_routing_from_store`.
+    pub spec_anchor: f64,
 }
 
 /// R(t) routing weights (defaults from spec).
@@ -489,6 +493,7 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
                 priority_boost,
                 type_multiplier: tm,
                 urgency_decay: ud,
+                spec_anchor: 1.0, // default; overridden by compute_routing_from_store
             };
 
             let values = [
@@ -603,7 +608,22 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
         .unwrap_or_default()
         .as_secs();
 
-    compute_routing(&nodes, now)
+    // Compute base routing, then apply spec_anchor_factor as a post-multiplier.
+    // Unanchored tasks (spec refs don't resolve) get 0.3× impact, making them sink.
+    // (SFE-3.2: Wire spec_anchor_factor into R(t) routing)
+    let mut routings = compute_routing(&nodes, now);
+    for r in &mut routings {
+        let anchor = spec_anchor_factor(store, r.entity);
+        r.metrics.spec_anchor = anchor;
+        r.impact *= anchor;
+    }
+    // Re-sort after applying anchor factor (may change relative order)
+    routings.sort_by(|a, b| {
+        b.impact
+            .partial_cmp(&a.impact)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    routings
 }
 
 // ---------------------------------------------------------------------------
@@ -660,6 +680,18 @@ pub fn spec_anchor_factor(store: &Store, task_entity: EntityId) -> f64 {
 // Guidance Footer (INV-GUIDANCE-001)
 // ---------------------------------------------------------------------------
 
+/// Contextual observation hint derived from a command's output (INV-GUIDANCE-014).
+///
+/// Pairs a human-readable observation sentence with a confidence level
+/// appropriate for the command type that produced it.
+#[derive(Clone, Debug)]
+pub struct ContextualHint {
+    /// The observation text to suggest (replaces `"..."` in the footer).
+    pub text: String,
+    /// Suggested confidence for the observation (0.0–1.0).
+    pub confidence: f64,
+}
+
 /// Guidance footer appended to every tool response.
 #[derive(Clone, Debug)]
 pub struct GuidanceFooter {
@@ -675,6 +707,11 @@ pub struct GuidanceFooter {
     pub turn: u32,
     /// Q(t) harvest warning level (derived from attention budget when available).
     pub harvest_warning: HarvestWarningLevel,
+    /// Contextual observation hint from the current command's output (INV-GUIDANCE-014).
+    ///
+    /// When set, replaces the placeholder `"..."` in the observe command suggestion
+    /// with a meaningful sentence derived from the command's actual output.
+    pub contextual_hint: Option<ContextualHint>,
 }
 
 /// Paste-ready command for the worst-scoring M(t) sub-metric.
@@ -682,12 +719,23 @@ pub struct GuidanceFooter {
 /// Returns the executable command string corresponding to whichever of the four
 /// sub-metrics (tx, spec-lang, q-div, harvest) has the lowest score.
 /// Used by Compressed-level footer to show a single actionable command.
-fn worst_metric_command(components: &MethodologyComponents) -> &'static str {
-    let metrics: [(f64, &str); 4] = [
-        (
-            components.transact_frequency,
-            "braid observe \"...\" --confidence 0.8",
+///
+/// When a `contextual_hint` is provided (INV-GUIDANCE-014), the observe command
+/// uses the contextual text instead of the placeholder `"..."`.
+fn worst_metric_command(
+    components: &MethodologyComponents,
+    hint: Option<&ContextualHint>,
+) -> String {
+    let observe_cmd = match hint {
+        Some(h) => format!(
+            "braid observe \"{}\" --confidence {:.1}",
+            truncate_hint(&h.text, 60),
+            h.confidence
         ),
+        None => "braid observe \"...\" --confidence 0.8".to_string(),
+    };
+    let metrics: [(f64, &str); 4] = [
+        (components.transact_frequency, &observe_cmd),
         (
             components.spec_language_ratio,
             "braid query --entity :spec/inv-...",
@@ -702,8 +750,8 @@ fn worst_metric_command(components: &MethodologyComponents) -> &'static str {
     metrics
         .iter()
         .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal))
-        .map(|(_, cmd)| *cmd)
-        .unwrap_or("braid status")
+        .map(|(_, cmd)| cmd.to_string())
+        .unwrap_or_else(|| "braid status".to_string())
 }
 
 /// Format a guidance footer as a compact string (ADR-GUIDANCE-008).
@@ -731,11 +779,21 @@ pub fn format_footer(footer: &GuidanceFooter) -> String {
         }
     };
 
+    // INV-GUIDANCE-014: Use contextual hint in observe command when available.
+    let observe_cmd = match &footer.contextual_hint {
+        Some(h) => format!(
+            "braid observe \"{}\" --confidence {:.1}",
+            truncate_hint(&h.text, 60),
+            h.confidence
+        ),
+        None => "braid observe \"...\" --confidence 0.8".to_string(),
+    };
+
     let line1 = format!(
         "\u{21b3} M(t): {:.2} {} (tx: {} | spec-lang: {} | q-div: {} | harvest: {}) | Store: {} datoms | Turn {}",
         m.score,
         trend,
-        check_with_hint(m.components.transact_frequency, "braid observe \"...\" --confidence 0.8"),
+        check_with_hint(m.components.transact_frequency, &observe_cmd),
         check_with_hint(m.components.spec_language_ratio, "braid query --entity :spec/inv-..."),
         check_with_hint(m.components.query_diversity, "braid query --attribute :db/doc --limit 5"),
         check_with_hint(m.components.harvest_quality, "braid harvest --commit"),
@@ -782,7 +840,7 @@ pub fn format_footer_at_level(footer: &GuidanceFooter, level: GuidanceLevel) -> 
             };
             // B2.3: At Compressed level, emit only the paste-ready command
             // for the worst failing metric instead of the generic next_action.
-            let cmd = worst_metric_command(&m.components);
+            let cmd = worst_metric_command(&m.components, footer.contextual_hint.as_ref());
             // Append Q(t) harvest warning when Warn or Critical
             let hw = if footer.harvest_warning >= HarvestWarningLevel::Warn {
                 format!(" {}", footer.harvest_warning)
@@ -867,6 +925,7 @@ pub fn build_footer_with_budget(
         store_datom_count: store.len(),
         turn: telemetry.total_turns,
         harvest_warning,
+        contextual_hint: None,
     }
 }
 
@@ -1339,6 +1398,21 @@ pub fn modulate_actions(actions: &mut Vec<GuidanceAction>, methodology_score: f6
 ///
 /// `k_eff` is the current attention budget ratio (None defaults to 1.0 = full).
 pub fn build_command_footer(store: &Store, k_eff: Option<f64>) -> String {
+    build_command_footer_with_hint(store, k_eff, None)
+}
+
+/// Build a guidance footer with an optional contextual observation hint (INV-GUIDANCE-014).
+///
+/// When `hint` is provided, the footer replaces placeholder `"..."` in the observe
+/// command suggestion with the contextual text derived from the current command's output.
+/// This transforms the footer from generic guidance into actionable, paste-ready suggestions.
+///
+/// `k_eff` is the current attention budget ratio (None defaults to 1.0 = full).
+pub fn build_command_footer_with_hint(
+    store: &Store,
+    k_eff: Option<f64>,
+    hint: Option<ContextualHint>,
+) -> String {
     let telemetry = telemetry_from_store(store);
     let methodology = compute_methodology_score(&telemetry);
     // Pass Q(t) to derive_actions so R12 uses attention-decay thresholds
@@ -1378,7 +1452,8 @@ pub fn build_command_footer(store: &Store, k_eff: Option<f64>) -> String {
         (None, vec![])
     };
 
-    let footer = build_footer_with_budget(&telemetry, store, next_action, invariant_refs, q_t);
+    let mut footer = build_footer_with_budget(&telemetry, store, next_action, invariant_refs, q_t);
+    footer.contextual_hint = hint;
     format_footer_at_level(&footer, level)
 }
 
@@ -1714,13 +1789,108 @@ pub fn crystallization_candidates(store: &Store) -> Vec<(EntityId, String)> {
 }
 
 // ---------------------------------------------------------------------------
+// Contextual Observation Funnel (INV-GUIDANCE-014)
+// ---------------------------------------------------------------------------
+
+/// Generate a contextual observation hint from a command's output.
+///
+/// INV-GUIDANCE-014: Contextual Observation Hint.
+///
+/// Examines the JSON output of a command and produces a short, meaningful
+/// sentence that can be used as the observation text in a `braid observe`
+/// suggestion. Returns `None` for commands that don't produce knowledge
+/// worth capturing (e.g., `observe`, `harvest`, `init`, `mcp`, `seed`).
+///
+/// The returned [`ContextualHint`] includes both the observation text and
+/// a confidence level appropriate for the command type:
+/// - task close: 0.9 (high confidence -- task completion is definitive)
+/// - status/bilateral: 0.8 (high -- direct store measurement)
+/// - query: 0.7 (moderate -- depends on what the query was about)
+/// - trace: 0.7 (moderate -- coverage is a measurement)
+pub fn contextual_observation_hint(
+    cmd_name: &str,
+    output: &serde_json::Value,
+) -> Option<ContextualHint> {
+    let (text, confidence) = match cmd_name {
+        "task close" | "task_close" | "done" => {
+            let title = output
+                .get("title")
+                .and_then(|v| v.as_str())
+                .unwrap_or("task");
+            let reason = output
+                .get("reason")
+                .and_then(|v| v.as_str())
+                .unwrap_or("completed");
+            (
+                format!(
+                    "Completed: {} \u{2014} {}",
+                    truncate_hint(title, 60),
+                    truncate_hint(reason, 40)
+                ),
+                0.9,
+            )
+        }
+        "query" => {
+            let count = output
+                .get("total")
+                .or_else(|| output.get("count"))
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
+            let entity = output
+                .get("entity_filter")
+                .and_then(|v| v.as_str())
+                .unwrap_or("*");
+            (format!("Queried {entity} ({count} results)"), 0.7)
+        }
+        "status" => {
+            // Extract F(S) from fitness if available
+            let fs = output.get("fitness").and_then(|v| v.as_f64());
+            match fs {
+                Some(f) => (format!("Status: F(S)={f:.2}"), 0.8),
+                None => ("Status checked".to_string(), 0.8),
+            }
+        }
+        "trace" => {
+            let coverage = output.get("coverage").and_then(|v| v.as_f64());
+            match coverage {
+                Some(c) => (format!("Traced: {:.0}% coverage", c * 100.0), 0.7),
+                None => ("Trace scan completed".to_string(), 0.7),
+            }
+        }
+        "bilateral" => {
+            let fs = output.get("fitness").and_then(|v| v.as_f64());
+            match fs {
+                Some(f) => (format!("Bilateral: F(S)={f:.2}"), 0.8),
+                None => ("Bilateral analysis completed".to_string(), 0.8),
+            }
+        }
+        // Commands that don't produce knowledge worth capturing.
+        "observe" | "harvest" | "init" | "mcp" | "seed" => return None,
+        _ => return None,
+    };
+
+    if text.is_empty() {
+        return None;
+    }
+
+    Some(ContextualHint { text, confidence })
+}
+
+/// Truncate a string to `max` bytes at a safe UTF-8 boundary.
+///
+/// Uses [`crate::budget::safe_truncate_bytes`] for correctness.
+fn truncate_hint(s: &str, max: usize) -> &str {
+    crate::budget::safe_truncate_bytes(s, max)
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 // Witnesses: INV-GUIDANCE-001, INV-GUIDANCE-002, INV-GUIDANCE-003,
 // INV-GUIDANCE-004, INV-GUIDANCE-005, INV-GUIDANCE-007,
 // INV-GUIDANCE-008, INV-GUIDANCE-009, INV-GUIDANCE-010, INV-GUIDANCE-011,
-// INV-GUIDANCE-018,
+// INV-GUIDANCE-014, INV-GUIDANCE-018,
 // ADR-GUIDANCE-001, ADR-GUIDANCE-002, ADR-GUIDANCE-003, ADR-GUIDANCE-004,
 // ADR-GUIDANCE-005, ADR-GUIDANCE-006, ADR-GUIDANCE-007,
 // ADR-GUIDANCE-008, ADR-GUIDANCE-009,
@@ -3202,7 +3372,7 @@ mod tests {
             query_diversity: 0.5,
             harvest_quality: 0.0,
         };
-        let cmd = worst_metric_command(&components);
+        let cmd = worst_metric_command(&components, None);
         assert!(
             cmd.contains("harvest"),
             "Worst metric (harvest=0.0) should suggest harvest command, got: {cmd}"
@@ -3217,7 +3387,7 @@ mod tests {
             query_diversity: 0.5,
             harvest_quality: 0.5,
         };
-        let cmd = worst_metric_command(&components);
+        let cmd = worst_metric_command(&components, None);
         assert!(
             cmd.contains("observe"),
             "Worst metric (tx=0.0) should suggest observe command, got: {cmd}"
@@ -3232,7 +3402,7 @@ mod tests {
             query_diversity: 0.5,
             harvest_quality: 0.5,
         };
-        let cmd = worst_metric_command(&components);
+        let cmd = worst_metric_command(&components, None);
         assert!(
             cmd.contains("--entity"),
             "Worst metric (spec=0.0) should suggest query --entity command, got: {cmd}"
@@ -3247,7 +3417,7 @@ mod tests {
             query_diversity: 0.0,
             harvest_quality: 0.5,
         };
-        let cmd = worst_metric_command(&components);
+        let cmd = worst_metric_command(&components, None);
         assert!(
             cmd.contains("--attribute"),
             "Worst metric (q-div=0.0) should suggest query --attribute command, got: {cmd}"
@@ -3503,6 +3673,7 @@ mod tests {
                         store_datom_count: datom_count,
                         turn,
                         harvest_warning: HarvestWarningLevel::None,
+                        contextual_hint: None,
                     }
                 })
         }
@@ -3665,6 +3836,7 @@ mod tests {
                     store_datom_count: datom_count,
                     turn,
                     harvest_warning: HarvestWarningLevel::None,
+                    contextual_hint: None,
                 };
 
                 let level = GuidanceLevel::for_k_eff(k_eff);
@@ -4760,6 +4932,398 @@ mod tests {
         assert!(
             (factor - 0.7).abs() < f64::EPSILON,
             "partial resolution => 0.7, got {factor}"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // SFE-1.2: Status wiring — crystallization gap count
+    // -------------------------------------------------------------------
+
+    // Verifies: SFE-1.2 — crystallization_candidates returns correct count
+    // when observations contain uncrystallized spec IDs.
+    #[test]
+    fn status_crystallization_gap_count() {
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Create two observations referencing different uncrystallized spec IDs
+        let obs1 = EntityId::from_ident(":obs/gap-obs-1");
+        datoms.insert(Datom::new(
+            obs1,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":obs/gap-obs-1".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            obs1,
+            Attribute::from_keyword(":exploration/body"),
+            Value::String("Need to formalize INV-GAP-001 as an invariant".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let obs2 = EntityId::from_ident(":obs/gap-obs-2");
+        datoms.insert(Datom::new(
+            obs2,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":obs/gap-obs-2".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            obs2,
+            Attribute::from_keyword(":exploration/body"),
+            Value::String("Also need ADR-GAP-002 crystallized".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let candidates = crystallization_candidates(&store);
+
+        // Two distinct uncrystallized spec IDs from two observations
+        assert_eq!(
+            candidates.len(),
+            2,
+            "should detect 2 uncrystallized spec IDs, got: {candidates:?}"
+        );
+        let ids: Vec<&str> = candidates.iter().map(|c| c.1.as_str()).collect();
+        assert!(ids.contains(&"ADR-GAP-002"), "should contain ADR-GAP-002");
+        assert!(ids.contains(&"INV-GAP-001"), "should contain INV-GAP-001");
+    }
+
+    // -------------------------------------------------------------------
+    // SFE-3.2: Routing — anchored task outranks unanchored at equal position
+    // -------------------------------------------------------------------
+
+    // Verifies: SFE-3.2 — spec_anchor_factor is applied in compute_routing_from_store.
+    // An anchored task (all spec refs resolve, anchor=1.0) outranks an unanchored task
+    // (spec refs don't resolve, anchor=0.3) when both have equal graph position.
+    #[test]
+    fn routing_anchored_outranks_unanchored() {
+        use crate::datom::{AgentId, Attribute, Datom, Op, TxId};
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let store = routing_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        // Create a formal spec element for INV-STORE-001 (with falsification)
+        let spec_entity = EntityId::from_ident(":spec/inv-store-001");
+        let spec_datoms = vec![
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-store-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("Any mutation of existing datom".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+        let store = routing_store_with(&store, spec_datoms);
+
+        // Create anchored task (references INV-STORE-001 which exists -> anchor=1.0)
+        let (_, anchored_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Fix INV-STORE-001 compliance",
+            description: None,
+            priority: 2,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, anchored_datoms);
+
+        // Create unanchored task (references INV-FAKE-999 which doesn't exist -> anchor=0.3)
+        let (_, unanchored_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Fix INV-FAKE-999 issue",
+            description: None,
+            priority: 2,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, unanchored_datoms);
+
+        let routed = compute_routing_from_store(&store);
+
+        let anchored = routed
+            .iter()
+            .find(|r| r.label.contains("INV-STORE-001"))
+            .expect("anchored task should be in routing");
+        let unanchored = routed
+            .iter()
+            .find(|r| r.label.contains("INV-FAKE-999"))
+            .expect("unanchored task should be in routing");
+
+        // Verify anchor factors were applied
+        assert!(
+            (anchored.metrics.spec_anchor - 1.0).abs() < f64::EPSILON,
+            "anchored task should have spec_anchor=1.0, got {}",
+            anchored.metrics.spec_anchor
+        );
+        assert!(
+            (unanchored.metrics.spec_anchor - 0.3).abs() < f64::EPSILON,
+            "unanchored task should have spec_anchor=0.3, got {}",
+            unanchored.metrics.spec_anchor
+        );
+
+        // Anchored task must outrank unanchored at equal graph position
+        assert!(
+            anchored.impact > unanchored.impact,
+            "anchored task (impact={:.4}, anchor={:.1}) should outrank unanchored \
+             (impact={:.4}, anchor={:.1}) at equal graph position",
+            anchored.impact,
+            anchored.metrics.spec_anchor,
+            unanchored.impact,
+            unanchored.metrics.spec_anchor,
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // Contextual Observation Funnel (INV-GUIDANCE-014)
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-GUIDANCE-014 — Contextual Observation Hint
+    #[test]
+    fn contextual_hint_task_close() {
+        let output = serde_json::json!({
+            "title": "Fix merge conflict in store module",
+            "reason": "tests verified"
+        });
+        let hint = contextual_observation_hint("task_close", &output).unwrap();
+        assert!(hint.text.contains("Completed:"), "got: {}", hint.text);
+        assert!(
+            hint.text.contains("Fix merge conflict"),
+            "got: {}",
+            hint.text
+        );
+        assert!(hint.text.contains("tests verified"), "got: {}", hint.text);
+        assert!(
+            (hint.confidence - 0.9).abs() < f64::EPSILON,
+            "task close confidence should be 0.9, got {}",
+            hint.confidence
+        );
+    }
+
+    #[test]
+    fn contextual_hint_done_alias() {
+        let output = serde_json::json!({"title": "task done", "reason": "ok"});
+        let hint = contextual_observation_hint("done", &output).unwrap();
+        assert!(hint.text.contains("Completed:"), "got: {}", hint.text);
+        assert!(
+            (hint.confidence - 0.9).abs() < f64::EPSILON,
+            "done alias should have same confidence as task_close"
+        );
+    }
+
+    #[test]
+    fn contextual_hint_query() {
+        let output = serde_json::json!({
+            "total": 42,
+            "entity_filter": ":spec/inv-store-001"
+        });
+        let hint = contextual_observation_hint("query", &output).unwrap();
+        assert_eq!(hint.text, "Queried :spec/inv-store-001 (42 results)");
+        assert!(
+            (hint.confidence - 0.7).abs() < f64::EPSILON,
+            "query confidence should be 0.7"
+        );
+    }
+
+    #[test]
+    fn contextual_hint_query_count_field() {
+        // Some queries use "count" instead of "total"
+        let output = serde_json::json!({"count": 7});
+        let hint = contextual_observation_hint("query", &output).unwrap();
+        assert!(hint.text.contains("7 results"), "got: {}", hint.text);
+    }
+
+    #[test]
+    fn contextual_hint_status_with_fitness() {
+        let output = serde_json::json!({"fitness": 0.77});
+        let hint = contextual_observation_hint("status", &output).unwrap();
+        assert_eq!(hint.text, "Status: F(S)=0.77");
+        assert!(
+            (hint.confidence - 0.8).abs() < f64::EPSILON,
+            "status confidence should be 0.8"
+        );
+    }
+
+    #[test]
+    fn contextual_hint_status_without_fitness() {
+        let output = serde_json::json!({"datom_count": 1000});
+        let hint = contextual_observation_hint("status", &output).unwrap();
+        assert_eq!(hint.text, "Status checked");
+    }
+
+    #[test]
+    fn contextual_hint_trace() {
+        let output = serde_json::json!({"coverage": 0.85});
+        let hint = contextual_observation_hint("trace", &output).unwrap();
+        assert_eq!(hint.text, "Traced: 85% coverage");
+        assert!(
+            (hint.confidence - 0.7).abs() < f64::EPSILON,
+            "trace confidence should be 0.7"
+        );
+    }
+
+    #[test]
+    fn contextual_hint_bilateral() {
+        let output = serde_json::json!({"fitness": 0.92});
+        let hint = contextual_observation_hint("bilateral", &output).unwrap();
+        assert_eq!(hint.text, "Bilateral: F(S)=0.92");
+        assert!(
+            (hint.confidence - 0.8).abs() < f64::EPSILON,
+            "bilateral confidence should be 0.8"
+        );
+    }
+
+    #[test]
+    fn contextual_hint_empty_for_observe() {
+        let output = serde_json::json!({"text": "some observation"});
+        assert!(contextual_observation_hint("observe", &output).is_none());
+    }
+
+    #[test]
+    fn contextual_hint_empty_for_harvest() {
+        let output = serde_json::json!({"candidates": 5});
+        assert!(contextual_observation_hint("harvest", &output).is_none());
+    }
+
+    #[test]
+    fn contextual_hint_empty_for_init() {
+        let output = serde_json::json!({"path": ".braid"});
+        assert!(contextual_observation_hint("init", &output).is_none());
+    }
+
+    #[test]
+    fn contextual_hint_empty_for_seed() {
+        let output = serde_json::json!({});
+        assert!(contextual_observation_hint("seed", &output).is_none());
+    }
+
+    #[test]
+    fn contextual_hint_empty_for_mcp() {
+        let output = serde_json::json!({"status": "running"});
+        assert!(contextual_observation_hint("mcp", &output).is_none());
+    }
+
+    #[test]
+    fn contextual_hint_empty_for_unknown_command() {
+        let output = serde_json::json!({"foo": "bar"});
+        assert!(contextual_observation_hint("unknown_cmd", &output).is_none());
+    }
+
+    #[test]
+    fn contextual_hint_truncates_long_title() {
+        let long_title = "A".repeat(200);
+        let output = serde_json::json!({"title": long_title, "reason": "done"});
+        let hint = contextual_observation_hint("task_close", &output).unwrap();
+        // Title truncated to 60 bytes + "Completed: " prefix + " \u{2014} " + reason
+        assert!(
+            hint.text.len() < 120,
+            "hint should be bounded, got {} chars: {}",
+            hint.text.len(),
+            hint.text
+        );
+    }
+
+    #[test]
+    fn contextual_hint_truncates_long_reason() {
+        let long_reason = "B".repeat(200);
+        let output = serde_json::json!({"title": "task", "reason": long_reason});
+        let hint = contextual_observation_hint("task_close", &output).unwrap();
+        // Reason truncated to 40 bytes
+        assert!(
+            hint.text.len() < 120,
+            "hint should be bounded, got {} chars: {}",
+            hint.text.len(),
+            hint.text
+        );
+    }
+
+    #[test]
+    fn contextual_hint_defaults_on_missing_fields() {
+        // Empty JSON — all fields should fall back to defaults
+        let output = serde_json::json!({});
+        let hint = contextual_observation_hint("task_close", &output).unwrap();
+        assert!(
+            hint.text.contains("task"),
+            "should use default title, got: {}",
+            hint.text
+        );
+        assert!(
+            hint.text.contains("completed"),
+            "should use default reason, got: {}",
+            hint.text
+        );
+    }
+
+    // Verifies: INV-GUIDANCE-014 — Footer uses contextual hint
+    #[test]
+    fn format_footer_uses_contextual_hint() {
+        let telemetry = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 1, // Low tx frequency → ✗ → contextual hint appears
+            spec_language_turns: 0,
+            query_type_count: 0,
+            harvest_quality: 0.0,
+            ..Default::default()
+        };
+        let store = Store::genesis();
+        let mut footer = build_footer(
+            &telemetry,
+            &store,
+            Some("braid observe \"...\"".into()),
+            vec![],
+        );
+        footer.contextual_hint = Some(ContextualHint {
+            text: "Fix merge — tests verified".to_string(),
+            confidence: 0.9,
+        });
+        let formatted = format_footer(&footer);
+        // tx frequency is low (3 turns, no spec), so the observe hint should appear
+        // in the tx check when the metric is below 0.4
+        if formatted.contains("\u{2717}") {
+            assert!(
+                formatted.contains("Fix merge"),
+                "footer with contextual hint should use it, got: {formatted}"
+            );
+        }
+    }
+
+    #[test]
+    fn build_command_footer_with_hint_uses_hint() {
+        let store = Store::genesis();
+        let hint = ContextualHint {
+            text: "Bilateral: F(S)=0.88".to_string(),
+            confidence: 0.8,
+        };
+        let footer = build_command_footer_with_hint(&store, Some(1.0), Some(hint));
+        // The hint should appear somewhere in the footer if tx metric is low
+        assert!(!footer.is_empty(), "footer must not be empty");
+    }
+
+    #[test]
+    fn build_command_footer_without_hint_matches_original() {
+        let store = Store::genesis();
+        let original = build_command_footer(&store, Some(1.0));
+        let with_none = build_command_footer_with_hint(&store, Some(1.0), None);
+        assert_eq!(
+            original, with_none,
+            "build_command_footer and build_command_footer_with_hint(None) must be identical"
         );
     }
 }

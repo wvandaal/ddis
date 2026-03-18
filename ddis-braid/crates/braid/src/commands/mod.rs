@@ -1452,17 +1452,25 @@ fn inject_footer(
 /// Apply guidance footer to a CommandOutput if applicable.
 ///
 /// INV-GUIDANCE-001: Every non-JSON, non-generative tool response includes guidance.
-/// This is the single injection point — all commands route through here.
+/// INV-GUIDANCE-014: Contextual observation hint replaces placeholder text.
+/// This is the single injection point -- all commands route through here.
+///
+/// When `cmd_name` is provided, computes a contextual observation hint from the
+/// command's JSON output to replace the generic placeholder in the footer.
 fn maybe_inject_footer(
     cmd_output: crate::output::CommandOutput,
     skip_footer: bool,
     path: Option<&Path>,
     budget_ctx: &BudgetCtx,
+    cmd_name: Option<&str>,
 ) -> crate::output::CommandOutput {
     if skip_footer {
         return cmd_output;
     }
-    match path.and_then(|p| try_build_footer(p, budget_ctx)) {
+    // INV-GUIDANCE-014: Derive contextual hint from the command's JSON output.
+    let hint =
+        cmd_name.and_then(|name| braid_kernel::contextual_observation_hint(name, &cmd_output.json));
+    match path.and_then(|p| try_build_footer(p, budget_ctx, hint)) {
         Some(footer_text) => inject_footer(cmd_output, &footer_text),
         None => cmd_output,
     }
@@ -1516,10 +1524,20 @@ pub fn apply_budget_gate(
 /// Best-effort: if the store can't be loaded, returns None.
 ///
 /// INV-BUDGET-004: Guidance footer compresses by k*_eff level from `budget_ctx`.
-fn try_build_footer(path: &Path, budget_ctx: &BudgetCtx) -> Option<String> {
+/// INV-GUIDANCE-014: When a contextual hint is provided, replaces placeholder
+/// `"..."` in the observe command suggestion with actionable text.
+fn try_build_footer(
+    path: &Path,
+    budget_ctx: &BudgetCtx,
+    hint: Option<braid_kernel::ContextualHint>,
+) -> Option<String> {
     let layout = crate::layout::DiskLayout::open(path).ok()?;
     let store = layout.load_store().ok()?;
-    let footer = braid_kernel::guidance::build_command_footer(&store, Some(budget_ctx.k_eff()));
+    let footer = braid_kernel::guidance::build_command_footer_with_hint(
+        &store,
+        Some(budget_ctx.k_eff()),
+        hint,
+    );
     if footer.is_empty() {
         None
     } else {
@@ -1634,6 +1652,8 @@ pub fn run(
     let path_for_footer = store_path(&cmd).map(|p| p.to_path_buf());
     let skip_footer =
         is_json_output(&cmd, mode) || is_guidance_command(&cmd) || is_generative_output(&cmd);
+    // INV-GUIDANCE-014: Extract command name for contextual observation hint.
+    let footer_cmd_name: Option<&str> = Some(command_name_for(&cmd));
 
     let result: Result<String, crate::error::BraidError> = match cmd {
         Command::Init { path, spec_dir } => {
@@ -1643,6 +1663,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Status {
@@ -1668,6 +1689,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Bilateral {
@@ -1685,6 +1707,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Trace {
@@ -1699,6 +1722,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Verify {
@@ -1714,6 +1738,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Write { action } => match action {
@@ -1793,6 +1818,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Schema {
@@ -1807,6 +1833,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Harvest {
@@ -1834,6 +1861,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Seed {
@@ -1863,6 +1891,7 @@ pub fn run(
                     skip_footer,
                     path_for_footer.as_deref(),
                     budget_ctx,
+                    footer_cmd_name,
                 ));
             }
 
@@ -1880,6 +1909,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Merge { path, source } => {
@@ -1889,6 +1919,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Log {
@@ -1905,6 +1936,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Observe {
@@ -1934,6 +1966,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Session { action } => {
@@ -1966,6 +1999,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Wrap {
@@ -1981,6 +2015,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Task { action } => {
@@ -2043,6 +2078,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Config {
@@ -2058,6 +2094,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Shell { path } => shell::run(&path),
@@ -2076,6 +2113,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Done { ids, path, agent } => {
@@ -2085,6 +2123,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Note {
@@ -2109,6 +2148,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Go { id, path, agent } => {
@@ -2118,6 +2158,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ));
         }
         Command::Spec { action } => match action {
@@ -2150,6 +2191,7 @@ pub fn run(
                     skip_footer,
                     path_for_footer.as_deref(),
                     budget_ctx,
+                    footer_cmd_name,
                 ));
             }
             SpecAction::Review { path } => {
@@ -2159,6 +2201,7 @@ pub fn run(
                     skip_footer,
                     path_for_footer.as_deref(),
                     budget_ctx,
+                    footer_cmd_name,
                 ));
             }
             SpecAction::Accept { id, path, agent } => {
@@ -2168,6 +2211,7 @@ pub fn run(
                     skip_footer,
                     path_for_footer.as_deref(),
                     budget_ctx,
+                    footer_cmd_name,
                 ));
             }
             SpecAction::Reject {
@@ -2182,6 +2226,7 @@ pub fn run(
                     skip_footer,
                     path_for_footer.as_deref(),
                     budget_ctx,
+                    footer_cmd_name,
                 ));
             }
             SpecAction::History { path } => {
@@ -2191,6 +2236,7 @@ pub fn run(
                     skip_footer,
                     path_for_footer.as_deref(),
                     budget_ctx,
+                    footer_cmd_name,
                 ));
             }
         },
@@ -2206,6 +2252,7 @@ pub fn run(
                 skip_footer,
                 path_for_footer.as_deref(),
                 budget_ctx,
+                footer_cmd_name,
             ))
         }
         Err(e) => Err(e),
@@ -2220,7 +2267,7 @@ mod tests {
     #[test]
     fn try_build_footer_on_missing_store_returns_none() {
         let ctx = BudgetCtx::from_flags(None, None);
-        let result = try_build_footer(Path::new("/nonexistent/.braid"), &ctx);
+        let result = try_build_footer(Path::new("/nonexistent/.braid"), &ctx, None);
         assert!(result.is_none(), "Missing store should return None");
     }
 

@@ -246,6 +246,15 @@ fn build_terse(
         out.push_str(&task_line);
     }
 
+    // Crystallization gap (SFE-1.2: uncrystallized observations)
+    let cryst_candidates = braid_kernel::guidance::crystallization_candidates(store);
+    if !cryst_candidates.is_empty() {
+        let count = cryst_candidates.len();
+        out.push_str(&format!(
+            "crystallization: {count} uncrystallized spec IDs (run: braid spec create <ID>)\n"
+        ));
+    }
+
     // Top action with copy-pasteable command
     if let Some(action) = actions.first() {
         let cmd = action.command.as_deref().unwrap_or("-");
@@ -322,6 +331,15 @@ fn build_agent(
         content.push_str(&format!(
             " | tasks: {} open ({} ready)",
             total_open, ready_count
+        ));
+    }
+
+    // Crystallization gap (SFE-1.2)
+    let cryst_candidates = braid_kernel::guidance::crystallization_candidates(store);
+    if !cryst_candidates.is_empty() {
+        content.push_str(&format!(
+            " | crystallization: {} uncrystallized",
+            cryst_candidates.len()
         ));
     }
 
@@ -479,6 +497,15 @@ fn build_verbose(
         tx_since_harvest, harvest_warning
     ));
 
+    // Crystallization gap (SFE-1.2)
+    let cryst_candidates = braid_kernel::guidance::crystallization_candidates(store);
+    if !cryst_candidates.is_empty() {
+        let count = cryst_candidates.len();
+        out.push_str(&format!(
+            "crystallization: {count} uncrystallized spec IDs (run: braid spec create <ID>)\n"
+        ));
+    }
+
     // Frontier
     out.push_str("frontier:\n");
     for (agent, tx_id) in store.frontier() {
@@ -633,6 +660,12 @@ fn build_json(
         "agent": agent_name,
         "actions": actions_json,
     });
+
+    // Crystallization gap (SFE-1.2)
+    let cryst_count = braid_kernel::guidance::crystallization_candidates(store).len();
+    if cryst_count > 0 {
+        result["crystallization_gap"] = serde_json::json!(cryst_count);
+    }
 
     // Add bilateral data if deep
     if deep {
