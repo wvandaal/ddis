@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773853273/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-DMP-1: generate_methodology_section produces correct content for various store states (unit + proptest). Cases: empty store, store with gaps, store with all capabilities, store at low k*. Verify: ≤200 tokens, contains gap counts, contains R(t) actions, ceremony level matches k*. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "714f109771554617d1730144736550682d4150340e8f58d1ec2492a73d6052e7" :a :db/ident :v :task/t-7dd613c3 :op :assert}
+   {:e #blake3 "714f109771554617d1730144736550682d4150340e8f58d1ec2492a73d6052e7" :a :task/created-at :v 1773853272 :op :assert}
+   {:e #blake3 "714f109771554617d1730144736550682d4150340e8f58d1ec2492a73d6052e7" :a :task/id :v "t-7dd613c3" :op :assert}
+   {:e #blake3 "714f109771554617d1730144736550682d4150340e8f58d1ec2492a73d6052e7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "714f109771554617d1730144736550682d4150340e8f58d1ec2492a73d6052e7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "714f109771554617d1730144736550682d4150340e8f58d1ec2492a73d6052e7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "714f109771554617d1730144736550682d4150340e8f58d1ec2492a73d6052e7" :a :task/title :v "TEST-DMP-1: generate_methodology_section produces correct content for various store states (unit + proptest). Cases: empty store, store with gaps, store with all capabilities, store at low k*. Verify: ≤200 tokens, contains gap counts, contains R(t) actions, ceremony level matches k*. V:PROP." :op :assert}
+   {:e #blake3 "714f109771554617d1730144736550682d4150340e8f58d1ec2492a73d6052e7" :a :task/type :v :task.type/test :op :assert}
+ ]}

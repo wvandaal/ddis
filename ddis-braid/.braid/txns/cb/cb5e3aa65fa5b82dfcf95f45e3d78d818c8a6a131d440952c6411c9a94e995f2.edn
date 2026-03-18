@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773853263/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DMP-1.1: Implement generate_methodology_section(store, k_eff) -> String — produces <braid-methodology> content from store state (INV-GUIDANCE-022). BACKGROUND: Assembles: methodology_gaps() for gap counts, R(t) top-3 for pre-computed actions, GuidanceContext for ceremony level, capability scan for session constraints. Output ≤200 tokens. Uses existing generate_agent_md infrastructure in agent_md.rs. TRACES TO: INV-GUIDANCE-022. ACCEPTANCE: store with 3 uncrystallized observations → methodology section contains '3 uncrystallized spec IDs'."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "db1dccd9bc238384b099cd382b75d8821b56121fe3f2544b5bf609795bab47ca" :a :db/ident :v :task/t-cf612d86 :op :assert}
+   {:e #blake3 "db1dccd9bc238384b099cd382b75d8821b56121fe3f2544b5bf609795bab47ca" :a :task/created-at :v 1773853262 :op :assert}
+   {:e #blake3 "db1dccd9bc238384b099cd382b75d8821b56121fe3f2544b5bf609795bab47ca" :a :task/id :v "t-cf612d86" :op :assert}
+   {:e #blake3 "db1dccd9bc238384b099cd382b75d8821b56121fe3f2544b5bf609795bab47ca" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "db1dccd9bc238384b099cd382b75d8821b56121fe3f2544b5bf609795bab47ca" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "db1dccd9bc238384b099cd382b75d8821b56121fe3f2544b5bf609795bab47ca" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "db1dccd9bc238384b099cd382b75d8821b56121fe3f2544b5bf609795bab47ca" :a :task/title :v "DMP-1.1: Implement generate_methodology_section(store, k_eff) -> String — produces <braid-methodology> content from store state (INV-GUIDANCE-022). BACKGROUND: Assembles: methodology_gaps() for gap counts, R(t) top-3 for pre-computed actions, GuidanceContext for ceremony level, capability scan for session constraints. Output ≤200 tokens. Uses existing generate_agent_md infrastructure in agent_md.rs. TRACES TO: INV-GUIDANCE-022. ACCEPTANCE: store with 3 uncrystallized observations → methodology section contains '3 uncrystallized spec IDs'." :op :assert}
+   {:e #blake3 "db1dccd9bc238384b099cd382b75d8821b56121fe3f2544b5bf609795bab47ca" :a :task/type :v :task.type/task :op :assert}
+ ]}

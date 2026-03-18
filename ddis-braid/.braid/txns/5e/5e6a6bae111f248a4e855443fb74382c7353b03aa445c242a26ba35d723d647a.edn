@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773853261/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Dynamic Methodology Projection — AGENTS.md as live store projection (INV-GUIDANCE-022, INV-GUIDANCE-023, ADR-GUIDANCE-016)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c8130eb28f5159ee5e7ce6c71fa493ead3da036c7c9041d92a79f6e62fb6a323" :a :db/ident :v :task/t-f7f3a212 :op :assert}
+   {:e #blake3 "c8130eb28f5159ee5e7ce6c71fa493ead3da036c7c9041d92a79f6e62fb6a323" :a :task/created-at :v 1773853260 :op :assert}
+   {:e #blake3 "c8130eb28f5159ee5e7ce6c71fa493ead3da036c7c9041d92a79f6e62fb6a323" :a :task/id :v "t-f7f3a212" :op :assert}
+   {:e #blake3 "c8130eb28f5159ee5e7ce6c71fa493ead3da036c7c9041d92a79f6e62fb6a323" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c8130eb28f5159ee5e7ce6c71fa493ead3da036c7c9041d92a79f6e62fb6a323" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c8130eb28f5159ee5e7ce6c71fa493ead3da036c7c9041d92a79f6e62fb6a323" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c8130eb28f5159ee5e7ce6c71fa493ead3da036c7c9041d92a79f6e62fb6a323" :a :task/title :v "EPIC: Dynamic Methodology Projection — AGENTS.md as live store projection (INV-GUIDANCE-022, INV-GUIDANCE-023, ADR-GUIDANCE-016)" :op :assert}
+   {:e #blake3 "c8130eb28f5159ee5e7ce6c71fa493ead3da036c7c9041d92a79f6e62fb6a323" :a :task/type :v :task.type/epic :op :assert}
+ ]}

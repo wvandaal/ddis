@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773853277/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-DMP-2: seed --inject writes <braid-methodology> at correct position (integration). Verify: methodology section appears BEFORE braid-seed section. Verify: regenerating is idempotent. Verify: section content matches store state. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "085aacc553a0b6d54137506d3aa239eae23640e951d0898fd1519bbce0f1b89f" :a :db/ident :v :task/t-0eb60dcd :op :assert}
+   {:e #blake3 "085aacc553a0b6d54137506d3aa239eae23640e951d0898fd1519bbce0f1b89f" :a :task/created-at :v 1773853276 :op :assert}
+   {:e #blake3 "085aacc553a0b6d54137506d3aa239eae23640e951d0898fd1519bbce0f1b89f" :a :task/id :v "t-0eb60dcd" :op :assert}
+   {:e #blake3 "085aacc553a0b6d54137506d3aa239eae23640e951d0898fd1519bbce0f1b89f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "085aacc553a0b6d54137506d3aa239eae23640e951d0898fd1519bbce0f1b89f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "085aacc553a0b6d54137506d3aa239eae23640e951d0898fd1519bbce0f1b89f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "085aacc553a0b6d54137506d3aa239eae23640e951d0898fd1519bbce0f1b89f" :a :task/title :v "TEST-DMP-2: seed --inject writes <braid-methodology> at correct position (integration). Verify: methodology section appears BEFORE braid-seed section. Verify: regenerating is idempotent. Verify: section content matches store state. V:PROP." :op :assert}
+   {:e #blake3 "085aacc553a0b6d54137506d3aa239eae23640e951d0898fd1519bbce0f1b89f" :a :task/type :v :task.type/test :op :assert}
+ ]}

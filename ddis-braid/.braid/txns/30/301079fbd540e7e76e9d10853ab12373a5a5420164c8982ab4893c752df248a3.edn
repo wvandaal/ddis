@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773853267/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DMP-1.2: Implement ceremony_level(k_eff, change_type) -> CeremonyLevel — adaptive protocol selection (INV-GUIDANCE-023). BACKGROUND: Full (k*>0.7 + novel design), Standard (k*>0.3 OR feature), Minimal (k*<0.3 OR known-bug). CeremonyLevel enum with description text for each. TRACES TO: INV-GUIDANCE-023. ACCEPTANCE: k_eff=0.8 + novel → Full, k_eff=0.2 + known-bug → Minimal."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9f217017e1e3f0d66d7434a480488c1b6ffb2477e34c6670fa2f5df1b785e360" :a :db/ident :v :task/t-7611b52c :op :assert}
+   {:e #blake3 "9f217017e1e3f0d66d7434a480488c1b6ffb2477e34c6670fa2f5df1b785e360" :a :task/created-at :v 1773853266 :op :assert}
+   {:e #blake3 "9f217017e1e3f0d66d7434a480488c1b6ffb2477e34c6670fa2f5df1b785e360" :a :task/id :v "t-7611b52c" :op :assert}
+   {:e #blake3 "9f217017e1e3f0d66d7434a480488c1b6ffb2477e34c6670fa2f5df1b785e360" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9f217017e1e3f0d66d7434a480488c1b6ffb2477e34c6670fa2f5df1b785e360" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9f217017e1e3f0d66d7434a480488c1b6ffb2477e34c6670fa2f5df1b785e360" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9f217017e1e3f0d66d7434a480488c1b6ffb2477e34c6670fa2f5df1b785e360" :a :task/title :v "DMP-1.2: Implement ceremony_level(k_eff, change_type) -> CeremonyLevel — adaptive protocol selection (INV-GUIDANCE-023). BACKGROUND: Full (k*>0.7 + novel design), Standard (k*>0.3 OR feature), Minimal (k*<0.3 OR known-bug). CeremonyLevel enum with description text for each. TRACES TO: INV-GUIDANCE-023. ACCEPTANCE: k_eff=0.8 + novel → Full, k_eff=0.2 + known-bug → Minimal." :op :assert}
+   {:e #blake3 "9f217017e1e3f0d66d7434a480488c1b6ffb2477e34c6670fa2f5df1b785e360" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773853278/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-DMP-3: ceremony_level adapts to k* and change type (unit). Full matrix: high/low k* × novel/feature/known-bug → correct level. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "96b9530d65c8b06c87189e2a615d31f0c523aeffbdfe168e0e28a66d8c22f9d8" :a :db/ident :v :task/t-f5410d74 :op :assert}
+   {:e #blake3 "96b9530d65c8b06c87189e2a615d31f0c523aeffbdfe168e0e28a66d8c22f9d8" :a :task/created-at :v 1773853277 :op :assert}
+   {:e #blake3 "96b9530d65c8b06c87189e2a615d31f0c523aeffbdfe168e0e28a66d8c22f9d8" :a :task/id :v "t-f5410d74" :op :assert}
+   {:e #blake3 "96b9530d65c8b06c87189e2a615d31f0c523aeffbdfe168e0e28a66d8c22f9d8" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "96b9530d65c8b06c87189e2a615d31f0c523aeffbdfe168e0e28a66d8c22f9d8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "96b9530d65c8b06c87189e2a615d31f0c523aeffbdfe168e0e28a66d8c22f9d8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "96b9530d65c8b06c87189e2a615d31f0c523aeffbdfe168e0e28a66d8c22f9d8" :a :task/title :v "TEST-DMP-3: ceremony_level adapts to k* and change type (unit). Full matrix: high/low k* × novel/feature/known-bug → correct level. V:PROP." :op :assert}
+   {:e #blake3 "96b9530d65c8b06c87189e2a615d31f0c523aeffbdfe168e0e28a66d8c22f9d8" :a :task/type :v :task.type/test :op :assert}
+ ]}

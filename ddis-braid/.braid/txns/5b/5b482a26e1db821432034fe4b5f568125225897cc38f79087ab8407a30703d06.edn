@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773853271/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DMP-3.1: Implement provenance_chain_check(store, changed_files) -> Vec<ProvenanceGap> — detect commits without spec traceability (INV-GUIDANCE-023). BACKGROUND: For each changed source file, check if recent observations/tasks reference spec elements related to those files. Uses braid trace infrastructure. Returns files with no provenance chain. TRACES TO: INV-GUIDANCE-023. ACCEPTANCE: file modified with no related observation → ProvenanceGap detected."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c791a522830654a02cf4cc73cfdcc679b498afe65f818f6dba8317883e333e67" :a :db/ident :v :task/t-0dc8d646 :op :assert}
+   {:e #blake3 "c791a522830654a02cf4cc73cfdcc679b498afe65f818f6dba8317883e333e67" :a :task/created-at :v 1773853270 :op :assert}
+   {:e #blake3 "c791a522830654a02cf4cc73cfdcc679b498afe65f818f6dba8317883e333e67" :a :task/id :v "t-0dc8d646" :op :assert}
+   {:e #blake3 "c791a522830654a02cf4cc73cfdcc679b498afe65f818f6dba8317883e333e67" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c791a522830654a02cf4cc73cfdcc679b498afe65f818f6dba8317883e333e67" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c791a522830654a02cf4cc73cfdcc679b498afe65f818f6dba8317883e333e67" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c791a522830654a02cf4cc73cfdcc679b498afe65f818f6dba8317883e333e67" :a :task/title :v "DMP-3.1: Implement provenance_chain_check(store, changed_files) -> Vec<ProvenanceGap> — detect commits without spec traceability (INV-GUIDANCE-023). BACKGROUND: For each changed source file, check if recent observations/tasks reference spec elements related to those files. Uses braid trace infrastructure. Returns files with no provenance chain. TRACES TO: INV-GUIDANCE-023. ACCEPTANCE: file modified with no related observation → ProvenanceGap detected." :op :assert}
+   {:e #blake3 "c791a522830654a02cf4cc73cfdcc679b498afe65f818f6dba8317883e333e67" :a :task/type :v :task.type/task :op :assert}
+ ]}
