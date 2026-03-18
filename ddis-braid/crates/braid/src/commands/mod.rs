@@ -224,6 +224,18 @@ Empty results? Try: braid query --attribute :db/ident  # list known entities")]
         #[arg(long)]
         frontier: Option<String>,
 
+        /// Maximum number of results to return (pagination).
+        #[arg(long)]
+        limit: Option<usize>,
+
+        /// Number of results to skip before returning (pagination).
+        #[arg(long, default_value = "0")]
+        offset: usize,
+
+        /// Return only the count of matching datoms (no data).
+        #[arg(long)]
+        count: bool,
+
         /// Output as JSON.
         #[arg(long)]
         json: bool,
@@ -1718,19 +1730,25 @@ pub fn run(
             datalog,
             positional_datalog,
             frontier,
+            limit,
+            offset,
+            count,
             json,
         } => {
             let dq = datalog.or(positional_datalog);
             let cmd_output = if let Some(ref dq) = dq {
                 query::run_datalog(&path, dq, frontier.as_deref(), json)?
             } else {
-                query::run(
-                    &path,
-                    entity.as_deref(),
-                    attribute.as_deref(),
-                    frontier.as_deref(),
+                query::run(query::QueryParams {
+                    path: &path,
+                    entity_filter: entity.as_deref(),
+                    attribute_filter: attribute.as_deref(),
+                    frontier_spec: frontier.as_deref(),
+                    limit,
+                    offset,
+                    count_only: count,
                     json,
-                )?
+                })?
             };
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -2169,6 +2187,9 @@ mod tests {
             datalog: None,
             positional_datalog: None,
             frontier: None,
+            limit: None,
+            offset: 0,
+            count: false,
             json: true,
         };
         assert!(is_json_output(&query_json, h));
@@ -2180,6 +2201,9 @@ mod tests {
             datalog: None,
             positional_datalog: None,
             frontier: None,
+            limit: None,
+            offset: 0,
+            count: false,
             json: false,
         };
         assert!(!is_json_output(&query_no_json, h));
@@ -2321,6 +2345,9 @@ mod tests {
             datalog: None,
             positional_datalog: None,
             frontier: None,
+            limit: None,
+            offset: 0,
+            count: false,
             json: false,
         };
         assert!(!is_generative_output(&query));
@@ -2385,6 +2412,9 @@ mod tests {
             datalog: None,
             positional_datalog: None,
             frontier: None,
+            limit: None,
+            offset: 0,
+            count: false,
             json: false,
         };
         assert_eq!(store_path(&query), Some(Path::new("/data/.braid")));
@@ -2474,6 +2504,9 @@ mod tests {
             datalog: None,
             positional_datalog: None,
             frontier: None,
+            limit: None,
+            offset: 0,
+            count: false,
             json: true,
         };
         let h = OutputMode::Human;
@@ -2614,6 +2647,9 @@ mod tests {
                 datalog: None,
                 positional_datalog: None,
                 frontier: None,
+                limit: None,
+                offset: 0,
+                count: false,
                 json: false,
             },
             Command::Harvest {
@@ -2689,6 +2725,9 @@ mod tests {
             datalog: None,
             positional_datalog: None,
             frontier: None,
+            limit: None,
+            offset: 0,
+            count: false,
             json: true,
         };
         assert!(

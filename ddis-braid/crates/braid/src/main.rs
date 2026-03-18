@@ -50,6 +50,18 @@ struct Cli {
     command: Option<commands::Command>,
 }
 
+/// Whether a command should bypass the budget gate.
+///
+/// Queries with explicit `--limit` or `--count` have user-controlled output bounds,
+/// so the automatic budget truncation would defeat the purpose of pagination.
+fn is_budget_exempt(cmd: &commands::Command) -> bool {
+    matches!(
+        cmd,
+        commands::Command::Query { limit: Some(_), .. }
+            | commands::Command::Query { count: true, .. }
+    )
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -80,13 +92,20 @@ fn main() {
     // Extract metadata before cmd is consumed by run().
     let cmd_name = commands::command_name_for(&cmd);
     let skip_exit_warning = commands::is_harvest_command(&cmd);
+    let budget_exempt = is_budget_exempt(&cmd);
     let exit_warn_path = commands::store_path(&cmd).map(|p| p.to_path_buf());
     let result = commands::run(cmd, &budget_ctx, mode);
     match result {
         Ok(cmd_output) => {
             // INV-BUDGET-001 + INV-BUDGET-005: enforce per-command token ceiling
             // as the last gate before rendering. JSON mode is exempt.
-            let cmd_output = commands::apply_budget_gate(cmd_output, mode, &budget_ctx, cmd_name);
+            // Explicit pagination (--limit or --count) also bypasses the budget gate
+            // because the user has explicitly bounded the output themselves.
+            let cmd_output = if budget_exempt {
+                cmd_output
+            } else {
+                commands::apply_budget_gate(cmd_output, mode, &budget_ctx, cmd_name)
+            };
             print!("{}", cmd_output.render(mode));
 
             // NEG-HARVEST-001: warn on exit if unharvested work is at risk.

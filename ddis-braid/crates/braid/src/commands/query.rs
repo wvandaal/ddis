@@ -94,13 +94,32 @@ pub fn format_value(store: &Store, value: &Value) -> String {
     }
 }
 
-pub fn run(
-    path: &Path,
-    entity_filter: Option<&str>,
-    attribute_filter: Option<&str>,
-    frontier_spec: Option<&str>,
-    json: bool,
-) -> Result<CommandOutput, BraidError> {
+/// Parameters for a datom query (entity/attribute filter mode).
+///
+/// Bundled into a struct to avoid clippy's too-many-arguments warning
+/// while supporting pagination (--limit, --offset, --count).
+pub struct QueryParams<'a> {
+    pub path: &'a Path,
+    pub entity_filter: Option<&'a str>,
+    pub attribute_filter: Option<&'a str>,
+    pub frontier_spec: Option<&'a str>,
+    pub limit: Option<usize>,
+    pub offset: usize,
+    pub count_only: bool,
+    pub json: bool,
+}
+
+pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
+    let QueryParams {
+        path,
+        entity_filter,
+        attribute_filter,
+        frontier_spec,
+        limit,
+        offset,
+        count_only,
+        json,
+    } = params;
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -141,6 +160,37 @@ pub fn run(
         ));
     }
 
+    // --- Pagination ---
+    let total_count = results.len();
+    let paginated: Vec<_> = results
+        .into_iter()
+        .skip(offset)
+        .take(limit.unwrap_or(usize::MAX))
+        .collect();
+    let results = paginated;
+    let is_paginated = limit.is_some() || offset > 0;
+
+    // --- Count-only mode ---
+    if count_only {
+        let human = format!("{total_count}\n");
+        let structured_json = serde_json::json!({
+            "mode": "datom",
+            "count": total_count,
+            "entity_filter": entity_filter,
+            "attribute_filter": attribute_filter,
+        });
+        let agent = AgentOutput {
+            context: format!("count: {total_count} datoms"),
+            content: human.clone(),
+            footer: String::new(),
+        };
+        return Ok(CommandOutput {
+            json: structured_json,
+            agent,
+            human,
+        });
+    }
+
     // --- Human output ---
     let human = if json {
         let datoms_json: Vec<serde_json::Value> = results
@@ -153,17 +203,37 @@ pub fn run(
                 })
             })
             .collect();
-        let result = serde_json::json!({
+        let mut result = serde_json::json!({
             "count": results.len(),
+            "total": total_count,
             "datoms": datoms_json,
         });
+        if is_paginated {
+            result["offset"] = serde_json::json!(offset);
+            if let Some(lim) = limit {
+                result["limit"] = serde_json::json!(lim);
+            }
+        }
         serde_json::to_string_pretty(&result).unwrap() + "\n"
     } else {
         let mut out = String::new();
         for (entity_label, attr_str, value_str) in &results {
             out.push_str(&format!("[{} {} {}]\n", entity_label, attr_str, value_str));
         }
-        out.push_str(&format!("\n{} datom(s)\n", results.len()));
+        if is_paginated {
+            let lim_str = limit
+                .map(|l| l.to_string())
+                .unwrap_or_else(|| "none".to_string());
+            out.push_str(&format!(
+                "\nshowing {}/{} datom(s) (offset={}, limit={})\n",
+                results.len(),
+                total_count,
+                offset,
+                lim_str
+            ));
+        } else {
+            out.push_str(&format!("\n{} datom(s)\n", results.len()));
+        }
         out
     };
 
@@ -178,23 +248,36 @@ pub fn run(
             })
         })
         .collect();
-    let structured_json = serde_json::json!({
+    let mut structured_json = serde_json::json!({
         "mode": "datom",
         "count": results.len(),
+        "total": total_count,
         "entity_filter": entity_filter,
         "attribute_filter": attribute_filter,
         "datoms": datoms_json,
     });
+    if is_paginated {
+        structured_json["offset"] = serde_json::json!(offset);
+        if let Some(lim) = limit {
+            structured_json["limit"] = serde_json::json!(lim);
+        }
+    }
 
     // --- Agent output ---
     let entity_desc = entity_filter.unwrap_or("*");
     let attr_desc = attribute_filter.unwrap_or("*");
+    let pagination_note = if is_paginated {
+        format!(" [{}/{}]", results.len(), total_count)
+    } else {
+        String::new()
+    };
     let agent = AgentOutput {
         context: format!(
-            "query: {} datoms (entity={}, attribute={})",
+            "query: {} datoms (entity={}, attribute={}){}",
             results.len(),
             entity_desc,
-            attr_desc
+            attr_desc,
+            pagination_note
         ),
         content: human.clone(),
         footer: "refine: add filters | explore: braid schema --pattern ':spec/*'".to_string(),

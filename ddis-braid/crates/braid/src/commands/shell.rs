@@ -108,7 +108,16 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
             if args.is_empty() {
                 return DispatchResult::Error("usage: show <entity-ident>".into());
             }
-            match super::query::run(path, Some(args), None, None, false) {
+            match super::query::run(super::query::QueryParams {
+                path,
+                entity_filter: Some(args),
+                attribute_filter: None,
+                frontier_spec: None,
+                limit: None,
+                offset: 0,
+                count_only: false,
+                json: false,
+            }) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
@@ -118,7 +127,16 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
             if args.is_empty() {
                 return DispatchResult::Error("usage: find <attribute>".into());
             }
-            match super::query::run(path, None, Some(args), None, false) {
+            match super::query::run(super::query::QueryParams {
+                path,
+                entity_filter: None,
+                attribute_filter: Some(args),
+                frontier_spec: None,
+                limit: None,
+                offset: 0,
+                count_only: false,
+                json: false,
+            }) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }
