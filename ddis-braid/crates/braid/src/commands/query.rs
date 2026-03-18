@@ -51,7 +51,7 @@ fn parse_frontier(store: &Store, spec: Option<&str>) -> Result<Option<Frontier>,
 ///
 /// If the entity has a `:db/ident` datom, returns the ident keyword.
 /// Otherwise, returns a truncated hex representation of the entity hash.
-fn resolve_entity_label(store: &Store, entity: EntityId) -> String {
+pub fn resolve_entity_label(store: &Store, entity: EntityId) -> String {
     for datom in store.entity_datoms(entity) {
         if datom.attribute.as_str() == ":db/ident" {
             if let Value::Keyword(kw) = &datom.value {
@@ -72,7 +72,7 @@ fn resolve_entity_label(store: &Store, entity: EntityId) -> String {
 /// Strips the variant wrapper (e.g., `String("foo")` becomes `"foo"`,
 /// `Keyword(":db/ident")` becomes `:db/ident`, `Ref(entity)` resolves
 /// to the target entity's ident).
-fn format_value(store: &Store, value: &Value) -> String {
+pub fn format_value(store: &Store, value: &Value) -> String {
     match value {
         Value::String(s) => format!("\"{}\"", s),
         Value::Keyword(kw) => kw.clone(),
@@ -506,7 +506,7 @@ fn is_delimiter(c: char) -> bool {
 ///
 /// Variables start with `?`, keywords start with `:`, strings are double-quoted,
 /// and numbers are parsed as `Long` (integer) or `Double` (contains `.`).
-fn parse_datalog(input: &str) -> Result<QueryExpr, BraidError> {
+pub fn parse_datalog(input: &str) -> Result<QueryExpr, BraidError> {
     let tokens = tokenize(input)?;
     if tokens.is_empty() {
         return Err(BraidError::DatalogParse("empty query".to_string()));

@@ -1142,8 +1142,9 @@ fn discover_constraints(store: &Store, task_keywords: &[String]) -> Vec<Constrai
             .then_with(|| a.id.cmp(&b.id))
     });
 
-    // Limit to top 10 to stay within budget
-    constraints.truncate(10);
+    // Limit to top 5 most relevant constraints (turn-1 basin activation:
+    // agents act on <=5 constraints; more causes dilution, not depth).
+    constraints.truncate(5);
     constraints
 }
 

@@ -1,12 +1,12 @@
 //! Datalog query engine with graph algorithms.
 //!
 //! The query engine evaluates Datalog-like queries against the store using
-//! semi-naive bottom-up fixpoint evaluation. Stage 0 supports strata 0-1
-//! (monotonic queries only, CALM compliant).
+//! naive bottom-up fixpoint evaluation with stratification. Stage 0 supports
+//! strata 0-1 (monotonic queries only, CALM compliant).
 //!
 //! # Invariants
 //!
-//! - **INV-QUERY-001**: Semi-naive fixpoint convergence (Knaster-Tarski).
+//! - **INV-QUERY-001**: Stratified fixpoint convergence (Knaster-Tarski).
 //! - **INV-QUERY-002**: CALM compliance for S0/S1 (monotonic, no coordination).
 //! - **INV-QUERY-003**: Query significance tracking.
 //! - **INV-QUERY-004**: Branch visibility in query results.
@@ -29,7 +29,7 @@
 //!
 //! # Design Decisions
 //!
-//! - ADR-QUERY-002: Semi-naive bottom-up evaluation over top-down.
+//! - ADR-QUERY-002: Naive bottom-up evaluation (with stratification) over top-down.
 //! - ADR-QUERY-003: Six-stratum classification.
 //! - ADR-QUERY-004: FFI for derived functions (pure Rust, no external calls).
 //! - ADR-QUERY-005: Local frontier as default query scope.

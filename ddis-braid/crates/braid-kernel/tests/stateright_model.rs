@@ -1297,7 +1297,7 @@ fn layout_atomicity_no_partial_writes() {
 //
 // Verifies: INV-QUERY-010
 //
-// Models semi-naive Datalog evaluation reaching a fixpoint.
+// Models naive fixpoint Datalog evaluation reaching convergence.
 // State: a growing set of "derived facts" (integers).
 // Rules: if fact(x) exists and x < ceiling, derive fact(x+1).
 // This models the monotonic growth of the derived fact set until no new
@@ -1305,7 +1305,7 @@ fn layout_atomicity_no_partial_writes() {
 //
 // Actions:
 //   - AddBaseFact(i): inject a base fact (bounded to a small set)
-//   - EvaluateRound: apply all rules once (semi-naive: only process new facts)
+//   - EvaluateRound: apply all rules once (naive: process all current facts)
 //
 // Properties:
 //   SAFETY — evaluation terminates (round count bounded by ceiling)
@@ -1318,7 +1318,7 @@ fn layout_atomicity_no_partial_writes() {
 struct QueryFixpointState {
     /// The set of currently known facts (integers).
     facts: BTreeSet<u32>,
-    /// Facts that were newly derived in the last round (for semi-naive).
+    /// Facts that were newly derived in the last round (for convergence detection).
     new_in_last_round: BTreeSet<u32>,
     /// Number of evaluation rounds performed.
     rounds: u32,
@@ -1332,7 +1332,7 @@ struct QueryFixpointState {
 enum QueryFixpointAction {
     /// Inject a base fact.
     AddBaseFact(u32),
-    /// Run one semi-naive evaluation round.
+    /// Run one naive fixpoint evaluation round.
     EvaluateRound,
 }
 
@@ -1392,7 +1392,7 @@ impl Model for QueryFixpointModel {
                 state.new_in_last_round.insert(fact);
             }
             QueryFixpointAction::EvaluateRound => {
-                // Semi-naive: derive new facts from ALL current facts.
+                // Naive fixpoint: derive new facts from ALL current facts.
                 // Rule: for every fact x where x < ceiling, derive x+1.
                 let mut newly_derived = BTreeSet::new();
                 for &x in &state.facts {
@@ -1471,7 +1471,7 @@ impl Model for QueryFixpointModel {
 }
 
 // Verifies: INV-QUERY-010
-/// Query fixpoint model: semi-naive Datalog evaluation with integer facts.
+/// Query fixpoint model: naive Datalog evaluation with integer facts.
 /// Rule: fact(x) => fact(x+1) up to ceiling=3. Verifies termination (safety)
 /// and fixpoint reachability (liveness) under all interleavings of base fact
 /// injection and evaluation rounds.

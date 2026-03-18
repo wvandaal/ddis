@@ -303,7 +303,7 @@ mod tests {
     // -------------------------------------------------------------------
     // Proptest: stratum classification properties
     // Verifies: INV-QUERY-005 — Stratum Safety
-    // Verifies: INV-QUERY-006 — Semi-Naive Termination
+    // Verifies: INV-QUERY-006 — Fixpoint Termination
     // Verifies: NEG-QUERY-003 — No Unbounded Query Evaluation
     // -------------------------------------------------------------------
 

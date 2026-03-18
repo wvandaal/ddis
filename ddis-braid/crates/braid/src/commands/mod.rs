@@ -13,7 +13,7 @@ mod init;
 mod log;
 pub(crate) mod observe;
 pub mod orientation;
-mod query;
+pub(crate) mod query;
 mod schema;
 mod seed;
 pub(crate) mod session;

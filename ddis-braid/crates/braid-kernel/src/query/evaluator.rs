@@ -1,7 +1,8 @@
-//! Semi-naive fixpoint Datalog evaluator.
+//! Stratified fixpoint Datalog evaluator.
 //!
 //! Evaluates queries against the store by matching patterns against datoms
-//! and unifying variables. Stage 0 supports strata 0-1 (monotonic).
+//! and unifying variables using naive fixed-point iteration (re-evaluate all
+//! rules each stratum until convergence). Stage 0 supports strata 0-1 (monotonic).
 //!
 //! # Index-Aware Evaluation
 //!
@@ -14,14 +15,14 @@
 //!
 //! # Invariants
 //!
-//! - INV-QUERY-001: Semi-naive fixpoint convergence (Knaster-Tarski).
+//! - INV-QUERY-001: Stratified fixpoint convergence (Knaster-Tarski).
 //! - INV-QUERY-002: Query determinism — same store + same query = same result.
 //! - INV-QUERY-008: FFI boundary purity — no external effects.
 //! - INV-QUERY-010: Topology-agnostic results — query results independent of graph shape.
 //!
 //! # Design Decisions
 //!
-//! - ADR-QUERY-002: Semi-naive bottom-up evaluation.
+//! - ADR-QUERY-002: Naive bottom-up evaluation (with stratification).
 //! - ADR-QUERY-004: FFI for derived functions (pure Rust).
 
 use std::collections::HashMap;
@@ -427,7 +428,7 @@ mod tests {
     use crate::store::Transaction;
 
     // Verifies: ADR-QUERY-001 — Datalog Over SQL
-    // Verifies: ADR-QUERY-002 — Semi-Naive Bottom-Up Evaluation
+    // Verifies: ADR-QUERY-002 — Naive Bottom-Up Evaluation (with stratification)
     #[test]
     fn query_find_all_doc_attributes() {
         let mut store = Store::genesis();
@@ -494,7 +495,7 @@ mod tests {
     }
 
     // Verifies: INV-QUERY-001 — CALM Compliance (monotonic join)
-    // Verifies: ADR-QUERY-002 — Semi-Naive Bottom-Up Evaluation
+    // Verifies: ADR-QUERY-002 — Naive Bottom-Up Evaluation (with stratification)
     #[test]
     fn query_with_join() {
         let store = Store::genesis();

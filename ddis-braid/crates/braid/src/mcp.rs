@@ -4,7 +4,7 @@
 //! Exposes braid-kernel functionality as MCP tools:
 //!
 //! - `braid_status`   — Store status, coherence, methodology, and next actions
-//! - `braid_query`    — Query the store by entity/attribute filter
+//! - `braid_query`    — Query the store by Datalog or entity/attribute filter
 //! - `braid_write`    — Assert a datom into the store
 //! - `braid_harvest`  — Run the harvest pipeline
 //! - `braid_seed`     — Generate a seed context for a new session
@@ -53,9 +53,12 @@ use braid_kernel::datom::{
 };
 use braid_kernel::harvest::{harvest_pipeline, SessionContext};
 use braid_kernel::layout::TxFile;
+use braid_kernel::query::evaluator::{evaluate_with_frontier, QueryResult};
+use braid_kernel::query::FindSpec;
 use braid_kernel::seed::{assemble_seed, ContextSection};
 use ordered_float::OrderedFloat;
 
+use crate::commands::query::{format_value, parse_datalog};
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
 
@@ -123,17 +126,21 @@ fn tool_definitions() -> JsonValue {
             },
             {
                 "name": "braid_query",
-                "description": "Search the datom store by entity and/or attribute. Example: entity=':spec/inv-store-001' → all facts about that invariant. Omit both to scan all asserted datoms (capped at 100).",
+                "description": "Query the datom store. Use datalog for joins/patterns, or entity/attribute for simple lookups. Example: datalog='[:find ?e ?v :where [?e :db/doc ?v]]'",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
+                        "datalog": {
+                            "type": "string",
+                            "description": "Datalog query string. Example: '[:find ?e ?v :where [?e :db/doc ?v]]'"
+                        },
                         "entity": {
                             "type": "string",
-                            "description": "Entity keyword, e.g. ':spec/inv-store-001' or ':observation/my-note'"
+                            "description": "Entity keyword filter (ignored if datalog is set). Example: ':spec/inv-store-001'"
                         },
                         "attribute": {
                             "type": "string",
-                            "description": "Attribute keyword, e.g. ':db/doc', ':spec/namespace', ':observation/confidence'"
+                            "description": "Attribute keyword filter (ignored if datalog is set). Example: ':db/doc'"
                         }
                     },
                     "required": [],
@@ -360,6 +367,13 @@ fn tool_status(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
 fn tool_query(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidError> {
     let store = layout.load_store()?;
 
+    // INV-QUERY-002, INV-INTERFACE-010: Datalog parameter takes priority.
+    // If present, parse and evaluate the Datalog query against the store.
+    if let Some(datalog_src) = args.get("datalog").and_then(|v| v.as_str()) {
+        return tool_query_datalog(&store, datalog_src);
+    }
+
+    // Fallback: entity/attribute filter scan.
     let entity_filter = args.get("entity").and_then(|v| v.as_str());
     let attribute_filter = args.get("attribute").and_then(|v| v.as_str());
 
@@ -399,6 +413,48 @@ fn tool_query(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, BraidE
         "content": [{
             "type": "text",
             "text": lines.join("\n"),
+        }],
+    }))
+}
+
+/// Evaluate a Datalog query via MCP and format results as text.
+///
+/// INV-QUERY-002: CALM-compliant monotonic evaluation.
+/// INV-INTERFACE-010: Semantic equivalence with CLI `braid query --datalog`.
+/// INV-INTERFACE-002: Thin wrapper — delegates to kernel evaluate + CLI parse_datalog.
+fn tool_query_datalog(
+    store: &braid_kernel::Store,
+    datalog_src: &str,
+) -> Result<JsonValue, BraidError> {
+    let query = parse_datalog(datalog_src)?;
+    let result = evaluate_with_frontier(store, &query, None);
+
+    let text = match &result {
+        QueryResult::Rel(rows) => {
+            let mut out = String::new();
+            // Header: variable names from the find spec
+            if let FindSpec::Rel(vars) = &query.find {
+                out.push_str(&vars.join("\t"));
+                out.push('\n');
+            }
+            for row in rows {
+                let formatted: Vec<String> = row.iter().map(|v| format_value(store, v)).collect();
+                out.push_str(&formatted.join("\t"));
+                out.push('\n');
+            }
+            out.push_str(&format!("\n{} result(s)", rows.len()));
+            out
+        }
+        QueryResult::Scalar(val) => match val {
+            Some(v) => format_value(store, v),
+            None => "(no result)".to_string(),
+        },
+    };
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text,
         }],
     }))
 }
@@ -1264,5 +1320,169 @@ mod tests {
         assert_eq!(response["jsonrpc"], "2.0");
         let tools = response["result"]["tools"].as_array().unwrap();
         assert_eq!(tools.len(), 10, "6 core + 4 task tools");
+    }
+
+    // -----------------------------------------------------------------------
+    // Datalog parameter tests (INV-QUERY-002, INV-INTERFACE-010)
+    // -----------------------------------------------------------------------
+
+    /// INV-INTERFACE-010: braid_query tool schema includes the datalog parameter.
+    #[test]
+    fn query_tool_has_datalog_parameter() {
+        let defs = tool_definitions();
+        let tools = defs["tools"].as_array().unwrap();
+        let query_tool = tools
+            .iter()
+            .find(|t| t["name"] == "braid_query")
+            .expect("braid_query tool must exist");
+
+        let props = &query_tool["inputSchema"]["properties"];
+        assert!(
+            props.get("datalog").is_some(),
+            "braid_query must have a 'datalog' property in its schema"
+        );
+        assert_eq!(
+            props["datalog"]["type"].as_str(),
+            Some("string"),
+            "datalog parameter must be type: string"
+        );
+        // entity and attribute should still be present as fallback
+        assert!(props.get("entity").is_some(), "entity parameter preserved");
+        assert!(
+            props.get("attribute").is_some(),
+            "attribute parameter preserved"
+        );
+    }
+
+    /// INV-QUERY-002: Datalog query evaluates against a fresh store.
+    #[test]
+    fn datalog_query_returns_results() {
+        let dir = tempfile::tempdir().unwrap();
+        let layout = DiskLayout::init(dir.path()).unwrap();
+
+        let result = call_tool(
+            &layout,
+            "braid_query",
+            &json!({
+                "datalog": "[:find ?e ?v :where [?e :db/doc ?v]]"
+            }),
+        );
+
+        assert!(result.is_ok(), "Datalog query should not error");
+        let response = result.unwrap();
+        let text = response["content"][0]["text"].as_str().unwrap();
+        // Genesis store has axiomatic :db/doc datoms
+        assert!(
+            text.contains("result(s)"),
+            "output must contain result count"
+        );
+        assert!(
+            !text.contains("0 result(s)"),
+            "genesis store should have :db/doc datoms"
+        );
+    }
+
+    /// INV-INTERFACE-010: Datalog takes priority over entity/attribute when both provided.
+    #[test]
+    fn datalog_takes_priority_over_entity_attribute() {
+        let dir = tempfile::tempdir().unwrap();
+        let layout = DiskLayout::init(dir.path()).unwrap();
+
+        // Provide both datalog and entity — datalog should win
+        let result = call_tool(
+            &layout,
+            "braid_query",
+            &json!({
+                "datalog": "[:find ?e ?v :where [?e :db/doc ?v]]",
+                "entity": ":nonexistent/entity"
+            }),
+        );
+
+        assert!(result.is_ok(), "Datalog path should execute");
+        let response = result.unwrap();
+        let text = response["content"][0]["text"].as_str().unwrap();
+        // If entity filter were active, we'd get 0 results.
+        // Datalog ignores it and returns real results.
+        assert!(
+            !text.contains("0 result(s)"),
+            "datalog should override entity filter"
+        );
+    }
+
+    /// INV-INTERFACE-010: Invalid Datalog syntax returns an error.
+    #[test]
+    fn invalid_datalog_returns_error() {
+        let dir = tempfile::tempdir().unwrap();
+        let layout = DiskLayout::init(dir.path()).unwrap();
+
+        let result = call_tool(
+            &layout,
+            "braid_query",
+            &json!({
+                "datalog": "not valid datalog"
+            }),
+        );
+
+        // The error propagates as Err from call_tool
+        assert!(result.is_err(), "Invalid Datalog must return an error");
+    }
+
+    /// INV-QUERY-002: Scalar Datalog query works via MCP.
+    #[test]
+    fn datalog_scalar_query() {
+        let dir = tempfile::tempdir().unwrap();
+        let layout = DiskLayout::init(dir.path()).unwrap();
+
+        let result = call_tool(
+            &layout,
+            "braid_query",
+            &json!({
+                "datalog": "[:find ?doc . :where [:db/ident :db/doc ?doc]]"
+            }),
+        );
+
+        assert!(result.is_ok(), "Scalar Datalog query should succeed");
+        let response = result.unwrap();
+        let text = response["content"][0]["text"].as_str().unwrap();
+        assert!(
+            text.contains("Attribute"),
+            "scalar result for :db/ident's :db/doc should contain 'Attribute'"
+        );
+    }
+
+    /// Fallback: entity/attribute filter still works when no datalog parameter.
+    #[test]
+    fn entity_attribute_filter_still_works() {
+        let dir = tempfile::tempdir().unwrap();
+        let layout = DiskLayout::init(dir.path()).unwrap();
+
+        // Write a datom first
+        let _ = call_tool(
+            &layout,
+            "braid_write",
+            &json!({
+                "entity": ":test/datalog-fallback",
+                "attribute": ":db/doc",
+                "value": "fallback test"
+            }),
+        )
+        .unwrap();
+
+        // Query using entity filter (no datalog)
+        let result = call_tool(
+            &layout,
+            "braid_query",
+            &json!({
+                "attribute": ":db/doc"
+            }),
+        );
+
+        assert!(result.is_ok(), "entity/attribute filter should still work");
+        let response = result.unwrap();
+        let text = response["content"][0]["text"].as_str().unwrap();
+        assert!(
+            text.contains("datom(s)"),
+            "fallback path must produce datom count"
+        );
     }
 }
