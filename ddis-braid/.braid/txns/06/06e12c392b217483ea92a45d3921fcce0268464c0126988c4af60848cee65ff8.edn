@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773803708/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-dc1e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ab780ea269ff0af66aa7ca62e700a17aae91fbbf2b808a299248e0892147438d" :a :task/close-reason :v "Covered by t-152b: no_conflict_for_causally_ordered_updates + conflict_for_causally_independent tests" :op :assert}
+   {:e #blake3 "ab780ea269ff0af66aa7ca62e700a17aae91fbbf2b808a299248e0892147438d" :a :task/closed-at :v 1773803706 :op :assert}
+   {:e #blake3 "ab780ea269ff0af66aa7ca62e700a17aae91fbbf2b808a299248e0892147438d" :a :task/status :v :task.status/closed :op :assert}
+ ]}

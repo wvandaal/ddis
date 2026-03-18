@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773804513/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-5910"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cd778265d8c524207ab9e84d24029bd551caf5a856396125934fd6c4062921b6" :a :task/close-reason :v "Already complete: build_intention_context, 6+ tests" :op :assert}
+   {:e #blake3 "cd778265d8c524207ab9e84d24029bd551caf5a856396125934fd6c4062921b6" :a :task/closed-at :v 1773804511 :op :assert}
+   {:e #blake3 "cd778265d8c524207ab9e84d24029bd551caf5a856396125934fd6c4062921b6" :a :task/status :v :task.status/closed :op :assert}
+ ]}

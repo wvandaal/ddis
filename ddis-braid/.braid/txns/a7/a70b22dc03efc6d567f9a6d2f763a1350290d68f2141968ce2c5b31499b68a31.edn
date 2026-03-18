@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773803709/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-2a09"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c5b378298543889ef4619451026f51740b3a6860d34c74e9b2f4109d761f5760" :a :task/close-reason :v "Covered by t-8ef5: Kani proof prove_cascade_determinism verifies INV-MERGE-010" :op :assert}
+   {:e #blake3 "c5b378298543889ef4619451026f51740b3a6860d34c74e9b2f4109d761f5760" :a :task/closed-at :v 1773803706 :op :assert}
+   {:e #blake3 "c5b378298543889ef4619451026f51740b3a6860d34c74e9b2f4109d761f5760" :a :task/status :v :task.status/closed :op :assert}
+ ]}

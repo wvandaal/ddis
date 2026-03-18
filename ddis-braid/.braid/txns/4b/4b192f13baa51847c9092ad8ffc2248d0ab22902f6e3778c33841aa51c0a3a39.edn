@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773803707/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-4a9b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b169be6131e69cd9b238e443b173546d841311b7384e84422557e3e494b6fce3" :a :task/close-reason :v "Covered by t-7bf9: 5 integration + 2 proptests verify CascadeReceipt fields" :op :assert}
+   {:e #blake3 "b169be6131e69cd9b238e443b173546d841311b7384e84422557e3e494b6fce3" :a :task/closed-at :v 1773803705 :op :assert}
+   {:e #blake3 "b169be6131e69cd9b238e443b173546d841311b7384e84422557e3e494b6fce3" :a :task/status :v :task.status/closed :op :assert}
+ ]}

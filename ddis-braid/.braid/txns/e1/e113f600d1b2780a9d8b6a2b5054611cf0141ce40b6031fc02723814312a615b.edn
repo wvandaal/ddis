@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773804511/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1e2a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d4aecdc26e47fa928abc4225b395242e643a25cb5040c7a52e89bbd5c6f40443" :a :task/close-reason :v "validate_lattice: 4 properties, 3 proptests, all modes pass" :op :assert}
+   {:e #blake3 "d4aecdc26e47fa928abc4225b395242e643a25cb5040c7a52e89bbd5c6f40443" :a :task/closed-at :v 1773804509 :op :assert}
+   {:e #blake3 "d4aecdc26e47fa928abc4225b395242e643a25cb5040c7a52e89bbd5c6f40443" :a :task/status :v :task.status/closed :op :assert}
+ ]}

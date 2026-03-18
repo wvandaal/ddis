@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773804514/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f637"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "71bc17d568453e775d9a873937e1065770878172f0292d053c038d4c8da00357" :a :task/close-reason :v "Documented ArcSwap Stage 1 path, current reload correct" :op :assert}
+   {:e #blake3 "71bc17d568453e775d9a873937e1065770878172f0292d053c038d4c8da00357" :a :task/closed-at :v 1773804511 :op :assert}
+   {:e #blake3 "71bc17d568453e775d9a873937e1065770878172f0292d053c038d4c8da00357" :a :task/status :v :task.status/closed :op :assert}
+ ]}

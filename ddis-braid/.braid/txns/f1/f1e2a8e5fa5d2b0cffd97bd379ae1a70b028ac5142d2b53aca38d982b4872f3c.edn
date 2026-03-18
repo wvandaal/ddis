@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773803706/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7625"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b6cf97dee9fa0115b6abf2fbab7783c5b8373c88465508ab88e863009aef0e61" :a :task/close-reason :v "Covered by t-ee9a: removed .min(budget) clamping, added compression pipeline" :op :assert}
+   {:e #blake3 "b6cf97dee9fa0115b6abf2fbab7783c5b8373c88465508ab88e863009aef0e61" :a :task/closed-at :v 1773803705 :op :assert}
+   {:e #blake3 "b6cf97dee9fa0115b6abf2fbab7783c5b8373c88465508ab88e863009aef0e61" :a :task/status :v :task.status/closed :op :assert}
+ ]}
