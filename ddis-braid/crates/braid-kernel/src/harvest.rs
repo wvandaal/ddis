@@ -67,6 +67,13 @@ pub struct HarvestCandidate {
     pub category: HarvestCategory,
     /// Confidence in this candidate (0.0–1.0).
     pub confidence: f64,
+    /// Importance weight for prioritization (spec §5.2: commitment weight estimate).
+    /// Derived from confidence and category significance.
+    pub weight: f64,
+    /// Which divergence type this candidate addresses, per the reconciliation
+    /// taxonomy (CLAUDE.md §15 / spec §15): epistemic, structural, consequential,
+    /// aleatory, logical, axiological, temporal, or procedural.
+    pub reconciliation_type: String,
     /// Current status in the pipeline.
     pub status: CandidateStatus,
     /// Human-readable rationale.
@@ -218,6 +225,9 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
                         // always Observation to avoid polluting Decision/Uncertainty lists
                         category: HarvestCategory::Observation,
                         confidence: gap_confidence,
+                        weight: weight_for(gap_confidence, HarvestCategory::Observation),
+                        reconciliation_type: reconciliation_type_for(HarvestCategory::Observation)
+                            .to_string(),
                         status: CandidateStatus::Proposed,
                         rationale: format!(
                             "Completeness gap: {} missing for {}",
@@ -258,6 +268,8 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
                 assertions: vec![],
                 category,
                 confidence,
+                weight: weight_for(confidence, category),
+                reconciliation_type: reconciliation_type_for(category).to_string(),
                 status: CandidateStatus::Proposed,
                 rationale: format!("Session entity: {label}{doc_summary}"),
             });
@@ -278,11 +290,14 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
         // Check if entity exists in store via entity index (O(1))
         let existing = store.entity_datoms(entity);
         if existing.is_empty() {
+            let cat = classify_value(value);
             candidates.push(HarvestCandidate {
                 entity,
                 assertions: vec![(Attribute::from_keyword(":db/doc"), value.clone())],
-                category: classify_value(value),
+                category: cat,
                 confidence: 0.8,
+                weight: weight_for(0.8, cat),
+                reconciliation_type: reconciliation_type_for(cat).to_string(),
                 status: CandidateStatus::Proposed,
                 rationale: format!("New knowledge from session: {key}"),
             });
@@ -492,6 +507,41 @@ fn classify_value(value: &Value) -> HarvestCategory {
         }
         _ => HarvestCategory::Observation,
     }
+}
+
+/// Derive reconciliation type from harvest category per the reconciliation
+/// taxonomy (CLAUDE.md / spec §15).
+///
+/// Mapping:
+/// - Observation  → "epistemic"      (store vs. agent knowledge gap)
+/// - Decision     → "logical"        (choice among alternatives, invariant alignment)
+/// - Dependency   → "structural"     (implementation vs. spec link)
+/// - Uncertainty  → "consequential"  (current state vs. future risk)
+fn reconciliation_type_for(category: HarvestCategory) -> &'static str {
+    match category {
+        HarvestCategory::Observation => "epistemic",
+        HarvestCategory::Decision => "logical",
+        HarvestCategory::Dependency => "structural",
+        HarvestCategory::Uncertainty => "consequential",
+    }
+}
+
+/// Derive commitment weight from confidence and category.
+///
+/// Weight formula: `confidence * category_multiplier`.
+/// Category multipliers reflect relative importance for prioritization:
+/// - Decision:    1.0 (highest — architectural choices are load-bearing)
+/// - Dependency:  0.8 (high — missing links cause coherence failures)
+/// - Uncertainty: 0.7 (medium — unresolved questions need attention)
+/// - Observation: 0.5 (baseline — factual observations are low-commitment)
+fn weight_for(confidence: f64, category: HarvestCategory) -> f64 {
+    let multiplier = match category {
+        HarvestCategory::Decision => 1.0,
+        HarvestCategory::Dependency => 0.8,
+        HarvestCategory::Uncertainty => 0.7,
+        HarvestCategory::Observation => 0.5,
+    };
+    confidence * multiplier
 }
 
 // ---------------------------------------------------------------------------
@@ -1841,6 +1891,8 @@ mod tests {
             ],
             category: HarvestCategory::Observation,
             confidence: 0.9,
+            weight: 0.45,
+            reconciliation_type: "epistemic".into(),
             status: CandidateStatus::Committed,
             rationale: "test".to_string(),
         };
@@ -2174,6 +2226,8 @@ mod tests {
                 )],
                 category: HarvestCategory::Observation,
                 confidence: 0.9,
+                weight: 0.45,
+                reconciliation_type: "epistemic".into(),
                 status: CandidateStatus::Proposed,
                 rationale: "test candidate".into(),
             }],
@@ -2346,6 +2400,8 @@ mod tests {
                     assertions: vec![],
                     category: HarvestCategory::Observation,
                     confidence: 0.9,
+                    weight: 0.45,
+                    reconciliation_type: "epistemic".into(),
                     status: CandidateStatus::Proposed,
                     rationale: "test".into(),
                 },
@@ -2354,6 +2410,8 @@ mod tests {
                     assertions: vec![],
                     category: HarvestCategory::Decision,
                     confidence: 0.8,
+                    weight: 0.8,
+                    reconciliation_type: "logical".into(),
                     status: CandidateStatus::Proposed,
                     rationale: "test".into(),
                 },
@@ -2394,6 +2452,8 @@ mod tests {
                     assertions: vec![],
                     category: HarvestCategory::Observation,
                     confidence: 0.9,
+                    weight: 0.45,
+                    reconciliation_type: "epistemic".into(),
                     status: CandidateStatus::Proposed,
                     rationale: "real".into(),
                 },
@@ -2402,6 +2462,8 @@ mod tests {
                     assertions: vec![],
                     category: HarvestCategory::Observation,
                     confidence: 0.3,
+                    weight: 0.15,
+                    reconciliation_type: "epistemic".into(),
                     status: CandidateStatus::Proposed,
                     rationale: "noise".into(),
                 },
@@ -2436,6 +2498,8 @@ mod tests {
                 assertions: vec![],
                 category: HarvestCategory::Observation,
                 confidence: 0.9,
+                weight: 0.45,
+                reconciliation_type: "epistemic".into(),
                 status: CandidateStatus::Proposed,
                 rationale: "test".into(),
             }],
@@ -2489,6 +2553,8 @@ mod tests {
                     assertions: vec![],
                     category: HarvestCategory::Observation,
                     confidence: 0.9,
+                    weight: 0.45,
+                    reconciliation_type: "epistemic".into(),
                     status: CandidateStatus::Proposed,
                     rationale: "high".into(),
                 },
@@ -2497,6 +2563,8 @@ mod tests {
                     assertions: vec![],
                     category: HarvestCategory::Observation,
                     confidence: 0.4,
+                    weight: 0.2,
+                    reconciliation_type: "epistemic".into(),
                     status: CandidateStatus::Proposed,
                     rationale: "low".into(),
                 },
@@ -2540,6 +2608,8 @@ mod tests {
                     assertions: vec![],
                     category: HarvestCategory::Observation,
                     confidence: 0.95,
+                    weight: 0.475,
+                    reconciliation_type: "epistemic".into(),
                     status: CandidateStatus::Proposed,
                     rationale: "real".into(),
                 },
@@ -2548,6 +2618,8 @@ mod tests {
                     assertions: vec![],
                     category: HarvestCategory::Decision,
                     confidence: 0.7,
+                    weight: 0.7,
+                    reconciliation_type: "logical".into(),
                     status: CandidateStatus::Proposed,
                     rationale: "real".into(),
                 },
@@ -2556,6 +2628,8 @@ mod tests {
                     assertions: vec![],
                     category: HarvestCategory::Observation,
                     confidence: 0.2,
+                    weight: 0.1,
+                    reconciliation_type: "epistemic".into(),
                     status: CandidateStatus::Proposed,
                     rationale: "noise".into(),
                 },
@@ -2605,6 +2679,8 @@ mod tests {
                 assertions: vec![],
                 category: HarvestCategory::Observation,
                 confidence: 0.8,
+                weight: 0.4,
+                reconciliation_type: "epistemic".into(),
                 status: CandidateStatus::Proposed,
                 rationale: "Observed something".into(),
             },
@@ -2613,6 +2689,8 @@ mod tests {
                 assertions: vec![],
                 category: HarvestCategory::Decision,
                 confidence: 0.9,
+                weight: 0.9,
+                reconciliation_type: "logical".into(),
                 status: CandidateStatus::Proposed,
                 rationale: "Decided something".into(),
             },
@@ -2621,6 +2699,8 @@ mod tests {
                 assertions: vec![],
                 category: HarvestCategory::Uncertainty,
                 confidence: 0.6,
+                weight: 0.42,
+                reconciliation_type: "consequential".into(),
                 status: CandidateStatus::Proposed,
                 rationale: "Uncertain about something".into(),
             },
@@ -2698,6 +2778,8 @@ mod tests {
             assertions: vec![],
             category: HarvestCategory::Decision,
             confidence: 0.9,
+            weight: 0.9,
+            reconciliation_type: "logical".into(),
             status: CandidateStatus::Proposed,
             rationale: "Chose approach X".into(),
         }];
@@ -2767,6 +2849,8 @@ mod tests {
                 assertions: vec![],
                 category: HarvestCategory::Observation,
                 confidence: 0.9,
+                weight: 0.45,
+                reconciliation_type: "epistemic".into(),
                 status: CandidateStatus::Proposed,
                 rationale: "Spec entity".into(),
             },
@@ -2775,6 +2859,8 @@ mod tests {
                 assertions: vec![],
                 category: HarvestCategory::Decision,
                 confidence: 0.8,
+                weight: 0.8,
+                reconciliation_type: "logical".into(),
                 status: CandidateStatus::Proposed,
                 rationale: "Intent entity".into(),
             },
@@ -2801,6 +2887,8 @@ mod tests {
             assertions: vec![],
             category: HarvestCategory::Observation,
             confidence: 0.8,
+            weight: 0.4,
+            reconciliation_type: "epistemic".into(),
             status: CandidateStatus::Proposed,
             rationale: "test".into(),
         }];
@@ -2874,6 +2962,8 @@ mod tests {
             assertions: vec![],
             category: HarvestCategory::Decision,
             confidence: 0.9,
+            weight: 0.9,
+            reconciliation_type: "logical".into(),
             status: CandidateStatus::Proposed,
             rationale: "Chose EAV model".into(),
         }];
@@ -2981,6 +3071,8 @@ mod tests {
                 assertions: vec![],
                 category: HarvestCategory::Observation,
                 confidence: 0.8,
+                weight: 0.4,
+                reconciliation_type: "epistemic".into(),
                 status: CandidateStatus::Proposed,
                 rationale: "spec entity 1".into(),
             },
@@ -2989,6 +3081,8 @@ mod tests {
                 assertions: vec![],
                 category: HarvestCategory::Observation,
                 confidence: 0.8,
+                weight: 0.4,
+                reconciliation_type: "epistemic".into(),
                 status: CandidateStatus::Proposed,
                 rationale: "spec entity 2".into(),
             },
@@ -2997,6 +3091,8 @@ mod tests {
                 assertions: vec![],
                 category: HarvestCategory::Decision,
                 confidence: 0.7,
+                weight: 0.7,
+                reconciliation_type: "logical".into(),
                 status: CandidateStatus::Proposed,
                 rationale: "intent entity 1".into(),
             },
@@ -3005,6 +3101,8 @@ mod tests {
                 assertions: vec![],
                 category: HarvestCategory::Decision,
                 confidence: 0.7,
+                weight: 0.7,
+                reconciliation_type: "logical".into(),
                 status: CandidateStatus::Proposed,
                 rationale: "intent entity 2".into(),
             },
@@ -3091,6 +3189,8 @@ mod tests {
             assertions: vec![],
             category: HarvestCategory::Uncertainty,
             confidence: 0.4,
+            weight: 0.28,
+            reconciliation_type: "consequential".into(),
             status: CandidateStatus::Proposed,
             rationale: "CRDT vs OT merge strategy undecided".into(),
         }];
@@ -3138,6 +3238,8 @@ mod tests {
             assertions: vec![],
             category: HarvestCategory::Observation,
             confidence: 0.8,
+            weight: 0.4,
+            reconciliation_type: "epistemic".into(),
             status: CandidateStatus::Proposed,
             rationale: "test observation".into(),
         }];
@@ -3163,6 +3265,8 @@ mod tests {
             assertions: vec![],
             category: HarvestCategory::Decision,
             confidence: 0.9,
+            weight: 0.9,
+            reconciliation_type: "logical".into(),
             status: CandidateStatus::Proposed,
             rationale: "chose hash-join".into(),
         }];
@@ -3204,6 +3308,8 @@ mod tests {
             assertions: vec![],
             category: HarvestCategory::Uncertainty,
             confidence: 0.5,
+            weight: 0.35,
+            reconciliation_type: "consequential".into(),
             status: CandidateStatus::Proposed,
             rationale: "CRDT vs OT merge undecided".into(),
         }];

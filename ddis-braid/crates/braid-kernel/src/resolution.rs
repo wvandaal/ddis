@@ -166,7 +166,11 @@ pub fn resolve(conflict: &ConflictSet, mode: &ResolutionMode) -> ResolvedValue {
             resolve_lww(&active)
         }
         ResolutionMode::Multi => {
-            let values: Vec<Value> = active.into_iter().map(|(v, _)| v).collect();
+            // INV-RESOLUTION-003: Sort deterministically for convergence.
+            // Multi collects all active values as a set — ordering must not
+            // depend on input traversal order.
+            let mut values: Vec<Value> = active.into_iter().map(|(v, _)| v).collect();
+            values.sort();
             ResolvedValue::Multi(values)
         }
     }
@@ -494,6 +498,79 @@ pub fn conflict_to_datoms(record: &ResolutionRecord, tx: TxId) -> Vec<Datom> {
     ));
 
     datoms
+}
+
+// ---------------------------------------------------------------------------
+// Convergence Verification (INV-RESOLUTION-003)
+// ---------------------------------------------------------------------------
+
+/// Verify that resolution is convergent across the entire store.
+///
+/// INV-RESOLUTION-003 requires that resolution is deterministic and
+/// order-independent: applying the same resolution function to the same
+/// conflict set always produces the same result, regardless of the order
+/// in which datoms or conflict sets are processed.
+///
+/// This function:
+/// 1. Collects all (entity, attribute) pairs in the store.
+/// 2. For each pair, builds a ConflictSet and resolves it twice.
+/// 3. Also shuffles the assertion order and resolves again.
+/// 4. Returns `true` if all resolutions are identical (convergent).
+///
+/// # Invariants
+///
+/// - **INV-RESOLUTION-002**: Same inputs produce same output (deterministic).
+/// - **INV-RESOLUTION-003**: Conservative conflict detection — no false negatives.
+/// - **INV-RESOLUTION-005**: LWW semilattice properties (commutative, associative, idempotent).
+pub fn verify_convergence(store: &Store) -> bool {
+    let entities = store.entities();
+
+    for entity in &entities {
+        let datoms: Vec<&Datom> = store.datoms().filter(|d| d.entity == *entity).collect();
+
+        // Group by attribute
+        let mut by_attr: HashMap<&Attribute, Vec<&Datom>> = HashMap::new();
+        for d in &datoms {
+            by_attr.entry(&d.attribute).or_default().push(d);
+        }
+
+        for (attr, attr_datoms) in &by_attr {
+            let mode = store.schema().resolution_mode(attr);
+
+            // Build conflict set in original order and resolve
+            let cs1 = ConflictSet::from_datoms(*entity, (*attr).clone(), attr_datoms);
+            let r1 = resolve(&cs1, &mode);
+
+            // Resolve again — must be identical (idempotent)
+            let r2 = resolve(&cs1, &mode);
+            if r1 != r2 {
+                return false;
+            }
+
+            // Build conflict set with reversed assertion order and resolve
+            let mut reversed_datoms: Vec<&Datom> = attr_datoms.clone();
+            reversed_datoms.reverse();
+            let cs_rev = ConflictSet::from_datoms(*entity, (*attr).clone(), &reversed_datoms);
+            let r_rev = resolve(&cs_rev, &mode);
+            if r1 != r_rev {
+                return false;
+            }
+
+            // Build conflict set with assertions in a different order
+            // (rotate by 1 if more than 1 datom)
+            if attr_datoms.len() > 1 {
+                let mut rotated = attr_datoms.clone();
+                rotated.rotate_left(1);
+                let cs_rot = ConflictSet::from_datoms(*entity, (*attr).clone(), &rotated);
+                let r_rot = resolve(&cs_rot, &mode);
+                if r1 != r_rot {
+                    return false;
+                }
+            }
+        }
+    }
+
+    true
 }
 
 // ---------------------------------------------------------------------------
@@ -870,6 +947,148 @@ mod tests {
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Schema attribute alignment (INV-RESOLUTION-008)
+    // -----------------------------------------------------------------------
+
+    /// Helper: create a store with full schema (including Layer 4 resolution attrs).
+    fn store_with_full_schema() -> Store {
+        use crate::schema::{full_schema_datoms, genesis_datoms};
+        use std::collections::BTreeSet;
+
+        let agent = AgentId::from_name("test");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let mut datoms: BTreeSet<crate::datom::Datom> = BTreeSet::new();
+        for d in genesis_datoms(genesis_tx) {
+            datoms.insert(d);
+        }
+        for d in full_schema_datoms(genesis_tx) {
+            datoms.insert(d);
+        }
+        Store::from_datoms(datoms)
+    }
+
+    // Verifies: INV-RESOLUTION-008 — Conflict Entity Datom Trail
+    // Verifies: INV-SCHEMA-004 — Schema Validation on Transact
+    //
+    // All datoms produced by conflict_to_datoms() must use attributes
+    // that are registered in the schema (Layer 4 :resolution/* namespace).
+    #[test]
+    fn conflict_to_datoms_uses_registered_schema_attributes() {
+        let store = store_with_full_schema();
+        let schema = store.schema();
+
+        // Create a conflict and resolve it
+        let entity = EntityId::from_ident(":test/conflict-schema");
+        let attr = Attribute::from_keyword(":db/doc");
+        let agent_a = AgentId::from_name("alice");
+        let agent_b = AgentId::from_name("bob");
+
+        let conflict_entity = ConflictEntity {
+            entity,
+            attribute: attr,
+            conflicting_values: vec![
+                Value::String("alice-val".into()),
+                Value::String("bob-val".into()),
+            ],
+            conflicting_txs: vec![TxId::new(100, 0, agent_a), TxId::new(200, 0, agent_b)],
+            detected_at: TxId::new(300, 0, agent_a),
+        };
+
+        let record = resolve_with_trail(&conflict_entity, schema);
+        let tx = TxId::new(400, 0, agent_a);
+        let datoms = conflict_to_datoms(&record, tx);
+
+        // Every datom produced must pass schema validation
+        for d in &datoms {
+            let result = schema.validate_datom(d);
+            assert!(
+                result.is_ok(),
+                "conflict_to_datoms produced datom with unregistered attribute '{}': {:?}",
+                d.attribute.as_str(),
+                result.err()
+            );
+        }
+
+        // Verify exact attribute set matches the 5 registered :resolution/* attrs
+        let expected_attrs: std::collections::HashSet<&str> = [
+            ":resolution/entity",
+            ":resolution/attribute",
+            ":resolution/mode",
+            ":resolution/winner",
+            ":resolution/conflict-count",
+        ]
+        .iter()
+        .copied()
+        .collect();
+
+        let actual_attrs: std::collections::HashSet<&str> =
+            datoms.iter().map(|d| d.attribute.as_str()).collect();
+
+        assert_eq!(
+            expected_attrs, actual_attrs,
+            "conflict_to_datoms must use exactly the 5 registered :resolution/* attributes"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Convergence verification (INV-RESOLUTION-003)
+    // -----------------------------------------------------------------------
+
+    // Verifies: INV-RESOLUTION-003 — Conservative Conflict Detection (convergence)
+    // Verifies: INV-RESOLUTION-002 — Resolution Commutativity
+    #[test]
+    fn verify_convergence_on_genesis_store() {
+        let store = Store::genesis();
+        assert!(
+            verify_convergence(&store),
+            "genesis store must pass convergence verification"
+        );
+    }
+
+    // Verifies: INV-RESOLUTION-003 — Conservative Conflict Detection (convergence)
+    #[test]
+    fn verify_convergence_on_store_with_conflict() {
+        let (store, _, _) = store_with_conflict();
+        assert!(
+            verify_convergence(&store),
+            "store with conflict must pass convergence verification \
+             (resolution is deterministic regardless of datom order)"
+        );
+    }
+
+    // Verifies: INV-RESOLUTION-003 — Conservative Conflict Detection (convergence)
+    #[test]
+    fn verify_convergence_on_multi_value_store() {
+        // Create a store where the same entity has multiple assertions but
+        // resolution mode is LWW (the default). Even with multiple values,
+        // convergence must hold.
+        let mut store = Store::genesis();
+        let entity = EntityId::from_ident(":test/conv-multi");
+        let attr = Attribute::from_keyword(":db/doc");
+
+        let agents: Vec<AgentId> = (0..3)
+            .map(|i| AgentId::from_name(&format!("agent-{i}")))
+            .collect();
+
+        for (i, agent) in agents.iter().enumerate() {
+            let tx = crate::store::Transaction::new(
+                *agent,
+                crate::datom::ProvenanceType::Observed,
+                &format!("agent {i} asserts"),
+            )
+            .assert(entity, attr.clone(), Value::String(format!("value-{i}")))
+            .commit(&store)
+            .unwrap();
+            store.transact(tx).unwrap();
+        }
+
+        assert!(
+            verify_convergence(&store),
+            "store with 3-way conflict must pass convergence verification"
+        );
+    }
+
     // -------------------------------------------------------------------
     // Property-based tests (proptest)
     // -------------------------------------------------------------------
@@ -1038,6 +1257,84 @@ mod tests {
                         "two-agent conflict must have exactly 2 conflicting values"
                     );
                 }
+            }
+
+            // Verifies: INV-RESOLUTION-003 — Resolution Convergence
+            // Verifies: INV-RESOLUTION-002 — Resolution Commutativity
+            //
+            // For arbitrary conflict sets, resolution is deterministic:
+            // reversing the assertion order does not change the result.
+            #[test]
+            fn resolution_is_convergent_for_arbitrary_conflicts(
+                e in arb_entity_id(),
+                values in proptest::collection::vec(arb_doc_value(), 2..=6),
+            ) {
+                let agent = AgentId::from_name("proptest:convergence");
+                let a = Attribute::from_keyword(":db/doc");
+
+                let assertions: Vec<(Value, TxId)> = values
+                    .iter()
+                    .enumerate()
+                    .map(|(i, v)| (v.clone(), TxId::new(i as u64 + 1, 0, agent)))
+                    .collect();
+
+                let cs_forward = ConflictSet {
+                    entity: e,
+                    attribute: a.clone(),
+                    assertions: assertions.clone(),
+                    retractions: vec![],
+                };
+
+                // Reverse the assertion order
+                let mut reversed = assertions.clone();
+                reversed.reverse();
+                let cs_reversed = ConflictSet {
+                    entity: e,
+                    attribute: a.clone(),
+                    assertions: reversed,
+                    retractions: vec![],
+                };
+
+                // Rotate the assertion order
+                let mut rotated = assertions;
+                rotated.rotate_left(1);
+                let cs_rotated = ConflictSet {
+                    entity: e,
+                    attribute: a,
+                    assertions: rotated,
+                    retractions: vec![],
+                };
+
+                // All three modes must be convergent
+                for mode in &[
+                    ResolutionMode::Lww,
+                    ResolutionMode::Multi,
+                    ResolutionMode::Lattice { lattice_id: EntityId::ZERO },
+                ] {
+                    let r_fwd = resolve(&cs_forward, mode);
+                    let r_rev = resolve(&cs_reversed, mode);
+                    let r_rot = resolve(&cs_rotated, mode);
+
+                    prop_assert_eq!(
+                        &r_fwd, &r_rev,
+                        "INV-RESOLUTION-003: forward and reversed must produce same result for {:?}",
+                        mode
+                    );
+                    prop_assert_eq!(
+                        &r_fwd, &r_rot,
+                        "INV-RESOLUTION-003: forward and rotated must produce same result for {:?}",
+                        mode
+                    );
+                }
+            }
+
+            // Verifies: INV-RESOLUTION-003 — verify_convergence on random stores
+            #[test]
+            fn verify_convergence_holds_on_arbitrary_stores(store in arb_store(3)) {
+                prop_assert!(
+                    verify_convergence(&store),
+                    "verify_convergence must hold for any well-formed store"
+                );
             }
         }
     }

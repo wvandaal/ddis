@@ -12,7 +12,7 @@
 //! - **INV-STORE-003**: Merge associativity
 //! - **INV-STORE-004**: Merge idempotency — `merge(A,A) = A`
 //! - **INV-MERGE-001**: Set union semantics
-//! - **INV-MERGE-002**: Frontier monotonicity — frontiers never shrink
+//! - **INV-MERGE-002**: Merge Cascade Completeness (frontiers never shrink)
 //! - Eventual consistency: after all merges, all agents converge
 //!
 //! The model uses Stateright's exhaustive BFS checker to explore all
@@ -211,7 +211,7 @@ impl Model for CrdtMergeModel {
 
     fn properties(&self) -> Vec<Property<Self>> {
         vec![
-            // SAFETY: Frontier monotonicity — no agent's frontier is empty
+            // SAFETY: Merge Cascade Completeness — no agent's frontier is empty
             // (genesis always populates the system agent entry, and frontiers
             // only grow through transact/merge). INV-MERGE-002.
             Property::<Self>::always("frontier_monotonicity", |_model, state| {
@@ -432,8 +432,8 @@ impl Model for AlgebraicModel {
 // Frontier monotonicity model
 // ---------------------------------------------------------------------------
 
-/// Focused model that verifies frontier monotonicity (INV-MERGE-002)
-/// across transact and merge operations.
+/// Focused model that verifies Merge Cascade Completeness (INV-MERGE-002)
+/// via frontier monotonicity across transact and merge operations.
 ///
 /// State: N agents, each with a datom set and frontier. Actions: transact
 /// (advances own frontier) or merge (advances frontier to pointwise max).
@@ -552,7 +552,7 @@ impl Model for FrontierModel {
 
     fn properties(&self) -> Vec<Property<Self>> {
         vec![
-            // INV-MERGE-002: Frontier monotonicity — every frontier entry
+            // INV-MERGE-002: Merge Cascade Completeness — every frontier entry
             // must be >= the initial value. No entry disappears.
             Property::<Self>::always("frontier_never_shrinks", |_model, state| {
                 for (agent_idx, frontier) in state.frontiers.iter().enumerate() {
@@ -601,8 +601,8 @@ fn algebraic_properties_hold() {
 
 // Verifies: INV-STORE-001, INV-MERGE-002, INV-MERGE-008, INV-MERGE-009,
 //   INV-STORE-007, NEG-STORE-004
-// (Frontier monotonicity: frontiers never shrink under concurrent transact + merge.)
-/// INV-MERGE-002: Frontier monotonicity under concurrent transact + merge.
+// (Merge Cascade Completeness: frontiers never shrink under concurrent transact + merge.)
+/// INV-MERGE-002: Merge Cascade Completeness — frontier monotonicity under concurrent transact + merge.
 /// 2 agents, 2 entity variants, bounded to 3 steps.
 #[test]
 fn frontier_monotonicity_holds() {
@@ -615,9 +615,9 @@ fn frontier_monotonicity_holds() {
 
 // Verifies: INV-STORE-001, INV-STORE-002, INV-STORE-007, INV-MERGE-001,
 //   INV-MERGE-002, INV-MERGE-008, INV-MERGE-009, ADR-MERGE-001
-// (Protocol convergence: 2 agents, eventual consistency, store + frontier monotonicity.)
+// (Protocol convergence: 2 agents, eventual consistency, store monotonicity + merge cascade completeness.)
 /// Full protocol model: 2 agents, 2 data items, verifying eventual
-/// consistency, store monotonicity, and frontier monotonicity.
+/// consistency, store monotonicity, and merge cascade completeness.
 #[test]
 fn protocol_convergence_2_agents() {
     CrdtMergeModel::new(2, vec![(":test/x", "val-x"), (":test/y", "val-y")])

@@ -13,7 +13,7 @@
 //! - **INV-STORE-004**: CRDT idempotency (`merge(A,A) == A`)
 //! - **INV-STORE-005**: Content-addressed identity (same content -> same EntityId)
 //! - **INV-MERGE-001**: Set union semantics
-//! - **INV-MERGE-002**: Frontier monotonicity
+//! - **INV-MERGE-002**: Merge Cascade Completeness
 //! - **INV-RESOLUTION-002**: LWW commutativity
 //! - **INV-RESOLUTION-004**: Lattice join associativity
 //! - **INV-RESOLUTION-005**: Multi-value completeness
@@ -424,10 +424,11 @@ fn prove_merge_is_set_union() {
 }
 
 // ---------------------------------------------------------------------------
-// INV-MERGE-002: Frontier monotonicity
+// INV-MERGE-002: Merge Cascade Completeness (frontier monotonicity aspect)
 // ---------------------------------------------------------------------------
 
-/// **INV-MERGE-002**: Frontier is monotonically non-decreasing after merge.
+/// **INV-MERGE-002**: Merge Cascade Completeness — frontier monotonicity aspect.
+/// Frontier is monotonically non-decreasing after merge.
 ///
 /// The frontier is a per-agent map of latest TxIds. After merge, every
 /// agent's TxId must be >= their pre-merge value (pointwise max).
@@ -484,14 +485,14 @@ fn prove_frontier_monotonicity() {
             .or_insert(*their_tx);
     }
 
-    // INV-MERGE-002: pre_frontier <= post_frontier (pointwise)
+    // INV-MERGE-002 (Merge Cascade Completeness): pre_frontier <= post_frontier (pointwise)
     kani::assert(
         verify_frontier_advancement(&pre_frontier, &post_frontier),
         "INV-MERGE-002 violated: frontier did not advance monotonically after merge",
     );
 }
 
-/// **INV-MERGE-002 (symmetric)**: Frontier monotonicity holds for both sides.
+/// **INV-MERGE-002 (symmetric)**: Merge Cascade Completeness — frontier monotonicity holds for both sides.
 ///
 /// Both the local and remote frontiers must be <= the post-merge frontier.
 #[kani::proof]

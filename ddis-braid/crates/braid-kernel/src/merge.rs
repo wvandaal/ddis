@@ -7,7 +7,7 @@
 //! # Invariants
 //!
 //! - **INV-MERGE-001**: Merge = set union of datom sets.
-//! - **INV-MERGE-002**: Merge preserves causal order (frontier pointwise max).
+//! - **INV-MERGE-002**: Merge Cascade Completeness (all 5 cascade steps produce datoms).
 //! - **INV-MERGE-003**: Branch isolation (working sets not leaked into merge).
 //! - **INV-MERGE-004**: Competing branch lock (concurrent merge safety).
 //! - **INV-MERGE-005**: Branch commit monotonicity (merged store >= both inputs).

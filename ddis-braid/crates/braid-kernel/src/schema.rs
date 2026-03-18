@@ -904,11 +904,11 @@ pub fn layer_1_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Function or type signature implementing a spec element",
         ),
-        attr(
+        attr_multi(
             ":impl/implements",
             ValueType::Ref,
-            Cardinality::One,
-            "Ref to the spec element this code implements",
+            Cardinality::Many,
+            "Ref(s) to the spec element(s) this code implements",
         ),
         attr(
             ":impl/file",

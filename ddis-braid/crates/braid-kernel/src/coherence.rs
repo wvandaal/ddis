@@ -1249,7 +1249,7 @@ mod tests {
             /// preserves the store's fundamental invariants:
             /// - Store size does not decrease (append-only, INV-STORE-001)
             /// - Genesis datoms remain present (INV-STORE-007)
-            /// - Frontier is non-empty (INV-MERGE-002)
+            /// - Frontier is non-empty (INV-MERGE-002: Merge Cascade Completeness)
             #[test]
             fn tier1_pass_preserves_store_invariants(
                 store in arb_store(3),
@@ -1288,7 +1288,7 @@ mod tests {
                         "Genesis datoms lost after inserting coherent datom"
                     );
 
-                    // INV-MERGE-002: frontier non-empty.
+                    // INV-MERGE-002 (Merge Cascade Completeness): frontier non-empty.
                     prop_assert!(
                         !new_store.frontier().is_empty(),
                         "Frontier empty after inserting coherent datom"

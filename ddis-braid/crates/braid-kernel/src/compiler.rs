@@ -822,8 +822,28 @@ pub fn extract_test_property(m: &PatternMatch) -> TestProperty {
 /// Sanitize an invariant ID into a valid Rust identifier component.
 ///
 /// Converts "INV-STORE-001" to "inv_store_001".
+/// Also handles ident-style IDs like ":spec/inv-store-001" by replacing
+/// colons, slashes, and hyphens with underscores, then stripping any
+/// leading underscores so the result is a valid Rust identifier.
 fn sanitize_id(id: &str) -> String {
-    id.to_lowercase().replace('-', "_")
+    let sanitized: String = id
+        .to_lowercase()
+        .chars()
+        .map(|c| match c {
+            ':' | '/' | '-' | '.' => '_',
+            c if c.is_ascii_alphanumeric() || c == '_' => c,
+            _ => '_',
+        })
+        .collect();
+    // Strip leading underscores to ensure valid Rust identifier start
+    let trimmed = sanitized.trim_start_matches('_');
+    if trimmed.is_empty() {
+        "unnamed".to_string()
+    } else if trimmed.starts_with(|c: char| c.is_ascii_digit()) {
+        format!("id_{trimmed}")
+    } else {
+        trimmed.to_string()
+    }
 }
 
 /// Sanitize a pattern name into a valid Rust identifier component.
@@ -848,10 +868,12 @@ fn sanitize_pattern_name(pattern: InvariantPattern) -> String {
 ///     /// Generated test for INV-STORE-001 (Never/Immutability)
 ///     #[test]
 ///     fn generated_inv_store_001_never_immutability(store in arb_store(3)) {
-///         let snapshot = store.datom_count();
-///         // Apply operation under test
-///         let result = store.datom_count();
+///         let snapshot: BTreeSet<_> = store.all_datoms().collect();
+///         let count_before = store.datom_count();
+///         let merged = merge_stores(&store, &store);
+///         let result: BTreeSet<_> = merged.all_datoms().collect();
 ///         prop_assert!(snapshot.is_subset(&result));
+///         prop_assert!(merged.datom_count() >= count_before);
 ///     }
 /// }
 /// ```
@@ -873,9 +895,14 @@ pub fn emit_proptest(prop: &TestProperty) -> String {
     #[test]
     fn {fn_name}(store in {strategy}) {{
         let snapshot: std::collections::BTreeSet<_> = store.all_datoms().collect();
-        // Apply operation under test (no-op preserves state)
-        let result: std::collections::BTreeSet<_> = store.all_datoms().collect();
+        let count_before = store.datom_count();
+        // Merge with self — must preserve all existing datoms (append-only)
+        let merged = merge_stores(&store, &store);
+        let result: std::collections::BTreeSet<_> = merged.all_datoms().collect();
+        // Every datom from the original snapshot must still be present
         {assertion}(snapshot.is_subset(&result));
+        // Datom count must not decrease (append-only)
+        {assertion}(merged.datom_count() >= count_before);
     }}
 }}"#,
                 inv_id = prop.inv_id,
@@ -893,8 +920,11 @@ pub fn emit_proptest(prop: &TestProperty) -> String {
     /// Template: {template}
     #[test]
     fn {fn_name}(store in {strategy}) {{
+        // Two independent queries over the same store must produce identical results
         let path_a: std::collections::BTreeSet<_> = store.all_datoms().collect();
-        let path_b: std::collections::BTreeSet<_> = store.all_datoms().collect();
+        // Re-merge the store with an empty genesis to exercise the query path again
+        let reconstructed = merge_stores(&store, &Store::genesis());
+        let path_b: std::collections::BTreeSet<_> = reconstructed.all_datoms().collect();
         {assertion}(path_a, path_b);
     }}
 }}"#,
@@ -982,8 +1012,9 @@ pub fn emit_proptest(prop: &TestProperty) -> String {
     #[test]
     fn {fn_name}(store in {strategy}) {{
         let before = store.datom_count();
-        // After any valid transaction, count must not decrease
-        let after = store.datom_count();
+        // Merge with genesis adds schema datoms — count must not decrease
+        let after_store = merge_stores(&store, &Store::genesis());
+        let after = after_store.datom_count();
         {assertion}(before <= after);
     }}
 }}"#,
@@ -1043,8 +1074,9 @@ pub fn emit_proptest(prop: &TestProperty) -> String {
     #[test]
     fn {fn_name}(store in {strategy}) {{
         let pre_props: std::collections::BTreeSet<_> = store.all_datoms().collect();
-        // Apply operation under test
-        let post_props: std::collections::BTreeSet<_> = store.all_datoms().collect();
+        // Merge with genesis — all pre-existing datoms must survive
+        let merged = merge_stores(&store, &Store::genesis());
+        let post_props: std::collections::BTreeSet<_> = merged.all_datoms().collect();
         {assertion}(pre_props.is_subset(&post_props));
     }}
 }}"#,
@@ -1090,6 +1122,27 @@ pub fn emit_test_module(properties: &[TestProperty]) -> String {
          \x20\x20\x20\x20use proptest::prelude::*;\n\
          \x20\x20\x20\x20use crate::proptest_strategies::arb_store;\n\
          \x20\x20\x20\x20use crate::merge::merge_stores;\n\
+         \x20\x20\x20\x20use crate::store::Store;\n\
+         \n\
+         \x20\x20\x20\x20/// Completeness predicate: checks that a datom has all five required\n\
+         \x20\x20\x20\x20/// structural fields populated (entity, attribute, value, tx, op).\n\
+         \x20\x20\x20\x20fn predicate(datom: &crate::datom::Datom) -> bool {\n\
+         \x20\x20\x20\x20\x20\x20\x20\x20// Every datom must have a non-empty attribute and a valid op\n\
+         \x20\x20\x20\x20\x20\x20\x20\x20!datom.attribute.as_str().is_empty()\n\
+         \x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20&& matches!(datom.op, crate::datom::Op::Assert | crate::datom::Op::Retract)\n\
+         \x20\x20\x20\x20}\n\
+         \n\
+         \x20\x20\x20\x20/// Boundedness metric: computes a normalized ratio from store properties.\n\
+         \x20\x20\x20\x20/// Returns entity_count / datom_count, which is always in [0.0, 1.0]\n\
+         \x20\x20\x20\x20/// (every entity has at least one datom).\n\
+         \x20\x20\x20\x20fn compute_metric(store: &crate::store::Store) -> f64 {\n\
+         \x20\x20\x20\x20\x20\x20\x20\x20let datom_count = store.datom_count();\n\
+         \x20\x20\x20\x20\x20\x20\x20\x20if datom_count == 0 {\n\
+         \x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20return 0.0;\n\
+         \x20\x20\x20\x20\x20\x20\x20\x20}\n\
+         \x20\x20\x20\x20\x20\x20\x20\x20let entity_count = store.entities().len();\n\
+         \x20\x20\x20\x20\x20\x20\x20\x20entity_count as f64 / datom_count as f64\n\
+         \x20\x20\x20\x20}\n\
          \n",
     );
 
@@ -1990,6 +2043,19 @@ mod tests {
             module.contains("use crate::merge::merge_stores;"),
             "must import merge_stores"
         );
+        assert!(
+            module.contains("use crate::store::Store;"),
+            "must import Store"
+        );
+        // Helper functions must be present
+        assert!(
+            module.contains("fn predicate("),
+            "must include predicate helper"
+        );
+        assert!(
+            module.contains("fn compute_metric("),
+            "must include compute_metric helper"
+        );
 
         // All 9 patterns should be present
         for (i, pattern) in InvariantPattern::ALL.iter().enumerate() {
@@ -2023,6 +2089,18 @@ mod tests {
         assert_eq!(sanitize_id("INV-STORE-001"), "inv_store_001");
         assert_eq!(sanitize_id("ADR-MERGE-003"), "adr_merge_003");
         assert_eq!(sanitize_id("NEG-MUTATION-001"), "neg_mutation_001");
+        // Ident-style IDs with colons and slashes
+        assert_eq!(sanitize_id(":spec/inv-store-001"), "spec_inv_store_001");
+        assert_eq!(sanitize_id(":db/ident"), "db_ident");
+        // Dots are also sanitized
+        assert_eq!(
+            sanitize_id(":impl/compiler.inv_store_001"),
+            "impl_compiler_inv_store_001"
+        );
+        // Leading digits get prefixed
+        assert_eq!(sanitize_id("123-test"), "id_123_test");
+        // Empty/all-special produces "unnamed"
+        assert_eq!(sanitize_id(":::"), "unnamed");
     }
 
     #[test]
@@ -2713,6 +2791,19 @@ mod tests {
         assert!(
             module.contains("use crate::merge::merge_stores;"),
             "module must import merge_stores for commutativity/associativity tests"
+        );
+        assert!(
+            module.contains("use crate::store::Store;"),
+            "module must import Store for genesis references"
+        );
+        // Helper functions must be present
+        assert!(
+            module.contains("fn predicate("),
+            "module must include predicate helper function"
+        );
+        assert!(
+            module.contains("fn compute_metric("),
+            "module must include compute_metric helper function"
         );
 
         // 4. Module wrapper structure

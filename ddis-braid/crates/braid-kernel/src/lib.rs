@@ -139,8 +139,8 @@ pub use query::{
     SpectralDecomposition, StructuralComplexity,
 };
 pub use resolution::{
-    conflict_to_datoms, detect_conflicts, resolve, resolve_with_trail, ConflictEntity, ConflictSet,
-    ResolutionRecord, ResolvedValue,
+    conflict_to_datoms, detect_conflicts, has_conflict, live_entity, resolve, resolve_with_trail,
+    verify_convergence, ConflictEntity, ConflictSet, ResolutionRecord, ResolvedValue,
 };
 pub use schema::{
     domain_schema_datoms, full_schema_datoms, has_layer_4, layer_1_attributes, layer_1_datoms,
