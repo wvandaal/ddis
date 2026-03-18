@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851546/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: AGP-2.2: Implement dynamic_threshold(tx_velocity) — adaptive harvest warning threshold (INV-GUIDANCE-019). BACKGROUND: >5tx/min→30, >1→15, else→8. With hysteresis: once threshold increases, stays high for 2 min. TRACES TO: INV-GUIDANCE-019, NEG-GUIDANCE-003. ACCEPTANCE: at velocity=6.0 threshold=30, at velocity=0.5 threshold=8."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c969ee7d370374fe6ff899e9918affd701051d3f748f7d3fc5377d0368188f82" :a :db/ident :v :task/t-061cd604 :op :assert}
+   {:e #blake3 "c969ee7d370374fe6ff899e9918affd701051d3f748f7d3fc5377d0368188f82" :a :task/created-at :v 1773851545 :op :assert}
+   {:e #blake3 "c969ee7d370374fe6ff899e9918affd701051d3f748f7d3fc5377d0368188f82" :a :task/id :v "t-061cd604" :op :assert}
+   {:e #blake3 "c969ee7d370374fe6ff899e9918affd701051d3f748f7d3fc5377d0368188f82" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c969ee7d370374fe6ff899e9918affd701051d3f748f7d3fc5377d0368188f82" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c969ee7d370374fe6ff899e9918affd701051d3f748f7d3fc5377d0368188f82" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c969ee7d370374fe6ff899e9918affd701051d3f748f7d3fc5377d0368188f82" :a :task/title :v "AGP-2.2: Implement dynamic_threshold(tx_velocity) — adaptive harvest warning threshold (INV-GUIDANCE-019). BACKGROUND: >5tx/min→30, >1→15, else→8. With hysteresis: once threshold increases, stays high for 2 min. TRACES TO: INV-GUIDANCE-019, NEG-GUIDANCE-003. ACCEPTANCE: at velocity=6.0 threshold=30, at velocity=0.5 threshold=8." :op :assert}
+   {:e #blake3 "c969ee7d370374fe6ff899e9918affd701051d3f748f7d3fc5377d0368188f82" :a :task/type :v :task.type/task :op :assert}
+ ]}

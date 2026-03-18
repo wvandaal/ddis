@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851545/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: AGP-2.1: Implement tx_velocity computation — rolling 5-minute transaction rate from store timestamps (INV-GUIDANCE-019). BACKGROUND: Iterate recent transactions, count those with wall_time > now-300s, divide by 5. Pure function of store state. TRACES TO: INV-GUIDANCE-019. ACCEPTANCE: store with 10 txns in last 5 min → velocity=2.0."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e4f050b40a12f446fc7a38961f18e631315c2eef599efdef17905ce0970aac39" :a :db/ident :v :task/t-e84d66fd :op :assert}
+   {:e #blake3 "e4f050b40a12f446fc7a38961f18e631315c2eef599efdef17905ce0970aac39" :a :task/created-at :v 1773851544 :op :assert}
+   {:e #blake3 "e4f050b40a12f446fc7a38961f18e631315c2eef599efdef17905ce0970aac39" :a :task/id :v "t-e84d66fd" :op :assert}
+   {:e #blake3 "e4f050b40a12f446fc7a38961f18e631315c2eef599efdef17905ce0970aac39" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e4f050b40a12f446fc7a38961f18e631315c2eef599efdef17905ce0970aac39" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e4f050b40a12f446fc7a38961f18e631315c2eef599efdef17905ce0970aac39" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e4f050b40a12f446fc7a38961f18e631315c2eef599efdef17905ce0970aac39" :a :task/title :v "AGP-2.1: Implement tx_velocity computation — rolling 5-minute transaction rate from store timestamps (INV-GUIDANCE-019). BACKGROUND: Iterate recent transactions, count those with wall_time > now-300s, divide by 5. Pure function of store state. TRACES TO: INV-GUIDANCE-019. ACCEPTANCE: store with 10 txns in last 5 min → velocity=2.0." :op :assert}
+   {:e #blake3 "e4f050b40a12f446fc7a38961f18e631315c2eef599efdef17905ce0970aac39" :a :task/type :v :task.type/task :op :assert}
+ ]}

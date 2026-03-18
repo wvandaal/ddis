@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851548/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: AGP-3.1: Implement infer_crate(task_title) — maps task title keywords to likely Rust crate (INV-GUIDANCE-020). BACKGROUND: 'store', 'schema', 'query', 'guidance' → braid-kernel. 'CLI', 'MCP', 'command', 'layout' → braid. Default → braid-kernel. TRACES TO: INV-GUIDANCE-020. ACCEPTANCE: 'Implement VAET index' → braid-kernel, 'Add MCP tool' → braid."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "627a8120b28b96922bd70bcf1100b7414d66bf999d4fa5adb9ceaf1a6b2d7b46" :a :db/ident :v :task/t-573b60ea :op :assert}
+   {:e #blake3 "627a8120b28b96922bd70bcf1100b7414d66bf999d4fa5adb9ceaf1a6b2d7b46" :a :task/created-at :v 1773851546 :op :assert}
+   {:e #blake3 "627a8120b28b96922bd70bcf1100b7414d66bf999d4fa5adb9ceaf1a6b2d7b46" :a :task/id :v "t-573b60ea" :op :assert}
+   {:e #blake3 "627a8120b28b96922bd70bcf1100b7414d66bf999d4fa5adb9ceaf1a6b2d7b46" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "627a8120b28b96922bd70bcf1100b7414d66bf999d4fa5adb9ceaf1a6b2d7b46" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "627a8120b28b96922bd70bcf1100b7414d66bf999d4fa5adb9ceaf1a6b2d7b46" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "627a8120b28b96922bd70bcf1100b7414d66bf999d4fa5adb9ceaf1a6b2d7b46" :a :task/title :v "AGP-3.1: Implement infer_crate(task_title) — maps task title keywords to likely Rust crate (INV-GUIDANCE-020). BACKGROUND: 'store', 'schema', 'query', 'guidance' → braid-kernel. 'CLI', 'MCP', 'command', 'layout' → braid. Default → braid-kernel. TRACES TO: INV-GUIDANCE-020. ACCEPTANCE: 'Implement VAET index' → braid-kernel, 'Add MCP tool' → braid." :op :assert}
+   {:e #blake3 "627a8120b28b96922bd70bcf1100b7414d66bf999d4fa5adb9ceaf1a6b2d7b46" :a :task/type :v :task.type/task :op :assert}
+ ]}

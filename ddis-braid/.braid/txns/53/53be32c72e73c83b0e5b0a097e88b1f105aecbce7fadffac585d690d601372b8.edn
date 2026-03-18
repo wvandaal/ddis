@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851556/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-AGP-4: crate_contention_factor correctly identifies peer agent crate overlap (INV-GUIDANCE-020). Unit: two agents, same crate → 0.5, different crates → 1.0. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2b77839e84fb4f2bd4a1f74316adbcd5b7f179ed3d394472418ebe16ae5f9ffe" :a :db/ident :v :task/t-5f2973a0 :op :assert}
+   {:e #blake3 "2b77839e84fb4f2bd4a1f74316adbcd5b7f179ed3d394472418ebe16ae5f9ffe" :a :task/created-at :v 1773851553 :op :assert}
+   {:e #blake3 "2b77839e84fb4f2bd4a1f74316adbcd5b7f179ed3d394472418ebe16ae5f9ffe" :a :task/id :v "t-5f2973a0" :op :assert}
+   {:e #blake3 "2b77839e84fb4f2bd4a1f74316adbcd5b7f179ed3d394472418ebe16ae5f9ffe" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2b77839e84fb4f2bd4a1f74316adbcd5b7f179ed3d394472418ebe16ae5f9ffe" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2b77839e84fb4f2bd4a1f74316adbcd5b7f179ed3d394472418ebe16ae5f9ffe" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2b77839e84fb4f2bd4a1f74316adbcd5b7f179ed3d394472418ebe16ae5f9ffe" :a :task/title :v "TEST-AGP-4: crate_contention_factor correctly identifies peer agent crate overlap (INV-GUIDANCE-020). Unit: two agents, same crate → 0.5, different crates → 1.0. V:PROP." :op :assert}
+   {:e #blake3 "2b77839e84fb4f2bd4a1f74316adbcd5b7f179ed3d394472418ebe16ae5f9ffe" :a :task/type :v :task.type/test :op :assert}
+ ]}

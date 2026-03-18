@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851549/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: AGP-3.2: Implement crate_contention_factor(store, task) — 0.5 when peer agent recently modified same crate (INV-GUIDANCE-020). BACKGROUND: Check store frontier for other agents with tx in last 5 min. For each, check what crate their recent tasks likely modify. If collision → 0.5. TRACES TO: INV-GUIDANCE-020. ACCEPTANCE: two agents, one recently modified braid-kernel → task in braid-kernel gets 0.5."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0a0de60cb06840c71b67c1d2ab83d70d8e6c7303fd771e688a9f6d5b12daf210" :a :db/ident :v :task/t-9b74abe6 :op :assert}
+   {:e #blake3 "0a0de60cb06840c71b67c1d2ab83d70d8e6c7303fd771e688a9f6d5b12daf210" :a :task/created-at :v 1773851547 :op :assert}
+   {:e #blake3 "0a0de60cb06840c71b67c1d2ab83d70d8e6c7303fd771e688a9f6d5b12daf210" :a :task/id :v "t-9b74abe6" :op :assert}
+   {:e #blake3 "0a0de60cb06840c71b67c1d2ab83d70d8e6c7303fd771e688a9f6d5b12daf210" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "0a0de60cb06840c71b67c1d2ab83d70d8e6c7303fd771e688a9f6d5b12daf210" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0a0de60cb06840c71b67c1d2ab83d70d8e6c7303fd771e688a9f6d5b12daf210" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0a0de60cb06840c71b67c1d2ab83d70d8e6c7303fd771e688a9f6d5b12daf210" :a :task/title :v "AGP-3.2: Implement crate_contention_factor(store, task) — 0.5 when peer agent recently modified same crate (INV-GUIDANCE-020). BACKGROUND: Check store frontier for other agents with tx in last 5 min. For each, check what crate their recent tasks likely modify. If collision → 0.5. TRACES TO: INV-GUIDANCE-020. ACCEPTANCE: two agents, one recently modified braid-kernel → task in braid-kernel gets 0.5." :op :assert}
+   {:e #blake3 "0a0de60cb06840c71b67c1d2ab83d70d8e6c7303fd771e688a9f6d5b12daf210" :a :task/type :v :task.type/task :op :assert}
+ ]}

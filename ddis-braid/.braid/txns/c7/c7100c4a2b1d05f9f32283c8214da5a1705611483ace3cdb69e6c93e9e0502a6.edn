@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851547/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: AGP-2.3: Wire dynamic_threshold into should_warn_on_exit replacing fixed threshold of 8 (INV-GUIDANCE-019, NEG-GUIDANCE-003). TRACES TO: NEG-HARVEST-001. ACCEPTANCE: bulk-close 30 tasks in 5 min → <=1 harvest warning (was 4)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "86ae61d86aa855d3afe4ada7eb4a3d3e33843602145ed706fa6b40c6b85cdd00" :a :db/ident :v :task/t-f8026e8e :op :assert}
+   {:e #blake3 "86ae61d86aa855d3afe4ada7eb4a3d3e33843602145ed706fa6b40c6b85cdd00" :a :task/created-at :v 1773851546 :op :assert}
+   {:e #blake3 "86ae61d86aa855d3afe4ada7eb4a3d3e33843602145ed706fa6b40c6b85cdd00" :a :task/id :v "t-f8026e8e" :op :assert}
+   {:e #blake3 "86ae61d86aa855d3afe4ada7eb4a3d3e33843602145ed706fa6b40c6b85cdd00" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "86ae61d86aa855d3afe4ada7eb4a3d3e33843602145ed706fa6b40c6b85cdd00" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "86ae61d86aa855d3afe4ada7eb4a3d3e33843602145ed706fa6b40c6b85cdd00" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "86ae61d86aa855d3afe4ada7eb4a3d3e33843602145ed706fa6b40c6b85cdd00" :a :task/title :v "AGP-2.3: Wire dynamic_threshold into should_warn_on_exit replacing fixed threshold of 8 (INV-GUIDANCE-019, NEG-GUIDANCE-003). TRACES TO: NEG-HARVEST-001. ACCEPTANCE: bulk-close 30 tasks in 5 min → <=1 harvest warning (was 4)." :op :assert}
+   {:e #blake3 "86ae61d86aa855d3afe4ada7eb4a3d3e33843602145ed706fa6b40c6b85cdd00" :a :task/type :v :task.type/task :op :assert}
+ ]}

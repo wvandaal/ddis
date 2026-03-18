@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851551/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: AGP-4.1: Implement methodology_gaps(store) — aggregates all gap detectors into single struct (INV-GUIDANCE-021). BACKGROUND: Assembles: crystallization_candidates().len(), count_unanchored_tasks(), count_untested_invs() (new), count_stale_witnesses() (placeholder until WITNESS impl). TRACES TO: INV-GUIDANCE-021. ACCEPTANCE: store with 3 uncrystallized + 5 unanchored → gaps.crystallization=3, gaps.unanchored=5."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6ac02e1522523efcd95b5b30f27e996b729cea96588a8704127593817944255c" :a :db/ident :v :task/t-63b002b3 :op :assert}
+   {:e #blake3 "6ac02e1522523efcd95b5b30f27e996b729cea96588a8704127593817944255c" :a :task/created-at :v 1773851549 :op :assert}
+   {:e #blake3 "6ac02e1522523efcd95b5b30f27e996b729cea96588a8704127593817944255c" :a :task/id :v "t-63b002b3" :op :assert}
+   {:e #blake3 "6ac02e1522523efcd95b5b30f27e996b729cea96588a8704127593817944255c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6ac02e1522523efcd95b5b30f27e996b729cea96588a8704127593817944255c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6ac02e1522523efcd95b5b30f27e996b729cea96588a8704127593817944255c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6ac02e1522523efcd95b5b30f27e996b729cea96588a8704127593817944255c" :a :task/title :v "AGP-4.1: Implement methodology_gaps(store) — aggregates all gap detectors into single struct (INV-GUIDANCE-021). BACKGROUND: Assembles: crystallization_candidates().len(), count_unanchored_tasks(), count_untested_invs() (new), count_stale_witnesses() (placeholder until WITNESS impl). TRACES TO: INV-GUIDANCE-021. ACCEPTANCE: store with 3 uncrystallized + 5 unanchored → gaps.crystallization=3, gaps.unanchored=5." :op :assert}
+   {:e #blake3 "6ac02e1522523efcd95b5b30f27e996b729cea96588a8704127593817944255c" :a :task/type :v :task.type/task :op :assert}
+ ]}

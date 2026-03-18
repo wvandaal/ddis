@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851543/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Adaptive Guidance Protocol — context-aware guidance from GuidanceContext (INV-GUIDANCE-019..021, ADR-GUIDANCE-015)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "edb55b79f62542728694c723e0f1ed9b178fdc7236b39bb18e70b406b9ed9be9" :a :db/ident :v :task/t-073afe43 :op :assert}
+   {:e #blake3 "edb55b79f62542728694c723e0f1ed9b178fdc7236b39bb18e70b406b9ed9be9" :a :task/created-at :v 1773851542 :op :assert}
+   {:e #blake3 "edb55b79f62542728694c723e0f1ed9b178fdc7236b39bb18e70b406b9ed9be9" :a :task/id :v "t-073afe43" :op :assert}
+   {:e #blake3 "edb55b79f62542728694c723e0f1ed9b178fdc7236b39bb18e70b406b9ed9be9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "edb55b79f62542728694c723e0f1ed9b178fdc7236b39bb18e70b406b9ed9be9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "edb55b79f62542728694c723e0f1ed9b178fdc7236b39bb18e70b406b9ed9be9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "edb55b79f62542728694c723e0f1ed9b178fdc7236b39bb18e70b406b9ed9be9" :a :task/title :v "EPIC: Adaptive Guidance Protocol — context-aware guidance from GuidanceContext (INV-GUIDANCE-019..021, ADR-GUIDANCE-015)" :op :assert}
+   {:e #blake3 "edb55b79f62542728694c723e0f1ed9b178fdc7236b39bb18e70b406b9ed9be9" :a :task/type :v :task.type/epic :op :assert}
+ ]}

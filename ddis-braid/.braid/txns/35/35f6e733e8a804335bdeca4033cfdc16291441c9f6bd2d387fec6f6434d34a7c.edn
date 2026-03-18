@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851553/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-AGP-1: tx_velocity computation — unit tests for 0, 1, 5, 10 tx/5min rates + proptest for arbitrary tx timestamps (INV-GUIDANCE-019). V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e7f53557d7a01328bb176764c670d7bfce771b619e4ac5921d3716bee81a6bb0" :a :db/ident :v :task/t-ca3c9632 :op :assert}
+   {:e #blake3 "e7f53557d7a01328bb176764c670d7bfce771b619e4ac5921d3716bee81a6bb0" :a :task/created-at :v 1773851551 :op :assert}
+   {:e #blake3 "e7f53557d7a01328bb176764c670d7bfce771b619e4ac5921d3716bee81a6bb0" :a :task/id :v "t-ca3c9632" :op :assert}
+   {:e #blake3 "e7f53557d7a01328bb176764c670d7bfce771b619e4ac5921d3716bee81a6bb0" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e7f53557d7a01328bb176764c670d7bfce771b619e4ac5921d3716bee81a6bb0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e7f53557d7a01328bb176764c670d7bfce771b619e4ac5921d3716bee81a6bb0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e7f53557d7a01328bb176764c670d7bfce771b619e4ac5921d3716bee81a6bb0" :a :task/title :v "TEST-AGP-1: tx_velocity computation — unit tests for 0, 1, 5, 10 tx/5min rates + proptest for arbitrary tx timestamps (INV-GUIDANCE-019). V:PROP." :op :assert}
+   {:e #blake3 "e7f53557d7a01328bb176764c670d7bfce771b619e4ac5921d3716bee81a6bb0" :a :task/type :v :task.type/test :op :assert}
+ ]}

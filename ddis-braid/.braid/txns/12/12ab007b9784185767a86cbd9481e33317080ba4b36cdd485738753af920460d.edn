@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851558/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: E2E-AGP: scripts/e2e_adaptive_guidance.sh — 10+ checks: (1) velocity computation from store, (2) dynamic threshold at different velocities, (3) bulk close produces few warnings, (4) crate inference from task titles, (5) contention factor with peer agent, (6) gap dashboard in braid status, (7) gap section omitted when all counts zero, (8) GuidanceContext assembles all fields. TRACES TO: INV-GUIDANCE-019..021."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7fcd6bb755ee6c58c00ba9db9b1f13eb3684f5f4396e82edc0956453e2010011" :a :db/ident :v :task/t-83540258 :op :assert}
+   {:e #blake3 "7fcd6bb755ee6c58c00ba9db9b1f13eb3684f5f4396e82edc0956453e2010011" :a :task/created-at :v 1773851555 :op :assert}
+   {:e #blake3 "7fcd6bb755ee6c58c00ba9db9b1f13eb3684f5f4396e82edc0956453e2010011" :a :task/id :v "t-83540258" :op :assert}
+   {:e #blake3 "7fcd6bb755ee6c58c00ba9db9b1f13eb3684f5f4396e82edc0956453e2010011" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7fcd6bb755ee6c58c00ba9db9b1f13eb3684f5f4396e82edc0956453e2010011" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7fcd6bb755ee6c58c00ba9db9b1f13eb3684f5f4396e82edc0956453e2010011" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7fcd6bb755ee6c58c00ba9db9b1f13eb3684f5f4396e82edc0956453e2010011" :a :task/title :v "E2E-AGP: scripts/e2e_adaptive_guidance.sh — 10+ checks: (1) velocity computation from store, (2) dynamic threshold at different velocities, (3) bulk close produces few warnings, (4) crate inference from task titles, (5) contention factor with peer agent, (6) gap dashboard in braid status, (7) gap section omitted when all counts zero, (8) GuidanceContext assembles all fields. TRACES TO: INV-GUIDANCE-019..021." :op :assert}
+   {:e #blake3 "7fcd6bb755ee6c58c00ba9db9b1f13eb3684f5f4396e82edc0956453e2010011" :a :task/type :v :task.type/test :op :assert}
+ ]}

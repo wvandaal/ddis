@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851557/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-AGP-5: methodology_gaps aggregates all detectors correctly (INV-GUIDANCE-021). Unit: store with mixed gaps → correct per-type counts. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0f72f62eadea13e7ac3a660b2c6a2128dc5d614fe582b6f2c14c7fd9153ed796" :a :db/ident :v :task/t-73732ce6 :op :assert}
+   {:e #blake3 "0f72f62eadea13e7ac3a660b2c6a2128dc5d614fe582b6f2c14c7fd9153ed796" :a :task/created-at :v 1773851554 :op :assert}
+   {:e #blake3 "0f72f62eadea13e7ac3a660b2c6a2128dc5d614fe582b6f2c14c7fd9153ed796" :a :task/id :v "t-73732ce6" :op :assert}
+   {:e #blake3 "0f72f62eadea13e7ac3a660b2c6a2128dc5d614fe582b6f2c14c7fd9153ed796" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0f72f62eadea13e7ac3a660b2c6a2128dc5d614fe582b6f2c14c7fd9153ed796" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0f72f62eadea13e7ac3a660b2c6a2128dc5d614fe582b6f2c14c7fd9153ed796" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0f72f62eadea13e7ac3a660b2c6a2128dc5d614fe582b6f2c14c7fd9153ed796" :a :task/title :v "TEST-AGP-5: methodology_gaps aggregates all detectors correctly (INV-GUIDANCE-021). Unit: store with mixed gaps → correct per-type counts. V:PROP." :op :assert}
+   {:e #blake3 "0f72f62eadea13e7ac3a660b2c6a2128dc5d614fe582b6f2c14c7fd9153ed796" :a :task/type :v :task.type/test :op :assert}
+ ]}

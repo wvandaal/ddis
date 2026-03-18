@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851550/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: AGP-3.3: Wire crate_contention_factor into R(t) impact computation (INV-GUIDANCE-020). BACKGROUND: impact = base × type_mult × urgency × anchor × contention. Add as 6th multiplicative factor. ACCEPTANCE: braid next with peer agent on braid-kernel routes to braid-crate task."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d0a29af09d9c7fd806239e7e3846271622d678c9b773ef51e75a41078aa8debb" :a :db/ident :v :task/t-699a451c :op :assert}
+   {:e #blake3 "d0a29af09d9c7fd806239e7e3846271622d678c9b773ef51e75a41078aa8debb" :a :task/created-at :v 1773851548 :op :assert}
+   {:e #blake3 "d0a29af09d9c7fd806239e7e3846271622d678c9b773ef51e75a41078aa8debb" :a :task/id :v "t-699a451c" :op :assert}
+   {:e #blake3 "d0a29af09d9c7fd806239e7e3846271622d678c9b773ef51e75a41078aa8debb" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "d0a29af09d9c7fd806239e7e3846271622d678c9b773ef51e75a41078aa8debb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d0a29af09d9c7fd806239e7e3846271622d678c9b773ef51e75a41078aa8debb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d0a29af09d9c7fd806239e7e3846271622d678c9b773ef51e75a41078aa8debb" :a :task/title :v "AGP-3.3: Wire crate_contention_factor into R(t) impact computation (INV-GUIDANCE-020). BACKGROUND: impact = base × type_mult × urgency × anchor × contention. Add as 6th multiplicative factor. ACCEPTANCE: braid next with peer agent on braid-kernel routes to braid-crate task." :op :assert}
+   {:e #blake3 "d0a29af09d9c7fd806239e7e3846271622d678c9b773ef51e75a41078aa8debb" :a :task/type :v :task.type/task :op :assert}
+ ]}

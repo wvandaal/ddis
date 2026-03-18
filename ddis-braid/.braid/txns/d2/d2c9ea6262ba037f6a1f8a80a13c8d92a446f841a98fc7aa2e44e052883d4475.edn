@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851554/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-AGP-2: dynamic_threshold adapts to velocity — unit: v=6→30, v=2→15, v=0.5→8. Proptest: threshold monotonically non-decreasing with velocity (INV-GUIDANCE-019). V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cb13dad9784a0606cd345cc709d0956539f1df21fb31601d82e88ad5e4fc18e9" :a :db/ident :v :task/t-13d1bad7 :op :assert}
+   {:e #blake3 "cb13dad9784a0606cd345cc709d0956539f1df21fb31601d82e88ad5e4fc18e9" :a :task/created-at :v 1773851552 :op :assert}
+   {:e #blake3 "cb13dad9784a0606cd345cc709d0956539f1df21fb31601d82e88ad5e4fc18e9" :a :task/id :v "t-13d1bad7" :op :assert}
+   {:e #blake3 "cb13dad9784a0606cd345cc709d0956539f1df21fb31601d82e88ad5e4fc18e9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "cb13dad9784a0606cd345cc709d0956539f1df21fb31601d82e88ad5e4fc18e9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cb13dad9784a0606cd345cc709d0956539f1df21fb31601d82e88ad5e4fc18e9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cb13dad9784a0606cd345cc709d0956539f1df21fb31601d82e88ad5e4fc18e9" :a :task/title :v "TEST-AGP-2: dynamic_threshold adapts to velocity — unit: v=6→30, v=2→15, v=0.5→8. Proptest: threshold monotonically non-decreasing with velocity (INV-GUIDANCE-019). V:PROP." :op :assert}
+   {:e #blake3 "cb13dad9784a0606cd345cc709d0956539f1df21fb31601d82e88ad5e4fc18e9" :a :task/type :v :task.type/test :op :assert}
+ ]}

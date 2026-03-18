@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773851552/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: AGP-4.2: Wire methodology_gaps into braid status — unified warning section (INV-GUIDANCE-021). BACKGROUND: When any gap count > 0, show '⚠ methodology gaps:' section with per-type counts. Omit zero-count types. Shows in terse, verbose, and agent modes. TRACES TO: INV-GUIDANCE-021. ACCEPTANCE: braid status with uncrystallized observations shows gap section."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :db/ident :v :task/t-1012612f :op :assert}
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/created-at :v 1773851550 :op :assert}
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/id :v "t-1012612f" :op :assert}
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/title :v "AGP-4.2: Wire methodology_gaps into braid status — unified warning section (INV-GUIDANCE-021). BACKGROUND: When any gap count > 0, show '⚠ methodology gaps:' section with per-type counts. Omit zero-count types. Shows in terse, verbose, and agent modes. TRACES TO: INV-GUIDANCE-021. ACCEPTANCE: braid status with uncrystallized observations shows gap section." :op :assert}
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/type :v :task.type/task :op :assert}
+ ]}
