@@ -356,6 +356,80 @@ pub fn dep_add_datom(from: EntityId, to: EntityId, tx: TxId) -> Datom {
     )
 }
 
+/// Map a user-friendly attribute name to a datom attribute keyword and value.
+///
+/// Supported attributes:
+/// - `"priority"` -> `:task/priority` (Long)
+/// - `"status"` -> `:task/status` (Keyword via TaskStatus lattice)
+/// - `"type"` -> `:task/type` (Keyword via TaskType)
+/// - `"title"` -> `:task/title` (String)
+///
+/// Returns `Err` with a human-readable message if the attribute name is unknown
+/// or the value cannot be parsed for that attribute's type.
+pub fn set_attribute_datom(
+    entity: EntityId,
+    attribute: &str,
+    value: &str,
+    tx: TxId,
+) -> Result<Datom, String> {
+    match attribute {
+        "priority" => {
+            let n: i64 = value
+                .parse()
+                .map_err(|_| format!("invalid priority: {value} (use 0-4)"))?;
+            if !(0..=4).contains(&n) {
+                return Err(format!("priority out of range: {n} (use 0-4)"));
+            }
+            Ok(Datom::new(
+                entity,
+                Attribute::from_keyword(":task/priority"),
+                Value::Long(n),
+                tx,
+                Op::Assert,
+            ))
+        }
+        "status" => {
+            let status = TaskStatus::from_keyword(value).ok_or_else(|| {
+                format!("invalid status: {value} (use open, in-progress, closed)")
+            })?;
+            Ok(Datom::new(
+                entity,
+                Attribute::from_keyword(":task/status"),
+                Value::Keyword(status.as_keyword().to_string()),
+                tx,
+                Op::Assert,
+            ))
+        }
+        "type" => {
+            let tt = TaskType::from_keyword(value).ok_or_else(|| {
+                format!("invalid type: {value} (use task, bug, feature, epic, question, docs)")
+            })?;
+            Ok(Datom::new(
+                entity,
+                Attribute::from_keyword(":task/type"),
+                Value::Keyword(tt.as_keyword().to_string()),
+                tx,
+                Op::Assert,
+            ))
+        }
+        "title" => {
+            if value.is_empty() {
+                return Err("title cannot be empty".to_string());
+            }
+            Ok(Datom::new(
+                entity,
+                Attribute::from_keyword(":task/title"),
+                Value::String(value.to_string()),
+                tx,
+                Op::Assert,
+            ))
+        }
+        _ => Err(format!(
+            "unknown attribute: {attribute} (use priority, status, type, title)"
+        )),
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Task queries
 // ---------------------------------------------------------------------------
@@ -858,6 +932,85 @@ mod tests {
 
         // Adding B depends on A would create a cycle
         assert!(check_dependency_acyclicity(&store, entity_b, entity_a).is_err());
+    }
+
+    // Verifies: INV-STORE-001, INV-SCHEMA-001
+    // (set_attribute_datom correctly maps user-friendly names to datom attributes.)
+    #[test]
+    fn set_attribute_priority() {
+        let entity = EntityId::from_ident(":task/t-test1234");
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        let datom = set_attribute_datom(entity, "priority", "0", tx).unwrap();
+        assert_eq!(datom.attribute.as_str(), ":task/priority");
+        assert_eq!(datom.value, Value::Long(0));
+
+        // Out of range
+        assert!(set_attribute_datom(entity, "priority", "5", tx).is_err());
+        // Not a number
+        assert!(set_attribute_datom(entity, "priority", "high", tx).is_err());
+    }
+
+    // Verifies: INV-STORE-001, INV-SCHEMA-001
+    // (set_attribute_datom maps status to keyword via TaskStatus lattice.)
+    #[test]
+    fn set_attribute_status() {
+        let entity = EntityId::from_ident(":task/t-test1234");
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        let datom = set_attribute_datom(entity, "status", "in-progress", tx).unwrap();
+        assert_eq!(datom.attribute.as_str(), ":task/status");
+        assert_eq!(
+            datom.value,
+            Value::Keyword(":task.status/in-progress".to_string())
+        );
+
+        assert!(set_attribute_datom(entity, "status", "invalid", tx).is_err());
+    }
+
+    // Verifies: INV-STORE-001, INV-SCHEMA-001
+    // (set_attribute_datom maps type to keyword via TaskType enum.)
+    #[test]
+    fn set_attribute_type() {
+        let entity = EntityId::from_ident(":task/t-test1234");
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        let datom = set_attribute_datom(entity, "type", "bug", tx).unwrap();
+        assert_eq!(datom.attribute.as_str(), ":task/type");
+        assert_eq!(datom.value, Value::Keyword(":task.type/bug".to_string()));
+
+        assert!(set_attribute_datom(entity, "type", "invalid", tx).is_err());
+    }
+
+    // Verifies: INV-STORE-001, INV-SCHEMA-001
+    // (set_attribute_datom maps title to string value.)
+    #[test]
+    fn set_attribute_title() {
+        let entity = EntityId::from_ident(":task/t-test1234");
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        let datom = set_attribute_datom(entity, "title", "New title", tx).unwrap();
+        assert_eq!(datom.attribute.as_str(), ":task/title");
+        assert_eq!(datom.value, Value::String("New title".to_string()));
+
+        // Empty title rejected
+        assert!(set_attribute_datom(entity, "title", "", tx).is_err());
+    }
+
+    // Verifies: INV-INTERFACE-001
+    // (Unknown attribute names produce clear error messages.)
+    #[test]
+    fn set_attribute_unknown_rejected() {
+        let entity = EntityId::from_ident(":task/t-test1234");
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        let err = set_attribute_datom(entity, "color", "red", tx).unwrap_err();
+        assert!(err.contains("unknown attribute"), "got: {err}");
     }
 
     // Verifies: INV-STORE-001, INV-RESOLUTION-001, ADR-RESOLUTION-001

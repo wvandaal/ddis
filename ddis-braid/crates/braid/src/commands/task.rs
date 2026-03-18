@@ -19,8 +19,8 @@ use braid_kernel::guidance::compute_routing_from_store;
 use braid_kernel::layout::TxFile;
 use braid_kernel::task::{
     self, check_dependency_acyclicity, close_task_datoms, compute_ready_set, dep_add_datom,
-    find_task_by_id, generate_task_id, task_counts, task_summary, update_status_datom,
-    CreateTaskParams, TaskStatus, TaskType,
+    find_task_by_id, generate_task_id, set_attribute_datom, task_counts, task_summary,
+    update_status_datom, CreateTaskParams, TaskStatus, TaskType,
 };
 use braid_kernel::EntityId;
 
@@ -582,6 +582,62 @@ pub fn update(
     };
 
     Ok(CommandOutput { json, agent, human })
+}
+
+/// Set an arbitrary task attribute by friendly name.
+///
+/// Supported attributes: priority (0-4), status (open/in-progress/closed),
+/// type (task/bug/feature/epic/question/docs), title (non-empty string).
+/// LWW resolution handles the "update" semantics.
+pub fn set(
+    path: &Path,
+    task_id: &str,
+    attribute: &str,
+    value: &str,
+    agent: &str,
+) -> Result<CommandOutput, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+    ensure_layer_4_public(&layout, &store)?;
+
+    let entity = find_task_by_id(&store, task_id)
+        .ok_or_else(|| BraidError::Validation(format!("task not found: {task_id}")))?;
+
+    let agent_id = AgentId::from_name(agent);
+    let tx_id = super::write::next_tx_id(&store, agent_id);
+
+    let datom =
+        set_attribute_datom(entity, attribute, value, tx_id).map_err(BraidError::Validation)?;
+
+    let tx = TxFile {
+        tx_id,
+        agent: agent_id,
+        provenance: ProvenanceType::Observed,
+        rationale: format!("Set {task_id} {attribute}={value}"),
+        causal_predecessors: vec![],
+        datoms: vec![datom],
+    };
+    layout.write_tx(&tx)?;
+
+    let human = format!("set: {task_id} {attribute}={value}\n");
+
+    let json = serde_json::json!({
+        "id": task_id,
+        "attribute": attribute,
+        "value": value,
+    });
+
+    let agent_out = AgentOutput {
+        context: format!("set: {task_id} {attribute}={value}"),
+        content: String::new(),
+        footer: format!("show: braid task show {task_id}"),
+    };
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
+        human,
+    })
 }
 
 /// Add a dependency edge.

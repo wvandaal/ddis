@@ -167,8 +167,8 @@ pub use store::{
 pub use task::{
     all_tasks, check_dependency_acyclicity, close_task_datoms, compute_ready_set,
     create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, resolve_task_status,
-    task_counts, task_summary, update_status_datom, CreateTaskParams, TaskStatus, TaskSummary,
-    TaskType,
+    set_attribute_datom, task_counts, task_summary, update_status_datom, CreateTaskParams,
+    TaskStatus, TaskSummary, TaskType,
 };
 pub use trace::{
     links_to_datoms, scan_source, summarize, TraceLink, TraceSummary, VerificationDepth,

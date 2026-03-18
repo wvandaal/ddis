@@ -1035,13 +1035,16 @@ pub enum TaskAction {
         agent: String,
     },
 
-    /// Add a dependency edge between tasks.
-    Dep {
-        /// Source task (the one that depends).
-        from: String,
+    /// Set a task attribute by name (priority, status, type, title).
+    Set {
+        /// Task ID.
+        id: String,
 
-        /// Target task (the one depended upon).
-        to: String,
+        /// Attribute to set (priority, status, type, title).
+        attribute: String,
+
+        /// New value.
+        value: String,
 
         /// Store directory path.
         #[arg(long, short = 'p', default_value = ".braid")]
@@ -1050,6 +1053,12 @@ pub enum TaskAction {
         /// Agent identity.
         #[arg(long, short = 'a', default_value = "braid:user")]
         agent: String,
+    },
+
+    /// Manage dependency edges between tasks.
+    Dep {
+        #[command(subcommand)]
+        action: DepAction,
     },
 
     /// Import tasks from a beads JSONL file.
@@ -1061,6 +1070,27 @@ pub enum TaskAction {
         /// Path to beads JSONL file.
         #[arg(long)]
         beads: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
+}
+
+/// Dependency subcommands for `braid task dep`.
+#[derive(Subcommand)]
+pub enum DepAction {
+    /// Add a dependency edge: <from> depends on <to>.
+    Add {
+        /// Source task (the one that depends).
+        from: String,
+
+        /// Target task (the one depended upon).
+        to: String,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
 
         /// Agent identity.
         #[arg(long, short = 'a', default_value = "braid:user")]
@@ -1297,8 +1327,11 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
             | TaskAction::Show { path, .. }
             | TaskAction::Close { path, .. }
             | TaskAction::Update { path, .. }
-            | TaskAction::Dep { path, .. }
+            | TaskAction::Set { path, .. }
             | TaskAction::Import { path, .. } => Some(path),
+            TaskAction::Dep { action } => match action {
+                DepAction::Add { path, .. } => Some(path),
+            },
         },
         Command::Write { action } => match action {
             WriteAction::Assert { path, .. }
@@ -1548,10 +1581,15 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
             | TaskAction::Show { path, .. }
             | TaskAction::Close { path, .. }
             | TaskAction::Update { path, .. }
-            | TaskAction::Dep { path, .. }
+            | TaskAction::Set { path, .. }
             | TaskAction::Import { path, .. } => {
                 *path = resolve_store_path(path.clone());
             }
+            TaskAction::Dep { action } => match action {
+                DepAction::Add { path, .. } => {
+                    *path = resolve_store_path(path.clone());
+                }
+            },
         },
         Command::Write { action } => match action {
             WriteAction::Assert { path, .. }
@@ -1981,12 +2019,21 @@ pub fn run(
                     status,
                     agent,
                 } => task::update(&path, &id, &status, &agent)?,
-                TaskAction::Dep {
-                    from,
-                    to,
+                TaskAction::Set {
+                    id,
+                    attribute,
+                    value,
                     path,
                     agent,
-                } => task::dep_add(&path, &from, &to, &agent)?,
+                } => task::set(&path, &id, &attribute, &value, &agent)?,
+                TaskAction::Dep { action } => match action {
+                    DepAction::Add {
+                        from,
+                        to,
+                        path,
+                        agent,
+                    } => task::dep_add(&path, &from, &to, &agent)?,
+                },
                 TaskAction::Import { path, beads, agent } => {
                     task::import_beads(&path, &beads, &agent)?
                 }
