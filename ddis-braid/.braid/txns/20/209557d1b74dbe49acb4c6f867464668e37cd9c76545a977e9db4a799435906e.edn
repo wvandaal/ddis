@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871199/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact TASK negative case from spec/12-guidance.md s12.9"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a9130b0299b339dacf836690a9bf8b383bf55ced52ccf189f00a31a50631c594" :a :db/ident :v :spec/neg-task-001 :op :assert}
+   {:e #blake3 "a9130b0299b339dacf836690a9bf8b383bf55ced52ccf189f00a31a50631c594" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "a9130b0299b339dacf836690a9bf8b383bf55ced52ccf189f00a31a50631c594" :a :spec/falsification :v "braid task create \"... (INV-FOO-999)\" completes with no warning and no :task/traces-to datom, and INV-FOO-999 does not exist." :op :assert}
+   {:e #blake3 "a9130b0299b339dacf836690a9bf8b383bf55ced52ccf189f00a31a50631c594" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "a9130b0299b339dacf836690a9bf8b383bf55ced52ccf189f00a31a50631c594" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "a9130b0299b339dacf836690a9bf8b383bf55ced52ccf189f00a31a50631c594" :a :spec/statement :v "A task MUST NOT contain a spec reference in its title that is silently dropped without either creating a :task/traces-to Ref datom or emitting a warning." :op :assert}
+   {:e #blake3 "a9130b0299b339dacf836690a9bf8b383bf55ced52ccf189f00a31a50631c594" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

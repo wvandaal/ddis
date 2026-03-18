@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871179/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE negative cases from spec/12-guidance.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c712307cf453ec58d2d00fdf594e1579826097e5138d3a1860188669f87bc0d3" :a :db/ident :v :spec/neg-guidance-002 :op :assert}
+   {:e #blake3 "c712307cf453ec58d2d00fdf594e1579826097e5138d3a1860188669f87bc0d3" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "c712307cf453ec58d2d00fdf594e1579826097e5138d3a1860188669f87bc0d3" :a :spec/falsification :v "Task Implement INV-X has :task/traces-to pointing to an observation entity, not a spec entity with :spec/falsification." :op :assert}
+   {:e #blake3 "c712307cf453ec58d2d00fdf594e1579826097e5138d3a1860188669f87bc0d3" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "c712307cf453ec58d2d00fdf594e1579826097e5138d3a1860188669f87bc0d3" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "c712307cf453ec58d2d00fdf594e1579826097e5138d3a1860188669f87bc0d3" :a :spec/statement :v "A task MUST NOT reference a spec ID that exists ONLY as an observation but not as a formal spec element with :spec/falsification." :op :assert}
+   {:e #blake3 "c712307cf453ec58d2d00fdf594e1579826097e5138d3a1860188669f87bc0d3" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

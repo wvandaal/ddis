@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871123/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE spec elements from spec/12-guidance.md s12.10"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8ede67dc17c54abe230775d97af32c135355031532776bdaa42ca16b4625a655" :a :db/ident :v :spec/inv-guidance-020 :op :assert}
+   {:e #blake3 "8ede67dc17c54abe230775d97af32c135355031532776bdaa42ca16b4625a655" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "8ede67dc17c54abe230775d97af32c135355031532776bdaa42ca16b4625a655" :a :spec/falsification :v "Two agents are active, both routed to tasks in braid-kernel, causing compile lock contention despite the contention factor being available." :op :assert}
+   {:e #blake3 "8ede67dc17c54abe230775d97af32c135355031532776bdaa42ca16b4625a655" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "8ede67dc17c54abe230775d97af32c135355031532776bdaa42ca16b4625a655" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "8ede67dc17c54abe230775d97af32c135355031532776bdaa42ca16b4625a655" :a :spec/statement :v "When multiple agents are active, R(t) deprioritizes tasks that would modify the same compilation unit (crate) as a recently-active peer agent." :op :assert}
+   {:e #blake3 "8ede67dc17c54abe230775d97af32c135355031532776bdaa42ca16b4625a655" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

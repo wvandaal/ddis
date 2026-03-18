@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871125/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE spec elements from spec/12-guidance.md s12.10"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4bd0407344a9a5313e66759c9840cec5aa1100469fd9f213745e863101989cb3" :a :db/ident :v :spec/inv-guidance-021 :op :assert}
+   {:e #blake3 "4bd0407344a9a5313e66759c9840cec5aa1100469fd9f213745e863101989cb3" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "4bd0407344a9a5313e66759c9840cec5aa1100469fd9f213745e863101989cb3" :a :spec/falsification :v "A gap type has count > 0 but does not appear in braid status output." :op :assert}
+   {:e #blake3 "4bd0407344a9a5313e66759c9840cec5aa1100469fd9f213745e863101989cb3" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "4bd0407344a9a5313e66759c9840cec5aa1100469fd9f213745e863101989cb3" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "4bd0407344a9a5313e66759c9840cec5aa1100469fd9f213745e863101989cb3" :a :spec/statement :v "braid status displays a unified methodology gaps section when ANY gap type has non-zero count. Aggregates crystallization, unanchored, untested, stale witnesses." :op :assert}
+   {:e #blake3 "4bd0407344a9a5313e66759c9840cec5aa1100469fd9f213745e863101989cb3" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871097/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE spec elements from spec/12-guidance.md s12.9-12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "611cab0644c87a22da4cf04d6c6acad36eccc03fe06a4fc3b80edc5e110e9b24" :a :db/ident :v :spec/inv-guidance-015 :op :assert}
+   {:e #blake3 "611cab0644c87a22da4cf04d6c6acad36eccc03fe06a4fc3b80edc5e110e9b24" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "611cab0644c87a22da4cf04d6c6acad36eccc03fe06a4fc3b80edc5e110e9b24" :a :spec/falsification :v "A task-close command runs but no ObservationCandidate with the task title exists in the buffer." :op :assert}
+   {:e #blake3 "611cab0644c87a22da4cf04d6c6acad36eccc03fe06a4fc3b80edc5e110e9b24" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "611cab0644c87a22da4cf04d6c6acad36eccc03fe06a4fc3b80edc5e110e9b24" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "611cab0644c87a22da4cf04d6c6acad36eccc03fe06a4fc3b80edc5e110e9b24" :a :spec/statement :v "For every knowledge command C in session S, the ObservationCandidate buffer contains an entry derived from C output within the same session." :op :assert}
+   {:e #blake3 "611cab0644c87a22da4cf04d6c6acad36eccc03fe06a4fc3b80edc5e110e9b24" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

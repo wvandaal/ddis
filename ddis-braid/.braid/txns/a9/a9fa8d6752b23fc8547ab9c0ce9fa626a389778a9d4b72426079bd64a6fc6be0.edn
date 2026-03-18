@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871176/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE negative cases from spec/12-guidance.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4a68cbb309877fc56d86c49c34fb68d9752fda29279e7b2dd83ca48996209544" :a :db/ident :v :spec/neg-guidance-001 :op :assert}
+   {:e #blake3 "4a68cbb309877fc56d86c49c34fb68d9752fda29279e7b2dd83ca48996209544" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "4a68cbb309877fc56d86c49c34fb68d9752fda29279e7b2dd83ca48996209544" :a :spec/falsification :v "Footer after braid task close contains \"...\" instead of the task title." :op :assert}
+   {:e #blake3 "4a68cbb309877fc56d86c49c34fb68d9752fda29279e7b2dd83ca48996209544" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "4a68cbb309877fc56d86c49c34fb68d9752fda29279e7b2dd83ca48996209544" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "4a68cbb309877fc56d86c49c34fb68d9752fda29279e7b2dd83ca48996209544" :a :spec/statement :v "A guidance footer MUST NOT suggest braid observe \"...\" with literal placeholder text when a contextual hint is derivable from the command that just ran." :op :assert}
+   {:e #blake3 "4a68cbb309877fc56d86c49c34fb68d9752fda29279e7b2dd83ca48996209544" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

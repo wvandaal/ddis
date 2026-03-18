@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871196/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact TASK ADR from spec/12-guidance.md s12.9"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4e890ceb998f163789da1d939879a69358e31990082132c48ae1e4cefe91dd37" :a :adr/decision :v "Parse-and-resolve with warning + routing penalty. Parse refs from title, warn on unresolved, deprioritize in R(t). Bilateral scan is final backstop." :op :assert}
+   {:e #blake3 "4e890ceb998f163789da1d939879a69358e31990082132c48ae1e4cefe91dd37" :a :adr/problem :v "Agents skip spec crystallization, creating tasks that reference nonexistent spec elements." :op :assert}
+   {:e #blake3 "4e890ceb998f163789da1d939879a69358e31990082132c48ae1e4cefe91dd37" :a :db/ident :v :spec/adr-task-002 :op :assert}
+   {:e #blake3 "4e890ceb998f163789da1d939879a69358e31990082132c48ae1e4cefe91dd37" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "4e890ceb998f163789da1d939879a69358e31990082132c48ae1e4cefe91dd37" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "4e890ceb998f163789da1d939879a69358e31990082132c48ae1e4cefe91dd37" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "4e890ceb998f163789da1d939879a69358e31990082132c48ae1e4cefe91dd37" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871109/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE spec elements from spec/12-guidance.md s12.9-12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "18949177f469670a47497b6abe0ad214c05a0844ffe93c326320910be0fafc96" :a :db/ident :v :spec/inv-guidance-018 :op :assert}
+   {:e #blake3 "18949177f469670a47497b6abe0ad214c05a0844ffe93c326320910be0fafc96" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "18949177f469670a47497b6abe0ad214c05a0844ffe93c326320910be0fafc96" :a :spec/falsification :v "An observation contains a spec-like ID but no corresponding :spec/* entity exists with :spec/falsification, AND no crystallization gap signal emitted." :op :assert}
+   {:e #blake3 "18949177f469670a47497b6abe0ad214c05a0844ffe93c326320910be0fafc96" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "18949177f469670a47497b6abe0ad214c05a0844ffe93c326320910be0fafc96" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "18949177f469670a47497b6abe0ad214c05a0844ffe93c326320910be0fafc96" :a :spec/statement :v "Guidance detects observations containing spec-like IDs (INV-*, ADR-*, NEG-*) that have NOT been crystallized into formal spec elements. Emits crystallization-gap signal." :op :assert}
+   {:e #blake3 "18949177f469670a47497b6abe0ad214c05a0844ffe93c326320910be0fafc96" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

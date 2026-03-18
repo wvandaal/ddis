@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871100/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE spec elements from spec/12-guidance.md s12.9-12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0a8cd6ea351950890a88bbeb9b895f1837a633211147a008a6aee61759940119" :a :db/ident :v :spec/inv-guidance-016 :op :assert}
+   {:e #blake3 "0a8cd6ea351950890a88bbeb9b895f1837a633211147a008a6aee61759940119" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "0a8cd6ea351950890a88bbeb9b895f1837a633211147a008a6aee61759940119" :a :spec/falsification :v "An auto-observation from task-close has confidence < 0.85 or > 0.95." :op :assert}
+   {:e #blake3 "0a8cd6ea351950890a88bbeb9b895f1837a633211147a008a6aee61759940119" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "0a8cd6ea351950890a88bbeb9b895f1837a633211147a008a6aee61759940119" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "0a8cd6ea351950890a88bbeb9b895f1837a633211147a008a6aee61759940119" :a :spec/statement :v "Auto-observation confidence matches epistemic certainty of command type: task-close=0.9, status=0.8, query=0.7, bilateral=0.8." :op :assert}
+   {:e #blake3 "0a8cd6ea351950890a88bbeb9b895f1837a633211147a008a6aee61759940119" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

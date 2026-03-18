@@ -5,7 +5,9 @@
 use std::path::Path;
 
 use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
-use braid_kernel::guidance::{count_txns_since_last_harvest, last_harvest_wall_time};
+use braid_kernel::guidance::{
+    compute_routing_from_store, count_txns_since_last_harvest, last_harvest_wall_time,
+};
 use braid_kernel::harvest::{
     candidate_to_datoms, crystallization_guard, harvest_pipeline, infer_task_description,
     synthesize_narrative, SessionContext, DEFAULT_CRYSTALLIZATION_THRESHOLD,
@@ -525,6 +527,34 @@ pub fn run(
                         "+{} datoms, +{} entities",
                         delta_datoms, delta_entities
                     )),
+                    harvest_tx_id,
+                    Op::Assert,
+                ));
+            }
+        }
+
+        // SWS-4: Record R(t) top-3 recommendations at harvest time.
+        // This enables the retrospective (SWS-5) to compare what R(t) recommended
+        // vs what the agent actually did during the session.
+        {
+            let routing = compute_routing_from_store(&store);
+            let top_ids: Vec<String> = routing
+                .iter()
+                .filter(|r| r.impact > 0.0)
+                .take(3)
+                .filter_map(|r| {
+                    // Find task ID from entity
+                    braid_kernel::task::all_tasks(&store)
+                        .iter()
+                        .find(|t| t.entity == r.entity)
+                        .map(|t| t.id.clone())
+                })
+                .collect();
+            if !top_ids.is_empty() {
+                all_datoms.push(Datom::new(
+                    session_entity,
+                    Attribute::from_keyword(":harvest/recommended-tasks"),
+                    Value::String(top_ids.join(",")),
                     harvest_tx_id,
                     Op::Assert,
                 ));

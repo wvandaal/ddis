@@ -1,0 +1,21 @@
+{:tx/id #hlc "1773871428/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 97 candidates from task 'Session 021: Phase B+C+D completion, D4 integrations, validation'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :db/doc :v "Harvest session for task: Session 021: Phase B+C+D completion, D4 integrations, validation" :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :db/ident :v :harvest/session-braid-user-1773871428 :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/candidate-count :v 97 :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/codebase-snapshot :v "Codebase: 84190 LOC across 72 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (6758 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (4667 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3569 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3297 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (3054 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2106 LOC)" :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/delta-summary :v "+348 datoms, +43 entities" :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/drift-score :v 1.8653846153846154 :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/git-summary :v "branch=main, 4 commits, 36 files (+698/-14)\n  0e5f1c5 TEST-SWS-1 + TEST-SWS-2: 10 unit tests for SessionWorkingSet + session_boost\n  6747c1f Fix braid next to find session-boosted in-progress tasks\n  0a037f4 SWS-7: Stale task cleanup complete — 61 phantom in-progress tasks reverted to open\n  4096252 SWS-6: braid transact alias (completed by background agent)\nHot files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (229 lines changed)\n  ddis-braid/crates/braid/src/commands/mod.rs (51 lines changed)\n  ddis-braid/.braid/txns/98/9894dc1164680e191367d7c209bbc90caae20c14e8a0e5ba9911073df9fc9bb0.edn (22 lines changed)\n  ddis-braid/crates/braid/src/commands/task.rs (16 lines changed)\n  ddis-braid/.braid/txns/0e/0edeb7765175368b70c25a54685d95c9f4d153e76d9d4aad54d5233e8522ff59.edn (14 lines changed)\n  ddis-braid/.braid/txns/15/15e8e2dd1e0549d8dfa3f47f115ac467e3d917006f2fdb0f717d9f2642b25a49.edn (14 lines changed)\n  ddis-braid/.braid/txns/1c/1c38ad81a012a12679373371aa3d88b01cdb0cbfe2f9d911b1519d4a9b81ea34.edn (14 lines changed)\n  ddis-braid/.braid/txns/2f/2f1223d594871950c010566bc0fff73ff06170a8a8d5718109e1d4741d7e5cee.edn (14 lines changed)" :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/observation-count :v 1 :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/recommended-tasks :v "t-ca8694fe,t-a13a8569,t-965da528" :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/store-datom-count :v 16165 :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/store-entity-count :v 2246 :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/task :v "Session 021: Phase B+C+D completion, D4 integrations, validation" :op :assert}
+   {:e #blake3 "5df0c0f612e4c4ce8a48bf7f7e1bebeaee1af664d789c78551a93b6039a3c353" :a :harvest/tx-since-last :v 54 :op :assert}
+ ]}

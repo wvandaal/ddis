@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871144/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE ADRs from spec/12-guidance.md s12.9-12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "715355308eb53de40115d6565be00607442f690753730740f5c89c3dcddd5668" :a :adr/decision :v "Command-output-derived contextual hint. Natural transformation eta: CommandOutput -> ObservationCandidate." :op :assert}
+   {:e #blake3 "715355308eb53de40115d6565be00607442f690753730740f5c89c3dcddd5668" :a :adr/problem :v "Paste-ready commands use \"...\" placeholder. At low k*, agents paste literally, creating meaningless observations." :op :assert}
+   {:e #blake3 "715355308eb53de40115d6565be00607442f690753730740f5c89c3dcddd5668" :a :db/ident :v :spec/adr-guidance-013 :op :assert}
+   {:e #blake3 "715355308eb53de40115d6565be00607442f690753730740f5c89c3dcddd5668" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "715355308eb53de40115d6565be00607442f690753730740f5c89c3dcddd5668" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "715355308eb53de40115d6565be00607442f690753730740f5c89c3dcddd5668" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "715355308eb53de40115d6565be00607442f690753730740f5c89c3dcddd5668" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

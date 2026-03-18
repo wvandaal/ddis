@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871093/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE spec elements from spec/12-guidance.md s12.9-12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "765db5b76fa7e768fdd3e842691a5cbbd1cc6f62cee2d39bb66e0ca9c9be0053" :a :db/ident :v :spec/inv-guidance-014 :op :assert}
+   {:e #blake3 "765db5b76fa7e768fdd3e842691a5cbbd1cc6f62cee2d39bb66e0ca9c9be0053" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "765db5b76fa7e768fdd3e842691a5cbbd1cc6f62cee2d39bb66e0ca9c9be0053" :a :spec/falsification :v "Footer after a knowledge-producing command contains placeholder \"...\" instead of a contextual sentence derived from the output." :op :assert}
+   {:e #blake3 "765db5b76fa7e768fdd3e842691a5cbbd1cc6f62cee2d39bb66e0ca9c9be0053" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "765db5b76fa7e768fdd3e842691a5cbbd1cc6f62cee2d39bb66e0ca9c9be0053" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "765db5b76fa7e768fdd3e842691a5cbbd1cc6f62cee2d39bb66e0ca9c9be0053" :a :spec/statement :v "For every knowledge-producing command, the guidance footer includes a paste-ready observation derived from output. contextual_observation_hint(cmd, output) != \"...\"." :op :assert}
+   {:e #blake3 "765db5b76fa7e768fdd3e842691a5cbbd1cc6f62cee2d39bb66e0ca9c9be0053" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

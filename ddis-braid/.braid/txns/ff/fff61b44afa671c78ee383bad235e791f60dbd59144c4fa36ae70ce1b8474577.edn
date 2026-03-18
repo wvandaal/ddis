@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871131/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE spec elements from spec/12-guidance.md s12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "487fc44913b6ec7d80463aa6d6cf3166480b6159303e0f3a14744118a8916c9f" :a :db/ident :v :spec/inv-guidance-022 :op :assert}
+   {:e #blake3 "487fc44913b6ec7d80463aa6d6cf3166480b6159303e0f3a14744118a8916c9f" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "487fc44913b6ec7d80463aa6d6cf3166480b6159303e0f3a14744118a8916c9f" :a :spec/falsification :v "The <braid-methodology> section contains hardcoded values not matching store state, or is absent after braid seed --inject." :op :assert}
+   {:e #blake3 "487fc44913b6ec7d80463aa6d6cf3166480b6159303e0f3a14744118a8916c9f" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "487fc44913b6ec7d80463aa6d6cf3166480b6159303e0f3a14744118a8916c9f" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "487fc44913b6ec7d80463aa6d6cf3166480b6159303e0f3a14744118a8916c9f" :a :spec/statement :v "braid seed --inject AGENTS.md generates a <braid-methodology> section at TOP of file with live store-derived methodology guidance: gaps, ceremony protocol, next actions, session constraints." :op :assert}
+   {:e #blake3 "487fc44913b6ec7d80463aa6d6cf3166480b6159303e0f3a14744118a8916c9f" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

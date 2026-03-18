@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871192/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact TASK spec elements from spec/12-guidance.md s12.9"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e382ec6192b48fd83842e312fb6496cd562548bee26d13fecf92bb5e7c9500b1" :a :db/ident :v :spec/inv-task-005 :op :assert}
+   {:e #blake3 "e382ec6192b48fd83842e312fb6496cd562548bee26d13fecf92bb5e7c9500b1" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "e382ec6192b48fd83842e312fb6496cd562548bee26d13fecf92bb5e7c9500b1" :a :spec/falsification :v "Task title contains INV-STORE-001 but neither a :task/traces-to datom exists nor a warning was emitted at creation time." :op :assert}
+   {:e #blake3 "e382ec6192b48fd83842e312fb6496cd562548bee26d13fecf92bb5e7c9500b1" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "e382ec6192b48fd83842e312fb6496cd562548bee26d13fecf92bb5e7c9500b1" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "e382ec6192b48fd83842e312fb6496cd562548bee26d13fecf92bb5e7c9500b1" :a :spec/statement :v "For every task T with spec references R(T) parsed from title, each ref either resolves to a store entity (:task/traces-to Ref datom) or is flagged as unresolved with warning." :op :assert}
+   {:e #blake3 "e382ec6192b48fd83842e312fb6496cd562548bee26d13fecf92bb5e7c9500b1" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

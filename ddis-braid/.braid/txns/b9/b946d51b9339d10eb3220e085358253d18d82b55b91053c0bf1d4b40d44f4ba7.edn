@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871154/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE ADRs from spec/12-guidance.md s12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4f5508f473bb4ab47ca60caa2451c1a1956eb21771e6944cdfe9c96dfeb643a3" :a :adr/decision :v "Dynamic methodology section generated from store state, positioned at top of AGENTS.md for maximum k* exposure. Methodology as live projection." :op :assert}
+   {:e #blake3 "4f5508f473bb4ab47ca60caa2451c1a1956eb21771e6944cdfe9c96dfeb643a3" :a :adr/problem :v "Static methodology instructions in AGENTS.md do not adapt to store state. Agents forget or ignore under k* pressure." :op :assert}
+   {:e #blake3 "4f5508f473bb4ab47ca60caa2451c1a1956eb21771e6944cdfe9c96dfeb643a3" :a :db/ident :v :spec/adr-guidance-016 :op :assert}
+   {:e #blake3 "4f5508f473bb4ab47ca60caa2451c1a1956eb21771e6944cdfe9c96dfeb643a3" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "4f5508f473bb4ab47ca60caa2451c1a1956eb21771e6944cdfe9c96dfeb643a3" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "4f5508f473bb4ab47ca60caa2451c1a1956eb21771e6944cdfe9c96dfeb643a3" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "4f5508f473bb4ab47ca60caa2451c1a1956eb21771e6944cdfe9c96dfeb643a3" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

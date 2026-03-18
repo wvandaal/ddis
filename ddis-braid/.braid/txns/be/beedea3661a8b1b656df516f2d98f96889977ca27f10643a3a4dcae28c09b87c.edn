@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871183/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE negative cases from spec/12-guidance.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "19d345965647bc261f72ac6a65aaff5543cdcab548a38aacc59152a717338795" :a :db/ident :v :spec/neg-guidance-003 :op :assert}
+   {:e #blake3 "19d345965647bc261f72ac6a65aaff5543cdcab548a38aacc59152a717338795" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "19d345965647bc261f72ac6a65aaff5543cdcab548a38aacc59152a717338795" :a :spec/falsification :v "Agent closes 30 tasks in 5 minutes and receives >=4 harvest warnings despite the operations being mechanical." :op :assert}
+   {:e #blake3 "19d345965647bc261f72ac6a65aaff5543cdcab548a38aacc59152a717338795" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "19d345965647bc261f72ac6a65aaff5543cdcab548a38aacc59152a717338795" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "19d345965647bc261f72ac6a65aaff5543cdcab548a38aacc59152a717338795" :a :spec/statement :v "Harvest warning MUST NOT fire at a fixed threshold regardless of tx velocity. Bulk-close session producing 30 routine txns MUST NOT get 4 warnings." :op :assert}
+   {:e #blake3 "19d345965647bc261f72ac6a65aaff5543cdcab548a38aacc59152a717338795" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

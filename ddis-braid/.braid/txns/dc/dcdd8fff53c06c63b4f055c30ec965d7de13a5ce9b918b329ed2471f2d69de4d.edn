@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871146/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE ADRs from spec/12-guidance.md s12.9-12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "17711fe72e442117df330c2b4cd7f1df48efa27ed0d0a70de675ff8dbebb8ce1" :a :adr/decision :v "Lazy buffer + harvest integration. ObservationCandidates accumulate in session buffer, filtered at harvest via surprisal scoring." :op :assert}
+   {:e #blake3 "17711fe72e442117df330c2b4cd7f1df48efa27ed0d0a70de675ff8dbebb8ce1" :a :adr/problem :v "Auto-transacting every command output creates O(N) datoms per session with store bloat." :op :assert}
+   {:e #blake3 "17711fe72e442117df330c2b4cd7f1df48efa27ed0d0a70de675ff8dbebb8ce1" :a :db/ident :v :spec/adr-guidance-014 :op :assert}
+   {:e #blake3 "17711fe72e442117df330c2b4cd7f1df48efa27ed0d0a70de675ff8dbebb8ce1" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "17711fe72e442117df330c2b4cd7f1df48efa27ed0d0a70de675ff8dbebb8ce1" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "17711fe72e442117df330c2b4cd7f1df48efa27ed0d0a70de675ff8dbebb8ce1" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "17711fe72e442117df330c2b4cd7f1df48efa27ed0d0a70de675ff8dbebb8ce1" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

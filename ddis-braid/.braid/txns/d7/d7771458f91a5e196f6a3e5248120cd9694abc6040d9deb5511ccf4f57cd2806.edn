@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871134/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE spec elements from spec/12-guidance.md s12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4c1e60fe681aafc1ee3f52874100974f2747950ceee88cf22f38147ea3a2bdf1" :a :db/ident :v :spec/inv-guidance-023 :op :assert}
+   {:e #blake3 "4c1e60fe681aafc1ee3f52874100974f2747950ceee88cf22f38147ea3a2bdf1" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "4c1e60fe681aafc1ee3f52874100974f2747950ceee88cf22f38147ea3a2bdf1" :a :spec/falsification :v "A commit modifies store.rs but no observation or task in the store references a spec element related to the change, and no provenance gap signal emitted." :op :assert}
+   {:e #blake3 "4c1e60fe681aafc1ee3f52874100974f2747950ceee88cf22f38147ea3a2bdf1" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "4c1e60fe681aafc1ee3f52874100974f2747950ceee88cf22f38147ea3a2bdf1" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "4c1e60fe681aafc1ee3f52874100974f2747950ceee88cf22f38147ea3a2bdf1" :a :spec/statement :v "For every code change committed, there exists a provenance chain: code -> observation/task -> spec element. Chain need not be in execution order but must EXIST after commit." :op :assert}
+   {:e #blake3 "4c1e60fe681aafc1ee3f52874100974f2747950ceee88cf22f38147ea3a2bdf1" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

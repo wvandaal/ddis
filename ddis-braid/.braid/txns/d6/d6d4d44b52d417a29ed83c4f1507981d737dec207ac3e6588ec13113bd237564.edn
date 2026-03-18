@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871150/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE ADRs from spec/12-guidance.md s12.10-12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e8b421a39ad97050686c928d0edf9a6d5d17ca41d2a2fa84f5856a25889f9426" :a :adr/decision :v "Adaptive thresholds from GuidanceContext. Thresholds are functions of observable state (velocity, agent count, k*, gap counts)." :op :assert}
+   {:e #blake3 "e8b421a39ad97050686c928d0edf9a6d5d17ca41d2a2fa84f5856a25889f9426" :a :adr/problem :v "Guidance uses static thresholds (harvest at 8 tx, footer at k*>0.7) that are correct on average but wrong for specific contexts." :op :assert}
+   {:e #blake3 "e8b421a39ad97050686c928d0edf9a6d5d17ca41d2a2fa84f5856a25889f9426" :a :db/ident :v :spec/adr-guidance-015 :op :assert}
+   {:e #blake3 "e8b421a39ad97050686c928d0edf9a6d5d17ca41d2a2fa84f5856a25889f9426" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "e8b421a39ad97050686c928d0edf9a6d5d17ca41d2a2fa84f5856a25889f9426" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "e8b421a39ad97050686c928d0edf9a6d5d17ca41d2a2fa84f5856a25889f9426" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "e8b421a39ad97050686c928d0edf9a6d5d17ca41d2a2fa84f5856a25889f9426" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

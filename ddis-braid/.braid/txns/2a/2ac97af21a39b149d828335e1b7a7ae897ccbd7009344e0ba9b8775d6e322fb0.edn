@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871299/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE design note from spec/12-guidance.md s12.8 (decision-gate)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a9fe3b8379582d152f43c509ba9e1b8aeab743ddab513743d1b184c99be39a4a" :a :db/ident :v :spec/inv-guidance-012 :op :assert}
+   {:e #blake3 "a9fe3b8379582d152f43c509ba9e1b8aeab743ddab513743d1b184c99be39a4a" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "a9fe3b8379582d152f43c509ba9e1b8aeab743ddab513743d1b184c99be39a4a" :a :spec/falsification :v "A gated entity transitions directly from Proposed to Decided without user approval, bypassing the UserApproved gate." :op :assert}
+   {:e #blake3 "a9fe3b8379582d152f43c509ba9e1b8aeab743ddab513743d1b184c99be39a4a" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "a9fe3b8379582d152f43c509ba9e1b8aeab743ddab513743d1b184c99be39a4a" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "a9fe3b8379582d152f43c509ba9e1b8aeab743ddab513743d1b184c99be39a4a" :a :spec/statement :v "Entities with :spec/decision-gate=true require explicit user approval before Proposed->Decided transition. UserApproved->Decided requires :spec/user-approved=true." :op :assert}
+   {:e #blake3 "a9fe3b8379582d152f43c509ba9e1b8aeab743ddab513743d1b184c99be39a4a" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

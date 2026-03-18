@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871117/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE spec elements from spec/12-guidance.md s12.10-12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e2e9cd4c4a9d3f573fa06c96752a9b0efd4a292390a44a95d661139e8b958eb9" :a :db/ident :v :spec/inv-guidance-019 :op :assert}
+   {:e #blake3 "e2e9cd4c4a9d3f573fa06c96752a9b0efd4a292390a44a95d661139e8b958eb9" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "e2e9cd4c4a9d3f573fa06c96752a9b0efd4a292390a44a95d661139e8b958eb9" :a :spec/falsification :v "During bulk-close session (>5 tx/min), harvest warning fires at 8 transactions instead of 30." :op :assert}
+   {:e #blake3 "e2e9cd4c4a9d3f573fa06c96752a9b0efd4a292390a44a95d661139e8b958eb9" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "e2e9cd4c4a9d3f573fa06c96752a9b0efd4a292390a44a95d661139e8b958eb9" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "e2e9cd4c4a9d3f573fa06c96752a9b0efd4a292390a44a95d661139e8b958eb9" :a :spec/statement :v "Harvest warning threshold adapts to tx velocity. High-velocity (>5tx/min)=30, normal (>1tx/min)=15, slow=8. Prevents spurious warnings during bulk ops." :op :assert}
+   {:e #blake3 "e2e9cd4c4a9d3f573fa06c96752a9b0efd4a292390a44a95d661139e8b958eb9" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}
