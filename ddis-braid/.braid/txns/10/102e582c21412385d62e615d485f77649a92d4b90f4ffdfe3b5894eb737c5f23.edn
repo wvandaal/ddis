@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812554/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-C2e: Performance benchmark — measure query latency at 1K, 10K, 100K datoms with and without indexes. Assert: indexed query at 100K < 10× query at 1K (sublinear growth). Report: latency numbers for each index type at each scale. TRACES TO: ADR-STORE-005 justification."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f870f35dd7b2d6b9d012c7c95a3b1831df21ddf74328a3fe074d5ece4255f4f7" :a :db/ident :v :task/t-f05c :op :assert}
+   {:e #blake3 "f870f35dd7b2d6b9d012c7c95a3b1831df21ddf74328a3fe074d5ece4255f4f7" :a :task/created-at :v 1773812552 :op :assert}
+   {:e #blake3 "f870f35dd7b2d6b9d012c7c95a3b1831df21ddf74328a3fe074d5ece4255f4f7" :a :task/id :v "t-f05c" :op :assert}
+   {:e #blake3 "f870f35dd7b2d6b9d012c7c95a3b1831df21ddf74328a3fe074d5ece4255f4f7" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f870f35dd7b2d6b9d012c7c95a3b1831df21ddf74328a3fe074d5ece4255f4f7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f870f35dd7b2d6b9d012c7c95a3b1831df21ddf74328a3fe074d5ece4255f4f7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f870f35dd7b2d6b9d012c7c95a3b1831df21ddf74328a3fe074d5ece4255f4f7" :a :task/title :v "TEST-C2e: Performance benchmark — measure query latency at 1K, 10K, 100K datoms with and without indexes. Assert: indexed query at 100K < 10× query at 1K (sublinear growth). Report: latency numbers for each index type at each scale. TRACES TO: ADR-STORE-005 justification." :op :assert}
+   {:e #blake3 "f870f35dd7b2d6b9d012c7c95a3b1831df21ddf74328a3fe074d5ece4255f4f7" :a :task/type :v :task.type/task :op :assert}
+ ]}

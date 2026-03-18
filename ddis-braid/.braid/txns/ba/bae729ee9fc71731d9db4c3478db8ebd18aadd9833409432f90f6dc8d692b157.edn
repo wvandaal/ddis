@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812555/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-C2f: VAET reverse ref traversal — integration test: create entity graph A→B→C via Ref values, query 'who references C?' via VAET, verify B is found in O(log N) not O(N). Also: verify pagerank/betweenness produce identical results with VAET vs linear scan. TRACES TO: INV-QUERY-015, INV-QUERY-016."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :db/ident :v :task/t-e8cf :op :assert}
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/created-at :v 1773812553 :op :assert}
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/id :v "t-e8cf" :op :assert}
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/title :v "TEST-C2f: VAET reverse ref traversal — integration test: create entity graph A→B→C via Ref values, query 'who references C?' via VAET, verify B is found in O(log N) not O(N). Also: verify pagerank/betweenness produce identical results with VAET vs linear scan. TRACES TO: INV-QUERY-015, INV-QUERY-016." :op :assert}
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/type :v :task.type/task :op :assert}
+ ]}

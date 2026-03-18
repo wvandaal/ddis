@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812519/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.14: Wire LIVE into Store::live_value(entity, attribute) -> Option<ResolvedValue> — O(1) current-state API (INV-STORE-012). BACKGROUND: Most queries want 'current value' not 'full history'. LIVE gives O(1). Replace the common pattern: store.entity_datoms(e).filter(attr).last() with store.live_value(e, a). This subsumes the ad-hoc resolution calls scattered throughout guidance, seed, harvest, task modules. TRACES TO: INV-RESOLUTION-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1aa115c9287cc181f53d054c622f5a987e4be840f534424ca42cf8abd9eafc51" :a :db/ident :v :task/t-3f85 :op :assert}
+   {:e #blake3 "1aa115c9287cc181f53d054c622f5a987e4be840f534424ca42cf8abd9eafc51" :a :task/created-at :v 1773812517 :op :assert}
+   {:e #blake3 "1aa115c9287cc181f53d054c622f5a987e4be840f534424ca42cf8abd9eafc51" :a :task/id :v "t-3f85" :op :assert}
+   {:e #blake3 "1aa115c9287cc181f53d054c622f5a987e4be840f534424ca42cf8abd9eafc51" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1aa115c9287cc181f53d054c622f5a987e4be840f534424ca42cf8abd9eafc51" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1aa115c9287cc181f53d054c622f5a987e4be840f534424ca42cf8abd9eafc51" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1aa115c9287cc181f53d054c622f5a987e4be840f534424ca42cf8abd9eafc51" :a :task/title :v "C2.14: Wire LIVE into Store::live_value(entity, attribute) -> Option<ResolvedValue> — O(1) current-state API (INV-STORE-012). BACKGROUND: Most queries want 'current value' not 'full history'. LIVE gives O(1). Replace the common pattern: store.entity_datoms(e).filter(attr).last() with store.live_value(e, a). This subsumes the ad-hoc resolution calls scattered throughout guidance, seed, harvest, task modules. TRACES TO: INV-RESOLUTION-001." :op :assert}
+   {:e #blake3 "1aa115c9287cc181f53d054c622f5a987e4be840f534424ca42cf8abd9eafc51" :a :task/type :v :task.type/task :op :assert}
+ ]}

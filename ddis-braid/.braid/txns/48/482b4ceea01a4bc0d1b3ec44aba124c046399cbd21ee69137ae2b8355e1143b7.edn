@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773812556/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-STORE-IDX-001: EAVT Index Completeness. For every datom d in store, eavt.contains((d.entity, d.attribute, d.value, d.tx)) = true. The EAVT index is a lossless projection of the datom set. Falsification: a datom exists in the BTreeSet but not in the EAVT index. V:PROP + V:KANI."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e4b4b1497334e7b6de3f214493bcaf3e3042a990e543692c83c05f29fad21c1e" :a :db/doc :v "INV-STORE-IDX-001: EAVT Index Completeness. For every datom d in store, eavt.contains((d.entity, d.attribute, d.value, d.tx)) = true. The EAVT index is a lossless projection of the datom set. Falsification: a datom exists in the BTreeSet but not in the EAVT index. V:PROP + V:KANI." :op :assert}
+   {:e #blake3 "e4b4b1497334e7b6de3f214493bcaf3e3042a990e543692c83c05f29fad21c1e" :a :db/ident :v :observation/inv-store-idx-001-eavt-index-completeness-for-every-datom :op :assert}
+   {:e #blake3 "e4b4b1497334e7b6de3f214493bcaf3e3042a990e543692c83c05f29fad21c1e" :a :exploration/body :v "INV-STORE-IDX-001: EAVT Index Completeness. For every datom d in store, eavt.contains((d.entity, d.attribute, d.value, d.tx)) = true. The EAVT index is a lossless projection of the datom set. Falsification: a datom exists in the BTreeSet but not in the EAVT index. V:PROP + V:KANI." :op :assert}
+   {:e #blake3 "e4b4b1497334e7b6de3f214493bcaf3e3042a990e543692c83c05f29fad21c1e" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "e4b4b1497334e7b6de3f214493bcaf3e3042a990e543692c83c05f29fad21c1e" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "e4b4b1497334e7b6de3f214493bcaf3e3042a990e543692c83c05f29fad21c1e" :a :exploration/content-hash :v #bytes "e5e54b04b2698011c4be759da33174ac731d7a6bd2ddd517fd76d637e0989d7c" :op :assert}
+   {:e #blake3 "e4b4b1497334e7b6de3f214493bcaf3e3042a990e543692c83c05f29fad21c1e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "e4b4b1497334e7b6de3f214493bcaf3e3042a990e543692c83c05f29fad21c1e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "e4b4b1497334e7b6de3f214493bcaf3e3042a990e543692c83c05f29fad21c1e" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

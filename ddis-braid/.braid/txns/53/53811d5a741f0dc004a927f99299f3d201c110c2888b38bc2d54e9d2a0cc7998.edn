@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812484/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.9: Wire all 4 indexes + LIVE into Store::from_datoms — build during construction (ADR-STORE-005). BACKGROUND: from_datoms is the primary constructor used when loading store from disk. All indexes built here in one pass: iterate sorted datoms once, insert into all 4 BTreeMaps + fold into LIVE. Single-pass O(N log N). TRACES TO: ADR-STORE-007."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :db/ident :v :task/t-09cc :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/created-at :v 1773812482 :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/id :v "t-09cc" :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/title :v "C2.9: Wire all 4 indexes + LIVE into Store::from_datoms — build during construction (ADR-STORE-005). BACKGROUND: from_datoms is the primary constructor used when loading store from disk. All indexes built here in one pass: iterate sorted datoms once, insert into all 4 BTreeMaps + fold into LIVE. Single-pass O(N log N). TRACES TO: ADR-STORE-007." :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/type :v :task.type/task :op :assert}
+ ]}

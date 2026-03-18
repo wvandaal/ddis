@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812482/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.7: Wire all 4 indexes + LIVE into Store::transact — incremental update on new datoms (ADR-STORE-005). BACKGROUND: On transact, insert new datoms into all 4 covering indexes + update LIVE for affected pairs. Must be atomic with datom insertion — if transact succeeds, all indexes are consistent. If it fails (e.g., schema validation), no indexes are modified. TRACES TO: INV-STORE-001 (append-only applies to indexes too)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "883b7d0454efdb3c9d717757540cc3a5734b05ed2c6c2e903a3c76ae61d167f2" :a :db/ident :v :task/t-a538 :op :assert}
+   {:e #blake3 "883b7d0454efdb3c9d717757540cc3a5734b05ed2c6c2e903a3c76ae61d167f2" :a :task/created-at :v 1773812481 :op :assert}
+   {:e #blake3 "883b7d0454efdb3c9d717757540cc3a5734b05ed2c6c2e903a3c76ae61d167f2" :a :task/id :v "t-a538" :op :assert}
+   {:e #blake3 "883b7d0454efdb3c9d717757540cc3a5734b05ed2c6c2e903a3c76ae61d167f2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "883b7d0454efdb3c9d717757540cc3a5734b05ed2c6c2e903a3c76ae61d167f2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "883b7d0454efdb3c9d717757540cc3a5734b05ed2c6c2e903a3c76ae61d167f2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "883b7d0454efdb3c9d717757540cc3a5734b05ed2c6c2e903a3c76ae61d167f2" :a :task/title :v "C2.7: Wire all 4 indexes + LIVE into Store::transact — incremental update on new datoms (ADR-STORE-005). BACKGROUND: On transact, insert new datoms into all 4 covering indexes + update LIVE for affected pairs. Must be atomic with datom insertion — if transact succeeds, all indexes are consistent. If it fails (e.g., schema validation), no indexes are modified. TRACES TO: INV-STORE-001 (append-only applies to indexes too)." :op :assert}
+   {:e #blake3 "883b7d0454efdb3c9d717757540cc3a5734b05ed2c6c2e903a3c76ae61d167f2" :a :task/type :v :task.type/task :op :assert}
+ ]}

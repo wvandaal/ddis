@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812515/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.10: Implement .cache/ directory with serialized indexes — eavt.idx, aevt.idx, vaet.idx, avet.idx, live.idx (spec/01b-storage-layout.md lines 71-76). BACKGROUND: Each .idx file is a bincode-serialized BTreeMap. Content-addressed: filename includes hash of the latest txn included. On load, check if .cache/ exists + is fresh (latest txn hash matches). If fresh, deserialize indexes directly (O(N) read, no sort). If stale or missing, rebuild from txns/ (O(N log N) sort). .cache/ is gitignored (derived artifact, not source of truth). TRACES TO: ADR-STORE-007, INV-LAYOUT-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "87a508a45c643d4627caaa7366ca2d43a17b0f548ab521c662821d5787f91779" :a :db/ident :v :task/t-7606 :op :assert}
+   {:e #blake3 "87a508a45c643d4627caaa7366ca2d43a17b0f548ab521c662821d5787f91779" :a :task/created-at :v 1773812514 :op :assert}
+   {:e #blake3 "87a508a45c643d4627caaa7366ca2d43a17b0f548ab521c662821d5787f91779" :a :task/id :v "t-7606" :op :assert}
+   {:e #blake3 "87a508a45c643d4627caaa7366ca2d43a17b0f548ab521c662821d5787f91779" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "87a508a45c643d4627caaa7366ca2d43a17b0f548ab521c662821d5787f91779" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "87a508a45c643d4627caaa7366ca2d43a17b0f548ab521c662821d5787f91779" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "87a508a45c643d4627caaa7366ca2d43a17b0f548ab521c662821d5787f91779" :a :task/title :v "C2.10: Implement .cache/ directory with serialized indexes — eavt.idx, aevt.idx, vaet.idx, avet.idx, live.idx (spec/01b-storage-layout.md lines 71-76). BACKGROUND: Each .idx file is a bincode-serialized BTreeMap. Content-addressed: filename includes hash of the latest txn included. On load, check if .cache/ exists + is fresh (latest txn hash matches). If fresh, deserialize indexes directly (O(N) read, no sort). If stale or missing, rebuild from txns/ (O(N log N) sort). .cache/ is gitignored (derived artifact, not source of truth). TRACES TO: ADR-STORE-007, INV-LAYOUT-001." :op :assert}
+   {:e #blake3 "87a508a45c643d4627caaa7366ca2d43a17b0f548ab521c662821d5787f91779" :a :task/type :v :task.type/task :op :assert}
+ ]}

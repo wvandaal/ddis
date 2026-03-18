@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773812558/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-STORE-IDX-003: VAET Index Completeness. For every datom d with value=Ref(target), vaet.contains((Ref(target), d.attribute, d.entity, d.tx)) = true. VAET indexes ONLY Ref-valued datoms — other value types are excluded. Falsification: a Ref datom exists but vaet.range query doesn't find it. V:PROP + V:KANI."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3e723bb3926abb54096716397984548a9b325cf806eae90af8ac08168d7ed7a1" :a :db/doc :v "INV-STORE-IDX-003: VAET Index Completeness. For every datom d with value=Ref(target), vaet.contains((Ref(target), d.attribute, d.entity, d.tx)) = true. VAET indexes ONLY Ref-valued datoms — other value types are excluded. Falsification: a Ref datom exists but vaet.range query doesn't find it. V:PROP + V:KANI." :op :assert}
+   {:e #blake3 "3e723bb3926abb54096716397984548a9b325cf806eae90af8ac08168d7ed7a1" :a :db/ident :v :observation/inv-store-idx-003-vaet-index-completeness-for-every-datom :op :assert}
+   {:e #blake3 "3e723bb3926abb54096716397984548a9b325cf806eae90af8ac08168d7ed7a1" :a :exploration/body :v "INV-STORE-IDX-003: VAET Index Completeness. For every datom d with value=Ref(target), vaet.contains((Ref(target), d.attribute, d.entity, d.tx)) = true. VAET indexes ONLY Ref-valued datoms — other value types are excluded. Falsification: a Ref datom exists but vaet.range query doesn't find it. V:PROP + V:KANI." :op :assert}
+   {:e #blake3 "3e723bb3926abb54096716397984548a9b325cf806eae90af8ac08168d7ed7a1" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "3e723bb3926abb54096716397984548a9b325cf806eae90af8ac08168d7ed7a1" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "3e723bb3926abb54096716397984548a9b325cf806eae90af8ac08168d7ed7a1" :a :exploration/content-hash :v #bytes "4c98a473fd9219dc888dd6be41c54d37d79f4873bc8f6776526f3510ff4b5c37" :op :assert}
+   {:e #blake3 "3e723bb3926abb54096716397984548a9b325cf806eae90af8ac08168d7ed7a1" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "3e723bb3926abb54096716397984548a9b325cf806eae90af8ac08168d7ed7a1" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "3e723bb3926abb54096716397984548a9b325cf806eae90af8ac08168d7ed7a1" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

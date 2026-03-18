@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812516/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.11: Implement cache freshness protocol — compare cache hash against latest txn hash, rebuild if stale (INV-LAYOUT-001). BACKGROUND: Store a '.cache/meta.json' with {latest_txn_hash, index_count, created_at}. On DiskLayout::load_store(), check meta.json first. If latest_txn_hash matches the newest file in txns/, load from cache. Otherwise rebuild + write new cache. This is the same pattern as HTTP ETag — structural equivalence check, not content diff. TRACES TO: INV-LAYOUT-005 (content hash verification)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f74fb0688fa74d374c87c8f7d0114596e77c6ee7e73155b7e37b0f2cee62759" :a :db/ident :v :task/t-dcbb :op :assert}
+   {:e #blake3 "8f74fb0688fa74d374c87c8f7d0114596e77c6ee7e73155b7e37b0f2cee62759" :a :task/created-at :v 1773812515 :op :assert}
+   {:e #blake3 "8f74fb0688fa74d374c87c8f7d0114596e77c6ee7e73155b7e37b0f2cee62759" :a :task/id :v "t-dcbb" :op :assert}
+   {:e #blake3 "8f74fb0688fa74d374c87c8f7d0114596e77c6ee7e73155b7e37b0f2cee62759" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8f74fb0688fa74d374c87c8f7d0114596e77c6ee7e73155b7e37b0f2cee62759" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8f74fb0688fa74d374c87c8f7d0114596e77c6ee7e73155b7e37b0f2cee62759" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8f74fb0688fa74d374c87c8f7d0114596e77c6ee7e73155b7e37b0f2cee62759" :a :task/title :v "C2.11: Implement cache freshness protocol — compare cache hash against latest txn hash, rebuild if stale (INV-LAYOUT-001). BACKGROUND: Store a '.cache/meta.json' with {latest_txn_hash, index_count, created_at}. On DiskLayout::load_store(), check meta.json first. If latest_txn_hash matches the newest file in txns/, load from cache. Otherwise rebuild + write new cache. This is the same pattern as HTTP ETag — structural equivalence check, not content diff. TRACES TO: INV-LAYOUT-005 (content hash verification)." :op :assert}
+   {:e #blake3 "8f74fb0688fa74d374c87c8f7d0114596e77c6ee7e73155b7e37b0f2cee62759" :a :task/type :v :task.type/task :op :assert}
+ ]}

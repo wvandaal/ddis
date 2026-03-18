@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812552/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-C2c: Incremental LIVE maintenance — proptest that transact followed by live_value gives same result as full rebuild from scratch. Verifies incremental maintenance doesn't diverge from batch rebuild. TRACES TO: INV-STORE-012."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :db/ident :v :task/t-6650 :op :assert}
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/created-at :v 1773812551 :op :assert}
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/id :v "t-6650" :op :assert}
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/title :v "TEST-C2c: Incremental LIVE maintenance — proptest that transact followed by live_value gives same result as full rebuild from scratch. Verifies incremental maintenance doesn't diverge from batch rebuild. TRACES TO: INV-STORE-012." :op :assert}
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/type :v :task.type/task :op :assert}
+ ]}

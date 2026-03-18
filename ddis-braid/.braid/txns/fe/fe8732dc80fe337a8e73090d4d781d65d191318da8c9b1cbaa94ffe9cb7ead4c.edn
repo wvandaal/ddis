@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812456/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.2: Implement AEVT covering index — BTreeMap<(Attribute,EntityId,Value,TxId), ()>. BACKGROUND: Current attribute_index is Vec<Datom> per attribute — unsorted within each bucket. AEVT sorts by (attr,entity,value,tx) enabling efficient scans like 'all entities with :db/doc' with entity ordering. SPEC: spec/01-store.md line 284. TRACES TO: ADR-STORE-005, INV-QUERY-002."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ce86c369e82c9f27a0fe4dcc54f52d81f3a440d1546c1f6a9d2f27cf95d16218" :a :db/ident :v :task/t-4e24 :op :assert}
+   {:e #blake3 "ce86c369e82c9f27a0fe4dcc54f52d81f3a440d1546c1f6a9d2f27cf95d16218" :a :task/created-at :v 1773812454 :op :assert}
+   {:e #blake3 "ce86c369e82c9f27a0fe4dcc54f52d81f3a440d1546c1f6a9d2f27cf95d16218" :a :task/id :v "t-4e24" :op :assert}
+   {:e #blake3 "ce86c369e82c9f27a0fe4dcc54f52d81f3a440d1546c1f6a9d2f27cf95d16218" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ce86c369e82c9f27a0fe4dcc54f52d81f3a440d1546c1f6a9d2f27cf95d16218" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ce86c369e82c9f27a0fe4dcc54f52d81f3a440d1546c1f6a9d2f27cf95d16218" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ce86c369e82c9f27a0fe4dcc54f52d81f3a440d1546c1f6a9d2f27cf95d16218" :a :task/title :v "C2.2: Implement AEVT covering index — BTreeMap<(Attribute,EntityId,Value,TxId), ()>. BACKGROUND: Current attribute_index is Vec<Datom> per attribute — unsorted within each bucket. AEVT sorts by (attr,entity,value,tx) enabling efficient scans like 'all entities with :db/doc' with entity ordering. SPEC: spec/01-store.md line 284. TRACES TO: ADR-STORE-005, INV-QUERY-002." :op :assert}
+   {:e #blake3 "ce86c369e82c9f27a0fe4dcc54f52d81f3a440d1546c1f6a9d2f27cf95d16218" :a :task/type :v :task.type/task :op :assert}
+ ]}

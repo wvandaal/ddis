@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773812560/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ADR-STORE-020: Covering Index Design over Secondary Lookup Tables. WHY: The old entity_index/attribute_index are unsorted Vec<Datom> per key — they support point lookups but not range queries. Covering indexes (BTreeMap with composite keys) support both point AND range queries in O(log N). The Datomic quad-index design is proven: EAVT/AEVT/VAET/AVET cover ALL access patterns with zero redundancy. Alternative rejected: hash indexes (O(1) point lookup but no range). Alternative rejected: per-query ad-hoc indexes (unpredictable performance, index explosion)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a677c953c128d6acb49ab9e9f6c16d73c9c6ca6d71883ed7cbaf635182e8e0c7" :a :db/doc :v "ADR-STORE-020: Covering Index Design over Secondary Lookup Tables. WHY: The old entity_index/attribute_index are unsorted Vec<Datom> per key — they support point lookups but not range queries. Covering indexes (BTreeMap with composite keys) support both point AND range queries in O(log N). The Datomic quad-index design is proven: EAVT/AEVT/VAET/AVET cover ALL access patterns with zero redundancy. Alternative rejected: hash indexes (O(1) point lookup but no range). Alternative rejected: per-query ad-hoc indexes (unpredictable performance, index explosion)." :op :assert}
+   {:e #blake3 "a677c953c128d6acb49ab9e9f6c16d73c9c6ca6d71883ed7cbaf635182e8e0c7" :a :db/ident :v :observation/adr-store-020-covering-index-design-over-secondary-lookup-t :op :assert}
+   {:e #blake3 "a677c953c128d6acb49ab9e9f6c16d73c9c6ca6d71883ed7cbaf635182e8e0c7" :a :exploration/body :v "ADR-STORE-020: Covering Index Design over Secondary Lookup Tables. WHY: The old entity_index/attribute_index are unsorted Vec<Datom> per key — they support point lookups but not range queries. Covering indexes (BTreeMap with composite keys) support both point AND range queries in O(log N). The Datomic quad-index design is proven: EAVT/AEVT/VAET/AVET cover ALL access patterns with zero redundancy. Alternative rejected: hash indexes (O(1) point lookup but no range). Alternative rejected: per-query ad-hoc indexes (unpredictable performance, index explosion)." :op :assert}
+   {:e #blake3 "a677c953c128d6acb49ab9e9f6c16d73c9c6ca6d71883ed7cbaf635182e8e0c7" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "a677c953c128d6acb49ab9e9f6c16d73c9c6ca6d71883ed7cbaf635182e8e0c7" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "a677c953c128d6acb49ab9e9f6c16d73c9c6ca6d71883ed7cbaf635182e8e0c7" :a :exploration/content-hash :v #bytes "2eb13257eae9edc02aded58595377c2af81c12486d2c235e3783aa51612531e7" :op :assert}
+   {:e #blake3 "a677c953c128d6acb49ab9e9f6c16d73c9c6ca6d71883ed7cbaf635182e8e0c7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a677c953c128d6acb49ab9e9f6c16d73c9c6ca6d71883ed7cbaf635182e8e0c7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a677c953c128d6acb49ab9e9f6c16d73c9c6ca6d71883ed7cbaf635182e8e0c7" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

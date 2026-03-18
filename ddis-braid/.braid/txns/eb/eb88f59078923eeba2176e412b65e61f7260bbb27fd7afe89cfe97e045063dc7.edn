@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812480/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.5: Implement LIVE materialized view — Map<(EntityId,Attribute), ResolvedValue>. BACKGROUND: INV-STORE-012 specifies LIVE as fold(causal_sort(S), apply_resolution). Currently computed ad-hoc by calling resolve() per query. Materializing it gives O(1) current-state lookups. LIVE is rebuilt incrementally: on transact, only the affected (entity,attribute) pairs are re-resolved. On merge, full rebuild. SPEC: spec/01-store.md lines 288-291, INV-STORE-012. TRACES TO: ADR-STORE-005, INV-RESOLUTION-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ccf029538e0a64c5ba62af3c52c70685193dbbf718b6484d661cfb3f7f052b76" :a :db/ident :v :task/t-5589 :op :assert}
+   {:e #blake3 "ccf029538e0a64c5ba62af3c52c70685193dbbf718b6484d661cfb3f7f052b76" :a :task/created-at :v 1773812479 :op :assert}
+   {:e #blake3 "ccf029538e0a64c5ba62af3c52c70685193dbbf718b6484d661cfb3f7f052b76" :a :task/id :v "t-5589" :op :assert}
+   {:e #blake3 "ccf029538e0a64c5ba62af3c52c70685193dbbf718b6484d661cfb3f7f052b76" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ccf029538e0a64c5ba62af3c52c70685193dbbf718b6484d661cfb3f7f052b76" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ccf029538e0a64c5ba62af3c52c70685193dbbf718b6484d661cfb3f7f052b76" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ccf029538e0a64c5ba62af3c52c70685193dbbf718b6484d661cfb3f7f052b76" :a :task/title :v "C2.5: Implement LIVE materialized view — Map<(EntityId,Attribute), ResolvedValue>. BACKGROUND: INV-STORE-012 specifies LIVE as fold(causal_sort(S), apply_resolution). Currently computed ad-hoc by calling resolve() per query. Materializing it gives O(1) current-state lookups. LIVE is rebuilt incrementally: on transact, only the affected (entity,attribute) pairs are re-resolved. On merge, full rebuild. SPEC: spec/01-store.md lines 288-291, INV-STORE-012. TRACES TO: ADR-STORE-005, INV-RESOLUTION-001." :op :assert}
+   {:e #blake3 "ccf029538e0a64c5ba62af3c52c70685193dbbf718b6484d661cfb3f7f052b76" :a :task/type :v :task.type/task :op :assert}
+ ]}

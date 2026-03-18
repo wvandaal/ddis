@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812586/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: E2E-WC (REVISED): scripts/e2e_store_indexes.sh — Full ADR-STORE-005 validation: (1) EAVT entity range returns correct datoms, (2) AEVT attribute scan matches linear scan, (3) VAET reverse ref finds all inbound references, (4) AVET unique lookup finds exact entity, (5) AVET range scan returns ordered results, (6) LIVE materialized value matches ad-hoc resolve, (7) LIVE incremental update matches full rebuild, (8) .cache/ persistence survives process restart, (9) .cache/ freshness detects stale indexes, (10) .cache/ corruption triggers rebuild from txns/, (11) query performance at 10K datoms < 10ms, (12) all 4 indexes + LIVE consistent after transact + merge sequence. 12+ checks with detailed timing + correctness logging. TRACES TO: ADR-STORE-005, INV-STORE-012, INV-QUERY-025."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "68b02136ff7570fb056266e0a20cbd1c3298c3adee2979b3121d87b042c803e4" :a :db/ident :v :task/t-dd06 :op :assert}
+   {:e #blake3 "68b02136ff7570fb056266e0a20cbd1c3298c3adee2979b3121d87b042c803e4" :a :task/created-at :v 1773812585 :op :assert}
+   {:e #blake3 "68b02136ff7570fb056266e0a20cbd1c3298c3adee2979b3121d87b042c803e4" :a :task/id :v "t-dd06" :op :assert}
+   {:e #blake3 "68b02136ff7570fb056266e0a20cbd1c3298c3adee2979b3121d87b042c803e4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "68b02136ff7570fb056266e0a20cbd1c3298c3adee2979b3121d87b042c803e4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "68b02136ff7570fb056266e0a20cbd1c3298c3adee2979b3121d87b042c803e4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "68b02136ff7570fb056266e0a20cbd1c3298c3adee2979b3121d87b042c803e4" :a :task/title :v "E2E-WC (REVISED): scripts/e2e_store_indexes.sh — Full ADR-STORE-005 validation: (1) EAVT entity range returns correct datoms, (2) AEVT attribute scan matches linear scan, (3) VAET reverse ref finds all inbound references, (4) AVET unique lookup finds exact entity, (5) AVET range scan returns ordered results, (6) LIVE materialized value matches ad-hoc resolve, (7) LIVE incremental update matches full rebuild, (8) .cache/ persistence survives process restart, (9) .cache/ freshness detects stale indexes, (10) .cache/ corruption triggers rebuild from txns/, (11) query performance at 10K datoms < 10ms, (12) all 4 indexes + LIVE consistent after transact + merge sequence. 12+ checks with detailed timing + correctness logging. TRACES TO: ADR-STORE-005, INV-STORE-012, INV-QUERY-025." :op :assert}
+   {:e #blake3 "68b02136ff7570fb056266e0a20cbd1c3298c3adee2979b3121d87b042c803e4" :a :task/type :v :task.type/task :op :assert}
+ ]}

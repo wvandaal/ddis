@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773812585/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-77bf"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/close-reason :v "Superseded: expanded to cover full quad-index + LIVE + .cache/ per ADR-STORE-005" :op :assert}
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/closed-at :v 1773812584 :op :assert}
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/status :v :task.status/closed :op :assert}
+ ]}

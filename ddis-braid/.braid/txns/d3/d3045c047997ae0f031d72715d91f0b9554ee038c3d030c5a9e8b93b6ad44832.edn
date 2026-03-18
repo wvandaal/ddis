@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812551/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-C2b: LIVE correctness — proptest that Store::live_value(e,a) == resolve(store.entity_datoms(e).filter(a)) for arbitrary stores and resolution modes (LWW, Multi, Lattice). This verifies the materialized view matches the ad-hoc computation. TRACES TO: INV-STORE-012. (V:PROP + V:KANI)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :db/ident :v :task/t-cbec :op :assert}
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :task/created-at :v 1773812550 :op :assert}
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :task/id :v "t-cbec" :op :assert}
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :task/title :v "TEST-C2b: LIVE correctness — proptest that Store::live_value(e,a) == resolve(store.entity_datoms(e).filter(a)) for arbitrary stores and resolution modes (LWW, Multi, Lattice). This verifies the materialized view matches the ad-hoc computation. TRACES TO: INV-STORE-012. (V:PROP + V:KANI)" :op :assert}
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :task/type :v :task.type/task :op :assert}
+ ]}

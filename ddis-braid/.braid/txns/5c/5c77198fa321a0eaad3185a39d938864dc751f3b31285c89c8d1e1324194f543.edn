@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812455/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.1: Implement EAVT covering index — BTreeMap<(EntityId,Attribute,Value,TxId), ()> with range query API. BACKGROUND: Current BTreeSet<Datom> IS the EAVT index by Datom's Ord impl, but range queries require manual bounds construction. This task wraps it with a typed API: eavt.entity_range(eid) -> impl Iterator<Datom>. SPEC: spec/01-store.md line 283. TRACES TO: ADR-STORE-005."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "49b12ff1f77328351db31bf8a8638cd29224a5610f6ede6ea665b7e9f7ca5793" :a :db/ident :v :task/t-3258 :op :assert}
+   {:e #blake3 "49b12ff1f77328351db31bf8a8638cd29224a5610f6ede6ea665b7e9f7ca5793" :a :task/created-at :v 1773812454 :op :assert}
+   {:e #blake3 "49b12ff1f77328351db31bf8a8638cd29224a5610f6ede6ea665b7e9f7ca5793" :a :task/id :v "t-3258" :op :assert}
+   {:e #blake3 "49b12ff1f77328351db31bf8a8638cd29224a5610f6ede6ea665b7e9f7ca5793" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "49b12ff1f77328351db31bf8a8638cd29224a5610f6ede6ea665b7e9f7ca5793" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "49b12ff1f77328351db31bf8a8638cd29224a5610f6ede6ea665b7e9f7ca5793" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "49b12ff1f77328351db31bf8a8638cd29224a5610f6ede6ea665b7e9f7ca5793" :a :task/title :v "C2.1: Implement EAVT covering index — BTreeMap<(EntityId,Attribute,Value,TxId), ()> with range query API. BACKGROUND: Current BTreeSet<Datom> IS the EAVT index by Datom's Ord impl, but range queries require manual bounds construction. This task wraps it with a typed API: eavt.entity_range(eid) -> impl Iterator<Datom>. SPEC: spec/01-store.md line 283. TRACES TO: ADR-STORE-005." :op :assert}
+   {:e #blake3 "49b12ff1f77328351db31bf8a8638cd29224a5610f6ede6ea665b7e9f7ca5793" :a :task/type :v :task.type/task :op :assert}
+ ]}

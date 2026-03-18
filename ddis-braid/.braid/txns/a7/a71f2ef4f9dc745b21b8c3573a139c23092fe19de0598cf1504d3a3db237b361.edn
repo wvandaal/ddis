@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812517/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.12: Wire AVET into Datalog evaluator for attribute-value bound clauses — O(log N) vs O(N) (INV-QUERY-025). BACKGROUND: When evaluating a clause like [?e :db/ident ':spec/inv-store-001'], the evaluator currently scans ALL datoms. With AVET, it does avet.range((:db/ident, ':spec/inv-store-001')) which is O(log N). The evaluator's clause compilation step should detect bound-attribute+bound-value patterns and route to AVET. TRACES TO: INV-QUERY-002, ADR-STORE-005."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e3dd6784ca1a8e048c0749391cc6d097586f95a2d18b91fe9ac7e79bd9a0bdb8" :a :db/ident :v :task/t-6285 :op :assert}
+   {:e #blake3 "e3dd6784ca1a8e048c0749391cc6d097586f95a2d18b91fe9ac7e79bd9a0bdb8" :a :task/created-at :v 1773812516 :op :assert}
+   {:e #blake3 "e3dd6784ca1a8e048c0749391cc6d097586f95a2d18b91fe9ac7e79bd9a0bdb8" :a :task/id :v "t-6285" :op :assert}
+   {:e #blake3 "e3dd6784ca1a8e048c0749391cc6d097586f95a2d18b91fe9ac7e79bd9a0bdb8" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e3dd6784ca1a8e048c0749391cc6d097586f95a2d18b91fe9ac7e79bd9a0bdb8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e3dd6784ca1a8e048c0749391cc6d097586f95a2d18b91fe9ac7e79bd9a0bdb8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e3dd6784ca1a8e048c0749391cc6d097586f95a2d18b91fe9ac7e79bd9a0bdb8" :a :task/title :v "C2.12: Wire AVET into Datalog evaluator for attribute-value bound clauses — O(log N) vs O(N) (INV-QUERY-025). BACKGROUND: When evaluating a clause like [?e :db/ident ':spec/inv-store-001'], the evaluator currently scans ALL datoms. With AVET, it does avet.range((:db/ident, ':spec/inv-store-001')) which is O(log N). The evaluator's clause compilation step should detect bound-attribute+bound-value patterns and route to AVET. TRACES TO: INV-QUERY-002, ADR-STORE-005." :op :assert}
+   {:e #blake3 "e3dd6784ca1a8e048c0749391cc6d097586f95a2d18b91fe9ac7e79bd9a0bdb8" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812483/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.8: Wire all 4 indexes + LIVE into Store::merge — full rebuild after set union (ADR-STORE-005). BACKGROUND: Merge is set union of datom sets. Incrementally maintaining indexes across union is complex (need to detect which datoms are new). Simpler and correct: rebuild all indexes from scratch after merge. Cost: O(|S_merged| × log|S_merged|) — acceptable since merge is rare. TRACES TO: INV-MERGE-001, INV-STORE-012."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d347cd07eeb8cc72039dfa26a8ca7a212fc385e8c9f28527ab85b0854a35a648" :a :db/ident :v :task/t-949a :op :assert}
+   {:e #blake3 "d347cd07eeb8cc72039dfa26a8ca7a212fc385e8c9f28527ab85b0854a35a648" :a :task/created-at :v 1773812482 :op :assert}
+   {:e #blake3 "d347cd07eeb8cc72039dfa26a8ca7a212fc385e8c9f28527ab85b0854a35a648" :a :task/id :v "t-949a" :op :assert}
+   {:e #blake3 "d347cd07eeb8cc72039dfa26a8ca7a212fc385e8c9f28527ab85b0854a35a648" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "d347cd07eeb8cc72039dfa26a8ca7a212fc385e8c9f28527ab85b0854a35a648" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d347cd07eeb8cc72039dfa26a8ca7a212fc385e8c9f28527ab85b0854a35a648" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d347cd07eeb8cc72039dfa26a8ca7a212fc385e8c9f28527ab85b0854a35a648" :a :task/title :v "C2.8: Wire all 4 indexes + LIVE into Store::merge — full rebuild after set union (ADR-STORE-005). BACKGROUND: Merge is set union of datom sets. Incrementally maintaining indexes across union is complex (need to detect which datoms are new). Simpler and correct: rebuild all indexes from scratch after merge. Cost: O(|S_merged| × log|S_merged|) — acceptable since merge is rare. TRACES TO: INV-MERGE-001, INV-STORE-012." :op :assert}
+   {:e #blake3 "d347cd07eeb8cc72039dfa26a8ca7a212fc385e8c9f28527ab85b0854a35a648" :a :task/type :v :task.type/task :op :assert}
+ ]}

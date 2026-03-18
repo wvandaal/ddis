@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773812557/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-STORE-IDX-002: AEVT Index Completeness. Symmetric to IDX-001 with AEVT sort order. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4b3a91ca37bb5459bae171caa0cdd5187bbf3bd85be08ffb05b2a2a03d786d58" :a :db/doc :v "INV-STORE-IDX-002: AEVT Index Completeness. Symmetric to IDX-001 with AEVT sort order. V:PROP." :op :assert}
+   {:e #blake3 "4b3a91ca37bb5459bae171caa0cdd5187bbf3bd85be08ffb05b2a2a03d786d58" :a :db/ident :v :observation/inv-store-idx-002-aevt-index-completeness-symmetric-to-idx :op :assert}
+   {:e #blake3 "4b3a91ca37bb5459bae171caa0cdd5187bbf3bd85be08ffb05b2a2a03d786d58" :a :exploration/body :v "INV-STORE-IDX-002: AEVT Index Completeness. Symmetric to IDX-001 with AEVT sort order. V:PROP." :op :assert}
+   {:e #blake3 "4b3a91ca37bb5459bae171caa0cdd5187bbf3bd85be08ffb05b2a2a03d786d58" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "4b3a91ca37bb5459bae171caa0cdd5187bbf3bd85be08ffb05b2a2a03d786d58" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "4b3a91ca37bb5459bae171caa0cdd5187bbf3bd85be08ffb05b2a2a03d786d58" :a :exploration/content-hash :v #bytes "003bf8e948a0bb6f5cc9fdf42bb967656222c89d73256f35b48f51dcf8e09144" :op :assert}
+   {:e #blake3 "4b3a91ca37bb5459bae171caa0cdd5187bbf3bd85be08ffb05b2a2a03d786d58" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4b3a91ca37bb5459bae171caa0cdd5187bbf3bd85be08ffb05b2a2a03d786d58" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4b3a91ca37bb5459bae171caa0cdd5187bbf3bd85be08ffb05b2a2a03d786d58" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

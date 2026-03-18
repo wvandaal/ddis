@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812457/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.3: Implement VAET covering index — BTreeMap<(Value,Attribute,EntityId,TxId), ()>. BACKGROUND: COMPLETELY MISSING from implementation. VAET enables reverse reference traversal: 'what entities point to entity E via Ref values?' Critical for graph algorithms (PageRank, betweenness, cascade detection). Currently O(N) full scan for every reverse lookup. SPEC: spec/01-store.md line 285. TRACES TO: ADR-STORE-005, INV-QUERY-015 (HITS), INV-QUERY-016 (k-core)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "40c047b9476815542241239ec4b9d5e5a23a8f4e0dc99c814af033527a12d535" :a :db/ident :v :task/t-e063 :op :assert}
+   {:e #blake3 "40c047b9476815542241239ec4b9d5e5a23a8f4e0dc99c814af033527a12d535" :a :task/created-at :v 1773812455 :op :assert}
+   {:e #blake3 "40c047b9476815542241239ec4b9d5e5a23a8f4e0dc99c814af033527a12d535" :a :task/id :v "t-e063" :op :assert}
+   {:e #blake3 "40c047b9476815542241239ec4b9d5e5a23a8f4e0dc99c814af033527a12d535" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "40c047b9476815542241239ec4b9d5e5a23a8f4e0dc99c814af033527a12d535" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "40c047b9476815542241239ec4b9d5e5a23a8f4e0dc99c814af033527a12d535" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "40c047b9476815542241239ec4b9d5e5a23a8f4e0dc99c814af033527a12d535" :a :task/title :v "C2.3: Implement VAET covering index — BTreeMap<(Value,Attribute,EntityId,TxId), ()>. BACKGROUND: COMPLETELY MISSING from implementation. VAET enables reverse reference traversal: 'what entities point to entity E via Ref values?' Critical for graph algorithms (PageRank, betweenness, cascade detection). Currently O(N) full scan for every reverse lookup. SPEC: spec/01-store.md line 285. TRACES TO: ADR-STORE-005, INV-QUERY-015 (HITS), INV-QUERY-016 (k-core)." :op :assert}
+   {:e #blake3 "40c047b9476815542241239ec4b9d5e5a23a8f4e0dc99c814af033527a12d535" :a :task/type :v :task.type/task :op :assert}
+ ]}

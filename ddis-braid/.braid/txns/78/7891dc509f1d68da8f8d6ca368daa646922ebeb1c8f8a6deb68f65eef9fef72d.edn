@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812481/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.6: Implement incremental LIVE maintenance on transact — re-resolve only affected (entity,attr) pairs (INV-STORE-012). BACKGROUND: Full LIVE rebuild is O(|S| × resolution_cost). Incremental: on transact(tx), compute affected_pairs = {(d.entity, d.attribute) for d in tx.datoms}, then for each pair re-fold just that pair's datoms. O(|tx| × avg_datoms_per_pair). TRACES TO: ADR-STORE-005, INV-QUERY-002."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5d3825060058bb9316f1510385d588e08a08e437a12f583b6ac26489dd9d0335" :a :db/ident :v :task/t-3133 :op :assert}
+   {:e #blake3 "5d3825060058bb9316f1510385d588e08a08e437a12f583b6ac26489dd9d0335" :a :task/created-at :v 1773812480 :op :assert}
+   {:e #blake3 "5d3825060058bb9316f1510385d588e08a08e437a12f583b6ac26489dd9d0335" :a :task/id :v "t-3133" :op :assert}
+   {:e #blake3 "5d3825060058bb9316f1510385d588e08a08e437a12f583b6ac26489dd9d0335" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5d3825060058bb9316f1510385d588e08a08e437a12f583b6ac26489dd9d0335" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5d3825060058bb9316f1510385d588e08a08e437a12f583b6ac26489dd9d0335" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5d3825060058bb9316f1510385d588e08a08e437a12f583b6ac26489dd9d0335" :a :task/title :v "C2.6: Implement incremental LIVE maintenance on transact — re-resolve only affected (entity,attr) pairs (INV-STORE-012). BACKGROUND: Full LIVE rebuild is O(|S| × resolution_cost). Incremental: on transact(tx), compute affected_pairs = {(d.entity, d.attribute) for d in tx.datoms}, then for each pair re-fold just that pair's datoms. O(|tx| × avg_datoms_per_pair). TRACES TO: ADR-STORE-005, INV-QUERY-002." :op :assert}
+   {:e #blake3 "5d3825060058bb9316f1510385d588e08a08e437a12f583b6ac26489dd9d0335" :a :task/type :v :task.type/task :op :assert}
+ ]}

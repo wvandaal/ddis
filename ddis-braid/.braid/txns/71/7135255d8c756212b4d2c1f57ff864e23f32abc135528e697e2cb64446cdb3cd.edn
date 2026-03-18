@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812458/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.4: Implement AVET covering index — BTreeMap<(Attribute,Value,EntityId,TxId), ()>. BACKGROUND: COMPLETELY MISSING. AVET enables unique lookups (find entity with :db/ident = ':spec/inv-store-001') and range scans (all entities with :task/priority < 2). Critical for Datalog evaluation — attribute-value bound clauses should be O(log N) not O(N). SPEC: spec/01-store.md line 286. TRACES TO: ADR-STORE-005, INV-QUERY-025, INV-QUERY-002."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aa036cae20a5c2e7ffcf295af83c2efaa7c0aa285639a47b81bb0e51cd2d0d30" :a :db/ident :v :task/t-1e70 :op :assert}
+   {:e #blake3 "aa036cae20a5c2e7ffcf295af83c2efaa7c0aa285639a47b81bb0e51cd2d0d30" :a :task/created-at :v 1773812456 :op :assert}
+   {:e #blake3 "aa036cae20a5c2e7ffcf295af83c2efaa7c0aa285639a47b81bb0e51cd2d0d30" :a :task/id :v "t-1e70" :op :assert}
+   {:e #blake3 "aa036cae20a5c2e7ffcf295af83c2efaa7c0aa285639a47b81bb0e51cd2d0d30" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "aa036cae20a5c2e7ffcf295af83c2efaa7c0aa285639a47b81bb0e51cd2d0d30" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "aa036cae20a5c2e7ffcf295af83c2efaa7c0aa285639a47b81bb0e51cd2d0d30" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "aa036cae20a5c2e7ffcf295af83c2efaa7c0aa285639a47b81bb0e51cd2d0d30" :a :task/title :v "C2.4: Implement AVET covering index — BTreeMap<(Attribute,Value,EntityId,TxId), ()>. BACKGROUND: COMPLETELY MISSING. AVET enables unique lookups (find entity with :db/ident = ':spec/inv-store-001') and range scans (all entities with :task/priority < 2). Critical for Datalog evaluation — attribute-value bound clauses should be O(log N) not O(N). SPEC: spec/01-store.md line 286. TRACES TO: ADR-STORE-005, INV-QUERY-025, INV-QUERY-002." :op :assert}
+   {:e #blake3 "aa036cae20a5c2e7ffcf295af83c2efaa7c0aa285639a47b81bb0e51cd2d0d30" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812553/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-C2d: Cache freshness — integration test: write txn, verify cache stale, rebuild, verify cache fresh, write another txn, verify cache stale again. Also: corrupt cache file, verify rebuild from txns/ succeeds. TRACES TO: INV-LAYOUT-001, INV-LAYOUT-005."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :db/ident :v :task/t-682b :op :assert}
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/created-at :v 1773812552 :op :assert}
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/id :v "t-682b" :op :assert}
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/title :v "TEST-C2d: Cache freshness — integration test: write txn, verify cache stale, rebuild, verify cache fresh, write another txn, verify cache stale again. Also: corrupt cache file, verify rebuild from txns/ succeeds. TRACES TO: INV-LAYOUT-001, INV-LAYOUT-005." :op :assert}
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/type :v :task.type/task :op :assert}
+ ]}

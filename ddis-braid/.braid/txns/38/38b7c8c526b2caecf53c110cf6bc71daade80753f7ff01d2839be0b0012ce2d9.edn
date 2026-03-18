@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812518/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.13: Wire VAET into graph algorithms — O(log N) reverse ref lookup for PageRank/betweenness/cascade (INV-QUERY-015). BACKGROUND: compute_routing_from_store calls pagerank() which needs 'all entities referencing entity E'. Currently O(N) scan over all datoms checking if value is Ref(E). With VAET: vaet.range((Ref(E), ..)) gives O(log N). Same for betweenness, HITS, k-core, cascade detection. TRACES TO: INV-GUIDANCE-010 (R(t) routing uses graph algorithms)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "605db879f3894968c5a27700b5e2c6c0420386bcb6fd099c14950f0b6ca1b91c" :a :db/ident :v :task/t-ee40 :op :assert}
+   {:e #blake3 "605db879f3894968c5a27700b5e2c6c0420386bcb6fd099c14950f0b6ca1b91c" :a :task/created-at :v 1773812516 :op :assert}
+   {:e #blake3 "605db879f3894968c5a27700b5e2c6c0420386bcb6fd099c14950f0b6ca1b91c" :a :task/id :v "t-ee40" :op :assert}
+   {:e #blake3 "605db879f3894968c5a27700b5e2c6c0420386bcb6fd099c14950f0b6ca1b91c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "605db879f3894968c5a27700b5e2c6c0420386bcb6fd099c14950f0b6ca1b91c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "605db879f3894968c5a27700b5e2c6c0420386bcb6fd099c14950f0b6ca1b91c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "605db879f3894968c5a27700b5e2c6c0420386bcb6fd099c14950f0b6ca1b91c" :a :task/title :v "C2.13: Wire VAET into graph algorithms — O(log N) reverse ref lookup for PageRank/betweenness/cascade (INV-QUERY-015). BACKGROUND: compute_routing_from_store calls pagerank() which needs 'all entities referencing entity E'. Currently O(N) scan over all datoms checking if value is Ref(E). With VAET: vaet.range((Ref(E), ..)) gives O(log N). Same for betweenness, HITS, k-core, cascade detection. TRACES TO: INV-GUIDANCE-010 (R(t) routing uses graph algorithms)." :op :assert}
+   {:e #blake3 "605db879f3894968c5a27700b5e2c6c0420386bcb6fd099c14950f0b6ca1b91c" :a :task/type :v :task.type/task :op :assert}
+ ]}
