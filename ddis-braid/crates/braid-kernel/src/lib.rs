@@ -143,11 +143,11 @@ pub use resolution::{
     verify_convergence, ConflictEntity, ConflictSet, ResolutionRecord, ResolvedValue,
 };
 pub use schema::{
-    domain_schema_datoms, full_schema_datoms, has_layer_4, layer_1_attributes, layer_1_datoms,
-    layer_2_attributes, layer_2_datoms, layer_3_attributes, layer_3_datoms, layer_4_attributes,
+    domain_schema_datoms, full_schema_datoms, genesis_attr_count, has_layer_4, layer_1_attributes,
+    layer_1_count, layer_1_datoms, layer_2_attributes, layer_2_count, layer_2_datoms,
+    layer_3_attributes, layer_3_count, layer_3_datoms, layer_4_attributes, layer_4_count,
     layer_4_datoms, layer_4_evolution_tx, validate_lattice, AttributeDef, AttributeSpec,
-    Cardinality, ResolutionMode, Schema, Uniqueness, ValueType, GENESIS_ATTR_COUNT, LAYER_1_COUNT,
-    LAYER_2_COUNT, LAYER_3_COUNT, LAYER_4_COUNT,
+    Cardinality, ResolutionMode, Schema, Uniqueness, ValueType,
 };
 pub use seed::{
     assemble, assemble_seed, associate, verify_seed, AssembledContext, AssociateCue,

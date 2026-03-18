@@ -526,13 +526,17 @@ fn schema_store_query() {
     let a = agent("test:chain4");
     let mut store = Store::genesis();
 
-    // Genesis schema has exactly 19 axiomatic attributes (INV-SCHEMA-002)
-    // 9 :db/* + 5 :lattice/* + 5 :tx/* (including :tx/rationale, :tx/coherence-override)
+    // Genesis schema has at least 19 axiomatic attributes (INV-SCHEMA-002)
+    // 9 :db/* + 5 :lattice/* + 6 :tx/* (dynamic count via genesis_attr_count())
     let genesis_attr_count = store.schema().len();
+    assert!(
+        genesis_attr_count >= 19,
+        "INV-SCHEMA-002: minimum genesis schema violated: {genesis_attr_count}"
+    );
     assert_eq!(
         genesis_attr_count,
-        braid_kernel::GENESIS_ATTR_COUNT,
-        "INV-SCHEMA-002: genesis has GENESIS_ATTR_COUNT attributes"
+        braid_kernel::genesis_attr_count(),
+        "INV-SCHEMA-002: genesis must match genesis_attr_count()"
     );
 
     // Register a custom attribute via schema-as-data (C3)

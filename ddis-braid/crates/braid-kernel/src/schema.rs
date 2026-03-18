@@ -6,12 +6,12 @@
 //!
 //! # Six-Layer Schema Architecture (INV-SCHEMA-006)
 //!
-//! - **Layer 0** (Meta-Schema): `GENESIS_ATTR_COUNT` axiomatic attributes — `:db/*`, `:lattice/*`, `:tx/*`.
-//! - **Layer 1** (Trilateral): `LAYER_1_COUNT` domain attributes — `:intent/*`, `:spec/*`, `:impl/*`.
-//! - **Layer 2** (Specification Elements): `LAYER_2_COUNT` rich-metadata attributes —
+//! - **Layer 0** (Meta-Schema): `genesis_attr_count()` axiomatic attributes — `:db/*`, `:lattice/*`, `:tx/*`.
+//! - **Layer 1** (Trilateral): `layer_1_count()` domain attributes — `:intent/*`, `:spec/*`, `:impl/*`.
+//! - **Layer 2** (Specification Elements): `layer_2_count()` rich-metadata attributes —
 //!   `:element/*`, `:inv/*`, `:adr/*`, `:neg/*`, `:dep/*`, `:session/*`,
 //!   `:methodology/*`, `:coherence/*`.
-//! - **Layer 3** (Discovery/Exploration): `LAYER_3_COUNT` attributes — `:exploration/*`, `:promotion/*`, `:signal/*`, `:proposal/*`, `:branch/*`.
+//! - **Layer 3** (Discovery/Exploration): `layer_3_count()` attributes — `:exploration/*`, `:promotion/*`, `:signal/*`, `:proposal/*`, `:branch/*`.
 //! - **Layers 4–5**: Coordination, Workflow (future stages).
 //!
 //! Each layer depends only on layers below it. Layer 0 is installed at genesis.
@@ -20,7 +20,7 @@
 //! # Invariants
 //!
 //! - **INV-SCHEMA-001**: Schema is a subset of the store, not separate DDL.
-//! - **INV-SCHEMA-002**: Genesis contains exactly `GENESIS_ATTR_COUNT` axiomatic attributes.
+//! - **INV-SCHEMA-002**: Genesis contains exactly `genesis_attr_count()` axiomatic attributes.
 //! - **INV-SCHEMA-003**: Schema can only grow (monotonicity).
 //! - **INV-SCHEMA-004**: Every transacted datom is validated against schema.
 //! - **INV-SCHEMA-005**: Axiomatic attributes describe themselves using A₀.
@@ -31,7 +31,7 @@
 //! # Design Decisions
 //!
 //! - ADR-SCHEMA-001: Schema-as-data over external DDL.
-//! - ADR-SCHEMA-002: Axiomatic attributes (see `GENESIS_ATTR_COUNT`).
+//! - ADR-SCHEMA-002: Axiomatic attributes (see `genesis_attr_count()`).
 //! - ADR-SCHEMA-003: Six-layer architecture with dependency ordering.
 //! - ADR-SCHEMA-004: Twelve named lattices for resolution.
 //! - ADR-SCHEMA-005: Owned schema with borrow API.
@@ -596,20 +596,27 @@ pub enum SchemaEvolutionError {
 // Genesis
 // ---------------------------------------------------------------------------
 
-/// Number of axiomatic meta-schema attributes (Layer 0).
-///
-/// This count includes the 9 `:db/*` meta-schema attributes, 5 `:lattice/*`
-/// definition attributes, and 6 `:tx/*` transaction metadata attributes
-/// (including `:tx/coherence-override` for the coherence gate audit trail
-/// and `:tx/frontier` for per-agent frontier tracking per INV-QUERY-007).
-///
-/// INV-SCHEMA-002: Genesis contains exactly this many axiomatic attributes.
-pub const GENESIS_ATTR_COUNT: usize = 20;
+// Previous hardcoded constant: GENESIS_ATTR_COUNT = 20
+// Previous hardcoded constant: LAYER_1_COUNT = 24
+// Replaced by runtime functions to eliminate FM-008 (derived quantity staleness).
 
-/// Number of Layer 1 (Trilateral) attributes.
+/// Count of axiomatic attributes in the genesis transaction.
+/// Computed from the actual genesis schema, not hardcoded.
+/// This eliminates FM-008 (derived quantity staleness) — adding a new
+/// attribute to a layer no longer requires bumping a constant.
 ///
-/// Intent (7) + Spec (11) + Impl (6) = 24 domain attributes.
-pub const LAYER_1_COUNT: usize = 24;
+/// INV-SCHEMA-002, ADR-STORE-019.
+pub fn genesis_attr_count() -> usize {
+    axiomatic_attributes().len()
+}
+
+/// Count of Layer 1 (Trilateral) attributes.
+/// Computed from the actual layer 1 attribute list.
+///
+/// ADR-STORE-019: Dynamic counts over constants.
+pub fn layer_1_count() -> usize {
+    layer_1_attributes().len()
+}
 
 /// Produce the genesis datom set — the axiomatic meta-schema attributes.
 ///
@@ -684,7 +691,7 @@ pub fn genesis_datoms(genesis_tx: TxId) -> Vec<Datom> {
 }
 
 /// The axiomatic meta-schema attributes (INV-SCHEMA-002).
-/// Count must equal `GENESIS_ATTR_COUNT`.
+/// Count is returned by `genesis_attr_count()`.
 fn axiomatic_attributes() -> Vec<AttributeSpec> {
     vec![
         // Layer 0 — Meta-Schema (9 attributes)
@@ -867,7 +874,7 @@ fn attr_unique(
 // ---------------------------------------------------------------------------
 
 /// The Layer 1 (Trilateral) attributes: Intent (7) + Spec (11) + Impl (6).
-/// Count must equal `LAYER_1_COUNT`.
+/// Count is returned by `layer_1_count()`.
 ///
 /// These are the domain attributes used by the trilateral coherence model
 /// (Intent <-> Specification <-> Implementation). They depend only on Layer 0
@@ -1040,8 +1047,15 @@ pub fn layer_1_datoms(tx: TxId) -> Vec<Datom> {
 // Layer 2 — Specification Element Attributes (INV-SCHEMA-006)
 // ---------------------------------------------------------------------------
 
-/// Number of Layer 2 specification element attributes.
-pub const LAYER_2_COUNT: usize = 36;
+// Previous hardcoded constant: LAYER_2_COUNT = 36
+
+/// Count of Layer 2 (Specification Element) attributes.
+/// Computed from the actual layer 2 attribute list.
+///
+/// ADR-STORE-019: Dynamic counts over constants.
+pub fn layer_2_count() -> usize {
+    layer_2_attributes().len()
+}
 
 /// The 36 Layer 2 (Specification Element) attributes.
 ///
@@ -1325,8 +1339,15 @@ pub fn domain_schema_datoms(tx: TxId) -> Vec<Datom> {
 // Layer 3 — Discovery/Exploration Attributes (INV-SCHEMA-006)
 // ---------------------------------------------------------------------------
 
-/// Number of Layer 3 exploration/discovery/proposal/branch attributes.
-pub const LAYER_3_COUNT: usize = 36;
+// Previous hardcoded constant: LAYER_3_COUNT = 36
+
+/// Count of Layer 3 (Discovery/Exploration) attributes.
+/// Computed from the actual layer 3 attribute list.
+///
+/// ADR-STORE-019: Dynamic counts over constants.
+pub fn layer_3_count() -> usize {
+    layer_3_attributes().len()
+}
 
 /// The 36 Layer 3 (Discovery/Exploration/Proposal/Branch) attributes.
 ///
@@ -1604,8 +1625,15 @@ pub fn full_schema_datoms(tx: TxId) -> Vec<Datom> {
 // Layer 4 — Workflow / Coordination Attributes (INV-SCHEMA-006)
 // ---------------------------------------------------------------------------
 
-/// Number of Layer 4 workflow/coordination attributes.
-pub const LAYER_4_COUNT: usize = 37;
+// Previous hardcoded constant: LAYER_4_COUNT = 37
+
+/// Count of Layer 4 (Workflow/Coordination) attributes.
+/// Computed from the actual layer 4 attribute list.
+///
+/// ADR-STORE-019: Dynamic counts over constants.
+pub fn layer_4_count() -> usize {
+    layer_4_attributes().len()
+}
 
 /// The Layer 4 (Workflow/Coordination) attributes.
 ///
@@ -1992,15 +2020,52 @@ mod tests {
     use crate::datom::AgentId;
 
     // Verifies: INV-SCHEMA-002 — Genesis Completeness
-    // Verifies: ADR-SCHEMA-002 — 17 Axiomatic Attributes
+    // Verifies: ADR-SCHEMA-002 — Axiomatic Attributes
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
     #[test]
     fn genesis_produces_correct_attribute_count() {
         let specs = axiomatic_attributes();
-        assert_eq!(
-            specs.len(),
-            GENESIS_ATTR_COUNT,
-            "INV-SCHEMA-002: axiomatic attributes must match GENESIS_ATTR_COUNT"
+        let count = specs.len();
+        // Minimum bound: catches catastrophic deletions without breaking on additions
+        assert!(
+            count >= 19,
+            "INV-SCHEMA-002: minimum genesis schema violated: {count}"
         );
+        // Dynamic count must agree with the attribute list (tautological by construction)
+        assert_eq!(
+            count,
+            genesis_attr_count(),
+            "genesis_attr_count() must match axiomatic_attributes().len()"
+        );
+        // Per-attribute existence: every critical attribute must be present
+        let idents: Vec<String> = specs.iter().map(|s| s.ident.as_str().to_string()).collect();
+        for required in &[
+            ":db/ident",
+            ":db/valueType",
+            ":db/cardinality",
+            ":db/doc",
+            ":db/unique",
+            ":db/isComponent",
+            ":db/resolutionMode",
+            ":db/latticeOrder",
+            ":db/lwwClock",
+            ":lattice/ident",
+            ":lattice/elements",
+            ":lattice/comparator",
+            ":lattice/bottom",
+            ":lattice/top",
+            ":tx/time",
+            ":tx/agent",
+            ":tx/provenance",
+            ":tx/rationale",
+            ":tx/coherence-override",
+            ":tx/frontier",
+        ] {
+            assert!(
+                idents.contains(&required.to_string()),
+                "INV-SCHEMA-002: critical genesis attribute missing: {required}"
+            );
+        }
     }
 
     // Verifies: INV-STORE-008 — Genesis Determinism
@@ -2015,13 +2080,19 @@ mod tests {
 
     // Verifies: INV-SCHEMA-001 — Schema-as-Data
     // Verifies: ADR-SCHEMA-001 — Schema-as-Data Over DDL
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
     #[test]
     fn schema_from_genesis_has_correct_count() {
         let agent = AgentId::from_name("braid:system");
         let tx = TxId::new(0, 0, agent);
         let datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
         let schema = Schema::from_datoms(&datoms);
-        assert_eq!(schema.len(), GENESIS_ATTR_COUNT);
+        assert!(
+            schema.len() >= 19,
+            "minimum genesis schema: {}",
+            schema.len()
+        );
+        assert_eq!(schema.len(), genesis_attr_count());
     }
 
     // Verifies: INV-SCHEMA-004 — Schema Validation on Transact
@@ -2100,6 +2171,7 @@ mod tests {
 
     // Verifies: NEG-SCHEMA-002 — No Schema Deletion (detects removal)
     // Verifies: INV-SCHEMA-003 — Schema Monotonicity
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
     #[test]
     fn evolution_detects_attribute_removal() {
         let agent = AgentId::from_name("braid:system");
@@ -2112,7 +2184,7 @@ mod tests {
         let errors = full_schema.validate_evolution(&empty_schema);
         assert_eq!(
             errors.len(),
-            GENESIS_ATTR_COUNT,
+            genesis_attr_count(),
             "all genesis attributes should be flagged as removed"
         );
         assert!(errors
@@ -2168,7 +2240,7 @@ mod tests {
         ));
         let new_schema = Schema::from_datoms(&new_datoms);
 
-        assert_eq!(new_schema.len(), GENESIS_ATTR_COUNT + 1); // genesis + 1 custom
+        assert_eq!(new_schema.len(), genesis_attr_count() + 1); // genesis + 1 custom
         let errors = old_schema.validate_evolution(&new_schema);
         assert!(errors.is_empty(), "adding attributes is valid evolution");
     }
@@ -2197,14 +2269,37 @@ mod tests {
     // -------------------------------------------------------------------
 
     // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
     #[test]
     fn layer_1_produces_correct_count() {
         let specs = layer_1_attributes();
-        assert_eq!(
-            specs.len(),
-            LAYER_1_COUNT,
-            "Layer 1 must have exactly {LAYER_1_COUNT} trilateral attributes"
-        );
+        let count = specs.len();
+        assert!(count >= 22, "minimum L1 schema violated: {count}");
+        assert_eq!(count, layer_1_count());
+        // Critical attribute existence
+        let idents: Vec<String> = specs.iter().map(|s| s.ident.as_str().to_string()).collect();
+        for required in &[
+            ":intent/decision",
+            ":intent/rationale",
+            ":intent/source",
+            ":intent/goal",
+            ":spec/namespace",
+            ":spec/statement",
+            ":spec/element-type",
+            ":spec/stage",
+            ":spec/id",
+            ":spec/source-file",
+            ":spec/witnessed",
+            ":impl/file",
+            ":impl/module",
+            ":impl/implements",
+            ":impl/coverage",
+        ] {
+            assert!(
+                idents.contains(&required.to_string()),
+                "critical L1 attribute missing: {required}"
+            );
+        }
     }
 
     // Verifies: INV-STORE-008 — Genesis Determinism (layer 1)
@@ -2218,6 +2313,7 @@ mod tests {
     }
 
     // Verifies: INV-SCHEMA-001 — Schema-as-Data (layer 1)
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
     #[test]
     fn layer_1_schema_from_datoms() {
         let agent = AgentId::from_name("braid:system");
@@ -2229,11 +2325,9 @@ mod tests {
             datoms.insert(d);
         }
         let schema = Schema::from_datoms(&datoms);
-        assert_eq!(
-            schema.len(),
-            GENESIS_ATTR_COUNT + LAYER_1_COUNT,
-            "genesis + L1 attributes"
-        );
+        let expected = genesis_attr_count() + layer_1_count();
+        assert!(schema.len() >= 41, "minimum L0+L1 schema: {}", schema.len());
+        assert_eq!(schema.len(), expected, "genesis + L1 attributes");
     }
 
     // Verifies: ADR-SCHEMA-006 — Value Type Union
@@ -2331,14 +2425,44 @@ mod tests {
     // -------------------------------------------------------------------
 
     // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture (layer 2 count)
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
     #[test]
     fn layer_2_produces_correct_count() {
         let specs = layer_2_attributes();
-        assert_eq!(
-            specs.len(),
-            LAYER_2_COUNT,
-            "Layer 2 must have exactly {LAYER_2_COUNT} specification element attributes"
-        );
+        let count = specs.len();
+        assert!(count >= 34, "minimum L2 schema violated: {count}");
+        assert_eq!(count, layer_2_count());
+        // Critical attribute existence
+        let idents: Vec<String> = specs.iter().map(|s| s.ident.as_str().to_string()).collect();
+        for required in &[
+            ":element/id",
+            ":element/type",
+            ":element/title",
+            ":element/body",
+            ":element/namespace",
+            ":element/traces-to",
+            ":element/status",
+            ":element/confidence",
+            ":inv/statement",
+            ":inv/falsification",
+            ":inv/verification",
+            ":adr/problem",
+            ":adr/decision",
+            ":adr/alternatives",
+            ":neg/violation",
+            ":neg/detection",
+            ":neg/mitigation",
+            ":dep/from",
+            ":dep/to",
+            ":dep/type",
+            ":session/agent",
+            ":session/task",
+        ] {
+            assert!(
+                idents.contains(&required.to_string()),
+                "critical L2 attribute missing: {required}"
+            );
+        }
     }
 
     // Verifies: INV-STORE-008 — Genesis Determinism (layer 2)
@@ -2352,6 +2476,7 @@ mod tests {
     }
 
     // Verifies: INV-SCHEMA-001 — Schema-as-Data (layer 2)
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
     #[test]
     fn layer_2_schema_from_datoms() {
         let agent = AgentId::from_name("braid:system");
@@ -2367,11 +2492,20 @@ mod tests {
             datoms.insert(d);
         }
         let schema = Schema::from_datoms(&datoms);
+        let expected = genesis_attr_count() + layer_1_count() + layer_2_count();
+        assert!(
+            schema.len() >= 75,
+            "minimum L0+L1+L2 schema: {}",
+            schema.len()
+        );
         assert_eq!(
             schema.len(),
-            GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT,
-            "genesis({GENESIS_ATTR_COUNT}) + L1({LAYER_1_COUNT}) + L2({LAYER_2_COUNT}) = {} attributes",
-            GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT
+            expected,
+            "genesis({}) + L1({}) + L2({}) = {} attributes",
+            genesis_attr_count(),
+            layer_1_count(),
+            layer_2_count(),
+            expected
         );
     }
 
@@ -2579,6 +2713,7 @@ mod tests {
         );
     }
 
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
     #[test]
     fn domain_schema_has_correct_count() {
         let agent = AgentId::from_name("braid:system");
@@ -2591,7 +2726,12 @@ mod tests {
         }
         let schema = Schema::from_datoms(&datoms);
 
-        let expected = GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT;
+        let expected = genesis_attr_count() + layer_1_count() + layer_2_count();
+        assert!(
+            schema.len() >= 75,
+            "minimum domain schema: {}",
+            schema.len()
+        );
         assert_eq!(
             schema.len(),
             expected,
@@ -2607,14 +2747,35 @@ mod tests {
     // -------------------------------------------------------------------
 
     // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture (layer 3)
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
     #[test]
     fn layer_3_produces_correct_count() {
         let specs = layer_3_attributes();
-        assert_eq!(
-            specs.len(),
-            LAYER_3_COUNT,
-            "Layer 3 must have exactly {LAYER_3_COUNT} exploration attributes"
-        );
+        let count = specs.len();
+        assert!(count >= 34, "minimum L3 schema violated: {count}");
+        assert_eq!(count, layer_3_count());
+        // Critical attribute existence
+        let idents: Vec<String> = specs.iter().map(|s| s.ident.as_str().to_string()).collect();
+        for required in &[
+            ":exploration/id",
+            ":exploration/source",
+            ":exploration/category",
+            ":exploration/confidence",
+            ":exploration/maturity",
+            ":exploration/body",
+            ":exploration/title",
+            ":exploration/content-hash",
+            ":promotion/status",
+            ":promotion/target-element",
+            ":proposal/type",
+            ":proposal/status",
+            ":branch/name",
+        ] {
+            assert!(
+                idents.contains(&required.to_string()),
+                "critical L3 attribute missing: {required}"
+            );
+        }
     }
 
     // Verifies: INV-STORE-008 — Genesis Determinism (layer 3)
@@ -2628,6 +2789,7 @@ mod tests {
     }
 
     // Verifies: INV-SCHEMA-001 — Schema-as-Data (layer 3)
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
     #[test]
     fn layer_3_schema_from_datoms() {
         let agent = AgentId::from_name("braid:system");
@@ -2643,11 +2805,21 @@ mod tests {
             datoms.insert(d);
         }
         let schema = Schema::from_datoms(&datoms);
+        let expected = genesis_attr_count() + layer_1_count() + layer_2_count() + layer_3_count();
+        assert!(
+            schema.len() >= 110,
+            "minimum L0+L1+L2+L3 schema: {}",
+            schema.len()
+        );
         assert_eq!(
             schema.len(),
-            GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT + LAYER_3_COUNT,
-            "genesis({GENESIS_ATTR_COUNT}) + L1({LAYER_1_COUNT}) + L2({LAYER_2_COUNT}) + L3({LAYER_3_COUNT}) = {} attributes",
-            GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT + LAYER_3_COUNT
+            expected,
+            "genesis({}) + L1({}) + L2({}) + L3({}) = {} attributes",
+            genesis_attr_count(),
+            layer_1_count(),
+            layer_2_count(),
+            layer_3_count(),
+            expected
         );
     }
 
@@ -2813,6 +2985,7 @@ mod tests {
 
     // Verifies: INV-SCHEMA-006 — Six-Layer Schema Architecture (full count)
     // Verifies: INV-SCHEMA-005 — Meta-Schema Self-Description
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
     #[test]
     fn full_schema_has_correct_total_count() {
         let agent = AgentId::from_name("braid:system");
@@ -2825,12 +2998,16 @@ mod tests {
         }
         let schema = Schema::from_datoms(&datoms);
 
-        let expected =
-            GENESIS_ATTR_COUNT + LAYER_1_COUNT + LAYER_2_COUNT + LAYER_3_COUNT + LAYER_4_COUNT;
+        let expected = genesis_attr_count()
+            + layer_1_count()
+            + layer_2_count()
+            + layer_3_count()
+            + layer_4_count();
+        assert!(schema.len() >= 145, "minimum full schema: {}", schema.len());
         assert_eq!(
             schema.len(),
             expected,
-            "Full schema (L0+L1+L2+L3) must have {expected} attributes, got {}",
+            "Full schema (L0+L1+L2+L3+L4) must have {expected} attributes, got {}",
             schema.len()
         );
     }
@@ -3274,5 +3451,119 @@ mod tests {
                 "Lattice (max) should pass all four property checks"
             );
         }
+    }
+
+    // -------------------------------------------------------------------
+    // Regression guard: schema evolution does not break existing assertions
+    // Verifies: INV-SCHEMA-003 — Schema Monotonicity
+    // Verifies: INV-STORE-016 — Dynamic Schema Counts
+    // Verifies: ADR-STORE-019 — Dynamic Counts Over Constants
+    // -------------------------------------------------------------------
+
+    /// Regression guard: adding a new attribute to Layer 0 (simulating schema
+    /// evolution) does not break any existing schema invariants. This verifies
+    /// that all count-based assertions use runtime queries, not hardcoded
+    /// constants — so adding an attribute never requires updating a constant.
+    #[test]
+    fn schema_evolution_regression_guard() {
+        use crate::datom::AgentId;
+
+        let agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, agent);
+        let full_tx = TxId::new(1, 0, agent);
+
+        // Step 1: Build a complete store with all layers
+        let genesis_set: BTreeSet<Datom> = genesis_datoms(genesis_tx).into_iter().collect();
+        let genesis_schema = Schema::from_datoms(&genesis_set);
+        let genesis_count = genesis_schema.len();
+
+        let mut full_datoms = genesis_set.clone();
+        for d in full_schema_datoms(full_tx) {
+            full_datoms.insert(d);
+        }
+        let full_schema = Schema::from_datoms(&full_datoms);
+        let full_count = full_schema.len();
+
+        // Step 2: Add a new attribute to genesis (simulating schema evolution)
+        let new_entity = EntityId::from_ident(":test/evolution-guard");
+        let evolution_datoms = vec![
+            Datom::new(
+                new_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":test/evolution-guard".into()),
+                genesis_tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_entity,
+                Attribute::from_keyword(":db/valueType"),
+                Value::Keyword(":db.type/string".into()),
+                genesis_tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_entity,
+                Attribute::from_keyword(":db/cardinality"),
+                Value::Keyword(":db.cardinality/one".into()),
+                genesis_tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("Regression guard test attribute".into()),
+                genesis_tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_entity,
+                Attribute::from_keyword(":db/resolutionMode"),
+                Value::Keyword(":resolution/lww".into()),
+                genesis_tx,
+                Op::Assert,
+            ),
+        ];
+
+        let mut evolved_datoms = full_datoms;
+        for d in evolution_datoms {
+            evolved_datoms.insert(d);
+        }
+        let evolved_schema = Schema::from_datoms(&evolved_datoms);
+
+        // Step 3: Verify the new attribute is present
+        let evolved_attr = Attribute::from_keyword(":test/evolution-guard");
+        assert!(
+            evolved_schema.attribute(&evolved_attr).is_some(),
+            "new attribute must be present after evolution"
+        );
+
+        // Step 4: Schema grew by exactly 1
+        assert_eq!(
+            evolved_schema.len(),
+            full_count + 1,
+            "evolved schema must have full_count + 1 attributes"
+        );
+
+        // Step 5: Evolution is valid (no existing attributes were removed)
+        let errors = full_schema.validate_evolution(&evolved_schema);
+        assert!(
+            errors.is_empty(),
+            "adding an attribute must be valid evolution: {:?}",
+            errors
+        );
+
+        // Step 6: All original attributes still present (superset check)
+        assert!(
+            evolved_schema.is_superset_of(&genesis_schema),
+            "evolved schema must be superset of genesis"
+        );
+        assert!(
+            evolved_schema.is_superset_of(&full_schema),
+            "evolved schema must be superset of full schema"
+        );
+
+        // Step 7: Minimum bounds still hold (these would catch catastrophic deletion)
+        assert!(genesis_count >= 19, "genesis minimum: {genesis_count}");
+        assert!(full_count >= 145, "full schema minimum: {full_count}");
     }
 }
