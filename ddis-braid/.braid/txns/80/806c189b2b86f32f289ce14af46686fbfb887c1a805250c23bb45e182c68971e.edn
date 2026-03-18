@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773812816/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: P0-BUG: generate_task_id uses only 4 hex chars — birthday collision at 375 tasks. Increase to 8 chars + detect/repair existing collisions. BACKGROUND: t-09cc confirmed collision: FM-013 title overwritten by C2.9 index task. Birthday probability: P(collision) = 1-e^(-n²/(2×65536)) where n=375 gives 66%. Fix: &hex[..8] instead of &hex[..4]. Must also: (1) scan store for entities with multiple :task/title datoms, (2) split collided entities into separate entities with new IDs, (3) update all dependency refs. TRACES TO: C2 (content-addressable identity), INV-STORE-003. FALSIFICATION: two tasks with different titles share the same entity ID."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e588d908d57a036109fe3ce2cb4dc5ba3d4d287943912d34de05391653a4a36d" :a :db/ident :v :task/t-bdfb :op :assert}
+   {:e #blake3 "e588d908d57a036109fe3ce2cb4dc5ba3d4d287943912d34de05391653a4a36d" :a :task/created-at :v 1773812815 :op :assert}
+   {:e #blake3 "e588d908d57a036109fe3ce2cb4dc5ba3d4d287943912d34de05391653a4a36d" :a :task/id :v "t-bdfb" :op :assert}
+   {:e #blake3 "e588d908d57a036109fe3ce2cb4dc5ba3d4d287943912d34de05391653a4a36d" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "e588d908d57a036109fe3ce2cb4dc5ba3d4d287943912d34de05391653a4a36d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e588d908d57a036109fe3ce2cb4dc5ba3d4d287943912d34de05391653a4a36d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e588d908d57a036109fe3ce2cb4dc5ba3d4d287943912d34de05391653a4a36d" :a :task/title :v "P0-BUG: generate_task_id uses only 4 hex chars — birthday collision at 375 tasks. Increase to 8 chars + detect/repair existing collisions. BACKGROUND: t-09cc confirmed collision: FM-013 title overwritten by C2.9 index task. Birthday probability: P(collision) = 1-e^(-n²/(2×65536)) where n=375 gives 66%. Fix: &hex[..8] instead of &hex[..4]. Must also: (1) scan store for entities with multiple :task/title datoms, (2) split collided entities into separate entities with new IDs, (3) update all dependency refs. TRACES TO: C2 (content-addressable identity), INV-STORE-003. FALSIFICATION: two tasks with different titles share the same entity ID." :op :assert}
+   {:e #blake3 "e588d908d57a036109fe3ce2cb4dc5ba3d4d287943912d34de05391653a4a36d" :a :task/type :v :task.type/bug :op :assert}
+ ]}

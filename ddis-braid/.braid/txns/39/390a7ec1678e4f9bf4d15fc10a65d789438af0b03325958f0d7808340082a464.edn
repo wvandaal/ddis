@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773812815/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "CRITICAL BUG: generate_task_id uses only 4 hex chars (16 bits = 65536 possibilities). At 375 tasks, birthday problem predicts ~1 collision — and we found exactly 1 (t-09cc: FM-013 task overwritten by C2.9 index task). At 1000 tasks: ~7.6 collisions. At 2000: ~30. Fix: increase to 8 hex chars (32 bits = 4B possibilities). Expected collisions at 2000 tasks: 0.0005. Also need to detect+repair existing collision at t-09cc."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "157ea37b0a90298c94e46aec2dbb57b9790752571991749b0e42e686f06b776e" :a :db/doc :v "CRITICAL BUG: generate_task_id uses only 4 hex chars (16 bits = 65536 possibilities). At 375 tasks, birthday problem predicts ~1 collision — and we found exactly 1 (t-09cc: FM-013 task overwritten by C2.9 index task). At 1000 tasks: ~7.6 collisions. At 2000: ~30. Fix: increase to 8 hex chars (32 bits = 4B possibilities). Expected collisions at 2000 tasks: 0.0005. Also need to detect+repair existing collision at t-09cc." :op :assert}
+   {:e #blake3 "157ea37b0a90298c94e46aec2dbb57b9790752571991749b0e42e686f06b776e" :a :db/ident :v :observation/critical-bug-generate-task-id-uses-only-4-hex-chars-16-bit :op :assert}
+   {:e #blake3 "157ea37b0a90298c94e46aec2dbb57b9790752571991749b0e42e686f06b776e" :a :exploration/body :v "CRITICAL BUG: generate_task_id uses only 4 hex chars (16 bits = 65536 possibilities). At 375 tasks, birthday problem predicts ~1 collision — and we found exactly 1 (t-09cc: FM-013 task overwritten by C2.9 index task). At 1000 tasks: ~7.6 collisions. At 2000: ~30. Fix: increase to 8 hex chars (32 bits = 4B possibilities). Expected collisions at 2000 tasks: 0.0005. Also need to detect+repair existing collision at t-09cc." :op :assert}
+   {:e #blake3 "157ea37b0a90298c94e46aec2dbb57b9790752571991749b0e42e686f06b776e" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "157ea37b0a90298c94e46aec2dbb57b9790752571991749b0e42e686f06b776e" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "157ea37b0a90298c94e46aec2dbb57b9790752571991749b0e42e686f06b776e" :a :exploration/content-hash :v #bytes "885f1ffd89db328b15d79bf5afd418088fb2e842eb303348ed5a6d23c0e685de" :op :assert}
+   {:e #blake3 "157ea37b0a90298c94e46aec2dbb57b9790752571991749b0e42e686f06b776e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "157ea37b0a90298c94e46aec2dbb57b9790752571991749b0e42e686f06b776e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "157ea37b0a90298c94e46aec2dbb57b9790752571991749b0e42e686f06b776e" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

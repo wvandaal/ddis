@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773813281/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-bdfb"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e588d908d57a036109fe3ce2cb4dc5ba3d4d287943912d34de05391653a4a36d" :a :task/close-reason :v "Fixed: &hex[..8] = 32 bits. Birthday threshold now 82K tasks. Confirmed collision at t-09cc documented." :op :assert}
+   {:e #blake3 "e588d908d57a036109fe3ce2cb4dc5ba3d4d287943912d34de05391653a4a36d" :a :task/closed-at :v 1773813280 :op :assert}
+   {:e #blake3 "e588d908d57a036109fe3ce2cb4dc5ba3d4d287943912d34de05391653a4a36d" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773813292/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 4 candidates from task 'P0 bug fix: task ID birthday collision + comprehensive audit'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :db/doc :v "Harvest session for task: P0 bug fix: task ID birthday collision + comprehensive audit" :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :db/ident :v :harvest/session-braid-user-1773813292 :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/accomplishments :v "Session entity: :task/t-8b7d8d69; Session entity: :task/t-bdfb" :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/candidate-count :v 4 :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/codebase-snapshot :v "Codebase: 78866 LOC across 72 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/seed.rs (4631 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (3747 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3278 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3117 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (2824 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2106 LOC)" :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/delta-summary :v "+46 datoms, +4 entities" :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/drift-score :v 1.3333333333333333 :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/git-summary :v "branch=main, 2 commits, 37 files (+530/-2)\n  6f01ce1 P0-BUG: Fix task ID birthday collision — 4 hex chars → 8 hex chars\n  06363e9 Full ADR-STORE-005 compliance plan: quad-index + LIVE + .cache/ (21 tasks)\nHot files:\n  ddis-braid/.braid/txns/7a/7a03f53d15c42329938bee3472a829723415f32b74e84ccc98ec49b1d7bf2432.edn (22 lines changed)\n  ddis-braid/.braid/txns/14/14f0b2b4d9af4792e0eb27fcf2b9fac7d146eb69550fd4de13e0aa5d11562d87.edn (16 lines changed)\n  ddis-braid/.braid/txns/48/482b4ceea01a4bc0d1b3ec44aba124c046399cbd21ee69137ae2b8355e1143b7.edn (16 lines changed)\n  ddis-braid/.braid/txns/63/631d4600f500a423dddf5479dd35e628773bbdfb92580c7ae89d63897a4bfaa3.edn (16 lines changed)\n  ddis-braid/.braid/txns/8b/8b9b3d4075246ee547d5e5e5abf9baca6373783f26aab3033bec98d48dcae7c7.edn (16 lines changed)\n  ddis-braid/.braid/txns/d6/d6c838a09271037047cc765d82a0e30341f8b8ca04d112fb49eeeccceed7c2df.edn (16 lines changed)\n  ddis-braid/.braid/txns/e5/e53753a789ede776d0ae17b463ea47cc3c09d3a43f2f3140519311ed0191765d.edn (16 lines changed)\n  ddis-braid/.braid/txns/0c/0c39384d8ef2150107b155fc361e03e43b31f4d7ebd84d1b00a92e70f443d6d8.edn (15 lines changed)" :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/observation-count :v 1 :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/store-datom-count :v 13852 :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/store-entity-count :v 2026 :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: P0 bug fix: task ID birthday collision + comprehensive audit\nRun: `braid seed --task \"continue: P0 bug fix: task ID birthday collision + comprehensive audit\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/task :v "P0 bug fix: task ID birthday collision + comprehensive audit" :op :assert}
+   {:e #blake3 "9d592a7c1eac4e477d3d08e7dcc8e158d2129e5584779499fb4704fc31d7d36e" :a :harvest/tx-since-last :v 5 :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773813282/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VERIFICATION: new 8-char task ID format works correctly"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c903d8125be58480237d73409423831723f544070a62758dd54036ea8f7f35a0" :a :db/ident :v :task/t-8b7d8d69 :op :assert}
+   {:e #blake3 "c903d8125be58480237d73409423831723f544070a62758dd54036ea8f7f35a0" :a :task/created-at :v 1773813280 :op :assert}
+   {:e #blake3 "c903d8125be58480237d73409423831723f544070a62758dd54036ea8f7f35a0" :a :task/id :v "t-8b7d8d69" :op :assert}
+   {:e #blake3 "c903d8125be58480237d73409423831723f544070a62758dd54036ea8f7f35a0" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "c903d8125be58480237d73409423831723f544070a62758dd54036ea8f7f35a0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c903d8125be58480237d73409423831723f544070a62758dd54036ea8f7f35a0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c903d8125be58480237d73409423831723f544070a62758dd54036ea8f7f35a0" :a :task/title :v "VERIFICATION: new 8-char task ID format works correctly" :op :assert}
+   {:e #blake3 "c903d8125be58480237d73409423831723f544070a62758dd54036ea8f7f35a0" :a :task/type :v :task.type/task :op :assert}
+ ]}
