@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773872528/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC-CBV: Crystallize INV-TASK-006 (Completion Evidence Protocol) into spec (C5, C6). BACKGROUND: CBV tasks reference INV-TASK-006 but it doesn't exist as a formal spec element. Following SFE discipline: crystallize BEFORE implementing. Write INV-TASK-006 with: statement (braid done extracts acceptance criteria and requires evidence before Closed transition), falsification (agent closes task without evidence and the closure is accepted), verification tag V:PROP. Add to existing task spec section or create new one. Also transact as :spec/inv-task-006 entity. TRACES TO: C5, C6, INV-TASK-006. ACCEPTANCE: braid query --entity :spec/inv-task-006 --attribute :spec/falsification returns non-empty."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "18aaf8b492a77a4df52c91a8356dde0d462d61652bd9165708380d947e6327eb" :a :db/ident :v :task/t-01bfbc6d :op :assert}
+   {:e #blake3 "18aaf8b492a77a4df52c91a8356dde0d462d61652bd9165708380d947e6327eb" :a :task/created-at :v 1773872527 :op :assert}
+   {:e #blake3 "18aaf8b492a77a4df52c91a8356dde0d462d61652bd9165708380d947e6327eb" :a :task/id :v "t-01bfbc6d" :op :assert}
+   {:e #blake3 "18aaf8b492a77a4df52c91a8356dde0d462d61652bd9165708380d947e6327eb" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "18aaf8b492a77a4df52c91a8356dde0d462d61652bd9165708380d947e6327eb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "18aaf8b492a77a4df52c91a8356dde0d462d61652bd9165708380d947e6327eb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "18aaf8b492a77a4df52c91a8356dde0d462d61652bd9165708380d947e6327eb" :a :task/title :v "SPEC-CBV: Crystallize INV-TASK-006 (Completion Evidence Protocol) into spec (C5, C6). BACKGROUND: CBV tasks reference INV-TASK-006 but it doesn't exist as a formal spec element. Following SFE discipline: crystallize BEFORE implementing. Write INV-TASK-006 with: statement (braid done extracts acceptance criteria and requires evidence before Closed transition), falsification (agent closes task without evidence and the closure is accepted), verification tag V:PROP. Add to existing task spec section or create new one. Also transact as :spec/inv-task-006 entity. TRACES TO: C5, C6, INV-TASK-006. ACCEPTANCE: braid query --entity :spec/inv-task-006 --attribute :spec/falsification returns non-empty." :op :assert}
+   {:e #blake3 "18aaf8b492a77a4df52c91a8356dde0d462d61652bd9165708380d947e6327eb" :a :task/type :v :task.type/task :op :assert}
+ ]}
