@@ -14,13 +14,15 @@
 
 use std::path::Path;
 
-use braid_kernel::datom::{AgentId, ProvenanceType, Value};
+use braid_kernel::datom::{AgentId, Attribute, Datom, Op, ProvenanceType, Value};
 use braid_kernel::guidance::compute_routing_from_store;
 use braid_kernel::layout::TxFile;
 use braid_kernel::task::{
     self, check_dependency_acyclicity, close_task_datoms, compute_ready_set, dep_add_datom,
-    find_task_by_id, generate_task_id, parse_spec_refs, resolve_spec_refs, set_attribute_datom,
+    extract_acceptance_criteria, find_task_by_id, generate_task_id, parse_spec_refs,
+    parse_verification_pattern, resolve_spec_refs, run_verification, set_attribute_datom,
     task_counts, task_summary, update_status_datom, CreateTaskParams, TaskStatus, TaskType,
+    VerificationPattern,
 };
 use braid_kernel::EntityId;
 
@@ -521,6 +523,8 @@ pub fn close(
     task_ids: &[String],
     reason: &str,
     agent: &str,
+    force: bool,
+    attest: Option<&str>,
 ) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
@@ -531,15 +535,76 @@ pub fn close(
 
     let mut all_datoms = Vec::new();
     let mut closed_ids = Vec::new();
+    let mut blocked_ids: Vec<(String, String)> = Vec::new();
 
     for task_id in task_ids {
         let entity = find_task_by_id(&store, task_id)
             .ok_or_else(|| BraidError::Validation(format!("task not found: {task_id}")))?;
 
+        // CBV: Completion-Bound Verification (INV-TASK-006)
+        let criteria = extract_acceptance_criteria(&store, entity);
+        let completion_method = if force {
+            "force"
+        } else if attest.is_some() {
+            "attested"
+        } else if criteria.is_empty() {
+            "no-criteria"
+        } else {
+            // Attempt automated verification
+            let mut all_passed = true;
+            let mut failures = Vec::new();
+            for criterion in &criteria {
+                let pattern = parse_verification_pattern(criterion);
+                if let VerificationPattern::Manual { .. } = pattern {
+                    continue; // Skip manual criteria in auto-verify mode
+                }
+                if let Err(reason) = run_verification(&store, &pattern) {
+                    all_passed = false;
+                    failures.push(reason);
+                }
+            }
+            if all_passed {
+                "verified"
+            } else {
+                // Block this task — don't close
+                let msg = format!(
+                    "CBV: acceptance criteria not met for {task_id}:\n  {}\n  Use --force to bypass or --attest to provide evidence",
+                    failures.join("\n  ")
+                );
+                blocked_ids.push((task_id.clone(), msg));
+                continue; // Skip to next task
+            }
+        };
+
+        // Record completion method
+        all_datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":task/completion-method"),
+            Value::Keyword(format!(":task.completion/{completion_method}")),
+            tx_id,
+            Op::Assert,
+        ));
+
+        // Record attestation evidence if provided
+        if let Some(evidence) = attest {
+            all_datoms.push(Datom::new(
+                entity,
+                Attribute::from_keyword(":task/completion-evidence"),
+                Value::String(evidence.to_string()),
+                tx_id,
+                Op::Assert,
+            ));
+        }
+
         all_datoms.extend(close_task_datoms(entity, reason, tx_id));
         closed_ids.push(task_id.as_str());
     }
 
+    // If ALL tasks were blocked by CBV, return error
+    if all_datoms.is_empty() && !blocked_ids.is_empty() {
+        let msgs: Vec<String> = blocked_ids.iter().map(|(_, m)| m.clone()).collect();
+        return Err(BraidError::Validation(msgs.join("\n")));
+    }
     if all_datoms.is_empty() {
         return Err(BraidError::Validation("no tasks to close".to_string()));
     }
@@ -555,6 +620,10 @@ pub fn close(
     layout.write_tx(&tx)?;
 
     let mut human = String::new();
+    // Show blocked tasks first (if any in a batch)
+    for (id, msg) in &blocked_ids {
+        human.push_str(&format!("BLOCKED: {id} — {msg}\n"));
+    }
     for id in &closed_ids {
         human.push_str(&format!("closed: {id}\n"));
     }

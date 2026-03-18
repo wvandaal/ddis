@@ -766,6 +766,14 @@ Workflow: braid go <id> → work → braid done <id>")]
         /// Agent identity.
         #[arg(long, short = 'a', default_value = "braid:user")]
         agent: String,
+
+        /// Force close — bypass acceptance criteria verification (recorded as skip).
+        #[arg(long)]
+        force: bool,
+
+        /// Attest completion — provide evidence string for non-automatable criteria.
+        #[arg(long)]
+        attest: Option<String>,
     },
 
     /// Quick observation (shortcut for `braid observe` with defaults).
@@ -2084,7 +2092,7 @@ pub fn run(
                     path,
                     reason,
                     agent,
-                } => task::close(&path, &ids, &reason, &agent)?,
+                } => task::close(&path, &ids, &reason, &agent, false, None)?,
                 TaskAction::Update {
                     id,
                     path,
@@ -2153,8 +2161,15 @@ pub fn run(
                 footer_cmd_name,
             ));
         }
-        Command::Done { ids, path, agent } => {
-            let cmd_output = task::close(&path, &ids, "completed", &agent)?;
+        Command::Done {
+            ids,
+            path,
+            agent,
+            force,
+            attest,
+        } => {
+            let cmd_output =
+                task::close(&path, &ids, "completed", &agent, force, attest.as_deref())?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
