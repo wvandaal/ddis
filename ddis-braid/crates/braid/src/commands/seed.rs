@@ -256,8 +256,14 @@ pub fn run_inject(
     let content = crate::inject::format_for_injection(&store, Some(task), budget);
     let token_estimate = content.split_whitespace().count() * 4 / 3; // ~tokens
 
-    // Inject
+    // Inject seed content
     let result = crate::inject::inject(&file_content, &point, &content);
+
+    // Inject methodology section (DMP: INV-GUIDANCE-022)
+    // k_eff estimated from session telemetry (turn count since last harvest)
+    let ctx = braid_kernel::guidance::GuidanceContext::from_store(&store, None);
+    let k_eff = ctx.k_eff;
+    let result = crate::inject::inject_methodology(&result, &store, k_eff);
 
     // Write back
     std::fs::write(inject_path, &result)?;

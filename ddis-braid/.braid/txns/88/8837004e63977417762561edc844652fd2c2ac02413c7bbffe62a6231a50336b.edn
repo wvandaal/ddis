@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773855695/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 025 start: AGP tests now pass (1212 total). DMP implementation is top priority — all building blocks exist (methodology_gaps, GuidanceContext, compute_routing, tx_velocity, ceremony spec §12.11). Task: wire ~50 LOC of orchestration."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7cc2dd51852e46b7e95249c04d3a0af7ba26ff1e5d77fd6916f78e0a94fdacca" :a :db/doc :v "Session 025 start: AGP tests now pass (1212 total). DMP implementation is top priority — all building blocks exist (methodology_gaps, GuidanceContext, compute_routing, tx_velocity, ceremony spec §12.11). Task: wire ~50 LOC of orchestration." :op :assert}
+   {:e #blake3 "7cc2dd51852e46b7e95249c04d3a0af7ba26ff1e5d77fd6916f78e0a94fdacca" :a :db/ident :v :observation/session-025-start-agp-tests-now-pass-1212-total-dmp-impl :op :assert}
+   {:e #blake3 "7cc2dd51852e46b7e95249c04d3a0af7ba26ff1e5d77fd6916f78e0a94fdacca" :a :exploration/body :v "Session 025 start: AGP tests now pass (1212 total). DMP implementation is top priority — all building blocks exist (methodology_gaps, GuidanceContext, compute_routing, tx_velocity, ceremony spec §12.11). Task: wire ~50 LOC of orchestration." :op :assert}
+   {:e #blake3 "7cc2dd51852e46b7e95249c04d3a0af7ba26ff1e5d77fd6916f78e0a94fdacca" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "7cc2dd51852e46b7e95249c04d3a0af7ba26ff1e5d77fd6916f78e0a94fdacca" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "7cc2dd51852e46b7e95249c04d3a0af7ba26ff1e5d77fd6916f78e0a94fdacca" :a :exploration/content-hash :v #bytes "dde43319ccbb78f64335f1641dbdb4e79f87dbbc7adc7a002f4511da39d89dc0" :op :assert}
+   {:e #blake3 "7cc2dd51852e46b7e95249c04d3a0af7ba26ff1e5d77fd6916f78e0a94fdacca" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7cc2dd51852e46b7e95249c04d3a0af7ba26ff1e5d77fd6916f78e0a94fdacca" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7cc2dd51852e46b7e95249c04d3a0af7ba26ff1e5d77fd6916f78e0a94fdacca" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

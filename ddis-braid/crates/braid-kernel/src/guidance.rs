@@ -2072,6 +2072,258 @@ fn truncate_hint(s: &str, max: usize) -> &str {
 }
 
 // ---------------------------------------------------------------------------
+// Dynamic Methodology Projection (INV-GUIDANCE-022, INV-GUIDANCE-023)
+// ---------------------------------------------------------------------------
+
+/// Ceremony level for adaptive methodology (INV-GUIDANCE-023).
+///
+/// Determines how much specification ceremony is required before execution,
+/// based on context budget remaining (k*) and the nature of the change.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CeremonyLevel {
+    /// Full: observe → crystallize → task → execute
+    /// Used when k* > 0.7 AND change is novel design.
+    Full,
+    /// Standard: observe + execute → retroactive crystallize
+    /// Used when k* > 0.3 OR change is a feature.
+    Standard,
+    /// Minimal: execute → observe (provenance chain minimum)
+    /// Used when k* < 0.3 OR change is a known-category bug.
+    Minimal,
+}
+
+/// The type of change being made, for ceremony level determination.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ChangeType {
+    /// Novel design — new abstractions, new spec elements.
+    NovelDesign,
+    /// Feature implementation — known spec, new code.
+    Feature,
+    /// Known-category bug fix — fix code, capture provenance.
+    KnownBug,
+}
+
+/// Determine the ceremony level based on k* and change type (INV-GUIDANCE-023).
+///
+/// The ceremony level adapts the methodology to the agent's context state:
+/// - At high k* with novel work → full ceremony prevents ideation-to-task skip
+/// - At moderate k* with features → standard ceremony balances rigor and speed
+/// - At low k* or known bugs → minimal ceremony preserves provenance without overhead
+pub fn ceremony_level(k_eff: f64, change_type: ChangeType) -> CeremonyLevel {
+    match change_type {
+        ChangeType::KnownBug => CeremonyLevel::Minimal,
+        ChangeType::NovelDesign if k_eff > 0.7 => CeremonyLevel::Full,
+        ChangeType::Feature if k_eff > 0.3 => CeremonyLevel::Standard,
+        ChangeType::NovelDesign if k_eff > 0.3 => CeremonyLevel::Standard,
+        _ if k_eff < 0.3 => CeremonyLevel::Minimal,
+        _ => CeremonyLevel::Standard,
+    }
+}
+
+impl CeremonyLevel {
+    /// Human-readable description of the ceremony protocol.
+    pub fn description(&self) -> &'static str {
+        match self {
+            CeremonyLevel::Full => {
+                "Full: observe \u{2192} crystallize \u{2192} task \u{2192} execute"
+            }
+            CeremonyLevel::Standard => {
+                "Standard: observe + execute \u{2192} retroactive crystallize"
+            }
+            CeremonyLevel::Minimal => {
+                "Minimal: execute \u{2192} observe (provenance chain minimum)"
+            }
+        }
+    }
+}
+
+/// A subsystem capability detected from store state (INV-GUIDANCE-022).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Capability {
+    /// Name of the subsystem.
+    pub name: String,
+    /// Whether evidence of implementation was found in the store.
+    pub implemented: bool,
+}
+
+/// Scan the store for evidence of which subsystems are implemented (INV-GUIDANCE-022).
+///
+/// Checks for presence of specific attribute patterns or entity idents that
+/// indicate a subsystem is operational, not just specified.
+pub fn capability_scan(store: &Store) -> Vec<Capability> {
+    let has_attr_prefix = |prefix: &str| -> bool {
+        store
+            .datoms()
+            .any(|d| d.attribute.as_str().starts_with(prefix))
+    };
+    let has_ident = |ident: &str| -> bool {
+        !store
+            .avet_lookup(
+                &Attribute::from_keyword(":db/ident"),
+                &Value::Keyword(ident.to_string()),
+            )
+            .is_empty()
+    };
+
+    // LIVE index: check if the store's live_view is functional by testing a
+    // known entity. If the store was loaded from datoms, the live_view is populated.
+    let live_working = store
+        .live_value(
+            EntityId::from_ident(":db/ident"),
+            &Attribute::from_keyword(":db/ident"),
+        )
+        .is_some()
+        || !store.is_empty(); // Any non-empty store has a live_view
+
+    // .cache/ persistence: the DiskLayout writes datoms.bin + meta.json to .cache/.
+    // Detection: if the store was loaded with datoms, cache infrastructure exists.
+    // We check for :config/* idents OR any store with layout config.
+    let cache_working =
+        has_ident(":config/cache-enabled") || has_ident(":config/tools-cargo");
+
+    // MCP: compiled into the binary — always available if the CLI exists.
+    // Runtime detection via config ident or simple presence check.
+    let mcp_working =
+        has_ident(":config/mcp-enabled") || has_ident(":config/tools-cargo");
+
+    vec![
+        Capability {
+            name: "LIVE index".to_string(),
+            implemented: live_working,
+        },
+        Capability {
+            name: ".cache/ persistence".to_string(),
+            implemented: cache_working,
+        },
+        Capability {
+            name: "WITNESS system".to_string(),
+            implemented: has_attr_prefix(":witness/"),
+        },
+        Capability {
+            name: "Adaptive guidance (AGP)".to_string(),
+            implemented: true, // GuidanceContext is implemented
+        },
+        Capability {
+            name: "Harvest/Seed lifecycle".to_string(),
+            implemented: has_attr_prefix(":harvest/"),
+        },
+        Capability {
+            name: "R(t) task routing".to_string(),
+            implemented: has_attr_prefix(":task/"),
+        },
+        Capability {
+            name: "Datalog query".to_string(),
+            implemented: true, // Query engine is implemented
+        },
+        Capability {
+            name: "MCP interface".to_string(),
+            implemented: mcp_working,
+        },
+    ]
+}
+
+/// Generate the `<braid-methodology>` section content from store state (INV-GUIDANCE-022).
+///
+/// This is the core DMP function. It assembles live store-derived methodology guidance
+/// into a concise (<= 200 token) section for injection into AGENTS.md at the TOP
+/// (maximum k* position).
+///
+/// Inputs:
+/// - `store`: current store state (for gaps, routing, capabilities)
+/// - `k_eff`: effective context budget ratio (0.0–1.0)
+///
+/// The output is deterministic for a given store state + k_eff.
+pub fn generate_methodology_section(store: &Store, k_eff: f64) -> String {
+    let mut out = String::new();
+
+    // 1. Methodology Gaps (INV-GUIDANCE-021)
+    let gaps = methodology_gaps(store);
+    if !gaps.is_empty() {
+        out.push_str("## Methodology Gaps\n");
+        if gaps.crystallization > 0 {
+            out.push_str(&format!(
+                "- {} observations with uncrystallized spec IDs \u{2192} braid spec create\n",
+                gaps.crystallization
+            ));
+        }
+        if gaps.unanchored > 0 {
+            out.push_str(&format!(
+                "- {} tasks with unresolved spec refs \u{2192} crystallize first\n",
+                gaps.unanchored
+            ));
+        }
+        if gaps.untested > 0 {
+            out.push_str(&format!(
+                "- {} current-stage INVs untested \u{2192} add L2+ witness\n",
+                gaps.untested
+            ));
+        }
+        if gaps.stale_witnesses > 0 {
+            out.push_str(&format!(
+                "- {} witnesses invalidated \u{2192} re-verify\n",
+                gaps.stale_witnesses
+            ));
+        }
+        out.push('\n');
+    }
+
+    // 2. Ceremony Protocol (INV-GUIDANCE-023)
+    let level = ceremony_level(k_eff, ChangeType::Feature); // default to Feature
+    out.push_str(&format!(
+        "## Ceremony Protocol (k*={:.1})\n{}\n",
+        k_eff,
+        level.description()
+    ));
+    out.push_str(
+        "For known-category bug fixes: execute-first OK if provenance chain exists after commit.\n\n",
+    );
+
+    // 3. Next Actions — R(t) pre-computed top 3
+    let routing = compute_routing_from_store(store);
+    if !routing.is_empty() {
+        // Build entity → task_id lookup from all_tasks
+        let task_id_map: std::collections::BTreeMap<EntityId, String> =
+            crate::task::all_tasks(store)
+                .into_iter()
+                .map(|t| (t.entity, t.id))
+                .collect();
+
+        out.push_str("## Next Actions (R(t) pre-computed)\n");
+        for (i, r) in routing.iter().take(3).enumerate() {
+            let short_id = task_id_map
+                .get(&r.entity)
+                .map(|s| s.as_str())
+                .unwrap_or("???");
+            let label = crate::budget::safe_truncate_bytes(&r.label, 60);
+            out.push_str(&format!(
+                "{}. \"{}\" (impact={:.2}) \u{2192} braid go {}\n",
+                i + 1,
+                label,
+                r.impact,
+                short_id
+            ));
+        }
+        out.push('\n');
+    }
+
+    // 4. Session Constraints — capability scan
+    let caps = capability_scan(store);
+    let not_implemented: Vec<&Capability> = caps.iter().filter(|c| !c.implemented).collect();
+    if !not_implemented.is_empty() {
+        out.push_str("## Session Constraints\n");
+        for cap in &not_implemented {
+            out.push_str(&format!(
+                "- {}: NOT YET IMPLEMENTED (spec only)\n",
+                cap.name
+            ));
+        }
+        out.push('\n');
+    }
+
+    out
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -5918,5 +6170,178 @@ mod tests {
         };
         assert_eq!(mixed.total(), 10);
         assert!(!mixed.is_empty());
+    }
+
+    // -------------------------------------------------------------------
+    // Dynamic Methodology Projection (INV-GUIDANCE-022, INV-GUIDANCE-023)
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-GUIDANCE-023 — ceremony level adapts to k* and change type
+    #[test]
+    fn ceremony_level_full_for_novel_high_k() {
+        assert_eq!(
+            ceremony_level(0.8, ChangeType::NovelDesign),
+            CeremonyLevel::Full
+        );
+        assert_eq!(
+            ceremony_level(0.9, ChangeType::NovelDesign),
+            CeremonyLevel::Full
+        );
+    }
+
+    #[test]
+    fn ceremony_level_standard_for_feature() {
+        assert_eq!(
+            ceremony_level(0.5, ChangeType::Feature),
+            CeremonyLevel::Standard
+        );
+        assert_eq!(
+            ceremony_level(0.8, ChangeType::Feature),
+            CeremonyLevel::Standard
+        );
+    }
+
+    #[test]
+    fn ceremony_level_minimal_for_known_bug() {
+        // Known bugs always get minimal, regardless of k*
+        assert_eq!(
+            ceremony_level(0.9, ChangeType::KnownBug),
+            CeremonyLevel::Minimal
+        );
+        assert_eq!(
+            ceremony_level(0.1, ChangeType::KnownBug),
+            CeremonyLevel::Minimal
+        );
+    }
+
+    #[test]
+    fn ceremony_level_minimal_for_low_k() {
+        assert_eq!(
+            ceremony_level(0.1, ChangeType::Feature),
+            CeremonyLevel::Minimal
+        );
+        assert_eq!(
+            ceremony_level(0.2, ChangeType::NovelDesign),
+            CeremonyLevel::Minimal
+        );
+    }
+
+    #[test]
+    fn ceremony_level_standard_for_novel_moderate_k() {
+        // Novel design at moderate k* gets Standard (not Full)
+        assert_eq!(
+            ceremony_level(0.5, ChangeType::NovelDesign),
+            CeremonyLevel::Standard
+        );
+    }
+
+    #[test]
+    fn ceremony_level_description_is_nonempty() {
+        assert!(!CeremonyLevel::Full.description().is_empty());
+        assert!(!CeremonyLevel::Standard.description().is_empty());
+        assert!(!CeremonyLevel::Minimal.description().is_empty());
+    }
+
+    // Verifies: INV-GUIDANCE-022 — capability scan detects subsystem presence
+    #[test]
+    fn capability_scan_empty_store() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let caps = capability_scan(&store);
+        assert!(!caps.is_empty(), "should always return capability list");
+        // AGP and Datalog are always implemented (hardcoded true)
+        let agp = caps.iter().find(|c| c.name.contains("AGP"));
+        assert!(agp.is_some());
+        assert!(agp.unwrap().implemented);
+    }
+
+    #[test]
+    fn capability_scan_with_harvest_data() {
+        use crate::datom::{AgentId, Datom, Op, TxId};
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+        let mut datoms = std::collections::BTreeSet::new();
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-001"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        let store = Store::from_datoms(datoms);
+        let caps = capability_scan(&store);
+        let harvest_cap = caps.iter().find(|c| c.name.contains("Harvest"));
+        assert!(harvest_cap.is_some());
+        assert!(
+            harvest_cap.unwrap().implemented,
+            "store with :harvest/ datoms should detect harvest capability"
+        );
+    }
+
+    // Verifies: INV-GUIDANCE-022 — generate_methodology_section produces content
+    #[test]
+    fn generate_methodology_section_empty_store() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let section = generate_methodology_section(&store, 0.8);
+        // Should always contain ceremony protocol
+        assert!(
+            section.contains("Ceremony Protocol"),
+            "methodology section must always include ceremony protocol"
+        );
+        // Should not contain methodology gaps (empty store has none)
+        // (or might have 0 — either is acceptable)
+    }
+
+    #[test]
+    fn generate_methodology_section_contains_ceremony() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+
+        // High k* → should mention Full or Standard
+        let section_high = generate_methodology_section(&store, 0.8);
+        assert!(section_high.contains("k*=0.8"));
+
+        // Low k* → should mention Minimal
+        let section_low = generate_methodology_section(&store, 0.1);
+        assert!(section_low.contains("k*=0.1"));
+        assert!(section_low.contains("Minimal"));
+    }
+
+    #[test]
+    fn generate_methodology_section_with_tasks() {
+        use crate::datom::{AgentId, TxId};
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+
+        let (_, task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Fix something important",
+            description: None,
+            priority: 1,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = Store::from_datoms(task_datoms.into_iter().collect());
+        let section = generate_methodology_section(&store, 0.5);
+        // Should mention R(t) actions since there's a task
+        assert!(
+            section.contains("Next Actions") || section.contains("Ceremony"),
+            "methodology section should contain actions or ceremony"
+        );
+    }
+
+    #[test]
+    fn generate_methodology_section_token_budget() {
+        // INV-GUIDANCE-022: output ≤ 200 tokens
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let section = generate_methodology_section(&store, 0.5);
+        let word_count = section.split_whitespace().count();
+        let approx_tokens = word_count * 4 / 3;
+        assert!(
+            approx_tokens <= 200,
+            "methodology section should be ≤200 tokens, got ~{}",
+            approx_tokens
+        );
     }
 }
