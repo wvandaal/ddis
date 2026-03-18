@@ -51,15 +51,52 @@ fn extract_session_number(task: &str) -> Option<String> {
     None
 }
 
-/// Truncate a string at a char boundary, appending "..." if truncated.
-/// Safe for multi-byte UTF-8 (never panics on char boundaries).
+/// Truncate a string intelligently at a sentence or clause boundary.
+///
+/// Prefers cutting at natural break points (in priority order):
+/// sentence end (". ") > semicolon ("; ") > comma (", ") > em-dash (" — ") > word boundary.
+/// Searches for boundaries in the last 40% of the allowed range.
+/// If cut at a true sentence boundary, no indicator needed.
+/// Falls back to word-level cut for very short max_chars.
 fn truncate_chars(s: &str, max_chars: usize) -> String {
     if s.chars().count() <= max_chars {
-        s.to_string()
-    } else {
-        let truncated: String = s.chars().take(max_chars).collect();
-        format!("{truncated}...")
+        return s.to_string();
     }
+    let chars: Vec<char> = s.chars().take(max_chars + 1).collect();
+    if chars.len() <= max_chars {
+        return s.to_string();
+    }
+
+    // Search for natural boundaries in the last 40% of the range
+    let search_start = max_chars * 60 / 100;
+    let text: String = chars[..max_chars].iter().collect();
+
+    // Try progressively weaker boundaries
+    for boundary in &[". ", ".\n", "; ", ", ", " — ", " - "] {
+        if let Some(pos) = text[search_start..].rfind(boundary) {
+            let cut = search_start + pos + boundary.len();
+            if cut > search_start && cut <= max_chars {
+                let result: String = chars[..cut].iter().collect();
+                return result.trim_end().to_string();
+            }
+        }
+    }
+
+    // Fall back to word boundary
+    if let Some(pos) = text[search_start..].rfind(' ') {
+        let cut = search_start + pos;
+        if cut > search_start {
+            let result: String = chars[..cut].iter().collect();
+            return result.trim_end().to_string();
+        }
+    }
+
+    // Last resort: hard cut (no ellipsis)
+    chars[..max_chars]
+        .iter()
+        .collect::<String>()
+        .trim_end()
+        .to_string()
 }
 
 /// Projection levels for rate-distortion compression (ADR-SEED-002).
@@ -979,7 +1016,7 @@ fn discover_open_questions(store: &Store, task_keywords: &[String]) -> Vec<Strin
                         if let Value::String(ref doc) = d2.value {
                             let text = truncate_chars(doc, 200);
                             let score = keyword_relevance_score(&text, task_keywords);
-                            questions.push((score, format!("[?] {text}")));
+                            questions.push((score, text));
                         }
                         break;
                     }
@@ -1000,12 +1037,11 @@ fn discover_open_questions(store: &Store, task_keywords: &[String]) -> Vec<Strin
                         continue;
                     }
                     let text = truncate_chars(stripped, 200);
-                    let formatted = format!("[?] {text}");
-                    if !seen_texts.contains(&formatted) {
-                        seen_texts.insert(formatted.clone());
+                    if !seen_texts.contains(&text) {
+                        seen_texts.insert(text.clone());
                         let score = keyword_relevance_score(&text, task_keywords);
                         // Slight penalty for older questions (from harvest vs direct observation)
-                        questions.push((score * 0.8, formatted));
+                        questions.push((score * 0.8, text));
                     }
                 }
             }

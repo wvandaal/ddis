@@ -1858,7 +1858,6 @@ fn extract_spec_ids(text: &str) -> Vec<String> {
 /// INV-GUIDANCE-018: Crystallization Gap Detection.
 pub fn crystallization_candidates(store: &Store) -> Vec<(EntityId, String)> {
     let body_attr = Attribute::from_keyword(":exploration/body");
-    let falsification_attr = Attribute::from_keyword(":spec/falsification");
 
     // Step 1: Collect observation entities and their body text.
     // Observations are entities with :exploration/body attribute.
@@ -1872,17 +1871,28 @@ pub fn crystallization_candidates(store: &Store) -> Vec<(EntityId, String)> {
     }
 
     // Step 2: Build a set of formally crystallized spec IDs.
-    // A spec element is "crystallized" if it has :spec/falsification.
+    // A spec element is "crystallized" if it has a type-specific formalization attribute:
+    //   INV-* → :spec/falsification
+    //   ADR-* → :adr/decision
+    //   NEG-* → :neg/violation (or :spec/falsification as fallback)
+    // Without checking all three, ADRs and NEGs are false-positively reported as
+    // uncrystallized (INVESTIGATE t-d2881739 finding: 6 false positives).
+    let formalization_attrs = [
+        Attribute::from_keyword(":spec/falsification"),
+        Attribute::from_keyword(":adr/decision"),
+        Attribute::from_keyword(":neg/violation"),
+    ];
+    let ident_attr = Attribute::from_keyword(":db/ident");
     let mut crystallized: BTreeSet<String> = BTreeSet::new();
-    for datom in store.attribute_datoms(&falsification_attr) {
-        if datom.op == Op::Assert {
-            // Look up the :db/ident for this entity to extract the spec ID
-            let ident_attr = Attribute::from_keyword(":db/ident");
-            for ident_datom in store.entity_datoms(datom.entity) {
-                if ident_datom.attribute == ident_attr && ident_datom.op == Op::Assert {
-                    if let Value::Keyword(ref kw) = ident_datom.value {
-                        if let Some(id_part) = kw.strip_prefix(":spec/") {
-                            crystallized.insert(id_part.to_uppercase());
+    for attr in &formalization_attrs {
+        for datom in store.attribute_datoms(attr) {
+            if datom.op == Op::Assert {
+                for ident_datom in store.entity_datoms(datom.entity) {
+                    if ident_datom.attribute == ident_attr && ident_datom.op == Op::Assert {
+                        if let Value::Keyword(ref kw) = ident_datom.value {
+                            if let Some(id_part) = kw.strip_prefix(":spec/") {
+                                crystallized.insert(id_part.to_uppercase());
+                            }
                         }
                     }
                 }
@@ -2178,13 +2188,11 @@ pub fn capability_scan(store: &Store) -> Vec<Capability> {
     // .cache/ persistence: the DiskLayout writes datoms.bin + meta.json to .cache/.
     // Detection: if the store was loaded with datoms, cache infrastructure exists.
     // We check for :config/* idents OR any store with layout config.
-    let cache_working =
-        has_ident(":config/cache-enabled") || has_ident(":config/tools-cargo");
+    let cache_working = has_ident(":config/cache-enabled") || has_ident(":config/tools-cargo");
 
     // MCP: compiled into the binary — always available if the CLI exists.
     // Runtime detection via config ident or simple presence check.
-    let mcp_working =
-        has_ident(":config/mcp-enabled") || has_ident(":config/tools-cargo");
+    let mcp_working = has_ident(":config/mcp-enabled") || has_ident(":config/tools-cargo");
 
     vec![
         Capability {
