@@ -501,9 +501,17 @@ pub struct Store {
     /// AVET index: (attribute, value) → datoms (INV-STORE-IDX-004, ADR-STORE-005).
     ///
     /// Enables unique lookups and range scans: "which entity has :db/ident = ':spec/inv-001'?"
+    /// Only indexes Assert datoms.
     /// Used by Datalog evaluator for attribute-value bound clause optimization.
     /// Maintained incrementally on `transact()` and rebuilt on `merge()`/`from_datoms()`.
     avet_index: BTreeMap<(Attribute, Value), Vec<Datom>>,
+    /// LIVE materialized view: current resolved value per (entity, attribute).
+    ///
+    /// INV-STORE-012: LIVE(S) = fold(causal_sort(S), apply_resolution).
+    /// Stage 0 uses LWW resolution (highest TxId wins) for all attributes.
+    /// O(1) current-state lookups — the most common query pattern.
+    /// Rebuilt on `from_datoms()` and `merge()`, updated incrementally on `transact()`.
+    live_view: BTreeMap<(EntityId, Attribute), (Value, TxId)>,
 }
 
 impl std::fmt::Debug for Store {
@@ -532,6 +540,7 @@ impl Store {
         let mut attribute_index: BTreeMap<Attribute, Vec<Datom>> = BTreeMap::new();
         let mut vaet_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
         let mut avet_index: BTreeMap<(Attribute, Value), Vec<Datom>> = BTreeMap::new();
+        let mut live_view: BTreeMap<(EntityId, Attribute), (Value, TxId)> = BTreeMap::new();
         for d in &genesis_datoms {
             datoms.insert(d.clone());
             entity_index.entry(d.entity).or_default().push(d.clone());
@@ -547,6 +556,17 @@ impl Store {
                     .entry((d.attribute.clone(), d.value.clone()))
                     .or_default()
                     .push(d.clone());
+                // LIVE: LWW — highest tx wins per (entity, attribute)
+                let key = (d.entity, d.attribute.clone());
+                live_view
+                    .entry(key)
+                    .and_modify(|(v, tx)| {
+                        if d.tx > *tx {
+                            *v = d.value.clone();
+                            *tx = d.tx;
+                        }
+                    })
+                    .or_insert((d.value.clone(), d.tx));
             }
         }
 
@@ -564,6 +584,7 @@ impl Store {
             attribute_index,
             vaet_index,
             avet_index,
+            live_view,
         }
     }
 
@@ -583,6 +604,7 @@ impl Store {
         let mut attribute_index: BTreeMap<Attribute, Vec<Datom>> = BTreeMap::new();
         let mut vaet_index: BTreeMap<EntityId, Vec<Datom>> = BTreeMap::new();
         let mut avet_index: BTreeMap<(Attribute, Value), Vec<Datom>> = BTreeMap::new();
+        let mut live_view: BTreeMap<(EntityId, Attribute), (Value, TxId)> = BTreeMap::new();
         for d in &datoms {
             let agent = d.tx.agent();
             frontier
@@ -605,12 +627,23 @@ impl Store {
             if let Value::Ref(target) = &d.value {
                 vaet_index.entry(*target).or_default().push(d.clone());
             }
-            // AVET: index by (attribute, value) for unique/range lookups (ADR-STORE-005)
+            // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-012)
             if d.op == Op::Assert {
                 avet_index
                     .entry((d.attribute.clone(), d.value.clone()))
                     .or_default()
                     .push(d.clone());
+                // LIVE: LWW — highest tx wins per (entity, attribute)
+                let key = (d.entity, d.attribute.clone());
+                live_view
+                    .entry(key)
+                    .and_modify(|(v, tx)| {
+                        if d.tx > *tx {
+                            *v = d.value.clone();
+                            *tx = d.tx;
+                        }
+                    })
+                    .or_insert((d.value.clone(), d.tx));
             }
         }
 
@@ -623,6 +656,7 @@ impl Store {
             attribute_index,
             vaet_index,
             avet_index,
+            live_view,
         }
     }
 
@@ -978,6 +1012,7 @@ impl Store {
             attribute_index: self.attribute_index.clone(),
             vaet_index: self.vaet_index.clone(),
             avet_index: self.avet_index.clone(),
+            live_view: self.live_view.clone(),
         }
     }
 
@@ -1040,6 +1075,15 @@ impl Store {
             .unwrap_or(&[])
     }
 
+    /// Get the current resolved value for (entity, attribute) — O(1) (LIVE view).
+    ///
+    /// INV-STORE-012: Returns the LWW-resolved current value. At Stage 0,
+    /// all attributes use LWW resolution (highest TxId wins).
+    /// Returns None if no assertion exists for this (entity, attribute) pair.
+    pub fn live_value(&self, entity: EntityId, attr: &Attribute) -> Option<&Value> {
+        self.live_view.get(&(entity, attr.clone())).map(|(v, _)| v)
+    }
+
     /// All datoms for a specific (attribute, value) pair (AVET index).
     ///
     /// Returns assert datoms where `d.attribute == attr && d.value == value`.
@@ -1099,12 +1143,23 @@ impl Store {
                     .or_default()
                     .push(datom.clone());
             }
-            // AVET: index by (attribute, value) for assert datoms (ADR-STORE-005)
+            // AVET + LIVE: index Assert datoms (ADR-STORE-005, INV-STORE-012)
             if datom.op == Op::Assert {
                 self.avet_index
                     .entry((datom.attribute.clone(), datom.value.clone()))
                     .or_default()
-                    .push(datom);
+                    .push(datom.clone());
+                // LIVE: LWW — highest tx wins
+                let key = (datom.entity, datom.attribute.clone());
+                self.live_view
+                    .entry(key)
+                    .and_modify(|(v, tx)| {
+                        if datom.tx > *tx {
+                            *v = datom.value.clone();
+                            *tx = datom.tx;
+                        }
+                    })
+                    .or_insert((datom.value.clone(), datom.tx));
             }
         }
     }
