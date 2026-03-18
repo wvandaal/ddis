@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793236/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-616b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "457febb0658efb84f8993d136a9a6ed31a967d005f392847d29521a27f23cbdb" :a :task/close-reason :v "Batch 1: Cross-reference help text added to observe and write assert" :op :assert}
+   {:e #blake3 "457febb0658efb84f8993d136a9a6ed31a967d005f392847d29521a27f23cbdb" :a :task/closed-at :v 1773793233 :op :assert}
+   {:e #blake3 "457febb0658efb84f8993d136a9a6ed31a967d005f392847d29521a27f23cbdb" :a :task/status :v :task.status/closed :op :assert}
+ ]}

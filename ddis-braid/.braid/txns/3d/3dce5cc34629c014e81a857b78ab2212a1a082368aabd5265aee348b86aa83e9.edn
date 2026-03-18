@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793240/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f62e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d20338554e5996e19e92c1e81cd6de41377ff98019f883e8afabe7e3811ca9be" :a :task/close-reason :v "Batch 3: Turn-count bands <=10→Full, <=30→Compressed, <=50→Minimal" :op :assert}
+   {:e #blake3 "d20338554e5996e19e92c1e81cd6de41377ff98019f883e8afabe7e3811ca9be" :a :task/closed-at :v 1773793235 :op :assert}
+   {:e #blake3 "d20338554e5996e19e92c1e81cd6de41377ff98019f883e8afabe7e3811ca9be" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793955/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-75a8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0f4d51ddb46dd5185d4d838b9310388e732f030a9dd49837e2c332a94c7ff14b" :a :task/close-reason :v "Constraint cap 10→5. Section ordering, parasitic removal, Protocol line verified correct." :op :assert}
+   {:e #blake3 "0f4d51ddb46dd5185d4d838b9310388e732f030a9dd49837e2c332a94c7ff14b" :a :task/closed-at :v 1773793953 :op :assert}
+   {:e #blake3 "0f4d51ddb46dd5185d4d838b9310388e732f030a9dd49837e2c332a94c7ff14b" :a :task/status :v :task.status/closed :op :assert}
+ ]}

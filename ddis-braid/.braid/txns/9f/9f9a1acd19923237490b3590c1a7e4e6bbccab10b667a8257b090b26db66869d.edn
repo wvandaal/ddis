@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793241/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-23d5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1ddeb2008ecce2f851b99dcb6868d89047692ac8ccc18e3df4a95704071fad8b" :a :task/close-reason :v "Batch 4: hide_long_help=true on global flags" :op :assert}
+   {:e #blake3 "1ddeb2008ecce2f851b99dcb6868d89047692ac8ccc18e3df4a95704071fad8b" :a :task/closed-at :v 1773793236 :op :assert}
+   {:e #blake3 "1ddeb2008ecce2f851b99dcb6868d89047692ac8ccc18e3df4a95704071fad8b" :a :task/status :v :task.status/closed :op :assert}
+ ]}

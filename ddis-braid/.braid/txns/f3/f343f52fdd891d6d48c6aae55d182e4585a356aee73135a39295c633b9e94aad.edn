@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793242/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f75b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "02ac8ef46fbb42e507ae6d850fb67341923a28e1420d60458873d7920ddd8f0c" :a :task/close-reason :v "Batch 4: F(S) formula + weakest component + M(t) sub-metrics + all R(t) actions" :op :assert}
+   {:e #blake3 "02ac8ef46fbb42e507ae6d850fb67341923a28e1420d60458873d7920ddd8f0c" :a :task/closed-at :v 1773793236 :op :assert}
+   {:e #blake3 "02ac8ef46fbb42e507ae6d850fb67341923a28e1420d60458873d7920ddd8f0c" :a :task/status :v :task.status/closed :op :assert}
+ ]}

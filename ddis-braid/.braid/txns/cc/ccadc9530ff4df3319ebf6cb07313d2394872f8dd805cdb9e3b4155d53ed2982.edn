@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793235/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a8b9"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f19f782fc6451022e3741fe9e6c5414257fabf3ee41756482082b1adb910b012" :a :task/close-reason :v "Batch 1: Sub-metric hints ✗→write, ✗→query in footer" :op :assert}
+   {:e #blake3 "f19f782fc6451022e3741fe9e6c5414257fabf3ee41756482082b1adb910b012" :a :task/closed-at :v 1773793233 :op :assert}
+   {:e #blake3 "f19f782fc6451022e3741fe9e6c5414257fabf3ee41756482082b1adb910b012" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793954/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-0eec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c9a1979464a1b2f66d13d311a81f8f9f2856a589106b847d7bcbec7f7fb648a3" :a :task/close-reason :v "MCP Datalog parameter with parse_datalog + evaluate_with_frontier. 6 tests." :op :assert}
+   {:e #blake3 "c9a1979464a1b2f66d13d311a81f8f9f2856a589106b847d7bcbec7f7fb648a3" :a :task/closed-at :v 1773793952 :op :assert}
+   {:e #blake3 "c9a1979464a1b2f66d13d311a81f8f9f2856a589106b847d7bcbec7f7fb648a3" :a :task/status :v :task.status/closed :op :assert}
+ ]}

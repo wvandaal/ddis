@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773794944/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 18 candidates from task 'Wave 2 continuation + P0 tasks'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :db/doc :v "Harvest session for task: Wave 2 continuation + P0 tasks" :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :db/ident :v :harvest/session-braid-user-1773794944 :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :harvest/candidate-count :v 18 :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :harvest/codebase-snapshot :v "Codebase: 73723 LOC across 72 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/seed.rs (4550 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4164 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (3558 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3071 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (2993 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (2908 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2080 LOC)\n  ddis-braid/crates/braid-kernel/src/trilateral.rs (2048 LOC)" :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :harvest/delta-summary :v "+78 datoms, +2 entities" :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :harvest/drift-score :v 1.0588235294117647 :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :harvest/git-summary :v "branch=main, 4 commits, 15 files (+653/-40)\n  3f852ef 3 P0 tasks: resolution schema, MergeReceipt fields, cascade stubs\n  9d0acbb Fix EPIC dependency semantics: EPICs don't block children (INV-TASK-003)\n  bec2434 Wave 2 continued: 3 tasks — evaluator doc fix, MCP Datalog, seed constraint cap\n  d6e5483 Session harvest: Wave 2 LLM Surface Optimization (12 tasks, 5 batches)\nHot files:\n  ddis-braid/crates/braid-kernel/src/merge.rs (269 lines changed)\n  ddis-braid/crates/braid/src/mcp.rs (228 lines changed)\n  ddis-braid/crates/braid-kernel/src/store.rs (49 lines changed)\n  ddis-braid/crates/braid-kernel/src/schema.rs (36 lines changed)\n  ddis-braid/.braid/txns/23/239f9d47fba086eae95b987cd87b8ba4f6fda0ccda3273d6c720025ab3df95b4.edn (22 lines changed)\n  ddis-braid/crates/braid-kernel/src/task.rs (22 lines changed)\n  ddis-braid/.braid/txns/ac/ac89de882c6d61ca57b0c84c258711a9ece221c647b076ae35971f4f1154776d.edn (16 lines changed)\n  ddis-braid/crates/braid-kernel/src/query/evaluator.rs (13 lines changed)" :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :harvest/observation-count :v 1 :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :harvest/store-datom-count :v 11945 :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :harvest/store-entity-count :v 1840 :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :harvest/task :v "Wave 2 continuation + P0 tasks" :op :assert}
+   {:e #blake3 "e31cd9f13a6f6cecd7783c309bb4f169477570acc4f97b2d1d57fe894836b117" :a :harvest/tx-since-last :v 23 :op :assert}
+ ]}

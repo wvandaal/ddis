@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773794937/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 024: 6 tasks closed (3 Wave 2 leaf + 3 P0 S0-CLOSE). EPIC dependency semantics fixed — EPICs no longer block children. Ready set: 13→168. New: :resolution/* schema attrs, MergeReceipt frontier_delta, cascade_stub_datoms. 1046 tests."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1b73bf8a93c894a167febfe86532eaff6a73f87c9223ac4bde3d49c08365ebc7" :a :db/doc :v "Session 024: 6 tasks closed (3 Wave 2 leaf + 3 P0 S0-CLOSE). EPIC dependency semantics fixed — EPICs no longer block children. Ready set: 13→168. New: :resolution/* schema attrs, MergeReceipt frontier_delta, cascade_stub_datoms. 1046 tests." :op :assert}
+   {:e #blake3 "1b73bf8a93c894a167febfe86532eaff6a73f87c9223ac4bde3d49c08365ebc7" :a :db/ident :v :observation/session-024-6-tasks-closed-3-wave-2-leaf-3-p0-s0-close :op :assert}
+   {:e #blake3 "1b73bf8a93c894a167febfe86532eaff6a73f87c9223ac4bde3d49c08365ebc7" :a :exploration/body :v "Session 024: 6 tasks closed (3 Wave 2 leaf + 3 P0 S0-CLOSE). EPIC dependency semantics fixed — EPICs no longer block children. Ready set: 13→168. New: :resolution/* schema attrs, MergeReceipt frontier_delta, cascade_stub_datoms. 1046 tests." :op :assert}
+   {:e #blake3 "1b73bf8a93c894a167febfe86532eaff6a73f87c9223ac4bde3d49c08365ebc7" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "1b73bf8a93c894a167febfe86532eaff6a73f87c9223ac4bde3d49c08365ebc7" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "1b73bf8a93c894a167febfe86532eaff6a73f87c9223ac4bde3d49c08365ebc7" :a :exploration/content-hash :v #bytes "a9c5adc50838eb3fc1db9c7c5fcdfe46b460efc4769810a343f736e4d84d3529" :op :assert}
+   {:e #blake3 "1b73bf8a93c894a167febfe86532eaff6a73f87c9223ac4bde3d49c08365ebc7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1b73bf8a93c894a167febfe86532eaff6a73f87c9223ac4bde3d49c08365ebc7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1b73bf8a93c894a167febfe86532eaff6a73f87c9223ac4bde3d49c08365ebc7" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

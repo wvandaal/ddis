@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793239/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-eaab"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a38c0bad2892332ea262e7957992be0b32511436b621e16afc08b55e05bc524a" :a :task/close-reason :v "Batch 2: All 10 tool descriptions pass Q(D) quality check" :op :assert}
+   {:e #blake3 "a38c0bad2892332ea262e7957992be0b32511436b621e16afc08b55e05bc524a" :a :task/closed-at :v 1773793235 :op :assert}
+   {:e #blake3 "a38c0bad2892332ea262e7957992be0b32511436b621e16afc08b55e05bc524a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

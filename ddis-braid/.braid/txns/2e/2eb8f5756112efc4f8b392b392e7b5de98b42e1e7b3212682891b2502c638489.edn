@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793233/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-bbf3"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8972c68301a7ef88aec333189afa1973e8016903df6be65a6a16b40df16a8a7a" :a :task/close-reason :v "Batch 1: Key attrs removed, :impl/ filtered, Quick Reference → Protocol line" :op :assert}
+   {:e #blake3 "8972c68301a7ef88aec333189afa1973e8016903df6be65a6a16b40df16a8a7a" :a :task/closed-at :v 1773793232 :op :assert}
+   {:e #blake3 "8972c68301a7ef88aec333189afa1973e8016903df6be65a6a16b40df16a8a7a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

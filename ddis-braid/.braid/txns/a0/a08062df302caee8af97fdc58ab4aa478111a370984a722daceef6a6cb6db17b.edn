@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793237/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8e0d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "eb9888c4781857a3233867c37c7f86eca60441414b5074b27a3e7da78b536611" :a :task/close-reason :v "Batch 5: E2E script 25/25 pass (scripts/e2e_llm_surface.sh)" :op :assert}
+   {:e #blake3 "eb9888c4781857a3233867c37c7f86eca60441414b5074b27a3e7da78b536611" :a :task/closed-at :v 1773793234 :op :assert}
+   {:e #blake3 "eb9888c4781857a3233867c37c7f86eca60441414b5074b27a3e7da78b536611" :a :task/status :v :task.status/closed :op :assert}
+ ]}

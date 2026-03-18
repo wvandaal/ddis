@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793238/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c2c2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7756cabc853178ae86badea14fe70e2e00752525811017d47f528aeeba889c12" :a :task/close-reason :v "Batch 2: Dynamic instructions in initialize response with live metrics" :op :assert}
+   {:e #blake3 "7756cabc853178ae86badea14fe70e2e00752525811017d47f528aeeba889c12" :a :task/closed-at :v 1773793234 :op :assert}
+   {:e #blake3 "7756cabc853178ae86badea14fe70e2e00752525811017d47f528aeeba889c12" :a :task/status :v :task.status/closed :op :assert}
+ ]}

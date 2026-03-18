@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773793234/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c864"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d657defd42d3ad38c30f511aff57eb2703959e003ac2dd01ec0e263f5b5afc17" :a :task/close-reason :v "Batch 1: R18 uses braid go (7 tokens)" :op :assert}
+   {:e #blake3 "d657defd42d3ad38c30f511aff57eb2703959e003ac2dd01ec0e263f5b5afc17" :a :task/closed-at :v 1773793232 :op :assert}
+   {:e #blake3 "d657defd42d3ad38c30f511aff57eb2703959e003ac2dd01ec0e263f5b5afc17" :a :task/status :v :task.status/closed :op :assert}
+ ]}
