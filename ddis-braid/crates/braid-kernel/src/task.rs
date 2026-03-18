@@ -148,12 +148,22 @@ pub struct TaskSummary {
 
 /// Generate a short task ID from title text.
 ///
-/// Format: `t-{4 chars}` derived from BLAKE3 hash of the title.
+/// Format: `t-{8 chars}` derived from BLAKE3 hash of the title.
 /// Deterministic: same title → same ID.
+///
+/// # History
+///
+/// Previously used 4 hex chars (16 bits = 65,536 possibilities). At 375 tasks,
+/// the birthday problem gave 66% collision probability, and a confirmed collision
+/// was found: t-09cc had two different task titles mapped to the same entity.
+/// Increased to 8 hex chars (32 bits = ~4 billion possibilities). Expected
+/// collisions at 2,000 tasks: 0.0005. At 100,000 tasks: 1.2.
+///
+/// See: Session 024 audit, FM-034 (Task ID Birthday Collision).
 pub fn generate_task_id(title: &str) -> String {
     let hash = blake3::hash(title.as_bytes());
     let hex = hash.to_hex();
-    format!("t-{}", &hex[..4])
+    format!("t-{}", &hex[..8])
 }
 
 // ---------------------------------------------------------------------------
