@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773809206/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS: Implement FBW datom construction — witness_datoms(inv, test, hashes) (ADR-WITNESS-003)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f1ae9514e3e4468a245b89e1091b2fd19c998ee4acacc00b2f66ab19ae382b83" :a :db/ident :v :task/t-be8e :op :assert}
+   {:e #blake3 "f1ae9514e3e4468a245b89e1091b2fd19c998ee4acacc00b2f66ab19ae382b83" :a :task/created-at :v 1773809204 :op :assert}
+   {:e #blake3 "f1ae9514e3e4468a245b89e1091b2fd19c998ee4acacc00b2f66ab19ae382b83" :a :task/id :v "t-be8e" :op :assert}
+   {:e #blake3 "f1ae9514e3e4468a245b89e1091b2fd19c998ee4acacc00b2f66ab19ae382b83" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f1ae9514e3e4468a245b89e1091b2fd19c998ee4acacc00b2f66ab19ae382b83" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f1ae9514e3e4468a245b89e1091b2fd19c998ee4acacc00b2f66ab19ae382b83" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f1ae9514e3e4468a245b89e1091b2fd19c998ee4acacc00b2f66ab19ae382b83" :a :task/title :v "WITNESS: Implement FBW datom construction — witness_datoms(inv, test, hashes) (ADR-WITNESS-003)" :op :assert}
+   {:e #blake3 "f1ae9514e3e4468a245b89e1091b2fd19c998ee4acacc00b2f66ab19ae382b83" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773809211/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS: Implement evidence accumulation verdict algorithm (APP-ADR-039)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4eac1132c9b3d3dc501f65d2d809f2e73fcba218e570e67927322edd89c6926b" :a :db/ident :v :task/t-d9e9 :op :assert}
+   {:e #blake3 "4eac1132c9b3d3dc501f65d2d809f2e73fcba218e570e67927322edd89c6926b" :a :task/created-at :v 1773809207 :op :assert}
+   {:e #blake3 "4eac1132c9b3d3dc501f65d2d809f2e73fcba218e570e67927322edd89c6926b" :a :task/id :v "t-d9e9" :op :assert}
+   {:e #blake3 "4eac1132c9b3d3dc501f65d2d809f2e73fcba218e570e67927322edd89c6926b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4eac1132c9b3d3dc501f65d2d809f2e73fcba218e570e67927322edd89c6926b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4eac1132c9b3d3dc501f65d2d809f2e73fcba218e570e67927322edd89c6926b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4eac1132c9b3d3dc501f65d2d809f2e73fcba218e570e67927322edd89c6926b" :a :task/title :v "WITNESS: Implement evidence accumulation verdict algorithm (APP-ADR-039)" :op :assert}
+   {:e #blake3 "4eac1132c9b3d3dc501f65d2d809f2e73fcba218e570e67927322edd89c6926b" :a :task/type :v :task.type/task :op :assert}
+ ]}

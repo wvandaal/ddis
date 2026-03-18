@@ -59,12 +59,14 @@ Read the preamble first. All namespace files reference it for shared definitions
 | [18-trilateral.md](18-trilateral.md) | TRILATERAL — Trilateral Coherence Model | 1,233 | 0 | §1, §2, §3, §5, §6 |
 | [19-topology.md](19-topology.md) | TOPOLOGY — Coordination Topology Framework | ~650 | 3 | §4, §5, §6, §7, §10 |
 | [20-coherence.md](20-coherence.md) | COHERENCE — Coherence Geometry Framework | ~400 | 1+ | §1, §2, §4, §5, §6, §7 |
+| [21-witness.md](21-witness.md) | WITNESS — Falsification-Bound Verification | ~450 | 1 | §3, §6, §7 |
 
 ---
 
 ## Reading Order
 
 **For implementation (Stage 0):** preamble → STORE → SCHEMA → QUERY → HARVEST → SEED → GUIDANCE → INTERFACE
+**For verification (Stage 1):** WITNESS → BILATERAL → VERIFICATION → TRILATERAL
 
 **For full understanding:** preamble → Wave 1 → Wave 2 → Wave 3 → Wave 4
 

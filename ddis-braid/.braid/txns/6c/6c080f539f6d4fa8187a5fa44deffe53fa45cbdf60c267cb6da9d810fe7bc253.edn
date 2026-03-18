@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773809217/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: INV-WITNESS-001 triple-hash invalidation (proptest + Kani harness)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c1b24418c14e2e258b0e54724580de4743a7d42ae8b6457a1afed74e82eea671" :a :db/ident :v :task/t-33e0 :op :assert}
+   {:e #blake3 "c1b24418c14e2e258b0e54724580de4743a7d42ae8b6457a1afed74e82eea671" :a :task/created-at :v 1773809211 :op :assert}
+   {:e #blake3 "c1b24418c14e2e258b0e54724580de4743a7d42ae8b6457a1afed74e82eea671" :a :task/id :v "t-33e0" :op :assert}
+   {:e #blake3 "c1b24418c14e2e258b0e54724580de4743a7d42ae8b6457a1afed74e82eea671" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c1b24418c14e2e258b0e54724580de4743a7d42ae8b6457a1afed74e82eea671" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c1b24418c14e2e258b0e54724580de4743a7d42ae8b6457a1afed74e82eea671" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c1b24418c14e2e258b0e54724580de4743a7d42ae8b6457a1afed74e82eea671" :a :task/title :v "TEST: INV-WITNESS-001 triple-hash invalidation (proptest + Kani harness)" :op :assert}
+   {:e #blake3 "c1b24418c14e2e258b0e54724580de4743a7d42ae8b6457a1afed74e82eea671" :a :task/type :v :task.type/task :op :assert}
+ ]}

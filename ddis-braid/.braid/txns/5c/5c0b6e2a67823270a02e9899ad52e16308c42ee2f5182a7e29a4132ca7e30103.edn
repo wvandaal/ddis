@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773809029/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DESIGN DECISION: Falsification-Bound Witness (FBW) system. Triple-hash lock: spec_hash × falsification_hash × test_body_hash. Auto-invalidation on any hash change. Challenge Level 0: falsification alignment check. The verification contract IS the falsification condition. Test weakening becomes structurally detectable because test_body_hash breaks the witness. This is the functor F: Spec → Verification where F(inv) = (falsification, {t | t witnesses ¬falsification}). Natural transformation η: F → Store maps to FBW datoms with triple-lock."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5ee0e56586a737aa29419c10c74c56264b5ff7ef762b0467ed91b58a236ad1d3" :a :db/doc :v "DESIGN DECISION: Falsification-Bound Witness (FBW) system. Triple-hash lock: spec_hash × falsification_hash × test_body_hash. Auto-invalidation on any hash change. Challenge Level 0: falsification alignment check. The verification contract IS the falsification condition. Test weakening becomes structurally detectable because test_body_hash breaks the witness. This is the functor F: Spec → Verification where F(inv) = (falsification, {t | t witnesses ¬falsification}). Natural transformation η: F → Store maps to FBW datoms with triple-lock." :op :assert}
+   {:e #blake3 "5ee0e56586a737aa29419c10c74c56264b5ff7ef762b0467ed91b58a236ad1d3" :a :db/ident :v :observation/design-decision-falsification-bound-witness-fbw-system-t :op :assert}
+   {:e #blake3 "5ee0e56586a737aa29419c10c74c56264b5ff7ef762b0467ed91b58a236ad1d3" :a :exploration/body :v "DESIGN DECISION: Falsification-Bound Witness (FBW) system. Triple-hash lock: spec_hash × falsification_hash × test_body_hash. Auto-invalidation on any hash change. Challenge Level 0: falsification alignment check. The verification contract IS the falsification condition. Test weakening becomes structurally detectable because test_body_hash breaks the witness. This is the functor F: Spec → Verification where F(inv) = (falsification, {t | t witnesses ¬falsification}). Natural transformation η: F → Store maps to FBW datoms with triple-lock." :op :assert}
+   {:e #blake3 "5ee0e56586a737aa29419c10c74c56264b5ff7ef762b0467ed91b58a236ad1d3" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "5ee0e56586a737aa29419c10c74c56264b5ff7ef762b0467ed91b58a236ad1d3" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "5ee0e56586a737aa29419c10c74c56264b5ff7ef762b0467ed91b58a236ad1d3" :a :exploration/content-hash :v #bytes "06b965b26548263991953b7e7706d1cb0a4a52b3afd17cad0b668d4fde92eb9a" :op :assert}
+   {:e #blake3 "5ee0e56586a737aa29419c10c74c56264b5ff7ef762b0467ed91b58a236ad1d3" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5ee0e56586a737aa29419c10c74c56264b5ff7ef762b0467ed91b58a236ad1d3" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5ee0e56586a737aa29419c10c74c56264b5ff7ef762b0467ed91b58a236ad1d3" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

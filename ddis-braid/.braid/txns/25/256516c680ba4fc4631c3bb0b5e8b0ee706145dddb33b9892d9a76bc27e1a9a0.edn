@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773809168/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-WITNESS-002: Falsification Alignment. A(test, falsification) >= threshold per depth. L2=0.3 keyword, L3=0.5 property, L4=0.7 entailment. Prevents tautological tests that name but don't verify the invariant."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4724a9a685deeeafe37388807285b3f3b4a2bc0e4db233aa0ce1b0824b66871e" :a :db/doc :v "INV-WITNESS-002: Falsification Alignment. A(test, falsification) >= threshold per depth. L2=0.3 keyword, L3=0.5 property, L4=0.7 entailment. Prevents tautological tests that name but don't verify the invariant." :op :assert}
+   {:e #blake3 "4724a9a685deeeafe37388807285b3f3b4a2bc0e4db233aa0ce1b0824b66871e" :a :db/ident :v :observation/inv-witness-002-falsification-alignment-atest-falsificat :op :assert}
+   {:e #blake3 "4724a9a685deeeafe37388807285b3f3b4a2bc0e4db233aa0ce1b0824b66871e" :a :exploration/body :v "INV-WITNESS-002: Falsification Alignment. A(test, falsification) >= threshold per depth. L2=0.3 keyword, L3=0.5 property, L4=0.7 entailment. Prevents tautological tests that name but don't verify the invariant." :op :assert}
+   {:e #blake3 "4724a9a685deeeafe37388807285b3f3b4a2bc0e4db233aa0ce1b0824b66871e" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "4724a9a685deeeafe37388807285b3f3b4a2bc0e4db233aa0ce1b0824b66871e" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "4724a9a685deeeafe37388807285b3f3b4a2bc0e4db233aa0ce1b0824b66871e" :a :exploration/content-hash :v #bytes "547889436f4eb1571f567caf3da2511561c266b2605125c428de9f263f6c1459" :op :assert}
+   {:e #blake3 "4724a9a685deeeafe37388807285b3f3b4a2bc0e4db233aa0ce1b0824b66871e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4724a9a685deeeafe37388807285b3f3b4a2bc0e4db233aa0ce1b0824b66871e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4724a9a685deeeafe37388807285b3f3b4a2bc0e4db233aa0ce1b0824b66871e" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

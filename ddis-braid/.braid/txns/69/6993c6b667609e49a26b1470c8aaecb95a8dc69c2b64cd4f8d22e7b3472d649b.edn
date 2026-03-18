@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773809171/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-WITNESS-005: Stale Witnesses Reduce F(S). Validation component V treats stale FBWs as unverified (0 contribution). F(S) convergence property (INV-BILATERAL-001) mechanically detects verification erosion."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b1f549a2218b7b8626e4dcf0123e297c1709e84b992a72f1987e97a352a77202" :a :db/doc :v "INV-WITNESS-005: Stale Witnesses Reduce F(S). Validation component V treats stale FBWs as unverified (0 contribution). F(S) convergence property (INV-BILATERAL-001) mechanically detects verification erosion." :op :assert}
+   {:e #blake3 "b1f549a2218b7b8626e4dcf0123e297c1709e84b992a72f1987e97a352a77202" :a :db/ident :v :observation/inv-witness-005-stale-witnesses-reduce-fs-validation-com :op :assert}
+   {:e #blake3 "b1f549a2218b7b8626e4dcf0123e297c1709e84b992a72f1987e97a352a77202" :a :exploration/body :v "INV-WITNESS-005: Stale Witnesses Reduce F(S). Validation component V treats stale FBWs as unverified (0 contribution). F(S) convergence property (INV-BILATERAL-001) mechanically detects verification erosion." :op :assert}
+   {:e #blake3 "b1f549a2218b7b8626e4dcf0123e297c1709e84b992a72f1987e97a352a77202" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "b1f549a2218b7b8626e4dcf0123e297c1709e84b992a72f1987e97a352a77202" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "b1f549a2218b7b8626e4dcf0123e297c1709e84b992a72f1987e97a352a77202" :a :exploration/content-hash :v #bytes "1318d2ad557da9642b29afb7eabb0f1aa8264b67fba00e3c652bbf50234aec75" :op :assert}
+   {:e #blake3 "b1f549a2218b7b8626e4dcf0123e297c1709e84b992a72f1987e97a352a77202" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b1f549a2218b7b8626e4dcf0123e297c1709e84b992a72f1987e97a352a77202" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b1f549a2218b7b8626e4dcf0123e297c1709e84b992a72f1987e97a352a77202" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773809205/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS: Implement test body hash extraction in trace scanner (INV-WITNESS-006)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2f6a1564ed374bca19dc59236a1706e711da13971f4222010e9cc33f191c359a" :a :db/ident :v :task/t-b918 :op :assert}
+   {:e #blake3 "2f6a1564ed374bca19dc59236a1706e711da13971f4222010e9cc33f191c359a" :a :task/created-at :v 1773809204 :op :assert}
+   {:e #blake3 "2f6a1564ed374bca19dc59236a1706e711da13971f4222010e9cc33f191c359a" :a :task/id :v "t-b918" :op :assert}
+   {:e #blake3 "2f6a1564ed374bca19dc59236a1706e711da13971f4222010e9cc33f191c359a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2f6a1564ed374bca19dc59236a1706e711da13971f4222010e9cc33f191c359a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2f6a1564ed374bca19dc59236a1706e711da13971f4222010e9cc33f191c359a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2f6a1564ed374bca19dc59236a1706e711da13971f4222010e9cc33f191c359a" :a :task/title :v "WITNESS: Implement test body hash extraction in trace scanner (INV-WITNESS-006)" :op :assert}
+   {:e #blake3 "2f6a1564ed374bca19dc59236a1706e711da13971f4222010e9cc33f191c359a" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773809207/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS: Implement triple-hash auto-invalidation — detect_stale_witnesses(store) (INV-WITNESS-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4c3243a535b924295bc38958b974464b96cac77bb389a7995bcf3074dff44361" :a :db/ident :v :task/t-f399 :op :assert}
+   {:e #blake3 "4c3243a535b924295bc38958b974464b96cac77bb389a7995bcf3074dff44361" :a :task/created-at :v 1773809205 :op :assert}
+   {:e #blake3 "4c3243a535b924295bc38958b974464b96cac77bb389a7995bcf3074dff44361" :a :task/id :v "t-f399" :op :assert}
+   {:e #blake3 "4c3243a535b924295bc38958b974464b96cac77bb389a7995bcf3074dff44361" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4c3243a535b924295bc38958b974464b96cac77bb389a7995bcf3074dff44361" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4c3243a535b924295bc38958b974464b96cac77bb389a7995bcf3074dff44361" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4c3243a535b924295bc38958b974464b96cac77bb389a7995bcf3074dff44361" :a :task/title :v "WITNESS: Implement triple-hash auto-invalidation — detect_stale_witnesses(store) (INV-WITNESS-001)" :op :assert}
+   {:e #blake3 "4c3243a535b924295bc38958b974464b96cac77bb389a7995bcf3074dff44361" :a :task/type :v :task.type/task :op :assert}
+ ]}

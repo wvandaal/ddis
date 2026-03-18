@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773809218/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: INV-WITNESS-002 falsification alignment scoring (unit + proptest)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1228a9ffdbe75587f1aa6443b62fbc955054d001339e7087263bfb53a34e25ce" :a :db/ident :v :task/t-89e6 :op :assert}
+   {:e #blake3 "1228a9ffdbe75587f1aa6443b62fbc955054d001339e7087263bfb53a34e25ce" :a :task/created-at :v 1773809212 :op :assert}
+   {:e #blake3 "1228a9ffdbe75587f1aa6443b62fbc955054d001339e7087263bfb53a34e25ce" :a :task/id :v "t-89e6" :op :assert}
+   {:e #blake3 "1228a9ffdbe75587f1aa6443b62fbc955054d001339e7087263bfb53a34e25ce" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1228a9ffdbe75587f1aa6443b62fbc955054d001339e7087263bfb53a34e25ce" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1228a9ffdbe75587f1aa6443b62fbc955054d001339e7087263bfb53a34e25ce" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1228a9ffdbe75587f1aa6443b62fbc955054d001339e7087263bfb53a34e25ce" :a :task/title :v "TEST: INV-WITNESS-002 falsification alignment scoring (unit + proptest)" :op :assert}
+   {:e #blake3 "1228a9ffdbe75587f1aa6443b62fbc955054d001339e7087263bfb53a34e25ce" :a :task/type :v :task.type/task :op :assert}
+ ]}

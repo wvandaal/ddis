@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773809170/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-WITNESS-004: Challenge Adjunction Completeness. No FBW reaches valid without challenge pass. Challenge is right adjoint to witness (APP-ADR-037). Structural guarantee: witnesses are verified, not ceremonial."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "613cd581e88ae4d1715b08ec498cf8d8f19d51b26ceaf03a9f40622586644720" :a :db/doc :v "INV-WITNESS-004: Challenge Adjunction Completeness. No FBW reaches valid without challenge pass. Challenge is right adjoint to witness (APP-ADR-037). Structural guarantee: witnesses are verified, not ceremonial." :op :assert}
+   {:e #blake3 "613cd581e88ae4d1715b08ec498cf8d8f19d51b26ceaf03a9f40622586644720" :a :db/ident :v :observation/inv-witness-004-challenge-adjunction-completeness-no-fbw-r :op :assert}
+   {:e #blake3 "613cd581e88ae4d1715b08ec498cf8d8f19d51b26ceaf03a9f40622586644720" :a :exploration/body :v "INV-WITNESS-004: Challenge Adjunction Completeness. No FBW reaches valid without challenge pass. Challenge is right adjoint to witness (APP-ADR-037). Structural guarantee: witnesses are verified, not ceremonial." :op :assert}
+   {:e #blake3 "613cd581e88ae4d1715b08ec498cf8d8f19d51b26ceaf03a9f40622586644720" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "613cd581e88ae4d1715b08ec498cf8d8f19d51b26ceaf03a9f40622586644720" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "613cd581e88ae4d1715b08ec498cf8d8f19d51b26ceaf03a9f40622586644720" :a :exploration/content-hash :v #bytes "ea684c2c29ad5a8569d10c3d8de040f89ff5b3836cf67811f2c30646d60c62c0" :op :assert}
+   {:e #blake3 "613cd581e88ae4d1715b08ec498cf8d8f19d51b26ceaf03a9f40622586644720" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "613cd581e88ae4d1715b08ec498cf8d8f19d51b26ceaf03a9f40622586644720" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "613cd581e88ae4d1715b08ec498cf8d8f19d51b26ceaf03a9f40622586644720" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

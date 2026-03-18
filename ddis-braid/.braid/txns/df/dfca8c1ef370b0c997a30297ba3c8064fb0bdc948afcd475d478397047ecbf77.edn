@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773809203/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Falsification-Bound Witness System (INV-WITNESS-001..007, spec/21-witness.md)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6abe03eb49b81f6a9163d8990c3babd7ecb843c74862ac10cf45fea4186389bf" :a :db/ident :v :task/t-9b93 :op :assert}
+   {:e #blake3 "6abe03eb49b81f6a9163d8990c3babd7ecb843c74862ac10cf45fea4186389bf" :a :task/created-at :v 1773809202 :op :assert}
+   {:e #blake3 "6abe03eb49b81f6a9163d8990c3babd7ecb843c74862ac10cf45fea4186389bf" :a :task/id :v "t-9b93" :op :assert}
+   {:e #blake3 "6abe03eb49b81f6a9163d8990c3babd7ecb843c74862ac10cf45fea4186389bf" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6abe03eb49b81f6a9163d8990c3babd7ecb843c74862ac10cf45fea4186389bf" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6abe03eb49b81f6a9163d8990c3babd7ecb843c74862ac10cf45fea4186389bf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6abe03eb49b81f6a9163d8990c3babd7ecb843c74862ac10cf45fea4186389bf" :a :task/title :v "EPIC: Falsification-Bound Witness System (INV-WITNESS-001..007, spec/21-witness.md)" :op :assert}
+   {:e #blake3 "6abe03eb49b81f6a9163d8990c3babd7ecb843c74862ac10cf45fea4186389bf" :a :task/type :v :task.type/epic :op :assert}
+ ]}

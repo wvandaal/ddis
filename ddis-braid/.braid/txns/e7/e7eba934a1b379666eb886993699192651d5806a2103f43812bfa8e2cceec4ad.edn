@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773809214/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS: Implement braid witness CLI command (record + check + refresh)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4c76813e847b5dfc69636848c9ad3427f2a556629d69f5a26bf8e0284d2db158" :a :db/ident :v :task/t-82cf :op :assert}
+   {:e #blake3 "4c76813e847b5dfc69636848c9ad3427f2a556629d69f5a26bf8e0284d2db158" :a :task/created-at :v 1773809209 :op :assert}
+   {:e #blake3 "4c76813e847b5dfc69636848c9ad3427f2a556629d69f5a26bf8e0284d2db158" :a :task/id :v "t-82cf" :op :assert}
+   {:e #blake3 "4c76813e847b5dfc69636848c9ad3427f2a556629d69f5a26bf8e0284d2db158" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4c76813e847b5dfc69636848c9ad3427f2a556629d69f5a26bf8e0284d2db158" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4c76813e847b5dfc69636848c9ad3427f2a556629d69f5a26bf8e0284d2db158" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4c76813e847b5dfc69636848c9ad3427f2a556629d69f5a26bf8e0284d2db158" :a :task/title :v "WITNESS: Implement braid witness CLI command (record + check + refresh)" :op :assert}
+   {:e #blake3 "4c76813e847b5dfc69636848c9ad3427f2a556629d69f5a26bf8e0284d2db158" :a :task/type :v :task.type/feature :op :assert}
+ ]}

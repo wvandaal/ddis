@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773809209/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WITNESS: Implement monotonic depth guard — reject depth regression without deliberation (INV-WITNESS-003)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b3adcdc09e3055843800eedc3c6023a1a0a31bc21f115dd06f7a007c4252af94" :a :db/ident :v :task/t-fb10 :op :assert}
+   {:e #blake3 "b3adcdc09e3055843800eedc3c6023a1a0a31bc21f115dd06f7a007c4252af94" :a :task/created-at :v 1773809206 :op :assert}
+   {:e #blake3 "b3adcdc09e3055843800eedc3c6023a1a0a31bc21f115dd06f7a007c4252af94" :a :task/id :v "t-fb10" :op :assert}
+   {:e #blake3 "b3adcdc09e3055843800eedc3c6023a1a0a31bc21f115dd06f7a007c4252af94" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b3adcdc09e3055843800eedc3c6023a1a0a31bc21f115dd06f7a007c4252af94" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b3adcdc09e3055843800eedc3c6023a1a0a31bc21f115dd06f7a007c4252af94" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b3adcdc09e3055843800eedc3c6023a1a0a31bc21f115dd06f7a007c4252af94" :a :task/title :v "WITNESS: Implement monotonic depth guard — reject depth regression without deliberation (INV-WITNESS-003)" :op :assert}
+   {:e #blake3 "b3adcdc09e3055843800eedc3c6023a1a0a31bc21f115dd06f7a007c4252af94" :a :task/type :v :task.type/task :op :assert}
+ ]}

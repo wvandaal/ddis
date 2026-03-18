@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773809167/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-WITNESS-001: Triple-Hash Auto-Invalidation. FBW status = stale when any of spec_hash, falsification_hash, test_body_hash differs from current artifact. Triple-lock: spec drift + test weakening + contract mutation all detected."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d49326bde7fefb6d32748ecb16733e6e86c1555fa2a440303a741c83b58f485c" :a :db/doc :v "INV-WITNESS-001: Triple-Hash Auto-Invalidation. FBW status = stale when any of spec_hash, falsification_hash, test_body_hash differs from current artifact. Triple-lock: spec drift + test weakening + contract mutation all detected." :op :assert}
+   {:e #blake3 "d49326bde7fefb6d32748ecb16733e6e86c1555fa2a440303a741c83b58f485c" :a :db/ident :v :observation/inv-witness-001-triple-hash-auto-invalidation-fbw-status :op :assert}
+   {:e #blake3 "d49326bde7fefb6d32748ecb16733e6e86c1555fa2a440303a741c83b58f485c" :a :exploration/body :v "INV-WITNESS-001: Triple-Hash Auto-Invalidation. FBW status = stale when any of spec_hash, falsification_hash, test_body_hash differs from current artifact. Triple-lock: spec drift + test weakening + contract mutation all detected." :op :assert}
+   {:e #blake3 "d49326bde7fefb6d32748ecb16733e6e86c1555fa2a440303a741c83b58f485c" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "d49326bde7fefb6d32748ecb16733e6e86c1555fa2a440303a741c83b58f485c" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d49326bde7fefb6d32748ecb16733e6e86c1555fa2a440303a741c83b58f485c" :a :exploration/content-hash :v #bytes "40b424b02b62f8ea92910eb9393c3af2d6f25ab462e6447c34f01680df69bc13" :op :assert}
+   {:e #blake3 "d49326bde7fefb6d32748ecb16733e6e86c1555fa2a440303a741c83b58f485c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d49326bde7fefb6d32748ecb16733e6e86c1555fa2a440303a741c83b58f485c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d49326bde7fefb6d32748ecb16733e6e86c1555fa2a440303a741c83b58f485c" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
