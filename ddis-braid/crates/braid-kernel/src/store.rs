@@ -568,6 +568,11 @@ impl Store {
     /// Inserts all datoms into the BTreeSet (dedup by content identity),
     /// updates the frontier, and rebuilds schema if schema attributes changed.
     ///
+    /// If the transacting agent does not already have an entity in the store,
+    /// one is auto-created with `:db/ident` = `:agent/{name}` and
+    /// `:db/doc` = `"Agent entity for {name}"` as part of the same transaction
+    /// (INV-STORE-015: agent entity completeness).
+    ///
     /// # Invariants
     ///
     /// - **INV-STORE-001**: `|S'| >= |S|` — store only grows.
@@ -575,7 +580,8 @@ impl Store {
     /// - **INV-STORE-009**: Frontier durably stored before returning.
     /// - **INV-STORE-013**: Working set isolation — only committed datoms enter store.
     /// - **INV-STORE-014**: Transaction metadata recorded as datoms.
-    /// - **INV-STORE-015**: Agent entity completeness — frontier tracks agent.
+    /// - **INV-STORE-015**: Agent entity completeness — frontier tracks agent,
+    ///   agent entity auto-created for non-genesis agents.
     pub fn transact(&mut self, tx: Transaction<Committed>) -> Result<TxReceipt, StoreError> {
         let tx_id = tx.tx_id();
         let tx_data = tx.tx_data().clone();
@@ -587,6 +593,57 @@ impl Store {
 
         // Use entity_index for O(1) existence check instead of O(N) scan.
         let pre_existing: HashSet<EntityId> = self.entity_index.keys().copied().collect();
+
+        // INV-STORE-015: Auto-create agent entity if not already present.
+        // The agent entity uses the same EntityId derivation as :tx/agent refs
+        // (EntityId::from_content(agent.as_bytes())), ensuring referential consistency.
+        // This is done as part of the SAME transaction — no separate transact call.
+        //
+        // The ident uses the hex encoding of the AgentId bytes since AgentId is a
+        // one-way BLAKE3 hash and the original name is not recoverable.
+        let agent_entity_id = EntityId::from_content(tx_data.agent.as_bytes());
+        if !pre_existing.contains(&agent_entity_id) {
+            let agent_hex = tx_data
+                .agent
+                .as_bytes()
+                .iter()
+                .map(|b| format!("{b:02x}"))
+                .collect::<String>();
+            let ident = format!(":agent/{}", agent_hex);
+            let doc = format!("Agent entity ({})", agent_hex);
+
+            let ident_datom = Datom::new(
+                agent_entity_id,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(ident),
+                tx_id,
+                Op::Assert,
+            );
+            let doc_datom = Datom::new(
+                agent_entity_id,
+                Attribute::from_keyword(":db/doc"),
+                Value::String(doc),
+                tx_id,
+                Op::Assert,
+            );
+
+            for d in [ident_datom, doc_datom] {
+                if self.datoms.insert(d.clone()) {
+                    datom_count += 1;
+                    self.entity_index
+                        .entry(d.entity)
+                        .or_default()
+                        .push(d.clone());
+                    self.attribute_index
+                        .entry(d.attribute.clone())
+                        .or_default()
+                        .push(d);
+                }
+            }
+            if !new_entities.contains(&agent_entity_id) {
+                new_entities.push(agent_entity_id);
+            }
+        }
 
         // Insert the user datoms
         for datom in tx.datoms() {
@@ -992,6 +1049,105 @@ mod tests {
 
         store.transact(tx).unwrap();
         assert!(store.len() > before, "INV-STORE-002: store must grow");
+    }
+
+    // Verifies: INV-STORE-015 — Agent Entity Completeness
+    // Non-genesis agents get auto-created entities with :db/ident and :db/doc.
+    #[test]
+    fn transact_creates_agent_entity_for_non_genesis_agent() {
+        let mut store = Store::genesis();
+
+        // Use a non-genesis agent
+        let new_agent = AgentId::from_name("claude-agent-42");
+        let agent_entity_id = EntityId::from_content(new_agent.as_bytes());
+
+        // Agent entity should NOT exist before transact
+        let before_datoms: Vec<&Datom> = store.entity_datoms(agent_entity_id);
+        assert!(
+            before_datoms.is_empty(),
+            "agent entity should not exist before first transact"
+        );
+
+        let entity = EntityId::from_ident(":test/agent-entity-test");
+        let tx = Transaction::new(new_agent, ProvenanceType::Observed, "test agent creation")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("test".into()),
+            )
+            .commit(&store)
+            .unwrap();
+
+        store.transact(tx).unwrap();
+
+        // Agent entity should now exist with :db/ident
+        let agent_datoms: Vec<&Datom> = store.entity_datoms(agent_entity_id);
+        assert!(
+            !agent_datoms.is_empty(),
+            "INV-STORE-015: agent entity must be created on first transact"
+        );
+
+        let has_ident = agent_datoms.iter().any(|d| {
+            d.attribute.as_str() == ":db/ident"
+                && matches!(&d.value, Value::Keyword(k) if k.starts_with(":agent/"))
+        });
+        assert!(
+            has_ident,
+            "INV-STORE-015: agent entity must have :db/ident = :agent/..."
+        );
+
+        let has_doc = agent_datoms
+            .iter()
+            .any(|d| d.attribute.as_str() == ":db/doc");
+        assert!(has_doc, "INV-STORE-015: agent entity must have :db/doc");
+    }
+
+    // Verifies: INV-STORE-015 — Agent Entity Completeness (idempotency)
+    // Second transaction from the same agent should NOT create a duplicate entity.
+    #[test]
+    fn transact_does_not_duplicate_agent_entity() {
+        let mut store = Store::genesis();
+        let agent = AgentId::from_name("repeat-agent");
+        let agent_entity_id = EntityId::from_content(agent.as_bytes());
+
+        // First transaction — creates agent entity
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "first")
+            .assert(
+                EntityId::from_ident(":test/first"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("first".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        let datoms_after_first: Vec<&Datom> = store.entity_datoms(agent_entity_id);
+        let ident_count_1 = datoms_after_first
+            .iter()
+            .filter(|d| d.attribute.as_str() == ":db/ident")
+            .count();
+
+        // Second transaction — agent entity already exists
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "second")
+            .assert(
+                EntityId::from_ident(":test/second"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("second".into()),
+            )
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        let datoms_after_second: Vec<&Datom> = store.entity_datoms(agent_entity_id);
+        let ident_count_2 = datoms_after_second
+            .iter()
+            .filter(|d| d.attribute.as_str() == ":db/ident")
+            .count();
+
+        assert_eq!(
+            ident_count_1, ident_count_2,
+            "INV-STORE-015: agent entity should not be duplicated on second transact"
+        );
     }
 
     // Verifies: INV-STORE-014 — Every Command Is a Transaction (empty tx rejected)

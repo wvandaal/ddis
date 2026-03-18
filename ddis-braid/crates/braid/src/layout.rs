@@ -132,6 +132,10 @@ impl DiskLayout {
     ///
     /// `hash_hex` must be a valid lowercase hex string of at least 2 characters
     /// (BLAKE3 hashes are 64 hex chars). Returns an error for malformed input.
+    ///
+    /// INV-LAYOUT-005: After reading, verifies that the content hash of the file
+    /// matches the expected hash derived from the filename. Returns an integrity
+    /// error if the hash does not match (corrupt or tampered file).
     pub fn read_tx(&self, hash_hex: &str) -> Result<TxFile, BraidError> {
         if hash_hex.len() < 2 || !hash_hex.bytes().all(|b| b.is_ascii_hexdigit()) {
             return Err(BraidError::Parse(format!(
@@ -146,6 +150,17 @@ impl DiskLayout {
             .join(prefix)
             .join(format!("{hash_hex}.edn"));
         let bytes = fs::read(&path)?;
+
+        // INV-LAYOUT-005: Verify content hash matches expected hash from filename.
+        let actual_hash = ContentHash::of(&bytes);
+        let actual_hex = actual_hash.to_hex();
+        if actual_hex != hash_hex {
+            return Err(BraidError::Validation(format!(
+                "INV-LAYOUT-005: content hash mismatch for tx {hash_hex}: \
+                 expected {hash_hex}, got {actual_hex} (file may be corrupt or tampered)"
+            )));
+        }
+
         let tx = deserialize_tx(&bytes)?;
         Ok(tx)
     }
@@ -460,5 +475,59 @@ mod tests {
         assert_eq!(read_back.tx_id, tx.tx_id);
         assert_eq!(read_back.rationale, tx.rationale);
         assert_eq!(read_back.datoms.len(), 1);
+    }
+
+    // Verifies: INV-LAYOUT-005 — Content hash verified on read
+    #[test]
+    fn read_tx_verifies_content_hash() {
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join(".braid");
+        let layout = DiskLayout::init(&root).unwrap();
+
+        // Write a valid transaction
+        let agent = AgentId::from_name("hash-check-agent");
+        let tx_id = TxId::new(2000, 0, agent);
+        let entity = braid_kernel::datom::EntityId::from_ident(":test/hash-check");
+
+        let tx = TxFile {
+            tx_id,
+            agent,
+            provenance: braid_kernel::datom::ProvenanceType::Observed,
+            rationale: "hash verification test".to_string(),
+            causal_predecessors: vec![],
+            datoms: vec![braid_kernel::datom::Datom {
+                entity,
+                attribute: braid_kernel::datom::Attribute::from_keyword(":db/doc"),
+                value: braid_kernel::datom::Value::String("verify me".to_string()),
+                tx: tx_id,
+                op: braid_kernel::datom::Op::Assert,
+            }],
+        };
+
+        let file_path = layout.write_tx(&tx).unwrap();
+        let hash = file_path.filename.strip_suffix(".edn").unwrap().to_string();
+
+        // Positive case: uncorrupted file reads successfully
+        assert!(
+            layout.read_tx(&hash).is_ok(),
+            "INV-LAYOUT-005: valid file should pass hash verification"
+        );
+
+        // Corrupt the file content (but keep the same filename/hash)
+        let prefix = &hash[..2];
+        let path = root.join("txns").join(prefix).join(format!("{hash}.edn"));
+        fs::write(&path, b"corrupted content that does not match the hash").unwrap();
+
+        // Negative case: corrupted file should fail hash verification
+        let result = layout.read_tx(&hash);
+        assert!(
+            result.is_err(),
+            "INV-LAYOUT-005: corrupted file must fail hash verification"
+        );
+        let err_msg = result.unwrap_err().to_string();
+        assert!(
+            err_msg.contains("INV-LAYOUT-005") || err_msg.contains("content hash mismatch"),
+            "Error should reference INV-LAYOUT-005: {err_msg}"
+        );
     }
 }

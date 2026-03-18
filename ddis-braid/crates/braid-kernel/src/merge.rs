@@ -40,6 +40,33 @@ use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::resolution::{has_conflict, ConflictSet};
 use crate::store::{Frontier, MergeReceipt, Store};
 
+// ---------------------------------------------------------------------------
+// CascadeReceipt
+// ---------------------------------------------------------------------------
+
+/// Aggregated result of all cascade steps after a merge operation.
+///
+/// At Stage 0, only step 1 (conflict detection) is fully implemented.
+/// Steps 2-5 produce stub datoms that preserve the audit trail required
+/// by INV-MERGE-009 (all 5 cascade steps produce datoms).
+///
+/// # Invariants
+///
+/// - **INV-MERGE-009**: Cascade completeness — all 5 steps produce datoms.
+/// - **INV-MERGE-010**: MergeReceipt captures conflict set.
+#[derive(Clone, Debug)]
+pub struct CascadeReceipt {
+    /// Number of conflicts detected in step 1.
+    pub conflicts_detected: usize,
+    /// The full set of detected conflicts (step 1).
+    pub conflicts: Vec<ConflictSet>,
+    /// Stub datoms for steps 2-5 plus cascade metadata.
+    pub stub_datoms: Vec<Datom>,
+    /// Number of cascade steps completed (1-5). At Stage 0, always 1
+    /// (step 1 real, steps 2-5 are stubs).
+    pub steps_completed: u8,
+}
+
 /// Merge two stores, returning a new store and a detailed receipt.
 ///
 /// This is the canonical merge operation: `merge(A, B) = A ∪ B`.
@@ -255,6 +282,60 @@ pub fn cascade_stub_datoms(receipt: &MergeReceipt, tx: TxId) -> Vec<Datom> {
     ));
 
     datoms
+}
+
+/// Cascade step 1: detect conflicts in the post-merge store.
+///
+/// Takes the merged store and the merge receipt, scans for (entity, attribute)
+/// pairs with conflicting assertions under their resolution mode, and returns
+/// the detected conflicts. This is the real implementation of cascade step 1;
+/// steps 2-5 are stubs at Stage 0 (see `cascade_stub_datoms`).
+///
+/// # Invariants
+///
+/// - **INV-RESOLUTION-003**: Conservative conflict detection (no false negatives).
+/// - **INV-RESOLUTION-004**: Six-condition conflict predicate.
+/// - **INV-MERGE-009**: Step 1 of the five-step post-merge cascade.
+/// - **INV-MERGE-010**: MergeReceipt captures conflict set.
+pub fn cascade_step1_conflicts(store: &Store, _receipt: &MergeReceipt) -> Vec<ConflictSet> {
+    detect_merge_conflicts(store)
+}
+
+/// Run the full post-merge cascade and return an aggregated receipt.
+///
+/// 1. Step 1 — conflict detection (real, via `cascade_step1_conflicts`)
+/// 2. Steps 2-5 — stub datoms (via `cascade_stub_datoms`)
+///
+/// The returned `CascadeReceipt` combines the conflict set from step 1
+/// with the stub datoms for steps 2-5. `steps_completed` is always 1 at
+/// Stage 0 because only step 1 performs real work.
+///
+/// # Arguments
+///
+/// * `store` - The post-merge store to scan for conflicts
+/// * `receipt` - The merge receipt from the just-completed merge
+/// * `tx` - The transaction ID for the cascade datoms (provenance)
+///
+/// # Invariants
+///
+/// - **INV-MERGE-009**: All 5 cascade steps produce datoms.
+/// - **INV-MERGE-010**: MergeReceipt captures new datom count and conflict set.
+/// - **ADR-MERGE-005**: Cascade as post-merge deterministic layer.
+/// - **ADR-MERGE-007**: Merge cascade stub datoms at Stage 0.
+pub fn run_cascade(store: &Store, receipt: &MergeReceipt, tx: TxId) -> CascadeReceipt {
+    // Step 1: real conflict detection
+    let conflicts = cascade_step1_conflicts(store, receipt);
+    let conflicts_detected = conflicts.len();
+
+    // Steps 2-5: stub datoms (Stage 0 placeholders)
+    let stub_datoms = cascade_stub_datoms(receipt, tx);
+
+    CascadeReceipt {
+        conflicts_detected,
+        conflicts,
+        stub_datoms,
+        steps_completed: 1,
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -491,6 +572,186 @@ mod tests {
             receipt.new_datoms, 0,
             "merging identical stores should add no new datoms"
         );
+    }
+
+    // -------------------------------------------------------------------
+    // cascade_step1_conflicts tests
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-MERGE-009 — Cascade step 1 detects conflicts
+    // Verifies: INV-RESOLUTION-003 — Conservative Conflict Detection
+    #[test]
+    fn cascade_step1_detects_conflicts_after_merge() {
+        let mut s1 = Store::genesis();
+        let mut s2 = Store::genesis();
+
+        let entity = EntityId::from_ident(":test/cascade-conflict");
+        let a1 = AgentId::from_name("alice");
+        let a2 = AgentId::from_name("bob");
+
+        // Two agents assert different values for same entity+attribute
+        let tx1 = Transaction::new(a1, ProvenanceType::Observed, "alice's value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alice says".into()),
+            )
+            .commit(&s1)
+            .unwrap();
+        s1.transact(tx1).unwrap();
+
+        let tx2 = Transaction::new(a2, ProvenanceType::Observed, "bob's value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("bob says".into()),
+            )
+            .commit(&s2)
+            .unwrap();
+        s2.transact(tx2).unwrap();
+
+        let mut merged = s1.clone_store();
+        let receipt = merge_stores(&mut merged, &s2);
+
+        let conflicts = cascade_step1_conflicts(&merged, &receipt);
+        let has_doc_conflict = conflicts
+            .iter()
+            .any(|c| c.entity == entity && c.attribute == Attribute::from_keyword(":db/doc"));
+        assert!(
+            has_doc_conflict,
+            "cascade step 1 should detect conflicting :db/doc values"
+        );
+    }
+
+    // Verifies: INV-MERGE-009 — Cascade step 1 returns empty for no-conflict merge
+    #[test]
+    fn cascade_step1_no_conflicts_for_disjoint_merge() {
+        let mut s1 = Store::genesis();
+        let mut s2 = Store::genesis();
+
+        let a1 = AgentId::from_name("alice");
+        let a2 = AgentId::from_name("bob");
+
+        // Disjoint entities — no conflicts possible
+        let tx1 = Transaction::new(a1, ProvenanceType::Observed, "a")
+            .assert(
+                EntityId::from_ident(":test/entity-a"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("from alice".into()),
+            )
+            .commit(&s1)
+            .unwrap();
+        s1.transact(tx1).unwrap();
+
+        let tx2 = Transaction::new(a2, ProvenanceType::Observed, "b")
+            .assert(
+                EntityId::from_ident(":test/entity-b"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("from bob".into()),
+            )
+            .commit(&s2)
+            .unwrap();
+        s2.transact(tx2).unwrap();
+
+        let mut merged = s1.clone_store();
+        let receipt = merge_stores(&mut merged, &s2);
+
+        let conflicts = cascade_step1_conflicts(&merged, &receipt);
+        assert!(
+            conflicts.is_empty(),
+            "disjoint entities should produce no conflicts"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // run_cascade tests
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-MERGE-009 — Full cascade produces conflicts + stub datoms
+    // Verifies: ADR-MERGE-005 — Cascade as post-merge deterministic layer
+    // Verifies: ADR-MERGE-007 — Merge cascade stub datoms at Stage 0
+    #[test]
+    fn run_cascade_with_conflicts() {
+        let mut s1 = Store::genesis();
+        let mut s2 = Store::genesis();
+
+        let entity = EntityId::from_ident(":test/cascade-full");
+        let a1 = AgentId::from_name("alice");
+        let a2 = AgentId::from_name("bob");
+
+        let tx1 = Transaction::new(a1, ProvenanceType::Observed, "alice's value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alice".into()),
+            )
+            .commit(&s1)
+            .unwrap();
+        s1.transact(tx1).unwrap();
+
+        let tx2 = Transaction::new(a2, ProvenanceType::Observed, "bob's value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("bob".into()),
+            )
+            .commit(&s2)
+            .unwrap();
+        s2.transact(tx2).unwrap();
+
+        let mut merged = s1.clone_store();
+        let receipt = merge_stores(&mut merged, &s2);
+        let cascade_tx = TxId::new(300, 0, a1);
+
+        let cascade = run_cascade(&merged, &receipt, cascade_tx);
+
+        // Step 1 should detect at least one conflict
+        assert!(
+            cascade.conflicts_detected > 0,
+            "run_cascade should detect conflicts after conflicting merge"
+        );
+        assert_eq!(
+            cascade.conflicts_detected,
+            cascade.conflicts.len(),
+            "conflicts_detected must equal conflicts.len()"
+        );
+
+        // Steps 2-5 stubs should be present (7 datoms: 3 metadata + 4 step stubs)
+        assert_eq!(
+            cascade.stub_datoms.len(),
+            7,
+            "expected 7 cascade stub datoms"
+        );
+
+        // At Stage 0, only step 1 is real
+        assert_eq!(
+            cascade.steps_completed, 1,
+            "Stage 0: steps_completed must be 1"
+        );
+    }
+
+    // Verifies: INV-MERGE-009 — Cascade with no conflicts
+    #[test]
+    fn run_cascade_without_conflicts() {
+        let mut s1 = Store::genesis();
+        let s2 = Store::genesis();
+
+        let receipt = merge_stores(&mut s1, &s2);
+        let agent = AgentId::from_name("test-agent");
+        let cascade_tx = TxId::new(400, 0, agent);
+
+        let cascade = run_cascade(&s1, &receipt, cascade_tx);
+
+        assert_eq!(
+            cascade.conflicts_detected, 0,
+            "identical stores should produce no conflicts"
+        );
+        assert!(
+            cascade.conflicts.is_empty(),
+            "conflicts vec should be empty"
+        );
+        assert_eq!(cascade.stub_datoms.len(), 7, "stubs always produced");
+        assert_eq!(cascade.steps_completed, 1);
     }
 
     // -------------------------------------------------------------------

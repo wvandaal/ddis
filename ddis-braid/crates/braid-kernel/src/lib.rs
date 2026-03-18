@@ -114,8 +114,8 @@ pub use layout::{
     ContentHash, EdnParseError, IntegrityError, IntegrityReport, LayoutConfig, TxFile, TxFilePath,
 };
 pub use merge::{
-    cascade_stub_datoms, detect_merge_conflicts, merge_stores, verify_frontier_advancement,
-    verify_monotonicity,
+    cascade_step1_conflicts, cascade_stub_datoms, detect_merge_conflicts, merge_stores,
+    run_cascade, verify_frontier_advancement, verify_monotonicity, CascadeReceipt,
 };
 pub use promote::{
     is_already_promoted, promote, promote_batch, verify_dual_identity, BatchPromotionResult,
