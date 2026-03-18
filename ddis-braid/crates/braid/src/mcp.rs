@@ -1550,10 +1550,16 @@ mod tests {
         let text = response["content"][0]["text"]
             .as_str()
             .expect("response must have text content");
-        // Datalog path executed — output contains result count or variable header
+        // Genesis store has axiomatic :db/ident datoms — strict assertion.
+        // Match "\n0 result(s)" (not bare "0 result(s)") to avoid false positives
+        // from counts like "20 result(s)" whose trailing digit contains "0".
         assert!(
-            text.contains("result(s)") || text.contains("?e"),
-            "output must contain result count or variable header, got: {text}"
+            text.contains("result(s)"),
+            "output must contain result count, got: {text}"
+        );
+        assert!(
+            !text.contains("\n0 result(s)"),
+            "genesis store should have :db/ident datoms, got: {text}"
         );
     }
 
@@ -1578,11 +1584,13 @@ mod tests {
         let text = response["content"][0]["text"]
             .as_str()
             .expect("response must have text");
-        // Datalog path executed (not entity filter path) — output has Datalog
-        // format (variable headers or result count), not entity filter format
+        // If entity filter were active, we'd get 0 results for :nonexistent/entity.
+        // Datalog ignores it and returns real results — strict assertion.
+        // Match "\n0 result(s)" (not bare "0 result(s)") to avoid false positives
+        // from counts like "20 result(s)" whose trailing digit contains "0".
         assert!(
-            text.contains("result(s)") || text.contains("?e"),
-            "datalog should execute (not entity filter), got: {text}"
+            !text.contains("\n0 result(s)"),
+            "datalog should override entity filter and return results, got: {text}"
         );
     }
 
