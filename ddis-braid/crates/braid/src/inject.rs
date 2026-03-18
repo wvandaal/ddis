@@ -77,29 +77,40 @@ impl std::fmt::Display for InjectionError {
     }
 }
 
-const OPEN_TAG: &str = "<braid-seed>";
-const CLOSE_TAG: &str = "</braid-seed>";
-
 const METHODOLOGY_OPEN_TAG: &str = "<braid-methodology>";
 const METHODOLOGY_CLOSE_TAG: &str = "</braid-methodology>";
 
-/// Find the injection point in `text` between `<braid-seed>` and `</braid-seed>` tags.
+/// Find an injection point for a specific tag type.
 ///
-/// Ignores tags inside markdown code blocks (triple backticks).
-/// Returns byte offsets for precise string slicing.
-pub fn find_injection_point(text: &str) -> Result<InjectionPoint, InjectionError> {
-    // First, identify code block ranges to exclude
-    let code_ranges = find_code_block_ranges(text);
+/// Searches for `<braid-{tag_name}>` and `</braid-{tag_name}>` in the text,
+/// excluding matches inside:
+/// 1. Markdown code blocks (``` ... ```)
+/// 2. Other `<braid-*>` tag sections (containment quoting)
+///
+/// This universal function implements INV-REFLEXIVE-004: any content inside
+/// a `<braid-*>` section is in "mention mode" — tag-like strings are data,
+/// not structure.
+pub fn find_tagged_section(text: &str, tag_name: &str) -> Result<InjectionPoint, InjectionError> {
+    let open_tag = format!("<braid-{tag_name}>");
+    let close_tag = format!("</braid-{tag_name}>");
 
-    // Find all open tag positions (excluding those in code blocks)
+    // Build exclusion zones: code blocks + ALL braid-* sections except our own
+    let mut excluded = find_code_block_ranges(text);
+
+    // Find ALL braid-* tag ranges (for containment quoting)
+    for other_range in find_all_braid_tag_ranges(text, tag_name) {
+        excluded.push(other_range);
+    }
+
+    // Search for open tag outside exclusion zones
     let mut open_positions: Vec<usize> = Vec::new();
     let mut search_start = 0;
-    while let Some(pos) = text[search_start..].find(OPEN_TAG) {
+    while let Some(pos) = text[search_start..].find(&open_tag) {
         let abs_pos = search_start + pos;
-        if !in_code_block(abs_pos, &code_ranges) {
+        if !in_code_block(abs_pos, &excluded) {
             open_positions.push(abs_pos);
         }
-        search_start = abs_pos + OPEN_TAG.len();
+        search_start = abs_pos + open_tag.len();
     }
 
     if open_positions.is_empty() {
@@ -110,7 +121,7 @@ pub fn find_injection_point(text: &str) -> Result<InjectionPoint, InjectionError
     }
 
     let tag_start = open_positions[0];
-    let after_open = tag_start + OPEN_TAG.len();
+    let after_open = tag_start + open_tag.len();
 
     // Content starts after the opening tag + newline (if present)
     let content_start = if text[after_open..].starts_with('\n') {
@@ -119,14 +130,14 @@ pub fn find_injection_point(text: &str) -> Result<InjectionPoint, InjectionError
         after_open
     };
 
-    // Find closing tag (excluding code blocks)
+    // Find closing tag (excluding code blocks and other tag regions)
     let close_pos = text[content_start..]
-        .find(CLOSE_TAG)
-        .filter(|&pos| !in_code_block(content_start + pos, &code_ranges))
+        .find(&close_tag)
+        .filter(|&pos| !in_code_block(content_start + pos, &excluded))
         .ok_or(InjectionError::NoCloseTag)?;
 
     let content_end = content_start + close_pos;
-    let tag_end_raw = content_end + CLOSE_TAG.len();
+    let tag_end_raw = content_end + close_tag.len();
 
     // Include trailing newline in tag_end if present
     let tag_end = if text[tag_end_raw..].starts_with('\n') {
@@ -141,6 +152,14 @@ pub fn find_injection_point(text: &str) -> Result<InjectionPoint, InjectionError
         content_start,
         content_end,
     })
+}
+
+/// Find the injection point in `text` between `<braid-seed>` and `</braid-seed>` tags.
+///
+/// Thin wrapper around [`find_tagged_section`] for backward compatibility.
+/// Ignores tags inside markdown code blocks and other `<braid-*>` sections.
+pub fn find_injection_point(text: &str) -> Result<InjectionPoint, InjectionError> {
+    find_tagged_section(text, "seed")
 }
 
 /// Apply injection: replace content between tags with new content.
@@ -203,19 +222,25 @@ pub fn format_for_injection(store: &Store, task: Option<&str>, budget: usize) ->
             }
             ContextSection::Constraints(refs) => {
                 if !refs.is_empty() {
+                    let any_known = refs.iter().any(|c| c.satisfied.is_some());
                     out.push_str("### Active Constraints\n");
                     for (i, c) in refs.iter().enumerate() {
-                        let status = match c.satisfied {
-                            Some(true) => "[ok]",
-                            Some(false) => "[!!]",
-                            None => "[?]",
-                        };
-                        if c.summary.is_empty() {
-                            out.push_str(&format!("- {} {}\n", status, c.id));
+                        if any_known {
+                            let status = match c.satisfied {
+                                Some(true) => "[ok] ",
+                                Some(false) => "[!!] ",
+                                None => "",
+                            };
+                            if c.summary.is_empty() {
+                                out.push_str(&format!("- {}{}\n", status, c.id));
+                            } else {
+                                out.push_str(&format!("- {}{} — {}\n", status, c.id, c.summary));
+                            }
+                        } else if c.summary.is_empty() {
+                            out.push_str(&format!("- {}\n", c.id));
                         } else {
-                            out.push_str(&format!("- {} {} — {}\n", status, c.id, c.summary));
+                            out.push_str(&format!("- {} — {}\n", c.id, c.summary));
                         }
-                        // Surface constraint statement text for top 3 task-relevant constraints
                         if i < 3 {
                             if let Some(ref stmt) = c.statement {
                                 out.push_str(&format!("  > {}\n", stmt));
@@ -282,67 +307,10 @@ pub fn format_for_injection(store: &Store, task: Option<&str>, budget: usize) ->
 
 /// Find the injection point for `<braid-methodology>` tags.
 ///
-/// Same semantics as [`find_injection_point`] but for the methodology section.
-/// Returns `Ok(point)` if tags exist, `Err(NoOpenTag)` if not present
-/// (which is fine — the tag will be created).
-///
-/// Excludes matches inside code blocks AND inside `<braid-seed>` tags
-/// (the seed content may contain the literal string `<braid-methodology>`
-/// in task titles or descriptions).
+/// Thin wrapper around [`find_tagged_section`] for backward compatibility.
+/// Excludes matches inside code blocks and other `<braid-*>` sections.
 pub fn find_methodology_point(text: &str) -> Result<InjectionPoint, InjectionError> {
-    let mut excluded_ranges = find_code_block_ranges(text);
-    // Also exclude the braid-seed region — its content may contain the literal
-    // "<braid-methodology>" string in task titles (e.g., DMP task descriptions).
-    if let Ok(seed_point) = find_injection_point(text) {
-        excluded_ranges.push((seed_point.tag_start, seed_point.tag_end));
-    }
-
-    let mut open_positions: Vec<usize> = Vec::new();
-    let mut search_start = 0;
-    while let Some(pos) = text[search_start..].find(METHODOLOGY_OPEN_TAG) {
-        let abs_pos = search_start + pos;
-        if !in_code_block(abs_pos, &excluded_ranges) {
-            open_positions.push(abs_pos);
-        }
-        search_start = abs_pos + METHODOLOGY_OPEN_TAG.len();
-    }
-
-    if open_positions.is_empty() {
-        return Err(InjectionError::NoOpenTag);
-    }
-    if open_positions.len() > 1 {
-        return Err(InjectionError::MultipleOpenTags);
-    }
-
-    let tag_start = open_positions[0];
-    let after_open = tag_start + METHODOLOGY_OPEN_TAG.len();
-
-    let content_start = if text[after_open..].starts_with('\n') {
-        after_open + 1
-    } else {
-        after_open
-    };
-
-    let close_pos = text[content_start..]
-        .find(METHODOLOGY_CLOSE_TAG)
-        .filter(|&pos| !in_code_block(content_start + pos, &excluded_ranges))
-        .ok_or(InjectionError::NoCloseTag)?;
-
-    let content_end = content_start + close_pos;
-    let tag_end_raw = content_end + METHODOLOGY_CLOSE_TAG.len();
-
-    let tag_end = if text[tag_end_raw..].starts_with('\n') {
-        tag_end_raw + 1
-    } else {
-        tag_end_raw
-    };
-
-    Ok(InjectionPoint {
-        tag_start,
-        tag_end,
-        content_start,
-        content_end,
-    })
+    find_tagged_section(text, "methodology")
 }
 
 /// Generate methodology content and inject it into the file text.
@@ -438,6 +406,86 @@ fn find_code_block_ranges(text: &str) -> Vec<(usize, usize)> {
 /// Check if a byte position falls within any code block range.
 fn in_code_block(pos: usize, ranges: &[(usize, usize)]) -> bool {
     ranges.iter().any(|&(start, end)| pos >= start && pos < end)
+}
+
+/// Find byte ranges of ALL `<braid-*>` sections EXCEPT the specified one.
+///
+/// First pass: find ALL top-level `<braid-*>` sections (including `except_tag`)
+/// to establish containment boundaries. Tag-like strings nested inside any
+/// already-found section are treated as data, not structure (containment quoting).
+///
+/// Second pass: filter out the `except_tag` ranges from the result so the
+/// caller does not exclude itself.
+fn find_all_braid_tag_ranges(text: &str, except_tag: &str) -> Vec<(usize, usize)> {
+    let prefix = "<braid-";
+    let code_ranges = find_code_block_ranges(text);
+
+    // First pass: find ALL top-level braid-* sections (including except_tag).
+    // This ensures nested tag literals inside any section are treated as data.
+    let mut all_ranges: Vec<(usize, usize, bool)> = Vec::new(); // (start, end, is_except)
+    let except_open = format!("<braid-{except_tag}>");
+
+    let mut search_start = 0;
+    while let Some(pos) = text[search_start..].find(prefix) {
+        let abs_pos = search_start + pos;
+
+        // Skip if in code block
+        if in_code_block(abs_pos, &code_ranges) {
+            search_start = abs_pos + prefix.len();
+            continue;
+        }
+
+        // Skip if inside an already-found braid-* section (containment quoting)
+        let inside_existing = all_ranges
+            .iter()
+            .any(|&(s, e, _)| abs_pos >= s && abs_pos < e);
+        if inside_existing {
+            search_start = abs_pos + prefix.len();
+            continue;
+        }
+
+        // Skip closing tags (</braid-...)
+        if abs_pos > 0 && text.as_bytes().get(abs_pos - 1) == Some(&b'/') {
+            search_start = abs_pos + prefix.len();
+            continue;
+        }
+
+        // Extract the full open tag: <braid-NAME>
+        let after_prefix = abs_pos + prefix.len();
+        let close_bracket = match text[after_prefix..].find('>') {
+            Some(p) => after_prefix + p,
+            None => {
+                search_start = after_prefix;
+                continue;
+            }
+        };
+        let tag_name = &text[after_prefix..close_bracket];
+        let full_open = &text[abs_pos..=close_bracket];
+        let is_except = full_open == except_open;
+
+        // Find the matching close tag
+        let close_tag = format!("</braid-{tag_name}>");
+        if let Some(close_pos) = text[close_bracket + 1..].find(&close_tag) {
+            let range_end = close_bracket + 1 + close_pos + close_tag.len();
+            // Include trailing newline if present
+            let range_end = if text[range_end..].starts_with('\n') {
+                range_end + 1
+            } else {
+                range_end
+            };
+            all_ranges.push((abs_pos, range_end, is_except));
+            search_start = range_end;
+        } else {
+            search_start = close_bracket + 1;
+        }
+    }
+
+    // Second pass: return only non-except ranges
+    all_ranges
+        .into_iter()
+        .filter(|&(_, _, is_except)| !is_except)
+        .map(|(s, e, _)| (s, e))
+        .collect()
 }
 
 /// Quality metrics for injected content (S0.5.2).
@@ -843,13 +891,13 @@ mod tests {
 Braid datom store | 100 datoms, 50 entities
 
 ### Active Constraints
-- [?] ADR-TEST-001 — Test constraint
+- ADR-TEST-001 — Test constraint
 
 ### Recent Entities
 - :spec/inv-test-001 — Test entity
 
 ### Open Questions
-- [?] Some open question
+- Some open question
 
 ### Next Actions
 Next actions:
@@ -1017,6 +1065,83 @@ braid status
         assert!(
             result.contains("Generated by braid"),
             "should contain generation comment"
+        );
+    }
+
+    // ── Universal containment quoting tests (find_tagged_section) ────────
+
+    #[test]
+    fn find_tagged_section_basic() {
+        let text = "before\n<braid-seed>\nold content\n</braid-seed>\nafter\n";
+        let point = find_tagged_section(text, "seed").unwrap();
+        assert_eq!(
+            &text[point.content_start..point.content_end],
+            "old content\n"
+        );
+    }
+
+    #[test]
+    fn find_tagged_section_methodology() {
+        let text = "before\n<braid-methodology>\nmethod\n</braid-methodology>\nafter\n";
+        let point = find_tagged_section(text, "methodology").unwrap();
+        assert_eq!(&text[point.content_start..point.content_end], "method\n");
+    }
+
+    #[test]
+    fn find_tagged_section_excludes_other_tags() {
+        // The literal "<braid-methodology>" inside <braid-seed> should NOT match
+        let text = "<braid-seed>\ntask about <braid-methodology> stuff\n</braid-seed>\n\n<braid-methodology>\nreal content\n</braid-methodology>\n";
+        let point = find_tagged_section(text, "methodology").unwrap();
+        assert_eq!(
+            &text[point.content_start..point.content_end],
+            "real content\n"
+        );
+    }
+
+    #[test]
+    fn find_tagged_section_excludes_code_blocks() {
+        let text =
+            "```\n<braid-seed>\nfake\n</braid-seed>\n```\n\n<braid-seed>\nreal\n</braid-seed>\n";
+        let point = find_tagged_section(text, "seed").unwrap();
+        assert_eq!(&text[point.content_start..point.content_end], "real\n");
+    }
+
+    #[test]
+    fn find_tagged_section_absent() {
+        let text = "no tags here\n";
+        assert_eq!(
+            find_tagged_section(text, "witness"),
+            Err(InjectionError::NoOpenTag)
+        );
+    }
+
+    #[test]
+    fn find_tagged_section_future_tag_type() {
+        // Works for any tag name without code changes
+        let text = "before\n<braid-witness>\nwitness data\n</braid-witness>\nafter\n";
+        let point = find_tagged_section(text, "witness").unwrap();
+        assert_eq!(
+            &text[point.content_start..point.content_end],
+            "witness data\n"
+        );
+    }
+
+    #[test]
+    fn containment_quoting_symmetric() {
+        // seed inside methodology is quoted, methodology inside seed is quoted
+        let text = concat!(
+            "<braid-methodology>\nhas <braid-seed> literal\n</braid-methodology>\n\n",
+            "<braid-seed>\nhas <braid-methodology> literal\n</braid-seed>\n",
+        );
+        let meth = find_tagged_section(text, "methodology").unwrap();
+        assert_eq!(
+            &text[meth.content_start..meth.content_end],
+            "has <braid-seed> literal\n"
+        );
+        let seed = find_tagged_section(text, "seed").unwrap();
+        assert_eq!(
+            &text[seed.content_start..seed.content_end],
+            "has <braid-methodology> literal\n"
         );
     }
 }

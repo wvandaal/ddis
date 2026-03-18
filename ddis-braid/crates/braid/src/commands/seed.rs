@@ -100,12 +100,18 @@ pub fn run(
                     if any_known {
                         out.push_str("## Constraints\n");
                         for (i, r) in refs.iter().enumerate() {
-                            let status = match r.satisfied {
-                                Some(true) => "✓",
-                                Some(false) => "✗",
-                                None => "?",
+                            // Only show status markers for constraints with known status;
+                            // unknown (None) constraints get no bracket noise.
+                            let prefix = match r.satisfied {
+                                Some(true) => "[ok] ",
+                                Some(false) => "[!!] ",
+                                None => "",
                             };
-                            out.push_str(&format!("  [{status}] {}: {}\n", r.id, r.summary));
+                            if r.summary.is_empty() {
+                                out.push_str(&format!("  {}{}\n", prefix, r.id));
+                            } else {
+                                out.push_str(&format!("  {}{}: {}\n", prefix, r.id, r.summary));
+                            }
                             if i < 3 {
                                 if let Some(ref stmt) = r.statement {
                                     out.push_str(&format!("    > {stmt}\n"));
