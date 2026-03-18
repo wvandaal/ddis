@@ -74,6 +74,8 @@ pub enum TaskType {
     Bug,
     /// Feature request.
     Feature,
+    /// Test task.
+    Test,
     /// Epic (parent container).
     Epic,
     /// Question.
@@ -89,6 +91,7 @@ impl TaskType {
             ":task.type/task" | "task" => Some(TaskType::Task),
             ":task.type/bug" | "bug" => Some(TaskType::Bug),
             ":task.type/feature" | "feature" => Some(TaskType::Feature),
+            ":task.type/test" | "test" => Some(TaskType::Test),
             ":task.type/epic" | "epic" => Some(TaskType::Epic),
             ":task.type/question" | "question" => Some(TaskType::Question),
             ":task.type/docs" | "docs" => Some(TaskType::Docs),
@@ -102,9 +105,29 @@ impl TaskType {
             TaskType::Task => ":task.type/task",
             TaskType::Bug => ":task.type/bug",
             TaskType::Feature => ":task.type/feature",
+            TaskType::Test => ":task.type/test",
             TaskType::Epic => ":task.type/epic",
             TaskType::Question => ":task.type/question",
             TaskType::Docs => ":task.type/docs",
+        }
+    }
+
+    /// Routing weight multiplier for task type.
+    ///
+    /// Weights downstream tasks by their type to reflect direct value:
+    /// - Implementation/bug tasks (1.0) are highest value to unblock
+    /// - Features (0.9) and tests (0.8) are high value
+    /// - Epics (0.0) are containers with no direct work value
+    /// - Docs (0.3) and questions (0.2) are low-urgency
+    pub fn type_multiplier(self) -> f64 {
+        match self {
+            TaskType::Task => 1.0,
+            TaskType::Bug => 1.0,
+            TaskType::Feature => 0.9,
+            TaskType::Test => 0.8,
+            TaskType::Epic => 0.0,
+            TaskType::Docs => 0.3,
+            TaskType::Question => 0.2,
         }
     }
 }

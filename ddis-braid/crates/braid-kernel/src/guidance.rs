@@ -198,6 +198,38 @@ pub struct SessionTelemetry {
     pub harvest_is_recent: bool,
 }
 
+/// Activity mode detected from session transaction patterns (INV-GUIDANCE-008).
+///
+/// Used to contextualize guidance hints: implementation-heavy sessions get
+/// different paste-ready commands than specification/observation-heavy sessions.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ActivityMode {
+    /// >50% of turns contain transact operations.
+    Implementation,
+    /// >50% of turns use spec-language (observation/spec references).
+    Specification,
+    /// Neither pattern dominates.
+    Mixed,
+}
+
+/// Classify the current session by transaction pattern.
+///
+/// Returns `Implementation` when transact-heavy, `Specification` when
+/// spec-language/observation-heavy, `Mixed` otherwise.
+pub fn detect_activity_mode(telemetry: &SessionTelemetry) -> ActivityMode {
+    let total = telemetry.total_turns.max(1) as f64;
+    let transact_ratio = telemetry.transact_turns as f64 / total;
+    let spec_ratio = telemetry.spec_language_turns as f64 / total;
+
+    if transact_ratio > 0.5 {
+        ActivityMode::Implementation
+    } else if spec_ratio > 0.5 {
+        ActivityMode::Specification
+    } else {
+        ActivityMode::Mixed
+    }
+}
+
 /// M(t) methodology adherence result.
 /// INV-SIGNAL-001: Signal as datom — drift_signal is emitted as a store event.
 /// INV-SIGNAL-004: Severity-ordered routing — drift triggers at M(t) < 0.5.
@@ -314,6 +346,8 @@ pub struct TaskNode {
     pub blocks: Vec<EntityId>,
     /// Wall time when task was created (for staleness).
     pub created_at: u64,
+    /// Task type for type-based routing weight.
+    pub task_type: crate::task::TaskType,
 }
 
 /// R(t) routing result for a single task.
@@ -344,12 +378,29 @@ pub struct RoutingMetrics {
     pub staleness: f64,
     /// g₆: priority boost (from task metadata).
     pub priority_boost: f64,
+    /// Type-based routing multiplier (0.0--1.0).
+    /// Weights tasks by type: impl/bug=1.0, feature=0.9, test=0.8, epic=0.0, docs=0.3, question=0.2.
+    pub type_multiplier: f64,
+    /// Age-based urgency decay (>=1.0).
+    /// Logarithmic boost for older tasks: `1.0 + ln(age_days + 1) * 0.1`.
+    pub urgency_decay: f64,
 }
 
 /// R(t) routing weights (defaults from spec).
 const ROUTING_WEIGHTS: [f64; 6] = [0.25, 0.25, 0.20, 0.15, 0.10, 0.05];
 
-/// Compute R(t) — ranked routing over a task graph (INV-GUIDANCE-010).
+/// Compute age-based urgency factor.
+///
+/// Older tasks get a logarithmic boost (they have been waiting longer).
+/// Returns values in the range `[1.0, ~1.3]` for tasks up to a week old --
+/// enough to break ties but not override PageRank/betweenness.
+fn urgency_decay(created_at: u64, now: u64) -> f64 {
+    let age_seconds = now.saturating_sub(created_at);
+    let age_days = age_seconds as f64 / 86400.0;
+    1.0 + (age_days + 1.0).ln() * 0.1
+}
+
+/// Compute R(t) -- ranked routing over a task graph (INV-GUIDANCE-010).
 ///
 /// Returns tasks sorted by descending impact score.
 /// Only includes tasks that are ready (all dependencies complete).
@@ -423,6 +474,12 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
             // g₆: priority boost
             let priority_boost = task.priority_boost;
 
+            // Type multiplier: weight by task type (impl/bug=1.0, epic=0.0, etc.)
+            let tm = task.task_type.type_multiplier();
+
+            // Urgency decay: logarithmic age boost (1.0 for new, ~1.3 for week-old)
+            let ud = urgency_decay(task.created_at, now);
+
             let metrics = RoutingMetrics {
                 pagerank,
                 betweenness_proxy,
@@ -430,6 +487,8 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
                 blocker_ratio,
                 staleness,
                 priority_boost,
+                type_multiplier: tm,
+                urgency_decay: ud,
             };
 
             let values = [
@@ -440,11 +499,14 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
                 staleness,
                 priority_boost,
             ];
-            let impact: f64 = ROUTING_WEIGHTS
+            let base_impact: f64 = ROUTING_WEIGHTS
                 .iter()
                 .zip(values.iter())
                 .map(|(w, v)| w * v)
                 .sum();
+
+            // Apply type multiplier and urgency decay as post-factors
+            let impact = base_impact * tm * ud;
 
             TaskRouting {
                 entity: task.entity,
@@ -518,6 +580,10 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
 
             let blocks = blocks_map.get(&t.entity).cloned().unwrap_or_default();
 
+            // Parse task type from keyword string, default to Task
+            let task_type = crate::task::TaskType::from_keyword(&t.task_type)
+                .unwrap_or(crate::task::TaskType::Task);
+
             TaskNode {
                 entity: t.entity,
                 label: t.title.clone(),
@@ -526,6 +592,7 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
                 depends_on,
                 blocks,
                 created_at: t.created_at,
+                task_type,
             }
         })
         .collect();
@@ -560,6 +627,35 @@ pub struct GuidanceFooter {
     pub harvest_warning: HarvestWarningLevel,
 }
 
+/// Paste-ready command for the worst-scoring M(t) sub-metric.
+///
+/// Returns the executable command string corresponding to whichever of the four
+/// sub-metrics (tx, spec-lang, q-div, harvest) has the lowest score.
+/// Used by Compressed-level footer to show a single actionable command.
+fn worst_metric_command(components: &MethodologyComponents) -> &'static str {
+    let metrics: [(f64, &str); 4] = [
+        (
+            components.transact_frequency,
+            "braid observe \"...\" --confidence 0.8",
+        ),
+        (
+            components.spec_language_ratio,
+            "braid query --entity :spec/inv-...",
+        ),
+        (
+            components.query_diversity,
+            "braid query --attribute :db/doc --limit 5",
+        ),
+        (components.harvest_quality, "braid harvest --commit"),
+    ];
+
+    metrics
+        .iter()
+        .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal))
+        .map(|(_, cmd)| *cmd)
+        .unwrap_or("braid status")
+}
+
 /// Format a guidance footer as a compact string (ADR-GUIDANCE-008).
 ///
 /// Format:
@@ -575,24 +671,24 @@ pub fn format_footer(footer: &GuidanceFooter) -> String {
         Trend::Stable => "→",
     };
 
-    let check_with_hint = |v: f64, hint: &str| -> String {
+    let check_with_hint = |v: f64, cmd: &str| -> String {
         if v >= 0.7 {
-            "✓".to_string()
+            "\u{2713}".to_string()
         } else if v >= 0.4 {
-            "△".to_string()
+            "\u{25b3}".to_string()
         } else {
-            format!("✗→{hint}")
+            format!("\u{2717}\u{2192}{cmd}")
         }
     };
 
     let line1 = format!(
-        "↳ M(t): {:.2} {} (tx: {} | spec-lang: {} | q-div: {} | harvest: {}) | Store: {} datoms | Turn {}",
+        "\u{21b3} M(t): {:.2} {} (tx: {} | spec-lang: {} | q-div: {} | harvest: {}) | Store: {} datoms | Turn {}",
         m.score,
         trend,
-        check_with_hint(m.components.transact_frequency, "write"),
-        check_with_hint(m.components.spec_language_ratio, "trace"),
-        check_with_hint(m.components.query_diversity, "query"),
-        check_with_hint(m.components.harvest_quality, "harvest"),
+        check_with_hint(m.components.transact_frequency, "braid observe \"...\" --confidence 0.8"),
+        check_with_hint(m.components.spec_language_ratio, "braid query --entity :spec/inv-..."),
+        check_with_hint(m.components.query_diversity, "braid query --attribute :db/doc --limit 5"),
+        check_with_hint(m.components.harvest_quality, "braid harvest --commit"),
         footer.store_datom_count,
         footer.turn,
     );
@@ -630,21 +726,13 @@ pub fn format_footer_at_level(footer: &GuidanceFooter, level: GuidanceLevel) -> 
         GuidanceLevel::Compressed => {
             let m = &footer.methodology;
             let trend = match m.trend {
-                Trend::Up => "↑",
-                Trend::Down => "↓",
-                Trend::Stable => "→",
+                Trend::Up => "\u{2191}",
+                Trend::Down => "\u{2193}",
+                Trend::Stable => "\u{2192}",
             };
-            let next = match &footer.next_action {
-                Some(action) => {
-                    let refs = if footer.invariant_refs.is_empty() {
-                        String::new()
-                    } else {
-                        format!(" [{}]", footer.invariant_refs.join(", "))
-                    };
-                    format!(" | {action}{refs}")
-                }
-                None => String::new(),
-            };
+            // B2.3: At Compressed level, emit only the paste-ready command
+            // for the worst failing metric instead of the generic next_action.
+            let cmd = worst_metric_command(&m.components);
             // Append Q(t) harvest warning when Warn or Critical
             let hw = if footer.harvest_warning >= HarvestWarningLevel::Warn {
                 format!(" {}", footer.harvest_warning)
@@ -652,7 +740,7 @@ pub fn format_footer_at_level(footer: &GuidanceFooter, level: GuidanceLevel) -> 
                 String::new()
             };
             format!(
-                "↳ M={:.2}{} S:{}{next}{hw}",
+                "\u{21b3} M={:.2}{} S:{} \u{2192} {cmd}{hw}",
                 m.score, trend, footer.store_datom_count
             )
         }
@@ -1593,6 +1681,7 @@ mod tests {
                 depends_on: vec![],
                 blocks: vec![e2],
                 created_at: 0,
+                task_type: crate::task::TaskType::Task,
             },
             TaskNode {
                 entity: e2,
@@ -1602,6 +1691,7 @@ mod tests {
                 depends_on: vec![e1], // e1 is done, so e2 is ready
                 blocks: vec![e3],
                 created_at: 10,
+                task_type: crate::task::TaskType::Task,
             },
             TaskNode {
                 entity: e3,
@@ -1611,6 +1701,7 @@ mod tests {
                 depends_on: vec![e2], // e2 not done, so e3 is blocked
                 blocks: vec![],
                 created_at: 20,
+                task_type: crate::task::TaskType::Task,
             },
         ];
 
@@ -1624,6 +1715,220 @@ mod tests {
     fn routing_empty_graph() {
         let routings = compute_routing(&[], 100);
         assert!(routings.is_empty());
+    }
+
+    // Verifies: INV-GUIDANCE-010 — typed edge routing
+    // An impl task with lower PageRank but higher type_multiplier outranks
+    // a docs task with higher PageRank.
+    #[test]
+    fn routing_type_multiplier_overrides_pagerank() {
+        let e_impl = EntityId::from_ident(":task/impl-task");
+        let e_docs = EntityId::from_ident(":task/docs-task");
+        let e_blocked_by_docs_1 = EntityId::from_ident(":task/blocked-d1");
+        let e_blocked_by_docs_2 = EntityId::from_ident(":task/blocked-d2");
+        let e_blocked_by_docs_3 = EntityId::from_ident(":task/blocked-d3");
+        let e_blocked_by_impl = EntityId::from_ident(":task/blocked-i1");
+
+        // docs task blocks 3 other tasks (high PageRank proxy)
+        // impl task blocks only 1 (low PageRank proxy)
+        // Both are ready (no deps, not done), created at the same time.
+        let tasks = vec![
+            TaskNode {
+                entity: e_docs,
+                label: "docs-task".into(),
+                priority_boost: 0.5,
+                done: false,
+                depends_on: vec![],
+                blocks: vec![
+                    e_blocked_by_docs_1,
+                    e_blocked_by_docs_2,
+                    e_blocked_by_docs_3,
+                ],
+                created_at: 50,
+                task_type: crate::task::TaskType::Docs, // multiplier = 0.3
+            },
+            TaskNode {
+                entity: e_impl,
+                label: "impl-task".into(),
+                priority_boost: 0.5,
+                done: false,
+                depends_on: vec![],
+                blocks: vec![e_blocked_by_impl],
+                created_at: 50,
+                task_type: crate::task::TaskType::Task, // multiplier = 1.0
+            },
+            // Downstream tasks (blocked, not ready — just for graph structure)
+            TaskNode {
+                entity: e_blocked_by_docs_1,
+                label: "blocked-d1".into(),
+                priority_boost: 0.0,
+                done: false,
+                depends_on: vec![e_docs],
+                blocks: vec![],
+                created_at: 50,
+                task_type: crate::task::TaskType::Task,
+            },
+            TaskNode {
+                entity: e_blocked_by_docs_2,
+                label: "blocked-d2".into(),
+                priority_boost: 0.0,
+                done: false,
+                depends_on: vec![e_docs],
+                blocks: vec![],
+                created_at: 50,
+                task_type: crate::task::TaskType::Task,
+            },
+            TaskNode {
+                entity: e_blocked_by_docs_3,
+                label: "blocked-d3".into(),
+                priority_boost: 0.0,
+                done: false,
+                depends_on: vec![e_docs],
+                blocks: vec![],
+                created_at: 50,
+                task_type: crate::task::TaskType::Task,
+            },
+            TaskNode {
+                entity: e_blocked_by_impl,
+                label: "blocked-i1".into(),
+                priority_boost: 0.0,
+                done: false,
+                depends_on: vec![e_impl],
+                blocks: vec![],
+                created_at: 50,
+                task_type: crate::task::TaskType::Task,
+            },
+        ];
+
+        let routings = compute_routing(&tasks, 100);
+
+        // Both should be in the ready set (no deps)
+        let impl_r = routings.iter().find(|r| r.label == "impl-task").unwrap();
+        let docs_r = routings.iter().find(|r| r.label == "docs-task").unwrap();
+
+        // Despite docs having 3x the blocks (higher PageRank proxy),
+        // impl's type_multiplier (1.0 vs 0.3) should dominate.
+        assert!(
+            impl_r.impact > docs_r.impact,
+            "impl task (impact={:.4}, type_mult={:.1}) should outrank docs task \
+             (impact={:.4}, type_mult={:.1}) despite lower PageRank",
+            impl_r.impact,
+            impl_r.metrics.type_multiplier,
+            docs_r.impact,
+            docs_r.metrics.type_multiplier,
+        );
+
+        // Verify the metrics are set correctly
+        assert!(
+            (impl_r.metrics.type_multiplier - 1.0).abs() < f64::EPSILON,
+            "impl type_multiplier should be 1.0"
+        );
+        assert!(
+            (docs_r.metrics.type_multiplier - 0.3).abs() < f64::EPSILON,
+            "docs type_multiplier should be 0.3"
+        );
+
+        // Verify urgency_decay is >= 1.0 for both
+        assert!(
+            impl_r.metrics.urgency_decay >= 1.0,
+            "urgency_decay should be >= 1.0"
+        );
+        assert!(
+            docs_r.metrics.urgency_decay >= 1.0,
+            "urgency_decay should be >= 1.0"
+        );
+    }
+
+    // Verifies urgency_decay gives logarithmic boost for older tasks
+    #[test]
+    fn routing_urgency_decay_boosts_older_tasks() {
+        let e_old = EntityId::from_ident(":task/old-task");
+        let e_new = EntityId::from_ident(":task/new-task");
+
+        // Two identical tasks except for age: both impl, same priority, same graph position
+        let now = 7 * 86400; // 7 days in seconds
+        let tasks = vec![
+            TaskNode {
+                entity: e_old,
+                label: "old-task".into(),
+                priority_boost: 0.5,
+                done: false,
+                depends_on: vec![],
+                blocks: vec![],
+                created_at: 0, // 7 days old
+                task_type: crate::task::TaskType::Task,
+            },
+            TaskNode {
+                entity: e_new,
+                label: "new-task".into(),
+                priority_boost: 0.5,
+                done: false,
+                depends_on: vec![],
+                blocks: vec![],
+                created_at: now, // brand new
+                task_type: crate::task::TaskType::Task,
+            },
+        ];
+
+        let routings = compute_routing(&tasks, now);
+        let old_r = routings.iter().find(|r| r.label == "old-task").unwrap();
+        let new_r = routings.iter().find(|r| r.label == "new-task").unwrap();
+
+        // Older task should have higher urgency_decay
+        assert!(
+            old_r.metrics.urgency_decay > new_r.metrics.urgency_decay,
+            "old task urgency_decay ({:.4}) should be higher than new ({:.4})",
+            old_r.metrics.urgency_decay,
+            new_r.metrics.urgency_decay,
+        );
+
+        // Urgency decay for a brand-new task should be ~1.0
+        assert!(
+            (new_r.metrics.urgency_decay - 1.0).abs() < 0.01,
+            "new task urgency_decay should be ~1.0, got {:.4}",
+            new_r.metrics.urgency_decay,
+        );
+
+        // 7-day-old task should have urgency_decay around 1.0 + ln(8) * 0.1 ~ 1.208
+        let expected_old = 1.0 + (7.0_f64 + 1.0).ln() * 0.1;
+        assert!(
+            (old_r.metrics.urgency_decay - expected_old).abs() < 0.01,
+            "old task urgency_decay should be ~{:.4}, got {:.4}",
+            expected_old,
+            old_r.metrics.urgency_decay,
+        );
+
+        // The older task should win on overall impact (same base, higher urgency)
+        assert!(
+            old_r.impact > new_r.impact,
+            "old task (impact={:.4}) should outrank new task (impact={:.4}) due to urgency decay",
+            old_r.impact,
+            new_r.impact,
+        );
+    }
+
+    // Verifies: epic tasks get zero impact (type_multiplier = 0.0)
+    #[test]
+    fn routing_epic_gets_zero_impact() {
+        let e = EntityId::from_ident(":task/epic-task");
+        let tasks = vec![TaskNode {
+            entity: e,
+            label: "epic-task".into(),
+            priority_boost: 1.0,
+            done: false,
+            depends_on: vec![],
+            blocks: vec![],
+            created_at: 0,
+            task_type: crate::task::TaskType::Epic,
+        }];
+
+        let routings = compute_routing(&tasks, 100);
+        assert_eq!(routings.len(), 1);
+        assert!(
+            routings[0].impact.abs() < f64::EPSILON,
+            "epic task should have zero impact, got {:.4}",
+            routings[0].impact,
+        );
     }
 
     // Verifies: INV-GUIDANCE-009 — Task Derivation Completeness
@@ -1699,23 +2004,35 @@ mod tests {
                 0.0f64..1.0,     // priority_boost
                 0u64..1000,      // created_at
                 proptest::collection::vec(0..num_nodes, 0..num_nodes.min(3)),
+                prop::sample::select(vec![
+                    crate::task::TaskType::Task,
+                    crate::task::TaskType::Bug,
+                    crate::task::TaskType::Feature,
+                    crate::task::TaskType::Test,
+                    crate::task::TaskType::Epic,
+                    crate::task::TaskType::Docs,
+                    crate::task::TaskType::Question,
+                ]),
             )
-                .prop_map(move |(done, priority_boost, created_at, dep_indices)| {
-                    let depends_on: Vec<EntityId> = dep_indices
-                        .into_iter()
-                        .filter(|&d| d != idx)
-                        .map(|d| EntityId::from_ident(&format!(":task/t{d}")))
-                        .collect();
-                    TaskNode {
-                        entity,
-                        label: format!("task-{idx}"),
-                        priority_boost,
-                        done,
-                        depends_on,
-                        blocks: vec![],
-                        created_at,
-                    }
-                })
+                .prop_map(
+                    move |(done, priority_boost, created_at, dep_indices, task_type)| {
+                        let depends_on: Vec<EntityId> = dep_indices
+                            .into_iter()
+                            .filter(|&d| d != idx)
+                            .map(|d| EntityId::from_ident(&format!(":task/t{d}")))
+                            .collect();
+                        TaskNode {
+                            entity,
+                            label: format!("task-{idx}"),
+                            priority_boost,
+                            done,
+                            depends_on,
+                            blocks: vec![],
+                            created_at,
+                            task_type,
+                        }
+                    },
+                )
         }
 
         fn arb_task_graph(max_nodes: usize) -> impl Strategy<Value = Vec<TaskNode>> {
@@ -2534,9 +2851,11 @@ mod tests {
         );
         assert!(compressed.contains("M="), "must contain M= score");
         assert!(compressed.contains("S:"), "must contain S: datom count");
+        // B2.3: Compressed now shows paste-ready command for worst metric,
+        // not the original next_action/invariant_refs.
         assert!(
-            compressed.contains("INV-STORE-003"),
-            "must contain spec refs"
+            compressed.contains("braid "),
+            "must contain a paste-ready braid command, got: {compressed}"
         );
     }
 
@@ -2626,6 +2945,184 @@ mod tests {
         assert!(
             full_len >= harv_len,
             "Full ({full_len}) must be >= HarvestOnly ({harv_len})"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // B2.2: Activity mode detection
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn detect_activity_mode_implementation() {
+        let telemetry = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 8,
+            spec_language_turns: 2,
+            ..Default::default()
+        };
+        assert_eq!(
+            detect_activity_mode(&telemetry),
+            ActivityMode::Implementation,
+            "8/10 transact turns should be Implementation"
+        );
+    }
+
+    #[test]
+    fn detect_activity_mode_specification() {
+        let telemetry = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 1,
+            spec_language_turns: 7,
+            ..Default::default()
+        };
+        assert_eq!(
+            detect_activity_mode(&telemetry),
+            ActivityMode::Specification,
+            "7/10 spec-language turns should be Specification"
+        );
+    }
+
+    #[test]
+    fn detect_activity_mode_mixed() {
+        let telemetry = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 3,
+            spec_language_turns: 3,
+            ..Default::default()
+        };
+        assert_eq!(
+            detect_activity_mode(&telemetry),
+            ActivityMode::Mixed,
+            "3/10 each should be Mixed"
+        );
+    }
+
+    #[test]
+    fn detect_activity_mode_empty_session() {
+        let telemetry = SessionTelemetry::default();
+        assert_eq!(
+            detect_activity_mode(&telemetry),
+            ActivityMode::Mixed,
+            "Empty session should be Mixed"
+        );
+    }
+
+    #[test]
+    fn detect_activity_mode_transact_wins_tie() {
+        let telemetry = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 6,
+            spec_language_turns: 6,
+            ..Default::default()
+        };
+        assert_eq!(
+            detect_activity_mode(&telemetry),
+            ActivityMode::Implementation,
+            "When both >0.5, transact_turns is checked first"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // B2.1/B2.3: Paste-ready commands in footer
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn worst_metric_returns_harvest_when_lowest() {
+        let components = MethodologyComponents {
+            transact_frequency: 0.8,
+            spec_language_ratio: 0.6,
+            query_diversity: 0.5,
+            harvest_quality: 0.0,
+        };
+        let cmd = worst_metric_command(&components);
+        assert!(
+            cmd.contains("harvest"),
+            "Worst metric (harvest=0.0) should suggest harvest command, got: {cmd}"
+        );
+    }
+
+    #[test]
+    fn worst_metric_returns_observe_when_tx_lowest() {
+        let components = MethodologyComponents {
+            transact_frequency: 0.0,
+            spec_language_ratio: 0.5,
+            query_diversity: 0.5,
+            harvest_quality: 0.5,
+        };
+        let cmd = worst_metric_command(&components);
+        assert!(
+            cmd.contains("observe"),
+            "Worst metric (tx=0.0) should suggest observe command, got: {cmd}"
+        );
+    }
+
+    #[test]
+    fn worst_metric_returns_query_entity_when_spec_lowest() {
+        let components = MethodologyComponents {
+            transact_frequency: 0.8,
+            spec_language_ratio: 0.0,
+            query_diversity: 0.5,
+            harvest_quality: 0.5,
+        };
+        let cmd = worst_metric_command(&components);
+        assert!(
+            cmd.contains("--entity"),
+            "Worst metric (spec=0.0) should suggest query --entity command, got: {cmd}"
+        );
+    }
+
+    #[test]
+    fn worst_metric_returns_query_attribute_when_qdiv_lowest() {
+        let components = MethodologyComponents {
+            transact_frequency: 0.8,
+            spec_language_ratio: 0.5,
+            query_diversity: 0.0,
+            harvest_quality: 0.5,
+        };
+        let cmd = worst_metric_command(&components);
+        assert!(
+            cmd.contains("--attribute"),
+            "Worst metric (q-div=0.0) should suggest query --attribute command, got: {cmd}"
+        );
+    }
+
+    #[test]
+    fn compressed_footer_contains_paste_ready_command() {
+        let telemetry = SessionTelemetry::default();
+        let store = Store::genesis();
+        let footer = build_footer(&telemetry, &store, None, vec![]);
+        let compressed = format_footer_at_level(&footer, crate::budget::GuidanceLevel::Compressed);
+        assert!(
+            compressed.contains("braid "),
+            "Compressed footer must contain paste-ready command, got: {compressed}"
+        );
+        assert!(
+            compressed.contains("\u{2192}"),
+            "Compressed footer must contain arrow before command, got: {compressed}"
+        );
+    }
+
+    #[test]
+    fn full_footer_shows_paste_ready_hints_when_failing() {
+        let telemetry = SessionTelemetry::default();
+        let store = Store::genesis();
+        let footer = build_footer(&telemetry, &store, None, vec![]);
+        let full = format_footer(&footer);
+        assert!(
+            full.contains("braid observe"),
+            "Full footer with tx=0 should show 'braid observe' hint, got: {full}"
+        );
+        assert!(
+            full.contains("braid query --entity"),
+            "Full footer with spec=0 should show 'braid query --entity' hint, got: {full}"
+        );
+        assert!(
+            full.contains("braid query --attribute"),
+            "Full footer with q-div=0 should show 'braid query --attribute' hint, got: {full}"
+        );
+        assert!(
+            full.contains("braid harvest --commit"),
+            "Full footer with harvest=0 should show 'braid harvest --commit' hint, got: {full}"
         );
     }
 
