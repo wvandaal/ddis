@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773839448/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a538"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "883b7d0454efdb3c9d717757540cc3a5734b05ed2c6c2e903a3c76ae61d167f2" :a :task/close-reason :v "transact uses inject_metadata_datom which maintains all 5 indexes" :op :assert}
+   {:e #blake3 "883b7d0454efdb3c9d717757540cc3a5734b05ed2c6c2e903a3c76ae61d167f2" :a :task/closed-at :v 1773839447 :op :assert}
+   {:e #blake3 "883b7d0454efdb3c9d717757540cc3a5734b05ed2c6c2e903a3c76ae61d167f2" :a :task/status :v :task.status/closed :op :assert}
+ ]}

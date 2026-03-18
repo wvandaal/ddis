@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773839447/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3133"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5d3825060058bb9316f1510385d588e08a08e437a12f583b6ac26489dd9d0335" :a :task/close-reason :v "Incremental: inject_metadata_datom updates live_view on Assert" :op :assert}
+   {:e #blake3 "5d3825060058bb9316f1510385d588e08a08e437a12f583b6ac26489dd9d0335" :a :task/closed-at :v 1773839446 :op :assert}
+   {:e #blake3 "5d3825060058bb9316f1510385d588e08a08e437a12f583b6ac26489dd9d0335" :a :task/status :v :task.status/closed :op :assert}
+ ]}

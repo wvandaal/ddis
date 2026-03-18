@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773839449/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-949a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d347cd07eeb8cc72039dfa26a8ca7a212fc385e8c9f28527ab85b0854a35a648" :a :task/close-reason :v "merge rebuilds via from_datoms which builds all 5 indexes" :op :assert}
+   {:e #blake3 "d347cd07eeb8cc72039dfa26a8ca7a212fc385e8c9f28527ab85b0854a35a648" :a :task/closed-at :v 1773839447 :op :assert}
+   {:e #blake3 "d347cd07eeb8cc72039dfa26a8ca7a212fc385e8c9f28527ab85b0854a35a648" :a :task/status :v :task.status/closed :op :assert}
+ ]}

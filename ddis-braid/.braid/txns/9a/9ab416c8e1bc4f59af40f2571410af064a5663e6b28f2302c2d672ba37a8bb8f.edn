@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773842375/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ee40"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "605db879f3894968c5a27700b5e2c6c0420386bcb6fd099c14950f0b6ca1b91c" :a :task/close-reason :v "VAET wired: ref_datoms() replaces full scan in 4 graph functions" :op :assert}
+   {:e #blake3 "605db879f3894968c5a27700b5e2c6c0420386bcb6fd099c14950f0b6ca1b91c" :a :task/closed-at :v 1773842373 :op :assert}
+   {:e #blake3 "605db879f3894968c5a27700b5e2c6c0420386bcb6fd099c14950f0b6ca1b91c" :a :task/status :v :task.status/closed :op :assert}
+ ]}

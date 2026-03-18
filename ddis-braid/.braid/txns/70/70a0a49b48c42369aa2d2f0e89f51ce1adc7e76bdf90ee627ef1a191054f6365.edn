@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773842372/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7606"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "87a508a45c643d4627caaa7366ca2d43a17b0f548ab521c662821d5787f91779" :a :task/close-reason :v ".cache/ dir with bincode datoms.bin + meta.json + atomic rename" :op :assert}
+   {:e #blake3 "87a508a45c643d4627caaa7366ca2d43a17b0f548ab521c662821d5787f91779" :a :task/closed-at :v 1773842371 :op :assert}
+   {:e #blake3 "87a508a45c643d4627caaa7366ca2d43a17b0f548ab521c662821d5787f91779" :a :task/status :v :task.status/closed :op :assert}
+ ]}

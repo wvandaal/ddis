@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773842374/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-6285"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e3dd6784ca1a8e048c0749391cc6d097586f95a2d18b91fe9ac7e79bd9a0bdb8" :a :task/close-reason :v "AVET wired: attr+value bound → avet_lookup, ~1000x fewer datoms scanned" :op :assert}
+   {:e #blake3 "e3dd6784ca1a8e048c0749391cc6d097586f95a2d18b91fe9ac7e79bd9a0bdb8" :a :task/closed-at :v 1773842372 :op :assert}
+   {:e #blake3 "e3dd6784ca1a8e048c0749391cc6d097586f95a2d18b91fe9ac7e79bd9a0bdb8" :a :task/status :v :task.status/closed :op :assert}
+ ]}

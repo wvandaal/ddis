@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773839450/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-09cc"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/close-reason :v "from_datoms builds all 5 indexes in single pass" :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/closed-at :v 1773839448 :op :assert}
+   {:e #blake3 "01938298cb25514868325e3fbe3bd9b5fae07e73b4cfd714b11683296ebea31c" :a :task/status :v :task.status/closed :op :assert}
+ ]}

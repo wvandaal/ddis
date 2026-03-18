@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773842373/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-dcbb"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f74fb0688fa74d374c87c8f7d0114596e77c6ee7e73155b7e37b0f2cee62759" :a :task/close-reason :v "txn_fingerprint freshness: BLAKE3(sorted_hashes), auto-invalidation" :op :assert}
+   {:e #blake3 "8f74fb0688fa74d374c87c8f7d0114596e77c6ee7e73155b7e37b0f2cee62759" :a :task/closed-at :v 1773842371 :op :assert}
+   {:e #blake3 "8f74fb0688fa74d374c87c8f7d0114596e77c6ee7e73155b7e37b0f2cee62759" :a :task/status :v :task.status/closed :op :assert}
+ ]}

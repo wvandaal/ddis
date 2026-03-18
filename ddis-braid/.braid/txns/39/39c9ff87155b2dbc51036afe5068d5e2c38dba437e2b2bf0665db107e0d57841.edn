@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773842376/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3f85"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1aa115c9287cc181f53d054c622f5a987e4be840f534424ca42cf8abd9eafc51" :a :task/close-reason :v "live_value() verified accessible as pub on pub Store" :op :assert}
+   {:e #blake3 "1aa115c9287cc181f53d054c622f5a987e4be840f534424ca42cf8abd9eafc51" :a :task/closed-at :v 1773842374 :op :assert}
+   {:e #blake3 "1aa115c9287cc181f53d054c622f5a987e4be840f534424ca42cf8abd9eafc51" :a :task/status :v :task.status/closed :op :assert}
+ ]}
