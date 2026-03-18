@@ -2064,8 +2064,9 @@ pub fn crystallization_candidates(store: &Store) -> Vec<(EntityId, String)> {
                 for ident_datom in store.entity_datoms(datom.entity) {
                     if ident_datom.attribute == ident_attr && ident_datom.op == Op::Assert {
                         if let Value::Keyword(ref kw) = ident_datom.value {
-                            if let Some(id_part) = kw.strip_prefix(":spec/") {
-                                crystallized.insert(id_part.to_uppercase());
+                            // SPECID-2: Use SpecId for canonical normalization
+                            if let Some(spec_id) = crate::spec_id::SpecId::from_store_ident(kw) {
+                                crystallized.insert(spec_id.human_form());
                             }
                         }
                     }
@@ -2075,11 +2076,15 @@ pub fn crystallization_candidates(store: &Store) -> Vec<(EntityId, String)> {
     }
 
     // Step 3: For each observation, extract spec IDs and check if uncrystallized.
+    // SPECID-2: Use SpecId::parse for canonical comparison
     let mut candidates = Vec::new();
     for (entity, body) in &obs_bodies {
         let ids = extract_spec_ids(body);
         for id in ids {
-            if !crystallized.contains(&id) {
+            let canonical = crate::spec_id::SpecId::parse(&id)
+                .map(|s| s.human_form())
+                .unwrap_or(id.clone());
+            if !crystallized.contains(&canonical) {
                 candidates.push((*entity, id));
             }
         }
