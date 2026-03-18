@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773795076/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c399"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "be6552992b7ebe1fe3b726f005bdcbdbc1a170790e10180f43da44f05efa06fd" :a :task/close-reason :v "Implemented in Wave 2 Batch 2: append_guidance_footer() in mcp.rs" :op :assert}
+   {:e #blake3 "be6552992b7ebe1fe3b726f005bdcbdbc1a170790e10180f43da44f05efa06fd" :a :task/closed-at :v 1773795075 :op :assert}
+   {:e #blake3 "be6552992b7ebe1fe3b726f005bdcbdbc1a170790e10180f43da44f05efa06fd" :a :task/status :v :task.status/closed :op :assert}
+ ]}

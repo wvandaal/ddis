@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773797514/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-70b0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c2f2f634a03575bc2f4db3f1bab5f4b78c08cc79aca99187cd40c0b630f80ca8" :a :task/close-reason :v "Lattice{lattice_id: EntityId}, :db/latticeOrder ref, 5 call sites" :op :assert}
+   {:e #blake3 "c2f2f634a03575bc2f4db3f1bab5f4b78c08cc79aca99187cd40c0b630f80ca8" :a :task/closed-at :v 1773797512 :op :assert}
+   {:e #blake3 "c2f2f634a03575bc2f4db3f1bab5f4b78c08cc79aca99187cd40c0b630f80ca8" :a :task/status :v :task.status/closed :op :assert}
+ ]}

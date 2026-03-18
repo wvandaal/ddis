@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773798363/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-403b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "361450e4fc8204e7a86685749fa7f3e369887dc8cbe0bf14809ba9b905bafbf6" :a :task/close-reason :v "Agent entity auto-creation in transact, idempotent, 2 tests" :op :assert}
+   {:e #blake3 "361450e4fc8204e7a86685749fa7f3e369887dc8cbe0bf14809ba9b905bafbf6" :a :task/closed-at :v 1773798362 :op :assert}
+   {:e #blake3 "361450e4fc8204e7a86685749fa7f3e369887dc8cbe0bf14809ba9b905bafbf6" :a :task/status :v :task.status/closed :op :assert}
+ ]}

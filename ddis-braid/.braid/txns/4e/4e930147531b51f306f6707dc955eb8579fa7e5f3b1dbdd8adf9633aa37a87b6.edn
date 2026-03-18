@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773797587/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-eb7f"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d128ca92d3e98bcd657cac3839a2eee4669f167ca461a0ec26dfaf9f882ea9a2" :a :task/close-reason :v "Already implemented in t-152b: is_causal_ancestor BFS walk in resolution.rs" :op :assert}
+   {:e #blake3 "d128ca92d3e98bcd657cac3839a2eee4669f167ca461a0ec26dfaf9f882ea9a2" :a :task/closed-at :v 1773797586 :op :assert}
+   {:e #blake3 "d128ca92d3e98bcd657cac3839a2eee4669f167ca461a0ec26dfaf9f882ea9a2" :a :task/status :v :task.status/closed :op :assert}
+ ]}

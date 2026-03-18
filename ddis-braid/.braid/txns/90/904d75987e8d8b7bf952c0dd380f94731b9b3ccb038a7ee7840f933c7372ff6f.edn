@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773798372/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 14 candidates from task 'S0-CLOSE bug sweep: 13 tasks across 3 waves'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :db/doc :v "Harvest session for task: S0-CLOSE bug sweep: 13 tasks across 3 waves" :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :db/ident :v :harvest/session-braid-user-1773798372 :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :harvest/candidate-count :v 14 :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :harvest/codebase-snapshot :v "Codebase: 74466 LOC across 72 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/seed.rs (4631 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4164 LOC)\n  ddis-braid/crates/braid-kernel/src/guidance.rs (3558 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3133 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (2993 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (2908 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2105 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (2056 LOC)" :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :harvest/delta-summary :v "+65 datoms, +1 entities" :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :harvest/git-summary :v "branch=main, 3 commits, 36 files (+1018/-31)\n  cd71ffd 4 S0-CLOSE tasks: cascade pipeline, agent entities, layout integrity\n  7431f47 6 S0-CLOSE bug fixes: resolution, schema, merge proof, deliberation, seed, store\n  93ce5c6 Session harvest + 28 task closures + EPIC dependency fix\nHot files:\n  ddis-braid/crates/braid-kernel/src/merge.rs (261 lines changed)\n  ddis-braid/crates/braid-kernel/src/store.rs (165 lines changed)\n  ddis-braid/crates/braid-kernel/src/seed.rs (93 lines changed)\n  ddis-braid/crates/braid-kernel/src/deliberation.rs (75 lines changed)\n  ddis-braid/crates/braid-kernel/src/schema.rs (72 lines changed)\n  ddis-braid/crates/braid/src/layout.rs (69 lines changed)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (35 lines changed)\n  ddis-braid/.braid/txns/7d/7d33924a86c95b4ef63b5129bf0925098bb52ae696cb20a7a6342814947b687b.edn (20 lines changed)" :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :harvest/store-datom-count :v 12010 :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :harvest/store-entity-count :v 1841 :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :harvest/task :v "S0-CLOSE bug sweep: 13 tasks across 3 waves" :op :assert}
+   {:e #blake3 "66c9ae24786b3cd46cfa0123cc0838d3c48c76f72015ef1438e07339a99698a8" :a :harvest/tx-since-last :v 24 :op :assert}
+ ]}

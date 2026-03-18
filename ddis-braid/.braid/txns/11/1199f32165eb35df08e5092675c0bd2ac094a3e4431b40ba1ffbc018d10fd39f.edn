@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773797588/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-2dbb"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "582bb9bd216feb99c02c0bd09d13adbddfe354578be55899bd78b8942a657ae3" :a :task/close-reason :v "Already implemented in t-0246: cascade_stub_datoms generates steps 2-5 stubs" :op :assert}
+   {:e #blake3 "582bb9bd216feb99c02c0bd09d13adbddfe354578be55899bd78b8942a657ae3" :a :task/closed-at :v 1773797587 :op :assert}
+   {:e #blake3 "582bb9bd216feb99c02c0bd09d13adbddfe354578be55899bd78b8942a657ae3" :a :task/status :v :task.status/closed :op :assert}
+ ]}

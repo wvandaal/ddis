@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773797515/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8ef5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "96c9541177ad8618633a7d565543d5242b0f772e63d8ce7f3303dab3a96797f2" :a :task/close-reason :v "Replaced frontier proof with cascade_stub_datoms: 7 datoms + determinism" :op :assert}
+   {:e #blake3 "96c9541177ad8618633a7d565543d5242b0f772e63d8ce7f3303dab3a96797f2" :a :task/closed-at :v 1773797513 :op :assert}
+   {:e #blake3 "96c9541177ad8618633a7d565543d5242b0f772e63d8ce7f3303dab3a96797f2" :a :task/status :v :task.status/closed :op :assert}
+ ]}
