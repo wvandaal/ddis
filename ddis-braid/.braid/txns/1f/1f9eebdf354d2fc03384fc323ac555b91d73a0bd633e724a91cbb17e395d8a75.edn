@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773854552/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 2 candidates from task 'Mega-session: Wave 2 + S0-CLOSE + S1-PREP + SFE + COF + AGP + DMP + WITNESS spec'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :db/doc :v "Harvest session for task: Mega-session: Wave 2 + S0-CLOSE + S1-PREP + SFE + COF + AGP + DMP + WITNESS spec" :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :db/ident :v :harvest/session-braid-user-1773854552 :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :harvest/candidate-count :v 2 :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :harvest/codebase-snapshot :v "Codebase: 82867 LOC across 72 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (5922 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (4631 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3569 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3250 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (3054 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2106 LOC)" :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :harvest/delta-summary :v "+25 datoms, +2 entities" :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :harvest/drift-score :v 2.0 :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :harvest/git-summary :v "branch=main, 2 commits, 14 files (+858/-37)\n  dd7a91e AGP partial: GuidanceContext + tx_velocity + dynamic_threshold + methodology_gaps\n  bb2d03b DMP tasks + SFE dog-food validation (spec anchor warnings working!)\nHot files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (599 lines changed)\n  ddis-braid/crates/braid/src/commands/status.rs (108 lines changed)\n  ddis-braid/.braid/txns/84/847a7dc5a1bb788ee00e6857c11b332137700dff314bccd2f083c1db8d31094c.edn (23 lines changed)\n  ddis-braid/.braid/txns/a4/a4092dad5f1f34d46d162147b1f0f3a9b0974efad5b077de7dc668734d6b85d4.edn (16 lines changed)\n  ddis-braid/.braid/txns/30/301079fbd540e7e76e9d10853ab12373a5a5420164c8982ab4893c752df248a3.edn (15 lines changed)\n  ddis-braid/.braid/txns/4e/4e2ee99846a4fe79562c280cadfca4e03ac12bef32b6e09dbb03c888897a7684.edn (15 lines changed)\n  ddis-braid/.braid/txns/5b/5b482a26e1db821432034fe4b5f568125225897cc38f79087ab8407a30703d06.edn (15 lines changed)\n  ddis-braid/.braid/txns/5e/5e6a6bae111f248a4e855443fb74382c7353b03aa445c242a26ba35d723d647a.edn (15 lines changed)" :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :harvest/observation-count :v 1 :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :harvest/store-datom-count :v 14957 :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :harvest/store-entity-count :v 2127 :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :harvest/task :v "Mega-session: Wave 2 + S0-CLOSE + S1-PREP + SFE + COF + AGP + DMP + WITNESS spec" :op :assert}
+   {:e #blake3 "5959aa001a849659cc482267614475a43bead339d4fc0ed58279fb3aba21d52a" :a :harvest/tx-since-last :v 1 :op :assert}
+ ]}
