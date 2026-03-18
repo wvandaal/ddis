@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871045/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS negative cases from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7c0d17775eff7bce83bc64b4e590463ce1fb490d34d62fcad5b70307f6775b4a" :a :db/ident :v :spec/neg-witness-002 :op :assert}
+   {:e #blake3 "7c0d17775eff7bce83bc64b4e590463ce1fb490d34d62fcad5b70307f6775b4a" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "7c0d17775eff7bce83bc64b4e590463ce1fb490d34d62fcad5b70307f6775b4a" :a :spec/falsification :v "A test body hash changes, new test has fewer assertions or weaker conditions, but the FBW status remains valid." :op :assert}
+   {:e #blake3 "7c0d17775eff7bce83bc64b4e590463ce1fb490d34d62fcad5b70307f6775b4a" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "7c0d17775eff7bce83bc64b4e590463ce1fb490d34d62fcad5b70307f6775b4a" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "7c0d17775eff7bce83bc64b4e590463ce1fb490d34d62fcad5b70307f6775b4a" :a :spec/statement :v "A test body change reducing assertion count or removing falsification-relevant assertions MUST invalidate the FBW. No silent weakening." :op :assert}
+   {:e #blake3 "7c0d17775eff7bce83bc64b4e590463ce1fb490d34d62fcad5b70307f6775b4a" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

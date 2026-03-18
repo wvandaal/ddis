@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871071/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS ADRs from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0661ae3d8aad94f688b3d2734b24b1e9bdc7bf4534ca5c50c0e94f0944527e95" :a :adr/decision :v "Graduated alignment: keyword overlap at L2, property coverage at L3, formal entailment at L4, with LLM-as-judge at Stage 2+." :op :assert}
+   {:e #blake3 "0661ae3d8aad94f688b3d2734b24b1e9bdc7bf4534ca5c50c0e94f0944527e95" :a :adr/problem :v "Go CLI 5-level challenge never checks whether test actually VERIFIES the falsification condition. assert!(true) would pass all levels." :op :assert}
+   {:e #blake3 "0661ae3d8aad94f688b3d2734b24b1e9bdc7bf4534ca5c50c0e94f0944527e95" :a :db/ident :v :spec/adr-witness-002 :op :assert}
+   {:e #blake3 "0661ae3d8aad94f688b3d2734b24b1e9bdc7bf4534ca5c50c0e94f0944527e95" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "0661ae3d8aad94f688b3d2734b24b1e9bdc7bf4534ca5c50c0e94f0944527e95" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "0661ae3d8aad94f688b3d2734b24b1e9bdc7bf4534ca5c50c0e94f0944527e95" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "0661ae3d8aad94f688b3d2734b24b1e9bdc7bf4534ca5c50c0e94f0944527e95" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871047/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS negative cases from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a3f6a79ca1a81ad719f8ecdc6d8770f4bcb3472650cd97118fed1c4940fd4c6b" :a :db/ident :v :spec/neg-witness-003 :op :assert}
+   {:e #blake3 "a3f6a79ca1a81ad719f8ecdc6d8770f4bcb3472650cd97118fed1c4940fd4c6b" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "a3f6a79ca1a81ad719f8ecdc6d8770f4bcb3472650cd97118fed1c4940fd4c6b" :a :spec/falsification :v "An FBW has status=valid and no :witness/challenge-tx ref." :op :assert}
+   {:e #blake3 "a3f6a79ca1a81ad719f8ecdc6d8770f4bcb3472650cd97118fed1c4940fd4c6b" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "a3f6a79ca1a81ad719f8ecdc6d8770f4bcb3472650cd97118fed1c4940fd4c6b" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "a3f6a79ca1a81ad719f8ecdc6d8770f4bcb3472650cd97118fed1c4940fd4c6b" :a :spec/statement :v "An FBW cannot have status=valid without a recorded challenge result. Witnesses that bypass the challenge protocol are ceremonial, not verification." :op :assert}
+   {:e #blake3 "a3f6a79ca1a81ad719f8ecdc6d8770f4bcb3472650cd97118fed1c4940fd4c6b" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871068/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS ADRs from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e1382ce86b646d98ecfc9fa03405dba09b97e2c1a170875563b0f099ffe06967" :a :adr/decision :v "Triple hash (spec + falsification + test). Tracks falsification independently from full spec text to detect contract weakening." :op :assert}
+   {:e #blake3 "e1382ce86b646d98ecfc9fa03405dba09b97e2c1a170875563b0f099ffe06967" :a :adr/problem :v "Go CLI uses single spec_hash for witness invalidation. Detects spec changes but NOT test weakening or contract mutation." :op :assert}
+   {:e #blake3 "e1382ce86b646d98ecfc9fa03405dba09b97e2c1a170875563b0f099ffe06967" :a :db/ident :v :spec/adr-witness-001 :op :assert}
+   {:e #blake3 "e1382ce86b646d98ecfc9fa03405dba09b97e2c1a170875563b0f099ffe06967" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "e1382ce86b646d98ecfc9fa03405dba09b97e2c1a170875563b0f099ffe06967" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "e1382ce86b646d98ecfc9fa03405dba09b97e2c1a170875563b0f099ffe06967" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "e1382ce86b646d98ecfc9fa03405dba09b97e2c1a170875563b0f099ffe06967" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

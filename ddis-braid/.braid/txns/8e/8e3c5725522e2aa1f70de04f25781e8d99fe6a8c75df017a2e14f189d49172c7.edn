@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773870999/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS spec elements from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b4342882376d667a443427c5d062894a60d925c00aa6c17aa20e06156529b18e" :a :db/ident :v :spec/inv-witness-006 :op :assert}
+   {:e #blake3 "b4342882376d667a443427c5d062894a60d925c00aa6c17aa20e06156529b18e" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "b4342882376d667a443427c5d062894a60d925c00aa6c17aa20e06156529b18e" :a :spec/falsification :v "A trace link at L2+ exists but test_body_hash is None or empty." :op :assert}
+   {:e #blake3 "b4342882376d667a443427c5d062894a60d925c00aa6c17aa20e06156529b18e" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "b4342882376d667a443427c5d062894a60d925c00aa6c17aa20e06156529b18e" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "b4342882376d667a443427c5d062894a60d925c00aa6c17aa20e06156529b18e" :a :spec/statement :v "Trace scanner extracts test function body hashes for every test referencing a spec element. Hash covers complete function body excluding whitespace-only changes." :op :assert}
+   {:e #blake3 "b4342882376d667a443427c5d062894a60d925c00aa6c17aa20e06156529b18e" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

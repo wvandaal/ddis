@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871026/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS spec elements from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ab1b95a8b582976321cce0fd461014ca23da184a59c8f83a5e926ae4967139a7" :a :db/ident :v :spec/inv-witness-012 :op :assert}
+   {:e #blake3 "ab1b95a8b582976321cce0fd461014ca23da184a59c8f83a5e926ae4967139a7" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "ab1b95a8b582976321cce0fd461014ca23da184a59c8f83a5e926ae4967139a7" :a :spec/falsification :v "An invariant has a parseable falsification but the system cannot generate a test template that distinguishes compliant from non-compliant behavior." :op :assert}
+   {:e #blake3 "ab1b95a8b582976321cce0fd461014ca23da184a59c8f83a5e926ae4967139a7" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "ab1b95a8b582976321cce0fd461014ca23da184a59c8f83a5e926ae4967139a7" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "ab1b95a8b582976321cce0fd461014ca23da184a59c8f83a5e926ae4967139a7" :a :spec/statement :v "For every invariant with a machine-parseable falsification, the system CAN generate a behavioral boundary test distinguishing compliant from non-compliant behavior." :op :assert}
+   {:e #blake3 "ab1b95a8b582976321cce0fd461014ca23da184a59c8f83a5e926ae4967139a7" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

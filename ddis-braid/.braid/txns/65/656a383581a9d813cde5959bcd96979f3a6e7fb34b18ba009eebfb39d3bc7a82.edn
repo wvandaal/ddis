@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871019/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS spec elements from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "79da2e7befce2f4a4bc1df5013ee63735a0a49e8e0dbcdea593ec96b6d7d491b" :a :db/ident :v :spec/inv-witness-010 :op :assert}
+   {:e #blake3 "79da2e7befce2f4a4bc1df5013ee63735a0a49e8e0dbcdea593ec96b6d7d491b" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "79da2e7befce2f4a4bc1df5013ee63735a0a49e8e0dbcdea593ec96b6d7d491b" :a :spec/falsification :v "A majority vote aggregates verdicts from the same conversation context, producing correlated outputs." :op :assert}
+   {:e #blake3 "79da2e7befce2f4a4bc1df5013ee63735a0a49e8e0dbcdea593ec96b6d7d491b" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "79da2e7befce2f4a4bc1df5013ee63735a0a49e8e0dbcdea593ec96b6d7d491b" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "79da2e7befce2f4a4bc1df5013ee63735a0a49e8e0dbcdea593ec96b6d7d491b" :a :spec/statement :v "When multiple challenge verdicts are aggregated (majority vote), each verdict MUST come from a decorrelated cognitive context. Same-session API calls are NOT decorrelated." :op :assert}
+   {:e #blake3 "79da2e7befce2f4a4bc1df5013ee63735a0a49e8e0dbcdea593ec96b6d7d491b" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871050/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS negative cases from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5489023b3f87cd44aca8b6d3b1b67debd28b4a53c5294ac6a9f9ac1518b48e55" :a :db/ident :v :spec/neg-witness-004 :op :assert}
+   {:e #blake3 "5489023b3f87cd44aca8b6d3b1b67debd28b4a53c5294ac6a9f9ac1518b48e55" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "5489023b3f87cd44aca8b6d3b1b67debd28b4a53c5294ac6a9f9ac1518b48e55" :a :spec/falsification :v "All challenge verdicts for an FBW come from the same conversation context that produced the code being verified." :op :assert}
+   {:e #blake3 "5489023b3f87cd44aca8b6d3b1b67debd28b4a53c5294ac6a9f9ac1518b48e55" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "5489023b3f87cd44aca8b6d3b1b67debd28b4a53c5294ac6a9f9ac1518b48e55" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "5489023b3f87cd44aca8b6d3b1b67debd28b4a53c5294ac6a9f9ac1518b48e55" :a :spec/statement :v "The agent that produces an implementation artifact MUST NOT be the sole challenger. At least one challenge verdict must come from a cognitively independent context." :op :assert}
+   {:e #blake3 "5489023b3f87cd44aca8b6d3b1b67debd28b4a53c5294ac6a9f9ac1518b48e55" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871040/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS negative cases from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "546b351c23f49b78f7ed419176c371d543bbcb67d08f235c6cc24681f24c6a91" :a :db/ident :v :spec/neg-witness-001 :op :assert}
+   {:e #blake3 "546b351c23f49b78f7ed419176c371d543bbcb67d08f235c6cc24681f24c6a91" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "546b351c23f49b78f7ed419176c371d543bbcb67d08f235c6cc24681f24c6a91" :a :spec/falsification :v "An FBW exists where resolve(fbw.inv_ref) returns no entity." :op :assert}
+   {:e #blake3 "546b351c23f49b78f7ed419176c371d543bbcb67d08f235c6cc24681f24c6a91" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "546b351c23f49b78f7ed419176c371d543bbcb67d08f235c6cc24681f24c6a91" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "546b351c23f49b78f7ed419176c371d543bbcb67d08f235c6cc24681f24c6a91" :a :spec/statement :v "Every FBW must reference a valid invariant entity. An FBW with inv-ref pointing to a non-existent entity is a defect." :op :assert}
+   {:e #blake3 "546b351c23f49b78f7ed419176c371d543bbcb67d08f235c6cc24681f24c6a91" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

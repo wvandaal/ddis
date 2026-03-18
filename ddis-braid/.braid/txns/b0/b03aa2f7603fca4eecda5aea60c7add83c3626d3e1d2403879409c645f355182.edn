@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773870995/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS spec elements from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "59a9fa571eab5ea53c895b2aa34648b9413191582b308bd84f926480893ccd6a" :a :db/ident :v :spec/inv-witness-005 :op :assert}
+   {:e #blake3 "59a9fa571eab5ea53c895b2aa34648b9413191582b308bd84f926480893ccd6a" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "59a9fa571eab5ea53c895b2aa34648b9413191582b308bd84f926480893ccd6a" :a :spec/falsification :v "A stale witness contributes non-zero to F(S).validation." :op :assert}
+   {:e #blake3 "59a9fa571eab5ea53c895b2aa34648b9413191582b308bd84f926480893ccd6a" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "59a9fa571eab5ea53c895b2aa34648b9413191582b308bd84f926480893ccd6a" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "59a9fa571eab5ea53c895b2aa34648b9413191582b308bd84f926480893ccd6a" :a :spec/statement :v "Bilateral fitness F(S) validation component V treats stale witnesses as unverified. An invariant with only stale FBWs contributes 0 to validation score." :op :assert}
+   {:e #blake3 "59a9fa571eab5ea53c895b2aa34648b9413191582b308bd84f926480893ccd6a" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

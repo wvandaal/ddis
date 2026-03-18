@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773870972/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS spec elements from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9a30a6aadf8d4c202d25832fbea28d988c953dab06c5dcf2bb9afbd323532858" :a :db/ident :v :spec/inv-witness-001 :op :assert}
+   {:e #blake3 "9a30a6aadf8d4c202d25832fbea28d988c953dab06c5dcf2bb9afbd323532858" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "9a30a6aadf8d4c202d25832fbea28d988c953dab06c5dcf2bb9afbd323532858" :a :spec/falsification :v "An FBW has status=valid but one or more of its three hashes does not match the current artifact content." :op :assert}
+   {:e #blake3 "9a30a6aadf8d4c202d25832fbea28d988c953dab06c5dcf2bb9afbd323532858" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "9a30a6aadf8d4c202d25832fbea28d988c953dab06c5dcf2bb9afbd323532858" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "9a30a6aadf8d4c202d25832fbea28d988c953dab06c5dcf2bb9afbd323532858" :a :spec/statement :v "For every FBW, if any of spec_hash, falsification_hash, or test_body_hash differs from current computed hash, the FBW status is stale. Triple-hash auto-invalidation." :op :assert}
+   {:e #blake3 "9a30a6aadf8d4c202d25832fbea28d988c953dab06c5dcf2bb9afbd323532858" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -6526,4 +6526,233 @@ mod tests {
             approx_tokens
         );
     }
+
+    // -------------------------------------------------------------------
+    // Session Working Set (INV-GUIDANCE-010, SWS-1/SWS-2)
+    // -------------------------------------------------------------------
+
+    // TEST-SWS-1: SessionWorkingSet construction
+
+    #[test]
+    fn session_working_set_empty_store() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let sws = SessionWorkingSet::from_store(&store);
+        assert!(sws.active_tasks.is_empty());
+        assert!(sws.session_created_tasks.is_empty());
+        assert!(sws.epic_siblings.is_empty());
+        assert!(sws.is_empty());
+    }
+
+    #[test]
+    fn session_working_set_with_fresh_in_progress() {
+        use crate::datom::{AgentId, Datom, Op, TxId};
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        // Create a task with RECENT in-progress status
+        let tx1 = TxId::new(now - 10, 0, agent);
+        let (_, mut task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Fresh task",
+            description: None,
+            priority: 1,
+            task_type: TaskType::Task,
+            tx: tx1,
+            traces_to: &[],
+            labels: &[],
+        });
+
+        // Add in-progress status with RECENT wall_time
+        let tx_recent = TxId::new(now - 5, 0, agent);
+        task_datoms.push(Datom::new(
+            task_datoms[0].entity,
+            Attribute::from_keyword(":task/status"),
+            Value::Keyword(":task.status/in-progress".to_string()),
+            tx_recent,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(task_datoms.into_iter().collect());
+        let sws = SessionWorkingSet::from_store(&store);
+
+        assert!(
+            !sws.active_tasks.is_empty(),
+            "fresh in-progress task should be in active set"
+        );
+    }
+
+    #[test]
+    fn session_working_set_excludes_stale_in_progress() {
+        use crate::datom::{AgentId, Datom, Op, TxId};
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        // Create a task with STALE in-progress status (2 hours old)
+        let tx_old = TxId::new(now - 7200, 0, agent);
+        let (_, mut task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Stale task",
+            description: None,
+            priority: 1,
+            task_type: TaskType::Task,
+            tx: tx_old,
+            traces_to: &[],
+            labels: &[],
+        });
+
+        // Add in-progress status with STALE wall_time (2 hours ago)
+        task_datoms.push(Datom::new(
+            task_datoms[0].entity,
+            Attribute::from_keyword(":task/status"),
+            Value::Keyword(":task.status/in-progress".to_string()),
+            tx_old,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(task_datoms.into_iter().collect());
+        let sws = SessionWorkingSet::from_store(&store);
+
+        assert!(
+            sws.active_tasks.is_empty(),
+            "stale in-progress task (2h old) should NOT be in active set, got {}",
+            sws.active_tasks.len()
+        );
+    }
+
+    #[test]
+    fn session_working_set_session_created() {
+        use crate::datom::{AgentId, TxId};
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        // Create a task with recent created_at
+        let tx = TxId::new(now - 60, 0, agent);
+        let (_, task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Recent task",
+            description: None,
+            priority: 1,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+
+        let store = Store::from_datoms(task_datoms.into_iter().collect());
+        let sws = SessionWorkingSet::from_store(&store);
+
+        assert!(
+            !sws.session_created_tasks.is_empty(),
+            "recently created task should be in session_created_tasks"
+        );
+    }
+
+    // TEST-SWS-2: session_boost multiplier
+
+    #[test]
+    fn session_boost_active_task_gets_3() {
+        let sws = SessionWorkingSet {
+            active_tasks: vec![EntityId::from_ident(":task/t-active")],
+            session_created_tasks: BTreeSet::new(),
+            epic_siblings: BTreeSet::new(),
+            session_boundary: 0,
+        };
+        assert_eq!(
+            session_boost(EntityId::from_ident(":task/t-active"), &sws),
+            3.0
+        );
+    }
+
+    #[test]
+    fn session_boost_sibling_gets_2() {
+        let sws = SessionWorkingSet {
+            active_tasks: vec![],
+            session_created_tasks: BTreeSet::new(),
+            epic_siblings: {
+                let mut s = BTreeSet::new();
+                s.insert(EntityId::from_ident(":task/t-sibling"));
+                s
+            },
+            session_boundary: 0,
+        };
+        assert_eq!(
+            session_boost(EntityId::from_ident(":task/t-sibling"), &sws),
+            2.0
+        );
+    }
+
+    #[test]
+    fn session_boost_created_gets_1_5() {
+        let sws = SessionWorkingSet {
+            active_tasks: vec![],
+            session_created_tasks: {
+                let mut s = BTreeSet::new();
+                s.insert(EntityId::from_ident(":task/t-new"));
+                s
+            },
+            epic_siblings: BTreeSet::new(),
+            session_boundary: 0,
+        };
+        assert_eq!(
+            session_boost(EntityId::from_ident(":task/t-new"), &sws),
+            1.5
+        );
+    }
+
+    #[test]
+    fn session_boost_unrelated_gets_1() {
+        let sws = SessionWorkingSet {
+            active_tasks: vec![EntityId::from_ident(":task/t-other")],
+            session_created_tasks: BTreeSet::new(),
+            epic_siblings: BTreeSet::new(),
+            session_boundary: 0,
+        };
+        assert_eq!(
+            session_boost(EntityId::from_ident(":task/t-unrelated"), &sws),
+            1.0
+        );
+    }
+
+    #[test]
+    fn session_boost_takes_highest_category() {
+        // Task is both active AND session-created → should get 3.0 (highest)
+        let entity = EntityId::from_ident(":task/t-both");
+        let sws = SessionWorkingSet {
+            active_tasks: vec![entity],
+            session_created_tasks: {
+                let mut s = BTreeSet::new();
+                s.insert(entity);
+                s
+            },
+            epic_siblings: BTreeSet::new(),
+            session_boundary: 0,
+        };
+        assert_eq!(session_boost(entity, &sws), 3.0);
+    }
+
+    #[test]
+    fn session_boost_empty_working_set_all_1() {
+        let sws = SessionWorkingSet {
+            active_tasks: vec![],
+            session_created_tasks: BTreeSet::new(),
+            epic_siblings: BTreeSet::new(),
+            session_boundary: 0,
+        };
+        assert_eq!(
+            session_boost(EntityId::from_ident(":task/t-any"), &sws),
+            1.0
+        );
+    }
 }

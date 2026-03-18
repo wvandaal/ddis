@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871076/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS ADRs from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7a3e392cda0193510aef54159c9576dea5a5e7a0e4cb4fec16482b696508cc6e" :a :adr/decision :v "Datom-backed witnesses. FBW as datoms in main store, queryable via Datalog, mergeable via CRDT set union, append-only by construction." :op :assert}
+   {:e #blake3 "7a3e392cda0193510aef54159c9576dea5a5e7a0e4cb4fec16482b696508cc6e" :a :adr/problem :v "Go CLI stores witnesses as SQL rows in a relational table outside the datom store, creating separate state management." :op :assert}
+   {:e #blake3 "7a3e392cda0193510aef54159c9576dea5a5e7a0e4cb4fec16482b696508cc6e" :a :db/ident :v :spec/adr-witness-003 :op :assert}
+   {:e #blake3 "7a3e392cda0193510aef54159c9576dea5a5e7a0e4cb4fec16482b696508cc6e" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "7a3e392cda0193510aef54159c9576dea5a5e7a0e4cb4fec16482b696508cc6e" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "7a3e392cda0193510aef54159c9576dea5a5e7a0e4cb4fec16482b696508cc6e" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "7a3e392cda0193510aef54159c9576dea5a5e7a0e4cb4fec16482b696508cc6e" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

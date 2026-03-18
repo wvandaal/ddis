@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871002/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS spec elements from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2ec729468c6e85e7e85f6ca0c1ff2d9551a1acdd4dcf7939f119c2d23c10a4d9" :a :db/ident :v :spec/inv-witness-007 :op :assert}
+   {:e #blake3 "2ec729468c6e85e7e85f6ca0c1ff2d9551a1acdd4dcf7939f119c2d23c10a4d9" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "2ec729468c6e85e7e85f6ca0c1ff2d9551a1acdd4dcf7939f119c2d23c10a4d9" :a :spec/falsification :v "A challenge refutation exists but no corresponding bug task was filed." :op :assert}
+   {:e #blake3 "2ec729468c6e85e7e85f6ca0c1ff2d9551a1acdd4dcf7939f119c2d23c10a4d9" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "2ec729468c6e85e7e85f6ca0c1ff2d9551a1acdd4dcf7939f119c2d23c10a4d9" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "2ec729468c6e85e7e85f6ca0c1ff2d9551a1acdd4dcf7939f119c2d23c10a4d9" :a :spec/statement :v "When a challenge produces a refuted verdict, the system automatically files a bug task tracing to the refuted invariant with the refutation reason." :op :assert}
+   {:e #blake3 "2ec729468c6e85e7e85f6ca0c1ff2d9551a1acdd4dcf7939f119c2d23c10a4d9" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

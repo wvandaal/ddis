@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871089/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact GUIDANCE spec elements from spec/12-guidance.md s12.9-12.11"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fbaece06458cd26b6f6931aa13d8bce872267280e9a3608ef0e48b5ac525ea10" :a :db/ident :v :spec/inv-guidance-013 :op :assert}
+   {:e #blake3 "fbaece06458cd26b6f6931aa13d8bce872267280e9a3608ef0e48b5ac525ea10" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "fbaece06458cd26b6f6931aa13d8bce872267280e9a3608ef0e48b5ac525ea10" :a :spec/falsification :v "R(t) ranks a docs-unblocking task above an impl-unblocking task at equal base PageRank." :op :assert}
+   {:e #blake3 "fbaece06458cd26b6f6931aa13d8bce872267280e9a3608ef0e48b5ac525ea10" :a :spec/namespace :v "GUIDANCE" :op :assert}
+   {:e #blake3 "fbaece06458cd26b6f6931aa13d8bce872267280e9a3608ef0e48b5ac525ea10" :a :spec/source-file :v "spec/12-guidance.md" :op :assert}
+   {:e #blake3 "fbaece06458cd26b6f6931aa13d8bce872267280e9a3608ef0e48b5ac525ea10" :a :spec/statement :v "R(t) edge weights include type_multiplier(downstream.task_type). Implementation=1.0, test=0.8, spec=0.6, docs=0.3, epic=0.0." :op :assert}
+   {:e #blake3 "fbaece06458cd26b6f6931aa13d8bce872267280e9a3608ef0e48b5ac525ea10" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773870992/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS spec elements from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "acfce610ce4a01d4ce7c0bfbd9874c800c50a02315ca44db43c3f4b6e9e6ff1c" :a :db/ident :v :spec/inv-witness-004 :op :assert}
+   {:e #blake3 "acfce610ce4a01d4ce7c0bfbd9874c800c50a02315ca44db43c3f4b6e9e6ff1c" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "acfce610ce4a01d4ce7c0bfbd9874c800c50a02315ca44db43c3f4b6e9e6ff1c" :a :spec/falsification :v "An FBW has status=valid but no corresponding challenge result datom exists in the store." :op :assert}
+   {:e #blake3 "acfce610ce4a01d4ce7c0bfbd9874c800c50a02315ca44db43c3f4b6e9e6ff1c" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "acfce610ce4a01d4ce7c0bfbd9874c800c50a02315ca44db43c3f4b6e9e6ff1c" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "acfce610ce4a01d4ce7c0bfbd9874c800c50a02315ca44db43c3f4b6e9e6ff1c" :a :spec/statement :v "Every FBW with status=valid has been verified by at least one challenge pass. No witness transitions to valid without challenge." :op :assert}
+   {:e #blake3 "acfce610ce4a01d4ce7c0bfbd9874c800c50a02315ca44db43c3f4b6e9e6ff1c" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

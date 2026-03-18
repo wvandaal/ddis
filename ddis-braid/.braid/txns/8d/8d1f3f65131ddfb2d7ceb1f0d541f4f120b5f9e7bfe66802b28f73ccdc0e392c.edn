@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871011/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS spec elements from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1099c37d38092e35b1c2b09aaec91a0273fb3d883cabc0e88bdecd9a9cabe083" :a :db/ident :v :spec/inv-witness-008 :op :assert}
+   {:e #blake3 "1099c37d38092e35b1c2b09aaec91a0273fb3d883cabc0e88bdecd9a9cabe083" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "1099c37d38092e35b1c2b09aaec91a0273fb3d883cabc0e88bdecd9a9cabe083" :a :spec/falsification :v "A Kani harness references an invariant but its assertions only check an unrelated property. Alignment score < 0.5 but not detected." :op :assert}
+   {:e #blake3 "1099c37d38092e35b1c2b09aaec91a0273fb3d883cabc0e88bdecd9a9cabe083" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "1099c37d38092e35b1c2b09aaec91a0273fb3d883cabc0e88bdecd9a9cabe083" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "1099c37d38092e35b1c2b09aaec91a0273fb3d883cabc0e88bdecd9a9cabe083" :a :spec/statement :v "Every V:KANI harness and V:MODEL check claiming to verify an invariant must have a corresponding FBW with falsification alignment score >= 0.5." :op :assert}
+   {:e #blake3 "1099c37d38092e35b1c2b09aaec91a0273fb3d883cabc0e88bdecd9a9cabe083" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871058/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS negative cases from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "060ac01cff7a4edf7de4078d6f674499fc6624e173b300584deb7d41fb4ad948" :a :db/ident :v :spec/neg-witness-006 :op :assert}
+   {:e #blake3 "060ac01cff7a4edf7de4078d6f674499fc6624e173b300584deb7d41fb4ad948" :a :spec/element-type :v "negative-case" :op :assert}
+   {:e #blake3 "060ac01cff7a4edf7de4078d6f674499fc6624e173b300584deb7d41fb4ad948" :a :spec/falsification :v "A majority_vote result is recorded with confidence=0.95 but all 3 verdicts were produced within the same Agent invocation." :op :assert}
+   {:e #blake3 "060ac01cff7a4edf7de4078d6f674499fc6624e173b300584deb7d41fb4ad948" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "060ac01cff7a4edf7de4078d6f674499fc6624e173b300584deb7d41fb4ad948" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "060ac01cff7a4edf7de4078d6f674499fc6624e173b300584deb7d41fb4ad948" :a :spec/statement :v "A majority vote with all verdicts from the same cognitive context is NOT valid. The vote provides no more confidence than a single evaluation." :op :assert}
+   {:e #blake3 "060ac01cff7a4edf7de4078d6f674499fc6624e173b300584deb7d41fb4ad948" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773871079/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS ADRs from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9851c116eda200843ae00133fd03579ae8d6c62da975fb9bc2a2ee56bf564cae" :a :adr/decision :v "Independent subagent vote. 3 Agent subagents with fresh context, different prompts, no access to implementation reasoning." :op :assert}
+   {:e #blake3 "9851c116eda200843ae00133fd03579ae8d6c62da975fb9bc2a2ee56bf564cae" :a :adr/problem :v "Go CLI 3-run majority vote calls same model 3x in same session. At low k*, produces correlated sycophantic outputs." :op :assert}
+   {:e #blake3 "9851c116eda200843ae00133fd03579ae8d6c62da975fb9bc2a2ee56bf564cae" :a :db/ident :v :spec/adr-witness-004 :op :assert}
+   {:e #blake3 "9851c116eda200843ae00133fd03579ae8d6c62da975fb9bc2a2ee56bf564cae" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "9851c116eda200843ae00133fd03579ae8d6c62da975fb9bc2a2ee56bf564cae" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "9851c116eda200843ae00133fd03579ae8d6c62da975fb9bc2a2ee56bf564cae" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "9851c116eda200843ae00133fd03579ae8d6c62da975fb9bc2a2ee56bf564cae" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1773870989/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Transact WITNESS spec elements from spec/21-witness.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f86603053624123a218c709740b218c3dc2a7d6d10e9513aa6b9824874e1822f" :a :db/ident :v :spec/inv-witness-003 :op :assert}
+   {:e #blake3 "f86603053624123a218c709740b218c3dc2a7d6d10e9513aa6b9824874e1822f" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "f86603053624123a218c709740b218c3dc2a7d6d10e9513aa6b9824874e1822f" :a :spec/falsification :v "A new FBW for an invariant has lower depth than the existing valid FBW without a deliberation record justifying the regression." :op :assert}
+   {:e #blake3 "f86603053624123a218c709740b218c3dc2a7d6d10e9513aa6b9824874e1822f" :a :spec/namespace :v "WITNESS" :op :assert}
+   {:e #blake3 "f86603053624123a218c709740b218c3dc2a7d6d10e9513aa6b9824874e1822f" :a :spec/source-file :v "spec/21-witness.md" :op :assert}
+   {:e #blake3 "f86603053624123a218c709740b218c3dc2a7d6d10e9513aa6b9824874e1822f" :a :spec/statement :v "Verification depth of a witnessed invariant is monotonically non-decreasing. Re-witnessing at lower depth requires a deliberation override." :op :assert}
+   {:e #blake3 "f86603053624123a218c709740b218c3dc2a7d6d10e9513aa6b9824874e1822f" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}
