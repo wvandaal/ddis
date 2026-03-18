@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773868263/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SESSION 025 CLOSING REFLECTION: 5 commits, 17 tasks closed, 1238 tests. Key achievements: DMP operational, spec/22-reflexive.md crystallized (5 INV, 1 ADR, 3 NEG), universal containment quoting, crystallization false positive fix (6 FPs eliminated), sentence-boundary truncation. Key dog-food findings: R(t) ignores session intent (most significant gap), write assert syntax unintuitive, grep/rg alias incompatibility. System score: 8.5/10."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8ca8479f95ccd2a3fbc5c200929c71572141b116d0b87477e49e3ca7475f642b" :a :db/doc :v "SESSION 025 CLOSING REFLECTION: 5 commits, 17 tasks closed, 1238 tests. Key achievements: DMP operational, spec/22-reflexive.md crystallized (5 INV, 1 ADR, 3 NEG), universal containment quoting, crystallization false positive fix (6 FPs eliminated), sentence-boundary truncation. Key dog-food findings: R(t) ignores session intent (most significant gap), write assert syntax unintuitive, grep/rg alias incompatibility. System score: 8.5/10." :op :assert}
+   {:e #blake3 "8ca8479f95ccd2a3fbc5c200929c71572141b116d0b87477e49e3ca7475f642b" :a :db/ident :v :observation/session-025-closing-reflection-5-commits-17-tasks-closed :op :assert}
+   {:e #blake3 "8ca8479f95ccd2a3fbc5c200929c71572141b116d0b87477e49e3ca7475f642b" :a :exploration/body :v "SESSION 025 CLOSING REFLECTION: 5 commits, 17 tasks closed, 1238 tests. Key achievements: DMP operational, spec/22-reflexive.md crystallized (5 INV, 1 ADR, 3 NEG), universal containment quoting, crystallization false positive fix (6 FPs eliminated), sentence-boundary truncation. Key dog-food findings: R(t) ignores session intent (most significant gap), write assert syntax unintuitive, grep/rg alias incompatibility. System score: 8.5/10." :op :assert}
+   {:e #blake3 "8ca8479f95ccd2a3fbc5c200929c71572141b116d0b87477e49e3ca7475f642b" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "8ca8479f95ccd2a3fbc5c200929c71572141b116d0b87477e49e3ca7475f642b" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "8ca8479f95ccd2a3fbc5c200929c71572141b116d0b87477e49e3ca7475f642b" :a :exploration/content-hash :v #bytes "f628bc72a5a4ec9081e17fd04a4a4a62e02c64fbfc8f0389ae09feb6c740be56" :op :assert}
+   {:e #blake3 "8ca8479f95ccd2a3fbc5c200929c71572141b116d0b87477e49e3ca7475f642b" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8ca8479f95ccd2a3fbc5c200929c71572141b116d0b87477e49e3ca7475f642b" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8ca8479f95ccd2a3fbc5c200929c71572141b116d0b87477e49e3ca7475f642b" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

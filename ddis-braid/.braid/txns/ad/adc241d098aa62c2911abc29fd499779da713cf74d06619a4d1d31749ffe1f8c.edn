@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773868597/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: E2E-SESSION: End-to-end session-aware guidance validation script (INV-GUIDANCE-010, C7). SCRIPT: scripts/e2e_session_guidance.sh. CHECKS: (1) Session lifecycle: braid session start creates session entity. (2) Working set: braid go t-xxxx → SessionWorkingSet includes it. (3) Routing boost: braid next after braid go returns boosted task. (4) Recommendation log: 5 commands produce 15 :guidance/recommended datoms. (5) Retrospective: braid session end --retro produces accuracy metric. (6) Transact alias: braid transact -r test -d :test/e2e :db/doc test works. (7) Graceful degradation: without braid session start, routing is unchanged. (8) Idempotency: two consecutive braid next calls return same task. Each check prints [PASS]/[FAIL] with values. Exit 0 only if ALL pass. TRACES TO: INV-GUIDANCE-010, C7. ACCEPTANCE: e2e_session_guidance.sh exits 0."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :db/ident :v :task/t-6f01a27e :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/created-at :v 1773868595 :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/id :v "t-6f01a27e" :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/title :v "E2E-SESSION: End-to-end session-aware guidance validation script (INV-GUIDANCE-010, C7). SCRIPT: scripts/e2e_session_guidance.sh. CHECKS: (1) Session lifecycle: braid session start creates session entity. (2) Working set: braid go t-xxxx → SessionWorkingSet includes it. (3) Routing boost: braid next after braid go returns boosted task. (4) Recommendation log: 5 commands produce 15 :guidance/recommended datoms. (5) Retrospective: braid session end --retro produces accuracy metric. (6) Transact alias: braid transact -r test -d :test/e2e :db/doc test works. (7) Graceful degradation: without braid session start, routing is unchanged. (8) Idempotency: two consecutive braid next calls return same task. Each check prints [PASS]/[FAIL] with values. Exit 0 only if ALL pass. TRACES TO: INV-GUIDANCE-010, C7. ACCEPTANCE: e2e_session_guidance.sh exits 0." :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/traces-to :v #blake3 "5ec5a82c9ee3b60a53cec83354f855412d2170c8b069b0b461be1891f3fbb962" :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/type :v :task.type/test :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773868548/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SWS-4: Implement recommendation_log — record R(t) top-3 recommendations at each command invocation (INV-GUIDANCE-010). BACKGROUND: To compare recommended vs actual at session end, we need to RECORD what was recommended. Currently R(t) computes routing but doesn't persist the result. IMPLEMENTATION: At each CLI command dispatch (main.rs), after computing the guidance footer, extract the top-3 task IDs from R(t) routing and record them as :guidance/recommended datoms on a per-invocation entity. Use wall_time as the invocation key. This is lightweight — 3 datoms per command, ~50 per session. The recommendation log is the INPUT to the retrospective comparison. WITHOUT this log, the retrospective has nothing to compare against. TRACES TO: INV-GUIDANCE-010. FILES: crates/braid/src/main.rs, crates/braid-kernel/src/guidance.rs. ACCEPTANCE: After running 5 braid commands, query :guidance/recommended returns 15 datoms (5 × top-3)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "181967a3142205f694208fd6a61d335bcc53eb964c6bf8597e5724ced39d4d12" :a :db/ident :v :task/t-0eb806ab :op :assert}
+   {:e #blake3 "181967a3142205f694208fd6a61d335bcc53eb964c6bf8597e5724ced39d4d12" :a :task/created-at :v 1773868547 :op :assert}
+   {:e #blake3 "181967a3142205f694208fd6a61d335bcc53eb964c6bf8597e5724ced39d4d12" :a :task/id :v "t-0eb806ab" :op :assert}
+   {:e #blake3 "181967a3142205f694208fd6a61d335bcc53eb964c6bf8597e5724ced39d4d12" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "181967a3142205f694208fd6a61d335bcc53eb964c6bf8597e5724ced39d4d12" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "181967a3142205f694208fd6a61d335bcc53eb964c6bf8597e5724ced39d4d12" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "181967a3142205f694208fd6a61d335bcc53eb964c6bf8597e5724ced39d4d12" :a :task/title :v "SWS-4: Implement recommendation_log — record R(t) top-3 recommendations at each command invocation (INV-GUIDANCE-010). BACKGROUND: To compare recommended vs actual at session end, we need to RECORD what was recommended. Currently R(t) computes routing but doesn't persist the result. IMPLEMENTATION: At each CLI command dispatch (main.rs), after computing the guidance footer, extract the top-3 task IDs from R(t) routing and record them as :guidance/recommended datoms on a per-invocation entity. Use wall_time as the invocation key. This is lightweight — 3 datoms per command, ~50 per session. The recommendation log is the INPUT to the retrospective comparison. WITHOUT this log, the retrospective has nothing to compare against. TRACES TO: INV-GUIDANCE-010. FILES: crates/braid/src/main.rs, crates/braid-kernel/src/guidance.rs. ACCEPTANCE: After running 5 braid commands, query :guidance/recommended returns 15 datoms (5 × top-3)." :op :assert}
+   {:e #blake3 "181967a3142205f694208fd6a61d335bcc53eb964c6bf8597e5724ced39d4d12" :a :task/traces-to :v #blake3 "5ec5a82c9ee3b60a53cec83354f855412d2170c8b069b0b461be1891f3fbb962" :op :assert}
+   {:e #blake3 "181967a3142205f694208fd6a61d335bcc53eb964c6bf8597e5724ced39d4d12" :a :task/type :v :task.type/task :op :assert}
+ ]}

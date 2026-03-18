@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773868596/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-SWS-4: Unit tests for recommendation_log and retrospective (C7, INV-GUIDANCE-010). TESTS: (1) After 5 commands, recommendation log has 15 entries (3 per command). (2) Retrospective accuracy: recommended={A,B,C}, actual={B,D} → accuracy=1/2=0.5. (3) Retrospective with perfect match → accuracy=1.0. (4) Retrospective with zero overlap → accuracy=0.0. (5) Self-calibration: synthetic 5-session history with known optimal boost_scale → grid search finds it. (6) Fewer than 5 sessions → returns default boost_scale=1.0. (7) Retrospective entity has all required attributes (:retrospective/accuracy, :retrospective/session, etc.). TRACES TO: C7, INV-GUIDANCE-010. ACCEPTANCE: All 7 tests pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :db/ident :v :task/t-039c3f5c :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/created-at :v 1773868595 :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/id :v "t-039c3f5c" :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/title :v "TEST-SWS-4: Unit tests for recommendation_log and retrospective (C7, INV-GUIDANCE-010). TESTS: (1) After 5 commands, recommendation log has 15 entries (3 per command). (2) Retrospective accuracy: recommended={A,B,C}, actual={B,D} → accuracy=1/2=0.5. (3) Retrospective with perfect match → accuracy=1.0. (4) Retrospective with zero overlap → accuracy=0.0. (5) Self-calibration: synthetic 5-session history with known optimal boost_scale → grid search finds it. (6) Fewer than 5 sessions → returns default boost_scale=1.0. (7) Retrospective entity has all required attributes (:retrospective/accuracy, :retrospective/session, etc.). TRACES TO: C7, INV-GUIDANCE-010. ACCEPTANCE: All 7 tests pass." :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/traces-to :v #blake3 "5ec5a82c9ee3b60a53cec83354f855412d2170c8b069b0b461be1891f3fbb962" :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/type :v :task.type/test :op :assert}
+ ]}

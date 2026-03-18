@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773868595/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-SWS-3: Integration test for session-aware R(t) routing (INV-GUIDANCE-010). TESTS: (1) Create store with 10 tasks, braid go 2 of them. Verify braid next returns one of the 2 in-progress tasks (or a sibling). (2) Create store with high-centrality cold task and low-centrality active task. Verify active task ranks higher than cold task after session_boost. (3) No session entity (graceful degradation) → routing unchanged from baseline. (4) All tasks in-progress → session_boost doesn't change relative order among them (all get 3.0). (5) After braid done, task leaves active set → next invocation doesn't boost it. (6) E2E: braid session start → braid go t-xxxx → braid next → returns t-xxxx or sibling. TRACES TO: INV-GUIDANCE-010. ACCEPTANCE: All 6 tests pass. The critical test: braid next after braid go returns session-relevant task."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "772418e8bc078cd45708f28a239d2122132224e02e8feac0e25502ec87fc5e11" :a :db/ident :v :task/t-be9fcdd1 :op :assert}
+   {:e #blake3 "772418e8bc078cd45708f28a239d2122132224e02e8feac0e25502ec87fc5e11" :a :task/created-at :v 1773868594 :op :assert}
+   {:e #blake3 "772418e8bc078cd45708f28a239d2122132224e02e8feac0e25502ec87fc5e11" :a :task/id :v "t-be9fcdd1" :op :assert}
+   {:e #blake3 "772418e8bc078cd45708f28a239d2122132224e02e8feac0e25502ec87fc5e11" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "772418e8bc078cd45708f28a239d2122132224e02e8feac0e25502ec87fc5e11" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "772418e8bc078cd45708f28a239d2122132224e02e8feac0e25502ec87fc5e11" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "772418e8bc078cd45708f28a239d2122132224e02e8feac0e25502ec87fc5e11" :a :task/title :v "TEST-SWS-3: Integration test for session-aware R(t) routing (INV-GUIDANCE-010). TESTS: (1) Create store with 10 tasks, braid go 2 of them. Verify braid next returns one of the 2 in-progress tasks (or a sibling). (2) Create store with high-centrality cold task and low-centrality active task. Verify active task ranks higher than cold task after session_boost. (3) No session entity (graceful degradation) → routing unchanged from baseline. (4) All tasks in-progress → session_boost doesn't change relative order among them (all get 3.0). (5) After braid done, task leaves active set → next invocation doesn't boost it. (6) E2E: braid session start → braid go t-xxxx → braid next → returns t-xxxx or sibling. TRACES TO: INV-GUIDANCE-010. ACCEPTANCE: All 6 tests pass. The critical test: braid next after braid go returns session-relevant task." :op :assert}
+   {:e #blake3 "772418e8bc078cd45708f28a239d2122132224e02e8feac0e25502ec87fc5e11" :a :task/traces-to :v #blake3 "5ec5a82c9ee3b60a53cec83354f855412d2170c8b069b0b461be1891f3fbb962" :op :assert}
+   {:e #blake3 "772418e8bc078cd45708f28a239d2122132224e02e8feac0e25502ec87fc5e11" :a :task/type :v :task.type/test :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773868593/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-SWS-1: Unit tests for SessionWorkingSet construction (INV-GUIDANCE-010). TESTS: (1) Empty store → empty working set (all fields empty/zero). (2) Store with 3 in-progress tasks → active_tasks has 3 entries. (3) Store with session entity → session_start_wall matches entity wall_time. (4) Tasks created after session start → in session_created_tasks. (5) Tasks created before session start → NOT in session_created_tasks. (6) Tasks sharing EPIC parent with active task → in epic_siblings. (7) Closed tasks → NOT in active_tasks even if they were in-progress earlier. (8) Proptest: working set size ≤ total open task count for arbitrary stores. TRACES TO: INV-GUIDANCE-010. ACCEPTANCE: All 8 tests pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a60a46a15e81863f35d81d4a6c2b247e7a7a9d93d7e0307f0dc22309943023a3" :a :db/ident :v :task/t-965da528 :op :assert}
+   {:e #blake3 "a60a46a15e81863f35d81d4a6c2b247e7a7a9d93d7e0307f0dc22309943023a3" :a :task/created-at :v 1773868592 :op :assert}
+   {:e #blake3 "a60a46a15e81863f35d81d4a6c2b247e7a7a9d93d7e0307f0dc22309943023a3" :a :task/id :v "t-965da528" :op :assert}
+   {:e #blake3 "a60a46a15e81863f35d81d4a6c2b247e7a7a9d93d7e0307f0dc22309943023a3" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a60a46a15e81863f35d81d4a6c2b247e7a7a9d93d7e0307f0dc22309943023a3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a60a46a15e81863f35d81d4a6c2b247e7a7a9d93d7e0307f0dc22309943023a3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a60a46a15e81863f35d81d4a6c2b247e7a7a9d93d7e0307f0dc22309943023a3" :a :task/title :v "TEST-SWS-1: Unit tests for SessionWorkingSet construction (INV-GUIDANCE-010). TESTS: (1) Empty store → empty working set (all fields empty/zero). (2) Store with 3 in-progress tasks → active_tasks has 3 entries. (3) Store with session entity → session_start_wall matches entity wall_time. (4) Tasks created after session start → in session_created_tasks. (5) Tasks created before session start → NOT in session_created_tasks. (6) Tasks sharing EPIC parent with active task → in epic_siblings. (7) Closed tasks → NOT in active_tasks even if they were in-progress earlier. (8) Proptest: working set size ≤ total open task count for arbitrary stores. TRACES TO: INV-GUIDANCE-010. ACCEPTANCE: All 8 tests pass." :op :assert}
+   {:e #blake3 "a60a46a15e81863f35d81d4a6c2b247e7a7a9d93d7e0307f0dc22309943023a3" :a :task/traces-to :v #blake3 "5ec5a82c9ee3b60a53cec83354f855412d2170c8b069b0b461be1891f3fbb962" :op :assert}
+   {:e #blake3 "a60a46a15e81863f35d81d4a6c2b247e7a7a9d93d7e0307f0dc22309943023a3" :a :task/type :v :task.type/test :op :assert}
+ ]}

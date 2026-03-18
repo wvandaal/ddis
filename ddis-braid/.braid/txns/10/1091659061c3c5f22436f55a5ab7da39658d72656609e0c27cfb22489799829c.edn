@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773868594/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-SWS-2: Unit tests for session_boost multiplier (INV-GUIDANCE-010). TESTS: (1) Active task → 3.0. (2) EPIC sibling → 2.0. (3) Session-created task → 1.5. (4) Unrelated task → 1.0. (5) Task in multiple categories (active + session-created) → takes highest (3.0, not 4.5). (6) Empty working set → all tasks get 1.0. (7) Proptest: session_boost always in [1.0, 3.0] for arbitrary entities and working sets. (8) Idempotency: same store → same boost values. TRACES TO: INV-GUIDANCE-010. ACCEPTANCE: All 8 tests pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6664478e0a72f04d18cc0357f662bdc84f18ead8e22ee63daa4c1d4332d58328" :a :db/ident :v :task/t-51aecd0d :op :assert}
+   {:e #blake3 "6664478e0a72f04d18cc0357f662bdc84f18ead8e22ee63daa4c1d4332d58328" :a :task/created-at :v 1773868593 :op :assert}
+   {:e #blake3 "6664478e0a72f04d18cc0357f662bdc84f18ead8e22ee63daa4c1d4332d58328" :a :task/id :v "t-51aecd0d" :op :assert}
+   {:e #blake3 "6664478e0a72f04d18cc0357f662bdc84f18ead8e22ee63daa4c1d4332d58328" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6664478e0a72f04d18cc0357f662bdc84f18ead8e22ee63daa4c1d4332d58328" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6664478e0a72f04d18cc0357f662bdc84f18ead8e22ee63daa4c1d4332d58328" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6664478e0a72f04d18cc0357f662bdc84f18ead8e22ee63daa4c1d4332d58328" :a :task/title :v "TEST-SWS-2: Unit tests for session_boost multiplier (INV-GUIDANCE-010). TESTS: (1) Active task → 3.0. (2) EPIC sibling → 2.0. (3) Session-created task → 1.5. (4) Unrelated task → 1.0. (5) Task in multiple categories (active + session-created) → takes highest (3.0, not 4.5). (6) Empty working set → all tasks get 1.0. (7) Proptest: session_boost always in [1.0, 3.0] for arbitrary entities and working sets. (8) Idempotency: same store → same boost values. TRACES TO: INV-GUIDANCE-010. ACCEPTANCE: All 8 tests pass." :op :assert}
+   {:e #blake3 "6664478e0a72f04d18cc0357f662bdc84f18ead8e22ee63daa4c1d4332d58328" :a :task/traces-to :v #blake3 "5ec5a82c9ee3b60a53cec83354f855412d2170c8b069b0b461be1891f3fbb962" :op :assert}
+   {:e #blake3 "6664478e0a72f04d18cc0357f662bdc84f18ead8e22ee63daa4c1d4332d58328" :a :task/type :v :task.type/test :op :assert}
+ ]}
