@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773815014/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FULL TASK AUDIT (using META-0 pagination): 383 titles, 381 unique entities, 2 confirmed collisions. Collision 1: t-09cc (FM-013 vs C2.9) — already repaired. Collision 2: t-ff0c (axiological divergence vs C2.3 index freshness) — repaired now. Workstream distribution: A=7, B=10, C=23, D=21, WITNESS=54, EPIC=17, S0-S1 legacy=128, TEST=7, E2E=5, META=8, BUG=2, DOCS=2, OTHER=98, P0=1. The system can now fully inspect itself."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "802cdbff6602366681fac1dc33a64a6eae1c36445df7928c3ef9fdb94230f323" :a :db/doc :v "FULL TASK AUDIT (using META-0 pagination): 383 titles, 381 unique entities, 2 confirmed collisions. Collision 1: t-09cc (FM-013 vs C2.9) — already repaired. Collision 2: t-ff0c (axiological divergence vs C2.3 index freshness) — repaired now. Workstream distribution: A=7, B=10, C=23, D=21, WITNESS=54, EPIC=17, S0-S1 legacy=128, TEST=7, E2E=5, META=8, BUG=2, DOCS=2, OTHER=98, P0=1. The system can now fully inspect itself." :op :assert}
+   {:e #blake3 "802cdbff6602366681fac1dc33a64a6eae1c36445df7928c3ef9fdb94230f323" :a :db/ident :v :observation/full-task-audit-using-meta-0-pagination-383-titles-381-u :op :assert}
+   {:e #blake3 "802cdbff6602366681fac1dc33a64a6eae1c36445df7928c3ef9fdb94230f323" :a :exploration/body :v "FULL TASK AUDIT (using META-0 pagination): 383 titles, 381 unique entities, 2 confirmed collisions. Collision 1: t-09cc (FM-013 vs C2.9) — already repaired. Collision 2: t-ff0c (axiological divergence vs C2.3 index freshness) — repaired now. Workstream distribution: A=7, B=10, C=23, D=21, WITNESS=54, EPIC=17, S0-S1 legacy=128, TEST=7, E2E=5, META=8, BUG=2, DOCS=2, OTHER=98, P0=1. The system can now fully inspect itself." :op :assert}
+   {:e #blake3 "802cdbff6602366681fac1dc33a64a6eae1c36445df7928c3ef9fdb94230f323" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "802cdbff6602366681fac1dc33a64a6eae1c36445df7928c3ef9fdb94230f323" :a :exploration/confidence :v 0.99 :op :assert}
+   {:e #blake3 "802cdbff6602366681fac1dc33a64a6eae1c36445df7928c3ef9fdb94230f323" :a :exploration/content-hash :v #bytes "bf21fcdb2994013d5ecbc0e02712afdcf0fbec5064c4714322261939a0bbf983" :op :assert}
+   {:e #blake3 "802cdbff6602366681fac1dc33a64a6eae1c36445df7928c3ef9fdb94230f323" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "802cdbff6602366681fac1dc33a64a6eae1c36445df7928c3ef9fdb94230f323" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "802cdbff6602366681fac1dc33a64a6eae1c36445df7928c3ef9fdb94230f323" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
