@@ -46,6 +46,11 @@ struct Cli {
     #[arg(long)]
     orientation: bool,
 
+    /// Suppress guidance footer (M(t), next action) without suppressing errors.
+    /// Use this instead of `2>/dev/null` to keep error messages visible.
+    #[arg(long, short = 'q', global = true)]
+    quiet: bool,
+
     #[command(subcommand)]
     command: Option<commands::Command>,
 }
@@ -94,7 +99,7 @@ fn main() {
     let skip_exit_warning = commands::is_harvest_command(&cmd);
     let budget_exempt = is_budget_exempt(&cmd);
     let exit_warn_path = commands::store_path(&cmd).map(|p| p.to_path_buf());
-    let result = commands::run(cmd, &budget_ctx, mode);
+    let result = commands::run(cmd, &budget_ctx, mode, cli.quiet);
     match result {
         Ok(cmd_output) => {
             // INV-BUDGET-001 + INV-BUDGET-005: enforce per-command token ceiling
@@ -111,7 +116,7 @@ fn main() {
             // NEG-HARVEST-001: warn on exit if unharvested work is at risk.
             // Skip for harvest commands (they just harvested) and JSON mode
             // (structured output should not have side-channel stderr noise).
-            if !skip_exit_warning && mode != output::OutputMode::Json {
+            if !skip_exit_warning && !cli.quiet && mode != output::OutputMode::Json {
                 if let Some(ref path) = exit_warn_path {
                     if let Ok(lo) = layout::DiskLayout::open(path) {
                         if let Ok(store) = lo.load_store() {

@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773878145/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-dc8005ef"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/closed-at :v 1773878143 :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/completion-evidence :v "Tested: --title flag works on task set, positional still works" :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "17c1686f3f521e0587197562bcf2e9b626fee739d2a239b86689ceb28fc3e3e9" :a :task/status :v :task.status/closed :op :assert}
+ ]}

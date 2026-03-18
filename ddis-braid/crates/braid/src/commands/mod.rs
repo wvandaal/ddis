@@ -1077,16 +1077,40 @@ pub enum TaskAction {
         agent: String,
     },
 
-    /// Set a task attribute by name (priority, status, type, title).
+    /// Set a task attribute by name or flag.
+    ///
+    /// Positional: `braid task set <ID> <ATTRIBUTE> <VALUE>`
+    /// Flag:       `braid task set <ID> --title "new title"`
+    ///
+    /// Flags take precedence when both are provided.
+    #[command(
+        after_help = "Examples:\n  braid task set t-aB3c title \"New title\"\n  braid task set t-aB3c --title \"New title\"\n  braid task set t-aB3c --priority 0\n  braid task set t-aB3c --status closed"
+    )]
     Set {
         /// Task ID.
         id: String,
 
-        /// Attribute to set (priority, status, type, title).
-        attribute: String,
+        /// Attribute to set (positional form: priority, status, type, title).
+        attribute: Option<String>,
 
-        /// New value.
-        value: String,
+        /// New value (positional form).
+        value: Option<String>,
+
+        /// Set title (flag form).
+        #[arg(long)]
+        title: Option<String>,
+
+        /// Set priority (flag form, 0-4).
+        #[arg(long)]
+        priority: Option<String>,
+
+        /// Set status (flag form: open, in-progress, closed).
+        #[arg(long)]
+        status: Option<String>,
+
+        /// Set type (flag form: task, bug, feature, epic, test, docs, question).
+        #[arg(long, name = "type")]
+        task_type: Option<String>,
 
         /// Store directory path.
         #[arg(long, short = 'p', default_value = ".braid")]
@@ -1687,6 +1711,7 @@ pub fn run(
     cmd: Command,
     budget_ctx: &BudgetCtx,
     mode: crate::output::OutputMode,
+    quiet: bool,
 ) -> Result<crate::output::CommandOutput, crate::error::BraidError> {
     use crate::output::CommandOutput;
 
@@ -1695,8 +1720,11 @@ pub fn run(
 
     // Pre-extract metadata needed for footer injection (before cmd is consumed).
     let path_for_footer = store_path(&cmd).map(|p| p.to_path_buf());
-    let skip_footer =
-        is_json_output(&cmd, mode) || is_guidance_command(&cmd) || is_generative_output(&cmd);
+    // CLI-QUIET: --quiet/-q suppresses guidance footer without suppressing errors.
+    let skip_footer = quiet
+        || is_json_output(&cmd, mode)
+        || is_guidance_command(&cmd)
+        || is_generative_output(&cmd);
     // INV-GUIDANCE-014: Extract command name for contextual observation hint.
     let footer_cmd_name: Option<&str> = Some(command_name_for(&cmd));
 
@@ -2103,9 +2131,31 @@ pub fn run(
                     id,
                     attribute,
                     value,
+                    title,
+                    priority,
+                    status,
+                    task_type,
                     path,
                     agent,
-                } => task::set(&path, &id, &attribute, &value, &agent)?,
+                } => {
+                    // CLI-TASK-SET-FLAGS: flags take precedence over positional
+                    let (attr, val) = if let Some(t) = title {
+                        ("title".to_string(), t)
+                    } else if let Some(p) = priority {
+                        ("priority".to_string(), p)
+                    } else if let Some(s) = status {
+                        ("status".to_string(), s)
+                    } else if let Some(ty) = task_type {
+                        ("type".to_string(), ty)
+                    } else if let (Some(a), Some(v)) = (attribute, value) {
+                        (a, v)
+                    } else {
+                        return Err(crate::error::BraidError::Validation(
+                            "provide either --title/--priority/--status/--type flag, or positional ATTRIBUTE VALUE".into()
+                        ));
+                    };
+                    task::set(&path, &id, &attr, &val, &agent)?
+                }
                 TaskAction::Dep { action } => match action {
                     DepAction::Add {
                         from,

@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773878144/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-76c4a1b4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/closed-at :v 1773878143 :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/completion-evidence :v "Tested: -q suppresses footer, errors still visible" :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "fb1140e38c5a97cc34f473e23b7244d121787093e6acdaa4a282859f1c260bc9" :a :task/status :v :task.status/closed :op :assert}
+ ]}
