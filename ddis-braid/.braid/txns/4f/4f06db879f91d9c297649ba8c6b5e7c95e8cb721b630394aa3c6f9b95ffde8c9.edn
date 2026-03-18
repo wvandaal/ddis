@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773800076/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-6094"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d4491b18b3953d850705bdb08163e318bce14ee678d0da0fef60cffd5d1e24e6" :a :task/close-reason :v "merge_with_cascade(): MergeCascadeReceipt, 7 stubs injected, HLC monotonic" :op :assert}
+   {:e #blake3 "d4491b18b3953d850705bdb08163e318bce14ee678d0da0fef60cffd5d1e24e6" :a :task/closed-at :v 1773800075 :op :assert}
+   {:e #blake3 "d4491b18b3953d850705bdb08163e318bce14ee678d0da0fef60cffd5d1e24e6" :a :task/status :v :task.status/closed :op :assert}
+ ]}

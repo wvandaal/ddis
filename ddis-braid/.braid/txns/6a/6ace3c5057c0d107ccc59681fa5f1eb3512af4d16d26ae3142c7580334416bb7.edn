@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773800079/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ca63"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "782ec30519b892f2e5add8a5c6976832ea96c76405cc1a2a3de9b9a42572e16e" :a :task/close-reason :v "Critical Q(t)<0.05 (was 0.15), Warn [0.05,0.15), Info [0.15,0.6)" :op :assert}
+   {:e #blake3 "782ec30519b892f2e5add8a5c6976832ea96c76405cc1a2a3de9b9a42572e16e" :a :task/closed-at :v 1773800076 :op :assert}
+   {:e #blake3 "782ec30519b892f2e5add8a5c6976832ea96c76405cc1a2a3de9b9a42572e16e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

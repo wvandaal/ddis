@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773798461/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f671"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c140f50a84b0f0663fcc8da7a5d454df098fa60fd49cbf96c4868ab41895a6c2" :a :task/close-reason :v "Covered by t-f684: ContentHash verification on read_tx" :op :assert}
+   {:e #blake3 "c140f50a84b0f0663fcc8da7a5d454df098fa60fd49cbf96c4868ab41895a6c2" :a :task/closed-at :v 1773798459 :op :assert}
+   {:e #blake3 "c140f50a84b0f0663fcc8da7a5d454df098fa60fd49cbf96c4868ab41895a6c2" :a :task/status :v :task.status/closed :op :assert}
+ ]}

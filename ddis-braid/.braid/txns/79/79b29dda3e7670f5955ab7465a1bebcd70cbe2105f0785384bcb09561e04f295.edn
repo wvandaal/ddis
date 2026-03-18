@@ -1,0 +1,10 @@
+{:tx/id #hlc "1773800078/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-2935"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7c446a3a47a1820f573ab1a769f7834287527749462ebc78ad42f536b7eff8f4" :a :task/close-reason :v "Store::as_of(cutoff) temporal filtering, 4 tests" :op :assert}
+   {:e #blake3 "7c446a3a47a1820f573ab1a769f7834287527749462ebc78ad42f536b7eff8f4" :a :task/closed-at :v 1773800075 :op :assert}
+   {:e #blake3 "7c446a3a47a1820f573ab1a769f7834287527749462ebc78ad42f536b7eff8f4" :a :task/status :v :task.status/closed :op :assert}
+ ]}
