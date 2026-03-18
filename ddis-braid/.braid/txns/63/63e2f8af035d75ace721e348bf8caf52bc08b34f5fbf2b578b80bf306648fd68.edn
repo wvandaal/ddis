@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811839/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: B3.2: Add k* estimation to guidance footer — suggest subagent spawn when k*_est < 0.3"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1128dcfd48b892c5e5714ad5cf629bed2d8bc2181f7e7c43ff2bf2a788769654" :a :db/ident :v :task/t-6721 :op :assert}
+   {:e #blake3 "1128dcfd48b892c5e5714ad5cf629bed2d8bc2181f7e7c43ff2bf2a788769654" :a :task/created-at :v 1773811835 :op :assert}
+   {:e #blake3 "1128dcfd48b892c5e5714ad5cf629bed2d8bc2181f7e7c43ff2bf2a788769654" :a :task/id :v "t-6721" :op :assert}
+   {:e #blake3 "1128dcfd48b892c5e5714ad5cf629bed2d8bc2181f7e7c43ff2bf2a788769654" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1128dcfd48b892c5e5714ad5cf629bed2d8bc2181f7e7c43ff2bf2a788769654" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1128dcfd48b892c5e5714ad5cf629bed2d8bc2181f7e7c43ff2bf2a788769654" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1128dcfd48b892c5e5714ad5cf629bed2d8bc2181f7e7c43ff2bf2a788769654" :a :task/title :v "B3.2: Add k* estimation to guidance footer — suggest subagent spawn when k*_est < 0.3" :op :assert}
+   {:e #blake3 "1128dcfd48b892c5e5714ad5cf629bed2d8bc2181f7e7c43ff2bf2a788769654" :a :task/type :v :task.type/task :op :assert}
+ ]}

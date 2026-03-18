@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811859/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Workstream C — Store Performance + Schema Evolution (AVET index, dynamic counts)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "12369ed0cab54e39bbdd5b98b6d4fda7d48ed27f7b3eb90031512df79e716e52" :a :db/ident :v :task/t-6479 :op :assert}
+   {:e #blake3 "12369ed0cab54e39bbdd5b98b6d4fda7d48ed27f7b3eb90031512df79e716e52" :a :task/created-at :v 1773811858 :op :assert}
+   {:e #blake3 "12369ed0cab54e39bbdd5b98b6d4fda7d48ed27f7b3eb90031512df79e716e52" :a :task/id :v "t-6479" :op :assert}
+   {:e #blake3 "12369ed0cab54e39bbdd5b98b6d4fda7d48ed27f7b3eb90031512df79e716e52" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "12369ed0cab54e39bbdd5b98b6d4fda7d48ed27f7b3eb90031512df79e716e52" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "12369ed0cab54e39bbdd5b98b6d4fda7d48ed27f7b3eb90031512df79e716e52" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "12369ed0cab54e39bbdd5b98b6d4fda7d48ed27f7b3eb90031512df79e716e52" :a :task/title :v "EPIC: Workstream C — Store Performance + Schema Evolution (AVET index, dynamic counts)" :op :assert}
+   {:e #blake3 "12369ed0cab54e39bbdd5b98b6d4fda7d48ed27f7b3eb90031512df79e716e52" :a :task/type :v :task.type/epic :op :assert}
+ ]}

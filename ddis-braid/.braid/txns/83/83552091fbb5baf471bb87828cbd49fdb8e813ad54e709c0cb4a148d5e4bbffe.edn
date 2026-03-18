@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811968/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ADR-STORE-019: Dynamic Counts Over Constants. WHY: GENESIS_ATTR_COUNT creates coupling between schema definition and test assertions. Every schema addition breaks tests. Dynamic count breaks this coupling. The count IS the datom set, not a shadow of it. Alternative rejected: compute at compile time (proc macro — too complex). Alternative rejected: tolerance margin (GENESIS_ATTR_COUNT ± 5 — hides real bugs)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "759605dd6f98ab64c3f764a5d6cc1f09b9c240c6918e5c5eba14316fd7050b16" :a :db/doc :v "ADR-STORE-019: Dynamic Counts Over Constants. WHY: GENESIS_ATTR_COUNT creates coupling between schema definition and test assertions. Every schema addition breaks tests. Dynamic count breaks this coupling. The count IS the datom set, not a shadow of it. Alternative rejected: compute at compile time (proc macro — too complex). Alternative rejected: tolerance margin (GENESIS_ATTR_COUNT ± 5 — hides real bugs)." :op :assert}
+   {:e #blake3 "759605dd6f98ab64c3f764a5d6cc1f09b9c240c6918e5c5eba14316fd7050b16" :a :db/ident :v :observation/adr-store-019-dynamic-counts-over-constants-why-genesis-a :op :assert}
+   {:e #blake3 "759605dd6f98ab64c3f764a5d6cc1f09b9c240c6918e5c5eba14316fd7050b16" :a :exploration/body :v "ADR-STORE-019: Dynamic Counts Over Constants. WHY: GENESIS_ATTR_COUNT creates coupling between schema definition and test assertions. Every schema addition breaks tests. Dynamic count breaks this coupling. The count IS the datom set, not a shadow of it. Alternative rejected: compute at compile time (proc macro — too complex). Alternative rejected: tolerance margin (GENESIS_ATTR_COUNT ± 5 — hides real bugs)." :op :assert}
+   {:e #blake3 "759605dd6f98ab64c3f764a5d6cc1f09b9c240c6918e5c5eba14316fd7050b16" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "759605dd6f98ab64c3f764a5d6cc1f09b9c240c6918e5c5eba14316fd7050b16" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "759605dd6f98ab64c3f764a5d6cc1f09b9c240c6918e5c5eba14316fd7050b16" :a :exploration/content-hash :v #bytes "6b041b7247f6735d465f2bb44a18756500ff73d7d4bcec54fd00c1f7b24cc98d" :op :assert}
+   {:e #blake3 "759605dd6f98ab64c3f764a5d6cc1f09b9c240c6918e5c5eba14316fd7050b16" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "759605dd6f98ab64c3f764a5d6cc1f09b9c240c6918e5c5eba14316fd7050b16" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "759605dd6f98ab64c3f764a5d6cc1f09b9c240c6918e5c5eba14316fd7050b16" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

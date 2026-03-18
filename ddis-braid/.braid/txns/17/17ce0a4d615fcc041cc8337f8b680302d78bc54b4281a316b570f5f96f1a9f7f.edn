@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811837/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: B2.4: TEST-B2: footer at k*=0.3 contains runnable braid command, not descriptive text"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ab611e06e7daa022dd37eea5c0f363f1e46b85c8ce9c4a9eb2fdfc86acba6224" :a :db/ident :v :task/t-dd07 :op :assert}
+   {:e #blake3 "ab611e06e7daa022dd37eea5c0f363f1e46b85c8ce9c4a9eb2fdfc86acba6224" :a :task/created-at :v 1773811834 :op :assert}
+   {:e #blake3 "ab611e06e7daa022dd37eea5c0f363f1e46b85c8ce9c4a9eb2fdfc86acba6224" :a :task/id :v "t-dd07" :op :assert}
+   {:e #blake3 "ab611e06e7daa022dd37eea5c0f363f1e46b85c8ce9c4a9eb2fdfc86acba6224" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ab611e06e7daa022dd37eea5c0f363f1e46b85c8ce9c4a9eb2fdfc86acba6224" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ab611e06e7daa022dd37eea5c0f363f1e46b85c8ce9c4a9eb2fdfc86acba6224" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ab611e06e7daa022dd37eea5c0f363f1e46b85c8ce9c4a9eb2fdfc86acba6224" :a :task/title :v "B2.4: TEST-B2: footer at k*=0.3 contains runnable braid command, not descriptive text" :op :assert}
+   {:e #blake3 "ab611e06e7daa022dd37eea5c0f363f1e46b85c8ce9c4a9eb2fdfc86acba6224" :a :task/type :v :task.type/task :op :assert}
+ ]}

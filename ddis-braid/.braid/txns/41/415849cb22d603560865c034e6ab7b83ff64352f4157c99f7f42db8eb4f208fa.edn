@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811905/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D1.1: Implement multi-dimensional harvest urgency — count + time + value + k* dimensions (INV-HARVEST-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :db/ident :v :task/t-3415 :op :assert}
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/created-at :v 1773811903 :op :assert}
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/id :v "t-3415" :op :assert}
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/title :v "D1.1: Implement multi-dimensional harvest urgency — count + time + value + k* dimensions (INV-HARVEST-005)" :op :assert}
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811840/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: B3.3: TEST-B3: k* estimate decreases over simulated 50-turn session with declining novelty"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "453530e17392f2d0df291ac766a535db100b578b9f754027643a345a845d084c" :a :db/ident :v :task/t-ec3e :op :assert}
+   {:e #blake3 "453530e17392f2d0df291ac766a535db100b578b9f754027643a345a845d084c" :a :task/created-at :v 1773811836 :op :assert}
+   {:e #blake3 "453530e17392f2d0df291ac766a535db100b578b9f754027643a345a845d084c" :a :task/id :v "t-ec3e" :op :assert}
+   {:e #blake3 "453530e17392f2d0df291ac766a535db100b578b9f754027643a345a845d084c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "453530e17392f2d0df291ac766a535db100b578b9f754027643a345a845d084c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "453530e17392f2d0df291ac766a535db100b578b9f754027643a345a845d084c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "453530e17392f2d0df291ac766a535db100b578b9f754027643a345a845d084c" :a :task/title :v "B3.3: TEST-B3: k* estimate decreases over simulated 50-turn session with declining novelty" :op :assert}
+   {:e #blake3 "453530e17392f2d0df291ac766a535db100b578b9f754027643a345a845d084c" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811835/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: B2.2: Wire activity mode detection — classify session by tx pattern: impl/spec/test/mixed (ADR-INTERFACE-011)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bfba3a23b0221a7589016e78e7c1a14e53b73b7edfac03b3076f035de07dca30" :a :db/ident :v :task/t-e276 :op :assert}
+   {:e #blake3 "bfba3a23b0221a7589016e78e7c1a14e53b73b7edfac03b3076f035de07dca30" :a :task/created-at :v 1773811832 :op :assert}
+   {:e #blake3 "bfba3a23b0221a7589016e78e7c1a14e53b73b7edfac03b3076f035de07dca30" :a :task/id :v "t-e276" :op :assert}
+   {:e #blake3 "bfba3a23b0221a7589016e78e7c1a14e53b73b7edfac03b3076f035de07dca30" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "bfba3a23b0221a7589016e78e7c1a14e53b73b7edfac03b3076f035de07dca30" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bfba3a23b0221a7589016e78e7c1a14e53b73b7edfac03b3076f035de07dca30" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bfba3a23b0221a7589016e78e7c1a14e53b73b7edfac03b3076f035de07dca30" :a :task/title :v "B2.2: Wire activity mode detection — classify session by tx pattern: impl/spec/test/mixed (ADR-INTERFACE-011)" :op :assert}
+   {:e #blake3 "bfba3a23b0221a7589016e78e7c1a14e53b73b7edfac03b3076f035de07dca30" :a :task/type :v :task.type/task :op :assert}
+ ]}

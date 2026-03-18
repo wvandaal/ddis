@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811792/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Workstream A — Task Ergonomics (batch ops, generic update, MCP parity)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5147803c3f260bf9f7354e93e523840e13f45733ce1c8480f0d9eb48e7987bab" :a :db/ident :v :task/t-b25c :op :assert}
+   {:e #blake3 "5147803c3f260bf9f7354e93e523840e13f45733ce1c8480f0d9eb48e7987bab" :a :task/created-at :v 1773811791 :op :assert}
+   {:e #blake3 "5147803c3f260bf9f7354e93e523840e13f45733ce1c8480f0d9eb48e7987bab" :a :task/id :v "t-b25c" :op :assert}
+   {:e #blake3 "5147803c3f260bf9f7354e93e523840e13f45733ce1c8480f0d9eb48e7987bab" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5147803c3f260bf9f7354e93e523840e13f45733ce1c8480f0d9eb48e7987bab" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5147803c3f260bf9f7354e93e523840e13f45733ce1c8480f0d9eb48e7987bab" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5147803c3f260bf9f7354e93e523840e13f45733ce1c8480f0d9eb48e7987bab" :a :task/title :v "EPIC: Workstream A — Task Ergonomics (batch ops, generic update, MCP parity)" :op :assert}
+   {:e #blake3 "5147803c3f260bf9f7354e93e523840e13f45733ce1c8480f0d9eb48e7987bab" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811918/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D4.4: TEST-D4: frequently-referenced entity scores higher than never-referenced entity after 5 sessions"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "46c597a01fb0dddc127ea360901cef1ebaf33973853fed7998fecf32ac1455b0" :a :db/ident :v :task/t-6d25 :op :assert}
+   {:e #blake3 "46c597a01fb0dddc127ea360901cef1ebaf33973853fed7998fecf32ac1455b0" :a :task/created-at :v 1773811912 :op :assert}
+   {:e #blake3 "46c597a01fb0dddc127ea360901cef1ebaf33973853fed7998fecf32ac1455b0" :a :task/id :v "t-6d25" :op :assert}
+   {:e #blake3 "46c597a01fb0dddc127ea360901cef1ebaf33973853fed7998fecf32ac1455b0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "46c597a01fb0dddc127ea360901cef1ebaf33973853fed7998fecf32ac1455b0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "46c597a01fb0dddc127ea360901cef1ebaf33973853fed7998fecf32ac1455b0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "46c597a01fb0dddc127ea360901cef1ebaf33973853fed7998fecf32ac1455b0" :a :task/title :v "D4.4: TEST-D4: frequently-referenced entity scores higher than never-referenced entity after 5 sessions" :op :assert}
+   {:e #blake3 "46c597a01fb0dddc127ea360901cef1ebaf33973853fed7998fecf32ac1455b0" :a :task/type :v :task.type/task :op :assert}
+ ]}

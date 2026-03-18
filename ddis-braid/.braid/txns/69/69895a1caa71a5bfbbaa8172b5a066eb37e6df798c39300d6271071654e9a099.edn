@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811960/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-GUIDANCE-012: Executable Guidance. At GuidanceLevel::Compressed or below, the footer contains a paste-ready braid command that fixes the worst M(t) sub-metric. Falsification: footer at k*<0.5 contains descriptive text instead of runnable command. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dddd0cd0aeb80d15ae0747b87dc10601d6dca6baad8110ea32c08f0efa653201" :a :db/doc :v "INV-GUIDANCE-012: Executable Guidance. At GuidanceLevel::Compressed or below, the footer contains a paste-ready braid command that fixes the worst M(t) sub-metric. Falsification: footer at k*<0.5 contains descriptive text instead of runnable command. V:PROP." :op :assert}
+   {:e #blake3 "dddd0cd0aeb80d15ae0747b87dc10601d6dca6baad8110ea32c08f0efa653201" :a :db/ident :v :observation/inv-guidance-012-executable-guidance-at-guidancelevelcom :op :assert}
+   {:e #blake3 "dddd0cd0aeb80d15ae0747b87dc10601d6dca6baad8110ea32c08f0efa653201" :a :exploration/body :v "INV-GUIDANCE-012: Executable Guidance. At GuidanceLevel::Compressed or below, the footer contains a paste-ready braid command that fixes the worst M(t) sub-metric. Falsification: footer at k*<0.5 contains descriptive text instead of runnable command. V:PROP." :op :assert}
+   {:e #blake3 "dddd0cd0aeb80d15ae0747b87dc10601d6dca6baad8110ea32c08f0efa653201" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "dddd0cd0aeb80d15ae0747b87dc10601d6dca6baad8110ea32c08f0efa653201" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "dddd0cd0aeb80d15ae0747b87dc10601d6dca6baad8110ea32c08f0efa653201" :a :exploration/content-hash :v #bytes "923b5e1377c1967504098ea25a1e8341fbdc2f1163eaf326e0d56f9928b6e493" :op :assert}
+   {:e #blake3 "dddd0cd0aeb80d15ae0747b87dc10601d6dca6baad8110ea32c08f0efa653201" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "dddd0cd0aeb80d15ae0747b87dc10601d6dca6baad8110ea32c08f0efa653201" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "dddd0cd0aeb80d15ae0747b87dc10601d6dca6baad8110ea32c08f0efa653201" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

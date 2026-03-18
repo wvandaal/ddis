@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811955/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: E2E-WA: scripts/e2e_task_ergonomics.sh — batch close atomicity, task set persistence, MCP parity (8+ checks)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :db/ident :v :task/t-01e8 :op :assert}
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :task/created-at :v 1773811954 :op :assert}
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :task/id :v "t-01e8" :op :assert}
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :task/title :v "E2E-WA: scripts/e2e_task_ergonomics.sh — batch close atomicity, task set persistence, MCP parity (8+ checks)" :op :assert}
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :task/type :v :task.type/task :op :assert}
+ ]}

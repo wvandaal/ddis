@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811913/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D3.3: Add --min-surprisal flag to braid harvest — filter candidates below threshold"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "371760c72555cdb3fc3a53c46b71a514572d70e90a13ad2be357550e6f99aee9" :a :db/ident :v :task/t-6409 :op :assert}
+   {:e #blake3 "371760c72555cdb3fc3a53c46b71a514572d70e90a13ad2be357550e6f99aee9" :a :task/created-at :v 1773811909 :op :assert}
+   {:e #blake3 "371760c72555cdb3fc3a53c46b71a514572d70e90a13ad2be357550e6f99aee9" :a :task/id :v "t-6409" :op :assert}
+   {:e #blake3 "371760c72555cdb3fc3a53c46b71a514572d70e90a13ad2be357550e6f99aee9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "371760c72555cdb3fc3a53c46b71a514572d70e90a13ad2be357550e6f99aee9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "371760c72555cdb3fc3a53c46b71a514572d70e90a13ad2be357550e6f99aee9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "371760c72555cdb3fc3a53c46b71a514572d70e90a13ad2be357550e6f99aee9" :a :task/title :v "D3.3: Add --min-surprisal flag to braid harvest — filter candidates below threshold" :op :assert}
+   {:e #blake3 "371760c72555cdb3fc3a53c46b71a514572d70e90a13ad2be357550e6f99aee9" :a :task/type :v :task.type/task :op :assert}
+ ]}

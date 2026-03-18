@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811962/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-STORE-016: Dynamic Schema Counts. No hardcoded schema layer count constants exist. All count assertions use runtime queries or minimum bounds. Falsification: a GENESIS_ATTR_COUNT or LAYER_N_COUNT constant exists in source. V:TYPE (grep-based verification). Fixes FM-008."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "80381ec2a14533642827842c28d1a43eadc65a60119397170cb28fb1656dced2" :a :db/doc :v "INV-STORE-016: Dynamic Schema Counts. No hardcoded schema layer count constants exist. All count assertions use runtime queries or minimum bounds. Falsification: a GENESIS_ATTR_COUNT or LAYER_N_COUNT constant exists in source. V:TYPE (grep-based verification). Fixes FM-008." :op :assert}
+   {:e #blake3 "80381ec2a14533642827842c28d1a43eadc65a60119397170cb28fb1656dced2" :a :db/ident :v :observation/inv-store-016-dynamic-schema-counts-no-hardcoded-schema-la :op :assert}
+   {:e #blake3 "80381ec2a14533642827842c28d1a43eadc65a60119397170cb28fb1656dced2" :a :exploration/body :v "INV-STORE-016: Dynamic Schema Counts. No hardcoded schema layer count constants exist. All count assertions use runtime queries or minimum bounds. Falsification: a GENESIS_ATTR_COUNT or LAYER_N_COUNT constant exists in source. V:TYPE (grep-based verification). Fixes FM-008." :op :assert}
+   {:e #blake3 "80381ec2a14533642827842c28d1a43eadc65a60119397170cb28fb1656dced2" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "80381ec2a14533642827842c28d1a43eadc65a60119397170cb28fb1656dced2" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "80381ec2a14533642827842c28d1a43eadc65a60119397170cb28fb1656dced2" :a :exploration/content-hash :v #bytes "b7a0a351d5fb0124dffa6d00e481b7758e08a65139bc1b037e30d84af068593a" :op :assert}
+   {:e #blake3 "80381ec2a14533642827842c28d1a43eadc65a60119397170cb28fb1656dced2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "80381ec2a14533642827842c28d1a43eadc65a60119397170cb28fb1656dced2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "80381ec2a14533642827842c28d1a43eadc65a60119397170cb28fb1656dced2" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

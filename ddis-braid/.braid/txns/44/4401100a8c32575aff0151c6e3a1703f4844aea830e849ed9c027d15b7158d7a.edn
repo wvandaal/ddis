@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811961/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-GUIDANCE-013: Typed Edge Routing. R(t) edge weights include type_multiplier(downstream.task_type). Implementation tasks weight 1.0, test tasks 0.8, spec 0.6, docs 0.3, epic 0.0. Falsification: R(t) ranks a docs-unblocking task above an impl-unblocking task at equal base PageRank. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a69a8fdbfeeb017fcd9e95d7f65c7b2892a2e88414a4006738b1dbc73cee22cb" :a :db/doc :v "INV-GUIDANCE-013: Typed Edge Routing. R(t) edge weights include type_multiplier(downstream.task_type). Implementation tasks weight 1.0, test tasks 0.8, spec 0.6, docs 0.3, epic 0.0. Falsification: R(t) ranks a docs-unblocking task above an impl-unblocking task at equal base PageRank. V:PROP." :op :assert}
+   {:e #blake3 "a69a8fdbfeeb017fcd9e95d7f65c7b2892a2e88414a4006738b1dbc73cee22cb" :a :db/ident :v :observation/inv-guidance-013-typed-edge-routing-rt-edge-weights-incl :op :assert}
+   {:e #blake3 "a69a8fdbfeeb017fcd9e95d7f65c7b2892a2e88414a4006738b1dbc73cee22cb" :a :exploration/body :v "INV-GUIDANCE-013: Typed Edge Routing. R(t) edge weights include type_multiplier(downstream.task_type). Implementation tasks weight 1.0, test tasks 0.8, spec 0.6, docs 0.3, epic 0.0. Falsification: R(t) ranks a docs-unblocking task above an impl-unblocking task at equal base PageRank. V:PROP." :op :assert}
+   {:e #blake3 "a69a8fdbfeeb017fcd9e95d7f65c7b2892a2e88414a4006738b1dbc73cee22cb" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "a69a8fdbfeeb017fcd9e95d7f65c7b2892a2e88414a4006738b1dbc73cee22cb" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "a69a8fdbfeeb017fcd9e95d7f65c7b2892a2e88414a4006738b1dbc73cee22cb" :a :exploration/content-hash :v #bytes "c8f27b2f473cfd508593466d0b165951315f060848e5047e101b44605aaa1aba" :op :assert}
+   {:e #blake3 "a69a8fdbfeeb017fcd9e95d7f65c7b2892a2e88414a4006738b1dbc73cee22cb" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a69a8fdbfeeb017fcd9e95d7f65c7b2892a2e88414a4006738b1dbc73cee22cb" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a69a8fdbfeeb017fcd9e95d7f65c7b2892a2e88414a4006738b1dbc73cee22cb" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

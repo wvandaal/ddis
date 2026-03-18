@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811799/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: A2.4: TEST-A2: priority update via task set persists across store reload + MCP parity test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9a6ac804b0c8c5e2e8c6ec7a7b8258807e259b8c61e624fffbf7fb779f0f868d" :a :db/ident :v :task/t-389f :op :assert}
+   {:e #blake3 "9a6ac804b0c8c5e2e8c6ec7a7b8258807e259b8c61e624fffbf7fb779f0f868d" :a :task/created-at :v 1773811795 :op :assert}
+   {:e #blake3 "9a6ac804b0c8c5e2e8c6ec7a7b8258807e259b8c61e624fffbf7fb779f0f868d" :a :task/id :v "t-389f" :op :assert}
+   {:e #blake3 "9a6ac804b0c8c5e2e8c6ec7a7b8258807e259b8c61e624fffbf7fb779f0f868d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9a6ac804b0c8c5e2e8c6ec7a7b8258807e259b8c61e624fffbf7fb779f0f868d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9a6ac804b0c8c5e2e8c6ec7a7b8258807e259b8c61e624fffbf7fb779f0f868d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9a6ac804b0c8c5e2e8c6ec7a7b8258807e259b8c61e624fffbf7fb779f0f868d" :a :task/title :v "A2.4: TEST-A2: priority update via task set persists across store reload + MCP parity test" :op :assert}
+   {:e #blake3 "9a6ac804b0c8c5e2e8c6ec7a7b8258807e259b8c61e624fffbf7fb779f0f868d" :a :task/type :v :task.type/task :op :assert}
+ ]}

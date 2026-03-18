@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811920/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D5.2: Wire auto-observation into CLI command post-processing — extract + transact after each command output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "678a9455417895d62233a2410a4192dbfd2c7a4afd87b8d39a31608ff097daa9" :a :db/ident :v :task/t-034d :op :assert}
+   {:e #blake3 "678a9455417895d62233a2410a4192dbfd2c7a4afd87b8d39a31608ff097daa9" :a :task/created-at :v 1773811914 :op :assert}
+   {:e #blake3 "678a9455417895d62233a2410a4192dbfd2c7a4afd87b8d39a31608ff097daa9" :a :task/id :v "t-034d" :op :assert}
+   {:e #blake3 "678a9455417895d62233a2410a4192dbfd2c7a4afd87b8d39a31608ff097daa9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "678a9455417895d62233a2410a4192dbfd2c7a4afd87b8d39a31608ff097daa9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "678a9455417895d62233a2410a4192dbfd2c7a4afd87b8d39a31608ff097daa9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "678a9455417895d62233a2410a4192dbfd2c7a4afd87b8d39a31608ff097daa9" :a :task/title :v "D5.2: Wire auto-observation into CLI command post-processing — extract + transact after each command output" :op :assert}
+   {:e #blake3 "678a9455417895d62233a2410a4192dbfd2c7a4afd87b8d39a31608ff097daa9" :a :task/type :v :task.type/task :op :assert}
+ ]}

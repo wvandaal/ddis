@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811861/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C1.2: Convert all schema count tests to minimum-bound assertions + per-attribute existence checks"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3f445a2cefa090844f1383b3adeed7930afad15c8fb603881644b8e655eab959" :a :db/ident :v :task/t-7062 :op :assert}
+   {:e #blake3 "3f445a2cefa090844f1383b3adeed7930afad15c8fb603881644b8e655eab959" :a :task/created-at :v 1773811860 :op :assert}
+   {:e #blake3 "3f445a2cefa090844f1383b3adeed7930afad15c8fb603881644b8e655eab959" :a :task/id :v "t-7062" :op :assert}
+   {:e #blake3 "3f445a2cefa090844f1383b3adeed7930afad15c8fb603881644b8e655eab959" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3f445a2cefa090844f1383b3adeed7930afad15c8fb603881644b8e655eab959" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3f445a2cefa090844f1383b3adeed7930afad15c8fb603881644b8e655eab959" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3f445a2cefa090844f1383b3adeed7930afad15c8fb603881644b8e655eab959" :a :task/title :v "C1.2: Convert all schema count tests to minimum-bound assertions + per-attribute existence checks" :op :assert}
+   {:e #blake3 "3f445a2cefa090844f1383b3adeed7930afad15c8fb603881644b8e655eab959" :a :task/type :v :task.type/task :op :assert}
+ ]}

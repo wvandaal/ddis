@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811967/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ADR-GUIDANCE-012: Executable Over Descriptive Footer. WHY: At depleted k*, agents see hints but don't act (basin trapping). Commands are zero-interpretation. The Gestalt principle at its limit: when attention budget is near zero, the demonstration must BE the action. Alternative rejected: always descriptive (fails at low k*). Alternative rejected: always command (wastes budget at high k* where the agent can interpret)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "04741525f115c5ec94083ac3e66368d30b29d2121914753c157c38041a8ee5bb" :a :db/doc :v "ADR-GUIDANCE-012: Executable Over Descriptive Footer. WHY: At depleted k*, agents see hints but don't act (basin trapping). Commands are zero-interpretation. The Gestalt principle at its limit: when attention budget is near zero, the demonstration must BE the action. Alternative rejected: always descriptive (fails at low k*). Alternative rejected: always command (wastes budget at high k* where the agent can interpret)." :op :assert}
+   {:e #blake3 "04741525f115c5ec94083ac3e66368d30b29d2121914753c157c38041a8ee5bb" :a :db/ident :v :observation/adr-guidance-012-executable-over-descriptive-footer-why-a :op :assert}
+   {:e #blake3 "04741525f115c5ec94083ac3e66368d30b29d2121914753c157c38041a8ee5bb" :a :exploration/body :v "ADR-GUIDANCE-012: Executable Over Descriptive Footer. WHY: At depleted k*, agents see hints but don't act (basin trapping). Commands are zero-interpretation. The Gestalt principle at its limit: when attention budget is near zero, the demonstration must BE the action. Alternative rejected: always descriptive (fails at low k*). Alternative rejected: always command (wastes budget at high k* where the agent can interpret)." :op :assert}
+   {:e #blake3 "04741525f115c5ec94083ac3e66368d30b29d2121914753c157c38041a8ee5bb" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "04741525f115c5ec94083ac3e66368d30b29d2121914753c157c38041a8ee5bb" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "04741525f115c5ec94083ac3e66368d30b29d2121914753c157c38041a8ee5bb" :a :exploration/content-hash :v #bytes "64456baf1abc99aed59b9f3a53ada5ce5ae233b2ea3ce03d280dc35dccebf352" :op :assert}
+   {:e #blake3 "04741525f115c5ec94083ac3e66368d30b29d2121914753c157c38041a8ee5bb" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "04741525f115c5ec94083ac3e66368d30b29d2121914753c157c38041a8ee5bb" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "04741525f115c5ec94083ac3e66368d30b29d2121914753c157c38041a8ee5bb" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

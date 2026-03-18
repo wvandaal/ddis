@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811867/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.5: TEST-C2: AVET-indexed query produces identical results to linear scan (proptest) + benchmark at 10K/100K datoms"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ff277ffe34ade13f2bc3cc0a236cb86ff0b950f1efee38f7d064120df72f8713" :a :db/ident :v :task/t-fecb :op :assert}
+   {:e #blake3 "ff277ffe34ade13f2bc3cc0a236cb86ff0b950f1efee38f7d064120df72f8713" :a :task/created-at :v 1773811864 :op :assert}
+   {:e #blake3 "ff277ffe34ade13f2bc3cc0a236cb86ff0b950f1efee38f7d064120df72f8713" :a :task/id :v "t-fecb" :op :assert}
+   {:e #blake3 "ff277ffe34ade13f2bc3cc0a236cb86ff0b950f1efee38f7d064120df72f8713" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ff277ffe34ade13f2bc3cc0a236cb86ff0b950f1efee38f7d064120df72f8713" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ff277ffe34ade13f2bc3cc0a236cb86ff0b950f1efee38f7d064120df72f8713" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ff277ffe34ade13f2bc3cc0a236cb86ff0b950f1efee38f7d064120df72f8713" :a :task/title :v "C2.5: TEST-C2: AVET-indexed query produces identical results to linear scan (proptest) + benchmark at 10K/100K datoms" :op :assert}
+   {:e #blake3 "ff277ffe34ade13f2bc3cc0a236cb86ff0b950f1efee38f7d064120df72f8713" :a :task/type :v :task.type/task :op :assert}
+ ]}

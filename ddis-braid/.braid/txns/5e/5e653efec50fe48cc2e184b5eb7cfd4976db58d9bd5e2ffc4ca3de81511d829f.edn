@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811860/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C1.1: Replace GENESIS_ATTR_COUNT + LAYER_N_COUNT constants with runtime queries (FM-008, C3)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8a34e630baff08a877044788d84aaca60bf4659c4abd9af5a642ffecbb165fd7" :a :db/ident :v :task/t-b0b6 :op :assert}
+   {:e #blake3 "8a34e630baff08a877044788d84aaca60bf4659c4abd9af5a642ffecbb165fd7" :a :task/created-at :v 1773811859 :op :assert}
+   {:e #blake3 "8a34e630baff08a877044788d84aaca60bf4659c4abd9af5a642ffecbb165fd7" :a :task/id :v "t-b0b6" :op :assert}
+   {:e #blake3 "8a34e630baff08a877044788d84aaca60bf4659c4abd9af5a642ffecbb165fd7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8a34e630baff08a877044788d84aaca60bf4659c4abd9af5a642ffecbb165fd7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8a34e630baff08a877044788d84aaca60bf4659c4abd9af5a642ffecbb165fd7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8a34e630baff08a877044788d84aaca60bf4659c4abd9af5a642ffecbb165fd7" :a :task/title :v "C1.1: Replace GENESIS_ATTR_COUNT + LAYER_N_COUNT constants with runtime queries (FM-008, C3)" :op :assert}
+   {:e #blake3 "8a34e630baff08a877044788d84aaca60bf4659c4abd9af5a642ffecbb165fd7" :a :task/type :v :task.type/task :op :assert}
+ ]}

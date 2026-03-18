@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811832/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: B1.2: Add urgency_decay(age) to edge weights — staleness boosts older tasks (ADR-GUIDANCE-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2d28b2cef92c035463fd2a35238bdb738a1a99e408c7684d1cf8aa0829a12225" :a :db/ident :v :task/t-4dc7 :op :assert}
+   {:e #blake3 "2d28b2cef92c035463fd2a35238bdb738a1a99e408c7684d1cf8aa0829a12225" :a :task/created-at :v 1773811830 :op :assert}
+   {:e #blake3 "2d28b2cef92c035463fd2a35238bdb738a1a99e408c7684d1cf8aa0829a12225" :a :task/id :v "t-4dc7" :op :assert}
+   {:e #blake3 "2d28b2cef92c035463fd2a35238bdb738a1a99e408c7684d1cf8aa0829a12225" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2d28b2cef92c035463fd2a35238bdb738a1a99e408c7684d1cf8aa0829a12225" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2d28b2cef92c035463fd2a35238bdb738a1a99e408c7684d1cf8aa0829a12225" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2d28b2cef92c035463fd2a35238bdb738a1a99e408c7684d1cf8aa0829a12225" :a :task/title :v "B1.2: Add urgency_decay(age) to edge weights — staleness boosts older tasks (ADR-GUIDANCE-001)" :op :assert}
+   {:e #blake3 "2d28b2cef92c035463fd2a35238bdb738a1a99e408c7684d1cf8aa0829a12225" :a :task/type :v :task.type/task :op :assert}
+ ]}

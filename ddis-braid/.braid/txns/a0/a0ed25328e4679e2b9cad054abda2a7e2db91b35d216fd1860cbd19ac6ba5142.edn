@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811912/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D3.2: Wire surprisal into weight computation — weight = confidence × category × surprisal (ADR-HARVEST-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :db/ident :v :task/t-960e :op :assert}
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/created-at :v 1773811908 :op :assert}
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/id :v "t-960e" :op :assert}
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/title :v "D3.2: Wire surprisal into weight computation — weight = confidence × category × surprisal (ADR-HARVEST-005)" :op :assert}
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/type :v :task.type/task :op :assert}
+ ]}

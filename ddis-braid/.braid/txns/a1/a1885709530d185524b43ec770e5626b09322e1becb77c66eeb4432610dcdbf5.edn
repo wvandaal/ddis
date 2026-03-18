@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811833/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: B1.3: TEST-B1: typed routing prefers impl-unblocking task over docs-unblocking task at equal PageRank"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3ca4967127cb52316d1163550dfa3cfd81c039240ae26807833ec959f11c15fd" :a :db/ident :v :task/t-6da3 :op :assert}
+   {:e #blake3 "3ca4967127cb52316d1163550dfa3cfd81c039240ae26807833ec959f11c15fd" :a :task/created-at :v 1773811831 :op :assert}
+   {:e #blake3 "3ca4967127cb52316d1163550dfa3cfd81c039240ae26807833ec959f11c15fd" :a :task/id :v "t-6da3" :op :assert}
+   {:e #blake3 "3ca4967127cb52316d1163550dfa3cfd81c039240ae26807833ec959f11c15fd" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3ca4967127cb52316d1163550dfa3cfd81c039240ae26807833ec959f11c15fd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3ca4967127cb52316d1163550dfa3cfd81c039240ae26807833ec959f11c15fd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3ca4967127cb52316d1163550dfa3cfd81c039240ae26807833ec959f11c15fd" :a :task/title :v "B1.3: TEST-B1: typed routing prefers impl-unblocking task over docs-unblocking task at equal PageRank" :op :assert}
+   {:e #blake3 "3ca4967127cb52316d1163550dfa3cfd81c039240ae26807833ec959f11c15fd" :a :task/type :v :task.type/task :op :assert}
+ ]}

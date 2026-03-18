@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811767/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "WORKSTREAM C DESIGN: Store Performance + Evolution. (1) Dynamic genesis_attr_count — replace all hardcoded schema layer counts with runtime queries. Test uses minimum bound not exact count. Schema evolution becomes change-code-done, no constant bumping. Fixes FM-008 derived quantity staleness at root. (2) Persistent AVET index — Attribute-Value-Entity-Transaction sorted index on disk alongside txn files. O(log N) lookups replace O(N) scans. Content-addressed cache file rebuilt on txn write. Critical at 100K+ datoms projected after 50 sessions. Estimated: 4 tasks, ~800 LOC."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "643947a2c68b5dd5b38bf9b4006706684c1dd18ed6f707aba836a379b3245c3f" :a :db/doc :v "WORKSTREAM C DESIGN: Store Performance + Evolution. (1) Dynamic genesis_attr_count — replace all hardcoded schema layer counts with runtime queries. Test uses minimum bound not exact count. Schema evolution becomes change-code-done, no constant bumping. Fixes FM-008 derived quantity staleness at root. (2) Persistent AVET index — Attribute-Value-Entity-Transaction sorted index on disk alongside txn files. O(log N) lookups replace O(N) scans. Content-addressed cache file rebuilt on txn write. Critical at 100K+ datoms projected after 50 sessions. Estimated: 4 tasks, ~800 LOC." :op :assert}
+   {:e #blake3 "643947a2c68b5dd5b38bf9b4006706684c1dd18ed6f707aba836a379b3245c3f" :a :db/ident :v :observation/workstream-c-design-store-performance-evolution-1-dyna :op :assert}
+   {:e #blake3 "643947a2c68b5dd5b38bf9b4006706684c1dd18ed6f707aba836a379b3245c3f" :a :exploration/body :v "WORKSTREAM C DESIGN: Store Performance + Evolution. (1) Dynamic genesis_attr_count — replace all hardcoded schema layer counts with runtime queries. Test uses minimum bound not exact count. Schema evolution becomes change-code-done, no constant bumping. Fixes FM-008 derived quantity staleness at root. (2) Persistent AVET index — Attribute-Value-Entity-Transaction sorted index on disk alongside txn files. O(log N) lookups replace O(N) scans. Content-addressed cache file rebuilt on txn write. Critical at 100K+ datoms projected after 50 sessions. Estimated: 4 tasks, ~800 LOC." :op :assert}
+   {:e #blake3 "643947a2c68b5dd5b38bf9b4006706684c1dd18ed6f707aba836a379b3245c3f" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "643947a2c68b5dd5b38bf9b4006706684c1dd18ed6f707aba836a379b3245c3f" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "643947a2c68b5dd5b38bf9b4006706684c1dd18ed6f707aba836a379b3245c3f" :a :exploration/content-hash :v #bytes "5832891aed4190a55d8d617798e672b1e92f8f23b23f11593846ddf869366eb7" :op :assert}
+   {:e #blake3 "643947a2c68b5dd5b38bf9b4006706684c1dd18ed6f707aba836a379b3245c3f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "643947a2c68b5dd5b38bf9b4006706684c1dd18ed6f707aba836a379b3245c3f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "643947a2c68b5dd5b38bf9b4006706684c1dd18ed6f707aba836a379b3245c3f" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

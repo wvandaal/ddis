@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811796/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: A2.1: Implement braid task set <id> <attribute> <value> — generic datom assertion on task entity (C3)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7911a0d42a4fb8e767f51432933a44833642b3379e2bd09c3b8d646526b60e12" :a :db/ident :v :task/t-5817 :op :assert}
+   {:e #blake3 "7911a0d42a4fb8e767f51432933a44833642b3379e2bd09c3b8d646526b60e12" :a :task/created-at :v 1773811793 :op :assert}
+   {:e #blake3 "7911a0d42a4fb8e767f51432933a44833642b3379e2bd09c3b8d646526b60e12" :a :task/id :v "t-5817" :op :assert}
+   {:e #blake3 "7911a0d42a4fb8e767f51432933a44833642b3379e2bd09c3b8d646526b60e12" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7911a0d42a4fb8e767f51432933a44833642b3379e2bd09c3b8d646526b60e12" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7911a0d42a4fb8e767f51432933a44833642b3379e2bd09c3b8d646526b60e12" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7911a0d42a4fb8e767f51432933a44833642b3379e2bd09c3b8d646526b60e12" :a :task/title :v "A2.1: Implement braid task set <id> <attribute> <value> — generic datom assertion on task entity (C3)" :op :assert}
+   {:e #blake3 "7911a0d42a4fb8e767f51432933a44833642b3379e2bd09c3b8d646526b60e12" :a :task/type :v :task.type/task :op :assert}
+ ]}

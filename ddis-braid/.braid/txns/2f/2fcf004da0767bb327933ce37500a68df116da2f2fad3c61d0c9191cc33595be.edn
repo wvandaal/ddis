@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811862/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C1.3: TEST-C1: adding a new Layer 0 attribute does NOT break any existing test (regression guard)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a18c02471983bd40dfe206908911ed3e3c3ea4200c3617497b33c152ebab8fbc" :a :db/ident :v :task/t-1f1b :op :assert}
+   {:e #blake3 "a18c02471983bd40dfe206908911ed3e3c3ea4200c3617497b33c152ebab8fbc" :a :task/created-at :v 1773811860 :op :assert}
+   {:e #blake3 "a18c02471983bd40dfe206908911ed3e3c3ea4200c3617497b33c152ebab8fbc" :a :task/id :v "t-1f1b" :op :assert}
+   {:e #blake3 "a18c02471983bd40dfe206908911ed3e3c3ea4200c3617497b33c152ebab8fbc" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a18c02471983bd40dfe206908911ed3e3c3ea4200c3617497b33c152ebab8fbc" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a18c02471983bd40dfe206908911ed3e3c3ea4200c3617497b33c152ebab8fbc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a18c02471983bd40dfe206908911ed3e3c3ea4200c3617497b33c152ebab8fbc" :a :task/title :v "C1.3: TEST-C1: adding a new Layer 0 attribute does NOT break any existing test (regression guard)" :op :assert}
+   {:e #blake3 "a18c02471983bd40dfe206908911ed3e3c3ea4200c3617497b33c152ebab8fbc" :a :task/type :v :task.type/task :op :assert}
+ ]}

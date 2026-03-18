@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811798/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: A2.3: Add braid_task_set + braid_task_dep MCP tools (INV-INTERFACE-002 thin wrapper)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0b741d735ecd7f33e01e09ed7a6ba6f5126f1da5334e210caa079a107d50a1d2" :a :db/ident :v :task/t-9ca9 :op :assert}
+   {:e #blake3 "0b741d735ecd7f33e01e09ed7a6ba6f5126f1da5334e210caa079a107d50a1d2" :a :task/created-at :v 1773811795 :op :assert}
+   {:e #blake3 "0b741d735ecd7f33e01e09ed7a6ba6f5126f1da5334e210caa079a107d50a1d2" :a :task/id :v "t-9ca9" :op :assert}
+   {:e #blake3 "0b741d735ecd7f33e01e09ed7a6ba6f5126f1da5334e210caa079a107d50a1d2" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "0b741d735ecd7f33e01e09ed7a6ba6f5126f1da5334e210caa079a107d50a1d2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0b741d735ecd7f33e01e09ed7a6ba6f5126f1da5334e210caa079a107d50a1d2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0b741d735ecd7f33e01e09ed7a6ba6f5126f1da5334e210caa079a107d50a1d2" :a :task/title :v "A2.3: Add braid_task_set + braid_task_dep MCP tools (INV-INTERFACE-002 thin wrapper)" :op :assert}
+   {:e #blake3 "0b741d735ecd7f33e01e09ed7a6ba6f5126f1da5334e210caa079a107d50a1d2" :a :task/type :v :task.type/task :op :assert}
+ ]}

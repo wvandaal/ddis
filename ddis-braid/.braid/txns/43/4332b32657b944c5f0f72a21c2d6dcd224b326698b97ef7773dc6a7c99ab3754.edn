@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811113/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "UPDATED DOG-FOOD ASSESSMENT (Session 024, turn 800+): 106 tasks closed, 13K datoms. Score: 7.5/10 UX, 9.5/10 architecture. Key new insights: (1) spec-as-data self-bootstrap is the deepest feature, (2) cognitive independence insight came from experiencing k* degradation firsthand, (3) harvest too noisy at high volume — needs weight/reconciliation_type filtering, (4) AVET index becoming prerequisite at 13K datoms, (5) batch task close is #1 UX pain. Schema count constant coupling is architectural smell. M(t) during implementation sprints is correct signal, not noise."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c52329ad036c758e6cccaa729e5e2c9a59be6cc1a6e635269ceefbe61d207a44" :a :db/doc :v "UPDATED DOG-FOOD ASSESSMENT (Session 024, turn 800+): 106 tasks closed, 13K datoms. Score: 7.5/10 UX, 9.5/10 architecture. Key new insights: (1) spec-as-data self-bootstrap is the deepest feature, (2) cognitive independence insight came from experiencing k* degradation firsthand, (3) harvest too noisy at high volume — needs weight/reconciliation_type filtering, (4) AVET index becoming prerequisite at 13K datoms, (5) batch task close is #1 UX pain. Schema count constant coupling is architectural smell. M(t) during implementation sprints is correct signal, not noise." :op :assert}
+   {:e #blake3 "c52329ad036c758e6cccaa729e5e2c9a59be6cc1a6e635269ceefbe61d207a44" :a :db/ident :v :observation/updated-dog-food-assessment-session-024-turn-800-106-ta :op :assert}
+   {:e #blake3 "c52329ad036c758e6cccaa729e5e2c9a59be6cc1a6e635269ceefbe61d207a44" :a :exploration/body :v "UPDATED DOG-FOOD ASSESSMENT (Session 024, turn 800+): 106 tasks closed, 13K datoms. Score: 7.5/10 UX, 9.5/10 architecture. Key new insights: (1) spec-as-data self-bootstrap is the deepest feature, (2) cognitive independence insight came from experiencing k* degradation firsthand, (3) harvest too noisy at high volume — needs weight/reconciliation_type filtering, (4) AVET index becoming prerequisite at 13K datoms, (5) batch task close is #1 UX pain. Schema count constant coupling is architectural smell. M(t) during implementation sprints is correct signal, not noise." :op :assert}
+   {:e #blake3 "c52329ad036c758e6cccaa729e5e2c9a59be6cc1a6e635269ceefbe61d207a44" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "c52329ad036c758e6cccaa729e5e2c9a59be6cc1a6e635269ceefbe61d207a44" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "c52329ad036c758e6cccaa729e5e2c9a59be6cc1a6e635269ceefbe61d207a44" :a :exploration/content-hash :v #bytes "95ad6ed571bd954d46e1908d8557feaec8f3a54e017e665a72db09d440598427" :op :assert}
+   {:e #blake3 "c52329ad036c758e6cccaa729e5e2c9a59be6cc1a6e635269ceefbe61d207a44" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c52329ad036c758e6cccaa729e5e2c9a59be6cc1a6e635269ceefbe61d207a44" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c52329ad036c758e6cccaa729e5e2c9a59be6cc1a6e635269ceefbe61d207a44" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

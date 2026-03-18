@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811793/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: A1.1: Implement TxBundle builder — collects datoms from multiple operations into single TxFile (INV-STORE-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f2c460f16a3f913875b3dae8871abcae82dad645a135c6c76f052620dd71b18a" :a :db/ident :v :task/t-a3e1 :op :assert}
+   {:e #blake3 "f2c460f16a3f913875b3dae8871abcae82dad645a135c6c76f052620dd71b18a" :a :task/created-at :v 1773811791 :op :assert}
+   {:e #blake3 "f2c460f16a3f913875b3dae8871abcae82dad645a135c6c76f052620dd71b18a" :a :task/id :v "t-a3e1" :op :assert}
+   {:e #blake3 "f2c460f16a3f913875b3dae8871abcae82dad645a135c6c76f052620dd71b18a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f2c460f16a3f913875b3dae8871abcae82dad645a135c6c76f052620dd71b18a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f2c460f16a3f913875b3dae8871abcae82dad645a135c6c76f052620dd71b18a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f2c460f16a3f913875b3dae8871abcae82dad645a135c6c76f052620dd71b18a" :a :task/title :v "A1.1: Implement TxBundle builder — collects datoms from multiple operations into single TxFile (INV-STORE-001)" :op :assert}
+   {:e #blake3 "f2c460f16a3f913875b3dae8871abcae82dad645a135c6c76f052620dd71b18a" :a :task/type :v :task.type/task :op :assert}
+ ]}

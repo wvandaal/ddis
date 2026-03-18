@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811795/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: A1.3: TEST-A1: batch close 10 tasks = 1 txn + atomic visibility (proptest + integration)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "58b803b57e86c611da5478659ba0038193b2c472f1eacde58b5abdf6c3b0a06e" :a :db/ident :v :task/t-fd96 :op :assert}
+   {:e #blake3 "58b803b57e86c611da5478659ba0038193b2c472f1eacde58b5abdf6c3b0a06e" :a :task/created-at :v 1773811793 :op :assert}
+   {:e #blake3 "58b803b57e86c611da5478659ba0038193b2c472f1eacde58b5abdf6c3b0a06e" :a :task/id :v "t-fd96" :op :assert}
+   {:e #blake3 "58b803b57e86c611da5478659ba0038193b2c472f1eacde58b5abdf6c3b0a06e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "58b803b57e86c611da5478659ba0038193b2c472f1eacde58b5abdf6c3b0a06e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "58b803b57e86c611da5478659ba0038193b2c472f1eacde58b5abdf6c3b0a06e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "58b803b57e86c611da5478659ba0038193b2c472f1eacde58b5abdf6c3b0a06e" :a :task/title :v "A1.3: TEST-A1: batch close 10 tasks = 1 txn + atomic visibility (proptest + integration)" :op :assert}
+   {:e #blake3 "58b803b57e86c611da5478659ba0038193b2c472f1eacde58b5abdf6c3b0a06e" :a :task/type :v :task.type/task :op :assert}
+ ]}

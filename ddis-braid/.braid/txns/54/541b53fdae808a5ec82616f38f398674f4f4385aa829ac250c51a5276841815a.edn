@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811959/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-ERGONOMICS-001: Transaction Bundle Atomicity. A bundled transaction commits all datoms atomically — concurrent readers see either all or none of the bundle's effects. Falsification: a reader observes partial bundle state (some datoms committed, others not). V:PROP + V:MODEL."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "422c8f2b2259bdac025c7447e9c0e2293fcd94df0663dde338fc71b7a8b49b9f" :a :db/doc :v "INV-ERGONOMICS-001: Transaction Bundle Atomicity. A bundled transaction commits all datoms atomically — concurrent readers see either all or none of the bundle's effects. Falsification: a reader observes partial bundle state (some datoms committed, others not). V:PROP + V:MODEL." :op :assert}
+   {:e #blake3 "422c8f2b2259bdac025c7447e9c0e2293fcd94df0663dde338fc71b7a8b49b9f" :a :db/ident :v :observation/inv-ergonomics-001-transaction-bundle-atomicity-a-bundled :op :assert}
+   {:e #blake3 "422c8f2b2259bdac025c7447e9c0e2293fcd94df0663dde338fc71b7a8b49b9f" :a :exploration/body :v "INV-ERGONOMICS-001: Transaction Bundle Atomicity. A bundled transaction commits all datoms atomically — concurrent readers see either all or none of the bundle's effects. Falsification: a reader observes partial bundle state (some datoms committed, others not). V:PROP + V:MODEL." :op :assert}
+   {:e #blake3 "422c8f2b2259bdac025c7447e9c0e2293fcd94df0663dde338fc71b7a8b49b9f" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "422c8f2b2259bdac025c7447e9c0e2293fcd94df0663dde338fc71b7a8b49b9f" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "422c8f2b2259bdac025c7447e9c0e2293fcd94df0663dde338fc71b7a8b49b9f" :a :exploration/content-hash :v #bytes "f7c8fc1a9cfbf465a0a35ba07332dc4b0428b88728650b1181ed5ed3741ee498" :op :assert}
+   {:e #blake3 "422c8f2b2259bdac025c7447e9c0e2293fcd94df0663dde338fc71b7a8b49b9f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "422c8f2b2259bdac025c7447e9c0e2293fcd94df0663dde338fc71b7a8b49b9f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "422c8f2b2259bdac025c7447e9c0e2293fcd94df0663dde338fc71b7a8b49b9f" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

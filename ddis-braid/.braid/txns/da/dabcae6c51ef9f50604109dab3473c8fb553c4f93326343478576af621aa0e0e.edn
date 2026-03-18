@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811964/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-HARVEST-010: Surprisal-Weighted Candidates. Harvest weight = confidence × category_multiplier × surprisal(candidate, store). Candidates with surprisal below threshold are filtered. Falsification: a routine task closure (low surprisal) is promoted with the same weight as a novel insight (high surprisal). V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1117f467f3edc80b4f77a1f76c27a934706b3b8763dba76ce32fd0530978455b" :a :db/doc :v "INV-HARVEST-010: Surprisal-Weighted Candidates. Harvest weight = confidence × category_multiplier × surprisal(candidate, store). Candidates with surprisal below threshold are filtered. Falsification: a routine task closure (low surprisal) is promoted with the same weight as a novel insight (high surprisal). V:PROP." :op :assert}
+   {:e #blake3 "1117f467f3edc80b4f77a1f76c27a934706b3b8763dba76ce32fd0530978455b" :a :db/ident :v :observation/inv-harvest-010-surprisal-weighted-candidates-harvest-weig :op :assert}
+   {:e #blake3 "1117f467f3edc80b4f77a1f76c27a934706b3b8763dba76ce32fd0530978455b" :a :exploration/body :v "INV-HARVEST-010: Surprisal-Weighted Candidates. Harvest weight = confidence × category_multiplier × surprisal(candidate, store). Candidates with surprisal below threshold are filtered. Falsification: a routine task closure (low surprisal) is promoted with the same weight as a novel insight (high surprisal). V:PROP." :op :assert}
+   {:e #blake3 "1117f467f3edc80b4f77a1f76c27a934706b3b8763dba76ce32fd0530978455b" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "1117f467f3edc80b4f77a1f76c27a934706b3b8763dba76ce32fd0530978455b" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "1117f467f3edc80b4f77a1f76c27a934706b3b8763dba76ce32fd0530978455b" :a :exploration/content-hash :v #bytes "cc13a07613854e9e9fedcccd73c6f0a5479a878bf8c3c9d6661046f39a920025" :op :assert}
+   {:e #blake3 "1117f467f3edc80b4f77a1f76c27a934706b3b8763dba76ce32fd0530978455b" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1117f467f3edc80b4f77a1f76c27a934706b3b8763dba76ce32fd0530978455b" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1117f467f3edc80b4f77a1f76c27a934706b3b8763dba76ce32fd0530978455b" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

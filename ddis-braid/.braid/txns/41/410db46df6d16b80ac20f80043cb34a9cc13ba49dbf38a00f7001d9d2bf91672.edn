@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811834/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: B2.1: Implement context-aware command generation — map M(t) failures to cheapest fix per activity mode (INV-GUIDANCE-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c4ee0cb62c31bd44f36c868da17b177ecce2022ed09bac5e092cef99b8e9591e" :a :db/ident :v :task/t-1cb6 :op :assert}
+   {:e #blake3 "c4ee0cb62c31bd44f36c868da17b177ecce2022ed09bac5e092cef99b8e9591e" :a :task/created-at :v 1773811831 :op :assert}
+   {:e #blake3 "c4ee0cb62c31bd44f36c868da17b177ecce2022ed09bac5e092cef99b8e9591e" :a :task/id :v "t-1cb6" :op :assert}
+   {:e #blake3 "c4ee0cb62c31bd44f36c868da17b177ecce2022ed09bac5e092cef99b8e9591e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c4ee0cb62c31bd44f36c868da17b177ecce2022ed09bac5e092cef99b8e9591e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c4ee0cb62c31bd44f36c868da17b177ecce2022ed09bac5e092cef99b8e9591e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c4ee0cb62c31bd44f36c868da17b177ecce2022ed09bac5e092cef99b8e9591e" :a :task/title :v "B2.1: Implement context-aware command generation — map M(t) failures to cheapest fix per activity mode (INV-GUIDANCE-002)" :op :assert}
+   {:e #blake3 "c4ee0cb62c31bd44f36c868da17b177ecce2022ed09bac5e092cef99b8e9591e" :a :task/type :v :task.type/task :op :assert}
+ ]}

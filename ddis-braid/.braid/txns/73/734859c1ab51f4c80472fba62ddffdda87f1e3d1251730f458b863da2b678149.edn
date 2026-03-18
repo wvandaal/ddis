@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811966/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ADR-ERGONOMICS-001: Transaction Bundle over Sequential Ops. WHY: N sequential ops = O(N × store_load). Bundle = O(1). Also provides atomicity for concurrent readers. Alternative rejected: async queue (adds complexity, doesn't provide atomicity). Alternative rejected: batch flag per command (special-cases each command). Bundle is generic: works for any mix of operations."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "33ebec4c8b31faa1cdc0f38d7685015a572f7efbef14f10335fac4e6d9bb8605" :a :db/doc :v "ADR-ERGONOMICS-001: Transaction Bundle over Sequential Ops. WHY: N sequential ops = O(N × store_load). Bundle = O(1). Also provides atomicity for concurrent readers. Alternative rejected: async queue (adds complexity, doesn't provide atomicity). Alternative rejected: batch flag per command (special-cases each command). Bundle is generic: works for any mix of operations." :op :assert}
+   {:e #blake3 "33ebec4c8b31faa1cdc0f38d7685015a572f7efbef14f10335fac4e6d9bb8605" :a :db/ident :v :observation/adr-ergonomics-001-transaction-bundle-over-sequential-ops :op :assert}
+   {:e #blake3 "33ebec4c8b31faa1cdc0f38d7685015a572f7efbef14f10335fac4e6d9bb8605" :a :exploration/body :v "ADR-ERGONOMICS-001: Transaction Bundle over Sequential Ops. WHY: N sequential ops = O(N × store_load). Bundle = O(1). Also provides atomicity for concurrent readers. Alternative rejected: async queue (adds complexity, doesn't provide atomicity). Alternative rejected: batch flag per command (special-cases each command). Bundle is generic: works for any mix of operations." :op :assert}
+   {:e #blake3 "33ebec4c8b31faa1cdc0f38d7685015a572f7efbef14f10335fac4e6d9bb8605" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "33ebec4c8b31faa1cdc0f38d7685015a572f7efbef14f10335fac4e6d9bb8605" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "33ebec4c8b31faa1cdc0f38d7685015a572f7efbef14f10335fac4e6d9bb8605" :a :exploration/content-hash :v #bytes "3372192dcd6807b2d5798fe06310fed2e3d3c0156b5ece3f4d02101ce21aa140" :op :assert}
+   {:e #blake3 "33ebec4c8b31faa1cdc0f38d7685015a572f7efbef14f10335fac4e6d9bb8605" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "33ebec4c8b31faa1cdc0f38d7685015a572f7efbef14f10335fac4e6d9bb8605" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "33ebec4c8b31faa1cdc0f38d7685015a572f7efbef14f10335fac4e6d9bb8605" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

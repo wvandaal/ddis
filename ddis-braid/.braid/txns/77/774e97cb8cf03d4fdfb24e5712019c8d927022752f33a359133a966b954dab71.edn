@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811866/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.4: Wire AVET index into query evaluator — use indexed lookup for attribute-bound clauses (INV-QUERY-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5a11adb148094b67d029b0f8e83ae09c4f10d16fd9322b3cfede428750bdc387" :a :db/ident :v :task/t-f017 :op :assert}
+   {:e #blake3 "5a11adb148094b67d029b0f8e83ae09c4f10d16fd9322b3cfede428750bdc387" :a :task/created-at :v 1773811863 :op :assert}
+   {:e #blake3 "5a11adb148094b67d029b0f8e83ae09c4f10d16fd9322b3cfede428750bdc387" :a :task/id :v "t-f017" :op :assert}
+   {:e #blake3 "5a11adb148094b67d029b0f8e83ae09c4f10d16fd9322b3cfede428750bdc387" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5a11adb148094b67d029b0f8e83ae09c4f10d16fd9322b3cfede428750bdc387" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5a11adb148094b67d029b0f8e83ae09c4f10d16fd9322b3cfede428750bdc387" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5a11adb148094b67d029b0f8e83ae09c4f10d16fd9322b3cfede428750bdc387" :a :task/title :v "C2.4: Wire AVET index into query evaluator — use indexed lookup for attribute-bound clauses (INV-QUERY-002)" :op :assert}
+   {:e #blake3 "5a11adb148094b67d029b0f8e83ae09c4f10d16fd9322b3cfede428750bdc387" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811917/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D4.3: Implement Thompson sampling seed scorer — prior from reference frequency, posterior updated per session"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8c6e62aad2aec1cf33bf0c5811232fadec9c2bb863c7255786f22151472c66cb" :a :db/ident :v :task/t-ff58 :op :assert}
+   {:e #blake3 "8c6e62aad2aec1cf33bf0c5811232fadec9c2bb863c7255786f22151472c66cb" :a :task/created-at :v 1773811912 :op :assert}
+   {:e #blake3 "8c6e62aad2aec1cf33bf0c5811232fadec9c2bb863c7255786f22151472c66cb" :a :task/id :v "t-ff58" :op :assert}
+   {:e #blake3 "8c6e62aad2aec1cf33bf0c5811232fadec9c2bb863c7255786f22151472c66cb" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "8c6e62aad2aec1cf33bf0c5811232fadec9c2bb863c7255786f22151472c66cb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8c6e62aad2aec1cf33bf0c5811232fadec9c2bb863c7255786f22151472c66cb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8c6e62aad2aec1cf33bf0c5811232fadec9c2bb863c7255786f22151472c66cb" :a :task/title :v "D4.3: Implement Thompson sampling seed scorer — prior from reference frequency, posterior updated per session" :op :assert}
+   {:e #blake3 "8c6e62aad2aec1cf33bf0c5811232fadec9c2bb863c7255786f22151472c66cb" :a :task/type :v :task.type/task :op :assert}
+ ]}

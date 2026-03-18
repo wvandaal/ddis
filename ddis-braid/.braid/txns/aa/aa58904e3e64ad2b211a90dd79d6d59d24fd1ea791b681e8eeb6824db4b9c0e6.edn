@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811921/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D5.3: TEST-D5: command output containing 'decided to use X' auto-creates observation datom"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "12f9c0e7d640cfa4c7138917eec3382c46634ce01f9bb77729110f9680b38f71" :a :db/ident :v :task/t-9401 :op :assert}
+   {:e #blake3 "12f9c0e7d640cfa4c7138917eec3382c46634ce01f9bb77729110f9680b38f71" :a :task/created-at :v 1773811914 :op :assert}
+   {:e #blake3 "12f9c0e7d640cfa4c7138917eec3382c46634ce01f9bb77729110f9680b38f71" :a :task/id :v "t-9401" :op :assert}
+   {:e #blake3 "12f9c0e7d640cfa4c7138917eec3382c46634ce01f9bb77729110f9680b38f71" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "12f9c0e7d640cfa4c7138917eec3382c46634ce01f9bb77729110f9680b38f71" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "12f9c0e7d640cfa4c7138917eec3382c46634ce01f9bb77729110f9680b38f71" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "12f9c0e7d640cfa4c7138917eec3382c46634ce01f9bb77729110f9680b38f71" :a :task/title :v "D5.3: TEST-D5: command output containing 'decided to use X' auto-creates observation datom" :op :assert}
+   {:e #blake3 "12f9c0e7d640cfa4c7138917eec3382c46634ce01f9bb77729110f9680b38f71" :a :task/type :v :task.type/task :op :assert}
+ ]}

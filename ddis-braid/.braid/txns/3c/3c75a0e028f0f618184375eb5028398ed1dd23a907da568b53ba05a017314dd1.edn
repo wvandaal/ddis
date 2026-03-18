@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811956/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: E2E-WB: scripts/e2e_guidance.sh — typed routing order, executable footer content, k* estimation trend (10+ checks)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :db/ident :v :task/t-b2c0 :op :assert}
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/created-at :v 1773811955 :op :assert}
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/id :v "t-b2c0" :op :assert}
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/title :v "E2E-WB: scripts/e2e_guidance.sh — typed routing order, executable footer content, k* estimation trend (10+ checks)" :op :assert}
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/type :v :task.type/task :op :assert}
+ ]}

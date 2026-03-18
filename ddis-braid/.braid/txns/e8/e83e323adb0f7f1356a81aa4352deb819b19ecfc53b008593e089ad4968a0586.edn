@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811909/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D2.2: Add divergence summary to braid status output — count per type with severity (ADR-SIGNAL-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6143df472da87ef3e1be763d5b378179b77e400d8240dd55f14ff897ebc1cd9f" :a :db/ident :v :task/t-259f :op :assert}
+   {:e #blake3 "6143df472da87ef3e1be763d5b378179b77e400d8240dd55f14ff897ebc1cd9f" :a :task/created-at :v 1773811906 :op :assert}
+   {:e #blake3 "6143df472da87ef3e1be763d5b378179b77e400d8240dd55f14ff897ebc1cd9f" :a :task/id :v "t-259f" :op :assert}
+   {:e #blake3 "6143df472da87ef3e1be763d5b378179b77e400d8240dd55f14ff897ebc1cd9f" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6143df472da87ef3e1be763d5b378179b77e400d8240dd55f14ff897ebc1cd9f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6143df472da87ef3e1be763d5b378179b77e400d8240dd55f14ff897ebc1cd9f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6143df472da87ef3e1be763d5b378179b77e400d8240dd55f14ff897ebc1cd9f" :a :task/title :v "D2.2: Add divergence summary to braid status output — count per type with severity (ADR-SIGNAL-002)" :op :assert}
+   {:e #blake3 "6143df472da87ef3e1be763d5b378179b77e400d8240dd55f14ff897ebc1cd9f" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811958/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: E2E-WD: scripts/e2e_harvest_seed.sh — adaptive urgency, surprisal filtering, divergence monitoring (12+ checks)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8da13cd36e199bdf852cca367e5aee1f6a379b98facfa774e709531ee308e719" :a :db/ident :v :task/t-15bf :op :assert}
+   {:e #blake3 "8da13cd36e199bdf852cca367e5aee1f6a379b98facfa774e709531ee308e719" :a :task/created-at :v 1773811956 :op :assert}
+   {:e #blake3 "8da13cd36e199bdf852cca367e5aee1f6a379b98facfa774e709531ee308e719" :a :task/id :v "t-15bf" :op :assert}
+   {:e #blake3 "8da13cd36e199bdf852cca367e5aee1f6a379b98facfa774e709531ee308e719" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8da13cd36e199bdf852cca367e5aee1f6a379b98facfa774e709531ee308e719" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8da13cd36e199bdf852cca367e5aee1f6a379b98facfa774e709531ee308e719" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8da13cd36e199bdf852cca367e5aee1f6a379b98facfa774e709531ee308e719" :a :task/title :v "E2E-WD: scripts/e2e_harvest_seed.sh — adaptive urgency, surprisal filtering, divergence monitoring (12+ checks)" :op :assert}
+   {:e #blake3 "8da13cd36e199bdf852cca367e5aee1f6a379b98facfa774e709531ee308e719" :a :task/type :v :task.type/task :op :assert}
+ ]}

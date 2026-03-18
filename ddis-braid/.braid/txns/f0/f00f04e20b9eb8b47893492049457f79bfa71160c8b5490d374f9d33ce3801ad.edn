@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811908/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D2.1: Wire detect_all_divergence into exit warning — show all active divergence types (INV-SIGNAL-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :db/ident :v :task/t-16a4 :op :assert}
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/created-at :v 1773811905 :op :assert}
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/id :v "t-16a4" :op :assert}
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/title :v "D2.1: Wire detect_all_divergence into exit warning — show all active divergence types (INV-SIGNAL-001)" :op :assert}
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/type :v :task.type/task :op :assert}
+ ]}

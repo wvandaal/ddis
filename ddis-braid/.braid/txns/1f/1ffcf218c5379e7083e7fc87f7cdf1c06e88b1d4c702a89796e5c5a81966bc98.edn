@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811914/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D3.4: TEST-D3: routine task close = low surprisal, novel insight = high surprisal (proptest + unit)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e5ef1f29cc786a1a607eb595325977aba3b4626b7f06d28fee1c5e8c4f305ef4" :a :db/ident :v :task/t-470b :op :assert}
+   {:e #blake3 "e5ef1f29cc786a1a607eb595325977aba3b4626b7f06d28fee1c5e8c4f305ef4" :a :task/created-at :v 1773811910 :op :assert}
+   {:e #blake3 "e5ef1f29cc786a1a607eb595325977aba3b4626b7f06d28fee1c5e8c4f305ef4" :a :task/id :v "t-470b" :op :assert}
+   {:e #blake3 "e5ef1f29cc786a1a607eb595325977aba3b4626b7f06d28fee1c5e8c4f305ef4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e5ef1f29cc786a1a607eb595325977aba3b4626b7f06d28fee1c5e8c4f305ef4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e5ef1f29cc786a1a607eb595325977aba3b4626b7f06d28fee1c5e8c4f305ef4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e5ef1f29cc786a1a607eb595325977aba3b4626b7f06d28fee1c5e8c4f305ef4" :a :task/title :v "D3.4: TEST-D3: routine task close = low surprisal, novel insight = high surprisal (proptest + unit)" :op :assert}
+   {:e #blake3 "e5ef1f29cc786a1a607eb595325977aba3b4626b7f06d28fee1c5e8c4f305ef4" :a :task/type :v :task.type/task :op :assert}
+ ]}

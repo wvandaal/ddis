@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811865/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: C2.3: Implement index freshness check — compare index hash against latest txn hash, rebuild if stale"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b1451c40167abac7e2622d3eb686d43a56c56a5b0a43d4ac3d489fe5513cacd2" :a :db/ident :v :task/t-ff0c :op :assert}
+   {:e #blake3 "b1451c40167abac7e2622d3eb686d43a56c56a5b0a43d4ac3d489fe5513cacd2" :a :task/created-at :v 1773811862 :op :assert}
+   {:e #blake3 "b1451c40167abac7e2622d3eb686d43a56c56a5b0a43d4ac3d489fe5513cacd2" :a :task/id :v "t-ff0c" :op :assert}
+   {:e #blake3 "b1451c40167abac7e2622d3eb686d43a56c56a5b0a43d4ac3d489fe5513cacd2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b1451c40167abac7e2622d3eb686d43a56c56a5b0a43d4ac3d489fe5513cacd2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b1451c40167abac7e2622d3eb686d43a56c56a5b0a43d4ac3d489fe5513cacd2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b1451c40167abac7e2622d3eb686d43a56c56a5b0a43d4ac3d489fe5513cacd2" :a :task/title :v "C2.3: Implement index freshness check — compare index hash against latest txn hash, rebuild if stale" :op :assert}
+   {:e #blake3 "b1451c40167abac7e2622d3eb686d43a56c56a5b0a43d4ac3d489fe5513cacd2" :a :task/type :v :task.type/task :op :assert}
+ ]}

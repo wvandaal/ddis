@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811910/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D2.3: TEST-D2: exit warning shows temporal + aleatory divergence when frontiers differ + conflicts exist"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4502937eb92bab2527bb4a074084407842ae842213b8b68f1bc1433ad3036c42" :a :db/ident :v :task/t-1d31 :op :assert}
+   {:e #blake3 "4502937eb92bab2527bb4a074084407842ae842213b8b68f1bc1433ad3036c42" :a :task/created-at :v 1773811907 :op :assert}
+   {:e #blake3 "4502937eb92bab2527bb4a074084407842ae842213b8b68f1bc1433ad3036c42" :a :task/id :v "t-1d31" :op :assert}
+   {:e #blake3 "4502937eb92bab2527bb4a074084407842ae842213b8b68f1bc1433ad3036c42" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4502937eb92bab2527bb4a074084407842ae842213b8b68f1bc1433ad3036c42" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4502937eb92bab2527bb4a074084407842ae842213b8b68f1bc1433ad3036c42" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4502937eb92bab2527bb4a074084407842ae842213b8b68f1bc1433ad3036c42" :a :task/title :v "D2.3: TEST-D2: exit warning shows temporal + aleatory divergence when frontiers differ + conflicts exist" :op :assert}
+   {:e #blake3 "4502937eb92bab2527bb4a074084407842ae842213b8b68f1bc1433ad3036c42" :a :task/type :v :task.type/task :op :assert}
+ ]}

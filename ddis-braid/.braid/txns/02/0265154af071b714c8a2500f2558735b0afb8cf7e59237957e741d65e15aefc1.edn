@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811831/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: B1.1: Add type_multiplier to compute_routing — impl=1.0, test=0.8, spec=0.6, docs=0.3, epic=0.0 (INV-GUIDANCE-010)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3058e1ea0f8f30cfa4cf2c8ec5a4e24de859b200a201b0fd865bd9ec5bb112ad" :a :db/ident :v :task/t-b7e2 :op :assert}
+   {:e #blake3 "3058e1ea0f8f30cfa4cf2c8ec5a4e24de859b200a201b0fd865bd9ec5bb112ad" :a :task/created-at :v 1773811829 :op :assert}
+   {:e #blake3 "3058e1ea0f8f30cfa4cf2c8ec5a4e24de859b200a201b0fd865bd9ec5bb112ad" :a :task/id :v "t-b7e2" :op :assert}
+   {:e #blake3 "3058e1ea0f8f30cfa4cf2c8ec5a4e24de859b200a201b0fd865bd9ec5bb112ad" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3058e1ea0f8f30cfa4cf2c8ec5a4e24de859b200a201b0fd865bd9ec5bb112ad" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3058e1ea0f8f30cfa4cf2c8ec5a4e24de859b200a201b0fd865bd9ec5bb112ad" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3058e1ea0f8f30cfa4cf2c8ec5a4e24de859b200a201b0fd865bd9ec5bb112ad" :a :task/title :v "B1.1: Add type_multiplier to compute_routing — impl=1.0, test=0.8, spec=0.6, docs=0.3, epic=0.0 (INV-GUIDANCE-010)" :op :assert}
+   {:e #blake3 "3058e1ea0f8f30cfa4cf2c8ec5a4e24de859b200a201b0fd865bd9ec5bb112ad" :a :task/type :v :task.type/task :op :assert}
+ ]}

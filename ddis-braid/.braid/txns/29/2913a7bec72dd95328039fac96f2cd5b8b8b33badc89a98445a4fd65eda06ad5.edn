@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811765/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "WORKSTREAM A DESIGN: Task Ergonomics. (1) braid transact --bundle for atomic batch operations — groups N closes/updates into single tx with shared causal predecessor. Fixes O(N × store_load) to O(1). (2) braid task set <id> <attr> <value> — generic attribute update reflecting datom model. Priority update is just assert(:task/priority, new_val) under LWW. (3) MCP parity: braid_task_set + braid_task_dep tools. Estimated: 5 tasks, ~500 LOC."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ba875ffc325b282495c07ba5bd04ab9b71374b58081dd8a9484eba2e29aefc6d" :a :db/doc :v "WORKSTREAM A DESIGN: Task Ergonomics. (1) braid transact --bundle for atomic batch operations — groups N closes/updates into single tx with shared causal predecessor. Fixes O(N × store_load) to O(1). (2) braid task set <id> <attr> <value> — generic attribute update reflecting datom model. Priority update is just assert(:task/priority, new_val) under LWW. (3) MCP parity: braid_task_set + braid_task_dep tools. Estimated: 5 tasks, ~500 LOC." :op :assert}
+   {:e #blake3 "ba875ffc325b282495c07ba5bd04ab9b71374b58081dd8a9484eba2e29aefc6d" :a :db/ident :v :observation/workstream-a-design-task-ergonomics-1-braid-transact-b :op :assert}
+   {:e #blake3 "ba875ffc325b282495c07ba5bd04ab9b71374b58081dd8a9484eba2e29aefc6d" :a :exploration/body :v "WORKSTREAM A DESIGN: Task Ergonomics. (1) braid transact --bundle for atomic batch operations — groups N closes/updates into single tx with shared causal predecessor. Fixes O(N × store_load) to O(1). (2) braid task set <id> <attr> <value> — generic attribute update reflecting datom model. Priority update is just assert(:task/priority, new_val) under LWW. (3) MCP parity: braid_task_set + braid_task_dep tools. Estimated: 5 tasks, ~500 LOC." :op :assert}
+   {:e #blake3 "ba875ffc325b282495c07ba5bd04ab9b71374b58081dd8a9484eba2e29aefc6d" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "ba875ffc325b282495c07ba5bd04ab9b71374b58081dd8a9484eba2e29aefc6d" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "ba875ffc325b282495c07ba5bd04ab9b71374b58081dd8a9484eba2e29aefc6d" :a :exploration/content-hash :v #bytes "d8bf1aec2c03b127acf40704f0fb4c43d47f49d86e0866430c094f8a3efa9463" :op :assert}
+   {:e #blake3 "ba875ffc325b282495c07ba5bd04ab9b71374b58081dd8a9484eba2e29aefc6d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "ba875ffc325b282495c07ba5bd04ab9b71374b58081dd8a9484eba2e29aefc6d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "ba875ffc325b282495c07ba5bd04ab9b71374b58081dd8a9484eba2e29aefc6d" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

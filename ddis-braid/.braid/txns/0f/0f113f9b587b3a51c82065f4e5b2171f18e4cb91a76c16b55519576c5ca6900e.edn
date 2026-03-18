@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811836/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: B2.3: At GuidanceLevel::Compressed, emit paste-ready command not descriptive hint (INV-BUDGET-004)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d09506b4fc1763d6f8a1ea38bcecf143a3a2495dc191aa56dc7a0f9995cfa0ea" :a :db/ident :v :task/t-b924 :op :assert}
+   {:e #blake3 "d09506b4fc1763d6f8a1ea38bcecf143a3a2495dc191aa56dc7a0f9995cfa0ea" :a :task/created-at :v 1773811833 :op :assert}
+   {:e #blake3 "d09506b4fc1763d6f8a1ea38bcecf143a3a2495dc191aa56dc7a0f9995cfa0ea" :a :task/id :v "t-b924" :op :assert}
+   {:e #blake3 "d09506b4fc1763d6f8a1ea38bcecf143a3a2495dc191aa56dc7a0f9995cfa0ea" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "d09506b4fc1763d6f8a1ea38bcecf143a3a2495dc191aa56dc7a0f9995cfa0ea" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d09506b4fc1763d6f8a1ea38bcecf143a3a2495dc191aa56dc7a0f9995cfa0ea" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d09506b4fc1763d6f8a1ea38bcecf143a3a2495dc191aa56dc7a0f9995cfa0ea" :a :task/title :v "B2.3: At GuidanceLevel::Compressed, emit paste-ready command not descriptive hint (INV-BUDGET-004)" :op :assert}
+   {:e #blake3 "d09506b4fc1763d6f8a1ea38bcecf143a3a2495dc191aa56dc7a0f9995cfa0ea" :a :task/type :v :task.type/task :op :assert}
+ ]}

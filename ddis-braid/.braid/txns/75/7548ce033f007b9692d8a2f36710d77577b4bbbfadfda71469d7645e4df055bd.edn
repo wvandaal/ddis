@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811957/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: E2E-WC: scripts/e2e_store_perf.sh — AVET index correctness, dynamic count stability, 10K datom benchmark (8+ checks)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :db/ident :v :task/t-77bf :op :assert}
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/created-at :v 1773811956 :op :assert}
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/id :v "t-77bf" :op :assert}
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/title :v "E2E-WC: scripts/e2e_store_perf.sh — AVET index correctness, dynamic count stability, 10K datom benchmark (8+ checks)" :op :assert}
+   {:e #blake3 "cb3eae20dc879dfb2f01f11cb51d59345e803e736dd9840d1cdb0808fe321661" :a :task/type :v :task.type/task :op :assert}
+ ]}

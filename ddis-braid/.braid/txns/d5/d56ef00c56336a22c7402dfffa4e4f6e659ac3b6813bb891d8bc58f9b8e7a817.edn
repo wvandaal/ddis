@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773811919/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: D5.1: Implement decision pattern detection — regex extraction of 'decided', 'because', 'the fix is' patterns"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "87ca9ba02f871b2fad9f712cd769cc8a0c26c33031b93d492edf6a9ba910fcb4" :a :db/ident :v :task/t-2c4d :op :assert}
+   {:e #blake3 "87ca9ba02f871b2fad9f712cd769cc8a0c26c33031b93d492edf6a9ba910fcb4" :a :task/created-at :v 1773811913 :op :assert}
+   {:e #blake3 "87ca9ba02f871b2fad9f712cd769cc8a0c26c33031b93d492edf6a9ba910fcb4" :a :task/id :v "t-2c4d" :op :assert}
+   {:e #blake3 "87ca9ba02f871b2fad9f712cd769cc8a0c26c33031b93d492edf6a9ba910fcb4" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "87ca9ba02f871b2fad9f712cd769cc8a0c26c33031b93d492edf6a9ba910fcb4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "87ca9ba02f871b2fad9f712cd769cc8a0c26c33031b93d492edf6a9ba910fcb4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "87ca9ba02f871b2fad9f712cd769cc8a0c26c33031b93d492edf6a9ba910fcb4" :a :task/title :v "D5.1: Implement decision pattern detection — regex extraction of 'decided', 'because', 'the fix is' patterns" :op :assert}
+   {:e #blake3 "87ca9ba02f871b2fad9f712cd769cc8a0c26c33031b93d492edf6a9ba910fcb4" :a :task/type :v :task.type/task :op :assert}
+ ]}

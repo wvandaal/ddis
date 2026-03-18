@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773811965/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-SEED-009: Attention-Predicted Assembly. Seed entity scores incorporate historical reference frequency from prior sessions (bandit algorithm). Frequently-referenced entities score higher than never-referenced entities, all else equal. Falsification: two entities with identical keyword scores but different reference histories receive identical seed scores. V:PROP."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f3923dc9ae1c03c539d3937ddc30114341d8eb7346554f26702d15def7947c39" :a :db/doc :v "INV-SEED-009: Attention-Predicted Assembly. Seed entity scores incorporate historical reference frequency from prior sessions (bandit algorithm). Frequently-referenced entities score higher than never-referenced entities, all else equal. Falsification: two entities with identical keyword scores but different reference histories receive identical seed scores. V:PROP." :op :assert}
+   {:e #blake3 "f3923dc9ae1c03c539d3937ddc30114341d8eb7346554f26702d15def7947c39" :a :db/ident :v :observation/inv-seed-009-attention-predicted-assembly-seed-entity-scor :op :assert}
+   {:e #blake3 "f3923dc9ae1c03c539d3937ddc30114341d8eb7346554f26702d15def7947c39" :a :exploration/body :v "INV-SEED-009: Attention-Predicted Assembly. Seed entity scores incorporate historical reference frequency from prior sessions (bandit algorithm). Frequently-referenced entities score higher than never-referenced entities, all else equal. Falsification: two entities with identical keyword scores but different reference histories receive identical seed scores. V:PROP." :op :assert}
+   {:e #blake3 "f3923dc9ae1c03c539d3937ddc30114341d8eb7346554f26702d15def7947c39" :a :exploration/category :v :exploration.cat/theorem :op :assert}
+   {:e #blake3 "f3923dc9ae1c03c539d3937ddc30114341d8eb7346554f26702d15def7947c39" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "f3923dc9ae1c03c539d3937ddc30114341d8eb7346554f26702d15def7947c39" :a :exploration/content-hash :v #bytes "1f7a3f9b089cf9e50b9d95e557884d3d0aa1878e8a8cc4dfe1ee6be179e98cb7" :op :assert}
+   {:e #blake3 "f3923dc9ae1c03c539d3937ddc30114341d8eb7346554f26702d15def7947c39" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f3923dc9ae1c03c539d3937ddc30114341d8eb7346554f26702d15def7947c39" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f3923dc9ae1c03c539d3937ddc30114341d8eb7346554f26702d15def7947c39" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
