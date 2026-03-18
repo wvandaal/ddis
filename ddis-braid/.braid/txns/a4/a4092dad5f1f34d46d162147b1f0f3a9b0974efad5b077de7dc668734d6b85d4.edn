@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773854526/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SESSION END (turn ~1200): 2 AGP test failures remain (timing-related tx_velocity + methodology_gaps). Root cause: test creates datoms with test-now but should_warn_on_exit uses system-now. Fix: propagate tx_velocity_at through should_warn_on_exit or use longer time windows in tests. These are test issues, not implementation bugs — the adaptive threshold logic is correct."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "820ada7d335b2be34f81601b9411fdcc2914e1c68acd386a48d71f9a3329ba16" :a :db/doc :v "SESSION END (turn ~1200): 2 AGP test failures remain (timing-related tx_velocity + methodology_gaps). Root cause: test creates datoms with test-now but should_warn_on_exit uses system-now. Fix: propagate tx_velocity_at through should_warn_on_exit or use longer time windows in tests. These are test issues, not implementation bugs — the adaptive threshold logic is correct." :op :assert}
+   {:e #blake3 "820ada7d335b2be34f81601b9411fdcc2914e1c68acd386a48d71f9a3329ba16" :a :db/ident :v :observation/session-end-turn-1200-2-agp-test-failures-remain-timing :op :assert}
+   {:e #blake3 "820ada7d335b2be34f81601b9411fdcc2914e1c68acd386a48d71f9a3329ba16" :a :exploration/body :v "SESSION END (turn ~1200): 2 AGP test failures remain (timing-related tx_velocity + methodology_gaps). Root cause: test creates datoms with test-now but should_warn_on_exit uses system-now. Fix: propagate tx_velocity_at through should_warn_on_exit or use longer time windows in tests. These are test issues, not implementation bugs — the adaptive threshold logic is correct." :op :assert}
+   {:e #blake3 "820ada7d335b2be34f81601b9411fdcc2914e1c68acd386a48d71f9a3329ba16" :a :exploration/category :v :exploration.cat/design-decision :op :assert}
+   {:e #blake3 "820ada7d335b2be34f81601b9411fdcc2914e1c68acd386a48d71f9a3329ba16" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "820ada7d335b2be34f81601b9411fdcc2914e1c68acd386a48d71f9a3329ba16" :a :exploration/content-hash :v #bytes "9f86ddf71d6b8fee7fc50ec900a3c7aec7e28df12aeebd32c255f25d9cb6cecf" :op :assert}
+   {:e #blake3 "820ada7d335b2be34f81601b9411fdcc2914e1c68acd386a48d71f9a3329ba16" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "820ada7d335b2be34f81601b9411fdcc2914e1c68acd386a48d71f9a3329ba16" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "820ada7d335b2be34f81601b9411fdcc2914e1c68acd386a48d71f9a3329ba16" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

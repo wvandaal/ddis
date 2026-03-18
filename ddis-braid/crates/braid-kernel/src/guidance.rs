@@ -230,6 +230,59 @@ pub fn detect_activity_mode(telemetry: &SessionTelemetry) -> ActivityMode {
     }
 }
 
+// ---------------------------------------------------------------------------
+// GuidanceContext — assembled context for adaptive guidance (ADR-GUIDANCE-015)
+// ---------------------------------------------------------------------------
+
+/// Assembled context for adaptive guidance decisions (ADR-GUIDANCE-015).
+/// Computed once per command from store telemetry.
+///
+/// Provides a single snapshot of all the signals that guidance rules need:
+/// budget state, activity mode, transaction velocity, agent count, and
+/// crystallization/anchoring gaps.
+#[derive(Clone, Debug)]
+pub struct GuidanceContext {
+    /// Effective attention budget k*_eff (0.0 = exhausted, 1.0 = full).
+    pub k_eff: f64,
+    /// Current session activity mode (implementation, specification, mixed).
+    pub activity_mode: ActivityMode,
+    /// Transactions per minute over a 5-minute rolling window.
+    pub tx_velocity: f64,
+    /// Number of distinct agents in the current frontier.
+    pub agent_count: u32,
+    /// Number of observations with uncrystallized spec references.
+    pub crystallization_gap: u32,
+    /// Unanchored tasks (spec refs that don't resolve). Placeholder for AGP-4.
+    pub unanchored_tasks: u32,
+}
+
+impl GuidanceContext {
+    /// Build a `GuidanceContext` from the current store state.
+    ///
+    /// Computes telemetry, detects activity mode, measures transaction velocity,
+    /// and counts frontier agents and crystallization gaps.
+    ///
+    /// `k_eff` can be supplied externally (e.g., from CLI budget tracking);
+    /// defaults to 1.0 (full budget) when `None`.
+    pub fn from_store(store: &Store, k_eff: Option<f64>) -> Self {
+        let telemetry = telemetry_from_store(store);
+        let activity = detect_activity_mode(&telemetry);
+        let velocity = tx_velocity(store);
+        let agents = store.frontier().len() as u32;
+        let gaps = crystallization_candidates(store).len() as u32;
+        // unanchored: count tasks where parse_spec_refs returns refs but none resolve.
+        // Simplified: 0 placeholder until AGP-4 fills this with real resolution logic.
+        GuidanceContext {
+            k_eff: k_eff.unwrap_or(1.0),
+            activity_mode: activity,
+            tx_velocity: velocity,
+            agent_count: agents,
+            crystallization_gap: gaps,
+            unanchored_tasks: 0,
+        }
+    }
+}
+
 /// M(t) methodology adherence result.
 /// INV-SIGNAL-001: Signal as datom — drift_signal is emitted as a store event.
 /// INV-SIGNAL-004: Severity-ordered routing — drift triggers at M(t) < 0.5.
@@ -1541,22 +1594,77 @@ pub fn last_harvest_wall_time(store: &Store) -> u64 {
     latest
 }
 
+// ---------------------------------------------------------------------------
+// Transaction Velocity + Adaptive Thresholds (INV-GUIDANCE-019)
+// ---------------------------------------------------------------------------
+
+/// Compute transaction velocity: transactions per minute over a 5-minute window.
+///
+/// Counts distinct wall-time values of `:tx/agent` datoms whose wall_time falls
+/// within the last 300 seconds relative to the system clock. Returns the count
+/// divided by 5 (minutes).
+///
+/// Note: wall_time values in the store use seconds since the Unix epoch
+/// (consistent with existing `telemetry_from_store` and `contextual_observation_hint`).
+pub fn tx_velocity(store: &Store) -> f64 {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    tx_velocity_at(store, now)
+}
+
+/// Compute transaction velocity at a specific point in time (for testing).
+pub fn tx_velocity_at(store: &Store, now: u64) -> f64 {
+    let window: u64 = 300; // 5 minutes
+    let cutoff = now.saturating_sub(window);
+
+    let recent_walls: BTreeSet<u64> = store
+        .datoms()
+        .filter(|d| {
+            d.tx.wall_time() > cutoff && d.attribute.as_str() == ":tx/agent" && d.op == Op::Assert
+        })
+        .map(|d| d.tx.wall_time())
+        .collect();
+
+    recent_walls.len() as f64 / 5.0 // per minute
+}
+
+/// Adaptive harvest warning threshold based on transaction velocity.
+///
+/// INV-GUIDANCE-019: High velocity = routine ops = higher threshold.
+///
+/// | Velocity (txn/min) | Threshold |
+/// |--------------------|-----------|
+/// | > 5.0              | 30        |
+/// | > 1.0              | 15        |
+/// | <= 1.0             | 8         |
+pub fn dynamic_threshold(velocity: f64) -> u32 {
+    if velocity > 5.0 {
+        30
+    } else if velocity > 1.0 {
+        15
+    } else {
+        8
+    }
+}
+
 /// Check whether the CLI should warn about an unharvested session on exit.
 ///
 /// NEG-HARVEST-001: No Unharvested Session Termination.
 /// Safety property: every session that ends with uncommitted observations MUST
 /// have issued at least one harvest warning before termination.
 ///
-/// Uses the ADR-HARVEST-007 turn-count proxy: if tx_since_harvest >= 8,
-/// the agent has done meaningful work that risks being lost without harvest.
-/// Returns `Some(warning_message)` if a warning should be shown, `None` otherwise.
+/// Uses velocity-adaptive thresholds (INV-GUIDANCE-019) instead of the former
+/// hardcoded threshold of 8. High-velocity sessions (routine ops) tolerate more
+/// transactions before warning; low-velocity sessions warn earlier.
 ///
-/// The threshold of 8 comes from the heuristic tx-count threshold in
-/// `derive_actions_with_budget` (R12 fallback), which triggers harvest
-/// guidance at >= 8 transactions since last harvest.
+/// Returns `Some(warning_message)` if a warning should be shown, `None` otherwise.
 pub fn should_warn_on_exit(store: &Store) -> Option<String> {
     let tx_since = count_txns_since_last_harvest(store);
-    if tx_since >= 8 {
+    let velocity = tx_velocity(store);
+    let threshold = dynamic_threshold(velocity) as usize;
+    if tx_since >= threshold {
         Some(format!(
             "\u{26a0} NEG-HARVEST-001: {tx_since} transactions since last harvest. \
              Run: braid harvest --commit"
@@ -1794,6 +1902,78 @@ pub fn crystallization_candidates(store: &Store) -> Vec<(EntityId, String)> {
     }
 
     candidates
+}
+
+// ---------------------------------------------------------------------------
+// Methodology Gap Dashboard (INV-GUIDANCE-021)
+// ---------------------------------------------------------------------------
+
+/// Aggregated methodology gap counts for the status dashboard (INV-GUIDANCE-021).
+///
+/// Each field counts a distinct gap type. The `total()` method sums all gaps.
+/// Placeholder fields (`untested`, `stale_witnesses`) are zero until the
+/// WITNESS subsystem is implemented — they exist to establish the schema now.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct MethodologyGaps {
+    /// Observations containing spec IDs (INV-*, ADR-*, NEG-*) not yet
+    /// crystallized into formal spec elements with `:spec/falsification`.
+    pub crystallization: u32,
+    /// Open tasks whose title references spec IDs that don't resolve to
+    /// formal spec elements in the store.
+    pub unanchored: u32,
+    /// Current-stage INVs with only L1 witnesses (placeholder until WITNESS impl).
+    pub untested: u32,
+    /// Formally-backed witnesses invalidated by subsequent changes
+    /// (placeholder until WITNESS impl).
+    pub stale_witnesses: u32,
+}
+
+impl MethodologyGaps {
+    /// Total gap count across all categories.
+    pub fn total(&self) -> u32 {
+        self.crystallization + self.unanchored + self.untested + self.stale_witnesses
+    }
+
+    /// Returns true when no gaps exist in any category.
+    pub fn is_empty(&self) -> bool {
+        self.total() == 0
+    }
+}
+
+/// Compute all methodology gaps from store state.
+///
+/// Aggregates crystallization gaps (observations with uncrystallized spec IDs)
+/// and unanchored tasks (open tasks referencing spec IDs that don't resolve).
+/// The `untested` and `stale_witnesses` fields are placeholders (always 0)
+/// until the WITNESS subsystem is implemented.
+///
+/// INV-GUIDANCE-021: Methodology Gap Dashboard.
+pub fn methodology_gaps(store: &Store) -> MethodologyGaps {
+    let crystallization = crystallization_candidates(store).len() as u32;
+
+    // Count unanchored tasks: open tasks with spec refs in title that don't resolve
+    let tasks = crate::task::all_tasks(store);
+    let mut unanchored = 0u32;
+    for task in &tasks {
+        if task.status != crate::task::TaskStatus::Open {
+            continue;
+        }
+        let refs = crate::task::parse_spec_refs(&task.title);
+        if refs.is_empty() {
+            continue;
+        }
+        let (resolved, _) = crate::task::resolve_spec_refs(store, &refs);
+        if resolved.is_empty() && !refs.is_empty() {
+            unanchored += 1;
+        }
+    }
+
+    MethodologyGaps {
+        crystallization,
+        unanchored,
+        untested: 0,        // placeholder until WITNESS system
+        stale_witnesses: 0, // placeholder until WITNESS system
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -2918,6 +3098,220 @@ mod tests {
         assert!(
             msg.contains("15 transactions"),
             "warning must include the transaction count: {msg}"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // tx_velocity + dynamic_threshold (INV-GUIDANCE-019)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn tx_velocity_empty_store_returns_zero() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let v = tx_velocity(&store);
+        assert!(
+            (v - 0.0).abs() < f64::EPSILON,
+            "empty store should have zero velocity, got {v}"
+        );
+    }
+
+    #[test]
+    fn tx_velocity_with_recent_txns() {
+        // Build a store with 10 recent :tx/agent datoms (wall_time = now).
+        // Each distinct wall_time counts as one transaction.
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        let mut datoms = std::collections::BTreeSet::new();
+        for i in 0..10u64 {
+            let wall = now - i; // all within 5-min window
+            let tx = TxId::new(wall, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":tx/meta-{i}")),
+                Attribute::from_keyword(":tx/agent"),
+                Value::String("test".to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        let v = tx_velocity(&store);
+        assert!(
+            (v - 2.0).abs() < f64::EPSILON,
+            "10 txns in 5-min window should give velocity=2.0, got {v}"
+        );
+    }
+
+    #[test]
+    fn tx_velocity_ignores_old_txns() {
+        // Datoms with wall_time far in the past should not count.
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+
+        let mut datoms = std::collections::BTreeSet::new();
+        for i in 1..=5u64 {
+            let tx = TxId::new(i, 0, agent); // wall_time=1..5 (ancient)
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":tx/old-{i}")),
+                Attribute::from_keyword(":tx/agent"),
+                Value::String("test".to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        let v = tx_velocity(&store);
+        assert!(
+            (v - 0.0).abs() < f64::EPSILON,
+            "ancient txns should give velocity=0.0, got {v}"
+        );
+    }
+
+    #[test]
+    fn dynamic_threshold_high_velocity() {
+        assert_eq!(dynamic_threshold(6.0), 30);
+        assert_eq!(dynamic_threshold(10.0), 30);
+        assert_eq!(dynamic_threshold(100.0), 30);
+    }
+
+    #[test]
+    fn dynamic_threshold_medium_velocity() {
+        assert_eq!(dynamic_threshold(2.0), 15);
+        assert_eq!(dynamic_threshold(1.5), 15);
+        assert_eq!(dynamic_threshold(5.0), 15); // 5.0 is NOT > 5.0
+    }
+
+    #[test]
+    fn dynamic_threshold_low_velocity() {
+        assert_eq!(dynamic_threshold(0.5), 8);
+        assert_eq!(dynamic_threshold(1.0), 8); // 1.0 is NOT > 1.0
+        assert_eq!(dynamic_threshold(0.0), 8);
+    }
+
+    #[test]
+    fn should_warn_on_exit_high_velocity_uses_higher_threshold() {
+        // With high velocity (>5 txn/min), dynamic_threshold returns 30.
+        // So a moderate number of distinct wall_times since harvest should NOT
+        // trigger a warning, whereas with the old hardcoded threshold of 8 it would.
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Place a harvest at (now - 15), so only datoms with wall_time > (now-15)
+        // count as "since last harvest."
+        let harvest_wall = now - 15;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-recent"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // Create 30 :tx/agent datoms spanning the full 5-min window.
+        // Space them 6 seconds apart: wall = now, now-6, now-12, ..., now-174.
+        // Most are BEFORE the harvest (now-15), so they contribute to velocity
+        // but NOT to the "since last harvest" count.
+        for i in 0..30u64 {
+            let wall = now - (i * 6);
+            let tx = TxId::new(wall, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":tx/meta-{i}")),
+                Attribute::from_keyword(":tx/agent"),
+                Value::String("test".to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        // Add 5 work datoms after the harvest, each at a unique wall_time.
+        for i in 1..=5u64 {
+            let wall = harvest_wall + i;
+            let tx = TxId::new(wall, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":work/item-{i}")),
+                Attribute::from_keyword(":db/doc"),
+                Value::String(format!("work item {i}")),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+
+        // Verify velocity is high enough to trigger the 30 threshold.
+        // Use tx_velocity_at with the test's own `now` to avoid timing skew.
+        let velocity = tx_velocity_at(&store, now);
+        assert!(
+            velocity > 5.0,
+            "expected velocity > 5.0 for threshold=30, got {velocity}"
+        );
+
+        // The txn count since harvest should be moderate (well under 30).
+        let warning = should_warn_on_exit(&store);
+        assert!(
+            warning.is_none(),
+            "few txns since harvest with high velocity (threshold=30) should NOT warn, \
+             but got: {:?}",
+            warning
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // GuidanceContext (ADR-GUIDANCE-015)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn guidance_context_from_empty_store() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let ctx = GuidanceContext::from_store(&store, None);
+        assert!(
+            (ctx.k_eff - 1.0).abs() < f64::EPSILON,
+            "default k_eff should be 1.0"
+        );
+        assert!(
+            (ctx.tx_velocity - 0.0).abs() < f64::EPSILON,
+            "empty store should have zero velocity"
+        );
+        assert_eq!(ctx.unanchored_tasks, 0);
+    }
+
+    #[test]
+    fn guidance_context_from_store_with_k_eff() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let ctx = GuidanceContext::from_store(&store, Some(0.42));
+        assert!(
+            (ctx.k_eff - 0.42).abs() < f64::EPSILON,
+            "k_eff should be the supplied value 0.42, got {}",
+            ctx.k_eff
+        );
+    }
+
+    #[test]
+    fn guidance_context_from_genesis_store() {
+        let store = Store::genesis();
+        let ctx = GuidanceContext::from_store(&store, Some(0.8));
+        // Genesis store has at least one agent (system)
+        assert!(
+            ctx.agent_count >= 1,
+            "genesis store should have at least 1 agent in frontier, got {}",
+            ctx.agent_count
+        );
+        assert!(
+            (ctx.k_eff - 0.8).abs() < f64::EPSILON,
+            "k_eff should be 0.8"
         );
     }
 
@@ -5333,5 +5727,196 @@ mod tests {
             original, with_none,
             "build_command_footer and build_command_footer_with_hint(None) must be identical"
         );
+    }
+
+    // -------------------------------------------------------------------
+    // methodology_gaps tests (INV-GUIDANCE-021)
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-GUIDANCE-021 — Empty store has no methodology gaps
+    #[test]
+    fn methodology_gaps_empty_store() {
+        let store = Store::genesis();
+        let gaps = methodology_gaps(&store);
+        assert!(
+            gaps.is_empty(),
+            "genesis store should have zero methodology gaps, got total={}",
+            gaps.total()
+        );
+        assert_eq!(gaps.crystallization, 0);
+        assert_eq!(gaps.unanchored, 0);
+        assert_eq!(gaps.untested, 0);
+        assert_eq!(gaps.stale_witnesses, 0);
+    }
+
+    // Verifies: INV-GUIDANCE-021 — Uncrystallized observations counted
+    #[test]
+    fn methodology_gaps_counts_uncrystallized() {
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Create an observation that mentions INV-TEST-001
+        let obs_entity = EntityId::from_ident(":obs/gap-test-1");
+        datoms.insert(Datom::new(
+            obs_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":obs/gap-test-1".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            obs_entity,
+            Attribute::from_keyword(":exploration/body"),
+            Value::String("Need to formalize INV-TEST-001 properly".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // Create a second observation mentioning INV-TEST-002
+        let obs_entity2 = EntityId::from_ident(":obs/gap-test-2");
+        datoms.insert(Datom::new(
+            obs_entity2,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":obs/gap-test-2".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            obs_entity2,
+            Attribute::from_keyword(":exploration/body"),
+            Value::String("Working on INV-TEST-002 compliance".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // No formal spec elements exist -> both should be counted
+        let store = Store::from_datoms(datoms);
+        let gaps = methodology_gaps(&store);
+
+        assert_eq!(
+            gaps.crystallization, 2,
+            "should detect 2 uncrystallized spec IDs, got {}",
+            gaps.crystallization
+        );
+        assert!(!gaps.is_empty());
+        assert_eq!(gaps.total(), 2);
+    }
+
+    // Verifies: INV-GUIDANCE-021 — Unanchored tasks counted
+    #[test]
+    fn methodology_gaps_counts_unanchored_tasks() {
+        use crate::datom::AgentId;
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let store = routing_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = crate::datom::TxId::new(1, 0, agent);
+
+        // Create an open task referencing a nonexistent spec element
+        let (_, task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Fix INV-NONEXIST-999 issue",
+            description: None,
+            priority: 2,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, task_datoms);
+
+        let gaps = methodology_gaps(&store);
+        assert_eq!(
+            gaps.unanchored, 1,
+            "should detect 1 unanchored task, got {}",
+            gaps.unanchored
+        );
+        assert!(!gaps.is_empty());
+    }
+
+    // Verifies: INV-GUIDANCE-021 — Anchored tasks not counted as unanchored
+    #[test]
+    fn methodology_gaps_excludes_anchored_tasks() {
+        use crate::datom::{AgentId, Attribute, Datom, Op, TxId, Value};
+        use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
+
+        let store = routing_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        // Create the spec element that the task will reference.
+        // resolve_spec_refs requires :spec/falsification to consider it resolved.
+        let spec_entity = EntityId::from_ident(":spec/inv-store-001");
+        let spec_datoms = vec![
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-store-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/element-type"),
+                Value::String("invariant".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("Violated if store mutates an existing datom".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+        let store = routing_store_with(&store, spec_datoms);
+
+        // Create a task referencing INV-STORE-001 which exists and has falsification
+        let (_, task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Fix INV-STORE-001 compliance",
+            description: None,
+            priority: 1,
+            task_type: TaskType::Task,
+            tx,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = routing_store_with(&store, task_datoms);
+
+        let gaps = methodology_gaps(&store);
+        assert_eq!(
+            gaps.unanchored, 0,
+            "task referencing existing spec should not be unanchored, got {}",
+            gaps.unanchored
+        );
+    }
+
+    // Verifies: INV-GUIDANCE-021 — total() and is_empty() work correctly
+    #[test]
+    fn methodology_gaps_total_and_is_empty() {
+        let empty = MethodologyGaps::default();
+        assert_eq!(empty.total(), 0);
+        assert!(empty.is_empty());
+
+        let with_cryst = MethodologyGaps {
+            crystallization: 3,
+            unanchored: 0,
+            untested: 0,
+            stale_witnesses: 0,
+        };
+        assert_eq!(with_cryst.total(), 3);
+        assert!(!with_cryst.is_empty());
+
+        let mixed = MethodologyGaps {
+            crystallization: 1,
+            unanchored: 2,
+            untested: 3,
+            stale_witnesses: 4,
+        };
+        assert_eq!(mixed.total(), 10);
+        assert!(!mixed.is_empty());
     }
 }

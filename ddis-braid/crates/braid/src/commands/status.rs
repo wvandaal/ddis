@@ -20,7 +20,7 @@ use braid_kernel::bilateral::{
 use braid_kernel::datom::{AgentId, ProvenanceType};
 use braid_kernel::guidance::{
     compute_methodology_score, count_txns_since_last_harvest, derive_actions, format_actions,
-    telemetry_from_store, Trend,
+    methodology_gaps, telemetry_from_store, Trend,
 };
 use braid_kernel::layout::TxFile;
 use braid_kernel::trilateral::check_coherence_fast;
@@ -246,13 +246,34 @@ fn build_terse(
         out.push_str(&task_line);
     }
 
-    // Crystallization gap (SFE-1.2: uncrystallized observations)
-    let cryst_candidates = braid_kernel::guidance::crystallization_candidates(store);
-    if !cryst_candidates.is_empty() {
-        let count = cryst_candidates.len();
-        out.push_str(&format!(
-            "crystallization: {count} uncrystallized spec IDs (run: braid spec create <ID>)\n"
-        ));
+    // Methodology gaps (INV-GUIDANCE-021: unified gap dashboard)
+    let gaps = methodology_gaps(store);
+    if !gaps.is_empty() {
+        out.push_str("\u{26a0} methodology gaps:\n");
+        if gaps.crystallization > 0 {
+            out.push_str(&format!(
+                "  crystallization: {} uncrystallized spec IDs\n",
+                gaps.crystallization
+            ));
+        }
+        if gaps.unanchored > 0 {
+            out.push_str(&format!(
+                "  unanchored: {} tasks with unresolved spec refs\n",
+                gaps.unanchored
+            ));
+        }
+        if gaps.untested > 0 {
+            out.push_str(&format!(
+                "  untested: {} INVs with only L1 witnesses\n",
+                gaps.untested
+            ));
+        }
+        if gaps.stale_witnesses > 0 {
+            out.push_str(&format!(
+                "  stale: {} invalidated witnesses\n",
+                gaps.stale_witnesses
+            ));
+        }
     }
 
     // Top action with copy-pasteable command
@@ -334,13 +355,22 @@ fn build_agent(
         ));
     }
 
-    // Crystallization gap (SFE-1.2)
-    let cryst_candidates = braid_kernel::guidance::crystallization_candidates(store);
-    if !cryst_candidates.is_empty() {
-        content.push_str(&format!(
-            " | crystallization: {} uncrystallized",
-            cryst_candidates.len()
-        ));
+    // Methodology gaps (INV-GUIDANCE-021)
+    let gaps = methodology_gaps(store);
+    if !gaps.is_empty() {
+        content.push_str(&format!(" | gaps: {}", gaps.total()));
+        if gaps.crystallization > 0 {
+            content.push_str(&format!(" (cryst:{})", gaps.crystallization));
+        }
+        if gaps.unanchored > 0 {
+            content.push_str(&format!(" (unanchored:{})", gaps.unanchored));
+        }
+        if gaps.untested > 0 {
+            content.push_str(&format!(" (untested:{})", gaps.untested));
+        }
+        if gaps.stale_witnesses > 0 {
+            content.push_str(&format!(" (stale:{})", gaps.stale_witnesses));
+        }
     }
 
     // Footer: next action as a runnable command
@@ -497,13 +527,37 @@ fn build_verbose(
         tx_since_harvest, harvest_warning
     ));
 
-    // Crystallization gap (SFE-1.2)
-    let cryst_candidates = braid_kernel::guidance::crystallization_candidates(store);
-    if !cryst_candidates.is_empty() {
-        let count = cryst_candidates.len();
+    // Methodology gaps (INV-GUIDANCE-021: unified gap dashboard)
+    let gaps = methodology_gaps(store);
+    if !gaps.is_empty() {
         out.push_str(&format!(
-            "crystallization: {count} uncrystallized spec IDs (run: braid spec create <ID>)\n"
+            "methodology gaps: {} total\n",
+            gaps.total()
         ));
+        if gaps.crystallization > 0 {
+            out.push_str(&format!(
+                "  crystallization: {} uncrystallized spec IDs (run: braid spec create <ID>)\n",
+                gaps.crystallization
+            ));
+        }
+        if gaps.unanchored > 0 {
+            out.push_str(&format!(
+                "  unanchored: {} tasks with unresolved spec refs\n",
+                gaps.unanchored
+            ));
+        }
+        if gaps.untested > 0 {
+            out.push_str(&format!(
+                "  untested: {} INVs with only L1 witnesses\n",
+                gaps.untested
+            ));
+        }
+        if gaps.stale_witnesses > 0 {
+            out.push_str(&format!(
+                "  stale: {} invalidated witnesses\n",
+                gaps.stale_witnesses
+            ));
+        }
     }
 
     // Frontier
@@ -661,10 +715,16 @@ fn build_json(
         "actions": actions_json,
     });
 
-    // Crystallization gap (SFE-1.2)
-    let cryst_count = braid_kernel::guidance::crystallization_candidates(store).len();
-    if cryst_count > 0 {
-        result["crystallization_gap"] = serde_json::json!(cryst_count);
+    // Methodology gaps (INV-GUIDANCE-021)
+    let gaps = methodology_gaps(store);
+    if !gaps.is_empty() {
+        result["methodology_gaps"] = serde_json::json!({
+            "crystallization": gaps.crystallization,
+            "unanchored": gaps.unanchored,
+            "untested": gaps.untested,
+            "stale_witnesses": gaps.stale_witnesses,
+            "total": gaps.total(),
+        });
     }
 
     // Add bilateral data if deep
