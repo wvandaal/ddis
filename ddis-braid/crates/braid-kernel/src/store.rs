@@ -413,13 +413,26 @@ impl IntoIterator for Frontier {
 // MergeReceipt
 // ---------------------------------------------------------------------------
 
-/// Receipt returned after merging two stores.
+/// Receipt returned after merging two stores (INV-MERGE-009).
+///
+/// Records the set-union operation: how many datoms were new, how many were
+/// duplicates (already present in the target), and how each agent's frontier
+/// advanced.  The receipt is a deterministic function of the pre-merge and
+/// post-merge store states.
 #[derive(Clone, Debug)]
 pub struct MergeReceipt {
-    /// Number of new datoms added from the other store.
+    /// Number of new datoms added from the source store.
     pub new_datoms: usize,
-    /// Total datoms after merge.
+    /// Total datoms in the target store after merge.
     pub total_datoms: usize,
+    /// Number of datoms from the source that were already in the target
+    /// (deduplicated by content identity, INV-STORE-003).
+    pub duplicate_datoms: usize,
+    /// Per-agent frontier change: maps each agent whose frontier advanced to
+    /// `(previous_tx, new_tx)`.  `previous_tx` is `None` if the agent was not
+    /// in the target frontier before the merge.  Only agents whose frontier
+    /// actually changed are included.
+    pub frontier_delta: HashMap<AgentId, (Option<TxId>, TxId)>,
 }
 
 // ---------------------------------------------------------------------------
@@ -651,6 +664,10 @@ impl Store {
     pub fn merge(&mut self, other: &Store) -> MergeReceipt {
         let before = self.datoms.len();
 
+        // Snapshot pre-merge frontier for delta computation (INV-MERGE-009).
+        let pre_frontier: HashMap<AgentId, TxId> =
+            self.frontier.iter().map(|(a, t)| (*a, *t)).collect();
+
         // Set union — BTreeSet handles dedup by content identity
         for datom in &other.datoms {
             self.datoms.insert(datom.clone());
@@ -691,9 +708,33 @@ impl Store {
         }
 
         let after = self.datoms.len();
+        let new_datoms = after - before;
+        // Duplicates = source datoms that were already in target (deduped by BTreeSet).
+        let duplicate_datoms = other.datoms.len().saturating_sub(new_datoms);
+
+        // Compute frontier delta: agents whose frontier advanced (INV-MERGE-009).
+        let mut frontier_delta = HashMap::new();
+        for (agent, post_tx) in self.frontier.iter() {
+            let prev = pre_frontier.get(agent).copied();
+            match prev {
+                Some(pre_tx) if pre_tx == *post_tx => {
+                    // No change for this agent — omit from delta.
+                }
+                Some(pre_tx) => {
+                    frontier_delta.insert(*agent, (Some(pre_tx), *post_tx));
+                }
+                None => {
+                    // Agent was not in target frontier before merge.
+                    frontier_delta.insert(*agent, (None, *post_tx));
+                }
+            }
+        }
+
         MergeReceipt {
-            new_datoms: after - before,
+            new_datoms,
             total_datoms: after,
+            duplicate_datoms,
+            frontier_delta,
         }
     }
 

@@ -1467,7 +1467,7 @@ pub fn full_schema_datoms(tx: TxId) -> Vec<Datom> {
 // ---------------------------------------------------------------------------
 
 /// Number of Layer 4 workflow/coordination attributes.
-pub const LAYER_4_COUNT: usize = 32;
+pub const LAYER_4_COUNT: usize = 37;
 
 /// The Layer 4 (Workflow/Coordination) attributes.
 ///
@@ -1700,6 +1700,40 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             ValueType::Long,
             Cardinality::One,
             "Highest verification depth achieved across all :impl entities for this spec element",
+        ),
+        // =================================================================
+        // Resolution Audit Trail (5) — conflict resolution provenance
+        // (INV-RESOLUTION-008, NEG-RESOLUTION-003)
+        // =================================================================
+        attr(
+            ":resolution/entity",
+            ValueType::Ref,
+            Cardinality::One,
+            "Reference to the entity that had the conflict",
+        ),
+        attr(
+            ":resolution/attribute",
+            ValueType::Keyword,
+            Cardinality::One,
+            "The conflicting attribute's keyword",
+        ),
+        attr(
+            ":resolution/mode",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Resolution mode applied: :resolution/lww, :resolution/lattice, :resolution/multi",
+        ),
+        attr(
+            ":resolution/winner",
+            ValueType::String,
+            Cardinality::One,
+            "The resolved winning value (serialized as JSON string for auditability)",
+        ),
+        attr(
+            ":resolution/conflict-count",
+            ValueType::Long,
+            Cardinality::One,
+            "Number of conflicting values that were resolved",
         ),
     ]
 }

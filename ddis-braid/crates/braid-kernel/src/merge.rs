@@ -36,7 +36,7 @@
 
 use std::collections::{BTreeSet, HashMap};
 
-use crate::datom::{Attribute, Datom, EntityId};
+use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::resolution::{has_conflict, ConflictSet};
 use crate::store::{Frontier, MergeReceipt, Store};
 
@@ -116,6 +116,145 @@ pub fn verify_frontier_advancement(pre: &Frontier, post: &Frontier) -> bool {
         }
     }
     true
+}
+
+/// Generate cascade stub datoms for a merge operation (ADR-MERGE-007).
+///
+/// At Stage 0, the full 5-step merge cascade cannot execute because steps 2-5
+/// depend on infrastructure not yet built (query caching, projection management,
+/// uncertainty tensor). This function produces stub datoms that preserve the
+/// audit trail required by INV-MERGE-002 (all 5 cascade steps produce datoms).
+///
+/// Step 1 (conflict detection) is handled separately by `detect_merge_conflicts`.
+/// This function generates stubs for steps 2-5 plus overall cascade metadata.
+///
+/// The stub datoms are deterministic: given the same `MergeReceipt` and `TxId`,
+/// the same datoms are produced regardless of which agent calls this function.
+/// This preserves INV-MERGE-010 (cascade determinism).
+///
+/// # Arguments
+///
+/// * `receipt` - The merge receipt from the just-completed merge operation
+/// * `tx` - The transaction ID of the merge operation (used for provenance)
+///
+/// # Returns
+///
+/// A vector of datoms to be transacted into the store by the caller.
+pub fn cascade_stub_datoms(receipt: &MergeReceipt, tx: TxId) -> Vec<Datom> {
+    // Content-address the cascade entity from the merge tx, ensuring determinism.
+    // The entity ID is derived from the merge tx bytes + a cascade marker,
+    // so the same merge always produces the same cascade entity.
+    let cascade_entity = {
+        let mut content = Vec::with_capacity(64);
+        content.extend_from_slice(b"cascade:");
+        content.extend_from_slice(&tx.wall_time.to_le_bytes());
+        content.extend_from_slice(&tx.logical.to_le_bytes());
+        content.extend_from_slice(tx.agent.as_bytes());
+        EntityId::from_content(&content)
+    };
+
+    let mut datoms = Vec::with_capacity(7);
+
+    // Overall cascade status — "stub" marks this as a Stage 0 placeholder.
+    datoms.push(Datom::new(
+        cascade_entity,
+        Attribute::from_keyword(":merge/cascade-status"),
+        Value::Keyword(":stub".into()),
+        tx,
+        Op::Assert,
+    ));
+
+    // Whether a cascade would have been needed (always true after a merge).
+    datoms.push(Datom::new(
+        cascade_entity,
+        Attribute::from_keyword(":merge/cascade-triggered"),
+        Value::Boolean(true),
+        tx,
+        Op::Assert,
+    ));
+
+    // Duplicate count from the merge receipt.
+    datoms.push(Datom::new(
+        cascade_entity,
+        Attribute::from_keyword(":merge/duplicate-count"),
+        Value::Long(receipt.duplicate_datoms as i64),
+        tx,
+        Op::Assert,
+    ));
+
+    // Step 2 stub: cache invalidation (no cache layer at Stage 0).
+    let step2_entity = EntityId::from_content(
+        &[
+            b"cascade-step:2:",
+            tx.wall_time.to_le_bytes().as_slice(),
+            &tx.logical.to_le_bytes(),
+            tx.agent.as_bytes(),
+        ]
+        .concat(),
+    );
+    datoms.push(Datom::new(
+        step2_entity,
+        Attribute::from_keyword(":cascade/cache-invalidation"),
+        Value::Long(0),
+        tx,
+        Op::Assert,
+    ));
+
+    // Step 3 stub: secondary conflicts (no projection system at Stage 0).
+    let step3_entity = EntityId::from_content(
+        &[
+            b"cascade-step:3:",
+            tx.wall_time.to_le_bytes().as_slice(),
+            &tx.logical.to_le_bytes(),
+            tx.agent.as_bytes(),
+        ]
+        .concat(),
+    );
+    datoms.push(Datom::new(
+        step3_entity,
+        Attribute::from_keyword(":cascade/secondary-conflicts"),
+        Value::Long(0),
+        tx,
+        Op::Assert,
+    ));
+
+    // Step 4 stub: uncertainty delta (no uncertainty tensor at Stage 0).
+    let step4_entity = EntityId::from_content(
+        &[
+            b"cascade-step:4:",
+            tx.wall_time.to_le_bytes().as_slice(),
+            &tx.logical.to_le_bytes(),
+            tx.agent.as_bytes(),
+        ]
+        .concat(),
+    );
+    datoms.push(Datom::new(
+        step4_entity,
+        Attribute::from_keyword(":cascade/uncertainty-delta"),
+        Value::Long(0),
+        tx,
+        Op::Assert,
+    ));
+
+    // Step 5 stub: projection staleness (no projections at Stage 0).
+    let step5_entity = EntityId::from_content(
+        &[
+            b"cascade-step:5:",
+            tx.wall_time.to_le_bytes().as_slice(),
+            &tx.logical.to_le_bytes(),
+            tx.agent.as_bytes(),
+        ]
+        .concat(),
+    );
+    datoms.push(Datom::new(
+        step5_entity,
+        Attribute::from_keyword(":cascade/projection-staleness"),
+        Value::Long(0),
+        tx,
+        Op::Assert,
+    ));
+
+    datoms
 }
 
 // ---------------------------------------------------------------------------
@@ -224,6 +363,134 @@ mod tests {
         let mut s = store.clone_store();
         s.merge(&Store::genesis());
         assert!(verify_monotonicity(&pre, s.datom_set()));
+    }
+
+    // Verifies: ADR-MERGE-007 — Merge Cascade Stub Datoms at Stage 0
+    // Verifies: INV-MERGE-002 — Merge Cascade Completeness (stub satisfaction)
+    #[test]
+    fn cascade_stub_datoms_produces_seven_datoms() {
+        let mut s1 = Store::genesis();
+        let mut s2 = Store::genesis();
+
+        let a1 = AgentId::from_name("alice");
+        let a2 = AgentId::from_name("bob");
+
+        let tx1 = Transaction::new(a1, ProvenanceType::Observed, "a")
+            .assert(
+                EntityId::from_ident(":test/cascade-a"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("from alice".into()),
+            )
+            .commit(&s1)
+            .unwrap();
+        s1.transact(tx1).unwrap();
+
+        let tx2 = Transaction::new(a2, ProvenanceType::Observed, "b")
+            .assert(
+                EntityId::from_ident(":test/cascade-b"),
+                Attribute::from_keyword(":db/doc"),
+                Value::String("from bob".into()),
+            )
+            .commit(&s2)
+            .unwrap();
+        s2.transact(tx2).unwrap();
+
+        let receipt = merge_stores(&mut s1, &s2);
+        let merge_tx = TxId::new(100, 0, a1);
+        let stubs = cascade_stub_datoms(&receipt, merge_tx);
+
+        // 3 metadata datoms + 4 step stubs = 7 total
+        assert_eq!(stubs.len(), 7, "expected 7 cascade stub datoms");
+
+        // Verify the cascade-status datom exists with value :stub
+        let status = stubs
+            .iter()
+            .find(|d| d.attribute == Attribute::from_keyword(":merge/cascade-status"));
+        assert!(status.is_some(), "missing :merge/cascade-status datom");
+        assert_eq!(
+            status.unwrap().value,
+            Value::Keyword(":stub".into()),
+            "cascade-status should be :stub"
+        );
+
+        // Verify cascade-triggered is true
+        let triggered = stubs
+            .iter()
+            .find(|d| d.attribute == Attribute::from_keyword(":merge/cascade-triggered"));
+        assert!(
+            triggered.is_some(),
+            "missing :merge/cascade-triggered datom"
+        );
+        assert_eq!(
+            triggered.unwrap().value,
+            Value::Boolean(true),
+            "cascade-triggered should be true"
+        );
+
+        // Verify duplicate-count matches the receipt
+        let dup_count = stubs
+            .iter()
+            .find(|d| d.attribute == Attribute::from_keyword(":merge/duplicate-count"));
+        assert!(dup_count.is_some(), "missing :merge/duplicate-count datom");
+        assert_eq!(
+            dup_count.unwrap().value,
+            Value::Long(receipt.duplicate_datoms as i64),
+            "duplicate-count should match receipt"
+        );
+
+        // Verify all 4 cascade step stubs exist
+        let step_attrs = [
+            ":cascade/cache-invalidation",
+            ":cascade/secondary-conflicts",
+            ":cascade/uncertainty-delta",
+            ":cascade/projection-staleness",
+        ];
+        for attr_str in &step_attrs {
+            let found = stubs.iter().any(|d| {
+                d.attribute == Attribute::from_keyword(attr_str) && d.value == Value::Long(0)
+            });
+            assert!(found, "missing cascade step stub for {attr_str}");
+        }
+    }
+
+    // Verifies: INV-MERGE-010 — Cascade Determinism
+    // Same merge tx produces identical cascade stub datoms.
+    #[test]
+    fn cascade_stub_datoms_are_deterministic() {
+        let mut s1 = Store::genesis();
+        let s2 = Store::genesis();
+
+        let receipt = merge_stores(&mut s1, &s2);
+        let agent = AgentId::from_name("test-agent");
+        let tx = TxId::new(200, 1, agent);
+
+        let stubs_a = cascade_stub_datoms(&receipt, tx);
+        let stubs_b = cascade_stub_datoms(&receipt, tx);
+
+        assert_eq!(
+            stubs_a, stubs_b,
+            "INV-MERGE-010: cascade stubs must be deterministic"
+        );
+    }
+
+    // Verifies: INV-MERGE-009 — MergeReceipt includes duplicate_datoms
+    #[test]
+    fn merge_receipt_tracks_duplicates() {
+        let mut s1 = Store::genesis();
+        let s2 = Store::genesis();
+
+        // Both stores share genesis datoms, so merging produces duplicates.
+        let receipt = merge_stores(&mut s1, &s2);
+
+        // All genesis datoms from s2 are already in s1, so all are duplicates.
+        assert!(
+            receipt.duplicate_datoms > 0,
+            "merging stores with shared genesis should report duplicates"
+        );
+        assert_eq!(
+            receipt.new_datoms, 0,
+            "merging identical stores should add no new datoms"
+        );
     }
 
     // -------------------------------------------------------------------
