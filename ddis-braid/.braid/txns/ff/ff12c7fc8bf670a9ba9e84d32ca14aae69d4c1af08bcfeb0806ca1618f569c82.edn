@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773881235/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TASK-DECOMPOSE: Auto-parse task titles into semantic attributes — :task/title, :task/background, :task/acceptance (INV-TASK-006, INV-INTERFACE-008). BACKGROUND: Task titles are 500+ chars because there is no description field. This violates datom model normalization — one attribute carries 4 concerns. FIX: When braid task create receives text with BACKGROUND:, ACCEPTANCE:, TRACES TO: markers, auto-parse into separate datoms. :task/title gets the first 80 chars (before any marker). :task/background gets BACKGROUND: text. :task/acceptance gets ACCEPTANCE: text (replaces text-parsing in CBV). BONUS: braid next shows only 80-char title. CBV becomes attribute lookup. TRACES TO: INV-TASK-006, INV-INTERFACE-008. ACCEPTANCE: braid task create with markers produces separate :task/title and :task/acceptance datoms."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :db/ident :v :task/t-c8f06727 :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/created-at :v 1773881234 :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/id :v "t-c8f06727" :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/title :v "TASK-DECOMPOSE: Auto-parse task titles into semantic attributes — :task/title, :task/background, :task/acceptance (INV-TASK-006, INV-INTERFACE-008). BACKGROUND: Task titles are 500+ chars because there is no description field. This violates datom model normalization — one attribute carries 4 concerns. FIX: When braid task create receives text with BACKGROUND:, ACCEPTANCE:, TRACES TO: markers, auto-parse into separate datoms. :task/title gets the first 80 chars (before any marker). :task/background gets BACKGROUND: text. :task/acceptance gets ACCEPTANCE: text (replaces text-parsing in CBV). BONUS: braid next shows only 80-char title. CBV becomes attribute lookup. TRACES TO: INV-TASK-006, INV-INTERFACE-008. ACCEPTANCE: braid task create with markers produces separate :task/title and :task/acceptance datoms." :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/traces-to :v #blake3 "7f0892ad4e22135a1664af0a436f4b790e8c1c5a2d035ef5f4812f44a3e5da6b" :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/type :v :task.type/task :op :assert}
+ ]}

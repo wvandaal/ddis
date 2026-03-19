@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773881237/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: R(t)-EPIC-RELATIVE: Two-level EPIC-relative impact scoring (INV-GUIDANCE-010). BACKGROUND: 270+ leaf tasks with ~0.05 global impact make R(t) metrics meaningless. PageRank assumes connected graph but task graph is a forest of shallow trees. FIX: Two-level selection: (1) rank EPICs by priority × momentum × open-children-count, (2) within top EPIC, rank children by local metrics (staleness, spec-anchor, session-boost). This makes R(t) meaningful for leaf-heavy task graphs. TRACES TO: INV-GUIDANCE-010. ACCEPTANCE: braid next on store with 270+ leaves returns task from highest-priority active EPIC."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3ff6a2eff062a374ff2d5c3f02e93dec3bc17400d7c117019b17ead24368f185" :a :db/ident :v :task/t-920174ac :op :assert}
+   {:e #blake3 "3ff6a2eff062a374ff2d5c3f02e93dec3bc17400d7c117019b17ead24368f185" :a :task/created-at :v 1773881234 :op :assert}
+   {:e #blake3 "3ff6a2eff062a374ff2d5c3f02e93dec3bc17400d7c117019b17ead24368f185" :a :task/id :v "t-920174ac" :op :assert}
+   {:e #blake3 "3ff6a2eff062a374ff2d5c3f02e93dec3bc17400d7c117019b17ead24368f185" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3ff6a2eff062a374ff2d5c3f02e93dec3bc17400d7c117019b17ead24368f185" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3ff6a2eff062a374ff2d5c3f02e93dec3bc17400d7c117019b17ead24368f185" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3ff6a2eff062a374ff2d5c3f02e93dec3bc17400d7c117019b17ead24368f185" :a :task/title :v "R(t)-EPIC-RELATIVE: Two-level EPIC-relative impact scoring (INV-GUIDANCE-010). BACKGROUND: 270+ leaf tasks with ~0.05 global impact make R(t) metrics meaningless. PageRank assumes connected graph but task graph is a forest of shallow trees. FIX: Two-level selection: (1) rank EPICs by priority × momentum × open-children-count, (2) within top EPIC, rank children by local metrics (staleness, spec-anchor, session-boost). This makes R(t) meaningful for leaf-heavy task graphs. TRACES TO: INV-GUIDANCE-010. ACCEPTANCE: braid next on store with 270+ leaves returns task from highest-priority active EPIC." :op :assert}
+   {:e #blake3 "3ff6a2eff062a374ff2d5c3f02e93dec3bc17400d7c117019b17ead24368f185" :a :task/traces-to :v #blake3 "5ec5a82c9ee3b60a53cec83354f855412d2170c8b069b0b461be1891f3fbb962" :op :assert}
+   {:e #blake3 "3ff6a2eff062a374ff2d5c3f02e93dec3bc17400d7c117019b17ead24368f185" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773881236/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SESSION-SUMMARY: Implement braid session summary command (INV-INTERFACE-001). BACKGROUND: No way to see what a session accomplished. Must manually list closed tasks. FIX: braid session summary computes from session-bounded store state: tasks opened/closed/in-progress, observations captured, spec elements transacted, git commits+lines, store growth, duration, k_eff change. All derived from existing datoms (no new data). Output in all 3 modes (json/agent/human). TRACES TO: INV-INTERFACE-001. ACCEPTANCE: braid session summary after 5+ commands shows task counts and duration."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9195dd75b3d8dda7ba04e03df63669591a02bfd0a6cea9ad81c01e047e07ffc4" :a :db/ident :v :task/t-22d34485 :op :assert}
+   {:e #blake3 "9195dd75b3d8dda7ba04e03df63669591a02bfd0a6cea9ad81c01e047e07ffc4" :a :task/created-at :v 1773881234 :op :assert}
+   {:e #blake3 "9195dd75b3d8dda7ba04e03df63669591a02bfd0a6cea9ad81c01e047e07ffc4" :a :task/id :v "t-22d34485" :op :assert}
+   {:e #blake3 "9195dd75b3d8dda7ba04e03df63669591a02bfd0a6cea9ad81c01e047e07ffc4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9195dd75b3d8dda7ba04e03df63669591a02bfd0a6cea9ad81c01e047e07ffc4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9195dd75b3d8dda7ba04e03df63669591a02bfd0a6cea9ad81c01e047e07ffc4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9195dd75b3d8dda7ba04e03df63669591a02bfd0a6cea9ad81c01e047e07ffc4" :a :task/title :v "SESSION-SUMMARY: Implement braid session summary command (INV-INTERFACE-001). BACKGROUND: No way to see what a session accomplished. Must manually list closed tasks. FIX: braid session summary computes from session-bounded store state: tasks opened/closed/in-progress, observations captured, spec elements transacted, git commits+lines, store growth, duration, k_eff change. All derived from existing datoms (no new data). Output in all 3 modes (json/agent/human). TRACES TO: INV-INTERFACE-001. ACCEPTANCE: braid session summary after 5+ commands shows task counts and duration." :op :assert}
+   {:e #blake3 "9195dd75b3d8dda7ba04e03df63669591a02bfd0a6cea9ad81c01e047e07ffc4" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "9195dd75b3d8dda7ba04e03df63669591a02bfd0a6cea9ad81c01e047e07ffc4" :a :task/type :v :task.type/feature :op :assert}
+ ]}

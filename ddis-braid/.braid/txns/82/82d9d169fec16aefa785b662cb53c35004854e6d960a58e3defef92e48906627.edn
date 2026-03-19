@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773881238/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HARVEST-INDEXED: Replace full datom scans with AVET/LIVE indexed lookups in harvest pipeline (INV-HARVEST-002). BACKGROUND: Harvest does O(N*M) full scans — 16K datoms × 5+ passes = 80K reads. The AVET index and attribute_datoms() API already provide O(1) attribute lookup. FIX: Replace store.datoms().filter(|d| d.attribute == X) with store.attribute_datoms(&X) throughout harvest.rs and the kernel harvest pipeline. TRACES TO: INV-HARVEST-002. ACCEPTANCE: Harvest time on 16K+ store drops measurably (profile before/after)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e8d8608d86d95e30cdd7d35094eb68baa74ba26ea62dd58c5fc5a0aaee1a22d0" :a :db/ident :v :task/t-86074c4e :op :assert}
+   {:e #blake3 "e8d8608d86d95e30cdd7d35094eb68baa74ba26ea62dd58c5fc5a0aaee1a22d0" :a :task/created-at :v 1773881234 :op :assert}
+   {:e #blake3 "e8d8608d86d95e30cdd7d35094eb68baa74ba26ea62dd58c5fc5a0aaee1a22d0" :a :task/id :v "t-86074c4e" :op :assert}
+   {:e #blake3 "e8d8608d86d95e30cdd7d35094eb68baa74ba26ea62dd58c5fc5a0aaee1a22d0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e8d8608d86d95e30cdd7d35094eb68baa74ba26ea62dd58c5fc5a0aaee1a22d0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e8d8608d86d95e30cdd7d35094eb68baa74ba26ea62dd58c5fc5a0aaee1a22d0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e8d8608d86d95e30cdd7d35094eb68baa74ba26ea62dd58c5fc5a0aaee1a22d0" :a :task/title :v "HARVEST-INDEXED: Replace full datom scans with AVET/LIVE indexed lookups in harvest pipeline (INV-HARVEST-002). BACKGROUND: Harvest does O(N*M) full scans — 16K datoms × 5+ passes = 80K reads. The AVET index and attribute_datoms() API already provide O(1) attribute lookup. FIX: Replace store.datoms().filter(|d| d.attribute == X) with store.attribute_datoms(&X) throughout harvest.rs and the kernel harvest pipeline. TRACES TO: INV-HARVEST-002. ACCEPTANCE: Harvest time on 16K+ store drops measurably (profile before/after)." :op :assert}
+   {:e #blake3 "e8d8608d86d95e30cdd7d35094eb68baa74ba26ea62dd58c5fc5a0aaee1a22d0" :a :task/traces-to :v #blake3 "8164ecc09e37e32f1ab4672303951c53bd0650c069cfd274c477bdc976457cb5" :op :assert}
+   {:e #blake3 "e8d8608d86d95e30cdd7d35094eb68baa74ba26ea62dd58c5fc5a0aaee1a22d0" :a :task/type :v :task.type/task :op :assert}
+ ]}

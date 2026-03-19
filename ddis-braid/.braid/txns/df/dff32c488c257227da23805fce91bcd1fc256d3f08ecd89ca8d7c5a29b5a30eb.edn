@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773881239/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SESSION-AUTO-CREATE: Auto-create lightweight session entity on first braid command (INV-HARVEST-002). BACKGROUND: Agents rarely run braid session start explicitly, so session_boundary falls back to now-3600. FIX: On any braid command, if no active session entity exists, auto-create one with :session/started-at = now and :session/status = active. Lightweight — no task description needed. Just establishes the session boundary for temporal discrimination. TRACES TO: INV-HARVEST-002. ACCEPTANCE: After any braid command, query :session/status returns active."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "578a044f399f5c3c65a917beea4c495accbe0e17c0f1ba7a8fa5bafc0b5f19a5" :a :db/ident :v :task/t-0550c415 :op :assert}
+   {:e #blake3 "578a044f399f5c3c65a917beea4c495accbe0e17c0f1ba7a8fa5bafc0b5f19a5" :a :task/created-at :v 1773881235 :op :assert}
+   {:e #blake3 "578a044f399f5c3c65a917beea4c495accbe0e17c0f1ba7a8fa5bafc0b5f19a5" :a :task/id :v "t-0550c415" :op :assert}
+   {:e #blake3 "578a044f399f5c3c65a917beea4c495accbe0e17c0f1ba7a8fa5bafc0b5f19a5" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "578a044f399f5c3c65a917beea4c495accbe0e17c0f1ba7a8fa5bafc0b5f19a5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "578a044f399f5c3c65a917beea4c495accbe0e17c0f1ba7a8fa5bafc0b5f19a5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "578a044f399f5c3c65a917beea4c495accbe0e17c0f1ba7a8fa5bafc0b5f19a5" :a :task/title :v "SESSION-AUTO-CREATE: Auto-create lightweight session entity on first braid command (INV-HARVEST-002). BACKGROUND: Agents rarely run braid session start explicitly, so session_boundary falls back to now-3600. FIX: On any braid command, if no active session entity exists, auto-create one with :session/started-at = now and :session/status = active. Lightweight — no task description needed. Just establishes the session boundary for temporal discrimination. TRACES TO: INV-HARVEST-002. ACCEPTANCE: After any braid command, query :session/status returns active." :op :assert}
+   {:e #blake3 "578a044f399f5c3c65a917beea4c495accbe0e17c0f1ba7a8fa5bafc0b5f19a5" :a :task/traces-to :v #blake3 "8164ecc09e37e32f1ab4672303951c53bd0650c069cfd274c477bdc976457cb5" :op :assert}
+   {:e #blake3 "578a044f399f5c3c65a917beea4c495accbe0e17c0f1ba7a8fa5bafc0b5f19a5" :a :task/type :v :task.type/task :op :assert}
+ ]}
