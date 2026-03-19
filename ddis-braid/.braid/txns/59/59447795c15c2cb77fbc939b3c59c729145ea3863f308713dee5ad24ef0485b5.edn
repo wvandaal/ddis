@@ -1,0 +1,18 @@
+{:tx/id #hlc "1773932563/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-DEFAULT: Implement default_boundaries() -> BoundaryRegistry that returns a registry pre-populated with SpecImplBoundary. This is called by braid status and all F(S) computation paths. Without this function, the refactored bilateral loop would have ZERO registered boundaries and F(S) would be undefined. TRACES TO: INV-BILATERAL-007, INV-BILATERAL-009. ACCEPTANCE: (A) default_boundaries().evaluate_all(store) produces same F(S) as current compute_fitness(store). (B) default_boundaries().len() >= 1. (C) Adding a new boundary to default_boundaries requires ONE LINE (registry.register(Box::new(MyBoundary))). FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "29d3d1f0ea05ebc29d12f7c96d3bbe0f8b79d0b414aaf9688b256445e0507d0c" :a :db/ident :v :task/t-7a93ed65 :op :assert}
+   {:e #blake3 "29d3d1f0ea05ebc29d12f7c96d3bbe0f8b79d0b414aaf9688b256445e0507d0c" :a :task/acceptance :v "(A) default_boundaries().evaluate_all(store) produces same F(S) as current compute_fitness(store). (B) default_boundaries().len() >= 1. (C) Adding a new boundary to default_boundaries requires ONE LINE (registry.register(Box::new(MyBoundary)))." :op :assert}
+   {:e #blake3 "29d3d1f0ea05ebc29d12f7c96d3bbe0f8b79d0b414aaf9688b256445e0507d0c" :a :task/created-at :v 1773932562 :op :assert}
+   {:e #blake3 "29d3d1f0ea05ebc29d12f7c96d3bbe0f8b79d0b414aaf9688b256445e0507d0c" :a :task/id :v "t-7a93ed65" :op :assert}
+   {:e #blake3 "29d3d1f0ea05ebc29d12f7c96d3bbe0f8b79d0b414aaf9688b256445e0507d0c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "29d3d1f0ea05ebc29d12f7c96d3bbe0f8b79d0b414aaf9688b256445e0507d0c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "29d3d1f0ea05ebc29d12f7c96d3bbe0f8b79d0b414aaf9688b256445e0507d0c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "29d3d1f0ea05ebc29d12f7c96d3bbe0f8b79d0b414aaf9688b256445e0507d0c" :a :task/title :v "BOUNDARY-DEFAULT: Implement default_boundaries() -> BoundaryRegistry that returns a registry pre-populated with SpecImplBoundary. This is called by braid status and all F(S) computation paths. Without this function, the refactored bilateral loop would have ZERO registered boundaries and F(S) would be undefined. TRACES TO: INV-BILATERAL-007, INV-BILATERAL-009. ACCEPTANCE: (A) default_boundaries().evaluate_all(store) produces same F(S) as current compute_fitness(store). (B) default_boundaries().len() >= 1. (C) Adding a new boundary to default_boundaries requires ONE LINE (registry.register(Box::new(MyBoundary))). FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "29d3d1f0ea05ebc29d12f7c96d3bbe0f8b79d0b414aaf9688b256445e0507d0c" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "29d3d1f0ea05ebc29d12f7c96d3bbe0f8b79d0b414aaf9688b256445e0507d0c" :a :task/traces-to :v #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :op :assert}
+   {:e #blake3 "29d3d1f0ea05ebc29d12f7c96d3bbe0f8b79d0b414aaf9688b256445e0507d0c" :a :task/type :v :task.type/task :op :assert}
+ ]}

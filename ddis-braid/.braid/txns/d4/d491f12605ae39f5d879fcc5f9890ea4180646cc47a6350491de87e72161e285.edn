@@ -1,0 +1,18 @@
+{:tx/id #hlc "1773932611/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-COMPAT: F(S) backward compatibility golden test — BEFORE any boundary refactoring, compute F(S) on the current store and save the value. AFTER refactoring (BOUNDARY-6 complete), compute F(S) with default_boundaries() and assert |F(S)_new - F(S)_old| < 0.01. This is the MOST CRITICAL regression test. If this fails, the refactoring broke something. Run as: (1) cargo test -p braid-kernel -- boundary_compat_golden before starting BOUNDARY-1. (2) Test captures current F(S) as expected value. (3) After BOUNDARY-6, same test computes via new path and compares. TRACES TO: INV-BILATERAL-007, INV-BILATERAL-009. ACCEPTANCE: F(S) via new boundary framework == F(S) via old direct computation, within epsilon. FILE: crates/braid-kernel/tests/cross_namespace.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :db/ident :v :task/t-c1b5265c :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/acceptance :v "F(S) via new boundary framework == F(S) via old direct computation, within epsilon." :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/created-at :v 1773932610 :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/id :v "t-c1b5265c" :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/title :v "BOUNDARY-COMPAT: F(S) backward compatibility golden test — BEFORE any boundary refactoring, compute F(S) on the current store and save the value. AFTER refactoring (BOUNDARY-6 complete), compute F(S) with default_boundaries() and assert |F(S)_new - F(S)_old| < 0.01. This is the MOST CRITICAL regression test. If this fails, the refactoring broke something. Run as: (1) cargo test -p braid-kernel -- boundary_compat_golden before starting BOUNDARY-1. (2) Test captures current F(S) as expected value. (3) After BOUNDARY-6, same test computes via new path and compares. TRACES TO: INV-BILATERAL-007, INV-BILATERAL-009. ACCEPTANCE: F(S) via new boundary framework == F(S) via old direct computation, within epsilon. FILE: crates/braid-kernel/tests/cross_namespace.rs" :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/traces-to :v #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/type :v :task.type/test :op :assert}
+ ]}

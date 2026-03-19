@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773932562/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT: Adding detailed type signatures to BOUNDARY-1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/approach :v "DETAILED TYPES: trait BoundaryCheck { fn name(&self) -> &str; fn source_set(&self, store: &Store) -> BTreeSet<EntityId>; fn target_set(&self, store: &Store) -> BTreeSet<EntityId>; fn weight(&self) -> f64; fn fix_suggestion(&self, gap: EntityId, store: &Store) -> String; fn divergence(&self, store: &Store) -> BoundaryDivergence { /* default impl using source_set/target_set */ } }. struct BoundaryDivergence { boundary: String, forward_gap: BTreeSet<EntityId>, backward_gap: BTreeSet<EntityId>, coverage: f64, weighted_coverage: f64 }. enum SetRelation { Bijection, SourceSubsetTarget, TargetSubsetSource }. The default divergence() method computes set operations. Implementors only need to provide the two sets + metadata." :op :assert}
+ ]}
