@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773959833/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b4d0bdfc"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/close-reason :v "Already implemented: contextual_observation_hint() has per-command confidence: task-close=0.9, status/bilateral=0.8, query/trace=0.7. Matches INV-GUIDANCE-016 spec exactly." :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/closed-at :v 1773959832 :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/status :v :task.status/closed :op :assert}
+ ]}

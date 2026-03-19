@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773960201/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a8fc2cee"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6f9ec9c56d4c4a36465cee98422ac129e6b7195bb8a65ac3f522aa59f420aac0" :a :task/close-reason :v "classify_action_outcome() implemented: finds most recent unresolved :action/* entity, classifies current command as followed/adjacent/ignored based on command match and task ID extraction. Exported from lib.rs." :op :assert}
+   {:e #blake3 "6f9ec9c56d4c4a36465cee98422ac129e6b7195bb8a65ac3f522aa59f420aac0" :a :task/closed-at :v 1773960200 :op :assert}
+   {:e #blake3 "6f9ec9c56d4c4a36465cee98422ac129e6b7195bb8a65ac3f522aa59f420aac0" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "6f9ec9c56d4c4a36465cee98422ac129e6b7195bb8a65ac3f522aa59f420aac0" :a :task/status :v :task.status/closed :op :assert}
+ ]}

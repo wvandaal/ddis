@@ -2007,6 +2007,70 @@ pub fn dynamic_threshold(velocity: f64) -> u32 {
     }
 }
 
+/// Classify an agent's command as follow-through on the previous R(t) recommendation.
+///
+/// RFL-3: When the agent runs a command, check if it follows the previous
+/// ACP recommendation. Three outcomes:
+/// - **Followed**: exact match (agent ran the recommended command)
+/// - **Adjacent**: agent investigated the recommended task (show, query)
+/// - **Ignored**: agent did something unrelated
+///
+/// Returns None if no unresolved action exists (first command in session).
+///
+/// INV-GUIDANCE-010, INV-GUIDANCE-005.
+pub fn classify_action_outcome(
+    store: &Store,
+    current_command: &str,
+) -> Option<(&'static str, EntityId)> {
+    // Find the most recent :action/* entity WITHOUT an :action/outcome
+    let cmd_attr = crate::datom::Attribute::from_keyword(":action/recommended-command");
+    let outcome_attr = crate::datom::Attribute::from_keyword(":action/outcome");
+
+    // Scan action entities — find one with recommended-command but no outcome
+    let mut latest_action: Option<(EntityId, String, u64)> = None;
+    for datom in store.attribute_datoms(&cmd_attr).iter() {
+        if datom.op != crate::datom::Op::Assert {
+            continue;
+        }
+        let entity = datom.entity;
+        let has_outcome = store
+            .entity_datoms(entity)
+            .iter()
+            .any(|d| d.attribute == outcome_attr && d.op == crate::datom::Op::Assert);
+        if !has_outcome {
+            if let crate::datom::Value::String(ref cmd) = datom.value {
+                let wall = datom.tx.wall_time() as u64;
+                if latest_action.as_ref().map(|(_, _, w)| wall > *w).unwrap_or(true) {
+                    latest_action = Some((entity, cmd.clone(), wall));
+                }
+            }
+        }
+    }
+
+    let (entity, recommended_cmd, _wall) = latest_action?;
+
+    // Classify: compare current command against recommended
+    let current_lower = current_command.to_lowercase();
+    let recommended_lower = recommended_cmd.to_lowercase();
+
+    // Followed: exact match or close match (same task ID)
+    if current_lower == recommended_lower {
+        return Some(("followed", entity));
+    }
+
+    // Extract task ID from recommended command (e.g., "braid go t-fd30" → "t-fd30")
+    let task_id = recommended_cmd
+        .split_whitespace()
+        .find(|w| w.starts_with("t-"))
+        .unwrap_or("");
+
+    if !task_id.is_empty() && current_lower.contains(task_id) {
+        return Some(("adjacent", entity));
+    }
+
+    Some(("ignored", entity))
+}
+
 /// Multi-dimensional harvest urgency (ZCM-2, INV-GUIDANCE-019).
 ///
 /// Four signals, urgency = max of all:
