@@ -967,21 +967,58 @@ pub fn close(
         human.push_str(&format!("closed: {id}\n"));
     }
 
+    // ZCM-4: Completion reward — show F(S) as feedback signal.
+    // From reinforcement learning: explicit reward signals strengthen behavioral patterns.
+    let reloaded = layout.load_store()?;
+    let fitness = braid_kernel::bilateral::compute_fitness(&reloaded);
+    human.push_str(&format!("F(S)={:.2}\n", fitness.total));
+
     let json = serde_json::json!({
         "closed": closed_ids,
         "count": closed_ids.len(),
         "reason": reason,
+        "fitness": fitness.total,
     });
 
-    let agent = AgentOutput {
-        context: format!("closed: {} task(s)", closed_ids.len()),
-        content: closed_ids
-            .iter()
-            .map(|id| format!("closed: {id}"))
-            .collect::<Vec<_>>()
-            .join("\n"),
-        footer: "next: braid task ready | status: braid status".to_string(),
+    // ACP for close: action = next task
+    let action = braid_kernel::guidance::compute_action_from_store(&reloaded);
+    let mut context_blocks = vec![
+        braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: format!("closed: {} task(s) | F(S)={:.2}", closed_ids.len(), fitness.total),
+            tokens: 10,
+        },
+    ];
+    for id in &closed_ids {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!("closed: {id}"),
+            tokens: 3,
+        });
+    }
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "next: braid task ready | status: braid status".to_string(),
     };
+
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // Merge ACP into JSON
+    let mut json = json;
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(CommandOutput { json, agent, human })
 }

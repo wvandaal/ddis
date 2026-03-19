@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773961595/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ff3fd39d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2625a5c04df31f1aae66c6d10d6faf02552d6243dc5eeccfe9473972fd0272ed" :a :task/close-reason :v "Completion reward: task close now shows F(S) as feedback + ACP output with next action. Reinforces the claim-implement-close rhythm." :op :assert}
+   {:e #blake3 "2625a5c04df31f1aae66c6d10d6faf02552d6243dc5eeccfe9473972fd0272ed" :a :task/closed-at :v 1773961594 :op :assert}
+   {:e #blake3 "2625a5c04df31f1aae66c6d10d6faf02552d6243dc5eeccfe9473972fd0272ed" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "2625a5c04df31f1aae66c6d10d6faf02552d6243dc5eeccfe9473972fd0272ed" :a :task/status :v :task.status/closed :op :assert}
+ ]}
