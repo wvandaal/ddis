@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773948770/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e0e989fc"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9c42f13971e80da25acd2fa16c2f1693602b126862aac56b25d692629ca1bdea" :a :task/close-reason :v "Crystallized INV-BUDGET-007/008/009, ADR-BUDGET-005/006/007, amended INV-BUDGET-005" :op :assert}
+   {:e #blake3 "9c42f13971e80da25acd2fa16c2f1693602b126862aac56b25d692629ca1bdea" :a :task/closed-at :v 1773948769 :op :assert}
+   {:e #blake3 "9c42f13971e80da25acd2fa16c2f1693602b126862aac56b25d692629ca1bdea" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "9c42f13971e80da25acd2fa16c2f1693602b126862aac56b25d692629ca1bdea" :a :task/status :v :task.status/closed :op :assert}
+ ]}

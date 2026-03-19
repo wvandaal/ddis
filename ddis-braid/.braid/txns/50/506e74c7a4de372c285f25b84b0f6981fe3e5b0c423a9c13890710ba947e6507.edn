@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773948910/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8529a95a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "06ae7535d142b7053583c84a6bad9d64e7c3caab14b7c73618565c9912df5219" :a :task/close-reason :v "ACP-14: -q naturally works with ACP — suppresses legacy footer but action remains in body. No code change needed (architectural win)." :op :assert}
+   {:e #blake3 "06ae7535d142b7053583c84a6bad9d64e7c3caab14b7c73618565c9912df5219" :a :task/closed-at :v 1773948909 :op :assert}
+   {:e #blake3 "06ae7535d142b7053583c84a6bad9d64e7c3caab14b7c73618565c9912df5219" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "06ae7535d142b7053583c84a6bad9d64e7c3caab14b7c73618565c9912df5219" :a :task/status :v :task.status/closed :op :assert}
+ ]}

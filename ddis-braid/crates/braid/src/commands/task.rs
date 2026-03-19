@@ -759,7 +759,7 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
     }
     human.push_str(&format!("  entity: :task/{}\n", t.id));
 
-    let json = serde_json::json!({
+    let mut json = serde_json::json!({
         "id": t.id,
         "title": t.title,
         "status": status,
@@ -773,18 +773,75 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
         "entity": format!(":task/{}", t.id),
     });
 
-    let agent = AgentOutput {
-        context: format!("{} \"{}\"", t.id, t.title),
-        content: format!(
-            "status: {} | P{} {} | deps: {} | traces: {}",
-            status,
-            t.priority,
-            type_short,
-            t.depends_on.len(),
-            t.traces_to.len(),
-        ),
-        footer: format!("claim: braid go {} | close: braid done {}", t.id, t.id),
+    // ACP projection (ACP-10b, INV-BUDGET-007)
+    let action = braid_kernel::budget::ProjectedAction {
+        command: if t.status == TaskStatus::Closed {
+            "braid task ready".to_string()
+        } else {
+            format!("braid go {}", t.id)
+        },
+        rationale: {
+            let (l0, _) = braid_kernel::task::generate_title_levels(&t.title);
+            l0
+        },
+        impact: 0.0,
     };
+
+    let mut context_blocks = vec![
+        braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: format!("{} \"{}\"", t.id, t.title),
+            tokens: 15,
+        },
+        braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!(
+                "status: {} | P{} {} | deps: {} | traces: {}",
+                status, t.priority, type_short, t.depends_on.len(), t.traces_to.len(),
+            ),
+            tokens: 10,
+        },
+    ];
+
+    if !t.labels.is_empty() {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
+            content: format!("labels: {}", t.labels.join(", ")),
+            tokens: 5,
+        });
+    }
+
+    if let Some(ref reason) = t.close_reason {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
+            content: format!("close-reason: {reason}"),
+            tokens: 5,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: format!("full: braid query --entity :task/{}", t.id),
+    };
+
+    // Use ACP for agent output
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // Merge ACP into JSON
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(CommandOutput { json, agent, human })
 }
