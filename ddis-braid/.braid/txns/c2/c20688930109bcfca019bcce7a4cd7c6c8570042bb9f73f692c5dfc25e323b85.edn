@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773929547/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-005 \"Evidence Lattice for Extracted Datoms\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :a :db/doc :v "Evidence Lattice for Extracted Datoms" :op :assert}
+   {:e #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :a :db/ident :v :spec/inv-foundation-005 :op :assert}
+   {:e #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :a :element/traces-to :v "SEED.md S4, SEED.md S6, ADR-FOUNDATION-007, INV-BILATERAL-009, ADR-RESOLUTION-001" :op :assert}
+   {:e #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :a :spec/falsification :v "A datom with evidence=structural-proof(1.0) is overwritten by a datom with evidence=behavioral(0.2) for the same entity-attribute pair, OR F(S).validation counts behavioral(0.2) evidence equally to structural-proof(1.0)" :op :assert}
+   {:e #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :a :spec/id :v "INV-FOUNDATION-005" :op :assert}
+   {:e #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :a :spec/statement :v "Every extracted datom carries an evidence level from the lattice: behavioral(0.2) < assertion(0.5) < static-analysis(0.8) < structural-proof(1.0). Evidence level is a lattice-resolved attribute — higher evidence always wins over lower. BoundaryCheck weighs datoms by evidence level. F(S).validation computes weighted coverage: Σ(evidence_level × boundary_coverage) / |boundaries|. Re-running an extractor at a higher evidence level STRENGTHENS the datom, never weakens it (monotonicity)." :op :assert}
+ ]}

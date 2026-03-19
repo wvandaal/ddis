@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773929577/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-011 \"MCP Server as Continuous Extractor\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6fb870fd731f62f8abf2f52fadd1d5eef9f114e9acb485d56a4a14ecc4a5a360" :a :adr/decision :v "Add an extraction layer to the braid MCP server. Every tool call already flows through MCP. The extraction layer produces low-evidence (behavioral=0.2) datoms from observable signals: file reads → component interest, query patterns → understanding signal, test runs → verification signal, temporal clustering → composition inference. These datoms are transacted automatically — the agent never calls an extraction command. Higher-evidence extractors (static analysis, agent assertions) OVERRIDE these behavioral signals via lattice resolution. The MCP server becomes the universal continuous extractor, language-agnostic by construction (it sees tool calls, not source code). Alternatives rejected: (1) Require explicit braid observe for all knowledge — too burdensome, agents skip it under k* pressure. (2) Post-session LLM analysis of conversation — loses temporal signal, expensive, not real-time. (3) Instrument the agent runtime — invasive, agent-specific, not portable." :op :assert}
+   {:e #blake3 "6fb870fd731f62f8abf2f52fadd1d5eef9f114e9acb485d56a4a14ecc4a5a360" :a :adr/problem :v "The agent develops understanding continuously while working, but extraction is episodic (braid observe, braid harvest). Most understanding dies with the conversation. How to capture it without burdening the agent with explicit extraction calls?" :op :assert}
+   {:e #blake3 "6fb870fd731f62f8abf2f52fadd1d5eef9f114e9acb485d56a4a14ecc4a5a360" :a :db/doc :v "MCP Server as Continuous Extractor" :op :assert}
+   {:e #blake3 "6fb870fd731f62f8abf2f52fadd1d5eef9f114e9acb485d56a4a14ecc4a5a360" :a :db/ident :v :spec/adr-foundation-011 :op :assert}
+   {:e #blake3 "6fb870fd731f62f8abf2f52fadd1d5eef9f114e9acb485d56a4a14ecc4a5a360" :a :element/traces-to :v "SEED.md S5, SEED.md S8, ADR-FOUNDATION-010, INV-FOUNDATION-005, INV-GUIDANCE-001" :op :assert}
+   {:e #blake3 "6fb870fd731f62f8abf2f52fadd1d5eef9f114e9acb485d56a4a14ecc4a5a360" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "6fb870fd731f62f8abf2f52fadd1d5eef9f114e9acb485d56a4a14ecc4a5a360" :a :spec/id :v "ADR-FOUNDATION-011" :op :assert}
+   {:e #blake3 "6fb870fd731f62f8abf2f52fadd1d5eef9f114e9acb485d56a4a14ecc4a5a360" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+ ]}

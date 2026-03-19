@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773929562/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-010 \"Multi-Layer Evidence Composition over Single-Extractor Precision\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d46246e609874ae0dea5f07b27b2c2fdc5685dea825ed4660662a0ed9de21057" :a :adr/decision :v "Compose multiple extraction layers with increasing evidence strength. Layer 0: MCP behavioral signals (continuous, automatic, evidence=0.2). Layer 1: Explicit agent assertions via braid observe (episodic, agent-initiated, evidence=0.5). Layer 2: Static analysis extractors (periodic, language-specific, evidence=0.8). Layer 3: Compiler/linker/type-checker proofs (on-build, structural, evidence=1.0). Each layer fills gaps left by layers below. The datom store merges via lattice resolution: higher evidence always wins. Accuracy = high layers override low. Comprehensiveness = low layers fill gaps. Repeatability = lattice join is commutative and associative. Correctness = bilateral loop verifies against reality. Alternatives rejected: (1) Only structural proofs — precise but incomplete, zero coverage for dynamic languages. (2) Only LLM extraction — comprehensive but unreliable, no formal guarantee. (3) Only manual assertion — accurate but unsustainable at scale." :op :assert}
+   {:e #blake3 "d46246e609874ae0dea5f07b27b2c2fdc5685dea825ed4660662a0ed9de21057" :a :adr/problem :v "No single extractor is both comprehensive AND accurate. Behavioral signals from MCP tool calls are comprehensive (see everything) but low-accuracy. Static analyzers are high-accuracy but narrow and language-specific. How to get both?" :op :assert}
+   {:e #blake3 "d46246e609874ae0dea5f07b27b2c2fdc5685dea825ed4660662a0ed9de21057" :a :db/doc :v "Multi-Layer Evidence Composition over Single-Extractor Precision" :op :assert}
+   {:e #blake3 "d46246e609874ae0dea5f07b27b2c2fdc5685dea825ed4660662a0ed9de21057" :a :db/ident :v :spec/adr-foundation-010 :op :assert}
+   {:e #blake3 "d46246e609874ae0dea5f07b27b2c2fdc5685dea825ed4660662a0ed9de21057" :a :element/traces-to :v "SEED.md S4, SEED.md S6, INV-FOUNDATION-005, ADR-FOUNDATION-007, ADR-RESOLUTION-001" :op :assert}
+   {:e #blake3 "d46246e609874ae0dea5f07b27b2c2fdc5685dea825ed4660662a0ed9de21057" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "d46246e609874ae0dea5f07b27b2c2fdc5685dea825ed4660662a0ed9de21057" :a :spec/id :v "ADR-FOUNDATION-010" :op :assert}
+   {:e #blake3 "d46246e609874ae0dea5f07b27b2c2fdc5685dea825ed4660662a0ed9de21057" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+ ]}

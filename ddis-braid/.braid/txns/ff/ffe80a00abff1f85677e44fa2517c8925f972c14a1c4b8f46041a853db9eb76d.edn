@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773929588/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-FOUNDATION-002 \"No False Certainty from Behavioral Extraction\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a8e388ca3c4ed113d54403d9fb9b04955ca72b5adcba7de8a962b2099e5a84a8" :a :db/doc :v "No False Certainty from Behavioral Extraction" :op :assert}
+   {:e #blake3 "a8e388ca3c4ed113d54403d9fb9b04955ca72b5adcba7de8a962b2099e5a84a8" :a :db/ident :v :spec/neg-foundation-002 :op :assert}
+   {:e #blake3 "a8e388ca3c4ed113d54403d9fb9b04955ca72b5adcba7de8a962b2099e5a84a8" :a :element/traces-to :v "SEED.md S6, INV-FOUNDATION-005, ADR-FOUNDATION-011, NEG-BILATERAL-004" :op :assert}
+   {:e #blake3 "a8e388ca3c4ed113d54403d9fb9b04955ca72b5adcba7de8a962b2099e5a84a8" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "a8e388ca3c4ed113d54403d9fb9b04955ca72b5adcba7de8a962b2099e5a84a8" :a :spec/falsification :v "A datom produced solely from MCP tool call behavioral signal is presented to an agent without evidence-level qualification, OR a behavioral datom's evidence level is set above 0.2 without higher-layer confirmation" :op :assert}
+   {:e #blake3 "a8e388ca3c4ed113d54403d9fb9b04955ca72b5adcba7de8a962b2099e5a84a8" :a :spec/id :v "NEG-FOUNDATION-002" :op :assert}
+   {:e #blake3 "a8e388ca3c4ed113d54403d9fb9b04955ca72b5adcba7de8a962b2099e5a84a8" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "a8e388ca3c4ed113d54403d9fb9b04955ca72b5adcba7de8a962b2099e5a84a8" :a :spec/statement :v "Datoms produced by the MCP behavioral extraction layer must never carry evidence level above behavioral(0.2). Only explicit agent assertions, static analyzers, or structural proofs may produce higher-evidence datoms. The system must never present behavioral-evidence datoms as confirmed facts in seed output, guidance footers, or F(S) reporting without qualifying the evidence level." :op :assert}
+ ]}
