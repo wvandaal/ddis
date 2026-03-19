@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773945898/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8185f248"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b704422dd0973e4eda8dee4936dd4733d7615f595e2787f1ac4210ec633e57bc" :a :task/close-reason :v "CommandOutput.render_projected() method added to output.rs. Zero breaking changes to existing code — projection passed as parameter, not struct field. render_projected delegates to ACP when projection provided, falls back to legacy otherwise." :op :assert}
+   {:e #blake3 "b704422dd0973e4eda8dee4936dd4733d7615f595e2787f1ac4210ec633e57bc" :a :task/closed-at :v 1773945897 :op :assert}
+   {:e #blake3 "b704422dd0973e4eda8dee4936dd4733d7615f595e2787f1ac4210ec633e57bc" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "b704422dd0973e4eda8dee4936dd4733d7615f595e2787f1ac4210ec633e57bc" :a :task/status :v :task.status/closed :op :assert}
+ ]}

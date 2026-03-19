@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773945894/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ad1ba61d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "eb75334ce4d1c0ee7e6ef42acc9bfbb1e0afe20434ac061f8bd6999579900ede" :a :task/close-reason :v "Implemented ActivationStrategy enum with for_k_eff() selector and max_context_tokens(). 4 strategies: Signal/Imperative/Navigate/Demonstrate. 3 unit tests." :op :assert}
+   {:e #blake3 "eb75334ce4d1c0ee7e6ef42acc9bfbb1e0afe20434ac061f8bd6999579900ede" :a :task/closed-at :v 1773945893 :op :assert}
+   {:e #blake3 "eb75334ce4d1c0ee7e6ef42acc9bfbb1e0afe20434ac061f8bd6999579900ede" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "eb75334ce4d1c0ee7e6ef42acc9bfbb1e0afe20434ac061f8bd6999579900ede" :a :task/status :v :task.status/closed :op :assert}
+ ]}

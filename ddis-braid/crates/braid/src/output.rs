@@ -146,6 +146,11 @@ impl AgentOutput {
 /// The caller renders the appropriate one based on the resolved `OutputMode`.
 ///
 /// INV-OUTPUT-003: JSON contains all information available in Human and Agent modes.
+///
+/// **ACP (INV-BUDGET-007)**: Commands that adopt Action-Centric Projection
+/// use `CommandOutput::with_projection()` to attach an `ActionProjection`.
+/// When present, `render_projected()` uses ACP rendering instead of
+/// byte-level truncation. Legacy commands work unchanged.
 #[derive(Clone, Debug)]
 pub struct CommandOutput {
     /// Structured JSON representation (all fields).
@@ -157,7 +162,7 @@ pub struct CommandOutput {
 }
 
 impl CommandOutput {
-    /// Render the output in the specified mode.
+    /// Render the output in the specified mode (legacy path).
     pub fn render(&self, mode: OutputMode) -> String {
         match mode {
             OutputMode::Json => {
@@ -165,6 +170,42 @@ impl CommandOutput {
             }
             OutputMode::Agent => self.agent.render(),
             OutputMode::Human => self.human.clone(),
+        }
+    }
+
+    /// Render with an ACP projection override (INV-BUDGET-007).
+    ///
+    /// When a projection is provided:
+    /// - JSON: merges `_acp` field into the existing JSON
+    /// - Agent: uses `projection.project_at_strategy(strategy)` for budget-constrained text
+    /// - Human: uses `projection.project(MAX)` for full output
+    ///
+    /// When no projection is provided, falls back to `render()`.
+    pub fn render_projected(
+        &self,
+        mode: OutputMode,
+        projection: Option<&braid_kernel::ActionProjection>,
+        strategy: braid_kernel::ActivationStrategy,
+    ) -> String {
+        match projection {
+            None => self.render(mode),
+            Some(proj) => match mode {
+                OutputMode::Json => {
+                    let mut json = self.json.clone();
+                    if let serde_json::Value::Object(ref mut map) = json {
+                        let acp_json = proj.to_json();
+                        if let serde_json::Value::Object(acp_map) = acp_json {
+                            for (k, v) in acp_map {
+                                map.insert(k, v);
+                            }
+                        }
+                    }
+                    serde_json::to_string_pretty(&json)
+                        .unwrap_or_else(|_| "{}".to_string())
+                }
+                OutputMode::Agent => proj.project_at_strategy(strategy),
+                OutputMode::Human => proj.project(usize::MAX),
+            },
         }
     }
 

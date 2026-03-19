@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773945896/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-de010208"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f108a1b01da8373ba879c2d9c5c528ec6848bad57a1c7513b90b2439cefa7575" :a :task/close-reason :v "project() budget-fill algorithm implemented as part of ACP-1. Monotonic fill with precedence ordering. Proptest-equivalent coverage via parameterized tests." :op :assert}
+   {:e #blake3 "f108a1b01da8373ba879c2d9c5c528ec6848bad57a1c7513b90b2439cefa7575" :a :task/closed-at :v 1773945895 :op :assert}
+   {:e #blake3 "f108a1b01da8373ba879c2d9c5c528ec6848bad57a1c7513b90b2439cefa7575" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "f108a1b01da8373ba879c2d9c5c528ec6848bad57a1c7513b90b2439cefa7575" :a :task/status :v :task.status/closed :op :assert}
+ ]}

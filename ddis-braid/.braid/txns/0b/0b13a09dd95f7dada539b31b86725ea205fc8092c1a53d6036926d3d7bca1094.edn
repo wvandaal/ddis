@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773945892/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f2870405"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "38469f43531a7017c053e737b2cb30c10c36c09c966bab146571ccb1b8698887" :a :task/close-reason :v "Implemented ActionProjection, ProjectedAction, ContextBlock types + project() + project_at_strategy() + to_json() in budget.rs. 5 unit tests. Exported from lib.rs." :op :assert}
+   {:e #blake3 "38469f43531a7017c053e737b2cb30c10c36c09c966bab146571ccb1b8698887" :a :task/closed-at :v 1773945891 :op :assert}
+   {:e #blake3 "38469f43531a7017c053e737b2cb30c10c36c09c966bab146571ccb1b8698887" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "38469f43531a7017c053e737b2cb30c10c36c09c966bab146571ccb1b8698887" :a :task/status :v :task.status/closed :op :assert}
+ ]}

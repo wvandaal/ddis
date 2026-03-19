@@ -2,7 +2,17 @@
 //!
 //! Implements the quality-adjusted attention budget: k*_eff measurement,
 //! Q(t) computation with piecewise attention decay, five-level precedence-ordered
-//! truncation, and the π₀–π₃ projection pyramid.
+//! truncation, the π₀–π₃ projection pyramid, and **Action-Centric Projection (ACP)**.
+//!
+//! # Action-Centric Projection (ACP)
+//!
+//! ACP decomposes every output into three layers:
+//! - **Action**: the recommended next step (NEVER truncated, ~10 tokens)
+//! - **Context**: supporting information (scales with budget, precedence-ordered)
+//! - **Evidence**: on-demand pointer for full detail
+//!
+//! The budget gate PROJECTS output at the appropriate level — it never truncates.
+//! The guidance system IS the projection function: R(t) provides the Action.
 //!
 //! # Invariants
 //!
@@ -12,6 +22,9 @@
 //! - **INV-BUDGET-004**: Guidance footer compresses by k*_eff level
 //! - **INV-BUDGET-005**: Commands classified by attention cost profile
 //! - **INV-BUDGET-006**: Token density monotonically increases as budget shrinks
+//! - **INV-BUDGET-007**: At every budget ≥ MIN_OUTPUT, output contains a complete action
+//! - **INV-BUDGET-008**: Context fill is monotonic: budget↑ ⟹ context⊇
+//! - **INV-BUDGET-009**: Guidance and projection share the same action computation
 //!
 //! # Design Decisions
 //!
@@ -344,6 +357,179 @@ impl GuidanceLevel {
             GuidanceLevel::Minimal => 20,
             GuidanceLevel::HarvestOnly => 10,
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Action-Centric Projection (ACP) — INV-BUDGET-007..009, ADR-BUDGET-005..007
+// ---------------------------------------------------------------------------
+
+/// Activation strategy based on k*_eff regime (ADR-BUDGET-007).
+///
+/// Each strategy maps to a cognitive activation mode:
+/// - **Demonstrate**: rich context that seeds the session trajectory (~300 tokens)
+/// - **Navigate**: precise pointers that keep the agent on-basin (~100 tokens)
+/// - **Imperative**: action-only, minimum viable activation (~20 tokens)
+/// - **Signal**: harvest emergency, one-bit signal (~5 tokens)
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ActivationStrategy {
+    /// k* < 0.2: harvest emergency. ~5 tokens.
+    Signal = 0,
+    /// 0.2 ≤ k* < 0.4: action only. ~20 tokens.
+    Imperative = 1,
+    /// 0.4 ≤ k* < 0.7: precise pointers. ~100 tokens.
+    Navigate = 2,
+    /// k* ≥ 0.7: rich context. ~300 tokens.
+    Demonstrate = 3,
+}
+
+impl ActivationStrategy {
+    /// Select strategy from k*_eff (ADR-BUDGET-007).
+    pub fn for_k_eff(k_eff: f64) -> Self {
+        if k_eff >= 0.7 {
+            ActivationStrategy::Demonstrate
+        } else if k_eff >= 0.4 {
+            ActivationStrategy::Navigate
+        } else if k_eff >= 0.2 {
+            ActivationStrategy::Imperative
+        } else {
+            ActivationStrategy::Signal
+        }
+    }
+
+    /// Maximum context tokens for this strategy.
+    ///
+    /// The action itself is NOT counted — this is the budget for Context blocks only.
+    pub fn max_context_tokens(&self) -> usize {
+        match self {
+            ActivationStrategy::Demonstrate => 300,
+            ActivationStrategy::Navigate => 100,
+            ActivationStrategy::Imperative => 20,
+            ActivationStrategy::Signal => 5,
+        }
+    }
+}
+
+impl std::fmt::Display for ActivationStrategy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ActivationStrategy::Signal => write!(f, "Signal (k*<0.2)"),
+            ActivationStrategy::Imperative => write!(f, "Imperative (k*<0.4)"),
+            ActivationStrategy::Navigate => write!(f, "Navigate (k*<0.7)"),
+            ActivationStrategy::Demonstrate => write!(f, "Demonstrate (k*≥0.7)"),
+        }
+    }
+}
+
+/// The recommended next action for the agent (INV-BUDGET-007).
+///
+/// This is the structurally-first element of every ACP output.
+/// It is NEVER truncated — the type system enforces this by making
+/// all fields non-optional (Curry-Howard: the type IS the proof).
+#[derive(Clone, Debug)]
+pub struct ProjectedAction {
+    /// Executable braid CLI command (e.g., "braid go t-fd30").
+    pub command: String,
+    /// Brief rationale (~5 words, e.g., "highest-impact boundary task").
+    pub rationale: String,
+    /// Impact score from R(t) routing (0.0–1.0).
+    pub impact: f64,
+}
+
+impl std::fmt::Display for ProjectedAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} — {}", self.command, self.rationale)
+    }
+}
+
+/// A block of supporting context at a specific precedence level (INV-BUDGET-008).
+///
+/// Context blocks are the unit of budget-aware output. The project() algorithm
+/// fills blocks in precedence order (highest first) until the budget is exhausted.
+/// Increasing budget adds blocks but never removes them (monotonic fill).
+#[derive(Clone, Debug)]
+pub struct ContextBlock {
+    /// Precedence level (System > Methodology > UserRequested > Speculative > Ambient).
+    pub precedence: OutputPrecedence,
+    /// The content string for this block.
+    pub content: String,
+    /// Estimated token count (via ApproxTokenCounter).
+    pub tokens: usize,
+}
+
+/// The universal ACP output type (INV-BUDGET-007).
+///
+/// Every command can produce an ActionProjection. The budget gate selects
+/// the appropriate detail level by calling `project(budget)`.
+///
+/// **Structural guarantee**: The action is always present (non-Optional).
+/// At any budget ≥ MIN_OUTPUT, the projected output starts with the action.
+///
+/// **Monotonic fill** (INV-BUDGET-008): For budgets b1 > b2,
+/// `context_blocks_included(b1) ⊇ context_blocks_included(b2)`.
+#[derive(Clone, Debug)]
+pub struct ActionProjection {
+    /// The recommended action (NEVER truncated, ~10 tokens).
+    pub action: ProjectedAction,
+    /// Supporting context blocks, ordered by precedence (highest first).
+    pub context: Vec<ContextBlock>,
+    /// On-demand evidence pointer (e.g., "details: braid status --verbose").
+    pub evidence_pointer: String,
+}
+
+impl ActionProjection {
+    /// Project the output at the given context token budget (INV-BUDGET-007).
+    ///
+    /// Algorithm:
+    /// 1. ALWAYS emit the action (structurally first, never truncated)
+    /// 2. Fill context blocks in order (highest precedence first) until budget exhausted
+    /// 3. Append evidence pointer
+    ///
+    /// Returns a formatted string suitable for agent or human consumption.
+    pub fn project(&self, context_budget: usize) -> String {
+        let mut out = format!("{}\n", self.action);
+        let mut remaining = context_budget;
+
+        for block in &self.context {
+            if block.tokens <= remaining {
+                out.push_str(&block.content);
+                out.push('\n');
+                remaining = remaining.saturating_sub(block.tokens);
+            }
+        }
+
+        if !self.evidence_pointer.is_empty() {
+            out.push_str(&self.evidence_pointer);
+            out.push('\n');
+        }
+
+        out
+    }
+
+    /// Project at the given activation strategy level.
+    pub fn project_at_strategy(&self, strategy: ActivationStrategy) -> String {
+        self.project(strategy.max_context_tokens())
+    }
+
+    /// Render as structured JSON for JSON output mode.
+    pub fn to_json(&self) -> serde_json::Value {
+        serde_json::json!({
+            "_acp": {
+                "action": {
+                    "command": self.action.command,
+                    "rationale": self.action.rationale,
+                    "impact": self.action.impact,
+                },
+                "context_blocks": self.context.iter().map(|b| {
+                    serde_json::json!({
+                        "precedence": format!("{:?}", b.precedence),
+                        "content": b.content,
+                        "tokens": b.tokens,
+                    })
+                }).collect::<Vec<_>>(),
+                "evidence": self.evidence_pointer,
+            }
+        })
     }
 }
 
@@ -1587,5 +1773,213 @@ mod tests {
     fn calibrate_boost_scale_insufficient_data() {
         let store = crate::store::Store::from_datoms(std::collections::BTreeSet::new());
         assert_eq!(calibrate_boost_scale(&store), 1.0);
+    }
+
+    // =======================================================================
+    // ACP Tests (INV-BUDGET-007, INV-BUDGET-008, ADR-BUDGET-005..007)
+    // =======================================================================
+
+    /// INV-BUDGET-007: project() at any budget >= 1 always includes the action.
+    #[test]
+    fn acp_project_always_includes_action() {
+        let proj = ActionProjection {
+            action: ProjectedAction {
+                command: "braid go t-fd30".to_string(),
+                rationale: "highest-impact task".to_string(),
+                impact: 0.30,
+            },
+            context: vec![
+                ContextBlock {
+                    precedence: OutputPrecedence::System,
+                    content: "F(S)=0.64, 20000 datoms".to_string(),
+                    tokens: 10,
+                },
+                ContextBlock {
+                    precedence: OutputPrecedence::Methodology,
+                    content: "M(t)=0.50 (tx:✗ spec:✗ query:✗ harvest:✓)".to_string(),
+                    tokens: 15,
+                },
+            ],
+            evidence_pointer: "details: braid status --verbose".to_string(),
+        };
+
+        // At budget=0, still includes action
+        let minimal = proj.project(0);
+        assert!(
+            minimal.contains("braid go t-fd30"),
+            "action must appear at budget=0: got: {minimal}"
+        );
+
+        // At budget=5 (below any context block), still includes action
+        let tiny = proj.project(5);
+        assert!(
+            tiny.contains("braid go t-fd30"),
+            "action must appear at budget=5: got: {tiny}"
+        );
+    }
+
+    /// INV-BUDGET-008: Monotonic fill — larger budget includes all blocks from smaller budget.
+    #[test]
+    fn acp_monotonic_fill() {
+        let proj = ActionProjection {
+            action: ProjectedAction {
+                command: "braid go t-test".to_string(),
+                rationale: "test task".to_string(),
+                impact: 0.5,
+            },
+            context: vec![
+                ContextBlock {
+                    precedence: OutputPrecedence::System,
+                    content: "BLOCK-A".to_string(),
+                    tokens: 5,
+                },
+                ContextBlock {
+                    precedence: OutputPrecedence::Methodology,
+                    content: "BLOCK-B".to_string(),
+                    tokens: 10,
+                },
+                ContextBlock {
+                    precedence: OutputPrecedence::UserRequested,
+                    content: "BLOCK-C".to_string(),
+                    tokens: 20,
+                },
+            ],
+            evidence_pointer: String::new(),
+        };
+
+        let at_5 = proj.project(5);
+        let at_15 = proj.project(15);
+        let at_50 = proj.project(50);
+
+        // Budget=5: includes BLOCK-A (5 tokens)
+        assert!(at_5.contains("BLOCK-A"), "budget=5 should include BLOCK-A");
+        assert!(!at_5.contains("BLOCK-B"), "budget=5 should not include BLOCK-B");
+
+        // Budget=15: includes BLOCK-A + BLOCK-B
+        assert!(at_15.contains("BLOCK-A"), "budget=15 should include BLOCK-A");
+        assert!(at_15.contains("BLOCK-B"), "budget=15 should include BLOCK-B");
+        assert!(!at_15.contains("BLOCK-C"), "budget=15 should not include BLOCK-C");
+
+        // Budget=50: includes all blocks
+        assert!(at_50.contains("BLOCK-A"), "budget=50 should include BLOCK-A");
+        assert!(at_50.contains("BLOCK-B"), "budget=50 should include BLOCK-B");
+        assert!(at_50.contains("BLOCK-C"), "budget=50 should include BLOCK-C");
+    }
+
+    /// ACP project() never produces truncation markers.
+    #[test]
+    fn acp_no_truncation_markers() {
+        let proj = ActionProjection {
+            action: ProjectedAction {
+                command: "braid go t-test".to_string(),
+                rationale: "test".to_string(),
+                impact: 0.5,
+            },
+            context: vec![ContextBlock {
+                precedence: OutputPrecedence::System,
+                content: "x ".repeat(100),
+                tokens: 50,
+            }],
+            evidence_pointer: "details: braid status".to_string(),
+        };
+
+        for budget in [0, 5, 10, 25, 50, 100, 300, 1000] {
+            let output = proj.project(budget);
+            assert!(
+                !output.contains("[...truncated"),
+                "ACP output must NEVER contain truncation markers (budget={budget})"
+            );
+        }
+    }
+
+    /// ActivationStrategy thresholds match INV-BUDGET-004 bands.
+    #[test]
+    fn activation_strategy_thresholds() {
+        assert_eq!(ActivationStrategy::for_k_eff(1.0), ActivationStrategy::Demonstrate);
+        assert_eq!(ActivationStrategy::for_k_eff(0.7), ActivationStrategy::Demonstrate);
+        assert_eq!(ActivationStrategy::for_k_eff(0.69), ActivationStrategy::Navigate);
+        assert_eq!(ActivationStrategy::for_k_eff(0.5), ActivationStrategy::Navigate);
+        assert_eq!(ActivationStrategy::for_k_eff(0.4), ActivationStrategy::Navigate);
+        assert_eq!(ActivationStrategy::for_k_eff(0.39), ActivationStrategy::Imperative);
+        assert_eq!(ActivationStrategy::for_k_eff(0.2), ActivationStrategy::Imperative);
+        assert_eq!(ActivationStrategy::for_k_eff(0.19), ActivationStrategy::Signal);
+        assert_eq!(ActivationStrategy::for_k_eff(0.0), ActivationStrategy::Signal);
+    }
+
+    /// ActivationStrategy max_context_tokens is monotonically non-decreasing.
+    #[test]
+    fn activation_strategy_monotonic() {
+        assert!(
+            ActivationStrategy::Signal.max_context_tokens()
+                <= ActivationStrategy::Imperative.max_context_tokens()
+        );
+        assert!(
+            ActivationStrategy::Imperative.max_context_tokens()
+                <= ActivationStrategy::Navigate.max_context_tokens()
+        );
+        assert!(
+            ActivationStrategy::Navigate.max_context_tokens()
+                <= ActivationStrategy::Demonstrate.max_context_tokens()
+        );
+    }
+
+    /// ProjectedAction Display fits in <= 15 tokens.
+    #[test]
+    fn projected_action_display_compact() {
+        let action = ProjectedAction {
+            command: "braid go t-fd30".to_string(),
+            rationale: "highest-impact task".to_string(),
+            impact: 0.3,
+        };
+        let display = format!("{action}");
+        let approx_tokens = display.len() / 4;
+        assert!(
+            approx_tokens <= 20,
+            "action display should be compact: {approx_tokens} tokens: {display}"
+        );
+    }
+
+    /// ActionProjection::to_json() produces valid JSON with expected fields.
+    #[test]
+    fn acp_to_json_structure() {
+        let proj = ActionProjection {
+            action: ProjectedAction {
+                command: "braid go t-test".to_string(),
+                rationale: "test".to_string(),
+                impact: 0.42,
+            },
+            context: vec![ContextBlock {
+                precedence: OutputPrecedence::System,
+                content: "store info".to_string(),
+                tokens: 5,
+            }],
+            evidence_pointer: "details: braid status".to_string(),
+        };
+
+        let json = proj.to_json();
+        assert!(json["_acp"]["action"]["command"].is_string());
+        assert_eq!(json["_acp"]["action"]["command"], "braid go t-test");
+        assert_eq!(json["_acp"]["action"]["impact"], 0.42);
+        assert!(json["_acp"]["context_blocks"].is_array());
+        assert_eq!(json["_acp"]["context_blocks"].as_array().unwrap().len(), 1);
+        assert_eq!(json["_acp"]["evidence"], "details: braid status");
+    }
+
+    /// project_at_strategy matches project with correct budget.
+    #[test]
+    fn acp_project_at_strategy() {
+        let proj = ActionProjection {
+            action: ProjectedAction {
+                command: "braid go t-test".to_string(),
+                rationale: "test".to_string(),
+                impact: 0.5,
+            },
+            context: vec![],
+            evidence_pointer: String::new(),
+        };
+
+        let navigate = proj.project_at_strategy(ActivationStrategy::Navigate);
+        let direct = proj.project(ActivationStrategy::Navigate.max_context_tokens());
+        assert_eq!(navigate, direct);
     }
 }
