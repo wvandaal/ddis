@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773884280/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-9e32"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5c16f80fc7cdf4ba489aa95b55875b1e1dc7df223a169a1d0eb433c3fecaa479" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "5c16f80fc7cdf4ba489aa95b55875b1e1dc7df223a169a1d0eb433c3fecaa479" :a :task/closed-at :v 1773884279 :op :assert}
+   {:e #blake3 "5c16f80fc7cdf4ba489aa95b55875b1e1dc7df223a169a1d0eb433c3fecaa479" :a :task/completion-evidence :v "Agent implemented extract_test_hashes with BLAKE3 in trace.rs. 9 new tests all passing. Handles #[test], proptest, kani proof." :op :assert}
+   {:e #blake3 "5c16f80fc7cdf4ba489aa95b55875b1e1dc7df223a169a1d0eb433c3fecaa479" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "5c16f80fc7cdf4ba489aa95b55875b1e1dc7df223a169a1d0eb433c3fecaa479" :a :task/status :v :task.status/closed :op :assert}
+ ]}
