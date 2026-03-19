@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773937295/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ACP DESIGN SESSION START: Action-Centric Projection is the unification of the output pipeline, guidance system, and budget management into a single algebraic structure. The key invariant: AT EVERY BUDGET LEVEL, THE AGENT CAN TAKE THE CORRECT NEXT ACTION. This is the compositional guarantee that dissolves the truncation problem. The action (R(t) recommendation) is structurally first and never truncated. Context fills around it in precedence order. Evidence is available on demand. The guidance footer disappears as a separate concept — the Action IS the primary output."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "026ad84a994eee52dc1553e4f9ef6c94cdd2b231f422ec449b74903adb492ed2" :a :db/doc :v "ACP DESIGN SESSION START: Action-Centric Projection is the unification of the output pipeline, guidance system, and budget management into a single algebraic structure. The key invariant: AT EVERY BUDGET LEVEL, THE AGENT CAN TAKE THE CORRECT NEXT ACTION. This is the compositional guarantee that dissolves the truncation problem. The action (R(t) recommendation) is structurally first and never truncated. Context fills around it in precedence order. Evidence is available on demand. The guidance footer disappears as a separate concept — the Action IS the primary output." :op :assert}
+   {:e #blake3 "026ad84a994eee52dc1553e4f9ef6c94cdd2b231f422ec449b74903adb492ed2" :a :db/ident :v :observation/acp-design-session-start-action-centric-projection-is-the-u :op :assert}
+   {:e #blake3 "026ad84a994eee52dc1553e4f9ef6c94cdd2b231f422ec449b74903adb492ed2" :a :exploration/body :v "ACP DESIGN SESSION START: Action-Centric Projection is the unification of the output pipeline, guidance system, and budget management into a single algebraic structure. The key invariant: AT EVERY BUDGET LEVEL, THE AGENT CAN TAKE THE CORRECT NEXT ACTION. This is the compositional guarantee that dissolves the truncation problem. The action (R(t) recommendation) is structurally first and never truncated. Context fills around it in precedence order. Evidence is available on demand. The guidance footer disappears as a separate concept — the Action IS the primary output." :op :assert}
+   {:e #blake3 "026ad84a994eee52dc1553e4f9ef6c94cdd2b231f422ec449b74903adb492ed2" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "026ad84a994eee52dc1553e4f9ef6c94cdd2b231f422ec449b74903adb492ed2" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "026ad84a994eee52dc1553e4f9ef6c94cdd2b231f422ec449b74903adb492ed2" :a :exploration/content-hash :v #bytes "3ba81ce7d13bdccce89ab493d7ee93be802499b16bb991ad4b5f3f71f4c6852d" :op :assert}
+   {:e #blake3 "026ad84a994eee52dc1553e4f9ef6c94cdd2b231f422ec449b74903adb492ed2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "026ad84a994eee52dc1553e4f9ef6c94cdd2b231f422ec449b74903adb492ed2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "026ad84a994eee52dc1553e4f9ef6c94cdd2b231f422ec449b74903adb492ed2" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
