@@ -1687,7 +1687,15 @@ pub fn apply_budget_gate(
         return output;
     }
 
-    // INV-BUDGET-005: per-command ceiling = min(global output_budget, profile ceiling).
+    // ACP bypass (INV-BUDGET-007): Commands that produced an ActionProjection
+    // have already self-managed their budget via project(). The _acp field
+    // in JSON signals that the command used ACP — skip the legacy budget gate
+    // to avoid double-gating (which would truncate already-projected output).
+    if output.json.get("_acp").is_some() {
+        return output;
+    }
+
+    // Legacy path: INV-BUDGET-005 per-command ceiling for non-ACP commands.
     let ceiling = budget_ctx.manager.command_budget(cmd_name) as usize;
 
     // Enforce ceiling on the human-readable representation.
