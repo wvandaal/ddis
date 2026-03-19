@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928615/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-007 \"Substrate-Agnostic Kernel with Pluggable Extractors\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0ca9f4dcf5bfa7ef958eb293cff3455f0d5ab2713add9fd166cc1ef34c87b033" :a :adr/decision :v "Three-layer architecture with the datom store as the universal injection boundary. Layer 1 (Kernel): pure computation over datoms — zero language awareness. BoundaryCheck, F(S), bilateral loop, guidance, routing all operate on entity sets only (NEG-BILATERAL-003). Layer 2 (Extractors): language-specific programs that analyze source code and produce datoms. Extractors are external to the kernel — they communicate exclusively by writing .edn transaction files to .braid/txns/. Any program in any language that can write EDN is an extractor. Layer 3 (Configuration): .braid/config declares which extractors to run and their scheduling. braid extract invokes configured extractors. Alternatives rejected: (1) Plugin system with dynamic loading — complexity, security, single-language lock-in. (2) Language-specific kernel modules — violates kernel purity, N*M maintenance burden. (3) Universal AST parsing — impossible to do well for all languages." :op :assert}
+   {:e #blake3 "0ca9f4dcf5bfa7ef958eb293cff3455f0d5ab2713add9fd166cc1ef34c87b033" :a :adr/problem :v "DDIS aims to maintain verifiable coherence for any project regardless of implementation language. But language-specific logic (file patterns, module structure, build tools) is needed to extract implementation facts. How to make the system language-agnostic without losing language-specific precision?" :op :assert}
+   {:e #blake3 "0ca9f4dcf5bfa7ef958eb293cff3455f0d5ab2713add9fd166cc1ef34c87b033" :a :db/doc :v "Substrate-Agnostic Kernel with Pluggable Extractors" :op :assert}
+   {:e #blake3 "0ca9f4dcf5bfa7ef958eb293cff3455f0d5ab2713add9fd166cc1ef34c87b033" :a :db/ident :v :spec/adr-foundation-007 :op :assert}
+   {:e #blake3 "0ca9f4dcf5bfa7ef958eb293cff3455f0d5ab2713add9fd166cc1ef34c87b033" :a :element/traces-to :v "SEED.md S4, SEED.md S8, ADR-BILATERAL-005, NEG-BILATERAL-003" :op :assert}
+   {:e #blake3 "0ca9f4dcf5bfa7ef958eb293cff3455f0d5ab2713add9fd166cc1ef34c87b033" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "0ca9f4dcf5bfa7ef958eb293cff3455f0d5ab2713add9fd166cc1ef34c87b033" :a :spec/id :v "ADR-FOUNDATION-007" :op :assert}
+   {:e #blake3 "0ca9f4dcf5bfa7ef958eb293cff3455f0d5ab2713add9fd166cc1ef34c87b033" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+ ]}

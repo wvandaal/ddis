@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928687/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SUBSTRATE-4: Generalize INV-REFLEXIVE-004 test — query :component/reachable datoms instead of checking Rust mod.rs structure directly (ADR-FOUNDATION-008). FILE: crates/braid-kernel/tests/cross_namespace.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "125c31211cfc2c4e2bf0d6e1f6380bfcf3b2d95ed508f7f8e175fb333b2b1d87" :a :db/ident :v :task/t-b58a1778 :op :assert}
+   {:e #blake3 "125c31211cfc2c4e2bf0d6e1f6380bfcf3b2d95ed508f7f8e175fb333b2b1d87" :a :task/created-at :v 1773928684 :op :assert}
+   {:e #blake3 "125c31211cfc2c4e2bf0d6e1f6380bfcf3b2d95ed508f7f8e175fb333b2b1d87" :a :task/id :v "t-b58a1778" :op :assert}
+   {:e #blake3 "125c31211cfc2c4e2bf0d6e1f6380bfcf3b2d95ed508f7f8e175fb333b2b1d87" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "125c31211cfc2c4e2bf0d6e1f6380bfcf3b2d95ed508f7f8e175fb333b2b1d87" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "125c31211cfc2c4e2bf0d6e1f6380bfcf3b2d95ed508f7f8e175fb333b2b1d87" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "125c31211cfc2c4e2bf0d6e1f6380bfcf3b2d95ed508f7f8e175fb333b2b1d87" :a :task/title :v "SUBSTRATE-4: Generalize INV-REFLEXIVE-004 test — query :component/reachable datoms instead of checking Rust mod.rs structure directly (ADR-FOUNDATION-008). FILE: crates/braid-kernel/tests/cross_namespace.rs" :op :assert}
+   {:e #blake3 "125c31211cfc2c4e2bf0d6e1f6380bfcf3b2d95ed508f7f8e175fb333b2b1d87" :a :task/traces-to :v #blake3 "b619970e5c805b1157b95ce4617d9c0c7dfa85147ef208e6dbf86bfb2451ea2b" :op :assert}
+   {:e #blake3 "125c31211cfc2c4e2bf0d6e1f6380bfcf3b2d95ed508f7f8e175fb333b2b1d87" :a :task/type :v :task.type/task :op :assert}
+ ]}

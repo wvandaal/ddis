@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773928690/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SUBSTRATE-7: Extractor contract test — verify any .edn file with :component/* datoms is a valid extractor output, verify kernel never reads .rs/.py/.go files (INV-FOUNDATION-001, INV-FOUNDATION-002). FILE: crates/braid-kernel/tests/cross_namespace.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cfb7e2db2907cd184cf36eba9118805479d4cc0f8dc57a15d4fe96ee4fde1b3f" :a :db/ident :v :task/t-381af1ad :op :assert}
+   {:e #blake3 "cfb7e2db2907cd184cf36eba9118805479d4cc0f8dc57a15d4fe96ee4fde1b3f" :a :task/created-at :v 1773928686 :op :assert}
+   {:e #blake3 "cfb7e2db2907cd184cf36eba9118805479d4cc0f8dc57a15d4fe96ee4fde1b3f" :a :task/id :v "t-381af1ad" :op :assert}
+   {:e #blake3 "cfb7e2db2907cd184cf36eba9118805479d4cc0f8dc57a15d4fe96ee4fde1b3f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "cfb7e2db2907cd184cf36eba9118805479d4cc0f8dc57a15d4fe96ee4fde1b3f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cfb7e2db2907cd184cf36eba9118805479d4cc0f8dc57a15d4fe96ee4fde1b3f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cfb7e2db2907cd184cf36eba9118805479d4cc0f8dc57a15d4fe96ee4fde1b3f" :a :task/title :v "SUBSTRATE-7: Extractor contract test — verify any .edn file with :component/* datoms is a valid extractor output, verify kernel never reads .rs/.py/.go files (INV-FOUNDATION-001, INV-FOUNDATION-002). FILE: crates/braid-kernel/tests/cross_namespace.rs" :op :assert}
+   {:e #blake3 "cfb7e2db2907cd184cf36eba9118805479d4cc0f8dc57a15d4fe96ee4fde1b3f" :a :task/traces-to :v #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :op :assert}
+   {:e #blake3 "cfb7e2db2907cd184cf36eba9118805479d4cc0f8dc57a15d4fe96ee4fde1b3f" :a :task/traces-to :v #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :op :assert}
+   {:e #blake3 "cfb7e2db2907cd184cf36eba9118805479d4cc0f8dc57a15d4fe96ee4fde1b3f" :a :task/type :v :task.type/test :op :assert}
+ ]}

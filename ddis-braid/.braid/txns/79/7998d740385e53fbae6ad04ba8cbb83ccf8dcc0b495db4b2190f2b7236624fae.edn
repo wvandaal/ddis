@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928626/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-001 \"Kernel Substrate Agnosticism\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :a :db/doc :v "Kernel Substrate Agnosticism" :op :assert}
+   {:e #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :a :db/ident :v :spec/inv-foundation-001 :op :assert}
+   {:e #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :a :element/traces-to :v "SEED.md S4, ADR-FOUNDATION-007, NEG-BILATERAL-003" :op :assert}
+   {:e #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :a :spec/falsification :v "A non-test function in braid-kernel contains a hardcoded file extension, language name, build tool reference, or project structure assumption" :op :assert}
+   {:e #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :a :spec/id :v "INV-FOUNDATION-001" :op :assert}
+   {:e #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :a :spec/statement :v "No function in braid-kernel may reference, parse, detect, or assume any specific programming language, file extension, build tool, or project convention. The kernel operates exclusively on datom entity sets. Language-specific knowledge enters the system only through extractor-produced datoms. Verified by: grep -rn '\\.rs\\|\\.py\\|\\.go\\|\\.js\\|\\.java\\|cargo\\|npm\\|pip\\|gradle' crates/braid-kernel/src/ returns zero matches outside of test fixtures and documentation." :op :assert}
+ ]}

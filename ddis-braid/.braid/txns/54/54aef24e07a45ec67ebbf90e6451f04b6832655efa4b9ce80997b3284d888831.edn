@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928688/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SUBSTRATE-5: Implement braid extract command — reads .braid/config for extractor list, invokes each, verifies output datoms (INV-FOUNDATION-002). FILE: crates/braid/src/commands/extract.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ca19759b9ae774a8c911678f2f146cb75488debf3a536f0fc0fac5fd7d39fc74" :a :db/ident :v :task/t-e7278a6e :op :assert}
+   {:e #blake3 "ca19759b9ae774a8c911678f2f146cb75488debf3a536f0fc0fac5fd7d39fc74" :a :task/created-at :v 1773928685 :op :assert}
+   {:e #blake3 "ca19759b9ae774a8c911678f2f146cb75488debf3a536f0fc0fac5fd7d39fc74" :a :task/id :v "t-e7278a6e" :op :assert}
+   {:e #blake3 "ca19759b9ae774a8c911678f2f146cb75488debf3a536f0fc0fac5fd7d39fc74" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ca19759b9ae774a8c911678f2f146cb75488debf3a536f0fc0fac5fd7d39fc74" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ca19759b9ae774a8c911678f2f146cb75488debf3a536f0fc0fac5fd7d39fc74" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ca19759b9ae774a8c911678f2f146cb75488debf3a536f0fc0fac5fd7d39fc74" :a :task/title :v "SUBSTRATE-5: Implement braid extract command — reads .braid/config for extractor list, invokes each, verifies output datoms (INV-FOUNDATION-002). FILE: crates/braid/src/commands/extract.rs" :op :assert}
+   {:e #blake3 "ca19759b9ae774a8c911678f2f146cb75488debf3a536f0fc0fac5fd7d39fc74" :a :task/traces-to :v #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :op :assert}
+   {:e #blake3 "ca19759b9ae774a8c911678f2f146cb75488debf3a536f0fc0fac5fd7d39fc74" :a :task/type :v :task.type/feature :op :assert}
+ ]}

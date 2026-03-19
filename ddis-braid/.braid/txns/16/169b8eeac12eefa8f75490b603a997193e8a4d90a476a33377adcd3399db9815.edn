@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928683/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Substrate-Agnostic Kernel — remove all language coupling, establish extractor architecture (ADR-FOUNDATION-007, INV-FOUNDATION-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :db/ident :v :task/t-552d99df :op :assert}
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/created-at :v 1773928682 :op :assert}
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/id :v "t-552d99df" :op :assert}
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/title :v "EPIC: Substrate-Agnostic Kernel — remove all language coupling, establish extractor architecture (ADR-FOUNDATION-007, INV-FOUNDATION-001)" :op :assert}
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/traces-to :v #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :op :assert}
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/type :v :task.type/epic :op :assert}
+ ]}

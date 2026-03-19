@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928684/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SUBSTRATE-1: Register abstract component schema — :component/id, /name, /type, /reachable, /tested, /parent + :composition/from, /to, /type (ADR-FOUNDATION-008). FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9634c1b5b56c2748b1ef7c09f141653d618d2a0a09e8162d4f28a06500b92300" :a :db/ident :v :task/t-ae46a5c4 :op :assert}
+   {:e #blake3 "9634c1b5b56c2748b1ef7c09f141653d618d2a0a09e8162d4f28a06500b92300" :a :task/created-at :v 1773928683 :op :assert}
+   {:e #blake3 "9634c1b5b56c2748b1ef7c09f141653d618d2a0a09e8162d4f28a06500b92300" :a :task/id :v "t-ae46a5c4" :op :assert}
+   {:e #blake3 "9634c1b5b56c2748b1ef7c09f141653d618d2a0a09e8162d4f28a06500b92300" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9634c1b5b56c2748b1ef7c09f141653d618d2a0a09e8162d4f28a06500b92300" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9634c1b5b56c2748b1ef7c09f141653d618d2a0a09e8162d4f28a06500b92300" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9634c1b5b56c2748b1ef7c09f141653d618d2a0a09e8162d4f28a06500b92300" :a :task/title :v "SUBSTRATE-1: Register abstract component schema — :component/id, /name, /type, /reachable, /tested, /parent + :composition/from, /to, /type (ADR-FOUNDATION-008). FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "9634c1b5b56c2748b1ef7c09f141653d618d2a0a09e8162d4f28a06500b92300" :a :task/type :v :task.type/task :op :assert}
+ ]}

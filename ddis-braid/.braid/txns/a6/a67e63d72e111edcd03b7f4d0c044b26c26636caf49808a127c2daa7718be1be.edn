@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928691/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SUBSTRATE-8: Wire abstract component graph into ImplEntryBoundary — lateral scan queries :component/reachable + :component/tested instead of language-specific attributes (INV-BILATERAL-008, ADR-FOUNDATION-008). FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0d41acf21848fb8c1f52c897d7e7f032dcf19f34f40eb0d9a8cf2b282f89f8ee" :a :db/ident :v :task/t-2caefb10 :op :assert}
+   {:e #blake3 "0d41acf21848fb8c1f52c897d7e7f032dcf19f34f40eb0d9a8cf2b282f89f8ee" :a :task/created-at :v 1773928687 :op :assert}
+   {:e #blake3 "0d41acf21848fb8c1f52c897d7e7f032dcf19f34f40eb0d9a8cf2b282f89f8ee" :a :task/id :v "t-2caefb10" :op :assert}
+   {:e #blake3 "0d41acf21848fb8c1f52c897d7e7f032dcf19f34f40eb0d9a8cf2b282f89f8ee" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "0d41acf21848fb8c1f52c897d7e7f032dcf19f34f40eb0d9a8cf2b282f89f8ee" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0d41acf21848fb8c1f52c897d7e7f032dcf19f34f40eb0d9a8cf2b282f89f8ee" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0d41acf21848fb8c1f52c897d7e7f032dcf19f34f40eb0d9a8cf2b282f89f8ee" :a :task/title :v "SUBSTRATE-8: Wire abstract component graph into ImplEntryBoundary — lateral scan queries :component/reachable + :component/tested instead of language-specific attributes (INV-BILATERAL-008, ADR-FOUNDATION-008). FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "0d41acf21848fb8c1f52c897d7e7f032dcf19f34f40eb0d9a8cf2b282f89f8ee" :a :task/traces-to :v #blake3 "04ad8c3adfed703f368e41a66a3cb769d45cb883dabaf041efe389b26e662b36" :op :assert}
+   {:e #blake3 "0d41acf21848fb8c1f52c897d7e7f032dcf19f34f40eb0d9a8cf2b282f89f8ee" :a :task/type :v :task.type/task :op :assert}
+ ]}

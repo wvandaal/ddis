@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928685/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SUBSTRATE-2: Decouple extract_task_files from Rust patterns — keep FILE: marker parsing (language-agnostic), move crates/*.rs pattern to Rust extractor (INV-FOUNDATION-001). FILE: crates/braid-kernel/src/topology.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "045d62dba2aebe266d33bdbda7754f369f88543b65c70381ed33baf319e7e568" :a :db/ident :v :task/t-d3b52b30 :op :assert}
+   {:e #blake3 "045d62dba2aebe266d33bdbda7754f369f88543b65c70381ed33baf319e7e568" :a :task/created-at :v 1773928683 :op :assert}
+   {:e #blake3 "045d62dba2aebe266d33bdbda7754f369f88543b65c70381ed33baf319e7e568" :a :task/id :v "t-d3b52b30" :op :assert}
+   {:e #blake3 "045d62dba2aebe266d33bdbda7754f369f88543b65c70381ed33baf319e7e568" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "045d62dba2aebe266d33bdbda7754f369f88543b65c70381ed33baf319e7e568" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "045d62dba2aebe266d33bdbda7754f369f88543b65c70381ed33baf319e7e568" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "045d62dba2aebe266d33bdbda7754f369f88543b65c70381ed33baf319e7e568" :a :task/title :v "SUBSTRATE-2: Decouple extract_task_files from Rust patterns — keep FILE: marker parsing (language-agnostic), move crates/*.rs pattern to Rust extractor (INV-FOUNDATION-001). FILE: crates/braid-kernel/src/topology.rs" :op :assert}
+   {:e #blake3 "045d62dba2aebe266d33bdbda7754f369f88543b65c70381ed33baf319e7e568" :a :task/traces-to :v #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :op :assert}
+   {:e #blake3 "045d62dba2aebe266d33bdbda7754f369f88543b65c70381ed33baf319e7e568" :a :task/type :v :task.type/task :op :assert}
+ ]}

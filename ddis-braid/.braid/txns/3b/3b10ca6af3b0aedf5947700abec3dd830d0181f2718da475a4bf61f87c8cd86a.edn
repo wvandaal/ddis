@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928651/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-008 \"Abstract Component Model over Language-Specific Entities\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8877210815b16ac420b96be555983a0fd446f578edb42a0eae5551fad589754c" :a :adr/decision :v "Define an abstract component model via datom attributes: :component/id (unique identifier), :component/name (human-readable), :component/type (keyword: module/function/class/package/etc.), :component/reachable (boolean, set by reachability analysis), :component/tested (boolean, has verification artifact), :component/parent (ref to containing component), :composition/from + :composition/to (directed edges in composition graph), :composition/type (keyword: import/call/inherit/contain). Language-specific extractors map their domain concepts to this abstract model. The kernel BoundaryCheck implementations query only :component/* and :composition/* attributes — never language-specific attributes. Alternatives rejected: (1) Per-language entity schemas — N schemas to maintain, kernel must know all. (2) Unstructured :impl/file strings — no graph structure for reachability analysis." :op :assert}
+   {:e #blake3 "8877210815b16ac420b96be555983a0fd446f578edb42a0eae5551fad589754c" :a :adr/problem :v "Different languages have different composition primitives (Rust modules, Python packages, Go packages, JS exports). The bilateral loop needs a uniform representation to compute reachability across any language." :op :assert}
+   {:e #blake3 "8877210815b16ac420b96be555983a0fd446f578edb42a0eae5551fad589754c" :a :db/doc :v "Abstract Component Model over Language-Specific Entities" :op :assert}
+   {:e #blake3 "8877210815b16ac420b96be555983a0fd446f578edb42a0eae5551fad589754c" :a :db/ident :v :spec/adr-foundation-008 :op :assert}
+   {:e #blake3 "8877210815b16ac420b96be555983a0fd446f578edb42a0eae5551fad589754c" :a :element/traces-to :v "SEED.md S4, ADR-FOUNDATION-007, INV-BILATERAL-008, ADR-BILATERAL-006" :op :assert}
+   {:e #blake3 "8877210815b16ac420b96be555983a0fd446f578edb42a0eae5551fad589754c" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "8877210815b16ac420b96be555983a0fd446f578edb42a0eae5551fad589754c" :a :spec/id :v "ADR-FOUNDATION-008" :op :assert}
+   {:e #blake3 "8877210815b16ac420b96be555983a0fd446f578edb42a0eae5551fad589754c" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+ ]}

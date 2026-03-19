@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928661/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-FOUNDATION-001 \"No Language Detection in Kernel\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f56bc96a883830d6745f389cbef7e7c4706de8703b4224acc620b735039b97e6" :a :db/doc :v "No Language Detection in Kernel" :op :assert}
+   {:e #blake3 "f56bc96a883830d6745f389cbef7e7c4706de8703b4224acc620b735039b97e6" :a :db/ident :v :spec/neg-foundation-001 :op :assert}
+   {:e #blake3 "f56bc96a883830d6745f389cbef7e7c4706de8703b4224acc620b735039b97e6" :a :element/traces-to :v "SEED.md S4, ADR-FOUNDATION-007, INV-FOUNDATION-001" :op :assert}
+   {:e #blake3 "f56bc96a883830d6745f389cbef7e7c4706de8703b4224acc620b735039b97e6" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "f56bc96a883830d6745f389cbef7e7c4706de8703b4224acc620b735039b97e6" :a :spec/falsification :v "A kernel function contains a match/if on file extension, project file (Cargo.toml, package.json, go.mod), or language name to change its behavior" :op :assert}
+   {:e #blake3 "f56bc96a883830d6745f389cbef7e7c4706de8703b4224acc620b735039b97e6" :a :spec/id :v "NEG-FOUNDATION-001" :op :assert}
+   {:e #blake3 "f56bc96a883830d6745f389cbef7e7c4706de8703b4224acc620b735039b97e6" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "f56bc96a883830d6745f389cbef7e7c4706de8703b4224acc620b735039b97e6" :a :spec/statement :v "The braid-kernel crate must never detect, infer, or branch on the implementation language of the project. Language detection belongs exclusively in the CLI layer or in extractor configuration. The kernel receives datoms and computes over them — it does not know what produced them." :op :assert}
+ ]}

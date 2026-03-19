@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928637/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-002 \"Extractor Contract: EDN-Only Interface\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :a :db/doc :v "Extractor Contract: EDN-Only Interface" :op :assert}
+   {:e #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :a :db/ident :v :spec/inv-foundation-002 :op :assert}
+   {:e #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :a :element/traces-to :v "SEED.md S4, ADR-FOUNDATION-007" :op :assert}
+   {:e #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :a :spec/falsification :v "An extractor must link against braid libraries, implement a Rust trait, or use a protocol other than .edn file writing to contribute datoms" :op :assert}
+   {:e #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :a :spec/id :v "INV-FOUNDATION-002" :op :assert}
+   {:e #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :a :spec/statement :v "An extractor is any program that (1) reads project files and/or the braid store, (2) produces implementation datoms, and (3) writes them as .edn transaction files to .braid/txns/. The extractor contract is defined entirely by the datom schema — not by a plugin API, RPC protocol, or shared library interface. Any program in any language that can write EDN satisfies the contract." :op :assert}
+ ]}

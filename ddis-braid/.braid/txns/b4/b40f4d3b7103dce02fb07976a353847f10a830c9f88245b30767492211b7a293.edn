@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928686/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SUBSTRATE-3: Decouple agent_name_from_files — remove .rs suffix stripping, use generic path stem extraction (INV-FOUNDATION-001). FILE: crates/braid-kernel/src/topology.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "097d6f26452405a553df702fe40bde6b61e4693d396d48c47e05210458084f8e" :a :db/ident :v :task/t-bc7d87d5 :op :assert}
+   {:e #blake3 "097d6f26452405a553df702fe40bde6b61e4693d396d48c47e05210458084f8e" :a :task/created-at :v 1773928684 :op :assert}
+   {:e #blake3 "097d6f26452405a553df702fe40bde6b61e4693d396d48c47e05210458084f8e" :a :task/id :v "t-bc7d87d5" :op :assert}
+   {:e #blake3 "097d6f26452405a553df702fe40bde6b61e4693d396d48c47e05210458084f8e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "097d6f26452405a553df702fe40bde6b61e4693d396d48c47e05210458084f8e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "097d6f26452405a553df702fe40bde6b61e4693d396d48c47e05210458084f8e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "097d6f26452405a553df702fe40bde6b61e4693d396d48c47e05210458084f8e" :a :task/title :v "SUBSTRATE-3: Decouple agent_name_from_files — remove .rs suffix stripping, use generic path stem extraction (INV-FOUNDATION-001). FILE: crates/braid-kernel/src/topology.rs" :op :assert}
+   {:e #blake3 "097d6f26452405a553df702fe40bde6b61e4693d396d48c47e05210458084f8e" :a :task/traces-to :v #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :op :assert}
+   {:e #blake3 "097d6f26452405a553df702fe40bde6b61e4693d396d48c47e05210458084f8e" :a :task/type :v :task.type/task :op :assert}
+ ]}

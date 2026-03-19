@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928689/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SUBSTRATE-6: Built-in Rust extractor — braid extract rust scans Cargo workspace, populates :component/* datoms for modules/functions, computes :component/reachable via mod.rs analysis (ADR-FOUNDATION-007). FILE: crates/braid/src/extractors/rust.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a5eda3866a05f37be48dac0119e6929ea4bba0a06d09fb1d0c01bbb9ef443eb5" :a :db/ident :v :task/t-86c6892d :op :assert}
+   {:e #blake3 "a5eda3866a05f37be48dac0119e6929ea4bba0a06d09fb1d0c01bbb9ef443eb5" :a :task/created-at :v 1773928685 :op :assert}
+   {:e #blake3 "a5eda3866a05f37be48dac0119e6929ea4bba0a06d09fb1d0c01bbb9ef443eb5" :a :task/id :v "t-86c6892d" :op :assert}
+   {:e #blake3 "a5eda3866a05f37be48dac0119e6929ea4bba0a06d09fb1d0c01bbb9ef443eb5" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a5eda3866a05f37be48dac0119e6929ea4bba0a06d09fb1d0c01bbb9ef443eb5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a5eda3866a05f37be48dac0119e6929ea4bba0a06d09fb1d0c01bbb9ef443eb5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a5eda3866a05f37be48dac0119e6929ea4bba0a06d09fb1d0c01bbb9ef443eb5" :a :task/title :v "SUBSTRATE-6: Built-in Rust extractor — braid extract rust scans Cargo workspace, populates :component/* datoms for modules/functions, computes :component/reachable via mod.rs analysis (ADR-FOUNDATION-007). FILE: crates/braid/src/extractors/rust.rs" :op :assert}
+   {:e #blake3 "a5eda3866a05f37be48dac0119e6929ea4bba0a06d09fb1d0c01bbb9ef443eb5" :a :task/type :v :task.type/feature :op :assert}
+ ]}
