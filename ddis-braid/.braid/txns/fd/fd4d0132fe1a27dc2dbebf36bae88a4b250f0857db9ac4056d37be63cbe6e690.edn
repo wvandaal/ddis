@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773878821/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HARVEST-SESSION-LABEL: Use sensible fallback when no active session entity exists (INV-HARVEST-002). BACKGROUND: Harvest says 'Session 021' even in Session 025 because no braid session start was run. The harvest auto-detects session name from the last session entity. FIX: In harvest.rs infer_task(), when no active session entity exists, use 'unsessioned harvest (N txns since last harvest)' instead of the prior session's name. Also: consider auto-creating a lightweight session entity on first braid command if none exists — just :session/started-at and :session/status/active, no task description. This way the session always has an identity without requiring explicit braid session start. TRACES TO: INV-HARVEST-002. FILE: crates/braid/src/commands/harvest.rs. ACCEPTANCE: Harvest without braid session start shows 'unsessioned harvest' not 'Session 021'."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "234d4dbd5bd60abec8f55c7b0011249cb380befe4274fd736aeb8eea62bd43ea" :a :db/ident :v :task/t-f73828f8 :op :assert}
+   {:e #blake3 "234d4dbd5bd60abec8f55c7b0011249cb380befe4274fd736aeb8eea62bd43ea" :a :task/created-at :v 1773878819 :op :assert}
+   {:e #blake3 "234d4dbd5bd60abec8f55c7b0011249cb380befe4274fd736aeb8eea62bd43ea" :a :task/id :v "t-f73828f8" :op :assert}
+   {:e #blake3 "234d4dbd5bd60abec8f55c7b0011249cb380befe4274fd736aeb8eea62bd43ea" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "234d4dbd5bd60abec8f55c7b0011249cb380befe4274fd736aeb8eea62bd43ea" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "234d4dbd5bd60abec8f55c7b0011249cb380befe4274fd736aeb8eea62bd43ea" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "234d4dbd5bd60abec8f55c7b0011249cb380befe4274fd736aeb8eea62bd43ea" :a :task/title :v "HARVEST-SESSION-LABEL: Use sensible fallback when no active session entity exists (INV-HARVEST-002). BACKGROUND: Harvest says 'Session 021' even in Session 025 because no braid session start was run. The harvest auto-detects session name from the last session entity. FIX: In harvest.rs infer_task(), when no active session entity exists, use 'unsessioned harvest (N txns since last harvest)' instead of the prior session's name. Also: consider auto-creating a lightweight session entity on first braid command if none exists — just :session/started-at and :session/status/active, no task description. This way the session always has an identity without requiring explicit braid session start. TRACES TO: INV-HARVEST-002. FILE: crates/braid/src/commands/harvest.rs. ACCEPTANCE: Harvest without braid session start shows 'unsessioned harvest' not 'Session 021'." :op :assert}
+   {:e #blake3 "234d4dbd5bd60abec8f55c7b0011249cb380befe4274fd736aeb8eea62bd43ea" :a :task/traces-to :v #blake3 "8164ecc09e37e32f1ab4672303951c53bd0650c069cfd274c477bdc976457cb5" :op :assert}
+   {:e #blake3 "234d4dbd5bd60abec8f55c7b0011249cb380befe4274fd736aeb8eea62bd43ea" :a :task/type :v :task.type/task :op :assert}
+ ]}
