@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773929108/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-003 \"Self-Describing Data Pipeline\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7f5a77ecbda930a14a70274bb424bdb3418a70716b2e921247fe73c34d6efec6" :a :db/doc :v "Self-Describing Data Pipeline" :op :assert}
+   {:e #blake3 "7f5a77ecbda930a14a70274bb424bdb3418a70716b2e921247fe73c34d6efec6" :a :db/ident :v :spec/inv-foundation-003 :op :assert}
+   {:e #blake3 "7f5a77ecbda930a14a70274bb424bdb3418a70716b2e921247fe73c34d6efec6" :a :element/traces-to :v "SEED.md S7, ADR-FOUNDATION-009, INV-BILATERAL-007" :op :assert}
+   {:e #blake3 "7f5a77ecbda930a14a70274bb424bdb3418a70716b2e921247fe73c34d6efec6" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "7f5a77ecbda930a14a70274bb424bdb3418a70716b2e921247fe73c34d6efec6" :a :spec/falsification :v "A BoundaryCheck exists with no corresponding :extractor/* entity, OR braid extract requires reading a config file outside the store to discover an extractor" :op :assert}
+   {:e #blake3 "7f5a77ecbda930a14a70274bb424bdb3418a70716b2e921247fe73c34d6efec6" :a :spec/id :v "INV-FOUNDATION-003" :op :assert}
+   {:e #blake3 "7f5a77ecbda930a14a70274bb424bdb3418a70716b2e921247fe73c34d6efec6" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "7f5a77ecbda930a14a70274bb424bdb3418a70716b2e921247fe73c34d6efec6" :a :spec/statement :v "The store contains entities describing every extractor needed to populate it. For each BoundaryCheck boundary B registered in the store, there exists an :extractor/* entity E where E's :extractor/boundary references B. braid extract can discover, invoke, and validate all extractors by querying the store alone — no external configuration required." :op :assert}
+ ]}

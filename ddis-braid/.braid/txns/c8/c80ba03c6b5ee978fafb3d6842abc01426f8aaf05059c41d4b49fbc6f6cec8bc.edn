@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773929143/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXTRACTOR-5: Wire extractor gaps into guidance — when BoundaryCheck has 0% coverage AND :extractor/* entity exists with status=recommended, guidance footer says 'install extractor: <command>' (INV-FOUNDATION-004). FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f3b944f9865185831a85c2e9bda561f0a4aa7d0617539ebc9a01bde371c355d7" :a :db/ident :v :task/t-f3061562 :op :assert}
+   {:e #blake3 "f3b944f9865185831a85c2e9bda561f0a4aa7d0617539ebc9a01bde371c355d7" :a :task/created-at :v 1773929141 :op :assert}
+   {:e #blake3 "f3b944f9865185831a85c2e9bda561f0a4aa7d0617539ebc9a01bde371c355d7" :a :task/id :v "t-f3061562" :op :assert}
+   {:e #blake3 "f3b944f9865185831a85c2e9bda561f0a4aa7d0617539ebc9a01bde371c355d7" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f3b944f9865185831a85c2e9bda561f0a4aa7d0617539ebc9a01bde371c355d7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f3b944f9865185831a85c2e9bda561f0a4aa7d0617539ebc9a01bde371c355d7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f3b944f9865185831a85c2e9bda561f0a4aa7d0617539ebc9a01bde371c355d7" :a :task/title :v "EXTRACTOR-5: Wire extractor gaps into guidance — when BoundaryCheck has 0% coverage AND :extractor/* entity exists with status=recommended, guidance footer says 'install extractor: <command>' (INV-FOUNDATION-004). FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "f3b944f9865185831a85c2e9bda561f0a4aa7d0617539ebc9a01bde371c355d7" :a :task/traces-to :v #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :op :assert}
+   {:e #blake3 "f3b944f9865185831a85c2e9bda561f0a4aa7d0617539ebc9a01bde371c355d7" :a :task/type :v :task.type/task :op :assert}
+ ]}

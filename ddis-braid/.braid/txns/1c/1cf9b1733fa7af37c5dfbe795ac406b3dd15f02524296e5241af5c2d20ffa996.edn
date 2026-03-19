@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773929144/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXTRACTOR-6: Built-in Git extractor — braid extract git populates :component/* for commits, branches, authors + :composition/* for merge edges (ADR-FOUNDATION-007). FILE: crates/braid/src/extractors/git.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "909d877b66c17b9a1e741128fabdd556d0b71e8eef174d44498dd363475fbe6d" :a :db/ident :v :task/t-50ae6933 :op :assert}
+   {:e #blake3 "909d877b66c17b9a1e741128fabdd556d0b71e8eef174d44498dd363475fbe6d" :a :task/created-at :v 1773929141 :op :assert}
+   {:e #blake3 "909d877b66c17b9a1e741128fabdd556d0b71e8eef174d44498dd363475fbe6d" :a :task/id :v "t-50ae6933" :op :assert}
+   {:e #blake3 "909d877b66c17b9a1e741128fabdd556d0b71e8eef174d44498dd363475fbe6d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "909d877b66c17b9a1e741128fabdd556d0b71e8eef174d44498dd363475fbe6d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "909d877b66c17b9a1e741128fabdd556d0b71e8eef174d44498dd363475fbe6d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "909d877b66c17b9a1e741128fabdd556d0b71e8eef174d44498dd363475fbe6d" :a :task/title :v "EXTRACTOR-6: Built-in Git extractor — braid extract git populates :component/* for commits, branches, authors + :composition/* for merge edges (ADR-FOUNDATION-007). FILE: crates/braid/src/extractors/git.rs" :op :assert}
+   {:e #blake3 "909d877b66c17b9a1e741128fabdd556d0b71e8eef174d44498dd363475fbe6d" :a :task/type :v :task.type/feature :op :assert}
+ ]}

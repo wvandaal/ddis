@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773929145/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXTRACTOR-7: Unit + integration tests — extractor entity CRUD, braid extract invocation, meta-extractor language detection, output validation, guidance wiring (INV-FOUNDATION-002..004). FILE: crates/braid-kernel/tests/cross_namespace.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1a16ef59a1603b7becc5cf45e08a1ddeb0fdcb51e774e4e6a99832e7447b0aa5" :a :db/ident :v :task/t-5c45b24d :op :assert}
+   {:e #blake3 "1a16ef59a1603b7becc5cf45e08a1ddeb0fdcb51e774e4e6a99832e7447b0aa5" :a :task/created-at :v 1773929142 :op :assert}
+   {:e #blake3 "1a16ef59a1603b7becc5cf45e08a1ddeb0fdcb51e774e4e6a99832e7447b0aa5" :a :task/id :v "t-5c45b24d" :op :assert}
+   {:e #blake3 "1a16ef59a1603b7becc5cf45e08a1ddeb0fdcb51e774e4e6a99832e7447b0aa5" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1a16ef59a1603b7becc5cf45e08a1ddeb0fdcb51e774e4e6a99832e7447b0aa5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1a16ef59a1603b7becc5cf45e08a1ddeb0fdcb51e774e4e6a99832e7447b0aa5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1a16ef59a1603b7becc5cf45e08a1ddeb0fdcb51e774e4e6a99832e7447b0aa5" :a :task/title :v "EXTRACTOR-7: Unit + integration tests — extractor entity CRUD, braid extract invocation, meta-extractor language detection, output validation, guidance wiring (INV-FOUNDATION-002..004). FILE: crates/braid-kernel/tests/cross_namespace.rs" :op :assert}
+   {:e #blake3 "1a16ef59a1603b7becc5cf45e08a1ddeb0fdcb51e774e4e6a99832e7447b0aa5" :a :task/traces-to :v #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :op :assert}
+   {:e #blake3 "1a16ef59a1603b7becc5cf45e08a1ddeb0fdcb51e774e4e6a99832e7447b0aa5" :a :task/type :v :task.type/test :op :assert}
+ ]}

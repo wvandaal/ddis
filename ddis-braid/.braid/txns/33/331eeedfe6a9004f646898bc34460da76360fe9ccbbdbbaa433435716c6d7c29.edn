@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773929098/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-009 \"Extractors as Datoms over Configuration Files\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1a61cf6da57eb8f2b4acbd717481495412ebdf84f15551164b42e3e8114394ba" :a :adr/decision :v "Extractor definitions are entities in the store with :extractor/* attributes (command, produces, schedule, boundary, status, last-run). Adding an extractor is a transaction. braid extract queries the store for :extractor/* entities and invokes their commands. The store drives its own data acquisition pipeline. No config files for extractor registration. Alternatives rejected: (1) Config file — independently maintained, can diverge. (2) Compiled-in registry — requires code changes to add extractors. (3) Plugin directory — filesystem convention, can diverge from store state." :op :assert}
+   {:e #blake3 "1a61cf6da57eb8f2b4acbd717481495412ebdf84f15551164b42e3e8114394ba" :a :adr/problem :v "How should extractors be registered and configured? Config files (.braid/config) are independently maintained metadata that can diverge from the store — the exact problem DDIS solves." :op :assert}
+   {:e #blake3 "1a61cf6da57eb8f2b4acbd717481495412ebdf84f15551164b42e3e8114394ba" :a :db/doc :v "Extractors as Datoms over Configuration Files" :op :assert}
+   {:e #blake3 "1a61cf6da57eb8f2b4acbd717481495412ebdf84f15551164b42e3e8114394ba" :a :db/ident :v :spec/adr-foundation-009 :op :assert}
+   {:e #blake3 "1a61cf6da57eb8f2b4acbd717481495412ebdf84f15551164b42e3e8114394ba" :a :element/traces-to :v "SEED.md S4, SEED.md S7, ADR-FOUNDATION-007, INV-FOUNDATION-002" :op :assert}
+   {:e #blake3 "1a61cf6da57eb8f2b4acbd717481495412ebdf84f15551164b42e3e8114394ba" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "1a61cf6da57eb8f2b4acbd717481495412ebdf84f15551164b42e3e8114394ba" :a :spec/id :v "ADR-FOUNDATION-009" :op :assert}
+   {:e #blake3 "1a61cf6da57eb8f2b4acbd717481495412ebdf84f15551164b42e3e8114394ba" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+ ]}

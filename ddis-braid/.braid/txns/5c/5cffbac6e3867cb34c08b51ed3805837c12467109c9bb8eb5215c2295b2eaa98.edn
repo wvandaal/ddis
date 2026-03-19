@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773929141/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXTRACTOR-3: Meta-extractor — scan project for language signals, transact :extractor/* recommendations (INV-FOUNDATION-004). Detect: Cargo.toml→Rust, package.json→TS, go.mod→Go, requirements.txt/pyproject.toml→Python, pom.xml→Java. FILE: crates/braid/src/commands/init.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ab77a6b01007a2865c7d2bb4b72b51ff768531782ab9bf2bff0ef83757cdea94" :a :db/ident :v :task/t-b47c7c79 :op :assert}
+   {:e #blake3 "ab77a6b01007a2865c7d2bb4b72b51ff768531782ab9bf2bff0ef83757cdea94" :a :task/created-at :v 1773929139 :op :assert}
+   {:e #blake3 "ab77a6b01007a2865c7d2bb4b72b51ff768531782ab9bf2bff0ef83757cdea94" :a :task/id :v "t-b47c7c79" :op :assert}
+   {:e #blake3 "ab77a6b01007a2865c7d2bb4b72b51ff768531782ab9bf2bff0ef83757cdea94" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ab77a6b01007a2865c7d2bb4b72b51ff768531782ab9bf2bff0ef83757cdea94" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ab77a6b01007a2865c7d2bb4b72b51ff768531782ab9bf2bff0ef83757cdea94" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ab77a6b01007a2865c7d2bb4b72b51ff768531782ab9bf2bff0ef83757cdea94" :a :task/title :v "EXTRACTOR-3: Meta-extractor — scan project for language signals, transact :extractor/* recommendations (INV-FOUNDATION-004). Detect: Cargo.toml→Rust, package.json→TS, go.mod→Go, requirements.txt/pyproject.toml→Python, pom.xml→Java. FILE: crates/braid/src/commands/init.rs" :op :assert}
+   {:e #blake3 "ab77a6b01007a2865c7d2bb4b72b51ff768531782ab9bf2bff0ef83757cdea94" :a :task/traces-to :v #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :op :assert}
+   {:e #blake3 "ab77a6b01007a2865c7d2bb4b72b51ff768531782ab9bf2bff0ef83757cdea94" :a :task/type :v :task.type/feature :op :assert}
+ ]}

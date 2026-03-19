@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773929139/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXTRACTOR-1: Register :extractor/* schema — /command, /produces, /schedule, /boundary, /status, /last-run, /language (ADR-FOUNDATION-009). FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "63d90f90a12ba45fba675172960883a33c7b7a41fb27724238680621efe72ade" :a :db/ident :v :task/t-92908e53 :op :assert}
+   {:e #blake3 "63d90f90a12ba45fba675172960883a33c7b7a41fb27724238680621efe72ade" :a :task/created-at :v 1773929138 :op :assert}
+   {:e #blake3 "63d90f90a12ba45fba675172960883a33c7b7a41fb27724238680621efe72ade" :a :task/id :v "t-92908e53" :op :assert}
+   {:e #blake3 "63d90f90a12ba45fba675172960883a33c7b7a41fb27724238680621efe72ade" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "63d90f90a12ba45fba675172960883a33c7b7a41fb27724238680621efe72ade" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "63d90f90a12ba45fba675172960883a33c7b7a41fb27724238680621efe72ade" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "63d90f90a12ba45fba675172960883a33c7b7a41fb27724238680621efe72ade" :a :task/title :v "EXTRACTOR-1: Register :extractor/* schema — /command, /produces, /schedule, /boundary, /status, /last-run, /language (ADR-FOUNDATION-009). FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "63d90f90a12ba45fba675172960883a33c7b7a41fb27724238680621efe72ade" :a :task/type :v :task.type/task :op :assert}
+ ]}

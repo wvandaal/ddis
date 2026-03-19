@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773929142/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EXTRACTOR-4: braid extract --verify validates extractor output — checks datoms conform to :extractor/produces namespace, schema types correct, no orphan refs (INV-FOUNDATION-002). FILE: crates/braid/src/commands/extract.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cdd8ff0d7ca7392eeaa34e8e79b0191c58deccb3dc9a82e31cd3c65923aafd3b" :a :db/ident :v :task/t-3a2dd7ce :op :assert}
+   {:e #blake3 "cdd8ff0d7ca7392eeaa34e8e79b0191c58deccb3dc9a82e31cd3c65923aafd3b" :a :task/created-at :v 1773929140 :op :assert}
+   {:e #blake3 "cdd8ff0d7ca7392eeaa34e8e79b0191c58deccb3dc9a82e31cd3c65923aafd3b" :a :task/id :v "t-3a2dd7ce" :op :assert}
+   {:e #blake3 "cdd8ff0d7ca7392eeaa34e8e79b0191c58deccb3dc9a82e31cd3c65923aafd3b" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "cdd8ff0d7ca7392eeaa34e8e79b0191c58deccb3dc9a82e31cd3c65923aafd3b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cdd8ff0d7ca7392eeaa34e8e79b0191c58deccb3dc9a82e31cd3c65923aafd3b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cdd8ff0d7ca7392eeaa34e8e79b0191c58deccb3dc9a82e31cd3c65923aafd3b" :a :task/title :v "EXTRACTOR-4: braid extract --verify validates extractor output — checks datoms conform to :extractor/produces namespace, schema types correct, no orphan refs (INV-FOUNDATION-002). FILE: crates/braid/src/commands/extract.rs" :op :assert}
+   {:e #blake3 "cdd8ff0d7ca7392eeaa34e8e79b0191c58deccb3dc9a82e31cd3c65923aafd3b" :a :task/traces-to :v #blake3 "66a6e00dc80d3f3975e4e65035d2f856c57cf14175a62eab1c1c4a9cc6c81c97" :op :assert}
+   {:e #blake3 "cdd8ff0d7ca7392eeaa34e8e79b0191c58deccb3dc9a82e31cd3c65923aafd3b" :a :task/type :v :task.type/task :op :assert}
+ ]}

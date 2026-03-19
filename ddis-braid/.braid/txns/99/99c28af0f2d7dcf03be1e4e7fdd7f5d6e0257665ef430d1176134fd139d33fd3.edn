@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773929120/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-004 \"Meta-Extractor Bootstrap\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :a :db/doc :v "Meta-Extractor Bootstrap" :op :assert}
+   {:e #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :a :db/ident :v :spec/inv-foundation-004 :op :assert}
+   {:e #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :a :element/traces-to :v "SEED.md S7, SEED.md S10, ADR-FOUNDATION-009, INV-FOUNDATION-003" :op :assert}
+   {:e #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :a :spec/falsification :v "braid init on a Python project with .py files produces no extractor recommendations, OR the guidance footer does not mention the missing extractor" :op :assert}
+   {:e #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :a :spec/id :v "INV-FOUNDATION-004" :op :assert}
+   {:e #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :a :spec/statement :v "braid init runs a meta-extractor that scans the project for language signals (file extensions, build manifests) and transacts :extractor/* recommendation entities. The guidance system surfaces these as actionable hints: 'Python project detected. Install extractor: pip install braid-extract-python'. The system bootstraps its own data pipeline from project structure." :op :assert}
+ ]}
