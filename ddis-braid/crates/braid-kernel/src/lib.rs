@@ -179,9 +179,9 @@ pub use store::{
 };
 pub use task::{
     all_tasks, check_dependency_acyclicity, close_task_datoms, compute_ready_set,
-    create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, parse_spec_refs,
-    resolve_spec_refs, resolve_task_status, set_attribute_datom, task_counts, task_summary,
-    update_status_datom, CreateTaskParams, TaskStatus, TaskSummary, TaskType,
+    create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, generate_title_levels,
+    parse_spec_refs, resolve_spec_refs, resolve_task_status, set_attribute_datom, task_counts,
+    task_summary, update_status_datom, CreateTaskParams, TaskStatus, TaskSummary, TaskType,
 };
 pub use topology::{
     agent_name_from_files, balance_assign, compute_file_coupling, emit_seed_for_agent,

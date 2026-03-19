@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773946672/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ea75df0c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "754e7f4fa0c41332028f25cbac7b395ba949430e13a006a2439595676f98bbb4" :a :task/close-reason :v "reconciliation_check() middleware implemented — centralized CRB gate with 3+ match threshold" :op :assert}
+   {:e #blake3 "754e7f4fa0c41332028f25cbac7b395ba949430e13a006a2439595676f98bbb4" :a :task/closed-at :v 1773946671 :op :assert}
+   {:e #blake3 "754e7f4fa0c41332028f25cbac7b395ba949430e13a006a2439595676f98bbb4" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "754e7f4fa0c41332028f25cbac7b395ba949430e13a006a2439595676f98bbb4" :a :task/status :v :task.status/closed :op :assert}
+ ]}

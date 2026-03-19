@@ -1684,7 +1684,19 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             ":task/title",
             ValueType::String,
             Cardinality::One,
-            "Human-readable task title",
+            "Human-readable task title (L3 — full detail for Demonstrate strategy)",
+        ),
+        attr(
+            ":task/title-l0",
+            ValueType::String,
+            Cardinality::One,
+            "Ultra-short title (~4 words, ≤25 chars) for Imperative/Signal ACP strategy",
+        ),
+        attr(
+            ":task/title-l1",
+            ValueType::String,
+            Cardinality::One,
+            "Short title (~12 words, ≤80 chars) for Navigate ACP strategy",
         ),
         attr(
             ":task/description",

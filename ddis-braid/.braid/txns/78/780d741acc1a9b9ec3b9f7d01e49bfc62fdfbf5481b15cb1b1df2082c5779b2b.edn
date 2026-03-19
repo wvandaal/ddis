@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773946674/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7da6077b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cc14f2bb0076b31207366e9a9ca5262e3e4299780e992021be089c79003b395c" :a :task/close-reason :v "Per-boundary coverage display in status output — shows coverage + gap count per boundary" :op :assert}
+   {:e #blake3 "cc14f2bb0076b31207366e9a9ca5262e3e4299780e992021be089c79003b395c" :a :task/closed-at :v 1773946673 :op :assert}
+   {:e #blake3 "cc14f2bb0076b31207366e9a9ca5262e3e4299780e992021be089c79003b395c" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "cc14f2bb0076b31207366e9a9ca5262e3e4299780e992021be089c79003b395c" :a :task/status :v :task.status/closed :op :assert}
+ ]}

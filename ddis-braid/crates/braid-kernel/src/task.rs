@@ -190,6 +190,106 @@ pub fn generate_task_id(title: &str) -> String {
 }
 
 // ---------------------------------------------------------------------------
+// Title Pyramid (ACP-7, INV-INTERFACE-008, ADR-BUDGET-006)
+// ---------------------------------------------------------------------------
+
+/// Generate multi-resolution title summaries for ACP projection.
+///
+/// Returns (L0, L1) where:
+/// - L0: ultra-short (~4 words, ≤25 chars) — for Imperative/Signal strategy
+/// - L1: short (~12 words, ≤80 chars) — for Navigate strategy
+/// - L2 is the existing :task/title truncated to first sentence (done at query time)
+///
+/// The full :task/title is L3 (Demonstrate strategy).
+///
+/// Extraction algorithm:
+/// 1. Extract prefix (before first `:` or `—` or ` - `), e.g., "TOPO-CALM"
+/// 2. Extract body (after prefix separator)
+/// 3. L0 = prefix if ≤25 chars, else first 3 significant words of body
+/// 4. L1 = prefix + first sentence of body, capped at 80 chars
+pub fn generate_title_levels(title: &str) -> (String, String) {
+    // Find the prefix separator: first `:` or ` — ` or ` - `
+    let (prefix, body) = if let Some(pos) = title.find(':') {
+        let p = title[..pos].trim();
+        let b = title[pos + 1..].trim();
+        (p, b)
+    } else if let Some(pos) = title.find(" \u{2014} ") {
+        let p = title[..pos].trim();
+        // em-dash is 3 bytes, plus 2 spaces = 5 bytes total
+        let sep_len = " \u{2014} ".len();
+        let b = title[pos + sep_len..].trim();
+        (p, b)
+    } else if let Some(pos) = title.find(" - ") {
+        let p = title[..pos].trim();
+        let b = title[pos + 3..].trim();
+        (p, b)
+    } else {
+        ("", title.trim())
+    };
+
+    // L0: ultra-short
+    let l0 = if !prefix.is_empty() && prefix.len() <= 25 {
+        prefix.to_string()
+    } else {
+        // Take first 3 significant words from body
+        let words: Vec<&str> = body.split_whitespace().take(4).collect();
+        let candidate = words.join(" ");
+        if candidate.len() <= 25 {
+            candidate
+        } else {
+            // Truncate at word boundary
+            let mut end = 0;
+            for (i, _) in candidate.char_indices() {
+                if i > 25 {
+                    break;
+                }
+                end = i;
+            }
+            candidate[..end].trim_end().to_string()
+        }
+    };
+
+    // L1: prefix + first sentence of body, capped at 80 chars
+    let first_sentence = body
+        .split_once(". ")
+        .map(|(s, _)| s)
+        .unwrap_or(body);
+
+    let l1 = if !prefix.is_empty() {
+        let candidate = format!("{}: {}", prefix, first_sentence);
+        if candidate.len() <= 80 {
+            candidate
+        } else {
+            // Truncate at char boundary
+            let mut end = 0;
+            for (i, _) in candidate.char_indices() {
+                if i > 77 {
+                    break;
+                }
+                end = i;
+            }
+            format!("{}...", &candidate[..end].trim_end())
+        }
+    } else {
+        let candidate = first_sentence.to_string();
+        if candidate.len() <= 80 {
+            candidate
+        } else {
+            let mut end = 0;
+            for (i, _) in candidate.char_indices() {
+                if i > 77 {
+                    break;
+                }
+                end = i;
+            }
+            format!("{}...", &candidate[..end].trim_end())
+        }
+    };
+
+    (l0, l1)
+}
+
+// ---------------------------------------------------------------------------
 // Datom construction
 // ---------------------------------------------------------------------------
 
@@ -291,6 +391,23 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
             Op::Assert,
         ),
     ];
+
+    // ACP-7: Generate title pyramid L0/L1 for multi-resolution display
+    let (title_l0, title_l1) = generate_title_levels(title);
+    datoms.push(Datom::new(
+        entity,
+        Attribute::from_keyword(":task/title-l0"),
+        Value::String(title_l0),
+        tx,
+        Op::Assert,
+    ));
+    datoms.push(Datom::new(
+        entity,
+        Attribute::from_keyword(":task/title-l1"),
+        Value::String(title_l1),
+        tx,
+        Op::Assert,
+    ));
 
     if let Some(desc) = description {
         datoms.push(Datom::new(
@@ -1605,5 +1722,88 @@ mod tests {
             description: "check manually".to_string(),
         };
         assert!(run_verification(&store, &pattern).is_err());
+    }
+
+    // =======================================================================
+    // Title Pyramid Tests (ACP-7, INV-INTERFACE-008)
+    // =======================================================================
+
+    #[test]
+    fn title_pyramid_prefix_colon() {
+        let (l0, l1) = generate_title_levels(
+            "TOPO-CALM: Implement CALM classification of task phases — Tier M (parallel) vs Tier NM (sequential barrier)"
+        );
+        assert_eq!(l0, "TOPO-CALM");
+        assert!(l1.starts_with("TOPO-CALM:"));
+        assert!(l1.len() <= 80, "L1 should be ≤80 chars: {}", l1.len());
+    }
+
+    #[test]
+    fn title_pyramid_prefix_dash() {
+        let (l0, l1) = generate_title_levels(
+            "BOUNDARY-1 — BoundaryCheck trait + BoundaryDivergence types"
+        );
+        assert_eq!(l0, "BOUNDARY-1");
+        assert!(l1.contains("BOUNDARY-1"));
+        assert!(l1.len() <= 80);
+    }
+
+    #[test]
+    fn title_pyramid_no_prefix() {
+        let (l0, l1) = generate_title_levels(
+            "Implement schema validation for cardinality and retraction"
+        );
+        assert!(l0.len() <= 25, "L0 should be ≤25 chars: {}", l0.len());
+        assert!(l1.len() <= 80, "L1 should be ≤80 chars: {}", l1.len());
+    }
+
+    #[test]
+    fn title_pyramid_l0_fits_budget() {
+        // Test with various real task titles
+        let titles = vec![
+            "ACP-1: Define ActionProjection types in budget.rs",
+            "CRB-7: Broaden reconciliation scan to ALL knowledge layers",
+            "EPIC: Value Slice 1 — Task Management + CRB Gates",
+            "TEST: E2E LLM surface validation script",
+            "S1: Implement schema validation for cardinality",
+        ];
+        for title in titles {
+            let (l0, l1) = generate_title_levels(title);
+            assert!(
+                l0.len() <= 25,
+                "L0 too long for '{}': '{}' ({})",
+                title,
+                l0,
+                l0.len()
+            );
+            assert!(
+                l1.len() <= 80,
+                "L1 too long for '{}': '{}' ({})",
+                title,
+                l1,
+                l1.len()
+            );
+        }
+    }
+
+    #[test]
+    fn title_pyramid_deterministic() {
+        let title = "ACP-5: Implement status projection";
+        let (l0a, l1a) = generate_title_levels(title);
+        let (l0b, l1b) = generate_title_levels(title);
+        assert_eq!(l0a, l0b);
+        assert_eq!(l1a, l1b);
+    }
+
+    #[test]
+    fn title_pyramid_l0_is_substring_of_l1() {
+        let (l0, l1) = generate_title_levels("BOUNDARY-1: BoundaryCheck trait definition");
+        // L0 (prefix) should appear in L1
+        assert!(
+            l1.contains(&l0),
+            "L0 '{}' should be substring of L1 '{}'",
+            l0,
+            l1
+        );
     }
 }
