@@ -859,6 +859,93 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
 }
 
 // ---------------------------------------------------------------------------
+// ACP Action Extraction (INV-BUDGET-009)
+// ---------------------------------------------------------------------------
+
+/// Compute the recommended action from the store state (INV-BUDGET-009).
+///
+/// This is the SINGLE CODE PATH for action computation. Both the guidance
+/// footer and the ACP projection use this function. It extracts the R(t)
+/// top recommendation and wraps it as a `ProjectedAction`.
+///
+/// Edge case handling (priority order):
+/// 1. Harvest overdue (>= 15 tx since last) → "braid harvest --commit"
+/// 2. R(t) has tasks → top-impact task → "braid go <id>"
+/// 3. No tasks but observations exist → "braid observe" or "braid spec create"
+/// 4. Empty store → "braid observe" (seed the knowledge graph)
+pub fn compute_action_from_store(store: &Store) -> crate::budget::ProjectedAction {
+    // Check harvest urgency first
+    let tx_count = store.len();
+    let harvest_attr = crate::datom::Attribute::from_keyword(":harvest/boundary-tx");
+    let last_harvest_tx = store
+        .attribute_datoms(&harvest_attr)
+        .last()
+        .map(|d| d.tx.wall_time())
+        .unwrap_or(0);
+    let tx_since_harvest = store
+        .datoms()
+        .filter(|d| d.tx.wall_time() > last_harvest_tx)
+        .count();
+
+    if tx_since_harvest >= 15 {
+        return crate::budget::ProjectedAction {
+            command: "braid harvest --commit".to_string(),
+            rationale: format!("harvest overdue ({tx_since_harvest} tx since last)"),
+            impact: 1.0,
+        };
+    }
+
+    // Try R(t) routing for task recommendation
+    let routings = compute_routing_from_store(store);
+    if let Some(top) = routings.first() {
+        // Find the task ID from the label or entity
+        let task_id = store
+            .entity_datoms(top.entity)
+            .iter()
+            .find(|d| {
+                d.attribute.as_str() == ":task/id"
+                    && d.op == crate::datom::Op::Assert
+            })
+            .and_then(|d| match &d.value {
+                crate::datom::Value::String(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_else(|| format!("{:?}", top.entity));
+
+        // Truncate label for rationale (max ~8 words)
+        let rationale = {
+            let words: Vec<&str> = top.label.split_whitespace().collect();
+            if words.len() > 8 {
+                format!("{} ...", words[..8].join(" "))
+            } else {
+                top.label.clone()
+            }
+        };
+
+        return crate::budget::ProjectedAction {
+            command: format!("braid go {task_id}"),
+            rationale,
+            impact: top.impact,
+        };
+    }
+
+    // No tasks — suggest observation
+    if tx_count > 100 {
+        crate::budget::ProjectedAction {
+            command: "braid observe \"...\" --confidence 0.8".to_string(),
+            rationale: "capture knowledge for the store".to_string(),
+            impact: 0.1,
+        }
+    } else {
+        crate::budget::ProjectedAction {
+            command: "braid observe \"...\" --confidence 0.8".to_string(),
+            rationale: "seed the knowledge graph".to_string(),
+            impact: 0.1,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Spec Anchor Factor (SFE-3.1)
 // ---------------------------------------------------------------------------
 

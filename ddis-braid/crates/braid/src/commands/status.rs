@@ -145,21 +145,43 @@ pub fn run(
         spectral,
     );
 
+    // ACP: Build the ActionProjection for status (INV-BUDGET-007)
+    let projection = build_status_projection(path, &store, &hashes, tx_since_harvest);
+
     // Build human representation
     let human = if verbose {
         build_verbose(path, agent_name, &store, &hashes, tx_since_harvest)
     } else {
-        build_terse(path, &store, &hashes, tx_since_harvest)
+        // Use ACP projection for human output (full detail, no truncation)
+        projection.project(usize::MAX)
     };
 
-    // Build agent representation (compact, ≤300 tokens, three-part structure)
-    let agent_output = build_agent(path, &store, &hashes, tx_since_harvest);
+    // Agent representation: use ACP projection at Navigate level
+    // This replaces the old build_agent() which was truncated at 300 tokens.
+    // ACP ensures the action is ALWAYS present and context fills gracefully.
+    let projected_agent = projection.project_at_strategy(
+        braid_kernel::ActivationStrategy::Navigate,
+    );
+    let agent_output = AgentOutput {
+        context: String::new(),
+        content: projected_agent,
+        footer: String::new(),
+    };
 
     // If --json flag was used, return JSON as human output too (backward compat)
     if json {
-        let json_str = serde_json::to_string_pretty(&json_value).unwrap() + "\n";
+        let mut json_with_acp = json_value.clone();
+        if let serde_json::Value::Object(ref mut map) = json_with_acp {
+            let acp = projection.to_json();
+            if let serde_json::Value::Object(acp_map) = acp {
+                for (k, v) in acp_map {
+                    map.insert(k, v);
+                }
+            }
+        }
+        let json_str = serde_json::to_string_pretty(&json_with_acp).unwrap() + "\n";
         return Ok(CommandOutput {
-            json: json_value,
+            json: json_with_acp,
             agent: agent_output,
             human: json_str,
         });
@@ -172,7 +194,147 @@ pub fn run(
     })
 }
 
+/// Build an ActionProjection for the status command (ACP-5, INV-BUDGET-007).
+///
+/// Decomposes status into Action + Context blocks at appropriate precedence:
+/// - Action: R(t) top recommendation via compute_action_from_store()
+/// - Context[System]: store identity (datoms, entities, txns)
+/// - Context[Methodology]: coherence F(S) + M(t) + trend
+/// - Context[Methodology]: boundary coverage
+/// - Context[UserRequested]: task summary (open/ready/blocked)
+/// - Context[Speculative]: methodology gaps
+/// - Context[Methodology]: harvest status
+/// - Evidence: "braid status --verbose"
+pub fn build_status_projection(
+    path: &Path,
+    store: &braid_kernel::Store,
+    hashes: &[String],
+    tx_since_harvest: usize,
+) -> braid_kernel::ActionProjection {
+    use braid_kernel::budget::{ContextBlock, OutputPrecedence};
+
+    // Action: unified R(t) recommendation
+    let action = braid_kernel::guidance::compute_action_from_store(store);
+
+    // Build context blocks in precedence order (highest first)
+    let mut context = Vec::new();
+
+    // 1. Store identity (System — always shown)
+    context.push(ContextBlock {
+        precedence: OutputPrecedence::System,
+        content: format!(
+            "store: {} ({} datoms, {} entities, {} txns)",
+            path.display(),
+            store.len(),
+            store.entity_count(),
+            hashes.len(),
+        ),
+        tokens: 15,
+    });
+
+    // 2. Coherence + F(S) + M(t) (Methodology)
+    let fitness = compute_fitness(store);
+    let coherence = check_coherence_fast(store);
+    let telemetry = telemetry_from_store(store);
+    let score = compute_methodology_score(&telemetry);
+    let trend_str = match score.trend {
+        Trend::Up => "up",
+        Trend::Down => "down",
+        Trend::Stable => "stable",
+    };
+    context.push(ContextBlock {
+        precedence: OutputPrecedence::Methodology,
+        content: format!(
+            "coherence: F(S)={:.2} Phi={:.1} B1={} {:?} | M(t)={:.2} {}{}",
+            fitness.total,
+            coherence.phi,
+            coherence.beta_1,
+            coherence.quadrant,
+            score.score,
+            trend_str,
+            if score.drift_signal { " DRIFT" } else { "" },
+        ),
+        tokens: 25,
+    });
+
+    // 3. Boundary coverage (Methodology)
+    let registry = braid_kernel::default_boundaries();
+    let evals = registry.evaluate_all(store);
+    if !evals.is_empty() {
+        let boundary_parts: Vec<String> = evals
+            .iter()
+            .map(|e| {
+                let gap_count = e.divergences.len();
+                if gap_count > 0 {
+                    format!("{} {:.2} ({} gaps)", e.name, e.relation.coverage, gap_count)
+                } else {
+                    format!("{} {:.2}", e.name, e.relation.coverage)
+                }
+            })
+            .collect();
+        context.push(ContextBlock {
+            precedence: OutputPrecedence::Methodology,
+            content: format!("boundaries: {}", boundary_parts.join(" | ")),
+            tokens: 12,
+        });
+    }
+
+    // 4. Task summary (UserRequested)
+    let (open, in_progress, closed) = braid_kernel::task_counts(store);
+    let total_open = open + in_progress;
+    if total_open > 0 {
+        let ready_count = braid_kernel::compute_ready_set(store).len();
+        let blocked = open.saturating_sub(ready_count);
+        context.push(ContextBlock {
+            precedence: OutputPrecedence::UserRequested,
+            content: format!(
+                "tasks: {} open ({} ready, {} blocked, {} in-progress, {} closed)",
+                total_open, ready_count, blocked, in_progress, closed
+            ),
+            tokens: 15,
+        });
+    }
+
+    // 5. Harvest status (Methodology)
+    let harvest_status = if tx_since_harvest >= 15 {
+        format!("harvest: {} tx since last — OVERDUE", tx_since_harvest)
+    } else if tx_since_harvest >= 8 {
+        format!("harvest: {} tx since last (due soon)", tx_since_harvest)
+    } else {
+        format!("harvest: {} tx since last (ok)", tx_since_harvest)
+    };
+    context.push(ContextBlock {
+        precedence: OutputPrecedence::Methodology,
+        content: harvest_status,
+        tokens: 10,
+    });
+
+    // 6. Methodology gaps (Speculative — lower priority)
+    let gaps = methodology_gaps(store);
+    if !gaps.is_empty() {
+        let mut gap_parts = Vec::new();
+        if gaps.crystallization > 0 {
+            gap_parts.push(format!("{} uncrystallized", gaps.crystallization));
+        }
+        if gaps.unanchored > 0 {
+            gap_parts.push(format!("{} unanchored", gaps.unanchored));
+        }
+        context.push(ContextBlock {
+            precedence: OutputPrecedence::Speculative,
+            content: format!("gaps: {}", gap_parts.join(", ")),
+            tokens: 8,
+        });
+    }
+
+    braid_kernel::ActionProjection {
+        action,
+        context,
+        evidence_pointer: "details: braid status --verbose".to_string(),
+    }
+}
+
 /// Build the terse dashboard string (default mode).
+#[allow(dead_code)]
 fn build_terse(
     path: &Path,
     store: &braid_kernel::Store,
@@ -315,6 +477,7 @@ fn build_terse(
 }
 
 /// Build agent-mode three-part structure (INV-OUTPUT-002, ≤300 tokens).
+#[allow(dead_code)]
 fn build_agent(
     path: &Path,
     store: &braid_kernel::Store,
