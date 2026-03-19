@@ -1,0 +1,24 @@
+{:tx/id #hlc "1773932099/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 4 candidates from task 'unsessioned harvest (8 txns since last harvest)'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :db/doc :v "Harvest session for task: unsessioned harvest (8 txns since last harvest)" :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :db/ident :v :harvest/session-braid-user-1773932099 :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/accomplishments :v "Session entity: :task/t-8743c6e2; Session entity: :task/t-bab53dd2; Session entity: :task/t-9557c705\nSession entity: :task/t-c9782a1a" :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/candidate-count :v 4 :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/codebase-snapshot :v "Codebase: 88177 LOC across 76 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (7050 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (4675 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3697 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3527 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (3054 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2106 LOC)" :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/context-metrics :v "{\"candidates\":4,\"k_eff_estimated\":\"0.93\",\"observations\":0,\"output_tokens_est\":1752,\"tasks_closed\":1,\"tx_count\":8,\"wall_elapsed_s\":232}" :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/delta-summary :v "+67 datoms, +5 entities" :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/git-summary :v "branch=main, 1 commits, 3 files (+58/-0)\n  aecabb9 CRB-7: Broaden reconciliation to all knowledge layers\nHot files:\n  ddis-braid/.braid/txns/22/22ae36ab83526dc587f045c5b779678daca4cd6f8eb7caec76bbe19b8a6599b0.edn (23 lines changed)\n  ddis-braid/.braid/txns/5e/5ee17a025672ab9674a65fccfb40fd8d52dfa90b89ce659bc47f0f6876d7b7ce.edn (19 lines changed)\n  ddis-braid/.braid/txns/76/761d7284e747433356575ed0871ed2f9b1f131c8a905a52ea2f9b1749fb7f686.edn (16 lines changed)" :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/recommended-tasks :v "t-8743c6e2,t-b78da510,t-dec01087" :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/store-datom-count :v 19760 :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/store-entity-count :v 2530 :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: unsessioned harvest (8 txns since last harvest)\nRun: `braid seed --task \"continue: unsessioned harvest (8 txns since last harvest)\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/task :v "unsessioned harvest (8 txns since last harvest)" :op :assert}
+   {:e #blake3 "4fba95ad285cb45e7faf5a3adaf2e06fd8fd2dd2d0a437004d8d6ca2d6574494" :a :harvest/tx-since-last :v 8 :op :assert}
+ ]}

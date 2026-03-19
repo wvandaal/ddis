@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773932071/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CRB-11: Meta-extractor registers cass + cm as reconciliation sources if detected on PATH. During braid init, check if 'cass' and 'cm' commands exist (via which/command -v). If found, transact :recon-source/cass and :recon-source/cm entities with appropriate commands. Agent sees immediate reconciliation from first session. TRACES TO: INV-FOUNDATION-004, ADR-FOUNDATION-009. ACCEPTANCE: (A) braid init on system with cass installed → :recon-source/cass entity exists. (B) braid init on system without cass → no entity, no error. FILE: crates/braid/src/commands/init.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b2c3a7b84aeadb26fdb28c3d4ce3ca1a844b3584aba5060d495db80c874e3813" :a :db/ident :v :task/t-9557c705 :op :assert}
+   {:e #blake3 "b2c3a7b84aeadb26fdb28c3d4ce3ca1a844b3584aba5060d495db80c874e3813" :a :task/acceptance :v "(A) braid init on system with cass installed → :recon-source/cass entity exists. (B) braid init on system without cass → no entity, no error." :op :assert}
+   {:e #blake3 "b2c3a7b84aeadb26fdb28c3d4ce3ca1a844b3584aba5060d495db80c874e3813" :a :task/created-at :v 1773932070 :op :assert}
+   {:e #blake3 "b2c3a7b84aeadb26fdb28c3d4ce3ca1a844b3584aba5060d495db80c874e3813" :a :task/id :v "t-9557c705" :op :assert}
+   {:e #blake3 "b2c3a7b84aeadb26fdb28c3d4ce3ca1a844b3584aba5060d495db80c874e3813" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "b2c3a7b84aeadb26fdb28c3d4ce3ca1a844b3584aba5060d495db80c874e3813" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b2c3a7b84aeadb26fdb28c3d4ce3ca1a844b3584aba5060d495db80c874e3813" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b2c3a7b84aeadb26fdb28c3d4ce3ca1a844b3584aba5060d495db80c874e3813" :a :task/title :v "CRB-11: Meta-extractor registers cass + cm as reconciliation sources if detected on PATH. During braid init, check if 'cass' and 'cm' commands exist (via which/command -v). If found, transact :recon-source/cass and :recon-source/cm entities with appropriate commands. Agent sees immediate reconciliation from first session. TRACES TO: INV-FOUNDATION-004, ADR-FOUNDATION-009. ACCEPTANCE: (A) braid init on system with cass installed → :recon-source/cass entity exists. (B) braid init on system without cass → no entity, no error. FILE: crates/braid/src/commands/init.rs" :op :assert}
+   {:e #blake3 "b2c3a7b84aeadb26fdb28c3d4ce3ca1a844b3584aba5060d495db80c874e3813" :a :task/traces-to :v #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :op :assert}
+   {:e #blake3 "b2c3a7b84aeadb26fdb28c3d4ce3ca1a844b3584aba5060d495db80c874e3813" :a :task/type :v :task.type/task :op :assert}
+ ]}

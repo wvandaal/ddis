@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773932070/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CRB-10: Register :recon-source/* schema attributes — /command (String), /name (String), /timeout (Long), /format (Keyword — :json or :lines), /active (Boolean). These are Layer 4 coordination attributes. TRACES TO: INV-SCHEMA-001, ADR-FOUNDATION-009. ACCEPTANCE: braid schema lists all :recon-source/* attributes. FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2576581cd7b716451ca892f0f5db82ad77f697af8fcea32d2db840b8a2363b94" :a :db/ident :v :task/t-8743c6e2 :op :assert}
+   {:e #blake3 "2576581cd7b716451ca892f0f5db82ad77f697af8fcea32d2db840b8a2363b94" :a :task/acceptance :v "braid schema lists all :recon-source/* attributes." :op :assert}
+   {:e #blake3 "2576581cd7b716451ca892f0f5db82ad77f697af8fcea32d2db840b8a2363b94" :a :task/created-at :v 1773932069 :op :assert}
+   {:e #blake3 "2576581cd7b716451ca892f0f5db82ad77f697af8fcea32d2db840b8a2363b94" :a :task/id :v "t-8743c6e2" :op :assert}
+   {:e #blake3 "2576581cd7b716451ca892f0f5db82ad77f697af8fcea32d2db840b8a2363b94" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2576581cd7b716451ca892f0f5db82ad77f697af8fcea32d2db840b8a2363b94" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2576581cd7b716451ca892f0f5db82ad77f697af8fcea32d2db840b8a2363b94" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2576581cd7b716451ca892f0f5db82ad77f697af8fcea32d2db840b8a2363b94" :a :task/title :v "CRB-10: Register :recon-source/* schema attributes — /command (String), /name (String), /timeout (Long), /format (Keyword — :json or :lines), /active (Boolean). These are Layer 4 coordination attributes. TRACES TO: INV-SCHEMA-001, ADR-FOUNDATION-009. ACCEPTANCE: braid schema lists all :recon-source/* attributes. FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "2576581cd7b716451ca892f0f5db82ad77f697af8fcea32d2db840b8a2363b94" :a :task/traces-to :v #blake3 "c54a22ea31d81dc0396e7e107f9bc8957349913c19c6b00db7800927f5c8a5bf" :op :assert}
+   {:e #blake3 "2576581cd7b716451ca892f0f5db82ad77f697af8fcea32d2db840b8a2363b94" :a :task/type :v :task.type/task :op :assert}
+ ]}
