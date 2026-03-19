@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773957339/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: S1-GUIDANCE-016: Implement contextual confidence calibration — auto-observation confidence per command type (INV-GUIDANCE-016). BACKGROUND: When auto-observations are generated (ZCM-1), their confidence should match the command type: task-close=0.9 (definitive), status/bilateral=0.8 (measurement), query=0.7 (investigation), trace=0.7 (coverage). Currently all auto-observations use 0.5. This requires mapping command_name to confidence in the COF hint generation. APPROACH: Add confidence_for_command(cmd_name: &str) -> f64 to guidance.rs. Wire into contextual_observation_hint(). Tests: (A) task-close hint has confidence 0.9. (B) query hint has confidence 0.7. (C) observe returns None (no self-referential). FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :db/ident :v :task/t-b4d0bdfc :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/background :v "When auto-observations are generated (ZCM-1), their confidence should match the command type: task-close=0.9 (definitive), status/bilateral=0.8 (measurement), query=0.7 (investigation), trace=0.7 (coverage). Currently all auto-observations use 0.5. This requires mapping command_name to confidence in the COF hint generation. APPROACH: Add confidence_for_command(cmd_name: &str) -> f64 to guidance.rs. Wire into contextual_observation_hint(). Tests: (A) task-close hint has confidence 0.9. (B) query hint has confidence 0.7. (C) observe returns None (no self-referential)." :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/created-at :v 1773957338 :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/id :v "t-b4d0bdfc" :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/title :v "S1-GUIDANCE-016: Implement contextual confidence calibration — auto-observation confidence per command type (INV-GUIDANCE-016). BACKGROUND: When auto-observations are generated (ZCM-1), their confidence should match the command type: task-close=0.9 (definitive), status/bilateral=0.8 (measurement), query=0.7 (investigation), trace=0.7 (coverage). Currently all auto-observations use 0.5. This requires mapping command_name to confidence in the COF hint generation. APPROACH: Add confidence_for_command(cmd_name: &str) -> f64 to guidance.rs. Wire into contextual_observation_hint(). Tests: (A) task-close hint has confidence 0.9. (B) query hint has confidence 0.7. (C) observe returns None (no self-referential). FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/title-l0 :v "S1-GUIDANCE-016" :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/title-l1 :v "S1-GUIDANCE-016: Implement contextual confidence calibration — auto-observa..." :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/traces-to :v #blake3 "0a8cd6ea351950890a88bbeb9b895f1837a633211147a008a6aee61759940119" :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/traces-to :v #blake3 "f29d5d5c65bb22899f30e958b54598ba5735b9e3f27a282a05b58c4e5b2707d9" :op :assert}
+   {:e #blake3 "09fe40fd5440d584c3ee574929160b2ee986c2caf47b8dad6e6562f1cdc8bfea" :a :task/type :v :task.type/task :op :assert}
+ ]}
