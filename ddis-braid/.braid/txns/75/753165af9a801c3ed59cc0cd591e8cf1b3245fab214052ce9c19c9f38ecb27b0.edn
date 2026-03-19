@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773882906/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a4865988"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/closed-at :v 1773882905 :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/completion-evidence :v "spec_relevance_scan implemented with cosine bag-of-words. Compiles clean." :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/status :v :task.status/closed :op :assert}
+ ]}

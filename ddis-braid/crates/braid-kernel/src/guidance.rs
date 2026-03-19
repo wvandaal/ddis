@@ -2174,6 +2174,155 @@ pub fn methodology_gaps(store: &Store) -> MethodologyGaps {
 // Contextual Observation Funnel (INV-GUIDANCE-014)
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Proactive Spec Retrieval (PSR-1, INV-GUIDANCE-007)
+// ---------------------------------------------------------------------------
+
+/// A spec relevance match from the proactive scan.
+#[derive(Clone, Debug)]
+pub struct SpecRelevance {
+    /// The spec element ident (e.g., ":spec/inv-topology-004").
+    pub ident: String,
+    /// Human-readable spec ID (e.g., "INV-TOPOLOGY-004").
+    pub human_id: String,
+    /// Short summary from :spec/statement (first 60 chars).
+    pub summary: String,
+    /// Relevance score (0.0–1.0, cosine bag-of-words).
+    pub score: f64,
+}
+
+/// Stopwords to filter from tokenization.
+const STOPWORDS: &[&str] = &[
+    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had",
+    "do", "does", "did", "will", "would", "shall", "should", "may", "might", "must", "can",
+    "could", "that", "this", "these", "those", "with", "from", "into", "for", "and", "but", "or",
+    "not", "all", "each", "every", "both", "few", "more", "most", "other", "some", "such", "only",
+    "own", "same", "than", "too", "very",
+];
+
+/// Tokenize text for bag-of-words comparison.
+fn tokenize_for_relevance(text: &str) -> BTreeSet<String> {
+    text.to_lowercase()
+        .split(|c: char| !c.is_alphanumeric() && c != '-')
+        .filter(|w| w.len() >= 4)
+        .filter(|w| !STOPWORDS.contains(w))
+        .map(|w| w.to_string())
+        .collect()
+}
+
+/// Scan the store for spec elements related to the given text (PSR-1).
+///
+/// Uses cosine similarity on bag-of-words: score = |intersection| / sqrt(|a| × |b|).
+/// Also boosts matches where the input contains the spec namespace name.
+///
+/// Returns top 5 matches with score > 0.3.
+///
+/// INV-GUIDANCE-007: Proactive Spec Retrieval.
+pub fn spec_relevance_scan(text: &str, store: &Store) -> Vec<SpecRelevance> {
+    let input_tokens = tokenize_for_relevance(text);
+    if input_tokens.is_empty() {
+        return Vec::new();
+    }
+
+    let statement_attr = Attribute::from_keyword(":spec/statement");
+    let namespace_attr = Attribute::from_keyword(":spec/namespace");
+    let ident_attr = Attribute::from_keyword(":db/ident");
+
+    let mut results: Vec<SpecRelevance> = Vec::new();
+
+    // Collect all spec statements
+    for datom in store.attribute_datoms(&statement_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        let statement = match &datom.value {
+            Value::String(s) => s.as_str(),
+            _ => continue,
+        };
+
+        // Tokenize spec statement
+        let spec_tokens = tokenize_for_relevance(statement);
+        if spec_tokens.is_empty() {
+            continue;
+        }
+
+        // Cosine on bag-of-words
+        let intersection = input_tokens.intersection(&spec_tokens).count() as f64;
+        let denominator = (input_tokens.len() as f64 * spec_tokens.len() as f64).sqrt();
+        let mut score = if denominator > 0.0 {
+            intersection / denominator
+        } else {
+            0.0
+        };
+
+        // Namespace boost: if input contains the namespace name, +0.3
+        for ns_datom in store.entity_datoms(datom.entity) {
+            if ns_datom.attribute == namespace_attr && ns_datom.op == Op::Assert {
+                if let Value::String(ref ns) = ns_datom.value {
+                    let ns_lower = ns.to_lowercase();
+                    if input_tokens.contains(&ns_lower) {
+                        score += 0.3;
+                    }
+                }
+            }
+        }
+
+        if score > 0.3 {
+            // Get the ident for this entity
+            let ident = store
+                .entity_datoms(datom.entity)
+                .iter()
+                .find(|d| d.attribute == ident_attr && d.op == Op::Assert)
+                .and_then(|d| match &d.value {
+                    Value::Keyword(k) => Some(k.clone()),
+                    _ => None,
+                })
+                .unwrap_or_default();
+
+            let human_id = crate::spec_id::SpecId::from_store_ident(&ident)
+                .map(|s| s.human_form())
+                .unwrap_or_else(|| ident.clone());
+
+            let summary = crate::budget::safe_truncate_bytes(statement, 60).to_string();
+
+            results.push(SpecRelevance {
+                ident,
+                human_id,
+                summary,
+                score,
+            });
+        }
+    }
+
+    // Sort by score descending, take top 5
+    results.sort_by(|a, b| {
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    results.truncate(5);
+    results
+}
+
+/// Format spec relevance results as a single-line footer reference.
+///
+/// Returns None if no matches, or Some("Spec: INV-X-001 (summary) | ADR-Y-002 (summary)")
+pub fn format_spec_relevance(results: &[SpecRelevance]) -> Option<String> {
+    if results.is_empty() {
+        return None;
+    }
+    let parts: Vec<String> = results
+        .iter()
+        .take(3)
+        .map(|r| format!("{} ({})", r.human_id, r.summary))
+        .collect();
+    Some(format!("Spec: {}", parts.join(" | ")))
+}
+
+// ---------------------------------------------------------------------------
+// Contextual Observation Funnel (INV-GUIDANCE-014)
+// ---------------------------------------------------------------------------
+
 /// Generate a contextual observation hint from a command's output.
 ///
 /// INV-GUIDANCE-014: Contextual Observation Hint.

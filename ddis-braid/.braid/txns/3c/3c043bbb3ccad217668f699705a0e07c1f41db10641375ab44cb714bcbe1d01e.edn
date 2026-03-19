@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773882907/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-acb4dbec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/closed-at :v 1773882905 :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/completion-evidence :v "Wired into footer via try_build_footer command_text parameter. All 20+ call sites updated." :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/status :v :task.status/closed :op :assert}
+ ]}
