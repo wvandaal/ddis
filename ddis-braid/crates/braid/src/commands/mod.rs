@@ -1658,6 +1658,45 @@ fn maybe_inject_footer(
     // INV-GUIDANCE-014: Derive contextual hint from the command's JSON output.
     let hint =
         cmd_name.and_then(|name| braid_kernel::contextual_observation_hint(name, &cmd_output.json));
+
+    // ZCM-1: Auto-transact contextual observation hints as low-confidence datoms.
+    // This is the ZERO-COST METHODOLOGY innovation: observations are captured as a
+    // SIDE EFFECT of normal tool use. The agent never needs to explicitly run
+    // 'braid observe' — knowledge capture is FREE. (INV-GUIDANCE-014, INV-HARVEST-009)
+    if let (Some(ref h), Some(p)) = (&hint, path) {
+        if let Ok(layout) = crate::layout::DiskLayout::open(p) {
+            if let Ok(store) = layout.load_store() {
+                use braid_kernel::datom::*;
+                let agent = AgentId::from_name("braid:auto-capture");
+                let tx_id = crate::commands::write::next_tx_id(&store, agent);
+                let wall = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs();
+                let ident = format!(
+                    ":auto-obs/{}",
+                    &blake3::hash(format!("{}-{}", h.text, wall).as_bytes()).to_hex()[..16]
+                );
+                let entity = EntityId::from_ident(&ident);
+                let datoms = vec![
+                    Datom::new(entity, Attribute::from_keyword(":db/ident"), Value::Keyword(ident), tx_id, Op::Assert),
+                    Datom::new(entity, Attribute::from_keyword(":db/doc"), Value::String(h.text.clone()), tx_id, Op::Assert),
+                    Datom::new(entity, Attribute::from_keyword(":exploration/type"), Value::Keyword(":exploration.type/observation".to_string()), tx_id, Op::Assert),
+                    Datom::new(entity, Attribute::from_keyword(":exploration/confidence"), Value::Double(ordered_float::OrderedFloat(h.confidence)), tx_id, Op::Assert),
+                ];
+                let tx = braid_kernel::layout::TxFile {
+                    tx_id,
+                    agent,
+                    provenance: ProvenanceType::Derived,
+                    rationale: "ZCM-1: auto-captured observation from tool output".to_string(),
+                    causal_predecessors: vec![],
+                    datoms,
+                };
+                let _ = layout.write_tx(&tx); // Best-effort — don't fail the command if write fails
+            }
+        }
+    }
+
     // PSR-2: Pass command text for proactive spec retrieval
     match path.and_then(|p| try_build_footer(p, budget_ctx, hint, command_text)) {
         Some(footer_text) => inject_footer(cmd_output, &footer_text),

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773957572/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-bd702d60"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "19afeb0bc87f00f7e9e5cfc56d12e045e5ae7d57bac6bfcb48a63b0b080b0e77" :a :task/close-reason :v "Auto-transact COF hints implemented in maybe_inject_footer(). Every knowledge-producing command auto-captures a low-confidence exploration datom. Zero ceremony cost. Verified: braid status creates :auto-obs/* entities with correct confidence and type." :op :assert}
+   {:e #blake3 "19afeb0bc87f00f7e9e5cfc56d12e045e5ae7d57bac6bfcb48a63b0b080b0e77" :a :task/closed-at :v 1773957571 :op :assert}
+   {:e #blake3 "19afeb0bc87f00f7e9e5cfc56d12e045e5ae7d57bac6bfcb48a63b0b080b0e77" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "19afeb0bc87f00f7e9e5cfc56d12e045e5ae7d57bac6bfcb48a63b0b080b0e77" :a :task/status :v :task.status/closed :op :assert}
+ ]}
