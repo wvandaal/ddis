@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773880558/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-9059f669"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7e955433624a9275b34b85f26c38fb485271f84e6cac98b8815c799f953750de" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "7e955433624a9275b34b85f26c38fb485271f84e6cac98b8815c799f953750de" :a :task/closed-at :v 1773880557 :op :assert}
+   {:e #blake3 "7e955433624a9275b34b85f26c38fb485271f84e6cac98b8815c799f953750de" :a :task/completion-evidence :v "EPIC momentum implemented in SessionWorkingSet + session_boost. closed_this_session and epic_momentum fields track flow state." :op :assert}
+   {:e #blake3 "7e955433624a9275b34b85f26c38fb485271f84e6cac98b8815c799f953750de" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "7e955433624a9275b34b85f26c38fb485271f84e6cac98b8815c799f953750de" :a :task/status :v :task.status/closed :op :assert}
+ ]}
