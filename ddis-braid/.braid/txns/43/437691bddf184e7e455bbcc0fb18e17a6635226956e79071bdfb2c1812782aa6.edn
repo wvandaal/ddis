@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773884992/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3c5b1bb7"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/closed-at :v 1773884991 :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/completion-evidence :v "Agent transacted 7 topology spec elements: INV-TOPOLOGY-001..005 + ADR-TOPOLOGY-002,004. All verified via query." :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/status :v :task.status/closed :op :assert}
+ ]}
