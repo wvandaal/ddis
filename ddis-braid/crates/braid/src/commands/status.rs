@@ -225,6 +225,25 @@ fn build_terse(
         coherence.live_impl,
         store.frontier().len(),
     ));
+
+    // Per-boundary coverage display (INTEGRATION-1, INV-BILATERAL-009)
+    let registry = braid_kernel::default_boundaries();
+    let evals = registry.evaluate_all(store);
+    if !evals.is_empty() {
+        let boundary_parts: Vec<String> = evals
+            .iter()
+            .map(|e| {
+                let gap_count = e.divergences.len();
+                if gap_count > 0 {
+                    format!("{} {:.2} ({} gaps)", e.name, e.relation.coverage, gap_count)
+                } else {
+                    format!("{} {:.2}", e.name, e.relation.coverage)
+                }
+            })
+            .collect();
+        out.push_str(&format!("boundaries: {}\n", boundary_parts.join(" | ")));
+    }
+
     out.push_str(&format!(
         "harvest: {} tx since last{}\n",
         tx_since_harvest, harvest_tag,

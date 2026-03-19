@@ -3410,7 +3410,7 @@ mod tests {
     fn budget_gate_respects_command_attention_profile() {
         use crate::output::{AgentOutput, CommandOutput};
 
-        // "status" is Cheap (ceiling=50). Even with a generous global budget,
+        // "guidance" is Cheap (ceiling=50). Even with a generous global budget,
         // the per-command ceiling should cap the output.
         let text = "word ".repeat(100); // ~125 tokens, above Cheap ceiling of 50
         let co = CommandOutput {
@@ -3423,16 +3423,33 @@ mod tests {
             human: text.clone(),
         };
 
-        // Global budget is 10000 (default), but "status" profile ceiling is 50.
+        // Global budget is 10000 (default), but "guidance" profile ceiling is 50.
         let ctx = BudgetCtx::from_flags(None, None);
-        let gated = apply_budget_gate(co, OutputMode::Human, &ctx, "status");
+        let gated = apply_budget_gate(co, OutputMode::Human, &ctx, "guidance");
 
         assert!(
             gated.human.len() < text.len(),
-            "status output should be capped by Cheap attention profile (50 tokens), \
+            "guidance output should be capped by Cheap attention profile (50 tokens), \
              got {} vs original {}",
             gated.human.len(),
             text.len()
+        );
+
+        // "status" is Moderate (ceiling=300). Should NOT truncate 125-token output.
+        let text2 = "word ".repeat(100);
+        let co2 = CommandOutput {
+            json: serde_json::json!({"status": "ok"}),
+            agent: AgentOutput {
+                context: String::new(),
+                content: text2.clone(),
+                footer: String::new(),
+            },
+            human: text2.clone(),
+        };
+        let gated2 = apply_budget_gate(co2, OutputMode::Human, &ctx, "status");
+        assert_eq!(
+            gated2.human, text2,
+            "status output (Moderate, 300 tokens) should not truncate 125-token output"
         );
     }
 

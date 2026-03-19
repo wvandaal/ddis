@@ -617,6 +617,77 @@ pub fn compute_fitness(store: &Store) -> FitnessScore {
     }
 }
 
+/// Compute F(S) using a BoundaryRegistry for the coverage component.
+///
+/// This is the BOUNDARY-6 entry point. The coverage (C) component comes from
+/// the registry's total_coverage() instead of the legacy forward scan.
+/// All other components remain the same.
+///
+/// INV-BILATERAL-007: F(S) = Σ wᵢ × coverage(bᵢ) for boundaries.
+/// INV-BILATERAL-009: F(S) reflects all registered boundary checks.
+///
+/// When the registry is empty, falls back to legacy coverage computation
+/// for backward compatibility.
+pub fn compute_fitness_with_registry(store: &Store, registry: &BoundaryRegistry) -> FitnessScore {
+    let mut unmeasured = Vec::new();
+
+    // V: Validation score — same as legacy
+    let validation = compute_validation(store);
+
+    // C: Coverage — from BoundaryRegistry if non-empty, else legacy
+    let coverage = if registry.is_empty() {
+        compute_depth_weighted_coverage(store)
+    } else {
+        registry.total_coverage(store)
+    };
+
+    // D: Drift — same as legacy
+    let drift = compute_drift_complement(store);
+
+    // H: Harvest quality — same as legacy
+    let telemetry = telemetry_from_store(store);
+    let methodology = compute_methodology_score(&telemetry);
+    let harvest_quality = methodology.score;
+    if methodology.score == 0.0 {
+        unmeasured.push("harvest_quality (no session telemetry)".into());
+    }
+
+    // K: Contradiction — same as legacy
+    let contradiction = compute_contradiction_complement(store);
+
+    // I: Incompleteness — same as legacy
+    let incompleteness = compute_incompleteness_complement(store);
+
+    // U: Uncertainty — same as legacy
+    let uncertainty = compute_uncertainty_complement(store);
+
+    let components = FitnessComponents {
+        validation,
+        coverage,
+        drift,
+        harvest_quality,
+        contradiction,
+        incompleteness,
+        uncertainty,
+    };
+
+    let total = W_VALIDATION * validation
+        + W_COVERAGE * coverage
+        + W_DRIFT * drift
+        + W_HARVEST * harvest_quality
+        + W_CONTRADICTION * contradiction
+        + W_INCOMPLETENESS * incompleteness
+        + W_UNCERTAINTY * uncertainty;
+
+    let total = total.clamp(0.0, 1.0);
+
+    FitnessScore {
+        total,
+        components,
+        unmeasured,
+    }
+}
+
 /// V: Depth-weighted validation score.
 ///
 /// When `:spec/verification-depth` datoms exist, uses depth weights:
@@ -3010,7 +3081,7 @@ mod tests {
     #[test]
     fn default_boundaries_non_empty() {
         let registry = default_boundaries();
-        assert!(registry.len() >= 1, "default_boundaries must have at least 1 boundary");
+        assert!(!registry.is_empty(), "default_boundaries must have at least 1 boundary");
         let info = registry.boundary_info();
         assert!(info.iter().any(|(name, _)| *name == "spec\u{2194}impl"));
     }

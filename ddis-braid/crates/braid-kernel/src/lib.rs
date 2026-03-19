@@ -62,8 +62,9 @@ pub mod trilateral;
 pub use agent_md::{generate_agent_md, AgentMdConfig, AgentMdSection, GeneratedAgentMd};
 pub use agent_store::{AgentStore, CommitError};
 pub use bilateral::{
-    analyze_convergence, backward_scan, compute_fitness, cycle_to_datoms, default_boundaries,
-    depth_weight, evaluate_conditions, format_terse, format_verbose, forward_scan,
+    analyze_convergence, backward_scan, compute_fitness, compute_fitness_with_registry,
+    cycle_to_datoms, default_boundaries, depth_weight, evaluate_conditions, format_terse,
+    format_verbose, forward_scan,
     load_trajectory, run_cycle, spectral_certificate, BilateralScan, BilateralState, Boundary,
     BoundaryCheck, BoundaryDivergence, BoundaryEvaluation, BoundaryRegistry, CoherenceConditions,
     ConditionResult, ConvergenceAnalysis, DivergenceDirection, EntropyDecomposition,
@@ -104,11 +105,11 @@ pub use guidance::{
     dynamic_threshold, format_actions, format_footer, format_footer_at_level,
     harvest_warning_from_k_eff, harvest_warning_level, is_actionable_decision, methodology_gaps,
     modulate_actions, observation_staleness, orphaned_decisions, should_warn_on_exit,
-    spec_anchor_factor, spec_relevance_scan, knowledge_relevance_scan, suggest_task_title,
-    telemetry_from_store, tx_velocity, ActionCategory, ActivityMode, ContextualHint,
-    DerivationRule, DerivedTask, GuidanceAction,
-    GuidanceContext, GuidanceFooter, HarvestWarningLevel, MethodologyComponents, MethodologyGaps,
-    MethodologyScore, RoutingMetrics, SessionTelemetry, TaskNode, TaskRouting, Trend,
+    reconciliation_check, spec_anchor_factor, spec_relevance_scan, knowledge_relevance_scan,
+    suggest_task_title, telemetry_from_store, tx_velocity, ActionCategory, ActivityMode,
+    ContextualHint, DerivationRule, DerivedTask, GuidanceAction, GuidanceContext, GuidanceFooter,
+    HarvestWarningLevel, MethodologyComponents, MethodologyGaps, MethodologyScore,
+    ReconciliationResult, RoutingMetrics, SessionTelemetry, TaskNode, TaskRouting, Trend,
 };
 pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, classify_spec_candidate,

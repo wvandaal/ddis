@@ -2591,6 +2591,52 @@ pub fn knowledge_relevance_scan(text: &str, store: &Store) -> Vec<SpecRelevance>
     results
 }
 
+/// Result of a CRB reconciliation check.
+///
+/// Used by the reconciliation middleware (CRB-6) to gate knowledge-producing
+/// commands on prior knowledge reconciliation.
+#[derive(Clone, Debug)]
+pub struct ReconciliationResult {
+    /// Related knowledge elements found.
+    pub matches: Vec<SpecRelevance>,
+    /// Whether the gate threshold is met (3+ matches).
+    pub gate: bool,
+    /// Human-readable summary of related knowledge.
+    pub summary: String,
+}
+
+/// CRB-6 reconciliation middleware: check text against the knowledge store.
+///
+/// This is the centralized reconciliation check used by ALL knowledge-producing
+/// commands (observe, spec create, task create, write assert). It runs the
+/// broadened knowledge_relevance_scan and returns a structured result.
+///
+/// The gate threshold is 3+ matches — if met, the command should refuse unless
+/// the --reconciled flag was passed.
+///
+/// INV-GUIDANCE-025: Creation Requires Background.
+pub fn reconciliation_check(text: &str, store: &Store) -> ReconciliationResult {
+    let matches = knowledge_relevance_scan(text, store);
+    let gate = matches.len() >= 3;
+
+    let summary = if matches.is_empty() {
+        "No related knowledge found.".to_string()
+    } else {
+        let parts: Vec<String> = matches
+            .iter()
+            .take(5)
+            .map(|r| format!("[{}] {} — {}", r.source, r.human_id, r.summary))
+            .collect();
+        parts.join("\n")
+    };
+
+    ReconciliationResult {
+        matches,
+        gate,
+        summary,
+    }
+}
+
 /// Format spec relevance results as a single-line footer reference.
 ///
 /// Returns None if no matches, or Some("Spec: INV-X-001 (summary) | ADR-Y-002 (summary)")

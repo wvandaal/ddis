@@ -252,10 +252,11 @@ impl AttentionProfile {
 /// Classify a CLI command into its attention profile.
 pub fn classify_command(command: &str) -> AttentionProfile {
     match command {
-        "status" | "guidance" | "stage" | "log" | "config" => AttentionProfile::Cheap,
+        "guidance" | "stage" | "log" | "config" => AttentionProfile::Cheap,
+        // status is the primary orientation command: store + coherence + boundaries +
+        // tasks + next action. Needs 300 tokens to avoid truncating essential context.
         // next/done/go produce confirmation + guidance footer that exceeds 50 tokens.
-        // Classified as Moderate (300 tokens) to avoid truncating the footer.
-        "next" | "done" | "go" => AttentionProfile::Moderate,
+        "status" | "next" | "done" | "go" => AttentionProfile::Moderate,
         "query" | "bilateral" | "generate" | "schema" | "trace" | "verify" | "spec" | "task"
         | "note" => AttentionProfile::Moderate,
         "seed" | "session" | "topology" => AttentionProfile::Expensive,
@@ -1196,7 +1197,7 @@ mod tests {
     // Verifies: INV-BUDGET-005 — Command Attention Profile
     #[test]
     fn command_profiles() {
-        assert_eq!(classify_command("status"), AttentionProfile::Cheap);
+        assert_eq!(classify_command("status"), AttentionProfile::Moderate);
         assert_eq!(classify_command("guidance"), AttentionProfile::Cheap);
         assert_eq!(classify_command("query"), AttentionProfile::Moderate);
         assert_eq!(classify_command("seed"), AttentionProfile::Expensive);
@@ -1211,8 +1212,10 @@ mod tests {
         let mut mgr = BudgetManager::default();
         mgr.measure(0.0); // full budget = 10000
 
+        // Status is Moderate (primary orientation command), capped at 300
+        assert_eq!(mgr.command_budget("status"), 300);
         // Cheap command capped at 50
-        assert_eq!(mgr.command_budget("status"), 50);
+        assert_eq!(mgr.command_budget("guidance"), 50);
         // Moderate command capped at 300
         assert_eq!(mgr.command_budget("query"), 300);
         // Expensive command gets full budget
