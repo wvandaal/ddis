@@ -1,0 +1,19 @@
+{:tx/id #hlc "1773930105/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-IMPL-2: TaskSpecBoundary — source=open tasks with :task/traces-to, target=spec elements those refs point to. Detects tasks referencing non-existent spec elements (the unanchored task problem from SFE). BACKGROUND: This formalizes the spec-anchor-factor from guidance.rs as a BoundaryCheck. Currently spec_anchor_factor penalizes R(t) routing for unanchored tasks. As a boundary, the same check feeds F(S) directly. TRACES TO: INV-BILATERAL-007, INV-GUIDANCE-010 (spec_anchor_factor). ACCEPTANCE: (A) Task traces to existing spec → covered. (B) Task traces to non-existent spec → forward gap. FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :db/ident :v :task/t-4a5a2e48 :op :assert}
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :task/acceptance :v "(A) Task traces to existing spec → covered. (B) Task traces to non-existent spec → forward gap." :op :assert}
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :task/background :v "This formalizes the spec-anchor-factor from guidance.rs as a BoundaryCheck. Currently spec_anchor_factor penalizes R(t) routing for unanchored tasks. As a boundary, the same check feeds F(S) directly." :op :assert}
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :task/created-at :v 1773930103 :op :assert}
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :task/id :v "t-4a5a2e48" :op :assert}
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :task/title :v "BOUNDARY-IMPL-2: TaskSpecBoundary — source=open tasks with :task/traces-to, target=spec elements those refs point to. Detects tasks referencing non-existent spec elements (the unanchored task problem from SFE). BACKGROUND: This formalizes the spec-anchor-factor from guidance.rs as a BoundaryCheck. Currently spec_anchor_factor penalizes R(t) routing for unanchored tasks. As a boundary, the same check feeds F(S) directly. TRACES TO: INV-BILATERAL-007, INV-GUIDANCE-010 (spec_anchor_factor). ACCEPTANCE: (A) Task traces to existing spec → covered. (B) Task traces to non-existent spec → forward gap. FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :task/traces-to :v #blake3 "5ec5a82c9ee3b60a53cec83354f855412d2170c8b069b0b461be1891f3fbb962" :op :assert}
+   {:e #blake3 "246354de29e31a76bffa2af8e1cef1968f8d3b37a332086eea32fc1a62909d1c" :a :task/type :v :task.type/task :op :assert}
+ ]}

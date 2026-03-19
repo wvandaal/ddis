@@ -1,0 +1,19 @@
+{:tx/id #hlc "1773930106/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-IMPL-3: ObservationCrystallizationBoundary — source=observations mentioning spec IDs, target=formal spec elements for those IDs. Detects the crystallization gap: observations that reference INV/ADR/NEG IDs that haven't been formalized. BACKGROUND: This formalizes crystallization_candidates() from guidance.rs as a BoundaryCheck. The existing function is called by methodology_gaps() for the status dashboard. As a boundary, it also feeds F(S) and gets evidence weighting. TRACES TO: INV-BILATERAL-007, INV-GUIDANCE-018 (crystallization gap detection). ACCEPTANCE: (A) Observation mentions INV-X, :spec/inv-x exists → covered. (B) Observation mentions INV-Y, no spec entity → forward gap. FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :db/ident :v :task/t-150bf6dd :op :assert}
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :task/acceptance :v "(A) Observation mentions INV-X, :spec/inv-x exists → covered. (B) Observation mentions INV-Y, no spec entity → forward gap." :op :assert}
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :task/background :v "This formalizes crystallization_candidates() from guidance.rs as a BoundaryCheck. The existing function is called by methodology_gaps() for the status dashboard. As a boundary, it also feeds F(S) and gets evidence weighting." :op :assert}
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :task/created-at :v 1773930103 :op :assert}
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :task/id :v "t-150bf6dd" :op :assert}
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :task/title :v "BOUNDARY-IMPL-3: ObservationCrystallizationBoundary — source=observations mentioning spec IDs, target=formal spec elements for those IDs. Detects the crystallization gap: observations that reference INV/ADR/NEG IDs that haven't been formalized. BACKGROUND: This formalizes crystallization_candidates() from guidance.rs as a BoundaryCheck. The existing function is called by methodology_gaps() for the status dashboard. As a boundary, it also feeds F(S) and gets evidence weighting. TRACES TO: INV-BILATERAL-007, INV-GUIDANCE-018 (crystallization gap detection). ACCEPTANCE: (A) Observation mentions INV-X, :spec/inv-x exists → covered. (B) Observation mentions INV-Y, no spec entity → forward gap. FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :task/traces-to :v #blake3 "18949177f469670a47497b6abe0ad214c05a0844ffe93c326320910be0fafc96" :op :assert}
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "5e302aae8ba616801f2320fddaed7d30f6affad86861981a5d37eb7cb48a0a24" :a :task/type :v :task.type/task :op :assert}
+ ]}

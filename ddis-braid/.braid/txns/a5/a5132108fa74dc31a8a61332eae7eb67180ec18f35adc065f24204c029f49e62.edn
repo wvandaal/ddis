@@ -1,0 +1,19 @@
+{:tx/id #hlc "1773930145/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: INTEGRATION-3: Guidance suggests extractor installation — when ALL boundaries for a namespace have 0% coverage AND no :extractor/* entity exists for that namespace, guidance says 'No component data. Run braid extract or install an extractor.' When :extractor/* entity exists with status=recommended, guidance says 'Install: <command>'. BACKGROUND: This closes the bootstrapping gap. New project → braid init → meta-extractor recommends → guidance nudges → agent installs → extraction runs → boundaries compute → F(S) is meaningful. TRACES TO: INV-FOUNDATION-004, INV-GUIDANCE-001. ACCEPTANCE: (A) Empty component store + no extractor → guidance mentions extraction. (B) Recommended extractor entity → guidance shows install command. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :db/ident :v :task/t-e225ba30 :op :assert}
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :task/acceptance :v "(A) Empty component store + no extractor → guidance mentions extraction. (B) Recommended extractor entity → guidance shows install command." :op :assert}
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :task/background :v "This closes the bootstrapping gap. New project → braid init → meta-extractor recommends → guidance nudges → agent installs → extraction runs → boundaries compute → F(S) is meaningful." :op :assert}
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :task/created-at :v 1773930143 :op :assert}
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :task/id :v "t-e225ba30" :op :assert}
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :task/title :v "INTEGRATION-3: Guidance suggests extractor installation — when ALL boundaries for a namespace have 0% coverage AND no :extractor/* entity exists for that namespace, guidance says 'No component data. Run braid extract or install an extractor.' When :extractor/* entity exists with status=recommended, guidance says 'Install: <command>'. BACKGROUND: This closes the bootstrapping gap. New project → braid init → meta-extractor recommends → guidance nudges → agent installs → extraction runs → boundaries compute → F(S) is meaningful. TRACES TO: INV-FOUNDATION-004, INV-GUIDANCE-001. ACCEPTANCE: (A) Empty component store + no extractor → guidance mentions extraction. (B) Recommended extractor entity → guidance shows install command. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :task/traces-to :v #blake3 "00fef033f5c329793efc40be3338ce3fe708f0b44a0e3db9a817b62d38313c3f" :op :assert}
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :task/traces-to :v #blake3 "c06bcc0af33e3dfbc340aa43810000fd49ec134c64e4408bea0420c308924d94" :op :assert}
+   {:e #blake3 "764eb3e1dd1c76b755a45e75cd3373faa3a2c8c4037f477fa9ecb62eb901a615" :a :task/type :v :task.type/task :op :assert}
+ ]}

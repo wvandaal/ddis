@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773930026/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EVIDENCE-R2: Wire composite_evidence_weight into BoundaryCheck.divergence — weighted coverage = Σ(weight(e) × covered(e)) / Σ(weight(e)). The BoundaryCheck trait's default divergence() method already computes set coverage. Extend it to call composite_evidence_weight for each entity in the source set and weight the coverage computation. High-evidence entities count more. BACKGROUND: This is the single integration point where the evidence lattice meets the boundary framework. Every BoundaryCheck automatically gets evidence weighting via the default trait method. TRACES TO: INV-BILATERAL-007, INV-BILATERAL-009, INV-FOUNDATION-005. ACCEPTANCE: (A) Same boundary with higher evidence entities → higher coverage score. (B) Backward compatible — without evidence datoms, weight defaults to 1.0. FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :db/ident :v :task/t-8658eb77 :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/acceptance :v "(A) Same boundary with higher evidence entities → higher coverage score. (B) Backward compatible — without evidence datoms, weight defaults to 1.0." :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/background :v "This is the single integration point where the evidence lattice meets the boundary framework. Every BoundaryCheck automatically gets evidence weighting via the default trait method." :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/created-at :v 1773930024 :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/id :v "t-8658eb77" :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/title :v "EVIDENCE-R2: Wire composite_evidence_weight into BoundaryCheck.divergence — weighted coverage = Σ(weight(e) × covered(e)) / Σ(weight(e)). The BoundaryCheck trait's default divergence() method already computes set coverage. Extend it to call composite_evidence_weight for each entity in the source set and weight the coverage computation. High-evidence entities count more. BACKGROUND: This is the single integration point where the evidence lattice meets the boundary framework. Every BoundaryCheck automatically gets evidence weighting via the default trait method. TRACES TO: INV-BILATERAL-007, INV-BILATERAL-009, INV-FOUNDATION-005. ACCEPTANCE: (A) Same boundary with higher evidence entities → higher coverage score. (B) Backward compatible — without evidence datoms, weight defaults to 1.0. FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/traces-to :v #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/traces-to :v #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773930104/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-IMPL-1: SchemaUsageBoundary — source=declared schema attributes, target=actually-used attributes in store. Detects dead schema (attributes registered but never transacted) and shadow attributes (used without declaration, which shouldn't pass validation but can occur via direct .edn injection). BACKGROUND: The schema currently has ~100+ attributes across 4 layers. Some may never be used. This boundary exposes schema bloat. TRACES TO: INV-BILATERAL-007, INV-SCHEMA-001, INV-SCHEMA-004. ACCEPTANCE: (A) Attribute in schema but 0 datoms → appears in forward gap. (B) All-used schema → 100% coverage. FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :db/ident :v :task/t-ea6d8241 :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/acceptance :v "(A) Attribute in schema but 0 datoms → appears in forward gap. (B) All-used schema → 100% coverage." :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/background :v "The schema currently has ~100+ attributes across 4 layers. Some may never be used. This boundary exposes schema bloat." :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/created-at :v 1773930102 :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/id :v "t-ea6d8241" :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/title :v "BOUNDARY-IMPL-1: SchemaUsageBoundary — source=declared schema attributes, target=actually-used attributes in store. Detects dead schema (attributes registered but never transacted) and shadow attributes (used without declaration, which shouldn't pass validation but can occur via direct .edn injection). BACKGROUND: The schema currently has ~100+ attributes across 4 layers. Some may never be used. This boundary exposes schema bloat. TRACES TO: INV-BILATERAL-007, INV-SCHEMA-001, INV-SCHEMA-004. ACCEPTANCE: (A) Attribute in schema but 0 datoms → appears in forward gap. (B) All-used schema → 100% coverage. FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/traces-to :v #blake3 "1e6cdcb23d6b2611ceac3550471a6fe6f3ceb9528929ffcbc0ac90765c7d9739" :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/traces-to :v #blake3 "c54a22ea31d81dc0396e7e107f9bc8957349913c19c6b00db7800927f5c8a5bf" :op :assert}
+   {:e #blake3 "f88df114493b5007e40489871a876ae3e761ee647be26df70f5b34bb2e0ce3cd" :a :task/type :v :task.type/task :op :assert}
+ ]}

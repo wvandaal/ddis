@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773930103/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Concrete Boundary Implementations — 5 BoundaryCheck impls that exercise the framework on real divergence types (INV-BILATERAL-007)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bd0f0c20f5dffa6793b9f9c79877071e94bcd644f2b7d51100131e8cc6b4a49b" :a :db/ident :v :task/t-411add92 :op :assert}
+   {:e #blake3 "bd0f0c20f5dffa6793b9f9c79877071e94bcd644f2b7d51100131e8cc6b4a49b" :a :task/created-at :v 1773930102 :op :assert}
+   {:e #blake3 "bd0f0c20f5dffa6793b9f9c79877071e94bcd644f2b7d51100131e8cc6b4a49b" :a :task/id :v "t-411add92" :op :assert}
+   {:e #blake3 "bd0f0c20f5dffa6793b9f9c79877071e94bcd644f2b7d51100131e8cc6b4a49b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "bd0f0c20f5dffa6793b9f9c79877071e94bcd644f2b7d51100131e8cc6b4a49b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bd0f0c20f5dffa6793b9f9c79877071e94bcd644f2b7d51100131e8cc6b4a49b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bd0f0c20f5dffa6793b9f9c79877071e94bcd644f2b7d51100131e8cc6b4a49b" :a :task/title :v "EPIC: Concrete Boundary Implementations — 5 BoundaryCheck impls that exercise the framework on real divergence types (INV-BILATERAL-007)" :op :assert}
+   {:e #blake3 "bd0f0c20f5dffa6793b9f9c79877071e94bcd644f2b7d51100131e8cc6b4a49b" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "bd0f0c20f5dffa6793b9f9c79877071e94bcd644f2b7d51100131e8cc6b4a49b" :a :task/type :v :task.type/epic :op :assert}
+ ]}

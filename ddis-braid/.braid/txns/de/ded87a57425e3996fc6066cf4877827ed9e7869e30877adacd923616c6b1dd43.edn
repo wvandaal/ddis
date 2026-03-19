@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773930065/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: MCP Continuous Extraction — automatic datom production from tool call stream (ADR-FOUNDATION-011, INV-GUIDANCE-014..016)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :db/ident :v :task/t-b489c254 :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/created-at :v 1773930064 :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/id :v "t-b489c254" :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/title :v "EPIC: MCP Continuous Extraction — automatic datom production from tool call stream (ADR-FOUNDATION-011, INV-GUIDANCE-014..016)" :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/traces-to :v #blake3 "765db5b76fa7e768fdd3e842691a5cbbd1cc6f62cee2d39bb66e0ca9c9be0053" :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/type :v :task.type/epic :op :assert}
+ ]}

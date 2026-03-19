@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773930027/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EVIDENCE-R3: Unit + proptest for evidence-weighted boundaries. TESTS: (1) composite_evidence_weight returns 1.0 for observed+L4+fresh. (2) Returns low value for hypothesized+no-witness+stale. (3) Proptest: weight monotonically non-decreasing as any factor improves. (4) Weighted coverage >= unweighted coverage when high-evidence entities are covered. (5) Backward compatible: store without evidence datoms → weight defaults to 1.0 for all. (6) Proptest: coverage in [0.0, 1.0] for any store state. TRACES TO: INV-FOUNDATION-005, INV-BILATERAL-007. FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "876316087c439a179929509a339b66eac902e05ab3cb84c82f4ed89247544fe3" :a :db/ident :v :task/t-42a1a89b :op :assert}
+   {:e #blake3 "876316087c439a179929509a339b66eac902e05ab3cb84c82f4ed89247544fe3" :a :task/created-at :v 1773930025 :op :assert}
+   {:e #blake3 "876316087c439a179929509a339b66eac902e05ab3cb84c82f4ed89247544fe3" :a :task/id :v "t-42a1a89b" :op :assert}
+   {:e #blake3 "876316087c439a179929509a339b66eac902e05ab3cb84c82f4ed89247544fe3" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "876316087c439a179929509a339b66eac902e05ab3cb84c82f4ed89247544fe3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "876316087c439a179929509a339b66eac902e05ab3cb84c82f4ed89247544fe3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "876316087c439a179929509a339b66eac902e05ab3cb84c82f4ed89247544fe3" :a :task/title :v "EVIDENCE-R3: Unit + proptest for evidence-weighted boundaries. TESTS: (1) composite_evidence_weight returns 1.0 for observed+L4+fresh. (2) Returns low value for hypothesized+no-witness+stale. (3) Proptest: weight monotonically non-decreasing as any factor improves. (4) Weighted coverage >= unweighted coverage when high-evidence entities are covered. (5) Backward compatible: store without evidence datoms → weight defaults to 1.0 for all. (6) Proptest: coverage in [0.0, 1.0] for any store state. TRACES TO: INV-FOUNDATION-005, INV-BILATERAL-007. FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "876316087c439a179929509a339b66eac902e05ab3cb84c82f4ed89247544fe3" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "876316087c439a179929509a339b66eac902e05ab3cb84c82f4ed89247544fe3" :a :task/traces-to :v #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :op :assert}
+   {:e #blake3 "876316087c439a179929509a339b66eac902e05ab3cb84c82f4ed89247544fe3" :a :task/type :v :task.type/test :op :assert}
+ ]}

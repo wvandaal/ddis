@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773930069/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: MCP-EXTRACT-4: Unit + integration tests for MCP extraction. TESTS: (1) File read signal produces :component/interest datom. (2) Test execution signal produces :component/tested datom. (3) All behavioral datoms have provenance=hypothesized. (4) Buffer accumulates without immediate commit. (5) Buffer flush at harvest produces correct transaction. (6) Temporal clustering: 2 file reads within window → composition edge. (7) Temporal clustering: 2 reads outside window → no edge. (8) Extraction does not modify tool responses. (9) Debounce: reading same file twice within 5s produces only 1 datom. TRACES TO: ADR-FOUNDATION-011, NEG-FOUNDATION-002. FILE: crates/braid/src/mcp.rs (tests module)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fc005ad07824916fc08347db70535d07039e50ced630ea6348abe47cb26b2624" :a :db/ident :v :task/t-6169f35e :op :assert}
+   {:e #blake3 "fc005ad07824916fc08347db70535d07039e50ced630ea6348abe47cb26b2624" :a :task/created-at :v 1773930066 :op :assert}
+   {:e #blake3 "fc005ad07824916fc08347db70535d07039e50ced630ea6348abe47cb26b2624" :a :task/id :v "t-6169f35e" :op :assert}
+   {:e #blake3 "fc005ad07824916fc08347db70535d07039e50ced630ea6348abe47cb26b2624" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "fc005ad07824916fc08347db70535d07039e50ced630ea6348abe47cb26b2624" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "fc005ad07824916fc08347db70535d07039e50ced630ea6348abe47cb26b2624" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fc005ad07824916fc08347db70535d07039e50ced630ea6348abe47cb26b2624" :a :task/title :v "MCP-EXTRACT-4: Unit + integration tests for MCP extraction. TESTS: (1) File read signal produces :component/interest datom. (2) Test execution signal produces :component/tested datom. (3) All behavioral datoms have provenance=hypothesized. (4) Buffer accumulates without immediate commit. (5) Buffer flush at harvest produces correct transaction. (6) Temporal clustering: 2 file reads within window → composition edge. (7) Temporal clustering: 2 reads outside window → no edge. (8) Extraction does not modify tool responses. (9) Debounce: reading same file twice within 5s produces only 1 datom. TRACES TO: ADR-FOUNDATION-011, NEG-FOUNDATION-002. FILE: crates/braid/src/mcp.rs (tests module)" :op :assert}
+   {:e #blake3 "fc005ad07824916fc08347db70535d07039e50ced630ea6348abe47cb26b2624" :a :task/traces-to :v #blake3 "a8e388ca3c4ed113d54403d9fb9b04955ca72b5adcba7de8a962b2099e5a84a8" :op :assert}
+   {:e #blake3 "fc005ad07824916fc08347db70535d07039e50ced630ea6348abe47cb26b2624" :a :task/type :v :task.type/test :op :assert}
+ ]}

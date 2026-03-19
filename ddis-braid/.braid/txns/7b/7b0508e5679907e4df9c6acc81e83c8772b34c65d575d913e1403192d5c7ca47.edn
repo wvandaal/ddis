@@ -1,0 +1,18 @@
+{:tx/id #hlc "1773930024/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Evidence-Weighted Boundary Framework — wire provenance + witness depth into F(S) boundary coverage (ADR-STORE-008, INV-WITNESS-002, INV-BILATERAL-007, INV-FOUNDATION-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bb3a07b9cd0cab277c50b352d965ed8ecacae0c1cea4a403ecd3c4a5c0e8bea6" :a :db/ident :v :task/t-cad805e9 :op :assert}
+   {:e #blake3 "bb3a07b9cd0cab277c50b352d965ed8ecacae0c1cea4a403ecd3c4a5c0e8bea6" :a :task/created-at :v 1773930023 :op :assert}
+   {:e #blake3 "bb3a07b9cd0cab277c50b352d965ed8ecacae0c1cea4a403ecd3c4a5c0e8bea6" :a :task/id :v "t-cad805e9" :op :assert}
+   {:e #blake3 "bb3a07b9cd0cab277c50b352d965ed8ecacae0c1cea4a403ecd3c4a5c0e8bea6" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "bb3a07b9cd0cab277c50b352d965ed8ecacae0c1cea4a403ecd3c4a5c0e8bea6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bb3a07b9cd0cab277c50b352d965ed8ecacae0c1cea4a403ecd3c4a5c0e8bea6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bb3a07b9cd0cab277c50b352d965ed8ecacae0c1cea4a403ecd3c4a5c0e8bea6" :a :task/title :v "EPIC: Evidence-Weighted Boundary Framework — wire provenance + witness depth into F(S) boundary coverage (ADR-STORE-008, INV-WITNESS-002, INV-BILATERAL-007, INV-FOUNDATION-005)" :op :assert}
+   {:e #blake3 "bb3a07b9cd0cab277c50b352d965ed8ecacae0c1cea4a403ecd3c4a5c0e8bea6" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "bb3a07b9cd0cab277c50b352d965ed8ecacae0c1cea4a403ecd3c4a5c0e8bea6" :a :task/traces-to :v #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :op :assert}
+   {:e #blake3 "bb3a07b9cd0cab277c50b352d965ed8ecacae0c1cea4a403ecd3c4a5c0e8bea6" :a :task/traces-to :v #blake3 "fee012f533fcc63eb0716153a3985dad8787052b44f6f4cf25d4a12a9b3bfd6b" :op :assert}
+   {:e #blake3 "bb3a07b9cd0cab277c50b352d965ed8ecacae0c1cea4a403ecd3c4a5c0e8bea6" :a :task/type :v :task.type/epic :op :assert}
+ ]}

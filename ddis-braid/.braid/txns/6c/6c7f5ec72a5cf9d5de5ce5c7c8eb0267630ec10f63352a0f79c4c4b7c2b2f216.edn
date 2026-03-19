@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773929736/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EVIDENCE-4: Unit + proptest for evidence lattice — monotonicity, commutativity, idempotency, F(S) weighting. TESTS: (1) EvidenceLevel ordering: Behavioral < Assertion < StaticAnalysis < StructuralProof. (2) Lattice join = max: join(Behavioral, StaticAnalysis) = StaticAnalysis. (3) Resolution: two assertions → higher wins. (4) F(S) weighting: same coverage with higher evidence → higher F(S). (5) Proptest: for any sequence of evidence assertions, final resolved level = max of all asserted levels. (6) Proptest: F(S) monotonically non-decreasing under evidence upgrades. TRACES TO: INV-FOUNDATION-005. FILE: crates/braid-kernel/src/evidence.rs (tests module)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1a7023fc8c4f96c387391402e961a9dd7e41eda9fd833721d8f0bba57ad4d3b5" :a :db/ident :v :task/t-1df529fa :op :assert}
+   {:e #blake3 "1a7023fc8c4f96c387391402e961a9dd7e41eda9fd833721d8f0bba57ad4d3b5" :a :task/created-at :v 1773929733 :op :assert}
+   {:e #blake3 "1a7023fc8c4f96c387391402e961a9dd7e41eda9fd833721d8f0bba57ad4d3b5" :a :task/id :v "t-1df529fa" :op :assert}
+   {:e #blake3 "1a7023fc8c4f96c387391402e961a9dd7e41eda9fd833721d8f0bba57ad4d3b5" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1a7023fc8c4f96c387391402e961a9dd7e41eda9fd833721d8f0bba57ad4d3b5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1a7023fc8c4f96c387391402e961a9dd7e41eda9fd833721d8f0bba57ad4d3b5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1a7023fc8c4f96c387391402e961a9dd7e41eda9fd833721d8f0bba57ad4d3b5" :a :task/title :v "EVIDENCE-4: Unit + proptest for evidence lattice — monotonicity, commutativity, idempotency, F(S) weighting. TESTS: (1) EvidenceLevel ordering: Behavioral < Assertion < StaticAnalysis < StructuralProof. (2) Lattice join = max: join(Behavioral, StaticAnalysis) = StaticAnalysis. (3) Resolution: two assertions → higher wins. (4) F(S) weighting: same coverage with higher evidence → higher F(S). (5) Proptest: for any sequence of evidence assertions, final resolved level = max of all asserted levels. (6) Proptest: F(S) monotonically non-decreasing under evidence upgrades. TRACES TO: INV-FOUNDATION-005. FILE: crates/braid-kernel/src/evidence.rs (tests module)" :op :assert}
+   {:e #blake3 "1a7023fc8c4f96c387391402e961a9dd7e41eda9fd833721d8f0bba57ad4d3b5" :a :task/traces-to :v #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :op :assert}
+   {:e #blake3 "1a7023fc8c4f96c387391402e961a9dd7e41eda9fd833721d8f0bba57ad4d3b5" :a :task/type :v :task.type/test :op :assert}
+ ]}

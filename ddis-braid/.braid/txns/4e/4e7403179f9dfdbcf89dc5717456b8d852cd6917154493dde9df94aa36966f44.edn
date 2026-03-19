@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773930070/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: MCP-EXTRACT-5: E2E test scripts/e2e_mcp_extraction.sh — simulate MCP tool call sequence, verify behavioral datoms produced. Test flow: (1) Start MCP server. (2) Send read_file tool calls for 3 files. (3) Send run_tests tool call. (4) Send braid_harvest tool call to flush buffer. (5) Query store for :component/interest datoms → expect 3. (6) Query for :component/tested → expect 1. (7) Query for :composition/inferred-coupling → expect >= 1 (temporal cluster). (8) All behavioral datoms have provenance=hypothesized. TRACES TO: ADR-FOUNDATION-011. FILE: scripts/e2e_mcp_extraction.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f45fbab798f7f325152a0a7be4c84be36302c5d5eefaaf7b7d08ae0b11ceb0bb" :a :db/ident :v :task/t-90b7d513 :op :assert}
+   {:e #blake3 "f45fbab798f7f325152a0a7be4c84be36302c5d5eefaaf7b7d08ae0b11ceb0bb" :a :task/created-at :v 1773930067 :op :assert}
+   {:e #blake3 "f45fbab798f7f325152a0a7be4c84be36302c5d5eefaaf7b7d08ae0b11ceb0bb" :a :task/id :v "t-90b7d513" :op :assert}
+   {:e #blake3 "f45fbab798f7f325152a0a7be4c84be36302c5d5eefaaf7b7d08ae0b11ceb0bb" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f45fbab798f7f325152a0a7be4c84be36302c5d5eefaaf7b7d08ae0b11ceb0bb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f45fbab798f7f325152a0a7be4c84be36302c5d5eefaaf7b7d08ae0b11ceb0bb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f45fbab798f7f325152a0a7be4c84be36302c5d5eefaaf7b7d08ae0b11ceb0bb" :a :task/title :v "MCP-EXTRACT-5: E2E test scripts/e2e_mcp_extraction.sh — simulate MCP tool call sequence, verify behavioral datoms produced. Test flow: (1) Start MCP server. (2) Send read_file tool calls for 3 files. (3) Send run_tests tool call. (4) Send braid_harvest tool call to flush buffer. (5) Query store for :component/interest datoms → expect 3. (6) Query for :component/tested → expect 1. (7) Query for :composition/inferred-coupling → expect >= 1 (temporal cluster). (8) All behavioral datoms have provenance=hypothesized. TRACES TO: ADR-FOUNDATION-011. FILE: scripts/e2e_mcp_extraction.sh" :op :assert}
+   {:e #blake3 "f45fbab798f7f325152a0a7be4c84be36302c5d5eefaaf7b7d08ae0b11ceb0bb" :a :task/type :v :task.type/test :op :assert}
+ ]}

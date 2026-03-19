@@ -1,0 +1,19 @@
+{:tx/id #hlc "1773930108/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-IMPL-5: SpecImplBoundary (refactored) — the EXISTING forward/backward scan refactored as BoundaryCheck. This is BOUNDARY-3 from the earlier task set but with clearer acceptance criteria. source=spec elements with :spec/statement, target=:impl/* entities implementing them. BACKGROUND: This is backward-compatible — the existing bilateral scan logic is preserved, just wrapped in the BoundaryCheck trait. F(S).coverage and F(S).depth dimensions are computed from this boundary's divergence. TRACES TO: INV-BILATERAL-007, INV-BILATERAL-001. ACCEPTANCE: (A) F(S) unchanged from current behavior (backward compat). (B) forward_gap = spec elements without implementation. (C) backward_gap = implementations without spec. FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :db/ident :v :task/t-053e1287 :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/acceptance :v "(A) F(S) unchanged from current behavior (backward compat). (B) forward_gap = spec elements without implementation. (C) backward_gap = implementations without spec." :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/background :v "This is backward-compatible — the existing bilateral scan logic is preserved, just wrapped in the BoundaryCheck trait. F(S).coverage and F(S).depth dimensions are computed from this boundary's divergence." :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/created-at :v 1773930105 :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/id :v "t-053e1287" :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/title :v "BOUNDARY-IMPL-5: SpecImplBoundary (refactored) — the EXISTING forward/backward scan refactored as BoundaryCheck. This is BOUNDARY-3 from the earlier task set but with clearer acceptance criteria. source=spec elements with :spec/statement, target=:impl/* entities implementing them. BACKGROUND: This is backward-compatible — the existing bilateral scan logic is preserved, just wrapped in the BoundaryCheck trait. F(S).coverage and F(S).depth dimensions are computed from this boundary's divergence. TRACES TO: INV-BILATERAL-007, INV-BILATERAL-001. ACCEPTANCE: (A) F(S) unchanged from current behavior (backward compat). (B) forward_gap = spec elements without implementation. (C) backward_gap = implementations without spec. FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/traces-to :v #blake3 "7b9bbe4204b84aba3ff9e9571e7be271c1ce17a41c96a69e29f7e1b95bc6d937" :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/type :v :task.type/task :op :assert}
+ ]}

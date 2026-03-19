@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773930146/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: INTEGRATION-4: Full-loop E2E test scripts/e2e_full_loop.sh — the MASTER integration test. Validates the complete cycle: (1) braid init creates store. (2) Meta-extractor detects Rust project, transacts :extractor/rust-recommended. (3) braid status shows 'No component data. Install extractor.' (4) braid extract rust populates :component/* datoms. (5) braid status shows per-boundary coverage > 0. (6) Create a task referencing non-existent spec → boundary gap appears. (7) braid spec create to fix the gap → boundary coverage improves. (8) F(S) increases between steps 6 and 7. (9) All behavioral datoms (if MCP extraction active) have provenance=hypothesized. (10) Evidence weighting: coverage with proofs > coverage with behavioral signals. 15+ [PASS]/[FAIL] checks with detailed logging. TRACES TO: ALL spec elements from this session. FILE: scripts/e2e_full_loop.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "890d6ecc8cbd3de4eb746b0cc9b1fd4794b9f3aa4bd7412bfdd4ca39b29b12ab" :a :db/ident :v :task/t-6ed15191 :op :assert}
+   {:e #blake3 "890d6ecc8cbd3de4eb746b0cc9b1fd4794b9f3aa4bd7412bfdd4ca39b29b12ab" :a :task/created-at :v 1773930143 :op :assert}
+   {:e #blake3 "890d6ecc8cbd3de4eb746b0cc9b1fd4794b9f3aa4bd7412bfdd4ca39b29b12ab" :a :task/id :v "t-6ed15191" :op :assert}
+   {:e #blake3 "890d6ecc8cbd3de4eb746b0cc9b1fd4794b9f3aa4bd7412bfdd4ca39b29b12ab" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "890d6ecc8cbd3de4eb746b0cc9b1fd4794b9f3aa4bd7412bfdd4ca39b29b12ab" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "890d6ecc8cbd3de4eb746b0cc9b1fd4794b9f3aa4bd7412bfdd4ca39b29b12ab" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "890d6ecc8cbd3de4eb746b0cc9b1fd4794b9f3aa4bd7412bfdd4ca39b29b12ab" :a :task/title :v "INTEGRATION-4: Full-loop E2E test scripts/e2e_full_loop.sh — the MASTER integration test. Validates the complete cycle: (1) braid init creates store. (2) Meta-extractor detects Rust project, transacts :extractor/rust-recommended. (3) braid status shows 'No component data. Install extractor.' (4) braid extract rust populates :component/* datoms. (5) braid status shows per-boundary coverage > 0. (6) Create a task referencing non-existent spec → boundary gap appears. (7) braid spec create to fix the gap → boundary coverage improves. (8) F(S) increases between steps 6 and 7. (9) All behavioral datoms (if MCP extraction active) have provenance=hypothesized. (10) Evidence weighting: coverage with proofs > coverage with behavioral signals. 15+ [PASS]/[FAIL] checks with detailed logging. TRACES TO: ALL spec elements from this session. FILE: scripts/e2e_full_loop.sh" :op :assert}
+   {:e #blake3 "890d6ecc8cbd3de4eb746b0cc9b1fd4794b9f3aa4bd7412bfdd4ca39b29b12ab" :a :task/type :v :task.type/test :op :assert}
+ ]}

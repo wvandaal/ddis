@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773929732/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Evidence Lattice — monotonic evidence levels for all extracted datoms (INV-FOUNDATION-005, ADR-FOUNDATION-010)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bbbf95ebcc69b4fb2c3386f3dd5845102c2468619f6bf6df6f996160a68a84ec" :a :db/ident :v :task/t-53cc69f9 :op :assert}
+   {:e #blake3 "bbbf95ebcc69b4fb2c3386f3dd5845102c2468619f6bf6df6f996160a68a84ec" :a :task/created-at :v 1773929731 :op :assert}
+   {:e #blake3 "bbbf95ebcc69b4fb2c3386f3dd5845102c2468619f6bf6df6f996160a68a84ec" :a :task/id :v "t-53cc69f9" :op :assert}
+   {:e #blake3 "bbbf95ebcc69b4fb2c3386f3dd5845102c2468619f6bf6df6f996160a68a84ec" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "bbbf95ebcc69b4fb2c3386f3dd5845102c2468619f6bf6df6f996160a68a84ec" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bbbf95ebcc69b4fb2c3386f3dd5845102c2468619f6bf6df6f996160a68a84ec" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bbbf95ebcc69b4fb2c3386f3dd5845102c2468619f6bf6df6f996160a68a84ec" :a :task/title :v "EPIC: Evidence Lattice — monotonic evidence levels for all extracted datoms (INV-FOUNDATION-005, ADR-FOUNDATION-010)" :op :assert}
+   {:e #blake3 "bbbf95ebcc69b4fb2c3386f3dd5845102c2468619f6bf6df6f996160a68a84ec" :a :task/traces-to :v #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :op :assert}
+   {:e #blake3 "bbbf95ebcc69b4fb2c3386f3dd5845102c2468619f6bf6df6f996160a68a84ec" :a :task/type :v :task.type/epic :op :assert}
+ ]}

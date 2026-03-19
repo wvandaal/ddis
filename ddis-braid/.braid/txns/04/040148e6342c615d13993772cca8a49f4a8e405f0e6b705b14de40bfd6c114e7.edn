@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773930109/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-IMPL-TEST: Comprehensive tests for all 5 BoundaryCheck implementations. For each impl: (1) Empty store → 0 coverage or N/A. (2) Fully covered → 100%. (3) Partial coverage → correct ratio. (4) Evidence weighting: same gap with higher evidence → different F(S). (5) Integration: register all 5, call evaluate_all, verify F(S) aggregates correctly. (6) Proptest: random store state → all coverages in [0.0, 1.0]. TRACES TO: INV-BILATERAL-007..009. FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6870fd4b2f093c577416d5d49d85fcaae69761002783852bd43a68df11436613" :a :db/ident :v :task/t-fdb83aaa :op :assert}
+   {:e #blake3 "6870fd4b2f093c577416d5d49d85fcaae69761002783852bd43a68df11436613" :a :task/created-at :v 1773930105 :op :assert}
+   {:e #blake3 "6870fd4b2f093c577416d5d49d85fcaae69761002783852bd43a68df11436613" :a :task/id :v "t-fdb83aaa" :op :assert}
+   {:e #blake3 "6870fd4b2f093c577416d5d49d85fcaae69761002783852bd43a68df11436613" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6870fd4b2f093c577416d5d49d85fcaae69761002783852bd43a68df11436613" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6870fd4b2f093c577416d5d49d85fcaae69761002783852bd43a68df11436613" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6870fd4b2f093c577416d5d49d85fcaae69761002783852bd43a68df11436613" :a :task/title :v "BOUNDARY-IMPL-TEST: Comprehensive tests for all 5 BoundaryCheck implementations. For each impl: (1) Empty store → 0 coverage or N/A. (2) Fully covered → 100%. (3) Partial coverage → correct ratio. (4) Evidence weighting: same gap with higher evidence → different F(S). (5) Integration: register all 5, call evaluate_all, verify F(S) aggregates correctly. (6) Proptest: random store state → all coverages in [0.0, 1.0]. TRACES TO: INV-BILATERAL-007..009. FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "6870fd4b2f093c577416d5d49d85fcaae69761002783852bd43a68df11436613" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "6870fd4b2f093c577416d5d49d85fcaae69761002783852bd43a68df11436613" :a :task/type :v :task.type/test :op :assert}
+ ]}
