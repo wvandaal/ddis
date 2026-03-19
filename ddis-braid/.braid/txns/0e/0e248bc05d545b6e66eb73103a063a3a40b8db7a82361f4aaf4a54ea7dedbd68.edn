@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773954487/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-RFL-E2E: E2E test script scripts/e2e_routing_feedback.sh — validates the complete R(t) feedback loop (INV-GUIDANCE-010, INV-GUIDANCE-005). TESTS: (1) Run braid status → store contains :action/recommended-command datom. (2) Run braid go <recommended-id> → outcome classified as Followed. (3) Run braid query (unrelated) → outcome classified as Ignored. (4) Run braid task show <recommended-id> → outcome classified as Adjacent. (5) After 5 commands, 5 action-outcome pairs exist in store. (6) Latency-ms is recorded and > 0. (7) braid status --verbose shows follow-through rate. (8) After 50+ simulated outcomes, braid harvest --commit triggers refit. (9) New routing weights are stored as :routing/weights datom. (10) New weights differ from defaults when data is skewed. (11) Compute_routing uses learned weights (not hardcoded defaults) when :routing/weights exists. (12) Refit is deterministic across runs. FILE: scripts/e2e_routing_feedback.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :db/ident :v :task/t-59196416 :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/created-at :v 1773954486 :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/id :v "t-59196416" :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/title :v "TEST-RFL-E2E: E2E test script scripts/e2e_routing_feedback.sh — validates the complete R(t) feedback loop (INV-GUIDANCE-010, INV-GUIDANCE-005). TESTS: (1) Run braid status → store contains :action/recommended-command datom. (2) Run braid go <recommended-id> → outcome classified as Followed. (3) Run braid query (unrelated) → outcome classified as Ignored. (4) Run braid task show <recommended-id> → outcome classified as Adjacent. (5) After 5 commands, 5 action-outcome pairs exist in store. (6) Latency-ms is recorded and > 0. (7) braid status --verbose shows follow-through rate. (8) After 50+ simulated outcomes, braid harvest --commit triggers refit. (9) New routing weights are stored as :routing/weights datom. (10) New weights differ from defaults when data is skewed. (11) Compute_routing uses learned weights (not hardcoded defaults) when :routing/weights exists. (12) Refit is deterministic across runs. FILE: scripts/e2e_routing_feedback.sh" :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/title-l0 :v "TEST-RFL-E2E" :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/title-l1 :v "TEST-RFL-E2E: E2E test script scripts/e2e_routing_feedback.sh — validates t..." :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/traces-to :v #blake3 "051ef1a777f4b604020245e5b5ab3747eb655bbf0cd8a6cadfb1167ac04d9a19" :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/traces-to :v #blake3 "5ec5a82c9ee3b60a53cec83354f855412d2170c8b069b0b461be1891f3fbb962" :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/traces-to :v #blake3 "d6d63e576ddbe19eabf9b1ac934b1ddf7ac06268fbf23b906bfc8df98c8ef42a" :op :assert}
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/type :v :task.type/test :op :assert}
+ ]}
