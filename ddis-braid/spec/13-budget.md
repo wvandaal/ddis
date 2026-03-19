@@ -251,8 +251,8 @@ of a minimal harvest signal.
 #### Level 0 (Algebraic Law)
 Commands are classified by attention cost:
 ```
-CHEAP    (≤ 50 tokens):  status, guidance, config, log
-MODERATE (50–300):        query, bilateral, schema, trace, verify, spec, task, next, done, go
+CHEAP    (≤ 50 tokens):  guidance, config, log
+MODERATE (50–300):        status, query, bilateral, schema, trace, verify, spec, task, next, done, go
 EXPENSIVE (300+):         seed, session
 META     (side effects):  harvest, transact, merge, init, observe, write
 ```
@@ -325,6 +325,57 @@ pub const ERROR_MESSAGE_CEILING: usize = 100;
 than 50% (distortion exceeds rate-distortion bound), OR agent-mode output
 exceeds 300 tokens, OR a guidance footer exceeds 50 tokens, OR an error message
 exceeds 100 tokens.
+
+---
+
+### INV-BUDGET-007: Action-Centric Projection Completeness
+
+**Traces to**: ADR-BUDGET-005
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+At every budget level B >= MIN_OUTPUT, the projected output contains a complete, actionable recommendation:
+forall B >= 50: exists action A in project(store, B) such that A.command is executable and A.rationale is non-empty.
+
+The action is structurally first — it occupies the first line of every projected output.
+
+#### Level 1 (State Invariant)
+The ActionProjection type enforces non-optional action fields. The project() algorithm emits the action before processing any context blocks.
+
+**Falsification**: Any budget level >= MIN_OUTPUT produces output without an executable action command, OR the action is not the first line of the projected output.
+
+---
+
+### INV-BUDGET-008: Context Fill Monotonicity
+
+**Traces to**: ADR-BUDGET-005
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+For budgets B1 > B2, context_blocks(project(store, B1)) is a superset of context_blocks(project(store, B2)). Context is additive — increasing budget adds blocks, never removes or reorders them.
+
+#### Level 1 (State Invariant)
+The project() algorithm iterates context blocks in fixed precedence order. A block included at budget B2 is always included at budget B1 > B2 because its token cost <= B2 <= B1.
+
+**Falsification**: Increasing budget removes a context block that was present at lower budget, OR changes the relative order of included blocks.
+
+---
+
+### INV-BUDGET-009: Guidance-Projection Unification
+
+**Traces to**: ADR-BUDGET-005, INV-GUIDANCE-001
+**Verification**: `V:PROP`
+**Stage**: 1
+
+#### Level 0 (Algebraic Law)
+The guidance system R(t) and the output projection function share the same action computation. There is exactly ONE code path (compute_action_from_store) that determines the recommended action.
+
+#### Level 1 (State Invariant)
+Both the guidance footer and the ACP action layer call compute_action_from_store(). The output is identical for the same store state.
+
+**Falsification**: The action in a command's ACP output differs from the R(t) recommendation at the same store state, OR the guidance footer is computed by a different code path than the projection action.
 
 ---
 
@@ -447,6 +498,52 @@ The chars/4 approximation error causes incorrect projection level selection in
 more than 10% of cases (measured empirically), OR the `TokenCounter` trait is
 not used (making the graduation path to accurate tokenization require widespread
 code changes), OR Stage 0 adds tiktoken-rs as a dependency.
+
+---
+
+### ADR-BUDGET-005: Action-Centric Over Content-Centric Projection
+
+**Traces to**: SEED.md §8, ADR-BUDGET-003
+**Stage**: 1
+
+#### Problem
+How should the output pipeline manage budget constraints?
+
+#### Options
+A) Content-centric with pyramid summaries — compress content at decreasing detail levels
+B) Action-centric — organize output around what the agent should DO, with context scaling
+
+#### Decision
+**Option B.** The output pipeline is organized around the recommended action, not the store content. Every output = Action (never truncated) + Context (scales with budget) + Evidence (on-demand).
+
+#### Formal Justification
+From prompt-optimization theory: every output is a field configuration over the agent's activation manifold. The action is the minimal configuration that activates the correct reasoning basin. Content-centric compression (Option A) solves the token problem but not the activation problem — the agent still needs to extract the action from compressed content.
+
+---
+
+### ADR-BUDGET-006: Activation Density Over Information Density
+
+**Traces to**: SEED.md §8, ADR-BUDGET-003
+**Stage**: 1
+
+#### Problem
+What metric should govern output quality under budget constraints?
+
+#### Decision
+Activation density: correct-basin-activating tokens per context unit consumed. A 10-token action that activates the task-execution basin has higher activation density than a 50-token summary that activates the observation basin.
+
+---
+
+### ADR-BUDGET-007: Four Activation Strategies for Four k* Regimes
+
+**Traces to**: INV-BUDGET-004, ADR-BUDGET-002
+**Stage**: 1
+
+#### Problem
+How should output detail vary with remaining attention?
+
+#### Decision
+Four k*-adaptive strategies: Demonstrate (k*>=0.7, ~300 tokens context), Navigate (0.4-0.7, ~100 tokens), Imperative (0.2-0.4, ~20 tokens), Signal (k*<0.2, ~5 tokens). Each is a different cognitive activation strategy, not just a compression level.
 
 ---
 
