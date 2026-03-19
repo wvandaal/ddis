@@ -322,6 +322,49 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
         ));
     }
 
+    // TASK-DECOMPOSE: Auto-extract structured sections from title text.
+    // If title contains BACKGROUND:, ACCEPTANCE:, or TRACES TO: markers,
+    // extract them into separate datoms for semantic access.
+    // The :task/title keeps the FULL text (backward compat).
+    let title_lower = title.to_lowercase();
+    if let Some(bg_pos) = title_lower.find("background:") {
+        let bg_start = bg_pos + "background:".len();
+        // Background ends at next marker or end of string
+        let bg_end = ["acceptance:", "traces to:", "file:", "files:"]
+            .iter()
+            .filter_map(|m| title_lower[bg_start..].find(m).map(|p| bg_start + p))
+            .min()
+            .unwrap_or(title.len());
+        let background = title[bg_start..bg_end].trim();
+        if !background.is_empty() {
+            datoms.push(Datom::new(
+                entity,
+                Attribute::from_keyword(":task/background"),
+                Value::String(background.to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+    }
+    if let Some(ac_pos) = title_lower.find("acceptance:") {
+        let ac_start = ac_pos + "acceptance:".len();
+        let ac_end = ["traces to:", "file:", "files:", "background:"]
+            .iter()
+            .filter_map(|m| title_lower[ac_start..].find(m).map(|p| ac_start + p))
+            .min()
+            .unwrap_or(title.len());
+        let acceptance = title[ac_start..ac_end].trim();
+        if !acceptance.is_empty() {
+            datoms.push(Datom::new(
+                entity,
+                Attribute::from_keyword(":task/acceptance"),
+                Value::String(acceptance.to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+    }
+
     (entity, datoms)
 }
 

@@ -578,12 +578,13 @@ Examples:
     },
 
     // ── SESSION LIFECYCLE ──────────────────────────────────────────────
-    /// Session lifecycle: start and end sessions with one command.
+    /// Session lifecycle: start, end, and summarize sessions.
     ///
-    /// `braid session start` — inject seed + show actionable summary.
-    /// `braid session end`   — harvest + re-inject + show git guidance.
+    /// `braid session start`   — inject seed + show actionable summary.
+    /// `braid session end`     — harvest + re-inject + show git guidance.
+    /// `braid session summary` — show what the current session accomplished.
     ///
-    /// Replaces the multi-step start/end protocol with two commands.
+    /// Replaces the multi-step start/end protocol with simple commands.
     #[command(
         subcommand_required = true,
         after_long_help = "\
@@ -592,8 +593,9 @@ Examples:
   braid session start --task \"implement budget output\" # explicit task
   braid session end                                   # harvest + inject + guide
   braid session end --task \"completed budget pipeline\" # override task
+  braid session summary                               # what did this session accomplish?
 
-Workflow: session start → observe → work → observe → session end"
+Workflow: session start → observe → work → observe → session summary → session end"
     )]
     Session {
         #[command(subcommand)]
@@ -1358,6 +1360,20 @@ pub enum SessionAction {
         #[arg(long, short = 'a', default_value = "braid:user")]
         agent: String,
     },
+
+    /// Show what the current session accomplished.
+    ///
+    /// Counts tasks created/closed, observations, and transactions since the
+    /// last harvest boundary (read-only, does not modify the store).
+    Summary {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+    },
 }
 
 /// Extract the store path from a command variant (if the command uses a store).
@@ -1385,7 +1401,9 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
         | Command::Verify { path, .. }
         | Command::Transact { path, .. } => Some(path),
         Command::Session { action } => match action {
-            SessionAction::Start { path, .. } | SessionAction::End { path, .. } => Some(path),
+            SessionAction::Start { path, .. }
+            | SessionAction::End { path, .. }
+            | SessionAction::Summary { path, .. } => Some(path),
         },
         Command::Task { action } => match action {
             TaskAction::Create { path, .. }
@@ -1671,7 +1689,9 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
             *path = resolve_store_path(path.clone());
         }
         Command::Session { action } => match action {
-            SessionAction::Start { path, .. } | SessionAction::End { path, .. } => {
+            SessionAction::Start { path, .. }
+            | SessionAction::End { path, .. }
+            | SessionAction::Summary { path, .. } => {
                 *path = resolve_store_path(path.clone());
             }
         },
@@ -2094,6 +2114,7 @@ pub fn run(
                         seed_budget.min(budget_ctx.manager.command_budget("session") as usize);
                     session::run_end(&path, &inject, task.as_deref(), eff, &agent)?
                 }
+                SessionAction::Summary { path, agent } => session::run_summary(&path, &agent)?,
             };
             return Ok(maybe_inject_footer(
                 cmd_output,

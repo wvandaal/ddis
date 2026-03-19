@@ -363,6 +363,148 @@ pub fn links_to_datoms(links: &BTreeSet<TraceLink>, tx_id: TxId) -> Vec<Datom> {
     datoms
 }
 
+/// Extract test bodies and compute BLAKE3 hashes for witness system.
+///
+/// For each `#[test]` function in the source, extract the function body
+/// (everything between the opening `{` and closing `}`) and compute
+/// `BLAKE3(normalize(body))` where normalize strips whitespace and blank lines.
+///
+/// Depth classification:
+/// - L2 (2): plain `#[test]` function
+/// - L3 (3): `#[test]` inside `proptest!` block, or `#[kani::proof]`
+/// - L4 (4): `#[test]` inside a stateright file (not detected here — caller sets)
+///
+/// Returns `Vec<(test_name, blake3_hash_hex, depth_level)>`.
+pub fn extract_test_hashes(source: &str) -> Vec<(String, String, u32)> {
+    let lines: Vec<&str> = source.lines().collect();
+    let mut results = Vec::new();
+    let mut in_proptest_block = false;
+
+    let mut i = 0;
+    while i < lines.len() {
+        let trimmed = lines[i].trim();
+
+        // Track proptest! block entry
+        if trimmed.starts_with("proptest!") || trimmed == "proptest! {" {
+            in_proptest_block = true;
+        }
+
+        // Look for #[test] or #[kani::proof] attributes
+        let is_test = trimmed == "#[test]";
+        let is_kani = trimmed == "#[kani::proof]";
+
+        if is_test || is_kani {
+            // Scan forward for the `fn` line (may have other attrs in between)
+            let attr_line = i;
+            let mut fn_line = None;
+            for (j, ln) in lines
+                .iter()
+                .enumerate()
+                .take(lines.len().min(attr_line + 6))
+                .skip(attr_line + 1)
+            {
+                let candidate = ln.trim();
+                if candidate.starts_with("fn ") || candidate.starts_with("pub fn ") {
+                    fn_line = Some(j);
+                    break;
+                }
+                // Skip other attributes and cfg lines
+                if !candidate.starts_with('#')
+                    && !candidate.is_empty()
+                    && !candidate.starts_with("//")
+                {
+                    break;
+                }
+            }
+
+            if let Some(fn_idx) = fn_line {
+                if let Some(fn_name) = extract_fn_name(lines[fn_idx].trim()) {
+                    // Find the opening brace
+                    let mut body_start = None;
+                    let mut brace_search = fn_idx;
+                    while brace_search < lines.len() {
+                        if lines[brace_search].contains('{') {
+                            body_start = Some(brace_search);
+                            break;
+                        }
+                        brace_search += 1;
+                    }
+
+                    if let Some(start) = body_start {
+                        // Brace-match to find the end
+                        let mut depth: i32 = 0;
+                        let mut body_lines = Vec::new();
+                        let mut found_end = false;
+
+                        for (k, ln) in lines.iter().enumerate().skip(start) {
+                            for ch in ln.chars() {
+                                match ch {
+                                    '{' => depth += 1,
+                                    '}' => {
+                                        depth -= 1;
+                                        if depth == 0 {
+                                            found_end = true;
+                                        }
+                                    }
+                                    _ => {}
+                                }
+                            }
+                            // Collect lines inside the body (after opening brace line,
+                            // before closing brace line)
+                            if k > start && !found_end {
+                                body_lines.push(*ln);
+                            } else if k == start {
+                                // First line may have content after `{`
+                                if let Some(after) = ln.split_once('{') {
+                                    let rest = after.1.trim();
+                                    if !rest.is_empty() && rest != "}" {
+                                        body_lines.push(rest);
+                                    }
+                                }
+                            }
+                            if found_end {
+                                // Include content on the closing brace line before `}`
+                                if k > start {
+                                    if let Some(before) = ln.rsplit_once('}') {
+                                        let pre = before.0.trim();
+                                        if !pre.is_empty() {
+                                            body_lines.push(pre);
+                                        }
+                                    }
+                                }
+                                i = k;
+                                break;
+                            }
+                        }
+
+                        // Normalize: strip whitespace per line, remove blank and comment-only lines
+                        let normalized: String = body_lines
+                            .iter()
+                            .map(|l| l.trim())
+                            .filter(|l| !l.is_empty())
+                            .filter(|l| !l.starts_with("//"))
+                            .collect::<Vec<&str>>()
+                            .join("\n");
+
+                        // Hash
+                        let hash = blake3::hash(normalized.as_bytes());
+                        let hash_hex = hash.to_hex().to_string();
+
+                        // Depth: kani = L3, proptest = L3, plain test = L2
+                        let depth_level = if is_kani || in_proptest_block { 3 } else { 2 };
+
+                        results.push((fn_name, hash_hex, depth_level));
+                    }
+                }
+            }
+        }
+
+        i += 1;
+    }
+
+    results
+}
+
 /// Summary of a trace scan across multiple source files.
 #[derive(Clone, Debug)]
 pub struct TraceSummary {
@@ -590,5 +732,166 @@ proptest! {
         assert_eq!(summary.by_depth[&VerificationDepth::Syntactic], 1);
         assert_eq!(summary.by_depth[&VerificationDepth::Structural], 1);
         assert_eq!(summary.by_depth[&VerificationDepth::Property], 1);
+    }
+
+    // ===================================================================
+    // extract_test_hashes tests
+    // ===================================================================
+
+    #[test]
+    fn extract_test_hashes_basic() {
+        let source = r#"
+#[test]
+fn my_test() {
+    assert_eq!(1 + 1, 2);
+}
+"#;
+        let hashes = extract_test_hashes(source);
+        assert_eq!(hashes.len(), 1);
+        assert_eq!(hashes[0].0, "my_test");
+        assert!(!hashes[0].1.is_empty()); // has a hash
+        assert_eq!(hashes[0].2, 2); // L2 depth
+    }
+
+    #[test]
+    fn extract_test_hashes_no_tests() {
+        let source = "fn not_a_test() { }";
+        assert!(extract_test_hashes(source).is_empty());
+    }
+
+    #[test]
+    fn extract_test_hashes_multiple() {
+        let source = r#"
+#[test]
+fn test_alpha() {
+    assert!(true);
+}
+
+#[test]
+fn test_beta() {
+    assert_eq!(2 + 2, 4);
+}
+"#;
+        let hashes = extract_test_hashes(source);
+        assert_eq!(hashes.len(), 2);
+        assert_eq!(hashes[0].0, "test_alpha");
+        assert_eq!(hashes[1].0, "test_beta");
+        // Different bodies produce different hashes
+        assert_ne!(hashes[0].1, hashes[1].1);
+    }
+
+    #[test]
+    fn extract_test_hashes_strips_comments() {
+        // Two sources identical except for comments should hash the same
+        let source_a = r#"
+#[test]
+fn test_x() {
+    // This is a comment
+    assert!(true);
+}
+"#;
+        let source_b = r#"
+#[test]
+fn test_x() {
+    // Different comment text entirely
+    assert!(true);
+}
+"#;
+        let ha = extract_test_hashes(source_a);
+        let hb = extract_test_hashes(source_b);
+        assert_eq!(ha.len(), 1);
+        assert_eq!(hb.len(), 1);
+        assert_eq!(
+            ha[0].1, hb[0].1,
+            "comment-only changes should not change hash"
+        );
+    }
+
+    #[test]
+    fn extract_test_hashes_proptest_depth() {
+        let source = r#"
+proptest! {
+    #[test]
+    fn prop_check(x in 0..100u32) {
+        prop_assert!(x < 100);
+    }
+}
+"#;
+        let hashes = extract_test_hashes(source);
+        assert_eq!(hashes.len(), 1);
+        assert_eq!(hashes[0].0, "prop_check");
+        assert_eq!(hashes[0].2, 3); // L3 for proptest
+    }
+
+    #[test]
+    fn extract_test_hashes_kani_depth() {
+        let source = r#"
+#[cfg(kani)]
+#[kani::proof]
+fn prove_something() {
+    let x: u32 = kani::any();
+    kani::assume(x < 10);
+    assert!(x < 10);
+}
+"#;
+        let hashes = extract_test_hashes(source);
+        assert_eq!(hashes.len(), 1);
+        assert_eq!(hashes[0].0, "prove_something");
+        assert_eq!(hashes[0].2, 3); // L3 for kani
+    }
+
+    #[test]
+    fn extract_test_hashes_deterministic() {
+        let source = r#"
+#[test]
+fn determinism_check() {
+    let v = vec![1, 2, 3];
+    assert_eq!(v.len(), 3);
+}
+"#;
+        let h1 = extract_test_hashes(source);
+        let h2 = extract_test_hashes(source);
+        assert_eq!(h1[0].1, h2[0].1, "hash must be deterministic");
+    }
+
+    #[test]
+    fn extract_test_hashes_whitespace_normalized() {
+        // Same logical body but different indentation
+        let source_a = r#"
+#[test]
+fn test_ws() {
+    assert!(true);
+}
+"#;
+        let source_b = r#"
+#[test]
+fn test_ws() {
+        assert!(true);
+}
+"#;
+        let ha = extract_test_hashes(source_a);
+        let hb = extract_test_hashes(source_b);
+        assert_eq!(
+            ha[0].1, hb[0].1,
+            "leading whitespace should not affect hash"
+        );
+    }
+
+    #[test]
+    fn extract_test_hashes_nested_braces() {
+        let source = r#"
+#[test]
+fn nested() {
+    if true {
+        for i in 0..3 {
+            assert!(i < 3);
+        }
+    }
+}
+"#;
+        let hashes = extract_test_hashes(source);
+        assert_eq!(hashes.len(), 1);
+        assert_eq!(hashes[0].0, "nested");
+        assert_eq!(hashes[0].2, 2);
     }
 }

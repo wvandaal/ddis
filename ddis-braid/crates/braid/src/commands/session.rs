@@ -200,6 +200,118 @@ pub fn run_start(
 }
 
 // ---------------------------------------------------------------------------
+// session summary
+// ---------------------------------------------------------------------------
+
+/// Show what the current session accomplished (read-only).
+///
+/// Computes a session boundary using the same logic as `SessionWorkingSet`:
+/// the later of the last harvest wall time or (now - 1 hour). Counts
+/// tasks created, closed, in-progress, observations, and transactions
+/// since that boundary.
+pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    // Compute session boundary (same as SessionWorkingSet)
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let harvest_boundary = last_harvest_wall_time(&store);
+    let fallback = now.saturating_sub(3600);
+    let session_boundary = harvest_boundary.max(fallback);
+
+    // Count activities since session boundary
+    let mut tasks_created: usize = 0;
+    let mut tasks_closed: usize = 0;
+    let mut tasks_in_progress: usize = 0;
+    let mut observations: usize = 0;
+    let mut wall_times: std::collections::BTreeSet<u64> = std::collections::BTreeSet::new();
+
+    for d in store.datoms() {
+        let wall = d.tx.wall_time();
+        if wall <= session_boundary {
+            continue;
+        }
+        if d.op != Op::Assert {
+            continue;
+        }
+
+        let attr = d.attribute.as_str();
+        match attr {
+            ":task/title" => tasks_created += 1,
+            ":task/status" => {
+                if let Value::Keyword(ref kw) = d.value {
+                    if kw == ":task.status/closed" || kw == "closed" {
+                        tasks_closed += 1;
+                    } else if kw == ":task.status/in-progress" || kw == "in-progress" {
+                        tasks_in_progress += 1;
+                    }
+                }
+            }
+            ":exploration/source" => observations += 1,
+            _ => {}
+        }
+
+        wall_times.insert(wall);
+    }
+
+    let txn_count = wall_times.len();
+    let duration_secs = now.saturating_sub(session_boundary);
+
+    // Format human output
+    let boundary_age = format_age(session_boundary);
+    let human = format!(
+        "Session summary (since {boundary_age}):\n  \
+         Tasks: {tasks_created} created, {tasks_closed} closed, {tasks_in_progress} in-progress\n  \
+         Observations: {observations}\n  \
+         Transactions: {txn_count}\n  \
+         Duration: {}m {}s\n  \
+         Store: {} datoms\n",
+        duration_secs / 60,
+        duration_secs % 60,
+        store.len(),
+    );
+
+    let json = serde_json::json!({
+        "action": "session_summary",
+        "session_boundary": session_boundary,
+        "tasks_created": tasks_created,
+        "tasks_closed": tasks_closed,
+        "tasks_in_progress": tasks_in_progress,
+        "observations": observations,
+        "txn_count": txn_count,
+        "duration_secs": duration_secs,
+        "store_datoms": store.len(),
+    });
+
+    let agent_out = AgentOutput {
+        context: format!(
+            "session summary: {} created, {} closed, {} observations since {}",
+            tasks_created, tasks_closed, observations, boundary_age,
+        ),
+        content: format!(
+            "tasks: +{} created, {} closed, {} in-progress | obs: {} | txns: {} | {}m {}s",
+            tasks_created,
+            tasks_closed,
+            tasks_in_progress,
+            observations,
+            txn_count,
+            duration_secs / 60,
+            duration_secs % 60,
+        ),
+        footer: "end session: braid session end | observe: braid observe \"...\"".to_string(),
+    };
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
+        human,
+    })
+}
+
+// ---------------------------------------------------------------------------
 // session end
 // ---------------------------------------------------------------------------
 

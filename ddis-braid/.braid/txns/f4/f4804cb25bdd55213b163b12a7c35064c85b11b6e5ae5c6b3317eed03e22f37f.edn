@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773884220/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c8f06727"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/closed-at :v 1773884219 :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/completion-evidence :v "Auto-extracts BACKGROUND: and ACCEPTANCE: into separate :task/background and :task/acceptance datoms" :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "2d24e8d538aaff4aa0e8adfb202650dfc70395ef46f2ab1e8075ad30442bb3ef" :a :task/status :v :task.status/closed :op :assert}
+ ]}

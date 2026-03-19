@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773884219/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b8a46ac4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/closed-at :v 1773884218 :op :assert}
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/completion-evidence :v "Agent launch protocol added to AGENTS.md" :op :assert}
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/status :v :task.status/closed :op :assert}
+ ]}
