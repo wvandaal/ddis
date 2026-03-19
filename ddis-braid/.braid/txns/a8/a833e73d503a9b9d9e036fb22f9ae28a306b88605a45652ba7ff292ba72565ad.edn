@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773949286/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-953e0e33"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "34093e1d0b1b4970ceffe91909743511b369a802bf98c74d3d1286f51aeb5f64" :a :task/close-reason :v "SessionPhase enum + for_context() strategy selection. Orientation always Demonstrate, HarvestZone caps at Navigate. Exported from lib.rs." :op :assert}
+   {:e #blake3 "34093e1d0b1b4970ceffe91909743511b369a802bf98c74d3d1286f51aeb5f64" :a :task/closed-at :v 1773949285 :op :assert}
+   {:e #blake3 "34093e1d0b1b4970ceffe91909743511b369a802bf98c74d3d1286f51aeb5f64" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "34093e1d0b1b4970ceffe91909743511b369a802bf98c74d3d1286f51aeb5f64" :a :task/status :v :task.status/closed :op :assert}
+ ]}

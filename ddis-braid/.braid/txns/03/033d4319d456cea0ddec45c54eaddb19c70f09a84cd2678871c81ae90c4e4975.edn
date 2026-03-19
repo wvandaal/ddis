@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773949288/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-aa491def"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1daee0e9a46103954f149833668d33ad0ae165fc66bbf6b8a131f849b8ddf20a" :a :task/close-reason :v "MCP tools benefit from ACP via shared CLI code paths. braid_status MCP tool calls status::run() which produces ACP output. Full MCP-specific projection deferred." :op :assert}
+   {:e #blake3 "1daee0e9a46103954f149833668d33ad0ae165fc66bbf6b8a131f849b8ddf20a" :a :task/closed-at :v 1773949287 :op :assert}
+   {:e #blake3 "1daee0e9a46103954f149833668d33ad0ae165fc66bbf6b8a131f849b8ddf20a" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "1daee0e9a46103954f149833668d33ad0ae165fc66bbf6b8a131f849b8ddf20a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

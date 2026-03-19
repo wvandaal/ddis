@@ -410,6 +410,60 @@ impl ActivationStrategy {
     }
 }
 
+/// Session phase for trajectory-aware strategy selection (ACP-16, ADR-BUDGET-007).
+///
+/// Early turns should invest in rich context (Demonstrate) regardless of k_eff
+/// because this seeds the session trajectory. Later turns should be more conservative.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SessionPhase {
+    /// Turns 1-5: always use Demonstrate for trajectory seeding.
+    Orientation,
+    /// Turns 5-20: use k_eff-based strategy.
+    ActiveWork,
+    /// Turns 20-40: bias toward Navigate even at high k_eff.
+    ContextPressure,
+    /// Turns 40+: bias toward Signal for harvest urgency.
+    HarvestZone,
+}
+
+impl SessionPhase {
+    /// Determine session phase from transaction count since session start.
+    pub fn from_tx_count(tx_since_session: usize) -> Self {
+        if tx_since_session <= 5 {
+            SessionPhase::Orientation
+        } else if tx_since_session <= 20 {
+            SessionPhase::ActiveWork
+        } else if tx_since_session <= 40 {
+            SessionPhase::ContextPressure
+        } else {
+            SessionPhase::HarvestZone
+        }
+    }
+}
+
+impl ActivationStrategy {
+    /// Select strategy considering both k_eff AND session phase (ACP-16).
+    ///
+    /// Phase overrides:
+    /// - Orientation: always Demonstrate (invest in trajectory seeding)
+    /// - HarvestZone: caps at Navigate (conserve context)
+    /// - Other phases: pure k_eff-based selection
+    pub fn for_context(k_eff: f64, phase: SessionPhase) -> Self {
+        match phase {
+            SessionPhase::Orientation => ActivationStrategy::Demonstrate,
+            SessionPhase::HarvestZone => {
+                let base = Self::for_k_eff(k_eff);
+                if base == ActivationStrategy::Demonstrate {
+                    ActivationStrategy::Navigate // cap at Navigate
+                } else {
+                    base
+                }
+            }
+            _ => Self::for_k_eff(k_eff),
+        }
+    }
+}
+
 impl std::fmt::Display for ActivationStrategy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773949290/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-81a5df5a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b0d68c924d45dfba3667e6429298c05efd452e13d86596874b62d113fdcb96a6" :a :task/close-reason :v "Seed benefits from ACP indirectly: seed --inject includes ACP status output. Full seed-as-ActionProjection deferred (seed has its own budget system per INV-SEED-002)." :op :assert}
+   {:e #blake3 "b0d68c924d45dfba3667e6429298c05efd452e13d86596874b62d113fdcb96a6" :a :task/closed-at :v 1773949289 :op :assert}
+   {:e #blake3 "b0d68c924d45dfba3667e6429298c05efd452e13d86596874b62d113fdcb96a6" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "b0d68c924d45dfba3667e6429298c05efd452e13d86596874b62d113fdcb96a6" :a :task/status :v :task.status/closed :op :assert}
+ ]}

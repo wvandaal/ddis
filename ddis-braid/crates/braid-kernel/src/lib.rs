@@ -74,7 +74,7 @@ pub use bilateral::{
 pub use branch::{branch_datoms, compare_branches, create_branch, merge_branch, prune_branch};
 pub use budget::{
     attention_decay, classify_command, enforce_ceiling, quality_adjusted_budget,
-    safe_truncate_bytes, safe_truncate_display, ActionProjection, ActivationStrategy,
+    safe_truncate_bytes, safe_truncate_display, ActionProjection, ActivationStrategy, SessionPhase,
     ApproxTokenCounter, AttentionProfile, BudgetManager, BudgetProjection, ContextBlock,
     GuidanceLevel, OutputBlock, OutputPrecedence, ProjectedAction, TokenCounter, TokenEfficiency,
     AGENT_MODE_CEILING, BUDGET_FRACTION, DEFAULT_WINDOW_SIZE, ERROR_MESSAGE_CEILING,

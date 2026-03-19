@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773948955/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-bb5523ec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0e73b77a10a3efd4d656a0c19971721e26c53f8f2fa5a9f8372c30bffdf44ff8" :a :task/close-reason :v "Contextual hints preserved: methodology_context_blocks() includes M(t) sub-metric checks with actionable commands. COF hints available via legacy footer path." :op :assert}
+   {:e #blake3 "0e73b77a10a3efd4d656a0c19971721e26c53f8f2fa5a9f8372c30bffdf44ff8" :a :task/closed-at :v 1773948954 :op :assert}
+   {:e #blake3 "0e73b77a10a3efd4d656a0c19971721e26c53f8f2fa5a9f8372c30bffdf44ff8" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "0e73b77a10a3efd4d656a0c19971721e26c53f8f2fa5a9f8372c30bffdf44ff8" :a :task/status :v :task.status/closed :op :assert}
+ ]}
