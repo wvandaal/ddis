@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773961367/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-caa01560"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c43a13a86be2a413e1dc04412b47ea63eb65acde2732b2815005c1d5a3676b9e" :a :task/close-reason :v "Harvest-time refit trigger: after writing harvest datoms, reload store, call refit_routing_weights(). If 50+ outcomes and refit succeeds, write :routing/weights datom. Output shows new weight vector." :op :assert}
+   {:e #blake3 "c43a13a86be2a413e1dc04412b47ea63eb65acde2732b2815005c1d5a3676b9e" :a :task/closed-at :v 1773961366 :op :assert}
+   {:e #blake3 "c43a13a86be2a413e1dc04412b47ea63eb65acde2732b2815005c1d5a3676b9e" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "c43a13a86be2a413e1dc04412b47ea63eb65acde2732b2815005c1d5a3676b9e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -657,6 +657,40 @@ pub fn run(
             file_path.relative_path()
         ));
         out.push_str(&format!("  harvest session: {session_ident}\n"));
+
+        // RFL-6: Trigger R(t) weight refit at harvest time.
+        // If we have 50+ action-outcome pairs, learn new routing weights.
+        let reloaded_store = layout.load_store()?;
+        if let Some(new_weights) = braid_kernel::guidance::refit_routing_weights(&reloaded_store) {
+            // Store learned weights as a :routing/weights datom
+            use braid_kernel::datom::*;
+            let rfl_agent = AgentId::from_name("braid:rfl");
+            let rfl_tx = crate::commands::write::next_tx_id(&reloaded_store, rfl_agent);
+            let weights_json = serde_json::to_string(&new_weights.to_vec()).unwrap_or_default();
+            let weights_entity = EntityId::from_ident(":routing/learned-weights");
+            let weights_datom = Datom::new(
+                weights_entity,
+                Attribute::from_keyword(":routing/weights"),
+                Value::String(weights_json.clone()),
+                rfl_tx,
+                Op::Assert,
+            );
+            let rfl_tx_file = braid_kernel::layout::TxFile {
+                tx_id: rfl_tx,
+                agent: rfl_agent,
+                provenance: ProvenanceType::Derived,
+                rationale: "RFL-6: R(t) weight refit from action-outcome history".to_string(),
+                causal_predecessors: vec![],
+                datoms: vec![weights_datom],
+            };
+            if layout.write_tx(&rfl_tx_file).is_ok() {
+                out.push_str(&format!(
+                    "  routing: weights updated [{}]\n",
+                    new_weights.iter().map(|w| format!("{:.3}", w)).collect::<Vec<_>>().join(", ")
+                ));
+            }
+        }
+
         out.push_str("next session: braid seed\n");
     } else if commit && result.candidates.is_empty() {
         out.push_str("\nnothing to commit (no candidates)\n");
