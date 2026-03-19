@@ -1,0 +1,23 @@
+{:tx/id #hlc "1773931394/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 2 candidates from task 'unsessioned harvest (2 txns since last harvest)'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :db/doc :v "Harvest session for task: unsessioned harvest (2 txns since last harvest)" :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :db/ident :v :harvest/session-braid-user-1773931394 :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/accomplishments :v "Session entity: :task/t-bba54ee5; UNIFICATION: spec_relevance_scan feeds BOTH CRB (knowledge reconciliation) AND topology (semantic coupling). When observe runs the scan and finds text X is related to specs A,B,C — those are semantic coupling edges. If task T1 traces to A and task T2 traces to B, and A+B are semantically related, then T1+T2 are conceptually coupled even without shared files. The coupling matrix (INV-TOPOLOGY-004) gets a free second dimension from reconciliation scan output. ADR-TOPOLOGY-001 already specifies composite coupling with learnable weights. Semantic coupling = w_semantic * cosine(keywords(task_i), keywords(task_j)). This unifies two separate systems (CRB + topology) through a single shared function (spec_relevance_scan)." :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/candidate-count :v 2 :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/codebase-snapshot :v "Codebase: 88177 LOC across 76 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (7050 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (4675 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (3697 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3527 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (3054 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (2452 LOC)\n  ddis-braid/crates/braid-kernel/src/kani_proofs.rs (2106 LOC)" :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/context-metrics :v "{\"candidates\":2,\"k_eff_estimated\":\"0.95\",\"observations\":1,\"output_tokens_est\":1080,\"tasks_closed\":0,\"tx_count\":2,\"wall_elapsed_s\":48}" :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/delta-summary :v "+36 datoms, +3 entities" :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/observation-count :v 1 :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/recommended-tasks :v "t-b78da510,t-dec01087,t-c2bbcda9" :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/store-datom-count :v 19630 :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/store-entity-count :v 2520 :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: unsessioned harvest (2 txns since last harvest)\nRun: `braid seed --task \"continue: unsessioned harvest (2 txns since last harvest)\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/task :v "unsessioned harvest (2 txns since last harvest)" :op :assert}
+   {:e #blake3 "560f38bb8448af7d439d2b0dbd1e34da715d2f8a50530ffc000b7fd668b95a89" :a :harvest/tx-since-last :v 2 :op :assert}
+ ]}
