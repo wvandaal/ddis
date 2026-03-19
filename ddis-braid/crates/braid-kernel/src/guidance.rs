@@ -2007,6 +2007,57 @@ pub fn dynamic_threshold(velocity: f64) -> u32 {
     }
 }
 
+/// Multi-dimensional harvest urgency (ZCM-2, INV-GUIDANCE-019).
+///
+/// Four signals, urgency = max of all:
+/// 1. tx_since / dynamic_threshold (existing — transaction count)
+/// 2. minutes_since_harvest / 30 (time ceiling — ensures harvest even during slow work)
+/// 3. high_value_unharvested / 3 (knowledge density — observations vs routine closures)
+/// 4. k_eff_critical (Q(t) < 0.15 — context exhaustion emergency)
+///
+/// Returns urgency in [0, 1+]. Values > 1.0 mean OVERDUE.
+pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
+    let velocity = tx_velocity(store);
+    let threshold = dynamic_threshold(velocity);
+    let tx_since = count_txns_since_last_harvest(store);
+
+    // Signal 1: transaction count / threshold
+    let signal_1 = tx_since as f64 / threshold.max(1) as f64;
+
+    // Signal 2: time since harvest / 30 minutes
+    let harvest_attr = crate::datom::Attribute::from_keyword(":harvest/boundary-tx");
+    let last_harvest_wall = store
+        .attribute_datoms(&harvest_attr)
+        .last()
+        .map(|d| d.tx.wall_time())
+        .unwrap_or(0);
+    let now_wall = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let minutes_since = (now_wall.saturating_sub(last_harvest_wall as u64)) as f64 / 60.0;
+    let signal_2 = minutes_since / 30.0;
+
+    // Signal 3: high-value unharvested / 3
+    // Count exploration entities created since last harvest (observations, not routine)
+    let exploration_type_attr = crate::datom::Attribute::from_keyword(":exploration/type");
+    let high_value = store
+        .attribute_datoms(&exploration_type_attr)
+        .iter()
+        .filter(|d| d.op == crate::datom::Op::Assert && d.tx.wall_time() > last_harvest_wall)
+        .count();
+    let signal_3 = high_value as f64 / 3.0;
+
+    // Signal 4: k_eff critical (Q(t) < 0.15)
+    let signal_4 = if k_eff < 0.15 { 1.5 } else { 0.0 };
+
+    // Urgency = max of all signals
+    signal_1
+        .max(signal_2)
+        .max(signal_3)
+        .max(signal_4)
+}
+
 /// Check whether the CLI should warn about an unharvested session on exit.
 ///
 /// NEG-HARVEST-001: No Unharvested Session Termination.

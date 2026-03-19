@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773959803/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-d38d4c45"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b04f819120b9af1d970dfd3716aa8a4fff5ad39afdecb78f0513746c11c7a205" :a :task/close-reason :v "harvest_urgency_multi() with 4 signals: tx_count/threshold, minutes_since/30, high_value_unharvested/3, k_eff_critical. Returns max. Exported from lib.rs." :op :assert}
+   {:e #blake3 "b04f819120b9af1d970dfd3716aa8a4fff5ad39afdecb78f0513746c11c7a205" :a :task/closed-at :v 1773959802 :op :assert}
+   {:e #blake3 "b04f819120b9af1d970dfd3716aa8a4fff5ad39afdecb78f0513746c11c7a205" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "b04f819120b9af1d970dfd3716aa8a4fff5ad39afdecb78f0513746c11c7a205" :a :task/status :v :task.status/closed :op :assert}
+ ]}

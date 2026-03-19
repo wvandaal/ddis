@@ -113,6 +113,55 @@ fn main() {
             };
             print!("{}", cmd_output.render(mode));
 
+            // RFL-2: Record projected action as datom for R(t) feedback loop.
+            // If the command produced ACP output (_acp field), extract the action
+            // and auto-transact it as an :action/* entity. This is the PREDICTION
+            // half — the outcome is classified on the NEXT command (RFL-3).
+            if let Some(acp) = cmd_output.json.get("_acp") {
+                if let Some(ref path) = exit_warn_path {
+                    if let Ok(lo) = layout::DiskLayout::open(path) {
+                        if let Ok(store) = lo.load_store() {
+                            if let Some(action) = acp.get("action") {
+                                let cmd_str = action.get("command")
+                                    .and_then(|v| v.as_str())
+                                    .unwrap_or("");
+                                let impact = action.get("impact")
+                                    .and_then(|v| v.as_f64())
+                                    .unwrap_or(0.0);
+                                let wall_ms = std::time::SystemTime::now()
+                                    .duration_since(std::time::UNIX_EPOCH)
+                                    .unwrap_or_default()
+                                    .as_millis() as i64;
+
+                                use braid_kernel::datom::*;
+                                let agent = AgentId::from_name("braid:rfl");
+                                let tx = commands::write::next_tx_id(&store, agent);
+                                let ident = format!(
+                                    ":action/{}",
+                                    &blake3::hash(format!("{}-{}", cmd_str, wall_ms).as_bytes()).to_hex()[..16]
+                                );
+                                let entity = EntityId::from_ident(&ident);
+                                let datoms = vec![
+                                    Datom::new(entity, Attribute::from_keyword(":db/ident"), Value::Keyword(ident), tx, Op::Assert),
+                                    Datom::new(entity, Attribute::from_keyword(":action/recommended-command"), Value::String(cmd_str.to_string()), tx, Op::Assert),
+                                    Datom::new(entity, Attribute::from_keyword(":action/recommended-impact"), Value::Double(ordered_float::OrderedFloat(impact)), tx, Op::Assert),
+                                    Datom::new(entity, Attribute::from_keyword(":action/timestamp"), Value::Long(wall_ms), tx, Op::Assert),
+                                ];
+                                let tx_file = braid_kernel::layout::TxFile {
+                                    tx_id: tx,
+                                    agent,
+                                    provenance: ProvenanceType::Derived,
+                                    rationale: "RFL-2: action prediction recorded".to_string(),
+                                    causal_predecessors: vec![],
+                                    datoms,
+                                };
+                                let _ = lo.write_tx(&tx_file);
+                            }
+                        }
+                    }
+                }
+            }
+
             // NEG-HARVEST-001: warn on exit if unharvested work is at risk.
             // Skip for harvest commands (they just harvested) and JSON mode
             // (structured output should not have side-channel stderr noise).

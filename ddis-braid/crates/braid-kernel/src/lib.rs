@@ -104,6 +104,7 @@ pub use guidance::{
     contextual_observation_hint, crystallization_candidates, default_derivation_rules,
     derive_actions, derive_actions_with_budget, derive_tasks, detect_activity_mode,
     dynamic_threshold, format_actions, format_footer, format_footer_at_level,
+    harvest_urgency_multi,
     harvest_warning_from_k_eff, harvest_warning_level, is_actionable_decision, methodology_gaps,
     modulate_actions, observation_staleness, orphaned_decisions, should_warn_on_exit,
     compute_action_from_store, methodology_context_blocks, reconciliation_check,
