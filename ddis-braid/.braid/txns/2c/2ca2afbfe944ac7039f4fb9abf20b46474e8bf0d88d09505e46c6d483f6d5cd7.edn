@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773882382/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PSR-2: Wire spec_relevance_scan into guidance footer for all text-bearing commands (INV-GUIDANCE-007). BACKGROUND: The scan runs on every command that has user-provided text: task create (title), observe (text), seed --task, harvest --task. When matches found, append to footer: 'Spec: INV-TOPOLOGY-004 (composite coupling) | ADR-TOPOLOGY-004 (compilation)'. Uses existing build_command_footer_with_hint infrastructure. IMPLEMENTATION: In the footer builder, extract command text (title for task create, observation text for observe, task for seed). Run spec_relevance_scan. If results non-empty, format as single-line spec references and append to footer. TRACES TO: INV-GUIDANCE-007, INV-INTERFACE-008. FILES: crates/braid-kernel/src/guidance.rs, crates/braid/src/commands/mod.rs. ACCEPTANCE: braid task create with 'topology' in title shows spec references in footer output."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :db/ident :v :task/t-acb4dbec :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/created-at :v 1773882380 :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/id :v "t-acb4dbec" :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/title :v "PSR-2: Wire spec_relevance_scan into guidance footer for all text-bearing commands (INV-GUIDANCE-007). BACKGROUND: The scan runs on every command that has user-provided text: task create (title), observe (text), seed --task, harvest --task. When matches found, append to footer: 'Spec: INV-TOPOLOGY-004 (composite coupling) | ADR-TOPOLOGY-004 (compilation)'. Uses existing build_command_footer_with_hint infrastructure. IMPLEMENTATION: In the footer builder, extract command text (title for task create, observation text for observe, task for seed). Run spec_relevance_scan. If results non-empty, format as single-line spec references and append to footer. TRACES TO: INV-GUIDANCE-007, INV-INTERFACE-008. FILES: crates/braid-kernel/src/guidance.rs, crates/braid/src/commands/mod.rs. ACCEPTANCE: braid task create with 'topology' in title shows spec references in footer output." :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/traces-to :v #blake3 "1757599975e3ce7b4e6791ee258d494d868597b8adb46d5fd51c04b00c23bf15" :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/type :v :task.type/task :op :assert}
+ ]}

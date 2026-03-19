@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773882381/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PSR-1: Implement spec_relevance_scan(text, store) -> Vec<(String, f64)> (INV-GUIDANCE-007). BACKGROUND: Core function that extracts keywords from input text and fuzzy-matches against :spec/statement datoms. Returns ranked list of (spec_id, relevance_score) pairs. ALGORITHM: (1) Tokenize input into words, filter stopwords, keep words >= 4 chars. (2) For each :spec/statement datom, tokenize similarly. (3) Compute TF-IDF-like score: count shared tokens / max(input_tokens, spec_tokens). (4) Also check :spec/namespace for direct keyword match (e.g., 'topology' matches TOPOLOGY namespace). (5) Return top 5 by score, filtered to score > 0.1. IMPORTANT: Must be fast — called on every command. Use attribute_datoms for O(1) lookup, cache tokenized statements if needed. TRACES TO: INV-GUIDANCE-007, C5. FILE: crates/braid-kernel/src/guidance.rs. ACCEPTANCE: spec_relevance_scan('coupling matrix for agent coordination', store_with_topology_spec) returns INV-TOPOLOGY-004 in top 3."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :db/ident :v :task/t-a4865988 :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/created-at :v 1773882380 :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/id :v "t-a4865988" :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/title :v "PSR-1: Implement spec_relevance_scan(text, store) -> Vec<(String, f64)> (INV-GUIDANCE-007). BACKGROUND: Core function that extracts keywords from input text and fuzzy-matches against :spec/statement datoms. Returns ranked list of (spec_id, relevance_score) pairs. ALGORITHM: (1) Tokenize input into words, filter stopwords, keep words >= 4 chars. (2) For each :spec/statement datom, tokenize similarly. (3) Compute TF-IDF-like score: count shared tokens / max(input_tokens, spec_tokens). (4) Also check :spec/namespace for direct keyword match (e.g., 'topology' matches TOPOLOGY namespace). (5) Return top 5 by score, filtered to score > 0.1. IMPORTANT: Must be fast — called on every command. Use attribute_datoms for O(1) lookup, cache tokenized statements if needed. TRACES TO: INV-GUIDANCE-007, C5. FILE: crates/braid-kernel/src/guidance.rs. ACCEPTANCE: spec_relevance_scan('coupling matrix for agent coordination', store_with_topology_spec) returns INV-TOPOLOGY-004 in top 3." :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/traces-to :v #blake3 "1757599975e3ce7b4e6791ee258d494d868597b8adb46d5fd51c04b00c23bf15" :op :assert}
+   {:e #blake3 "7b2b9e127a9a730613396dde51088099133c2f8fa9470a288b2114c73b5010d4" :a :task/type :v :task.type/task :op :assert}
+ ]}

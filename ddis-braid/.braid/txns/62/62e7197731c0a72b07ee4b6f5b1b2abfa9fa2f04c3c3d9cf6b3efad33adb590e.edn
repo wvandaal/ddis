@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773882383/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PSR-3: Wire spec_relevance_scan into seed --inject Constraints section (INV-SEED-001). BACKGROUND: The seed assembles context for a task. When the task description overlaps with spec elements, those specs should appear in the Constraints section AUTOMATICALLY — not just when they're in the top-N by graph proximity. This ensures agents START sessions with spec awareness. IMPLEMENTATION: In seed assembly (seed.rs assemble function), after computing task-relevant constraints, also run spec_relevance_scan on the task description. Merge results with existing constraints, deduplicating by spec ID. TRACES TO: INV-SEED-001, INV-GUIDANCE-007. FILE: crates/braid-kernel/src/seed.rs. ACCEPTANCE: braid seed --task 'fix agent coordination' includes topology-related constraints in output."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bfcbb49738d0d7043119193eadfa257a4701e9dc3476b1c3b53295261bae73d1" :a :db/ident :v :task/t-29d864b1 :op :assert}
+   {:e #blake3 "bfcbb49738d0d7043119193eadfa257a4701e9dc3476b1c3b53295261bae73d1" :a :task/created-at :v 1773882380 :op :assert}
+   {:e #blake3 "bfcbb49738d0d7043119193eadfa257a4701e9dc3476b1c3b53295261bae73d1" :a :task/id :v "t-29d864b1" :op :assert}
+   {:e #blake3 "bfcbb49738d0d7043119193eadfa257a4701e9dc3476b1c3b53295261bae73d1" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "bfcbb49738d0d7043119193eadfa257a4701e9dc3476b1c3b53295261bae73d1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bfcbb49738d0d7043119193eadfa257a4701e9dc3476b1c3b53295261bae73d1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bfcbb49738d0d7043119193eadfa257a4701e9dc3476b1c3b53295261bae73d1" :a :task/title :v "PSR-3: Wire spec_relevance_scan into seed --inject Constraints section (INV-SEED-001). BACKGROUND: The seed assembles context for a task. When the task description overlaps with spec elements, those specs should appear in the Constraints section AUTOMATICALLY — not just when they're in the top-N by graph proximity. This ensures agents START sessions with spec awareness. IMPLEMENTATION: In seed assembly (seed.rs assemble function), after computing task-relevant constraints, also run spec_relevance_scan on the task description. Merge results with existing constraints, deduplicating by spec ID. TRACES TO: INV-SEED-001, INV-GUIDANCE-007. FILE: crates/braid-kernel/src/seed.rs. ACCEPTANCE: braid seed --task 'fix agent coordination' includes topology-related constraints in output." :op :assert}
+   {:e #blake3 "bfcbb49738d0d7043119193eadfa257a4701e9dc3476b1c3b53295261bae73d1" :a :task/traces-to :v #blake3 "1757599975e3ce7b4e6791ee258d494d868597b8adb46d5fd51c04b00c23bf15" :op :assert}
+   {:e #blake3 "bfcbb49738d0d7043119193eadfa257a4701e9dc3476b1c3b53295261bae73d1" :a :task/traces-to :v #blake3 "9692346a3adf055502a95c727ebcaae6f141008c097740097512531804b44820" :op :assert}
+   {:e #blake3 "bfcbb49738d0d7043119193eadfa257a4701e9dc3476b1c3b53295261bae73d1" :a :task/type :v :task.type/task :op :assert}
+ ]}
