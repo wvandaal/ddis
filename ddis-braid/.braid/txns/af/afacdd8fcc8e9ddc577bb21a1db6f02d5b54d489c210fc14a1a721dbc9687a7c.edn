@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773947622/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-92a59496"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/close-reason :v "braid next now uses ACP: action first, context blocks with priority/deps/traces/impact, evidence pointer. No truncation." :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/closed-at :v 1773947621 :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/status :v :task.status/closed :op :assert}
+ ]}

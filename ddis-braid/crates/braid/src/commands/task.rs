@@ -546,14 +546,68 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
         .unwrap_or_default();
     let ready_count = ready_set.len();
 
-    // Human output
-    let human = format!(
-        "next: [P{}] {} \"{}\"\nclaim: braid go {}\n({} total ready — see all: braid task ready)\n",
-        top.priority, top.id, top.title, top.id, ready_count
-    );
+    // ACP projection (INV-BUDGET-007)
+    let action = braid_kernel::budget::ProjectedAction {
+        command: format!("braid go {}", top.id),
+        rationale: {
+            let words: Vec<&str> = top.title.split_whitespace().collect();
+            if words.len() > 8 {
+                format!("{} ...", words[..8].join(" "))
+            } else {
+                top.title.clone()
+            }
+        },
+        impact: impact_score.unwrap_or(0.0),
+    };
 
-    // JSON output — includes impact_score for programmatic consumers
-    let json = serde_json::json!({
+    let mut context_blocks = vec![
+        braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!(
+                "P{} {} | {} deps | {} traces{}",
+                top.priority,
+                type_short,
+                top.depends_on.len(),
+                top.traces_to.len(),
+                impact_str,
+            ),
+            tokens: 12,
+        },
+        braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
+            content: format!("{} total ready | all: braid task ready", ready_count),
+            tokens: 8,
+        },
+    ];
+
+    // Add title L1 as context if available (from pyramid)
+    let title_l1 = store
+        .entity_datoms(braid_kernel::EntityId::from_ident(&format!(":task/{}", top.id)))
+        .iter()
+        .find(|d| d.attribute.as_str() == ":task/title-l1" && d.op == braid_kernel::datom::Op::Assert)
+        .and_then(|d| match &d.value {
+            braid_kernel::datom::Value::String(s) => Some(s.clone()),
+            _ => None,
+        });
+    if let Some(l1) = title_l1 {
+        context_blocks.insert(0, braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: l1,
+            tokens: 10,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: format!("details: braid task show {}", top.id),
+    };
+
+    // Human output — use ACP full projection
+    let human = projection.project(usize::MAX);
+
+    // JSON output — includes impact_score + ACP fields
+    let mut json = serde_json::json!({
         "id": top.id,
         "title": top.title,
         "priority": top.priority,
@@ -562,15 +616,22 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
         "claim_command": format!("braid go {}", top.id),
         "ready_count": ready_count,
     });
+    // Merge ACP JSON
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
-    // Agent output — single task, claim command, context
+    // Agent output — use ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
     let agent = AgentOutput {
-        context: format!(
-            "next: [P{}] {} \"{}\" ({}{})",
-            top.priority, top.id, top.title, type_short, impact_str
-        ),
-        content: format!("claim: braid go {}", top.id),
-        footer: format!("{} total ready | all: braid task ready", ready_count),
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
     };
 
     Ok(CommandOutput { json, agent, human })
