@@ -2029,6 +2029,48 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Topology pattern: :topology.pattern/mesh, /star, /hybrid, /solo, /pipeline",
         ),
+        // =================================================================
+        // CRB — Creation Requires Background (INV-GUIDANCE-025)
+        // =================================================================
+        attr(
+            ":tx/reconciled",
+            ValueType::Boolean,
+            Cardinality::One,
+            "Whether this transaction passed CRB reconciliation check (true = agent acknowledged related spec)",
+        ),
+        // =================================================================
+        // Reconciliation Sources (ADR-FOUNDATION-009, CRB-10)
+        // =================================================================
+        attr(
+            ":recon-source/command",
+            ValueType::String,
+            Cardinality::One,
+            "Shell command to invoke this reconciliation source (e.g., 'cass search --robot')",
+        ),
+        attr(
+            ":recon-source/name",
+            ValueType::String,
+            Cardinality::One,
+            "Human-readable name for this reconciliation source (e.g., 'cass', 'cm')",
+        ),
+        attr(
+            ":recon-source/timeout",
+            ValueType::Long,
+            Cardinality::One,
+            "Timeout in milliseconds for this reconciliation source invocation",
+        ),
+        attr(
+            ":recon-source/format",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Output format: :recon-source.format/json or :recon-source.format/lines",
+        ),
+        attr(
+            ":recon-source/active",
+            ValueType::Boolean,
+            Cardinality::One,
+            "Whether this reconciliation source is currently active",
+        ),
     ]
 }
 

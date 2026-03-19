@@ -158,8 +158,29 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
     Ok(CommandOutput { json, agent, human })
 }
 
-/// List tasks (all or filtered by status).
+/// List tasks (backward-compat wrapper around list_filtered).
+#[allow(dead_code)]
 pub fn list(path: &Path, show_all: bool) -> Result<CommandOutput, BraidError> {
+    list_filtered(path, show_all, None, None, None, None)
+}
+
+/// List tasks with optional filters.
+///
+/// Filters narrow the result set:
+/// - `task_type`: Only show tasks of this type (e.g., "epic", "bug")
+/// - `prefix`: Only show tasks whose title starts with this prefix (case-insensitive)
+/// - `limit`: Maximum number of tasks to display
+/// - `priority`: Only show tasks with this priority
+///
+/// Traces to: INV-INTERFACE-001 (Three CLI Output Modes)
+pub fn list_filtered(
+    path: &Path,
+    show_all: bool,
+    task_type: Option<&str>,
+    prefix: Option<&str>,
+    limit: Option<usize>,
+    priority: Option<i64>,
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -170,10 +191,37 @@ pub fn list(path: &Path, show_all: bool) -> Result<CommandOutput, BraidError> {
         ));
     }
 
+    // Apply filters
+    let filtered: Vec<_> = tasks
+        .iter()
+        .filter(|t| show_all || t.status != TaskStatus::Closed)
+        .filter(|t| {
+            task_type
+                .map(|ty| {
+                    let actual = t
+                        .task_type
+                        .strip_prefix(":task.type/")
+                        .unwrap_or(&t.task_type);
+                    actual.eq_ignore_ascii_case(ty)
+                })
+                .unwrap_or(true)
+        })
+        .filter(|t| {
+            prefix
+                .map(|p| t.title.to_ascii_lowercase().starts_with(&p.to_ascii_lowercase()))
+                .unwrap_or(true)
+        })
+        .filter(|t| priority.map(|p| t.priority == p).unwrap_or(true))
+        .collect();
+
+    let display_count = limit.unwrap_or(filtered.len()).min(filtered.len());
+    let display_tasks = &filtered[..display_count];
+
     let (open, in_progress, closed) = task_counts(&store);
     let mut human = String::new();
     human.push_str(&format!(
-        "Tasks: {} total ({} open, {} in-progress, {} closed)\n",
+        "Tasks: {} matched ({} total, {} open, {} in-progress, {} closed)\n",
+        filtered.len(),
         tasks.len(),
         open,
         in_progress,
@@ -181,10 +229,7 @@ pub fn list(path: &Path, show_all: bool) -> Result<CommandOutput, BraidError> {
     ));
 
     let mut tasks_json = Vec::new();
-    for t in &tasks {
-        if !show_all && t.status == TaskStatus::Closed {
-            continue;
-        }
+    for t in display_tasks {
         let status = match t.status {
             TaskStatus::Open => "open",
             TaskStatus::InProgress => "work",
@@ -213,8 +258,17 @@ pub fn list(path: &Path, show_all: bool) -> Result<CommandOutput, BraidError> {
         }));
     }
 
+    if display_count < filtered.len() {
+        human.push_str(&format!(
+            "  ... and {} more (use --limit to see more)\n",
+            filtered.len() - display_count
+        ));
+    }
+
     let json = serde_json::json!({
         "total": tasks.len(),
+        "matched": filtered.len(),
+        "displayed": display_count,
         "open": open,
         "in_progress": in_progress,
         "closed": closed,
@@ -223,11 +277,9 @@ pub fn list(path: &Path, show_all: bool) -> Result<CommandOutput, BraidError> {
 
     let agent = AgentOutput {
         context: format!(
-            "tasks: {} total ({} open, {} in-progress, {} closed)",
-            tasks.len(),
-            open,
-            in_progress,
-            closed,
+            "tasks: {} matched ({} displayed)",
+            filtered.len(),
+            display_count,
         ),
         content: tasks_json
             .iter()
@@ -244,6 +296,90 @@ pub fn list(path: &Path, show_all: bool) -> Result<CommandOutput, BraidError> {
             .collect::<Vec<_>>()
             .join("\n"),
         footer: "ready: braid task ready | next: braid next".to_string(),
+    };
+
+    Ok(CommandOutput { json, agent, human })
+}
+
+/// Full-text search across task titles and descriptions.
+///
+/// Returns tasks whose title or description contains the pattern (case-insensitive).
+///
+/// Traces to: INV-INTERFACE-001 (Three CLI Output Modes)
+pub fn search(path: &Path, pattern: &str, include_closed: bool) -> Result<CommandOutput, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    let tasks = task::all_tasks(&store);
+    let pattern_lower = pattern.to_ascii_lowercase();
+
+    let matches: Vec<_> = tasks
+        .iter()
+        .filter(|t| include_closed || t.status != TaskStatus::Closed)
+        .filter(|t| {
+            t.title.to_ascii_lowercase().contains(&pattern_lower)
+                || t.id.to_ascii_lowercase().contains(&pattern_lower)
+        })
+        .collect();
+
+    let mut human = String::new();
+    human.push_str(&format!(
+        "search \"{}\": {} result{}\n",
+        pattern,
+        matches.len(),
+        if matches.len() == 1 { "" } else { "s" }
+    ));
+
+    if matches.is_empty() {
+        human.push_str("  No tasks match. Try a broader term or --all to include closed tasks.\n");
+    }
+
+    let mut tasks_json = Vec::new();
+    for t in &matches {
+        let status = match t.status {
+            TaskStatus::Open => "open",
+            TaskStatus::InProgress => "work",
+            TaskStatus::Closed => "done",
+        };
+        let type_short = t
+            .task_type
+            .strip_prefix(":task.type/")
+            .unwrap_or(&t.task_type);
+        human.push_str(&format!(
+            "  P{} {:4} {:4}  {}  \"{}\"\n",
+            t.priority, type_short, status, t.id, t.title
+        ));
+        tasks_json.push(serde_json::json!({
+            "id": t.id,
+            "title": t.title,
+            "priority": t.priority,
+            "type": type_short,
+            "status": status,
+        }));
+    }
+
+    let json = serde_json::json!({
+        "pattern": pattern,
+        "match_count": matches.len(),
+        "tasks": tasks_json,
+    });
+
+    let agent = AgentOutput {
+        context: format!("search \"{}\": {} results", pattern, matches.len()),
+        content: tasks_json
+            .iter()
+            .take(10)
+            .map(|t| {
+                format!(
+                    "[P{}] {} \"{}\"",
+                    t["priority"],
+                    t["id"].as_str().unwrap_or("?"),
+                    t["title"].as_str().unwrap_or("?"),
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n"),
+        footer: "show: braid task show <id> | ready: braid task ready".to_string(),
     };
 
     Ok(CommandOutput { json, agent, human })

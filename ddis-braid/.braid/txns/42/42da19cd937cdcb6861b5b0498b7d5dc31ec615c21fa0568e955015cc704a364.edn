@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773935434/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c1b5265c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/close-reason :v "BOUNDARY-COMPAT golden test: F(S) coverage via boundary framework matches direct computation. 1 test." :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/closed-at :v 1773935433 :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "016a167ed993b22a33152cbeab4e561e9373bf1d8f2788318aafbf3a3bce8c06" :a :task/status :v :task.status/closed :op :assert}
+ ]}

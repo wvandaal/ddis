@@ -2340,6 +2340,8 @@ pub struct SpecRelevance {
     pub summary: String,
     /// Relevance score (0.0–1.0, cosine bag-of-words).
     pub score: f64,
+    /// Source layer: "spec", "task", or "observation".
+    pub source: String,
 }
 
 /// Stopwords to filter from tokenization.
@@ -2441,6 +2443,7 @@ pub fn spec_relevance_scan(text: &str, store: &Store) -> Vec<SpecRelevance> {
                 human_id,
                 summary,
                 score,
+                source: "spec".to_string(),
             });
         }
     }
@@ -2452,6 +2455,139 @@ pub fn spec_relevance_scan(text: &str, store: &Store) -> Vec<SpecRelevance> {
             .unwrap_or(std::cmp::Ordering::Equal)
     });
     results.truncate(5);
+    results
+}
+
+/// Broadened knowledge relevance scan across ALL layers: spec, tasks, observations.
+///
+/// CRB-7: Prevents the meta-irony failure mode where agents complain about problems
+/// that are already documented as tasks or observations.
+///
+/// Results are tagged by source layer: [spec], [task], [observation].
+///
+/// INV-GUIDANCE-024, INV-GUIDANCE-025.
+pub fn knowledge_relevance_scan(text: &str, store: &Store) -> Vec<SpecRelevance> {
+    let input_tokens = tokenize_for_relevance(text);
+    if input_tokens.is_empty() {
+        return Vec::new();
+    }
+
+    // Start with spec results
+    let mut results = spec_relevance_scan(text, store);
+
+    // Scan task titles
+    let title_attr = Attribute::from_keyword(":task/title");
+    let id_attr = Attribute::from_keyword(":task/id");
+    for datom in store.attribute_datoms(&title_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        let title = match &datom.value {
+            Value::String(s) => s.as_str(),
+            _ => continue,
+        };
+
+        let title_tokens = tokenize_for_relevance(title);
+        if title_tokens.is_empty() {
+            continue;
+        }
+
+        let intersection = input_tokens.intersection(&title_tokens).count() as f64;
+        let denominator = (input_tokens.len() as f64 * title_tokens.len() as f64).sqrt();
+        let score = if denominator > 0.0 {
+            intersection / denominator
+        } else {
+            0.0
+        };
+
+        if score > 0.3 {
+            let task_id = store
+                .entity_datoms(datom.entity)
+                .iter()
+                .find(|d| d.attribute == id_attr && d.op == Op::Assert)
+                .and_then(|d| match &d.value {
+                    Value::String(s) => Some(s.clone()),
+                    _ => None,
+                })
+                .unwrap_or_else(|| format!("{:?}", datom.entity));
+
+            let summary = crate::budget::safe_truncate_bytes(title, 60).to_string();
+
+            results.push(SpecRelevance {
+                ident: format!(":task/{}", task_id),
+                human_id: task_id,
+                summary,
+                score,
+                source: "task".to_string(),
+            });
+        }
+    }
+
+    // Scan observation bodies
+    let doc_attr = Attribute::from_keyword(":db/doc");
+    let exploration_type_attr = Attribute::from_keyword(":exploration/type");
+    for datom in store.attribute_datoms(&exploration_type_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        // This is an observation/exploration entity — get its :db/doc
+        let entity_datoms = store.entity_datoms(datom.entity);
+        let doc = entity_datoms
+            .iter()
+            .find(|d| d.attribute == doc_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                Value::String(s) => Some(s.as_str()),
+                _ => None,
+            });
+
+        let body = match doc {
+            Some(b) => b,
+            None => continue,
+        };
+
+        let body_tokens = tokenize_for_relevance(body);
+        if body_tokens.is_empty() {
+            continue;
+        }
+
+        let intersection = input_tokens.intersection(&body_tokens).count() as f64;
+        let denominator = (input_tokens.len() as f64 * body_tokens.len() as f64).sqrt();
+        let score = if denominator > 0.0 {
+            intersection / denominator
+        } else {
+            0.0
+        };
+
+        if score > 0.3 {
+            let ident_attr_kw = Attribute::from_keyword(":db/ident");
+            let ident = entity_datoms
+                .iter()
+                .find(|d| d.attribute == ident_attr_kw && d.op == Op::Assert)
+                .and_then(|d| match &d.value {
+                    Value::Keyword(k) => Some(k.clone()),
+                    _ => None,
+                })
+                .unwrap_or_else(|| format!("{:?}", datom.entity));
+
+            let summary = crate::budget::safe_truncate_bytes(body, 60).to_string();
+
+            results.push(SpecRelevance {
+                ident: ident.clone(),
+                human_id: ident,
+                summary,
+                score,
+                source: "observation".to_string(),
+            });
+        }
+    }
+
+    // Sort by score descending, take top 10 (broadened from 5)
+    results.sort_by(|a, b| {
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    results.truncate(10);
     results
 }
 

@@ -276,10 +276,11 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         .unwrap_or("observation")
         .to_string();
 
-    // --- CRB: Auto-reconciliation (INV-GUIDANCE-024) ---
-    // Run spec relevance scan on observation text to surface related spec elements.
-    // This is the RECONCILE step: observe → RECONCILE → crystallize → task → execute.
-    let related_specs = braid_kernel::guidance::spec_relevance_scan(args.text, &store);
+    // --- CRB: Auto-reconciliation (INV-GUIDANCE-024, CRB-7) ---
+    // Run broadened knowledge relevance scan on observation text to surface related
+    // spec elements, tasks, AND observations. This prevents the meta-irony failure
+    // where agents complain about problems already documented in the store.
+    let related_specs = braid_kernel::guidance::knowledge_relevance_scan(args.text, &store);
 
     // Human output (backward compat)
     let mut human = String::new();
@@ -303,18 +304,18 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     human.push_str(&format!("  store: {new_total} datoms (+{datom_count})\n"));
     human.push_str(&format!("  tx: {}\n", file_path.relative_path()));
 
-    // CRB: Show related spec elements (INV-GUIDANCE-024)
+    // CRB: Show related knowledge (INV-GUIDANCE-024, CRB-7)
     if !related_specs.is_empty() {
-        human.push_str("\n  related spec (auto-reconciliation):\n");
+        human.push_str("\n  related knowledge (auto-reconciliation):\n");
         for sr in &related_specs {
             human.push_str(&format!(
-                "    {} — {} (score={:.2})\n",
-                sr.human_id, sr.summary, sr.score
+                "    [{}] {} — {} (score={:.2})\n",
+                sr.source, sr.human_id, sr.summary, sr.score
             ));
         }
         if related_specs.len() >= 3 {
             human.push_str(
-                "  \u{26a0} 3+ existing spec elements found. Reconcile before crystallizing.\n",
+                "  \u{26a0} 3+ existing knowledge elements found. Reconcile before crystallizing.\n",
             );
         }
     }

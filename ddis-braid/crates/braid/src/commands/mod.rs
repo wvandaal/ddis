@@ -1071,12 +1071,49 @@ pub enum TaskAction {
     },
 
     /// List tasks (open by default, --all for everything).
+    ///
+    /// Filters narrow the result set. Combine them:
+    ///   braid task list --type epic --prefix BOUNDARY --limit 10
     List {
         /// Store directory path.
         #[arg(long, short = 'p', default_value = ".braid")]
         path: PathBuf,
 
         /// Include closed tasks.
+        #[arg(long)]
+        all: bool,
+
+        /// Filter by task type (task, bug, feature, epic, test, docs, question).
+        #[arg(long = "type")]
+        task_type: Option<String>,
+
+        /// Filter by title prefix (case-insensitive).
+        #[arg(long)]
+        prefix: Option<String>,
+
+        /// Maximum number of tasks to display.
+        #[arg(long)]
+        limit: Option<usize>,
+
+        /// Filter by priority (0-4).
+        #[arg(long)]
+        priority: Option<i64>,
+    },
+
+    /// Full-text search across task titles and descriptions.
+    ///
+    /// Returns tasks whose title or description contains the pattern (case-insensitive).
+    ///   braid task search topology
+    ///   braid task search "merge cascade"
+    Search {
+        /// Search pattern (case-insensitive substring match).
+        pattern: String,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Include closed tasks in results.
         #[arg(long)]
         all: bool,
     },
@@ -1468,6 +1505,7 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
             | TaskAction::Close { path, .. }
             | TaskAction::Update { path, .. }
             | TaskAction::Set { path, .. }
+            | TaskAction::Search { path, .. }
             | TaskAction::Import { path, .. } => Some(path),
             TaskAction::Dep { action } => match action {
                 DepAction::Add { path, .. } => Some(path),
@@ -1766,6 +1804,7 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
             | TaskAction::Close { path, .. }
             | TaskAction::Update { path, .. }
             | TaskAction::Set { path, .. }
+            | TaskAction::Search { path, .. }
             | TaskAction::Import { path, .. } => {
                 *path = resolve_store_path(path.clone());
             }
@@ -2236,7 +2275,15 @@ pub fn run(
                     traces_to: &traces_to,
                     labels: &labels,
                 })?,
-                TaskAction::List { path, all } => task::list(&path, all)?,
+                TaskAction::List {
+                    path,
+                    all,
+                    task_type,
+                    prefix,
+                    limit,
+                    priority,
+                } => task::list_filtered(&path, all, task_type.as_deref(), prefix.as_deref(), limit, priority)?,
+                TaskAction::Search { pattern, path, all } => task::search(&path, &pattern, all)?,
                 TaskAction::Ready { path } => task::ready(&path)?,
                 TaskAction::Show { id, path } => task::show(&path, &id)?,
                 TaskAction::Close {

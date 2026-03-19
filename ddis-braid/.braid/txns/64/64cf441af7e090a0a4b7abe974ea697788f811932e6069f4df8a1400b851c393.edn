@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773934237/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b78da510"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/close-reason :v "Implemented BoundaryCheck trait, SetRelation, BoundaryDivergence, DivergenceDirection, BoundaryEvaluation, BoundaryRegistry types in bilateral.rs. 7 unit tests passing. Re-exported from lib.rs." :op :assert}
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/closed-at :v 1773934236 :op :assert}
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/status :v :task.status/closed :op :assert}
+ ]}

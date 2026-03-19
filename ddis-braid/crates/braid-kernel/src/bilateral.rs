@@ -318,6 +318,216 @@ pub struct BilateralState {
 }
 
 // ===========================================================================
+// BoundaryCheck Trait — Parameterized Boundary Checking (INV-BILATERAL-007)
+// ===========================================================================
+
+/// The relationship between two entity sets across a boundary.
+///
+/// Defined by the set algebra: given source set S and target set T,
+/// SetRelation captures |S|, |T|, |S ∩ T|, |S \ T|, |T \ S|.
+///
+/// INV: |covered| + |source_gaps| = |source_total| (partition of S)
+/// INV: coverage = |covered| / |source_total| when source_total > 0
+#[derive(Clone, Debug)]
+pub struct SetRelation {
+    /// Total entities in the source set.
+    pub source_total: usize,
+    /// Total entities in the target set.
+    pub target_total: usize,
+    /// Entities in S that have links to T (|S ∩ T| projected to S).
+    pub covered: usize,
+    /// Entities in S without links to T (|S \ T|).
+    pub source_gaps: usize,
+    /// Entities in T without links from S (|T \ S|).
+    pub target_gaps: usize,
+    /// Coverage ratio: covered / source_total ∈ [0, 1]. 1.0 if source_total == 0.
+    pub coverage: f64,
+}
+
+impl SetRelation {
+    /// Compute from source and target counts.
+    ///
+    /// # Invariants
+    /// - `covered + source_gaps == source_total`
+    /// - `coverage == covered / source_total` when `source_total > 0`
+    /// - `coverage == 1.0` when `source_total == 0` (vacuously satisfied)
+    pub fn new(source_total: usize, target_total: usize, covered: usize) -> Self {
+        let source_gaps = source_total.saturating_sub(covered);
+        let target_gaps = target_total.saturating_sub(covered);
+        let coverage = if source_total == 0 {
+            1.0
+        } else {
+            covered as f64 / source_total as f64
+        };
+        Self {
+            source_total,
+            target_total,
+            covered,
+            source_gaps,
+            target_gaps,
+            coverage,
+        }
+    }
+}
+
+/// A single divergence detected by a boundary check.
+///
+/// Each divergence identifies a specific entity that lacks coverage
+/// across a boundary, classified by severity and with a fix suggestion
+/// for the guidance system to route to the agent.
+#[derive(Clone, Debug)]
+pub struct BoundaryDivergence {
+    /// The entity that has the gap.
+    pub entity: EntityId,
+    /// Human-readable identifier (e.g., ":spec/inv-store-001" or "src/store.rs").
+    pub ident: String,
+    /// Which direction the gap is in: "forward" (source→target) or "backward" (target→source).
+    pub direction: DivergenceDirection,
+    /// Severity classification.
+    pub severity: GapSeverity,
+    /// Actionable fix suggestion for guidance routing.
+    /// Example: "braid trace t-xxxx :spec/inv-store-001"
+    pub fix_suggestion: String,
+}
+
+/// Direction of a boundary divergence.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum DivergenceDirection {
+    /// Source entity has no link to target (e.g., spec without implementation).
+    Forward,
+    /// Target entity has no link from source (e.g., implementation without spec).
+    Backward,
+}
+
+/// Result of evaluating a single boundary.
+///
+/// Captures the set relation, divergences, and metadata needed for
+/// the fitness function and guidance system.
+#[derive(Clone, Debug)]
+pub struct BoundaryEvaluation {
+    /// Name of the boundary (e.g., "spec↔impl", "task↔spec").
+    pub name: String,
+    /// The set relation between source and target.
+    pub relation: SetRelation,
+    /// Individual divergences (gaps) found.
+    pub divergences: Vec<BoundaryDivergence>,
+    /// Weight of this boundary in the F(S) computation.
+    pub weight: f64,
+}
+
+/// Trait for boundary checking — the parameterized bilateral loop.
+///
+/// Implementing this trait allows a new divergence type to participate
+/// in F(S) computation, guidance routing, and status display without
+/// modifying the core fitness function, guidance system, or CLI.
+///
+/// # INV-BILATERAL-007
+///
+/// Adding a new divergence boundary requires ONLY implementing this trait
+/// and registering it. The fitness computation, guidance system, and
+/// routing pipeline apply automatically.
+///
+/// # Object Safety
+///
+/// This trait is object-safe: all methods take `&self` and return owned types.
+/// It can be used as `Box<dyn BoundaryCheck>` in the BoundaryRegistry.
+pub trait BoundaryCheck {
+    /// Human-readable name for display (e.g., "spec↔impl", "task↔spec").
+    fn name(&self) -> &str;
+
+    /// Weight of this boundary in the F(S) weighted sum.
+    /// Must be in [0, 1]. The registry normalizes weights if they don't sum to 1.
+    fn weight(&self) -> f64;
+
+    /// Evaluate this boundary against the current store state.
+    ///
+    /// Returns a BoundaryEvaluation with the set relation, divergences,
+    /// and metadata needed for fitness computation and guidance routing.
+    fn evaluate(&self, store: &Store) -> BoundaryEvaluation;
+
+    /// Brief description for help text and diagnostics.
+    fn description(&self) -> &str;
+}
+
+/// Registry of boundary checks for composable F(S) computation.
+///
+/// F(S) = Σ wᵢ × coverage(bᵢ) across all registered boundaries.
+///
+/// The registry normalizes weights so they sum to 1.0, ensuring
+/// F(S) ∈ [0, 1] by construction.
+pub struct BoundaryRegistry {
+    boundaries: Vec<Box<dyn BoundaryCheck>>,
+}
+
+impl BoundaryRegistry {
+    /// Create an empty registry.
+    pub fn new() -> Self {
+        Self {
+            boundaries: Vec::new(),
+        }
+    }
+
+    /// Register a new boundary check.
+    pub fn register(&mut self, boundary: Box<dyn BoundaryCheck>) {
+        self.boundaries.push(boundary);
+    }
+
+    /// Number of registered boundaries.
+    pub fn len(&self) -> usize {
+        self.boundaries.len()
+    }
+
+    /// Whether the registry is empty.
+    pub fn is_empty(&self) -> bool {
+        self.boundaries.is_empty()
+    }
+
+    /// Evaluate all registered boundaries against the store.
+    ///
+    /// Returns evaluations in registration order.
+    pub fn evaluate_all(&self, store: &Store) -> Vec<BoundaryEvaluation> {
+        self.boundaries.iter().map(|b| b.evaluate(store)).collect()
+    }
+
+    /// Compute the weighted coverage across all boundaries.
+    ///
+    /// F(S)_boundaries = Σ (w_i / W_total) × coverage(b_i)
+    /// where W_total = Σ w_i (normalization factor).
+    ///
+    /// Returns 1.0 if no boundaries are registered (vacuously satisfied).
+    pub fn total_coverage(&self, store: &Store) -> f64 {
+        if self.boundaries.is_empty() {
+            return 1.0;
+        }
+
+        let evaluations = self.evaluate_all(store);
+        let weight_sum: f64 = evaluations.iter().map(|e| e.weight).sum();
+        if weight_sum == 0.0 {
+            return 1.0;
+        }
+
+        evaluations
+            .iter()
+            .map(|e| (e.weight / weight_sum) * e.relation.coverage)
+            .sum()
+    }
+
+    /// Get an iterator over registered boundary names and weights.
+    pub fn boundary_info(&self) -> Vec<(&str, f64)> {
+        self.boundaries
+            .iter()
+            .map(|b| (b.name(), b.weight()))
+            .collect()
+    }
+}
+
+impl Default for BoundaryRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+// ===========================================================================
 // Verification Depth — WP9 F(S) Honesty
 // ===========================================================================
 
@@ -1848,6 +2058,103 @@ pub fn format_verbose(state: &BilateralState) -> String {
 }
 
 // ===========================================================================
+// SpecImplBoundary — BoundaryCheck impl for spec↔impl (BOUNDARY-IMPL-5)
+// ===========================================================================
+
+/// The Specification ↔ Implementation boundary as a BoundaryCheck.
+///
+/// Source: spec elements (entities with `:spec/element-type`).
+/// Target: impl entities that reference specs via `:impl/implements`.
+///
+/// Coverage = fraction of spec elements with at least one impl entity.
+/// This is backward-compatible: same logic as `forward_scan` + `backward_scan`,
+/// but wrapped in the BoundaryCheck trait for the registry.
+///
+/// INV-BILATERAL-007: Adding new boundaries requires only implementing BoundaryCheck.
+pub struct SpecImplBoundary;
+
+impl BoundaryCheck for SpecImplBoundary {
+    fn name(&self) -> &str {
+        "spec\u{2194}impl"
+    }
+
+    fn weight(&self) -> f64 {
+        // Combined weight of coverage (0.18) + validation (0.18) = 0.36
+        // This is the dominant boundary in the current F(S) computation.
+        0.36
+    }
+
+    fn evaluate(&self, store: &Store) -> BoundaryEvaluation {
+        let fwd = forward_scan(store);
+        let bwd = backward_scan(store);
+
+        let mut divergences = Vec::new();
+
+        // Forward gaps: spec elements without implementation
+        for gap in &fwd.gaps {
+            divergences.push(BoundaryDivergence {
+                entity: gap.entity,
+                ident: gap.ident.clone().unwrap_or_else(|| format!("{:?}", gap.entity)),
+                direction: DivergenceDirection::Forward,
+                severity: gap.severity.clone(),
+                fix_suggestion: format!(
+                    "braid write assert ':impl/implements :spec/{}'",
+                    gap.ident
+                        .as_ref()
+                        .and_then(|i| i.strip_prefix(":spec/"))
+                        .unwrap_or("???")
+                ),
+            });
+        }
+
+        // Backward gaps: impl entities without spec reference
+        for gap in &bwd.gaps {
+            divergences.push(BoundaryDivergence {
+                entity: gap.entity,
+                ident: gap.ident.clone().unwrap_or_else(|| format!("{:?}", gap.entity)),
+                direction: DivergenceDirection::Backward,
+                severity: gap.severity.clone(),
+                fix_suggestion: "braid trace".to_string(),
+            });
+        }
+
+        // Coverage is the forward scan's coverage (spec → impl direction)
+        let relation = SetRelation::new(
+            fwd.covered.len() + fwd.gaps.len(),
+            bwd.covered.len() + bwd.gaps.len(),
+            fwd.covered.len(),
+        );
+
+        BoundaryEvaluation {
+            name: self.name().to_string(),
+            relation,
+            divergences,
+            weight: self.weight(),
+        }
+    }
+
+    fn description(&self) -> &str {
+        "Spec elements with implementation coverage via :impl/implements"
+    }
+}
+
+/// Create the default boundary registry with the standard boundaries.
+///
+/// Currently includes:
+/// - SpecImplBoundary: spec ↔ impl coverage (the original bilateral scan)
+///
+/// Future boundaries (when implemented):
+/// - TaskSpecBoundary: tasks tracing to spec elements
+/// - SchemaCompleteBoundary: schema attributes with documentation
+///
+/// INV-BILATERAL-007: Adding a new boundary = one more `register()` call.
+pub fn default_boundaries() -> BoundaryRegistry {
+    let mut registry = BoundaryRegistry::new();
+    registry.register(Box::new(SpecImplBoundary));
+    registry
+}
+
+// ===========================================================================
 // Tests
 // ===========================================================================
 
@@ -2448,5 +2755,289 @@ mod tests {
                 }
             }
         }
+    }
+
+    // =======================================================================
+    // BoundaryCheck trait tests (INV-BILATERAL-007)
+    // =======================================================================
+
+    /// SetRelation invariants: covered + source_gaps == source_total.
+    #[test]
+    fn set_relation_partition_invariant() {
+        let r = SetRelation::new(100, 80, 60);
+        assert_eq!(r.covered + r.source_gaps, r.source_total);
+        assert_eq!(r.source_gaps, 40);
+        assert_eq!(r.target_gaps, 20);
+        assert!((r.coverage - 0.6).abs() < 1e-10);
+    }
+
+    /// SetRelation with zero source is vacuously satisfied.
+    #[test]
+    fn set_relation_empty_source_vacuous() {
+        let r = SetRelation::new(0, 50, 0);
+        assert_eq!(r.coverage, 1.0);
+        assert_eq!(r.source_gaps, 0);
+    }
+
+    /// SetRelation with full coverage.
+    #[test]
+    fn set_relation_full_coverage() {
+        let r = SetRelation::new(10, 10, 10);
+        assert_eq!(r.coverage, 1.0);
+        assert_eq!(r.source_gaps, 0);
+        assert_eq!(r.target_gaps, 0);
+    }
+
+    /// BoundaryRegistry starts empty and accumulates boundaries.
+    #[test]
+    fn boundary_registry_lifecycle() {
+        let mut registry = BoundaryRegistry::new();
+        assert!(registry.is_empty());
+        assert_eq!(registry.len(), 0);
+
+        // A trivial boundary for testing
+        struct TrivialBoundary {
+            cov: f64,
+        }
+        impl BoundaryCheck for TrivialBoundary {
+            fn name(&self) -> &str {
+                "trivial"
+            }
+            fn weight(&self) -> f64 {
+                1.0
+            }
+            fn evaluate(&self, _store: &Store) -> BoundaryEvaluation {
+                let total = 100;
+                let covered = (total as f64 * self.cov) as usize;
+                BoundaryEvaluation {
+                    name: self.name().to_string(),
+                    relation: SetRelation::new(total, total, covered),
+                    divergences: Vec::new(),
+                    weight: self.weight(),
+                }
+            }
+            fn description(&self) -> &str {
+                "test boundary"
+            }
+        }
+
+        registry.register(Box::new(TrivialBoundary { cov: 0.8 }));
+        assert_eq!(registry.len(), 1);
+        assert!(!registry.is_empty());
+
+        let store = test_store();
+        let evals = registry.evaluate_all(&store);
+        assert_eq!(evals.len(), 1);
+        assert!((evals[0].relation.coverage - 0.8).abs() < 1e-10);
+    }
+
+    /// BoundaryRegistry total_coverage normalizes weights.
+    #[test]
+    fn boundary_registry_weighted_coverage() {
+        struct WeightedBoundary {
+            name: &'static str,
+            w: f64,
+            cov: f64,
+        }
+        impl BoundaryCheck for WeightedBoundary {
+            fn name(&self) -> &str {
+                self.name
+            }
+            fn weight(&self) -> f64 {
+                self.w
+            }
+            fn evaluate(&self, _store: &Store) -> BoundaryEvaluation {
+                let total = 100;
+                let covered = (total as f64 * self.cov) as usize;
+                BoundaryEvaluation {
+                    name: self.name().to_string(),
+                    relation: SetRelation::new(total, total, covered),
+                    divergences: Vec::new(),
+                    weight: self.w,
+                }
+            }
+            fn description(&self) -> &str {
+                "test"
+            }
+        }
+
+        let mut registry = BoundaryRegistry::new();
+        // Boundary A: weight 0.7, coverage 1.0
+        // Boundary B: weight 0.3, coverage 0.0
+        // Expected: (0.7/1.0) * 1.0 + (0.3/1.0) * 0.0 = 0.7
+        registry.register(Box::new(WeightedBoundary {
+            name: "a",
+            w: 0.7,
+            cov: 1.0,
+        }));
+        registry.register(Box::new(WeightedBoundary {
+            name: "b",
+            w: 0.3,
+            cov: 0.0,
+        }));
+
+        let store = test_store();
+        let total = registry.total_coverage(&store);
+        assert!(
+            (total - 0.7).abs() < 1e-10,
+            "expected 0.7, got {}",
+            total
+        );
+    }
+
+    /// BoundaryRegistry with no boundaries returns 1.0 (vacuous).
+    #[test]
+    fn boundary_registry_empty_vacuous() {
+        let registry = BoundaryRegistry::new();
+        let store = test_store();
+        assert_eq!(registry.total_coverage(&store), 1.0);
+    }
+
+    /// BoundaryDivergence captures direction and fix suggestion.
+    #[test]
+    fn boundary_divergence_construction() {
+        let div = BoundaryDivergence {
+            entity: EntityId::from_content(b"test-entity-42"),
+            ident: ":spec/inv-store-001".to_string(),
+            direction: DivergenceDirection::Forward,
+            severity: GapSeverity::Major,
+            fix_suggestion: "braid trace t-xxxx :spec/inv-store-001".to_string(),
+        };
+        assert_eq!(div.direction, DivergenceDirection::Forward);
+        assert!(div.fix_suggestion.contains("braid trace"));
+    }
+
+    /// BoundaryRegistry::boundary_info returns names and weights.
+    #[test]
+    fn boundary_registry_info() {
+        struct NamedBoundary(&'static str, f64);
+        impl BoundaryCheck for NamedBoundary {
+            fn name(&self) -> &str {
+                self.0
+            }
+            fn weight(&self) -> f64 {
+                self.1
+            }
+            fn evaluate(&self, _store: &Store) -> BoundaryEvaluation {
+                BoundaryEvaluation {
+                    name: self.0.to_string(),
+                    relation: SetRelation::new(0, 0, 0),
+                    divergences: Vec::new(),
+                    weight: self.1,
+                }
+            }
+            fn description(&self) -> &str {
+                "info test"
+            }
+        }
+
+        let mut registry = BoundaryRegistry::new();
+        registry.register(Box::new(NamedBoundary("spec↔impl", 0.6)));
+        registry.register(Box::new(NamedBoundary("task↔spec", 0.4)));
+
+        let info = registry.boundary_info();
+        assert_eq!(info.len(), 2);
+        assert_eq!(info[0].0, "spec↔impl");
+        assert!((info[0].1 - 0.6).abs() < 1e-10);
+        assert_eq!(info[1].0, "task↔spec");
+    }
+
+    // =======================================================================
+    // SpecImplBoundary tests (BOUNDARY-IMPL-5)
+    // =======================================================================
+
+    /// SpecImplBoundary on empty store returns vacuous coverage.
+    #[test]
+    fn spec_impl_boundary_empty_store() {
+        let store = test_store();
+        let boundary = SpecImplBoundary;
+        let eval = boundary.evaluate(&store);
+        assert_eq!(eval.name, "spec\u{2194}impl");
+        // Empty store: no spec elements, vacuous coverage
+        assert_eq!(eval.relation.coverage, 1.0);
+        assert!(eval.divergences.is_empty());
+    }
+
+    /// SpecImplBoundary detects forward gaps (spec without impl).
+    #[test]
+    fn spec_impl_boundary_detects_forward_gap() {
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+        let spec_entity = EntityId::from_ident(":spec/inv-test-001");
+
+        let extra = vec![
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-test-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/element-type"),
+                Value::Keyword(":spec.type/invariant".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/statement"),
+                Value::String("Test invariant".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+
+        let store = store_with(extra);
+        let boundary = SpecImplBoundary;
+        let eval = boundary.evaluate(&store);
+
+        // One spec element with no impl → coverage < 1.0
+        assert!(
+            eval.relation.coverage < 1.0,
+            "expected gap, got coverage={}",
+            eval.relation.coverage
+        );
+        assert!(
+            !eval.divergences.is_empty(),
+            "expected divergences for uncovered spec"
+        );
+        assert_eq!(eval.divergences[0].direction, DivergenceDirection::Forward);
+    }
+
+    /// default_boundaries() returns a non-empty registry.
+    #[test]
+    fn default_boundaries_non_empty() {
+        let registry = default_boundaries();
+        assert!(registry.len() >= 1, "default_boundaries must have at least 1 boundary");
+        let info = registry.boundary_info();
+        assert!(info.iter().any(|(name, _)| *name == "spec\u{2194}impl"));
+    }
+
+    // =======================================================================
+    // BOUNDARY-COMPAT: F(S) backward compatibility golden test
+    // =======================================================================
+
+    /// F(S) via default_boundaries().total_coverage() is consistent with
+    /// the coverage component of compute_fitness().
+    ///
+    /// This verifies that the boundary framework doesn't change the fitness
+    /// computation results for the spec↔impl boundary.
+    #[test]
+    fn boundary_compat_coverage_consistency() {
+        let store = test_store();
+
+        // Old path: compute_fitness
+        let fitness = compute_fitness(&store);
+
+        // New path: default_boundaries().evaluate_all()
+        let registry = default_boundaries();
+        let evals = registry.evaluate_all(&store);
+        assert_eq!(evals.len(), 1);
+
+        // On empty store both should be 1.0 (vacuous)
+        assert_eq!(fitness.components.coverage, 1.0);
+        assert_eq!(evals[0].relation.coverage, 1.0);
     }
 }

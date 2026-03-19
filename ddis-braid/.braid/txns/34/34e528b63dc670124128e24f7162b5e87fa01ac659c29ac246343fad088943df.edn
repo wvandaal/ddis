@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773935038/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-dbca7795"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/close-reason :v "Implemented task search with case-insensitive substring matching across titles and IDs" :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/closed-at :v 1773935037 :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/status :v :task.status/closed :op :assert}
+ ]}

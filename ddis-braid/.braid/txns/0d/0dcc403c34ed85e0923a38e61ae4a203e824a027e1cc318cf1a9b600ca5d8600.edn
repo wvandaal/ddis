@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773935430/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-053e1287"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/close-reason :v "SpecImplBoundary wraps forward_scan+backward_scan as BoundaryCheck. 3 tests. Backward-compatible." :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/closed-at :v 1773935429 :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "9690812f15586ddfafc8bd9aa38adb92a0213d2eea31790ec7fe5fe5d7d979d2" :a :task/status :v :task.status/closed :op :assert}
+ ]}
