@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773931162/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "TASK GRAPH AUDIT: Reviewing all open tasks from Session 026 for completeness. Need to: (1) Close superseded EVIDENCE-1..4 tasks (replaced by reconciled EVIDENCE-R1..R3). (2) Verify all dependency chains are complete. (3) Identify any remaining gaps between spec elements and implementation tasks. (4) Ensure every task has acceptance criteria and FILE: markers. (5) Create any missing test tasks."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "02f289596349863e52e3b93f5de59615aa6cb1d8c460b5f349f5248b3e6bd9c8" :a :db/doc :v "TASK GRAPH AUDIT: Reviewing all open tasks from Session 026 for completeness. Need to: (1) Close superseded EVIDENCE-1..4 tasks (replaced by reconciled EVIDENCE-R1..R3). (2) Verify all dependency chains are complete. (3) Identify any remaining gaps between spec elements and implementation tasks. (4) Ensure every task has acceptance criteria and FILE: markers. (5) Create any missing test tasks." :op :assert}
+   {:e #blake3 "02f289596349863e52e3b93f5de59615aa6cb1d8c460b5f349f5248b3e6bd9c8" :a :db/ident :v :observation/task-graph-audit-reviewing-all-open-tasks-from-session-026 :op :assert}
+   {:e #blake3 "02f289596349863e52e3b93f5de59615aa6cb1d8c460b5f349f5248b3e6bd9c8" :a :exploration/body :v "TASK GRAPH AUDIT: Reviewing all open tasks from Session 026 for completeness. Need to: (1) Close superseded EVIDENCE-1..4 tasks (replaced by reconciled EVIDENCE-R1..R3). (2) Verify all dependency chains are complete. (3) Identify any remaining gaps between spec elements and implementation tasks. (4) Ensure every task has acceptance criteria and FILE: markers. (5) Create any missing test tasks." :op :assert}
+   {:e #blake3 "02f289596349863e52e3b93f5de59615aa6cb1d8c460b5f349f5248b3e6bd9c8" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "02f289596349863e52e3b93f5de59615aa6cb1d8c460b5f349f5248b3e6bd9c8" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "02f289596349863e52e3b93f5de59615aa6cb1d8c460b5f349f5248b3e6bd9c8" :a :exploration/content-hash :v #bytes "17f7d5e609411885950767b0a6f446927ac43613f87b7e3209c8414e3bc6e4ee" :op :assert}
+   {:e #blake3 "02f289596349863e52e3b93f5de59615aa6cb1d8c460b5f349f5248b3e6bd9c8" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "02f289596349863e52e3b93f5de59615aa6cb1d8c460b5f349f5248b3e6bd9c8" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "02f289596349863e52e3b93f5de59615aa6cb1d8c460b5f349f5248b3e6bd9c8" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

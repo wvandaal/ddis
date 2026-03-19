@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773931322/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CRB-E2E: E2E test scripts/e2e_crb_reconciliation.sh — validates the full CRB cycle. TESTS: (1) braid observe with text matching 3+ specs shows related spec section + warning. (2) braid observe with no matches shows no reconciliation section. (3) braid spec create matching 3+ specs WITHOUT --reconciled fails with matches displayed. (4) braid spec create with --reconciled succeeds. (5) braid spec create matching <3 succeeds normally. (6) braid task create same gate behavior. (7) braid write assert shows reconciliation (no gate). (8) Reconciliation output includes spec ID, title, and score. (9) Score ordering: most relevant first. (10) Performance: reconciliation adds <500ms to command execution. TRACES TO: INV-GUIDANCE-024, INV-GUIDANCE-025. FILE: scripts/e2e_crb_reconciliation.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4a280efa0a284b5467713e8d2b14a9856b4c146e690d63bed9dc0ad0abb42011" :a :db/ident :v :task/t-4d0d2542 :op :assert}
+   {:e #blake3 "4a280efa0a284b5467713e8d2b14a9856b4c146e690d63bed9dc0ad0abb42011" :a :task/created-at :v 1773931321 :op :assert}
+   {:e #blake3 "4a280efa0a284b5467713e8d2b14a9856b4c146e690d63bed9dc0ad0abb42011" :a :task/id :v "t-4d0d2542" :op :assert}
+   {:e #blake3 "4a280efa0a284b5467713e8d2b14a9856b4c146e690d63bed9dc0ad0abb42011" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4a280efa0a284b5467713e8d2b14a9856b4c146e690d63bed9dc0ad0abb42011" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4a280efa0a284b5467713e8d2b14a9856b4c146e690d63bed9dc0ad0abb42011" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4a280efa0a284b5467713e8d2b14a9856b4c146e690d63bed9dc0ad0abb42011" :a :task/title :v "CRB-E2E: E2E test scripts/e2e_crb_reconciliation.sh — validates the full CRB cycle. TESTS: (1) braid observe with text matching 3+ specs shows related spec section + warning. (2) braid observe with no matches shows no reconciliation section. (3) braid spec create matching 3+ specs WITHOUT --reconciled fails with matches displayed. (4) braid spec create with --reconciled succeeds. (5) braid spec create matching <3 succeeds normally. (6) braid task create same gate behavior. (7) braid write assert shows reconciliation (no gate). (8) Reconciliation output includes spec ID, title, and score. (9) Score ordering: most relevant first. (10) Performance: reconciliation adds <500ms to command execution. TRACES TO: INV-GUIDANCE-024, INV-GUIDANCE-025. FILE: scripts/e2e_crb_reconciliation.sh" :op :assert}
+   {:e #blake3 "4a280efa0a284b5467713e8d2b14a9856b4c146e690d63bed9dc0ad0abb42011" :a :task/traces-to :v #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :op :assert}
+   {:e #blake3 "4a280efa0a284b5467713e8d2b14a9856b4c146e690d63bed9dc0ad0abb42011" :a :task/traces-to :v #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :op :assert}
+   {:e #blake3 "4a280efa0a284b5467713e8d2b14a9856b4c146e690d63bed9dc0ad0abb42011" :a :task/type :v :task.type/test :op :assert}
+ ]}
