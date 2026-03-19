@@ -286,22 +286,58 @@ pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, Brai
         "store_datoms": store.len(),
     });
 
+    // ZCM-3: Session summary as ACP projection
+    let action = braid_kernel::guidance::compute_action_from_store(&store);
+    let fitness = braid_kernel::bilateral::compute_fitness(&store);
+    let tx_since_harvest = count_txns_since_last_harvest(&store);
+
+    let mut context_blocks = vec![
+        braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: format!(
+                "session: +{} tasks, {} closed, {} observations, {} txns ({}m)",
+                tasks_created, tasks_closed, observations, txn_count, duration_secs / 60,
+            ),
+            tokens: 15,
+        },
+        braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
+            content: format!("F(S)={:.2} | harvest: {} tx since last", fitness.total, tx_since_harvest),
+            tokens: 10,
+        },
+    ];
+
+    if tasks_in_progress > 0 {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!("{} tasks in-progress", tasks_in_progress),
+            tokens: 5,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "end: braid session end | harvest: braid harvest --commit".to_string(),
+    };
+
+    // Merge ACP into JSON
+    let mut json = json;
+    if let serde_json::Value::Object(ref mut map) = json {
+        map.insert("fitness".to_string(), serde_json::json!(fitness.total));
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
     let agent_out = AgentOutput {
-        context: format!(
-            "session summary: {} created, {} closed, {} observations since {}",
-            tasks_created, tasks_closed, observations, boundary_age,
-        ),
-        content: format!(
-            "tasks: +{} created, {} closed, {} in-progress | obs: {} | txns: {} | {}m {}s",
-            tasks_created,
-            tasks_closed,
-            tasks_in_progress,
-            observations,
-            txn_count,
-            duration_secs / 60,
-            duration_secs % 60,
-        ),
-        footer: "end session: braid session end | observe: braid observe \"...\"".to_string(),
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
     };
 
     Ok(CommandOutput {
