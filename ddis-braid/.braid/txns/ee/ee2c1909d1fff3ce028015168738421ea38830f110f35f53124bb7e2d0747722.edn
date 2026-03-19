@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773948014/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e7f78088"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "98822e20ae72a6930e0116cade135bc0499989f406ca825406d453b9a7dcf777" :a :task/close-reason :v "methodology_context_blocks() implemented: M(t) score + sub-metric checks as ContextBlocks. Integrated into status projection. Legacy footer still appended in parallel for backward compat." :op :assert}
+   {:e #blake3 "98822e20ae72a6930e0116cade135bc0499989f406ca825406d453b9a7dcf777" :a :task/closed-at :v 1773948013 :op :assert}
+   {:e #blake3 "98822e20ae72a6930e0116cade135bc0499989f406ca825406d453b9a7dcf777" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "98822e20ae72a6930e0116cade135bc0499989f406ca825406d453b9a7dcf777" :a :task/status :v :task.status/closed :op :assert}
+ ]}

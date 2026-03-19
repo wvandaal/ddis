@@ -326,6 +326,10 @@ pub fn build_status_projection(
         });
     }
 
+    // Add methodology M(t) context blocks (ACP-9: footer → context)
+    let methodology_blocks = braid_kernel::guidance::methodology_context_blocks(store);
+    context.extend(methodology_blocks);
+
     braid_kernel::ActionProjection {
         action,
         context,

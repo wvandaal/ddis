@@ -946,6 +946,57 @@ pub fn compute_action_from_store(store: &Store) -> crate::budget::ProjectedActio
 }
 
 // ---------------------------------------------------------------------------
+// ACP Methodology Context Blocks (ACP-9, INV-BUDGET-009)
+// ---------------------------------------------------------------------------
+
+/// Build methodology Context blocks for ACP projections (ACP-9).
+///
+/// Extracts the M(t) score, sub-metric checks, and store state from the
+/// guidance system and packages them as ContextBlocks at Methodology precedence.
+/// These blocks replace the guidance footer for ACP-enabled commands.
+///
+/// The footer's next-action is NOT included here — that's the Action layer,
+/// provided by compute_action_from_store().
+pub fn methodology_context_blocks(
+    store: &Store,
+) -> Vec<crate::budget::ContextBlock> {
+    let telemetry = telemetry_from_store(store);
+    let score = compute_methodology_score(&telemetry);
+
+    let check = |name: &str, value: f64, threshold: f64, cmd: &str| -> String {
+        if value >= threshold {
+            format!("{}: \u{2713}", name)
+        } else {
+            format!("{}: \u{2717}\u{2192}{}", name, cmd)
+        }
+    };
+
+    let m_line = format!(
+        "M(t): {:.2} ({} | {} | {} | {})",
+        score.score,
+        check("tx", score.components.transact_frequency, 0.4, "write"),
+        check("spec-lang", score.components.spec_language_ratio, 0.4, "query --entity :spec/..."),
+        check("q-div", score.components.query_diversity, 0.4, "query"),
+        check("harvest", score.components.harvest_quality, 0.4, "harvest"),
+    );
+
+    let mut blocks = vec![crate::budget::ContextBlock {
+        precedence: crate::budget::OutputPrecedence::Methodology,
+        content: m_line,
+        tokens: 20,
+    }];
+
+    // Store state context
+    blocks.push(crate::budget::ContextBlock {
+        precedence: crate::budget::OutputPrecedence::Ambient,
+        content: format!("Store: {} datoms | Turn {}", store.len(), store.frontier().len()),
+        tokens: 8,
+    });
+
+    blocks
+}
+
+// ---------------------------------------------------------------------------
 // Spec Anchor Factor (SFE-3.1)
 // ---------------------------------------------------------------------------
 
