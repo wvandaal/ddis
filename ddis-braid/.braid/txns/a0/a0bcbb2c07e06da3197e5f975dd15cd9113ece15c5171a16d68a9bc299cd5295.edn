@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773954763/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Set t-641dd8a6 title=RFL-4: Learn R(t) routing weights via ridge regression — w = (X^T X + lambda*I)^{-1} X^T y (INV-GUIDANCE-005, INV-GUIDANCE-010, ADR-TOPOLOGY-004). AUDIT FIX: Changed from vanilla WLS to RIDGE REGRESSION (lambda=0.01) to handle collinear features. Pagerank and betweenness often correlate, making X^T X singular. Ridge regression adds lambda*I diagonal to guarantee invertibility. This is a one-line fix that prevents all singularity crashes while still learning meaningful weights. Also uses features from :action/features datom (JSON array of 6 floats) as the X matrix rows. SAFEGUARDS unchanged: min 50 data points, weights in [0.01, 0.5], normalized sum=1.0, rollback on validation failure."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1dd23195b48faa63545eb4d874912d235e9a1a5e7cc8134c5ff2393f738ec825" :a :task/title :v "RFL-4: Learn R(t) routing weights via ridge regression — w = (X^T X + lambda*I)^{-1} X^T y (INV-GUIDANCE-005, INV-GUIDANCE-010, ADR-TOPOLOGY-004). AUDIT FIX: Changed from vanilla WLS to RIDGE REGRESSION (lambda=0.01) to handle collinear features. Pagerank and betweenness often correlate, making X^T X singular. Ridge regression adds lambda*I diagonal to guarantee invertibility. This is a one-line fix that prevents all singularity crashes while still learning meaningful weights. Also uses features from :action/features datom (JSON array of 6 floats) as the X matrix rows. SAFEGUARDS unchanged: min 50 data points, weights in [0.01, 0.5], normalized sum=1.0, rollback on validation failure." :op :assert}
+ ]}

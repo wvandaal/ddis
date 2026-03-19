@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773954787/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Set t-59196416 title=TEST-RFL-E2E: E2E test scripts/e2e_routing_feedback.sh — 15 checks including cold-start and regularization (INV-GUIDANCE-010, INV-GUIDANCE-005). AUDIT FIX: Added 3 tests: (13) Cold-start: first command in session has no previous recommendation — classify returns None, no crash. (14) Collinear features: synthesize data where pagerank==betweenness — ridge regression still produces valid weights (no NaN/Inf). (15) Preview mode: status --verbose shows preview weights when <50 data points."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4ab543ad08a9ce8b33d2fbd5dd2a06732299eab8cabac826d451c375a1a2a446" :a :task/title :v "TEST-RFL-E2E: E2E test scripts/e2e_routing_feedback.sh — 15 checks including cold-start and regularization (INV-GUIDANCE-010, INV-GUIDANCE-005). AUDIT FIX: Added 3 tests: (13) Cold-start: first command in session has no previous recommendation — classify returns None, no crash. (14) Collinear features: synthesize data where pagerank==betweenness — ridge regression still produces valid weights (no NaN/Inf). (15) Preview mode: status --verbose shows preview weights when <50 data points." :op :assert}
+ ]}

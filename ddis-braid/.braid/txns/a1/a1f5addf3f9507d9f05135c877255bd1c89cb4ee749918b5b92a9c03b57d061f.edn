@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773954739/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Set t-2b2fd6eb title=RFL-1: Register action-outcome schema — 8 attributes: recommended-command, recommended-entity, recommended-impact, outcome, next-command, latency-ms, timestamp, features (INV-GUIDANCE-010, INV-SCHEMA-001). AUDIT FIX: Added :action/timestamp (Long, unix millis — needed for latency computation by RFL-3) and :action/features (String, JSON array of 6 R(t) metric floats — needed for feature matrix X in RFL-4 learning algorithm). Without features, the WLS regression in RFL-4 cannot build its input matrix."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6e6c6816cfaf554d862fd035116ef2733f530e87e2318d8ceb74dfddb35346a5" :a :task/title :v "RFL-1: Register action-outcome schema — 8 attributes: recommended-command, recommended-entity, recommended-impact, outcome, next-command, latency-ms, timestamp, features (INV-GUIDANCE-010, INV-SCHEMA-001). AUDIT FIX: Added :action/timestamp (Long, unix millis — needed for latency computation by RFL-3) and :action/features (String, JSON array of 6 R(t) metric floats — needed for feature matrix X in RFL-4 learning algorithm). Without features, the WLS regression in RFL-4 cannot build its input matrix." :op :assert}
+ ]}
