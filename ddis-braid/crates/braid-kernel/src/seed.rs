@@ -79,7 +79,12 @@ fn truncate_chars(s: &str, max_chars: usize) -> String {
             if char_pos >= search_start_chars {
                 let cut_chars = char_pos + boundary.chars().count();
                 if cut_chars <= max_chars {
-                    return s.chars().take(cut_chars).collect::<String>().trim_end().to_string();
+                    return s
+                        .chars()
+                        .take(cut_chars)
+                        .collect::<String>()
+                        .trim_end()
+                        .to_string();
                 }
             }
         }
@@ -89,7 +94,12 @@ fn truncate_chars(s: &str, max_chars: usize) -> String {
     if let Some(byte_pos) = truncated[..].rfind(' ') {
         let char_pos = truncated[..byte_pos].chars().count();
         if char_pos >= search_start_chars {
-            return s.chars().take(char_pos).collect::<String>().trim_end().to_string();
+            return s
+                .chars()
+                .take(char_pos)
+                .collect::<String>()
+                .trim_end()
+                .to_string();
         }
     }
 

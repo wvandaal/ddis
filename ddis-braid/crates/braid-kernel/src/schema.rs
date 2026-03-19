@@ -1637,12 +1637,16 @@ pub fn layer_4_count() -> usize {
 
 /// The Layer 4 (Workflow/Coordination) attributes.
 ///
-/// Organized into 4 groups:
+/// Organized into groups:
 /// - Session Extensions (2): persistent session status and wall-clock time
 /// - Task Core (10): issue tracking as datoms — replaces external issue trackers
 /// - Task Lifecycle (4): creation, closure, sourcing
 /// - Plan (5): plan documents linked to tasks and spec elements
 /// - Comment (4): per-task discussion as datoms
+/// - Config (4): configuration as datoms
+/// - Verification Depth (3): F(S) honesty
+/// - Resolution Audit Trail (5): conflict resolution provenance
+/// - Witness (11): falsification-bound witness system (spec/21-witness.md)
 ///
 /// Task status uses lattice resolution (open < in-progress < closed) to ensure
 /// monotonic progression under CRDT merge (INV-TASK-001). Dependencies form
@@ -1900,6 +1904,75 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             ValueType::Long,
             Cardinality::One,
             "Number of conflicting values that were resolved",
+        ),
+        // =================================================================
+        // Witness (11) — falsification-bound witness system (spec/21-witness.md)
+        // =================================================================
+        attr(
+            ":witness/spec-hash",
+            ValueType::String,
+            Cardinality::One,
+            "BLAKE3 hash of the spec element statement text",
+        ),
+        attr(
+            ":witness/falsification-hash",
+            ValueType::String,
+            Cardinality::One,
+            "BLAKE3 hash of the falsification condition text",
+        ),
+        attr(
+            ":witness/test-body-hash",
+            ValueType::String,
+            Cardinality::One,
+            "BLAKE3 hash of the test body that provides evidence",
+        ),
+        attr(
+            ":witness/level",
+            ValueType::Long,
+            Cardinality::One,
+            "Witness evidence level: 1=attestation, 2=test, 3=scan, 4=review",
+        ),
+        attr(
+            ":witness/verdict",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Witness verdict: :witness.verdict/confirmed, :witness.verdict/refuted, :witness.verdict/inconclusive",
+        ),
+        attr(
+            ":witness/challenged-at",
+            ValueType::Long,
+            Cardinality::One,
+            "Wall-clock time (unix seconds) of the last challenge against this witness",
+        ),
+        attr(
+            ":witness/challenge-count",
+            ValueType::Long,
+            Cardinality::One,
+            "Number of times this witness has been challenged",
+        ),
+        attr(
+            ":witness/agent",
+            ValueType::String,
+            Cardinality::One,
+            "Agent identity that created or last verified this witness",
+        ),
+        attr(
+            ":witness/invalidated",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Invalidation marker: :witness.invalidated/true when witness is no longer valid, absent otherwise",
+        ),
+        attr(
+            ":witness/traces-to",
+            ValueType::Ref,
+            Cardinality::One,
+            "Reference to the spec element entity this witness covers",
+        ),
+        attr(
+            ":witness/test-file",
+            ValueType::String,
+            Cardinality::One,
+            "Path to the test file providing witness evidence",
         ),
     ]
 }

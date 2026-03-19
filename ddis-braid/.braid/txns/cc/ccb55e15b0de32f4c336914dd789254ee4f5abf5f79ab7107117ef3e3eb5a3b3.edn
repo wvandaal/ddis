@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773880786/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a856"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/closed-at :v 1773880785 :op :assert}
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/completion-evidence :v "Agent added 11 :witness/* attributes to Layer 4 schema. Compiles clean." :op :assert}
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "9f31efe68307934e52a017dc778909b0530c963f9af12a53223ea8eaa9c7c902" :a :task/status :v :task.status/closed :op :assert}
+ ]}

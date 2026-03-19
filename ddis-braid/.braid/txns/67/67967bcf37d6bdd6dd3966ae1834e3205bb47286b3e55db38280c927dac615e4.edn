@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773880788/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-6258c34b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fcf98069de643e7237a4ef4373376d23f50a9e514060ba7bccec8fad93fb7429" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "fcf98069de643e7237a4ef4373376d23f50a9e514060ba7bccec8fad93fb7429" :a :task/closed-at :v 1773880786 :op :assert}
+   {:e #blake3 "fcf98069de643e7237a4ef4373376d23f50a9e514060ba7bccec8fad93fb7429" :a :task/completion-evidence :v "Agent added :harvest/context-metrics JSON datom at harvest time. Compiles clean." :op :assert}
+   {:e #blake3 "fcf98069de643e7237a4ef4373376d23f50a9e514060ba7bccec8fad93fb7429" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "fcf98069de643e7237a4ef4373376d23f50a9e514060ba7bccec8fad93fb7429" :a :task/status :v :task.status/closed :op :assert}
+ ]}

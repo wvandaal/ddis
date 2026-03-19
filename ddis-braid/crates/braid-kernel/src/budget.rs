@@ -699,6 +699,70 @@ pub fn estimate_k_eff(evidence: &EvidenceVector) -> f64 {
     (1.0 - decay).clamp(0.05, 1.0)
 }
 
+/// Calibrate k_eff estimation from historical session data (KEFF-4).
+///
+/// When --context-used is provided at harvest time, the system records
+/// (estimated_k, actual_k) as a calibration datum. This function reads
+/// all calibration data and finds the optimal boost_scale via grid search.
+///
+/// boost_scale adjusts the estimator: k_calibrated = scale * k_estimated + (1-scale) * k_estimated²
+/// Default scale = 1.0 (no adjustment). Requires 3+ calibration points.
+pub fn calibrate_boost_scale(store: &crate::store::Store) -> f64 {
+    use crate::datom::Op;
+
+    // Collect calibration data: (estimated, actual) pairs
+    // These are stored as :calibration/k-eff-estimated and :calibration/k-eff-actual
+    let est_attr = crate::datom::Attribute::from_keyword(":calibration/k-eff-estimated");
+    let act_attr = crate::datom::Attribute::from_keyword(":calibration/k-eff-actual");
+
+    let mut pairs: Vec<(f64, f64)> = Vec::new();
+
+    // Find calibration entities that have both estimated and actual
+    for d in store.attribute_datoms(&est_attr) {
+        if d.op != Op::Assert {
+            continue;
+        }
+        let estimated = match d.value {
+            crate::datom::Value::Double(f) => f.into_inner(),
+            _ => continue,
+        };
+        // Find matching actual value on same entity
+        for d2 in store.entity_datoms(d.entity) {
+            if d2.attribute == act_attr && d2.op == Op::Assert {
+                if let crate::datom::Value::Double(f) = d2.value {
+                    pairs.push((estimated, f.into_inner()));
+                }
+            }
+        }
+    }
+
+    if pairs.len() < 3 {
+        return 1.0; // Not enough data — use default
+    }
+
+    // Grid search over scale values
+    let mut best_scale = 1.0;
+    let mut best_error = f64::MAX;
+
+    for scale_int in 1..=12 {
+        // 0.5, 1.0, 1.5, ..., 6.0
+        let scale = scale_int as f64 * 0.5;
+        let error: f64 = pairs
+            .iter()
+            .map(|(est, act)| {
+                let calibrated = scale * est + (1.0 - scale) * est * est;
+                (calibrated - act).powi(2)
+            })
+            .sum();
+        if error < best_error {
+            best_error = error;
+            best_scale = scale;
+        }
+    }
+
+    best_scale
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -1514,5 +1578,11 @@ mod tests {
         );
         assert!(sigmoid(10.0) > 0.99, "sigmoid(large) should be ~1.0");
         assert!(sigmoid(-10.0) < 0.01, "sigmoid(-large) should be ~0.0");
+    }
+
+    #[test]
+    fn calibrate_boost_scale_insufficient_data() {
+        let store = crate::store::Store::from_datoms(std::collections::BTreeSet::new());
+        assert_eq!(calibrate_boost_scale(&store), 1.0);
     }
 }

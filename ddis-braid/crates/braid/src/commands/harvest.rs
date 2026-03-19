@@ -476,6 +476,39 @@ pub fn run(
             Op::Assert,
         ));
 
+        // CONTEXT-TELEMETRY: Record session metrics for cross-session analysis
+        {
+            let evidence = braid_kernel::budget::EvidenceVector::from_store(&store);
+            let k_est = braid_kernel::budget::estimate_k_eff(&evidence);
+            let tasks_closed_this_session = store
+                .datoms()
+                .filter(|d| {
+                    d.attribute.as_str() == ":task/status"
+                        && d.op == Op::Assert
+                        && d.tx.wall_time() > session_boundary
+                        && matches!(&d.value, Value::Keyword(k) if k.contains("closed"))
+                })
+                .count();
+
+            let metrics = serde_json::json!({
+                "k_eff_estimated": format!("{k_est:.2}"),
+                "tx_count": evidence.tx_count_since_session,
+                "wall_elapsed_s": evidence.wall_elapsed_seconds,
+                "output_tokens_est": evidence.cumulative_output_estimate,
+                "observations": evidence.observe_count,
+                "tasks_closed": tasks_closed_this_session,
+                "candidates": candidates_to_commit.len(),
+            });
+
+            all_datoms.push(Datom::new(
+                session_entity,
+                Attribute::from_keyword(":harvest/context-metrics"),
+                Value::String(metrics.to_string()),
+                harvest_tx_id,
+                Op::Assert,
+            ));
+        }
+
         // Codebase snapshot — gives incoming agents a project map
         if let Some(snapshot) = git::codebase_snapshot(path) {
             all_datoms.push(Datom::new(

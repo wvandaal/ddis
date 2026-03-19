@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773880787/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-60e174bd"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/closed-at :v 1773880786 :op :assert}
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/completion-evidence :v "Agent implemented calibrate_boost_scale with grid search. 1 test passing." :op :assert}
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "a3153ecc61a0660947f31ad5e6dfe39d39f3645d9b97f19cdc2e6f5ab52d4973" :a :task/status :v :task.status/closed :op :assert}
+ ]}
