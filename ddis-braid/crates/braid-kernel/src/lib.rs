@@ -108,7 +108,7 @@ pub use guidance::{
     harvest_warning_from_k_eff, harvest_warning_level, is_actionable_decision, methodology_gaps,
     modulate_actions, observation_staleness, orphaned_decisions, should_warn_on_exit,
     classify_action_outcome, compute_action_from_store, methodology_context_blocks,
-    reconciliation_check,
+    reconciliation_check, refit_routing_weights, routing_weights,
     spec_anchor_factor, spec_relevance_scan,
     knowledge_relevance_scan,
     suggest_task_title, telemetry_from_store, tx_velocity, ActionCategory, ActivityMode,

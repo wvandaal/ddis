@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773961162/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-641dd8a6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1dd23195b48faa63545eb4d874912d235e9a1a5e7cc8134c5ff2393f738ec825" :a :task/close-reason :v "Ridge regression implemented: refit_routing_weights() with 6x6 Gaussian elimination + partial pivoting. Safeguards: min 50 data points, weights clamped [0.01, 0.5], normalized sum=1.0. routing_weights() reads learned weights from store, falls back to defaults. solve_linear_system_6x6() handles collinear features via lambda=0.01 regularization." :op :assert}
+   {:e #blake3 "1dd23195b48faa63545eb4d874912d235e9a1a5e7cc8134c5ff2393f738ec825" :a :task/closed-at :v 1773961161 :op :assert}
+   {:e #blake3 "1dd23195b48faa63545eb4d874912d235e9a1a5e7cc8134c5ff2393f738ec825" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "1dd23195b48faa63545eb4d874912d235e9a1a5e7cc8134c5ff2393f738ec825" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -602,7 +602,200 @@ pub struct RoutingMetrics {
 }
 
 /// R(t) routing weights (defaults from spec).
-const ROUTING_WEIGHTS: [f64; 6] = [0.25, 0.25, 0.20, 0.15, 0.10, 0.05];
+const DEFAULT_ROUTING_WEIGHTS: [f64; 6] = [0.25, 0.25, 0.20, 0.15, 0.10, 0.05];
+
+/// Number of routing features.
+const N_FEATURES: usize = 6;
+
+/// Read learned routing weights from store, falling back to defaults.
+///
+/// RFL-4: The store may contain a `:routing/weights` datom with a JSON
+/// array of 6 floats. If found and valid, use those. Otherwise, use defaults.
+pub fn routing_weights(store: &Store) -> [f64; N_FEATURES] {
+    let weights_attr = crate::datom::Attribute::from_keyword(":routing/weights");
+    let learned = store
+        .attribute_datoms(&weights_attr)
+        .iter()
+        .rev() // most recent first
+        .find(|d| d.op == crate::datom::Op::Assert)
+        .and_then(|d| match &d.value {
+            crate::datom::Value::String(s) => {
+                serde_json::from_str::<Vec<f64>>(s).ok()
+            }
+            _ => None,
+        })
+        .and_then(|v| {
+            if v.len() == N_FEATURES {
+                let mut arr = [0.0; N_FEATURES];
+                arr.copy_from_slice(&v);
+                Some(arr)
+            } else {
+                None
+            }
+        });
+    learned.unwrap_or(DEFAULT_ROUTING_WEIGHTS)
+}
+
+/// Learn routing weights from action-outcome history via ridge regression.
+///
+/// RFL-4: w = (X^T X + λI)^{-1} X^T y
+/// where X is the feature matrix, y is the outcome vector, λ=0.01.
+///
+/// SAFEGUARDS:
+/// - Minimum 50 data points (avoid overfitting)
+/// - Weights clamped to [0.01, 0.5]
+/// - Normalized to sum to 1.0
+/// - Returns None if insufficient data or computation fails
+///
+/// INV-GUIDANCE-005, INV-GUIDANCE-010, ADR-TOPOLOGY-004.
+pub fn refit_routing_weights(store: &Store) -> Option<[f64; N_FEATURES]> {
+    let cmd_attr = crate::datom::Attribute::from_keyword(":action/recommended-command");
+    let outcome_attr = crate::datom::Attribute::from_keyword(":action/outcome");
+    let features_attr = crate::datom::Attribute::from_keyword(":action/features");
+
+    // Collect (features, outcome) pairs
+    let mut data: Vec<([f64; N_FEATURES], f64)> = Vec::new();
+
+    for datom in store.attribute_datoms(&cmd_attr).iter() {
+        if datom.op != crate::datom::Op::Assert {
+            continue;
+        }
+        let entity = datom.entity;
+        let entity_datoms = store.entity_datoms(entity);
+
+        // Get outcome
+        let outcome = entity_datoms.iter()
+            .find(|d| d.attribute == outcome_attr && d.op == crate::datom::Op::Assert)
+            .and_then(|d| match &d.value {
+                crate::datom::Value::Keyword(k) => match k.as_str() {
+                    ":action.outcome/followed" => Some(1.0),
+                    ":action.outcome/adjacent" => Some(0.5),
+                    ":action.outcome/ignored" => Some(0.0),
+                    _ => None,
+                },
+                _ => None,
+            });
+
+        // Get features
+        let features = entity_datoms.iter()
+            .find(|d| d.attribute == features_attr && d.op == crate::datom::Op::Assert)
+            .and_then(|d| match &d.value {
+                crate::datom::Value::String(s) => serde_json::from_str::<Vec<f64>>(s).ok(),
+                _ => None,
+            })
+            .and_then(|v| {
+                if v.len() == N_FEATURES {
+                    let mut arr = [0.0; N_FEATURES];
+                    arr.copy_from_slice(&v);
+                    Some(arr)
+                } else {
+                    None
+                }
+            });
+
+        if let (Some(y), Some(x)) = (outcome, features) {
+            data.push((x, y));
+        }
+    }
+
+    // Safeguard: minimum 50 data points
+    if data.len() < 50 {
+        return None;
+    }
+
+    let n = data.len();
+
+    // Build X^T X + λI (6×6 matrix, stored as flat array)
+    let lambda = 0.01;
+    let mut xtx = [[0.0f64; N_FEATURES]; N_FEATURES];
+    let mut xty = [0.0f64; N_FEATURES];
+
+    for (x, y) in &data {
+        for i in 0..N_FEATURES {
+            xty[i] += x[i] * y;
+            for j in 0..N_FEATURES {
+                xtx[i][j] += x[i] * x[j];
+            }
+        }
+    }
+
+    // Add ridge regularization: λI
+    for i in 0..N_FEATURES {
+        xtx[i][i] += lambda * n as f64;
+    }
+
+    // Solve via Gaussian elimination (6×6 — trivially small)
+    let weights = solve_linear_system_6x6(&xtx, &xty)?;
+
+    // Safeguard: clamp to [0.01, 0.5]
+    let mut clamped = [0.0; N_FEATURES];
+    for i in 0..N_FEATURES {
+        clamped[i] = weights[i].clamp(0.01, 0.5);
+    }
+
+    // Normalize to sum to 1.0
+    let sum: f64 = clamped.iter().sum();
+    if sum <= 0.0 {
+        return None;
+    }
+    for w in &mut clamped {
+        *w /= sum;
+    }
+
+    Some(clamped)
+}
+
+/// Solve a 6×6 linear system Ax = b via Gaussian elimination with partial pivoting.
+///
+/// Returns None if the system is singular (shouldn't happen with ridge regularization).
+fn solve_linear_system_6x6(a: &[[f64; N_FEATURES]; N_FEATURES], b: &[f64; N_FEATURES]) -> Option<[f64; N_FEATURES]> {
+    // Augmented matrix [A|b]
+    let mut aug = [[0.0; N_FEATURES + 1]; N_FEATURES];
+    for i in 0..N_FEATURES {
+        for j in 0..N_FEATURES {
+            aug[i][j] = a[i][j];
+        }
+        aug[i][N_FEATURES] = b[i];
+    }
+
+    // Forward elimination with partial pivoting
+    for col in 0..N_FEATURES {
+        // Find pivot
+        let mut max_row = col;
+        let mut max_val = aug[col][col].abs();
+        for row in (col + 1)..N_FEATURES {
+            if aug[row][col].abs() > max_val {
+                max_val = aug[row][col].abs();
+                max_row = row;
+            }
+        }
+        if max_val < 1e-12 {
+            return None; // Singular
+        }
+        aug.swap(col, max_row);
+
+        // Eliminate below
+        let pivot = aug[col][col];
+        for row in (col + 1)..N_FEATURES {
+            let factor = aug[row][col] / pivot;
+            for j in col..=N_FEATURES {
+                aug[row][j] -= factor * aug[col][j];
+            }
+        }
+    }
+
+    // Back substitution
+    let mut x = [0.0; N_FEATURES];
+    for i in (0..N_FEATURES).rev() {
+        let mut sum = aug[i][N_FEATURES];
+        for j in (i + 1)..N_FEATURES {
+            sum -= aug[i][j] * x[j];
+        }
+        x[i] = sum / aug[i][i];
+    }
+
+    Some(x)
+}
 
 /// Compute age-based urgency factor.
 ///
@@ -728,7 +921,7 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
                 staleness,
                 priority_boost,
             ];
-            let base_impact: f64 = ROUTING_WEIGHTS
+            let base_impact: f64 = DEFAULT_ROUTING_WEIGHTS
                 .iter()
                 .zip(values.iter())
                 .map(|(w, v)| w * v)
@@ -3296,7 +3489,7 @@ mod tests {
     // Verifies: INV-GUIDANCE-010 — R(t) Graph-Based Work Routing
     #[test]
     fn routing_weights_sum_to_one() {
-        let sum: f64 = ROUTING_WEIGHTS.iter().sum();
+        let sum: f64 = DEFAULT_ROUTING_WEIGHTS.iter().sum();
         assert!((sum - 1.0).abs() < 1e-10, "weights must sum to 1.0");
     }
 
