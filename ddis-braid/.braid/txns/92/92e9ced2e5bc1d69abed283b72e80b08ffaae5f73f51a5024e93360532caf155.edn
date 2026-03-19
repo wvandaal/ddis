@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773882163/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TOPO-L1-COUPLING: Implement file coupling extraction from task metadata + braid trace (INV-TOPOLOGY-004). BACKGROUND: Tasks encode which files they touch in title text (FILE: markers) and via spec traceability (braid trace links spec elements to implementation files). Extract this coupling: for each task, compute file_set = files mentioned in title + files linked via traces_to spec elements. Build coupling matrix C where C[i][j] = Jaccard(file_set_i, file_set_j). IMPLEMENTATION: New function task_file_coupling(store, task_entities) -> CouplingMatrix in guidance.rs or a new topology.rs module. Uses existing parse_spec_refs + braid trace infrastructure. TRACES TO: INV-TOPOLOGY-004 (composite coupling), spec/19-topology.md §19.1. ACCEPTANCE: task_file_coupling on 5 tasks with known file sets returns correct Jaccard similarities."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d49d21ff6b90c4bcb2e2e4d6699cbc42d9e31aa5766ac9b45af4c0d7cb9d42bc" :a :db/ident :v :task/t-1a196a01 :op :assert}
+   {:e #blake3 "d49d21ff6b90c4bcb2e2e4d6699cbc42d9e31aa5766ac9b45af4c0d7cb9d42bc" :a :task/created-at :v 1773882160 :op :assert}
+   {:e #blake3 "d49d21ff6b90c4bcb2e2e4d6699cbc42d9e31aa5766ac9b45af4c0d7cb9d42bc" :a :task/id :v "t-1a196a01" :op :assert}
+   {:e #blake3 "d49d21ff6b90c4bcb2e2e4d6699cbc42d9e31aa5766ac9b45af4c0d7cb9d42bc" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "d49d21ff6b90c4bcb2e2e4d6699cbc42d9e31aa5766ac9b45af4c0d7cb9d42bc" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d49d21ff6b90c4bcb2e2e4d6699cbc42d9e31aa5766ac9b45af4c0d7cb9d42bc" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d49d21ff6b90c4bcb2e2e4d6699cbc42d9e31aa5766ac9b45af4c0d7cb9d42bc" :a :task/title :v "TOPO-L1-COUPLING: Implement file coupling extraction from task metadata + braid trace (INV-TOPOLOGY-004). BACKGROUND: Tasks encode which files they touch in title text (FILE: markers) and via spec traceability (braid trace links spec elements to implementation files). Extract this coupling: for each task, compute file_set = files mentioned in title + files linked via traces_to spec elements. Build coupling matrix C where C[i][j] = Jaccard(file_set_i, file_set_j). IMPLEMENTATION: New function task_file_coupling(store, task_entities) -> CouplingMatrix in guidance.rs or a new topology.rs module. Uses existing parse_spec_refs + braid trace infrastructure. TRACES TO: INV-TOPOLOGY-004 (composite coupling), spec/19-topology.md §19.1. ACCEPTANCE: task_file_coupling on 5 tasks with known file sets returns correct Jaccard similarities." :op :assert}
+   {:e #blake3 "d49d21ff6b90c4bcb2e2e4d6699cbc42d9e31aa5766ac9b45af4c0d7cb9d42bc" :a :task/type :v :task.type/task :op :assert}
+ ]}

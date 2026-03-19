@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773882162/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TOPO-L0: Agent launch protocol — disjoint file sets + separate target dirs + no agent builds (INV-TOPOLOGY-003). BACKGROUND: The IMMEDIATE fix for Session 025 build-lock contention. Three rules: (1) Before launching agents, compute file sets each task touches. If overlap, serialize. If disjoint, parallelize. (2) Each agent gets CARGO_TARGET_DIR=/tmp/cargo-target-agent-N (no lock contention). (3) Agents EDIT ONLY — no cargo fmt, no cargo clippy, no cargo test. Orchestrator verifies once after all agents complete. IMPLEMENTATION: Add a helper function agent_file_sets(tasks) that extracts filenames from task titles (parse 'FILE:' or 'FILES:' markers) and checks for intersection. Add documentation to CLAUDE.md about the agent launch protocol. TRACES TO: INV-TOPOLOGY-003, ADR-TOPOLOGY-002 (CALM stratification). ACCEPTANCE: CLAUDE.md contains agent launch protocol. agent_file_sets returns disjoint sets for independent tasks."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :db/ident :v :task/t-b8a46ac4 :op :assert}
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/created-at :v 1773882160 :op :assert}
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/id :v "t-b8a46ac4" :op :assert}
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/title :v "TOPO-L0: Agent launch protocol — disjoint file sets + separate target dirs + no agent builds (INV-TOPOLOGY-003). BACKGROUND: The IMMEDIATE fix for Session 025 build-lock contention. Three rules: (1) Before launching agents, compute file sets each task touches. If overlap, serialize. If disjoint, parallelize. (2) Each agent gets CARGO_TARGET_DIR=/tmp/cargo-target-agent-N (no lock contention). (3) Agents EDIT ONLY — no cargo fmt, no cargo clippy, no cargo test. Orchestrator verifies once after all agents complete. IMPLEMENTATION: Add a helper function agent_file_sets(tasks) that extracts filenames from task titles (parse 'FILE:' or 'FILES:' markers) and checks for intersection. Add documentation to CLAUDE.md about the agent launch protocol. TRACES TO: INV-TOPOLOGY-003, ADR-TOPOLOGY-002 (CALM stratification). ACCEPTANCE: CLAUDE.md contains agent launch protocol. agent_file_sets returns disjoint sets for independent tasks." :op :assert}
+   {:e #blake3 "9709fba13f51dba8a747057fcc3516e930d62aafbe0911f97d2ef0d80380b400" :a :task/type :v :task.type/task :op :assert}
+ ]}

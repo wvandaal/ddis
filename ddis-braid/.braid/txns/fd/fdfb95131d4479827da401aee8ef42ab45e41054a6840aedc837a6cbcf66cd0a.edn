@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773882182/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC-TOPO-TRANSACT: Transact INV-TOPOLOGY-001..005 + ADR-TOPOLOGY-002,004 into store (C5). BACKGROUND: SFE flagged these as missing when creating topology tasks. They exist in spec/19-topology.md but haven't been transacted as :spec/* entities. Same pattern as SPEC-CRYSTALLIZE-BATCH. TRACES TO: C5, INV-REFLEXIVE-003. ACCEPTANCE: braid query --entity :spec/inv-topology-001 returns non-empty."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :db/ident :v :task/t-3c5b1bb7 :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/created-at :v 1773882177 :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/id :v "t-3c5b1bb7" :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/title :v "SPEC-TOPO-TRANSACT: Transact INV-TOPOLOGY-001..005 + ADR-TOPOLOGY-002,004 into store (C5). BACKGROUND: SFE flagged these as missing when creating topology tasks. They exist in spec/19-topology.md but haven't been transacted as :spec/* entities. Same pattern as SPEC-CRYSTALLIZE-BATCH. TRACES TO: C5, INV-REFLEXIVE-003. ACCEPTANCE: braid query --entity :spec/inv-topology-001 returns non-empty." :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/traces-to :v #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/traces-to :v #blake3 "cee99c935a0e174ba7e4cba94d27e8947b9e4d67be5e41a380345067cea95bc0" :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/type :v :task.type/task :op :assert}
+ ]}

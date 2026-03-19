@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773882164/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TOPO-L1-PARTITION: Implement greedy partition of tasks into disjoint file-set groups (INV-TOPOLOGY-005). BACKGROUND: Given coupling matrix C from TOPO-L1-COUPLING, partition tasks into maximal groups where NO two tasks in the SAME group share files, AND tasks sharing files are in the SAME group. This is connected-component detection on the coupling graph (threshold > 0). Each component = one agent's work package. Components can execute in parallel. Within a component, tasks execute sequentially. ALGORITHM: Build adjacency graph from C[i][j] > 0. Find connected components via BFS/DFS. Sort components by size (largest first). Return Vec<Vec<TaskEntity>>. TRACES TO: INV-TOPOLOGY-005 (coupling-to-topology determinism). ACCEPTANCE: 5 tasks with 2 disjoint file groups returns 2 components."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :db/ident :v :task/t-ff0770e8 :op :assert}
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/created-at :v 1773882160 :op :assert}
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/id :v "t-ff0770e8" :op :assert}
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/title :v "TOPO-L1-PARTITION: Implement greedy partition of tasks into disjoint file-set groups (INV-TOPOLOGY-005). BACKGROUND: Given coupling matrix C from TOPO-L1-COUPLING, partition tasks into maximal groups where NO two tasks in the SAME group share files, AND tasks sharing files are in the SAME group. This is connected-component detection on the coupling graph (threshold > 0). Each component = one agent's work package. Components can execute in parallel. Within a component, tasks execute sequentially. ALGORITHM: Build adjacency graph from C[i][j] > 0. Find connected components via BFS/DFS. Sort components by size (largest first). Return Vec<Vec<TaskEntity>>. TRACES TO: INV-TOPOLOGY-005 (coupling-to-topology determinism). ACCEPTANCE: 5 tasks with 2 disjoint file groups returns 2 components." :op :assert}
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/type :v :task.type/task :op :assert}
+ ]}

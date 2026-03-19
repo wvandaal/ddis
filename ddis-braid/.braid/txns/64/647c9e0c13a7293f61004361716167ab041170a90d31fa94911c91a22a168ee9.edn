@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773882166/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-TOPO: Unit + integration tests for compiled agent topology (INV-TOPOLOGY-001..005). TESTS: (1) task_file_coupling: 2 tasks sharing a file → Jaccard > 0. (2) task_file_coupling: 2 tasks with disjoint files → Jaccard = 0. (3) partition: connected component detection groups overlapping tasks. (4) partition: disjoint tasks in separate components. (5) braid assign: 3 agents, 6 tasks (2 groups of 3) → 2 agents get 3 tasks each, 1 idle. (6) braid assign: all tasks share files → 1 group, sequential execution. (7) CARGO_TARGET_DIR per agent is unique. (8) File set extraction from task title FILE: marker. (9) E2E: create tasks with known files, run braid assign, verify disjoint. TRACES TO: INV-TOPOLOGY-001..005. ACCEPTANCE: All 9 tests pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1f11c487c83abbc80ac840f0d2cfc5620e04577b97abfe109c386b474c36c084" :a :db/ident :v :task/t-526e562e :op :assert}
+   {:e #blake3 "1f11c487c83abbc80ac840f0d2cfc5620e04577b97abfe109c386b474c36c084" :a :task/created-at :v 1773882161 :op :assert}
+   {:e #blake3 "1f11c487c83abbc80ac840f0d2cfc5620e04577b97abfe109c386b474c36c084" :a :task/id :v "t-526e562e" :op :assert}
+   {:e #blake3 "1f11c487c83abbc80ac840f0d2cfc5620e04577b97abfe109c386b474c36c084" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1f11c487c83abbc80ac840f0d2cfc5620e04577b97abfe109c386b474c36c084" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1f11c487c83abbc80ac840f0d2cfc5620e04577b97abfe109c386b474c36c084" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1f11c487c83abbc80ac840f0d2cfc5620e04577b97abfe109c386b474c36c084" :a :task/title :v "TEST-TOPO: Unit + integration tests for compiled agent topology (INV-TOPOLOGY-001..005). TESTS: (1) task_file_coupling: 2 tasks sharing a file → Jaccard > 0. (2) task_file_coupling: 2 tasks with disjoint files → Jaccard = 0. (3) partition: connected component detection groups overlapping tasks. (4) partition: disjoint tasks in separate components. (5) braid assign: 3 agents, 6 tasks (2 groups of 3) → 2 agents get 3 tasks each, 1 idle. (6) braid assign: all tasks share files → 1 group, sequential execution. (7) CARGO_TARGET_DIR per agent is unique. (8) File set extraction from task title FILE: marker. (9) E2E: create tasks with known files, run braid assign, verify disjoint. TRACES TO: INV-TOPOLOGY-001..005. ACCEPTANCE: All 9 tests pass." :op :assert}
+   {:e #blake3 "1f11c487c83abbc80ac840f0d2cfc5620e04577b97abfe109c386b474c36c084" :a :task/traces-to :v #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :op :assert}
+   {:e #blake3 "1f11c487c83abbc80ac840f0d2cfc5620e04577b97abfe109c386b474c36c084" :a :task/type :v :task.type/test :op :assert}
+ ]}

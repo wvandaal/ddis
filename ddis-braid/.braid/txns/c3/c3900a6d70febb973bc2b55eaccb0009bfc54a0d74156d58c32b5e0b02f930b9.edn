@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773882165/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TOPO-L1-ASSIGN: Implement braid assign command — compile task→agent assignment from coupling (ADR-TOPOLOGY-004). BACKGROUND: The user-facing command that ties coupling + partition together. braid assign --agents 3 computes: (1) file coupling for all ready tasks, (2) partitions into disjoint groups, (3) assigns groups to N agents, (4) outputs per-agent task list + file set + env vars. The output is a CONCRETE launch plan that the orchestrator (human or ntm) can execute. IMPLEMENTATION: New CLI command. Uses task_file_coupling + partition. Outputs JSON with agent assignments. Includes CARGO_TARGET_DIR per agent. TRACES TO: ADR-TOPOLOGY-004 (topology-as-compilation), spec/19-topology.md §19.8. ACCEPTANCE: braid assign --agents 3 on store with 10 tasks outputs 3 agent assignments with disjoint file sets."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d0bc93ce4598a94c4f66635825385d1fe0b5450aed45cbe7b1a26c7bcfdfa2f5" :a :db/ident :v :task/t-a2117f50 :op :assert}
+   {:e #blake3 "d0bc93ce4598a94c4f66635825385d1fe0b5450aed45cbe7b1a26c7bcfdfa2f5" :a :task/created-at :v 1773882161 :op :assert}
+   {:e #blake3 "d0bc93ce4598a94c4f66635825385d1fe0b5450aed45cbe7b1a26c7bcfdfa2f5" :a :task/id :v "t-a2117f50" :op :assert}
+   {:e #blake3 "d0bc93ce4598a94c4f66635825385d1fe0b5450aed45cbe7b1a26c7bcfdfa2f5" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "d0bc93ce4598a94c4f66635825385d1fe0b5450aed45cbe7b1a26c7bcfdfa2f5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d0bc93ce4598a94c4f66635825385d1fe0b5450aed45cbe7b1a26c7bcfdfa2f5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d0bc93ce4598a94c4f66635825385d1fe0b5450aed45cbe7b1a26c7bcfdfa2f5" :a :task/title :v "TOPO-L1-ASSIGN: Implement braid assign command — compile task→agent assignment from coupling (ADR-TOPOLOGY-004). BACKGROUND: The user-facing command that ties coupling + partition together. braid assign --agents 3 computes: (1) file coupling for all ready tasks, (2) partitions into disjoint groups, (3) assigns groups to N agents, (4) outputs per-agent task list + file set + env vars. The output is a CONCRETE launch plan that the orchestrator (human or ntm) can execute. IMPLEMENTATION: New CLI command. Uses task_file_coupling + partition. Outputs JSON with agent assignments. Includes CARGO_TARGET_DIR per agent. TRACES TO: ADR-TOPOLOGY-004 (topology-as-compilation), spec/19-topology.md §19.8. ACCEPTANCE: braid assign --agents 3 on store with 10 tasks outputs 3 agent assignments with disjoint file sets." :op :assert}
+   {:e #blake3 "d0bc93ce4598a94c4f66635825385d1fe0b5450aed45cbe7b1a26c7bcfdfa2f5" :a :task/type :v :task.type/feature :op :assert}
+ ]}
