@@ -1380,3 +1380,63 @@ fn promotion_coherence_verification() {
     assert!(result2.was_noop, "INV-PROMOTE-004: re-promotion is no-op");
     assert_eq!(result2.datoms.len(), 0, "no new datoms on re-promotion");
 }
+
+// ---------------------------------------------------------------------------
+// INV-REFLEXIVE-004: Module Reachability — no dead wiring
+// ---------------------------------------------------------------------------
+
+/// Verify that every .rs file in query/ is declared as a module in query/mod.rs.
+///
+/// This prevents the "dead wiring" failure mode: a module exists on disk with
+/// passing tests but is not `pub mod` declared, making it unreachable from
+/// the binary crate. Exact failure observed in Session 026: diagnostics.rs
+/// existed for weeks with 5 passing tests but was never callable from `braid query`.
+#[test]
+fn inv_reflexive_004_query_module_reachability() {
+    let query_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/query");
+    let mod_rs = std::fs::read_to_string(query_dir.join("mod.rs")).expect("query/mod.rs exists");
+
+    for entry in std::fs::read_dir(&query_dir).expect("can read query/") {
+        let entry = entry.expect("can read entry");
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name == "mod.rs" || !name.ends_with(".rs") {
+            continue;
+        }
+        let module_name = name.trim_end_matches(".rs");
+        assert!(
+            mod_rs.contains(&format!("mod {module_name}"))
+                || mod_rs.contains(&format!("mod {module_name};")),
+            "INV-REFLEXIVE-004: {name} exists in query/ but is not declared in mod.rs. \
+             Add `pub mod {module_name};` to query/mod.rs."
+        );
+    }
+}
+
+/// Verify that every `pub mod` in lib.rs has a corresponding file or directory.
+///
+/// This is the inverse check: every declared module must exist on disk.
+/// Prevents stale `pub mod` declarations after module renames or deletions.
+#[test]
+fn inv_reflexive_004_lib_module_existence() {
+    let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let lib_rs = std::fs::read_to_string(src_dir.join("lib.rs")).expect("lib.rs exists");
+
+    for line in lib_rs.lines() {
+        let trimmed = line.trim();
+        // Match `pub mod foo;` or `pub mod foo {` or `mod foo;`
+        if let Some(rest) = trimmed.strip_prefix("pub mod ") {
+            let module_name = rest.trim_end_matches(';').trim_end_matches('{').trim();
+            // Skip cfg-gated modules
+            if trimmed.starts_with("#[cfg") || module_name.is_empty() {
+                continue;
+            }
+            let file_path = src_dir.join(format!("{module_name}.rs"));
+            let dir_path = src_dir.join(module_name);
+            assert!(
+                file_path.exists() || dir_path.exists(),
+                "INV-REFLEXIVE-004: `pub mod {module_name}` in lib.rs but \
+                 neither {module_name}.rs nor {module_name}/ exists"
+            );
+        }
+    }
+}
