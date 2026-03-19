@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773930837/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Testing CRB: evidence lattice for graduated confidence in verification"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "47307a529d79d6cd8e32516d09c4f353e76bdf1e106794e8c593cddbc978c211" :a :db/doc :v "Testing CRB: evidence lattice for graduated confidence in verification" :op :assert}
+   {:e #blake3 "47307a529d79d6cd8e32516d09c4f353e76bdf1e106794e8c593cddbc978c211" :a :db/ident :v :observation/testing-crb-evidence-lattice-for-graduated-confidence-in-ve :op :assert}
+   {:e #blake3 "47307a529d79d6cd8e32516d09c4f353e76bdf1e106794e8c593cddbc978c211" :a :exploration/body :v "Testing CRB: evidence lattice for graduated confidence in verification" :op :assert}
+   {:e #blake3 "47307a529d79d6cd8e32516d09c4f353e76bdf1e106794e8c593cddbc978c211" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "47307a529d79d6cd8e32516d09c4f353e76bdf1e106794e8c593cddbc978c211" :a :exploration/confidence :v 0.5 :op :assert}
+   {:e #blake3 "47307a529d79d6cd8e32516d09c4f353e76bdf1e106794e8c593cddbc978c211" :a :exploration/content-hash :v #bytes "11a92b02961602ff3391f432b68fac9c3c60f4e47ab2ee5c5b9bff0324d594c7" :op :assert}
+   {:e #blake3 "47307a529d79d6cd8e32516d09c4f353e76bdf1e106794e8c593cddbc978c211" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "47307a529d79d6cd8e32516d09c4f353e76bdf1e106794e8c593cddbc978c211" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "47307a529d79d6cd8e32516d09c4f353e76bdf1e106794e8c593cddbc978c211" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

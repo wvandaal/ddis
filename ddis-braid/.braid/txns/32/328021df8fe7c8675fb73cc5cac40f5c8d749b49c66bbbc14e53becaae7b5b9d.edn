@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773930846/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Testing CRB: provenance typing lattice for observed derived inferred hypothesized datoms with witness verification depth and uncertainty tensor"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2f04153a3070825cff2679d73f55946ffa073a2942b34c4694a150487d567e4b" :a :db/doc :v "Testing CRB: provenance typing lattice for observed derived inferred hypothesized datoms with witness verification depth and uncertainty tensor" :op :assert}
+   {:e #blake3 "2f04153a3070825cff2679d73f55946ffa073a2942b34c4694a150487d567e4b" :a :db/ident :v :observation/testing-crb-provenance-typing-lattice-for-observed-derived :op :assert}
+   {:e #blake3 "2f04153a3070825cff2679d73f55946ffa073a2942b34c4694a150487d567e4b" :a :exploration/body :v "Testing CRB: provenance typing lattice for observed derived inferred hypothesized datoms with witness verification depth and uncertainty tensor" :op :assert}
+   {:e #blake3 "2f04153a3070825cff2679d73f55946ffa073a2942b34c4694a150487d567e4b" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "2f04153a3070825cff2679d73f55946ffa073a2942b34c4694a150487d567e4b" :a :exploration/confidence :v 0.5 :op :assert}
+   {:e #blake3 "2f04153a3070825cff2679d73f55946ffa073a2942b34c4694a150487d567e4b" :a :exploration/content-hash :v #bytes "ca5093d5847ed3abd1abad05dd8d329fff2852813a5950667842b0ad43ea2c59" :op :assert}
+   {:e #blake3 "2f04153a3070825cff2679d73f55946ffa073a2942b34c4694a150487d567e4b" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2f04153a3070825cff2679d73f55946ffa073a2942b34c4694a150487d567e4b" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2f04153a3070825cff2679d73f55946ffa073a2942b34c4694a150487d567e4b" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
