@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773932789/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Value Slice 3 — Extractor Architecture (braid extract + Rust extractor). This slice delivers braid extract command that reads :extractor/* entities from store, invokes configured extractors, and populates :component/* datoms. Includes built-in Rust extractor and meta-extractor at braid init. Users can run braid extract to populate the component model for their project. TASKS: t-ae46a5c4 (SUBSTRATE-1), t-92908e53 (EXTRACTOR-1), t-9411936c (EXTRACTOR-2), t-86c6892d (SUBSTRATE-6), t-b47c7c79 (EXTRACTOR-3). TRACES TO: ADR-FOUNDATION-007..009, INV-FOUNDATION-001..004."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :db/ident :v :task/t-2425446d :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/created-at :v 1773932787 :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/id :v "t-2425446d" :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/title :v "EPIC: Value Slice 3 — Extractor Architecture (braid extract + Rust extractor). This slice delivers braid extract command that reads :extractor/* entities from store, invokes configured extractors, and populates :component/* datoms. Includes built-in Rust extractor and meta-extractor at braid init. Users can run braid extract to populate the component model for their project. TASKS: t-ae46a5c4 (SUBSTRATE-1), t-92908e53 (EXTRACTOR-1), t-9411936c (EXTRACTOR-2), t-86c6892d (SUBSTRATE-6), t-b47c7c79 (EXTRACTOR-3). TRACES TO: ADR-FOUNDATION-007..009, INV-FOUNDATION-001..004." :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/traces-to :v #blake3 "1ba778a6f749312cbe991ebab910e6025f04a9488d56fc52cd1e76c4588cfbde" :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/type :v :task.type/epic :op :assert}
+ ]}

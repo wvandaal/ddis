@@ -1,0 +1,18 @@
+{:tx/id #hlc "1773932806/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VS1-E2E: E2E test scripts/e2e_value_slice_1.sh — validates task management + CRB gates. TESTS: (1) braid task search topology returns 5+ results. (2) braid task search NONEXISTENT returns 0 results with helpful message. (3) braid task list --prefix BOUNDARY shows only BOUNDARY-* tasks. (4) braid task list --type epic shows only EPICs. (5) braid task list --limit 50 shows 50 tasks (overrides budget). (6) braid observe with design text shows [spec] + [task] + [observation] matches. (7) braid spec create matching 3+ specs WITHOUT --reconciled fails. (8) braid spec create with --reconciled succeeds. (9) braid task create matching 3+ specs WITHOUT --reconciled fails. (10) Reconciliation latency < 500ms. 10 [PASS]/[FAIL] checks with timing. TRACES TO: INV-INTERFACE-001, INV-GUIDANCE-024, INV-GUIDANCE-025. FILE: scripts/e2e_value_slice_1.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3582f8c4a31c4f16f1f43cef32be976c95a8364964f7e1b4df2b4910fe1e44e0" :a :db/ident :v :task/t-a379d2f5 :op :assert}
+   {:e #blake3 "3582f8c4a31c4f16f1f43cef32be976c95a8364964f7e1b4df2b4910fe1e44e0" :a :task/created-at :v 1773932805 :op :assert}
+   {:e #blake3 "3582f8c4a31c4f16f1f43cef32be976c95a8364964f7e1b4df2b4910fe1e44e0" :a :task/id :v "t-a379d2f5" :op :assert}
+   {:e #blake3 "3582f8c4a31c4f16f1f43cef32be976c95a8364964f7e1b4df2b4910fe1e44e0" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3582f8c4a31c4f16f1f43cef32be976c95a8364964f7e1b4df2b4910fe1e44e0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3582f8c4a31c4f16f1f43cef32be976c95a8364964f7e1b4df2b4910fe1e44e0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3582f8c4a31c4f16f1f43cef32be976c95a8364964f7e1b4df2b4910fe1e44e0" :a :task/title :v "VS1-E2E: E2E test scripts/e2e_value_slice_1.sh — validates task management + CRB gates. TESTS: (1) braid task search topology returns 5+ results. (2) braid task search NONEXISTENT returns 0 results with helpful message. (3) braid task list --prefix BOUNDARY shows only BOUNDARY-* tasks. (4) braid task list --type epic shows only EPICs. (5) braid task list --limit 50 shows 50 tasks (overrides budget). (6) braid observe with design text shows [spec] + [task] + [observation] matches. (7) braid spec create matching 3+ specs WITHOUT --reconciled fails. (8) braid spec create with --reconciled succeeds. (9) braid task create matching 3+ specs WITHOUT --reconciled fails. (10) Reconciliation latency < 500ms. 10 [PASS]/[FAIL] checks with timing. TRACES TO: INV-INTERFACE-001, INV-GUIDANCE-024, INV-GUIDANCE-025. FILE: scripts/e2e_value_slice_1.sh" :op :assert}
+   {:e #blake3 "3582f8c4a31c4f16f1f43cef32be976c95a8364964f7e1b4df2b4910fe1e44e0" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "3582f8c4a31c4f16f1f43cef32be976c95a8364964f7e1b4df2b4910fe1e44e0" :a :task/traces-to :v #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :op :assert}
+   {:e #blake3 "3582f8c4a31c4f16f1f43cef32be976c95a8364964f7e1b4df2b4910fe1e44e0" :a :task/traces-to :v #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :op :assert}
+   {:e #blake3 "3582f8c4a31c4f16f1f43cef32be976c95a8364964f7e1b4df2b4910fe1e44e0" :a :task/type :v :task.type/test :op :assert}
+ ]}

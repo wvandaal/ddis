@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773932807/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: VS2-E2E: E2E test scripts/e2e_value_slice_2.sh — validates boundary framework MVP. TESTS: (1) braid status shows 'boundaries:' line. (2) Each boundary has name + coverage. (3) braid status --verbose shows per-boundary gap details. (4) F(S) backward compatible: value within 0.01 of pre-refactor. (5) Create task with non-existent spec ref → boundary gap appears. (6) Fix gap → boundary coverage improves. (7) F(S) increases after fix. (8) Guidance footer mentions boundary-specific fix. 8 [PASS]/[FAIL] checks. TRACES TO: INV-BILATERAL-007..009. FILE: scripts/e2e_value_slice_2.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "58e5913bc30f3bc185cab21e4b7028e6005390742b33bff02072146bac2b404c" :a :db/ident :v :task/t-fb89a7b0 :op :assert}
+   {:e #blake3 "58e5913bc30f3bc185cab21e4b7028e6005390742b33bff02072146bac2b404c" :a :task/created-at :v 1773932806 :op :assert}
+   {:e #blake3 "58e5913bc30f3bc185cab21e4b7028e6005390742b33bff02072146bac2b404c" :a :task/id :v "t-fb89a7b0" :op :assert}
+   {:e #blake3 "58e5913bc30f3bc185cab21e4b7028e6005390742b33bff02072146bac2b404c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "58e5913bc30f3bc185cab21e4b7028e6005390742b33bff02072146bac2b404c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "58e5913bc30f3bc185cab21e4b7028e6005390742b33bff02072146bac2b404c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "58e5913bc30f3bc185cab21e4b7028e6005390742b33bff02072146bac2b404c" :a :task/title :v "VS2-E2E: E2E test scripts/e2e_value_slice_2.sh — validates boundary framework MVP. TESTS: (1) braid status shows 'boundaries:' line. (2) Each boundary has name + coverage. (3) braid status --verbose shows per-boundary gap details. (4) F(S) backward compatible: value within 0.01 of pre-refactor. (5) Create task with non-existent spec ref → boundary gap appears. (6) Fix gap → boundary coverage improves. (7) F(S) increases after fix. (8) Guidance footer mentions boundary-specific fix. 8 [PASS]/[FAIL] checks. TRACES TO: INV-BILATERAL-007..009. FILE: scripts/e2e_value_slice_2.sh" :op :assert}
+   {:e #blake3 "58e5913bc30f3bc185cab21e4b7028e6005390742b33bff02072146bac2b404c" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "58e5913bc30f3bc185cab21e4b7028e6005390742b33bff02072146bac2b404c" :a :task/type :v :task.type/test :op :assert}
+ ]}

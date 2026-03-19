@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773932754/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT: Enriching task search with detailed acceptance criteria"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/approach :v "Implement braid task search <pattern> that greps across :task/title and :task/background (if present) for substring matches. Case-insensitive. Output: matching tasks sorted by relevance (title match ranks higher than background match). Show task ID, status, priority, and first 80 chars of title. Support --status filter (default: open). Support --limit (default: 20). BACKGROUND: With 500+ tasks, finding a specific task by topic is impossible via braid task list (budget-truncated) and tedious via Datalog queries. This is the #1 dog-food pain point from Session 026 — I had to write raw queries to find my own tasks. The search should be fast (<100ms) since it's a linear scan over :task/title datoms. FILE: crates/braid/src/commands/task.rs. ACCEPTANCE: (A) braid task search topology returns all tasks with topology in title. (B) Case-insensitive: braid task search CRB matches crb titles. (C) --status closed searches closed tasks. (D) --limit 5 caps output. (E) No matches → helpful message." :op :assert}
+ ]}

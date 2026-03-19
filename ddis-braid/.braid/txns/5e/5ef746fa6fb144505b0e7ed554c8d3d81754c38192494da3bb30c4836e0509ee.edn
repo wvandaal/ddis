@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773932788/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Value Slice 2 — Boundary Framework MVP (per-boundary F(S) in status). This slice delivers braid status showing per-boundary coverage breakdown: 'boundaries: spec↔impl 0.72 (28 gaps) | task↔spec 0.85 | schema 0.94'. Users can see WHICH aspects of coherence are degraded and get targeted fix suggestions. TASKS: t-b78da510 (BOUNDARY-1), t-e59b8400 (BOUNDARY-2), t-053e1287 (IMPL-5), t-7a93ed65 (DEFAULT), t-fd30188b (BOUNDARY-6), t-7da6077b (INTEGRATION-1), t-c1b5265c (COMPAT). TRACES TO: INV-BILATERAL-007..009."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :db/ident :v :task/t-db4dbf9e :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/created-at :v 1773932786 :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/id :v "t-db4dbf9e" :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/title :v "EPIC: Value Slice 2 — Boundary Framework MVP (per-boundary F(S) in status). This slice delivers braid status showing per-boundary coverage breakdown: 'boundaries: spec↔impl 0.72 (28 gaps) | task↔spec 0.85 | schema 0.94'. Users can see WHICH aspects of coherence are degraded and get targeted fix suggestions. TASKS: t-b78da510 (BOUNDARY-1), t-e59b8400 (BOUNDARY-2), t-053e1287 (IMPL-5), t-7a93ed65 (DEFAULT), t-fd30188b (BOUNDARY-6), t-7da6077b (INTEGRATION-1), t-c1b5265c (COMPAT). TRACES TO: INV-BILATERAL-007..009." :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/type :v :task.type/epic :op :assert}
+ ]}

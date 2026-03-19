@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773932755/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "AUDIT: Enriching task list filtering with detailed acceptance criteria"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :task/approach :v "Add --type <type>, --prefix <prefix>, --priority <N>, and --limit <N> flags to braid task list. --type: filter by :task/type keyword (e.g., --type epic, --type bug). --prefix: filter by task title prefix (e.g., --prefix BOUNDARY shows all BOUNDARY-* tasks). --priority: filter by priority level (e.g., --priority 1 for P1 only). --limit: override budget truncation with explicit max (e.g., --limit 50 shows 50 tasks). BACKGROUND: braid task list currently shows ~8 tasks due to budget truncation. With 500+ tasks across 8+ workstreams, filtering is essential. The --prefix flag is the most valuable: it lets you see all tasks in a workstream (braid task list --prefix CRB). FILE: crates/braid/src/commands/task.rs. ACCEPTANCE: (A) --type epic shows only EPICs. (B) --prefix BOUNDARY shows all BOUNDARY-* tasks. (C) --priority 1 shows only P1. (D) --limit 50 overrides budget gate. (E) Flags combine: --type task --priority 1 --prefix CRB." :op :assert}
+ ]}

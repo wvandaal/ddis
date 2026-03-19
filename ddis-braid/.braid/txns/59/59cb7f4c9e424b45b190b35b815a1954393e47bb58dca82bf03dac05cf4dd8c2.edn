@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773932790/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Value Slice 4 — Advanced (evidence weighting + MCP extraction + pluggable sources). This slice delivers: evidence-weighted F(S), MCP continuous extraction, pluggable reconciliation sources (cass/cm), and the master E2E test. Users get: F(S) that reflects actual confidence, automatic knowledge capture during work, and cross-session reconciliation. TASKS: t-e31c20ca (EVIDENCE-R1), t-8658eb77 (R2), t-42a1a89b (R3), t-ff6a4143 (MCP-1), t-d336e641 (MCP-2), t-d8bc1f0c (MCP-3), t-c9782a1a (CRB-9), t-9557c705 (CRB-11), t-6ed15191 (INTEGRATION-4). TRACES TO: INV-FOUNDATION-005, ADR-FOUNDATION-010..011, NEG-FOUNDATION-002."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :db/ident :v :task/t-2b38e324 :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/created-at :v 1773932788 :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/id :v "t-2b38e324" :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/title :v "EPIC: Value Slice 4 — Advanced (evidence weighting + MCP extraction + pluggable sources). This slice delivers: evidence-weighted F(S), MCP continuous extraction, pluggable reconciliation sources (cass/cm), and the master E2E test. Users get: F(S) that reflects actual confidence, automatic knowledge capture during work, and cross-session reconciliation. TASKS: t-e31c20ca (EVIDENCE-R1), t-8658eb77 (R2), t-42a1a89b (R3), t-ff6a4143 (MCP-1), t-d336e641 (MCP-2), t-d8bc1f0c (MCP-3), t-c9782a1a (CRB-9), t-9557c705 (CRB-11), t-6ed15191 (INTEGRATION-4). TRACES TO: INV-FOUNDATION-005, ADR-FOUNDATION-010..011, NEG-FOUNDATION-002." :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/traces-to :v #blake3 "a8e388ca3c4ed113d54403d9fb9b04955ca72b5adcba7de8a962b2099e5a84a8" :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/traces-to :v #blake3 "fb55adfe0b43388cd9430b383d0442400235ee5c22310709a93b56fe36a9a080" :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/type :v :task.type/epic :op :assert}
+ ]}
