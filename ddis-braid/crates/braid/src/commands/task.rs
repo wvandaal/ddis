@@ -544,6 +544,16 @@ pub fn close(
         // CBV: Completion-Bound Verification (INV-TASK-006)
         let criteria = extract_acceptance_criteria(&store, entity);
         let completion_method = if force {
+            // LOUD WARNING: show exactly what's being skipped
+            if !criteria.is_empty() {
+                eprintln!(
+                    "WARNING: --force bypassing CBV for {task_id}. Skipped acceptance criteria:"
+                );
+                for c in &criteria {
+                    eprintln!("  - {}", braid_kernel::budget::safe_truncate_bytes(c, 100));
+                }
+                eprintln!("Consider using --attest instead to provide evidence of completion.");
+            }
             "force"
         } else if attest.is_some() {
             "attested"
@@ -568,7 +578,7 @@ pub fn close(
             } else {
                 // Block this task — don't close
                 let msg = format!(
-                    "CBV: acceptance criteria not met for {task_id}:\n  {}\n  Use --force to bypass or --attest to provide evidence",
+                    "CBV: acceptance criteria not met for {task_id}:\n  {}\n  Preferred: --attest \"evidence\" to document why criteria are met\n  Last resort: --force to bypass (will show WARNING)",
                     failures.join("\n  ")
                 );
                 blocked_ids.push((task_id.clone(), msg));

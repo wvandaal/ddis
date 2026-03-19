@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773883419/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Force-test task. ACCEPTANCE: This should never auto-pass"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7e89b64943d5dd5716756efde84a2d9250275f738e585f4bd3f73a07d4e3b76d" :a :db/ident :v :task/t-94ea6011 :op :assert}
+   {:e #blake3 "7e89b64943d5dd5716756efde84a2d9250275f738e585f4bd3f73a07d4e3b76d" :a :task/created-at :v 1773883418 :op :assert}
+   {:e #blake3 "7e89b64943d5dd5716756efde84a2d9250275f738e585f4bd3f73a07d4e3b76d" :a :task/id :v "t-94ea6011" :op :assert}
+   {:e #blake3 "7e89b64943d5dd5716756efde84a2d9250275f738e585f4bd3f73a07d4e3b76d" :a :task/priority :v 4 :op :assert}
+   {:e #blake3 "7e89b64943d5dd5716756efde84a2d9250275f738e585f4bd3f73a07d4e3b76d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7e89b64943d5dd5716756efde84a2d9250275f738e585f4bd3f73a07d4e3b76d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7e89b64943d5dd5716756efde84a2d9250275f738e585f4bd3f73a07d4e3b76d" :a :task/title :v "Force-test task. ACCEPTANCE: This should never auto-pass" :op :assert}
+   {:e #blake3 "7e89b64943d5dd5716756efde84a2d9250275f738e585f4bd3f73a07d4e3b76d" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773883293/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FAILURE MODE: --force used to bypass CBV on PSR-2, hiding the fact that the feature wasn't actually wired. The --force flag should be DISCOURAGED, not convenient. Current behavior: silent record in :task/completion-method. Needed: (1) Loud WARNING showing exactly which acceptance criteria are being skipped. (2) Require --force --reason 'why' so the agent must JUSTIFY the bypass. (3) Track force-close rate in session metrics — high rate = methodology drift."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d7b698801609ca45c52695e226f123309134011a2fc057886ba2633b08142a61" :a :db/doc :v "FAILURE MODE: --force used to bypass CBV on PSR-2, hiding the fact that the feature wasn't actually wired. The --force flag should be DISCOURAGED, not convenient. Current behavior: silent record in :task/completion-method. Needed: (1) Loud WARNING showing exactly which acceptance criteria are being skipped. (2) Require --force --reason 'why' so the agent must JUSTIFY the bypass. (3) Track force-close rate in session metrics — high rate = methodology drift." :op :assert}
+   {:e #blake3 "d7b698801609ca45c52695e226f123309134011a2fc057886ba2633b08142a61" :a :db/ident :v :observation/failure-mode-force-used-to-bypass-cbv-on-psr-2-hiding-th :op :assert}
+   {:e #blake3 "d7b698801609ca45c52695e226f123309134011a2fc057886ba2633b08142a61" :a :exploration/body :v "FAILURE MODE: --force used to bypass CBV on PSR-2, hiding the fact that the feature wasn't actually wired. The --force flag should be DISCOURAGED, not convenient. Current behavior: silent record in :task/completion-method. Needed: (1) Loud WARNING showing exactly which acceptance criteria are being skipped. (2) Require --force --reason 'why' so the agent must JUSTIFY the bypass. (3) Track force-close rate in session metrics — high rate = methodology drift." :op :assert}
+   {:e #blake3 "d7b698801609ca45c52695e226f123309134011a2fc057886ba2633b08142a61" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "d7b698801609ca45c52695e226f123309134011a2fc057886ba2633b08142a61" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "d7b698801609ca45c52695e226f123309134011a2fc057886ba2633b08142a61" :a :exploration/content-hash :v #bytes "ee096970495fa396ad58b44ad5d839cc31715f4aaf5ca3941540e878a5d277ea" :op :assert}
+   {:e #blake3 "d7b698801609ca45c52695e226f123309134011a2fc057886ba2633b08142a61" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d7b698801609ca45c52695e226f123309134011a2fc057886ba2633b08142a61" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d7b698801609ca45c52695e226f123309134011a2fc057886ba2633b08142a61" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
