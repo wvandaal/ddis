@@ -3,6 +3,7 @@
 //! Task is auto-detected from active session, git branch, or tx rationales.
 
 use std::path::Path;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use braid_kernel::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 use braid_kernel::guidance::{
@@ -32,10 +33,34 @@ fn infer_task(store: &braid_kernel::Store, path: &Path) -> (String, &'static str
     // Try kernel multi-signal inference first
     let (kernel_task, kernel_source, kernel_confidence) = infer_task_description(store);
 
-    // High-confidence kernel results (session entity, observation) are authoritative
+    // High-confidence kernel results (session entity, observation) are authoritative,
+    // but session entities older than 2 hours are stale — use a generic label instead.
     if kernel_confidence >= 0.5 {
+        if kernel_source == "session entity" {
+            // Check if the session task is stale (> 7200s old)
+            let latest_session_wall = store
+                .datoms()
+                .filter(|d| {
+                    d.attribute == Attribute::from_keyword(":session/task")
+                        && d.op == braid_kernel::datom::Op::Assert
+                })
+                .map(|d| d.tx.wall_time())
+                .max()
+                .unwrap_or(0);
+            let now_ms = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map(|d| d.as_millis() as u64)
+                .unwrap_or(0);
+            if now_ms.saturating_sub(latest_session_wall) > 7_200_000 {
+                let tx_count = count_txns_since_last_harvest(store);
+                return (
+                    format!("unsessioned harvest ({tx_count} txns since last harvest)"),
+                    "default",
+                );
+            }
+            return (kernel_task, "session");
+        }
         let label = match kernel_source.as_str() {
-            "session entity" => "session",
             "recent observation" => "observation",
             _ => "kernel",
         };
