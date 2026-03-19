@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773944202/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ACP-10a: Implement build_next_projection() — braid next as ActionProjection (INV-BUDGET-007). BACKGROUND: AUDIT ISSUE 4 split. braid next is the SIMPLEST ACP conversion — it already returns the R(t) top task. With ACP: Action = compute_action_from_store(store), Context = [task priority+type (UserRequested), dep count (Speculative), traces (Speculative)], Evidence = 'braid task show <id>'. ~15 LOC. APPROACH: Add build_next_projection(store, skip) -> ActionProjection to task.rs. Reuses compute_action_from_store() directly. Add 2-3 context blocks for task metadata. Tests: (A) next projection action matches R(t) top. (B) Action persists at all budget levels. FILE: crates/braid/src/commands/task.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :db/ident :v :task/t-92a59496 :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/background :v "AUDIT ISSUE 4 split. braid next is the SIMPLEST ACP conversion — it already returns the R(t) top task. With ACP: Action = compute_action_from_store(store), Context = [task priority+type (UserRequested), dep count (Speculative), traces (Speculative)], Evidence = 'braid task show <id>'. ~15 LOC. APPROACH: Add build_next_projection(store, skip) -> ActionProjection to task.rs. Reuses compute_action_from_store() directly. Add 2-3 context blocks for task metadata. Tests: (A) next projection action matches R(t) top. (B) Action persists at all budget levels." :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/created-at :v 1773944201 :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/id :v "t-92a59496" :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/title :v "ACP-10a: Implement build_next_projection() — braid next as ActionProjection (INV-BUDGET-007). BACKGROUND: AUDIT ISSUE 4 split. braid next is the SIMPLEST ACP conversion — it already returns the R(t) top task. With ACP: Action = compute_action_from_store(store), Context = [task priority+type (UserRequested), dep count (Speculative), traces (Speculative)], Evidence = 'braid task show <id>'. ~15 LOC. APPROACH: Add build_next_projection(store, skip) -> ActionProjection to task.rs. Reuses compute_action_from_store() directly. Add 2-3 context blocks for task metadata. Tests: (A) next projection action matches R(t) top. (B) Action persists at all budget levels. FILE: crates/braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/traces-to :v #blake3 "1e18c9b39778378b8712b78c2e5978eed659df9179d8209759c4d693e223132a" :op :assert}
+   {:e #blake3 "36f925d7f9499bc8774d1b4f583c9485fdca8e14929607a1029092b4405443a4" :a :task/type :v :task.type/task :op :assert}
+ ]}
