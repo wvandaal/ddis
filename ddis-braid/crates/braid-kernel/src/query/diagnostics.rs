@@ -73,8 +73,9 @@ pub fn diagnose_empty_results(store: &Store, query: &QueryExpr) -> Vec<QueryDiag
     let mut diagnostics = Vec::new();
     let schema = store.schema();
 
-    // Check for empty store (only genesis schema datoms — 18 entities).
-    if store.entity_count() <= 18 {
+    // Check for empty store (only genesis schema datoms).
+    let genesis_count = crate::schema::genesis_attr_count();
+    if store.entity_count() <= genesis_count {
         diagnostics.push(QueryDiagnostic {
             kind: DiagnosticKind::EmptyStore,
             message: "Store contains only genesis schema — no user data.".into(),

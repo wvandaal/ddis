@@ -51,6 +51,7 @@
 
 pub mod aggregate;
 pub mod clause;
+pub mod diagnostics;
 pub mod evaluator;
 pub mod graph;
 pub mod stratum;

@@ -442,6 +442,21 @@ pub fn run_datalog(
         },
     };
 
+    // --- Zero-result diagnostics (INV-INTERFACE-012) ---
+    let mut human = human;
+    if result_count == 0 {
+        let diagnostics = braid_kernel::query::diagnostics::diagnose_empty_results(&store, &query);
+        if !diagnostics.is_empty() {
+            human.push('\n');
+            for diag in &diagnostics {
+                human.push_str(&format!("hint: {}\n", diag.message));
+                if let Some(ref suggestion) = diag.suggestion {
+                    human.push_str(&format!("  fix: {}\n", suggestion));
+                }
+            }
+        }
+    }
+
     // --- Agent output ---
     let agent = AgentOutput {
         context: format!("datalog: {} results", result_count),
