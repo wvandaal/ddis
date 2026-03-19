@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773959149/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e9a08a4e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e6e23417ba6ee728323eb94807f6c56cfd8054b3c4761f4dd7bdefac334a7c30" :a :task/close-reason :v "Implemented str-contains, str-starts-with, str-ends-with FFI predicates in Datalog evaluator. Also aliases clojure.string/includes? for backward compat. Case-insensitive. Works on String and Keyword values. Syntax: (str-contains ?var \"pattern\"). 13 results for ACP observation search." :op :assert}
+   {:e #blake3 "e6e23417ba6ee728323eb94807f6c56cfd8054b3c4761f4dd7bdefac334a7c30" :a :task/closed-at :v 1773959148 :op :assert}
+   {:e #blake3 "e6e23417ba6ee728323eb94807f6c56cfd8054b3c4761f4dd7bdefac334a7c30" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "e6e23417ba6ee728323eb94807f6c56cfd8054b3c4761f4dd7bdefac334a7c30" :a :task/status :v :task.status/closed :op :assert}
+ ]}

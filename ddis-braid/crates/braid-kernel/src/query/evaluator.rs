@@ -403,6 +403,11 @@ fn eval_predicate(op: &str, args: &[Term], binding: &Binding) -> bool {
         ("=", [Some(a), Some(b)]) => a == b,
         ("!=", [Some(a), Some(b)]) => a != b,
         (op @ (">" | "<" | ">=" | "<="), [Some(a), Some(b)]) => numeric_compare(op, a, b),
+        // String matching FFI (INV-QUERY-002, BUG t-e9a08a4e)
+        ("str-contains", [Some(a), Some(b)]) => string_contains(a, b),
+        ("clojure.string/includes?", [Some(a), Some(b)]) => string_contains(a, b),
+        ("str-starts-with", [Some(a), Some(b)]) => string_starts_with(a, b),
+        ("str-ends-with", [Some(a), Some(b)]) => string_ends_with(a, b),
         _ => false,
     }
 }
@@ -437,6 +442,52 @@ fn value_to_f64(v: &Value) -> Option<f64> {
         Value::Long(n) => Some(*n as f64),
         Value::Instant(t) => Some(*t as f64),
         Value::Double(d) => Some(d.into_inner()),
+        _ => None,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// String matching FFI (BUG t-e9a08a4e)
+// ---------------------------------------------------------------------------
+
+/// Case-insensitive string containment check.
+///
+/// Works on String, Keyword, and mixed types. Both values are lowercased
+/// before comparison for intuitive behavior.
+fn string_contains(haystack: &Value, needle: &Value) -> bool {
+    let h = value_to_string(haystack);
+    let n = value_to_string(needle);
+    match (h, n) {
+        (Some(h), Some(n)) => h.to_lowercase().contains(&n.to_lowercase()),
+        _ => false,
+    }
+}
+
+/// Case-insensitive string prefix check.
+fn string_starts_with(haystack: &Value, prefix: &Value) -> bool {
+    let h = value_to_string(haystack);
+    let p = value_to_string(prefix);
+    match (h, p) {
+        (Some(h), Some(p)) => h.to_lowercase().starts_with(&p.to_lowercase()),
+        _ => false,
+    }
+}
+
+/// Case-insensitive string suffix check.
+fn string_ends_with(haystack: &Value, suffix: &Value) -> bool {
+    let h = value_to_string(haystack);
+    let s = value_to_string(suffix);
+    match (h, s) {
+        (Some(h), Some(s)) => h.to_lowercase().ends_with(&s.to_lowercase()),
+        _ => false,
+    }
+}
+
+/// Extract string content from a Value (String or Keyword).
+fn value_to_string(v: &Value) -> Option<String> {
+    match v {
+        Value::String(s) => Some(s.clone()),
+        Value::Keyword(k) => Some(k.clone()),
         _ => None,
     }
 }
