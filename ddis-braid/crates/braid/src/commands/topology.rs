@@ -114,6 +114,53 @@ pub fn run_plan(
     })
 }
 
+/// Run `braid topology deps` — transact spec dependency edges.
+///
+/// Parses :element/traces-to strings into :spec/traces-to Ref datoms.
+/// TOPO-SPEC-DEPS: Enriches the coupling matrix for topology planning.
+pub fn run_deps(path: &Path) -> Result<CommandOutput, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    use braid_kernel::datom::*;
+    let agent = AgentId::from_name("braid:topology");
+    let tx = crate::commands::write::next_tx_id(&store, agent);
+    let (datoms, resolved, unresolved) = topology::spec_dependency_datoms(&store, tx);
+
+    if datoms.is_empty() {
+        return Ok(CommandOutput::from_human(
+            "No new spec dependency edges to transact.\n".to_string(),
+        ));
+    }
+
+    let datom_count = datoms.len();
+    let tx_file = braid_kernel::layout::TxFile {
+        tx_id: tx,
+        agent,
+        provenance: ProvenanceType::Derived,
+        rationale: format!("TOPO-SPEC-DEPS: {resolved} resolved, {unresolved} unresolved"),
+        causal_predecessors: vec![],
+        datoms,
+    };
+    layout.write_tx(&tx_file)?;
+
+    let human = format!(
+        "transacted: {} spec dependency edges ({} resolved, {} unresolved)\n",
+        datom_count, resolved, unresolved,
+    );
+    let json = serde_json::json!({
+        "datom_count": datom_count,
+        "resolved": resolved,
+        "unresolved": unresolved,
+    });
+    let agent_out = crate::output::AgentOutput {
+        context: format!("spec deps: {resolved} resolved"),
+        content: format!("{datom_count} edges transacted"),
+        footer: "coupling: braid topology plan".to_string(),
+    };
+    Ok(CommandOutput { json, agent: agent_out, human })
+}
+
 /// Run `braid topology status` — show current topology state.
 pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;

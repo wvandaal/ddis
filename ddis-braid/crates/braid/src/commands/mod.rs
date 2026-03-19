@@ -931,6 +931,16 @@ pub enum TopologyAction {
         #[arg(long)]
         json: bool,
     },
+
+    /// Transact spec dependency edges from :element/traces-to strings.
+    ///
+    /// Parses INV-*/ADR-*/NEG-* references and creates :spec/traces-to Ref datoms.
+    /// Enriches the coupling matrix for topology planning (INV-TOPOLOGY-004).
+    Deps {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+    },
 }
 
 /// Spec subcommands (WP5, W4B.3).
@@ -1525,7 +1535,7 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
             | SpecAction::History { path, .. } => Some(path),
         },
         Command::Topology { action } => match action {
-            TopologyAction::Plan { path, .. } | TopologyAction::Status { path, .. } => Some(path),
+            TopologyAction::Plan { path, .. } | TopologyAction::Status { path, .. } | TopologyAction::Deps { path, .. } => Some(path),
         },
     }
 }
@@ -1887,7 +1897,7 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
             }
         },
         Command::Topology { action } => match action {
-            TopologyAction::Plan { path, .. } | TopologyAction::Status { path, .. } => {
+            TopologyAction::Plan { path, .. } | TopologyAction::Status { path, .. } | TopologyAction::Deps { path, .. } => {
                 *path = resolve_store_path(path.clone());
             }
         },
@@ -2608,6 +2618,17 @@ pub fn run(
             }
             TopologyAction::Status { path, json } => {
                 let cmd_output = topology::run_status(&path, json)?;
+                return Ok(maybe_inject_footer(
+                    cmd_output,
+                    skip_footer,
+                    path_for_footer.as_deref(),
+                    budget_ctx,
+                    footer_cmd_name,
+                    None,
+                ));
+            }
+            TopologyAction::Deps { path } => {
+                let cmd_output = topology::run_deps(&path)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,

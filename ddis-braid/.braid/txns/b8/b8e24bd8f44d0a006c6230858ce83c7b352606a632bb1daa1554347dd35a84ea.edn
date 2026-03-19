@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773961938/0/ef9483d03a2173d542986f46fc7f2118"
+ :tx/agent "ef9483d03a2173d542986f46fc7f2118"
+ :tx/provenance :derived
+ :tx/rationale "ZCM-1: auto-captured observation from tool output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2e1689639284f2d0540a81513edd63bdc1e496a266cd3346f64446f69f8451d2" :a :db/doc :v "Queried * (380 results)" :op :assert}
+   {:e #blake3 "2e1689639284f2d0540a81513edd63bdc1e496a266cd3346f64446f69f8451d2" :a :db/ident :v :auto-obs/f11577e37c37aa09 :op :assert}
+   {:e #blake3 "2e1689639284f2d0540a81513edd63bdc1e496a266cd3346f64446f69f8451d2" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "2e1689639284f2d0540a81513edd63bdc1e496a266cd3346f64446f69f8451d2" :a :exploration/type :v :exploration.type/observation :op :assert}
+ ]}

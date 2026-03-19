@@ -189,7 +189,8 @@ pub use task::{
 pub use topology::{
     agent_name_from_files, balance_assign, compute_file_coupling, emit_seed_for_agent,
     extract_task_files, format_plan_agent, format_plan_human, partition_by_file_coupling,
-    quick_plan, ready_task_files, von_neumann_entropy_from_eigenvalues, AgentAssignment,
+    quick_plan, ready_task_files, spec_dependency_datoms, von_neumann_entropy_from_eigenvalues,
+    AgentAssignment,
     PlanMethod, TopologyPattern, TopologyPlan,
 };
 pub use trace::{

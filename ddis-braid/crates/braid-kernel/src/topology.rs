@@ -766,6 +766,70 @@ pub fn emit_seed_for_agent(
     out
 }
 
+// ---------------------------------------------------------------------------
+// TOPO-SPEC-DEPS: Spec dependency edge transaction (INV-TOPOLOGY-004)
+// ---------------------------------------------------------------------------
+
+/// Parse `:element/traces-to` strings into `:spec/traces-to` Ref datoms.
+///
+/// Iterates all spec entities with `:element/traces-to`, extracts spec IDs
+/// (INV-*, ADR-*, NEG-*) via `parse_spec_refs`, resolves them to store entities
+/// via `SpecId`, and returns datoms linking source → target.
+///
+/// Returns (datoms, resolved_count, unresolved_count).
+pub fn spec_dependency_datoms(
+    store: &crate::store::Store,
+    tx: crate::datom::TxId,
+) -> (Vec<crate::datom::Datom>, usize, usize) {
+    use crate::datom::*;
+
+    let traces_attr = Attribute::from_keyword(":element/traces-to");
+    let spec_traces_attr = Attribute::from_keyword(":spec/traces-to");
+
+    let mut datoms = Vec::new();
+    let mut resolved = 0usize;
+    let mut unresolved = 0usize;
+
+    for datom in store.attribute_datoms(&traces_attr).iter() {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        let source_entity = datom.entity;
+        let traces_text = match &datom.value {
+            Value::String(s) => s.as_str(),
+            _ => continue,
+        };
+
+        // Parse spec IDs from the traces-to text
+        let spec_refs = crate::task::parse_spec_refs(traces_text);
+
+        for human_id in &spec_refs {
+            // Resolve human ID (e.g., "INV-STORE-001") to store ident
+            if let Some(spec_id) = crate::spec_id::SpecId::from_any(human_id) {
+                let store_ident = spec_id.store_ident();
+                let target_entity = EntityId::from_ident(&store_ident);
+
+                // Only create the edge if the target entity exists in the store
+                let target_exists = !store.entity_datoms(target_entity).is_empty();
+                if target_exists {
+                    datoms.push(Datom::new(
+                        source_entity,
+                        spec_traces_attr.clone(),
+                        Value::Ref(target_entity),
+                        tx,
+                        Op::Assert,
+                    ));
+                    resolved += 1;
+                } else {
+                    unresolved += 1;
+                }
+            }
+        }
+    }
+
+    (datoms, resolved, unresolved)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
