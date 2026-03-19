@@ -272,8 +272,13 @@ impl GuidanceContext {
         let gaps = crystallization_candidates(store).len() as u32;
         // unanchored: count tasks where parse_spec_refs returns refs but none resolve.
         // Simplified: 0 placeholder until AGP-4 fills this with real resolution logic.
+        // KEFF-3: Use multi-signal estimation when no explicit k_eff provided
+        let estimated_k = k_eff.unwrap_or_else(|| {
+            let evidence = crate::budget::EvidenceVector::from_store(store);
+            crate::budget::estimate_k_eff(&evidence)
+        });
         GuidanceContext {
-            k_eff: k_eff.unwrap_or(1.0),
+            k_eff: estimated_k,
             activity_mode: activity,
             tx_velocity: velocity,
             agent_count: agents,

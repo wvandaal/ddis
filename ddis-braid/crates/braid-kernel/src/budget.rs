@@ -579,6 +579,127 @@ impl TokenEfficiency {
 }
 
 // ---------------------------------------------------------------------------
+// Multi-Signal k_eff Estimation (INV-REFLEXIVE-002, KEFF-1/KEFF-2)
+// ---------------------------------------------------------------------------
+
+/// Observable evidence for k_eff estimation.
+///
+/// Each field is a signal that correlates with context consumption.
+/// The estimator fuses these signals via sigmoid-weighted combination.
+#[derive(Clone, Debug, Default)]
+pub struct EvidenceVector {
+    /// Transactions since session start (more txns → more context consumed).
+    pub tx_count_since_session: u32,
+    /// Seconds elapsed since session start.
+    pub wall_elapsed_seconds: u64,
+    /// Transaction velocity (txns/min over 5-min window).
+    pub tx_velocity_per_min: f64,
+    /// Estimated cumulative output tokens (approximation from datom sizes).
+    pub cumulative_output_estimate: u32,
+    /// Observations captured since session start.
+    pub observe_count: u32,
+}
+
+impl EvidenceVector {
+    /// Build evidence from store state.
+    pub fn from_store(store: &crate::store::Store) -> Self {
+        use crate::datom::Op;
+
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        // Find session boundary (same logic as SessionWorkingSet)
+        let harvest_boundary = crate::guidance::last_harvest_wall_time(store);
+        let fallback = now.saturating_sub(3600);
+        let session_boundary = harvest_boundary.max(fallback);
+
+        // tx_count: distinct wall_times since session boundary
+        let tx_count = store
+            .datoms()
+            .filter(|d| d.tx.wall_time() > session_boundary && d.op == Op::Assert)
+            .map(|d| d.tx.wall_time())
+            .collect::<std::collections::BTreeSet<_>>()
+            .len() as u32;
+
+        // wall_elapsed: seconds since session boundary
+        let wall_elapsed = now.saturating_sub(session_boundary);
+
+        // velocity: use existing tx_velocity function
+        let velocity = crate::guidance::tx_velocity(store);
+
+        // output estimate: rough token count from datom string lengths since boundary
+        let output_est: u32 = store
+            .datoms()
+            .filter(|d| d.tx.wall_time() > session_boundary && d.op == Op::Assert)
+            .map(|d| match &d.value {
+                crate::datom::Value::String(s) => (s.len() as u32) / 3, // ~3 chars per token
+                _ => 2, // keyword/long/double ≈ 2 tokens
+            })
+            .sum();
+
+        // observe_count: observations since boundary
+        let observe_count = store
+            .datoms()
+            .filter(|d| {
+                d.attribute.as_str() == ":exploration/source"
+                    && d.op == Op::Assert
+                    && d.tx.wall_time() > session_boundary
+            })
+            .count() as u32;
+
+        EvidenceVector {
+            tx_count_since_session: tx_count,
+            wall_elapsed_seconds: wall_elapsed,
+            tx_velocity_per_min: velocity,
+            cumulative_output_estimate: output_est,
+            observe_count,
+        }
+    }
+}
+
+/// Sigmoid function: 1 / (1 + e^(-x)).
+fn sigmoid(x: f64) -> f64 {
+    1.0 / (1.0 + (-x).exp())
+}
+
+/// Estimate k_eff from observable evidence (KEFF-2).
+///
+/// Uses sigmoid-weighted fusion: k̂ = 1.0 - Σ(wᵢ × sigmoid((eᵢ - τᵢ) / scale))
+///
+/// Default weights and thresholds calibrated for typical braid sessions.
+/// The estimator is conservative: it decreases k_eff as evidence accumulates
+/// but never drops below 0.05 (minimum useful output).
+pub fn estimate_k_eff(evidence: &EvidenceVector) -> f64 {
+    // Weights: how much each signal contributes to k_eff decay
+    let weights = [0.35, 0.20, 0.15, 0.20, 0.10];
+
+    // Thresholds: center of sigmoid (50% decay at this value)
+    let thresholds: [f64; 5] = [30.0, 3600.0, 3.0, 50000.0, 15.0];
+
+    // Scale: controls sigmoid steepness (larger = gentler transition)
+    let scales: [f64; 5] = [10.0, 1200.0, 1.0, 15000.0, 5.0];
+
+    let signals: [f64; 5] = [
+        evidence.tx_count_since_session as f64,
+        evidence.wall_elapsed_seconds as f64,
+        evidence.tx_velocity_per_min,
+        evidence.cumulative_output_estimate as f64,
+        evidence.observe_count as f64,
+    ];
+
+    let mut decay = 0.0;
+    for i in 0..5 {
+        let normalized = (signals[i] - thresholds[i]) / scales[i];
+        decay += weights[i] * sigmoid(normalized);
+    }
+
+    // k_eff = 1.0 - total_decay, clamped to [0.05, 1.0]
+    (1.0 - decay).clamp(0.05, 1.0)
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -1324,5 +1445,74 @@ mod tests {
                 }
             }
         }
+    }
+
+    // ---- Multi-Signal k_eff Estimation (KEFF-1/KEFF-2) ----
+
+    #[test]
+    fn evidence_vector_default_is_zero() {
+        let ev = EvidenceVector::default();
+        assert_eq!(ev.tx_count_since_session, 0);
+        assert_eq!(ev.wall_elapsed_seconds, 0);
+        assert_eq!(ev.observe_count, 0);
+    }
+
+    #[test]
+    fn estimate_k_eff_zero_evidence_near_one() {
+        let ev = EvidenceVector::default();
+        let k = estimate_k_eff(&ev);
+        // With zero evidence, all sigmoid outputs are ~0 (below threshold)
+        // so k_eff should be close to 1.0
+        assert!(k > 0.7, "zero evidence should give high k_eff, got {k}");
+    }
+
+    #[test]
+    fn estimate_k_eff_high_evidence_low() {
+        let ev = EvidenceVector {
+            tx_count_since_session: 100,
+            wall_elapsed_seconds: 7200,
+            tx_velocity_per_min: 10.0,
+            cumulative_output_estimate: 100_000,
+            observe_count: 50,
+        };
+        let k = estimate_k_eff(&ev);
+        assert!(k < 0.3, "high evidence should give low k_eff, got {k}");
+    }
+
+    #[test]
+    fn estimate_k_eff_monotone_in_tx_count() {
+        let mut ev = EvidenceVector::default();
+        let k0 = estimate_k_eff(&ev);
+        ev.tx_count_since_session = 50;
+        let k50 = estimate_k_eff(&ev);
+        ev.tx_count_since_session = 100;
+        let k100 = estimate_k_eff(&ev);
+        assert!(k0 >= k50, "more txns should decrease k_eff");
+        assert!(k50 >= k100, "more txns should decrease k_eff");
+    }
+
+    #[test]
+    fn estimate_k_eff_clamped_to_range() {
+        // Even extreme values stay in [0.05, 1.0]
+        let extreme = EvidenceVector {
+            tx_count_since_session: 10000,
+            wall_elapsed_seconds: 100000,
+            tx_velocity_per_min: 100.0,
+            cumulative_output_estimate: 1_000_000,
+            observe_count: 1000,
+        };
+        let k = estimate_k_eff(&extreme);
+        assert!(k >= 0.05, "should not go below 0.05, got {k}");
+        assert!(k <= 1.0, "should not exceed 1.0, got {k}");
+    }
+
+    #[test]
+    fn sigmoid_properties() {
+        assert!(
+            (sigmoid(0.0) - 0.5).abs() < 0.001,
+            "sigmoid(0) should be 0.5"
+        );
+        assert!(sigmoid(10.0) > 0.99, "sigmoid(large) should be ~1.0");
+        assert!(sigmoid(-10.0) < 0.01, "sigmoid(-large) should be ~0.0");
     }
 }
