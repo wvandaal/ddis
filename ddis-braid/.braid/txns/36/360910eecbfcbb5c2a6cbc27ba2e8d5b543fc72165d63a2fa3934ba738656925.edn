@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773948400/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7f5eef5e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e69bd8f01fbd0b77e69f4f7840e51f1c81cae45c9f9fa75440e3b0b8bd4c5381" :a :task/close-reason :v "task ready now uses ACP: action first, top-20 tasks with L1 titles, overflow indicator, evidence pointer. No truncation. Navigate strategy shows top-7." :op :assert}
+   {:e #blake3 "e69bd8f01fbd0b77e69f4f7840e51f1c81cae45c9f9fa75440e3b0b8bd4c5381" :a :task/closed-at :v 1773948399 :op :assert}
+   {:e #blake3 "e69bd8f01fbd0b77e69f4f7840e51f1c81cae45c9f9fa75440e3b0b8bd4c5381" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "e69bd8f01fbd0b77e69f4f7840e51f1c81cae45c9f9fa75440e3b0b8bd4c5381" :a :task/status :v :task.status/closed :op :assert}
+ ]}

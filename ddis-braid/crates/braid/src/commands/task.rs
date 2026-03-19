@@ -441,32 +441,107 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
             })
         })
         .collect();
-    let json = serde_json::json!({
-        "ready_count": ready_set.len(),
-        "tasks": tasks_json,
+    // ACP projection for task ready (ACP-6, INV-BUDGET-007)
+    // Action = top R(t) task, Context = task list entries with title pyramid levels
+    let action = braid_kernel::guidance::compute_action_from_store(&store);
+
+    let mut context_blocks = Vec::new();
+
+    // Summary context (System — always shown)
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!("ready: {} tasks ({} total open)", ready_set.len(), ready_set.len()),
+        tokens: 8,
     });
 
-    // Agent output: show all ready tasks — truncation harms agent priority decisions.
-    // Agents need the full list to make informed choices; "... and N more" forces
-    // a follow-up round-trip. Human mode uses the human string (already shows all).
-    let mut content_lines = Vec::new();
-    for t in &ready_set {
+    // Task entries as individual context blocks (UserRequested)
+    // Use title pyramid: L1 (short) for each entry to keep tokens manageable
+    let max_entries = 20; // cap at 20 even at max budget
+    for (i, t) in ready_set.iter().take(max_entries).enumerate() {
         let type_short = t
             .task_type
             .strip_prefix(":task.type/")
             .unwrap_or(&t.task_type);
-        content_lines.push(format!(
-            "  [P{}] {} \"{}\" ({})",
-            t.priority, t.id, t.title, type_short
-        ));
+
+        // Try to get L1 title from store (pyramid), fall back to truncated full title
+        let title_display = store
+            .entity_datoms(braid_kernel::EntityId::from_ident(&format!(":task/{}", t.id)))
+            .iter()
+            .find(|d| d.attribute.as_str() == ":task/title-l1" && d.op == braid_kernel::datom::Op::Assert)
+            .and_then(|d| match &d.value {
+                braid_kernel::datom::Value::String(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_else(|| {
+                // Fallback: first sentence of title
+                let first = t.title.split_once(". ").map(|(s, _)| s).unwrap_or(&t.title);
+                if first.len() > 80 {
+                    let mut end = 0;
+                    for (j, _) in first.char_indices() {
+                        if j > 77 { break; }
+                        end = j;
+                    }
+                    format!("{}...", &first[..end])
+                } else {
+                    first.to_string()
+                }
+            });
+
+        // Higher-priority tasks get higher precedence blocks
+        let precedence = if i < 3 {
+            braid_kernel::budget::OutputPrecedence::UserRequested
+        } else if i < 10 {
+            braid_kernel::budget::OutputPrecedence::Speculative
+        } else {
+            braid_kernel::budget::OutputPrecedence::Ambient
+        };
+
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence,
+            content: format!("[P{}] {} {} \"{}\"", t.priority, t.id, type_short, title_display),
+            tokens: 12,
+        });
+    }
+
+    if ready_set.len() > max_entries {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Ambient,
+            content: format!("... and {} more (braid task ready --all)", ready_set.len() - max_entries),
+            tokens: 5,
+        });
     }
 
     let top_id = ready_set.first().map(|t| t.id.as_str()).unwrap_or("?");
-    let agent = AgentOutput {
-        context: format!("ready: {} tasks", ready_set.len()),
-        content: content_lines.join("\n"),
-        footer: format!("claim: braid go {top_id}"),
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: format!("all: braid task ready | show: braid task show {top_id}"),
     };
+
+    // Human output uses ACP full projection
+    let human = projection.project(usize::MAX);
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // Merge ACP into JSON
+    let mut json = serde_json::json!({
+        "ready_count": ready_set.len(),
+        "tasks": tasks_json,
+    });
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(CommandOutput { json, agent, human })
 }
