@@ -1,0 +1,13 @@
+{:tx/id #hlc "1773884763/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "manual assertion via braid transact"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/falsification :v "Two stores with identical datom sets produce different topology projections." :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/source-file :v "spec/19-topology.md" :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/statement :v "The coordination topology T is a LIVE materialized view over the datom store. T = LIVE_T(S) is computed deterministically from store state S. Two stores with the same datom sets produce the same topology." :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

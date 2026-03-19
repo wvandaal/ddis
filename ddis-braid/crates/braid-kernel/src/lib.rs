@@ -54,6 +54,7 @@ pub mod spec_id;
 pub mod stage;
 pub mod store;
 pub mod task;
+pub mod topology;
 pub mod trace;
 pub mod trilateral;
 

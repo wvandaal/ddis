@@ -1,0 +1,13 @@
+{:tx/id #hlc "1773884778/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "manual assertion via braid transact"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :a :spec/falsification :v "A topology decision entity is deleted or mutated in place." :op :assert}
+   {:e #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :a :spec/source-file :v "spec/19-topology.md" :op :assert}
+   {:e #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :a :spec/statement :v "Every topology decision (transition proposal, enactment, rollback, scaling action, coupling measurement, fitness measurement) is an immutable datom. Topology history is fully queryable and never lost." :op :assert}
+   {:e #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :a :spec/verification :v "V:TYPE" :op :assert}
+ ]}

@@ -1,0 +1,13 @@
+{:tx/id #hlc "1773884820/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "manual assertion via braid transact"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :adr/decision :v "Option 2 — Hybrid AOT+JIT with PGO. Spec dependency graph encodes coupling structure before any agent begins working. Compilation pipeline: Spec -> Front-end (dependency graph -> coupling IR) -> Middle-end (partition, CALM classify) -> Back-end (emit T=(G,Phi,Sigma,Pi)) -> Execute -> Profile (harvest outcomes) -> PGO (refine compiler)." :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :adr/problem :v "How should optimal topology be determined? Options: (1) reactive only — execute, observe, adjust, (2) compile from spec structure + reactive fallback — derive coupling from spec dependency graph (AOT), fall back to reactive for uncompilable work (JIT), refine via bilateral feedback (PGO)." :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :spec/source-file :v "spec/19-topology.md" :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

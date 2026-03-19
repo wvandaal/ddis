@@ -1,0 +1,13 @@
+{:tx/id #hlc "1773884769/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "manual assertion via braid transact"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8384e0d1752d50dee398f655e20c0f94dc942410d367bd93a07be31fec091bb2" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "8384e0d1752d50dee398f655e20c0f94dc942410d367bd93a07be31fec091bb2" :a :spec/falsification :v "Two different merge topologies over the same datom set produce different LIVE indices after convergence." :op :assert}
+   {:e #blake3 "8384e0d1752d50dee398f655e20c0f94dc942410d367bd93a07be31fec091bb2" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "8384e0d1752d50dee398f655e20c0f94dc942410d367bd93a07be31fec091bb2" :a :spec/source-file :v "spec/19-topology.md" :op :assert}
+   {:e #blake3 "8384e0d1752d50dee398f655e20c0f94dc942410d367bd93a07be31fec091bb2" :a :spec/statement :v "For any two topologies T1, T2 over the same agent set, if all datoms eventually propagate (liveness), then the LIVE index converges to the same state regardless of which topology was used during propagation." :op :assert}
+   {:e #blake3 "8384e0d1752d50dee398f655e20c0f94dc942410d367bd93a07be31fec091bb2" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773884956/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ff0770e8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/closed-at :v 1773884954 :op :assert}
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/completion-evidence :v "partition_by_file_coupling implemented via BFS connected components. Tested with shared + disjoint file sets." :op :assert}
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "7de3498fbcc8c297090671a24587559a562be6a3d5af59e9795f702417bc6860" :a :task/status :v :task.status/closed :op :assert}
+ ]}

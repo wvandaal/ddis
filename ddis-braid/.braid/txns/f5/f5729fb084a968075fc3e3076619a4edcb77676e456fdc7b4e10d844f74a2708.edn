@@ -1,0 +1,13 @@
+{:tx/id #hlc "1773884789/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "manual assertion via braid transact"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/falsification :v "The composite coupling function violates commutativity (merge-order dependence) or allows coupling to decrease without explicit retraction." :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/source-file :v "spec/19-topology.md" :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/statement :v "Task coupling is a composite signal of five mechanisms (file paths, invariants, schema, causal dependencies, historical patterns) with learnable weights stored as datoms. The composite preserves semilattice structure: coupling scores only grow through observation, explicit reduction requires retraction." :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}

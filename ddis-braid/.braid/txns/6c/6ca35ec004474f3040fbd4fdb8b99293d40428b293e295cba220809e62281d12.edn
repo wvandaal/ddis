@@ -1,0 +1,13 @@
+{:tx/id #hlc "1773884807/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "manual assertion via braid transact"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :adr/decision :v "Option 3 — CALM stratification. Two-tier protocol: Tier M (no barrier) and Tier NM (barrier + grace period + connectivity verification). Rollback is always Tier M. Automatic tier classification from algebraic properties." :op :assert}
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :adr/problem :v "How should topology transitions be handled safely? Options: (1) all transitions require barrier, (2) no barriers, (3) CALM-stratified — monotonic = no barrier, non-monotonic = barrier." :op :assert}
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :spec/element-type :v "adr" :op :assert}
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :spec/namespace :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :spec/source-file :v "spec/19-topology.md" :op :assert}
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :spec/verification :v "V:PROP" :op :assert}
+ ]}
