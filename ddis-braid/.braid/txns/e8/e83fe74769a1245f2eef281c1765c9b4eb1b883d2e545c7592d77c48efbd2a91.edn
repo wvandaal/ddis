@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773883191/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Test PSR topology coupling matrix coordination"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4fbb471658a9b80b295658137f26f0ffdf72e297d26994ed48edc0feb0801c37" :a :db/ident :v :task/t-bb02912c :op :assert}
+   {:e #blake3 "4fbb471658a9b80b295658137f26f0ffdf72e297d26994ed48edc0feb0801c37" :a :task/created-at :v 1773883190 :op :assert}
+   {:e #blake3 "4fbb471658a9b80b295658137f26f0ffdf72e297d26994ed48edc0feb0801c37" :a :task/id :v "t-bb02912c" :op :assert}
+   {:e #blake3 "4fbb471658a9b80b295658137f26f0ffdf72e297d26994ed48edc0feb0801c37" :a :task/priority :v 4 :op :assert}
+   {:e #blake3 "4fbb471658a9b80b295658137f26f0ffdf72e297d26994ed48edc0feb0801c37" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4fbb471658a9b80b295658137f26f0ffdf72e297d26994ed48edc0feb0801c37" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4fbb471658a9b80b295658137f26f0ffdf72e297d26994ed48edc0feb0801c37" :a :task/title :v "Test PSR topology coupling matrix coordination" :op :assert}
+   {:e #blake3 "4fbb471658a9b80b295658137f26f0ffdf72e297d26994ed48edc0feb0801c37" :a :task/type :v :task.type/task :op :assert}
+ ]}

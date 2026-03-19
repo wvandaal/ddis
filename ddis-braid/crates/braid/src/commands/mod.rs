@@ -1987,7 +1987,7 @@ pub fn run(
                     path_for_footer.as_deref(),
                     budget_ctx,
                     footer_cmd_name,
-                    None,
+                    Some(effective_task),
                 ));
             }
 
@@ -2049,6 +2049,7 @@ pub fn run(
             rationale,
             alternatives,
         } => {
+            let observe_text = text.clone(); // PSR: capture before move
             let cmd_output = observe::run(observe::ObserveArgs {
                 path: &path,
                 text: &text,
@@ -2066,7 +2067,7 @@ pub fn run(
                 path_for_footer.as_deref(),
                 budget_ctx,
                 footer_cmd_name,
-                None,
+                Some(&observe_text),
             ));
         }
         Command::Session { action } => {
@@ -2121,6 +2122,11 @@ pub fn run(
             ));
         }
         Command::Task { action } => {
+            // PSR-2: Capture command text for spec relevance before action consumes it
+            let psr_text: Option<String> = match &action {
+                TaskAction::Create { title, .. } => Some(title.clone()),
+                _ => None,
+            };
             let cmd_output = match action {
                 TaskAction::Create {
                     title,
@@ -2203,7 +2209,7 @@ pub fn run(
                 path_for_footer.as_deref(),
                 budget_ctx,
                 footer_cmd_name,
-                None,
+                psr_text.as_deref(),
             ));
         }
         Command::Config {

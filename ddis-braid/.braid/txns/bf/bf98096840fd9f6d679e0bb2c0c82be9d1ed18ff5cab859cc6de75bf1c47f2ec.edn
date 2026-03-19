@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773883192/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "thinking about topology and coupling for agent coordination"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2f422115fab0928b8b908fbdbfa532f11f5c04028c2eb59ed34b266b41976fbe" :a :db/doc :v "thinking about topology and coupling for agent coordination" :op :assert}
+   {:e #blake3 "2f422115fab0928b8b908fbdbfa532f11f5c04028c2eb59ed34b266b41976fbe" :a :db/ident :v :observation/thinking-about-topology-and-coupling-for-agent-coordination :op :assert}
+   {:e #blake3 "2f422115fab0928b8b908fbdbfa532f11f5c04028c2eb59ed34b266b41976fbe" :a :exploration/body :v "thinking about topology and coupling for agent coordination" :op :assert}
+   {:e #blake3 "2f422115fab0928b8b908fbdbfa532f11f5c04028c2eb59ed34b266b41976fbe" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "2f422115fab0928b8b908fbdbfa532f11f5c04028c2eb59ed34b266b41976fbe" :a :exploration/confidence :v 0.5 :op :assert}
+   {:e #blake3 "2f422115fab0928b8b908fbdbfa532f11f5c04028c2eb59ed34b266b41976fbe" :a :exploration/content-hash :v #bytes "1b5f7fadd30142574b2edf956ad547f211f0bb057fe270fbb0424bfd69245bcc" :op :assert}
+   {:e #blake3 "2f422115fab0928b8b908fbdbfa532f11f5c04028c2eb59ed34b266b41976fbe" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2f422115fab0928b8b908fbdbfa532f11f5c04028c2eb59ed34b266b41976fbe" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2f422115fab0928b8b908fbdbfa532f11f5c04028c2eb59ed34b266b41976fbe" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
