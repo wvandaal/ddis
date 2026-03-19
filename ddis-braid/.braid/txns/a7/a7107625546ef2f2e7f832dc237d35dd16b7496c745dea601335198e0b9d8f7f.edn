@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928356/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-10: E2E test scripts/e2e_boundary_framework.sh — register custom boundary, verify F(S) reflects gap, verify guidance routes to fix (INV-BILATERAL-007). FILE: scripts/e2e_boundary_framework.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f4a17ef137fe95a2428b5f6f65fdcd4f85b337dbe821ebef794f25143566484d" :a :db/ident :v :task/t-55e59fdd :op :assert}
+   {:e #blake3 "f4a17ef137fe95a2428b5f6f65fdcd4f85b337dbe821ebef794f25143566484d" :a :task/created-at :v 1773928350 :op :assert}
+   {:e #blake3 "f4a17ef137fe95a2428b5f6f65fdcd4f85b337dbe821ebef794f25143566484d" :a :task/id :v "t-55e59fdd" :op :assert}
+   {:e #blake3 "f4a17ef137fe95a2428b5f6f65fdcd4f85b337dbe821ebef794f25143566484d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f4a17ef137fe95a2428b5f6f65fdcd4f85b337dbe821ebef794f25143566484d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f4a17ef137fe95a2428b5f6f65fdcd4f85b337dbe821ebef794f25143566484d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f4a17ef137fe95a2428b5f6f65fdcd4f85b337dbe821ebef794f25143566484d" :a :task/title :v "BOUNDARY-10: E2E test scripts/e2e_boundary_framework.sh — register custom boundary, verify F(S) reflects gap, verify guidance routes to fix (INV-BILATERAL-007). FILE: scripts/e2e_boundary_framework.sh" :op :assert}
+   {:e #blake3 "f4a17ef137fe95a2428b5f6f65fdcd4f85b337dbe821ebef794f25143566484d" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "f4a17ef137fe95a2428b5f6f65fdcd4f85b337dbe821ebef794f25143566484d" :a :task/type :v :task.type/test :op :assert}
+ ]}

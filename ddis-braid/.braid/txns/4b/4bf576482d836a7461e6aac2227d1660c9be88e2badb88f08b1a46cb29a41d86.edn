@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928280/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-BILATERAL-006 \"Datom-Level Reachability over AST Analysis\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fbcd1e24196b88a2eeeeb00ccc4bc49563af3862481f4821882e38280ef5b378" :a :adr/decision :v "Separate extraction from verification. Language-specific extractors populate :impl/reachable datoms. The bilateral kernel queries datoms only — never parses source code. This follows the existing braid architecture: braid trace (language-specific) populates :impl/* datoms, bilateral (language-agnostic) queries them. For Rust: filesystem check (mod.rs vs directory contents) at Stage 0, cargo metadata integration at Stage 1, rust-analyzer LSP at Stage 2. Each stage refines precision without changing the kernel." :op :assert}
+   {:e #blake3 "fbcd1e24196b88a2eeeeb00ccc4bc49563af3862481f4821882e38280ef5b378" :a :adr/problem :v "Lateral scan requires knowing which functions are reachable from the entry point. AST analysis is language-specific. How to make the bilateral loop language-agnostic?" :op :assert}
+   {:e #blake3 "fbcd1e24196b88a2eeeeb00ccc4bc49563af3862481f4821882e38280ef5b378" :a :db/doc :v "Datom-Level Reachability over AST Analysis" :op :assert}
+   {:e #blake3 "fbcd1e24196b88a2eeeeb00ccc4bc49563af3862481f4821882e38280ef5b378" :a :db/ident :v :spec/adr-bilateral-006 :op :assert}
+   {:e #blake3 "fbcd1e24196b88a2eeeeb00ccc4bc49563af3862481f4821882e38280ef5b378" :a :element/traces-to :v "SEED.md S4, ADR-BILATERAL-005, INV-BILATERAL-008" :op :assert}
+   {:e #blake3 "fbcd1e24196b88a2eeeeb00ccc4bc49563af3862481f4821882e38280ef5b378" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "fbcd1e24196b88a2eeeeb00ccc4bc49563af3862481f4821882e38280ef5b378" :a :spec/id :v "ADR-BILATERAL-006" :op :assert}
+   {:e #blake3 "fbcd1e24196b88a2eeeeb00ccc4bc49563af3862481f4821882e38280ef5b378" :a :spec/namespace :v :spec.ns/BILATERAL :op :assert}
+ ]}

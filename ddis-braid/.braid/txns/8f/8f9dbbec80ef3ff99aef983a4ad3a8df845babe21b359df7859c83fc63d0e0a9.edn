@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773926409/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FAILURE MODE: Dead wiring — code exists, tests pass, but module is unreachable from main(). Root cause: Rust module system requires explicit pub mod declarations, and tests compile independently of module visibility. Formal property needed: INV-REFLEXIVE-004 — every tested pub fn must have a reachable path from main(). Three instances found this session: (1) diagnostics.rs missing pub mod in query/mod.rs, (2) spec_relevance_scan duplicate attempt, (3) KEFF tasks marked unimplemented when already done. Solution: structural test that verifies fs ≅ mod.rs for each module directory."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7b3eb3775653467a22e5beaf6b172bf5aa1e84865efdf964462ef77462616a17" :a :db/doc :v "FAILURE MODE: Dead wiring — code exists, tests pass, but module is unreachable from main(). Root cause: Rust module system requires explicit pub mod declarations, and tests compile independently of module visibility. Formal property needed: INV-REFLEXIVE-004 — every tested pub fn must have a reachable path from main(). Three instances found this session: (1) diagnostics.rs missing pub mod in query/mod.rs, (2) spec_relevance_scan duplicate attempt, (3) KEFF tasks marked unimplemented when already done. Solution: structural test that verifies fs ≅ mod.rs for each module directory." :op :assert}
+   {:e #blake3 "7b3eb3775653467a22e5beaf6b172bf5aa1e84865efdf964462ef77462616a17" :a :db/ident :v :observation/failure-mode-dead-wiring-code-exists-tests-pass-but-mod :op :assert}
+   {:e #blake3 "7b3eb3775653467a22e5beaf6b172bf5aa1e84865efdf964462ef77462616a17" :a :exploration/body :v "FAILURE MODE: Dead wiring — code exists, tests pass, but module is unreachable from main(). Root cause: Rust module system requires explicit pub mod declarations, and tests compile independently of module visibility. Formal property needed: INV-REFLEXIVE-004 — every tested pub fn must have a reachable path from main(). Three instances found this session: (1) diagnostics.rs missing pub mod in query/mod.rs, (2) spec_relevance_scan duplicate attempt, (3) KEFF tasks marked unimplemented when already done. Solution: structural test that verifies fs ≅ mod.rs for each module directory." :op :assert}
+   {:e #blake3 "7b3eb3775653467a22e5beaf6b172bf5aa1e84865efdf964462ef77462616a17" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "7b3eb3775653467a22e5beaf6b172bf5aa1e84865efdf964462ef77462616a17" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "7b3eb3775653467a22e5beaf6b172bf5aa1e84865efdf964462ef77462616a17" :a :exploration/content-hash :v #bytes "4272dbb90bdb8943e1d8f1ae43e6dd0bbdb3593c1587cfa70f25fc032bd19ab6" :op :assert}
+   {:e #blake3 "7b3eb3775653467a22e5beaf6b172bf5aa1e84865efdf964462ef77462616a17" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7b3eb3775653467a22e5beaf6b172bf5aa1e84865efdf964462ef77462616a17" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7b3eb3775653467a22e5beaf6b172bf5aa1e84865efdf964462ef77462616a17" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

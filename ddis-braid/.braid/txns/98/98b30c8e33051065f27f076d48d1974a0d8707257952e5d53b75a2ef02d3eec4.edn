@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928346/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Generalized Boundary Framework — parameterized bilateral loop for any divergence boundary (INV-BILATERAL-007, ADR-BILATERAL-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb0fe2d3edc9adfef5a184aca6272bfff41a4bcd7a3b26cb228a4a15c1ff734c" :a :db/ident :v :task/t-09fee3a8 :op :assert}
+   {:e #blake3 "fb0fe2d3edc9adfef5a184aca6272bfff41a4bcd7a3b26cb228a4a15c1ff734c" :a :task/created-at :v 1773928345 :op :assert}
+   {:e #blake3 "fb0fe2d3edc9adfef5a184aca6272bfff41a4bcd7a3b26cb228a4a15c1ff734c" :a :task/id :v "t-09fee3a8" :op :assert}
+   {:e #blake3 "fb0fe2d3edc9adfef5a184aca6272bfff41a4bcd7a3b26cb228a4a15c1ff734c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "fb0fe2d3edc9adfef5a184aca6272bfff41a4bcd7a3b26cb228a4a15c1ff734c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "fb0fe2d3edc9adfef5a184aca6272bfff41a4bcd7a3b26cb228a4a15c1ff734c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fb0fe2d3edc9adfef5a184aca6272bfff41a4bcd7a3b26cb228a4a15c1ff734c" :a :task/title :v "EPIC: Generalized Boundary Framework — parameterized bilateral loop for any divergence boundary (INV-BILATERAL-007, ADR-BILATERAL-005)" :op :assert}
+   {:e #blake3 "fb0fe2d3edc9adfef5a184aca6272bfff41a4bcd7a3b26cb228a4a15c1ff734c" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "fb0fe2d3edc9adfef5a184aca6272bfff41a4bcd7a3b26cb228a4a15c1ff734c" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928355/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-9: Unit + proptest for BoundaryCheck framework — trait dispatch, registry evaluate_all, F(S) integration, phantom witness detection (INV-BILATERAL-007..009). FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "91f1c1619197f44d6480d490e7ac80b7976bbd0d482bb14614ef8cd818d78f34" :a :db/ident :v :task/t-30c26830 :op :assert}
+   {:e #blake3 "91f1c1619197f44d6480d490e7ac80b7976bbd0d482bb14614ef8cd818d78f34" :a :task/created-at :v 1773928350 :op :assert}
+   {:e #blake3 "91f1c1619197f44d6480d490e7ac80b7976bbd0d482bb14614ef8cd818d78f34" :a :task/id :v "t-30c26830" :op :assert}
+   {:e #blake3 "91f1c1619197f44d6480d490e7ac80b7976bbd0d482bb14614ef8cd818d78f34" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "91f1c1619197f44d6480d490e7ac80b7976bbd0d482bb14614ef8cd818d78f34" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "91f1c1619197f44d6480d490e7ac80b7976bbd0d482bb14614ef8cd818d78f34" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "91f1c1619197f44d6480d490e7ac80b7976bbd0d482bb14614ef8cd818d78f34" :a :task/title :v "BOUNDARY-9: Unit + proptest for BoundaryCheck framework — trait dispatch, registry evaluate_all, F(S) integration, phantom witness detection (INV-BILATERAL-007..009). FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "91f1c1619197f44d6480d490e7ac80b7976bbd0d482bb14614ef8cd818d78f34" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "91f1c1619197f44d6480d490e7ac80b7976bbd0d482bb14614ef8cd818d78f34" :a :task/type :v :task.type/test :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928242/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-BILATERAL-008 \"Lateral Composition Integrity\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "04ad8c3adfed703f368e41a66a3cb769d45cb883dabaf041efe389b26e662b36" :a :db/doc :v "Lateral Composition Integrity" :op :assert}
+   {:e #blake3 "04ad8c3adfed703f368e41a66a3cb769d45cb883dabaf041efe389b26e662b36" :a :db/ident :v :spec/inv-bilateral-008 :op :assert}
+   {:e #blake3 "04ad8c3adfed703f368e41a66a3cb769d45cb883dabaf041efe389b26e662b36" :a :element/traces-to :v "SEED.md S6, INV-BILATERAL-007, INV-WITNESS-001, INV-REFLEXIVE-004" :op :assert}
+   {:e #blake3 "04ad8c3adfed703f368e41a66a3cb769d45cb883dabaf041efe389b26e662b36" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "04ad8c3adfed703f368e41a66a3cb769d45cb883dabaf041efe389b26e662b36" :a :spec/falsification :v "F(S).validation counts a witness whose target function is not in the reachable set computed by BFS from the entry point" :op :assert}
+   {:e #blake3 "04ad8c3adfed703f368e41a66a3cb769d45cb883dabaf041efe389b26e662b36" :a :spec/id :v "INV-BILATERAL-008" :op :assert}
+   {:e #blake3 "04ad8c3adfed703f368e41a66a3cb769d45cb883dabaf041efe389b26e662b36" :a :spec/namespace :v :spec.ns/BILATERAL :op :assert}
+   {:e #blake3 "04ad8c3adfed703f368e41a66a3cb769d45cb883dabaf041efe389b26e662b36" :a :spec/statement :v "For every witness entity W in the store, the function W witnesses must be reachable from the system's entry point through the composition graph. A witness for an unreachable function is a phantom witness. F(S).validation counts only non-phantom witnesses: f_validation = |witnesses ∩ reachable| / |total_specs|." :op :assert}
+ ]}

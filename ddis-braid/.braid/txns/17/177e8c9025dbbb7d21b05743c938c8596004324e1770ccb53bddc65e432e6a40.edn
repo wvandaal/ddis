@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928300/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-BILATERAL-004 \"No Silent Boundary Skipping\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3980e83492dfc9596b7a3297adab5101cc89703aa4d2ca4bfee345e83903a5c7" :a :db/doc :v "No Silent Boundary Skipping" :op :assert}
+   {:e #blake3 "3980e83492dfc9596b7a3297adab5101cc89703aa4d2ca4bfee345e83903a5c7" :a :db/ident :v :spec/neg-bilateral-004 :op :assert}
+   {:e #blake3 "3980e83492dfc9596b7a3297adab5101cc89703aa4d2ca4bfee345e83903a5c7" :a :element/traces-to :v "SEED.md S6, INV-BILATERAL-009, INV-BILATERAL-007" :op :assert}
+   {:e #blake3 "3980e83492dfc9596b7a3297adab5101cc89703aa4d2ca4bfee345e83903a5c7" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "3980e83492dfc9596b7a3297adab5101cc89703aa4d2ca4bfee345e83903a5c7" :a :spec/falsification :v "F(S) is computed while skipping a registered boundary without reporting the skip in the status output" :op :assert}
+   {:e #blake3 "3980e83492dfc9596b7a3297adab5101cc89703aa4d2ca4bfee345e83903a5c7" :a :spec/id :v "NEG-BILATERAL-004" :op :assert}
+   {:e #blake3 "3980e83492dfc9596b7a3297adab5101cc89703aa4d2ca4bfee345e83903a5c7" :a :spec/namespace :v :spec.ns/BILATERAL :op :assert}
+   {:e #blake3 "3980e83492dfc9596b7a3297adab5101cc89703aa4d2ca4bfee345e83903a5c7" :a :spec/statement :v "A registered BoundaryCheck must never be silently excluded from F(S) computation. If a boundary cannot be evaluated (e.g., missing extractor data), it must contribute a penalty score (not be omitted), and the status dashboard must surface which boundaries are unevaluable and why." :op :assert}
+ ]}

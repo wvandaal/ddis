@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773928352/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-6: Wire BoundaryRegistry into compute_fitness — F(S) becomes weighted sum across all registered boundaries (INV-BILATERAL-009, NEG-BILATERAL-004). FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7f6a3370d99596f127b4f3510ebd0c16101a04eddf2137f045877ab8c0cd41d6" :a :db/ident :v :task/t-fd30188b :op :assert}
+   {:e #blake3 "7f6a3370d99596f127b4f3510ebd0c16101a04eddf2137f045877ab8c0cd41d6" :a :task/created-at :v 1773928348 :op :assert}
+   {:e #blake3 "7f6a3370d99596f127b4f3510ebd0c16101a04eddf2137f045877ab8c0cd41d6" :a :task/id :v "t-fd30188b" :op :assert}
+   {:e #blake3 "7f6a3370d99596f127b4f3510ebd0c16101a04eddf2137f045877ab8c0cd41d6" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7f6a3370d99596f127b4f3510ebd0c16101a04eddf2137f045877ab8c0cd41d6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7f6a3370d99596f127b4f3510ebd0c16101a04eddf2137f045877ab8c0cd41d6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7f6a3370d99596f127b4f3510ebd0c16101a04eddf2137f045877ab8c0cd41d6" :a :task/title :v "BOUNDARY-6: Wire BoundaryRegistry into compute_fitness — F(S) becomes weighted sum across all registered boundaries (INV-BILATERAL-009, NEG-BILATERAL-004). FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "7f6a3370d99596f127b4f3510ebd0c16101a04eddf2137f045877ab8c0cd41d6" :a :task/traces-to :v #blake3 "3980e83492dfc9596b7a3297adab5101cc89703aa4d2ca4bfee345e83903a5c7" :op :assert}
+   {:e #blake3 "7f6a3370d99596f127b4f3510ebd0c16101a04eddf2137f045877ab8c0cd41d6" :a :task/traces-to :v #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :op :assert}
+   {:e #blake3 "7f6a3370d99596f127b4f3510ebd0c16101a04eddf2137f045877ab8c0cd41d6" :a :task/type :v :task.type/task :op :assert}
+ ]}

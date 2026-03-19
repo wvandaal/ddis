@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928252/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-BILATERAL-009 \"Boundary Divergence Honesty\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :a :db/doc :v "Boundary Divergence Honesty" :op :assert}
+   {:e #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :a :db/ident :v :spec/inv-bilateral-009 :op :assert}
+   {:e #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :a :element/traces-to :v "SEED.md S6, INV-BILATERAL-007, ADR-BILATERAL-001" :op :assert}
+   {:e #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :a :spec/falsification :v "A boundary has non-empty forward_gap but F(S) equals the value it would have if the gap were empty, OR a registered boundary is not evaluated during fitness computation" :op :assert}
+   {:e #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :a :spec/id :v "INV-BILATERAL-009" :op :assert}
+   {:e #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :a :spec/namespace :v :spec.ns/BILATERAL :op :assert}
+   {:e #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :a :spec/statement :v "F(S) must never claim more coherence than exists. For every registered boundary b, if divergence(b).forward_gap is non-empty, F(S) must be strictly less than it would be if the gap were empty. No boundary check may be silently skipped or its gap hidden." :op :assert}
+ ]}

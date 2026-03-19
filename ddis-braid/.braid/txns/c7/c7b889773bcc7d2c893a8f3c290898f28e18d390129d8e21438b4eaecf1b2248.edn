@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928350/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-4: ImplEntryBoundary — lateral scan checking test targets vs reachable functions. Queries :impl/reachable datoms populated by extractors (INV-BILATERAL-008, ADR-BILATERAL-006). FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dd44f59bb63d1d10822f26f3442b779288bb3eef05357b3493ecfbf0a88a953c" :a :db/ident :v :task/t-fcb935b6 :op :assert}
+   {:e #blake3 "dd44f59bb63d1d10822f26f3442b779288bb3eef05357b3493ecfbf0a88a953c" :a :task/created-at :v 1773928347 :op :assert}
+   {:e #blake3 "dd44f59bb63d1d10822f26f3442b779288bb3eef05357b3493ecfbf0a88a953c" :a :task/id :v "t-fcb935b6" :op :assert}
+   {:e #blake3 "dd44f59bb63d1d10822f26f3442b779288bb3eef05357b3493ecfbf0a88a953c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "dd44f59bb63d1d10822f26f3442b779288bb3eef05357b3493ecfbf0a88a953c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "dd44f59bb63d1d10822f26f3442b779288bb3eef05357b3493ecfbf0a88a953c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "dd44f59bb63d1d10822f26f3442b779288bb3eef05357b3493ecfbf0a88a953c" :a :task/title :v "BOUNDARY-4: ImplEntryBoundary — lateral scan checking test targets vs reachable functions. Queries :impl/reachable datoms populated by extractors (INV-BILATERAL-008, ADR-BILATERAL-006). FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "dd44f59bb63d1d10822f26f3442b779288bb3eef05357b3493ecfbf0a88a953c" :a :task/traces-to :v #blake3 "04ad8c3adfed703f368e41a66a3cb769d45cb883dabaf041efe389b26e662b36" :op :assert}
+   {:e #blake3 "dd44f59bb63d1d10822f26f3442b779288bb3eef05357b3493ecfbf0a88a953c" :a :task/type :v :task.type/task :op :assert}
+ ]}

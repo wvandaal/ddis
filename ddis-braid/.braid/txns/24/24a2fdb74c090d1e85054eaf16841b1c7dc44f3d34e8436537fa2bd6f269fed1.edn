@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928348/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-2: BoundaryRegistry struct — Vec<Box<dyn BoundaryCheck>> with register/evaluate_all/total_coverage (INV-BILATERAL-007). FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e04727bcd1ef88196a6a48547a3442da75aaf6aed90047010bd6cbe2de7c2c31" :a :db/ident :v :task/t-e59b8400 :op :assert}
+   {:e #blake3 "e04727bcd1ef88196a6a48547a3442da75aaf6aed90047010bd6cbe2de7c2c31" :a :task/created-at :v 1773928346 :op :assert}
+   {:e #blake3 "e04727bcd1ef88196a6a48547a3442da75aaf6aed90047010bd6cbe2de7c2c31" :a :task/id :v "t-e59b8400" :op :assert}
+   {:e #blake3 "e04727bcd1ef88196a6a48547a3442da75aaf6aed90047010bd6cbe2de7c2c31" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e04727bcd1ef88196a6a48547a3442da75aaf6aed90047010bd6cbe2de7c2c31" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e04727bcd1ef88196a6a48547a3442da75aaf6aed90047010bd6cbe2de7c2c31" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e04727bcd1ef88196a6a48547a3442da75aaf6aed90047010bd6cbe2de7c2c31" :a :task/title :v "BOUNDARY-2: BoundaryRegistry struct — Vec<Box<dyn BoundaryCheck>> with register/evaluate_all/total_coverage (INV-BILATERAL-007). FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "e04727bcd1ef88196a6a48547a3442da75aaf6aed90047010bd6cbe2de7c2c31" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "e04727bcd1ef88196a6a48547a3442da75aaf6aed90047010bd6cbe2de7c2c31" :a :task/type :v :task.type/task :op :assert}
+ ]}

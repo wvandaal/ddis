@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928380/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "BOUNDARY FRAMEWORK: 6 spec elements (3 INV, 2 ADR, 2 NEG) + 11 tasks (1 EPIC + 10 implementation) fully specified with dependency graph. Dependency chain: BOUNDARY-1 (trait) -> [BOUNDARY-2 (registry) || BOUNDARY-3 (refactor) || BOUNDARY-4 (lateral)] -> BOUNDARY-6 (F(S) wiring) -> [BOUNDARY-8 (status) || BOUNDARY-10 (E2E)]. Parallel tracks: BOUNDARY-7 (schema) -> BOUNDARY-5 (extractor). Tests: BOUNDARY-9 (unit+proptest) depends on T1+T2. Critical path: T1 -> T2 -> T6 -> T8 (4 serial steps). Maximum parallelism: T1 ready now, then T2||T3||T4||T7||T9 in parallel."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0c9945b8bf8b05d779a9643163f6ef33677a437636c66fb3f2872bdcb64b6cd6" :a :db/doc :v "BOUNDARY FRAMEWORK: 6 spec elements (3 INV, 2 ADR, 2 NEG) + 11 tasks (1 EPIC + 10 implementation) fully specified with dependency graph. Dependency chain: BOUNDARY-1 (trait) -> [BOUNDARY-2 (registry) || BOUNDARY-3 (refactor) || BOUNDARY-4 (lateral)] -> BOUNDARY-6 (F(S) wiring) -> [BOUNDARY-8 (status) || BOUNDARY-10 (E2E)]. Parallel tracks: BOUNDARY-7 (schema) -> BOUNDARY-5 (extractor). Tests: BOUNDARY-9 (unit+proptest) depends on T1+T2. Critical path: T1 -> T2 -> T6 -> T8 (4 serial steps). Maximum parallelism: T1 ready now, then T2||T3||T4||T7||T9 in parallel." :op :assert}
+   {:e #blake3 "0c9945b8bf8b05d779a9643163f6ef33677a437636c66fb3f2872bdcb64b6cd6" :a :db/ident :v :observation/boundary-framework-6-spec-elements-3-inv-2-adr-2-neg :op :assert}
+   {:e #blake3 "0c9945b8bf8b05d779a9643163f6ef33677a437636c66fb3f2872bdcb64b6cd6" :a :exploration/body :v "BOUNDARY FRAMEWORK: 6 spec elements (3 INV, 2 ADR, 2 NEG) + 11 tasks (1 EPIC + 10 implementation) fully specified with dependency graph. Dependency chain: BOUNDARY-1 (trait) -> [BOUNDARY-2 (registry) || BOUNDARY-3 (refactor) || BOUNDARY-4 (lateral)] -> BOUNDARY-6 (F(S) wiring) -> [BOUNDARY-8 (status) || BOUNDARY-10 (E2E)]. Parallel tracks: BOUNDARY-7 (schema) -> BOUNDARY-5 (extractor). Tests: BOUNDARY-9 (unit+proptest) depends on T1+T2. Critical path: T1 -> T2 -> T6 -> T8 (4 serial steps). Maximum parallelism: T1 ready now, then T2||T3||T4||T7||T9 in parallel." :op :assert}
+   {:e #blake3 "0c9945b8bf8b05d779a9643163f6ef33677a437636c66fb3f2872bdcb64b6cd6" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "0c9945b8bf8b05d779a9643163f6ef33677a437636c66fb3f2872bdcb64b6cd6" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "0c9945b8bf8b05d779a9643163f6ef33677a437636c66fb3f2872bdcb64b6cd6" :a :exploration/content-hash :v #bytes "c185b22589382f05d6e6da47a1080edd836abb5b4d9f29f2cce743f2a350e9e9" :op :assert}
+   {:e #blake3 "0c9945b8bf8b05d779a9643163f6ef33677a437636c66fb3f2872bdcb64b6cd6" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0c9945b8bf8b05d779a9643163f6ef33677a437636c66fb3f2872bdcb64b6cd6" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0c9945b8bf8b05d779a9643163f6ef33677a437636c66fb3f2872bdcb64b6cd6" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

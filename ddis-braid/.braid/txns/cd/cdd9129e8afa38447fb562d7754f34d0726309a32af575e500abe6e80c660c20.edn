@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773928354/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-8: Surface boundary divergence in braid status — show per-boundary coverage and gaps alongside F(S) (INV-BILATERAL-009, INV-INTERFACE-001). FILE: crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3eb66326efb7aa5f07f300d05b3d3d0dcfd30bf8971e6b3ac51acf2432282b0c" :a :db/ident :v :task/t-5950fa0c :op :assert}
+   {:e #blake3 "3eb66326efb7aa5f07f300d05b3d3d0dcfd30bf8971e6b3ac51acf2432282b0c" :a :task/created-at :v 1773928349 :op :assert}
+   {:e #blake3 "3eb66326efb7aa5f07f300d05b3d3d0dcfd30bf8971e6b3ac51acf2432282b0c" :a :task/id :v "t-5950fa0c" :op :assert}
+   {:e #blake3 "3eb66326efb7aa5f07f300d05b3d3d0dcfd30bf8971e6b3ac51acf2432282b0c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3eb66326efb7aa5f07f300d05b3d3d0dcfd30bf8971e6b3ac51acf2432282b0c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3eb66326efb7aa5f07f300d05b3d3d0dcfd30bf8971e6b3ac51acf2432282b0c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3eb66326efb7aa5f07f300d05b3d3d0dcfd30bf8971e6b3ac51acf2432282b0c" :a :task/title :v "BOUNDARY-8: Surface boundary divergence in braid status — show per-boundary coverage and gaps alongside F(S) (INV-BILATERAL-009, INV-INTERFACE-001). FILE: crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "3eb66326efb7aa5f07f300d05b3d3d0dcfd30bf8971e6b3ac51acf2432282b0c" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "3eb66326efb7aa5f07f300d05b3d3d0dcfd30bf8971e6b3ac51acf2432282b0c" :a :task/traces-to :v #blake3 "55cda4f5a4da271be0fab59cb9bce41bd83ec5d9177c8a274e4245d64c2c7c6c" :op :assert}
+   {:e #blake3 "3eb66326efb7aa5f07f300d05b3d3d0dcfd30bf8971e6b3ac51acf2432282b0c" :a :task/type :v :task.type/task :op :assert}
+ ]}

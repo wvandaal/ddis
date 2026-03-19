@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928291/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-BILATERAL-003 \"No Language-Specific Logic in Kernel Boundary Checks\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "73b1cbca3311b70c7e4d77fe0e304752cfecf2271003625934d3b8212ace1202" :a :db/doc :v "No Language-Specific Logic in Kernel Boundary Checks" :op :assert}
+   {:e #blake3 "73b1cbca3311b70c7e4d77fe0e304752cfecf2271003625934d3b8212ace1202" :a :db/ident :v :spec/neg-bilateral-003 :op :assert}
+   {:e #blake3 "73b1cbca3311b70c7e4d77fe0e304752cfecf2271003625934d3b8212ace1202" :a :element/traces-to :v "SEED.md S4, ADR-BILATERAL-006, INV-BILATERAL-007" :op :assert}
+   {:e #blake3 "73b1cbca3311b70c7e4d77fe0e304752cfecf2271003625934d3b8212ace1202" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "73b1cbca3311b70c7e4d77fe0e304752cfecf2271003625934d3b8212ace1202" :a :spec/falsification :v "A BoundaryCheck implementation in braid-kernel reads a .rs, .py, .js, or any source file, or invokes a compiler/analyzer" :op :assert}
+   {:e #blake3 "73b1cbca3311b70c7e4d77fe0e304752cfecf2271003625934d3b8212ace1202" :a :spec/id :v "NEG-BILATERAL-003" :op :assert}
+   {:e #blake3 "73b1cbca3311b70c7e4d77fe0e304752cfecf2271003625934d3b8212ace1202" :a :spec/namespace :v :spec.ns/BILATERAL :op :assert}
+   {:e #blake3 "73b1cbca3311b70c7e4d77fe0e304752cfecf2271003625934d3b8212ace1202" :a :spec/statement :v "No BoundaryCheck implementation in braid-kernel may import, parse, or analyze source code in any language. Boundary checks operate exclusively on datom entity sets. Language-specific analysis belongs in extractors (CLI layer or external tools) that transact results as datoms." :op :assert}
+ ]}

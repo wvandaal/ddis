@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773925207/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Datalog zero-result type hint: warn when query uses string literal on Keyword attribute (INV-INTERFACE-009)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "480c7985705a896721e4598322ca543971f2ca106782c489d6a59f6806481f34" :a :db/ident :v :task/t-fc935f6e :op :assert}
+   {:e #blake3 "480c7985705a896721e4598322ca543971f2ca106782c489d6a59f6806481f34" :a :task/created-at :v 1773925206 :op :assert}
+   {:e #blake3 "480c7985705a896721e4598322ca543971f2ca106782c489d6a59f6806481f34" :a :task/id :v "t-fc935f6e" :op :assert}
+   {:e #blake3 "480c7985705a896721e4598322ca543971f2ca106782c489d6a59f6806481f34" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "480c7985705a896721e4598322ca543971f2ca106782c489d6a59f6806481f34" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "480c7985705a896721e4598322ca543971f2ca106782c489d6a59f6806481f34" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "480c7985705a896721e4598322ca543971f2ca106782c489d6a59f6806481f34" :a :task/title :v "Datalog zero-result type hint: warn when query uses string literal on Keyword attribute (INV-INTERFACE-009)" :op :assert}
+   {:e #blake3 "480c7985705a896721e4598322ca543971f2ca106782c489d6a59f6806481f34" :a :task/traces-to :v #blake3 "fef56a9cb08a30bf263aecdb18911320804bef2e1a05aabbb107ebcae03e2532" :op :assert}
+   {:e #blake3 "480c7985705a896721e4598322ca543971f2ca106782c489d6a59f6806481f34" :a :task/type :v :task.type/bug :op :assert}
+ ]}

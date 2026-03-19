@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928351/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-5: Rust module reachability extractor — scan filesystem mod.rs declarations, populate :impl/reachable datoms (ADR-BILATERAL-006, NEG-BILATERAL-003). FILE: crates/braid/src/commands/verify.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8e7e28d4b211f9f2ea6c6d902eef4ba1672b76e929e5addae559b379a64a75eb" :a :db/ident :v :task/t-b5959bed :op :assert}
+   {:e #blake3 "8e7e28d4b211f9f2ea6c6d902eef4ba1672b76e929e5addae559b379a64a75eb" :a :task/created-at :v 1773928348 :op :assert}
+   {:e #blake3 "8e7e28d4b211f9f2ea6c6d902eef4ba1672b76e929e5addae559b379a64a75eb" :a :task/id :v "t-b5959bed" :op :assert}
+   {:e #blake3 "8e7e28d4b211f9f2ea6c6d902eef4ba1672b76e929e5addae559b379a64a75eb" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "8e7e28d4b211f9f2ea6c6d902eef4ba1672b76e929e5addae559b379a64a75eb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8e7e28d4b211f9f2ea6c6d902eef4ba1672b76e929e5addae559b379a64a75eb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8e7e28d4b211f9f2ea6c6d902eef4ba1672b76e929e5addae559b379a64a75eb" :a :task/title :v "BOUNDARY-5: Rust module reachability extractor — scan filesystem mod.rs declarations, populate :impl/reachable datoms (ADR-BILATERAL-006, NEG-BILATERAL-003). FILE: crates/braid/src/commands/verify.rs" :op :assert}
+   {:e #blake3 "8e7e28d4b211f9f2ea6c6d902eef4ba1672b76e929e5addae559b379a64a75eb" :a :task/traces-to :v #blake3 "73b1cbca3311b70c7e4d77fe0e304752cfecf2271003625934d3b8212ace1202" :op :assert}
+   {:e #blake3 "8e7e28d4b211f9f2ea6c6d902eef4ba1672b76e929e5addae559b379a64a75eb" :a :task/type :v :task.type/task :op :assert}
+ ]}

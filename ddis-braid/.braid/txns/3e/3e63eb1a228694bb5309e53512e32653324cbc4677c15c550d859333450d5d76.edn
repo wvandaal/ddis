@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928353/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-7: Register :boundary/* schema attributes — :boundary/name, :boundary/coverage, :boundary/forward-gap-count, :boundary/evaluated-at (INV-SCHEMA-001). FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ef9ade069feb69e230e943d695e6aca96578ebb9d8bc6cbdf8f154711071555c" :a :db/ident :v :task/t-ffc41d7b :op :assert}
+   {:e #blake3 "ef9ade069feb69e230e943d695e6aca96578ebb9d8bc6cbdf8f154711071555c" :a :task/created-at :v 1773928349 :op :assert}
+   {:e #blake3 "ef9ade069feb69e230e943d695e6aca96578ebb9d8bc6cbdf8f154711071555c" :a :task/id :v "t-ffc41d7b" :op :assert}
+   {:e #blake3 "ef9ade069feb69e230e943d695e6aca96578ebb9d8bc6cbdf8f154711071555c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "ef9ade069feb69e230e943d695e6aca96578ebb9d8bc6cbdf8f154711071555c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ef9ade069feb69e230e943d695e6aca96578ebb9d8bc6cbdf8f154711071555c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ef9ade069feb69e230e943d695e6aca96578ebb9d8bc6cbdf8f154711071555c" :a :task/title :v "BOUNDARY-7: Register :boundary/* schema attributes — :boundary/name, :boundary/coverage, :boundary/forward-gap-count, :boundary/evaluated-at (INV-SCHEMA-001). FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "ef9ade069feb69e230e943d695e6aca96578ebb9d8bc6cbdf8f154711071555c" :a :task/traces-to :v #blake3 "c54a22ea31d81dc0396e7e107f9bc8957349913c19c6b00db7800927f5c8a5bf" :op :assert}
+   {:e #blake3 "ef9ade069feb69e230e943d695e6aca96578ebb9d8bc6cbdf8f154711071555c" :a :task/type :v :task.type/task :op :assert}
+ ]}

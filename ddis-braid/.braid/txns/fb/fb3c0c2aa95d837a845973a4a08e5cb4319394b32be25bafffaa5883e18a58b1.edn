@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773928347/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOUNDARY-1: BoundaryCheck trait + BoundaryDivergence + SetRelation types in bilateral.rs (INV-BILATERAL-007). FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :db/ident :v :task/t-b78da510 :op :assert}
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/created-at :v 1773928345 :op :assert}
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/id :v "t-b78da510" :op :assert}
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/title :v "BOUNDARY-1: BoundaryCheck trait + BoundaryDivergence + SetRelation types in bilateral.rs (INV-BILATERAL-007). FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/traces-to :v #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :op :assert}
+   {:e #blake3 "7641c409f98d8b738167602918b3af80fc931dcc9b637254d29fcecf58545208" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928268/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-BILATERAL-005 \"Generalized Boundary Framework over Hardcoded Bilateral\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8d5c386af5f718788ab6735a5a42d14aa06a8907d5a921f155f675bd50dd9667" :a :adr/decision :v "Generalize the bilateral loop into a BoundaryCheck trait registry. Each boundary defines source_set(store) and target_set(store) returning entity ID sets. The framework computes divergence (set difference), coverage (intersection/union), and feeds all boundaries into F(S) as weighted dimensions. Language-specific extractors populate datoms; the kernel operates on entity sets only. Alternatives rejected: (1) Separate verification commands per boundary type — duplicates the fitness/guidance/routing pipeline N times. (2) Language-specific static analysis in kernel — violates kernel purity (no IO). (3) Runtime-only detection — catches failures too late." :op :assert}
+   {:e #blake3 "8d5c386af5f718788ab6735a5a42d14aa06a8907d5a921f155f675bd50dd9667" :a :adr/problem :v "The bilateral loop is hardcoded to check spec-impl alignment. Dead wiring, schema drift, config coverage, and other divergence types require the same check-and-correct pattern but have no integration point." :op :assert}
+   {:e #blake3 "8d5c386af5f718788ab6735a5a42d14aa06a8907d5a921f155f675bd50dd9667" :a :db/doc :v "Generalized Boundary Framework over Hardcoded Bilateral" :op :assert}
+   {:e #blake3 "8d5c386af5f718788ab6735a5a42d14aa06a8907d5a921f155f675bd50dd9667" :a :db/ident :v :spec/adr-bilateral-005 :op :assert}
+   {:e #blake3 "8d5c386af5f718788ab6735a5a42d14aa06a8907d5a921f155f675bd50dd9667" :a :element/traces-to :v "SEED.md S6, SEED.md S4, ADR-BILATERAL-001, INV-BILATERAL-007" :op :assert}
+   {:e #blake3 "8d5c386af5f718788ab6735a5a42d14aa06a8907d5a921f155f675bd50dd9667" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "8d5c386af5f718788ab6735a5a42d14aa06a8907d5a921f155f675bd50dd9667" :a :spec/id :v "ADR-BILATERAL-005" :op :assert}
+   {:e #blake3 "8d5c386af5f718788ab6735a5a42d14aa06a8907d5a921f155f675bd50dd9667" :a :spec/namespace :v :spec.ns/BILATERAL :op :assert}
+ ]}

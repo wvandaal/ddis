@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773928226/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-BILATERAL-007 \"Parameterized Boundary Checking\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :a :db/doc :v "Parameterized Boundary Checking" :op :assert}
+   {:e #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :a :db/ident :v :spec/inv-bilateral-007 :op :assert}
+   {:e #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :a :element/traces-to :v "SEED.md S6, spec/10-bilateral.md, INV-BILATERAL-001" :op :assert}
+   {:e #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :a :spec/falsification :v "A divergence type exists that requires modifying the fitness computation function, guidance footer, or routing pipeline rather than implementing BoundaryCheck and registering it" :op :assert}
+   {:e #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :a :spec/id :v "INV-BILATERAL-007" :op :assert}
+   {:e #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :a :spec/namespace :v :spec.ns/BILATERAL :op :assert}
+   {:e #blake3 "41d57492178f333b79f8bff1c91884aae3009ca5b88c7ffd5d9eda8eb52af2a2" :a :spec/statement :v "The bilateral loop operates over a registry of BoundaryCheck instances, each defining a source set S and target set T of entity IDs. F(S) = Σ wᵢ × coverage(bᵢ) where coverage(b) = |S ∩ T| / |S| for boundary b. Adding a new divergence boundary requires only implementing the BoundaryCheck trait and registering it — the fitness computation, guidance system, and routing pipeline apply automatically." :op :assert}
+ ]}
