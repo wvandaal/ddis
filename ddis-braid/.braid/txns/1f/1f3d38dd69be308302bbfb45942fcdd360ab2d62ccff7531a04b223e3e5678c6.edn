@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773889665/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix PGO: separate testable logic from empirical convergence"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ed398faaf8b14ef34bcf095effb13e242bcc793a463106347eaf5b011531313a" :a :task/acceptance :v "REVISED: (A) UNIT TEST: Given synthetic session data (3 task pairs, known predicted vs observed coupling), PGO produces correct weight deltas. (B) UNIT TEST: Weight updates bounded — no single update changes any weight by > 0.1. (C) UNIT TEST: Historical coupling for recorded conflict pairs is > 0 in next plan. (D) UNIT TEST: PGO with empty event data produces no weight changes. (E) INTEGRATION TEST: Two sequential plan-execute-harvest-pgo cycles show prediction_delta decreasing. (F) PROPERTY: PGO weight sum remains 1.0 after updates (weights are re-normalized). NOTE: Multi-session convergence (INV-TOPOLOGY-016) is an empirical property that emerges over real usage. It is DOCUMENTED as an expected outcome but not REQUIRED to pass in automated tests. The unit tests verify the MECHANISM is correct; convergence follows from mechanism correctness." :op :assert}
+ ]}

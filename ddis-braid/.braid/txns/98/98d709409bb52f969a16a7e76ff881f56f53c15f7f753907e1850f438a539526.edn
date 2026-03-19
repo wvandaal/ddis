@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773890549/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST: Integration tests for braid task set — prevent silent NO-OP failures (Session 025 FM)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "495e5cd9fb11d7fcc967ed5932af03ef18e5e5680da48f59d6a3cc8382014114" :a :db/ident :v :task/t-282227bb :op :assert}
+   {:e #blake3 "495e5cd9fb11d7fcc967ed5932af03ef18e5e5680da48f59d6a3cc8382014114" :a :task/created-at :v 1773890548 :op :assert}
+   {:e #blake3 "495e5cd9fb11d7fcc967ed5932af03ef18e5e5680da48f59d6a3cc8382014114" :a :task/id :v "t-282227bb" :op :assert}
+   {:e #blake3 "495e5cd9fb11d7fcc967ed5932af03ef18e5e5680da48f59d6a3cc8382014114" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "495e5cd9fb11d7fcc967ed5932af03ef18e5e5680da48f59d6a3cc8382014114" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "495e5cd9fb11d7fcc967ed5932af03ef18e5e5680da48f59d6a3cc8382014114" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "495e5cd9fb11d7fcc967ed5932af03ef18e5e5680da48f59d6a3cc8382014114" :a :task/title :v "TEST: Integration tests for braid task set — prevent silent NO-OP failures (Session 025 FM)" :op :assert}
+   {:e #blake3 "495e5cd9fb11d7fcc967ed5932af03ef18e5e5680da48f59d6a3cc8382014114" :a :task/type :v :task.type/test :op :assert}
+ ]}

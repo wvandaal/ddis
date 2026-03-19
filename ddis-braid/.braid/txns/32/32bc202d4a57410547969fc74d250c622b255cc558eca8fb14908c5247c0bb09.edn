@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773889108/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: test-find-me"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "49ed2b56905fbf98d6472e0495e7a90c59687b9551f2ca8553a23d517702d790" :a :db/ident :v :task/t-ef32ca90 :op :assert}
+   {:e #blake3 "49ed2b56905fbf98d6472e0495e7a90c59687b9551f2ca8553a23d517702d790" :a :task/created-at :v 1773889107 :op :assert}
+   {:e #blake3 "49ed2b56905fbf98d6472e0495e7a90c59687b9551f2ca8553a23d517702d790" :a :task/id :v "t-ef32ca90" :op :assert}
+   {:e #blake3 "49ed2b56905fbf98d6472e0495e7a90c59687b9551f2ca8553a23d517702d790" :a :task/priority :v 3 :op :assert}
+   {:e #blake3 "49ed2b56905fbf98d6472e0495e7a90c59687b9551f2ca8553a23d517702d790" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "49ed2b56905fbf98d6472e0495e7a90c59687b9551f2ca8553a23d517702d790" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "49ed2b56905fbf98d6472e0495e7a90c59687b9551f2ca8553a23d517702d790" :a :task/title :v "test-find-me" :op :assert}
+   {:e #blake3 "49ed2b56905fbf98d6472e0495e7a90c59687b9551f2ca8553a23d517702d790" :a :task/type :v :task.type/task :op :assert}
+ ]}

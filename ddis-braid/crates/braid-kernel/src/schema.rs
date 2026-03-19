@@ -1974,6 +1974,61 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Path to the test file providing witness evidence",
         ),
+        // --- Topology (ADR-TOPOLOGY-004, INV-TOPOLOGY-001..005) ---
+        attr(
+            ":topology/assignment",
+            ValueType::String,
+            Cardinality::One,
+            "Agent name assigned to this task by topology compilation",
+        ),
+        attr(
+            ":topology/coupling-weights",
+            ValueType::String,
+            Cardinality::One,
+            "JSON-encoded coupling weight vector for multi-signal fusion",
+        ),
+        attr(
+            ":topology/event-type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Topology event type: :topology.event/completion, :topology.event/conflict, :topology.event/merge, :topology.event/block",
+        ),
+        attr(
+            ":topology/event-agent",
+            ValueType::String,
+            Cardinality::One,
+            "Agent identity that produced this topology event",
+        ),
+        attr(
+            ":topology/event-details",
+            ValueType::String,
+            Cardinality::One,
+            "JSON-encoded details of a topology coordination event",
+        ),
+        attr(
+            ":topology/fitness-total",
+            ValueType::Double,
+            Cardinality::One,
+            "F(T) topology fitness score — weighted sum of 7 dimensions",
+        ),
+        attr(
+            ":topology/plan-entropy",
+            ValueType::Double,
+            Cardinality::One,
+            "Coupling entropy S(rho_C) of the topology plan",
+        ),
+        attr(
+            ":topology/plan-parallelizability",
+            ValueType::Double,
+            Cardinality::One,
+            "Parallelizability coefficient p = r_eff / n",
+        ),
+        attr(
+            ":topology/plan-pattern",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Topology pattern: :topology.pattern/mesh, /star, /hybrid, /solo, /pipeline",
+        ),
     ]
 }
 

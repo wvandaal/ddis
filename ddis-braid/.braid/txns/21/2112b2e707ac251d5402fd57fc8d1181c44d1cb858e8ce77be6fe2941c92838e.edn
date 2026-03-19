@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773891229/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for QUICK-7"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b915b674ed1ff300d9c81f930e2597e9479be161af5a3746d10e733941eeb4b2" :a :task/acceptance :v "(A) 15+ unit tests. (B) At least 2 proptests (disjointness, determinism). (C) All pass with cargo test --release. (D) Every public function has at least 2 tests." :op :assert}
+   {:e #blake3 "b915b674ed1ff300d9c81f930e2597e9479be161af5a3746d10e733941eeb4b2" :a :task/background :v "Comprehensive unit tests for every function in the quick plan pipeline. TESTS: (1) agent_name_from_files: single file -> stem, multiple files -> top-2 hyphenated, empty -> fallback, long names -> truncated, deterministic. (2) balance_assign: more partitions than agents -> merged, fewer partitions -> split, equal sizes -> round-robin, impact balancing verified, unassigned tasks -> lowest-impact agent. (3) quick_plan: empty store -> error, 10 tasks 2 agents -> valid plan, single agent -> all tasks, disjoint file sets verified, deterministic (call twice, assert equal). (4) format_plan: human <= 300 tokens, agent <= 150 tokens, json parseable, L0 summary line present. (5) Edge cases: tasks with no file refs, tasks with same file, agent_count > task_count. (6) Proptest: random task sets -> file disjointness invariant holds, all tasks assigned, deterministic. FILE: crates/braid-kernel/src/topology.rs (tests module)" :op :assert}
+ ]}

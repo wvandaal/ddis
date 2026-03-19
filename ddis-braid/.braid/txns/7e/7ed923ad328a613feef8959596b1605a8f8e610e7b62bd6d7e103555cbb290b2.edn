@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773891299/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Wire TOPO-QUICK subtask chain"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :task/approach :v "DECOMPOSED into 9 subtasks in strict dependency chain: QUICK-1 (t-254ca64d) AgentAssignment + agent_name_from_files -> QUICK-2 (t-8bf090e7) balance_assign bin-packing -> QUICK-3 (t-32f47d25) quick_plan orchestrator -> QUICK-4 (t-efb42dc7) format_plan output -> QUICK-5 (t-df3adca0) emit_seed_files -> QUICK-6 (t-177a5248) CLI wiring -> QUICK-7 (t-5b3ea264) 15+ unit tests (parallel with QUICK-4) -> QUICK-8 (t-ca4e98bd) E2E test script -> QUICK-9 (t-8d9df01d) Self-bootstrap test on real store. Total: ~350 lines kernel + ~100 lines CLI + ~150 lines tests + ~50 lines E2E script. Estimated: 2-3 hours for experienced implementor. All kernel work in topology.rs. CLI in commands/topology.rs (new file). Tests in topology.rs test module + scripts/e2e_topology_quick.sh." :op :assert}
+ ]}

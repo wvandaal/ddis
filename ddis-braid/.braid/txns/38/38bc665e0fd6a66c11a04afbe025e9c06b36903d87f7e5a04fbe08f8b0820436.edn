@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773897272/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Pre-existing test fix: guidance_context_from_empty_store assertion updated from exact k_eff=1.0 to range 0.5..1.0. Root cause: KEFF-3 sigmoid fusion gives k_eff≈0.74 for zero evidence, not 1.0."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8111c1eec77e6153661caf4440d36e6a53fc9d2276068b8d7b3c5e6b147fe6ed" :a :db/doc :v "Pre-existing test fix: guidance_context_from_empty_store assertion updated from exact k_eff=1.0 to range 0.5..1.0. Root cause: KEFF-3 sigmoid fusion gives k_eff≈0.74 for zero evidence, not 1.0." :op :assert}
+   {:e #blake3 "8111c1eec77e6153661caf4440d36e6a53fc9d2276068b8d7b3c5e6b147fe6ed" :a :db/ident :v :observation/pre-existing-test-fix-guidance-context-from-empty-store-ass :op :assert}
+   {:e #blake3 "8111c1eec77e6153661caf4440d36e6a53fc9d2276068b8d7b3c5e6b147fe6ed" :a :exploration/body :v "Pre-existing test fix: guidance_context_from_empty_store assertion updated from exact k_eff=1.0 to range 0.5..1.0. Root cause: KEFF-3 sigmoid fusion gives k_eff≈0.74 for zero evidence, not 1.0." :op :assert}
+   {:e #blake3 "8111c1eec77e6153661caf4440d36e6a53fc9d2276068b8d7b3c5e6b147fe6ed" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "8111c1eec77e6153661caf4440d36e6a53fc9d2276068b8d7b3c5e6b147fe6ed" :a :exploration/confidence :v 1.0 :op :assert}
+   {:e #blake3 "8111c1eec77e6153661caf4440d36e6a53fc9d2276068b8d7b3c5e6b147fe6ed" :a :exploration/content-hash :v #bytes "9406cdebead7b9fb464ce91dcf8bac96fe07d5183451cbcda82298864f190fd7" :op :assert}
+   {:e #blake3 "8111c1eec77e6153661caf4440d36e6a53fc9d2276068b8d7b3c5e6b147fe6ed" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8111c1eec77e6153661caf4440d36e6a53fc9d2276068b8d7b3c5e6b147fe6ed" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8111c1eec77e6153661caf4440d36e6a53fc9d2276068b8d7b3c5e6b147fe6ed" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

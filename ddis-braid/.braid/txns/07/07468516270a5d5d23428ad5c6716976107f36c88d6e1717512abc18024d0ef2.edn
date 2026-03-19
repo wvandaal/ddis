@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773889706/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for persistence test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "154ba37677a915be8cb383ec8cf205e2307beafde3ae5a5eaaa58780a0f46b8c" :a :task/acceptance :v "(A) 5+ tests covering roundtrip, append-only, queryability. (B) All tests use Store::genesis() test fixture. (C) Tests verify immutability (no datom deletion or mutation)." :op :assert}
+   {:e #blake3 "154ba37677a915be8cb383ec8cf205e2307beafde3ae5a5eaaa58780a0f46b8c" :a :task/background :v "Tests for plan persistence (INV-TOPOLOGY-003: every topology decision is an immutable datom). (a) plan_to_datoms roundtrip: compute plan, convert to datoms, transact, query back, verify all fields match. (b) Append-only: run plan twice, verify 2 plan entities exist (not 1 overwritten). (c) Task assignment queryable: after plan transact, query '[:find ?task ?agent :where [?t :task/id ?task] [?t :topology/assignment ?agent]]' returns correct partition. (d) Coupling weights stored: query :topology/coupling-weights returns the weights used. (e) Second plan with different agent count creates independent entity." :op :assert}
+ ]}

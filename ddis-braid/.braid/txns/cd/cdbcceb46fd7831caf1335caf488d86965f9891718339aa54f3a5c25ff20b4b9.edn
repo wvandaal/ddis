@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773889504/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix TOPO-SPEC-DEPS: clarify parsing location"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c7fb53eeb065b119c0d5abbf79a446a006207b6d418f8514be98922099dece95" :a :task/approach :v "Parsing happens in CLI crate (kernel has no IO). Two options: (A) New braid spec import-deps command that reads spec/*.md files, extracts Traces-to lines, normalizes IDs via SpecId, and transacts :spec/traces-to datoms. (B) One-time script scripts/import_spec_deps.sh that calls braid write assert for each edge. Option A is preferred (reusable, self-documenting). The parser: for each spec file, find lines matching 'Traces to:' or 'traces to:', extract comma-separated refs, normalize each via SpecId::from_any(), resolve to store entities, transact :spec/traces-to Ref datoms. Handle: SEED.md section refs (e.g., 'SEED.md S4'), cross-namespace refs (e.g., 'INV-STORE-012'), and spec doc refs (e.g., 'spec/01-store.md'). FILE: crates/braid/src/commands/spec.rs (new) or extend schema.rs" :op :assert}
+ ]}

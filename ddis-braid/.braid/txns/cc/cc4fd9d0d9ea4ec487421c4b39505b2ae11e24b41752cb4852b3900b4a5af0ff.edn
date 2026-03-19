@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773885076/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "testing coupling matrix computation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b09c207fa8cc6aff82e9a0376468d0d9723d911811dcc43eb0903c27120afb0d" :a :db/doc :v "testing coupling matrix computation" :op :assert}
+   {:e #blake3 "b09c207fa8cc6aff82e9a0376468d0d9723d911811dcc43eb0903c27120afb0d" :a :db/ident :v :observation/testing-coupling-matrix-computation :op :assert}
+   {:e #blake3 "b09c207fa8cc6aff82e9a0376468d0d9723d911811dcc43eb0903c27120afb0d" :a :exploration/body :v "testing coupling matrix computation" :op :assert}
+   {:e #blake3 "b09c207fa8cc6aff82e9a0376468d0d9723d911811dcc43eb0903c27120afb0d" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "b09c207fa8cc6aff82e9a0376468d0d9723d911811dcc43eb0903c27120afb0d" :a :exploration/confidence :v 0.3 :op :assert}
+   {:e #blake3 "b09c207fa8cc6aff82e9a0376468d0d9723d911811dcc43eb0903c27120afb0d" :a :exploration/content-hash :v #bytes "a4a988b1ae32a78171978e5f6847ed0bc425f061a833dc4843443044a888e0eb" :op :assert}
+   {:e #blake3 "b09c207fa8cc6aff82e9a0376468d0d9723d911811dcc43eb0903c27120afb0d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b09c207fa8cc6aff82e9a0376468d0d9723d911811dcc43eb0903c27120afb0d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b09c207fa8cc6aff82e9a0376468d0d9723d911811dcc43eb0903c27120afb0d" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

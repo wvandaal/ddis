@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773891238/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: QUICK-8: E2E test scripts/e2e_topology_quick.sh — 8 tests with [PASS]/[FAIL] logging (INV-TOPOLOGY-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a4de7696393ae0fbe04273baf72ce5557ee625cb955c17622ebeaed739fa6264" :a :db/ident :v :task/t-ca4e98bd :op :assert}
+   {:e #blake3 "a4de7696393ae0fbe04273baf72ce5557ee625cb955c17622ebeaed739fa6264" :a :task/created-at :v 1773891237 :op :assert}
+   {:e #blake3 "a4de7696393ae0fbe04273baf72ce5557ee625cb955c17622ebeaed739fa6264" :a :task/id :v "t-ca4e98bd" :op :assert}
+   {:e #blake3 "a4de7696393ae0fbe04273baf72ce5557ee625cb955c17622ebeaed739fa6264" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a4de7696393ae0fbe04273baf72ce5557ee625cb955c17622ebeaed739fa6264" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a4de7696393ae0fbe04273baf72ce5557ee625cb955c17622ebeaed739fa6264" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a4de7696393ae0fbe04273baf72ce5557ee625cb955c17622ebeaed739fa6264" :a :task/title :v "QUICK-8: E2E test scripts/e2e_topology_quick.sh — 8 tests with [PASS]/[FAIL] logging (INV-TOPOLOGY-005)" :op :assert}
+   {:e #blake3 "a4de7696393ae0fbe04273baf72ce5557ee625cb955c17622ebeaed739fa6264" :a :task/traces-to :v #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :op :assert}
+   {:e #blake3 "a4de7696393ae0fbe04273baf72ce5557ee625cb955c17622ebeaed739fa6264" :a :task/type :v :task.type/test :op :assert}
+ ]}

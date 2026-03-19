@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773889591/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix TopologyError: remove SingularMatrix (impossible), refine variants"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2ef844e9010faff594b4433c5c847d7945eb8c8b263b29e22467042dd146406d" :a :task/background :v "REVISED error algebra. TopologyError variants: (1) InsufficientTasks { ready: usize, requested_agents: usize } — fewer ready tasks than agents requested. Recovery: reduce --agents or create more tasks. (2) NoCouplingData — all tasks have zero coupling (no shared files, no shared specs). Not an error per se — topology is trivially Solo/Parallel. Recovery: suggest braid topology plan --agents 1 or proceed with independent assignment. (3) AgentCountZero — --agents 0 requested. Recovery: specify --agents >= 1. (4) NoCouplingWeights — no :topology/coupling-weights datom in store. Recovery: use defaults (w_f=0.50, w_i=0.35, w_h=0.15). (5) PartitionImbalance { max_tasks: usize, min_tasks: usize } — task count variance exceeds threshold. Recovery: reduce agent count or accept imbalance with warning. (6) DisjointnessViolation { file: String, agents: Vec<String> } — file assigned to multiple agents (should be impossible if algorithm is correct, but defensive). Recovery: report bug. (7) NoSpecDependencies — :spec/traces-to edges not transacted, invariant coupling unavailable. Recovery: run braid spec import-deps. NOTE: SingularMatrix REMOVED — rho_C = C/Tr(C) is always non-singular when C has positive diagonal (which it does when tasks exist, since self-coupling = 1.0). Each variant implements Display with spec-language and maps to RecoveryAction per INV-INTERFACE-009." :op :assert}
+ ]}

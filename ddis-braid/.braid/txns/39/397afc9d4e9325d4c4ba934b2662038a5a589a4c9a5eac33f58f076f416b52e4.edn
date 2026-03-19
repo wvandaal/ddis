@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773889651/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix E2E test: explicit fresh store setup"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "880fe36f71f6f50dc59d55fad0b4e708fcbcdb2c0df606fee90d380de660fb2b" :a :task/approach :v "REVISED E2E approach: (1) Create temp dir: TOPO_TEST_DIR=$(mktemp -d). (2) cd into it, run braid init. (3) Create synthetic tasks with KNOWN coupling structure: 3 tasks sharing file-A (cluster 1), 2 tasks sharing file-B (cluster 2), 1 independent task. (4) Create synthetic spec elements with :spec/traces-to edges. (5) Run braid topology plan --agents 2 --format json. (6) Parse JSON, verify all 12 tests. (7) Run braid topology plan --agents 2 a second time, verify determinism (identical output). (8) Run braid topology harvest, verify F(T) datoms created. (9) Cleanup: rm -rf temp dir. LOGGING: Each test prints header line with test name, then either [PASS] with key metric or [FAIL] with expected vs actual. Summary at end: N/12 passed. Exit code = number of failures (0 = all pass)." :op :assert}
+ ]}

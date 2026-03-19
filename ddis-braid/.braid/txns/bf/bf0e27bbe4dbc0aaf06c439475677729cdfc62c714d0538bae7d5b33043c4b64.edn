@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773889636/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for TOPO-IN-STATUS"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :task/acceptance :v "(A) With active plan: braid status shows topology line with pattern, agent count, entropy. (B) Without plan: no topology line in status. (C) F(T) included if topology events exist." :op :assert}
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :task/background :v "When a topology plan is active (persisted as :topology/* datoms), braid status should include a topology line: 'topology: HYBRID (3 agents, p=0.58, S=1.42) | F(T)=0.72'. This provides ambient awareness of the coordination state without requiring braid topology status. The line appears after the coherence line (F(S), Phi, B1). If no plan exists, show nothing (no 'topology: none' clutter). Query: find most recent :topology/plan-pattern datom. If exists, include L0 summary in status. This is progressive disclosure: status shows L0, topology status shows L1+L2, topology plan shows L2+L3." :op :assert}
+ ]}

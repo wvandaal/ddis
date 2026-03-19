@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773890315/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Task list filtering: braid task list --created-after, --type, --prefix for navigating large task sets (INV-INTERFACE-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :db/ident :v :task/t-ea2d7a05 :op :assert}
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :task/created-at :v 1773890314 :op :assert}
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :task/id :v "t-ea2d7a05" :op :assert}
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :task/title :v "Task list filtering: braid task list --created-after, --type, --prefix for navigating large task sets (INV-INTERFACE-001)" :op :assert}
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :task/type :v :task.type/feature :op :assert}
+ ]}

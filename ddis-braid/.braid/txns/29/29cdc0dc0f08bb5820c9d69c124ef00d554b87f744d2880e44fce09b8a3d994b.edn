@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773889195/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: API-as-prompt: topology help text uses demonstrations not constraints (INV-INTERFACE-008, ADR-INTERFACE-011)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :db/ident :v :task/t-c8677bd0 :op :assert}
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :task/created-at :v 1773889194 :op :assert}
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :task/id :v "t-c8677bd0" :op :assert}
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :task/title :v "API-as-prompt: topology help text uses demonstrations not constraints (INV-INTERFACE-008, ADR-INTERFACE-011)" :op :assert}
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :task/type :v :task.type/task :op :assert}
+ ]}

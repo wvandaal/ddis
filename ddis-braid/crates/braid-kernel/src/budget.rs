@@ -258,7 +258,7 @@ pub fn classify_command(command: &str) -> AttentionProfile {
         "next" | "done" | "go" => AttentionProfile::Moderate,
         "query" | "bilateral" | "generate" | "schema" | "trace" | "verify" | "spec" | "task"
         | "note" => AttentionProfile::Moderate,
-        "seed" | "session" => AttentionProfile::Expensive,
+        "seed" | "session" | "topology" => AttentionProfile::Expensive,
         "harvest" | "transact" | "merge" | "init" | "observe" | "write" => AttentionProfile::Meta,
         _ => AttentionProfile::Moderate, // conservative default
     }

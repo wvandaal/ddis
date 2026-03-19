@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773889233/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Add L2 detail to pyramid display task"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :task/background :v "Pyramid summaries enable reversible compression across abstraction levels. Applied to braid: L0 (2 words for seed batch), L1 (short title ~80 chars for list/ready), L2 (~200 words for show), L3 (full detail for deep inspection). IMPLEMENTATION: Extract short_title by truncating at first BACKGROUND/APPROACH/ACCEPTANCE/FILE marker. In list/ready, show short_title. In show, display labeled sections. Add :task/summary for L0. In seed, use L0 for batch context." :op :assert}
+ ]}

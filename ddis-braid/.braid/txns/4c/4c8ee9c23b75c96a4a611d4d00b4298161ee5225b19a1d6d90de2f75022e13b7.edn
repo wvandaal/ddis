@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773889614/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TOPO-IN-STATUS: Show active topology plan in braid status dashboard (INV-TOPOLOGY-001, INV-INTERFACE-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :db/ident :v :task/t-66480cba :op :assert}
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :task/created-at :v 1773889613 :op :assert}
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :task/id :v "t-66480cba" :op :assert}
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :task/title :v "TOPO-IN-STATUS: Show active topology plan in braid status dashboard (INV-TOPOLOGY-001, INV-INTERFACE-001)" :op :assert}
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :task/traces-to :v #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :op :assert}
+   {:e #blake3 "62bb8cd061df84a4fbfc47cb3217d4addfcb154fcc6f2cba289d84d117d1e54d" :a :task/type :v :task.type/task :op :assert}
+ ]}

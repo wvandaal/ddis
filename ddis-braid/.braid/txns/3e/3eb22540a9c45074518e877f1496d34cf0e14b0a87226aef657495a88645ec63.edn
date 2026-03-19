@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773891447/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Decision-Task Integrity — prevent orphaned design decisions across sessions (SEED.md S5, INV-HARVEST-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1449d85a8a4661337793472ba7160d90e3009cf4afc0cc62913d9d20899b795e" :a :db/ident :v :task/t-264d5260 :op :assert}
+   {:e #blake3 "1449d85a8a4661337793472ba7160d90e3009cf4afc0cc62913d9d20899b795e" :a :task/created-at :v 1773891446 :op :assert}
+   {:e #blake3 "1449d85a8a4661337793472ba7160d90e3009cf4afc0cc62913d9d20899b795e" :a :task/id :v "t-264d5260" :op :assert}
+   {:e #blake3 "1449d85a8a4661337793472ba7160d90e3009cf4afc0cc62913d9d20899b795e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1449d85a8a4661337793472ba7160d90e3009cf4afc0cc62913d9d20899b795e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1449d85a8a4661337793472ba7160d90e3009cf4afc0cc62913d9d20899b795e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1449d85a8a4661337793472ba7160d90e3009cf4afc0cc62913d9d20899b795e" :a :task/title :v "EPIC: Decision-Task Integrity — prevent orphaned design decisions across sessions (SEED.md S5, INV-HARVEST-002)" :op :assert}
+   {:e #blake3 "1449d85a8a4661337793472ba7160d90e3009cf4afc0cc62913d9d20899b795e" :a :task/traces-to :v #blake3 "8164ecc09e37e32f1ab4672303951c53bd0650c069cfd274c477bdc976457cb5" :op :assert}
+   {:e #blake3 "1449d85a8a4661337793472ba7160d90e3009cf4afc0cc62913d9d20899b795e" :a :task/type :v :task.type/epic :op :assert}
+ ]}

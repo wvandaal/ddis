@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773890247/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Batch task import: braid task create-batch <file.edn> for bulk task+dep creation (INV-INTERFACE-001, ADR-INTERFACE-011)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d8d2b6b96e666a784810975c7a3b6263d072b90a63a6e1772177efd51610d438" :a :db/ident :v :task/t-d5ac7417 :op :assert}
+   {:e #blake3 "d8d2b6b96e666a784810975c7a3b6263d072b90a63a6e1772177efd51610d438" :a :task/created-at :v 1773890246 :op :assert}
+   {:e #blake3 "d8d2b6b96e666a784810975c7a3b6263d072b90a63a6e1772177efd51610d438" :a :task/id :v "t-d5ac7417" :op :assert}
+   {:e #blake3 "d8d2b6b96e666a784810975c7a3b6263d072b90a63a6e1772177efd51610d438" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "d8d2b6b96e666a784810975c7a3b6263d072b90a63a6e1772177efd51610d438" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d8d2b6b96e666a784810975c7a3b6263d072b90a63a6e1772177efd51610d438" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d8d2b6b96e666a784810975c7a3b6263d072b90a63a6e1772177efd51610d438" :a :task/title :v "Batch task import: braid task create-batch <file.edn> for bulk task+dep creation (INV-INTERFACE-001, ADR-INTERFACE-011)" :op :assert}
+   {:e #blake3 "d8d2b6b96e666a784810975c7a3b6263d072b90a63a6e1772177efd51610d438" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "d8d2b6b96e666a784810975c7a3b6263d072b90a63a6e1772177efd51610d438" :a :task/type :v :task.type/feature :op :assert}
+ ]}

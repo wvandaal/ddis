@@ -2099,6 +2099,157 @@ pub fn crystallization_candidates(store: &Store) -> Vec<(EntityId, String)> {
 }
 
 // ---------------------------------------------------------------------------
+// DTIC-1: Decision-Task Integrity (INV-HARVEST-002, API-as-prompt)
+// ---------------------------------------------------------------------------
+
+/// Actionable verb patterns that indicate a decision needs a follow-up task.
+const ACTIONABLE_VERBS: &[&str] = &[
+    "implement",
+    "add",
+    "create",
+    "wire",
+    "fix",
+    "refactor",
+    "remove",
+    "replace",
+    "migrate",
+    "update",
+    "extend",
+    "define",
+    "register",
+    "transact",
+];
+
+/// Detect whether an observation text contains actionable decision language.
+///
+/// Returns true if the text contains patterns suggesting a design decision
+/// that should have a corresponding task. Used at observe-time to suggest
+/// task creation in the footer (DTIC-1 prevention layer).
+///
+/// Pattern: text contains "DESIGN" or "DECISION" + an actionable verb.
+pub fn is_actionable_decision(text: &str) -> bool {
+    let lower = text.to_lowercase();
+
+    // Quick check: must contain a decision indicator
+    let has_decision_marker = lower.contains("design")
+        || lower.contains("decision")
+        || lower.contains("should")
+        || lower.contains("must")
+        || lower.contains("need to")
+        || lower.contains("plan:");
+
+    if !has_decision_marker {
+        return false;
+    }
+
+    // Must also contain an actionable verb
+    ACTIONABLE_VERBS.iter().any(|verb| lower.contains(verb))
+}
+
+/// Suggest a task title from actionable decision text.
+///
+/// Extracts the first sentence containing an actionable verb,
+/// truncates to 120 chars. Returns None if not actionable.
+pub fn suggest_task_title(text: &str) -> Option<String> {
+    if !is_actionable_decision(text) {
+        return None;
+    }
+
+    let lower = text.to_lowercase();
+
+    // Find the first sentence with an actionable verb
+    for sentence in text.split(['.', '\n']) {
+        let sent_lower = sentence.to_lowercase();
+        if ACTIONABLE_VERBS
+            .iter()
+            .any(|verb| sent_lower.contains(verb))
+        {
+            let trimmed = sentence.trim();
+            if trimmed.len() > 120 {
+                let end = trimmed
+                    .char_indices()
+                    .take_while(|(i, _)| *i <= 117)
+                    .last()
+                    .map(|(i, c)| i + c.len_utf8())
+                    .unwrap_or(117.min(trimmed.len()));
+                return Some(format!("{}...", &trimmed[..end]));
+            }
+            if !trimmed.is_empty() {
+                return Some(trimmed.to_string());
+            }
+        }
+    }
+
+    // Fallback: first 120 chars of original
+    let first = if lower.len() > 120 {
+        let end = text
+            .char_indices()
+            .take_while(|(i, _)| *i <= 117)
+            .last()
+            .map(|(i, c)| i + c.len_utf8())
+            .unwrap_or(117.min(text.len()));
+        format!("{}...", &text[..end])
+    } else {
+        text.to_string()
+    };
+    Some(first)
+}
+
+/// Scan store for orphaned decisions — observations with actionable language
+/// but no corresponding task (DTIC-2 detection layer).
+///
+/// Returns list of (entity, body_text) pairs where the observation looks
+/// actionable but has no task with matching keywords.
+pub fn orphaned_decisions(store: &Store) -> Vec<(EntityId, String)> {
+    let body_attr = Attribute::from_keyword(":exploration/body");
+    let title_attr = Attribute::from_keyword(":task/title");
+
+    // Collect all task titles for matching
+    let mut task_titles: Vec<String> = Vec::new();
+    for datom in store.attribute_datoms(&title_attr) {
+        if datom.op == Op::Assert {
+            if let Value::String(ref s) = datom.value {
+                task_titles.push(s.to_lowercase());
+            }
+        }
+    }
+
+    let mut orphans = Vec::new();
+
+    for datom in store.attribute_datoms(&body_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        if let Value::String(ref body) = datom.value {
+            if !is_actionable_decision(body) {
+                continue;
+            }
+
+            // Check if any task title contains keywords from the decision
+            let keywords: Vec<&str> = body
+                .split_whitespace()
+                .filter(|w| w.len() >= 5)
+                .take(5)
+                .collect();
+
+            let has_matching_task = task_titles.iter().any(|title| {
+                keywords
+                    .iter()
+                    .filter(|kw| title.contains(&kw.to_lowercase()))
+                    .count()
+                    >= 2
+            });
+
+            if !has_matching_task {
+                orphans.push((datom.entity, body.clone()));
+            }
+        }
+    }
+
+    orphans
+}
+
+// ---------------------------------------------------------------------------
 // Methodology Gap Dashboard (INV-GUIDANCE-021)
 // ---------------------------------------------------------------------------
 
@@ -3848,9 +3999,13 @@ mod tests {
     fn guidance_context_from_empty_store() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
         let ctx = GuidanceContext::from_store(&store, None);
+        // KEFF-3: When no explicit k_eff provided, estimate_k_eff uses sigmoid
+        // fusion. For zero evidence, all signals are below threshold, so
+        // sigmoid outputs ~0.26 total decay → k_eff ≈ 0.74. Not exactly 1.0.
         assert!(
-            (ctx.k_eff - 1.0).abs() < f64::EPSILON,
-            "default k_eff should be 1.0"
+            ctx.k_eff > 0.5 && ctx.k_eff <= 1.0,
+            "default k_eff should be high for empty store, got {}",
+            ctx.k_eff
         );
         assert!(
             (ctx.tx_velocity - 0.0).abs() < f64::EPSILON,

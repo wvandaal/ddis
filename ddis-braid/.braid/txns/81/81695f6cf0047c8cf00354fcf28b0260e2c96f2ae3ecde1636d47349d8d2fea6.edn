@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773891560/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-DTIC: Integration tests for decision-task integrity — prevention, detection, correction lifecycle (INV-HARVEST-002)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1bcba59b4aa41ddba5089e3cdc37d4ab94e8888eccdc80ae9eb15ffec41ccc29" :a :db/ident :v :task/t-a73abfb0 :op :assert}
+   {:e #blake3 "1bcba59b4aa41ddba5089e3cdc37d4ab94e8888eccdc80ae9eb15ffec41ccc29" :a :task/created-at :v 1773891559 :op :assert}
+   {:e #blake3 "1bcba59b4aa41ddba5089e3cdc37d4ab94e8888eccdc80ae9eb15ffec41ccc29" :a :task/id :v "t-a73abfb0" :op :assert}
+   {:e #blake3 "1bcba59b4aa41ddba5089e3cdc37d4ab94e8888eccdc80ae9eb15ffec41ccc29" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1bcba59b4aa41ddba5089e3cdc37d4ab94e8888eccdc80ae9eb15ffec41ccc29" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1bcba59b4aa41ddba5089e3cdc37d4ab94e8888eccdc80ae9eb15ffec41ccc29" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1bcba59b4aa41ddba5089e3cdc37d4ab94e8888eccdc80ae9eb15ffec41ccc29" :a :task/title :v "TEST-DTIC: Integration tests for decision-task integrity — prevention, detection, correction lifecycle (INV-HARVEST-002)" :op :assert}
+   {:e #blake3 "1bcba59b4aa41ddba5089e3cdc37d4ab94e8888eccdc80ae9eb15ffec41ccc29" :a :task/traces-to :v #blake3 "8164ecc09e37e32f1ab4672303951c53bd0650c069cfd274c477bdc976457cb5" :op :assert}
+   {:e #blake3 "1bcba59b4aa41ddba5089e3cdc37d4ab94e8888eccdc80ae9eb15ffec41ccc29" :a :task/type :v :task.type/test :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773890209/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Task search: braid task search <pattern> for full-text grep across titles and backgrounds (INV-INTERFACE-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :db/ident :v :task/t-dbca7795 :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/created-at :v 1773890208 :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/id :v "t-dbca7795" :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/title :v "Task search: braid task search <pattern> for full-text grep across titles and backgrounds (INV-INTERFACE-001)" :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/type :v :task.type/feature :op :assert}
+ ]}

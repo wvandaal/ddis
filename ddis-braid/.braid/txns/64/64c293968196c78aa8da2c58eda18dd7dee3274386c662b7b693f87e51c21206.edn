@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773891120/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for QUICK-3"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a943f12e6fba028310a6f747e619fb1d183ee1fb60c23a40eaa3ba74c195e04f" :a :task/acceptance :v "(A) quick_plan on a store with 10 tasks and 2 agents returns valid QuickPlan. (B) Handles empty store (returns TopologyError::InsufficientTasks). (C) Handles agent_count=0 (returns TopologyError::AgentCountZero). (D) Integration test with Store::genesis() + synthetic tasks." :op :assert}
+   {:e #blake3 "a943f12e6fba028310a6f747e619fb1d183ee1fb60c23a40eaa3ba74c195e04f" :a :task/background :v "The orchestrator: pub fn quick_plan(store: &Store, agent_count: usize) -> Result<QuickPlan, KernelError>. Steps: (1) let task_files = ready_task_files(store) — existing function. (2) let partitions = partition_by_file_coupling(&task_files) — existing function. (3) let now = std::time::SystemTime (or store max tx time). (4) Build TaskNode vec from store for R(t). (5) let routing = compute_routing(&task_nodes, now) — existing function. (6) let impact_map: BTreeMap<EntityId, f64> from routing results. (7) let plan = balance_assign(partitions, task_files, impact_map, agent_count) — from QUICK-2. (8) Validate: disjoint file sets, all tasks assigned, balanced impact. Return errors via TopologyError. This is ~50 lines of glue code connecting 4 existing functions. The value is in the COMPOSITION, not new algorithms. FILE: crates/braid-kernel/src/topology.rs" :op :assert}
+ ]}

@@ -93,19 +93,19 @@ pub use deliberation::{
     add_position, check_stability, coherence_violation_to_deliberation, decide, find_precedent,
     open_deliberation, DecisionMethod, DeliberationStatus, StabilityScore,
 };
-pub use error::KernelError;
+pub use error::{KernelError, TopologyError};
 pub use guidance::{
     build_command_footer, build_command_footer_with_hint, build_footer, build_footer_with_budget,
     compute_methodology_score, compute_routing, compute_routing_from_store,
     contextual_observation_hint, crystallization_candidates, default_derivation_rules,
     derive_actions, derive_actions_with_budget, derive_tasks, detect_activity_mode,
     dynamic_threshold, format_actions, format_footer, format_footer_at_level,
-    harvest_warning_from_k_eff, harvest_warning_level, methodology_gaps, modulate_actions,
-    observation_staleness, should_warn_on_exit, spec_anchor_factor, telemetry_from_store,
-    tx_velocity, ActionCategory, ActivityMode, ContextualHint, DerivationRule, DerivedTask,
-    GuidanceAction, GuidanceContext, GuidanceFooter, HarvestWarningLevel, MethodologyComponents,
-    MethodologyGaps, MethodologyScore, RoutingMetrics, SessionTelemetry, TaskNode, TaskRouting,
-    Trend,
+    harvest_warning_from_k_eff, harvest_warning_level, is_actionable_decision, methodology_gaps,
+    modulate_actions, observation_staleness, orphaned_decisions, should_warn_on_exit,
+    spec_anchor_factor, spec_relevance_scan, suggest_task_title, telemetry_from_store, tx_velocity,
+    ActionCategory, ActivityMode, ContextualHint, DerivationRule, DerivedTask, GuidanceAction,
+    GuidanceContext, GuidanceFooter, HarvestWarningLevel, MethodologyComponents, MethodologyGaps,
+    MethodologyScore, RoutingMetrics, SessionTelemetry, TaskNode, TaskRouting, Trend,
 };
 pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, classify_spec_candidate,
@@ -176,6 +176,12 @@ pub use task::{
     create_task_datoms, dep_add_datom, find_task_by_id, generate_task_id, parse_spec_refs,
     resolve_spec_refs, resolve_task_status, set_attribute_datom, task_counts, task_summary,
     update_status_datom, CreateTaskParams, TaskStatus, TaskSummary, TaskType,
+};
+pub use topology::{
+    agent_name_from_files, balance_assign, compute_file_coupling, emit_seed_for_agent,
+    extract_task_files, format_plan_agent, format_plan_human, partition_by_file_coupling,
+    quick_plan, ready_task_files, von_neumann_entropy_from_eigenvalues, AgentAssignment,
+    PlanMethod, TopologyPattern, TopologyPlan,
 };
 pub use trace::{
     links_to_datoms, scan_source, summarize, TraceLink, TraceSummary, VerificationDepth,

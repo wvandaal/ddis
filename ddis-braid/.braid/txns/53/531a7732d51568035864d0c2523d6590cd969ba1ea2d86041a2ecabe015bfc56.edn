@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773891184/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: QUICK-6: CLI command braid topology plan --quick --agents N --emit-seeds --format (INV-INTERFACE-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3b29fcc42a0fa1e16b196bddb3fcb31cf194cd89fe72b491d13aed64946fdaa7" :a :db/ident :v :task/t-177a5248 :op :assert}
+   {:e #blake3 "3b29fcc42a0fa1e16b196bddb3fcb31cf194cd89fe72b491d13aed64946fdaa7" :a :task/created-at :v 1773891183 :op :assert}
+   {:e #blake3 "3b29fcc42a0fa1e16b196bddb3fcb31cf194cd89fe72b491d13aed64946fdaa7" :a :task/id :v "t-177a5248" :op :assert}
+   {:e #blake3 "3b29fcc42a0fa1e16b196bddb3fcb31cf194cd89fe72b491d13aed64946fdaa7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3b29fcc42a0fa1e16b196bddb3fcb31cf194cd89fe72b491d13aed64946fdaa7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3b29fcc42a0fa1e16b196bddb3fcb31cf194cd89fe72b491d13aed64946fdaa7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3b29fcc42a0fa1e16b196bddb3fcb31cf194cd89fe72b491d13aed64946fdaa7" :a :task/title :v "QUICK-6: CLI command braid topology plan --quick --agents N --emit-seeds --format (INV-INTERFACE-001)" :op :assert}
+   {:e #blake3 "3b29fcc42a0fa1e16b196bddb3fcb31cf194cd89fe72b491d13aed64946fdaa7" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "3b29fcc42a0fa1e16b196bddb3fcb31cf194cd89fe72b491d13aed64946fdaa7" :a :task/type :v :task.type/task :op :assert}
+ ]}

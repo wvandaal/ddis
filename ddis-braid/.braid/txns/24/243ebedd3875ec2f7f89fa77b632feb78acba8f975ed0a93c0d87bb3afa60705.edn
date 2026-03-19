@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773889264/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 detail for topology error algebra"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2ef844e9010faff594b4433c5c847d7945eb8c8b263b29e22467042dd146406d" :a :task/acceptance :v "(A) TopologyError enum defined with >=6 variants. (B) Each variant has a Display impl with spec-language. (C) Each variant maps to a RecoveryAction with concrete braid command. (D) No unwrap() in topology.rs (all errors propagated)." :op :assert}
+   {:e #blake3 "2ef844e9010faff594b4433c5c847d7945eb8c8b263b29e22467042dd146406d" :a :task/background :v "From rust-formal-engineering Rule 5: design the error algebra BEFORE the happy path. The error enum IS the failure specification. TopologyError variants: InsufficientTasks (fewer ready tasks than agents), EmptyCoupling (no coupling data, all tasks independent), SingularMatrix (density matrix not invertible), AgentCountZero, NoCouplingWeights (no :topology/coupling-weights in store), PartitionImbalance (variance > threshold), DisjointnessViolation (file sets not disjoint after partition). Each variant must be caller-distinguishable and include a RecoveryAction (INV-INTERFACE-009). Error messages use spec-language: reference the INV that was violated, suggest the braid command that fixes it." :op :assert}
+ ]}

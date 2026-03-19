@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773891056/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: QUICK-1: AgentAssignment struct + agent_name_from_files() — self-documenting names from cluster file stems (INV-TOPOLOGY-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :db/ident :v :task/t-254ca64d :op :assert}
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :task/created-at :v 1773891055 :op :assert}
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :task/id :v "t-254ca64d" :op :assert}
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :task/title :v "QUICK-1: AgentAssignment struct + agent_name_from_files() — self-documenting names from cluster file stems (INV-TOPOLOGY-005)" :op :assert}
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :task/traces-to :v #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :op :assert}
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :task/type :v :task.type/task :op :assert}
+ ]}

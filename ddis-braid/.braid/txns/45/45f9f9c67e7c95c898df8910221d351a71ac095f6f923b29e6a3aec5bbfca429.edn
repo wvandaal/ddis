@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773891524/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for DTIC-2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "61463cb7fe8a50cfe79e1f1c18a3af0d4a2b83f60ce42236014803ef82a99847" :a :task/acceptance :v "(A) Harvest with 3 actionable observations and 0 tasks shows 'UNTRACKED DECISIONS (3)'. (B) Harvest with 3 actionable observations and 3 matching tasks shows no warning. (C) Suggested titles are <=80 chars. (D) Orphaned count affects M(t) harvest_quality. (E) 4+ tests: all orphaned, none orphaned, mixed, non-actionable excluded." :op :assert}
+   {:e #blake3 "61463cb7fe8a50cfe79e1f1c18a3af0d4a2b83f60ce42236014803ef82a99847" :a :task/background :v "DETECTION layer: At harvest time, scan all observations since last harvest that are tagged :observation/actionable true (from DTIC-1). For each, query for: (a) tasks with :task/traces-to pointing to the observation entity, (b) tasks with similar title text (cosine bag-of-words from PSR infrastructure, threshold 0.5). If neither match exists, the decision is ORPHANED. Include in harvest report: 'UNTRACKED DECISIONS (N): (1) <obs-text-truncated> -> braid task create \"<suggested-title>\" (2) ...' The harvest report section uses the pyramid L1 format — short title per decision, expandable via braid task show. APPROACH: (1) orphaned_decisions(store, since_tx: TxId) -> Vec<OrphanedDecision>. (2) OrphanedDecision { observation_entity: EntityId, text: String, suggested_title: String }. (3) Integrate into harvest_pipeline in harvest.rs — add after candidate detection, before commit. (4) The count of orphaned decisions becomes a component of harvest quality (affects M(t) harvest_quality sub-metric). FILE: crates/braid-kernel/src/harvest.rs (orphaned_decisions function), crates/braid/src/commands/harvest.rs (display)" :op :assert}
+ ]}

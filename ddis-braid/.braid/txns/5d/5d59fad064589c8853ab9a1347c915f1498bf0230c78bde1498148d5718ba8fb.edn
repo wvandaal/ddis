@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773898748/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-TOPOLOGY-005 \"Coupling-to-Topology Determinism\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :a :db/doc :v "Coupling-to-Topology Determinism" :op :assert}
+   {:e #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :a :db/ident :v :spec/inv-topology-005 :op :assert}
+   {:e #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :a :element/traces-to :v "SEED.md S4, spec/19-topology.md" :op :assert}
+   {:e #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :a :spec/falsification :v "Two calls with identical inputs produce different plans" :op :assert}
+   {:e #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :a :spec/id :v "INV-TOPOLOGY-005" :op :assert}
+   {:e #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :a :spec/namespace :v :spec.ns/TOPOLOGY :op :assert}
+   {:e #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :a :spec/statement :v "Given identical store state and agent count, quick_plan produces identical TopologyPlan. The mapping from coupling matrix to agent assignment is deterministic." :op :assert}
+ ]}

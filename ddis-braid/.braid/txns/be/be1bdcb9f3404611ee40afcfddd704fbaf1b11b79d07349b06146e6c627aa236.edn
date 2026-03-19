@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773890369/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Data-model-as-prompt: enforce :task/short-title <=120 chars, separate from :task/description (INV-INTERFACE-008, rust-formal-engineering Rule 1)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b0b1a6e99aec0e75d89bd0a95151e18d4c19b34551747c4a5a686de431af949b" :a :db/ident :v :task/t-1029e16f :op :assert}
+   {:e #blake3 "b0b1a6e99aec0e75d89bd0a95151e18d4c19b34551747c4a5a686de431af949b" :a :task/created-at :v 1773890368 :op :assert}
+   {:e #blake3 "b0b1a6e99aec0e75d89bd0a95151e18d4c19b34551747c4a5a686de431af949b" :a :task/id :v "t-1029e16f" :op :assert}
+   {:e #blake3 "b0b1a6e99aec0e75d89bd0a95151e18d4c19b34551747c4a5a686de431af949b" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "b0b1a6e99aec0e75d89bd0a95151e18d4c19b34551747c4a5a686de431af949b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b0b1a6e99aec0e75d89bd0a95151e18d4c19b34551747c4a5a686de431af949b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b0b1a6e99aec0e75d89bd0a95151e18d4c19b34551747c4a5a686de431af949b" :a :task/title :v "Data-model-as-prompt: enforce :task/short-title <=120 chars, separate from :task/description (INV-INTERFACE-008, rust-formal-engineering Rule 1)" :op :assert}
+   {:e #blake3 "b0b1a6e99aec0e75d89bd0a95151e18d4c19b34551747c4a5a686de431af949b" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "b0b1a6e99aec0e75d89bd0a95151e18d4c19b34551747c4a5a686de431af949b" :a :task/type :v :task.type/task :op :assert}
+ ]}

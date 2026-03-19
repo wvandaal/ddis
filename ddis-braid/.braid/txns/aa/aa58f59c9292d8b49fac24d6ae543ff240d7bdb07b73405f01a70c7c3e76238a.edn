@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773893027/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix: unify QuickPlan and TopologyPlan into single type with method discriminant"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :task/approach :v "REVISED: Define TopologyPlan (not QuickPlan) as the SINGLE plan type used by both --quick and full spectral modes. TopologyPlan { method: PlanMethod, agents: Vec<AgentAssignment>, unassigned: Vec<EntityId>, partition_count: usize, file_coupling_pairs: usize, coupling_entropy: Option<f64> }. PlanMethod enum: Quick (connected components, file coupling only), Spectral { entropy: f64, effective_rank: f64, parallelizability: f64, fiedler_value: f64 }. The Quick variant has no spectral metrics. The Spectral variant adds coupling analysis. Both use the SAME AgentAssignment struct and the SAME format_plan/emit_seed_files functions. This means TOPO-QUICK builds the skeleton that the full pipeline EXTENDS — adding Spectral variant and filling in coupling_entropy. No duplicate structs. No parallel hierarchies. The --quick flag selects PlanMethod::Quick; omitting it selects PlanMethod::Spectral (when implemented)." :op :assert}
+ ]}

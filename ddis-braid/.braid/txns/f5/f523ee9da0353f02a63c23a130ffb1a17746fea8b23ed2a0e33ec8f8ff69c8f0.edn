@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773889685/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for error display tests"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a348ea16c0ad718976fa862a4d5aa80d6a8471cd9654451c8e805f5e0ddda2d1" :a :task/acceptance :v "(A) 7+ tests, one per TopologyError variant. (B) Each test asserts Display contains INV/ADR reference. (C) Each test asserts recovery_action() returns valid braid command." :op :assert}
+   {:e #blake3 "a348ea16c0ad718976fa862a4d5aa80d6a8471cd9654451c8e805f5e0ddda2d1" :a :task/background :v "Every TopologyError variant must: (1) Display with spec-language (reference the INV violated), (2) Map to a RecoveryAction with a concrete braid command, (3) Be distinguishable by the caller (no catch-all variants). Tests: (a) Each variant's Display output contains at least one INV- or ADR- reference. (b) Each variant's recovery_action() returns a non-empty command string starting with 'braid'. (c) TopologyError implements From<KernelError> for composability. (d) No variant produces identical Display output to another variant. (e) InsufficientTasks includes actual counts in message. (f) DisjointnessViolation includes the conflicting filename." :op :assert}
+ ]}

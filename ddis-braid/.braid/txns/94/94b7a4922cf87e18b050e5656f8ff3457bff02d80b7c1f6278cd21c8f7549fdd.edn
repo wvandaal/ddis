@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773891199/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for QUICK-6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3b29fcc42a0fa1e16b196bddb3fcb31cf194cd89fe72b491d13aed64946fdaa7" :a :task/acceptance :v "(A) braid topology plan --quick --agents 3 produces output. (B) --emit-seeds creates files in seeds/ directory. (C) --format json produces valid JSON. (D) --help starts with worked example. (E) Missing --agents flag produces helpful error. (F) braid topology (no subcommand) shows help." :op :assert}
+   {:e #blake3 "3b29fcc42a0fa1e16b196bddb3fcb31cf194cd89fe72b491d13aed64946fdaa7" :a :task/background :v "Wire the topology compilation pipeline into the CLI. Add Topology variant to Command enum in commands/mod.rs. Create commands/topology.rs (new file). TopologyAction enum with Plan sub-command. Flags: --quick (use connected-component partition, not spectral), --agents N (required), --emit-seeds (generate per-agent seed files), --format human|agent|json, --seeds-dir PATH (default: ./seeds/). Implementation: (1) Load store. (2) Call topology::quick_plan(store, agents). (3) If --emit-seeds, call topology::emit_seed_files(plan, store, seeds_dir). (4) Format plan via topology::format_plan(plan, format). (5) Include guidance footer per standard pattern. Help text uses DEMONSTRATION format (prompt-optimization): starts with worked example, then lists flags. The after_long_help shows a complete invocation with sample output — this IS the activation pattern that teaches agents how to use the command. FILE: crates/braid/src/commands/topology.rs (new), crates/braid/src/commands/mod.rs (add Topology variant)" :op :assert}
+ ]}

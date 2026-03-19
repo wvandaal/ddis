@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773889234/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Add acceptance criteria to pyramid display task"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :task/acceptance :v "(A) braid task list shows titles <=120 chars (no BACKGROUND visible). (B) braid task show displays labeled sections. (C) Existing long-title tasks display correctly. (D) New short-title tasks work identically." :op :assert}
+ ]}

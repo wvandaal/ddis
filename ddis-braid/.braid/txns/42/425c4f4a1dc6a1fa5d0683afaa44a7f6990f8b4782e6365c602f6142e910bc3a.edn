@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773891175/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for QUICK-5"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "485342ca9251d0cb7a7ecbef74a064ad10013f899ea3c022190c10c870b51bd1" :a :task/acceptance :v "(A) Each seed file has 4 sections: Identity, Tasks, Constraints, Protocol. (B) Tasks are ordered by R(t) impact within partition. (C) File ownership boundaries are explicit. (D) CARGO_TARGET_DIR unique per agent. (E) Seed file is valid markdown. (F) Total seed <=2000 tokens (fits in agent context)." :op :assert}
+   {:e #blake3 "485342ca9251d0cb7a7ecbef74a064ad10013f899ea3c022190c10c870b51bd1" :a :task/background :v "The RECURSIVE API-AS-PROMPT step: each agent's seed prompt is ITSELF an optimized prompt configuration. When --emit-seeds is passed, generates one .md file per agent in seeds/ directory (or stdout with separator). Each seed file is structured per prompt-optimization principles: (1) IDENTITY section: agent name, partition description, file ownership list with DISJOINT verification. (2) TASKS section: R(t)-ordered task list with short title (L1), acceptance criteria (L3 via :task/acceptance), and demonstration hint. Each task shows: braid go <id> -> implement -> braid done <id>. (3) CONSTRAINTS section: File ownership boundaries (you OWN these, you MUST NOT TOUCH those), CARGO_TARGET_DIR, verification protocol. (4) PROTOCOL section: Phase 1 (edit), Barrier (commit), Phase 2 (continue). Signal completion via braid observe. Uses assemble_seed() from seed.rs for task-relevant context assembly — this ALREADY EXISTS and produces store-projected context for a topic. The seed command for each agent: braid seed --task '<agent-name partition description>'. FILE: crates/braid-kernel/src/topology.rs (kernel) + crates/braid/src/commands/topology.rs (CLI)" :op :assert}
+ ]}

@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773891149/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for QUICK-4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cfae8811e0470a146318ebaa5e4b37366072237471ec53f4f10af34f17ca3027" :a :task/acceptance :v "(A) Human format <=300 tokens. (B) Agent format <=150 tokens. (C) JSON is valid JSON parseable by serde_json. (D) Human format starts with L0 summary line. (E) Each agent block includes file ownership + [DISJOINT] marker. (F) Phase protocol section present." :op :assert}
+   {:e #blake3 "cfae8811e0470a146318ebaa5e4b37366072237471ec53f4f10af34f17ca3027" :a :task/background :v "The plan output IS a prompt for the agents who will execute it. Three format modes: HUMAN (default): Starts with one-line summary (L0 pyramid), then per-agent blocks with task lists and file ownership, then phase protocol. Uses spec-language (INV references in headers). ~300 tokens. AGENT (--format agent): Compressed L0+L1 for injection into agent seed prompts. ~150 tokens. Task IDs + files + impact only. JSON (--format json): Full structured data for programmatic consumption. All fields. Parseable with jq. FROM PROMPT-OPTIMIZATION: The human format is a DEMONSTRATION — it shows the concrete next steps for each agent, not a list of constraints. Each agent block includes: (1) name, (2) file ownership with [DISJOINT] marker, (3) tasks ordered by R(t) impact, (4) total impact score, (5) seed command suggestion, (6) CARGO_TARGET_DIR assignment. The phase protocol at the bottom: 'Phase 1 (Tier M): All agents edit independently. Barrier: git commit + orchestrator runs cargo test. Phase 2: Continue or reassign.' FILE: crates/braid-kernel/src/topology.rs (format functions)" :op :assert}
+ ]}

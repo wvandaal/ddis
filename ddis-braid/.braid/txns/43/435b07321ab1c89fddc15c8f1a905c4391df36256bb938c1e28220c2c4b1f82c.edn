@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773890829/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TOPO-QUICK: Minimal viable topology plan using existing infrastructure — self-bootstrap (C7, ADR-TOPOLOGY-004, INV-TOPOLOGY-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :db/ident :v :task/t-1919718e :op :assert}
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :task/created-at :v 1773890828 :op :assert}
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :task/id :v "t-1919718e" :op :assert}
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :task/title :v "TOPO-QUICK: Minimal viable topology plan using existing infrastructure — self-bootstrap (C7, ADR-TOPOLOGY-004, INV-TOPOLOGY-005)" :op :assert}
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :task/traces-to :v #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :op :assert}
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :task/type :v :task.type/feature :op :assert}
+ ]}

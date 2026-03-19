@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773889512/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TOPO-PERSIST: Persist topology plan as :topology/* datoms — enables status, next --agent, F(T) harvest (INV-TOPOLOGY-003)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1fd3e12069ec64d7ccf191a989ce35890cdca8f9dcf85e3f6387082187ea2ab7" :a :db/ident :v :task/t-dc54f525 :op :assert}
+   {:e #blake3 "1fd3e12069ec64d7ccf191a989ce35890cdca8f9dcf85e3f6387082187ea2ab7" :a :task/created-at :v 1773889511 :op :assert}
+   {:e #blake3 "1fd3e12069ec64d7ccf191a989ce35890cdca8f9dcf85e3f6387082187ea2ab7" :a :task/id :v "t-dc54f525" :op :assert}
+   {:e #blake3 "1fd3e12069ec64d7ccf191a989ce35890cdca8f9dcf85e3f6387082187ea2ab7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1fd3e12069ec64d7ccf191a989ce35890cdca8f9dcf85e3f6387082187ea2ab7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1fd3e12069ec64d7ccf191a989ce35890cdca8f9dcf85e3f6387082187ea2ab7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1fd3e12069ec64d7ccf191a989ce35890cdca8f9dcf85e3f6387082187ea2ab7" :a :task/title :v "TOPO-PERSIST: Persist topology plan as :topology/* datoms — enables status, next --agent, F(T) harvest (INV-TOPOLOGY-003)" :op :assert}
+   {:e #blake3 "1fd3e12069ec64d7ccf191a989ce35890cdca8f9dcf85e3f6387082187ea2ab7" :a :task/traces-to :v #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :op :assert}
+   {:e #blake3 "1fd3e12069ec64d7ccf191a989ce35890cdca8f9dcf85e3f6387082187ea2ab7" :a :task/type :v :task.type/task :op :assert}
+ ]}

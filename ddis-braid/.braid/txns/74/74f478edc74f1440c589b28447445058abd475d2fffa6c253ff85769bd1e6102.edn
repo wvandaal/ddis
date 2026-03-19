@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773890307/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for command disambiguation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "98c8df1660d28fc35ddec4da2d9fb76b305622348c400a43f694951e2ae935fc" :a :task/acceptance :v "(A) braid task set t-xxx background 'text' either WORKS (sets :task/background) or shows helpful error with write assert example. (B) Error message includes a complete, copy-pasteable command. (C) No silent failures." :op :assert}
+   {:e #blake3 "98c8df1660d28fc35ddec4da2d9fb76b305622348c400a43f694951e2ae935fc" :a :task/background :v "Dog-food Session 026: braid task set t-xxx background 'some text' failed silently. The correct path is braid write assert -r rationale -d :task/t-xxx :task/background 'text'. This is a NAVIGATION FAILURE in the API-as-prompt sense — the agent tried the intuitive path (task set), hit a wall, and had no guidance toward the correct path. FROM PROMPT-OPTIMIZATION: Error messages ARE recovery prompts. When task set fails for an attribute it doesn't support, the error message should DEMONSTRATE the alternative: 'Unknown attribute background for task set. For arbitrary attributes, use: braid write assert -r \"set background\" -d :task/t-xxx :task/background \"your text\"'. This is the demonstration-over-constraint principle applied to error recovery. ALSO: consider extending task set to support background/acceptance/approach as first-class attributes (not just title/priority/status/type). The task entity has these attributes — the command should expose them." :op :assert}
+ ]}

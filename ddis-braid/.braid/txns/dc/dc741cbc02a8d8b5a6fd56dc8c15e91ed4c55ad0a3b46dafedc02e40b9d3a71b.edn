@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773890540/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix: TopologyError must integrate with KernelError (audit finding)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2ef844e9010faff594b4433c5c847d7945eb8c8b263b29e22467042dd146406d" :a :task/approach :v "REVISED per codebase audit: KernelError currently has exactly 2 variants: Store(StoreError) and Schema(SchemaError). Adding topology errors requires: (1) Define TopologyError enum in topology.rs with 7 variants (InsufficientTasks, NoCouplingData, AgentCountZero, NoCouplingWeights, PartitionImbalance, DisjointnessViolation, NoSpecDependencies). (2) Add KernelError::Topology(TopologyError) variant to error.rs. (3) Implement From<TopologyError> for KernelError. (4) Implement Display for TopologyError with spec-language (each variant references an INV). (5) Implement recovery_hint() for each variant returning a concrete braid command. (6) The error.rs file is only 168 lines — small, clean extension. (7) Follow the exact pattern of StoreError and SchemaError for consistency. FILE: crates/braid-kernel/src/error.rs (extend KernelError), crates/braid-kernel/src/topology.rs (define TopologyError)." :op :assert}
+ ]}

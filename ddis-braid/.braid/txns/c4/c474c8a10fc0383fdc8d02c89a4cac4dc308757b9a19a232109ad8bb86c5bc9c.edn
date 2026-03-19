@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773891534/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DTIC-3: Seed-time carry-forward — surface orphaned decisions prominently in next session seed (INV-SEED-001)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "18ed15ef7d7680cb17c11419971e39d70b9cb1442505474c65596bde1fa972e8" :a :db/ident :v :task/t-2961e2a9 :op :assert}
+   {:e #blake3 "18ed15ef7d7680cb17c11419971e39d70b9cb1442505474c65596bde1fa972e8" :a :task/created-at :v 1773891533 :op :assert}
+   {:e #blake3 "18ed15ef7d7680cb17c11419971e39d70b9cb1442505474c65596bde1fa972e8" :a :task/id :v "t-2961e2a9" :op :assert}
+   {:e #blake3 "18ed15ef7d7680cb17c11419971e39d70b9cb1442505474c65596bde1fa972e8" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "18ed15ef7d7680cb17c11419971e39d70b9cb1442505474c65596bde1fa972e8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "18ed15ef7d7680cb17c11419971e39d70b9cb1442505474c65596bde1fa972e8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "18ed15ef7d7680cb17c11419971e39d70b9cb1442505474c65596bde1fa972e8" :a :task/title :v "DTIC-3: Seed-time carry-forward — surface orphaned decisions prominently in next session seed (INV-SEED-001)" :op :assert}
+   {:e #blake3 "18ed15ef7d7680cb17c11419971e39d70b9cb1442505474c65596bde1fa972e8" :a :task/traces-to :v #blake3 "9692346a3adf055502a95c727ebcaae6f141008c097740097512531804b44820" :op :assert}
+   {:e #blake3 "18ed15ef7d7680cb17c11419971e39d70b9cb1442505474c65596bde1fa972e8" :a :task/type :v :task.type/feature :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773889199/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Shorten all topology task titles to activation patterns, move detail to :task/background (API-as-prompt)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f4b4233484355e9338e68e90f38f073135bf12eaa9655614e621ec27f749d1be" :a :db/ident :v :task/t-eb95fe10 :op :assert}
+   {:e #blake3 "f4b4233484355e9338e68e90f38f073135bf12eaa9655614e621ec27f749d1be" :a :task/created-at :v 1773889198 :op :assert}
+   {:e #blake3 "f4b4233484355e9338e68e90f38f073135bf12eaa9655614e621ec27f749d1be" :a :task/id :v "t-eb95fe10" :op :assert}
+   {:e #blake3 "f4b4233484355e9338e68e90f38f073135bf12eaa9655614e621ec27f749d1be" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f4b4233484355e9338e68e90f38f073135bf12eaa9655614e621ec27f749d1be" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f4b4233484355e9338e68e90f38f073135bf12eaa9655614e621ec27f749d1be" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f4b4233484355e9338e68e90f38f073135bf12eaa9655614e621ec27f749d1be" :a :task/title :v "Shorten all topology task titles to activation patterns, move detail to :task/background (API-as-prompt)" :op :assert}
+   {:e #blake3 "f4b4233484355e9338e68e90f38f073135bf12eaa9655614e621ec27f749d1be" :a :task/type :v :task.type/task :op :assert}
+ ]}

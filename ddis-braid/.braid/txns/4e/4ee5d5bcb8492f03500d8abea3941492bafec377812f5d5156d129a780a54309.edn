@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773889261/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 detail for topology plan pyramid"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b9d13f91a7767da533e70d702cd60325aacd07fe9cfb88e51207e17cda13fd9d" :a :task/acceptance :v "(A) --format human shows L1+L2 in <=300 tokens. (B) --format agent shows L0+L1 in <=150 tokens. (C) --format json includes all levels as structured data. (D) At --context-used 0.7, agent output compresses to L0+L1." :op :assert}
+   {:e #blake3 "b9d13f91a7767da533e70d702cd60325aacd07fe9cfb88e51207e17cda13fd9d" :a :task/background :v "braid topology plan output IS a prompt for the agents who will execute the plan. Apply pyramid summaries: L0 (one-line summary: pattern + entropy + agents). L1 (per-agent task lists with files). L2 (coupling analysis with spectral metrics). L3 (full density matrix eigenvalues, Fiedler vector). The --format flag controls level: human=L1+L2, agent=L0+L1 (compressed for context), json=L3 (full data), deep=all levels. k*-aware: at --context-used 0.7, compress to L0+L1 (skip spectral analysis). From prompt-optimization: use spec-language in output (reference INV/ADR IDs), demonstrate the workflow (show concrete next commands), never constrain (no imperative instructions to agents)." :op :assert}
+ ]}

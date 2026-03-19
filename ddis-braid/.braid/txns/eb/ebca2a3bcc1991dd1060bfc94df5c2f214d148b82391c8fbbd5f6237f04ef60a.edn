@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773889263/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 detail for help text demonstrations"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :task/acceptance :v "(A) braid topology plan --help starts with a worked example. (B) No help text begins with Usage: (flag list). (C) Each help text references at least one INV or ADR." :op :assert}
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :task/background :v "From prompt-optimization: one demonstration subsumes seven constraints. The braid topology plan --help text should START with a concrete example (demonstration approach) NOT a list of flags (constraint approach). Example: show a complete topology plan invocation with output, then list flags. This activates the agent's deep substrate (formal topology reasoning) rather than surface (flag parsing). Apply to all topology subcommands: plan, status, harvest. Each help text ends with a 2-line spec-language reference pointing to the relevant INV/ADR." :op :assert}
+ ]}

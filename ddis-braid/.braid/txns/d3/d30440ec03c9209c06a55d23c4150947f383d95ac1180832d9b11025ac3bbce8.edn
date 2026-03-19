@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773889117/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: API-as-prompt: task list shows short title (before BACKGROUND marker), task show shows full context (INV-INTERFACE-008)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8e0a59721e6c21056f78f49973386de8efe23771f869237a92fa67bd1525461e" :a :db/ident :v :task/t-1196b973 :op :assert}
+   {:e #blake3 "8e0a59721e6c21056f78f49973386de8efe23771f869237a92fa67bd1525461e" :a :task/created-at :v 1773889116 :op :assert}
+   {:e #blake3 "8e0a59721e6c21056f78f49973386de8efe23771f869237a92fa67bd1525461e" :a :task/id :v "t-1196b973" :op :assert}
+   {:e #blake3 "8e0a59721e6c21056f78f49973386de8efe23771f869237a92fa67bd1525461e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8e0a59721e6c21056f78f49973386de8efe23771f869237a92fa67bd1525461e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8e0a59721e6c21056f78f49973386de8efe23771f869237a92fa67bd1525461e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8e0a59721e6c21056f78f49973386de8efe23771f869237a92fa67bd1525461e" :a :task/title :v "API-as-prompt: task list shows short title (before BACKGROUND marker), task show shows full context (INV-INTERFACE-008)" :op :assert}
+   {:e #blake3 "8e0a59721e6c21056f78f49973386de8efe23771f869237a92fa67bd1525461e" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "8e0a59721e6c21056f78f49973386de8efe23771f869237a92fa67bd1525461e" :a :task/type :v :task.type/bug :op :assert}
+ ]}

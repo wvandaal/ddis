@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773889179/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Pyramid summaries for task display: L0/L1/L2/L3 multi-resolution zoom (INV-INTERFACE-008, INV-BUDGET-004)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :db/ident :v :task/t-17edf3df :op :assert}
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :task/created-at :v 1773889178 :op :assert}
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :task/id :v "t-17edf3df" :op :assert}
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :task/title :v "Pyramid summaries for task display: L0/L1/L2/L3 multi-resolution zoom (INV-INTERFACE-008, INV-BUDGET-004)" :op :assert}
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :task/traces-to :v #blake3 "be63bdefa9441ff6f33b9506359b9b99706fa5ebafbe291935c8cfca52c9f30f" :op :assert}
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "e6a17804b45955e0e7f255bff89409f6b0cd638e56341c52784f73fdc453d7c7" :a :task/type :v :task.type/feature :op :assert}
+ ]}

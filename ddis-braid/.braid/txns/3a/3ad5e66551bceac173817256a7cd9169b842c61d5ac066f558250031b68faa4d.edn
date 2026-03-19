@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773890286/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for smart harvest thresholds"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :task/acceptance :v "(A) During 20 rapid task creates, harvest warning appears at most once (not 20 times). (B) During normal interactive work (1 txn/5min), warning appears at 8 txns. (C) The velocity-based threshold adapts without manual configuration." :op :assert}
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :task/background :v "Dog-food Session 026: 44 transactions during bulk task creation triggered harvest warnings on EVERY command. The warning is correct per INV-HARVEST-005 but is NOISE during batch operations. The warning system should distinguish: (A) Interactive drift: 8+ txns with >5 minutes elapsed and diverse command types = genuine harvest need. (B) Batch operations: 40+ txns in <2 minutes with repetitive command types (all task create) = suppress warning until batch completes. FROM PROMPT-OPTIMIZATION: The harvest warning IS a prompt — it competes for k* in the guidance footer. During batch work, this warning displaces the USEFUL guidance (next action, spec relevance). The warning-as-prompt should have HIGHER threshold during detected batch patterns. APPROACH: In harvest_warning_level(), check tx_velocity (txns/minute). If velocity > 10 txns/min AND command type is repetitive, use elevated threshold (50 txns). If velocity < 2 txns/min, use standard threshold (8 txns). This is the k*-management principle applied to the warning system itself." :op :assert}
+ ]}

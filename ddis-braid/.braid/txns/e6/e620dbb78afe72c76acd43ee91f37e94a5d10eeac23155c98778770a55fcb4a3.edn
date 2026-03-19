@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773891096/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for QUICK-2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f2f411409de7a0411f6a6d0ebe8d8c38cc7c7f7bd0f733feac24fe3484d4b245" :a :task/acceptance :v "(A) All tasks assigned to exactly one agent. (B) File sets across agents are disjoint. (C) Impact variance < 0.5 * mean (balanced). (D) Deterministic. (E) 4+ tests: more partitions than agents, fewer partitions than agents, single agent, equal-size partitions." :op :assert}
+   {:e #blake3 "f2f411409de7a0411f6a6d0ebe8d8c38cc7c7f7bd0f733feac24fe3484d4b245" :a :task/background :v "Given: partitions from partition_by_file_coupling (connected components, sorted by size desc), agent_count N, and R(t) impact scores from compute_routing. Goal: assign partitions to agents balancing total impact. Algorithm: (1) If partitions >= agents, assign largest partition to each agent round-robin. (2) If partitions < agents, split largest partition (tasks within a partition sharing files — assign by file sub-groups or sequentially). (3) Unassigned tasks (no file refs) go to agent with lowest total impact. (4) Impact per task comes from TaskRouting.impact (from compute_routing_from_store). This function is PURE — takes pre-computed data, returns QuickPlan. No store access. FILE: crates/braid-kernel/src/topology.rs" :op :assert}
+ ]}

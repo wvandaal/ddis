@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773890510/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix: von_neumann_entropy signature mismatch (audit finding)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a04c8a4dc38fe88afb2691a2f03dce85914360cfd5e98e150585eafd542aa441" :a :task/approach :v "REVISED per codebase audit: trilateral::von_neumann_entropy takes &Store (builds entity graph internally). For coupling matrices, implement a NEW function in topology.rs: von_neumann_entropy_from_eigenvalues(eigenvalues: &[f64]) -> f64 using the formula S = -sum(lambda_i * ln(lambda_i)) for lambda_i > 0. The eigenvalues come from symmetric_eigen_decomposition(&DenseMatrix) which already exists in query/graph.rs. DO NOT reuse trilateral::von_neumann_entropy — it operates on a different mathematical object (entity graph vs coupling matrix). The CouplingAnalysis struct wraps: rho (DenseMatrix), eigenvalues (Vec<f64>), entropy (f64), effective_rank (f64), parallelizability (f64). Implementation chain: compute_composite_coupling() -> build DenseMatrix -> symmetric_eigen_decomposition() -> von_neumann_entropy_from_eigenvalues() -> CouplingAnalysis." :op :assert}
+ ]}

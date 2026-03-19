@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773891105/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: QUICK-3: quick_plan(store, agent_count) — orchestrate existing functions into QuickPlan (ADR-TOPOLOGY-004)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a943f12e6fba028310a6f747e619fb1d183ee1fb60c23a40eaa3ba74c195e04f" :a :db/ident :v :task/t-32f47d25 :op :assert}
+   {:e #blake3 "a943f12e6fba028310a6f747e619fb1d183ee1fb60c23a40eaa3ba74c195e04f" :a :task/created-at :v 1773891104 :op :assert}
+   {:e #blake3 "a943f12e6fba028310a6f747e619fb1d183ee1fb60c23a40eaa3ba74c195e04f" :a :task/id :v "t-32f47d25" :op :assert}
+   {:e #blake3 "a943f12e6fba028310a6f747e619fb1d183ee1fb60c23a40eaa3ba74c195e04f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a943f12e6fba028310a6f747e619fb1d183ee1fb60c23a40eaa3ba74c195e04f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a943f12e6fba028310a6f747e619fb1d183ee1fb60c23a40eaa3ba74c195e04f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a943f12e6fba028310a6f747e619fb1d183ee1fb60c23a40eaa3ba74c195e04f" :a :task/title :v "QUICK-3: quick_plan(store, agent_count) — orchestrate existing functions into QuickPlan (ADR-TOPOLOGY-004)" :op :assert}
+   {:e #blake3 "a943f12e6fba028310a6f747e619fb1d183ee1fb60c23a40eaa3ba74c195e04f" :a :task/type :v :task.type/task :op :assert}
+ ]}

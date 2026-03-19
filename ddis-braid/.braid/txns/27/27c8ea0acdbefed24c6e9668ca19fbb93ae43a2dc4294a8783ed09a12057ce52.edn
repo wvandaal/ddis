@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773891253/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for QUICK-8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a4de7696393ae0fbe04273baf72ce5557ee625cb955c17622ebeaed739fa6264" :a :task/acceptance :v "(A) Script exits 0 on success. (B) Each test has [PASS]/[FAIL] with details. (C) Runs in <15 seconds. (D) Test 8 (self-test) works on the real store." :op :assert}
+   {:e #blake3 "a4de7696393ae0fbe04273baf72ce5557ee625cb955c17622ebeaed739fa6264" :a :task/background :v "E2E test for the complete quick topology plan pipeline. Fresh store in temp dir. SETUP: (1) mktemp -d, braid init. (2) Create 6 synthetic tasks: 3 sharing file-A (cluster 1), 2 sharing file-B (cluster 2), 1 with no files. TESTS: Test 1 (Plan runs): braid topology plan --quick --agents 2 exits 0. Test 2 (Two agents): Output contains exactly 2 agent blocks. Test 3 (Disjoint): file-A only in agent-1, file-B only in agent-2. Test 4 (All assigned): All 6 tasks appear in output. Test 5 (Determinism): Second run produces identical output. Test 6 (JSON): --format json is valid JSON (pipe to jq). Test 7 (Seeds): --emit-seeds creates 2 files in seeds/. Test 8 (Self-test): Run on the REAL store (not temp), verify it produces a plan for our actual tasks. LOGGING: Each test prints test name, command, then [PASS] or [FAIL] with actual vs expected. Summary: N/8 passed. Exit code = failure count. FILE: scripts/e2e_topology_quick.sh (new)" :op :assert}
+ ]}

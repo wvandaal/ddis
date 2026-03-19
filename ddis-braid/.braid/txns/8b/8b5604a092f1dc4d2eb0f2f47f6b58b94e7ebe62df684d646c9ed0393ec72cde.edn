@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773889607/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix FT-EVENTS: clarify WHO records events and WHEN"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "74d791c0af73bc13dd300aa32ee1d44167b7ed411bb934232dc6183ba032b38c" :a :task/approach :v "REVISED recording mechanism: (1) AUTOMATIC events — detected by braid commands without manual intervention: (a) :topology/task-completion recorded by braid done (already closes tasks, add completion event datom). (b) :topology/conflict detected by braid topology harvest scanning git log for merge conflicts since last harvest. (c) :topology/merge-event recorded by braid merge (already does merges, add event datom). (2) MANUAL events — agent uses braid observe with structured format: (a) :topology/block-event via braid observe 'BLOCKED: waiting for agent-X to commit guidance.rs' --confidence 0.9 (detected by prefix pattern). (3) SEMI-AUTOMATIC — braid topology harvest reconstructs events from git history: counts commits per author (throughput proxy), detects merge conflict markers (conflict events), computes time between commits (staleness). This means F(T) has reasonable data even if agents don't explicitly record events. The harvest-time reconstruction is the PRIMARY data source; explicit events are SUPPLEMENTARY." :op :assert}
+ ]}

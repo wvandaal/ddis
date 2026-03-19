@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773888203/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DESIGN DECISION: Agent lifecycle = harvest/seed lifecycle. Agent = bounded trajectory through attention space. SPAWN = braid seed (prime context). EXECUTE = work, k_eff decreases. HARVEST = extract knowledge. TERMINATE = context cleared. RESPAWN = fresh k_eff with updated seed. Braid is the coordination BRAIN (pure computation), not the orchestrator (IO). braid topology plan emits structured execution plan; human/ntm/Claude Code subagents execute it. Respects kernel/shell boundary (braid-kernel has no IO). Agent state tracked as :agent/* datoms."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "eb8f7a6a1ff4f35fe0266ce4ee90d385351a2b338a86947255549db35d0171c3" :a :db/doc :v "DESIGN DECISION: Agent lifecycle = harvest/seed lifecycle. Agent = bounded trajectory through attention space. SPAWN = braid seed (prime context). EXECUTE = work, k_eff decreases. HARVEST = extract knowledge. TERMINATE = context cleared. RESPAWN = fresh k_eff with updated seed. Braid is the coordination BRAIN (pure computation), not the orchestrator (IO). braid topology plan emits structured execution plan; human/ntm/Claude Code subagents execute it. Respects kernel/shell boundary (braid-kernel has no IO). Agent state tracked as :agent/* datoms." :op :assert}
+   {:e #blake3 "eb8f7a6a1ff4f35fe0266ce4ee90d385351a2b338a86947255549db35d0171c3" :a :db/ident :v :observation/design-decision-agent-lifecycle-harvestseed-lifecycle-a :op :assert}
+   {:e #blake3 "eb8f7a6a1ff4f35fe0266ce4ee90d385351a2b338a86947255549db35d0171c3" :a :exploration/body :v "DESIGN DECISION: Agent lifecycle = harvest/seed lifecycle. Agent = bounded trajectory through attention space. SPAWN = braid seed (prime context). EXECUTE = work, k_eff decreases. HARVEST = extract knowledge. TERMINATE = context cleared. RESPAWN = fresh k_eff with updated seed. Braid is the coordination BRAIN (pure computation), not the orchestrator (IO). braid topology plan emits structured execution plan; human/ntm/Claude Code subagents execute it. Respects kernel/shell boundary (braid-kernel has no IO). Agent state tracked as :agent/* datoms." :op :assert}
+   {:e #blake3 "eb8f7a6a1ff4f35fe0266ce4ee90d385351a2b338a86947255549db35d0171c3" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "eb8f7a6a1ff4f35fe0266ce4ee90d385351a2b338a86947255549db35d0171c3" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "eb8f7a6a1ff4f35fe0266ce4ee90d385351a2b338a86947255549db35d0171c3" :a :exploration/content-hash :v #bytes "e89e0d4200a91aec0cb3acc18d2d479938d1ba9951e7fd7b19000a1d00424c02" :op :assert}
+   {:e #blake3 "eb8f7a6a1ff4f35fe0266ce4ee90d385351a2b338a86947255549db35d0171c3" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "eb8f7a6a1ff4f35fe0266ce4ee90d385351a2b338a86947255549db35d0171c3" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "eb8f7a6a1ff4f35fe0266ce4ee90d385351a2b338a86947255549db35d0171c3" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

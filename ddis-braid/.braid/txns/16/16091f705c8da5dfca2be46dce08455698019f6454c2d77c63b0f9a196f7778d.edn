@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773892847/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix DTIC-1: correct observation attribute names from codebase audit"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "239cb762727286fa420f5410846fb21433520f53548c73caff0bb69efbaa1108" :a :task/approach :v "IMPLEMENTATION DETAIL from codebase audit: Observations use :exploration/body for the text content (NOT :observation/text). The is_actionable function scans :exploration/body for action verbs. To find observations since last harvest: query for entities with :exploration/body where the entity's transaction ID > last harvest tx. The :exploration/confidence attribute holds the confidence score. The entity ident pattern is :observation/<slug>. The DTIC tag should be stored as a new attribute :exploration/actionable (Boolean) set to true when is_actionable returns true. This tag persists across sessions so DTIC-2 (harvest scan) and DTIC-3 (seed carry-forward) can query efficiently without re-scanning text." :op :assert}
+ ]}

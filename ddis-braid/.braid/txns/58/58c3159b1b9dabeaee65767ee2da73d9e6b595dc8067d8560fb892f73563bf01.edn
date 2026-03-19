@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773891214/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: QUICK-7: Unit tests for quick_plan pipeline — 15+ tests covering structs, naming, balancing, formatting (INV-TOPOLOGY-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b915b674ed1ff300d9c81f930e2597e9479be161af5a3746d10e733941eeb4b2" :a :db/ident :v :task/t-5b3ea264 :op :assert}
+   {:e #blake3 "b915b674ed1ff300d9c81f930e2597e9479be161af5a3746d10e733941eeb4b2" :a :task/created-at :v 1773891213 :op :assert}
+   {:e #blake3 "b915b674ed1ff300d9c81f930e2597e9479be161af5a3746d10e733941eeb4b2" :a :task/id :v "t-5b3ea264" :op :assert}
+   {:e #blake3 "b915b674ed1ff300d9c81f930e2597e9479be161af5a3746d10e733941eeb4b2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b915b674ed1ff300d9c81f930e2597e9479be161af5a3746d10e733941eeb4b2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b915b674ed1ff300d9c81f930e2597e9479be161af5a3746d10e733941eeb4b2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b915b674ed1ff300d9c81f930e2597e9479be161af5a3746d10e733941eeb4b2" :a :task/title :v "QUICK-7: Unit tests for quick_plan pipeline — 15+ tests covering structs, naming, balancing, formatting (INV-TOPOLOGY-005)" :op :assert}
+   {:e #blake3 "b915b674ed1ff300d9c81f930e2597e9479be161af5a3746d10e733941eeb4b2" :a :task/traces-to :v #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :op :assert}
+   {:e #blake3 "b915b674ed1ff300d9c81f930e2597e9479be161af5a3746d10e733941eeb4b2" :a :task/type :v :task.type/test :op :assert}
+ ]}

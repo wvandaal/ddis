@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773891072/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for QUICK-1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :task/acceptance :v "(A) AgentAssignment derives Debug, Clone. (B) agent_name_from_files is deterministic — same input same output. (C) Names <=30 chars. (D) Empty file set -> 'agent-N'. (E) 3+ unit tests: single file, multi-file, empty set, long names truncated." :op :assert}
+   {:e #blake3 "86e886704437ac763350ce54b54abce92901684b59364f2d152833db0d113c63" :a :task/background :v "Define the data structures for quick topology plan. AgentAssignment { name: String, tasks: Vec<EntityId>, files: BTreeSet<String>, total_impact: f64 }. agent_name_from_files extracts .rs stems, sorts by task count, joins top-2 with hyphen. E.g., files={guidance.rs, seed.rs, budget.rs} -> name='guidance-seed'. Must be deterministic (INV-TOPOLOGY-005): same files -> same name. Must be <=30 chars. Falls back to 'agent-N' if no .rs files. QuickPlan { agents: Vec<AgentAssignment>, unassigned: Vec<EntityId>, partition_count: usize, file_coupling_pairs: usize }. FILE: crates/braid-kernel/src/topology.rs" :op :assert}
+ ]}

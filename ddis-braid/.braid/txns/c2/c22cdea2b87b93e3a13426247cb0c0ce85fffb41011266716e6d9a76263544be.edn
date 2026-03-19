@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773891283/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for QUICK-9"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "946ba3c73b6cee33203b57b6a28688a9ad876deea8194f49078a99225b715d9e" :a :task/acceptance :v "(A) braid topology plan --quick --agents 3 on real store produces a plan. (B) Plan has 3 agents with non-empty task lists. (C) File sets are disjoint. (D) Generated seeds reference actual task IDs. (E) Observations recorded about plan quality." :op :assert}
+   {:e #blake3 "946ba3c73b6cee33203b57b6a28688a9ad876deea8194f49078a99225b715d9e" :a :task/background :v "THE FIXED POINT OF C7: The topology system's first real use is optimizing its own construction. After QUICK-1 through QUICK-8 are implemented, run braid topology plan --quick --agents 3 --emit-seeds on the REAL store. Verify: (1) The plan correctly partitions our topology tasks by file ownership (guidance.rs tasks in one agent, topology.rs tasks in another, CLI tasks in a third). (2) The generated seeds are useful — a human or agent reading the seed would know exactly what to do. (3) The partition makes SENSE — tasks that share files are in the same agent, tasks with disjoint files are in different agents. (4) Impact is balanced — no agent has 10x the impact of another. This is not a synthetic test — it's the REAL test of whether the topology system works for its intended purpose. If the plan for our own work is wrong, the system is wrong. Dog-food: OBSERVE how it feels to use the output. What's missing? What's confusing? Record as braid observations for the next iteration." :op :assert}
+ ]}

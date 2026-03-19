@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773891082/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: QUICK-2: balance_assign() — greedy bin-packing of file partitions to N agents by R(t) impact (INV-TOPOLOGY-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f2f411409de7a0411f6a6d0ebe8d8c38cc7c7f7bd0f733feac24fe3484d4b245" :a :db/ident :v :task/t-8bf090e7 :op :assert}
+   {:e #blake3 "f2f411409de7a0411f6a6d0ebe8d8c38cc7c7f7bd0f733feac24fe3484d4b245" :a :task/created-at :v 1773891081 :op :assert}
+   {:e #blake3 "f2f411409de7a0411f6a6d0ebe8d8c38cc7c7f7bd0f733feac24fe3484d4b245" :a :task/id :v "t-8bf090e7" :op :assert}
+   {:e #blake3 "f2f411409de7a0411f6a6d0ebe8d8c38cc7c7f7bd0f733feac24fe3484d4b245" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f2f411409de7a0411f6a6d0ebe8d8c38cc7c7f7bd0f733feac24fe3484d4b245" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f2f411409de7a0411f6a6d0ebe8d8c38cc7c7f7bd0f733feac24fe3484d4b245" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f2f411409de7a0411f6a6d0ebe8d8c38cc7c7f7bd0f733feac24fe3484d4b245" :a :task/title :v "QUICK-2: balance_assign() — greedy bin-packing of file partitions to N agents by R(t) impact (INV-TOPOLOGY-005)" :op :assert}
+   {:e #blake3 "f2f411409de7a0411f6a6d0ebe8d8c38cc7c7f7bd0f733feac24fe3484d4b245" :a :task/traces-to :v #blake3 "211b237fbfd24ecd915ae39a23817b72b7f79278c0764250c3afee19bed49a6a" :op :assert}
+   {:e #blake3 "f2f411409de7a0411f6a6d0ebe8d8c38cc7c7f7bd0f733feac24fe3484d4b245" :a :task/type :v :task.type/task :op :assert}
+ ]}

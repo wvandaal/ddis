@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773890330/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for task list filtering"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :task/acceptance :v "(A) braid task list --prefix TOPO shows only tasks whose title starts with TOPO. (B) braid task list --type epic shows only epic tasks. (C) braid task list --priority 1 shows only P1 tasks. (D) Filters compose (AND semantics). (E) --count returns count only." :op :assert}
+   {:e #blake3 "d4ecf83966e04c9502cd77d357db0169dc9710b4624c53d8b584ee7458b6f06e" :a :task/background :v "Dog-food Session 026: With 298 open tasks, braid task list is unusable without filters. Needed filters: --created-after TIMESTAMP (show tasks from this session), --type epic/task/bug/test (show only epics), --prefix TOPO (show tasks with title prefix match), --priority 1 (show P1 only), --has-dep (show tasks with dependencies). These compose: braid task list --type epic --priority 1 shows P1 epics. FROM API-AS-PROMPT: The filtered list IS the agent's work context. Showing 298 undifferentiated tasks is like a prompt with 298 constraints — past k*, every item dilutes every other. Filtering is k*-management for the task surface. ALSO: --count flag for headless counting (braid task list --type epic --count -> '12 matching tasks'). FROM PYRAMID-SUMMARIES: Filtering selects WHICH items to zoom into. The filter narrows the L1 view; task show provides L2/L3 expansion on selected items." :op :assert}
+ ]}

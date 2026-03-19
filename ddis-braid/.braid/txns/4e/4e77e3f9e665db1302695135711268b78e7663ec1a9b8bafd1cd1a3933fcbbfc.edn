@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773889557/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 detail for agent naming"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d46f7ae4c98f6a934196a097dc39564c48d6364901384e4437518b15620c79e9" :a :task/acceptance :v "(A) Agent names are human-readable (no hex IDs). (B) Agent names are deterministic (same files -> same name). (C) Names fit in 30 chars. (D) braid next --agent guidance-seed filters correctly." :op :assert}
+   {:e #blake3 "d46f7ae4c98f6a934196a097dc39564c48d6364901384e4437518b15620c79e9" :a :task/background :v "Agents need to KNOW their partition name to use braid next --agent. Current design assigns generic names (alpha1, alpha2). Problem: an agent spawned with 'braid seed --task guidance' doesn't know it's alpha1. Fix: derive names from cluster's primary file. E.g., cluster containing guidance.rs+seed.rs+budget.rs -> agent name 'guidance-seed'. Agent containing topology.rs+merge.rs -> agent name 'topology-merge'. The name is the dominant filename (most tasks) with secondary as suffix. This is self-documenting: the agent's seed command says 'braid seed --task guidance-seed' and the agent can infer its partition. The name also appears in braid topology status per-agent display. IMPLEMENTATION: agent_name_from_files(files: &BTreeSet<String>) -> String. Extract .rs filename stems, sort by task count, join top-2 with hyphen." :op :assert}
+ ]}

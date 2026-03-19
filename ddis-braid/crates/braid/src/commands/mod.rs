@@ -21,6 +21,7 @@ pub(crate) mod shell;
 mod spec;
 pub(crate) mod status;
 mod task;
+mod topology;
 mod trace;
 mod verify;
 mod wrap;
@@ -876,6 +877,60 @@ Examples:
         #[command(subcommand)]
         action: SpecAction,
     },
+
+    // ── COORDINATION ─────────────────────────────────────────────────
+    /// Compile agent coordination topology from task coupling structure.
+    ///
+    /// `braid topology plan --agents 3` → disjoint file assignments per agent.
+    /// Spectral analysis of coupling matrix determines optimal parallelism.
+    #[command(after_long_help = "\
+Examples:
+  braid topology plan --agents 3         # compute 3-agent topology plan
+  braid topology plan --agents 2 --json  # JSON output for automation
+  braid topology plan --agents 3 --emit-seeds  # per-agent seed prompts
+  braid topology status                  # show current topology state")]
+    Topology {
+        #[command(subcommand)]
+        action: TopologyAction,
+    },
+}
+
+/// Topology subcommands (ADR-TOPOLOGY-004).
+#[derive(Subcommand)]
+pub enum TopologyAction {
+    /// Compute a topology plan for parallel agent execution.
+    ///
+    /// Analyzes file coupling between ready tasks, partitions into
+    /// disjoint groups, and assigns to N agents. Guarantees no file
+    /// appears in more than one agent's assignment (INV-TOPOLOGY-003).
+    Plan {
+        /// Number of agents to assign work to.
+        #[arg(long, short = 'n')]
+        agents: usize,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Also emit per-agent seed prompts for injection.
+        #[arg(long)]
+        emit_seeds: bool,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Show current topology coordination state.
+    Status {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 /// Spec subcommands (WP5, W4B.3).
@@ -1431,6 +1486,9 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
             | SpecAction::Reject { path, .. }
             | SpecAction::History { path, .. } => Some(path),
         },
+        Command::Topology { action } => match action {
+            TopologyAction::Plan { path, .. } | TopologyAction::Status { path, .. } => Some(path),
+        },
     }
 }
 
@@ -1449,6 +1507,10 @@ fn is_json_output(cmd: &Command, mode: crate::output::OutputMode) -> bool {
             | Command::Seed { json: true, .. }
             | Command::Bilateral { json: true, .. }
             | Command::Verify { json: true, .. }
+            | Command::Topology {
+                action: TopologyAction::Plan { json: true, .. }
+                    | TopologyAction::Status { json: true, .. },
+            }
     )
 }
 
@@ -1486,6 +1548,7 @@ pub fn command_name_for(cmd: &Command) -> &'static str {
         Command::Note { .. } => "note",
         Command::Go { .. } => "go",
         Command::Spec { .. } => "spec",
+        Command::Topology { .. } => "topology",
         Command::Verify { .. } => "verify",
         Command::Transact { .. } => "transact",
     }
@@ -1726,6 +1789,11 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
             | SpecAction::Accept { path, .. }
             | SpecAction::Reject { path, .. }
             | SpecAction::History { path, .. } => {
+                *path = resolve_store_path(path.clone());
+            }
+        },
+        Command::Topology { action } => match action {
+            TopologyAction::Plan { path, .. } | TopologyAction::Status { path, .. } => {
                 *path = resolve_store_path(path.clone());
             }
         },
@@ -2409,6 +2477,35 @@ pub fn run(
             }
             SpecAction::History { path } => {
                 let cmd_output = spec::run_history(&path)?;
+                return Ok(maybe_inject_footer(
+                    cmd_output,
+                    skip_footer,
+                    path_for_footer.as_deref(),
+                    budget_ctx,
+                    footer_cmd_name,
+                    None,
+                ));
+            }
+        },
+        Command::Topology { action } => match action {
+            TopologyAction::Plan {
+                agents,
+                path,
+                emit_seeds,
+                json,
+            } => {
+                let cmd_output = topology::run_plan(&path, agents, emit_seeds, json)?;
+                return Ok(maybe_inject_footer(
+                    cmd_output,
+                    skip_footer,
+                    path_for_footer.as_deref(),
+                    budget_ctx,
+                    footer_cmd_name,
+                    None,
+                ));
+            }
+            TopologyAction::Status { path, json } => {
+                let cmd_output = topology::run_status(&path, json)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,

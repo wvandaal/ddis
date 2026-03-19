@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773898735/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-TOPOLOGY-001 \"Topology as Store Projection\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :db/doc :v "Topology as Store Projection" :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :db/ident :v :spec/inv-topology-001 :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :element/traces-to :v "SEED.md S4, spec/19-topology.md" :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/falsification :v "A topology plan uses information not derived from the datom store" :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/id :v "INV-TOPOLOGY-001" :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/namespace :v :spec.ns/TOPOLOGY :op :assert}
+   {:e #blake3 "778fb1e9d789b55f53d38a53aa8758f7c2ae180de5d196434e148d3cd4350bab" :a :spec/statement :v "All topology plans and assignments are computed from store state. No external state or configuration drives topology compilation." :op :assert}
+ ]}

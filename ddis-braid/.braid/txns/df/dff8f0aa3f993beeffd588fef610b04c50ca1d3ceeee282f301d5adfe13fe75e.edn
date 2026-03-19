@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773891461/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for DTIC EPIC"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1449d85a8a4661337793472ba7160d90e3009cf4afc0cc62913d9d20899b795e" :a :task/background :v "FAILURE MODE: Sessions 025 and 026 both lost design decisions — 10 topology tasks designed in conversation but never transacted into any tracking system. Root cause: decisions and tasks are different entity types with no enforced linkage. The agent's k* budget favors exploration (high DoF) over task creation (low DoF), so task creation is deferred and then lost when the conversation ends. This is EPISTEMIC DIVERGENCE: the gap between what the agent decided and what the store tracks. THREE-LAYER FIX: (1) PREVENTION at observe time — detect actionable decisions and suggest task creation in the guidance footer. (2) DETECTION at harvest time — scan for decisions without corresponding tasks, include in harvest report. (3) CORRECTION at seed time — carry untracked decisions into the next session prominently, so the next agent crystallizes them first. The key insight from prompt-optimization: the suggestion IS a prompt. Include a copy-pasteable braid task create command so the agent doesn't have to compose it." :op :assert}
+ ]}

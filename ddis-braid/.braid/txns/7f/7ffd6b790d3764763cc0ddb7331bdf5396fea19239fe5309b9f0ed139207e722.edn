@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773891506/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DTIC-2: Harvest-time orphaned decision scan — detect decisions without corresponding tasks (INV-HARVEST-005)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "61463cb7fe8a50cfe79e1f1c18a3af0d4a2b83f60ce42236014803ef82a99847" :a :db/ident :v :task/t-8ac8f2cc :op :assert}
+   {:e #blake3 "61463cb7fe8a50cfe79e1f1c18a3af0d4a2b83f60ce42236014803ef82a99847" :a :task/created-at :v 1773891505 :op :assert}
+   {:e #blake3 "61463cb7fe8a50cfe79e1f1c18a3af0d4a2b83f60ce42236014803ef82a99847" :a :task/id :v "t-8ac8f2cc" :op :assert}
+   {:e #blake3 "61463cb7fe8a50cfe79e1f1c18a3af0d4a2b83f60ce42236014803ef82a99847" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "61463cb7fe8a50cfe79e1f1c18a3af0d4a2b83f60ce42236014803ef82a99847" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "61463cb7fe8a50cfe79e1f1c18a3af0d4a2b83f60ce42236014803ef82a99847" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "61463cb7fe8a50cfe79e1f1c18a3af0d4a2b83f60ce42236014803ef82a99847" :a :task/title :v "DTIC-2: Harvest-time orphaned decision scan — detect decisions without corresponding tasks (INV-HARVEST-005)" :op :assert}
+   {:e #blake3 "61463cb7fe8a50cfe79e1f1c18a3af0d4a2b83f60ce42236014803ef82a99847" :a :task/traces-to :v #blake3 "204ebfa13a978aedae517e69fc1eda83f20d032569914f5061259b591ab5c0fd" :op :assert}
+   {:e #blake3 "61463cb7fe8a50cfe79e1f1c18a3af0d4a2b83f60ce42236014803ef82a99847" :a :task/type :v :task.type/feature :op :assert}
+ ]}

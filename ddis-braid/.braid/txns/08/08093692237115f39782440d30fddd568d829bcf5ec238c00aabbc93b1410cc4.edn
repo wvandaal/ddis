@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773891132/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: QUICK-4: format_plan() — human+agent+json output with demonstration structure (API-as-prompt, INV-INTERFACE-008)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cfae8811e0470a146318ebaa5e4b37366072237471ec53f4f10af34f17ca3027" :a :db/ident :v :task/t-efb42dc7 :op :assert}
+   {:e #blake3 "cfae8811e0470a146318ebaa5e4b37366072237471ec53f4f10af34f17ca3027" :a :task/created-at :v 1773891131 :op :assert}
+   {:e #blake3 "cfae8811e0470a146318ebaa5e4b37366072237471ec53f4f10af34f17ca3027" :a :task/id :v "t-efb42dc7" :op :assert}
+   {:e #blake3 "cfae8811e0470a146318ebaa5e4b37366072237471ec53f4f10af34f17ca3027" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "cfae8811e0470a146318ebaa5e4b37366072237471ec53f4f10af34f17ca3027" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cfae8811e0470a146318ebaa5e4b37366072237471ec53f4f10af34f17ca3027" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cfae8811e0470a146318ebaa5e4b37366072237471ec53f4f10af34f17ca3027" :a :task/title :v "QUICK-4: format_plan() — human+agent+json output with demonstration structure (API-as-prompt, INV-INTERFACE-008)" :op :assert}
+   {:e #blake3 "cfae8811e0470a146318ebaa5e4b37366072237471ec53f4f10af34f17ca3027" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "cfae8811e0470a146318ebaa5e4b37366072237471ec53f4f10af34f17ca3027" :a :task/type :v :task.type/task :op :assert}
+ ]}

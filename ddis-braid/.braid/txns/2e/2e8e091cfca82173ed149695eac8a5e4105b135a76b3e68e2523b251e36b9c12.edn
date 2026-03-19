@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773890421/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for operational ergonomics EPIC"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5bc10954729cae6953a4f93b934591ff2470639b47d6dc69fefb98fbf5f864c7" :a :task/background :v "Dog-food Session 026 revealed: the durable knowledge layer (store, harvest, seed) is at 9/10 maturity, but the operational layer (task UX, search, display) is at 5/10. This EPIC addresses the operational gap. The system has the DATA (278 tasks with rich attributes in the store) but the INTERFACE doesn't surface it efficiently. The usability ratio u(S) = |U(S)|/|T(S)| is ~0.3 for task management — agents access ~30% of task information without raw Datalog. Target: u(S) >= 0.8. PROMPT SURFACE HIERARCHY dictates optimization order: task titles > error messages > search/filter > command output > help text > batch ops. Children tasks: PYRAMID-DISPLAY (t-17edf3df), task search (t-dbca7795), task list filtering (t-ea2d7a05), command disambiguation (t-8b308e91), smart harvest thresholds (t-891d2acd), batch import (t-d5ac7417), data model enforcement (t-1029e16f). FROM PROMPT-OPTIMIZATION: Every surface is a field configuration. The EPIC's success metric is: an agent can navigate, select, and understand any task using ONLY braid CLI commands — no Datalog queries needed for operational work." :op :assert}
+ ]}

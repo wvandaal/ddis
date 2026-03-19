@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773890580/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Fix unused import warning: remove Op from topology.rs imports (appears on every cargo build)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "661d00067591a27cde2a03070032699e620772a5e49984767b3966ee39381af7" :a :db/ident :v :task/t-8e558ef9 :op :assert}
+   {:e #blake3 "661d00067591a27cde2a03070032699e620772a5e49984767b3966ee39381af7" :a :task/created-at :v 1773890579 :op :assert}
+   {:e #blake3 "661d00067591a27cde2a03070032699e620772a5e49984767b3966ee39381af7" :a :task/id :v "t-8e558ef9" :op :assert}
+   {:e #blake3 "661d00067591a27cde2a03070032699e620772a5e49984767b3966ee39381af7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "661d00067591a27cde2a03070032699e620772a5e49984767b3966ee39381af7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "661d00067591a27cde2a03070032699e620772a5e49984767b3966ee39381af7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "661d00067591a27cde2a03070032699e620772a5e49984767b3966ee39381af7" :a :task/title :v "Fix unused import warning: remove Op from topology.rs imports (appears on every cargo build)" :op :assert}
+   {:e #blake3 "661d00067591a27cde2a03070032699e620772a5e49984767b3966ee39381af7" :a :task/type :v :task.type/bug :op :assert}
+ ]}

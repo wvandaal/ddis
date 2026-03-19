@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773891471/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DTIC-1: Detect actionable decisions in braid observe — suggest task creation in footer (INV-HARVEST-002, API-as-prompt)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "239cb762727286fa420f5410846fb21433520f53548c73caff0bb69efbaa1108" :a :db/ident :v :task/t-f66ec5af :op :assert}
+   {:e #blake3 "239cb762727286fa420f5410846fb21433520f53548c73caff0bb69efbaa1108" :a :task/created-at :v 1773891470 :op :assert}
+   {:e #blake3 "239cb762727286fa420f5410846fb21433520f53548c73caff0bb69efbaa1108" :a :task/id :v "t-f66ec5af" :op :assert}
+   {:e #blake3 "239cb762727286fa420f5410846fb21433520f53548c73caff0bb69efbaa1108" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "239cb762727286fa420f5410846fb21433520f53548c73caff0bb69efbaa1108" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "239cb762727286fa420f5410846fb21433520f53548c73caff0bb69efbaa1108" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "239cb762727286fa420f5410846fb21433520f53548c73caff0bb69efbaa1108" :a :task/title :v "DTIC-1: Detect actionable decisions in braid observe — suggest task creation in footer (INV-HARVEST-002, API-as-prompt)" :op :assert}
+   {:e #blake3 "239cb762727286fa420f5410846fb21433520f53548c73caff0bb69efbaa1108" :a :task/traces-to :v #blake3 "8164ecc09e37e32f1ab4672303951c53bd0650c069cfd274c477bdc976457cb5" :op :assert}
+   {:e #blake3 "239cb762727286fa420f5410846fb21433520f53548c73caff0bb69efbaa1108" :a :task/type :v :task.type/feature :op :assert}
+ ]}

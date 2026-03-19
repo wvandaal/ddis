@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773890263/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for batch task import"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d8d2b6b96e666a784810975c7a3b6263d072b90a63a6e1772177efd51610d438" :a :task/acceptance :v "(A) braid task create-batch tasks.edn creates all tasks in one command. (B) Dependencies resolved by title prefix within the batch. (C) All tasks get :task/background and :task/acceptance as separate datoms. (D) Atomic: if any task fails validation, none are created." :op :assert}
+   {:e #blake3 "d8d2b6b96e666a784810975c7a3b6263d072b90a63a6e1772177efd51610d438" :a :task/background :v "Dog-food Session 026: Creating 27 tasks + 17 deps + 15 write-asserts = 59 commands at ~2s each = 2 minutes of pure CLI overhead. A structured input file would be 10x faster and LESS ERROR-PRONE (I made syntax errors on task set that failed silently). APPROACH: braid task create-batch accepts EDN or YAML file with task definitions including title, priority, type, background, acceptance, dependencies (by title prefix match). Single transaction creates all tasks and deps atomically. The file format IS a prompt for human task authors — it should use pyramid structure: title on first line (L1 activation), then labeled sections (background, acceptance, files, depends-on). FROM PROMPT-OPTIMIZATION: The batch file format is itself a field configuration. Structure it so task authors naturally write good activation patterns. Put title FIRST (highest k* position), then spec-refs, then background detail." :op :assert}
+ ]}

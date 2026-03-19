@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773890848/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for TOPO-QUICK — the bootstrap task"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :task/acceptance :v "(A) braid topology plan --quick --agents 3 produces partition with disjoint file sets. (B) --emit-seeds generates per-agent .md files with tasks, files, protocol. (C) Self-test: run on our 37 topology tasks, verify sensible partition. (D) Deterministic: two runs produce identical output (INV-TOPOLOGY-005). (E) Handles tasks with no file refs (assigns to smallest agent). (F) Output includes R(t) impact scores and per-agent total impact." :op :assert}
+   {:e #blake3 "2f0a081f77dafd02eeb6a38581ab2028399ad2196aed1334f1326c0a10484313" :a :task/background :v "THE BOOTSTRAP INSIGHT: We have 37 tasks to parallelize. The tool that optimizes this (braid topology plan) is one of those 37 tasks. Solution: wire the 4 EXISTING functions (ready_task_files, compute_file_coupling, partition_by_file_coupling, compute_routing_from_store) into a minimal viable CLI command. No density matrix, no spectral decomposition, no CALM — just file coupling + connected components + R(t) impact scoring + greedy balanced assignment. This gives us an IMMEDIATELY USEFUL partition for implementing the full spectral pipeline. Self-referential: the tool's first act is to optimize its own construction. The --emit-seeds flag generates per-agent seed prompts that are THEMSELVES optimized prompt configurations (API-as-prompt applied recursively): each seed has trajectory-seeding structure, spec-language activation, file ownership boundaries, and CARGO_TARGET_DIR isolation. DEPENDS ON: only TOPO-SCHEMA (for :topology/assignment datoms) and the Op import fix. Everything else (the 4 core functions) already exists and is tested." :op :assert}
+ ]}

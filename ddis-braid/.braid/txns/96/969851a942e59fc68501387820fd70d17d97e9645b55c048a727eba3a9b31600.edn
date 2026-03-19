@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773891267/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: QUICK-9: Self-bootstrap test — run braid topology plan --quick on our own 37 topology tasks, validate partition (C7)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "946ba3c73b6cee33203b57b6a28688a9ad876deea8194f49078a99225b715d9e" :a :db/ident :v :task/t-8d9df01d :op :assert}
+   {:e #blake3 "946ba3c73b6cee33203b57b6a28688a9ad876deea8194f49078a99225b715d9e" :a :task/created-at :v 1773891266 :op :assert}
+   {:e #blake3 "946ba3c73b6cee33203b57b6a28688a9ad876deea8194f49078a99225b715d9e" :a :task/id :v "t-8d9df01d" :op :assert}
+   {:e #blake3 "946ba3c73b6cee33203b57b6a28688a9ad876deea8194f49078a99225b715d9e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "946ba3c73b6cee33203b57b6a28688a9ad876deea8194f49078a99225b715d9e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "946ba3c73b6cee33203b57b6a28688a9ad876deea8194f49078a99225b715d9e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "946ba3c73b6cee33203b57b6a28688a9ad876deea8194f49078a99225b715d9e" :a :task/title :v "QUICK-9: Self-bootstrap test — run braid topology plan --quick on our own 37 topology tasks, validate partition (C7)" :op :assert}
+   {:e #blake3 "946ba3c73b6cee33203b57b6a28688a9ad876deea8194f49078a99225b715d9e" :a :task/type :v :task.type/test :op :assert}
+ ]}

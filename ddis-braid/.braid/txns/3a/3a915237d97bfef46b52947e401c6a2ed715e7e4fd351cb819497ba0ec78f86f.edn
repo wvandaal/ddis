@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773889673/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-TOPO-ERRORS: Test TopologyError display uses spec-language and includes RecoveryAction (INV-INTERFACE-009)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a348ea16c0ad718976fa862a4d5aa80d6a8471cd9654451c8e805f5e0ddda2d1" :a :db/ident :v :task/t-3ebad4df :op :assert}
+   {:e #blake3 "a348ea16c0ad718976fa862a4d5aa80d6a8471cd9654451c8e805f5e0ddda2d1" :a :task/created-at :v 1773889672 :op :assert}
+   {:e #blake3 "a348ea16c0ad718976fa862a4d5aa80d6a8471cd9654451c8e805f5e0ddda2d1" :a :task/id :v "t-3ebad4df" :op :assert}
+   {:e #blake3 "a348ea16c0ad718976fa862a4d5aa80d6a8471cd9654451c8e805f5e0ddda2d1" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "a348ea16c0ad718976fa862a4d5aa80d6a8471cd9654451c8e805f5e0ddda2d1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a348ea16c0ad718976fa862a4d5aa80d6a8471cd9654451c8e805f5e0ddda2d1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a348ea16c0ad718976fa862a4d5aa80d6a8471cd9654451c8e805f5e0ddda2d1" :a :task/title :v "TEST-TOPO-ERRORS: Test TopologyError display uses spec-language and includes RecoveryAction (INV-INTERFACE-009)" :op :assert}
+   {:e #blake3 "a348ea16c0ad718976fa862a4d5aa80d6a8471cd9654451c8e805f5e0ddda2d1" :a :task/traces-to :v #blake3 "fef56a9cb08a30bf263aecdb18911320804bef2e1a05aabbb107ebcae03e2532" :op :assert}
+   {:e #blake3 "a348ea16c0ad718976fa862a4d5aa80d6a8471cd9654451c8e805f5e0ddda2d1" :a :task/type :v :task.type/test :op :assert}
+ ]}

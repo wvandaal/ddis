@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773898747/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-TOPOLOGY-004 \"Composite Coupling Signal\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :db/doc :v "Composite Coupling Signal" :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :db/ident :v :spec/inv-topology-004 :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :element/traces-to :v "SEED.md S4, spec/19-topology.md" :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/falsification :v "Topology uses only a single coupling dimension" :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/id :v "INV-TOPOLOGY-004" :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/namespace :v :spec.ns/TOPOLOGY :op :assert}
+   {:e #blake3 "f70ec810a5c0f00e51af0cf06dd8a9f96951eb92125a06667afc2b818ecf6b25" :a :spec/statement :v "The coupling matrix C[i][j] is computed from at least file overlap (Jaccard similarity). Coupling dimensions include file coupling, spec dependency coupling, and R(t) impact coupling." :op :assert}
+ ]}

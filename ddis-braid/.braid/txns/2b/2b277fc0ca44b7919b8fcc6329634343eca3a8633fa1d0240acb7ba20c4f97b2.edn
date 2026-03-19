@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773890270/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Smart harvest thresholds: session-aware warning that distinguishes batch ops from interactive drift (INV-HARVEST-005, INV-GUIDANCE-008)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :db/ident :v :task/t-891d2acd :op :assert}
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :task/created-at :v 1773890269 :op :assert}
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :task/id :v "t-891d2acd" :op :assert}
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :task/title :v "Smart harvest thresholds: session-aware warning that distinguishes batch ops from interactive drift (INV-HARVEST-005, INV-GUIDANCE-008)" :op :assert}
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :task/traces-to :v #blake3 "204ebfa13a978aedae517e69fc1eda83f20d032569914f5061259b591ab5c0fd" :op :assert}
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :task/traces-to :v #blake3 "fa71f60e4595a0ffebe68a3624cef654c803b041cbfb620daa4f4c9655ddc335" :op :assert}
+   {:e #blake3 "57c011ca748fec319a4d170b89258ec759b543b1aa0d6e684667c1ce5929ba63" :a :task/type :v :task.type/task :op :assert}
+ ]}

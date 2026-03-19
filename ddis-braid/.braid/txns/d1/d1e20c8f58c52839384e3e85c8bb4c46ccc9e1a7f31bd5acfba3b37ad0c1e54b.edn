@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773889193/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Pyramid summaries for topology plan output: k*-aware detail levels (ADR-INTERFACE-011, INV-BUDGET-004)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b9d13f91a7767da533e70d702cd60325aacd07fe9cfb88e51207e17cda13fd9d" :a :db/ident :v :task/t-ad704639 :op :assert}
+   {:e #blake3 "b9d13f91a7767da533e70d702cd60325aacd07fe9cfb88e51207e17cda13fd9d" :a :task/created-at :v 1773889192 :op :assert}
+   {:e #blake3 "b9d13f91a7767da533e70d702cd60325aacd07fe9cfb88e51207e17cda13fd9d" :a :task/id :v "t-ad704639" :op :assert}
+   {:e #blake3 "b9d13f91a7767da533e70d702cd60325aacd07fe9cfb88e51207e17cda13fd9d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b9d13f91a7767da533e70d702cd60325aacd07fe9cfb88e51207e17cda13fd9d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b9d13f91a7767da533e70d702cd60325aacd07fe9cfb88e51207e17cda13fd9d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b9d13f91a7767da533e70d702cd60325aacd07fe9cfb88e51207e17cda13fd9d" :a :task/title :v "Pyramid summaries for topology plan output: k*-aware detail levels (ADR-INTERFACE-011, INV-BUDGET-004)" :op :assert}
+   {:e #blake3 "b9d13f91a7767da533e70d702cd60325aacd07fe9cfb88e51207e17cda13fd9d" :a :task/traces-to :v #blake3 "be63bdefa9441ff6f33b9506359b9b99706fa5ebafbe291935c8cfca52c9f30f" :op :assert}
+   {:e #blake3 "b9d13f91a7767da533e70d702cd60325aacd07fe9cfb88e51207e17cda13fd9d" :a :task/type :v :task.type/feature :op :assert}
+ ]}

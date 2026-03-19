@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773889528/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 detail for TOPO-PERSIST"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1fd3e12069ec64d7ccf191a989ce35890cdca8f9dcf85e3f6387082187ea2ab7" :a :task/acceptance :v "(A) After braid topology plan --agents 3, query '[:find ?e :where [?e :topology/plan-pattern _]]' returns 1+ results. (B) Each task has :topology/assignment attribute. (C) braid topology status shows plan summary from stored datoms. (D) Second run creates NEW plan entity (append-only)." :op :assert}
+   {:e #blake3 "1fd3e12069ec64d7ccf191a989ce35890cdca8f9dcf85e3f6387082187ea2ab7" :a :task/background :v "When braid topology plan runs, the computed plan must be TRANSACTED into the store as datoms. Without this: (a) braid topology status cannot query current plan, (b) braid next --agent cannot filter by assignment, (c) F(T) harvest cannot compare predicted vs actual, (d) PGO loop has no baseline to compare against. Plan persistence creates entities: one :topology/plan entity per invocation (with entropy, pattern, agent_count, timestamp), one :topology/agent-assignment entity per agent (with task list, file set, impact), :topology/assignment attribute on each task entity pointing to its agent. The plan entity links to :topology/coupling-weights used at creation time. All immutable (append-only, INV-TOPOLOGY-003). Previous plans remain queryable for PGO trend analysis." :op :assert}
+ ]}

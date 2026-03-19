@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773890563/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for task-set integration tests"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "495e5cd9fb11d7fcc967ed5932af03ef18e5e5680da48f59d6a3cc8382014114" :a :task/acceptance :v "(A) 5+ integration tests for task set command. (B) No silent NO-OP: every invalid invocation returns non-zero exit code. (C) Every valid invocation verified by querying the store." :op :assert}
+   {:e #blake3 "495e5cd9fb11d7fcc967ed5932af03ef18e5e5680da48f59d6a3cc8382014114" :a :task/background :v "Session 025 critical bug: ALL 13 task revisions were NO-OPs because 'braid task set t-xxx --title ...' was used but correct syntax is positional 'braid task set t-xxx title ...'. The --title flag was silently ignored with exit code 2, hidden by 2>/dev/null. No integration test caught this. TESTS NEEDED: (1) braid task set t-xxx title 'new title' changes the title (verify via query). (2) braid task set t-xxx --title 'text' either works OR returns non-zero with helpful error. (3) braid task set t-xxx priority 2 changes priority. (4) braid task set t-xxx nonexistent-attr 'value' returns error. (5) All tests verify actual store state change, not just exit code. Add to scripts/e2e_agent_workflow.sh or create scripts/e2e_task_set.sh." :op :assert}
+ ]}

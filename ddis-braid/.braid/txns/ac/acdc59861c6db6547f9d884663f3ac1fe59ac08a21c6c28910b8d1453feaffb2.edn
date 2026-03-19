@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773890386/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for data model enforcement"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b0b1a6e99aec0e75d89bd0a95151e18d4c19b34551747c4a5a686de431af949b" :a :task/acceptance :v "(A) braid task create with >120 char title rejects with helpful error. (B) braid task create with --background flag stores description separately. (C) braid task list shows short-title, never >120 chars. (D) Existing long-title tasks still display (backward compatible)." :op :assert}
+   {:e #blake3 "b0b1a6e99aec0e75d89bd0a95151e18d4c19b34551747c4a5a686de431af949b" :a :task/background :v "The schema IS a prompt for task authors. Current :task/title holds ALL content in one blob, permitting 500-char titles with embedded sections. This is an ILLEGAL STATE that should be unrepresentable. APPROACH: (1) Add :task/short-title attribute (String, <=120 chars, REQUIRED for new tasks). (2) :task/title becomes an alias that returns short-title for display. (3) braid task create validates title length, rejects >120 chars with error: 'Title too long (N chars, max 120). Use --background for detail. Example: braid task create \"TOPO-DENSITY: Coupling density matrix (INV-TOPOLOGY-005)\" --background \"The normalized coupling...\"'. (4) Migration: existing long titles get short-title extracted (text before first BACKGROUND/APPROACH marker). (5) :task/description replaces :task/background as the L2 field name (more intuitive). COMPATIBILITY: :task/title remains readable for backward compat but new tasks use short-title. GRADUAL: Phase 1 = add short-title attribute + task create --background flag. Phase 2 = migrate existing tasks. Phase 3 = deprecate long titles." :op :assert}
+ ]}

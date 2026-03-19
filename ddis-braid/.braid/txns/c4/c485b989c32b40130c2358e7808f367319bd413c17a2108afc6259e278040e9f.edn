@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773889694/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-TOPO-PERSIST: Verify plan datom persistence — roundtrip, append-only, queryable (INV-TOPOLOGY-003)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "154ba37677a915be8cb383ec8cf205e2307beafde3ae5a5eaaa58780a0f46b8c" :a :db/ident :v :task/t-66a2c3cf :op :assert}
+   {:e #blake3 "154ba37677a915be8cb383ec8cf205e2307beafde3ae5a5eaaa58780a0f46b8c" :a :task/created-at :v 1773889693 :op :assert}
+   {:e #blake3 "154ba37677a915be8cb383ec8cf205e2307beafde3ae5a5eaaa58780a0f46b8c" :a :task/id :v "t-66a2c3cf" :op :assert}
+   {:e #blake3 "154ba37677a915be8cb383ec8cf205e2307beafde3ae5a5eaaa58780a0f46b8c" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "154ba37677a915be8cb383ec8cf205e2307beafde3ae5a5eaaa58780a0f46b8c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "154ba37677a915be8cb383ec8cf205e2307beafde3ae5a5eaaa58780a0f46b8c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "154ba37677a915be8cb383ec8cf205e2307beafde3ae5a5eaaa58780a0f46b8c" :a :task/title :v "TEST-TOPO-PERSIST: Verify plan datom persistence — roundtrip, append-only, queryable (INV-TOPOLOGY-003)" :op :assert}
+   {:e #blake3 "154ba37677a915be8cb383ec8cf205e2307beafde3ae5a5eaaa58780a0f46b8c" :a :task/traces-to :v #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :op :assert}
+   {:e #blake3 "154ba37677a915be8cb383ec8cf205e2307beafde3ae5a5eaaa58780a0f46b8c" :a :task/type :v :task.type/test :op :assert}
+ ]}

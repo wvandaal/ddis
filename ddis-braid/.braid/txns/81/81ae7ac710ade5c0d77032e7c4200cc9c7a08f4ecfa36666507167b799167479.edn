@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773898760/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3c5b1bb7"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/closed-at :v 1773898759 :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/completion-evidence :v "INV-TOPOLOGY-001, 004, 005 and ADR-TOPOLOGY-004 all transacted into store" :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "60dc3086a365f22af1e92a6cfc2e66e74a4ecb2ec95fe2d51a103af62d9b27f3" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773891575/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2/L3 for TEST-DTIC"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1bcba59b4aa41ddba5089e3cdc37d4ab94e8888eccdc80ae9eb15ffec41ccc29" :a :task/acceptance :v "(A) 8+ tests covering full lifecycle. (B) E2E script with [PASS]/[FAIL] logging. (C) All tests use Store::genesis() fixture. (D) Script runs in <10 seconds." :op :assert}
+   {:e #blake3 "1bcba59b4aa41ddba5089e3cdc37d4ab94e8888eccdc80ae9eb15ffec41ccc29" :a :task/background :v "End-to-end tests for the complete DTIC lifecycle. SCENARIO: (1) Create a store with 3 observations: 2 actionable ('DECISION: implement X in guidance.rs', 'DESIGN: add Y to topology.rs'), 1 non-actionable ('The weather is nice'). (2) Verify is_actionable returns true for first 2, false for third. (3) Verify suggest_task_title produces reasonable titles. (4) Run harvest — verify orphaned decision count is 2. (5) Create a task matching observation 1. (6) Run harvest again — verify orphaned count is 1. (7) Assemble seed — verify Uncrystallized Decisions section appears with 1 entry. (8) Create task matching observation 2. (9) Assemble seed — verify section is absent. ALSO: E2E in scripts/e2e_dtic.sh: braid observe actionable text -> braid harvest -> check output for UNTRACKED DECISIONS -> braid task create -> braid harvest -> check output for clean harvest." :op :assert}
+ ]}

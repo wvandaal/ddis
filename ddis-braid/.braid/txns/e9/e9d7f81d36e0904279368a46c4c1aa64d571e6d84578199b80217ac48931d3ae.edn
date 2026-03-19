@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773890232/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 for task search"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/acceptance :v "(A) braid task search topology returns all tasks with 'topology' in title or background. (B) braid task search --spec INV-TOPOLOGY-005 returns tasks tracing to that spec. (C) Case-insensitive. (D) Shows L1 titles (short activation patterns)." :op :assert}
+   {:e #blake3 "c8f24b72ad7c5a1174ec2e264c4c29fe6bf8c802cbb8bb12ab268fa864aee472" :a :task/background :v "Dog-food Session 026: I created 27 topology tasks and could not find them via braid task list (titles truncated past recognition). Had to use raw Datalog queries. With 278+ open tasks, search is essential for task routing. APPROACH: braid task search <pattern> does case-insensitive substring match across :task/title, :task/background, :task/acceptance. Returns matching tasks with L1 display (short title + priority + status). Also add --spec <spec-id> filter to find tasks tracing to a specific INV/ADR. Implementation: iterate all_tasks, filter by pattern.contains() on title+background+acceptance strings. Lightweight — no index needed for <1000 tasks." :op :assert}
+ ]}

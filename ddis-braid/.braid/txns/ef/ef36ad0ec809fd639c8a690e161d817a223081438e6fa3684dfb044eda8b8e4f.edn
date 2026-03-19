@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773898749/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-TOPOLOGY-004 \"Topology as Compilation\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :adr/decision :v "Treat topology derivation as a compilation pipeline: front-end (coupling extraction), middle-end (spectral partition), back-end (plan emission). Source = spec dependency graph, IR = coupling density matrix, output = topology plan." :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :adr/problem :v "How to derive agent assignments from task coupling?" :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :db/doc :v "Topology as Compilation" :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :db/ident :v :spec/adr-topology-004 :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :element/traces-to :v "SEED.md S4, spec/19-topology.md" :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :spec/id :v "ADR-TOPOLOGY-004" :op :assert}
+   {:e #blake3 "8c0d7097cea683ac3523d63953eec1fc6a77d3efb6703b6aeebb36b063e5f73f" :a :spec/namespace :v :spec.ns/TOPOLOGY :op :assert}
+ ]}

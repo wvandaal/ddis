@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773889574/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix CALM classification: derive from coupling matrix, not spec-ref namespace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1ea0053d5901f234c88231ffe7ffd23e3bb81d5ad2605272da166d4adec83c72" :a :task/approach :v "REVISED: CALM classification should derive from the coupling matrix structure, not from spec-ref namespace matching. Tier M (parallel): task's file set is entirely within one partition (no boundary files). Tier NM (barrier): task touches files in multiple partitions, or task's completion triggers a verification step (cargo test, cargo clippy). For our practical use: the EDITING phase is always Tier M (agents edit disjoint files). The VERIFICATION phase is always Tier NM (cargo test requires all edits committed). The MERGE phase is Tier NM (git merge requires coordination). So the phase plan simplifies to: Phase 1 (Tier M) -> Barrier (commit + merge) -> Phase 2 (Tier NM: verify) -> Phase 3 (Tier M: continue if tasks remain). Additionally: within a partition, tasks that modify the SAME file must be SEQUENTIAL (they're in the same agent's partition, so the agent handles ordering). Tasks modifying DIFFERENT files within a partition can be interleaved by the agent." :op :assert}
+ ]}

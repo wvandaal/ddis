@@ -1,0 +1,9 @@
+{:tx/id #hlc "1773889285/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "L2 detail for title shortening"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f4b4233484355e9338e68e90f38f073135bf12eaa9655614e621ec27f749d1be" :a :task/acceptance :v "(A) All 18 topology task titles are <=120 chars. (B) Each title contains at least one INV or ADR reference. (C) :task/background contains the detailed context. (D) braid task list shows readable titles." :op :assert}
+   {:e #blake3 "f4b4233484355e9338e68e90f38f073135bf12eaa9655614e621ec27f749d1be" :a :task/background :v "Our 18 topology tasks have 500+ char titles because BACKGROUND/APPROACH/ACCEPTANCE were embedded in the title string. TASK-DECOMPOSE extracts these into separate datoms, but the title remains long. Fix: for each topology task, use braid task set to replace the :task/title with just the SHORT activation pattern (before the first BACKGROUND marker). The extracted content is already in :task/background and :task/acceptance datoms. This is a one-time cleanup. Going forward, create tasks with short titles and set background separately. Short titles should be 60-120 chars, use spec-language (INV/ADR references), and follow the pattern: PREFIX: description (spec-refs). Example: TOPO-DENSITY: Coupling density matrix and entropy (INV-TOPOLOGY-005, INV-COHERENCE-001)" :op :assert}
+ ]}

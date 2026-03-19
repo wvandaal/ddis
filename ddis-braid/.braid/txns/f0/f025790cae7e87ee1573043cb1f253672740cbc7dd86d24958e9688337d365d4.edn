@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773890408/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Operational Ergonomics — Task UX, Search, Filtering, Pyramid Display (INV-INTERFACE-001, INV-INTERFACE-008, API-as-prompt)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5bc10954729cae6953a4f93b934591ff2470639b47d6dc69fefb98fbf5f864c7" :a :db/ident :v :task/t-846524e2 :op :assert}
+   {:e #blake3 "5bc10954729cae6953a4f93b934591ff2470639b47d6dc69fefb98fbf5f864c7" :a :task/created-at :v 1773890407 :op :assert}
+   {:e #blake3 "5bc10954729cae6953a4f93b934591ff2470639b47d6dc69fefb98fbf5f864c7" :a :task/id :v "t-846524e2" :op :assert}
+   {:e #blake3 "5bc10954729cae6953a4f93b934591ff2470639b47d6dc69fefb98fbf5f864c7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5bc10954729cae6953a4f93b934591ff2470639b47d6dc69fefb98fbf5f864c7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5bc10954729cae6953a4f93b934591ff2470639b47d6dc69fefb98fbf5f864c7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5bc10954729cae6953a4f93b934591ff2470639b47d6dc69fefb98fbf5f864c7" :a :task/title :v "EPIC: Operational Ergonomics — Task UX, Search, Filtering, Pyramid Display (INV-INTERFACE-001, INV-INTERFACE-008, API-as-prompt)" :op :assert}
+   {:e #blake3 "5bc10954729cae6953a4f93b934591ff2470639b47d6dc69fefb98fbf5f864c7" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "5bc10954729cae6953a4f93b934591ff2470639b47d6dc69fefb98fbf5f864c7" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "5bc10954729cae6953a4f93b934591ff2470639b47d6dc69fefb98fbf5f864c7" :a :task/type :v :task.type/epic :op :assert}
+ ]}

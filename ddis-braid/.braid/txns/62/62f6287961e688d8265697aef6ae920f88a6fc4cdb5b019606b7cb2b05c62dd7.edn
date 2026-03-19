@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773889293/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Add dependency: t-c8677bd0 → t-593e4434"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9c04ab76f77cca1e56f899e2e9d51767105a963f451e704a6469fb878b241d51" :a :task/depends-on :v #blake3 "6f317572b7d6f020b40e757412f12c6d3bb5100c759c9894abddcc82af2d55d9" :op :assert}
+ ]}

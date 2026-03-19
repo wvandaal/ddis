@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773893062/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix QUICK-3: note TaskRouting -> impact BTreeMap conversion"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a943f12e6fba028310a6f747e619fb1d183ee1fb60c23a40eaa3ba74c195e04f" :a :task/approach :v "UPDATED: Step (4) builds impact_map from routing: let impact_map: BTreeMap<EntityId, f64> = routing.iter().map(|r| (r.entity, r.impact)).collect(). The compute_routing_from_store() returns Vec<TaskRouting> where each TaskRouting has .entity: EntityId and .impact: f64. This conversion is a one-liner but must be explicit in the implementation. Also: TaskRouting.entity is the task's EntityId which matches the keys in task_files BTreeMap from ready_task_files(). The join between routing and file sets is on EntityId." :op :assert}
+ ]}

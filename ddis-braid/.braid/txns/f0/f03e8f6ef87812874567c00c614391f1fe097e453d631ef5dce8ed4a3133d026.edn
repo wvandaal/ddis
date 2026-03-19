@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773889078/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: Fix task title display: show short activation pattern in list, full context in show (INV-INTERFACE-008, ADR-INTERFACE-011)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2a30c5a5a64ad208a0c9ffce8f8859f2f019f3fce53291bc8d076f31953a4736" :a :db/ident :v :task/t-1c9ceeb2 :op :assert}
+   {:e #blake3 "2a30c5a5a64ad208a0c9ffce8f8859f2f019f3fce53291bc8d076f31953a4736" :a :task/created-at :v 1773889077 :op :assert}
+   {:e #blake3 "2a30c5a5a64ad208a0c9ffce8f8859f2f019f3fce53291bc8d076f31953a4736" :a :task/id :v "t-1c9ceeb2" :op :assert}
+   {:e #blake3 "2a30c5a5a64ad208a0c9ffce8f8859f2f019f3fce53291bc8d076f31953a4736" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2a30c5a5a64ad208a0c9ffce8f8859f2f019f3fce53291bc8d076f31953a4736" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2a30c5a5a64ad208a0c9ffce8f8859f2f019f3fce53291bc8d076f31953a4736" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2a30c5a5a64ad208a0c9ffce8f8859f2f019f3fce53291bc8d076f31953a4736" :a :task/title :v "Fix task title display: show short activation pattern in list, full context in show (INV-INTERFACE-008, ADR-INTERFACE-011)" :op :assert}
+   {:e #blake3 "2a30c5a5a64ad208a0c9ffce8f8859f2f019f3fce53291bc8d076f31953a4736" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "2a30c5a5a64ad208a0c9ffce8f8859f2f019f3fce53291bc8d076f31953a4736" :a :task/type :v :task.type/bug :op :assert}
+ ]}

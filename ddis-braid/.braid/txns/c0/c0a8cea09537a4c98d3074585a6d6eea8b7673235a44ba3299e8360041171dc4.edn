@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773890527/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Fix: fiedler() signature mismatch — takes DiGraph not DenseMatrix (audit finding)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aaf3767ea327b4591f1edbe976a78e2a9a2eed32a616e14ce04c378b4ab0f5d6" :a :task/approach :v "REVISED per codebase audit: fiedler() in query/graph.rs takes &DiGraph (string-labeled nodes), NOT &DenseMatrix. Two approaches: (A) Build DiGraph from coupling matrix: create node per task EntityId, add edge when coupling > threshold, then call fiedler(). This loses coupling MAGNITUDES (DiGraph edges are unweighted). (B) PREFERRED: Implement fiedler_from_coupling_matrix(rho: &DenseMatrix) -> Option<FiedlerResult> directly in topology.rs. Steps: (1) Build graph Laplacian L = D - rho where D_ii = sum_j(rho_ij). (2) Call symmetric_eigen_decomposition(&L) — this ALREADY EXISTS in graph.rs and takes &DenseMatrix. (3) Extract second-smallest eigenvalue (lambda_2 = spectral gap) and its eigenvector (Fiedler vector). (4) Partition: tasks with positive Fiedler component in cluster A, negative in cluster B. (5) Recursive bisection for k > 2 clusters. cheeger() also needs adaptation — implement cheeger_from_partition(partition, coupling) directly using the isoperimetric ratio definition." :op :assert}
+ ]}
