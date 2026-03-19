@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773882475/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Set t-acb4dbec title=PSR-2: Wire spec_relevance_scan into guidance footer as SEPARATE labeled line (INV-GUIDANCE-007). BACKGROUND: REVISED: footer is already complex (M(t) + next action + contextual hint). Spec references on a SEPARATE line labeled 'Spec:' to avoid overload. Only shown when score > 0.3 (strong match). Format: 'Spec: INV-TOPOLOGY-004 (composite coupling) | ADR-TOPOLOGY-004 (compilation)'. When no strong matches, line omitted entirely. TRACES TO: INV-GUIDANCE-007, INV-INTERFACE-008. FILES: guidance.rs, commands/mod.rs. ACCEPTANCE: footer shows 'Spec:' line only when strong matches exist."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a27c71e4f1e3f50f1e181510d29291b223879ac2aa27298a27bc9d0f810a82d3" :a :task/title :v "PSR-2: Wire spec_relevance_scan into guidance footer as SEPARATE labeled line (INV-GUIDANCE-007). BACKGROUND: REVISED: footer is already complex (M(t) + next action + contextual hint). Spec references on a SEPARATE line labeled 'Spec:' to avoid overload. Only shown when score > 0.3 (strong match). Format: 'Spec: INV-TOPOLOGY-004 (composite coupling) | ADR-TOPOLOGY-004 (compilation)'. When no strong matches, line omitted entirely. TRACES TO: INV-GUIDANCE-007, INV-INTERFACE-008. FILES: guidance.rs, commands/mod.rs. ACCEPTANCE: footer shows 'Spec:' line only when strong matches exist." :op :assert}
+ ]}
