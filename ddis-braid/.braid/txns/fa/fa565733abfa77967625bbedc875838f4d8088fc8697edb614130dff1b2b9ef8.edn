@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773880815/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-2ac17985"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/closed-at :v 1773880813 :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/completion-evidence :v "SpecId tests (11) all pass. Bijection verified." :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "569d9d5f2312bf48d480feb6398e8cbc33caa9830284c6092c639d88414bbaba" :a :task/status :v :task.status/closed :op :assert}
+ ]}

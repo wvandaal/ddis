@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773880833/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ea2dc38d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/closed-at :v 1773880829 :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/completion-evidence :v "E2E workflow tests 4+5 verify flag and positional task set syntax." :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "49442c0e120e74b9ac4616b5777896bcaab8f8d4d88cc235cde9697adac5142b" :a :task/status :v :task.status/closed :op :assert}
+ ]}

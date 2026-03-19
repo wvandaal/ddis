@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773880817/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-039c3f5c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/closed-at :v 1773880814 :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/completion-evidence :v "Recommendation log verified: :harvest/recommended-tasks datom present after harvest." :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "dab7b872b60a42e5b63da1c5d751e00d75bdd84d470f73c59ff9da39407be601" :a :task/status :v :task.status/closed :op :assert}
+ ]}

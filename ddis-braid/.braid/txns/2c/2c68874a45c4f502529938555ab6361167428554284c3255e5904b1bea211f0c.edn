@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773880832/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1efe48de"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a34232ea573e994033b634c707f7a834d36ffe1c6b8950864de4774a822e2cf3" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "a34232ea573e994033b634c707f7a834d36ffe1c6b8950864de4774a822e2cf3" :a :task/closed-at :v 1773880829 :op :assert}
+   {:e #blake3 "a34232ea573e994033b634c707f7a834d36ffe1c6b8950864de4774a822e2cf3" :a :task/completion-evidence :v "E2E workflow test 8 verifies -q flag. Test 4 verifies --title flag on task set." :op :assert}
+   {:e #blake3 "a34232ea573e994033b634c707f7a834d36ffe1c6b8950864de4774a822e2cf3" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "a34232ea573e994033b634c707f7a834d36ffe1c6b8950864de4774a822e2cf3" :a :task/status :v :task.status/closed :op :assert}
+ ]}

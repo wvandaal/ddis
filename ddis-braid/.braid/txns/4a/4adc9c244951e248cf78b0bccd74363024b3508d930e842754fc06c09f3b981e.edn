@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773880818/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-be03b366"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/closed-at :v 1773880814 :op :assert}
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/completion-evidence :v "6 KEFF tests pass: zero evidence, high evidence, monotonicity, clamping, sigmoid properties, default vector." :op :assert}
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "542fdfd044d85cf1f21fb8b4b7878f0493afeeb5102d248795dc88e650ce30c6" :a :task/status :v :task.status/closed :op :assert}
+ ]}

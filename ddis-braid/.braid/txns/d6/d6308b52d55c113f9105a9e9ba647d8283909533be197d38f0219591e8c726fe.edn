@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773880830/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-30d44635"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/closed-at :v 1773880828 :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/completion-evidence :v "Display quality verified: truncate_chars passes 49 kernel tests including multi-byte. No [?] markers in seed output." :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "8e3316ffd93a47e4a4ba3bea29b8d1da23581aa17948c26ae4d476d1d95375a6" :a :task/status :v :task.status/closed :op :assert}
+ ]}

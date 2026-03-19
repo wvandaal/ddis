@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773880829/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-6f01a27e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/closed-at :v 1773880828 :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/completion-evidence :v "E2E agent workflow script (13/13) covers session lifecycle, routing boost, -q flag, transact. e2e_agent_workflow.sh exits 0." :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "99f8cf3c6a78ce573de223ef28b4f2009ce82f76e12998da14004658a7cf7f64" :a :task/status :v :task.status/closed :op :assert}
+ ]}
