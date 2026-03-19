@@ -1702,7 +1702,31 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             ":task/description",
             ValueType::String,
             Cardinality::One,
-            "Detailed task description",
+            "Detailed task description (legacy — prefer structured sections below)",
+        ),
+        attr(
+            ":task/background",
+            ValueType::String,
+            Cardinality::One,
+            "BACKGROUND section: rationale, context, prior art for this task",
+        ),
+        attr(
+            ":task/acceptance",
+            ValueType::String,
+            Cardinality::One,
+            "ACCEPTANCE section: specific criteria for task completion",
+        ),
+        attr(
+            ":task/approach",
+            ValueType::String,
+            Cardinality::One,
+            "APPROACH section: implementation plan, step-by-step strategy",
+        ),
+        attr(
+            ":task/files",
+            ValueType::String,
+            Cardinality::Many,
+            "FILE markers: source files this task modifies (e.g., crates/braid-kernel/src/guidance.rs)",
         ),
         attr(
             ":task/status",

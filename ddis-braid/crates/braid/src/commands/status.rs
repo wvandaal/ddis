@@ -187,8 +187,19 @@ pub fn run(
         });
     }
 
+    // Always merge ACP field into JSON (enables BAO-2 footer suppression)
+    let mut final_json = json_value;
+    if let serde_json::Value::Object(ref mut map) = final_json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
     Ok(CommandOutput {
-        json: json_value,
+        json: final_json,
         agent: agent_output,
         human,
     })

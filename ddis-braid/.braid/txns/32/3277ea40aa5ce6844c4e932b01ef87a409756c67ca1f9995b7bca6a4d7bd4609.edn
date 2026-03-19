@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773958820/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-2e81e43a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "527220586d5928e93e3a6374104d5f406ae804753a41ec482ff53fe298e8e204" :a :task/close-reason :v "5 structured task schema attrs: :task/background, /acceptance, /approach, /files (Many). TASK-DECOMPOSE extended to extract APPROACH and FILE sections. Topology extract_task_files can now use :task/files datom." :op :assert}
+   {:e #blake3 "527220586d5928e93e3a6374104d5f406ae804753a41ec482ff53fe298e8e204" :a :task/closed-at :v 1773958819 :op :assert}
+   {:e #blake3 "527220586d5928e93e3a6374104d5f406ae804753a41ec482ff53fe298e8e204" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "527220586d5928e93e3a6374104d5f406ae804753a41ec482ff53fe298e8e204" :a :task/status :v :task.status/closed :op :assert}
+ ]}

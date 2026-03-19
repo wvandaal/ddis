@@ -679,8 +679,20 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
             });
             let critical_path_pos = if on_critical { 1.0 } else { 0.0 };
 
-            // g₄: blocker ratio
-            let blocker_ratio = task.blocks.len() as f64 / total_tasks;
+            // g₄: blocker ratio (INV-GUIDANCE-013: typed edge routing)
+            // Weight each blocked task by its type_multiplier:
+            // blocking an impl task contributes more than blocking a docs task.
+            let blocker_ratio = if task.blocks.is_empty() {
+                0.0
+            } else {
+                let weighted_blocks: f64 = task.blocks.iter().map(|blocked_entity| {
+                    tasks.iter()
+                        .find(|n| n.entity == *blocked_entity)
+                        .map(|n| n.task_type.type_multiplier())
+                        .unwrap_or(1.0)
+                }).sum();
+                weighted_blocks / total_tasks
+            };
 
             // g₅: staleness
             let age = now.saturating_sub(task.created_at) as f64;

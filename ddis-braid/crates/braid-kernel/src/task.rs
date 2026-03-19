@@ -465,7 +465,7 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
     }
     if let Some(ac_pos) = title_lower.find("acceptance:") {
         let ac_start = ac_pos + "acceptance:".len();
-        let ac_end = ["traces to:", "file:", "files:", "background:"]
+        let ac_end = ["traces to:", "file:", "files:", "background:", "approach:"]
             .iter()
             .filter_map(|m| title_lower[ac_start..].find(m).map(|p| ac_start + p))
             .min()
@@ -479,6 +479,53 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
                 tx,
                 Op::Assert,
             ));
+        }
+    }
+
+    // TAP-1: Extract APPROACH section
+    if let Some(ap_pos) = title_lower.find("approach:") {
+        let ap_start = ap_pos + "approach:".len();
+        let ap_end = ["traces to:", "file:", "files:", "background:", "acceptance:"]
+            .iter()
+            .filter_map(|m| title_lower[ap_start..].find(m).map(|p| ap_start + p))
+            .min()
+            .unwrap_or(title.len());
+        let approach = title[ap_start..ap_end].trim();
+        if !approach.is_empty() {
+            datoms.push(Datom::new(
+                entity,
+                Attribute::from_keyword(":task/approach"),
+                Value::String(approach.to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+    }
+
+    // TAP-1: Extract FILE: markers as :task/files (Many cardinality)
+    for marker in ["file:", "files:"] {
+        if let Some(f_pos) = title_lower.find(marker) {
+            let f_start = f_pos + marker.len();
+            let f_end = ["traces to:", "background:", "acceptance:", "approach:"]
+                .iter()
+                .filter_map(|m| title_lower[f_start..].find(m).map(|p| f_start + p))
+                .min()
+                .unwrap_or(title.len());
+            let files_text = title[f_start..f_end].trim();
+            // Split by common separators: " + ", ", ", " and "
+            for file in files_text
+                .split(|c: char| c == '+' || c == ',')
+                .map(|f| f.trim())
+                .filter(|f| !f.is_empty() && f.contains('/'))
+            {
+                datoms.push(Datom::new(
+                    entity,
+                    Attribute::from_keyword(":task/files"),
+                    Value::String(file.to_string()),
+                    tx,
+                    Op::Assert,
+                ));
+            }
         }
     }
 

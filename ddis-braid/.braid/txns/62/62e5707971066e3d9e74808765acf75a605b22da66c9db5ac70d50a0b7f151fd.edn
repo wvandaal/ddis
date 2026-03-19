@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773958824/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-87510cea"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ccc255200a89c55f0eca712ee5840dc82fc37275fca5cda3a913ef0f2b9db09d" :a :task/close-reason :v "Legacy footer suppressed for ACP commands. _acp JSON field triggers early return in maybe_inject_footer(). Saves ~100 tokens per ACP command." :op :assert}
+   {:e #blake3 "ccc255200a89c55f0eca712ee5840dc82fc37275fca5cda3a913ef0f2b9db09d" :a :task/closed-at :v 1773958823 :op :assert}
+   {:e #blake3 "ccc255200a89c55f0eca712ee5840dc82fc37275fca5cda3a913ef0f2b9db09d" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "ccc255200a89c55f0eca712ee5840dc82fc37275fca5cda3a913ef0f2b9db09d" :a :task/status :v :task.status/closed :op :assert}
+ ]}

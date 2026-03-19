@@ -1655,6 +1655,14 @@ fn maybe_inject_footer(
     if skip_footer {
         return cmd_output;
     }
+
+    // BAO-2: Skip legacy footer for ACP-enabled commands (single projection algebra).
+    // ACP commands already include the action + methodology context in their body.
+    // The legacy footer would add ~100 tokens of REDUNDANT information.
+    // The _acp JSON field signals that the command used ACP.
+    if cmd_output.json.get("_acp").is_some() {
+        return cmd_output;
+    }
     // INV-GUIDANCE-014: Derive contextual hint from the command's JSON output.
     let hint =
         cmd_name.and_then(|name| braid_kernel::contextual_observation_hint(name, &cmd_output.json));
