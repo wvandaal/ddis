@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773957967/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-5f7d113a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6b70a2b8bcf43accee8424c368cbc3feeec84c06d5d6cb26779b8e2909a4efc5" :a :task/close-reason :v "Spec refs in ACP actions: compute_action_from_store() now includes :task/traces-to spec ID in rationale. Format: 'title excerpt (INV-XXX-NNN)'. Basin activation token." :op :assert}
+   {:e #blake3 "6b70a2b8bcf43accee8424c368cbc3feeec84c06d5d6cb26779b8e2909a4efc5" :a :task/closed-at :v 1773957966 :op :assert}
+   {:e #blake3 "6b70a2b8bcf43accee8424c368cbc3feeec84c06d5d6cb26779b8e2909a4efc5" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "6b70a2b8bcf43accee8424c368cbc3feeec84c06d5d6cb26779b8e2909a4efc5" :a :task/status :v :task.status/closed :op :assert}
+ ]}

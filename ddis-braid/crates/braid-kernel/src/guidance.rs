@@ -912,13 +912,42 @@ pub fn compute_action_from_store(store: &Store) -> crate::budget::ProjectedActio
             })
             .unwrap_or_else(|| format!("{:?}", top.entity));
 
+        // BAO-1: Include spec reference in rationale (basin activation token).
+        // Spec-language activates the formal reasoning substrate (INV-GUIDANCE-002).
+        let spec_ref = store
+            .entity_datoms(top.entity)
+            .iter()
+            .find(|d| {
+                d.attribute.as_str() == ":task/traces-to"
+                    && d.op == crate::datom::Op::Assert
+            })
+            .and_then(|d| match &d.value {
+                crate::datom::Value::Ref(target) => {
+                    // Resolve the spec element's human ID
+                    store
+                        .entity_datoms(*target)
+                        .iter()
+                        .find(|dd| dd.attribute.as_str() == ":spec/id" && dd.op == crate::datom::Op::Assert)
+                        .and_then(|dd| match &dd.value {
+                            crate::datom::Value::String(s) => Some(s.clone()),
+                            _ => None,
+                        })
+                }
+                _ => None,
+            });
+
         // Truncate label for rationale (max ~8 words)
         let rationale = {
             let words: Vec<&str> = top.label.split_whitespace().collect();
-            if words.len() > 8 {
+            let title_part = if words.len() > 8 {
                 format!("{} ...", words[..8].join(" "))
             } else {
                 top.label.clone()
+            };
+            // Append spec ref if available (basin activation token)
+            match spec_ref {
+                Some(ref sr) => format!("{} ({})", title_part, sr),
+                None => title_part,
             }
         };
 

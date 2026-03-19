@@ -2083,6 +2083,57 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Whether this reconciliation source is currently active",
         ),
+        // =================================================================
+        // R(t) Feedback Loop — Action-Outcome Tracking (RFL-1, INV-GUIDANCE-010)
+        // =================================================================
+        attr(
+            ":action/recommended-command",
+            ValueType::String,
+            Cardinality::One,
+            "The braid command recommended by R(t) (e.g., 'braid go t-fd30')",
+        ),
+        attr(
+            ":action/recommended-entity",
+            ValueType::String,
+            Cardinality::One,
+            "Entity ident of the recommended task (e.g., ':task/t-fd30')",
+        ),
+        attr(
+            ":action/recommended-impact",
+            ValueType::Double,
+            Cardinality::One,
+            "R(t) impact score of the recommended task (0.0-1.0)",
+        ),
+        attr(
+            ":action/outcome",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Follow-through outcome: :action.outcome/followed, /adjacent, /ignored",
+        ),
+        attr(
+            ":action/next-command",
+            ValueType::String,
+            Cardinality::One,
+            "The braid command the agent actually ran next",
+        ),
+        attr(
+            ":action/latency-ms",
+            ValueType::Long,
+            Cardinality::One,
+            "Milliseconds between recommendation and next command",
+        ),
+        attr(
+            ":action/timestamp",
+            ValueType::Long,
+            Cardinality::One,
+            "Unix milliseconds when the recommendation was made",
+        ),
+        attr(
+            ":action/features",
+            ValueType::String,
+            Cardinality::One,
+            "JSON array of 6 R(t) metric floats: [pagerank, betweenness, critical_path, blocker_ratio, staleness, priority_boost]",
+        ),
     ]
 }
 
