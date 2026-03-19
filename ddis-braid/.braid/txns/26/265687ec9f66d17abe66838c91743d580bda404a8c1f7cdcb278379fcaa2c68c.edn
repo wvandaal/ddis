@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773930428/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CRB-4: Add --reconciled flag to CLI args for spec create + task create. Register :tx/reconciled as boolean schema attribute. Record in transaction provenance when passed. TRACES TO: INV-GUIDANCE-025. FILE: crates/braid/src/commands/mod.rs + crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e298a26e42937dab39ba3e0837a1be42b99bd86d694f64877eedef0141d99b28" :a :db/ident :v :task/t-dec01087 :op :assert}
+   {:e #blake3 "e298a26e42937dab39ba3e0837a1be42b99bd86d694f64877eedef0141d99b28" :a :task/created-at :v 1773930426 :op :assert}
+   {:e #blake3 "e298a26e42937dab39ba3e0837a1be42b99bd86d694f64877eedef0141d99b28" :a :task/id :v "t-dec01087" :op :assert}
+   {:e #blake3 "e298a26e42937dab39ba3e0837a1be42b99bd86d694f64877eedef0141d99b28" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e298a26e42937dab39ba3e0837a1be42b99bd86d694f64877eedef0141d99b28" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e298a26e42937dab39ba3e0837a1be42b99bd86d694f64877eedef0141d99b28" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e298a26e42937dab39ba3e0837a1be42b99bd86d694f64877eedef0141d99b28" :a :task/title :v "CRB-4: Add --reconciled flag to CLI args for spec create + task create. Register :tx/reconciled as boolean schema attribute. Record in transaction provenance when passed. TRACES TO: INV-GUIDANCE-025. FILE: crates/braid/src/commands/mod.rs + crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "e298a26e42937dab39ba3e0837a1be42b99bd86d694f64877eedef0141d99b28" :a :task/traces-to :v #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :op :assert}
+   {:e #blake3 "e298a26e42937dab39ba3e0837a1be42b99bd86d694f64877eedef0141d99b28" :a :task/type :v :task.type/task :op :assert}
+ ]}

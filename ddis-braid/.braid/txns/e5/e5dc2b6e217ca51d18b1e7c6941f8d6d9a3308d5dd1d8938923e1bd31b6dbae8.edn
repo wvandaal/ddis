@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773930427/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CRB-3: Wire spec_relevance_scan into braid observe output — display related spec in response (INV-GUIDANCE-024). After storing the observation, run scan on body text, show top 5 matches in output. No gate (observations should be low-friction), but the INFORMATION is shown to nudge the agent toward reconciliation before crystallizing. TRACES TO: INV-GUIDANCE-024. ACCEPTANCE: (A) observe with text matching spec elements → output shows 'related spec:' section. (B) observe with no matches → no extra output. FILE: crates/braid/src/commands/observe.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "20c5cd69f5a2acf29a59e84145b718c11748f99a65ec50468b9f98177b4fe84b" :a :db/ident :v :task/t-4e98cf9a :op :assert}
+   {:e #blake3 "20c5cd69f5a2acf29a59e84145b718c11748f99a65ec50468b9f98177b4fe84b" :a :task/acceptance :v "(A) observe with text matching spec elements → output shows 'related spec:' section. (B) observe with no matches → no extra output." :op :assert}
+   {:e #blake3 "20c5cd69f5a2acf29a59e84145b718c11748f99a65ec50468b9f98177b4fe84b" :a :task/created-at :v 1773930426 :op :assert}
+   {:e #blake3 "20c5cd69f5a2acf29a59e84145b718c11748f99a65ec50468b9f98177b4fe84b" :a :task/id :v "t-4e98cf9a" :op :assert}
+   {:e #blake3 "20c5cd69f5a2acf29a59e84145b718c11748f99a65ec50468b9f98177b4fe84b" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "20c5cd69f5a2acf29a59e84145b718c11748f99a65ec50468b9f98177b4fe84b" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "20c5cd69f5a2acf29a59e84145b718c11748f99a65ec50468b9f98177b4fe84b" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "20c5cd69f5a2acf29a59e84145b718c11748f99a65ec50468b9f98177b4fe84b" :a :task/title :v "CRB-3: Wire spec_relevance_scan into braid observe output — display related spec in response (INV-GUIDANCE-024). After storing the observation, run scan on body text, show top 5 matches in output. No gate (observations should be low-friction), but the INFORMATION is shown to nudge the agent toward reconciliation before crystallizing. TRACES TO: INV-GUIDANCE-024. ACCEPTANCE: (A) observe with text matching spec elements → output shows 'related spec:' section. (B) observe with no matches → no extra output. FILE: crates/braid/src/commands/observe.rs" :op :assert}
+   {:e #blake3 "20c5cd69f5a2acf29a59e84145b718c11748f99a65ec50468b9f98177b4fe84b" :a :task/traces-to :v #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :op :assert}
+   {:e #blake3 "20c5cd69f5a2acf29a59e84145b718c11748f99a65ec50468b9f98177b4fe84b" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773930429/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CRB-5: Unit + integration tests for CRB gate. TESTS: (1) spec create matching 3+ elements without --reconciled → error. (2) spec create with --reconciled → success + :tx/reconciled in provenance. (3) spec create matching <3 → success without flag. (4) task create same gate. (5) observe shows related spec without gating. (6) Proptest: random title text → scan never panics, match count >= 0. TRACES TO: INV-GUIDANCE-024, INV-GUIDANCE-025. FILE: crates/braid/tests/ or crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8c250b78e78a60c9998151c4e8c08d59e83251dcd37a0abc7c45b71df5394ebe" :a :db/ident :v :task/t-fa51b1d7 :op :assert}
+   {:e #blake3 "8c250b78e78a60c9998151c4e8c08d59e83251dcd37a0abc7c45b71df5394ebe" :a :task/created-at :v 1773930427 :op :assert}
+   {:e #blake3 "8c250b78e78a60c9998151c4e8c08d59e83251dcd37a0abc7c45b71df5394ebe" :a :task/id :v "t-fa51b1d7" :op :assert}
+   {:e #blake3 "8c250b78e78a60c9998151c4e8c08d59e83251dcd37a0abc7c45b71df5394ebe" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "8c250b78e78a60c9998151c4e8c08d59e83251dcd37a0abc7c45b71df5394ebe" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "8c250b78e78a60c9998151c4e8c08d59e83251dcd37a0abc7c45b71df5394ebe" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "8c250b78e78a60c9998151c4e8c08d59e83251dcd37a0abc7c45b71df5394ebe" :a :task/title :v "CRB-5: Unit + integration tests for CRB gate. TESTS: (1) spec create matching 3+ elements without --reconciled → error. (2) spec create with --reconciled → success + :tx/reconciled in provenance. (3) spec create matching <3 → success without flag. (4) task create same gate. (5) observe shows related spec without gating. (6) Proptest: random title text → scan never panics, match count >= 0. TRACES TO: INV-GUIDANCE-024, INV-GUIDANCE-025. FILE: crates/braid/tests/ or crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "8c250b78e78a60c9998151c4e8c08d59e83251dcd37a0abc7c45b71df5394ebe" :a :task/traces-to :v #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :op :assert}
+   {:e #blake3 "8c250b78e78a60c9998151c4e8c08d59e83251dcd37a0abc7c45b71df5394ebe" :a :task/traces-to :v #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :op :assert}
+   {:e #blake3 "8c250b78e78a60c9998151c4e8c08d59e83251dcd37a0abc7c45b71df5394ebe" :a :task/type :v :task.type/test :op :assert}
+ ]}

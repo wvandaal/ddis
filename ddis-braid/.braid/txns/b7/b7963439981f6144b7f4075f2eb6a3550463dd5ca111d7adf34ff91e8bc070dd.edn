@@ -1,0 +1,17 @@
+{:tx/id #hlc "1773930426/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: CRB-2: Wire spec_relevance_scan into braid task create — same CRB gate for task creation (INV-GUIDANCE-025). Tasks are design decisions encoded as work items. A task that duplicates an existing spec element is wasted work. The scan runs on title text. Same --reconciled gate. TRACES TO: INV-GUIDANCE-025. ACCEPTANCE: (A) task create with title matching 3+ specs WITHOUT --reconciled → error. (B) task create with --reconciled → succeeds. FILE: crates/braid/src/commands/task.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dcbf17daff916eef4c240c838064f5adc0c6cc69c2d27b1c0d1494082ae0eb8d" :a :db/ident :v :task/t-520c155c :op :assert}
+   {:e #blake3 "dcbf17daff916eef4c240c838064f5adc0c6cc69c2d27b1c0d1494082ae0eb8d" :a :task/acceptance :v "(A) task create with title matching 3+ specs WITHOUT --reconciled → error. (B) task create with --reconciled → succeeds." :op :assert}
+   {:e #blake3 "dcbf17daff916eef4c240c838064f5adc0c6cc69c2d27b1c0d1494082ae0eb8d" :a :task/created-at :v 1773930425 :op :assert}
+   {:e #blake3 "dcbf17daff916eef4c240c838064f5adc0c6cc69c2d27b1c0d1494082ae0eb8d" :a :task/id :v "t-520c155c" :op :assert}
+   {:e #blake3 "dcbf17daff916eef4c240c838064f5adc0c6cc69c2d27b1c0d1494082ae0eb8d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "dcbf17daff916eef4c240c838064f5adc0c6cc69c2d27b1c0d1494082ae0eb8d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "dcbf17daff916eef4c240c838064f5adc0c6cc69c2d27b1c0d1494082ae0eb8d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "dcbf17daff916eef4c240c838064f5adc0c6cc69c2d27b1c0d1494082ae0eb8d" :a :task/title :v "CRB-2: Wire spec_relevance_scan into braid task create — same CRB gate for task creation (INV-GUIDANCE-025). Tasks are design decisions encoded as work items. A task that duplicates an existing spec element is wasted work. The scan runs on title text. Same --reconciled gate. TRACES TO: INV-GUIDANCE-025. ACCEPTANCE: (A) task create with title matching 3+ specs WITHOUT --reconciled → error. (B) task create with --reconciled → succeeds. FILE: crates/braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "dcbf17daff916eef4c240c838064f5adc0c6cc69c2d27b1c0d1494082ae0eb8d" :a :task/traces-to :v #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :op :assert}
+   {:e #blake3 "dcbf17daff916eef4c240c838064f5adc0c6cc69c2d27b1c0d1494082ae0eb8d" :a :task/type :v :task.type/task :op :assert}
+ ]}

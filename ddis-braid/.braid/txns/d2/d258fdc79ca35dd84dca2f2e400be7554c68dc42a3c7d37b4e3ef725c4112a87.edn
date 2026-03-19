@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773930400/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-GUIDANCE-025 \"Creation Requires Background — CRB Gate\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :db/doc :v "Creation Requires Background — CRB Gate" :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :db/ident :v :spec/inv-guidance-025 :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :element/traces-to :v "SEED.md S6, SEED.md S2, INV-GUIDANCE-024, ADR-GUIDANCE-002" :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :spec/falsification :v "braid spec create succeeds with title matching 3+ existing spec elements at score > 0.2 without the creator being shown the matches or passing --reconciled" :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :spec/id :v "INV-GUIDANCE-025" :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :spec/namespace :v :spec.ns/GUIDANCE :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :spec/statement :v "braid spec create and braid task create run spec_relevance_scan on the title + statement/description text before accepting the transaction. If 3+ spec elements match at score > 0.2, the command outputs the matches and REFUSES the transaction unless --reconciled is passed (attesting the creator reviewed related elements). This is the CREATE-side dual of CBV (Completion Before Verification). CBV gates closure on acceptance criteria. CRB gates creation on reconciliation with existing knowledge. The --reconciled flag is an explicit attestation, not a bypass — it is recorded in the transaction provenance as :tx/reconciled true." :op :assert}
+ ]}

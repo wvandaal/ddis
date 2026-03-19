@@ -1,0 +1,15 @@
+{:tx/id #hlc "1773930368/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-GUIDANCE-024 \"Automatic Reconciliation on Observation\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :db/doc :v "Automatic Reconciliation on Observation" :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :db/ident :v :spec/inv-guidance-024 :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :element/traces-to :v "SEED.md S6, INV-GUIDANCE-014, INV-GUIDANCE-007, ADR-GUIDANCE-002" :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :spec/falsification :v "An agent calls braid observe with text that matches 3+ spec element statements at score > 0.2, and the output does not include the related spec elements or the reconciliation warning" :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :spec/id :v "INV-GUIDANCE-024" :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :spec/namespace :v :spec.ns/GUIDANCE :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :spec/statement :v "Every braid observe call triggers spec_relevance_scan on the observation text. If related spec elements are found (score > 0.1), they are displayed in the command output as 'related spec:' entries with spec ID, title, and relevance score. If 3+ related elements are found, a warning is emitted: 'N existing spec elements found. Reconcile before crystallizing.' This is the RECONCILE step in the observe→reconcile→crystallize→task→execute cycle." :op :assert}
+ ]}
