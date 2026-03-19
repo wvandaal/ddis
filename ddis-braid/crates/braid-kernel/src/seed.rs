@@ -59,44 +59,42 @@ fn extract_session_number(task: &str) -> Option<String> {
 /// If cut at a true sentence boundary, no indicator needed.
 /// Falls back to word-level cut for very short max_chars.
 fn truncate_chars(s: &str, max_chars: usize) -> String {
-    if s.chars().count() <= max_chars {
-        return s.to_string();
-    }
-    let chars: Vec<char> = s.chars().take(max_chars + 1).collect();
-    if chars.len() <= max_chars {
+    let total_chars = s.chars().count();
+    if total_chars <= max_chars {
         return s.to_string();
     }
 
-    // Search for natural boundaries in the last 40% of the range
-    let search_start = max_chars * 60 / 100;
-    let text: String = chars[..max_chars].iter().collect();
+    // Build the truncated string (up to max_chars characters)
+    let truncated: String = s.chars().take(max_chars).collect();
+
+    // Search for natural boundaries in the last 40% of the CHAR range.
+    // All operations use char-based indexing to avoid multi-byte boundary panics.
+    let search_start_chars = max_chars * 60 / 100;
 
     // Try progressively weaker boundaries
-    for boundary in &[". ", ".\n", "; ", ", ", " — ", " - "] {
-        if let Some(pos) = text[search_start..].rfind(boundary) {
-            let cut = search_start + pos + boundary.len();
-            if cut > search_start && cut <= max_chars {
-                let result: String = chars[..cut].iter().collect();
-                return result.trim_end().to_string();
+    for boundary in &[". ", ".\n", "; ", ", ", " - "] {
+        if let Some(byte_pos) = truncated.rfind(boundary) {
+            // Convert byte position to char position
+            let char_pos = truncated[..byte_pos].chars().count();
+            if char_pos >= search_start_chars {
+                let cut_chars = char_pos + boundary.chars().count();
+                if cut_chars <= max_chars {
+                    return s.chars().take(cut_chars).collect::<String>().trim_end().to_string();
+                }
             }
         }
     }
 
-    // Fall back to word boundary
-    if let Some(pos) = text[search_start..].rfind(' ') {
-        let cut = search_start + pos;
-        if cut > search_start {
-            let result: String = chars[..cut].iter().collect();
-            return result.trim_end().to_string();
+    // Fall back to word boundary (last space in search range)
+    if let Some(byte_pos) = truncated[..].rfind(' ') {
+        let char_pos = truncated[..byte_pos].chars().count();
+        if char_pos >= search_start_chars {
+            return s.chars().take(char_pos).collect::<String>().trim_end().to_string();
         }
     }
 
-    // Last resort: hard cut (no ellipsis)
-    chars[..max_chars]
-        .iter()
-        .collect::<String>()
-        .trim_end()
-        .to_string()
+    // Last resort: hard cut at char boundary (no ellipsis)
+    truncated.trim_end().to_string()
 }
 
 /// Projection levels for rate-distortion compression (ADR-SEED-002).

@@ -1,0 +1,12 @@
+{:tx/id #hlc "1773879227/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-454ffb25"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "adbb722946d2307c01e628892ecd84d4c19512514462121e17537bc7ced16e31" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "adbb722946d2307c01e628892ecd84d4c19512514462121e17537bc7ced16e31" :a :task/closed-at :v 1773879226 :op :assert}
+   {:e #blake3 "adbb722946d2307c01e628892ecd84d4c19512514462121e17537bc7ced16e31" :a :task/completion-evidence :v "E2E workflow script: 13/13 tests pass. Covers: init, task create, go, set (flag+positional), done (attest+force), CBV, -q flag, transact." :op :assert}
+   {:e #blake3 "adbb722946d2307c01e628892ecd84d4c19512514462121e17537bc7ced16e31" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "adbb722946d2307c01e628892ecd84d4c19512514462121e17537bc7ced16e31" :a :task/status :v :task.status/closed :op :assert}
+ ]}
