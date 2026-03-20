@@ -169,16 +169,23 @@ pub struct TUIState {
 
 ### §14.4 Invariants
 
-### INV-INTERFACE-001: Three CLI Output Modes
+### INV-INTERFACE-001: Four CLI Output Modes
 
 **Traces to**: ADRS IB-002
 **Verification**: `V:PROP`
 **Stage**: 0
 
 #### Level 0 (Algebraic Law)
-The CLI produces output in exactly one of three modes per invocation:
-Json (machine-parseable), Agent (budget-constrained), Human (TTY-formatted).
+The CLI produces output in exactly one of four modes per invocation:
+Json (machine-parseable structured data), Tsv (tab-separated tabular
+projection), Agent (budget-constrained LLM-native), Human (TTY-formatted).
 Mode selection is explicit (flag) or inferred from terminal context.
+
+Tsv mode renders structured JSON data as tab-separated rows, computed at
+render time from the existing JSON representation via `json_to_tsv()`.
+Like Json, Tsv bypasses the budget gate — the consumer controls their own
+budget. Tsv achieves ~3.75x density improvement over Json for tabular data
+(~4 tokens/entity vs ~15 tokens/entity).
 
 #### Level 1 (State Invariant)
 Every CLI_COMMAND invocation selects exactly one mode. The mode determines
