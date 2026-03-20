@@ -3460,9 +3460,9 @@ mod tests {
         let ctx_full = BudgetCtx::from_flags(None, Some(0.1)); // k=0.9
         assert_eq!(ctx_full.manager.guidance_level(), GuidanceLevel::Full);
 
-        // Compressed
-        let ctx_comp = BudgetCtx::from_flags(None, Some(0.5)); // k=0.5
-        assert_eq!(ctx_comp.manager.guidance_level(), GuidanceLevel::Compressed);
+        // BasinToken (T4-1: k* >= 0.4 uses lean basin activation token)
+        let ctx_basin = BudgetCtx::from_flags(None, Some(0.5)); // k=0.5
+        assert_eq!(ctx_basin.manager.guidance_level(), GuidanceLevel::BasinToken);
 
         // Minimal
         let ctx_min = BudgetCtx::from_flags(None, Some(0.75)); // k=0.25

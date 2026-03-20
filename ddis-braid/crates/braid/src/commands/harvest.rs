@@ -263,6 +263,39 @@ pub fn run(
         out.push_str("  close with: braid task close <id> --reason \"impl complete\"\n");
     }
 
+    // T5-2: Display task audit results — tasks with store evidence of completion
+    {
+        let mut audit_results = braid_kernel::task::audit_tasks_from_store(&store);
+        // Sort by descending confidence, take top 5
+        audit_results.sort_by(|a, b| {
+            b.1.confidence
+                .partial_cmp(&a.1.confidence)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        audit_results.truncate(5);
+        if !audit_results.is_empty() {
+            out.push_str(&format!(
+                "\naudit: {} tasks appear implemented but not closed\n",
+                audit_results.len()
+            ));
+            for (task, evidence) in &audit_results {
+                let pct = (evidence.confidence * 100.0) as u32;
+                let title_display = if task.title.len() > 60 {
+                    let end = task.title.floor_char_boundary(57);
+                    format!("{}...", &task.title[..end])
+                } else {
+                    task.title.clone()
+                };
+                out.push_str(&format!(
+                    "  [{pct:>3}%] {} \"{title_display}\"\n",
+                    task.id
+                ));
+            }
+            let close_ids: Vec<&str> = audit_results.iter().map(|(t, _)| t.id.as_str()).collect();
+            out.push_str(&format!("  close: braid task close {}\n", close_ids.join(" ")));
+        }
+    }
+
     // If --commit: apply crystallization guard then persist
     if commit && !result.candidates.is_empty() {
         let candidates_to_commit = if force {

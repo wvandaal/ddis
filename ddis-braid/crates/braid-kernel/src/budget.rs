@@ -333,15 +333,27 @@ pub enum GuidanceLevel {
     Minimal,
     /// ≤ 0.2: harvest signal only (~10 tokens).
     HarvestOnly,
+    /// k* >= 0.4 (CLI default): basin activation token (0–10 tokens).
+    ///
+    /// Emits the minimum perturbation needed to keep the agent on-basin:
+    /// - Harvest critical/warn: "braid harvest --commit"
+    /// - M(t) < 0.3: "verify: {command}" (spec-relevant action)
+    /// - M(t) 0.3–0.7: "Store: N datoms | Turn T"
+    /// - M(t) > 0.7: empty (methodology on track, no perturbation)
+    BasinToken,
 }
 
 impl GuidanceLevel {
     /// Select the guidance level for the given k*_eff.
+    ///
+    /// Returns `BasinToken` for k* >= 0.4 (the CLI default). The MCP path
+    /// should override this with `Full` explicitly. The original Compressed
+    /// level is preserved for callers that request it directly.
     pub fn for_k_eff(k_eff: f64) -> Self {
         if k_eff > 0.7 {
             GuidanceLevel::Full
         } else if k_eff > 0.4 {
-            GuidanceLevel::Compressed
+            GuidanceLevel::BasinToken
         } else if k_eff > 0.2 {
             GuidanceLevel::Minimal
         } else {
@@ -356,6 +368,7 @@ impl GuidanceLevel {
             GuidanceLevel::Compressed => 60,
             GuidanceLevel::Minimal => 20,
             GuidanceLevel::HarvestOnly => 10,
+            GuidanceLevel::BasinToken => 10,
         }
     }
 }
@@ -1397,8 +1410,8 @@ mod tests {
     fn guidance_level_thresholds() {
         assert_eq!(GuidanceLevel::for_k_eff(0.8), GuidanceLevel::Full);
         assert_eq!(GuidanceLevel::for_k_eff(0.71), GuidanceLevel::Full);
-        assert_eq!(GuidanceLevel::for_k_eff(0.5), GuidanceLevel::Compressed);
-        assert_eq!(GuidanceLevel::for_k_eff(0.41), GuidanceLevel::Compressed);
+        assert_eq!(GuidanceLevel::for_k_eff(0.5), GuidanceLevel::BasinToken);
+        assert_eq!(GuidanceLevel::for_k_eff(0.41), GuidanceLevel::BasinToken);
         assert_eq!(GuidanceLevel::for_k_eff(0.3), GuidanceLevel::Minimal);
         assert_eq!(GuidanceLevel::for_k_eff(0.21), GuidanceLevel::Minimal);
         assert_eq!(GuidanceLevel::for_k_eff(0.1), GuidanceLevel::HarvestOnly);

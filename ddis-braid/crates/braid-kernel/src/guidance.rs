@@ -1506,11 +1506,12 @@ pub fn format_footer(footer: &GuidanceFooter) -> String {
 
 /// Format a guidance footer at the specified compression level (INV-BUDGET-004).
 ///
-/// Four levels matching the attention budget's guidance footer specification:
+/// Five levels matching the attention budget's guidance footer specification:
 /// - Full: complete M(t) dashboard with sub-metric checks (~100-200 tokens)
 /// - Compressed: one-line summary with top action (~30-60 tokens)
 /// - Minimal: M(t) score + abbreviated action (~10-20 tokens)
 /// - HarvestOnly: harvest imperative signal (~10 tokens)
+/// - BasinToken: single-token basin activation (0-10 tokens, CLI default for k* >= 0.4)
 pub fn format_footer_at_level(footer: &GuidanceFooter, level: GuidanceLevel) -> String {
     match level {
         GuidanceLevel::Full => {
@@ -1575,6 +1576,31 @@ pub fn format_footer_at_level(footer: &GuidanceFooter, level: GuidanceLevel) -> 
                 "\u{26a0} DRIFT: harvest now \u{2192} braid harvest --commit".to_string()
             } else {
                 "\u{26a0} HARVEST: braid harvest --task \"...\" --commit".to_string()
+            }
+        }
+        GuidanceLevel::BasinToken => {
+            // Single-token basin activation: minimum perturbation to stay on-basin.
+            // Priority: harvest emergency > low M(t) action > store summary > silence.
+            if footer.harvest_warning >= HarvestWarningLevel::Warn {
+                "braid harvest --commit".to_string()
+            } else if footer.methodology.score < 0.3 {
+                match &footer.next_action {
+                    Some(action) => {
+                        let short = crate::budget::safe_truncate_bytes(action, 30);
+                        format!("verify: {short}")
+                    }
+                    None => format!(
+                        "Store: {} datoms | Turn {}",
+                        footer.store_datom_count, footer.turn
+                    ),
+                }
+            } else if footer.methodology.score <= 0.7 {
+                format!(
+                    "Store: {} datoms | Turn {}",
+                    footer.store_datom_count, footer.turn
+                )
+            } else {
+                String::new()
             }
         }
     }
@@ -5528,6 +5554,110 @@ mod tests {
         );
     }
 
+    // -------------------------------------------------------------------
+    // BasinToken tests (T4-1)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn basin_token_high_methodology_is_empty() {
+        let telemetry = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 8,
+            spec_language_turns: 7,
+            query_type_count: 3,
+            harvest_quality: 0.9,
+            ..Default::default()
+        };
+        let store = Store::genesis();
+        let mut footer = build_footer(
+            &telemetry,
+            &store,
+            Some("braid query [:find ?e]".into()),
+            vec!["INV-STORE-003".into()],
+        );
+        // Force M(t) > 0.7 to trigger the empty/silent path
+        footer.methodology.score = 0.8;
+        let basin =
+            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        assert!(
+            basin.is_empty() || basin.len() < 10,
+            "BasinToken with M(t)>0.7 should be empty or very short, got ({} chars): {basin}",
+            basin.len()
+        );
+    }
+
+    #[test]
+    fn basin_token_harvest_warning_contains_harvest() {
+        let telemetry = SessionTelemetry::default();
+        let store = Store::genesis();
+        let mut footer = build_footer(
+            &telemetry,
+            &store,
+            Some("braid query [:find ?e]".into()),
+            vec![],
+        );
+        footer.harvest_warning = HarvestWarningLevel::Critical;
+        let basin =
+            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        assert!(
+            basin.contains("harvest"),
+            "BasinToken with harvest warning must contain 'harvest', got: {basin}"
+        );
+    }
+
+    #[test]
+    fn basin_token_output_always_under_50_chars() {
+        let telemetry = SessionTelemetry::default();
+        let store = Store::genesis();
+
+        // Case 1: high M(t) — empty
+        let mut footer = build_footer(
+            &telemetry,
+            &store,
+            Some("braid query [:find ?e]".into()),
+            vec![],
+        );
+        footer.methodology.score = 0.9;
+        let basin =
+            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        assert!(
+            basin.len() < 50,
+            "BasinToken must be < 50 chars, got {} chars: {basin}",
+            basin.len()
+        );
+
+        // Case 2: low M(t) with action
+        footer.methodology.score = 0.2;
+        let basin =
+            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        assert!(
+            basin.len() < 50,
+            "BasinToken must be < 50 chars, got {} chars: {basin}",
+            basin.len()
+        );
+
+        // Case 3: harvest warning
+        footer.harvest_warning = HarvestWarningLevel::Warn;
+        let basin =
+            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        assert!(
+            basin.len() < 50,
+            "BasinToken must be < 50 chars, got {} chars: {basin}",
+            basin.len()
+        );
+
+        // Case 4: mid M(t) store summary
+        footer.harvest_warning = HarvestWarningLevel::None;
+        footer.methodology.score = 0.5;
+        let basin =
+            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        assert!(
+            basin.len() < 50,
+            "BasinToken must be < 50 chars, got {} chars: {basin}",
+            basin.len()
+        );
+    }
+
     #[test]
     fn format_footer_compression_monotonically_shorter() {
         use crate::budget::GuidanceLevel;
@@ -5966,7 +6096,11 @@ mod tests {
             fn format_at_level_never_panics(footer in arb_footer(), k_eff in arb_k_eff()) {
                 let level = GuidanceLevel::for_k_eff(k_eff);
                 let formatted = format_footer_at_level(&footer, level);
-                prop_assert!(!formatted.is_empty(), "formatted footer must not be empty");
+                // BasinToken intentionally returns empty when M(t) > 0.7
+                // (methodology on track, no perturbation needed).
+                if level != GuidanceLevel::BasinToken {
+                    prop_assert!(!formatted.is_empty(), "formatted footer must not be empty");
+                }
             }
 
             #[test]

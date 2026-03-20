@@ -75,53 +75,47 @@ pub fn run_census(store: &crate::store::Store) -> Vec<CensusResult> {
             .any(|d| d.attribute.as_str().starts_with(prefix) && d.op == Op::Assert)
     };
 
+    // T-UX-4: All modules are compiled into the binary and always available.
+    // Availability is a compile-time property, not a runtime one.
+    // Data presence (has_attr_prefix) is shown as Partial("dormant") when no
+    // datoms have been produced yet, distinguishing "available" from "active."
     vec![
-        // LIVE index: check if the store has a populated live_view
         CensusResult::new(
             "live-index",
             "LIVE index",
-            if !store.is_empty() {
-                CensusStatus::Implemented
-            } else {
-                CensusStatus::SpecOnly
-            },
+            CensusStatus::Implemented,
         ),
-        // .cache/ persistence: always available (DiskLayout creates it)
         CensusResult::new(
             "cache-persistence",
             ".cache/ persistence",
             CensusStatus::Implemented,
         ),
-        // WITNESS system: check for witness attributes
         CensusResult::new(
             "witness",
             "WITNESS system",
             if has_attr_prefix(":witness/") {
                 CensusStatus::Implemented
             } else {
-                CensusStatus::SpecOnly
+                CensusStatus::Partial("dormant: no witness data yet".to_string())
             },
         ),
-        // Adaptive Guidance (AGP): always available
         CensusResult::new("agp", "Adaptive guidance (AGP)", CensusStatus::Implemented),
-        // Harvest/Seed lifecycle
         CensusResult::new(
             "harvest-seed",
             "Harvest/Seed lifecycle",
             if has_attr_prefix(":harvest/") {
                 CensusStatus::Implemented
             } else {
-                CensusStatus::SpecOnly
+                CensusStatus::Partial("dormant: no harvest data yet".to_string())
             },
         ),
-        // R(t) task routing
         CensusResult::new(
             "task-routing",
             "R(t) task routing",
             if has_attr_prefix(":task/") {
                 CensusStatus::Implemented
             } else {
-                CensusStatus::SpecOnly
+                CensusStatus::Partial("dormant: no task data yet".to_string())
             },
         ),
         // Datalog query: always available (compiled in)
@@ -154,11 +148,16 @@ mod tests {
     }
 
     #[test]
-    fn census_empty_store_witness_is_spec_only() {
+    fn census_witness_dormant_without_data() {
+        // T-UX-4: WITNESS is always compiled-in. Without data, status is Partial("dormant").
         let store = Store::from_datoms(std::collections::BTreeSet::new());
         let results = run_census(&store);
         let witness = results.iter().find(|r| r.name == "witness").unwrap();
-        assert_eq!(witness.status, CensusStatus::SpecOnly);
+        assert!(
+            matches!(&witness.status, CensusStatus::Partial(s) if s.contains("dormant")),
+            "witness without data should be Partial(dormant), got {:?}",
+            witness.status
+        );
     }
 
     #[test]
