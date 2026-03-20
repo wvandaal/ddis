@@ -1216,6 +1216,87 @@ pub struct AuditEvidence {
     pub file_paths: Vec<String>,
     /// Confidence score [0, 1] based on store evidence alone.
     pub confidence: f64,
+    /// Acceptance criteria extracted from the task title.
+    pub acceptance_criteria: Vec<String>,
+    /// Acceptance criteria confidence (criteria with code identifiers found / total).
+    /// None if the task has no ACCEPTANCE section.
+    pub criteria_confidence: Option<f64>,
+}
+
+/// Extract acceptance criteria from a task title.
+///
+/// Parses the ACCEPTANCE: section, splitting on criterion markers (A), (B), (C)...
+/// Returns individual criteria strings.
+pub fn parse_acceptance_criteria(title: &str) -> Vec<String> {
+    // Find ACCEPTANCE: section
+    let acceptance_start = title.find("ACCEPTANCE:");
+    let Some(start) = acceptance_start else {
+        return Vec::new();
+    };
+
+    let section = &title[start + "ACCEPTANCE:".len()..];
+
+    // Find end of acceptance section (next structured marker or end of string)
+    let section_end = ["APPROACH:", "BACKGROUND:", "DEPENDS-ON:", "TRACES TO:", "FILE:"]
+        .iter()
+        .filter_map(|marker| section.find(marker))
+        .min()
+        .unwrap_or(section.len());
+
+    let section = &section[..section_end];
+
+    // Split on criterion markers: (A), (B), (C), (D), etc.
+    let mut criteria = Vec::new();
+    let mut current = String::new();
+
+    for part in section.split('(') {
+        if part.len() >= 2 && part.as_bytes()[0].is_ascii_uppercase() && part.as_bytes()[1] == b')' {
+            if !current.trim().is_empty() {
+                criteria.push(current.trim().to_string());
+            }
+            current = part[2..].to_string();
+        } else if !current.is_empty() {
+            current.push('(');
+            current.push_str(part);
+        } else {
+            current.push_str(part);
+        }
+    }
+    if !current.trim().is_empty() {
+        criteria.push(current.trim().to_string());
+    }
+
+    criteria
+}
+
+/// Extract code identifiers from an acceptance criterion.
+///
+/// Looks for patterns that are likely function/type/module names:
+/// - snake_case identifiers (e.g., `compute_routing`, `detect_session_start`)
+/// - CamelCase identifiers (e.g., `TopologyPlan`, `BudgetProjection`)
+/// - Dotted paths (e.g., `store.live_value`)
+pub fn extract_criterion_identifiers(criterion: &str) -> Vec<String> {
+    let mut identifiers = Vec::new();
+
+    for word in criterion.split_whitespace() {
+        let cleaned = word.trim_matches(|c: char| !c.is_alphanumeric() && c != '_');
+        if cleaned.len() < 3 {
+            continue;
+        }
+        // snake_case: contains underscore and is all lowercase/numeric
+        let is_snake = cleaned.contains('_')
+            && cleaned.chars().all(|c| c.is_lowercase() || c == '_' || c.is_numeric());
+        // CamelCase: starts with uppercase, has at least one lowercase, 4+ chars
+        let is_camel = cleaned.chars().next().is_some_and(|c| c.is_uppercase())
+            && cleaned.chars().any(|c| c.is_lowercase())
+            && cleaned.len() >= 4;
+
+        if is_snake || is_camel {
+            identifiers.push(cleaned.to_string());
+        }
+    }
+
+    identifiers
 }
 
 /// Audit open tasks for store-based evidence of completion.
@@ -1281,7 +1362,49 @@ pub fn audit_tasks_from_store(store: &Store) -> Vec<(TaskSummary, AuditEvidence)
             .filter(|e| impl_targets.contains(e))
             .count();
 
-        // Compute confidence from store evidence alone
+        // Parse acceptance criteria from task title
+        let acceptance_criteria = parse_acceptance_criteria(&task.title);
+        let criteria_confidence = if acceptance_criteria.is_empty() {
+            None
+        } else {
+            // Extract identifiers from each criterion and check store for evidence.
+            // For now, store-only check: identifiers that appear in :impl/* values
+            // or :task/title of closed tasks = evidence of implementation.
+            let total = acceptance_criteria.len();
+            let mut met = 0;
+            for criterion in &acceptance_criteria {
+                let identifiers = extract_criterion_identifiers(criterion);
+                if identifiers.is_empty() {
+                    // No code identifiers to check — can't verify, skip
+                    continue;
+                }
+                // Check if any identifier appears in the store as an impl entity
+                // or in a closed task's title (indicating work was done)
+                let has_evidence = identifiers.iter().any(|ident| {
+                    // Check :impl/source-file values
+                    store
+                        .attribute_datoms(&Attribute::from_keyword(":impl/source-file"))
+                        .iter()
+                        .any(|d| {
+                            if let Value::String(s) = &d.value {
+                                s.contains(ident.as_str())
+                            } else {
+                                false
+                            }
+                        })
+                });
+                if has_evidence {
+                    met += 1;
+                }
+            }
+            Some(if total > 0 {
+                met as f64 / total as f64
+            } else {
+                0.0
+            })
+        };
+
+        // Compute confidence from store evidence
         let spec_score = if spec_total > 0 {
             spec_coverage as f64 / spec_total as f64
         } else {
@@ -1291,7 +1414,9 @@ pub fn audit_tasks_from_store(store: &Store) -> Vec<(TaskSummary, AuditEvidence)
         // File paths give a signal even without spec coverage
         let file_score = if file_paths.is_empty() { 0.0 } else { 0.3 };
 
-        let confidence = (spec_score * 0.7 + file_score).clamp(0.0, 1.0);
+        // Blend spec coverage and criteria confidence
+        let criteria_factor = criteria_confidence.unwrap_or(spec_score);
+        let confidence = (spec_score * 0.4 + criteria_factor * 0.3 + file_score).clamp(0.0, 1.0);
 
         // Only include tasks with some evidence
         if confidence > 0.1 {
@@ -1302,6 +1427,8 @@ pub fn audit_tasks_from_store(store: &Store) -> Vec<(TaskSummary, AuditEvidence)
                     spec_total,
                     file_paths,
                     confidence,
+                    acceptance_criteria,
+                    criteria_confidence,
                 },
             ));
         }
@@ -2132,5 +2259,70 @@ mod tests {
     fn short_title_handles_multiple_markers() {
         let title = "Do X. BACKGROUND: Why. APPROACH: How. ACCEPTANCE: What. FILE: foo.rs";
         assert_eq!(short_title(title), "Do X");
+    }
+
+    // ---- parse_acceptance_criteria tests (t-0abb4b60) ----
+
+    #[test]
+    fn parse_acceptance_empty_when_no_section() {
+        let title = "Simple task with no acceptance section";
+        assert!(parse_acceptance_criteria(title).is_empty());
+    }
+
+    #[test]
+    fn parse_acceptance_single_criterion() {
+        let title = "Do X. ACCEPTANCE: (A) Function foo_bar exists.";
+        let criteria = parse_acceptance_criteria(title);
+        assert_eq!(criteria.len(), 1);
+        assert!(criteria[0].contains("foo_bar"));
+    }
+
+    #[test]
+    fn parse_acceptance_multiple_criteria() {
+        let title = "Do X. ACCEPTANCE: (A) detect_session_start returns true. (B) TopologyPlan has 3 fields. (C) File exists.";
+        let criteria = parse_acceptance_criteria(title);
+        assert_eq!(criteria.len(), 3);
+        assert!(criteria[0].contains("detect_session_start"));
+        assert!(criteria[1].contains("TopologyPlan"));
+    }
+
+    #[test]
+    fn parse_acceptance_stops_at_next_section() {
+        let title = "Do X. ACCEPTANCE: (A) foo exists. TRACES TO: INV-STORE-001.";
+        let criteria = parse_acceptance_criteria(title);
+        assert_eq!(criteria.len(), 1);
+        assert!(criteria[0].contains("foo"));
+    }
+
+    // ---- extract_criterion_identifiers tests ----
+
+    #[test]
+    fn extract_identifiers_snake_case() {
+        let criterion = "detect_session_start returns true for empty store";
+        let ids = extract_criterion_identifiers(criterion);
+        assert!(ids.contains(&"detect_session_start".to_string()));
+    }
+
+    #[test]
+    fn extract_identifiers_camel_case() {
+        let criterion = "TopologyPlan struct has 3 fields";
+        let ids = extract_criterion_identifiers(criterion);
+        assert!(ids.contains(&"TopologyPlan".to_string()));
+    }
+
+    #[test]
+    fn extract_identifiers_mixed() {
+        let criterion = "composite_coupling calls von_neumann_entropy and returns CouplingAnalysis";
+        let ids = extract_criterion_identifiers(criterion);
+        assert!(ids.contains(&"composite_coupling".to_string()));
+        assert!(ids.contains(&"von_neumann_entropy".to_string()));
+        assert!(ids.contains(&"CouplingAnalysis".to_string()));
+    }
+
+    #[test]
+    fn extract_identifiers_no_code() {
+        let criterion = "the output is correct and valid";
+        let ids = extract_criterion_identifiers(criterion);
+        assert!(ids.is_empty());
     }
 }

@@ -40,7 +40,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::budget::{quality_adjusted_budget, GuidanceLevel};
-use crate::datom::{Attribute, EntityId, Op, Value};
+use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::store::Store;
 use crate::trilateral::{check_coherence_fast, CoherenceQuadrant};
 
@@ -2514,6 +2514,194 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
 
     // Urgency = max of all signals
     signal_1.max(signal_2).max(signal_3).max(signal_4)
+}
+
+// ---------------------------------------------------------------------------
+// Session Auto-Detection (ST-1)
+// ---------------------------------------------------------------------------
+
+/// Detect whether a new session should be auto-started.
+///
+/// Returns `true` if no active session exists in the store — i.e., no entity
+/// has `:session/status` = `:session.status/active`. This is the trigger for
+/// `create_session_start_datoms()` to write lightweight session-start datoms.
+///
+/// The detection is O(n) in the number of `:session/status` datoms, but since
+/// sessions are rare entities (one per human work session), this is negligible.
+pub fn detect_session_start(store: &Store) -> bool {
+    let status_attr = Attribute::from_keyword(":session/status");
+    // Scan for any entity with an active session status.
+    // The most recent assertion wins (LWW semantics on :session/status).
+    // We need to check per-entity: collect the latest status per entity.
+    let mut has_active = false;
+    for datom in store.attribute_datoms(&status_attr) {
+        if datom.op == Op::Assert {
+            if let Value::Keyword(ref kw) = datom.value {
+                if kw == ":session.status/active" {
+                    // Check if this entity also has a later "closed" assertion
+                    // (which would supersede the "active" one).
+                    let entity_closed = store.entity_datoms(datom.entity).iter().any(|d| {
+                        d.attribute == status_attr
+                            && d.op == Op::Assert
+                            && d.tx.wall_time() > datom.tx.wall_time()
+                            && matches!(&d.value, Value::Keyword(k) if k.contains("closed"))
+                    });
+                    if !entity_closed {
+                        has_active = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    !has_active
+}
+
+/// Create session-start datoms for auto-detection (ST-1).
+///
+/// Produces a lightweight session entity with:
+/// - `:db/ident` — unique identity like `:session/s-{unix_seconds}`
+/// - `:session/started-at` — wall clock as Long (unix seconds)
+/// - `:session/start-time` — wall clock as ISO 8601 String
+/// - `:session/start-fitness` — F(S) at session start
+/// - `:session/start-datom-count` — store.len() at session start
+/// - `:session/agent` — agent identity (as Ref to `:agent/{name}` entity)
+/// - `:session/status` — `:session.status/active`
+/// - `:session/current` — self-referential Ref marking this as the active session
+///
+/// The caller is responsible for wrapping these in a `TxFile` and writing them.
+pub fn create_session_start_datoms(
+    store: &Store,
+    agent: AgentId,
+    tx: TxId,
+) -> Vec<Datom> {
+    create_session_start_datoms_with_name(store, agent, tx, "braid:session")
+}
+
+/// Create session-start datoms with an explicit agent name string (ST-1).
+///
+/// Same as `create_session_start_datoms` but allows the caller to specify
+/// the human-readable agent name for the `:session/agent` Ref target.
+pub fn create_session_start_datoms_with_name(
+    store: &Store,
+    _agent: AgentId,
+    tx: TxId,
+    agent_name: &str,
+) -> Vec<Datom> {
+    let wall_secs = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
+    // ISO 8601 timestamp (UTC)
+    let iso_time = {
+        let secs = wall_secs;
+        let days_since_epoch = secs / 86400;
+        let time_of_day = secs % 86400;
+        let hours = time_of_day / 3600;
+        let minutes = (time_of_day % 3600) / 60;
+        let seconds = time_of_day % 60;
+
+        // Compute year/month/day from days since 1970-01-01
+        // Using a simplified civil calendar algorithm
+        let (year, month, day) = days_to_ymd(days_since_epoch);
+        format!(
+            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+            year, month, day, hours, minutes, seconds
+        )
+    };
+
+    let session_ident = format!(":session/s-{}", wall_secs);
+    let session_entity = EntityId::from_ident(&session_ident);
+
+    // Compute F(S) at session start
+    let fitness = crate::bilateral::compute_fitness(store);
+    let datom_count = store.len();
+
+    vec![
+        // :db/ident
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(session_ident),
+            tx,
+            Op::Assert,
+        ),
+        // :session/started-at (Long, for compatibility with existing session queries)
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/started-at"),
+            Value::Long(wall_secs as i64),
+            tx,
+            Op::Assert,
+        ),
+        // :session/start-time (ISO 8601 String)
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/start-time"),
+            Value::String(iso_time),
+            tx,
+            Op::Assert,
+        ),
+        // :session/start-fitness (Double)
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/start-fitness"),
+            Value::Double(ordered_float::OrderedFloat(fitness.total)),
+            tx,
+            Op::Assert,
+        ),
+        // :session/start-datom-count (Long)
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/start-datom-count"),
+            Value::Long(datom_count as i64),
+            tx,
+            Op::Assert,
+        ),
+        // :session/agent (Ref to agent entity)
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/agent"),
+            Value::Ref(EntityId::from_ident(&format!(":agent/{}", agent_name))),
+            tx,
+            Op::Assert,
+        ),
+        // :session/status = :session.status/active
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/status"),
+            Value::Keyword(":session.status/active".to_string()),
+            tx,
+            Op::Assert,
+        ),
+        // :session/current — self-ref marking this as the active session
+        Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/current"),
+            Value::Ref(session_entity),
+            tx,
+            Op::Assert,
+        ),
+    ]
+}
+
+/// Convert days since Unix epoch (1970-01-01) to (year, month, day).
+///
+/// Simplified civil calendar algorithm. Handles leap years correctly.
+fn days_to_ymd(days: u64) -> (u64, u64, u64) {
+    // Algorithm adapted from Howard Hinnant's chrono-compatible date algorithms
+    let z = days + 719468;
+    let era = z / 146097;
+    let doe = z - era * 146097;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+    (y, m, d)
 }
 
 /// Check whether the CLI should warn about an unharvested session on exit.
@@ -9234,5 +9422,231 @@ mod tests {
                 );
             }
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // ST-1: Session Auto-Detection Tests
+    // -----------------------------------------------------------------------
+
+    /// Helper: create a store with full schema (genesis + domain + Layer 4).
+    fn st1_full_schema_store() -> Store {
+        use crate::schema::{full_schema_datoms, genesis_datoms};
+        let system_agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, system_agent);
+        let mut datom_set = std::collections::BTreeSet::new();
+        for d in genesis_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+        for d in full_schema_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+        Store::from_datoms(datom_set)
+    }
+
+    #[test]
+    fn detect_session_start_returns_true_on_empty_store() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        assert!(
+            detect_session_start(&store),
+            "empty store should detect session start (no active session)"
+        );
+    }
+
+    #[test]
+    fn detect_session_start_returns_true_on_full_schema_no_session() {
+        let store = st1_full_schema_store();
+        assert!(
+            detect_session_start(&store),
+            "store with only schema datoms should detect session start"
+        );
+    }
+
+    #[test]
+    fn detect_session_start_returns_false_after_session_datoms_written() {
+        let mut store = st1_full_schema_store();
+        let agent = AgentId::from_name("test:st1");
+        let tx = TxId::new(100, 0, agent);
+
+        // Write session-start datoms
+        let datoms = create_session_start_datoms(&store, agent, tx);
+        let mut datom_set = store.datom_set().clone();
+        for d in datoms {
+            datom_set.insert(d);
+        }
+        store = Store::from_datoms(datom_set);
+
+        assert!(
+            !detect_session_start(&store),
+            "store with active session should NOT detect session start"
+        );
+    }
+
+    #[test]
+    fn detect_session_start_returns_true_after_session_closed() {
+        let mut store = st1_full_schema_store();
+        let agent = AgentId::from_name("test:st1-close");
+        let tx = TxId::new(100, 0, agent);
+
+        // Write session-start datoms
+        let datoms = create_session_start_datoms(&store, agent, tx);
+        let mut datom_set = store.datom_set().clone();
+        for d in &datoms {
+            datom_set.insert(d.clone());
+        }
+
+        // Find the session entity (from :db/ident datom)
+        let session_entity = datoms
+            .iter()
+            .find(|d| d.attribute == Attribute::from_keyword(":db/ident"))
+            .unwrap()
+            .entity;
+
+        // Close the session with a later tx
+        let close_tx = TxId::new(200, 0, agent);
+        datom_set.insert(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/status"),
+            Value::Keyword(":session.status/closed".to_string()),
+            close_tx,
+            Op::Assert,
+        ));
+
+        store = Store::from_datoms(datom_set);
+        assert!(
+            detect_session_start(&store),
+            "store with closed session should detect session start (no active session)"
+        );
+    }
+
+    #[test]
+    fn create_session_start_datoms_produces_correct_attributes() {
+        let store = st1_full_schema_store();
+        let agent = AgentId::from_name("test:st1-attrs");
+        let tx = TxId::new(42, 0, agent);
+
+        let datoms = create_session_start_datoms(&store, agent, tx);
+
+        // Should produce exactly 8 datoms
+        assert_eq!(
+            datoms.len(),
+            8,
+            "session start should produce 8 datoms (ident, started-at, start-time, \
+             start-fitness, start-datom-count, agent, status, current)"
+        );
+
+        // All datoms should be Assert operations
+        for d in &datoms {
+            assert_eq!(d.op, Op::Assert, "all session datoms should be Assert");
+            assert_eq!(d.tx, tx, "all session datoms should use the provided tx");
+        }
+
+        // Check that all expected attributes are present
+        let attrs: std::collections::BTreeSet<String> = datoms
+            .iter()
+            .map(|d| d.attribute.as_str().to_string())
+            .collect();
+        assert!(attrs.contains(":db/ident"), "missing :db/ident");
+        assert!(
+            attrs.contains(":session/started-at"),
+            "missing :session/started-at"
+        );
+        assert!(
+            attrs.contains(":session/start-time"),
+            "missing :session/start-time"
+        );
+        assert!(
+            attrs.contains(":session/start-fitness"),
+            "missing :session/start-fitness"
+        );
+        assert!(
+            attrs.contains(":session/start-datom-count"),
+            "missing :session/start-datom-count"
+        );
+        assert!(
+            attrs.contains(":session/agent"),
+            "missing :session/agent"
+        );
+        assert!(
+            attrs.contains(":session/status"),
+            "missing :session/status"
+        );
+        assert!(
+            attrs.contains(":session/current"),
+            "missing :session/current"
+        );
+
+        // Verify :session/status is :session.status/active
+        let status_datom = datoms
+            .iter()
+            .find(|d| d.attribute == Attribute::from_keyword(":session/status"))
+            .unwrap();
+        assert_eq!(
+            status_datom.value,
+            Value::Keyword(":session.status/active".to_string()),
+            "session status should be active"
+        );
+
+        // Verify :session/start-fitness is a Double in [0, 1]
+        let fitness_datom = datoms
+            .iter()
+            .find(|d| d.attribute == Attribute::from_keyword(":session/start-fitness"))
+            .unwrap();
+        if let Value::Double(f) = fitness_datom.value {
+            assert!(
+                f.into_inner() >= 0.0 && f.into_inner() <= 1.0,
+                "fitness should be in [0, 1], got {}",
+                f
+            );
+        } else {
+            panic!("start-fitness should be a Double, got {:?}", fitness_datom.value);
+        }
+
+        // Verify :session/start-datom-count is a Long >= 0
+        let count_datom = datoms
+            .iter()
+            .find(|d| d.attribute == Attribute::from_keyword(":session/start-datom-count"))
+            .unwrap();
+        if let Value::Long(n) = count_datom.value {
+            assert!(n >= 0, "datom count should be non-negative, got {}", n);
+        } else {
+            panic!(
+                "start-datom-count should be a Long, got {:?}",
+                count_datom.value
+            );
+        }
+
+        // Verify :session/start-time is an ISO 8601 string
+        let time_datom = datoms
+            .iter()
+            .find(|d| d.attribute == Attribute::from_keyword(":session/start-time"))
+            .unwrap();
+        if let Value::String(ref s) = time_datom.value {
+            assert!(
+                s.ends_with('Z') && s.contains('T') && s.contains('-'),
+                "start-time should be ISO 8601, got: {}",
+                s
+            );
+        } else {
+            panic!("start-time should be a String, got {:?}", time_datom.value);
+        }
+
+        // Verify all datoms belong to the same entity
+        let entity = datoms[0].entity;
+        for d in &datoms {
+            assert_eq!(
+                d.entity, entity,
+                "all session datoms should belong to the same entity"
+            );
+        }
+    }
+
+    #[test]
+    fn days_to_ymd_known_dates() {
+        // 1970-01-01 = day 0
+        assert_eq!(super::days_to_ymd(0), (1970, 1, 1));
+        // 2000-01-01 = day 10957
+        assert_eq!(super::days_to_ymd(10957), (2000, 1, 1));
+        // 2026-03-20 = day 20532
+        assert_eq!(super::days_to_ymd(20532), (2026, 3, 20));
     }
 }

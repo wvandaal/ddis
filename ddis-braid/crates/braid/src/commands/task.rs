@@ -1703,6 +1703,13 @@ pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
                 evidence.spec_coverage, evidence.spec_total
             ));
         }
+        if let Some(cc) = evidence.criteria_confidence {
+            human.push_str(&format!(
+                "  criteria: {:.0}% ({} acceptance criteria parsed)\n",
+                cc * 100.0,
+                evidence.acceptance_criteria.len()
+            ));
+        }
         if !evidence.file_paths.is_empty() {
             human.push_str(&format!("  files: {}\n", evidence.file_paths.join(", ")));
         }
@@ -1737,6 +1744,9 @@ pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
                 " (spec: {}/{})",
                 evidence.spec_coverage, evidence.spec_total
             ));
+        }
+        if let Some(cc) = evidence.criteria_confidence {
+            detail.push_str(&format!(" (criteria: {:.0}%)", cc * 100.0));
         }
         context_blocks.push(braid_kernel::budget::ContextBlock {
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
