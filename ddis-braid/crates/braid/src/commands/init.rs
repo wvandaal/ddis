@@ -181,7 +181,7 @@ pub fn run(path: &Path, spec_dir: &Path) -> Result<CommandOutput, BraidError> {
     // --- Auto-trace: populate :impl/implements datoms (D1) ---
     // Only run if source files were detected (lang + LOC > 0)
     if detection.lang.is_some() && detection.total_loc > 0 {
-        match super::trace::run(path, &project_root, "braid:init", true) {
+        match super::trace::run(path, &project_root, "braid:init", true, false) {
             Ok(trace_output) => {
                 // Extract just the summary line from trace output
                 if let Some(summary) = trace_output

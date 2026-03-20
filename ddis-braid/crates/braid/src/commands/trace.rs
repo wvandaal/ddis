@@ -343,6 +343,30 @@ fn walk_dir(root: &Path, current: &Path, out: &mut Vec<(std::path::PathBuf, Stri
     }
 }
 
+/// Filter a list of Rust files to only those modified after `threshold` (seconds
+/// since UNIX epoch). Used by `--incremental` to skip unchanged files.
+fn filter_stale_files(
+    files: Vec<(std::path::PathBuf, String)>,
+    threshold: i64,
+) -> Vec<(std::path::PathBuf, String)> {
+    files
+        .into_iter()
+        .filter(|(abs_path, _)| {
+            std::fs::metadata(abs_path)
+                .ok()
+                .and_then(|m| m.modified().ok())
+                .map(|modified| {
+                    let mtime_secs = modified
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_secs() as i64;
+                    mtime_secs > threshold
+                })
+                .unwrap_or(true) // If we can't read mtime, include it (conservative)
+        })
+        .collect()
+}
+
 // ---------------------------------------------------------------------------
 // Resolution: match spec refs to store entities
 // ---------------------------------------------------------------------------
@@ -527,18 +551,16 @@ pub enum TraceStaleStatus {
 /// The well-known entity ident for the trace scan clock.
 const TRACE_CLOCK_IDENT: &str = ":system/trace-clock";
 
-/// Check whether trace data is stale by comparing .rs file mtimes against
-/// the stored `:trace/last-scan-mtime` on the `:system/trace-clock` entity.
+/// Return the last-scan mtime threshold (seconds since UNIX epoch) from the store,
+/// or `None` if no scan has been recorded yet.
 ///
-/// Returns `Stale(n)` if `n` files have been modified since the last scan,
-/// or `Fresh` if no files are newer. If no scan timestamp exists in the store,
-/// all files are considered stale.
-pub fn check_staleness(store: &Store, source_root: &Path) -> TraceStaleStatus {
+/// Used by `--incremental` to filter files: only files with mtime > threshold
+/// need re-scanning.
+fn last_scan_mtime(store: &Store) -> Option<i64> {
     let clock_entity = EntityId::from_ident(TRACE_CLOCK_IDENT);
     let mtime_attr = Attribute::from_keyword(":trace/last-scan-mtime");
 
-    // Find the stored last-scan timestamp.
-    let last_scan: Option<i64> = store
+    store
         .entity_datoms(clock_entity)
         .into_iter()
         .filter(|d| d.attribute == mtime_attr && d.op == Op::Assert)
@@ -546,9 +568,17 @@ pub fn check_staleness(store: &Store, source_root: &Path) -> TraceStaleStatus {
             Value::Long(v) => Some(*v),
             _ => None,
         })
-        .max(); // LWW semantics — take the latest value
+        .max() // LWW semantics — take the latest value
+}
 
-    let threshold = match last_scan {
+/// Check whether trace data is stale by comparing .rs file mtimes against
+/// the stored `:trace/last-scan-mtime` on the `:system/trace-clock` entity.
+///
+/// Returns `Stale(n)` if `n` files have been modified since the last scan,
+/// or `Fresh` if no files are newer. If no scan timestamp exists in the store,
+/// all files are considered stale.
+pub fn check_staleness(store: &Store, source_root: &Path) -> TraceStaleStatus {
+    let threshold = match last_scan_mtime(store) {
         Some(t) => t,
         // No scan timestamp recorded yet — everything is stale.
         None => {
@@ -619,6 +649,7 @@ fn generate_scan_mtime_datom(tx_id: TxId) -> braid_kernel::datom::Datom {
 ///
 /// - Dry-run (default): shows what would be linked, no store mutation.
 /// - Commit (`--commit`): writes traceability datoms to the store.
+/// - Incremental (`--incremental`): only scan files modified since last scan.
 ///
 /// INV-TRACE-001: Completeness — every resolved spec ref produces a datom.
 /// INV-TRACE-002: Idempotency — content-addressed entities, running twice = same count.
@@ -627,15 +658,48 @@ pub fn run(
     source: &Path,
     agent_name: &str,
     commit: bool,
+    incremental: bool,
 ) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
+    // SC-3: Incremental mode — only scan files modified since last trace scan.
+    // When no files are stale, short-circuit with an up-to-date message.
+    let all_files = find_rust_files(source);
+    let files = if incremental {
+        if let Some(threshold) = last_scan_mtime(&store) {
+            let stale = filter_stale_files(all_files, threshold);
+            if stale.is_empty() {
+                let json = serde_json::json!({
+                    "incremental": true,
+                    "files_scanned": 0,
+                    "up_to_date": true,
+                });
+                let human = "trace: up to date (0 files modified)\n".to_string();
+                let agent_out = AgentOutput {
+                    context: String::new(),
+                    content: human.clone(),
+                    footer: String::new(),
+                };
+                return Ok(CommandOutput {
+                    json,
+                    agent: agent_out,
+                    human,
+                });
+            }
+            stale
+        } else {
+            // No prior scan recorded — fall back to full scan
+            all_files
+        }
+    } else {
+        all_files
+    };
+
     // Build the spec ref → entity lookup
     let spec_map = build_spec_ref_map(&store);
 
-    // Scan all Rust source files
-    let files = find_rust_files(source);
+    // Scan Rust source files (all, or only stale if incremental)
     let mut all_refs: Vec<TraceRef> = Vec::new();
     for (abs_path, relative) in &files {
         let file_refs = scan_file(abs_path, relative);
@@ -996,8 +1060,8 @@ pub struct AutoTraceResult {
 
 /// Run trace scan as a harvest side-effect (T7-1, INV-WITNESS-011).
 ///
-/// Scans all `.rs` files under `source_root`, resolves spec references,
-/// and commits `:impl/implements` + `:spec/witnessed` datoms.
+/// Uses incremental mode by default (SC-3): only scans files modified since
+/// the last trace scan. Falls back to full scan if no prior scan exists.
 ///
 /// Returns `None` if no trace datoms were produced.
 /// INV-TRACE-002: Idempotent — content-addressed entities skip duplicates.
@@ -1016,7 +1080,22 @@ pub fn auto_trace_scan(
         return Ok(None);
     }
 
-    let files = find_rust_files(source_root);
+    // SC-3: Incremental by default — only scan files modified since last scan.
+    let all_files = find_rust_files(source_root);
+    let files = if let Some(threshold) = last_scan_mtime(store) {
+        let stale = filter_stale_files(all_files, threshold);
+        if stale.is_empty() {
+            return Ok(Some(AutoTraceResult {
+                files_scanned: 0,
+                refs_found: 0,
+                new_links: 0,
+                new_witnesses: 0,
+            }));
+        }
+        stale
+    } else {
+        all_files
+    };
     if files.is_empty() {
         return Ok(None);
     }

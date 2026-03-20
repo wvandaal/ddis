@@ -362,6 +362,13 @@ Workflow: braid trace → review → braid trace --commit → braid bilateral")]
         #[arg(long)]
         commit: bool,
 
+        /// Only scan files modified since the last trace scan (SC-3).
+        ///
+        /// Uses the stored `:trace/last-scan-mtime` to skip unchanged files.
+        /// Falls back to a full scan if no prior scan timestamp exists.
+        #[arg(long)]
+        incremental: bool,
+
         /// Agent identity (for commit provenance).
         #[arg(long, short = 'a', default_value = "braid:user")]
         agent: String,
@@ -2125,9 +2132,10 @@ pub fn run(
             path,
             source,
             commit,
+            incremental,
             agent,
         } => {
-            let cmd_output = trace::run(&path, &source, &agent, commit)?;
+            let cmd_output = trace::run(&path, &source, &agent, commit, incremental)?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
