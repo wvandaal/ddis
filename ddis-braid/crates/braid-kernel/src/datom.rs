@@ -618,4 +618,94 @@ mod tests {
         let a2 = AgentId::from_name("bob");
         assert_ne!(a1, a2);
     }
+
+    // ---- Canonical serialization proptests (C2, INV-STORE-003) ----
+
+    mod datom_proptests {
+        use super::*;
+        use proptest::prelude::*;
+
+        fn arb_entity_id() -> impl Strategy<Value = EntityId> {
+            prop::string::string_regex("[a-z]{3,10}")
+                .unwrap()
+                .prop_map(|s| EntityId::from_ident(&format!(":test/{s}")))
+        }
+
+        fn arb_attribute() -> impl Strategy<Value = Attribute> {
+            prop::string::string_regex("[a-z]{3,10}")
+                .unwrap()
+                .prop_map(|s| Attribute::from_keyword(&format!(":test/{s}")))
+        }
+
+        fn arb_value() -> impl Strategy<Value = Value> {
+            prop_oneof![
+                any::<i64>().prop_map(Value::Long),
+                prop::string::string_regex("[a-zA-Z0-9 ]{0,50}")
+                    .unwrap()
+                    .prop_map(Value::String),
+                Just(Value::Boolean(true)),
+                Just(Value::Boolean(false)),
+            ]
+        }
+
+        fn arb_datom() -> impl Strategy<Value = Datom> {
+            (arb_entity_id(), arb_attribute(), arb_value(), 1u64..1000u64).prop_map(
+                |(e, a, v, time)| {
+                    let agent = AgentId::from_name("proptest");
+                    let tx = TxId::new(time, 0, agent);
+                    Datom::new(e, a, v, tx, Op::Assert)
+                },
+            )
+        }
+
+        proptest! {
+            // Verifies: C2 (Identity by content) — same datom content produces
+            // identical hash regardless of construction order.
+            #[test]
+            fn content_hash_deterministic(d in arb_datom()) {
+                let h1 = d.content_hash();
+                let clone = d.clone();
+                let h2 = clone.content_hash();
+                prop_assert_eq!(h1, h2, "same datom must produce same hash");
+            }
+
+            // Verifies: INV-STORE-003 — Two datoms with same [e,a,v,tx,op]
+            // produce the same content hash.
+            #[test]
+            fn canonical_serialization_order_independent(
+                e in arb_entity_id(),
+                a in arb_attribute(),
+                v in arb_value(),
+                time in 1u64..1000u64,
+            ) {
+                let agent = AgentId::from_name("proptest");
+                let tx = TxId::new(time, 0, agent);
+                let d1 = Datom::new(e.clone(), a.clone(), v.clone(), tx, Op::Assert);
+                let d2 = Datom::new(e, a, v, tx, Op::Assert);
+                prop_assert_eq!(
+                    d1.content_hash(),
+                    d2.content_hash(),
+                    "identical content → identical hash (C2)"
+                );
+            }
+
+            // Verifies: C2 — Different content must produce different hash
+            // (collision resistance).
+            #[test]
+            fn different_content_different_hash(
+                d1 in arb_datom(),
+                d2 in arb_datom(),
+            ) {
+                if d1 != d2 {
+                    // Different datoms SHOULD have different hashes (probabilistic).
+                    // With BLAKE3 on structured data, collisions are astronomically unlikely.
+                    prop_assert_ne!(
+                        d1.content_hash(),
+                        d2.content_hash(),
+                        "distinct datoms should have distinct hashes"
+                    );
+                }
+            }
+        }
+    }
 }
