@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774014175/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 1 candidates from task 'unsessioned harvest (1 txns since last harvest)'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :db/doc :v "Harvest session for task: unsessioned harvest (1 txns since last harvest)" :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :db/ident :v :harvest/session-braid-user-1774014175 :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/candidate-count :v 1 :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/codebase-snapshot :v "Codebase: 100700 LOC across 78 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (9238 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (4675 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (4192 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3897 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (3356 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (3057 LOC)\n  ddis-braid/crates/braid-kernel/src/topology.rs (2958 LOC)" :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/context-metrics :v "{\"candidates\":1,\"k_eff_estimated\":\"0.95\",\"observations\":0,\"output_tokens_est\":12,\"tasks_closed\":0,\"tx_count\":1,\"wall_elapsed_s\":347}" :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/delta-summary :v "+21 datoms, +2 entities" :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/git-summary :v "branch=main, 1 commits, 32 files (+1005/-128)\n  58e6a43 Fix EDN parse bug: FBW ident uses hex prefix, not Debug format\nHot files:\n  ddis-braid/crates/braid/src/commands/spec.rs (260 lines changed)\n  ddis-braid/.braid/txns/ee/ee1b3f5578f5372ed8fa87963cddbc1e83c3a9f5eaa54b5b48aa5112a7df0bb4.edn (156 lines changed)\n  ddis-braid/crates/braid/src/commands/seed.rs (116 lines changed)\n  ddis-braid/crates/braid/src/commands/harvest.rs (104 lines changed)\n  ddis-braid/crates/braid/src/commands/mod.rs (89 lines changed)\n  ddis-braid/crates/braid/src/commands/log.rs (82 lines changed)\n  ddis-braid/crates/braid/src/commands/task.rs (51 lines changed)\n  ddis-braid/.braid/txns/88/88b4d15d925d0db548a05b739020ff4d6597ad4fc14ab599acfa15cef2bd5e54.edn (24 lines changed)" :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/recommended-tasks :v "t-7023bb8b,t-57c4333f,t-ff6a4143" :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/store-datom-count :v 25461 :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/store-entity-count :v 3173 :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/task :v "unsessioned harvest (1 txns since last harvest)" :op :assert}
+   {:e #blake3 "0d24c3c4ce417a57d80a1d10c3f5a2c218b08c08fcc20e329ef478793e22e926" :a :harvest/tx-since-last :v 1 :op :assert}
+ ]}

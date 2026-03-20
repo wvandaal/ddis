@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774014176/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :derived
+ :tx/rationale "T7-2 auto-witness: 1 FBW witnesses from trace evidence"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "192532cf65b161f521c20ae293a39a627970f5e19538d7dce5635c9b586d6c0c" :a :db/ident :v :witness/fbw.73805306a89116c6 :op :assert}
+   {:e #blake3 "192532cf65b161f521c20ae293a39a627970f5e19538d7dce5635c9b586d6c0c" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "192532cf65b161f521c20ae293a39a627970f5e19538d7dce5635c9b586d6c0c" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "192532cf65b161f521c20ae293a39a627970f5e19538d7dce5635c9b586d6c0c" :a :witness/challenge-count :v 1 :op :assert}
+   {:e #blake3 "192532cf65b161f521c20ae293a39a627970f5e19538d7dce5635c9b586d6c0c" :a :witness/falsification-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "192532cf65b161f521c20ae293a39a627970f5e19538d7dce5635c9b586d6c0c" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "192532cf65b161f521c20ae293a39a627970f5e19538d7dce5635c9b586d6c0c" :a :witness/spec-hash :v "73805306a89116c6b5eda9b44860abb37283a6cdaae90c055e5cf1bdbfc6ed3c" :op :assert}
+   {:e #blake3 "192532cf65b161f521c20ae293a39a627970f5e19538d7dce5635c9b586d6c0c" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "192532cf65b161f521c20ae293a39a627970f5e19538d7dce5635c9b586d6c0c" :a :witness/test-body-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "192532cf65b161f521c20ae293a39a627970f5e19538d7dce5635c9b586d6c0c" :a :witness/traces-to :v #blake3 "85eb189bc561ebd75b39d8492f61110a771cee416ac13d095d8385a702465219" :op :assert}
+   {:e #blake3 "192532cf65b161f521c20ae293a39a627970f5e19538d7dce5635c9b586d6c0c" :a :witness/verdict :v :witness.verdict/inconclusive :op :assert}
+ ]}
