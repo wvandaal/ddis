@@ -1179,18 +1179,8 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
 /// 3. No tasks but observations exist → "braid observe" or "braid spec create"
 /// 4. Empty store → "braid observe" (seed the knowledge graph)
 pub fn compute_action_from_store(store: &Store) -> crate::budget::ProjectedAction {
-    // Check harvest urgency first
-    let tx_count = store.len();
-    let harvest_attr = crate::datom::Attribute::from_keyword(":harvest/boundary-tx");
-    let last_harvest_tx = store
-        .attribute_datoms(&harvest_attr)
-        .last()
-        .map(|d| d.tx.wall_time())
-        .unwrap_or(0);
-    let tx_since_harvest = store
-        .datoms()
-        .filter(|d| d.tx.wall_time() > last_harvest_tx)
-        .count();
+    // Check harvest urgency first — use canonical boundary (same as harvest_urgency_multi)
+    let tx_since_harvest = count_txns_since_last_harvest(store);
 
     if tx_since_harvest >= 15 {
         return crate::budget::ProjectedAction {
@@ -1264,7 +1254,7 @@ pub fn compute_action_from_store(store: &Store) -> crate::budget::ProjectedActio
     }
 
     // No tasks — suggest observation
-    if tx_count > 100 {
+    if store.len() > 100 {
         crate::budget::ProjectedAction {
             command: "braid observe \"...\" --confidence 0.8".to_string(),
             rationale: "capture knowledge for the store".to_string(),
@@ -2382,12 +2372,9 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
     let signal_1 = tx_since as f64 / threshold.max(1) as f64;
 
     // Signal 2: time since harvest / 30 minutes
-    let harvest_attr = crate::datom::Attribute::from_keyword(":harvest/boundary-tx");
-    let last_harvest_wall = store
-        .attribute_datoms(&harvest_attr)
-        .last()
-        .map(|d| d.tx.wall_time())
-        .unwrap_or(0);
+    // CRITICAL: Use the same canonical boundary as signal_1 (last_harvest_wall_time)
+    // to avoid split-brain where signals disagree on when the last harvest occurred.
+    let last_harvest_wall = last_harvest_wall_time(store);
     let now_wall = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()

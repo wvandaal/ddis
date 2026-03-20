@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773973158/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Task-Implementation Behavioral Binding (Tension 5 — Re-Discovery Problem). BACKGROUND: 4 parallel agents wasted compute discovering tasks (TAP-3, RFL-5, TEST-RFL-UNIT, BAO-3) were already implemented. The task system has no structural binding to the implementation. WITNESS binds tests to spec invariants via triple-hash — extend this pattern to tasks. For each open task with FILE: markers, check: (a) file exists, (b) file modified after task creation, (c) spec refs have L2+ trace links. Tasks meeting all criteria are 'behaviorally witnessed' — likely implemented but not closed. CONCEPT: TaskWitness(task) = (task_hash, artifact_hash, trace_hash). This is the WITNESS triple-hash pattern applied to the task lattice — a natural transformation between the task functor and the witness functor. TRACES TO: INV-BILATERAL-002, INV-WITNESS-011, ADR-WITNESS-003. PRIORITY: P2 — eliminates re-discovery waste."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :db/ident :v :task/t-0b422751 :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/background :v "4 parallel agents wasted compute discovering tasks (TAP-3, RFL-5, TEST-RFL-UNIT, BAO-3) were already implemented. The task system has no structural binding to the implementation. WITNESS binds tests to spec invariants via triple-hash — extend this pattern to tasks. For each open task with" :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/created-at :v 1773973157 :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/id :v "t-0b422751" :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/title :v "EPIC: Task-Implementation Behavioral Binding (Tension 5 — Re-Discovery Problem). BACKGROUND: 4 parallel agents wasted compute discovering tasks (TAP-3, RFL-5, TEST-RFL-UNIT, BAO-3) were already implemented. The task system has no structural binding to the implementation. WITNESS binds tests to spec invariants via triple-hash — extend this pattern to tasks. For each open task with FILE: markers, check: (a) file exists, (b) file modified after task creation, (c) spec refs have L2+ trace links. Tasks meeting all criteria are 'behaviorally witnessed' — likely implemented but not closed. CONCEPT: TaskWitness(task) = (task_hash, artifact_hash, trace_hash). This is the WITNESS triple-hash pattern applied to the task lattice — a natural transformation between the task functor and the witness functor. TRACES TO: INV-BILATERAL-002, INV-WITNESS-011, ADR-WITNESS-003. PRIORITY: P2 — eliminates re-discovery waste." :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/title-l1 :v "EPIC: Task-Implementation Behavioral Binding (Tension 5 — Re-Discovery Prob..." :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/traces-to :v #blake3 "6a3c3bb99e8cea02e12db4832d89beb5ec5e19a0a657d5b68541e0d447a0239a" :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/traces-to :v #blake3 "b53c5ac884989d81998f5015dedb06697ce9338f2dd8f136efd3eac1339a94a1" :op :assert}
+   {:e #blake3 "0481476de572e258587b2baa349babe6573413dc781d42bc8395b1c3113c00db" :a :task/type :v :task.type/task :op :assert}
+ ]}

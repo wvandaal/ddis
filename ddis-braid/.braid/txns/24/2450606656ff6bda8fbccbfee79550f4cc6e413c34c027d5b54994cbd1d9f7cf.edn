@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773972933/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "CRYSTALLIZATION PHASE START: Converting 7-tension deep analysis into formal spec elements and comprehensive task graph. Each tension maps to reconciliation taxonomy divergence type. Priority: (1) harvest urgency split-brain bug, (2) harvest-triggered trace scan, (3) store performance, (4) session-scoped M(t), (5) phase-gated gaps, (6) methodology token, (7) task witnesses."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "946cfc007f899be5ae58745e94f83d430277cb9073b7c9a965a12b1f0ddd9724" :a :db/doc :v "CRYSTALLIZATION PHASE START: Converting 7-tension deep analysis into formal spec elements and comprehensive task graph. Each tension maps to reconciliation taxonomy divergence type. Priority: (1) harvest urgency split-brain bug, (2) harvest-triggered trace scan, (3) store performance, (4) session-scoped M(t), (5) phase-gated gaps, (6) methodology token, (7) task witnesses." :op :assert}
+   {:e #blake3 "946cfc007f899be5ae58745e94f83d430277cb9073b7c9a965a12b1f0ddd9724" :a :db/ident :v :observation/crystallization-phase-start-converting-7-tension-deep-analy :op :assert}
+   {:e #blake3 "946cfc007f899be5ae58745e94f83d430277cb9073b7c9a965a12b1f0ddd9724" :a :exploration/body :v "CRYSTALLIZATION PHASE START: Converting 7-tension deep analysis into formal spec elements and comprehensive task graph. Each tension maps to reconciliation taxonomy divergence type. Priority: (1) harvest urgency split-brain bug, (2) harvest-triggered trace scan, (3) store performance, (4) session-scoped M(t), (5) phase-gated gaps, (6) methodology token, (7) task witnesses." :op :assert}
+   {:e #blake3 "946cfc007f899be5ae58745e94f83d430277cb9073b7c9a965a12b1f0ddd9724" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "946cfc007f899be5ae58745e94f83d430277cb9073b7c9a965a12b1f0ddd9724" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "946cfc007f899be5ae58745e94f83d430277cb9073b7c9a965a12b1f0ddd9724" :a :exploration/content-hash :v #bytes "e0a9e570b3575c96636878bfddf66deb120ebeac4ac7cc031cdc51ce3d923a73" :op :assert}
+   {:e #blake3 "946cfc007f899be5ae58745e94f83d430277cb9073b7c9a965a12b1f0ddd9724" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "946cfc007f899be5ae58745e94f83d430277cb9073b7c9a965a12b1f0ddd9724" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "946cfc007f899be5ae58745e94f83d430277cb9073b7c9a965a12b1f0ddd9724" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

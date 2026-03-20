@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773973113/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: T6-2: Display phase-adjusted gap counts in braid status. BACKGROUND: After T6-1, methodology_gaps returns both raw and phase-adjusted counts. The status command should display the adjusted counts in human output and both in JSON. APPROACH: In status.rs, call telemetry_from_store to get activity mode, pass to methodology_gaps, display adjusted counts with a mode indicator: 'gaps: 3 uncrystallized (impl mode, 30 raw)'. JSON includes both raw and adjusted. ACCEPTANCE: (A) Human output shows adjusted counts. (B) Mode label visible. (C) JSON has raw_gaps and adjusted_gaps objects. TESTS: (1) Status in impl mode shows lower gap count. FILE: crates/braid/src/commands/status.rs. TRACES TO: INV-INTERFACE-001. DEPENDS-ON: T6-1."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :db/ident :v :task/t-e3810ab1 :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/acceptance :v "(A) Human output shows adjusted counts. (B) Mode label visible. (C) JSON has raw_gaps and adjusted_gaps objects. TESTS: (1) Status in impl mode shows lower gap count." :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/approach :v "In status.rs, call telemetry_from_store to get activity mode, pass to methodology_gaps, display adjusted counts with a mode indicator: 'gaps: 3 uncrystallized (impl mode, 30 raw)'. JSON includes both raw and adjusted." :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/background :v "After T6-1, methodology_gaps returns both raw and phase-adjusted counts. The status command should display the adjusted counts in human output and both in JSON. APPROACH: In status.rs, call telemetry_from_store to get activity mode, pass to methodology_gaps, display adjusted counts with a mode indicator: 'gaps: 3 uncrystallized (impl mode, 30 raw)'. JSON includes both raw and adjusted." :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/created-at :v 1773973112 :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/files :v "crates/braid/src/commands/status.rs." :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/id :v "t-e3810ab1" :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/title :v "T6-2: Display phase-adjusted gap counts in braid status. BACKGROUND: After T6-1, methodology_gaps returns both raw and phase-adjusted counts. The status command should display the adjusted counts in human output and both in JSON. APPROACH: In status.rs, call telemetry_from_store to get activity mode, pass to methodology_gaps, display adjusted counts with a mode indicator: 'gaps: 3 uncrystallized (impl mode, 30 raw)'. JSON includes both raw and adjusted. ACCEPTANCE: (A) Human output shows adjusted counts. (B) Mode label visible. (C) JSON has raw_gaps and adjusted_gaps objects. TESTS: (1) Status in impl mode shows lower gap count. FILE: crates/braid/src/commands/status.rs. TRACES TO: INV-INTERFACE-001. DEPENDS-ON: T6-1." :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/title-l0 :v "T6-2" :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/title-l1 :v "T6-2: Display phase-adjusted gap counts in braid status" :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "6bcb91e704e5eee4fde11a0b1fc0f1fd37de7207711c681e33e334e370120b66" :a :task/type :v :task.type/task :op :assert}
+ ]}

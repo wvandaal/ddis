@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773971297/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "ADDITIONAL REVIEW ITEM — Tension 7: The Verification Bootstrap Paradox. WITNESS system exists but has zero data because trace scanning isn't in the workflow. Harvest should auto-trigger trace scan. This closes the bilateral loop: harvest → trace scan → witness population → F(S) reflects real verification state → guidance improves. Without this, WITNESS is dead infrastructure. The fix: add trace_scan_and_witness() as a harvest side-effect (SEED.md §5: harvest is semi-automated). This is the same pattern as ZCM-1 (auto-observe) applied to verification: zero-cost witnessing."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "00e419f60e619ebb78ea9f2b223ef41fd624c45a26fe3342f3648acbed2cf6cd" :a :db/doc :v "ADDITIONAL REVIEW ITEM — Tension 7: The Verification Bootstrap Paradox. WITNESS system exists but has zero data because trace scanning isn't in the workflow. Harvest should auto-trigger trace scan. This closes the bilateral loop: harvest → trace scan → witness population → F(S) reflects real verification state → guidance improves. Without this, WITNESS is dead infrastructure. The fix: add trace_scan_and_witness() as a harvest side-effect (SEED.md §5: harvest is semi-automated). This is the same pattern as ZCM-1 (auto-observe) applied to verification: zero-cost witnessing." :op :assert}
+   {:e #blake3 "00e419f60e619ebb78ea9f2b223ef41fd624c45a26fe3342f3648acbed2cf6cd" :a :db/ident :v :observation/additional-review-item-tension-7-the-verification-bootstr :op :assert}
+   {:e #blake3 "00e419f60e619ebb78ea9f2b223ef41fd624c45a26fe3342f3648acbed2cf6cd" :a :exploration/body :v "ADDITIONAL REVIEW ITEM — Tension 7: The Verification Bootstrap Paradox. WITNESS system exists but has zero data because trace scanning isn't in the workflow. Harvest should auto-trigger trace scan. This closes the bilateral loop: harvest → trace scan → witness population → F(S) reflects real verification state → guidance improves. Without this, WITNESS is dead infrastructure. The fix: add trace_scan_and_witness() as a harvest side-effect (SEED.md §5: harvest is semi-automated). This is the same pattern as ZCM-1 (auto-observe) applied to verification: zero-cost witnessing." :op :assert}
+   {:e #blake3 "00e419f60e619ebb78ea9f2b223ef41fd624c45a26fe3342f3648acbed2cf6cd" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "00e419f60e619ebb78ea9f2b223ef41fd624c45a26fe3342f3648acbed2cf6cd" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "00e419f60e619ebb78ea9f2b223ef41fd624c45a26fe3342f3648acbed2cf6cd" :a :exploration/content-hash :v #bytes "7b2716e1a80dfdf9a427d46e12108b34ecfcbd30aa6a1b323a01ede5c5416e98" :op :assert}
+   {:e #blake3 "00e419f60e619ebb78ea9f2b223ef41fd624c45a26fe3342f3648acbed2cf6cd" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "00e419f60e619ebb78ea9f2b223ef41fd624c45a26fe3342f3648acbed2cf6cd" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "00e419f60e619ebb78ea9f2b223ef41fd624c45a26fe3342f3648acbed2cf6cd" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

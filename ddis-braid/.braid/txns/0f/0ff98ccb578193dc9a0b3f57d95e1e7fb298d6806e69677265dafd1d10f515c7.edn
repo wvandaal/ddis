@@ -1,0 +1,21 @@
+{:tx/id #hlc "1773973064/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: T2-4: E2E test script for store performance. APPROACH: Create scripts/e2e_store_performance.sh that: (1) Init a store and transact 1000 datoms. (2) Time 'braid status' 5 times, compute average. (3) Verify average < 1.0 seconds. (4) Time 'braid task close' on a test task. (5) Verify < 1.5 seconds. (6) Time 'braid task ready'. (7) Verify < 1.0 seconds. (8) Log all timings for regression tracking. ACCEPTANCE: All timing thresholds met. FILE: scripts/e2e_store_performance.sh. TRACES TO: INV-INTERFACE-001. DEPENDS-ON: T2-1, T2-2."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :db/ident :v :task/t-e8351808 :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/acceptance :v "All timing thresholds met." :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/approach :v "Create scripts/e2e_store_performance.sh that: (1) Init a store and transact 1000 datoms. (2) Time 'braid status' 5 times, compute average. (3) Verify average < 1.0 seconds. (4) Time 'braid task close' on a test task. (5) Verify < 1.5 seconds. (6) Time 'braid task ready'. (7) Verify < 1.0 seconds. (8) Log all timings for regression tracking." :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/created-at :v 1773973062 :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/files :v "scripts/e2e_store_performance.sh." :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/id :v "t-e8351808" :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/title :v "T2-4: E2E test script for store performance. APPROACH: Create scripts/e2e_store_performance.sh that: (1) Init a store and transact 1000 datoms. (2) Time 'braid status' 5 times, compute average. (3) Verify average < 1.0 seconds. (4) Time 'braid task close' on a test task. (5) Verify < 1.5 seconds. (6) Time 'braid task ready'. (7) Verify < 1.0 seconds. (8) Log all timings for regression tracking. ACCEPTANCE: All timing thresholds met. FILE: scripts/e2e_store_performance.sh. TRACES TO: INV-INTERFACE-001. DEPENDS-ON: T2-1, T2-2." :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/title-l0 :v "T2-4" :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/title-l1 :v "T2-4: E2E test script for store performance" :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "d7d252cb1ad5a2939e83ba5f20fd860604cdc1592b1bef0c738f31dfc2f80c42" :a :task/type :v :task.type/task :op :assert}
+ ]}

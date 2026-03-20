@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773973160/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: T5-2: Display task audit results during harvest. BACKGROUND: After T5-1, braid task audit can detect likely-implemented tasks. During harvest, after step 7 (find closeable tasks), also run task audit and display results. This gives the agent a prompt: 'These 5 tasks appear implemented — consider closing them.' APPROACH: In harvest.rs, after find_closeable_tasks(), call audit_tasks() and include results in the harvest output narrative. Don't auto-close — just inform. ACCEPTANCE: (A) Harvest output includes 'N tasks appear implemented'. (B) List of task IDs and evidence. (C) Suggested close command. TESTS: (1) Integration test: harvest with implemented tasks shows audit. FILE: crates/braid/src/commands/harvest.rs. TRACES TO: INV-HARVEST-001. DEPENDS-ON: T5-1."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :db/ident :v :task/t-afd6ba0b :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/acceptance :v "(A) Harvest output includes 'N tasks appear implemented'. (B) List of task IDs and evidence. (C) Suggested close command. TESTS: (1) Integration test: harvest with implemented tasks shows audit." :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/approach :v "In harvest.rs, after find_closeable_tasks(), call audit_tasks() and include results in the harvest output narrative. Don't auto-close — just inform." :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/background :v "After T5-1, braid task audit can detect likely-implemented tasks. During harvest, after step 7 (find closeable tasks), also run task audit and display results. This gives the agent a prompt: 'These 5 tasks appear implemented — consider closing them.' APPROACH: In harvest.rs, after find_closeable_tasks(), call audit_tasks() and include results in the harvest output narrative. Don't auto-close — just inform." :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/created-at :v 1773973158 :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/files :v "crates/braid/src/commands/harvest.rs." :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/id :v "t-afd6ba0b" :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/title :v "T5-2: Display task audit results during harvest. BACKGROUND: After T5-1, braid task audit can detect likely-implemented tasks. During harvest, after step 7 (find closeable tasks), also run task audit and display results. This gives the agent a prompt: 'These 5 tasks appear implemented — consider closing them.' APPROACH: In harvest.rs, after find_closeable_tasks(), call audit_tasks() and include results in the harvest output narrative. Don't auto-close — just inform. ACCEPTANCE: (A) Harvest output includes 'N tasks appear implemented'. (B) List of task IDs and evidence. (C) Suggested close command. TESTS: (1) Integration test: harvest with implemented tasks shows audit. FILE: crates/braid/src/commands/harvest.rs. TRACES TO: INV-HARVEST-001. DEPENDS-ON: T5-1." :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/title-l0 :v "T5-2" :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/title-l1 :v "T5-2: Display task audit results during harvest" :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/traces-to :v #blake3 "0ae6fcfe34f7104975e79fbc52f50ec2196047abd2e321e20418a686bc85967e" :op :assert}
+   {:e #blake3 "558821300df4191736812bb50b7e791d566efe20d8842e5b60b5d424badc0207" :a :task/type :v :task.type/task :op :assert}
+ ]}
