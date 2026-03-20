@@ -629,8 +629,14 @@ pub fn fbw_to_datoms(fbw: &FBW, tx: TxId) -> Vec<Datom> {
     let e = fbw.entity;
     let mut datoms = Vec::new();
 
-    // Ident
-    let ident = format!(":witness/fbw.{:?}", e);
+    // Ident — use spec_hash prefix for EDN-safe serialization (not Debug format
+    // which outputs raw bytes and breaks the EDN parser).
+    let hash_prefix = if fbw.spec_hash.len() >= 16 {
+        &fbw.spec_hash[..16]
+    } else {
+        &fbw.spec_hash
+    };
+    let ident = format!(":witness/fbw.{hash_prefix}");
     datoms.push(Datom::new(
         e,
         Attribute::from_keyword(":db/ident"),

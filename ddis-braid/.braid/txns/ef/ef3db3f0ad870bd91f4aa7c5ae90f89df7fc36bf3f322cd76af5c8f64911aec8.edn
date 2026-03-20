@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774013742/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize INV-BUDGET-007"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "85eb189bc561ebd75b39d8492f61110a771cee416ac13d095d8385a702465219" :a :db/doc :v "ACP Completeness" :op :assert}
+   {:e #blake3 "85eb189bc561ebd75b39d8492f61110a771cee416ac13d095d8385a702465219" :a :db/ident :v :spec/inv-budget-007 :op :assert}
+   {:e #blake3 "85eb189bc561ebd75b39d8492f61110a771cee416ac13d095d8385a702465219" :a :element/statement :v "Every command output contains an Action that is never truncated" :op :assert}
+   {:e #blake3 "85eb189bc561ebd75b39d8492f61110a771cee416ac13d095d8385a702465219" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

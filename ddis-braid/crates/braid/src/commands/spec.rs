@@ -189,7 +189,7 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         ident, element_type, namespace, datom_count, total,
     );
 
-    let json = serde_json::json!({
+    let mut json = serde_json::json!({
         "ident": ident,
         "id": args.id,
         "element_type": element_type,
@@ -198,14 +198,37 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         "store_total": total,
     });
 
-    let agent = AgentOutput {
-        context: format!(
-            "spec create: {} ({}, ns={})",
-            ident, element_type, namespace
-        ),
-        content: format!("+{} datoms ({} total)", datom_count, total),
-        footer: "trace: braid trace --commit | review: braid spec review".to_string(),
+    // ACP: after creating a spec element, check store state
+    let projection = braid_kernel::ActionProjection {
+        action: braid_kernel::budget::ProjectedAction {
+            command: "braid status".to_string(),
+            rationale: "check spec state after creation".to_string(),
+            impact: 0.4,
+        },
+        context: vec![braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: format!("created: {} ({}, ns={})", ident, element_type, namespace),
+            tokens: 8,
+        }],
+        evidence_pointer: format!("details: braid query --entity {ident}"),
     };
+
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // Merge ACP into JSON
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(CommandOutput { json, agent, human })
 }
@@ -306,17 +329,49 @@ pub fn run_review(path: &Path) -> Result<CommandOutput, BraidError> {
 
     let agent_content = agent_lines.join("\n");
 
-    Ok(CommandOutput {
-        json: serde_json::json!({
-            "proposals": json_proposals,
-            "count": pending.len(),
-            "auto_accept_threshold": threshold,
-        }),
-        agent: AgentOutput {
-            context: format!("spec review: {} pending proposals", pending.len()),
-            content: agent_content,
-            footer: "accept: braid spec accept <entity> | reject: braid spec reject <entity> --reason \"...\"".to_string(),
+    // ACP: action = accept/reject the first pending proposal
+    let first_entity = pending
+        .first()
+        .map(|(e, _, _)| format_entity_short(&store, *e))
+        .unwrap_or_default();
+    let projection = braid_kernel::ActionProjection {
+        action: braid_kernel::budget::ProjectedAction {
+            command: format!("braid spec accept {first_entity}"),
+            rationale: format!("{} proposals awaiting review", pending.len()),
+            impact: 0.5,
         },
+        context: vec![braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: format!("spec review: {} pending (threshold={:.1})", pending.len(), threshold),
+            tokens: 8,
+        }],
+        evidence_pointer: "list: braid spec review | history: braid spec history".to_string(),
+    };
+
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent_out = AgentOutput {
+        context: String::new(),
+        content: format!("{agent_content}\n{agent_text}"),
+        footer: String::new(),
+    };
+
+    let mut json = serde_json::json!({
+        "proposals": json_proposals,
+        "count": pending.len(),
+        "auto_accept_threshold": threshold,
+    });
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
         human,
     })
 }
@@ -371,19 +426,47 @@ pub fn run_accept(path: &Path, id: &str, agent: &str) -> Result<CommandOutput, B
         suggested_id, entity_hex, datom_count, total,
     );
 
-    Ok(CommandOutput {
-        json: serde_json::json!({
-            "action": "accepted",
-            "suggested_id": suggested_id,
-            "entity": entity_hex,
-            "datoms_added": datom_count,
-            "store_total": total,
-        }),
-        agent: AgentOutput {
-            context: format!("spec accept: {} promoted to spec element", suggested_id),
-            content: format!("+{} datoms (entity: {})", datom_count, entity_hex),
-            footer: "next: braid trace --commit | braid spec review".to_string(),
+    // ACP: after accepting, check store state
+    let projection = braid_kernel::ActionProjection {
+        action: braid_kernel::budget::ProjectedAction {
+            command: "braid status".to_string(),
+            rationale: "check spec state after acceptance".to_string(),
+            impact: 0.4,
         },
+        context: vec![braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: format!("accepted: {} promoted (+{} datoms)", suggested_id, datom_count),
+            tokens: 8,
+        }],
+        evidence_pointer: "review: braid spec review | trace: braid trace --commit".to_string(),
+    };
+
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent_out = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    let mut json = serde_json::json!({
+        "action": "accepted",
+        "suggested_id": suggested_id,
+        "entity": entity_hex,
+        "datoms_added": datom_count,
+        "store_total": total,
+    });
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
         human,
     })
 }
@@ -433,19 +516,47 @@ pub fn run_reject(
         suggested_id, entity_hex, reason,
     );
 
-    Ok(CommandOutput {
-        json: serde_json::json!({
-            "action": "rejected",
-            "suggested_id": suggested_id,
-            "entity": entity_hex,
-            "reason": reason,
-            "datoms_added": datom_count,
-        }),
-        agent: AgentOutput {
-            context: format!("spec reject: {} rejected", suggested_id),
-            content: format!("reason: {}", truncate(reason, 120)),
-            footer: "next: braid spec review | braid spec history".to_string(),
+    // ACP: after rejection, review remaining proposals
+    let projection = braid_kernel::ActionProjection {
+        action: braid_kernel::budget::ProjectedAction {
+            command: "braid spec review".to_string(),
+            rationale: "review remaining proposals after rejection".to_string(),
+            impact: 0.4,
         },
+        context: vec![braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: format!("rejected: {}", suggested_id),
+            tokens: 5,
+        }],
+        evidence_pointer: "history: braid spec history | status: braid status".to_string(),
+    };
+
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent_out = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    let mut json = serde_json::json!({
+        "action": "rejected",
+        "suggested_id": suggested_id,
+        "entity": entity_hex,
+        "reason": reason,
+        "datoms_added": datom_count,
+    });
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
         human,
     })
 }
@@ -632,25 +743,64 @@ pub fn run_history(path: &Path) -> Result<CommandOutput, BraidError> {
         + "\nnext: braid spec review (pending only) | braid spec accept/reject <entity>\n";
     let agent_content = agent_lines.join("\n");
 
-    Ok(CommandOutput {
-        json: serde_json::json!({
-            "proposals": json_proposals,
-            "count": records.len(),
-            "proposed": n_proposed,
-            "accepted": n_accepted,
-            "rejected": n_rejected,
-        }),
-        agent: AgentOutput {
-            context: format!(
-                "spec history: {} proposals ({} pending, {} accepted, {} rejected)",
+    // ACP: action depends on whether there are pending proposals
+    let (acp_command, acp_rationale) = if n_proposed > 0 {
+        (
+            "braid spec review".to_string(),
+            format!("{n_proposed} proposals still pending review"),
+        )
+    } else {
+        (
+            "braid status".to_string(),
+            "all proposals resolved".to_string(),
+        )
+    };
+    let projection = braid_kernel::ActionProjection {
+        action: braid_kernel::budget::ProjectedAction {
+            command: acp_command,
+            rationale: acp_rationale,
+            impact: 0.3,
+        },
+        context: vec![braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: format!(
+                "history: {} total ({} pending, {} accepted, {} rejected)",
                 records.len(),
                 n_proposed,
                 n_accepted,
                 n_rejected,
             ),
-            content: agent_content,
-            footer: "review: braid spec review | accept: braid spec accept <entity>".to_string(),
-        },
+            tokens: 10,
+        }],
+        evidence_pointer: "review: braid spec review | status: braid status".to_string(),
+    };
+
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent_out = AgentOutput {
+        context: String::new(),
+        content: format!("{agent_content}\n{agent_text}"),
+        footer: String::new(),
+    };
+
+    let mut json = serde_json::json!({
+        "proposals": json_proposals,
+        "count": records.len(),
+        "proposed": n_proposed,
+        "accepted": n_accepted,
+        "rejected": n_rejected,
+    });
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
         human,
     })
 }

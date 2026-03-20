@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774013784/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-budget-008"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b66c5113dc3fd0607986bf0edb73c752c90ed081fd7fec0736492810fffa7668" :a :db/doc :v "Context Fill Monotonicity" :op :assert}
+   {:e #blake3 "b66c5113dc3fd0607986bf0edb73c752c90ed081fd7fec0736492810fffa7668" :a :db/ident :v :spec/inv-budget-008 :op :assert}
+   {:e #blake3 "b66c5113dc3fd0607986bf0edb73c752c90ed081fd7fec0736492810fffa7668" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

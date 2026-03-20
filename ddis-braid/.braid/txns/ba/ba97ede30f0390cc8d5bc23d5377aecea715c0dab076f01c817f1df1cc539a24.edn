@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774013744/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize ADR-BUDGET-005"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "43a97d4bbe522da8e54a882883b92cb7beaa1ebd17192d122e3e0e7ea565044e" :a :db/doc :v "Action-Centric over Content-Centric Projection" :op :assert}
+   {:e #blake3 "43a97d4bbe522da8e54a882883b92cb7beaa1ebd17192d122e3e0e7ea565044e" :a :db/ident :v :spec/adr-budget-005 :op :assert}
+   {:e #blake3 "43a97d4bbe522da8e54a882883b92cb7beaa1ebd17192d122e3e0e7ea565044e" :a :spec/element-type :v :spec.type/adr :op :assert}
+ ]}

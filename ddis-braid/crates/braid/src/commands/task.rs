@@ -1218,18 +1218,61 @@ pub fn update(
     };
     layout.write_tx(&tx)?;
 
+    // Reload store for task summary context
+    let store = layout.load_store()?;
+
     let human = format!("updated: {task_id} \u{2192} {status}\n");
 
-    let json = serde_json::json!({
+    let mut json = serde_json::json!({
         "id": task_id,
         "status": status,
     });
 
-    let agent = AgentOutput {
-        context: format!("updated: {task_id} \u{2192} {status}"),
-        content: String::new(),
-        footer: format!("show: braid task show {task_id}"),
+    // ACP: action = view the claimed task
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!("updated: {task_id} \u{2192} {status}"),
+        tokens: 5,
+    }];
+    if let Some(summary) = task_summary(&store, entity) {
+        let title_trunc = if summary.title.len() > 80 {
+            format!("{}...", &summary.title[..summary.title.floor_char_boundary(77)])
+        } else {
+            summary.title.clone()
+        };
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!("{}: {}", task_id, title_trunc),
+            tokens: 10,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action: braid_kernel::budget::ProjectedAction {
+            command: format!("braid task show {task_id}"),
+            rationale: "view claimed task details".to_string(),
+            impact: 0.5,
+        },
+        context: context_blocks,
+        evidence_pointer: format!("details: braid task show {task_id}"),
     };
+
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // Merge ACP into JSON
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(CommandOutput { json, agent, human })
 }

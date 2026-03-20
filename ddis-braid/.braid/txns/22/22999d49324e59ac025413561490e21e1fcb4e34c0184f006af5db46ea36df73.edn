@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774013790/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize adr-budget-007"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6d20e589547c1640424c1394a8aef81a851f86b7ba1dda95e81629b66789cce3" :a :db/doc :v "Four Activation Strategies" :op :assert}
+   {:e #blake3 "6d20e589547c1640424c1394a8aef81a851f86b7ba1dda95e81629b66789cce3" :a :db/ident :v :spec/adr-budget-007 :op :assert}
+   {:e #blake3 "6d20e589547c1640424c1394a8aef81a851f86b7ba1dda95e81629b66789cce3" :a :spec/element-type :v :spec.type/adr :op :assert}
+ ]}

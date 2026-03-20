@@ -800,8 +800,75 @@ fn build_harvest_output(
         .count();
     let rejected = candidate_count - committed_count - proposed;
 
-    // JSON output
-    let json = serde_json::json!({
+    // --- ACP: Build ActionProjection (INV-BUDGET-007) ---
+    let (action_cmd, action_rationale) = if committed {
+        (
+            "braid seed".to_string(),
+            "refresh context after harvest".to_string(),
+        )
+    } else {
+        (
+            "braid harvest --commit".to_string(),
+            "persist harvest candidates".to_string(),
+        )
+    };
+
+    let action = braid_kernel::budget::ProjectedAction {
+        command: action_cmd,
+        rationale: action_rationale,
+        impact: 0.4,
+    };
+
+    let mut context_blocks = Vec::new();
+
+    // Harvest summary (System)
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!(
+            "harvest: \"{task}\" ({task_source}) | candidates: {candidate_count} ({committed_count}c/{proposed}p/{rejected}r)"
+        ),
+        tokens: 15,
+    });
+
+    // Drift and quality (Methodology)
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::Methodology,
+        content: format!(
+            "drift={:.2} | quality: {}h/{}m/{}l | session_entities: {}",
+            result.drift_score,
+            result.quality.high_confidence,
+            result.quality.medium_confidence,
+            result.quality.low_confidence,
+            result.session_entities,
+        ),
+        tokens: 15,
+    });
+
+    // Completeness gaps (UserRequested — shown when non-zero)
+    if result.completeness_gaps > 0 {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!("completeness_gaps: {}", result.completeness_gaps),
+            tokens: 5,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "details: braid harvest --verbose".to_string(),
+    };
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // JSON output with _acp merged
+    let mut json = serde_json::json!({
         "task": task,
         "task_source": task_source,
         "candidate_count": candidate_count,
@@ -815,33 +882,18 @@ fn build_harvest_output(
         },
         "committed": committed,
     });
-
-    // Agent output (three-part, ≤300 tokens)
-    let context = format!("harvest: \"{task}\" ({task_source})");
-    let content = format!(
-        "candidates: {} ({}c/{}p/{}r) | drift={:.2} | quality={}h/{}m/{}l",
-        candidate_count,
-        committed_count,
-        proposed,
-        rejected,
-        result.drift_score,
-        result.quality.high_confidence,
-        result.quality.medium_confidence,
-        result.quality.low_confidence,
-    );
-    let footer = if committed {
-        "next: braid seed --inject AGENTS.md".to_string()
-    } else {
-        "next: braid harvest --commit".to_string()
-    };
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     CommandOutput {
         json,
-        agent: AgentOutput {
-            context,
-            content,
-            footer,
-        },
+        agent,
         human,
     }
 }

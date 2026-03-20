@@ -208,25 +208,87 @@ pub fn run(
         })
         .collect();
 
-    let structured_json = serde_json::json!({
+    let mut structured_json = serde_json::json!({
         "count": tx_infos.len(),
         "total": total_txns,
         "transactions": structured_txns,
     });
 
-    // --- Build AgentOutput ---
-    // Truncate content to ~200 tokens (~800 chars) if needed
-    let content = if human.len() > 800 {
-        braid_kernel::safe_truncate_display(&human, 800)
-    } else {
-        human.clone()
+    // --- ACP: Build ActionProjection (INV-BUDGET-007) ---
+    let action = braid_kernel::budget::ProjectedAction {
+        command: "braid status".to_string(),
+        rationale: "review store state".to_string(),
+        impact: 0.2,
     };
 
-    let agent = AgentOutput {
-        context: format!("log: {} transactions (newest first)", tx_infos.len()),
-        content,
-        footer: "detail: braid log --datoms --limit 1 | full: braid log --limit 100".to_string(),
+    let mut context_blocks = Vec::new();
+
+    // Summary context (System)
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!(
+            "log: {} transactions shown ({} total)",
+            tx_infos.len(),
+            total_txns,
+        ),
+        tokens: 10,
+    });
+
+    // Recent transaction entries as context (Methodology)
+    for info in tx_infos.iter().take(5) {
+        let rationale_short = if info.rationale.len() > 60 {
+            format!("{}...", &info.rationale[..57.min(info.rationale.len())])
+        } else {
+            info.rationale.clone()
+        };
+        let retract_str = if info.retract_count > 0 {
+            format!(" -{}", info.retract_count)
+        } else {
+            String::new()
+        };
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
+            content: format!(
+                "tx wall={} +{}{} {}",
+                info.wall_time, info.assert_count, retract_str, rationale_short,
+            ),
+            tokens: 12,
+        });
+    }
+
+    // Remaining count if truncated (Speculative)
+    if tx_infos.len() > 5 {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
+            content: format!("... and {} more transactions", tx_infos.len() - 5),
+            tokens: 5,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "detail: braid log --datoms --limit 1 | full: braid log --limit 100"
+            .to_string(),
     };
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // Merge _acp into structured JSON
+    if let serde_json::Value::Object(ref mut map) = structured_json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(CommandOutput {
         json: structured_json,

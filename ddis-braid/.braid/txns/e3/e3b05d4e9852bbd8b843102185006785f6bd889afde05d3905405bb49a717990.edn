@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774013584/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize INV-BUDGET-008 (5 unresolved refs)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b66c5113dc3fd0607986bf0edb73c752c90ed081fd7fec0736492810fffa7668" :a :db/doc :v "Context Fill Monotonicity" :op :assert}
+   {:e #blake3 "b66c5113dc3fd0607986bf0edb73c752c90ed081fd7fec0736492810fffa7668" :a :db/ident :v :spec/inv-budget-008 :op :assert}
+   {:e #blake3 "b66c5113dc3fd0607986bf0edb73c752c90ed081fd7fec0736492810fffa7668" :a :element/statement :v "For b1 > b2, context blocks included at budget b1 is a superset of those at b2" :op :assert}
+   {:e #blake3 "b66c5113dc3fd0607986bf0edb73c752c90ed081fd7fec0736492810fffa7668" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "b66c5113dc3fd0607986bf0edb73c752c90ed081fd7fec0736492810fffa7668" :a :spec/falsification :v "A higher budget includes fewer context blocks than a lower budget" :op :assert}
+ ]}

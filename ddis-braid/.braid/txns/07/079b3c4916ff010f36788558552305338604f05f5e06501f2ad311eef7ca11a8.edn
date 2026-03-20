@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774013660/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize ADR-COHERENCE-001 (12 unresolved refs)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dff8a4f7bc81731f6356366ab3c808059232138b6a775487197ea559cb6e54c2" :a :db/doc :v "Coupling-Coherence Isomorphism: density matrix formalism" :op :assert}
+   {:e #blake3 "dff8a4f7bc81731f6356366ab3c808059232138b6a775487197ea559cb6e54c2" :a :db/ident :v :spec/adr-coherence-001 :op :assert}
+   {:e #blake3 "dff8a4f7bc81731f6356366ab3c808059232138b6a775487197ea559cb6e54c2" :a :spec/element-type :v :spec.type/adr :op :assert}
+ ]}

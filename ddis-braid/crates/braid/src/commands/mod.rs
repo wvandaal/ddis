@@ -3809,7 +3809,69 @@ mod merge {
             if frontier_advanced { "OK" } else { "NO CHANGE" }
         ));
 
-        let json = serde_json::json!({
+        // --- ACP: Build ActionProjection (INV-BUDGET-007) ---
+        let action = braid_kernel::budget::ProjectedAction {
+            command: "braid status".to_string(),
+            rationale: "verify merge result".to_string(),
+            impact: 0.3,
+        };
+
+        let mut context_blocks = Vec::new();
+
+        // Merge receipt summary (System)
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: format!(
+                "merge: {} \u{2192} {} (+{} datoms, +{} tx files)",
+                source_path.display(),
+                path.display(),
+                receipt.new_datoms,
+                new_files,
+            ),
+            tokens: 15,
+        });
+
+        // Store state after merge (Methodology)
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
+            content: format!(
+                "datoms: {} \u{2192} {} | frontier: {} \u{2192} {} agents",
+                pre_len,
+                store.len(),
+                pre_frontier.len(),
+                store.frontier().len(),
+            ),
+            tokens: 12,
+        });
+
+        // Invariant checks (System — important for correctness)
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: format!(
+                "monotonicity: {} | frontier advancement: {}",
+                if monotonic { "OK" } else { "VIOLATED" },
+                if frontier_advanced { "OK" } else { "NO CHANGE" },
+            ),
+            tokens: 10,
+        });
+
+        let projection = braid_kernel::ActionProjection {
+            action,
+            context: context_blocks,
+            evidence_pointer: "verify: braid status --verify".to_string(),
+        };
+
+        // Agent output uses ACP Navigate projection
+        let agent_text =
+            projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+        let agent = AgentOutput {
+            context: String::new(),
+            content: agent_text,
+            footer: String::new(),
+        };
+
+        // JSON with _acp merged
+        let mut json = serde_json::json!({
             "source": source_path.display().to_string(),
             "target": path.display().to_string(),
             "datoms_before": pre_len,
@@ -3821,23 +3883,14 @@ mod merge {
             "monotonicity": monotonic,
             "frontier_advanced": frontier_advanced,
         });
-
-        let agent = AgentOutput {
-            context: format!(
-                "merge: {} \u{2192} {} (+{} datoms)",
-                source_path.display(),
-                path.display(),
-                receipt.new_datoms,
-            ),
-            content: format!(
-                "datoms: {} \u{2192} {} | tx files: +{} | monotonicity: {}",
-                pre_len,
-                store.len(),
-                new_files,
-                if monotonic { "OK" } else { "VIOLATED" },
-            ),
-            footer: "verify: braid status --verify".to_string(),
-        };
+        if let serde_json::Value::Object(ref mut map) = json {
+            let acp = projection.to_json();
+            if let serde_json::Value::Object(acp_map) = acp {
+                for (k, v) in acp_map {
+                    map.insert(k, v);
+                }
+            }
+        }
 
         Ok(CommandOutput { json, agent, human })
     }

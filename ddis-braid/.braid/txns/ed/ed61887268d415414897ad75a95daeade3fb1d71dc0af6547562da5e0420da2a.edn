@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774013620/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize INV-BUDGET-009 (4 unresolved refs)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a32fe74067372bc251ae179452a45bf3cc5319a32567a0f35615d519213695ec" :a :db/doc :v "Guidance-Projection Unification" :op :assert}
+   {:e #blake3 "a32fe74067372bc251ae179452a45bf3cc5319a32567a0f35615d519213695ec" :a :db/ident :v :spec/inv-budget-009 :op :assert}
+   {:e #blake3 "a32fe74067372bc251ae179452a45bf3cc5319a32567a0f35615d519213695ec" :a :element/statement :v "The guidance system IS the projection function — no separate output formatting layer" :op :assert}
+   {:e #blake3 "a32fe74067372bc251ae179452a45bf3cc5319a32567a0f35615d519213695ec" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "a32fe74067372bc251ae179452a45bf3cc5319a32567a0f35615d519213695ec" :a :spec/falsification :v "Guidance and projection produce different outputs for the same command" :op :assert}
+ ]}

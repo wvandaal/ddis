@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774013702/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize ADR-TOPOLOGY-002 (6 unresolved refs)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :db/doc :v "CALM Classification: monotonic vs non-monotonic task phases" :op :assert}
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :db/ident :v :spec/adr-topology-002 :op :assert}
+   {:e #blake3 "56f1191b5379b767068bc91740585eaf46d094f27fcce37f4e48bf9ae3195a45" :a :spec/element-type :v :spec.type/adr :op :assert}
+ ]}

@@ -208,7 +208,101 @@ pub fn run(
         })
         .collect();
 
-    let json = serde_json::json!({
+    // --- ACP: Build ActionProjection (INV-BUDGET-007) ---
+    // Derive the first next-action from guidance
+    let actions = derive_actions(&store);
+    let (action_cmd, action_rationale, action_impact) = if let Some(a) = actions.first() {
+        (
+            a.command.clone().unwrap_or_else(|| "braid status".to_string()),
+            a.summary.clone(),
+            0.5,
+        )
+    } else {
+        (
+            "braid session start".to_string(),
+            "begin working session".to_string(),
+            0.3,
+        )
+    };
+
+    let action = braid_kernel::budget::ProjectedAction {
+        command: action_cmd,
+        rationale: action_rationale,
+        impact: action_impact,
+    };
+
+    let mut context_blocks = Vec::new();
+
+    // Seed summary (System)
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!(
+            "seed: \"{}\" | {} tokens/{} budget | {} entities",
+            seed.task,
+            seed.context.total_tokens,
+            budget,
+            store.entity_count(),
+        ),
+        tokens: 15,
+    });
+
+    // Seed sections as context (Methodology)
+    for section in &seed.context.sections {
+        let (label, snippet) = match section {
+            ContextSection::Orientation(text) => {
+                let short = if text.len() > 80 {
+                    format!("{}...", &text[..77.min(text.len())])
+                } else {
+                    text.clone()
+                };
+                ("orientation", short)
+            }
+            ContextSection::Constraints(refs) => {
+                let ids: Vec<&str> = refs.iter().take(5).map(|r| r.id.as_str()).collect();
+                ("constraints", ids.join(", "))
+            }
+            ContextSection::State(entries) => (
+                "state",
+                format!("{} entries", entries.len()),
+            ),
+            ContextSection::Warnings(ws) => {
+                if ws.is_empty() {
+                    continue;
+                }
+                ("warnings", format!("{} items", ws.len()))
+            }
+            ContextSection::Directive(text) => {
+                let short = if text.len() > 80 {
+                    format!("{}...", &text[..77.min(text.len())])
+                } else {
+                    text.clone()
+                };
+                ("directive", short)
+            }
+        };
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
+            content: format!("{label}: {snippet}"),
+            tokens: 10,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "start: braid session start | observe: braid observe '...' --confidence 0.X".to_string(),
+    };
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent_out = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // JSON with _acp merged
+    let mut json = serde_json::json!({
         "mode": "seed",
         "task": seed.task,
         "tokens": seed.context.total_tokens,
@@ -217,18 +311,14 @@ pub fn run(
         "entities": store.entity_count(),
         "sections": section_names,
     });
-
-    let agent_out = AgentOutput {
-        context: format!(
-            "seed: {} ({} tokens, {} entities)",
-            seed.task,
-            seed.context.total_tokens,
-            store.entity_count(),
-        ),
-        content: out.clone(),
-        footer: "start: braid session start | observe: braid observe '...' --confidence 0.X"
-            .to_string(),
-    };
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(CommandOutput {
         json,
