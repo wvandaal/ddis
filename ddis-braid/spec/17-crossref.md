@@ -221,7 +221,7 @@ Each failure mode (docs/design/FAILURE_MODES.md) maps to the DDIS/Braid mechanis
 | GUIDANCE  | 11  | 9   | 3   | 23    | 3    |
 | BUDGET    | 6   | 4   | 2   | 12    | 3    |
 | INTERFACE | 10  | 10  | 4   | 24    | 3    |
-| TRILATERAL | 7  | 3   | 3   | 13    | 4    |
+| TRILATERAL | 10 | 6   | 4   | 20    | 4    |
 | UNCERTAINTY | 0 | 4   | 0   | 4     | 4    |
 | VERIFICATION | 0 | 1  | 0   | 1     | 4    |
 | **Total** | **145** | **136** | **50** | **331** |      |
