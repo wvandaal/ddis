@@ -1,0 +1,37 @@
+{:tx/id #hlc "1774045135/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :db/ident :v :recon/trace-44ebbd7c090e6094 :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-neighborhood :v "FOUNDATION" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.schema.adr-foundation-009" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.trilateral.inv-trilateral-004" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-trilateral-004" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-neighbors :v ":task/t-2b38e324" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-neighbors :v ":task/t-9557c705" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-neighbors :v ":task/t-b47c7c79" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-neighbors :v ":task/t-d8bc1f0c" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-neighbors :v ":task/t-e225ba30" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-neighbors :v ":task/t-f3061562" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-neighbors :v ":task/t-ff6a4143" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "ADR-FOUNDATION-009" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "ADR-FOUNDATION-010" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "ADR-TOPOLOGY-001" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-BILATERAL-002" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-FOUNDATION-002" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-FOUNDATION-004" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-FOUNDATION-005" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-GUIDANCE-001" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-GUIDANCE-021" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-GUIDANCE-024" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-GUIDANCE-025" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-INTERFACE-001" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-STORE-014" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-TOPOLOGY-004" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-TRILATERAL-001" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "INV-TRILATERAL-004" :op :assert}
+   {:e #blake3 "5b7cb90ee5af8a937e29d35d51417fbd17ab8ea9fb5b4d9d0e25a1cff70c4a7f" :a :recon/trace-refs :v "NEG-FOUNDATION-002" :op :assert}
+ ]}
