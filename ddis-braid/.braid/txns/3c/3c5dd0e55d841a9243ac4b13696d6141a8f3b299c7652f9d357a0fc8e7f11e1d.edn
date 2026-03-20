@@ -1,0 +1,31 @@
+{:tx/id #hlc "1774015358/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-04f2d378, t-7023bb8b, t-0324938a, t-a488f253, t-558f13c4, t-e43c3aa0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/closed-at :v 1774015357 :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "271af7dafbaa901962d7c89a72443b8e7c9428fb21761ae355d9a61eac6e20b3" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "271af7dafbaa901962d7c89a72443b8e7c9428fb21761ae355d9a61eac6e20b3" :a :task/closed-at :v 1774015357 :op :assert}
+   {:e #blake3 "271af7dafbaa901962d7c89a72443b8e7c9428fb21761ae355d9a61eac6e20b3" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "271af7dafbaa901962d7c89a72443b8e7c9428fb21761ae355d9a61eac6e20b3" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "41eda26a702e276115105bcdad5d9fec5a4d629168c969fa98ccbdfeb7ac708f" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "41eda26a702e276115105bcdad5d9fec5a4d629168c969fa98ccbdfeb7ac708f" :a :task/closed-at :v 1774015357 :op :assert}
+   {:e #blake3 "41eda26a702e276115105bcdad5d9fec5a4d629168c969fa98ccbdfeb7ac708f" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "41eda26a702e276115105bcdad5d9fec5a4d629168c969fa98ccbdfeb7ac708f" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "6e1a60e5bf13975d607f492ff5fadf7c2994c2b0e139b1288c18055152f87672" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "6e1a60e5bf13975d607f492ff5fadf7c2994c2b0e139b1288c18055152f87672" :a :task/closed-at :v 1774015357 :op :assert}
+   {:e #blake3 "6e1a60e5bf13975d607f492ff5fadf7c2994c2b0e139b1288c18055152f87672" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "6e1a60e5bf13975d607f492ff5fadf7c2994c2b0e139b1288c18055152f87672" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "86261d02bba463ef5f433c1c275e2e599e018ac14e772c7e54f1c20d3fa23ece" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "86261d02bba463ef5f433c1c275e2e599e018ac14e772c7e54f1c20d3fa23ece" :a :task/closed-at :v 1774015357 :op :assert}
+   {:e #blake3 "86261d02bba463ef5f433c1c275e2e599e018ac14e772c7e54f1c20d3fa23ece" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "86261d02bba463ef5f433c1c275e2e599e018ac14e772c7e54f1c20d3fa23ece" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/closed-at :v 1774015357 :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/status :v :task.status/closed :op :assert}
+ ]}

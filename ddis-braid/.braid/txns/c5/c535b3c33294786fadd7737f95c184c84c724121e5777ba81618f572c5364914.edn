@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774015390/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 12 candidates from task 'unsessioned harvest (7 txns since last harvest)'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :db/doc :v "Harvest session for task: unsessioned harvest (7 txns since last harvest)" :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :db/ident :v :harvest/session-braid-user-1774015390 :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/candidate-count :v 12 :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/codebase-snapshot :v "Codebase: 101105 LOC across 78 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (9238 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (4675 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (4201 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3896 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (3356 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (3057 LOC)\n  ddis-braid/crates/braid-kernel/src/topology.rs (2958 LOC)" :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/context-metrics :v "{\"candidates\":12,\"k_eff_estimated\":\"0.93\",\"observations\":0,\"output_tokens_est\":113,\"tasks_closed\":6,\"tx_count\":7,\"wall_elapsed_s\":776}" :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/delta-summary :v "+62 datoms, +7 entities" :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/git-summary :v "branch=main, 1 commits, 3 files (+46/-0)\n  25a4b68 Clean harvest: EDN serialization verified, no corruption\nHot files:\n  ddis-braid/.braid/txns/67/67f9a4f51e6a97069cf69b41530c77f8ee21501fe7f4976630774da049e08f32.edn (24 lines changed)\n  ddis-braid/.braid/txns/49/49c7439280fa1e57e8f17f352ce02d9e5bb9642c267ad31ced8a0bf04867bf7a.edn (11 lines changed)\n  ddis-braid/.braid/txns/f1/f1182281f91b3f206c82c50b79217b12c0ba7350a6f48e6a3f1a15353c5552f5.edn (11 lines changed)" :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/recommended-tasks :v "t-57c4333f,t-ff6a4143,t-ae46a5c4" :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/store-datom-count :v 25565 :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/store-entity-count :v 3185 :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/task :v "unsessioned harvest (7 txns since last harvest)" :op :assert}
+   {:e #blake3 "0f159f76f60b03e494a96ee08f9ba8ea4cfcb02a93d463814da5875778e40018" :a :harvest/tx-since-last :v 7 :op :assert}
+ ]}

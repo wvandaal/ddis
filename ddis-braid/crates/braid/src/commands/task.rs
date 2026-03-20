@@ -1236,7 +1236,10 @@ pub fn update(
     }];
     if let Some(summary) = task_summary(&store, entity) {
         let title_trunc = if summary.title.len() > 80 {
-            format!("{}...", &summary.title[..summary.title.floor_char_boundary(77)])
+            format!(
+                "{}...",
+                &summary.title[..summary.title.floor_char_boundary(77)]
+            )
         } else {
             summary.title.clone()
         };
@@ -1659,12 +1662,17 @@ pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
         ));
     }
 
+    let mut close_ids = Vec::new();
+    for (task, _) in &results {
+        close_ids.push(task.id.clone());
+    }
+    let close_cmd = format!("braid task close {}", close_ids.join(" "));
+
+    // Human output (kept as-is)
     let mut human = format!(
         "audit: {} tasks may be implemented but not closed\n\n",
         results.len()
     );
-    let mut close_ids = Vec::new();
-
     for (task, evidence) in &results {
         human.push_str(&format!(
             "[{:.0}%] {} \"{}\"\n",
@@ -1686,15 +1694,53 @@ pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
         if !evidence.file_paths.is_empty() {
             human.push_str(&format!("  files: {}\n", evidence.file_paths.join(", ")));
         }
-        close_ids.push(task.id.clone());
+    }
+    human.push_str(&format!("\nclose: {}\n", close_cmd));
+
+    // ACP-AUDIT: Build ActionProjection
+    let action = braid_kernel::budget::ProjectedAction {
+        command: close_cmd.clone(),
+        rationale: format!("{} tasks likely implemented", results.len()),
+        impact: 0.6,
+    };
+
+    let mut context_blocks = Vec::new();
+
+    // Context per task: each audit result is evidence
+    for (task, evidence) in &results {
+        let title_display = if task.title.len() > 60 {
+            let end = task.title.floor_char_boundary(57);
+            format!("{}...", &task.title[..end])
+        } else {
+            task.title.clone()
+        };
+        let mut detail = format!(
+            "[{:.0}%] {} \"{}\"",
+            evidence.confidence * 100.0,
+            task.id,
+            title_display,
+        );
+        if evidence.spec_total > 0 {
+            detail.push_str(&format!(
+                " (spec: {}/{})",
+                evidence.spec_coverage, evidence.spec_total
+            ));
+        }
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: detail,
+            tokens: 15,
+        });
     }
 
-    human.push_str(&format!(
-        "\nclose: braid task close {}\n",
-        close_ids.join(" ")
-    ));
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "details: braid task list | refresh: braid task audit".to_string(),
+    };
 
-    let json = serde_json::json!({
+    // JSON with _acp
+    let mut json = serde_json::json!({
         "audit_results": results.iter().map(|(t, e)| serde_json::json!({
             "id": t.id,
             "title": t.title,
@@ -1703,12 +1749,22 @@ pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
             "spec_total": e.spec_total,
             "file_paths": e.file_paths,
         })).collect::<Vec<_>>(),
-        "close_command": format!("braid task close {}", close_ids.join(" ")),
+        "close_command": close_cmd,
     });
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
+    // Agent output via ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
     let agent = AgentOutput {
-        context: format!("audit: {} tasks likely implemented", results.len()),
-        content: format!("close: braid task close {}", close_ids.join(" ")),
+        context: String::new(),
+        content: agent_text,
         footer: String::new(),
     };
 

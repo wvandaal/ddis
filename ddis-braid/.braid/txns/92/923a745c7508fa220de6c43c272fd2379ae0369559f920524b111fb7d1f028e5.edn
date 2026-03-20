@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774014837/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "verify footer state"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d24009396230d55973d54c45cbb482b70d06762ca3fc2d081ca266e5d7cb17fe" :a :db/doc :v "testing footer" :op :assert}
+ ]}

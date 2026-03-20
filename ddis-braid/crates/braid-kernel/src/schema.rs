@@ -2184,6 +2184,15 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "JSON array of 6 R(t) metric floats: [pagerank, betweenness, critical_path, blocker_ratio, staleness, priority_boost]",
         ),
+        // =================================================================
+        // Trace Staleness (1) — SC-1, INV-TRACE-003
+        // =================================================================
+        attr(
+            ":trace/last-scan-mtime",
+            ValueType::Long,
+            Cardinality::One,
+            "Unix epoch seconds of the most recent trace scan. Stored on :system/trace-clock entity. Used by check_staleness to detect files modified since last scan.",
+        ),
     ]
 }
 

@@ -213,7 +213,9 @@ pub fn run(
     let actions = derive_actions(&store);
     let (action_cmd, action_rationale, action_impact) = if let Some(a) = actions.first() {
         (
-            a.command.clone().unwrap_or_else(|| "braid status".to_string()),
+            a.command
+                .clone()
+                .unwrap_or_else(|| "braid status".to_string()),
             a.summary.clone(),
             0.5,
         )
@@ -261,10 +263,7 @@ pub fn run(
                 let ids: Vec<&str> = refs.iter().take(5).map(|r| r.id.as_str()).collect();
                 ("constraints", ids.join(", "))
             }
-            ContextSection::State(entries) => (
-                "state",
-                format!("{} entries", entries.len()),
-            ),
+            ContextSection::State(entries) => ("state", format!("{} entries", entries.len())),
             ContextSection::Warnings(ws) => {
                 if ws.is_empty() {
                     continue;
@@ -290,7 +289,8 @@ pub fn run(
     let projection = braid_kernel::ActionProjection {
         action,
         context: context_blocks,
-        evidence_pointer: "start: braid session start | observe: braid observe '...' --confidence 0.X".to_string(),
+        evidence_pointer:
+            "start: braid session start | observe: braid observe '...' --confidence 0.X".to_string(),
     };
 
     // Agent output uses ACP Navigate projection

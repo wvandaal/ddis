@@ -17,7 +17,7 @@ use braid_kernel::bilateral::{
     compute_fitness, cycle_to_datoms, format_terse as bilateral_format_terse,
     format_verbose as bilateral_format_verbose, load_trajectory, run_cycle,
 };
-use braid_kernel::datom::{AgentId, ProvenanceType};
+use braid_kernel::datom::{AgentId, Attribute, Op, ProvenanceType, Value};
 use braid_kernel::guidance::{
     adjust_gaps, compute_methodology_score, count_txns_since_last_harvest, derive_actions,
     detect_activity_mode, format_actions, methodology_gaps, telemetry_from_store, Trend,
@@ -205,6 +205,47 @@ pub fn run(
     })
 }
 
+/// Query the most recent active session's `:session/start-fitness` datom.
+///
+/// Returns `None` if no session has a start-fitness recorded (SD-1).
+fn query_session_start_fitness(store: &braid_kernel::Store) -> Option<f64> {
+    let attr = Attribute::from_keyword(":session/start-fitness");
+    let started_attr = Attribute::from_keyword(":session/started-at");
+    let status_attr = Attribute::from_keyword(":session/status");
+
+    // Find the most recent active session entity
+    let mut latest_wall = 0u64;
+    let mut latest_session = None;
+    for datom in store.attribute_datoms(&started_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        if let Value::Long(wall) = datom.value {
+            let wall = wall as u64;
+            let is_active = store.entity_datoms(datom.entity).iter().any(|d| {
+                d.attribute == status_attr
+                    && d.op == Op::Assert
+                    && matches!(&d.value, Value::Keyword(k) if k.contains("active"))
+            });
+            if is_active && wall > latest_wall {
+                latest_wall = wall;
+                latest_session = Some(datom.entity);
+            }
+        }
+    }
+
+    // Look for :session/start-fitness on the session entity
+    let session = latest_session?;
+    store
+        .entity_datoms(session)
+        .iter()
+        .find(|d| d.attribute == attr && d.op == Op::Assert)
+        .and_then(|d| match d.value {
+            Value::Double(f) => Some(f.into_inner()),
+            _ => None,
+        })
+}
+
 /// Build an ActionProjection for the status command (ACP-5, INV-BUDGET-007).
 ///
 /// Decomposes status into Action + Context blocks at appropriate precedence:
@@ -243,7 +284,7 @@ pub fn build_status_projection(
         tokens: 15,
     });
 
-    // 2. Coherence + F(S) + M(t) (Methodology)
+    // 2. Coherence + F(S) with session delta (SD-1) + M(t) with session age (SD-2)
     let fitness = compute_fitness(store);
     let coherence = check_coherence_fast(store);
     let telemetry = telemetry_from_store(store);
@@ -253,17 +294,42 @@ pub fn build_status_projection(
         Trend::Down => "down",
         Trend::Stable => "stable",
     };
+
+    // SD-1: F(S) session delta
+    let fitness_delta_str = match query_session_start_fitness(store) {
+        Some(start) => {
+            let delta = fitness.total - start;
+            if delta.abs() < 0.005 {
+                " (=)".to_string()
+            } else if delta > 0.0 {
+                format!(" (+{:.2})", delta)
+            } else {
+                format!(" ({:.2})", delta)
+            }
+        }
+        None => String::new(),
+    };
+
+    // SD-2: M(t) session-age qualifier
+    let session_age_str = if tx_since_harvest < 5 {
+        " (new session)"
+    } else {
+        ""
+    };
+
     context.push(ContextBlock {
         precedence: OutputPrecedence::Methodology,
         content: format!(
-            "coherence: F(S)={:.2} Phi={:.1} B1={} {:?} | M(t)={:.2} {}{}",
+            "coherence: F(S)={:.2}{} Phi={:.1} B1={} {:?} | M(t)={:.2} {}{}{}",
             fitness.total,
+            fitness_delta_str,
             coherence.phi,
             coherence.beta_1,
             coherence.quadrant,
             score.score,
             trend_str,
             if score.drift_signal { " DRIFT" } else { "" },
+            session_age_str,
         ),
         tokens: 25,
     });
@@ -389,6 +455,28 @@ fn build_terse(
         Trend::Stable => "stable",
     };
 
+    // SD-1: F(S) session delta
+    let fitness_delta_str = match query_session_start_fitness(store) {
+        Some(start) => {
+            let delta = fitness.total - start;
+            if delta.abs() < 0.005 {
+                " (=)".to_string()
+            } else if delta > 0.0 {
+                format!(" (+{:.2})", delta)
+            } else {
+                format!(" ({:.2})", delta)
+            }
+        }
+        None => String::new(),
+    };
+
+    // SD-2: M(t) session-age qualifier
+    let session_age_str = if tx_since_harvest < 5 {
+        " (new session)"
+    } else {
+        ""
+    };
+
     let mut out = String::new();
     out.push_str(&format!(
         "store: {} ({} datoms, {} entities, {} txns)\n",
@@ -398,14 +486,16 @@ fn build_terse(
         hashes.len(),
     ));
     out.push_str(&format!(
-        "coherence: F(S)={:.2} Phi={:.1} B1={} {:?} | M(t)={:.2} {}{}\n",
+        "coherence: F(S)={:.2}{} Phi={:.1} B1={} {:?} | M(t)={:.2} {}{}{}\n",
         fitness.total,
+        fitness_delta_str,
         coherence.phi,
         coherence.beta_1,
         coherence.quadrant,
         score.score,
         trend_str,
         if score.drift_signal { " DRIFT" } else { "" },
+        session_age_str,
     ));
     out.push_str(&format!(
         "live: intent={} spec={} impl={} | agents={}\n",
@@ -537,6 +627,28 @@ fn build_agent(
         "ok"
     };
 
+    // SD-1: F(S) session delta
+    let fitness_delta_str = match query_session_start_fitness(store) {
+        Some(start) => {
+            let delta = fitness.total - start;
+            if delta.abs() < 0.005 {
+                " (=)".to_string()
+            } else if delta > 0.0 {
+                format!(" (+{:.2})", delta)
+            } else {
+                format!(" ({:.2})", delta)
+            }
+        }
+        None => String::new(),
+    };
+
+    // SD-2: M(t) session-age qualifier
+    let session_age_str = if tx_since_harvest < 5 {
+        " (new session)"
+    } else {
+        ""
+    };
+
     // Context: what store this is about
     let context = format!(
         "store: {} ({} datoms, {} entities, {} txns)",
@@ -548,13 +660,15 @@ fn build_agent(
 
     // Content: coherence + F(S) + methodology + harvest + tasks
     let mut content = format!(
-        "coherence: F(S)={:.2} Phi={:.1} B1={} {:?} | M(t)={:.2} {}\nharvest: {} tx since last ({})",
+        "coherence: F(S)={:.2}{} Phi={:.1} B1={} {:?} | M(t)={:.2} {}{}\nharvest: {} tx since last ({})",
         fitness.total,
+        fitness_delta_str,
         coherence.phi,
         coherence.beta_1,
         coherence.quadrant,
         score.score,
         trend_str,
+        session_age_str,
         tx_since_harvest,
         harvest_status,
     );
@@ -629,6 +743,21 @@ fn build_verbose(
     let actions = derive_actions(store);
     let fitness = compute_fitness(store);
 
+    // SD-1: F(S) session delta for verbose
+    let fitness_delta_str = match query_session_start_fitness(store) {
+        Some(start) => {
+            let delta = fitness.total - start;
+            if delta.abs() < 0.005 {
+                " (=)".to_string()
+            } else if delta > 0.0 {
+                format!(" (+{:.2})", delta)
+            } else {
+                format!(" ({:.2})", delta)
+            }
+        }
+        None => String::new(),
+    };
+
     let mut out = String::new();
     out.push_str(&format!(
         "status: agent={} store={} ({} datoms, {} entities, {} txns)\n",
@@ -655,11 +784,12 @@ fn build_verbose(
         coherence.entropy.entropy, coherence.entropy.normalized, coherence.entropy.effective_rank,
     ));
 
-    // F(S) formula breakdown with component weights and values
+    // F(S) formula breakdown with component weights and values + session delta
     let c = &fitness.components;
     out.push_str(&format!(
-        "F(S) = {:.2} = {:.2}*validation({:.2}) + {:.2}*coverage({:.2}) + {:.2}*drift({:.2}) + {:.2}*harvest({:.2}) + {:.2}*contradiction({:.2}) + {:.2}*incompleteness({:.2}) + {:.2}*uncertainty({:.2})\n",
+        "F(S) = {:.2}{} = {:.2}*validation({:.2}) + {:.2}*coverage({:.2}) + {:.2}*drift({:.2}) + {:.2}*harvest({:.2}) + {:.2}*contradiction({:.2}) + {:.2}*incompleteness({:.2}) + {:.2}*uncertainty({:.2})\n",
         fitness.total,
+        fitness_delta_str,
         W_VALIDATION, c.validation,
         W_COVERAGE, c.coverage,
         W_DRIFT, c.drift,
@@ -712,9 +842,15 @@ fn build_verbose(
         Trend::Down => "down",
         Trend::Stable => "stable",
     };
+    // SD-2: session age qualifier
+    let session_age_str = if tx_since_harvest < 5 {
+        " (new session)"
+    } else {
+        ""
+    };
     out.push_str(&format!(
-        "methodology: M(t)={:.2} trend={}\n",
-        score.score, trend_str,
+        "methodology: M(t)={:.2} trend={}{}\n",
+        score.score, trend_str, session_age_str,
     ));
     if score.drift_signal {
         out.push_str("  WARNING: drift signal active (M(t) < 0.5)\n");
@@ -957,6 +1093,18 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
         })
         .collect();
 
+    // SD-1: Compute F(S) session delta for JSON
+    let fitness = compute_fitness(store);
+    let session_fitness_delta =
+        query_session_start_fitness(store).map(|start| fitness.total - start);
+
+    // SD-2: Session age for JSON
+    let session_age = if tx_since_harvest < 5 {
+        "new"
+    } else {
+        "established"
+    };
+
     let mut result = serde_json::json!({
         "store": path.display().to_string(),
         "datom_count": store.len(),
@@ -973,6 +1121,11 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
             "live_spec": coherence.live_spec,
             "live_impl": coherence.live_impl,
         },
+        "fitness": {
+            "total": fitness.total,
+            "session_fitness_delta": session_fitness_delta,
+        },
+        "session_age": session_age,
         "methodology": {
             "score": score.score,
             "trend": match score.trend {

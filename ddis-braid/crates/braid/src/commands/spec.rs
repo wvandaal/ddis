@@ -342,7 +342,11 @@ pub fn run_review(path: &Path) -> Result<CommandOutput, BraidError> {
         },
         context: vec![braid_kernel::budget::ContextBlock {
             precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!("spec review: {} pending (threshold={:.1})", pending.len(), threshold),
+            content: format!(
+                "spec review: {} pending (threshold={:.1})",
+                pending.len(),
+                threshold
+            ),
             tokens: 8,
         }],
         evidence_pointer: "list: braid spec review | history: braid spec history".to_string(),
@@ -435,7 +439,10 @@ pub fn run_accept(path: &Path, id: &str, agent: &str) -> Result<CommandOutput, B
         },
         context: vec![braid_kernel::budget::ContextBlock {
             precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!("accepted: {} promoted (+{} datoms)", suggested_id, datom_count),
+            content: format!(
+                "accepted: {} promoted (+{} datoms)",
+                suggested_id, datom_count
+            ),
             tokens: 8,
         }],
         evidence_pointer: "review: braid spec review | trace: braid trace --commit".to_string(),

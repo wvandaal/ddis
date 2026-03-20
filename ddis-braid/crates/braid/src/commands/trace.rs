@@ -10,6 +10,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::Path;
+use std::time::SystemTime;
 
 use braid_kernel::datom::{AgentId, Attribute, EntityId, Op, ProvenanceType, TxId, Value};
 use braid_kernel::layout::TxFile;
@@ -509,6 +510,100 @@ fn module_from_path(relative: &str) -> String {
 }
 
 // ---------------------------------------------------------------------------
+// Trace staleness detection (SC-1, INV-TRACE-003)
+// ---------------------------------------------------------------------------
+
+/// Whether trace data is fresh or stale relative to source file mtimes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[allow(dead_code)]
+pub enum TraceStaleStatus {
+    /// All .rs files have mtimes <= the last scan timestamp.
+    Fresh,
+    /// `count` .rs files have mtimes > the last scan timestamp.
+    Stale(usize),
+}
+
+/// The well-known entity ident for the trace scan clock.
+const TRACE_CLOCK_IDENT: &str = ":system/trace-clock";
+
+/// Check whether trace data is stale by comparing .rs file mtimes against
+/// the stored `:trace/last-scan-mtime` on the `:system/trace-clock` entity.
+///
+/// Returns `Stale(n)` if `n` files have been modified since the last scan,
+/// or `Fresh` if no files are newer. If no scan timestamp exists in the store,
+/// all files are considered stale.
+#[allow(dead_code)]
+pub fn check_staleness(store: &Store, source_root: &Path) -> TraceStaleStatus {
+    let clock_entity = EntityId::from_ident(TRACE_CLOCK_IDENT);
+    let mtime_attr = Attribute::from_keyword(":trace/last-scan-mtime");
+
+    // Find the stored last-scan timestamp.
+    let last_scan: Option<i64> = store
+        .entity_datoms(clock_entity)
+        .into_iter()
+        .filter(|d| d.attribute == mtime_attr && d.op == Op::Assert)
+        .filter_map(|d| match &d.value {
+            Value::Long(v) => Some(*v),
+            _ => None,
+        })
+        .max(); // LWW semantics — take the latest value
+
+    let threshold = match last_scan {
+        Some(t) => t,
+        // No scan timestamp recorded yet — everything is stale.
+        None => {
+            let files = find_rust_files(source_root);
+            return if files.is_empty() {
+                TraceStaleStatus::Fresh
+            } else {
+                TraceStaleStatus::Stale(files.len())
+            };
+        }
+    };
+
+    let files = find_rust_files(source_root);
+    let mut stale_count = 0usize;
+
+    for (abs_path, _relative) in &files {
+        if let Ok(meta) = std::fs::metadata(abs_path) {
+            if let Ok(modified) = meta.modified() {
+                let mtime_secs = modified
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs() as i64;
+                if mtime_secs > threshold {
+                    stale_count += 1;
+                }
+            }
+        }
+    }
+
+    if stale_count > 0 {
+        TraceStaleStatus::Stale(stale_count)
+    } else {
+        TraceStaleStatus::Fresh
+    }
+}
+
+/// Generate a datom recording the current unix time as the trace scan mtime.
+///
+/// Stored on the `:system/trace-clock` entity with attribute `:trace/last-scan-mtime`.
+fn generate_scan_mtime_datom(tx_id: TxId) -> braid_kernel::datom::Datom {
+    let now_secs = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
+    let clock_entity = EntityId::from_ident(TRACE_CLOCK_IDENT);
+    braid_kernel::datom::Datom::new(
+        clock_entity,
+        Attribute::from_keyword(":trace/last-scan-mtime"),
+        Value::Long(now_secs),
+        tx_id,
+        Op::Assert,
+    )
+}
+
+// ---------------------------------------------------------------------------
 // CLI entry point
 // ---------------------------------------------------------------------------
 
@@ -691,6 +786,9 @@ pub fn run(
         let witness_datoms = generate_witness_datoms(&witnessed_specs, tx_id);
         let witness_count = witness_datoms.len();
         datoms.extend(witness_datoms);
+
+        // SC-1: Record scan timestamp for staleness detection (INV-TRACE-003)
+        datoms.push(generate_scan_mtime_datom(tx_id));
 
         let datom_count = datoms.len();
         committed_datoms = datom_count;
@@ -987,6 +1085,9 @@ pub fn auto_trace_scan(
     let witness_count = witness_datoms.len();
     datoms.extend(witness_datoms);
 
+    // SC-1: Record scan timestamp for staleness detection (INV-TRACE-003)
+    datoms.push(generate_scan_mtime_datom(tx_id));
+
     let new_links = resolved_links.len();
     let tx = TxFile {
         tx_id,
@@ -1129,5 +1230,87 @@ mod tests {
     fn is_comment_line_false() {
         assert!(!is_comment_line("let x = 1;"));
         assert!(!is_comment_line("fn main() {"));
+    }
+
+    // --- Staleness detection tests (SC-1) ---
+
+    #[test]
+    fn trace_clock_entity_is_deterministic() {
+        // The entity ID for :system/trace-clock must be stable across calls.
+        let e1 = EntityId::from_ident(TRACE_CLOCK_IDENT);
+        let e2 = EntityId::from_ident(TRACE_CLOCK_IDENT);
+        assert_eq!(e1, e2);
+    }
+
+    #[test]
+    fn generate_scan_mtime_datom_is_well_formed() {
+        let agent = AgentId::from_name("test-agent");
+        let tx = TxId::new(100, 0, agent);
+        let datom = generate_scan_mtime_datom(tx);
+
+        assert_eq!(datom.entity, EntityId::from_ident(TRACE_CLOCK_IDENT));
+        assert_eq!(
+            datom.attribute,
+            Attribute::from_keyword(":trace/last-scan-mtime")
+        );
+        assert_eq!(datom.op, Op::Assert);
+        // Value must be a positive Long (unix seconds).
+        match &datom.value {
+            Value::Long(v) => assert!(*v > 0, "mtime should be positive unix seconds"),
+            other => panic!("expected Value::Long, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn check_staleness_no_store_timestamp_all_stale() {
+        // With an empty store (no :trace/last-scan-mtime), every file is stale.
+        let store = Store::from_datoms(BTreeSet::new());
+        // Use the crates/ directory which definitely has .rs files.
+        let source = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap();
+        let status = check_staleness(&store, source);
+        match status {
+            TraceStaleStatus::Stale(n) => assert!(n > 0, "should report >0 stale files"),
+            TraceStaleStatus::Fresh => panic!("expected Stale, got Fresh"),
+        }
+    }
+
+    #[test]
+    fn check_staleness_empty_source_root_is_fresh() {
+        // A directory with no .rs files should be Fresh even with no store timestamp.
+        let store = Store::from_datoms(BTreeSet::new());
+        let tmp = std::env::temp_dir().join("braid-trace-test-empty");
+        let _ = std::fs::create_dir_all(&tmp);
+        let status = check_staleness(&store, &tmp);
+        assert_eq!(status, TraceStaleStatus::Fresh);
+    }
+
+    #[test]
+    fn check_staleness_future_timestamp_is_fresh() {
+        // If the stored timestamp is far in the future, all files should be Fresh.
+        let clock_entity = EntityId::from_ident(TRACE_CLOCK_IDENT);
+        let agent = AgentId::from_name("test-agent");
+        let tx = TxId::new(1, 0, agent);
+
+        // Set the scan mtime to year 2100 (unix seconds).
+        let far_future: i64 = 4_102_444_800;
+        let datom = braid_kernel::datom::Datom::new(
+            clock_entity,
+            Attribute::from_keyword(":trace/last-scan-mtime"),
+            Value::Long(far_future),
+            tx,
+            Op::Assert,
+        );
+
+        let datom_set: BTreeSet<braid_kernel::datom::Datom> = std::iter::once(datom).collect();
+        let store = Store::from_datoms(datom_set);
+
+        // Use the crates/ directory — all files should be older than year 2100.
+        let source = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap();
+        let status = check_staleness(&store, source);
+        assert_eq!(status, TraceStaleStatus::Fresh);
     }
 }

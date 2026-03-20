@@ -891,11 +891,7 @@ fn build_harvest_output(
         }
     }
 
-    CommandOutput {
-        json,
-        agent,
-        human,
-    }
+    CommandOutput { json, agent, human }
 }
 
 /// Find open tasks whose :task/traces-to spec elements all have :impl/implements links.

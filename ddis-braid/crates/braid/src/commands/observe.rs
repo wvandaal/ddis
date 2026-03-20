@@ -622,7 +622,9 @@ mod tests {
 
         // ACP human output contains the observation ident and confidence
         assert!(
-            result.human.contains("observation/merge-is-a-structural-bottleneck")
+            result
+                .human
+                .contains("observation/merge-is-a-structural-bottleneck")
                 || result.human.contains("observed"),
             "human output should reference the observation: {}",
             result.human

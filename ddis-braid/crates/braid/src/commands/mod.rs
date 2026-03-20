@@ -22,7 +22,7 @@ mod spec;
 pub(crate) mod status;
 mod task;
 mod topology;
-mod trace;
+pub(crate) mod trace;
 mod verify;
 mod witness;
 mod wrap;
@@ -3862,8 +3862,7 @@ mod merge {
         };
 
         // Agent output uses ACP Navigate projection
-        let agent_text =
-            projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+        let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
         let agent = AgentOutput {
             context: String::new(),
             content: agent_text,
