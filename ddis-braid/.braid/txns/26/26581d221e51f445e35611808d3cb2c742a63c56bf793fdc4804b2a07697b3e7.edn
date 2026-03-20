@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774020147/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-ST: E2E test for session trajectory pipeline. APPROACH: Create scripts/e2e_session_trajectory.sh that: (1) Init fresh store. (2) Run braid status (triggers auto-session-start). (3) Verify :session/current entity exists with start-fitness. (4) Run 5 commands (transact, observe, task create, task close, status). (5) Verify trajectory has 1 entry with start state. (6) Run harvest --commit. (7) Verify trajectory entry updated with end state and convergence_rate. (8) Wait 1 second, run another command to trigger new session. (9) Verify trajectory has 2 entries. (10) Run braid status and verify trajectory line appears. ACCEPTANCE: All 10 checks pass. FILE: scripts/e2e_session_trajectory.sh. TRACES TO: INV-BILATERAL-001. DEPENDS-ON: ST-1, ST-3, ST-4."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :db/ident :v :task/t-ca8a682f :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/acceptance :v "All 10 checks pass." :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/approach :v "Create scripts/e2e_session_trajectory.sh that: (1) Init fresh store. (2) Run braid status (triggers auto-session-start). (3) Verify :session/current entity exists with start-fitness. (4) Run 5 commands (transact, observe, task create, task close, status). (5) Verify trajectory has 1 entry with start state. (6) Run harvest --commit. (7) Verify trajectory entry updated with end state and convergence_rate. (8) Wait 1 second, run another command to trigger new session. (9) Verify trajectory has 2 entries. (10) Run braid status and verify trajectory line appears." :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/created-at :v 1774020145 :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/files :v "scripts/e2e_session_trajectory.sh." :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/id :v "t-ca8a682f" :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/title :v "TEST-ST: E2E test for session trajectory pipeline. APPROACH: Create scripts/e2e_session_trajectory.sh that: (1) Init fresh store. (2) Run braid status (triggers auto-session-start). (3) Verify :session/current entity exists with start-fitness. (4) Run 5 commands (transact, observe, task create, task close, status). (5) Verify trajectory has 1 entry with start state. (6) Run harvest --commit. (7) Verify trajectory entry updated with end state and convergence_rate. (8) Wait 1 second, run another command to trigger new session. (9) Verify trajectory has 2 entries. (10) Run braid status and verify trajectory line appears. ACCEPTANCE: All 10 checks pass. FILE: scripts/e2e_session_trajectory.sh. TRACES TO: INV-BILATERAL-001. DEPENDS-ON: ST-1, ST-3, ST-4." :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/title-l0 :v "TEST-ST" :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/title-l1 :v "TEST-ST: E2E test for session trajectory pipeline" :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/traces-to :v #blake3 "7b9bbe4204b84aba3ff9e9571e7be271c1ce17a41c96a69e29f7e1b95bc6d937" :op :assert}
+   {:e #blake3 "9d76b5d66269d5a62779d2add6576bdd3c1da40adf1a24fb2ea0c0ff7dcc77ec" :a :task/type :v :task.type/task :op :assert}
+ ]}

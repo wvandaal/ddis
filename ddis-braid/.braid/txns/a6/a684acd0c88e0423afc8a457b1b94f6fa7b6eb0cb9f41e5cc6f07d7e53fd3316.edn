@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774020092/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SESSION-TRAJECTORY DEPENDENCIES: Requires :session/start-fitness schema attribute (SD-1 already assumes it). Requires auto-detection logic in CLI (similar to ZCM-1 auto-observe pattern). Interacts with: SD-1 (F(S) delta — becomes functional), SD-2 (M(t) qualifier — uses session entity), T1-1 (session-scoped M(t) — uses session boundary), harvest pipeline (writes end state). Does NOT require new kernel module — uses existing session entity infrastructure in guidance.rs. Risk: stale session detection (2h timeout heuristic). Risk: ring buffer growth (capped at 20 entries)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9cdcd100e8df9ab8ae18d26615755ad543d7b9de42c9d484d136964c4069457a" :a :db/doc :v "SESSION-TRAJECTORY DEPENDENCIES: Requires :session/start-fitness schema attribute (SD-1 already assumes it). Requires auto-detection logic in CLI (similar to ZCM-1 auto-observe pattern). Interacts with: SD-1 (F(S) delta — becomes functional), SD-2 (M(t) qualifier — uses session entity), T1-1 (session-scoped M(t) — uses session boundary), harvest pipeline (writes end state). Does NOT require new kernel module — uses existing session entity infrastructure in guidance.rs. Risk: stale session detection (2h timeout heuristic). Risk: ring buffer growth (capped at 20 entries)." :op :assert}
+   {:e #blake3 "9cdcd100e8df9ab8ae18d26615755ad543d7b9de42c9d484d136964c4069457a" :a :db/ident :v :observation/session-trajectory-dependencies-requires-sessionstart-fit :op :assert}
+   {:e #blake3 "9cdcd100e8df9ab8ae18d26615755ad543d7b9de42c9d484d136964c4069457a" :a :exploration/body :v "SESSION-TRAJECTORY DEPENDENCIES: Requires :session/start-fitness schema attribute (SD-1 already assumes it). Requires auto-detection logic in CLI (similar to ZCM-1 auto-observe pattern). Interacts with: SD-1 (F(S) delta — becomes functional), SD-2 (M(t) qualifier — uses session entity), T1-1 (session-scoped M(t) — uses session boundary), harvest pipeline (writes end state). Does NOT require new kernel module — uses existing session entity infrastructure in guidance.rs. Risk: stale session detection (2h timeout heuristic). Risk: ring buffer growth (capped at 20 entries)." :op :assert}
+   {:e #blake3 "9cdcd100e8df9ab8ae18d26615755ad543d7b9de42c9d484d136964c4069457a" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "9cdcd100e8df9ab8ae18d26615755ad543d7b9de42c9d484d136964c4069457a" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "9cdcd100e8df9ab8ae18d26615755ad543d7b9de42c9d484d136964c4069457a" :a :exploration/content-hash :v #bytes "2262231d919eda8ea4b47cef41be95bf71e9e0c14ac76c11f3c48df3535cd4dc" :op :assert}
+   {:e #blake3 "9cdcd100e8df9ab8ae18d26615755ad543d7b9de42c9d484d136964c4069457a" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "9cdcd100e8df9ab8ae18d26615755ad543d7b9de42c9d484d136964c4069457a" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "9cdcd100e8df9ab8ae18d26615755ad543d7b9de42c9d484d136964c4069457a" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
