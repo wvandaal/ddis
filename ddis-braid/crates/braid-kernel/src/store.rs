@@ -3053,6 +3053,51 @@ mod tests {
                 }
             }
 
+            /// INV-STORE-012: LIVE index correctness — live_value(e, a) returns
+            /// the same value as LWW resolution over entity datoms for that attribute.
+            #[test]
+            fn live_value_matches_lww_resolution(
+                store in arb_store(3),
+                entity in arb_entity_id(),
+                value1 in arb_doc_value(),
+                value2 in arb_doc_value(),
+            ) {
+                let mut s = store.clone_store();
+                let agent = AgentId::from_name("proptest:live");
+                let attr = Attribute::from_keyword(":db/doc");
+
+                // Transact two values for the same entity+attribute
+                let tx1 = Transaction::new(agent, ProvenanceType::Observed, "v1")
+                    .assert(entity.clone(), attr.clone(), value1)
+                    .commit(&s);
+                if let Ok(committed) = tx1 {
+                    let _ = s.transact(committed);
+                }
+
+                let tx2 = Transaction::new(agent, ProvenanceType::Observed, "v2")
+                    .assert(entity.clone(), attr.clone(), value2.clone())
+                    .commit(&s);
+                if let Ok(committed) = tx2 {
+                    let _ = s.transact(committed);
+                }
+
+                // live_value should return the latest value (LWW resolution)
+                let live = s.live_value(entity.clone(), &attr);
+
+                // Manual resolution: find all asserted datoms for (e, a),
+                // pick the one with the highest tx
+                let manual: Option<&Value> = s.entity_datoms(entity)
+                    .iter()
+                    .filter(|d| d.attribute == attr && d.op == Op::Assert)
+                    .max_by_key(|d| d.tx)
+                    .map(|d| &d.value);
+
+                prop_assert_eq!(
+                    live, manual,
+                    "live_value must match LWW resolution from entity datoms"
+                );
+            }
+
             /// SEED.md §4 Temporal Completeness — as_of returns correct datom subset.
             ///
             /// For any store with N transactions, as_of(tx_k) should contain exactly
