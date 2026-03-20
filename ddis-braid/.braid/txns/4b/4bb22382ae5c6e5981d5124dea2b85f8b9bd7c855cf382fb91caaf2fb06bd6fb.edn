@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016551/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-output-002"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2ff63c000fa4d2165e0402db25e1aa8385a508d902e24d40b271910dae263ec6" :a :db/doc :v "Agent Output Completeness" :op :assert}
+   {:e #blake3 "2ff63c000fa4d2165e0402db25e1aa8385a508d902e24d40b271910dae263ec6" :a :db/ident :v :spec/inv-output-002 :op :assert}
+   {:e #blake3 "2ff63c000fa4d2165e0402db25e1aa8385a508d902e24d40b271910dae263ec6" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

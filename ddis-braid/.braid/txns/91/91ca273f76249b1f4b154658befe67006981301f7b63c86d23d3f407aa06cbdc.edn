@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016547/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-store-017"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "49022924757a06a6a38c62643ddc56220b79d5227ef675d9949ff68a954c4828" :a :db/doc :v "Store Identity by Content" :op :assert}
+   {:e #blake3 "49022924757a06a6a38c62643ddc56220b79d5227ef675d9949ff68a954c4828" :a :db/ident :v :spec/inv-store-017 :op :assert}
+   {:e #blake3 "49022924757a06a6a38c62643ddc56220b79d5227ef675d9949ff68a954c4828" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

@@ -1,0 +1,76 @@
+{:tx/id #hlc "1774016553/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :derived
+ :tx/rationale "braid trace: 11 impl links, 2 witness marks"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "118957d64f66d2e458d9ffd174d2fe4cf429ef1a3971b3ef124231a08524185f" :a :db/ident :v :impl/braid.src.output.inv-output-002 :op :assert}
+   {:e #blake3 "118957d64f66d2e458d9ffd174d2fe4cf429ef1a3971b3ef124231a08524185f" :a :impl/file :v "braid/src/output.rs" :op :assert}
+   {:e #blake3 "118957d64f66d2e458d9ffd174d2fe4cf429ef1a3971b3ef124231a08524185f" :a :impl/implements :v #blake3 "2ff63c000fa4d2165e0402db25e1aa8385a508d902e24d40b271910dae263ec6" :op :assert}
+   {:e #blake3 "118957d64f66d2e458d9ffd174d2fe4cf429ef1a3971b3ef124231a08524185f" :a :impl/module :v "braid::output" :op :assert}
+   {:e #blake3 "118957d64f66d2e458d9ffd174d2fe4cf429ef1a3971b3ef124231a08524185f" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "118957d64f66d2e458d9ffd174d2fe4cf429ef1a3971b3ef124231a08524185f" :a :impl/verification-evidence :v "Comment references INV-OUTPUT-002 in braid/src/output.rs" :op :assert}
+   {:e #blake3 "19318c5d03db661bae9724e91afc95e329fe928220c427e138eb7867e0f0d2cf" :a :db/ident :v :impl/braid.src.commands.spec.inv-store-017 :op :assert}
+   {:e #blake3 "19318c5d03db661bae9724e91afc95e329fe928220c427e138eb7867e0f0d2cf" :a :impl/file :v "braid/src/commands/spec.rs" :op :assert}
+   {:e #blake3 "19318c5d03db661bae9724e91afc95e329fe928220c427e138eb7867e0f0d2cf" :a :impl/implements :v #blake3 "49022924757a06a6a38c62643ddc56220b79d5227ef675d9949ff68a954c4828" :op :assert}
+   {:e #blake3 "19318c5d03db661bae9724e91afc95e329fe928220c427e138eb7867e0f0d2cf" :a :impl/module :v "braid::commands::spec" :op :assert}
+   {:e #blake3 "19318c5d03db661bae9724e91afc95e329fe928220c427e138eb7867e0f0d2cf" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "19318c5d03db661bae9724e91afc95e329fe928220c427e138eb7867e0f0d2cf" :a :impl/verification-evidence :v "Comment references INV-STORE-017 in braid/src/commands/spec.rs" :op :assert}
+   {:e #blake3 "1a2b5206309ab67a2ccaf3aad762996d73f8267ca39e679ea29252ab2f960ee4" :a :db/ident :v :impl/braid.src.commands.status.inv-output-002 :op :assert}
+   {:e #blake3 "1a2b5206309ab67a2ccaf3aad762996d73f8267ca39e679ea29252ab2f960ee4" :a :impl/file :v "braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "1a2b5206309ab67a2ccaf3aad762996d73f8267ca39e679ea29252ab2f960ee4" :a :impl/implements :v #blake3 "2ff63c000fa4d2165e0402db25e1aa8385a508d902e24d40b271910dae263ec6" :op :assert}
+   {:e #blake3 "1a2b5206309ab67a2ccaf3aad762996d73f8267ca39e679ea29252ab2f960ee4" :a :impl/module :v "braid::commands::status" :op :assert}
+   {:e #blake3 "1a2b5206309ab67a2ccaf3aad762996d73f8267ca39e679ea29252ab2f960ee4" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "1a2b5206309ab67a2ccaf3aad762996d73f8267ca39e679ea29252ab2f960ee4" :a :impl/verification-evidence :v "Comment references INV-OUTPUT-002 in braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "232dc6914443273cdc31f2440ad670f5494b6b9e8ddcaeb54d1c7c953a4a639b" :a :spec/witnessed :v true :op :assert}
+   {:e #blake3 "33af285ebc8d10102cdcc85165c5018d4c9380f171c4dd27e31313f900c53e6d" :a :db/ident :v :impl/braid.src.output.inv-output-003 :op :assert}
+   {:e #blake3 "33af285ebc8d10102cdcc85165c5018d4c9380f171c4dd27e31313f900c53e6d" :a :impl/file :v "braid/src/output.rs" :op :assert}
+   {:e #blake3 "33af285ebc8d10102cdcc85165c5018d4c9380f171c4dd27e31313f900c53e6d" :a :impl/implements :v #blake3 "c2546bf78682a00b7788ce1030834e16493c07c87f0c29ed97d42f915d388cf1" :op :assert}
+   {:e #blake3 "33af285ebc8d10102cdcc85165c5018d4c9380f171c4dd27e31313f900c53e6d" :a :impl/module :v "braid::output" :op :assert}
+   {:e #blake3 "33af285ebc8d10102cdcc85165c5018d4c9380f171c4dd27e31313f900c53e6d" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "33af285ebc8d10102cdcc85165c5018d4c9380f171c4dd27e31313f900c53e6d" :a :impl/verification-evidence :v "Comment references INV-OUTPUT-003 in braid/src/output.rs" :op :assert}
+   {:e #blake3 "521b590a614778b7767100a41b3be37f38dcb3b88abfe136ca42bbf35012210e" :a :db/ident :v :impl/braid-kernel.src.schema.inv-trace-003 :op :assert}
+   {:e #blake3 "521b590a614778b7767100a41b3be37f38dcb3b88abfe136ca42bbf35012210e" :a :impl/file :v "braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "521b590a614778b7767100a41b3be37f38dcb3b88abfe136ca42bbf35012210e" :a :impl/implements :v #blake3 "89a6dc80ad4441ce318bf853a545313b8d9d44b4f106b2cb50283baf414fe095" :op :assert}
+   {:e #blake3 "521b590a614778b7767100a41b3be37f38dcb3b88abfe136ca42bbf35012210e" :a :impl/module :v "braid_kernel::schema" :op :assert}
+   {:e #blake3 "521b590a614778b7767100a41b3be37f38dcb3b88abfe136ca42bbf35012210e" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "521b590a614778b7767100a41b3be37f38dcb3b88abfe136ca42bbf35012210e" :a :impl/verification-evidence :v "Comment references INV-TRACE-003 in braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "67f2b44e21f96815bb373fcc3aade9a732535aff1e69593340720a206e239b0b" :a :db/ident :v :impl/braid.src.commands.mod.inv-topology-003 :op :assert}
+   {:e #blake3 "67f2b44e21f96815bb373fcc3aade9a732535aff1e69593340720a206e239b0b" :a :impl/file :v "braid/src/commands/mod.rs" :op :assert}
+   {:e #blake3 "67f2b44e21f96815bb373fcc3aade9a732535aff1e69593340720a206e239b0b" :a :impl/implements :v #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :op :assert}
+   {:e #blake3 "67f2b44e21f96815bb373fcc3aade9a732535aff1e69593340720a206e239b0b" :a :impl/module :v "braid::commands" :op :assert}
+   {:e #blake3 "67f2b44e21f96815bb373fcc3aade9a732535aff1e69593340720a206e239b0b" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "67f2b44e21f96815bb373fcc3aade9a732535aff1e69593340720a206e239b0b" :a :impl/verification-evidence :v "Comment references INV-TOPOLOGY-003 in braid/src/commands/mod.rs" :op :assert}
+   {:e #blake3 "743f5789b7ed248baba11183ac8df07c57f43f9270b2fb12659c1acd900a9107" :a :db/ident :v :impl/braid-kernel.src.topology.inv-topology-006 :op :assert}
+   {:e #blake3 "743f5789b7ed248baba11183ac8df07c57f43f9270b2fb12659c1acd900a9107" :a :impl/file :v "braid-kernel/src/topology.rs" :op :assert}
+   {:e #blake3 "743f5789b7ed248baba11183ac8df07c57f43f9270b2fb12659c1acd900a9107" :a :impl/implements :v #blake3 "232dc6914443273cdc31f2440ad670f5494b6b9e8ddcaeb54d1c7c953a4a639b" :op :assert}
+   {:e #blake3 "743f5789b7ed248baba11183ac8df07c57f43f9270b2fb12659c1acd900a9107" :a :impl/module :v "braid_kernel::topology" :op :assert}
+   {:e #blake3 "743f5789b7ed248baba11183ac8df07c57f43f9270b2fb12659c1acd900a9107" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "743f5789b7ed248baba11183ac8df07c57f43f9270b2fb12659c1acd900a9107" :a :impl/verification-evidence :v "Comment references INV-TOPOLOGY-006 in braid-kernel/src/topology.rs" :op :assert}
+   {:e #blake3 "7446e3b2d8816947f47c14a8da8a491f6c09db62c908737bd1db8596be38d33f" :a :db/ident :v :impl/braid.src.commands.trace.inv-trace-003 :op :assert}
+   {:e #blake3 "7446e3b2d8816947f47c14a8da8a491f6c09db62c908737bd1db8596be38d33f" :a :impl/file :v "braid/src/commands/trace.rs" :op :assert}
+   {:e #blake3 "7446e3b2d8816947f47c14a8da8a491f6c09db62c908737bd1db8596be38d33f" :a :impl/implements :v #blake3 "89a6dc80ad4441ce318bf853a545313b8d9d44b4f106b2cb50283baf414fe095" :op :assert}
+   {:e #blake3 "7446e3b2d8816947f47c14a8da8a491f6c09db62c908737bd1db8596be38d33f" :a :impl/module :v "braid::commands::trace" :op :assert}
+   {:e #blake3 "7446e3b2d8816947f47c14a8da8a491f6c09db62c908737bd1db8596be38d33f" :a :impl/verification-depth :v 2 :op :assert}
+   {:e #blake3 "7446e3b2d8816947f47c14a8da8a491f6c09db62c908737bd1db8596be38d33f" :a :impl/verification-evidence :v "Test file references INV-TRACE-003 in braid/src/commands/trace.rs" :op :assert}
+   {:e #blake3 "7450d4f1b75b4d692c7ba4b9302768928b51eee38cf31a54db76cf72d43548b3" :a :db/ident :v :impl/braid-kernel.src.proposal.inv-store-017 :op :assert}
+   {:e #blake3 "7450d4f1b75b4d692c7ba4b9302768928b51eee38cf31a54db76cf72d43548b3" :a :impl/file :v "braid-kernel/src/proposal.rs" :op :assert}
+   {:e #blake3 "7450d4f1b75b4d692c7ba4b9302768928b51eee38cf31a54db76cf72d43548b3" :a :impl/implements :v #blake3 "49022924757a06a6a38c62643ddc56220b79d5227ef675d9949ff68a954c4828" :op :assert}
+   {:e #blake3 "7450d4f1b75b4d692c7ba4b9302768928b51eee38cf31a54db76cf72d43548b3" :a :impl/module :v "braid_kernel::proposal" :op :assert}
+   {:e #blake3 "7450d4f1b75b4d692c7ba4b9302768928b51eee38cf31a54db76cf72d43548b3" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "7450d4f1b75b4d692c7ba4b9302768928b51eee38cf31a54db76cf72d43548b3" :a :impl/verification-evidence :v "Comment references INV-STORE-017 in braid-kernel/src/proposal.rs" :op :assert}
+   {:e #blake3 "74bbe2ad3458431113a59adf10dcbd36455b5f7afae542a7e88738266b535493" :a :db/ident :v :impl/braid.src.commands.mod.inv-store-017 :op :assert}
+   {:e #blake3 "74bbe2ad3458431113a59adf10dcbd36455b5f7afae542a7e88738266b535493" :a :impl/file :v "braid/src/commands/mod.rs" :op :assert}
+   {:e #blake3 "74bbe2ad3458431113a59adf10dcbd36455b5f7afae542a7e88738266b535493" :a :impl/implements :v #blake3 "49022924757a06a6a38c62643ddc56220b79d5227ef675d9949ff68a954c4828" :op :assert}
+   {:e #blake3 "74bbe2ad3458431113a59adf10dcbd36455b5f7afae542a7e88738266b535493" :a :impl/module :v "braid::commands" :op :assert}
+   {:e #blake3 "74bbe2ad3458431113a59adf10dcbd36455b5f7afae542a7e88738266b535493" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "74bbe2ad3458431113a59adf10dcbd36455b5f7afae542a7e88738266b535493" :a :impl/verification-evidence :v "Comment references INV-STORE-017 in braid/src/commands/mod.rs" :op :assert}
+   {:e #blake3 "89a6dc80ad4441ce318bf853a545313b8d9d44b4f106b2cb50283baf414fe095" :a :spec/witnessed :v true :op :assert}
+   {:e #blake3 "c69b1db31722ce84026d5f691a542375da5f1eea09b0b3686c8cc804eaa5ef13" :a :db/ident :v :impl/braid-kernel.src.topology.inv-topology-003 :op :assert}
+   {:e #blake3 "c69b1db31722ce84026d5f691a542375da5f1eea09b0b3686c8cc804eaa5ef13" :a :impl/file :v "braid-kernel/src/topology.rs" :op :assert}
+   {:e #blake3 "c69b1db31722ce84026d5f691a542375da5f1eea09b0b3686c8cc804eaa5ef13" :a :impl/implements :v #blake3 "a6032c08e6118459446f62b7290a00f5744aa1f2b219cfde504dd8b473d6362f" :op :assert}
+   {:e #blake3 "c69b1db31722ce84026d5f691a542375da5f1eea09b0b3686c8cc804eaa5ef13" :a :impl/module :v "braid_kernel::topology" :op :assert}
+   {:e #blake3 "c69b1db31722ce84026d5f691a542375da5f1eea09b0b3686c8cc804eaa5ef13" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "c69b1db31722ce84026d5f691a542375da5f1eea09b0b3686c8cc804eaa5ef13" :a :impl/verification-evidence :v "Comment references INV-TOPOLOGY-003 in braid-kernel/src/topology.rs" :op :assert}
+   {:e #blake3 "d65d3c512f9a12dca961dc9df6712cf85704af788af978931a4c7ffa6a26d498" :a :trace/last-scan-mtime :v 1774016552 :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774016470/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 7 candidates from task 'unsessioned harvest (7 txns since last harvest)'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :db/doc :v "Harvest session for task: unsessioned harvest (7 txns since last harvest)" :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :db/ident :v :harvest/session-braid-user-1774016470 :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/candidate-count :v 7 :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/codebase-snapshot :v "Codebase: 101193 LOC across 78 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (9238 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (4675 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4270 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (4201 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (3896 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (3356 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (3057 LOC)\n  ddis-braid/crates/braid-kernel/src/topology.rs (2958 LOC)" :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/context-metrics :v "{\"candidates\":7,\"k_eff_estimated\":\"0.93\",\"observations\":0,\"output_tokens_est\":66,\"tasks_closed\":1,\"tx_count\":7,\"wall_elapsed_s\":1079}" :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/delta-summary :v "+40 datoms, +7 entities" :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/git-summary :v "branch=main, 1 commits, 16 files (+548/-38)\n  5f3da93 SC-1 + SD-1 + SD-2 + ACP-AUDIT + VERIFY-FOOTER: final polish batch\nHot files:\n  ddis-braid/crates/braid/src/commands/trace.rs (183 lines changed)\n  ddis-braid/crates/braid/src/commands/status.rs (171 lines changed)\n  ddis-braid/crates/braid/src/commands/task.rs (80 lines changed)\n  ddis-braid/.braid/txns/3c/3c5dd0e55d841a9243ac4b13696d6141a8f3b299c7652f9d357a0fc8e7f11e1d.edn (31 lines changed)\n  ddis-braid/.braid/txns/c5/c535b3c33294786fadd7737f95c184c84c724121e5777ba81618f572c5364914.edn (22 lines changed)\n  ddis-braid/crates/braid/src/commands/seed.rs (12 lines changed)\n  ddis-braid/.braid/txns/39/3973d9a394c8caf3e87b42efca6b5a81f7fa791aceca0d3eeb0713e3600a4a69.edn (11 lines changed)\n  ddis-braid/.braid/txns/4b/4b849d467137409a4c75d66a56d9573ed94e53f475a06984e21c2c3ba50054c6.edn (11 lines changed)" :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/recommended-tasks :v "t-57c4333f,t-ff6a4143,t-ae46a5c4" :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/store-datom-count :v 25605 :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/store-entity-count :v 3192 :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/task :v "unsessioned harvest (7 txns since last harvest)" :op :assert}
+   {:e #blake3 "a6b46dc6f12186e3629b5bdc26ad45499660b963a9284033da2553695c04e93d" :a :harvest/tx-since-last :v 7 :op :assert}
+ ]}

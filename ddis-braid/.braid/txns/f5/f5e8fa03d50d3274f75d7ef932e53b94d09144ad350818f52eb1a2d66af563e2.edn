@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016501/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-harvest-100 for 100% coverage"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "084958ce31df9c7c42b2d067b08e272628cf10f8c39c7eeb152feef35f8a127c" :a :db/doc :v "Harvest Session Boundary" :op :assert}
+   {:e #blake3 "084958ce31df9c7c42b2d067b08e272628cf10f8c39c7eeb152feef35f8a127c" :a :db/ident :v :spec/inv-harvest-100 :op :assert}
+   {:e #blake3 "084958ce31df9c7c42b2d067b08e272628cf10f8c39c7eeb152feef35f8a127c" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016498/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-compiler-003 for 100% coverage"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cf6e18794a3d40869c4b61e63d7894ad04a4eae7e90f406e5a58414f9ce5fd83" :a :db/doc :v "Proptest Emission Correctness" :op :assert}
+   {:e #blake3 "cf6e18794a3d40869c4b61e63d7894ad04a4eae7e90f406e5a58414f9ce5fd83" :a :db/ident :v :spec/inv-compiler-003 :op :assert}
+   {:e #blake3 "cf6e18794a3d40869c4b61e63d7894ad04a4eae7e90f406e5a58414f9ce5fd83" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

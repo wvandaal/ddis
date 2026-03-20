@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016502/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-init-001 for 100% coverage"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "95678b45cb5d40c8c69a2cc28b6002c43d41d07bdcef0c67d3bb5f6cfc37d343" :a :db/doc :v "Store Initialization Idempotency" :op :assert}
+   {:e #blake3 "95678b45cb5d40c8c69a2cc28b6002c43d41d07bdcef0c67d3bb5f6cfc37d343" :a :db/ident :v :spec/inv-init-001 :op :assert}
+   {:e #blake3 "95678b45cb5d40c8c69a2cc28b6002c43d41d07bdcef0c67d3bb5f6cfc37d343" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

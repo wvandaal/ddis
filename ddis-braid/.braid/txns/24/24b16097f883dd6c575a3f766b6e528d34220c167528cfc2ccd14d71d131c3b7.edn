@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016550/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-trace-003"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "89a6dc80ad4441ce318bf853a545313b8d9d44b4f106b2cb50283baf414fe095" :a :db/doc :v "Trace Staleness Detection" :op :assert}
+   {:e #blake3 "89a6dc80ad4441ce318bf853a545313b8d9d44b4f106b2cb50283baf414fe095" :a :db/ident :v :spec/inv-trace-003 :op :assert}
+   {:e #blake3 "89a6dc80ad4441ce318bf853a545313b8d9d44b4f106b2cb50283baf414fe095" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

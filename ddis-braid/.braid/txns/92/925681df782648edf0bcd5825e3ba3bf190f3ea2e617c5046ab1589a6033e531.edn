@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016500/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-depth-001 for 100% coverage"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "477ed1c324013ba084d0846dc2b7cc124cfff2324d3c180e4c56256bb1810bd1" :a :db/doc :v "Verification Depth Classification" :op :assert}
+   {:e #blake3 "477ed1c324013ba084d0846dc2b7cc124cfff2324d3c180e4c56256bb1810bd1" :a :db/ident :v :spec/inv-depth-001 :op :assert}
+   {:e #blake3 "477ed1c324013ba084d0846dc2b7cc124cfff2324d3c180e4c56256bb1810bd1" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

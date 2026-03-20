@@ -515,12 +515,13 @@ fn module_from_path(relative: &str) -> String {
 
 /// Whether trace data is fresh or stale relative to source file mtimes.
 #[derive(Clone, Debug, PartialEq, Eq)]
-#[allow(dead_code)]
 pub enum TraceStaleStatus {
     /// All .rs files have mtimes <= the last scan timestamp.
-    Fresh,
-    /// `count` .rs files have mtimes > the last scan timestamp.
-    Stale(usize),
+    /// `total` is the number of .rs files scanned.
+    Fresh { total: usize },
+    /// `stale` .rs files have mtimes > the last scan timestamp.
+    /// `total` is the number of .rs files scanned.
+    Stale { stale: usize, total: usize },
 }
 
 /// The well-known entity ident for the trace scan clock.
@@ -532,7 +533,6 @@ const TRACE_CLOCK_IDENT: &str = ":system/trace-clock";
 /// Returns `Stale(n)` if `n` files have been modified since the last scan,
 /// or `Fresh` if no files are newer. If no scan timestamp exists in the store,
 /// all files are considered stale.
-#[allow(dead_code)]
 pub fn check_staleness(store: &Store, source_root: &Path) -> TraceStaleStatus {
     let clock_entity = EntityId::from_ident(TRACE_CLOCK_IDENT);
     let mtime_attr = Attribute::from_keyword(":trace/last-scan-mtime");
@@ -553,15 +553,20 @@ pub fn check_staleness(store: &Store, source_root: &Path) -> TraceStaleStatus {
         // No scan timestamp recorded yet — everything is stale.
         None => {
             let files = find_rust_files(source_root);
-            return if files.is_empty() {
-                TraceStaleStatus::Fresh
+            let total = files.len();
+            return if total == 0 {
+                TraceStaleStatus::Fresh { total: 0 }
             } else {
-                TraceStaleStatus::Stale(files.len())
+                TraceStaleStatus::Stale {
+                    stale: total,
+                    total,
+                }
             };
         }
     };
 
     let files = find_rust_files(source_root);
+    let total = files.len();
     let mut stale_count = 0usize;
 
     for (abs_path, _relative) in &files {
@@ -579,9 +584,12 @@ pub fn check_staleness(store: &Store, source_root: &Path) -> TraceStaleStatus {
     }
 
     if stale_count > 0 {
-        TraceStaleStatus::Stale(stale_count)
+        TraceStaleStatus::Stale {
+            stale: stale_count,
+            total,
+        }
     } else {
-        TraceStaleStatus::Fresh
+        TraceStaleStatus::Fresh { total }
     }
 }
 
@@ -1271,8 +1279,11 @@ mod tests {
             .unwrap();
         let status = check_staleness(&store, source);
         match status {
-            TraceStaleStatus::Stale(n) => assert!(n > 0, "should report >0 stale files"),
-            TraceStaleStatus::Fresh => panic!("expected Stale, got Fresh"),
+            TraceStaleStatus::Stale { stale, total } => {
+                assert!(stale > 0, "should report >0 stale files");
+                assert!(total >= stale, "total >= stale");
+            }
+            TraceStaleStatus::Fresh { .. } => panic!("expected Stale, got Fresh"),
         }
     }
 
@@ -1283,7 +1294,7 @@ mod tests {
         let tmp = std::env::temp_dir().join("braid-trace-test-empty");
         let _ = std::fs::create_dir_all(&tmp);
         let status = check_staleness(&store, &tmp);
-        assert_eq!(status, TraceStaleStatus::Fresh);
+        assert_eq!(status, TraceStaleStatus::Fresh { total: 0 });
     }
 
     #[test]
@@ -1311,6 +1322,11 @@ mod tests {
             .parent()
             .unwrap();
         let status = check_staleness(&store, source);
-        assert_eq!(status, TraceStaleStatus::Fresh);
+        match status {
+            TraceStaleStatus::Fresh { total } => {
+                assert!(total > 0, "crates/ should have .rs files");
+            }
+            TraceStaleStatus::Stale { .. } => panic!("expected Fresh, got Stale"),
+        }
     }
 }

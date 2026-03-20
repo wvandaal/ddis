@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016552/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-output-003"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c2546bf78682a00b7788ce1030834e16493c07c87f0c29ed97d42f915d388cf1" :a :db/doc :v "JSON Output Structure" :op :assert}
+   {:e #blake3 "c2546bf78682a00b7788ce1030834e16493c07c87f0c29ed97d42f915d388cf1" :a :db/ident :v :spec/inv-output-003 :op :assert}
+   {:e #blake3 "c2546bf78682a00b7788ce1030834e16493c07c87f0c29ed97d42f915d388cf1" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

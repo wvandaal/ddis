@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016503/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-orientation-001 for 100% coverage"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "45e6da687d57d46489f6e799facf4a0b17edbd68c799fc6b17681869a5fe7495" :a :db/doc :v "Orientation Context Assembly" :op :assert}
+   {:e #blake3 "45e6da687d57d46489f6e799facf4a0b17edbd68c799fc6b17681869a5fe7495" :a :db/ident :v :spec/inv-orientation-001 :op :assert}
+   {:e #blake3 "45e6da687d57d46489f6e799facf4a0b17edbd68c799fc6b17681869a5fe7495" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

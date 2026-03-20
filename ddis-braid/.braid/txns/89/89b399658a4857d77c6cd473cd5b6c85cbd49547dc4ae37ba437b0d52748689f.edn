@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016496/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-compiler-001 for 100% coverage"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f67955616d84b0dfec703de85386d007f74c2cbf7eca65d1d532beee4a6a13b1" :a :db/doc :v "Pattern Detection Completeness" :op :assert}
+   {:e #blake3 "f67955616d84b0dfec703de85386d007f74c2cbf7eca65d1d532beee4a6a13b1" :a :db/ident :v :spec/inv-compiler-001 :op :assert}
+   {:e #blake3 "f67955616d84b0dfec703de85386d007f74c2cbf7eca65d1d532beee4a6a13b1" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

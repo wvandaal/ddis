@@ -29,6 +29,39 @@ use crate::error::BraidError;
 use crate::layout::DiskLayout;
 use crate::output::{AgentOutput, CommandOutput};
 
+use super::trace::{check_staleness, TraceStaleStatus};
+
+/// Compute trace staleness for the project.
+///
+/// `path` is the `.braid` directory. The source root is `path/../crates/`.
+fn trace_staleness(store: &braid_kernel::Store, path: &Path) -> TraceStaleStatus {
+    let source_root = path.parent().unwrap_or(path).join("crates");
+    check_staleness(store, &source_root)
+}
+
+/// Format trace staleness for human-readable output (one line, newline-terminated).
+fn format_trace_line(status: &TraceStaleStatus) -> String {
+    match status {
+        TraceStaleStatus::Fresh { total } => {
+            format!("trace: fresh ({} files scanned)\n", total)
+        }
+        TraceStaleStatus::Stale { stale, .. } => {
+            format!(
+                "trace: stale ({} files modified since last scan) \u{2014} run: braid trace --commit\n",
+                stale
+            )
+        }
+    }
+}
+
+/// Convert trace staleness to a JSON value.
+fn trace_staleness_json(status: &TraceStaleStatus) -> serde_json::Value {
+    match status {
+        TraceStaleStatus::Fresh { .. } => serde_json::json!("fresh"),
+        TraceStaleStatus::Stale { stale, .. } => serde_json::json!({ "stale": stale }),
+    }
+}
+
 /// Run status and return structured CommandOutput (INV-INTERFACE-001: three output modes).
 #[allow(clippy::too_many_arguments)]
 pub fn run(
@@ -386,6 +419,25 @@ pub fn build_status_projection(
         tokens: 10,
     });
 
+    // 5b. Trace staleness (Methodology, SC-2)
+    let ts = trace_staleness(store, path);
+    let trace_content = match &ts {
+        TraceStaleStatus::Fresh { total } => {
+            format!("trace: fresh ({} files scanned)", total)
+        }
+        TraceStaleStatus::Stale { stale, .. } => {
+            format!(
+                "trace: stale ({} files modified since last scan) \u{2014} run: braid trace --commit",
+                stale
+            )
+        }
+    };
+    context.push(ContextBlock {
+        precedence: OutputPrecedence::Methodology,
+        content: trace_content,
+        tokens: 12,
+    });
+
     // 6. Methodology gaps with activity-mode suppression (T6-1, Speculative)
     let raw_gaps = methodology_gaps(store);
     let mode = detect_activity_mode(&telemetry);
@@ -528,6 +580,10 @@ fn build_terse(
         tx_since_harvest, harvest_tag,
     ));
 
+    // Trace staleness (SC-2)
+    let ts = trace_staleness(store, path);
+    out.push_str(&format_trace_line(&ts));
+
     // Task summary (D4.1: INV-INTERFACE-011)
     let (open, in_progress, closed) = braid_kernel::task_counts(store);
     let total = open + in_progress + closed;
@@ -658,9 +714,16 @@ fn build_agent(
         hashes.len(),
     );
 
-    // Content: coherence + F(S) + methodology + harvest + tasks
+    // Trace staleness (SC-2)
+    let ts = trace_staleness(store, path);
+    let trace_agent = match &ts {
+        TraceStaleStatus::Fresh { total } => format!("trace: fresh ({})", total),
+        TraceStaleStatus::Stale { stale, .. } => format!("trace: stale ({})", stale),
+    };
+
+    // Content: coherence + F(S) + methodology + harvest + trace + tasks
     let mut content = format!(
-        "coherence: F(S)={:.2}{} Phi={:.1} B1={} {:?} | M(t)={:.2} {}{}\nharvest: {} tx since last ({})",
+        "coherence: F(S)={:.2}{} Phi={:.1} B1={} {:?} | M(t)={:.2} {}{}\nharvest: {} tx since last ({}) | {}",
         fitness.total,
         fitness_delta_str,
         coherence.phi,
@@ -671,6 +734,7 @@ fn build_agent(
         session_age_str,
         tx_since_harvest,
         harvest_status,
+        trace_agent,
     );
 
     let (open, in_progress, _closed) = braid_kernel::task_counts(store);
@@ -916,6 +980,10 @@ fn build_verbose(
         tx_since_harvest, harvest_warning
     ));
 
+    // Trace staleness (SC-2)
+    let ts = trace_staleness(store, path);
+    out.push_str(&format_trace_line(&ts));
+
     // Methodology gaps with activity-mode suppression (T6-1, INV-GUIDANCE-021)
     let raw_gaps = methodology_gaps(store);
     let mode = detect_activity_mode(&telemetry);
@@ -1138,6 +1206,10 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
         "agent": agent_name,
         "actions": actions_json,
     });
+
+    // Trace staleness (SC-2)
+    let ts = trace_staleness(store, path);
+    result["trace_status"] = trace_staleness_json(&ts);
 
     // Methodology gaps with activity-mode suppression (T6-1, INV-GUIDANCE-021)
     let raw_gaps = methodology_gaps(store);

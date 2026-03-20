@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016549/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize inv-topology-006"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "232dc6914443273cdc31f2440ad670f5494b6b9e8ddcaeb54d1c7c953a4a639b" :a :db/doc :v "CALM Classification Correctness" :op :assert}
+   {:e #blake3 "232dc6914443273cdc31f2440ad670f5494b6b9e8ddcaeb54d1c7c953a4a639b" :a :db/ident :v :spec/inv-topology-006 :op :assert}
+   {:e #blake3 "232dc6914443273cdc31f2440ad670f5494b6b9e8ddcaeb54d1c7c953a4a639b" :a :spec/element-type :v :spec.type/invariant :op :assert}
+ ]}

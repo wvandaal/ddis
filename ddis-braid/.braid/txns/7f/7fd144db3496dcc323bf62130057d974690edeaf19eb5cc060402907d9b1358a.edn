@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774016495/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Crystallize adr-store-022 for 100% coverage"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "11fff8759e2694895b1bf1a8d068b1a4919fe912b7b8c0c43dcff206a253c8ba" :a :db/doc :v "Canonical EDN Serialization Format" :op :assert}
+   {:e #blake3 "11fff8759e2694895b1bf1a8d068b1a4919fe912b7b8c0c43dcff206a253c8ba" :a :db/ident :v :spec/adr-store-022 :op :assert}
+   {:e #blake3 "11fff8759e2694895b1bf1a8d068b1a4919fe912b7b8c0c43dcff206a253c8ba" :a :spec/element-type :v :spec.type/adr :op :assert}
+ ]}
