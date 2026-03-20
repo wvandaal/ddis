@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774037955/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-2b953edf"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2bc8798e0e2f30230fc0a428db4552445fab88d25087f89c6634135b68df0d45" :a :task/close-reason :v "4 :recon/* schema attrs. Trace producer in main.rs for knowledge-producing commands only. spec_graph_neighbors wired." :op :assert}
+   {:e #blake3 "2bc8798e0e2f30230fc0a428db4552445fab88d25087f89c6634135b68df0d45" :a :task/closed-at :v 1774037954 :op :assert}
+   {:e #blake3 "2bc8798e0e2f30230fc0a428db4552445fab88d25087f89c6634135b68df0d45" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "2bc8798e0e2f30230fc0a428db4552445fab88d25087f89c6634135b68df0d45" :a :task/status :v :task.status/closed :op :assert}
+ ]}

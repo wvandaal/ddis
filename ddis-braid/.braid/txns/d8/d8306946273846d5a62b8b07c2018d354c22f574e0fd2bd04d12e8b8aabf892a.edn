@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774037948/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7286ed7d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4524f16878dcf54d035c1dc90699eddb8e64a4238bf521f452214017aba9daa7" :a :task/close-reason :v "12 namespace activations in build_orientation. 4 tests: topology, witness, generic, deduplication." :op :assert}
+   {:e #blake3 "4524f16878dcf54d035c1dc90699eddb8e64a4238bf521f452214017aba9daa7" :a :task/closed-at :v 1774037947 :op :assert}
+   {:e #blake3 "4524f16878dcf54d035c1dc90699eddb8e64a4238bf521f452214017aba9daa7" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "4524f16878dcf54d035c1dc90699eddb8e64a4238bf521f452214017aba9daa7" :a :task/status :v :task.status/closed :op :assert}
+ ]}

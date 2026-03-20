@@ -1218,23 +1218,55 @@ fn discover_constraints(store: &Store, task_keywords: &[String]) -> Vec<Constrai
         }
     }
 
-    // Sort by relevance: observation-referenced specs get highest boost,
-    // then task-keyword matching, then alphabetical tiebreaker
+    // CTP-2: Use spec_graph_neighbors for structural relevance scoring.
+    // Parse spec refs from task keywords to find graph-connected constraints.
+    let task_text = task_keywords.join(" ");
+    let spec_refs = crate::task::parse_spec_refs(&task_text);
+    let graph_neighbors = if !spec_refs.is_empty() {
+        crate::guidance::spec_graph_neighbors(store, &spec_refs)
+    } else {
+        Vec::new()
+    };
+
+    // Build a set of structurally-relevant spec IDs from graph neighbors
+    let graph_relevant: BTreeMap<String, f64> = graph_neighbors
+        .iter()
+        .filter_map(|(entity, score)| {
+            // Resolve entity ident
+            store
+                .entity_datoms(*entity)
+                .iter()
+                .find(|d| d.attribute.as_str() == ":db/ident" && d.op == Op::Assert)
+                .and_then(|d| match &d.value {
+                    Value::Keyword(k) => {
+                        let id = k.strip_prefix(":spec/").unwrap_or(k).to_uppercase();
+                        Some((id, *score))
+                    }
+                    _ => None,
+                })
+        })
+        .collect();
+
+    // Sort by relevance: L∞ norm — max(observation_boost, keyword_score, graph_score).
+    // This ensures a strong signal in ANY dimension surfaces the constraint.
     constraints.sort_by(|a, b| {
-        let obs_a = if obs_referenced_specs.contains(&a.id) {
+        let obs_a: f64 = if obs_referenced_specs.contains(&a.id) {
             1.0
         } else {
             0.0
         };
-        let obs_b = if obs_referenced_specs.contains(&b.id) {
+        let obs_b: f64 = if obs_referenced_specs.contains(&b.id) {
             1.0
         } else {
             0.0
         };
         let kw_a = keyword_relevance_score(&format!("{} {}", a.id, a.summary), task_keywords);
         let kw_b = keyword_relevance_score(&format!("{} {}", b.id, b.summary), task_keywords);
-        let score_a = obs_a + kw_a;
-        let score_b = obs_b + kw_b;
+        let graph_a = graph_relevant.get(&a.id).copied().unwrap_or(0.0);
+        let graph_b = graph_relevant.get(&b.id).copied().unwrap_or(0.0);
+        // L∞ norm: max of all dimensions
+        let score_a = obs_a.max(kw_a).max(graph_a);
+        let score_b = obs_b.max(kw_b).max(graph_b);
         score_b
             .partial_cmp(&score_a)
             .unwrap_or(std::cmp::Ordering::Equal)

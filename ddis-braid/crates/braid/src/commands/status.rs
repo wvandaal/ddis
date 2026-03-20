@@ -457,6 +457,12 @@ pub fn build_status_projection(
         if ag.adjusted.stale_witnesses > 0 {
             gap_parts.push(format!("{} stale witnesses", ag.adjusted.stale_witnesses));
         }
+        for cs in &ag.adjusted.concentration {
+            gap_parts.push(format!(
+                "concentration: {} traces in {} \u{2014} review related tasks",
+                cs.trace_count, cs.neighborhood
+            ));
+        }
         context.push(ContextBlock {
             precedence: OutputPrecedence::Speculative,
             content: format!(
@@ -635,6 +641,12 @@ fn build_terse(
                 ag.adjusted.stale_witnesses, ag.raw.stale_witnesses
             ));
         }
+        for cs in &ag.adjusted.concentration {
+            out.push_str(&format!(
+                "  concentration: {} traces in {} \u{2014} review related tasks\n",
+                cs.trace_count, cs.neighborhood
+            ));
+        }
     }
 
     // Top action with copy-pasteable command
@@ -771,6 +783,9 @@ fn build_agent(
         }
         if ag.adjusted.stale_witnesses > 0 {
             content.push_str(&format!(" (stale:{})", ag.adjusted.stale_witnesses));
+        }
+        for cs in &ag.adjusted.concentration {
+            content.push_str(&format!(" (conc:{}/{})", cs.trace_count, cs.neighborhood));
         }
     }
 
@@ -1021,6 +1036,12 @@ fn build_verbose(
                 ag.adjusted.stale_witnesses, ag.raw.stale_witnesses
             ));
         }
+        for cs in &ag.adjusted.concentration {
+            out.push_str(&format!(
+                "  concentration: {} traces in {} \u{2014} review related tasks\n",
+                cs.trace_count, cs.neighborhood
+            ));
+        }
     }
 
     // Frontier
@@ -1218,6 +1239,18 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
     let mode = detect_activity_mode(&telemetry);
     let ag = adjust_gaps(raw_gaps, mode);
     if !ag.raw.is_empty() {
+        let concentration_json: Vec<serde_json::Value> = ag
+            .adjusted
+            .concentration
+            .iter()
+            .map(|cs| {
+                serde_json::json!({
+                    "neighborhood": cs.neighborhood,
+                    "trace_count": cs.trace_count,
+                    "suggestion": cs.suggestion,
+                })
+            })
+            .collect();
         result["methodology_gaps"] = serde_json::json!({
             "activity_mode": ag.mode_label(),
             "raw_gaps": {
@@ -1225,6 +1258,7 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
                 "unanchored": ag.raw.unanchored,
                 "untested": ag.raw.untested,
                 "stale_witnesses": ag.raw.stale_witnesses,
+                "concentration": ag.raw.concentration.len(),
                 "total": ag.raw.total(),
             },
             "adjusted_gaps": {
@@ -1232,6 +1266,7 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
                 "unanchored": ag.adjusted.unanchored,
                 "untested": ag.adjusted.untested,
                 "stale_witnesses": ag.adjusted.stale_witnesses,
+                "concentration": concentration_json,
                 "total": ag.total(),
             },
         });

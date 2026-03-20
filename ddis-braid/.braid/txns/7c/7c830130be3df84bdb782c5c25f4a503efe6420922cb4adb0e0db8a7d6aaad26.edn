@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774037938/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-41696627"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6778a9b41f2e6124dc391e437295d7532de85c4beff0e465a01002e720baec4e" :a :task/close-reason :v "19/19 E2E TSV checks pass. short_title in JSON. scripts/e2e_tsv_output.sh validates all TSV output." :op :assert}
+   {:e #blake3 "6778a9b41f2e6124dc391e437295d7532de85c4beff0e465a01002e720baec4e" :a :task/closed-at :v 1774037937 :op :assert}
+   {:e #blake3 "6778a9b41f2e6124dc391e437295d7532de85c4beff0e465a01002e720baec4e" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "6778a9b41f2e6124dc391e437295d7532de85c4beff0e465a01002e720baec4e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

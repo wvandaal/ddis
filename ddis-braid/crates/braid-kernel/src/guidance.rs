@@ -3149,6 +3149,61 @@ pub fn orphaned_decisions(store: &Store) -> Vec<(EntityId, String)> {
 // Methodology Gap Dashboard (INV-GUIDANCE-021)
 // ---------------------------------------------------------------------------
 
+/// Concentration signal: a spec neighborhood with repeated recent activity.
+///
+/// Fired by `spec_neighborhood_concentration` when a single namespace accumulates
+/// 3+ `:recon/trace-neighborhood` datoms within the recent window, suggesting the
+/// agent is circling an area without making forward progress.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ConcentrationSignal {
+    /// Spec namespace (e.g., "INTERFACE", "TOPOLOGY").
+    pub neighborhood: String,
+    /// Number of recent traces in this neighborhood.
+    pub trace_count: usize,
+    /// Suggestion for the agent.
+    pub suggestion: String,
+}
+
+/// Detect spec-neighborhood concentration from recent `:recon/trace` datoms.
+///
+/// Scans `:recon/trace-neighborhood` datoms, groups by neighborhood, fires a
+/// signal for any neighborhood with 3+ traces in the recent `window`.
+pub fn spec_neighborhood_concentration(store: &Store, window: usize) -> Vec<ConcentrationSignal> {
+    let attr = Attribute::from_keyword(":recon/trace-neighborhood");
+    let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+
+    // Scan recent trace neighborhoods
+    let all_datoms: Vec<_> = store
+        .attribute_datoms(&attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .cloned()
+        .collect();
+
+    // Take only the most recent `window` traces
+    let recent = if all_datoms.len() > window {
+        &all_datoms[all_datoms.len() - window..]
+    } else {
+        &all_datoms
+    };
+
+    for d in recent {
+        if let Value::String(ns) = &d.value {
+            *counts.entry(ns.clone()).or_insert(0) += 1;
+        }
+    }
+
+    counts
+        .into_iter()
+        .filter(|(_, count)| *count >= 3)
+        .map(|(ns, count)| ConcentrationSignal {
+            suggestion: format!("Review: braid task search INV-{ns}"),
+            neighborhood: ns,
+            trace_count: count,
+        })
+        .collect()
+}
+
 /// Aggregated methodology gap counts for the status dashboard (INV-GUIDANCE-021).
 ///
 /// Each field counts a distinct gap type. The `total()` method sums all gaps.
@@ -3166,12 +3221,18 @@ pub struct MethodologyGaps {
     pub untested: u32,
     /// Formally-backed witnesses invalidated by subsequent changes (INV-WITNESS-011).
     pub stale_witnesses: u32,
+    /// Spec neighborhoods with concentrated recent activity (AR-4).
+    pub concentration: Vec<ConcentrationSignal>,
 }
 
 impl MethodologyGaps {
     /// Total gap count across all categories.
     pub fn total(&self) -> u32 {
-        self.crystallization + self.unanchored + self.untested + self.stale_witnesses
+        self.crystallization
+            + self.unanchored
+            + self.untested
+            + self.stale_witnesses
+            + self.concentration.len() as u32
     }
 
     /// Returns true when no gaps exist in any category.
@@ -3209,12 +3270,14 @@ pub fn methodology_gaps(store: &Store) -> MethodologyGaps {
     }
 
     let (untested_w, stale_w) = crate::witness::witness_gaps(store);
+    let concentration = spec_neighborhood_concentration(store, 20);
 
     MethodologyGaps {
         crystallization,
         unanchored,
         untested: untested_w,
         stale_witnesses: stale_w,
+        concentration,
     }
 }
 
@@ -3271,24 +3334,29 @@ impl AdjustedGaps {
 /// The kernel function `methodology_gaps()` is unchanged -- it returns raw truth.
 /// This is a **display-layer** transformation only.
 pub fn adjust_gaps(raw: MethodologyGaps, mode: ActivityMode) -> AdjustedGaps {
+    // Concentration signals pass through unsuppressed in all modes.
+    let concentration = raw.concentration.clone();
     let adjusted = match mode {
         ActivityMode::Implementation => MethodologyGaps {
             crystallization: scale_up(raw.crystallization, 0.1),
             unanchored: scale_up(raw.unanchored, 0.2),
             untested: raw.untested,
             stale_witnesses: raw.stale_witnesses,
+            concentration: concentration.clone(),
         },
         ActivityMode::Specification => MethodologyGaps {
             crystallization: raw.crystallization,
             unanchored: raw.unanchored,
             untested: scale_up(raw.untested, 0.3),
             stale_witnesses: raw.stale_witnesses,
+            concentration: concentration.clone(),
         },
         ActivityMode::Mixed => MethodologyGaps {
             crystallization: raw.crystallization,
             unanchored: raw.unanchored,
             untested: raw.untested,
             stale_witnesses: raw.stale_witnesses,
+            concentration,
         },
     };
     AdjustedGaps {
@@ -4125,6 +4193,12 @@ pub fn generate_methodology_section(store: &Store, k_eff: f64) -> String {
             out.push_str(&format!(
                 "- {} witnesses invalidated \u{2192} re-verify\n",
                 gaps.stale_witnesses
+            ));
+        }
+        for cs in &gaps.concentration {
+            out.push_str(&format!(
+                "- concentration: {} traces in {} \u{2014} {}\n",
+                cs.trace_count, cs.neighborhood, cs.suggestion
             ));
         }
         out.push('\n');
@@ -8343,6 +8417,7 @@ mod tests {
             unanchored: 0,
             untested: 0,
             stale_witnesses: 0,
+            ..Default::default()
         };
         assert_eq!(with_cryst.total(), 3);
         assert!(!with_cryst.is_empty());
@@ -8352,6 +8427,7 @@ mod tests {
             unanchored: 2,
             untested: 3,
             stale_witnesses: 4,
+            ..Default::default()
         };
         assert_eq!(mixed.total(), 10);
         assert!(!mixed.is_empty());
@@ -9238,6 +9314,7 @@ mod tests {
             unanchored: 24,
             untested: 5,
             stale_witnesses: 2,
+            ..Default::default()
         };
         let ag = adjust_gaps(raw, ActivityMode::Implementation);
 
@@ -9271,6 +9348,7 @@ mod tests {
             unanchored: 8,
             untested: 20,
             stale_witnesses: 3,
+            ..Default::default()
         };
         let ag = adjust_gaps(raw, ActivityMode::Specification);
 
@@ -9303,6 +9381,7 @@ mod tests {
             unanchored: 12,
             untested: 7,
             stale_witnesses: 4,
+            ..Default::default()
         };
         let ag = adjust_gaps(raw, ActivityMode::Mixed);
 
@@ -10291,5 +10370,146 @@ mod tests {
                 .map(|r| format!("{}:{}", r.source, r.human_id))
                 .collect::<Vec<_>>()
         );
+    }
+
+    // -------------------------------------------------------------------
+    // AR-4: Concentration detector (spec_neighborhood_concentration)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn concentration_empty_store() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let signals = spec_neighborhood_concentration(&store, 20);
+        assert!(
+            signals.is_empty(),
+            "empty store should produce no concentration signals"
+        );
+    }
+
+    #[test]
+    fn concentration_below_threshold() {
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // 2 traces in INTERFACE — below the threshold of 3
+        for i in 0..2 {
+            let tx = TxId::new(1000 + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":recon/trace-{i}")),
+                Attribute::from_keyword(":recon/trace-neighborhood"),
+                Value::String("INTERFACE".to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        let signals = spec_neighborhood_concentration(&store, 20);
+        assert!(
+            signals.is_empty(),
+            "2 traces in same namespace should not fire a signal"
+        );
+    }
+
+    #[test]
+    fn concentration_fires_at_three() {
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // 3 traces in INTERFACE — exactly at threshold
+        for i in 0..3 {
+            let tx = TxId::new(1000 + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":recon/trace-{i}")),
+                Attribute::from_keyword(":recon/trace-neighborhood"),
+                Value::String("INTERFACE".to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        let signals = spec_neighborhood_concentration(&store, 20);
+        assert_eq!(
+            signals.len(),
+            1,
+            "3 traces in same namespace should fire exactly 1 signal"
+        );
+        assert_eq!(signals[0].neighborhood, "INTERFACE");
+        assert_eq!(signals[0].trace_count, 3);
+        assert!(
+            signals[0].suggestion.contains("INV-INTERFACE"),
+            "suggestion should reference the namespace: {}",
+            signals[0].suggestion
+        );
+    }
+
+    #[test]
+    fn concentration_multiple_namespaces() {
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // 5 traces in INTERFACE
+        for i in 0..5 {
+            let tx = TxId::new(1000 + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":recon/trace-iface-{i}")),
+                Attribute::from_keyword(":recon/trace-neighborhood"),
+                Value::String("INTERFACE".to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        // 3 traces in TOPOLOGY
+        for i in 0..3 {
+            let tx = TxId::new(2000 + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":recon/trace-topo-{i}")),
+                Attribute::from_keyword(":recon/trace-neighborhood"),
+                Value::String("TOPOLOGY".to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        // 2 traces in STORE — below threshold
+        for i in 0..2 {
+            let tx = TxId::new(3000 + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":recon/trace-store-{i}")),
+                Attribute::from_keyword(":recon/trace-neighborhood"),
+                Value::String("STORE".to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        let signals = spec_neighborhood_concentration(&store, 20);
+        assert_eq!(
+            signals.len(),
+            2,
+            "should fire 2 signals (INTERFACE=5, TOPOLOGY=3), not STORE=2"
+        );
+
+        let neighborhoods: Vec<&str> = signals.iter().map(|s| s.neighborhood.as_str()).collect();
+        assert!(
+            neighborhoods.contains(&"INTERFACE"),
+            "should include INTERFACE"
+        );
+        assert!(
+            neighborhoods.contains(&"TOPOLOGY"),
+            "should include TOPOLOGY"
+        );
+
+        let iface = signals.iter().find(|s| s.neighborhood == "INTERFACE").unwrap();
+        assert_eq!(iface.trace_count, 5);
+
+        let topo = signals.iter().find(|s| s.neighborhood == "TOPOLOGY").unwrap();
+        assert_eq!(topo.trace_count, 3);
     }
 }
