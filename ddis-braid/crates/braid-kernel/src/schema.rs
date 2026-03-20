@@ -1979,6 +1979,12 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Number of conflicting values that were resolved",
         ),
+        attr(
+            ":resolution/rationale",
+            ValueType::String,
+            Cardinality::One,
+            "Human-readable explanation of why this resolution was chosen (INV-RESOLUTION-008 audit trail)",
+        ),
         // =================================================================
         // Witness (11) — falsification-bound witness system (spec/21-witness.md)
         // =================================================================
@@ -4219,6 +4225,74 @@ mod tests {
         assert!(
             ours.is_empty(),
             "INV-SCHEMA-004: retraction should resolve cardinality violation, got {} violations",
+            ours.len()
+        );
+    }
+
+    // Verifies: INV-RESOLUTION-* — :resolution/* attributes pass schema validation
+    #[test]
+    fn resolution_attributes_pass_schema_validation() {
+        use crate::datom::AgentId;
+
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+
+        let mut datoms = BTreeSet::new();
+        for d in genesis_datoms(tx) {
+            datoms.insert(d);
+        }
+        for d in full_schema_datoms(tx) {
+            datoms.insert(d);
+        }
+        let schema = Schema::from_datoms(&datoms);
+
+        // All :resolution/* attributes should be recognized by the schema
+        let resolution_attrs = [
+            ":resolution/entity",
+            ":resolution/attribute",
+            ":resolution/mode",
+            ":resolution/winner",
+            ":resolution/conflict-count",
+            ":resolution/rationale",
+        ];
+
+        for attr_name in &resolution_attrs {
+            let attr = Attribute::from_keyword(attr_name);
+            let def = schema.attrs.get(&attr);
+            assert!(
+                def.is_some(),
+                "Schema should recognize {attr_name} (from full_schema_datoms)"
+            );
+        }
+
+        // Transact a resolution record and verify schema validation passes
+        let resolution_entity = EntityId::from_ident(":resolution/test-record");
+        let tx2 = TxId::new(1, 0, agent);
+        let mut datoms2 = datoms.clone();
+        datoms2.insert(Datom::new(
+            resolution_entity,
+            Attribute::from_keyword(":resolution/mode"),
+            Value::Keyword(":resolution/lww".into()),
+            tx2,
+            Op::Assert,
+        ));
+        datoms2.insert(Datom::new(
+            resolution_entity,
+            Attribute::from_keyword(":resolution/conflict-count"),
+            Value::Long(2),
+            tx2,
+            Op::Assert,
+        ));
+
+        // Cardinality validation should pass (no violations for our resolution datoms)
+        let violations = validate_cardinality(&schema, &datoms2);
+        let ours: Vec<_> = violations
+            .iter()
+            .filter(|v| v.entity == resolution_entity)
+            .collect();
+        assert!(
+            ours.is_empty(),
+            "Resolution datoms should pass cardinality validation, got {} violations",
             ours.len()
         );
     }
