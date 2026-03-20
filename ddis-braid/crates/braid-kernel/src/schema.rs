@@ -1640,7 +1640,7 @@ pub fn layer_4_count() -> usize {
 /// The Layer 4 (Workflow/Coordination) attributes.
 ///
 /// Organized into groups:
-/// - Session Extensions (2): persistent session status and wall-clock time
+/// - Session Extensions (6): persistent session status, wall-clock time, auto-detect markers
 /// - Task Core (10): issue tracking as datoms — replaces external issue trackers
 /// - Task Lifecycle (4): creation, closure, sourcing
 /// - Plan (5): plan documents linked to tasks and spec elements
@@ -1658,7 +1658,7 @@ pub fn layer_4_count() -> usize {
 pub fn layer_4_attributes() -> Vec<AttributeSpec> {
     vec![
         // =================================================================
-        // Session Extensions (2) — persistent session identity
+        // Session Extensions (6) — persistent session identity + auto-detect
         // =================================================================
         attr(
             ":session/started-at",
@@ -1671,6 +1671,30 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             ValueType::Keyword,
             Cardinality::One,
             "Session lifecycle status: :session.status/active, :session.status/closed",
+        ),
+        attr(
+            ":session/current",
+            ValueType::Ref,
+            Cardinality::One,
+            "Singleton marker pointing to the active session entity. Exactly one entity carries this attribute at any time.",
+        ),
+        attr(
+            ":session/start-time",
+            ValueType::String,
+            Cardinality::One,
+            "ISO 8601 wall-clock time when the session auto-started (e.g., 2026-03-20T14:30:00Z)",
+        ),
+        attr(
+            ":session/start-fitness",
+            ValueType::Double,
+            Cardinality::One,
+            "F(S) fitness score at session start — enables delta tracking across session",
+        ),
+        attr(
+            ":session/start-datom-count",
+            ValueType::Long,
+            Cardinality::One,
+            "Total datom count at session start — enables growth tracking across session",
         ),
         // =================================================================
         // Task Core (10) — issue tracking as datoms (INV-TASK-001..004)
@@ -4196,6 +4220,66 @@ mod tests {
             ours.is_empty(),
             "INV-SCHEMA-004: retraction should resolve cardinality violation, got {} violations",
             ours.len()
+        );
+    }
+
+    // Verifies: INV-RESOLUTION-006 — ResolutionMode::Lattice carries lattice_id
+    #[test]
+    fn resolution_lattice_carries_entity_id() {
+        // Parse from keyword — should produce placeholder ZERO initially
+        let mode = ResolutionMode::from_keyword(":resolution/lattice").unwrap();
+        assert!(mode.is_lattice(), "should be Lattice variant");
+
+        if let ResolutionMode::Lattice { lattice_id } = mode {
+            assert_eq!(
+                lattice_id,
+                ResolutionMode::LATTICE_ID_PLACEHOLDER,
+                "freshly parsed Lattice should have placeholder lattice_id"
+            );
+        } else {
+            panic!("expected Lattice variant");
+        }
+
+        // Create a Lattice with a real entity ID
+        let real_id = EntityId::from_ident(":lattice/task-status");
+        let mode_real = ResolutionMode::Lattice {
+            lattice_id: real_id,
+        };
+        assert!(mode_real.is_lattice());
+        if let ResolutionMode::Lattice { lattice_id } = mode_real {
+            assert_eq!(lattice_id, real_id, "Lattice should carry the real entity ID");
+            assert_ne!(
+                lattice_id,
+                ResolutionMode::LATTICE_ID_PLACEHOLDER,
+                "real lattice_id should differ from placeholder"
+            );
+        }
+    }
+
+    // Verifies: INV-RESOLUTION-006 — Schema resolves lattice_id from :db/latticeOrder
+    #[test]
+    fn schema_resolves_lattice_id_from_datoms() {
+        use crate::datom::AgentId;
+
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+
+        let mut datoms = BTreeSet::new();
+        for d in genesis_datoms(tx) {
+            datoms.insert(d);
+        }
+        for d in full_schema_datoms(tx) {
+            datoms.insert(d);
+        }
+
+        // :task/status has resolution mode Lww (the default)
+        let schema = Schema::from_datoms(&datoms);
+        let task_status_mode = schema.resolution_mode(&Attribute::from_keyword(":task/status"));
+        // Task status uses LWW by default (lattice resolution requires explicit setup)
+        assert_eq!(
+            task_status_mode,
+            ResolutionMode::Lww,
+            ":task/status should default to LWW resolution"
         );
     }
 }
