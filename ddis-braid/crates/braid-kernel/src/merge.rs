@@ -39,6 +39,7 @@ use std::collections::{BTreeSet, HashMap};
 use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::resolution::{has_conflict, ConflictSet};
 use crate::store::{Frontier, MergeReceipt, Store};
+use crate::trilateral::{classify_attribute, AttrNamespace};
 
 // ---------------------------------------------------------------------------
 // CascadeReceipt
@@ -65,6 +66,16 @@ pub struct CascadeReceipt {
     /// Number of cascade steps completed (1-5). At Stage 0, always 1
     /// (step 1 real, steps 2-5 are stubs).
     pub steps_completed: u8,
+    /// Whether any schema-affecting datoms were in the merged set (step 2).
+    /// True if any merged datom has attribute :db/valueType or :db/cardinality.
+    pub schema_affected: bool,
+    /// Entities with conflicting (entity, attribute) pairs (step 3).
+    /// Deduplicated set of entity IDs that appear in at least one conflict.
+    pub conflicted_entities: Vec<EntityId>,
+    /// LIVE projection entities whose source entities changed (step 4).
+    /// These entities belong to an Intent/Spec/Impl LIVE view and had new
+    /// datoms introduced by the merge, so their projections may be stale.
+    pub stale_live_views: Vec<EntityId>,
 }
 
 /// Merge two stores, returning a new store and a detailed receipt.
@@ -335,6 +346,121 @@ pub fn run_cascade(store: &Store, receipt: &MergeReceipt, tx: TxId) -> CascadeRe
         conflicts,
         stub_datoms,
         steps_completed: 1,
+        schema_affected: false,
+        conflicted_entities: Vec::new(),
+        stale_live_views: Vec::new(),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Schema-affecting attribute constants
+// ---------------------------------------------------------------------------
+
+/// Attributes whose presence in merged datoms indicates a schema structural change.
+/// If any merged datom carries one of these attributes, the schema view
+/// must be rebuilt (cascade step 2, INV-MERGE-009).
+///
+/// Note: `:db/ident` is intentionally excluded. It is used for entity naming
+/// (including agent entities auto-created by `transact`), not just schema
+/// definition. Only attributes that define type, cardinality, uniqueness, or
+/// resolution semantics trigger a schema rebuild.
+const SCHEMA_AFFECTING_ATTRS: &[&str] = &[
+    ":db/valueType",
+    ":db/cardinality",
+    ":db/unique",
+    ":db/resolutionMode",
+];
+
+/// Check whether a datom's attribute is schema-affecting.
+fn is_schema_affecting(attr: &Attribute) -> bool {
+    SCHEMA_AFFECTING_ATTRS.contains(&attr.as_str())
+}
+
+// ---------------------------------------------------------------------------
+// cascade_full — Stage 1 real cascade (INV-MERGE-009)
+// ---------------------------------------------------------------------------
+
+/// Run the full post-merge cascade with real logic for all four steps.
+///
+/// Unlike `run_cascade` (Stage 0, step 1 real + stub datoms for steps 2-5),
+/// `cascade_full` performs real work for all steps:
+///
+/// 1. **Conflict detection** — scan for (entity, attribute) pairs with conflicting
+///    assertions under their resolution mode.
+/// 2. **Schema rebuild detection** — check whether any merged datom carries a
+///    schema-affecting attribute (`:db/valueType`, `:db/cardinality`, `:db/unique`,
+///    `:db/resolutionMode`). If so, the schema view is stale and callers must
+///    rebuild it.
+/// 3. **Resolution recompute** — collect the deduplicated set of entity IDs that
+///    appear in at least one conflict. These entities need resolution recomputation
+///    at the query layer.
+/// 4. **LIVE invalidation** — identify entities from `merged_datoms` that belong
+///    to an Intent, Spec, or Impl LIVE projection (INV-TRILATERAL-001). These
+///    entities' projections are stale and must be refreshed.
+///
+/// The function also generates stub datoms for the audit trail (ADR-MERGE-007),
+/// preserving backward compatibility with the cascade provenance chain.
+///
+/// # Arguments
+///
+/// * `store` - The post-merge store (already contains datoms from both sides)
+/// * `receipt` - The merge receipt from the just-completed set-union merge
+/// * `merged_datoms` - The specific datoms introduced by the merge (the delta)
+/// * `tx` - The transaction ID for cascade provenance
+///
+/// # Invariants
+///
+/// - **INV-MERGE-009**: Cascade: schema rebuild -> resolution recompute -> LIVE invalidation.
+/// - **INV-MERGE-010**: MergeReceipt captures new datom count and conflict set.
+/// - **ADR-MERGE-005**: Cascade as post-merge deterministic layer.
+/// - **INV-TRILATERAL-001**: LIVE projections are monotone functions of the store.
+pub fn cascade_full(
+    store: &Store,
+    receipt: &MergeReceipt,
+    merged_datoms: &[Datom],
+    tx: TxId,
+) -> CascadeReceipt {
+    // Step 1: Conflict detection (same as run_cascade)
+    let conflicts = cascade_step1_conflicts(store, receipt);
+    let conflicts_detected = conflicts.len();
+
+    // Step 2: Schema rebuild detection — scan merged datoms for schema-affecting attributes
+    let schema_affected = merged_datoms.iter().any(|d| is_schema_affecting(&d.attribute));
+
+    // Step 3: Resolution recompute — collect entities that have conflicts.
+    // Deduplicate via BTreeSet for deterministic ordering (INV-MERGE-010).
+    let conflicted_entity_set: BTreeSet<EntityId> =
+        conflicts.iter().map(|c| c.entity).collect();
+    let conflicted_entities: Vec<EntityId> = conflicted_entity_set.into_iter().collect();
+
+    // Step 4: LIVE invalidation — find merged datoms whose entities belong to
+    // an Intent/Spec/Impl LIVE projection. Only Assert datoms contribute to
+    // LIVE views (matching trilateral::live_projections filtering).
+    let stale_entity_set: BTreeSet<EntityId> = merged_datoms
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .filter(|d| {
+            matches!(
+                classify_attribute(&d.attribute),
+                AttrNamespace::Intent | AttrNamespace::Spec | AttrNamespace::Impl
+            )
+        })
+        .map(|d| d.entity)
+        .collect();
+    let stale_live_views: Vec<EntityId> = stale_entity_set.into_iter().collect();
+
+    // Stub datoms for audit trail (backward compatibility with ADR-MERGE-007)
+    let stub_datoms = cascade_stub_datoms(receipt, tx);
+
+    CascadeReceipt {
+        conflicts_detected,
+        conflicts,
+        stub_datoms,
+        // All 4 cascade steps perform real work in Stage 1
+        steps_completed: 4,
+        schema_affected,
+        conflicted_entities,
+        stale_live_views,
     }
 }
 
@@ -981,6 +1107,292 @@ mod tests {
                 "cascade attribute {attr_str} must be queryable in store after merge_with_cascade"
             );
         }
+    }
+
+    // -------------------------------------------------------------------
+    // cascade_full tests (INV-MERGE-009 Stage 1)
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-MERGE-009 — cascade_full with no conflicts, no schema, no LIVE
+    // All fields should be empty/false, steps_completed = 4.
+    #[test]
+    fn cascade_full_no_conflicts_empty_receipt() {
+        let mut s1 = Store::genesis();
+        let s2 = Store::genesis();
+
+        let receipt = merge_stores(&mut s1, &s2);
+        let agent = AgentId::from_name("test-agent");
+        let cascade_tx = TxId::new(500, 0, agent);
+
+        // No new datoms from merging identical stores
+        let merged_datoms: Vec<Datom> = Vec::new();
+        let cascade = cascade_full(&s1, &receipt, &merged_datoms, cascade_tx);
+
+        assert_eq!(cascade.conflicts_detected, 0, "identical stores → no conflicts");
+        assert!(!cascade.schema_affected, "no schema datoms → schema_affected = false");
+        assert!(
+            cascade.conflicted_entities.is_empty(),
+            "no conflicts → no conflicted entities"
+        );
+        assert!(
+            cascade.stale_live_views.is_empty(),
+            "no LIVE-layer datoms → no stale views"
+        );
+        assert_eq!(cascade.steps_completed, 4, "Stage 1: all 4 steps ran");
+        assert_eq!(cascade.stub_datoms.len(), 7, "audit trail stubs still produced");
+    }
+
+    // Verifies: INV-MERGE-009 — cascade_full detects schema-affecting datoms
+    // When merged_datoms contain :db/valueType, schema_affected must be true.
+    #[test]
+    fn cascade_full_schema_datom_detected() {
+        let mut s1 = Store::genesis();
+        let mut s2 = Store::genesis();
+
+        let a1 = AgentId::from_name("alice");
+        let a2 = AgentId::from_name("bob");
+
+        // Agent Bob defines a new attribute with :db/valueType in s2
+        let new_attr_entity = EntityId::from_ident(":test/custom-attr");
+        let tx2 = Transaction::new(a2, ProvenanceType::Observed, "define custom attr")
+            .assert(
+                new_attr_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":test/custom-attr".into()),
+            )
+            .assert(
+                new_attr_entity,
+                Attribute::from_keyword(":db/valueType"),
+                Value::Keyword(":db.type/string".into()),
+            )
+            .assert(
+                new_attr_entity,
+                Attribute::from_keyword(":db/cardinality"),
+                Value::Keyword(":db.cardinality/one".into()),
+            )
+            .commit(&s2)
+            .unwrap();
+        s2.transact(tx2).unwrap();
+
+        // Collect the datoms that will be new to s1 when merging s2
+        let pre_datoms: BTreeSet<Datom> = s1.datom_set().clone();
+        let receipt = merge_stores(&mut s1, &s2);
+        let merged_datoms: Vec<Datom> = s1
+            .datoms()
+            .filter(|d| !pre_datoms.contains(d))
+            .cloned()
+            .collect();
+
+        let cascade_tx = TxId::new(600, 0, a1);
+        let cascade = cascade_full(&s1, &receipt, &merged_datoms, cascade_tx);
+
+        assert!(
+            cascade.schema_affected,
+            "merged datoms with :db/valueType → schema_affected = true"
+        );
+        assert_eq!(cascade.steps_completed, 4, "Stage 1: all 4 steps ran");
+    }
+
+    // Verifies: INV-MERGE-009 — cascade_full collects conflicted entity IDs
+    // When two agents assert different values for the same entity+attribute,
+    // that entity must appear in conflicted_entities.
+    #[test]
+    fn cascade_full_conflicting_entities_collected() {
+        let mut s1 = Store::genesis();
+        let mut s2 = Store::genesis();
+
+        let entity = EntityId::from_ident(":test/cascade-full-conflict");
+        let a1 = AgentId::from_name("alice");
+        let a2 = AgentId::from_name("bob");
+
+        let tx1 = Transaction::new(a1, ProvenanceType::Observed, "alice's value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alice version".into()),
+            )
+            .commit(&s1)
+            .unwrap();
+        s1.transact(tx1).unwrap();
+
+        let tx2 = Transaction::new(a2, ProvenanceType::Observed, "bob's value")
+            .assert(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("bob version".into()),
+            )
+            .commit(&s2)
+            .unwrap();
+        s2.transact(tx2).unwrap();
+
+        let pre_datoms: BTreeSet<Datom> = s1.datom_set().clone();
+        let receipt = merge_stores(&mut s1, &s2);
+        let merged_datoms: Vec<Datom> = s1
+            .datoms()
+            .filter(|d| !pre_datoms.contains(d))
+            .cloned()
+            .collect();
+
+        let cascade_tx = TxId::new(700, 0, a1);
+        let cascade = cascade_full(&s1, &receipt, &merged_datoms, cascade_tx);
+
+        assert!(
+            cascade.conflicts_detected > 0,
+            "conflicting merge → conflicts detected"
+        );
+        assert!(
+            cascade.conflicted_entities.contains(&entity),
+            "conflicted entity must appear in conflicted_entities"
+        );
+        assert_eq!(cascade.steps_completed, 4);
+    }
+
+    // Verifies: INV-MERGE-009 + INV-TRILATERAL-001 — LIVE invalidation
+    // When merged datoms carry spec-layer attributes, the affected entities
+    // must appear in stale_live_views.
+    #[test]
+    fn cascade_full_live_invalidation_spec_entities() {
+        use crate::schema::{full_schema_datoms, genesis_datoms};
+
+        // Build stores with full schema so :spec/* attributes are known
+        let system_agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, system_agent);
+        let mut datom_set = BTreeSet::new();
+        for d in genesis_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+        for d in full_schema_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+        let mut s1 = Store::from_datoms(datom_set.clone());
+        let mut s2 = Store::from_datoms(datom_set);
+
+        let spec_entity = EntityId::from_ident(":test/spec-element");
+        let a1 = AgentId::from_name("alice");
+        let a2 = AgentId::from_name("bob");
+
+        // Bob creates a spec-layer datom in s2
+        let tx2 = Transaction::new(a2, ProvenanceType::Observed, "spec element")
+            .assert(
+                spec_entity,
+                Attribute::from_keyword(":spec/id"),
+                Value::String("INV-TEST-001".into()),
+            )
+            .assert(
+                spec_entity,
+                Attribute::from_keyword(":spec/statement"),
+                Value::String("Test invariant".into()),
+            )
+            .commit(&s2)
+            .unwrap();
+        s2.transact(tx2).unwrap();
+
+        let pre_datoms: BTreeSet<Datom> = s1.datom_set().clone();
+        let receipt = merge_stores(&mut s1, &s2);
+        let merged_datoms: Vec<Datom> = s1
+            .datoms()
+            .filter(|d| !pre_datoms.contains(d))
+            .cloned()
+            .collect();
+
+        let cascade_tx = TxId::new(800, 0, a1);
+        let cascade = cascade_full(&s1, &receipt, &merged_datoms, cascade_tx);
+
+        assert!(
+            cascade.stale_live_views.contains(&spec_entity),
+            "spec entity from merged datoms must appear in stale_live_views"
+        );
+        // No conflicts (disjoint entities)
+        assert!(cascade.conflicted_entities.is_empty());
+        // No schema change (spec attributes are domain attrs, not schema-affecting)
+        assert!(!cascade.schema_affected);
+        assert_eq!(cascade.steps_completed, 4);
+    }
+
+    // Verifies: INV-MERGE-009 — cascade_full with all effects combined
+    // Schema change + conflicts + LIVE invalidation all at once.
+    #[test]
+    fn cascade_full_all_effects_combined() {
+        use crate::schema::{full_schema_datoms, genesis_datoms};
+
+        // Build stores with full schema so :spec/* attributes are known
+        let system_agent = AgentId::from_name("braid:system");
+        let genesis_tx = TxId::new(0, 0, system_agent);
+        let mut datom_set = BTreeSet::new();
+        for d in genesis_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+        for d in full_schema_datoms(genesis_tx) {
+            datom_set.insert(d);
+        }
+        let mut s1 = Store::from_datoms(datom_set.clone());
+        let mut s2 = Store::from_datoms(datom_set);
+
+        let conflict_entity = EntityId::from_ident(":test/combined-conflict");
+        let spec_entity = EntityId::from_ident(":test/combined-spec");
+        let schema_entity = EntityId::from_ident(":test/combined-schema-attr");
+        let a1 = AgentId::from_name("alice");
+        let a2 = AgentId::from_name("bob");
+
+        // Alice: assert doc on conflict entity
+        let tx1 = Transaction::new(a1, ProvenanceType::Observed, "alice's data")
+            .assert(
+                conflict_entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("alice".into()),
+            )
+            .commit(&s1)
+            .unwrap();
+        s1.transact(tx1).unwrap();
+
+        // Bob: conflicting doc + spec datom + schema datom
+        let tx2 = Transaction::new(a2, ProvenanceType::Observed, "bob's data")
+            .assert(
+                conflict_entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("bob".into()),
+            )
+            .assert(
+                spec_entity,
+                Attribute::from_keyword(":spec/id"),
+                Value::String("INV-COMBINED-001".into()),
+            )
+            .assert(
+                schema_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":test/combined-schema-attr".into()),
+            )
+            .assert(
+                schema_entity,
+                Attribute::from_keyword(":db/valueType"),
+                Value::Keyword(":db.type/long".into()),
+            )
+            .commit(&s2)
+            .unwrap();
+        s2.transact(tx2).unwrap();
+
+        let pre_datoms: BTreeSet<Datom> = s1.datom_set().clone();
+        let receipt = merge_stores(&mut s1, &s2);
+        let merged_datoms: Vec<Datom> = s1
+            .datoms()
+            .filter(|d| !pre_datoms.contains(d))
+            .cloned()
+            .collect();
+
+        let cascade_tx = TxId::new(900, 0, a1);
+        let cascade = cascade_full(&s1, &receipt, &merged_datoms, cascade_tx);
+
+        // All three effects present
+        assert!(cascade.schema_affected, "schema datom merged → schema_affected");
+        assert!(
+            cascade.conflicted_entities.contains(&conflict_entity),
+            "conflicting entity must be listed"
+        );
+        assert!(
+            cascade.stale_live_views.contains(&spec_entity),
+            "spec entity must be in stale_live_views"
+        );
+        assert_eq!(cascade.steps_completed, 4);
     }
 
     // -------------------------------------------------------------------

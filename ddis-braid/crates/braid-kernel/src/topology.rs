@@ -1172,6 +1172,377 @@ pub fn composite_coupling(
     result
 }
 
+// ===========================================================================
+// TOPO-SPECTRAL: Spectral topology selection (INV-TOPOLOGY-005, ADR-TOPOLOGY-004)
+// ===========================================================================
+
+/// Select the optimal topology pattern from the coupling density matrix.
+///
+/// Uses the parallelizability coefficient `p = r_eff / n` to classify:
+/// - p > 0.8  => All agents work independently (Mesh)
+/// - 0.3 < p <= 0.8 => Hybrid — Fiedler partition into clusters
+/// - p <= 0.3 => Highly coupled — Pipeline (linear chain) or Star (hub)
+///
+/// For the high-coupling case (p <= 0.3), distinguishes Star from Pipeline by
+/// examining the eigenvalue distribution: if the largest eigenvalue dominates
+/// (> 0.7 of trace), one hub connects to everything (Star); otherwise the
+/// coupling spreads more evenly (Pipeline).
+///
+/// Deterministic: same input always produces the same output (INV-TOPOLOGY-005).
+///
+/// Traces to: spec/19-topology.md INV-TOPOLOGY-005, ADR-TOPOLOGY-004.
+pub fn select_topology(analysis: &CouplingAnalysis, agent_count: usize) -> TopologyPattern {
+    if agent_count <= 1 || analysis.entities.len() <= 1 {
+        return TopologyPattern::Solo;
+    }
+
+    let p = analysis.parallelizability;
+
+    if p > 0.8 {
+        // Nearly independent tasks — full parallelism
+        TopologyPattern::Mesh
+    } else if p > 0.3 {
+        // Moderate coupling — partition into clusters
+        TopologyPattern::Hybrid
+    } else {
+        // High coupling (p <= 0.3) — sequential or star
+        // Distinguish Pipeline vs Star by examining eigenvalue distribution.
+        // If the largest eigenvalue dominates (> 0.7 of trace), one hub
+        // connects to everything => Star. Otherwise => Pipeline.
+        if !analysis.eigenvalues.is_empty() {
+            let max_ev = analysis.eigenvalues[0]; // sorted descending
+            if max_ev > 0.7 {
+                TopologyPattern::Star
+            } else {
+                TopologyPattern::Pipeline
+            }
+        } else {
+            TopologyPattern::Pipeline
+        }
+    }
+}
+
+/// Recursively partition a coupling matrix into `k` groups using Fiedler bisection.
+///
+/// The Fiedler vector is the eigenvector corresponding to the second-smallest
+/// eigenvalue of the graph Laplacian L = D - A. Partitioning on the sign of
+/// the Fiedler vector yields a spectral bisection that minimizes the normalized
+/// cut (Cheeger inequality).
+///
+/// Algorithm:
+/// 1. Start with all indices in one group.
+/// 2. Select the largest group with size >= 2.
+/// 3. Build the graph Laplacian for the induced submatrix.
+/// 4. Compute the Fiedler vector (2nd eigenvector of L).
+/// 5. Split indices by sign of Fiedler vector components.
+/// 6. Repeat from step 2 until `k` groups are achieved.
+///
+/// Returns at most `k` groups. Groups may be fewer than `k` if the matrix
+/// structure doesn't support further bisection (e.g., fully connected).
+///
+/// Deterministic: same input always produces the same output (INV-TOPOLOGY-005).
+///
+/// Traces to: spec/19-topology.md INV-TOPOLOGY-005, ADR-TOPOLOGY-004.
+pub fn spectral_partition(rho: &[Vec<f64>], k: usize) -> Vec<Vec<usize>> {
+    let n = rho.len();
+    if n == 0 || k == 0 {
+        return vec![];
+    }
+    if k == 1 || n == 1 {
+        return vec![(0..n).collect()];
+    }
+
+    // Start with all indices in one group
+    let initial: Vec<usize> = (0..n).collect();
+    let mut groups = vec![initial];
+
+    // Recursively bisect the largest group until we have k groups
+    while groups.len() < k {
+        // Find the largest group that can be bisected (size >= 2)
+        let largest_idx = groups
+            .iter()
+            .enumerate()
+            .filter(|(_, g)| g.len() >= 2)
+            .max_by_key(|(_, g)| g.len())
+            .map(|(i, _)| i);
+
+        let largest_idx = match largest_idx {
+            Some(i) => i,
+            None => break, // No group can be bisected further
+        };
+
+        let group = groups.remove(largest_idx);
+        let (left, right) = fiedler_bisect(rho, &group);
+
+        if left.is_empty() || right.is_empty() {
+            // Bisection failed — put group back
+            groups.push(group);
+            break;
+        }
+
+        groups.push(left);
+        groups.push(right);
+    }
+
+    // Sort groups by size descending, then by content for determinism
+    groups.sort_by(|a, b| b.len().cmp(&a.len()).then_with(|| a.cmp(b)));
+    groups
+}
+
+/// Bisect a subset of indices using the Fiedler vector of the induced subgraph.
+///
+/// Builds the graph Laplacian for the submatrix induced by `indices`,
+/// computes the Fiedler vector (2nd eigenvector of L), and splits on sign.
+///
+/// Returns (positive_group, negative_group). If the bisection is trivial
+/// (all same sign), falls back to splitting in half by index order.
+fn fiedler_bisect(rho: &[Vec<f64>], indices: &[usize]) -> (Vec<usize>, Vec<usize>) {
+    let m = indices.len();
+    if m < 2 {
+        return (indices.to_vec(), vec![]);
+    }
+
+    // Build the induced submatrix
+    let mut sub = vec![vec![0.0f64; m]; m];
+    for (si, &i) in indices.iter().enumerate() {
+        for (sj, &j) in indices.iter().enumerate() {
+            sub[si][sj] = rho[i][j];
+        }
+    }
+
+    // Build graph Laplacian: L = D - A
+    // Diagonal = degree (sum of row, excluding self), off-diagonal = -coupling
+    let mut laplacian_data = vec![0.0f64; m * m];
+    for i in 0..m {
+        let mut degree = 0.0;
+        for j in 0..m {
+            if i != j {
+                degree += sub[i][j];
+                laplacian_data[i * m + j] = -sub[i][j];
+            }
+        }
+        laplacian_data[i * m + i] = degree;
+    }
+
+    // Compute eigenvalues and eigenvectors
+    let dm = crate::query::graph::DenseMatrix {
+        rows: m,
+        cols: m,
+        data: laplacian_data,
+    };
+    let (eigenvalues, eigenvectors) = crate::query::graph::symmetric_eigen_decomposition(&dm);
+
+    // The Fiedler vector is the eigenvector for the 2nd smallest eigenvalue.
+    // eigenvalues from symmetric_eigen_decomposition are sorted ascending,
+    // so the 2nd smallest is at index 1 (matching the convention in query::graph::fiedler).
+    if eigenvalues.len() < 2 {
+        return (indices.to_vec(), vec![]);
+    }
+
+    // Check that algebraic connectivity (2nd smallest eigenvalue) is non-trivial
+    let fiedler_idx = 1;
+    let algebraic_connectivity = eigenvalues[fiedler_idx];
+    if algebraic_connectivity.abs() < 1e-10 {
+        // Graph is disconnected or nearly so — fall back to half-split
+        let mid = m / 2;
+        return (indices[..mid].to_vec(), indices[mid..].to_vec());
+    }
+
+    // Extract Fiedler vector (column fiedler_idx of eigenvectors)
+    let fiedler_vec: Vec<f64> = (0..m)
+        .map(|row| eigenvectors.data[row * m + fiedler_idx])
+        .collect();
+
+    // Split on sign of Fiedler vector
+    let mut positive = Vec::new();
+    let mut negative = Vec::new();
+    for (si, &component) in fiedler_vec.iter().enumerate() {
+        if component >= 0.0 {
+            positive.push(indices[si]);
+        } else {
+            negative.push(indices[si]);
+        }
+    }
+
+    // If all ended up on one side, split in half
+    if positive.is_empty() || negative.is_empty() {
+        let mid = m / 2;
+        return (indices[..mid].to_vec(), indices[mid..].to_vec());
+    }
+
+    (positive, negative)
+}
+
+/// Measure partition quality: ratio of intra-cluster coupling to total coupling.
+///
+/// Quality = 1 - (inter_cluster_coupling / total_coupling).
+/// Returns a value in [0, 1] where:
+/// - 1.0 = perfect partition (zero inter-cluster coupling)
+/// - 0.0 = worst partition (all coupling is inter-cluster)
+///
+/// For partitions with zero total coupling, returns 1.0 (trivially perfect).
+///
+/// Traces to: spec/19-topology.md INV-TOPOLOGY-005.
+pub fn partition_quality(partition: &[Vec<usize>], coupling: &[Vec<f64>]) -> f64 {
+    if partition.is_empty() || coupling.is_empty() {
+        return 1.0;
+    }
+
+    let n = coupling.len();
+
+    // Build cluster membership: index -> cluster_id
+    let mut cluster_of = vec![0usize; n];
+    for (cluster_id, group) in partition.iter().enumerate() {
+        for &idx in group {
+            if idx < n {
+                cluster_of[idx] = cluster_id;
+            }
+        }
+    }
+
+    let mut total_coupling = 0.0;
+    let mut inter_cluster_coupling = 0.0;
+
+    for i in 0..n {
+        for j in (i + 1)..n {
+            let c = coupling[i][j].abs();
+            if c > 1e-15 {
+                total_coupling += c;
+                if cluster_of[i] != cluster_of[j] {
+                    inter_cluster_coupling += c;
+                }
+            }
+        }
+    }
+
+    if total_coupling < 1e-15 {
+        return 1.0; // No coupling at all — trivially perfect
+    }
+
+    1.0 - (inter_cluster_coupling / total_coupling)
+}
+
+// =============================================================================
+// CALM Classification (ADR-TOPOLOGY-002, INV-TOPOLOGY-006)
+// =============================================================================
+
+/// CALM tier classification: monotonic (parallel) vs non-monotonic (barrier).
+///
+/// The CALM theorem (Consistency As Logical Monotonicity) partitions operations:
+/// - **Tier M** (monotonic): can execute without coordination — e.g., editing code.
+/// - **Tier NM** (non-monotonic): requires a sync barrier — e.g., verification,
+///   merge, schema change.
+///
+/// Traces to: ADR-TOPOLOGY-002, INV-TOPOLOGY-006.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CalmTier {
+    /// Monotonic parallel: can execute without coordination (editing code).
+    MonotonicParallel,
+    /// Non-monotonic barrier: requires sync (verification, merge, schema change).
+    NonMonotonicBarrier,
+}
+
+/// A phase in an execution plan — a group of tasks sharing the same CALM tier.
+///
+/// Consecutive same-tier tasks are grouped into a single phase.
+/// Phase boundaries occur at tier transitions.
+///
+/// Traces to: ADR-TOPOLOGY-002, INV-TOPOLOGY-006.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Phase {
+    /// The CALM tier for all tasks in this phase.
+    pub tier: CalmTier,
+    /// The tasks assigned to this phase.
+    pub tasks: Vec<EntityId>,
+}
+
+/// Non-monotonic keywords that indicate a task requires a sync barrier.
+///
+/// Tasks whose titles contain these keywords (case-insensitive) are classified
+/// as Tier NM. The set covers: verification, merge, schema changes, validation,
+/// cascading operations, and migration.
+const NM_KEYWORDS: &[&str] = &[
+    "merge",
+    "verify",
+    "test",
+    "schema",
+    "migrate",
+    "cascade",
+    "validate",
+    "migration",
+    "verification",
+];
+
+/// Classify a task's CALM tier from its title text.
+///
+/// The classification heuristic:
+/// 1. If the title contains any non-monotonic keyword (case-insensitive),
+///    classify as `NonMonotonicBarrier`.
+/// 2. Otherwise, classify as `MonotonicParallel` (default — most tasks are edits).
+///
+/// Tasks with `FILE:` markers are always `MonotonicParallel` since they represent
+/// concrete file-editing work regardless of other keywords in the title.
+///
+/// Traces to: ADR-TOPOLOGY-002, INV-TOPOLOGY-006.
+pub fn classify_task_phase(title: &str) -> CalmTier {
+    let lower = title.to_lowercase();
+
+    // FILE: marker signals a concrete edit task — always Tier M.
+    if lower.contains("file:") || lower.contains("files:") {
+        return CalmTier::MonotonicParallel;
+    }
+
+    // Check for non-monotonic keywords.
+    for kw in NM_KEYWORDS {
+        if lower.contains(kw) {
+            return CalmTier::NonMonotonicBarrier;
+        }
+    }
+
+    // Default: most tasks are edits (Tier M).
+    CalmTier::MonotonicParallel
+}
+
+/// Build a phase plan from classified tasks.
+///
+/// Groups consecutive same-tier tasks into `Phase` structs.
+/// The input order determines grouping: switching from M to NM (or vice versa)
+/// starts a new phase.
+///
+/// Empty input produces an empty plan.
+///
+/// Traces to: ADR-TOPOLOGY-002, INV-TOPOLOGY-006.
+pub fn phase_plan(tasks: &[(EntityId, CalmTier)]) -> Vec<Phase> {
+    if tasks.is_empty() {
+        return Vec::new();
+    }
+
+    let mut phases: Vec<Phase> = Vec::new();
+    let mut current_tier = tasks[0].1;
+    let mut current_tasks = vec![tasks[0].0];
+
+    for &(entity, tier) in &tasks[1..] {
+        if tier == current_tier {
+            current_tasks.push(entity);
+        } else {
+            phases.push(Phase {
+                tier: current_tier,
+                tasks: std::mem::take(&mut current_tasks),
+            });
+            current_tier = tier;
+            current_tasks.push(entity);
+        }
+    }
+
+    // Flush the final group.
+    phases.push(Phase {
+        tier: current_tier,
+        tasks: current_tasks,
+    });
+
+    phases
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2162,5 +2533,417 @@ mod tests {
         let score = combined.get(&(a, b)).unwrap();
         // 0.65 * 0.8 + 0.35 * 0.4 = 0.52 + 0.14 = 0.66
         assert!((*score - 0.66).abs() < 0.01, "composite should be 0.66: got {score}");
+    }
+
+    // ===================================================================
+    // CALM Classification (TOPO-CALM, ADR-TOPOLOGY-002, INV-TOPOLOGY-006)
+    // ===================================================================
+
+    #[test]
+    fn calm_pure_edit_tasks_are_tier_m() {
+        // Pure edit tasks — implement, add, create, fix, refactor — all Tier M.
+        let edit_titles = [
+            "Implement invariant coupling dimension",
+            "Add topology pattern classification",
+            "Create task summary view",
+            "Fix Unicode boundary panics",
+            "Refactor guidance footer generation",
+            "Edit crates/braid-kernel/src/topology.rs for coupling",
+        ];
+        for title in &edit_titles {
+            assert_eq!(
+                classify_task_phase(title),
+                CalmTier::MonotonicParallel,
+                "'{title}' should be Tier M (parallel)"
+            );
+        }
+    }
+
+    #[test]
+    fn calm_nm_keywords_are_tier_nm() {
+        // Tasks with non-monotonic keywords — merge, verify, test, schema, etc.
+        let nm_titles = [
+            "Merge stores after parallel editing",
+            "Verify coherence invariants",
+            "Run test suite for regression",
+            "Schema evolution for layer 4 attributes",
+            "Migrate datom store to new format",
+            "Cascade step1 conflict detection",
+            "Validate specification elements",
+        ];
+        for title in &nm_titles {
+            assert_eq!(
+                classify_task_phase(title),
+                CalmTier::NonMonotonicBarrier,
+                "'{title}' should be Tier NM (barrier)"
+            );
+        }
+    }
+
+    #[test]
+    fn calm_file_marker_overrides_nm_keywords() {
+        // FILE: marker makes it Tier M even if NM keywords are present.
+        // This is because FILE: signals a concrete edit task.
+        let title = "Verify test coverage for merge logic. FILE: crates/braid-kernel/src/merge.rs";
+        assert_eq!(
+            classify_task_phase(title),
+            CalmTier::MonotonicParallel,
+            "FILE: marker should force Tier M despite NM keywords"
+        );
+    }
+
+    #[test]
+    fn calm_default_is_tier_m() {
+        // Titles with no recognizable keywords default to Tier M.
+        assert_eq!(
+            classify_task_phase("Abstract design discussion about coherence"),
+            CalmTier::MonotonicParallel,
+            "unrecognized title should default to Tier M"
+        );
+    }
+
+    #[test]
+    fn calm_phase_plan_all_m() {
+        let e1 = entity(":task/t-1");
+        let e2 = entity(":task/t-2");
+        let e3 = entity(":task/t-3");
+        let tasks = vec![
+            (e1, CalmTier::MonotonicParallel),
+            (e2, CalmTier::MonotonicParallel),
+            (e3, CalmTier::MonotonicParallel),
+        ];
+        let phases = phase_plan(&tasks);
+        assert_eq!(phases.len(), 1, "all-M tasks → single phase");
+        assert_eq!(phases[0].tier, CalmTier::MonotonicParallel);
+        assert_eq!(phases[0].tasks, vec![e1, e2, e3]);
+    }
+
+    #[test]
+    fn calm_phase_plan_m_nm_m_produces_3_phases() {
+        let e1 = entity(":task/t-1");
+        let e2 = entity(":task/t-2");
+        let e3 = entity(":task/t-3");
+        let e4 = entity(":task/t-4");
+        let tasks = vec![
+            (e1, CalmTier::MonotonicParallel),    // Phase 1: M
+            (e2, CalmTier::NonMonotonicBarrier),   // Phase 2: NM (barrier)
+            (e3, CalmTier::MonotonicParallel),     // Phase 3: M
+            (e4, CalmTier::MonotonicParallel),     // Phase 3: M (same tier, grouped)
+        ];
+        let phases = phase_plan(&tasks);
+        assert_eq!(phases.len(), 3, "M,NM,M,M → 3 phases");
+        assert_eq!(phases[0].tier, CalmTier::MonotonicParallel);
+        assert_eq!(phases[0].tasks, vec![e1]);
+        assert_eq!(phases[1].tier, CalmTier::NonMonotonicBarrier);
+        assert_eq!(phases[1].tasks, vec![e2]);
+        assert_eq!(phases[2].tier, CalmTier::MonotonicParallel);
+        assert_eq!(phases[2].tasks, vec![e3, e4]);
+    }
+
+    #[test]
+    fn calm_phase_plan_empty_input() {
+        let phases = phase_plan(&[]);
+        assert!(phases.is_empty(), "empty input → empty plan");
+    }
+
+    #[test]
+    fn calm_phase_plan_consecutive_nm_grouped() {
+        let e1 = entity(":task/t-1");
+        let e2 = entity(":task/t-2");
+        let tasks = vec![
+            (e1, CalmTier::NonMonotonicBarrier),
+            (e2, CalmTier::NonMonotonicBarrier),
+        ];
+        let phases = phase_plan(&tasks);
+        assert_eq!(phases.len(), 1, "consecutive NM tasks → single NM phase");
+        assert_eq!(phases[0].tier, CalmTier::NonMonotonicBarrier);
+        assert_eq!(phases[0].tasks, vec![e1, e2]);
+    }
+
+    // ===================================================================
+    // Spectral Topology Selection (TOPO-SPECTRAL) Tests
+    // ===================================================================
+
+    /// Build a CouplingAnalysis from a raw coupling matrix for testing.
+    fn analysis_from_matrix(rho: Vec<Vec<f64>>) -> CouplingAnalysis {
+        let n = rho.len();
+        let entities: Vec<EntityId> = (0..n)
+            .map(|i| entity(&format!(":t/spectral-{i}")))
+            .collect();
+
+        // Compute eigenvalues via the same Jacobi method used in production
+        let eigenvalues = super::symmetric_eigenvalues(&rho, n);
+
+        let entropy = von_neumann_entropy_from_eigenvalues(&eigenvalues);
+        let effective_rank = entropy.exp();
+        let parallelizability = if n > 0 {
+            (effective_rank / n as f64).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+
+        CouplingAnalysis {
+            rho,
+            entities,
+            eigenvalues,
+            entropy,
+            effective_rank,
+            parallelizability,
+        }
+    }
+
+    #[test]
+    fn spectral_identity_coupling_yields_mesh() {
+        // Identity matrix: no coupling, all tasks independent.
+        // rho = I/n => uniform eigenvalues => max entropy => p ~= 1.0 => Mesh.
+        let mut rho = vec![vec![0.0; 4]; 4];
+        for (i, row) in rho.iter_mut().enumerate() {
+            row[i] = 0.25;
+        }
+        let analysis = analysis_from_matrix(rho);
+        assert!(
+            analysis.parallelizability > 0.8,
+            "identity coupling should have high p: got {}",
+            analysis.parallelizability
+        );
+        let pattern = select_topology(&analysis, 4);
+        assert_eq!(
+            pattern,
+            TopologyPattern::Mesh,
+            "identity coupling should yield Mesh"
+        );
+    }
+
+    #[test]
+    fn spectral_fully_coupled_yields_star_or_pipeline() {
+        // All-ones matrix normalized: rho[i][j] = 1/n for all i,j.
+        // One dominant eigenvalue => low entropy => p << 0.3 => Star or Pipeline.
+        let n = 4;
+        let rho = vec![vec![1.0 / n as f64; n]; n];
+        let analysis = analysis_from_matrix(rho);
+        assert!(
+            analysis.parallelizability <= 0.3,
+            "fully coupled should have low p: got {}",
+            analysis.parallelizability
+        );
+        let pattern = select_topology(&analysis, 4);
+        assert!(
+            pattern == TopologyPattern::Star || pattern == TopologyPattern::Pipeline,
+            "fully coupled should yield Star or Pipeline, got {:?}",
+            pattern
+        );
+    }
+
+    #[test]
+    fn spectral_block_diagonal_yields_hybrid() {
+        // Block-diagonal: two 2x2 blocks, no inter-block coupling.
+        // rho = [[0.25, 0.25, 0, 0],
+        //        [0.25, 0.25, 0, 0],
+        //        [0, 0, 0.25, 0.25],
+        //        [0, 0, 0.25, 0.25]]
+        // Two independent clusters => moderate entropy => Hybrid.
+        let rho = vec![
+            vec![0.25, 0.25, 0.0, 0.0],
+            vec![0.25, 0.25, 0.0, 0.0],
+            vec![0.0, 0.0, 0.25, 0.25],
+            vec![0.0, 0.0, 0.25, 0.25],
+        ];
+        let analysis = analysis_from_matrix(rho);
+        // With two equal blocks, p should be moderate (around 0.5)
+        let pattern = select_topology(&analysis, 4);
+        assert!(
+            pattern == TopologyPattern::Hybrid || pattern == TopologyPattern::Mesh,
+            "block diagonal should yield Hybrid or Mesh, got {:?} (p={})",
+            pattern,
+            analysis.parallelizability
+        );
+    }
+
+    #[test]
+    fn spectral_select_topology_deterministic() {
+        // INV-TOPOLOGY-005: same input must always produce the same output.
+        let rho = vec![
+            vec![1.0 / 3.0, 0.1, 0.0],
+            vec![0.1, 1.0 / 3.0, 0.1],
+            vec![0.0, 0.1, 1.0 / 3.0],
+        ];
+
+        let analysis = analysis_from_matrix(rho);
+        let pattern1 = select_topology(&analysis, 3);
+        let pattern2 = select_topology(&analysis, 3);
+        let pattern3 = select_topology(&analysis, 3);
+
+        assert_eq!(pattern1, pattern2, "select_topology must be deterministic");
+        assert_eq!(pattern2, pattern3, "select_topology must be deterministic");
+    }
+
+    #[test]
+    fn spectral_select_topology_solo_cases() {
+        // Solo when agent_count <= 1
+        let rho = vec![vec![0.5, 0.0], vec![0.0, 0.5]];
+        let analysis = analysis_from_matrix(rho);
+        assert_eq!(select_topology(&analysis, 1), TopologyPattern::Solo);
+        assert_eq!(select_topology(&analysis, 0), TopologyPattern::Solo);
+
+        // Solo when single entity
+        let single = analysis_from_matrix(vec![vec![1.0]]);
+        assert_eq!(select_topology(&single, 3), TopologyPattern::Solo);
+    }
+
+    // === Spectral Partition Tests ===
+
+    #[test]
+    fn spectral_partition_identity_matrix() {
+        // Identity matrix: each task is its own cluster.
+        let mut rho = vec![vec![0.0; 4]; 4];
+        for (i, row) in rho.iter_mut().enumerate() {
+            row[i] = 0.25;
+        }
+        let groups = spectral_partition(&rho, 4);
+        // Should produce 4 singleton groups (or close to it)
+        assert!(
+            groups.len() >= 2,
+            "identity matrix should partition into multiple groups: got {}",
+            groups.len()
+        );
+        // All indices must be present exactly once
+        let mut all_indices: Vec<usize> = groups.iter().flat_map(|g| g.iter().copied()).collect();
+        all_indices.sort();
+        assert_eq!(all_indices, vec![0, 1, 2, 3], "all indices must be present");
+    }
+
+    #[test]
+    fn spectral_partition_block_diagonal() {
+        // Two clear blocks with strong within-block coupling, zero cross-block.
+        // Use a coupling matrix (not density matrix) with explicit block structure.
+        // Block A = {0,1} with coupling 0.9, Block B = {2,3} with coupling 0.9.
+        let rho = vec![
+            vec![0.0, 0.9, 0.0, 0.0],
+            vec![0.9, 0.0, 0.0, 0.0],
+            vec![0.0, 0.0, 0.0, 0.9],
+            vec![0.0, 0.0, 0.9, 0.0],
+        ];
+        let groups = spectral_partition(&rho, 2);
+        assert_eq!(groups.len(), 2, "block diagonal should yield 2 groups");
+
+        // All 4 indices must be present exactly once
+        let mut all_indices: Vec<usize> = groups.iter().flat_map(|g| g.iter().copied()).collect();
+        all_indices.sort();
+        assert_eq!(all_indices, vec![0, 1, 2, 3], "all indices must be present");
+
+        // Each group should have exactly 2 elements (matching the blocks)
+        let mut sizes: Vec<usize> = groups.iter().map(|g| g.len()).collect();
+        sizes.sort();
+        assert_eq!(sizes, vec![2, 2], "each block should be a group of 2");
+
+        // Check that 0,1 are together and 2,3 are together (or vice versa)
+        let g0: std::collections::BTreeSet<usize> = groups[0].iter().copied().collect();
+        let g1: std::collections::BTreeSet<usize> = groups[1].iter().copied().collect();
+        let block_a: std::collections::BTreeSet<usize> = [0, 1].into_iter().collect();
+        let block_b: std::collections::BTreeSet<usize> = [2, 3].into_iter().collect();
+        assert!(
+            (g0 == block_a && g1 == block_b) || (g0 == block_b && g1 == block_a),
+            "blocks should match: {:?} vs {:?}",
+            groups[0],
+            groups[1]
+        );
+    }
+
+    #[test]
+    fn spectral_partition_deterministic() {
+        // INV-TOPOLOGY-005: same input always produces the same output.
+        let rho = vec![
+            vec![0.25, 0.20, 0.0, 0.0],
+            vec![0.20, 0.25, 0.0, 0.0],
+            vec![0.0, 0.0, 0.25, 0.20],
+            vec![0.0, 0.0, 0.20, 0.25],
+        ];
+        let groups1 = spectral_partition(&rho, 2);
+        let groups2 = spectral_partition(&rho, 2);
+        let groups3 = spectral_partition(&rho, 2);
+        assert_eq!(groups1, groups2, "spectral_partition must be deterministic");
+        assert_eq!(groups2, groups3, "spectral_partition must be deterministic");
+    }
+
+    #[test]
+    fn spectral_partition_k_one_returns_all() {
+        let rho = vec![vec![0.5, 0.1], vec![0.1, 0.5]];
+        let groups = spectral_partition(&rho, 1);
+        assert_eq!(groups.len(), 1);
+        assert_eq!(groups[0], vec![0, 1]);
+    }
+
+    #[test]
+    fn spectral_partition_empty() {
+        let groups = spectral_partition(&[], 3);
+        assert!(groups.is_empty());
+    }
+
+    // === Partition Quality Tests ===
+
+    #[test]
+    fn partition_quality_perfect_block_diagonal() {
+        // Block diagonal: partition that matches blocks should have quality 1.0.
+        let coupling = vec![
+            vec![0.0, 0.5, 0.0, 0.0],
+            vec![0.5, 0.0, 0.0, 0.0],
+            vec![0.0, 0.0, 0.0, 0.5],
+            vec![0.0, 0.0, 0.5, 0.0],
+        ];
+        let partition = vec![vec![0, 1], vec![2, 3]];
+        let quality = partition_quality(&partition, &coupling);
+        assert!(
+            (quality - 1.0).abs() < 1e-10,
+            "perfect partition should have quality 1.0, got {quality}"
+        );
+    }
+
+    #[test]
+    fn partition_quality_worst_split() {
+        // Block diagonal, but partition splits each block across groups.
+        let coupling = vec![
+            vec![0.0, 0.5, 0.0, 0.0],
+            vec![0.5, 0.0, 0.0, 0.0],
+            vec![0.0, 0.0, 0.0, 0.5],
+            vec![0.0, 0.0, 0.5, 0.0],
+        ];
+        // Worst split: put 0 and 2 together, 1 and 3 together
+        let partition = vec![vec![0, 2], vec![1, 3]];
+        let quality = partition_quality(&partition, &coupling);
+        assert!(
+            quality < 0.01,
+            "worst partition should have quality near 0.0, got {quality}"
+        );
+    }
+
+    #[test]
+    fn partition_quality_block_diagonal_better_than_random() {
+        // A block-diagonal coupling matrix with the correct partition
+        // must have better quality than a random split.
+        let coupling = vec![
+            vec![0.0, 0.8, 0.0, 0.0],
+            vec![0.8, 0.0, 0.0, 0.0],
+            vec![0.0, 0.0, 0.0, 0.8],
+            vec![0.0, 0.0, 0.8, 0.0],
+        ];
+        let good_partition = vec![vec![0, 1], vec![2, 3]];
+        let bad_partition = vec![vec![0, 2], vec![1, 3]];
+        let good_q = partition_quality(&good_partition, &coupling);
+        let bad_q = partition_quality(&bad_partition, &coupling);
+        assert!(
+            good_q > bad_q,
+            "block-diagonal partition ({good_q}) should have better quality than random ({bad_q})"
+        );
+    }
+
+    #[test]
+    fn partition_quality_no_coupling() {
+        let coupling = vec![vec![0.0, 0.0], vec![0.0, 0.0]];
+        let partition = vec![vec![0], vec![1]];
+        let quality = partition_quality(&partition, &coupling);
+        assert!(
+            (quality - 1.0).abs() < 1e-10,
+            "no coupling should yield quality 1.0, got {quality}"
+        );
     }
 }

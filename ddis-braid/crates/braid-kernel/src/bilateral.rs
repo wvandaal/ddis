@@ -696,6 +696,15 @@ pub fn compute_fitness_with_registry(store: &Store, registry: &BoundaryRegistry)
 /// Falls back to binary `:spec/witnessed` counting when no depth datoms are present,
 /// ensuring backwards compatibility with stores that predate WP9.
 fn compute_validation(store: &Store) -> f64 {
+    // INV-WITNESS-005: If WITNESS system has data, use witness-aware scoring
+    // where stale witnesses contribute 0 to the validation score.
+    let (witness_score, valid_count, _stale, _untested) =
+        crate::witness::witness_validation_score(store);
+    if valid_count > 0 {
+        return witness_score;
+    }
+
+    // Fallback: existing depth-weighted or binary witness path
     let spec_type_attr = Attribute::from_keyword(":spec/element-type");
     let spec_depth_attr = Attribute::from_keyword(":spec/verification-depth");
     let witnessed_attr = Attribute::from_keyword(":spec/witnessed");

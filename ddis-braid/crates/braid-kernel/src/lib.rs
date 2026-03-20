@@ -132,8 +132,8 @@ pub use layout::{
     ContentHash, EdnParseError, IntegrityError, IntegrityReport, LayoutConfig, TxFile, TxFilePath,
 };
 pub use merge::{
-    cascade_step1_conflicts, cascade_stub_datoms, detect_merge_conflicts, merge_stores,
-    run_cascade, verify_frontier_advancement, verify_monotonicity, CascadeReceipt,
+    cascade_full, cascade_step1_conflicts, cascade_stub_datoms, detect_merge_conflicts,
+    merge_stores, run_cascade, verify_frontier_advancement, verify_monotonicity, CascadeReceipt,
 };
 pub use promote::{
     is_already_promoted, promote, promote_batch, verify_dual_identity, BatchPromotionResult,
@@ -164,8 +164,9 @@ pub use schema::{
     domain_schema_datoms, full_schema_datoms, genesis_attr_count, has_layer_4, layer_1_attributes,
     layer_1_count, layer_1_datoms, layer_2_attributes, layer_2_count, layer_2_datoms,
     layer_3_attributes, layer_3_count, layer_3_datoms, layer_4_attributes, layer_4_count,
-    layer_4_datoms, layer_4_evolution_tx, validate_lattice, AttributeDef, AttributeSpec,
-    Cardinality, ResolutionMode, Schema, Uniqueness, ValueType,
+    layer_4_datoms, layer_4_evolution_tx, validate_cardinality, validate_lattice,
+    validate_retraction_consistency, AttributeDef, AttributeSpec, Cardinality,
+    CardinalityViolation, ResolutionMode, RetractionViolation, Schema, Uniqueness, ValueType,
 };
 pub use seed::{
     assemble, assemble_seed, associate, verify_seed, AssembledContext, AssociateCue,
@@ -189,11 +190,13 @@ pub use task::{
     task_summary, update_status_datom, CreateTaskParams, TaskStatus, TaskSummary, TaskType,
 };
 pub use topology::{
-    agent_name_from_files, balance_assign, composite_coupling, compute_file_coupling,
-    compute_invariant_coupling, coupling_density_matrix, emit_seed_for_agent, extract_task_files,
-    format_plan_agent, format_plan_human, partition_by_file_coupling, quick_plan, ready_task_files,
-    spec_dependency_datoms, von_neumann_entropy_from_eigenvalues, AgentAssignment,
-    CouplingAnalysis, PlanMethod, TopologyPattern, TopologyPlan,
+    agent_name_from_files, balance_assign, classify_task_phase, composite_coupling,
+    compute_file_coupling, compute_invariant_coupling, coupling_density_matrix,
+    emit_seed_for_agent, extract_task_files, format_plan_agent, format_plan_human,
+    partition_by_file_coupling, partition_quality, phase_plan, quick_plan, ready_task_files,
+    select_topology, spec_dependency_datoms, spectral_partition,
+    von_neumann_entropy_from_eigenvalues, AgentAssignment, CalmTier, CouplingAnalysis, Phase,
+    PlanMethod, TopologyPattern, TopologyPlan,
 };
 pub use trace::{
     links_to_datoms, scan_source, summarize, TraceLink, TraceSummary, VerificationDepth,

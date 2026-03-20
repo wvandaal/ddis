@@ -45,7 +45,7 @@
 //! - NEG-SCHEMA-002: No schema deletion — schema attributes only grow.
 //! - NEG-SCHEMA-003: No circular layer dependencies.
 
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeSet, HashMap, HashSet};
 
 use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::error::StoreError;
@@ -2275,6 +2275,142 @@ fn schema_datoms_from_specs(specs: &[AttributeSpec], tx: TxId) -> Vec<Datom> {
 }
 
 // ---------------------------------------------------------------------------
+// S1 Schema Validation: Cardinality + Retraction Consistency (INV-SCHEMA-004)
+// ---------------------------------------------------------------------------
+
+/// A cardinality violation: an entity has multiple asserted values for a
+/// `Cardinality::One` attribute without intervening retractions.
+///
+/// **INV-SCHEMA-004**: Every transacted datom is validated against schema.
+/// This extends validation to post-hoc invariant checking across the full store.
+///
+/// **Falsification**: If `validate_cardinality` returns an empty list for a store
+/// where entity E has 2+ distinct Assert datoms for a `Cardinality::One` attribute
+/// with no corresponding Retract datoms, the invariant is violated.
+#[derive(Clone, Debug)]
+pub struct CardinalityViolation {
+    /// The entity with multiple values.
+    pub entity: EntityId,
+    /// The attribute whose cardinality constraint is violated.
+    pub attribute: Attribute,
+    /// The number of distinct asserted (unretracted) values found.
+    pub value_count: usize,
+}
+
+/// A retraction consistency violation: a Retract datom exists without a
+/// corresponding Assert datom for the same (entity, attribute, value) triple.
+///
+/// **INV-SCHEMA-004**: Every transacted datom is validated against schema.
+/// Orphan retractions indicate store corruption or a protocol violation.
+///
+/// **Falsification**: If `validate_retraction_consistency` returns an empty list
+/// for a store containing a Retract datom whose (entity, attribute, value) triple
+/// has no prior Assert datom, the invariant is violated.
+#[derive(Clone, Debug)]
+pub struct RetractionViolation {
+    /// The entity involved in the orphan retraction.
+    pub entity: EntityId,
+    /// The attribute involved in the orphan retraction.
+    pub attribute: Attribute,
+    /// Human-readable reason for the violation.
+    pub reason: String,
+}
+
+/// Validate cardinality constraints across the store (INV-SCHEMA-004).
+///
+/// For each attribute defined with `Cardinality::One`, checks that no entity
+/// has multiple asserted values without intervening retractions. A value is
+/// considered "live" if it has an Assert datom and no subsequent Retract datom
+/// for the same (entity, attribute, value) triple.
+///
+/// # Arguments
+///
+/// * `schema` - The schema defining attribute cardinalities.
+/// * `datoms` - The full datom set to scan.
+///
+/// # Returns
+///
+/// A list of violations. Empty means all cardinality constraints are satisfied.
+pub fn validate_cardinality(
+    schema: &Schema,
+    datoms: &BTreeSet<Datom>,
+) -> Vec<CardinalityViolation> {
+    // Collect live (asserted minus retracted) values per (entity, attribute).
+    let mut live: HashMap<(EntityId, Attribute), BTreeSet<Value>> = HashMap::new();
+
+    for datom in datoms {
+        let key = (datom.entity, datom.attribute.clone());
+        match datom.op {
+            Op::Assert => {
+                live.entry(key).or_default().insert(datom.value.clone());
+            }
+            Op::Retract => {
+                if let Some(values) = live.get_mut(&key) {
+                    values.remove(&datom.value);
+                }
+            }
+        }
+    }
+
+    let mut violations = Vec::new();
+    for ((entity, attribute), values) in &live {
+        if values.len() > 1 && schema.cardinality(attribute) == Cardinality::One {
+            violations.push(CardinalityViolation {
+                entity: *entity,
+                attribute: attribute.clone(),
+                value_count: values.len(),
+            });
+        }
+    }
+
+    violations
+}
+
+/// Validate retraction consistency across the store (INV-SCHEMA-004).
+///
+/// For each Retract datom, verifies that a corresponding Assert datom exists
+/// for the same (entity, attribute, value) triple. Orphan retractions — those
+/// without a prior Assert — are violations.
+///
+/// # Arguments
+///
+/// * `_schema` - The schema (reserved for future constraint checks).
+/// * `datoms` - The full datom set to scan.
+///
+/// # Returns
+///
+/// A list of violations. Empty means all retractions have matching assertions.
+pub fn validate_retraction_consistency(
+    _schema: &Schema,
+    datoms: &BTreeSet<Datom>,
+) -> Vec<RetractionViolation> {
+    // Track all asserted (entity, attribute, value) triples.
+    let mut asserted: HashSet<(EntityId, Attribute, Value)> = HashSet::new();
+
+    for datom in datoms {
+        if datom.op == Op::Assert {
+            asserted.insert((datom.entity, datom.attribute.clone(), datom.value.clone()));
+        }
+    }
+
+    let mut violations = Vec::new();
+    for datom in datoms {
+        if datom.op == Op::Retract {
+            let key = (datom.entity, datom.attribute.clone(), datom.value.clone());
+            if !asserted.contains(&key) {
+                violations.push(RetractionViolation {
+                    entity: datom.entity,
+                    attribute: datom.attribute.clone(),
+                    reason: "orphan retraction".to_string(),
+                });
+            }
+        }
+    }
+
+    violations
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -3834,5 +3970,209 @@ mod tests {
         // Step 7: Minimum bounds still hold (these would catch catastrophic deletion)
         assert!(genesis_count >= 19, "genesis minimum: {genesis_count}");
         assert!(full_count >= 145, "full schema minimum: {full_count}");
+    }
+
+    // -------------------------------------------------------------------
+    // S1 Schema Validation: Cardinality + Retraction Consistency
+    // Verifies: INV-SCHEMA-004 — Schema Validation on Transact
+    // -------------------------------------------------------------------
+
+    // Verifies: INV-SCHEMA-004 — No violations in a well-formed genesis store.
+    #[test]
+    fn validate_cardinality_genesis_clean() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+        let datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
+        let schema = Schema::from_datoms(&datoms);
+
+        let violations = validate_cardinality(&schema, &datoms);
+        assert!(
+            violations.is_empty(),
+            "INV-SCHEMA-004: genesis store must have zero cardinality violations, got {}",
+            violations.len()
+        );
+
+        let retractions = validate_retraction_consistency(&schema, &datoms);
+        assert!(
+            retractions.is_empty(),
+            "INV-SCHEMA-004: genesis store must have zero retraction violations, got {}",
+            retractions.len()
+        );
+    }
+
+    // Verifies: INV-SCHEMA-004 — Cardinality::One with 2 values is a violation.
+    #[test]
+    fn validate_cardinality_one_with_two_values() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
+        let schema = Schema::from_datoms(&datoms);
+
+        // :db/doc has Cardinality::One — assert two distinct values for the same entity.
+        let entity = EntityId::from_content(b"cardinality-test-entity");
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("first value".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("second value".into()),
+            tx,
+            Op::Assert,
+        ));
+
+        let violations = validate_cardinality(&schema, &datoms);
+        assert_eq!(
+            violations.len(),
+            1,
+            "INV-SCHEMA-004: two values on Cardinality::One must produce exactly 1 violation"
+        );
+        assert_eq!(violations[0].entity, entity);
+        assert_eq!(violations[0].attribute.as_str(), ":db/doc");
+        assert_eq!(violations[0].value_count, 2);
+    }
+
+    // Verifies: INV-SCHEMA-004 — Cardinality::Many with 2 values is NOT a violation.
+    #[test]
+    fn validate_cardinality_many_allows_multiple_values() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
+        let schema = Schema::from_datoms(&datoms);
+
+        // :lattice/elements has Cardinality::Many — two values should be fine.
+        let entity = EntityId::from_content(b"cardinality-many-test");
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":lattice/elements"),
+            Value::Keyword("element-a".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":lattice/elements"),
+            Value::Keyword("element-b".into()),
+            tx,
+            Op::Assert,
+        ));
+
+        let violations = validate_cardinality(&schema, &datoms);
+        // Filter to our test entity to be precise (genesis may not produce any either).
+        let ours: Vec<_> = violations.iter().filter(|v| v.entity == entity).collect();
+        assert!(
+            ours.is_empty(),
+            "INV-SCHEMA-004: Cardinality::Many must allow multiple values, got {} violations",
+            ours.len()
+        );
+    }
+
+    // Verifies: INV-SCHEMA-004 — Orphan retraction (retract without prior assert).
+    #[test]
+    fn validate_retraction_orphan() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
+        let schema = Schema::from_datoms(&datoms);
+
+        // Insert a Retract without any prior Assert for the same (e, a, v).
+        let entity = EntityId::from_content(b"orphan-retract-test");
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("never asserted".into()),
+            tx,
+            Op::Retract,
+        ));
+
+        let violations = validate_retraction_consistency(&schema, &datoms);
+        assert_eq!(
+            violations.len(),
+            1,
+            "INV-SCHEMA-004: orphan retraction must produce exactly 1 violation"
+        );
+        assert_eq!(violations[0].entity, entity);
+        assert_eq!(violations[0].attribute.as_str(), ":db/doc");
+        assert_eq!(violations[0].reason, "orphan retraction");
+    }
+
+    // Verifies: INV-SCHEMA-004 — Retraction with matching assert is NOT a violation.
+    #[test]
+    fn validate_retraction_with_matching_assert() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+        let tx2 = TxId::new(1, 0, agent);
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
+        let schema = Schema::from_datoms(&datoms);
+
+        let entity = EntityId::from_content(b"valid-retract-test");
+        // Assert then retract the same value — the retraction is not orphan.
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("to be retracted".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("to be retracted".into()),
+            tx2,
+            Op::Retract,
+        ));
+
+        let violations = validate_retraction_consistency(&schema, &datoms);
+        assert!(
+            violations.is_empty(),
+            "INV-SCHEMA-004: retraction with matching assert must produce 0 violations, got {}",
+            violations.len()
+        );
+    }
+
+    // Verifies: INV-SCHEMA-004 — Cardinality::One violation resolved by retraction.
+    #[test]
+    fn validate_cardinality_one_resolved_by_retraction() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+        let tx2 = TxId::new(1, 0, agent);
+        let mut datoms: BTreeSet<Datom> = genesis_datoms(tx).into_iter().collect();
+        let schema = Schema::from_datoms(&datoms);
+
+        let entity = EntityId::from_content(b"cardinality-retract-test");
+        // Assert two values, then retract the first — only one remains live.
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("old value".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("new value".into()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("old value".into()),
+            tx2,
+            Op::Retract,
+        ));
+
+        let violations = validate_cardinality(&schema, &datoms);
+        let ours: Vec<_> = violations.iter().filter(|v| v.entity == entity).collect();
+        assert!(
+            ours.is_empty(),
+            "INV-SCHEMA-004: retraction should resolve cardinality violation, got {} violations",
+            ours.len()
+        );
     }
 }

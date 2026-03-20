@@ -4,9 +4,10 @@
 //! Optimized for AI agent consumption: provides the information needed to
 //! write correct queries and transactions (INV-INTERFACE-011).
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+use braid_kernel::datom::{Op, Value};
 use braid_kernel::schema::{AttributeDef, Schema};
 use braid_kernel::Attribute;
 
@@ -14,15 +15,38 @@ use crate::error::BraidError;
 use crate::layout::DiskLayout;
 use crate::output::{AgentOutput, CommandOutput};
 
+// ---------------------------------------------------------------------------
+// Diff entry — shared between run_diff, format_diff_human, build_diff_json
+// ---------------------------------------------------------------------------
+
+/// A schema attribute discovered after a given transaction wall-time.
+struct DiffEntry {
+    ident: String,
+    value_type: String,
+    doc: String,
+    tx_wall: u64,
+}
+
+// ---------------------------------------------------------------------------
+// Main entry point
+// ---------------------------------------------------------------------------
+
 /// Run the schema introspection command.
 pub fn run(
     path: &Path,
     pattern: Option<&str>,
     verbose: bool,
     json: bool,
+    diff_since: Option<u64>,
 ) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
+
+    // --diff mode: show only attributes added since a given transaction wall-time.
+    if let Some(since_tx) = diff_since {
+        return run_diff(&store, since_tx, pattern, json);
+    }
+
     let schema = store.schema();
 
     // Collect and filter attributes.
@@ -84,6 +108,217 @@ pub fn run(
         human,
     })
 }
+
+// ---------------------------------------------------------------------------
+// --diff implementation
+// ---------------------------------------------------------------------------
+
+/// Diff mode: find schema attributes whose :db/valueType datom was asserted after `since_tx`.
+///
+/// Walks the :db/valueType datoms to find entities installed after the threshold,
+/// then resolves :db/ident and :db/doc from those entities' datom sets.
+fn run_diff(
+    store: &braid_kernel::Store,
+    since_tx: u64,
+    pattern: Option<&str>,
+    json: bool,
+) -> Result<CommandOutput, BraidError> {
+    let vt_attr = Attribute::from_keyword(":db/valueType");
+
+    // Collect entity IDs where :db/valueType was asserted after since_tx.
+    let new_entity_ids: BTreeSet<_> = store
+        .attribute_datoms(&vt_attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert && d.tx.wall_time() > since_tx)
+        .map(|d| d.entity)
+        .collect();
+
+    if new_entity_ids.is_empty() {
+        let human = format!("schema diff: 0 attributes added since tx {since_tx}\n");
+        let structured = serde_json::json!({
+            "since_tx": since_tx,
+            "count": 0,
+            "attributes": [],
+        });
+        let agent = AgentOutput {
+            context: format!("schema diff: 0 new attributes since tx {since_tx}"),
+            content: human.clone(),
+            footer: "try an earlier tx: braid log --limit 5 | look for wall_time values"
+                .to_string(),
+        };
+        return Ok(CommandOutput {
+            json: structured,
+            agent,
+            human,
+        });
+    }
+
+    // For each new entity, resolve :db/ident, :db/valueType, and :db/doc.
+    let ident_attr = Attribute::from_keyword(":db/ident");
+    let doc_attr = Attribute::from_keyword(":db/doc");
+
+    let mut entries: Vec<DiffEntry> = Vec::new();
+
+    // Index :db/ident datoms by entity for fast lookup.
+    let ident_by_entity: BTreeMap<_, _> = store
+        .attribute_datoms(&ident_attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .map(|d| (d.entity, d))
+        .collect();
+
+    // Index :db/doc datoms by entity.
+    let doc_by_entity: BTreeMap<_, _> = store
+        .attribute_datoms(&doc_attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .map(|d| (d.entity, d))
+        .collect();
+
+    // Index :db/valueType datoms by entity (pick the one after since_tx).
+    let vt_by_entity: BTreeMap<_, _> = store
+        .attribute_datoms(&vt_attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert && d.tx.wall_time() > since_tx)
+        .map(|d| (d.entity, d))
+        .collect();
+
+    for &eid in &new_entity_ids {
+        let ident = ident_by_entity.get(&eid).and_then(|d| match &d.value {
+            Value::Keyword(k) => Some(k.clone()),
+            _ => None,
+        });
+
+        let ident_str = match ident {
+            Some(ref s) => s.as_str(),
+            None => continue, // Skip entities without :db/ident
+        };
+
+        // Apply pattern filter if provided.
+        if let Some(pat) = pattern {
+            let matches = if let Some(prefix) = pat.strip_suffix('*') {
+                ident_str.starts_with(prefix)
+            } else {
+                ident_str == pat || ident_str.contains(pat)
+            };
+            if !matches {
+                continue;
+            }
+        }
+
+        let value_type = vt_by_entity
+            .get(&eid)
+            .and_then(|d| match &d.value {
+                Value::Keyword(k) => Some(k.clone()),
+                _ => None,
+            })
+            .unwrap_or_default();
+
+        let doc = doc_by_entity
+            .get(&eid)
+            .and_then(|d| match &d.value {
+                Value::String(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_default();
+
+        let tx_wall = vt_by_entity
+            .get(&eid)
+            .map(|d| d.tx.wall_time())
+            .unwrap_or(0);
+
+        entries.push(DiffEntry {
+            ident: ident.unwrap(),
+            value_type,
+            doc,
+            tx_wall,
+        });
+    }
+
+    // Sort alphabetically by attribute name.
+    entries.sort_by(|a, b| a.ident.cmp(&b.ident));
+
+    // Build output.
+    let count = entries.len();
+
+    let human = if json {
+        let structured = build_diff_json(since_tx, &entries);
+        serde_json::to_string_pretty(&structured).unwrap() + "\n"
+    } else {
+        format_diff_human(since_tx, &entries)
+    };
+
+    let structured_json = build_diff_json(since_tx, &entries);
+
+    let context = format!("schema diff: {count} attributes added since tx {since_tx}");
+    let agent = AgentOutput {
+        context,
+        content: human.clone(),
+        footer: "full schema: braid schema | filter: braid schema --diff <tx> --pattern ':ns/*'"
+            .to_string(),
+    };
+
+    Ok(CommandOutput {
+        json: structured_json,
+        agent,
+        human,
+    })
+}
+
+/// Format diff results as human-readable text.
+fn format_diff_human(since_tx: u64, entries: &[DiffEntry]) -> String {
+    let mut out = String::new();
+    out.push_str(&format!(
+        "schema diff: {} attributes added since tx {}\n\n",
+        entries.len(),
+        since_tx
+    ));
+
+    if entries.is_empty() {
+        return out;
+    }
+
+    let max_name_len = entries.iter().map(|e| e.ident.len()).max().unwrap_or(0);
+
+    for entry in entries {
+        let doc = truncate_doc(&entry.doc, 50);
+        out.push_str(&format!(
+            "  + {:<width$}  {:<12}  tx={:<14}  \"{}\"\n",
+            entry.ident,
+            entry.value_type,
+            entry.tx_wall,
+            doc,
+            width = max_name_len,
+        ));
+    }
+
+    out
+}
+
+/// Build structured JSON for diff results.
+fn build_diff_json(since_tx: u64, entries: &[DiffEntry]) -> serde_json::Value {
+    let attr_json: Vec<serde_json::Value> = entries
+        .iter()
+        .map(|e| {
+            serde_json::json!({
+                "name": e.ident,
+                "type": e.value_type,
+                "doc": e.doc,
+                "tx_wall_time": e.tx_wall,
+            })
+        })
+        .collect();
+
+    serde_json::json!({
+        "since_tx": since_tx,
+        "count": attr_json.len(),
+        "attributes": attr_json,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Existing schema list formatting
+// ---------------------------------------------------------------------------
 
 /// Terse two-column table: attribute, type, cardinality, doc (truncated).
 fn format_terse(attrs: &[(&Attribute, &AttributeDef)]) -> Result<String, BraidError> {

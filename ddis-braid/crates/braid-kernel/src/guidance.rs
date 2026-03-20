@@ -745,7 +745,106 @@ pub fn refit_routing_weights(store: &Store) -> Option<[f64; N_FEATURES]> {
     Some(clamped)
 }
 
-/// Solve a 6×6 linear system Ax = b via Gaussian elimination with partial pivoting.
+/// Feature names for the 6 R(t) routing dimensions.
+///
+/// Corresponds to [g1..g6] in compute_routing():
+/// g1=pagerank, g2=betweenness, g3=critical_path, g4=blocker_ratio, g5=staleness, g6=priority.
+pub const ROUTING_FEATURE_NAMES: [&str; 6] = [
+    "pagerank",
+    "betweenness",
+    "critical_path",
+    "blocker_ratio",
+    "staleness",
+    "priority",
+];
+
+/// R(t) routing weight dashboard data (RFL-5).
+///
+/// Provides visibility into the current routing weights, their source
+/// (learned vs. default), and follow-through statistics from action-outcome
+/// pairs stored as `:action/*` datoms.
+#[derive(Clone, Debug)]
+pub struct RoutingDashboard {
+    /// Current active weights (either learned or defaults).
+    pub weights: [f64; 6],
+    /// Feature names for display.
+    pub feature_names: [&'static str; 6],
+    /// Whether the weights come from a learned refit (true) or defaults (false).
+    pub learned: bool,
+    /// Total action-outcome pairs (entities with `:action/recommended-command`).
+    pub total_actions: usize,
+    /// Number of actions that have an `:action/outcome` datom.
+    pub actions_with_outcome: usize,
+    /// Number of "followed" outcomes (`:action.outcome/followed`).
+    pub followed_count: usize,
+    /// Follow-through rate: followed / actions_with_outcome (0.0 if no outcomes).
+    pub follow_through_rate: f64,
+    /// True if total_actions < 50 (preview mode).
+    pub preview: bool,
+}
+
+/// Compute the R(t) routing dashboard from the store (RFL-5).
+///
+/// Collects:
+/// 1. Current routing weights (learned or default) via `routing_weights()`.
+/// 2. Whether a learned refit succeeded (>= 50 data points).
+/// 3. Action-outcome statistics from `:action/*` datoms.
+///
+/// Traces to: INV-GUIDANCE-010, INV-GUIDANCE-005, ADR-TOPOLOGY-004.
+pub fn routing_dashboard(store: &Store) -> RoutingDashboard {
+    let weights = routing_weights(store);
+    let learned = refit_routing_weights(store).is_some();
+
+    let cmd_attr = crate::datom::Attribute::from_keyword(":action/recommended-command");
+    let outcome_attr = crate::datom::Attribute::from_keyword(":action/outcome");
+
+    // Count total action entities (those with :action/recommended-command)
+    let action_entities: Vec<crate::datom::EntityId> = store
+        .attribute_datoms(&cmd_attr)
+        .iter()
+        .filter(|d| d.op == crate::datom::Op::Assert)
+        .map(|d| d.entity)
+        .collect();
+    let total_actions = action_entities.len();
+
+    // Count outcomes and classify
+    let mut actions_with_outcome = 0usize;
+    let mut followed_count = 0usize;
+
+    for entity in &action_entities {
+        let entity_datoms = store.entity_datoms(*entity);
+        if let Some(outcome_datom) = entity_datoms
+            .iter()
+            .find(|d| d.attribute == outcome_attr && d.op == crate::datom::Op::Assert)
+        {
+            actions_with_outcome += 1;
+            if let crate::datom::Value::Keyword(k) = &outcome_datom.value {
+                if k == ":action.outcome/followed" {
+                    followed_count += 1;
+                }
+            }
+        }
+    }
+
+    let follow_through_rate = if actions_with_outcome > 0 {
+        followed_count as f64 / actions_with_outcome as f64
+    } else {
+        0.0
+    };
+
+    RoutingDashboard {
+        weights,
+        feature_names: ROUTING_FEATURE_NAMES,
+        learned,
+        total_actions,
+        actions_with_outcome,
+        followed_count,
+        follow_through_rate,
+        preview: total_actions < 50,
+    }
+}
+
+/// Solve a 6x6 linear system Ax = b via Gaussian elimination with partial pivoting.
 ///
 /// Returns None if the system is singular (shouldn't happen with ridge regularization).
 fn solve_linear_system_6x6(a: &[[f64; N_FEATURES]; N_FEATURES], b: &[f64; N_FEATURES]) -> Option<[f64; N_FEATURES]> {
@@ -7836,6 +7935,464 @@ mod tests {
         assert_eq!(
             session_boost(EntityId::from_ident(":task/t-any"), &sws),
             1.0
+        );
+    }
+
+    // ===================================================================
+    // TEST-RFL-UNIT: R(t) Feedback Loop — Ridge Regression & Outcome Classification
+    // Verifies: INV-GUIDANCE-010, INV-GUIDANCE-005, ADR-TOPOLOGY-004
+    // ===================================================================
+
+    /// Helper: build a Store containing `n` action-outcome entities.
+    ///
+    /// Each entity has :action/recommended-command, :action/outcome, :action/features.
+    /// `features_fn(i)` produces the 6-element feature vector for entity i.
+    /// `outcome_fn(i)` produces the outcome keyword for entity i.
+    fn rfl_store_with_actions(
+        n: usize,
+        features_fn: impl Fn(usize) -> [f64; 6],
+        outcome_fn: impl Fn(usize) -> &'static str,
+    ) -> Store {
+        use crate::datom::{AgentId, Datom, Op, TxId};
+
+        let agent = AgentId::from_name("rfl-test");
+        let mut datoms = std::collections::BTreeSet::new();
+
+        for i in 0..n {
+            let tx = TxId::new(1000 + i as u64, i as u32, agent);
+            let entity = EntityId::from_ident(&format!(":action/rfl-{i:04}"));
+
+            // :db/ident
+            datoms.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(format!(":action/rfl-{i:04}")),
+                tx,
+                Op::Assert,
+            ));
+
+            // :action/recommended-command
+            datoms.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":action/recommended-command"),
+                Value::String(format!("braid go t-{i:04x}")),
+                tx,
+                Op::Assert,
+            ));
+
+            // :action/outcome
+            datoms.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":action/outcome"),
+                Value::Keyword(outcome_fn(i).to_string()),
+                tx,
+                Op::Assert,
+            ));
+
+            // :action/features — JSON array of 6 floats
+            let feats = features_fn(i);
+            let json = serde_json::to_string(&feats.to_vec()).unwrap();
+            datoms.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":action/features"),
+                Value::String(json),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        Store::from_datoms(datoms)
+    }
+
+    // ---------------------------------------------------------------
+    // 1. Ridge regression with uniform data produces near-uniform weights
+    // ---------------------------------------------------------------
+
+    /// INV-GUIDANCE-010: With uniform features and uniform positive outcomes,
+    /// ridge regression should produce approximately equal weights.
+    /// The ridge regularization (lambda=0.01) pulls weights toward uniform,
+    /// and with identical features the solution is inherently symmetric.
+    #[test]
+    fn rfl_ridge_uniform_data_produces_near_uniform_weights() {
+        // 60 data points, all features = 1.0, all outcomes "followed" (y=1.0)
+        let store = rfl_store_with_actions(
+            60,
+            |_| [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+            |_| ":action.outcome/followed",
+        );
+
+        let weights = refit_routing_weights(&store);
+        assert!(weights.is_some(), "should produce weights with 60 data points");
+        let w = weights.unwrap();
+
+        // With uniform features, all weights should be approximately equal
+        // After clamping [0.01, 0.5] and normalizing to sum=1.0,
+        // uniform weights = 1/6 ~= 0.1667
+        let expected = 1.0 / 6.0;
+        for (i, &wi) in w.iter().enumerate() {
+            assert!(
+                (wi - expected).abs() < 0.05,
+                "weight[{i}] = {wi:.4}, expected ~{expected:.4} (uniform data)"
+            );
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // 2. Ridge regression numerical stability
+    // ---------------------------------------------------------------
+
+    /// INV-GUIDANCE-010: Weights must sum to 1.0 (normalization invariant).
+    /// No NaN or Inf values allowed.
+    #[test]
+    fn rfl_ridge_weights_sum_to_one_no_nan() {
+        // Mixed outcomes with varied features
+        let store = rfl_store_with_actions(
+            60,
+            |i| {
+                let t = i as f64 / 60.0;
+                [
+                    0.1 + 0.8 * t,          // pagerank: ramp
+                    0.5,                     // betweenness: constant
+                    0.3 * (1.0 - t),         // critical_path: decreasing
+                    if i % 3 == 0 { 0.9 } else { 0.1 }, // blocker_ratio: periodic
+                    0.2 + 0.1 * (i % 5) as f64,         // staleness: stepped
+                    0.4,                     // priority_boost: constant
+                ]
+            },
+            |i| match i % 3 {
+                0 => ":action.outcome/followed",
+                1 => ":action.outcome/adjacent",
+                _ => ":action.outcome/ignored",
+            },
+        );
+
+        let weights = refit_routing_weights(&store);
+        assert!(weights.is_some(), "should produce weights with varied data");
+        let w = weights.unwrap();
+
+        // No NaN or Inf
+        for (i, &wi) in w.iter().enumerate() {
+            assert!(wi.is_finite(), "weight[{i}] must be finite, got {wi}");
+            assert!(!wi.is_nan(), "weight[{i}] must not be NaN");
+        }
+
+        // Sum to 1.0 within epsilon
+        let sum: f64 = w.iter().sum();
+        assert!(
+            (sum - 1.0).abs() < 1e-10,
+            "weights must sum to 1.0, got {sum}"
+        );
+
+        // All weights positive and bounded
+        for (i, &wi) in w.iter().enumerate() {
+            assert!(wi > 0.0, "weight[{i}] must be positive, got {wi}");
+            assert!(wi <= 1.0, "weight[{i}] must be <= 1.0, got {wi}");
+        }
+    }
+
+    /// INV-GUIDANCE-010: Ridge regression stability with extreme feature values.
+    /// Even with features near 0 or near 1, regularization prevents singularity.
+    #[test]
+    fn rfl_ridge_stability_extreme_features() {
+        // Features alternate between near-zero and near-one
+        let store = rfl_store_with_actions(
+            55,
+            |i| {
+                if i % 2 == 0 {
+                    [0.001, 0.001, 0.001, 0.001, 0.001, 0.001]
+                } else {
+                    [0.999, 0.999, 0.999, 0.999, 0.999, 0.999]
+                }
+            },
+            |i| {
+                if i % 2 == 0 {
+                    ":action.outcome/ignored"
+                } else {
+                    ":action.outcome/followed"
+                }
+            },
+        );
+
+        let weights = refit_routing_weights(&store);
+        assert!(
+            weights.is_some(),
+            "ridge regularization should prevent singularity with extreme features"
+        );
+        let w = weights.unwrap();
+
+        let sum: f64 = w.iter().sum();
+        assert!(
+            (sum - 1.0).abs() < 1e-10,
+            "weights must sum to 1.0, got {sum}"
+        );
+        for (i, &wi) in w.iter().enumerate() {
+            assert!(wi.is_finite(), "weight[{i}] must be finite, got {wi}");
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // 3. classify_action_outcome categories
+    // ---------------------------------------------------------------
+
+    /// INV-GUIDANCE-005: "followed" — current command matches recommended.
+    #[test]
+    fn rfl_classify_outcome_followed() {
+        use crate::datom::{AgentId, Datom, Op, TxId};
+
+        let agent = AgentId::from_name("rfl-test");
+        let tx = TxId::new(5000, 0, agent);
+        let entity = EntityId::from_ident(":action/rfl-classify-1");
+        let mut datoms = std::collections::BTreeSet::new();
+
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":action/rfl-classify-1".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":action/recommended-command"),
+            Value::String("braid go t-abcd1234".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        // No :action/outcome — this is an unresolved action
+
+        let store = Store::from_datoms(datoms);
+        let result = classify_action_outcome(&store, "braid go t-abcd1234");
+        assert!(result.is_some(), "should find unresolved action");
+        let (category, eid) = result.unwrap();
+        assert_eq!(category, "followed", "exact match should be 'followed'");
+        assert_eq!(eid, entity);
+    }
+
+    /// INV-GUIDANCE-005: "adjacent" — current command references same task ID.
+    #[test]
+    fn rfl_classify_outcome_adjacent() {
+        use crate::datom::{AgentId, Datom, Op, TxId};
+
+        let agent = AgentId::from_name("rfl-test");
+        let tx = TxId::new(5001, 0, agent);
+        let entity = EntityId::from_ident(":action/rfl-classify-2");
+        let mut datoms = std::collections::BTreeSet::new();
+
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":action/rfl-classify-2".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":action/recommended-command"),
+            Value::String("braid go t-ff30abcd".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        // Different command but same task ID embedded
+        let result = classify_action_outcome(&store, "braid status t-ff30abcd");
+        assert!(result.is_some(), "should find unresolved action");
+        let (category, eid) = result.unwrap();
+        assert_eq!(
+            category, "adjacent",
+            "same task ID in different command should be 'adjacent'"
+        );
+        assert_eq!(eid, entity);
+    }
+
+    /// INV-GUIDANCE-005: "ignored" — completely different command.
+    #[test]
+    fn rfl_classify_outcome_ignored() {
+        use crate::datom::{AgentId, Datom, Op, TxId};
+
+        let agent = AgentId::from_name("rfl-test");
+        let tx = TxId::new(5002, 0, agent);
+        let entity = EntityId::from_ident(":action/rfl-classify-3");
+        let mut datoms = std::collections::BTreeSet::new();
+
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":action/rfl-classify-3".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":action/recommended-command"),
+            Value::String("braid go t-99991111".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        // Completely unrelated command
+        let result = classify_action_outcome(&store, "braid harvest --commit");
+        assert!(result.is_some(), "should find unresolved action");
+        let (category, eid) = result.unwrap();
+        assert_eq!(
+            category, "ignored",
+            "unrelated command should be 'ignored'"
+        );
+        assert_eq!(eid, entity);
+    }
+
+    /// INV-GUIDANCE-005: classify returns None when no unresolved action exists.
+    #[test]
+    fn rfl_classify_outcome_none_when_all_resolved() {
+        use crate::datom::{AgentId, Datom, Op, TxId};
+
+        let agent = AgentId::from_name("rfl-test");
+        let tx = TxId::new(5003, 0, agent);
+        let entity = EntityId::from_ident(":action/rfl-classify-4");
+        let mut datoms = std::collections::BTreeSet::new();
+
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":action/rfl-classify-4".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":action/recommended-command"),
+            Value::String("braid go t-aaaa".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        // This action HAS an outcome — it's resolved
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":action/outcome"),
+            Value::Keyword(":action.outcome/followed".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let result = classify_action_outcome(&store, "braid status");
+        assert!(
+            result.is_none(),
+            "should return None when all actions are resolved"
+        );
+    }
+
+    // ---------------------------------------------------------------
+    // 4. routing_weights returns DEFAULT when no data
+    // ---------------------------------------------------------------
+
+    /// INV-GUIDANCE-010: On a fresh/genesis store with no :routing/weights datom,
+    /// routing_weights must return the hardcoded DEFAULT_ROUTING_WEIGHTS.
+    #[test]
+    fn rfl_routing_weights_default_on_genesis_store() {
+        let store = Store::genesis();
+        let w = routing_weights(&store);
+        assert_eq!(
+            w, DEFAULT_ROUTING_WEIGHTS,
+            "genesis store should return default routing weights"
+        );
+    }
+
+    /// Same test with from_datoms(empty-ish store).
+    #[test]
+    fn rfl_routing_weights_default_on_empty_store() {
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        let w = routing_weights(&store);
+        assert_eq!(
+            w, DEFAULT_ROUTING_WEIGHTS,
+            "empty store should return default routing weights"
+        );
+    }
+
+    // ---------------------------------------------------------------
+    // 5. routing_weights / refit with insufficient data returns default/None
+    // ---------------------------------------------------------------
+
+    /// INV-GUIDANCE-010: refit_routing_weights returns None with < 50 data points.
+    /// The 50-point minimum safeguard prevents overfitting on sparse data.
+    #[test]
+    fn rfl_refit_returns_none_with_insufficient_data() {
+        // 10 action-outcome pairs — well below the 50-point minimum
+        let store = rfl_store_with_actions(
+            10,
+            |i| {
+                let t = i as f64 / 10.0;
+                [t, 0.5, 0.3, 0.1, 0.2, 0.4]
+            },
+            |i| {
+                if i % 2 == 0 {
+                    ":action.outcome/followed"
+                } else {
+                    ":action.outcome/ignored"
+                }
+            },
+        );
+
+        let weights = refit_routing_weights(&store);
+        assert!(
+            weights.is_none(),
+            "refit should return None with only 10 data points (need 50+)"
+        );
+    }
+
+    /// INV-GUIDANCE-010: refit returns None at exactly 49 data points (boundary).
+    #[test]
+    fn rfl_refit_returns_none_at_49_data_points() {
+        let store = rfl_store_with_actions(
+            49,
+            |_| [0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+            |_| ":action.outcome/followed",
+        );
+
+        let weights = refit_routing_weights(&store);
+        assert!(
+            weights.is_none(),
+            "refit should return None with exactly 49 data points"
+        );
+    }
+
+    /// INV-GUIDANCE-010: refit produces Some at exactly 50 data points (boundary).
+    #[test]
+    fn rfl_refit_returns_some_at_50_data_points() {
+        let store = rfl_store_with_actions(
+            50,
+            |_| [0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+            |_| ":action.outcome/followed",
+        );
+
+        let weights = refit_routing_weights(&store);
+        assert!(
+            weights.is_some(),
+            "refit should produce weights at exactly 50 data points"
+        );
+    }
+
+    /// INV-GUIDANCE-010: routing_weights still returns defaults when refit
+    /// would fail (insufficient action-outcome data in store).
+    #[test]
+    fn rfl_routing_weights_returns_defaults_with_sparse_actions() {
+        // Store has 10 action-outcome pairs but no :routing/weights datom
+        let store = rfl_store_with_actions(
+            10,
+            |i| {
+                let t = i as f64 / 10.0;
+                [t, 0.5, 0.3, 0.1, 0.2, 0.4]
+            },
+            |_| ":action.outcome/followed",
+        );
+
+        // routing_weights looks for :routing/weights datom (not present)
+        // and falls back to DEFAULT_ROUTING_WEIGHTS
+        let w = routing_weights(&store);
+        assert_eq!(
+            w, DEFAULT_ROUTING_WEIGHTS,
+            "store without :routing/weights datom should return defaults"
         );
     }
 }
