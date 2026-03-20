@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774035508/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-29eb725d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4d0128a294bad9f368009f0498cdd6b481f06e1f6f1f5a0e45fece96cb6d6696" :a :task/close-reason :v "OutputMode::Tsv + json_to_tsv render-time conversion. Budget bypass. 5 tests. Zero changes to CommandOutput struct." :op :assert}
+   {:e #blake3 "4d0128a294bad9f368009f0498cdd6b481f06e1f6f1f5a0e45fece96cb6d6696" :a :task/closed-at :v 1774035507 :op :assert}
+   {:e #blake3 "4d0128a294bad9f368009f0498cdd6b481f06e1f6f1f5a0e45fece96cb6d6696" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "4d0128a294bad9f368009f0498cdd6b481f06e1f6f1f5a0e45fece96cb6d6696" :a :task/status :v :task.status/closed :op :assert}
+ ]}

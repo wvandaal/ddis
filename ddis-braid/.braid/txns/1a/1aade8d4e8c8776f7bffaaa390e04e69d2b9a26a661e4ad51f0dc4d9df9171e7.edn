@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774035502/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-9e123e45"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1889bdd79d201922e26e0fbafbfdb6356c2936b91d2c7bce618afe08dbebf758" :a :task/close-reason :v "spec_graph_neighbors + knowledge_relevance_scan L-inf merge + extract_spec_namespace. 5 tests. VAET BFS depth 2 with IDF weighting." :op :assert}
+   {:e #blake3 "1889bdd79d201922e26e0fbafbfdb6356c2936b91d2c7bce618afe08dbebf758" :a :task/closed-at :v 1774035501 :op :assert}
+   {:e #blake3 "1889bdd79d201922e26e0fbafbfdb6356c2936b91d2c7bce618afe08dbebf758" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "1889bdd79d201922e26e0fbafbfdb6356c2936b91d2c7bce618afe08dbebf758" :a :task/status :v :task.status/closed :op :assert}
+ ]}

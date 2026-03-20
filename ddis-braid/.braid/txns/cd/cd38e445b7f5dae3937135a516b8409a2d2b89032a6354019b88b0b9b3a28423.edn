@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774035529/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-87cc"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6c195bfd069ebee6d6200727a41500ea2608e0bff8bf51c8c660021dddc6b728" :a :task/close-reason :v "3 tests: tautological=0, meaningful>0, challenge never confirms tautological." :op :assert}
+   {:e #blake3 "6c195bfd069ebee6d6200727a41500ea2608e0bff8bf51c8c660021dddc6b728" :a :task/closed-at :v 1774035528 :op :assert}
+   {:e #blake3 "6c195bfd069ebee6d6200727a41500ea2608e0bff8bf51c8c660021dddc6b728" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "6c195bfd069ebee6d6200727a41500ea2608e0bff8bf51c8c660021dddc6b728" :a :task/status :v :task.status/closed :op :assert}
+ ]}

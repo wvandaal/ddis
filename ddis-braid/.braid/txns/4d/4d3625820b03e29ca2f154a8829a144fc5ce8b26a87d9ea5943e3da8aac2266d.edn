@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774035522/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-4488"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :task/close-reason :v "2 unit tests for harness alignment (wrong-property < 0.3, correct > wrong)." :op :assert}
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :task/closed-at :v 1774035521 :op :assert}
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "32ae718bf54f51708c267577e4ed7bf0d358c640540346a2e0d1d0b4094ef3d9" :a :task/status :v :task.status/closed :op :assert}
+ ]}
