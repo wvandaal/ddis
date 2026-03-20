@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774039989/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-abf64b39"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "63fdcbd85cbd3c9664036fc585c108491c0f4e6eabff8aa2234a28bd617e9dbb" :a :task/close-reason :v "14/14 E2E checks in scripts/e2e_ambient_reconciliation.sh: trace production, graph neighbors, concentration, namespace isolation, read safety, performance." :op :assert}
+   {:e #blake3 "63fdcbd85cbd3c9664036fc585c108491c0f4e6eabff8aa2234a28bd617e9dbb" :a :task/closed-at :v 1774039988 :op :assert}
+   {:e #blake3 "63fdcbd85cbd3c9664036fc585c108491c0f4e6eabff8aa2234a28bd617e9dbb" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "63fdcbd85cbd3c9664036fc585c108491c0f4e6eabff8aa2234a28bd617e9dbb" :a :task/status :v :task.status/closed :op :assert}
+ ]}
