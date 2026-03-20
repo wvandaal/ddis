@@ -2275,8 +2275,11 @@ pub fn assemble(
     let last_session = recent.first();
 
     // Directive: task + action injection (SB.2.1) + intention anchoring
+    // CTP-4: Include acceptance criteria checklist from compile_directives
     let actions = crate::guidance::derive_actions(store);
-    let base_directive_text = build_directive(task, &actions, budget, last_session);
+    let compiled_directive = compile_directives(task);
+    let base_directive_from_store = build_directive(task, &actions, budget, last_session);
+    let base_directive_text = format!("{}\n{}", compiled_directive, base_directive_from_store);
 
     // Augment directive with intention context (INV-SEED-006).
     // Intention context is injected AFTER the task line, before other content,
@@ -2341,6 +2344,21 @@ pub fn assemble(
 
     let mut state_entries = Vec::new();
     let mut state_tokens = 0;
+
+    // CTP-3: Inject demonstration from most similar closed task (INV-SEED-005)
+    if let Some(demo) = compile_demonstrations(store, task) {
+        let demo_tokens = estimate_tokens(&demo);
+        if state_tokens + demo_tokens <= state_budget {
+            state_entries.push(StateEntry {
+                entity: EntityId::from_ident(":seed/demonstration"),
+                projection: ProjectionLevel::Full,
+                content: demo,
+                tokens: demo_tokens,
+            });
+            state_tokens += demo_tokens;
+        }
+    }
+
     for (entity, score) in &scored {
         // Skip harvest entities — their content is already rendered in Orientation
         if harvest_entities.contains(entity) {
