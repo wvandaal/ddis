@@ -193,10 +193,44 @@ pub fn generate_task_id(title: &str) -> String {
 // Title Pyramid (ACP-7, INV-INTERFACE-008, ADR-BUDGET-006)
 // ---------------------------------------------------------------------------
 
-/// Generate multi-resolution title summaries for ACP projection.
+/// Extract the short activation title by stripping structured sections.
 ///
-/// Returns (L0, L1) where:
-/// - L0: ultra-short (~4 words, ≤25 chars) — for Imperative/Signal strategy
+/// Task titles often contain BACKGROUND:, APPROACH:, ACCEPTANCE:, DEPENDS-ON:,
+/// TRACES TO:, and FILE: sections as inline documentation. For list display,
+/// only the activation pattern (the part before these markers) is relevant.
+///
+/// Returns the title up to the first structured section marker, trimmed.
+pub fn short_title(title: &str) -> &str {
+    // Markers that indicate the start of a structured section.
+    const MARKERS: &[&str] = &[
+        "BACKGROUND:",
+        " BACKGROUND:",
+        ". BACKGROUND:",
+        "APPROACH:",
+        " APPROACH:",
+        "ACCEPTANCE:",
+        " ACCEPTANCE:",
+        "DEPENDS-ON:",
+        " DEPENDS-ON:",
+        "TRACES TO:",
+        " TRACES TO:",
+        "FILE:",
+        " FILE:",
+    ];
+
+    let mut end = title.len();
+    for marker in MARKERS {
+        if let Some(pos) = title.find(marker) {
+            end = end.min(pos);
+        }
+    }
+
+    title[..end].trim_end_matches(['.', ' ', ','])
+}
+
+/// Generate L0/L1 pyramid titles from a task title.
+///
+/// - L0: ultra-short (~3 words, ≤25 chars) — for Pointer strategy
 /// - L1: short (~12 words, ≤80 chars) — for Navigate strategy
 /// - L2 is the existing :task/title truncated to first sentence (done at query time)
 ///
@@ -2054,5 +2088,49 @@ mod tests {
             summary.title, "Updated title",
             "title should reflect the latest transaction"
         );
+    }
+
+    // ---- short_title tests (INV-INTERFACE-008) ----
+
+    #[test]
+    fn short_title_strips_background() {
+        let title = "ST-1: Auto-detect session start. BACKGROUND: When the CLI detects no active session...";
+        assert_eq!(short_title(title), "ST-1: Auto-detect session start");
+    }
+
+    #[test]
+    fn short_title_strips_approach() {
+        let title = "TOPO-PERSIST: Persist topology plan. APPROACH: Store as datoms.";
+        assert_eq!(short_title(title), "TOPO-PERSIST: Persist topology plan");
+    }
+
+    #[test]
+    fn short_title_strips_acceptance() {
+        let title = "Fix task display. ACCEPTANCE: (A) List shows short. (B) Show shows full.";
+        assert_eq!(short_title(title), "Fix task display");
+    }
+
+    #[test]
+    fn short_title_strips_traces_to() {
+        let title = "Wire methodology_gaps into status. TRACES TO: INV-GUIDANCE-021.";
+        assert_eq!(short_title(title), "Wire methodology_gaps into status");
+    }
+
+    #[test]
+    fn short_title_strips_file_marker() {
+        let title = "SUBSTRATE-2: Decouple extract_task_files. FILE: crates/braid-kernel/src/topology.rs";
+        assert_eq!(short_title(title), "SUBSTRATE-2: Decouple extract_task_files");
+    }
+
+    #[test]
+    fn short_title_preserves_no_markers() {
+        let title = "Simple task with no structured sections";
+        assert_eq!(short_title(title), title);
+    }
+
+    #[test]
+    fn short_title_handles_multiple_markers() {
+        let title = "Do X. BACKGROUND: Why. APPROACH: How. ACCEPTANCE: What. FILE: foo.rs";
+        assert_eq!(short_title(title), "Do X");
     }
 }

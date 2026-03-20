@@ -248,9 +248,12 @@ pub fn list_filtered(
         } else {
             format!(" [{}]", t.traces_to.len())
         };
+        // API-as-prompt (INV-INTERFACE-008): show short activation title in list,
+        // full context available via `braid task show <id>`.
+        let display_title = task::short_title(&t.title);
         human.push_str(&format!(
             "  P{} {:4} {:4}  {}  \"{}\"{}\n",
-            t.priority, type_short, status, t.id, t.title, traces
+            t.priority, type_short, status, t.id, display_title, traces
         ));
         tasks_json.push(serde_json::json!({
             "id": t.id,
@@ -283,12 +286,14 @@ pub fn list_filtered(
         .iter()
         .take(10)
         .map(|t| {
+            let title = t["title"].as_str().unwrap_or("?");
+            let short = task::short_title(title);
             format!(
                 "[P{}] {} {} \"{}\"",
                 t["priority"],
                 t["id"].as_str().unwrap_or("?"),
                 t["status"].as_str().unwrap_or("?"),
-                t["title"].as_str().unwrap_or("?"),
+                short,
             )
         })
         .collect();
