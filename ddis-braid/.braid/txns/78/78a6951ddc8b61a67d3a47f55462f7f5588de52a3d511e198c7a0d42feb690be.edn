@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774038712/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a8d013a1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ce757087e1de2b3ebdee03df568d458f6e450d5107bff13a835508ec8bf406d5" :a :task/close-reason :v "ConcentrationSignal + spec_neighborhood_concentration wired into methodology_gaps + AdjustedGaps + status display. 4 tests." :op :assert}
+   {:e #blake3 "ce757087e1de2b3ebdee03df568d458f6e450d5107bff13a835508ec8bf406d5" :a :task/closed-at :v 1774038711 :op :assert}
+   {:e #blake3 "ce757087e1de2b3ebdee03df568d458f6e450d5107bff13a835508ec8bf406d5" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "ce757087e1de2b3ebdee03df568d458f6e450d5107bff13a835508ec8bf406d5" :a :task/status :v :task.status/closed :op :assert}
+ ]}
