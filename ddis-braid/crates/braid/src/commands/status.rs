@@ -135,15 +135,16 @@ pub fn run(
     }
 
     // Build JSON representation (always computed — reused for --json and structured output)
-    let json_value = build_json(
+    let json_value = build_json(StatusJsonParams {
         path,
-        &store,
-        &hashes,
+        store: &store,
+        hashes: &hashes,
         tx_since_harvest,
         agent_name,
-        false,
+        deep: false,
         spectral,
-    );
+        verbose,
+    });
 
     // ACP: Build the ActionProjection for status (INV-BUDGET-007)
     let projection = build_status_projection(path, &store, &hashes, tx_since_harvest);
@@ -711,6 +712,38 @@ fn build_verbose(
         ));
     }
 
+    // R(t) Routing weights dashboard (RFL-5: follow-through visibility)
+    {
+        use braid_kernel::guidance::routing_dashboard;
+        let rd = routing_dashboard(store);
+        let mode_label = if rd.learned {
+            "learned"
+        } else if rd.preview {
+            "preview (defaults)"
+        } else {
+            "defaults"
+        };
+        out.push_str(&format!("R(t) routing: {}\n", mode_label));
+        out.push_str("  weights:\n");
+        for (name, &w) in rd.feature_names.iter().zip(rd.weights.iter()) {
+            out.push_str(&format!("    {}: {:.3}\n", name, w));
+        }
+        out.push_str(&format!(
+            "  action-outcome pairs: {} total, {} with outcome, {} followed\n",
+            rd.total_actions, rd.actions_with_outcome, rd.followed_count,
+        ));
+        out.push_str(&format!(
+            "  follow-through rate: {:.1}%\n",
+            rd.follow_through_rate * 100.0,
+        ));
+        if rd.preview {
+            out.push_str(&format!(
+                "  note: {} / 50 data points \u{2014} using default weights (collect more action-outcome pairs to enable learned weights)\n",
+                rd.total_actions,
+            ));
+        }
+    }
+
     // Harvest health
     let harvest_warning = if tx_since_harvest >= 15 {
         " [OVERDUE \u{2014} harvest immediately]"
@@ -841,16 +874,30 @@ fn run_deep(
     Ok(out)
 }
 
-/// Build JSON value with all structured data.
-fn build_json(
-    path: &Path,
-    store: &braid_kernel::Store,
-    hashes: &[String],
+/// Parameters for building the JSON status representation.
+struct StatusJsonParams<'a> {
+    path: &'a Path,
+    store: &'a braid_kernel::Store,
+    hashes: &'a [String],
     tx_since_harvest: usize,
-    agent_name: &str,
+    agent_name: &'a str,
     deep: bool,
     spectral: bool,
-) -> serde_json::Value {
+    verbose: bool,
+}
+
+/// Build JSON value with all structured data.
+fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
+    let StatusJsonParams {
+        path,
+        store,
+        hashes,
+        tx_since_harvest,
+        agent_name,
+        deep,
+        spectral,
+        verbose,
+    } = params;
     let coherence = check_coherence_fast(store);
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
@@ -918,6 +965,28 @@ fn build_json(
             "untested": gaps.untested,
             "stale_witnesses": gaps.stale_witnesses,
             "total": gaps.total(),
+        });
+    }
+
+    // R(t) routing dashboard (RFL-5: verbose-only)
+    if verbose {
+        use braid_kernel::guidance::routing_dashboard;
+        let db = routing_dashboard(store);
+        let weights_obj: serde_json::Map<String, serde_json::Value> = db
+            .feature_names
+            .iter()
+            .zip(db.weights.iter())
+            .map(|(name, &w)| (name.to_string(), serde_json::json!(w)))
+            .collect();
+        result["routing"] = serde_json::json!({
+            "mode": if db.learned { "learned" } else if db.preview { "preview" } else { "defaults" },
+            "weights": weights_obj,
+            "total_actions": db.total_actions,
+            "actions_with_outcome": db.actions_with_outcome,
+            "followed_count": db.followed_count,
+            "follow_through_rate": db.follow_through_rate,
+            "preview": db.preview,
+            "data_points_needed": if db.preview { 50 - db.total_actions } else { 0 },
         });
     }
 

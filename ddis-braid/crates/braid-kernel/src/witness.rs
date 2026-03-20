@@ -1483,4 +1483,200 @@ mod tests {
             Value::Keyword(":witness.status/stale".to_string())
         );
     }
+
+    // ===================================================================
+    // Proptest — INV-WITNESS-001 Triple-Hash Invalidation (TEST-W1)
+    // ===================================================================
+
+    mod proptests {
+        use super::*;
+        use proptest::prelude::*;
+
+        /// Strategy: arbitrary non-empty strings for spec/falsification/test text.
+        fn arb_text() -> impl Strategy<Value = String> {
+            "[a-zA-Z0-9_ ]{3,50}".prop_map(|s| s.to_string())
+        }
+
+        proptest! {
+            /// INV-WITNESS-001: ANY mutation to spec text changes spec_hash,
+            /// triggering staleness detection.
+            #[test]
+            fn spec_mutation_triggers_stale(
+                original in arb_text(),
+                mutation in arb_text(),
+            ) {
+                prop_assume!(original != mutation);
+                let original_hash = content_hash(&original);
+                let mutated_hash = content_hash(&mutation);
+                prop_assert_ne!(
+                    original_hash, mutated_hash,
+                    "different content must produce different hashes"
+                );
+            }
+
+            /// INV-WITNESS-001: Content hash is deterministic — same input → same hash.
+            #[test]
+            fn content_hash_is_deterministic(text in arb_text()) {
+                let h1 = content_hash(&text);
+                let h2 = content_hash(&text);
+                prop_assert_eq!(h1, h2);
+            }
+
+            /// INV-WITNESS-002: Alignment score is always in [0, 1].
+            #[test]
+            fn alignment_score_bounded(
+                test_body in arb_text(),
+                falsification in arb_text(),
+            ) {
+                let score = keyword_alignment_score(&test_body, &falsification);
+                prop_assert!(score >= 0.0, "score must be >= 0: {score}");
+                prop_assert!(score <= 1.0, "score must be <= 1: {score}");
+            }
+
+            /// INV-WITNESS-002: Alignment is symmetric — score(A,B) == score(B,A).
+            #[test]
+            fn alignment_symmetric(
+                text_a in arb_text(),
+                text_b in arb_text(),
+            ) {
+                let score_ab = keyword_alignment_score(&text_a, &text_b);
+                let score_ba = keyword_alignment_score(&text_b, &text_a);
+                prop_assert!(
+                    (score_ab - score_ba).abs() < 1e-10,
+                    "alignment must be symmetric: {score_ab} vs {score_ba}"
+                );
+            }
+
+            /// INV-WITNESS-002: Self-alignment is 1.0 (identity for non-empty).
+            #[test]
+            fn alignment_self_is_max(text in "[a-z]{5,20}") {
+                let score = keyword_alignment_score(&text, &text);
+                // Self-alignment should be 1.0 (all keywords shared)
+                // unless text has no keywords >= 3 chars after stop-word removal
+                prop_assert!(
+                    score >= 0.5 || extract_keywords(&text).is_empty(),
+                    "self-alignment should be high: {score} for '{text}'"
+                );
+            }
+
+            /// INV-WITNESS-002: Alignment thresholds are monotonically increasing.
+            #[test]
+            fn alignment_thresholds_monotonic(depth in 1i64..5) {
+                if depth < 4 {
+                    prop_assert!(
+                        alignment_threshold(depth) <= alignment_threshold(depth + 1),
+                        "threshold(L{depth}) must be <= threshold(L{})",
+                        depth + 1
+                    );
+                }
+            }
+
+            /// INV-WITNESS-001: Triple-hash staleness detection catches any single drift.
+            #[test]
+            fn staleness_detects_any_single_drift(
+                spec_text in arb_text(),
+                fals_text in arb_text(),
+                test_text in arb_text(),
+                mutated_text in arb_text(),
+                drift_target in 0u32..3,
+            ) {
+                let inv = EntityId::from_ident(":spec/inv-prop-test");
+                let spec_hash = content_hash(&spec_text);
+                let fals_hash = content_hash(&fals_text);
+                let test_hash = content_hash(&test_text);
+
+                let witness = FBW {
+                    entity: EntityId::from_ident(":witness/prop-test"),
+                    inv_ref: inv,
+                    spec_hash: spec_hash.clone(),
+                    falsification_hash: fals_hash.clone(),
+                    test_body_hash: test_hash.clone(),
+                    depth: 2,
+                    status: WitnessStatus::Valid,
+                    verdict: WitnessVerdict::Confirmed,
+                    alignment_score: 0.5,
+                    challenge_count: 1,
+                    test_file: String::new(),
+                    agent: String::new(),
+                };
+
+                // Mutate one of the three hashes
+                let mut current = CurrentSpecHashes {
+                    spec_hashes: BTreeMap::new(),
+                    test_hashes: BTreeMap::new(),
+                };
+
+                let mutated_hash = content_hash(&mutated_text);
+                prop_assume!(mutated_hash != spec_hash && mutated_hash != fals_hash && mutated_hash != test_hash);
+
+                match drift_target {
+                    0 => {
+                        // Spec drift
+                        current.spec_hashes.insert(inv, (mutated_hash, fals_hash));
+                        current.test_hashes.insert(inv, test_hash);
+                    }
+                    1 => {
+                        // Falsification drift
+                        current.spec_hashes.insert(inv, (spec_hash, mutated_hash));
+                        current.test_hashes.insert(inv, test_hash);
+                    }
+                    _ => {
+                        // Test body drift
+                        current.spec_hashes.insert(inv, (spec_hash, fals_hash));
+                        current.test_hashes.insert(inv, mutated_hash);
+                    }
+                }
+
+                let stale = detect_stale_witnesses(&[witness], &current);
+                prop_assert!(
+                    !stale.is_empty(),
+                    "staleness must be detected when drift_target={drift_target}"
+                );
+            }
+
+            /// INV-WITNESS-003: Monotonic depth guard rejects regressions.
+            #[test]
+            fn monotonic_depth_rejects_regression(
+                current_depth in 2i64..5,
+                attempted_depth in 1i64..5,
+            ) {
+                let inv = EntityId::from_ident(":spec/inv-mono-prop");
+                let witnesses = vec![FBW {
+                    entity: EntityId::from_ident(":witness/mono-prop"),
+                    inv_ref: inv,
+                    spec_hash: String::new(),
+                    falsification_hash: String::new(),
+                    test_body_hash: String::new(),
+                    depth: current_depth,
+                    status: WitnessStatus::Valid,
+                    verdict: WitnessVerdict::Confirmed,
+                    alignment_score: 0.5,
+                    challenge_count: 1,
+                    test_file: String::new(),
+                    agent: String::new(),
+                }];
+
+                let result = check_depth_monotonic(&witnesses, inv, attempted_depth);
+                if attempted_depth < current_depth {
+                    prop_assert!(result.is_err(), "depth regression L{attempted_depth} < L{current_depth} must be rejected");
+                } else {
+                    prop_assert!(result.is_ok(), "depth L{attempted_depth} >= L{current_depth} must be allowed");
+                }
+            }
+
+            /// Challenge protocol always produces at least 3 results.
+            #[test]
+            fn challenge_always_produces_results(
+                test_body in arb_text(),
+                falsification in arb_text(),
+                depth in 1i64..5,
+            ) {
+                let (_verdict, results) = challenge_witness(&test_body, &falsification, depth);
+                prop_assert!(results.len() >= 3, "challenge must produce at least 3 level results");
+                for r in &results {
+                    prop_assert!(r.score >= 0.0 && r.score <= 1.0, "level {} score out of bounds: {}", r.level, r.score);
+                }
+            }
+        }
+    }
 }

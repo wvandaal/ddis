@@ -951,6 +951,227 @@ pub fn compute_invariant_coupling(
     coupling
 }
 
+// ===========================================================================
+// Coupling Density Matrix & Coordination Entropy (TOPO-DENSITY)
+// INV-TOPOLOGY-005, INV-COHERENCE-001
+// ===========================================================================
+
+/// Analysis of the coupling structure for topology planning.
+///
+/// The normalized coupling matrix ρ_C = C / Tr(C) is a density matrix.
+/// Its von Neumann entropy S(ρ_C) = -Tr(ρ_C log ρ_C) equals the
+/// irreducible coordination complexity. The effective rank
+/// r_eff = exp(S) gives the optimal number of independent agent groups.
+/// Parallelizability p = r_eff / n (Amdahl's law for topology).
+#[derive(Clone, Debug)]
+pub struct CouplingAnalysis {
+    /// Normalized coupling (density) matrix. Rows/columns ordered by entities.
+    pub rho: Vec<Vec<f64>>,
+    /// Entity ordering (matches rows/columns of rho).
+    pub entities: Vec<EntityId>,
+    /// Eigenvalues of the density matrix (non-negative, sum to 1).
+    pub eigenvalues: Vec<f64>,
+    /// Von Neumann entropy S(ρ) = -Σ λᵢ log λᵢ.
+    pub entropy: f64,
+    /// Effective rank r_eff = exp(S).
+    pub effective_rank: f64,
+    /// Parallelizability p = r_eff / n.
+    pub parallelizability: f64,
+}
+
+/// Build a coupling density matrix from pairwise coupling scores.
+///
+/// Takes the output of `compute_file_coupling` or `compute_invariant_coupling`
+/// (a map of entity pairs to coupling scores) and constructs:
+/// 1. The symmetric coupling matrix C (diagonal = 1.0 for self-coupling)
+/// 2. The normalized density matrix ρ = C / Tr(C)
+/// 3. Eigenvalues via power iteration for the 2×2..N×N case
+/// 4. Entropy, effective rank, parallelizability
+///
+/// INV-COHERENCE-001: ρ satisfies PSD, unit-trace, symmetric.
+pub fn coupling_density_matrix(
+    coupling: &BTreeMap<(EntityId, EntityId), f64>,
+    entities: &[EntityId],
+) -> CouplingAnalysis {
+    let n = entities.len();
+
+    if n == 0 {
+        return CouplingAnalysis {
+            rho: vec![],
+            entities: vec![],
+            eigenvalues: vec![],
+            entropy: 0.0,
+            effective_rank: 0.0,
+            parallelizability: 0.0,
+        };
+    }
+
+    // Build entity index map
+    let idx: BTreeMap<EntityId, usize> = entities
+        .iter()
+        .enumerate()
+        .map(|(i, e)| (*e, i))
+        .collect();
+
+    // Build coupling matrix C (symmetric, diagonal = 1.0)
+    let mut c = vec![vec![0.0f64; n]; n];
+    for (i, row) in c.iter_mut().enumerate().take(n) {
+        row[i] = 1.0; // Self-coupling
+    }
+    for ((e1, e2), &score) in coupling {
+        if let (Some(&i), Some(&j)) = (idx.get(e1), idx.get(e2)) {
+            c[i][j] = score;
+            c[j][i] = score; // Ensure symmetry
+        }
+    }
+
+    // Normalize: ρ = C / Tr(C)
+    let trace: f64 = (0..n).map(|i| c[i][i]).sum();
+    let mut rho = vec![vec![0.0f64; n]; n];
+    if trace > 0.0 {
+        for i in 0..n {
+            for j in 0..n {
+                rho[i][j] = c[i][j] / trace;
+            }
+        }
+    }
+
+    // Compute eigenvalues via the existing infrastructure
+    let eigenvalues = symmetric_eigenvalues(&rho, n);
+
+    // Von Neumann entropy: S = -Σ λᵢ log₂(λᵢ) for λᵢ > 0
+    let entropy = von_neumann_entropy_from_eigenvalues(&eigenvalues);
+
+    // Effective rank: r_eff = e^S (von Neumann entropy uses natural log)
+    let effective_rank = entropy.exp();
+
+    // Parallelizability: p = r_eff / n
+    let parallelizability = if n > 0 {
+        (effective_rank / n as f64).clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+
+    CouplingAnalysis {
+        rho,
+        entities: entities.to_vec(),
+        eigenvalues,
+        entropy,
+        effective_rank,
+        parallelizability,
+    }
+}
+
+/// Compute eigenvalues of a real symmetric matrix using Jacobi iteration.
+///
+/// For small matrices (n ≤ 20 in topology), this is efficient and numerically stable.
+/// Returns eigenvalues sorted descending.
+fn symmetric_eigenvalues(matrix: &[Vec<f64>], n: usize) -> Vec<f64> {
+    if n == 0 {
+        return vec![];
+    }
+    if n == 1 {
+        return vec![matrix[0][0]];
+    }
+
+    // Copy matrix for iteration
+    let mut a = vec![vec![0.0f64; n]; n];
+    for i in 0..n {
+        for j in 0..n {
+            a[i][j] = matrix[i][j];
+        }
+    }
+
+    // Jacobi eigenvalue iteration (converges for symmetric matrices)
+    let max_iter = 100 * n * n;
+    for _ in 0..max_iter {
+        // Find largest off-diagonal element
+        let mut max_off = 0.0f64;
+        let mut p = 0;
+        let mut q = 1;
+        for (i, row) in a.iter().enumerate().take(n) {
+            for (j, &val) in row.iter().enumerate().take(n).skip(i + 1) {
+                if val.abs() > max_off {
+                    max_off = val.abs();
+                    p = i;
+                    q = j;
+                }
+            }
+        }
+
+        if max_off < 1e-12 {
+            break; // Converged
+        }
+
+        // Compute rotation angle
+        let theta = if (a[p][p] - a[q][q]).abs() < 1e-15 {
+            std::f64::consts::FRAC_PI_4
+        } else {
+            0.5 * ((2.0 * a[p][q]) / (a[p][p] - a[q][q])).atan()
+        };
+
+        let cos_t = theta.cos();
+        let sin_t = theta.sin();
+
+        // Apply Jacobi rotation
+        let mut new_a = a.clone();
+        for i in 0..n {
+            if i != p && i != q {
+                new_a[i][p] = cos_t * a[i][p] + sin_t * a[i][q];
+                new_a[p][i] = new_a[i][p];
+                new_a[i][q] = -sin_t * a[i][p] + cos_t * a[i][q];
+                new_a[q][i] = new_a[i][q];
+            }
+        }
+        new_a[p][p] = cos_t * cos_t * a[p][p]
+            + 2.0 * sin_t * cos_t * a[p][q]
+            + sin_t * sin_t * a[q][q];
+        new_a[q][q] = sin_t * sin_t * a[p][p]
+            - 2.0 * sin_t * cos_t * a[p][q]
+            + cos_t * cos_t * a[q][q];
+        new_a[p][q] = 0.0;
+        new_a[q][p] = 0.0;
+
+        a = new_a;
+    }
+
+    // Extract diagonal as eigenvalues
+    let mut eigenvalues: Vec<f64> = (0..n).map(|i| a[i][i]).collect();
+    eigenvalues.sort_by(|a, b| b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal));
+    eigenvalues
+}
+
+/// Composite coupling: merge file coupling and invariant coupling.
+///
+/// Weighted combination: w_f * file_coupling + w_i * invariant_coupling
+/// where w_f = 0.65 (heuristic) and w_i = 0.35 (semantic).
+pub fn composite_coupling(
+    file_coupling: &BTreeMap<(EntityId, EntityId), f64>,
+    inv_coupling: &BTreeMap<(EntityId, EntityId), f64>,
+) -> BTreeMap<(EntityId, EntityId), f64> {
+    const W_FILE: f64 = 0.65;
+    const W_INV: f64 = 0.35;
+
+    let mut all_pairs: BTreeSet<(EntityId, EntityId)> = BTreeSet::new();
+    for key in file_coupling.keys() {
+        all_pairs.insert(*key);
+    }
+    for key in inv_coupling.keys() {
+        all_pairs.insert(*key);
+    }
+
+    let mut result = BTreeMap::new();
+    for pair in all_pairs {
+        let f_score = file_coupling.get(&pair).unwrap_or(&0.0);
+        let i_score = inv_coupling.get(&pair).unwrap_or(&0.0);
+        let combined = W_FILE * f_score + W_INV * i_score;
+        if combined > 0.0 {
+            result.insert(pair, combined.clamp(0.0, 1.0));
+        }
+    }
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1817,5 +2038,129 @@ mod tests {
             (score - 1.0).abs() < 1e-10,
             "same spec ref -> coupling = 1.0 even without edges, got {score}"
         );
+    }
+
+    // ===================================================================
+    // Coupling Density Matrix (TOPO-DENSITY) Tests
+    // ===================================================================
+
+    #[test]
+    fn density_matrix_identity_is_uniform() {
+        // No coupling → identity matrix → ρ = I/n → max entropy
+        let entities = vec![entity(":t/a"), entity(":t/b"), entity(":t/c")];
+        let coupling = BTreeMap::new(); // No coupling edges
+
+        let analysis = coupling_density_matrix(&coupling, &entities);
+
+        // ρ should be I/3 (diagonal 1/3, off-diagonal 0)
+        assert_eq!(analysis.rho.len(), 3);
+        for i in 0..3 {
+            assert!((analysis.rho[i][i] - 1.0 / 3.0).abs() < 1e-10);
+        }
+        // Entropy should be ln(3) ≈ 1.099 (von Neumann entropy uses natural log)
+        assert!((analysis.entropy - 3.0f64.ln()).abs() < 0.1,
+            "identity matrix entropy should be ln(n): got {}", analysis.entropy);
+        // r_eff = e^S ≈ 3 (since S = ln(3))
+        assert!((analysis.effective_rank - 3.0).abs() < 0.5,
+            "effective rank should be ~3: got {}", analysis.effective_rank);
+        // Parallelizability should be ≈ 1.0
+        assert!(analysis.parallelizability > 0.8,
+            "fully independent tasks should have high parallelizability: {}",
+            analysis.parallelizability);
+    }
+
+    #[test]
+    fn density_matrix_fully_coupled() {
+        // Full coupling → one dominant eigenvalue → low entropy
+        let entities = vec![entity(":t/a"), entity(":t/b")];
+        let mut coupling = BTreeMap::new();
+        coupling.insert((entities[0], entities[1]), 1.0);
+        coupling.insert((entities[1], entities[0]), 1.0);
+
+        let analysis = coupling_density_matrix(&coupling, &entities);
+
+        // Fully coupled: rho = [[0.5, 0.5], [0.5, 0.5]]
+        assert!((analysis.rho[0][1] - 0.5).abs() < 1e-10);
+        // One eigenvalue = 1, other = 0 → entropy = 0
+        assert!(analysis.entropy < 0.1,
+            "fully coupled should have near-zero entropy: {}", analysis.entropy);
+        assert!(analysis.effective_rank < 1.5,
+            "effective rank should be ~1: {}", analysis.effective_rank);
+        assert!(analysis.parallelizability < 0.8,
+            "fully coupled tasks should have low parallelizability: {}",
+            analysis.parallelizability);
+    }
+
+    #[test]
+    fn density_matrix_empty() {
+        let analysis = coupling_density_matrix(&BTreeMap::new(), &[]);
+        assert_eq!(analysis.entities.len(), 0);
+        assert_eq!(analysis.entropy, 0.0);
+    }
+
+    #[test]
+    fn density_matrix_single_entity() {
+        let entities = vec![entity(":t/single")];
+        let analysis = coupling_density_matrix(&BTreeMap::new(), &entities);
+        assert_eq!(analysis.rho.len(), 1);
+        assert!((analysis.rho[0][0] - 1.0).abs() < 1e-10);
+        // Single entity: entropy = 0 (only one eigenvalue = 1)
+        assert!(analysis.entropy < 0.01);
+    }
+
+    #[test]
+    fn density_matrix_psd_unit_trace_symmetric() {
+        // INV-COHERENCE-001: ρ must be PSD, unit-trace, symmetric
+        let entities = vec![entity(":t/a"), entity(":t/b"), entity(":t/c")];
+        let mut coupling = BTreeMap::new();
+        coupling.insert((entities[0], entities[1]), 0.5);
+        coupling.insert((entities[1], entities[0]), 0.5);
+        coupling.insert((entities[1], entities[2]), 0.3);
+        coupling.insert((entities[2], entities[1]), 0.3);
+
+        let analysis = coupling_density_matrix(&coupling, &entities);
+        let n = analysis.rho.len();
+
+        // Symmetric
+        for i in 0..n {
+            for j in 0..n {
+                assert!(
+                    (analysis.rho[i][j] - analysis.rho[j][i]).abs() < 1e-10,
+                    "rho must be symmetric: rho[{i}][{j}]={} vs rho[{j}][{i}]={}",
+                    analysis.rho[i][j], analysis.rho[j][i]
+                );
+            }
+        }
+
+        // Unit trace
+        let trace: f64 = (0..n).map(|i| analysis.rho[i][i]).sum();
+        assert!(
+            (trace - 1.0).abs() < 1e-10,
+            "trace must be 1.0: got {trace}"
+        );
+
+        // PSD (all eigenvalues >= 0)
+        for &ev in &analysis.eigenvalues {
+            assert!(ev >= -1e-10, "eigenvalue must be non-negative: {ev}");
+        }
+    }
+
+    #[test]
+    fn composite_coupling_merges_correctly() {
+        let a = entity(":t/a");
+        let b = entity(":t/b");
+
+        let mut file_c = BTreeMap::new();
+        file_c.insert((a, b), 0.8);
+        file_c.insert((b, a), 0.8);
+
+        let mut inv_c = BTreeMap::new();
+        inv_c.insert((a, b), 0.4);
+        inv_c.insert((b, a), 0.4);
+
+        let combined = composite_coupling(&file_c, &inv_c);
+        let score = combined.get(&(a, b)).unwrap();
+        // 0.65 * 0.8 + 0.35 * 0.4 = 0.52 + 0.14 = 0.66
+        assert!((*score - 0.66).abs() < 0.01, "composite should be 0.66: got {score}");
     }
 }

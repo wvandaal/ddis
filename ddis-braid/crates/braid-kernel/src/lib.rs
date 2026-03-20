@@ -109,13 +109,14 @@ pub use guidance::{
     harvest_warning_from_k_eff, harvest_warning_level, is_actionable_decision, methodology_gaps,
     modulate_actions, observation_staleness, orphaned_decisions, should_warn_on_exit,
     classify_action_outcome, compute_action_from_store, methodology_context_blocks,
-    reconciliation_check, refit_routing_weights, routing_weights,
-    spec_anchor_factor, spec_relevance_scan,
+    reconciliation_check, refit_routing_weights, routing_dashboard, routing_weights,
+    spec_anchor_factor, spec_relevance_scan, ROUTING_FEATURE_NAMES,
     knowledge_relevance_scan,
     suggest_task_title, telemetry_from_store, tx_velocity, ActionCategory, ActivityMode,
     ContextualHint, DerivationRule, DerivedTask, GuidanceAction, GuidanceContext, GuidanceFooter,
     HarvestWarningLevel, MethodologyComponents, MethodologyGaps, MethodologyScore,
-    ReconciliationResult, RoutingMetrics, SessionTelemetry, TaskNode, TaskRouting, Trend,
+    ReconciliationResult, RoutingDashboard, RoutingMetrics, SessionTelemetry, TaskNode,
+    TaskRouting, Trend,
 };
 pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, classify_spec_candidate,
@@ -188,11 +189,11 @@ pub use task::{
     task_summary, update_status_datom, CreateTaskParams, TaskStatus, TaskSummary, TaskType,
 };
 pub use topology::{
-    agent_name_from_files, balance_assign, compute_file_coupling, compute_invariant_coupling,
-    emit_seed_for_agent, extract_task_files, format_plan_agent, format_plan_human,
-    partition_by_file_coupling, quick_plan, ready_task_files, spec_dependency_datoms,
-    von_neumann_entropy_from_eigenvalues, AgentAssignment, PlanMethod, TopologyPattern,
-    TopologyPlan,
+    agent_name_from_files, balance_assign, composite_coupling, compute_file_coupling,
+    compute_invariant_coupling, coupling_density_matrix, emit_seed_for_agent, extract_task_files,
+    format_plan_agent, format_plan_human, partition_by_file_coupling, quick_plan, ready_task_files,
+    spec_dependency_datoms, von_neumann_entropy_from_eigenvalues, AgentAssignment,
+    CouplingAnalysis, PlanMethod, TopologyPattern, TopologyPlan,
 };
 pub use trace::{
     links_to_datoms, scan_source, summarize, TraceLink, TraceSummary, VerificationDepth,

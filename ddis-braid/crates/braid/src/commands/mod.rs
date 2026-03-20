@@ -469,6 +469,10 @@ Workflow: braid schema \u{2192} pick attributes \u{2192} braid query --attribute
         /// Output as JSON.
         #[arg(long)]
         json: bool,
+
+        /// Show only attributes added since a given transaction wall-time (milliseconds since epoch).
+        #[arg(long)]
+        diff: Option<u64>,
     },
 
     // ── LIFECYCLE ──────────────────────────────────────────────────────
@@ -2196,8 +2200,9 @@ pub fn run(
             pattern,
             verbose,
             json,
+            diff,
         } => {
-            let cmd_output = schema::run(&path, pattern.as_deref(), verbose, json)?;
+            let cmd_output = schema::run(&path, pattern.as_deref(), verbose, json, diff)?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -3310,6 +3315,7 @@ mod tests {
                 pattern: None,
                 verbose: false,
                 json: false,
+                diff: None,
             },
             Command::Shell {
                 path: PathBuf::from(".braid"),

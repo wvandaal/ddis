@@ -723,6 +723,43 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
     let t = task_summary(&store, entity)
         .ok_or_else(|| BraidError::Validation(format!("task entity invalid: {task_id}")))?;
 
+    // TAP-3: Extract structured sections from entity datoms.
+    let entity_datoms = store.entity_datoms(entity);
+    let mut background: Option<String> = None;
+    let mut acceptance: Option<String> = None;
+    let mut approach: Option<String> = None;
+    let mut files: Vec<String> = Vec::new();
+    for d in &entity_datoms {
+        if d.op != Op::Assert {
+            continue;
+        }
+        match d.attribute.as_str() {
+            ":task/background" => {
+                if let Value::String(ref s) = d.value {
+                    background = Some(s.clone());
+                }
+            }
+            ":task/acceptance" => {
+                if let Value::String(ref s) = d.value {
+                    acceptance = Some(s.clone());
+                }
+            }
+            ":task/approach" => {
+                if let Value::String(ref s) = d.value {
+                    approach = Some(s.clone());
+                }
+            }
+            ":task/files" => {
+                if let Value::String(ref s) = d.value {
+                    files.push(s.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+    files.sort();
+    files.dedup();
+
     let status = match t.status {
         TaskStatus::Open => "open",
         TaskStatus::InProgress => "in-progress",
@@ -757,7 +794,32 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
     if let Some(ref reason) = t.close_reason {
         human.push_str(&format!("  close-reason: {reason}\n"));
     }
-    human.push_str(&format!("  entity: :task/{}\n", t.id));
+    // TAP-3: Structured sections in human output
+    if let Some(ref bg) = background {
+        human.push_str("\nBACKGROUND:\n");
+        for line in bg.lines() {
+            human.push_str(&format!("  {line}\n"));
+        }
+    }
+    if let Some(ref acc) = acceptance {
+        human.push_str("\nACCEPTANCE:\n");
+        for line in acc.lines() {
+            human.push_str(&format!("  {line}\n"));
+        }
+    }
+    if let Some(ref app) = approach {
+        human.push_str("\nAPPROACH:\n");
+        for line in app.lines() {
+            human.push_str(&format!("  {line}\n"));
+        }
+    }
+    if !files.is_empty() {
+        human.push_str("\nFILES:\n");
+        for f in &files {
+            human.push_str(&format!("  - {f}\n"));
+        }
+    }
+    human.push_str(&format!("\n  entity: :task/{}\n", t.id));
 
     let mut json = serde_json::json!({
         "id": t.id,
@@ -771,6 +833,11 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
         "source": t.source,
         "close_reason": t.close_reason,
         "entity": format!(":task/{}", t.id),
+        // TAP-3: Structured sections in JSON
+        "background": background,
+        "acceptance": acceptance,
+        "approach": approach,
+        "files": files,
     });
 
     // ACP projection (ACP-10b, INV-BUDGET-007)
@@ -816,6 +883,36 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::Speculative,
             content: format!("close-reason: {reason}"),
             tokens: 5,
+        });
+    }
+
+    // TAP-3: Structured section ACP context blocks
+    if let Some(ref bg) = background {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!("BACKGROUND: {bg}"),
+            tokens: bg.len() / 4 + 5,
+        });
+    }
+    if let Some(ref acc) = acceptance {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!("ACCEPTANCE: {acc}"),
+            tokens: acc.len() / 4 + 5,
+        });
+    }
+    if let Some(ref app) = approach {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
+            content: format!("APPROACH: {app}"),
+            tokens: app.len() / 4 + 5,
+        });
+    }
+    if !files.is_empty() {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
+            content: format!("FILES: {}", files.join(", ")),
+            tokens: files.len() * 5 + 3,
         });
     }
 
