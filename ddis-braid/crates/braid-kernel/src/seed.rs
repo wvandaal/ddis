@@ -1279,6 +1279,164 @@ fn discover_constraints(store: &Store, task_keywords: &[String]) -> Vec<Constrai
     constraints
 }
 
+/// CTP-4: Extract task acceptance criteria as a verification checklist.
+///
+/// Parses the ACCEPTANCE: section from the task title and formats criteria
+/// as a numbered checklist. Uses existing `parse_acceptance_criteria` from task.rs.
+/// INV-SEED-005: Demonstration density — directives include verifiable criteria.
+pub fn compile_directives(task: &str) -> String {
+    let short = crate::task::short_title(task);
+    let criteria = crate::task::parse_acceptance_criteria(task);
+
+    let mut out = format!("Task: {short}\n");
+
+    if !criteria.is_empty() {
+        out.push_str("\nVerification:\n");
+        for (i, criterion) in criteria.iter().enumerate() {
+            let letter = (b'A' + i as u8) as char;
+            out.push_str(&format!("- [ ] ({letter}) {criterion}\n"));
+        }
+    } else {
+        // Try to extract APPROACH section as fallback
+        if let Some(approach_start) = task.find("APPROACH:") {
+            let approach = &task[approach_start + "APPROACH:".len()..];
+            let approach_end = ["ACCEPTANCE:", "BACKGROUND:", "DEPENDS-ON:", "TRACES TO:", "FILE:"]
+                .iter()
+                .filter_map(|m| approach.find(m))
+                .min()
+                .unwrap_or(approach.len());
+            let approach_text = approach[..approach_end].trim();
+            if !approach_text.is_empty() {
+                out.push_str(&format!(
+                    "\nApproach: {}\n",
+                    crate::budget::safe_truncate_bytes(approach_text, 200)
+                ));
+            }
+        }
+    }
+
+    out
+}
+
+/// CTP-3: Find the most structurally similar closed task as a worked example.
+///
+/// Searches closed tasks for the one most similar to the current task by:
+/// - FILE: marker overlap (Jaccard, weight 0.4)
+/// - Spec namespace match (weight 0.3)
+/// - Task type match (weight 0.2)
+/// - Recency (exponential decay, weight 0.1)
+///
+/// Returns a formatted demonstration string if similarity > 0.3, else None.
+/// INV-SEED-005: Demonstration density — worked examples included when available.
+pub fn compile_demonstrations(store: &Store, task: &str) -> Option<String> {
+    let all = crate::task::all_tasks(store);
+    let closed: Vec<_> = all
+        .iter()
+        .filter(|t| t.status == crate::task::TaskStatus::Closed)
+        .collect();
+
+    if closed.is_empty() {
+        return None;
+    }
+
+    // Extract features from the current task
+    let current_files: std::collections::BTreeSet<String> =
+        crate::topology::extract_task_files(task).into_iter().collect();
+    let current_refs = crate::task::parse_spec_refs(task);
+    let current_namespace = current_refs
+        .first()
+        .map(|r| crate::guidance::extract_spec_namespace(r).to_string())
+        .unwrap_or_default();
+
+    // Infer task type from keywords
+    let task_lower = task.to_lowercase();
+    let current_type = if task_lower.contains("test") || task_lower.starts_with("test") {
+        "test"
+    } else if task_lower.contains("bug") || task_lower.contains("fix") {
+        "bug"
+    } else if task_lower.contains("epic") {
+        "epic"
+    } else {
+        "task"
+    };
+
+    // Find the latest tx for recency scoring
+    let max_tx = store
+        .frontier()
+        .iter()
+        .map(|(_, tx)| tx.wall_time())
+        .max()
+        .unwrap_or(1);
+
+    let mut best_score = 0.0f64;
+    let mut best_task: Option<&crate::task::TaskSummary> = None;
+
+    for candidate in &closed {
+        let cand_files: std::collections::BTreeSet<String> =
+            crate::topology::extract_task_files(&candidate.title)
+                .into_iter()
+                .collect();
+
+        // File overlap (Jaccard)
+        let file_score = if current_files.is_empty() && cand_files.is_empty() {
+            0.0
+        } else {
+            let intersection = current_files.intersection(&cand_files).count();
+            let union = current_files.union(&cand_files).count();
+            if union > 0 {
+                intersection as f64 / union as f64
+            } else {
+                0.0
+            }
+        };
+
+        // Namespace match
+        let cand_refs = crate::task::parse_spec_refs(&candidate.title);
+        let cand_namespace = cand_refs
+            .first()
+            .map(|r| crate::guidance::extract_spec_namespace(r).to_string())
+            .unwrap_or_default();
+        let ns_score = if !current_namespace.is_empty()
+            && !cand_namespace.is_empty()
+            && current_namespace == cand_namespace
+        {
+            1.0
+        } else {
+            0.0
+        };
+
+        // Type match
+        let cand_type = candidate
+            .task_type
+            .strip_prefix(":task.type/")
+            .unwrap_or(&candidate.task_type);
+        let type_score = if cand_type == current_type { 1.0 } else { 0.0 };
+
+        // Recency (exponential decay, half-life ~10 sessions)
+        let age = max_tx.saturating_sub(candidate.created_at) as f64;
+        let recency = (-age / 100_000.0).exp(); // rough decay
+
+        let score = 0.4 * file_score + 0.3 * ns_score + 0.2 * type_score + 0.1 * recency;
+
+        if score > best_score {
+            best_score = score;
+            best_task = Some(candidate);
+        }
+    }
+
+    if best_score < 0.3 {
+        return None;
+    }
+
+    let task = best_task?;
+    let short = crate::task::short_title(&task.title);
+    let reason = task
+        .close_reason
+        .as_deref()
+        .unwrap_or("completed");
+    Some(format!("Example (solved): {} → {}", short, reason))
+}
+
 /// Build Directive section with task, guidance actions, and last session context.
 ///
 /// Produces a structured directive with:
