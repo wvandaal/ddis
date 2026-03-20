@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773974825/0/ef9483d03a2173d542986f46fc7f2118"
+ :tx/agent "ef9483d03a2173d542986f46fc7f2118"
+ :tx/provenance :derived
+ :tx/rationale "ZCM-1: auto-captured observation from tool output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2f93111956b80249049f6861e805a99056020b079eb11eecf8dfa858862ba382" :a :db/doc :v "Queried :spec/neg-interface-003 (10 results)" :op :assert}
+   {:e #blake3 "2f93111956b80249049f6861e805a99056020b079eb11eecf8dfa858862ba382" :a :db/ident :v :auto-obs/7dd2225076ea2288 :op :assert}
+   {:e #blake3 "2f93111956b80249049f6861e805a99056020b079eb11eecf8dfa858862ba382" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "2f93111956b80249049f6861e805a99056020b079eb11eecf8dfa858862ba382" :a :exploration/type :v :exploration.type/observation :op :assert}
+ ]}

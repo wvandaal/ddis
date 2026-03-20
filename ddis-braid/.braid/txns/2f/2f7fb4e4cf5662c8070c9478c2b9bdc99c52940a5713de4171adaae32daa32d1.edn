@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773974893/0/ef9483d03a2173d542986f46fc7f2118"
+ :tx/agent "ef9483d03a2173d542986f46fc7f2118"
+ :tx/provenance :derived
+ :tx/rationale "ZCM-1: auto-captured observation from tool output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0dc2ce01651b51ded20d0bb7978c3bd91c47631257d29a40718684b3908a03a8" :a :db/doc :v "Queried :spec/adr-guidance-008 (12 results)" :op :assert}
+   {:e #blake3 "0dc2ce01651b51ded20d0bb7978c3bd91c47631257d29a40718684b3908a03a8" :a :db/ident :v :auto-obs/4d0a648ca6e43e61 :op :assert}
+   {:e #blake3 "0dc2ce01651b51ded20d0bb7978c3bd91c47631257d29a40718684b3908a03a8" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "0dc2ce01651b51ded20d0bb7978c3bd91c47631257d29a40718684b3908a03a8" :a :exploration/type :v :exploration.type/observation :op :assert}
+ ]}

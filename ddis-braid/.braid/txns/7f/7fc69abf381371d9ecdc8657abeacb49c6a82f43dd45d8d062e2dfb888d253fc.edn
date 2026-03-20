@@ -1,0 +1,8 @@
+{:tx/id #hlc "1773975007/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Set t-35e7e275 priority=0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "94996f3c84c93cc7e8f56d69f3c5d8f42d02b62efb4a19be8652ded1dbb81c57" :a :task/priority :v 0 :op :assert}
+ ]}

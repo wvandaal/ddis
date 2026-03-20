@@ -1,0 +1,21 @@
+{:tx/id #hlc "1773975149/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: T-UX-2: braid task set shows old→new value diff. BACKGROUND: Dog-fooding says 'task set output is minimal — just set: t-fd96 priority=1. It should confirm what the OLD value was, like set: t-fd96 priority 2→1.' FIX: In task set handler, before writing the new value, query the current value and display the transition. ACCEPTANCE: (A) 'braid task set t-xxx priority 1' shows 'set: t-xxx priority 2→1'. (B) If value unchanged, show 'set: t-xxx priority 1 (unchanged)'. FILE: crates/braid/src/commands/task.rs. TRACES TO: INV-INTERFACE-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :db/ident :v :task/t-d1f4ce14 :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/acceptance :v "(A) 'braid task set t-xxx priority 1' shows 'set: t-xxx priority 2→1'. (B) If value unchanged, show 'set: t-xxx priority 1 (unchanged)'." :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/background :v "Dog-fooding says 'task set output is minimal — just set: t-fd96 priority=1. It should confirm what the OLD value was, like set: t-fd96 priority 2→1.' FIX: In task set handler, before writing the new value, query the current value and display the transition." :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/created-at :v 1773975147 :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/files :v "crates/braid/src/commands/task.rs." :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/id :v "t-d1f4ce14" :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/title :v "T-UX-2: braid task set shows old→new value diff. BACKGROUND: Dog-fooding says 'task set output is minimal — just set: t-fd96 priority=1. It should confirm what the OLD value was, like set: t-fd96 priority 2→1.' FIX: In task set handler, before writing the new value, query the current value and display the transition. ACCEPTANCE: (A) 'braid task set t-xxx priority 1' shows 'set: t-xxx priority 2→1'. (B) If value unchanged, show 'set: t-xxx priority 1 (unchanged)'. FILE: crates/braid/src/commands/task.rs. TRACES TO: INV-INTERFACE-001." :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/title-l0 :v "T-UX-2" :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/title-l1 :v "T-UX-2: braid task set shows old→new value diff" :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "51e9c72cf40eb40284f8d19d27ead6402e64480cd676cb5ab425507a7caec577" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,22 @@
+{:tx/id #hlc "1773975150/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: T-UX-3: R(t) routing should prioritize active intentions over ready tasks. BACKGROUND: Dog-fooding says 'R(t) routed to other ready tasks when I had an active intention (in-progress task). The routing should surface continue your active work as the default action.' FIX: In compute_routing (guidance.rs), check for in-progress tasks first. If any exist, boost their R(t) impact by 2.0x (session_continuation_boost). This ensures 'braid task ready' and seed context show the active intention as #1 unless a P0 emergency task appears. ACCEPTANCE: (A) In-progress task always appears as #1 in R(t) when no P0 task exists. (B) P0 emergency still overrides. (C) Multiple in-progress tasks ordered by original impact. FILE: crates/braid-kernel/src/guidance.rs. TRACES TO: INV-GUIDANCE-005, INV-GUIDANCE-010."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :db/ident :v :task/t-a645e23e :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/acceptance :v "(A) In-progress task always appears as #1 in R(t) when no P0 task exists. (B) P0 emergency still overrides. (C) Multiple in-progress tasks ordered by original impact." :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/background :v "Dog-fooding says 'R(t) routed to other ready tasks when I had an active intention (in-progress task). The routing should surface continue your active work as the default action.' FIX: In compute_routing (guidance.rs), check for in-progress tasks first. If any exist, boost their R(t) impact by 2.0x (session_continuation_boost). This ensures 'braid task ready' and seed context show the active intention as #1 unless a P0 emergency task appears." :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/created-at :v 1773975147 :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/files :v "crates/braid-kernel/src/guidance.rs." :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/id :v "t-a645e23e" :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/title :v "T-UX-3: R(t) routing should prioritize active intentions over ready tasks. BACKGROUND: Dog-fooding says 'R(t) routed to other ready tasks when I had an active intention (in-progress task). The routing should surface continue your active work as the default action.' FIX: In compute_routing (guidance.rs), check for in-progress tasks first. If any exist, boost their R(t) impact by 2.0x (session_continuation_boost). This ensures 'braid task ready' and seed context show the active intention as #1 unless a P0 emergency task appears. ACCEPTANCE: (A) In-progress task always appears as #1 in R(t) when no P0 task exists. (B) P0 emergency still overrides. (C) Multiple in-progress tasks ordered by original impact. FILE: crates/braid-kernel/src/guidance.rs. TRACES TO: INV-GUIDANCE-005, INV-GUIDANCE-010." :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/title-l0 :v "T-UX-3" :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/title-l1 :v "T-UX-3: R(t) routing should prioritize active intentions over ready tasks" :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/traces-to :v #blake3 "5ec5a82c9ee3b60a53cec83354f855412d2170c8b069b0b461be1891f3fbb962" :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/traces-to :v #blake3 "d6d63e576ddbe19eabf9b1ac934b1ddf7ac06268fbf23b906bfc8df98c8ef42a" :op :assert}
+   {:e #blake3 "92f76f08c950b2f797b917de6eb8071b9cc7ce38bdc7bbd2db4c64380fdf240d" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773974829/0/ef9483d03a2173d542986f46fc7f2118"
+ :tx/agent "ef9483d03a2173d542986f46fc7f2118"
+ :tx/provenance :derived
+ :tx/rationale "ZCM-1: auto-captured observation from tool output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5bae063a1edc2aa5b4d236404b80d749aaeb2270d5657daf65b26eb7952e1d20" :a :db/doc :v "Queried :spec/inv-interface-007 (10 results)" :op :assert}
+   {:e #blake3 "5bae063a1edc2aa5b4d236404b80d749aaeb2270d5657daf65b26eb7952e1d20" :a :db/ident :v :auto-obs/4a63f67bd7061c3b :op :assert}
+   {:e #blake3 "5bae063a1edc2aa5b4d236404b80d749aaeb2270d5657daf65b26eb7952e1d20" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "5bae063a1edc2aa5b4d236404b80d749aaeb2270d5657daf65b26eb7952e1d20" :a :exploration/type :v :exploration.type/observation :op :assert}
+ ]}

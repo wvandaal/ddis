@@ -1,0 +1,21 @@
+{:tx/id #hlc "1773975245/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BUG: task set priority does not visually update in task show/search. BACKGROUND: braid task set t-xxx priority 0 transacts a new :task/priority datom, but task show still displays the original P2. The Cardinality::One resolution should pick the latest value (LWW), but the task display path may be reading the first datom instead of the last. This affects all priority changes via task set. APPROACH: In task.rs all_tasks(), check whether the priority resolution is using the latest datom (rfind) or the first (find). Fix to use rfind. ACCEPTANCE: (A) task set priority 0 followed by task show displays P0. (B) task ready sorts by the SET priority, not the original. FILE: crates/braid-kernel/src/task.rs. TRACES TO: INV-TASK-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :db/ident :v :task/t-b87a3cb7 :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/acceptance :v "(A) task set priority 0 followed by task show displays P0. (B) task ready sorts by the SET priority, not the original." :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/approach :v "In task.rs all_tasks(), check whether the priority resolution is using the latest datom (rfind) or the first (find). Fix to use rfind." :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/background :v "braid task set t-xxx priority 0 transacts a new :task/priority datom, but task show still displays the original P2. The Cardinality::One resolution should pick the latest value (LWW), but the task display path may be reading the first datom instead of the last. This affects all priority changes via task set. APPROACH: In task.rs all_tasks(), check whether the priority resolution is using the latest datom (rfind) or the first (find). Fix to use rfind." :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/created-at :v 1773975244 :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/files :v "crates/braid-kernel/src/task.rs." :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/id :v "t-b87a3cb7" :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/title :v "BUG: task set priority does not visually update in task show/search. BACKGROUND: braid task set t-xxx priority 0 transacts a new :task/priority datom, but task show still displays the original P2. The Cardinality::One resolution should pick the latest value (LWW), but the task display path may be reading the first datom instead of the last. This affects all priority changes via task set. APPROACH: In task.rs all_tasks(), check whether the priority resolution is using the latest datom (rfind) or the first (find). Fix to use rfind. ACCEPTANCE: (A) task set priority 0 followed by task show displays P0. (B) task ready sorts by the SET priority, not the original. FILE: crates/braid-kernel/src/task.rs. TRACES TO: INV-TASK-001." :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/title-l0 :v "BUG" :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/title-l1 :v "BUG: task set priority does not visually update in task show/search" :op :assert}
+   {:e #blake3 "554519ab9df4cfd33d30e27370a152209d8a4c50af9c1a1f3cdd6b4cce820e88" :a :task/type :v :task.type/task :op :assert}
+ ]}

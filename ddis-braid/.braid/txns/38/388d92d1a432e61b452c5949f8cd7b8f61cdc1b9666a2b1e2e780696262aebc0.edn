@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773974871/0/ef9483d03a2173d542986f46fc7f2118"
+ :tx/agent "ef9483d03a2173d542986f46fc7f2118"
+ :tx/provenance :derived
+ :tx/rationale "ZCM-1: auto-captured observation from tool output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c466491745b6781b441fa3efd6cceb7880476b8a7da7039d8210b3e7268f0c50" :a :db/doc :v "Queried :spec/inv-bilateral-001 (11 results)" :op :assert}
+   {:e #blake3 "c466491745b6781b441fa3efd6cceb7880476b8a7da7039d8210b3e7268f0c50" :a :db/ident :v :auto-obs/63837e31569dd14a :op :assert}
+   {:e #blake3 "c466491745b6781b441fa3efd6cceb7880476b8a7da7039d8210b3e7268f0c50" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "c466491745b6781b441fa3efd6cceb7880476b8a7da7039d8210b3e7268f0c50" :a :exploration/type :v :exploration.type/observation :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773974852/0/ef9483d03a2173d542986f46fc7f2118"
+ :tx/agent "ef9483d03a2173d542986f46fc7f2118"
+ :tx/provenance :derived
+ :tx/rationale "ZCM-1: auto-captured observation from tool output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3d74bc07b880a21f1242014fe77e9ae8dc07b707766868239f76622cf9178316" :a :db/doc :v "Queried :spec/inv-reflexive-005 (7 results)" :op :assert}
+   {:e #blake3 "3d74bc07b880a21f1242014fe77e9ae8dc07b707766868239f76622cf9178316" :a :db/ident :v :auto-obs/83be769f6dbc3f5b :op :assert}
+   {:e #blake3 "3d74bc07b880a21f1242014fe77e9ae8dc07b707766868239f76622cf9178316" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "3d74bc07b880a21f1242014fe77e9ae8dc07b707766868239f76622cf9178316" :a :exploration/type :v :exploration.type/observation :op :assert}
+ ]}

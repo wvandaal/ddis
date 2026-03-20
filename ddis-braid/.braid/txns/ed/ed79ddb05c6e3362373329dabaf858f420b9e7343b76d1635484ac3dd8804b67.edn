@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773974833/0/ef9483d03a2173d542986f46fc7f2118"
+ :tx/agent "ef9483d03a2173d542986f46fc7f2118"
+ :tx/provenance :derived
+ :tx/rationale "ZCM-1: auto-captured observation from tool output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a40227d958b2134ccfddf310cd871a6ff5214af7b259a17a52951f27b2d47b87" :a :db/doc :v "Queried :spec/inv-witness-011 (7 results)" :op :assert}
+   {:e #blake3 "a40227d958b2134ccfddf310cd871a6ff5214af7b259a17a52951f27b2d47b87" :a :db/ident :v :auto-obs/8a8d1a43c3bd9646 :op :assert}
+   {:e #blake3 "a40227d958b2134ccfddf310cd871a6ff5214af7b259a17a52951f27b2d47b87" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "a40227d958b2134ccfddf310cd871a6ff5214af7b259a17a52951f27b2d47b87" :a :exploration/type :v :exploration.type/observation :op :assert}
+ ]}

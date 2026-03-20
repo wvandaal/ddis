@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773974874/0/ef9483d03a2173d542986f46fc7f2118"
+ :tx/agent "ef9483d03a2173d542986f46fc7f2118"
+ :tx/provenance :derived
+ :tx/rationale "ZCM-1: auto-captured observation from tool output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f726e687ccdf35746ff019c39273eb1ae0bdb255d073b7f30a30b1a54279a194" :a :db/doc :v "Queried :spec/adr-witness-003 (7 results)" :op :assert}
+   {:e #blake3 "f726e687ccdf35746ff019c39273eb1ae0bdb255d073b7f30a30b1a54279a194" :a :db/ident :v :auto-obs/f1aae072d499b8e2 :op :assert}
+   {:e #blake3 "f726e687ccdf35746ff019c39273eb1ae0bdb255d073b7f30a30b1a54279a194" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "f726e687ccdf35746ff019c39273eb1ae0bdb255d073b7f30a30b1a54279a194" :a :exploration/type :v :exploration.type/observation :op :assert}
+ ]}

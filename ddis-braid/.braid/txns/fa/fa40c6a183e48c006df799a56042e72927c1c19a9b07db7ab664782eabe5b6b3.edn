@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773974846/0/ef9483d03a2173d542986f46fc7f2118"
+ :tx/agent "ef9483d03a2173d542986f46fc7f2118"
+ :tx/provenance :derived
+ :tx/rationale "ZCM-1: auto-captured observation from tool output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d58b8adf07905f7e5a4bf17dde7036c44d9f447daacb0621a58f25c40bb871ff" :a :db/doc :v "Queried :spec/inv-store-001 (12 results)" :op :assert}
+   {:e #blake3 "d58b8adf07905f7e5a4bf17dde7036c44d9f447daacb0621a58f25c40bb871ff" :a :db/ident :v :auto-obs/1ca0f2dd11b9b671 :op :assert}
+   {:e #blake3 "d58b8adf07905f7e5a4bf17dde7036c44d9f447daacb0621a58f25c40bb871ff" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "d58b8adf07905f7e5a4bf17dde7036c44d9f447daacb0621a58f25c40bb871ff" :a :exploration/type :v :exploration.type/observation :op :assert}
+ ]}

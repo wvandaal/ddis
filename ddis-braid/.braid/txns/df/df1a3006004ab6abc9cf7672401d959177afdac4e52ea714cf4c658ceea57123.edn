@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773974861/0/ef9483d03a2173d542986f46fc7f2118"
+ :tx/agent "ef9483d03a2173d542986f46fc7f2118"
+ :tx/provenance :derived
+ :tx/rationale "ZCM-1: auto-captured observation from tool output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8ff4dd62b1768791659bc0ee09e558bcba0144a1a8493e9fc7939775b0be3e9b" :a :db/doc :v "Queried :spec/adr-budget-003 (10 results)" :op :assert}
+   {:e #blake3 "8ff4dd62b1768791659bc0ee09e558bcba0144a1a8493e9fc7939775b0be3e9b" :a :db/ident :v :auto-obs/9171b443c4364924 :op :assert}
+   {:e #blake3 "8ff4dd62b1768791659bc0ee09e558bcba0144a1a8493e9fc7939775b0be3e9b" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "8ff4dd62b1768791659bc0ee09e558bcba0144a1a8493e9fc7939775b0be3e9b" :a :exploration/type :v :exploration.type/observation :op :assert}
+ ]}

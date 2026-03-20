@@ -1,0 +1,11 @@
+{:tx/id #hlc "1773974887/0/ef9483d03a2173d542986f46fc7f2118"
+ :tx/agent "ef9483d03a2173d542986f46fc7f2118"
+ :tx/provenance :derived
+ :tx/rationale "ZCM-1: auto-captured observation from tool output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f24390db4112a37920be9f0eee2cab3990c19600f951c6cc29bba9c31a0bb091" :a :db/doc :v "Queried :spec/adr-interface-004 (9 results)" :op :assert}
+   {:e #blake3 "f24390db4112a37920be9f0eee2cab3990c19600f951c6cc29bba9c31a0bb091" :a :db/ident :v :auto-obs/983a9d99444c7d51 :op :assert}
+   {:e #blake3 "f24390db4112a37920be9f0eee2cab3990c19600f951c6cc29bba9c31a0bb091" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "f24390db4112a37920be9f0eee2cab3990c19600f951c6cc29bba9c31a0bb091" :a :exploration/type :v :exploration.type/observation :op :assert}
+ ]}
