@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774032282/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TSV-1: Spec update — amend INV-INTERFACE-001 from 'three modes' to 'four modes', add TSV to the mode algebra (INV-INTERFACE-001). BACKGROUND: The spec currently states 'The CLI produces output in exactly one of three modes per invocation: Json, Agent, Human.' Adding Tsv requires updating this to four modes. The TSV mode satisfies INV-BUDGET-006 trivially (maximally dense for tabular data). APPROACH: (1) Update INV-INTERFACE-001 Level 0 statement in spec/14-interface.md. (2) Add TSV to the mode selection algorithm. (3) Note: TSV bypasses budget gate (like JSON) because the consumer controls their own budget. ACCEPTANCE: (A) INV-INTERFACE-001 states 'four modes'. (B) TSV described with field semantics. FILE: spec/14-interface.md"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :db/ident :v :task/t-ef2b25b6 :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/acceptance :v "(A) INV-INTERFACE-001 states 'four modes'. (B) TSV described with field semantics." :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/approach :v "(1) Update INV-INTERFACE-001 Level 0 statement in spec/14-interface.md. (2) Add TSV to the mode selection algorithm. (3) Note: TSV bypasses budget gate (like JSON) because the consumer controls their own budget." :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/background :v "The spec currently states 'The CLI produces output in exactly one of three modes per invocation: Json, Agent, Human.' Adding Tsv requires updating this to four modes. The TSV mode satisfies INV-BUDGET-006 trivially (maximally dense for tabular data). APPROACH: (1) Update INV-INTERFACE-001 Level 0 statement in spec/14-interface.md. (2) Add TSV to the mode selection algorithm. (3) Note: TSV bypasses budget gate (like JSON) because the consumer controls their own budget." :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/created-at :v 1774032281 :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/files :v "spec/14-interface.md" :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/id :v "t-ef2b25b6" :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/title :v "TSV-1: Spec update — amend INV-INTERFACE-001 from 'three modes' to 'four modes', add TSV to the mode algebra (INV-INTERFACE-001). BACKGROUND: The spec currently states 'The CLI produces output in exactly one of three modes per invocation: Json, Agent, Human.' Adding Tsv requires updating this to four modes. The TSV mode satisfies INV-BUDGET-006 trivially (maximally dense for tabular data). APPROACH: (1) Update INV-INTERFACE-001 Level 0 statement in spec/14-interface.md. (2) Add TSV to the mode selection algorithm. (3) Note: TSV bypasses budget gate (like JSON) because the consumer controls their own budget. ACCEPTANCE: (A) INV-INTERFACE-001 states 'four modes'. (B) TSV described with field semantics. FILE: spec/14-interface.md" :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/title-l0 :v "TSV-1" :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/title-l1 :v "TSV-1: Spec update — amend INV-INTERFACE-001 from 'three modes' to 'four mo..." :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/traces-to :v #blake3 "112f2c4b5a7096ba1c6050e87462157fd12ead26adf51996adf74823ad2ff8ed" :op :assert}
+   {:e #blake3 "c3f55e81dbf6eab705a6883699e9af3b7ca939694aebe52ae84471ad9f066299" :a :task/type :v :task.type/docs :op :assert}
+ ]}
