@@ -83,7 +83,7 @@ pub fn run_plan(
     let human = topology::format_plan_human(&plan, &task_titles);
 
     // Agent output
-    let agent_content = topology::format_plan_agent(&plan, &task_titles);
+    let _agent_content = topology::format_plan_agent(&plan, &task_titles);
 
     let mut full_output = human;
 
@@ -97,8 +97,84 @@ pub fn run_plan(
         }
     }
 
+    // ACP: topology plan as projection
+    let action = braid_kernel::budget::ProjectedAction {
+        command: format!("braid topology plan --agents {}", plan.assignments.len()),
+        rationale: format!(
+            "{}a/{}t {} p={:.2}",
+            plan.assignments.len(),
+            plan.total_tasks,
+            plan.pattern,
+            plan.parallelizability,
+        ),
+        impact: plan.parallelizability,
+    };
+
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!(
+            "topology: {}a/{}t {} S={:.2} p={:.2}",
+            plan.assignments.len(),
+            plan.total_tasks,
+            plan.pattern,
+            plan.coupling_entropy,
+            plan.parallelizability,
+        ),
+        tokens: 15,
+    }];
+
+    for a in &plan.assignments {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!(
+                "{}: {} tasks, {} files, impact={:.2}",
+                a.name,
+                a.tasks.len(),
+                a.files.len(),
+                a.total_impact,
+            ),
+            tokens: 12,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "details: braid topology plan --agents N --seeds".to_string(),
+    };
+
+    let mut json_val = if json {
+        serde_json::from_str::<serde_json::Value>(
+            &serde_json::to_string_pretty(&serde_json::json!({
+                "method": format!("{:?}", plan.method),
+                "pattern": plan.pattern.to_string(),
+                "agents": plan.assignments.len(),
+                "total_tasks": plan.total_tasks,
+                "coupling_entropy": plan.coupling_entropy,
+                "parallelizability": plan.parallelizability,
+            }))
+            .unwrap_or_default(),
+        )
+        .unwrap_or(serde_json::json!(null))
+    } else {
+        serde_json::json!(null)
+    };
+
+    // Set _acp field for ACP bypass
+    if let serde_json::Value::Object(ref mut map) = json_val {
+        map.insert("_acp".to_string(), serde_json::json!(true));
+    } else {
+        json_val = serde_json::json!({"_acp": true});
+    }
+
+    let rendered = crate::output::CommandOutput::from_human(String::new()).render_projected(
+        crate::output::OutputMode::Agent,
+        Some(&projection),
+        braid_kernel::budget::ActivationStrategy::Navigate,
+    );
+
     Ok(CommandOutput {
-        json: serde_json::json!(null),
+        json: json_val,
         agent: AgentOutput {
             context: format!(
                 "topology: {}a/{}t {} S={:.2}",
@@ -107,7 +183,7 @@ pub fn run_plan(
                 plan.pattern,
                 plan.coupling_entropy,
             ),
-            content: agent_content,
+            content: rendered,
             footer: String::new(),
         },
         human: full_output,
@@ -158,8 +234,12 @@ pub fn run_deps(path: &Path) -> Result<CommandOutput, BraidError> {
         content: format!("{datom_count} edges transacted"),
         footer: "coupling: braid topology plan".to_string(),
     };
+    let mut json_with_acp = json;
+    if let serde_json::Value::Object(ref mut map) = json_with_acp {
+        map.insert("_acp".to_string(), serde_json::json!(true));
+    }
     Ok(CommandOutput {
-        json,
+        json: json_with_acp,
         agent: agent_out,
         human,
     })
@@ -210,5 +290,23 @@ pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> 
         out.push_str("\nrun: braid topology plan --agents N\n");
     }
 
-    Ok(CommandOutput::from_human(out))
+    let json_val = serde_json::json!({
+        "_acp": true,
+        "ready_tasks": ready_count,
+        "coupling_groups": groups.len(),
+        "has_coupling_data": has_files,
+    });
+    Ok(CommandOutput {
+        json: json_val,
+        agent: AgentOutput {
+            context: format!("topology: {} ready, {} groups", ready_count, groups.len()),
+            content: if has_files {
+                "run: braid topology plan --agents N".to_string()
+            } else {
+                "hint: add FILE: markers for topology".to_string()
+            },
+            footer: String::new(),
+        },
+        human: out,
+    })
 }

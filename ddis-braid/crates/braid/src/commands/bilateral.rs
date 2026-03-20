@@ -92,12 +92,34 @@ pub fn run(
 
     let structured_json = build_structured_json(&state);
 
-    // ── Agent output (self-explanatory computation semantics) ────────
+    // ── ACP projection for bilateral (INV-BUDGET-007) ─────────────
+    // Action = top guidance action from the bilateral analysis
+    // Context = F(S) components, convergence analysis, gaps
+    // Evidence = "braid status --verbose"
 
-    let agent_output = build_agent_output(&state);
+    let projection = build_acp_projection(&state);
+
+    // Merge ACP into JSON
+    let mut final_json = structured_json;
+    if let serde_json::Value::Object(ref mut map) = final_json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent_output = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
 
     Ok(CommandOutput {
-        json: structured_json,
+        json: final_json,
         agent: agent_output,
         human,
     })
@@ -235,6 +257,10 @@ fn build_structured_json(state: &braid_kernel::bilateral::BilateralState) -> ser
 ///
 /// Each component is described by its FULL NAME and what improves it,
 /// so an AI agent reading this never needs to investigate source code.
+///
+/// NOTE: Retained for backward compatibility. The primary agent output path
+/// now uses ACP projection via `build_acp_projection()`.
+#[allow(dead_code)]
 fn build_agent_output(state: &braid_kernel::bilateral::BilateralState) -> AgentOutput {
     let c = &state.fitness.components;
     let cc = &state.conditions;
@@ -306,6 +332,206 @@ fn build_agent_output(state: &braid_kernel::bilateral::BilateralState) -> AgentO
         context,
         content,
         footer,
+    }
+}
+
+/// Build an ACP projection from the bilateral state (INV-BUDGET-007).
+///
+/// The action is the top guidance recommendation from the bilateral analysis:
+/// - If CC-1 fails: resolve contradictions
+/// - If CC-2 fails: add implementation traces
+/// - If CC-5 fails: methodology adherence
+/// - Otherwise: weakest F(S) component improvement
+///
+/// Context blocks provide F(S) components and convergence data at budget-scaled levels.
+fn build_acp_projection(
+    state: &braid_kernel::bilateral::BilateralState,
+) -> braid_kernel::ActionProjection {
+    use braid_kernel::budget::{ContextBlock, OutputPrecedence, ProjectedAction};
+
+    // Determine the top action from bilateral analysis
+    let action = if !state.conditions.cc1_no_contradictions.satisfied {
+        ProjectedAction {
+            command: "braid query '[:find ?e ?v :where [?e :spec/falsification ?v]]'".to_string(),
+            rationale: "CC-1 FAIL: resolve contradictions".to_string(),
+            impact: 0.9,
+        }
+    } else if !state.conditions.cc2_impl_satisfies_spec.satisfied {
+        ProjectedAction {
+            command: "braid trace --commit".to_string(),
+            rationale: "CC-2 FAIL: add implementation traces".to_string(),
+            impact: 0.8,
+        }
+    } else if !state.conditions.cc5_methodology_adherence.satisfied {
+        ProjectedAction {
+            command: "braid harvest --commit".to_string(),
+            rationale: "CC-5 WARN: methodology adherence low".to_string(),
+            impact: 0.7,
+        }
+    } else {
+        // Find weakest component and recommend improvement
+        let c = &state.fitness.components;
+        let components = [
+            (
+                "coverage",
+                c.coverage,
+                "braid trace --commit",
+                "improve impl coverage",
+            ),
+            (
+                "harvest_quality",
+                c.harvest_quality,
+                "braid harvest --commit",
+                "improve methodology score",
+            ),
+            (
+                "contradiction",
+                c.contradiction,
+                "braid query '[:find ?e :where [?e :spec/contradicts _]]'",
+                "check contradictions",
+            ),
+            (
+                "uncertainty",
+                c.uncertainty,
+                "braid query '[:find ?e ?c :where [?e :spec/confidence ?c]]'",
+                "resolve uncertainty",
+            ),
+            (
+                "drift",
+                c.drift,
+                "braid bilateral --full",
+                "investigate drift gaps",
+            ),
+        ];
+        let weakest = components
+            .iter()
+            .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+            .unwrap();
+        ProjectedAction {
+            command: weakest.2.to_string(),
+            rationale: format!("weakest: {} ({:.2}), {}", weakest.0, weakest.1, weakest.3),
+            impact: 1.0 - weakest.1, // higher impact when score is lower
+        }
+    };
+
+    // Build context blocks
+    let c = &state.fitness.components;
+    let cc = &state.conditions;
+    let fwd = &state.scan.forward;
+
+    let mut context_blocks = Vec::new();
+
+    // F(S) summary (System — always shown)
+    let failing_cc: Vec<&str> = [
+        (cc.cc1_no_contradictions.satisfied, "CC-1"),
+        (cc.cc2_impl_satisfies_spec.satisfied, "CC-2"),
+        (cc.cc3_spec_approximates_intent.satisfied, "CC-3"),
+        (cc.cc4_agent_agreement.satisfied, "CC-4"),
+        (cc.cc5_methodology_adherence.satisfied, "CC-5"),
+    ]
+    .iter()
+    .filter(|(sat, _)| !sat)
+    .map(|(_, name)| *name)
+    .collect();
+
+    let cc_summary = if failing_cc.is_empty() {
+        "all CC PASS".to_string()
+    } else {
+        format!("{} FAIL", failing_cc.join(", "))
+    };
+
+    context_blocks.push(ContextBlock {
+        precedence: OutputPrecedence::System,
+        content: format!(
+            "F(S)={:.4}, cycle {}, {}",
+            state.fitness.total, state.cycle_count, cc_summary
+        ),
+        tokens: 12,
+    });
+
+    // Component breakdown (UserRequested)
+    let fwd_total = fwd.covered.len() + fwd.gaps.len();
+    context_blocks.push(ContextBlock {
+        precedence: OutputPrecedence::UserRequested,
+        content: format!(
+            "components: validation={:.2} coverage={:.2} drift={:.2} harvest={:.2} \
+             contradiction={:.2} incompleteness={:.2} uncertainty={:.2}",
+            c.validation,
+            c.coverage,
+            c.drift,
+            c.harvest_quality,
+            c.contradiction,
+            c.incompleteness,
+            c.uncertainty
+        ),
+        tokens: 20,
+    });
+
+    // Scan coverage (Speculative)
+    context_blocks.push(ContextBlock {
+        precedence: OutputPrecedence::Speculative,
+        content: format!(
+            "scan: fwd {}/{} ({:.0}%), bwd {}/{} ({:.0}%)",
+            fwd.covered.len(),
+            fwd_total,
+            fwd.coverage_ratio * 100.0,
+            state.scan.backward.covered.len(),
+            state.scan.backward.covered.len() + state.scan.backward.gaps.len(),
+            state.scan.backward.coverage_ratio * 100.0
+        ),
+        tokens: 12,
+    });
+
+    // Convergence info (Speculative)
+    context_blocks.push(ContextBlock {
+        precedence: OutputPrecedence::Speculative,
+        content: format!(
+            "convergence: {} (Lyapunov={:.4}, rate={:.2}{})",
+            if state.convergence.is_monotonic {
+                "monotonic"
+            } else {
+                "NON-MONOTONIC"
+            },
+            state.convergence.lyapunov_exponent,
+            state.convergence.convergence_rate,
+            state
+                .convergence
+                .steps_to_target
+                .map(|s| format!(", ~{s} steps to 0.95"))
+                .unwrap_or_default()
+        ),
+        tokens: 15,
+    });
+
+    // Forward gaps (Ambient — only if there are gaps)
+    if !fwd.gaps.is_empty() {
+        let gap_preview: Vec<String> = fwd
+            .gaps
+            .iter()
+            .take(5)
+            .map(|g| {
+                g.ident
+                    .as_deref()
+                    .unwrap_or(&format!("{:?}", g.entity))
+                    .to_string()
+            })
+            .collect();
+        context_blocks.push(ContextBlock {
+            precedence: OutputPrecedence::Ambient,
+            content: format!(
+                "fwd gaps ({}): {}{}",
+                fwd.gaps.len(),
+                gap_preview.join(", "),
+                if fwd.gaps.len() > 5 { ", ..." } else { "" }
+            ),
+            tokens: 15,
+        });
+    }
+
+    braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "braid status --verbose".to_string(),
     }
 }
 

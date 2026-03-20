@@ -191,8 +191,8 @@ pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
         });
     }
 
-    // --- Human output ---
-    let human = if json {
+    // --- Human output (--json backward compat) ---
+    let json_human = if json {
         let datoms_json: Vec<serde_json::Value> = results
             .iter()
             .map(|(e, a, v)| {
@@ -214,27 +214,9 @@ pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
                 result["limit"] = serde_json::json!(lim);
             }
         }
-        serde_json::to_string_pretty(&result).unwrap() + "\n"
+        Some(serde_json::to_string_pretty(&result).unwrap() + "\n")
     } else {
-        let mut out = String::new();
-        for (entity_label, attr_str, value_str) in &results {
-            out.push_str(&format!("[{} {} {}]\n", entity_label, attr_str, value_str));
-        }
-        if is_paginated {
-            let lim_str = limit
-                .map(|l| l.to_string())
-                .unwrap_or_else(|| "none".to_string());
-            out.push_str(&format!(
-                "\nshowing {}/{} datom(s) (offset={}, limit={})\n",
-                results.len(),
-                total_count,
-                offset,
-                lim_str
-            ));
-        } else {
-            out.push_str(&format!("\n{} datom(s)\n", results.len()));
-        }
-        out
+        None
     };
 
     // --- Structured JSON (always present, regardless of --json flag) ---
@@ -263,7 +245,7 @@ pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
         }
     }
 
-    // --- Agent output ---
+    // --- ACP: Build ActionProjection (INV-BUDGET-007) ---
     let entity_desc = entity_filter.unwrap_or("*");
     let attr_desc = attribute_filter.unwrap_or("*");
     let pagination_note = if is_paginated {
@@ -271,17 +253,84 @@ pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
     } else {
         String::new()
     };
-    let agent = AgentOutput {
-        context: format!(
+
+    let action = braid_kernel::budget::ProjectedAction {
+        command: "braid status".to_string(),
+        rationale: "review store state".to_string(),
+        impact: 0.2,
+    };
+
+    let mut context_blocks = Vec::new();
+
+    // Summary (System — always shown)
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!(
             "query: {} datoms (entity={}, attribute={}){}",
             results.len(),
             entity_desc,
             attr_desc,
             pagination_note
         ),
-        content: human.clone(),
-        footer: "refine: add filters | explore: braid schema --pattern ':spec/*'".to_string(),
+        tokens: 12,
+    });
+
+    // Result rows as context blocks (UserRequested for first 10, Speculative beyond)
+    for (i, (entity_label, attr_str, value_str)) in results.iter().enumerate() {
+        let precedence = if i < 10 {
+            braid_kernel::budget::OutputPrecedence::UserRequested
+        } else {
+            braid_kernel::budget::OutputPrecedence::Speculative
+        };
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence,
+            content: format!("[{} {} {}]", entity_label, attr_str, value_str),
+            tokens: 8,
+        });
+    }
+
+    // Build the evidence pointer from the query itself
+    let mut evidence_parts = Vec::new();
+    if let Some(ef) = entity_filter {
+        evidence_parts.push(format!("--entity {ef}"));
+    }
+    if let Some(af) = attribute_filter {
+        evidence_parts.push(format!("--attribute {af}"));
+    }
+    let evidence_cmd = if evidence_parts.is_empty() {
+        "braid query".to_string()
+    } else {
+        format!("braid query {}", evidence_parts.join(" "))
     };
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: format!(
+            "refine: {evidence_cmd} | schema: braid schema --pattern ':spec/*'"
+        ),
+    };
+
+    // Human output: --json flag gets JSON text (backward compat), otherwise ACP projection
+    let human = json_human.unwrap_or_else(|| projection.project(usize::MAX));
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // Merge _acp into JSON
+    if let serde_json::Value::Object(ref mut map) = structured_json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(CommandOutput {
         json: structured_json,
@@ -457,12 +506,69 @@ pub fn run_datalog(
         }
     }
 
-    // --- Agent output ---
-    let agent = AgentOutput {
-        context: format!("datalog: {} results", result_count),
-        content: human.clone(),
-        footer: "refine: braid query '...' | schema: braid schema".to_string(),
+    // --- ACP: Build ActionProjection (INV-BUDGET-007) ---
+    let action = braid_kernel::budget::ProjectedAction {
+        command: "braid status".to_string(),
+        rationale: "review store state".to_string(),
+        impact: 0.2,
     };
+
+    let mut context_blocks = Vec::new();
+
+    // Summary (System — always shown)
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!("datalog: {} results", result_count),
+        tokens: 5,
+    });
+
+    // Result content as a single block (UserRequested)
+    // Truncate to keep within reasonable token budget for large result sets
+    let content_for_block = if human.len() > 2000 {
+        format!(
+            "{}\n... ({} results, showing first ~2000 chars)",
+            &human[..human.floor_char_boundary(2000)],
+            result_count
+        )
+    } else {
+        human.clone()
+    };
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+        content: content_for_block,
+        tokens: (result_count * 8).clamp(10, 200),
+    });
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: format!(
+            "refine: braid query '{}' | schema: braid schema",
+            datalog_src
+        ),
+    };
+
+    // Human output uses ACP full projection
+    let human = projection.project(usize::MAX);
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // Merge _acp into JSON
+    let mut structured_json = structured_json;
+    if let serde_json::Value::Object(ref mut map) = structured_json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(CommandOutput {
         json: structured_json,

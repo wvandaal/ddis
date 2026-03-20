@@ -126,19 +126,73 @@ pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> 
     let agent_content = format!(
         "{valid_count}/{total_invariants} witnessed, {stale_count} stale, score={score:.2}"
     );
+
+    // ACP projection for witness status (INV-BUDGET-007)
+    // Action = "braid witness check" (next diagnostic step)
+    // Context = coverage summary as budget-scaled blocks
+    let action = braid_kernel::budget::ProjectedAction {
+        command: "braid witness check".to_string(),
+        rationale: "check witness staleness".to_string(),
+        impact: if stale_count > 0 { 0.7 } else { 0.3 },
+    };
+
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!(
+            "witness: {total_invariants} invariants, {valid_count} valid, \
+             {stale_count} stale, {untested_count} untested, score={score:.2}"
+        ),
+        tokens: 15,
+    }];
+
+    if confirmed > 0 || refuted > 0 {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!(
+                "verdicts: {confirmed} confirmed, {provisional} provisional, \
+                 {inconclusive} inconclusive, {refuted} refuted"
+            ),
+            tokens: 10,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "details: braid witness check | gaps: braid witness completeness"
+            .to_string(),
+    };
+
+    // Merge ACP into JSON
+    let mut json = serde_json::json!({
+        "total_invariants": total_invariants,
+        "valid": valid_count,
+        "stale": stale_count,
+        "untested": untested_count,
+        "validation_score": score,
+    });
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // Human output uses ACP full projection (but keep existing human if richer)
+    let _ = agent_content; // consumed by ACP
     Ok(CommandOutput {
-        json: serde_json::json!({
-            "total_invariants": total_invariants,
-            "valid": valid_count,
-            "stale": stale_count,
-            "untested": untested_count,
-            "validation_score": score,
-        }),
-        agent: AgentOutput {
-            context: format!("witness: {valid_count}/{total_invariants} L2+, score={score:.2}"),
-            content: agent_content,
-            footer: String::new(),
-        },
+        json,
+        agent,
         human: out,
     })
 }
@@ -240,21 +294,73 @@ pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput,
         format!("{} stale witnesses detected", stale_list.len())
     };
 
+    // ACP projection for witness check (INV-BUDGET-007)
+    // Action = "braid harvest --commit" (refresh stale witnesses)
+    // Context = stale witness list as budget-scaled blocks
+    let action = braid_kernel::budget::ProjectedAction {
+        command: "braid harvest --commit".to_string(),
+        rationale: "refresh stale witness data".to_string(),
+        impact: if stale_list.is_empty() { 0.1 } else { 0.8 },
+    };
+
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!(
+            "witness check: {} witnesses, {} stale{}",
+            witnesses.len(),
+            stale_list.len(),
+            if commit { " (committed)" } else { "" }
+        ),
+        tokens: 10,
+    }];
+
+    // Add stale entries as individual context blocks
+    for (entity, reason) in &stale_list {
+        let inv_display = fbw_map
+            .get(entity)
+            .map(|w| format!("{:?}", w.inv_ref))
+            .unwrap_or_else(|| format!("{entity:?}"));
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!("STALE {inv_display}: {}", format_stale_reason(reason)),
+            tokens: 8,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "status: braid witness status | completeness: braid witness completeness"
+            .to_string(),
+    };
+
+    // Merge ACP into JSON
+    let mut json = serde_json::json!({
+        "total_witnesses": witnesses.len(),
+        "stale_found": stale_list.len(),
+        "committed": commit,
+    });
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    let _ = agent_content; // consumed by ACP
     Ok(CommandOutput {
-        json: serde_json::json!({
-            "total_witnesses": witnesses.len(),
-            "stale_found": stale_list.len(),
-            "committed": commit,
-        }),
-        agent: AgentOutput {
-            context: format!(
-                "witness check: {}/{} stale",
-                stale_list.len(),
-                witnesses.len()
-            ),
-            content: agent_content,
-            footer: String::new(),
-        },
+        json,
+        agent,
         human: out,
     })
 }
@@ -336,15 +442,83 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
         format!("{} invariants need L2+ witnesses", unwitnessed.len())
     };
 
+    // ACP projection for witness completeness (INV-BUDGET-007)
+    // Action = "braid trace --commit" (add coverage for unwitnessed invariants)
+    // Context = unwitnessed invariant list as budget-scaled blocks
+    let action = braid_kernel::budget::ProjectedAction {
+        command: "braid trace --commit".to_string(),
+        rationale: "add witness coverage".to_string(),
+        impact: if unwitnessed.is_empty() { 0.1 } else { 0.6 },
+    };
+
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!(
+            "completeness: {} invariants lack L2+ witnesses",
+            unwitnessed.len()
+        ),
+        tokens: 8,
+    }];
+
+    // Add unwitnessed invariants as individual context blocks
+    let max_entries = 20;
+    for (i, (ident, title)) in entries.iter().take(max_entries).enumerate() {
+        let display = if title.is_empty() {
+            format!("{ident}: needs L2+ witness")
+        } else {
+            format!("{ident}: {title}")
+        };
+        let precedence = if i < 5 {
+            braid_kernel::budget::OutputPrecedence::UserRequested
+        } else {
+            braid_kernel::budget::OutputPrecedence::Speculative
+        };
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence,
+            content: display,
+            tokens: 10,
+        });
+    }
+
+    if entries.len() > max_entries {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Ambient,
+            content: format!("... and {} more", entries.len() - max_entries),
+            tokens: 3,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "status: braid witness status | check: braid witness check".to_string(),
+    };
+
+    // Merge ACP into JSON
+    let mut json = serde_json::json!({
+        "total_unwitnessed": unwitnessed.len(),
+    });
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    let _ = agent_content; // consumed by ACP
     Ok(CommandOutput {
-        json: serde_json::json!({
-            "total_unwitnessed": unwitnessed.len(),
-        }),
-        agent: AgentOutput {
-            context: format!("completeness: {} gaps", unwitnessed.len()),
-            content: agent_content,
-            footer: String::new(),
-        },
+        json,
+        agent,
         human: out,
     })
 }

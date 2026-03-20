@@ -729,7 +729,7 @@ pub fn run(
         (covered_specs.len() as f64 / spec_map.len() as f64) * 100.0
     };
 
-    let json = serde_json::json!({
+    let mut json = serde_json::json!({
         "files_scanned": files.len(),
         "refs_found": all_refs.len(),
         "new_links": resolved_links.len(),
@@ -757,8 +757,27 @@ pub fn run(
         "committed_datoms": committed_datoms,
     });
 
-    let agent_out = AgentOutput {
-        context: format!(
+    // --- ACP: Build ActionProjection (INV-BUDGET-007) ---
+    let action = if commit {
+        braid_kernel::budget::ProjectedAction {
+            command: "braid status".to_string(),
+            rationale: format!("committed {} trace datoms", committed_datoms),
+            impact: 0.4,
+        }
+    } else {
+        braid_kernel::budget::ProjectedAction {
+            command: "braid trace --commit".to_string(),
+            rationale: "commit trace links to store".to_string(),
+            impact: 0.5,
+        }
+    };
+
+    let mut context_blocks = Vec::new();
+
+    // Summary (System — always shown)
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!(
             "trace: {} files, {} refs, {}/{} spec coverage ({:.0}%)",
             files.len(),
             all_refs.len(),
@@ -766,6 +785,12 @@ pub fn run(
             spec_map.len(),
             coverage_pct,
         ),
+        tokens: 15,
+    });
+
+    // Link counts (Methodology)
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::Methodology,
         content: format!(
             "{} new links, {} existing, {} unresolved | witnessed: {}/{}",
             resolved_links.len(),
@@ -774,15 +799,71 @@ pub fn run(
             total_witnessed,
             spec_map.len(),
         ),
-        footer: if commit {
-            format!(
-                "committed: {} datoms | next: braid status",
-                committed_datoms
-            )
-        } else {
-            "commit: braid trace --commit".to_string()
-        },
+        tokens: 12,
+    });
+
+    // Depth distribution (UserRequested — when non-empty)
+    if resolved_links.iter().any(|l| l.verification_depth > 0) {
+        let labels = ["L0", "L1", "L2", "L3", "L4"];
+        let depth_parts: Vec<String> = labels
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| depth_counts[*i] > 0)
+            .map(|(i, label)| format!("{}={}", label, depth_counts[i]))
+            .collect();
+        if !depth_parts.is_empty() {
+            context_blocks.push(braid_kernel::budget::ContextBlock {
+                precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+                content: format!("depth: {}", depth_parts.join(", ")),
+                tokens: 8,
+            });
+        }
+    }
+
+    // Unresolved refs (Speculative — only if present)
+    for (ref_str, count) in &unresolved {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
+            content: format!("unresolved: {} ({}x)", ref_str, count),
+            tokens: 5,
+        });
+    }
+
+    // Commit result (System — when committed)
+    if commit && committed_datoms > 0 {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::System,
+            content: format!("committed: {} datoms", committed_datoms),
+            tokens: 5,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "details: braid query --attribute :impl/implements".to_string(),
     };
+
+    // Human output uses ACP full projection
+    let human = projection.project(usize::MAX);
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent_out = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // Merge _acp into JSON
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(CommandOutput {
         json,

@@ -89,21 +89,112 @@ pub fn run(
     // Build structured JSON (always, regardless of --json flag).
     let structured_json = build_structured_json(&attrs);
 
-    // Build agent output.
-    let context = if let Some(pat) = pattern {
-        format!("schema: {} attributes (pattern: {})", attrs.len(), pat)
+    // ACP projection for schema (INV-BUDGET-007)
+    // Action = "braid query --attribute :db/valueType" (explore schema)
+    // Context = attribute list as budget-scaled blocks
+    // Evidence = "braid schema --pattern ':spec/*'"
+    let action = braid_kernel::budget::ProjectedAction {
+        command: "braid query '[:find ?e ?v :where [?e :db/valueType ?v]]'".to_string(),
+        rationale: "explore schema value types".to_string(),
+        impact: 0.3,
+    };
+
+    let mut context_blocks = Vec::new();
+
+    // Summary (System)
+    let ctx_label = if let Some(pat) = pattern {
+        format!("schema: {} attributes (pattern: {pat})", attrs.len())
     } else {
         format!("schema: {} attributes", attrs.len())
     };
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: ctx_label,
+        tokens: 8,
+    });
 
+    // Namespace breakdown (UserRequested)
+    let ns_counts = {
+        let mut ns: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+        for (attr, _) in &attrs {
+            let s = attr.as_str();
+            let prefix = match s.find('/') {
+                Some(pos) => &s[..pos],
+                None => s,
+            };
+            *ns.entry(prefix.to_string()).or_insert(0) += 1;
+        }
+        ns
+    };
+    let ns_summary: Vec<String> = ns_counts
+        .iter()
+        .map(|(ns, count)| format!("{ns}:{count}"))
+        .collect();
+    if !ns_summary.is_empty() {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!("namespaces: {}", ns_summary.join(", ")),
+            tokens: 10 + ns_summary.len(),
+        });
+    }
+
+    // Individual attributes as Speculative blocks (capped at 30)
+    let max_attr_blocks = 30;
+    for (i, (attr, def)) in attrs.iter().take(max_attr_blocks).enumerate() {
+        let precedence = if i < 10 {
+            braid_kernel::budget::OutputPrecedence::Speculative
+        } else {
+            braid_kernel::budget::OutputPrecedence::Ambient
+        };
+        let doc_short = truncate_doc(&def.doc, 40);
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence,
+            content: format!(
+                "{} {} {} \"{}\"",
+                attr.as_str(),
+                type_short_name(def),
+                cardinality_short_name(def),
+                doc_short
+            ),
+            tokens: 8,
+        });
+    }
+
+    if attrs.len() > max_attr_blocks {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Ambient,
+            content: format!("... and {} more", attrs.len() - max_attr_blocks),
+            tokens: 3,
+        });
+    }
+
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: "braid schema --pattern ':spec/*'".to_string(),
+    };
+
+    // Merge ACP into JSON
+    let mut final_json = structured_json;
+    if let serde_json::Value::Object(ref mut map) = final_json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
     let agent = AgentOutput {
-        context,
-        content: human.clone(),
-        footer: "explore: braid query '[:find ?e :where [?e :db/doc ?v]]' | filter: braid schema --pattern ':spec/*'".to_string(),
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
     };
 
     Ok(CommandOutput {
-        json: structured_json,
+        json: final_json,
         agent,
         human,
     })
@@ -135,16 +226,39 @@ fn run_diff(
 
     if new_entity_ids.is_empty() {
         let human = format!("schema diff: 0 attributes added since tx {since_tx}\n");
-        let structured = serde_json::json!({
+        // ACP for empty diff result
+        let action = braid_kernel::budget::ProjectedAction {
+            command: "braid query '[:find ?e ?v :where [?e :db/valueType ?v]]'".to_string(),
+            rationale: "explore schema value types".to_string(),
+            impact: 0.2,
+        };
+        let projection = braid_kernel::ActionProjection {
+            action,
+            context: vec![braid_kernel::budget::ContextBlock {
+                precedence: braid_kernel::budget::OutputPrecedence::System,
+                content: format!("schema diff: 0 new attributes since tx {since_tx}"),
+                tokens: 8,
+            }],
+            evidence_pointer: "braid schema --pattern ':spec/*'".to_string(),
+        };
+        let mut structured = serde_json::json!({
             "since_tx": since_tx,
             "count": 0,
             "attributes": [],
         });
+        if let serde_json::Value::Object(ref mut map) = structured {
+            let acp = projection.to_json();
+            if let serde_json::Value::Object(acp_map) = acp {
+                for (k, v) in acp_map {
+                    map.insert(k, v);
+                }
+            }
+        }
+        let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
         let agent = AgentOutput {
-            context: format!("schema diff: 0 new attributes since tx {since_tx}"),
-            content: human.clone(),
-            footer: "try an earlier tx: braid log --limit 5 | look for wall_time values"
-                .to_string(),
+            context: String::new(),
+            content: agent_text,
+            footer: String::new(),
         };
         return Ok(CommandOutput {
             json: structured,
@@ -250,16 +364,68 @@ fn run_diff(
 
     let structured_json = build_diff_json(since_tx, &entries);
 
-    let context = format!("schema diff: {count} attributes added since tx {since_tx}");
+    // ACP for diff result
+    let action = braid_kernel::budget::ProjectedAction {
+        command: "braid query '[:find ?e ?v :where [?e :db/valueType ?v]]'".to_string(),
+        rationale: "explore schema value types".to_string(),
+        impact: 0.3,
+    };
+    let mut diff_context_blocks = vec![braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!("schema diff: {count} attributes added since tx {since_tx}"),
+        tokens: 8,
+    }];
+    for (i, entry) in entries.iter().take(20).enumerate() {
+        let precedence = if i < 5 {
+            braid_kernel::budget::OutputPrecedence::UserRequested
+        } else {
+            braid_kernel::budget::OutputPrecedence::Speculative
+        };
+        diff_context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence,
+            content: format!(
+                "+ {} {} \"{}\"",
+                entry.ident,
+                entry.value_type,
+                truncate_doc(&entry.doc, 40)
+            ),
+            tokens: 8,
+        });
+    }
+    if count > 20 {
+        diff_context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Ambient,
+            content: format!("... and {} more", count - 20),
+            tokens: 3,
+        });
+    }
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: diff_context_blocks,
+        evidence_pointer: "braid schema --pattern ':spec/*'".to_string(),
+    };
+
+    // Merge ACP into JSON
+    let mut final_json = structured_json;
+    if let serde_json::Value::Object(ref mut map) = final_json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
     let agent = AgentOutput {
-        context,
-        content: human.clone(),
-        footer: "full schema: braid schema | filter: braid schema --diff <tx> --pattern ':ns/*'"
-            .to_string(),
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
     };
 
     Ok(CommandOutput {
-        json: structured_json,
+        json: final_json,
         agent,
         human,
     })

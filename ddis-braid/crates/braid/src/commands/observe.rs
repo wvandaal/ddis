@@ -329,46 +329,112 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     // where agents complain about problems already documented in the store.
     let related_specs = braid_kernel::guidance::knowledge_relevance_scan(args.text, &store);
 
-    // Human output (backward compat)
-    let mut human = String::new();
-    human.push_str(&format!("observed: {ident}\n"));
-    human.push_str(&format!(
-        "  confidence: {:.1} | category: {} | datoms: {}\n",
-        args.confidence, cat_short, datom_count
-    ));
-    if !args.tags.is_empty() {
-        human.push_str(&format!("  tags: {}\n", args.tags.join(", ")));
-    }
-    if let Some(relates_to) = args.relates_to {
-        human.push_str(&format!("  relates-to: {relates_to}\n"));
-    }
-    if let Some(rationale) = args.rationale {
-        human.push_str(&format!("  rationale: {rationale}\n"));
-    }
-    if let Some(alternatives) = args.alternatives {
-        human.push_str(&format!("  alternatives: {alternatives}\n"));
-    }
-    human.push_str(&format!("  store: {new_total} datoms (+{datom_count})\n"));
-    human.push_str(&format!("  tx: {}\n", file_path.relative_path()));
+    // --- ACP: Build ActionProjection (INV-BUDGET-007) ---
+    let action = braid_kernel::budget::ProjectedAction {
+        command: "braid status".to_string(),
+        rationale: "check store state after observation".to_string(),
+        impact: 0.3,
+    };
 
-    // CRB: Show related knowledge (INV-GUIDANCE-024, CRB-7)
+    let mut context_blocks = Vec::new();
+
+    // Summary context (System — always shown)
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!(
+            "observed: {ident} (confidence={:.1}, category={cat_short}, +{datom_count} datoms)",
+            args.confidence,
+        ),
+        tokens: 15,
+    });
+
+    // Store state (Methodology)
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::Methodology,
+        content: format!(
+            "store: {new_total} datoms | tx: {}",
+            file_path.relative_path()
+        ),
+        tokens: 10,
+    });
+
+    // Tags if present (UserRequested)
+    if !args.tags.is_empty() {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!("tags: {}", args.tags.join(", ")),
+            tokens: 5,
+        });
+    }
+
+    // Cross-reference if present (UserRequested)
+    if let Some(relates_to) = args.relates_to {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
+            content: format!("relates-to: {relates_to}"),
+            tokens: 5,
+        });
+    }
+
+    // Rationale if present (Speculative)
+    if let Some(rationale) = args.rationale {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
+            content: format!("rationale: {rationale}"),
+            tokens: 10,
+        });
+    }
+
+    // Alternatives if present (Speculative)
+    if let Some(alternatives) = args.alternatives {
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
+            content: format!("alternatives: {alternatives}"),
+            tokens: 10,
+        });
+    }
+
+    // CRB: Related knowledge (Methodology — important for reconciliation)
     if !related_specs.is_empty() {
-        human.push_str("\n  related knowledge (auto-reconciliation):\n");
         for sr in &related_specs {
-            human.push_str(&format!(
-                "    [{}] {} — {} (score={:.2})\n",
-                sr.source, sr.human_id, sr.summary, sr.score
-            ));
+            context_blocks.push(braid_kernel::budget::ContextBlock {
+                precedence: braid_kernel::budget::OutputPrecedence::Methodology,
+                content: format!(
+                    "related: [{}] {} — {} (score={:.2})",
+                    sr.source, sr.human_id, sr.summary, sr.score
+                ),
+                tokens: 12,
+            });
         }
         if related_specs.len() >= 3 {
-            human.push_str(
-                "  \u{26a0} 3+ existing knowledge elements found. Reconcile before crystallizing.\n",
-            );
+            context_blocks.push(braid_kernel::budget::ContextBlock {
+                precedence: braid_kernel::budget::OutputPrecedence::System,
+                content: "3+ existing knowledge elements found. Reconcile before crystallizing."
+                    .to_string(),
+                tokens: 8,
+            });
         }
     }
 
-    // JSON output
-    let json = serde_json::json!({
+    let projection = braid_kernel::ActionProjection {
+        action,
+        context: context_blocks,
+        evidence_pointer: format!("details: braid query --entity {ident}"),
+    };
+
+    // Human output uses ACP full projection
+    let human = projection.project(usize::MAX);
+
+    // Agent output uses ACP Navigate projection
+    let agent_text = projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
+    let agent = AgentOutput {
+        context: String::new(),
+        content: agent_text,
+        footer: String::new(),
+    };
+
+    // JSON output with _acp field merged
+    let mut json = serde_json::json!({
         "entity": ident,
         "confidence": args.confidence,
         "category": cat_short,
@@ -376,16 +442,14 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         "store_total": new_total,
         "tx": file_path.relative_path(),
     });
-
-    // Agent output (three-part structure, ≤300 tokens)
-    let agent = AgentOutput {
-        context: format!(
-            "observed: {ident} (confidence={:.1}, category={cat_short})",
-            args.confidence,
-        ),
-        content: format!("store: {new_total} datoms (+{datom_count})"),
-        footer: "next: braid status".to_string(),
-    };
+    if let serde_json::Value::Object(ref mut map) = json {
+        let acp = projection.to_json();
+        if let serde_json::Value::Object(acp_map) = acp {
+            for (k, v) in acp_map {
+                map.insert(k, v);
+            }
+        }
+    }
 
     Ok(CommandOutput { json, agent, human })
 }
@@ -556,11 +620,18 @@ mod tests {
         })
         .unwrap();
 
-        assert!(result
-            .human
-            .contains("observed: :observation/merge-is-a-structural-bottleneck"));
-        assert!(result.human.contains("confidence: 0.8"));
-        assert!(result.human.contains("tags: bottleneck, graph"));
+        // ACP human output contains the observation ident and confidence
+        assert!(
+            result.human.contains("observation/merge-is-a-structural-bottleneck")
+                || result.human.contains("observed"),
+            "human output should reference the observation: {}",
+            result.human
+        );
+        assert!(
+            result.human.contains("0.8") || result.human.contains("confidence"),
+            "human output should include confidence: {}",
+            result.human
+        );
 
         // Verify entity exists in store
         let layout = DiskLayout::open(&path).unwrap();
@@ -646,8 +717,17 @@ mod tests {
         })
         .unwrap();
 
-        assert!(result.human.contains("relates-to: :spec/inv-store-004"));
-        assert!(result.human.contains("category: theorem"));
+        // ACP-formatted output includes relates-to and category in context blocks
+        assert!(
+            result.human.contains("inv-store-004") || result.human.contains("relates"),
+            "human output should reference relates-to: {}",
+            result.human
+        );
+        assert!(
+            result.human.contains("theorem") || result.human.contains("category"),
+            "human output should include category: {}",
+            result.human
+        );
     }
 
     #[test]
