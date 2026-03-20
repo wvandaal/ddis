@@ -673,9 +673,23 @@ pub fn run(
             }
         }
 
+        // T7-2: Auto-create FBW witnesses from trace data (INV-WITNESS-001, INV-WITNESS-004).
+        // After trace scan produces :impl/* datoms, create FBW witnesses for spec
+        // elements that now have L2+ trace links. This binds verification evidence
+        // to spec elements via content-addressed triple hashes.
+        let reloaded_store = layout.load_store()?;
+        let auto_witness_count = auto_create_witnesses(
+            &layout, &reloaded_store, agent_name, &mut out,
+        );
+        // Reload again if witnesses were created (so R(t) refit sees them)
+        let reloaded_store = if auto_witness_count > 0 {
+            layout.load_store()?
+        } else {
+            reloaded_store
+        };
+
         // RFL-6: Trigger R(t) weight refit at harvest time.
         // If we have 50+ action-outcome pairs, learn new routing weights.
-        let reloaded_store = layout.load_store()?;
         if let Some(new_weights) = braid_kernel::guidance::refit_routing_weights(&reloaded_store) {
             // Store learned weights as a :routing/weights datom
             use braid_kernel::datom::*;
@@ -833,4 +847,177 @@ fn find_closeable_tasks(store: &braid_kernel::Store) -> Vec<(String, String, usi
     }
 
     closeable
+}
+
+/// T7-2: Auto-create FBW witnesses from trace scan data.
+///
+/// For each spec element with L2+ `:impl/implements` links, create an FBW
+/// witness binding (spec_hash, falsification_hash, test_body_hash). The witness
+/// is challenged via the Stage 1 keyword alignment protocol.
+///
+/// Returns the number of new witness datoms created.
+fn auto_create_witnesses(
+    layout: &DiskLayout,
+    store: &braid_kernel::Store,
+    agent_name: &str,
+    out: &mut String,
+) -> usize {
+    use braid_kernel::datom::*;
+    use braid_kernel::witness;
+    use std::collections::BTreeSet;
+
+    let implements_attr = Attribute::from_keyword(":impl/implements");
+    let depth_attr = Attribute::from_keyword(":impl/verification-depth");
+    let statement_attr = Attribute::from_keyword(":element/statement");
+    let falsification_attr = Attribute::from_keyword(":spec/falsification");
+    let witness_traces_attr = Attribute::from_keyword(":witness/traces-to");
+
+    // Find spec entities that already have witnesses (avoid duplicates)
+    let already_witnessed: BTreeSet<EntityId> = store
+        .attribute_datoms(&witness_traces_attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .filter_map(|d| match &d.value {
+            Value::Ref(e) => Some(*e),
+            _ => None,
+        })
+        .collect();
+
+    // Find spec entities with L2+ impl links (candidates for witnessing)
+    let mut candidates: Vec<(EntityId, i64)> = Vec::new(); // (spec_entity, max_depth)
+    for datom in store.attribute_datoms(&implements_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        let spec_entity = match &datom.value {
+            Value::Ref(e) => *e,
+            _ => continue,
+        };
+
+        if already_witnessed.contains(&spec_entity) {
+            continue;
+        }
+
+        // Get verification depth for this impl entity
+        let impl_entity = datom.entity;
+        let depth = store
+            .entity_datoms(impl_entity)
+            .iter()
+            .filter(|d| d.attribute == depth_attr && d.op == Op::Assert)
+            .filter_map(|d| match &d.value {
+                Value::Long(v) => Some(*v),
+                _ => None,
+            })
+            .max()
+            .unwrap_or(1);
+
+        if depth >= 2 {
+            candidates.push((spec_entity, depth));
+        }
+    }
+
+    if candidates.is_empty() {
+        return 0;
+    }
+
+    // Deduplicate: keep max depth per spec entity
+    let mut spec_depths: std::collections::BTreeMap<EntityId, i64> = std::collections::BTreeMap::new();
+    for (spec_entity, depth) in &candidates {
+        let entry = spec_depths.entry(*spec_entity).or_insert(0);
+        if *depth > *entry {
+            *entry = *depth;
+        }
+    }
+
+    let agent = AgentId::from_name(agent_name);
+    let tx = crate::commands::write::next_tx_id(store, agent);
+
+    let mut all_datoms = Vec::new();
+    let mut witness_count = 0usize;
+
+    for (&spec_entity, &depth) in &spec_depths {
+        let entity_datoms = store.entity_datoms(spec_entity);
+
+        // Get spec statement text
+        let statement = entity_datoms
+            .iter()
+            .rfind(|d| d.attribute == statement_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                Value::String(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_default();
+
+        if statement.is_empty() {
+            continue; // No statement to hash — skip
+        }
+
+        // Get falsification condition (may be empty — Stage 1 acceptable)
+        let falsification = entity_datoms
+            .iter()
+            .rfind(|d| d.attribute == falsification_attr && d.op == Op::Assert)
+            .and_then(|d| match &d.value {
+                Value::String(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_default();
+
+        // Create FBW (test_body is empty for now — will be populated when
+        // trace scanner extracts test hashes in a future enhancement)
+        let fbw = witness::create_fbw(
+            spec_entity,
+            &statement,
+            &falsification,
+            "", // test body — trace scanner doesn't provide this yet
+            "", // test file
+            depth,
+            agent_name,
+        );
+
+        // Run challenge protocol
+        let (verdict, _results) = witness::challenge_witness(
+            "", // test body not available yet
+            &falsification,
+            depth,
+        );
+
+        // Set status based on challenge result
+        let mut fbw = fbw;
+        fbw.verdict = verdict;
+        fbw.challenge_count = 1;
+        fbw.status = if !falsification.is_empty() && verdict == witness::WitnessVerdict::Confirmed {
+            witness::WitnessStatus::Valid
+        } else {
+            witness::WitnessStatus::Pending
+        };
+
+        let datoms = witness::fbw_to_datoms(&fbw, tx);
+        all_datoms.extend(datoms);
+        witness_count += 1;
+    }
+
+    if all_datoms.is_empty() {
+        return 0;
+    }
+
+    let tx_file = braid_kernel::layout::TxFile {
+        tx_id: tx,
+        agent,
+        provenance: ProvenanceType::Derived,
+        rationale: format!(
+            "T7-2 auto-witness: {} FBW witnesses from trace evidence",
+            witness_count,
+        ),
+        causal_predecessors: vec![],
+        datoms: all_datoms,
+    };
+
+    if layout.write_tx(&tx_file).is_ok() {
+        out.push_str(&format!(
+            "  witness: {} FBW witnesses created from trace evidence\n",
+            witness_count,
+        ));
+    }
+
+    witness_count
 }
