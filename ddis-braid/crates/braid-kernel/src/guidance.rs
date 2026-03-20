@@ -326,17 +326,13 @@ impl SessionWorkingSet {
 
         let all_tasks = crate::task::all_tasks(store);
 
-        // Active tasks: in-progress AND status-change tx is after session_boundary
+        // Active tasks: ALL in-progress tasks, not just session-scoped ones.
+        // T-UX-3: If a task is in-progress, it represents an active intention
+        // regardless of when the status was set. Tasks set in-progress during
+        // THIS session get priority 1 (recency boost), others get priority 2.
         let active_tasks: Vec<EntityId> = all_tasks
             .iter()
             .filter(|t| t.status == crate::task::TaskStatus::InProgress)
-            .filter(|t| {
-                store.entity_datoms(t.entity).iter().any(|d| {
-                    d.attribute.as_str() == ":task/status"
-                        && d.op == Op::Assert
-                        && d.tx.wall_time() > session_boundary
-                })
-            })
             .map(|t| t.entity)
             .collect();
 
@@ -2153,25 +2149,40 @@ pub fn build_command_footer_with_hint(
 
 /// Derive session telemetry from the store state instead of using all-zero defaults.
 ///
-/// This fixes C1 (M(t) always 0.00) by computing real values from the store:
-/// - `total_turns`: transaction count (proxy for turns)
+/// T1-1: M(t) denominators are scoped to the current session (since last harvest).
+/// This prevents M(t) from structurally decreasing as the store grows over its
+/// lifetime — only current-session activity matters for methodology adherence.
+///
+/// - `total_turns`: distinct wall_times since last harvest (session-local)
 /// - `transact_turns`: transactions since last harvest
-/// - `spec_language_turns`: count of spec entities
-/// - `query_type_count`: 1 if any transactions, 0 otherwise
+/// - `spec_language_turns`: spec entities created/modified since last harvest
+/// - `query_type_count`: 1 if any session transactions, 0 otherwise
 /// - `harvest_quality`: 0.7 if recent harvest exists, 0.0 otherwise
 pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
-    let tx_walls: BTreeSet<u64> = store.datoms().map(|d| d.tx.wall_time()).collect();
-    let tx_count = tx_walls.len() as u32;
+    let boundary = last_harvest_wall_time(store);
+    let has_recent_harvest = boundary > 0;
+
+    // T1-1: Count distinct wall_times AFTER last harvest (session-scoped).
+    // When no harvest exists (boundary == 0), all wall_times are in-session.
+    let session_walls: BTreeSet<u64> = store
+        .datoms()
+        .filter(|d| d.tx.wall_time() > boundary)
+        .map(|d| d.tx.wall_time())
+        .collect();
+    let session_turn_count = session_walls.len() as u32;
+
     let txns_since = count_txns_since_last_harvest(store) as u32;
+
+    // T1-1: Count spec entities created/modified since last harvest, not total.
     let spec_count = store
         .datoms()
         .filter(|d| {
-            d.attribute.as_str() == ":db/ident"
+            d.tx.wall_time() > boundary
+                && d.attribute.as_str() == ":db/ident"
                 && d.op == Op::Assert
                 && matches!(&d.value, Value::Keyword(k) if k.starts_with(":spec/"))
         })
         .count() as u32;
-    let has_recent_harvest = last_harvest_wall_time(store) > 0;
 
     // A3: M(t) floor clamp — when a harvest exists and fewer than 10 txns
     // have occurred since, the store is in a healthy inter-session state.
@@ -2181,10 +2192,11 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
     let harvest_is_recent = has_recent_harvest && txns_since < 10;
 
     SessionTelemetry {
-        total_turns: tx_count.max(1),
+        // max(1) prevents division by zero when 0 transactions since harvest
+        total_turns: session_turn_count.max(1),
         transact_turns: txns_since,
-        spec_language_turns: spec_count.min(tx_count),
-        query_type_count: if tx_count > 0 { 1 } else { 0 },
+        spec_language_turns: spec_count.min(session_turn_count.max(1)),
+        query_type_count: if session_turn_count > 0 { 1 } else { 0 },
         harvest_quality: if has_recent_harvest { 0.7 } else { 0.0 },
         history: vec![],
         harvest_is_recent,
@@ -2430,9 +2442,17 @@ pub fn should_warn_on_exit(store: &Store, k_eff: Option<f64>) -> Option<String> 
     });
     let urgency = harvest_urgency_multi(store, effective_k);
     if urgency >= 0.7 {
+        // Clamp urgency display to [0, 10] for human readability.
+        // Raw urgency can exceed 10 for very stale sessions; showing huge
+        // numbers adds noise without information. "10.0+" signals overflow.
+        let urgency_display = if urgency > 10.0 {
+            "10.0+".to_string()
+        } else {
+            format!("{urgency:.2}")
+        };
         Some(format!(
             "\u{26a0} NEG-HARVEST-001: {tx_since} transactions since last harvest \
-             (urgency {urgency:.2}). Run: braid harvest --commit"
+             (urgency {urgency_display}). Run: braid harvest --commit"
         ))
     } else {
         None
@@ -4951,6 +4971,114 @@ mod tests {
         assert!(
             should_warn_on_exit(&store, None).is_none(),
             "empty store with auto-estimated k_eff should not warn"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // Urgency display clamping (T3-2)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn should_warn_on_exit_large_urgency_shows_clamped() {
+        // Simulate a store with many transactions and no harvest to produce
+        // urgency well above 10.0. The display should show "10.0+" rather
+        // than the raw value.
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // 100 transactions with no harvest — drives urgency far above 10.0
+        for i in 1..=100 {
+            let tx = TxId::new(now - 100 + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":work/large-{i}")),
+                Attribute::from_keyword(":db/doc"),
+                Value::String(format!("item {i}")),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        let warning = should_warn_on_exit(&store, Some(1.0));
+        assert!(warning.is_some(), "100 txns with no harvest should warn");
+        let msg = warning.unwrap();
+        assert!(
+            msg.contains("urgency 10.0+"),
+            "large urgency must display as '10.0+', got: {msg}"
+        );
+    }
+
+    #[test]
+    fn should_warn_on_exit_normal_urgency_shows_exact() {
+        // With a recent harvest and enough transactions to trigger a warning
+        // (signal_1 > 0.7), but not enough to exceed urgency 10.0.
+        // The display should show the exact value, not the clamped "10.0+" form.
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // A harvest 1 minute ago keeps signal_2 = 1/30 ≈ 0.03.
+        let harvest_wall = now - 60;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-normal"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-normal"),
+            Attribute::from_keyword(":harvest/boundary-tx"),
+            Value::Long(harvest_wall as i64),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // 7 transactions after the harvest: signal_1 = 7/8 = 0.875.
+        // max(0.875, 0.03) = 0.875, which is above the 0.7 warning
+        // threshold but well below 10.0.
+        for i in 1..=7 {
+            let tx = TxId::new(harvest_wall + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":work/normal-{i}")),
+                Attribute::from_keyword(":db/doc"),
+                Value::String(format!("item {i}")),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        let warning = should_warn_on_exit(&store, Some(1.0));
+        assert!(warning.is_some(), "7 txns since recent harvest should warn");
+        let msg = warning.unwrap();
+        // Must contain "urgency X.XX" with a numeric value, not "10.0+"
+        assert!(
+            !msg.contains("10.0+"),
+            "normal urgency must NOT show clamped form, got: {msg}"
+        );
+        assert!(
+            msg.contains("urgency"),
+            "warning must include urgency: {msg}"
+        );
+        // Verify it shows a decimal number after "urgency "
+        let urgency_idx = msg.find("urgency ").expect("must contain 'urgency '");
+        let after = &msg[urgency_idx + 8..];
+        let numeric_part: String = after.chars().take_while(|c| *c == '.' || c.is_ascii_digit()).collect();
+        let parsed: f64 = numeric_part.parse().expect("urgency value must be numeric");
+        assert!(
+            parsed < 10.0,
+            "urgency should be below 10.0, got {parsed}"
         );
     }
 
@@ -7841,7 +7969,10 @@ mod tests {
     }
 
     #[test]
-    fn session_working_set_excludes_stale_in_progress() {
+    fn session_working_set_includes_all_in_progress() {
+        // T-UX-3: ALL in-progress tasks are active intentions, regardless of
+        // when the status was set. A task set in-progress 2 hours ago is still
+        // an active intention until explicitly closed or completed.
         use crate::datom::{AgentId, Datom, Op, TxId};
         use crate::task::{create_task_datoms, CreateTaskParams, TaskType};
 
@@ -7851,10 +7982,9 @@ mod tests {
             .unwrap_or_default()
             .as_secs();
 
-        // Create a task with STALE in-progress status (2 hours old)
         let tx_old = TxId::new(now - 7200, 0, agent);
         let (_, mut task_datoms) = create_task_datoms(CreateTaskParams {
-            title: "Stale task",
+            title: "Cross-session active task",
             description: None,
             priority: 1,
             task_type: TaskType::Task,
@@ -7863,7 +7993,6 @@ mod tests {
             labels: &[],
         });
 
-        // Add in-progress status with STALE wall_time (2 hours ago)
         task_datoms.push(Datom::new(
             task_datoms[0].entity,
             Attribute::from_keyword(":task/status"),
@@ -7875,10 +8004,10 @@ mod tests {
         let store = Store::from_datoms(task_datoms.into_iter().collect());
         let sws = SessionWorkingSet::from_store(&store);
 
-        assert!(
-            sws.active_tasks.is_empty(),
-            "stale in-progress task (2h old) should NOT be in active set, got {}",
-            sws.active_tasks.len()
+        assert_eq!(
+            sws.active_tasks.len(),
+            1,
+            "in-progress task should be in active set even if set 2h ago"
         );
     }
 
@@ -8564,5 +8693,226 @@ mod tests {
         assert_eq!(ag.raw.crystallization, 15);
         assert_eq!(ag.mode, ActivityMode::Mixed);
         assert_eq!(ag.mode_label(), "mixed");
+    }
+
+    // -----------------------------------------------------------------------
+    // T1-1: M(t) session-scoped denominators
+    // -----------------------------------------------------------------------
+
+    // Verifies: T1-1 — M(t) on a store with recent session activity (10 txns
+    // including spec entities) should be >= 0.5.
+    #[test]
+    fn mt_session_scoped_recent_activity() {
+        use crate::datom::*;
+        use std::collections::BTreeSet;
+
+        let agent = AgentId::from_name("test:agent");
+        let mut datoms = BTreeSet::new();
+
+        // Place a harvest at wall_time = 1000.
+        let harvest_wall: u64 = 1000;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-session"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // Add 10 transactions after the harvest, including 5 spec entities.
+        for i in 1..=10u64 {
+            let tx = TxId::new(harvest_wall + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":work/item-{i}")),
+                Attribute::from_keyword(":db/doc"),
+                Value::String(format!("work item {i}")),
+                tx,
+                Op::Assert,
+            ));
+            // First 5 transactions also create spec entities.
+            if i <= 5 {
+                datoms.insert(Datom::new(
+                    EntityId::from_ident(&format!(":spec/inv-test-{i:03}")),
+                    Attribute::from_keyword(":db/ident"),
+                    Value::Keyword(format!(":spec/inv-test-{i:03}")),
+                    tx,
+                    Op::Assert,
+                ));
+            }
+        }
+
+        let store = Store::from_datoms(datoms);
+        let telemetry = telemetry_from_store(&store);
+
+        // total_turns should be session-scoped (10 distinct wall_times after harvest)
+        assert_eq!(telemetry.total_turns, 10, "total_turns should be session-scoped");
+        // spec_language_turns should be 5 (only spec entities created after harvest)
+        assert_eq!(telemetry.spec_language_turns, 5, "spec_language_turns should count session specs");
+
+        let score = compute_methodology_score(&telemetry);
+        assert!(
+            score.score >= 0.5,
+            "M(t) with 10 session txns and 5 spec entities should be >= 0.5, got {}",
+            score.score,
+        );
+    }
+
+    // Verifies: T1-1 — M(t) on a store with 10000 old datoms but only 5 new
+    // transactions should be >= 0.4 (not penalized by old data).
+    #[test]
+    fn mt_session_scoped_not_penalized_by_old_data() {
+        use crate::datom::*;
+        use std::collections::BTreeSet;
+
+        let agent = AgentId::from_name("test:agent");
+        let mut datoms = BTreeSet::new();
+
+        // Add 10000 old datoms BEFORE the harvest (wall_times 1..=10000).
+        for i in 1..=10000u64 {
+            let tx = TxId::new(i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":old/item-{i}")),
+                Attribute::from_keyword(":db/doc"),
+                Value::String(format!("old item {i}")),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        // Place a harvest at wall_time = 10001.
+        let harvest_wall: u64 = 10001;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-old"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // Add 5 new transactions after harvest, including 3 spec entities.
+        for i in 1..=5u64 {
+            let tx = TxId::new(harvest_wall + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":new/item-{i}")),
+                Attribute::from_keyword(":db/doc"),
+                Value::String(format!("new item {i}")),
+                tx,
+                Op::Assert,
+            ));
+            if i <= 3 {
+                datoms.insert(Datom::new(
+                    EntityId::from_ident(&format!(":spec/inv-new-{i:03}")),
+                    Attribute::from_keyword(":db/ident"),
+                    Value::Keyword(format!(":spec/inv-new-{i:03}")),
+                    tx,
+                    Op::Assert,
+                ));
+            }
+        }
+
+        let store = Store::from_datoms(datoms);
+        let telemetry = telemetry_from_store(&store);
+
+        // total_turns should be 5 (session-scoped), NOT 10001+
+        assert_eq!(
+            telemetry.total_turns, 5,
+            "total_turns should only count session wall_times, not old data"
+        );
+        assert_eq!(
+            telemetry.spec_language_turns, 3,
+            "spec_language_turns should only count post-harvest spec entities"
+        );
+
+        let score = compute_methodology_score(&telemetry);
+        assert!(
+            score.score >= 0.4,
+            "M(t) with 10000 old datoms and 5 new txns should be >= 0.4, got {}",
+            score.score,
+        );
+    }
+
+    // Verifies: T1-1 — Proptest: M(t) is always in [0, 1] with session-scoped telemetry.
+    mod t1_1_proptest {
+        use super::*;
+        use crate::datom::*;
+        use proptest::prelude::*;
+        use std::collections::BTreeSet;
+
+        proptest! {
+            #[test]
+            fn mt_session_scoped_always_bounded(
+                old_count in 0u32..200,
+                new_count in 0u32..50,
+                spec_count in 0u32..20,
+                has_harvest in proptest::bool::ANY,
+            ) {
+                let agent = AgentId::from_name("test:prop");
+                let mut datoms = BTreeSet::new();
+
+                let harvest_wall: u64 = 5000;
+
+                // Add old datoms before harvest.
+                for i in 0..old_count {
+                    let tx = TxId::new(1000 + i as u64, 0, agent);
+                    datoms.insert(Datom::new(
+                        EntityId::from_ident(&format!(":old/p-{i}")),
+                        Attribute::from_keyword(":db/doc"),
+                        Value::String(format!("old {i}")),
+                        tx,
+                        Op::Assert,
+                    ));
+                }
+
+                // Optionally add a harvest.
+                if has_harvest {
+                    let harvest_tx = TxId::new(harvest_wall, 0, agent);
+                    datoms.insert(Datom::new(
+                        EntityId::from_ident(":harvest/h-prop"),
+                        Attribute::from_keyword(":harvest/agent"),
+                        Value::String("test".to_string()),
+                        harvest_tx,
+                        Op::Assert,
+                    ));
+                }
+
+                // Add new datoms after harvest.
+                let effective_spec = spec_count.min(new_count);
+                for i in 0..new_count {
+                    let tx = TxId::new(harvest_wall + 1 + i as u64, 0, agent);
+                    datoms.insert(Datom::new(
+                        EntityId::from_ident(&format!(":new/p-{i}")),
+                        Attribute::from_keyword(":db/doc"),
+                        Value::String(format!("new {i}")),
+                        tx,
+                        Op::Assert,
+                    ));
+                    if i < effective_spec {
+                        datoms.insert(Datom::new(
+                            EntityId::from_ident(&format!(":spec/prop-{i:03}")),
+                            Attribute::from_keyword(":db/ident"),
+                            Value::Keyword(format!(":spec/prop-{i:03}")),
+                            tx,
+                            Op::Assert,
+                        ));
+                    }
+                }
+
+                let store = Store::from_datoms(datoms);
+                let telemetry = telemetry_from_store(&store);
+                let score = compute_methodology_score(&telemetry);
+                prop_assert!(
+                    score.score >= 0.0,
+                    "M(t) must be >= 0.0, got {}",
+                    score.score,
+                );
+                prop_assert!(
+                    score.score <= 1.0,
+                    "M(t) must be <= 1.0, got {}",
+                    score.score,
+                );
+            }
+        }
     }
 }

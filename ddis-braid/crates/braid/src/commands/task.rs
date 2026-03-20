@@ -953,7 +953,7 @@ pub fn close(
     attest: Option<&str>,
 ) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
-    let store = layout.load_store()?;
+    let mut store = layout.load_store()?;
     ensure_layer_4_public(&layout, &store)?;
 
     let agent_id = AgentId::from_name(agent);
@@ -1055,6 +1055,34 @@ pub fn close(
     };
     layout.write_tx(&tx)?;
 
+    // Apply the close datoms to the in-memory store instead of reloading
+    // from disk. This avoids an expensive full load_store() call (T2-2).
+    {
+        let rationale = format!("Close task(s): {}", closed_ids.join(", "));
+        let mut builder =
+            braid_kernel::store::Transaction::new(agent_id, ProvenanceType::Observed, &rationale);
+        for datom in &tx.datoms {
+            match datom.op {
+                Op::Assert => {
+                    builder = builder.assert(
+                        datom.entity,
+                        datom.attribute.clone(),
+                        datom.value.clone(),
+                    );
+                }
+                Op::Retract => {
+                    builder = builder.retract(
+                        datom.entity,
+                        datom.attribute.clone(),
+                        datom.value.clone(),
+                    );
+                }
+            }
+        }
+        let committed = builder.commit(&store).map_err(braid_kernel::KernelError::from)?;
+        store.transact(committed).map_err(braid_kernel::KernelError::from)?;
+    }
+
     let mut human = String::new();
     // Show blocked tasks first (if any in a batch)
     for (id, msg) in &blocked_ids {
@@ -1066,8 +1094,7 @@ pub fn close(
 
     // ZCM-4: Completion reward — show F(S) as feedback signal.
     // From reinforcement learning: explicit reward signals strengthen behavioral patterns.
-    let reloaded = layout.load_store()?;
-    let fitness = braid_kernel::bilateral::compute_fitness(&reloaded);
+    let fitness = braid_kernel::bilateral::compute_fitness(&store);
     human.push_str(&format!("F(S)={:.2}\n", fitness.total));
 
     let json = serde_json::json!({
@@ -1078,7 +1105,7 @@ pub fn close(
     });
 
     // ACP for close: action = next task
-    let action = braid_kernel::guidance::compute_action_from_store(&reloaded);
+    let action = braid_kernel::guidance::compute_action_from_store(&store);
     let mut context_blocks = vec![
         braid_kernel::budget::ContextBlock {
             precedence: braid_kernel::budget::OutputPrecedence::System,
