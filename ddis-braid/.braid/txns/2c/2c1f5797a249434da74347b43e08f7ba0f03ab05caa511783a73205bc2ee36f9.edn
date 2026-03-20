@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773976325/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "TASK AUDIT T6-1 (t-79a347b9): APPROACH REVISION. The suppression matrix should be applied at the DISPLAY layer (status.rs), not in the kernel function methodology_gaps(). Kernel computes truth (raw gap counts); CLI computes presentation (phase-adjusted display). This follows the existing kernel-no-IO pattern. Revised approach: (a) methodology_gaps() stays as-is, returns raw counts. (b) In status.rs, call detect_activity_mode() and apply suppression multipliers to the displayed counts. (c) JSON output includes both raw and adjusted values."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "90b626e1007b8fbcb6769d55e050671a89063095f1f5dc63dd334ae60e7e5e44" :a :db/doc :v "TASK AUDIT T6-1 (t-79a347b9): APPROACH REVISION. The suppression matrix should be applied at the DISPLAY layer (status.rs), not in the kernel function methodology_gaps(). Kernel computes truth (raw gap counts); CLI computes presentation (phase-adjusted display). This follows the existing kernel-no-IO pattern. Revised approach: (a) methodology_gaps() stays as-is, returns raw counts. (b) In status.rs, call detect_activity_mode() and apply suppression multipliers to the displayed counts. (c) JSON output includes both raw and adjusted values." :op :assert}
+   {:e #blake3 "90b626e1007b8fbcb6769d55e050671a89063095f1f5dc63dd334ae60e7e5e44" :a :db/ident :v :observation/task-audit-t6-1-t-79a347b9-approach-revision-the-suppres :op :assert}
+   {:e #blake3 "90b626e1007b8fbcb6769d55e050671a89063095f1f5dc63dd334ae60e7e5e44" :a :exploration/body :v "TASK AUDIT T6-1 (t-79a347b9): APPROACH REVISION. The suppression matrix should be applied at the DISPLAY layer (status.rs), not in the kernel function methodology_gaps(). Kernel computes truth (raw gap counts); CLI computes presentation (phase-adjusted display). This follows the existing kernel-no-IO pattern. Revised approach: (a) methodology_gaps() stays as-is, returns raw counts. (b) In status.rs, call detect_activity_mode() and apply suppression multipliers to the displayed counts. (c) JSON output includes both raw and adjusted values." :op :assert}
+   {:e #blake3 "90b626e1007b8fbcb6769d55e050671a89063095f1f5dc63dd334ae60e7e5e44" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "90b626e1007b8fbcb6769d55e050671a89063095f1f5dc63dd334ae60e7e5e44" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "90b626e1007b8fbcb6769d55e050671a89063095f1f5dc63dd334ae60e7e5e44" :a :exploration/content-hash :v #bytes "3139b7c95a574a7b797616ee7f46071feeb4c65353ac83be5242cc49973642e9" :op :assert}
+   {:e #blake3 "90b626e1007b8fbcb6769d55e050671a89063095f1f5dc63dd334ae60e7e5e44" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "90b626e1007b8fbcb6769d55e050671a89063095f1f5dc63dd334ae60e7e5e44" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "90b626e1007b8fbcb6769d55e050671a89063095f1f5dc63dd334ae60e7e5e44" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

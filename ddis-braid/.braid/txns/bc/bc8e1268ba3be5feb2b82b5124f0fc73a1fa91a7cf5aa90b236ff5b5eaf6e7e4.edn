@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773976328/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "TASK AUDIT T7-1 (t-c193e691): ARCHITECTURE CLARIFICATION. File walking must use CLI-layer trace.rs infrastructure, not kernel functions. The approach should reuse or extract an inner function from the existing trace::run() command handler. The kernel's scan_source() takes strings, not paths — the CLI does the IO. The trace datoms go into a SEPARATE transaction after the harvest commit (not part of the harvest tx)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4558fcd4a727bb7bd959b1a97e3444cf6434ef9e6d705804892b7997f8dd9b23" :a :db/doc :v "TASK AUDIT T7-1 (t-c193e691): ARCHITECTURE CLARIFICATION. File walking must use CLI-layer trace.rs infrastructure, not kernel functions. The approach should reuse or extract an inner function from the existing trace::run() command handler. The kernel's scan_source() takes strings, not paths — the CLI does the IO. The trace datoms go into a SEPARATE transaction after the harvest commit (not part of the harvest tx)." :op :assert}
+   {:e #blake3 "4558fcd4a727bb7bd959b1a97e3444cf6434ef9e6d705804892b7997f8dd9b23" :a :db/ident :v :observation/task-audit-t7-1-t-c193e691-architecture-clarification-fi :op :assert}
+   {:e #blake3 "4558fcd4a727bb7bd959b1a97e3444cf6434ef9e6d705804892b7997f8dd9b23" :a :exploration/body :v "TASK AUDIT T7-1 (t-c193e691): ARCHITECTURE CLARIFICATION. File walking must use CLI-layer trace.rs infrastructure, not kernel functions. The approach should reuse or extract an inner function from the existing trace::run() command handler. The kernel's scan_source() takes strings, not paths — the CLI does the IO. The trace datoms go into a SEPARATE transaction after the harvest commit (not part of the harvest tx)." :op :assert}
+   {:e #blake3 "4558fcd4a727bb7bd959b1a97e3444cf6434ef9e6d705804892b7997f8dd9b23" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "4558fcd4a727bb7bd959b1a97e3444cf6434ef9e6d705804892b7997f8dd9b23" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "4558fcd4a727bb7bd959b1a97e3444cf6434ef9e6d705804892b7997f8dd9b23" :a :exploration/content-hash :v #bytes "00b53d584460bc1ea8046136129ff6d1e6e3d6149fa442c6afba575c0603fdd4" :op :assert}
+   {:e #blake3 "4558fcd4a727bb7bd959b1a97e3444cf6434ef9e6d705804892b7997f8dd9b23" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4558fcd4a727bb7bd959b1a97e3444cf6434ef9e6d705804892b7997f8dd9b23" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4558fcd4a727bb7bd959b1a97e3444cf6434ef9e6d705804892b7997f8dd9b23" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

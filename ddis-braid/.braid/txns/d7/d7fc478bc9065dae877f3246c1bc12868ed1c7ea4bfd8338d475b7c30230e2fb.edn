@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773976327/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "TASK AUDIT T4-1 (t-0305b123): BACKWARD COMPATIBILITY. Don't replace the footer — ADD a new FooterMode::BasinToken alongside existing FooterMode::Full. Selection: ACP-converted commands with k* > 0.4 get BasinToken mode; everything else gets Full mode. This preserves all existing tests and behaviors while giving ACP commands the lean 0-3 token footer."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "badb9d4ec16b3432e1925b9b74d62dd535b2a30e3d18e3afd4b6b8682d21aaf5" :a :db/doc :v "TASK AUDIT T4-1 (t-0305b123): BACKWARD COMPATIBILITY. Don't replace the footer — ADD a new FooterMode::BasinToken alongside existing FooterMode::Full. Selection: ACP-converted commands with k* > 0.4 get BasinToken mode; everything else gets Full mode. This preserves all existing tests and behaviors while giving ACP commands the lean 0-3 token footer." :op :assert}
+   {:e #blake3 "badb9d4ec16b3432e1925b9b74d62dd535b2a30e3d18e3afd4b6b8682d21aaf5" :a :db/ident :v :observation/task-audit-t4-1-t-0305b123-backward-compatibility-dont :op :assert}
+   {:e #blake3 "badb9d4ec16b3432e1925b9b74d62dd535b2a30e3d18e3afd4b6b8682d21aaf5" :a :exploration/body :v "TASK AUDIT T4-1 (t-0305b123): BACKWARD COMPATIBILITY. Don't replace the footer — ADD a new FooterMode::BasinToken alongside existing FooterMode::Full. Selection: ACP-converted commands with k* > 0.4 get BasinToken mode; everything else gets Full mode. This preserves all existing tests and behaviors while giving ACP commands the lean 0-3 token footer." :op :assert}
+   {:e #blake3 "badb9d4ec16b3432e1925b9b74d62dd535b2a30e3d18e3afd4b6b8682d21aaf5" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "badb9d4ec16b3432e1925b9b74d62dd535b2a30e3d18e3afd4b6b8682d21aaf5" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "badb9d4ec16b3432e1925b9b74d62dd535b2a30e3d18e3afd4b6b8682d21aaf5" :a :exploration/content-hash :v #bytes "3f56a9639b53228385af39304e40f4f015c5f41d40d7b289c75be163933eaf8e" :op :assert}
+   {:e #blake3 "badb9d4ec16b3432e1925b9b74d62dd535b2a30e3d18e3afd4b6b8682d21aaf5" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "badb9d4ec16b3432e1925b9b74d62dd535b2a30e3d18e3afd4b6b8682d21aaf5" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "badb9d4ec16b3432e1925b9b74d62dd535b2a30e3d18e3afd4b6b8682d21aaf5" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

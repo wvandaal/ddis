@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773976326/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "TASK AUDIT T5-1 (t-faeed44a): ARCHITECTURE CORRECTION. braid-kernel is pure computation — no filesystem IO. Split audit into: (a) KERNEL: audit_tasks_from_store(store) checks store evidence only (spec refs have :impl/implements links, matching closed tasks). (b) CLI: audit_tasks(store, path) adds filesystem checks (FILE: markers → file exists). Same pattern as trace scanning."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "33e45cc232ba656897f704061be5244fc4d75514d7039d3ed1482de1abf49a8d" :a :db/doc :v "TASK AUDIT T5-1 (t-faeed44a): ARCHITECTURE CORRECTION. braid-kernel is pure computation — no filesystem IO. Split audit into: (a) KERNEL: audit_tasks_from_store(store) checks store evidence only (spec refs have :impl/implements links, matching closed tasks). (b) CLI: audit_tasks(store, path) adds filesystem checks (FILE: markers → file exists). Same pattern as trace scanning." :op :assert}
+   {:e #blake3 "33e45cc232ba656897f704061be5244fc4d75514d7039d3ed1482de1abf49a8d" :a :db/ident :v :observation/task-audit-t5-1-t-faeed44a-architecture-correction-braid :op :assert}
+   {:e #blake3 "33e45cc232ba656897f704061be5244fc4d75514d7039d3ed1482de1abf49a8d" :a :exploration/body :v "TASK AUDIT T5-1 (t-faeed44a): ARCHITECTURE CORRECTION. braid-kernel is pure computation — no filesystem IO. Split audit into: (a) KERNEL: audit_tasks_from_store(store) checks store evidence only (spec refs have :impl/implements links, matching closed tasks). (b) CLI: audit_tasks(store, path) adds filesystem checks (FILE: markers → file exists). Same pattern as trace scanning." :op :assert}
+   {:e #blake3 "33e45cc232ba656897f704061be5244fc4d75514d7039d3ed1482de1abf49a8d" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "33e45cc232ba656897f704061be5244fc4d75514d7039d3ed1482de1abf49a8d" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "33e45cc232ba656897f704061be5244fc4d75514d7039d3ed1482de1abf49a8d" :a :exploration/content-hash :v #bytes "7375d5fbf8ee67e39f30e1f6f0947223f952609bd6beb77b36e04306192cb030" :op :assert}
+   {:e #blake3 "33e45cc232ba656897f704061be5244fc4d75514d7039d3ed1482de1abf49a8d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "33e45cc232ba656897f704061be5244fc4d75514d7039d3ed1482de1abf49a8d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "33e45cc232ba656897f704061be5244fc4d75514d7039d3ed1482de1abf49a8d" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

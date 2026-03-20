@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773976324/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "TASK AUDIT T3-1 (t-35e7e275): PARTIALLY IMPLEMENTED in this session. Production code paths fixed (harvest_urgency_multi signal_2, compute_action_from_store). Remaining: write 3 unit/proptests from acceptance criteria. The :harvest/boundary-tx reads in guidance.rs lines 4502-4830 are all in test code only — production paths are clean."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a144a05fddad541db804fff7c12d41f092a44f6d3687441236c94160394533b7" :a :db/doc :v "TASK AUDIT T3-1 (t-35e7e275): PARTIALLY IMPLEMENTED in this session. Production code paths fixed (harvest_urgency_multi signal_2, compute_action_from_store). Remaining: write 3 unit/proptests from acceptance criteria. The :harvest/boundary-tx reads in guidance.rs lines 4502-4830 are all in test code only — production paths are clean." :op :assert}
+   {:e #blake3 "a144a05fddad541db804fff7c12d41f092a44f6d3687441236c94160394533b7" :a :db/ident :v :observation/task-audit-t3-1-t-35e7e275-partially-implemented-in-this :op :assert}
+   {:e #blake3 "a144a05fddad541db804fff7c12d41f092a44f6d3687441236c94160394533b7" :a :exploration/body :v "TASK AUDIT T3-1 (t-35e7e275): PARTIALLY IMPLEMENTED in this session. Production code paths fixed (harvest_urgency_multi signal_2, compute_action_from_store). Remaining: write 3 unit/proptests from acceptance criteria. The :harvest/boundary-tx reads in guidance.rs lines 4502-4830 are all in test code only — production paths are clean." :op :assert}
+   {:e #blake3 "a144a05fddad541db804fff7c12d41f092a44f6d3687441236c94160394533b7" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "a144a05fddad541db804fff7c12d41f092a44f6d3687441236c94160394533b7" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "a144a05fddad541db804fff7c12d41f092a44f6d3687441236c94160394533b7" :a :exploration/content-hash :v #bytes "59886249a27c9f2444695e5c4612ef57fa03e7106d39f8186341c5593d123149" :op :assert}
+   {:e #blake3 "a144a05fddad541db804fff7c12d41f092a44f6d3687441236c94160394533b7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a144a05fddad541db804fff7c12d41f092a44f6d3687441236c94160394533b7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a144a05fddad541db804fff7c12d41f092a44f6d3687441236c94160394533b7" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
