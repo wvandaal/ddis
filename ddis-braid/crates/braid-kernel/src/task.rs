@@ -1164,6 +1164,122 @@ pub fn run_verification(store: &Store, pattern: &VerificationPattern) -> Result<
     }
 }
 
+// ===========================================================================
+// Task Audit — detect likely-implemented open tasks (T5-1, INV-BILATERAL-002)
+// ===========================================================================
+
+/// Evidence that a task may already be implemented.
+#[derive(Clone, Debug)]
+pub struct AuditEvidence {
+    /// Spec refs from the task that have :impl/implements links at L2+.
+    pub spec_coverage: usize,
+    /// Total spec refs in the task.
+    pub spec_total: usize,
+    /// File paths extracted from the task title (for CLI-layer filesystem check).
+    pub file_paths: Vec<String>,
+    /// Confidence score [0, 1] based on store evidence alone.
+    pub confidence: f64,
+}
+
+/// Audit open tasks for store-based evidence of completion.
+///
+/// For each open task with spec refs (`:task/traces-to`), checks if those spec
+/// elements have `:impl/implements` links at L2+ depth. Tasks with full spec
+/// coverage are likely implemented.
+///
+/// This is the KERNEL function (pure, no IO). The CLI layer adds filesystem
+/// checks (FILE: markers → file exists on disk).
+///
+/// Returns tasks with evidence sorted by confidence (highest first).
+pub fn audit_tasks_from_store(store: &Store) -> Vec<(TaskSummary, AuditEvidence)> {
+    let tasks = all_tasks(store);
+    let implements_attr = Attribute::from_keyword(":impl/implements");
+    let depth_attr = Attribute::from_keyword(":impl/verification-depth");
+
+    // Build set of spec entities with L2+ impl links
+    let mut impl_targets: BTreeSet<EntityId> = BTreeSet::new();
+    for datom in store.attribute_datoms(&implements_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        let spec_entity = match &datom.value {
+            Value::Ref(e) => *e,
+            _ => continue,
+        };
+
+        // Check depth for this impl entity
+        let impl_entity = datom.entity;
+        let depth = store
+            .entity_datoms(impl_entity)
+            .iter()
+            .filter(|d| d.attribute == depth_attr && d.op == Op::Assert)
+            .filter_map(|d| match &d.value {
+                Value::Long(v) => Some(*v),
+                _ => None,
+            })
+            .max()
+            .unwrap_or(1);
+
+        if depth >= 2 {
+            impl_targets.insert(spec_entity);
+        }
+    }
+
+    let mut results = Vec::new();
+
+    for task in &tasks {
+        if task.status != TaskStatus::Open {
+            continue;
+        }
+
+        let spec_total = task.traces_to.len();
+        let file_paths = crate::topology::extract_task_files(&task.title)
+            .into_iter()
+            .collect::<Vec<_>>();
+
+        // Count how many of the task's spec refs have impl links
+        let spec_coverage = task
+            .traces_to
+            .iter()
+            .filter(|e| impl_targets.contains(e))
+            .count();
+
+        // Compute confidence from store evidence alone
+        let spec_score = if spec_total > 0 {
+            spec_coverage as f64 / spec_total as f64
+        } else {
+            0.0
+        };
+
+        // File paths give a signal even without spec coverage
+        let file_score = if file_paths.is_empty() { 0.0 } else { 0.3 };
+
+        let confidence = (spec_score * 0.7 + file_score).clamp(0.0, 1.0);
+
+        // Only include tasks with some evidence
+        if confidence > 0.1 {
+            results.push((
+                task.clone(),
+                AuditEvidence {
+                    spec_coverage,
+                    spec_total,
+                    file_paths,
+                    confidence,
+                },
+            ));
+        }
+    }
+
+    // Sort by confidence descending
+    results.sort_by(|a, b| {
+        b.1.confidence
+            .partial_cmp(&a.1.confidence)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    results
+}
+
 //   ADR-STORE-003, ADR-RESOLUTION-001
 // (Task module exercises datom construction via the append-only store,
 //  content-addressable identity, schema-as-data patterns, and lattice

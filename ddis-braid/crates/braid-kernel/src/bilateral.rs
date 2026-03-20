@@ -3120,4 +3120,226 @@ mod tests {
         assert_eq!(fitness.components.coverage, 1.0);
         assert_eq!(evals[0].relation.coverage, 1.0);
     }
+
+    // =======================================================================
+    // T7-3: Witness data → F(S) V component integration tests
+    // =======================================================================
+
+    /// Verifies: INV-WITNESS-005 — Stale Witnesses Reduce F(S)
+    /// Verifies: compute_validation() correctly uses witness_validation_score()
+    ///
+    /// Pipeline: spec elements + FBW witness datoms → compute_fitness() → V component.
+    /// (a) Valid witnesses make V > 0.
+    /// (b) Marking a witness stale decreases V.
+    /// (c) An invariant with no witness contributes 0 to V.
+    #[test]
+    fn witness_data_affects_fitness_v_component() {
+        use crate::datom::ProvenanceType;
+        use crate::store::Transaction;
+        use crate::witness::{
+            create_fbw, fbw_to_datoms, mark_stale_datoms, witness_validation_score, WitnessStatus,
+        };
+
+        let agent = AgentId::from_name("test-witness");
+        let tx = TxId::new(1, 0, agent);
+
+        // --- Build 3 spec invariants ---
+        let inv_idents = [
+            ":spec/inv-witness-t7-001",
+            ":spec/inv-witness-t7-002",
+            ":spec/inv-witness-t7-003",
+        ];
+        let inv_entities: Vec<EntityId> = inv_idents.iter().map(|i| EntityId::from_ident(i)).collect();
+
+        let mut extra = Vec::new();
+        for (idx, ident) in inv_idents.iter().enumerate() {
+            let entity = inv_entities[idx];
+            extra.push(Datom::new(
+                entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(ident.to_string()),
+                tx,
+                Op::Assert,
+            ));
+            extra.push(Datom::new(
+                entity,
+                Attribute::from_keyword(":spec/element-type"),
+                Value::Keyword(":spec.type/invariant".into()),
+                tx,
+                Op::Assert,
+            ));
+            extra.push(Datom::new(
+                entity,
+                Attribute::from_keyword(":element/statement"),
+                Value::String(format!("Test invariant T7-{idx}")),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        // --- Create FBW witnesses for inv[0] and inv[1] (Valid, depth 2) ---
+        let mut fbw0 = create_fbw(
+            inv_entities[0],
+            "Test invariant T7-0",
+            "Violated if T7-0 fails",
+            "assert!(t7_zero_holds())",
+            "src/t7_test.rs",
+            2,
+            "test-witness",
+        );
+        fbw0.status = WitnessStatus::Valid;
+
+        let mut fbw1 = create_fbw(
+            inv_entities[1],
+            "Test invariant T7-1",
+            "Violated if T7-1 fails",
+            "assert!(t7_one_holds())",
+            "src/t7_test.rs",
+            2,
+            "test-witness",
+        );
+        fbw1.status = WitnessStatus::Valid;
+
+        // No witness for inv[2] — it remains untested.
+
+        let fbw0_entity = fbw0.entity;
+        extra.extend(fbw_to_datoms(&fbw0, tx));
+        extra.extend(fbw_to_datoms(&fbw1, tx));
+
+        let mut store = store_with(extra);
+
+        // --- (a) V > 0 with valid witnesses ---
+        let f1 = compute_fitness(&store);
+        assert!(
+            f1.components.validation > 0.0,
+            "V should be > 0 with 2 valid witnesses, got {}",
+            f1.components.validation
+        );
+
+        // Confirm witness_validation_score reports 2 valid, 0 stale, 1 untested
+        let (score, valid, stale, untested) = witness_validation_score(&store);
+        assert_eq!(valid, 2, "expected 2 valid witnesses, got {valid}");
+        assert_eq!(stale, 0, "expected 0 stale witnesses, got {stale}");
+        assert_eq!(untested, 1, "expected 1 untested invariant, got {untested}");
+        assert!(score > 0.0, "witness score should be > 0, got {score}");
+
+        // Record V before staleness
+        let v_before = f1.components.validation;
+
+        // --- (b) Mark fbw0 stale, V should decrease ---
+        let stale_datoms = mark_stale_datoms(fbw0_entity, tx);
+        // Use transact so the stale datom is appended AFTER valid datoms in entity_index
+        let stale_tx = Transaction::new(agent, ProvenanceType::Observed, "mark witness stale");
+        let mut stale_tx = stale_tx;
+        for d in &stale_datoms {
+            stale_tx = stale_tx.assert(d.entity, d.attribute.clone(), d.value.clone());
+        }
+        let committed = stale_tx.commit(&store).expect("stale tx should commit");
+        store.transact(committed).expect("stale transact should succeed");
+
+        let f2 = compute_fitness(&store);
+        assert!(
+            f2.components.validation < v_before,
+            "V should decrease after marking witness stale: before={v_before}, after={}",
+            f2.components.validation
+        );
+
+        // Confirm counts: 1 valid, 1 stale, 2 untested
+        // (inv[0] lost its valid witness → now untested, inv[2] was always untested)
+        let (_, valid2, stale2, untested2) = witness_validation_score(&store);
+        assert_eq!(valid2, 1, "expected 1 valid after stale, got {valid2}");
+        assert_eq!(stale2, 1, "expected 1 stale after marking, got {stale2}");
+        assert_eq!(untested2, 2, "expected 2 untested (inv[0] + inv[2]), got {untested2}");
+
+        // --- (c) The unwitnessed invariant contributes 0 ---
+        // With 3 invariants and only 1 valid witness at depth 2:
+        //   V = depth_weight(2) / (3 * depth_weight(4)) = 0.4 / 3.0 ≈ 0.133
+        // The unwitnessed inv[2] contributes nothing to the numerator.
+        let expected_v = depth_weight(2) / (3.0 * depth_weight(4));
+        assert!(
+            (f2.components.validation - expected_v).abs() < 1e-10,
+            "V should be {expected_v} (1 witness at depth 2, 3 total invs), got {}",
+            f2.components.validation
+        );
+    }
+
+    /// Verifies: backward compatibility — F(S) V component falls back to legacy
+    /// depth-weighted path when no FBW witness data exists in the store.
+    ///
+    /// This ensures stores that predate the WITNESS system still compute V correctly
+    /// using the binary `:spec/witnessed` counting path.
+    #[test]
+    fn no_witness_data_falls_back_to_legacy() {
+        use crate::witness::witness_validation_score;
+
+        let agent = AgentId::from_name("test-legacy");
+        let tx = TxId::new(1, 0, agent);
+
+        // Build 4 spec elements, 2 with :spec/witnessed = true
+        let mut extra = Vec::new();
+        for i in 0..4 {
+            let ident = format!(":spec/inv-legacy-{i:03}");
+            let entity = EntityId::from_ident(&ident);
+
+            extra.push(Datom::new(
+                entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(ident),
+                tx,
+                Op::Assert,
+            ));
+            extra.push(Datom::new(
+                entity,
+                Attribute::from_keyword(":spec/element-type"),
+                Value::Keyword(":spec.type/invariant".into()),
+                tx,
+                Op::Assert,
+            ));
+            extra.push(Datom::new(
+                entity,
+                Attribute::from_keyword(":element/statement"),
+                Value::String(format!("Legacy invariant {i}")),
+                tx,
+                Op::Assert,
+            ));
+
+            // Mark first 2 as witnessed (legacy binary flag)
+            if i < 2 {
+                extra.push(Datom::new(
+                    entity,
+                    Attribute::from_keyword(":spec/witnessed"),
+                    Value::Boolean(true),
+                    tx,
+                    Op::Assert,
+                ));
+            }
+        }
+
+        // No FBW datoms — this is a legacy store
+        let store = store_with(extra);
+
+        // witness_validation_score should return valid_count=0 (no FBWs)
+        let (_, valid, _, _) = witness_validation_score(&store);
+        assert_eq!(valid, 0, "legacy store should have 0 valid FBW witnesses");
+
+        // compute_validation falls back to binary: 2 witnessed / 4 total = 0.5
+        let v = compute_validation(&store);
+        assert!(
+            (v - 0.5).abs() < 1e-10,
+            "legacy fallback: expected V=0.5 (2/4 witnessed), got {v}"
+        );
+
+        // Full F(S) should still work
+        let f = compute_fitness(&store);
+        assert!(
+            f.total >= 0.0 && f.total <= 1.0,
+            "F(S)={} not in [0,1]",
+            f.total
+        );
+        assert!(
+            (f.components.validation - 0.5).abs() < 1e-10,
+            "F(S).V should use legacy path: expected 0.5, got {}",
+            f.components.validation
+        );
+    }
 }

@@ -1195,11 +1195,40 @@ pub fn update(
     Ok(CommandOutput { json, agent, human })
 }
 
+/// Map a friendly attribute name to its store keyword for current value lookup.
+fn attribute_to_keyword(attribute: &str) -> Option<&'static str> {
+    match attribute {
+        "priority" => Some(":task/priority"),
+        "status" => Some(":task/status"),
+        "type" => Some(":task/type"),
+        "title" => Some(":task/title"),
+        _ => None,
+    }
+}
+
+/// Format a store Value as a human-friendly display string for diff output.
+fn format_value_for_display(val: &Value) -> String {
+    match val {
+        Value::Long(n) => n.to_string(),
+        Value::String(s) => s.clone(),
+        Value::Keyword(k) => {
+            // Strip namespace prefix for readability: ":task.status/open" → "open"
+            k.rsplit('/').next().unwrap_or(k).to_string()
+        }
+        Value::Double(f) => f.to_string(),
+        Value::Boolean(b) => b.to_string(),
+        _ => format!("{val:?}"),
+    }
+}
+
 /// Set an arbitrary task attribute by friendly name.
 ///
 /// Supported attributes: priority (0-4), status (open/in-progress/closed),
 /// type (task/bug/feature/epic/question/docs), title (non-empty string).
 /// LWW resolution handles the "update" semantics.
+///
+/// Shows old→new transition diff in output. If the value is unchanged,
+/// reports "(unchanged)" and still writes the datom (append-only, C1).
 pub fn set(
     path: &Path,
     task_id: &str,
@@ -1213,6 +1242,12 @@ pub fn set(
 
     let entity = find_task_by_id(&store, task_id)
         .ok_or_else(|| BraidError::Validation(format!("task not found: {task_id}")))?;
+
+    // Query current value before writing (for old→new diff)
+    let old_display = attribute_to_keyword(attribute).and_then(|kw| {
+        let attr = Attribute::from_keyword(kw);
+        store.live_value(entity, &attr).map(format_value_for_display)
+    });
 
     let agent_id = AgentId::from_name(agent);
     let tx_id = super::write::next_tx_id(&store, agent_id);
@@ -1230,16 +1265,29 @@ pub fn set(
     };
     layout.write_tx(&tx)?;
 
-    let human = format!("set: {task_id} {attribute}={value}\n");
+    // Build transition display: "old→new" or "new (unchanged)"
+    let unchanged = old_display.as_deref() == Some(value);
+    let transition = if unchanged {
+        format!("{value} (unchanged)")
+    } else if let Some(old) = &old_display {
+        format!("{old}\u{2192}{value}")
+    } else {
+        // No previous value (first time setting this attribute)
+        value.to_string()
+    };
+
+    let human = format!("set: {task_id} {attribute} {transition}\n");
 
     let json = serde_json::json!({
         "id": task_id,
         "attribute": attribute,
         "value": value,
+        "old_value": old_display,
+        "unchanged": unchanged,
     });
 
     let agent_out = AgentOutput {
-        context: format!("set: {task_id} {attribute}={value}"),
+        context: format!("set: {task_id} {attribute} {transition}"),
         content: String::new(),
         footer: format!("show: braid task show {task_id}"),
     };
@@ -1507,6 +1555,82 @@ fn extract_json_number(json: &str, key: &str) -> Option<i64> {
 }
 
 // Witnesses: INV-STORE-001, INV-STORE-003, INV-SCHEMA-001,
+// ===========================================================================
+// Task Audit — detect likely-implemented open tasks (T5-1)
+// ===========================================================================
+
+/// Run `braid task audit` — detect open tasks with store-based completion evidence.
+///
+/// Uses the kernel's `audit_tasks_from_store` (pure, no IO) to find open tasks
+/// where spec refs have :impl/implements links at L2+.
+pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    let results = braid_kernel::task::audit_tasks_from_store(&store);
+
+    if results.is_empty() {
+        return Ok(CommandOutput::from_human(
+            "No tasks with store-based completion evidence found.\n".to_string(),
+        ));
+    }
+
+    let mut human = format!("audit: {} tasks may be implemented but not closed\n\n", results.len());
+    let mut close_ids = Vec::new();
+
+    for (task, evidence) in &results {
+        human.push_str(&format!(
+            "[{:.0}%] {} \"{}\"\n",
+            evidence.confidence * 100.0,
+            task.id,
+            if task.title.len() > 80 {
+                let end = task.title.floor_char_boundary(77);
+                format!("{}...", &task.title[..end])
+            } else {
+                task.title.clone()
+            }
+        ));
+        if evidence.spec_total > 0 {
+            human.push_str(&format!(
+                "  spec: {}/{} refs have impl links\n",
+                evidence.spec_coverage, evidence.spec_total
+            ));
+        }
+        if !evidence.file_paths.is_empty() {
+            human.push_str(&format!(
+                "  files: {}\n",
+                evidence.file_paths.join(", ")
+            ));
+        }
+        close_ids.push(task.id.clone());
+    }
+
+    human.push_str(&format!(
+        "\nclose: braid task close {}\n",
+        close_ids.join(" ")
+    ));
+
+    let json = serde_json::json!({
+        "audit_results": results.iter().map(|(t, e)| serde_json::json!({
+            "id": t.id,
+            "title": t.title,
+            "confidence": e.confidence,
+            "spec_coverage": e.spec_coverage,
+            "spec_total": e.spec_total,
+            "file_paths": e.file_paths,
+        })).collect::<Vec<_>>(),
+        "close_command": format!("braid task close {}", close_ids.join(" ")),
+    });
+
+    let agent = AgentOutput {
+        context: format!("audit: {} tasks likely implemented", results.len()),
+        content: format!("close: braid task close {}", close_ids.join(" ")),
+        footer: String::new(),
+    };
+
+    Ok(CommandOutput { json, agent, human })
+}
+
 //   INV-INTERFACE-001, INV-INTERFACE-011,
 //   INV-RESOLUTION-001, ADR-STORE-003, ADR-INTERFACE-001
 // (CLI task commands exercise append-only store, content-addressable identity,
@@ -1732,6 +1856,72 @@ mod tests {
                 .any(|v| v.as_str() == Some("INV-FAKE-999")),
             "JSON unresolved_refs should include INV-FAKE-999: {:?}",
             unresolved
+        );
+    }
+
+    // Verifies: T-UX-2 (task set shows old→new value diff)
+    #[test]
+    fn set_shows_old_to_new_diff() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".braid");
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+
+        // Create task with priority 2
+        create_test_task(&path, "Priority diff test", 2);
+        let task_id = generate_task_id("Priority diff test");
+
+        // Set priority from 2 to 0 — should show "2→0"
+        let result = set(&path, &task_id, "priority", "0", "test").unwrap();
+        assert!(
+            result.human.contains("2\u{2192}0"),
+            "should show old→new transition: {}",
+            result.human
+        );
+        assert!(
+            result.json["old_value"].as_str() == Some("2"),
+            "JSON old_value should be '2': {:?}",
+            result.json
+        );
+        assert!(!result.json["unchanged"].as_bool().unwrap_or(true));
+    }
+
+    // Verifies: T-UX-2 (task set shows "(unchanged)" when value is same)
+    #[test]
+    fn set_shows_unchanged_when_same() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".braid");
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+
+        // Create task with priority 2
+        create_test_task(&path, "Unchanged diff test", 2);
+        let task_id = generate_task_id("Unchanged diff test");
+
+        // Set priority to same value (2) — should show "(unchanged)"
+        let result = set(&path, &task_id, "priority", "2", "test").unwrap();
+        assert!(
+            result.human.contains("(unchanged)"),
+            "should show (unchanged) for same value: {}",
+            result.human
+        );
+        assert!(result.json["unchanged"].as_bool().unwrap_or(false));
+    }
+
+    // Verifies: T-UX-2 (task set shows status transition)
+    #[test]
+    fn set_shows_status_transition() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".braid");
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+
+        create_test_task(&path, "Status diff test", 2);
+        let task_id = generate_task_id("Status diff test");
+
+        // Set status from open to in-progress
+        let result = set(&path, &task_id, "status", "in-progress", "test").unwrap();
+        assert!(
+            result.human.contains("open\u{2192}in-progress"),
+            "should show status transition: {}",
+            result.human
         );
     }
 }

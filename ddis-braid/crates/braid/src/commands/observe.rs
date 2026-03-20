@@ -88,22 +88,69 @@ fn slug_from_text(text: &str) -> String {
     result.trim_end_matches('-').to_string()
 }
 
+/// Auto-detect a category from observation body text.
+///
+/// Heuristic keyword matching against the body to infer the most likely category
+/// when the user doesn't provide an explicit `--category` flag.
+///
+/// Priority order (first match wins):
+/// 1. Spec IDs (INV-*, ADR-*, NEG-*) → "spec-insight"
+/// 2. Decision language → "design-decision"
+/// 3. Bug/fix language → "issue"
+/// 4. Default → "observation"
+fn auto_detect_category(text: &str) -> &'static str {
+    let lower = text.to_ascii_lowercase();
+
+    // 1. Spec element references
+    if text.contains("INV-") || text.contains("ADR-") || text.contains("NEG-") {
+        return "spec-insight";
+    }
+
+    // 2. Decision language
+    if lower.contains("decision")
+        || lower.contains("decided")
+        || lower.contains("chose")
+        || lower.contains("choosing")
+    {
+        return "design-decision";
+    }
+
+    // 3. Bug/fix language
+    if lower.contains("bug")
+        || lower.contains("fix")
+        || lower.contains("error")
+        || lower.contains("broken")
+    {
+        return "issue";
+    }
+
+    // 4. Default
+    "observation"
+}
+
 /// Resolve a category string to a valid `:exploration.cat/*` keyword.
 ///
+/// When `cat` is `None`, auto-detects from `body` text using keyword heuristics.
+/// When `cat` is `Some`, the user's explicit choice always wins.
+///
 /// Supported categories: observation (default), conjecture, definition,
-/// algorithm, design-decision, open-question, theorem.
-fn resolve_category(cat: Option<&str>) -> String {
-    match cat {
-        Some("theorem") => ":exploration.cat/theorem".to_string(),
-        Some("conjecture") => ":exploration.cat/conjecture".to_string(),
-        Some("definition") => ":exploration.cat/definition".to_string(),
-        Some("algorithm") => ":exploration.cat/algorithm".to_string(),
-        Some("design-decision") | Some("decision") => {
-            ":exploration.cat/design-decision".to_string()
-        }
-        Some("open-question") | Some("question") => ":exploration.cat/open-question".to_string(),
-        Some("observation") | None => ":exploration.cat/observation".to_string(),
-        Some(other) => format!(":exploration.cat/{other}"),
+/// algorithm, design-decision, open-question, theorem, spec-insight, issue.
+fn resolve_category(cat: Option<&str>, body: &str) -> String {
+    let effective = match cat {
+        Some(c) => c,
+        None => auto_detect_category(body),
+    };
+    match effective {
+        "theorem" => ":exploration.cat/theorem".to_string(),
+        "conjecture" => ":exploration.cat/conjecture".to_string(),
+        "definition" => ":exploration.cat/definition".to_string(),
+        "algorithm" => ":exploration.cat/algorithm".to_string(),
+        "design-decision" | "decision" => ":exploration.cat/design-decision".to_string(),
+        "open-question" | "question" => ":exploration.cat/open-question".to_string(),
+        "spec-insight" => ":exploration.cat/spec-insight".to_string(),
+        "issue" => ":exploration.cat/issue".to_string(),
+        "observation" => ":exploration.cat/observation".to_string(),
+        other => format!(":exploration.cat/{other}"),
     }
 }
 
@@ -128,7 +175,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let slug = slug_from_text(args.text);
     let ident = format!(":observation/{slug}");
     let entity = EntityId::from_ident(&ident);
-    let category = resolve_category(args.category);
+    let category = resolve_category(args.category, args.text);
 
     // Generate TxId: advance past the store's current frontier (Unix epoch seconds)
     let tx_id = super::write::next_tx_id(&store, agent);
@@ -271,7 +318,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
 
     // Count new store size (current + new datoms)
     let new_total = store.datoms().count() + datom_count;
-    let cat_short = resolve_category(args.category)
+    let cat_short = resolve_category(args.category, args.text)
         .strip_prefix(":exploration.cat/")
         .unwrap_or("observation")
         .to_string();
@@ -393,20 +440,71 @@ mod tests {
 
     #[test]
     fn category_resolution() {
-        assert_eq!(resolve_category(None), ":exploration.cat/observation");
+        // Explicit category always wins, regardless of body text
         assert_eq!(
-            resolve_category(Some("conjecture")),
+            resolve_category(None, "just a plain observation"),
+            ":exploration.cat/observation"
+        );
+        assert_eq!(
+            resolve_category(Some("conjecture"), ""),
             ":exploration.cat/conjecture"
         );
         assert_eq!(
-            resolve_category(Some("decision")),
+            resolve_category(Some("decision"), ""),
             ":exploration.cat/design-decision"
         );
         assert_eq!(
-            resolve_category(Some("question")),
+            resolve_category(Some("question"), ""),
             ":exploration.cat/open-question"
         );
-        assert_eq!(resolve_category(Some("custom")), ":exploration.cat/custom");
+        assert_eq!(
+            resolve_category(Some("custom"), ""),
+            ":exploration.cat/custom"
+        );
+    }
+
+    #[test]
+    fn auto_detect_category_from_body() {
+        // Spec references → spec-insight
+        assert_eq!(auto_detect_category("INV-STORE-001 is violated"), "spec-insight");
+        assert_eq!(auto_detect_category("See ADR-MERGE-003 for rationale"), "spec-insight");
+        assert_eq!(auto_detect_category("NEG-001 triggered in test"), "spec-insight");
+
+        // Decision language → design-decision
+        assert_eq!(auto_detect_category("We decided to use EAV"), "design-decision");
+        assert_eq!(auto_detect_category("Choosing Datalog over SQL"), "design-decision");
+        assert_eq!(auto_detect_category("The decision was to use CRDT"), "design-decision");
+        assert_eq!(auto_detect_category("I chose append-only"), "design-decision");
+
+        // Bug/fix language → issue
+        assert_eq!(auto_detect_category("Found a bug in merge"), "issue");
+        assert_eq!(auto_detect_category("Need to fix the query engine"), "issue");
+        assert_eq!(auto_detect_category("Index error on large stores"), "issue");
+        assert_eq!(auto_detect_category("Schema validation is broken"), "issue");
+
+        // Default → observation
+        assert_eq!(auto_detect_category("merge is a bottleneck"), "observation");
+        assert_eq!(auto_detect_category("the store is append-only"), "observation");
+
+        // Spec refs take priority over decision language
+        assert_eq!(
+            auto_detect_category("We decided INV-STORE-001 should be enforced"),
+            "spec-insight"
+        );
+    }
+
+    #[test]
+    fn explicit_category_overrides_auto_detect() {
+        // Even though body contains spec refs, explicit category wins
+        assert_eq!(
+            resolve_category(Some("conjecture"), "INV-STORE-001 might be wrong"),
+            ":exploration.cat/conjecture"
+        );
+        // Even though body contains decision language, explicit category wins
+        assert_eq!(
+            resolve_category(Some("observation"), "We decided to use CRDT"),
+            ":exploration.cat/observation"
+        );
     }
 
     #[test]

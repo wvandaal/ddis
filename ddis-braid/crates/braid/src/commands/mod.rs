@@ -1316,6 +1316,16 @@ pub enum TaskAction {
         #[arg(long, short = 'a', default_value = "braid:user")]
         agent: String,
     },
+
+    /// Audit open tasks for evidence of completion (T5-1).
+    ///
+    /// Checks store evidence: spec refs with :impl/implements links, FILE: markers.
+    /// Reports tasks that appear implemented but not closed.
+    Audit {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+    },
 }
 
 /// Dependency subcommands for `braid task dep`.
@@ -1587,7 +1597,8 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
             | TaskAction::Update { path, .. }
             | TaskAction::Set { path, .. }
             | TaskAction::Search { path, .. }
-            | TaskAction::Import { path, .. } => Some(path),
+            | TaskAction::Import { path, .. }
+            | TaskAction::Audit { path, .. } => Some(path),
             TaskAction::Dep { action } => match action {
                 DepAction::Add { path, .. } => Some(path),
             },
@@ -1952,7 +1963,8 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
             | TaskAction::Update { path, .. }
             | TaskAction::Set { path, .. }
             | TaskAction::Search { path, .. }
-            | TaskAction::Import { path, .. } => {
+            | TaskAction::Import { path, .. }
+            | TaskAction::Audit { path, .. } => {
                 *path = resolve_store_path(path.clone());
             }
             TaskAction::Dep { action } => match action {
@@ -2492,6 +2504,9 @@ pub fn run(
                 },
                 TaskAction::Import { path, beads, agent } => {
                     task::import_beads(&path, &beads, &agent)?
+                }
+                TaskAction::Audit { path } => {
+                    task::audit(&path)?
                 }
             };
             return Ok(maybe_inject_footer(

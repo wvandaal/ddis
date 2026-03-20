@@ -2155,9 +2155,23 @@ pub fn build_command_footer_with_hint(
 ///
 /// - `total_turns`: distinct wall_times since last harvest (session-local)
 /// - `transact_turns`: transactions since last harvest
-/// - `spec_language_turns`: spec entities created/modified since last harvest
+/// - `spec_language_turns`: spec engagement since last harvest (see T1-2 below)
 /// - `query_type_count`: 1 if any session transactions, 0 otherwise
 /// - `harvest_quality`: 0.7 if recent harvest exists, 0.0 otherwise
+///
+/// ## T1-2: Broadened `spec_language_turns`
+///
+/// `spec_language_turns` counts four categories of spec engagement since the
+/// last harvest (each contributing at most one turn per entity/datom):
+///
+/// 1. **Spec entities created** — `:db/ident` assertions with `:spec/` prefix.
+/// 2. **Tasks with spec refs** — `:task/title` values containing INV-*, ADR-*, or
+///    NEG-* patterns (via `parse_spec_refs`).
+/// 3. **Observations with spec refs** — `:exploration/body` values containing
+///    spec ref patterns.
+/// 4. **Impl links** — `:impl/implements` assertions (trace evidence of spec engagement).
+///
+/// The total is capped at `total_turns` (cannot exceed session turns).
 pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
     let boundary = last_harvest_wall_time(store);
     let has_recent_harvest = boundary > 0;
@@ -2174,7 +2188,7 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
     let txns_since = count_txns_since_last_harvest(store) as u32;
 
     // T1-1: Count spec entities created/modified since last harvest, not total.
-    let spec_count = store
+    let spec_entity_count = store
         .datoms()
         .filter(|d| {
             d.tx.wall_time() > boundary
@@ -2183,6 +2197,56 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
                 && matches!(&d.value, Value::Keyword(k) if k.starts_with(":spec/"))
         })
         .count() as u32;
+
+    // T1-2(a): Tasks created since harvest whose titles contain spec ref patterns.
+    let tasks_with_spec_refs = store
+        .datoms()
+        .filter(|d| {
+            d.tx.wall_time() > boundary
+                && d.attribute.as_str() == ":task/title"
+                && d.op == Op::Assert
+        })
+        .filter(|d| {
+            if let Value::String(title) = &d.value {
+                !crate::task::parse_spec_refs(title).is_empty()
+            } else {
+                false
+            }
+        })
+        .count() as u32;
+
+    // T1-2(b): Observations created since harvest whose body contains spec refs.
+    let observations_with_spec_refs = store
+        .datoms()
+        .filter(|d| {
+            d.tx.wall_time() > boundary
+                && d.attribute.as_str() == ":exploration/body"
+                && d.op == Op::Assert
+        })
+        .filter(|d| {
+            if let Value::String(body) = &d.value {
+                !crate::task::parse_spec_refs(body).is_empty()
+            } else {
+                false
+            }
+        })
+        .count() as u32;
+
+    // T1-2(c): :impl/implements datoms created since harvest (trace evidence).
+    let impl_links = store
+        .datoms()
+        .filter(|d| {
+            d.tx.wall_time() > boundary
+                && d.attribute.as_str() == ":impl/implements"
+                && d.op == Op::Assert
+        })
+        .count() as u32;
+
+    // T1-2: Total spec engagement = all four categories, capped at total_turns.
+    let total_spec = spec_entity_count
+        .saturating_add(tasks_with_spec_refs)
+        .saturating_add(observations_with_spec_refs)
+        .saturating_add(impl_links);
 
     // A3: M(t) floor clamp — when a harvest exists and fewer than 10 txns
     // have occurred since, the store is in a healthy inter-session state.
@@ -2195,7 +2259,7 @@ pub fn telemetry_from_store(store: &Store) -> SessionTelemetry {
         // max(1) prevents division by zero when 0 transactions since harvest
         total_turns: session_turn_count.max(1),
         transact_turns: txns_since,
-        spec_language_turns: spec_count.min(session_turn_count.max(1)),
+        spec_language_turns: total_spec.min(session_turn_count.max(1)),
         query_type_count: if session_turn_count > 0 { 1 } else { 0 },
         harvest_quality: if has_recent_harvest { 0.7 } else { 0.0 },
         history: vec![],
@@ -8830,6 +8894,116 @@ mod tests {
             score.score >= 0.4,
             "M(t) with 10000 old datoms and 5 new txns should be >= 0.4, got {}",
             score.score,
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // T1-2: Broadened spec_language_turns
+    // -----------------------------------------------------------------------
+
+    // Verifies: T1-2(a) — Task with INV- in title counts as a spec language turn.
+    #[test]
+    fn spec_language_turns_counts_task_with_inv_ref() {
+        use crate::datom::*;
+        use std::collections::BTreeSet;
+
+        let agent = AgentId::from_name("test:t1-2");
+        let mut datoms = BTreeSet::new();
+
+        // Place a harvest at wall_time = 1000.
+        let harvest_wall: u64 = 1000;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-t12a"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // Add a task with a spec ref in the title (after harvest).
+        let tx1 = TxId::new(harvest_wall + 1, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":task/fix-merge"),
+            Attribute::from_keyword(":task/title"),
+            Value::String("Fix merge handling (INV-MERGE-001)".to_string()),
+            tx1,
+            Op::Assert,
+        ));
+
+        // Add a plain work datom at a different wall_time (no spec engagement).
+        let tx2 = TxId::new(harvest_wall + 2, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":work/plain"),
+            Attribute::from_keyword(":db/doc"),
+            Value::String("plain work".to_string()),
+            tx2,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let telemetry = telemetry_from_store(&store);
+
+        // total_turns = 2 (two distinct wall_times after harvest)
+        assert_eq!(telemetry.total_turns, 2);
+        // spec_language_turns should be 1: the task with INV- in its title.
+        // (No :spec/ entities, no observations, no :impl/implements.)
+        assert_eq!(
+            telemetry.spec_language_turns, 1,
+            "task with INV-MERGE-001 in title should count as a spec language turn"
+        );
+    }
+
+    // Verifies: T1-2(b) — Observation with ADR- in body counts as a spec language turn.
+    #[test]
+    fn spec_language_turns_counts_observation_with_adr_ref() {
+        use crate::datom::*;
+        use std::collections::BTreeSet;
+
+        let agent = AgentId::from_name("test:t1-2");
+        let mut datoms = BTreeSet::new();
+
+        // Place a harvest at wall_time = 2000.
+        let harvest_wall: u64 = 2000;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-t12b"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // Add an observation whose body references ADR-GUIDANCE-003 (after harvest).
+        let tx1 = TxId::new(harvest_wall + 1, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":obs/design-note"),
+            Attribute::from_keyword(":exploration/body"),
+            Value::String(
+                "Revisited ADR-GUIDANCE-003: six mechanisms approach confirmed".to_string(),
+            ),
+            tx1,
+            Op::Assert,
+        ));
+
+        // Add a plain work datom at a different wall_time (no spec engagement).
+        let tx2 = TxId::new(harvest_wall + 2, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":work/plain2"),
+            Attribute::from_keyword(":db/doc"),
+            Value::String("unrelated work".to_string()),
+            tx2,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let telemetry = telemetry_from_store(&store);
+
+        assert_eq!(telemetry.total_turns, 2);
+        // spec_language_turns should be 1: the observation with ADR- in its body.
+        assert_eq!(
+            telemetry.spec_language_turns, 1,
+            "observation with ADR-GUIDANCE-003 in body should count as a spec language turn"
         );
     }
 
