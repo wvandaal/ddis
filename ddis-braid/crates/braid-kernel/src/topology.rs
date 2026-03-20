@@ -1007,11 +1007,8 @@ pub fn coupling_density_matrix(
     }
 
     // Build entity index map
-    let idx: BTreeMap<EntityId, usize> = entities
-        .iter()
-        .enumerate()
-        .map(|(i, e)| (*e, i))
-        .collect();
+    let idx: BTreeMap<EntityId, usize> =
+        entities.iter().enumerate().map(|(i, e)| (*e, i)).collect();
 
     // Build coupling matrix C (symmetric, diagonal = 1.0)
     let mut c = vec![vec![0.0f64; n]; n];
@@ -1123,12 +1120,10 @@ fn symmetric_eigenvalues(matrix: &[Vec<f64>], n: usize) -> Vec<f64> {
                 new_a[q][i] = new_a[i][q];
             }
         }
-        new_a[p][p] = cos_t * cos_t * a[p][p]
-            + 2.0 * sin_t * cos_t * a[p][q]
-            + sin_t * sin_t * a[q][q];
-        new_a[q][q] = sin_t * sin_t * a[p][p]
-            - 2.0 * sin_t * cos_t * a[p][q]
-            + cos_t * cos_t * a[q][q];
+        new_a[p][p] =
+            cos_t * cos_t * a[p][p] + 2.0 * sin_t * cos_t * a[p][q] + sin_t * sin_t * a[q][q];
+        new_a[q][q] =
+            sin_t * sin_t * a[p][p] - 2.0 * sin_t * cos_t * a[p][q] + cos_t * cos_t * a[q][q];
         new_a[p][q] = 0.0;
         new_a[q][p] = 0.0;
 
@@ -2225,18 +2220,12 @@ mod tests {
         let coupling = compute_invariant_coupling(&store, &task_specs);
 
         // Both tasks transitively reach :spec/inv-c, so coupling > 0
-        let score = coupling
-            .get(&(task1, task2))
-            .copied()
-            .unwrap_or(0.0);
+        let score = coupling.get(&(task1, task2)).copied().unwrap_or(0.0);
         assert!(
             score > 0.0,
             "tasks with shared transitive spec deps should have coupling > 0, got {score}"
         );
-        assert!(
-            score <= 1.0,
-            "coupling must be <= 1.0, got {score}"
-        );
+        assert!(score <= 1.0, "coupling must be <= 1.0, got {score}");
     }
 
     #[test]
@@ -2429,15 +2418,23 @@ mod tests {
             assert!((analysis.rho[i][i] - 1.0 / 3.0).abs() < 1e-10);
         }
         // Entropy should be ln(3) ≈ 1.099 (von Neumann entropy uses natural log)
-        assert!((analysis.entropy - 3.0f64.ln()).abs() < 0.1,
-            "identity matrix entropy should be ln(n): got {}", analysis.entropy);
+        assert!(
+            (analysis.entropy - 3.0f64.ln()).abs() < 0.1,
+            "identity matrix entropy should be ln(n): got {}",
+            analysis.entropy
+        );
         // r_eff = e^S ≈ 3 (since S = ln(3))
-        assert!((analysis.effective_rank - 3.0).abs() < 0.5,
-            "effective rank should be ~3: got {}", analysis.effective_rank);
+        assert!(
+            (analysis.effective_rank - 3.0).abs() < 0.5,
+            "effective rank should be ~3: got {}",
+            analysis.effective_rank
+        );
         // Parallelizability should be ≈ 1.0
-        assert!(analysis.parallelizability > 0.8,
+        assert!(
+            analysis.parallelizability > 0.8,
             "fully independent tasks should have high parallelizability: {}",
-            analysis.parallelizability);
+            analysis.parallelizability
+        );
     }
 
     #[test]
@@ -2453,13 +2450,21 @@ mod tests {
         // Fully coupled: rho = [[0.5, 0.5], [0.5, 0.5]]
         assert!((analysis.rho[0][1] - 0.5).abs() < 1e-10);
         // One eigenvalue = 1, other = 0 → entropy = 0
-        assert!(analysis.entropy < 0.1,
-            "fully coupled should have near-zero entropy: {}", analysis.entropy);
-        assert!(analysis.effective_rank < 1.5,
-            "effective rank should be ~1: {}", analysis.effective_rank);
-        assert!(analysis.parallelizability < 0.8,
+        assert!(
+            analysis.entropy < 0.1,
+            "fully coupled should have near-zero entropy: {}",
+            analysis.entropy
+        );
+        assert!(
+            analysis.effective_rank < 1.5,
+            "effective rank should be ~1: {}",
+            analysis.effective_rank
+        );
+        assert!(
+            analysis.parallelizability < 0.8,
             "fully coupled tasks should have low parallelizability: {}",
-            analysis.parallelizability);
+            analysis.parallelizability
+        );
     }
 
     #[test]
@@ -2498,7 +2503,8 @@ mod tests {
                 assert!(
                     (analysis.rho[i][j] - analysis.rho[j][i]).abs() < 1e-10,
                     "rho must be symmetric: rho[{i}][{j}]={} vs rho[{j}][{i}]={}",
-                    analysis.rho[i][j], analysis.rho[j][i]
+                    analysis.rho[i][j],
+                    analysis.rho[j][i]
                 );
             }
         }
@@ -2532,7 +2538,10 @@ mod tests {
         let combined = composite_coupling(&file_c, &inv_c);
         let score = combined.get(&(a, b)).unwrap();
         // 0.65 * 0.8 + 0.35 * 0.4 = 0.52 + 0.14 = 0.66
-        assert!((*score - 0.66).abs() < 0.01, "composite should be 0.66: got {score}");
+        assert!(
+            (*score - 0.66).abs() < 0.01,
+            "composite should be 0.66: got {score}"
+        );
     }
 
     // ===================================================================
@@ -2625,10 +2634,10 @@ mod tests {
         let e3 = entity(":task/t-3");
         let e4 = entity(":task/t-4");
         let tasks = vec![
-            (e1, CalmTier::MonotonicParallel),    // Phase 1: M
-            (e2, CalmTier::NonMonotonicBarrier),   // Phase 2: NM (barrier)
-            (e3, CalmTier::MonotonicParallel),     // Phase 3: M
-            (e4, CalmTier::MonotonicParallel),     // Phase 3: M (same tier, grouped)
+            (e1, CalmTier::MonotonicParallel),   // Phase 1: M
+            (e2, CalmTier::NonMonotonicBarrier), // Phase 2: NM (barrier)
+            (e3, CalmTier::MonotonicParallel),   // Phase 3: M
+            (e4, CalmTier::MonotonicParallel),   // Phase 3: M (same tier, grouped)
         ];
         let phases = phase_plan(&tasks);
         assert_eq!(phases.len(), 3, "M,NM,M,M → 3 phases");

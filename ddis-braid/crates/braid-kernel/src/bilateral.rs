@@ -2174,7 +2174,10 @@ impl BoundaryCheck for SpecImplBoundary {
         for gap in &fwd.gaps {
             divergences.push(BoundaryDivergence {
                 entity: gap.entity,
-                ident: gap.ident.clone().unwrap_or_else(|| format!("{:?}", gap.entity)),
+                ident: gap
+                    .ident
+                    .clone()
+                    .unwrap_or_else(|| format!("{:?}", gap.entity)),
                 direction: DivergenceDirection::Forward,
                 severity: gap.severity.clone(),
                 fix_suggestion: format!(
@@ -2191,7 +2194,10 @@ impl BoundaryCheck for SpecImplBoundary {
         for gap in &bwd.gaps {
             divergences.push(BoundaryDivergence {
                 entity: gap.entity,
-                ident: gap.ident.clone().unwrap_or_else(|| format!("{:?}", gap.entity)),
+                ident: gap
+                    .ident
+                    .clone()
+                    .unwrap_or_else(|| format!("{:?}", gap.entity)),
                 direction: DivergenceDirection::Backward,
                 severity: gap.severity.clone(),
                 fix_suggestion: "braid trace".to_string(),
@@ -2958,11 +2964,7 @@ mod tests {
 
         let store = test_store();
         let total = registry.total_coverage(&store);
-        assert!(
-            (total - 0.7).abs() < 1e-10,
-            "expected 0.7, got {}",
-            total
-        );
+        assert!((total - 0.7).abs() < 1e-10, "expected 0.7, got {}", total);
     }
 
     /// BoundaryRegistry with no boundaries returns 1.0 (vacuous).
@@ -3090,7 +3092,10 @@ mod tests {
     #[test]
     fn default_boundaries_non_empty() {
         let registry = default_boundaries();
-        assert!(!registry.is_empty(), "default_boundaries must have at least 1 boundary");
+        assert!(
+            !registry.is_empty(),
+            "default_boundaries must have at least 1 boundary"
+        );
         let info = registry.boundary_info();
         assert!(info.iter().any(|(name, _)| *name == "spec\u{2194}impl"));
     }
@@ -3149,7 +3154,8 @@ mod tests {
             ":spec/inv-witness-t7-002",
             ":spec/inv-witness-t7-003",
         ];
-        let inv_entities: Vec<EntityId> = inv_idents.iter().map(|i| EntityId::from_ident(i)).collect();
+        let inv_entities: Vec<EntityId> =
+            inv_idents.iter().map(|i| EntityId::from_ident(i)).collect();
 
         let mut extra = Vec::new();
         for (idx, ident) in inv_idents.iter().enumerate() {
@@ -3235,7 +3241,9 @@ mod tests {
             stale_tx = stale_tx.assert(d.entity, d.attribute.clone(), d.value.clone());
         }
         let committed = stale_tx.commit(&store).expect("stale tx should commit");
-        store.transact(committed).expect("stale transact should succeed");
+        store
+            .transact(committed)
+            .expect("stale transact should succeed");
 
         let f2 = compute_fitness(&store);
         assert!(
@@ -3249,7 +3257,10 @@ mod tests {
         let (_, valid2, stale2, untested2) = witness_validation_score(&store);
         assert_eq!(valid2, 1, "expected 1 valid after stale, got {valid2}");
         assert_eq!(stale2, 1, "expected 1 stale after marking, got {stale2}");
-        assert_eq!(untested2, 2, "expected 2 untested (inv[0] + inv[2]), got {untested2}");
+        assert_eq!(
+            untested2, 2,
+            "expected 2 untested (inv[0] + inv[2]), got {untested2}"
+        );
 
         // --- (c) The unwitnessed invariant contributes 0 ---
         // With 3 invariants and only 1 valid witness at depth 2:

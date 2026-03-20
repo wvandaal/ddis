@@ -177,10 +177,10 @@ pub struct ChallengeResult {
 /// L2 = 0.3, L3 = 0.5, L4 = 0.7 (spec §21.2).
 pub fn alignment_threshold(depth: i64) -> f64 {
     match depth {
-        1 => 0.0,  // L1 (syntactic) has no alignment requirement
-        2 => 0.3,  // L2 (structural)
-        3 => 0.5,  // L3 (property)
-        _ => 0.7,  // L4+ (formal)
+        1 => 0.0, // L1 (syntactic) has no alignment requirement
+        2 => 0.3, // L2 (structural)
+        3 => 0.5, // L3 (property)
+        _ => 0.7, // L4+ (formal)
     }
 }
 
@@ -377,10 +377,9 @@ pub fn keyword_alignment_score(test_body: &str, falsification: &str) -> f64 {
 /// Filters common stop words that add noise to the Jaccard computation.
 fn extract_keywords(text: &str) -> BTreeSet<&str> {
     static STOP_WORDS: &[&str] = &[
-        "the", "and", "for", "that", "this", "with", "not", "are", "was",
-        "has", "have", "from", "will", "can", "any", "all", "its", "but",
-        "let", "mut", "pub", "use", "mod", "ref", "self", "impl", "true",
-        "false", "none", "some", "return", "else",
+        "the", "and", "for", "that", "this", "with", "not", "are", "was", "has", "have", "from",
+        "will", "can", "any", "all", "its", "but", "let", "mut", "pub", "use", "mod", "ref",
+        "self", "impl", "true", "false", "none", "some", "return", "else",
     ];
 
     text.split(|c: char| !c.is_alphanumeric() && c != '_')
@@ -413,13 +412,15 @@ pub fn challenge_witness(
     // Level 0: Falsification alignment (keyword Jaccard)
     let alignment = keyword_alignment_score(test_body, falsification);
     let threshold = alignment_threshold(depth);
-    let l0_score = if alignment >= threshold { alignment } else { alignment * 0.5 };
+    let l0_score = if alignment >= threshold {
+        alignment
+    } else {
+        alignment * 0.5
+    };
     results.push(ChallengeResult {
         level: 0,
         score: l0_score,
-        rationale: format!(
-            "Keyword alignment: {alignment:.3} (threshold: {threshold:.2})"
-        ),
+        rationale: format!("Keyword alignment: {alignment:.3} (threshold: {threshold:.2})"),
     });
 
     // Level 2: Evidence type match — verify depth claim matches actual test structure
@@ -427,9 +428,7 @@ pub fn challenge_witness(
     results.push(ChallengeResult {
         level: 2,
         score: l2_score,
-        rationale: format!(
-            "Evidence type match for claimed depth L{depth}: {l2_score:.2}"
-        ),
+        rationale: format!("Evidence type match for claimed depth L{depth}: {l2_score:.2}"),
     });
 
     // Level 5: Semantic keyword overlap — checks for domain-specific terms
@@ -437,9 +436,7 @@ pub fn challenge_witness(
     results.push(ChallengeResult {
         level: 5,
         score: l5_score,
-        rationale: format!(
-            "Semantic keyword overlap: {l5_score:.3}"
-        ),
+        rationale: format!("Semantic keyword overlap: {l5_score:.3}"),
     });
 
     // Composite verdict: weighted average of available levels
@@ -467,7 +464,11 @@ fn evidence_type_score(test_body: &str, claimed_depth: i64) -> f64 {
         2 => {
             // L2: must have assertions
             let has_assert = lower.contains("assert");
-            if has_assert { 1.0 } else { 0.2 }
+            if has_assert {
+                1.0
+            } else {
+                0.2
+            }
         }
         3 => {
             // L3: must have property-based markers
@@ -475,7 +476,13 @@ fn evidence_type_score(test_body: &str, claimed_depth: i64) -> f64 {
                 || lower.contains("kani::")
                 || lower.contains("proptest");
             let has_assert = lower.contains("assert");
-            if has_prop { 1.0 } else if has_assert { 0.5 } else { 0.1 }
+            if has_prop {
+                1.0
+            } else if has_assert {
+                0.5
+            } else {
+                0.1
+            }
         }
         4 => {
             // L4: must have model checking markers
@@ -483,7 +490,11 @@ fn evidence_type_score(test_body: &str, claimed_depth: i64) -> f64 {
                 || lower.contains("spawn_bfs")
                 || lower.contains("stateright")
                 || lower.contains("model");
-            if has_model { 1.0 } else { 0.2 }
+            if has_model {
+                1.0
+            } else {
+                0.2
+            }
         }
         _ => 0.5, // L1 has minimal requirements
     }
@@ -590,9 +601,7 @@ pub fn auto_task_on_refutation(
     inv_title: &str,
     tx: TxId,
 ) -> Vec<Datom> {
-    let task_title = format!(
-        "BUG: Witness refuted for {inv_id}. {inv_title}"
-    );
+    let task_title = format!("BUG: Witness refuted for {inv_id}. {inv_title}");
 
     let params = crate::task::CreateTaskParams {
         title: &task_title,
@@ -865,9 +874,7 @@ pub fn witness_and_challenge(
 /// valid (non-stale) witnesses only.
 ///
 /// Returns `(score, valid_count, stale_count, untested_count)`.
-pub fn witness_validation_score(
-    store: &Store,
-) -> (f64, usize, usize, usize) {
+pub fn witness_validation_score(store: &Store) -> (f64, usize, usize, usize) {
     let witnesses = all_witnesses(store);
     if witnesses.is_empty() {
         // Fall back to existing compute_validation logic (no WITNESS data yet)
@@ -1116,7 +1123,10 @@ mod tests {
         // Spec changed!
         current.spec_hashes.insert(
             test_inv_entity(),
-            (content_hash("MODIFIED spec statement"), content_hash("if X then violated")),
+            (
+                content_hash("MODIFIED spec statement"),
+                content_hash("if X then violated"),
+            ),
         );
 
         let stale = detect_stale_witnesses(&witnesses, &current);
@@ -1151,10 +1161,9 @@ mod tests {
             (content_hash("spec"), content_hash("fals")),
         );
         // Test body changed!
-        current.test_hashes.insert(
-            test_inv_entity(),
-            content_hash("MODIFIED test body"),
-        );
+        current
+            .test_hashes
+            .insert(test_inv_entity(), content_hash("MODIFIED test body"));
 
         let stale = detect_stale_witnesses(&witnesses, &current);
         assert_eq!(stale.len(), 1);
@@ -1187,7 +1196,9 @@ mod tests {
             spec_hashes: BTreeMap::new(),
             test_hashes: BTreeMap::new(),
         };
-        current.spec_hashes.insert(test_inv_entity(), (hash_s, hash_f));
+        current
+            .spec_hashes
+            .insert(test_inv_entity(), (hash_s, hash_f));
         current.test_hashes.insert(test_inv_entity(), hash_t);
 
         let stale = detect_stale_witnesses(&witnesses, &current);
@@ -1202,7 +1213,10 @@ mod tests {
             "assert store append only immutable",
             "store append only immutable violated",
         );
-        assert!(score > 0.5, "shared keywords should produce high alignment: {score}");
+        assert!(
+            score > 0.5,
+            "shared keywords should produce high alignment: {score}"
+        );
     }
 
     #[test]
@@ -1211,7 +1225,10 @@ mod tests {
             "database connection timeout retry",
             "graph traversal bidirectional search",
         );
-        assert!(score < 0.2, "disjoint text should produce low alignment: {score}");
+        assert!(
+            score < 0.2,
+            "disjoint text should produce low alignment: {score}"
+        );
     }
 
     #[test]
@@ -1331,7 +1348,9 @@ mod tests {
         // Should create task datoms
         assert!(!datoms.is_empty());
         // Title should contain the inv ID
-        let title_datom = datoms.iter().find(|d| d.attribute.as_str() == ":task/title");
+        let title_datom = datoms
+            .iter()
+            .find(|d| d.attribute.as_str() == ":task/title");
         assert!(title_datom.is_some());
         if let Some(d) = title_datom {
             if let Value::String(t) = &d.value {
@@ -1443,14 +1462,21 @@ mod tests {
             "store append datom assert monotonic",
             "store datom monotonic violated decreasing",
         );
-        assert!(score > 0.3, "shared domain terms should score well: {score}");
+        assert!(
+            score > 0.3,
+            "shared domain terms should score well: {score}"
+        );
     }
 
     // --- WitnessStatus/WitnessVerdict roundtrip ---
 
     #[test]
     fn status_keyword_roundtrip() {
-        for status in [WitnessStatus::Valid, WitnessStatus::Stale, WitnessStatus::Pending] {
+        for status in [
+            WitnessStatus::Valid,
+            WitnessStatus::Stale,
+            WitnessStatus::Pending,
+        ] {
             let kw = status.as_keyword();
             assert_eq!(WitnessStatus::from_keyword(kw), status);
         }

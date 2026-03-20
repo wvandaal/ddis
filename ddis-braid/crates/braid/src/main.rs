@@ -120,8 +120,7 @@ fn main() {
             let needs_exit_warning =
                 !skip_exit_warning && !cli.quiet && mode != output::OutputMode::Json;
 
-            let post_cmd_store = if (needs_rfl2 || needs_exit_warning) && exit_warn_path.is_some()
-            {
+            let post_cmd_store = if (needs_rfl2 || needs_exit_warning) && exit_warn_path.is_some() {
                 exit_warn_path
                     .as_ref()
                     .and_then(|path| layout::DiskLayout::open(path).ok())
@@ -138,14 +137,8 @@ fn main() {
                 (cmd_output.json.get("_acp"), &post_cmd_store)
             {
                 if let Some(action) = acp.get("action") {
-                    let cmd_str = action
-                        .get("command")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("");
-                    let impact = action
-                        .get("impact")
-                        .and_then(|v| v.as_f64())
-                        .unwrap_or(0.0);
+                    let cmd_str = action.get("command").and_then(|v| v.as_str()).unwrap_or("");
+                    let impact = action.get("impact").and_then(|v| v.as_f64()).unwrap_or(0.0);
                     let wall_ms = std::time::SystemTime::now()
                         .duration_since(std::time::UNIX_EPOCH)
                         .unwrap_or_default()
@@ -156,8 +149,7 @@ fn main() {
                     let tx = commands::write::next_tx_id(store, agent);
                     let ident = format!(
                         ":action/{}",
-                        &blake3::hash(format!("{}-{}", cmd_str, wall_ms).as_bytes()).to_hex()
-                            [..16]
+                        &blake3::hash(format!("{}-{}", cmd_str, wall_ms).as_bytes()).to_hex()[..16]
                     );
                     let entity = EntityId::from_ident(&ident);
                     let datoms = vec![
@@ -207,8 +199,7 @@ fn main() {
             // (structured output should not have side-channel stderr noise).
             if needs_exit_warning {
                 if let Some((_, ref store)) = post_cmd_store {
-                    if let Some(warning) =
-                        braid_kernel::guidance::should_warn_on_exit(store, None)
+                    if let Some(warning) = braid_kernel::guidance::should_warn_on_exit(store, None)
                     {
                         eprintln!("{warning}");
                     }

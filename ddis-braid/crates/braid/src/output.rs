@@ -200,8 +200,7 @@ impl CommandOutput {
                             }
                         }
                     }
-                    serde_json::to_string_pretty(&json)
-                        .unwrap_or_else(|_| "{}".to_string())
+                    serde_json::to_string_pretty(&json).unwrap_or_else(|_| "{}".to_string())
                 }
                 OutputMode::Agent => proj.project_at_strategy(strategy),
                 OutputMode::Human => proj.project(usize::MAX),

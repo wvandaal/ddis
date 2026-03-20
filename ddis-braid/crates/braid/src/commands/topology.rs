@@ -158,7 +158,11 @@ pub fn run_deps(path: &Path) -> Result<CommandOutput, BraidError> {
         content: format!("{datom_count} edges transacted"),
         footer: "coupling: braid topology plan".to_string(),
     };
-    Ok(CommandOutput { json, agent: agent_out, human })
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
+        human,
+    })
 }
 
 /// Run `braid topology status` — show current topology state.

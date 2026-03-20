@@ -425,12 +425,13 @@ pub fn cascade_full(
     let conflicts_detected = conflicts.len();
 
     // Step 2: Schema rebuild detection — scan merged datoms for schema-affecting attributes
-    let schema_affected = merged_datoms.iter().any(|d| is_schema_affecting(&d.attribute));
+    let schema_affected = merged_datoms
+        .iter()
+        .any(|d| is_schema_affecting(&d.attribute));
 
     // Step 3: Resolution recompute — collect entities that have conflicts.
     // Deduplicate via BTreeSet for deterministic ordering (INV-MERGE-010).
-    let conflicted_entity_set: BTreeSet<EntityId> =
-        conflicts.iter().map(|c| c.entity).collect();
+    let conflicted_entity_set: BTreeSet<EntityId> = conflicts.iter().map(|c| c.entity).collect();
     let conflicted_entities: Vec<EntityId> = conflicted_entity_set.into_iter().collect();
 
     // Step 4: LIVE invalidation — find merged datoms whose entities belong to
@@ -1128,8 +1129,14 @@ mod tests {
         let merged_datoms: Vec<Datom> = Vec::new();
         let cascade = cascade_full(&s1, &receipt, &merged_datoms, cascade_tx);
 
-        assert_eq!(cascade.conflicts_detected, 0, "identical stores → no conflicts");
-        assert!(!cascade.schema_affected, "no schema datoms → schema_affected = false");
+        assert_eq!(
+            cascade.conflicts_detected, 0,
+            "identical stores → no conflicts"
+        );
+        assert!(
+            !cascade.schema_affected,
+            "no schema datoms → schema_affected = false"
+        );
         assert!(
             cascade.conflicted_entities.is_empty(),
             "no conflicts → no conflicted entities"
@@ -1139,7 +1146,11 @@ mod tests {
             "no LIVE-layer datoms → no stale views"
         );
         assert_eq!(cascade.steps_completed, 4, "Stage 1: all 4 steps ran");
-        assert_eq!(cascade.stub_datoms.len(), 7, "audit trail stubs still produced");
+        assert_eq!(
+            cascade.stub_datoms.len(),
+            7,
+            "audit trail stubs still produced"
+        );
     }
 
     // Verifies: INV-MERGE-009 — cascade_full detects schema-affecting datoms
@@ -1383,7 +1394,10 @@ mod tests {
         let cascade = cascade_full(&s1, &receipt, &merged_datoms, cascade_tx);
 
         // All three effects present
-        assert!(cascade.schema_affected, "schema datom merged → schema_affected");
+        assert!(
+            cascade.schema_affected,
+            "schema datom merged → schema_affected"
+        );
         assert!(
             cascade.conflicted_entities.contains(&conflict_entity),
             "conflicting entity must be listed"

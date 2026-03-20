@@ -30,6 +30,8 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::marker::PhantomData;
 
+use serde::{Deserialize, Serialize};
+
 use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
 use crate::error::StoreError;
 use crate::merge::{run_cascade, CascadeReceipt};
@@ -238,7 +240,7 @@ pub struct TxReceipt {
 /// **Black box**: Vector clock with contains/max_tx_for queries.
 /// **State box**: `HashMap<AgentId, TxId>` inner map.
 /// **Clear box**: See methods below.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Frontier {
     /// Inner map from agent to that agent's latest known transaction.
     inner: HashMap<AgentId, TxId>,
@@ -473,6 +475,7 @@ pub struct MergeCascadeReceipt {
 /// ADR-STORE-001: G-Set CvRDT as store algebra.
 /// ADR-STORE-005: Four core indexes (EAVT via BTreeSet, entity_index, attribute_index) plus LIVE.
 /// ADR-STORE-006: Embedded deployment — no external database.
+#[derive(Serialize, Deserialize)]
 pub struct Store {
     /// The canonical datom set. BTreeSet ordering = EAVT index.
     datoms: BTreeSet<Datom>,

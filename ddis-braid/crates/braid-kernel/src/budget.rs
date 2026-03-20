@@ -1920,17 +1920,38 @@ mod tests {
 
         // Budget=5: includes BLOCK-A (5 tokens)
         assert!(at_5.contains("BLOCK-A"), "budget=5 should include BLOCK-A");
-        assert!(!at_5.contains("BLOCK-B"), "budget=5 should not include BLOCK-B");
+        assert!(
+            !at_5.contains("BLOCK-B"),
+            "budget=5 should not include BLOCK-B"
+        );
 
         // Budget=15: includes BLOCK-A + BLOCK-B
-        assert!(at_15.contains("BLOCK-A"), "budget=15 should include BLOCK-A");
-        assert!(at_15.contains("BLOCK-B"), "budget=15 should include BLOCK-B");
-        assert!(!at_15.contains("BLOCK-C"), "budget=15 should not include BLOCK-C");
+        assert!(
+            at_15.contains("BLOCK-A"),
+            "budget=15 should include BLOCK-A"
+        );
+        assert!(
+            at_15.contains("BLOCK-B"),
+            "budget=15 should include BLOCK-B"
+        );
+        assert!(
+            !at_15.contains("BLOCK-C"),
+            "budget=15 should not include BLOCK-C"
+        );
 
         // Budget=50: includes all blocks
-        assert!(at_50.contains("BLOCK-A"), "budget=50 should include BLOCK-A");
-        assert!(at_50.contains("BLOCK-B"), "budget=50 should include BLOCK-B");
-        assert!(at_50.contains("BLOCK-C"), "budget=50 should include BLOCK-C");
+        assert!(
+            at_50.contains("BLOCK-A"),
+            "budget=50 should include BLOCK-A"
+        );
+        assert!(
+            at_50.contains("BLOCK-B"),
+            "budget=50 should include BLOCK-B"
+        );
+        assert!(
+            at_50.contains("BLOCK-C"),
+            "budget=50 should include BLOCK-C"
+        );
     }
 
     /// ACP project() never produces truncation markers.
@@ -1962,15 +1983,42 @@ mod tests {
     /// ActivationStrategy thresholds match INV-BUDGET-004 bands.
     #[test]
     fn activation_strategy_thresholds() {
-        assert_eq!(ActivationStrategy::for_k_eff(1.0), ActivationStrategy::Demonstrate);
-        assert_eq!(ActivationStrategy::for_k_eff(0.7), ActivationStrategy::Demonstrate);
-        assert_eq!(ActivationStrategy::for_k_eff(0.69), ActivationStrategy::Navigate);
-        assert_eq!(ActivationStrategy::for_k_eff(0.5), ActivationStrategy::Navigate);
-        assert_eq!(ActivationStrategy::for_k_eff(0.4), ActivationStrategy::Navigate);
-        assert_eq!(ActivationStrategy::for_k_eff(0.39), ActivationStrategy::Imperative);
-        assert_eq!(ActivationStrategy::for_k_eff(0.2), ActivationStrategy::Imperative);
-        assert_eq!(ActivationStrategy::for_k_eff(0.19), ActivationStrategy::Signal);
-        assert_eq!(ActivationStrategy::for_k_eff(0.0), ActivationStrategy::Signal);
+        assert_eq!(
+            ActivationStrategy::for_k_eff(1.0),
+            ActivationStrategy::Demonstrate
+        );
+        assert_eq!(
+            ActivationStrategy::for_k_eff(0.7),
+            ActivationStrategy::Demonstrate
+        );
+        assert_eq!(
+            ActivationStrategy::for_k_eff(0.69),
+            ActivationStrategy::Navigate
+        );
+        assert_eq!(
+            ActivationStrategy::for_k_eff(0.5),
+            ActivationStrategy::Navigate
+        );
+        assert_eq!(
+            ActivationStrategy::for_k_eff(0.4),
+            ActivationStrategy::Navigate
+        );
+        assert_eq!(
+            ActivationStrategy::for_k_eff(0.39),
+            ActivationStrategy::Imperative
+        );
+        assert_eq!(
+            ActivationStrategy::for_k_eff(0.2),
+            ActivationStrategy::Imperative
+        );
+        assert_eq!(
+            ActivationStrategy::for_k_eff(0.19),
+            ActivationStrategy::Signal
+        );
+        assert_eq!(
+            ActivationStrategy::for_k_eff(0.0),
+            ActivationStrategy::Signal
+        );
     }
 
     /// ActivationStrategy max_context_tokens is monotonically non-decreasing.

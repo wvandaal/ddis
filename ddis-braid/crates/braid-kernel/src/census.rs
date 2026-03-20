@@ -80,11 +80,7 @@ pub fn run_census(store: &crate::store::Store) -> Vec<CensusResult> {
     // Data presence (has_attr_prefix) is shown as Partial("dormant") when no
     // datoms have been produced yet, distinguishing "available" from "active."
     vec![
-        CensusResult::new(
-            "live-index",
-            "LIVE index",
-            CensusStatus::Implemented,
-        ),
+        CensusResult::new("live-index", "LIVE index", CensusStatus::Implemented),
         CensusResult::new(
             "cache-persistence",
             ".cache/ persistence",

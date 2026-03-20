@@ -250,10 +250,7 @@ pub fn generate_title_levels(title: &str) -> (String, String) {
     };
 
     // L1: prefix + first sentence of body, capped at 80 chars
-    let first_sentence = body
-        .split_once(". ")
-        .map(|(s, _)| s)
-        .unwrap_or(body);
+    let first_sentence = body.split_once(". ").map(|(s, _)| s).unwrap_or(body);
 
     let l1 = if !prefix.is_empty() {
         let candidate = format!("{}: {}", prefix, first_sentence);
@@ -485,11 +482,17 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
     // TAP-1: Extract APPROACH section
     if let Some(ap_pos) = title_lower.find("approach:") {
         let ap_start = ap_pos + "approach:".len();
-        let ap_end = ["traces to:", "file:", "files:", "background:", "acceptance:"]
-            .iter()
-            .filter_map(|m| title_lower[ap_start..].find(m).map(|p| ap_start + p))
-            .min()
-            .unwrap_or(title.len());
+        let ap_end = [
+            "traces to:",
+            "file:",
+            "files:",
+            "background:",
+            "acceptance:",
+        ]
+        .iter()
+        .filter_map(|m| title_lower[ap_start..].find(m).map(|p| ap_start + p))
+        .min()
+        .unwrap_or(title.len());
         let approach = title[ap_start..ap_end].trim();
         if !approach.is_empty() {
             datoms.push(Datom::new(
@@ -1897,9 +1900,8 @@ mod tests {
 
     #[test]
     fn title_pyramid_prefix_dash() {
-        let (l0, l1) = generate_title_levels(
-            "BOUNDARY-1 — BoundaryCheck trait + BoundaryDivergence types"
-        );
+        let (l0, l1) =
+            generate_title_levels("BOUNDARY-1 — BoundaryCheck trait + BoundaryDivergence types");
         assert_eq!(l0, "BOUNDARY-1");
         assert!(l1.contains("BOUNDARY-1"));
         assert!(l1.len() <= 80);
@@ -1907,9 +1909,8 @@ mod tests {
 
     #[test]
     fn title_pyramid_no_prefix() {
-        let (l0, l1) = generate_title_levels(
-            "Implement schema validation for cardinality and retraction"
-        );
+        let (l0, l1) =
+            generate_title_levels("Implement schema validation for cardinality and retraction");
         assert!(l0.len() <= 25, "L0 should be ≤25 chars: {}", l0.len());
         assert!(l1.len() <= 80, "L1 should be ≤80 chars: {}", l1.len());
     }

@@ -466,25 +466,52 @@ mod tests {
     #[test]
     fn auto_detect_category_from_body() {
         // Spec references → spec-insight
-        assert_eq!(auto_detect_category("INV-STORE-001 is violated"), "spec-insight");
-        assert_eq!(auto_detect_category("See ADR-MERGE-003 for rationale"), "spec-insight");
-        assert_eq!(auto_detect_category("NEG-001 triggered in test"), "spec-insight");
+        assert_eq!(
+            auto_detect_category("INV-STORE-001 is violated"),
+            "spec-insight"
+        );
+        assert_eq!(
+            auto_detect_category("See ADR-MERGE-003 for rationale"),
+            "spec-insight"
+        );
+        assert_eq!(
+            auto_detect_category("NEG-001 triggered in test"),
+            "spec-insight"
+        );
 
         // Decision language → design-decision
-        assert_eq!(auto_detect_category("We decided to use EAV"), "design-decision");
-        assert_eq!(auto_detect_category("Choosing Datalog over SQL"), "design-decision");
-        assert_eq!(auto_detect_category("The decision was to use CRDT"), "design-decision");
-        assert_eq!(auto_detect_category("I chose append-only"), "design-decision");
+        assert_eq!(
+            auto_detect_category("We decided to use EAV"),
+            "design-decision"
+        );
+        assert_eq!(
+            auto_detect_category("Choosing Datalog over SQL"),
+            "design-decision"
+        );
+        assert_eq!(
+            auto_detect_category("The decision was to use CRDT"),
+            "design-decision"
+        );
+        assert_eq!(
+            auto_detect_category("I chose append-only"),
+            "design-decision"
+        );
 
         // Bug/fix language → issue
         assert_eq!(auto_detect_category("Found a bug in merge"), "issue");
-        assert_eq!(auto_detect_category("Need to fix the query engine"), "issue");
+        assert_eq!(
+            auto_detect_category("Need to fix the query engine"),
+            "issue"
+        );
         assert_eq!(auto_detect_category("Index error on large stores"), "issue");
         assert_eq!(auto_detect_category("Schema validation is broken"), "issue");
 
         // Default → observation
         assert_eq!(auto_detect_category("merge is a bottleneck"), "observation");
-        assert_eq!(auto_detect_category("the store is append-only"), "observation");
+        assert_eq!(
+            auto_detect_category("the store is append-only"),
+            "observation"
+        );
 
         // Spec refs take priority over decision language
         assert_eq!(

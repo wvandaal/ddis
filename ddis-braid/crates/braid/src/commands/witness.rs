@@ -8,7 +8,7 @@
 
 use std::path::Path;
 
-use braid_kernel::witness::{self, FBW, WitnessVerdict};
+use braid_kernel::witness::{self, WitnessVerdict, FBW};
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
@@ -40,13 +40,22 @@ pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> 
     }
 
     // Verdict distribution
-    let confirmed = witnesses.iter().filter(|w| w.verdict == WitnessVerdict::Confirmed).count();
-    let provisional = witnesses.iter().filter(|w| w.verdict == WitnessVerdict::Provisional).count();
+    let confirmed = witnesses
+        .iter()
+        .filter(|w| w.verdict == WitnessVerdict::Confirmed)
+        .count();
+    let provisional = witnesses
+        .iter()
+        .filter(|w| w.verdict == WitnessVerdict::Provisional)
+        .count();
     let inconclusive = witnesses
         .iter()
         .filter(|w| w.verdict == WitnessVerdict::Inconclusive)
         .count();
-    let refuted = witnesses.iter().filter(|w| w.verdict == WitnessVerdict::Refuted).count();
+    let refuted = witnesses
+        .iter()
+        .filter(|w| w.verdict == WitnessVerdict::Refuted)
+        .count();
 
     if json {
         let json_val = serde_json::json!({
@@ -70,8 +79,7 @@ pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> 
                 "0.8-1.0": align_buckets[4],
             },
         });
-        let json_str =
-            serde_json::to_string_pretty(&json_val).unwrap_or_else(|_| "{}".to_string());
+        let json_str = serde_json::to_string_pretty(&json_val).unwrap_or_else(|_| "{}".to_string());
         return Ok(CommandOutput::from_human(json_str));
     }
 
@@ -127,9 +135,7 @@ pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> 
             "validation_score": score,
         }),
         agent: AgentOutput {
-            context: format!(
-                "witness: {valid_count}/{total_invariants} L2+, score={score:.2}"
-            ),
+            context: format!("witness: {valid_count}/{total_invariants} L2+, score={score:.2}"),
             content: agent_content,
             footer: String::new(),
         },
@@ -173,8 +179,7 @@ pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput,
             "committed": commit,
             "stale": stale_entries,
         });
-        let json_str =
-            serde_json::to_string_pretty(&json_val).unwrap_or_else(|_| "{}".to_string());
+        let json_str = serde_json::to_string_pretty(&json_val).unwrap_or_else(|_| "{}".to_string());
         return Ok(CommandOutput::from_human(json_str));
     }
 
@@ -242,7 +247,11 @@ pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput,
             "committed": commit,
         }),
         agent: AgentOutput {
-            context: format!("witness check: {}/{} stale", stale_list.len(), witnesses.len()),
+            context: format!(
+                "witness check: {}/{} stale",
+                stale_list.len(),
+                witnesses.len()
+            ),
             content: agent_content,
             footer: String::new(),
         },
@@ -267,9 +276,7 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
         let entity_datoms = store.entity_datoms(*entity);
         let ident = entity_datoms
             .iter()
-            .find(|d| {
-                d.attribute == ident_attr && d.op == braid_kernel::datom::Op::Assert
-            })
+            .find(|d| d.attribute == ident_attr && d.op == braid_kernel::datom::Op::Assert)
             .and_then(|d| match &d.value {
                 braid_kernel::datom::Value::Keyword(k) => Some(k.clone()),
                 braid_kernel::datom::Value::String(s) => Some(s.clone()),
@@ -278,9 +285,7 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
             .unwrap_or_else(|| format!("{entity:?}"));
         let title = entity_datoms
             .iter()
-            .find(|d| {
-                d.attribute == title_attr && d.op == braid_kernel::datom::Op::Assert
-            })
+            .find(|d| d.attribute == title_attr && d.op == braid_kernel::datom::Op::Assert)
             .and_then(|d| match &d.value {
                 braid_kernel::datom::Value::String(s) => Some(s.clone()),
                 _ => None,
@@ -303,8 +308,7 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
             "total_unwitnessed": unwitnessed.len(),
             "invariants": inv_list,
         });
-        let json_str =
-            serde_json::to_string_pretty(&json_val).unwrap_or_else(|_| "{}".to_string());
+        let json_str = serde_json::to_string_pretty(&json_val).unwrap_or_else(|_| "{}".to_string());
         return Ok(CommandOutput::from_human(json_str));
     }
 

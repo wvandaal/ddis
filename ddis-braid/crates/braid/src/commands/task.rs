@@ -208,7 +208,11 @@ pub fn list_filtered(
         })
         .filter(|t| {
             prefix
-                .map(|p| t.title.to_ascii_lowercase().starts_with(&p.to_ascii_lowercase()))
+                .map(|p| {
+                    t.title
+                        .to_ascii_lowercase()
+                        .starts_with(&p.to_ascii_lowercase())
+                })
                 .unwrap_or(true)
         })
         .filter(|t| priority.map(|p| t.priority == p).unwrap_or(true))
@@ -306,7 +310,11 @@ pub fn list_filtered(
 /// Returns tasks whose title or description contains the pattern (case-insensitive).
 ///
 /// Traces to: INV-INTERFACE-001 (Three CLI Output Modes)
-pub fn search(path: &Path, pattern: &str, include_closed: bool) -> Result<CommandOutput, BraidError> {
+pub fn search(
+    path: &Path,
+    pattern: &str,
+    include_closed: bool,
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
 
@@ -450,7 +458,11 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
     // Summary context (System — always shown)
     context_blocks.push(braid_kernel::budget::ContextBlock {
         precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!("ready: {} tasks ({} total open)", ready_set.len(), ready_set.len()),
+        content: format!(
+            "ready: {} tasks ({} total open)",
+            ready_set.len(),
+            ready_set.len()
+        ),
         tokens: 8,
     });
 
@@ -465,9 +477,14 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
 
         // Try to get L1 title from store (pyramid), fall back to truncated full title
         let title_display = store
-            .entity_datoms(braid_kernel::EntityId::from_ident(&format!(":task/{}", t.id)))
+            .entity_datoms(braid_kernel::EntityId::from_ident(&format!(
+                ":task/{}",
+                t.id
+            )))
             .iter()
-            .find(|d| d.attribute.as_str() == ":task/title-l1" && d.op == braid_kernel::datom::Op::Assert)
+            .find(|d| {
+                d.attribute.as_str() == ":task/title-l1" && d.op == braid_kernel::datom::Op::Assert
+            })
             .and_then(|d| match &d.value {
                 braid_kernel::datom::Value::String(s) => Some(s.clone()),
                 _ => None,
@@ -478,7 +495,9 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
                 if first.len() > 80 {
                     let mut end = 0;
                     for (j, _) in first.char_indices() {
-                        if j > 77 { break; }
+                        if j > 77 {
+                            break;
+                        }
                         end = j;
                     }
                     format!("{}...", &first[..end])
@@ -498,7 +517,10 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
 
         context_blocks.push(braid_kernel::budget::ContextBlock {
             precedence,
-            content: format!("[P{}] {} {} \"{}\"", t.priority, t.id, type_short, title_display),
+            content: format!(
+                "[P{}] {} {} \"{}\"",
+                t.priority, t.id, type_short, title_display
+            ),
             tokens: 12,
         });
     }
@@ -506,7 +528,10 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
     if ready_set.len() > max_entries {
         context_blocks.push(braid_kernel::budget::ContextBlock {
             precedence: braid_kernel::budget::OutputPrecedence::Ambient,
-            content: format!("... and {} more (braid task ready --all)", ready_set.len() - max_entries),
+            content: format!(
+                "... and {} more (braid task ready --all)",
+                ready_set.len() - max_entries
+            ),
             tokens: 5,
         });
     }
@@ -657,19 +682,27 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
 
     // Add title L1 as context if available (from pyramid)
     let title_l1 = store
-        .entity_datoms(braid_kernel::EntityId::from_ident(&format!(":task/{}", top.id)))
+        .entity_datoms(braid_kernel::EntityId::from_ident(&format!(
+            ":task/{}",
+            top.id
+        )))
         .iter()
-        .find(|d| d.attribute.as_str() == ":task/title-l1" && d.op == braid_kernel::datom::Op::Assert)
+        .find(|d| {
+            d.attribute.as_str() == ":task/title-l1" && d.op == braid_kernel::datom::Op::Assert
+        })
         .and_then(|d| match &d.value {
             braid_kernel::datom::Value::String(s) => Some(s.clone()),
             _ => None,
         });
     if let Some(l1) = title_l1 {
-        context_blocks.insert(0, braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: l1,
-            tokens: 10,
-        });
+        context_blocks.insert(
+            0,
+            braid_kernel::budget::ContextBlock {
+                precedence: braid_kernel::budget::OutputPrecedence::System,
+                content: l1,
+                tokens: 10,
+            },
+        );
     }
 
     let projection = braid_kernel::ActionProjection {
@@ -864,7 +897,11 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: format!(
                 "status: {} | P{} {} | deps: {} | traces: {}",
-                status, t.priority, type_short, t.depends_on.len(), t.traces_to.len(),
+                status,
+                t.priority,
+                type_short,
+                t.depends_on.len(),
+                t.traces_to.len(),
             ),
             tokens: 10,
         },
@@ -1104,13 +1141,15 @@ pub fn close(
 
     // ACP for close: action = next task
     let action = braid_kernel::guidance::compute_action_from_store(&store);
-    let mut context_blocks = vec![
-        braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!("closed: {} task(s) | F(S)={:.2}", closed_ids.len(), fitness.total),
-            tokens: 10,
-        },
-    ];
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: format!(
+            "closed: {} task(s) | F(S)={:.2}",
+            closed_ids.len(),
+            fitness.total
+        ),
+        tokens: 10,
+    }];
     for id in &closed_ids {
         context_blocks.push(braid_kernel::budget::ContextBlock {
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
@@ -1246,7 +1285,9 @@ pub fn set(
     // Query current value before writing (for old→new diff)
     let old_display = attribute_to_keyword(attribute).and_then(|kw| {
         let attr = Attribute::from_keyword(kw);
-        store.live_value(entity, &attr).map(format_value_for_display)
+        store
+            .live_value(entity, &attr)
+            .map(format_value_for_display)
     });
 
     let agent_id = AgentId::from_name(agent);
@@ -1575,7 +1616,10 @@ pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
         ));
     }
 
-    let mut human = format!("audit: {} tasks may be implemented but not closed\n\n", results.len());
+    let mut human = format!(
+        "audit: {} tasks may be implemented but not closed\n\n",
+        results.len()
+    );
     let mut close_ids = Vec::new();
 
     for (task, evidence) in &results {
@@ -1597,10 +1641,7 @@ pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
             ));
         }
         if !evidence.file_paths.is_empty() {
-            human.push_str(&format!(
-                "  files: {}\n",
-                evidence.file_paths.join(", ")
-            ));
+            human.push_str(&format!("  files: {}\n", evidence.file_paths.join(", ")));
         }
         close_ids.push(task.id.clone());
     }

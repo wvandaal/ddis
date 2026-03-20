@@ -23,8 +23,8 @@ pub(crate) mod status;
 mod task;
 mod topology;
 mod trace;
-mod witness;
 mod verify;
+mod witness;
 mod wrap;
 pub(crate) mod write;
 
@@ -1617,7 +1617,9 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
             | SpecAction::History { path, .. } => Some(path),
         },
         Command::Topology { action } => match action {
-            TopologyAction::Plan { path, .. } | TopologyAction::Status { path, .. } | TopologyAction::Deps { path, .. } => Some(path),
+            TopologyAction::Plan { path, .. }
+            | TopologyAction::Status { path, .. }
+            | TopologyAction::Deps { path, .. } => Some(path),
         },
         Command::Witness { action } => match action {
             WitnessAction::Status { path, .. }
@@ -1790,10 +1792,34 @@ fn maybe_inject_footer(
                 );
                 let entity = EntityId::from_ident(&ident);
                 let datoms = vec![
-                    Datom::new(entity, Attribute::from_keyword(":db/ident"), Value::Keyword(ident), tx_id, Op::Assert),
-                    Datom::new(entity, Attribute::from_keyword(":db/doc"), Value::String(h.text.clone()), tx_id, Op::Assert),
-                    Datom::new(entity, Attribute::from_keyword(":exploration/type"), Value::Keyword(":exploration.type/observation".to_string()), tx_id, Op::Assert),
-                    Datom::new(entity, Attribute::from_keyword(":exploration/confidence"), Value::Double(ordered_float::OrderedFloat(h.confidence)), tx_id, Op::Assert),
+                    Datom::new(
+                        entity,
+                        Attribute::from_keyword(":db/ident"),
+                        Value::Keyword(ident),
+                        tx_id,
+                        Op::Assert,
+                    ),
+                    Datom::new(
+                        entity,
+                        Attribute::from_keyword(":db/doc"),
+                        Value::String(h.text.clone()),
+                        tx_id,
+                        Op::Assert,
+                    ),
+                    Datom::new(
+                        entity,
+                        Attribute::from_keyword(":exploration/type"),
+                        Value::Keyword(":exploration.type/observation".to_string()),
+                        tx_id,
+                        Op::Assert,
+                    ),
+                    Datom::new(
+                        entity,
+                        Attribute::from_keyword(":exploration/confidence"),
+                        Value::Double(ordered_float::OrderedFloat(h.confidence)),
+                        tx_id,
+                        Op::Assert,
+                    ),
                 ];
                 let tx = braid_kernel::layout::TxFile {
                     tx_id,
@@ -1991,7 +2017,9 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
             }
         },
         Command::Topology { action } => match action {
-            TopologyAction::Plan { path, .. } | TopologyAction::Status { path, .. } | TopologyAction::Deps { path, .. } => {
+            TopologyAction::Plan { path, .. }
+            | TopologyAction::Status { path, .. }
+            | TopologyAction::Deps { path, .. } => {
                 *path = resolve_store_path(path.clone());
             }
         },
@@ -2449,7 +2477,14 @@ pub fn run(
                     prefix,
                     limit,
                     priority,
-                } => task::list_filtered(&path, all, task_type.as_deref(), prefix.as_deref(), limit, priority)?,
+                } => task::list_filtered(
+                    &path,
+                    all,
+                    task_type.as_deref(),
+                    prefix.as_deref(),
+                    limit,
+                    priority,
+                )?,
                 TaskAction::Search { pattern, path, all } => task::search(&path, &pattern, all)?,
                 TaskAction::Ready { path } => task::ready(&path)?,
                 TaskAction::Show { id, path } => task::show(&path, &id)?,
@@ -2505,9 +2540,7 @@ pub fn run(
                 TaskAction::Import { path, beads, agent } => {
                     task::import_beads(&path, &beads, &agent)?
                 }
-                TaskAction::Audit { path } => {
-                    task::audit(&path)?
-                }
+                TaskAction::Audit { path } => task::audit(&path)?,
             };
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -3462,7 +3495,10 @@ mod tests {
 
         // BasinToken (T4-1: k* >= 0.4 uses lean basin activation token)
         let ctx_basin = BudgetCtx::from_flags(None, Some(0.5)); // k=0.5
-        assert_eq!(ctx_basin.manager.guidance_level(), GuidanceLevel::BasinToken);
+        assert_eq!(
+            ctx_basin.manager.guidance_level(),
+            GuidanceLevel::BasinToken
+        );
 
         // Minimal
         let ctx_min = BudgetCtx::from_flags(None, Some(0.75)); // k=0.25

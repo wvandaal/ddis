@@ -286,13 +286,13 @@ pub fn run(
                 } else {
                     task.title.clone()
                 };
-                out.push_str(&format!(
-                    "  [{pct:>3}%] {} \"{title_display}\"\n",
-                    task.id
-                ));
+                out.push_str(&format!("  [{pct:>3}%] {} \"{title_display}\"\n", task.id));
             }
             let close_ids: Vec<&str> = audit_results.iter().map(|(t, _)| t.id.as_str()).collect();
-            out.push_str(&format!("  close: braid task close {}\n", close_ids.join(" ")));
+            out.push_str(&format!(
+                "  close: braid task close {}\n",
+                close_ids.join(" ")
+            ));
         }
     }
 
@@ -694,7 +694,9 @@ pub fn run(
         // T7-1: Auto-trace scan as harvest step 9.5 (INV-WITNESS-011).
         // Closes the bilateral verification loop: harvest → trace → witness → F(S).
         let source_root = path.to_path_buf();
-        if let Ok(Some(trace_result)) = super::trace::auto_trace_scan(&layout, &store, &source_root, agent_name) {
+        if let Ok(Some(trace_result)) =
+            super::trace::auto_trace_scan(&layout, &store, &source_root, agent_name)
+        {
             if trace_result.new_links > 0 || trace_result.new_witnesses > 0 {
                 out.push_str(&format!(
                     "  trace: {} files, {} refs, +{} impl links, +{} witnesses\n",
@@ -711,9 +713,8 @@ pub fn run(
         // elements that now have L2+ trace links. This binds verification evidence
         // to spec elements via content-addressed triple hashes.
         let reloaded_store = layout.load_store()?;
-        let auto_witness_count = auto_create_witnesses(
-            &layout, &reloaded_store, agent_name, &mut out,
-        );
+        let auto_witness_count =
+            auto_create_witnesses(&layout, &reloaded_store, agent_name, &mut out);
         // Reload again if witnesses were created (so R(t) refit sees them)
         let reloaded_store = if auto_witness_count > 0 {
             layout.load_store()?
@@ -748,7 +749,11 @@ pub fn run(
             if layout.write_tx(&rfl_tx_file).is_ok() {
                 out.push_str(&format!(
                     "  routing: weights updated [{}]\n",
-                    new_weights.iter().map(|w| format!("{:.3}", w)).collect::<Vec<_>>().join(", ")
+                    new_weights
+                        .iter()
+                        .map(|w| format!("{:.3}", w))
+                        .collect::<Vec<_>>()
+                        .join(", ")
                 ));
             }
         }
@@ -954,7 +959,8 @@ fn auto_create_witnesses(
     }
 
     // Deduplicate: keep max depth per spec entity
-    let mut spec_depths: std::collections::BTreeMap<EntityId, i64> = std::collections::BTreeMap::new();
+    let mut spec_depths: std::collections::BTreeMap<EntityId, i64> =
+        std::collections::BTreeMap::new();
     for (spec_entity, depth) in &candidates {
         let entry = spec_depths.entry(*spec_entity).or_insert(0);
         if *depth > *entry {

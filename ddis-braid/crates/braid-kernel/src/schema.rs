@@ -47,6 +47,8 @@
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 
+use serde::{Deserialize, Serialize};
+
 use crate::datom::{Attribute, Datom, EntityId, Op, TxId, Value};
 use crate::error::StoreError;
 
@@ -55,7 +57,7 @@ use crate::error::StoreError;
 // ---------------------------------------------------------------------------
 
 /// Value type constraint for an attribute.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ValueType {
     /// UTF-8 string.
     String,
@@ -127,7 +129,7 @@ impl ValueType {
 }
 
 /// Attribute cardinality.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Cardinality {
     /// Exactly one value per entity per attribute.
     One,
@@ -155,7 +157,7 @@ impl Cardinality {
 }
 
 /// Uniqueness constraint.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Uniqueness {
     /// Unique identity — upsert semantics.
     Identity,
@@ -180,7 +182,7 @@ impl Uniqueness {
 /// the lattice definition entity (`:lattice/ident`, `:lattice/elements`,
 /// `:lattice/comparator`, `:lattice/bottom`). The lattice entity is stored
 /// as datoms via `:db/latticeOrder` on the attribute entity.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ResolutionMode {
     /// Last-writer-wins with HLC + BLAKE3 tiebreaker.
     Lww,
@@ -335,7 +337,7 @@ pub struct AttributeSpec {
 }
 
 /// A fully resolved attribute definition in the schema.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AttributeDef {
     /// Entity ID of this attribute.
     pub entity: EntityId,
@@ -363,7 +365,7 @@ pub struct AttributeDef {
 ///
 /// Reconstructed via `Schema::from_datoms()` on store load and after
 /// schema-modifying transactions.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Schema {
     attrs: HashMap<Attribute, AttributeDef>,
 }

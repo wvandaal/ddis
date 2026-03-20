@@ -65,21 +65,20 @@ pub use agent_store::{AgentStore, CommitError};
 pub use bilateral::{
     analyze_convergence, backward_scan, compute_fitness, compute_fitness_with_registry,
     cycle_to_datoms, default_boundaries, depth_weight, evaluate_conditions, format_terse,
-    format_verbose, forward_scan,
-    load_trajectory, run_cycle, spectral_certificate, BilateralScan, BilateralState, Boundary,
-    BoundaryCheck, BoundaryDivergence, BoundaryEvaluation, BoundaryRegistry, CoherenceConditions,
-    ConditionResult, ConvergenceAnalysis, DivergenceDirection, EntropyDecomposition,
-    FitnessComponents, FitnessScore, Gap, GapSeverity, RenyiSpectrum, ScanResult, SetRelation,
-    SpecImplBoundary, SpectralCertificate,
+    format_verbose, forward_scan, load_trajectory, run_cycle, spectral_certificate, BilateralScan,
+    BilateralState, Boundary, BoundaryCheck, BoundaryDivergence, BoundaryEvaluation,
+    BoundaryRegistry, CoherenceConditions, ConditionResult, ConvergenceAnalysis,
+    DivergenceDirection, EntropyDecomposition, FitnessComponents, FitnessScore, Gap, GapSeverity,
+    RenyiSpectrum, ScanResult, SetRelation, SpecImplBoundary, SpectralCertificate,
 };
 pub use branch::{branch_datoms, compare_branches, create_branch, merge_branch, prune_branch};
 pub use budget::{
     attention_decay, classify_command, enforce_ceiling, quality_adjusted_budget,
-    safe_truncate_bytes, safe_truncate_display, ActionProjection, ActivationStrategy, SessionPhase,
+    safe_truncate_bytes, safe_truncate_display, ActionProjection, ActivationStrategy,
     ApproxTokenCounter, AttentionProfile, BudgetManager, BudgetProjection, ContextBlock,
-    GuidanceLevel, OutputBlock, OutputPrecedence, ProjectedAction, TokenCounter, TokenEfficiency,
-    AGENT_MODE_CEILING, BUDGET_FRACTION, DEFAULT_WINDOW_SIZE, ERROR_MESSAGE_CEILING,
-    GUIDANCE_FOOTER_CEILING, MIN_OUTPUT,
+    GuidanceLevel, OutputBlock, OutputPrecedence, ProjectedAction, SessionPhase, TokenCounter,
+    TokenEfficiency, AGENT_MODE_CEILING, BUDGET_FRACTION, DEFAULT_WINDOW_SIZE,
+    ERROR_MESSAGE_CEILING, GUIDANCE_FOOTER_CEILING, MIN_OUTPUT,
 };
 pub use coherence::{
     coherence_check, tier1_check, tier2_check, transact_with_coherence, CoherenceError,
@@ -100,23 +99,21 @@ pub use deliberation::{
 };
 pub use error::{KernelError, TopologyError};
 pub use guidance::{
-    build_command_footer, build_command_footer_with_hint, build_footer, build_footer_with_budget,
+    adjust_gaps, build_command_footer, build_command_footer_with_hint, build_footer,
+    build_footer_with_budget, classify_action_outcome, compute_action_from_store,
     compute_methodology_score, compute_routing, compute_routing_from_store,
     contextual_observation_hint, crystallization_candidates, default_derivation_rules,
     derive_actions, derive_actions_with_budget, derive_tasks, detect_activity_mode,
     dynamic_threshold, format_actions, format_footer, format_footer_at_level,
-    harvest_urgency_multi,
-    harvest_warning_from_k_eff, harvest_warning_level, is_actionable_decision, adjust_gaps, methodology_gaps,
-    modulate_actions, observation_staleness, orphaned_decisions, should_warn_on_exit,
-    classify_action_outcome, compute_action_from_store, methodology_context_blocks,
-    reconciliation_check, refit_routing_weights, routing_dashboard, routing_weights,
-    spec_anchor_factor, spec_relevance_scan, ROUTING_FEATURE_NAMES,
-    knowledge_relevance_scan,
-    suggest_task_title, telemetry_from_store, tx_velocity, ActionCategory, ActivityMode,
-    ContextualHint, DerivationRule, DerivedTask, GuidanceAction, GuidanceContext, GuidanceFooter,
-    AdjustedGaps, HarvestWarningLevel, MethodologyComponents, MethodologyGaps, MethodologyScore,
-    ReconciliationResult, RoutingDashboard, RoutingMetrics, SessionTelemetry, TaskNode,
-    TaskRouting, Trend,
+    harvest_urgency_multi, harvest_warning_from_k_eff, harvest_warning_level,
+    is_actionable_decision, knowledge_relevance_scan, methodology_context_blocks, methodology_gaps,
+    modulate_actions, observation_staleness, orphaned_decisions, reconciliation_check,
+    refit_routing_weights, routing_dashboard, routing_weights, should_warn_on_exit,
+    spec_anchor_factor, spec_relevance_scan, suggest_task_title, telemetry_from_store, tx_velocity,
+    ActionCategory, ActivityMode, AdjustedGaps, ContextualHint, DerivationRule, DerivedTask,
+    GuidanceAction, GuidanceContext, GuidanceFooter, HarvestWarningLevel, MethodologyComponents,
+    MethodologyGaps, MethodologyScore, ReconciliationResult, RoutingDashboard, RoutingMetrics,
+    SessionTelemetry, TaskNode, TaskRouting, Trend, ROUTING_FEATURE_NAMES,
 };
 pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, classify_spec_candidate,
@@ -209,9 +206,9 @@ pub use trilateral::{
     LiveView,
 };
 pub use witness::{
-    all_witnesses, alignment_threshold, auto_task_on_refutation, challenge_witness,
+    alignment_threshold, all_witnesses, auto_task_on_refutation, challenge_witness,
     check_depth_monotonic, completeness_guard, content_hash, create_fbw, current_spec_hashes,
     detect_stale_witnesses, fbw_to_datoms, keyword_alignment_score, mark_stale_datoms,
     witness_and_challenge, witness_gaps, witness_validation_score, ChallengeResult,
-    CurrentSpecHashes, FBW, StaleReason, WitnessParams, WitnessStatus, WitnessVerdict,
+    CurrentSpecHashes, StaleReason, WitnessParams, WitnessStatus, WitnessVerdict, FBW,
 };

@@ -615,9 +615,7 @@ pub fn routing_weights(store: &Store) -> [f64; N_FEATURES] {
         .rev() // most recent first
         .find(|d| d.op == crate::datom::Op::Assert)
         .and_then(|d| match &d.value {
-            crate::datom::Value::String(s) => {
-                serde_json::from_str::<Vec<f64>>(s).ok()
-            }
+            crate::datom::Value::String(s) => serde_json::from_str::<Vec<f64>>(s).ok(),
             _ => None,
         })
         .and_then(|v| {
@@ -660,7 +658,8 @@ pub fn refit_routing_weights(store: &Store) -> Option<[f64; N_FEATURES]> {
         let entity_datoms = store.entity_datoms(entity);
 
         // Get outcome
-        let outcome = entity_datoms.iter()
+        let outcome = entity_datoms
+            .iter()
             .find(|d| d.attribute == outcome_attr && d.op == crate::datom::Op::Assert)
             .and_then(|d| match &d.value {
                 crate::datom::Value::Keyword(k) => match k.as_str() {
@@ -673,7 +672,8 @@ pub fn refit_routing_weights(store: &Store) -> Option<[f64; N_FEATURES]> {
             });
 
         // Get features
-        let features = entity_datoms.iter()
+        let features = entity_datoms
+            .iter()
             .find(|d| d.attribute == features_attr && d.op == crate::datom::Op::Assert)
             .and_then(|d| match &d.value {
                 crate::datom::Value::String(s) => serde_json::from_str::<Vec<f64>>(s).ok(),
@@ -843,7 +843,10 @@ pub fn routing_dashboard(store: &Store) -> RoutingDashboard {
 /// Solve a 6x6 linear system Ax = b via Gaussian elimination with partial pivoting.
 ///
 /// Returns None if the system is singular (shouldn't happen with ridge regularization).
-fn solve_linear_system_6x6(a: &[[f64; N_FEATURES]; N_FEATURES], b: &[f64; N_FEATURES]) -> Option<[f64; N_FEATURES]> {
+fn solve_linear_system_6x6(
+    a: &[[f64; N_FEATURES]; N_FEATURES],
+    b: &[f64; N_FEATURES],
+) -> Option<[f64; N_FEATURES]> {
     // Augmented matrix [A|b]
     let mut aug = [[0.0; N_FEATURES + 1]; N_FEATURES];
     for i in 0..N_FEATURES {
@@ -974,12 +977,17 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
             let blocker_ratio = if task.blocks.is_empty() {
                 0.0
             } else {
-                let weighted_blocks: f64 = task.blocks.iter().map(|blocked_entity| {
-                    tasks.iter()
-                        .find(|n| n.entity == *blocked_entity)
-                        .map(|n| n.task_type.type_multiplier())
-                        .unwrap_or(1.0)
-                }).sum();
+                let weighted_blocks: f64 = task
+                    .blocks
+                    .iter()
+                    .map(|blocked_entity| {
+                        tasks
+                            .iter()
+                            .find(|n| n.entity == *blocked_entity)
+                            .map(|n| n.task_type.type_multiplier())
+                            .unwrap_or(1.0)
+                    })
+                    .sum();
                 weighted_blocks / total_tasks
             };
 
@@ -1193,10 +1201,7 @@ pub fn compute_action_from_store(store: &Store) -> crate::budget::ProjectedActio
         let task_id = store
             .entity_datoms(top.entity)
             .iter()
-            .find(|d| {
-                d.attribute.as_str() == ":task/id"
-                    && d.op == crate::datom::Op::Assert
-            })
+            .find(|d| d.attribute.as_str() == ":task/id" && d.op == crate::datom::Op::Assert)
             .and_then(|d| match &d.value {
                 crate::datom::Value::String(s) => Some(s.clone()),
                 _ => None,
@@ -1208,17 +1213,16 @@ pub fn compute_action_from_store(store: &Store) -> crate::budget::ProjectedActio
         let spec_ref = store
             .entity_datoms(top.entity)
             .iter()
-            .find(|d| {
-                d.attribute.as_str() == ":task/traces-to"
-                    && d.op == crate::datom::Op::Assert
-            })
+            .find(|d| d.attribute.as_str() == ":task/traces-to" && d.op == crate::datom::Op::Assert)
             .and_then(|d| match &d.value {
                 crate::datom::Value::Ref(target) => {
                     // Resolve the spec element's human ID
                     store
                         .entity_datoms(*target)
                         .iter()
-                        .find(|dd| dd.attribute.as_str() == ":spec/id" && dd.op == crate::datom::Op::Assert)
+                        .find(|dd| {
+                            dd.attribute.as_str() == ":spec/id" && dd.op == crate::datom::Op::Assert
+                        })
                         .and_then(|dd| match &dd.value {
                             crate::datom::Value::String(s) => Some(s.clone()),
                             _ => None,
@@ -1277,9 +1281,7 @@ pub fn compute_action_from_store(store: &Store) -> crate::budget::ProjectedActio
 ///
 /// The footer's next-action is NOT included here — that's the Action layer,
 /// provided by compute_action_from_store().
-pub fn methodology_context_blocks(
-    store: &Store,
-) -> Vec<crate::budget::ContextBlock> {
+pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBlock> {
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
 
@@ -1295,7 +1297,12 @@ pub fn methodology_context_blocks(
         "M(t): {:.2} ({} | {} | {} | {})",
         score.score,
         check("tx", score.components.transact_frequency, 0.4, "write"),
-        check("spec-lang", score.components.spec_language_ratio, 0.4, "query --entity :spec/..."),
+        check(
+            "spec-lang",
+            score.components.spec_language_ratio,
+            0.4,
+            "query --entity :spec/..."
+        ),
         check("q-div", score.components.query_diversity, 0.4, "query"),
         check("harvest", score.components.harvest_quality, 0.4, "harvest"),
     );
@@ -1309,7 +1316,11 @@ pub fn methodology_context_blocks(
     // Store state context
     blocks.push(crate::budget::ContextBlock {
         precedence: crate::budget::OutputPrecedence::Ambient,
-        content: format!("Store: {} datoms | Turn {}", store.len(), store.frontier().len()),
+        content: format!(
+            "Store: {} datoms | Turn {}",
+            store.len(),
+            store.frontier().len()
+        ),
         tokens: 8,
     });
 
@@ -2425,7 +2436,11 @@ pub fn classify_action_outcome(
         if !has_outcome {
             if let crate::datom::Value::String(ref cmd) = datom.value {
                 let wall = datom.tx.wall_time();
-                if latest_action.as_ref().map(|(_, _, w)| wall > *w).unwrap_or(true) {
+                if latest_action
+                    .as_ref()
+                    .map(|(_, _, w)| wall > *w)
+                    .unwrap_or(true)
+                {
                     latest_action = Some((entity, cmd.clone(), wall));
                 }
             }
@@ -2498,10 +2513,7 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
     let signal_4 = if k_eff < 0.15 { 1.5 } else { 0.0 };
 
     // Urgency = max of all signals
-    signal_1
-        .max(signal_2)
-        .max(signal_3)
-        .max(signal_4)
+    signal_1.max(signal_2).max(signal_3).max(signal_4)
 }
 
 /// Check whether the CLI should warn about an unharvested session on exit.
@@ -5577,8 +5589,7 @@ mod tests {
         );
         // Force M(t) > 0.7 to trigger the empty/silent path
         footer.methodology.score = 0.8;
-        let basin =
-            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        let basin = format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
         assert!(
             basin.is_empty() || basin.len() < 10,
             "BasinToken with M(t)>0.7 should be empty or very short, got ({} chars): {basin}",
@@ -5597,8 +5608,7 @@ mod tests {
             vec![],
         );
         footer.harvest_warning = HarvestWarningLevel::Critical;
-        let basin =
-            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        let basin = format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
         assert!(
             basin.contains("harvest"),
             "BasinToken with harvest warning must contain 'harvest', got: {basin}"
@@ -5618,8 +5628,7 @@ mod tests {
             vec![],
         );
         footer.methodology.score = 0.9;
-        let basin =
-            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        let basin = format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
         assert!(
             basin.len() < 50,
             "BasinToken must be < 50 chars, got {} chars: {basin}",
@@ -5628,8 +5637,7 @@ mod tests {
 
         // Case 2: low M(t) with action
         footer.methodology.score = 0.2;
-        let basin =
-            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        let basin = format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
         assert!(
             basin.len() < 50,
             "BasinToken must be < 50 chars, got {} chars: {basin}",
@@ -5638,8 +5646,7 @@ mod tests {
 
         // Case 3: harvest warning
         footer.harvest_warning = HarvestWarningLevel::Warn;
-        let basin =
-            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        let basin = format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
         assert!(
             basin.len() < 50,
             "BasinToken must be < 50 chars, got {} chars: {basin}",
@@ -5649,8 +5656,7 @@ mod tests {
         // Case 4: mid M(t) store summary
         footer.harvest_warning = HarvestWarningLevel::None;
         footer.methodology.score = 0.5;
-        let basin =
-            format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
+        let basin = format_footer_at_level(&footer, crate::budget::GuidanceLevel::BasinToken);
         assert!(
             basin.len() < 50,
             "BasinToken must be < 50 chars, got {} chars: {basin}",
@@ -8422,7 +8428,10 @@ mod tests {
         );
 
         let weights = refit_routing_weights(&store);
-        assert!(weights.is_some(), "should produce weights with 60 data points");
+        assert!(
+            weights.is_some(),
+            "should produce weights with 60 data points"
+        );
         let w = weights.unwrap();
 
         // With uniform features, all weights should be approximately equal
@@ -8451,12 +8460,12 @@ mod tests {
             |i| {
                 let t = i as f64 / 60.0;
                 [
-                    0.1 + 0.8 * t,          // pagerank: ramp
-                    0.5,                     // betweenness: constant
-                    0.3 * (1.0 - t),         // critical_path: decreasing
+                    0.1 + 0.8 * t,                      // pagerank: ramp
+                    0.5,                                // betweenness: constant
+                    0.3 * (1.0 - t),                    // critical_path: decreasing
                     if i % 3 == 0 { 0.9 } else { 0.1 }, // blocker_ratio: periodic
                     0.2 + 0.1 * (i % 5) as f64,         // staleness: stepped
-                    0.4,                     // priority_boost: constant
+                    0.4,                                // priority_boost: constant
                 ]
             },
             |i| match i % 3 {
@@ -8635,10 +8644,7 @@ mod tests {
         let result = classify_action_outcome(&store, "braid harvest --commit");
         assert!(result.is_some(), "should find unresolved action");
         let (category, eid) = result.unwrap();
-        assert_eq!(
-            category, "ignored",
-            "unrelated command should be 'ignored'"
-        );
+        assert_eq!(category, "ignored", "unrelated command should be 'ignored'");
         assert_eq!(eid, entity);
     }
 
@@ -8944,9 +8950,15 @@ mod tests {
         let telemetry = telemetry_from_store(&store);
 
         // total_turns should be session-scoped (10 distinct wall_times after harvest)
-        assert_eq!(telemetry.total_turns, 10, "total_turns should be session-scoped");
+        assert_eq!(
+            telemetry.total_turns, 10,
+            "total_turns should be session-scoped"
+        );
         // spec_language_turns should be 5 (only spec entities created after harvest)
-        assert_eq!(telemetry.spec_language_turns, 5, "spec_language_turns should count session specs");
+        assert_eq!(
+            telemetry.spec_language_turns, 5,
+            "spec_language_turns should count session specs"
+        );
 
         let score = compute_methodology_score(&telemetry);
         assert!(

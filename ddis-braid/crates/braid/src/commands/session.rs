@@ -296,13 +296,20 @@ pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, Brai
             precedence: braid_kernel::budget::OutputPrecedence::System,
             content: format!(
                 "session: +{} tasks, {} closed, {} observations, {} txns ({}m)",
-                tasks_created, tasks_closed, observations, txn_count, duration_secs / 60,
+                tasks_created,
+                tasks_closed,
+                observations,
+                txn_count,
+                duration_secs / 60,
             ),
             tokens: 15,
         },
         braid_kernel::budget::ContextBlock {
             precedence: braid_kernel::budget::OutputPrecedence::Methodology,
-            content: format!("F(S)={:.2} | harvest: {} tx since last", fitness.total, tx_since_harvest),
+            content: format!(
+                "F(S)={:.2} | harvest: {} tx since last",
+                fitness.total, tx_since_harvest
+            ),
             tokens: 10,
         },
     ];
