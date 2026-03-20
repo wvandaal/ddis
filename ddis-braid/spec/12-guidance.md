@@ -1745,6 +1745,67 @@ provenance gap signal was emitted.
 
 ---
 
+#### INV-GUIDANCE-024: Knowledge Reconciliation Completeness
+
+**Traces to**: SEED.md §6 (Reconciliation Mechanisms), C5 (Traceability), INV-BILATERAL-002
+**Type**: Invariant
+**Stage**: 1
+**Statement**: Every knowledge-producing command (observe, spec create, task create,
+write assert) checks the store for related existing knowledge before creating new
+datoms. For each new assertion A, the system identifies entities E in the store
+where `similarity(A, E) > threshold` across at least two dimensions: lexical
+(bag-of-words) and structural (shared spec-ref graph neighbors via VAET).
+
+```
+∀ knowledge-producing commands cmd(text):
+  let R = parse_spec_refs(text)
+  let lexical_matches = tokenize_and_cosine(text, store)
+  let structural_matches = spec_graph_neighbors(store, R)
+  let combined = merge_by_max(lexical_matches, structural_matches)
+  emit combined as related-knowledge context
+```
+
+The structural dimension ensures that lexically disjoint but semantically related
+concepts (e.g., "TSV output format" and "Action-Centric Projection" both tracing
+to INV-INTERFACE-001) are surfaced. The L∞ norm (max of dimensions) ensures a
+strong signal in any single dimension is sufficient.
+
+**Falsification**: A knowledge-producing command creates a datom without checking
+for related existing entities, OR the check uses only lexical similarity and misses
+entities connected through shared spec references.
+**Verification**: V:PROP, V:E2E
+
+---
+
+#### INV-GUIDANCE-025: Reconciliation Gate Threshold
+
+**Traces to**: INV-GUIDANCE-024, NEG-GUIDANCE-002, ADR-GUIDANCE-002
+**Type**: Invariant
+**Stage**: 1
+**Statement**: When reconciliation (INV-GUIDANCE-024) finds 3 or more related
+entities above the similarity threshold, the command requires explicit
+acknowledgment (via `--reconciled` flag) before proceeding. This prevents
+duplicate or conflicting work from being created without awareness of prior work.
+
+```
+∀ knowledge-producing commands cmd(text):
+  let matches = reconciliation_check(text, store)
+  if |matches| >= 3 ∧ ¬cmd.flags.reconciled:
+    REJECT with matches displayed
+  else:
+    PROCEED
+```
+
+The threshold of 3 balances sensitivity (catching real overlaps) with specificity
+(not blocking every command). The `--reconciled` flag is the agent's attestation
+that it reviewed the related work and is proceeding intentionally.
+
+**Falsification**: A command creates a datom when 3+ related entities exist in the
+store but the `--reconciled` flag was not passed, and no error was raised.
+**Verification**: V:E2E
+
+---
+
 #### ADR-GUIDANCE-016: Methodology-as-Live-Projection Over Static Instructions
 
 **Traces to**: SEED.md §7, C7, prompt-optimization k* theory

@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774033998/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "AR-1: Crystallize INV-GUIDANCE-025"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :db/ident :v :spec/inv-guidance-025 :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :element/id :v "INV-GUIDANCE-025" :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :element/statement :v "When reconciliation finds 3+ related entities above threshold, the command requires --reconciled flag. This prevents duplicate or conflicting work without awareness of prior work." :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :element/title :v "Reconciliation Gate Threshold" :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :spec/falsification :v "A command creates a datom when 3+ related entities exist but --reconciled flag was not passed and no error was raised." :op :assert}
+   {:e #blake3 "8f3957e77091d14dd5454aa2fe0ea9a0e5ea9e74b58afc084be432b2a0f4efaa" :a :spec/namespace :v "GUIDANCE" :op :assert}
+ ]}

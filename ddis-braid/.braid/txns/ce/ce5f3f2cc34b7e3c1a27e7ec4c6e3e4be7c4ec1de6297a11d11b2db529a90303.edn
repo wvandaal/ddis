@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774033988/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "AR-1: Crystallize INV-GUIDANCE-024"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :db/ident :v :spec/inv-guidance-024 :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :element/id :v "INV-GUIDANCE-024" :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :element/statement :v "Every knowledge-producing command checks the store for related existing knowledge across lexical and structural dimensions. Structural dimension uses spec-graph neighbors via VAET reverse-ref BFS." :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :element/title :v "Knowledge Reconciliation Completeness" :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :spec/element-type :v "invariant" :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :spec/falsification :v "A knowledge-producing command creates a datom without checking for related existing entities, or the check uses only lexical similarity missing spec-graph connected entities." :op :assert}
+   {:e #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :a :spec/namespace :v "GUIDANCE" :op :assert}
+ ]}

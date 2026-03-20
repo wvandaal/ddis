@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774034023/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a5be3c81"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1c764c4e628585b5aa165efcc74980fa0417be67c7e95087b225af720c6ff8a9" :a :task/close-reason :v "INV-GUIDANCE-024 + INV-GUIDANCE-025 added to spec/12-guidance.md with full DDIS formatting (statement, falsification, verification). Both transacted into store. braid task search returns 10 results for INV-GUIDANCE-024." :op :assert}
+   {:e #blake3 "1c764c4e628585b5aa165efcc74980fa0417be67c7e95087b225af720c6ff8a9" :a :task/closed-at :v 1774034022 :op :assert}
+   {:e #blake3 "1c764c4e628585b5aa165efcc74980fa0417be67c7e95087b225af720c6ff8a9" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "1c764c4e628585b5aa165efcc74980fa0417be67c7e95087b225af720c6ff8a9" :a :task/status :v :task.status/closed :op :assert}
+ ]}
