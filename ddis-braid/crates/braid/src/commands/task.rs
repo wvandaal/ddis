@@ -258,6 +258,7 @@ pub fn list_filtered(
         tasks_json.push(serde_json::json!({
             "id": t.id,
             "title": t.title,
+            "short_title": braid_kernel::task::short_title(&t.title),
             "priority": t.priority,
             "type": type_short,
             "status": status,

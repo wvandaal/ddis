@@ -2223,6 +2223,36 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Unix epoch seconds of the most recent trace scan. Stored on :system/trace-clock entity. Used by check_staleness to detect files modified since last scan.",
         ),
+        // =================================================================
+        // Reconciliation Trace (4) — ambient reconciliation (INV-GUIDANCE-024)
+        // AR-2: Traces produced by knowledge-producing commands (observe,
+        // transact, write, task, spec). Read commands do NOT produce traces.
+        // The concentration detector (AR-4) loads these at startup.
+        // =================================================================
+        attr(
+            ":recon/trace-refs",
+            ValueType::String,
+            Cardinality::Many,
+            "Spec ref IDs found in command output (e.g., INV-STORE-001, ADR-MERGE-005)",
+        ),
+        attr(
+            ":recon/trace-neighbors",
+            ValueType::String,
+            Cardinality::Many,
+            "Entity idents of related entities from spec-graph traversal",
+        ),
+        attr(
+            ":recon/trace-neighborhood",
+            ValueType::String,
+            Cardinality::One,
+            "Dominant spec namespace of the trace (e.g., STORE, MERGE, GUIDANCE)",
+        ),
+        attr(
+            ":recon/trace-command",
+            ValueType::String,
+            Cardinality::One,
+            "Command name that produced this trace (e.g., observe, task, spec)",
+        ),
     ]
 }
 
@@ -4354,6 +4384,72 @@ mod tests {
             task_status_mode,
             ResolutionMode::Lww,
             ":task/status should default to LWW resolution"
+        );
+    }
+
+    // Verifies: INV-GUIDANCE-024 — Reconciliation trace schema attributes
+    // AR-2: The 4 :recon/* attributes must exist in Layer 4 schema.
+    #[test]
+    fn recon_trace_attributes_in_schema() {
+        let agent = AgentId::from_name("braid:system");
+        let tx = TxId::new(0, 0, agent);
+
+        let mut datoms = BTreeSet::new();
+        for d in genesis_datoms(tx) {
+            datoms.insert(d);
+        }
+        for d in full_schema_datoms(tx) {
+            datoms.insert(d);
+        }
+
+        let schema = Schema::from_datoms(&datoms);
+
+        let required = [
+            ":recon/trace-refs",
+            ":recon/trace-neighbors",
+            ":recon/trace-neighborhood",
+            ":recon/trace-command",
+        ];
+        for attr_name in &required {
+            let attr_def = schema.attribute(&Attribute::from_keyword(attr_name));
+            assert!(
+                attr_def.is_some(),
+                "AR-2: schema must contain {attr_name}"
+            );
+        }
+
+        // Verify cardinalities: refs and neighbors are Many, neighborhood and command are One
+        let refs_def = schema
+            .attribute(&Attribute::from_keyword(":recon/trace-refs"))
+            .unwrap();
+        assert_eq!(
+            refs_def.cardinality,
+            Cardinality::Many,
+            ":recon/trace-refs must be Cardinality::Many"
+        );
+        let neighbors_def = schema
+            .attribute(&Attribute::from_keyword(":recon/trace-neighbors"))
+            .unwrap();
+        assert_eq!(
+            neighbors_def.cardinality,
+            Cardinality::Many,
+            ":recon/trace-neighbors must be Cardinality::Many"
+        );
+        let neighborhood_def = schema
+            .attribute(&Attribute::from_keyword(":recon/trace-neighborhood"))
+            .unwrap();
+        assert_eq!(
+            neighborhood_def.cardinality,
+            Cardinality::One,
+            ":recon/trace-neighborhood must be Cardinality::One"
+        );
+        let command_def = schema
+            .attribute(&Attribute::from_keyword(":recon/trace-command"))
+            .unwrap();
+        assert_eq!(
+            command_def.cardinality,
+            Cardinality::One,
+            ":recon/trace-command must be Cardinality::One"
         );
     }
 }

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774037518/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e8be"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :task/close-reason :v "Fixed in commit fdca11d: INV-MERGE-008 docstring changed from 'Deduplication by content identity' to 'At-least-once idempotent delivery' to match spec." :op :assert}
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :task/closed-at :v 1774037517 :op :assert}
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "2acdf963d11c0bbf15f77d6e87d3c9d427627542ea135a10799e24d24139ff96" :a :task/status :v :task.status/closed :op :assert}
+ ]}

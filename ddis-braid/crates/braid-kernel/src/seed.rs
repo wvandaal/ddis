@@ -594,12 +594,62 @@ fn discover_recent_sessions(store: &Store, max_sessions: usize) -> Vec<SessionEx
 ///
 /// Traces to: prompt-optimization principle "conversations are trajectories —
 /// seed output IS turn 1 and determines the reasoning basin."
-fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
+/// Namespace-to-activation-sentence mapping for formal system priming.
+///
+/// Each entry maps a spec namespace prefix (e.g., "TOPOLOGY") to a dense
+/// activation sentence that primes the agent's reasoning basin for that
+/// domain's formal framework. These sentences are prepended to the orientation
+/// section when the task references spec elements in the corresponding namespace.
+fn namespace_activation_map() -> &'static [(&'static str, &'static str)] {
+    &[
+        ("TOPOLOGY", "This task requires spectral graph theory. The coupling matrix \u{03c1} is PSD with trace 1. Eigenvalues determine topology pattern."),
+        ("WITNESS", "This task requires falsification-bound verification. FBW = (spec_hash, falsification_hash, test_body_hash). Challenge protocol has 6 independent levels."),
+        ("SCHEMA", "This task requires lattice-theoretic validation. Resolution modes form a join-semilattice: \u{22a5}=LWW < Lattice < Multi."),
+        ("STORE", "This task requires append-only CRDT semantics. Store = (P(D), \u{222a}) \u{2014} grow-only set of datoms. Merges are set union."),
+        ("QUERY", "This task requires Datalog evaluation with CALM compliance. Monotonic queries run without coordination."),
+        ("GUIDANCE", "This task requires basin competition analysis. Pretrained patterns (Basin B) compete with methodology (Basin A). Anti-drift mechanisms maintain Basin A dominance."),
+        ("HARVEST", "This task requires epistemic gap detection. Harvest extracts un-transacted knowledge. Drift = store \u{2296} agent_knowledge."),
+        ("BILATERAL", "This task requires coherence verification. F(S) = weighted sum of 7 components. Bilateral loop checks spec\u{2194}impl alignment."),
+        ("SEED", "This task requires context compilation. Seed = projection of store onto task-relevant neighborhood."),
+        ("BUDGET", "This task requires attention budget management. Q(t) = k* \u{00d7} attention_decay(k*). Output pyramid: \u{03c0}\u{2083}/\u{03c0}\u{2082}/\u{03c0}\u{2081}/\u{03c0}\u{2080}."),
+        ("INTERFACE", "This task requires output mode algebra. Four modes: Json, Tsv, Agent, Human. ACP = Action (never truncated) + Context (budget-scaled) + Evidence."),
+        ("RESOLUTION", "This task requires conflict resolution algebra. Three modes: LWW (HLC ordering), Lattice (join operation), Multi (set union)."),
+    ]
+}
+
+/// Generic activation sentence when no namespace match is found.
+const GENERIC_ACTIVATION: &str =
+    "Braid: append-only datom store with CRDT merge. Harvest/seed lifecycle makes conversations disposable, knowledge durable.";
+
+fn build_orientation(store: &Store, _task_keywords: &[String], task: &str) -> String {
     let current_datoms = store.len();
     let current_entities = store.entity_count();
 
     // Get session excerpts (newest first)
     let excerpts = discover_recent_sessions(store, 5);
+
+    // === Namespace-aware formal system activation (CTP-1) ===
+    // Extract spec refs from the task, deduplicate by namespace, and prepend
+    // activation sentences that prime the agent's reasoning for the domain.
+    let activation_block = {
+        let spec_refs = crate::task::parse_spec_refs(task);
+        let mut seen_namespaces = std::collections::BTreeSet::new();
+        let mut activations: Vec<&str> = Vec::new();
+        let map = namespace_activation_map();
+        for spec_ref in &spec_refs {
+            let ns = crate::guidance::extract_spec_namespace(spec_ref);
+            if seen_namespaces.insert(ns.to_uppercase()) {
+                if let Some((_key, sentence)) = map.iter().find(|(k, _)| k.eq_ignore_ascii_case(ns))
+                {
+                    activations.push(sentence);
+                }
+            }
+        }
+        if activations.is_empty() && !task.is_empty() {
+            activations.push(GENERIC_ACTIVATION);
+        }
+        activations.join("\n")
+    };
 
     // === Project identity (1 dense line with spec-language activation) ===
     let (codebase_headline, test_line) = if let Some(latest) = excerpts.first() {
@@ -644,7 +694,12 @@ fn build_orientation(store: &Store, _task_keywords: &[String]) -> String {
     } else {
         format!("{codebase_headline}. {test_line}")
     };
-    let mut parts = vec![codebase_line];
+    // CTP-1: Activation block is prepended before the project identity line.
+    let mut parts = if activation_block.is_empty() {
+        vec![codebase_line]
+    } else {
+        vec![activation_block, codebase_line]
+    };
 
     // Key files (top 5, compressed to one block)
     if let Some(latest) = excerpts.first() {
@@ -2053,7 +2108,7 @@ pub fn assemble(
     let directive = ContextSection::Directive(directive_text);
 
     // Orientation: session history narrative (SB.2.4)
-    let orientation_text = build_orientation(store, &task_kw);
+    let orientation_text = build_orientation(store, &task_kw, task);
     let orientation_tokens = estimate_tokens(&orientation_text);
     let orientation = ContextSection::Orientation(orientation_text);
 
@@ -3673,7 +3728,7 @@ mod tests {
         let overlay = Store::from_datoms(raw_datoms);
         store.merge(&overlay);
 
-        let orientation = build_orientation(&store, &[]);
+        let orientation = build_orientation(&store, &[], "");
         // Should contain the harvest session info
         assert!(
             orientation.contains("implement feature X"),
@@ -3856,7 +3911,7 @@ mod tests {
 
         store.merge(&Store::from_datoms(raw));
 
-        let text = build_orientation(&store, &[]);
+        let text = build_orientation(&store, &[], "");
         assert!(
             text.contains("CRDT"),
             "Orientation should include decisions from harvest session: {text}"
@@ -4065,7 +4120,7 @@ mod tests {
         );
 
         // Verify orientation renders the new fields
-        let text = build_orientation(&store, &[]);
+        let text = build_orientation(&store, &[], "");
         assert!(
             text.contains("implement scoring engine"),
             "Orientation should show task: {text}"
@@ -4670,6 +4725,61 @@ mod tests {
             ctx.text.contains(":spec/inv-seed-006"),
             "Should show spec element ref at pi_0: {}",
             ctx.text
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // CTP-1: Namespace-aware formal system activation tests
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn orientation_includes_topology_activation() {
+        let store = Store::genesis();
+        let text = build_orientation(&store, &[], "Implement INV-TOPOLOGY-001 spectral partition");
+        assert!(
+            text.contains("spectral"),
+            "Orientation should contain topology activation with 'spectral': {text}"
+        );
+        assert!(
+            text.contains("coupling matrix"),
+            "Orientation should contain topology activation with 'coupling matrix': {text}"
+        );
+    }
+
+    #[test]
+    fn orientation_includes_witness_activation() {
+        let store = Store::genesis();
+        let text =
+            build_orientation(&store, &[], "Fix INV-WITNESS-002 challenge protocol regression");
+        assert!(
+            text.contains("falsification"),
+            "Orientation should contain witness activation with 'falsification': {text}"
+        );
+    }
+
+    #[test]
+    fn orientation_generic_for_no_refs() {
+        let store = Store::genesis();
+        let text = build_orientation(&store, &[], "General cleanup task with no spec refs");
+        assert!(
+            text.contains("append-only") || text.contains("datom"),
+            "Orientation should contain generic DDIS activation: {text}"
+        );
+    }
+
+    #[test]
+    fn orientation_deduplicates_same_namespace() {
+        let store = Store::genesis();
+        let text = build_orientation(
+            &store,
+            &[],
+            "Implement INV-TOPOLOGY-001 and INV-TOPOLOGY-005 coupling",
+        );
+        // Count how many times the activation sentence appears
+        let activation_count = text.matches("spectral graph theory").count();
+        assert_eq!(
+            activation_count, 1,
+            "Same-namespace activation should appear exactly once, found {activation_count}: {text}"
         );
     }
 }

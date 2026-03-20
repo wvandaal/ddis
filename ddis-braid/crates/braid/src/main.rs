@@ -141,16 +141,25 @@ fn main() {
             };
             print!("{}", cmd_output.render(mode));
 
-            // T2-1: Single post-command store load for both RFL-2 and exit warning.
-            // Both paths need (DiskLayout, Store) for the same braid root.
-            // Load once, reuse for both purposes.
+            // T2-1: Single post-command store load for RFL-2, AR-2 trace, and exit warning.
+            // All three paths need (DiskLayout, Store) for the same braid root.
+            // Load once, reuse for all purposes.
             let needs_rfl2 = cmd_output.json.get("_acp").is_some();
             let needs_exit_warning = !skip_exit_warning
                 && !cli.quiet
                 && mode != output::OutputMode::Json
                 && mode != output::OutputMode::Tsv;
+            // AR-2: Only knowledge-producing commands produce reconciliation traces.
+            // Read commands (status, query, task list) do NOT write traces.
+            let is_knowledge_producing = matches!(
+                cmd_name,
+                "observe" | "transact" | "write" | "task" | "spec"
+            );
 
-            let post_cmd_store = if (needs_rfl2 || needs_exit_warning) && exit_warn_path.is_some() {
+            let post_cmd_store =
+                if (needs_rfl2 || needs_exit_warning || is_knowledge_producing)
+                    && exit_warn_path.is_some()
+                {
                 exit_warn_path
                     .as_ref()
                     .and_then(|path| layout::DiskLayout::open(path).ok())
@@ -221,6 +230,115 @@ fn main() {
                         datoms,
                     };
                     let _ = lo.write_tx(&tx_file);
+                }
+            }
+
+            // AR-2: Reconciliation trace — write :recon/trace-* datoms for
+            // knowledge-producing commands. These traces feed the concentration
+            // detector (AR-4) which detects sustained work in a spec neighborhood.
+            // Traces are OPTIONAL: if anything fails, silently skip.
+            if is_knowledge_producing {
+                if let Some((ref lo, ref store)) = post_cmd_store {
+                    // Extract spec refs from the full JSON output
+                    let json_str = serde_json::to_string(&cmd_output.json).unwrap_or_default();
+                    let spec_refs = braid_kernel::task::parse_spec_refs(&json_str);
+
+                    if !spec_refs.is_empty() {
+                        use braid_kernel::datom::*;
+
+                        // Graph traversal: find related entities via spec dependency graph
+                        let neighbors =
+                            braid_kernel::guidance::spec_graph_neighbors(store, &spec_refs);
+                        let namespace = spec_refs
+                            .first()
+                            .map(|r| {
+                                braid_kernel::guidance::extract_spec_namespace(r).to_string()
+                            })
+                            .unwrap_or_default();
+
+                        let agent = AgentId::from_name("braid:recon");
+                        let tx = commands::write::next_tx_id(store, agent);
+                        let wall_secs = tx.wall_time();
+                        let trace_ident = format!(
+                            ":recon/trace-{}",
+                            &blake3::hash(
+                                format!("{}-{}", cmd_name, wall_secs).as_bytes()
+                            )
+                            .to_hex()[..16]
+                        );
+                        let trace_entity = EntityId::from_ident(&trace_ident);
+
+                        let mut datoms = vec![
+                            Datom::new(
+                                trace_entity,
+                                Attribute::from_keyword(":db/ident"),
+                                Value::Keyword(trace_ident),
+                                tx,
+                                Op::Assert,
+                            ),
+                            Datom::new(
+                                trace_entity,
+                                Attribute::from_keyword(":recon/trace-command"),
+                                Value::String(cmd_name.to_string()),
+                                tx,
+                                Op::Assert,
+                            ),
+                        ];
+
+                        if !namespace.is_empty() {
+                            datoms.push(Datom::new(
+                                trace_entity,
+                                Attribute::from_keyword(":recon/trace-neighborhood"),
+                                Value::String(namespace),
+                                tx,
+                                Op::Assert,
+                            ));
+                        }
+
+                        // Cardinality::Many — one datom per spec ref
+                        for spec_ref in &spec_refs {
+                            datoms.push(Datom::new(
+                                trace_entity,
+                                Attribute::from_keyword(":recon/trace-refs"),
+                                Value::String(spec_ref.clone()),
+                                tx,
+                                Op::Assert,
+                            ));
+                        }
+
+                        // Cardinality::Many — one datom per neighbor ident
+                        for (neighbor_entity, _score) in &neighbors {
+                            // Resolve ident from store if available
+                            let ident_attr = Attribute::from_keyword(":db/ident");
+                            let neighbor_ident = store
+                                .entity_datoms(*neighbor_entity)
+                                .iter()
+                                .find(|d| d.attribute == ident_attr && d.op == Op::Assert)
+                                .and_then(|d| match &d.value {
+                                    Value::Keyword(k) => Some(k.clone()),
+                                    _ => None,
+                                });
+                            if let Some(ident) = neighbor_ident {
+                                datoms.push(Datom::new(
+                                    trace_entity,
+                                    Attribute::from_keyword(":recon/trace-neighbors"),
+                                    Value::String(ident),
+                                    tx,
+                                    Op::Assert,
+                                ));
+                            }
+                        }
+
+                        let tx_file = braid_kernel::layout::TxFile {
+                            tx_id: tx,
+                            agent,
+                            provenance: ProvenanceType::Derived,
+                            rationale: "AR-2: reconciliation trace".to_string(),
+                            causal_predecessors: vec![],
+                            datoms,
+                        };
+                        let _ = lo.write_tx(&tx_file);
+                    }
                 }
             }
 

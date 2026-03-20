@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774037586/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-61f7"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :task/close-reason :v "Crossref TRILATERAL counts fixed: 7→10 INV, 3→6 ADR, 3→4 NEG = 20 total (was 13)." :op :assert}
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :task/closed-at :v 1774037585 :op :assert}
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "46a7027e62fdef488d12b49f35f06aa4650cf38faf65932edbdca4d8d1b7cecb" :a :task/status :v :task.status/closed :op :assert}
+ ]}

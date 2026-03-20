@@ -1,0 +1,15 @@
+{:tx/id #hlc "1774037524/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f79060a4d46020b711d0a77be3773fd9ae279e2d6072ba4bc1a68b996bba0453" :a :db/ident :v :recon/trace-134338d286518e1c :op :assert}
+   {:e #blake3 "f79060a4d46020b711d0a77be3773fd9ae279e2d6072ba4bc1a68b996bba0453" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "f79060a4d46020b711d0a77be3773fd9ae279e2d6072ba4bc1a68b996bba0453" :a :recon/trace-neighborhood :v "MERGE" :op :assert}
+   {:e #blake3 "f79060a4d46020b711d0a77be3773fd9ae279e2d6072ba4bc1a68b996bba0453" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.merge.inv-merge-008" :op :assert}
+   {:e #blake3 "f79060a4d46020b711d0a77be3773fd9ae279e2d6072ba4bc1a68b996bba0453" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-merge-008" :op :assert}
+   {:e #blake3 "f79060a4d46020b711d0a77be3773fd9ae279e2d6072ba4bc1a68b996bba0453" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-merge-008" :op :assert}
+   {:e #blake3 "f79060a4d46020b711d0a77be3773fd9ae279e2d6072ba4bc1a68b996bba0453" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.stateright_model.inv-merge-008" :op :assert}
+   {:e #blake3 "f79060a4d46020b711d0a77be3773fd9ae279e2d6072ba4bc1a68b996bba0453" :a :recon/trace-refs :v "INV-MERGE-008" :op :assert}
+ ]}
