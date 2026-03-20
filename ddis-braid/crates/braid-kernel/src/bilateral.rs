@@ -2253,8 +2253,8 @@ pub fn default_boundaries() -> BoundaryRegistry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, TxId, Value};
-    use crate::store::Store;
+    use crate::datom::{AgentId, Attribute, Datom, EntityId, Op, ProvenanceType, TxId, Value};
+    use crate::store::{Store, Transaction};
     use std::collections::BTreeSet;
 
     /// Create a minimal test store with schema (genesis only).
@@ -3351,6 +3351,74 @@ mod tests {
             (f.components.validation - 0.5).abs() < 1e-10,
             "F(S).V should use legacy path: expected 0.5, got {}",
             f.components.validation
+        );
+    }
+
+    // Verifies: INV-BILATERAL-001 — F(S) monotonically non-decreasing under task completion
+    #[test]
+    fn fitness_non_decreasing_under_task_close() {
+        use crate::datom::AgentId;
+        use crate::schema::{full_schema_datoms, genesis_datoms};
+
+        let agent = AgentId::from_name("braid:test");
+        let genesis_tx = TxId::new(0, 0, agent);
+
+        let mut datoms = BTreeSet::new();
+        for d in genesis_datoms(genesis_tx) {
+            datoms.insert(d);
+        }
+        for d in full_schema_datoms(genesis_tx) {
+            datoms.insert(d);
+        }
+
+        let store = Store::from_datoms(datoms);
+        let f_initial = compute_fitness(&store);
+        assert!(
+            f_initial.total >= 0.0 && f_initial.total <= 1.0,
+            "initial F(S)={} not in [0,1]",
+            f_initial.total
+        );
+
+        // Create a task, then close it — F(S) should not decrease
+        let mut store2 = store.clone_store();
+        let task_entity = EntityId::from_ident(":task/test-monotone");
+
+        // Add task datoms via Transaction API
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "create task")
+            .assert(
+                task_entity,
+                Attribute::from_keyword(":task/title"),
+                Value::String("Test task".into()),
+            )
+            .assert(
+                task_entity,
+                Attribute::from_keyword(":task/status"),
+                Value::Keyword(":task.status/open".into()),
+            )
+            .commit(&store2)
+            .unwrap();
+        store2.transact(tx1).unwrap();
+
+        let f_with_task = compute_fitness(&store2);
+
+        // Close the task via Transaction API
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "close task")
+            .assert(
+                task_entity,
+                Attribute::from_keyword(":task/status"),
+                Value::Keyword(":task.status/closed".into()),
+            )
+            .commit(&store2)
+            .unwrap();
+        store2.transact(tx2).unwrap();
+
+        let f_after_close = compute_fitness(&store2);
+        assert!(
+            f_after_close.total >= f_with_task.total - 0.01,
+            "INV-BILATERAL-001: F(S) should not decrease after task close: \
+             before={:.4} after={:.4}",
+            f_with_task.total,
+            f_after_close.total
         );
     }
 }
