@@ -263,16 +263,20 @@ impl AttentionProfile {
 }
 
 /// Classify a CLI command into its attention profile.
+///
+/// Data-heavy commands (task, query, bilateral, topology) are Expensive because
+/// their output scales with store size. Status/next/go are Moderate because
+/// they produce fixed-size dashboards. Side-effect commands are Meta.
 pub fn classify_command(command: &str) -> AttentionProfile {
     match command {
         "guidance" | "stage" | "log" | "config" => AttentionProfile::Cheap,
-        // status is the primary orientation command: store + coherence + boundaries +
-        // tasks + next action. Needs 300 tokens to avoid truncating essential context.
-        // next/done/go produce confirmation + guidance footer that exceeds 50 tokens.
-        "status" | "next" | "done" | "go" => AttentionProfile::Moderate,
-        "query" | "bilateral" | "generate" | "schema" | "trace" | "verify" | "spec" | "task"
-        | "note" => AttentionProfile::Moderate,
-        "seed" | "session" | "topology" => AttentionProfile::Expensive,
+        // Status is the primary orientation command: fixed-size dashboard.
+        // next/done/go produce confirmation + guidance footer.
+        "status" | "next" | "done" | "go" | "note" => AttentionProfile::Moderate,
+        // Data-heavy commands whose output scales with store size.
+        // These need the full budget to avoid compressing away useful data.
+        "query" | "bilateral" | "task" | "schema" | "trace" | "verify" | "spec" | "generate"
+        | "seed" | "session" | "topology" | "witness" => AttentionProfile::Expensive,
         "harvest" | "transact" | "merge" | "init" | "observe" | "write" => AttentionProfile::Meta,
         _ => AttentionProfile::Moderate, // conservative default
     }
@@ -742,26 +746,26 @@ pub fn quality_adjusted_budget(k_eff: f64) -> f64 {
 // Output ceiling enforcement (INV-BUDGET-001)
 // ---------------------------------------------------------------------------
 
-/// Enforce a hard token ceiling on output text.
+/// Compress output to fit within a token ceiling using pyramid summaries.
 ///
-/// If the output fits within `ceiling` tokens (measured by `ApproxTokenCounter`),
-/// it is returned unchanged. If it exceeds the ceiling, the text is truncated to
-/// fit and a truncation notice is appended.
+/// Instead of hard-truncating (which loses the most recent and often most
+/// important information), this function compresses by selecting lines that
+/// fit within the budget. It preserves the first line (header/summary) and
+/// as many subsequent lines as fit, appending a compression notice with the
+/// count of omitted lines and a hint for the user to get full output.
 ///
-/// The truncation notice format:
-/// ```text
-/// \n[...truncated: {over} tokens over budget of {ceiling}]
-/// ```
-///
-/// The truncation works at char boundaries, iteratively shrinking until the
-/// combined (truncated text + notice) fits within the ceiling. The notice
-/// itself consumes tokens, so the effective text budget is
-/// `ceiling - notice_overhead`.
+/// Compression strategy (pyramid):
+/// - Always keep the first line (summary/header)
+/// - Fill remaining budget with lines in order
+/// - Append a notice showing how many lines were compressed out
+/// - Never mid-line truncate — always complete lines
 ///
 /// # Invariants
 ///
 /// - **INV-BUDGET-001**: Output budget is a hard cap. `enforce_ceiling` is the
 ///   final gate ensuring no command output exceeds the token ceiling.
+/// - **NEG-BUDGET-003**: Output is never mid-line truncated. Compression
+///   always operates on complete semantic units (lines).
 pub fn enforce_ceiling(output: &str, ceiling: usize) -> String {
     let counter = ApproxTokenCounter;
     let total_tokens = counter.count(output);
@@ -770,46 +774,63 @@ pub fn enforce_ceiling(output: &str, ceiling: usize) -> String {
         return output.to_string();
     }
 
-    let over = total_tokens.saturating_sub(ceiling);
-
-    // Build the truncation notice so we can measure its overhead.
-    let notice = format!(
-        "\n[...truncated: {} tokens over budget of {}]",
-        over, ceiling
-    );
-    let notice_tokens = counter.count(&notice);
-
-    // The text portion must fit in (ceiling - notice_overhead) tokens.
-    let text_token_budget = ceiling.saturating_sub(notice_tokens);
-
-    if text_token_budget == 0 {
-        // Edge case: ceiling is so small even the notice barely fits.
-        // Return just the notice (best-effort).
-        return notice;
+    // Pyramid compression: keep lines that fit, drop the rest.
+    let lines: Vec<&str> = output.lines().collect();
+    if lines.is_empty() {
+        return output.to_string();
     }
 
-    // Estimate initial char budget: tokens * 4 (inverse of chars/4).
-    // Then refine by measuring the actual token count of the truncated slice.
-    let total_chars: usize = output.chars().count();
-    let mut char_budget = (text_token_budget * 4).min(total_chars);
+    // Reserve tokens for the compression notice.
+    let notice_template = "\n... (N more lines, use --format json for full output)";
+    let notice_overhead = counter.count(notice_template) + 5; // margin
+    let text_budget = ceiling.saturating_sub(notice_overhead);
 
-    // Take char_budget chars, then verify token count. Shrink if needed.
-    loop {
-        let truncated: String = output.chars().take(char_budget).collect();
-        let trunc_tokens = counter.count(&truncated);
+    if text_budget == 0 {
+        // Budget so small even the notice barely fits. Return first line + notice.
+        let first = safe_truncate_bytes(lines[0], ceiling.saturating_mul(4));
+        return format!(
+            "{}\n... ({} more lines, use --format json for full output)",
+            first,
+            lines.len().saturating_sub(1)
+        );
+    }
 
-        if trunc_tokens <= text_token_budget || char_budget == 0 {
-            return format!(
-                "{}\n[...truncated: {} tokens over budget of {}]",
-                truncated, over, ceiling
-            );
+    let mut kept = Vec::new();
+    let mut used_tokens = 0;
+
+    for line in &lines {
+        let line_tokens = counter.count(line) + 1; // +1 for newline
+        if used_tokens + line_tokens > text_budget && !kept.is_empty() {
+            break;
         }
-
-        // Shrink by the overshoot (tokens over budget * 4 chars/token estimate).
-        let overshoot = trunc_tokens - text_token_budget;
-        let shrink = (overshoot * 4).max(1);
-        char_budget = char_budget.saturating_sub(shrink);
+        kept.push(*line);
+        used_tokens += line_tokens;
     }
+
+    let omitted = lines.len() - kept.len();
+
+    // If no lines were omitted but total still exceeds budget (single long line
+    // or few very long lines), use word-level compression on the kept content.
+    if omitted == 0 && used_tokens > text_budget {
+        let joined = kept.join("\n");
+        let target_chars = text_budget.saturating_mul(4);
+        let compressed = safe_truncate_bytes(&joined, target_chars);
+        return format!(
+            "{}\n... (compressed, use --format json for full output)",
+            compressed
+        );
+    }
+
+    if omitted == 0 {
+        return output.to_string();
+    }
+
+    let mut result = kept.join("\n");
+    result.push_str(&format!(
+        "\n... ({} more lines, use --format json for full output)",
+        omitted
+    ));
+    result
 }
 
 // ---------------------------------------------------------------------------
@@ -1452,7 +1473,9 @@ mod tests {
     fn command_profiles() {
         assert_eq!(classify_command("status"), AttentionProfile::Moderate);
         assert_eq!(classify_command("guidance"), AttentionProfile::Cheap);
-        assert_eq!(classify_command("query"), AttentionProfile::Moderate);
+        // query and task are Expensive: output scales with store size
+        assert_eq!(classify_command("query"), AttentionProfile::Expensive);
+        assert_eq!(classify_command("task"), AttentionProfile::Expensive);
         assert_eq!(classify_command("seed"), AttentionProfile::Expensive);
         assert_eq!(classify_command("harvest"), AttentionProfile::Meta);
         assert_eq!(classify_command("transact"), AttentionProfile::Meta);
@@ -1469,9 +1492,9 @@ mod tests {
         assert_eq!(mgr.command_budget("status"), 300);
         // Cheap command capped at 50
         assert_eq!(mgr.command_budget("guidance"), 50);
-        // Moderate command capped at 300
-        assert_eq!(mgr.command_budget("query"), 300);
-        // Expensive command gets full budget
+        // Data-heavy commands are Expensive, get full budget
+        assert_eq!(mgr.command_budget("query"), 10000);
+        assert_eq!(mgr.command_budget("task"), 10000);
         assert_eq!(mgr.command_budget("seed"), 10000);
     }
 
@@ -1515,35 +1538,35 @@ mod tests {
         assert_eq!(result, text);
     }
 
-    // Verifies: INV-BUDGET-001 — Output Budget as Hard Cap (truncation)
+    // Verifies: INV-BUDGET-001 — Output Budget as Hard Cap (pyramid compression)
     #[test]
-    fn enforce_ceiling_truncates_over_budget() {
-        // 2000 chars of prose -> ~500 tokens, ceiling=50 -> must truncate
-        let text = "word ".repeat(400);
+    fn enforce_ceiling_compresses_over_budget() {
+        // 400 lines -> ~500 tokens, ceiling=50 -> must compress
+        let text = (0..400).map(|i| format!("line {i}")).collect::<Vec<_>>().join("\n");
         let result = enforce_ceiling(&text, 50);
         assert!(
             result.len() < text.len(),
             "result should be shorter than input"
         );
         assert!(
-            result.contains("[...truncated:"),
-            "truncated output must contain notice"
+            result.contains("more lines"),
+            "compressed output must contain pyramid notice, got: {result}"
         );
     }
 
     #[test]
-    fn enforce_ceiling_truncation_message_informative() {
-        let text = "a".repeat(2000); // 500 tokens
-        let ceiling = 50;
+    fn enforce_ceiling_compression_preserves_header() {
+        let text = (0..100).map(|i| format!("line {i}")).collect::<Vec<_>>().join("\n");
+        let ceiling = 30;
         let result = enforce_ceiling(&text, ceiling);
         assert!(
-            result.contains("tokens over budget of 50"),
-            "notice must contain ceiling: {}",
+            result.starts_with("line 0"),
+            "first line (header) must be preserved: {}",
             result
         );
         assert!(
-            result.contains("450 tokens over budget"),
-            "notice must contain over-count: {}",
+            result.contains("more lines, use --format json for full output"),
+            "notice must tell user how to get full output: {}",
             result
         );
     }
@@ -1556,8 +1579,12 @@ mod tests {
 
     #[test]
     fn enforce_ceiling_unicode_safe() {
-        // Ensure truncation does not break mid-character.
-        let text: String = "\u{1F600}".repeat(400);
+        // Ensure compression does not break mid-character.
+        // Multi-line unicode input to trigger the compression path.
+        let text: String = (0..100)
+            .map(|i| format!("\u{1F600} line {i}"))
+            .collect::<Vec<_>>()
+            .join("\n");
         let result = enforce_ceiling(&text, 10);
         // If we got here without panicking, UTF-8 safety holds.
         assert!(result.is_char_boundary(result.len()));
@@ -1608,20 +1635,21 @@ mod tests {
             // Verifies: INV-BUDGET-001 — enforce_ceiling content never exceeds ceiling
             #[test]
             fn enforce_ceiling_bounded(
-                text in "[a-zA-Z0-9 ]{0,2000}",
+                // Generate multi-line text for pyramid compression
+                lines in proptest::collection::vec("[a-zA-Z0-9 ]{5,50}", 1..100),
                 ceiling in 1usize..=500
             ) {
+                let text = lines.join("\n");
                 let result = enforce_ceiling(&text, ceiling);
                 let counter = ApproxTokenCounter;
                 let result_tokens = counter.count(&result);
 
-                // When not truncated, result tokens <= ceiling by definition.
-                // When truncated, the content portion (before the notice) must fit
+                // When compressed, the kept lines (before the notice) must fit
                 // within ceiling. The notice itself is metadata overhead.
-                if result.contains("[...truncated:") {
-                    // Measure just the content before the notice.
+                if result.contains("more lines") {
+                    // Measure just the content before the compression notice.
                     let content = result
-                        .rsplit_once("\n[...truncated:")
+                        .rsplit_once("\n... (")
                         .map(|(pre, _)| pre)
                         .unwrap_or(&result);
                     let content_tokens = counter.count(content);

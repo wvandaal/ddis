@@ -1850,9 +1850,10 @@ fn maybe_inject_footer(
 
 /// Apply the budget gate to a `CommandOutput` (INV-BUDGET-001, INV-BUDGET-005).
 ///
-/// Enforces the per-command budget (attention profile ceiling capped by global
-/// output_budget) as a hard token ceiling on human and agent text representations.
-/// JSON output is **never** truncated — agents need complete structured data.
+/// Enforces the per-command budget using pyramid compression: when output
+/// exceeds the token ceiling, it is compressed to fit (keeping complete lines)
+/// rather than hard-truncated. JSON output is **never** compressed — agents
+/// and programmatic consumers need complete structured data.
 ///
 /// `cmd_name` is the lowercase command name (e.g., "status", "query") used by
 /// `BudgetManager::command_budget()` to look up the command's attention profile.
@@ -1865,7 +1866,7 @@ pub fn apply_budget_gate(
     budget_ctx: &BudgetCtx,
     cmd_name: &str,
 ) -> crate::output::CommandOutput {
-    // JSON mode: never truncate — agents need complete structured data.
+    // JSON mode: never compress — agents need complete structured data.
     if mode == crate::output::OutputMode::Json {
         return output;
     }
@@ -1873,24 +1874,23 @@ pub fn apply_budget_gate(
     // ACP bypass (INV-BUDGET-007): Commands that produced an ActionProjection
     // have already self-managed their budget via project(). The _acp field
     // in JSON signals that the command used ACP — skip the legacy budget gate
-    // to avoid double-gating (which would truncate already-projected output).
+    // to avoid double-gating (which would compress already-projected output).
     if output.json.get("_acp").is_some() {
         return output;
     }
 
     // Legacy path: INV-BUDGET-005 per-command ceiling for non-ACP commands.
+    // Uses pyramid compression instead of hard truncation.
     let ceiling = budget_ctx.manager.command_budget(cmd_name) as usize;
 
-    // Enforce ceiling on the human-readable representation.
+    // Compress the human-readable representation via pyramid.
     output.human = budget::enforce_ceiling(&output.human, ceiling);
 
-    // Enforce ceiling on the agent-mode rendered text.
+    // Compress the agent-mode rendered text via pyramid.
     let agent_rendered = output.agent.render();
     let gated = budget::enforce_ceiling(&agent_rendered, ceiling);
     if gated != agent_rendered {
-        // The agent output was truncated — replace content with the gated text
-        // while preserving the three-part structure as best we can.
-        // Context and footer stay; content absorbs the truncation.
+        // The agent output was compressed — replace content with the compressed text.
         output.agent.content = gated;
         output.agent.context = String::new();
         output.agent.footer = String::new();
@@ -2045,7 +2045,7 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
 ///
 /// INV-BUDGET-001: Output respects `budget_ctx` for guidance footer compression
 /// and command attention profiles. Commands that exceed their attention profile
-/// ceiling are truncated.
+/// ceiling are compressed via pyramid summary (never hard-truncated).
 ///
 /// Most commands return `CommandOutput` with native tri-mode output.
 /// Remaining `from_human()` bridge: write assert/retract/promote/export, shell, mcp.
@@ -3522,12 +3522,16 @@ mod tests {
 
     // ---- Budget gate tests (W2C.2 + W2C.3: enforce_ceiling wiring) ----
 
-    // Verifies: INV-BUDGET-001 — Budget gate truncates long output
+    // Verifies: INV-BUDGET-001 — Budget gate compresses long output via pyramid
     #[test]
-    fn budget_gate_truncates_long_output() {
+    fn budget_gate_compresses_long_output() {
         use crate::output::{AgentOutput, CommandOutput};
 
-        let long_text = "word ".repeat(400); // ~2000 chars → ~500 tokens
+        // Multi-line output to trigger pyramid compression
+        let long_text = (0..200)
+            .map(|i| format!("task {i}: do something important"))
+            .collect::<Vec<_>>()
+            .join("\n");
         let co = CommandOutput {
             json: serde_json::json!({"data": &long_text}),
             agent: AgentOutput {
@@ -3538,19 +3542,19 @@ mod tests {
             human: long_text.clone(),
         };
 
-        // Explicit budget of 50 tokens — forces truncation.
+        // Explicit budget of 50 tokens — forces compression.
         let ctx = BudgetCtx::from_flags(Some(50), None);
-        let gated = apply_budget_gate(co, OutputMode::Human, &ctx, "query");
+        let gated = apply_budget_gate(co, OutputMode::Human, &ctx, "status");
 
         assert!(
             gated.human.len() < long_text.len(),
-            "human output should be truncated (got {} vs original {})",
+            "human output should be compressed (got {} vs original {})",
             gated.human.len(),
             long_text.len()
         );
         assert!(
-            gated.human.contains("[...truncated:"),
-            "truncated output must contain truncation notice"
+            gated.human.contains("more lines"),
+            "compressed output must contain pyramid compression notice"
         );
     }
 
@@ -3613,12 +3617,16 @@ mod tests {
         );
     }
 
-    // Verifies: INV-BUDGET-001 — Agent mode truncation works
+    // Verifies: INV-BUDGET-001 — Agent mode compression works
     #[test]
-    fn budget_gate_truncates_agent_mode() {
+    fn budget_gate_compresses_agent_mode() {
         use crate::output::{AgentOutput, CommandOutput};
 
-        let long_content = "entity ".repeat(300); // ~525 tokens
+        // Multi-line agent content to trigger pyramid compression
+        let long_content = (0..200)
+            .map(|i| format!("entity {i}: some data"))
+            .collect::<Vec<_>>()
+            .join("\n");
         let co = CommandOutput {
             json: serde_json::json!({"data": "irrelevant"}),
             agent: AgentOutput {
@@ -3630,13 +3638,13 @@ mod tests {
         };
 
         let ctx = BudgetCtx::from_flags(Some(50), None);
-        let gated = apply_budget_gate(co, OutputMode::Agent, &ctx, "query");
+        let gated = apply_budget_gate(co, OutputMode::Agent, &ctx, "status");
 
-        // Agent output was truncated — the content field now holds the gated text.
+        // Agent output was compressed — the content field now holds the compressed text.
         assert!(
-            gated.agent.content.contains("[...truncated:")
+            gated.agent.content.contains("more lines")
                 || gated.agent.render().len() < long_content.len(),
-            "agent output should be truncated when over budget"
+            "agent output should be compressed when over budget"
         );
     }
 
@@ -3673,7 +3681,11 @@ mod tests {
 
         // "guidance" is Cheap (ceiling=50). Even with a generous global budget,
         // the per-command ceiling should cap the output.
-        let text = "word ".repeat(100); // ~125 tokens, above Cheap ceiling of 50
+        // Use multi-line text so pyramid compression can work on line boundaries.
+        let text = (0..50)
+            .map(|i| format!("guidance item {i}: some detail"))
+            .collect::<Vec<_>>()
+            .join("\n");
         let co = CommandOutput {
             json: serde_json::json!({"status": "ok"}),
             agent: AgentOutput {

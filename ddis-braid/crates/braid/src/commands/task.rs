@@ -279,26 +279,33 @@ pub fn list_filtered(
         "tasks": tasks_json,
     });
 
+    let agent_lines: Vec<String> = tasks_json
+        .iter()
+        .take(10)
+        .map(|t| {
+            format!(
+                "[P{}] {} {} \"{}\"",
+                t["priority"],
+                t["id"].as_str().unwrap_or("?"),
+                t["status"].as_str().unwrap_or("?"),
+                t["title"].as_str().unwrap_or("?"),
+            )
+        })
+        .collect();
+    let mut agent_content = agent_lines.join("\n");
+    if filtered.len() > 10 {
+        agent_content.push_str(&format!(
+            "\n... ({} more, use --format json for full list)",
+            filtered.len() - 10
+        ));
+    }
     let agent = AgentOutput {
         context: format!(
             "tasks: {} matched ({} displayed)",
             filtered.len(),
             display_count,
         ),
-        content: tasks_json
-            .iter()
-            .take(10)
-            .map(|t| {
-                format!(
-                    "[P{}] {} {} \"{}\"",
-                    t["priority"],
-                    t["id"].as_str().unwrap_or("?"),
-                    t["status"].as_str().unwrap_or("?"),
-                    t["title"].as_str().unwrap_or("?"),
-                )
-            })
-            .collect::<Vec<_>>()
-            .join("\n"),
+        content: agent_content,
         footer: "ready: braid task ready | next: braid next".to_string(),
     };
 
