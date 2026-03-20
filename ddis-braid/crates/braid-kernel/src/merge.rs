@@ -13,7 +13,7 @@
 //! - **INV-MERGE-005**: Branch commit monotonicity (merged store >= both inputs).
 //! - **INV-MERGE-006**: Branch as first-class entity (branch metadata in datoms).
 //! - **INV-MERGE-007**: Bilateral branch duality (forward/backward merge symmetry).
-//! - **INV-MERGE-008**: Deduplication by content identity.
+//! - **INV-MERGE-008**: At-least-once idempotent delivery.
 //! - **INV-MERGE-009**: Cascade: schema rebuild → resolution recompute → LIVE invalidation.
 //! - **INV-MERGE-010**: MergeReceipt captures new datom count and conflict set.
 //!
