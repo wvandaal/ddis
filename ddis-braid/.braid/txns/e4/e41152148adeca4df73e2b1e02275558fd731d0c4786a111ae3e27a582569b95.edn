@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774032800/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c8f7f66a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "32be04ed990e385396aa3512517c5ac87082d5a8bc5a4828aab096e808d1cf88" :a :task/close-reason :v "SUPERSEDED: CTP-5 proposed new orchestrator but assemble_seed already orchestrates 5 sections. Revised CTP-5 upgrades the selection heuristics within assemble()." :op :assert}
+   {:e #blake3 "32be04ed990e385396aa3512517c5ac87082d5a8bc5a4828aab096e808d1cf88" :a :task/closed-at :v 1774032799 :op :assert}
+   {:e #blake3 "32be04ed990e385396aa3512517c5ac87082d5a8bc5a4828aab096e808d1cf88" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "32be04ed990e385396aa3512517c5ac87082d5a8bc5a4828aab096e808d1cf88" :a :task/status :v :task.status/closed :op :assert}
+ ]}

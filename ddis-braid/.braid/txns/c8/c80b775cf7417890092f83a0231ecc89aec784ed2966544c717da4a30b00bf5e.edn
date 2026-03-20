@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774032717/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b696e576"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "aad6a1b7949be2d54efc50b6d14e66a55823ab651bd31392aae4b9028bb1c38d" :a :task/close-reason :v "SUPERSEDED: TSV-4 assumed per-command TSV builders. Now merged into TSV-3 REVISED (TsvSpec constants for all commands)." :op :assert}
+   {:e #blake3 "aad6a1b7949be2d54efc50b6d14e66a55823ab651bd31392aae4b9028bb1c38d" :a :task/closed-at :v 1774032716 :op :assert}
+   {:e #blake3 "aad6a1b7949be2d54efc50b6d14e66a55823ab651bd31392aae4b9028bb1c38d" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "aad6a1b7949be2d54efc50b6d14e66a55823ab651bd31392aae4b9028bb1c38d" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774032750/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-2b19c059"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2abd0ebc69de600d3c19f52bc58b7ed557abd4f4d329832011c827e7b3b7d7a5" :a :task/close-reason :v "SUPERSEDED: depended on old TSV-3. Replaced by TSV-TEST REVISED with correct dependency on TSV-3 REVISED." :op :assert}
+   {:e #blake3 "2abd0ebc69de600d3c19f52bc58b7ed557abd4f4d329832011c827e7b3b7d7a5" :a :task/closed-at :v 1774032749 :op :assert}
+   {:e #blake3 "2abd0ebc69de600d3c19f52bc58b7ed557abd4f4d329832011c827e7b3b7d7a5" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "2abd0ebc69de600d3c19f52bc58b7ed557abd4f4d329832011c827e7b3b7d7a5" :a :task/status :v :task.status/closed :op :assert}
+ ]}

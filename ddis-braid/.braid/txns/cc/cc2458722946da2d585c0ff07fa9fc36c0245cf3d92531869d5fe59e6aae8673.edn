@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774032795/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-37a15b73"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b1647a5edff0753369693c548227c37c280a4f156f458fbf46a08fa6d35f5629" :a :task/close-reason :v "SUPERSEDED: CTP-1 proposed new Priors section but seed already has Orientation section. Revised CTP-1 upgrades Orientation content selection instead." :op :assert}
+   {:e #blake3 "b1647a5edff0753369693c548227c37c280a4f156f458fbf46a08fa6d35f5629" :a :task/closed-at :v 1774032794 :op :assert}
+   {:e #blake3 "b1647a5edff0753369693c548227c37c280a4f156f458fbf46a08fa6d35f5629" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "b1647a5edff0753369693c548227c37c280a4f156f458fbf46a08fa6d35f5629" :a :task/status :v :task.status/closed :op :assert}
+ ]}

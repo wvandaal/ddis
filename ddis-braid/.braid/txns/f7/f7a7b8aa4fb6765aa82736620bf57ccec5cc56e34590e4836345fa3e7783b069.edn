@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774032675/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-93f95bbc"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ad4560985a23fbc8f7af13d00d3898a6aa5266d68d2ffb7ef9bc63870dba9649" :a :task/close-reason :v "SUPERSEDED: wrong approach (tsv field on CommandOutput). Replaced by revised TSV-2 using ACP-based render-time conversion from JSON." :op :assert}
+   {:e #blake3 "ad4560985a23fbc8f7af13d00d3898a6aa5266d68d2ffb7ef9bc63870dba9649" :a :task/closed-at :v 1774032674 :op :assert}
+   {:e #blake3 "ad4560985a23fbc8f7af13d00d3898a6aa5266d68d2ffb7ef9bc63870dba9649" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "ad4560985a23fbc8f7af13d00d3898a6aa5266d68d2ffb7ef9bc63870dba9649" :a :task/status :v :task.status/closed :op :assert}
+ ]}
