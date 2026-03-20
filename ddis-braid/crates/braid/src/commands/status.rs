@@ -438,32 +438,34 @@ pub fn build_status_projection(
         tokens: 12,
     });
 
-    // 6. Methodology gaps with activity-mode suppression (T6-1, Speculative)
+    // 6. Methodology gaps — unified warning line (AGP-4.2, INV-GUIDANCE-021)
+    // Shows all gap categories with activity-mode suppression (T6-1).
     let raw_gaps = methodology_gaps(store);
     let mode = detect_activity_mode(&telemetry);
     let ag = adjust_gaps(raw_gaps, mode);
-    if !ag.raw.is_empty() {
+    if !ag.is_empty() {
         let mut gap_parts = Vec::new();
         if ag.adjusted.crystallization > 0 {
-            gap_parts.push(format!(
-                "{} uncrystallized ({} mode, {} raw)",
-                ag.adjusted.crystallization,
-                ag.mode_label(),
-                ag.raw.crystallization
-            ));
+            gap_parts.push(format!("{} uncrystallized", ag.adjusted.crystallization));
         }
         if ag.adjusted.unanchored > 0 {
-            gap_parts.push(format!(
-                "{} unanchored ({} mode, {} raw)",
-                ag.adjusted.unanchored,
-                ag.mode_label(),
-                ag.raw.unanchored
-            ));
+            gap_parts.push(format!("{} unanchored", ag.adjusted.unanchored));
+        }
+        if ag.adjusted.untested > 0 {
+            gap_parts.push(format!("{} untested", ag.adjusted.untested));
+        }
+        if ag.adjusted.stale_witnesses > 0 {
+            gap_parts.push(format!("{} stale witnesses", ag.adjusted.stale_witnesses));
         }
         context.push(ContextBlock {
             precedence: OutputPrecedence::Speculative,
-            content: format!("gaps: {}", gap_parts.join(", ")),
-            tokens: 12,
+            content: format!(
+                "gaps: {} ({} mode) \u{2014} {}",
+                ag.total(),
+                ag.mode_label(),
+                gap_parts.join(", ")
+            ),
+            tokens: 15,
         });
     }
 

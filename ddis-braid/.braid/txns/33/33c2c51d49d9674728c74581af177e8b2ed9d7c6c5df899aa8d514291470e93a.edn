@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774025686/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-01e8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :task/close-reason :v "13/13 checks pass: create with structured titles, short title display, show full context, batch close, search, set persistence, audit" :op :assert}
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :task/closed-at :v 1774025685 :op :assert}
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "168bef32b9884072a85250002e122e0dce40c3df172afb888b5c71becde67b8a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774027158/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a6df"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :task/close-reason :v "unit test: fitness_non_decreasing_under_task_close verifies F(S) >= previous after task close" :op :assert}
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :task/closed-at :v 1774027157 :op :assert}
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "0363384216a500a78429b7da56de6012e5b85790d1e93a2fc2e1301dea3c9d5a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

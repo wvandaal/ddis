@@ -99,6 +99,34 @@ fn main() {
     let skip_exit_warning = commands::is_harvest_command(&cmd);
     let budget_exempt = is_budget_exempt(&cmd);
     let exit_warn_path = commands::store_path(&cmd).map(|p| p.to_path_buf());
+
+    // ST-1: Auto-detect session start and write session-start datoms.
+    // Runs before the command executes so that commands see the active session.
+    // Skips `init` (no store yet) and `session start` (handles its own session).
+    if cmd_name != "init" && cmd_name != "session" {
+        if let Some(ref store_path) = exit_warn_path {
+            if let Ok(lo) = layout::DiskLayout::open(store_path) {
+                if let Ok(store) = lo.load_store() {
+                    if braid_kernel::guidance::detect_session_start(&store) {
+                        let agent = braid_kernel::datom::AgentId::from_name("braid:session");
+                        let tx_id = commands::write::next_tx_id(&store, agent);
+                        let datoms =
+                            braid_kernel::guidance::create_session_start_datoms(&store, agent, tx_id);
+                        let tx_file = braid_kernel::layout::TxFile {
+                            tx_id,
+                            agent,
+                            provenance: braid_kernel::datom::ProvenanceType::Derived,
+                            rationale: "ST-1: auto-detected session start".to_string(),
+                            causal_predecessors: vec![],
+                            datoms,
+                        };
+                        let _ = lo.write_tx(&tx_file);
+                    }
+                }
+            }
+        }
+    }
+
     let result = commands::run(cmd, &budget_ctx, mode, cli.quiet);
     match result {
         Ok(cmd_output) => {

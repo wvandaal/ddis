@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774026952/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-cbec"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :task/close-reason :v "proptest: live_value_matches_lww_resolution verifies LIVE index against manual LWW resolution" :op :assert}
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :task/closed-at :v 1774026951 :op :assert}
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "63a7bdc460d9bc5fe80f53fbc4cb2f80929b523f7015d4dc8699b8d596d3ffc7" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774026674/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b926"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :task/close-reason :v "2 unit tests: lattice carries EntityId, schema resolves from :db/latticeOrder" :op :assert}
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :task/closed-at :v 1774026673 :op :assert}
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "8f802dd1bcc8513d031e038ec35b4a92fc9a0f2b2f5df12a0b73a834c68b057f" :a :task/status :v :task.status/closed :op :assert}
+ ]}
