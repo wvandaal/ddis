@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774036732/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c1f8e354"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b3b67934e6c861bb643db351257fead42788301c33dba0716c4f3bdd87311f4c" :a :task/close-reason :v "UNNECESSARY: json_to_tsv already auto-infers field mapping from JSON. The only real gap (short_title in JSON) is a 3-line fix in list_filtered, merged into TSV-TEST." :op :assert}
+   {:e #blake3 "b3b67934e6c861bb643db351257fead42788301c33dba0716c4f3bdd87311f4c" :a :task/closed-at :v 1774036731 :op :assert}
+   {:e #blake3 "b3b67934e6c861bb643db351257fead42788301c33dba0716c4f3bdd87311f4c" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "b3b67934e6c861bb643db351257fead42788301c33dba0716c4f3bdd87311f4c" :a :task/status :v :task.status/closed :op :assert}
+ ]}

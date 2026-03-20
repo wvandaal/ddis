@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774036758/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PLAN REVISION: TSV-3 closed (unnecessary complexity). json_to_tsv auto-infers fields from JSON structure. The one remaining gap: task list JSON title field contains full title, not short_title. Fix: add short_title field to task list JSON output in list_filtered(). This is a 3-line change folded into TSV-TEST implementation. CTP-2 updated to reuse spec_graph_neighbors. RDI EPIC deprioritized to P2 (Stage 2 work). Remaining actionable work: TSV-TEST (E2E + short_title JSON fix), AR-2 (session buffer), AR-4 (concentration detector), AR-TEST, CTP-1..5 + CTP-TEST."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3ebc8cb1d21a50a7068b5c3931a7bcaad6d82c0b9f670f74ed2578044dd03cf9" :a :db/doc :v "PLAN REVISION: TSV-3 closed (unnecessary complexity). json_to_tsv auto-infers fields from JSON structure. The one remaining gap: task list JSON title field contains full title, not short_title. Fix: add short_title field to task list JSON output in list_filtered(). This is a 3-line change folded into TSV-TEST implementation. CTP-2 updated to reuse spec_graph_neighbors. RDI EPIC deprioritized to P2 (Stage 2 work). Remaining actionable work: TSV-TEST (E2E + short_title JSON fix), AR-2 (session buffer), AR-4 (concentration detector), AR-TEST, CTP-1..5 + CTP-TEST." :op :assert}
+   {:e #blake3 "3ebc8cb1d21a50a7068b5c3931a7bcaad6d82c0b9f670f74ed2578044dd03cf9" :a :db/ident :v :observation/plan-revision-tsv-3-closed-unnecessary-complexity-json-t :op :assert}
+   {:e #blake3 "3ebc8cb1d21a50a7068b5c3931a7bcaad6d82c0b9f670f74ed2578044dd03cf9" :a :exploration/body :v "PLAN REVISION: TSV-3 closed (unnecessary complexity). json_to_tsv auto-infers fields from JSON structure. The one remaining gap: task list JSON title field contains full title, not short_title. Fix: add short_title field to task list JSON output in list_filtered(). This is a 3-line change folded into TSV-TEST implementation. CTP-2 updated to reuse spec_graph_neighbors. RDI EPIC deprioritized to P2 (Stage 2 work). Remaining actionable work: TSV-TEST (E2E + short_title JSON fix), AR-2 (session buffer), AR-4 (concentration detector), AR-TEST, CTP-1..5 + CTP-TEST." :op :assert}
+   {:e #blake3 "3ebc8cb1d21a50a7068b5c3931a7bcaad6d82c0b9f670f74ed2578044dd03cf9" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "3ebc8cb1d21a50a7068b5c3931a7bcaad6d82c0b9f670f74ed2578044dd03cf9" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "3ebc8cb1d21a50a7068b5c3931a7bcaad6d82c0b9f670f74ed2578044dd03cf9" :a :exploration/content-hash :v #bytes "ca3674e802605e96469923260d517ec28158684909b21a910c6564d9d316e697" :op :assert}
+   {:e #blake3 "3ebc8cb1d21a50a7068b5c3931a7bcaad6d82c0b9f670f74ed2578044dd03cf9" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "3ebc8cb1d21a50a7068b5c3931a7bcaad6d82c0b9f670f74ed2578044dd03cf9" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "3ebc8cb1d21a50a7068b5c3931a7bcaad6d82c0b9f670f74ed2578044dd03cf9" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
