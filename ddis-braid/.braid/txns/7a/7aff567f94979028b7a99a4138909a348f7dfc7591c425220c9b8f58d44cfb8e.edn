@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774039728/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3f0f3ef1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0393ff563e04549f42244fbfaf43498d2538705f3a2f91c79cf30a40fcb34fd3" :a :task/close-reason :v "compile_demonstrations injected into State, compile_directives into Directive. Budget allocation preserved. All 1288+ tests pass." :op :assert}
+   {:e #blake3 "0393ff563e04549f42244fbfaf43498d2538705f3a2f91c79cf30a40fcb34fd3" :a :task/closed-at :v 1774039727 :op :assert}
+   {:e #blake3 "0393ff563e04549f42244fbfaf43498d2538705f3a2f91c79cf30a40fcb34fd3" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "0393ff563e04549f42244fbfaf43498d2538705f3a2f91c79cf30a40fcb34fd3" :a :task/status :v :task.status/closed :op :assert}
+ ]}
