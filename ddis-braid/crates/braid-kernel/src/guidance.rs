@@ -2908,6 +2908,92 @@ pub fn methodology_gaps(store: &Store) -> MethodologyGaps {
     }
 }
 
+/// Activity-mode-adjusted gap counts for display (T6-1).
+///
+/// The kernel's `methodology_gaps()` returns raw truth. This struct holds
+/// display-layer adjusted values that suppress noise based on what the agent
+/// is actually doing:
+/// - **Implementation mode**: crystallization x0.1, unanchored x0.2 (spec gaps
+///   are expected -- agent is writing code, not specs)
+/// - **Specification mode**: untested x0.3 (test gaps are expected -- agent is
+///   writing specs, not tests)
+/// - **Mixed mode**: no suppression (all gaps equally relevant)
+///
+/// Both raw and adjusted values are preserved for display transparency.
+#[derive(Clone, Debug)]
+pub struct AdjustedGaps {
+    /// Raw gap counts from the kernel (unchanged).
+    pub raw: MethodologyGaps,
+    /// Activity-mode-adjusted gap counts (rounded up after scaling).
+    pub adjusted: MethodologyGaps,
+    /// The activity mode that determined suppression factors.
+    pub mode: ActivityMode,
+}
+
+impl AdjustedGaps {
+    /// Adjusted total gap count.
+    pub fn total(&self) -> u32 {
+        self.adjusted.total()
+    }
+
+    /// Returns true when no adjusted gaps exist.
+    pub fn is_empty(&self) -> bool {
+        self.adjusted.is_empty()
+    }
+
+    /// Mode label for display (e.g., "impl", "spec", "mixed").
+    pub fn mode_label(&self) -> &'static str {
+        match self.mode {
+            ActivityMode::Implementation => "impl",
+            ActivityMode::Specification => "spec",
+            ActivityMode::Mixed => "mixed",
+        }
+    }
+}
+
+/// Compute display-adjusted gap counts by applying activity-mode suppression.
+///
+/// Suppression factors (T6-1):
+/// - Implementation mode: crystallization x0.1, unanchored x0.2
+/// - Specification mode: untested x0.3
+/// - Mixed mode: no suppression
+///
+/// The kernel function `methodology_gaps()` is unchanged -- it returns raw truth.
+/// This is a **display-layer** transformation only.
+pub fn adjust_gaps(raw: MethodologyGaps, mode: ActivityMode) -> AdjustedGaps {
+    let adjusted = match mode {
+        ActivityMode::Implementation => MethodologyGaps {
+            crystallization: scale_up(raw.crystallization, 0.1),
+            unanchored: scale_up(raw.unanchored, 0.2),
+            untested: raw.untested,
+            stale_witnesses: raw.stale_witnesses,
+        },
+        ActivityMode::Specification => MethodologyGaps {
+            crystallization: raw.crystallization,
+            unanchored: raw.unanchored,
+            untested: scale_up(raw.untested, 0.3),
+            stale_witnesses: raw.stale_witnesses,
+        },
+        ActivityMode::Mixed => MethodologyGaps {
+            crystallization: raw.crystallization,
+            unanchored: raw.unanchored,
+            untested: raw.untested,
+            stale_witnesses: raw.stale_witnesses,
+        },
+    };
+    AdjustedGaps {
+        raw,
+        adjusted,
+        mode,
+    }
+}
+
+/// Scale a count by a factor, rounding up (ceil) so 1 raw gap never disappears to 0
+/// unless the raw count itself is 0.
+fn scale_up(count: u32, factor: f64) -> u32 {
+    (count as f64 * factor).ceil() as u32
+}
+
 // ---------------------------------------------------------------------------
 // Contextual Observation Funnel (INV-GUIDANCE-014)
 // ---------------------------------------------------------------------------
@@ -8381,5 +8467,102 @@ mod tests {
             w, DEFAULT_ROUTING_WEIGHTS,
             "store without :routing/weights datom should return defaults"
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // T6-1: Activity-mode gap suppression tests
+    // -----------------------------------------------------------------------
+
+    /// Implementation mode suppresses crystallization (x0.1) and unanchored (x0.2).
+    #[test]
+    fn t6_adjust_gaps_implementation_mode() {
+        let tel = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 6, // 60% > 50% threshold -> Implementation
+            spec_language_turns: 1,
+            ..Default::default()
+        };
+        assert_eq!(detect_activity_mode(&tel), ActivityMode::Implementation);
+
+        let raw = MethodologyGaps {
+            crystallization: 30,
+            unanchored: 24,
+            untested: 5,
+            stale_witnesses: 2,
+        };
+        let ag = adjust_gaps(raw, ActivityMode::Implementation);
+
+        // crystallization: ceil(30 * 0.1) = 3
+        assert_eq!(ag.adjusted.crystallization, 3);
+        // unanchored: ceil(24 * 0.2) = 5
+        assert_eq!(ag.adjusted.unanchored, 5);
+        // untested and stale_witnesses unchanged
+        assert_eq!(ag.adjusted.untested, 5);
+        assert_eq!(ag.adjusted.stale_witnesses, 2);
+        // raw preserved
+        assert_eq!(ag.raw.crystallization, 30);
+        assert_eq!(ag.raw.unanchored, 24);
+        assert_eq!(ag.mode, ActivityMode::Implementation);
+        assert_eq!(ag.mode_label(), "impl");
+    }
+
+    /// Specification mode suppresses untested (x0.3).
+    #[test]
+    fn t6_adjust_gaps_specification_mode() {
+        let tel = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 1,
+            spec_language_turns: 6, // 60% > 50% threshold -> Specification
+            ..Default::default()
+        };
+        assert_eq!(detect_activity_mode(&tel), ActivityMode::Specification);
+
+        let raw = MethodologyGaps {
+            crystallization: 10,
+            unanchored: 8,
+            untested: 20,
+            stale_witnesses: 3,
+        };
+        let ag = adjust_gaps(raw, ActivityMode::Specification);
+
+        // crystallization and unanchored unchanged
+        assert_eq!(ag.adjusted.crystallization, 10);
+        assert_eq!(ag.adjusted.unanchored, 8);
+        // untested: ceil(20 * 0.3) = 6
+        assert_eq!(ag.adjusted.untested, 6);
+        // stale_witnesses unchanged
+        assert_eq!(ag.adjusted.stale_witnesses, 3);
+        // raw preserved
+        assert_eq!(ag.raw.untested, 20);
+        assert_eq!(ag.mode, ActivityMode::Specification);
+        assert_eq!(ag.mode_label(), "spec");
+    }
+
+    /// Mixed mode applies no suppression -- adjusted == raw.
+    #[test]
+    fn t6_adjust_gaps_mixed_mode_unchanged() {
+        let tel = SessionTelemetry {
+            total_turns: 10,
+            transact_turns: 3,
+            spec_language_turns: 3, // Neither > 50% -> Mixed
+            ..Default::default()
+        };
+        assert_eq!(detect_activity_mode(&tel), ActivityMode::Mixed);
+
+        let raw = MethodologyGaps {
+            crystallization: 15,
+            unanchored: 12,
+            untested: 7,
+            stale_witnesses: 4,
+        };
+        let ag = adjust_gaps(raw, ActivityMode::Mixed);
+
+        assert_eq!(ag.adjusted.crystallization, 15);
+        assert_eq!(ag.adjusted.unanchored, 12);
+        assert_eq!(ag.adjusted.untested, 7);
+        assert_eq!(ag.adjusted.stale_witnesses, 4);
+        assert_eq!(ag.raw.crystallization, 15);
+        assert_eq!(ag.mode, ActivityMode::Mixed);
+        assert_eq!(ag.mode_label(), "mixed");
     }
 }

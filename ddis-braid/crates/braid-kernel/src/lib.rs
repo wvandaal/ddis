@@ -106,7 +106,7 @@ pub use guidance::{
     derive_actions, derive_actions_with_budget, derive_tasks, detect_activity_mode,
     dynamic_threshold, format_actions, format_footer, format_footer_at_level,
     harvest_urgency_multi,
-    harvest_warning_from_k_eff, harvest_warning_level, is_actionable_decision, methodology_gaps,
+    harvest_warning_from_k_eff, harvest_warning_level, is_actionable_decision, adjust_gaps, methodology_gaps,
     modulate_actions, observation_staleness, orphaned_decisions, should_warn_on_exit,
     classify_action_outcome, compute_action_from_store, methodology_context_blocks,
     reconciliation_check, refit_routing_weights, routing_dashboard, routing_weights,
@@ -114,7 +114,7 @@ pub use guidance::{
     knowledge_relevance_scan,
     suggest_task_title, telemetry_from_store, tx_velocity, ActionCategory, ActivityMode,
     ContextualHint, DerivationRule, DerivedTask, GuidanceAction, GuidanceContext, GuidanceFooter,
-    HarvestWarningLevel, MethodologyComponents, MethodologyGaps, MethodologyScore,
+    AdjustedGaps, HarvestWarningLevel, MethodologyComponents, MethodologyGaps, MethodologyScore,
     ReconciliationResult, RoutingDashboard, RoutingMetrics, SessionTelemetry, TaskNode,
     TaskRouting, Trend,
 };

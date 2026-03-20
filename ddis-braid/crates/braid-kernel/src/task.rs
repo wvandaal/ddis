@@ -796,47 +796,53 @@ pub fn task_summary(store: &Store, entity: EntityId) -> Option<TaskSummary> {
         return None;
     }
 
-    let mut id = None;
-    let mut title = None;
-    let mut priority = 2i64; // default: medium
-    let mut task_type = String::from(":task.type/task");
-    let mut created_at = 0u64;
+    // Cardinality::One attributes — use live_value (LWW by TxId) to get the
+    // most recent value.  The entity_index orders datoms by BTreeSet<Datom>
+    // key (entity, attribute, *value*, tx, op), so a plain last-write-in-loop
+    // picks the highest *value*, not the latest *transaction*.  live_view
+    // tracks the true LWW winner (INV-STORE-012).
+    use crate::datom::Attribute;
+
+    let id = match store.live_value(entity, &Attribute::from_keyword(":task/id")) {
+        Some(Value::String(s)) => s.clone(),
+        _ => return None,
+    };
+    let title = match store.live_value(entity, &Attribute::from_keyword(":task/title")) {
+        Some(Value::String(s)) => s.clone(),
+        _ => return None,
+    };
+    let priority = match store.live_value(entity, &Attribute::from_keyword(":task/priority")) {
+        Some(Value::Long(n)) => *n,
+        _ => 2i64, // default: medium
+    };
+    let task_type = match store.live_value(entity, &Attribute::from_keyword(":task/type")) {
+        Some(Value::Keyword(k)) => k.clone(),
+        _ => String::from(":task.type/task"),
+    };
+    let created_at = match store.live_value(entity, &Attribute::from_keyword(":task/created-at")) {
+        Some(Value::Long(n)) => *n as u64,
+        _ => 0u64,
+    };
+    let source = match store.live_value(entity, &Attribute::from_keyword(":task/source")) {
+        Some(Value::String(s)) => Some(s.clone()),
+        _ => None,
+    };
+    let close_reason =
+        match store.live_value(entity, &Attribute::from_keyword(":task/close-reason")) {
+            Some(Value::String(s)) => Some(s.clone()),
+            _ => None,
+        };
+
+    // Cardinality::Many attributes — collect all asserted values from entity datoms.
     let mut depends_on = Vec::new();
     let mut traces_to = Vec::new();
     let mut labels = Vec::new();
-    let mut source = None;
-    let mut close_reason = None;
 
     for d in &datoms {
         if d.op != Op::Assert {
             continue;
         }
         match d.attribute.as_str() {
-            ":task/id" => {
-                if let Value::String(ref s) = d.value {
-                    id = Some(s.clone());
-                }
-            }
-            ":task/title" => {
-                if let Value::String(ref s) = d.value {
-                    title = Some(s.clone());
-                }
-            }
-            ":task/priority" => {
-                if let Value::Long(n) = d.value {
-                    priority = n;
-                }
-            }
-            ":task/type" => {
-                if let Value::Keyword(ref k) = d.value {
-                    task_type = k.clone();
-                }
-            }
-            ":task/created-at" => {
-                if let Value::Long(n) = d.value {
-                    created_at = n as u64;
-                }
-            }
             ":task/depends-on" => {
                 if let Value::Ref(e) = d.value {
                     depends_on.push(e);
@@ -852,22 +858,10 @@ pub fn task_summary(store: &Store, entity: EntityId) -> Option<TaskSummary> {
                     labels.push(k.clone());
                 }
             }
-            ":task/source" => {
-                if let Value::String(ref s) = d.value {
-                    source = Some(s.clone());
-                }
-            }
-            ":task/close-reason" => {
-                if let Value::String(ref s) = d.value {
-                    close_reason = Some(s.clone());
-                }
-            }
             _ => {}
         }
     }
 
-    let id = id?;
-    let title = title?;
     let status = resolve_task_status(store, entity)?;
 
     Some(TaskSummary {
@@ -1851,6 +1845,97 @@ mod tests {
             "L0 '{}' should be substring of L1 '{}'",
             l0,
             l1
+        );
+    }
+
+    // Regression: t-b87a3cb7 — `task set <id> priority 0` did not visually update.
+    // Cardinality::One attributes must use live_value (LWW by TxId), not the
+    // last-in-BTreeSet-order datom (which is highest *value*, not latest *tx*).
+    #[test]
+    fn task_summary_reflects_updated_priority() {
+        let store = test_store();
+        let agent = AgentId::from_name("test");
+        let tx1 = TxId::new(1, 0, agent);
+
+        // Create a task with priority 2 (medium)
+        let (entity, task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Priority update test",
+            description: None,
+            priority: 2,
+            task_type: TaskType::Task,
+            tx: tx1,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = store_with(&store, task_datoms);
+
+        // Verify initial priority
+        let summary = task_summary(&store, entity).expect("task should exist");
+        assert_eq!(summary.priority, 2, "initial priority should be 2");
+
+        // Update priority to 0 (critical) in a later transaction
+        let tx2 = TxId::new(2, 0, agent);
+        let update_datom = Datom::new(
+            entity,
+            Attribute::from_keyword(":task/priority"),
+            Value::Long(0),
+            tx2,
+            Op::Assert,
+        );
+        let store = store_with(&store, vec![update_datom]);
+
+        // task_summary must return the *latest* priority (0), not the first (2)
+        let summary = task_summary(&store, entity).expect("task should exist after update");
+        assert_eq!(
+            summary.priority, 0,
+            "priority should be 0 after update, not stale value 2"
+        );
+
+        // Also verify via all_tasks
+        let all = all_tasks(&store);
+        let found = all
+            .iter()
+            .find(|t| t.entity == entity)
+            .expect("task in all_tasks");
+        assert_eq!(
+            found.priority, 0,
+            "all_tasks should also reflect updated priority"
+        );
+    }
+
+    // Verify that title updates via live_value are reflected correctly.
+    #[test]
+    fn task_summary_reflects_updated_title() {
+        let store = test_store();
+        let agent = AgentId::from_name("test");
+        let tx1 = TxId::new(1, 0, agent);
+
+        let (entity, task_datoms) = create_task_datoms(CreateTaskParams {
+            title: "Original title",
+            description: None,
+            priority: 2,
+            task_type: TaskType::Task,
+            tx: tx1,
+            traces_to: &[],
+            labels: &[],
+        });
+        let store = store_with(&store, task_datoms);
+
+        // Update title in a later transaction
+        let tx2 = TxId::new(2, 0, agent);
+        let update_datom = Datom::new(
+            entity,
+            Attribute::from_keyword(":task/title"),
+            Value::String("Updated title".to_string()),
+            tx2,
+            Op::Assert,
+        );
+        let store = store_with(&store, vec![update_datom]);
+
+        let summary = task_summary(&store, entity).expect("task should exist after update");
+        assert_eq!(
+            summary.title, "Updated title",
+            "title should reflect the latest transaction"
         );
     }
 }

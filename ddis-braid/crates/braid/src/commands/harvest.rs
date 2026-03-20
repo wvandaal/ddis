@@ -658,6 +658,21 @@ pub fn run(
         ));
         out.push_str(&format!("  harvest session: {session_ident}\n"));
 
+        // T7-1: Auto-trace scan as harvest step 9.5 (INV-WITNESS-011).
+        // Closes the bilateral verification loop: harvest → trace → witness → F(S).
+        let source_root = path.to_path_buf();
+        if let Ok(Some(trace_result)) = super::trace::auto_trace_scan(&layout, &store, &source_root, agent_name) {
+            if trace_result.new_links > 0 || trace_result.new_witnesses > 0 {
+                out.push_str(&format!(
+                    "  trace: {} files, {} refs, +{} impl links, +{} witnesses\n",
+                    trace_result.files_scanned,
+                    trace_result.refs_found,
+                    trace_result.new_links,
+                    trace_result.new_witnesses,
+                ));
+            }
+        }
+
         // RFL-6: Trigger R(t) weight refit at harvest time.
         // If we have 50+ action-outcome pairs, learn new routing weights.
         let reloaded_store = layout.load_store()?;

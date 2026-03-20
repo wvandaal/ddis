@@ -113,68 +113,104 @@ fn main() {
             };
             print!("{}", cmd_output.render(mode));
 
+            // T2-1: Single post-command store load for both RFL-2 and exit warning.
+            // Both paths need (DiskLayout, Store) for the same braid root.
+            // Load once, reuse for both purposes.
+            let needs_rfl2 = cmd_output.json.get("_acp").is_some();
+            let needs_exit_warning =
+                !skip_exit_warning && !cli.quiet && mode != output::OutputMode::Json;
+
+            let post_cmd_store = if (needs_rfl2 || needs_exit_warning) && exit_warn_path.is_some()
+            {
+                exit_warn_path
+                    .as_ref()
+                    .and_then(|path| layout::DiskLayout::open(path).ok())
+                    .and_then(|lo| lo.load_store().ok().map(|store| (lo, store)))
+            } else {
+                None
+            };
+
             // RFL-2: Record projected action as datom for R(t) feedback loop.
             // If the command produced ACP output (_acp field), extract the action
             // and auto-transact it as an :action/* entity. This is the PREDICTION
             // half — the outcome is classified on the NEXT command (RFL-3).
-            if let Some(acp) = cmd_output.json.get("_acp") {
-                if let Some(ref path) = exit_warn_path {
-                    if let Ok(lo) = layout::DiskLayout::open(path) {
-                        if let Ok(store) = lo.load_store() {
-                            if let Some(action) = acp.get("action") {
-                                let cmd_str = action.get("command")
-                                    .and_then(|v| v.as_str())
-                                    .unwrap_or("");
-                                let impact = action.get("impact")
-                                    .and_then(|v| v.as_f64())
-                                    .unwrap_or(0.0);
-                                let wall_ms = std::time::SystemTime::now()
-                                    .duration_since(std::time::UNIX_EPOCH)
-                                    .unwrap_or_default()
-                                    .as_millis() as i64;
+            if let (Some(acp), Some((ref lo, ref store))) =
+                (cmd_output.json.get("_acp"), &post_cmd_store)
+            {
+                if let Some(action) = acp.get("action") {
+                    let cmd_str = action
+                        .get("command")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("");
+                    let impact = action
+                        .get("impact")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.0);
+                    let wall_ms = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_millis() as i64;
 
-                                use braid_kernel::datom::*;
-                                let agent = AgentId::from_name("braid:rfl");
-                                let tx = commands::write::next_tx_id(&store, agent);
-                                let ident = format!(
-                                    ":action/{}",
-                                    &blake3::hash(format!("{}-{}", cmd_str, wall_ms).as_bytes()).to_hex()[..16]
-                                );
-                                let entity = EntityId::from_ident(&ident);
-                                let datoms = vec![
-                                    Datom::new(entity, Attribute::from_keyword(":db/ident"), Value::Keyword(ident), tx, Op::Assert),
-                                    Datom::new(entity, Attribute::from_keyword(":action/recommended-command"), Value::String(cmd_str.to_string()), tx, Op::Assert),
-                                    Datom::new(entity, Attribute::from_keyword(":action/recommended-impact"), Value::Double(ordered_float::OrderedFloat(impact)), tx, Op::Assert),
-                                    Datom::new(entity, Attribute::from_keyword(":action/timestamp"), Value::Long(wall_ms), tx, Op::Assert),
-                                ];
-                                let tx_file = braid_kernel::layout::TxFile {
-                                    tx_id: tx,
-                                    agent,
-                                    provenance: ProvenanceType::Derived,
-                                    rationale: "RFL-2: action prediction recorded".to_string(),
-                                    causal_predecessors: vec![],
-                                    datoms,
-                                };
-                                let _ = lo.write_tx(&tx_file);
-                            }
-                        }
-                    }
+                    use braid_kernel::datom::*;
+                    let agent = AgentId::from_name("braid:rfl");
+                    let tx = commands::write::next_tx_id(store, agent);
+                    let ident = format!(
+                        ":action/{}",
+                        &blake3::hash(format!("{}-{}", cmd_str, wall_ms).as_bytes()).to_hex()
+                            [..16]
+                    );
+                    let entity = EntityId::from_ident(&ident);
+                    let datoms = vec![
+                        Datom::new(
+                            entity,
+                            Attribute::from_keyword(":db/ident"),
+                            Value::Keyword(ident),
+                            tx,
+                            Op::Assert,
+                        ),
+                        Datom::new(
+                            entity,
+                            Attribute::from_keyword(":action/recommended-command"),
+                            Value::String(cmd_str.to_string()),
+                            tx,
+                            Op::Assert,
+                        ),
+                        Datom::new(
+                            entity,
+                            Attribute::from_keyword(":action/recommended-impact"),
+                            Value::Double(ordered_float::OrderedFloat(impact)),
+                            tx,
+                            Op::Assert,
+                        ),
+                        Datom::new(
+                            entity,
+                            Attribute::from_keyword(":action/timestamp"),
+                            Value::Long(wall_ms),
+                            tx,
+                            Op::Assert,
+                        ),
+                    ];
+                    let tx_file = braid_kernel::layout::TxFile {
+                        tx_id: tx,
+                        agent,
+                        provenance: ProvenanceType::Derived,
+                        rationale: "RFL-2: action prediction recorded".to_string(),
+                        causal_predecessors: vec![],
+                        datoms,
+                    };
+                    let _ = lo.write_tx(&tx_file);
                 }
             }
 
             // NEG-HARVEST-001: warn on exit if unharvested work is at risk.
             // Skip for harvest commands (they just harvested) and JSON mode
             // (structured output should not have side-channel stderr noise).
-            if !skip_exit_warning && !cli.quiet && mode != output::OutputMode::Json {
-                if let Some(ref path) = exit_warn_path {
-                    if let Ok(lo) = layout::DiskLayout::open(path) {
-                        if let Ok(store) = lo.load_store() {
-                            if let Some(warning) =
-                                braid_kernel::guidance::should_warn_on_exit(&store, None)
-                            {
-                                eprintln!("{warning}");
-                            }
-                        }
+            if needs_exit_warning {
+                if let Some((_, ref store)) = post_cmd_store {
+                    if let Some(warning) =
+                        braid_kernel::guidance::should_warn_on_exit(store, None)
+                    {
+                        eprintln!("{warning}");
                     }
                 }
             }

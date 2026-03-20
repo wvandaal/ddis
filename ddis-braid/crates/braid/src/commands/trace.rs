@@ -792,6 +792,144 @@ pub fn run(
 }
 
 // ---------------------------------------------------------------------------
+// Auto-trace scan for harvest integration (T7-1, INV-WITNESS-011)
+// ---------------------------------------------------------------------------
+
+/// Result of an automatic trace scan during harvest.
+pub struct AutoTraceResult {
+    /// Number of .rs files scanned.
+    pub files_scanned: usize,
+    /// Number of spec refs found.
+    pub refs_found: usize,
+    /// Number of new :impl/* datoms committed.
+    pub new_links: usize,
+    /// Number of new :spec/witnessed marks.
+    pub new_witnesses: usize,
+}
+
+/// Run trace scan as a harvest side-effect (T7-1, INV-WITNESS-011).
+///
+/// Scans all `.rs` files under `source_root`, resolves spec references,
+/// and commits `:impl/implements` + `:spec/witnessed` datoms.
+///
+/// Returns `None` if no trace datoms were produced.
+/// INV-TRACE-002: Idempotent — content-addressed entities skip duplicates.
+pub fn auto_trace_scan(
+    layout: &DiskLayout,
+    store: &braid_kernel::Store,
+    source_root: &Path,
+    agent_name: &str,
+) -> Result<Option<AutoTraceResult>, crate::error::BraidError> {
+    use braid_kernel::datom::{AgentId, ProvenanceType};
+    use braid_kernel::layout::TxFile;
+    use std::collections::BTreeSet;
+
+    let spec_map = build_spec_ref_map(store);
+    if spec_map.is_empty() {
+        return Ok(None);
+    }
+
+    let files = find_rust_files(source_root);
+    if files.is_empty() {
+        return Ok(None);
+    }
+
+    let mut all_refs: Vec<TraceRef> = Vec::new();
+    for (abs_path, relative) in &files {
+        all_refs.extend(scan_file(abs_path, relative));
+    }
+
+    if all_refs.is_empty() {
+        return Ok(Some(AutoTraceResult {
+            files_scanned: files.len(),
+            refs_found: 0,
+            new_links: 0,
+            new_witnesses: 0,
+        }));
+    }
+
+    let existing_entities: BTreeSet<EntityId> = store.entities();
+    let witnessed_attr = Attribute::from_keyword(":spec/witnessed");
+    let already_witnessed: BTreeSet<EntityId> = store
+        .attribute_datoms(&witnessed_attr)
+        .iter()
+        .filter(|d| d.op == Op::Assert && d.value == Value::Boolean(true))
+        .map(|d| d.entity)
+        .collect();
+
+    let mut resolved_links: Vec<ResolvedLink> = Vec::new();
+    let mut witnessed_specs: BTreeSet<EntityId> = BTreeSet::new();
+    let mut seen_idents: BTreeSet<String> = BTreeSet::new();
+
+    for trace_ref in &all_refs {
+        if let Some(&spec_entity) = spec_map.get(&trace_ref.spec_ref) {
+            if trace_ref.is_test && !already_witnessed.contains(&spec_entity) {
+                witnessed_specs.insert(spec_entity);
+            }
+            let ident = format!(
+                ":impl/{}.{}",
+                trace_ref.file.replace('/', ".").trim_end_matches(".rs"),
+                trace_ref.spec_ref.to_lowercase()
+            );
+            if seen_idents.insert(ident.clone()) {
+                let entity = EntityId::from_ident(&ident);
+                if existing_entities.contains(&entity) {
+                    continue;
+                }
+                resolved_links.push(ResolvedLink {
+                    entity,
+                    ident,
+                    spec_entity,
+                    file: trace_ref.file.clone(),
+                    module: module_from_path(&trace_ref.file),
+                    verification_depth: trace_ref.verification_depth,
+                    verification_evidence: trace_ref.verification_evidence.clone(),
+                });
+            }
+        }
+    }
+
+    if resolved_links.is_empty() && witnessed_specs.is_empty() {
+        return Ok(Some(AutoTraceResult {
+            files_scanned: files.len(),
+            refs_found: all_refs.len(),
+            new_links: 0,
+            new_witnesses: 0,
+        }));
+    }
+
+    let agent = AgentId::from_name(agent_name);
+    let tx_id = super::write::next_tx_id(store, agent);
+
+    let mut datoms = generate_impl_datoms(&resolved_links, tx_id);
+    let witness_datoms = generate_witness_datoms(&witnessed_specs, tx_id);
+    let witness_count = witness_datoms.len();
+    datoms.extend(witness_datoms);
+
+    let new_links = resolved_links.len();
+    let tx = TxFile {
+        tx_id,
+        agent,
+        provenance: ProvenanceType::Derived,
+        rationale: format!(
+            "T7-1 auto-trace: {} impl links, {} witness marks (harvest side-effect)",
+            new_links, witness_count,
+        ),
+        causal_predecessors: vec![],
+        datoms,
+    };
+
+    layout.write_tx(&tx)?;
+
+    Ok(Some(AutoTraceResult {
+        files_scanned: files.len(),
+        refs_found: all_refs.len(),
+        new_links,
+        new_witnesses: witness_count,
+    }))
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 

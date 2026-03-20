@@ -19,8 +19,8 @@ use braid_kernel::bilateral::{
 };
 use braid_kernel::datom::{AgentId, ProvenanceType};
 use braid_kernel::guidance::{
-    compute_methodology_score, count_txns_since_last_harvest, derive_actions, format_actions,
-    methodology_gaps, telemetry_from_store, Trend,
+    adjust_gaps, compute_methodology_score, count_txns_since_last_harvest, derive_actions,
+    detect_activity_mode, format_actions, methodology_gaps, telemetry_from_store, Trend,
 };
 use braid_kernel::layout::TxFile;
 use braid_kernel::trilateral::check_coherence_fast;
@@ -134,7 +134,7 @@ pub fn run(
         });
     }
 
-    // Build JSON representation (always computed — reused for --json and structured output)
+    // Build JSON representation (always computed -- reused for --json and structured output)
     let json_value = build_json(StatusJsonParams {
         path,
         store: &store,
@@ -160,9 +160,8 @@ pub fn run(
     // Agent representation: use ACP projection at Navigate level
     // This replaces the old build_agent() which was truncated at 300 tokens.
     // ACP ensures the action is ALWAYS present and context fills gracefully.
-    let projected_agent = projection.project_at_strategy(
-        braid_kernel::ActivationStrategy::Navigate,
-    );
+    let projected_agent =
+        projection.project_at_strategy(braid_kernel::ActivationStrategy::Navigate);
     let agent_output = AgentOutput {
         context: String::new(),
         content: projected_agent,
@@ -231,7 +230,7 @@ pub fn build_status_projection(
     // Build context blocks in precedence order (highest first)
     let mut context = Vec::new();
 
-    // 1. Store identity (System — always shown)
+    // 1. Store identity (System -- always shown)
     context.push(ContextBlock {
         precedence: OutputPrecedence::System,
         content: format!(
@@ -309,7 +308,7 @@ pub fn build_status_projection(
 
     // 5. Harvest status (Methodology)
     let harvest_status = if tx_since_harvest >= 15 {
-        format!("harvest: {} tx since last — OVERDUE", tx_since_harvest)
+        format!("harvest: {} tx since last -- OVERDUE", tx_since_harvest)
     } else if tx_since_harvest >= 8 {
         format!("harvest: {} tx since last (due soon)", tx_since_harvest)
     } else {
@@ -321,24 +320,36 @@ pub fn build_status_projection(
         tokens: 10,
     });
 
-    // 6. Methodology gaps (Speculative — lower priority)
-    let gaps = methodology_gaps(store);
-    if !gaps.is_empty() {
+    // 6. Methodology gaps with activity-mode suppression (T6-1, Speculative)
+    let raw_gaps = methodology_gaps(store);
+    let mode = detect_activity_mode(&telemetry);
+    let ag = adjust_gaps(raw_gaps, mode);
+    if !ag.raw.is_empty() {
         let mut gap_parts = Vec::new();
-        if gaps.crystallization > 0 {
-            gap_parts.push(format!("{} uncrystallized", gaps.crystallization));
+        if ag.adjusted.crystallization > 0 {
+            gap_parts.push(format!(
+                "{} uncrystallized ({} mode, {} raw)",
+                ag.adjusted.crystallization,
+                ag.mode_label(),
+                ag.raw.crystallization
+            ));
         }
-        if gaps.unanchored > 0 {
-            gap_parts.push(format!("{} unanchored", gaps.unanchored));
+        if ag.adjusted.unanchored > 0 {
+            gap_parts.push(format!(
+                "{} unanchored ({} mode, {} raw)",
+                ag.adjusted.unanchored,
+                ag.mode_label(),
+                ag.raw.unanchored
+            ));
         }
         context.push(ContextBlock {
             precedence: OutputPrecedence::Speculative,
             content: format!("gaps: {}", gap_parts.join(", ")),
-            tokens: 8,
+            tokens: 12,
         });
     }
 
-    // Add methodology M(t) context blocks (ACP-9: footer → context)
+    // Add methodology M(t) context blocks (ACP-9: footer -> context)
     let methodology_blocks = braid_kernel::guidance::methodology_context_blocks(store);
     context.extend(methodology_blocks);
 
@@ -361,7 +372,7 @@ fn build_terse(
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
-    // F(S) uses compute_fitness (no spectral analysis — fast, deterministic)
+    // F(S) uses compute_fitness (no spectral analysis -- fast, deterministic)
     let fitness = compute_fitness(store);
 
     let harvest_tag = if tx_since_harvest >= 15 {
@@ -443,32 +454,37 @@ fn build_terse(
         out.push_str(&task_line);
     }
 
-    // Methodology gaps (INV-GUIDANCE-021: unified gap dashboard)
-    let gaps = methodology_gaps(store);
-    if !gaps.is_empty() {
-        out.push_str("\u{26a0} methodology gaps:\n");
-        if gaps.crystallization > 0 {
+    // Methodology gaps with activity-mode suppression (T6-1, INV-GUIDANCE-021)
+    let raw_gaps = methodology_gaps(store);
+    let mode = detect_activity_mode(&telemetry);
+    let ag = adjust_gaps(raw_gaps, mode);
+    if !ag.raw.is_empty() {
+        out.push_str(&format!(
+            "\u{26a0} methodology gaps ({} mode):\n",
+            ag.mode_label()
+        ));
+        if ag.adjusted.crystallization > 0 {
             out.push_str(&format!(
-                "  crystallization: {} uncrystallized spec IDs\n",
-                gaps.crystallization
+                "  crystallization: {} uncrystallized spec IDs ({} raw)\n",
+                ag.adjusted.crystallization, ag.raw.crystallization
             ));
         }
-        if gaps.unanchored > 0 {
+        if ag.adjusted.unanchored > 0 {
             out.push_str(&format!(
-                "  unanchored: {} tasks with unresolved spec refs\n",
-                gaps.unanchored
+                "  unanchored: {} tasks with unresolved spec refs ({} raw)\n",
+                ag.adjusted.unanchored, ag.raw.unanchored
             ));
         }
-        if gaps.untested > 0 {
+        if ag.adjusted.untested > 0 {
             out.push_str(&format!(
-                "  untested: {} INVs with only L1 witnesses\n",
-                gaps.untested
+                "  untested: {} INVs with only L1 witnesses ({} raw)\n",
+                ag.adjusted.untested, ag.raw.untested
             ));
         }
-        if gaps.stale_witnesses > 0 {
+        if ag.adjusted.stale_witnesses > 0 {
             out.push_str(&format!(
-                "  stale: {} invalidated witnesses\n",
-                gaps.stale_witnesses
+                "  stale: {} invalidated witnesses ({} raw)\n",
+                ag.adjusted.stale_witnesses, ag.raw.stale_witnesses
             ));
         }
     }
@@ -492,7 +508,7 @@ fn build_terse(
     out
 }
 
-/// Build agent-mode three-part structure (INV-OUTPUT-002, ≤300 tokens).
+/// Build agent-mode three-part structure (INV-OUTPUT-002, <=300 tokens).
 #[allow(dead_code)]
 fn build_agent(
     path: &Path,
@@ -504,7 +520,7 @@ fn build_agent(
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
-    // F(S) uses compute_fitness (no spectral analysis — fast, deterministic)
+    // F(S) uses compute_fitness (no spectral analysis -- fast, deterministic)
     let fitness = compute_fitness(store);
 
     let trend_str = match score.trend {
@@ -553,21 +569,28 @@ fn build_agent(
         ));
     }
 
-    // Methodology gaps (INV-GUIDANCE-021)
-    let gaps = methodology_gaps(store);
-    if !gaps.is_empty() {
-        content.push_str(&format!(" | gaps: {}", gaps.total()));
-        if gaps.crystallization > 0 {
-            content.push_str(&format!(" (cryst:{})", gaps.crystallization));
+    // Methodology gaps with activity-mode suppression (T6-1, INV-GUIDANCE-021)
+    let raw_gaps = methodology_gaps(store);
+    let mode = detect_activity_mode(&telemetry);
+    let ag = adjust_gaps(raw_gaps, mode);
+    if !ag.raw.is_empty() {
+        content.push_str(&format!(
+            " | gaps: {} ({} mode, {} raw)",
+            ag.total(),
+            ag.mode_label(),
+            ag.raw.total()
+        ));
+        if ag.adjusted.crystallization > 0 {
+            content.push_str(&format!(" (cryst:{})", ag.adjusted.crystallization));
         }
-        if gaps.unanchored > 0 {
-            content.push_str(&format!(" (unanchored:{})", gaps.unanchored));
+        if ag.adjusted.unanchored > 0 {
+            content.push_str(&format!(" (unanchored:{})", ag.adjusted.unanchored));
         }
-        if gaps.untested > 0 {
-            content.push_str(&format!(" (untested:{})", gaps.untested));
+        if ag.adjusted.untested > 0 {
+            content.push_str(&format!(" (untested:{})", ag.adjusted.untested));
         }
-        if gaps.stale_witnesses > 0 {
-            content.push_str(&format!(" (stale:{})", gaps.stale_witnesses));
+        if ag.adjusted.stale_witnesses > 0 {
+            content.push_str(&format!(" (stale:{})", ag.adjusted.stale_witnesses));
         }
     }
 
@@ -757,32 +780,39 @@ fn build_verbose(
         tx_since_harvest, harvest_warning
     ));
 
-    // Methodology gaps (INV-GUIDANCE-021: unified gap dashboard)
-    let gaps = methodology_gaps(store);
-    if !gaps.is_empty() {
-        out.push_str(&format!("methodology gaps: {} total\n", gaps.total()));
-        if gaps.crystallization > 0 {
+    // Methodology gaps with activity-mode suppression (T6-1, INV-GUIDANCE-021)
+    let raw_gaps = methodology_gaps(store);
+    let mode = detect_activity_mode(&telemetry);
+    let ag = adjust_gaps(raw_gaps, mode);
+    if !ag.raw.is_empty() {
+        out.push_str(&format!(
+            "methodology gaps: {} adjusted ({} mode, {} raw)\n",
+            ag.total(),
+            ag.mode_label(),
+            ag.raw.total()
+        ));
+        if ag.adjusted.crystallization > 0 {
             out.push_str(&format!(
-                "  crystallization: {} uncrystallized spec IDs (run: braid spec create <ID>)\n",
-                gaps.crystallization
+                "  crystallization: {} uncrystallized spec IDs ({} raw, run: braid spec create <ID>)\n",
+                ag.adjusted.crystallization, ag.raw.crystallization
             ));
         }
-        if gaps.unanchored > 0 {
+        if ag.adjusted.unanchored > 0 {
             out.push_str(&format!(
-                "  unanchored: {} tasks with unresolved spec refs\n",
-                gaps.unanchored
+                "  unanchored: {} tasks with unresolved spec refs ({} raw)\n",
+                ag.adjusted.unanchored, ag.raw.unanchored
             ));
         }
-        if gaps.untested > 0 {
+        if ag.adjusted.untested > 0 {
             out.push_str(&format!(
-                "  untested: {} INVs with only L1 witnesses\n",
-                gaps.untested
+                "  untested: {} INVs with only L1 witnesses ({} raw)\n",
+                ag.adjusted.untested, ag.raw.untested
             ));
         }
-        if gaps.stale_witnesses > 0 {
+        if ag.adjusted.stale_witnesses > 0 {
             out.push_str(&format!(
-                "  stale: {} invalidated witnesses\n",
-                gaps.stale_witnesses
+                "  stale: {} invalidated witnesses ({} raw)\n",
+                ag.adjusted.stale_witnesses, ag.raw.stale_witnesses
             ));
         }
     }
@@ -956,15 +986,27 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
         "actions": actions_json,
     });
 
-    // Methodology gaps (INV-GUIDANCE-021)
-    let gaps = methodology_gaps(store);
-    if !gaps.is_empty() {
+    // Methodology gaps with activity-mode suppression (T6-1, INV-GUIDANCE-021)
+    let raw_gaps = methodology_gaps(store);
+    let mode = detect_activity_mode(&telemetry);
+    let ag = adjust_gaps(raw_gaps, mode);
+    if !ag.raw.is_empty() {
         result["methodology_gaps"] = serde_json::json!({
-            "crystallization": gaps.crystallization,
-            "unanchored": gaps.unanchored,
-            "untested": gaps.untested,
-            "stale_witnesses": gaps.stale_witnesses,
-            "total": gaps.total(),
+            "activity_mode": ag.mode_label(),
+            "raw_gaps": {
+                "crystallization": ag.raw.crystallization,
+                "unanchored": ag.raw.unanchored,
+                "untested": ag.raw.untested,
+                "stale_witnesses": ag.raw.stale_witnesses,
+                "total": ag.raw.total(),
+            },
+            "adjusted_gaps": {
+                "crystallization": ag.adjusted.crystallization,
+                "unanchored": ag.adjusted.unanchored,
+                "untested": ag.adjusted.untested,
+                "stale_witnesses": ag.adjusted.stale_witnesses,
+                "total": ag.total(),
+            },
         });
     }
 
