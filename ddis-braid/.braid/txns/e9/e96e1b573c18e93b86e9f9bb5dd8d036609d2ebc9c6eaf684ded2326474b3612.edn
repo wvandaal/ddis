@@ -1,0 +1,23 @@
+{:tx/id #hlc "1773988680/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SD-2: Display M(t) session-age qualifier in braid status. BACKGROUND: M(t) drops to 0.50 after harvest (floor clamp, correct behavior) but looks like 'methodology got worse.' APPROACH: (1) In status display, check tx_since_harvest. (2) If < 5: append '(new session, N txns)' to M(t) line. (3) If >= 5: no qualifier (session has enough data). ACCEPTANCE: (A) Immediately after harvest: M(t)=0.50 (new session). (B) After 10 txns: M(t)=0.59 stable (no qualifier). (C) JSON includes session_age field. TESTS: (1) Status after harvest includes qualifier. (2) Status after 10 txns has no qualifier. FILE: crates/braid/src/commands/status.rs. TRACES TO: INV-GUIDANCE-021, INV-INTERFACE-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :db/ident :v :task/t-558f13c4 :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/acceptance :v "(A) Immediately after harvest: M(t)=0.50 (new session). (B) After 10 txns: M(t)=0.59 stable (no qualifier). (C) JSON includes session_age field. TESTS: (1) Status after harvest includes qualifier. (2) Status after 10 txns has no qualifier." :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/approach :v "(1) In status display, check tx_since_harvest. (2) If < 5: append '(new session, N txns)' to M(t) line. (3) If >= 5: no qualifier (session has enough data)." :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/background :v "M(t) drops to 0.50 after harvest (floor clamp, correct behavior) but looks like 'methodology got worse.' APPROACH: (1) In status display, check tx_since_harvest. (2) If < 5: append '(new session, N txns)' to M(t) line. (3) If >= 5: no qualifier (session has enough data)." :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/created-at :v 1773988678 :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/files :v "crates/braid/src/commands/status.rs." :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/id :v "t-558f13c4" :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/title :v "SD-2: Display M(t) session-age qualifier in braid status. BACKGROUND: M(t) drops to 0.50 after harvest (floor clamp, correct behavior) but looks like 'methodology got worse.' APPROACH: (1) In status display, check tx_since_harvest. (2) If < 5: append '(new session, N txns)' to M(t) line. (3) If >= 5: no qualifier (session has enough data). ACCEPTANCE: (A) Immediately after harvest: M(t)=0.50 (new session). (B) After 10 txns: M(t)=0.59 stable (no qualifier). (C) JSON includes session_age field. TESTS: (1) Status after harvest includes qualifier. (2) Status after 10 txns has no qualifier. FILE: crates/braid/src/commands/status.rs. TRACES TO: INV-GUIDANCE-021, INV-INTERFACE-001." :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/title-l0 :v "SD-2" :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/title-l1 :v "SD-2: Display M(t) session-age qualifier in braid status" :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/traces-to :v #blake3 "4bd0407344a9a5313e66759c9840cec5aa1100469fd9f213745e863101989cb3" :op :assert}
+   {:e #blake3 "03cb214c6c4ea4f2c880fee9827e0c0e5ea5043cf41e1d201c124ef1258382d1" :a :task/type :v :task.type/task :op :assert}
+ ]}

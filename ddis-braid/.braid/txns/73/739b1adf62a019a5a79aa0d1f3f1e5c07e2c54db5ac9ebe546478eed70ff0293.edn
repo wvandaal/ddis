@@ -1,0 +1,21 @@
+{:tx/id #hlc "1773988678/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Status Dashboard Enrichment — session delta + M(t) qualifier (Proposals 4, 5). BACKGROUND: Two display improvements that make metrics more interpretable without changing computation. (1) F(S) session delta: show '+0.01' alongside absolute value so agents see MOVEMENT. (2) M(t) session-age qualifier: show '(new session)' when < 5 txns since harvest so the post-harvest M(t) drop isn't misinterpreted. Both are pure presentation changes following the kernel-returns-truth, CLI-formats-display principle. TRACES TO: INV-BILATERAL-001, INV-GUIDANCE-021, INV-INTERFACE-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :db/ident :v :task/t-0b99c807 :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/background :v "Two display improvements that make metrics more interpretable without changing computation. (1) F(S) session delta: show '+0.01' alongside absolute value so agents see MOVEMENT. (2) M(t) session-age qualifier: show '(new session)' when < 5 txns since harvest so the post-harvest M(t) drop isn't misinterpreted. Both are pure presentation changes following the kernel-returns-truth, CLI-formats-display principle." :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/created-at :v 1773988677 :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/id :v "t-0b99c807" :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/title :v "EPIC: Status Dashboard Enrichment — session delta + M(t) qualifier (Proposals 4, 5). BACKGROUND: Two display improvements that make metrics more interpretable without changing computation. (1) F(S) session delta: show '+0.01' alongside absolute value so agents see MOVEMENT. (2) M(t) session-age qualifier: show '(new session)' when < 5 txns since harvest so the post-harvest M(t) drop isn't misinterpreted. Both are pure presentation changes following the kernel-returns-truth, CLI-formats-display principle. TRACES TO: INV-BILATERAL-001, INV-GUIDANCE-021, INV-INTERFACE-001." :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/title-l1 :v "EPIC: Status Dashboard Enrichment — session delta + M(t) qualifier (Proposa..." :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/traces-to :v #blake3 "4bd0407344a9a5313e66759c9840cec5aa1100469fd9f213745e863101989cb3" :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/traces-to :v #blake3 "7b9bbe4204b84aba3ff9e9571e7be271c1ce17a41c96a69e29f7e1b95bc6d937" :op :assert}
+   {:e #blake3 "1d73a6a3770a78018226cb2e5711d5f6c0c1f5e77e3e04baafff8c1036f0f628" :a :task/type :v :task.type/task :op :assert}
+ ]}

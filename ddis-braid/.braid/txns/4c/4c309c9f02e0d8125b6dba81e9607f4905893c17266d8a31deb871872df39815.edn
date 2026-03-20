@@ -1,0 +1,23 @@
+{:tx/id #hlc "1773988659/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SC-2: Display trace staleness in braid status. BACKGROUND: After SC-1, the staleness detector exists. Wire it into the status command so the agent sees 'trace: fresh' or 'trace: stale (12 files modified since last scan)'. APPROACH: In status.rs, call trace::check_staleness() and add a line to both human and JSON output. When stale, include a suggestion: 'run: braid trace scan --commit' or 'next harvest will auto-scan'. ACCEPTANCE: (A) Status shows trace freshness line. (B) When stale, shows file count and suggestion. (C) JSON includes trace_status field. TESTS: (1) Status on fresh store shows 'trace: fresh' or similar. FILE: crates/braid/src/commands/status.rs. TRACES TO: INV-INTERFACE-001, INV-BILATERAL-002. DEPENDS-ON: SC-1."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :db/ident :v :task/t-0324938a :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/acceptance :v "(A) Status shows trace freshness line. (B) When stale, shows file count and suggestion. (C) JSON includes trace_status field. TESTS: (1) Status on fresh store shows 'trace: fresh' or similar." :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/approach :v "In status.rs, call trace::check_staleness() and add a line to both human and JSON output. When stale, include a suggestion: 'run: braid trace scan --commit' or 'next harvest will auto-scan'." :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/background :v "After SC-1, the staleness detector exists. Wire it into the status command so the agent sees 'trace: fresh' or 'trace: stale (12 files modified since last scan)'. APPROACH: In status.rs, call trace::check_staleness() and add a line to both human and JSON output. When stale, include a suggestion: 'run: braid trace scan --commit' or 'next harvest will auto-scan'." :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/created-at :v 1773988657 :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/files :v "crates/braid/src/commands/status.rs." :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/id :v "t-0324938a" :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/title :v "SC-2: Display trace staleness in braid status. BACKGROUND: After SC-1, the staleness detector exists. Wire it into the status command so the agent sees 'trace: fresh' or 'trace: stale (12 files modified since last scan)'. APPROACH: In status.rs, call trace::check_staleness() and add a line to both human and JSON output. When stale, include a suggestion: 'run: braid trace scan --commit' or 'next harvest will auto-scan'. ACCEPTANCE: (A) Status shows trace freshness line. (B) When stale, shows file count and suggestion. (C) JSON includes trace_status field. TESTS: (1) Status on fresh store shows 'trace: fresh' or similar. FILE: crates/braid/src/commands/status.rs. TRACES TO: INV-INTERFACE-001, INV-BILATERAL-002. DEPENDS-ON: SC-1." :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/title-l0 :v "SC-2" :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/title-l1 :v "SC-2: Display trace staleness in braid status" :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/traces-to :v #blake3 "02971edde86430d49d1aab6870829e8ef81d521a1772922509ce4a7341fe65cb" :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/traces-to :v #blake3 "6a3c3bb99e8cea02e12db4832d89beb5ec5e19a0a657d5b68541e0d447a0239a" :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/type :v :task.type/task :op :assert}
+ ]}

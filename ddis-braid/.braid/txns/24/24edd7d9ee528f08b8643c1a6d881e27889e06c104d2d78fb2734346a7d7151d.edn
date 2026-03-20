@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773988628/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PROPOSAL-5: M(t) Session-Age Qualifier. PROBLEM: M(t) drops from 0.59 to 0.50 after harvest because session resets. This is CORRECT behavior but visually signals 'methodology got worse' when actually 'session restarted'. SOLUTION: Display M(t) with age qualifier when < 5 txns since harvest: 'M(t)=0.50 (new session)'. Drop qualifier after 5 txns. VERIFICATION: Test: 0 txns since harvest → qualifier present. 10 txns → qualifier absent. DEPENDS-ON: None. TRACES TO: INV-GUIDANCE-021, INV-INTERFACE-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5cb83274212462bd3920d77855f20a60fabba6702ebe2186997260c354260b76" :a :db/doc :v "PROPOSAL-5: M(t) Session-Age Qualifier. PROBLEM: M(t) drops from 0.59 to 0.50 after harvest because session resets. This is CORRECT behavior but visually signals 'methodology got worse' when actually 'session restarted'. SOLUTION: Display M(t) with age qualifier when < 5 txns since harvest: 'M(t)=0.50 (new session)'. Drop qualifier after 5 txns. VERIFICATION: Test: 0 txns since harvest → qualifier present. 10 txns → qualifier absent. DEPENDS-ON: None. TRACES TO: INV-GUIDANCE-021, INV-INTERFACE-001." :op :assert}
+   {:e #blake3 "5cb83274212462bd3920d77855f20a60fabba6702ebe2186997260c354260b76" :a :db/ident :v :observation/proposal-5-mt-session-age-qualifier-problem-mt-drops :op :assert}
+   {:e #blake3 "5cb83274212462bd3920d77855f20a60fabba6702ebe2186997260c354260b76" :a :exploration/body :v "PROPOSAL-5: M(t) Session-Age Qualifier. PROBLEM: M(t) drops from 0.59 to 0.50 after harvest because session resets. This is CORRECT behavior but visually signals 'methodology got worse' when actually 'session restarted'. SOLUTION: Display M(t) with age qualifier when < 5 txns since harvest: 'M(t)=0.50 (new session)'. Drop qualifier after 5 txns. VERIFICATION: Test: 0 txns since harvest → qualifier present. 10 txns → qualifier absent. DEPENDS-ON: None. TRACES TO: INV-GUIDANCE-021, INV-INTERFACE-001." :op :assert}
+   {:e #blake3 "5cb83274212462bd3920d77855f20a60fabba6702ebe2186997260c354260b76" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "5cb83274212462bd3920d77855f20a60fabba6702ebe2186997260c354260b76" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "5cb83274212462bd3920d77855f20a60fabba6702ebe2186997260c354260b76" :a :exploration/content-hash :v #bytes "d46d82b68e5bcd1c8faf13fd59b822444123c322eacd14e91f67ad6b7a722546" :op :assert}
+   {:e #blake3 "5cb83274212462bd3920d77855f20a60fabba6702ebe2186997260c354260b76" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5cb83274212462bd3920d77855f20a60fabba6702ebe2186997260c354260b76" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5cb83274212462bd3920d77855f20a60fabba6702ebe2186997260c354260b76" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

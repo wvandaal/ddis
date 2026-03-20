@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773988627/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PROPOSAL-4: Session Delta Display for F(S). PROBLEM: F(S) changes slowly (0.64→0.65 in a 57-task session). The absolute value doesn't show MOVEMENT. Agents can't tell if their work is improving coherence. SOLUTION: Display F(S) with session delta: 'F(S)=0.65 (+0.01)'. Store session-start F(S) as :session/start-fitness datom. Delta = current - start. VERIFICATION: Test: at session start, delta = 0. After work, delta > 0 (assuming productive session). DEPENDS-ON: None. TRACES TO: INV-BILATERAL-001 (Monotonic Convergence), INV-INTERFACE-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bd32f5db9db49bd0302fc65504fc2102fd65851b58ad0e5a588fa9ae5063fc5d" :a :db/doc :v "PROPOSAL-4: Session Delta Display for F(S). PROBLEM: F(S) changes slowly (0.64→0.65 in a 57-task session). The absolute value doesn't show MOVEMENT. Agents can't tell if their work is improving coherence. SOLUTION: Display F(S) with session delta: 'F(S)=0.65 (+0.01)'. Store session-start F(S) as :session/start-fitness datom. Delta = current - start. VERIFICATION: Test: at session start, delta = 0. After work, delta > 0 (assuming productive session). DEPENDS-ON: None. TRACES TO: INV-BILATERAL-001 (Monotonic Convergence), INV-INTERFACE-001." :op :assert}
+   {:e #blake3 "bd32f5db9db49bd0302fc65504fc2102fd65851b58ad0e5a588fa9ae5063fc5d" :a :db/ident :v :observation/proposal-4-session-delta-display-for-fs-problem-fs-ch :op :assert}
+   {:e #blake3 "bd32f5db9db49bd0302fc65504fc2102fd65851b58ad0e5a588fa9ae5063fc5d" :a :exploration/body :v "PROPOSAL-4: Session Delta Display for F(S). PROBLEM: F(S) changes slowly (0.64→0.65 in a 57-task session). The absolute value doesn't show MOVEMENT. Agents can't tell if their work is improving coherence. SOLUTION: Display F(S) with session delta: 'F(S)=0.65 (+0.01)'. Store session-start F(S) as :session/start-fitness datom. Delta = current - start. VERIFICATION: Test: at session start, delta = 0. After work, delta > 0 (assuming productive session). DEPENDS-ON: None. TRACES TO: INV-BILATERAL-001 (Monotonic Convergence), INV-INTERFACE-001." :op :assert}
+   {:e #blake3 "bd32f5db9db49bd0302fc65504fc2102fd65851b58ad0e5a588fa9ae5063fc5d" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "bd32f5db9db49bd0302fc65504fc2102fd65851b58ad0e5a588fa9ae5063fc5d" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "bd32f5db9db49bd0302fc65504fc2102fd65851b58ad0e5a588fa9ae5063fc5d" :a :exploration/content-hash :v #bytes "a219f33fdb66ec8723048d38330354a13bbe7c2082f74e219ed15c4037bf87fd" :op :assert}
+   {:e #blake3 "bd32f5db9db49bd0302fc65504fc2102fd65851b58ad0e5a588fa9ae5063fc5d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "bd32f5db9db49bd0302fc65504fc2102fd65851b58ad0e5a588fa9ae5063fc5d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "bd32f5db9db49bd0302fc65504fc2102fd65851b58ad0e5a588fa9ae5063fc5d" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

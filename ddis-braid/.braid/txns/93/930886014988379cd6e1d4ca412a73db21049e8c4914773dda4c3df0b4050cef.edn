@@ -1,0 +1,21 @@
+{:tx/id #hlc "1773988720/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-SC: E2E test for store-codebase observability pipeline. APPROACH: Create scripts/e2e_trace_staleness.sh that: (1) Init fresh store with spec elements. (2) Create .rs test file referencing specs. (3) Run braid trace scan --commit. (4) Verify braid status shows 'trace: fresh'. (5) Touch/modify the .rs file. (6) Verify braid status shows 'trace: stale (1 file)'. (7) Run braid trace scan --incremental --commit. (8) Verify status shows 'trace: fresh' again. (9) Verify only the modified file was re-scanned (check timing or datom count). (10) Run braid harvest --commit and verify auto-trace runs. ACCEPTANCE: All 10 checks pass. Script logs each step with timing. FILE: scripts/e2e_trace_staleness.sh. TRACES TO: INV-BILATERAL-002. DEPENDS-ON: SC-1, SC-2, SC-3."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :db/ident :v :task/t-a81625cb :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/acceptance :v "All 10 checks pass. Script logs each step with timing." :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/approach :v "Create scripts/e2e_trace_staleness.sh that: (1) Init fresh store with spec elements. (2) Create .rs test file referencing specs. (3) Run braid trace scan --commit. (4) Verify braid status shows 'trace: fresh'. (5) Touch/modify the .rs file. (6) Verify braid status shows 'trace: stale (1 file)'. (7) Run braid trace scan --incremental --commit. (8) Verify status shows 'trace: fresh' again. (9) Verify only the modified file was re-scanned (check timing or datom count). (10) Run braid harvest --commit and verify auto-trace runs." :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/created-at :v 1773988719 :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/files :v "scripts/e2e_trace_staleness.sh." :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/id :v "t-a81625cb" :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/title :v "TEST-SC: E2E test for store-codebase observability pipeline. APPROACH: Create scripts/e2e_trace_staleness.sh that: (1) Init fresh store with spec elements. (2) Create .rs test file referencing specs. (3) Run braid trace scan --commit. (4) Verify braid status shows 'trace: fresh'. (5) Touch/modify the .rs file. (6) Verify braid status shows 'trace: stale (1 file)'. (7) Run braid trace scan --incremental --commit. (8) Verify status shows 'trace: fresh' again. (9) Verify only the modified file was re-scanned (check timing or datom count). (10) Run braid harvest --commit and verify auto-trace runs. ACCEPTANCE: All 10 checks pass. Script logs each step with timing. FILE: scripts/e2e_trace_staleness.sh. TRACES TO: INV-BILATERAL-002. DEPENDS-ON: SC-1, SC-2, SC-3." :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/title-l0 :v "TEST-SC" :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/title-l1 :v "TEST-SC: E2E test for store-codebase observability pipeline" :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/traces-to :v #blake3 "6a3c3bb99e8cea02e12db4832d89beb5ec5e19a0a657d5b68541e0d447a0239a" :op :assert}
+   {:e #blake3 "3ea021b3c608a8cd48fd9c74b9f1b51d97d6ef21e3fba02d622761ea7ac045e2" :a :task/type :v :task.type/task :op :assert}
+ ]}

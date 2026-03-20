@@ -1,0 +1,16 @@
+{:tx/id #hlc "1773988630/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PROPOSAL-7: Verify Footer State (May Be Non-Issue). PROBLEM: Reported that 20 non-ACP commands still show noisy methodology footer. But T4-1 already modified GuidanceLevel::for_k_eff to return BasinToken for k*>=0.4. Non-ACP commands SHOULD already get lean footers. SOLUTION: VERIFY before fixing. Run a non-ACP command without -q and check footer length. If already lean, no fix needed. If still verbose, investigate k* computation path. DEPENDS-ON: None. TRACES TO: INV-GUIDANCE-004, ADR-BUDGET-003."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0ebc963124b7a9d0dce18106f7dd92953a82f0122ca6c0e4163e29e5f10d34e5" :a :db/doc :v "PROPOSAL-7: Verify Footer State (May Be Non-Issue). PROBLEM: Reported that 20 non-ACP commands still show noisy methodology footer. But T4-1 already modified GuidanceLevel::for_k_eff to return BasinToken for k*>=0.4. Non-ACP commands SHOULD already get lean footers. SOLUTION: VERIFY before fixing. Run a non-ACP command without -q and check footer length. If already lean, no fix needed. If still verbose, investigate k* computation path. DEPENDS-ON: None. TRACES TO: INV-GUIDANCE-004, ADR-BUDGET-003." :op :assert}
+   {:e #blake3 "0ebc963124b7a9d0dce18106f7dd92953a82f0122ca6c0e4163e29e5f10d34e5" :a :db/ident :v :observation/proposal-7-verify-footer-state-may-be-non-issue-problem :op :assert}
+   {:e #blake3 "0ebc963124b7a9d0dce18106f7dd92953a82f0122ca6c0e4163e29e5f10d34e5" :a :exploration/body :v "PROPOSAL-7: Verify Footer State (May Be Non-Issue). PROBLEM: Reported that 20 non-ACP commands still show noisy methodology footer. But T4-1 already modified GuidanceLevel::for_k_eff to return BasinToken for k*>=0.4. Non-ACP commands SHOULD already get lean footers. SOLUTION: VERIFY before fixing. Run a non-ACP command without -q and check footer length. If already lean, no fix needed. If still verbose, investigate k* computation path. DEPENDS-ON: None. TRACES TO: INV-GUIDANCE-004, ADR-BUDGET-003." :op :assert}
+   {:e #blake3 "0ebc963124b7a9d0dce18106f7dd92953a82f0122ca6c0e4163e29e5f10d34e5" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "0ebc963124b7a9d0dce18106f7dd92953a82f0122ca6c0e4163e29e5f10d34e5" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "0ebc963124b7a9d0dce18106f7dd92953a82f0122ca6c0e4163e29e5f10d34e5" :a :exploration/content-hash :v #bytes "078cd6436e3a625cb1b122fe7d0e94ca1393786d3af52355341064cd99aa282a" :op :assert}
+   {:e #blake3 "0ebc963124b7a9d0dce18106f7dd92953a82f0122ca6c0e4163e29e5f10d34e5" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0ebc963124b7a9d0dce18106f7dd92953a82f0122ca6c0e4163e29e5f10d34e5" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0ebc963124b7a9d0dce18106f7dd92953a82f0122ca6c0e4163e29e5f10d34e5" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

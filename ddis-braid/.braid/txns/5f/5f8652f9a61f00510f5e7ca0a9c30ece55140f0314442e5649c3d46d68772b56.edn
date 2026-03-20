@@ -1,0 +1,20 @@
+{:tx/id #hlc "1773988721/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TEST-SD: Unit tests for status dashboard enrichment. APPROACH: (1) F(S) delta: create store, compute F(S), store as :session/start-fitness, close tasks, recompute, verify delta > 0. (2) M(t) qualifier: create store with harvest, verify 'new session' qualifier present. Add 10 txns, verify qualifier absent. (3) Both in crates/braid/src/commands/status.rs test module or as integration tests. ACCEPTANCE: 2+ unit tests pass. FILE: crates/braid/src/commands/status.rs. DEPENDS-ON: SD-1, SD-2."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :db/ident :v :task/t-3b276979 :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/acceptance :v "2+ unit tests pass." :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/approach :v "(1) F(S) delta: create store, compute F(S), store as :session/start-fitness, close tasks, recompute, verify delta > 0. (2) M(t) qualifier: create store with harvest, verify 'new session' qualifier present. Add 10 txns, verify qualifier absent. (3) Both in crates/braid/src/commands/status.rs test module or as integration tests." :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/created-at :v 1773988720 :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/files :v "crates/braid/src/commands/status.rs. DEPENDS-ON: SD-1" :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/id :v "t-3b276979" :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/title :v "TEST-SD: Unit tests for status dashboard enrichment. APPROACH: (1) F(S) delta: create store, compute F(S), store as :session/start-fitness, close tasks, recompute, verify delta > 0. (2) M(t) qualifier: create store with harvest, verify 'new session' qualifier present. Add 10 txns, verify qualifier absent. (3) Both in crates/braid/src/commands/status.rs test module or as integration tests. ACCEPTANCE: 2+ unit tests pass. FILE: crates/braid/src/commands/status.rs. DEPENDS-ON: SD-1, SD-2." :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/title-l0 :v "TEST-SD" :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/title-l1 :v "TEST-SD: Unit tests for status dashboard enrichment" :op :assert}
+   {:e #blake3 "f4c0931e86dc124de7d20f9680d7415f7bf3a785b5a907540b626143fb57c490" :a :task/type :v :task.type/task :op :assert}
+ ]}
