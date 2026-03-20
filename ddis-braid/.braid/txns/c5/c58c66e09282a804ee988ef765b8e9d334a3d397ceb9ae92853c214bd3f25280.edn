@@ -1,0 +1,15 @@
+{:tx/id #hlc "1774016747/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-0324938a, t-e836b47c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "58b6afe59936938735da891430b22ed2a51efe461913c4759cdc6fec0166d745" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "58b6afe59936938735da891430b22ed2a51efe461913c4759cdc6fec0166d745" :a :task/closed-at :v 1774016746 :op :assert}
+   {:e #blake3 "58b6afe59936938735da891430b22ed2a51efe461913c4759cdc6fec0166d745" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "58b6afe59936938735da891430b22ed2a51efe461913c4759cdc6fec0166d745" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/closed-at :v 1774016746 :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "cf1fb245303ab851d25f988ee221c141ed38100f95a421c581510495f8ac21ad" :a :task/status :v :task.status/closed :op :assert}
+ ]}
