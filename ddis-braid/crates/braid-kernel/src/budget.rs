@@ -1039,6 +1039,190 @@ pub fn calibrate_boost_scale(store: &crate::store::Store) -> f64 {
 }
 
 // ---------------------------------------------------------------------------
+// TSV rendering (OutputMode::Tsv)
+// ---------------------------------------------------------------------------
+
+/// Convert a JSON value to TSV (tab-separated values).
+///
+/// TSV is a **rendering** concern, not a data format. This function takes the
+/// same `serde_json::Value` that JSON mode would serialize and converts it to
+/// tab-separated text suitable for `cut`, `awk`, spreadsheets, and piped
+/// workflows.
+///
+/// Conversion rules:
+/// - **Object with a `"tasks"` array**: extract the array, render header row
+///   from the first object's keys, then one data row per element.
+/// - **Object with `"_acp"` field** (ACP output): render action row, then
+///   context block rows.
+/// - **Plain object**: one row per key-value pair (`key\tvalue`).
+/// - **Array of objects**: header row from the first object's keys, then one
+///   data row per element.
+/// - **Array of primitives**: one value per line.
+/// - **Null / empty**: empty string.
+///
+/// Tab characters and newlines inside values are replaced with spaces to
+/// prevent column/row corruption.
+pub fn json_to_tsv(json: &serde_json::Value) -> String {
+    match json {
+        serde_json::Value::Null => String::new(),
+        serde_json::Value::Bool(b) => b.to_string(),
+        serde_json::Value::Number(n) => n.to_string(),
+        serde_json::Value::String(s) => escape_tsv(s),
+        serde_json::Value::Array(arr) => array_to_tsv(arr),
+        serde_json::Value::Object(map) => object_to_tsv(map),
+    }
+}
+
+/// Escape a string for TSV: replace tabs and newlines with spaces.
+fn escape_tsv(s: &str) -> String {
+    s.replace(['\t', '\n', '\r'], " ")
+}
+
+/// Render a flat JSON value as a single TSV cell.
+fn value_to_cell(v: &serde_json::Value) -> String {
+    match v {
+        serde_json::Value::Null => String::new(),
+        serde_json::Value::Bool(b) => b.to_string(),
+        serde_json::Value::Number(n) => n.to_string(),
+        serde_json::Value::String(s) => escape_tsv(s),
+        // Nested objects/arrays: compact JSON representation, escaped.
+        other => escape_tsv(&other.to_string()),
+    }
+}
+
+/// Render a JSON array as TSV.
+fn array_to_tsv(arr: &[serde_json::Value]) -> String {
+    if arr.is_empty() {
+        return String::new();
+    }
+
+    // Array of objects: header + rows.
+    if let Some(serde_json::Value::Object(first)) = arr.first() {
+        let keys: Vec<&String> = first.keys().collect();
+        let mut out = keys.iter().map(|k| escape_tsv(k)).collect::<Vec<_>>().join("\t");
+        out.push('\n');
+        for item in arr {
+            if let serde_json::Value::Object(obj) = item {
+                let row: Vec<String> = keys.iter().map(|k| {
+                    obj.get(*k).map(value_to_cell).unwrap_or_default()
+                }).collect();
+                out.push_str(&row.join("\t"));
+                out.push('\n');
+            } else {
+                out.push_str(&value_to_cell(item));
+                out.push('\n');
+            }
+        }
+        return out;
+    }
+
+    // Array of primitives: one value per line.
+    let mut out = String::new();
+    for item in arr {
+        out.push_str(&value_to_cell(item));
+        out.push('\n');
+    }
+    out
+}
+
+/// Render a JSON object as TSV.
+fn object_to_tsv(map: &serde_json::Map<String, serde_json::Value>) -> String {
+    if map.is_empty() {
+        return String::new();
+    }
+
+    // ACP output: render action + context blocks.
+    if let Some(acp) = map.get("_acp") {
+        return acp_to_tsv(acp, map);
+    }
+
+    // Object with a prominent array field (e.g., "tasks", "results", "commands"):
+    // extract the array and render as table.
+    for key in &["tasks", "results", "items", "commands", "datoms", "entities"] {
+        if let Some(serde_json::Value::Array(arr)) = map.get(*key) {
+            if !arr.is_empty() {
+                return array_to_tsv(arr);
+            }
+        }
+    }
+
+    // Plain object: key\tvalue pairs.
+    let mut out = String::new();
+    for (k, v) in map {
+        out.push_str(&escape_tsv(k));
+        out.push('\t');
+        out.push_str(&value_to_cell(v));
+        out.push('\n');
+    }
+    out
+}
+
+/// Render ACP JSON as TSV: action row, then context block rows.
+fn acp_to_tsv(acp: &serde_json::Value, full: &serde_json::Map<String, serde_json::Value>) -> String {
+    let mut out = String::new();
+
+    // Action row.
+    if let Some(action) = acp.get("action") {
+        let cmd = action.get("command").and_then(|v| v.as_str()).unwrap_or("");
+        let rationale = action.get("rationale").and_then(|v| v.as_str()).unwrap_or("");
+        let impact = action.get("impact").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        out.push_str("action\tcommand\trationale\timpact\n");
+        out.push_str(&format!(
+            "action\t{}\t{}\t{:.2}\n",
+            escape_tsv(cmd),
+            escape_tsv(rationale),
+            impact
+        ));
+    }
+
+    // Context blocks.
+    if let Some(serde_json::Value::Array(blocks)) = acp.get("context_blocks") {
+        if !blocks.is_empty() {
+            out.push_str("block\tprecedence\tcontent\ttokens\n");
+            for block in blocks {
+                let prec = block.get("precedence").and_then(|v| v.as_str()).unwrap_or("");
+                let content = block.get("content").and_then(|v| v.as_str()).unwrap_or("");
+                let tokens = block.get("tokens").and_then(|v| v.as_u64()).unwrap_or(0);
+                out.push_str(&format!(
+                    "block\t{}\t{}\t{}\n",
+                    escape_tsv(prec),
+                    escape_tsv(content),
+                    tokens
+                ));
+            }
+        }
+    }
+
+    // Evidence pointer.
+    if let Some(evidence) = acp.get("evidence") {
+        if let Some(s) = evidence.as_str() {
+            if !s.is_empty() {
+                out.push_str(&format!("evidence\t{}\n", escape_tsv(s)));
+            }
+        }
+    }
+
+    // Non-ACP fields from the parent object (e.g., tasks, status).
+    for (k, v) in full {
+        if k == "_acp" {
+            continue;
+        }
+        if let serde_json::Value::Array(arr) = v {
+            if !arr.is_empty() {
+                out.push_str(&array_to_tsv(arr));
+            }
+        } else {
+            out.push_str(&escape_tsv(k));
+            out.push('\t');
+            out.push_str(&value_to_cell(v));
+            out.push('\n');
+        }
+    }
+
+    out
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -2124,5 +2308,117 @@ mod tests {
         let navigate = proj.project_at_strategy(ActivationStrategy::Navigate);
         let direct = proj.project(ActivationStrategy::Navigate.max_context_tokens());
         assert_eq!(navigate, direct);
+    }
+
+    // ---- json_to_tsv ----
+
+    /// Plain object renders as key\tvalue pairs.
+    #[test]
+    fn json_to_tsv_object_renders_key_value() {
+        let json = serde_json::json!({"a": 1, "b": "hello"});
+        let tsv = json_to_tsv(&json);
+        // serde_json::Map iterates in insertion order for small maps,
+        // but we test each line is present rather than exact ordering.
+        assert!(tsv.contains("a\t1\n"), "should contain a\\t1, got: {tsv}");
+        assert!(tsv.contains("b\thello\n"), "should contain b\\thello, got: {tsv}");
+        // Exactly 2 lines (2 key-value pairs).
+        assert_eq!(tsv.lines().count(), 2, "should have 2 lines, got: {tsv}");
+    }
+
+    /// Object with "tasks" array renders header + rows.
+    #[test]
+    fn json_to_tsv_array_renders_header_plus_rows() {
+        let json = serde_json::json!({"tasks": [{"id": "t-1", "p": 1}, {"id": "t-2", "p": 2}]});
+        let tsv = json_to_tsv(&json);
+        let lines: Vec<&str> = tsv.lines().collect();
+        assert_eq!(lines.len(), 3, "header + 2 data rows, got: {tsv}");
+        // Header line should contain "id" and "p".
+        assert!(lines[0].contains("id"), "header should contain 'id': {}", lines[0]);
+        assert!(lines[0].contains("p"), "header should contain 'p': {}", lines[0]);
+        // Data rows.
+        assert!(tsv.contains("t-1"), "should contain t-1, got: {tsv}");
+        assert!(tsv.contains("t-2"), "should contain t-2, got: {tsv}");
+    }
+
+    /// Tab characters in values are escaped to spaces.
+    #[test]
+    fn json_to_tsv_escapes_tabs() {
+        let json = serde_json::json!({"key": "has\ttab"});
+        let tsv = json_to_tsv(&json);
+        assert!(!tsv.contains("has\ttab"), "tab in value should be escaped");
+        assert!(tsv.contains("has tab"), "tab should become space, got: {tsv}");
+    }
+
+    /// Newlines in values are escaped to spaces.
+    #[test]
+    fn json_to_tsv_escapes_newlines() {
+        let json = serde_json::json!({"key": "line1\nline2"});
+        let tsv = json_to_tsv(&json);
+        // The value should not introduce a spurious row boundary.
+        assert_eq!(tsv.lines().count(), 1, "newline in value should be escaped, got: {tsv}");
+        assert!(tsv.contains("line1 line2"), "newline should become space, got: {tsv}");
+    }
+
+    /// ACP JSON renders action row + context block rows.
+    #[test]
+    fn json_to_tsv_acp_renders_action_plus_blocks() {
+        let json = serde_json::json!({
+            "_acp": {
+                "action": {
+                    "command": "braid go t-test",
+                    "rationale": "top task",
+                    "impact": 0.42
+                },
+                "context_blocks": [
+                    {"precedence": "System", "content": "store info", "tokens": 5}
+                ],
+                "evidence": "braid status"
+            }
+        });
+        let tsv = json_to_tsv(&json);
+        // Action header + data row.
+        assert!(tsv.contains("action\tcommand\trationale\timpact"), "action header missing: {tsv}");
+        assert!(tsv.contains("braid go t-test"), "action command missing: {tsv}");
+        assert!(tsv.contains("0.42"), "action impact missing: {tsv}");
+        // Context block header + data row.
+        assert!(tsv.contains("block\tprecedence\tcontent\ttokens"), "block header missing: {tsv}");
+        assert!(tsv.contains("System"), "block precedence missing: {tsv}");
+        assert!(tsv.contains("store info"), "block content missing: {tsv}");
+        // Evidence.
+        assert!(tsv.contains("evidence\tbraid status"), "evidence missing: {tsv}");
+    }
+
+    /// Null/empty JSON produces empty string.
+    #[test]
+    fn json_to_tsv_empty_is_empty() {
+        assert_eq!(json_to_tsv(&serde_json::Value::Null), "");
+        assert_eq!(json_to_tsv(&serde_json::json!({})), "");
+        assert_eq!(json_to_tsv(&serde_json::json!([])), "");
+    }
+
+    /// Bare array of objects renders header + rows.
+    #[test]
+    fn json_to_tsv_bare_array_of_objects() {
+        let json = serde_json::json!([{"name": "a", "val": 1}, {"name": "b", "val": 2}]);
+        let tsv = json_to_tsv(&json);
+        let lines: Vec<&str> = tsv.lines().collect();
+        assert_eq!(lines.len(), 3, "header + 2 rows, got: {tsv}");
+        assert!(lines[0].contains("name"), "header should have 'name': {}", lines[0]);
+    }
+
+    /// Bare array of primitives renders one value per line.
+    #[test]
+    fn json_to_tsv_array_of_primitives() {
+        let json = serde_json::json!([1, 2, 3]);
+        let tsv = json_to_tsv(&json);
+        assert_eq!(tsv, "1\n2\n3\n");
+    }
+
+    /// Scalar values render directly.
+    #[test]
+    fn json_to_tsv_scalars() {
+        assert_eq!(json_to_tsv(&serde_json::json!(42)), "42");
+        assert_eq!(json_to_tsv(&serde_json::json!(true)), "true");
+        assert_eq!(json_to_tsv(&serde_json::json!("hello")), "hello");
     }
 }

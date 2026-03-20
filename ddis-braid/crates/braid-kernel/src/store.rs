@@ -3068,21 +3068,21 @@ mod tests {
 
                 // Transact two values for the same entity+attribute
                 let tx1 = Transaction::new(agent, ProvenanceType::Observed, "v1")
-                    .assert(entity.clone(), attr.clone(), value1)
+                    .assert(entity, attr.clone(), value1)
                     .commit(&s);
                 if let Ok(committed) = tx1 {
                     let _ = s.transact(committed);
                 }
 
                 let tx2 = Transaction::new(agent, ProvenanceType::Observed, "v2")
-                    .assert(entity.clone(), attr.clone(), value2.clone())
+                    .assert(entity, attr.clone(), value2.clone())
                     .commit(&s);
                 if let Ok(committed) = tx2 {
                     let _ = s.transact(committed);
                 }
 
                 // live_value should return the latest value (LWW resolution)
-                let live = s.live_value(entity.clone(), &attr);
+                let live = s.live_value(entity, &attr);
 
                 // Manual resolution: find all asserted datoms for (e, a),
                 // pick the one with the highest tx

@@ -145,8 +145,10 @@ fn main() {
             // Both paths need (DiskLayout, Store) for the same braid root.
             // Load once, reuse for both purposes.
             let needs_rfl2 = cmd_output.json.get("_acp").is_some();
-            let needs_exit_warning =
-                !skip_exit_warning && !cli.quiet && mode != output::OutputMode::Json;
+            let needs_exit_warning = !skip_exit_warning
+                && !cli.quiet
+                && mode != output::OutputMode::Json
+                && mode != output::OutputMode::Tsv;
 
             let post_cmd_store = if (needs_rfl2 || needs_exit_warning) && exit_warn_path.is_some() {
                 exit_warn_path

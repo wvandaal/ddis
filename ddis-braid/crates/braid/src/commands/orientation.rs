@@ -21,6 +21,11 @@ pub fn build_orientation(mode: OutputMode) -> String {
 
     match mode {
         OutputMode::Json => build_json(&info),
+        OutputMode::Tsv => {
+            let json: serde_json::Value =
+                serde_json::from_str(&build_json(&info)).unwrap_or_default();
+            braid_kernel::budget::json_to_tsv(&json)
+        }
         OutputMode::Agent => build_agent(&info),
         OutputMode::Human => build_human(&info),
     }

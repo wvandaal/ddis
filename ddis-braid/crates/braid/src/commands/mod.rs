@@ -1636,10 +1636,11 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
     }
 }
 
-/// Whether a command produces JSON output (footers must not corrupt JSON).
+/// Whether a command produces JSON output (footers must not corrupt JSON/TSV).
 fn is_json_output(cmd: &Command, mode: crate::output::OutputMode) -> bool {
-    // Global --format json overrides per-command --json flags
-    if mode == crate::output::OutputMode::Json {
+    // Global --format json/tsv overrides per-command --json flags.
+    // TSV is rendered from JSON at display time, so structured data must be preserved.
+    if mode == crate::output::OutputMode::Json || mode == crate::output::OutputMode::Tsv {
         return true;
     }
     matches!(
@@ -1866,8 +1867,9 @@ pub fn apply_budget_gate(
     budget_ctx: &BudgetCtx,
     cmd_name: &str,
 ) -> crate::output::CommandOutput {
-    // JSON mode: never compress — agents need complete structured data.
-    if mode == crate::output::OutputMode::Json {
+    // JSON/TSV mode: never compress — agents need complete structured data.
+    // TSV is a render-time conversion from JSON, so it gets the same bypass.
+    if mode == crate::output::OutputMode::Json || mode == crate::output::OutputMode::Tsv {
         return output;
     }
 

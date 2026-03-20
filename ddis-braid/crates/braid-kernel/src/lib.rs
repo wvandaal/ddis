@@ -73,7 +73,7 @@ pub use bilateral::{
 };
 pub use branch::{branch_datoms, compare_branches, create_branch, merge_branch, prune_branch};
 pub use budget::{
-    attention_decay, classify_command, enforce_ceiling, quality_adjusted_budget,
+    attention_decay, classify_command, enforce_ceiling, json_to_tsv, quality_adjusted_budget,
     safe_truncate_bytes, safe_truncate_display, ActionProjection, ActivationStrategy,
     ApproxTokenCounter, AttentionProfile, BudgetManager, BudgetProjection, ContextBlock,
     GuidanceLevel, OutputBlock, OutputPrecedence, ProjectedAction, SessionPhase, TokenCounter,

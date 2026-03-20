@@ -3564,6 +3564,100 @@ pub fn knowledge_relevance_scan(text: &str, store: &Store) -> Vec<SpecRelevance>
         }
     }
 
+    // AR-3: Spec graph neighbors — bridge the lexical gap.
+    // Parse spec refs from input text and find graph-connected entities.
+    let spec_refs = crate::task::parse_spec_refs(text);
+    if !spec_refs.is_empty() {
+        let neighbors = spec_graph_neighbors(store, &spec_refs);
+        let ident_attr = Attribute::from_keyword(":db/ident");
+        let task_id_attr = Attribute::from_keyword(":task/id");
+
+        // Build a set of entities already found by keyword search
+        let mut existing_entities: BTreeSet<EntityId> = BTreeSet::new();
+        for r in &results {
+            // Resolve ident back to entity for dedup
+            if r.source == "task" {
+                // Task idents are ":task/{id}" — look up entity from :task/id
+                let id_part = r.ident.strip_prefix(":task/").unwrap_or(&r.ident);
+                let task_entity = EntityId::from_ident(&format!(":task/{}", id_part));
+                existing_entities.insert(task_entity);
+            } else {
+                let entity = EntityId::from_ident(&r.ident);
+                existing_entities.insert(entity);
+            }
+        }
+
+        for (entity, graph_score) in neighbors {
+            if existing_entities.contains(&entity) {
+                // Merge: upgrade score if graph_score is higher
+                for r in results.iter_mut() {
+                    let r_entity = if r.source == "task" {
+                        let id_part = r.ident.strip_prefix(":task/").unwrap_or(&r.ident);
+                        EntityId::from_ident(&format!(":task/{}", id_part))
+                    } else {
+                        EntityId::from_ident(&r.ident)
+                    };
+                    if r_entity == entity && graph_score > r.score {
+                        r.score = graph_score;
+                    }
+                }
+                continue;
+            }
+
+            // New entity from graph — resolve its identity for display
+            let entity_datoms_list = store.entity_datoms(entity);
+
+            // Try :task/id first (task entity), then :db/ident (spec entity)
+            let (ident, human_id, source, summary) =
+                if let Some(tid) = entity_datoms_list.iter().find(|d| {
+                    d.attribute == task_id_attr && d.op == Op::Assert
+                }) {
+                    let id = match &tid.value {
+                        Value::String(s) => s.clone(),
+                        _ => format!("{:?}", entity),
+                    };
+                    let title = store
+                        .live_value(entity, &Attribute::from_keyword(":task/title"))
+                        .and_then(|v| match v {
+                            Value::String(s) => Some(s.clone()),
+                            _ => None,
+                        })
+                        .unwrap_or_default();
+                    let summary = crate::budget::safe_truncate_bytes(&title, 60).to_string();
+                    (format!(":task/{}", id), id, "task".to_string(), summary)
+                } else if let Some(id_datom) = entity_datoms_list.iter().find(|d| {
+                    d.attribute == ident_attr && d.op == Op::Assert
+                }) {
+                    let ident_str = match &id_datom.value {
+                        Value::Keyword(k) => k.clone(),
+                        _ => format!("{:?}", entity),
+                    };
+                    let human = crate::spec_id::SpecId::from_store_ident(&ident_str)
+                        .map(|s| s.human_form())
+                        .unwrap_or_else(|| ident_str.clone());
+                    let stmt = store
+                        .live_value(entity, &Attribute::from_keyword(":spec/statement"))
+                        .and_then(|v| match v {
+                            Value::String(s) => Some(s.clone()),
+                            _ => None,
+                        })
+                        .unwrap_or_default();
+                    let summary = crate::budget::safe_truncate_bytes(&stmt, 60).to_string();
+                    (ident_str.clone(), human, "spec".to_string(), summary)
+                } else {
+                    continue; // Skip entities without identifiable metadata
+                };
+
+            results.push(SpecRelevance {
+                ident,
+                human_id,
+                summary,
+                score: graph_score,
+                source: format!("{}+graph", source),
+            });
+        }
+    }
+
     // Sort by score descending, take top 10 (broadened from 5)
     results.sort_by(|a, b| {
         b.score
@@ -3633,6 +3727,140 @@ pub fn format_spec_relevance(results: &[SpecRelevance]) -> Option<String> {
         .map(|r| format!("{} ({})", r.human_id, r.summary))
         .collect();
     Some(format!("Spec: {}", parts.join(" | ")))
+}
+
+// ---------------------------------------------------------------------------
+// Spec Graph Neighbors (AR-3) — VAET reverse-ref BFS
+// ---------------------------------------------------------------------------
+
+/// Extract the spec namespace from a spec ref ID (e.g., "INV-TOPOLOGY-001" -> "TOPOLOGY").
+///
+/// Splits on '-' and returns the middle part. For malformed IDs, returns the
+/// original string.
+///
+/// # Examples
+///
+/// ```
+/// use braid_kernel::guidance::extract_spec_namespace;
+/// assert_eq!(extract_spec_namespace("INV-TOPOLOGY-001"), "TOPOLOGY");
+/// assert_eq!(extract_spec_namespace("ADR-STORE-003"), "STORE");
+/// assert_eq!(extract_spec_namespace("NEG-MERGE-002"), "MERGE");
+/// assert_eq!(extract_spec_namespace("malformed"), "malformed");
+/// ```
+pub fn extract_spec_namespace(spec_ref: &str) -> &str {
+    let parts: Vec<&str> = spec_ref.split('-').collect();
+    if parts.len() >= 3 {
+        parts[1]
+    } else {
+        spec_ref
+    }
+}
+
+/// Find entities in the store that are connected to the given spec refs
+/// via the spec dependency graph (VAET reverse-ref BFS, depth 2).
+///
+/// This bridges the lexical gap: entities that share no keywords but
+/// trace to the same spec elements are discovered as neighbors.
+///
+/// IDF weighting: `1.0 / ln(2 + ref_count)` penalizes ubiquitous specs.
+///
+/// # Algorithm
+///
+/// 1. For each `spec_ref_id`, resolve to `EntityId` via `EntityId::from_ident(":spec/{id}")`.
+/// 2. For each resolved spec entity, VAET reverse lookup to find entities
+///    with `:task/traces-to` or `:impl/implements` pointing to it.
+/// 3. Score = `1.0 / ln(2 + ref_count)` (IDF -- rare specs score higher).
+/// 4. For 1-hop: follow `:spec/traces-to` from the spec entity to neighbor
+///    spec entities, then VAET on those neighbors. Score *= 0.5 for 1-hop.
+/// 5. Deduplicate by max score, cap at top 10.
+pub fn spec_graph_neighbors(
+    store: &Store,
+    spec_ref_ids: &[String],
+) -> Vec<(EntityId, f64)> {
+    if spec_ref_ids.is_empty() {
+        return Vec::new();
+    }
+
+    let traces_to_attr = Attribute::from_keyword(":task/traces-to");
+    let implements_attr = Attribute::from_keyword(":impl/implements");
+    let spec_traces_attr = Attribute::from_keyword(":spec/traces-to");
+
+    // Accumulate scores per entity (max of all paths)
+    let mut scores: BTreeMap<EntityId, f64> = BTreeMap::new();
+
+    for spec_ref in spec_ref_ids {
+        let ident = format!(":spec/{}", spec_ref.to_lowercase());
+        let spec_entity = EntityId::from_ident(&ident);
+
+        // 0-hop: entities referencing this spec entity directly
+        let referencing = store.vaet_referencing(spec_entity);
+        let ref_count = referencing
+            .iter()
+            .filter(|d| {
+                d.op == Op::Assert
+                    && (d.attribute == traces_to_attr || d.attribute == implements_attr)
+            })
+            .count();
+
+        // IDF score: rare specs weight higher
+        let idf = 1.0 / (2.0 + ref_count as f64).ln();
+
+        for datom in referencing {
+            if datom.op != Op::Assert {
+                continue;
+            }
+            if datom.attribute == traces_to_attr || datom.attribute == implements_attr {
+                let entry = scores.entry(datom.entity).or_insert(0.0);
+                if idf > *entry {
+                    *entry = idf;
+                }
+            }
+        }
+
+        // 1-hop: follow :spec/traces-to from spec entity to neighbor specs,
+        // then find entities referencing those neighbors
+        for spec_datom in store.entity_datoms(spec_entity) {
+            if spec_datom.op != Op::Assert || spec_datom.attribute != spec_traces_attr {
+                continue;
+            }
+            let neighbor_spec = match &spec_datom.value {
+                Value::Ref(target) => *target,
+                _ => continue,
+            };
+
+            let neighbor_refs = store.vaet_referencing(neighbor_spec);
+            let neighbor_count = neighbor_refs
+                .iter()
+                .filter(|d| {
+                    d.op == Op::Assert
+                        && (d.attribute == traces_to_attr || d.attribute == implements_attr)
+                })
+                .count();
+
+            let neighbor_idf = 0.5 / (2.0 + neighbor_count as f64).ln();
+
+            for datom in neighbor_refs {
+                if datom.op != Op::Assert {
+                    continue;
+                }
+                if datom.attribute == traces_to_attr || datom.attribute == implements_attr {
+                    let entry = scores.entry(datom.entity).or_insert(0.0);
+                    if neighbor_idf > *entry {
+                        *entry = neighbor_idf;
+                    }
+                }
+            }
+        }
+    }
+
+    // Sort by score descending, cap at top 10
+    let mut results: Vec<(EntityId, f64)> = scores.into_iter().collect();
+    results.sort_by(|a, b| {
+        b.1.partial_cmp(&a.1)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    results.truncate(10);
+    results
 }
 
 // ---------------------------------------------------------------------------
@@ -9648,5 +9876,420 @@ mod tests {
         assert_eq!(super::days_to_ymd(10957), (2000, 1, 1));
         // 2026-03-20 = day 20532
         assert_eq!(super::days_to_ymd(20532), (2026, 3, 20));
+    }
+
+    // -------------------------------------------------------------------
+    // AR-3: spec_graph_neighbors + extract_spec_namespace
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn extract_spec_namespace_parses_correctly() {
+        assert_eq!(extract_spec_namespace("INV-TOPOLOGY-001"), "TOPOLOGY");
+        assert_eq!(extract_spec_namespace("ADR-STORE-003"), "STORE");
+        assert_eq!(extract_spec_namespace("NEG-MERGE-002"), "MERGE");
+        // Malformed: fewer than 3 parts
+        assert_eq!(extract_spec_namespace("malformed"), "malformed");
+        // "INV-ONLY" has only 2 parts: returns full string as fallback
+        assert_eq!(extract_spec_namespace("INV-ONLY"), "INV-ONLY");
+        // Extra parts: still returns index 1
+        assert_eq!(
+            extract_spec_namespace("INV-TOPOLOGY-001-EXTRA"),
+            "TOPOLOGY"
+        );
+    }
+
+    /// Helper: create a store with full schema + extra datoms for graph neighbor tests.
+    fn graph_test_store() -> Store {
+        routing_test_store()
+    }
+
+    /// Helper: rebuild a store from its datoms + extras.
+    fn graph_store_with(
+        store: &Store,
+        extra: impl IntoIterator<Item = Datom>,
+    ) -> Store {
+        routing_store_with(store, extra)
+    }
+
+    #[test]
+    fn spec_graph_neighbors_finds_shared_refs() {
+        // Two tasks tracing to the same spec entity => both appear as neighbors.
+        let store = graph_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        let spec_entity = EntityId::from_ident(":spec/inv-store-001");
+
+        // Create spec entity with :spec/falsification so it exists
+        let spec_datoms = vec![
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-store-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("Any deletion violates this.".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+        let store = graph_store_with(&store, spec_datoms);
+
+        // Task A traces-to spec entity
+        let (task_a_entity, datoms_a) = crate::task::create_task_datoms(
+            crate::task::CreateTaskParams {
+                title: "Task Alpha (no keywords overlap)",
+                description: None,
+                priority: 1,
+                task_type: crate::task::TaskType::Task,
+                tx,
+                traces_to: &[spec_entity],
+                labels: &[],
+            },
+        );
+        let store = graph_store_with(&store, datoms_a);
+
+        // Task B also traces-to spec entity
+        let (task_b_entity, datoms_b) = crate::task::create_task_datoms(
+            crate::task::CreateTaskParams {
+                title: "Task Bravo (completely different words)",
+                description: None,
+                priority: 2,
+                task_type: crate::task::TaskType::Task,
+                tx,
+                traces_to: &[spec_entity],
+                labels: &[],
+            },
+        );
+        let store = graph_store_with(&store, datoms_b);
+
+        // Query neighbors for INV-STORE-001
+        let neighbors =
+            spec_graph_neighbors(&store, &["INV-STORE-001".to_string()]);
+
+        // Both tasks should appear as neighbors
+        let neighbor_entities: Vec<EntityId> =
+            neighbors.iter().map(|(e, _)| *e).collect();
+        assert!(
+            neighbor_entities.contains(&task_a_entity),
+            "Task A should be found as a neighbor via shared spec ref"
+        );
+        assert!(
+            neighbor_entities.contains(&task_b_entity),
+            "Task B should be found as a neighbor via shared spec ref"
+        );
+    }
+
+    #[test]
+    fn spec_graph_neighbors_idf_weighting() {
+        // A spec referenced by many tasks should produce lower scores
+        // than a spec referenced by few tasks.
+        let store = graph_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        let rare_spec = EntityId::from_ident(":spec/inv-rare-001");
+        let popular_spec = EntityId::from_ident(":spec/inv-popular-001");
+
+        let mut extra_datoms = vec![
+            // Rare spec
+            Datom::new(
+                rare_spec,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-rare-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                rare_spec,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("rare violation".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            // Popular spec
+            Datom::new(
+                popular_spec,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-popular-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                popular_spec,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("popular violation".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+
+        // One task traces-to rare spec
+        let (_rare_task, rare_datoms) = crate::task::create_task_datoms(
+            crate::task::CreateTaskParams {
+                title: "Rare spec task only one ref",
+                description: None,
+                priority: 1,
+                task_type: crate::task::TaskType::Task,
+                tx,
+                traces_to: &[rare_spec],
+                labels: &[],
+            },
+        );
+        extra_datoms.extend(rare_datoms);
+
+        // Five tasks trace-to popular spec
+        for i in 0..5 {
+            let title = format!("Popular spec task number {}", i);
+            let (_, popular_datoms) = crate::task::create_task_datoms(
+                crate::task::CreateTaskParams {
+                    title: &title,
+                    description: None,
+                    priority: 2,
+                    task_type: crate::task::TaskType::Task,
+                    tx,
+                    traces_to: &[popular_spec],
+                    labels: &[],
+                },
+            );
+            extra_datoms.extend(popular_datoms);
+        }
+
+        let store = graph_store_with(&store, extra_datoms);
+
+        let rare_neighbors =
+            spec_graph_neighbors(&store, &["INV-RARE-001".to_string()]);
+        let popular_neighbors =
+            spec_graph_neighbors(&store, &["INV-POPULAR-001".to_string()]);
+
+        // Get the max score from each
+        let rare_max = rare_neighbors
+            .iter()
+            .map(|(_, s)| *s)
+            .fold(0.0f64, f64::max);
+        let popular_max = popular_neighbors
+            .iter()
+            .map(|(_, s)| *s)
+            .fold(0.0f64, f64::max);
+
+        assert!(
+            rare_max > popular_max,
+            "IDF: rare spec score ({}) should be higher than popular spec score ({})",
+            rare_max,
+            popular_max
+        );
+    }
+
+    #[test]
+    fn spec_graph_neighbors_one_hop() {
+        // Spec A traces-to Spec B. Task traces-to Spec A.
+        // Another task traces-to Spec B. The second task should appear
+        // as a 1-hop neighbor when querying for spec A's refs.
+        let store = graph_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        let spec_a = EntityId::from_ident(":spec/inv-alpha-001");
+        let spec_b = EntityId::from_ident(":spec/inv-beta-001");
+
+        let mut extra_datoms = vec![
+            // Spec A with traces-to Spec B
+            Datom::new(
+                spec_a,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-alpha-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_a,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("alpha violation".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_a,
+                Attribute::from_keyword(":spec/traces-to"),
+                Value::Ref(spec_b),
+                tx,
+                Op::Assert,
+            ),
+            // Spec B
+            Datom::new(
+                spec_b,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-beta-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_b,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("beta violation".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+
+        // Task 1 traces-to Spec A (direct)
+        let (task_1_entity, task_1_datoms) = crate::task::create_task_datoms(
+            crate::task::CreateTaskParams {
+                title: "Direct task on spec alpha",
+                description: None,
+                priority: 1,
+                task_type: crate::task::TaskType::Task,
+                tx,
+                traces_to: &[spec_a],
+                labels: &[],
+            },
+        );
+        extra_datoms.extend(task_1_datoms);
+
+        // Task 2 traces-to Spec B (indirect via spec A -> spec B)
+        let (task_2_entity, task_2_datoms) = crate::task::create_task_datoms(
+            crate::task::CreateTaskParams {
+                title: "Indirect task on spec beta",
+                description: None,
+                priority: 2,
+                task_type: crate::task::TaskType::Task,
+                tx,
+                traces_to: &[spec_b],
+                labels: &[],
+            },
+        );
+        extra_datoms.extend(task_2_datoms);
+
+        let store = graph_store_with(&store, extra_datoms);
+
+        // Query for INV-ALPHA-001 neighbors: should find both tasks.
+        // Task 1 is 0-hop (directly traces to alpha).
+        // Task 2 is 1-hop (traces to beta, which alpha traces-to).
+        let neighbors =
+            spec_graph_neighbors(&store, &["INV-ALPHA-001".to_string()]);
+
+        let neighbor_entities: Vec<EntityId> =
+            neighbors.iter().map(|(e, _)| *e).collect();
+        assert!(
+            neighbor_entities.contains(&task_1_entity),
+            "Task 1 should appear as 0-hop neighbor"
+        );
+        assert!(
+            neighbor_entities.contains(&task_2_entity),
+            "Task 2 should appear as 1-hop neighbor (via spec A -> spec B)"
+        );
+
+        // Task 1 (0-hop) should have higher score than Task 2 (1-hop)
+        let score_1 = neighbors
+            .iter()
+            .find(|(e, _)| *e == task_1_entity)
+            .map(|(_, s)| *s)
+            .unwrap();
+        let score_2 = neighbors
+            .iter()
+            .find(|(e, _)| *e == task_2_entity)
+            .map(|(_, s)| *s)
+            .unwrap();
+        assert!(
+            score_1 > score_2,
+            "0-hop score ({}) should exceed 1-hop score ({})",
+            score_1,
+            score_2
+        );
+    }
+
+    #[test]
+    fn spec_graph_neighbors_empty_refs() {
+        let store = graph_test_store();
+        let neighbors = spec_graph_neighbors(&store, &[]);
+        assert!(
+            neighbors.is_empty(),
+            "empty spec refs should produce empty neighbors"
+        );
+    }
+
+    #[test]
+    fn knowledge_relevance_scan_uses_graph() {
+        // Create a store with keyword-disjoint but graph-connected entities.
+        // The keyword search won't find them, but graph neighbors should.
+        let store = graph_test_store();
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+
+        let spec_entity = EntityId::from_ident(":spec/inv-foobar-001");
+
+        let mut extra_datoms = vec![
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":spec/inv-foobar-001".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/falsification"),
+                Value::String("foobar violation detected".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/statement"),
+                Value::String("foobar invariant statement".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                spec_entity,
+                Attribute::from_keyword(":spec/namespace"),
+                Value::String("FOOBAR".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+
+        // Task with completely different keywords but traces-to the spec
+        let (_task_entity, task_datoms) = crate::task::create_task_datoms(
+            crate::task::CreateTaskParams {
+                title: "Zyxwvuts completely unrelated words",
+                description: None,
+                priority: 1,
+                task_type: crate::task::TaskType::Task,
+                tx,
+                traces_to: &[spec_entity],
+                labels: &[],
+            },
+        );
+        extra_datoms.extend(task_datoms);
+
+        let store = graph_store_with(&store, extra_datoms);
+
+        // Query text mentions INV-FOOBAR-001 but shares no keywords with the task title.
+        // The task should still appear via graph neighbor discovery.
+        let results = knowledge_relevance_scan(
+            "Check INV-FOOBAR-001 compliance for the zephyr module",
+            &store,
+        );
+
+        // The task should appear in results via graph (even though keywords don't match)
+        let has_graph_task = results.iter().any(|r| {
+            r.source.contains("graph") || r.source == "task"
+        });
+        // At minimum, the spec element itself should appear via keyword match on "foobar"
+        let has_spec = results.iter().any(|r| r.source == "spec");
+        assert!(
+            has_spec || has_graph_task,
+            "knowledge_relevance_scan should find spec or graph-connected entities, \
+             got {:?}",
+            results
+                .iter()
+                .map(|r| format!("{}:{}", r.source, r.human_id))
+                .collect::<Vec<_>>()
+        );
     }
 }

@@ -680,7 +680,7 @@ mod tests {
             ) {
                 let agent = AgentId::from_name("proptest");
                 let tx = TxId::new(time, 0, agent);
-                let d1 = Datom::new(e.clone(), a.clone(), v.clone(), tx, Op::Assert);
+                let d1 = Datom::new(e, a.clone(), v.clone(), tx, Op::Assert);
                 let d2 = Datom::new(e, a, v, tx, Op::Assert);
                 prop_assert_eq!(
                     d1.content_hash(),

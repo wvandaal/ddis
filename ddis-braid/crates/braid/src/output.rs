@@ -1,7 +1,8 @@
 //! Output mode dispatch for CLI responses (INV-INTERFACE-009, INV-OUTPUT-001..004).
 //!
-//! Three modes:
+//! Four modes:
 //! - `Json`: Machine-parseable JSON (all information, no formatting)
+//! - `Tsv`: Tab-separated values rendered from JSON at display time (no structural changes)
 //! - `Agent`: LLM-native three-part structure (context + content + footer, ≤300 tokens)
 //! - `Human`: Formatted human-readable output (progressive disclosure)
 //!
@@ -12,6 +13,7 @@
 //!   4. Default: Agent (braid's primary consumer is an AI agent)
 //!
 //! Scripts that need JSON should use `--format json` or `BRAID_OUTPUT=json`.
+//! Scripts that need TSV should use `--format tsv` or `BRAID_OUTPUT=tsv`.
 
 use serde::Serialize;
 
@@ -20,6 +22,9 @@ use serde::Serialize;
 pub enum OutputMode {
     /// Machine-parseable JSON.
     Json,
+    /// Tab-separated values rendered from JSON at display time.
+    /// TSV is a rendering concern -- zero changes to CommandOutput struct.
+    Tsv,
     /// LLM-native output with guidance footer.
     #[default]
     Agent,
@@ -31,6 +36,7 @@ impl std::fmt::Display for OutputMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             OutputMode::Json => write!(f, "json"),
+            OutputMode::Tsv => write!(f, "tsv"),
             OutputMode::Agent => write!(f, "agent"),
             OutputMode::Human => write!(f, "human"),
         }
@@ -43,10 +49,11 @@ impl std::str::FromStr for OutputMode {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "json" => Ok(OutputMode::Json),
+            "tsv" => Ok(OutputMode::Tsv),
             "agent" => Ok(OutputMode::Agent),
             "human" => Ok(OutputMode::Human),
             other => Err(format!(
-                "unknown output mode '{}': expected json, agent, or human",
+                "unknown output mode '{}': expected json, tsv, agent, or human",
                 other
             )),
         }
@@ -168,6 +175,7 @@ impl CommandOutput {
             OutputMode::Json => {
                 serde_json::to_string_pretty(&self.json).unwrap_or_else(|_| "{}".to_string())
             }
+            OutputMode::Tsv => braid_kernel::budget::json_to_tsv(&self.json),
             OutputMode::Agent => self.agent.render(),
             OutputMode::Human => self.human.clone(),
         }
@@ -190,7 +198,7 @@ impl CommandOutput {
         match projection {
             None => self.render(mode),
             Some(proj) => match mode {
-                OutputMode::Json => {
+                OutputMode::Json | OutputMode::Tsv => {
                     let mut json = self.json.clone();
                     if let serde_json::Value::Object(ref mut map) = json {
                         let acp_json = proj.to_json();
@@ -200,7 +208,11 @@ impl CommandOutput {
                             }
                         }
                     }
-                    serde_json::to_string_pretty(&json).unwrap_or_else(|_| "{}".to_string())
+                    if mode == OutputMode::Tsv {
+                        braid_kernel::budget::json_to_tsv(&json)
+                    } else {
+                        serde_json::to_string_pretty(&json).unwrap_or_else(|_| "{}".to_string())
+                    }
                 }
                 OutputMode::Agent => proj.project_at_strategy(strategy),
                 OutputMode::Human => proj.project(usize::MAX),
@@ -231,9 +243,11 @@ mod tests {
     #[test]
     fn resolve_mode_explicit_flag_wins() {
         assert_eq!(resolve_mode(Some("json")), OutputMode::Json);
+        assert_eq!(resolve_mode(Some("tsv")), OutputMode::Tsv);
         assert_eq!(resolve_mode(Some("agent")), OutputMode::Agent);
         assert_eq!(resolve_mode(Some("human")), OutputMode::Human);
         assert_eq!(resolve_mode(Some("JSON")), OutputMode::Json); // case-insensitive
+        assert_eq!(resolve_mode(Some("TSV")), OutputMode::Tsv); // case-insensitive
     }
 
     #[test]
@@ -247,6 +261,7 @@ mod tests {
     #[test]
     fn output_mode_display() {
         assert_eq!(OutputMode::Json.to_string(), "json");
+        assert_eq!(OutputMode::Tsv.to_string(), "tsv");
         assert_eq!(OutputMode::Agent.to_string(), "agent");
         assert_eq!(OutputMode::Human.to_string(), "human");
     }
@@ -254,9 +269,24 @@ mod tests {
     #[test]
     fn output_mode_parse() {
         assert_eq!("json".parse::<OutputMode>().unwrap(), OutputMode::Json);
+        assert_eq!("tsv".parse::<OutputMode>().unwrap(), OutputMode::Tsv);
         assert_eq!("agent".parse::<OutputMode>().unwrap(), OutputMode::Agent);
         assert_eq!("human".parse::<OutputMode>().unwrap(), OutputMode::Human);
         assert!("invalid".parse::<OutputMode>().is_err());
+    }
+
+    #[test]
+    fn output_mode_display_parse_round_trip() {
+        for mode in [
+            OutputMode::Json,
+            OutputMode::Tsv,
+            OutputMode::Agent,
+            OutputMode::Human,
+        ] {
+            let s = mode.to_string();
+            let parsed: OutputMode = s.parse().unwrap();
+            assert_eq!(parsed, mode, "round-trip failed for {s}");
+        }
     }
 
     #[test]

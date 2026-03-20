@@ -156,6 +156,17 @@ impl BraidError {
                 });
                 serde_json::to_string_pretty(&json).unwrap_or_else(|_| "{}".to_string())
             }
+            crate::output::OutputMode::Tsv => {
+                let json = serde_json::json!({
+                    "error": {
+                        "what": info.what,
+                        "why": detail,
+                        "fix": info.fix,
+                        "spec_ref": info.spec_ref,
+                    }
+                });
+                braid_kernel::budget::json_to_tsv(&json)
+            }
             crate::output::OutputMode::Agent => {
                 format!(
                     "error: {}\n\n{}\n\nfix: {} | ref: {}\n",
