@@ -1,0 +1,13 @@
+{:tx/id #hlc "1773982613/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Schema evolution: task completion attributes"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9b6f0a973a972d104ff7ddd8cc34504cf973a21d5fa24a8ba9e1b841a48e523a" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "9b6f0a973a972d104ff7ddd8cc34504cf973a21d5fa24a8ba9e1b841a48e523a" :a :db/ident :v :task/completion-evidence :op :assert}
+   {:e #blake3 "9b6f0a973a972d104ff7ddd8cc34504cf973a21d5fa24a8ba9e1b841a48e523a" :a :db/valueType :v :db.type/string :op :assert}
+   {:e #blake3 "dec522f884894106e71d6910a4daa076aa40ad6cf844fd44e2dfdfdc50096d32" :a :db/cardinality :v :db.cardinality/one :op :assert}
+   {:e #blake3 "dec522f884894106e71d6910a4daa076aa40ad6cf844fd44e2dfdfdc50096d32" :a :db/ident :v :task/completion-method :op :assert}
+   {:e #blake3 "dec522f884894106e71d6910a4daa076aa40ad6cf844fd44e2dfdfdc50096d32" :a :db/valueType :v :db.type/keyword :op :assert}
+ ]}

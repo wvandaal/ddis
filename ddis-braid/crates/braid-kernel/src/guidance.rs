@@ -5074,12 +5074,12 @@ mod tests {
         // Verify it shows a decimal number after "urgency "
         let urgency_idx = msg.find("urgency ").expect("must contain 'urgency '");
         let after = &msg[urgency_idx + 8..];
-        let numeric_part: String = after.chars().take_while(|c| *c == '.' || c.is_ascii_digit()).collect();
+        let numeric_part: String = after
+            .chars()
+            .take_while(|c| *c == '.' || c.is_ascii_digit())
+            .collect();
         let parsed: f64 = numeric_part.parse().expect("urgency value must be numeric");
-        assert!(
-            parsed < 10.0,
-            "urgency should be below 10.0, got {parsed}"
-        );
+        assert!(parsed < 10.0, "urgency should be below 10.0, got {parsed}");
     }
 
     // -------------------------------------------------------------------

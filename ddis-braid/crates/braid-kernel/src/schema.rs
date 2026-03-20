@@ -1792,6 +1792,18 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             "Why the task was closed",
         ),
         attr(
+            ":task/completion-method",
+            ValueType::Keyword,
+            Cardinality::One,
+            "How the task was verified complete: :task.completion/manual, :task.completion/incremental",
+        ),
+        attr(
+            ":task/completion-evidence",
+            ValueType::String,
+            Cardinality::One,
+            "Attestation evidence for task completion (human-readable description)",
+        ),
+        attr(
             ":task/source",
             ValueType::String,
             Cardinality::One,

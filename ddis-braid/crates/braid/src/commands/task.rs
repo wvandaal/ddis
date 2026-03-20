@@ -1064,23 +1064,21 @@ pub fn close(
         for datom in &tx.datoms {
             match datom.op {
                 Op::Assert => {
-                    builder = builder.assert(
-                        datom.entity,
-                        datom.attribute.clone(),
-                        datom.value.clone(),
-                    );
+                    builder =
+                        builder.assert(datom.entity, datom.attribute.clone(), datom.value.clone());
                 }
                 Op::Retract => {
-                    builder = builder.retract(
-                        datom.entity,
-                        datom.attribute.clone(),
-                        datom.value.clone(),
-                    );
+                    builder =
+                        builder.retract(datom.entity, datom.attribute.clone(), datom.value.clone());
                 }
             }
         }
-        let committed = builder.commit(&store).map_err(braid_kernel::KernelError::from)?;
-        store.transact(committed).map_err(braid_kernel::KernelError::from)?;
+        let committed = builder
+            .commit(&store)
+            .map_err(braid_kernel::KernelError::from)?;
+        store
+            .transact(committed)
+            .map_err(braid_kernel::KernelError::from)?;
     }
 
     let mut human = String::new();
