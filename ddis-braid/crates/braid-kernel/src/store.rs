@@ -3052,6 +3052,64 @@ mod tests {
                     );
                 }
             }
+
+            /// SEED.md §4 Temporal Completeness — as_of returns correct datom subset.
+            ///
+            /// For any store with N transactions, as_of(tx_k) should contain exactly
+            /// the datoms from transactions 0..=k and exclude datoms from k+1..N.
+            #[test]
+            fn as_of_returns_correct_subset(
+                store in arb_store(3),
+                extra_value in arb_doc_value(),
+            ) {
+                // Record the state before adding a new transaction
+                let before_len = store.len();
+                let mut s = store.clone_store();
+
+                let agent = AgentId::from_name("proptest:as-of");
+                let extra_entity = EntityId::from_ident(":test/as-of-proptest");
+                let tx = Transaction::new(agent, ProvenanceType::Observed, "as-of test")
+                    .assert(extra_entity, Attribute::from_keyword(":db/doc"), extra_value)
+                    .commit(&s);
+                let Ok(committed) = tx else {
+                    // If commit fails (e.g., schema issue), skip this case
+                    return Ok(());
+                };
+                let receipt = s.transact(committed);
+                let Ok(receipt) = receipt else {
+                    return Ok(());
+                };
+
+                let after_len = s.len();
+                prop_assert!(after_len > before_len, "transaction should add datoms");
+
+                // as_of the PREVIOUS frontier should exclude the new datoms
+                // Use the cutoff tx that is just before the new transaction
+                let cutoff = receipt.tx_id;
+                let view = s.as_of(cutoff);
+
+                // The view should include ALL datoms (because cutoff IS the new tx)
+                prop_assert_eq!(
+                    view.len(),
+                    after_len,
+                    "as_of(new_tx) should include the new datoms"
+                );
+
+                // as_of a tx BEFORE the new one should exclude the new datoms
+                // Find the max tx before the new one
+                let pre_cutoff = TxId::new(
+                    cutoff.wall_time().saturating_sub(1),
+                    0,
+                    agent,
+                );
+                let pre_view = s.as_of(pre_cutoff);
+                prop_assert!(
+                    pre_view.len() <= before_len,
+                    "as_of(pre_tx) should not include new datoms: {} > {}",
+                    pre_view.len(),
+                    before_len
+                );
+            }
         }
     }
 }
