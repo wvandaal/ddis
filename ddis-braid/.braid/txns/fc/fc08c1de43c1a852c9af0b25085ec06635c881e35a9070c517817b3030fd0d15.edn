@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774033831/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-051b88f6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a738ffdfbe6682a6091688f0eda82e945386240a3616c4d60a98e480866fcca7" :a :task/close-reason :v "SUPERSEDED: AR-3 being merged with RECON-SPEC-GRAPH into AR-3 (REVISED) — single spec_graph_neighbors function serving both reconciliation and trace production." :op :assert}
+   {:e #blake3 "a738ffdfbe6682a6091688f0eda82e945386240a3616c4d60a98e480866fcca7" :a :task/closed-at :v 1774033830 :op :assert}
+   {:e #blake3 "a738ffdfbe6682a6091688f0eda82e945386240a3616c4d60a98e480866fcca7" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "a738ffdfbe6682a6091688f0eda82e945386240a3616c4d60a98e480866fcca7" :a :task/status :v :task.status/closed :op :assert}
+ ]}

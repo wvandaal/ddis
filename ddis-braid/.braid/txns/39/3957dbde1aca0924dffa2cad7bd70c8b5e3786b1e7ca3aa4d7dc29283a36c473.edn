@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774033790/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-827dbbb8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "879814d891954d06035e12df72252d69ec421ec5f77c41a0252898d233a603f5" :a :task/close-reason :v "SUBSUMED by AR-3 (REVISED): spec_graph_neighbors is a single function serving both reconciliation and trace production." :op :assert}
+   {:e #blake3 "879814d891954d06035e12df72252d69ec421ec5f77c41a0252898d233a603f5" :a :task/closed-at :v 1774033789 :op :assert}
+   {:e #blake3 "879814d891954d06035e12df72252d69ec421ec5f77c41a0252898d233a603f5" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "879814d891954d06035e12df72252d69ec421ec5f77c41a0252898d233a603f5" :a :task/status :v :task.status/closed :op :assert}
+ ]}
