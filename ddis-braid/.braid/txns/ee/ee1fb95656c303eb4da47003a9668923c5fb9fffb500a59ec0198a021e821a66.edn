@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774035743/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3a8265c0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1459df6d4212e181c414f59f1331896d8626701ba6326be34645d9d1784ed90e" :a :task/close-reason :v "Session auto-detect implemented: detect_session_start + create_session_start_datoms in guidance.rs, wired in main.rs. Schema: 4 new :session/* attrs. Active session entity confirmed in store. 6 tests." :op :assert}
+   {:e #blake3 "1459df6d4212e181c414f59f1331896d8626701ba6326be34645d9d1784ed90e" :a :task/closed-at :v 1774035742 :op :assert}
+   {:e #blake3 "1459df6d4212e181c414f59f1331896d8626701ba6326be34645d9d1784ed90e" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "1459df6d4212e181c414f59f1331896d8626701ba6326be34645d9d1784ed90e" :a :task/status :v :task.status/closed :op :assert}
+ ]}
