@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774044228/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :db/ident :v :recon/trace-31f48f0a5edf56eb :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-neighborhood :v "BUDGET" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.task.adr-budget-006" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-neighbors :v ":impl/braid.src.commands.mod.adr-interface-002" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-neighbors :v ":task/t-0745ad40" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-neighbors :v ":task/t-083eff62" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-neighbors :v ":task/t-1c9ceeb2" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-neighbors :v ":task/t-2e81e43a" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-neighbors :v ":task/t-c8f06727" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-neighbors :v ":task/t-dc8005ef" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-neighbors :v ":task/t-e2362c80" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-neighbors :v ":task/t-ea2dc38d" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-refs :v "ADR-BUDGET-006" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-refs :v "ADR-INTERFACE-002" :op :assert}
+   {:e #blake3 "6a9dadc6e34dedaef1be8f4eb533954960fbfdd65232df1473661921ea1f2dcf" :a :recon/trace-refs :v "INV-INTERFACE-008" :op :assert}
+ ]}
