@@ -2010,6 +2010,18 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Path to the test file providing witness evidence",
         ),
+        attr(
+            ":witness/alignment-score",
+            ValueType::Double,
+            Cardinality::One,
+            "Keyword alignment score between test body and falsification condition [0,1]",
+        ),
+        attr(
+            ":witness/status",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Current witness status: :witness.status/valid, :witness.status/stale, :witness.status/pending",
+        ),
         // --- Topology (ADR-TOPOLOGY-004, INV-TOPOLOGY-001..005) ---
         attr(
             ":topology/assignment",

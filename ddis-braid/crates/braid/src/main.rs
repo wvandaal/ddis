@@ -170,7 +170,7 @@ fn main() {
                     if let Ok(lo) = layout::DiskLayout::open(path) {
                         if let Ok(store) = lo.load_store() {
                             if let Some(warning) =
-                                braid_kernel::guidance::should_warn_on_exit(&store)
+                                braid_kernel::guidance::should_warn_on_exit(&store, None)
                             {
                                 eprintln!("{warning}");
                             }

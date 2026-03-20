@@ -830,6 +830,127 @@ pub fn spec_dependency_datoms(
     (datoms, resolved, unresolved)
 }
 
+// ---------------------------------------------------------------------------
+// TOPO-INV-COUPLING: Invariant coupling dimension (INV-TOPOLOGY-004)
+// ---------------------------------------------------------------------------
+
+/// Compute invariant (spec-structural) coupling between tasks.
+///
+/// While file coupling (`compute_file_coupling`) measures heuristic overlap
+/// (two tasks touching the same file *might* conflict), invariant coupling
+/// measures **semantic** overlap: tasks implementing specs that transitively
+/// depend on each other are structurally coupled even if they touch different
+/// files.
+///
+/// # Algorithm
+///
+/// 1. Build a directed graph from `:spec/traces-to` `Value::Ref` datoms.
+/// 2. Compute the transitive closure (reachability set) for every spec entity.
+/// 3. For each task pair (i, j), let R_i and R_j be the union of reachability
+///    sets of their respective spec refs.
+/// 4. Coupling = Jaccard(R_i, R_j) = |R_i ∩ R_j| / |R_i ∪ R_j|.
+///
+/// Returns a map from (task_i, task_j) -> coupling score.
+/// Only includes pairs with score > 0. Scores are symmetric and in [0, 1].
+///
+/// Traces to: spec/19-topology.md INV-TOPOLOGY-004, ADR-TOPOLOGY-004.
+pub fn compute_invariant_coupling(
+    store: &Store,
+    task_specs: &BTreeMap<EntityId, BTreeSet<EntityId>>,
+) -> BTreeMap<(EntityId, EntityId), f64> {
+    let mut coupling = BTreeMap::new();
+
+    if task_specs.len() < 2 {
+        return coupling;
+    }
+
+    // Step 1: Build spec dependency DiGraph from :spec/traces-to Ref datoms.
+    let spec_traces_attr = crate::datom::Attribute::from_keyword(":spec/traces-to");
+    let mut adjacency: BTreeMap<EntityId, BTreeSet<EntityId>> = BTreeMap::new();
+
+    for datom in store.attribute_datoms(&spec_traces_attr) {
+        if datom.op != crate::datom::Op::Assert {
+            continue;
+        }
+        if let crate::datom::Value::Ref(target) = &datom.value {
+            adjacency.entry(datom.entity).or_default().insert(*target);
+        }
+    }
+
+    // Step 2: Compute reachability set for each spec entity via BFS.
+    //
+    // Cache: spec_entity -> all transitively reachable spec entities (including self).
+    let mut reachability_cache: BTreeMap<EntityId, BTreeSet<EntityId>> = BTreeMap::new();
+
+    // Collect all spec entities referenced by any task.
+    let all_spec_entities: BTreeSet<EntityId> = task_specs.values().flatten().copied().collect();
+
+    for &spec_e in &all_spec_entities {
+        if reachability_cache.contains_key(&spec_e) {
+            continue;
+        }
+        let mut reachable = BTreeSet::new();
+        let mut queue = vec![spec_e];
+        while let Some(current) = queue.pop() {
+            if !reachable.insert(current) {
+                continue; // already visited (handles cycles)
+            }
+            if let Some(neighbors) = adjacency.get(&current) {
+                for &neighbor in neighbors {
+                    if !reachable.contains(&neighbor) {
+                        queue.push(neighbor);
+                    }
+                }
+            }
+        }
+        reachability_cache.insert(spec_e, reachable);
+    }
+
+    // Step 3: For each task, compute the union of reachability sets of its spec refs.
+    let task_reachable: BTreeMap<EntityId, BTreeSet<EntityId>> = task_specs
+        .iter()
+        .map(|(&task_e, spec_refs)| {
+            let mut combined = BTreeSet::new();
+            for spec_ref in spec_refs {
+                if let Some(reach) = reachability_cache.get(spec_ref) {
+                    combined.extend(reach.iter().copied());
+                } else {
+                    // Spec ref not in the graph — include it as its own reachable set.
+                    combined.insert(*spec_ref);
+                }
+            }
+            (task_e, combined)
+        })
+        .collect();
+
+    // Step 4: For each pair of tasks, compute Jaccard similarity.
+    let entities: Vec<&EntityId> = task_specs.keys().collect();
+    for i in 0..entities.len() {
+        let reach_i = match task_reachable.get(entities[i]) {
+            Some(r) if !r.is_empty() => r,
+            _ => continue,
+        };
+        for j in (i + 1)..entities.len() {
+            let reach_j = match task_reachable.get(entities[j]) {
+                Some(r) if !r.is_empty() => r,
+                _ => continue,
+            };
+
+            let intersection = reach_i.intersection(reach_j).count();
+            if intersection == 0 {
+                continue;
+            }
+            let union = reach_i.union(reach_j).count();
+            let score = intersection as f64 / union as f64;
+
+            coupling.insert((*entities[i], *entities[j]), score);
+            coupling.insert((*entities[j], *entities[i]), score);
+        }
+    }
+
+    coupling
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1456,5 +1577,245 @@ mod tests {
                 "recovery_hint should contain a braid command for {err}"
             );
         }
+    }
+
+    // === Invariant coupling tests (INV-TOPOLOGY-004) ===
+
+    /// Helper: build a store with spec dependency edges (`:spec/traces-to` Ref datoms).
+    ///
+    /// `edges` is a list of (source_ident, target_ident) pairs.
+    fn store_with_spec_deps(edges: &[(&str, &str)]) -> Store {
+        use crate::datom::*;
+        use crate::schema::genesis_datoms;
+
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+        let mut datoms: BTreeSet<Datom> = BTreeSet::new();
+        let genesis_tx = TxId::new(0, 0, agent);
+        for d in genesis_datoms(genesis_tx) {
+            datoms.insert(d);
+        }
+
+        let spec_traces_attr = Attribute::from_keyword(":spec/traces-to");
+
+        for (src, tgt) in edges {
+            let src_e = EntityId::from_ident(src);
+            let tgt_e = EntityId::from_ident(tgt);
+            datoms.insert(Datom::new(
+                src_e,
+                spec_traces_attr.clone(),
+                Value::Ref(tgt_e),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        Store::from_datoms(datoms)
+    }
+
+    #[test]
+    fn invariant_coupling_shared_spec_deps() {
+        // Spec graph: A -> C, B -> C (both A and B trace to C)
+        let store = store_with_spec_deps(&[
+            (":spec/inv-a", ":spec/inv-c"),
+            (":spec/inv-b", ":spec/inv-c"),
+        ]);
+
+        let spec_a = EntityId::from_ident(":spec/inv-a");
+        let spec_b = EntityId::from_ident(":spec/inv-b");
+        let task1 = EntityId::from_ident(":task/t-1");
+        let task2 = EntityId::from_ident(":task/t-2");
+
+        let mut task_specs = BTreeMap::new();
+        task_specs.insert(task1, [spec_a].into_iter().collect());
+        task_specs.insert(task2, [spec_b].into_iter().collect());
+
+        let coupling = compute_invariant_coupling(&store, &task_specs);
+
+        // Both tasks transitively reach :spec/inv-c, so coupling > 0
+        let score = coupling
+            .get(&(task1, task2))
+            .copied()
+            .unwrap_or(0.0);
+        assert!(
+            score > 0.0,
+            "tasks with shared transitive spec deps should have coupling > 0, got {score}"
+        );
+        assert!(
+            score <= 1.0,
+            "coupling must be <= 1.0, got {score}"
+        );
+    }
+
+    #[test]
+    fn invariant_coupling_disjoint_specs() {
+        // Spec graph: A -> B, C -> D (two disconnected components)
+        let store = store_with_spec_deps(&[
+            (":spec/inv-a", ":spec/inv-b"),
+            (":spec/inv-c", ":spec/inv-d"),
+        ]);
+
+        let spec_a = EntityId::from_ident(":spec/inv-a");
+        let spec_c = EntityId::from_ident(":spec/inv-c");
+        let task1 = EntityId::from_ident(":task/t-1");
+        let task2 = EntityId::from_ident(":task/t-2");
+
+        let mut task_specs = BTreeMap::new();
+        task_specs.insert(task1, [spec_a].into_iter().collect());
+        task_specs.insert(task2, [spec_c].into_iter().collect());
+
+        let coupling = compute_invariant_coupling(&store, &task_specs);
+
+        // Disjoint reachability sets -> coupling = 0
+        assert!(
+            !coupling.contains_key(&(task1, task2)),
+            "tasks in disjoint spec namespaces should have zero coupling"
+        );
+    }
+
+    #[test]
+    fn invariant_coupling_symmetric_and_bounded() {
+        // Spec graph: A -> C, B -> C, A -> D
+        // Task1 refs A (reaches {A, C, D}), Task2 refs B (reaches {B, C})
+        // Intersection = {C}, Union = {A, B, C, D} -> Jaccard = 1/4 = 0.25
+        let store = store_with_spec_deps(&[
+            (":spec/inv-a", ":spec/inv-c"),
+            (":spec/inv-a", ":spec/inv-d"),
+            (":spec/inv-b", ":spec/inv-c"),
+        ]);
+
+        let spec_a = EntityId::from_ident(":spec/inv-a");
+        let spec_b = EntityId::from_ident(":spec/inv-b");
+        let task1 = EntityId::from_ident(":task/t-1");
+        let task2 = EntityId::from_ident(":task/t-2");
+
+        let mut task_specs = BTreeMap::new();
+        task_specs.insert(task1, [spec_a].into_iter().collect());
+        task_specs.insert(task2, [spec_b].into_iter().collect());
+
+        let coupling = compute_invariant_coupling(&store, &task_specs);
+
+        // Symmetry: (t1, t2) == (t2, t1)
+        let score_12 = coupling.get(&(task1, task2)).copied().unwrap_or(0.0);
+        let score_21 = coupling.get(&(task2, task1)).copied().unwrap_or(0.0);
+        assert!(
+            (score_12 - score_21).abs() < 1e-15,
+            "coupling must be symmetric: {score_12} != {score_21}"
+        );
+
+        // Bounded: 0 < score <= 1
+        assert!(score_12 > 0.0, "should have nonzero coupling");
+        assert!(score_12 <= 1.0, "coupling must be <= 1.0");
+
+        // Exact value: {C} / {A, B, C, D} = 1/4
+        assert!(
+            (score_12 - 0.25).abs() < 1e-10,
+            "expected Jaccard = 0.25, got {score_12}"
+        );
+    }
+
+    #[test]
+    fn invariant_coupling_identical_spec_refs() {
+        // Both tasks reference the same spec -> coupling = 1.0
+        let store = store_with_spec_deps(&[(":spec/inv-a", ":spec/inv-b")]);
+
+        let spec_a = EntityId::from_ident(":spec/inv-a");
+        let task1 = EntityId::from_ident(":task/t-1");
+        let task2 = EntityId::from_ident(":task/t-2");
+
+        let mut task_specs = BTreeMap::new();
+        task_specs.insert(task1, [spec_a].into_iter().collect());
+        task_specs.insert(task2, [spec_a].into_iter().collect());
+
+        let coupling = compute_invariant_coupling(&store, &task_specs);
+
+        let score = coupling.get(&(task1, task2)).copied().unwrap_or(0.0);
+        assert!(
+            (score - 1.0).abs() < 1e-10,
+            "identical spec refs should yield coupling = 1.0, got {score}"
+        );
+    }
+
+    #[test]
+    fn invariant_coupling_empty_task_specs() {
+        let store = store_with_spec_deps(&[(":spec/inv-a", ":spec/inv-b")]);
+
+        // No tasks -> empty result
+        let task_specs: BTreeMap<EntityId, BTreeSet<EntityId>> = BTreeMap::new();
+        let coupling = compute_invariant_coupling(&store, &task_specs);
+        assert!(coupling.is_empty());
+
+        // Single task -> empty result (need at least 2)
+        let mut single = BTreeMap::new();
+        single.insert(
+            EntityId::from_ident(":task/t-1"),
+            [EntityId::from_ident(":spec/inv-a")].into_iter().collect(),
+        );
+        let coupling = compute_invariant_coupling(&store, &single);
+        assert!(coupling.is_empty());
+    }
+
+    #[test]
+    fn invariant_coupling_handles_cycles() {
+        // Spec graph has a cycle: A -> B -> C -> A
+        // All specs are mutually reachable, so any two tasks
+        // referencing ANY of these specs have coupling = 1.0.
+        let store = store_with_spec_deps(&[
+            (":spec/inv-a", ":spec/inv-b"),
+            (":spec/inv-b", ":spec/inv-c"),
+            (":spec/inv-c", ":spec/inv-a"),
+        ]);
+
+        let spec_a = EntityId::from_ident(":spec/inv-a");
+        let spec_b = EntityId::from_ident(":spec/inv-b");
+        let task1 = EntityId::from_ident(":task/t-1");
+        let task2 = EntityId::from_ident(":task/t-2");
+
+        let mut task_specs = BTreeMap::new();
+        task_specs.insert(task1, [spec_a].into_iter().collect());
+        task_specs.insert(task2, [spec_b].into_iter().collect());
+
+        let coupling = compute_invariant_coupling(&store, &task_specs);
+
+        // Both reach {A, B, C} -> identical sets -> Jaccard = 1.0
+        let score = coupling.get(&(task1, task2)).copied().unwrap_or(0.0);
+        assert!(
+            (score - 1.0).abs() < 1e-10,
+            "tasks in a spec cycle should have coupling = 1.0, got {score}"
+        );
+    }
+
+    #[test]
+    fn invariant_coupling_no_spec_edges_in_store() {
+        // Store has no :spec/traces-to edges at all.
+        // Tasks with spec refs that aren't in the graph still get
+        // coupling from direct spec ref overlap.
+        let store = store_with_spec_deps(&[]);
+
+        let spec_a = EntityId::from_ident(":spec/inv-a");
+        let spec_b = EntityId::from_ident(":spec/inv-b");
+        let task1 = EntityId::from_ident(":task/t-1");
+        let task2 = EntityId::from_ident(":task/t-2");
+
+        // Disjoint spec refs, no edges -> no coupling
+        let mut task_specs = BTreeMap::new();
+        task_specs.insert(task1, [spec_a].into_iter().collect());
+        task_specs.insert(task2, [spec_b].into_iter().collect());
+        let coupling = compute_invariant_coupling(&store, &task_specs);
+        assert!(
+            coupling.is_empty(),
+            "disjoint refs with no edges -> zero coupling"
+        );
+
+        // Same spec ref, no edges -> coupling = 1.0 (self-reachability)
+        let mut shared = BTreeMap::new();
+        shared.insert(task1, [spec_a].into_iter().collect());
+        shared.insert(task2, [spec_a].into_iter().collect());
+        let coupling = compute_invariant_coupling(&store, &shared);
+        let score = coupling.get(&(task1, task2)).copied().unwrap_or(0.0);
+        assert!(
+            (score - 1.0).abs() < 1e-10,
+            "same spec ref -> coupling = 1.0 even without edges, got {score}"
+        );
     }
 }

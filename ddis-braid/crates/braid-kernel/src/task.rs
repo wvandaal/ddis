@@ -514,7 +514,7 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
             let files_text = title[f_start..f_end].trim();
             // Split by common separators: " + ", ", ", " and "
             for file in files_text
-                .split(|c: char| c == '+' || c == ',')
+                .split(['+', ','])
                 .map(|f| f.trim())
                 .filter(|f| !f.is_empty() && f.contains('/'))
             {

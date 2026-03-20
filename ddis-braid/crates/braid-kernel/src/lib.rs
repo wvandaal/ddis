@@ -57,6 +57,7 @@ pub mod task;
 pub mod topology;
 pub mod trace;
 pub mod trilateral;
+pub mod witness;
 
 // Re-export core types at crate root for ergonomic access.
 pub use agent_md::{generate_agent_md, AgentMdConfig, AgentMdSection, GeneratedAgentMd};
@@ -187,11 +188,11 @@ pub use task::{
     task_summary, update_status_datom, CreateTaskParams, TaskStatus, TaskSummary, TaskType,
 };
 pub use topology::{
-    agent_name_from_files, balance_assign, compute_file_coupling, emit_seed_for_agent,
-    extract_task_files, format_plan_agent, format_plan_human, partition_by_file_coupling,
-    quick_plan, ready_task_files, spec_dependency_datoms, von_neumann_entropy_from_eigenvalues,
-    AgentAssignment,
-    PlanMethod, TopologyPattern, TopologyPlan,
+    agent_name_from_files, balance_assign, compute_file_coupling, compute_invariant_coupling,
+    emit_seed_for_agent, extract_task_files, format_plan_agent, format_plan_human,
+    partition_by_file_coupling, quick_plan, ready_task_files, spec_dependency_datoms,
+    von_neumann_entropy_from_eigenvalues, AgentAssignment, PlanMethod, TopologyPattern,
+    TopologyPlan,
 };
 pub use trace::{
     links_to_datoms, scan_source, summarize, TraceLink, TraceSummary, VerificationDepth,
@@ -201,4 +202,11 @@ pub use trilateral::{
     formality_level, isp_check, live_projections, von_neumann_entropy, AttrNamespace,
     CoherenceEntropy, CoherenceQuadrant, CoherenceReport, DivergenceComponents, IspResult,
     LiveView,
+};
+pub use witness::{
+    all_witnesses, alignment_threshold, auto_task_on_refutation, challenge_witness,
+    check_depth_monotonic, completeness_guard, content_hash, create_fbw, current_spec_hashes,
+    detect_stale_witnesses, fbw_to_datoms, keyword_alignment_score, mark_stale_datoms,
+    witness_and_challenge, witness_gaps, witness_validation_score, ChallengeResult,
+    CurrentSpecHashes, FBW, StaleReason, WitnessParams, WitnessStatus, WitnessVerdict,
 };

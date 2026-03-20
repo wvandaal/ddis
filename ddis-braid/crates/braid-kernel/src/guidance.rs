@@ -720,8 +720,8 @@ pub fn refit_routing_weights(store: &Store) -> Option<[f64; N_FEATURES]> {
     }
 
     // Add ridge regularization: λI
-    for i in 0..N_FEATURES {
-        xtx[i][i] += lambda * n as f64;
+    for (i, row) in xtx.iter_mut().enumerate().take(N_FEATURES) {
+        row[i] += lambda * n as f64;
     }
 
     // Solve via Gaussian elimination (6×6 — trivially small)
@@ -763,10 +763,10 @@ fn solve_linear_system_6x6(a: &[[f64; N_FEATURES]; N_FEATURES], b: &[f64; N_FEAT
         // Find pivot
         let mut max_row = col;
         let mut max_val = aug[col][col].abs();
-        for row in (col + 1)..N_FEATURES {
-            if aug[row][col].abs() > max_val {
-                max_val = aug[row][col].abs();
-                max_row = row;
+        for (idx, aug_row) in aug.iter().enumerate().take(N_FEATURES).skip(col + 1) {
+            if aug_row[col].abs() > max_val {
+                max_val = aug_row[col].abs();
+                max_row = idx;
             }
         }
         if max_val < 1e-12 {
@@ -778,8 +778,9 @@ fn solve_linear_system_6x6(a: &[[f64; N_FEATURES]; N_FEATURES], b: &[f64; N_FEAT
         let pivot = aug[col][col];
         for row in (col + 1)..N_FEATURES {
             let factor = aug[row][col] / pivot;
-            for j in col..=N_FEATURES {
-                aug[row][j] -= factor * aug[col][j];
+            let pivot_row: Vec<f64> = aug[col][col..=N_FEATURES].to_vec();
+            for (j, &pval) in (col..=N_FEATURES).zip(pivot_row.iter()) {
+                aug[row][j] -= factor * pval;
             }
         }
     }
@@ -2232,7 +2233,7 @@ pub fn classify_action_outcome(
             .any(|d| d.attribute == outcome_attr && d.op == crate::datom::Op::Assert);
         if !has_outcome {
             if let crate::datom::Value::String(ref cmd) = datom.value {
-                let wall = datom.tx.wall_time() as u64;
+                let wall = datom.tx.wall_time();
                 if latest_action.as_ref().map(|(_, _, w)| wall > *w).unwrap_or(true) {
                     latest_action = Some((entity, cmd.clone(), wall));
                 }
@@ -2292,7 +2293,7 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs();
-    let minutes_since = (now_wall.saturating_sub(last_harvest_wall as u64)) as f64 / 60.0;
+    let minutes_since = (now_wall.saturating_sub(last_harvest_wall)) as f64 / 60.0;
     let signal_2 = minutes_since / 30.0;
 
     // Signal 3: high-value unharvested / 3
@@ -2321,19 +2322,31 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
 /// Safety property: every session that ends with uncommitted observations MUST
 /// have issued at least one harvest warning before termination.
 ///
-/// Uses velocity-adaptive thresholds (INV-GUIDANCE-019) instead of the former
-/// hardcoded threshold of 8. High-velocity sessions (routine ops) tolerate more
-/// transactions before warning; low-velocity sessions warn earlier.
+/// Uses the multi-signal `harvest_urgency_multi()` (INV-GUIDANCE-019) which fuses
+/// four signals: transaction count / adaptive threshold, time since harvest,
+/// high-value unharvested knowledge density, and k_eff context exhaustion.
+/// Warns when urgency >= 0.7 (pre-overdue), giving the agent a chance to harvest
+/// before the session becomes overdue (urgency >= 1.0).
+///
+/// `k_eff` is the current attention budget ratio. When `None`, it is estimated
+/// from store evidence via `budget::estimate_k_eff`.
 ///
 /// Returns `Some(warning_message)` if a warning should be shown, `None` otherwise.
-pub fn should_warn_on_exit(store: &Store) -> Option<String> {
+pub fn should_warn_on_exit(store: &Store, k_eff: Option<f64>) -> Option<String> {
     let tx_since = count_txns_since_last_harvest(store);
-    let velocity = tx_velocity(store);
-    let threshold = dynamic_threshold(velocity) as usize;
-    if tx_since >= threshold {
+    // No transactions since last harvest means nothing to harvest -- skip.
+    if tx_since == 0 {
+        return None;
+    }
+    let effective_k = k_eff.unwrap_or_else(|| {
+        let evidence = crate::budget::EvidenceVector::from_store(store);
+        crate::budget::estimate_k_eff(&evidence)
+    });
+    let urgency = harvest_urgency_multi(store, effective_k);
+    if urgency >= 0.7 {
         Some(format!(
-            "\u{26a0} NEG-HARVEST-001: {tx_since} transactions since last harvest. \
-             Run: braid harvest --commit"
+            "\u{26a0} NEG-HARVEST-001: {tx_since} transactions since last harvest \
+             (urgency {urgency:.2}). Run: braid harvest --commit"
         ))
     } else {
         None
@@ -2743,8 +2756,8 @@ pub fn orphaned_decisions(store: &Store) -> Vec<(EntityId, String)> {
 /// Aggregated methodology gap counts for the status dashboard (INV-GUIDANCE-021).
 ///
 /// Each field counts a distinct gap type. The `total()` method sums all gaps.
-/// Placeholder fields (`untested`, `stale_witnesses`) are zero until the
-/// WITNESS subsystem is implemented — they exist to establish the schema now.
+/// The `untested` and `stale_witnesses` fields are populated by the WITNESS
+/// subsystem via `witness::witness_gaps()`.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct MethodologyGaps {
     /// Observations containing spec IDs (INV-*, ADR-*, NEG-*) not yet
@@ -2753,10 +2766,9 @@ pub struct MethodologyGaps {
     /// Open tasks whose title references spec IDs that don't resolve to
     /// formal spec elements in the store.
     pub unanchored: u32,
-    /// Current-stage INVs with only L1 witnesses (placeholder until WITNESS impl).
+    /// Current-stage INVs with only L1 witnesses (INV-WITNESS-005).
     pub untested: u32,
-    /// Formally-backed witnesses invalidated by subsequent changes
-    /// (placeholder until WITNESS impl).
+    /// Formally-backed witnesses invalidated by subsequent changes (INV-WITNESS-011).
     pub stale_witnesses: u32,
 }
 
@@ -2776,8 +2788,8 @@ impl MethodologyGaps {
 ///
 /// Aggregates crystallization gaps (observations with uncrystallized spec IDs)
 /// and unanchored tasks (open tasks referencing spec IDs that don't resolve).
-/// The `untested` and `stale_witnesses` fields are placeholders (always 0)
-/// until the WITNESS subsystem is implemented.
+/// The `untested` and `stale_witnesses` fields are powered by the WITNESS
+/// subsystem (INV-WITNESS-005, INV-WITNESS-011).
 ///
 /// INV-GUIDANCE-021: Methodology Gap Dashboard.
 pub fn methodology_gaps(store: &Store) -> MethodologyGaps {
@@ -2800,11 +2812,13 @@ pub fn methodology_gaps(store: &Store) -> MethodologyGaps {
         }
     }
 
+    let (untested_w, stale_w) = crate::witness::witness_gaps(store);
+
     MethodologyGaps {
         crystallization,
         unanchored,
-        untested: 0,        // placeholder until WITNESS system
-        stale_witnesses: 0, // placeholder until WITNESS system
+        untested: untested_w,
+        stale_witnesses: stale_w,
     }
 }
 
@@ -4369,33 +4383,45 @@ mod tests {
     fn should_warn_on_exit_empty_store_no_warning() {
         let store = Store::from_datoms(std::collections::BTreeSet::new());
         assert!(
-            should_warn_on_exit(&store).is_none(),
+            should_warn_on_exit(&store, Some(1.0)).is_none(),
             "empty store should not trigger exit warning"
         );
     }
 
     #[test]
     fn should_warn_on_exit_below_threshold_no_warning() {
-        // Genesis store has schema txns but typically < 8 distinct wall times
-        // when there's been no actual session work. Build a small store manually
-        // with fewer than 8 transactions since last harvest.
+        // With multi-signal urgency, a recent harvest and few transactions
+        // should keep urgency below 0.7.
         use crate::datom::{AgentId, Datom, Op, TxId, Value};
         let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
         let mut datoms = std::collections::BTreeSet::new();
 
-        // Simulate a harvest at wall_time=100
-        let harvest_tx = TxId::new(100, 0, agent);
+        // Simulate a harvest 1 minute ago (signal_2 = 1/30 ≈ 0.03)
+        let harvest_wall = now - 60;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
         datoms.insert(Datom::new(
-            EntityId::from_ident(":harvest/h-100"),
+            EntityId::from_ident(":harvest/h-recent"),
             Attribute::from_keyword(":harvest/agent"),
             Value::String("test".to_string()),
             harvest_tx,
             Op::Assert,
         ));
+        // Mark this as a harvest boundary
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-recent"),
+            Attribute::from_keyword(":harvest/boundary-tx"),
+            Value::Long(harvest_wall as i64),
+            harvest_tx,
+            Op::Assert,
+        ));
 
-        // Add 5 transactions after the harvest (below threshold of 8)
-        for i in 1..=5 {
-            let tx = TxId::new(100 + i, 0, agent);
+        // Add 3 transactions after the harvest (signal_1 = 3/8 = 0.375)
+        for i in 1..=3 {
+            let tx = TxId::new(harvest_wall + i, 0, agent);
             datoms.insert(Datom::new(
                 EntityId::from_ident(&format!(":work/item-{i}")),
                 Attribute::from_keyword(":db/doc"),
@@ -4406,31 +4432,46 @@ mod tests {
         }
 
         let store = Store::from_datoms(datoms);
+        // k_eff = 1.0 means signal_4 = 0; all other signals well below 0.7
         assert!(
-            should_warn_on_exit(&store).is_none(),
-            "5 txns since harvest (< 8 threshold) should not warn"
+            should_warn_on_exit(&store, Some(1.0)).is_none(),
+            "3 txns since recent harvest with healthy k_eff should not warn"
         );
     }
 
     #[test]
     fn should_warn_on_exit_at_threshold_warns() {
+        // With multi-signal urgency, having enough txns relative to the adaptive
+        // threshold should push signal_1 >= 0.7 and trigger a warning.
         use crate::datom::{AgentId, Datom, Op, TxId, Value};
         let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
         let mut datoms = std::collections::BTreeSet::new();
 
-        // Simulate a harvest at wall_time=100
-        let harvest_tx = TxId::new(100, 0, agent);
+        // Simulate a harvest 2 minutes ago (signal_2 = 2/30 ≈ 0.07)
+        let harvest_wall = now - 120;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
         datoms.insert(Datom::new(
-            EntityId::from_ident(":harvest/h-100"),
+            EntityId::from_ident(":harvest/h-recent"),
             Attribute::from_keyword(":harvest/agent"),
             Value::String("test".to_string()),
             harvest_tx,
             Op::Assert,
         ));
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-recent"),
+            Attribute::from_keyword(":harvest/boundary-tx"),
+            Value::Long(harvest_wall as i64),
+            harvest_tx,
+            Op::Assert,
+        ));
 
-        // Add exactly 8 transactions after the harvest (at threshold)
+        // Add 8 transactions after the harvest (signal_1 = 8/8 = 1.0 >= 0.7)
         for i in 1..=8 {
-            let tx = TxId::new(100 + i, 0, agent);
+            let tx = TxId::new(harvest_wall + i, 0, agent);
             datoms.insert(Datom::new(
                 EntityId::from_ident(&format!(":work/item-{i}")),
                 Attribute::from_keyword(":db/doc"),
@@ -4441,7 +4482,8 @@ mod tests {
         }
 
         let store = Store::from_datoms(datoms);
-        let warning = should_warn_on_exit(&store);
+        // k_eff = 1.0: signal_4 off, but signal_1 = 8/8 = 1.0 triggers
+        let warning = should_warn_on_exit(&store, Some(1.0));
         assert!(
             warning.is_some(),
             "8 txns since harvest should trigger warning"
@@ -4463,13 +4505,19 @@ mod tests {
 
     #[test]
     fn should_warn_on_exit_well_above_threshold_warns() {
+        // 15 txns with no harvest ever: signal_1 = 15/8 ≈ 1.875 (well above 0.7).
+        // Also signal_2 is huge (no harvest ever, minutes_since = now/60/30).
         use crate::datom::{AgentId, Datom, Op, TxId, Value};
         let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
         let mut datoms = std::collections::BTreeSet::new();
 
-        // No harvest at all — simulate 15 transactions of work
+        // No harvest at all — simulate 15 transactions of recent work
         for i in 1..=15 {
-            let tx = TxId::new(i, 0, agent);
+            let tx = TxId::new(now - 15 + i, 0, agent);
             datoms.insert(Datom::new(
                 EntityId::from_ident(&format!(":work/item-{i}")),
                 Attribute::from_keyword(":db/doc"),
@@ -4480,7 +4528,7 @@ mod tests {
         }
 
         let store = Store::from_datoms(datoms);
-        let warning = should_warn_on_exit(&store);
+        let warning = should_warn_on_exit(&store, Some(1.0));
         assert!(
             warning.is_some(),
             "15 txns with no harvest ever should trigger warning"
@@ -4588,8 +4636,9 @@ mod tests {
     #[test]
     fn should_warn_on_exit_high_velocity_uses_higher_threshold() {
         // With high velocity (>5 txn/min), dynamic_threshold returns 30.
-        // So a moderate number of distinct wall_times since harvest should NOT
-        // trigger a warning, whereas with the old hardcoded threshold of 8 it would.
+        // Multi-signal urgency: signal_1 = 5/30 ≈ 0.17, signal_2 = 0.25/30 ≈ 0.008,
+        // signal_3 = 0 (no exploration entities), signal_4 = 0 (k_eff healthy).
+        // Max urgency ≈ 0.17 < 0.7 → no warning.
         use crate::datom::{AgentId, Datom, Op, TxId, Value};
         let agent = AgentId::from_name("test");
         let now = std::time::SystemTime::now()
@@ -4607,6 +4656,13 @@ mod tests {
             EntityId::from_ident(":harvest/h-recent"),
             Attribute::from_keyword(":harvest/agent"),
             Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-recent"),
+            Attribute::from_keyword(":harvest/boundary-tx"),
+            Value::Long(harvest_wall as i64),
             harvest_tx,
             Op::Assert,
         ));
@@ -4651,12 +4707,78 @@ mod tests {
         );
 
         // The txn count since harvest should be moderate (well under 30).
-        let warning = should_warn_on_exit(&store);
+        // k_eff = 1.0 means signal_4 = 0, so max urgency is signal_1 ≈ 0.17.
+        let warning = should_warn_on_exit(&store, Some(1.0));
         assert!(
             warning.is_none(),
             "few txns since harvest with high velocity (threshold=30) should NOT warn, \
              but got: {:?}",
             warning
+        );
+    }
+
+    #[test]
+    fn should_warn_on_exit_critical_k_eff_triggers_warning() {
+        // When k_eff < 0.15, signal_4 = 1.5 which exceeds 0.7, triggering
+        // a harvest warning regardless of other signals.
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Recent harvest (signal_2 low)
+        let harvest_wall = now - 30;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-recent"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-recent"),
+            Attribute::from_keyword(":harvest/boundary-tx"),
+            Value::Long(harvest_wall as i64),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // Just 1 transaction since harvest (signal_1 = 1/8 = 0.125)
+        let tx = TxId::new(harvest_wall + 1, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":work/item-1"),
+            Attribute::from_keyword(":db/doc"),
+            Value::String("work item 1".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        // k_eff = 0.1 (critically low) → signal_4 = 1.5 → urgency >= 0.7
+        let warning = should_warn_on_exit(&store, Some(0.1));
+        assert!(
+            warning.is_some(),
+            "critical k_eff should trigger harvest warning even with few txns"
+        );
+        let msg = warning.unwrap();
+        assert!(
+            msg.contains("urgency"),
+            "warning must include urgency score: {msg}"
+        );
+    }
+
+    #[test]
+    fn should_warn_on_exit_none_k_eff_estimates_from_store() {
+        // When k_eff is None, should_warn_on_exit estimates it from the store.
+        // An empty store has 0 txns since harvest → short-circuits to None.
+        let store = Store::from_datoms(std::collections::BTreeSet::new());
+        assert!(
+            should_warn_on_exit(&store, None).is_none(),
+            "empty store with auto-estimated k_eff should not warn"
         );
     }
 

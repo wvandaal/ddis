@@ -23,6 +23,7 @@ pub(crate) mod status;
 mod task;
 mod topology;
 mod trace;
+mod witness;
 mod verify;
 mod wrap;
 pub(crate) mod write;
@@ -893,6 +894,25 @@ Examples:
         #[command(subcommand)]
         action: TopologyAction,
     },
+
+    // ── WITNESS ──────────────────────────────────────────────────────
+    /// Falsification-Bound Witness coverage, staleness, and completeness.
+    ///
+    /// `braid witness status`       Coverage summary with validation score.
+    /// `braid witness check`        Run staleness detection on all witnesses.
+    /// `braid witness completeness` List invariants lacking L2+ witnesses.
+    #[command(after_long_help = "\
+Examples:
+  braid witness status                # coverage dashboard
+  braid witness status --json         # structured output
+  braid witness check                 # detect stale witnesses
+  braid witness check --commit        # mark stale witnesses in store
+  braid witness completeness          # list unwitnessed invariants
+  braid witness completeness --json   # structured gaps list")]
+    Witness {
+        #[command(subcommand)]
+        action: WitnessAction,
+    },
 }
 
 /// Topology subcommands (ADR-TOPOLOGY-004).
@@ -940,6 +960,53 @@ pub enum TopologyAction {
         /// Store directory path.
         #[arg(long, short = 'p', default_value = ".braid")]
         path: PathBuf,
+    },
+}
+
+/// Witness subcommands (INV-WITNESS-001..011).
+#[derive(Subcommand)]
+pub enum WitnessAction {
+    /// Show witness coverage summary: total invariants, witnessed, stale, untested.
+    Status {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Run staleness detection on all witnesses (INV-WITNESS-001).
+    ///
+    /// Compares stored hashes against current spec artifacts. Reports any
+    /// witnesses whose spec, falsification, or test body hashes have drifted.
+    Check {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Transact stale markers into the store.
+        #[arg(long)]
+        commit: bool,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Show invariants lacking L2+ witnesses (INV-WITNESS-011).
+    ///
+    /// Lists invariant spec elements that have no valid witness at depth >= 2.
+    /// Formatted as actionable items.
+    Completeness {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Output as JSON.
+        #[arg(long)]
+        json: bool,
     },
 }
 
@@ -1537,6 +1604,11 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
         Command::Topology { action } => match action {
             TopologyAction::Plan { path, .. } | TopologyAction::Status { path, .. } | TopologyAction::Deps { path, .. } => Some(path),
         },
+        Command::Witness { action } => match action {
+            WitnessAction::Status { path, .. }
+            | WitnessAction::Check { path, .. }
+            | WitnessAction::Completeness { path, .. } => Some(path),
+        },
     }
 }
 
@@ -1558,6 +1630,11 @@ fn is_json_output(cmd: &Command, mode: crate::output::OutputMode) -> bool {
             | Command::Topology {
                 action: TopologyAction::Plan { json: true, .. }
                     | TopologyAction::Status { json: true, .. },
+            }
+            | Command::Witness {
+                action: WitnessAction::Status { json: true, .. }
+                    | WitnessAction::Check { json: true, .. }
+                    | WitnessAction::Completeness { json: true, .. },
             }
     )
 }
@@ -1597,6 +1674,7 @@ pub fn command_name_for(cmd: &Command) -> &'static str {
         Command::Go { .. } => "go",
         Command::Spec { .. } => "spec",
         Command::Topology { .. } => "topology",
+        Command::Witness { .. } => "witness",
         Command::Verify { .. } => "verify",
         Command::Transact { .. } => "transact",
     }
@@ -1898,6 +1976,13 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
         },
         Command::Topology { action } => match action {
             TopologyAction::Plan { path, .. } | TopologyAction::Status { path, .. } | TopologyAction::Deps { path, .. } => {
+                *path = resolve_store_path(path.clone());
+            }
+        },
+        Command::Witness { action } => match action {
+            WitnessAction::Status { path, .. }
+            | WitnessAction::Check { path, .. }
+            | WitnessAction::Completeness { path, .. } => {
                 *path = resolve_store_path(path.clone());
             }
         },
@@ -2629,6 +2714,41 @@ pub fn run(
             }
             TopologyAction::Deps { path } => {
                 let cmd_output = topology::run_deps(&path)?;
+                return Ok(maybe_inject_footer(
+                    cmd_output,
+                    skip_footer,
+                    path_for_footer.as_deref(),
+                    budget_ctx,
+                    footer_cmd_name,
+                    None,
+                ));
+            }
+        },
+        Command::Witness { action } => match action {
+            WitnessAction::Status { path, json } => {
+                let cmd_output = witness::run_status(&path, json)?;
+                return Ok(maybe_inject_footer(
+                    cmd_output,
+                    skip_footer,
+                    path_for_footer.as_deref(),
+                    budget_ctx,
+                    footer_cmd_name,
+                    None,
+                ));
+            }
+            WitnessAction::Check { path, commit, json } => {
+                let cmd_output = witness::run_check(&path, commit, json)?;
+                return Ok(maybe_inject_footer(
+                    cmd_output,
+                    skip_footer,
+                    path_for_footer.as_deref(),
+                    budget_ctx,
+                    footer_cmd_name,
+                    None,
+                ));
+            }
+            WitnessAction::Completeness { path, json } => {
+                let cmd_output = witness::run_completeness(&path, json)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,
