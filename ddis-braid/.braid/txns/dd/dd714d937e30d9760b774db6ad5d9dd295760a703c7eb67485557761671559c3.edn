@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774043931/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b082eb37"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "78fd6dc0a174be6d3e5962cb5bf01a29a64c0ba00f538e2febec2b748e380cc2" :a :task/close-reason :v "DUPLICATE of ZCM EPIC (t-e2e64fe4). Same concept: auto-observation as command side-effect. ZCM has more complete specification including maturity tags, confidence levels, and seed exclusion." :op :assert}
+   {:e #blake3 "78fd6dc0a174be6d3e5962cb5bf01a29a64c0ba00f538e2febec2b748e380cc2" :a :task/closed-at :v 1774043930 :op :assert}
+   {:e #blake3 "78fd6dc0a174be6d3e5962cb5bf01a29a64c0ba00f538e2febec2b748e380cc2" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "78fd6dc0a174be6d3e5962cb5bf01a29a64c0ba00f538e2febec2b748e380cc2" :a :task/status :v :task.status/closed :op :assert}
+ ]}

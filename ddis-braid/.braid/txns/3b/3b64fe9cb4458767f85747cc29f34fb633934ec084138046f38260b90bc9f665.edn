@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774043991/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7d5553c2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c1ded42ac5df1ea43e5b472496567b0f4bf3d6cff2aabbf206890a6fdbdacdad" :a :task/close-reason :v "SPLIT: P(t) metric → ZCM-PT (t-9af631dd). Urgency weighting → already covered by t-891d2acd (smart harvest thresholds) and t-809353b5 (ZCM-2b velocity-adaptive threshold)." :op :assert}
+   {:e #blake3 "c1ded42ac5df1ea43e5b472496567b0f4bf3d6cff2aabbf206890a6fdbdacdad" :a :task/closed-at :v 1774043990 :op :assert}
+   {:e #blake3 "c1ded42ac5df1ea43e5b472496567b0f4bf3d6cff2aabbf206890a6fdbdacdad" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "c1ded42ac5df1ea43e5b472496567b0f4bf3d6cff2aabbf206890a6fdbdacdad" :a :task/status :v :task.status/closed :op :assert}
+ ]}
