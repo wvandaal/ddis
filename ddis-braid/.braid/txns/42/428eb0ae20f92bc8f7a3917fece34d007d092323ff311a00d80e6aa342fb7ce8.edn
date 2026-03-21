@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774050762/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-99d31560"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cab45ceb66bdb1d6eb5b83a0a356dc90caaf875aa5f485198c6099e3b83e4f44" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "cab45ceb66bdb1d6eb5b83a0a356dc90caaf875aa5f485198c6099e3b83e4f44" :a :task/closed-at :v 1774050761 :op :assert}
+   {:e #blake3 "cab45ceb66bdb1d6eb5b83a0a356dc90caaf875aa5f485198c6099e3b83e4f44" :a :task/completion-evidence :v "TAP-SPLIT complete: (A) :task/body schema attr added. (B) create_task_datoms splits at BACKGROUND:. (C) TaskSummary.body field + full_text() method. (D) 5 downstream callers updated. (E) extract_acceptance_criteria reads body. (F) search uses full_text. All 1281+ tests pass, zero clippy." :op :assert}
+   {:e #blake3 "cab45ceb66bdb1d6eb5b83a0a356dc90caaf875aa5f485198c6099e3b83e4f44" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "cab45ceb66bdb1d6eb5b83a0a356dc90caaf875aa5f485198c6099e3b83e4f44" :a :task/status :v :task.status/closed :op :assert}
+ ]}

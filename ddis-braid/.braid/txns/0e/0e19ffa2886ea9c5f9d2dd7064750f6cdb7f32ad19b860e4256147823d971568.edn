@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774052384/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-481d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b1a968386f5c97ffdda9d50cb08550c19f43b3ca92364f2a9daea01186ac9415" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "b1a968386f5c97ffdda9d50cb08550c19f43b3ca92364f2a9daea01186ac9415" :a :task/closed-at :v 1774052383 :op :assert}
+   {:e #blake3 "b1a968386f5c97ffdda9d50cb08550c19f43b3ca92364f2a9daea01186ac9415" :a :task/completion-evidence :v "D3.1: surprisal_score at harvest.rs with 3 signals (keyword novelty, entity novelty, confidence delta), geometric mean, 3 tests pass" :op :assert}
+   {:e #blake3 "b1a968386f5c97ffdda9d50cb08550c19f43b3ca92364f2a9daea01186ac9415" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "b1a968386f5c97ffdda9d50cb08550c19f43b3ca92364f2a9daea01186ac9415" :a :task/status :v :task.status/closed :op :assert}
+ ]}

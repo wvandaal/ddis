@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774051282/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dd16fd1ad2152a59122e09aafb62b2563e85a561ffb1e5f0e0a2426dbc51c04c" :a :db/ident :v :recon/trace-ca8bc12ae0eb4abf :op :assert}
+   {:e #blake3 "dd16fd1ad2152a59122e09aafb62b2563e85a561ffb1e5f0e0a2426dbc51c04c" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "dd16fd1ad2152a59122e09aafb62b2563e85a561ffb1e5f0e0a2426dbc51c04c" :a :recon/trace-neighborhood :v "HARVEST" :op :assert}
+   {:e #blake3 "dd16fd1ad2152a59122e09aafb62b2563e85a561ffb1e5f0e0a2426dbc51c04c" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.guidance.neg-harvest-001" :op :assert}
+   {:e #blake3 "dd16fd1ad2152a59122e09aafb62b2563e85a561ffb1e5f0e0a2426dbc51c04c" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.harvest.neg-harvest-001" :op :assert}
+   {:e #blake3 "dd16fd1ad2152a59122e09aafb62b2563e85a561ffb1e5f0e0a2426dbc51c04c" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.harvest_seed_cycle.neg-harvest-001" :op :assert}
+   {:e #blake3 "dd16fd1ad2152a59122e09aafb62b2563e85a561ffb1e5f0e0a2426dbc51c04c" :a :recon/trace-neighbors :v ":impl/braid.src.commands.mod.neg-harvest-001" :op :assert}
+   {:e #blake3 "dd16fd1ad2152a59122e09aafb62b2563e85a561ffb1e5f0e0a2426dbc51c04c" :a :recon/trace-neighbors :v ":impl/braid.src.main.neg-harvest-001" :op :assert}
+   {:e #blake3 "dd16fd1ad2152a59122e09aafb62b2563e85a561ffb1e5f0e0a2426dbc51c04c" :a :recon/trace-refs :v "NEG-HARVEST-001" :op :assert}
+ ]}

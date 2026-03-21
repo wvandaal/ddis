@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774051535/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3415"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/closed-at :v 1774051534 :op :assert}
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/completion-evidence :v "D1.1: harvest_urgency_multi at guidance.rs:2483 has all 4 dimensions (count, time, value, k*). Already implemented." :op :assert}
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "a4c96be9530af5b911487524d22234df3db979d947fc56fc2f5e837e33a547be" :a :task/status :v :task.status/closed :op :assert}
+ ]}

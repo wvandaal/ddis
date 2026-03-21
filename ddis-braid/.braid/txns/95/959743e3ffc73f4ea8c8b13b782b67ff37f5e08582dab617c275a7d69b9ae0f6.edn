@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774049664/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-9af631dd"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1c006f187fb27c7e46e8989b5d399cc571a21acdbe61834b70e8a2255eab6836" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "1c006f187fb27c7e46e8989b5d399cc571a21acdbe61834b70e8a2255eab6836" :a :task/closed-at :v 1774049663 :op :assert}
+   {:e #blake3 "1c006f187fb27c7e46e8989b5d399cc571a21acdbe61834b70e8a2255eab6836" :a :task/completion-evidence :v "P(t) shows in terse (0.55), JSON (progress.p_t), and TSV output. Acceptance A/B/C met." :op :assert}
+   {:e #blake3 "1c006f187fb27c7e46e8989b5d399cc571a21acdbe61834b70e8a2255eab6836" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "1c006f187fb27c7e46e8989b5d399cc571a21acdbe61834b70e8a2255eab6836" :a :task/status :v :task.status/closed :op :assert}
+ ]}

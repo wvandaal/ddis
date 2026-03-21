@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774052394/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-960e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/closed-at :v 1774052393 :op :assert}
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/completion-evidence :v "D3.2: weight_for_with_surprisal wired, weight_for backward-compat (surprisal=1.0), 2 tests pass" :op :assert}
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "9a8ecc3c48e3ad75feeb03661143264f7aaf4bcf6b201d8de80334466ae17dc7" :a :task/status :v :task.status/closed :op :assert}
+ ]}

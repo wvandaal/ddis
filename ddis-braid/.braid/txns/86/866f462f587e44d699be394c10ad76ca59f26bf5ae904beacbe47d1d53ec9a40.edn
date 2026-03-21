@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774053481/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e8cf"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/closed-at :v 1774053480 :op :assert}
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/completion-evidence :v "TEST-C2f: vaet_reverse_ref_traversal_chain — A→B→C entity graph, backward traversal verified." :op :assert}
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "b43b28a738ecb1139cc2c3b804a8f1fdcdd7a03c32d1e196c8b2797c73c9c6ce" :a :task/status :v :task.status/closed :op :assert}
+ ]}

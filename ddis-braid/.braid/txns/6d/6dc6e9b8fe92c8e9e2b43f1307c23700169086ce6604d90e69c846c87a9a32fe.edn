@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774051555/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1012612f"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/closed-at :v 1774051554 :op :assert}
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/completion-evidence :v "AGP-4.2: methodology_gaps wired into status.rs at lines 449/619/772/1012/1260 with activity-mode suppression. Already implemented." :op :assert}
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "a57f66ef94972b1a12688a6d51884ce3f0a40b3c5e9f5d107ba4cea60ef737b4" :a :task/status :v :task.status/closed :op :assert}
+ ]}

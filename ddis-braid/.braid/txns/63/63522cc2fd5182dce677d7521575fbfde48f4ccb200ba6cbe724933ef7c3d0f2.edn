@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774054123/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b2c0"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/closed-at :v 1774054122 :op :assert}
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/completion-evidence :v "E2E-WB: scripts/e2e_guidance.sh created with 10 checks" :op :assert}
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "7d8e7c968eba278843a564508a4860e61f0c2b1d757d0b8022aa5a3f76f31203" :a :task/status :v :task.status/closed :op :assert}
+ ]}

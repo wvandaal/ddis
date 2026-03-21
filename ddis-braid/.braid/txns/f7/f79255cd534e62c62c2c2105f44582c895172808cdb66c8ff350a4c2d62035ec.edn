@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774052668/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-682b"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/closed-at :v 1774052667 :op :assert}
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/completion-evidence :v "TEST-C2d: cache_invalidated_by_new_transaction at layout.rs:815 + 5 related cache tests." :op :assert}
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "a8f28265c0906b20b54b0300d54a90c7380f95c3bf094f98a549f8046c809490" :a :task/status :v :task.status/closed :op :assert}
+ ]}

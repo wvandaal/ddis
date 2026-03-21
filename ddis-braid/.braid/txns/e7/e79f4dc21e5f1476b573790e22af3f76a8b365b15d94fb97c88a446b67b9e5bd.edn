@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774051737/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-16a4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/closed-at :v 1774051736 :op :assert}
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/completion-evidence :v "D2.1: detect_all_divergence wired into exit warning path in main.rs. Shows divergence types on stderr." :op :assert}
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "6633c7cd670989c9e45e6f1194f743d26a7756fe3b3cd2d6532d856668c013b4" :a :task/status :v :task.status/closed :op :assert}
+ ]}

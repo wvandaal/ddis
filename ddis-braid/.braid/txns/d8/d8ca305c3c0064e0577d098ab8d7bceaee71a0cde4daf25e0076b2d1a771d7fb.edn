@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774054109/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b59ee192"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/closed-at :v 1774054108 :op :assert}
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/completion-evidence :v "E2E-COF: scripts/e2e_contextual_observation.sh created with 8 checks" :op :assert}
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "ac9ecb3fba45ce186e6d8a13d9acd6b41568feff54bf24e5a379f185db60d489" :a :task/status :v :task.status/closed :op :assert}
+ ]}

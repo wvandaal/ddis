@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774052658/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-6650"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/closed-at :v 1774052657 :op :assert}
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/completion-evidence :v "TEST-C2c: live_value_matches_lww_resolution proptest at store.rs:3056 verifies incremental LIVE matches rebuild." :op :assert}
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "2fd8ac84a34d15249aaa3fc0ea0dc2ac7fe693bd9dd42b073e74b27aa14e00c9" :a :task/status :v :task.status/closed :op :assert}
+ ]}

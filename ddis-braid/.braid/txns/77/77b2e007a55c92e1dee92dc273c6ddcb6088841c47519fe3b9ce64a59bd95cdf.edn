@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774051232/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-483426c9"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb9b1fbde501bd910c7bfc48f4c0644feff83c4d418fc278c309f399f77ee330" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "fb9b1fbde501bd910c7bfc48f4c0644feff83c4d418fc278c309f399f77ee330" :a :task/closed-at :v 1774051231 :op :assert}
+   {:e #blake3 "fb9b1fbde501bd910c7bfc48f4c0644feff83c4d418fc278c309f399f77ee330" :a :task/completion-evidence :v "CRB-PREVIEW: --force flag on task create, crb_preview_scan Jaccard similarity, preview with scores/titles, all tests pass" :op :assert}
+   {:e #blake3 "fb9b1fbde501bd910c7bfc48f4c0644feff83c4d418fc278c309f399f77ee330" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "fb9b1fbde501bd910c7bfc48f4c0644feff83c4d418fc278c309f399f77ee330" :a :task/status :v :task.status/closed :op :assert}
+ ]}
