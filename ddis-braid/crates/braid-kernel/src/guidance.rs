@@ -5675,6 +5675,84 @@ mod tests {
     }
 
     // -------------------------------------------------------------------
+    // Time urgency test (t-e89f, INV-HARVEST-005)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn time_urgency_fires_before_count_in_slow_session() {
+        // Slow session: few transactions (2), long elapsed time (40 min).
+        // signal_1 = 2/8 = 0.25 (low — few tx)
+        // signal_2 = 40/30 = 1.33 (high — long time)
+        // harvest_urgency_multi should return >= 1.0 (time dominates)
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Harvest 40 minutes ago
+        let harvest_wall = now - 2400;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-slow"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-slow"),
+            Attribute::from_keyword(":harvest/boundary-tx"),
+            Value::Long(harvest_wall as i64),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // Only 2 transactions since harvest
+        for i in 1..=2 {
+            let tx = TxId::new(harvest_wall + i * 60, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":work/slow-{i}")),
+                Attribute::from_keyword(":db/doc"),
+                Value::String(format!("slow work {i}")),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        let urgency = harvest_urgency_multi(&store, 1.0);
+        assert!(
+            urgency >= 1.0,
+            "time urgency (40 min) should exceed 1.0 despite few tx, got {urgency}"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // Typed routing preference (t-6da3, INV-GUIDANCE-010)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn typed_routing_task_type_multiplier_ordering() {
+        // Bug > Task > Feature > Epic > Docs > Question
+        use crate::task::TaskType;
+        assert!(
+            TaskType::Bug.type_multiplier() >= TaskType::Task.type_multiplier(),
+            "bug should have >= multiplier than task"
+        );
+        assert!(
+            TaskType::Task.type_multiplier() >= TaskType::Feature.type_multiplier(),
+            "task should have >= multiplier than feature"
+        );
+        assert!(
+            TaskType::Feature.type_multiplier() >= TaskType::Docs.type_multiplier(),
+            "feature should have >= multiplier than docs"
+        );
+    }
+
+    // -------------------------------------------------------------------
     // GuidanceContext (ADR-GUIDANCE-015)
     // -------------------------------------------------------------------
 

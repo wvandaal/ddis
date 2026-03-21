@@ -2220,4 +2220,69 @@ mod tests {
             "setting unknown attribute should error"
         );
     }
+
+    // -------------------------------------------------------------------
+    // Batch close test (t-fd96, INV-TASK-001)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn batch_close_multiple_tasks_single_txn() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".braid");
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+
+        // Create 5 tasks
+        let mut ids = Vec::new();
+        for i in 0..5 {
+            create_test_task(&path, &format!("Batch close test {i}"), 2);
+            ids.push(generate_task_id(&format!("Batch close test {i}")));
+        }
+
+        // Close all 5 in one call
+        let result = close(&path, &ids, "test batch close", "test", false, None).unwrap();
+        // Verify all 5 task IDs appear in the output
+        for id in &ids {
+            assert!(
+                result.human.contains(id),
+                "should mention closed task {id}: {}",
+                result.human
+            );
+        }
+
+        // Verify all are closed
+        let layout = DiskLayout::open(&path).unwrap();
+        let store = layout.load_store().unwrap();
+        for id in &ids {
+            let entity = find_task_by_id(&store, id).unwrap();
+            let status = task::resolve_task_status(&store, entity).unwrap();
+            assert_eq!(status, TaskStatus::Closed, "task {id} should be closed");
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Priority persistence test (t-389f)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn priority_set_persists_across_reload() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".braid");
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+
+        create_test_task(&path, "Priority persist test", 2);
+        let task_id = generate_task_id("Priority persist test");
+
+        // Set priority to 0
+        set(&path, &task_id, "priority", "0", "test").unwrap();
+
+        // Reload store from disk and verify
+        let layout = DiskLayout::open(&path).unwrap();
+        let store = layout.load_store().unwrap();
+        let entity = find_task_by_id(&store, &task_id).unwrap();
+        let summary = task_summary(&store, entity).unwrap();
+        assert_eq!(
+            summary.priority, 0,
+            "priority should persist as 0 after reload"
+        );
+    }
 }
