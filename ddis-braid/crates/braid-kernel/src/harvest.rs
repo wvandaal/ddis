@@ -225,7 +225,10 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
                         // always Observation to avoid polluting Decision/Uncertainty lists
                         category: HarvestCategory::Observation,
                         confidence: gap_confidence,
-                        weight: weight_for(gap_confidence, HarvestCategory::Observation),
+                        weight: {
+                            let s = surprisal_score(&gap.to_string(), gap_confidence, profile.entity, store);
+                            weight_for_with_surprisal(gap_confidence, HarvestCategory::Observation, s)
+                        },
                         reconciliation_type: reconciliation_type_for(HarvestCategory::Observation)
                             .to_string(),
                         status: CandidateStatus::Proposed,
@@ -268,7 +271,10 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
                 assertions: vec![],
                 category,
                 confidence,
-                weight: weight_for(confidence, category),
+                weight: {
+                    let s = surprisal_score(&format!("{label}{doc_summary}"), confidence, profile.entity, store);
+                    weight_for_with_surprisal(confidence, category, s)
+                },
                 reconciliation_type: reconciliation_type_for(category).to_string(),
                 status: CandidateStatus::Proposed,
                 rationale: format!("Session entity: {label}{doc_summary}"),
@@ -296,7 +302,11 @@ pub fn harvest_pipeline(store: &Store, context: &SessionContext) -> HarvestResul
                 assertions: vec![(Attribute::from_keyword(":db/doc"), value.clone())],
                 category: cat,
                 confidence: 0.8,
-                weight: weight_for(0.8, cat),
+                weight: {
+                    let text = if let crate::datom::Value::String(ref s) = value { s.as_str() } else { "" };
+                    let s = surprisal_score(text, 0.8, entity, store);
+                    weight_for_with_surprisal(0.8, cat, s)
+                },
                 reconciliation_type: reconciliation_type_for(cat).to_string(),
                 status: CandidateStatus::Proposed,
                 rationale: format!("New knowledge from session: {key}"),
@@ -616,6 +626,7 @@ pub fn surprisal_score(
 /// - Observation: 0.5 (baseline — factual observations are low-commitment)
 ///
 /// Surprisal defaults to 1.0 when not provided (backward-compatible).
+#[cfg(test)]
 fn weight_for(confidence: f64, category: HarvestCategory) -> f64 {
     weight_for_with_surprisal(confidence, category, 1.0)
 }

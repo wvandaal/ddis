@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774065098/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-aeb41600"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "60f1f7fb799605389829902a11db569473ed2b0d76950c0bd37896da02b5e115" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "60f1f7fb799605389829902a11db569473ed2b0d76950c0bd37896da02b5e115" :a :task/closed-at :v 1774065097 :op :assert}
+   {:e #blake3 "60f1f7fb799605389829902a11db569473ed2b0d76950c0bd37896da02b5e115" :a :task/completion-evidence :v "META-6: (1) harvest_urgency_multi signal 1 now uses :tx/delta-crystallization for novel-tx count (with legacy fallback). (2) Signal 3 uses delta-sum instead of raw exploration count. (3) surprisal_score wired into all 3 production weight_for call sites (harvest.rs lines 228, 271, 299). (4) weight_for moved to #[cfg(test)] — all production code uses weight_for_with_surprisal directly. All tests pass, zero clippy." :op :assert}
+   {:e #blake3 "60f1f7fb799605389829902a11db569473ed2b0d76950c0bd37896da02b5e115" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "60f1f7fb799605389829902a11db569473ed2b0d76950c0bd37896da02b5e115" :a :task/status :v :task.status/closed :op :assert}
+ ]}

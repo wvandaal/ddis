@@ -2471,27 +2471,66 @@ pub fn classify_action_outcome(
     Some(("ignored", entity))
 }
 
-/// Multi-dimensional harvest urgency (ZCM-2, INV-GUIDANCE-019).
+/// Multi-dimensional harvest urgency (ZCM-2, META-6, INV-GUIDANCE-019).
 ///
 /// Four signals, urgency = max of all:
-/// 1. tx_since / dynamic_threshold (existing — transaction count)
+/// 1. novel_tx_since / dynamic_threshold (metabolic — only transactions that moved Intent↔Spec boundary)
 /// 2. minutes_since_harvest / 30 (time ceiling — ensures harvest even during slow work)
-/// 3. high_value_unharvested / 3 (knowledge density — observations vs routine closures)
+/// 3. sum(|delta-crystallization|) / 3.0 (cumulative coherence movement — replaces raw exploration count)
 /// 4. k_eff_critical (Q(t) < 0.15 — context exhaustion emergency)
+///
+/// META-6: Signal 1 now uses metabolic delta-crystallization data. Transactions with
+/// delta = 0.0 (task management, session metadata) do NOT count toward urgency.
+/// Only transactions that touched the Intent↔Spec boundary contribute.
+/// This eliminates alert fatigue during batch task operations.
 ///
 /// Returns urgency in [0, 1+]. Values > 1.0 mean OVERDUE.
 pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
     let velocity = tx_velocity(store);
     let threshold = dynamic_threshold(velocity);
-    let tx_since = count_txns_since_last_harvest(store);
-
-    // Signal 1: transaction count / threshold
-    let signal_1 = tx_since as f64 / threshold.max(1) as f64;
-
-    // Signal 2: time since harvest / 30 minutes
-    // CRITICAL: Use the same canonical boundary as signal_1 (last_harvest_wall_time)
-    // to avoid split-brain where signals disagree on when the last harvest occurred.
     let last_harvest_wall = last_harvest_wall_time(store);
+
+    // Signal 1: novel transaction count / threshold (metabolic)
+    // Count transactions since last harvest that have non-zero :tx/delta-crystallization.
+    // This replaces raw tx count — routine operations (task close, status) score zero.
+    let delta_attr = Attribute::from_keyword(":tx/delta-crystallization");
+    let mut novel_tx_count = 0usize;
+    let mut delta_sum = 0.0f64;
+    for d in store.attribute_datoms(&delta_attr) {
+        if d.op == crate::datom::Op::Assert && d.tx.wall_time() > last_harvest_wall {
+            if let crate::datom::Value::Double(ref v) = d.value {
+                let val = v.into_inner();
+                if val.abs() > f64::EPSILON {
+                    novel_tx_count += 1;
+                    delta_sum += val.abs();
+                }
+            }
+        }
+    }
+
+    // Fallback: if no metabolic data exists yet (store predates metabolic system),
+    // use the legacy tx count to avoid losing urgency entirely during transition.
+    let signal_1 = if novel_tx_count > 0 {
+        novel_tx_count as f64 / threshold.max(1) as f64
+    } else {
+        // Legacy fallback: count raw tx since harvest (backward-compatible)
+        let tx_since = count_txns_since_last_harvest(store);
+        // But use exploration count as proxy for novelty, not raw tx count
+        let exploration_type_attr = Attribute::from_keyword(":exploration/type");
+        let exploration_count = store
+            .attribute_datoms(&exploration_type_attr)
+            .iter()
+            .filter(|d2| d2.op == crate::datom::Op::Assert && d2.tx.wall_time() > last_harvest_wall)
+            .count();
+        // Use exploration count if available, otherwise fall back to raw tx count
+        if exploration_count > 0 {
+            exploration_count as f64 / threshold.max(1) as f64
+        } else {
+            tx_since as f64 / threshold.max(1) as f64
+        }
+    };
+
+    // Signal 2: time since harvest / 30 minutes (unchanged — hard backstop)
     let now_wall = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
@@ -2499,17 +2538,10 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
     let minutes_since = (now_wall.saturating_sub(last_harvest_wall)) as f64 / 60.0;
     let signal_2 = minutes_since / 30.0;
 
-    // Signal 3: high-value unharvested / 3
-    // Count exploration entities created since last harvest (observations, not routine)
-    let exploration_type_attr = crate::datom::Attribute::from_keyword(":exploration/type");
-    let high_value = store
-        .attribute_datoms(&exploration_type_attr)
-        .iter()
-        .filter(|d| d.op == crate::datom::Op::Assert && d.tx.wall_time() > last_harvest_wall)
-        .count();
-    let signal_3 = high_value as f64 / 3.0;
+    // Signal 3: cumulative coherence movement / 3.0 (metabolic — replaces raw exploration count)
+    let signal_3 = delta_sum / 3.0;
 
-    // Signal 4: k_eff critical (Q(t) < 0.15)
+    // Signal 4: k_eff critical (Q(t) < 0.15) (unchanged — emergency)
     let signal_4 = if k_eff < 0.15 { 1.5 } else { 0.0 };
 
     // Urgency = max of all signals
