@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774103758/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1a2a36e2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "857ec27db2e3b8b243b93122bd24d15a38a56533d46b43adafa8fff2a3ee2d96" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "857ec27db2e3b8b243b93122bd24d15a38a56533d46b43adafa8fff2a3ee2d96" :a :task/closed-at :v 1774103757 :op :assert}
+   {:e #blake3 "857ec27db2e3b8b243b93122bd24d15a38a56533d46b43adafa8fff2a3ee2d96" :a :task/completion-evidence :v "META-7: Session progress in terse and JSON output. Shows +tasks, +datoms, F(S) delta when active session has start-fitness recorded. JSON includes session_progress object. Falls back gracefully when no session entity exists." :op :assert}
+   {:e #blake3 "857ec27db2e3b8b243b93122bd24d15a38a56533d46b43adafa8fff2a3ee2d96" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "857ec27db2e3b8b243b93122bd24d15a38a56533d46b43adafa8fff2a3ee2d96" :a :task/status :v :task.status/closed :op :assert}
+ ]}

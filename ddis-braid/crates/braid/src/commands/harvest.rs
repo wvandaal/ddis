@@ -116,6 +116,7 @@ pub fn run(
     knowledge_raw: &[String],
     commit: bool,
     force: bool,
+    no_reconcile: bool,
 ) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
@@ -263,38 +264,101 @@ pub fn run(
         out.push_str("  close with: braid task close <id> --reason \"impl complete\"\n");
     }
 
-    // T5-2: Display task audit results — tasks with store evidence of completion
-    {
+    // T5-2 + META-4: Task audit + harvest-integrated reconciliation (INV-TASK-006)
+    // Run audit, display results, and auto-close tasks above confidence threshold.
+    let reconciliation_datoms = {
         let mut audit_results = braid_kernel::task::audit_tasks_from_store(&store);
-        // Sort by descending confidence, take top 5
         audit_results.sort_by(|a, b| {
             b.1.confidence
                 .partial_cmp(&a.1.confidence)
                 .unwrap_or(std::cmp::Ordering::Equal)
         });
-        audit_results.truncate(5);
+
+        let mut reconcile_datoms: Vec<Datom> = Vec::new();
+        let reconcile_threshold = 0.7;
+
         if !audit_results.is_empty() {
-            out.push_str(&format!(
-                "\naudit: {} tasks appear implemented but not closed\n",
-                audit_results.len()
-            ));
-            for (task, evidence) in &audit_results {
-                let pct = (evidence.confidence * 100.0) as u32;
-                let title_display = if task.title.len() > 60 {
-                    let end = task.title.floor_char_boundary(57);
-                    format!("{}...", &task.title[..end])
-                } else {
-                    task.title.clone()
-                };
-                out.push_str(&format!("  [{pct:>3}%] {} \"{title_display}\"\n", task.id));
+            // Split into auto-closeable (>= threshold) and display-only (< threshold)
+            let (auto_close, display_only): (Vec<_>, Vec<_>) = audit_results
+                .iter()
+                .partition(|(_, e)| e.confidence >= reconcile_threshold);
+
+            // META-4: Auto-close high-confidence tasks if reconciliation enabled
+            if commit && !no_reconcile && !auto_close.is_empty() {
+                let recon_agent = AgentId::from_name(agent_name);
+                let recon_tx = super::write::next_tx_id(&store, recon_agent);
+                for (task, evidence) in &auto_close {
+                    let attest = format!(
+                        "Auto-closed by harvest reconciliation: spec_coverage={}/{}, criteria_confidence={:.0}%",
+                        evidence.spec_coverage,
+                        evidence.spec_total,
+                        evidence.criteria_confidence.unwrap_or(0.0) * 100.0,
+                    );
+                    let close = braid_kernel::task::close_task_datoms(task.entity, &attest, recon_tx);
+                    reconcile_datoms.extend(close);
+
+                    // Record completion method
+                    reconcile_datoms.push(Datom::new(
+                        task.entity,
+                        Attribute::from_keyword(":task/completion-method"),
+                        Value::Keyword(":task.completion/harvest-reconciliation".to_string()),
+                        recon_tx,
+                        Op::Assert,
+                    ));
+                    reconcile_datoms.push(Datom::new(
+                        task.entity,
+                        Attribute::from_keyword(":task/completion-evidence"),
+                        Value::String(attest.clone()),
+                        recon_tx,
+                        Op::Assert,
+                    ));
+                }
+                out.push_str(&format!(
+                    "\nreconciled: {} tasks auto-closed (confidence >= {:.0}%)\n",
+                    auto_close.len(),
+                    reconcile_threshold * 100.0,
+                ));
+                for (task, evidence) in &auto_close {
+                    let pct = (evidence.confidence * 100.0) as u32;
+                    out.push_str(&format!("  [{pct:>3}%] {} closed\n", task.id));
+                }
+            } else if !auto_close.is_empty() {
+                // Show audit results without auto-close
+                out.push_str(&format!(
+                    "\naudit: {} tasks appear implemented (>={:.0}% confidence)\n",
+                    auto_close.len(),
+                    reconcile_threshold * 100.0,
+                ));
+                for (task, evidence) in &auto_close {
+                    let pct = (evidence.confidence * 100.0) as u32;
+                    let title_display = braid_kernel::task::short_title(&task.title);
+                    out.push_str(&format!("  [{pct:>3}%] {} \"{title_display}\"\n", task.id));
+                }
+                let close_ids: Vec<&str> =
+                    auto_close.iter().map(|(t, _)| t.id.as_str()).collect();
+                out.push_str(&format!(
+                    "  close: braid task close {}\n",
+                    close_ids.join(" ")
+                ));
             }
-            let close_ids: Vec<&str> = audit_results.iter().map(|(t, _)| t.id.as_str()).collect();
-            out.push_str(&format!(
-                "  close: braid task close {}\n",
-                close_ids.join(" ")
-            ));
+
+            // Display lower-confidence results as hints
+            if !display_only.is_empty() {
+                let display_slice: Vec<_> = display_only.into_iter().take(3).collect();
+                out.push_str(&format!(
+                    "\naudit hints: {} tasks may be implemented (review needed)\n",
+                    display_slice.len(),
+                ));
+                for (task, evidence) in display_slice {
+                    let pct = (evidence.confidence * 100.0) as u32;
+                    let title_display = braid_kernel::task::short_title(&task.title);
+                    out.push_str(&format!("  [{pct:>3}%] {} \"{title_display}\"\n", task.id));
+                }
+            }
         }
-    }
+
+        reconcile_datoms
+    };
 
     // If --commit: apply crystallization guard then persist
     if commit && !result.candidates.is_empty() {
@@ -667,6 +731,9 @@ pub fn run(
                 Op::Assert,
             ));
         }
+
+        // META-4: Inject reconciliation datoms into harvest transaction
+        all_datoms.extend(reconciliation_datoms);
 
         let tx_file = TxFile {
             tx_id: harvest_tx_id,

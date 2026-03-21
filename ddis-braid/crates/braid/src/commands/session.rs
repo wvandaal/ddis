@@ -408,7 +408,7 @@ pub fn run_end(
     human.push_str("Ending session...\n\n");
 
     // Step 1: Harvest with commit (Stage 0: force=true bypasses guard)
-    let harvest_output = harvest::run(path, agent_name, task, &[], true, true)?;
+    let harvest_output = harvest::run(path, agent_name, task, &[], true, true, false)?;
     human.push_str(&harvest_output.human);
 
     // Step 2: Re-inject seed for next session

@@ -535,6 +535,12 @@ Workflow:
         /// Useful when multiple agents contribute to knowledge maturation.
         #[arg(long)]
         guard: bool,
+
+        /// Skip harvest reconciliation (auto-close of store-verifiable tasks).
+        /// By default, harvest checks for tasks whose acceptance criteria are
+        /// satisfied and auto-closes them. Use this flag to skip that step.
+        #[arg(long)]
+        no_reconcile: bool,
     },
 
     /// Start-of-session: store → agent context.
@@ -2276,6 +2282,7 @@ pub fn run(
             commit,
             force,
             guard,
+            no_reconcile,
         } => {
             // Stage 0: --commit bypasses crystallization guard by default.
             // --guard re-enables it. --force always bypasses (legacy compat).
@@ -2287,6 +2294,7 @@ pub fn run(
                 &knowledge,
                 commit,
                 effective_force,
+                no_reconcile,
             )?;
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -2966,6 +2974,7 @@ mod tests {
             commit: false,
             force: false,
             guard: false,
+            no_reconcile: false,
         };
         assert!(!is_json_output(&harvest, h));
 
@@ -3240,6 +3249,7 @@ mod tests {
             commit: false,
             force: false,
             guard: false,
+            no_reconcile: false,
         };
         assert!(!is_json_output(&harvest, h), "Harvest must get footer");
         assert!(!is_generative_output(&harvest), "Harvest must get footer");
@@ -3345,6 +3355,7 @@ mod tests {
                 commit: false,
                 force: false,
                 guard: false,
+                no_reconcile: false,
             },
             Command::Seed {
                 path: PathBuf::from(".braid"),

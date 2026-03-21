@@ -230,7 +230,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
 
         "harvest" | "hv" => {
             let task = if args.is_empty() { None } else { Some(args) };
-            match super::harvest::run(path, "braid:shell", task, &[], false, false) {
+            match super::harvest::run(path, "braid:shell", task, &[], false, false, false) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),
             }

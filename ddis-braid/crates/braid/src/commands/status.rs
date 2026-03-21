@@ -279,6 +279,46 @@ fn query_session_start_fitness(store: &braid_kernel::Store) -> Option<f64> {
         })
 }
 
+/// Query the datom count at session start for computing session-level deltas (META-7).
+fn query_session_start_datom_count(store: &braid_kernel::Store) -> usize {
+    let started_attr = Attribute::from_keyword(":session/started-at");
+    let status_attr = Attribute::from_keyword(":session/status");
+    let count_attr = Attribute::from_keyword(":session/start-datom-count");
+
+    let mut latest_wall = 0u64;
+    let mut latest_session = None;
+    for datom in store.attribute_datoms(&started_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        if let Value::Long(wall) = datom.value {
+            let wall = wall as u64;
+            let is_active = store.entity_datoms(datom.entity).iter().any(|d| {
+                d.attribute == status_attr
+                    && d.op == Op::Assert
+                    && matches!(&d.value, Value::Keyword(k) if k.contains("active"))
+            });
+            if is_active && wall > latest_wall {
+                latest_wall = wall;
+                latest_session = Some(datom.entity);
+            }
+        }
+    }
+
+    latest_session
+        .and_then(|session| {
+            store
+                .entity_datoms(session)
+                .iter()
+                .find(|d| d.attribute == count_attr && d.op == Op::Assert)
+                .and_then(|d| match d.value {
+                    Value::Long(n) => Some(n as usize),
+                    _ => None,
+                })
+        })
+        .unwrap_or(0)
+}
+
 /// Build an ActionProjection for the status command (ACP-5, INV-BUDGET-007).
 ///
 /// Decomposes status into Action + Context blocks at appropriate precedence:
@@ -613,6 +653,34 @@ fn build_terse(
             " ({ready_count} ready, {blocked} blocked) | {closed} closed | P(t)={p_t:.2}\n"
         ));
         out.push_str(&task_line);
+    }
+
+    // META-7: Session progress dashboard — session-level deltas (INV-INTERFACE-008)
+    if let Some(start_fitness) = query_session_start_fitness(store) {
+        let start_datom_count = query_session_start_datom_count(store);
+        let session_boundary = braid_kernel::guidance::last_harvest_wall_time(store);
+
+        // Count tasks closed this session (status=closed with wall_time > session_boundary)
+        let session_tasks_closed = store
+            .datoms()
+            .filter(|d| {
+                d.attribute.as_str() == ":task/status"
+                    && d.op == braid_kernel::datom::Op::Assert
+                    && d.tx.wall_time() > session_boundary
+                    && matches!(&d.value, braid_kernel::datom::Value::Keyword(k) if k.contains("closed"))
+            })
+            .count();
+
+        let datom_delta = store.len().saturating_sub(start_datom_count);
+        let fitness_delta = fitness.total - start_fitness;
+
+        let mut session_line = format!("session: +{session_tasks_closed} tasks");
+        session_line.push_str(&format!(", +{datom_delta} datoms"));
+        if fitness_delta.abs() > 0.005 {
+            session_line.push_str(&format!(", F(S) {:+.2}", fitness_delta));
+        }
+        session_line.push('\n');
+        out.push_str(&session_line);
     }
 
     // Methodology gaps with activity-mode suppression (T6-1, INV-GUIDANCE-021)
@@ -1251,6 +1319,26 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
         "agent": agent_name,
         "actions": actions_json,
     });
+
+    // META-7: Session progress in JSON
+    if let Some(start_fitness) = query_session_start_fitness(store) {
+        let start_datom_count = query_session_start_datom_count(store);
+        let session_boundary = braid_kernel::guidance::last_harvest_wall_time(store);
+        let session_tasks_closed = store
+            .datoms()
+            .filter(|d| {
+                d.attribute.as_str() == ":task/status"
+                    && d.op == braid_kernel::datom::Op::Assert
+                    && d.tx.wall_time() > session_boundary
+                    && matches!(&d.value, braid_kernel::datom::Value::Keyword(k) if k.contains("closed"))
+            })
+            .count();
+        result["session_progress"] = serde_json::json!({
+            "tasks_closed": session_tasks_closed,
+            "datom_delta": store.len().saturating_sub(start_datom_count),
+            "fitness_delta": fitness.total - start_fitness,
+        });
+    }
 
     // Trace staleness (SC-2)
     let ts = trace_staleness(store, path);

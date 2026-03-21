@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774103543/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a5972034"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e5a5d202248476ddd128bd66a2d692f4c1d00566983bc9d25c30ad1d152dd57a" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "e5a5d202248476ddd128bd66a2d692f4c1d00566983bc9d25c30ad1d152dd57a" :a :task/closed-at :v 1774103542 :op :assert}
+   {:e #blake3 "e5a5d202248476ddd128bd66a2d692f4c1d00566983bc9d25c30ad1d152dd57a" :a :task/completion-evidence :v "META-4: Harvest-integrated reconciliation. Tasks with audit confidence >= 0.7 auto-closed during harvest --commit with completion_method :task.completion/harvest-reconciliation. --no-reconcile flag skips. Injected into same atomic transaction as harvest commit. All tests pass, zero clippy." :op :assert}
+   {:e #blake3 "e5a5d202248476ddd128bd66a2d692f4c1d00566983bc9d25c30ad1d152dd57a" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "e5a5d202248476ddd128bd66a2d692f4c1d00566983bc9d25c30ad1d152dd57a" :a :task/status :v :task.status/closed :op :assert}
+ ]}
