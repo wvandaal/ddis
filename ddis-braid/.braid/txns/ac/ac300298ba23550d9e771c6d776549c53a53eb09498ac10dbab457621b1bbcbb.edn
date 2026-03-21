@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774107074/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: PERF-1-TEST: Tests for braid status --fast. TESTS: (1) UNIT: fast_flag_parsed — Command::Status with --fast flag parses correctly. (2) INTEGRATION: fast_status_contains_required_fields — store size, F(S), P(t), harvest urgency all present. (3) INTEGRATION: fast_status_omits_expensive_fields — no boundaries, no methodology gaps, no R(t) routing. (4) INTEGRATION: fast_json_has_fast_marker — JSON output includes 'fast: true' to distinguish from full status. (5) INTEGRATION: fast_status_under_1_second — time the command, assert < 1s at 33k datoms. (6) UNIT: normal_status_unchanged — status without --fast produces identical output to current. ACCEPTANCE: (A) 6 tests pass. (B) Performance test verifies < 1s. (C) Normal status not regressed. DEPENDS-ON: PERF-1 (t-7412b5f4). FILE: crates/braid/src/commands/status.rs (test module). TRACES TO: INV-INTERFACE-008."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :db/ident :v :task/t-9b8bd378 :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/acceptance :v "(A) 6 tests pass. (B) Performance test verifies < 1s. (C) Normal status not regressed. DEPENDS-ON: PERF-1 (t-7412b5f4)." :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/body :v "ACCEPTANCE: (A) 6 tests pass. (B) Performance test verifies < 1s. (C) Normal status not regressed. DEPENDS-ON: PERF-1 (t-7412b5f4). FILE: crates/braid/src/commands/status.rs (test module). TRACES TO: INV-INTERFACE-008." :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/created-at :v 1774107073 :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/files :v "crates/braid/src/commands/status.rs (test module)." :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/id :v "t-9b8bd378" :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/title :v "PERF-1-TEST: Tests for braid status --fast. TESTS: (1) UNIT: fast_flag_parsed — Command::Status with --fast flag parses correctly. (2) INTEGRATION: fast_status_contains_required_fields — store size, F(S), P(t), harvest urgency all present. (3) INTEGRATION: fast_status_omits_expensive_fields — no boundaries, no methodology gaps, no R(t) routing. (4) INTEGRATION: fast_json_has_fast_marker — JSON output includes 'fast: true' to distinguish from full status. (5) INTEGRATION: fast_status_under_1_second — time the command, assert < 1s at 33k datoms. (6) UNIT: normal_status_unchanged — status without --fast produces identical output to current" :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/title-l0 :v "PERF-1-TEST" :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/title-l1 :v "PERF-1-TEST: Tests for braid status --fast" :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/traces-to :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "bc320d4dcef7693dd234f1ff5ceb3d7b9eb3d45b74020fad7784190188291b3f" :a :task/type :v :task.type/test :op :assert}
+ ]}
