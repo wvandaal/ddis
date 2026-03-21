@@ -1045,6 +1045,8 @@ impl Store {
             for d in [ident_datom, doc_datom] {
                 if self.datoms.insert(d.clone()) {
                     datom_count += 1;
+                    // CE-2: Update materialized views incrementally
+                    self.views.observe_datom(&d);
                     self.entity_index
                         .entry(d.entity)
                         .or_default()
@@ -1086,6 +1088,8 @@ impl Store {
         for datom in tx.datoms() {
             if self.datoms.insert(datom.clone()) {
                 datom_count += 1;
+                // CE-2: Update materialized views incrementally
+                self.views.observe_datom(datom);
                 // Maintain entity index
                 self.entity_index
                     .entry(datom.entity)
@@ -1140,6 +1144,8 @@ impl Store {
         let tx_meta_datoms = self.make_tx_metadata(tx_entity, tx_id, &tx_data);
         for d in tx_meta_datoms {
             if self.datoms.insert(d.clone()) {
+                // CE-2: Update materialized views incrementally
+                self.views.observe_datom(&d);
                 self.entity_index
                     .entry(d.entity)
                     .or_default()
@@ -1187,6 +1193,8 @@ impl Store {
                 Op::Assert,
             );
             if self.datoms.insert(delta_datom.clone()) {
+                // CE-2: Update materialized views incrementally
+                self.views.observe_datom(&delta_datom);
                 self.entity_index
                     .entry(delta_datom.entity)
                     .or_default()
@@ -1219,6 +1227,9 @@ impl Store {
 
         // Update clock
         self.clock = tx_id;
+
+        // CE-2: Update entity count for Phi normalization
+        self.views.entity_count_for_phi = self.entity_index.len() as u64;
 
         // Rebuild schema if any schema attributes were transacted
         if schema_changed {
@@ -1271,14 +1282,17 @@ impl Store {
             }
         }
 
-        // Rebuild all indexes from merged datoms (ADR-STORE-005)
+        // Rebuild all indexes + materialized views from merged datoms (ADR-STORE-005, CE-2)
         self.schema = Schema::from_datoms(&self.datoms);
         self.entity_index = BTreeMap::new();
         self.attribute_index = BTreeMap::new();
         self.vaet_index = BTreeMap::new();
         self.avet_index = BTreeMap::new();
         self.live_view = BTreeMap::new();
+        self.views = MaterializedViews::default();
         for d in &self.datoms {
+            // CE-2: Rebuild materialized views alongside indexes
+            self.views.observe_datom(d);
             self.entity_index
                 .entry(d.entity)
                 .or_default()
@@ -1309,6 +1323,8 @@ impl Store {
                     .or_insert((d.value.clone(), d.tx));
             }
         }
+        // CE-2: Update entity count for Phi normalization
+        self.views.entity_count_for_phi = self.entity_index.len() as u64;
 
         let after = self.datoms.len();
         let new_datoms = after - before;
@@ -1589,6 +1605,8 @@ impl Store {
     /// has been applied.
     pub(crate) fn inject_metadata_datom(&mut self, datom: Datom) {
         if self.datoms.insert(datom.clone()) {
+            // CE-2: Update materialized views incrementally
+            self.views.observe_datom(&datom);
             self.entity_index
                 .entry(datom.entity)
                 .or_default()
@@ -4030,5 +4048,179 @@ mod tests {
                 );
             }
         }
+    }
+
+    // Verifies: CE-2 isomorphism invariant — views match after from_datoms with
+    // spec, impl, and observation datoms.
+    #[test]
+    fn ce2_views_match_compute_fitness_from_datoms() {
+        use crate::bilateral::compute_fitness;
+
+        let agent = system_agent();
+        let tx = TxId::new(100, 0, agent);
+
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        // Spec element
+        let spec_entity = EntityId::from_ident(":spec/inv-test-001");
+        datoms.insert(Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":spec/element-type"),
+            Value::Keyword("invariant".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":spec/falsification"),
+            Value::String("violated if test fails".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // Impl link covering the spec
+        let impl_entity = EntityId::from_ident(":impl/test-001");
+        datoms.insert(Datom::new(
+            impl_entity,
+            Attribute::from_keyword(":impl/implements"),
+            Value::Ref(spec_entity),
+            tx,
+            Op::Assert,
+        ));
+
+        // Observation with confidence
+        let obs_entity = EntityId::from_ident(":exploration/obs-001");
+        datoms.insert(Datom::new(
+            obs_entity,
+            Attribute::from_keyword(":exploration/confidence"),
+            Value::Double(ordered_float::OrderedFloat(0.85)),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+
+        let views_fitness = store.views().fitness();
+        let batch_fitness = compute_fitness(&store);
+
+        let vc = views_fitness.components;
+        let bc = batch_fitness.components;
+
+        // C, U should match closely (H is placeholder in views)
+        assert!(
+            (vc.coverage - bc.coverage).abs() < 0.01,
+            "coverage mismatch: views={:.4} batch={:.4}",
+            vc.coverage,
+            bc.coverage
+        );
+        assert!(
+            (vc.uncertainty - bc.uncertainty).abs() < 0.01,
+            "uncertainty mismatch: views={:.4} batch={:.4}",
+            vc.uncertainty,
+            bc.uncertainty
+        );
+
+        assert!(store.views().spec_count > 0);
+        assert!(!store.views().coverage_impl_targets.is_empty());
+        assert!(store.views().confidence_count > 0);
+    }
+
+    // Verifies: CE-2 — transact() updates views incrementally via observe_datom()
+    #[test]
+    fn ce2_transact_updates_views_incrementally() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        let entity_count_before = store.views().entity_count_for_phi;
+
+        // Transact a new entity (using :db/ident which genesis schema knows)
+        let new_entity = EntityId::from_ident(":test/ce2-entity");
+        let tx = Transaction::new(agent, ProvenanceType::Observed, "new entity").assert(
+            new_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":test/ce2-entity".to_string()),
+        );
+        let committed = tx.commit(&store).expect("commit");
+        store.transact(committed).expect("transact");
+
+        // entity_count_for_phi should increase (new entity created)
+        assert!(
+            store.views().entity_count_for_phi > entity_count_before,
+            "transact must update entity_count_for_phi: before={} after={}",
+            entity_count_before,
+            store.views().entity_count_for_phi
+        );
+    }
+
+    // Verifies: CE-2 — views are consistent between transact path and from_datoms path
+    #[test]
+    fn ce2_transact_views_equal_from_datoms_views() {
+        let mut store = Store::genesis();
+        let agent = system_agent();
+
+        // Transact a few entities via the transact() path
+        for i in 0..5 {
+            let e = EntityId::from_ident(&format!(":test/ce2-equiv-{i}"));
+            let tx = Transaction::new(agent, ProvenanceType::Observed, "test").assert(
+                e,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(format!(":test/ce2-equiv-{i}")),
+            );
+            let committed = tx.commit(&store).expect("commit");
+            store.transact(committed).expect("transact");
+        }
+
+        // Reconstruct store from the same datoms via from_datoms()
+        let reconstructed = Store::from_datoms(store.datom_set().clone());
+
+        // The entity_count_for_phi should match
+        assert_eq!(
+            store.views().entity_count_for_phi,
+            reconstructed.views().entity_count_for_phi,
+            "entity count must match between transact and from_datoms paths"
+        );
+    }
+
+    // Verifies: CE-2 — merge rebuilds views from scratch
+    #[test]
+    fn ce2_merge_rebuilds_views() {
+        let agent_a = AgentId::from_name("agent-a");
+        let agent_b = AgentId::from_name("agent-b");
+        let tx_a = TxId::new(100, 0, agent_a);
+        let tx_b = TxId::new(200, 0, agent_b);
+
+        // Store A: spec element
+        let mut datoms_a = Store::genesis().datom_set().clone();
+        let spec = EntityId::from_ident(":spec/merge-test-001");
+        datoms_a.insert(Datom::new(
+            spec,
+            Attribute::from_keyword(":spec/element-type"),
+            Value::Keyword("invariant".to_string()),
+            tx_a,
+            Op::Assert,
+        ));
+        let mut store_a = Store::from_datoms(datoms_a);
+
+        // Store B: observation with confidence
+        let mut datoms_b = Store::genesis().datom_set().clone();
+        let obs = EntityId::from_ident(":exploration/merge-obs-001");
+        datoms_b.insert(Datom::new(
+            obs,
+            Attribute::from_keyword(":exploration/confidence"),
+            Value::Double(ordered_float::OrderedFloat(0.9)),
+            tx_b,
+            Op::Assert,
+        ));
+        let store_b = Store::from_datoms(datoms_b);
+
+        // Merge B into A
+        store_a.merge(&store_b);
+
+        // Views should reflect BOTH agents' contributions
+        assert!(store_a.views().spec_count > 0, "merged: spec elements from A");
+        assert!(
+            store_a.views().confidence_count > 0,
+            "merged: confidence from B"
+        );
     }
 }

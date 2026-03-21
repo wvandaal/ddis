@@ -171,6 +171,7 @@ pub fn run(
         relates_to: None,
         rationale: None,
         alternatives: None,
+        no_auto_crystallize: false,
     })?;
 
     human.push_str(&format!(

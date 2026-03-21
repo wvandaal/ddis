@@ -688,6 +688,7 @@ fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
         relates_to,
         rationale,
         alternatives,
+        no_auto_crystallize: false,
     })?;
 
     Ok(json!({
@@ -714,7 +715,7 @@ fn tool_guidance(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(&store);
     let routings = compute_routing_from_store(&store);
-    let fitness = layout.cached_fitness(&store);
+    let fitness = store.views().fitness();
 
     let mut out = String::new();
 

@@ -1186,7 +1186,7 @@ pub fn close(
 
     // ZCM-4: Completion reward — show F(S) as feedback signal.
     // From reinforcement learning: explicit reward signals strengthen behavioral patterns.
-    let fitness = layout.cached_fitness(&store);
+    let fitness = store.views().fitness();
     human.push_str(&format!("F(S)={:.2}\n", fitness.total));
 
     let json = serde_json::json!({

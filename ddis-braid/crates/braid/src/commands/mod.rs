@@ -163,6 +163,10 @@ Use `braid write assert` for raw datom mutations (schema, spec links).")]
         /// Alternatives considered (for decisions — what else was evaluated).
         #[arg(long)]
         alternatives: Option<String>,
+
+        /// Suppress auto-crystallization of spec findings (COTX-2).
+        #[arg(long)]
+        no_auto_crystallize: bool,
     },
 
     /// Write datoms: assert, retract, promote, or export.
@@ -2394,6 +2398,7 @@ pub fn run(
             relates_to,
             rationale,
             alternatives,
+            no_auto_crystallize,
         } => {
             let observe_text = text.clone(); // PSR: capture before move
             let cmd_output = observe::run(observe::ObserveArgs {
@@ -2406,6 +2411,7 @@ pub fn run(
                 relates_to: relates_to.as_deref(),
                 rationale: rationale.as_deref(),
                 alternatives: alternatives.as_deref(),
+                no_auto_crystallize,
             })?;
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -2648,6 +2654,7 @@ pub fn run(
                 relates_to: None,
                 rationale: None,
                 alternatives: None,
+                no_auto_crystallize: false,
             })?;
             return Ok(maybe_inject_footer(
                 cmd_output,
@@ -3056,6 +3063,7 @@ mod tests {
             relates_to: None,
             rationale: None,
             alternatives: None,
+            no_auto_crystallize: false,
         };
         assert!(!is_generative_output(&observe));
     }
@@ -3236,6 +3244,7 @@ mod tests {
             relates_to: None,
             rationale: None,
             alternatives: None,
+            no_auto_crystallize: false,
         };
         assert!(!is_json_output(&observe, h), "Observe must get footer");
         assert!(!is_generative_output(&observe), "Observe must get footer");
@@ -3386,6 +3395,7 @@ mod tests {
                 relates_to: None,
                 rationale: None,
                 alternatives: None,
+                no_auto_crystallize: false,
             },
             Command::Schema {
                 path: PathBuf::from(".braid"),

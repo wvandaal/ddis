@@ -408,9 +408,9 @@ fn format_human_briefing(
     store: &braid_kernel::Store,
     seed: &braid_kernel::SeedOutput,
     task: &str,
-    layout: &crate::layout::DiskLayout,
+    _layout: &crate::layout::DiskLayout,
 ) -> Result<String, BraidError> {
-    let coherence = layout.cached_coherence(store);
+    let coherence = braid_kernel::trilateral::check_coherence_fast(store);
     let actions = derive_actions(store);
 
     let mut out = String::new();

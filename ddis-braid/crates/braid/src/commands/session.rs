@@ -288,7 +288,7 @@ pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, Brai
 
     // ZCM-3: Session summary as ACP projection
     let action = braid_kernel::guidance::compute_action_from_store(&store);
-    let fitness = layout.cached_fitness(&store);
+    let fitness = store.views().fitness();
     let tx_since_harvest = count_txns_since_last_harvest(&store);
 
     let mut context_blocks = vec![

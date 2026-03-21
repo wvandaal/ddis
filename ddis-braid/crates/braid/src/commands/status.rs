@@ -14,7 +14,7 @@
 use std::path::Path;
 
 use braid_kernel::bilateral::{
-    compute_fitness, cycle_to_datoms, format_terse as bilateral_format_terse,
+    cycle_to_datoms, format_terse as bilateral_format_terse,
     format_verbose as bilateral_format_verbose, load_trajectory, run_cycle,
 };
 use braid_kernel::datom::{AgentId, Attribute, Op, ProvenanceType, Value};
@@ -71,28 +71,11 @@ impl StatusSnapshot {
     pub(crate) fn compute_with_layout(
         store: &braid_kernel::Store,
         path: &Path,
-        layout: Option<&crate::layout::DiskLayout>,
+        _layout: Option<&crate::layout::DiskLayout>,
     ) -> Self {
-        // PERF-3/4: Try cache first, fall back to recomputation
-        let fitness = layout
-            .and_then(|l| l.load_fitness_cache())
-            .unwrap_or_else(|| {
-                let f = compute_fitness(store);
-                if let Some(l) = layout {
-                    let _ = l.write_fitness_cache(&f);
-                }
-                f
-            });
-
-        let coherence = layout
-            .and_then(|l| l.load_coherence_cache())
-            .unwrap_or_else(|| {
-                let c = check_coherence_fast(store);
-                if let Some(l) = layout {
-                    let _ = l.write_coherence_cache(&c);
-                }
-                c
-            });
+        // CE-4: Use materialized views for O(1) fitness (was O(n) compute_fitness)
+        let fitness = store.views().fitness();
+        let coherence = check_coherence_fast(store);
 
         let telemetry = telemetry_from_store(store);
         let methodology_score = compute_methodology_score(&telemetry);
@@ -212,7 +195,7 @@ pub fn run(
     // Deep mode: bilateral F(S) + optional graph analytics
     if deep {
         let deep_str = run_deep(path, &store, agent_name, spectral, full, commit)?;
-        let fitness = compute_fitness(&store);
+        let fitness = store.views().fitness();
         let json = serde_json::json!({
             "mode": "deep",
             "fitness": fitness.total,
@@ -656,8 +639,8 @@ fn build_terse(
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
-    // F(S) uses compute_fitness (no spectral analysis -- fast, deterministic)
-    let fitness = compute_fitness(store);
+    // CE-4: O(1) fitness via materialized views
+    let fitness = store.views().fitness();
 
     let harvest_tag = if tx_since_harvest >= 15 {
         " OVERDUE"
@@ -867,8 +850,8 @@ fn build_agent(
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
-    // F(S) uses compute_fitness (no spectral analysis -- fast, deterministic)
-    let fitness = compute_fitness(store);
+    // CE-4: O(1) fitness via materialized views
+    let fitness = store.views().fitness();
 
     let trend_str = match score.trend {
         Trend::Up => "up",
@@ -1009,7 +992,7 @@ fn build_verbose(
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
-    let fitness = compute_fitness(store);
+    let fitness = store.views().fitness();
 
     // SD-1: F(S) session delta for verbose
     let fitness_delta_str = match query_session_start_fitness(store) {

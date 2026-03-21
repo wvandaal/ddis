@@ -156,6 +156,7 @@ fn dispatch(cmd: &str, args: &str, path: &Path) -> DispatchResult {
                 relates_to: None,
                 rationale: None,
                 alternatives: None,
+                no_auto_crystallize: false,
             }) {
                 Ok(co) => DispatchResult::Output(co.human),
                 Err(e) => DispatchResult::Error(e.to_string()),

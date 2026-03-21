@@ -2720,8 +2720,8 @@ pub fn create_session_start_datoms_with_name(
     let session_ident = format!(":session/s-{}", wall_secs);
     let session_entity = EntityId::from_ident(&session_ident);
 
-    // Compute F(S) at session start
-    let fitness = crate::bilateral::compute_fitness(store);
+    // CE-4: O(1) fitness via materialized views
+    let fitness = store.views().fitness();
     let datom_count = store.len();
 
     vec![

@@ -49,6 +49,8 @@ pub struct ObserveArgs<'a> {
     pub rationale: Option<&'a str>,
     /// Alternatives considered (for decisions).
     pub alternatives: Option<&'a str>,
+    /// Suppress auto-crystallization of spec findings (COTX-2).
+    pub no_auto_crystallize: bool,
 }
 
 /// Generate a slug from observation text for the entity ident.
@@ -304,6 +306,16 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         ));
     }
 
+    // --- COTX-2: Auto-crystallization of spec findings ---
+    // If the observation contains sufficient structure for crystallization AND
+    // --no-auto-crystallize is not set, generate a :spec/finding entity in the
+    // SAME transaction. Findings are promotable (not full INVs/ADRs).
+    let auto_crystallized = if !args.no_auto_crystallize && args.confidence >= 0.8 {
+        auto_crystallize_finding(args.text, entity, tx_id, &store, &mut datoms)
+    } else {
+        None
+    };
+
     let tx = TxFile {
         tx_id,
         agent,
@@ -324,9 +336,6 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         .to_string();
 
     // --- META-3: Real-time crystallization feedback (INV-GUIDANCE-014, INV-BILATERAL-001) ---
-    // Compute delta-crystallization for this observation. The delta was computed inside
-    // Store::transact() when the TxFile was loaded, but we don't reload the store.
-    // Instead, compute the same logic from the observation's characteristics.
     let has_spec_refs = args.text.contains("INV-") || args.text.contains("ADR-") || args.text.contains("NEG-");
     let spec_refs_exist = if has_spec_refs {
         let refs = braid_kernel::task::parse_spec_refs(args.text);
@@ -338,10 +347,13 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     } else {
         false
     };
-    let delta_cryst: f64 = if spec_refs_exist {
-        0.2 // Observation anchored to existing spec
+    // COTX-2: Auto-crystallized observations get a strong positive delta
+    let delta_cryst: f64 = if auto_crystallized.is_some() {
+        0.7 // Cotransacted finding: observation + spec in same tx
+    } else if spec_refs_exist {
+        0.2 // Anchored to existing spec
     } else {
-        -0.1 // Unanchored intent — creates crystallization tension
+        -0.1 // Unanchored intent
     };
 
     // Find nearest spec element for unanchored observations
@@ -369,12 +381,20 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let mut context_blocks = Vec::new();
 
     // Summary context (System — always shown)
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    let summary = if let Some(ref finding_id) = auto_crystallized {
+        format!(
+            "observed + auto-crystallized: {finding_id} (confidence={:.1}, category={cat_short}, +{datom_count} datoms)",
+            args.confidence,
+        )
+    } else {
+        format!(
             "observed: {ident} (confidence={:.1}, category={cat_short}, +{datom_count} datoms)",
             args.confidence,
-        ),
+        )
+    };
+    context_blocks.push(braid_kernel::budget::ContextBlock {
+        precedence: braid_kernel::budget::OutputPrecedence::System,
+        content: summary,
         tokens: 15,
     });
 
@@ -506,6 +526,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             "score": n.score,
             "summary": n.summary,
         })),
+        "auto_crystallized": auto_crystallized,
     });
     if let serde_json::Value::Object(ref mut map) = json {
         let acp = projection.to_json();
@@ -517,6 +538,136 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     }
 
     Ok(CommandOutput { json, agent, human })
+}
+
+/// COTX-2: Auto-crystallize a spec finding from a structured observation.
+///
+/// Criteria: observation text must contain (a) spec ID pattern (INV-/ADR-/NEG-),
+/// (b) falsification language (for INV) or decision language (for ADR),
+/// (c) confidence >= 0.8 (checked by caller).
+///
+/// Produces a `:spec/finding` entity (NOT a full invariant/ADR) in the SAME
+/// datom vec, creating a cotransaction. Findings are promotable to full spec
+/// elements via `braid spec create`.
+///
+/// Returns the finding ident if crystallization occurred, None otherwise.
+fn auto_crystallize_finding(
+    text: &str,
+    observation_entity: EntityId,
+    tx_id: braid_kernel::datom::TxId,
+    store: &braid_kernel::Store,
+    datoms: &mut Vec<Datom>,
+) -> Option<String> {
+    // (a) Must contain spec ID pattern
+    let has_inv = text.contains("INV-");
+    let has_adr = text.contains("ADR-");
+    let has_neg = text.contains("NEG-");
+    if !has_inv && !has_adr && !has_neg {
+        return None;
+    }
+
+    // Extract the spec namespace from the first pattern match
+    let refs = braid_kernel::task::parse_spec_refs(text);
+    if refs.is_empty() {
+        return None;
+    }
+
+    // (b) Must contain appropriate language
+    let lower = text.to_ascii_lowercase();
+    let has_falsification_lang = lower.contains("violated if")
+        || lower.contains("fails when")
+        || lower.contains("should never")
+        || lower.contains("must not")
+        || lower.contains("falsified");
+    let has_decision_lang = lower.contains("decided")
+        || lower.contains("chose")
+        || lower.contains("rejected")
+        || lower.contains("decision");
+
+    let element_type = if has_inv && has_falsification_lang {
+        "finding-inv"
+    } else if has_adr && has_decision_lang {
+        "finding-adr"
+    } else if has_neg && has_falsification_lang {
+        "finding-neg"
+    } else {
+        // Doesn't meet language criteria
+        return None;
+    };
+
+    // Generate finding ident from first spec ref
+    let first_ref = &refs[0];
+    let slug = slug_from_text(first_ref);
+    let finding_ident = format!(":spec/finding-{slug}");
+    let finding_entity = EntityId::from_ident(&finding_ident);
+
+    // Check if this finding already exists (idempotent)
+    if !store.entity_datoms(finding_entity).is_empty() {
+        return None; // Already crystallized
+    }
+
+    // Extract first sentence as title
+    let title = text
+        .split_once('.')
+        .map(|(s, _)| s.trim())
+        .unwrap_or(text)
+        .chars()
+        .take(120)
+        .collect::<String>();
+
+    // Build finding datoms in the SAME transaction
+    datoms.push(Datom::new(
+        finding_entity,
+        Attribute::from_keyword(":db/ident"),
+        Value::Keyword(finding_ident.clone()),
+        tx_id,
+        Op::Assert,
+    ));
+    datoms.push(Datom::new(
+        finding_entity,
+        Attribute::from_keyword(":spec/element-type"),
+        Value::Keyword(element_type.to_string()),
+        tx_id,
+        Op::Assert,
+    ));
+    datoms.push(Datom::new(
+        finding_entity,
+        Attribute::from_keyword(":element/id"),
+        Value::String(first_ref.to_string()),
+        tx_id,
+        Op::Assert,
+    ));
+    datoms.push(Datom::new(
+        finding_entity,
+        Attribute::from_keyword(":element/title"),
+        Value::String(title),
+        tx_id,
+        Op::Assert,
+    ));
+    datoms.push(Datom::new(
+        finding_entity,
+        Attribute::from_keyword(":element/statement"),
+        Value::String(text.to_string()),
+        tx_id,
+        Op::Assert,
+    ));
+    // Back-reference to source observation
+    datoms.push(Datom::new(
+        finding_entity,
+        Attribute::from_keyword(":spec/source-observation"),
+        Value::Ref(observation_entity),
+        tx_id,
+        Op::Assert,
+    ));
+    datoms.push(Datom::new(
+        finding_entity,
+        Attribute::from_keyword(":spec/auto-crystallized"),
+        Value::Boolean(true),
+        tx_id,
+        Op::Assert,
+    ));
+
+    Some(finding_ident)
 }
 
 /// Find the most recent active session entity for observation linking (B4).
@@ -682,6 +833,7 @@ mod tests {
             relates_to: None,
             rationale: None,
             alternatives: None,
+            no_auto_crystallize: false,
         })
         .unwrap();
 
@@ -741,6 +893,7 @@ mod tests {
             relates_to: None,
             rationale: None,
             alternatives: None,
+            no_auto_crystallize: false,
         });
         assert!(result.is_err());
     }
@@ -761,6 +914,7 @@ mod tests {
             relates_to: None,
             rationale: None,
             alternatives: None,
+            no_auto_crystallize: false,
         });
         assert!(result.is_err());
     }
@@ -781,6 +935,7 @@ mod tests {
             relates_to: Some(":spec/inv-store-004"),
             rationale: None,
             alternatives: None,
+            no_auto_crystallize: false,
         })
         .unwrap();
 
@@ -829,6 +984,7 @@ mod tests {
             relates_to: None,
             rationale: None,
             alternatives: None,
+            no_auto_crystallize: false,
         })
         .unwrap();
 
@@ -938,6 +1094,7 @@ mod tests {
             relates_to: None,
             rationale: None,
             alternatives: None,
+            no_auto_crystallize: false,
         };
 
         let result = run(args).unwrap();
@@ -975,6 +1132,7 @@ mod tests {
             relates_to: None,
             rationale: None,
             alternatives: None,
+            no_auto_crystallize: false,
         };
 
         let result = run(args).unwrap();
@@ -1003,6 +1161,7 @@ mod tests {
             relates_to: None,
             rationale: None,
             alternatives: None,
+            no_auto_crystallize: false,
         };
 
         let result = run(args).unwrap();
