@@ -1,3 +1,7 @@
+> **DEPRECATED**: This file is bootstrap scaffolding. The canonical source of truth is the braid datom store. Use `braid spec show` and `braid query` to access spec elements. See ADR-STORE-019.
+
+---
+
 > **Section**: §1b. Storage Layout | **Namespace**: LAYOUT | **Wave**: 1 (Foundation)
 > **Shared definitions**: [00-preamble.md](00-preamble.md) (conventions, verification tags, constraints)
 > **Depends on**: [01-store.md](01-store.md) (STORE namespace — algebraic datom store)

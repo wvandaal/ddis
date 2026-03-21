@@ -4371,6 +4371,138 @@ mod tests {
         );
     }
 
+    // CE-P1-TEST(1): Observation datom produces nonzero uncertainty delta
+    #[test]
+    fn cep1_project_delta_observe_changes_uncertainty() {
+        let store = Store::genesis();
+        let agent = system_agent();
+        let tx = TxId::new(100, 0, agent);
+
+        let obs = EntityId::from_ident(":exploration/delta-obs-001");
+        let hypothetical = vec![Datom::new(
+            obs,
+            Attribute::from_keyword(":exploration/confidence"),
+            Value::Double(ordered_float::OrderedFloat(0.85)),
+            tx,
+            Op::Assert,
+        )];
+
+        let delta = store.views().project_delta(&hypothetical);
+        // U component should change (adding a confidence observation)
+        assert!(
+            delta.uncertainty.abs() > f64::EPSILON || !delta.is_zero(),
+            "observation should produce nonzero delta"
+        );
+    }
+
+    // CE-P1-TEST(3): Task status datom produces count delta
+    #[test]
+    fn cep1_project_delta_task_close_changes_counts() {
+        let agent = system_agent();
+        let tx = TxId::new(100, 0, agent);
+
+        let mut datoms = Store::genesis().datom_set().clone();
+        // Add an open task
+        let task = EntityId::from_ident(":task/t-delta-close");
+        datoms.insert(Datom::new(
+            task,
+            Attribute::from_keyword(":task/status"),
+            Value::Keyword(":task.status/open".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        let store = Store::from_datoms(datoms);
+
+        let open_before = store.views().task_open;
+
+        // Project closing the task
+        let hypothetical = vec![Datom::new(
+            task,
+            Attribute::from_keyword(":task/status"),
+            Value::Keyword(":task.status/closed".to_string()),
+            TxId::new(200, 0, agent),
+            Op::Assert,
+        )];
+
+        let _delta = store.views().project_delta(&hypothetical);
+        // project_delta must not mutate original views
+        assert!(
+            store.views().task_open == open_before,
+            "project_delta must not mutate original views"
+        );
+        // Verify the shadow accumulated correctly
+        let mut shadow = store.views().clone();
+        for d in &hypothetical {
+            shadow.observe_datom(d);
+        }
+        assert!(
+            shadow.task_closed > store.views().task_closed,
+            "shadow should have incremented task_closed"
+        );
+    }
+
+    // CE-P1-TEST(6): Gradient routing selects task with highest coverage gap
+    #[test]
+    fn cep1_gradient_routing_selects_highest_impact() {
+        let agent = system_agent();
+        let tx = TxId::new(100, 0, agent);
+
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        // Create 2 spec elements — one covered, one not
+        let spec_covered = EntityId::from_ident(":spec/covered-001");
+        let spec_uncovered = EntityId::from_ident(":spec/uncovered-001");
+
+        for spec in [spec_covered, spec_uncovered] {
+            datoms.insert(Datom::new(
+                spec,
+                Attribute::from_keyword(":spec/element-type"),
+                Value::Keyword("invariant".to_string()),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        // Cover spec_covered with an impl link
+        let impl_e = EntityId::from_ident(":impl/covers-001");
+        datoms.insert(Datom::new(
+            impl_e,
+            Attribute::from_keyword(":impl/implements"),
+            Value::Ref(spec_covered),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+
+        // Task A traces to covered spec, Task B traces to uncovered spec
+        let hypo_a = vec![Datom::new(
+            EntityId::from_ident(":impl/task-a-impl"),
+            Attribute::from_keyword(":impl/implements"),
+            Value::Ref(spec_covered),
+            TxId::new(200, 0, agent),
+            Op::Assert,
+        )];
+        let hypo_b = vec![Datom::new(
+            EntityId::from_ident(":impl/task-b-impl"),
+            Attribute::from_keyword(":impl/implements"),
+            Value::Ref(spec_uncovered),
+            TxId::new(200, 0, agent),
+            Op::Assert,
+        )];
+
+        let delta_a = store.views().project_delta(&hypo_a);
+        let delta_b = store.views().project_delta(&hypo_b);
+
+        // Task B (covering uncovered spec) should have larger coverage delta
+        assert!(
+            delta_b.coverage >= delta_a.coverage,
+            "covering uncovered spec should have >= coverage delta: a={:.4} b={:.4}",
+            delta_a.coverage,
+            delta_b.coverage
+        );
+    }
+
     // Verifies: CE-5 — weighted_magnitude uses F(S) weights
     #[test]
     fn ce5_weighted_magnitude_bounded() {

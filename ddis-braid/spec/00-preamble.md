@@ -1,3 +1,7 @@
+> **DEPRECATED**: This file is bootstrap scaffolding. The canonical source of truth is the braid datom store. Use `braid spec show` and `braid query` to access spec elements. See ADR-STORE-019.
+
+---
+
 # SPEC.md — Braid Specification
 
 > **Identity**: Cleanroom-grade specification for Braid, the Rust implementation of DDIS.

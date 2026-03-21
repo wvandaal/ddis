@@ -1,3 +1,7 @@
+> **DEPRECATED**: This file is bootstrap scaffolding. The canonical source of truth is the braid datom store. Use `braid spec show` and `braid query` to access spec elements. See ADR-STORE-019.
+
+---
+
 > **Section**: §21. WITNESS — Falsification-Bound Verification | **Wave**: 4 (Integration)
 > **Namespace**: WITNESS | **Stage**: 1 (core), 2+ (LLM-as-judge, SMT)
 > **Shared definitions**: [00-preamble.md](00-preamble.md) (conventions, verification tags, constraints)

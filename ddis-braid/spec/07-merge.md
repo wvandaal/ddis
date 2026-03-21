@@ -1,3 +1,7 @@
+> **DEPRECATED**: This file is bootstrap scaffolding. The canonical source of truth is the braid datom store. Use `braid spec show` and `braid query` to access spec elements. See ADR-STORE-019.
+
+---
+
 > **Namespace**: MERGE | **Wave**: 2 (Lifecycle) | **Stage**: 3
 > **Shared definitions**: [00-preamble.md](00-preamble.md) (conventions, verification tags, constraints)
 
