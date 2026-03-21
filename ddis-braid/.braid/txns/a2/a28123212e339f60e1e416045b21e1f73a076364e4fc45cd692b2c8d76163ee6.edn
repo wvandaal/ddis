@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774129151/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SESSION 032 DOG-FOODING — Positive: R(t) task routing genuinely useful, consistently selected COTX-1 (impact=0.28) as top priority which was correct. The observe-harvest cycle captures real discoveries (stale binary bug, session ident collision, alert fatigue bug). Task acceptance criteria are precise and actionable thanks to TAP-SPLIT. Session lifecycle is now self-healing via COTX-1 atomic rotation."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8dfe48ff9bb4c78a7659b48a652b9712b6ca735b8ca45381229e2223f6fa305c" :a :db/doc :v "SESSION 032 DOG-FOODING — Positive: R(t) task routing genuinely useful, consistently selected COTX-1 (impact=0.28) as top priority which was correct. The observe-harvest cycle captures real discoveries (stale binary bug, session ident collision, alert fatigue bug). Task acceptance criteria are precise and actionable thanks to TAP-SPLIT. Session lifecycle is now self-healing via COTX-1 atomic rotation." :op :assert}
+   {:e #blake3 "8dfe48ff9bb4c78a7659b48a652b9712b6ca735b8ca45381229e2223f6fa305c" :a :db/ident :v :observation/session-032-dog-fooding-positive-rt-task-routing-genuin :op :assert}
+   {:e #blake3 "8dfe48ff9bb4c78a7659b48a652b9712b6ca735b8ca45381229e2223f6fa305c" :a :exploration/body :v "SESSION 032 DOG-FOODING — Positive: R(t) task routing genuinely useful, consistently selected COTX-1 (impact=0.28) as top priority which was correct. The observe-harvest cycle captures real discoveries (stale binary bug, session ident collision, alert fatigue bug). Task acceptance criteria are precise and actionable thanks to TAP-SPLIT. Session lifecycle is now self-healing via COTX-1 atomic rotation." :op :assert}
+   {:e #blake3 "8dfe48ff9bb4c78a7659b48a652b9712b6ca735b8ca45381229e2223f6fa305c" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "8dfe48ff9bb4c78a7659b48a652b9712b6ca735b8ca45381229e2223f6fa305c" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "8dfe48ff9bb4c78a7659b48a652b9712b6ca735b8ca45381229e2223f6fa305c" :a :exploration/content-hash :v #bytes "b6460414acce44226b6b76fd8c36f29a19b1a2ecb6afba10bf698fa45753c2aa" :op :assert}
+   {:e #blake3 "8dfe48ff9bb4c78a7659b48a652b9712b6ca735b8ca45381229e2223f6fa305c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8dfe48ff9bb4c78a7659b48a652b9712b6ca735b8ca45381229e2223f6fa305c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8dfe48ff9bb4c78a7659b48a652b9712b6ca735b8ca45381229e2223f6fa305c" :a :exploration/source-session :v #blake3 "704892eb72c2d5cbecff63d0677f3198eb745af0a47a39f8275f521f13d5f593" :op :assert}
+ ]}
