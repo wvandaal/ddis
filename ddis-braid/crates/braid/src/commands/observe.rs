@@ -306,15 +306,189 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         ));
     }
 
-    // --- COTX-2: Auto-crystallization of spec findings ---
-    // If the observation contains sufficient structure for crystallization AND
-    // --no-auto-crystallize is not set, generate a :spec/finding entity in the
-    // SAME transaction. Findings are promotable (not full INVs/ADRs).
+    // --- COTX-2: Auto-crystallization of spec findings (Rule 2) ---
     let auto_crystallized = if !args.no_auto_crystallize && args.confidence >= 0.8 {
         auto_crystallize_finding(args.text, entity, tx_id, &store, &mut datoms)
     } else {
         None
     };
+
+    // --- COTX-5: Universal observe cotransaction rules ---
+    let mut cotx_entities: Vec<(String, String)> = Vec::new(); // (type, ident)
+
+    if auto_crystallized.is_some() {
+        cotx_entities.push(("finding".to_string(), auto_crystallized.clone().unwrap()));
+    }
+
+    // Rule 3: Action → auto-task
+    let lower = args.text.to_ascii_lowercase();
+    let has_action_lang = lower.contains("fix ")
+        || lower.contains("implement ")
+        || lower.contains("add ")
+        || lower.contains("wire ")
+        || lower.contains("verify ")
+        || lower.starts_with("bug:")
+        || lower.starts_with("fix:");
+    if !args.no_auto_crystallize && has_action_lang && auto_crystallized.is_none() {
+        let task_title = braid_kernel::task::short_title(args.text).to_string();
+        if task_title.len() >= 5 {
+            let task_id = braid_kernel::task::generate_task_id(&task_title);
+            let task_ident = format!(":task/{task_id}");
+            let task_entity = EntityId::from_ident(&task_ident);
+
+            if store.entity_datoms(task_entity).is_empty() {
+                datoms.push(Datom::new(
+                    task_entity,
+                    Attribute::from_keyword(":db/ident"),
+                    Value::Keyword(task_ident.clone()),
+                    tx_id,
+                    Op::Assert,
+                ));
+                datoms.push(Datom::new(
+                    task_entity,
+                    Attribute::from_keyword(":task/id"),
+                    Value::String(task_id),
+                    tx_id,
+                    Op::Assert,
+                ));
+                datoms.push(Datom::new(
+                    task_entity,
+                    Attribute::from_keyword(":task/title"),
+                    Value::String(task_title),
+                    tx_id,
+                    Op::Assert,
+                ));
+                datoms.push(Datom::new(
+                    task_entity,
+                    Attribute::from_keyword(":task/status"),
+                    Value::Keyword(":task.status/open".to_string()),
+                    tx_id,
+                    Op::Assert,
+                ));
+                datoms.push(Datom::new(
+                    task_entity,
+                    Attribute::from_keyword(":task/priority"),
+                    Value::Long(2),
+                    tx_id,
+                    Op::Assert,
+                ));
+                datoms.push(Datom::new(
+                    task_entity,
+                    Attribute::from_keyword(":task/type"),
+                    Value::Keyword(":task.type/task".to_string()),
+                    tx_id,
+                    Op::Assert,
+                ));
+                let created_at = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs();
+                datoms.push(Datom::new(
+                    task_entity,
+                    Attribute::from_keyword(":task/created-at"),
+                    Value::Long(created_at as i64),
+                    tx_id,
+                    Op::Assert,
+                ));
+                cotx_entities.push(("task".to_string(), task_ident));
+            }
+        }
+    }
+
+    // Rule 4: Decision → ADR skeleton
+    let has_decision_lang = lower.contains("decided ")
+        || lower.contains("chose ")
+        || lower.contains("rejected ")
+        || lower.contains("decision:");
+    if !args.no_auto_crystallize
+        && has_decision_lang
+        && auto_crystallized.is_none()
+        && args.confidence >= 0.7
+    {
+        let slug = slug_from_text(args.text);
+        let adr_ident = format!(":spec/adr-finding-{slug}");
+        let adr_entity = EntityId::from_ident(&adr_ident);
+        if store.entity_datoms(adr_entity).is_empty() {
+            datoms.push(Datom::new(
+                adr_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(adr_ident.clone()),
+                tx_id,
+                Op::Assert,
+            ));
+            datoms.push(Datom::new(
+                adr_entity,
+                Attribute::from_keyword(":spec/element-type"),
+                Value::Keyword("finding-adr".to_string()),
+                tx_id,
+                Op::Assert,
+            ));
+            datoms.push(Datom::new(
+                adr_entity,
+                Attribute::from_keyword(":element/statement"),
+                Value::String(args.text.to_string()),
+                tx_id,
+                Op::Assert,
+            ));
+            datoms.push(Datom::new(
+                adr_entity,
+                Attribute::from_keyword(":spec/source-observation"),
+                Value::Ref(entity),
+                tx_id,
+                Op::Assert,
+            ));
+            datoms.push(Datom::new(
+                adr_entity,
+                Attribute::from_keyword(":spec/auto-crystallized"),
+                Value::Boolean(true),
+                tx_id,
+                Op::Assert,
+            ));
+            cotx_entities.push(("adr-skeleton".to_string(), adr_ident));
+        }
+    }
+
+    // Rule 5: Question → open question
+    let has_question_lang = lower.contains("how should")
+        || lower.contains("what if")
+        || lower.contains("should we")
+        || lower.contains("open question:");
+    if !args.no_auto_crystallize && has_question_lang && args.confidence < 0.7 {
+        let slug = slug_from_text(args.text);
+        let q_ident = format!(":exploration/question-{slug}");
+        let q_entity = EntityId::from_ident(&q_ident);
+        if store.entity_datoms(q_entity).is_empty() {
+            datoms.push(Datom::new(
+                q_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(q_ident.clone()),
+                tx_id,
+                Op::Assert,
+            ));
+            datoms.push(Datom::new(
+                q_entity,
+                Attribute::from_keyword(":exploration/category"),
+                Value::Keyword(":exploration.cat/open-question".to_string()),
+                tx_id,
+                Op::Assert,
+            ));
+            datoms.push(Datom::new(
+                q_entity,
+                Attribute::from_keyword(":exploration/body"),
+                Value::String(args.text.to_string()),
+                tx_id,
+                Op::Assert,
+            ));
+            datoms.push(Datom::new(
+                q_entity,
+                Attribute::from_keyword(":exploration/confidence"),
+                Value::Double(ordered_float::OrderedFloat(args.confidence)),
+                tx_id,
+                Op::Assert,
+            ));
+            cotx_entities.push(("open-question".to_string(), q_ident));
+        }
+    }
 
     let tx = TxFile {
         tx_id,
@@ -347,9 +521,9 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     } else {
         false
     };
-    // COTX-2: Auto-crystallized observations get a strong positive delta
-    let delta_cryst: f64 = if auto_crystallized.is_some() {
-        0.7 // Cotransacted finding: observation + spec in same tx
+    // COTX-5: Cotransacted observations get strong positive delta
+    let delta_cryst: f64 = if !cotx_entities.is_empty() {
+        0.7 // Cotransacted: observation + entity in same tx
     } else if spec_refs_exist {
         0.2 // Anchored to existing spec
     } else {
@@ -381,9 +555,11 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
     let mut context_blocks = Vec::new();
 
     // Summary context (System — always shown)
-    let summary = if let Some(ref finding_id) = auto_crystallized {
+    let summary = if !cotx_entities.is_empty() {
+        let types: Vec<&str> = cotx_entities.iter().map(|(t, _)| t.as_str()).collect();
         format!(
-            "observed + auto-crystallized: {finding_id} (confidence={:.1}, category={cat_short}, +{datom_count} datoms)",
+            "observed + cotx[{}]: (confidence={:.1}, category={cat_short}, +{datom_count} datoms)",
+            types.join(","),
             args.confidence,
         )
     } else {
@@ -527,6 +703,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             "summary": n.summary,
         })),
         "auto_crystallized": auto_crystallized,
+        "cotransacted": cotx_entities.iter().map(|(t, i)| serde_json::json!({"type": t, "ident": i})).collect::<Vec<_>>(),
     });
     if let serde_json::Value::Object(ref mut map) = json {
         let acp = projection.to_json();
