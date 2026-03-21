@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774061034/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c84db3d3"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d54a548df954a7c8738b33e22d23b76d404039cd325e287749047df03f1d2a01" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "d54a548df954a7c8738b33e22d23b76d404039cd325e287749047df03f1d2a01" :a :task/closed-at :v 1774061033 :op :assert}
+   {:e #blake3 "d54a548df954a7c8738b33e22d23b76d404039cd325e287749047df03f1d2a01" :a :task/completion-evidence :v "compute_delta_crystallization implemented in Store::transact(). Scans for :exploration/type, :spec/element-type, :element/id, :exploration/text. Scores: +0.5 spec creation, +0.2 anchored observation, +0.1 decision, -0.1 unanchored observation. Self-referential datom on tx entity. All 1568 tests pass, zero clippy." :op :assert}
+   {:e #blake3 "d54a548df954a7c8738b33e22d23b76d404039cd325e287749047df03f1d2a01" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "d54a548df954a7c8738b33e22d23b76d404039cd325e287749047df03f1d2a01" :a :task/status :v :task.status/closed :op :assert}
+ ]}

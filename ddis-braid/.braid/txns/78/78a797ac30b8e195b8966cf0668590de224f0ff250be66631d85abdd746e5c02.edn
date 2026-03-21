@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774064299/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-704de6b3"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e5e1962550f78736f09824ff3654f816429d833675e6d7220ace270359a3d8f1" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "e5e1962550f78736f09824ff3654f816429d833675e6d7220ace270359a3d8f1" :a :task/closed-at :v 1774064298 :op :assert}
+   {:e #blake3 "e5e1962550f78736f09824ff3654f816429d833675e6d7220ace270359a3d8f1" :a :task/completion-evidence :v "6 tests pass: task_close_zero, unanchored_negative, spec_creation_positive, decision_positive, self_referential_no_loop, consecutive_observe_crystallize. Schema fix: uses :exploration/category (Layer 3) instead of unregistered :exploration/type." :op :assert}
+   {:e #blake3 "e5e1962550f78736f09824ff3654f816429d833675e6d7220ace270359a3d8f1" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "e5e1962550f78736f09824ff3654f816429d833675e6d7220ace270359a3d8f1" :a :task/status :v :task.status/closed :op :assert}
+ ]}

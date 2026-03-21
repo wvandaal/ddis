@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774060548/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-070864f1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "88c3fb3d6530307ea06a9780e2b4c82cf8729ced70199109bc394b1700d8325c" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "88c3fb3d6530307ea06a9780e2b4c82cf8729ced70199109bc394b1700d8325c" :a :task/closed-at :v 1774060547 :op :assert}
+   {:e #blake3 "88c3fb3d6530307ea06a9780e2b4c82cf8729ced70199109bc394b1700d8325c" :a :task/completion-evidence :v ":tx/delta-crystallization added to axiomatic_attributes() in schema.rs. Type: Double, Cardinality::One. Schema test count auto-adjusts (dynamic). Store loads correctly. Zero clippy." :op :assert}
+   {:e #blake3 "88c3fb3d6530307ea06a9780e2b4c82cf8729ced70199109bc394b1700d8325c" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "88c3fb3d6530307ea06a9780e2b4c82cf8729ced70199109bc394b1700d8325c" :a :task/status :v :task.status/closed :op :assert}
+ ]}
