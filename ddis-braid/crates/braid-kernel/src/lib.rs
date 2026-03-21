@@ -183,7 +183,8 @@ pub use signal::{
 };
 pub use stage::{capabilities, max_stage, stage_name};
 pub use store::{
-    Frontier, MergeCascadeReceipt, MergeReceipt, SnapshotView, Store, TxData, TxReceipt,
+    FitnessDelta, Frontier, MergeCascadeReceipt, MergeReceipt, SnapshotView, Store, TxData,
+    TxReceipt,
 };
 pub use task::{
     all_tasks, audit_tasks_from_store, check_dependency_acyclicity, close_task_datoms,

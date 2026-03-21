@@ -818,6 +818,79 @@ impl MaterializedViews {
             unmeasured: Vec::new(),
         }
     }
+
+    /// CE-5/MV-GRADIENT: Project the fitness delta from hypothetical datoms
+    /// WITHOUT mutating state. O(k) where k = datom count.
+    ///
+    /// For each hypothetical datom, classifies which accumulator it would affect
+    /// and computes the resulting F(S) change. This is gradient computation on
+    /// the coherence manifold — the exact 7-dimensional ΔF(S) vector.
+    pub fn project_delta(&self, hypothetical: &[Datom]) -> FitnessDelta {
+        // Clone accumulators to a shadow copy — project without mutation
+        let mut shadow = self.clone();
+        for d in hypothetical {
+            shadow.observe_datom(d);
+        }
+        // Adjust entity count (new entities from hypothetical)
+        let new_entities: HashSet<EntityId> = hypothetical.iter().map(|d| d.entity).collect();
+        shadow.entity_count_for_phi = self.entity_count_for_phi + new_entities.len() as u64;
+
+        let before = self.fitness();
+        let after = shadow.fitness();
+
+        FitnessDelta {
+            validation: after.components.validation - before.components.validation,
+            coverage: after.components.coverage - before.components.coverage,
+            drift: after.components.drift - before.components.drift,
+            harvest_quality: after.components.harvest_quality - before.components.harvest_quality,
+            contradiction: after.components.contradiction - before.components.contradiction,
+            incompleteness: after.components.incompleteness - before.components.incompleteness,
+            uncertainty: after.components.uncertainty - before.components.uncertainty,
+        }
+    }
+}
+
+/// The 7-dimensional fitness gradient ΔF(S) (CE-5, INV-GUIDANCE-010).
+///
+/// Each field is the projected change in one F(S) component if the hypothetical
+/// datoms were transacted. The `weighted_magnitude()` gives the projected
+/// change in total F(S) using the same weights as `compute_fitness()`.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct FitnessDelta {
+    /// ΔV: Change in validation score.
+    pub validation: f64,
+    /// ΔC: Change in coverage score.
+    pub coverage: f64,
+    /// ΔD: Change in drift complement.
+    pub drift: f64,
+    /// ΔH: Change in harvest quality.
+    pub harvest_quality: f64,
+    /// ΔK: Change in contradiction complement.
+    pub contradiction: f64,
+    /// ΔI: Change in incompleteness complement.
+    pub incompleteness: f64,
+    /// ΔU: Change in uncertainty complement.
+    pub uncertainty: f64,
+}
+
+impl FitnessDelta {
+    /// Weighted magnitude of the delta using F(S) component weights.
+    /// This is the projected total F(S) change — the gradient's L1 norm
+    /// in the F(S) weight space.
+    pub fn weighted_magnitude(&self) -> f64 {
+        crate::bilateral::W_VALIDATION * self.validation
+            + crate::bilateral::W_COVERAGE * self.coverage
+            + crate::bilateral::W_DRIFT * self.drift
+            + crate::bilateral::W_HARVEST * self.harvest_quality
+            + crate::bilateral::W_CONTRADICTION * self.contradiction
+            + crate::bilateral::W_INCOMPLETENESS * self.incompleteness
+            + crate::bilateral::W_UNCERTAINTY * self.uncertainty
+    }
+
+    /// Whether the delta is effectively zero (no projected F(S) change).
+    pub fn is_zero(&self) -> bool {
+        self.weighted_magnitude().abs() < f64::EPSILON
+    }
 }
 
 impl std::fmt::Debug for Store {
@@ -4221,6 +4294,101 @@ mod tests {
         assert!(
             store_a.views().confidence_count > 0,
             "merged: confidence from B"
+        );
+    }
+
+    // Verifies: CE-5 — project_delta returns nonzero for spec/impl datoms
+    #[test]
+    fn ce5_project_delta_spec_produces_nonzero() {
+        let agent = system_agent();
+        let tx = TxId::new(100, 0, agent);
+
+        let mut datoms = Store::genesis().datom_set().clone();
+        let spec = EntityId::from_ident(":spec/delta-test-001");
+        datoms.insert(Datom::new(
+            spec,
+            Attribute::from_keyword(":spec/element-type"),
+            Value::Keyword("invariant".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        let store = Store::from_datoms(datoms);
+
+        // Project adding an impl link covering the spec
+        let impl_entity = EntityId::from_ident(":impl/delta-test-impl");
+        let hypothetical = vec![Datom::new(
+            impl_entity,
+            Attribute::from_keyword(":impl/implements"),
+            Value::Ref(spec),
+            TxId::new(200, 0, agent),
+            Op::Assert,
+        )];
+
+        let delta = store.views().project_delta(&hypothetical);
+        // Coverage should increase (we're adding impl coverage for a spec)
+        assert!(
+            delta.coverage >= 0.0,
+            "impl link should not decrease coverage: {:.4}",
+            delta.coverage
+        );
+        assert!(
+            !delta.is_zero(),
+            "adding impl to uncovered spec should produce nonzero delta"
+        );
+    }
+
+    // Verifies: CE-5 — project_delta is pure (doesn't mutate store)
+    #[test]
+    fn ce5_project_delta_is_pure() {
+        let store = Store::genesis();
+        let spec_count_before = store.views().spec_count;
+
+        let hypothetical = vec![Datom::new(
+            EntityId::from_ident(":spec/purity-test"),
+            Attribute::from_keyword(":spec/element-type"),
+            Value::Keyword("invariant".to_string()),
+            TxId::new(100, 0, system_agent()),
+            Op::Assert,
+        )];
+
+        let _delta = store.views().project_delta(&hypothetical);
+
+        // Store views must NOT be mutated
+        assert_eq!(
+            store.views().spec_count, spec_count_before,
+            "project_delta must not mutate store views"
+        );
+    }
+
+    // Verifies: CE-5 — project_delta returns zero for empty hypothetical
+    #[test]
+    fn ce5_project_delta_empty_is_zero() {
+        let store = Store::genesis();
+        let delta = store.views().project_delta(&[]);
+        assert!(
+            delta.is_zero(),
+            "empty hypothetical should produce zero delta"
+        );
+    }
+
+    // Verifies: CE-5 — weighted_magnitude uses F(S) weights
+    #[test]
+    fn ce5_weighted_magnitude_bounded() {
+        let delta = FitnessDelta {
+            validation: 1.0,
+            coverage: 1.0,
+            drift: 1.0,
+            harvest_quality: 1.0,
+            contradiction: 1.0,
+            incompleteness: 1.0,
+            uncertainty: 1.0,
+        };
+        // Sum of all weights should equal 1.0
+        let mag = delta.weighted_magnitude();
+        assert!(
+            (mag - 1.0).abs() < 0.01,
+            "all-ones delta should have magnitude ~1.0: {:.4}",
+            mag
         );
     }
 }

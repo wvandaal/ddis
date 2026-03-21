@@ -595,6 +595,9 @@ pub struct RoutingMetrics {
     /// Session boost factor (1.0, 1.5, 2.0, or 3.0).
     /// Temporal locality: tasks actively claimed this session get priority.
     pub session_boost: f64,
+    /// CE-6: Projected fitness delta magnitude from gradient routing.
+    /// The exact projected change in F(S) if this task were completed.
+    pub gradient_delta: f64,
 }
 
 /// R(t) routing weights (defaults from spec).
@@ -1015,6 +1018,7 @@ pub fn compute_routing(tasks: &[TaskNode], now: u64) -> Vec<TaskRouting> {
                 urgency_decay: ud,
                 spec_anchor: 1.0,
                 session_boost: 1.0,
+                gradient_delta: 0.0, // Populated in compute_routing_from_store
             };
 
             let values = [
@@ -1155,6 +1159,58 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
                 _ => 0.15, // session-created: slight lift
             };
             r.impact = r.impact * boost + additive_floor;
+        }
+    }
+
+    // CE-6: Gradient-based routing — project fitness delta for each ready task.
+    // For each task with traces-to spec refs, simulate "what if completed" by
+    // generating hypothetical :impl/implements datoms, then project the F(S) delta.
+    let views = store.views();
+    for r in &mut routings {
+        // Find the task's traces-to spec refs
+        let task_datoms = store.entity_datoms(r.entity);
+        let spec_refs: Vec<EntityId> = task_datoms
+            .iter()
+            .filter(|d| d.attribute.as_str() == ":task/traces-to" && d.op == Op::Assert)
+            .filter_map(|d| {
+                if let crate::datom::Value::Ref(target) = &d.value {
+                    Some(*target)
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        if !spec_refs.is_empty() {
+            // Generate hypothetical impl datoms (task completion would create these)
+            let hypothetical_impl = EntityId::from_ident(&format!(
+                ":impl/projected-{}",
+                r.label.chars().take(20).collect::<String>()
+            ));
+            let placeholder_tx =
+                crate::datom::TxId::new(0, 0, crate::datom::AgentId::from_name("gradient"));
+            let hypothetical: Vec<crate::datom::Datom> = spec_refs
+                .iter()
+                .map(|spec| {
+                    crate::datom::Datom::new(
+                        hypothetical_impl,
+                        crate::datom::Attribute::from_keyword(":impl/implements"),
+                        crate::datom::Value::Ref(*spec),
+                        placeholder_tx,
+                        Op::Assert,
+                    )
+                })
+                .collect();
+
+            let delta = views.project_delta(&hypothetical);
+            let mag = delta.weighted_magnitude();
+            r.metrics.gradient_delta = mag;
+
+            // Blend gradient with existing impact: additive boost scaled by 2.0
+            // so that tasks improving uncovered spec areas get significant lift
+            if mag > f64::EPSILON {
+                r.impact += mag * 2.0;
+            }
         }
     }
 
