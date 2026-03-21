@@ -557,6 +557,82 @@ pub fn depth_weight(depth: i64) -> f64 {
 /// Each component is in [0, 1]. F(S) ∈ [0, 1] by construction.
 /// Components that cannot be measured are flagged in `unmeasured`.
 ///
+/// EVIDENCE-R1: Composite evidence weight for an entity.
+///
+/// Computes `provenance_weight × depth_factor × freshness` where:
+/// - provenance: observed=1.0, inferred=0.7, derived=0.4, hypothesized=0.2 (ADR-STORE-008)
+/// - depth: L4=1.0, L3=0.8, L2=0.6, L1=0.3, none=0.1 (INV-WITNESS-002)
+/// - freshness: exponential decay per namespace (ADR-HARVEST-005)
+///
+/// Returns [0.0, 1.0]. No new schema — reads existing attributes.
+pub fn composite_evidence_weight(store: &Store, entity: EntityId) -> f64 {
+    let datoms = store.entity_datoms(entity);
+
+    // 1. Provenance weight — from the highest-authority transaction touching this entity
+    let provenance_weight = datoms
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .filter_map(|d| {
+            // Check if there's a :tx/provenance-type for this datom's tx
+            let tx_entity = Store::tx_entity_id(d.tx);
+            store
+                .entity_datoms(tx_entity)
+                .iter()
+                .find(|td| td.attribute.as_str() == ":tx/provenance-type")
+                .and_then(|td| {
+                    if let Value::Keyword(k) = &td.value {
+                        Some(match k.as_str() {
+                            "observed" | ":provenance/observed" => 1.0,
+                            "inferred" | ":provenance/inferred" => 0.7,
+                            "derived" | ":provenance/derived" => 0.4,
+                            "hypothesized" | ":provenance/hypothesized" => 0.2,
+                            _ => 0.5,
+                        })
+                    } else {
+                        None
+                    }
+                })
+        })
+        .fold(0.0f64, f64::max) // Take the highest provenance across all txns
+        .max(0.2); // Floor at hypothesized
+
+    // 2. Depth factor — from :impl/verification-depth
+    let depth_factor = datoms
+        .iter()
+        .find(|d| d.attribute.as_str() == ":impl/verification-depth" && d.op == Op::Assert)
+        .map(|d| {
+            if let Value::Long(depth) = d.value {
+                match depth {
+                    4.. => 1.0,
+                    3 => 0.8,
+                    2 => 0.6,
+                    1 => 0.3,
+                    _ => 0.1,
+                }
+            } else {
+                0.1
+            }
+        })
+        .unwrap_or(0.1); // No witness = 0.1
+
+    // 3. Freshness — exponential decay based on max tx wall time
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let max_wall = datoms
+        .iter()
+        .filter(|d| d.op == Op::Assert)
+        .map(|d| d.tx.wall_time())
+        .max()
+        .unwrap_or(0);
+    let age_days = (now.saturating_sub(max_wall)) as f64 / 86400.0;
+    // Half-life of 30 days (configurable per namespace in future)
+    let freshness = (-age_days * (2.0f64.ln() / 30.0)).exp().clamp(0.01, 1.0);
+
+    (provenance_weight * depth_factor * freshness).clamp(0.0, 1.0)
+}
+
 /// V and C use depth-weighted metrics when `:impl/verification-depth` and
 /// `:spec/verification-depth` datoms are present (WP9). When no depth datoms
 /// exist, falls back to legacy binary counting for backwards compatibility.
