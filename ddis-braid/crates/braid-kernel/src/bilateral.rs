@@ -512,6 +512,52 @@ impl BoundaryRegistry {
             .sum()
     }
 
+    /// EVIDENCE-R2: Evidence-weighted coverage across all boundaries.
+    ///
+    /// Like `total_coverage` but weights each entity's contribution by
+    /// `composite_evidence_weight()`. High-provenance, deeply-witnessed,
+    /// fresh entities count more than hypothesized, unwitnessed, stale ones.
+    ///
+    /// Falls back to `total_coverage` when no boundaries produce entity sets.
+    pub fn total_evidence_weighted_coverage(&self, store: &Store) -> f64 {
+        if self.boundaries.is_empty() {
+            return 1.0;
+        }
+
+        let evaluations = self.evaluate_all(store);
+        let weight_sum: f64 = evaluations.iter().map(|e| e.weight).sum();
+        if weight_sum == 0.0 {
+            return 1.0;
+        }
+
+        evaluations
+            .iter()
+            .map(|e| {
+                // If the boundary has entity-level detail in its gaps, we can weight
+                // For now, use the flat coverage but scale by average evidence weight
+                // of the boundary's source entities. This avoids requiring BoundaryCheck
+                // to return entity sets (which would be a trait change).
+                let avg_evidence = if !e.divergences.is_empty() {
+                    let entity_weights: Vec<f64> = e
+                        .divergences
+                        .iter()
+                        .map(|div| composite_evidence_weight(store, div.entity))
+                        .collect();
+                    let sum: f64 = entity_weights.iter().sum();
+                    if entity_weights.is_empty() {
+                        1.0
+                    } else {
+                        sum / entity_weights.len() as f64
+                    }
+                } else {
+                    1.0 // No divergences = full evidence
+                };
+
+                (e.weight / weight_sum) * e.relation.coverage * avg_evidence
+            })
+            .sum()
+    }
+
     /// Get an iterator over registered boundary names and weights.
     pub fn boundary_info(&self) -> Vec<(&str, f64)> {
         self.boundaries

@@ -1895,6 +1895,145 @@ fn crb_preview_scan(
     results
 }
 
+// ---------------------------------------------------------------------------
+// TAP-2: Structured document parsing for stdin input
+// ---------------------------------------------------------------------------
+
+/// Parsed sections from a structured task document read via stdin.
+pub struct StdinDocument {
+    /// The TITLE: section (required, ≤120 chars).
+    pub title: String,
+    /// Body text: BACKGROUND + APPROACH + ACCEPTANCE (optional).
+    pub body: Option<String>,
+    /// PRIORITY: section (optional, 0-4).
+    pub priority: Option<i64>,
+    /// TYPE: section (optional).
+    pub task_type: Option<String>,
+    /// TRACES-TO: section (optional, comma-separated spec refs).
+    pub traces_to: Vec<String>,
+}
+
+/// TAP-2: Parse a structured task document from stdin.
+///
+/// Section markers (case-insensitive prefix matching):
+/// - `TITLE:` — required, ≤120 chars
+/// - `BACKGROUND:` — optional, merged into body
+/// - `APPROACH:` — optional, merged into body
+/// - `ACCEPTANCE:` — optional, merged into body
+/// - `PRIORITY:` — optional, integer 0-4
+/// - `TYPE:` — optional (task, bug, feature, etc.)
+/// - `FILE:` — optional, merged into body
+/// - `TRACES-TO:` — optional, comma-separated spec refs
+pub fn parse_stdin_document(input: &str) -> Result<StdinDocument, BraidError> {
+    let mut title = None;
+    let mut sections: Vec<String> = Vec::new();
+    let mut priority = None;
+    let mut task_type = None;
+    let mut traces_to = Vec::new();
+    let mut current_section: Option<String> = None;
+    let mut current_content = String::new();
+
+    for line in input.lines() {
+        let trimmed = line.trim();
+        let upper = trimmed.to_ascii_uppercase();
+
+        if upper.starts_with("TITLE:") {
+            if let Some(sec) = current_section.take() {
+                sections.push(format!("{sec}: {}", current_content.trim()));
+                current_content.clear();
+            }
+            let val = trimmed[6..].trim();
+            if val.len() > 120 {
+                return Err(BraidError::Validation(format!(
+                    "TITLE must be ≤120 chars, got {}",
+                    val.len()
+                )));
+            }
+            title = Some(val.to_string());
+        } else if upper.starts_with("BACKGROUND:") {
+            if let Some(sec) = current_section.take() {
+                sections.push(format!("{sec}: {}", current_content.trim()));
+                current_content.clear();
+            }
+            current_section = Some("BACKGROUND".to_string());
+            current_content = trimmed[11..].trim().to_string();
+        } else if upper.starts_with("APPROACH:") {
+            if let Some(sec) = current_section.take() {
+                sections.push(format!("{sec}: {}", current_content.trim()));
+                current_content.clear();
+            }
+            current_section = Some("APPROACH".to_string());
+            current_content = trimmed[9..].trim().to_string();
+        } else if upper.starts_with("ACCEPTANCE:") {
+            if let Some(sec) = current_section.take() {
+                sections.push(format!("{sec}: {}", current_content.trim()));
+                current_content.clear();
+            }
+            current_section = Some("ACCEPTANCE".to_string());
+            current_content = trimmed[11..].trim().to_string();
+        } else if upper.starts_with("FILE:") {
+            if let Some(sec) = current_section.take() {
+                sections.push(format!("{sec}: {}", current_content.trim()));
+                current_content.clear();
+            }
+            current_section = Some("FILE".to_string());
+            current_content = trimmed[5..].trim().to_string();
+        } else if upper.starts_with("PRIORITY:") {
+            if let Some(sec) = current_section.take() {
+                sections.push(format!("{sec}: {}", current_content.trim()));
+                current_content.clear();
+            }
+            let val = trimmed[9..].trim();
+            priority = val.parse::<i64>().ok();
+        } else if upper.starts_with("TYPE:") {
+            if let Some(sec) = current_section.take() {
+                sections.push(format!("{sec}: {}", current_content.trim()));
+                current_content.clear();
+            }
+            task_type = Some(trimmed[5..].trim().to_string());
+        } else if upper.starts_with("TRACES-TO:") || upper.starts_with("TRACES TO:") {
+            if let Some(sec) = current_section.take() {
+                sections.push(format!("{sec}: {}", current_content.trim()));
+                current_content.clear();
+            }
+            let prefix_len = 10;
+            let val = trimmed[prefix_len..].trim();
+            traces_to.extend(
+                val.split(',')
+                    .map(|s| s.trim().to_string())
+                    .filter(|s| !s.is_empty()),
+            );
+        } else if current_section.is_some() {
+            if !current_content.is_empty() {
+                current_content.push(' ');
+            }
+            current_content.push_str(trimmed);
+        }
+    }
+
+    if let Some(sec) = current_section.take() {
+        sections.push(format!("{sec}: {}", current_content.trim()));
+    }
+
+    let title = title.ok_or_else(|| {
+        BraidError::Validation("TITLE: section is required in stdin document".to_string())
+    })?;
+
+    let body = if sections.is_empty() {
+        None
+    } else {
+        Some(sections.join(". "))
+    };
+
+    Ok(StdinDocument {
+        title,
+        body,
+        priority,
+        task_type,
+        traces_to,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2285,4 +2424,28 @@ mod tests {
             "priority should persist as 0 after reload"
         );
     }
+
+    #[test]
+    fn tap2_parse_stdin_document_basic() {
+        let input = "TITLE: Fix the merge bug\nBACKGROUND: There's a merge issue\nACCEPTANCE: Tests pass\n";
+        let doc = super::parse_stdin_document(input).unwrap();
+        assert_eq!(doc.title, "Fix the merge bug");
+        assert!(doc.body.is_some());
+    }
+
+    #[test]
+    fn tap2_parse_stdin_missing_title() {
+        let input = "BACKGROUND: No title here\n";
+        let result = super::parse_stdin_document(input);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn tap2_parse_stdin_title_too_long() {
+        let long = "x".repeat(121);
+        let input = format!("TITLE: {long}\n");
+        let result = super::parse_stdin_document(&input);
+        assert!(result.is_err());
+    }
 }
+

@@ -2495,17 +2495,50 @@ pub fn run(
                     traces_to,
                     labels,
                     force,
-                } => task::create(task::CreateArgs {
-                    path: &path,
-                    title: &title,
-                    description: description.as_deref(),
-                    priority,
-                    task_type: &task_type,
-                    agent: &agent,
-                    traces_to: &traces_to,
-                    labels: &labels,
-                    force,
-                })?,
+                } => {
+                    // TAP-2: When title is "-", read structured document from stdin
+                    if title == "-" {
+                        let mut input = String::new();
+                        std::io::Read::read_to_string(&mut std::io::stdin(), &mut input)
+                            .map_err(|e| {
+                                crate::error::BraidError::Validation(format!(
+                                    "failed to read stdin: {e}"
+                                ))
+                            })?;
+                        let parsed = task::parse_stdin_document(&input)?;
+                        task::create(task::CreateArgs {
+                            path: &path,
+                            title: &parsed.title,
+                            description: parsed.body.as_deref(),
+                            priority: parsed.priority.unwrap_or(priority),
+                            task_type: parsed
+                                .task_type
+                                .as_deref()
+                                .unwrap_or(&task_type),
+                            agent: &agent,
+                            traces_to: &parsed
+                                .traces_to
+                                .iter()
+                                .chain(traces_to.iter())
+                                .cloned()
+                                .collect::<Vec<_>>(),
+                            labels: &labels,
+                            force,
+                        })?
+                    } else {
+                        task::create(task::CreateArgs {
+                            path: &path,
+                            title: &title,
+                            description: description.as_deref(),
+                            priority,
+                            task_type: &task_type,
+                            agent: &agent,
+                            traces_to: &traces_to,
+                            labels: &labels,
+                            force,
+                        })?
+                    }
+                }
                 TaskAction::List {
                     path,
                     all,
