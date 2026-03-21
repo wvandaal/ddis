@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774108415/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7412b5f4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "713db6f218cc38e1bcb34dccdf7fa8a755841ffd6cc18c7b0edbec6bed1ba0cd" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "713db6f218cc38e1bcb34dccdf7fa8a755841ffd6cc18c7b0edbec6bed1ba0cd" :a :task/closed-at :v 1774108414 :op :assert}
+   {:e #blake3 "713db6f218cc38e1bcb34dccdf7fa8a755841ffd6cc18c7b0edbec6bed1ba0cd" :a :task/completion-evidence :v "Superseded by PERF-2 (t-7ff62b3a): the root cause is redundant computation + index bypass, not missing --fast flag. PERF-2 fixes both in one refactor. The --fast flag was a band-aid; compute-once + index wiring is the structural fix." :op :assert}
+   {:e #blake3 "713db6f218cc38e1bcb34dccdf7fa8a755841ffd6cc18c7b0edbec6bed1ba0cd" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "713db6f218cc38e1bcb34dccdf7fa8a755841ffd6cc18c7b0edbec6bed1ba0cd" :a :task/status :v :task.status/closed :op :assert}
+ ]}
