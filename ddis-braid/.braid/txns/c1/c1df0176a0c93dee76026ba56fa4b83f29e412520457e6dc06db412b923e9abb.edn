@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774055533/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DOG-FOOD ASSESSMENT: Grade B+. Core abstractions work (harvest/seed, R(t), P(t)). Three improvements needed: (1) novelty-weighted harvest urgency to eliminate alert fatigue, (2) verification-and-closure automation (audit --auto-close), (3) session-progress dashboard. Key insight: 44% of work was verification not implementation — system needs first-class verification mode. Key tension: task management (70% of interactions) has less polish than knowledge management (the designed use case)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f2d5204d54312bc70058ae0b5df850c0b7f7eef2af9e9eae8cdff44a5d2337b0" :a :db/doc :v "DOG-FOOD ASSESSMENT: Grade B+. Core abstractions work (harvest/seed, R(t), P(t)). Three improvements needed: (1) novelty-weighted harvest urgency to eliminate alert fatigue, (2) verification-and-closure automation (audit --auto-close), (3) session-progress dashboard. Key insight: 44% of work was verification not implementation — system needs first-class verification mode. Key tension: task management (70% of interactions) has less polish than knowledge management (the designed use case)." :op :assert}
+   {:e #blake3 "f2d5204d54312bc70058ae0b5df850c0b7f7eef2af9e9eae8cdff44a5d2337b0" :a :db/ident :v :observation/dog-food-assessment-grade-b-core-abstractions-work-harve :op :assert}
+   {:e #blake3 "f2d5204d54312bc70058ae0b5df850c0b7f7eef2af9e9eae8cdff44a5d2337b0" :a :exploration/body :v "DOG-FOOD ASSESSMENT: Grade B+. Core abstractions work (harvest/seed, R(t), P(t)). Three improvements needed: (1) novelty-weighted harvest urgency to eliminate alert fatigue, (2) verification-and-closure automation (audit --auto-close), (3) session-progress dashboard. Key insight: 44% of work was verification not implementation — system needs first-class verification mode. Key tension: task management (70% of interactions) has less polish than knowledge management (the designed use case)." :op :assert}
+   {:e #blake3 "f2d5204d54312bc70058ae0b5df850c0b7f7eef2af9e9eae8cdff44a5d2337b0" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "f2d5204d54312bc70058ae0b5df850c0b7f7eef2af9e9eae8cdff44a5d2337b0" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "f2d5204d54312bc70058ae0b5df850c0b7f7eef2af9e9eae8cdff44a5d2337b0" :a :exploration/content-hash :v #bytes "2273ca656ed4ba036d38c8bd313e11b53c18ffb80c59f246ab34a402661fa365" :op :assert}
+   {:e #blake3 "f2d5204d54312bc70058ae0b5df850c0b7f7eef2af9e9eae8cdff44a5d2337b0" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f2d5204d54312bc70058ae0b5df850c0b7f7eef2af9e9eae8cdff44a5d2337b0" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f2d5204d54312bc70058ae0b5df850c0b7f7eef2af9e9eae8cdff44a5d2337b0" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
