@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774123860/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "CONVERGENCE ENGINE OBS-8: Spec deprecation — store as source of truth. All 378 spec elements already in braid store (bootstrapped during init). Markdown files in spec/, docs/design/ADRS.md, docs/guide/ are deprecated bootstrap scaffolding. All spec changes must go through braid CLI (spec create, observe, transact). Markdown should become read-only projections generated from store via braid spec export. CLAUDE.md references should point to braid CLI commands not markdown files. This prevents methodology violations where agents edit markdown instead of transacting through the store."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "926844b0a48f2ccb178e50a526e0a69e2faf2e708c0a399c7461e7ff7e58c88d" :a :db/doc :v "CONVERGENCE ENGINE OBS-8: Spec deprecation — store as source of truth. All 378 spec elements already in braid store (bootstrapped during init). Markdown files in spec/, docs/design/ADRS.md, docs/guide/ are deprecated bootstrap scaffolding. All spec changes must go through braid CLI (spec create, observe, transact). Markdown should become read-only projections generated from store via braid spec export. CLAUDE.md references should point to braid CLI commands not markdown files. This prevents methodology violations where agents edit markdown instead of transacting through the store." :op :assert}
+   {:e #blake3 "926844b0a48f2ccb178e50a526e0a69e2faf2e708c0a399c7461e7ff7e58c88d" :a :db/ident :v :observation/convergence-engine-obs-8-spec-deprecation-store-as-source :op :assert}
+   {:e #blake3 "926844b0a48f2ccb178e50a526e0a69e2faf2e708c0a399c7461e7ff7e58c88d" :a :exploration/body :v "CONVERGENCE ENGINE OBS-8: Spec deprecation — store as source of truth. All 378 spec elements already in braid store (bootstrapped during init). Markdown files in spec/, docs/design/ADRS.md, docs/guide/ are deprecated bootstrap scaffolding. All spec changes must go through braid CLI (spec create, observe, transact). Markdown should become read-only projections generated from store via braid spec export. CLAUDE.md references should point to braid CLI commands not markdown files. This prevents methodology violations where agents edit markdown instead of transacting through the store." :op :assert}
+   {:e #blake3 "926844b0a48f2ccb178e50a526e0a69e2faf2e708c0a399c7461e7ff7e58c88d" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "926844b0a48f2ccb178e50a526e0a69e2faf2e708c0a399c7461e7ff7e58c88d" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "926844b0a48f2ccb178e50a526e0a69e2faf2e708c0a399c7461e7ff7e58c88d" :a :exploration/content-hash :v #bytes "eed52f5a83204a7951f10d1c5285de5294fcc79d828fdfb117939207d9fb8b2f" :op :assert}
+   {:e #blake3 "926844b0a48f2ccb178e50a526e0a69e2faf2e708c0a399c7461e7ff7e58c88d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "926844b0a48f2ccb178e50a526e0a69e2faf2e708c0a399c7461e7ff7e58c88d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "926844b0a48f2ccb178e50a526e0a69e2faf2e708c0a399c7461e7ff7e58c88d" :a :exploration/source-session :v #blake3 "740e73e7fd9769551ea6eba9a3931842f5ef809f4ef8b10b1f3da63b5a654cac" :op :assert}
+ ]}

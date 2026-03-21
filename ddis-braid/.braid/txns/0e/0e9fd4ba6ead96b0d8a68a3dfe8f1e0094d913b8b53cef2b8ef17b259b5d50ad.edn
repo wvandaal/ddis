@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774124182/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Convergence Engine EPIC dependency graph"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0ea452086c27f66c726e12e372b16e6722477840d36158a7a72a11c5b3a16ea4" :a :task/depends-on :v "ref::task/t-56ec683b" :op :assert}
+   {:e #blake3 "1c502882aca80cb1b92d21b1cd42ce4a6f406851d13c34d857905fa1e0f3f337" :a :task/depends-on :v "ref::task/t-2d4db20a" :op :assert}
+   {:e #blake3 "277386af658e99e8d6d26e1ccf52567fe57d93320f04e479db83f91522015dd8" :a :task/depends-on :v "ref::task/t-2d4db20a" :op :assert}
+   {:e #blake3 "5923329e766d4f49977a3cda7141d3ca946533306b3a73dff501144b0b816055" :a :task/depends-on :v "ref::task/t-0f5418b3" :op :assert}
+   {:e #blake3 "5923329e766d4f49977a3cda7141d3ca946533306b3a73dff501144b0b816055" :a :task/depends-on :v "ref::task/t-e8278e4a" :op :assert}
+   {:e #blake3 "6296b9e4423ffa1782a69c7477f69cc7994d41122843f2d17bc9c088c77576e9" :a :task/depends-on :v "ref::task/t-3610a861" :op :assert}
+   {:e #blake3 "6781a7d894002c8a747894510d520594e1ff7d9ca5f338d6ba7f2d40405bfdca" :a :task/depends-on :v "ref::task/t-2d4db20a" :op :assert}
+   {:e #blake3 "8b96e37b4c2ab5916ca3f737437fca8893c9fcf7a66120b7bbebebfd8d06d724" :a :task/depends-on :v "ref::task/t-05f6dca2" :op :assert}
+   {:e #blake3 "9b06040386c54289efa75ca044f2cea14b64e8bb2a1e2522ad8535e58e3bcbda" :a :task/depends-on :v "ref::task/t-e8278e4a" :op :assert}
+   {:e #blake3 "b09285b04020d922b01f161083f0902446ebbe4c247b8fe1f7c4e6170538791d" :a :task/depends-on :v "ref::task/t-2d4db20a" :op :assert}
+   {:e #blake3 "f5e97218171b737b980c84996ad9dd3be883845b0a6b36977a3e684ca0c88bb1" :a :task/depends-on :v "ref::task/t-451e387b" :op :assert}
+   {:e #blake3 "f5e97218171b737b980c84996ad9dd3be883845b0a6b36977a3e684ca0c88bb1" :a :task/depends-on :v "ref::task/t-e545d28b" :op :assert}
+   {:e #blake3 "fc345be9645791c7356247a5e7d0ffa96c4c29b76eb4650ae602b02e7d0ff40b" :a :task/depends-on :v "ref::task/t-d6e3a751" :op :assert}
+   {:e #blake3 "fe0ce5bb23f3a9a000e1c287f432e50b25bd884c49066bc52a562020643fe4a1" :a :task/depends-on :v "ref::task/t-451e387b" :op :assert}
+ ]}

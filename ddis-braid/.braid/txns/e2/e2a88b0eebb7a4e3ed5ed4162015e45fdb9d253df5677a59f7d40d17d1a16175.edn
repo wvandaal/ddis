@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774121112/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "34ea5c8e802ca5bad45f39256b7b2886aec6e5d4747516680b7234a06fde274c" :a :db/ident :v :recon/trace-858b17946f31b899 :op :assert}
+   {:e #blake3 "34ea5c8e802ca5bad45f39256b7b2886aec6e5d4747516680b7234a06fde274c" :a :recon/trace-command :v "spec" :op :assert}
+   {:e #blake3 "34ea5c8e802ca5bad45f39256b7b2886aec6e5d4747516680b7234a06fde274c" :a :recon/trace-neighborhood :v "BILATERAL" :op :assert}
+   {:e #blake3 "34ea5c8e802ca5bad45f39256b7b2886aec6e5d4747516680b7234a06fde274c" :a :recon/trace-refs :v "INV-BILATERAL-012" :op :assert}
+ ]}

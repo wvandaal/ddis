@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774118420/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :db/ident :v :recon/trace-43e9370d9d49b05e :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-neighborhood :v "INTERFACE" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-neighbors :v ":task/t-0745ad40" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-neighbors :v ":task/t-083eff62" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-neighbors :v ":task/t-1c9ceeb2" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-neighbors :v ":task/t-2e81e43a" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-neighbors :v ":task/t-92dadd21" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-neighbors :v ":task/t-bcc6dcba" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-neighbors :v ":task/t-c8f06727" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-neighbors :v ":task/t-dc8005ef" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-neighbors :v ":task/t-e2362c80" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-neighbors :v ":task/t-ea2dc38d" :op :assert}
+   {:e #blake3 "39f4ce11d7252b2798c75fa584eabe546e7233380214426503f7c89f7745df8e" :a :recon/trace-refs :v "INV-INTERFACE-008" :op :assert}
+ ]}

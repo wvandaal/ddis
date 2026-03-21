@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774118480/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "BUG: Harvest reconciliation false positive — auto-closed DAEMON-1 (t-0a1b5c4e) with 0% criteria_confidence. The task traces to INV-STORE-001 which has impl links (the existing store), but the SPECIFIC acceptance criteria (apply_tx method, O(k) mutation, isomorphism property) are NOT implemented. The reconciliation should NOT auto-close tasks with criteria_confidence=0%. Fix: add minimum criteria_confidence threshold (e.g., 0.3) to the auto-close gate. Task spec_coverage alone is necessary but not sufficient for auto-closure."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "94b957c5bb68889164f05adf321c8dbcbea009ae711a4e77b60a98832040aa08" :a :db/doc :v "BUG: Harvest reconciliation false positive — auto-closed DAEMON-1 (t-0a1b5c4e) with 0% criteria_confidence. The task traces to INV-STORE-001 which has impl links (the existing store), but the SPECIFIC acceptance criteria (apply_tx method, O(k) mutation, isomorphism property) are NOT implemented. The reconciliation should NOT auto-close tasks with criteria_confidence=0%. Fix: add minimum criteria_confidence threshold (e.g., 0.3) to the auto-close gate. Task spec_coverage alone is necessary but not sufficient for auto-closure." :op :assert}
+   {:e #blake3 "94b957c5bb68889164f05adf321c8dbcbea009ae711a4e77b60a98832040aa08" :a :db/ident :v :observation/bug-harvest-reconciliation-false-positive-auto-closed-dae :op :assert}
+   {:e #blake3 "94b957c5bb68889164f05adf321c8dbcbea009ae711a4e77b60a98832040aa08" :a :exploration/body :v "BUG: Harvest reconciliation false positive — auto-closed DAEMON-1 (t-0a1b5c4e) with 0% criteria_confidence. The task traces to INV-STORE-001 which has impl links (the existing store), but the SPECIFIC acceptance criteria (apply_tx method, O(k) mutation, isomorphism property) are NOT implemented. The reconciliation should NOT auto-close tasks with criteria_confidence=0%. Fix: add minimum criteria_confidence threshold (e.g., 0.3) to the auto-close gate. Task spec_coverage alone is necessary but not sufficient for auto-closure." :op :assert}
+   {:e #blake3 "94b957c5bb68889164f05adf321c8dbcbea009ae711a4e77b60a98832040aa08" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "94b957c5bb68889164f05adf321c8dbcbea009ae711a4e77b60a98832040aa08" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "94b957c5bb68889164f05adf321c8dbcbea009ae711a4e77b60a98832040aa08" :a :exploration/content-hash :v #bytes "83ce412574c5995d76f28ba07a15a8d06daac57f2e812b4c72b6c44684d55df4" :op :assert}
+   {:e #blake3 "94b957c5bb68889164f05adf321c8dbcbea009ae711a4e77b60a98832040aa08" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "94b957c5bb68889164f05adf321c8dbcbea009ae711a4e77b60a98832040aa08" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "94b957c5bb68889164f05adf321c8dbcbea009ae711a4e77b60a98832040aa08" :a :exploration/source-session :v #blake3 "740e73e7fd9769551ea6eba9a3931842f5ef809f4ef8b10b1f3da63b5a654cac" :op :assert}
+ ]}

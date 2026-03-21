@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774118602/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DAEMON EPIC revised dependency graph — Session 032 deep review"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "08078436a9a55875d6535b39ea4475b05b4a302641b4994d8178b2e1eb3935b4" :a :task/depends-on :v "ref::task/t-72c580b2" :op :assert}
+   {:e #blake3 "180f14512df8bcb74e554c8c2caa1e88d86d8ef23a31c39e9903a4cc084cf6fe" :a :task/depends-on :v "ref::task/t-72c580b2" :op :assert}
+   {:e #blake3 "2d211561471ba28b95e81c08303b7e41df4569e6aee4ff4657f71399769df954" :a :task/depends-on :v "ref::task/t-6f6967ca" :op :assert}
+   {:e #blake3 "5c93760c0d98b676dcd16fa2b34cd63d1709fe30386929b274547fe42c74e4c4" :a :task/depends-on :v "ref::task/t-37a47cbd" :op :assert}
+   {:e #blake3 "5c93760c0d98b676dcd16fa2b34cd63d1709fe30386929b274547fe42c74e4c4" :a :task/depends-on :v "ref::task/t-bb5445f2" :op :assert}
+   {:e #blake3 "80f77858b648ce789e7a6784e2e8f29619d67c2655438f4c80aa1072f11c7299" :a :task/depends-on :v "ref::task/t-1c82a9fc" :op :assert}
+   {:e #blake3 "830b073c8ae77be34afe55bad379c12c53240b7777454c2bfe5c45d094e461f5" :a :task/depends-on :v "ref::task/t-a574e7e9" :op :assert}
+   {:e #blake3 "c3c3d96ad5740324327a7ae2371bcf45a82b8f00a438c2dc890d6938c889f4ef" :a :task/depends-on :v "ref::task/t-bcc6dcba" :op :assert}
+   {:e #blake3 "d290eaabb953f965f54bded112cba488a83cb82a921458aaf87abb770bf43094" :a :task/depends-on :v "ref::task/t-1c82a9fc" :op :assert}
+   {:e #blake3 "d290eaabb953f965f54bded112cba488a83cb82a921458aaf87abb770bf43094" :a :task/depends-on :v "ref::task/t-a574e7e9" :op :assert}
+   {:e #blake3 "d30c0c219451955a59b150a1912e8b779635f6679902bcba33cb30cb4351ffca" :a :task/depends-on :v "ref::task/t-a574e7e9" :op :assert}
+   {:e #blake3 "f986156425b7a30d6eec184e0cc690e1a5adea03d233cf1b16d05c1498b44f91" :a :task/depends-on :v "ref::task/t-1c82a9fc" :op :assert}
+   {:e #blake3 "f986156425b7a30d6eec184e0cc690e1a5adea03d233cf1b16d05c1498b44f91" :a :task/depends-on :v "ref::task/t-bcc6dcba" :op :assert}
+   {:e #blake3 "fe3930385567826393ca334809949769234dfa6b6383eda962a8fc252a95896b" :a :task/depends-on :v "ref::task/t-72c580b2" :op :assert}
+ ]}

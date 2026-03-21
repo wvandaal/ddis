@@ -1,0 +1,59 @@
+{:tx/id #hlc "1774123875/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-03b40728, t-0a1b5c4e, t-bcc6dcba, t-1c82a9fc, t-6f6967ca, t-a574e7e9, t-37a47cbd, t-56e26863, t-b02e73a2, t-bb5445f2, t-1dab12ac, t-9df408f3, t-f1969e12"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "08078436a9a55875d6535b39ea4475b05b4a302641b4994d8178b2e1eb3935b4" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "08078436a9a55875d6535b39ea4475b05b4a302641b4994d8178b2e1eb3935b4" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "08078436a9a55875d6535b39ea4475b05b4a302641b4994d8178b2e1eb3935b4" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "08078436a9a55875d6535b39ea4475b05b4a302641b4994d8178b2e1eb3935b4" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "180f14512df8bcb74e554c8c2caa1e88d86d8ef23a31c39e9903a4cc084cf6fe" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "180f14512df8bcb74e554c8c2caa1e88d86d8ef23a31c39e9903a4cc084cf6fe" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "180f14512df8bcb74e554c8c2caa1e88d86d8ef23a31c39e9903a4cc084cf6fe" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "180f14512df8bcb74e554c8c2caa1e88d86d8ef23a31c39e9903a4cc084cf6fe" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "2d211561471ba28b95e81c08303b7e41df4569e6aee4ff4657f71399769df954" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "2d211561471ba28b95e81c08303b7e41df4569e6aee4ff4657f71399769df954" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "2d211561471ba28b95e81c08303b7e41df4569e6aee4ff4657f71399769df954" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "2d211561471ba28b95e81c08303b7e41df4569e6aee4ff4657f71399769df954" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "3db2919168a47ead4c3b765f5df0b782cde2fad1af1561c6cbba3195246fab1a" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "3db2919168a47ead4c3b765f5df0b782cde2fad1af1561c6cbba3195246fab1a" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "3db2919168a47ead4c3b765f5df0b782cde2fad1af1561c6cbba3195246fab1a" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "3db2919168a47ead4c3b765f5df0b782cde2fad1af1561c6cbba3195246fab1a" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "5c93760c0d98b676dcd16fa2b34cd63d1709fe30386929b274547fe42c74e4c4" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "5c93760c0d98b676dcd16fa2b34cd63d1709fe30386929b274547fe42c74e4c4" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "5c93760c0d98b676dcd16fa2b34cd63d1709fe30386929b274547fe42c74e4c4" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "5c93760c0d98b676dcd16fa2b34cd63d1709fe30386929b274547fe42c74e4c4" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "80f77858b648ce789e7a6784e2e8f29619d67c2655438f4c80aa1072f11c7299" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "80f77858b648ce789e7a6784e2e8f29619d67c2655438f4c80aa1072f11c7299" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "80f77858b648ce789e7a6784e2e8f29619d67c2655438f4c80aa1072f11c7299" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "80f77858b648ce789e7a6784e2e8f29619d67c2655438f4c80aa1072f11c7299" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "830b073c8ae77be34afe55bad379c12c53240b7777454c2bfe5c45d094e461f5" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "830b073c8ae77be34afe55bad379c12c53240b7777454c2bfe5c45d094e461f5" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "830b073c8ae77be34afe55bad379c12c53240b7777454c2bfe5c45d094e461f5" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "830b073c8ae77be34afe55bad379c12c53240b7777454c2bfe5c45d094e461f5" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "c3c3d96ad5740324327a7ae2371bcf45a82b8f00a438c2dc890d6938c889f4ef" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "c3c3d96ad5740324327a7ae2371bcf45a82b8f00a438c2dc890d6938c889f4ef" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "c3c3d96ad5740324327a7ae2371bcf45a82b8f00a438c2dc890d6938c889f4ef" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "c3c3d96ad5740324327a7ae2371bcf45a82b8f00a438c2dc890d6938c889f4ef" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "d290eaabb953f965f54bded112cba488a83cb82a921458aaf87abb770bf43094" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "d290eaabb953f965f54bded112cba488a83cb82a921458aaf87abb770bf43094" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "d290eaabb953f965f54bded112cba488a83cb82a921458aaf87abb770bf43094" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "d290eaabb953f965f54bded112cba488a83cb82a921458aaf87abb770bf43094" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "d30c0c219451955a59b150a1912e8b779635f6679902bcba33cb30cb4351ffca" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "d30c0c219451955a59b150a1912e8b779635f6679902bcba33cb30cb4351ffca" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "d30c0c219451955a59b150a1912e8b779635f6679902bcba33cb30cb4351ffca" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "d30c0c219451955a59b150a1912e8b779635f6679902bcba33cb30cb4351ffca" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "ddd6883441243bccf5b6f2c38b5bfd970d1facceaace8b9a4d0122cc5e8cb9aa" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "ddd6883441243bccf5b6f2c38b5bfd970d1facceaace8b9a4d0122cc5e8cb9aa" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "ddd6883441243bccf5b6f2c38b5bfd970d1facceaace8b9a4d0122cc5e8cb9aa" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "ddd6883441243bccf5b6f2c38b5bfd970d1facceaace8b9a4d0122cc5e8cb9aa" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "f986156425b7a30d6eec184e0cc690e1a5adea03d233cf1b16d05c1498b44f91" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "f986156425b7a30d6eec184e0cc690e1a5adea03d233cf1b16d05c1498b44f91" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "f986156425b7a30d6eec184e0cc690e1a5adea03d233cf1b16d05c1498b44f91" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "f986156425b7a30d6eec184e0cc690e1a5adea03d233cf1b16d05c1498b44f91" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "fe3930385567826393ca334809949769234dfa6b6383eda962a8fc252a95896b" :a :task/close-reason :v "Superseded by Convergence Engine EPIC restructure — materialized views + gradient routing + session daemon. All requirements preserved and expanded in new task hierarchy." :op :assert}
+   {:e #blake3 "fe3930385567826393ca334809949769234dfa6b6383eda962a8fc252a95896b" :a :task/closed-at :v 1774123874 :op :assert}
+   {:e #blake3 "fe3930385567826393ca334809949769234dfa6b6383eda962a8fc252a95896b" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "fe3930385567826393ca334809949769234dfa6b6383eda962a8fc252a95896b" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774117930/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-STORE-019 \"Session Daemon — Embedded + Unix Socket Daemon for Stage 1+ (revises ADR-STORE-006)\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "62929c433a40659704125eb1285239081bc9c76c32e3d2e2a26a71496131d9de" :a :adr/decision :v "Option D: Embedded library with optional session daemon. Daemon holds Store in memory for session duration, exposed via Unix domain socket (.braid/braid.sock). W-alpha (INV-STORE-013) holds operational telemetry in-memory without shared-store pollution. F(S) recomputed only on knowledge-producing mutations. CLI auto-detects daemon via socket, falls back to embedded. Daemon lifecycle: auto-start on first command, 2h idle shutdown (matching ST-1 staleness threshold). Rejected: read-only command exemption (violates FD-012), file-level caching alone (invalidated by FD-012 writes), full client-server database (unnecessary)." :op :assert}
+   {:e #blake3 "62929c433a40659704125eb1285239081bc9c76c32e3d2e2a26a71496131d9de" :a :adr/problem :v "At 37K+ datoms, process-per-command architecture creates structural divergence between FD-012 (every command writes transaction, invalidating caches) and INV-INTERFACE-008 (responsive status). Each CLI invocation rebuilds store from disk (0.9s), computes F(S) (29s), writes RFL-2 prediction (invalidates cache), exits (discards state). Net: 30s per command, less than 1 percent useful work." :op :assert}
+   {:e #blake3 "62929c433a40659704125eb1285239081bc9c76c32e3d2e2a26a71496131d9de" :a :db/doc :v "Session Daemon — Embedded + Unix Socket Daemon for Stage 1+ (revises ADR-STORE-006)" :op :assert}
+   {:e #blake3 "62929c433a40659704125eb1285239081bc9c76c32e3d2e2a26a71496131d9de" :a :db/ident :v :spec/adr-store-019 :op :assert}
+   {:e #blake3 "62929c433a40659704125eb1285239081bc9c76c32e3d2e2a26a71496131d9de" :a :element/traces-to :v "SEED.md S4, S5" :op :assert}
+   {:e #blake3 "62929c433a40659704125eb1285239081bc9c76c32e3d2e2a26a71496131d9de" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "62929c433a40659704125eb1285239081bc9c76c32e3d2e2a26a71496131d9de" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "62929c433a40659704125eb1285239081bc9c76c32e3d2e2a26a71496131d9de" :a :spec/id :v "ADR-STORE-019" :op :assert}
+   {:e #blake3 "62929c433a40659704125eb1285239081bc9c76c32e3d2e2a26a71496131d9de" :a :spec/namespace :v :spec.ns/STORE :op :assert}
+ ]}

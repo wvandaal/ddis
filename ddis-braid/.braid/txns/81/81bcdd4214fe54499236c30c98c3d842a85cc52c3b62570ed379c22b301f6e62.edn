@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774117892/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "METHODOLOGY VIOLATION: Edited docs/design/ADRS.md and spec/01-store.md directly instead of transacting ADR revision into the braid store. The markdown spec files are bootstrap scaffolding — the store is the source of truth. All spec changes must go through braid spec create / braid observe / braid transact. The markdown files should be deprecated projections (like HARVEST.md was), not mutable source documents."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d549671aaebbc441cba0d9b08123b073b20ad2a3cb359c34bfc32faaf59d417d" :a :db/doc :v "METHODOLOGY VIOLATION: Edited docs/design/ADRS.md and spec/01-store.md directly instead of transacting ADR revision into the braid store. The markdown spec files are bootstrap scaffolding — the store is the source of truth. All spec changes must go through braid spec create / braid observe / braid transact. The markdown files should be deprecated projections (like HARVEST.md was), not mutable source documents." :op :assert}
+   {:e #blake3 "d549671aaebbc441cba0d9b08123b073b20ad2a3cb359c34bfc32faaf59d417d" :a :db/ident :v :observation/methodology-violation-edited-docsdesignadrsmd-and-spec0 :op :assert}
+   {:e #blake3 "d549671aaebbc441cba0d9b08123b073b20ad2a3cb359c34bfc32faaf59d417d" :a :exploration/body :v "METHODOLOGY VIOLATION: Edited docs/design/ADRS.md and spec/01-store.md directly instead of transacting ADR revision into the braid store. The markdown spec files are bootstrap scaffolding — the store is the source of truth. All spec changes must go through braid spec create / braid observe / braid transact. The markdown files should be deprecated projections (like HARVEST.md was), not mutable source documents." :op :assert}
+   {:e #blake3 "d549671aaebbc441cba0d9b08123b073b20ad2a3cb359c34bfc32faaf59d417d" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "d549671aaebbc441cba0d9b08123b073b20ad2a3cb359c34bfc32faaf59d417d" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d549671aaebbc441cba0d9b08123b073b20ad2a3cb359c34bfc32faaf59d417d" :a :exploration/content-hash :v #bytes "0843b9458a3eb88ac50ee64409be31a05876abb1a9a0dfd268a49c1a12679b9b" :op :assert}
+   {:e #blake3 "d549671aaebbc441cba0d9b08123b073b20ad2a3cb359c34bfc32faaf59d417d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d549671aaebbc441cba0d9b08123b073b20ad2a3cb359c34bfc32faaf59d417d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d549671aaebbc441cba0d9b08123b073b20ad2a3cb359c34bfc32faaf59d417d" :a :exploration/source-session :v #blake3 "740e73e7fd9769551ea6eba9a3931842f5ef809f4ef8b10b1f3da63b5a654cac" :op :assert}
+ ]}

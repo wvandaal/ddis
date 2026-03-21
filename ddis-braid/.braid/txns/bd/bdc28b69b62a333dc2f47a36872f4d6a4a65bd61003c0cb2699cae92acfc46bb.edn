@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774121111/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-BILATERAL-012 \"Coherence Gradient Convergence — F(S) is a Lyapunov function for gradient-routed action selection\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b0e2aa29bd650c988118d89976931a3fced956fe8e0c5f327d868b606fdafba7" :a :db/doc :v "Coherence Gradient Convergence — F(S) is a Lyapunov function for gradient-routed action selection" :op :assert}
+   {:e #blake3 "b0e2aa29bd650c988118d89976931a3fced956fe8e0c5f327d868b606fdafba7" :a :db/ident :v :spec/inv-bilateral-012 :op :assert}
+   {:e #blake3 "b0e2aa29bd650c988118d89976931a3fced956fe8e0c5f327d868b606fdafba7" :a :element/traces-to :v "SEED.md S7, INV-BILATERAL-002" :op :assert}
+   {:e #blake3 "b0e2aa29bd650c988118d89976931a3fced956fe8e0c5f327d868b606fdafba7" :a :spec/confidence :v 0.8 :op :assert}
+   {:e #blake3 "b0e2aa29bd650c988118d89976931a3fced956fe8e0c5f327d868b606fdafba7" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "b0e2aa29bd650c988118d89976931a3fced956fe8e0c5f327d868b606fdafba7" :a :spec/falsification :v "A gradient-routed action produces S' with F(S') < F(S) (coherence regression from optimal action selection). Note: non-gradient actions CAN decrease F(S) — the invariant applies only to gradient-selected actions." :op :assert}
+   {:e #blake3 "b0e2aa29bd650c988118d89976931a3fced956fe8e0c5f327d868b606fdafba7" :a :spec/id :v "INV-BILATERAL-012" :op :assert}
+   {:e #blake3 "b0e2aa29bd650c988118d89976931a3fced956fe8e0c5f327d868b606fdafba7" :a :spec/namespace :v :spec.ns/BILATERAL :op :assert}
+   {:e #blake3 "b0e2aa29bd650c988118d89976931a3fced956fe8e0c5f327d868b606fdafba7" :a :spec/statement :v "For any store state S with F(S) < 1.0, the gradient-routed action a* = argmax_a |project_delta(S, a)| produces S' = S ∪ T(a*) such that F(S') >= F(S). The fixed point F(S)=1.0 is an attractor: no action increases F(S) beyond 1.0, and the gradient is zero at the fixed point." :op :assert}
+ ]}

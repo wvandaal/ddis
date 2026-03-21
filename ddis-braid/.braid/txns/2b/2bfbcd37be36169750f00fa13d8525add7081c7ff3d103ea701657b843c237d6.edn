@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774124141/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :db/ident :v :recon/trace-3b3c59745485355c :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-neighborhood :v "STORE" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.agent_store.inv-merge-001" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.branch.inv-merge-001" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.kani_proofs.inv-merge-001" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.merge.inv-merge-001" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.schema.adr-store-019" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.adr-store-019" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.inv-merge-001" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-merge-001" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.stateright_model.inv-merge-001" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-neighbors :v ":task/t-331ff9a5" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-refs :v "ADR-STORE-019" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-refs :v "INV-INTERFACE-008" :op :assert}
+   {:e #blake3 "a1bcb51a42e534b351cddedc00b38d3924ea3b4726f3e5035ba100b4c1743a1b" :a :recon/trace-refs :v "INV-MERGE-001" :op :assert}
+ ]}
