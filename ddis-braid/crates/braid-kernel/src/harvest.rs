@@ -526,22 +526,109 @@ fn reconciliation_type_for(category: HarvestCategory) -> &'static str {
     }
 }
 
-/// Derive commitment weight from confidence and category.
+/// Compute surprisal score for a harvest candidate (D3.1, INV-HARVEST-001).
 ///
-/// Weight formula: `confidence * category_multiplier`.
+/// Surprisal measures how novel this candidate is relative to existing store knowledge.
+/// Three signals combined with geometric mean:
+/// 1. **Keyword novelty**: fraction of candidate keywords NOT in the store's existing
+///    observation/decision text. High novelty → high surprisal.
+/// 2. **Entity novelty**: 1.0 if the candidate's primary entity has no prior datoms,
+///    0.5 if it exists but has few (<5) datoms, 0.2 otherwise.
+/// 3. **Confidence delta**: |confidence - 0.5| — extreme confidence (very high or very
+///    low) is more informative than middle-of-the-road 0.5 assertions.
+///
+/// Returns a value in [0.1, 1.0] — never zero (every observation has some value).
+pub fn surprisal_score(
+    text: &str,
+    confidence: f64,
+    entity: crate::datom::EntityId,
+    store: &crate::store::Store,
+) -> f64 {
+    // Signal 1: Keyword novelty
+    let candidate_words: std::collections::BTreeSet<String> = text
+        .to_lowercase()
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|w| w.len() >= 4)
+        .map(|w| w.to_string())
+        .collect();
+
+    let keyword_novelty = if candidate_words.is_empty() {
+        0.5
+    } else {
+        // Sample existing observation text from store
+        let obs_attr = crate::datom::Attribute::from_keyword(":exploration/text");
+        let existing_words: std::collections::BTreeSet<String> = store
+            .attribute_datoms(&obs_attr)
+            .iter()
+            .filter(|d| d.op == crate::datom::Op::Assert)
+            .filter_map(|d| {
+                if let crate::datom::Value::String(ref s) = d.value {
+                    Some(s.clone())
+                } else {
+                    None
+                }
+            })
+            .flat_map(|s| {
+                s.to_lowercase()
+                    .split(|c: char| !c.is_alphanumeric())
+                    .filter(|w| w.len() >= 4)
+                    .map(|w| w.to_string())
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+
+        if existing_words.is_empty() {
+            1.0 // First observation — maximum novelty
+        } else {
+            let novel = candidate_words
+                .iter()
+                .filter(|w| !existing_words.contains(*w))
+                .count();
+            novel as f64 / candidate_words.len() as f64
+        }
+    };
+
+    // Signal 2: Entity novelty
+    let entity_datom_count = store.entity_datoms(entity).len();
+    let entity_novelty = if entity_datom_count == 0 {
+        1.0
+    } else if entity_datom_count < 5 {
+        0.5
+    } else {
+        0.2
+    };
+
+    // Signal 3: Confidence delta (distance from 0.5)
+    let conf_delta = (confidence - 0.5).abs() * 2.0; // Normalize to [0, 1]
+
+    // Geometric mean, clamped to [0.1, 1.0]
+    let raw = (keyword_novelty * entity_novelty * conf_delta.max(0.1)).cbrt();
+    raw.clamp(0.1, 1.0)
+}
+
+/// Derive commitment weight from confidence, category, and surprisal (D3.2).
+///
+/// Weight formula: `confidence * category_multiplier * surprisal`.
 /// Category multipliers reflect relative importance for prioritization:
 /// - Decision:    1.0 (highest — architectural choices are load-bearing)
 /// - Dependency:  0.8 (high — missing links cause coherence failures)
 /// - Uncertainty: 0.7 (medium — unresolved questions need attention)
 /// - Observation: 0.5 (baseline — factual observations are low-commitment)
+///
+/// Surprisal defaults to 1.0 when not provided (backward-compatible).
 fn weight_for(confidence: f64, category: HarvestCategory) -> f64 {
+    weight_for_with_surprisal(confidence, category, 1.0)
+}
+
+/// Weight with explicit surprisal factor (D3.2, ADR-HARVEST-005).
+fn weight_for_with_surprisal(confidence: f64, category: HarvestCategory, surprisal: f64) -> f64 {
     let multiplier = match category {
         HarvestCategory::Decision => 1.0,
         HarvestCategory::Dependency => 0.8,
         HarvestCategory::Uncertainty => 0.7,
         HarvestCategory::Observation => 0.5,
     };
-    confidence * multiplier
+    confidence * multiplier * surprisal
 }
 
 // ---------------------------------------------------------------------------
@@ -4266,5 +4353,70 @@ mod tests {
                 );
             }
         }
+    }
+
+    // -------------------------------------------------------------------
+    // Surprisal scoring tests (D3.1, INV-HARVEST-001)
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn surprisal_empty_store_max_novelty() {
+        let store = Store::genesis();
+        let entity = EntityId::from_ident(":test/novel-observation");
+        let score = surprisal_score(
+            "completely novel observation about architecture",
+            0.9,
+            entity,
+            &store,
+        );
+        // Empty store → maximum keyword novelty
+        assert!(
+            score > 0.5,
+            "empty store should yield high surprisal, got {score}"
+        );
+    }
+
+    #[test]
+    fn surprisal_score_bounded() {
+        let store = Store::genesis();
+        let entity = EntityId::from_ident(":test/any");
+        let score = surprisal_score("anything", 0.5, entity, &store);
+        assert!(
+            (0.1..=1.0).contains(&score),
+            "surprisal must be in [0.1, 1.0], got {score}"
+        );
+    }
+
+    #[test]
+    fn surprisal_extreme_confidence_higher() {
+        let store = Store::genesis();
+        let entity = EntityId::from_ident(":test/conf");
+        let high_conf = surprisal_score("novel observation", 0.95, entity, &store);
+        let mid_conf = surprisal_score("novel observation", 0.5, entity, &store);
+        assert!(
+            high_conf >= mid_conf,
+            "extreme confidence should yield higher surprisal: {high_conf} >= {mid_conf}"
+        );
+    }
+
+    #[test]
+    fn weight_with_surprisal_higher_than_without() {
+        let high_surprisal = weight_for_with_surprisal(0.8, HarvestCategory::Observation, 0.9);
+        let low_surprisal = weight_for_with_surprisal(0.8, HarvestCategory::Observation, 0.3);
+        assert!(
+            high_surprisal > low_surprisal,
+            "higher surprisal should yield higher weight: {high_surprisal} > {low_surprisal}"
+        );
+    }
+
+    #[test]
+    fn weight_for_backward_compat() {
+        // weight_for defaults to surprisal=1.0, same as old formula
+        let old = 0.8 * 0.5; // confidence * observation multiplier
+        let new = weight_for(0.8, HarvestCategory::Observation);
+        assert!(
+            (old - new).abs() < 1e-10,
+            "weight_for should be backward-compatible"
+        );
     }
 }

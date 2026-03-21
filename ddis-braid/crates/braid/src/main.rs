@@ -351,6 +351,25 @@ fn main() {
                     {
                         eprintln!("{warning}");
                     }
+
+                    // D2.1: Show active divergence types alongside harvest warning
+                    // (INV-SIGNAL-001). Uses lightweight detection — no spectral analysis.
+                    let detector = braid_kernel::signal::ConfusionDetector::default();
+                    let source = braid_kernel::datom::EntityId::from_ident(":system/exit-check");
+                    let budget = store.len() as u64;
+                    let divergences =
+                        braid_kernel::signal::detect_all_divergence(store, &detector, source, budget);
+                    if !divergences.is_empty() {
+                        let types: Vec<String> = divergences
+                            .iter()
+                            .map(|(dt, _)| format!("{:?}", dt))
+                            .collect();
+                        eprintln!(
+                            "braid divergence \u{2014} {} active: {}",
+                            divergences.len(),
+                            types.join(", ")
+                        );
+                    }
                 }
             }
         }

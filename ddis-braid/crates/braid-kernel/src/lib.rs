@@ -123,9 +123,9 @@ pub use harvest::{
     build_harvest_commit, calibrate_harvest, candidate_to_datoms, classify_spec_candidate,
     contains_negative_constraint, contains_universal_quantifier, crystallization_guard,
     harvest_pipeline, has_alternatives, infer_task_description, optimal_threshold, propose_adr,
-    propose_invariant, propose_negative, stability_score, CalibrationResult, CandidateStatus,
-    CrystallizationResult, HarvestCandidate, HarvestCategory, HarvestCommit, HarvestQuality,
-    HarvestResult, SessionContext, SpecCandidate, SpecCandidateType,
+    propose_invariant, propose_negative, stability_score, surprisal_score, CalibrationResult,
+    CandidateStatus, CrystallizationResult, HarvestCandidate, HarvestCategory, HarvestCommit,
+    HarvestQuality, HarvestResult, SessionContext, SpecCandidate, SpecCandidateType,
     DEFAULT_CRYSTALLIZATION_THRESHOLD,
 };
 pub use layout::{
