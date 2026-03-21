@@ -819,6 +819,13 @@ fn axiomatic_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Agent's latest tx at time of this transaction (INV-QUERY-007, ADR-QUERY-006)",
         ),
+        // Metabolic transaction metadata (INV-STORE-014, INV-BILATERAL-001)
+        attr(
+            ":tx/delta-crystallization",
+            ValueType::Double,
+            Cardinality::One,
+            "Per-transaction coherence delta at Intent↔Spec boundary. Positive = crystallization (observation→spec), negative = unanchored intent, zero = neutral. Part of the three-boundary metabolic signature.",
+        ),
     ]
 }
 

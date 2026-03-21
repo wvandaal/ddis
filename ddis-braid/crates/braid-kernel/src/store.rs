@@ -858,6 +858,47 @@ impl Store {
             }
         }
 
+        // Metabolic transaction annotation: delta-crystallization (INV-STORE-014, INV-BILATERAL-001).
+        // Compute coherence delta at the Intent↔Spec boundary for this transaction.
+        // Positive = observations crystallized into spec. Negative = unanchored intent.
+        // Zero = transaction doesn't touch intent-layer entities (task mgmt, impl, etc).
+        let delta_cryst = compute_delta_crystallization(tx.datoms(), self);
+        if delta_cryst.abs() > f64::EPSILON {
+            let delta_datom = Datom::new(
+                tx_entity,
+                Attribute::from_keyword(":tx/delta-crystallization"),
+                Value::Double(ordered_float::OrderedFloat(delta_cryst)),
+                tx_id,
+                Op::Assert,
+            );
+            if self.datoms.insert(delta_datom.clone()) {
+                self.entity_index
+                    .entry(delta_datom.entity)
+                    .or_default()
+                    .push(delta_datom.clone());
+                self.attribute_index
+                    .entry(delta_datom.attribute.clone())
+                    .or_default()
+                    .push(delta_datom.clone());
+                if delta_datom.op == Op::Assert {
+                    self.avet_index
+                        .entry((delta_datom.attribute.clone(), delta_datom.value.clone()))
+                        .or_default()
+                        .push(delta_datom.clone());
+                    let key = (delta_datom.entity, delta_datom.attribute.clone());
+                    self.live_view
+                        .entry(key)
+                        .and_modify(|(v, tx)| {
+                            if delta_datom.tx > *tx {
+                                *v = delta_datom.value.clone();
+                                *tx = delta_datom.tx;
+                            }
+                        })
+                        .or_insert((delta_datom.value.clone(), delta_datom.tx));
+                }
+            }
+        }
+
         // Update frontier
         self.frontier.insert(tx_data.agent, tx_id);
 
@@ -1408,6 +1449,88 @@ impl<'a> SnapshotView<'a> {
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Metabolic computation: delta-crystallization (INV-STORE-014, INV-BILATERAL-001)
+// ---------------------------------------------------------------------------
+
+/// Compute the Intent↔Spec boundary coherence delta for a transaction.
+///
+/// Scans the transaction's datoms for intent-layer and spec-layer entities:
+/// - Observations (`:exploration/type` datoms) that reference spec elements → +0.2
+/// - Spec element creation (`:spec/element-type` datoms) → +0.5
+/// - Decision entities with rationale (`:exploration/type` = "decision") → +0.1
+/// - Unanchored observations (no spec reference) → -0.1
+/// - Everything else (task management, implementation, session) → 0.0
+///
+/// Returns the sum of per-datom scores, representing net crystallization movement.
+/// Positive = knowledge moving from intent to specification (good).
+/// Negative = raw intent accumulating without formalization (creates tension).
+fn compute_delta_crystallization(datoms: &[Datom], store: &Store) -> f64 {
+    let mut delta = 0.0;
+    let mut has_observation = false;
+    let mut has_spec_ref = false;
+    let mut has_spec_creation = false;
+    let mut has_decision = false;
+
+    for d in datoms {
+        if d.op != Op::Assert {
+            continue;
+        }
+        match d.attribute.as_str() {
+            // Observation entity detected
+            ":exploration/type" => {
+                has_observation = true;
+                if let Value::Keyword(ref kw) = d.value {
+                    if kw.contains("decision") {
+                        has_decision = true;
+                    }
+                }
+            }
+            // Spec element created (crystallization!)
+            ":spec/element-type" | ":element/id" => {
+                has_spec_creation = true;
+            }
+            // Observation text — check for spec ID references (INV-*, ADR-*, NEG-*)
+            ":exploration/text" | ":db/doc" => {
+                if let Value::String(ref text) = d.value {
+                    let upper = text.to_uppercase();
+                    if upper.contains("INV-") || upper.contains("ADR-") || upper.contains("NEG-") {
+                        // Check if any referenced spec actually exists in the store
+                        let refs = crate::task::parse_spec_refs(text);
+                        for ref_id in &refs {
+                            let spec_ident = format!(
+                                ":spec/{}",
+                                ref_id.to_lowercase()
+                            );
+                            let spec_entity = EntityId::from_ident(&spec_ident);
+                            if !store.entity_datoms(spec_entity).is_empty() {
+                                has_spec_ref = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // Score the transaction
+    if has_spec_creation {
+        delta += 0.5; // Crystallization completed
+    }
+    if has_observation && has_spec_ref {
+        delta += 0.2; // Observation anchored to existing spec
+    } else if has_observation {
+        delta -= 0.1; // Unanchored observation (creates tension)
+    }
+    if has_decision {
+        delta += 0.1; // Structured intent capture
+    }
+
+    delta
+}
 
 // Witnesses: INV-STORE-001, INV-STORE-002, INV-STORE-003, INV-STORE-004,
 // INV-STORE-005, INV-STORE-006, INV-STORE-007, INV-STORE-008, INV-STORE-009,
