@@ -2186,4 +2186,38 @@ mod tests {
             result.human
         );
     }
+
+    // -------------------------------------------------------------------
+    // Task set error paths (t-282227bb, INV-INTERFACE-001)
+    // Prevent silent NO-OP failures on invalid input.
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn set_nonexistent_task_returns_error() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".braid");
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+
+        let result = set(&path, "t-nonexistent", "priority", "1", "test");
+        assert!(
+            result.is_err(),
+            "setting attribute on nonexistent task should error"
+        );
+    }
+
+    #[test]
+    fn set_invalid_attribute_returns_error() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".braid");
+        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+
+        create_test_task(&path, "Invalid attr test", 2);
+        let task_id = generate_task_id("Invalid attr test");
+
+        let result = set(&path, &task_id, "nonexistent_attribute", "value", "test");
+        assert!(
+            result.is_err(),
+            "setting unknown attribute should error"
+        );
+    }
 }

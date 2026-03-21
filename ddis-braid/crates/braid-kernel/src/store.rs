@@ -2627,6 +2627,69 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // VAET reverse ref traversal (t-e8cf, INV-QUERY-015, INV-QUERY-016)
+    // -----------------------------------------------------------------------
+
+    /// Create entity graph A→B→C via Ref values, query "who references C?" via VAET.
+    #[test]
+    fn vaet_reverse_ref_traversal_chain() {
+        let agent = AgentId::from_name("test:vaet-chain");
+        let schema_tx = TxId::new(1, 0, agent);
+        let genesis = Store::genesis();
+        let schema_datoms = crate::schema::full_schema_datoms(schema_tx);
+        let all: std::collections::BTreeSet<Datom> = genesis
+            .datoms()
+            .cloned()
+            .chain(schema_datoms)
+            .collect();
+        let mut store = Store::from_datoms(all);
+        let ref_attr = Attribute::from_keyword(":task/depends-on");
+
+        let a = EntityId::from_ident(":test/chain-a");
+        let b = EntityId::from_ident(":test/chain-b");
+        let c = EntityId::from_ident(":test/chain-c");
+
+        // Create chain: A → B → C
+        let tx1 = Transaction::new(agent, ProvenanceType::Observed, "A→B")
+            .assert(a, ref_attr.clone(), Value::Ref(b))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx1).unwrap();
+
+        let tx2 = Transaction::new(agent, ProvenanceType::Observed, "B→C")
+            .assert(b, ref_attr.clone(), Value::Ref(c))
+            .commit(&store)
+            .unwrap();
+        store.transact(tx2).unwrap();
+
+        // "Who references C?" → should find B
+        let refs_to_c = store.vaet_referencing(c);
+        assert!(
+            refs_to_c.iter().any(|d| d.entity == b),
+            "VAET should find B referencing C"
+        );
+        assert!(
+            !refs_to_c.iter().any(|d| d.entity == a),
+            "A should NOT directly reference C"
+        );
+
+        // "Who references B?" → should find A
+        let refs_to_b = store.vaet_referencing(b);
+        assert!(
+            refs_to_b.iter().any(|d| d.entity == a),
+            "VAET should find A referencing B"
+        );
+
+        // "Who references A?" → nobody
+        let refs_to_a = store.vaet_referencing(a);
+        let user_refs: Vec<_> = refs_to_a
+            .iter()
+            .filter(|d| d.attribute == ref_attr)
+            .collect();
+        assert!(user_refs.is_empty(), "Nobody should reference A");
+    }
+
+    // -----------------------------------------------------------------------
     // Proptest property-based verification suite (14 STORE invariants)
     // Witnesses: INV-STORE-001, INV-STORE-002, INV-STORE-003, INV-STORE-004,
     // INV-STORE-005, INV-STORE-006, INV-STORE-007, INV-STORE-008,
@@ -2988,6 +3051,119 @@ mod tests {
                         entity
                     );
                 }
+            }
+
+            /// AEVT index consistency: attribute_datoms matches linear scan (t-bf64).
+            // Verifies: INV-QUERY-025, ADR-STORE-005
+            #[test]
+            fn attribute_index_consistency(
+                entities in proptest::collection::vec(arb_entity_id(), 1..=5),
+                values in proptest::collection::vec(arb_doc_value(), 1..=5),
+            ) {
+                let mut store = Store::genesis();
+                let agent = AgentId::from_name("proptest:aevt");
+                let count = entities.len().min(values.len());
+                let attr = Attribute::from_keyword(":db/doc");
+
+                for i in 0..count {
+                    let tx = Transaction::new(agent, ProvenanceType::Observed, &format!("aevt-{i}"))
+                        .assert(entities[i], attr.clone(), values[i].clone())
+                        .commit(&store)
+                        .unwrap();
+                    store.transact(tx).unwrap();
+                }
+
+                // Verify: attribute_datoms matches linear scan
+                let indexed = store.attribute_datoms(&attr);
+                let scanned: Vec<&Datom> = store
+                    .datoms()
+                    .filter(|d| d.attribute == attr)
+                    .collect();
+                prop_assert_eq!(
+                    indexed.len(),
+                    scanned.len(),
+                    "attribute_datoms() count mismatch for {:?}",
+                    attr
+                );
+            }
+
+            /// VAET index consistency: vaet_referencing matches linear scan (t-bf64).
+            // Verifies: INV-QUERY-015, INV-QUERY-016, ADR-STORE-005
+            #[test]
+            fn vaet_index_consistency(
+                entities in proptest::collection::vec(arb_entity_id(), 2..=5),
+            ) {
+                // Build a store with full schema (so :task/depends-on is registered)
+                let agent = AgentId::from_name("proptest:vaet");
+                let schema_tx = TxId::new(1, 0, agent);
+                let genesis = Store::genesis();
+                let schema_datoms = crate::schema::full_schema_datoms(schema_tx);
+                let all: std::collections::BTreeSet<Datom> = genesis
+                    .datoms()
+                    .cloned()
+                    .chain(schema_datoms)
+                    .collect();
+                let mut store = Store::from_datoms(all);
+                let agent = AgentId::from_name("proptest:vaet");
+                let ref_attr = Attribute::from_keyword(":task/depends-on");
+
+                // Create A → B ref (entities[0] references entities[1])
+                if entities.len() >= 2 {
+                    let tx = Transaction::new(agent, ProvenanceType::Observed, "vaet-ref")
+                        .assert(entities[0], ref_attr.clone(), Value::Ref(entities[1]))
+                        .commit(&store)
+                        .unwrap();
+                    store.transact(tx).unwrap();
+
+                    // Verify: vaet_referencing(entities[1]) matches linear scan
+                    let indexed = store.vaet_referencing(entities[1]);
+                    let scanned: Vec<&Datom> = store
+                        .datoms()
+                        .filter(|d| d.op == Op::Assert && d.value == Value::Ref(entities[1]))
+                        .collect();
+                    prop_assert_eq!(
+                        indexed.len(),
+                        scanned.len(),
+                        "vaet_referencing() count mismatch for {:?}",
+                        entities[1]
+                    );
+                }
+            }
+
+            /// AVET index consistency: avet_lookup matches linear scan (t-bf64).
+            // Verifies: INV-QUERY-025, ADR-STORE-005
+            #[test]
+            fn avet_index_consistency(
+                entities in proptest::collection::vec(arb_entity_id(), 1..=3),
+            ) {
+                let mut store = Store::genesis();
+                let agent = AgentId::from_name("proptest:avet");
+                let attr = Attribute::from_keyword(":db/ident");
+
+                // Assert unique idents for each entity
+                for (i, entity) in entities.iter().enumerate() {
+                    let ident = format!(":proptest/ent-{i}");
+                    let tx = Transaction::new(agent, ProvenanceType::Observed, &format!("avet-{i}"))
+                        .assert(*entity, attr.clone(), Value::Keyword(ident.clone()))
+                        .commit(&store)
+                        .unwrap();
+                    store.transact(tx).unwrap();
+                }
+
+                // Verify: avet_lookup matches linear scan for a known value
+                let lookup_val = Value::Keyword(":proptest/ent-0".to_string());
+                let indexed = store.avet_lookup(&attr, &lookup_val);
+                let scanned: Vec<&Datom> = store
+                    .datoms()
+                    .filter(|d| d.attribute == attr && d.value == lookup_val && d.op == Op::Assert)
+                    .collect();
+                prop_assert_eq!(
+                    indexed.len(),
+                    scanned.len(),
+                    "avet_lookup() count mismatch for {:?}={:?}",
+                    attr,
+                    lookup_val
+                );
             }
 
             // ---------------------------------------------------------------
