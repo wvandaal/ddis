@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774135934/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f5b1a51f"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "87e21c5dd79539d9e2e3b61c57b5439e911fe0e94365aa590f922935157ece68" :a :task/close-reason :v "COTX-5: Universal observe with 5 cotransaction rules. Rule 2 (spec finding), Rule 3 (action -> auto-task), Rule 4 (decision -> ADR skeleton), Rule 5 (question -> open question). All fire in same tx. JSON includes cotransacted array." :op :assert}
+   {:e #blake3 "87e21c5dd79539d9e2e3b61c57b5439e911fe0e94365aa590f922935157ece68" :a :task/closed-at :v 1774135933 :op :assert}
+   {:e #blake3 "87e21c5dd79539d9e2e3b61c57b5439e911fe0e94365aa590f922935157ece68" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "87e21c5dd79539d9e2e3b61c57b5439e911fe0e94365aa590f922935157ece68" :a :task/status :v :task.status/closed :op :assert}
+ ]}

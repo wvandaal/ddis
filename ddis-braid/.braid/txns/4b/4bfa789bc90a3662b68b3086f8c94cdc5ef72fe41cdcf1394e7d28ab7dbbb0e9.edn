@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774135748/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "71fd63bf4a5baeed8a16fcaa8e10afd297f25220f8c4e438e7fa821f429e5578" :a :db/ident :v :recon/trace-ff692f87bba7cf08 :op :assert}
+   {:e #blake3 "71fd63bf4a5baeed8a16fcaa8e10afd297f25220f8c4e438e7fa821f429e5578" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "71fd63bf4a5baeed8a16fcaa8e10afd297f25220f8c4e438e7fa821f429e5578" :a :recon/trace-neighborhood :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "71fd63bf4a5baeed8a16fcaa8e10afd297f25220f8c4e438e7fa821f429e5578" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.topology.inv-topology-003" :op :assert}
+   {:e #blake3 "71fd63bf4a5baeed8a16fcaa8e10afd297f25220f8c4e438e7fa821f429e5578" :a :recon/trace-neighbors :v ":impl/braid.src.commands.mod.inv-topology-003" :op :assert}
+   {:e #blake3 "71fd63bf4a5baeed8a16fcaa8e10afd297f25220f8c4e438e7fa821f429e5578" :a :recon/trace-neighbors :v ":task/t-66a2c3cf" :op :assert}
+   {:e #blake3 "71fd63bf4a5baeed8a16fcaa8e10afd297f25220f8c4e438e7fa821f429e5578" :a :recon/trace-neighbors :v ":task/t-ca5930c0" :op :assert}
+   {:e #blake3 "71fd63bf4a5baeed8a16fcaa8e10afd297f25220f8c4e438e7fa821f429e5578" :a :recon/trace-neighbors :v ":task/t-dc54f525" :op :assert}
+   {:e #blake3 "71fd63bf4a5baeed8a16fcaa8e10afd297f25220f8c4e438e7fa821f429e5578" :a :recon/trace-neighbors :v ":task/t-deee1247" :op :assert}
+   {:e #blake3 "71fd63bf4a5baeed8a16fcaa8e10afd297f25220f8c4e438e7fa821f429e5578" :a :recon/trace-refs :v "INV-TOPOLOGY-003" :op :assert}
+ ]}

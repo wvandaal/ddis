@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774135127/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :db/ident :v :recon/trace-56369a4d06a1001e :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-neighborhood :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-neighbors :v ":task/t-051b88f6" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-neighbors :v ":task/t-064f8854" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-neighbors :v ":task/t-1919718e" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-neighbors :v ":task/t-254ca64d" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-neighbors :v ":task/t-3f8df462" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-neighbors :v ":task/t-9e123e45" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-neighbors :v ":task/t-c5a7380b" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-neighbors :v ":task/t-c656987f" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-neighbors :v ":task/t-ca4e98bd" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-neighbors :v ":task/t-ffd1dd85" :op :assert}
+   {:e #blake3 "587a416a7d08b0540eebd4901b51e2d84b6b6873444ff5ce44696000bf3ec7c4" :a :recon/trace-refs :v "INV-TOPOLOGY-005" :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774135122/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-8658eb77"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/close-reason :v "EVIDENCE-R2: total_evidence_weighted_coverage on BoundaryRegistry. Uses composite_evidence_weight per divergent entity to scale coverage. High-provenance entities count more." :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/closed-at :v 1774135121 :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "7d276827ba48e737845f2e1595d89fa72e9ea95b6502d26721e61e6d77f7a4d7" :a :task/status :v :task.status/closed :op :assert}
+ ]}
