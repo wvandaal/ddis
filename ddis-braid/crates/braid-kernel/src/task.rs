@@ -143,8 +143,10 @@ pub struct TaskSummary {
     pub entity: EntityId,
     /// Short task ID (e.g., "t-aB3c").
     pub id: String,
-    /// Human-readable title.
+    /// Human-readable title (short for new tasks, full blob for legacy).
     pub title: String,
+    /// Structured body content (BACKGROUND:, APPROACH:, etc.) — `None` for legacy tasks.
+    pub body: Option<String>,
     /// Current resolved status.
     pub status: TaskStatus,
     /// Priority (0=critical..4=backlog).
@@ -163,6 +165,19 @@ pub struct TaskSummary {
     pub source: Option<String>,
     /// Close reason (if closed).
     pub close_reason: Option<String>,
+}
+
+impl TaskSummary {
+    /// Full text of the task: title + body (if present).
+    ///
+    /// For new tasks (TAP-SPLIT): title is short, body has structured sections.
+    /// For legacy tasks: title is the full blob, body is None → returns title as-is.
+    pub fn full_text(&self) -> String {
+        match &self.body {
+            Some(body) if !body.is_empty() => format!("{} {}", self.title, body),
+            _ => self.title.clone(),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -364,6 +379,24 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
         .unwrap_or_default()
         .as_secs();
 
+    // TAP-SPLIT: Split title at first structured marker (BACKGROUND:, APPROACH:, ACCEPTANCE:).
+    // Short title goes to :task/title, body goes to :task/body.
+    let title_lower = title.to_lowercase();
+    let split_markers = ["background:", "approach:", "acceptance:"];
+    let split_pos = split_markers
+        .iter()
+        .filter_map(|m| title_lower.find(m))
+        .min();
+
+    let (stored_title, stored_body) = match split_pos {
+        Some(pos) => {
+            let short = title[..pos].trim_end_matches(['.', ' ', ',']);
+            let body = title[pos..].trim();
+            (short.to_string(), Some(body.to_string()))
+        }
+        None => (title.to_string(), None),
+    };
+
     let mut datoms = vec![
         Datom::new(
             entity,
@@ -382,7 +415,7 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
         Datom::new(
             entity,
             Attribute::from_keyword(":task/title"),
-            Value::String(title.to_string()),
+            Value::String(stored_title),
             tx,
             Op::Assert,
         ),
@@ -440,6 +473,17 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
         Op::Assert,
     ));
 
+    // TAP-SPLIT: Store body as separate attribute
+    if let Some(ref body) = stored_body {
+        datoms.push(Datom::new(
+            entity,
+            Attribute::from_keyword(":task/body"),
+            Value::String(body.clone()),
+            tx,
+            Op::Assert,
+        ));
+    }
+
     if let Some(desc) = description {
         datoms.push(Datom::new(
             entity,
@@ -470,11 +514,8 @@ pub fn create_task_datoms(params: CreateTaskParams<'_>) -> (EntityId, Vec<Datom>
         ));
     }
 
-    // TASK-DECOMPOSE: Auto-extract structured sections from title text.
-    // If title contains BACKGROUND:, ACCEPTANCE:, or TRACES TO: markers,
-    // extract them into separate datoms for semantic access.
-    // The :task/title keeps the FULL text (backward compat).
-    let title_lower = title.to_lowercase();
+    // TASK-DECOMPOSE: Auto-extract structured sections from full title text
+    // into separate datoms for semantic access. Uses title_lower from TAP-SPLIT above.
     if let Some(bg_pos) = title_lower.find("background:") {
         let bg_start = bg_pos + "background:".len();
         // Background ends at next marker or end of string
@@ -869,6 +910,10 @@ pub fn task_summary(store: &Store, entity: EntityId) -> Option<TaskSummary> {
             Some(Value::String(s)) => Some(s.clone()),
             _ => None,
         };
+    let body = match store.live_value(entity, &Attribute::from_keyword(":task/body")) {
+        Some(Value::String(s)) => Some(s.clone()),
+        _ => None,
+    };
 
     // Cardinality::Many attributes — collect all asserted values from entity datoms.
     let mut depends_on = Vec::new();
@@ -905,6 +950,7 @@ pub fn task_summary(store: &Store, entity: EntityId) -> Option<TaskSummary> {
         entity,
         id,
         title,
+        body,
         status,
         priority,
         task_type,
@@ -1071,30 +1117,48 @@ pub fn task_counts(store: &Store) -> (usize, usize, usize) {
 ///
 /// INV-TASK-006: Completion Evidence Protocol.
 pub fn extract_acceptance_criteria(store: &Store, task_entity: EntityId) -> Vec<String> {
-    // Get the task title (which contains the description in braid's model)
+    // TAP-SPLIT: Get full text from title + body (body has structured sections for new tasks)
     let mut title = String::new();
+    let mut body = String::new();
     for d in store.entity_datoms(task_entity) {
-        if d.attribute.as_str() == ":task/title" && d.op == crate::datom::Op::Assert {
-            if let crate::datom::Value::String(ref s) = d.value {
-                title = s.clone();
-                break;
+        if d.op != crate::datom::Op::Assert {
+            continue;
+        }
+        match d.attribute.as_str() {
+            ":task/title" => {
+                if let crate::datom::Value::String(ref s) = d.value {
+                    title = s.clone();
+                }
             }
+            ":task/body" => {
+                if let crate::datom::Value::String(ref s) = d.value {
+                    body = s.clone();
+                }
+            }
+            _ => {}
         }
     }
 
-    if title.is_empty() {
+    // Combine title + body for full text search
+    let full_text = if body.is_empty() {
+        title
+    } else {
+        format!("{title} {body}")
+    };
+
+    if full_text.is_empty() {
         return Vec::new();
     }
 
     // Find "ACCEPTANCE:" or "Acceptance:" (case-insensitive)
-    let lower = title.to_lowercase();
+    let lower = full_text.to_lowercase();
     let acceptance_pos = lower.find("acceptance:");
     if acceptance_pos.is_none() {
         return Vec::new();
     }
 
     let start = acceptance_pos.unwrap() + "acceptance:".len();
-    let remainder = title[start..].trim();
+    let remainder = full_text[start..].trim();
 
     // Split on sentence boundaries for multiple criteria
     remainder
@@ -1351,7 +1415,8 @@ pub fn audit_tasks_from_store(store: &Store) -> Vec<(TaskSummary, AuditEvidence)
         }
 
         let spec_total = task.traces_to.len();
-        let file_paths = crate::topology::extract_task_files(&task.title)
+        let full = task.full_text();
+        let file_paths = crate::topology::extract_task_files(&full)
             .into_iter()
             .collect::<Vec<_>>();
 
@@ -1362,8 +1427,8 @@ pub fn audit_tasks_from_store(store: &Store) -> Vec<(TaskSummary, AuditEvidence)
             .filter(|e| impl_targets.contains(e))
             .count();
 
-        // Parse acceptance criteria from task title
-        let acceptance_criteria = parse_acceptance_criteria(&task.title);
+        // Parse acceptance criteria from full task text (TAP-SPLIT: body may have ACCEPTANCE)
+        let acceptance_criteria = parse_acceptance_criteria(&task.full_text());
         let criteria_confidence = if acceptance_criteria.is_empty() {
             None
         } else {

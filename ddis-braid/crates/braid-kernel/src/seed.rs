@@ -1373,7 +1373,7 @@ pub fn compile_demonstrations(store: &Store, task: &str) -> Option<String> {
 
     for candidate in &closed {
         let cand_files: std::collections::BTreeSet<String> =
-            crate::topology::extract_task_files(&candidate.title)
+            crate::topology::extract_task_files(&candidate.full_text())
                 .into_iter()
                 .collect();
 
@@ -1391,7 +1391,7 @@ pub fn compile_demonstrations(store: &Store, task: &str) -> Option<String> {
         };
 
         // Namespace match
-        let cand_refs = crate::task::parse_spec_refs(&candidate.title);
+        let cand_refs = crate::task::parse_spec_refs(&candidate.full_text());
         let cand_namespace = cand_refs
             .first()
             .map(|r| crate::guidance::extract_spec_namespace(r).to_string())

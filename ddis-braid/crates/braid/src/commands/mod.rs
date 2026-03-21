@@ -1125,6 +1125,8 @@ pub enum SpecAction {
 #[derive(Subcommand)]
 pub enum TaskAction {
     /// Create a new task.
+    ///
+    /// CRB-PREVIEW: shows related tasks before creating. Use --force to skip.
     Create {
         /// Task title.
         title: String,
@@ -1156,6 +1158,10 @@ pub enum TaskAction {
         /// Labels (repeatable).
         #[arg(long = "label", action = clap::ArgAction::Append)]
         labels: Vec<String>,
+
+        /// Skip duplicate preview and create immediately (CRB-PREVIEW).
+        #[arg(long)]
+        force: bool,
     },
 
     /// List tasks (open by default, --all for everything).
@@ -2470,6 +2476,7 @@ pub fn run(
                     agent,
                     traces_to,
                     labels,
+                    force,
                 } => task::create(task::CreateArgs {
                     path: &path,
                     title: &title,
@@ -2479,6 +2486,7 @@ pub fn run(
                     agent: &agent,
                     traces_to: &traces_to,
                     labels: &labels,
+                    force,
                 })?,
                 TaskAction::List {
                     path,

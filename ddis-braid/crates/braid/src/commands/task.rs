@@ -42,6 +42,8 @@ pub struct CreateArgs<'a> {
     pub agent: &'a str,
     pub traces_to: &'a [String],
     pub labels: &'a [String],
+    /// CRB-PREVIEW: skip duplicate preview and create immediately.
+    pub force: bool,
 }
 
 /// Create a new task.
@@ -55,10 +57,47 @@ pub fn create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         agent,
         traces_to,
         labels,
+        force,
     } = args;
     let layout = DiskLayout::open(path)?;
     let store = layout.load_store()?;
     ensure_layer_4_public(&layout, &store)?;
+
+    // CRB-PREVIEW: Search for related tasks before creating (INV-GUIDANCE-024).
+    // Not a gate (which blocks with error) — a mirror (which informs with preview).
+    if !force {
+        let short = task::short_title(title);
+        let related = crb_preview_scan(short, &store);
+        if !related.is_empty() {
+            let mut human = format!("Related tasks found ({}):\n", related.len());
+            for (score, tid, label) in related.iter().take(5) {
+                human.push_str(&format!("  [{:.2}] {} \"{}\"\n", score, tid, label));
+            }
+            human.push_str("\nCreate anyway? Use --force to proceed.\n");
+
+            let json = serde_json::json!({
+                "preview": true,
+                "related_count": related.len(),
+                "related": related.iter().take(5).map(|(s, tid, l)| {
+                    serde_json::json!({ "score": s, "id": tid, "title": l })
+                }).collect::<Vec<_>>(),
+                "hint": "Use --force to create despite related tasks",
+            });
+
+            let agent_out = AgentOutput {
+                context: format!("CRB-PREVIEW: {} related tasks found", related.len()),
+                content: human.clone(),
+                footer: "create: braid task create --force \"...\" | search: braid task search"
+                    .to_string(),
+            };
+
+            return Ok(CommandOutput {
+                json,
+                agent: agent_out,
+                human,
+            });
+        }
+    }
 
     let tt = TaskType::from_keyword(task_type).unwrap_or(TaskType::Task);
     let agent_id = AgentId::from_name(agent);
@@ -338,7 +377,8 @@ pub fn search(
         .iter()
         .filter(|t| include_closed || t.status != TaskStatus::Closed)
         .filter(|t| {
-            t.title.to_ascii_lowercase().contains(&pattern_lower)
+            // TAP-SPLIT: Search full text (title + body) for matches
+            t.full_text().to_ascii_lowercase().contains(&pattern_lower)
                 || t.id.to_ascii_lowercase().contains(&pattern_lower)
         })
         .collect();
@@ -366,13 +406,14 @@ pub fn search(
             .task_type
             .strip_prefix(":task.type/")
             .unwrap_or(&t.task_type);
+        let short = task::short_title(&t.title);
         human.push_str(&format!(
             "  P{} {:4} {:4}  {}  \"{}\"\n",
-            t.priority, type_short, status, t.id, t.title
+            t.priority, type_short, status, t.id, short
         ));
         tasks_json.push(serde_json::json!({
             "id": t.id,
-            "title": t.title,
+            "title": short,
             "priority": t.priority,
             "type": type_short,
             "status": status,
@@ -817,7 +858,9 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
         .unwrap_or(&t.task_type);
 
     let mut human = String::new();
-    human.push_str(&format!("{} \"{}\"\n", t.id, t.title));
+    // TAP-SPLIT: Use short_title for display (handles both old and new tasks)
+    let display_title = task::short_title(&t.title);
+    human.push_str(&format!("{} \"{}\"\n", t.id, display_title));
     human.push_str(&format!(
         "  status: {status} | priority: P{} | type: {type_short}\n",
         t.priority
@@ -869,7 +912,8 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
 
     let mut json = serde_json::json!({
         "id": t.id,
-        "title": t.title,
+        "title": display_title,
+        "body": t.body,
         "status": status,
         "priority": t.priority,
         "type": type_short,
@@ -1799,6 +1843,58 @@ pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
 // (CLI task commands exercise append-only store, content-addressable identity,
 //  schema-as-data, and the CLI-as-optimized-prompt interface.)
 
+/// CRB-PREVIEW: Scan open tasks for keyword overlap with new title (INV-GUIDANCE-024).
+///
+/// Returns (score, task_id, short_title) for matches with score > 0.3.
+/// Uses Jaccard similarity on tokenized words (len >= 4).
+fn crb_preview_scan(
+    title: &str,
+    store: &braid_kernel::Store,
+) -> Vec<(f64, String, String)> {
+    use std::collections::BTreeSet;
+
+    let tokenize = |text: &str| -> BTreeSet<String> {
+        text.to_lowercase()
+            .split(|c: char| !c.is_alphanumeric() && c != '-')
+            .filter(|w| w.len() >= 4)
+            .map(|w| w.to_string())
+            .collect()
+    };
+
+    let input_tokens = tokenize(title);
+    if input_tokens.is_empty() {
+        return Vec::new();
+    }
+
+    let tasks = task::all_tasks(store);
+    let mut results: Vec<(f64, String, String)> = tasks
+        .iter()
+        .filter(|t| t.status != TaskStatus::Closed)
+        .filter_map(|t| {
+            let task_tokens = tokenize(&t.full_text());
+            if task_tokens.is_empty() {
+                return None;
+            }
+            let intersection = input_tokens.intersection(&task_tokens).count();
+            if intersection == 0 {
+                return None;
+            }
+            let union = input_tokens.union(&task_tokens).count();
+            let score = intersection as f64 / union as f64;
+            if score > 0.3 {
+                let short = task::short_title(&t.title).to_string();
+                Some((score, t.id.clone(), short))
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    results.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+    results.truncate(5);
+    results
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1854,6 +1950,7 @@ mod tests {
             agent: "test",
             traces_to: &[],
             labels: &[],
+            force: true, // skip CRB-PREVIEW in tests
         })
         .unwrap()
     }
@@ -1950,6 +2047,7 @@ mod tests {
             agent: "test",
             traces_to: &[],
             labels: &[],
+            force: true,
         })
         .unwrap();
 
@@ -2001,6 +2099,7 @@ mod tests {
             agent: "test",
             traces_to: &[],
             labels: &[],
+            force: true,
         })
         .unwrap();
 

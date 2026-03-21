@@ -165,7 +165,7 @@ pub fn ready_task_files(store: &Store) -> BTreeMap<EntityId, BTreeSet<String>> {
         if task.status != crate::task::TaskStatus::Open {
             continue;
         }
-        let files = extract_task_files(&task.title);
+        let files = extract_task_files(&task.full_text());
         result.insert(task.entity, files);
     }
 

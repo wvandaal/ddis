@@ -1725,6 +1725,12 @@ pub fn layer_4_attributes() -> Vec<AttributeSpec> {
             "Short title (~12 words, ≤80 chars) for Navigate ACP strategy",
         ),
         attr(
+            ":task/body",
+            ValueType::String,
+            Cardinality::One,
+            "Task body: structured content (BACKGROUND:, APPROACH:, ACCEPTANCE:, etc.) split from title (TAP-SPLIT, INV-TASK-005)",
+        ),
+        attr(
             ":task/description",
             ValueType::String,
             Cardinality::One,

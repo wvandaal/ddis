@@ -395,13 +395,19 @@ pub fn build_status_projection(
     if total_open > 0 {
         let ready_count = braid_kernel::compute_ready_set(store).len();
         let blocked = open.saturating_sub(ready_count);
+        let total_all = open + in_progress + closed;
+        let p_t = if total_all > 0 {
+            closed as f64 / total_all as f64
+        } else {
+            0.0
+        };
         context.push(ContextBlock {
             precedence: OutputPrecedence::UserRequested,
             content: format!(
-                "tasks: {} open ({} ready, {} blocked, {} in-progress, {} closed)",
-                total_open, ready_count, blocked, in_progress, closed
+                "tasks: {} open ({} ready, {} blocked, {} in-progress, {} closed) | P(t)={:.2}",
+                total_open, ready_count, blocked, in_progress, closed, p_t
             ),
-            tokens: 15,
+            tokens: 18,
         });
     }
 
@@ -592,18 +598,19 @@ fn build_terse(
     let ts = trace_staleness(store, path);
     out.push_str(&format_trace_line(&ts));
 
-    // Task summary (D4.1: INV-INTERFACE-011)
+    // Task summary (D4.1: INV-INTERFACE-011) + P(t) progress metric (ZCM-PT)
     let (open, in_progress, closed) = braid_kernel::task_counts(store);
     let total = open + in_progress + closed;
     if total > 0 {
         let ready_count = braid_kernel::compute_ready_set(store).len();
         let blocked = open - ready_count;
+        let p_t = closed as f64 / total as f64;
         let mut task_line = format!("tasks: {open} open");
         if in_progress > 0 {
             task_line.push_str(&format!(", {in_progress} active"));
         }
         task_line.push_str(&format!(
-            " ({ready_count} ready, {blocked} blocked) | {closed} closed\n"
+            " ({ready_count} ready, {blocked} blocked) | {closed} closed | P(t)={p_t:.2}\n"
         ));
         out.push_str(&task_line);
     }
@@ -1189,6 +1196,20 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
     let session_fitness_delta =
         query_session_start_fitness(store).map(|start| fitness.total - start);
 
+    // ZCM-PT: P(t) progress metric
+    let (pt_open, pt_ip, pt_closed) = braid_kernel::task_counts(store);
+    let pt_total = pt_open + pt_ip + pt_closed;
+    let p_t_value = if pt_total > 0 {
+        pt_closed as f64 / pt_total as f64
+    } else {
+        0.0
+    };
+    let progress_json = serde_json::json!({
+        "p_t": p_t_value,
+        "closed": pt_closed,
+        "total": pt_total,
+    });
+
     // SD-2: Session age for JSON
     let session_age = if tx_since_harvest < 5 {
         "new"
@@ -1216,6 +1237,7 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
             "total": fitness.total,
             "session_fitness_delta": session_fitness_delta,
         },
+        "progress": progress_json,
         "session_age": session_age,
         "methodology": {
             "score": score.score,
