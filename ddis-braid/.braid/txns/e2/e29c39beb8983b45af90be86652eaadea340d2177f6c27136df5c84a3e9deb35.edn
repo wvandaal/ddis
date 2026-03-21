@@ -1,0 +1,15 @@
+{:tx/id #hlc "1774133153/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-5fad0a60, t-0f5418b3"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1c502882aca80cb1b92d21b1cd42ce4a6f406851d13c34d857905fa1e0f3f337" :a :task/close-reason :v "Implemented project_delta on MaterializedViews. FitnessDelta struct with 7 components + weighted_magnitude(). O(k) projection without mutation. 4 tests." :op :assert}
+   {:e #blake3 "1c502882aca80cb1b92d21b1cd42ce4a6f406851d13c34d857905fa1e0f3f337" :a :task/closed-at :v 1774133152 :op :assert}
+   {:e #blake3 "1c502882aca80cb1b92d21b1cd42ce4a6f406851d13c34d857905fa1e0f3f337" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "1c502882aca80cb1b92d21b1cd42ce4a6f406851d13c34d857905fa1e0f3f337" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "6781a7d894002c8a747894510d520594e1ff7d9ca5f338d6ba7f2d40405bfdca" :a :task/close-reason :v "Implemented project_delta on MaterializedViews. FitnessDelta struct with 7 components + weighted_magnitude(). O(k) projection without mutation. 4 tests." :op :assert}
+   {:e #blake3 "6781a7d894002c8a747894510d520594e1ff7d9ca5f338d6ba7f2d40405bfdca" :a :task/closed-at :v 1774133152 :op :assert}
+   {:e #blake3 "6781a7d894002c8a747894510d520594e1ff7d9ca5f338d6ba7f2d40405bfdca" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "6781a7d894002c8a747894510d520594e1ff7d9ca5f338d6ba7f2d40405bfdca" :a :task/status :v :task.status/closed :op :assert}
+ ]}

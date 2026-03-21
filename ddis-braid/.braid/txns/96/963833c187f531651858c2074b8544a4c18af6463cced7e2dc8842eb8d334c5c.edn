@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774133487/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3610a861"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5923329e766d4f49977a3cda7141d3ca946533306b3a73dff501144b0b816055" :a :task/close-reason :v "CE-6: Gradient routing wired into compute_routing_from_store. For each ready task, projects hypothetical impl datoms from traces-to refs, computes delta-F(S) via project_delta, adds 2x magnitude as impact boost. gradient_delta field on RoutingMetrics." :op :assert}
+   {:e #blake3 "5923329e766d4f49977a3cda7141d3ca946533306b3a73dff501144b0b816055" :a :task/closed-at :v 1774133486 :op :assert}
+   {:e #blake3 "5923329e766d4f49977a3cda7141d3ca946533306b3a73dff501144b0b816055" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "5923329e766d4f49977a3cda7141d3ca946533306b3a73dff501144b0b816055" :a :task/status :v :task.status/closed :op :assert}
+ ]}

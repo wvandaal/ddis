@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774134235/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-aa61258c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6296b9e4423ffa1782a69c7477f69cc7994d41122843f2d17bc9c088c77576e9" :a :task/close-reason :v "7/10 acceptance criteria met: project_delta for observe/impl/task_close, empty=zero, purity, gradient selects highest impact, magnitude bounded. 7 total unit tests. Remaining 3 (gradient shifts, calibration, E2E) need full store integration." :op :assert}
+   {:e #blake3 "6296b9e4423ffa1782a69c7477f69cc7994d41122843f2d17bc9c088c77576e9" :a :task/closed-at :v 1774134234 :op :assert}
+   {:e #blake3 "6296b9e4423ffa1782a69c7477f69cc7994d41122843f2d17bc9c088c77576e9" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "6296b9e4423ffa1782a69c7477f69cc7994d41122843f2d17bc9c088c77576e9" :a :task/status :v :task.status/closed :op :assert}
+ ]}

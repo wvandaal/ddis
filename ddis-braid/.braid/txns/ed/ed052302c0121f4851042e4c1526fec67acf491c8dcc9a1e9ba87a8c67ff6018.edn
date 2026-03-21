@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774130394/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :db/ident :v :recon/trace-a169ec6d185ea5f5 :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-neighborhood :v "BILATERAL" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-neighbors :v ":task/t-0eb806ab" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-neighbors :v ":task/t-0f5418b3" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-neighbors :v ":task/t-3610a861" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-neighbors :v ":task/t-4a5a2e48" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-neighbors :v ":task/t-59196416" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-neighbors :v ":task/t-641dd8a6" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-neighbors :v ":task/t-920174ac" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-neighbors :v ":task/t-aa61258c" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-neighbors :v ":task/t-b394164e" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-neighbors :v ":task/t-c3d9f38c" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-refs :v "INV-BILATERAL-012" :op :assert}
+   {:e #blake3 "40bb05495d92da007607719a1b6f43a9f678853675457854c8dc52bd3b9f7f25" :a :recon/trace-refs :v "INV-GUIDANCE-010" :op :assert}
+ ]}

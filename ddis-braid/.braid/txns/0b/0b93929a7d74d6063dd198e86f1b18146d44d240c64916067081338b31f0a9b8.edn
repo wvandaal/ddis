@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774134682/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e31c20ca"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "362debe55c6e5851f1627644c7555ebdb55f86b15e7c9e0b49f1937c275a48ab" :a :task/close-reason :v "composite_evidence_weight(store, entity) implemented: provenance(0.2-1.0) × depth(0.1-1.0) × freshness(exponential 30-day half-life). Returns [0,1]. Exported from kernel." :op :assert}
+   {:e #blake3 "362debe55c6e5851f1627644c7555ebdb55f86b15e7c9e0b49f1937c275a48ab" :a :task/closed-at :v 1774134681 :op :assert}
+   {:e #blake3 "362debe55c6e5851f1627644c7555ebdb55f86b15e7c9e0b49f1937c275a48ab" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "362debe55c6e5851f1627644c7555ebdb55f86b15e7c9e0b49f1937c275a48ab" :a :task/status :v :task.status/closed :op :assert}
+ ]}

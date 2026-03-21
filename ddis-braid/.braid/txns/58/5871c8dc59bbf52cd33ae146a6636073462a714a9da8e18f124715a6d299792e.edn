@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774131780/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-d6e3a751"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b09285b04020d922b01f161083f0902446ebbe4c247b8fe1f7c4e6170538791d" :a :task/close-reason :v "CE-2 implemented: views.observe_datom wired into transact, merge, inject_metadata_datom. 4 tests." :op :assert}
+   {:e #blake3 "b09285b04020d922b01f161083f0902446ebbe4c247b8fe1f7c4e6170538791d" :a :task/closed-at :v 1774131779 :op :assert}
+   {:e #blake3 "b09285b04020d922b01f161083f0902446ebbe4c247b8fe1f7c4e6170538791d" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "b09285b04020d922b01f161083f0902446ebbe4c247b8fe1f7c4e6170538791d" :a :task/status :v :task.status/closed :op :assert}
+ ]}

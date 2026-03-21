@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774132167/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e8278e4a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0ea452086c27f66c726e12e372b16e6722477840d36158a7a72a11c5b3a16ea4" :a :task/close-reason :v "CE-4 done: 7 production callers migrated from compute_fitness/cached_fitness to store.views().fitness(). Zero compute_fitness in production code. Layout cache methods now dead code." :op :assert}
+   {:e #blake3 "0ea452086c27f66c726e12e372b16e6722477840d36158a7a72a11c5b3a16ea4" :a :task/closed-at :v 1774132166 :op :assert}
+   {:e #blake3 "0ea452086c27f66c726e12e372b16e6722477840d36158a7a72a11c5b3a16ea4" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "0ea452086c27f66c726e12e372b16e6722477840d36158a7a72a11c5b3a16ea4" :a :task/status :v :task.status/closed :op :assert}
+ ]}

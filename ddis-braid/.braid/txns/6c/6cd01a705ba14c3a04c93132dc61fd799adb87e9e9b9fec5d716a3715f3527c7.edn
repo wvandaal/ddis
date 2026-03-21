@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774134272/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-04458171"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0b9740d89a80e30b319f7db005171d0ecc70baaee9fd178efbabd9ab66732c0f" :a :task/close-reason :v "All 24 spec/*.md files have deprecation headers. Store is source of truth." :op :assert}
+   {:e #blake3 "0b9740d89a80e30b319f7db005171d0ecc70baaee9fd178efbabd9ab66732c0f" :a :task/closed-at :v 1774134271 :op :assert}
+   {:e #blake3 "0b9740d89a80e30b319f7db005171d0ecc70baaee9fd178efbabd9ab66732c0f" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "0b9740d89a80e30b319f7db005171d0ecc70baaee9fd178efbabd9ab66732c0f" :a :task/status :v :task.status/closed :op :assert}
+ ]}

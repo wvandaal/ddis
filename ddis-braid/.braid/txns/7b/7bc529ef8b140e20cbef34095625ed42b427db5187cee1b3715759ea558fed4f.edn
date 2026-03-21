@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774132576/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-afd66aca"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9ade80ff8016e4b44cbe29fab011414f198c1da6314417ba24ae4a6230f74cbf" :a :task/close-reason :v "COTX-2: Auto-crystallization of spec findings in observe cotransaction. Criteria: INV/ADR/NEG + falsification/decision language + confidence>=0.8. Produces :spec/finding entity in same tx. --no-auto-crystallize flag. Delta-cryst=0.7 for auto-crystallized." :op :assert}
+   {:e #blake3 "9ade80ff8016e4b44cbe29fab011414f198c1da6314417ba24ae4a6230f74cbf" :a :task/closed-at :v 1774132575 :op :assert}
+   {:e #blake3 "9ade80ff8016e4b44cbe29fab011414f198c1da6314417ba24ae4a6230f74cbf" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "9ade80ff8016e4b44cbe29fab011414f198c1da6314417ba24ae4a6230f74cbf" :a :task/status :v :task.status/closed :op :assert}
+ ]}
