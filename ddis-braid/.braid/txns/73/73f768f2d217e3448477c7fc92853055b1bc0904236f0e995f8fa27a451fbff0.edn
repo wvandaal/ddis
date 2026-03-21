@@ -1,0 +1,15 @@
+{:tx/id #hlc "1774126158/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e4ced73c, t-2d4db20a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1144c55832a60362f13bdc78e2c7edfb656e99368b61337e50b9a92589cb2b51" :a :task/close-reason :v "CE-1 implemented: MaterializedViews struct as Store field with 7 F(S) accumulators (validation_depth, coverage_impl_targets, namespace_counts, contradiction, completeness, uncertainty, task counts). observe_datom() classifies each datom in O(1) and updates relevant accumulators. fitness() computes F(S) from accumulators in O(1). Integrated into genesis() and from_datoms() — views built alongside indexes in same O(n) pass. Also: BUG-RECON-FP fixed with criteria_confidence < 0.1 cap." :op :assert}
+   {:e #blake3 "1144c55832a60362f13bdc78e2c7edfb656e99368b61337e50b9a92589cb2b51" :a :task/closed-at :v 1774126157 :op :assert}
+   {:e #blake3 "1144c55832a60362f13bdc78e2c7edfb656e99368b61337e50b9a92589cb2b51" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "1144c55832a60362f13bdc78e2c7edfb656e99368b61337e50b9a92589cb2b51" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "3b92fe9fe3034b49fee31187a0c58126a0eca849460e2f83c4b7f78386cd0ac5" :a :task/close-reason :v "CE-1 implemented: MaterializedViews struct as Store field with 7 F(S) accumulators (validation_depth, coverage_impl_targets, namespace_counts, contradiction, completeness, uncertainty, task counts). observe_datom() classifies each datom in O(1) and updates relevant accumulators. fitness() computes F(S) from accumulators in O(1). Integrated into genesis() and from_datoms() — views built alongside indexes in same O(n) pass. Also: BUG-RECON-FP fixed with criteria_confidence < 0.1 cap." :op :assert}
+   {:e #blake3 "3b92fe9fe3034b49fee31187a0c58126a0eca849460e2f83c4b7f78386cd0ac5" :a :task/closed-at :v 1774126157 :op :assert}
+   {:e #blake3 "3b92fe9fe3034b49fee31187a0c58126a0eca849460e2f83c4b7f78386cd0ac5" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "3b92fe9fe3034b49fee31187a0c58126a0eca849460e2f83c4b7f78386cd0ac5" :a :task/status :v :task.status/closed :op :assert}
+ ]}

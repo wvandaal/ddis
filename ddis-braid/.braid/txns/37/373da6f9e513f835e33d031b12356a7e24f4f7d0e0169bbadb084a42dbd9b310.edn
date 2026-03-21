@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774125012/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e4ced73c"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3b92fe9fe3034b49fee31187a0c58126a0eca849460e2f83c4b7f78386cd0ac5" :a :task/close-reason :v "Fixed: when criteria_confidence < 0.1, overall confidence capped at 0.5 (below 0.7 auto-close threshold). Root cause: spec_score*0.4 + file_score*0.3 = 0.7 even with zero criteria evidence. Test: audit_zero_criteria_confidence_capped_below_threshold verifies task with full spec coverage + files + zero criteria stays below threshold." :op :assert}
+   {:e #blake3 "3b92fe9fe3034b49fee31187a0c58126a0eca849460e2f83c4b7f78386cd0ac5" :a :task/closed-at :v 1774125011 :op :assert}
+   {:e #blake3 "3b92fe9fe3034b49fee31187a0c58126a0eca849460e2f83c4b7f78386cd0ac5" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "3b92fe9fe3034b49fee31187a0c58126a0eca849460e2f83c4b7f78386cd0ac5" :a :task/status :v :task.status/closed :op :assert}
+ ]}

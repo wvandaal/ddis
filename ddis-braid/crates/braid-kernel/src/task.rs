@@ -1479,9 +1479,20 @@ pub fn audit_tasks_from_store(store: &Store) -> Vec<(TaskSummary, AuditEvidence)
         // File paths give a signal even without spec coverage
         let file_score = if file_paths.is_empty() { 0.0 } else { 0.3 };
 
-        // Blend spec coverage and criteria confidence
+        // Blend spec coverage and criteria confidence.
+        // BUG-RECON-FP fix: when acceptance criteria exist but NONE are met
+        // (criteria_confidence = Some(0.0)), cap confidence below the 0.7 auto-close
+        // threshold. A task with full spec coverage but zero criteria evidence is
+        // NOT done — the spec refs are covered but the actual deliverables aren't.
         let criteria_factor = criteria_confidence.unwrap_or(spec_score);
-        let confidence = (spec_score * 0.4 + criteria_factor * 0.3 + file_score).clamp(0.0, 1.0);
+        let mut confidence =
+            (spec_score * 0.4 + criteria_factor * 0.3 + file_score).clamp(0.0, 1.0);
+        if let Some(cc) = criteria_confidence {
+            if cc < 0.1 {
+                // Acceptance criteria exist but effectively unmet — hard cap at 0.5
+                confidence = confidence.min(0.5);
+            }
+        }
 
         // Only include tasks with some evidence
         if confidence > 0.1 {
@@ -2610,5 +2621,119 @@ mod tests {
         assert!(0.5 < threshold, "0.5 should be below threshold");
         assert!(0.7 >= threshold, "0.7 (boundary) should be above threshold");
         assert!(0.699 < threshold, "0.699 should be below threshold");
+    }
+
+    #[test]
+    fn audit_zero_criteria_confidence_capped_below_threshold() {
+        // BUG-RECON-FP: A task with full spec coverage BUT 0% criteria confidence
+        // should NOT reach the 0.7 auto-close threshold. The criteria_confidence
+        // cap ensures this.
+        let mut datoms = Store::genesis().datom_set().clone();
+        let agent = AgentId::from_name("test:recon-fp");
+        let tx = TxId::new(100, 0, agent);
+
+        let spec_entity = EntityId::from_ident(":spec/inv-test-recon-fp");
+        let task_entity = EntityId::from_ident(":task/t-recon-fp");
+        let impl_entity = EntityId::from_ident(":impl/recon-fp-impl");
+
+        // Spec element
+        datoms.insert(Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":spec/inv-test-recon-fp".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":spec/element-type"),
+            Value::Keyword(":spec.type/invariant".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // Task with traces-to AND acceptance criteria mentioning unimplemented function
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":task/t-recon-fp".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/id"),
+            Value::String("t-recon-fp".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/title"),
+            Value::String(
+                "Test task ACCEPTANCE: (A) nonexistent_function_xyz exists and works".to_string(),
+            ),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/status"),
+            Value::Keyword(":task.status/open".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/traces-to"),
+            Value::Ref(spec_entity),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/files"),
+            Value::String("crates/braid-kernel/src/store.rs".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // Impl link with depth >= 2 (so spec_coverage = 1/1 = 100%)
+        datoms.insert(Datom::new(
+            impl_entity,
+            Attribute::from_keyword(":impl/implements"),
+            Value::Ref(spec_entity),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            impl_entity,
+            Attribute::from_keyword(":impl/verification-depth"),
+            Value::Long(2),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let results = audit_tasks_from_store(&store);
+
+        let found = results.iter().find(|(t, _)| t.id == "t-recon-fp");
+        assert!(
+            found.is_some(),
+            "task should appear in audit results"
+        );
+        let (_, evidence) = found.unwrap();
+
+        // Key assertion: despite spec_coverage=1/1 and file_paths present,
+        // confidence should be capped below 0.7 because criteria_confidence ≈ 0
+        assert!(
+            evidence.confidence < 0.7,
+            "task with 0% criteria confidence should NOT reach auto-close threshold 0.7, got {:.3} \
+             (spec_coverage={}/{}, criteria_confidence={:?})",
+            evidence.confidence,
+            evidence.spec_coverage,
+            evidence.spec_total,
+            evidence.criteria_confidence,
+        );
     }
 }
