@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774106686/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :db/ident :v :recon/trace-e65db5dd69e23f13 :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-neighborhood :v "BILATERAL" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.harvest.inv-harvest-007" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.trace.inv-bilateral-001" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.e2e_distillation.inv-bilateral-001" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-neighbors :v ":task/t-05487365" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-neighbors :v ":task/t-0b99c807" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-neighbors :v ":task/t-222d6fdc" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-neighbors :v ":task/t-3a8265c0" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-neighbors :v ":task/t-9af631dd" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-neighbors :v ":task/t-b1ab00b6" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-neighbors :v ":task/t-c9eb2524" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-refs :v "INV-BILATERAL-001" :op :assert}
+   {:e #blake3 "30763b41f22abaf713dcb296c1df1e443496705ee073e544303a693608aab8d5" :a :recon/trace-refs :v "INV-HARVEST-007" :op :assert}
+ ]}

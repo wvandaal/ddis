@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774106614/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PERF-STATUS-36S: braid status takes 36 seconds with release binary at 33k datoms. Needs --fast flag that skips bilateral, boundaries, methodology gaps, R(t) routing. Shows only: store size, F(S) cached, P(t), harvest urgency, session delta. Target: sub-1 second. Task created as t-7412b5f4 (PERF-1). TRACES TO: INV-INTERFACE-008."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f27f2c17fb0594e1c1dbc2939066b3a6761f12dcd2329dcc59e01341b4716936" :a :db/doc :v "PERF-STATUS-36S: braid status takes 36 seconds with release binary at 33k datoms. Needs --fast flag that skips bilateral, boundaries, methodology gaps, R(t) routing. Shows only: store size, F(S) cached, P(t), harvest urgency, session delta. Target: sub-1 second. Task created as t-7412b5f4 (PERF-1). TRACES TO: INV-INTERFACE-008." :op :assert}
+   {:e #blake3 "f27f2c17fb0594e1c1dbc2939066b3a6761f12dcd2329dcc59e01341b4716936" :a :db/ident :v :observation/perf-status-36s-braid-status-takes-36-seconds-with-release :op :assert}
+   {:e #blake3 "f27f2c17fb0594e1c1dbc2939066b3a6761f12dcd2329dcc59e01341b4716936" :a :exploration/body :v "PERF-STATUS-36S: braid status takes 36 seconds with release binary at 33k datoms. Needs --fast flag that skips bilateral, boundaries, methodology gaps, R(t) routing. Shows only: store size, F(S) cached, P(t), harvest urgency, session delta. Target: sub-1 second. Task created as t-7412b5f4 (PERF-1). TRACES TO: INV-INTERFACE-008." :op :assert}
+   {:e #blake3 "f27f2c17fb0594e1c1dbc2939066b3a6761f12dcd2329dcc59e01341b4716936" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "f27f2c17fb0594e1c1dbc2939066b3a6761f12dcd2329dcc59e01341b4716936" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "f27f2c17fb0594e1c1dbc2939066b3a6761f12dcd2329dcc59e01341b4716936" :a :exploration/content-hash :v #bytes "5fc5f52e5ada7038216c5aa77406e7641bf038f553c76b2e8355f0fb2bf977ef" :op :assert}
+   {:e #blake3 "f27f2c17fb0594e1c1dbc2939066b3a6761f12dcd2329dcc59e01341b4716936" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f27f2c17fb0594e1c1dbc2939066b3a6761f12dcd2329dcc59e01341b4716936" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f27f2c17fb0594e1c1dbc2939066b3a6761f12dcd2329dcc59e01341b4716936" :a :exploration/source-session :v #blake3 "d8ebfaa37cfe45480104a71c32c3191c00e82f43a46d2f8cbb077cea5373e288" :op :assert}
+ ]}
