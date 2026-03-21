@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774064515/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INV-STORE-014 is now self-measuring via metabolic transactions"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "127ecada18a25247b4d882e49b6bde7cc4bf705e7562c8fad9a7f6c4c88ea155" :a :db/doc :v "INV-STORE-014 is now self-measuring via metabolic transactions" :op :assert}
+   {:e #blake3 "127ecada18a25247b4d882e49b6bde7cc4bf705e7562c8fad9a7f6c4c88ea155" :a :db/ident :v :observation/inv-store-014-is-now-self-measuring-via-metabolic-transactio :op :assert}
+   {:e #blake3 "127ecada18a25247b4d882e49b6bde7cc4bf705e7562c8fad9a7f6c4c88ea155" :a :exploration/body :v "INV-STORE-014 is now self-measuring via metabolic transactions" :op :assert}
+   {:e #blake3 "127ecada18a25247b4d882e49b6bde7cc4bf705e7562c8fad9a7f6c4c88ea155" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "127ecada18a25247b4d882e49b6bde7cc4bf705e7562c8fad9a7f6c4c88ea155" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "127ecada18a25247b4d882e49b6bde7cc4bf705e7562c8fad9a7f6c4c88ea155" :a :exploration/content-hash :v #bytes "74d0c0fa8e6b2256b25130af21d61d0cd42bdb52442307736cdf044c798d278b" :op :assert}
+   {:e #blake3 "127ecada18a25247b4d882e49b6bde7cc4bf705e7562c8fad9a7f6c4c88ea155" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "127ecada18a25247b4d882e49b6bde7cc4bf705e7562c8fad9a7f6c4c88ea155" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "127ecada18a25247b4d882e49b6bde7cc4bf705e7562c8fad9a7f6c4c88ea155" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

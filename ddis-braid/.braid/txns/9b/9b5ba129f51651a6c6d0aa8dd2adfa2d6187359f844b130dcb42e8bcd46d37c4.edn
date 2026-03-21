@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774064552/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-af422045"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e4bf7588da5662cf94e5a85f1484a23be0f96bb713f6b115fd4cd2a581cb30d0" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "e4bf7588da5662cf94e5a85f1484a23be0f96bb713f6b115fd4cd2a581cb30d0" :a :task/closed-at :v 1774064551 :op :assert}
+   {:e #blake3 "e4bf7588da5662cf94e5a85f1484a23be0f96bb713f6b115fd4cd2a581cb30d0" :a :task/completion-evidence :v "META-3: Real-time crystallization feedback in observe. Unanchored: shows delta-cryst: -0.1, nearest spec element, and crystallize command. Anchored: shows delta-cryst: +0.2 with spec connection. JSON includes delta_crystallization and nearest_spec fields. All tests pass." :op :assert}
+   {:e #blake3 "e4bf7588da5662cf94e5a85f1484a23be0f96bb713f6b115fd4cd2a581cb30d0" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "e4bf7588da5662cf94e5a85f1484a23be0f96bb713f6b115fd4cd2a581cb30d0" :a :task/status :v :task.status/closed :op :assert}
+ ]}

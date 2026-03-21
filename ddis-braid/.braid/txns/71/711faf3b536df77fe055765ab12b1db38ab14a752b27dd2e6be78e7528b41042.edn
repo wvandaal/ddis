@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774064538/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :db/ident :v :recon/trace-3b1ae3f7ab36b4b0 :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-neighborhood :v "STORE" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.agent_md.inv-store-001" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.compiler.inv-store-001" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.kani_proofs.inv-store-001" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.promote.inv-store-001" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.topology.inv-store-001" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.stateright_model.inv-store-001" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-neighbors :v ":impl/braid.src.commands.trace.inv-store-001" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-neighbors :v ":task/t-68944930" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-neighbors :v ":task/t-81aa964b" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-neighbors :v ":task/t-9e123e45" :op :assert}
+   {:e #blake3 "d613ce4b700e5931d9a09fc0d9ce48a2e4a9597b7e03a01b134f79e5c9167632" :a :recon/trace-refs :v "INV-STORE-001" :op :assert}
+ ]}

@@ -323,6 +323,36 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         .unwrap_or("observation")
         .to_string();
 
+    // --- META-3: Real-time crystallization feedback (INV-GUIDANCE-014, INV-BILATERAL-001) ---
+    // Compute delta-crystallization for this observation. The delta was computed inside
+    // Store::transact() when the TxFile was loaded, but we don't reload the store.
+    // Instead, compute the same logic from the observation's characteristics.
+    let has_spec_refs = args.text.contains("INV-") || args.text.contains("ADR-") || args.text.contains("NEG-");
+    let spec_refs_exist = if has_spec_refs {
+        let refs = braid_kernel::task::parse_spec_refs(args.text);
+        refs.iter().any(|r| {
+            let ident = format!(":spec/{}", r.to_lowercase());
+            let e = EntityId::from_ident(&ident);
+            !store.entity_datoms(e).is_empty()
+        })
+    } else {
+        false
+    };
+    let delta_cryst: f64 = if spec_refs_exist {
+        0.2 // Observation anchored to existing spec
+    } else {
+        -0.1 // Unanchored intent — creates crystallization tension
+    };
+
+    // Find nearest spec element for unanchored observations
+    let nearest_spec = if delta_cryst < 0.0 {
+        braid_kernel::guidance::spec_relevance_scan(args.text, &store)
+            .into_iter()
+            .next()
+    } else {
+        None
+    };
+
     // --- CRB: Auto-reconciliation (INV-GUIDANCE-024, CRB-7) ---
     // Run broadened knowledge relevance scan on observation text to surface related
     // spec elements, tasks, AND observations. This prevents the meta-irony failure
@@ -416,6 +446,35 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         }
     }
 
+    // META-3: Crystallization feedback context block (INV-GUIDANCE-014)
+    if delta_cryst < -f64::EPSILON {
+        let mut cryst_line = format!("\u{0394}-cryst: {delta_cryst:.1} (unanchored \u{2014} no spec connection)");
+        if let Some(ref nearest) = nearest_spec {
+            cryst_line.push_str(&format!(
+                "\n  nearest: {} (score {:.2}) \u{2014} crystallize? braid spec create {}",
+                nearest.human_id, nearest.score, nearest.human_id
+            ));
+        }
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
+            content: cryst_line,
+            tokens: 15,
+        });
+    } else if delta_cryst > f64::EPSILON {
+        // Find which spec element(s) the observation is anchored to
+        let refs = braid_kernel::task::parse_spec_refs(args.text);
+        let ref_str = if refs.is_empty() {
+            "spec element".to_string()
+        } else {
+            refs.join(", ")
+        };
+        context_blocks.push(braid_kernel::budget::ContextBlock {
+            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
+            content: format!("\u{0394}-cryst: +{delta_cryst:.1} (anchored to {ref_str})"),
+            tokens: 10,
+        });
+    }
+
     let projection = braid_kernel::ActionProjection {
         action,
         context: context_blocks,
@@ -441,6 +500,12 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         "datoms_added": datom_count,
         "store_total": new_total,
         "tx": file_path.relative_path(),
+        "delta_crystallization": delta_cryst,
+        "nearest_spec": nearest_spec.as_ref().map(|n| serde_json::json!({
+            "id": n.human_id,
+            "score": n.score,
+            "summary": n.summary,
+        })),
     });
     if let serde_json::Value::Object(ref mut map) = json {
         let acp = projection.to_json();

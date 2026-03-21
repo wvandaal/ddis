@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774064490/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Testing crystallization feedback - no spec refs here"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dadfab0e1311066d225b45e0d20e68e34dab480daf5b97fe9b5edd570a4b651d" :a :db/doc :v "Testing crystallization feedback - no spec refs here" :op :assert}
+   {:e #blake3 "dadfab0e1311066d225b45e0d20e68e34dab480daf5b97fe9b5edd570a4b651d" :a :db/ident :v :observation/testing-crystallization-feedback-no-spec-refs-here :op :assert}
+   {:e #blake3 "dadfab0e1311066d225b45e0d20e68e34dab480daf5b97fe9b5edd570a4b651d" :a :exploration/body :v "Testing crystallization feedback - no spec refs here" :op :assert}
+   {:e #blake3 "dadfab0e1311066d225b45e0d20e68e34dab480daf5b97fe9b5edd570a4b651d" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "dadfab0e1311066d225b45e0d20e68e34dab480daf5b97fe9b5edd570a4b651d" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "dadfab0e1311066d225b45e0d20e68e34dab480daf5b97fe9b5edd570a4b651d" :a :exploration/content-hash :v #bytes "d331f7af8c33ed6ab340bc91434e7e614e44cae145ddb75a4dc4f8c64b9084f3" :op :assert}
+   {:e #blake3 "dadfab0e1311066d225b45e0d20e68e34dab480daf5b97fe9b5edd570a4b651d" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "dadfab0e1311066d225b45e0d20e68e34dab480daf5b97fe9b5edd570a4b651d" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "dadfab0e1311066d225b45e0d20e68e34dab480daf5b97fe9b5edd570a4b651d" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}
