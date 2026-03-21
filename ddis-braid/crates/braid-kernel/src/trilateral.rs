@@ -173,7 +173,7 @@ pub fn live_projections(store: &Store) -> (LiveView, LiveView, LiveView) {
 // ---------------------------------------------------------------------------
 
 /// Divergence components between boundary pairs.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct DivergenceComponents {
     /// D_IS: entities in Intent but not in Spec (intent-spec gap).
     pub d_is: usize,
@@ -328,7 +328,7 @@ pub fn isp_check(store: &Store, entity: EntityId) -> IspResult {
 // ---------------------------------------------------------------------------
 
 /// Coherence state classification based on (Φ, β₁) duality.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum CoherenceQuadrant {
     /// Φ = 0 ∧ β₁ = 0 — fully coherent.
     Coherent,
@@ -341,7 +341,7 @@ pub enum CoherenceQuadrant {
 }
 
 /// Full coherence report for the store.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct CoherenceReport {
     /// Divergence metric Φ (weighted gap count).
     pub phi: f64,
@@ -516,7 +516,7 @@ pub fn check_coherence_fast(store: &Store) -> CoherenceReport {
 /// Low entropy → concentrated, coherent structure.
 /// High entropy → dispersed, incoherent structure.
 /// Maximum entropy = log₂(n) for n-node graph (uniform distribution).
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct CoherenceEntropy {
     /// Von Neumann entropy S(ρ) in bits.
     pub entropy: f64,

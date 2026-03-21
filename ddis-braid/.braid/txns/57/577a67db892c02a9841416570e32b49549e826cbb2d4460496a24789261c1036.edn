@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774114893/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PERF-3: Store loading bottleneck — 3,800+ EDN files read on every command. Current: 0.7s for I/O alone. Fix: write a consolidated store snapshot (.braid/cache/snapshot.bin) on every write_tx, load from snapshot on startup, fall back to txn scan if snapshot stale. Expected: 0.7s → <0.1s. Touches: layout.rs (write_tx hook), store.rs (from_snapshot/to_snapshot). INV-STORE-001 (append-only) preserved because snapshot is a cache, not canonical — txns/ remains source of truth."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d0f29344c0a5ab2c2cba4af858c530da4c27d3532849a29b201e29b37060a6ec" :a :db/doc :v "PERF-3: Store loading bottleneck — 3,800+ EDN files read on every command. Current: 0.7s for I/O alone. Fix: write a consolidated store snapshot (.braid/cache/snapshot.bin) on every write_tx, load from snapshot on startup, fall back to txn scan if snapshot stale. Expected: 0.7s → <0.1s. Touches: layout.rs (write_tx hook), store.rs (from_snapshot/to_snapshot). INV-STORE-001 (append-only) preserved because snapshot is a cache, not canonical — txns/ remains source of truth." :op :assert}
+   {:e #blake3 "d0f29344c0a5ab2c2cba4af858c530da4c27d3532849a29b201e29b37060a6ec" :a :db/ident :v :observation/perf-3-store-loading-bottleneck-3800-edn-files-read-on :op :assert}
+   {:e #blake3 "d0f29344c0a5ab2c2cba4af858c530da4c27d3532849a29b201e29b37060a6ec" :a :exploration/body :v "PERF-3: Store loading bottleneck — 3,800+ EDN files read on every command. Current: 0.7s for I/O alone. Fix: write a consolidated store snapshot (.braid/cache/snapshot.bin) on every write_tx, load from snapshot on startup, fall back to txn scan if snapshot stale. Expected: 0.7s → <0.1s. Touches: layout.rs (write_tx hook), store.rs (from_snapshot/to_snapshot). INV-STORE-001 (append-only) preserved because snapshot is a cache, not canonical — txns/ remains source of truth." :op :assert}
+   {:e #blake3 "d0f29344c0a5ab2c2cba4af858c530da4c27d3532849a29b201e29b37060a6ec" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "d0f29344c0a5ab2c2cba4af858c530da4c27d3532849a29b201e29b37060a6ec" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "d0f29344c0a5ab2c2cba4af858c530da4c27d3532849a29b201e29b37060a6ec" :a :exploration/content-hash :v #bytes "2ece8723fa1cb037fa3a6aed85dda58c27424d10a140dff1212a32cf822f232a" :op :assert}
+   {:e #blake3 "d0f29344c0a5ab2c2cba4af858c530da4c27d3532849a29b201e29b37060a6ec" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d0f29344c0a5ab2c2cba4af858c530da4c27d3532849a29b201e29b37060a6ec" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d0f29344c0a5ab2c2cba4af858c530da4c27d3532849a29b201e29b37060a6ec" :a :exploration/source-session :v #blake3 "987e6573a607a80e25b8de5dd395ad8c724d72917643030e29e0da4b6fc4fe50" :op :assert}
+ ]}

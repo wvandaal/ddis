@@ -103,6 +103,9 @@ fn main() {
     // ST-1: Auto-detect session start and write session-start datoms.
     // Runs before the command executes so that commands see the active session.
     // Skips `init` (no store yet) and `session start` (handles its own session).
+    // NOTE: FD-012 requires every command to be a store transaction. Auto-detect
+    // fulfills this for commands that don't otherwise write. Do NOT skip for
+    // "read-only" commands — that would violate the provenance invariant.
     if cmd_name != "init" && cmd_name != "session" {
         if let Some(ref store_path) = exit_warn_path {
             if let Ok(lo) = layout::DiskLayout::open(store_path) {

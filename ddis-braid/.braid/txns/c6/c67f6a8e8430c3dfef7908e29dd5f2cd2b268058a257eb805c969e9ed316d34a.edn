@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774114906/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PERF-4: Incremental F(S) computation — compute_fitness currently does 7+ full/indexed scans per call (~29s at 35K datoms). Fix: cache FitnessComponents in a :fitness/cache entity, track which components are invalidated by each transaction type (spec change → invalidate coverage+incompleteness, impl change → invalidate coverage+drift, observation → invalidate uncertainty). On status, recompute only invalidated components. Expected: 29s → <1s for typical status calls. Touches: bilateral.rs (compute_fitness), store.rs (transact hook for invalidation), schema.rs (cache attributes)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fcdb6a56cd77b9c277310aeb7425c10d21bf5c238d1e0271cdaa5a874b0cbb81" :a :db/doc :v "PERF-4: Incremental F(S) computation — compute_fitness currently does 7+ full/indexed scans per call (~29s at 35K datoms). Fix: cache FitnessComponents in a :fitness/cache entity, track which components are invalidated by each transaction type (spec change → invalidate coverage+incompleteness, impl change → invalidate coverage+drift, observation → invalidate uncertainty). On status, recompute only invalidated components. Expected: 29s → <1s for typical status calls. Touches: bilateral.rs (compute_fitness), store.rs (transact hook for invalidation), schema.rs (cache attributes)." :op :assert}
+   {:e #blake3 "fcdb6a56cd77b9c277310aeb7425c10d21bf5c238d1e0271cdaa5a874b0cbb81" :a :db/ident :v :observation/perf-4-incremental-fs-computation-compute-fitness-curre :op :assert}
+   {:e #blake3 "fcdb6a56cd77b9c277310aeb7425c10d21bf5c238d1e0271cdaa5a874b0cbb81" :a :exploration/body :v "PERF-4: Incremental F(S) computation — compute_fitness currently does 7+ full/indexed scans per call (~29s at 35K datoms). Fix: cache FitnessComponents in a :fitness/cache entity, track which components are invalidated by each transaction type (spec change → invalidate coverage+incompleteness, impl change → invalidate coverage+drift, observation → invalidate uncertainty). On status, recompute only invalidated components. Expected: 29s → <1s for typical status calls. Touches: bilateral.rs (compute_fitness), store.rs (transact hook for invalidation), schema.rs (cache attributes)." :op :assert}
+   {:e #blake3 "fcdb6a56cd77b9c277310aeb7425c10d21bf5c238d1e0271cdaa5a874b0cbb81" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "fcdb6a56cd77b9c277310aeb7425c10d21bf5c238d1e0271cdaa5a874b0cbb81" :a :exploration/confidence :v 0.8 :op :assert}
+   {:e #blake3 "fcdb6a56cd77b9c277310aeb7425c10d21bf5c238d1e0271cdaa5a874b0cbb81" :a :exploration/content-hash :v #bytes "fe6c20339a23a5035f2d23128eccbecb51d1f52b7fcea50dc240158f4c428af0" :op :assert}
+   {:e #blake3 "fcdb6a56cd77b9c277310aeb7425c10d21bf5c238d1e0271cdaa5a874b0cbb81" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "fcdb6a56cd77b9c277310aeb7425c10d21bf5c238d1e0271cdaa5a874b0cbb81" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "fcdb6a56cd77b9c277310aeb7425c10d21bf5c238d1e0271cdaa5a874b0cbb81" :a :exploration/source-session :v #blake3 "987e6573a607a80e25b8de5dd395ad8c724d72917643030e29e0da4b6fc4fe50" :op :assert}
+ ]}

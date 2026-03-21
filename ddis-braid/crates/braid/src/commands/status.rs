@@ -63,9 +63,37 @@ pub(crate) struct StatusSnapshot {
 }
 
 impl StatusSnapshot {
-    fn compute(store: &braid_kernel::Store, path: &Path) -> Self {
-        let fitness = compute_fitness(store);
-        let coherence = check_coherence_fast(store);
+    /// Compute with optional DiskLayout for cache acceleration.
+    /// When layout is provided, fitness and coherence are loaded from
+    /// `.cache/fitness.json` and `.cache/coherence.json` if the cache
+    /// is fresh (same txn_fingerprint as store.bin). This turns 29s of
+    /// CPU computation into a ~1ms JSON read.
+    pub(crate) fn compute_with_layout(
+        store: &braid_kernel::Store,
+        path: &Path,
+        layout: Option<&crate::layout::DiskLayout>,
+    ) -> Self {
+        // PERF-3/4: Try cache first, fall back to recomputation
+        let fitness = layout
+            .and_then(|l| l.load_fitness_cache())
+            .unwrap_or_else(|| {
+                let f = compute_fitness(store);
+                if let Some(l) = layout {
+                    let _ = l.write_fitness_cache(&f);
+                }
+                f
+            });
+
+        let coherence = layout
+            .and_then(|l| l.load_coherence_cache())
+            .unwrap_or_else(|| {
+                let c = check_coherence_fast(store);
+                if let Some(l) = layout {
+                    let _ = l.write_coherence_cache(&c);
+                }
+                c
+            });
+
         let telemetry = telemetry_from_store(store);
         let methodology_score = compute_methodology_score(&telemetry);
         let session_start_fitness = query_session_start_fitness(store);
@@ -222,7 +250,8 @@ pub fn run(
     }
 
     // PERF-2: Compute all expensive values once (was computed 2x in build_json + build_status_projection)
-    let snapshot = StatusSnapshot::compute(&store, path);
+    // PERF-3/4: Use layout cache for fitness/coherence acceleration
+    let snapshot = StatusSnapshot::compute_with_layout(&store, path, Some(&layout));
 
     // Build JSON representation (always computed -- reused for --json and structured output)
     let json_value = build_json(StatusJsonParams {

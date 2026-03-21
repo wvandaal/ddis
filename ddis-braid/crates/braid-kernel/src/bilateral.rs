@@ -152,7 +152,7 @@ pub struct BilateralScan {
 }
 
 /// The 7-component fitness breakdown.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct FitnessComponents {
     /// V ∈ [0,1]: fraction of spec elements with witness evidence.
     pub validation: f64,
@@ -171,7 +171,7 @@ pub struct FitnessComponents {
 }
 
 /// The overall fitness score F(S).
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct FitnessScore {
     /// F(S) ∈ [0, 1]: weighted sum of components.
     pub total: f64,

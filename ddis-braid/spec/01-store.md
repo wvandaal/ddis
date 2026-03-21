@@ -1273,10 +1273,10 @@ CALM-compliant monotonic fragment.
 
 ---
 
-### ADR-STORE-006: Embedded Deployment
+### ADR-STORE-006: Embedded Deployment with Session Daemon
 
-**Traces to**: SEED §4, ADRS FD-010
-**Stage**: 0
+**Traces to**: SEED §4, §5, ADRS FD-010, FD-012, INV-INTERFACE-008
+**Stage**: 0 (embedded), 1 (daemon)
 
 #### Problem
 How is the datom store deployed?
@@ -1285,16 +1285,48 @@ How is the datom store deployed?
 A) **Embedded library** — no daemon process. Agents invoke as CLI or link as library.
 B) **Client-server database** — separate database server.
 C) **Distributed database** — multi-node with consensus.
+D) **Embedded + session daemon** — embedded library with an optional long-running
+   process that holds the store in memory for the duration of a session, exposed via
+   Unix domain socket. CLI falls back to embedded when daemon is not running.
 
 #### Decision
-**Option A.** For the target deployment (single VPS, single-digit agents, thousands of
-datoms), embedded is sufficient. Minimizes operational complexity. Multiple agents coordinate
-through the shared filesystem via content-addressed transaction files (SR-014; SR-007 flock coordination superseded by ADR-LAYOUT-006).
+**Option A for Stage 0. Option D for Stage 1+.**
+
+Stage 0: Embedded is sufficient for bootstrapping with hundreds of datoms. This was the
+correct decision for initial development.
+
+Stage 1 (REVISED 2026-03-21): At 37,000+ datoms with 3,900+ transaction files, embedded
+mode is structurally incompatible with simultaneous satisfaction of FD-012 (every command
+is a transaction) and INV-INTERFACE-008 (responsive status). Evidence:
+- Each CLI invocation rebuilds the full store from disk (0.9s cache hit, 30s miss)
+- FD-012 compliance (RFL-2 action prediction, AR-2 reconciliation trace) writes 1 txn
+  per command, invalidating caches and forcing 30s rebuilds on every subsequent call
+- Net result: `braid status` takes 30s; `braid seed` takes 21s; `braid harvest` takes 12s
+- At projected 100K+ datoms (Stage 2), this extrapolates to 2+ minutes per command
+
+Option D resolves this structural divergence: the daemon loads the store once at session
+start, applies transactions in-place, and serves all commands via Unix socket for the
+session duration. FD-012 telemetry goes to W_α (agent working set, in-memory) rather
+than the shared store, preserving provenance without cache invalidation.
+
+**Lifecycle**: daemon auto-starts on first `braid` command if `.braid/` exists, auto-stops
+after 2 hours of inactivity (matching session staleness threshold from ST-1). CLI detects
+daemon via `.braid/braid.sock` and falls back to embedded if unavailable.
+
+**Coordination**: shared store coordination remains filesystem-based (txns/ directory with
+content-addressed files). The daemon is a performance optimization, not a semantic change.
+Multiple agents can share a store — each runs its own daemon or falls back to embedded.
 
 #### Formal Justification
 Embedded deployment preserves the property that all coordination goes through the store.
-A separate database server (Option B) introduces a coordination channel outside the datom
-store, potentially violating FD-012 (every command is a transaction).
+The session daemon extends this by caching the store in memory without changing the
+coordination model. The daemon is a transparent accelerator: removing it degrades
+performance but not correctness. This satisfies the reversibility principle — the daemon
+can be stopped at any time with no data loss or semantic change.
+
+The key insight: SEED.md §5 describes bounded trajectories (20-30 turn sessions). A daemon
+whose lifecycle matches the session lifecycle amortizes the O(n) store load across all turns,
+converting O(n × k) total cost (n = datoms, k = commands per session) into O(n + k).
 
 ---
 

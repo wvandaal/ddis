@@ -119,13 +119,13 @@ These are the "why" decisions — fundamental architectural choices that shape e
 **Source**: SEED.md §4 (datom axioms); Transcript 01:762–860 (Options A/B/C analysis)
 **Formalized as**: ADR-STORE-018 in `spec/01-store.md`
 
-### FD-010: Embedded Deployment Model
+### FD-010: Embedded Deployment Model (REVISED Stage 1)
 
-**Decision**: Braid deploys as an embedded, single-process system (analogous to SQLite). No separate database server or daemon required.
-**Rationale**: Minimizes operational complexity. Agents invoke Braid as a CLI tool or link it as a library. The VPS-local deployment model means all agents share a filesystem, making a database server unnecessary.
-**Rejected**: Client-server database (unnecessary infrastructure at target scale); distributed database (overkill for single-VPS deployment).
-**Source**: SEED.md §4 (store algebra); Transcript 01 (embedded SQLite-style deployment)
-**Formalized as**: ADR-STORE-006 in `spec/01-store.md`
+**Decision**: Stage 0: embedded single-process (analogous to SQLite). Stage 1+: embedded with optional **session daemon** — long-running process holding the store in memory, exposed via Unix domain socket (`.braid/braid.sock`). CLI falls back to embedded when daemon not running.
+**Rationale**: Embedded correct for Stage 0 (hundreds of datoms). At 37K+ datoms, process-per-command creates structural divergence: FD-012 writes invalidate caches → 30s rebuilds per command. Daemon amortizes O(n) store load across session, converting O(n*k) to O(n+k). W_α (agent working set) enables FD-012 compliance without cache invalidation.
+**Rejected**: Client-server database; distributed database; read-only command exemption (violates FD-012); file-level caching alone (invalidated by FD-012 writes).
+**Source**: SEED.md §4, §5; Session 032 performance analysis; ADR-STORE-006 revision
+**Formalized as**: ADR-STORE-006 (revised) in `spec/01-store.md`
 
 ### FD-011: Rust as Implementation Language
 

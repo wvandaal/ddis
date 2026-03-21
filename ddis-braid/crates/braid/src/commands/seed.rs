@@ -11,7 +11,7 @@ use braid_kernel::agent_md::{generate_agent_md, AgentMdConfig};
 use braid_kernel::datom::AgentId;
 use braid_kernel::guidance::{derive_actions, format_actions};
 use braid_kernel::seed::{assemble_seed, group_state_entries, ContextSection};
-use braid_kernel::trilateral::check_coherence_fast;
+
 
 use crate::error::BraidError;
 use crate::layout::DiskLayout;
@@ -52,7 +52,7 @@ pub fn run(
     }
 
     if for_human {
-        let human = format_human_briefing(&store, &seed, task)?;
+        let human = format_human_briefing(&store, &seed, task, &layout)?;
         let json_val = serde_json::json!({
             "mode": "human-briefing",
             "task": seed.task,
@@ -408,8 +408,9 @@ fn format_human_briefing(
     store: &braid_kernel::Store,
     seed: &braid_kernel::SeedOutput,
     task: &str,
+    layout: &crate::layout::DiskLayout,
 ) -> Result<String, BraidError> {
-    let coherence = check_coherence_fast(store);
+    let coherence = layout.cached_coherence(store);
     let actions = derive_actions(store);
 
     let mut out = String::new();

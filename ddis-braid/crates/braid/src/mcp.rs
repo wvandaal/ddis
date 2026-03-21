@@ -704,7 +704,6 @@ fn tool_observe(layout: &DiskLayout, args: &JsonValue) -> Result<JsonValue, Brai
 /// with commands, F(S) fitness summary, and drift status. This is the
 /// verbose methodology view — use `braid_status` for quick orientation.
 fn tool_guidance(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
-    use braid_kernel::bilateral::compute_fitness;
     use braid_kernel::guidance::{
         compute_methodology_score, compute_routing_from_store, derive_actions, format_actions,
         telemetry_from_store, Trend,
@@ -715,7 +714,7 @@ fn tool_guidance(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(&store);
     let routings = compute_routing_from_store(&store);
-    let fitness = compute_fitness(&store);
+    let fitness = layout.cached_fitness(&store);
 
     let mut out = String::new();
 
