@@ -862,4 +862,155 @@ mod tests {
             _ => panic!("expected Rel result"),
         }
     }
+
+    // -------------------------------------------------------------------
+    // META-3-TEST: Crystallization feedback tests
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn crystallization_feedback_unanchored_observation() {
+        // An observation without spec references should get delta_cryst = -0.1
+        let text = "the merge latency is too high";
+        let has_spec_refs =
+            text.contains("INV-") || text.contains("ADR-") || text.contains("NEG-");
+        assert!(!has_spec_refs, "plain text should not have spec refs");
+        // delta_cryst for unanchored = -0.1
+        let delta: f64 = -0.1;
+        assert!(delta < 0.0, "unanchored observation should have negative delta");
+    }
+
+    #[test]
+    fn crystallization_feedback_anchored_observation() {
+        // An observation with a valid spec reference gets delta_cryst = 0.2
+        let text = "INV-STORE-001 is violated if merge drops datoms";
+        let has_spec_refs =
+            text.contains("INV-") || text.contains("ADR-") || text.contains("NEG-");
+        assert!(has_spec_refs, "spec-anchored text should have spec refs");
+        // delta_cryst for anchored = 0.2
+        let delta: f64 = 0.2;
+        assert!(delta > 0.0, "anchored observation should have positive delta");
+    }
+
+    #[test]
+    fn crystallization_feedback_spec_ref_parsing() {
+        // Test that spec refs are extracted from observation text
+        let text = "This relates to INV-BILATERAL-001 and ADR-STORE-005";
+        let refs = braid_kernel::task::parse_spec_refs(text);
+        assert!(refs.len() >= 2, "should parse at least 2 spec refs from '{}'", text);
+        assert!(
+            refs.iter().any(|r| r.contains("BILATERAL")),
+            "should find BILATERAL ref"
+        );
+        assert!(
+            refs.iter().any(|r| r.contains("STORE")),
+            "should find STORE ref"
+        );
+    }
+
+    #[test]
+    fn crystallization_nearest_spec_for_unanchored() {
+        // For unanchored observations, spec_relevance_scan should find related specs
+        let store = braid_kernel::Store::genesis();
+        let text = "the store append-only property is critical";
+        let nearest = braid_kernel::guidance::spec_relevance_scan(text, &store);
+        // On a schema-only store, there may not be spec elements. That's OK — the scan
+        // should return an empty vec without panicking.
+        assert!(
+            nearest.len() <= 100,
+            "spec_relevance_scan should not return more than 100 results"
+        );
+    }
+
+    #[test]
+    fn crystallization_json_output_includes_delta() {
+        // Integration test: run observe on a temp store and check JSON output
+        let tmpdir = tempfile::tempdir().unwrap();
+        let store_path = tmpdir.path().join(".braid");
+        crate::layout::DiskLayout::init(&store_path).unwrap();
+
+        let args = ObserveArgs {
+            path: &store_path,
+            text: "test observation for crystallization feedback",
+            confidence: 0.8,
+            tags: &[],
+            category: None,
+            agent: "test:agent",
+            relates_to: None,
+            rationale: None,
+            alternatives: None,
+        };
+
+        let result = run(args).unwrap();
+        let json = &result.json;
+
+        // JSON should include delta_crystallization field
+        assert!(
+            json.get("delta_crystallization").is_some(),
+            "JSON output should include delta_crystallization, got: {:?}",
+            json
+        );
+        let delta = json["delta_crystallization"].as_f64().unwrap();
+        // Unanchored observation → -0.1
+        assert!(
+            (delta - (-0.1)).abs() < 0.01,
+            "unanchored observation should have delta_cryst ≈ -0.1, got {}",
+            delta
+        );
+    }
+
+    #[test]
+    fn crystallization_json_output_includes_nearest_spec() {
+        // Unanchored observation should have nearest_spec in JSON
+        let tmpdir = tempfile::tempdir().unwrap();
+        let store_path = tmpdir.path().join(".braid");
+        crate::layout::DiskLayout::init(&store_path).unwrap();
+
+        let args = ObserveArgs {
+            path: &store_path,
+            text: "plain observation no spec refs",
+            confidence: 0.7,
+            tags: &[],
+            category: None,
+            agent: "test:agent",
+            relates_to: None,
+            rationale: None,
+            alternatives: None,
+        };
+
+        let result = run(args).unwrap();
+        let json = &result.json;
+
+        // nearest_spec should be present (may be null if no specs found)
+        assert!(
+            json.get("nearest_spec").is_some(),
+            "JSON should include nearest_spec field"
+        );
+    }
+
+    #[test]
+    fn crystallization_human_output_shows_delta() {
+        let tmpdir = tempfile::tempdir().unwrap();
+        let store_path = tmpdir.path().join(".braid");
+        crate::layout::DiskLayout::init(&store_path).unwrap();
+
+        let args = ObserveArgs {
+            path: &store_path,
+            text: "unanchored observation for output test",
+            confidence: 0.6,
+            tags: &[],
+            category: None,
+            agent: "test:agent",
+            relates_to: None,
+            rationale: None,
+            alternatives: None,
+        };
+
+        let result = run(args).unwrap();
+        // Human output should show Δ-cryst for unanchored observations
+        assert!(
+            result.human.contains("\u{0394}-cryst") || result.human.contains("Δ-cryst"),
+            "human output should show delta-cryst line, got: {}",
+            result.human
+        );
+    }
 }

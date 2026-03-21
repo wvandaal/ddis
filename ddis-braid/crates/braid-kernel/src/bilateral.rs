@@ -778,8 +778,8 @@ fn compute_depth_weighted_coverage(store: &Store) -> f64 {
     let mut spec_max_depth: HashMap<EntityId, i64> = HashMap::new();
     let mut has_any_depth = false;
 
-    for datom in store.datoms() {
-        if datom.attribute == implements_attr && datom.op == Op::Assert {
+    for datom in store.attribute_datoms(&implements_attr) {
+        if datom.op == Op::Assert {
             if let Value::Ref(spec_entity) = &datom.value {
                 let impl_entity = datom.entity;
                 // Get depth for this impl entity.
@@ -932,16 +932,15 @@ fn compute_incompleteness_complement(store: &Store) -> f64 {
     let mut impl_covered: std::collections::HashSet<EntityId> = std::collections::HashSet::new();
     let mut task_covered: std::collections::HashSet<EntityId> = std::collections::HashSet::new();
 
-    for d in store.datoms() {
-        if d.op != Op::Assert {
-            continue;
-        }
-        if d.attribute == impl_attr {
+    for d in store.attribute_datoms(&impl_attr) {
+        if d.op == Op::Assert {
             if let Value::Ref(spec_entity) = &d.value {
                 impl_covered.insert(*spec_entity);
             }
         }
-        if d.attribute == task_traces_attr {
+    }
+    for d in store.attribute_datoms(&task_traces_attr) {
+        if d.op == Op::Assert {
             if let Value::Ref(spec_entity) = &d.value {
                 task_covered.insert(*spec_entity);
             }
@@ -983,8 +982,8 @@ fn compute_uncertainty_complement(store: &Store) -> f64 {
     let mut sum = 0.0f64;
     let mut count = 0u64;
 
-    for datom in store.datoms() {
-        if datom.attribute == confidence_attr && datom.op == Op::Assert {
+    for datom in store.attribute_datoms(&confidence_attr) {
+        if datom.op == Op::Assert {
             if let Value::Double(f) = &datom.value {
                 sum += f.into_inner();
                 count += 1;
@@ -1019,8 +1018,8 @@ pub fn forward_scan(store: &Store) -> ScanResult {
 
     // Build set of spec entities that are referenced by :impl/implements
     let mut impl_targets: HashSet<EntityId> = HashSet::new();
-    for datom in store.datoms() {
-        if datom.attribute == implements_attr && datom.op == Op::Assert {
+    for datom in store.attribute_datoms(&implements_attr) {
+        if datom.op == Op::Assert {
             if let Value::Ref(target) = &datom.value {
                 impl_targets.insert(*target);
             }

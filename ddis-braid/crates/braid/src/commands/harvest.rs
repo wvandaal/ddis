@@ -716,15 +716,18 @@ pub fn run(
             }
         }
 
-        // Close active session if present
-        let active_session = EntityId::from_ident(":session/current");
-        let has_active = store
-            .entity_datoms(active_session)
-            .iter()
-            .any(|d| d.op == Op::Assert);
-        if has_active {
+        // META-4: Inject reconciliation datoms into harvest transaction
+        all_datoms.extend(reconciliation_datoms);
+
+        // COTX-1: Atomic session rotation — close current session and open new
+        // session in the same harvest transaction. This ensures no gap between
+        // sessions where observations could be lost (cotransaction principle:
+        // when event A implies event B, they share a transaction).
+        //
+        // Step 1: Close active session if present
+        if let Some(active_entity) = braid_kernel::guidance::find_active_session(&store) {
             all_datoms.push(Datom::new(
-                active_session,
+                active_entity,
                 Attribute::from_keyword(":session/status"),
                 Value::Keyword(":session.status/closed".to_string()),
                 harvest_tx_id,
@@ -732,8 +735,112 @@ pub fn run(
             ));
         }
 
-        // META-4: Inject reconciliation datoms into harvest transaction
-        all_datoms.extend(reconciliation_datoms);
+        // Step 2: Create new session entity in the same atomic transaction
+        // Use milliseconds for the ident to avoid collision with the session
+        // created by auto-detect (which uses seconds). This ensures the harvest
+        // session is always a distinct entity even if both happen within 1 second.
+        let new_wall_millis = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis() as u64;
+        let new_wall_time = new_wall_millis / 1000;
+        let new_session_ident = format!(":session/s-{}", new_wall_millis);
+        let new_session_entity = EntityId::from_ident(&new_session_ident);
+
+        // Compute start-fitness for the new session (pre-harvest F(S) is correct —
+        // the new session "starts" at the moment of harvest)
+        let new_fitness = braid_kernel::bilateral::compute_fitness(&store);
+
+        // CRITICAL: Include harvest datoms in count (they're in the same tx)
+        let new_datom_count = store.len() + all_datoms.len();
+
+        // ISO 8601 timestamp
+        let iso_time = {
+            let secs = new_wall_time;
+            let days_since_epoch = secs / 86400;
+            let time_of_day = secs % 86400;
+            let hours = time_of_day / 3600;
+            let minutes = (time_of_day % 3600) / 60;
+            let seconds = time_of_day % 60;
+            let (year, month, day) = braid_kernel::guidance::days_to_ymd(days_since_epoch);
+            format!(
+                "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+                year, month, day, hours, minutes, seconds
+            )
+        };
+
+        // Resolve next task from synthesis directive or harvest task
+        let next_task = narrative
+            .synthesis_directive
+            .as_deref()
+            .unwrap_or(&task);
+
+        // 9 session datoms: 8 standard + :session/task
+        all_datoms.extend([
+            Datom::new(
+                new_session_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(new_session_ident.clone()),
+                harvest_tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_session_entity,
+                Attribute::from_keyword(":session/started-at"),
+                Value::Long(new_wall_time as i64),
+                harvest_tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_session_entity,
+                Attribute::from_keyword(":session/start-time"),
+                Value::String(iso_time),
+                harvest_tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_session_entity,
+                Attribute::from_keyword(":session/start-fitness"),
+                Value::Double(ordered_float::OrderedFloat(new_fitness.total)),
+                harvest_tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_session_entity,
+                Attribute::from_keyword(":session/start-datom-count"),
+                Value::Long(new_datom_count as i64),
+                harvest_tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_session_entity,
+                Attribute::from_keyword(":session/agent"),
+                Value::Ref(EntityId::from_ident(&format!(":agent/{}", agent_name))),
+                harvest_tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_session_entity,
+                Attribute::from_keyword(":session/status"),
+                Value::Keyword(":session.status/active".to_string()),
+                harvest_tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_session_entity,
+                Attribute::from_keyword(":session/current"),
+                Value::Ref(new_session_entity),
+                harvest_tx_id,
+                Op::Assert,
+            ),
+            Datom::new(
+                new_session_entity,
+                Attribute::from_keyword(":session/task"),
+                Value::String(next_task.to_string()),
+                harvest_tx_id,
+                Op::Assert,
+            ),
+        ]);
 
         let tx_file = TxFile {
             tx_id: harvest_tx_id,

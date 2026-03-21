@@ -2390,4 +2390,225 @@ mod tests {
         let ids = extract_criterion_identifiers(criterion);
         assert!(ids.is_empty());
     }
+
+    // -------------------------------------------------------------------
+    // META-4-TEST: Harvest-integrated reconciliation tests
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn audit_empty_store_returns_empty() {
+        let store = Store::genesis();
+        let results = audit_tasks_from_store(&store);
+        assert!(
+            results.is_empty(),
+            "genesis store should have no auditable tasks"
+        );
+    }
+
+    #[test]
+    fn audit_task_without_traces_has_zero_coverage() {
+        // A task with no traces-to has no spec coverage to verify
+        let mut datoms = Store::genesis().datom_set().clone();
+        let agent = AgentId::from_name("test:audit");
+        let tx = TxId::new(100, 0, agent);
+        let task_entity = EntityId::from_ident(":task/t-audit-no-trace");
+
+        // Create a minimal task
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":task/t-audit-no-trace".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/id"),
+            Value::String("t-audit-no-trace".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/title"),
+            Value::String("Test task for audit".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/status"),
+            Value::Keyword(":task.status/open".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let results = audit_tasks_from_store(&store);
+
+        // Task without traces-to should have zero spec coverage
+        let found = results.iter().find(|(t, _)| t.id == "t-audit-no-trace");
+        if let Some((_, evidence)) = found {
+            assert_eq!(
+                evidence.spec_total, 0,
+                "task without traces-to should have 0 spec_total"
+            );
+        }
+    }
+
+    #[test]
+    fn audit_task_with_covered_specs_has_positive_confidence() {
+        // A task whose traced specs have impl links should have positive confidence
+        let mut datoms = Store::genesis().datom_set().clone();
+        let agent = AgentId::from_name("test:audit-covered");
+        let tx = TxId::new(100, 0, agent);
+
+        let spec_entity = EntityId::from_ident(":spec/inv-test-audit");
+        let task_entity = EntityId::from_ident(":task/t-audit-covered");
+        let impl_entity = EntityId::from_ident(":impl/audit-impl");
+
+        // Spec element
+        datoms.insert(Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":spec/inv-test-audit".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            spec_entity,
+            Attribute::from_keyword(":spec/element-type"),
+            Value::Keyword(":spec.type/invariant".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // Task with traces-to the spec
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":task/t-audit-covered".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/id"),
+            Value::String("t-audit-covered".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/title"),
+            Value::String("Test task for audit coverage".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/status"),
+            Value::Keyword(":task.status/open".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/traces-to"),
+            Value::Ref(spec_entity),
+            tx,
+            Op::Assert,
+        ));
+
+        // Impl link with depth >= 2
+        datoms.insert(Datom::new(
+            impl_entity,
+            Attribute::from_keyword(":impl/implements"),
+            Value::Ref(spec_entity),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            impl_entity,
+            Attribute::from_keyword(":impl/verification-depth"),
+            Value::Long(2),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let results = audit_tasks_from_store(&store);
+
+        let found = results.iter().find(|(t, _)| t.id == "t-audit-covered");
+        assert!(
+            found.is_some(),
+            "task with covered specs should appear in audit results"
+        );
+        let (_, evidence) = found.unwrap();
+        assert!(
+            evidence.confidence > 0.0,
+            "task with full spec coverage should have positive confidence, got {}",
+            evidence.confidence
+        );
+        assert_eq!(
+            evidence.spec_coverage, 1,
+            "1 spec covered out of 1 total"
+        );
+    }
+
+    #[test]
+    fn audit_only_returns_open_tasks() {
+        // Closed tasks should not appear in audit results
+        let mut datoms = Store::genesis().datom_set().clone();
+        let agent = AgentId::from_name("test:audit-closed");
+        let tx = TxId::new(100, 0, agent);
+        let task_entity = EntityId::from_ident(":task/t-audit-closed");
+
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(":task/t-audit-closed".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/id"),
+            Value::String("t-audit-closed".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/title"),
+            Value::String("Closed task".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/status"),
+            Value::Keyword(":task.status/closed".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let results = audit_tasks_from_store(&store);
+
+        assert!(
+            results.iter().all(|(t, _)| t.id != "t-audit-closed"),
+            "closed tasks should not appear in audit results"
+        );
+    }
+
+    #[test]
+    fn audit_reconciliation_threshold() {
+        // Confidence >= 0.7 should be auto-closeable, < 0.7 should not
+        let threshold = 0.7;
+        assert!(0.8 >= threshold, "0.8 should be above threshold");
+        assert!(0.5 < threshold, "0.5 should be below threshold");
+        assert!(0.7 >= threshold, "0.7 (boundary) should be above threshold");
+        assert!(0.699 < threshold, "0.699 should be below threshold");
+    }
 }

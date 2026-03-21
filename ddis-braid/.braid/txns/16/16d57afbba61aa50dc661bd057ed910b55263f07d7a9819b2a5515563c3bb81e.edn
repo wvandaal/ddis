@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774110083/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "COTX-1 implementation: atomic session rotation in harvest commit"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "412d938845f5f03082fc16833fd194df251cd5ceebf30f34638fd897c537ec87" :a :db/doc :v "COTX-1 implementation: atomic session rotation in harvest commit" :op :assert}
+   {:e #blake3 "412d938845f5f03082fc16833fd194df251cd5ceebf30f34638fd897c537ec87" :a :db/ident :v :observation/cotx-1-implementation-atomic-session-rotation-in-harvest-co :op :assert}
+   {:e #blake3 "412d938845f5f03082fc16833fd194df251cd5ceebf30f34638fd897c537ec87" :a :exploration/body :v "COTX-1 implementation: atomic session rotation in harvest commit" :op :assert}
+   {:e #blake3 "412d938845f5f03082fc16833fd194df251cd5ceebf30f34638fd897c537ec87" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "412d938845f5f03082fc16833fd194df251cd5ceebf30f34638fd897c537ec87" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "412d938845f5f03082fc16833fd194df251cd5ceebf30f34638fd897c537ec87" :a :exploration/content-hash :v #bytes "15401f4f8f8462543379f59c6a00667755dec262f0267987335ebfa881699f54" :op :assert}
+   {:e #blake3 "412d938845f5f03082fc16833fd194df251cd5ceebf30f34638fd897c537ec87" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "412d938845f5f03082fc16833fd194df251cd5ceebf30f34638fd897c537ec87" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "412d938845f5f03082fc16833fd194df251cd5ceebf30f34638fd897c537ec87" :a :exploration/source-session :v #blake3 "d8ebfaa37cfe45480104a71c32c3191c00e82f43a46d2f8cbb077cea5373e288" :op :assert}
+ ]}

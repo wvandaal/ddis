@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774114428/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a88b90c4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fb477b2d15d12cc5b9a16a7e2ce6e8c48bb321ae523c6d87211d8ef8bfdbd338" :a :task/close-reason :v "5 new tests in task.rs: audit_empty_store, audit_task_without_traces, audit_task_with_covered_specs, audit_only_returns_open_tasks, audit_reconciliation_threshold. Tests validate the harvest reconciliation pipeline: only open tasks audited, spec coverage computed from impl links with depth >= 2, confidence threshold 0.7." :op :assert}
+   {:e #blake3 "fb477b2d15d12cc5b9a16a7e2ce6e8c48bb321ae523c6d87211d8ef8bfdbd338" :a :task/closed-at :v 1774114427 :op :assert}
+   {:e #blake3 "fb477b2d15d12cc5b9a16a7e2ce6e8c48bb321ae523c6d87211d8ef8bfdbd338" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "fb477b2d15d12cc5b9a16a7e2ce6e8c48bb321ae523c6d87211d8ef8bfdbd338" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774113919/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-9bd8b6ad"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b1269b0cc7e55bb34654760c53badfc5e39e1ba0ba5adefaef80cabf9c5fbaaa" :a :task/close-reason :v "5 new tests: urgency_zero_on_fresh_store, urgency_increases_with_novel_transactions, urgency_alert_fatigue_eliminated (caught and fixed legacy fallback bug), urgency_k_eff_critical_overrides, surprisal_wired_at_production_sites. Also fixed alert fatigue bug: changed fallback condition from novel_tx_count>0 to total_delta_count>0 so zero-delta metabolic data correctly suppresses legacy fallback." :op :assert}
+   {:e #blake3 "b1269b0cc7e55bb34654760c53badfc5e39e1ba0ba5adefaef80cabf9c5fbaaa" :a :task/closed-at :v 1774113918 :op :assert}
+   {:e #blake3 "b1269b0cc7e55bb34654760c53badfc5e39e1ba0ba5adefaef80cabf9c5fbaaa" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "b1269b0cc7e55bb34654760c53badfc5e39e1ba0ba5adefaef80cabf9c5fbaaa" :a :task/status :v :task.status/closed :op :assert}
+ ]}

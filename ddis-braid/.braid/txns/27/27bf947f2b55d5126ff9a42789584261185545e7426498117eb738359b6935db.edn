@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774111358/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c9eb2524"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c11bb4c524bed789bd8ed17c7648bd9fd5014512e0c370a369c5936ea38c6163" :a :task/close-reason :v "4 unit tests (find_active_session: empty, active, closed, stale) + 12/12 E2E checks in scripts/e2e_session_lifecycle.sh (cold start, attributes, fitness, datom count, rotation, chain, stale, no-commit, inclusion, task, growth). Root cause of initial E2E failure: CARGO_TARGET_DIR=/tmp/cargo-target means target/release/braid is stale — must cp after build." :op :assert}
+   {:e #blake3 "c11bb4c524bed789bd8ed17c7648bd9fd5014512e0c370a369c5936ea38c6163" :a :task/closed-at :v 1774111357 :op :assert}
+   {:e #blake3 "c11bb4c524bed789bd8ed17c7648bd9fd5014512e0c370a369c5936ea38c6163" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "c11bb4c524bed789bd8ed17c7648bd9fd5014512e0c370a369c5936ea38c6163" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774112906/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-68944930"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "293422b6508f4cc25df35341cf1dab44e84e0799d31e2a295e714338f88252d8" :a :task/close-reason :v "7 new tests in observe.rs: 3 crystallization feedback logic (unanchored=-0.1, anchored=+0.2, spec ref parsing), 1 nearest spec scan, 3 integration (JSON delta, JSON nearest_spec, human output delta). All 17 observe tests pass." :op :assert}
+   {:e #blake3 "293422b6508f4cc25df35341cf1dab44e84e0799d31e2a295e714338f88252d8" :a :task/closed-at :v 1774112905 :op :assert}
+   {:e #blake3 "293422b6508f4cc25df35341cf1dab44e84e0799d31e2a295e714338f88252d8" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "293422b6508f4cc25df35341cf1dab44e84e0799d31e2a295e714338f88252d8" :a :task/status :v :task.status/closed :op :assert}
+ ]}

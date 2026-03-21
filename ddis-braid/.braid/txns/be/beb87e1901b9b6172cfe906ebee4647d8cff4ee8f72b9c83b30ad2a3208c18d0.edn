@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774110282/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :db/ident :v :recon/trace-533e6c3bd07087db :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-neighborhood :v "STORE" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.query.graph.inv-query-025" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.adr-store-005" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.stateright_model.adr-store-005" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-neighbors :v ":task/t-0745ad40" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-neighbors :v ":task/t-083eff62" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-neighbors :v ":task/t-1c9ceeb2" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-neighbors :v ":task/t-92dadd21" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-neighbors :v ":task/t-c8f06727" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-neighbors :v ":task/t-dc8005ef" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-neighbors :v ":task/t-e2362c80" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-refs :v "ADR-STORE-005" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-refs :v "INV-INTERFACE-008" :op :assert}
+   {:e #blake3 "2f62ad3940c978ac6b152e0070621e966922c2b79f5cad8213b776087acd97ec" :a :recon/trace-refs :v "INV-QUERY-025" :op :assert}
+ ]}

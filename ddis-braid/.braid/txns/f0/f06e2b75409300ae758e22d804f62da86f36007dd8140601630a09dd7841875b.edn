@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774112539/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7ff62b3a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d7674c06cf60250bb89c74ca6e9d1dbcb00e9ce03e1cbcbc80713137a4f5163f" :a :task/close-reason :v "Implemented: (1) StatusSnapshot compute-once in status.rs — fitness, coherence, telemetry, M(t), session deltas, task counts, ready set, trace status, gaps all computed once and passed to build_json + build_status_projection. Eliminates 2x redundant computation. (2) Index wiring in bilateral.rs — 4 store.datoms() full scans replaced with attribute_datoms() index lookups (depth coverage, incompleteness, uncertainty, forward scan). Plus 1 session-tasks scan in status.rs. Query: 0.74s, status: still ~30s at 35K datoms due to remaining full scans in live_projections/contradiction/graph. Further optimization needs caching or incremental computation." :op :assert}
+   {:e #blake3 "d7674c06cf60250bb89c74ca6e9d1dbcb00e9ce03e1cbcbc80713137a4f5163f" :a :task/closed-at :v 1774112538 :op :assert}
+   {:e #blake3 "d7674c06cf60250bb89c74ca6e9d1dbcb00e9ce03e1cbcbc80713137a4f5163f" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "d7674c06cf60250bb89c74ca6e9d1dbcb00e9ce03e1cbcbc80713137a4f5163f" :a :task/status :v :task.status/closed :op :assert}
+ ]}

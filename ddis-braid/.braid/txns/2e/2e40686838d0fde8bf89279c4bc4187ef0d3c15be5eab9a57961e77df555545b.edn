@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774111443/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 032: COTX-1 implemented (atomic session rotation in harvest commit) + COTX-1-TEST (4 unit tests + 12/12 E2E). Key discovery: CARGO_TARGET_DIR stale binary must be cp'd to target/release. Millis-resolution ident prevents same-second collision."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b42131e0a60fa79fa0cb002409b42fa30c78e100a4cd65566675271eb370115e" :a :db/doc :v "Session 032: COTX-1 implemented (atomic session rotation in harvest commit) + COTX-1-TEST (4 unit tests + 12/12 E2E). Key discovery: CARGO_TARGET_DIR stale binary must be cp'd to target/release. Millis-resolution ident prevents same-second collision." :op :assert}
+   {:e #blake3 "b42131e0a60fa79fa0cb002409b42fa30c78e100a4cd65566675271eb370115e" :a :db/ident :v :observation/session-032-cotx-1-implemented-atomic-session-rotation-in :op :assert}
+   {:e #blake3 "b42131e0a60fa79fa0cb002409b42fa30c78e100a4cd65566675271eb370115e" :a :exploration/body :v "Session 032: COTX-1 implemented (atomic session rotation in harvest commit) + COTX-1-TEST (4 unit tests + 12/12 E2E). Key discovery: CARGO_TARGET_DIR stale binary must be cp'd to target/release. Millis-resolution ident prevents same-second collision." :op :assert}
+   {:e #blake3 "b42131e0a60fa79fa0cb002409b42fa30c78e100a4cd65566675271eb370115e" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "b42131e0a60fa79fa0cb002409b42fa30c78e100a4cd65566675271eb370115e" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "b42131e0a60fa79fa0cb002409b42fa30c78e100a4cd65566675271eb370115e" :a :exploration/content-hash :v #bytes "6b3328235f66c3249ad1bbe90f8ad2a0c744387983ca7c2797cba16a809f816e" :op :assert}
+   {:e #blake3 "b42131e0a60fa79fa0cb002409b42fa30c78e100a4cd65566675271eb370115e" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b42131e0a60fa79fa0cb002409b42fa30c78e100a4cd65566675271eb370115e" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b42131e0a60fa79fa0cb002409b42fa30c78e100a4cd65566675271eb370115e" :a :exploration/source-session :v #blake3 "9201f1c74ca0969664ecf6c64a17fa4722640137212e15f3ad15871fa331284c" :op :assert}
+ ]}

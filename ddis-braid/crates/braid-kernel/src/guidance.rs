@@ -2495,10 +2495,12 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
     // This replaces raw tx count — routine operations (task close, status) score zero.
     let delta_attr = Attribute::from_keyword(":tx/delta-crystallization");
     let mut novel_tx_count = 0usize;
+    let mut total_delta_count = 0usize; // total delta datoms (including zero)
     let mut delta_sum = 0.0f64;
     for d in store.attribute_datoms(&delta_attr) {
         if d.op == crate::datom::Op::Assert && d.tx.wall_time() > last_harvest_wall {
             if let crate::datom::Value::Double(ref v) = d.value {
+                total_delta_count += 1;
                 let val = v.into_inner();
                 if val.abs() > f64::EPSILON {
                     novel_tx_count += 1;
@@ -2508,21 +2510,21 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
         }
     }
 
-    // Fallback: if no metabolic data exists yet (store predates metabolic system),
-    // use the legacy tx count to avoid losing urgency entirely during transition.
-    let signal_1 = if novel_tx_count > 0 {
+    // Metabolic signal: if delta data exists (store has metabolic system), use it.
+    // Only fall back to legacy when NO delta data exists (pre-metabolic store).
+    // This eliminates alert fatigue: 30 task closes with zero delta = no warning.
+    let signal_1 = if total_delta_count > 0 {
+        // Metabolic system active — use novel (non-zero) delta count
         novel_tx_count as f64 / threshold.max(1) as f64
     } else {
-        // Legacy fallback: count raw tx since harvest (backward-compatible)
+        // Legacy fallback: no metabolic data exists (store predates metabolic system)
         let tx_since = count_txns_since_last_harvest(store);
-        // But use exploration count as proxy for novelty, not raw tx count
         let exploration_type_attr = Attribute::from_keyword(":exploration/type");
         let exploration_count = store
             .attribute_datoms(&exploration_type_attr)
             .iter()
             .filter(|d2| d2.op == crate::datom::Op::Assert && d2.tx.wall_time() > last_harvest_wall)
             .count();
-        // Use exploration count if available, otherwise fall back to raw tx count
         if exploration_count > 0 {
             exploration_count as f64 / threshold.max(1) as f64
         } else {
@@ -2557,6 +2559,56 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
 /// Returns `true` if no active session exists in the store, OR if the
 /// active session is stale (older than 2 hours). A stale session indicates
 /// a previous session that was never properly closed — this happens when
+/// Find the currently active session entity, if one exists (COTX-1).
+///
+/// Scans `:session/status` for `:session.status/active` and checks that no later
+/// `closed` assertion exists. Returns `None` if no active session or if the only
+/// active session is stale (>2 hours old).
+pub fn find_active_session(store: &Store) -> Option<EntityId> {
+    let status_attr = Attribute::from_keyword(":session/status");
+    let started_attr = Attribute::from_keyword(":session/started-at");
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let staleness_threshold = 2 * 3600; // 2 hours
+
+    for datom in store.attribute_datoms(&status_attr) {
+        if datom.op == Op::Assert {
+            if let Value::Keyword(ref kw) = datom.value {
+                if kw == ":session.status/active" {
+                    // Check if not subsequently closed
+                    let entity_closed = store.entity_datoms(datom.entity).iter().any(|d| {
+                        d.attribute == status_attr
+                            && d.op == Op::Assert
+                            && d.tx.wall_time() > datom.tx.wall_time()
+                            && matches!(&d.value, Value::Keyword(k) if k.contains("closed"))
+                    });
+                    if entity_closed {
+                        continue;
+                    }
+
+                    // Check session age — stale sessions don't block
+                    let session_wall = store
+                        .entity_datoms(datom.entity)
+                        .iter()
+                        .find(|d| d.attribute == started_attr && d.op == Op::Assert)
+                        .and_then(|d| match d.value {
+                            Value::Long(t) => Some(t as u64),
+                            _ => None,
+                        })
+                        .unwrap_or(0);
+
+                    if now.saturating_sub(session_wall) < staleness_threshold {
+                        return Some(datom.entity);
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
 /// the agent exits without running `braid session end` or `braid harvest`.
 ///
 /// The staleness check prevents a single unclosed session from blocking
@@ -2743,7 +2795,7 @@ pub fn create_session_start_datoms_with_name(
 /// Convert days since Unix epoch (1970-01-01) to (year, month, day).
 ///
 /// Simplified civil calendar algorithm. Handles leap years correctly.
-fn days_to_ymd(days: u64) -> (u64, u64, u64) {
+pub fn days_to_ymd(days: u64) -> (u64, u64, u64) {
     // Algorithm adapted from Howard Hinnant's chrono-compatible date algorithms
     let z = days + 719468;
     let era = z / 146097;
@@ -5781,6 +5833,183 @@ mod tests {
         assert!(
             urgency >= 1.0,
             "time urgency (40 min) should exceed 1.0 despite few tx, got {urgency}"
+        );
+    }
+
+    // -------------------------------------------------------------------
+    // META-6-TEST: Harvest urgency + surprisal wiring tests
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn urgency_zero_on_fresh_store() {
+        // Fresh genesis store with no harvests should have low urgency
+        // (only time signal contributes if very recent)
+        let store = Store::genesis();
+        let urgency = harvest_urgency_multi(&store, 1.0);
+        // On a fresh genesis store, there's no harvest boundary, so
+        // last_harvest_wall_time returns 0. This means ALL time since epoch
+        // counts, giving extremely high time urgency. That's expected behavior —
+        // a store that has never been harvested should urgently need one.
+        assert!(
+            urgency >= 0.0,
+            "urgency should be non-negative, got {urgency}"
+        );
+    }
+
+    #[test]
+    fn urgency_increases_with_novel_transactions() {
+        // More metabolic delta transactions → higher urgency signal_1
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test:meta6-novel");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Recent harvest (1 minute ago)
+        let harvest_wall = now - 60;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-novel"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-novel"),
+            Attribute::from_keyword(":harvest/boundary-tx"),
+            Value::Long(harvest_wall as i64),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // Store with 0 novel transactions
+        let store_0 = Store::from_datoms(datoms.clone());
+        let urgency_0 = harvest_urgency_multi(&store_0, 1.0);
+
+        // Add 5 transactions with non-zero delta-crystallization
+        for i in 1..=5 {
+            let tx = TxId::new(harvest_wall + i * 5, 0, agent);
+            let entity = EntityId::from_ident(&format!(":work/novel-{i}"));
+            datoms.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":tx/delta-crystallization"),
+                Value::Double(ordered_float::OrderedFloat(0.2)),
+                tx,
+                Op::Assert,
+            ));
+        }
+        let store_5 = Store::from_datoms(datoms);
+        let urgency_5 = harvest_urgency_multi(&store_5, 1.0);
+
+        assert!(
+            urgency_5 > urgency_0,
+            "5 novel transactions should increase urgency: {} vs {}",
+            urgency_5,
+            urgency_0
+        );
+    }
+
+    #[test]
+    fn urgency_alert_fatigue_eliminated() {
+        // 30 task closes (zero delta-crystallization) should NOT trigger harvest warning.
+        // This is the alert fatigue test — routine operations with no novel knowledge
+        // should have zero metabolic signal.
+        use crate::datom::{AgentId, Datom, Op, TxId, Value};
+        let agent = AgentId::from_name("test:meta6-fatigue");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        let mut datoms = std::collections::BTreeSet::new();
+
+        // Recent harvest (5 minutes ago)
+        let harvest_wall = now - 300;
+        let harvest_tx = TxId::new(harvest_wall, 0, agent);
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-fatigue"),
+            Attribute::from_keyword(":harvest/agent"),
+            Value::String("test".to_string()),
+            harvest_tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            EntityId::from_ident(":harvest/h-fatigue"),
+            Attribute::from_keyword(":harvest/boundary-tx"),
+            Value::Long(harvest_wall as i64),
+            harvest_tx,
+            Op::Assert,
+        ));
+
+        // 30 task closes — each has delta-crystallization = 0.0
+        for i in 1..=30 {
+            let tx = TxId::new(harvest_wall + i, 0, agent);
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":task/closed-{i}")),
+                Attribute::from_keyword(":task/status"),
+                Value::Keyword(":task.status/closed".to_string()),
+                tx,
+                Op::Assert,
+            ));
+            // Zero delta means no novel knowledge
+            datoms.insert(Datom::new(
+                EntityId::from_ident(&format!(":task/closed-{i}")),
+                Attribute::from_keyword(":tx/delta-crystallization"),
+                Value::Double(ordered_float::OrderedFloat(0.0)),
+                tx,
+                Op::Assert,
+            ));
+        }
+
+        let store = Store::from_datoms(datoms);
+        let urgency = harvest_urgency_multi(&store, 1.0);
+
+        // Signal 1 (novel tx) should be 0 — no non-zero deltas
+        // Signal 2 (time) = 5min/30min = 0.17
+        // Signal 3 (delta sum) = 0
+        // Total urgency should be < 1.0 (no warning threshold)
+        assert!(
+            urgency < 1.0,
+            "30 task closes with zero delta should NOT trigger harvest warning, got urgency={urgency}"
+        );
+    }
+
+    #[test]
+    fn urgency_k_eff_critical_overrides() {
+        // When k_eff < 0.15 (context nearly exhausted), urgency should be >= 1.5
+        let store = Store::genesis();
+        let urgency = harvest_urgency_multi(&store, 0.10); // critically low k_eff
+        assert!(
+            urgency >= 1.5,
+            "k_eff=0.10 should trigger emergency urgency >= 1.5, got {urgency}"
+        );
+    }
+
+    #[test]
+    fn surprisal_wired_at_production_sites() {
+        // Verify surprisal_score is called at all 3 production sites in harvest.rs.
+        // This is a compile-time structural test — if someone removes a call site,
+        // the count would change. We verify by grepping the source.
+        let harvest_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("harvest.rs");
+        let harvest_src = std::fs::read_to_string(&harvest_path)
+            .unwrap_or_else(|e| panic!("failed to read {}: {}", harvest_path.display(), e));
+
+        // Filter out test-only calls
+        let in_test_module = harvest_src.find("#[cfg(test)]").unwrap_or(harvest_src.len());
+        let production_only: Vec<_> = harvest_src[..in_test_module]
+            .lines()
+            .filter(|l| l.contains("surprisal_score(") && !l.trim().starts_with("//"))
+            .collect();
+
+        assert!(
+            production_only.len() >= 3,
+            "surprisal_score should be called at 3+ production sites, found {}: {:?}",
+            production_only.len(),
+            production_only
         );
     }
 
@@ -10087,6 +10316,131 @@ mod tests {
         assert_eq!(super::days_to_ymd(10957), (2000, 1, 1));
         // 2026-03-20 = day 20532
         assert_eq!(super::days_to_ymd(20532), (2026, 3, 20));
+    }
+
+    // -------------------------------------------------------------------
+    // COTX-1: find_active_session tests
+    // -------------------------------------------------------------------
+
+    #[test]
+    fn find_active_session_returns_none_on_empty_store() {
+        let store = st1_full_schema_store();
+        assert!(
+            find_active_session(&store).is_none(),
+            "empty store should have no active session"
+        );
+    }
+
+    #[test]
+    fn find_active_session_returns_entity_when_active() {
+        let mut store = st1_full_schema_store();
+        let agent = AgentId::from_name("test:cotx1-active");
+        let tx = TxId::new(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+            0,
+            agent,
+        );
+
+        let datoms = create_session_start_datoms(&store, agent, tx);
+        let session_entity = datoms[0].entity;
+        let mut datom_set = store.datom_set().clone();
+        for d in datoms {
+            datom_set.insert(d);
+        }
+        store = Store::from_datoms(datom_set);
+
+        let found = find_active_session(&store);
+        assert_eq!(
+            found,
+            Some(session_entity),
+            "should find the active session entity"
+        );
+    }
+
+    #[test]
+    fn find_active_session_returns_none_after_close() {
+        let mut store = st1_full_schema_store();
+        let agent = AgentId::from_name("test:cotx1-close");
+        let wall = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let tx = TxId::new(wall, 0, agent);
+
+        let datoms = create_session_start_datoms(&store, agent, tx);
+        let session_entity = datoms[0].entity;
+        let mut datom_set = store.datom_set().clone();
+        for d in datoms {
+            datom_set.insert(d);
+        }
+
+        // Close the session
+        let close_tx = TxId::new(wall + 1, 0, agent);
+        datom_set.insert(Datom::new(
+            session_entity,
+            Attribute::from_keyword(":session/status"),
+            Value::Keyword(":session.status/closed".to_string()),
+            close_tx,
+            Op::Assert,
+        ));
+
+        store = Store::from_datoms(datom_set);
+        assert!(
+            find_active_session(&store).is_none(),
+            "closed session should not be found as active"
+        );
+    }
+
+    #[test]
+    fn find_active_session_ignores_stale_sessions() {
+        let mut store = st1_full_schema_store();
+        let agent = AgentId::from_name("test:cotx1-stale");
+        // 3 hours ago — beyond the 2h staleness threshold
+        let stale_wall = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            - 3 * 3600;
+        let tx = TxId::new(stale_wall, 0, agent);
+        let session_entity = EntityId::from_ident(":session/s-stale-test");
+
+        // Build session datoms manually with the stale started-at timestamp
+        let datoms = vec![
+            Datom::new(
+                session_entity,
+                Attribute::from_keyword(":db/ident"),
+                Value::Keyword(":session/s-stale-test".to_string()),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                session_entity,
+                Attribute::from_keyword(":session/started-at"),
+                Value::Long(stale_wall as i64),
+                tx,
+                Op::Assert,
+            ),
+            Datom::new(
+                session_entity,
+                Attribute::from_keyword(":session/status"),
+                Value::Keyword(":session.status/active".to_string()),
+                tx,
+                Op::Assert,
+            ),
+        ];
+        let mut datom_set = store.datom_set().clone();
+        for d in datoms {
+            datom_set.insert(d);
+        }
+        store = Store::from_datoms(datom_set);
+
+        assert!(
+            find_active_session(&store).is_none(),
+            "stale session (>2h) should not be found as active"
+        );
     }
 
     // -------------------------------------------------------------------

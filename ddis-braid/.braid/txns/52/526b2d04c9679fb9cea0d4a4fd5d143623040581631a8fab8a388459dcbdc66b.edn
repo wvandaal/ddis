@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774113932/0/189a654d42d31947cad165604defbca6"
+ :tx/agent "189a654d42d31947cad165604defbca6"
+ :tx/provenance :derived
+ :tx/rationale "RFL-2: action prediction recorded"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e9d053982bb75e23d194e7786543b538e1c8e399168cecec38a4a439b6f20cce" :a :action/recommended-command :v "braid go t-afd66aca" :op :assert}
+   {:e #blake3 "e9d053982bb75e23d194e7786543b538e1c8e399168cecec38a4a439b6f20cce" :a :action/recommended-impact :v 0.2536130632489525 :op :assert}
+   {:e #blake3 "e9d053982bb75e23d194e7786543b538e1c8e399168cecec38a4a439b6f20cce" :a :action/timestamp :v 1774113931886 :op :assert}
+   {:e #blake3 "e9d053982bb75e23d194e7786543b538e1c8e399168cecec38a4a439b6f20cce" :a :db/ident :v :action/0b470f8f692dc49d :op :assert}
+ ]}

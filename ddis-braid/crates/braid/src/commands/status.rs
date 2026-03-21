@@ -39,6 +39,60 @@ fn trace_staleness(store: &braid_kernel::Store, path: &Path) -> TraceStaleStatus
     check_staleness(store, &source_root)
 }
 
+/// PERF-2: Pre-computed status values.
+///
+/// All expensive computations (fitness, coherence, telemetry, session deltas, task counts,
+/// gaps) are done once here and then passed to `build_json()` and `build_status_projection()`
+/// as immutable data. This eliminates the 2x redundant computation that caused `braid status`
+/// to take 8.5s instead of ~1s.
+pub(crate) struct StatusSnapshot {
+    fitness: braid_kernel::bilateral::FitnessScore,
+    coherence: braid_kernel::trilateral::CoherenceReport,
+    telemetry: braid_kernel::guidance::SessionTelemetry,
+    methodology_score: braid_kernel::guidance::MethodologyScore,
+    session_start_fitness: Option<f64>,
+    session_start_datom_count: usize,
+    task_counts: (usize, usize, usize),
+    ready_set: Vec<braid_kernel::task::TaskSummary>,
+    trace_status: TraceStaleStatus,
+    #[allow(dead_code)]
+    gaps: braid_kernel::guidance::MethodologyGaps,
+    #[allow(dead_code)]
+    activity_mode: braid_kernel::guidance::ActivityMode,
+    adjusted_gaps: braid_kernel::guidance::AdjustedGaps,
+}
+
+impl StatusSnapshot {
+    fn compute(store: &braid_kernel::Store, path: &Path) -> Self {
+        let fitness = compute_fitness(store);
+        let coherence = check_coherence_fast(store);
+        let telemetry = telemetry_from_store(store);
+        let methodology_score = compute_methodology_score(&telemetry);
+        let session_start_fitness = query_session_start_fitness(store);
+        let session_start_datom_count = query_session_start_datom_count(store);
+        let task_counts = braid_kernel::task_counts(store);
+        let ready_set = braid_kernel::compute_ready_set(store);
+        let trace_status = trace_staleness(store, path);
+        let gaps = methodology_gaps(store);
+        let activity_mode = detect_activity_mode(&telemetry);
+        let adjusted_gaps = adjust_gaps(gaps.clone(), activity_mode);
+        StatusSnapshot {
+            fitness,
+            coherence,
+            telemetry,
+            methodology_score,
+            session_start_fitness,
+            session_start_datom_count,
+            task_counts,
+            ready_set,
+            trace_status,
+            gaps,
+            activity_mode,
+            adjusted_gaps,
+        }
+    }
+}
+
 /// Format trace staleness for human-readable output (one line, newline-terminated).
 fn format_trace_line(status: &TraceStaleStatus) -> String {
     match status {
@@ -167,6 +221,9 @@ pub fn run(
         });
     }
 
+    // PERF-2: Compute all expensive values once (was computed 2x in build_json + build_status_projection)
+    let snapshot = StatusSnapshot::compute(&store, path);
+
     // Build JSON representation (always computed -- reused for --json and structured output)
     let json_value = build_json(StatusJsonParams {
         path,
@@ -177,10 +234,12 @@ pub fn run(
         deep: false,
         spectral,
         verbose,
+        snapshot: &snapshot,
     });
 
     // ACP: Build the ActionProjection for status (INV-BUDGET-007)
-    let projection = build_status_projection(path, &store, &hashes, tx_since_harvest);
+    let projection =
+        build_status_projection(path, &store, &hashes, tx_since_harvest, &snapshot);
 
     // Build human representation
     let human = if verbose {
@@ -335,6 +394,7 @@ pub fn build_status_projection(
     store: &braid_kernel::Store,
     hashes: &[String],
     tx_since_harvest: usize,
+    snapshot: &StatusSnapshot,
 ) -> braid_kernel::ActionProjection {
     use braid_kernel::budget::{ContextBlock, OutputPrecedence};
 
@@ -358,18 +418,18 @@ pub fn build_status_projection(
     });
 
     // 2. Coherence + F(S) with session delta (SD-1) + M(t) with session age (SD-2)
-    let fitness = compute_fitness(store);
-    let coherence = check_coherence_fast(store);
-    let telemetry = telemetry_from_store(store);
-    let score = compute_methodology_score(&telemetry);
+    // PERF-2: Use pre-computed snapshot values
+    let fitness = &snapshot.fitness;
+    let coherence = &snapshot.coherence;
+    let score = &snapshot.methodology_score;
     let trend_str = match score.trend {
         Trend::Up => "up",
         Trend::Down => "down",
         Trend::Stable => "stable",
     };
 
-    // SD-1: F(S) session delta
-    let fitness_delta_str = match query_session_start_fitness(store) {
+    // SD-1: F(S) session delta — use snapshot
+    let fitness_delta_str = match snapshot.session_start_fitness {
         Some(start) => {
             let delta = fitness.total - start;
             if delta.abs() < 0.005 {
@@ -429,11 +489,11 @@ pub fn build_status_projection(
         });
     }
 
-    // 4. Task summary (UserRequested)
-    let (open, in_progress, closed) = braid_kernel::task_counts(store);
+    // 4. Task summary (UserRequested) — use snapshot
+    let (open, in_progress, closed) = snapshot.task_counts;
     let total_open = open + in_progress;
     if total_open > 0 {
-        let ready_count = braid_kernel::compute_ready_set(store).len();
+        let ready_count = snapshot.ready_set.len();
         let blocked = open.saturating_sub(ready_count);
         let total_all = open + in_progress + closed;
         let p_t = if total_all > 0 {
@@ -451,15 +511,15 @@ pub fn build_status_projection(
         });
     }
 
-    // 4b. Session progress (Methodology, META-7)
-    if let Some(start_fitness) = query_session_start_fitness(store) {
-        let start_datom_count = query_session_start_datom_count(store);
+    // 4b. Session progress (Methodology, META-7) — use snapshot
+    if let Some(start_fitness) = snapshot.session_start_fitness {
+        let start_datom_count = snapshot.session_start_datom_count;
         let session_boundary = braid_kernel::guidance::last_harvest_wall_time(store);
         let session_tasks_closed = store
-            .datoms()
+            .attribute_datoms(&braid_kernel::datom::Attribute::from_keyword(":task/status"))
+            .iter()
             .filter(|d| {
-                d.attribute.as_str() == ":task/status"
-                    && d.op == braid_kernel::datom::Op::Assert
+                d.op == braid_kernel::datom::Op::Assert
                     && d.tx.wall_time() > session_boundary
                     && matches!(&d.value, braid_kernel::datom::Value::Keyword(k) if k.contains("closed"))
             })
@@ -491,9 +551,9 @@ pub fn build_status_projection(
         tokens: 10,
     });
 
-    // 5b. Trace staleness (Methodology, SC-2)
-    let ts = trace_staleness(store, path);
-    let trace_content = match &ts {
+    // 5b. Trace staleness (Methodology, SC-2) — use snapshot
+    let ts = &snapshot.trace_status;
+    let trace_content = match ts {
         TraceStaleStatus::Fresh { total } => {
             format!("trace: fresh ({} files scanned)", total)
         }
@@ -510,11 +570,8 @@ pub fn build_status_projection(
         tokens: 12,
     });
 
-    // 6. Methodology gaps — unified warning line (AGP-4.2, INV-GUIDANCE-021)
-    // Shows all gap categories with activity-mode suppression (T6-1).
-    let raw_gaps = methodology_gaps(store);
-    let mode = detect_activity_mode(&telemetry);
-    let ag = adjust_gaps(raw_gaps, mode);
+    // 6. Methodology gaps — use snapshot (AGP-4.2, INV-GUIDANCE-021)
+    let ag = &snapshot.adjusted_gaps;
     if !ag.is_empty() {
         let mut gap_parts = Vec::new();
         if ag.adjusted.crystallization > 0 {
@@ -1242,6 +1299,7 @@ struct StatusJsonParams<'a> {
     deep: bool,
     spectral: bool,
     verbose: bool,
+    snapshot: &'a StatusSnapshot,
 }
 
 /// Build JSON value with all structured data.
@@ -1255,10 +1313,12 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
         deep,
         spectral,
         verbose,
+        snapshot,
     } = params;
-    let coherence = check_coherence_fast(store);
-    let telemetry = telemetry_from_store(store);
-    let score = compute_methodology_score(&telemetry);
+    // PERF-2: Use pre-computed snapshot values instead of re-computing
+    let coherence = &snapshot.coherence;
+    let _telemetry = &snapshot.telemetry;
+    let score = &snapshot.methodology_score;
     let actions = derive_actions(store);
 
     let frontier: Vec<serde_json::Value> = store
@@ -1285,13 +1345,14 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
         })
         .collect();
 
-    // SD-1: Compute F(S) session delta for JSON
-    let fitness = compute_fitness(store);
-    let session_fitness_delta =
-        query_session_start_fitness(store).map(|start| fitness.total - start);
+    // SD-1: F(S) session delta from snapshot
+    let fitness = &snapshot.fitness;
+    let session_fitness_delta = snapshot
+        .session_start_fitness
+        .map(|start| fitness.total - start);
 
-    // ZCM-PT: P(t) progress metric
-    let (pt_open, pt_ip, pt_closed) = braid_kernel::task_counts(store);
+    // ZCM-PT: P(t) progress metric from snapshot
+    let (pt_open, pt_ip, pt_closed) = snapshot.task_counts;
     let pt_total = pt_open + pt_ip + pt_closed;
     let p_t_value = if pt_total > 0 {
         pt_closed as f64 / pt_total as f64
@@ -1346,15 +1407,15 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
         "actions": actions_json,
     });
 
-    // META-7: Session progress in JSON
-    if let Some(start_fitness) = query_session_start_fitness(store) {
-        let start_datom_count = query_session_start_datom_count(store);
+    // META-7: Session progress in JSON — use snapshot values
+    if let Some(start_fitness) = snapshot.session_start_fitness {
+        let start_datom_count = snapshot.session_start_datom_count;
         let session_boundary = braid_kernel::guidance::last_harvest_wall_time(store);
         let session_tasks_closed = store
-            .datoms()
+            .attribute_datoms(&braid_kernel::datom::Attribute::from_keyword(":task/status"))
+            .iter()
             .filter(|d| {
-                d.attribute.as_str() == ":task/status"
-                    && d.op == braid_kernel::datom::Op::Assert
+                d.op == braid_kernel::datom::Op::Assert
                     && d.tx.wall_time() > session_boundary
                     && matches!(&d.value, braid_kernel::datom::Value::Keyword(k) if k.contains("closed"))
             })
@@ -1366,14 +1427,12 @@ fn build_json(params: StatusJsonParams<'_>) -> serde_json::Value {
         });
     }
 
-    // Trace staleness (SC-2)
-    let ts = trace_staleness(store, path);
-    result["trace_status"] = trace_staleness_json(&ts);
+    // Trace staleness (SC-2) — use snapshot
+    let ts = &snapshot.trace_status;
+    result["trace_status"] = trace_staleness_json(ts);
 
-    // Methodology gaps with activity-mode suppression (T6-1, INV-GUIDANCE-021)
-    let raw_gaps = methodology_gaps(store);
-    let mode = detect_activity_mode(&telemetry);
-    let ag = adjust_gaps(raw_gaps, mode);
+    // Methodology gaps — use snapshot
+    let ag = &snapshot.adjusted_gaps;
     if !ag.raw.is_empty() {
         let concentration_json: Vec<serde_json::Value> = ag
             .adjusted
