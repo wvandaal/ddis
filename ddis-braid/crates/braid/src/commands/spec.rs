@@ -32,6 +32,8 @@ pub struct CreateArgs<'a> {
     pub traces_to: Option<&'a str>,
     pub confidence: Option<f64>,
     pub agent: &'a str,
+    /// Suppress auto-task generation (COTX-3).
+    pub no_auto_task: bool,
 }
 
 /// Run `braid spec create`.
@@ -167,6 +169,80 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         ));
     }
 
+    // COTX-3: Auto-generate implementation task in the same transaction
+    let auto_task_id = if !args.no_auto_task {
+        let task_title = format!("Implement {}: {}", args.id, args.title);
+        let task_id = braid_kernel::task::generate_task_id(&task_title);
+        let task_ident = format!(":task/{task_id}");
+        let task_entity = EntityId::from_ident(&task_ident);
+
+        datoms.push(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":db/ident"),
+            Value::Keyword(task_ident.clone()),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/id"),
+            Value::String(task_id.clone()),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/title"),
+            Value::String(braid_kernel::task::short_title(&task_title).to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/status"),
+            Value::Keyword(":task.status/open".to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/priority"),
+            Value::Long(2),
+            tx_id,
+            Op::Assert,
+        ));
+        datoms.push(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/type"),
+            Value::Keyword(":task.type/task".to_string()),
+            tx_id,
+            Op::Assert,
+        ));
+        // Link task to the spec element
+        datoms.push(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/traces-to"),
+            Value::Ref(entity),
+            tx_id,
+            Op::Assert,
+        ));
+        let created_at = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        datoms.push(Datom::new(
+            task_entity,
+            Attribute::from_keyword(":task/created-at"),
+            Value::Long(created_at as i64),
+            tx_id,
+            Op::Assert,
+        ));
+
+        Some(task_id)
+    } else {
+        None
+    };
+
     let datom_count = datoms.len();
 
     let tx = TxFile {
@@ -184,8 +260,13 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
     let store = layout.load_store()?;
     let total = store.datom_set().len();
 
+    let task_suffix = if let Some(ref tid) = auto_task_id {
+        format!(" + auto-task {tid}")
+    } else {
+        String::new()
+    };
     let human = format!(
-        "created: {} ({}, namespace={})\nstore: +{} datoms ({} total)\n\nnext: braid trace --commit (to link implementations) | ref: C5 traceability\n",
+        "created: {} ({}, namespace={}){task_suffix}\nstore: +{} datoms ({} total)\n\nnext: braid trace --commit (to link implementations) | ref: C5 traceability\n",
         ident, element_type, namespace, datom_count, total,
     );
 
@@ -196,6 +277,7 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
         "namespace": namespace,
         "datom_count": datom_count,
         "store_total": total,
+        "auto_task_id": auto_task_id,
     });
 
     // ACP: after creating a spec element, check store state

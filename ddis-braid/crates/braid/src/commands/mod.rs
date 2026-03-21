@@ -1074,6 +1074,10 @@ pub enum SpecAction {
         /// Agent identity.
         #[arg(long, short = 'a', default_value = "braid:user")]
         agent: String,
+
+        /// Suppress auto-task generation (COTX-3).
+        #[arg(long)]
+        no_auto_task: bool,
     },
 
     /// List pending proposals awaiting human review (confidence < 0.9).
@@ -2698,6 +2702,7 @@ pub fn run(
                 traces_to,
                 confidence,
                 agent,
+                no_auto_task,
             } => {
                 let cmd_output = spec::run_create(spec::CreateArgs {
                     path: &path,
@@ -2710,6 +2715,7 @@ pub fn run(
                     traces_to: traces_to.as_deref(),
                     confidence,
                     agent: &agent,
+                    no_auto_task,
                 })?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
