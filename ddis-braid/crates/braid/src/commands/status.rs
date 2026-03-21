@@ -451,6 +451,32 @@ pub fn build_status_projection(
         });
     }
 
+    // 4b. Session progress (Methodology, META-7)
+    if let Some(start_fitness) = query_session_start_fitness(store) {
+        let start_datom_count = query_session_start_datom_count(store);
+        let session_boundary = braid_kernel::guidance::last_harvest_wall_time(store);
+        let session_tasks_closed = store
+            .datoms()
+            .filter(|d| {
+                d.attribute.as_str() == ":task/status"
+                    && d.op == braid_kernel::datom::Op::Assert
+                    && d.tx.wall_time() > session_boundary
+                    && matches!(&d.value, braid_kernel::datom::Value::Keyword(k) if k.contains("closed"))
+            })
+            .count();
+        let datom_delta = store.len().saturating_sub(start_datom_count);
+        let fitness_delta = fitness.total - start_fitness;
+        let mut session_str = format!("session: +{session_tasks_closed} tasks, +{datom_delta} datoms");
+        if fitness_delta.abs() > 0.005 {
+            session_str.push_str(&format!(", F(S) {:+.2}", fitness_delta));
+        }
+        context.push(ContextBlock {
+            precedence: OutputPrecedence::Methodology,
+            content: session_str,
+            tokens: 12,
+        });
+    }
+
     // 5. Harvest status (Methodology)
     let harvest_status = if tx_since_harvest >= 15 {
         format!("harvest: {} tx since last -- OVERDUE", tx_since_harvest)

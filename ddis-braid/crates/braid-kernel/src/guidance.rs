@@ -2554,39 +2554,61 @@ pub fn harvest_urgency_multi(store: &Store, k_eff: f64) -> f64 {
 
 /// Detect whether a new session should be auto-started.
 ///
-/// Returns `true` if no active session exists in the store — i.e., no entity
-/// has `:session/status` = `:session.status/active`. This is the trigger for
-/// `create_session_start_datoms()` to write lightweight session-start datoms.
+/// Returns `true` if no active session exists in the store, OR if the
+/// active session is stale (older than 2 hours). A stale session indicates
+/// a previous session that was never properly closed — this happens when
+/// the agent exits without running `braid session end` or `braid harvest`.
 ///
-/// The detection is O(n) in the number of `:session/status` datoms, but since
-/// sessions are rare entities (one per human work session), this is negligible.
+/// The staleness check prevents a single unclosed session from blocking
+/// all future session auto-detection indefinitely (discovered in Session 031:
+/// a session from Session 021 was still "active" 10 sessions later).
 pub fn detect_session_start(store: &Store) -> bool {
     let status_attr = Attribute::from_keyword(":session/status");
-    // Scan for any entity with an active session status.
-    // The most recent assertion wins (LWW semantics on :session/status).
-    // We need to check per-entity: collect the latest status per entity.
-    let mut has_active = false;
+    let started_attr = Attribute::from_keyword(":session/started-at");
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    // 2 hours = stale session threshold
+    let staleness_threshold = 2 * 3600;
+
+    let mut has_fresh_active = false;
     for datom in store.attribute_datoms(&status_attr) {
         if datom.op == Op::Assert {
             if let Value::Keyword(ref kw) = datom.value {
                 if kw == ":session.status/active" {
                     // Check if this entity also has a later "closed" assertion
-                    // (which would supersede the "active" one).
                     let entity_closed = store.entity_datoms(datom.entity).iter().any(|d| {
                         d.attribute == status_attr
                             && d.op == Op::Assert
                             && d.tx.wall_time() > datom.tx.wall_time()
                             && matches!(&d.value, Value::Keyword(k) if k.contains("closed"))
                     });
-                    if !entity_closed {
-                        has_active = true;
+                    if entity_closed {
+                        continue;
+                    }
+
+                    // Check session age — stale sessions (>2h) don't block new ones
+                    let session_wall = store
+                        .entity_datoms(datom.entity)
+                        .iter()
+                        .find(|d| d.attribute == started_attr && d.op == Op::Assert)
+                        .and_then(|d| match d.value {
+                            Value::Long(t) => Some(t as u64),
+                            _ => None,
+                        })
+                        .unwrap_or(0);
+
+                    if now.saturating_sub(session_wall) < staleness_threshold {
+                        has_fresh_active = true;
                         break;
                     }
+                    // Stale session — don't count as active
                 }
             }
         }
     }
-    !has_active
+    !has_fresh_active
 }
 
 /// Create session-start datoms for auto-detection (ST-1).

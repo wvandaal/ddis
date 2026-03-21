@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774104666/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "BUG: Session s-1773271079 from Session 021 was never closed. detect_session_start sees it as active and skips auto-creation. All subsequent sessions inherit this stale session entity. Fix: either close the stale session and let auto-detect create a new one, or enhance detect_session_start to check session AGE (a session from days ago is not 'active' in any meaningful sense). Root cause: session end (harvest) doesn't auto-close the active session. The braid session end command exists but is never called automatically. TRACES TO: INV-HARVEST-007, INV-BILATERAL-001."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a3b15feddec3e1e1f452d8a0f14f80b7b0b2c7493bde94186d66a6c340b8cb16" :a :db/doc :v "BUG: Session s-1773271079 from Session 021 was never closed. detect_session_start sees it as active and skips auto-creation. All subsequent sessions inherit this stale session entity. Fix: either close the stale session and let auto-detect create a new one, or enhance detect_session_start to check session AGE (a session from days ago is not 'active' in any meaningful sense). Root cause: session end (harvest) doesn't auto-close the active session. The braid session end command exists but is never called automatically. TRACES TO: INV-HARVEST-007, INV-BILATERAL-001." :op :assert}
+   {:e #blake3 "a3b15feddec3e1e1f452d8a0f14f80b7b0b2c7493bde94186d66a6c340b8cb16" :a :db/ident :v :observation/bug-session-s-1773271079-from-session-021-was-never-closed :op :assert}
+   {:e #blake3 "a3b15feddec3e1e1f452d8a0f14f80b7b0b2c7493bde94186d66a6c340b8cb16" :a :exploration/body :v "BUG: Session s-1773271079 from Session 021 was never closed. detect_session_start sees it as active and skips auto-creation. All subsequent sessions inherit this stale session entity. Fix: either close the stale session and let auto-detect create a new one, or enhance detect_session_start to check session AGE (a session from days ago is not 'active' in any meaningful sense). Root cause: session end (harvest) doesn't auto-close the active session. The braid session end command exists but is never called automatically. TRACES TO: INV-HARVEST-007, INV-BILATERAL-001." :op :assert}
+   {:e #blake3 "a3b15feddec3e1e1f452d8a0f14f80b7b0b2c7493bde94186d66a6c340b8cb16" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "a3b15feddec3e1e1f452d8a0f14f80b7b0b2c7493bde94186d66a6c340b8cb16" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "a3b15feddec3e1e1f452d8a0f14f80b7b0b2c7493bde94186d66a6c340b8cb16" :a :exploration/content-hash :v #bytes "3b316b048bdbf8a2b5cc88d6c8eda68660ee8456f1064543f753dab6fafeff64" :op :assert}
+   {:e #blake3 "a3b15feddec3e1e1f452d8a0f14f80b7b0b2c7493bde94186d66a6c340b8cb16" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "a3b15feddec3e1e1f452d8a0f14f80b7b0b2c7493bde94186d66a6c340b8cb16" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "a3b15feddec3e1e1f452d8a0f14f80b7b0b2c7493bde94186d66a6c340b8cb16" :a :exploration/source-session :v #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :op :assert}
+ ]}

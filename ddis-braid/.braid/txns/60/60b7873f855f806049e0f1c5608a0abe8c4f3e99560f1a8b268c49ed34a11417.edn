@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774104677/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close stale session from Session 021 (never closed)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "815026614bcb2e8c529f08edf4085b61c7f79824eea146150a1b1de0400c38d8" :a :session/status :v :session.status/closed :op :assert}
+ ]}
