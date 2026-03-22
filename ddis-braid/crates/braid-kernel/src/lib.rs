@@ -214,9 +214,10 @@ pub use trilateral::{
     LiveView,
 };
 pub use witness::{
-    alignment_threshold, all_witnesses, auto_task_on_refutation, challenge_witness,
-    check_depth_monotonic, completeness_guard, content_hash, create_fbw, current_spec_hashes,
-    detect_stale_witnesses, fbw_to_datoms, keyword_alignment_score, mark_stale_datoms,
-    witness_and_challenge, witness_gaps, witness_validation_score, ChallengeResult,
-    CurrentSpecHashes, StaleReason, WitnessParams, WitnessStatus, WitnessVerdict, FBW,
+    alignment_threshold, all_witnesses, auto_task_on_refutation, batch_generate_l1_witnesses,
+    challenge_witness, check_depth_monotonic, completeness_guard, content_hash, create_fbw,
+    current_spec_hashes, detect_stale_witnesses, fbw_to_datoms, keyword_alignment_score,
+    mark_stale_datoms, witness_and_challenge, witness_gaps, witness_validation_score,
+    ChallengeResult, CurrentSpecHashes, StaleReason, WitnessParams, WitnessStatus,
+    WitnessVerdict, FBW,
 };

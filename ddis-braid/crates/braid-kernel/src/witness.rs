@@ -1055,6 +1055,101 @@ fn extract_double(datoms: &[&Datom], attr: &Attribute) -> Option<f64> {
 }
 
 // ===========================================================================
+// Batch L1 Witness Generation (Session 033b)
+// ===========================================================================
+
+/// Batch-generate L1 witness skeletons for all invariants that lack witnesses.
+///
+/// For each invariant with a `:element/statement` and `:spec/falsification`,
+/// creates a minimal L1 FBW witness with keyword alignment scoring. The test
+/// body is the falsification text itself (self-documenting: "the test IS the
+/// falsification condition").
+///
+/// Returns the datoms to transact and the count of witnesses generated.
+pub fn batch_generate_l1_witnesses(
+    store: &Store,
+    tx: TxId,
+) -> (Vec<Datom>, usize) {
+    let existing_witnesses = all_witnesses(store);
+    let witnessed_invs: BTreeSet<EntityId> = existing_witnesses
+        .iter()
+        .map(|w| w.inv_ref)
+        .collect();
+
+    let spec_type_attr = Attribute::from_keyword(":spec/element-type");
+    let statement_attr = Attribute::from_keyword(":spec/statement");
+    let element_statement_attr = Attribute::from_keyword(":element/statement");
+    let falsification_attr = Attribute::from_keyword(":spec/falsification");
+    let body_attr = Attribute::from_keyword(":element/body");
+    let doc_attr = Attribute::from_keyword(":db/doc");
+
+    let mut all_datoms = Vec::new();
+    let mut count = 0;
+
+    for datom in store.attribute_datoms(&spec_type_attr) {
+        if datom.op != Op::Assert {
+            continue;
+        }
+        // Only witness invariants
+        let is_inv = match &datom.value {
+            Value::Keyword(k) => k.contains("invariant"),
+            Value::String(s) => s.contains("invariant"),
+            _ => false,
+        };
+        if !is_inv {
+            continue;
+        }
+
+        let inv_entity = datom.entity;
+
+        // Skip if already witnessed
+        if witnessed_invs.contains(&inv_entity) {
+            continue;
+        }
+
+        let entity_datoms = store.entity_datoms(inv_entity);
+
+        // Try multiple attributes for statement text (different spec formats)
+        let statement = extract_string(&entity_datoms, &statement_attr)
+            .or_else(|| extract_string(&entity_datoms, &element_statement_attr))
+            .or_else(|| extract_string(&entity_datoms, &body_attr))
+            .or_else(|| extract_string(&entity_datoms, &doc_attr))
+            .unwrap_or_default();
+
+        let falsification =
+            extract_string(&entity_datoms, &falsification_attr).unwrap_or_default();
+
+        // Need at least a statement to create a witness
+        if statement.is_empty() {
+            continue;
+        }
+
+        // L1 test body = the falsification text (or statement if no falsification)
+        let test_body = if falsification.is_empty() {
+            &statement
+        } else {
+            &falsification
+        };
+
+        let fbw = create_fbw(
+            inv_entity,
+            &statement,
+            &falsification,
+            test_body,
+            "auto-generated-l1",
+            1, // L1 depth
+            "braid:witness-batch",
+        );
+
+        let witness_datoms = fbw_to_datoms(&fbw, tx);
+        all_datoms.extend(witness_datoms);
+        count += 1;
+    }
+
+    (all_datoms, count)
+}
+
+// ===========================================================================
 // Tests
 // ===========================================================================
 

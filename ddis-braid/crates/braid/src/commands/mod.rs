@@ -1029,6 +1029,20 @@ pub enum WitnessAction {
         #[arg(long)]
         json: bool,
     },
+
+    /// Batch-generate L1 witness skeletons for all unwitnessed invariants.
+    ///
+    /// Creates keyword-alignment witnesses for every invariant that has
+    /// a statement + falsification but no existing witness.
+    Generate {
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Actually transact the witnesses (otherwise dry-run).
+        #[arg(long)]
+        commit: bool,
+    },
 }
 
 /// Spec subcommands (WP5, W4B.3).
@@ -1651,7 +1665,8 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
         Command::Witness { action } => match action {
             WitnessAction::Status { path, .. }
             | WitnessAction::Check { path, .. }
-            | WitnessAction::Completeness { path, .. } => Some(path),
+            | WitnessAction::Completeness { path, .. }
+            | WitnessAction::Generate { path, .. } => Some(path),
         },
     }
 }
@@ -2055,7 +2070,8 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
         Command::Witness { action } => match action {
             WitnessAction::Status { path, .. }
             | WitnessAction::Check { path, .. }
-            | WitnessAction::Completeness { path, .. } => {
+            | WitnessAction::Completeness { path, .. }
+            | WitnessAction::Generate { path, .. } => {
                 *path = resolve_store_path(path.clone());
             }
         },
@@ -2874,6 +2890,17 @@ pub fn run(
             }
             WitnessAction::Completeness { path, json } => {
                 let cmd_output = witness::run_completeness(&path, json)?;
+                return Ok(maybe_inject_footer(
+                    cmd_output,
+                    skip_footer,
+                    path_for_footer.as_deref(),
+                    budget_ctx,
+                    footer_cmd_name,
+                    None,
+                ));
+            }
+            WitnessAction::Generate { path, commit } => {
+                let cmd_output = witness::run_generate(&path, commit)?;
                 return Ok(maybe_inject_footer(
                     cmd_output,
                     skip_footer,

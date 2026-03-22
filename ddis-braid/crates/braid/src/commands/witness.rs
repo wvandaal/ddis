@@ -523,6 +523,60 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
     })
 }
 
+/// Batch-generate L1 witness skeletons for unwitnessed invariants.
+///
+/// Dry-run mode (default): shows how many would be created.
+/// Commit mode: transacts the witness datoms.
+pub fn run_generate(path: &Path, commit: bool) -> Result<CommandOutput, BraidError> {
+    let layout = DiskLayout::open(path)?;
+    let store = layout.load_store()?;
+
+    let agent = braid_kernel::datom::AgentId::from_name("braid:witness-batch");
+    let tx_id = crate::commands::write::next_tx_id(&store, agent);
+
+    let (datoms, count) = witness::batch_generate_l1_witnesses(&store, tx_id);
+
+    let datom_count = datoms.len();
+    let mut out = format!("witness generate: {count} L1 witnesses for unwitnessed invariants\n");
+
+    if commit && !datoms.is_empty() {
+        let tx = braid_kernel::layout::TxFile {
+            tx_id,
+            agent,
+            provenance: braid_kernel::datom::ProvenanceType::Derived,
+            rationale: format!(
+                "batch L1 witness generation: {count} witnesses for INV-WITNESS-011"
+            ),
+            causal_predecessors: vec![],
+            datoms,
+        };
+        layout.write_tx(&tx)?;
+        out.push_str(&format!("committed: {datom_count} datoms ({count} witnesses)\n"));
+    } else if !datoms.is_empty() && !commit {
+        out.push_str("dry-run: use --commit to transact\n");
+    } else {
+        out.push_str("all invariants already have witnesses\n");
+    }
+
+    let json = serde_json::json!({
+        "generated": count,
+        "committed": commit && datom_count > 0,
+        "datom_count": datom_count,
+    });
+
+    let agent_out = AgentOutput {
+        context: String::new(),
+        content: format!("witness generate: {count} L1 witnesses"),
+        footer: String::new(),
+    };
+
+    Ok(CommandOutput {
+        json,
+        agent: agent_out,
+        human: out,
+    })
+}
+
 /// Format a `StaleReason` into a human-readable string.
 fn format_stale_reason(reason: &witness::StaleReason) -> String {
     match reason {

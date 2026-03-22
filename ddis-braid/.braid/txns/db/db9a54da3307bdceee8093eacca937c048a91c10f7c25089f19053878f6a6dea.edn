@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774140999/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 033b: Witness gap closure sprint. Strategy: (1) Fix F(S) H-component by wiring SessionTelemetry into MaterializedViews, (2) batch-generate L1 witnesses via trace-witness cotransaction, (3) promote existing Kani/Stateright tests to L2 witnesses. Goal: close 150+ of 250 witness gaps, restore F(S) accuracy."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2a3d578ae5b56546623ed118ff44998fafabd2bee8b59529623b0315d167a031" :a :db/doc :v "Session 033b: Witness gap closure sprint. Strategy: (1) Fix F(S) H-component by wiring SessionTelemetry into MaterializedViews, (2) batch-generate L1 witnesses via trace-witness cotransaction, (3) promote existing Kani/Stateright tests to L2 witnesses. Goal: close 150+ of 250 witness gaps, restore F(S) accuracy." :op :assert}
+   {:e #blake3 "2a3d578ae5b56546623ed118ff44998fafabd2bee8b59529623b0315d167a031" :a :db/ident :v :observation/session-033b-witness-gap-closure-sprint-strategy-1-fix :op :assert}
+   {:e #blake3 "2a3d578ae5b56546623ed118ff44998fafabd2bee8b59529623b0315d167a031" :a :exploration/body :v "Session 033b: Witness gap closure sprint. Strategy: (1) Fix F(S) H-component by wiring SessionTelemetry into MaterializedViews, (2) batch-generate L1 witnesses via trace-witness cotransaction, (3) promote existing Kani/Stateright tests to L2 witnesses. Goal: close 150+ of 250 witness gaps, restore F(S) accuracy." :op :assert}
+   {:e #blake3 "2a3d578ae5b56546623ed118ff44998fafabd2bee8b59529623b0315d167a031" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "2a3d578ae5b56546623ed118ff44998fafabd2bee8b59529623b0315d167a031" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "2a3d578ae5b56546623ed118ff44998fafabd2bee8b59529623b0315d167a031" :a :exploration/content-hash :v #bytes "059efdb3cd320cd74ee1b93f1002e29f07fcdb9e2909b26aa3f4d5434ebdbdf3" :op :assert}
+   {:e #blake3 "2a3d578ae5b56546623ed118ff44998fafabd2bee8b59529623b0315d167a031" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2a3d578ae5b56546623ed118ff44998fafabd2bee8b59529623b0315d167a031" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2a3d578ae5b56546623ed118ff44998fafabd2bee8b59529623b0315d167a031" :a :exploration/source-session :v #blake3 "2bcb0ff57b112fcacdce5533e93d49544c2087b4061d90202313d93b66044404" :op :assert}
+   {:e #blake3 "c0956addd0f9a22e5201b1e4edbd25a408e90e4689a7d7aa0da0c03d03cda138" :a :db/ident :v :task/t-3b34a171 :op :assert}
+   {:e #blake3 "c0956addd0f9a22e5201b1e4edbd25a408e90e4689a7d7aa0da0c03d03cda138" :a :task/created-at :v 1774140998 :op :assert}
+   {:e #blake3 "c0956addd0f9a22e5201b1e4edbd25a408e90e4689a7d7aa0da0c03d03cda138" :a :task/id :v "t-3b34a171" :op :assert}
+   {:e #blake3 "c0956addd0f9a22e5201b1e4edbd25a408e90e4689a7d7aa0da0c03d03cda138" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "c0956addd0f9a22e5201b1e4edbd25a408e90e4689a7d7aa0da0c03d03cda138" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c0956addd0f9a22e5201b1e4edbd25a408e90e4689a7d7aa0da0c03d03cda138" :a :task/title :v "Session 033b: Witness gap closure sprint. Strategy: (1) Fix F(S) H-component by wiring SessionTelemetry into MaterializedViews, (2) batch-generate L1 witnesses via trace-witness cotransaction, (3) promote existing Kani/Stateright tests to L2 witnesses. Goal: close 150+ of 250 witness gaps, restore F(S) accuracy" :op :assert}
+   {:e #blake3 "c0956addd0f9a22e5201b1e4edbd25a408e90e4689a7d7aa0da0c03d03cda138" :a :task/type :v :task.type/task :op :assert}
+ ]}

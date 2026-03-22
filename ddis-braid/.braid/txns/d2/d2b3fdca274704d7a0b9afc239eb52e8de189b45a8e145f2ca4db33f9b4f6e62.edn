@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774141579/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "DEBUG: checking views accumulators for H-component calibration"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c8acad6d30bd7aa574b2496bfbdb5f78aae4ae40990d352923682ca2ac309583" :a :db/doc :v "DEBUG: checking views accumulators for H-component calibration" :op :assert}
+   {:e #blake3 "c8acad6d30bd7aa574b2496bfbdb5f78aae4ae40990d352923682ca2ac309583" :a :db/ident :v :observation/debug-checking-views-accumulators-for-h-component-calibrati :op :assert}
+   {:e #blake3 "c8acad6d30bd7aa574b2496bfbdb5f78aae4ae40990d352923682ca2ac309583" :a :exploration/body :v "DEBUG: checking views accumulators for H-component calibration" :op :assert}
+   {:e #blake3 "c8acad6d30bd7aa574b2496bfbdb5f78aae4ae40990d352923682ca2ac309583" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "c8acad6d30bd7aa574b2496bfbdb5f78aae4ae40990d352923682ca2ac309583" :a :exploration/confidence :v 0.5 :op :assert}
+   {:e #blake3 "c8acad6d30bd7aa574b2496bfbdb5f78aae4ae40990d352923682ca2ac309583" :a :exploration/content-hash :v #bytes "3d1eee8bbb7450c738c3818a95d268e65ad5492ebef5d72e5cebb508b4f8ff8f" :op :assert}
+   {:e #blake3 "c8acad6d30bd7aa574b2496bfbdb5f78aae4ae40990d352923682ca2ac309583" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "c8acad6d30bd7aa574b2496bfbdb5f78aae4ae40990d352923682ca2ac309583" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "c8acad6d30bd7aa574b2496bfbdb5f78aae4ae40990d352923682ca2ac309583" :a :exploration/source-session :v #blake3 "2bcb0ff57b112fcacdce5533e93d49544c2087b4061d90202313d93b66044404" :op :assert}
+ ]}
