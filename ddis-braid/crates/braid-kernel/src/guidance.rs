@@ -2776,8 +2776,8 @@ pub fn create_session_start_datoms_with_name(
     let session_ident = format!(":session/s-{}", wall_secs);
     let session_entity = EntityId::from_ident(&session_ident);
 
-    // CE-4: O(1) fitness via materialized views
-    let fitness = store.views().fitness();
+    // POLICY-4: Use Store::fitness() which tries policy first, then views fallback
+    let fitness = store.fitness();
     let datom_count = store.len();
 
     vec![

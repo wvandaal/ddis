@@ -1541,6 +1541,21 @@ impl Store {
         &self.views
     }
 
+    /// POLICY-4: Compute F(S) using policy manifest if available, otherwise views fallback.
+    ///
+    /// This is the PRIMARY fitness entry point. All callers should use this instead of
+    /// `store.views().fitness()` or `compute_fitness(store)`.
+    ///
+    /// Priority: policy-driven (from boundary datoms) > views (hardcoded accumulators) > 1.0.
+    pub fn fitness(&self) -> crate::bilateral::FitnessScore {
+        // Try policy-driven fitness first (C8: substrate reads policy datoms)
+        if let Some(fs) = crate::bilateral::compute_fitness_from_policy(self) {
+            return fs;
+        }
+        // Fall back to materialized views (hardcoded DDIS accumulators)
+        self.views.fitness()
+    }
+
     /// Get all datoms for a specific entity. O(1) via entity index.
     pub fn entity_datoms(&self, entity: EntityId) -> Vec<&Datom> {
         self.entity_index

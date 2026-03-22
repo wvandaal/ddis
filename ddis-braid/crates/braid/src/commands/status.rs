@@ -74,7 +74,7 @@ impl StatusSnapshot {
         _layout: Option<&crate::layout::DiskLayout>,
     ) -> Self {
         // CE-4: Use materialized views for O(1) fitness (was O(n) compute_fitness)
-        let fitness = store.views().fitness();
+        let fitness = store.fitness();
         let coherence = check_coherence_fast(store);
 
         let telemetry = telemetry_from_store(store);
@@ -195,7 +195,7 @@ pub fn run(
     // Deep mode: bilateral F(S) + optional graph analytics
     if deep {
         let deep_str = run_deep(path, &store, agent_name, spectral, full, commit)?;
-        let fitness = store.views().fitness();
+        let fitness = store.fitness();
         let json = serde_json::json!({
             "mode": "deep",
             "fitness": fitness.total,
@@ -640,7 +640,7 @@ fn build_terse(
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
     // CE-4: O(1) fitness via materialized views
-    let fitness = store.views().fitness();
+    let fitness = store.fitness();
 
     let harvest_tag = if tx_since_harvest >= 15 {
         " OVERDUE"
@@ -851,7 +851,7 @@ fn build_agent(
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
     // CE-4: O(1) fitness via materialized views
-    let fitness = store.views().fitness();
+    let fitness = store.fitness();
 
     let trend_str = match score.trend {
         Trend::Up => "up",
@@ -992,7 +992,7 @@ fn build_verbose(
     let telemetry = telemetry_from_store(store);
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(store);
-    let fitness = store.views().fitness();
+    let fitness = store.fitness();
 
     // SD-1: F(S) session delta for verbose
     let fitness_delta_str = match query_session_start_fitness(store) {

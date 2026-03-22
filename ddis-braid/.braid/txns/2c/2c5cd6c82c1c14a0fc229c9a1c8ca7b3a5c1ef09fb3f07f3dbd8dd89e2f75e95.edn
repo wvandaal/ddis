@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774213060/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-7c704a5a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "80493b0fbd280f1679896aa8c04ba3bca8f53ab14100cbcf4f3126befcce8425" :a :task/close-reason :v "Calibration data collection: task close records pre/post F(S), computes projected delta from traces-to specs via project_delta, records :prediction/projected-delta, :prediction/actual-delta, :prediction/calibration-error. Weight adjustment at harvest (phase 2) deferred to separate task." :op :assert}
+   {:e #blake3 "80493b0fbd280f1679896aa8c04ba3bca8f53ab14100cbcf4f3126befcce8425" :a :task/closed-at :v 1774213059 :op :assert}
+   {:e #blake3 "80493b0fbd280f1679896aa8c04ba3bca8f53ab14100cbcf4f3126befcce8425" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "80493b0fbd280f1679896aa8c04ba3bca8f53ab14100cbcf4f3126befcce8425" :a :task/status :v :task.status/closed :op :assert}
+ ]}

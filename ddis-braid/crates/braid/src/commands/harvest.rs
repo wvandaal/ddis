@@ -750,7 +750,7 @@ pub fn run(
         // Compute start-fitness for the new session (pre-harvest F(S) is correct —
         // the new session "starts" at the moment of harvest)
         // CE-4: O(1) fitness via materialized views
-        let new_fitness = store.views().fitness();
+        let new_fitness = store.fitness();
 
         // CRITICAL: Include harvest datoms in count (they're in the same tx)
         let new_datom_count = store.len() + all_datoms.len();

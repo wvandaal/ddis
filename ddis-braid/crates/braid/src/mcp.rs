@@ -715,7 +715,7 @@ fn tool_guidance(layout: &DiskLayout) -> Result<JsonValue, BraidError> {
     let score = compute_methodology_score(&telemetry);
     let actions = derive_actions(&store);
     let routings = compute_routing_from_store(&store);
-    let fitness = store.views().fitness();
+    let fitness = store.fitness();
 
     let mut out = String::new();
 

@@ -1053,6 +1053,9 @@ pub fn close(
     let agent_id = AgentId::from_name(agent);
     let tx_id = super::write::next_tx_id(&store, agent_id);
 
+    // OBSERVER-4: Capture pre-close F(S) for calibration
+    let pre_close_fitness = store.fitness().total;
+
     let mut all_datoms = Vec::new();
     let mut closed_ids = Vec::new();
     let mut blocked_ids: Vec<(String, String)> = Vec::new();
@@ -1186,8 +1189,93 @@ pub fn close(
 
     // ZCM-4: Completion reward — show F(S) as feedback signal.
     // From reinforcement learning: explicit reward signals strengthen behavioral patterns.
-    let fitness = store.views().fitness();
+    let fitness = store.fitness();
     human.push_str(&format!("F(S)={:.2}\n", fitness.total));
+
+    // OBSERVER-4: Record calibration data (predicted vs actual delta).
+    // This is the data collection phase of the convergence thesis (ADR-FOUNDATION-014).
+    // Weight adjustment happens at harvest time when calibration error exceeds threshold.
+    let actual_delta = fitness.total - pre_close_fitness;
+    for id in &closed_ids {
+        if let Some(entity) = find_task_by_id(&store, id) {
+            // Compute projected delta from task's traces-to specs
+            let task_datoms = store.entity_datoms(entity);
+            let spec_refs: Vec<braid_kernel::EntityId> = task_datoms
+                .iter()
+                .filter(|d| d.attribute.as_str() == ":task/traces-to" && d.op == Op::Assert)
+                .filter_map(|d| {
+                    if let braid_kernel::datom::Value::Ref(target) = &d.value {
+                        Some(*target)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+
+            if !spec_refs.is_empty() {
+                let hypothetical_impl =
+                    braid_kernel::EntityId::from_ident(&format!(":impl/calibration-{id}"));
+                let placeholder_tx = braid_kernel::datom::TxId::new(
+                    0,
+                    0,
+                    braid_kernel::datom::AgentId::from_name("calibration"),
+                );
+                let hypothetical: Vec<braid_kernel::datom::Datom> = spec_refs
+                    .iter()
+                    .map(|spec| {
+                        braid_kernel::datom::Datom::new(
+                            hypothetical_impl,
+                            Attribute::from_keyword(":impl/implements"),
+                            braid_kernel::datom::Value::Ref(*spec),
+                            placeholder_tx,
+                            Op::Assert,
+                        )
+                    })
+                    .collect();
+
+                let projected_delta = store.views().project_delta(&hypothetical);
+                let projected = projected_delta.weighted_magnitude();
+                let cal_error = (projected - actual_delta).abs();
+
+                // Write calibration datoms via a new transaction
+                let cal_tx = super::write::next_tx_id(&store, agent_id);
+                let cal_datoms = vec![
+                    Datom::new(
+                        entity,
+                        Attribute::from_keyword(":prediction/projected-delta"),
+                        braid_kernel::datom::Value::Double(ordered_float::OrderedFloat(projected)),
+                        cal_tx,
+                        Op::Assert,
+                    ),
+                    Datom::new(
+                        entity,
+                        Attribute::from_keyword(":prediction/actual-delta"),
+                        braid_kernel::datom::Value::Double(ordered_float::OrderedFloat(
+                            actual_delta,
+                        )),
+                        cal_tx,
+                        Op::Assert,
+                    ),
+                    Datom::new(
+                        entity,
+                        Attribute::from_keyword(":prediction/calibration-error"),
+                        braid_kernel::datom::Value::Double(ordered_float::OrderedFloat(cal_error)),
+                        cal_tx,
+                        Op::Assert,
+                    ),
+                ];
+                let cal_file = braid_kernel::layout::TxFile {
+                    tx_id: cal_tx,
+                    agent: agent_id,
+                    provenance: ProvenanceType::Derived,
+                    rationale: format!("OBSERVER-4: calibration data for {id}"),
+                    causal_predecessors: vec![],
+                    datoms: cal_datoms,
+                };
+                let _ = layout.write_tx(&cal_file);
+            }
+        }
+    }
 
     let json = serde_json::json!({
         "closed": closed_ids,
