@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774147766/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b1ab00b6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f8034a6a121da8ffc03c7440eb00206066cc979608628d37631f402ef872d385" :a :task/close-reason :v "EPIC closed: COTX-1 (harvest rotation), COTX-2 (observe crystallization), COTX-3 (spec auto-task), COTX-4 (trace-witness), COTX-5 (universal observe) all implemented. Remaining: COTX-5-TEST, COTX-2-TEST (tests), COTX-6/7 (monitoring)." :op :assert}
+   {:e #blake3 "f8034a6a121da8ffc03c7440eb00206066cc979608628d37631f402ef872d385" :a :task/closed-at :v 1774147765 :op :assert}
+   {:e #blake3 "f8034a6a121da8ffc03c7440eb00206066cc979608628d37631f402ef872d385" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "f8034a6a121da8ffc03c7440eb00206066cc979608628d37631f402ef872d385" :a :task/status :v :task.status/closed :op :assert}
+ ]}

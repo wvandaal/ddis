@@ -1,0 +1,33 @@
+{:tx/id #hlc "1774147844/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Harvest commit: 23 candidates from task 'unsessioned harvest (19 txns since last harvest)'"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :db/doc :v "Harvest session for task: unsessioned harvest (19 txns since last harvest)" :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :db/ident :v :harvest/session-braid-user-1774147844 :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/accomplishments :v "Session entity: :recon/trace-02cf7f818db55713; Session entity: :recon/trace-1c70954f1a22ae50; Session entity: :recon/trace-987adfd5eb433242; Session entity: :recon/trace-f9fe5ca39a25f529; Session entity: :recon/trace-df8d8cc5afa4e64a; Session entity: :recon/trace-46878e48c320eb40; Session entity: :recon/trace-bbcf7827064d8070" :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/agent :v "braid:user" :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/candidate-count :v 23 :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/codebase-snapshot :v "Codebase: 109286 LOC across 78 .rs files\nKey files:\n  ddis-braid/crates/braid-kernel/src/guidance.rs (11057 LOC)\n  ddis-braid/crates/braid-kernel/src/seed.rs (4993 LOC)\n  ddis-braid/crates/braid-kernel/src/store.rs (4560 LOC)\n  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)\n  ddis-braid/crates/braid-kernel/src/schema.rs (4468 LOC)\n  ddis-braid/crates/braid-kernel/src/harvest.rs (4433 LOC)\n  ddis-braid/crates/braid/src/commands/mod.rs (4013 LOC)\n  ddis-braid/crates/braid-kernel/src/bilateral.rs (3545 LOC)\n  ddis-braid/crates/braid-kernel/src/compiler.rs (3084 LOC)\n  ddis-braid/crates/braid-kernel/src/topology.rs (3036 LOC)" :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/context-metrics :v "{\"candidates\":23,\"k_eff_estimated\":\"0.88\",\"observations\":0,\"output_tokens_est\":1816,\"tasks_closed\":5,\"tx_count\":19,\"wall_elapsed_s\":164}" :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/delta-summary :v "+255 datoms, +20 entities" :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/drift-score :v 1.0 :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/observation-count :v 0 :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/recommended-tasks :v "t-ff6a4143,t-ae46a5c4,t-dc54f525" :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/store-datom-count :v 45198 :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/store-entity-count :v 4770 :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/synthesis-directive :v "## Session Synthesis Directive\n\n**Next session task**: continue: unsessioned harvest (19 txns since last harvest)\nRun: `braid seed --task \"continue: unsessioned harvest (19 txns since last harvest)\"` to start the next session.\n" :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/task :v "unsessioned harvest (19 txns since last harvest)" :op :assert}
+   {:e #blake3 "060aca29784850ed2ed19cf72eb21e54dc4d6d9386d79e731523ece352fc3833" :a :harvest/tx-since-last :v 19 :op :assert}
+   {:e #blake3 "0950ed7f2ecbae23cf927ddc403fad0eabb776c79c547c63ba5df29a659e4aea" :a :session/status :v :session.status/closed :op :assert}
+   {:e #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :a :db/ident :v :session/s-1774147843722 :op :assert}
+   {:e #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :a :session/agent :v #blake3 "cf148835dea0968eef3ac942f1848300d4694893ebb6542beda0c72203ca61b6" :op :assert}
+   {:e #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :a :session/current :v #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :op :assert}
+   {:e #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :a :session/start-datom-count :v 45215 :op :assert}
+   {:e #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :a :session/start-fitness :v 0.6126464444444433 :op :assert}
+   {:e #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :a :session/start-time :v "2026-03-22T02:50:43Z" :op :assert}
+   {:e #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :a :session/started-at :v 1774147843 :op :assert}
+   {:e #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :a :session/status :v :session.status/active :op :assert}
+   {:e #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :a :session/task :v "## Session Synthesis Directive\n\n**Next session task**: continue: unsessioned harvest (19 txns since last harvest)\nRun: `braid seed --task \"continue: unsessioned harvest (19 txns since last harvest)\"` to start the next session.\n" :op :assert}
+ ]}

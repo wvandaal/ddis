@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774147778/0/189a654d42d31947cad165604defbca6"
+ :tx/agent "189a654d42d31947cad165604defbca6"
+ :tx/provenance :derived
+ :tx/rationale "RFL-2: action prediction recorded"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a36eeb70020f2774bfb96cb5cf8c47aaf2b35f29433cf4e1c4be313aaf36f36e" :a :action/recommended-command :v "braid task close t-a379d2f5 t-4a5853fb t-74d6abc0 t-25bb8fdf t-aff33aa7 t-b4647ba9 t-05f6dca2 t-e545d28b t-c41b7ca1 t-ba14c7a9 t-308770d4 t-80e46872 t-ea6d8241 t-c169a032 t-6cb74a33 t-891d2acd t-846524e2 t-8740befa t-d3b52b30 t-92dadd21 t-c9782a1a t-bc7d87d5 t-546078c1 t-2caefb10 t-c776bd2c t-5c45b24d t-4a5a2e48 t-4b755edf t-5ff3684a t-064f8854 t-ff6a4143 t-4d0d2542 t-bba54ee5 t-b394164e t-fb89a7b0 t-150bf6dd t-e401eaa4 t-92908e53 t-fdb83aaa t-8de5f14d t-e225ba30 t-64af947e t-d8bc1f0c t-40314c12 t-42a1a89b t-6ed15191 t-fa51b1d7 t-b5959bed t-50ae6933 t-30c26830 t-ae46a5c4 t-53d8297e t-fe4a72e2 t-ffd1dd85 t-86c6892d t-b47c7c79 t-c9645957 t-9411936c t-9557c705 t-3a498622 t-46762ee9 t-af645d8c t-3fb22d59 t-d336e641 t-3a2dd7ce t-381af1ad t-fcb935b6 t-887c585b t-6d892564 t-ffc41d7b t-f3061562 t-90b7d513 t-55e59fdd t-3b276979 t-6169f35e t-451e387b t-b4f019e6 t-765681bc t-651624c3 t-9cb083b5 t-f535d211 t-74998cc6 t-f2d25acc" :op :assert}
+   {:e #blake3 "a36eeb70020f2774bfb96cb5cf8c47aaf2b35f29433cf4e1c4be313aaf36f36e" :a :action/recommended-impact :v 0.6 :op :assert}
+   {:e #blake3 "a36eeb70020f2774bfb96cb5cf8c47aaf2b35f29433cf4e1c4be313aaf36f36e" :a :action/timestamp :v 1774147777037 :op :assert}
+   {:e #blake3 "a36eeb70020f2774bfb96cb5cf8c47aaf2b35f29433cf4e1c4be313aaf36f36e" :a :db/ident :v :action/a85673873df586b9 :op :assert}
+ ]}

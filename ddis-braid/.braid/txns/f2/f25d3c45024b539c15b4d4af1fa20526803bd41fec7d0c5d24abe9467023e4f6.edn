@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774147791/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-765681bc"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d7758daa6b92f137461d3406ed538a6945df8a66a31c66f57e8b1fe66a5a0740" :a :task/close-reason :v "EPIC: CE Phase 0+1 complete (CE-1..6, MV-GRADIENT, CE-P1-TEST). Phase 2 (daemon) deferred." :op :assert}
+   {:e #blake3 "d7758daa6b92f137461d3406ed538a6945df8a66a31c66f57e8b1fe66a5a0740" :a :task/closed-at :v 1774147790 :op :assert}
+   {:e #blake3 "d7758daa6b92f137461d3406ed538a6945df8a66a31c66f57e8b1fe66a5a0740" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "d7758daa6b92f137461d3406ed538a6945df8a66a31c66f57e8b1fe66a5a0740" :a :task/status :v :task.status/closed :op :assert}
+ ]}

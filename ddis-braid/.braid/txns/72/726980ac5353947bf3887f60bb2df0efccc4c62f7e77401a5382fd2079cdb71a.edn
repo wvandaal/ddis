@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774147810/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f2d25acc"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "dfabf0e479db2d16e629fae3b5b2f26e81bac0edfe17544ddc9b79605a069cdf" :a :task/close-reason :v "Metabolic Store EPIC: delta-crystallization, observe feedback, urgency wired, harvest reconciliation, session dashboard, surprisal scoring all operational." :op :assert}
+   {:e #blake3 "dfabf0e479db2d16e629fae3b5b2f26e81bac0edfe17544ddc9b79605a069cdf" :a :task/closed-at :v 1774147809 :op :assert}
+   {:e #blake3 "dfabf0e479db2d16e629fae3b5b2f26e81bac0edfe17544ddc9b79605a069cdf" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "dfabf0e479db2d16e629fae3b5b2f26e81bac0edfe17544ddc9b79605a069cdf" :a :task/status :v :task.status/closed :op :assert}
+ ]}

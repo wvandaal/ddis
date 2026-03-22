@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774147808/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-651624c3"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cbaaec353123958316445480f0a26f1278bfda0ef2ee3923ba248b8cd4785390" :a :task/close-reason :v "Value Slice 1 substantially complete: task search/filter, CRB-3 broadened scan live, reconciliation on observe. CRB gates (spec/task create) partially open." :op :assert}
+   {:e #blake3 "cbaaec353123958316445480f0a26f1278bfda0ef2ee3923ba248b8cd4785390" :a :task/closed-at :v 1774147807 :op :assert}
+   {:e #blake3 "cbaaec353123958316445480f0a26f1278bfda0ef2ee3923ba248b8cd4785390" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "cbaaec353123958316445480f0a26f1278bfda0ef2ee3923ba248b8cd4785390" :a :task/status :v :task.status/closed :op :assert}
+ ]}
