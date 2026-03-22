@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774151580/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SOLUTION-1 (Test-to-Witness Pipeline): Parse test runner output to auto-create L2 witnesses. OVERFITTING RISK: Proposed as cargo test JSON parser — this couples braid to Rust/cargo. CORRECTED DESIGN: Use extractor pattern (ADR-FOUNDATION-009). The kernel provides witness_from_test_result(spec_ref, pass/fail, test_hash, file) — language-agnostic. A Rust extractor parses cargo test JSON. A Python extractor could parse pytest. A Go extractor could parse go test. The kernel never sees cargo."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7bd84447d6ac9eec2e11d5d4f3ce3bb23fea1714abb572dea7780fc8736df008" :a :db/doc :v "SOLUTION-1 (Test-to-Witness Pipeline): Parse test runner output to auto-create L2 witnesses. OVERFITTING RISK: Proposed as cargo test JSON parser — this couples braid to Rust/cargo. CORRECTED DESIGN: Use extractor pattern (ADR-FOUNDATION-009). The kernel provides witness_from_test_result(spec_ref, pass/fail, test_hash, file) — language-agnostic. A Rust extractor parses cargo test JSON. A Python extractor could parse pytest. A Go extractor could parse go test. The kernel never sees cargo." :op :assert}
+   {:e #blake3 "7bd84447d6ac9eec2e11d5d4f3ce3bb23fea1714abb572dea7780fc8736df008" :a :db/ident :v :observation/solution-1-test-to-witness-pipeline-parse-test-runner-out :op :assert}
+   {:e #blake3 "7bd84447d6ac9eec2e11d5d4f3ce3bb23fea1714abb572dea7780fc8736df008" :a :exploration/body :v "SOLUTION-1 (Test-to-Witness Pipeline): Parse test runner output to auto-create L2 witnesses. OVERFITTING RISK: Proposed as cargo test JSON parser — this couples braid to Rust/cargo. CORRECTED DESIGN: Use extractor pattern (ADR-FOUNDATION-009). The kernel provides witness_from_test_result(spec_ref, pass/fail, test_hash, file) — language-agnostic. A Rust extractor parses cargo test JSON. A Python extractor could parse pytest. A Go extractor could parse go test. The kernel never sees cargo." :op :assert}
+   {:e #blake3 "7bd84447d6ac9eec2e11d5d4f3ce3bb23fea1714abb572dea7780fc8736df008" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "7bd84447d6ac9eec2e11d5d4f3ce3bb23fea1714abb572dea7780fc8736df008" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "7bd84447d6ac9eec2e11d5d4f3ce3bb23fea1714abb572dea7780fc8736df008" :a :exploration/content-hash :v #bytes "fb8aadd4f829ecc26ce7a17778a7f4104b9886aa90eeaea011df7ac0da69c1a5" :op :assert}
+   {:e #blake3 "7bd84447d6ac9eec2e11d5d4f3ce3bb23fea1714abb572dea7780fc8736df008" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7bd84447d6ac9eec2e11d5d4f3ce3bb23fea1714abb572dea7780fc8736df008" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7bd84447d6ac9eec2e11d5d4f3ce3bb23fea1714abb572dea7780fc8736df008" :a :exploration/source-session :v #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :op :assert}
+ ]}

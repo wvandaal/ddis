@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774151602/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SOLUTION-4 (Task Stage-Gating): Add :task/stage attribute to filter ready queue by project stage. OVERFITTING RISK: Low — stages are a generic project management concept. The 5-stage model (0-4) is from SEED.md but any project could define their own stages. VERDICT: Safe if stage values are not hardcoded to DDIS stages but stored as project-level configuration datoms."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "14f43637e683445128b45afe901b32f94b1a7773d0908007c49a387c92cd4f28" :a :db/ident :v :task/t-fda2952f :op :assert}
+   {:e #blake3 "14f43637e683445128b45afe901b32f94b1a7773d0908007c49a387c92cd4f28" :a :task/created-at :v 1774151601 :op :assert}
+   {:e #blake3 "14f43637e683445128b45afe901b32f94b1a7773d0908007c49a387c92cd4f28" :a :task/id :v "t-fda2952f" :op :assert}
+   {:e #blake3 "14f43637e683445128b45afe901b32f94b1a7773d0908007c49a387c92cd4f28" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "14f43637e683445128b45afe901b32f94b1a7773d0908007c49a387c92cd4f28" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "14f43637e683445128b45afe901b32f94b1a7773d0908007c49a387c92cd4f28" :a :task/title :v "SOLUTION-4 (Task Stage-Gating): Add :task/stage attribute to filter ready queue by project stage. OVERFITTING RISK: Low — stages are a generic project management concept. The 5-stage model (0-4) is from SEED.md but any project could define their own stages. VERDICT: Safe if stage values are not hardcoded to DDIS stages but stored as project-level configuration datoms" :op :assert}
+   {:e #blake3 "14f43637e683445128b45afe901b32f94b1a7773d0908007c49a387c92cd4f28" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "4b0a9aaf21e810dfcc294f431603564dcbd5fa10d0ced3a36d25531bf39e7c72" :a :db/doc :v "SOLUTION-4 (Task Stage-Gating): Add :task/stage attribute to filter ready queue by project stage. OVERFITTING RISK: Low — stages are a generic project management concept. The 5-stage model (0-4) is from SEED.md but any project could define their own stages. VERDICT: Safe if stage values are not hardcoded to DDIS stages but stored as project-level configuration datoms." :op :assert}
+   {:e #blake3 "4b0a9aaf21e810dfcc294f431603564dcbd5fa10d0ced3a36d25531bf39e7c72" :a :db/ident :v :observation/solution-4-task-stage-gating-add-taskstage-attribute-to :op :assert}
+   {:e #blake3 "4b0a9aaf21e810dfcc294f431603564dcbd5fa10d0ced3a36d25531bf39e7c72" :a :exploration/body :v "SOLUTION-4 (Task Stage-Gating): Add :task/stage attribute to filter ready queue by project stage. OVERFITTING RISK: Low — stages are a generic project management concept. The 5-stage model (0-4) is from SEED.md but any project could define their own stages. VERDICT: Safe if stage values are not hardcoded to DDIS stages but stored as project-level configuration datoms." :op :assert}
+   {:e #blake3 "4b0a9aaf21e810dfcc294f431603564dcbd5fa10d0ced3a36d25531bf39e7c72" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "4b0a9aaf21e810dfcc294f431603564dcbd5fa10d0ced3a36d25531bf39e7c72" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "4b0a9aaf21e810dfcc294f431603564dcbd5fa10d0ced3a36d25531bf39e7c72" :a :exploration/content-hash :v #bytes "c25a2cb3397f5d9ecba9d85f8e1f8865d1792c97403762f651a5536592c63580" :op :assert}
+   {:e #blake3 "4b0a9aaf21e810dfcc294f431603564dcbd5fa10d0ced3a36d25531bf39e7c72" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4b0a9aaf21e810dfcc294f431603564dcbd5fa10d0ced3a36d25531bf39e7c72" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4b0a9aaf21e810dfcc294f431603564dcbd5fa10d0ced3a36d25531bf39e7c72" :a :exploration/source-session :v #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :op :assert}
+ ]}

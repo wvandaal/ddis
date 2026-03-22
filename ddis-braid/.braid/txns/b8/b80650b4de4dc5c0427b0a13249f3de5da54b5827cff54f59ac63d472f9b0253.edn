@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774151552/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "CRITICAL FEEDBACK: Risk of overfitting braid to its own bootstrap problem. Five solutions proposed in session 033 review may tether braid to Rust-specific tooling (Kani, cargo test JSON, clippy), our spec markdown format (Level 0-4 hierarchy), and our specific project conventions. The tool must remain universally applicable: any language, any spec format, any team methodology. SEED.md S4 says EAV is schema-on-read precisely to avoid hardcoding ontology. Solutions must use the extractor pattern (ADR-FOUNDATION-009): language-specific logic in extractors, universal logic in kernel."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6e0453dc3ef51ba7f037bbc4657eea10a3d6813b95da2344e56a90b98a9ff571" :a :db/doc :v "CRITICAL FEEDBACK: Risk of overfitting braid to its own bootstrap problem. Five solutions proposed in session 033 review may tether braid to Rust-specific tooling (Kani, cargo test JSON, clippy), our spec markdown format (Level 0-4 hierarchy), and our specific project conventions. The tool must remain universally applicable: any language, any spec format, any team methodology. SEED.md S4 says EAV is schema-on-read precisely to avoid hardcoding ontology. Solutions must use the extractor pattern (ADR-FOUNDATION-009): language-specific logic in extractors, universal logic in kernel." :op :assert}
+   {:e #blake3 "6e0453dc3ef51ba7f037bbc4657eea10a3d6813b95da2344e56a90b98a9ff571" :a :db/ident :v :observation/critical-feedback-risk-of-overfitting-braid-to-its-own-boot :op :assert}
+   {:e #blake3 "6e0453dc3ef51ba7f037bbc4657eea10a3d6813b95da2344e56a90b98a9ff571" :a :exploration/body :v "CRITICAL FEEDBACK: Risk of overfitting braid to its own bootstrap problem. Five solutions proposed in session 033 review may tether braid to Rust-specific tooling (Kani, cargo test JSON, clippy), our spec markdown format (Level 0-4 hierarchy), and our specific project conventions. The tool must remain universally applicable: any language, any spec format, any team methodology. SEED.md S4 says EAV is schema-on-read precisely to avoid hardcoding ontology. Solutions must use the extractor pattern (ADR-FOUNDATION-009): language-specific logic in extractors, universal logic in kernel." :op :assert}
+   {:e #blake3 "6e0453dc3ef51ba7f037bbc4657eea10a3d6813b95da2344e56a90b98a9ff571" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "6e0453dc3ef51ba7f037bbc4657eea10a3d6813b95da2344e56a90b98a9ff571" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "6e0453dc3ef51ba7f037bbc4657eea10a3d6813b95da2344e56a90b98a9ff571" :a :exploration/content-hash :v #bytes "761e9781fabc36fe59b723adbf725bbc4aa93d8f2b05449011aa33565a6bf9e3" :op :assert}
+   {:e #blake3 "6e0453dc3ef51ba7f037bbc4657eea10a3d6813b95da2344e56a90b98a9ff571" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "6e0453dc3ef51ba7f037bbc4657eea10a3d6813b95da2344e56a90b98a9ff571" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "6e0453dc3ef51ba7f037bbc4657eea10a3d6813b95da2344e56a90b98a9ff571" :a :exploration/source-session :v #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :op :assert}
+ ]}

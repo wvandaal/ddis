@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774151598/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SOLUTION-2 (Incremental Store Cache): Delta-apply new transactions to cached store instead of full rebuild. OVERFITTING RISK: None — this is pure store internals. The datom store, transaction files, and cache are braid's own abstractions. No language or project coupling. VERDICT: Safe to implement as proposed."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1666834c2ade5a1fddd44bfde6dfc7c4962cea4b86b4d2aecd422970e753585e" :a :db/ident :v :task/t-c176a338 :op :assert}
+   {:e #blake3 "1666834c2ade5a1fddd44bfde6dfc7c4962cea4b86b4d2aecd422970e753585e" :a :task/created-at :v 1774151597 :op :assert}
+   {:e #blake3 "1666834c2ade5a1fddd44bfde6dfc7c4962cea4b86b4d2aecd422970e753585e" :a :task/id :v "t-c176a338" :op :assert}
+   {:e #blake3 "1666834c2ade5a1fddd44bfde6dfc7c4962cea4b86b4d2aecd422970e753585e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "1666834c2ade5a1fddd44bfde6dfc7c4962cea4b86b4d2aecd422970e753585e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1666834c2ade5a1fddd44bfde6dfc7c4962cea4b86b4d2aecd422970e753585e" :a :task/title :v "SOLUTION-2 (Incremental Store Cache): Delta-apply new transactions to cached store instead of full rebuild. OVERFITTING RISK: None — this is pure store internals. The datom store, transaction files, and cache are braid's own abstractions. No language or project coupling. VERDICT: Safe to implement as proposed" :op :assert}
+   {:e #blake3 "1666834c2ade5a1fddd44bfde6dfc7c4962cea4b86b4d2aecd422970e753585e" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "cecc860d88662e9e24d063a68d073d2a6193ab484158df5309162fd019e2e87c" :a :db/doc :v "SOLUTION-2 (Incremental Store Cache): Delta-apply new transactions to cached store instead of full rebuild. OVERFITTING RISK: None — this is pure store internals. The datom store, transaction files, and cache are braid's own abstractions. No language or project coupling. VERDICT: Safe to implement as proposed." :op :assert}
+   {:e #blake3 "cecc860d88662e9e24d063a68d073d2a6193ab484158df5309162fd019e2e87c" :a :db/ident :v :observation/solution-2-incremental-store-cache-delta-apply-new-transa :op :assert}
+   {:e #blake3 "cecc860d88662e9e24d063a68d073d2a6193ab484158df5309162fd019e2e87c" :a :exploration/body :v "SOLUTION-2 (Incremental Store Cache): Delta-apply new transactions to cached store instead of full rebuild. OVERFITTING RISK: None — this is pure store internals. The datom store, transaction files, and cache are braid's own abstractions. No language or project coupling. VERDICT: Safe to implement as proposed." :op :assert}
+   {:e #blake3 "cecc860d88662e9e24d063a68d073d2a6193ab484158df5309162fd019e2e87c" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "cecc860d88662e9e24d063a68d073d2a6193ab484158df5309162fd019e2e87c" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "cecc860d88662e9e24d063a68d073d2a6193ab484158df5309162fd019e2e87c" :a :exploration/content-hash :v #bytes "da721f9f5dfd24bb01f1d4620373222e29499aadb97c27dea811d8cdf163d6d7" :op :assert}
+   {:e #blake3 "cecc860d88662e9e24d063a68d073d2a6193ab484158df5309162fd019e2e87c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "cecc860d88662e9e24d063a68d073d2a6193ab484158df5309162fd019e2e87c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "cecc860d88662e9e24d063a68d073d2a6193ab484158df5309162fd019e2e87c" :a :exploration/source-session :v #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :op :assert}
+ ]}

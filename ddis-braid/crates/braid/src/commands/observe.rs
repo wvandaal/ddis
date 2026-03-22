@@ -419,7 +419,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             datoms.push(Datom::new(
                 adr_entity,
                 Attribute::from_keyword(":spec/element-type"),
-                Value::Keyword("finding-adr".to_string()),
+                Value::Keyword(":spec.finding/adr".to_string()),
                 tx_id,
                 Op::Assert,
             ));
@@ -762,11 +762,11 @@ fn auto_crystallize_finding(
         || lower.contains("decision");
 
     let element_type = if has_inv && has_falsification_lang {
-        "finding-inv"
+        ":spec.finding/invariant"
     } else if has_adr && has_decision_lang {
-        "finding-adr"
+        ":spec.finding/adr"
     } else if has_neg && has_falsification_lang {
-        "finding-neg"
+        ":spec.finding/negative"
     } else {
         // Doesn't meet language criteria
         return None;

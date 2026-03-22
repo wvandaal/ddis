@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774151604/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SOLUTION-5 (Spec Datom Enrichment): Migrate Level 0-4 hierarchy from markdown to store. OVERFITTING RISK: HIGH. The Level 0-4 formalization (algebraic law, state invariant, implementation contract, proptest strategy) is DDIS-specific methodology. Not every project has algebraic foundations. A web app team's specs look completely different. CORRECTED DESIGN: The kernel should support arbitrary structured attributes on spec entities (:spec/section-* with free-form keys), not a hardcoded 4-level hierarchy. The DDIS Level 0-4 would be one convention, not the only one."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "84827fb9f2ae0715c65445c37c3c8e34016a51377b277d857adc0da7ecd28ee7" :a :db/doc :v "SOLUTION-5 (Spec Datom Enrichment): Migrate Level 0-4 hierarchy from markdown to store. OVERFITTING RISK: HIGH. The Level 0-4 formalization (algebraic law, state invariant, implementation contract, proptest strategy) is DDIS-specific methodology. Not every project has algebraic foundations. A web app team's specs look completely different. CORRECTED DESIGN: The kernel should support arbitrary structured attributes on spec entities (:spec/section-* with free-form keys), not a hardcoded 4-level hierarchy. The DDIS Level 0-4 would be one convention, not the only one." :op :assert}
+   {:e #blake3 "84827fb9f2ae0715c65445c37c3c8e34016a51377b277d857adc0da7ecd28ee7" :a :db/ident :v :observation/solution-5-spec-datom-enrichment-migrate-level-0-4-hierar :op :assert}
+   {:e #blake3 "84827fb9f2ae0715c65445c37c3c8e34016a51377b277d857adc0da7ecd28ee7" :a :exploration/body :v "SOLUTION-5 (Spec Datom Enrichment): Migrate Level 0-4 hierarchy from markdown to store. OVERFITTING RISK: HIGH. The Level 0-4 formalization (algebraic law, state invariant, implementation contract, proptest strategy) is DDIS-specific methodology. Not every project has algebraic foundations. A web app team's specs look completely different. CORRECTED DESIGN: The kernel should support arbitrary structured attributes on spec entities (:spec/section-* with free-form keys), not a hardcoded 4-level hierarchy. The DDIS Level 0-4 would be one convention, not the only one." :op :assert}
+   {:e #blake3 "84827fb9f2ae0715c65445c37c3c8e34016a51377b277d857adc0da7ecd28ee7" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "84827fb9f2ae0715c65445c37c3c8e34016a51377b277d857adc0da7ecd28ee7" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "84827fb9f2ae0715c65445c37c3c8e34016a51377b277d857adc0da7ecd28ee7" :a :exploration/content-hash :v #bytes "c61c485991a28a24993481e97af06679662565b75db6faf95bed82caf7abdd5c" :op :assert}
+   {:e #blake3 "84827fb9f2ae0715c65445c37c3c8e34016a51377b277d857adc0da7ecd28ee7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "84827fb9f2ae0715c65445c37c3c8e34016a51377b277d857adc0da7ecd28ee7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "84827fb9f2ae0715c65445c37c3c8e34016a51377b277d857adc0da7ecd28ee7" :a :exploration/source-session :v #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :op :assert}
+ ]}

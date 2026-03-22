@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774151600/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SOLUTION-3 (Interrupt-Driven Guidance): Replace always-on footer with delta-triggered interrupts. Show footer only when F(S) changed or anomaly detected. OVERFITTING RISK: Low — the interrupt model is information-theoretic, not project-specific. Any store mutation that changes F(S) triggers it. VERDICT: Safe, but the specific anomaly detectors should be configurable, not hardcoded."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "132f8fae13da011e883943d5baf4f4c4de95792ec305d4abc96929bc7df1f162" :a :db/doc :v "SOLUTION-3 (Interrupt-Driven Guidance): Replace always-on footer with delta-triggered interrupts. Show footer only when F(S) changed or anomaly detected. OVERFITTING RISK: Low — the interrupt model is information-theoretic, not project-specific. Any store mutation that changes F(S) triggers it. VERDICT: Safe, but the specific anomaly detectors should be configurable, not hardcoded." :op :assert}
+   {:e #blake3 "132f8fae13da011e883943d5baf4f4c4de95792ec305d4abc96929bc7df1f162" :a :db/ident :v :observation/solution-3-interrupt-driven-guidance-replace-always-on-fo :op :assert}
+   {:e #blake3 "132f8fae13da011e883943d5baf4f4c4de95792ec305d4abc96929bc7df1f162" :a :exploration/body :v "SOLUTION-3 (Interrupt-Driven Guidance): Replace always-on footer with delta-triggered interrupts. Show footer only when F(S) changed or anomaly detected. OVERFITTING RISK: Low — the interrupt model is information-theoretic, not project-specific. Any store mutation that changes F(S) triggers it. VERDICT: Safe, but the specific anomaly detectors should be configurable, not hardcoded." :op :assert}
+   {:e #blake3 "132f8fae13da011e883943d5baf4f4c4de95792ec305d4abc96929bc7df1f162" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "132f8fae13da011e883943d5baf4f4c4de95792ec305d4abc96929bc7df1f162" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "132f8fae13da011e883943d5baf4f4c4de95792ec305d4abc96929bc7df1f162" :a :exploration/content-hash :v #bytes "fd22feaa680c93d96d96e6977a655cde4b9ab30a5f69fd3d2ee36bd345402dc2" :op :assert}
+   {:e #blake3 "132f8fae13da011e883943d5baf4f4c4de95792ec305d4abc96929bc7df1f162" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "132f8fae13da011e883943d5baf4f4c4de95792ec305d4abc96929bc7df1f162" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "132f8fae13da011e883943d5baf4f4c4de95792ec305d4abc96929bc7df1f162" :a :exploration/source-session :v #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :op :assert}
+ ]}
