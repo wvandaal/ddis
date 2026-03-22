@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774207821/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "THE OBSERVER IS PLUGGABLE: Human, AI agent, CI pipeline, sensor, auditor — all are instances of the same interface: something that asserts datoms from its interaction with reality. They dont coordinate. They assert facts into the same append-only store. CRDT merge combines their knowledge. The go deeper signal can come from any observer. The conversation between observers IS the productive inquiry the system formalizes. Claude Code is one pluggable observer. The human is another. The test runner is another. The future holds observers we havent imagined yet."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cbde2cc07bc0f0540f184a2a78270920b0e2c3dfdfbad681f9f1bbfcbc5b9fb5" :a :db/doc :v "THE OBSERVER IS PLUGGABLE: Human, AI agent, CI pipeline, sensor, auditor — all are instances of the same interface: something that asserts datoms from its interaction with reality. They dont coordinate. They assert facts into the same append-only store. CRDT merge combines their knowledge. The go deeper signal can come from any observer. The conversation between observers IS the productive inquiry the system formalizes. Claude Code is one pluggable observer. The human is another. The test runner is another. The future holds observers we havent imagined yet." :op :assert}
+   {:e #blake3 "cbde2cc07bc0f0540f184a2a78270920b0e2c3dfdfbad681f9f1bbfcbc5b9fb5" :a :db/ident :v :observation/the-observer-is-pluggable-human-ai-agent-ci-pipeline-sen :op :assert}
+   {:e #blake3 "cbde2cc07bc0f0540f184a2a78270920b0e2c3dfdfbad681f9f1bbfcbc5b9fb5" :a :exploration/body :v "THE OBSERVER IS PLUGGABLE: Human, AI agent, CI pipeline, sensor, auditor — all are instances of the same interface: something that asserts datoms from its interaction with reality. They dont coordinate. They assert facts into the same append-only store. CRDT merge combines their knowledge. The go deeper signal can come from any observer. The conversation between observers IS the productive inquiry the system formalizes. Claude Code is one pluggable observer. The human is another. The test runner is another. The future holds observers we havent imagined yet." :op :assert}
+   {:e #blake3 "cbde2cc07bc0f0540f184a2a78270920b0e2c3dfdfbad681f9f1bbfcbc5b9fb5" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "cbde2cc07bc0f0540f184a2a78270920b0e2c3dfdfbad681f9f1bbfcbc5b9fb5" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "cbde2cc07bc0f0540f184a2a78270920b0e2c3dfdfbad681f9f1bbfcbc5b9fb5" :a :exploration/content-hash :v #bytes "5e06d4453425eb93735529fb5c7e48dbee44b4135f6159e6619edc94355b0cfa" :op :assert}
+   {:e #blake3 "cbde2cc07bc0f0540f184a2a78270920b0e2c3dfdfbad681f9f1bbfcbc5b9fb5" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "cbde2cc07bc0f0540f184a2a78270920b0e2c3dfdfbad681f9f1bbfcbc5b9fb5" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "cbde2cc07bc0f0540f184a2a78270920b0e2c3dfdfbad681f9f1bbfcbc5b9fb5" :a :exploration/source-session :v #blake3 "3093250457e9d2fd4f792eb0066695f85d97cc39ccec854d49c85baf9a7f4885" :op :assert}
+ ]}
