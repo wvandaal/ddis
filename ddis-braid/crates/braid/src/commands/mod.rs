@@ -110,6 +110,12 @@ After init:
         /// Spec directory to auto-bootstrap (if it exists).
         #[arg(long, default_value = "spec")]
         spec_dir: PathBuf,
+
+        /// Policy manifest file (.edn) to load at init time.
+        /// Without this flag: empty substrate (no policy, F(S)=1.0, C8 proven by construction).
+        /// Example: --manifest manifests/ddis.edn
+        #[arg(long)]
+        manifest: Option<PathBuf>,
     },
 
     // ── CAPTURE ────────────────────────────────────────────────────────
@@ -2109,8 +2115,12 @@ pub fn run(
     let footer_cmd_name: Option<&str> = Some(command_name_for(&cmd));
 
     let result: Result<String, crate::error::BraidError> = match cmd {
-        Command::Init { path, spec_dir } => {
-            let cmd_output = init::run(&path, &spec_dir)?;
+        Command::Init {
+            path,
+            spec_dir,
+            manifest,
+        } => {
+            let cmd_output = init::run(&path, &spec_dir, manifest.as_deref())?;
             return Ok(maybe_inject_footer(
                 cmd_output,
                 skip_footer,
@@ -3054,6 +3064,7 @@ mod tests {
         let init = Command::Init {
             path: PathBuf::from(".braid"),
             spec_dir: PathBuf::from("spec"),
+            manifest: None,
         };
         assert!(!is_json_output(&init, h));
     }
@@ -3398,6 +3409,7 @@ mod tests {
             Command::Init {
                 path: PathBuf::from(".braid"),
                 spec_dir: PathBuf::from("spec"),
+                manifest: None,
             },
             Command::Status {
                 path: PathBuf::from(".braid"),
@@ -3830,6 +3842,7 @@ mod tests {
         let init = Command::Init {
             path: PathBuf::from(".braid"),
             spec_dir: PathBuf::from("spec"),
+            manifest: None,
         };
         assert_eq!(command_name_for(&init), "init");
 

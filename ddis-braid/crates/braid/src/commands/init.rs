@@ -31,7 +31,11 @@ struct Detection {
 /// - Records config datoms for detection results
 /// - Optionally bootstraps spec elements from spec_dir
 /// - Idempotent: re-running refreshes detection without duplicating data
-pub fn run(path: &Path, spec_dir: &Path) -> Result<CommandOutput, BraidError> {
+pub fn run(
+    path: &Path,
+    spec_dir: &Path,
+    manifest: Option<&Path>,
+) -> Result<CommandOutput, BraidError> {
     let layout = DiskLayout::init(path)?;
     let hashes = layout.list_tx_hashes()?;
     let store = layout.load_store()?;
@@ -198,6 +202,67 @@ pub fn run(path: &Path, spec_dir: &Path) -> Result<CommandOutput, BraidError> {
                 out.push_str(&format!("  trace: skipped ({e})\n"));
             }
         }
+    }
+
+    // --- Policy manifest loading (C8, ADR-FOUNDATION-013) ---
+    // Without --manifest: empty substrate (no policy datoms, F(S)=1.0).
+    // With --manifest <file>: parse EDN, validate, transact policy datoms.
+    // C8 proven by construction: the kernel works without any policy.
+    if let Some(manifest_path) = manifest {
+        if !manifest_path.exists() {
+            return Err(BraidError::Validation(format!(
+                "manifest file not found: {}",
+                manifest_path.display()
+            )));
+        }
+        // Copy the manifest .edn into the txns/ directory.
+        // The manifest must be a valid TxFile .edn (same format as any transaction).
+        let manifest_bytes = std::fs::read(manifest_path).map_err(|e| {
+            BraidError::Validation(format!(
+                "failed to read manifest {}: {e}",
+                manifest_path.display()
+            ))
+        })?;
+
+        // Write the manifest as a transaction file
+        let manifest_hash = blake3::hash(&manifest_bytes);
+        let hex = manifest_hash.to_hex();
+        let dir = path.join("txns").join(&hex[..2]);
+        std::fs::create_dir_all(&dir)?;
+        let tx_path = dir.join(format!("{hex}.edn"));
+        if !tx_path.exists() {
+            std::fs::write(&tx_path, &manifest_bytes)?;
+        }
+
+        // Reload store to pick up the manifest, then validate
+        let updated_store = layout.load_store()?;
+        if let Some(config) = braid_kernel::policy::PolicyConfig::from_store(&updated_store) {
+            let errors = braid_kernel::policy::validate_policy(&config);
+            if errors.is_empty() {
+                out.push_str(&format!(
+                    "  policy: {} boundaries from {}\n",
+                    config.boundaries.len(),
+                    manifest_path.display()
+                ));
+            } else {
+                out.push_str(&format!(
+                    "  policy: loaded with {} warnings from {}\n",
+                    errors.len(),
+                    manifest_path.display()
+                ));
+                for e in &errors {
+                    out.push_str(&format!("    warn: {}\n", e.constraint));
+                }
+            }
+        } else {
+            out.push_str(&format!(
+                "  policy: loaded {} but no boundaries found\n",
+                manifest_path.display()
+            ));
+        }
+    } else {
+        // Empty substrate: no policy datoms. C8 proven by construction.
+        // F(S) = 1.0 (vacuously coherent when no boundaries declared).
     }
 
     // --- Auto-inject seed section into AGENTS.md/CLAUDE.md (D1) ---

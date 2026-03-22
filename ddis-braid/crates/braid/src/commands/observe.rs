@@ -997,7 +997,7 @@ mod tests {
         let path = dir.path().join(".braid");
 
         // Initialize store
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         // Observe
         let result = run(ObserveArgs {
@@ -1058,7 +1058,7 @@ mod tests {
     fn observe_validates_confidence_range() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         let result = run(ObserveArgs {
             path: &path,
@@ -1079,7 +1079,7 @@ mod tests {
     fn observe_validates_empty_text() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         let result = run(ObserveArgs {
             path: &path,
@@ -1100,7 +1100,7 @@ mod tests {
     fn observe_with_relates_to() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         let result = run(ObserveArgs {
             path: &path,
@@ -1148,7 +1148,7 @@ mod tests {
     fn observe_queryable_via_datalog() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         // Create observation
         run(ObserveArgs {

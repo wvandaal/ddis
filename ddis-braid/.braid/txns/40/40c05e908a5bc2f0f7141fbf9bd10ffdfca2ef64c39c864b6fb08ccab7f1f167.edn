@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774210906/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-898ec5a7"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/close-reason :v "Empty-substrate default implemented. braid init without --manifest creates store with 0 policy instance datoms. --manifest flag loads .edn file as txn and validates. All commands work on policy-free stores. 1619 tests pass." :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/closed-at :v 1774210905 :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/status :v :task.status/closed :op :assert}
+ ]}

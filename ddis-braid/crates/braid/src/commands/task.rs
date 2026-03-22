@@ -2101,7 +2101,7 @@ mod tests {
     fn create_task_via_cli() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         let result = create_test_task(&path, "Test task", 2);
         assert!(result.human.contains("created:"));
@@ -2117,7 +2117,7 @@ mod tests {
     fn ready_excludes_blocked() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         create_test_task(&path, "Task A", 1);
         create_test_task(&path, "Task B", 0);
@@ -2143,7 +2143,7 @@ mod tests {
 
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         // First, manually transact a spec element with :spec/falsification
         let layout = crate::layout::DiskLayout::open(&path).unwrap();
@@ -2227,7 +2227,7 @@ mod tests {
     fn create_task_with_invalid_spec_ref_warns() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         let result = create(CreateArgs {
             path: &path,
@@ -2265,7 +2265,7 @@ mod tests {
     fn set_shows_old_to_new_diff() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         // Create task with priority 2
         create_test_task(&path, "Priority diff test", 2);
@@ -2291,7 +2291,7 @@ mod tests {
     fn set_shows_unchanged_when_same() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         // Create task with priority 2
         create_test_task(&path, "Unchanged diff test", 2);
@@ -2312,7 +2312,7 @@ mod tests {
     fn set_shows_status_transition() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         create_test_task(&path, "Status diff test", 2);
         let task_id = generate_task_id("Status diff test");
@@ -2335,7 +2335,7 @@ mod tests {
     fn set_nonexistent_task_returns_error() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         let result = set(&path, "t-nonexistent", "priority", "1", "test");
         assert!(
@@ -2348,7 +2348,7 @@ mod tests {
     fn set_invalid_attribute_returns_error() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         create_test_task(&path, "Invalid attr test", 2);
         let task_id = generate_task_id("Invalid attr test");
@@ -2368,7 +2368,7 @@ mod tests {
     fn batch_close_multiple_tasks_single_txn() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         // Create 5 tasks
         let mut ids = Vec::new();
@@ -2406,7 +2406,7 @@ mod tests {
     fn priority_set_persists_across_reload() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join(".braid");
-        crate::commands::init::run(&path, Path::new("spec")).unwrap();
+        crate::commands::init::run(&path, Path::new("spec"), None).unwrap();
 
         create_test_task(&path, "Priority persist test", 2);
         let task_id = generate_task_id("Priority persist test");
