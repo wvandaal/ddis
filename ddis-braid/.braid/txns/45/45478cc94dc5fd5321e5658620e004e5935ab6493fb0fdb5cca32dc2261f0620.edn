@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774201438/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOOTSTRAP-1: Interactive braid init — structured prompts for domain, claim types, evidence types, boundaries, anomaly triggers. LLM compiles responses into policy manifest datoms. The conversation is recorded as first harvest observations via COTX. TRACES-TO: ADR-FOUNDATION-012, C7. DEPENDS-ON: POLICY-1, POLICY-2. FILE: crates/braid/src/commands/init.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "736b1484842617260c699cd42a427ffa0575f1b24948cd79be3e05b64e3605ed" :a :db/ident :v :task/t-7f2fbc90 :op :assert}
+   {:e #blake3 "736b1484842617260c699cd42a427ffa0575f1b24948cd79be3e05b64e3605ed" :a :task/created-at :v 1774201437 :op :assert}
+   {:e #blake3 "736b1484842617260c699cd42a427ffa0575f1b24948cd79be3e05b64e3605ed" :a :task/files :v "crates/braid/src/commands/init.rs" :op :assert}
+   {:e #blake3 "736b1484842617260c699cd42a427ffa0575f1b24948cd79be3e05b64e3605ed" :a :task/id :v "t-7f2fbc90" :op :assert}
+   {:e #blake3 "736b1484842617260c699cd42a427ffa0575f1b24948cd79be3e05b64e3605ed" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "736b1484842617260c699cd42a427ffa0575f1b24948cd79be3e05b64e3605ed" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "736b1484842617260c699cd42a427ffa0575f1b24948cd79be3e05b64e3605ed" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "736b1484842617260c699cd42a427ffa0575f1b24948cd79be3e05b64e3605ed" :a :task/title :v "BOOTSTRAP-1: Interactive braid init — structured prompts for domain, claim types, evidence types, boundaries, anomaly triggers. LLM compiles responses into policy manifest datoms. The conversation is recorded as first harvest observations via COTX. TRACES-TO: ADR-FOUNDATION-012, C7. DEPENDS-ON: POLICY-1, POLICY-2. FILE: crates/braid/src/commands/init.rs" :op :assert}
+   {:e #blake3 "736b1484842617260c699cd42a427ffa0575f1b24948cd79be3e05b64e3605ed" :a :task/title-l0 :v "BOOTSTRAP-1" :op :assert}
+   {:e #blake3 "736b1484842617260c699cd42a427ffa0575f1b24948cd79be3e05b64e3605ed" :a :task/title-l1 :v "BOOTSTRAP-1: Interactive braid init — structured prompts for domain, claim..." :op :assert}
+   {:e #blake3 "736b1484842617260c699cd42a427ffa0575f1b24948cd79be3e05b64e3605ed" :a :task/type :v :task.type/task :op :assert}
+ ]}

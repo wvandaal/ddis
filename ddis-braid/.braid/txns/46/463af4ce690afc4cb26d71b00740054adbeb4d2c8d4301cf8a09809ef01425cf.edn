@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774201423/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0d4f19d5407a3a6837c76bf2e1d33c22f2b5a789cd6e8d4ff8f0ff5ca20cca18" :a :db/ident :v :recon/trace-e5b7b8bc421ee9a1 :op :assert}
+   {:e #blake3 "0d4f19d5407a3a6837c76bf2e1d33c22f2b5a789cd6e8d4ff8f0ff5ca20cca18" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "0d4f19d5407a3a6837c76bf2e1d33c22f2b5a789cd6e8d4ff8f0ff5ca20cca18" :a :recon/trace-neighborhood :v "FOUNDATION" :op :assert}
+   {:e #blake3 "0d4f19d5407a3a6837c76bf2e1d33c22f2b5a789cd6e8d4ff8f0ff5ca20cca18" :a :recon/trace-neighbors :v ":task/t-65f3f95e" :op :assert}
+   {:e #blake3 "0d4f19d5407a3a6837c76bf2e1d33c22f2b5a789cd6e8d4ff8f0ff5ca20cca18" :a :recon/trace-neighbors :v ":task/t-958a44fa" :op :assert}
+   {:e #blake3 "0d4f19d5407a3a6837c76bf2e1d33c22f2b5a789cd6e8d4ff8f0ff5ca20cca18" :a :recon/trace-neighbors :v ":task/t-ad9c0930" :op :assert}
+   {:e #blake3 "0d4f19d5407a3a6837c76bf2e1d33c22f2b5a789cd6e8d4ff8f0ff5ca20cca18" :a :recon/trace-neighbors :v ":task/t-ca2af3c5" :op :assert}
+   {:e #blake3 "0d4f19d5407a3a6837c76bf2e1d33c22f2b5a789cd6e8d4ff8f0ff5ca20cca18" :a :recon/trace-neighbors :v ":task/t-edb3a87d" :op :assert}
+   {:e #blake3 "0d4f19d5407a3a6837c76bf2e1d33c22f2b5a789cd6e8d4ff8f0ff5ca20cca18" :a :recon/trace-neighbors :v ":task/t-f2b41d54" :op :assert}
+   {:e #blake3 "0d4f19d5407a3a6837c76bf2e1d33c22f2b5a789cd6e8d4ff8f0ff5ca20cca18" :a :recon/trace-refs :v "INV-FOUNDATION-006" :op :assert}
+   {:e #blake3 "0d4f19d5407a3a6837c76bf2e1d33c22f2b5a789cd6e8d4ff8f0ff5ca20cca18" :a :recon/trace-refs :v "INV-FOUNDATION-007" :op :assert}
+ ]}

@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774201459/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: OBSERVER-2: Filesystem watcher — first watcher type. Monitors paths declared in :policy/watcher datoms. On file change: invoke extractor, produce datoms through COTX pipeline, run boundary check. If anomaly detected: push interrupt to connected clients. DEPENDS-ON: OBSERVER-1. FILE: crates/braid/src/daemon/"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5e174a184bbc843b5b33a117f2d2078bfd0191e79a944ffe25215ed943d65322" :a :db/ident :v :task/t-9d6d0abb :op :assert}
+   {:e #blake3 "5e174a184bbc843b5b33a117f2d2078bfd0191e79a944ffe25215ed943d65322" :a :task/created-at :v 1774201458 :op :assert}
+   {:e #blake3 "5e174a184bbc843b5b33a117f2d2078bfd0191e79a944ffe25215ed943d65322" :a :task/files :v "crates/braid/src/daemon/" :op :assert}
+   {:e #blake3 "5e174a184bbc843b5b33a117f2d2078bfd0191e79a944ffe25215ed943d65322" :a :task/id :v "t-9d6d0abb" :op :assert}
+   {:e #blake3 "5e174a184bbc843b5b33a117f2d2078bfd0191e79a944ffe25215ed943d65322" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "5e174a184bbc843b5b33a117f2d2078bfd0191e79a944ffe25215ed943d65322" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5e174a184bbc843b5b33a117f2d2078bfd0191e79a944ffe25215ed943d65322" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5e174a184bbc843b5b33a117f2d2078bfd0191e79a944ffe25215ed943d65322" :a :task/title :v "OBSERVER-2: Filesystem watcher — first watcher type. Monitors paths declared in :policy/watcher datoms. On file change: invoke extractor, produce datoms through COTX pipeline, run boundary check. If anomaly detected: push interrupt to connected clients. DEPENDS-ON: OBSERVER-1. FILE: crates/braid/src/daemon/" :op :assert}
+   {:e #blake3 "5e174a184bbc843b5b33a117f2d2078bfd0191e79a944ffe25215ed943d65322" :a :task/title-l0 :v "OBSERVER-2" :op :assert}
+   {:e #blake3 "5e174a184bbc843b5b33a117f2d2078bfd0191e79a944ffe25215ed943d65322" :a :task/title-l1 :v "OBSERVER-2: Filesystem watcher — first watcher type" :op :assert}
+   {:e #blake3 "5e174a184bbc843b5b33a117f2d2078bfd0191e79a944ffe25215ed943d65322" :a :task/type :v :task.type/task :op :assert}
+ ]}

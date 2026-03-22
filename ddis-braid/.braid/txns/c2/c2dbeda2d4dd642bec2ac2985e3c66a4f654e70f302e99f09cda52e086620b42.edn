@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774201462/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "abc4e22f9c21bc5f0a75a3ffb71f5093ac350d0be60b2054db5b073d3f157cb7" :a :db/ident :v :recon/trace-563a3f44ae1a38de :op :assert}
+   {:e #blake3 "abc4e22f9c21bc5f0a75a3ffb71f5093ac350d0be60b2054db5b073d3f157cb7" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "abc4e22f9c21bc5f0a75a3ffb71f5093ac350d0be60b2054db5b073d3f157cb7" :a :recon/trace-neighborhood :v "WITNESS" :op :assert}
+   {:e #blake3 "abc4e22f9c21bc5f0a75a3ffb71f5093ac350d0be60b2054db5b073d3f157cb7" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.witness.inv-witness-006" :op :assert}
+   {:e #blake3 "abc4e22f9c21bc5f0a75a3ffb71f5093ac350d0be60b2054db5b073d3f157cb7" :a :recon/trace-neighbors :v ":task/t-694ce001" :op :assert}
+   {:e #blake3 "abc4e22f9c21bc5f0a75a3ffb71f5093ac350d0be60b2054db5b073d3f157cb7" :a :recon/trace-neighbors :v ":task/t-cf3898f2" :op :assert}
+   {:e #blake3 "abc4e22f9c21bc5f0a75a3ffb71f5093ac350d0be60b2054db5b073d3f157cb7" :a :recon/trace-neighbors :v ":task/t-d70a1d49" :op :assert}
+   {:e #blake3 "abc4e22f9c21bc5f0a75a3ffb71f5093ac350d0be60b2054db5b073d3f157cb7" :a :recon/trace-neighbors :v ":task/t-dad64d2a" :op :assert}
+   {:e #blake3 "abc4e22f9c21bc5f0a75a3ffb71f5093ac350d0be60b2054db5b073d3f157cb7" :a :recon/trace-refs :v "INV-WITNESS-006" :op :assert}
+ ]}

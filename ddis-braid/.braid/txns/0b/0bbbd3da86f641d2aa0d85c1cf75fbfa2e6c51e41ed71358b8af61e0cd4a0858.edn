@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774201456/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: OBSERVER-1: Daemon watcher subsystem — policy-defined watchers registered as :policy/watcher datoms. Watcher types: filesystem (inotify), git-hook (post-commit), test-runner (output parser), mcp-intercept. Each watcher has pattern, extractor ref, debounce interval. DEPENDS-ON: CE-7 (daemon), POLICY-1. TRACES-TO: INV-GUIDANCE-001, ADR-STORE-006. FILE: crates/braid-kernel/src/daemon.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :db/ident :v :task/t-68f17a7e :op :assert}
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :task/created-at :v 1774201455 :op :assert}
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :task/files :v "crates/braid-kernel/src/daemon.rs" :op :assert}
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :task/id :v "t-68f17a7e" :op :assert}
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :task/title :v "OBSERVER-1: Daemon watcher subsystem — policy-defined watchers registered as :policy/watcher datoms. Watcher types: filesystem (inotify), git-hook (post-commit), test-runner (output parser), mcp-intercept. Each watcher has pattern, extractor ref, debounce interval. DEPENDS-ON: CE-7 (daemon), POLICY-1. TRACES-TO: INV-GUIDANCE-001, ADR-STORE-006. FILE: crates/braid-kernel/src/daemon.rs" :op :assert}
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :task/title-l0 :v "OBSERVER-1" :op :assert}
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :task/title-l1 :v "OBSERVER-1: Daemon watcher subsystem — policy-defined watchers registered a..." :op :assert}
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :task/traces-to :v #blake3 "00fef033f5c329793efc40be3338ce3fe708f0b44a0e3db9a817b62d38313c3f" :op :assert}
+   {:e #blake3 "1998ad2f8db0d800435bac6435d81537a54e2d7e75894eb7472aabfc8501cde2" :a :task/type :v :task.type/task :op :assert}
+ ]}

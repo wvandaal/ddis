@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774201417/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-2: Transact DDIS policy manifest at braid init — claim types (:spec/*), evidence types (:witness/*, :impl/*), 7 boundaries with current weights, anomaly detectors (harvest-urgency, witness-staleness, fs-regression). This makes the existing hardcoded fitness the FIRST manifest, not the ONLY one. TRACES-TO: ADR-FOUNDATION-013, C8. FILE: crates/braid/src/commands/init.rs, bootstrap.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3e187c67c60c40099916a3fde8193ba98fe3bf85e2be3eff17f8337d4560c3af" :a :db/ident :v :task/t-7e2ee7cb :op :assert}
+   {:e #blake3 "3e187c67c60c40099916a3fde8193ba98fe3bf85e2be3eff17f8337d4560c3af" :a :task/created-at :v 1774201416 :op :assert}
+   {:e #blake3 "3e187c67c60c40099916a3fde8193ba98fe3bf85e2be3eff17f8337d4560c3af" :a :task/files :v "crates/braid/src/commands/init.rs" :op :assert}
+   {:e #blake3 "3e187c67c60c40099916a3fde8193ba98fe3bf85e2be3eff17f8337d4560c3af" :a :task/id :v "t-7e2ee7cb" :op :assert}
+   {:e #blake3 "3e187c67c60c40099916a3fde8193ba98fe3bf85e2be3eff17f8337d4560c3af" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "3e187c67c60c40099916a3fde8193ba98fe3bf85e2be3eff17f8337d4560c3af" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3e187c67c60c40099916a3fde8193ba98fe3bf85e2be3eff17f8337d4560c3af" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3e187c67c60c40099916a3fde8193ba98fe3bf85e2be3eff17f8337d4560c3af" :a :task/title :v "POLICY-2: Transact DDIS policy manifest at braid init — claim types (:spec/*), evidence types (:witness/*, :impl/*), 7 boundaries with current weights, anomaly detectors (harvest-urgency, witness-staleness, fs-regression). This makes the existing hardcoded fitness the FIRST manifest, not the ONLY one. TRACES-TO: ADR-FOUNDATION-013, C8. FILE: crates/braid/src/commands/init.rs, bootstrap.rs" :op :assert}
+   {:e #blake3 "3e187c67c60c40099916a3fde8193ba98fe3bf85e2be3eff17f8337d4560c3af" :a :task/title-l0 :v "POLICY-2" :op :assert}
+   {:e #blake3 "3e187c67c60c40099916a3fde8193ba98fe3bf85e2be3eff17f8337d4560c3af" :a :task/title-l1 :v "POLICY-2: Transact DDIS policy manifest at braid init — claim types (:spec/..." :op :assert}
+   {:e #blake3 "3e187c67c60c40099916a3fde8193ba98fe3bf85e2be3eff17f8337d4560c3af" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774201461/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: OBSERVER-3: Test runner watcher — captures test results via policy-defined extractor command. Auto-generates L2 witness datoms for passing tests with spec refs. Auto-generates bug tasks for failing tests with spec refs. Language-agnostic: extractor command in policy manifest. DEPENDS-ON: OBSERVER-1. TRACES-TO: INV-WITNESS-006, C8. FILE: crates/braid/src/daemon/"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :db/ident :v :task/t-cf3898f2 :op :assert}
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :task/created-at :v 1774201460 :op :assert}
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :task/files :v "crates/braid/src/daemon/" :op :assert}
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :task/id :v "t-cf3898f2" :op :assert}
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :task/title :v "OBSERVER-3: Test runner watcher — captures test results via policy-defined extractor command. Auto-generates L2 witness datoms for passing tests with spec refs. Auto-generates bug tasks for failing tests with spec refs. Language-agnostic: extractor command in policy manifest. DEPENDS-ON: OBSERVER-1. TRACES-TO: INV-WITNESS-006, C8. FILE: crates/braid/src/daemon/" :op :assert}
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :task/title-l0 :v "OBSERVER-3" :op :assert}
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :task/title-l1 :v "OBSERVER-3: Test runner watcher — captures test results via policy-defined..." :op :assert}
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :task/traces-to :v #blake3 "b4342882376d667a443427c5d062894a60d925c00aa6c17aa20e06156529b18e" :op :assert}
+   {:e #blake3 "77879481b0fd4fa9bc89e776e932afc381b6d9b7375c9488162d043622582fe9" :a :task/type :v :task.type/task :op :assert}
+ ]}

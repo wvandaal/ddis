@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774201414/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-1: Define :policy/* schema attributes — claim-pattern, evidence-pattern, boundary, boundary-weight, boundary-name, anomaly-trigger, anomaly-threshold. Register in genesis as axiomatic schema datoms. TRACES-TO: ADR-FOUNDATION-013, INV-FOUNDATION-007. FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :db/ident :v :task/t-958a44fa :op :assert}
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :task/created-at :v 1774201413 :op :assert}
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :task/files :v "crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :task/id :v "t-958a44fa" :op :assert}
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :task/title :v "POLICY-1: Define :policy/* schema attributes — claim-pattern, evidence-pattern, boundary, boundary-weight, boundary-name, anomaly-trigger, anomaly-threshold. Register in genesis as axiomatic schema datoms. TRACES-TO: ADR-FOUNDATION-013, INV-FOUNDATION-007. FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :task/title-l0 :v "POLICY-1" :op :assert}
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :task/title-l1 :v "POLICY-1: Define :policy/* schema attributes — claim-pattern, evidence-patt..." :op :assert}
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :task/traces-to :v #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :op :assert}
+   {:e #blake3 "65d6f3fa93592753834c002b5243a514ebc574ff25efd58ad2f36ed9fef85918" :a :task/type :v :task.type/task :op :assert}
+ ]}

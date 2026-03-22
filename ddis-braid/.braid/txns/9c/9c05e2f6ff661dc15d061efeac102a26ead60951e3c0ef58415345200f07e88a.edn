@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774201422/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-4: Modify MaterializedViews to generate accumulators from policy claim/evidence patterns rather than hardcoded attribute names. Cache parsed policy at store load time. TRACES-TO: INV-FOUNDATION-006, INV-FOUNDATION-007. FILE: crates/braid-kernel/src/store.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :db/ident :v :task/t-ad9c0930 :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/created-at :v 1774201421 :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/files :v "crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/id :v "t-ad9c0930" :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/title :v "POLICY-4: Modify MaterializedViews to generate accumulators from policy claim/evidence patterns rather than hardcoded attribute names. Cache parsed policy at store load time. TRACES-TO: INV-FOUNDATION-006, INV-FOUNDATION-007. FILE: crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/title-l0 :v "POLICY-4" :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/title-l1 :v "POLICY-4: Modify MaterializedViews to generate accumulators from policy claim..." :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/traces-to :v #blake3 "7acde41dbb27e9f3be835c10c3a870013f0855f97c7b597475f8921cbdc6de60" :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/traces-to :v #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :op :assert}
+   {:e #blake3 "5bbd29cdd9a73bd6368188ada695d46d0ab18365457749f85b67de77c3ad7711" :a :task/type :v :task.type/task :op :assert}
+ ]}

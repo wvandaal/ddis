@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774201440/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOOTSTRAP-2: Community manifest library — ship ddis.edn (current DDIS policy), research.edn (hypotheses/experiments/replications), compliance.edn (requirements/controls/audits). braid init --manifest <file> loads pre-built policy. DEPENDS-ON: POLICY-1. FILE: manifests/"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b2f0a559c523e766990d871c2528261c566314bb1e2602cd1ecea0db204f5b7c" :a :db/ident :v :task/t-b90ca241 :op :assert}
+   {:e #blake3 "b2f0a559c523e766990d871c2528261c566314bb1e2602cd1ecea0db204f5b7c" :a :task/created-at :v 1774201439 :op :assert}
+   {:e #blake3 "b2f0a559c523e766990d871c2528261c566314bb1e2602cd1ecea0db204f5b7c" :a :task/files :v "manifests/" :op :assert}
+   {:e #blake3 "b2f0a559c523e766990d871c2528261c566314bb1e2602cd1ecea0db204f5b7c" :a :task/id :v "t-b90ca241" :op :assert}
+   {:e #blake3 "b2f0a559c523e766990d871c2528261c566314bb1e2602cd1ecea0db204f5b7c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "b2f0a559c523e766990d871c2528261c566314bb1e2602cd1ecea0db204f5b7c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b2f0a559c523e766990d871c2528261c566314bb1e2602cd1ecea0db204f5b7c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b2f0a559c523e766990d871c2528261c566314bb1e2602cd1ecea0db204f5b7c" :a :task/title :v "BOOTSTRAP-2: Community manifest library — ship ddis.edn (current DDIS policy), research.edn (hypotheses/experiments/replications), compliance.edn (requirements/controls/audits). braid init --manifest <file> loads pre-built policy. DEPENDS-ON: POLICY-1. FILE: manifests/" :op :assert}
+   {:e #blake3 "b2f0a559c523e766990d871c2528261c566314bb1e2602cd1ecea0db204f5b7c" :a :task/title-l0 :v "BOOTSTRAP-2" :op :assert}
+   {:e #blake3 "b2f0a559c523e766990d871c2528261c566314bb1e2602cd1ecea0db204f5b7c" :a :task/title-l1 :v "BOOTSTRAP-2: Community manifest library — ship ddis.edn (current DDIS polic..." :op :assert}
+   {:e #blake3 "b2f0a559c523e766990d871c2528261c566314bb1e2602cd1ecea0db204f5b7c" :a :task/type :v :task.type/task :op :assert}
+ ]}

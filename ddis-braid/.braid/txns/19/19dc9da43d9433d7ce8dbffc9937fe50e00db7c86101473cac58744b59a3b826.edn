@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774201419/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-3: Modify compute_fitness to read boundary weights from policy datoms when present, falling back to compiled constants when absent. Wire BoundaryRegistry as primary fitness path. Verification: compute_fitness(store_with_ddis_policy) matches old compute_fitness within epsilon. TRACES-TO: INV-FOUNDATION-007. FILE: crates/braid-kernel/src/bilateral.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :db/ident :v :task/t-65f3f95e :op :assert}
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :task/created-at :v 1774201418 :op :assert}
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :task/files :v "crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :task/id :v "t-65f3f95e" :op :assert}
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :task/title :v "POLICY-3: Modify compute_fitness to read boundary weights from policy datoms when present, falling back to compiled constants when absent. Wire BoundaryRegistry as primary fitness path. Verification: compute_fitness(store_with_ddis_policy) matches old compute_fitness within epsilon. TRACES-TO: INV-FOUNDATION-007. FILE: crates/braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :task/title-l0 :v "POLICY-3" :op :assert}
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :task/title-l1 :v "POLICY-3: Modify compute_fitness to read boundary weights from policy datoms..." :op :assert}
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :task/traces-to :v #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :op :assert}
+   {:e #blake3 "7aadef649b03c28379043ca40ab2004cca9c05ad8bf6bb1129d66ea293232af3" :a :task/type :v :task.type/task :op :assert}
+ ]}
