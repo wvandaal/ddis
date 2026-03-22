@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774213811/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-3aec307f"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/close-reason :v "20 policy unit tests: from_store with boundary datoms, total_weight, validation (negative weight, weight sum, missing name, missing source, negative threshold), fitness from policy, fitness fallback, Store::fitness(), calibration defaults, two-boundary coverage. 1630 total tests." :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/closed-at :v 1774213810 :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/status :v :task.status/closed :op :assert}
+ ]}

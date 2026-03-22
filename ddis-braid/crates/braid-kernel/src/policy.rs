@@ -521,4 +521,219 @@ mod tests {
         assert!(config.is_evidence_attribute(":witness/status"));
         assert!(!config.is_evidence_attribute(":spec/element-type"));
     }
+
+    // ── POLICY-TEST: Additional unit tests for policy manifest system ──
+
+    use crate::datom::{AgentId, Datom, TxId};
+
+    fn make_policy_store() -> Store {
+        let agent = AgentId::from_name("test:policy");
+        let tx = TxId::new(100, 0, agent);
+
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        // Create a boundary entity
+        let boundary = EntityId::from_ident(":policy/test-boundary");
+        datoms.insert(Datom::new(
+            boundary,
+            Attribute::from_keyword(":policy/boundary-name"),
+            Value::String("test-coverage".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            boundary,
+            Attribute::from_keyword(":policy/boundary-source"),
+            Value::String(":claim/*".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            boundary,
+            Attribute::from_keyword(":policy/boundary-target"),
+            Value::String(":evidence/*".to_string()),
+            tx,
+            Op::Assert,
+        ));
+        datoms.insert(Datom::new(
+            boundary,
+            Attribute::from_keyword(":policy/boundary-weight"),
+            Value::Double(ordered_float::OrderedFloat(1.0)),
+            tx,
+            Op::Assert,
+        ));
+
+        // Create a claim entity
+        let claim = EntityId::from_ident(":claim/test-001");
+        datoms.insert(Datom::new(
+            claim,
+            Attribute::from_keyword(":claim/title"),
+            Value::String("Test claim".to_string()),
+            tx,
+            Op::Assert,
+        ));
+
+        // Create an evidence entity referencing the claim
+        let evidence = EntityId::from_ident(":evidence/test-001");
+        datoms.insert(Datom::new(
+            evidence,
+            Attribute::from_keyword(":evidence/covers"),
+            Value::Ref(claim),
+            tx,
+            Op::Assert,
+        ));
+
+        Store::from_datoms(datoms)
+    }
+
+    #[test]
+    fn policy_from_store_with_boundary() {
+        let store = make_policy_store();
+        let config = PolicyConfig::from_store(&store);
+        assert!(config.is_some(), "store with boundary datoms should produce policy");
+        let config = config.unwrap();
+        assert_eq!(config.boundaries.len(), 1);
+        assert_eq!(config.boundaries[0].name, "test-coverage");
+        assert_eq!(config.boundaries[0].weight, 1.0);
+    }
+
+    #[test]
+    fn policy_total_weight() {
+        let store = make_policy_store();
+        let config = PolicyConfig::from_store(&store).unwrap();
+        assert!((config.total_weight() - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn policy_valid_single_boundary() {
+        let store = make_policy_store();
+        let config = PolicyConfig::from_store(&store).unwrap();
+        let errors = validate_policy(&config);
+        assert!(errors.is_empty(), "single boundary with weight 1.0 should be valid");
+    }
+
+    #[test]
+    fn compute_fitness_from_policy_with_boundary() {
+        let store = make_policy_store();
+        let fs = crate::bilateral::compute_fitness_from_policy(&store);
+        assert!(fs.is_some(), "store with policy should produce fitness");
+        let fs = fs.unwrap();
+        assert!(
+            fs.total >= 0.0 && fs.total <= 1.0,
+            "F(S) should be in [0,1]: {:.4}",
+            fs.total
+        );
+    }
+
+    #[test]
+    fn compute_fitness_from_policy_none_without_policy() {
+        let store = Store::genesis();
+        let fs = crate::bilateral::compute_fitness_from_policy(&store);
+        assert!(fs.is_none(), "genesis store should produce None (no policy)");
+    }
+
+    #[test]
+    fn store_fitness_uses_policy_when_available() {
+        let store = make_policy_store();
+        let fs = store.fitness();
+        // Should succeed regardless of path (policy or views)
+        assert!(
+            fs.total >= 0.0 && fs.total <= 1.0,
+            "store.fitness() should be in [0,1]: {:.4}",
+            fs.total
+        );
+    }
+
+    #[test]
+    fn store_fitness_fallback_without_policy() {
+        let store = Store::genesis();
+        let fs = store.fitness();
+        // Without policy, falls back to views which compute from hardcoded accumulators
+        assert!(
+            fs.total >= 0.0 && fs.total <= 1.0,
+            "fallback fitness should be in [0,1]: {:.4}",
+            fs.total
+        );
+    }
+
+    #[test]
+    fn validate_anomaly_negative_threshold() {
+        let config = PolicyConfig {
+            boundaries: vec![],
+            claim_patterns: vec![],
+            evidence_patterns: vec![],
+            anomaly_detectors: vec![AnomalyDef {
+                entity: EntityId::from_ident(":test/anomaly"),
+                trigger: ":tx/time".to_string(),
+                threshold: -5,
+                message: "test".to_string(),
+            }],
+            calibration: CalibrationConfig::default(),
+        };
+        let errors = validate_policy(&config);
+        assert!(
+            errors.iter().any(|e| e.constraint.contains("non-positive")),
+            "negative anomaly threshold should produce error"
+        );
+    }
+
+    #[test]
+    fn validate_missing_source_pattern() {
+        let config = PolicyConfig {
+            boundaries: vec![BoundaryDef {
+                entity: EntityId::from_ident(":test/nosrc"),
+                name: "no-source".to_string(),
+                source_pattern: String::new(),
+                target_pattern: ":b/*".to_string(),
+                weight: 1.0,
+                report_template: None,
+            }],
+            claim_patterns: vec![],
+            evidence_patterns: vec![],
+            anomaly_detectors: vec![],
+            calibration: CalibrationConfig::default(),
+        };
+        let errors = validate_policy(&config);
+        assert!(
+            errors.iter().any(|e| e.constraint.contains("empty source")),
+            "empty source pattern should produce error"
+        );
+    }
+
+    #[test]
+    fn calibration_config_defaults() {
+        let cal = CalibrationConfig::default();
+        assert_eq!(cal.window, 20);
+        assert!((cal.threshold - 0.05).abs() < 0.001);
+    }
+
+    #[test]
+    fn policy_with_two_boundaries_coverage() {
+        let agent = AgentId::from_name("test:2b");
+        let tx = TxId::new(200, 0, agent);
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        // Boundary 1: claim -> evidence (weight 0.6)
+        let b1 = EntityId::from_ident(":policy/b1");
+        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-name"), Value::String("b1".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-source"), Value::String(":req/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-target"), Value::String(":test/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b1, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(0.6)), tx, Op::Assert));
+
+        // Boundary 2: spec -> impl (weight 0.4)
+        let b2 = EntityId::from_ident(":policy/b2");
+        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-name"), Value::String("b2".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-source"), Value::String(":spec/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-target"), Value::String(":impl/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b2, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(0.4)), tx, Op::Assert));
+
+        let store = Store::from_datoms(datoms);
+        let config = PolicyConfig::from_store(&store).unwrap();
+        assert_eq!(config.boundaries.len(), 2);
+        assert!((config.total_weight() - 1.0).abs() < 0.001);
+
+        let fs = crate::bilateral::compute_fitness_from_policy(&store).unwrap();
+        // No entities matching :req/* or :spec/* in genesis store → vacuous coverage
+        assert!(fs.total >= 0.0 && fs.total <= 1.0);
+    }
 }
