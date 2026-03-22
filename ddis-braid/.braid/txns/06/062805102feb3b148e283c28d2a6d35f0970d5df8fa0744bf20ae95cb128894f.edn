@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774154089/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "LLM-BOOTSTRAPPED EPISTEMOLOGY: braid init starts a conversation with the user about their domain. What are your claims? What counts as evidence? What boundaries matter? What would alarm you? The LLM generates a policy manifest from natural language and transacts it as genesis datoms. The conversation IS the first harvest. The system self-configures its epistemological policy from a dialogue about domain knowledge. This closes the entire loop: the observer defines the rules of its own knowledge game, and the substrate enforces them."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3e3d9d84779c92e4b54c9053baafb58c9bc6b62e573f0cd5517808ef0a2e78c7" :a :db/doc :v "LLM-BOOTSTRAPPED EPISTEMOLOGY: braid init starts a conversation with the user about their domain. What are your claims? What counts as evidence? What boundaries matter? What would alarm you? The LLM generates a policy manifest from natural language and transacts it as genesis datoms. The conversation IS the first harvest. The system self-configures its epistemological policy from a dialogue about domain knowledge. This closes the entire loop: the observer defines the rules of its own knowledge game, and the substrate enforces them." :op :assert}
+   {:e #blake3 "3e3d9d84779c92e4b54c9053baafb58c9bc6b62e573f0cd5517808ef0a2e78c7" :a :db/ident :v :observation/llm-bootstrapped-epistemology-braid-init-starts-a-conversat :op :assert}
+   {:e #blake3 "3e3d9d84779c92e4b54c9053baafb58c9bc6b62e573f0cd5517808ef0a2e78c7" :a :exploration/body :v "LLM-BOOTSTRAPPED EPISTEMOLOGY: braid init starts a conversation with the user about their domain. What are your claims? What counts as evidence? What boundaries matter? What would alarm you? The LLM generates a policy manifest from natural language and transacts it as genesis datoms. The conversation IS the first harvest. The system self-configures its epistemological policy from a dialogue about domain knowledge. This closes the entire loop: the observer defines the rules of its own knowledge game, and the substrate enforces them." :op :assert}
+   {:e #blake3 "3e3d9d84779c92e4b54c9053baafb58c9bc6b62e573f0cd5517808ef0a2e78c7" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "3e3d9d84779c92e4b54c9053baafb58c9bc6b62e573f0cd5517808ef0a2e78c7" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "3e3d9d84779c92e4b54c9053baafb58c9bc6b62e573f0cd5517808ef0a2e78c7" :a :exploration/content-hash :v #bytes "4d0a6e4af23c4183573e1aa27a787a89bada3edaeda144bd48a3bcd7d29b235c" :op :assert}
+   {:e #blake3 "3e3d9d84779c92e4b54c9053baafb58c9bc6b62e573f0cd5517808ef0a2e78c7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "3e3d9d84779c92e4b54c9053baafb58c9bc6b62e573f0cd5517808ef0a2e78c7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "3e3d9d84779c92e4b54c9053baafb58c9bc6b62e573f0cd5517808ef0a2e78c7" :a :exploration/source-session :v #blake3 "715367118c5d4261116a9fc4caa2c06e4c0c65742a07eeecb285991324d1eee8" :op :assert}
+ ]}
