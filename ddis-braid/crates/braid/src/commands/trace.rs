@@ -859,6 +859,58 @@ pub fn run(
         let witness_count = witness_datoms.len();
         datoms.extend(witness_datoms);
 
+        // COTX-4: Auto-generate L1 FBW witness skeletons for new impl links.
+        // Every new :impl/implements creates a witness in the same transaction,
+        // permanently compounding the witness closure rate.
+        let existing_witnesses = braid_kernel::witness::all_witnesses(&store);
+        let witnessed_invs: std::collections::BTreeSet<braid_kernel::EntityId> =
+            existing_witnesses.iter().map(|w| w.inv_ref).collect();
+        let mut cotx4_count = 0usize;
+        for link in &resolved_links {
+            // Skip if spec entity already has a witness
+            if witnessed_invs.contains(&link.spec_entity) {
+                continue;
+            }
+            let entity_datoms = store.entity_datoms(link.spec_entity);
+            let stmt_attr = Attribute::from_keyword(":spec/statement");
+            let elem_stmt_attr = Attribute::from_keyword(":element/statement");
+            let body_attr = Attribute::from_keyword(":element/body");
+            let doc_attr = Attribute::from_keyword(":db/doc");
+            let fals_attr = Attribute::from_keyword(":spec/falsification");
+
+            let statement = entity_datoms
+                .iter()
+                .find(|d| d.attribute == stmt_attr && d.op == Op::Assert)
+                .or_else(|| entity_datoms.iter().find(|d| d.attribute == elem_stmt_attr && d.op == Op::Assert))
+                .or_else(|| entity_datoms.iter().find(|d| d.attribute == body_attr && d.op == Op::Assert))
+                .or_else(|| entity_datoms.iter().find(|d| d.attribute == doc_attr && d.op == Op::Assert))
+                .and_then(|d| if let Value::String(s) = &d.value { Some(s.clone()) } else { None })
+                .unwrap_or_default();
+
+            let falsification = entity_datoms
+                .iter()
+                .find(|d| d.attribute == fals_attr && d.op == Op::Assert)
+                .and_then(|d| if let Value::String(s) = &d.value { Some(s.clone()) } else { None })
+                .unwrap_or_default();
+
+            if statement.is_empty() {
+                continue;
+            }
+
+            let test_body = if falsification.is_empty() { &statement } else { &falsification };
+            let fbw = braid_kernel::witness::create_fbw(
+                link.spec_entity,
+                &statement,
+                &falsification,
+                test_body,
+                &link.file,
+                link.verification_depth.max(1),
+                agent_name,
+            );
+            datoms.extend(braid_kernel::witness::fbw_to_datoms(&fbw, tx_id));
+            cotx4_count += 1;
+        }
+
         // SC-1: Record scan timestamp for staleness detection (INV-TRACE-003)
         datoms.push(generate_scan_mtime_datom(tx_id));
 
@@ -880,10 +932,11 @@ pub fn run(
 
             let file_path = layout.write_tx(&tx)?;
             human.push_str(&format!(
-                "\nCommitted: {} datoms ({} impl + {} witness) \u{2192} {}\n",
+                "\nCommitted: {} datoms ({} impl + {} witness + {} FBW cotx) \u{2192} {}\n",
                 datom_count,
-                datom_count - witness_count,
+                datom_count - witness_count - (cotx4_count * 12), // ~12 datoms per FBW
                 witness_count,
+                cotx4_count,
                 file_path.relative_path(),
             ));
         } else {

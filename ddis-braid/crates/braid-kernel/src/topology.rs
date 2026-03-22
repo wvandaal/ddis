@@ -18,7 +18,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::datom::EntityId;
+use crate::datom::{Attribute, EntityId, Value};
 use crate::error::TopologyError;
 use crate::store::Store;
 
@@ -1140,13 +1140,84 @@ fn symmetric_eigenvalues(matrix: &[Vec<f64>], n: usize) -> Vec<f64> {
 ///
 /// Weighted combination: w_f * file_coupling + w_i * invariant_coupling
 /// where w_f = 0.65 (heuristic) and w_i = 0.35 (semantic).
+/// TOPO-COMPOSITE: Five-dimensional coupling weights (INV-TOPOLOGY-004).
+///
+/// Weights form a semilattice — they only grow through observation.
+/// At Stage 0b: w_file=0.50, w_invariant=0.35, w_schema=0, w_causal=0, w_historical=0.15.
+#[derive(Clone, Debug)]
+pub struct CouplingWeights {
+    /// w_f: File coupling weight (shared source files).
+    pub file: f64,
+    /// w_i: Invariant coupling weight (shared spec references).
+    pub invariant: f64,
+    /// w_s: Schema coupling weight (shared schema attributes). Stage 2+.
+    pub schema: f64,
+    /// w_c: Causal coupling weight (W_α dependency). Stage 2+.
+    pub causal: f64,
+    /// w_h: Historical coupling weight (past conflict data).
+    pub historical: f64,
+}
+
+impl Default for CouplingWeights {
+    /// Stage 0b defaults: [0.50, 0.35, 0, 0, 0.15].
+    fn default() -> Self {
+        Self {
+            file: 0.50,
+            invariant: 0.35,
+            schema: 0.0,
+            causal: 0.0,
+            historical: 0.15,
+        }
+    }
+}
+
+impl CouplingWeights {
+    /// Load weights from store datom, or fall back to defaults.
+    pub fn from_store(store: &Store) -> Self {
+        let attr = Attribute::from_keyword(":topology/coupling-weights");
+        let datoms = store.attribute_datoms(&attr);
+        if let Some(d) = datoms.last() {
+            if let Value::String(s) = &d.value {
+                if let Ok(parsed) = serde_json::from_str::<Vec<f64>>(s.as_str()) {
+                    if parsed.len() == 5 {
+                        return Self {
+                            file: parsed[0],
+                            invariant: parsed[1],
+                            schema: parsed[2],
+                            causal: parsed[3],
+                            historical: parsed[4],
+                        };
+                    }
+                }
+            }
+        }
+        Self::default()
+    }
+}
+
+/// Compute composite coupling from multiple dimensions with learnable weights.
+///
+/// INV-TOPOLOGY-004: Coupling = Σ wᵢ × sᵢ where s = [file, invariant, schema, causal, historical].
+/// Result clamped to [0, 1] per pair. Zero-weight dimensions contribute nothing.
 pub fn composite_coupling(
     file_coupling: &BTreeMap<(EntityId, EntityId), f64>,
     inv_coupling: &BTreeMap<(EntityId, EntityId), f64>,
 ) -> BTreeMap<(EntityId, EntityId), f64> {
-    const W_FILE: f64 = 0.65;
-    const W_INV: f64 = 0.35;
+    composite_coupling_weighted(
+        file_coupling,
+        inv_coupling,
+        &BTreeMap::new(), // historical (empty at Stage 0b)
+        &CouplingWeights::default(),
+    )
+}
 
+/// Weighted composite coupling with explicit weights and historical dimension.
+pub fn composite_coupling_weighted(
+    file_coupling: &BTreeMap<(EntityId, EntityId), f64>,
+    inv_coupling: &BTreeMap<(EntityId, EntityId), f64>,
+    historical_coupling: &BTreeMap<(EntityId, EntityId), f64>,
+    weights: &CouplingWeights,
+) -> BTreeMap<(EntityId, EntityId), f64> {
     let mut all_pairs: BTreeSet<(EntityId, EntityId)> = BTreeSet::new();
     for key in file_coupling.keys() {
         all_pairs.insert(*key);
@@ -1154,12 +1225,19 @@ pub fn composite_coupling(
     for key in inv_coupling.keys() {
         all_pairs.insert(*key);
     }
+    for key in historical_coupling.keys() {
+        all_pairs.insert(*key);
+    }
 
     let mut result = BTreeMap::new();
     for pair in all_pairs {
         let f_score = file_coupling.get(&pair).unwrap_or(&0.0);
         let i_score = inv_coupling.get(&pair).unwrap_or(&0.0);
-        let combined = W_FILE * f_score + W_INV * i_score;
+        let h_score = historical_coupling.get(&pair).unwrap_or(&0.0);
+        // Schema and causal are zero at Stage 0b
+        let combined = weights.file * f_score
+            + weights.invariant * i_score
+            + weights.historical * h_score;
         if combined > 0.0 {
             result.insert(pair, combined.clamp(0.0, 1.0));
         }
@@ -2537,10 +2615,10 @@ mod tests {
 
         let combined = composite_coupling(&file_c, &inv_c);
         let score = combined.get(&(a, b)).unwrap();
-        // 0.65 * 0.8 + 0.35 * 0.4 = 0.52 + 0.14 = 0.66
+        // Stage 0b weights: 0.50 * 0.8 + 0.35 * 0.4 = 0.40 + 0.14 = 0.54
         assert!(
-            (*score - 0.66).abs() < 0.01,
-            "composite should be 0.66: got {score}"
+            (*score - 0.54).abs() < 0.01,
+            "composite should be 0.54: got {score}"
         );
     }
 

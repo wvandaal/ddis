@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774146744/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Strategy: maximize accretion by targeting tasks that compound. COTX-4 (trace-witness cotransaction) auto-generates witnesses on every trace, permanently reducing the L2+ gap. TOPO-COMPOSITE weights the coupling matrix. Both are kernel-only, high-leverage."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2059048229aa299c2d658799692c92a8802eb9c5cbd8ca90af0fd72efb777caf" :a :db/doc :v "Strategy: maximize accretion by targeting tasks that compound. COTX-4 (trace-witness cotransaction) auto-generates witnesses on every trace, permanently reducing the L2+ gap. TOPO-COMPOSITE weights the coupling matrix. Both are kernel-only, high-leverage." :op :assert}
+   {:e #blake3 "2059048229aa299c2d658799692c92a8802eb9c5cbd8ca90af0fd72efb777caf" :a :db/ident :v :observation/strategy-maximize-accretion-by-targeting-tasks-that-compoun :op :assert}
+   {:e #blake3 "2059048229aa299c2d658799692c92a8802eb9c5cbd8ca90af0fd72efb777caf" :a :exploration/body :v "Strategy: maximize accretion by targeting tasks that compound. COTX-4 (trace-witness cotransaction) auto-generates witnesses on every trace, permanently reducing the L2+ gap. TOPO-COMPOSITE weights the coupling matrix. Both are kernel-only, high-leverage." :op :assert}
+   {:e #blake3 "2059048229aa299c2d658799692c92a8802eb9c5cbd8ca90af0fd72efb777caf" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "2059048229aa299c2d658799692c92a8802eb9c5cbd8ca90af0fd72efb777caf" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "2059048229aa299c2d658799692c92a8802eb9c5cbd8ca90af0fd72efb777caf" :a :exploration/content-hash :v #bytes "361309dd94cb866c1842ba93ea39991e5d305b1749b7e03a728611466280d7ea" :op :assert}
+   {:e #blake3 "2059048229aa299c2d658799692c92a8802eb9c5cbd8ca90af0fd72efb777caf" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2059048229aa299c2d658799692c92a8802eb9c5cbd8ca90af0fd72efb777caf" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2059048229aa299c2d658799692c92a8802eb9c5cbd8ca90af0fd72efb777caf" :a :exploration/source-session :v #blake3 "8cc16f36056a4b98dec0bd55dbf4f3d0007c9bdd160f057297d38390021cb07d" :op :assert}
+ ]}

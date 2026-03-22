@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774146945/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-d70a1d49"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d182b7a4bb53fa6142ed7e25894d8b7f81f1569b981cb496088795e4a34a60a0" :a :task/close-reason :v "COTX-4: trace--commit auto-generates FBW witness skeletons for each new impl link in the same transaction. Witness depth matches verification_depth from trace scan. Permanently compounds witness closure rate." :op :assert}
+   {:e #blake3 "d182b7a4bb53fa6142ed7e25894d8b7f81f1569b981cb496088795e4a34a60a0" :a :task/closed-at :v 1774146944 :op :assert}
+   {:e #blake3 "d182b7a4bb53fa6142ed7e25894d8b7f81f1569b981cb496088795e4a34a60a0" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "d182b7a4bb53fa6142ed7e25894d8b7f81f1569b981cb496088795e4a34a60a0" :a :task/status :v :task.status/closed :op :assert}
+ ]}

@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774147582/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b7d04e92"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cd627a41b911c712c48c2c00adfd0fd111c4ff697e4ad954a52bd3fe40681892" :a :task/close-reason :v "TOPO-COMPOSITE: CouplingWeights struct with 5 dimensions [file, invariant, schema, causal, historical]. Stage 0b defaults [0.50, 0.35, 0, 0, 0.15]. composite_coupling_weighted() accepts explicit weights + historical dimension. Weights loadable from store datoms." :op :assert}
+   {:e #blake3 "cd627a41b911c712c48c2c00adfd0fd111c4ff697e4ad954a52bd3fe40681892" :a :task/closed-at :v 1774147581 :op :assert}
+   {:e #blake3 "cd627a41b911c712c48c2c00adfd0fd111c4ff697e4ad954a52bd3fe40681892" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "cd627a41b911c712c48c2c00adfd0fd111c4ff697e4ad954a52bd3fe40681892" :a :task/status :v :task.status/closed :op :assert}
+ ]}

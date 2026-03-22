@@ -1,0 +1,24 @@
+{:tx/id #hlc "1774146977/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :db/ident :v :recon/trace-3b43a6b77444c454 :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-neighborhood :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.coherence.inv-merge-002" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.error.adr-topology-004" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.guidance.adr-topology-004" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.kani_proofs.inv-merge-002" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.schema.adr-topology-004" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.topology.adr-topology-004" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.stateright_model.inv-merge-002" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-neighbors :v ":impl/braid.src.commands.mod.adr-topology-004" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-neighbors :v ":impl/braid.src.commands.topology.adr-topology-004" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-neighbors :v ":task/t-331ff9a5" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-refs :v "ADR-TOPOLOGY-004" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-refs :v "INV-MERGE-001" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-refs :v "INV-MERGE-002" :op :assert}
+   {:e #blake3 "32115f68dde6e0c71ab70437c1246d94513fc421ffc0e9e0c096275715db1865" :a :recon/trace-refs :v "INV-TOPOLOGY-004" :op :assert}
+ ]}
