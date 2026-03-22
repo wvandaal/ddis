@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774206617/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "TRANSFERABLE EPISTEMOLOGY: Calibrated policies encode empirical discoveries about a domain. CRDT merge on policies means two teams that independently learned about coherence in their domain can combine their learning through set union. Cross-domain merge reveals universal coherence patterns. The accumulation of calibrated policies across domains converges on a domain-general theory of coherence: the universal structure of how knowledge should be organized, verified, and maintained. Discovered from measurement, not from philosophy."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f647548e24ee9deb0210f1e145b2c1ca7b197e423f566354953735cf5e102d9c" :a :db/doc :v "TRANSFERABLE EPISTEMOLOGY: Calibrated policies encode empirical discoveries about a domain. CRDT merge on policies means two teams that independently learned about coherence in their domain can combine their learning through set union. Cross-domain merge reveals universal coherence patterns. The accumulation of calibrated policies across domains converges on a domain-general theory of coherence: the universal structure of how knowledge should be organized, verified, and maintained. Discovered from measurement, not from philosophy." :op :assert}
+   {:e #blake3 "f647548e24ee9deb0210f1e145b2c1ca7b197e423f566354953735cf5e102d9c" :a :db/ident :v :observation/transferable-epistemology-calibrated-policies-encode-empiri :op :assert}
+   {:e #blake3 "f647548e24ee9deb0210f1e145b2c1ca7b197e423f566354953735cf5e102d9c" :a :exploration/body :v "TRANSFERABLE EPISTEMOLOGY: Calibrated policies encode empirical discoveries about a domain. CRDT merge on policies means two teams that independently learned about coherence in their domain can combine their learning through set union. Cross-domain merge reveals universal coherence patterns. The accumulation of calibrated policies across domains converges on a domain-general theory of coherence: the universal structure of how knowledge should be organized, verified, and maintained. Discovered from measurement, not from philosophy." :op :assert}
+   {:e #blake3 "f647548e24ee9deb0210f1e145b2c1ca7b197e423f566354953735cf5e102d9c" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "f647548e24ee9deb0210f1e145b2c1ca7b197e423f566354953735cf5e102d9c" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "f647548e24ee9deb0210f1e145b2c1ca7b197e423f566354953735cf5e102d9c" :a :exploration/content-hash :v #bytes "69965dcf7f5cbcd0ee4c407d5fe3d0341a79ef8a3f61d7479070e4404d8299ed" :op :assert}
+   {:e #blake3 "f647548e24ee9deb0210f1e145b2c1ca7b197e423f566354953735cf5e102d9c" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "f647548e24ee9deb0210f1e145b2c1ca7b197e423f566354953735cf5e102d9c" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "f647548e24ee9deb0210f1e145b2c1ca7b197e423f566354953735cf5e102d9c" :a :exploration/source-session :v #blake3 "d4815349c939429b3401d9bd175ee4930ec25d042eff8afc3df25105acb09f21" :op :assert}
+ ]}
