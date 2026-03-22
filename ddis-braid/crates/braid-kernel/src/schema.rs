@@ -928,6 +928,145 @@ fn axiomatic_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Template for domain-language coherence report. Placeholders: {coverage}, {gap_count}, {source_count}, {target_count}.",
         ),
+        // ── Layer 5b — Stage Gating (POLICY-8) ────────────────────────────
+        // Filters the ready queue by project stage, reducing cognitive overload.
+        // Stage values are project-defined (stored as datoms), not hardcoded.
+        attr(
+            ":task/stage",
+            ValueType::Long,
+            Cardinality::One,
+            "Project stage this task belongs to (0-4). Tasks with stage > project.current-stage are filtered from ready set.",
+        ),
+        attr(
+            ":project/current-stage",
+            ValueType::Long,
+            Cardinality::One,
+            "Current project stage. Only tasks with :task/stage <= this value appear in ready set. Default: 4 (show all).",
+        ),
+        // ── Layer 6 — Component Model + Extractor Framework (ADR-FOUNDATION-007, 008, 009) ──
+        // Abstract component schema: language/framework-agnostic entities representing
+        // project structure. Extractors populate these from domain-specific sources.
+        // C8 compliance: no attribute assumes any specific language or tool.
+        //
+        // Component entities — abstract units of implementation
+        attr(
+            ":component/name",
+            ValueType::String,
+            Cardinality::One,
+            "Human-readable component name (e.g., module, class, function, file).",
+        ),
+        attr(
+            ":component/type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Component classification: :component.type/module, /file, /function, /class, /package, /service, /binary.",
+        ),
+        attr(
+            ":component/reachable",
+            ValueType::Boolean,
+            Cardinality::One,
+            "Whether this component is reachable from the project entry points.",
+        ),
+        attr(
+            ":component/tested",
+            ValueType::Boolean,
+            Cardinality::One,
+            "Whether this component has associated test coverage.",
+        ),
+        attr(
+            ":component/parent",
+            ValueType::Ref,
+            Cardinality::One,
+            "Parent component in the containment hierarchy (e.g., module contains functions).",
+        ),
+        attr(
+            ":component/language",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Source language: :lang/rust, :lang/go, :lang/typescript, :lang/python, etc.",
+        ),
+        attr(
+            ":component/path",
+            ValueType::String,
+            Cardinality::One,
+            "Filesystem path relative to project root.",
+        ),
+        attr(
+            ":component/loc",
+            ValueType::Long,
+            Cardinality::One,
+            "Lines of code in this component.",
+        ),
+        // Composition edges — structural relationships between components
+        attr(
+            ":composition/from",
+            ValueType::Ref,
+            Cardinality::One,
+            "Source component of a composition edge (e.g., caller, importer, parent).",
+        ),
+        attr(
+            ":composition/to",
+            ValueType::Ref,
+            Cardinality::One,
+            "Target component of a composition edge (e.g., callee, imported, child).",
+        ),
+        attr(
+            ":composition/type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Edge type: :composition.type/imports, /calls, /contains, /depends-on, /extends, /implements.",
+        ),
+        // Extractor entities — pluggable knowledge producers (ADR-FOUNDATION-009)
+        // An extractor is an entity in the store that defines how to populate
+        // component datoms from a specific source (filesystem, git, test runner, etc.).
+        attr(
+            ":extractor/command",
+            ValueType::String,
+            Cardinality::One,
+            "Shell command to invoke the extractor. Receives project root as arg.",
+        ),
+        attr(
+            ":extractor/produces",
+            ValueType::String,
+            Cardinality::Many,
+            "Attribute namespace(s) this extractor populates (e.g., ':component/*', ':composition/*').",
+        ),
+        attr(
+            ":extractor/schedule",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Invocation trigger: :extractor.schedule/on-init, /on-harvest, /on-demand, /periodic.",
+        ),
+        attr(
+            ":extractor/boundary",
+            ValueType::String,
+            Cardinality::One,
+            "Which policy boundary this extractor contributes evidence to.",
+        ),
+        attr(
+            ":extractor/status",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Current status: :extractor.status/active, /recommended, /disabled, /failed.",
+        ),
+        attr(
+            ":extractor/last-run",
+            ValueType::Instant,
+            Cardinality::One,
+            "Timestamp of last successful invocation.",
+        ),
+        attr(
+            ":extractor/language",
+            ValueType::Keyword,
+            Cardinality::Many,
+            "Language(s) this extractor handles: :lang/rust, :lang/go, :lang/python, etc.",
+        ),
+        attr(
+            ":extractor/timeout-ms",
+            ValueType::Long,
+            Cardinality::One,
+            "Maximum execution time in milliseconds before the extractor is killed.",
+        ),
     ]
 }
 

@@ -1,0 +1,33 @@
+{:tx/id #hlc "1774220213/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :db/ident :v :recon/trace-aaa3421a8aa53cda :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-neighborhood :v "RESOLUTION" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.kani_proofs.inv-resolution-006" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-resolution-006" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-resolution-007" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-resolution-008" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.schema.inv-resolution-006" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.schema.inv-resolution-008" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-reflexive-004" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-neighbors :v ":impl/braid.src.inject.inv-reflexive-004" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-neighbors :v ":task/t-9cb083b5" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-neighbors :v ":task/t-b58a1778" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "ADR-RESOLUTION-014" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-BUDGET-004" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-GUIDANCE-010" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-INTERFACE-008" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-REFLEXIVE-001" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-REFLEXIVE-002" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-REFLEXIVE-003" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-REFLEXIVE-004" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-RESOLUTION-001" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-RESOLUTION-006" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-RESOLUTION-007" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-RESOLUTION-008" :op :assert}
+   {:e #blake3 "bf3bdf1371b46066b08c1b7e71c92f5887b10b2bee4a58473422de7793393a33" :a :recon/trace-refs :v "INV-RESOLUTION-009" :op :assert}
+ ]}

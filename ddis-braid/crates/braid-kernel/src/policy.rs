@@ -736,4 +736,380 @@ mod tests {
         // No entities matching :req/* or :spec/* in genesis store → vacuous coverage
         assert!(fs.total >= 0.0 && fs.total <= 1.0);
     }
+
+    // ── Additional unit tests completing POLICY-TEST acceptance criteria ──
+
+    #[test]
+    fn anomaly_detector_roundtrip_from_store() {
+        // Full anomaly detector round-trip: store → PolicyConfig → AnomalyDef
+        let agent = AgentId::from_name("test:anomaly");
+        let tx = TxId::new(300, 0, agent);
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        // Need at least one boundary so from_store returns Some
+        let b = EntityId::from_ident(":policy/dummy-boundary");
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("dummy".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":a/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":b/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx, Op::Assert));
+
+        // Anomaly detector
+        let ad = EntityId::from_ident(":policy/anomaly-stale-tasks");
+        datoms.insert(Datom::new(ad, Attribute::from_keyword(":policy/anomaly-trigger"), Value::String(":task/status".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(ad, Attribute::from_keyword(":policy/anomaly-threshold"), Value::Long(5), tx, Op::Assert));
+        datoms.insert(Datom::new(ad, Attribute::from_keyword(":policy/anomaly-message"), Value::String("stale tasks detected".into()), tx, Op::Assert));
+
+        let store = Store::from_datoms(datoms);
+        let config = PolicyConfig::from_store(&store).unwrap();
+        assert_eq!(config.anomaly_detectors.len(), 1);
+        assert_eq!(config.anomaly_detectors[0].trigger, ":task/status");
+        assert_eq!(config.anomaly_detectors[0].threshold, 5);
+        assert_eq!(config.anomaly_detectors[0].message, "stale tasks detected");
+    }
+
+    #[test]
+    fn calibration_params_from_store() {
+        let agent = AgentId::from_name("test:cal");
+        let tx = TxId::new(400, 0, agent);
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        // Need a boundary for from_store to return Some
+        let b = EntityId::from_ident(":policy/cal-boundary");
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("cal".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":x/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":y/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx, Op::Assert));
+
+        // Custom calibration params on a separate entity
+        let cal = EntityId::from_ident(":policy/calibration");
+        datoms.insert(Datom::new(cal, Attribute::from_keyword(":policy/calibration-window"), Value::Long(50), tx, Op::Assert));
+        datoms.insert(Datom::new(cal, Attribute::from_keyword(":policy/calibration-threshold"), Value::Double(ordered_float::OrderedFloat(0.10)), tx, Op::Assert));
+
+        let store = Store::from_datoms(datoms);
+        let config = PolicyConfig::from_store(&store).unwrap();
+        assert_eq!(config.calibration.window, 50);
+        assert!((config.calibration.threshold - 0.10).abs() < 0.001);
+    }
+
+    #[test]
+    fn policy_boundary_with_report_template() {
+        let agent = AgentId::from_name("test:template");
+        let tx = TxId::new(500, 0, agent);
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        let b = EntityId::from_ident(":policy/templated");
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("with-template".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":spec/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":impl/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-report-template"), Value::String("{name}: {coverage}% covered".into()), tx, Op::Assert));
+
+        let store = Store::from_datoms(datoms);
+        let config = PolicyConfig::from_store(&store).unwrap();
+        assert_eq!(config.boundaries[0].report_template.as_deref(), Some("{name}: {coverage}% covered"));
+    }
+
+    #[test]
+    fn policy_claim_evidence_patterns_from_store() {
+        let agent = AgentId::from_name("test:patterns");
+        let tx = TxId::new(600, 0, agent);
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        // Need a boundary
+        let b = EntityId::from_ident(":policy/pat-boundary");
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("pat".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":a/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":b/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx, Op::Assert));
+
+        // Claim and evidence patterns
+        let cp1 = EntityId::from_ident(":policy/cp1");
+        datoms.insert(Datom::new(cp1, Attribute::from_keyword(":policy/claim-pattern"), Value::String(":spec/*".into()), tx, Op::Assert));
+        let cp2 = EntityId::from_ident(":policy/cp2");
+        datoms.insert(Datom::new(cp2, Attribute::from_keyword(":policy/claim-pattern"), Value::String(":requirement/*".into()), tx, Op::Assert));
+        let ep1 = EntityId::from_ident(":policy/ep1");
+        datoms.insert(Datom::new(ep1, Attribute::from_keyword(":policy/evidence-pattern"), Value::String(":witness/*".into()), tx, Op::Assert));
+
+        let store = Store::from_datoms(datoms);
+        let config = PolicyConfig::from_store(&store).unwrap();
+        assert_eq!(config.claim_patterns.len(), 2);
+        assert_eq!(config.evidence_patterns.len(), 1);
+        assert!(config.is_claim_attribute(":spec/element-type"));
+        assert!(config.is_claim_attribute(":requirement/title"));
+        assert!(!config.is_claim_attribute(":witness/status"));
+        assert!(config.is_evidence_attribute(":witness/status"));
+    }
+
+    #[test]
+    fn policy_fitness_with_matching_entities() {
+        // Store with actual source + target entities that form coverage
+        let agent = AgentId::from_name("test:coverage");
+        let tx = TxId::new(700, 0, agent);
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        // Boundary: :claim/* → :evidence/*
+        let b = EntityId::from_ident(":policy/cov-boundary");
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("coverage".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":claim/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":evidence/*".into()), tx, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx, Op::Assert));
+
+        // 3 claim entities
+        let c1 = EntityId::from_ident(":claim/c1");
+        datoms.insert(Datom::new(c1, Attribute::from_keyword(":claim/title"), Value::String("Claim 1".into()), tx, Op::Assert));
+        let c2 = EntityId::from_ident(":claim/c2");
+        datoms.insert(Datom::new(c2, Attribute::from_keyword(":claim/title"), Value::String("Claim 2".into()), tx, Op::Assert));
+        let c3 = EntityId::from_ident(":claim/c3");
+        datoms.insert(Datom::new(c3, Attribute::from_keyword(":claim/title"), Value::String("Claim 3".into()), tx, Op::Assert));
+
+        // 2 evidence entities covering c1 and c2
+        let e1 = EntityId::from_ident(":evidence/e1");
+        datoms.insert(Datom::new(e1, Attribute::from_keyword(":evidence/covers"), Value::Ref(c1), tx, Op::Assert));
+        let e2 = EntityId::from_ident(":evidence/e2");
+        datoms.insert(Datom::new(e2, Attribute::from_keyword(":evidence/covers"), Value::Ref(c2), tx, Op::Assert));
+
+        let store = Store::from_datoms(datoms);
+        let fs = crate::bilateral::compute_fitness_from_policy(&store).unwrap();
+
+        // Coverage = 2/3 (c1 and c2 covered, c3 not)
+        assert!(fs.total > 0.5, "F(S) should reflect 2/3 coverage: {:.4}", fs.total);
+        assert!(fs.total < 1.0, "F(S) should not be 1.0 with incomplete coverage: {:.4}", fs.total);
+    }
+
+    #[test]
+    fn adding_evidence_increases_coverage() {
+        let agent = AgentId::from_name("test:mono");
+        let tx1 = TxId::new(800, 0, agent);
+        let tx2 = TxId::new(801, 0, agent);
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        // Boundary
+        let b = EntityId::from_ident(":policy/mono-boundary");
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-name"), Value::String("mono".into()), tx1, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-source"), Value::String(":claim/*".into()), tx1, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-target"), Value::String(":evidence/*".into()), tx1, Op::Assert));
+        datoms.insert(Datom::new(b, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(1.0)), tx1, Op::Assert));
+
+        // 2 claims
+        let c1 = EntityId::from_ident(":claim/mono-c1");
+        datoms.insert(Datom::new(c1, Attribute::from_keyword(":claim/title"), Value::String("C1".into()), tx1, Op::Assert));
+        let c2 = EntityId::from_ident(":claim/mono-c2");
+        datoms.insert(Datom::new(c2, Attribute::from_keyword(":claim/title"), Value::String("C2".into()), tx1, Op::Assert));
+
+        // 1 evidence covering c1
+        let e1 = EntityId::from_ident(":evidence/mono-e1");
+        datoms.insert(Datom::new(e1, Attribute::from_keyword(":evidence/covers"), Value::Ref(c1), tx1, Op::Assert));
+
+        let store1 = Store::from_datoms(datoms.clone());
+        let fs1 = crate::bilateral::compute_fitness_from_policy(&store1).unwrap();
+
+        // Add evidence covering c2
+        let e2 = EntityId::from_ident(":evidence/mono-e2");
+        datoms.insert(Datom::new(e2, Attribute::from_keyword(":evidence/covers"), Value::Ref(c2), tx2, Op::Assert));
+
+        let store2 = Store::from_datoms(datoms);
+        let fs2 = crate::bilateral::compute_fitness_from_policy(&store2).unwrap();
+
+        assert!(fs2.total >= fs1.total,
+            "Adding evidence should not decrease F(S): before={:.4}, after={:.4}",
+            fs1.total, fs2.total);
+    }
+
+    #[test]
+    fn validate_policy_over_weight_rejects() {
+        let config = PolicyConfig {
+            boundaries: vec![BoundaryDef {
+                entity: EntityId::from_ident(":test/heavy"),
+                name: "heavy".to_string(),
+                source_pattern: ":a/*".to_string(),
+                target_pattern: ":b/*".to_string(),
+                weight: 1.5, // > 1.0 but within [0, 1] is NOT a range error
+                report_template: None,
+            }],
+            claim_patterns: vec![],
+            evidence_patterns: vec![],
+            anomaly_detectors: vec![],
+            calibration: CalibrationConfig::default(),
+        };
+        let errors = validate_policy(&config);
+        assert!(errors.iter().any(|e| e.constraint.contains("outside [0, 1]")),
+            "weight > 1.0 should produce error");
+    }
+
+    #[test]
+    fn validate_missing_target_pattern() {
+        let config = PolicyConfig {
+            boundaries: vec![BoundaryDef {
+                entity: EntityId::from_ident(":test/notgt"),
+                name: "no-target".to_string(),
+                source_pattern: ":a/*".to_string(),
+                target_pattern: String::new(),
+                weight: 1.0,
+                report_template: None,
+            }],
+            claim_patterns: vec![],
+            evidence_patterns: vec![],
+            anomaly_detectors: vec![],
+            calibration: CalibrationConfig::default(),
+        };
+        let errors = validate_policy(&config);
+        assert!(errors.iter().any(|e| e.constraint.contains("empty target")),
+            "empty target pattern should produce error");
+    }
+
+    // ── PROPTESTS ──
+
+    use proptest::prelude::*;
+
+    /// Strategy for a random valid BoundaryDef.
+    fn arb_boundary_def() -> impl Strategy<Value = BoundaryDef> {
+        (
+            "[a-z]{3,8}",                         // name
+            prop_oneof![
+                Just(":claim/*".to_string()),
+                Just(":spec/*".to_string()),
+                Just(":req/*".to_string()),
+            ],                                     // source
+            prop_oneof![
+                Just(":evidence/*".to_string()),
+                Just(":impl/*".to_string()),
+                Just(":test/*".to_string()),
+            ],                                     // target
+            0.01f64..=1.0,                         // weight (positive only)
+        ).prop_map(|(name, source, target, weight)| BoundaryDef {
+            entity: EntityId::from_ident(&format!(":policy/prop-{name}")),
+            name,
+            source_pattern: source,
+            target_pattern: target,
+            weight,
+            report_template: None,
+        })
+    }
+
+    /// Strategy for a random valid PolicyConfig with normalized weights.
+    fn arb_policy_config() -> impl Strategy<Value = PolicyConfig> {
+        proptest::collection::vec(arb_boundary_def(), 1..=7).prop_map(|mut boundaries| {
+            // Normalize weights to sum to 1.0
+            let sum: f64 = boundaries.iter().map(|b| b.weight).sum();
+            if sum > 0.0 {
+                for b in &mut boundaries {
+                    b.weight /= sum;
+                }
+            }
+            PolicyConfig {
+                boundaries,
+                claim_patterns: vec![":spec/*".to_string()],
+                evidence_patterns: vec![":impl/*".to_string()],
+                anomaly_detectors: vec![],
+                calibration: CalibrationConfig::default(),
+            }
+        })
+    }
+
+    /// Build a store from a PolicyConfig + some source/target entities.
+    fn store_from_policy_config(config: &PolicyConfig, source_count: usize, covered_count: usize) -> Store {
+        let agent = AgentId::from_name("proptest:policy");
+        let tx = TxId::new(1000, 0, agent);
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        // Transact the policy boundaries
+        for b in &config.boundaries {
+            datoms.insert(Datom::new(b.entity, Attribute::from_keyword(":policy/boundary-name"), Value::String(b.name.clone()), tx, Op::Assert));
+            datoms.insert(Datom::new(b.entity, Attribute::from_keyword(":policy/boundary-source"), Value::String(b.source_pattern.clone()), tx, Op::Assert));
+            datoms.insert(Datom::new(b.entity, Attribute::from_keyword(":policy/boundary-target"), Value::String(b.target_pattern.clone()), tx, Op::Assert));
+            datoms.insert(Datom::new(b.entity, Attribute::from_keyword(":policy/boundary-weight"), Value::Double(ordered_float::OrderedFloat(b.weight)), tx, Op::Assert));
+        }
+
+        // Create source entities (using the first boundary's source pattern)
+        if let Some(first_boundary) = config.boundaries.first() {
+            let ns = first_boundary.source_pattern.trim_start_matches(':').trim_end_matches("/*");
+            for i in 0..source_count {
+                let e = EntityId::from_ident(&format!(":{ns}/prop-{i}"));
+                datoms.insert(Datom::new(e, Attribute::from_keyword(&format!(":{ns}/title")), Value::String(format!("Source {i}")), tx, Op::Assert));
+            }
+
+            // Create target entities covering some sources
+            let tgt_ns = first_boundary.target_pattern.trim_start_matches(':').trim_end_matches("/*");
+            for i in 0..covered_count.min(source_count) {
+                let src = EntityId::from_ident(&format!(":{ns}/prop-{i}"));
+                let tgt = EntityId::from_ident(&format!(":{tgt_ns}/prop-{i}"));
+                datoms.insert(Datom::new(tgt, Attribute::from_keyword(&format!(":{tgt_ns}/covers")), Value::Ref(src), tx, Op::Assert));
+            }
+        }
+
+        Store::from_datoms(datoms)
+    }
+
+    proptest! {
+        /// PROPTEST-1: Random valid policy → F(S) in [0, 1].
+        #[test]
+        fn prop_random_policy_fs_bounded(config in arb_policy_config()) {
+            let store = store_from_policy_config(&config, 0, 0);
+            let fs = crate::bilateral::compute_fitness_from_policy(&store);
+            if let Some(fs) = fs {
+                prop_assert!(fs.total >= 0.0 && fs.total <= 1.0,
+                    "F(S) out of bounds: {:.6}", fs.total);
+            }
+        }
+
+        /// PROPTEST-2: Random boundaries with normalized weights validate cleanly.
+        #[test]
+        fn prop_normalized_weights_valid(config in arb_policy_config()) {
+            let errors = validate_policy(&config);
+            // Normalized config should have no weight-sum errors
+            let weight_errors: Vec<_> = errors.iter()
+                .filter(|e| e.constraint.contains("sum to"))
+                .collect();
+            prop_assert!(weight_errors.is_empty(),
+                "Normalized policy should not have weight-sum errors: {:?}",
+                weight_errors.iter().map(|e| &e.constraint).collect::<Vec<_>>());
+        }
+
+        /// PROPTEST-3: Adding covered entities never decreases F(S).
+        #[test]
+        fn prop_evidence_monotonicity(
+            config in arb_policy_config(),
+            source_count in 1usize..=10,
+            initial_covered in 0usize..=10,
+        ) {
+            let initial_covered = initial_covered.min(source_count);
+            let store1 = store_from_policy_config(&config, source_count, initial_covered);
+            let store2 = store_from_policy_config(&config, source_count, source_count); // fully covered
+
+            if let (Some(fs1), Some(fs2)) = (
+                crate::bilateral::compute_fitness_from_policy(&store1),
+                crate::bilateral::compute_fitness_from_policy(&store2),
+            ) {
+                prop_assert!(fs2.total >= fs1.total - 0.001,
+                    "Full coverage ({:.4}) should be >= partial ({:.4})",
+                    fs2.total, fs1.total);
+            }
+        }
+
+        /// PROPTEST-4: Empty policy (no source entities) → F(S) = 1.0 (vacuously coherent).
+        #[test]
+        fn prop_empty_source_vacuous(config in arb_policy_config()) {
+            let store = store_from_policy_config(&config, 0, 0);
+            if let Some(fs) = crate::bilateral::compute_fitness_from_policy(&store) {
+                prop_assert!((fs.total - 1.0).abs() < 0.001,
+                    "No source entities → vacuously coherent: F(S) should be 1.0, got {:.6}",
+                    fs.total);
+            }
+        }
+
+        /// PROPTEST-5: Pattern matching is consistent (matches(a,p) is pure).
+        #[test]
+        fn prop_pattern_matching_deterministic(
+            attr in ":[a-z]{2,8}/[a-z]{2,8}",
+            pattern in prop_oneof![
+                ":[a-z]{2,8}/\\*".prop_map(|s| s),
+                ":[a-z]{2,8}/[a-z]{2,8}".prop_map(|s| s),
+                ":[a-z]{2,8}/".prop_map(|s| s),
+            ]
+        ) {
+            let r1 = attr_matches_pattern(&attr, &pattern);
+            let r2 = attr_matches_pattern(&attr, &pattern);
+            prop_assert_eq!(r1, r2, "Pattern matching must be deterministic");
+        }
+    }
 }

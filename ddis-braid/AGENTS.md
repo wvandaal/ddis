@@ -12,21 +12,41 @@
 
 ## What This Project Is
 
-DDIS (Decision-Driven Implementation Specification) is a specification standard, protocol, and
-knowledge substrate whose purpose is to maintain **verifiable coherence** between intent,
-specification, implementation, and observed behavior — across people, AI agents, and time.
+**DDIS is a formal epistemology** — a mathematical framework for how shared knowledge grows,
+becomes coherent, and stays coherent across observers, across time, and across domains.
 
-The fundamental problem DDIS solves is **divergence**: the inevitable drift between what you want,
-what you wrote down, how you said to build it, and what actually got built. DDIS makes coherence
-a structural property of the system rather than a process obligation that decays under pressure.
+**Braid is a runtime for formal epistemology.** It provides the universal substrate: an
+append-only datom store (minimum viable unit of shared belief), CRDT merge (intersubjectivity),
+configurable boundary registry (coherence measurement), fitness gradient (optimal inquiry),
+extractor framework (domain-specific plugin interface), and harvest/seed lifecycle (cumulative
+knowledge across mortal observers).
 
-Braid is the implementation of this vision. It is built on an append-only datom store with
-CRDT merge semantics, a harvest/seed lifecycle that makes conversations disposable while
-knowledge remains durable, and a specification formalism (invariants, ADRs, negative cases,
-uncertainty markers) that enables automated coherence verification at every boundary.
+**DDIS methodology is the first APPLICATION on the braid substrate.** The INV/ADR/NEG ontology,
+7-component F(S), witness challenge protocol, and harvest/seed discipline are one epistemological
+policy among many. Other policies (scientific research, regulatory compliance, product
+development) can run on the same substrate by providing a different policy manifest. DDIS is
+braid's first customer, not its identity. (See C8, ADR-FOUNDATION-012.)
 
-**DDIS specifies itself.** The specification elements (invariants, ADRs, negative cases) become
-the first dataset the system manages. The specification is both the plan and the first data.
+**The atomic operation at every level**: observe reality, compare to model, reduce the
+discrepancy. This single operation — applied at the level of datoms, boundaries, gradients,
+calibration, and policy merge — constitutes a complete learning system. The 8-type divergence
+taxonomy (SEED.md §6) enumerates every way a model can diverge from reality. Detecting and
+reducing all 8 types converges the model toward truth. (See ADR-FOUNDATION-014.)
+
+**Three learning loops close the system**: weight calibration (OBSERVER-4: predicted vs actual
+outcomes adjust boundary weights), structure discovery (OBSERVER-5: temporal coupling reveals
+hidden boundaries), ontology discovery (OBSERVER-6: observation clustering reveals emergent
+knowledge categories). Together they converge on the optimal coherence model for any domain.
+
+**The bootstrap doesn't need to be optimal.** It needs to be good enough to start the
+convergence loop. DDIS is a good initial policy for software development. The calibration
+loop discovers if it's wrong and adjusts. The system finds its own optimum empirically.
+
+**The policy is datoms.** At `braid init`, a manifest is transacted: claim types, evidence
+types, boundary definitions with weights, anomaly detectors. The kernel reads it and
+configures itself. Calibrated policies are transferable via CRDT merge — two teams that
+independently learned about their domain can combine their learning through set union.
+(See ADR-FOUNDATION-013, INV-FOUNDATION-007.)
 
 </purpose>
 
@@ -151,14 +171,22 @@ Read these in order when you need to understand the design:
 
 Every session follows this pattern:
 
+**0. True North Check.** Before anything else, verify alignment with the bedrock vision:
+- Braid is infrastructure for organizational learning (not a software tool)
+- The kernel is substrate (universal); DDIS is application (replaceable) — C8
+- Every change must close a loop, not open one (ADR-FOUNDATION-014)
+- Ask: "Would this make sense for a React project? A research lab? A compliance team?"
+- If the answer is no, the change belongs in the policy layer, not the kernel
+- If uncertain, read `bedrock-vision.md` in the memory files
+
 **1. Orient.** Read this file. Read the braid-seed section below for prior session context,
 or run `braid seed --task "your task"` for a fresh context assembly.
 Check `docs/design/FAILURE_MODES.md` for open failure modes that may intersect your task.
 If a specific task was assigned, locate it.
 
 **2. Plan.** Before writing any code or spec, state what you intend to do and why. Trace the
-work back to a section in `SEED.md` or a specific invariant/ADR. If you cannot trace it,
-question whether the work should be done.
+work back to the bedrock vision, the convergence thesis (ADR-FOUNDATION-014), or a specific
+invariant/ADR. If you cannot trace it, question whether the work should be done.
 
 **3. Execute.** Do the work. Follow the constraints below. Test everything testable. Document
 every design decision as an ADR. When you discover a process failure, methodology gap, or
@@ -249,12 +277,35 @@ without manual re-explanation.
 
 **First act**: Migrate the specification elements from `spec/` into the store as datoms.
 
-### Stage 1: Budget-Aware Output + Guidance Injection
-### Stage 2: Branching + Deliberation
-### Stage 3: Multi-Agent Coordination
-### Stage 4: Advanced Intelligence
+### Stage 1: Budget-Aware Output + Guidance Injection — **85% complete**
+### Stage 2: Branching + Deliberation — **50% complete**
+### Stage 3: Multi-Agent Coordination — **28% complete**
+### Stage 4: Advanced Intelligence — **8% complete**
 
 (Details in SEED.md §10)
+
+### Architectural North Star: Epistemology Runtime (Session 033)
+
+Three proposals implement the substrate/application separation (C8, ADR-FOUNDATION-012):
+
+**Proposal 1: Policy Manifest** (NEXT — prerequisite for everything)
+- F(S) weights, boundary definitions, anomaly thresholds become datoms
+- `braid init` transacts a policy manifest; kernel reads it dynamically
+- BoundaryRegistry becomes the primary fitness path
+- DDIS manifest is one configuration, not the only one
+- See: ADR-FOUNDATION-013, INV-FOUNDATION-007
+
+**Proposal 2: LLM-Bootstrapped Initialization** (requires Proposal 1)
+- `braid init` converses with user about their domain
+- LLM compiles natural language → policy manifest datoms
+- The conversation IS the first harvest
+- Community manifests: ddis.edn, research.edn, compliance.edn
+
+**Proposal 3: Active Observer Daemon** (requires Proposal 1 + CE-7)
+- Daemon gains policy-defined watchers (filesystem, git, test runner, MCP)
+- Auto-generates datoms through extractor pipeline + COTX routing
+- Boundary checks run continuously; interrupts only on anomaly
+- Basin A wins by being autonomous, not just invisible
 
 </staged_roadmap>
 
@@ -290,6 +341,17 @@ condition is not an invariant — it is a wish.
 **C7: Self-bootstrap.** DDIS specifies itself. The specification elements are the first data
 the system manages. The system's first act of coherence verification is checking its own
 specification for contradictions.
+
+**C8: Substrate independence.** The braid kernel (`braid-kernel`) must not contain logic
+specific to any programming language, test framework, specification format, or project
+methodology — including DDIS itself. All domain-specific behavior enters through the
+plugin/extractor pattern: registered as datoms, discovered by query, invoked at runtime.
+The DDIS methodology (INV/ADR/NEG ontology, 7-component F(S), witness challenge protocol,
+harvest/seed lifecycle) is the first *application* on the braid substrate, not part of the
+substrate itself. The test: "would this code make sense if braid managed a React project
+with Jest tests and Jira tickets?" If no, it belongs in an application-layer plugin, not
+the kernel. Falsification: any kernel function that imports, parses, or assumes a specific
+language ecosystem or methodology violates this constraint.
 
 </constraints>
 
@@ -336,6 +398,19 @@ critical failure mode.
 **NEG-008: Do not produce massive monolithic files.** Specifications, code, and documentation
 should be modular. A 10,000-line file is a sign that decomposition was skipped. Prefer
 many small, focused files over few large ones.
+
+**NEG-009: Do not regress to "software tool" framing.** Braid is infrastructure for
+organizational learning, not a software development tool. If you find yourself adding
+features "for software projects" without considering whether they generalize to research
+labs, compliance teams, or manufacturing — stop. The architecture is universal. Every
+feature should work for any domain that has claims, evidence, and alignment boundaries.
+The DDIS methodology (INV/ADR/NEG) is one policy; do not hardcode it as the only one.
+
+**NEG-010: Do not open loops.** Every piece of information the system creates or receives
+must feed back into the coherence model. If you add a feature that produces data but
+doesn't connect that data to a boundary evaluation, a gradient computation, or a
+calibration measurement — you've opened a loop. Open loops are the root cause of every
+problem identified in the Session 033 review. Close them. (ADR-FOUNDATION-014)
 
 </negative_cases>
 
@@ -418,19 +493,23 @@ Each entry includes rationale, alternatives rejected, and transcript references.
 Use this at the start and end of every session.
 
 ### Start of Session
+- [ ] **TRUE NORTH CHECK**: Braid is infrastructure for organizational learning.
+      The kernel is substrate (universal). DDIS is application (replaceable via C8).
+      Every change must close a loop. Read `bedrock-vision.md` if uncertain.
 - [ ] Read this AGENTS.md (especially the braid-seed section for prior session context)
 - [ ] Or run `braid seed --task "your task"` for fresh context assembly
-- [ ] Check `docs/design/FAILURE_MODES.md` for open failure modes that intersect your task
 - [ ] Identify the specific task for this session
-- [ ] Trace the task to SEED.md section(s)
+- [ ] Trace the task to the bedrock vision, convergence thesis, or specific INV/ADR
+- [ ] Ask: "Does this close a loop or open one?" (ADR-FOUNDATION-014)
+- [ ] Ask: "Would this work for a React project?" (INV-FOUNDATION-006 / C8)
 - [ ] State the plan before executing
 
 ### End of Session
 - [ ] All new files are complete within their scope (no stubs, no TODOs)
 - [ ] All specification elements have IDs, types, traceability, and falsification conditions
-- [ ] No hard constraints (C1–C7) violated
+- [ ] No hard constraints (C1–C8) violated — **especially C8 (substrate independence)**
 - [ ] No negative cases (NEG-001–NEG-008) triggered
-- [ ] Any new failure modes discovered during the session recorded in `docs/design/FAILURE_MODES.md`
+- [ ] No domain-specific logic added to kernel without going through policy/extractor pattern
 - [ ] Run `braid harvest --commit` to persist session knowledge
 - [ ] Run `braid seed --inject AGENTS.md` to refresh seed for next session
 
@@ -474,75 +553,57 @@ guidance footer without hiding errors. Never use `2>/dev/null`.
 
 <braid-methodology>
 <!-- Generated by braid. Do not edit manually. Regenerate: braid seed --inject AGENTS.md -->
-<!-- Updated: 1774108880 | Store: 35205 datoms -->
+<!-- Updated: 1774215681 | Store: 48844 datoms -->
 
 ## Methodology Gaps
-- 36 observations with uncrystallized spec IDs → braid spec create
-- 18 tasks with unresolved spec refs → crystallize first
-- 252 current-stage INVs untested → add L2+ witness
-- concentration: 6 traces in BILATERAL — Review: braid task search INV-BILATERAL
-- concentration: 7 traces in GUIDANCE — Review: braid task search INV-GUIDANCE
+- 42 observations with uncrystallized spec IDs → braid spec create
+- 22 tasks with unresolved spec refs → crystallize first
+- 230 current-stage INVs untested → add L2+ witness
+- concentration: 5 traces in BILATERAL — Review: braid task search INV-BILATERAL
+- concentration: 6 traces in STORE — Review: braid task search INV-STORE
 
-## Ceremony Protocol (k*=1.0)
+## Ceremony Protocol (k*=0.9)
 Standard: observe + execute → retroactive crystallize
 For known-category bug fixes: execute-first OK if provenance chain exists after commit.
 
 ## Next Actions (R(t) pre-computed)
-1. "COTX-1: Harvest-session cotransaction — atomic session rot" (impact=0.28) → braid go t-222d6fdc
-2. "TOPO-PLAN: Implement TopologyPlan struct and compute_plan() " (impact=0.24) → braid go t-57c4333f
-3. "MCP-EXTRACT-1: Behavioral signal taxonomy — define the 6 s" (impact=0.21) → braid go t-ff6a4143
+1. "POLICY-TEST: Comprehensive unit + proptest suite for policy " (impact=0.63) → braid go t-3aec307f
+2. "POLICY-REGRESSION: Backward compatibility regression test" (impact=0.62) → braid go t-2f2eb7bf
+3. "MCP-EXTRACT-1: Behavioral signal taxonomy — define the 6 s" (impact=0.22) → braid go t-ff6a4143
 
 </braid-methodology>
 
 <braid-seed>
 <!-- Generated by braid. Do not edit manually. Regenerate: braid seed --inject AGENTS.md -->
-<!-- Updated: 1774108880 | Store: 35205 datoms, 3994 entities -->
+<!-- Updated: 1774215681 | Store: 48844 datoms, 5120 entities -->
 
 ### Session Context
-Braid: append-only datom store with CRDT merge. Harvest/seed lifecycle makes conversations disposable, knowledge durable.
-Braid: append-only datom store (CRDT merge, content-addressed). 35205 datoms, 3994 entities. Codebase: 106015 LOC across 78 .rs files
-Key files:
-  ddis-braid/crates/braid-kernel/src/guidance.rs (10647 LOC)
-  ddis-braid/crates/braid-kernel/src/seed.rs (4993 LOC)
-  ddis-braid/crates/braid-kernel/src/query/graph.rs (4546 LOC)
-  ddis-braid/crates/braid-kernel/src/schema.rs (4468 LOC)
-  ddis-braid/crates/braid-kernel/src/harvest.rs (4433 LOC)
-Goal: harvest/seed replaces HARVEST.md. Status: 174 harvests, 367 observations, 130 decisions captured.
-Spec: 472 elements, 31 namespaces — BILATERAL(8/12/4) BOOTSTRAP(0/0/1) BUDGET(13/10/2) COHERENCE(1/2) COMPILER(4/0) DELIBERATION(6/4/3) DEPTH(1/0) FOUNDATION(5/11/2) GUIDANCE(27/13/6) HARVEST(10/7/3) INIT(1/0) INTERFACE(12/11/4) LAYOUT(11/7/5) MERGE(10/7/3) ORIENTATION(1/0) OUTPUT(3/0) QUERY(24/13/4) REFLEXIVE(5/1/3) RESOLUTION(8/13/3) SCHEMA(9/8/3) SEED(8/7/2) SIGNAL(6/5/3) STORE(17/22/5) SYNC(5/3/2) TASK(2/1/1) TOPOLOGY(6/4/1) TRACE(1/0) TRILATERAL(10/6/4) UNCERTAINTY(0/4) VERIFICATION(0/1) WITNESS(12/4/6)
-Tasks: 335 open (279 ready, 56 blocked) | Top: t-bcee P0 "EPIC: Stage 0 Merge Cascade (INV-MERGE-001..010)"
-Last session: unsessioned harvest (3 txns since last harvest) (3 txns, 0 observations, +60 datoms, +6 entities)
-  - Session entity: :recon/trace-81da1524123b0629; Session entity: :recon/trace-0f616e4e93b90fce
-  Changes: branch=main, 1 commits, 5 files (+77/-0)
-Prior: unsessioned harvest (24 txns since last harvest) — :task/t-92dadd21; Session entity
-Prior: unsessioned harvest (61 txns since last harvest) — The temporal coherence gap — bilateral loop checks spatial coherence (spec↔impl
-
-### Active Constraints
-- INV-INTERFACE-009 — Error Recovery Protocol Completeness
-  > The error algebra `E` has a total recovery function `R: E → RecoveryHint`. For every error variant `e ∈ E`, `R(e)` is defined and executable.
-- INV-SEED-001 — Seed as Store Projection
-  > ``` ∀ seed operations: SEED(S, task, k*) ⊆ S (the seed contains only information from the store — nothing fabricated) ```
-- INV-SEED-005 — Demonstration Density
-  > ``` ∀ constraint clusters C in the seed Constraints section: if |C| ≥ 2 and budget permits: ∃ at least one demonstration d showing compliance with C d is a concrete 20-40 token example,
-
-### Open Questions
-- How should seed handle multi-session continuity? Current: shows last 2-3 sessions. Gap: agent loses context from session N-4 and earlier. Possible: session chain summary with diminishing detail.
-- INSIGHT: Methodology friction is inversely correlated with k*. At high k* (fresh), agents fight the observe→crystallize→task ordering because they have creative energy and want to CREATE NOW.
-- INSIGHT: Position in the prompt matters. The dynamic methodology section should be at the TOP of AGENTS.md (before the static content) because it occupies the highest-k* position — the agent reads it
-- INSIGHT: The methodology-as-live-projection principle. Seed is a live projection of WHAT to work on (task-relevant context).
 
 ### Next Actions
 
 
 Next actions:
-  1. Work — R(t) top: "COTX-1: Harvest-session cotransaction — atomic session rotation in harvest commit" (impact=0.28) — t-222d6fdc
-     run: braid go t-222d6fdc
+  1. Work — R(t) top: "POLICY-TEST: Comprehensive unit + proptest suite for policy manifest system" (impact=0.63) — t-3aec307f
+     run: braid go t-3aec307f
 
 Protocol: observe → status → observe → harvest --commit | seed --inject AGENTS.md
 
-Active intentions (1 task):
+Active intentions (4 tasks):
+  [t-d9536d87] RDI-5: Precedent query — find_resolution_precedent(store, attribute) -> Vec<Decision> for case law retrieval. BACKGROUND: The case law system enables querying past resolution outcomes for a given attribute. Uses AVET index on :resolution/attribute for O(1) lookup, then follows :resolution/decision Ref to load Decision entities. Results sorted by stability_score descending, then tx descending. The function is dual-purpose: (1) inform human reviewers with conflict history, (2) provide data for mode escalation signals. APPROACH: (1) Implement find_resolution_precedent(store, attribute) -> Vec<(EntityId, DecisionMethod, Value, TxId)>. Uses store.avet_lookup(:resolution/attribute, attribute_keyword) to find all resolution entities, then follows :resolution/decision Ref to load Decision details. (2) Add precedent_summary(store, attribute) -> PrecedentSummary struct with total_count, mode_distribution: BTreeMap<DecisionMethod, usize>, override_count, last_resolution_tx. (3) Wire into guidance: when R(t) computes impact for a task, attributes with high conflict history get a contention_boost. ACCEPTANCE: (A) Empty store returns empty vec. (B) After 5 resolutions of same attribute, returns all 5 sorted correctly. (C) PrecedentSummary mode_distribution sums to total_count. (D) AVET index is used (not linear scan). DEPENDS-ON: RDI-4. FILE: crates/braid-kernel/src/resolution.rs (task, P2/medium, in-progress)
+    Depends on: RDI-4: Wire resolution-to-decision into resolve_with_trail + cascade_full. BACKGROUND: resolve_with_trail(conflict, schema) -> ResolutionRecord already produces resolution datoms via conflict_to_datoms(). The bridge requires calling resolution_to_decision() and appending the Decision datoms to the same transaction. cascade_full() in merge.rs orchestrates the post-merge cascade; step 1 calls detect_conflicts + resolve, which should now also produce Decision entities. The key invariant: the Resolution datoms and Decision datoms MUST be in the same transaction (atomicity). APPROACH: (1) Extend resolve_with_trail to also return Decision datoms via resolution_to_decision(). (2) Extend conflict_to_datoms to include Decision+Position datoms. (3) Wire :resolution/decision Ref from the resolution entity to the Decision entity. (4) In cascade_full(), ensure the Decision datoms are included in the cascade output. ACCEPTANCE: (A) resolve_with_trail output includes Decision datoms. (B) Resolution entity has :resolution/decision Ref to Decision entity. (C) cascade_full includes Decision datoms in output. (D) All datoms in same tx (atomicity). DEPENDS-ON: RDI-3. FILE: crates/braid-kernel/src/resolution.rs + crates/braid-kernel/src/merge.rs (t-e401eaa4)
+    Blocks: RDI-6: Mode escalation signals — detect override patterns and recommend resolution mode changes. BACKGROUND: When humans or higher-authority agents override automated resolutions, the pattern indicates the current mode is inappropriate. The escalation_signal function analyzes the precedent base for a given attribute and fires when the override rate exceeds 0.3. This is the self-tuning feedback loop: resolution→Decision, override→counter-Decision, detection→escalation signal→guidance gap→mode change recommendation. APPROACH: (1) Add :resolution/override-count (Long, One) to schema. (2) Implement escalation_signal(store, attribute) -> Option<EscalationSignal>. EscalationSignal: attribute, current_mode, recommended_mode, override_count, total_count, confidence. (3) Recommendation logic: override_rate > 0.3 AND current=LWW → Lattice; override_rate > 0.5 AND current=Lattice → Deliberation; override_rate < 0.1 → downgrade to LWW. (4) Wire into methodology_gaps() as a new gap category: resolution_escalation_count. (5) Wire into braid status: show 'resolution: N attributes need mode review' when escalation signals exist. ACCEPTANCE: (A) No overrides → no signal. (B) 4/10 overrides on LWW attribute → EscalationSignal with recommended=Lattice. (C) 6/10 overrides on Lattice → recommended=Deliberation. (D) 0/10 overrides → signal to downgrade. (E) Shows in braid status. DEPENDS-ON: RDI-5. FILE: crates/braid-kernel/src/resolution.rs + crates/braid-kernel/src/guidance.rs + crates/braid/src/commands/status.rs (t-c9645957)
+  [t-2f2eb7bf] POLICY-REGRESSION: Backward compatibility regression test (test, P0/critical, in-progress)
+    Description: BACKGROUND: The policy refactor touches bilateral.rs, store.rs, and guidance.rs. All existing tests must continue to pass. F(S) on existing stores must not change..
+    Depends on: POLICY-5: Policy manifest validation at load time (t-c2bb5b31), OBSERVER-4: Calibration loop — collect always, adjust on evidence (t-7c704a5a), POLICY-4: Policy-driven MaterializedViews — dynamic accumulators from manifest (t-5640358a)
+    Traces to: #455a5c89…
+  [t-3aec307f] POLICY-TEST: Comprehensive unit + proptest suite for policy manifest system (test, P0/critical, in-progress)
+    Description: BACKGROUND: The policy manifest is the most critical new subsystem — it configures the entire coherence model. Defects here produce wrong F(S), wrong gradient routing,
+    Depends on: POLICY-5: Policy manifest validation at load time (t-c2bb5b31), POLICY-3: Policy-driven compute_fitness — BoundaryRegistry as primary path (t-da1100c8), POLICY-4: Policy-driven MaterializedViews — dynamic accumulators from manifest (t-5640358a)
+    Traces to: #455a5c89…, #fc7a7fd9…
   [t-eeaf0160] TOPO-CALM: Implement CALM classification of task phases — Tier M (parallel) vs Tier NM (sequential barrier) (ADR-TOPOLOGY-002, INV-TOPOLOGY-006). BACKGROUND: The CALM theorem (Consistency As Logical Monotonicity) partitions operations: monotonic operations can execute without coordination (Tier M), non-monotonic operations require sync barriers (Tier NM). In the density matrix framework: Tier M = near-zero eigenvalues (independent work), Tier NM = strong eigenvalues (coupled work). For our agent coordination: editing code is Tier M (parallel, each agent edits different files), verification is Tier NM (cargo test/clippy requires all edits complete, sequential barrier). The phase plan is: Phase 1 (Tier M) = all agents edit in parallel, Phase 2 (Tier NM) = barrier (git commit + merge + cargo test), Phase 3 (Tier M) = continue with updated coupling. APPROACH: (1) Define CalmTier enum: MonotonicParallel, NonMonotonicBarrier. (2) classify_task_phase(task: &TaskSummary) -> CalmTier. Tasks involving only file edits = Tier M. Tasks involving verification, merge, schema change = Tier NM. (3) phase_plan(partition: &[Vec<EntityId>], tiers: &BTreeMap<EntityId, CalmTier>) -> Vec<Phase>. Groups consecutive Tier M tasks into parallel phases, inserts barriers before Tier NM tasks. ACCEPTANCE: (A) Pure edit tasks classified as Tier M. (B) Tasks with spec-refs to INV-MERGE-* classified as Tier NM. (C) Phase plan alternates M and NM phases. DEPENDS-ON: t-21af64fc (TOPO-SPECTRAL). FILE: crates/braid-kernel/src/topology.rs (task, P2/medium, closed)
     Depends on: TOPO-SPECTRAL: Implement spectral topology selection — Fiedler partition, Cheeger quality, topology pattern classification (INV-TOPOLOGY-005, ADR-TOPOLOGY-004 middle-end). BACKGROUND: The eigenstructure of rho_C directly determines the optimal topology pattern. The spectral gap Delta = lambda_1 - lambda_2 indicates how dominant the primary coupling cluster is. The Fiedler vector (2nd eigenvector of graph Laplacian L = D - C) gives the optimal binary partition. Recursive Fiedler partitioning gives the full cluster hierarchy. The Cheeger constant h(G) >= lambda_2/2 bounds partition quality. We already have fiedler(), cheeger(), symmetric_eigen_decomposition() in query/graph.rs. APPROACH: (1) Define TopologyPattern enum: Solo, Mesh, Star(hub), Pipeline, Hybrid(clusters). (2) select_topology(analysis: &CouplingAnalysis, agent_count: usize) -> TopologyPattern. Uses intrinsic spectral metrics: if p > 0.8 -> Parallel, if 0.3 < p <= 0.8 -> Hybrid (Fiedler partition), if p <= 0.3 -> Sequential/Star. (3) spectral_partition(coupling: &DenseMatrix, k: usize) -> Vec<Vec<usize>>. Recursive Fiedler bisection into k groups. (4) partition_quality(partition, coupling) -> f64 using Cheeger-like metric. ACCEPTANCE: (A) Identity coupling matrix -> Solo topology. (B) Block-diagonal coupling -> Hybrid with matching cluster count. (C) Fully coupled -> Mesh. (D) select_topology is deterministic (INV-TOPOLOGY-005). DEPENDS-ON: t-3f8df462 (TOPO-DENSITY). FILE: crates/braid-kernel/src/topology.rs (t-21af64fc)
     Blocks: TOPO-PLAN: Implement TopologyPlan struct and compute_plan() — the full compilation back-end (ADR-TOPOLOGY-004 back-end, INV-TOPOLOGY-005). BACKGROUND: This is the back-end of the topology compilation pipeline. It assembles all previous computations (coupling density matrix, spectral partition, CALM classification) into a complete execution plan. The plan includes per-agent task assignments, file sets (verified disjoint), seed commands, CARGO_TARGET_DIR assignments, phase ordering, and estimated F(T). The plan is a pure data structure — no IO, no agent management. It can be serialized to JSON for external orchestrators or displayed as human-readable text. APPROACH: (1) TopologyPlan struct with: agent_count, agents: Vec<AgentAssignment>, phases: Vec<Phase>, coupling_analysis: CouplingAnalysis, estimated_ft: f64. (2) AgentAssignment struct: agent_id: String, tasks: Vec<EntityId>, files: BTreeSet<String>, seed_command: String, cargo_target_dir: String, estimated_impact: f64. (3) compute_plan(store: &Store, agent_count: usize) -> TopologyPlan. Orchestrates: ready_task_files -> composite_coupling -> density_matrix -> spectral_partition -> calm_classify -> balance_assignment -> emit_plan. (4) balance_assignment: greedy bin-packing assigns highest-impact unassigned task to agent with lowest cumulative impact, subject to coupling constraints (coupled tasks to same agent). Uses R(t) impact scores from compute_routing. ACCEPTANCE: (A) All tasks assigned to exactly one agent. (B) File sets across agents are disjoint (no shared files). (C) Coupled tasks (rho_C > 0) assigned to same agent. (D) Impact variance across agents < 0.5 * mean_impact (balanced). (E) Plan is deterministic (INV-TOPOLOGY-005). DEPENDS-ON: t-eeaf0160 (TOPO-CALM), t-21af64fc (TOPO-SPECTRAL). FILE: crates/braid-kernel/src/topology.rs (t-57c4333f)
+[Note: Intention context exhausts budget — other sections compressed]
 
 ### Quick Reference
 ```bash

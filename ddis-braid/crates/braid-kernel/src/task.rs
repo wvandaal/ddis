@@ -165,6 +165,8 @@ pub struct TaskSummary {
     pub source: Option<String>,
     /// Close reason (if closed).
     pub close_reason: Option<String>,
+    /// Project stage this task belongs to (0-4). None = inferred from namespace.
+    pub stage: Option<i64>,
 }
 
 impl TaskSummary {
@@ -944,6 +946,11 @@ pub fn task_summary(store: &Store, entity: EntityId) -> Option<TaskSummary> {
         }
     }
 
+    let stage = match store.live_value(entity, &Attribute::from_keyword(":task/stage")) {
+        Some(Value::Long(n)) => Some(*n),
+        _ => None,
+    };
+
     let status = resolve_task_status(store, entity)?;
 
     Some(TaskSummary {
@@ -960,6 +967,7 @@ pub fn task_summary(store: &Store, entity: EntityId) -> Option<TaskSummary> {
         labels,
         source,
         close_reason,
+        stage,
     })
 }
 
@@ -991,6 +999,9 @@ pub fn all_tasks(store: &Store) -> Vec<TaskSummary> {
 pub fn compute_ready_set(store: &Store) -> Vec<TaskSummary> {
     let tasks = all_tasks(store);
 
+    // Read project stage from store (default: 4 = show all)
+    let current_stage = get_project_stage(store);
+
     // Build status + type lookup for all tasks
     let status_map: HashMap<EntityId, TaskStatus> =
         tasks.iter().map(|t| (t.entity, t.status)).collect();
@@ -1002,7 +1013,12 @@ pub fn compute_ready_set(store: &Store) -> Vec<TaskSummary> {
     let mut ready: Vec<TaskSummary> = tasks
         .into_iter()
         .filter(|t| {
-            t.status == TaskStatus::Open
+            // Stage gate: only show tasks at or below current project stage
+            let task_stage = t.stage.unwrap_or_else(|| infer_stage_from_title(&t.title));
+            let stage_ok = task_stage <= current_stage;
+
+            stage_ok
+                && t.status == TaskStatus::Open
                 && t.depends_on.iter().all(|dep| {
                     // Dependency satisfied if: closed, unknown, or an EPIC (container)
                     let is_closed = status_map.get(dep).is_none_or(|s| *s == TaskStatus::Closed);
@@ -1020,6 +1036,75 @@ pub fn compute_ready_set(store: &Store) -> Vec<TaskSummary> {
     });
 
     ready
+}
+
+/// Get the current project stage from the store (default: 4 = show all).
+pub fn get_project_stage(store: &Store) -> i64 {
+    let attr = Attribute::from_keyword(":project/current-stage");
+    let datoms = store.attribute_datoms(&attr);
+    for d in datoms.iter().rev() {
+        if d.op == Op::Assert {
+            if let Value::Long(n) = d.value {
+                return n;
+            }
+        }
+    }
+    4 // default: show all stages
+}
+
+/// Infer stage from task title/namespace when `:task/stage` is not explicitly set.
+///
+/// Stage assignment by namespace (from SEED.md staging model):
+/// - Stage 0: STORE, SCHEMA, QUERY, HARVEST, SEED (core substrate)
+/// - Stage 1: BUDGET, GUIDANCE, WITNESS, BILATERAL, INTERFACE, REFLEXIVE (coherence tooling)
+/// - Stage 2: DELIBERATION, BRANCH, RESOLUTION (structured exploration)
+/// - Stage 3: SYNC, SIGNAL, FRONTIER, TOPOLOGY (multi-agent coordination)
+/// - Stage 4: SIGNIFICANCE, AUTHORITY, TUI (advanced intelligence)
+///
+/// Unrecognized namespaces default to stage 1 (most common working stage).
+pub fn infer_stage_from_title(title: &str) -> i64 {
+    let upper = title.to_uppercase();
+
+    // Stage 0: core substrate
+    for ns in ["STORE", "SCHEMA", "QUERY", "HARVEST", "SEED", "INIT"] {
+        if upper.starts_with(ns) || upper.contains(&format!("INV-{ns}")) {
+            return 0;
+        }
+    }
+
+    // Stage 1: coherence tooling + policy + extractor + substrate decoupling
+    for ns in ["BUDGET", "GUIDANCE", "WITNESS", "BILATERAL", "INTERFACE",
+               "REFLEXIVE", "POLICY", "EXTRACTOR", "SUBSTRATE", "CRB",
+               "ZCM", "TAP", "BAO", "RFL", "PERF", "META", "COTX",
+               "DMP", "SFE", "COF", "AGP", "TEST", "DAEMON", "MCP"] {
+        if upper.starts_with(ns) || upper.contains(&format!("{ns}-")) {
+            return 1;
+        }
+    }
+
+    // Stage 2: structured exploration
+    for ns in ["DELIBERATION", "BRANCH", "RESOLUTION", "RDI"] {
+        if upper.starts_with(ns) || upper.contains(&format!("INV-{ns}")) {
+            return 2;
+        }
+    }
+
+    // Stage 3: multi-agent
+    for ns in ["SYNC", "SIGNAL", "FRONTIER", "TOPOLOGY", "TOPO"] {
+        if upper.starts_with(ns) || upper.contains(&format!("INV-{ns}")) {
+            return 3;
+        }
+    }
+
+    // Stage 4: advanced
+    for ns in ["SIGNIFICANCE", "AUTHORITY", "TUI"] {
+        if upper.starts_with(ns) || upper.contains(&format!("INV-{ns}")) {
+            return 4;
+        }
+    }
+
+    // Default: stage 1 (most active working stage)
+    1
 }
 
 /// Check if adding a dependency edge would create a cycle (INV-TASK-002).

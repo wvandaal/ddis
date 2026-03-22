@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774217222/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "POLICY-TEST complete: 33 tests (20 original + 8 unit + 5 proptest). Covers all acceptance criteria: boundary roundtrip, anomaly detectors, calibration params, coverage monotonicity, pattern matching determinism, vacuous coherence. All pass."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0b35e8418cc96b5f4a6b240489195e7e03e6a88420bbd426cb248fd4e00210aa" :a :db/doc :v "POLICY-TEST complete: 33 tests (20 original + 8 unit + 5 proptest). Covers all acceptance criteria: boundary roundtrip, anomaly detectors, calibration params, coverage monotonicity, pattern matching determinism, vacuous coherence. All pass." :op :assert}
+   {:e #blake3 "0b35e8418cc96b5f4a6b240489195e7e03e6a88420bbd426cb248fd4e00210aa" :a :db/ident :v :observation/policy-test-complete-33-tests-20-original-8-unit-5-pro :op :assert}
+   {:e #blake3 "0b35e8418cc96b5f4a6b240489195e7e03e6a88420bbd426cb248fd4e00210aa" :a :exploration/body :v "POLICY-TEST complete: 33 tests (20 original + 8 unit + 5 proptest). Covers all acceptance criteria: boundary roundtrip, anomaly detectors, calibration params, coverage monotonicity, pattern matching determinism, vacuous coherence. All pass." :op :assert}
+   {:e #blake3 "0b35e8418cc96b5f4a6b240489195e7e03e6a88420bbd426cb248fd4e00210aa" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "0b35e8418cc96b5f4a6b240489195e7e03e6a88420bbd426cb248fd4e00210aa" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "0b35e8418cc96b5f4a6b240489195e7e03e6a88420bbd426cb248fd4e00210aa" :a :exploration/content-hash :v #bytes "41ede786eebcde64ba48a4aa81c25c4e2c00940a928f0aa8c29c8b75ae42c7e3" :op :assert}
+   {:e #blake3 "0b35e8418cc96b5f4a6b240489195e7e03e6a88420bbd426cb248fd4e00210aa" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "0b35e8418cc96b5f4a6b240489195e7e03e6a88420bbd426cb248fd4e00210aa" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "0b35e8418cc96b5f4a6b240489195e7e03e6a88420bbd426cb248fd4e00210aa" :a :exploration/source-session :v #blake3 "fc04e30563b5889e83224c877b75bef13d4eb9bf53e47e4843c66e63da98571a" :op :assert}
+ ]}

@@ -25,6 +25,7 @@ mod topology;
 pub(crate) mod trace;
 mod verify;
 mod witness;
+mod extract;
 mod wrap;
 pub(crate) mod write;
 
@@ -940,6 +941,43 @@ Examples:
         #[command(subcommand)]
         action: WitnessAction,
     },
+
+    // ── EXTRACT ──────────────────────────────────────────────────────
+    /// Invoke registered extractors to populate component datoms.
+    ///
+    /// Queries the store for `:extractor/*` entities and invokes their
+    /// commands. Each extractor populates `:component/*` datoms.
+    ///
+    /// `braid extract`         Run all active extractors.
+    /// `braid extract rust`    Run only Rust-related extractors.
+    /// `braid extract --commit` Update :extractor/last-run timestamps.
+    #[command(after_long_help = "\
+Examples:
+  braid extract                  # run all active extractors
+  braid extract rust             # run Rust-related extractors only
+  braid extract --commit         # update last-run timestamps
+  braid extract --json           # structured output")]
+    Extract {
+        /// Optional filter: run only extractors matching this name/language.
+        #[arg()]
+        filter: Option<String>,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: std::path::PathBuf,
+
+        /// Commit extractor results (update :extractor/last-run).
+        #[arg(long)]
+        commit: bool,
+
+        /// Agent identity.
+        #[arg(long, default_value = "braid:extract")]
+        agent: String,
+
+        /// Suppress guidance footer.
+        #[arg(long, short = 'q')]
+        quiet: bool,
+    },
 }
 
 /// Topology subcommands (ADR-TOPOLOGY-004).
@@ -1674,6 +1712,7 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
             | WitnessAction::Completeness { path, .. }
             | WitnessAction::Generate { path, .. } => Some(path),
         },
+        Command::Extract { ref path, .. } => Some(path),
     }
 }
 
@@ -1743,6 +1782,7 @@ pub fn command_name_for(cmd: &Command) -> &'static str {
         Command::Witness { .. } => "witness",
         Command::Verify { .. } => "verify",
         Command::Transact { .. } => "transact",
+        Command::Extract { .. } => "extract",
     }
 }
 
@@ -2081,6 +2121,9 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
                 *path = resolve_store_path(path.clone());
             }
         },
+        Command::Extract { ref mut path, .. } => {
+            *path = resolve_store_path(path.clone());
+        }
     }
     cmd
 }
@@ -2921,6 +2964,23 @@ pub fn run(
                 ));
             }
         },
+        Command::Extract {
+            filter,
+            path,
+            commit,
+            agent,
+            ..
+        } => {
+            let cmd_output = extract::run(&path, filter.as_deref(), commit, &agent)?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+                footer_cmd_name,
+                None,
+            ));
+        }
     };
 
     // INV-GUIDANCE-001: Inject guidance footer into applicable command outputs.

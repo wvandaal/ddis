@@ -22,11 +22,42 @@ use crate::datom::{Attribute, EntityId, Value};
 use crate::error::TopologyError;
 use crate::store::Store;
 
+/// Check if a path has a recognized source file extension.
+///
+/// Language-agnostic: covers all common source, config, and doc file types.
+/// C8 compliance: no assumption about which language the project uses.
+fn has_source_extension(path: &str) -> bool {
+    let extensions = [
+        ".rs", ".go", ".ts", ".tsx", ".js", ".jsx", ".py", ".rb", ".java",
+        ".kt", ".swift", ".c", ".cpp", ".h", ".hpp", ".cs", ".fs",
+        ".edn", ".toml", ".yaml", ".yml", ".json", ".md", ".sh",
+    ];
+    extensions.iter().any(|ext| path.ends_with(ext))
+}
+
+/// Strip file extension from a path component, for any language.
+///
+/// Returns the stem with the extension removed. If no known extension
+/// is found, returns the original string unchanged.
+fn strip_source_extension(part: &str) -> &str {
+    let extensions = [
+        ".rs", ".go", ".ts", ".tsx", ".js", ".jsx", ".py", ".rb", ".java",
+        ".kt", ".swift", ".c", ".cpp", ".h", ".hpp", ".cs", ".fs",
+        ".edn", ".toml", ".yaml", ".yml", ".json", ".md", ".sh",
+    ];
+    for ext in &extensions {
+        if let Some(stem) = part.strip_suffix(ext) {
+            return stem;
+        }
+    }
+    part
+}
+
 /// Extract the set of files a task touches, from its title text.
 ///
 /// Looks for:
 /// 1. Explicit `FILE:` or `FILES:` markers in the title
-/// 2. Known Rust source file patterns (crates/*/src/*.rs)
+/// 2. Inline file paths (any path with `/` separator and recognized source extension)
 ///
 /// Returns a set of normalized file paths.
 pub fn extract_task_files(title: &str) -> BTreeSet<String> {
@@ -51,12 +82,14 @@ pub fn extract_task_files(title: &str) -> BTreeSet<String> {
         }
     }
 
-    // Pattern 2: Inline file paths (crates/*/src/*.rs pattern)
+    // Pattern 2: Inline file paths (any path with directory separator + file extension)
+    // Language-agnostic: detects any path containing '/' and a common source extension.
+    // C8 compliance: no assumption about project layout or programming language.
     for word in title.split_whitespace() {
         let trimmed = word.trim_matches(|c: char| {
             !c.is_alphanumeric() && c != '/' && c != '.' && c != '-' && c != '_'
         });
-        if trimmed.starts_with("crates/") && trimmed.ends_with(".rs") {
+        if trimmed.contains('/') && has_source_extension(trimmed) {
             files.insert(trimmed.to_string());
         }
     }
@@ -200,14 +233,17 @@ pub fn agent_name_from_files(files: &BTreeSet<String>, index: usize) -> String {
         return format!("agent-{index}");
     }
 
-    let skip = ["src", "crates", "lib", "mod", "main", "tests"];
+    // Language-agnostic skip list — common directory names that are not meaningful
+    let skip = ["src", "crates", "lib", "mod", "main", "tests", "test", "pkg",
+                 "internal", "cmd", "bin", "build", "dist", "out", "node_modules",
+                 "packages", "components", "utils"];
     let mut stem_counts: BTreeMap<&str, usize> = BTreeMap::new();
 
     for path in files {
         let parts: Vec<&str> = path.split('/').collect();
         for &part in &parts {
-            // Strip .rs extension for file stems
-            let stem = part.strip_suffix(".rs").unwrap_or(part);
+            // Strip any recognized source extension (C8: not just .rs)
+            let stem = strip_source_extension(part);
             if !stem.is_empty() && !skip.contains(&stem) && stem.len() > 1 {
                 *stem_counts.entry(stem).or_default() += 1;
             }

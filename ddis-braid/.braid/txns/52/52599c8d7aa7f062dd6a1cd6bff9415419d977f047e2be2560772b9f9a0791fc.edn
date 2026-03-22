@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774217962/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "POLICY-REGRESSION verified: 1643 tests pass, 0 clippy warnings, F(S)=0.62 (delta=0.00), status output identical. 10/17 E2E pass; 7 failures are pre-existing (not caused by policy changes — only test code was added)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f3ca5cb2927afb5badec23e02a552dea43cf1660c3d1fb17c42be02b151eb91" :a :db/doc :v "POLICY-REGRESSION verified: 1643 tests pass, 0 clippy warnings, F(S)=0.62 (delta=0.00), status output identical. 10/17 E2E pass; 7 failures are pre-existing (not caused by policy changes — only test code was added)." :op :assert}
+   {:e #blake3 "8f3ca5cb2927afb5badec23e02a552dea43cf1660c3d1fb17c42be02b151eb91" :a :db/ident :v :observation/policy-regression-verified-1643-tests-pass-0-clippy-warnin :op :assert}
+   {:e #blake3 "8f3ca5cb2927afb5badec23e02a552dea43cf1660c3d1fb17c42be02b151eb91" :a :exploration/body :v "POLICY-REGRESSION verified: 1643 tests pass, 0 clippy warnings, F(S)=0.62 (delta=0.00), status output identical. 10/17 E2E pass; 7 failures are pre-existing (not caused by policy changes — only test code was added)." :op :assert}
+   {:e #blake3 "8f3ca5cb2927afb5badec23e02a552dea43cf1660c3d1fb17c42be02b151eb91" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "8f3ca5cb2927afb5badec23e02a552dea43cf1660c3d1fb17c42be02b151eb91" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "8f3ca5cb2927afb5badec23e02a552dea43cf1660c3d1fb17c42be02b151eb91" :a :exploration/content-hash :v #bytes "9065c791b8d4c2d0bce8e4ec166af6a37d431527bda4e0cd8a142d125013bd0d" :op :assert}
+   {:e #blake3 "8f3ca5cb2927afb5badec23e02a552dea43cf1660c3d1fb17c42be02b151eb91" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8f3ca5cb2927afb5badec23e02a552dea43cf1660c3d1fb17c42be02b151eb91" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8f3ca5cb2927afb5badec23e02a552dea43cf1660c3d1fb17c42be02b151eb91" :a :exploration/source-session :v #blake3 "fc04e30563b5889e83224c877b75bef13d4eb9bf53e47e4843c66e63da98571a" :op :assert}
+ ]}
