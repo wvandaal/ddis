@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774196299/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-012 \"Braid as Epistemology Runtime — substrate/application separation\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a4f68bbdd99b3c3bd98123daf9d99c2bdee374dba421da5e088f824544af82ae" :a :db/ident :v :task/t-0506cba8 :op :assert}
+   {:e #blake3 "a4f68bbdd99b3c3bd98123daf9d99c2bdee374dba421da5e088f824544af82ae" :a :task/created-at :v 1774196298 :op :assert}
+   {:e #blake3 "a4f68bbdd99b3c3bd98123daf9d99c2bdee374dba421da5e088f824544af82ae" :a :task/id :v "t-0506cba8" :op :assert}
+   {:e #blake3 "a4f68bbdd99b3c3bd98123daf9d99c2bdee374dba421da5e088f824544af82ae" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a4f68bbdd99b3c3bd98123daf9d99c2bdee374dba421da5e088f824544af82ae" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a4f68bbdd99b3c3bd98123daf9d99c2bdee374dba421da5e088f824544af82ae" :a :task/title :v "Implement ADR-FOUNDATION-012: Braid as Epistemology Runtime — substrate/application separation" :op :assert}
+   {:e #blake3 "a4f68bbdd99b3c3bd98123daf9d99c2bdee374dba421da5e088f824544af82ae" :a :task/traces-to :v #blake3 "d6ae748823c018cb2127929c7eca5f13a208c72bf85e4e4b261aac5b7822bb22" :op :assert}
+   {:e #blake3 "a4f68bbdd99b3c3bd98123daf9d99c2bdee374dba421da5e088f824544af82ae" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "d6ae748823c018cb2127929c7eca5f13a208c72bf85e4e4b261aac5b7822bb22" :a :adr/decision :v "Braid is a runtime for formal epistemology, not a software development tool. The kernel provides: datom store, query engine, boundary registry, extractor framework, guidance shell, harvest/seed lifecycle. All domain-specific epistemological policy (claim types, evidence types, fitness components, anomaly detectors) enters through a declarative policy manifest transacted as datoms at init time. DDIS is the first application on this substrate." :op :assert}
+   {:e #blake3 "d6ae748823c018cb2127929c7eca5f13a208c72bf85e4e4b261aac5b7822bb22" :a :adr/problem :v "28 days of self-bootstrapping fused DDIS methodology into the kernel. bilateral.rs hardcodes 7 fitness components. witness.rs assumes falsification conditions. MaterializedViews tracks DDIS-specific attributes. This prevents any non-DDIS team from using braid." :op :assert}
+   {:e #blake3 "d6ae748823c018cb2127929c7eca5f13a208c72bf85e4e4b261aac5b7822bb22" :a :db/doc :v "Braid as Epistemology Runtime — substrate/application separation" :op :assert}
+   {:e #blake3 "d6ae748823c018cb2127929c7eca5f13a208c72bf85e4e4b261aac5b7822bb22" :a :db/ident :v :spec/adr-foundation-012 :op :assert}
+   {:e #blake3 "d6ae748823c018cb2127929c7eca5f13a208c72bf85e4e4b261aac5b7822bb22" :a :element/traces-to :v "SEED.md S4, C8" :op :assert}
+   {:e #blake3 "d6ae748823c018cb2127929c7eca5f13a208c72bf85e4e4b261aac5b7822bb22" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "d6ae748823c018cb2127929c7eca5f13a208c72bf85e4e4b261aac5b7822bb22" :a :spec/id :v "ADR-FOUNDATION-012" :op :assert}
+   {:e #blake3 "d6ae748823c018cb2127929c7eca5f13a208c72bf85e4e4b261aac5b7822bb22" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+ ]}

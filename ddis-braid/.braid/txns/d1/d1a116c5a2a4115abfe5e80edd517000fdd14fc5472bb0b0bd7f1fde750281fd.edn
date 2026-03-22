@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774196183/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :db/ident :v :recon/trace-5ca1a279b7f109d2 :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-neighborhood :v "GUIDANCE" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-neighbors :v ":task/t-1df529fa" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-neighbors :v ":task/t-2b38e324" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-neighbors :v ":task/t-42a1a89b" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-neighbors :v ":task/t-6169f35e" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-neighbors :v ":task/t-8658eb77" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-neighbors :v ":task/t-d8bc1f0c" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-neighbors :v ":task/t-e31c20ca" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-neighbors :v ":task/t-efa31fb3" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-neighbors :v ":task/t-fd30188b" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-neighbors :v ":task/t-ff6a4143" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-refs :v "ADR-GUIDANCE-014" :op :assert}
+   {:e #blake3 "eb3bfc6f9863abd7c3e838ab7eb7081d776179a43edd4e457a45f232ab550137" :a :recon/trace-refs :v "NEG-FOUNDATION-002" :op :assert}
+ ]}

@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774196226/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INSIGHT CHAIN 2/5 — FORMAL EPISTEMOLOGY: DDIS is not a specification standard. It is a formal epistemology. Braid is a runtime for formal epistemology. The datom is the minimum viable unit of shared belief. Append-only is epistemic integrity. CRDT merge is intersubjectivity. F(S) measures epistemic progress. The gradient computes optimal inquiry. Harvest/seed enables cumulative knowledge across mortal observers. The 8-type divergence taxonomy is an epistemological taxonomy universal across all domains. Traces to: SEED.md S1-S2."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ec8434754204a8d86e92e8fb1998ad988a174d858e0eadf34f537b5940d7935a" :a :db/doc :v "INSIGHT CHAIN 2/5 — FORMAL EPISTEMOLOGY: DDIS is not a specification standard. It is a formal epistemology. Braid is a runtime for formal epistemology. The datom is the minimum viable unit of shared belief. Append-only is epistemic integrity. CRDT merge is intersubjectivity. F(S) measures epistemic progress. The gradient computes optimal inquiry. Harvest/seed enables cumulative knowledge across mortal observers. The 8-type divergence taxonomy is an epistemological taxonomy universal across all domains. Traces to: SEED.md S1-S2." :op :assert}
+   {:e #blake3 "ec8434754204a8d86e92e8fb1998ad988a174d858e0eadf34f537b5940d7935a" :a :db/ident :v :observation/insight-chain-25-formal-epistemology-ddis-is-not-a-speci :op :assert}
+   {:e #blake3 "ec8434754204a8d86e92e8fb1998ad988a174d858e0eadf34f537b5940d7935a" :a :exploration/body :v "INSIGHT CHAIN 2/5 — FORMAL EPISTEMOLOGY: DDIS is not a specification standard. It is a formal epistemology. Braid is a runtime for formal epistemology. The datom is the minimum viable unit of shared belief. Append-only is epistemic integrity. CRDT merge is intersubjectivity. F(S) measures epistemic progress. The gradient computes optimal inquiry. Harvest/seed enables cumulative knowledge across mortal observers. The 8-type divergence taxonomy is an epistemological taxonomy universal across all domains. Traces to: SEED.md S1-S2." :op :assert}
+   {:e #blake3 "ec8434754204a8d86e92e8fb1998ad988a174d858e0eadf34f537b5940d7935a" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "ec8434754204a8d86e92e8fb1998ad988a174d858e0eadf34f537b5940d7935a" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "ec8434754204a8d86e92e8fb1998ad988a174d858e0eadf34f537b5940d7935a" :a :exploration/content-hash :v #bytes "e790dd300901f4b539011f32f01d9f3a77824bc1598d3d1f5a074b473a44a046" :op :assert}
+   {:e #blake3 "ec8434754204a8d86e92e8fb1998ad988a174d858e0eadf34f537b5940d7935a" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "ec8434754204a8d86e92e8fb1998ad988a174d858e0eadf34f537b5940d7935a" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "ec8434754204a8d86e92e8fb1998ad988a174d858e0eadf34f537b5940d7935a" :a :exploration/source-session :v #blake3 "035fa6a49ab21082b51d0aa21e4abe906f1495d83eadc07534d217bb8131f727" :op :assert}
+   {:e #blake3 "ec8434754204a8d86e92e8fb1998ad988a174d858e0eadf34f537b5940d7935a" :a :exploration/tags :v :tag/insight-chain :op :assert}
+ ]}

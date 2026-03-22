@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774196278/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INSIGHT CHAIN 5/5 — ACTIVE OBSERVER: The most accretive addition is making braid an active epistemic agent. Continuous passive observation through policy-defined watchers: filesystem changes, git commits, test results, MCP tool calls, editor activity. The daemon (ADR-STORE-006) is the active observers runtime. Eliminates ceremony permanently. Basin A wins by being autonomous, not just invisible. The agent never runs a braid command. The system maintains coherence continuously. Traces to: ADR-STORE-006 (daemon), MCP-EXTRACT-1..5 (behavioral signals), INV-GUIDANCE-001 (continuous injection)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7fe26f9f5964096d71b7e2734561fa0b10ca5fdc29764371667cd46b3113ddf2" :a :db/doc :v "INSIGHT CHAIN 5/5 — ACTIVE OBSERVER: The most accretive addition is making braid an active epistemic agent. Continuous passive observation through policy-defined watchers: filesystem changes, git commits, test results, MCP tool calls, editor activity. The daemon (ADR-STORE-006) is the active observers runtime. Eliminates ceremony permanently. Basin A wins by being autonomous, not just invisible. The agent never runs a braid command. The system maintains coherence continuously. Traces to: ADR-STORE-006 (daemon), MCP-EXTRACT-1..5 (behavioral signals), INV-GUIDANCE-001 (continuous injection)." :op :assert}
+   {:e #blake3 "7fe26f9f5964096d71b7e2734561fa0b10ca5fdc29764371667cd46b3113ddf2" :a :db/ident :v :observation/insight-chain-55-active-observer-the-most-accretive-addi :op :assert}
+   {:e #blake3 "7fe26f9f5964096d71b7e2734561fa0b10ca5fdc29764371667cd46b3113ddf2" :a :exploration/body :v "INSIGHT CHAIN 5/5 — ACTIVE OBSERVER: The most accretive addition is making braid an active epistemic agent. Continuous passive observation through policy-defined watchers: filesystem changes, git commits, test results, MCP tool calls, editor activity. The daemon (ADR-STORE-006) is the active observers runtime. Eliminates ceremony permanently. Basin A wins by being autonomous, not just invisible. The agent never runs a braid command. The system maintains coherence continuously. Traces to: ADR-STORE-006 (daemon), MCP-EXTRACT-1..5 (behavioral signals), INV-GUIDANCE-001 (continuous injection)." :op :assert}
+   {:e #blake3 "7fe26f9f5964096d71b7e2734561fa0b10ca5fdc29764371667cd46b3113ddf2" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "7fe26f9f5964096d71b7e2734561fa0b10ca5fdc29764371667cd46b3113ddf2" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "7fe26f9f5964096d71b7e2734561fa0b10ca5fdc29764371667cd46b3113ddf2" :a :exploration/content-hash :v #bytes "e86f145ad823df45e09bb552c4f514d9381088f7d9b292658b1d4e7ea02420a4" :op :assert}
+   {:e #blake3 "7fe26f9f5964096d71b7e2734561fa0b10ca5fdc29764371667cd46b3113ddf2" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7fe26f9f5964096d71b7e2734561fa0b10ca5fdc29764371667cd46b3113ddf2" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7fe26f9f5964096d71b7e2734561fa0b10ca5fdc29764371667cd46b3113ddf2" :a :exploration/source-session :v #blake3 "035fa6a49ab21082b51d0aa21e4abe906f1495d83eadc07534d217bb8131f727" :op :assert}
+   {:e #blake3 "7fe26f9f5964096d71b7e2734561fa0b10ca5fdc29764371667cd46b3113ddf2" :a :exploration/tags :v :tag/insight-chain :op :assert}
+ ]}

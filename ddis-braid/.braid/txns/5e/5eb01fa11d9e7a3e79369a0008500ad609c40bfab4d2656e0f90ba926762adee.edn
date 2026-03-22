@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774196264/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INSIGHT CHAIN 4/5 — LLM-BOOTSTRAPPED INITIALIZATION: braid init starts a conversation about the users domain. What are your claims? What counts as evidence? What boundaries matter? What would alarm you? The LLM generates a policy manifest from natural language and transacts it as genesis datoms. The conversation IS the first harvest. The system self-configures its epistemology from dialogue. The bootstrapping conversation is itself an instance of the protocol it configures. Traces to: SEED.md S10 (bootstrap principle), C7 (self-bootstrap)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "812c0bfcd20e9727dbf094e217fcc3d888e65d41cd57fa2677bd9b173ee47d48" :a :db/doc :v "INSIGHT CHAIN 4/5 — LLM-BOOTSTRAPPED INITIALIZATION: braid init starts a conversation about the users domain. What are your claims? What counts as evidence? What boundaries matter? What would alarm you? The LLM generates a policy manifest from natural language and transacts it as genesis datoms. The conversation IS the first harvest. The system self-configures its epistemology from dialogue. The bootstrapping conversation is itself an instance of the protocol it configures. Traces to: SEED.md S10 (bootstrap principle), C7 (self-bootstrap)." :op :assert}
+   {:e #blake3 "812c0bfcd20e9727dbf094e217fcc3d888e65d41cd57fa2677bd9b173ee47d48" :a :db/ident :v :observation/insight-chain-45-llm-bootstrapped-initialization-braid-i :op :assert}
+   {:e #blake3 "812c0bfcd20e9727dbf094e217fcc3d888e65d41cd57fa2677bd9b173ee47d48" :a :exploration/body :v "INSIGHT CHAIN 4/5 — LLM-BOOTSTRAPPED INITIALIZATION: braid init starts a conversation about the users domain. What are your claims? What counts as evidence? What boundaries matter? What would alarm you? The LLM generates a policy manifest from natural language and transacts it as genesis datoms. The conversation IS the first harvest. The system self-configures its epistemology from dialogue. The bootstrapping conversation is itself an instance of the protocol it configures. Traces to: SEED.md S10 (bootstrap principle), C7 (self-bootstrap)." :op :assert}
+   {:e #blake3 "812c0bfcd20e9727dbf094e217fcc3d888e65d41cd57fa2677bd9b173ee47d48" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "812c0bfcd20e9727dbf094e217fcc3d888e65d41cd57fa2677bd9b173ee47d48" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "812c0bfcd20e9727dbf094e217fcc3d888e65d41cd57fa2677bd9b173ee47d48" :a :exploration/content-hash :v #bytes "e978197646acc82a7560e81754b1d7f0b8d1650a44a43b05e7ca53d55514b9f0" :op :assert}
+   {:e #blake3 "812c0bfcd20e9727dbf094e217fcc3d888e65d41cd57fa2677bd9b173ee47d48" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "812c0bfcd20e9727dbf094e217fcc3d888e65d41cd57fa2677bd9b173ee47d48" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "812c0bfcd20e9727dbf094e217fcc3d888e65d41cd57fa2677bd9b173ee47d48" :a :exploration/source-session :v #blake3 "035fa6a49ab21082b51d0aa21e4abe906f1495d83eadc07534d217bb8131f727" :op :assert}
+   {:e #blake3 "812c0bfcd20e9727dbf094e217fcc3d888e65d41cd57fa2677bd9b173ee47d48" :a :exploration/tags :v :tag/insight-chain :op :assert}
+ ]}

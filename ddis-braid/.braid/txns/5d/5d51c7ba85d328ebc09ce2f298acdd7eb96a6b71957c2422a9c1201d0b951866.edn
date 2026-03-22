@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774196343/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-007 \"Policy Manifest Completeness\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2b3f083d4d54702f880d43f85a83db575c32f08d38d989a425ed4426103c70f9" :a :db/ident :v :task/t-ca2af3c5 :op :assert}
+   {:e #blake3 "2b3f083d4d54702f880d43f85a83db575c32f08d38d989a425ed4426103c70f9" :a :task/created-at :v 1774196342 :op :assert}
+   {:e #blake3 "2b3f083d4d54702f880d43f85a83db575c32f08d38d989a425ed4426103c70f9" :a :task/id :v "t-ca2af3c5" :op :assert}
+   {:e #blake3 "2b3f083d4d54702f880d43f85a83db575c32f08d38d989a425ed4426103c70f9" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2b3f083d4d54702f880d43f85a83db575c32f08d38d989a425ed4426103c70f9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2b3f083d4d54702f880d43f85a83db575c32f08d38d989a425ed4426103c70f9" :a :task/title :v "Implement INV-FOUNDATION-007: Policy Manifest Completeness" :op :assert}
+   {:e #blake3 "2b3f083d4d54702f880d43f85a83db575c32f08d38d989a425ed4426103c70f9" :a :task/traces-to :v #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :op :assert}
+   {:e #blake3 "2b3f083d4d54702f880d43f85a83db575c32f08d38d989a425ed4426103c70f9" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :a :db/doc :v "Policy Manifest Completeness" :op :assert}
+   {:e #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :a :db/ident :v :spec/inv-foundation-007 :op :assert}
+   {:e #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :a :element/traces-to :v "C3, C8, ADR-FOUNDATION-013" :op :assert}
+   {:e #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :a :spec/falsification :v "Any fitness component weight, boundary definition, or anomaly threshold that exists only as a Rust constant and not as a datom violates this invariant." :op :assert}
+   {:e #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :a :spec/id :v "INV-FOUNDATION-007" :op :assert}
+   {:e #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :a :spec/statement :v "Every aspect of the coherence model that the kernel evaluates must be derived from policy datoms in the store, not from compiled constants. Claim types, evidence types, boundary definitions, fitness component weights, and anomaly detector thresholds are all queryable datoms." :op :assert}
+ ]}

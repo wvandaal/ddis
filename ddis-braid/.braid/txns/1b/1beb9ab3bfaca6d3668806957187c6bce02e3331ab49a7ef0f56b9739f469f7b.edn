@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774196206/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INSIGHT CHAIN 1/5 — C8 SUBSTRATE INDEPENDENCE: The braid kernel must not contain logic specific to any programming language, test framework, or methodology including DDIS. All domain-specific behavior enters through plugins registered as datoms. Added as hard constraint C8 in CLAUDE.md alongside C1-C7. Traces to: SEED.md S4 (schema-on-read), ADR-FOUNDATION-009 (extractors-as-datoms)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d1942ebecd51cc7d3d7c0a2ef6558b504b50f2c93269b068012b07d6a61d42d8" :a :db/doc :v "INSIGHT CHAIN 1/5 — C8 SUBSTRATE INDEPENDENCE: The braid kernel must not contain logic specific to any programming language, test framework, or methodology including DDIS. All domain-specific behavior enters through plugins registered as datoms. Added as hard constraint C8 in CLAUDE.md alongside C1-C7. Traces to: SEED.md S4 (schema-on-read), ADR-FOUNDATION-009 (extractors-as-datoms)." :op :assert}
+   {:e #blake3 "d1942ebecd51cc7d3d7c0a2ef6558b504b50f2c93269b068012b07d6a61d42d8" :a :db/ident :v :observation/insight-chain-15-c8-substrate-independence-the-braid-ker :op :assert}
+   {:e #blake3 "d1942ebecd51cc7d3d7c0a2ef6558b504b50f2c93269b068012b07d6a61d42d8" :a :exploration/body :v "INSIGHT CHAIN 1/5 — C8 SUBSTRATE INDEPENDENCE: The braid kernel must not contain logic specific to any programming language, test framework, or methodology including DDIS. All domain-specific behavior enters through plugins registered as datoms. Added as hard constraint C8 in CLAUDE.md alongside C1-C7. Traces to: SEED.md S4 (schema-on-read), ADR-FOUNDATION-009 (extractors-as-datoms)." :op :assert}
+   {:e #blake3 "d1942ebecd51cc7d3d7c0a2ef6558b504b50f2c93269b068012b07d6a61d42d8" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "d1942ebecd51cc7d3d7c0a2ef6558b504b50f2c93269b068012b07d6a61d42d8" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "d1942ebecd51cc7d3d7c0a2ef6558b504b50f2c93269b068012b07d6a61d42d8" :a :exploration/content-hash :v #bytes "9b4ca367c04586ca924c955d7fb53c1805eb8548dc652639626e16b2eec6eeda" :op :assert}
+   {:e #blake3 "d1942ebecd51cc7d3d7c0a2ef6558b504b50f2c93269b068012b07d6a61d42d8" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "d1942ebecd51cc7d3d7c0a2ef6558b504b50f2c93269b068012b07d6a61d42d8" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "d1942ebecd51cc7d3d7c0a2ef6558b504b50f2c93269b068012b07d6a61d42d8" :a :exploration/source-session :v #blake3 "035fa6a49ab21082b51d0aa21e4abe906f1495d83eadc07534d217bb8131f727" :op :assert}
+   {:e #blake3 "d1942ebecd51cc7d3d7c0a2ef6558b504b50f2c93269b068012b07d6a61d42d8" :a :exploration/tags :v :tag/insight-chain :op :assert}
+ ]}

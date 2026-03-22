@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774196315/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-013 \"Declarative Policy Manifest as genesis datoms\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d3b46f141f7681173d1b2dd70447e671d540953f4e165ad963c5cfd3ffb59faf" :a :db/ident :v :task/t-ea458965 :op :assert}
+   {:e #blake3 "d3b46f141f7681173d1b2dd70447e671d540953f4e165ad963c5cfd3ffb59faf" :a :task/created-at :v 1774196314 :op :assert}
+   {:e #blake3 "d3b46f141f7681173d1b2dd70447e671d540953f4e165ad963c5cfd3ffb59faf" :a :task/id :v "t-ea458965" :op :assert}
+   {:e #blake3 "d3b46f141f7681173d1b2dd70447e671d540953f4e165ad963c5cfd3ffb59faf" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "d3b46f141f7681173d1b2dd70447e671d540953f4e165ad963c5cfd3ffb59faf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d3b46f141f7681173d1b2dd70447e671d540953f4e165ad963c5cfd3ffb59faf" :a :task/title :v "Implement ADR-FOUNDATION-013: Declarative Policy Manifest as genesis datoms" :op :assert}
+   {:e #blake3 "d3b46f141f7681173d1b2dd70447e671d540953f4e165ad963c5cfd3ffb59faf" :a :task/traces-to :v #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :op :assert}
+   {:e #blake3 "d3b46f141f7681173d1b2dd70447e671d540953f4e165ad963c5cfd3ffb59faf" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :a :adr/decision :v "The epistemological policy is a set of datoms transacted at init time. Schema: :policy/claim-type (what entities are claims), :policy/evidence-type (what entities are evidence), :policy/boundary (pairs of entity sets that should be aligned, with weights), :policy/anomaly-detector (attribute changes that trigger guidance interrupts). The kernel reads policy datoms and configures BoundaryRegistry, MaterializedViews, and guidance system dynamically. No recompilation needed to change the coherence model." :op :assert}
+   {:e #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :a :adr/problem :v "F(S) components and weights are compiled constants in bilateral.rs. Changing what coherence means requires editing Rust source code. This prevents non-DDIS projects from defining their own coherence model." :op :assert}
+   {:e #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :a :db/doc :v "Declarative Policy Manifest as genesis datoms" :op :assert}
+   {:e #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :a :db/ident :v :spec/adr-foundation-013 :op :assert}
+   {:e #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :a :element/traces-to :v "SEED.md S4, C3, C8, ADR-FOUNDATION-012" :op :assert}
+   {:e #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :a :spec/id :v "ADR-FOUNDATION-013" :op :assert}
+   {:e #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+ ]}

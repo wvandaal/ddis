@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774196250/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "INSIGHT CHAIN 3/5 — DECLARATIVE POLICY MANIFEST: The epistemological policy (what counts as a claim, what counts as evidence, how coherence is measured, what boundaries matter) must be datoms in the store, not compiled Rust code. At braid init, a manifest is transacted: claim types, evidence types, boundary definitions with weights, anomaly detectors. The kernel reads the manifest and configures itself. Different domains get different manifests. The 7-component F(S) becomes one possible configuration, not the only one. Traces to: C3 (schema-as-data), C8 (substrate independence)."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "359da09adf3de571347ea428452b2e3deb79519581af08d64139c4fe160adf96" :a :db/doc :v "INSIGHT CHAIN 3/5 — DECLARATIVE POLICY MANIFEST: The epistemological policy (what counts as a claim, what counts as evidence, how coherence is measured, what boundaries matter) must be datoms in the store, not compiled Rust code. At braid init, a manifest is transacted: claim types, evidence types, boundary definitions with weights, anomaly detectors. The kernel reads the manifest and configures itself. Different domains get different manifests. The 7-component F(S) becomes one possible configuration, not the only one. Traces to: C3 (schema-as-data), C8 (substrate independence)." :op :assert}
+   {:e #blake3 "359da09adf3de571347ea428452b2e3deb79519581af08d64139c4fe160adf96" :a :db/ident :v :observation/insight-chain-35-declarative-policy-manifest-the-epistem :op :assert}
+   {:e #blake3 "359da09adf3de571347ea428452b2e3deb79519581af08d64139c4fe160adf96" :a :exploration/body :v "INSIGHT CHAIN 3/5 — DECLARATIVE POLICY MANIFEST: The epistemological policy (what counts as a claim, what counts as evidence, how coherence is measured, what boundaries matter) must be datoms in the store, not compiled Rust code. At braid init, a manifest is transacted: claim types, evidence types, boundary definitions with weights, anomaly detectors. The kernel reads the manifest and configures itself. Different domains get different manifests. The 7-component F(S) becomes one possible configuration, not the only one. Traces to: C3 (schema-as-data), C8 (substrate independence)." :op :assert}
+   {:e #blake3 "359da09adf3de571347ea428452b2e3deb79519581af08d64139c4fe160adf96" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "359da09adf3de571347ea428452b2e3deb79519581af08d64139c4fe160adf96" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "359da09adf3de571347ea428452b2e3deb79519581af08d64139c4fe160adf96" :a :exploration/content-hash :v #bytes "bc8180e99756da9f24833f4b83144900e3f8fc12f6327a4b76fe8a840510370e" :op :assert}
+   {:e #blake3 "359da09adf3de571347ea428452b2e3deb79519581af08d64139c4fe160adf96" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "359da09adf3de571347ea428452b2e3deb79519581af08d64139c4fe160adf96" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "359da09adf3de571347ea428452b2e3deb79519581af08d64139c4fe160adf96" :a :exploration/source-session :v #blake3 "035fa6a49ab21082b51d0aa21e4abe906f1495d83eadc07534d217bb8131f727" :op :assert}
+   {:e #blake3 "359da09adf3de571347ea428452b2e3deb79519581af08d64139c4fe160adf96" :a :exploration/tags :v :tag/insight-chain :op :assert}
+ ]}
