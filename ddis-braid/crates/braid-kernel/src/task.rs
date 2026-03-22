@@ -2009,6 +2009,66 @@ mod tests {
         assert!(refs.is_empty());
     }
 
+    // ── TEST-SFE-2: Additional parse_spec_refs tests (unit + proptest) ──
+
+    #[test]
+    fn parse_spec_refs_embedded_in_sentence() {
+        let refs = parse_spec_refs("Implement the store per INV-STORE-001 requirements");
+        assert_eq!(refs, vec!["INV-STORE-001"]);
+    }
+
+    #[test]
+    fn parse_spec_refs_at_end_of_string() {
+        let refs = parse_spec_refs("See ADR-BILATERAL-003");
+        assert_eq!(refs, vec!["ADR-BILATERAL-003"]);
+    }
+
+    #[test]
+    fn parse_spec_refs_comma_separated() {
+        let refs = parse_spec_refs("Fix INV-STORE-001, INV-STORE-002, INV-STORE-003");
+        assert_eq!(refs, vec!["INV-STORE-001", "INV-STORE-002", "INV-STORE-003"]);
+    }
+
+    #[test]
+    fn parse_spec_refs_in_parentheses() {
+        let refs = parse_spec_refs("(INV-MERGE-001..010)");
+        assert_eq!(refs, vec!["INV-MERGE-001"]);
+    }
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// TEST-SFE-2 PROPTEST: parse_spec_refs never panics on arbitrary strings.
+        #[test]
+        fn prop_parse_spec_refs_no_panic(s in ".*") {
+            let refs = parse_spec_refs(&s);
+            // All extracted refs should match the expected pattern
+            for r in &refs {
+                prop_assert!(
+                    r.starts_with("INV-") || r.starts_with("ADR-") || r.starts_with("NEG-"),
+                    "Extracted ref '{}' has unexpected prefix", r
+                );
+            }
+        }
+
+        /// TEST-SFE-2 PROPTEST: Injected spec refs are always found.
+        #[test]
+        fn prop_parse_spec_refs_finds_injected(
+            prefix in prop_oneof![Just("INV"), Just("ADR"), Just("NEG")],
+            ns in "[A-Z]{2,8}",
+            num in 1u32..999,
+        ) {
+            let spec_id = format!("{prefix}-{ns}-{num:03}");
+            let text = format!("Task: implement {spec_id} for compliance");
+            let refs = parse_spec_refs(&text);
+            prop_assert!(
+                refs.contains(&spec_id),
+                "Injected spec ref '{}' not found in parsed refs {:?}",
+                spec_id, refs
+            );
+        }
+    }
+
     // -----------------------------------------------------------------------
     // SFE-2.2: resolve_spec_refs
     // -----------------------------------------------------------------------
