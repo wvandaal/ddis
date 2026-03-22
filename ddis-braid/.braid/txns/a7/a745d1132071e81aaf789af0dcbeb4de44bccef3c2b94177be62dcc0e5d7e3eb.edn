@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774212148/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-1660c93d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/close-reason :v "Incremental store cache: read_index_cache_with_hashes persists tx hash list in meta.json. On cache miss with delta: load cached store, apply only new txns via transact(). Falls back to full rebuild if delta > 50% or cached hashes not subset." :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/closed-at :v 1774212147 :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/status :v :task.status/closed :op :assert}
+ ]}

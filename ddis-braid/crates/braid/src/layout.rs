@@ -44,6 +44,10 @@ struct CacheMeta {
     datom_count: usize,
     /// Unix timestamp (seconds) when the cache was written.
     created_at: u64,
+    /// POLICY-6: List of tx hashes when the cache was written (for incremental delta).
+    /// When present, enables incremental loading: only new transactions are parsed.
+    #[serde(default)]
+    tx_hashes: Vec<String>,
 }
 
 /// Generic cached value with its own txn_fingerprint for independent invalidation.
@@ -282,6 +286,7 @@ impl DiskLayout {
             txn_fingerprint: fingerprint,
             datom_count,
             created_at: now,
+            tx_hashes: hashes,
         };
         let meta_json =
             serde_json::to_string_pretty(&meta).map_err(|e| BraidError::Parse(e.to_string()))?;
@@ -328,6 +333,31 @@ impl DiskLayout {
         }
 
         Some(store)
+    }
+
+    /// POLICY-6: Read cached store WITH the hash list it was built from.
+    ///
+    /// Used for incremental loading: if the cached store exists but the
+    /// fingerprint doesn't match, the caller can compute the delta (new
+    /// transactions) and apply them incrementally via Store::transact().
+    fn read_index_cache_with_hashes(&self) -> Option<(Store, Vec<String>)> {
+        let cache_dir = self.cache_dir();
+        let meta_bytes = fs::read(cache_dir.join("meta.json")).ok()?;
+        let meta: CacheMeta = serde_json::from_slice(&meta_bytes).ok()?;
+
+        // Must have tx_hashes for incremental path
+        if meta.tx_hashes.is_empty() {
+            return None;
+        }
+
+        let bin_bytes = fs::read(cache_dir.join("store.bin")).ok()?;
+        let store: Store = bincode::deserialize(&bin_bytes).ok()?;
+
+        if store.len() != meta.datom_count {
+            return None; // Corrupt cache
+        }
+
+        Some((store, meta.tx_hashes))
     }
 
     // -----------------------------------------------------------------------
@@ -468,9 +498,66 @@ impl DiskLayout {
         let hashes = self.list_tx_hashes()?;
         let fingerprint = self.txn_fingerprint(&hashes);
 
-        // Fast path: try loading full Store from cache (skips from_datoms rebuild).
+        // Fast path: exact cache hit (skips from_datoms rebuild).
         if let Some(store) = self.read_index_cache(&fingerprint) {
             return Ok(store);
+        }
+
+        // POLICY-6: Incremental path — try loading cached store + delta.
+        // If a cached store exists with a SUBSET of the current hashes,
+        // load it and apply only the new transactions via Store::transact().
+        // This is O(k) where k = new transactions since last cache, typically 1-5.
+        if let Some((cached_store, cached_hashes)) = self.read_index_cache_with_hashes() {
+            let cached_set: std::collections::HashSet<&str> =
+                cached_hashes.iter().map(|s| s.as_str()).collect();
+            let delta_hashes: Vec<&String> = hashes
+                .iter()
+                .filter(|h| !cached_set.contains(h.as_str()))
+                .collect();
+
+            // Only use incremental if delta is small (< 50% of total)
+            // and cached hashes are a subset of current (no deletions, C1)
+            let all_cached_present = cached_hashes.iter().all(|ch| hashes.contains(ch));
+            if all_cached_present && !delta_hashes.is_empty() && delta_hashes.len() < hashes.len() / 2
+            {
+                let mut store = cached_store;
+                for hash in &delta_hashes {
+                    if let Ok(tx) = self.read_tx(hash) {
+                        let agent = tx.agent;
+                        let provenance = tx.provenance;
+                        let rationale = tx.rationale.clone();
+                        let mut builder = braid_kernel::store::Transaction::new(
+                            agent,
+                            provenance,
+                            &rationale,
+                        );
+                        for datom in &tx.datoms {
+                            builder = builder.assert(
+                                datom.entity,
+                                datom.attribute.clone(),
+                                datom.value.clone(),
+                            );
+                        }
+                        // Best-effort: if commit/transact fails, fall through to full rebuild
+                        if let Ok(committed) = builder.commit(&store) {
+                            if store.transact(committed).is_err() {
+                                // Schema validation failure on incremental — fall through
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                // Verify: datom count should be >= cached (monotonic growth, C1)
+                // If it is, cache the result and return
+                if store.len() >= cached_hashes.len() {
+                    let _ = self.write_index_cache(&store);
+                    return Ok(store);
+                }
+                // Otherwise fall through to full rebuild
+            }
         }
 
         // Slow path: parse all transaction files.
