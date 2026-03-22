@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774206166/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-MERGE: Cross-organization policy transfer via CRDT merge"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :db/ident :v :task/t-730e1b5f :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/created-at :v 1774206165 :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/description :v "BACKGROUND: Calibrated policies are empirical discoveries about a domain. A team that ran braid for 100 sessions has a model of what coherence means, discovered from measurement. New teams should start from calibrated policies, not generic bootstraps. And teams that independently learned about the same domain should be able to merge their learning via the same CRDT set union that merges datom stores.. APPROACH: (1) braid policy export produces a standalone .edn file containing all :policy/* datoms from the store with their provenance and calibration metadata. (2) braid policy import <file> merges external policy datoms into the local store via CRDT set union. Conflicting weights resolve via LWW (most recent calibration wins) or configurable lattice (max, mean, weighted-by-confidence). (3) braid policy merge <store-path> merges another stores entire policy. (4) Exported policies include: boundary definitions, weights, calibration history (:prediction/* datoms), discovered boundaries (source=:empirical), discovered categories (source=:ontology-discovery). (5) Cross-domain merge: when policies from different domains merge, boundaries from each domain coexist. Shared structural discoveries (same boundary pattern, different domain contexts) are flagged as universal findings.. ACCEPTANCE: (A) Export-import roundtrip preserves all policy datoms. (B) Two independently calibrated DDIS policies merge without conflict. (C) Merged policy has union of both boundary sets. (D) Weight conflicts resolved by configured strategy (LWW default). (E) Cross-domain merge: software + compliance policies coexist in one store. (F) Universal findings flagged when same boundary pattern appears in 2+ domains. DEPENDS-ON: OBSERVER-4 (t-32121b39), POLICY-5 (t-c2bb5b31). FILE: crates/braid/src/commands/policy.rs (new)" :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/id :v "t-730e1b5f" :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/title :v "POLICY-MERGE: Cross-organization policy transfer via CRDT merge" :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/title-l0 :v "POLICY-MERGE" :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/title-l1 :v "POLICY-MERGE: Cross-organization policy transfer via CRDT merge" :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/traces-to :v #blake3 "25d1ee5daad295b26ebcde7a3e327b41c5632e19ffdf1610f591ef38a57cd15e" :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/traces-to :v #blake3 "3f4aa37696d77e9a96da052a3bf7604cd24394b0ced480b3a2e96ce130c92535" :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/traces-to :v #blake3 "44b01037f650e23ce40cea6697d5ab1639fb17d9b54b418bf8ddf9fe26ee2057" :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/traces-to :v #blake3 "ac0191452c7344a17c497aac16b24924c3b92c6f771e84881cf987ae0aec559d" :op :assert}
+   {:e #blake3 "ac9d1867cf826947eba0adabb64058a29a13f4ae198b143b7392057f58c4dd9e" :a :task/type :v :task.type/task :op :assert}
+ ]}
