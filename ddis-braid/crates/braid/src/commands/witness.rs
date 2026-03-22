@@ -523,7 +523,7 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
     })
 }
 
-/// Batch-generate L1 witness skeletons for unwitnessed invariants.
+/// Batch-generate L1 witness skeletons + promote existing tests to L2.
 ///
 /// Dry-run mode (default): shows how many would be created.
 /// Commit mode: transacts the witness datoms.
@@ -534,10 +534,24 @@ pub fn run_generate(path: &Path, commit: bool) -> Result<CommandOutput, BraidErr
     let agent = braid_kernel::datom::AgentId::from_name("braid:witness-batch");
     let tx_id = crate::commands::write::next_tx_id(&store, agent);
 
-    let (datoms, count) = witness::batch_generate_l1_witnesses(&store, tx_id);
+    // Step 1: L1 witnesses for all unwitnessed invariants
+    let (mut datoms, l1_count) = witness::batch_generate_l1_witnesses(&store, tx_id);
 
+    // Step 2: L2 promotion for Kani proofs + Stateright models
+    let kani_bindings = witness::kani_proof_bindings();
+    let sr_bindings = witness::stateright_model_bindings();
+    let (kani_datoms, kani_count) =
+        witness::promote_tests_to_l2(&store, &kani_bindings, tx_id);
+    let (sr_datoms, sr_count) =
+        witness::promote_tests_to_l2(&store, &sr_bindings, tx_id);
+    datoms.extend(kani_datoms);
+    datoms.extend(sr_datoms);
+
+    let total_count = l1_count + kani_count + sr_count;
     let datom_count = datoms.len();
-    let mut out = format!("witness generate: {count} L1 witnesses for unwitnessed invariants\n");
+    let mut out = format!(
+        "witness generate: {l1_count} L1 + {kani_count} L2(Kani) + {sr_count} L2(Stateright) = {total_count} total\n"
+    );
 
     if commit && !datoms.is_empty() {
         let tx = braid_kernel::layout::TxFile {
@@ -545,28 +559,31 @@ pub fn run_generate(path: &Path, commit: bool) -> Result<CommandOutput, BraidErr
             agent,
             provenance: braid_kernel::datom::ProvenanceType::Derived,
             rationale: format!(
-                "batch L1 witness generation: {count} witnesses for INV-WITNESS-011"
+                "witness generation: {l1_count} L1 + {kani_count} L2(Kani) + {sr_count} L2(Stateright) for INV-WITNESS-011"
             ),
             causal_predecessors: vec![],
             datoms,
         };
         layout.write_tx(&tx)?;
-        out.push_str(&format!("committed: {datom_count} datoms ({count} witnesses)\n"));
+        out.push_str(&format!("committed: {datom_count} datoms ({total_count} witnesses)\n"));
     } else if !datoms.is_empty() && !commit {
         out.push_str("dry-run: use --commit to transact\n");
     } else {
-        out.push_str("all invariants already have witnesses\n");
+        out.push_str("all invariants already have witnesses at required depth\n");
     }
 
     let json = serde_json::json!({
-        "generated": count,
+        "l1_generated": l1_count,
+        "l2_kani": kani_count,
+        "l2_stateright": sr_count,
+        "total": total_count,
         "committed": commit && datom_count > 0,
         "datom_count": datom_count,
     });
 
     let agent_out = AgentOutput {
         context: String::new(),
-        content: format!("witness generate: {count} L1 witnesses"),
+        content: format!("witness generate: {total_count} witnesses ({kani_count} L2 promoted)"),
         footer: String::new(),
     };
 

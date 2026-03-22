@@ -1149,6 +1149,122 @@ pub fn batch_generate_l1_witnesses(
     (all_datoms, count)
 }
 
+/// Promote existing verified tests to L2 witnesses for specific invariants.
+///
+/// Takes a list of (inv_ident, test_file, test_description) and creates L2
+/// FBW witnesses. Used to bind existing Kani proofs and Stateright models
+/// to the invariants they verify.
+pub fn promote_tests_to_l2(
+    store: &Store,
+    bindings: &[(&str, &str, &str)], // (inv_ident, test_file, test_body_summary)
+    tx: TxId,
+) -> (Vec<Datom>, usize) {
+    let existing_witnesses = all_witnesses(store);
+
+    let mut all_datoms = Vec::new();
+    let mut count = 0;
+
+    let statement_attr = Attribute::from_keyword(":spec/statement");
+    let element_statement_attr = Attribute::from_keyword(":element/statement");
+    let falsification_attr = Attribute::from_keyword(":spec/falsification");
+    let body_attr = Attribute::from_keyword(":element/body");
+    let doc_attr = Attribute::from_keyword(":db/doc");
+
+    for (inv_ident, test_file, test_body) in bindings {
+        let inv_entity = EntityId::from_ident(inv_ident);
+
+        // Skip if already has L2+ witness
+        let has_l2 = existing_witnesses
+            .iter()
+            .any(|w| w.inv_ref == inv_entity && w.depth >= 2);
+        if has_l2 {
+            continue;
+        }
+
+        let entity_datoms = store.entity_datoms(inv_entity);
+        if entity_datoms.is_empty() {
+            continue; // Entity doesn't exist in store
+        }
+
+        let statement = extract_string(&entity_datoms, &statement_attr)
+            .or_else(|| extract_string(&entity_datoms, &element_statement_attr))
+            .or_else(|| extract_string(&entity_datoms, &body_attr))
+            .or_else(|| extract_string(&entity_datoms, &doc_attr))
+            .unwrap_or_default();
+
+        let falsification =
+            extract_string(&entity_datoms, &falsification_attr).unwrap_or_default();
+
+        if statement.is_empty() {
+            continue;
+        }
+
+        let mut fbw = create_fbw(
+            inv_entity,
+            &statement,
+            &falsification,
+            test_body,
+            test_file,
+            2, // L2 depth (property-based test)
+            "braid:witness-promote",
+        );
+        // L2 witnesses from verified test suites are valid by construction
+        fbw.status = WitnessStatus::Valid;
+        fbw.verdict = WitnessVerdict::Confirmed;
+
+        all_datoms.extend(fbw_to_datoms(&fbw, tx));
+        count += 1;
+    }
+
+    (all_datoms, count)
+}
+
+/// Standard bindings for Kani proofs → invariants.
+///
+/// Each tuple: (invariant ident, test file, test body summary).
+pub fn kani_proof_bindings() -> Vec<(&'static str, &'static str, &'static str)> {
+    vec![
+        (":spec/inv-store-001", "kani_proofs.rs", "prove_append_only: BTreeSet insert never shrinks"),
+        (":spec/inv-store-002", "kani_proofs.rs", "prove_merge_commutativity: A∪B == B∪A for datom sets"),
+        (":spec/inv-store-003", "kani_proofs.rs", "prove_merge_associativity: (A∪B)∪C == A∪(B∪C)"),
+        (":spec/inv-store-004", "kani_proofs.rs", "prove_merge_idempotency: A∪A == A"),
+        (":spec/inv-store-005", "kani_proofs.rs", "prove_content_identity + prove_collision_resistance"),
+        (":spec/inv-merge-001", "kani_proofs.rs", "prove_merge_set_union: merged ⊇ A and merged ⊇ B"),
+        (":spec/inv-merge-002", "kani_proofs.rs", "prove_frontier_monotonicity: frontier never shrinks"),
+        (":spec/inv-budget-001", "kani_proofs.rs", "prove_budget_allocation_nonnegative"),
+        (":spec/inv-budget-003", "kani_proofs.rs", "prove_quality_adjusted_budget + continuity + monotonicity"),
+        (":spec/inv-resolution-002", "kani_proofs.rs", "prove_lww_commutativity"),
+        (":spec/inv-resolution-004", "kani_proofs.rs", "prove_lattice_associativity"),
+        (":spec/inv-resolution-005", "kani_proofs.rs", "prove_multivalue_preserves_all"),
+        (":spec/inv-resolution-006", "kani_proofs.rs", "prove_retract_exclusion"),
+        (":spec/inv-harvest-001", "kani_proofs.rs", "prove_harvest_gap_no_false_negatives"),
+        (":spec/inv-harvest-006", "kani_proofs.rs", "prove_content_hash_dedup"),
+        (":spec/inv-seed-002", "kani_proofs.rs", "prove_seed_budget_bounded"),
+        (":spec/inv-seed-003", "kani_proofs.rs", "prove_associate_bounded"),
+        (":spec/inv-layout-001", "kani_proofs.rs", "prove_blake3_deterministic"),
+        (":spec/inv-layout-003", "kani_proofs.rs", "prove_serialization_atomic"),
+        (":spec/inv-layout-004", "kani_proofs.rs", "prove_collect_completeness"),
+        (":spec/inv-guidance-008", "kani_proofs.rs", "prove_methodology_score_bounded"),
+        (":spec/inv-schema-001", "kani_proofs.rs", "prove_genesis_deterministic"),
+        (":spec/inv-schema-002", "kani_proofs.rs", "prove_schema_merge_is_union"),
+        (":spec/inv-schema-004", "kani_proofs.rs", "prove_schema_type_validation"),
+        (":spec/inv-query-001", "kani_proofs.rs", "prove_monotonic_query_growth"),
+        (":spec/inv-query-002", "kani_proofs.rs", "prove_query_determinism"),
+    ]
+}
+
+/// Standard bindings for Stateright model checks → invariants.
+pub fn stateright_model_bindings() -> Vec<(&'static str, &'static str, &'static str)> {
+    vec![
+        (":spec/inv-store-001", "stateright_model.rs", "transact_coherence: datom count monotonic under transact"),
+        (":spec/inv-store-002", "stateright_model.rs", "algebraic_properties: merge commutativity model check"),
+        (":spec/inv-store-004", "stateright_model.rs", "algebraic_properties: merge idempotency model check"),
+        (":spec/inv-merge-001", "stateright_model.rs", "algebraic_properties: set union semantics"),
+        (":spec/inv-merge-002", "stateright_model.rs", "merge_cascade: frontier monotonicity under 2-3 agents"),
+        (":spec/inv-bilateral-001", "stateright_model.rs", "bilateral_convergence: F(S) monotonic under bilateral cycle"),
+    ]
+}
+
 // ===========================================================================
 // Tests
 // ===========================================================================

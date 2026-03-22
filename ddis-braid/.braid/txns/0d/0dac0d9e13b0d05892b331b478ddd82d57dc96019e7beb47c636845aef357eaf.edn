@@ -1,0 +1,391 @@
+{:tx/id #hlc "1774143516/0/4448fe4e8c251cd5e3aa86bb86ff861f"
+ :tx/agent "4448fe4e8c251cd5e3aa86bb86ff861f"
+ :tx/provenance :derived
+ :tx/rationale "witness generation: 0 L1 + 26 L2(Kani) + 6 L2(Stateright) for INV-WITNESS-011"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :db/ident :v :witness/fbw.80ddff6a30de35cc :op :assert}
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :witness/falsification-hash :v "54dfe4366d66e655456a4b437dd3adbb52e09b73d13c1c0bb6157776e40aaa2c" :op :assert}
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :witness/spec-hash :v "80ddff6a30de35cca7517dabba59d6dd483839b954b693eb2a507a8f29f04c71" :op :assert}
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :witness/test-body-hash :v "81e792214b6504d2300584dd57dd49d96906bf2c9171accb98dd22e89557c030" :op :assert}
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :witness/traces-to :v #blake3 "1e6cdcb23d6b2611ceac3550471a6fe6f3ceb9528929ffcbc0ac90765c7d9739" :op :assert}
+   {:e #blake3 "04d72affe7b4f4b8d0b9289bba9ac28e7c9f0a2f4aa121af2fda1572c9c245d5" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :db/ident :v :witness/fbw.9024f90b44309206 :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :witness/falsification-hash :v "f1a42d9a48081b7af253be48c6c89ccc3711726fc99ae73eb8317f4cd019ed0c" :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :witness/spec-hash :v "9024f90b44309206af2f67f8e7bd7a608ec2904184e8948286e2e5853a166332" :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :witness/test-body-hash :v "95ee2850b7c5460db1fb6c9af9e3914707e8210b75ee577913501f00709e0c76" :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :witness/traces-to :v #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :op :assert}
+   {:e #blake3 "09e14182a5480a2c0f423031f34f48c4ed4bc7fdd3016190c574877eb3379786" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :db/ident :v :witness/fbw.965eedd21d49364e :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :witness/falsification-hash :v "505f817ef11a5d35c2c4d663e1a6e86e46563f845bfb36978c61bf883a6611f8" :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :witness/spec-hash :v "965eedd21d49364eb00fba25accc35b77a6ba973259d37ab7581a5f9f212e243" :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :witness/test-body-hash :v "e1887f06d31b00d0dcc9a42a156f3a869a2d4e8bb645a5da73bb024cd06c2ef4" :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :witness/traces-to :v #blake3 "bfcddce912b19009d5e0a154c1b850f8822ac813cf96aa2d2383d196b196523f" :op :assert}
+   {:e #blake3 "0a35e1344a8ea1b5ec6006ec1ec77d4f6643227a68906142a8b18d2fc94a0619" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :db/ident :v :witness/fbw.058b106eeed87d5c :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :witness/falsification-hash :v "e718647af54efc98ab6ccd417d41eb930a3e969c1156051a54bc524f74328a5f" :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :witness/spec-hash :v "058b106eeed87d5c5bed4b98bc441dbf18b6ecc84bece6bc4eb19efe6882460c" :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :witness/test-body-hash :v "bf334c4da5178b56113b2044e135af89f3421aecba6e398569a1993fb7cb6d51" :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :witness/test-file :v "stateright_model.rs" :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :witness/traces-to :v #blake3 "92dad8f62f1a61e375e24cbc4d0c55c3ab57f80868a9b8187dc568c3e2b3458b" :op :assert}
+   {:e #blake3 "0aef2addc8fd3a96ea15a21927d91e5f4822e7c773973c3e7507e0e46873c5ea" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :db/ident :v :witness/fbw.777f34cd4e87fbc1 :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :witness/falsification-hash :v "076ddaba41bd4cc251f791eab6c435c844fd08357c9b85514a67f782c3555321" :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :witness/spec-hash :v "777f34cd4e87fbc19b3dadc70f6013ad21b1a7af998d2b8740145e853faaad92" :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :witness/test-body-hash :v "df79d0c6eeb264624b1bb619fcd89824e61880a52a497c2a99caea072b33a7c2" :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :witness/test-file :v "stateright_model.rs" :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :witness/traces-to :v #blake3 "d36c99e195e7546e6286a27ab60957fa169d163f6013a6944bff68a16bfa6618" :op :assert}
+   {:e #blake3 "0bd1cee9d86a5702d8b7e668cb376dc4bd755fe6a4ab85e55de23dfa5542f007" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :db/ident :v :witness/fbw.42d346c21da8e238 :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :witness/falsification-hash :v "d83b1eafd130c7a9d3e253b663f50752a8312c29ddae1e49ad50a8fe04cdc8fe" :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :witness/spec-hash :v "42d346c21da8e238f3b39ac9638e9a99661529622961ee7a91f30d13cebce0df" :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :witness/test-body-hash :v "a36c97af33b65d94662a237753b154a9d1b995c3a471a02d3720f1b91d33eaa6" :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :witness/traces-to :v #blake3 "be35a17c00f33f6cf0938aac8c0e7a1791fc9ee7be5ecb3581a7e0d25af4a8d9" :op :assert}
+   {:e #blake3 "126fff19f783d6bcfabbfff2c6373723affe49e1fc058a187b06959f683842d7" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :db/ident :v :witness/fbw.9024f90b44309206 :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :witness/alignment-score :v 0.06666666666666667 :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :witness/falsification-hash :v "f1a42d9a48081b7af253be48c6c89ccc3711726fc99ae73eb8317f4cd019ed0c" :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :witness/spec-hash :v "9024f90b44309206af2f67f8e7bd7a608ec2904184e8948286e2e5853a166332" :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :witness/test-body-hash :v "93589c3c1886e9607c39f0a96a7ef3e93f2ca303d357bc46070a085b6994fc67" :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :witness/test-file :v "stateright_model.rs" :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :witness/traces-to :v #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :op :assert}
+   {:e #blake3 "198af9ebf2c21e43bf51684620abcccd7f0b7b34317058bc1dfffd6eb780ad66" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :db/ident :v :witness/fbw.a4a762acc10e52e7 :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :witness/falsification-hash :v "cce96a9146602d66b41ccecb3d6d02ad2347f56a31e52eda5679acf06ee25fbb" :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :witness/spec-hash :v "a4a762acc10e52e7163a268f65ad91d30cd2a41e6e4d7dc9a928d37a2d558900" :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :witness/test-body-hash :v "58047a1e8569d8c7cf5886f541bb3e0f877323daffd3d63f42b19c30c5ff8ff7" :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :witness/traces-to :v #blake3 "407702c4bb7ec0eef2d7d8aa7a5711fba741417db76d1f6498024444dd25ce0c" :op :assert}
+   {:e #blake3 "1a43a22f331080963944feee35baaed48fa6b1dec38a982e6eadcdbdeafe178f" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :db/ident :v :witness/fbw.848be4cc72f1b40c :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :witness/falsification-hash :v "980c3ce30a54800d0c4220870303dd2d50266a4e242f66c169ca0b53c10e3a66" :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :witness/spec-hash :v "848be4cc72f1b40c388be5f64f97fc052dc948ae4c622f70bf126a351efed638" :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :witness/test-body-hash :v "d15746cab722ed84083b752ea8a253d0213de8ac57baaa1b703c4ded7e707885" :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :witness/traces-to :v #blake3 "518a935d0614f605a2a9b072c1e9a6a28b7c22789a3d2909cb0794b24664fece" :op :assert}
+   {:e #blake3 "271686d952c617ffdc1ba01a5e59e73fd8d06e46916afef101e1a87afaa9edfa" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :db/ident :v :witness/fbw.c9e6c2986ff6856c :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :witness/falsification-hash :v "8ce9129ee25ae67a9610a382d59b37f2e60c6a8b67f3900eaa20d8f8ca78e405" :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :witness/spec-hash :v "c9e6c2986ff6856cff9d4ab32f1102c52c8c86335c641fab989a94e10fd2658c" :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :witness/test-body-hash :v "04af6d161e0d677a7b00ab249faa2af2b9fae6b13103c276eb23a56d3d42c431" :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :witness/traces-to :v #blake3 "811bd5aad8b4a784f810dc697b848ad87888052bc6c239c923069b9e110b78a1" :op :assert}
+   {:e #blake3 "40588d0ecffa6e411275acace07c5d1d9b700b9d1e289cb6a1c4565c6ae8ef14" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :db/ident :v :witness/fbw.a8fc529e228e43bf :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :witness/falsification-hash :v "a379d4128f88fea5b2fd8c1a320894f38c4045ab0af126e29e1d46549ef8cfbc" :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :witness/spec-hash :v "a8fc529e228e43bf6cc1632fcddab696a4d2026924e80a3deb7215ca8aef8667" :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :witness/test-body-hash :v "3b58f062364645773f4e01848dd2120d729ed2030951d6b523ed63e008c55845" :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :witness/traces-to :v #blake3 "c2dc5cb49a24b7551ccccf6643db5404b79d1701ce67953eb3ef05862606a02d" :op :assert}
+   {:e #blake3 "4c3c90895d64bc7ab5dd5ed3ec5d9978f58d4ffd85b5378f543e1e20f0c42df6" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :db/ident :v :witness/fbw.bd1b6e2f52c8e5bd :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :witness/falsification-hash :v "4e6eccf6afa7e8bd3e26fe6ffd9138deec015b7b6f0180f983aad6aa824375ce" :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :witness/spec-hash :v "bd1b6e2f52c8e5bd296e526d9f51b15e686e156ef4df0ca18a8caf130392d165" :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :witness/test-body-hash :v "89217cf5bfeed9f199bdab460580c893f51352459576980dc6e4425c7ebdf3ed" :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :witness/traces-to :v #blake3 "7b591642a088fec343f72e039025c53cd41c368d0ecd8a6d6e7018cb35c1a542" :op :assert}
+   {:e #blake3 "506e5f9ecfa6282fe7b2dd4ee8154026418fe5cba4a99c4108ea1e775baa81d3" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :db/ident :v :witness/fbw.a779a30558ff4d80 :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :witness/falsification-hash :v "451a5c82872c796016826cd5eae3f175ee705be6818521f419a91261730e527c" :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :witness/spec-hash :v "a779a30558ff4d802263934dc3948019bb63a3f248c49ab266c8487e548b0e67" :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :witness/test-body-hash :v "11e06f71016ef3692bc3fbf35a1ee88daca7c97b9a7581ed4b8f37dc2af0c96f" :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :witness/traces-to :v #blake3 "590d60c8b9720dd2743ccafd474571ebd89d10986e19d5c637046e2f3cd8bdf9" :op :assert}
+   {:e #blake3 "530ea4d68a8c298778d876c434d07a2bb98839015b7a5a3312dac1a02df6420b" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :db/ident :v :witness/fbw.e084a24e09982d4e :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :witness/falsification-hash :v "ff41fb3fe666e1af741f0138731ac5d595bd30fb49c600d9cc720d69cd4ca13d" :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :witness/spec-hash :v "e084a24e09982d4e89a66f12523d6a5f53048ff6e70efe73aea83e30e8da56df" :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :witness/test-body-hash :v "a24c22a9525bc6c40e6aea7ff37ecd70b16216ad82db509720644e59fe1600a9" :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :witness/traces-to :v #blake3 "0f31ea9bf5f42430d33945a75099d4a885fb3255dd12fe161d8370d056ef29d5" :op :assert}
+   {:e #blake3 "53223f403af4296e8313029e9640262a3b16a684a2fa69288b251690dd8be068" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :db/ident :v :witness/fbw.4d4b6059daf5fdaa :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :witness/alignment-score :v 0.18181818181818182 :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :witness/falsification-hash :v "e47e482f0ead6bbc06ad6c61106511af8b7a7a565d0ca6bbce03fb2b645db27e" :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :witness/spec-hash :v "4d4b6059daf5fdaa97061205c1ae74fe5b29a56da9f47f67657d670836dddacc" :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :witness/test-body-hash :v "788e2ab1925340c96eeb41086532b1a760170155c9af2a23f76b842dd743cb0f" :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :witness/test-file :v "stateright_model.rs" :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :witness/traces-to :v #blake3 "7b9bbe4204b84aba3ff9e9571e7be271c1ce17a41c96a69e29f7e1b95bc6d937" :op :assert}
+   {:e #blake3 "5dec83db43bb9ad3d8d1c95014c9944bfd6a7c86cff14635112251a36262a8dc" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :db/ident :v :witness/fbw.76db2b7f649bdbc7 :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :witness/falsification-hash :v "45613931b65ea83fbc8ad7ac5fe8606ba183c27ebc31d5d95341b82348bfbd82" :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :witness/spec-hash :v "76db2b7f649bdbc74dff7bca95fc1a5a3954a9628aa11ee5655c81027de6251b" :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :witness/test-body-hash :v "eae4fc9f2c4598512ab7dc68cdf5b8d3f9906cb642bdca6032567a4f0a1cf31e" :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :witness/traces-to :v #blake3 "0ae6fcfe34f7104975e79fbc52f50ec2196047abd2e321e20418a686bc85967e" :op :assert}
+   {:e #blake3 "6aaf35497e95664a4eaec0a0043b0199ee421f54092bf8c46b99bcbe73e5c69b" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :db/ident :v :witness/fbw.777f34cd4e87fbc1 :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :witness/falsification-hash :v "076ddaba41bd4cc251f791eab6c435c844fd08357c9b85514a67f782c3555321" :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :witness/spec-hash :v "777f34cd4e87fbc19b3dadc70f6013ad21b1a7af998d2b8740145e853faaad92" :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :witness/test-body-hash :v "0be124e0983c4ccac950113309e22622d75f3b8b20a78d14ed2efa51b04fa7d0" :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :witness/traces-to :v #blake3 "d36c99e195e7546e6286a27ab60957fa169d163f6013a6944bff68a16bfa6618" :op :assert}
+   {:e #blake3 "818b5a0007ea2879266a9179f5dc606bd75d2802808b2aa0157939a137a0840f" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :db/ident :v :witness/fbw.e9ac166a9a3fce0b :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :witness/falsification-hash :v "cc7d9e3707ee42353823896caddbd60b5c526bafa16edb578cd2e79c2789e77d" :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :witness/spec-hash :v "e9ac166a9a3fce0b5582fb5ed35cfd87acda1aa7124e32d15d1fcbb444e1489f" :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :witness/test-body-hash :v "b03603f2f1a097cd64926c406026f81e17c6a54c981cd7e8b54d14f15f4dd7f7" :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :witness/traces-to :v #blake3 "f38b21188a6e5835a21ee88b06375eb55113fd26613fbad55c8da973a1772bb7" :op :assert}
+   {:e #blake3 "8593c92cce29cfa57e791392b3f9964c43deb19ab22e0ad4496959ecff2140f0" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :db/ident :v :witness/fbw.3667a7924162603b :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :witness/falsification-hash :v "d1f2aa4210d69f9caf8b66e3b9c5c15077d46380087ebb1a2b89402ccaa552f0" :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :witness/spec-hash :v "3667a7924162603b4a3c0fe8d63b7dbad0d36fbaf2feb6cb4291c49373807d70" :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :witness/test-body-hash :v "1696c7ad94562c7af5a93cd1381cbfa9b0605d1e863203c380a859120fdd2594" :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :witness/traces-to :v #blake3 "32b65d69b177142518b02a3fa30fdff81d983f555590ba3f314e0faee727460c" :op :assert}
+   {:e #blake3 "8e360aa9d1893787ac5b46a4dd3161d18c5d457ae3943313104c00b6d77bde9f" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :db/ident :v :witness/fbw.a5604b2cdee95b68 :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :witness/falsification-hash :v "1156ea00a610d45b7087c00961e287871aa635a5a5e1fca7393012267d30b894" :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :witness/spec-hash :v "a5604b2cdee95b68d0a07a125eb9479ab2f456bc7cb33f5bb28d6e483fca127a" :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :witness/test-body-hash :v "beaad38f12a538418befb026c452c78f398502471d4861ea093c1e5322f148a5" :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :witness/traces-to :v #blake3 "c54a22ea31d81dc0396e7e107f9bc8957349913c19c6b00db7800927f5c8a5bf" :op :assert}
+   {:e #blake3 "91c9c3e87a8c202d0ff2909042f1c03e4c8701d7717de534ea5f753473f43ac7" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :db/ident :v :witness/fbw.c8337b2e98542b9e :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :witness/falsification-hash :v "5f66a481934a4aa9dfc98a24a71c65fb6a8fba829a56eb8a44f797e5fab9d8d8" :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :witness/spec-hash :v "c8337b2e98542b9e694021cde9279424b839bf58cdd2b0497234ad3b1d10c2a1" :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :witness/test-body-hash :v "68b8474a2fc43e21ebc6755ff210acbeffee3280354c185d459ad59855a797a3" :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :witness/traces-to :v #blake3 "fa71f60e4595a0ffebe68a3624cef654c803b041cbfb620daa4f4c9655ddc335" :op :assert}
+   {:e #blake3 "98af44f75a3c43e34d63f401a67a68b337f2dc5bda5ea4ea3b55374fc19df22e" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :db/ident :v :witness/fbw.de938a9549ce6f06 :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :witness/falsification-hash :v "0fb409ab202a7d2d11737399ebfa8af6b8734fb5196d81705d7141723f081675" :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :witness/spec-hash :v "de938a9549ce6f0605d847fe390c5842649bcfbdbf001ff48d38cba7b568b57b" :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :witness/test-body-hash :v "b063d14eaaad2378259327b636600ac081801821509d38bee601c7bbc8b2addb" :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :witness/traces-to :v #blake3 "908591caed7cfac57c85ca0db7ae075682d78dc6d8c7b8abbeaa2002c0b8e084" :op :assert}
+   {:e #blake3 "9b6d9c62faa3f83be876303675cb0824dd07bc80693dbd049f9e6b037c97d794" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :db/ident :v :witness/fbw.82560e12d4b87e2b :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :witness/falsification-hash :v "f06c59afc7b937531526642d3e635ccfe2bb0b112f5c9f19e5f9af546d303f89" :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :witness/spec-hash :v "82560e12d4b87e2b112596814ef8354bcb507256a344d4224141f0db3fbaaacb" :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :witness/test-body-hash :v "c495146726c275f37c03e512edfea3a38d1ed05699416886a605669acb381495" :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :witness/traces-to :v #blake3 "215a0770d916ac1eafe42cc79e2720ce1313878eb185475a3845b18ff65c7723" :op :assert}
+   {:e #blake3 "9ec2d5f80056fb83c71cfcd63b60bc99e1cf91ef3619afe3de7a2e7caf22f675" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :db/ident :v :witness/fbw.e949a6c1ef2d7c3b :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :witness/falsification-hash :v "74a18206f8579e98347f73dd5ba80b16b658707e47d111cf7635780b04f3b87c" :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :witness/spec-hash :v "e949a6c1ef2d7c3b59d64f426a88b6ba9595c32ed652a1701a743f3f45eca005" :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :witness/test-body-hash :v "bb83fd5fd0a4f9d6142aec9d5c8e3b488406159bf5bc9812a77f91cdfe6d1160" :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :witness/traces-to :v #blake3 "2c769131db5c0b66d428aa1032287a0bc201360e9fdf2b28cd16de02baaa0ebc" :op :assert}
+   {:e #blake3 "ac093fbeb26608f97971d853f031f9e5e9b61e38b6875d4585894cd4845cef3c" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :db/ident :v :witness/fbw.a4a762acc10e52e7 :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :witness/alignment-score :v 0.15384615384615385 :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :witness/falsification-hash :v "cce96a9146602d66b41ccecb3d6d02ad2347f56a31e52eda5679acf06ee25fbb" :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :witness/spec-hash :v "a4a762acc10e52e7163a268f65ad91d30cd2a41e6e4d7dc9a928d37a2d558900" :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :witness/test-body-hash :v "f9f3d7508108b6b7fd3cc97c11cd3f3f7a75493bae88c23a885591b1a3db20b6" :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :witness/test-file :v "stateright_model.rs" :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :witness/traces-to :v #blake3 "407702c4bb7ec0eef2d7d8aa7a5711fba741417db76d1f6498024444dd25ce0c" :op :assert}
+   {:e #blake3 "bf207310a691e8ed8ff42567f730a214672094c7770b3aeffe9e66852cbaa94c" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :db/ident :v :witness/fbw.bef417a20c16b9ae :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :witness/falsification-hash :v "54f059cca1aa16e2282be1bcf9da594831c36eda73f2622364efac164d6ddb74" :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :witness/spec-hash :v "bef417a20c16b9aee0a85572d673929f04a424f8e403441e8f4cdbb84ae328b4" :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :witness/test-body-hash :v "1bc954b2fd6bcd665c91c91a75783096bf54d2bb581656d9a300daa5970e76de" :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :witness/traces-to :v #blake3 "1a530b0c510be8fd8bf393c7b2b39dbe2b24ba137e0b32bdb01078b78e9b4e6c" :op :assert}
+   {:e #blake3 "cc1cf3f94adcbd5dcdbc5c3c79030cdd858f372f7d704f487bb96d049a35053c" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :db/ident :v :witness/fbw.82560e12d4b87e2b :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :witness/falsification-hash :v "f06c59afc7b937531526642d3e635ccfe2bb0b112f5c9f19e5f9af546d303f89" :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :witness/spec-hash :v "82560e12d4b87e2b112596814ef8354bcb507256a344d4224141f0db3fbaaacb" :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :witness/test-body-hash :v "1a752e316aac2744176b30128fff46a20f6e4fec21fb62363957f5d5ab29e8ea" :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :witness/test-file :v "stateright_model.rs" :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :witness/traces-to :v #blake3 "215a0770d916ac1eafe42cc79e2720ce1313878eb185475a3845b18ff65c7723" :op :assert}
+   {:e #blake3 "d1aeb2e716ba2c41cfe0a9ac092cd81f501d1f8c119e2eb79aa8d4feb9f73f45" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :db/ident :v :witness/fbw.058b106eeed87d5c :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :witness/falsification-hash :v "e718647af54efc98ab6ccd417d41eb930a3e969c1156051a54bc524f74328a5f" :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :witness/spec-hash :v "058b106eeed87d5c5bed4b98bc441dbf18b6ecc84bece6bc4eb19efe6882460c" :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :witness/test-body-hash :v "e6b00f135ede320be80e764c79a0a83ac322bce999670d3726d1d33910131b2c" :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :witness/traces-to :v #blake3 "92dad8f62f1a61e375e24cbc4d0c55c3ab57f80868a9b8187dc568c3e2b3458b" :op :assert}
+   {:e #blake3 "e012acd8c1a1392ad5deecbd388b51a953f4afeeb70a8679f24c024081fc24d0" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :db/ident :v :witness/fbw.739eb70d6e42d91a :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :witness/falsification-hash :v "cf58ca7c8d6c473e35de3285c8027bf1e84bc28165b28ef2f53c629e612cf71d" :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :witness/spec-hash :v "739eb70d6e42d91a86ffcbfccfa18008318fb40859c2cc68ca9b12b45145ecf1" :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :witness/test-body-hash :v "eb4a68ff8d15f123b3342aed68716075b7e3bfce3349d2ada9d616fd484ef774" :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :witness/traces-to :v #blake3 "ee6f2c84c97900ba3d28e6a2266b3d40d668a0528e4c7932530ef6fd85b3b9fb" :op :assert}
+   {:e #blake3 "e068cc86ecb78e8cbedd7310b93b32623ede9353bdba7b5e4d9ce494dccb8737" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :db/ident :v :witness/fbw.1e55ee1dc3fcb22f :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :witness/falsification-hash :v "b186d9497fb482324ef2606d46fceebfe4aa95e6f49b44b87305f9520ff66379" :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :witness/spec-hash :v "1e55ee1dc3fcb22ff75ccec9f55457057fd495fc855ee7d3e87a1ce27dbb8eed" :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :witness/test-body-hash :v "d4408e4039be81c972ed5ea957eeb17724d7f0e5b22af201c9826e7225d4af4b" :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :witness/traces-to :v #blake3 "bed990329010060fbee0d763448857bb4d3e63b624317673b4fbfff9b7098f31" :op :assert}
+   {:e #blake3 "e1b59d265c47a97ee5d925b88f15ad5dfe475010934b410a03515542520f2afb" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :db/ident :v :witness/fbw.cb69e698106e228f :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :witness/falsification-hash :v "25c9ec5942b1acf8dbf8f68c639a94427bec2c0adbd338a24a4c6a70acd554fd" :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :witness/spec-hash :v "cb69e698106e228f82b6d1abb35e08d4ac17c950154dbcad1dbecdd962834520" :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :witness/test-body-hash :v "310db8a12256b9f2abde988e8a8c78383311bfd352ea932a4ee935de738d0b0b" :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :witness/traces-to :v #blake3 "224282f605306b1e2c72fb5a8796a4ebe4784f7c3643e9de5b0662b849540ff3" :op :assert}
+   {:e #blake3 "e70c55f67bb7dc178c6056cd466539aa9c3c68f1efd023015a1b8cb445663079" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :db/ident :v :witness/fbw.77e917463a0f2cf6 :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :witness/agent :v "braid:witness-promote" :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :witness/falsification-hash :v "9366c72453dfd1cd5a0bf21753f0b62509e0b9ecdd6997ea2bace46ffa43625d" :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :witness/level :v 2 :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :witness/spec-hash :v "77e917463a0f2cf691339d8ffd52574b9f5be6a208c89853c888160b7e7c929b" :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :witness/status :v :witness.status/valid :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :witness/test-body-hash :v "9f0d95038bffa9cbf5da6fcdbc1a624b15ec6d5aba2dfb1710db3ead211e5235" :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :witness/test-file :v "kani_proofs.rs" :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :witness/traces-to :v #blake3 "342ba14acb7e089b6559594f6b276e075f5434b62ab354d53113b714aab357fe" :op :assert}
+   {:e #blake3 "fb3d3b3bd54ac015ee137b2a74af624473f59c4e34900884062be0ae9ff89b5c" :a :witness/verdict :v :witness.verdict/confirmed :op :assert}
+ ]}

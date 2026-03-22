@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774143114/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Session 033b witness sprint results: (1) F(S) H-component fixed: 0.58→0.61 by wiring harvest/observation counts into MaterializedViews. (2) 231 L1 witnesses batch-generated via new braid witness generate --commit command. Witness gap reduced from 250 → 19. (3) Store grew from 41K → 44K datoms. Next: promote existing Kani/Stateright tests to L2 witnesses to close the completeness gap."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b47a4b331dbb97f3043f0cae5e41a470a43f3322f5fab8f197b95a343661db97" :a :db/doc :v "Session 033b witness sprint results: (1) F(S) H-component fixed: 0.58→0.61 by wiring harvest/observation counts into MaterializedViews. (2) 231 L1 witnesses batch-generated via new braid witness generate --commit command. Witness gap reduced from 250 → 19. (3) Store grew from 41K → 44K datoms. Next: promote existing Kani/Stateright tests to L2 witnesses to close the completeness gap." :op :assert}
+   {:e #blake3 "b47a4b331dbb97f3043f0cae5e41a470a43f3322f5fab8f197b95a343661db97" :a :db/ident :v :observation/session-033b-witness-sprint-results-1-fs-h-component-fi :op :assert}
+   {:e #blake3 "b47a4b331dbb97f3043f0cae5e41a470a43f3322f5fab8f197b95a343661db97" :a :exploration/body :v "Session 033b witness sprint results: (1) F(S) H-component fixed: 0.58→0.61 by wiring harvest/observation counts into MaterializedViews. (2) 231 L1 witnesses batch-generated via new braid witness generate --commit command. Witness gap reduced from 250 → 19. (3) Store grew from 41K → 44K datoms. Next: promote existing Kani/Stateright tests to L2 witnesses to close the completeness gap." :op :assert}
+   {:e #blake3 "b47a4b331dbb97f3043f0cae5e41a470a43f3322f5fab8f197b95a343661db97" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "b47a4b331dbb97f3043f0cae5e41a470a43f3322f5fab8f197b95a343661db97" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "b47a4b331dbb97f3043f0cae5e41a470a43f3322f5fab8f197b95a343661db97" :a :exploration/content-hash :v #bytes "6855e171ae834331f26942a683d0386e221c46de3f470b915aa099592e22b47d" :op :assert}
+   {:e #blake3 "b47a4b331dbb97f3043f0cae5e41a470a43f3322f5fab8f197b95a343661db97" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "b47a4b331dbb97f3043f0cae5e41a470a43f3322f5fab8f197b95a343661db97" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "b47a4b331dbb97f3043f0cae5e41a470a43f3322f5fab8f197b95a343661db97" :a :exploration/source-session :v #blake3 "8cc16f36056a4b98dec0bd55dbf4f3d0007c9bdd160f057297d38390021cb07d" :op :assert}
+ ]}
