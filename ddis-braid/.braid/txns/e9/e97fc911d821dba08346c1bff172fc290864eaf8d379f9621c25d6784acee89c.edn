@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774207490/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-5357604e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1ff4d981f7667eb9f446f9502b42725e25825921395d21e15c2bd281cc06480a" :a :task/close-reason :v "Superseded: init behavior redesigned per bedrock vision. DDIS is NOT the default." :op :assert}
+   {:e #blake3 "1ff4d981f7667eb9f446f9502b42725e25825921395d21e15c2bd281cc06480a" :a :task/closed-at :v 1774207489 :op :assert}
+   {:e #blake3 "1ff4d981f7667eb9f446f9502b42725e25825921395d21e15c2bd281cc06480a" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "1ff4d981f7667eb9f446f9502b42725e25825921395d21e15c2bd281cc06480a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

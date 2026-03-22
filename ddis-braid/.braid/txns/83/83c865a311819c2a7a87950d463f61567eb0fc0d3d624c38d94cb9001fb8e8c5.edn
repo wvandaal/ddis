@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774207494/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :db/ident :v :recon/trace-918b2def12a5364b :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-neighborhood :v "FOUNDATION" :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-neighbors :v ":task/t-65f3f95e" :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-neighbors :v ":task/t-6c395573" :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-neighbors :v ":task/t-958a44fa" :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-neighbors :v ":task/t-ad9c0930" :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-neighbors :v ":task/t-ca2af3c5" :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-neighbors :v ":task/t-ea458965" :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-neighbors :v ":task/t-edb3a87d" :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-refs :v "ADR-FOUNDATION-013" :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-refs :v "INV-FOUNDATION-007" :op :assert}
+   {:e #blake3 "889f15e6433988c9fc74be76485f908abf2a63bdf5af1e9f0382639ba721fc53" :a :recon/trace-refs :v "NEG-FOUNDATION-004" :op :assert}
+ ]}

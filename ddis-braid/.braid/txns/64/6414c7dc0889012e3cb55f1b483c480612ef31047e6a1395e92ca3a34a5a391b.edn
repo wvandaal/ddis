@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774207520/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-32121b39"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/close-reason :v "Superseded: calibration redesigned with collect-always/adjust-on-evidence pattern" :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/closed-at :v 1774207519 :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/status :v :task.status/closed :op :assert}
+ ]}

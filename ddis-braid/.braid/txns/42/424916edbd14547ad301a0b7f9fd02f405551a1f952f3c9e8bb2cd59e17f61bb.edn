@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774207493/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-2: Empty-substrate default + manifest loading at braid init"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :db/ident :v :task/t-898ec5a7 :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/created-at :v 1774207492 :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/description :v "BACKGROUND: C8 must be provable by construction. braid init with no arguments and no TTY must produce a working store with NO policy datoms. F(S) = 1.0 (vacuously coherent). All commands work. The kernel literally cannot depend on DDIS because it runs without it. This is the strongest possible proof of substrate independence.. APPROACH: (1) braid init (no TTY): create store with genesis datoms only. No :policy/* datoms. F(S) defaults to 1.0 via PolicyConfig::empty(). (2) braid init (TTY detected): enter interactive bootstrap (BOOTSTRAP-1 path). (3) braid init --manifest <file>: parse .edn file, validate via POLICY-5, transact policy datoms. (4) braid init --manifest ddis.edn: load the DDIS policy explicitly. NOT the default. (5) Existing braid init behavior changes: current bootstrap datoms (spec elements, task schema) are GENESIS (always present). Policy datoms are OPTIONAL. (6) When no policy exists: compute_fitness returns 1.0, gradient routing uses graph-metrics-only (existing behavior), guidance shows no boundary-specific information. (7) When policy exists: compute_fitness reads boundaries, gradient uses calibrated weights, guidance shows domain-language reports.. ACCEPTANCE: (A) braid init (no args, no TTY) produces store with 0 :policy/* datoms. (B) All commands work on policy-free store (status, observe, task, harvest, seed). (C) F(S) = 1.0 on empty-policy store. (D) braid init --manifest ddis.edn produces store with 7 :policy/boundary-* datoms. (E) braid init --manifest research.edn produces store with research boundaries. (F) Backward compat: existing stores without policy datoms continue to work exactly as before. DEPENDS-ON: POLICY-1 (t-f5298b23), POLICY-CONFIG (t-708bd7e9), POLICY-5 (t-c2bb5b31). FILE: crates/braid/src/commands/init.rs, crates/braid/src/bootstrap.rs" :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/id :v "t-898ec5a7" :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/title :v "POLICY-2: Empty-substrate default + manifest loading at braid init" :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/title-l0 :v "POLICY-2" :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/title-l1 :v "POLICY-2: Empty-substrate default + manifest loading at braid init" :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/traces-to :v #blake3 "64fd07e990ba4c4d1808ca7acebaced935c9d0ee19a065c77ecf8a00d1763bd9" :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/traces-to :v #blake3 "ae7031515bf946ce4de40322d02bb271972e4a77f8e92e3f03c3cf56de803488" :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/traces-to :v #blake3 "f699f3e3d516c05ce0eb345f6a20fecb4f497b0b9a57951be8d6c02cb31adc5d" :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/traces-to :v #blake3 "fc7a7fd922841dd981aeb91cab8e9eeb660b56441559a8ed251825d238cab9e0" :op :assert}
+   {:e #blake3 "57ff1b7b4cb04cce2a20132abb3aae805c80d50ca70a88896118d853b7b96375" :a :task/type :v :task.type/task :op :assert}
+ ]}
