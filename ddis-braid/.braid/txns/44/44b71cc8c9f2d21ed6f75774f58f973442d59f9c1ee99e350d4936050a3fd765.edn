@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774214360/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PRIORITY REVISION: The extractor framework (SUBSTRATE-1, EXTRACTOR-1) should move from Stage 2+ to immediately after Policy Manifest. The evidence-informed bootstrap (scan existing project, infer policy from artifacts) is the primary use case, not greenfield. BOOTSTRAP-1 now depends on SUBSTRATE-1 and EXTRACTOR-1. The LLM conversation should reference extractor findings rather than starting from blank slate. This eliminates the cold-start problem and makes the initial policy evidence-based rather than intention-based. Bayesian inference converges faster with a better prior."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1e545a58fd926e32f58a3f96ba942d0986c71abd4e26ca953725052d5a9861c6" :a :db/doc :v "PRIORITY REVISION: The extractor framework (SUBSTRATE-1, EXTRACTOR-1) should move from Stage 2+ to immediately after Policy Manifest. The evidence-informed bootstrap (scan existing project, infer policy from artifacts) is the primary use case, not greenfield. BOOTSTRAP-1 now depends on SUBSTRATE-1 and EXTRACTOR-1. The LLM conversation should reference extractor findings rather than starting from blank slate. This eliminates the cold-start problem and makes the initial policy evidence-based rather than intention-based. Bayesian inference converges faster with a better prior." :op :assert}
+   {:e #blake3 "1e545a58fd926e32f58a3f96ba942d0986c71abd4e26ca953725052d5a9861c6" :a :db/ident :v :observation/priority-revision-the-extractor-framework-substrate-1-ext :op :assert}
+   {:e #blake3 "1e545a58fd926e32f58a3f96ba942d0986c71abd4e26ca953725052d5a9861c6" :a :exploration/body :v "PRIORITY REVISION: The extractor framework (SUBSTRATE-1, EXTRACTOR-1) should move from Stage 2+ to immediately after Policy Manifest. The evidence-informed bootstrap (scan existing project, infer policy from artifacts) is the primary use case, not greenfield. BOOTSTRAP-1 now depends on SUBSTRATE-1 and EXTRACTOR-1. The LLM conversation should reference extractor findings rather than starting from blank slate. This eliminates the cold-start problem and makes the initial policy evidence-based rather than intention-based. Bayesian inference converges faster with a better prior." :op :assert}
+   {:e #blake3 "1e545a58fd926e32f58a3f96ba942d0986c71abd4e26ca953725052d5a9861c6" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "1e545a58fd926e32f58a3f96ba942d0986c71abd4e26ca953725052d5a9861c6" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "1e545a58fd926e32f58a3f96ba942d0986c71abd4e26ca953725052d5a9861c6" :a :exploration/content-hash :v #bytes "c8e557dff1344515846705d73142c27414c84920a0db9c731540a367c07842f6" :op :assert}
+   {:e #blake3 "1e545a58fd926e32f58a3f96ba942d0986c71abd4e26ca953725052d5a9861c6" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "1e545a58fd926e32f58a3f96ba942d0986c71abd4e26ca953725052d5a9861c6" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "1e545a58fd926e32f58a3f96ba942d0986c71abd4e26ca953725052d5a9861c6" :a :exploration/source-session :v #blake3 "fc04e30563b5889e83224c877b75bef13d4eb9bf53e47e4843c66e63da98571a" :op :assert}
+ ]}
