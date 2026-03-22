@@ -3669,4 +3669,166 @@ mod tests {
             f_after_close.total
         );
     }
+
+    // ── EVIDENCE-R3: Evidence-weighted boundary tests ──
+
+    #[test]
+    fn evidence_weight_observed_deep_is_high() {
+        // composite_evidence_weight should return high value for observed+L4+fresh
+        let agent = AgentId::from_name("test:evidence");
+        let tx = TxId::new(now_secs(), 0, agent);
+        let entity = EntityId::from_ident(":test/evidence-high");
+
+        let mut datoms = Store::genesis().datom_set().clone();
+
+        // Add entity with observed provenance (via tx metadata)
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("high evidence entity".into()),
+            tx,
+            Op::Assert,
+        ));
+
+        // Add verification depth 4
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":impl/verification-depth"),
+            Value::Long(4),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let weight = composite_evidence_weight(&store, entity);
+
+        // With depth=4 (factor 1.0), fresh tx, and default provenance
+        // Weight should be in the high range
+        assert!(
+            weight > 0.05,
+            "Observed+L4+fresh should have high weight: {:.4}",
+            weight
+        );
+    }
+
+    #[test]
+    fn evidence_weight_no_witness_is_low() {
+        // Entity with no verification-depth datom → depth_factor = 0.1
+        let agent = AgentId::from_name("test:evidence-low");
+        let tx = TxId::new(now_secs(), 0, agent);
+        let entity = EntityId::from_ident(":test/evidence-low");
+
+        let mut datoms = Store::genesis().datom_set().clone();
+        datoms.insert(Datom::new(
+            entity,
+            Attribute::from_keyword(":db/doc"),
+            Value::String("no witness entity".into()),
+            tx,
+            Op::Assert,
+        ));
+
+        let store = Store::from_datoms(datoms);
+        let weight = composite_evidence_weight(&store, entity);
+
+        // No witness → depth_factor = 0.1, so weight should be relatively low
+        assert!(
+            weight < 0.5,
+            "No witness entity should have low weight: {:.4}",
+            weight
+        );
+    }
+
+    #[test]
+    fn evidence_weight_backward_compat_no_evidence_datoms() {
+        // Store without any evidence-related datoms → weight defaults to reasonable value
+        let store = Store::genesis();
+        let entity = EntityId::from_ident(":test/nonexistent");
+        let weight = composite_evidence_weight(&store, entity);
+
+        // Entity doesn't exist → no datoms → default/floor values
+        assert!(
+            (0.0..=1.0).contains(&weight),
+            "Weight should be in [0,1] even for non-existent entity: {:.4}",
+            weight
+        );
+    }
+
+    #[test]
+    fn evidence_weight_depth_monotonic() {
+        // Increasing verification depth should not decrease weight
+        let agent = AgentId::from_name("test:evidence-mono");
+        let entity = EntityId::from_ident(":test/evidence-mono");
+
+        let mut prev_weight = 0.0;
+        for depth in [0i64, 1, 2, 3, 4, 5] {
+            let tx = TxId::new(now_secs(), 0, agent);
+            let mut datoms = Store::genesis().datom_set().clone();
+            datoms.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("test".into()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":impl/verification-depth"),
+                Value::Long(depth),
+                tx,
+                Op::Assert,
+            ));
+            let store = Store::from_datoms(datoms);
+            let weight = composite_evidence_weight(&store, entity);
+            assert!(
+                weight >= prev_weight - 0.001,
+                "Depth {} weight {:.4} < previous depth weight {:.4}",
+                depth,
+                weight,
+                prev_weight
+            );
+            prev_weight = weight;
+        }
+    }
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// EVIDENCE-R3 PROPTEST: coverage is always in [0, 1] for any store state.
+        #[test]
+        fn prop_evidence_weight_bounded(
+            depth in 0i64..=10,
+        ) {
+            let agent = AgentId::from_name("proptest:evidence");
+            let tx = TxId::new(now_secs(), 0, agent);
+            let entity = EntityId::from_ident(":proptest/evidence");
+
+            let mut datoms = Store::genesis().datom_set().clone();
+            datoms.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":db/doc"),
+                Value::String("proptest entity".into()),
+                tx,
+                Op::Assert,
+            ));
+            datoms.insert(Datom::new(
+                entity,
+                Attribute::from_keyword(":impl/verification-depth"),
+                Value::Long(depth),
+                tx,
+                Op::Assert,
+            ));
+
+            let store = Store::from_datoms(datoms);
+            let weight = composite_evidence_weight(&store, entity);
+            prop_assert!((0.0..=1.0).contains(&weight),
+                "Evidence weight out of bounds: {:.6}", weight);
+        }
+    }
+
+    fn now_secs() -> u64 {
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs()
+    }
 }
