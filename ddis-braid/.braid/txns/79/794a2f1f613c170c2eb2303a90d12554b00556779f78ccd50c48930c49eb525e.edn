@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774203642/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "TASK AUDIT INSIGHT: POLICY-3 is the hardest task because making BoundaryCheck generic requires a PatternBoundary that evaluates coverage by running Datalog-like pattern matching on entity attributes. The current SpecImplBoundary has complex hardcoded scan logic. The generic version needs: for each boundary, query entities matching source-pattern, query entities matching target-pattern, compute set coverage. This is essentially a parameterized Datalog query per boundary. POLICY-CONFIG (t-708bd7e9) must be implemented BEFORE POLICY-3 to provide the shared parsing layer."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7355c566b66845110d6b67dfbd7ac2700538b8eafeca4e46eeb428fd5c1ab692" :a :db/doc :v "TASK AUDIT INSIGHT: POLICY-3 is the hardest task because making BoundaryCheck generic requires a PatternBoundary that evaluates coverage by running Datalog-like pattern matching on entity attributes. The current SpecImplBoundary has complex hardcoded scan logic. The generic version needs: for each boundary, query entities matching source-pattern, query entities matching target-pattern, compute set coverage. This is essentially a parameterized Datalog query per boundary. POLICY-CONFIG (t-708bd7e9) must be implemented BEFORE POLICY-3 to provide the shared parsing layer." :op :assert}
+   {:e #blake3 "7355c566b66845110d6b67dfbd7ac2700538b8eafeca4e46eeb428fd5c1ab692" :a :db/ident :v :observation/task-audit-insight-policy-3-is-the-hardest-task-because-mak :op :assert}
+   {:e #blake3 "7355c566b66845110d6b67dfbd7ac2700538b8eafeca4e46eeb428fd5c1ab692" :a :exploration/body :v "TASK AUDIT INSIGHT: POLICY-3 is the hardest task because making BoundaryCheck generic requires a PatternBoundary that evaluates coverage by running Datalog-like pattern matching on entity attributes. The current SpecImplBoundary has complex hardcoded scan logic. The generic version needs: for each boundary, query entities matching source-pattern, query entities matching target-pattern, compute set coverage. This is essentially a parameterized Datalog query per boundary. POLICY-CONFIG (t-708bd7e9) must be implemented BEFORE POLICY-3 to provide the shared parsing layer." :op :assert}
+   {:e #blake3 "7355c566b66845110d6b67dfbd7ac2700538b8eafeca4e46eeb428fd5c1ab692" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "7355c566b66845110d6b67dfbd7ac2700538b8eafeca4e46eeb428fd5c1ab692" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "7355c566b66845110d6b67dfbd7ac2700538b8eafeca4e46eeb428fd5c1ab692" :a :exploration/content-hash :v #bytes "aa53a9fa5b1b7f29062130d5e965d6b3a6cebc4e59918fef48b3e611d10b0069" :op :assert}
+   {:e #blake3 "7355c566b66845110d6b67dfbd7ac2700538b8eafeca4e46eeb428fd5c1ab692" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "7355c566b66845110d6b67dfbd7ac2700538b8eafeca4e46eeb428fd5c1ab692" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "7355c566b66845110d6b67dfbd7ac2700538b8eafeca4e46eeb428fd5c1ab692" :a :exploration/source-session :v #blake3 "c3a716cb321035dd25275e320e43f6b39e28caef1afc61140d54454e4972392f" :op :assert}
+ ]}

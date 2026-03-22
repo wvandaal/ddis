@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774203529/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-9: Domain-language coherence reports — translate F(S) into user vocabulary"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :db/ident :v :task/t-a5b35a9c :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/created-at :v 1774203528 :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/description :v "BACKGROUND: F(S)=0.61 means nothing to anyone outside our project. With the policy manifest mapping boundaries to domain concepts, the system can say: \"Your design inputs are 73% traced to design outputs. Two risk mitigations have no test evidence.\" This is the killer feature: formal coherence translated to human understanding.. APPROACH: (1) Each :policy/boundary entity gets a :policy/boundary-report-template (String) attribute: a template with {coverage}, {gap_count}, {source_count}, {target_count} placeholders. (2) Example DDIS template: \"Validation: {coverage}% of invariants have L2+ witnesses ({gap_count} gaps)\". (3) Example compliance template: \"Requirement coverage: {coverage}% of requirements traced to controls ({gap_count} untested)\". (4) braid status renders the template for each boundary instead of raw component scores. (5) The seed also uses templates for the constraints section. (6) Fallback: if no template, show raw \"boundary-name: coverage%\".. ACCEPTANCE: (A) DDIS manifest has templates for all 7 boundaries. (B) braid status shows domain-language report instead of V=0.18 C=0.22. (C) Custom policy with custom templates produces custom reports. (D) Missing template falls back to raw coverage. (E) Templates are datoms (queryable, versionable). DEPENDS-ON: POLICY-2 (t-5357604e). FILE: crates/braid/src/commands/status.rs, crates/braid/src/commands/seed.rs" :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/id :v "t-a5b35a9c" :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/title :v "POLICY-9: Domain-language coherence reports — translate F(S) into user vocabulary" :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/title-l0 :v "POLICY-9" :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/title-l1 :v "POLICY-9: Domain-language coherence reports — translate F(S) into user voca..." :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/traces-to :v #blake3 "8eb23d5a35e4f8ab29051cbe0a9a3d245f84e44ce1253361a63294ace01c652a" :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/traces-to :v #blake3 "ae7031515bf946ce4de40322d02bb271972e4a77f8e92e3f03c3cf56de803488" :op :assert}
+   {:e #blake3 "ffaa279a14d1a44d1de5cc99d230d96c96b019a4c5835a61331ce70429baea12" :a :task/type :v :task.type/task :op :assert}
+ ]}

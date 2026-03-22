@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774203551/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: OBSERVER-5: Emergent boundary discovery — learn new alignment relationships from datom history"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :db/ident :v :task/t-eafab6d9 :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/created-at :v 1774203550 :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/description :v "BACKGROUND: The policy manifest declares known boundaries. But the system has 46K+ datoms of temporal history. Patterns in that history reveal boundaries the user did not declare. If every time entity-type-A changes, entity-type-B becomes stale within 3 transactions, thats an empirical coupling. The system should discover it and propose it as a new boundary. This is the system doing science on itself — observing correlations, proposing hypotheses, testing against future data.. APPROACH: (1) fn discover_empirical_boundaries(store, window_txns: usize) -> Vec<ProposedBoundary>. (2) For every pair of attribute namespaces (A, B) not in a declared boundary: compute temporal coupling = P(B changes within window after A changes). (3) If coupling > threshold (default 0.5 over 20+ observations): propose as new boundary. (4) ProposedBoundary includes: source/target patterns, empirical coupling score, observation count, suggested weight. (5) braid discover (new command) shows proposed boundaries for user review. (6) braid discover --accept <id> transacts the proposed boundary as a policy datom with confidence from the coupling score. (7) Proposed boundaries have :policy/boundary-source = :empirical (distinguishing from user-declared).. ACCEPTANCE: (A) On a store with 40K+ datoms: at least 1 empirical coupling detected (e.g., task changes correlate with spec changes). (B) Proposed boundaries do not duplicate declared ones. (C) Coupling score is in [0,1]. (D) braid discover --accept transacts valid policy datom. (E) Proptest: random datom sequences with planted coupling -> discovery detects it. DEPENDS-ON: POLICY-3 (t-da1100c8). FILE: crates/braid-kernel/src/discover.rs (new), crates/braid/src/commands/discover.rs (new)" :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/id :v "t-eafab6d9" :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/title :v "OBSERVER-5: Emergent boundary discovery — learn new alignment relationships from datom history" :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/title-l0 :v "OBSERVER-5" :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/title-l1 :v "OBSERVER-5: Emergent boundary discovery — learn new alignment relationships..." :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/traces-to :v #blake3 "ac0191452c7344a17c497aac16b24924c3b92c6f771e84881cf987ae0aec559d" :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/traces-to :v #blake3 "fc7a7fd922841dd981aeb91cab8e9eeb660b56441559a8ed251825d238cab9e0" :op :assert}
+   {:e #blake3 "ca1c3bd833418197120deb0c8c02a1a7a5e4f792088c10defeeda3c3fffdb861" :a :task/type :v :task.type/task :op :assert}
+ ]}

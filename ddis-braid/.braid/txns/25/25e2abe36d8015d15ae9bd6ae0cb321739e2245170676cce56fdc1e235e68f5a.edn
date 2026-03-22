@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774203507/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-8: Stage-gating — filter ready queue by project stage"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :db/ident :v :task/t-3b19f664 :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/created-at :v 1774203506 :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/description :v "BACKGROUND: 321 open tasks with 83 likely-done violates attention budget. The 3-valued status lattice (Open/InProgress/Closed) cannot express stage relevance. Adding :task/stage as a free integer and :project/current-stage as a config datom filters the ready queue without breaking the lattice.. APPROACH: (1) Add :task/stage (Long, default=0) and :project/current-stage (Long) to schema. (2) In compute_ready_set(): filter by task.stage <= project.stage. (3) Auto-assign stage from namespace: STORE/SCHEMA/QUERY/HARVEST/SEED=0, BUDGET/GUIDANCE/WITNESS/BILATERAL=1, DELIBERATION/BRANCH=2, SYNC/SIGNAL/FRONTIER=3, SIGNIFICANCE/AUTHORITY/TUI=4. (4) braid task list shows: \"281 ready (+ 87 stage 2+)\". (5) Stage values are project-defined (stored as datom), not hardcoded.. ACCEPTANCE: (A) Existing ready set unchanged when project-stage=4 (shows everything). (B) project-stage=1 filters out stage 2+ tasks. (C) Advancing stage monotonically increases ready set. (D) join(status_a, status_b) unchanged (lattice preserved). (E) Stage auto-assigned from namespace for existing tasks.. FILE: crates/braid-kernel/src/task.rs, crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/id :v "t-3b19f664" :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/title :v "POLICY-8: Stage-gating — filter ready queue by project stage" :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/title-l0 :v "POLICY-8" :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/title-l1 :v "POLICY-8: Stage-gating — filter ready queue by project stage" :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/traces-to :v #blake3 "8eb23d5a35e4f8ab29051cbe0a9a3d245f84e44ce1253361a63294ace01c652a" :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/traces-to :v #blake3 "ff7f2370746e393845e69cccbf410c239ad73256fa648f4e0c092ba903c4b82d" :op :assert}
+   {:e #blake3 "08c9c6b1a85b90efc89bed0c53e1f70fad92dd5a9da792064c02e28ad584ffd9" :a :task/type :v :task.type/task :op :assert}
+ ]}

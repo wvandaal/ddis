@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774203568/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-CONFIG: Shared PolicyConfig struct — single source of truth for policy interpretation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :db/ident :v :task/t-708bd7e9 :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/created-at :v 1774203567 :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/description :v "BACKGROUND: Both BoundaryRegistry (bilateral.rs) and MaterializedViews (store.rs) need to parse and interpret policy datoms. Without a shared struct, they will diverge (parse differently, handle edge cases differently). The isomorphism between Views.fitness() and BoundaryRegistry.total_coverage() must hold for ANY valid policy.. APPROACH: (1) Define PolicyConfig struct in a new policy.rs module: boundaries: Vec<BoundaryDef>, claim_patterns: Vec<String>, evidence_patterns: Vec<String>, anomaly_detectors: Vec<AnomalyDef>, watcher_configs: Vec<WatcherDef>. (2) fn PolicyConfig::from_store(store) -> Option<PolicyConfig> parses policy datoms once. (3) fn PolicyConfig::ddis_default() -> PolicyConfig returns the hardcoded DDIS policy (for stores without policy datoms). (4) Both MaterializedViews and BoundaryRegistry consume PolicyConfig. (5) PolicyConfig is cached at store load time. (6) Invariant: Views.fitness(config) == BoundaryRegistry.total_coverage(config, store) for any config and store.. ACCEPTANCE: (A) PolicyConfig::from_store with DDIS manifest produces config matching ddis_default(). (B) PolicyConfig::from_store with empty store returns None (triggers fallback). (C) Views.fitness() and BoundaryRegistry use the SAME PolicyConfig instance. (D) Isomorphism test: for 10 random valid policies and 10 random stores, Views.fitness() == BoundaryRegistry.total_coverage() within epsilon. DEPENDS-ON: POLICY-1 (t-f5298b23). FILE: crates/braid-kernel/src/policy.rs (new)" :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/id :v "t-708bd7e9" :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/title :v "POLICY-CONFIG: Shared PolicyConfig struct — single source of truth for policy interpretation" :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/title-l0 :v "POLICY-CONFIG" :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/title-l1 :v "POLICY-CONFIG: Shared PolicyConfig struct — single source of truth for poli..." :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/traces-to :v #blake3 "455a5c89707dbccd9fce146a0101d00bea76e974ea56ce83d64a0bce7f1a36e1" :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/traces-to :v #blake3 "fc7a7fd922841dd981aeb91cab8e9eeb660b56441559a8ed251825d238cab9e0" :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774203602/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-REGRESSION: Backward compatibility regression test"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :db/ident :v :task/t-2f2eb7bf :op :assert}
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :task/created-at :v 1774203601 :op :assert}
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :task/description :v "BACKGROUND: The policy refactor touches bilateral.rs, store.rs, and guidance.rs. All existing tests must continue to pass. F(S) on existing stores must not change.. APPROACH: After each POLICY task: run cargo test --all-targets (1610+ pass), cargo clippy (0 warnings), all 17 E2E scripts, and verify F(S) delta under 0.01 on existing store.. ACCEPTANCE: (A) 1610+ tests pass. (B) 0 clippy warnings. (C) 17/17 E2E pass. (D) F(S) delta under 0.01. (E) braid status output functionally identical.. FILE: existing test infrastructure" :op :assert}
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :task/id :v "t-2f2eb7bf" :op :assert}
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :task/title :v "POLICY-REGRESSION: Backward compatibility regression test" :op :assert}
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :task/title-l0 :v "POLICY-REGRESSION" :op :assert}
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :task/title-l1 :v "POLICY-REGRESSION: Backward compatibility regression test" :op :assert}
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :task/traces-to :v #blake3 "455a5c89707dbccd9fce146a0101d00bea76e974ea56ce83d64a0bce7f1a36e1" :op :assert}
+   {:e #blake3 "2a84a477f33952611bbaa38ca8d1b1f70685619acafd841a73ce5c7369f42dc3" :a :task/type :v :task.type/test :op :assert}
+ ]}
