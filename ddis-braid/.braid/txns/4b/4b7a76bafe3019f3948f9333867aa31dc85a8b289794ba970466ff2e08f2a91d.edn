@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774206757/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-009 \"Vision-Implementation Coherence\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3b4efd80515b2bc5af3e68a36275805cb4c4ae2f7bdffe0a75f7cc076396fbd6" :a :db/ident :v :task/t-06697089 :op :assert}
+   {:e #blake3 "3b4efd80515b2bc5af3e68a36275805cb4c4ae2f7bdffe0a75f7cc076396fbd6" :a :task/created-at :v 1774206756 :op :assert}
+   {:e #blake3 "3b4efd80515b2bc5af3e68a36275805cb4c4ae2f7bdffe0a75f7cc076396fbd6" :a :task/id :v "t-06697089" :op :assert}
+   {:e #blake3 "3b4efd80515b2bc5af3e68a36275805cb4c4ae2f7bdffe0a75f7cc076396fbd6" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "3b4efd80515b2bc5af3e68a36275805cb4c4ae2f7bdffe0a75f7cc076396fbd6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3b4efd80515b2bc5af3e68a36275805cb4c4ae2f7bdffe0a75f7cc076396fbd6" :a :task/title :v "Implement INV-FOUNDATION-009: Vision-Implementation Coherence" :op :assert}
+   {:e #blake3 "3b4efd80515b2bc5af3e68a36275805cb4c4ae2f7bdffe0a75f7cc076396fbd6" :a :task/traces-to :v #blake3 "6e00ffed750365a6d179b18044aa7c08869b002c9376a82f64ddd9d282f767aa" :op :assert}
+   {:e #blake3 "3b4efd80515b2bc5af3e68a36275805cb4c4ae2f7bdffe0a75f7cc076396fbd6" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "6e00ffed750365a6d179b18044aa7c08869b002c9376a82f64ddd9d282f767aa" :a :db/doc :v "Vision-Implementation Coherence" :op :assert}
+   {:e #blake3 "6e00ffed750365a6d179b18044aa7c08869b002c9376a82f64ddd9d282f767aa" :a :db/ident :v :spec/inv-foundation-009 :op :assert}
+   {:e #blake3 "6e00ffed750365a6d179b18044aa7c08869b002c9376a82f64ddd9d282f767aa" :a :element/traces-to :v "ADR-FOUNDATION-012, ADR-FOUNDATION-014, C8" :op :assert}
+   {:e #blake3 "6e00ffed750365a6d179b18044aa7c08869b002c9376a82f64ddd9d282f767aa" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "6e00ffed750365a6d179b18044aa7c08869b002c9376a82f64ddd9d282f767aa" :a :spec/falsification :v "An implementation that adds domain-specific logic to the kernel without going through the policy manifest violates this invariant. An implementation that opens a loop (creates information without feeding it back into the coherence model) violates this invariant. An implementation that hardcodes what should be configurable violates this invariant." :op :assert}
+   {:e #blake3 "6e00ffed750365a6d179b18044aa7c08869b002c9376a82f64ddd9d282f767aa" :a :spec/id :v "INV-FOUNDATION-009" :op :assert}
+   {:e #blake3 "6e00ffed750365a6d179b18044aa7c08869b002c9376a82f64ddd9d282f767aa" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "6e00ffed750365a6d179b18044aa7c08869b002c9376a82f64ddd9d282f767aa" :a :spec/statement :v "Every implementation decision must trace to one of: the bedrock vision (organizational learning), the convergence thesis (closed-loop learning), the substrate independence principle (C8), or a policy manifest element. Decisions that cannot trace to any of these are axiologically misaligned and must be questioned." :op :assert}
+ ]}

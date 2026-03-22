@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774206865/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-FOUNDATION-004 \"Do not regress to software tool framing\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ddb1c30c55c8d4d7ce702cb800a6d3dd5ef40aa7eac7dce805fc4bf5fbc97159" :a :db/doc :v "Do not regress to software tool framing" :op :assert}
+   {:e #blake3 "ddb1c30c55c8d4d7ce702cb800a6d3dd5ef40aa7eac7dce805fc4bf5fbc97159" :a :db/ident :v :spec/neg-foundation-004 :op :assert}
+   {:e #blake3 "ddb1c30c55c8d4d7ce702cb800a6d3dd5ef40aa7eac7dce805fc4bf5fbc97159" :a :element/traces-to :v "ADR-FOUNDATION-012, C8" :op :assert}
+   {:e #blake3 "ddb1c30c55c8d4d7ce702cb800a6d3dd5ef40aa7eac7dce805fc4bf5fbc97159" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "ddb1c30c55c8d4d7ce702cb800a6d3dd5ef40aa7eac7dce805fc4bf5fbc97159" :a :spec/falsification :v "A feature that only works for software projects (e.g., hardcoded Rust parsing in kernel, fitness component that only measures code coverage) violates this negative case." :op :assert}
+   {:e #blake3 "ddb1c30c55c8d4d7ce702cb800a6d3dd5ef40aa7eac7dce805fc4bf5fbc97159" :a :spec/id :v "NEG-FOUNDATION-004" :op :assert}
+   {:e #blake3 "ddb1c30c55c8d4d7ce702cb800a6d3dd5ef40aa7eac7dce805fc4bf5fbc97159" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "ddb1c30c55c8d4d7ce702cb800a6d3dd5ef40aa7eac7dce805fc4bf5fbc97159" :a :spec/statement :v "Braid is infrastructure for organizational learning. Features must generalize beyond software development to any domain with claims, evidence, and alignment boundaries." :op :assert}
+   {:e #blake3 "fcba080254453df5134ff9bae7ee5f766402ec0480eaf49f4c17b9ec28bdbf94" :a :db/ident :v :task/t-6c395573 :op :assert}
+   {:e #blake3 "fcba080254453df5134ff9bae7ee5f766402ec0480eaf49f4c17b9ec28bdbf94" :a :task/created-at :v 1774206864 :op :assert}
+   {:e #blake3 "fcba080254453df5134ff9bae7ee5f766402ec0480eaf49f4c17b9ec28bdbf94" :a :task/id :v "t-6c395573" :op :assert}
+   {:e #blake3 "fcba080254453df5134ff9bae7ee5f766402ec0480eaf49f4c17b9ec28bdbf94" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "fcba080254453df5134ff9bae7ee5f766402ec0480eaf49f4c17b9ec28bdbf94" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fcba080254453df5134ff9bae7ee5f766402ec0480eaf49f4c17b9ec28bdbf94" :a :task/title :v "Implement NEG-FOUNDATION-004: Do not regress to software tool framing" :op :assert}
+   {:e #blake3 "fcba080254453df5134ff9bae7ee5f766402ec0480eaf49f4c17b9ec28bdbf94" :a :task/traces-to :v #blake3 "ddb1c30c55c8d4d7ce702cb800a6d3dd5ef40aa7eac7dce805fc4bf5fbc97159" :op :assert}
+   {:e #blake3 "fcba080254453df5134ff9bae7ee5f766402ec0480eaf49f4c17b9ec28bdbf94" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774206868/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-FOUNDATION-005 \"Do not open loops\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "183e7677d97573dcdb325617516e4795eb8d814b0396ebf08d5e8b69a03ba107" :a :db/doc :v "Do not open loops" :op :assert}
+   {:e #blake3 "183e7677d97573dcdb325617516e4795eb8d814b0396ebf08d5e8b69a03ba107" :a :db/ident :v :spec/neg-foundation-005 :op :assert}
+   {:e #blake3 "183e7677d97573dcdb325617516e4795eb8d814b0396ebf08d5e8b69a03ba107" :a :element/traces-to :v "ADR-FOUNDATION-014" :op :assert}
+   {:e #blake3 "183e7677d97573dcdb325617516e4795eb8d814b0396ebf08d5e8b69a03ba107" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "183e7677d97573dcdb325617516e4795eb8d814b0396ebf08d5e8b69a03ba107" :a :spec/falsification :v "A feature that produces data without connecting it to a boundary, gradient, or calibration measurement opens a loop. Open loops are the root cause of all Session 033 review problems." :op :assert}
+   {:e #blake3 "183e7677d97573dcdb325617516e4795eb8d814b0396ebf08d5e8b69a03ba107" :a :spec/id :v "NEG-FOUNDATION-005" :op :assert}
+   {:e #blake3 "183e7677d97573dcdb325617516e4795eb8d814b0396ebf08d5e8b69a03ba107" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "183e7677d97573dcdb325617516e4795eb8d814b0396ebf08d5e8b69a03ba107" :a :spec/statement :v "Every piece of information the system creates or receives must feed back into the coherence model via boundary evaluation, gradient computation, or calibration measurement." :op :assert}
+   {:e #blake3 "e6e8ad097b7bdcd5850e75cdbd5f76499cfe1d16fcef9a65403d5dfa41188792" :a :db/ident :v :task/t-73154163 :op :assert}
+   {:e #blake3 "e6e8ad097b7bdcd5850e75cdbd5f76499cfe1d16fcef9a65403d5dfa41188792" :a :task/created-at :v 1774206867 :op :assert}
+   {:e #blake3 "e6e8ad097b7bdcd5850e75cdbd5f76499cfe1d16fcef9a65403d5dfa41188792" :a :task/id :v "t-73154163" :op :assert}
+   {:e #blake3 "e6e8ad097b7bdcd5850e75cdbd5f76499cfe1d16fcef9a65403d5dfa41188792" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e6e8ad097b7bdcd5850e75cdbd5f76499cfe1d16fcef9a65403d5dfa41188792" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e6e8ad097b7bdcd5850e75cdbd5f76499cfe1d16fcef9a65403d5dfa41188792" :a :task/title :v "Implement NEG-FOUNDATION-005: Do not open loops" :op :assert}
+   {:e #blake3 "e6e8ad097b7bdcd5850e75cdbd5f76499cfe1d16fcef9a65403d5dfa41188792" :a :task/traces-to :v #blake3 "183e7677d97573dcdb325617516e4795eb8d814b0396ebf08d5e8b69a03ba107" :op :assert}
+   {:e #blake3 "e6e8ad097b7bdcd5850e75cdbd5f76499cfe1d16fcef9a65403d5dfa41188792" :a :task/type :v :task.type/task :op :assert}
+ ]}
