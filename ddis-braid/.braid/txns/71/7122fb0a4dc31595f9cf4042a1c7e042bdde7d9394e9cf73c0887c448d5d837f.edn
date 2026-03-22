@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774205865/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "TASK TREE REVISION: OBSERVER-4 (calibration loop) promoted from P1 to P0 and moved into Proposal 1 critical path. It comes after POLICY-4 (views) and before POLICY-REGRESSION (tests). The calibration loop IS the policy manifests reason for existence. Without it, the manifest is a static configuration. With it, the manifest is a learning system that converges on the optimal coherence model empirically."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4499f6a4fd92ceafce2340e9b8d921b0512c8fc10de0a27952ab001da8b97db0" :a :db/doc :v "TASK TREE REVISION: OBSERVER-4 (calibration loop) promoted from P1 to P0 and moved into Proposal 1 critical path. It comes after POLICY-4 (views) and before POLICY-REGRESSION (tests). The calibration loop IS the policy manifests reason for existence. Without it, the manifest is a static configuration. With it, the manifest is a learning system that converges on the optimal coherence model empirically." :op :assert}
+   {:e #blake3 "4499f6a4fd92ceafce2340e9b8d921b0512c8fc10de0a27952ab001da8b97db0" :a :db/ident :v :observation/task-tree-revision-observer-4-calibration-loop-promoted-f :op :assert}
+   {:e #blake3 "4499f6a4fd92ceafce2340e9b8d921b0512c8fc10de0a27952ab001da8b97db0" :a :exploration/body :v "TASK TREE REVISION: OBSERVER-4 (calibration loop) promoted from P1 to P0 and moved into Proposal 1 critical path. It comes after POLICY-4 (views) and before POLICY-REGRESSION (tests). The calibration loop IS the policy manifests reason for existence. Without it, the manifest is a static configuration. With it, the manifest is a learning system that converges on the optimal coherence model empirically." :op :assert}
+   {:e #blake3 "4499f6a4fd92ceafce2340e9b8d921b0512c8fc10de0a27952ab001da8b97db0" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "4499f6a4fd92ceafce2340e9b8d921b0512c8fc10de0a27952ab001da8b97db0" :a :exploration/confidence :v 0.95 :op :assert}
+   {:e #blake3 "4499f6a4fd92ceafce2340e9b8d921b0512c8fc10de0a27952ab001da8b97db0" :a :exploration/content-hash :v #bytes "0e3fcc3d2d367b54abde105311300273fd25bf1379857c178f42c916d0fa2cfb" :op :assert}
+   {:e #blake3 "4499f6a4fd92ceafce2340e9b8d921b0512c8fc10de0a27952ab001da8b97db0" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "4499f6a4fd92ceafce2340e9b8d921b0512c8fc10de0a27952ab001da8b97db0" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "4499f6a4fd92ceafce2340e9b8d921b0512c8fc10de0a27952ab001da8b97db0" :a :exploration/source-session :v #blake3 "23b24fccbf1e01e496c9670c43cae381a609e3286da8b4ca69420a74d96c0e27" :op :assert}
+ ]}

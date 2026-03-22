@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774205879/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-014 \"The Convergence Thesis — braid learns what coherence means\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :a :adr/decision :v "Braid is a closed-loop system that converges on the optimal coherence model for any domain through empirical learning. The initial policy (from LLM bootstrap or manifest) is the Bayesian prior. Observations are evidence. The calibration loop computes the posterior. The gradient selects the next experiment. This is not a feature of the policy manifest — it is its reason for existence." :op :assert}
+   {:e #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :a :adr/problem :v "All review problems (F(S) dishonesty, task overload, footer noise, performance, witness gaps) share one root cause: every loop in the system is open. Observations do not feed back into fitness. Executions do not feed back into task closure. Guidance does not respond to changes. The fix is architectural: close all loops via continuous observation, measurement, prediction, and revision." :op :assert}
+   {:e #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :a :db/doc :v "The Convergence Thesis — braid learns what coherence means" :op :assert}
+   {:e #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :a :db/ident :v :spec/adr-foundation-014 :op :assert}
+   {:e #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :a :element/traces-to :v "ADR-FOUNDATION-012, ADR-FOUNDATION-013, INV-FOUNDATION-007" :op :assert}
+   {:e #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :a :spec/id :v "ADR-FOUNDATION-014" :op :assert}
+   {:e #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "557ff341df07a93da57ed232e10c1343353b5085e0329c94ed2da8e43ae0de0c" :a :db/ident :v :task/t-ff07bb5a :op :assert}
+   {:e #blake3 "557ff341df07a93da57ed232e10c1343353b5085e0329c94ed2da8e43ae0de0c" :a :task/created-at :v 1774205878 :op :assert}
+   {:e #blake3 "557ff341df07a93da57ed232e10c1343353b5085e0329c94ed2da8e43ae0de0c" :a :task/id :v "t-ff07bb5a" :op :assert}
+   {:e #blake3 "557ff341df07a93da57ed232e10c1343353b5085e0329c94ed2da8e43ae0de0c" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "557ff341df07a93da57ed232e10c1343353b5085e0329c94ed2da8e43ae0de0c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "557ff341df07a93da57ed232e10c1343353b5085e0329c94ed2da8e43ae0de0c" :a :task/title :v "Implement ADR-FOUNDATION-014: The Convergence Thesis — braid learns what coherence means" :op :assert}
+   {:e #blake3 "557ff341df07a93da57ed232e10c1343353b5085e0329c94ed2da8e43ae0de0c" :a :task/traces-to :v #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :op :assert}
+   {:e #blake3 "557ff341df07a93da57ed232e10c1343353b5085e0329c94ed2da8e43ae0de0c" :a :task/type :v :task.type/task :op :assert}
+ ]}
