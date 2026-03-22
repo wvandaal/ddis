@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774202888/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: OBSERVER-1: Daemon watcher subsystem — policy-driven continuous observation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :db/ident :v :task/t-54ea139b :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/created-at :v 1774202887 :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/description :v "BACKGROUND: The most accretive addition is making braid an active epistemic agent. The daemon (CE-7, already designed as ArcSwap store server + Unix socket) gains a watcher subsystem. Watchers are registered as :policy/watcher datoms. The system monitors the environment and auto-generates datoms through the extractor pipeline. The agent never runs a braid command for routine observation. Eliminates ceremony permanently.. APPROACH: (1) Define WatcherConfig struct: watcher_type (Filesystem/GitHook/TestRunner/McpIntercept), pattern (glob/regex), extractor_ref (EntityId of :extractor/* entity), debounce_ms (u64). (2) fn load_watchers(store) -> Vec<WatcherConfig> reads :policy/watcher datoms. (3) WatcherManager spawns one thread per watcher type. (4) Each thread produces a Stream<WatchEvent> with debouncing. (5) WatchEvents are converted to datoms via the extractor pattern (ADR-FOUNDATION-009). (6) Datoms feed through COTX auto-routing (same 5-rule pipeline as universal observe). (7) After each batch: check boundaries, compute gradient delta, push interrupt if anomaly. (8) Connected CLI/MCP clients receive interrupt via Unix socket notification. (9) All watcher datoms have provenance :observed (from real environment, not derived).. ACCEPTANCE: (A) With filesystem watcher configured: modifying a file produces :component/modified datom within debounce interval. (B) Debounce: 10 saves within 1s produce exactly 1 datom. (C) Without watchers configured: daemon runs silently (no overhead). (D) Watcher datoms have provenance=observed. (E) COTX rules fire on watcher datoms (e.g., action-language file change creates auto-task). (F) Boundary anomaly produces interrupt to connected client. DEPENDS-ON: CE-7 (t-451e387b, daemon core), POLICY-1 (t-f5298b23). FILE: crates/braid-kernel/src/watcher.rs (new), crates/braid/src/daemon/ (new directory)" :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/id :v "t-54ea139b" :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/title :v "OBSERVER-1: Daemon watcher subsystem — policy-driven continuous observation" :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/title-l0 :v "OBSERVER-1" :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/title-l1 :v "OBSERVER-1: Daemon watcher subsystem — policy-driven continuous observation" :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/traces-to :v #blake3 "6aba442905893258901fab3364ca9b246b3bcef4c663fb74d72cbeeee6499d32" :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/traces-to :v #blake3 "c831482114a96159d928cc28a039cdcad128e1589d20b6c9e909dbd0db8e690b" :op :assert}
+   {:e #blake3 "0ab1c67932aeb2fb9c6c0172c9e0fdcc95c3f3097ebe81dea62a4f8a26cee839" :a :task/type :v :task.type/task :op :assert}
+ ]}

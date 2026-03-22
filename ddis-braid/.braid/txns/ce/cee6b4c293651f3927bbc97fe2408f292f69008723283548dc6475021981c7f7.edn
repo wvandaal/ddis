@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774202814/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-E2E: E2E test script scripts/e2e_policy_manifest.sh — validates full policy lifecycle"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :db/ident :v :task/t-53df5c57 :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/created-at :v 1774202813 :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/description :v "BACKGROUND: The policy manifest must work end-to-end: init creates manifest, status reads it, custom policy changes behavior, backward compat preserved. This E2E script validates the complete lifecycle with detailed logging.. APPROACH: 15 checks with timing: (1) braid init creates store with :policy/boundary-* datoms. (2) braid query --attribute :policy/boundary-weight returns 7 datoms. (3) braid status shows F(S) computed from policy (not hardcoded). (4) Weights sum to 1.0 (query and sum). (5) braid init --no-policy creates store WITHOUT policy datoms. (6) braid status on no-policy store returns F(S) via hardcoded fallback. (7) Transact custom 2-boundary policy: coverage + validation only. (8) braid status on custom-policy store uses ONLY those 2 boundaries. (9) F(S) with custom policy differs from DDIS-policy F(S). (10) braid spec create INV-CUSTOM-001 increases coverage boundary score. (11) braid witness generate increases validation boundary score. (12) Transact invalid policy (negative weight) — store loads with warning. (13) braid observe with policy anomaly detector fires alert. (14) Performance: braid status < 2s on 50K datom store with policy. (15) All checks produce [PASS]/[FAIL] with timing.. ACCEPTANCE: 15/15 [PASS], total script time < 60s. DEPENDS-ON: POLICY-4 (t-5640358a), POLICY-5 (t-c2bb5b31). FILE: scripts/e2e_policy_manifest.sh" :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/id :v "t-53df5c57" :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/title :v "POLICY-E2E: E2E test script scripts/e2e_policy_manifest.sh — validates full policy lifecycle" :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/title-l0 :v "POLICY-E2E" :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/title-l1 :v "POLICY-E2E: E2E test script scripts/e2e_policy_manifest.sh — validates full..." :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/traces-to :v #blake3 "ae7031515bf946ce4de40322d02bb271972e4a77f8e92e3f03c3cf56de803488" :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/traces-to :v #blake3 "fc7a7fd922841dd981aeb91cab8e9eeb660b56441559a8ed251825d238cab9e0" :op :assert}
+   {:e #blake3 "4abd36251b7033d463622009f29e45fe2166eb80f2f3116f8bf148de58db5ec6" :a :task/type :v :task.type/test :op :assert}
+ ]}

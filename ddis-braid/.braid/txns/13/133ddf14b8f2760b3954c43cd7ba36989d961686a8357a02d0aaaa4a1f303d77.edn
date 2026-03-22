@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774202967/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOOTSTRAP-TEST: Unit tests for LLM-bootstrapped initialization"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :db/ident :v :task/t-90655b1e :op :assert}
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :task/created-at :v 1774202966 :op :assert}
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :task/description :v "BACKGROUND: The LLM bootstrap compiles natural language into policy datoms. This is a safety-critical path — wrong compilation means wrong coherence model. Tests verify the compilation is faithful, complete, and idempotent.. APPROACH: UNIT TESTS (8): (1) Parse domain response \"software development\" -> no special claim types (generic). (2) Parse claim types \"requirements, acceptance criteria\" -> 2 :policy/claim-type datoms. (3) Parse evidence types \"unit tests, integration tests\" -> 2 :policy/evidence-type datoms. (4) Parse boundary \"requirements should trace to tests\" -> 1 boundary with source=:requirement/* target=:test/*. (5) Parse uncertainty \"maybe code reviews?\" -> evidence-type with confidence=0.5. (6) Parse anomaly \"alert if a requirement has no test\" -> anomaly-detector datom. (7) Generated manifest passes validate_policy(). (8) Deterministic: same inputs produce same manifest (idempotency). INTEGRATION (2): (9) Full interactive flow with mock responses -> valid store. (10) braid init --manifest ddis.edn -> identical to hardcoded init.. ACCEPTANCE: 10 tests pass, all bootstrap code paths exercised. DEPENDS-ON: BOOTSTRAP-1 (t-01deaa36). FILE: crates/braid/src/commands/init.rs (test module)" :op :assert}
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :task/id :v "t-90655b1e" :op :assert}
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :task/title :v "BOOTSTRAP-TEST: Unit tests for LLM-bootstrapped initialization" :op :assert}
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :task/title-l0 :v "BOOTSTRAP-TEST" :op :assert}
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :task/title-l1 :v "BOOTSTRAP-TEST: Unit tests for LLM-bootstrapped initialization" :op :assert}
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :task/traces-to :v #blake3 "ac0191452c7344a17c497aac16b24924c3b92c6f771e84881cf987ae0aec559d" :op :assert}
+   {:e #blake3 "09366454505d291bf51625d278a4d0a2fe7c74ad39c5df7804e1546a418bf757" :a :task/type :v :task.type/test :op :assert}
+ ]}

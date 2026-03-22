@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774202970/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: OBSERVER-E2E: E2E test script scripts/e2e_active_observer.sh — validates continuous observation"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :db/ident :v :task/t-9b64929b :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/created-at :v 1774202969 :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/description :v "BACKGROUND: The active observer is the most operationally complex subsystem. E2E testing must verify the full pipeline: file change -> watcher detects -> extractor produces datoms -> COTX routes -> boundary checks -> interrupt fires.. APPROACH: 12 checks with timing and logging: (1) Start daemon with filesystem watcher configured. (2) Touch a watched file -> verify :component/modified datom appears within 2s. (3) Touch an ignored file (.braid/foo) -> verify NO datom produced. (4) Rapid-fire 10 touches to same file -> verify exactly 1 datom (debounce). (5) Modify 2 different files -> verify 2 separate datoms. (6) Run test suite (cargo test) -> verify L2 witness datoms created for passing tests with spec refs. (7) Failing test -> verify bug task created via COTX. (8) All watcher datoms have provenance=observed. (9) Boundary anomaly (coverage drops) -> verify interrupt message received by client. (10) Stop daemon -> verify graceful shutdown (no orphan processes, no data loss). (11) Restart daemon -> verify store state preserved (CRDT property). (12) Performance: watcher overhead < 5% CPU idle. All checks produce [PASS]/[FAIL] with detailed timing and logging.. ACCEPTANCE: 12/12 [PASS], total script time < 120s. DEPENDS-ON: OBSERVER-2 (t-a523d339), OBSERVER-3 (t-652ec3d5). FILE: scripts/e2e_active_observer.sh" :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/id :v "t-9b64929b" :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/title :v "OBSERVER-E2E: E2E test script scripts/e2e_active_observer.sh — validates continuous observation" :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/title-l0 :v "OBSERVER-E2E" :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/title-l1 :v "OBSERVER-E2E: E2E test script scripts/e2e_active_observer.sh — validates co..." :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/traces-to :v #blake3 "c831482114a96159d928cc28a039cdcad128e1589d20b6c9e909dbd0db8e690b" :op :assert}
+   {:e #blake3 "f840f4ece2c314429d1ac9f567f05a2f7eaaeba68a7cd67e061fc940e96972e0" :a :task/type :v :task.type/test :op :assert}
+ ]}

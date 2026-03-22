@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774202683/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-3: Policy-driven compute_fitness — BoundaryRegistry as primary path"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :db/ident :v :task/t-da1100c8 :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/created-at :v 1774202682 :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/description :v "BACKGROUND: compute_fitness() in bilateral.rs uses 7 hardcoded weight constants (W_VALIDATION=0.18..W_UNCERTAINTY=0.12) and 7 hardcoded component functions. Per INV-FOUNDATION-007, every aspect of the coherence model must derive from policy datoms. This task makes compute_fitness read boundary weights from the store, using BoundaryRegistry as the primary fitness computation path.. APPROACH: (1) Add fn load_policy_boundaries(store) -> Vec<(String, f64, Box<dyn BoundaryCheck>)> that queries :policy/boundary-* entities and constructs BoundaryCheck implementations dynamically. (2) For each boundary, the source/target patterns determine what entities to scan. Weight comes from :policy/boundary-weight. (3) Add fn compute_fitness_from_policy(store) -> FitnessScore that uses BoundaryRegistry populated from policy datoms. (4) In the main compute_fitness() path: if policy datoms exist, use compute_fitness_from_policy. If not, fall back to current hardcoded path (backward compatible). (5) MaterializedViews.fitness() must also read from policy when available — this means the policy weights are cached at store load time alongside the Views.. ACCEPTANCE: (A) compute_fitness_from_policy(store_with_ddis_manifest) matches old compute_fitness within epsilon 0.001. (B) compute_fitness_from_policy(store_with_no_policy) returns 1.0 (vacuously coherent). (C) compute_fitness_from_policy(store_with_custom_2_boundary_policy) correctly uses only 2 boundaries with custom weights. (D) BoundaryRegistry.total_coverage() is used as primary path. (E) Performance: policy datom query happens once at store load, not per fitness call. (F) Proptest: for random valid policies (1-10 boundaries, weights summing to 1.0), F(S) is always in [0,1]. DEPENDS-ON: POLICY-1 (t-f5298b23), POLICY-2 (t-5357604e). FILE: crates/braid-kernel/src/bilateral.rs, crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/id :v "t-da1100c8" :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/title :v "POLICY-3: Policy-driven compute_fitness — BoundaryRegistry as primary path" :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/title-l0 :v "POLICY-3" :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/title-l1 :v "POLICY-3: Policy-driven compute_fitness — BoundaryRegistry as primary path" :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/traces-to :v #blake3 "455a5c89707dbccd9fce146a0101d00bea76e974ea56ce83d64a0bce7f1a36e1" :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/traces-to :v #blake3 "ae7031515bf946ce4de40322d02bb271972e4a77f8e92e3f03c3cf56de803488" :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/traces-to :v #blake3 "fc7a7fd922841dd981aeb91cab8e9eeb660b56441559a8ed251825d238cab9e0" :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/type :v :task.type/task :op :assert}
+ ]}

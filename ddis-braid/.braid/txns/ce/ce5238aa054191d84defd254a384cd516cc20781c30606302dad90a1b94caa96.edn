@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774202860/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: BOOTSTRAP-2: Community manifest library — pre-built epistemological policies"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :db/ident :v :task/t-7455fdb9 :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/created-at :v 1774202859 :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/description :v "BACKGROUND: Not every team wants an interactive conversation. Some know exactly what they need. Pre-built manifests for common domains let teams start immediately. Each manifest is a .edn file containing policy datoms.. APPROACH: (1) Create manifests/ directory in repo. (2) ddis.edn: current DDIS policy (7 boundaries, INV/ADR/NEG claim types, witness evidence, harvest urgency). (3) research.edn: scientific research policy (hypothesis/theory/conjecture claims, experiment/replication/meta-analysis evidence, hypothesis-experiment and theory-prediction boundaries). (4) compliance.edn: regulatory compliance policy (requirement/control/exception claims, audit-finding/test-of-controls evidence, requirement-control and control-evidence boundaries, control-gap anomaly). (5) agile.edn: agile product development (user-story/acceptance-criteria claims, test-result/review evidence, story-test boundary). (6) Each manifest includes comments explaining the domain mapping. (7) braid init --manifest manifests/research.edn loads the file and transacts.. ACCEPTANCE: (A) 4 manifest files exist and parse correctly. (B) Each produces valid policy (passes validate_policy). (C) F(S) is meaningful for each domain (not vacuously 1.0). (D) braid init --manifest <file> works for all 4. (E) Each manifest has inline documentation explaining the domain mapping. DEPENDS-ON: POLICY-1 (t-f5298b23), POLICY-5 (t-c2bb5b31). FILE: manifests/ddis.edn, manifests/research.edn, manifests/compliance.edn, manifests/agile.edn" :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/id :v "t-7455fdb9" :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/title :v "BOOTSTRAP-2: Community manifest library — pre-built epistemological policies" :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/title-l0 :v "BOOTSTRAP-2" :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/title-l1 :v "BOOTSTRAP-2: Community manifest library — pre-built epistemological policies" :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/traces-to :v #blake3 "64fd07e990ba4c4d1808ca7acebaced935c9d0ee19a065c77ecf8a00d1763bd9" :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/traces-to :v #blake3 "ac0191452c7344a17c497aac16b24924c3b92c6f771e84881cf987ae0aec559d" :op :assert}
+   {:e #blake3 "0d17373b492161281c5d4a7defcfcb1dda52d56e46b3f544d4778a5a30bbc3c3" :a :task/type :v :task.type/task :op :assert}
+ ]}

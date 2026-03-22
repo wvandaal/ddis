@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774202772/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-7: Interrupt-driven guidance — replace always-on footer with delta-triggered alerts"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :db/ident :v :task/t-ab122a0f :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/created-at :v 1774202771 :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/description :v "BACKGROUND: The guidance footer appears on every command (80+ injection points via maybe_inject_footer). It contains M(t), next action, divergence count, and harvest urgency regardless of whether anything changed. Information theory: a constant signal has zero information content. The footer should be EMPTY by default and only surface when something anomalous occurred since the last command.. APPROACH: (1) Persist :session/last-command-fitness as a datom (F(S) at previous command). (2) In maybe_inject_footer: compute current F(S) via store.views().fitness() (O(1)). (3) If abs(current - last) < epsilon AND harvest_urgency < policy threshold AND no stale witnesses: return empty footer. (4) If F(S) dropped: footer = \"F(S) -delta: {component} regressed\". (5) If harvest urgent: footer = harvest warning only. (6) If witness became stale: footer = stale alert. (7) First command of session ALWAYS gets full footer (orientation). (8) braid status ALWAYS gets full dashboard (explicit inspection). (9) The anomaly thresholds come from :policy/anomaly-* datoms (policy-driven, C8 compliant). (10) --verbose flag restores full footer on any command.. ACCEPTANCE: (A) 10 consecutive braid task close commands with no F(S) change produce 0 footer lines. (B) braid observe that changes F(S) produces exactly 1 footer line with the delta. (C) braid status always shows full dashboard regardless of delta. (D) First command after session start shows full footer. (E) --verbose shows full footer on any command. (F) Anomaly thresholds read from policy datoms. DEPENDS-ON: POLICY-3 (t-da1100c8). FILE: crates/braid/src/commands/mod.rs (maybe_inject_footer)" :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/id :v "t-ab122a0f" :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/title :v "POLICY-7: Interrupt-driven guidance — replace always-on footer with delta-triggered alerts" :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/title-l0 :v "POLICY-7" :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/title-l1 :v "POLICY-7: Interrupt-driven guidance — replace always-on footer with delta-t..." :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/traces-to :v #blake3 "84571c0ec55202abfd68067b71dd765e33e66c961252f8e5e6bf75d8468add81" :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/traces-to :v #blake3 "ae7031515bf946ce4de40322d02bb271972e4a77f8e92e3f03c3cf56de803488" :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/traces-to :v #blake3 "c831482114a96159d928cc28a039cdcad128e1589d20b6c9e909dbd0db8e690b" :op :assert}
+   {:e #blake3 "6de21845ecaf17c4ad8053be88e90f229a7dbf6084d54f638c80f0af599f4cc4" :a :task/type :v :task.type/task :op :assert}
+ ]}

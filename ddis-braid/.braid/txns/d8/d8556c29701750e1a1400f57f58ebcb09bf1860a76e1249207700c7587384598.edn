@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774202704/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-4: Policy-driven MaterializedViews — dynamic accumulators from manifest"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :db/ident :v :task/t-5640358a :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/created-at :v 1774202703 :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/description :v "BACKGROUND: MaterializedViews in store.rs hardcodes DDIS-specific attribute tracking (spec_count via :spec/element-type, coverage via :impl/implements, confidence via :exploration/confidence). Per C8 and INV-FOUNDATION-006, the kernel must not assume any specific ontology. This task makes the Views accumulators configurable from policy datoms.. APPROACH: (1) At store load time, after parsing policy boundaries, extract the set of attribute patterns from claim-pattern and evidence-pattern. (2) Replace hardcoded attribute checks in observe_datom() with pattern matching against the policy-derived attribute set. (3) For each policy boundary, maintain a pair of counters: source_count and target_count. Coverage = target_count / max(source_count, 1). (4) The fitness() method computes F(S) = sum(weight_i * coverage_i) from the dynamic counters. (5) When no policy exists, fall back to current hardcoded accumulators (backward compatible). (6) The H-component (harvest quality) becomes a special case: a boundary between :h/* (harvest entities) and :exploration/* (observation entities).. ACCEPTANCE: (A) Views.fitness() with DDIS policy matches old Views.fitness() within epsilon. (B) Views.fitness() with empty policy returns 1.0. (C) Views.fitness() with custom 3-boundary policy computes from those 3 boundaries only. (D) observe_datom() processes any attribute matching any policy pattern. (E) Proptest: for random valid policies, Views.fitness() always in [0,1]. (F) Performance: pattern matching is O(1) via HashSet lookup, not O(n) pattern scan. DEPENDS-ON: POLICY-3 (t-da1100c8). FILE: crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/id :v "t-5640358a" :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/title :v "POLICY-4: Policy-driven MaterializedViews — dynamic accumulators from manifest" :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/title-l0 :v "POLICY-4" :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/title-l1 :v "POLICY-4: Policy-driven MaterializedViews — dynamic accumulators from manifest" :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/traces-to :v #blake3 "109fd027d379585726ed5ed4cec2fbf389943c757c794ba04c27e08b4ab94033" :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/traces-to :v #blake3 "455a5c89707dbccd9fce146a0101d00bea76e974ea56ce83d64a0bce7f1a36e1" :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/traces-to :v #blake3 "fc7a7fd922841dd981aeb91cab8e9eeb660b56441559a8ed251825d238cab9e0" :op :assert}
+   {:e #blake3 "fc42cd8f976a393f138f305e58fb138d38aa4b54b0a718eb0d0c928c3114d21e" :a :task/type :v :task.type/task :op :assert}
+ ]}

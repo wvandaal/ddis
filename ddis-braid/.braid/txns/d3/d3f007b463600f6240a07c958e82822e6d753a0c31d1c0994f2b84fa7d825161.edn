@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774202635/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-1: Define :policy/* schema — the epistemological policy ontology"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :db/ident :v :task/t-f5298b23 :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/created-at :v 1774202634 :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/description :v "BACKGROUND: The kernel currently hardcodes DDIS concepts. C8 (substrate independence) requires all domain-specific behavior to enter through datoms. The policy manifest needs schema attributes registered in the genesis transaction so they validate when transacted. This is the foundation for the entire epistemology runtime vision (ADR-FOUNDATION-012).. APPROACH: (1) Add 12 new axiomatic schema attributes to genesis_datoms() in schema.rs: :policy/claim-pattern (String, Cardinality::Many — attribute patterns that identify claim entities), :policy/evidence-pattern (String, Cardinality::Many — attribute patterns that identify evidence entities), :policy/boundary-name (String — human-readable boundary name), :policy/boundary-source (String — source entity pattern), :policy/boundary-target (String — target entity pattern), :policy/boundary-weight (Double — F(S) contribution weight), :policy/anomaly-trigger (String — attribute that triggers detection), :policy/anomaly-threshold (Long — count threshold for alert), :policy/anomaly-message (String — human-readable alert text), :policy/watcher-type (Keyword — filesystem/git-hook/test-runner/mcp-intercept), :policy/watcher-pattern (String — glob or regex for what to watch), :policy/watcher-debounce-ms (Long — flood prevention interval). (2) All attributes use standard EAV patterns — no special types. (3) Verify genesis determinism (INV-SCHEMA-001) still holds after adding attributes.. ACCEPTANCE: (A) genesis_datoms() produces 12 additional schema attributes. (B) All 12 validate via schema.validate_datom(). (C) Store::genesis() determinism preserved (INV-SCHEMA-001). (D) Existing tests unchanged — new attributes are additive. (E) braid schema shows all 12 :policy/* attributes.. FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/id :v "t-f5298b23" :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/title :v "POLICY-1: Define :policy/* schema — the epistemological policy ontology" :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/title-l0 :v "POLICY-1" :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/title-l1 :v "POLICY-1: Define :policy/* schema — the epistemological policy ontology" :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/traces-to :v #blake3 "12f1beea3ea3efadc810b15268cbcd844de01ccfe82479b2bf912ab46ff72edb" :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/traces-to :v #blake3 "64fd07e990ba4c4d1808ca7acebaced935c9d0ee19a065c77ecf8a00d1763bd9" :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/traces-to :v #blake3 "ae7031515bf946ce4de40322d02bb271972e4a77f8e92e3f03c3cf56de803488" :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/traces-to :v #blake3 "fc7a7fd922841dd981aeb91cab8e9eeb660b56441559a8ed251825d238cab9e0" :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/type :v :task.type/task :op :assert}
+ ]}

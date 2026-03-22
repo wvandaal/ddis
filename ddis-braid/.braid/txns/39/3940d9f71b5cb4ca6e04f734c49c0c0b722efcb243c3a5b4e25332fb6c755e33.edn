@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774202999/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: NEG-FOUNDATION-003 \"Policy manifest must not assume DDIS ontology\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :a :db/doc :v "Policy manifest must not assume DDIS ontology" :op :assert}
+   {:e #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :a :db/ident :v :spec/neg-foundation-003 :op :assert}
+   {:e #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :a :element/traces-to :v "C8, ADR-FOUNDATION-012" :op :assert}
+   {:e #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :a :spec/element-type :v :spec.type/negative-case :op :assert}
+   {:e #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :a :spec/falsification :v "Any :policy/* attribute whose name or validation logic references INV-, ADR-, NEG-, falsification, or witness-specific concepts violates this negative case." :op :assert}
+   {:e #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :a :spec/id :v "NEG-FOUNDATION-003" :op :assert}
+   {:e #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :a :spec/statement :v "The :policy/* schema and the policy validation logic must not reference any DDIS-specific concept (invariant, ADR, negative case, falsification, witness depth). Policy attributes are generic: claim, evidence, boundary, anomaly. The DDIS ontology is one manifest instantiation." :op :assert}
+   {:e #blake3 "80d7889842f23af7d78d042eac6cf45c4424b4b5f07da45ea0246c23da6e3748" :a :db/ident :v :task/t-ddcf9339 :op :assert}
+   {:e #blake3 "80d7889842f23af7d78d042eac6cf45c4424b4b5f07da45ea0246c23da6e3748" :a :task/created-at :v 1774202998 :op :assert}
+   {:e #blake3 "80d7889842f23af7d78d042eac6cf45c4424b4b5f07da45ea0246c23da6e3748" :a :task/id :v "t-ddcf9339" :op :assert}
+   {:e #blake3 "80d7889842f23af7d78d042eac6cf45c4424b4b5f07da45ea0246c23da6e3748" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "80d7889842f23af7d78d042eac6cf45c4424b4b5f07da45ea0246c23da6e3748" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "80d7889842f23af7d78d042eac6cf45c4424b4b5f07da45ea0246c23da6e3748" :a :task/title :v "Implement NEG-FOUNDATION-003: Policy manifest must not assume DDIS ontology" :op :assert}
+   {:e #blake3 "80d7889842f23af7d78d042eac6cf45c4424b4b5f07da45ea0246c23da6e3748" :a :task/traces-to :v #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :op :assert}
+   {:e #blake3 "80d7889842f23af7d78d042eac6cf45c4424b4b5f07da45ea0246c23da6e3748" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774202792/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-TEST: Comprehensive unit + proptest suite for policy manifest system"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :db/ident :v :task/t-3aec307f :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/created-at :v 1774202791 :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/description :v "BACKGROUND: The policy manifest is the most critical new subsystem — it configures the entire coherence model. Defects here produce wrong F(S), wrong gradient routing, wrong next-action recommendations. Zero-defect requirement demands comprehensive testing at every level.. APPROACH: UNIT TESTS (15+): (1) ddis_policy_datoms produces correct boundary count and weight sum. (2) load_policy_boundaries with DDIS manifest returns 7 boundaries. (3) load_policy_boundaries with empty store returns empty vec. (4) compute_fitness_from_policy matches hardcoded within epsilon. (5) compute_fitness_from_policy with custom 2-boundary policy uses only those 2. (6) compute_fitness_from_policy with no policy returns 1.0. (7) validate_policy accepts valid DDIS manifest. (8) validate_policy rejects negative weight. (9) validate_policy rejects missing boundary-name. (10) validate_policy normalizes weights not summing to 1.0. (11) Views.fitness() with policy matches batch fitness. (12) observe_datom updates dynamic counters from policy patterns. (13) Policy cache invalidated when policy datom added. (14) Custom anomaly detector fires at correct threshold. (15) Boundary source/target pattern matching is correct. PROPTESTS (5): (16) Random valid policy -> F(S) in [0,1]. (17) Random boundaries with random weights -> normalized sum = 1.0. (18) Adding evidence datom never decreases coverage. (19) Empty policy -> F(S) = 1.0 for any store. (20) DDIS policy is isomorphic to hardcoded fitness.. ACCEPTANCE: (A) 20 tests pass. (B) Proptest with 100 iterations each. (C) Coverage of all policy code paths verified. (D) Backward compatibility test: existing store without policy datoms works unchanged. DEPENDS-ON: POLICY-3 (t-da1100c8), POLICY-4 (t-5640358a), POLICY-5 (t-c2bb5b31). FILE: crates/braid-kernel/src/bilateral.rs (test module), crates/braid-kernel/src/store.rs (test module)" :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/id :v "t-3aec307f" :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/title :v "POLICY-TEST: Comprehensive unit + proptest suite for policy manifest system" :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/title-l0 :v "POLICY-TEST" :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/title-l1 :v "POLICY-TEST: Comprehensive unit + proptest suite for policy manifest system" :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/traces-to :v #blake3 "455a5c89707dbccd9fce146a0101d00bea76e974ea56ce83d64a0bce7f1a36e1" :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/traces-to :v #blake3 "fc7a7fd922841dd981aeb91cab8e9eeb660b56441559a8ed251825d238cab9e0" :op :assert}
+   {:e #blake3 "4078e60bf041389742efba8e887e3a23aae6fffecff352c7f05bc6a65df95db8" :a :task/type :v :task.type/test :op :assert}
+ ]}

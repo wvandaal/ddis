@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774202939/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: OBSERVER-4: Predict-outcome-revision loop — self-improving gradient routing"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :db/ident :v :task/t-32121b39 :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/created-at :v 1774202938 :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/description :v "BACKGROUND: The gradient (project_delta) predicts what F(S) change a task would produce. But after the task is completed, nobody checks whether the prediction was accurate. The prediction is never validated. The weights are never updated. This is Bayesian updating missing from the epistemological runtime: prior (prediction) + evidence (outcome) = posterior (updated model). Closing this loop makes the gradient self-improving.. APPROACH: (1) Before task completion: record :prediction/projected-delta (the project_delta magnitude) and :prediction/task-ref on the task entity. (2) After task completion (in task close): compute actual F(S) delta = F(S)_after - F(S)_before. Record :prediction/actual-delta. (3) Calibration error = |projected - actual|. Record :prediction/calibration-error. (4) Periodically (at harvest): compute mean calibration error across last 50 predictions. If error > threshold: adjust boundary weights using simple gradient descent on the calibration error. (5) Weight adjustments transacted as new :policy/boundary-weight datoms (append-only — old weights preserved for history). (6) The policy evolves from use. The system develops better beliefs about what constitutes good beliefs.. ACCEPTANCE: (A) Task close records projected and actual delta. (B) Calibration error computed correctly. (C) After 50+ predictions: mean error computable. (D) Weight adjustment does not violate policy validation (weights still sum to ~1.0). (E) Weight history queryable: braid query --attribute :policy/boundary-weight shows evolution over time. DEPENDS-ON: POLICY-3 (t-da1100c8). FILE: crates/braid-kernel/src/guidance.rs, crates/braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/id :v "t-32121b39" :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/title :v "OBSERVER-4: Predict-outcome-revision loop — self-improving gradient routing" :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/title-l0 :v "OBSERVER-4" :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/title-l1 :v "OBSERVER-4: Predict-outcome-revision loop — self-improving gradient routing" :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/traces-to :v #blake3 "051ef1a777f4b604020245e5b5ab3747eb655bbf0cd8a6cadfb1167ac04d9a19" :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/traces-to :v #blake3 "ae7031515bf946ce4de40322d02bb271972e4a77f8e92e3f03c3cf56de803488" :op :assert}
+   {:e #blake3 "0db65c8795204c5751cbd0d9c1a03f6a24c8e45fa60385dd568dffa8b5c16faf" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774203002/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-008 \"Policy Manifest Versioning\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :a :db/doc :v "Policy Manifest Versioning" :op :assert}
+   {:e #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :a :db/ident :v :spec/inv-foundation-008 :op :assert}
+   {:e #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :a :element/traces-to :v "C1, ADR-FOUNDATION-013" :op :assert}
+   {:e #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :a :spec/falsification :v "If adjusting a boundary weight deletes or mutates the previous weight datom instead of asserting a new one, this invariant is violated." :op :assert}
+   {:e #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :a :spec/id :v "INV-FOUNDATION-008" :op :assert}
+   {:e #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :a :spec/statement :v "Policy datoms are append-only like all datoms. Changing the coherence model (adding a boundary, adjusting weights) transacts new policy datoms that supersede previous ones via LWW resolution. The full history of policy evolution is queryable." :op :assert}
+   {:e #blake3 "a9a2c96cf4ad86edf3381c27b2dfd8b2401de453975f30e6d619c3e862f6586a" :a :db/ident :v :task/t-054f4a74 :op :assert}
+   {:e #blake3 "a9a2c96cf4ad86edf3381c27b2dfd8b2401de453975f30e6d619c3e862f6586a" :a :task/created-at :v 1774203001 :op :assert}
+   {:e #blake3 "a9a2c96cf4ad86edf3381c27b2dfd8b2401de453975f30e6d619c3e862f6586a" :a :task/id :v "t-054f4a74" :op :assert}
+   {:e #blake3 "a9a2c96cf4ad86edf3381c27b2dfd8b2401de453975f30e6d619c3e862f6586a" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "a9a2c96cf4ad86edf3381c27b2dfd8b2401de453975f30e6d619c3e862f6586a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "a9a2c96cf4ad86edf3381c27b2dfd8b2401de453975f30e6d619c3e862f6586a" :a :task/title :v "Implement INV-FOUNDATION-008: Policy Manifest Versioning" :op :assert}
+   {:e #blake3 "a9a2c96cf4ad86edf3381c27b2dfd8b2401de453975f30e6d619c3e862f6586a" :a :task/traces-to :v #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :op :assert}
+   {:e #blake3 "a9a2c96cf4ad86edf3381c27b2dfd8b2401de453975f30e6d619c3e862f6586a" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774202934/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: OBSERVER-2: Filesystem watcher — the first active observation channel"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :db/ident :v :task/t-a523d339 :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/created-at :v 1774202933 :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/description :v "BACKGROUND: The filesystem watcher is the simplest and most universal watcher type. Every project has files. Every meaningful change produces a file modification. This is the minimum viable active observer.. APPROACH: (1) Use notify crate (cross-platform inotify/fsevents/kqueue). (2) Watch paths from :policy/watcher datoms where watcher-type = :watcher.type/filesystem. (3) On file change: invoke the referenced extractor to classify the change. (4) Default classification (no extractor): :component/modified datom with file path and timestamp. (5) With Rust extractor: parse mod.rs changes, detect new/removed modules, assert :component/* datoms. (6) Debounce per file (not global): saves to A and B within window produce 2 datoms (one per file). (7) Ignore patterns: .braid/, target/, .git/ (configurable via :policy/watcher-ignore).. ACCEPTANCE: (A) Touch a watched file -> datom appears in store within debounce_ms. (B) Ignore pattern works: touch .braid/foo -> no datom. (C) 2 files modified simultaneously -> 2 separate datoms. (D) Rapid saves to same file -> exactly 1 datom per debounce window. (E) Watcher stop/restart preserves no duplicate datoms (idempotent). DEPENDS-ON: OBSERVER-1 (t-54ea139b). FILE: crates/braid/src/daemon/fs_watcher.rs (new)" :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/id :v "t-a523d339" :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/title :v "OBSERVER-2: Filesystem watcher — the first active observation channel" :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/title-l0 :v "OBSERVER-2" :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/title-l1 :v "OBSERVER-2: Filesystem watcher — the first active observation channel" :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/traces-to :v #blake3 "6aba442905893258901fab3364ca9b246b3bcef4c663fb74d72cbeeee6499d32" :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/traces-to :v #blake3 "c831482114a96159d928cc28a039cdcad128e1589d20b6c9e909dbd0db8e690b" :op :assert}
+   {:e #blake3 "42f5c0ed17ff86b19344fb4c76420166079db58df3798079c22eba9b95a704b9" :a :task/type :v :task.type/task :op :assert}
+ ]}

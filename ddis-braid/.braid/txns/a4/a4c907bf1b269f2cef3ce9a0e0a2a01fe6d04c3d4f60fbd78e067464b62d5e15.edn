@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774202937/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: OBSERVER-3: Test runner watcher — auto-witness from test outcomes"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :db/ident :v :task/t-652ec3d5 :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/created-at :v 1774202936 :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/description :v "BACKGROUND: The witness gap (223 INVs need L2+) persists because witness creation requires explicit braid witness generate. The test runner watcher closes this gap automatically: every cargo test (or jest/pytest/go test) that passes produces an L2 witness datom. Every failure produces a bug task. The extractor command is in the policy manifest — language-agnostic per C8.. APPROACH: (1) Policy datom: :policy/watcher with type=:watcher.type/test-runner, pattern=extractor command (e.g., \"cargo test --message-format=json\"), debounce=0 (run on trigger, not periodic). (2) Trigger: filesystem watcher detects .rs file change -> schedules test run after debounce. (3) Parse test output: for each test with spec ref in name (fn test_inv_store_001): if pass -> L2 witness datom via witness_from_test_result(). if fail -> bug task via COTX Rule 3. (4) witness_from_test_result(spec_ref, verdict, test_hash, file) -> Vec<Datom> is a kernel function (language-agnostic). (5) The extractor command and output parser are configured per-manifest. DDIS manifest: \"cargo test --message-format=json\" + Rust JSON parser. Research manifest: \"pytest --tb=json\" + Python JSON parser.. ACCEPTANCE: (A) After cargo test: passing test with INV-STORE-001 in name produces L2 witness. (B) Failing test with INV-STORE-001 in name produces bug task. (C) Test without spec ref produces no witness (no false positives). (D) Witness dedup: running tests twice produces 1 witness (content-addressed). (E) Language-agnostic: extractor command comes from policy, not compiled code. DEPENDS-ON: OBSERVER-1 (t-54ea139b). FILE: crates/braid/src/daemon/test_watcher.rs (new), crates/braid-kernel/src/witness.rs" :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/id :v "t-652ec3d5" :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/title :v "OBSERVER-3: Test runner watcher — auto-witness from test outcomes" :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/title-l0 :v "OBSERVER-3" :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/title-l1 :v "OBSERVER-3: Test runner watcher — auto-witness from test outcomes" :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/traces-to :v #blake3 "64fd07e990ba4c4d1808ca7acebaced935c9d0ee19a065c77ecf8a00d1763bd9" :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/traces-to :v #blake3 "8e2b78c5e255903e75329a90fca078f8fed5341e4d4d90864b8a9d884201101c" :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/traces-to :v #blake3 "e31de61ee77b2df1cf3d10178af6b5be9aa8318b883f9a92659432f13d2eb644" :op :assert}
+   {:e #blake3 "331d642a1192bca23444b6b60d2aa2b116283d0a42f3f0f65849aad757353872" :a :task/type :v :task.type/task :op :assert}
+ ]}

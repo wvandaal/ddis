@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774202749/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-6: Incremental store cache — delta-apply new transactions"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :db/ident :v :task/t-1660c93d :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/created-at :v 1774202748 :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/description :v "BACKGROUND: Every braid command rebuilds the 46K-datom store from 4400+ .edn files when the cache is stale. FD-012 (every command writes a tx) means the cache is stale after EVERY command. This is the single largest friction in the workflow (15-30s per status). MaterializedViews fixed F(S) computation to O(1), but the load-from-disk is still O(n). The daemon (CE-7) is the ultimate fix, but incremental caching delivers 90% of the benefit immediately.. APPROACH: (1) Alongside store.bin cache, persist last_tx_hashes: HashSet<String> (the set of tx file hashes at cache write time). (2) On load_store(): compute current_hashes, compare to last_tx_hashes. (3) If identical: full cache hit (existing fast path). (4) If delta = current - last is non-empty: load cached store, then for each hash in delta: read TxFile, build Transaction<Committed>, call store.transact(tx). (5) Rewrite cache with updated store + new last_tx_hashes. (6) Append-only store guarantees: deletions never happen (C1), so current - last is always additions. (7) Edge case: if last_tx_hashes contains hashes not in current (impossible under C1, but defensive): fall back to full rebuild.. ACCEPTANCE: (A) incremental_load(cached_store, 1_new_tx) completes in < 100ms. (B) incremental_load produces identical datom_set to full_load (CRDT property: S union T1 == from_datoms(all)). (C) 0 new txns = instant cache hit (existing behavior). (D) 1-5 new txns (common case after FD-012) = < 200ms. (E) Proptest: for random tx sequences, incremental == full (datom set equality).. FILE: crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/id :v "t-1660c93d" :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/title :v "POLICY-6: Incremental store cache — delta-apply new transactions" :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/title-l0 :v "POLICY-6" :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/title-l1 :v "POLICY-6: Incremental store cache — delta-apply new transactions" :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/traces-to :v #blake3 "192793a3a1efa8195c4a1f3cdff307e17d88478917e1e520ef6eb8651526cb67" :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/traces-to :v #blake3 "705d9740f3ba9ef251f19d3638b770e5f09eff58c400c4cb1ed9c9eca13247ff" :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/traces-to :v #blake3 "7853da944efa8c14ec56b61d8502944ed88ba558d964e791b0afb05833baa32e" :op :assert}
+   {:e #blake3 "99d572e33b848f12421296004495ea62d2f8f6ec393f46d2de1a3239f1477efd" :a :task/type :v :task.type/task :op :assert}
+ ]}

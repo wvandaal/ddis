@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774202724/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: POLICY-5: Policy manifest validation at load time"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :db/ident :v :task/t-c2bb5b31 :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/created-at :v 1774202723 :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/description :v "BACKGROUND: The LLM bootstrap (BOOTSTRAP-1) will generate policy datoms from natural language. Malformed manifests (negative weights, missing boundary-name, non-existent attribute patterns) must be caught at load time with actionable error messages, not silently produce wrong F(S) values.. APPROACH: (1) fn validate_policy(store) -> Result<PolicyManifest, Vec<PolicyError>>. (2) Checks: all boundary weights are in [0,1], weights sum to approximately 1.0 (within epsilon 0.05 for rounding), every boundary has source+target+name, anomaly thresholds are positive, watcher types are recognized enum values. (3) PolicyError includes: which datom is invalid, what constraint it violates, how to fix it. (4) Called at store load time (in load_store) after policy datoms are parsed. (5) Invalid policy produces a warning but does NOT block store loading — falls back to hardcoded defaults with diagnostic message.. ACCEPTANCE: (A) Valid DDIS manifest passes validation. (B) Manifest with negative weight produces PolicyError with fix suggestion. (C) Manifest with weights summing to 2.0 produces normalization warning. (D) Manifest with missing boundary-name produces specific error. (E) Empty manifest (no policy datoms) passes validation (vacuously valid). (F) Invalid manifest degrades gracefully to hardcoded defaults. DEPENDS-ON: POLICY-1 (t-f5298b23). FILE: crates/braid-kernel/src/bilateral.rs or new crates/braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/id :v "t-c2bb5b31" :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/title :v "POLICY-5: Policy manifest validation at load time" :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/title-l0 :v "POLICY-5" :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/title-l1 :v "POLICY-5: Policy manifest validation at load time" :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/traces-to :v #blake3 "921006cf3f4a2faea2f8cb00e3b00d8d4d74dee87e59c57db7323e2b31a9f5e3" :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/traces-to :v #blake3 "ae7031515bf946ce4de40322d02bb271972e4a77f8e92e3f03c3cf56de803488" :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/traces-to :v #blake3 "fc7a7fd922841dd981aeb91cab8e9eeb660b56441559a8ed251825d238cab9e0" :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/type :v :task.type/task :op :assert}
+ ]}
