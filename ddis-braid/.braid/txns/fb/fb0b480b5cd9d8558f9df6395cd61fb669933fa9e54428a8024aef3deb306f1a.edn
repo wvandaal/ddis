@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774205571/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "FOUNDATIONAL QUESTION: Is the DDIS epistemological model optimal for AI-powered software development? Is the epistemic bootstrap complete? How would we know? The spec and substrate have evolved significantly (braid is now an epistemology runtime, not just a spec tool) but the DDIS methodology (INV/ADR/NEG, bilateral loop, 7-component F(S)) has remained relatively static since inception. Is there a divergence between what we now understand and what the methodology encodes?"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2a49aade479748c5f7a388ab3e4328a759d673c696dc0896c6f40970d9ec6086" :a :db/doc :v "FOUNDATIONAL QUESTION: Is the DDIS epistemological model optimal for AI-powered software development? Is the epistemic bootstrap complete? How would we know? The spec and substrate have evolved significantly (braid is now an epistemology runtime, not just a spec tool) but the DDIS methodology (INV/ADR/NEG, bilateral loop, 7-component F(S)) has remained relatively static since inception. Is there a divergence between what we now understand and what the methodology encodes?" :op :assert}
+   {:e #blake3 "2a49aade479748c5f7a388ab3e4328a759d673c696dc0896c6f40970d9ec6086" :a :db/ident :v :observation/foundational-question-is-the-ddis-epistemological-model-opt :op :assert}
+   {:e #blake3 "2a49aade479748c5f7a388ab3e4328a759d673c696dc0896c6f40970d9ec6086" :a :exploration/body :v "FOUNDATIONAL QUESTION: Is the DDIS epistemological model optimal for AI-powered software development? Is the epistemic bootstrap complete? How would we know? The spec and substrate have evolved significantly (braid is now an epistemology runtime, not just a spec tool) but the DDIS methodology (INV/ADR/NEG, bilateral loop, 7-component F(S)) has remained relatively static since inception. Is there a divergence between what we now understand and what the methodology encodes?" :op :assert}
+   {:e #blake3 "2a49aade479748c5f7a388ab3e4328a759d673c696dc0896c6f40970d9ec6086" :a :exploration/category :v :exploration.cat/observation :op :assert}
+   {:e #blake3 "2a49aade479748c5f7a388ab3e4328a759d673c696dc0896c6f40970d9ec6086" :a :exploration/confidence :v 0.7 :op :assert}
+   {:e #blake3 "2a49aade479748c5f7a388ab3e4328a759d673c696dc0896c6f40970d9ec6086" :a :exploration/content-hash :v #bytes "63fba3a8ff80130d77774afd5942c69180985c6c41adca07c13e837df45b6392" :op :assert}
+   {:e #blake3 "2a49aade479748c5f7a388ab3e4328a759d673c696dc0896c6f40970d9ec6086" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "2a49aade479748c5f7a388ab3e4328a759d673c696dc0896c6f40970d9ec6086" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "2a49aade479748c5f7a388ab3e4328a759d673c696dc0896c6f40970d9ec6086" :a :exploration/source-session :v #blake3 "23b24fccbf1e01e496c9670c43cae381a609e3286da8b4ca69420a74d96c0e27" :op :assert}
+ ]}
