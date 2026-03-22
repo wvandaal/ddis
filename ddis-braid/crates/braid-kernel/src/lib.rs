@@ -65,7 +65,8 @@ pub use agent_md::{generate_agent_md, AgentMdConfig, AgentMdSection, GeneratedAg
 pub use agent_store::{AgentStore, CommitError};
 pub use bilateral::{
     analyze_convergence, backward_scan, composite_evidence_weight, compute_fitness,
-    compute_fitness_with_registry, cycle_to_datoms, default_boundaries, depth_weight,
+    compute_fitness_from_policy, compute_fitness_with_registry, cycle_to_datoms,
+    default_boundaries, depth_weight,
     evaluate_conditions, format_terse, format_verbose, forward_scan, load_trajectory, run_cycle,
     spectral_certificate, BilateralScan, BilateralState, Boundary, BoundaryCheck,
     BoundaryDivergence, BoundaryEvaluation, BoundaryRegistry, CoherenceConditions, ConditionResult,

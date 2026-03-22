@@ -679,6 +679,133 @@ pub fn composite_evidence_weight(store: &Store, entity: EntityId) -> f64 {
     (provenance_weight * depth_factor * freshness).clamp(0.0, 1.0)
 }
 
+/// POLICY-3: Compute F(S) from a policy manifest (ADR-FOUNDATION-013).
+///
+/// When a PolicyConfig exists, F(S) = sum(weight_i * coverage(boundary_i)).
+/// Coverage for each boundary: |source entities with target reference| / |source entities|.
+/// When no policy exists, returns None (caller should fall back to hardcoded).
+///
+/// This is the primary fitness path for the epistemology runtime.
+pub fn compute_fitness_from_policy(store: &Store) -> Option<FitnessScore> {
+    let config = crate::policy::PolicyConfig::from_store(store)?;
+
+    if config.boundaries.is_empty() {
+        // Policy exists but has no boundaries — vacuously coherent
+        return Some(FitnessScore {
+            total: 1.0,
+            components: FitnessComponents {
+                validation: 1.0,
+                coverage: 1.0,
+                drift: 1.0,
+                harvest_quality: 1.0,
+                contradiction: 1.0,
+                incompleteness: 1.0,
+                uncertainty: 1.0,
+            },
+            unmeasured: vec!["no boundaries declared".into()],
+        });
+    }
+
+    let mut boundary_scores: Vec<(String, f64, f64)> = Vec::new(); // (name, coverage, weight)
+
+    for boundary in &config.boundaries {
+        // Count source entities: entities with attributes matching source_pattern
+        let source_count = count_entities_matching_pattern(store, &boundary.source_pattern);
+        if source_count == 0 {
+            boundary_scores.push((boundary.name.clone(), 1.0, boundary.weight)); // vacuously covered
+            continue;
+        }
+
+        // Count covered source entities: those with at least one reference from
+        // an entity matching target_pattern
+        let covered = count_covered_entities(store, &boundary.source_pattern, &boundary.target_pattern);
+        let coverage = (covered as f64 / source_count as f64).clamp(0.0, 1.0);
+        boundary_scores.push((boundary.name.clone(), coverage, boundary.weight));
+    }
+
+    // Normalize weights and compute total
+    let weight_sum: f64 = boundary_scores.iter().map(|(_, _, w)| w).sum();
+    let total = if weight_sum > 0.0 {
+        boundary_scores
+            .iter()
+            .map(|(_, cov, w)| (w / weight_sum) * cov)
+            .sum::<f64>()
+            .clamp(0.0, 1.0)
+    } else {
+        1.0
+    };
+
+    // Map boundary scores to the standard 7-component structure for backward compat.
+    // The first 7 boundaries map to V, C, D, H, K, I, U. Extra boundaries are averaged
+    // into the components. Missing boundaries get 1.0 (vacuous).
+    let get_score = |idx: usize| -> f64 {
+        boundary_scores
+            .get(idx)
+            .map(|(_, cov, _)| *cov)
+            .unwrap_or(1.0)
+    };
+
+    Some(FitnessScore {
+        total,
+        components: FitnessComponents {
+            validation: get_score(0),
+            coverage: get_score(1),
+            drift: get_score(2),
+            harvest_quality: get_score(3),
+            contradiction: get_score(4),
+            incompleteness: get_score(5),
+            uncertainty: get_score(6),
+        },
+        unmeasured: Vec::new(),
+    })
+}
+
+/// Count entities that have at least one attribute matching the pattern.
+fn count_entities_matching_pattern(store: &Store, pattern: &str) -> usize {
+    let mut entities = std::collections::BTreeSet::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && crate::policy::PolicyConfig::attr_matches(d.attribute.as_str(), pattern) {
+            entities.insert(d.entity);
+        }
+    }
+    entities.len()
+}
+
+/// Count source entities that have at least one reference from a target entity.
+fn count_covered_entities(store: &Store, source_pattern: &str, target_pattern: &str) -> usize {
+    // Build set of source entities
+    let mut source_entities = std::collections::BTreeSet::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && crate::policy::PolicyConfig::attr_matches(d.attribute.as_str(), source_pattern) {
+            source_entities.insert(d.entity);
+        }
+    }
+
+    // Find target entities
+    let mut target_entities = std::collections::BTreeSet::new();
+    for d in store.datoms() {
+        if d.op == Op::Assert && crate::policy::PolicyConfig::attr_matches(d.attribute.as_str(), target_pattern) {
+            target_entities.insert(d.entity);
+        }
+    }
+
+    // Count source entities referenced by target entities (via Ref values)
+    let mut covered = std::collections::BTreeSet::new();
+    for target in &target_entities {
+        for d in store.entity_datoms(*target) {
+            if d.op == Op::Assert {
+                if let Value::Ref(src) = &d.value {
+                    if source_entities.contains(src) {
+                        covered.insert(*src);
+                    }
+                }
+            }
+        }
+    }
+
+    covered.len()
+}
+
 /// V and C use depth-weighted metrics when `:impl/verification-depth` and
 /// `:spec/verification-depth` datoms are present (WP9). When no depth datoms
 /// exist, falls back to legacy binary counting for backwards compatibility.

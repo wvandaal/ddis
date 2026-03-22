@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774211495/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-da1100c8"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/close-reason :v "compute_fitness_from_policy reads PolicyConfig boundaries, computes weighted coverage. Returns None when no policy (fallback to hardcoded). Pattern-based entity matching for source/target sets. Exported from kernel." :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/closed-at :v 1774211494 :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "a51ac93de33f25af3e0e08c1a34c53790d2074e66123e5f9f1ad3499bbeae161" :a :task/status :v :task.status/closed :op :assert}
+ ]}

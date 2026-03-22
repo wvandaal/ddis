@@ -229,6 +229,11 @@ impl PolicyConfig {
         self.evidence_patterns.iter().any(|p| attr_matches_pattern(attr, p))
     }
 
+    /// Check if an attribute matches a pattern (static method for use by bilateral.rs).
+    pub fn attr_matches(attr: &str, pattern: &str) -> bool {
+        attr_matches_pattern(attr, pattern)
+    }
+
     /// Compute coverage for a single boundary from store entity counts.
     ///
     /// Coverage = |target entities referencing source entities| / |source entities|.
@@ -246,7 +251,7 @@ impl PolicyConfig {
 /// - Exact match: ":spec/element-type" matches ":spec/element-type"
 /// - Namespace wildcard: ":spec/*" matches ":spec/anything"
 /// - Prefix: ":impl/" matches any attribute starting with ":impl/"
-fn attr_matches_pattern(attr: &str, pattern: &str) -> bool {
+pub fn attr_matches_pattern(attr: &str, pattern: &str) -> bool {
     if pattern.ends_with("/*") {
         let prefix = &pattern[..pattern.len() - 1]; // ":spec/" from ":spec/*"
         attr.starts_with(prefix)
