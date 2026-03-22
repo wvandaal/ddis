@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774208648/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f5298b23"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/close-reason :v "15 :policy/* schema attributes added to genesis: claim-pattern, evidence-pattern, boundary-name/source/target/weight, anomaly-trigger/threshold/message, watcher-type/pattern/debounce-ms, calibration-window/threshold, boundary-report-template. All C8 compliant. 1610 tests pass." :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/closed-at :v 1774208647 :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "a13d5e65bad90cdab935dfdc32d7e4a164890b8fec160eeeb053a423e4966830" :a :task/status :v :task.status/closed :op :assert}
+ ]}

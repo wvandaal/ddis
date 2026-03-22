@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774209267/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c2bb5b31"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/close-reason :v "validate_policy with weight/name/threshold checks. 4 tests." :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/closed-at :v 1774209266 :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "73065cf21c689c79c68373ba1bdf94b15fc03daf82e7c86e3330baac179ace79" :a :task/status :v :task.status/closed :op :assert}
+ ]}

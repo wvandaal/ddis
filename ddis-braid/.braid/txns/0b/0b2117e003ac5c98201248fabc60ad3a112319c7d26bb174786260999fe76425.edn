@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774209261/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-708bd7e9"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/close-reason :v "PolicyConfig struct with from_store(), claim/evidence pattern matching, boundary definitions, anomaly detectors, calibration config. 9 unit tests. Shared by Views and BoundaryRegistry." :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/closed-at :v 1774209260 :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "532a069c79568f214c81ffcbe97d7affa3c3b7a42611484b1445bbb453dd910a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

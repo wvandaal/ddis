@@ -41,6 +41,7 @@ pub mod harvest;
 mod kani_proofs;
 pub mod layout;
 pub mod merge;
+pub mod policy;
 pub mod promote;
 pub mod proposal;
 #[cfg(test)]
@@ -181,6 +182,9 @@ pub use signal::{
     detect_procedural_with_threshold, detect_temporal, detect_temporal_with_threshold, dispatch,
     signal_to_datoms, ConfusionDetector, DivergenceType, Severity, Signal, SignalAction,
     SignalType,
+};
+pub use policy::{
+    validate_policy, AnomalyDef, BoundaryDef, CalibrationConfig, PolicyConfig, PolicyError,
 };
 pub use stage::{capabilities, max_stage, stage_name};
 pub use store::{

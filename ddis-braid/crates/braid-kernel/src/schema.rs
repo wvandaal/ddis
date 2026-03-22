@@ -826,6 +826,108 @@ fn axiomatic_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Per-transaction coherence delta at Intent↔Spec boundary. Positive = crystallization (observation→spec), negative = unanchored intent, zero = neutral. Part of the three-boundary metabolic signature.",
         ),
+        // ── Layer 5 — Policy Manifest (C8, ADR-FOUNDATION-013) ──────────
+        // Epistemological policy attributes. The kernel reads these at load
+        // time to configure boundaries, fitness, guidance, and watchers.
+        // No attribute here assumes any specific methodology — DDIS, research,
+        // compliance, or any other domain-specific ontology (NEG-FOUNDATION-003).
+        //
+        // Claim and evidence patterns (what entities count as claims/evidence)
+        attr(
+            ":policy/claim-pattern",
+            ValueType::String,
+            Cardinality::Many,
+            "Attribute pattern identifying claim entities (e.g., ':spec/element-type'). Multiple patterns allowed — an entity matching ANY pattern is a claim.",
+        ),
+        attr(
+            ":policy/evidence-pattern",
+            ValueType::String,
+            Cardinality::Many,
+            "Attribute pattern identifying evidence entities (e.g., ':witness/*', ':impl/implements'). Multiple patterns allowed.",
+        ),
+        // Boundary definitions (what pairs of entity sets should be aligned)
+        attr(
+            ":policy/boundary-name",
+            ValueType::String,
+            Cardinality::One,
+            "Human-readable name for a coherence boundary (e.g., 'validation', 'coverage').",
+        ),
+        attr(
+            ":policy/boundary-source",
+            ValueType::String,
+            Cardinality::One,
+            "Source entity pattern for a boundary (e.g., ':spec/*'). Entities matching this pattern form the source set.",
+        ),
+        attr(
+            ":policy/boundary-target",
+            ValueType::String,
+            Cardinality::One,
+            "Target entity pattern for a boundary (e.g., ':witness/*'). Entities matching this pattern form the target set.",
+        ),
+        attr(
+            ":policy/boundary-weight",
+            ValueType::Double,
+            Cardinality::One,
+            "F(S) contribution weight for a boundary. All boundary weights should sum to ~1.0.",
+        ),
+        // Anomaly detectors (what changes trigger guidance interrupts)
+        attr(
+            ":policy/anomaly-trigger",
+            ValueType::String,
+            Cardinality::One,
+            "Attribute whose change triggers anomaly detection (e.g., ':tx/time' for harvest urgency).",
+        ),
+        attr(
+            ":policy/anomaly-threshold",
+            ValueType::Long,
+            Cardinality::One,
+            "Count threshold for anomaly alert. Anomaly fires when trigger count exceeds this value.",
+        ),
+        attr(
+            ":policy/anomaly-message",
+            ValueType::String,
+            Cardinality::One,
+            "Human-readable alert text when anomaly fires.",
+        ),
+        // Watcher definitions (what environmental changes to observe)
+        attr(
+            ":policy/watcher-type",
+            ValueType::Keyword,
+            Cardinality::One,
+            "Watcher type: :watcher.type/filesystem, :watcher.type/git-hook, :watcher.type/test-runner, :watcher.type/mcp-intercept.",
+        ),
+        attr(
+            ":policy/watcher-pattern",
+            ValueType::String,
+            Cardinality::One,
+            "Glob or regex pattern for what to watch (e.g., 'src/**/*.rs' for filesystem watcher).",
+        ),
+        attr(
+            ":policy/watcher-debounce-ms",
+            ValueType::Long,
+            Cardinality::One,
+            "Flood prevention interval in milliseconds. At most one datom per entity per interval.",
+        ),
+        // Calibration parameters (OBSERVER-4, ADR-FOUNDATION-014)
+        attr(
+            ":policy/calibration-window",
+            ValueType::Long,
+            Cardinality::One,
+            "Number of recent predictions to include in calibration error computation. Default: 20.",
+        ),
+        attr(
+            ":policy/calibration-threshold",
+            ValueType::Double,
+            Cardinality::One,
+            "Mean absolute calibration error threshold for weight adjustment. Default: 0.05.",
+        ),
+        // Report templates (POLICY-9, domain-language coherence reports)
+        attr(
+            ":policy/boundary-report-template",
+            ValueType::String,
+            Cardinality::One,
+            "Template for domain-language coherence report. Placeholders: {coverage}, {gap_count}, {source_count}, {target_count}.",
+        ),
     ]
 }
 
