@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774222590/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cf486777d29c0e02c36cb76bebf05c79948fd74bea74344a308f7e08e049eccb" :a :db/ident :v :recon/trace-2d5453c00bc70f95 :op :assert}
+   {:e #blake3 "cf486777d29c0e02c36cb76bebf05c79948fd74bea74344a308f7e08e049eccb" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "cf486777d29c0e02c36cb76bebf05c79948fd74bea74344a308f7e08e049eccb" :a :recon/trace-neighborhood :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "cf486777d29c0e02c36cb76bebf05c79948fd74bea74344a308f7e08e049eccb" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.topology.adr-topology-002" :op :assert}
+   {:e #blake3 "cf486777d29c0e02c36cb76bebf05c79948fd74bea74344a308f7e08e049eccb" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.topology.inv-topology-006" :op :assert}
+   {:e #blake3 "cf486777d29c0e02c36cb76bebf05c79948fd74bea74344a308f7e08e049eccb" :a :recon/trace-refs :v "ADR-TOPOLOGY-002" :op :assert}
+   {:e #blake3 "cf486777d29c0e02c36cb76bebf05c79948fd74bea74344a308f7e08e049eccb" :a :recon/trace-refs :v "INV-TOPOLOGY-006" :op :assert}
+ ]}
