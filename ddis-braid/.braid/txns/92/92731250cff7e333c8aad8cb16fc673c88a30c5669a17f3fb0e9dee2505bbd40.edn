@@ -1,0 +1,8 @@
+{:tx/id #hlc "1774273130/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Update t-cad19297 → in-progress"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/status :v :task.status/in-progress :op :assert}
+ ]}

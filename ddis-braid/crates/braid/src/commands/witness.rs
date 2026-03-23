@@ -554,10 +554,58 @@ pub fn run_generate(path: &Path, commit: bool) -> Result<CommandOutput, BraidErr
     datoms.extend(kani_datoms);
     datoms.extend(sr_datoms);
 
-    let total_count = l1_count + kani_count + sr_count;
+    // Step 3: L2 promotion from trace links (ADM-4 batch witness)
+    // Trace scan creates :impl/implements datoms linking files to INVs.
+    // Convert these into bindings for promote_tests_to_l2.
+    let impl_attr = braid_kernel::datom::Attribute::from_keyword(":impl/implements");
+    let ident_attr = braid_kernel::datom::Attribute::from_keyword(":db/ident");
+    let mut trace_bindings: Vec<(String, String, String)> = Vec::new();
+
+    for d in store.attribute_datoms(&impl_attr) {
+        if d.op != braid_kernel::datom::Op::Assert {
+            continue;
+        }
+        // The entity is the impl file, the value (Keyword) is the spec ident
+        let spec_ident = match &d.value {
+            braid_kernel::datom::Value::Keyword(k) => k.clone(),
+            _ => continue,
+        };
+        // Only promote INV-* references (not ADR-* or NEG-*)
+        if !spec_ident.contains("inv-") {
+            continue;
+        }
+        // Get the impl file's ident for the test_file field
+        let impl_ident = store
+            .entity_datoms(d.entity)
+            .iter()
+            .find(|ed| ed.attribute == ident_attr && ed.op == braid_kernel::datom::Op::Assert)
+            .and_then(|ed| match &ed.value {
+                braid_kernel::datom::Value::Keyword(k) => Some(k.clone()),
+                _ => None,
+            })
+            .unwrap_or_default();
+        // Convert :spec/inv-foo-001 → :spec/inv-foo-001 format
+        let store_ident = if spec_ident.starts_with(":spec/") {
+            spec_ident.clone()
+        } else {
+            format!(":spec/{}", spec_ident)
+        };
+        trace_bindings.push((store_ident, impl_ident, "trace-linked".to_string()));
+    }
+
+    let trace_refs: Vec<(&str, &str, &str)> = trace_bindings
+        .iter()
+        .map(|(a, b, c)| (a.as_str(), b.as_str(), c.as_str()))
+        .collect();
+    let (trace_datoms, trace_count) =
+        witness::promote_tests_to_l2(&store, &trace_refs, tx_id);
+    datoms.extend(trace_datoms);
+
+    let total_count = l1_count + kani_count + sr_count + trace_count;
     let datom_count = datoms.len();
     let mut out = format!(
-        "witness generate: {l1_count} L1 + {kani_count} L2(Kani) + {sr_count} L2(Stateright) = {total_count} total\n"
+        "witness generate: {} witnesses ({} L1, {} L2-Kani, {} L2-Stateright, {} L2-trace)\n",
+        total_count, l1_count, kani_count, sr_count, trace_count
     );
 
     if commit && !datoms.is_empty() {
