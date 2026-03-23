@@ -1604,6 +1604,65 @@ pub fn layer_2_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Ratio of survived challenges to total challenges. Used for calibration and Anti-Goodhart detection.",
         ),
+        // =================================================================
+        // Hypothesis Ledger (8) — Self-calibrating acquisition function (HL-1)
+        // ADR-FOUNDATION-018: The Hypothesis Ledger
+        //
+        // Every R(t) recommendation is a testable hypothesis. The ledger
+        // records predictions vs outcomes so the acquisition function
+        // learns from its own accuracy. Closes the last open loop.
+        //
+        // Lifecycle: recommend → record prediction → execute → measure
+        //   actual ΔF(S) → compute error → calibrate confidence
+        // =================================================================
+        attr(
+            ":hypothesis/action",
+            ValueType::Ref,
+            Cardinality::One,
+            "Ref to the task/action entity this hypothesis predicted an outcome for.",
+        ),
+        attr(
+            ":hypothesis/predicted",
+            ValueType::Double,
+            Cardinality::One,
+            "Predicted ΔF(S) from executing this action. Set at recommendation time.",
+        ),
+        attr(
+            ":hypothesis/boundary",
+            ValueType::String,
+            Cardinality::One,
+            "Which boundary this hypothesis targets (e.g., 'spec<->impl'). Links prediction to measurement.",
+        ),
+        attr(
+            ":hypothesis/confidence",
+            ValueType::Double,
+            Cardinality::One,
+            "Calibrated confidence in the prediction [0,1]. Starts at prior, updated by outcome history.",
+        ),
+        attr(
+            ":hypothesis/timestamp",
+            ValueType::Instant,
+            Cardinality::One,
+            "Wall-clock time when the hypothesis was recorded.",
+        ),
+        attr(
+            ":hypothesis/actual",
+            ValueType::Double,
+            Cardinality::One,
+            "Measured ΔF(S) after the action was completed. Set at completion time.",
+        ),
+        attr(
+            ":hypothesis/error",
+            ValueType::Double,
+            Cardinality::One,
+            "|predicted - actual| — the calibration error. Used to adjust future confidence.",
+        ),
+        attr(
+            ":hypothesis/completed",
+            ValueType::Instant,
+            Cardinality::One,
+            "Wall-clock time when the outcome was measured. Null until action completes.",
+        ),
     ]
 }
 
