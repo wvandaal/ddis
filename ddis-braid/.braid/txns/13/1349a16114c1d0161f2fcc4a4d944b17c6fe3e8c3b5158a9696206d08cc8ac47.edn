@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774256402/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-6582e30a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/closed-at :v 1774256401 :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/completion-evidence :v "1386 unit tests pass, all E2E scripts unmodified, no public API change, zero clippy warnings" :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/status :v :task.status/closed :op :assert}
+ ]}
