@@ -568,85 +568,77 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             args.confidence,
         )
     };
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: summary,
-        tokens: 15,
-                    attention: None,
-    });
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        summary,
+        15,
+    ));
 
     // Store state (Methodology)
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::Methodology,
-        content: format!(
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::Methodology,
+        format!(
             "store: {new_total} datoms | tx: {}",
             file_path.relative_path()
         ),
-        tokens: 10,
-                    attention: None,
-    });
+        10,
+    ));
 
     // Tags if present (UserRequested)
     if !args.tags.is_empty() {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!("tags: {}", args.tags.join(", ")),
-            tokens: 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!("tags: {}", args.tags.join(", ")),
+            5,
+        ));
     }
 
     // Cross-reference if present (UserRequested)
     if let Some(relates_to) = args.relates_to {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!("relates-to: {relates_to}"),
-            tokens: 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!("relates-to: {relates_to}"),
+            5,
+        ));
     }
 
     // Rationale if present (Speculative)
     if let Some(rationale) = args.rationale {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
-            content: format!("rationale: {rationale}"),
-            tokens: 10,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Speculative,
+            format!("rationale: {rationale}"),
+            10,
+        ));
     }
 
     // Alternatives if present (Speculative)
     if let Some(alternatives) = args.alternatives {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
-            content: format!("alternatives: {alternatives}"),
-            tokens: 10,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Speculative,
+            format!("alternatives: {alternatives}"),
+            10,
+        ));
     }
 
     // CRB: Related knowledge (Methodology — important for reconciliation)
     if !related_specs.is_empty() {
         for sr in &related_specs {
-            context_blocks.push(braid_kernel::budget::ContextBlock {
-                precedence: braid_kernel::budget::OutputPrecedence::Methodology,
-                content: format!(
+            context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+                braid_kernel::budget::OutputPrecedence::Methodology,
+                format!(
                     "related: [{}] {} — {} (score={:.2})",
                     sr.source, sr.human_id, sr.summary, sr.score
                 ),
-                tokens: 12,
-                    attention: None,
-            });
+                12,
+            ));
         }
         if related_specs.len() >= 3 {
-            context_blocks.push(braid_kernel::budget::ContextBlock {
-                precedence: braid_kernel::budget::OutputPrecedence::System,
-                content: "3+ existing knowledge elements found. Reconcile before crystallizing."
+            context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+                braid_kernel::budget::OutputPrecedence::System,
+                "3+ existing knowledge elements found. Reconcile before crystallizing."
                     .to_string(),
-                tokens: 8,
-                    attention: None,
-            });
+                8,
+            ));
         }
     }
 
@@ -659,12 +651,11 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
                 nearest.human_id, nearest.score, nearest.human_id
             ));
         }
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
-            content: cryst_line,
-            tokens: 15,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Methodology,
+            cryst_line,
+            15,
+        ));
     } else if delta_cryst > f64::EPSILON {
         // Find which spec element(s) the observation is anchored to
         let refs = braid_kernel::task::parse_spec_refs(args.text);
@@ -673,12 +664,11 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         } else {
             refs.join(", ")
         };
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
-            content: format!("\u{0394}-cryst: +{delta_cryst:.1} (anchored to {ref_str})"),
-            tokens: 10,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Methodology,
+            format!("\u{0394}-cryst: +{delta_cryst:.1} (anchored to {ref_str})"),
+            10,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {

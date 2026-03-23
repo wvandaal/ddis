@@ -110,9 +110,9 @@ pub fn run_plan(
         impact: plan.parallelizability,
     };
 
-    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!(
             "topology: {}a/{}t {} S={:.2} p={:.2}",
             plan.assignments.len(),
             plan.total_tasks,
@@ -120,23 +120,21 @@ pub fn run_plan(
             plan.coupling_entropy,
             plan.parallelizability,
         ),
-        tokens: 15,
-                    attention: None,
-    }];
+        15,
+    )];
 
     for a in &plan.assignments {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!(
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!(
                 "{}: {} tasks, {} files, impact={:.2}",
                 a.name,
                 a.tasks.len(),
                 a.files.len(),
                 a.total_impact,
             ),
-            tokens: 12,
-                    attention: None,
-        });
+            12,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {

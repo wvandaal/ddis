@@ -2360,18 +2360,16 @@ mod tests {
                 impact: 0.30,
             },
             context: vec![
-                ContextBlock {
-                    precedence: OutputPrecedence::System,
-                    content: "F(S)=0.64, 20000 datoms".to_string(),
-                    tokens: 10,
-                    attention: None,
-                },
-                ContextBlock {
-                    precedence: OutputPrecedence::Methodology,
-                    content: "M(t)=0.50 (tx:✗ spec:✗ query:✗ harvest:✓)".to_string(),
-                    tokens: 15,
-                    attention: None,
-                },
+                ContextBlock::new_scored(
+                    OutputPrecedence::System,
+                    "F(S)=0.64, 20000 datoms".to_string(),
+                    10,
+                ),
+                ContextBlock::new_scored(
+                    OutputPrecedence::Methodology,
+                    "M(t)=0.50 (tx:✗ spec:✗ query:✗ harvest:✓)".to_string(),
+                    15,
+                ),
             ],
             evidence_pointer: "details: braid status --verbose".to_string(),
         };
@@ -2401,24 +2399,21 @@ mod tests {
                 impact: 0.5,
             },
             context: vec![
-                ContextBlock {
-                    precedence: OutputPrecedence::System,
-                    content: "BLOCK-A".to_string(),
-                    tokens: 5,
-                    attention: None,
-                },
-                ContextBlock {
-                    precedence: OutputPrecedence::Methodology,
-                    content: "BLOCK-B".to_string(),
-                    tokens: 10,
-                    attention: None,
-                },
-                ContextBlock {
-                    precedence: OutputPrecedence::UserRequested,
-                    content: "BLOCK-C".to_string(),
-                    tokens: 20,
-                    attention: None,
-                },
+                ContextBlock::new_scored(
+                    OutputPrecedence::System,
+                    "BLOCK-A".to_string(),
+                    5,
+                ),
+                ContextBlock::new_scored(
+                    OutputPrecedence::Methodology,
+                    "BLOCK-B".to_string(),
+                    10,
+                ),
+                ContextBlock::new_scored(
+                    OutputPrecedence::UserRequested,
+                    "BLOCK-C".to_string(),
+                    20,
+                ),
             ],
             evidence_pointer: String::new(),
         };
@@ -2476,12 +2471,11 @@ mod tests {
                 rationale: "test".to_string(),
                 impact: 0.5,
             },
-            context: vec![ContextBlock {
-                precedence: OutputPrecedence::System,
-                content: "x ".repeat(100),
-                tokens: 50,
-                attention: None,
-            }],
+            context: vec![ContextBlock::new_scored(
+                OutputPrecedence::System,
+                "x ".repeat(100),
+                50,
+            )],
             evidence_pointer: "details: braid status".to_string(),
         };
 
@@ -2577,12 +2571,11 @@ mod tests {
                 rationale: "test".to_string(),
                 impact: 0.42,
             },
-            context: vec![ContextBlock {
-                precedence: OutputPrecedence::System,
-                content: "store info".to_string(),
-                tokens: 5,
-                attention: None,
-            }],
+            context: vec![ContextBlock::new_scored(
+                OutputPrecedence::System,
+                "store info".to_string(),
+                5,
+            )],
             evidence_pointer: "details: braid status".to_string(),
         };
 

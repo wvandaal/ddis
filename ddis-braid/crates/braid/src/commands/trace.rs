@@ -998,9 +998,9 @@ pub fn run(
     let mut context_blocks = Vec::new();
 
     // Summary (System — always shown)
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!(
             "trace: {} files, {} refs, {}/{} spec coverage ({:.0}%)",
             files.len(),
             all_refs.len(),
@@ -1008,14 +1008,13 @@ pub fn run(
             spec_map.len(),
             coverage_pct,
         ),
-        tokens: 15,
-                    attention: None,
-    });
+        15,
+    ));
 
     // Link counts (Methodology)
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::Methodology,
-        content: format!(
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::Methodology,
+        format!(
             "{} new links, {} existing, {} unresolved | witnessed: {}/{}",
             resolved_links.len(),
             skipped_existing,
@@ -1023,9 +1022,8 @@ pub fn run(
             total_witnessed,
             spec_map.len(),
         ),
-        tokens: 12,
-                    attention: None,
-    });
+        12,
+    ));
 
     // Depth distribution (UserRequested — when non-empty)
     if resolved_links.iter().any(|l| l.verification_depth > 0) {
@@ -1037,33 +1035,30 @@ pub fn run(
             .map(|(i, label)| format!("{}={}", label, depth_counts[i]))
             .collect();
         if !depth_parts.is_empty() {
-            context_blocks.push(braid_kernel::budget::ContextBlock {
-                precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-                content: format!("depth: {}", depth_parts.join(", ")),
-                tokens: 8,
-                    attention: None,
-            });
+            context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+                braid_kernel::budget::OutputPrecedence::UserRequested,
+                format!("depth: {}", depth_parts.join(", ")),
+                8,
+            ));
         }
     }
 
     // Unresolved refs (Speculative — only if present)
     for (ref_str, count) in &unresolved {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
-            content: format!("unresolved: {} ({}x)", ref_str, count),
-            tokens: 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Speculative,
+            format!("unresolved: {} ({}x)", ref_str, count),
+            5,
+        ));
     }
 
     // Commit result (System — when committed)
     if commit && committed_datoms > 0 {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!("committed: {} datoms", committed_datoms),
-            tokens: 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::System,
+            format!("committed: {} datoms", committed_datoms),
+            5,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {

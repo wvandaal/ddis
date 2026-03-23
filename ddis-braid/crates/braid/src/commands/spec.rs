@@ -333,12 +333,11 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
             rationale: "check spec state after creation".to_string(),
             impact: 0.4,
         },
-        context: vec![braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!("created: {} ({}, ns={})", ident, element_type, namespace),
-            tokens: 8,
-                    attention: None,
-        }],
+        context: vec![braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::System,
+            format!("created: {} ({}, ns={})", ident, element_type, namespace),
+            8,
+        )],
         evidence_pointer: format!("details: braid query --entity {ident}"),
     };
 
@@ -469,16 +468,15 @@ pub fn run_review(path: &Path) -> Result<CommandOutput, BraidError> {
             rationale: format!("{} proposals awaiting review", pending.len()),
             impact: 0.5,
         },
-        context: vec![braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!(
+        context: vec![braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::System,
+            format!(
                 "spec review: {} pending (threshold={:.1})",
                 pending.len(),
                 threshold
             ),
-            tokens: 8,
-                    attention: None,
-        }],
+            8,
+        )],
         evidence_pointer: "list: braid spec review | history: braid spec history".to_string(),
     };
 
@@ -567,15 +565,14 @@ pub fn run_accept(path: &Path, id: &str, agent: &str) -> Result<CommandOutput, B
             rationale: "check spec state after acceptance".to_string(),
             impact: 0.4,
         },
-        context: vec![braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!(
+        context: vec![braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::System,
+            format!(
                 "accepted: {} promoted (+{} datoms)",
                 suggested_id, datom_count
             ),
-            tokens: 8,
-                    attention: None,
-        }],
+            8,
+        )],
         evidence_pointer: "review: braid spec review | trace: braid trace --commit".to_string(),
     };
 
@@ -661,12 +658,11 @@ pub fn run_reject(
             rationale: "review remaining proposals after rejection".to_string(),
             impact: 0.4,
         },
-        context: vec![braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!("rejected: {}", suggested_id),
-            tokens: 5,
-                    attention: None,
-        }],
+        context: vec![braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::System,
+            format!("rejected: {}", suggested_id),
+            5,
+        )],
         evidence_pointer: "history: braid spec history | status: braid status".to_string(),
     };
 
@@ -900,18 +896,17 @@ pub fn run_history(path: &Path) -> Result<CommandOutput, BraidError> {
             rationale: acp_rationale,
             impact: 0.3,
         },
-        context: vec![braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!(
+        context: vec![braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::System,
+            format!(
                 "history: {} total ({} pending, {} accepted, {} rejected)",
                 records.len(),
                 n_proposed,
                 n_accepted,
                 n_rejected,
             ),
-            tokens: 10,
-                    attention: None,
-        }],
+            10,
+        )],
         evidence_pointer: "review: braid spec review | status: braid status".to_string(),
     };
 

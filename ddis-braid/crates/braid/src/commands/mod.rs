@@ -4073,44 +4073,41 @@ mod merge {
         let mut context_blocks = Vec::new();
 
         // Merge receipt summary (System)
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!(
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::System,
+            format!(
                 "merge: {} \u{2192} {} (+{} datoms, +{} tx files)",
                 source_path.display(),
                 path.display(),
                 receipt.new_datoms,
                 new_files,
             ),
-            tokens: 15,
-                    attention: None,
-        });
+            15,
+        ));
 
         // Store state after merge (Methodology)
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
-            content: format!(
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Methodology,
+            format!(
                 "datoms: {} \u{2192} {} | frontier: {} \u{2192} {} agents",
                 pre_len,
                 store.len(),
                 pre_frontier.len(),
                 store.frontier().len(),
             ),
-            tokens: 12,
-                    attention: None,
-        });
+            12,
+        ));
 
         // Invariant checks (System — important for correctness)
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!(
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::System,
+            format!(
                 "monotonicity: {} | frontier advancement: {}",
                 if monotonic { "OK" } else { "VIOLATED" },
                 if frontier_advanced { "OK" } else { "NO CHANGE" },
             ),
-            tokens: 10,
-                    attention: None,
-        });
+            10,
+        ));
 
         let projection = braid_kernel::ActionProjection {
             action,

@@ -442,18 +442,17 @@ pub fn build_status_projection(
     let mut context = Vec::new();
 
     // 1. Store identity (System -- always shown)
-    context.push(ContextBlock {
-        precedence: OutputPrecedence::System,
-        content: format!(
+    context.push(ContextBlock::new_scored(
+        OutputPrecedence::System,
+        format!(
             "store: {} ({} datoms, {} entities, {} txns)",
             path.display(),
             store.len(),
             store.entity_count(),
             hashes.len(),
         ),
-        tokens: 15,
-                    attention: None,
-    });
+        15,
+    ));
 
     // 2. Coherence + F(S) with session delta (SD-1) + M(t) with session age (SD-2)
     // PERF-2: Use pre-computed snapshot values
@@ -488,9 +487,9 @@ pub fn build_status_projection(
         ""
     };
 
-    context.push(ContextBlock {
-        precedence: OutputPrecedence::Methodology,
-        content: format!(
+    context.push(ContextBlock::new_scored(
+        OutputPrecedence::Methodology,
+        format!(
             "coherence: F(S)={:.2}{} Phi={:.1} B1={} {:?} | M(t)={:.2} {}{}{}",
             fitness.total,
             fitness_delta_str,
@@ -502,9 +501,8 @@ pub fn build_status_projection(
             if score.drift_signal { " DRIFT" } else { "" },
             session_age_str,
         ),
-        tokens: 25,
-                    attention: None,
-    });
+        25,
+    ));
 
     // 3. Boundary coverage (Methodology)
     let registry = braid_kernel::default_boundaries();
@@ -526,12 +524,11 @@ pub fn build_status_projection(
                 }
             })
             .collect();
-        context.push(ContextBlock {
-            precedence: OutputPrecedence::Methodology,
-            content: format!("boundaries: {}", boundary_parts.join(" | ")),
-            tokens: 12,
-                    attention: None,
-        });
+        context.push(ContextBlock::new_scored(
+            OutputPrecedence::Methodology,
+            format!("boundaries: {}", boundary_parts.join(" | ")),
+            12,
+        ));
     }
 
     // 4. Task summary (UserRequested) — use snapshot
@@ -546,15 +543,14 @@ pub fn build_status_projection(
         } else {
             0.0
         };
-        context.push(ContextBlock {
-            precedence: OutputPrecedence::UserRequested,
-            content: format!(
+        context.push(ContextBlock::new_scored(
+            OutputPrecedence::UserRequested,
+            format!(
                 "tasks: {} open ({} ready, {} blocked, {} in-progress, {} closed) | P(t)={:.2}",
                 total_open, ready_count, blocked, in_progress, closed, p_t
             ),
-            tokens: 18,
-                    attention: None,
-        });
+            18,
+        ));
     }
 
     // 4b. Session progress (Methodology, META-7) — use snapshot
@@ -576,12 +572,11 @@ pub fn build_status_projection(
         if fitness_delta.abs() > 0.005 {
             session_str.push_str(&format!(", F(S) {:+.2}", fitness_delta));
         }
-        context.push(ContextBlock {
-            precedence: OutputPrecedence::Methodology,
-            content: session_str,
-            tokens: 12,
-                    attention: None,
-        });
+        context.push(ContextBlock::new_scored(
+            OutputPrecedence::Methodology,
+            session_str,
+            12,
+        ));
     }
 
     // 5. Harvest status (Methodology)
@@ -592,12 +587,11 @@ pub fn build_status_projection(
     } else {
         format!("harvest: {} tx since last (ok)", tx_since_harvest)
     };
-    context.push(ContextBlock {
-        precedence: OutputPrecedence::Methodology,
-        content: harvest_status,
-        tokens: 10,
-                    attention: None,
-    });
+    context.push(ContextBlock::new_scored(
+        OutputPrecedence::Methodology,
+        harvest_status,
+        10,
+    ));
 
     // 5a. HL-4: Hypothesis calibration metrics (Methodology)
     let cal = braid_kernel::guidance::compute_calibration_metrics(store);
@@ -608,15 +602,14 @@ pub fn build_status_projection(
             braid_kernel::guidance::CalibrationTrend::Degrading => "degrading",
             braid_kernel::guidance::CalibrationTrend::Insufficient => "insufficient data",
         };
-        context.push(ContextBlock {
-            precedence: OutputPrecedence::Methodology,
-            content: format!(
+        context.push(ContextBlock::new_scored(
+            OutputPrecedence::Methodology,
+            format!(
                 "hypotheses: {}/{} completed, mean error {:.3}, trend: {}",
                 cal.completed_hypotheses, cal.total_hypotheses, cal.mean_error, trend_str
             ),
-            tokens: 12,
-                    attention: None,
-        });
+            12,
+        ));
     }
 
     // 5b. Trace staleness (Methodology, SC-2) — use snapshot
@@ -632,12 +625,11 @@ pub fn build_status_projection(
             )
         }
     };
-    context.push(ContextBlock {
-        precedence: OutputPrecedence::Methodology,
-        content: trace_content,
-        tokens: 12,
-                    attention: None,
-    });
+    context.push(ContextBlock::new_scored(
+        OutputPrecedence::Methodology,
+        trace_content,
+        12,
+    ));
 
     // 6. Methodology gaps — use snapshot (AGP-4.2, INV-GUIDANCE-021)
     let ag = &snapshot.adjusted_gaps;
@@ -661,17 +653,16 @@ pub fn build_status_projection(
                 cs.trace_count, cs.neighborhood
             ));
         }
-        context.push(ContextBlock {
-            precedence: OutputPrecedence::Speculative,
-            content: format!(
+        context.push(ContextBlock::new_scored(
+            OutputPrecedence::Speculative,
+            format!(
                 "gaps: {} ({} mode) \u{2014} {}",
                 ag.total(),
                 ag.mode_label(),
                 gap_parts.join(", ")
             ),
-            tokens: 15,
-                    attention: None,
-        });
+            15,
+        ));
     }
 
     // Add methodology M(t) context blocks (ACP-9: footer -> context)

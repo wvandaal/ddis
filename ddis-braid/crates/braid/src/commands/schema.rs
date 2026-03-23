@@ -107,12 +107,11 @@ pub fn run(
     } else {
         format!("schema: {} attributes", attrs.len())
     };
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: ctx_label,
-        tokens: 8,
-                    attention: None,
-    });
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        ctx_label,
+        8,
+    ));
 
     // Namespace breakdown (UserRequested)
     let ns_counts = {
@@ -132,12 +131,11 @@ pub fn run(
         .map(|(ns, count)| format!("{ns}:{count}"))
         .collect();
     if !ns_summary.is_empty() {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!("namespaces: {}", ns_summary.join(", ")),
-            tokens: 10 + ns_summary.len(),
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!("namespaces: {}", ns_summary.join(", ")),
+            10 + ns_summary.len(),
+        ));
     }
 
     // Individual attributes as Speculative blocks (capped at 30)
@@ -149,27 +147,25 @@ pub fn run(
             braid_kernel::budget::OutputPrecedence::Ambient
         };
         let doc_short = truncate_doc(&def.doc, 40);
-        context_blocks.push(braid_kernel::budget::ContextBlock {
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
             precedence,
-            content: format!(
+            format!(
                 "{} {} {} \"{}\"",
                 attr.as_str(),
                 type_short_name(def),
                 cardinality_short_name(def),
                 doc_short
             ),
-            tokens: 8,
-                    attention: None,
-        });
+            8,
+        ));
     }
 
     if attrs.len() > max_attr_blocks {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Ambient,
-            content: format!("... and {} more", attrs.len() - max_attr_blocks),
-            tokens: 3,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Ambient,
+            format!("... and {} more", attrs.len() - max_attr_blocks),
+            3,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {
@@ -238,12 +234,11 @@ fn run_diff(
         };
         let projection = braid_kernel::ActionProjection {
             action,
-            context: vec![braid_kernel::budget::ContextBlock {
-                precedence: braid_kernel::budget::OutputPrecedence::System,
-                content: format!("schema diff: 0 new attributes since tx {since_tx}"),
-                tokens: 8,
-                    attention: None,
-            }],
+            context: vec![braid_kernel::budget::ContextBlock::new_scored(
+                braid_kernel::budget::OutputPrecedence::System,
+                format!("schema diff: 0 new attributes since tx {since_tx}"),
+                8,
+            )],
             evidence_pointer: "braid schema --pattern ':spec/*'".to_string(),
         };
         let mut structured = serde_json::json!({
@@ -375,37 +370,34 @@ fn run_diff(
         rationale: "explore schema value types".to_string(),
         impact: 0.3,
     };
-    let mut diff_context_blocks = vec![braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!("schema diff: {count} attributes added since tx {since_tx}"),
-        tokens: 8,
-                    attention: None,
-    }];
+    let mut diff_context_blocks = vec![braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!("schema diff: {count} attributes added since tx {since_tx}"),
+        8,
+    )];
     for (i, entry) in entries.iter().take(20).enumerate() {
         let precedence = if i < 5 {
             braid_kernel::budget::OutputPrecedence::UserRequested
         } else {
             braid_kernel::budget::OutputPrecedence::Speculative
         };
-        diff_context_blocks.push(braid_kernel::budget::ContextBlock {
+        diff_context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
             precedence,
-            content: format!(
+            format!(
                 "+ {} {} \"{}\"",
                 entry.ident,
                 entry.value_type,
                 truncate_doc(&entry.doc, 40)
             ),
-            tokens: 8,
-                    attention: None,
-        });
+            8,
+        ));
     }
     if count > 20 {
-        diff_context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Ambient,
-            content: format!("... and {} more", count - 20),
-            tokens: 3,
-                    attention: None,
-        });
+        diff_context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Ambient,
+            format!("... and {} more", count - 20),
+            3,
+        ));
     }
     let projection = braid_kernel::ActionProjection {
         action,

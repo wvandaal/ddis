@@ -510,16 +510,15 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
     let mut context_blocks = Vec::new();
 
     // Summary context (System — always shown)
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!(
             "ready: {} tasks ({} total open)",
             ready_set.len(),
             ready_set.len()
         ),
-        tokens: 8,
-                    attention: None,
-    });
+        8,
+    ));
 
     // Task entries as individual context blocks (UserRequested)
     // Use title pyramid: L1 (short) for each entry to keep tokens manageable
@@ -570,27 +569,25 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
             braid_kernel::budget::OutputPrecedence::Ambient
         };
 
-        context_blocks.push(braid_kernel::budget::ContextBlock {
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
             precedence,
-            content: format!(
+            format!(
                 "[P{}] {} {} \"{}\"",
                 t.priority, t.id, type_short, title_display
             ),
-            tokens: 12,
-                    attention: None,
-        });
+            12,
+        ));
     }
 
     if ready_set.len() > max_entries {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Ambient,
-            content: format!(
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Ambient,
+            format!(
                 "... and {} more (braid task ready --all)",
                 ready_set.len() - max_entries
             ),
-            tokens: 5,
-                    attention: None,
-        });
+            5,
+        ));
     }
 
     let top_id = ready_set.first().map(|t| t.id.as_str()).unwrap_or("?");
@@ -718,9 +715,9 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
     };
 
     let mut context_blocks = vec![
-        braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!(
+        braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!(
                 "P{} {} | {} deps | {} traces{}",
                 top.priority,
                 type_short,
@@ -728,15 +725,13 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
                 top.traces_to.len(),
                 impact_str,
             ),
-            tokens: 12,
-                    attention: None,
-        },
-        braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
-            content: format!("{} total ready | all: braid task ready", ready_count),
-            tokens: 8,
-                    attention: None,
-        },
+            12,
+        ),
+        braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Speculative,
+            format!("{} total ready | all: braid task ready", ready_count),
+            8,
+        ),
     ];
 
     // Add title L1 as context if available (from pyramid)
@@ -756,12 +751,11 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
     if let Some(l1) = title_l1 {
         context_blocks.insert(
             0,
-            braid_kernel::budget::ContextBlock {
-                precedence: braid_kernel::budget::OutputPrecedence::System,
-                content: l1,
-                tokens: 10,
-                    attention: None,
-            },
+            braid_kernel::budget::ContextBlock::new_scored(
+                braid_kernel::budget::OutputPrecedence::System,
+                l1,
+                10,
+            ),
         );
     }
 
@@ -951,15 +945,14 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
     };
 
     let mut context_blocks = vec![
-        braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!("{} \"{}\"", t.id, t.title),
-            tokens: 15,
-                    attention: None,
-        },
-        braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!(
+        braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::System,
+            format!("{} \"{}\"", t.id, t.title),
+            15,
+        ),
+        braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!(
                 "status: {} | P{} {} | deps: {} | traces: {}",
                 status,
                 t.priority,
@@ -967,61 +960,54 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
                 t.depends_on.len(),
                 t.traces_to.len(),
             ),
-            tokens: 10,
-                    attention: None,
-        },
+            10,
+        ),
     ];
 
     if !t.labels.is_empty() {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
-            content: format!("labels: {}", t.labels.join(", ")),
-            tokens: 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Speculative,
+            format!("labels: {}", t.labels.join(", ")),
+            5,
+        ));
     }
 
     if let Some(ref reason) = t.close_reason {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
-            content: format!("close-reason: {reason}"),
-            tokens: 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Speculative,
+            format!("close-reason: {reason}"),
+            5,
+        ));
     }
 
     // TAP-3: Structured section ACP context blocks
     if let Some(ref bg) = background {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!("BACKGROUND: {bg}"),
-            tokens: bg.len() / 4 + 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!("BACKGROUND: {bg}"),
+            bg.len() / 4 + 5,
+        ));
     }
     if let Some(ref acc) = acceptance {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!("ACCEPTANCE: {acc}"),
-            tokens: acc.len() / 4 + 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!("ACCEPTANCE: {acc}"),
+            acc.len() / 4 + 5,
+        ));
     }
     if let Some(ref app) = approach {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
-            content: format!("APPROACH: {app}"),
-            tokens: app.len() / 4 + 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Speculative,
+            format!("APPROACH: {app}"),
+            app.len() / 4 + 5,
+        ));
     }
     if !files.is_empty() {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
-            content: format!("FILES: {}", files.join(", ")),
-            tokens: files.len() * 5 + 3,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Speculative,
+            format!("FILES: {}", files.join(", ")),
+            files.len() * 5 + 3,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {
@@ -1390,23 +1376,21 @@ pub fn close(
 
     // ACP for close: action = next task
     let action = braid_kernel::guidance::compute_action_from_store(&store);
-    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!(
             "closed: {} task(s) | F(S)={:.2}",
             closed_ids.len(),
             fitness.total
         ),
-        tokens: 10,
-                    attention: None,
-    }];
+        10,
+    )];
     for id in &closed_ids {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!("closed: {id}"),
-            tokens: 3,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!("closed: {id}"),
+            3,
+        ));
     }
     let projection = braid_kernel::ActionProjection {
         action,
@@ -1480,12 +1464,11 @@ pub fn update(
     });
 
     // ACP: action = view the claimed task
-    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!("updated: {task_id} \u{2192} {status}"),
-        tokens: 5,
-                    attention: None,
-    }];
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!("updated: {task_id} \u{2192} {status}"),
+        5,
+    )];
     if let Some(summary) = task_summary(&store, entity) {
         let title_trunc = if summary.title.len() > 80 {
             format!(
@@ -1495,12 +1478,11 @@ pub fn update(
         } else {
             summary.title.clone()
         };
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!("{}: {}", task_id, title_trunc),
-            tokens: 10,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!("{}: {}", task_id, title_trunc),
+            10,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {
@@ -1989,12 +1971,11 @@ pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
         if let Some(cc) = evidence.criteria_confidence {
             detail.push_str(&format!(" (criteria: {:.0}%)", cc * 100.0));
         }
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: detail,
-            tokens: 15,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            detail,
+            15,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {

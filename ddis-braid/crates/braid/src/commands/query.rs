@@ -263,18 +263,17 @@ pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
     let mut context_blocks = Vec::new();
 
     // Summary (System — always shown)
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!(
             "query: {} datoms (entity={}, attribute={}){}",
             results.len(),
             entity_desc,
             attr_desc,
             pagination_note
         ),
-        tokens: 12,
-                    attention: None,
-    });
+        12,
+    ));
 
     // Result rows as context blocks (UserRequested for first 10, Speculative beyond)
     for (i, (entity_label, attr_str, value_str)) in results.iter().enumerate() {
@@ -283,12 +282,11 @@ pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
         } else {
             braid_kernel::budget::OutputPrecedence::Speculative
         };
-        context_blocks.push(braid_kernel::budget::ContextBlock {
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
             precedence,
-            content: format!("[{} {} {}]", entity_label, attr_str, value_str),
-            tokens: 8,
-                    attention: None,
-        });
+            format!("[{} {} {}]", entity_label, attr_str, value_str),
+            8,
+        ));
     }
 
     // Build the evidence pointer from the query itself
@@ -518,12 +516,11 @@ pub fn run_datalog(
     let mut context_blocks = Vec::new();
 
     // Summary (System — always shown)
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!("datalog: {} results", result_count),
-        tokens: 5,
-                    attention: None,
-    });
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!("datalog: {} results", result_count),
+        5,
+    ));
 
     // Result content as a single block (UserRequested)
     // Truncate to keep within reasonable token budget for large result sets
@@ -536,12 +533,11 @@ pub fn run_datalog(
     } else {
         human.clone()
     };
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-        content: content_for_block,
-        tokens: (result_count * 8).clamp(10, 200),
-                    attention: None,
-    });
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::UserRequested,
+        content_for_block,
+        (result_count * 8).clamp(10, 200),
+    ));
 
     let projection = braid_kernel::ActionProjection {
         action,

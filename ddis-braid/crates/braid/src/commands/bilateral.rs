@@ -440,21 +440,20 @@ fn build_acp_projection(
         format!("{} FAIL", failing_cc.join(", "))
     };
 
-    context_blocks.push(ContextBlock {
-        precedence: OutputPrecedence::System,
-        content: format!(
+    context_blocks.push(ContextBlock::new_scored(
+        OutputPrecedence::System,
+        format!(
             "F(S)={:.4}, cycle {}, {}",
             state.fitness.total, state.cycle_count, cc_summary
         ),
-        tokens: 12,
-                    attention: None,
-    });
+        12,
+    ));
 
     // Component breakdown (UserRequested)
     let fwd_total = fwd.covered.len() + fwd.gaps.len();
-    context_blocks.push(ContextBlock {
-        precedence: OutputPrecedence::UserRequested,
-        content: format!(
+    context_blocks.push(ContextBlock::new_scored(
+        OutputPrecedence::UserRequested,
+        format!(
             "components: validation={:.2} coverage={:.2} drift={:.2} harvest={:.2} \
              contradiction={:.2} incompleteness={:.2} uncertainty={:.2}",
             c.validation,
@@ -465,14 +464,13 @@ fn build_acp_projection(
             c.incompleteness,
             c.uncertainty
         ),
-        tokens: 20,
-                    attention: None,
-    });
+        20,
+    ));
 
     // Scan coverage (Speculative)
-    context_blocks.push(ContextBlock {
-        precedence: OutputPrecedence::Speculative,
-        content: format!(
+    context_blocks.push(ContextBlock::new_scored(
+        OutputPrecedence::Speculative,
+        format!(
             "scan: fwd {}/{} ({:.0}%), bwd {}/{} ({:.0}%)",
             fwd.covered.len(),
             fwd_total,
@@ -481,14 +479,13 @@ fn build_acp_projection(
             state.scan.backward.covered.len() + state.scan.backward.gaps.len(),
             state.scan.backward.coverage_ratio * 100.0
         ),
-        tokens: 12,
-                    attention: None,
-    });
+        12,
+    ));
 
     // Convergence info (Speculative)
-    context_blocks.push(ContextBlock {
-        precedence: OutputPrecedence::Speculative,
-        content: format!(
+    context_blocks.push(ContextBlock::new_scored(
+        OutputPrecedence::Speculative,
+        format!(
             "convergence: {} (Lyapunov={:.4}, rate={:.2}{})",
             if state.convergence.is_monotonic {
                 "monotonic"
@@ -503,9 +500,8 @@ fn build_acp_projection(
                 .map(|s| format!(", ~{s} steps to 0.95"))
                 .unwrap_or_default()
         ),
-        tokens: 15,
-                    attention: None,
-    });
+        15,
+    ));
 
     // Forward gaps (Ambient — only if there are gaps)
     if !fwd.gaps.is_empty() {
@@ -520,17 +516,16 @@ fn build_acp_projection(
                     .to_string()
             })
             .collect();
-        context_blocks.push(ContextBlock {
-            precedence: OutputPrecedence::Ambient,
-            content: format!(
+        context_blocks.push(ContextBlock::new_scored(
+            OutputPrecedence::Ambient,
+            format!(
                 "fwd gaps ({}): {}{}",
                 fwd.gaps.len(),
                 gap_preview.join(", "),
                 if fwd.gaps.len() > 5 { ", ..." } else { "" }
             ),
-            tokens: 15,
-                    attention: None,
-        });
+            15,
+        ));
     }
 
     braid_kernel::ActionProjection {

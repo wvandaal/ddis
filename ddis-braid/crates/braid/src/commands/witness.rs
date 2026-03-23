@@ -136,26 +136,24 @@ pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> 
         impact: if stale_count > 0 { 0.7 } else { 0.3 },
     };
 
-    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!(
             "witness: {total_invariants} invariants, {valid_count} valid, \
              {stale_count} stale, {untested_count} untested, score={score:.2}"
         ),
-        tokens: 15,
-                    attention: None,
-    }];
+        15,
+    )];
 
     if confirmed > 0 || refuted > 0 {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!(
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!(
                 "verdicts: {confirmed} confirmed, {provisional} provisional, \
                  {inconclusive} inconclusive, {refuted} refuted"
             ),
-            tokens: 10,
-                    attention: None,
-        });
+            10,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {
@@ -305,17 +303,16 @@ pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput,
         impact: if stale_list.is_empty() { 0.1 } else { 0.8 },
     };
 
-    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!(
             "witness check: {} witnesses, {} stale{}",
             witnesses.len(),
             stale_list.len(),
             if commit { " (committed)" } else { "" }
         ),
-        tokens: 10,
-                    attention: None,
-    }];
+        10,
+    )];
 
     // Add stale entries as individual context blocks
     for (entity, reason) in &stale_list {
@@ -323,12 +320,11 @@ pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput,
             .get(entity)
             .map(|w| format!("{:?}", w.inv_ref))
             .unwrap_or_else(|| format!("{entity:?}"));
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!("STALE {inv_display}: {}", format_stale_reason(reason)),
-            tokens: 8,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!("STALE {inv_display}: {}", format_stale_reason(reason)),
+            8,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {
@@ -455,15 +451,14 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
         impact: if unwitnessed.is_empty() { 0.1 } else { 0.6 },
     };
 
-    let mut context_blocks = vec![braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    let mut context_blocks = vec![braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!(
             "completeness: {} invariants lack L2+ witnesses",
             unwitnessed.len()
         ),
-        tokens: 8,
-                    attention: None,
-    }];
+        8,
+    )];
 
     // Add unwitnessed invariants as individual context blocks
     let max_entries = 20;
@@ -478,21 +473,19 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
         } else {
             braid_kernel::budget::OutputPrecedence::Speculative
         };
-        context_blocks.push(braid_kernel::budget::ContextBlock {
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
             precedence,
-            content: display,
-            tokens: 10,
-                    attention: None,
-        });
+            display,
+            10,
+        ));
     }
 
     if entries.len() > max_entries {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Ambient,
-            content: format!("... and {} more", entries.len() - max_entries),
-            tokens: 3,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Ambient,
+            format!("... and {} more", entries.len() - max_entries),
+            3,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {

@@ -224,16 +224,15 @@ pub fn run(
     let mut context_blocks = Vec::new();
 
     // Summary context (System)
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!(
             "log: {} transactions shown ({} total)",
             tx_infos.len(),
             total_txns,
         ),
-        tokens: 10,
-                    attention: None,
-    });
+        10,
+    ));
 
     // Recent transaction entries as context (Methodology)
     for info in tx_infos.iter().take(5) {
@@ -247,25 +246,23 @@ pub fn run(
         } else {
             String::new()
         };
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
-            content: format!(
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Methodology,
+            format!(
                 "tx wall={} +{}{} {}",
                 info.wall_time, info.assert_count, retract_str, rationale_short,
             ),
-            tokens: 12,
-                    attention: None,
-        });
+            12,
+        ));
     }
 
     // Remaining count if truncated (Speculative)
     if tx_infos.len() > 5 {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Speculative,
-            content: format!("... and {} more transactions", tx_infos.len() - 5),
-            tokens: 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Speculative,
+            format!("... and {} more transactions", tx_infos.len() - 5),
+            5,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {

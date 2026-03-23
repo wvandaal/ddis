@@ -292,9 +292,9 @@ pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, Brai
     let tx_since_harvest = count_txns_since_last_harvest(&store);
 
     let mut context_blocks = vec![
-        braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::System,
-            content: format!(
+        braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::System,
+            format!(
                 "session: +{} tasks, {} closed, {} observations, {} txns ({}m)",
                 tasks_created,
                 tasks_closed,
@@ -302,27 +302,24 @@ pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, Brai
                 txn_count,
                 duration_secs / 60,
             ),
-            tokens: 15,
-                    attention: None,
-        },
-        braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
-            content: format!(
+            15,
+        ),
+        braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Methodology,
+            format!(
                 "F(S)={:.2} | harvest: {} tx since last",
                 fitness.total, tx_since_harvest
             ),
-            tokens: 10,
-                    attention: None,
-        },
+            10,
+        ),
     ];
 
     if tasks_in_progress > 0 {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!("{} tasks in-progress", tasks_in_progress),
-            tokens: 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!("{} tasks in-progress", tasks_in_progress),
+            5,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {

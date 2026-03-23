@@ -1006,19 +1006,18 @@ fn build_harvest_output(
     let mut context_blocks = Vec::new();
 
     // Harvest summary (System)
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!(
             "harvest: \"{task}\" ({task_source}) | candidates: {candidate_count} ({committed_count}c/{proposed}p/{rejected}r)"
         ),
-        tokens: 15,
-                    attention: None,
-    });
+        15,
+    ));
 
     // Drift and quality (Methodology)
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::Methodology,
-        content: format!(
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::Methodology,
+        format!(
             "drift={:.2} | quality: {}h/{}m/{}l | session_entities: {}",
             result.drift_score,
             result.quality.high_confidence,
@@ -1026,18 +1025,16 @@ fn build_harvest_output(
             result.quality.low_confidence,
             result.session_entities,
         ),
-        tokens: 15,
-                    attention: None,
-    });
+        15,
+    ));
 
     // Completeness gaps (UserRequested — shown when non-zero)
     if result.completeness_gaps > 0 {
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
-            content: format!("completeness_gaps: {}", result.completeness_gaps),
-            tokens: 5,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::UserRequested,
+            format!("completeness_gaps: {}", result.completeness_gaps),
+            5,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {

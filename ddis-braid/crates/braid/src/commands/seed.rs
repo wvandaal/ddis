@@ -236,18 +236,17 @@ pub fn run(
     let mut context_blocks = Vec::new();
 
     // Seed summary (System)
-    context_blocks.push(braid_kernel::budget::ContextBlock {
-        precedence: braid_kernel::budget::OutputPrecedence::System,
-        content: format!(
+    context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+        braid_kernel::budget::OutputPrecedence::System,
+        format!(
             "seed: \"{}\" | {} tokens/{} budget | {} entities",
             seed.task,
             seed.context.total_tokens,
             budget,
             store.entity_count(),
         ),
-        tokens: 15,
-                    attention: None,
-    });
+        15,
+    ));
 
     // Seed sections as context (Methodology)
     for section in &seed.context.sections {
@@ -280,12 +279,11 @@ pub fn run(
                 ("directive", short)
             }
         };
-        context_blocks.push(braid_kernel::budget::ContextBlock {
-            precedence: braid_kernel::budget::OutputPrecedence::Methodology,
-            content: format!("{label}: {snippet}"),
-            tokens: 10,
-                    attention: None,
-        });
+        context_blocks.push(braid_kernel::budget::ContextBlock::new_scored(
+            braid_kernel::budget::OutputPrecedence::Methodology,
+            format!("{label}: {snippet}"),
+            10,
+        ));
     }
 
     let projection = braid_kernel::ActionProjection {
