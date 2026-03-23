@@ -148,9 +148,22 @@ pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBl
         check("harvest", score.components.harvest_quality, 0.4, "harvest"),
     );
 
-    // UAQ-3: Score methodology blocks with AcquisitionScore.
+    // UAQ-3/UAQ-5: Score methodology blocks with AcquisitionScore.
     // Each block gets a canonical label for presentation-count tracking.
-    let score_block = |label: &str, impact: f64| -> Option<crate::budget::AcquisitionScore> {
+    // UAQ-5: Use per-type calibration for confidence factor.
+    let calibration = compute_calibration_metrics(store);
+    let block_confidence = calibration
+        .per_type_accuracy
+        .get("block")
+        .map(|e| (1.0 - e).clamp(0.1, 1.0))
+        .unwrap_or_else(|| {
+            if calibration.completed_hypotheses >= 5 {
+                (1.0 - calibration.mean_error).clamp(0.1, 1.0)
+            } else {
+                1.0
+            }
+        });
+    let score_block = |label: &str, impact: f64, tokens: usize| -> Option<crate::budget::AcquisitionScore> {
         let count = block_presentation_count(store, label);
         let novelty = 1.0 / (count.max(1) as f64).sqrt();
         Some(crate::budget::AcquisitionScore::from_factors(
@@ -158,8 +171,8 @@ pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBl
             impact,
             1.0, // methodology blocks always relevant
             novelty,
-            1.0, // bootstrap confidence
-            crate::budget::ObservationCost::from_tokens(20),
+            block_confidence,
+            crate::budget::ObservationCost::from_tokens(tokens),
         ))
     };
 
@@ -167,11 +180,10 @@ pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBl
         precedence: crate::budget::OutputPrecedence::Methodology,
         content: m_line,
         tokens: 20,
-        attention: score_block("methodology", 0.8),
+        attention: score_block("methodology", 0.8, 20),
     }];
 
     // Store state context
-    let store_tokens = 8;
     blocks.push(crate::budget::ContextBlock {
         precedence: crate::budget::OutputPrecedence::Ambient,
         content: format!(
@@ -179,8 +191,8 @@ pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBl
             store.len(),
             store.frontier().len()
         ),
-        tokens: store_tokens,
-        attention: score_block("store-state", 0.3),
+        tokens: 8,
+        attention: score_block("store-state", 0.3, 8),
     });
 
     blocks

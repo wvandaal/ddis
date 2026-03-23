@@ -862,15 +862,22 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
         }
     }
 
-    // UAQ-2: Enrich acquisition scores with store-derived signals.
+    // UAQ-2/UAQ-5: Enrich acquisition scores with store-derived signals.
     // Factors: impact (already from R(t)), relevance (session × spec anchor),
-    // novelty (1/sqrt(presentation_count)), confidence (1.0 - calibration error).
+    // novelty (1/sqrt(presentation_count)), confidence (per-type calibration error).
     let calibration = compute_calibration_metrics(store);
-    let confidence_factor = if calibration.completed_hypotheses >= 5 {
-        (1.0 - calibration.mean_error).clamp(0.1, 1.0)
-    } else {
-        1.0 // uninformative prior when insufficient data
-    };
+    // UAQ-5: Use per-type accuracy for tasks; fall back to overall mean.
+    let task_confidence = calibration
+        .per_type_accuracy
+        .get("task")
+        .map(|e| (1.0 - e).clamp(0.1, 1.0))
+        .unwrap_or_else(|| {
+            if calibration.completed_hypotheses >= 5 {
+                (1.0 - calibration.mean_error).clamp(0.1, 1.0)
+            } else {
+                1.0
+            }
+        });
 
     let attention_attr = Attribute::from_keyword(":attention/presentation-count");
     for r in &mut routings {
@@ -889,13 +896,13 @@ pub fn compute_routing_from_store(store: &Store) -> Vec<TaskRouting> {
         // Relevance = session_boost × spec_anchor (both already computed)
         let relevance = (r.metrics.session_boost * r.metrics.spec_anchor).min(1.0);
 
-        // Recompute acquisition score with enriched factors
+        // Recompute acquisition score with enriched factors (UAQ-5: per-type confidence)
         r.acquisition_score = AcquisitionScore::from_factors(
             ObservationKind::Task,
             r.impact,
             relevance,
             novelty,
-            confidence_factor,
+            task_confidence,
             ObservationCost::zero(), // tasks don't have token cost
         );
     }
