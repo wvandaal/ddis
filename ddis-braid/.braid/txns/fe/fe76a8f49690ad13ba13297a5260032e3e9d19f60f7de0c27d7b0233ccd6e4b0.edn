@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774230214/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DC-10: Queryable epistemic status — braid query --depth <min> filters entities by dialectical depth. braid task ready --depth 2 shows only tasks whose traced spec elements are at depth >= 2 (tested or better). braid status --epistemic shows breakdown: N claims, M hypotheses, K knowledge. This makes the claim→hypothesis→knowledge ladder visible and actionable. Also: braid query --epistemic knowledge returns only entities at depth 3+. ACCEPTANCE: (A) --depth flag filters correctly. (B) --epistemic flag shows breakdown. (C) Backward compatible: no flag = current behavior. DEPENDS-ON: DC-1. FILE: crates/braid/src/commands/query.rs + task.rs + status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :db/ident :v :task/t-41365613 :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/acceptance :v "(A) --depth flag filters correctly. (B) --epistemic flag shows breakdown. (C) Backward compatible: no flag = current behavior. DEPENDS-ON: DC-1." :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/body :v "ACCEPTANCE: (A) --depth flag filters correctly. (B) --epistemic flag shows breakdown. (C) Backward compatible: no flag = current behavior. DEPENDS-ON: DC-1. FILE: crates/braid/src/commands/query.rs + task.rs + status.rs" :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/created-at :v 1774230213 :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/files :v "crates/braid/src/commands/query.rs" :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/id :v "t-41365613" :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/title :v "DC-10: Queryable epistemic status — braid query --depth <min> filters entities by dialectical depth. braid task ready --depth 2 shows only tasks whose traced spec elements are at depth >= 2 (tested or better). braid status --epistemic shows breakdown: N claims, M hypotheses, K knowledge. This makes the claim→hypothesis→knowledge ladder visible and actionable. Also: braid query --epistemic knowledge returns only entities at depth 3+" :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/title-l0 :v "DC-10" :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/title-l1 :v "DC-10: Queryable epistemic status — braid query --depth <min> filters entit..." :op :assert}
+   {:e #blake3 "203964855273d33b915ae7942f4ca05947ca3141b22fa5f8fe75479bf6842c5a" :a :task/type :v :task.type/task :op :assert}
+ ]}
