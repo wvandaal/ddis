@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774301365/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e9471f3a"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/close-reason :v "Implemented Session 038: compute_routing_with_calibration + methodology_context_blocks_with_calibration. Status.rs wired to share calibration. Commit c7f1f460." :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/closed-at :v 1774301364 :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "3839f8a2acf25592baae15bae897de39416f31b4d6ce2664f41badc059a0b92a" :a :task/status :v :task.status/closed :op :assert}
+ ]}

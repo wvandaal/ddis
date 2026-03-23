@@ -748,6 +748,48 @@ pub struct ContextBlock {
     pub attention: Option<AcquisitionScore>,
 }
 
+impl ContextBlock {
+    /// Create a context block with a default AcquisitionScore based on precedence.
+    ///
+    /// Impact defaults by precedence tier (ACP-SCORE-1):
+    /// - System: 1.0 (always critical)
+    /// - Methodology: 0.8
+    /// - UserRequested: 0.6
+    /// - Speculative: 0.4
+    /// - Ambient: 0.2
+    ///
+    /// This eliminates the `attention: None` bifurcation — all blocks participate
+    /// in UAQ ranking from creation. Callers with richer signals (calibration,
+    /// novelty from presentation count) should construct `AcquisitionScore` directly.
+    pub fn new_scored(
+        precedence: OutputPrecedence,
+        content: String,
+        tokens: usize,
+    ) -> Self {
+        let impact = match precedence {
+            OutputPrecedence::System => 1.0,
+            OutputPrecedence::Methodology => 0.8,
+            OutputPrecedence::UserRequested => 0.6,
+            OutputPrecedence::Speculative => 0.4,
+            OutputPrecedence::Ambient => 0.2,
+        };
+        let score = AcquisitionScore::from_factors(
+            ObservationKind::ContextBlock,
+            impact,
+            1.0, // default relevance
+            1.0, // default novelty (no presentation count available)
+            1.0, // default confidence (no calibration available)
+            ObservationCost::from_tokens(tokens),
+        );
+        ContextBlock {
+            precedence,
+            content,
+            tokens,
+            attention: Some(score),
+        }
+    }
+}
+
 /// The universal ACP output type (INV-BUDGET-007).
 ///
 /// Every command can produce an ActionProjection. The budget gate selects
