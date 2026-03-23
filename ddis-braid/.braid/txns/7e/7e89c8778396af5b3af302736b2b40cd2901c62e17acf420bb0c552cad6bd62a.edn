@@ -1,0 +1,28 @@
+{:tx/id #hlc "1774283590/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-FOUNDATION-029 \"Connection Lifecycle as Universal Schema — the six attention attributes are connection dynamics, not block metadata\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "53b2eb209306a998a53ad165841df4ede5325a8c0aeb6be36172fa098c3c57a5" :a :db/ident :v :task/t-77d456ed :op :assert}
+   {:e #blake3 "53b2eb209306a998a53ad165841df4ede5325a8c0aeb6be36172fa098c3c57a5" :a :task/created-at :v 1774283589 :op :assert}
+   {:e #blake3 "53b2eb209306a998a53ad165841df4ede5325a8c0aeb6be36172fa098c3c57a5" :a :task/id :v "t-77d456ed" :op :assert}
+   {:e #blake3 "53b2eb209306a998a53ad165841df4ede5325a8c0aeb6be36172fa098c3c57a5" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "53b2eb209306a998a53ad165841df4ede5325a8c0aeb6be36172fa098c3c57a5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "53b2eb209306a998a53ad165841df4ede5325a8c0aeb6be36172fa098c3c57a5" :a :task/title :v "Implement ADR-FOUNDATION-029: Connection Lifecycle as Universal Schema — the six attention attributes are connection dynamics, not block metadata" :op :assert}
+   {:e #blake3 "53b2eb209306a998a53ad165841df4ede5325a8c0aeb6be36172fa098c3c57a5" :a :task/traces-to :v #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :op :assert}
+   {:e #blake3 "53b2eb209306a998a53ad165841df4ede5325a8c0aeb6be36172fa098c3c57a5" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :adr/decision :v "The six :attention/* attributes are reinterpreted as CONNECTION LIFECYCLE attributes applicable to any entity representing a relationship between two other entities. presentation-count becomes activation-count. last-presented becomes last-activated. hebbian-boost is Hebbian co-activation accumulator. learned-weight is Bayesian posterior confidence. calibration-count is Bayesian update count. block-label becomes connection-kind. In Phase D, these attributes are applied to context blocks (existing) and witness pairings (new). In Phase E, they extend to trace links, hypotheses, and cross-project transfer edges." :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :adr/problem :v "The attention schema (ATT-0) was designed for context blocks only. But witness pairings, trace links, hypotheses, and attention scores all have the same lifecycle: birth, activation, Hebbian strengthening, Bayesian calibration, decay. Each uses bespoke representations instead of a shared schema." :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :comonad/falsification :v #blake3 "e2cb1608f218fab76ab558a521017690c2286265525698d257be94b869050908" :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :db/doc :v "Connection Lifecycle as Universal Schema — the six attention attributes are connection dynamics, not block metadata" :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :db/ident :v :spec/adr-foundation-029 :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :element/traces-to :v "ADR-FOUNDATION-025" :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :spec/falsification :v "Violated if a connection type requires lifecycle dynamics not expressible in the six attributes. A seventh attribute would indicate the schema is incomplete. Also violated if applying lifecycle dynamics to witness pairings degrades witness reliability." :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :spec/id :v "ADR-FOUNDATION-029" :op :assert}
+   {:e #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "e2cb1608f218fab76ab558a521017690c2286265525698d257be94b869050908" :a :db/doc :v "Violated if a connection type requires lifecycle dynamics not expressible in the six attributes. A seventh attribute would indicate the schema is incomplete. Also violated if applying lifecycle dynamics to witness pairings degrades witness reliability." :op :assert}
+ ]}
