@@ -166,7 +166,7 @@ pub fn run(
         ));
     } else {
         // Default: attempt a challenge (depth → max(2, current+1))
-        new_depth = current_depth.max(2).min(4);
+        new_depth = current_depth.clamp(2, 4);
         datoms.push(set_depth_datom(&entity, new_depth, tx));
         datoms.push(Datom::new(
             entity,

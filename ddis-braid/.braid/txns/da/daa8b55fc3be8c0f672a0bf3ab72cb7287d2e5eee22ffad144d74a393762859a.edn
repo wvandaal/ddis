@@ -1,0 +1,28 @@
+{:tx/id #hlc "1774251053/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-ROADMAP-001 \"Phase Model Replaces Stage Model\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "29f076f31eed155c585ade4aa26dbb452d1caeb070654e1f300b5254307b17d5" :a :db/ident :v :task/t-a7473de4 :op :assert}
+   {:e #blake3 "29f076f31eed155c585ade4aa26dbb452d1caeb070654e1f300b5254307b17d5" :a :task/created-at :v 1774251052 :op :assert}
+   {:e #blake3 "29f076f31eed155c585ade4aa26dbb452d1caeb070654e1f300b5254307b17d5" :a :task/id :v "t-a7473de4" :op :assert}
+   {:e #blake3 "29f076f31eed155c585ade4aa26dbb452d1caeb070654e1f300b5254307b17d5" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "29f076f31eed155c585ade4aa26dbb452d1caeb070654e1f300b5254307b17d5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "29f076f31eed155c585ade4aa26dbb452d1caeb070654e1f300b5254307b17d5" :a :task/title :v "Implement ADR-ROADMAP-001: Phase Model Replaces Stage Model" :op :assert}
+   {:e #blake3 "29f076f31eed155c585ade4aa26dbb452d1caeb070654e1f300b5254307b17d5" :a :task/traces-to :v #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :op :assert}
+   {:e #blake3 "29f076f31eed155c585ade4aa26dbb452d1caeb070654e1f300b5254307b17d5" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :adr/decision :v "Replace the 5-stage linear roadmap with a 5-phase evidence-based model derived from actual project trajectory. Phase A (Substrate, COMPLETE) = Store+Schema+Query+Merge+Resolution. Phase B (Lifecycle, COMPLETE) = Harvest+Seed+Session+Guidance+Bilateral+Witness. Phase C (Intelligence, COMPLETE) = CE+COTX+Budget+ACP+Topology+R(t). Phase D (Self-Calibration, 40%) = Hypothesis Ledger+Attention+Comonadic Depth+Policy Calibration. Phase E (Active Runtime, NOT STARTED) = Daemon+Observer+MCP+External. Alternatives rejected: (1) Keep stages — falsified by evidence, 5 specific mismatches documented. (2) Hybrid stage-phase — unnecessary complexity, phases subsume stages." :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :adr/problem :v "The 5-stage linear roadmap (Stage 0-4) assumed linear progression from CLI to multi-agent. Actual trajectory was CLI to formal epistemology to self-calibrating attention. Stage percentages (Stage 1 85%) were misleading — the system built something different from what was planned." :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :comonad/falsification :v #blake3 "f67410a4b424bfa4359424ea72953ddbea0e943627ea023a68ef0c71905caf2a" :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :db/doc :v "Phase Model Replaces Stage Model" :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :db/ident :v :spec/adr-roadmap-001 :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :element/traces-to :v "SEED.md §10" :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :spec/confidence :v 0.95 :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :spec/falsification :v "This ADR is violated if a feature cannot be classified into exactly one phase, indicating the decomposition is incomplete." :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :spec/id :v "ADR-ROADMAP-001" :op :assert}
+   {:e #blake3 "86627c3377213ca7714537bb48febdd157b6b788ff288d61abc79156c2038306" :a :spec/namespace :v :spec.ns/ROADMAP :op :assert}
+   {:e #blake3 "f67410a4b424bfa4359424ea72953ddbea0e943627ea023a68ef0c71905caf2a" :a :db/doc :v "This ADR is violated if a feature cannot be classified into exactly one phase, indicating the decomposition is incomplete." :op :assert}
+ ]}

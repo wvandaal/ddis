@@ -1814,7 +1814,9 @@ impl Model for TransactCoherenceModel {
 /// - Concurrent agents writing to the same entity
 /// - Conflict detection and rejection
 /// - Force-override audit trail
+// 85s Stateright bounded model check — run in nightly CI: cargo test -- --ignored
 #[test]
+#[ignore]
 fn transact_coherence_no_undetected_contradictions() {
     TransactCoherenceModel::new(2, 1, 2)
         .checker()

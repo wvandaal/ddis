@@ -600,7 +600,7 @@ pub fn comonadic_depth(store: &Store, entity: &EntityId) -> i64 {
     let attr = crate::datom::Attribute::from_keyword(":comonad/depth");
     // Use rfind (last by BTreeSet order = latest tx) for LWW semantics
     store
-        .entity_datoms(entity.clone())
+        .entity_datoms(*entity)
         .iter()
         .rev()
         .find(|d| d.attribute == attr && d.op == crate::datom::Op::Assert)
@@ -621,7 +621,7 @@ pub fn set_depth_datom(
     tx: crate::datom::TxId,
 ) -> crate::datom::Datom {
     crate::datom::Datom::new(
-        entity.clone(),
+        *entity,
         crate::datom::Attribute::from_keyword(":comonad/depth"),
         crate::datom::Value::Long(depth.clamp(0, 4)),
         tx,

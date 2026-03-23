@@ -41,6 +41,7 @@ pub mod harvest;
 mod kani_proofs;
 pub mod layout;
 pub mod merge;
+pub mod methodology;
 pub mod policy;
 pub mod promote;
 pub mod proposal;
