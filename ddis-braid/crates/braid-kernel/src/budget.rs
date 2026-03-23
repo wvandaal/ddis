@@ -513,46 +513,199 @@ impl std::fmt::Display for ProjectedAction {
     }
 }
 
-/// Learned attention score for a context block (ADR-FOUNDATION-024).
+// ---------------------------------------------------------------------------
+// Observation kinds (ADR-FOUNDATION-025, INV-FOUNDATION-010)
+// ---------------------------------------------------------------------------
+
+/// Classification of observations competing for the acquisition budget.
 ///
-/// Combines three signals into a composite score that determines block ordering:
-/// - **Surprisal**: 1/sqrt(presentation_count) — novel blocks score higher.
-/// - **Hebbian boost**: Accumulated from verbose-request signals, decays 0.5x/session.
-/// - **Learned weight**: Bayesian-calibrated from outcome correlation (default 1.0).
-///
-/// Composite = surprisal * learned_weight + hebbian_boost.
-/// INV-ATTENTION-001, INV-ATTENTION-002.
-#[derive(Clone, Debug)]
-pub struct AttentionScore {
-    /// Novelty signal: 1/sqrt(presentation_count). 1.0 for never-seen blocks.
-    pub surprisal: f64,
-    /// Accumulated boost from verbose/deep requests. Decays 0.5x per session.
-    pub hebbian_boost: f64,
-    /// Bayesian weight from outcome correlation. Default 1.0.
-    pub learned_weight: f64,
-    /// Combined score: surprisal * learned_weight + hebbian_boost.
-    pub composite: f64,
+/// Each kind maps to a different cost model and expected F(S) impact profile.
+/// `#[non_exhaustive]` allows Phase E extension to 8+ kinds (Extraction,
+/// Review, WitnessRefresh, CouplingExploration, CalibrationMeasurement,
+/// AnomalyInvestigation) without breaking downstream matches.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[non_exhaustive]
+pub enum ObservationKind {
+    /// A task to execute (cost in wall time).
+    Task,
+    /// A context block competing for token budget (cost in tokens).
+    ContextBlock,
+    /// A boundary coherence check (cost in compute + tokens).
+    BoundaryCheck,
 }
 
-impl AttentionScore {
-    /// Compute attention score from presentation count.
+impl std::fmt::Display for ObservationKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ObservationKind::Task => write!(f, "Task"),
+            ObservationKind::ContextBlock => write!(f, "ContextBlock"),
+            ObservationKind::BoundaryCheck => write!(f, "BoundaryCheck"),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Observation cost (ADR-FOUNDATION-025, INV-FOUNDATION-011)
+// ---------------------------------------------------------------------------
+
+/// Cost of performing an observation, measured in attention tokens and wall time.
+///
+/// For context blocks: `attention_tokens` is the block's token count.
+/// For tasks: `wall_time_estimate_ms` is the estimated execution time.
+/// `total_cost()` returns a single f64 for alpha computation: tokens for blocks,
+/// milliseconds for tasks. Zero cost is clamped to 1.0 to prevent division by zero.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ObservationCost {
+    /// Token cost (primary for ContextBlock, secondary for Task).
+    pub attention_tokens: usize,
+    /// Estimated wall time in milliseconds (primary for Task).
+    pub wall_time_estimate_ms: u64,
+}
+
+impl ObservationCost {
+    /// Total cost as a single f64 for alpha computation.
     ///
-    /// Surprisal = 1/sqrt(max(1, count)). For count=0, surprisal=1.0 (maximally novel).
-    /// For count=4, surprisal=0.5. Monotonically decreasing.
-    pub fn from_presentation_count(count: u64, hebbian_boost: f64, learned_weight: f64) -> Self {
-        let surprisal = 1.0 / (count.max(1) as f64).sqrt();
-        let composite = surprisal * learned_weight + hebbian_boost;
-        AttentionScore {
-            surprisal,
-            hebbian_boost,
-            learned_weight,
-            composite,
+    /// Uses the dominant cost dimension: tokens for context blocks (>0 tokens),
+    /// wall time for tasks (0 tokens but >0 ms). Falls back to 1.0 to prevent
+    /// division by zero (INV-FOUNDATION-011).
+    pub fn total_cost(&self) -> f64 {
+        if self.attention_tokens > 0 {
+            self.attention_tokens as f64
+        } else if self.wall_time_estimate_ms > 0 {
+            self.wall_time_estimate_ms as f64
+        } else {
+            1.0 // prevent division by zero
         }
     }
 
-    /// Default attention score for a never-seen block.
+    /// Zero cost (for items that haven't been costed yet).
+    pub fn zero() -> Self {
+        ObservationCost {
+            attention_tokens: 0,
+            wall_time_estimate_ms: 0,
+        }
+    }
+
+    /// Cost from token count (typical for context blocks).
+    pub fn from_tokens(tokens: usize) -> Self {
+        ObservationCost {
+            attention_tokens: tokens,
+            wall_time_estimate_ms: 0,
+        }
+    }
+
+    /// Cost from wall time estimate (typical for tasks).
+    pub fn from_wall_time_ms(ms: u64) -> Self {
+        ObservationCost {
+            attention_tokens: 0,
+            wall_time_estimate_ms: ms,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Acquisition score (ADR-FOUNDATION-025, ADR-FOUNDATION-028, ADR-FOUNDATION-029)
+// ---------------------------------------------------------------------------
+
+/// Cost-aware acquisition score for ranking observations.
+///
+/// Implements the Bayesian optimal experiment design criterion from
+/// ADR-FOUNDATION-019/025: alpha = E[ΔF(S)] / cost(action).
+///
+/// The expected F(S) delta is the product of four factors:
+/// `expected_delta_fs = impact × relevance × novelty × confidence`
+///
+/// This product composition preserves:
+/// - **Monotonicity**: improving any factor improves the score
+/// - **Veto property**: any factor at 0 vetoes the observation
+///
+/// Alpha = expected_delta_fs / cost.total_cost() is the ranking criterion.
+/// Items are ranked by alpha descending (highest value per unit cost first).
+///
+/// INV-FOUNDATION-010, INV-FOUNDATION-011.
+#[derive(Clone, Debug)]
+pub struct AcquisitionScore {
+    /// What kind of observation this scores.
+    pub kind: ObservationKind,
+    /// Impact on F(S) boundaries (0.0–1.0). Higher = more coherence improvement.
+    pub impact: f64,
+    /// Relevance to current session goals (0.0–1.0).
+    pub relevance: f64,
+    /// Novelty: inverse of familiarity (0.0–1.0). 1.0 = never seen.
+    pub novelty: f64,
+    /// Confidence in the expected outcome (0.0–1.0).
+    pub confidence: f64,
+    /// Expected F(S) improvement: impact × relevance × novelty × confidence.
+    pub expected_delta_fs: f64,
+    /// Cost of performing this observation.
+    pub cost: ObservationCost,
+    /// Acquisition value: expected_delta_fs / cost.total_cost().
+    /// THE ranking criterion — higher alpha = better value per unit cost.
+    pub alpha: f64,
+}
+
+impl AcquisitionScore {
+    /// Compute acquisition score from individual factors and cost.
+    ///
+    /// `expected_delta_fs = impact × relevance × novelty × confidence`
+    /// `alpha = expected_delta_fs / cost.total_cost()`
+    pub fn from_factors(
+        kind: ObservationKind,
+        impact: f64,
+        relevance: f64,
+        novelty: f64,
+        confidence: f64,
+        cost: ObservationCost,
+    ) -> Self {
+        let expected_delta_fs = impact * relevance * novelty * confidence;
+        let alpha = expected_delta_fs / cost.total_cost();
+        AcquisitionScore {
+            kind,
+            impact,
+            relevance,
+            novelty,
+            confidence,
+            expected_delta_fs,
+            cost,
+            alpha,
+        }
+    }
+
+    /// Backward-compatible constructor from presentation count.
+    ///
+    /// Maps the old AttentionScore signals into the new acquisition framework:
+    /// - surprisal → novelty
+    /// - hebbian_boost + learned_weight → impact (composite)
+    /// - relevance = 1.0, confidence = 1.0 (defaults)
+    /// - cost = zero (no cost info available from old callers)
+    pub fn from_presentation_count(count: u64, hebbian_boost: f64, learned_weight: f64) -> Self {
+        let novelty = 1.0 / (count.max(1) as f64).sqrt();
+        let impact = novelty * learned_weight + hebbian_boost;
+        Self::from_factors(
+            ObservationKind::ContextBlock,
+            impact,
+            1.0,
+            novelty,
+            1.0,
+            ObservationCost::zero(),
+        )
+    }
+
+    /// Default acquisition score for a never-seen block.
     pub fn novel() -> Self {
         Self::from_presentation_count(0, 0.0, 1.0)
+    }
+
+    /// Composite score for backward-compatible sorting.
+    ///
+    /// When cost is zero (legacy callers), alpha would be infinite. In that
+    /// case, fall back to expected_delta_fs for ordering.
+    pub fn composite(&self) -> f64 {
+        if self.cost.total_cost() <= 1.0 {
+            self.expected_delta_fs
+        } else {
+            self.alpha
+        }
     }
 }
 
@@ -574,10 +727,10 @@ pub struct ContextBlock {
     pub content: String,
     /// Estimated token count (via ApproxTokenCounter).
     pub tokens: usize,
-    /// Optional learned attention score (ADR-FOUNDATION-024).
-    /// When present, blocks are sorted by composite attention score within
+    /// Optional acquisition score (ADR-FOUNDATION-024/025).
+    /// When present, blocks are sorted by alpha (highest first) within
     /// each precedence tier. When absent, static precedence ordering is used.
-    pub attention: Option<AttentionScore>,
+    pub attention: Option<AcquisitionScore>,
 }
 
 /// The universal ACP output type (INV-BUDGET-007).
