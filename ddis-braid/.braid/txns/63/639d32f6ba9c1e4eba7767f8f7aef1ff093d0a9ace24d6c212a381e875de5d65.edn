@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774303196/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-f7b80ea7"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/close-reason :v "Implemented Session 038: BRAID_EXTRACTOR_DEPTH recursion guard in extract dispatch. Commit df4c0ed1." :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/closed-at :v 1774303195 :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "2589c7ff554e8ef9837dbfc7834a16c542a932c8bed6085f74dd5579aff5383b" :a :task/status :v :task.status/closed :op :assert}
+ ]}

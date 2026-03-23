@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774303203/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-00c2f4b2"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/close-reason :v "Implemented Session 038: --json returns structured JSON with 7 top-level fields. Commit df4c0ed1." :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/closed-at :v 1774303202 :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "9eee85b156055d105bb45e3c206e1457ff4bf043b2651ba12d9e5d2e038340ec" :a :task/status :v :task.status/closed :op :assert}
+ ]}

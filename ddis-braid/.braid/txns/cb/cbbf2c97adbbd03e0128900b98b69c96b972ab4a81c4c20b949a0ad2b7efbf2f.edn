@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774303199/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ad7974fd"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/close-reason :v "Implemented Session 038: --verbose uses 10K token budget, expands all blocks. Commit df4c0ed1." :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/closed-at :v 1774303198 :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "cbe112ffaab0f79d12439e9703f64437ea6315e03e918c1a2c81f57645544bef" :a :task/status :v :task.status/closed :op :assert}
+ ]}
