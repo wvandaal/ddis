@@ -1,0 +1,27 @@
+{:tx/id #hlc "1774275675/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-FOUNDATION-011 \"Acquisition Ranking by Alpha — items ranked by E[delta_F(S)] / cost, not by raw expected value\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :a :comonad/falsification :v #blake3 "3ba93b98c46a6565ee30ac0e649d57d4d689b6e1f623f65f77d5a90ab9a0aa1b" :op :assert}
+   {:e #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :a :db/doc :v "Acquisition Ranking by Alpha — items ranked by E[delta_F(S)] / cost, not by raw expected value" :op :assert}
+   {:e #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :a :db/ident :v :spec/inv-foundation-011 :op :assert}
+   {:e #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :a :element/traces-to :v "ADR-FOUNDATION-025" :op :assert}
+   {:e #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :a :spec/confidence :v 0.9 :op :assert}
+   {:e #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :a :spec/falsification :v "Violated if two items with alpha(x) > alpha(y) are ranked y > x in the output. Also violated if cost is not considered — ranking by raw expected_delta_fs ignoring cost means this invariant fails." :op :assert}
+   {:e #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :a :spec/id :v "INV-FOUNDATION-011" :op :assert}
+   {:e #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :a :spec/namespace :v :spec.ns/FOUNDATION :op :assert}
+   {:e #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :a :spec/statement :v "For any two items x, y being ranked by the acquisition function: x is preferred over y iff alpha(x) > alpha(y), where alpha = expected_delta_fs / cost.total_cost(). Items with equal alpha are tie-broken by lower cost (prefer cheaper). This ensures the system maximizes coherence improvement per unit of resource expenditure (tokens for blocks, time for tasks)." :op :assert}
+   {:e #blake3 "3ba93b98c46a6565ee30ac0e649d57d4d689b6e1f623f65f77d5a90ab9a0aa1b" :a :db/doc :v "Violated if two items with alpha(x) > alpha(y) are ranked y > x in the output. Also violated if cost is not considered — ranking by raw expected_delta_fs ignoring cost means this invariant fails." :op :assert}
+   {:e #blake3 "981b1203515e0c1268f9528c5d1c51959129cb2e13271bf9738cbe0dd03796ba" :a :db/ident :v :task/t-e08de1aa :op :assert}
+   {:e #blake3 "981b1203515e0c1268f9528c5d1c51959129cb2e13271bf9738cbe0dd03796ba" :a :task/created-at :v 1774275674 :op :assert}
+   {:e #blake3 "981b1203515e0c1268f9528c5d1c51959129cb2e13271bf9738cbe0dd03796ba" :a :task/id :v "t-e08de1aa" :op :assert}
+   {:e #blake3 "981b1203515e0c1268f9528c5d1c51959129cb2e13271bf9738cbe0dd03796ba" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "981b1203515e0c1268f9528c5d1c51959129cb2e13271bf9738cbe0dd03796ba" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "981b1203515e0c1268f9528c5d1c51959129cb2e13271bf9738cbe0dd03796ba" :a :task/title :v "Implement INV-FOUNDATION-011: Acquisition Ranking by Alpha — items ranked by E[delta_F(S)] / cost, not by raw expected value" :op :assert}
+   {:e #blake3 "981b1203515e0c1268f9528c5d1c51959129cb2e13271bf9738cbe0dd03796ba" :a :task/traces-to :v #blake3 "350f397df9f84e856b876a2e999899f39644c5543723cc37521d471733c83b15" :op :assert}
+   {:e #blake3 "981b1203515e0c1268f9528c5d1c51959129cb2e13271bf9738cbe0dd03796ba" :a :task/type :v :task.type/task :op :assert}
+ ]}

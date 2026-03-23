@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774275752/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DOGFOOD-4: Cross-project calibration transfer — merge stores and measure alpha convergence"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :db/ident :v :task/t-31557443 :op :assert}
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :task/created-at :v 1774275751 :op :assert}
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :task/description :v "CONTEXT: After DOGFOOD-3, calibrated alpha weights exist as datoms in the Go CLI's braid store. These can be merged into braid's own store to test cross-project knowledge transfer. APPROACH: (1) After DOGFOOD-3 analysis, perform braid merge from Go CLI store into braid store. (2) Measure: did braid's alpha weights change to incorporate external calibration? (3) Measure: does braid's mean prediction error decrease after absorbing external data? (4) Measure: does the Go CLI store benefit from braid's 36-session calibration when we merge the other direction? (5) Record results as ADR-FOUNDATION-027 (Cross-Project Calibration Transfer). ALGEBRAIC PROPERTY: Merge is set union (C4). Calibrated weights are datoms. After merge, the combined calibration dataset is the UNION of both project's hypothesis outcomes. The acquisition function trained on the union should have lower error than either individual function (more data = better calibration, assuming domain similarity). FALSIFICATION: If merged calibration is WORSE than individual calibration, the domains are too different for transfer. This would indicate C8 (substrate independence) has a limit — calibration is domain-specific despite substrate-agnostic architecture. ACCEPTANCE: (A) Merge completes without error. (B) Combined calibration dataset is larger than either individual. (C) Mean prediction error measurably changes (in either direction — we're measuring, not assuming improvement). DEPENDS-ON: DOGFOOD-3 (external data must exist). FILE: CLI braid merge operations." :op :assert}
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :task/id :v "t-31557443" :op :assert}
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :task/title :v "DOGFOOD-4: Cross-project calibration transfer — merge stores and measure alpha convergence" :op :assert}
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :task/title-l0 :v "DOGFOOD-4" :op :assert}
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :task/title-l1 :v "DOGFOOD-4: Cross-project calibration transfer — merge stores and measure al..." :op :assert}
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :task/traces-to :v #blake3 "6970fa4b8a2f662566387780053f7e757e6ed64092d1bf1aff6a2798f4a06d86" :op :assert}
+   {:e #blake3 "803f3c3d6ace460ed411718852a4c5e14780a999de5cbe8f3c40027c02a1e517" :a :task/type :v :task.type/task :op :assert}
+ ]}
