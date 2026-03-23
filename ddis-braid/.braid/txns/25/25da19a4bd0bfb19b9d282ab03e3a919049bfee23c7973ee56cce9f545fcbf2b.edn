@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774285641/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :derived
+ :tx/rationale "HL-3: hypothesis outcome for t-c6dab704"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b47127f9cab967aa75a2d78f7c4549f51e474159d9b75fbeb7b0ab9f9ad6540d" :a :hypothesis/actual :v 0.0000006140638946217081 :op :assert}
+   {:e #blake3 "b47127f9cab967aa75a2d78f7c4549f51e474159d9b75fbeb7b0ab9f9ad6540d" :a :hypothesis/completed :v #inst 1774285640 :op :assert}
+   {:e #blake3 "b47127f9cab967aa75a2d78f7c4549f51e474159d9b75fbeb7b0ab9f9ad6540d" :a :hypothesis/error :v 0.26789666225447223 :op :assert}
+ ]}
