@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774304469/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "PERFORMANCE REGRESSION: braid status takes 30+ seconds on 70K datom store (6766 txn files). Both old and new binaries affected — not a Wave 4 regression, but a store growth issue crossing the performance threshold. Root cause: multiple O(N) full-store scans per command (build_json calls derive_actions, build_status_projection calls compute_action_from_store, both trigger compute_routing_from_store which is O(tasks * datoms)). The EXT-BUG-2 --json path adds a THIRD derive_actions call. KNOWN ISSUE: Session 032 documented this as PERF-2 / StatusSnapshot."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8e1db288e5129d19fd6f44ccbf0561e1faa486eb4253563fc8b26c865ca4dca7" :a :db/doc :v "PERFORMANCE REGRESSION: braid status takes 30+ seconds on 70K datom store (6766 txn files). Both old and new binaries affected — not a Wave 4 regression, but a store growth issue crossing the performance threshold. Root cause: multiple O(N) full-store scans per command (build_json calls derive_actions, build_status_projection calls compute_action_from_store, both trigger compute_routing_from_store which is O(tasks * datoms)). The EXT-BUG-2 --json path adds a THIRD derive_actions call. KNOWN ISSUE: Session 032 documented this as PERF-2 / StatusSnapshot." :op :assert}
+   {:e #blake3 "8e1db288e5129d19fd6f44ccbf0561e1faa486eb4253563fc8b26c865ca4dca7" :a :db/ident :v :observation/performance-regression-braid-status-takes-30-seconds-on-70 :op :assert}
+   {:e #blake3 "8e1db288e5129d19fd6f44ccbf0561e1faa486eb4253563fc8b26c865ca4dca7" :a :exploration/body :v "PERFORMANCE REGRESSION: braid status takes 30+ seconds on 70K datom store (6766 txn files). Both old and new binaries affected — not a Wave 4 regression, but a store growth issue crossing the performance threshold. Root cause: multiple O(N) full-store scans per command (build_json calls derive_actions, build_status_projection calls compute_action_from_store, both trigger compute_routing_from_store which is O(tasks * datoms)). The EXT-BUG-2 --json path adds a THIRD derive_actions call. KNOWN ISSUE: Session 032 documented this as PERF-2 / StatusSnapshot." :op :assert}
+   {:e #blake3 "8e1db288e5129d19fd6f44ccbf0561e1faa486eb4253563fc8b26c865ca4dca7" :a :exploration/category :v :exploration.cat/issue :op :assert}
+   {:e #blake3 "8e1db288e5129d19fd6f44ccbf0561e1faa486eb4253563fc8b26c865ca4dca7" :a :exploration/confidence :v 0.9 :op :assert}
+   {:e #blake3 "8e1db288e5129d19fd6f44ccbf0561e1faa486eb4253563fc8b26c865ca4dca7" :a :exploration/content-hash :v #bytes "e48c1a1262ad2052c03803faeb13ddf3923f91ee920303cd42083161e0a99c8f" :op :assert}
+   {:e #blake3 "8e1db288e5129d19fd6f44ccbf0561e1faa486eb4253563fc8b26c865ca4dca7" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "8e1db288e5129d19fd6f44ccbf0561e1faa486eb4253563fc8b26c865ca4dca7" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "8e1db288e5129d19fd6f44ccbf0561e1faa486eb4253563fc8b26c865ca4dca7" :a :exploration/source-session :v #blake3 "88706c0b2389906e3558e224d049612e14c65594f2a64e0f39aababa4d6e21f0" :op :assert}
+ ]}

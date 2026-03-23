@@ -236,25 +236,34 @@ pub fn run(
     // PERF-3/4: Use layout cache for fitness/coherence acceleration
     let snapshot = StatusSnapshot::compute_with_layout(&store, path, Some(&layout));
 
-    // Build JSON representation (always computed -- reused for --json and structured output)
-    let json_value = build_json(StatusJsonParams {
-        path,
-        store: &store,
-        hashes: &hashes,
-        tx_since_harvest,
-        agent_name,
-        deep: false,
-        spectral,
-        verbose,
-        snapshot: &snapshot,
-    });
-
     // ACP: Build the ActionProjection for status (INV-BUDGET-007)
     let projection =
         build_status_projection(path, &store, &hashes, tx_since_harvest, &snapshot);
 
-    // ACP-TRACK-1: Presentation tracking moved to maybe_inject_footer (mod.rs).
-    // All ACP commands now get universal tracking via the _acp JSON field.
+    // UAQ-6 / ACP-TRACK-1: Record presentation counts for blocks that survive budget.
+    // Done here (not in maybe_inject_footer) because the store is already loaded.
+    // Other ACP commands track lazily on next status call.
+    {
+        let budget = braid_kernel::ActivationStrategy::Navigate.max_context_tokens();
+        let labels = braid_kernel::extract_block_labels(&projection.context, budget);
+        if !labels.is_empty() {
+            let label_refs: Vec<&str> = labels.iter().map(|s| s.as_str()).collect();
+            let agent = braid_kernel::datom::AgentId::from_name("braid:attention");
+            let tx = crate::commands::write::next_tx_id(&store, agent);
+            let datoms = braid_kernel::record_block_presentations(&store, &label_refs, tx);
+            if !datoms.is_empty() {
+                let tx_file = braid_kernel::layout::TxFile {
+                    tx_id: tx,
+                    agent,
+                    provenance: braid_kernel::datom::ProvenanceType::Derived,
+                    rationale: "UAQ-6: presentation count tracking".to_string(),
+                    causal_predecessors: vec![],
+                    datoms,
+                };
+                let _ = layout.write_tx(&tx_file); // best-effort
+            }
+        }
+    }
 
     // EXT-BUG-2: --json returns structured JSON early, before building text output
     if json {
@@ -382,6 +391,19 @@ pub fn run(
         content: projected_agent,
         footer: String::new(),
     };
+
+    // Build JSON representation (deferred to non-json path to avoid redundant derive_actions)
+    let json_value = build_json(StatusJsonParams {
+        path,
+        store: &store,
+        hashes: &hashes,
+        tx_since_harvest,
+        agent_name,
+        deep: false,
+        spectral,
+        verbose,
+        snapshot: &snapshot,
+    });
 
     // Always merge ACP field into JSON (enables BAO-2 footer suppression)
     let mut final_json = json_value;

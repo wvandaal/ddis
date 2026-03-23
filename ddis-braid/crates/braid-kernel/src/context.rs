@@ -143,10 +143,14 @@ pub fn record_block_presentations(
             .filter(|d| d.op == Op::Assert)
             .find(|d| matches!(&d.value, Value::String(s) if s.as_str() == *label))
             .map(|d| {
+                // Get LIVE count: the last Assert not superseded by a Retract.
+                // After ACP-FIX-1 retractions, old Assert datoms remain in the store.
+                // Using .filter().last() gets the most recent Assert (insertion order).
                 let count = store
                     .entity_datoms(d.entity)
                     .iter()
-                    .find(|ed| ed.attribute == count_attr && ed.op == Op::Assert)
+                    .filter(|ed| ed.attribute == count_attr && ed.op == Op::Assert)
+                    .last()
                     .and_then(|ed| match &ed.value {
                         Value::Long(n) => Some(*n),
                         _ => None,
@@ -158,10 +162,12 @@ pub fn record_block_presentations(
         let (entity, old_count, old_last) = match existing {
             Some((e, count)) => {
                 // Read existing last-presented for retraction
+                // Get LIVE last-presented (same pattern: last Assert wins)
                 let last = store
                     .entity_datoms(e)
                     .iter()
-                    .find(|ed| ed.attribute == last_attr && ed.op == Op::Assert)
+                    .filter(|ed| ed.attribute == last_attr && ed.op == Op::Assert)
+                    .last()
                     .and_then(|ed| match &ed.value {
                         Value::Instant(ts) => Some(*ts),
                         _ => None,

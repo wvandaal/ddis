@@ -1899,67 +1899,12 @@ fn maybe_inject_footer(
     // This replaces the per-command tracking that was previously only in status.rs.
     // Uses Navigate strategy budget (the agent-mode ceiling) to determine
     // which blocks were "presented". Omitted blocks preserve their novelty.
-    if let Some(acp) = cmd_output.json.get("_acp") {
-        if let Some(p) = path {
-            if let Some(blocks) = acp.get("context_blocks").and_then(|v| v.as_array()) {
-                let budget =
-                    braid_kernel::ActivationStrategy::Navigate.max_context_tokens();
-                let mut remaining = budget;
-                let mut labels = Vec::new();
-                for block in blocks {
-                    let tokens = block
-                        .get("tokens")
-                        .and_then(|v| v.as_u64())
-                        .unwrap_or(0) as usize;
-                    if tokens <= remaining {
-                        remaining = remaining.saturating_sub(tokens);
-                        if let Some(content) = block.get("content").and_then(|v| v.as_str())
-                        {
-                            let label = content
-                                .split_once(':')
-                                .map(|(prefix, _)| prefix.trim().to_lowercase())
-                                .unwrap_or_else(|| {
-                                    content
-                                        .split_whitespace()
-                                        .next()
-                                        .unwrap_or("unknown")
-                                        .to_lowercase()
-                                });
-                            labels.push(label);
-                        }
-                    }
-                }
-                if !labels.is_empty() {
-                    if let Ok(layout) = crate::layout::DiskLayout::open(p) {
-                        if let Ok(store) = layout.load_store() {
-                            let label_refs: Vec<&str> =
-                                labels.iter().map(|s| s.as_str()).collect();
-                            let agent =
-                                braid_kernel::datom::AgentId::from_name("braid:attention");
-                            let tx =
-                                crate::commands::write::next_tx_id(&store, agent);
-                            let datoms = braid_kernel::record_block_presentations(
-                                &store,
-                                &label_refs,
-                                tx,
-                            );
-                            if !datoms.is_empty() {
-                                let tx_file = braid_kernel::layout::TxFile {
-                                    tx_id: tx,
-                                    agent,
-                                    provenance: braid_kernel::datom::ProvenanceType::Derived,
-                                    rationale: "ACP-TRACK-1: universal presentation tracking"
-                                        .to_string(),
-                                    causal_predecessors: vec![],
-                                    datoms,
-                                };
-                                let _ = layout.write_tx(&tx_file); // best-effort
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    if cmd_output.json.get("_acp").is_some() {
+        // ACP-TRACK-1: Presentation tracking is done by commands that already have
+        // the store loaded (e.g., status.rs). Loading the full store here would add
+        // O(N) latency to every command on large stores (70K+ datoms).
+        // The _acp.context_blocks JSON carries the data for future universal tracking.
+
         // BAO-2: Skip legacy footer for ACP-enabled commands (single projection algebra).
         // ACP commands already include the action + methodology context in their body.
         // The legacy footer would add ~100 tokens of REDUNDANT information.
