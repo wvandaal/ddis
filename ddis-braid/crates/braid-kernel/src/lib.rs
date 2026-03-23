@@ -190,7 +190,8 @@ pub use signal::{
     SignalType,
 };
 pub use policy::{
-    validate_policy, AnomalyDef, BoundaryDef, CalibrationConfig, PolicyConfig, PolicyError,
+    apply_weight_adjustments, calibrate_boundary_weights, validate_policy, AnomalyDef,
+    BoundaryDef, CalibrationConfig, PolicyConfig, PolicyError, WeightAdjustment,
 };
 pub use stage::{capabilities, max_stage, stage_name};
 pub use store::{

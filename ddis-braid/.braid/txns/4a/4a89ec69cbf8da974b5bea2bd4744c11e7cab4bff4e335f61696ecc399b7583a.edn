@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774273108/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-e72ec374"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/closed-at :v 1774273107 :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/completion-evidence :v "calibrate_boundary_weights + apply_weight_adjustments + 4 tests + status integration. 1390 kernel tests pass." :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/status :v :task.status/closed :op :assert}
+ ]}

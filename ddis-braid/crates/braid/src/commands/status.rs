@@ -789,6 +789,22 @@ fn build_terse(
         ));
     }
 
+    // HL-CALIBRATE: Weight adjustment recommendations from hypothesis outcomes
+    let weight_adjustments = braid_kernel::calibrate_boundary_weights(store);
+    if !weight_adjustments.is_empty() {
+        out.push_str(&format!(
+            "calibration: {} boundaries need weight adjustment\n",
+            weight_adjustments.len()
+        ));
+        for adj in &weight_adjustments {
+            out.push_str(&format!(
+                "  {} ({} samples, error {:.3}): {:.3} \u{2192} {:.3}\n",
+                adj.boundary_name, adj.sample_count, adj.mean_error,
+                adj.current_weight, adj.recommended_weight,
+            ));
+        }
+    }
+
     // Trace staleness (SC-2)
     let ts = trace_staleness(store, path);
     out.push_str(&format_trace_line(&ts));
