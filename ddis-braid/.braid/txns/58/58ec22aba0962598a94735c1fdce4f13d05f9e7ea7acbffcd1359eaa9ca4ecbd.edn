@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774246282/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-ATTENTION-007 \"Content-Change Surprisal Reset: when a context block's content changes between presentations (hash mismatch), its presentation count resets to 1 regardless of how many times the same label was shown before. Changed information is always high-value.\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3fa21144ebbbb706b584b36794abb915facfcb0a10df594c4fb6c8597d418e1e" :a :db/doc :v "A block whose content changed between presentations has lower surprisal than a block whose content stayed the same for the same number of presentations" :op :assert}
+   {:e #blake3 "4bdc93e2daaac6d109cc5a31fd0ebdce7461aa6fd70d34e5974ade594cfd9205" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "4bdc93e2daaac6d109cc5a31fd0ebdce7461aa6fd70d34e5974ade594cfd9205" :a :comonad/falsification :v #blake3 "3fa21144ebbbb706b584b36794abb915facfcb0a10df594c4fb6c8597d418e1e" :op :assert}
+   {:e #blake3 "4bdc93e2daaac6d109cc5a31fd0ebdce7461aa6fd70d34e5974ade594cfd9205" :a :db/doc :v "Content-Change Surprisal Reset: when a context block's content changes between presentations (hash mismatch), its presentation count resets to 1 regardless of how many times the same label was shown before. Changed information is always high-value." :op :assert}
+   {:e #blake3 "4bdc93e2daaac6d109cc5a31fd0ebdce7461aa6fd70d34e5974ade594cfd9205" :a :db/ident :v :spec/inv-attention-007 :op :assert}
+   {:e #blake3 "4bdc93e2daaac6d109cc5a31fd0ebdce7461aa6fd70d34e5974ade594cfd9205" :a :element/traces-to :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "4bdc93e2daaac6d109cc5a31fd0ebdce7461aa6fd70d34e5974ade594cfd9205" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "4bdc93e2daaac6d109cc5a31fd0ebdce7461aa6fd70d34e5974ade594cfd9205" :a :spec/falsification :v "A block whose content changed between presentations has lower surprisal than a block whose content stayed the same for the same number of presentations" :op :assert}
+   {:e #blake3 "4bdc93e2daaac6d109cc5a31fd0ebdce7461aa6fd70d34e5974ade594cfd9205" :a :spec/id :v "INV-ATTENTION-007" :op :assert}
+   {:e #blake3 "4bdc93e2daaac6d109cc5a31fd0ebdce7461aa6fd70d34e5974ade594cfd9205" :a :spec/namespace :v :spec.ns/ATTENTION :op :assert}
+   {:e #blake3 "b6a863c4cc7f5101868464363cf3d063570ee237defb1caa942a76ae8e144793" :a :db/ident :v :task/t-8fd79892 :op :assert}
+   {:e #blake3 "b6a863c4cc7f5101868464363cf3d063570ee237defb1caa942a76ae8e144793" :a :task/created-at :v 1774246281 :op :assert}
+   {:e #blake3 "b6a863c4cc7f5101868464363cf3d063570ee237defb1caa942a76ae8e144793" :a :task/id :v "t-8fd79892" :op :assert}
+   {:e #blake3 "b6a863c4cc7f5101868464363cf3d063570ee237defb1caa942a76ae8e144793" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "b6a863c4cc7f5101868464363cf3d063570ee237defb1caa942a76ae8e144793" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b6a863c4cc7f5101868464363cf3d063570ee237defb1caa942a76ae8e144793" :a :task/title :v "Implement INV-ATTENTION-007: Content-Change Surprisal Reset: when a context block's content changes between presentations (hash mismatch), its presentation count resets to 1 regardless of how many times the same label was shown before. Changed information is always high-value" :op :assert}
+   {:e #blake3 "b6a863c4cc7f5101868464363cf3d063570ee237defb1caa942a76ae8e144793" :a :task/traces-to :v #blake3 "4bdc93e2daaac6d109cc5a31fd0ebdce7461aa6fd70d34e5974ade594cfd9205" :op :assert}
+   {:e #blake3 "b6a863c4cc7f5101868464363cf3d063570ee237defb1caa942a76ae8e144793" :a :task/type :v :task.type/task :op :assert}
+ ]}

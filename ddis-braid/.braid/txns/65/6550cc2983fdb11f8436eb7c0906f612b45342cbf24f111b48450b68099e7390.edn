@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774246336/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-ATTENTION-008 \"Composite Attention Score: attention(L,T,A) = surprisal(L) × relevance(L,T) × actionability(L,A) × boost(L), where boost = (1 + hebbian_boost) × learned_weight. Monotone in each factor. All factors in bounded positive ranges.\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1faee2809d0a64e5a286b96fdae092cda984bb866cd5e67eb3bc2af0060556b6" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "1faee2809d0a64e5a286b96fdae092cda984bb866cd5e67eb3bc2af0060556b6" :a :comonad/falsification :v #blake3 "2582c7b7d69f0b34145dfe5b5f0928653d4275f1cddec938d7f7c24dad078cd2" :op :assert}
+   {:e #blake3 "1faee2809d0a64e5a286b96fdae092cda984bb866cd5e67eb3bc2af0060556b6" :a :db/doc :v "Composite Attention Score: attention(L,T,A) = surprisal(L) × relevance(L,T) × actionability(L,A) × boost(L), where boost = (1 + hebbian_boost) × learned_weight. Monotone in each factor. All factors in bounded positive ranges." :op :assert}
+   {:e #blake3 "1faee2809d0a64e5a286b96fdae092cda984bb866cd5e67eb3bc2af0060556b6" :a :db/ident :v :spec/inv-attention-008 :op :assert}
+   {:e #blake3 "1faee2809d0a64e5a286b96fdae092cda984bb866cd5e67eb3bc2af0060556b6" :a :element/traces-to :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "1faee2809d0a64e5a286b96fdae092cda984bb866cd5e67eb3bc2af0060556b6" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "1faee2809d0a64e5a286b96fdae092cda984bb866cd5e67eb3bc2af0060556b6" :a :spec/falsification :v "Increasing any single factor (surprisal, relevance, actionability, or boost) while holding others constant produces a LOWER attention score" :op :assert}
+   {:e #blake3 "1faee2809d0a64e5a286b96fdae092cda984bb866cd5e67eb3bc2af0060556b6" :a :spec/id :v "INV-ATTENTION-008" :op :assert}
+   {:e #blake3 "1faee2809d0a64e5a286b96fdae092cda984bb866cd5e67eb3bc2af0060556b6" :a :spec/namespace :v :spec.ns/ATTENTION :op :assert}
+   {:e #blake3 "2582c7b7d69f0b34145dfe5b5f0928653d4275f1cddec938d7f7c24dad078cd2" :a :db/doc :v "Increasing any single factor (surprisal, relevance, actionability, or boost) while holding others constant produces a LOWER attention score" :op :assert}
+   {:e #blake3 "4fd502b2e36ff8644a2af0908a183a24ec3518311959b329ea853a700fdbfc76" :a :db/ident :v :task/t-ebf32e93 :op :assert}
+   {:e #blake3 "4fd502b2e36ff8644a2af0908a183a24ec3518311959b329ea853a700fdbfc76" :a :task/created-at :v 1774246335 :op :assert}
+   {:e #blake3 "4fd502b2e36ff8644a2af0908a183a24ec3518311959b329ea853a700fdbfc76" :a :task/id :v "t-ebf32e93" :op :assert}
+   {:e #blake3 "4fd502b2e36ff8644a2af0908a183a24ec3518311959b329ea853a700fdbfc76" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "4fd502b2e36ff8644a2af0908a183a24ec3518311959b329ea853a700fdbfc76" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4fd502b2e36ff8644a2af0908a183a24ec3518311959b329ea853a700fdbfc76" :a :task/title :v "Implement INV-ATTENTION-008: Composite Attention Score: attention(L,T,A) = surprisal(L) × relevance(L,T) × actionability(L,A) × boost(L), where boost = (1 + hebbian_boost) × learned_weight. Monotone in each factor. All factors in bounded positive ranges" :op :assert}
+   {:e #blake3 "4fd502b2e36ff8644a2af0908a183a24ec3518311959b329ea853a700fdbfc76" :a :task/traces-to :v #blake3 "1faee2809d0a64e5a286b96fdae092cda984bb866cd5e67eb3bc2af0060556b6" :op :assert}
+   {:e #blake3 "4fd502b2e36ff8644a2af0908a183a24ec3518311959b329ea853a700fdbfc76" :a :task/type :v :task.type/task :op :assert}
+ ]}

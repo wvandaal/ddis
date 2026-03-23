@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774246274/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: INV-ATTENTION-006 \"Cache Safety: .braid/cache/attention.json is a pure function of session history. Deleting it is always safe — all counts reset to 0, surprisal returns to 1.0. The cache never contains knowledge that would be lost on deletion.\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "31908f4448718f512e7525239f819645618bf4deae6a9b7ce3bdf1c5fc593701" :a :db/doc :v "Deleting .braid/cache/attention.json causes any learned weight, Hebbian boost, or calibration datum to be lost" :op :assert}
+   {:e #blake3 "b9d2b60d45da6e415ed8fc2f044d268dac290123bdb550667f969c9982322f43" :a :db/ident :v :task/t-06172330 :op :assert}
+   {:e #blake3 "b9d2b60d45da6e415ed8fc2f044d268dac290123bdb550667f969c9982322f43" :a :task/created-at :v 1774246273 :op :assert}
+   {:e #blake3 "b9d2b60d45da6e415ed8fc2f044d268dac290123bdb550667f969c9982322f43" :a :task/id :v "t-06172330" :op :assert}
+   {:e #blake3 "b9d2b60d45da6e415ed8fc2f044d268dac290123bdb550667f969c9982322f43" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "b9d2b60d45da6e415ed8fc2f044d268dac290123bdb550667f969c9982322f43" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b9d2b60d45da6e415ed8fc2f044d268dac290123bdb550667f969c9982322f43" :a :task/title :v "Implement INV-ATTENTION-006: Cache Safety: .braid/cache/attention.json is a pure function of session history. Deleting it is always safe — all counts reset to 0, surprisal returns to 1.0. The cache never contains knowledge that would be lost on deletion" :op :assert}
+   {:e #blake3 "b9d2b60d45da6e415ed8fc2f044d268dac290123bdb550667f969c9982322f43" :a :task/traces-to :v #blake3 "e3c1b9af0b886af4de609bc78cdbf98aaf94476be0d8cd33898a7439952a8be0" :op :assert}
+   {:e #blake3 "b9d2b60d45da6e415ed8fc2f044d268dac290123bdb550667f969c9982322f43" :a :task/type :v :task.type/task :op :assert}
+   {:e #blake3 "e3c1b9af0b886af4de609bc78cdbf98aaf94476be0d8cd33898a7439952a8be0" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "e3c1b9af0b886af4de609bc78cdbf98aaf94476be0d8cd33898a7439952a8be0" :a :comonad/falsification :v #blake3 "31908f4448718f512e7525239f819645618bf4deae6a9b7ce3bdf1c5fc593701" :op :assert}
+   {:e #blake3 "e3c1b9af0b886af4de609bc78cdbf98aaf94476be0d8cd33898a7439952a8be0" :a :db/doc :v "Cache Safety: .braid/cache/attention.json is a pure function of session history. Deleting it is always safe — all counts reset to 0, surprisal returns to 1.0. The cache never contains knowledge that would be lost on deletion." :op :assert}
+   {:e #blake3 "e3c1b9af0b886af4de609bc78cdbf98aaf94476be0d8cd33898a7439952a8be0" :a :db/ident :v :spec/inv-attention-006 :op :assert}
+   {:e #blake3 "e3c1b9af0b886af4de609bc78cdbf98aaf94476be0d8cd33898a7439952a8be0" :a :element/traces-to :v "ADR-ATTENTION-001" :op :assert}
+   {:e #blake3 "e3c1b9af0b886af4de609bc78cdbf98aaf94476be0d8cd33898a7439952a8be0" :a :spec/element-type :v :spec.type/invariant :op :assert}
+   {:e #blake3 "e3c1b9af0b886af4de609bc78cdbf98aaf94476be0d8cd33898a7439952a8be0" :a :spec/falsification :v "Deleting .braid/cache/attention.json causes any learned weight, Hebbian boost, or calibration datum to be lost" :op :assert}
+   {:e #blake3 "e3c1b9af0b886af4de609bc78cdbf98aaf94476be0d8cd33898a7439952a8be0" :a :spec/id :v "INV-ATTENTION-006" :op :assert}
+   {:e #blake3 "e3c1b9af0b886af4de609bc78cdbf98aaf94476be0d8cd33898a7439952a8be0" :a :spec/namespace :v :spec.ns/ATTENTION :op :assert}
+ ]}

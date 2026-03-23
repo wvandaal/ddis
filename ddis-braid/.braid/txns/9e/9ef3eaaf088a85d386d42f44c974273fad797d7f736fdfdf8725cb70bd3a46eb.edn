@@ -1,0 +1,25 @@
+{:tx/id #hlc "1774246205/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "spec create: ADR-ATTENTION-001 \"Dual-Path Attention State: hot-path cache file for presentation counts, cold-path datoms for learned weights\""
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "16e73c31ad4ee4222a88dda5f7d9d9fa710009f65696b472af63874a8dbd7f0b" :a :db/doc :v "The cache file introduces state inconsistency where presentation counts diverge from what the store believes was presented, leading to incorrect surprisal scores that degrade output quality" :op :assert}
+   {:e #blake3 "4295984eaef4cd98e9ef82febca78e2792f681c1624c2273b744434c1f03fc3f" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "4295984eaef4cd98e9ef82febca78e2792f681c1624c2273b744434c1f03fc3f" :a :comonad/falsification :v #blake3 "16e73c31ad4ee4222a88dda5f7d9d9fa710009f65696b472af63874a8dbd7f0b" :op :assert}
+   {:e #blake3 "4295984eaef4cd98e9ef82febca78e2792f681c1624c2273b744434c1f03fc3f" :a :db/doc :v "Dual-Path Attention State: hot-path cache file for presentation counts, cold-path datoms for learned weights" :op :assert}
+   {:e #blake3 "4295984eaef4cd98e9ef82febca78e2792f681c1624c2273b744434c1f03fc3f" :a :db/ident :v :spec/adr-attention-001 :op :assert}
+   {:e #blake3 "4295984eaef4cd98e9ef82febca78e2792f681c1624c2273b744434c1f03fc3f" :a :element/traces-to :v "ADR-FOUNDATION-024" :op :assert}
+   {:e #blake3 "4295984eaef4cd98e9ef82febca78e2792f681c1624c2273b744434c1f03fc3f" :a :spec/element-type :v :spec.type/adr :op :assert}
+   {:e #blake3 "4295984eaef4cd98e9ef82febca78e2792f681c1624c2273b744434c1f03fc3f" :a :spec/falsification :v "The cache file introduces state inconsistency where presentation counts diverge from what the store believes was presented, leading to incorrect surprisal scores that degrade output quality" :op :assert}
+   {:e #blake3 "4295984eaef4cd98e9ef82febca78e2792f681c1624c2273b744434c1f03fc3f" :a :spec/id :v "ADR-ATTENTION-001" :op :assert}
+   {:e #blake3 "4295984eaef4cd98e9ef82febca78e2792f681c1624c2273b744434c1f03fc3f" :a :spec/namespace :v :spec.ns/ATTENTION :op :assert}
+   {:e #blake3 "954fb95137b616d480f98bad1c77b6f7dc60d22fbedc80979a12599b66423dbf" :a :db/ident :v :task/t-14495230 :op :assert}
+   {:e #blake3 "954fb95137b616d480f98bad1c77b6f7dc60d22fbedc80979a12599b66423dbf" :a :task/created-at :v 1774246204 :op :assert}
+   {:e #blake3 "954fb95137b616d480f98bad1c77b6f7dc60d22fbedc80979a12599b66423dbf" :a :task/id :v "t-14495230" :op :assert}
+   {:e #blake3 "954fb95137b616d480f98bad1c77b6f7dc60d22fbedc80979a12599b66423dbf" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "954fb95137b616d480f98bad1c77b6f7dc60d22fbedc80979a12599b66423dbf" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "954fb95137b616d480f98bad1c77b6f7dc60d22fbedc80979a12599b66423dbf" :a :task/title :v "Implement ADR-ATTENTION-001: Dual-Path Attention State: hot-path cache file for presentation counts, cold-path datoms for learned weights" :op :assert}
+   {:e #blake3 "954fb95137b616d480f98bad1c77b6f7dc60d22fbedc80979a12599b66423dbf" :a :task/traces-to :v #blake3 "4295984eaef4cd98e9ef82febca78e2792f681c1624c2273b744434c1f03fc3f" :op :assert}
+   {:e #blake3 "954fb95137b616d480f98bad1c77b6f7dc60d22fbedc80979a12599b66423dbf" :a :task/type :v :task.type/task :op :assert}
+ ]}
