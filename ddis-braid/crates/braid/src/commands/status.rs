@@ -568,6 +568,25 @@ pub fn build_status_projection(
         tokens: 10,
     });
 
+    // 5a. HL-4: Hypothesis calibration metrics (Methodology)
+    let cal = braid_kernel::guidance::compute_calibration_metrics(store);
+    if cal.total_hypotheses > 0 {
+        let trend_str = match cal.trend {
+            braid_kernel::guidance::CalibrationTrend::Improving => "improving",
+            braid_kernel::guidance::CalibrationTrend::Stable => "stable",
+            braid_kernel::guidance::CalibrationTrend::Degrading => "degrading",
+            braid_kernel::guidance::CalibrationTrend::Insufficient => "insufficient data",
+        };
+        context.push(ContextBlock {
+            precedence: OutputPrecedence::Methodology,
+            content: format!(
+                "hypotheses: {}/{} completed, mean error {:.3}, trend: {}",
+                cal.completed_hypotheses, cal.total_hypotheses, cal.mean_error, trend_str
+            ),
+            tokens: 12,
+        });
+    }
+
     // 5b. Trace staleness (Methodology, SC-2) — use snapshot
     let ts = &snapshot.trace_status;
     let trace_content = match ts {
@@ -624,6 +643,13 @@ pub fn build_status_projection(
     // Add methodology M(t) context blocks (ACP-9: footer -> context)
     let methodology_blocks = braid_kernel::guidance::methodology_context_blocks(store);
     context.extend(methodology_blocks);
+
+    // Sort context blocks by precedence (highest first) so that
+    // budget-constrained modes (Agent/Navigate at 100 tokens) render
+    // the most important blocks first (INV-BUDGET-008: monotonic fill).
+    context.sort_by(|a, b| {
+        (b.precedence as u8).cmp(&(a.precedence as u8))
+    });
 
     braid_kernel::ActionProjection {
         action,
