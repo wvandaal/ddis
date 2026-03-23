@@ -1,0 +1,18 @@
+{:tx/id #hlc "1774231589/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-E2E: External project E2E test — scripts/e2e_external_project.sh validates braid works on non-braid projects. TESTS: (1) braid init -p /tmp/test/.braid in a Go project detects lang=go, git=yes, LOC>0. (2) braid init -p /tmp/test/.braid in a TS project detects lang=typescript. (3) braid observe captures data queryable on NEXT command. (4) braid task create produces task findable by braid task search. (5) braid status shows no ghost command recommendations. (6) Fresh store shows no harvest nag. (7) Fresh store shows 'not measured' instead of vacuous 1.00. (8) braid extract on Go project with meta-extractor shows recommended extractors. (9) braid seed --for-human produces readable orientation. (10) Full lifecycle: init → observe → task create → status → harvest works end-to-end on external project. All checks use temporary stores in /tmp to avoid modifying target projects. DEPENDS-ON: CACHE-BUG, FIX-PATH, FIX-GHOST. FILE: scripts/e2e_external_project.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "57871ef0fb6d23aa462a2f39f8825f92454f6fdf2dda59da1916c542d502b2b2" :a :db/ident :v :task/t-f9d85d00 :op :assert}
+   {:e #blake3 "57871ef0fb6d23aa462a2f39f8825f92454f6fdf2dda59da1916c542d502b2b2" :a :task/created-at :v 1774231588 :op :assert}
+   {:e #blake3 "57871ef0fb6d23aa462a2f39f8825f92454f6fdf2dda59da1916c542d502b2b2" :a :task/files :v "scripts/e2e_external_project.sh" :op :assert}
+   {:e #blake3 "57871ef0fb6d23aa462a2f39f8825f92454f6fdf2dda59da1916c542d502b2b2" :a :task/id :v "t-f9d85d00" :op :assert}
+   {:e #blake3 "57871ef0fb6d23aa462a2f39f8825f92454f6fdf2dda59da1916c542d502b2b2" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "57871ef0fb6d23aa462a2f39f8825f92454f6fdf2dda59da1916c542d502b2b2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "57871ef0fb6d23aa462a2f39f8825f92454f6fdf2dda59da1916c542d502b2b2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "57871ef0fb6d23aa462a2f39f8825f92454f6fdf2dda59da1916c542d502b2b2" :a :task/title :v "FIX-E2E: External project E2E test — scripts/e2e_external_project.sh validates braid works on non-braid projects. TESTS: (1) braid init -p /tmp/test/.braid in a Go project detects lang=go, git=yes, LOC>0. (2) braid init -p /tmp/test/.braid in a TS project detects lang=typescript. (3) braid observe captures data queryable on NEXT command. (4) braid task create produces task findable by braid task search. (5) braid status shows no ghost command recommendations. (6) Fresh store shows no harvest nag. (7) Fresh store shows 'not measured' instead of vacuous 1.00. (8) braid extract on Go project with meta-extractor shows recommended extractors. (9) braid seed --for-human produces readable orientation. (10) Full lifecycle: init → observe → task create → status → harvest works end-to-end on external project. All checks use temporary stores in /tmp to avoid modifying target projects. DEPENDS-ON: CACHE-BUG, FIX-PATH, FIX-GHOST. FILE: scripts/e2e_external_project.sh" :op :assert}
+   {:e #blake3 "57871ef0fb6d23aa462a2f39f8825f92454f6fdf2dda59da1916c542d502b2b2" :a :task/title-l0 :v "FIX-E2E" :op :assert}
+   {:e #blake3 "57871ef0fb6d23aa462a2f39f8825f92454f6fdf2dda59da1916c542d502b2b2" :a :task/title-l1 :v "FIX-E2E: External project E2E test — scripts/e2e_external_project.sh valida..." :op :assert}
+   {:e #blake3 "57871ef0fb6d23aa462a2f39f8825f92454f6fdf2dda59da1916c542d502b2b2" :a :task/type :v :task.type/test :op :assert}
+ ]}

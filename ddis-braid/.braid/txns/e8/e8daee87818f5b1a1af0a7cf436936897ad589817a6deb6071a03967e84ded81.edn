@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774231569/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-NAG: Suppress harvest warning on fresh stores. CONTEXT: NEG-HARVEST-001 fires on the very first command after init — user hasn't done anything yet. Off-putting. FIX: Don't fire harvest warning if total_txns < 5 (fresh store). The warning exists to catch mid-session knowledge loss, not to punish initialization. ACCEPTANCE: (A) braid status on freshly-initialized store shows no harvest warning. (B) After 5+ user transactions, warning resumes normally. FILE: crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :db/ident :v :task/t-57716f2f :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/acceptance :v "(A) braid status on freshly-initialized store shows no harvest warning. (B) After 5+ user transactions, warning resumes normally." :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/body :v "ACCEPTANCE: (A) braid status on freshly-initialized store shows no harvest warning. (B) After 5+ user transactions, warning resumes normally. FILE: crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/created-at :v 1774231568 :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/id :v "t-57716f2f" :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/title :v "FIX-NAG: Suppress harvest warning on fresh stores. CONTEXT: NEG-HARVEST-001 fires on the very first command after init — user hasn't done anything yet. Off-putting. FIX: Don't fire harvest warning if total_txns < 5 (fresh store). The warning exists to catch mid-session knowledge loss, not to punish initialization" :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/title-l0 :v "FIX-NAG" :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/title-l1 :v "FIX-NAG: Suppress harvest warning on fresh stores" :op :assert}
+   {:e #blake3 "33d187cbf9ab45bc1e318ff0818518ce10e5b3694538fbede9a3ea2747967ef8" :a :task/type :v :task.type/bug :op :assert}
+ ]}

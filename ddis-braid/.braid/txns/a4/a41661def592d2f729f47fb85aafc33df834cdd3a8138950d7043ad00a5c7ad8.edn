@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774231571/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-JARGON: Progressive disclosure of internal metrics for new users. CONTEXT: New users see M(t)=0.34, delta-cryst, INV-GUIDANCE-003, Temporal divergence on their first interaction. These are meaningless without DDIS context. FIX: (1) When store has <100 user datoms (fresh project), suppress M(t), delta-cryst, and INV references from default status output. Show only: store size, detected language, F(S) with plain-language interpretation ('getting started' / 'building knowledge' / 'well-tracked'). (2) Internal metrics available via --verbose flag. (3) As store grows past thresholds, progressively reveal more metrics. ACCEPTANCE: (A) Fresh store status shows plain-language summary. (B) --verbose shows full metrics. (C) Experienced store (>500 datoms) shows full metrics by default. FILE: crates/braid/src/commands/status.rs + crates/braid-kernel/src/guidance.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :db/ident :v :task/t-105db0f4 :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/acceptance :v "(A) Fresh store status shows plain-language summary. (B) --verbose shows full metrics. (C) Experienced store (>500 datoms) shows full metrics by default." :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/body :v "ACCEPTANCE: (A) Fresh store status shows plain-language summary. (B) --verbose shows full metrics. (C) Experienced store (>500 datoms) shows full metrics by default. FILE: crates/braid/src/commands/status.rs + crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/created-at :v 1774231570 :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/id :v "t-105db0f4" :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/title :v "FIX-JARGON: Progressive disclosure of internal metrics for new users. CONTEXT: New users see M(t)=0.34, delta-cryst, INV-GUIDANCE-003, Temporal divergence on their first interaction. These are meaningless without DDIS context. FIX: (1) When store has <100 user datoms (fresh project), suppress M(t), delta-cryst, and INV references from default status output. Show only: store size, detected language, F(S) with plain-language interpretation ('getting started' / 'building knowledge' / 'well-tracked'). (2) Internal metrics available via --verbose flag. (3) As store grows past thresholds, progressively reveal more metrics" :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/title-l0 :v "FIX-JARGON" :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/title-l1 :v "FIX-JARGON: Progressive disclosure of internal metrics for new users" :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/traces-to :v #blake3 "f0b883930ec049de92aadec22b712a3f917ae46ec27e570c495f977956e0fa36" :op :assert}
+   {:e #blake3 "e9b641718bd653cd086878576eadb8864092dd48e04c0aa8b0bd8eab91f9acca" :a :task/type :v :task.type/task :op :assert}
+ ]}

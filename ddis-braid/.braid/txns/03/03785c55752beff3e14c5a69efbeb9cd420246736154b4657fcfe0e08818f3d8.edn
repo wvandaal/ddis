@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774231567/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-GHOST: Remove references to non-existent commands from guidance footer. CONTEXT: Footer recommends 'braid guidance --verbose' and 'braid harvest --verbose' which do not exist. System recommends functionality it doesn't have — trust-destroying for new users. FIX: (1) Remove 'braid guidance' from footer templates in guidance.rs — guidance IS the footer, there's no separate command. (2) Replace 'braid harvest --verbose' with 'braid harvest' (the --verbose flag doesn't exist). (3) Audit ALL footer/status output strings for command references and verify each is a real subcommand. ACCEPTANCE: (A) No guidance footer ever recommends a non-existent command. (B) grep -r 'guidance --verbose' returns 0 matches. (C) grep -r 'harvest --verbose' returns 0 matches. FILE: crates/braid-kernel/src/guidance.rs + crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :db/ident :v :task/t-b647828d :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/acceptance :v "(A) No guidance footer ever recommends a non-existent command. (B) grep -r 'guidance --verbose' returns 0 matches. (C) grep -r 'harvest --verbose' returns 0 matches." :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/body :v "ACCEPTANCE: (A) No guidance footer ever recommends a non-existent command. (B) grep -r 'guidance --verbose' returns 0 matches. (C) grep -r 'harvest --verbose' returns 0 matches. FILE: crates/braid-kernel/src/guidance.rs + crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/created-at :v 1774231566 :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/files :v "crates/braid-kernel/src/guidance.rs" :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/id :v "t-b647828d" :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/title :v "FIX-GHOST: Remove references to non-existent commands from guidance footer. CONTEXT: Footer recommends 'braid guidance --verbose' and 'braid harvest --verbose' which do not exist. System recommends functionality it doesn't have — trust-destroying for new users. FIX: (1) Remove 'braid guidance' from footer templates in guidance.rs — guidance IS the footer, there's no separate command. (2) Replace 'braid harvest --verbose' with 'braid harvest' (the --verbose flag doesn't exist). (3) Audit ALL footer/status output strings for command references and verify each is a real subcommand" :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/title-l0 :v "FIX-GHOST" :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/title-l1 :v "FIX-GHOST: Remove references to non-existent commands from guidance footer" :op :assert}
+   {:e #blake3 "11bcc032675fe0b2e40f0d3a6bc4ba9d8f84f22f267d2ddbddfb7d53e884c8d0" :a :task/type :v :task.type/bug :op :assert}
+ ]}

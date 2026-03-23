@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774231572/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f213d0015616612ffc022ec4b9186f195d718ca4c7cdd8788f6b35c44df72627" :a :db/ident :v :recon/trace-ad57c56b487ae75a :op :assert}
+   {:e #blake3 "f213d0015616612ffc022ec4b9186f195d718ca4c7cdd8788f6b35c44df72627" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "f213d0015616612ffc022ec4b9186f195d718ca4c7cdd8788f6b35c44df72627" :a :recon/trace-neighborhood :v "GUIDANCE" :op :assert}
+   {:e #blake3 "f213d0015616612ffc022ec4b9186f195d718ca4c7cdd8788f6b35c44df72627" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.guidance.inv-guidance-003" :op :assert}
+   {:e #blake3 "f213d0015616612ffc022ec4b9186f195d718ca4c7cdd8788f6b35c44df72627" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-guidance-003" :op :assert}
+   {:e #blake3 "f213d0015616612ffc022ec4b9186f195d718ca4c7cdd8788f6b35c44df72627" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.harvest_seed_cycle.inv-guidance-003" :op :assert}
+   {:e #blake3 "f213d0015616612ffc022ec4b9186f195d718ca4c7cdd8788f6b35c44df72627" :a :recon/trace-refs :v "INV-GUIDANCE-003" :op :assert}
+ ]}

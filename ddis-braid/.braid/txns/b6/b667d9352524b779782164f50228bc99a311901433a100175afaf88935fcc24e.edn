@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774231565/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-PATH: Init detection uses store path instead of working directory. CONTEXT: braid init -p /tmp/store/.braid detects language/git/LOC from the STORE path (/tmp/store/), not the cwd (/data/projects/rr-cli/). Result: lang=unknown, LOC=0, git=no on a Go project. ROOT CAUSE: init.rs line 46-55 sets project_root = path.parent() (parent of the -p argument). When -p is an absolute path to a temp dir, project_root is the temp dir, not cwd. FIX: When -p is specified, use std::env::current_dir() as project_root (the user's actual project), not the store path's parent. Store path is for DATA. Project root is for DETECTION. They are different. ACCEPTANCE: (A) braid init -p /tmp/x/.braid in /data/projects/rr-cli detects lang=go, git=yes, LOC>0. (B) braid init (no -p) still works correctly. (C) Meta-extractor recommends Go extractor. FILE: crates/braid/src/commands/init.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :db/ident :v :task/t-2aa578d7 :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/acceptance :v "(A) braid init -p /tmp/x/.braid in /data/projects/rr-cli detects lang=go, git=yes, LOC>0. (B) braid init (no -p) still works correctly. (C) Meta-extractor recommends Go extractor." :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/body :v "ACCEPTANCE: (A) braid init -p /tmp/x/.braid in /data/projects/rr-cli detects lang=go, git=yes, LOC>0. (B) braid init (no -p) still works correctly. (C) Meta-extractor recommends Go extractor. FILE: crates/braid/src/commands/init.rs" :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/created-at :v 1774231564 :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/files :v "crates/braid/src/commands/init.rs" :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/id :v "t-2aa578d7" :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/title :v "FIX-PATH: Init detection uses store path instead of working directory. CONTEXT: braid init -p /tmp/store/.braid detects language/git/LOC from the STORE path (/tmp/store/), not the cwd (/data/projects/rr-cli/). Result: lang=unknown, LOC=0, git=no on a Go project. ROOT CAUSE: init.rs line 46-55 sets project_root = path.parent() (parent of the -p argument). When -p is an absolute path to a temp dir, project_root is the temp dir, not cwd. FIX: When -p is specified, use std::env::current_dir() as project_root (the user's actual project), not the store path's parent. Store path is for DATA. Project root is for DETECTION. They are different" :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/title-l0 :v "FIX-PATH" :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/title-l1 :v "FIX-PATH: Init detection uses store path instead of working directory" :op :assert}
+   {:e #blake3 "f62882bd23048780aa2de908838d0820e53931a03eda332a2adbdac0d49166d3" :a :task/type :v :task.type/bug :op :assert}
+ ]}

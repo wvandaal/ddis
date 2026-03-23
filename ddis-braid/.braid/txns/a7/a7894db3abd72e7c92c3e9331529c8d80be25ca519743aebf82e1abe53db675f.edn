@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774231573/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: FIX-VACUOUS: Don't display vacuously-true boundary scores. CONTEXT: spec↔impl 1.00 with 0 specs and 0 impls is misleading. Users think 'my project is perfectly coherent' when braid has zero knowledge. FIX: When source_count=0 for a boundary, display 'not measured (no data)' instead of 1.00. Only show numerical scores when there's actual data. ACCEPTANCE: (A) Fresh store shows 'not measured' instead of 1.00. (B) Store with >=1 spec element shows numerical score. (C) F(S) computation unchanged (vacuous=1.0 internally, just display differs). FILE: crates/braid/src/commands/status.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :db/ident :v :task/t-9aa3d8fb :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/acceptance :v "(A) Fresh store shows 'not measured' instead of 1.00. (B) Store with >=1 spec element shows numerical score. (C) F(S) computation unchanged (vacuous=1.0 internally, just display differs)." :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/body :v "ACCEPTANCE: (A) Fresh store shows 'not measured' instead of 1.00. (B) Store with >=1 spec element shows numerical score. (C) F(S) computation unchanged (vacuous=1.0 internally, just display differs). FILE: crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/created-at :v 1774231572 :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/files :v "crates/braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/id :v "t-9aa3d8fb" :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/title :v "FIX-VACUOUS: Don't display vacuously-true boundary scores. CONTEXT: spec↔impl 1.00 with 0 specs and 0 impls is misleading. Users think 'my project is perfectly coherent' when braid has zero knowledge. FIX: When source_count=0 for a boundary, display 'not measured (no data)' instead of 1.00. Only show numerical scores when there's actual data" :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/title-l0 :v "FIX-VACUOUS" :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/title-l1 :v "FIX-VACUOUS: Don't display vacuously-true boundary scores" :op :assert}
+   {:e #blake3 "fefe34aec28c7d82888c22897e4f6ce46e3ff054c18f026e3f811700a49e6cf8" :a :task/type :v :task.type/bug :op :assert}
+ ]}

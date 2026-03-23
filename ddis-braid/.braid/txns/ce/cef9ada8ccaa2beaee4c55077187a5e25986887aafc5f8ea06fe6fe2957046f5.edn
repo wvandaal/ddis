@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774231561/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: External Readiness — fix the 3 critical bugs blocking non-braid project use (EXT-2 falsification results, 3/10 rating)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1561b94b521432e9a3e8271e022f5f52b78d2947944ee6fad3fecfd92d7920a8" :a :db/ident :v :task/t-642ce9b5 :op :assert}
+   {:e #blake3 "1561b94b521432e9a3e8271e022f5f52b78d2947944ee6fad3fecfd92d7920a8" :a :task/created-at :v 1774231560 :op :assert}
+   {:e #blake3 "1561b94b521432e9a3e8271e022f5f52b78d2947944ee6fad3fecfd92d7920a8" :a :task/id :v "t-642ce9b5" :op :assert}
+   {:e #blake3 "1561b94b521432e9a3e8271e022f5f52b78d2947944ee6fad3fecfd92d7920a8" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "1561b94b521432e9a3e8271e022f5f52b78d2947944ee6fad3fecfd92d7920a8" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "1561b94b521432e9a3e8271e022f5f52b78d2947944ee6fad3fecfd92d7920a8" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "1561b94b521432e9a3e8271e022f5f52b78d2947944ee6fad3fecfd92d7920a8" :a :task/title :v "EPIC: External Readiness — fix the 3 critical bugs blocking non-braid project use (EXT-2 falsification results, 3/10 rating)" :op :assert}
+   {:e #blake3 "1561b94b521432e9a3e8271e022f5f52b78d2947944ee6fad3fecfd92d7920a8" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "1561b94b521432e9a3e8271e022f5f52b78d2947944ee6fad3fecfd92d7920a8" :a :task/title-l1 :v "EPIC: External Readiness — fix the 3 critical bugs blocking non-braid proje..." :op :assert}
+   {:e #blake3 "1561b94b521432e9a3e8271e022f5f52b78d2947944ee6fad3fecfd92d7920a8" :a :task/type :v :task.type/epic :op :assert}
+ ]}

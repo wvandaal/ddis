@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774231494/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :db/ident :v :recon/trace-c07f34b8d36eab91 :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-neighborhood :v "GUIDANCE" :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.guidance.inv-guidance-003" :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.guidance.neg-harvest-001" :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.harvest.neg-harvest-001" :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-guidance-003" :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.harvest_seed_cycle.inv-guidance-003" :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.harvest_seed_cycle.neg-harvest-001" :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-neighbors :v ":impl/braid.src.commands.mod.neg-harvest-001" :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-neighbors :v ":impl/braid.src.main.neg-harvest-001" :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-refs :v "INV-GUIDANCE-003" :op :assert}
+   {:e #blake3 "476a3893e7fad72e4ec8fe6bb43af24a7f6286162f97a5ee34d26024f5135662" :a :recon/trace-refs :v "NEG-HARVEST-001" :op :assert}
+ ]}
