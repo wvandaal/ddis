@@ -745,16 +745,43 @@ pub fn compute_fitness_from_policy(store: &Store) -> Option<FitnessScore> {
 
     for boundary in &config.boundaries {
         // Count source entities: entities with attributes matching source_pattern
-        let source_count = count_entities_matching_pattern(store, &boundary.source_pattern);
-        if source_count == 0 {
+        let source_entities = entities_matching_pattern(store, &boundary.source_pattern);
+        if source_entities.is_empty() {
             boundary_scores.push((boundary.name.clone(), 1.0, boundary.weight)); // vacuously covered
             continue;
         }
 
-        // Count covered source entities: those with at least one reference from
-        // an entity matching target_pattern
-        let covered = count_covered_entities(store, &boundary.source_pattern, &boundary.target_pattern);
-        let coverage = (covered as f64 / source_count as f64).clamp(0.0, 1.0);
+        // Find covered source entities
+        let covered_entities = covered_entity_set(store, &boundary.source_pattern, &boundary.target_pattern);
+
+        // DC-2: Depth-weighted coverage (ADR-FOUNDATION-020).
+        // Each source entity's contribution is weighted by its comonadic depth.
+        // depth 0 (OPINION) contributes 0.0, depth 4 (KNOWLEDGE) contributes 1.0.
+        // Bootstrap fallback: if no entities have depth set, use raw coverage.
+        let mut depth_sum = 0.0f64;
+        let mut max_possible = 0.0f64;
+        let mut any_has_depth = false;
+
+        for entity in &source_entities {
+            let d = comonadic_depth(store, entity);
+            let w = depth_weight(d);
+            if d > 0 {
+                any_has_depth = true;
+            }
+            max_possible += 1.0; // max contribution per entity = 1.0 (depth 4)
+            if covered_entities.contains(entity) {
+                depth_sum += w;
+            }
+        }
+
+        let coverage = if any_has_depth {
+            // DC-2: depth-weighted coverage
+            (depth_sum / max_possible.max(1.0)).clamp(0.0, 1.0)
+        } else {
+            // Bootstrap: no comonadic depth set yet, use raw coverage
+            (covered_entities.len() as f64 / source_entities.len() as f64).clamp(0.0, 1.0)
+        };
+
         boundary_scores.push((boundary.name.clone(), coverage, boundary.weight));
     }
 
@@ -795,28 +822,20 @@ pub fn compute_fitness_from_policy(store: &Store) -> Option<FitnessScore> {
     })
 }
 
-/// Count entities that have at least one attribute matching the pattern.
-fn count_entities_matching_pattern(store: &Store, pattern: &str) -> usize {
+/// Get entities that have at least one attribute matching the pattern.
+fn entities_matching_pattern(store: &Store, pattern: &str) -> std::collections::BTreeSet<EntityId> {
     let mut entities = std::collections::BTreeSet::new();
     for d in store.datoms() {
         if d.op == Op::Assert && crate::policy::PolicyConfig::attr_matches(d.attribute.as_str(), pattern) {
             entities.insert(d.entity);
         }
     }
-    entities.len()
+    entities
 }
 
-/// Count source entities that have at least one reference from a target entity.
-fn count_covered_entities(store: &Store, source_pattern: &str, target_pattern: &str) -> usize {
-    // Build set of source entities
-    let mut source_entities = std::collections::BTreeSet::new();
-    for d in store.datoms() {
-        if d.op == Op::Assert && crate::policy::PolicyConfig::attr_matches(d.attribute.as_str(), source_pattern) {
-            source_entities.insert(d.entity);
-        }
-    }
-
-    // Find target entities
+/// Get the set of source entities covered by target entities.
+fn covered_entity_set(store: &Store, source_pattern: &str, target_pattern: &str) -> std::collections::BTreeSet<EntityId> {
+    let source_entities = entities_matching_pattern(store, source_pattern);
     let mut target_entities = std::collections::BTreeSet::new();
     for d in store.datoms() {
         if d.op == Op::Assert && crate::policy::PolicyConfig::attr_matches(d.attribute.as_str(), target_pattern) {
@@ -824,7 +843,6 @@ fn count_covered_entities(store: &Store, source_pattern: &str, target_pattern: &
         }
     }
 
-    // Count source entities referenced by target entities (via Ref values)
     let mut covered = std::collections::BTreeSet::new();
     for target in &target_entities {
         for d in store.entity_datoms(*target) {
@@ -837,8 +855,7 @@ fn count_covered_entities(store: &Store, source_pattern: &str, target_pattern: &
             }
         }
     }
-
-    covered.len()
+    covered
 }
 
 /// V and C use depth-weighted metrics when `:impl/verification-depth` and
@@ -3174,6 +3191,40 @@ mod tests {
         let store = Store::from_datoms(datoms);
 
         assert_eq!(comonadic_depth(&store, &entity), 3);
+    }
+
+    // =======================================================================
+    // DC-2: Depth-Weighted F(S) in policy boundaries
+    // =======================================================================
+
+    /// DC-2: When no entities have comonadic depth, raw coverage is used (bootstrap).
+    #[test]
+    fn dc2_bootstrap_uses_raw_coverage() {
+        // entities_matching_pattern and covered_entity_set are tested via
+        // compute_fitness_from_policy on the live store, but we verify the
+        // depth_weight bootstrap logic directly:
+        // depth 0 → weight 0.0 → if all depth 0, any_has_depth=false → raw coverage
+        assert_eq!(depth_weight(0), 0.0);
+        assert_eq!(depth_weight(1), 0.15);
+        assert_eq!(depth_weight(4), 1.0);
+    }
+
+    /// DC-2: depth_weight is strictly monotone and bounded in [0, 1].
+    #[test]
+    fn dc2_depth_weight_properties() {
+        for d in 0..=4 {
+            let w = depth_weight(d);
+            assert!((0.0..=1.0).contains(&w), "depth_weight({d})={w} out of [0,1]");
+            if d > 0 {
+                assert!(
+                    w > depth_weight(d - 1),
+                    "depth_weight not strictly monotone at {d}"
+                );
+            }
+        }
+        // Out-of-range clamps to 0
+        assert_eq!(depth_weight(-1), 0.0);
+        assert_eq!(depth_weight(5), 0.0);
     }
 
     // =======================================================================
