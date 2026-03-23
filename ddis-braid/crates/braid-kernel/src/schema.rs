@@ -1564,6 +1564,46 @@ pub fn layer_2_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "First Betti number (structural cycle count in dependency graph)",
         ),
+        // =================================================================
+        // Comonadic Depth (4) — Dialectical depth tracking (DC-1)
+        // ADR-FOUNDATION-020: The Falsification-First Principle
+        //
+        // Every claim-bearing entity carries dialectical depth:
+        //   0=OPINION (assertion only, no falsification context)
+        //   1=HYPOTHESIS (assertion + falsification context)
+        //   2=TESTED (falsification attempted)
+        //   3=SURVIVED (dialectically deepened, ¬¬H explored)
+        //   4=KNOWLEDGE (formal proof / comonadic fixed point)
+        //
+        // Depth determines contribution to F(S) via depth_weight():
+        //   0→0.0, 1→0.15, 2→0.4, 3→0.7, 4→1.0
+        // Claims at depth 0 contribute nothing. Only survived challenges
+        // increase score. Anti-Goodhart by construction.
+        // =================================================================
+        attr(
+            ":comonad/depth",
+            ValueType::Long,
+            Cardinality::One,
+            "Dialectical depth 0-4: OPINION(0), HYPOTHESIS(1), TESTED(2), SURVIVED(3), KNOWLEDGE(4). Determines F(S) contribution via depth_weight().",
+        ),
+        attr(
+            ":comonad/falsification",
+            ValueType::Ref,
+            Cardinality::Many,
+            "Refs to entities that would falsify this claim. Pre-registered destruction conditions (ADR-FOUNDATION-020).",
+        ),
+        attr(
+            ":comonad/last-challenged",
+            ValueType::Instant,
+            Cardinality::One,
+            "Wall-clock time of most recent challenge attempt against this claim.",
+        ),
+        attr(
+            ":comonad/survival-rate",
+            ValueType::Double,
+            Cardinality::One,
+            "Ratio of survived challenges to total challenges. Used for calibration and Anti-Goodhart detection.",
+        ),
     ]
 }
 

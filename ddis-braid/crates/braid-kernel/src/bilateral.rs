@@ -592,6 +592,41 @@ pub fn depth_weight(depth: i64) -> f64 {
     }
 }
 
+/// Get the comonadic depth of an entity from the store (DC-1).
+///
+/// Returns 0 (OPINION) if `:comonad/depth` is not set — every entity starts
+/// as an unverified assertion until challenged.
+pub fn comonadic_depth(store: &Store, entity: &EntityId) -> i64 {
+    let attr = crate::datom::Attribute::from_keyword(":comonad/depth");
+    store
+        .entity_datoms(entity.clone())
+        .iter()
+        .find(|d| d.attribute == attr && d.op == crate::datom::Op::Assert)
+        .and_then(|d| match &d.value {
+            crate::datom::Value::Long(v) => Some(*v),
+            _ => None,
+        })
+        .unwrap_or(0)
+}
+
+/// Generate datoms to set the comonadic depth of an entity (DC-1).
+///
+/// Produces a single datom: `[entity :comonad/depth depth tx assert]`.
+/// Caller is responsible for transacting into the store.
+pub fn set_depth_datom(
+    entity: &EntityId,
+    depth: i64,
+    tx: crate::datom::TxId,
+) -> crate::datom::Datom {
+    crate::datom::Datom::new(
+        entity.clone(),
+        crate::datom::Attribute::from_keyword(":comonad/depth"),
+        crate::datom::Value::Long(depth.clamp(0, 4)),
+        tx,
+        crate::datom::Op::Assert,
+    )
+}
+
 // ===========================================================================
 // F(S) Fitness Function — 7-component weighted sum
 // ===========================================================================
@@ -3089,6 +3124,56 @@ mod tests {
                 }
             }
         }
+    }
+
+    // =======================================================================
+    // Comonadic Depth tests (DC-1, ADR-FOUNDATION-020)
+    // =======================================================================
+
+    /// Comonadic depth defaults to 0 (OPINION) for entities without `:comonad/depth`.
+    #[test]
+    fn comonadic_depth_defaults_to_zero() {
+        let store = Store::genesis();
+        let entity = EntityId::from_ident(":some/nonexistent");
+        assert_eq!(comonadic_depth(&store, &entity), 0);
+    }
+
+    /// `set_depth_datom` produces a valid datom with clamped depth.
+    #[test]
+    fn set_depth_datom_clamps_and_produces() {
+        use crate::datom::{AgentId, Op};
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(1, 0, agent);
+        let entity = EntityId::from_ident(":spec/test-inv");
+
+        let d = set_depth_datom(&entity, 2, tx);
+        assert_eq!(d.entity, entity);
+        assert_eq!(d.attribute, Attribute::from_keyword(":comonad/depth"));
+        assert_eq!(d.value, Value::Long(2));
+        assert_eq!(d.op, Op::Assert);
+
+        // Clamps above 4
+        let d_high = set_depth_datom(&entity, 10, tx);
+        assert_eq!(d_high.value, Value::Long(4));
+
+        // Clamps below 0
+        let d_neg = set_depth_datom(&entity, -5, tx);
+        assert_eq!(d_neg.value, Value::Long(0));
+    }
+
+    /// Comonadic depth round-trips through the store.
+    #[test]
+    fn comonadic_depth_roundtrip() {
+        use crate::datom::AgentId;
+        let agent = AgentId::from_name("test");
+        let tx = TxId::new(100, 0, agent);
+        let entity = EntityId::from_ident(":spec/tested-inv");
+
+        let mut datoms = std::collections::BTreeSet::new();
+        datoms.insert(set_depth_datom(&entity, 3, tx));
+        let store = Store::from_datoms(datoms);
+
+        assert_eq!(comonadic_depth(&store, &entity), 3);
     }
 
     // =======================================================================
