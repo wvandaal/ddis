@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774309498/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC-CRYST-1: Crystallize ADR-FOUNDATION-031 (Introspective Observer) as formal spec element. Use braid spec create ADR-FOUNDATION-031 with: decision=daemon enables C7 self-bootstrap via persistent identity and reflexive observation. Rationale: without persistent identity, the system cannot observe itself. The CLI is the Markov blanket between Q(s)=store and P(o,s)=project. The daemon observes the blanket dynamics. TRACES: C7, ADR-STORE-006, ADR-FOUNDATION-029, ADR-FOUNDATION-030. FILE: via braid spec create"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :db/ident :v :task/t-034c8992 :op :assert}
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :task/created-at :v 1774309497 :op :assert}
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :task/id :v "t-034c8992" :op :assert}
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :task/title :v "SPEC-CRYST-1: Crystallize ADR-FOUNDATION-031 (Introspective Observer) as formal spec element. Use braid spec create ADR-FOUNDATION-031 with: decision=daemon enables C7 self-bootstrap via persistent identity and reflexive observation. Rationale: without persistent identity, the system cannot observe itself. The CLI is the Markov blanket between Q(s)=store and P(o,s)=project. The daemon observes the blanket dynamics. TRACES: C7, ADR-STORE-006, ADR-FOUNDATION-029, ADR-FOUNDATION-030. FILE: via braid spec create" :op :assert}
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :task/title-l0 :v "SPEC-CRYST-1" :op :assert}
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :task/title-l1 :v "SPEC-CRYST-1: Crystallize ADR-FOUNDATION-031 (Introspective Observer) as form..." :op :assert}
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :task/traces-to :v #blake3 "6d2d5107f8ae9bdc39579a35fd36ced3d1e8321dd3db50aff7e20965cb414f43" :op :assert}
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :task/traces-to :v #blake3 "847012bbbdeae7623c8298cb1a85840268b22411fa3a832f96ee5c1a0da584a2" :op :assert}
+   {:e #blake3 "ec1113dec09862b9f24dab3398992b33d9f355582553904536daac51aca4f8b6" :a :task/type :v :task.type/task :op :assert}
+ ]}

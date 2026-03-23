@@ -1,0 +1,16 @@
+{:tx/id #hlc "1774309337/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "SPEC-NEEDED: INV-FOUNDATION-015 (Reflexive Divergence Detection) exists as observation but not as formal spec. The invariant requires: BoundaryRegistry MUST include at least one Reflexive boundary. Falsification: if braid claims capability X absent but binary implements X, OR if self-model claims latency T but measured latency >2T, the boundary is violated and F(S) must decrease."
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5bce4b4a36500e2ea75b81bd93ab1946479315b7eb04fc2923666b71a12c097f" :a :db/doc :v "SPEC-NEEDED: INV-FOUNDATION-015 (Reflexive Divergence Detection) exists as observation but not as formal spec. The invariant requires: BoundaryRegistry MUST include at least one Reflexive boundary. Falsification: if braid claims capability X absent but binary implements X, OR if self-model claims latency T but measured latency >2T, the boundary is violated and F(S) must decrease." :op :assert}
+   {:e #blake3 "5bce4b4a36500e2ea75b81bd93ab1946479315b7eb04fc2923666b71a12c097f" :a :db/ident :v :observation/spec-needed-inv-foundation-015-reflexive-divergence-detect :op :assert}
+   {:e #blake3 "5bce4b4a36500e2ea75b81bd93ab1946479315b7eb04fc2923666b71a12c097f" :a :exploration/body :v "SPEC-NEEDED: INV-FOUNDATION-015 (Reflexive Divergence Detection) exists as observation but not as formal spec. The invariant requires: BoundaryRegistry MUST include at least one Reflexive boundary. Falsification: if braid claims capability X absent but binary implements X, OR if self-model claims latency T but measured latency >2T, the boundary is violated and F(S) must decrease." :op :assert}
+   {:e #blake3 "5bce4b4a36500e2ea75b81bd93ab1946479315b7eb04fc2923666b71a12c097f" :a :exploration/category :v :exploration.cat/spec-insight :op :assert}
+   {:e #blake3 "5bce4b4a36500e2ea75b81bd93ab1946479315b7eb04fc2923666b71a12c097f" :a :exploration/confidence :v 0.85 :op :assert}
+   {:e #blake3 "5bce4b4a36500e2ea75b81bd93ab1946479315b7eb04fc2923666b71a12c097f" :a :exploration/content-hash :v #bytes "2049e11c6da29c8d3197c5d6066b2d6917d2a0025940a1911fc597804a82c1a8" :op :assert}
+   {:e #blake3 "5bce4b4a36500e2ea75b81bd93ab1946479315b7eb04fc2923666b71a12c097f" :a :exploration/maturity :v :exploration.maturity/sketch :op :assert}
+   {:e #blake3 "5bce4b4a36500e2ea75b81bd93ab1946479315b7eb04fc2923666b71a12c097f" :a :exploration/source :v "braid:observe" :op :assert}
+   {:e #blake3 "5bce4b4a36500e2ea75b81bd93ab1946479315b7eb04fc2923666b71a12c097f" :a :exploration/source-session :v #blake3 "da84b6ae7dff324982c915e0483f0681bfb6f28ca8dd9b6c84897f0340592fb3" :op :assert}
+ ]}

@@ -1,0 +1,17 @@
+{:tx/id #hlc "1774309507/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SPEC-CRYST-2: Crystallize INV-FOUNDATION-015 (Reflexive Divergence Detection) as formal spec. Use braid spec create INV-FOUNDATION-015 with: statement=BoundaryRegistry MUST include at least one Reflexive boundary evaluating system self-model against measured runtime. Falsification: if self-model claims capability X absent but binary has X, OR latency claim diverges >2x from measurement, boundary is violated. TRACES: ADR-FOUNDATION-031, C7. FILE: via braid spec create"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "da4111d4d9e94271e671af4c3057ec06d0f0dfa46dfe0f36982f0a9b02dbced2" :a :db/ident :v :task/t-e1310de6 :op :assert}
+   {:e #blake3 "da4111d4d9e94271e671af4c3057ec06d0f0dfa46dfe0f36982f0a9b02dbced2" :a :task/created-at :v 1774309506 :op :assert}
+   {:e #blake3 "da4111d4d9e94271e671af4c3057ec06d0f0dfa46dfe0f36982f0a9b02dbced2" :a :task/id :v "t-e1310de6" :op :assert}
+   {:e #blake3 "da4111d4d9e94271e671af4c3057ec06d0f0dfa46dfe0f36982f0a9b02dbced2" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "da4111d4d9e94271e671af4c3057ec06d0f0dfa46dfe0f36982f0a9b02dbced2" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "da4111d4d9e94271e671af4c3057ec06d0f0dfa46dfe0f36982f0a9b02dbced2" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "da4111d4d9e94271e671af4c3057ec06d0f0dfa46dfe0f36982f0a9b02dbced2" :a :task/title :v "SPEC-CRYST-2: Crystallize INV-FOUNDATION-015 (Reflexive Divergence Detection) as formal spec. Use braid spec create INV-FOUNDATION-015 with: statement=BoundaryRegistry MUST include at least one Reflexive boundary evaluating system self-model against measured runtime. Falsification: if self-model claims capability X absent but binary has X, OR latency claim diverges >2x from measurement, boundary is violated. TRACES: ADR-FOUNDATION-031, C7. FILE: via braid spec create" :op :assert}
+   {:e #blake3 "da4111d4d9e94271e671af4c3057ec06d0f0dfa46dfe0f36982f0a9b02dbced2" :a :task/title-l0 :v "SPEC-CRYST-2" :op :assert}
+   {:e #blake3 "da4111d4d9e94271e671af4c3057ec06d0f0dfa46dfe0f36982f0a9b02dbced2" :a :task/title-l1 :v "SPEC-CRYST-2: Crystallize INV-FOUNDATION-015 (Reflexive Divergence Detection)..." :op :assert}
+   {:e #blake3 "da4111d4d9e94271e671af4c3057ec06d0f0dfa46dfe0f36982f0a9b02dbced2" :a :task/type :v :task.type/task :op :assert}
+ ]}

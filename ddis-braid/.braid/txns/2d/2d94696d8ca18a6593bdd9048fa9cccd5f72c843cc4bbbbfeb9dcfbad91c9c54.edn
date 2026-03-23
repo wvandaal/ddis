@@ -1,0 +1,23 @@
+{:tx/id #hlc "1774309529/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: WALPHA-1: W-alpha (Working Set Alpha) implementation. Private agent working set for runtime telemetry (INV-STORE-014). Separate from shared store — NOT included in CRDT merge. APPROACH: (1) .braid/.walpha/ directory with own txn files. (2) DiskLayout gains load_walpha() and write_walpha_tx() methods. (3) Daemon loads W-alpha at startup alongside shared store. (4) Runtime datoms written to W-alpha only. (5) Boundaries can evaluate W-alpha datoms. (6) On harvest --commit, W-alpha compacted (entries older than 5 sessions pruned). (7) NOT included in braid merge (machine-specific). ACCEPTANCE: (A) W-alpha datoms queryable but not in shared store. (B) Merge produces no W-alpha datoms. (C) Compaction removes old entries. (D) Daemon loads W-alpha in <100ms. TRACES: INV-STORE-014. FILE: crates/braid/src/layout.rs + crates/braid-kernel/src/store.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :db/ident :v :task/t-56b8f57e :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/acceptance :v "(A) W-alpha datoms queryable but not in shared store. (B) Merge produces no W-alpha datoms. (C) Compaction removes old entries. (D) Daemon loads W-alpha in <100ms. TRACES: INV-STORE-014." :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/approach :v "(1) .braid/.walpha/ directory with own txn files. (2) DiskLayout gains load_walpha() and write_walpha_tx() methods. (3) Daemon loads W-alpha at startup alongside shared store. (4) Runtime datoms written to W-alpha only. (5) Boundaries can evaluate W-alpha datoms. (6) On harvest --commit, W-alpha compacted (entries older than 5 sessions pruned). (7) NOT included in braid merge (machine-specific)." :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/body :v "APPROACH: (1) .braid/.walpha/ directory with own txn files. (2) DiskLayout gains load_walpha() and write_walpha_tx() methods. (3) Daemon loads W-alpha at startup alongside shared store. (4) Runtime datoms written to W-alpha only. (5) Boundaries can evaluate W-alpha datoms. (6) On harvest --commit, W-alpha compacted (entries older than 5 sessions pruned). (7) NOT included in braid merge (machine-specific). ACCEPTANCE: (A) W-alpha datoms queryable but not in shared store. (B) Merge produces no W-alpha datoms. (C) Compaction removes old entries. (D) Daemon loads W-alpha in <100ms. TRACES: INV-STORE-014. FILE: crates/braid/src/layout.rs + crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/created-at :v 1774309528 :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/files :v "crates/braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/files :v "crates/braid/src/layout.rs" :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/id :v "t-56b8f57e" :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/title :v "WALPHA-1: W-alpha (Working Set Alpha) implementation. Private agent working set for runtime telemetry (INV-STORE-014). Separate from shared store — NOT included in CRDT merge" :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/title-l0 :v "WALPHA-1" :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/title-l1 :v "WALPHA-1: W-alpha (Working Set Alpha) implementation" :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/traces-to :v #blake3 "142af3dcd49f7be2805f0e2c81eb1a8e7153a95eef6245ce06d14ebb89d77431" :op :assert}
+   {:e #blake3 "36eb4c8b53f7b7de40600e187e36beed4d507d9de13a60c7fdea2c0fe352b29e" :a :task/type :v :task.type/task :op :assert}
+ ]}

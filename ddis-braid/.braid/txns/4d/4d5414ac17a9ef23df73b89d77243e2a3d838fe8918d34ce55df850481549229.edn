@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774309518/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: SCHEMA-RUNTIME-1: Layer 7 runtime schema for daemon self-model. Add attributes: :runtime/command (String, One), :runtime/latency-ms (Long, One), :runtime/cache-hit (Boolean, One), :runtime/routing-ms (Long, One), :runtime/store-datom-count (Long, One), :runtime/error-count (Long, One), :runtime/timestamp (Instant, One), :capability/implemented (Boolean, One), :capability/file-path (String, One), :capability/line-range (String, One), :capability/subsystem (String, One). All runtime entities carry the 6 ADR-029 lifecycle attributes. ACCEPTANCE: (A) Schema attributes parseable and transactable. (B) Runtime datoms can be queried by attribute. (C) No conflict with existing Layer 1-6 attributes. FILE: crates/braid-kernel/src/schema.rs"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :db/ident :v :task/t-c0e8cbf8 :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/acceptance :v "(A) Schema attributes parseable and transactable. (B) Runtime datoms can be queried by attribute. (C) No conflict with existing Layer 1-6 attributes." :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/body :v "ACCEPTANCE: (A) Schema attributes parseable and transactable. (B) Runtime datoms can be queried by attribute. (C) No conflict with existing Layer 1-6 attributes. FILE: crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/created-at :v 1774309517 :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/files :v "crates/braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/id :v "t-c0e8cbf8" :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/title :v "SCHEMA-RUNTIME-1: Layer 7 runtime schema for daemon self-model. Add attributes: :runtime/command (String, One), :runtime/latency-ms (Long, One), :runtime/cache-hit (Boolean, One), :runtime/routing-ms (Long, One), :runtime/store-datom-count (Long, One), :runtime/error-count (Long, One), :runtime/timestamp (Instant, One), :capability/implemented (Boolean, One), :capability/file-path (String, One), :capability/line-range (String, One), :capability/subsystem (String, One). All runtime entities carry the 6 ADR-029 lifecycle attributes" :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/title-l0 :v "SCHEMA-RUNTIME-1" :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/title-l1 :v "SCHEMA-RUNTIME-1: Layer 7 runtime schema for daemon self-model" :op :assert}
+   {:e #blake3 "f63eff42f90ace05b2ba10d786ca819bef830718539b5bb7b2b7d44b770f536c" :a :task/type :v :task.type/task :op :assert}
+ ]}

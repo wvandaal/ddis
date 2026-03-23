@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774309594/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DOGFOOD-EXTERNAL: Phase B dog-food validation — exploration agent on Go CLI project. Same protocol as Session 037 but with FEGH bridge hypotheses active. APPROACH: (1) braid init in ddis-cli, run 20+ turns of observation. (2) Agent receives bridge hypothesis suggestions alongside task recommendations. (3) Measure exploration usefulness (target 7+/10, was 4/10 in Session 037). (4) Record all outcomes in hypothesis ledger with item_type=exploration. (5) Compare with/without bridge suggestions. (6) Calibrate per-type accuracy for exploration. HYPOTHESIS (already recorded): FEGH-1 bridges raise exploration from 4/10 to 7+/10. FALSIFICATION: if exploration <= 5/10 after FEGH-1+2, hypothesis refuted. FILE: scripts/e2e_external_dogfood_v2.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :db/ident :v :task/t-59f761c3 :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/approach :v "(1) braid init in ddis-cli, run 20+ turns of observation. (2) Agent receives bridge hypothesis suggestions alongside task recommendations. (3) Measure exploration usefulness (target 7+/10, was 4/10 in Session 037). (4) Record all outcomes in hypothesis ledger with item_type=exploration. (5) Compare with/without bridge suggestions. (6) Calibrate per-type accuracy for exploration. HYPOTHESIS (already recorded): FEGH-1 bridges raise exploration from 4/10 to 7+/10. FALSIFICATION: if exploration <= 5/10 after FEGH-1+2, hypothesis refuted." :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/body :v "APPROACH: (1) braid init in ddis-cli, run 20+ turns of observation. (2) Agent receives bridge hypothesis suggestions alongside task recommendations. (3) Measure exploration usefulness (target 7+/10, was 4/10 in Session 037). (4) Record all outcomes in hypothesis ledger with item_type=exploration. (5) Compare with/without bridge suggestions. (6) Calibrate per-type accuracy for exploration. HYPOTHESIS (already recorded): FEGH-1 bridges raise exploration from 4/10 to 7+/10. FALSIFICATION: if exploration <= 5/10 after FEGH-1+2, hypothesis refuted. FILE: scripts/e2e_external_dogfood_v2.sh" :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/created-at :v 1774309593 :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/files :v "scripts/e2e_external_dogfood_v2.sh" :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/id :v "t-59f761c3" :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/title :v "DOGFOOD-EXTERNAL: Phase B dog-food validation — exploration agent on Go CLI project. Same protocol as Session 037 but with FEGH bridge hypotheses active" :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/title-l0 :v "DOGFOOD-EXTERNAL" :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/title-l1 :v "DOGFOOD-EXTERNAL: Phase B dog-food validation — exploration agent on Go CLI..." :op :assert}
+   {:e #blake3 "0aa29fbeec61eb5a891e728b3431e6c55e42619a2d1d80bd3df1bf20076b4106" :a :task/type :v :task.type/task :op :assert}
+ ]}

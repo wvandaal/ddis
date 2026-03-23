@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774309583/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DOGFOOD-REFLEXIVE: Phase A dog-food validation — daemon on braid's own 70K store. Run daemon, verify: (1) Capability census detects store-binary-cache, incremental-tx-loading, bilateral-scan, spectral-partition, and other compiled features. (2) RuntimeBoundary would fire on latency > 5s (simulate by checking cached vs uncached timing). (3) Reflexive FEGH generates the routing/caching bridge hypothesis. (4) Bridge ranks in top-3 guidance recommendations. (5) All runtime datoms recorded in W-alpha. (6) Hypothesis recorded in ledger with item_type=reflexive. ACCEPTANCE: The system discovers the exact performance insight that took us 1 hour manually in Session 038. FILE: scripts/e2e_reflexive_dogfood.sh"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :db/ident :v :task/t-c126acce :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/acceptance :v "The system discovers the exact performance insight that took us 1 hour manually in Session 038." :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/body :v "ACCEPTANCE: The system discovers the exact performance insight that took us 1 hour manually in Session 038. FILE: scripts/e2e_reflexive_dogfood.sh" :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/created-at :v 1774309582 :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/files :v "scripts/e2e_reflexive_dogfood.sh" :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/id :v "t-c126acce" :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/title :v "DOGFOOD-REFLEXIVE: Phase A dog-food validation — daemon on braid's own 70K store. Run daemon, verify: (1) Capability census detects store-binary-cache, incremental-tx-loading, bilateral-scan, spectral-partition, and other compiled features. (2) RuntimeBoundary would fire on latency > 5s (simulate by checking cached vs uncached timing). (3) Reflexive FEGH generates the routing/caching bridge hypothesis. (4) Bridge ranks in top-3 guidance recommendations. (5) All runtime datoms recorded in W-alpha. (6) Hypothesis recorded in ledger with item_type=reflexive" :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/title-l0 :v "DOGFOOD-REFLEXIVE" :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/title-l1 :v "DOGFOOD-REFLEXIVE: Phase A dog-food validation — daemon on braid's own 70K..." :op :assert}
+   {:e #blake3 "bfc6e01d93dbda48987eafa9bbd0372a465bd81e57fbd04897cee9d8dafd9162" :a :task/type :v :task.type/task :op :assert}
+ ]}
