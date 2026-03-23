@@ -1012,6 +1012,7 @@ fn build_harvest_output(
             "harvest: \"{task}\" ({task_source}) | candidates: {candidate_count} ({committed_count}c/{proposed}p/{rejected}r)"
         ),
         tokens: 15,
+                    attention: None,
     });
 
     // Drift and quality (Methodology)
@@ -1026,6 +1027,7 @@ fn build_harvest_output(
             result.session_entities,
         ),
         tokens: 15,
+                    attention: None,
     });
 
     // Completeness gaps (UserRequested — shown when non-zero)
@@ -1034,6 +1036,7 @@ fn build_harvest_output(
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: format!("completeness_gaps: {}", result.completeness_gaps),
             tokens: 5,
+                    attention: None,
         });
     }
 

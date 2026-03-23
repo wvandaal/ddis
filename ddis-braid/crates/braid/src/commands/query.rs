@@ -273,6 +273,7 @@ pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
             pagination_note
         ),
         tokens: 12,
+                    attention: None,
     });
 
     // Result rows as context blocks (UserRequested for first 10, Speculative beyond)
@@ -286,6 +287,7 @@ pub fn run(params: QueryParams<'_>) -> Result<CommandOutput, BraidError> {
             precedence,
             content: format!("[{} {} {}]", entity_label, attr_str, value_str),
             tokens: 8,
+                    attention: None,
         });
     }
 
@@ -520,6 +522,7 @@ pub fn run_datalog(
         precedence: braid_kernel::budget::OutputPrecedence::System,
         content: format!("datalog: {} results", result_count),
         tokens: 5,
+                    attention: None,
     });
 
     // Result content as a single block (UserRequested)
@@ -537,6 +540,7 @@ pub fn run_datalog(
         precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
         content: content_for_block,
         tokens: (result_count * 8).clamp(10, 200),
+                    attention: None,
     });
 
     let projection = braid_kernel::ActionProjection {

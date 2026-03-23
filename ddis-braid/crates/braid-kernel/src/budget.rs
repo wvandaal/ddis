@@ -513,11 +513,59 @@ impl std::fmt::Display for ProjectedAction {
     }
 }
 
+/// Learned attention score for a context block (ADR-FOUNDATION-024).
+///
+/// Combines three signals into a composite score that determines block ordering:
+/// - **Surprisal**: 1/sqrt(presentation_count) — novel blocks score higher.
+/// - **Hebbian boost**: Accumulated from verbose-request signals, decays 0.5x/session.
+/// - **Learned weight**: Bayesian-calibrated from outcome correlation (default 1.0).
+///
+/// Composite = surprisal * learned_weight + hebbian_boost.
+/// INV-ATTENTION-001, INV-ATTENTION-002.
+#[derive(Clone, Debug)]
+pub struct AttentionScore {
+    /// Novelty signal: 1/sqrt(presentation_count). 1.0 for never-seen blocks.
+    pub surprisal: f64,
+    /// Accumulated boost from verbose/deep requests. Decays 0.5x per session.
+    pub hebbian_boost: f64,
+    /// Bayesian weight from outcome correlation. Default 1.0.
+    pub learned_weight: f64,
+    /// Combined score: surprisal * learned_weight + hebbian_boost.
+    pub composite: f64,
+}
+
+impl AttentionScore {
+    /// Compute attention score from presentation count.
+    ///
+    /// Surprisal = 1/sqrt(max(1, count)). For count=0, surprisal=1.0 (maximally novel).
+    /// For count=4, surprisal=0.5. Monotonically decreasing.
+    pub fn from_presentation_count(count: u64, hebbian_boost: f64, learned_weight: f64) -> Self {
+        let surprisal = 1.0 / (count.max(1) as f64).sqrt();
+        let composite = surprisal * learned_weight + hebbian_boost;
+        AttentionScore {
+            surprisal,
+            hebbian_boost,
+            learned_weight,
+            composite,
+        }
+    }
+
+    /// Default attention score for a never-seen block.
+    pub fn novel() -> Self {
+        Self::from_presentation_count(0, 0.0, 1.0)
+    }
+}
+
 /// A block of supporting context at a specific precedence level (INV-BUDGET-008).
 ///
 /// Context blocks are the unit of budget-aware output. The project() algorithm
 /// fills blocks in precedence order (highest first) until the budget is exhausted.
 /// Increasing budget adds blocks but never removes them (monotonic fill).
+///
+/// When `attention` is `Some`, the block has a learned attention score from
+/// ADR-FOUNDATION-024. Blocks are sorted by composite attention score (highest
+/// first) within each precedence tier. When `None`, static precedence ordering
+/// is used (backward-compatible).
 #[derive(Clone, Debug)]
 pub struct ContextBlock {
     /// Precedence level (System > Methodology > UserRequested > Speculative > Ambient).
@@ -526,6 +574,10 @@ pub struct ContextBlock {
     pub content: String,
     /// Estimated token count (via ApproxTokenCounter).
     pub tokens: usize,
+    /// Optional learned attention score (ADR-FOUNDATION-024).
+    /// When present, blocks are sorted by composite attention score within
+    /// each precedence tier. When absent, static precedence ordering is used.
+    pub attention: Option<AttentionScore>,
 }
 
 /// The universal ACP output type (INV-BUDGET-007).
@@ -2088,11 +2140,13 @@ mod tests {
                     precedence: OutputPrecedence::System,
                     content: "F(S)=0.64, 20000 datoms".to_string(),
                     tokens: 10,
+                    attention: None,
                 },
                 ContextBlock {
                     precedence: OutputPrecedence::Methodology,
                     content: "M(t)=0.50 (tx:✗ spec:✗ query:✗ harvest:✓)".to_string(),
                     tokens: 15,
+                    attention: None,
                 },
             ],
             evidence_pointer: "details: braid status --verbose".to_string(),
@@ -2127,16 +2181,19 @@ mod tests {
                     precedence: OutputPrecedence::System,
                     content: "BLOCK-A".to_string(),
                     tokens: 5,
+                    attention: None,
                 },
                 ContextBlock {
                     precedence: OutputPrecedence::Methodology,
                     content: "BLOCK-B".to_string(),
                     tokens: 10,
+                    attention: None,
                 },
                 ContextBlock {
                     precedence: OutputPrecedence::UserRequested,
                     content: "BLOCK-C".to_string(),
                     tokens: 20,
+                    attention: None,
                 },
             ],
             evidence_pointer: String::new(),
@@ -2199,6 +2256,7 @@ mod tests {
                 precedence: OutputPrecedence::System,
                 content: "x ".repeat(100),
                 tokens: 50,
+                attention: None,
             }],
             evidence_pointer: "details: braid status".to_string(),
         };
@@ -2299,6 +2357,7 @@ mod tests {
                 precedence: OutputPrecedence::System,
                 content: "store info".to_string(),
                 tokens: 5,
+                attention: None,
             }],
             evidence_pointer: "details: braid status".to_string(),
         };

@@ -337,6 +337,7 @@ pub fn run_create(args: CreateArgs<'_>) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::System,
             content: format!("created: {} ({}, ns={})", ident, element_type, namespace),
             tokens: 8,
+                    attention: None,
         }],
         evidence_pointer: format!("details: braid query --entity {ident}"),
     };
@@ -476,6 +477,7 @@ pub fn run_review(path: &Path) -> Result<CommandOutput, BraidError> {
                 threshold
             ),
             tokens: 8,
+                    attention: None,
         }],
         evidence_pointer: "list: braid spec review | history: braid spec history".to_string(),
     };
@@ -572,6 +574,7 @@ pub fn run_accept(path: &Path, id: &str, agent: &str) -> Result<CommandOutput, B
                 suggested_id, datom_count
             ),
             tokens: 8,
+                    attention: None,
         }],
         evidence_pointer: "review: braid spec review | trace: braid trace --commit".to_string(),
     };
@@ -662,6 +665,7 @@ pub fn run_reject(
             precedence: braid_kernel::budget::OutputPrecedence::System,
             content: format!("rejected: {}", suggested_id),
             tokens: 5,
+                    attention: None,
         }],
         evidence_pointer: "history: braid spec history | status: braid status".to_string(),
     };
@@ -906,6 +910,7 @@ pub fn run_history(path: &Path) -> Result<CommandOutput, BraidError> {
                 n_rejected,
             ),
             tokens: 10,
+                    attention: None,
         }],
         evidence_pointer: "review: braid spec review | status: braid status".to_string(),
     };

@@ -232,6 +232,7 @@ pub fn run(
             total_txns,
         ),
         tokens: 10,
+                    attention: None,
     });
 
     // Recent transaction entries as context (Methodology)
@@ -253,6 +254,7 @@ pub fn run(
                 info.wall_time, info.assert_count, retract_str, rationale_short,
             ),
             tokens: 12,
+                    attention: None,
         });
     }
 
@@ -262,6 +264,7 @@ pub fn run(
             precedence: braid_kernel::budget::OutputPrecedence::Speculative,
             content: format!("... and {} more transactions", tx_infos.len() - 5),
             tokens: 5,
+                    attention: None,
         });
     }
 

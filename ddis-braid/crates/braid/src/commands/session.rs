@@ -303,6 +303,7 @@ pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, Brai
                 duration_secs / 60,
             ),
             tokens: 15,
+                    attention: None,
         },
         braid_kernel::budget::ContextBlock {
             precedence: braid_kernel::budget::OutputPrecedence::Methodology,
@@ -311,6 +312,7 @@ pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, Brai
                 fitness.total, tx_since_harvest
             ),
             tokens: 10,
+                    attention: None,
         },
     ];
 
@@ -319,6 +321,7 @@ pub fn run_summary(path: &Path, _agent_name: &str) -> Result<CommandOutput, Brai
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: format!("{} tasks in-progress", tasks_in_progress),
             tokens: 5,
+                    attention: None,
         });
     }
 

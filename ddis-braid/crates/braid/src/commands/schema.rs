@@ -111,6 +111,7 @@ pub fn run(
         precedence: braid_kernel::budget::OutputPrecedence::System,
         content: ctx_label,
         tokens: 8,
+                    attention: None,
     });
 
     // Namespace breakdown (UserRequested)
@@ -135,6 +136,7 @@ pub fn run(
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: format!("namespaces: {}", ns_summary.join(", ")),
             tokens: 10 + ns_summary.len(),
+                    attention: None,
         });
     }
 
@@ -157,6 +159,7 @@ pub fn run(
                 doc_short
             ),
             tokens: 8,
+                    attention: None,
         });
     }
 
@@ -165,6 +168,7 @@ pub fn run(
             precedence: braid_kernel::budget::OutputPrecedence::Ambient,
             content: format!("... and {} more", attrs.len() - max_attr_blocks),
             tokens: 3,
+                    attention: None,
         });
     }
 
@@ -238,6 +242,7 @@ fn run_diff(
                 precedence: braid_kernel::budget::OutputPrecedence::System,
                 content: format!("schema diff: 0 new attributes since tx {since_tx}"),
                 tokens: 8,
+                    attention: None,
             }],
             evidence_pointer: "braid schema --pattern ':spec/*'".to_string(),
         };
@@ -374,6 +379,7 @@ fn run_diff(
         precedence: braid_kernel::budget::OutputPrecedence::System,
         content: format!("schema diff: {count} attributes added since tx {since_tx}"),
         tokens: 8,
+                    attention: None,
     }];
     for (i, entry) in entries.iter().take(20).enumerate() {
         let precedence = if i < 5 {
@@ -390,6 +396,7 @@ fn run_diff(
                 truncate_doc(&entry.doc, 40)
             ),
             tokens: 8,
+                    attention: None,
         });
     }
     if count > 20 {
@@ -397,6 +404,7 @@ fn run_diff(
             precedence: braid_kernel::budget::OutputPrecedence::Ambient,
             content: format!("... and {} more", count - 20),
             tokens: 3,
+                    attention: None,
         });
     }
     let projection = braid_kernel::ActionProjection {

@@ -447,6 +447,7 @@ fn build_acp_projection(
             state.fitness.total, state.cycle_count, cc_summary
         ),
         tokens: 12,
+                    attention: None,
     });
 
     // Component breakdown (UserRequested)
@@ -465,6 +466,7 @@ fn build_acp_projection(
             c.uncertainty
         ),
         tokens: 20,
+                    attention: None,
     });
 
     // Scan coverage (Speculative)
@@ -480,6 +482,7 @@ fn build_acp_projection(
             state.scan.backward.coverage_ratio * 100.0
         ),
         tokens: 12,
+                    attention: None,
     });
 
     // Convergence info (Speculative)
@@ -501,6 +504,7 @@ fn build_acp_projection(
                 .unwrap_or_default()
         ),
         tokens: 15,
+                    attention: None,
     });
 
     // Forward gaps (Ambient — only if there are gaps)
@@ -525,6 +529,7 @@ fn build_acp_projection(
                 if fwd.gaps.len() > 5 { ", ..." } else { "" }
             ),
             tokens: 15,
+                    attention: None,
         });
     }
 

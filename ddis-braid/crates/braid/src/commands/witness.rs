@@ -143,6 +143,7 @@ pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> 
              {stale_count} stale, {untested_count} untested, score={score:.2}"
         ),
         tokens: 15,
+                    attention: None,
     }];
 
     if confirmed > 0 || refuted > 0 {
@@ -153,6 +154,7 @@ pub fn run_status(path: &Path, json: bool) -> Result<CommandOutput, BraidError> 
                  {inconclusive} inconclusive, {refuted} refuted"
             ),
             tokens: 10,
+                    attention: None,
         });
     }
 
@@ -312,6 +314,7 @@ pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput,
             if commit { " (committed)" } else { "" }
         ),
         tokens: 10,
+                    attention: None,
     }];
 
     // Add stale entries as individual context blocks
@@ -324,6 +327,7 @@ pub fn run_check(path: &Path, commit: bool, json: bool) -> Result<CommandOutput,
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: format!("STALE {inv_display}: {}", format_stale_reason(reason)),
             tokens: 8,
+                    attention: None,
         });
     }
 
@@ -458,6 +462,7 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
             unwitnessed.len()
         ),
         tokens: 8,
+                    attention: None,
     }];
 
     // Add unwitnessed invariants as individual context blocks
@@ -477,6 +482,7 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
             precedence,
             content: display,
             tokens: 10,
+                    attention: None,
         });
     }
 
@@ -485,6 +491,7 @@ pub fn run_completeness(path: &Path, json: bool) -> Result<CommandOutput, BraidE
             precedence: braid_kernel::budget::OutputPrecedence::Ambient,
             content: format!("... and {} more", entries.len() - max_entries),
             tokens: 3,
+                    attention: None,
         });
     }
 

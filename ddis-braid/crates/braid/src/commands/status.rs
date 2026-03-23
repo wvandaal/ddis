@@ -427,6 +427,7 @@ pub fn build_status_projection(
             hashes.len(),
         ),
         tokens: 15,
+                    attention: None,
     });
 
     // 2. Coherence + F(S) with session delta (SD-1) + M(t) with session age (SD-2)
@@ -477,6 +478,7 @@ pub fn build_status_projection(
             session_age_str,
         ),
         tokens: 25,
+                    attention: None,
     });
 
     // 3. Boundary coverage (Methodology)
@@ -503,6 +505,7 @@ pub fn build_status_projection(
             precedence: OutputPrecedence::Methodology,
             content: format!("boundaries: {}", boundary_parts.join(" | ")),
             tokens: 12,
+                    attention: None,
         });
     }
 
@@ -525,6 +528,7 @@ pub fn build_status_projection(
                 total_open, ready_count, blocked, in_progress, closed, p_t
             ),
             tokens: 18,
+                    attention: None,
         });
     }
 
@@ -551,6 +555,7 @@ pub fn build_status_projection(
             precedence: OutputPrecedence::Methodology,
             content: session_str,
             tokens: 12,
+                    attention: None,
         });
     }
 
@@ -566,6 +571,7 @@ pub fn build_status_projection(
         precedence: OutputPrecedence::Methodology,
         content: harvest_status,
         tokens: 10,
+                    attention: None,
     });
 
     // 5a. HL-4: Hypothesis calibration metrics (Methodology)
@@ -584,6 +590,7 @@ pub fn build_status_projection(
                 cal.completed_hypotheses, cal.total_hypotheses, cal.mean_error, trend_str
             ),
             tokens: 12,
+                    attention: None,
         });
     }
 
@@ -604,6 +611,7 @@ pub fn build_status_projection(
         precedence: OutputPrecedence::Methodology,
         content: trace_content,
         tokens: 12,
+                    attention: None,
     });
 
     // 6. Methodology gaps — use snapshot (AGP-4.2, INV-GUIDANCE-021)
@@ -637,6 +645,7 @@ pub fn build_status_projection(
                 gap_parts.join(", ")
             ),
             tokens: 15,
+                    attention: None,
         });
     }
 

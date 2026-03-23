@@ -572,6 +572,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
         precedence: braid_kernel::budget::OutputPrecedence::System,
         content: summary,
         tokens: 15,
+                    attention: None,
     });
 
     // Store state (Methodology)
@@ -582,6 +583,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             file_path.relative_path()
         ),
         tokens: 10,
+                    attention: None,
     });
 
     // Tags if present (UserRequested)
@@ -590,6 +592,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: format!("tags: {}", args.tags.join(", ")),
             tokens: 5,
+                    attention: None,
         });
     }
 
@@ -599,6 +602,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: format!("relates-to: {relates_to}"),
             tokens: 5,
+                    attention: None,
         });
     }
 
@@ -608,6 +612,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::Speculative,
             content: format!("rationale: {rationale}"),
             tokens: 10,
+                    attention: None,
         });
     }
 
@@ -617,6 +622,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::Speculative,
             content: format!("alternatives: {alternatives}"),
             tokens: 10,
+                    attention: None,
         });
     }
 
@@ -630,6 +636,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
                     sr.source, sr.human_id, sr.summary, sr.score
                 ),
                 tokens: 12,
+                    attention: None,
             });
         }
         if related_specs.len() >= 3 {
@@ -638,6 +645,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
                 content: "3+ existing knowledge elements found. Reconcile before crystallizing."
                     .to_string(),
                 tokens: 8,
+                    attention: None,
             });
         }
     }
@@ -655,6 +663,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::Methodology,
             content: cryst_line,
             tokens: 15,
+                    attention: None,
         });
     } else if delta_cryst > f64::EPSILON {
         // Find which spec element(s) the observation is anchored to
@@ -668,6 +677,7 @@ pub fn run(args: ObserveArgs<'_>) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::Methodology,
             content: format!("\u{0394}-cryst: +{delta_cryst:.1} (anchored to {ref_str})"),
             tokens: 10,
+                    attention: None,
         });
     }
 

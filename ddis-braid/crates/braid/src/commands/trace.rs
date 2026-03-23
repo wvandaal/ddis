@@ -1009,6 +1009,7 @@ pub fn run(
             coverage_pct,
         ),
         tokens: 15,
+                    attention: None,
     });
 
     // Link counts (Methodology)
@@ -1023,6 +1024,7 @@ pub fn run(
             spec_map.len(),
         ),
         tokens: 12,
+                    attention: None,
     });
 
     // Depth distribution (UserRequested — when non-empty)
@@ -1039,6 +1041,7 @@ pub fn run(
                 precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
                 content: format!("depth: {}", depth_parts.join(", ")),
                 tokens: 8,
+                    attention: None,
             });
         }
     }
@@ -1049,6 +1052,7 @@ pub fn run(
             precedence: braid_kernel::budget::OutputPrecedence::Speculative,
             content: format!("unresolved: {} ({}x)", ref_str, count),
             tokens: 5,
+                    attention: None,
         });
     }
 
@@ -1058,6 +1062,7 @@ pub fn run(
             precedence: braid_kernel::budget::OutputPrecedence::System,
             content: format!("committed: {} datoms", committed_datoms),
             tokens: 5,
+                    attention: None,
         });
     }
 

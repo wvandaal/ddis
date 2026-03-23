@@ -81,7 +81,7 @@ pub use branch::{branch_datoms, compare_branches, create_branch, merge_branch, p
 pub use budget::{
     attention_decay, classify_command, enforce_ceiling, json_to_tsv, quality_adjusted_budget,
     safe_truncate_bytes, safe_truncate_display, ActionProjection, ActivationStrategy,
-    ApproxTokenCounter, AttentionProfile, BudgetManager, BudgetProjection, ContextBlock,
+    ApproxTokenCounter, AttentionProfile, AttentionScore, BudgetManager, BudgetProjection, ContextBlock,
     GuidanceLevel, OutputBlock, OutputPrecedence, ProjectedAction, SessionPhase, TokenCounter,
     TokenEfficiency, AGENT_MODE_CEILING, BUDGET_FRACTION, DEFAULT_WINDOW_SIZE,
     ERROR_MESSAGE_CEILING, GUIDANCE_FOOTER_CEILING, MIN_OUTPUT,

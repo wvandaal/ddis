@@ -246,6 +246,7 @@ pub fn run(
             store.entity_count(),
         ),
         tokens: 15,
+                    attention: None,
     });
 
     // Seed sections as context (Methodology)
@@ -283,6 +284,7 @@ pub fn run(
             precedence: braid_kernel::budget::OutputPrecedence::Methodology,
             content: format!("{label}: {snippet}"),
             tokens: 10,
+                    attention: None,
         });
     }
 

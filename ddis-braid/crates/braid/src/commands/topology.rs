@@ -121,6 +121,7 @@ pub fn run_plan(
             plan.parallelizability,
         ),
         tokens: 15,
+                    attention: None,
     }];
 
     for a in &plan.assignments {
@@ -134,6 +135,7 @@ pub fn run_plan(
                 a.total_impact,
             ),
             tokens: 12,
+                    attention: None,
         });
     }
 

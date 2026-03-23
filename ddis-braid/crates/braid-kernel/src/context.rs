@@ -120,6 +120,7 @@ pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBl
         precedence: crate::budget::OutputPrecedence::Methodology,
         content: m_line,
         tokens: 20,
+        attention: None,
     }];
 
     // Store state context
@@ -131,6 +132,7 @@ pub fn methodology_context_blocks(store: &Store) -> Vec<crate::budget::ContextBl
             store.frontier().len()
         ),
         tokens: 8,
+        attention: None,
     });
 
     blocks

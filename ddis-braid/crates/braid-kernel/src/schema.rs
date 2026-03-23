@@ -1663,6 +1663,56 @@ pub fn layer_2_attributes() -> Vec<AttributeSpec> {
             Cardinality::One,
             "Wall-clock time when the outcome was measured. Null until action completes.",
         ),
+        // =================================================================
+        // Attention (6) — Learned context projection (ATT-0)
+        // ADR-FOUNDATION-024: Braid as Learned Attention
+        //
+        // Session-scoped entities keyed by block label. Track how often
+        // each context block is presented and how useful it was.
+        // Dual-path: hot-path cache (in-memory) + cold-path datoms
+        // (cross-session persistence).
+        //
+        // Surprisal = 1/sqrt(presentation_count) — novel blocks score
+        // higher. Hebbian boost rewards blocks the agent explicitly
+        // requests via --verbose. Learned weight adjusts from outcome
+        // correlation via the hypothesis pipeline.
+        // =================================================================
+        attr(
+            ":attention/block-label",
+            ValueType::String,
+            Cardinality::One,
+            "Canonical label for a context block type (e.g., 'coherence', 'boundaries', 'tasks'). Key for attention entity.",
+        ),
+        attr(
+            ":attention/presentation-count",
+            ValueType::Long,
+            Cardinality::One,
+            "Times this block label was presented in current session. Used for surprisal = 1/sqrt(N).",
+        ),
+        attr(
+            ":attention/last-presented",
+            ValueType::Instant,
+            Cardinality::One,
+            "Wall-clock of most recent presentation of this block.",
+        ),
+        attr(
+            ":attention/hebbian-boost",
+            ValueType::Double,
+            Cardinality::One,
+            "Accumulated boost from verbose-request signals. Decays 0.5x per session.",
+        ),
+        attr(
+            ":attention/learned-weight",
+            ValueType::Double,
+            Cardinality::One,
+            "Bayesian-calibrated weight from outcome correlation. Default 1.0.",
+        ),
+        attr(
+            ":attention/calibration-count",
+            ValueType::Long,
+            Cardinality::One,
+            "Number of outcome data points informing the learned weight.",
+        ),
     ]
 }
 

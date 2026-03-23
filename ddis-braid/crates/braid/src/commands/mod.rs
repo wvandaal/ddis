@@ -4083,6 +4083,7 @@ mod merge {
                 new_files,
             ),
             tokens: 15,
+                    attention: None,
         });
 
         // Store state after merge (Methodology)
@@ -4096,6 +4097,7 @@ mod merge {
                 store.frontier().len(),
             ),
             tokens: 12,
+                    attention: None,
         });
 
         // Invariant checks (System — important for correctness)
@@ -4107,6 +4109,7 @@ mod merge {
                 if frontier_advanced { "OK" } else { "NO CHANGE" },
             ),
             tokens: 10,
+                    attention: None,
         });
 
         let projection = braid_kernel::ActionProjection {

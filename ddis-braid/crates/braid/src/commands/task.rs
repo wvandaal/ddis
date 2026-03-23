@@ -518,6 +518,7 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
             ready_set.len()
         ),
         tokens: 8,
+                    attention: None,
     });
 
     // Task entries as individual context blocks (UserRequested)
@@ -576,6 +577,7 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
                 t.priority, t.id, type_short, title_display
             ),
             tokens: 12,
+                    attention: None,
         });
     }
 
@@ -587,6 +589,7 @@ pub fn ready(path: &Path) -> Result<CommandOutput, BraidError> {
                 ready_set.len() - max_entries
             ),
             tokens: 5,
+                    attention: None,
         });
     }
 
@@ -726,11 +729,13 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
                 impact_str,
             ),
             tokens: 12,
+                    attention: None,
         },
         braid_kernel::budget::ContextBlock {
             precedence: braid_kernel::budget::OutputPrecedence::Speculative,
             content: format!("{} total ready | all: braid task ready", ready_count),
             tokens: 8,
+                    attention: None,
         },
     ];
 
@@ -755,6 +760,7 @@ pub fn next(path: &Path, skip: Option<&str>) -> Result<CommandOutput, BraidError
                 precedence: braid_kernel::budget::OutputPrecedence::System,
                 content: l1,
                 tokens: 10,
+                    attention: None,
             },
         );
     }
@@ -949,6 +955,7 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::System,
             content: format!("{} \"{}\"", t.id, t.title),
             tokens: 15,
+                    attention: None,
         },
         braid_kernel::budget::ContextBlock {
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
@@ -961,6 +968,7 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
                 t.traces_to.len(),
             ),
             tokens: 10,
+                    attention: None,
         },
     ];
 
@@ -969,6 +977,7 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::Speculative,
             content: format!("labels: {}", t.labels.join(", ")),
             tokens: 5,
+                    attention: None,
         });
     }
 
@@ -977,6 +986,7 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::Speculative,
             content: format!("close-reason: {reason}"),
             tokens: 5,
+                    attention: None,
         });
     }
 
@@ -986,6 +996,7 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: format!("BACKGROUND: {bg}"),
             tokens: bg.len() / 4 + 5,
+                    attention: None,
         });
     }
     if let Some(ref acc) = acceptance {
@@ -993,6 +1004,7 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: format!("ACCEPTANCE: {acc}"),
             tokens: acc.len() / 4 + 5,
+                    attention: None,
         });
     }
     if let Some(ref app) = approach {
@@ -1000,6 +1012,7 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::Speculative,
             content: format!("APPROACH: {app}"),
             tokens: app.len() / 4 + 5,
+                    attention: None,
         });
     }
     if !files.is_empty() {
@@ -1007,6 +1020,7 @@ pub fn show(path: &Path, task_id: &str) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::Speculative,
             content: format!("FILES: {}", files.join(", ")),
             tokens: files.len() * 5 + 3,
+                    attention: None,
         });
     }
 
@@ -1384,12 +1398,14 @@ pub fn close(
             fitness.total
         ),
         tokens: 10,
+                    attention: None,
     }];
     for id in &closed_ids {
         context_blocks.push(braid_kernel::budget::ContextBlock {
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: format!("closed: {id}"),
             tokens: 3,
+                    attention: None,
         });
     }
     let projection = braid_kernel::ActionProjection {
@@ -1468,6 +1484,7 @@ pub fn update(
         precedence: braid_kernel::budget::OutputPrecedence::System,
         content: format!("updated: {task_id} \u{2192} {status}"),
         tokens: 5,
+                    attention: None,
     }];
     if let Some(summary) = task_summary(&store, entity) {
         let title_trunc = if summary.title.len() > 80 {
@@ -1482,6 +1499,7 @@ pub fn update(
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: format!("{}: {}", task_id, title_trunc),
             tokens: 10,
+                    attention: None,
         });
     }
 
@@ -1975,6 +1993,7 @@ pub fn audit(path: &Path) -> Result<CommandOutput, BraidError> {
             precedence: braid_kernel::budget::OutputPrecedence::UserRequested,
             content: detail,
             tokens: 15,
+                    attention: None,
         });
     }
 
