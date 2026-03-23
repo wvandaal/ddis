@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774248982/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-3-IMPL: Task-conditioned relevance scoring via spec namespace overlap"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :db/ident :v :task/t-88751f73 :op :assert}
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :task/created-at :v 1774248981 :op :assert}
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :task/description :v "CONTEXT: ATT-3 computes per-block relevance conditioned on the active in-progress task. Uses existing spec_anchor_factor infrastructure. For each context block, check if content relates to active task's spec refs via VAET index. Relevance = 1.0 if block content matches task's spec namespace, 0.5 for adjacent namespaces, 0.3 default. APPROACH: (1) In routing.rs (after GD split), get active task via task list --in-progress. (2) Extract task's spec refs (traces-to field). (3) For each context block, compute task_relevance based on spec namespace overlap. (4) Include in composite: composite = surprisal * learned_weight * task_relevance + hebbian_boost. (5) This makes context adapt to WHAT YOU'RE DOING, not just what you've seen before. ACCEPTANCE: (A) Working on INV-GUIDANCE-* task → guidance-related blocks rank higher. (B) Working on INV-STORE-* task → store-related blocks rank higher. (C) No active task → task_relevance = 1.0 for all blocks (neutral). (D) Task switch immediately reorders context blocks. DEPENDS-ON: ATT-2-IMPL. FILE: crates/braid-kernel/src/guidance/routing.rs" :op :assert}
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :task/id :v "t-88751f73" :op :assert}
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :task/title :v "ATT-3-IMPL: Task-conditioned relevance scoring via spec namespace overlap" :op :assert}
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :task/title-l0 :v "ATT-3-IMPL" :op :assert}
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :task/title-l1 :v "ATT-3-IMPL: Task-conditioned relevance scoring via spec namespace overlap" :op :assert}
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :task/traces-to :v #blake3 "dbd4aa4ac4c6d7ba5d6fdaead15afb6f7e54d2540158a1814aad926d82a7bcd4" :op :assert}
+   {:e #blake3 "22010f88d86a811e14a772b1111779c44ca7a65180a8f2da945ae39c37b26861" :a :task/type :v :task.type/task :op :assert}
+ ]}

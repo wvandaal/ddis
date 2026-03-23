@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774249085/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TG-3: Frontier sync dedicated tests — 5 edge cases for multi-store merge"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :db/ident :v :task/t-9fc8fb9e :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/created-at :v 1774249084 :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/description :v "CONTEXT: Sync/frontier propagation has zero dedicated tests. Multi-store merge relies on frontier comparison to determine what datoms to exchange. If frontier comparison is wrong, merges could silently drop data. RATIONALE: INV-MERGE-001 (set union completeness), INV-STORE-004 (frontier semantics). Frontier is implicitly tested in merge tests but edge cases (empty frontier, single-datom frontier, frontier with retractions) are not explicitly covered. APPROACH: (1) Test: two stores with disjoint datom sets, merge, verify union is complete. (2) Test: two stores with overlapping datoms, merge, verify no duplicates. (3) Test: store A has retraction that store B doesn't, merge, verify retraction propagates. (4) Test: empty store merges with populated store — frontier is complete. (5) Test: frontier comparison with concurrent transactions (same entity, different attributes). ACCEPTANCE: (A) 5 dedicated frontier tests pass. (B) Edge case: empty frontier merge produces correct result. (C) Edge case: retraction-only merge propagates correctly. FILE: crates/braid-kernel/src/store.rs or new tests/frontier_sync.rs" :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/id :v "t-9fc8fb9e" :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/title :v "TG-3: Frontier sync dedicated tests — 5 edge cases for multi-store merge" :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/title-l0 :v "TG-3" :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/title-l1 :v "TG-3: Frontier sync dedicated tests — 5 edge cases for multi-store merge" :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/traces-to :v #blake3 "3f4aa37696d77e9a96da052a3bf7604cd24394b0ced480b3a2e96ce130c92535" :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/traces-to :v #blake3 "c60068c4d419d99b1451444dfdda9ce93f71f7d62a5264b9fdb17409666365ea" :op :assert}
+   {:e #blake3 "e9179ab77c96dfe1523dc57917611608e091a619f4b334775168d7051be72996" :a :task/type :v :task.type/test :op :assert}
+ ]}

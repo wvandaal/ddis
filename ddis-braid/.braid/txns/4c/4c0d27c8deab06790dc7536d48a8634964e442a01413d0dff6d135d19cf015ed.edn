@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774249172/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TL-1: Task decay mechanism — auto-downgrade stale tasks to P4 after 5 sessions"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :db/ident :v :task/t-af61bca2 :op :assert}
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :task/created-at :v 1774249171 :op :assert}
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :task/description :v "CONTEXT: Tasks untouched for 5+ sessions accumulate and dilute R(t). Need a decay mechanism. APPROACH: (1) Add :task/last-session-touched (Instant, One) attribute to schema in schema.rs. (2) On any task interaction (show, go, close, update), record current session timestamp via transact. (3) In methodology_gaps() or harvest, scan for tasks where last-session-touched is greater than 5 sessions stale AND priority less than P4. (4) Auto-downgrade to P4 with retraction+assertion of :task/priority. (5) Report in braid status: 'N tasks auto-decayed to backlog'. (6) Manual priority override persists — decay only applies if no explicit interaction in the window. ACCEPTANCE: (A) After 5 sessions without touching task X, X.priority == P4. (B) Task decay count appears in status output. (C) Manually setting priority resets the decay timer. (D) P0 tasks are exempt from decay (critical work should never auto-decay). CONSIDERATIONS: The session count threshold (5) should be a config datom, not hardcoded. This allows tuning. FILE: crates/braid-kernel/src/schema.rs + crates/braid-kernel/src/task.rs + crates/braid-kernel/src/guidance/methodology.rs" :op :assert}
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :task/id :v "t-af61bca2" :op :assert}
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :task/title :v "TL-1: Task decay mechanism — auto-downgrade stale tasks to P4 after 5 sessions" :op :assert}
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :task/title-l0 :v "TL-1" :op :assert}
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :task/title-l1 :v "TL-1: Task decay mechanism — auto-downgrade stale tasks to P4 after 5 sessions" :op :assert}
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :task/traces-to :v #blake3 "6d52695da7318c5fd5d5915c1734c80043acfcdc41b48237f1c50006a6396526" :op :assert}
+   {:e #blake3 "40ee058835464a20c68c2c509a967fd6e4ce337ac70291bef0ea66b05d450877" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774248676/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :db/ident :v :recon/trace-837792966e84d8bc :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-command :v "observe" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-neighborhood :v "RESOLUTION" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.kani_proofs.inv-resolution-002" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-resolution-001" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-resolution-002" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.task.inv-resolution-001" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.trace.inv-resolution-002" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-resolution-001" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-resolution-002" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.stateright_model.inv-resolution-002" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-neighbors :v ":impl/braid.src.commands.task.inv-resolution-001" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-refs :v "INV-RESOLUTION-001" :op :assert}
+   {:e #blake3 "6db0b50adf46522874a14793f2d3c59f3e90a347f74171645dd7936c5780c623" :a :recon/trace-refs :v "INV-RESOLUTION-002" :op :assert}
+ ]}

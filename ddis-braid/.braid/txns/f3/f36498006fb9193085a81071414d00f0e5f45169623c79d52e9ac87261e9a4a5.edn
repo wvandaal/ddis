@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774249124/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: RM-1: Crystallize ADR-ROADMAP-001 — Phase Model Replaces Stage Model"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :db/ident :v :task/t-d86dd09f :op :assert}
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :task/created-at :v 1774249123 :op :assert}
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :task/description :v "CONTEXT: The roadmap change is an architectural decision that should be formally recorded as an ADR. The decision: replace the 5-stage linear model with a 5-phase model derived from observed project trajectory. RATIONALE: All design decisions must be ADRs (DDIS methodology). This prevents future sessions from reverting to the old stage model. APPROACH: (1) braid spec create ADR-ROADMAP-001 with: title 'Phase Model Replaces Stage Model', alternatives (keep stages, hybrid), rationale (stages falsified by evidence — 5 specific mismatches), decision (phases A-E). (2) Reference all 9 audit observations as supporting evidence. ACCEPTANCE: (A) ADR-ROADMAP-001 exists in store with type=adr. (B) Has falsification condition. (C) References the audit observations. FILE: None — braid CLI operations." :op :assert}
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :task/id :v "t-d86dd09f" :op :assert}
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :task/title :v "RM-1: Crystallize ADR-ROADMAP-001 — Phase Model Replaces Stage Model" :op :assert}
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :task/title-l0 :v "RM-1" :op :assert}
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :task/title-l1 :v "RM-1: Crystallize ADR-ROADMAP-001 — Phase Model Replaces Stage Model" :op :assert}
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :task/traces-to :v #blake3 "d54a134d486b47a450d4c1760f8f7c60668e1986f86927a06f8a8df7080b3195" :op :assert}
+   {:e #blake3 "2449c15d6fc33e8c066abf3087397970de217790cd02e0e0035169d85689859f" :a :task/type :v :task.type/task :op :assert}
+ ]}

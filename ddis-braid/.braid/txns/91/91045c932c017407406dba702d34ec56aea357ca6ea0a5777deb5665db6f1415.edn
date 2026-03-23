@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774248894/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: GD-3: Extract context.rs — ACP blocks, rendering, footer, budget interaction (~4K LOC)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :db/ident :v :task/t-2d54b4e1 :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/created-at :v 1774248893 :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/description :v "CONTEXT: Third step of guidance.rs decomposition. context.rs handles ACP context blocks, status projection, seed context assembly, footer rendering, pyramid compression. These functions decide HOW to present information — distinct from methodology (measurement) and routing (recommendation). APPROACH: (1) Move ContextBlock, AttentionScore, GuidanceContext structs. (2) Move build_status_projection(), build_verbose(), build_seed_context(), render_footer(), pyramid_compress(). (3) Move all ACP-related rendering functions. (4) Re-export from guidance/mod.rs. (5) guidance/mod.rs becomes the public API surface — thin re-exports only. ACCEPTANCE: (A) context.rs is less than 4.5K LOC. (B) cargo test passes without modification. (C) All INV-BUDGET-001..006 references in context.rs. (D) context.rs depends on routing.rs (for scores) and methodology.rs (for M(t)), but not circularly. (E) guidance/mod.rs is less than 200 LOC (just re-exports). DEPENDS-ON: GD-2 (routing.rs extracted). FILE: crates/braid-kernel/src/guidance/context.rs" :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/id :v "t-2d54b4e1" :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/title :v "GD-3: Extract context.rs — ACP blocks, rendering, footer, budget interaction (~4K LOC)" :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/title-l0 :v "GD-3" :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/title-l1 :v "GD-3: Extract context.rs — ACP blocks, rendering, footer, budget interactio..." :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/traces-to :v #blake3 "15fe6d3a838eca6cf16a79f419b3664e6a67ff925dee26bfe2374ed87bf8e149" :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/traces-to :v #blake3 "1f15e1f0d8fdfd832b0659854e1cbde9914742519af5a99aba3ba9ed91902e31" :op :assert}
+   {:e #blake3 "9d1091f566289eed2a7818ceef128b89da424cc6c324f8be832b51d8df4b4926" :a :task/type :v :task.type/task :op :assert}
+ ]}

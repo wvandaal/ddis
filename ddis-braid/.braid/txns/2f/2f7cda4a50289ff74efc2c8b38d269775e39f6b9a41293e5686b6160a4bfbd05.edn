@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774249092/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TG-4: Signal module E2E — alert fatigue dampening under realistic multi-command load"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :db/ident :v :task/t-2188da9b :op :assert}
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :task/created-at :v 1774249091 :op :assert}
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :task/description :v "CONTEXT: Signal module (1,465 LOC) has 26 unit tests but no integration or E2E tests. Alert fatigue detection (suppressing repeated signals) has never been tested in realistic multi-command context. RATIONALE: INV-SIGNAL-001. Signal routing affects guidance quality. If alert fatigue fails, agents get spammed with redundant warnings, wasting token budget. APPROACH: E2E script: (1) Initialize store. (2) Run braid status 5 times rapidly. (3) Verify: first status shows full signal set, subsequent calls show dampened/suppressed signals. (4) Wait simulated interval, run again — verify signals re-emerge after cooldown. (5) Inject a new divergence signal between calls — verify it appears despite dampening of old signals. FAILURE DIAGNOSTICS: Log: signal_type, suppression_count, cooldown_remaining, expected_visible, actual_visible. ACCEPTANCE: (A) Rapid repeated calls show signal suppression. (B) New signals penetrate dampening. (C) Cooldown expiry restores signals. FILE: scripts/e2e_signal_routing.sh" :op :assert}
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :task/id :v "t-2188da9b" :op :assert}
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :task/title :v "TG-4: Signal module E2E — alert fatigue dampening under realistic multi-command load" :op :assert}
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :task/title-l0 :v "TG-4" :op :assert}
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :task/title-l1 :v "TG-4: Signal module E2E — alert fatigue dampening under realistic multi-com..." :op :assert}
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :task/traces-to :v #blake3 "fd9e87bc8d2ed78a031457ba495af201833052c254c01ef0d6f063762cabd590" :op :assert}
+   {:e #blake3 "2893d48d26d0277d908cca963d1814ab92052b91c3fe562b48c2899d06844162" :a :task/type :v :task.type/test :op :assert}
+ ]}

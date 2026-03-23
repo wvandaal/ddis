@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774248989/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-4-IMPL: Wire composite attention into ACP rendering pipeline — replace static precedence"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :db/ident :v :task/t-d95a1ab9 :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/created-at :v 1774248988 :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/description :v "CONTEXT: ATT-4 is the integration task. Wire the composite attention score from ATT-1/2/3 into the actual ACP rendering pipeline. Currently build_status_projection() orders blocks by hardcoded precedence constants. After ATT-4, it orders by composite attention score. APPROACH: (1) Replace precedence-based ordering in build_status_projection() with attention-based ordering. (2) In seed context assembly, use attention scores to decide which blocks fit in token budget. (3) In guidance footer, include attention score in omission disclosure (so LLM knows what was cut and why). (4) Persist attention state: write :attention/* datoms at end of command execution. (5) On session start, load prior session's attention state as initial values. ACCEPTANCE: (A) ACP output demonstrably different from static precedence on session 2+. (B) Omission disclosure includes attention scores. (C) braid seed output reflects learned block ordering. (D) Attention state persists across commands within session. (E) Attention state persists across sessions via cold-path datoms. DEPENDS-ON: ATT-3-IMPL. FILE: crates/braid-kernel/src/guidance/context.rs + crates/braid/src/commands/status.rs + crates/braid/src/inject.rs" :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/id :v "t-d95a1ab9" :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/title :v "ATT-4-IMPL: Wire composite attention into ACP rendering pipeline — replace static precedence" :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/title-l0 :v "ATT-4-IMPL" :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/title-l1 :v "ATT-4-IMPL: Wire composite attention into ACP rendering pipeline — replace..." :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/traces-to :v #blake3 "31fcf3cca9d57e6a29e2f619a3968e0df88bac60d523a0a4169fd36340865bf1" :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/traces-to :v #blake3 "dbd4aa4ac4c6d7ba5d6fdaead15afb6f7e54d2540158a1814aad926d82a7bcd4" :op :assert}
+   {:e #blake3 "160a4474913524bad78e14e3d5a22ec940f8d175096cdb0a9cd314677076eb2c" :a :task/type :v :task.type/task :op :assert}
+ ]}

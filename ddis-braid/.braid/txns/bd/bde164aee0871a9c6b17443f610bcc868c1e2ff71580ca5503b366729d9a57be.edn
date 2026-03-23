@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774249077/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TG-2: Resolution proptest — commutativity, idempotence, associativity properties"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :db/ident :v :task/t-02889f05 :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/created-at :v 1774249076 :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/description :v "CONTEXT: Resolution module (1,341 LOC) has 23 unit tests but lacks property-based tests for commutativity and idempotence. These are the algebraic properties that guarantee CRDT merge correctness. RATIONALE: INV-RESOLUTION-001 (commutativity), INV-RESOLUTION-002 (determinism). Stateright tests verify merge-level CRDT properties, but NOT resolution-function-level properties with arbitrary inputs. A single counterexample could corrupt all future merges. APPROACH: PROPTEST: (1) Generate random attribute with random resolution mode (LWW, Lattice, MultiValue). (2) Generate two conflicting values. (3) Verify: resolve(v1, v2) == resolve(v2, v1) for ALL modes (commutativity). (4) Verify: resolve(resolve(a, b), b) == resolve(a, b) (idempotence). (5) Verify for Lattice mode: resolve(resolve(a, b), c) == resolve(a, resolve(b, c)) (associativity). (6) 1000 cases per property. FAILURE DIAGNOSTICS: On counterexample, log: mode, value_a, value_b, resolve(a,b), resolve(b,a), expected equality. FILE: crates/braid-kernel/src/resolution.rs (add proptest module)" :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/id :v "t-02889f05" :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/title :v "TG-2: Resolution proptest — commutativity, idempotence, associativity properties" :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/title-l0 :v "TG-2" :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/title-l1 :v "TG-2: Resolution proptest — commutativity, idempotence, associativity prope..." :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/traces-to :v #blake3 "4fea9f3880c15c138a2fc5616800231fc75783f3f0a116a51fd61f459089c430" :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/traces-to :v #blake3 "b5c2484fe5810bf6fedb0192ee75735626bd5820092a937340af041ca82374d2" :op :assert}
+   {:e #blake3 "c1ee3af8ec170ff90deb303c4fc8977ef90d77cf56367ed5cb61f2821e82fd52" :a :task/type :v :task.type/test :op :assert}
+ ]}

@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774249186/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TL-TEST: Task lifecycle test suite — decay + EPIC auto-close verification"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :db/ident :v :task/t-cacaf8bc :op :assert}
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :task/created-at :v 1774249185 :op :assert}
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :task/description :v "CONTEXT: Task lifecycle improvements (TL-1 decay, TL-2 EPIC auto-close) need verification. APPROACH: UNIT: (1) Task with no interaction for 5 sessions decays to P4. (2) P0 task does NOT decay. (3) Manual priority set resets decay timer. (4) EPIC with all sub-tasks closed auto-closes. (5) EPIC with one open sub-task stays open. PROPTEST: (6) Random task interaction patterns always result in valid priority values. (7) Decay threshold is configurable and respected. E2E: (8) scripts/e2e_task_lifecycle.sh — create EPIC with 3 sub-tasks, close sub-tasks one by one, verify EPIC auto-closes on last. Create task, advance 5 sessions (simulate), verify decay. FAILURE DIAGNOSTICS: Log: task_id, last_touched_session, current_session, priority_before, priority_after, decay_triggered. ACCEPTANCE: All 8 test categories pass. DEPENDS-ON: TL-1, TL-2. FILE: crates/braid-kernel/src/task.rs (tests module) + scripts/e2e_task_lifecycle.sh" :op :assert}
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :task/id :v "t-cacaf8bc" :op :assert}
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :task/title :v "TL-TEST: Task lifecycle test suite — decay + EPIC auto-close verification" :op :assert}
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :task/title-l0 :v "TL-TEST" :op :assert}
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :task/title-l1 :v "TL-TEST: Task lifecycle test suite — decay + EPIC auto-close verification" :op :assert}
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :task/traces-to :v #blake3 "6d52695da7318c5fd5d5915c1734c80043acfcdc41b48237f1c50006a6396526" :op :assert}
+   {:e #blake3 "22dbef71204bb80b34010c7417ee31c0994c8a0f0d774da20048737f21580514" :a :task/type :v :task.type/test :op :assert}
+ ]}

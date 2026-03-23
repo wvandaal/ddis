@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774249178/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TL-2: EPIC auto-close when all sub-tasks complete"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :db/ident :v :task/t-6b29f897 :op :assert}
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :task/created-at :v 1774249177 :op :assert}
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :task/description :v "CONTEXT: EPICs should auto-close when all their sub-tasks are closed. Currently EPICs stay open indefinitely (46 open, only 3 closed). APPROACH: (1) In task close logic, after closing a task, check if it has a parent EPIC. (2) Query all tasks that depend on the same EPIC. (3) If all are closed, auto-close the EPIC with rationale 'auto-closed: all sub-tasks complete'. (4) Report in harvest output: 'EPIC X auto-closed (N/N sub-tasks done)'. ACCEPTANCE: (A) Closing the last sub-task of an EPIC auto-closes the EPIC. (B) Auto-close is logged with rationale. (C) EPICs with at least one open sub-task remain open. (D) Manual EPIC close still works independently. CONSIDERATIONS: This requires EPICs to have explicit parent-child relationships with their sub-tasks. Currently this is inferred from naming conventions. May need :task/parent-epic (Ref, One) attribute. FILE: crates/braid-kernel/src/task.rs + crates/braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :task/id :v "t-6b29f897" :op :assert}
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :task/priority :v 2 :op :assert}
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :task/title :v "TL-2: EPIC auto-close when all sub-tasks complete" :op :assert}
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :task/title-l0 :v "TL-2" :op :assert}
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :task/title-l1 :v "TL-2: EPIC auto-close when all sub-tasks complete" :op :assert}
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :task/traces-to :v #blake3 "6d52695da7318c5fd5d5915c1734c80043acfcdc41b48237f1c50006a6396526" :op :assert}
+   {:e #blake3 "36e417efb32d2ad121027a34123e9d3572323cc2eb1d3f15f7e968b0d9e4d461" :a :task/type :v :task.type/task :op :assert}
+ ]}

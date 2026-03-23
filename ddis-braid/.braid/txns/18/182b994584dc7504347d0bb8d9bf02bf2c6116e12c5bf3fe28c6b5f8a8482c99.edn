@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774250270/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-730e5d50"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/closed-at :v 1774250269 :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/completion-evidence :v "24/24 hypotheses completed, mean error 0.254, calibration pipeline verified live via ADM-1 batch close" :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/status :v :task.status/closed :op :assert}
+ ]}

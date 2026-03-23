@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774248743/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ADM-2: Triage 46 open EPICs — close completed/superseded, defer Phase E to P4"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :db/ident :v :task/t-c4e1cc7a :op :assert}
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :task/created-at :v 1774248742 :op :assert}
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :task/description :v "CONTEXT: 46 open EPICs, only 3 closed. Many EPICs describe Phase E work (daemon, active observer, MCP extraction) or superseded conceptual clusters (Resolution-Deliberation Isomorphism, F(T) Topology Fitness). These inflate the task backlog and dilute prioritization. RATIONALE: NEG-010 (do not open loops). EPICs for Phase E work should be deferred to P4 backlog, not closed. EPICs for completed work should be closed. EPICs for superseded work should be closed with rationale. APPROACH: For each of the 46 open EPICs: (1) Check if all sub-tasks are closed → close EPIC. (2) Check if EPIC describes Phase E work → downgrade to P4. (3) Check if EPIC is superseded by architectural evolution → close with 'superseded by [reason]'. (4) Keep open only EPICs with active Phase D sub-tasks. TARGET: less than 10 open EPICs, all at P0-P1, all with active sub-tasks. ACCEPTANCE: (A) Open EPICs less than 10. (B) Every remaining open EPIC has at least one open sub-task in Phase D. (C) Deferred EPICs are P4 with clear Phase E label. CONSIDERATIONS: Do NOT close EPICs whose ideas might be needed — defer to P4 instead. Closing loses the conceptual grouping; P4 preserves it." :op :assert}
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :task/id :v "t-c4e1cc7a" :op :assert}
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :task/title :v "ADM-2: Triage 46 open EPICs — close completed/superseded, defer Phase E to P4" :op :assert}
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :task/title-l0 :v "ADM-2" :op :assert}
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :task/title-l1 :v "ADM-2: Triage 46 open EPICs — close completed/superseded, defer Phase E to P4" :op :assert}
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :task/traces-to :v #blake3 "d54a134d486b47a450d4c1760f8f7c60668e1986f86927a06f8a8df7080b3195" :op :assert}
+   {:e #blake3 "5bd19d0d818ac818ba445888cf12c47129cd7dc5ad3742e5ea1a330e52c4d97f" :a :task/type :v :task.type/task :op :assert}
+ ]}

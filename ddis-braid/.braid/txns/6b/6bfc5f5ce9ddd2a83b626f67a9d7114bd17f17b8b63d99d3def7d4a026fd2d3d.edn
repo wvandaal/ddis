@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774249112/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Roadmap Rewrite — replace falsified 5-stage model with evidence-based 5-phase model (Audit Finding 1)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :db/ident :v :task/t-0d64b828 :op :assert}
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :task/created-at :v 1774249111 :op :assert}
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :task/description :v "CONTEXT: SEED.md §10 describes a 5-stage linear roadmap that has been falsified by the actual project trajectory. The stages don't describe what was built or what remains. RATIONALE: NEG-010 (do not open loops). A misaligned roadmap is an open loop — it generates tasks for milestones that don't match actual work, produces misleading progress percentages, and wastes planning effort. APPROACH: Two sub-tasks: (1) Crystallize ADR-ROADMAP-001 (Phase Model Replaces Stage Model). (2) Update SEED.md §10 with the 5-phase model (Substrate/Lifecycle/Intelligence/Self-Calibration/Active Runtime). ACCEPTANCE: (A) SEED.md §10 reflects phases A-E. (B) All task EPICs map to exactly one phase. (C) AGENTS.md staged_roadmap section updated to match. (D) No references to 'Stage 1 85%' or similar misleading percentages remain." :op :assert}
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :task/id :v "t-0d64b828" :op :assert}
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :task/title :v "EPIC: Roadmap Rewrite — replace falsified 5-stage model with evidence-based 5-phase model (Audit Finding 1)" :op :assert}
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :task/title-l1 :v "EPIC: Roadmap Rewrite — replace falsified 5-stage model with evidence-based..." :op :assert}
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :task/traces-to :v #blake3 "d54a134d486b47a450d4c1760f8f7c60668e1986f86927a06f8a8df7080b3195" :op :assert}
+   {:e #blake3 "e6d70f143d3795d62e2d00429b7d7cd2e9158adc5093be086a661d5e9279ba0e" :a :task/type :v :task.type/epic :op :assert}
+ ]}

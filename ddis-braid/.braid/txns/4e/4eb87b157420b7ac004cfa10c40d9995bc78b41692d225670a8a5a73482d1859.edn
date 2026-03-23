@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774248883/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: GD-1: Extract methodology.rs — M(t), gap detection, methodology scoring (~3.5K LOC)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :db/ident :v :task/t-c50b4184 :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/created-at :v 1774248882 :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/description :v "CONTEXT: First step of guidance.rs decomposition. methodology.rs handles M(t) methodology score, methodology_gaps(), compute_methodology_health(), session_methodology_summary(). These functions measure how well the agent follows the methodology — distinct from routing (what to do next) and context (what to show). APPROACH: (1) Create crates/braid-kernel/src/guidance/ directory with mod.rs. (2) Move MethodologyScore, MethodologyGap, MethodologyHealth structs. (3) Move methodology_score(), methodology_gaps(), compute_methodology_health(), session_methodology_summary() functions. (4) Move associated helper functions (gap detection, M(t) computation). (5) Re-export from guidance/mod.rs. (6) Update lib.rs if needed (should be transparent). ACCEPTANCE: (A) methodology.rs is less than 4K LOC. (B) cargo test passes without modification. (C) All INV-GUIDANCE-001..005 references are in methodology.rs. (D) No circular dependency with routing.rs or context.rs. FILE: crates/braid-kernel/src/guidance.rs → crates/braid-kernel/src/guidance/methodology.rs" :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/id :v "t-c50b4184" :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/title :v "GD-1: Extract methodology.rs — M(t), gap detection, methodology scoring (~3.5K LOC)" :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/title-l0 :v "GD-1" :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/title-l1 :v "GD-1: Extract methodology.rs — M(t), gap detection, methodology scoring (~3..." :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/traces-to :v #blake3 "27e91760d7fae236e39cdc480a02935c7baa9171602136285bcdd49a65c4a519" :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/traces-to :v #blake3 "c831482114a96159d928cc28a039cdcad128e1589d20b6c9e909dbd0db8e690b" :op :assert}
+   {:e #blake3 "04fe2fc5956ee10ab441046a2b49bba6a564a2528ef7181497ed556b9acafd0a" :a :task/type :v :task.type/task :op :assert}
+ ]}

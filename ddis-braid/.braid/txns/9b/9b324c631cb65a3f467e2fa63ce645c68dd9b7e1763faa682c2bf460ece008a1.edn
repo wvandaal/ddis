@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774248769/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ADM-5: Crystallize 54 uncrystallized observations into spec elements"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :db/ident :v :task/t-be804580 :op :assert}
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :task/created-at :v 1774248768 :op :assert}
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :task/description :v "CONTEXT: 54 observations captured via braid observe that haven't been promoted to spec elements. They contribute to M(t) entropy but not to F(S). RATIONALE: INV-HARVEST-001 (all session knowledge must be captured as datoms). Observations ARE datoms, but uncrystallized observations don't contribute to spec coverage or coherence scoring. APPROACH: (1) Run braid harvest --crystallize-all or equivalent batch operation. (2) Review crystallized candidates — some may be duplicate of existing specs. (3) Use --reconciled flag where 3+ matching specs exist. (4) Expected: 54 → less than 10 uncrystallized. ACCEPTANCE: (A) Uncrystallized observation count less than 10. (B) New spec elements created are properly typed (INV/ADR/NEG). (C) F(S) improves due to increased spec coverage. DEPENDS-ON: ADM-1 (cleaner task space helps crystallization routing). FILE: None — CLI operations." :op :assert}
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :task/id :v "t-be804580" :op :assert}
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :task/title :v "ADM-5: Crystallize 54 uncrystallized observations into spec elements" :op :assert}
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :task/title-l0 :v "ADM-5" :op :assert}
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :task/title-l1 :v "ADM-5: Crystallize 54 uncrystallized observations into spec elements" :op :assert}
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :task/traces-to :v #blake3 "23fa51f87e24baca5a848f59eb2cd8a872817764f9ba0a825ab67082148f2dde" :op :assert}
+   {:e #blake3 "6a39c31dec2fcd7cdbf4f2abfe8a80b28c8dfc50a0be0c081b06d572ad1df93d" :a :task/type :v :task.type/task :op :assert}
+ ]}

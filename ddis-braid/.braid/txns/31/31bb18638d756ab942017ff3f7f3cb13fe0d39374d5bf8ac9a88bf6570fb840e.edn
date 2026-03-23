@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774248818/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-CLOSE-1: Close first hypothesis-predicted task and verify calibration pipeline fires"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :db/ident :v :task/t-730e5d50 :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/created-at :v 1774248817 :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/description :v "CONTEXT: 24 hypothesis predictions exist referencing tasks t-4f9b504c, t-6ae5d230, t-5c3db83f. These tasks are open. HL-3 (outcome matching on task close) is implemented in harvest.rs. HL-4 (calibration metrics in status) is implemented. But the loop has never fired because no predicted task has been closed since predictions started. RATIONALE: This is purely administrative — the code works, it just needs its first data point. APPROACH: (1) Pick one of the three predicted tasks (t-4f9b504c DC-5, t-6ae5d230 PROJ-1, or t-5c3db83f UAQ-1). (2) Evaluate if any is actually done or can be quickly completed. (3) Close it with braid done. (4) Run braid harvest --commit. (5) Verify: HL-3 records actual delta-F(S) for that task. (6) Verify: braid status shows non-zero calibration data (mean error, trend). ACCEPTANCE: (A) At least 1 hypothesis shows completed=true in store. (B) braid status hypothesis line shows non-zero mean error. (C) Trend field shows directional data instead of 'insufficient data'. CONSIDERATIONS: If none of the three tasks is actually done, we need to either implement one or record a manual outcome. The priority is getting ANY data point into the calibration pipeline." :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/id :v "t-730e5d50" :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/title :v "HL-CLOSE-1: Close first hypothesis-predicted task and verify calibration pipeline fires" :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/title-l0 :v "HL-CLOSE-1" :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/title-l1 :v "HL-CLOSE-1: Close first hypothesis-predicted task and verify calibration pipe..." :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/traces-to :v #blake3 "aaf898dc3d16c961c21592757ed873d54cbd5e8ce59afa177b6c67b7bc9286d8" :op :assert}
+   {:e #blake3 "6202478ff09eba01714ac43e79935b3833d5ee59e38e04729f865035f232ec34" :a :task/type :v :task.type/task :op :assert}
+ ]}

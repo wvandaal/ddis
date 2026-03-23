@@ -1,0 +1,15 @@
+{:tx/id #hlc "1774250086/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ca43c759, t-856e8769"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "75d8a2e8f68dc2fac6e9d2259ad035a7e101318cc18166830553b9df0d4efa9e" :a :task/close-reason :v "Superseded by attention pipeline and Phase E polish" :op :assert}
+   {:e #blake3 "75d8a2e8f68dc2fac6e9d2259ad035a7e101318cc18166830553b9df0d4efa9e" :a :task/closed-at :v 1774250085 :op :assert}
+   {:e #blake3 "75d8a2e8f68dc2fac6e9d2259ad035a7e101318cc18166830553b9df0d4efa9e" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "75d8a2e8f68dc2fac6e9d2259ad035a7e101318cc18166830553b9df0d4efa9e" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/close-reason :v "Superseded by attention pipeline and Phase E polish" :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/closed-at :v 1774250085 :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "81101df1813b2adddb43a3e1415c982f1ed6b703078721e29765ef757bb9fe0e" :a :task/status :v :task.status/closed :op :assert}
+ ]}

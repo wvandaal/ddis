@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774248921/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: GD-TEST: Guidance decomposition verification — 233 unit tests + E2E + golden output"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :db/ident :v :task/t-6582e30a :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/created-at :v 1774248920 :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/description :v "CONTEXT: After GD-1/2/3, the 233 guidance unit tests must pass identically. Additionally, verify no regression in the cross-module integration. APPROACH: UNIT: (1) All 233 existing guidance tests pass without modification. (2) Each sub-module can be unit-tested independently (methodology.rs tests don't need routing.rs context). INTEGRATION: (3) Cross-module test: methodology_score() feeds into build_status_projection() correctly. (4) routing.rs R(t) output feeds into context.rs ACP block ordering. E2E: (5) Run scripts/e2e_guidance.sh — all checks pass. (6) Run scripts/e2e_acp.sh — all checks pass. (7) braid status output is byte-identical before and after split (golden output comparison). FAILURE DIAGNOSTICS: If any test fails, the error should identify which sub-module boundary was broken (methodology↔routing, routing↔context, or context↔external). Log the function call chain across module boundaries. ACCEPTANCE: 233 unit tests + 2 E2E scripts + golden output comparison all pass. FILE: Existing test locations — no new test files needed." :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/id :v "t-6582e30a" :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/title :v "GD-TEST: Guidance decomposition verification — 233 unit tests + E2E + golden output" :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/title-l0 :v "GD-TEST" :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/title-l1 :v "GD-TEST: Guidance decomposition verification — 233 unit tests + E2E + golde..." :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/traces-to :v #blake3 "1f15e1f0d8fdfd832b0659854e1cbde9914742519af5a99aba3ba9ed91902e31" :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/traces-to :v #blake3 "c831482114a96159d928cc28a039cdcad128e1589d20b6c9e909dbd0db8e690b" :op :assert}
+   {:e #blake3 "585d79285345ec504c5fc1dab95ef8c2c0496bf80c8298b4625acb2d0aff5291" :a :task/type :v :task.type/test :op :assert}
+ ]}

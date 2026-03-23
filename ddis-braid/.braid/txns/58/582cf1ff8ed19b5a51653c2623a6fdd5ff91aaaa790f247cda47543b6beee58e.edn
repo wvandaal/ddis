@@ -1,0 +1,35 @@
+{:tx/id #hlc "1774249808/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-a704, t-5e08, t-f1b1, t-a21d, t-edf3, t-94d642f7, t-83ce"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :task/closed-at :v 1774249807 :op :assert}
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "37b35cbb8948b237efce7526e9e97c9376dfa13b7a6c340ae4964ea41dcf78af" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :task/closed-at :v 1774249807 :op :assert}
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "3dd7095ebef57b007e74333bfa6f9d7b8d6ea21a71e2b5f973f7f26c354d7b93" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :task/closed-at :v 1774249807 :op :assert}
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "4124f4f5ffc699d2399dd6e094c58fd6c1a7bb5473f76567a9831972aa8860fd" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/closed-at :v 1774249807 :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "51f6f9f1e7c45389174e7e766c0b5d4b5fc3858c124ba1807615c87e62d9f027" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "7960e415b57b4d22302b5d6aacb1fbad451f9b7681bc8d15701071cf75c4a0c5" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "7960e415b57b4d22302b5d6aacb1fbad451f9b7681bc8d15701071cf75c4a0c5" :a :task/closed-at :v 1774249807 :op :assert}
+   {:e #blake3 "7960e415b57b4d22302b5d6aacb1fbad451f9b7681bc8d15701071cf75c4a0c5" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "7960e415b57b4d22302b5d6aacb1fbad451f9b7681bc8d15701071cf75c4a0c5" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "ab2ff21182d1e0c970d4b05a8d9828364e28039aaf2cb99c0c1a4616923c97fc" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "ab2ff21182d1e0c970d4b05a8d9828364e28039aaf2cb99c0c1a4616923c97fc" :a :task/closed-at :v 1774249807 :op :assert}
+   {:e #blake3 "ab2ff21182d1e0c970d4b05a8d9828364e28039aaf2cb99c0c1a4616923c97fc" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "ab2ff21182d1e0c970d4b05a8d9828364e28039aaf2cb99c0c1a4616923c97fc" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :task/closed-at :v 1774249807 :op :assert}
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "f0888ec763a4ef6b56a92f9ec9cc66daab98de0ccc3e8a00f6f7db4dc1d976fe" :a :task/status :v :task.status/closed :op :assert}
+ ]}

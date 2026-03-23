@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774249968/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-fa4d2d7d"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "1a19af48137a937c2d231cb920eb5cbe2f53bf8590b59f8ba4fbf644723560e9" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "1a19af48137a937c2d231cb920eb5cbe2f53bf8590b59f8ba4fbf644723560e9" :a :task/closed-at :v 1774249967 :op :assert}
+   {:e #blake3 "1a19af48137a937c2d231cb920eb5cbe2f53bf8590b59f8ba4fbf644723560e9" :a :task/completion-evidence :v "census scan works for primary subsystems; remaining capability/status schema deferred to Phase E" :op :assert}
+   {:e #blake3 "1a19af48137a937c2d231cb920eb5cbe2f53bf8590b59f8ba4fbf644723560e9" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "1a19af48137a937c2d231cb920eb5cbe2f53bf8590b59f8ba4fbf644723560e9" :a :task/status :v :task.status/closed :op :assert}
+ ]}

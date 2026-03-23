@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774250055/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "37cb9d1d89b52f17b064d94c87ab8583cd7796104627c659f707a6e36f0e7e8a" :a :db/ident :v :recon/trace-d04373fc1303240e :op :assert}
+   {:e #blake3 "37cb9d1d89b52f17b064d94c87ab8583cd7796104627c659f707a6e36f0e7e8a" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "37cb9d1d89b52f17b064d94c87ab8583cd7796104627c659f707a6e36f0e7e8a" :a :recon/trace-neighborhood :v "REFLEXIVE" :op :assert}
+   {:e #blake3 "37cb9d1d89b52f17b064d94c87ab8583cd7796104627c659f707a6e36f0e7e8a" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-reflexive-004" :op :assert}
+   {:e #blake3 "37cb9d1d89b52f17b064d94c87ab8583cd7796104627c659f707a6e36f0e7e8a" :a :recon/trace-neighbors :v ":impl/braid.src.inject.inv-reflexive-004" :op :assert}
+   {:e #blake3 "37cb9d1d89b52f17b064d94c87ab8583cd7796104627c659f707a6e36f0e7e8a" :a :recon/trace-neighbors :v ":task/t-b58a1778" :op :assert}
+   {:e #blake3 "37cb9d1d89b52f17b064d94c87ab8583cd7796104627c659f707a6e36f0e7e8a" :a :recon/trace-refs :v "INV-REFLEXIVE-004" :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774248829/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-TEST-SUITE: Hypothesis Ledger test suite — unit + proptest + E2E"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :db/ident :v :task/t-eca0977f :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/created-at :v 1774248828 :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/description :v "CONTEXT: The hypothesis ledger (HL-1..4) is implemented but has no dedicated test suite. The existing task t-352fa65a describes the test requirements but hasn't been executed. RATIONALE: The calibration pipeline is the system's self-improvement mechanism. Untested calibration code could silently produce wrong weights, making the system converge to incorrect behavior. APPROACH: UNIT: (1) Hypothesis datoms created when R(t) computes top-3 recommendations. (2) Outcome matched on task close — actual delta-F(S) recorded. (3) Calibration metrics correct for known synthetic data series. (4) Weight adjustment converges for synthetic prediction/outcome pairs. (5) Confidence monotonically improves with more data points. PROPTEST: (6) Random prediction/outcome pairs produce bounded error in [0, 1]. (7) Calibration metrics consistent with manual computation (mean, variance, trend). E2E: (8) scripts/e2e_hypothesis_ledger.sh — create task, predict, close, verify calibration in braid status output. FAILURE DIAGNOSTICS: Each test should log prediction value, actual outcome, computed error, and calibration state. On failure, dump the hypothesis entity's full datom set for inspection. ACCEPTANCE: All 8 test categories pass. E2E script exits 0 with structured PASS/FAIL per check. FILE: crates/braid-kernel/tests/hypothesis_ledger.rs + scripts/e2e_hypothesis_ledger.sh" :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/id :v "t-eca0977f" :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/title :v "HL-TEST-SUITE: Hypothesis Ledger test suite — unit + proptest + E2E" :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/title-l0 :v "HL-TEST-SUITE" :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/title-l1 :v "HL-TEST-SUITE: Hypothesis Ledger test suite — unit + proptest + E2E" :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/traces-to :v #blake3 "aaf898dc3d16c961c21592757ed873d54cbd5e8ce59afa177b6c67b7bc9286d8" :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/traces-to :v #blake3 "fd485a60076e78e3f1c1eb98e814870c3d9c35d8ed92fe55888ecf3097e3c006" :op :assert}
+   {:e #blake3 "7104c9a573e0f4ac4dd52d093c0ee8d3cbc54c10de463a0c14176523e6c8d8cd" :a :task/type :v :task.type/test :op :assert}
+ ]}

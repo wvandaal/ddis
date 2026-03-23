@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774248800/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Hypothesis Ledger Completion — close the calibration loop (Audit Finding 4)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :db/ident :v :task/t-99c7fa3e :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/created-at :v 1774248799 :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/description :v "CONTEXT: The hypothesis ledger records predictions (24 exist) but has never completed one. 0/24 completed, mean error 0.000, trend 'insufficient data'. The self-calibrating acquisition function A(t) cannot improve without outcome data. This is the system's single most important feedback mechanism. RATIONALE: ADR-FOUNDATION-018 (Hypothesis Ledger). Without outcome data, R(t) routing weights are static guesses, attention scores can't calibrate, and the 'self-calibrating epistemology' thesis is unverified. APPROACH: Three sub-tasks: (1) Close a hypothesis-predicted task and verify HL-3 fires, (2) Create HL test suite (unit + proptest + E2E), (3) Wire calibration into boundary weight adjustment. ACCEPTANCE: (A) At least 3 hypotheses completed with non-zero error data. (B) braid status shows meaningful calibration metrics (mean error, trend direction). (C) Boundary weight adjustment path exists (even if not auto-applied yet). SPEC: ADR-FOUNDATION-018, INV-FOUNDATION-008, ADR-FOUNDATION-024." :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/id :v "t-99c7fa3e" :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/title :v "EPIC: Hypothesis Ledger Completion — close the calibration loop (Audit Finding 4)" :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/title-l1 :v "EPIC: Hypothesis Ledger Completion — close the calibration loop (Audit Find..." :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/traces-to :v #blake3 "aaf898dc3d16c961c21592757ed873d54cbd5e8ce59afa177b6c67b7bc9286d8" :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/traces-to :v #blake3 "fd485a60076e78e3f1c1eb98e814870c3d9c35d8ed92fe55888ecf3097e3c006" :op :assert}
+   {:e #blake3 "00180a1b47acc289095f794c3046ec05129cb3030f7b30877dbe48ea4c1f22b0" :a :task/type :v :task.type/epic :op :assert}
+ ]}

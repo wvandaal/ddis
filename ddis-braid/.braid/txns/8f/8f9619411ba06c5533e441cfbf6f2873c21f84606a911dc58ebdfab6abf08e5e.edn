@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774249125/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b1dcc0e5e7b6d8a7a5a461855b06a58aacee0272e4eedcb7fae001b14f04049b" :a :db/ident :v :recon/trace-675576f0eb3762e0 :op :assert}
+   {:e #blake3 "b1dcc0e5e7b6d8a7a5a461855b06a58aacee0272e4eedcb7fae001b14f04049b" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "b1dcc0e5e7b6d8a7a5a461855b06a58aacee0272e4eedcb7fae001b14f04049b" :a :recon/trace-neighborhood :v "ROADMAP" :op :assert}
+   {:e #blake3 "b1dcc0e5e7b6d8a7a5a461855b06a58aacee0272e4eedcb7fae001b14f04049b" :a :recon/trace-refs :v "ADR-ROADMAP-001" :op :assert}
+ ]}

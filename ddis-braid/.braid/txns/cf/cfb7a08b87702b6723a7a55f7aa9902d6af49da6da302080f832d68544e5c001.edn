@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774249526/0/189a654d42d31947cad165604defbca6"
+ :tx/agent "189a654d42d31947cad165604defbca6"
+ :tx/provenance :derived
+ :tx/rationale "RFL-2: action prediction recorded"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3afe51c7ac7cde5b0d94d06ce76b10b20547f9422377fda4bdafcacfbce2f0d3" :a :action/recommended-command :v "braid task close t-a379d2f5 t-4a5853fb t-74d6abc0 t-25bb8fdf t-aff33aa7 t-b4647ba9 t-05f6dca2 t-e545d28b t-c41b7ca1 t-ba14c7a9 t-308770d4 t-80e46872 t-ea6d8241 t-c169a032 t-6cb74a33 t-891d2acd t-846524e2 t-8740befa t-c4a6dc85 t-7f9b9849 t-92dadd21 t-352fa65a t-c9782a1a t-339cabd5 t-546078c1 t-2caefb10 t-806402c8 t-2150400b t-4f9b504c t-c776bd2c t-be4f1c0a t-5c45b24d t-41365613 t-849613d4 t-b16c t-c60f t-4a5a2e48 t-2fa60ecb t-4b755edf t-5ff3684a t-a6266d2b t-064f8854 t-ff6a4143 t-59e6529e t-b5da t-4d0d2542 t-59196416 t-7a7759f0 t-bba54ee5 t-751da98b t-b394164e t-6ae5d230 t-fb89a7b0 t-edc9c8fd t-0fd2d062 t-150bf6dd t-947a t-e401eaa4 t-5b1b7877 t-fdb83aaa t-dd06 t-5c3db83f t-8de5f14d t-7699 t-9b93 t-ff071a40 t-e225ba30 t-1396 t-fdf1 t-64af947e t-83540258 t-d8bc1f0c t-3e8dbb8c t-d09437a5 t-40314c12 t-0e674715 t-de7ba6ee t-8d83f735 t-a040ea35 t-6ed15191 t-fa51b1d7 t-b5959bed t-2aa6 t-50ae6933 t-30c26830 t-f25ce039 t-3e1f t-53d8297e t-fe4a72e2 t-ffd1dd85 t-86c6892d t-b1eb3bf6 t-c9645957 t-5159981c t-691d9bfc t-9557c705 t-06172330 t-0470 t-3a498622 t-4bf31334 t-f82813c7 t-46762ee9 t-14997c90 t-af645d8c t-3fb22d59 t-24cd03dc t-d336e641 t-3a2dd7ce t-381af1ad t-a2117f50 t-fcb935b6 t-25b92018 t-9642d665 t-5498e890 t-dfc7 t-35a3e8bf t-887c585b t-a0f6 t-105db0f4 t-540f3dab t-6d892564 t-ffc41d7b t-7a254b59 t-f3061562 t-90b7d513 t-55e59fdd t-3b276979 t-420f t-9b64929b t-c0fb3f3e t-6169f35e t-451e387b t-b4f019e6 t-9cb083b5 t-f535d211 t-74998cc6" :op :assert}
+   {:e #blake3 "3afe51c7ac7cde5b0d94d06ce76b10b20547f9422377fda4bdafcacfbce2f0d3" :a :action/recommended-impact :v 0.6 :op :assert}
+   {:e #blake3 "3afe51c7ac7cde5b0d94d06ce76b10b20547f9422377fda4bdafcacfbce2f0d3" :a :action/timestamp :v 1774249525879 :op :assert}
+   {:e #blake3 "3afe51c7ac7cde5b0d94d06ce76b10b20547f9422377fda4bdafcacfbce2f0d3" :a :db/ident :v :action/7265a19d4717c308 :op :assert}
+ ]}

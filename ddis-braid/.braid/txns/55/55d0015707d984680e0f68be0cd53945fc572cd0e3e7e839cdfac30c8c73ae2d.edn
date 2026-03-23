@@ -1,0 +1,31 @@
+{:tx/id #hlc "1774249950/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b34d20bd, t-db4dbf9e, t-2425446d, t-2b38e324, t-9440, t-f5300190"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :task/close-reason :v "superseded by Session 036 audit EPICs or work already complete" :op :assert}
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :task/closed-at :v 1774249949 :op :assert}
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "4a27108b5afb3162b02dbdea4473e6a53cba94d0a59dc5d120b2bedd3935e2d0" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/close-reason :v "superseded by Session 036 audit EPICs or work already complete" :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/closed-at :v 1774249949 :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/close-reason :v "superseded by Session 036 audit EPICs or work already complete" :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/closed-at :v 1774249949 :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "6ad10d8021336aaf44c5ccadcc752ce4e053b9a07cff8fafeb2a1f11f90d83b0" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "9445a312b75726938045d9458ee399274a425c3b65a671a69ce37a5cc3187dbf" :a :task/close-reason :v "superseded by Session 036 audit EPICs or work already complete" :op :assert}
+   {:e #blake3 "9445a312b75726938045d9458ee399274a425c3b65a671a69ce37a5cc3187dbf" :a :task/closed-at :v 1774249949 :op :assert}
+   {:e #blake3 "9445a312b75726938045d9458ee399274a425c3b65a671a69ce37a5cc3187dbf" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "9445a312b75726938045d9458ee399274a425c3b65a671a69ce37a5cc3187dbf" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/close-reason :v "superseded by Session 036 audit EPICs or work already complete" :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/closed-at :v 1774249949 :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "c9f6ae8de969584590a07054934515a51f91b0babdd3748f0d29dd57df44ace3" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "ec75cfc723d1841dca56fae3efc5158fab9f786e54bae3efc64326dc1a07afbe" :a :task/close-reason :v "superseded by Session 036 audit EPICs or work already complete" :op :assert}
+   {:e #blake3 "ec75cfc723d1841dca56fae3efc5158fab9f786e54bae3efc64326dc1a07afbe" :a :task/closed-at :v 1774249949 :op :assert}
+   {:e #blake3 "ec75cfc723d1841dca56fae3efc5158fab9f786e54bae3efc64326dc1a07afbe" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "ec75cfc723d1841dca56fae3efc5158fab9f786e54bae3efc64326dc1a07afbe" :a :task/status :v :task.status/closed :op :assert}
+ ]}

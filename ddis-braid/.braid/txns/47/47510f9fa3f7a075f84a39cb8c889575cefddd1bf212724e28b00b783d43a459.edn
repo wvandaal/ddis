@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774249131/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: RM-2: Update SEED.md §10 and AGENTS.md with 5-phase model"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :db/ident :v :task/t-a9f9d34f :op :assert}
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :task/created-at :v 1774249130 :op :assert}
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :task/description :v "CONTEXT: After ADR-ROADMAP-001 is crystallized, update the canonical documents. SEED.md §10 currently lists Stages 0-4. AGENTS.md has a staged_roadmap section. Both need to reflect phases A-E. RATIONALE: Documentation must match the store's truth. Misaligned docs cause agents to work toward obsolete milestones. APPROACH: (1) Update SEED.md §10 with Phase A (Substrate, COMPLETE), Phase B (Lifecycle, COMPLETE), Phase C (Intelligence, COMPLETE), Phase D (Self-Calibration, 40%), Phase E (Active Runtime, NOT STARTED). (2) Update AGENTS.md staged_roadmap section. (3) Update braid seed --inject to reflect phase model in dynamic context. (4) Run braid seed --inject AGENTS.md to regenerate. ACCEPTANCE: (A) SEED.md §10 shows phases A-E. (B) AGENTS.md shows phases A-E. (C) No references to 'Stage 1 85%' remain. (D) braid seed output reflects current phase (D). DEPENDS-ON: RM-1. FILE: SEED.md, CLAUDE.md (AGENTS.md)" :op :assert}
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :task/id :v "t-a9f9d34f" :op :assert}
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :task/title :v "RM-2: Update SEED.md §10 and AGENTS.md with 5-phase model" :op :assert}
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :task/title-l0 :v "RM-2" :op :assert}
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :task/title-l1 :v "RM-2: Update SEED.md §10 and AGENTS.md with 5-phase model" :op :assert}
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :task/traces-to :v #blake3 "d54a134d486b47a450d4c1760f8f7c60668e1986f86927a06f8a8df7080b3195" :op :assert}
+   {:e #blake3 "35d765acc183bdd22b31d3867462b5fee9b64267597372d87f2a03b61dfb27b7" :a :task/type :v :task.type/docs :op :assert}
+ ]}

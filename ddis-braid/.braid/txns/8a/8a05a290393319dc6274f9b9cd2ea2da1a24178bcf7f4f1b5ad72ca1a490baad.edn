@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774249068/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: TG-1: Move 85s Stateright coherence test to nightly CI schedule"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :db/ident :v :task/t-04b5674b :op :assert}
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :task/created-at :v 1774249067 :op :assert}
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :task/description :v "CONTEXT: transact_coherence_no_undetected_contradictions in cross_namespace.rs takes 85 seconds — the entire rest of the test suite completes in less than 1 second. This is a Stateright bounded model check exploring all interleaving states. RATIONALE: 85s dominates CI runtime. Developers may skip tests. The property is critical (transactional coherence) but the exploration space is too large for per-commit testing. APPROACH: Option 2 (fastest): Move to nightly CI. (1) Add #[ignore] attribute to the test. (2) Create CI job that runs ignored tests nightly: cargo test -- --ignored. (3) Default cargo test completes in less than 2 seconds. (4) The coherence property is still verified — just not on every commit. ALTERNATIVE CONSIDERED: Profile and reduce state space (better long-term but higher effort). Defer to follow-up task. ACCEPTANCE: (A) cargo test completes in less than 30s. (B) The slow test still exists and runs in nightly. (C) No coherence property lost — same test, different schedule. FILE: crates/braid-kernel/tests/cross_namespace.rs" :op :assert}
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :task/id :v "t-04b5674b" :op :assert}
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :task/title :v "TG-1: Move 85s Stateright coherence test to nightly CI schedule" :op :assert}
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :task/title-l0 :v "TG-1" :op :assert}
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :task/title-l1 :v "TG-1: Move 85s Stateright coherence test to nightly CI schedule" :op :assert}
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :task/traces-to :v #blake3 "ecd4ae9433650a58f6ed9ad3d8d344f2bf148f426105b33a2e0c9a3def720c3b" :op :assert}
+   {:e #blake3 "4da6e8ab0dbf51a5820e9c699aeaeea01c4fd7fadec02404d60102ce457c1cfb" :a :task/type :v :task.type/task :op :assert}
+ ]}

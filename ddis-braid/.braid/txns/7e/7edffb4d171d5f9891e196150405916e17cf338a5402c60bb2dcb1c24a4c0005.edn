@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774250023/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-552d99df"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/close-reason :v "extractor architecture complete, C8 compliance verified" :op :assert}
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/closed-at :v 1774250022 :op :assert}
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "b7eede4e7d8a918a70a529fd95d57ec3d209297d68e36d3cf73c07940c23d307" :a :task/status :v :task.status/closed :op :assert}
+ ]}

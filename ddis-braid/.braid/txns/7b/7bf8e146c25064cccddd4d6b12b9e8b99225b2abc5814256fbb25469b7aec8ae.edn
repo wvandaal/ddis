@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774248889/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: GD-2: Extract routing.rs — R(t), impact, surprisal, acquisition function (~4K LOC)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :db/ident :v :task/t-2ea33fe8 :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/created-at :v 1774248888 :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/description :v "CONTEXT: Second step of guidance.rs decomposition. routing.rs handles R(t) routing, impact computation, surprisal scoring, spec_anchor_factor, contextual_observation_factor. These functions decide WHAT to recommend — distinct from methodology (how well you follow process) and context (what to present). APPROACH: (1) Move RoutingScore, ImpactFactors, SurprisalMetrics structs. (2) Move compute_routing(), compute_impact(), compute_surprisal(), spec_anchor_factor(), contextual_observation_factor(). (3) Move associated helpers. (4) Re-export from guidance/mod.rs. ACCEPTANCE: (A) routing.rs is less than 4.5K LOC. (B) cargo test passes without modification. (C) All INV-GUIDANCE-006..011, INV-GUIDANCE-017, INV-GUIDANCE-024..025 references in routing.rs. (D) routing.rs depends on methodology.rs read-only (for M(t) input), not circularly. DEPENDS-ON: GD-1 (methodology.rs extracted first to establish module boundary). FILE: crates/braid-kernel/src/guidance/routing.rs" :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/id :v "t-2ea33fe8" :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/title :v "GD-2: Extract routing.rs — R(t), impact, surprisal, acquisition function (~4K LOC)" :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/title-l0 :v "GD-2" :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/title-l1 :v "GD-2: Extract routing.rs — R(t), impact, surprisal, acquisition function (~..." :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/traces-to :v #blake3 "3460ad4af1f76f9355831d296355aa2dbbe2cb5469936e53745c41ce1436e6f2" :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/traces-to :v #blake3 "5bb80b1e14affdd5e2e8422a5237b96ba4c12c29e1514f33d1af7426b41d6e00" :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/traces-to :v #blake3 "910ac2aaa408791c99925f1d82b797e7aa49a43fa57dc979aa4a7bb01bf3b8c4" :op :assert}
+   {:e #blake3 "c2fc893723163d383be010c8a34948f8287345668977a66ffab847690b959eb6" :a :task/type :v :task.type/task :op :assert}
+ ]}

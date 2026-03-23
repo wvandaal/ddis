@@ -1,0 +1,410 @@
+{:tx/id #hlc "1774250111/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :derived
+ :tx/rationale "braid trace: 33 impl links, 0 witness marks"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "035f0100284f09447a6a0c8c514699c99f8a7c3504962796d3849af6bf54afd7" :a :db/ident :v :impl/braid.src.commands.init.adr-foundation-013 :op :assert}
+   {:e #blake3 "035f0100284f09447a6a0c8c514699c99f8a7c3504962796d3849af6bf54afd7" :a :impl/file :v "braid/src/commands/init.rs" :op :assert}
+   {:e #blake3 "035f0100284f09447a6a0c8c514699c99f8a7c3504962796d3849af6bf54afd7" :a :impl/implements :v #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :op :assert}
+   {:e #blake3 "035f0100284f09447a6a0c8c514699c99f8a7c3504962796d3849af6bf54afd7" :a :impl/module :v "braid::commands::init" :op :assert}
+   {:e #blake3 "035f0100284f09447a6a0c8c514699c99f8a7c3504962796d3849af6bf54afd7" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "035f0100284f09447a6a0c8c514699c99f8a7c3504962796d3849af6bf54afd7" :a :impl/verification-evidence :v "Comment references ADR-FOUNDATION-013 in braid/src/commands/init.rs" :op :assert}
+   {:e #blake3 "0fea7eb1602595b8bcb73ebc2d5b2ed754c8747beb702a06d7b52e378b4e55e5" :a :db/ident :v :impl/braid-kernel.src.policy.neg-foundation-003 :op :assert}
+   {:e #blake3 "0fea7eb1602595b8bcb73ebc2d5b2ed754c8747beb702a06d7b52e378b4e55e5" :a :impl/file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "0fea7eb1602595b8bcb73ebc2d5b2ed754c8747beb702a06d7b52e378b4e55e5" :a :impl/implements :v #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :op :assert}
+   {:e #blake3 "0fea7eb1602595b8bcb73ebc2d5b2ed754c8747beb702a06d7b52e378b4e55e5" :a :impl/module :v "braid_kernel::policy" :op :assert}
+   {:e #blake3 "0fea7eb1602595b8bcb73ebc2d5b2ed754c8747beb702a06d7b52e378b4e55e5" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "0fea7eb1602595b8bcb73ebc2d5b2ed754c8747beb702a06d7b52e378b4e55e5" :a :impl/verification-evidence :v "Comment references NEG-FOUNDATION-003 in braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :db/ident :v :witness/fbw.aaa5f9544127f903 :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :witness/falsification-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :witness/spec-hash :v "aaa5f9544127f903011922b97a728fae9251e5ddca107e0147c8c824ff9ee315" :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :witness/test-body-hash :v "aaa5f9544127f903011922b97a728fae9251e5ddca107e0147c8c824ff9ee315" :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :witness/test-file :v "braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :witness/traces-to :v #blake3 "0ca9f4dcf5bfa7ef958eb293cff3455f0d5ab2713add9fd166cc1ef34c87b033" :op :assert}
+   {:e #blake3 "1476abe2be474730d7ec8be177528f8518c3e7165ba3f009c0e370ee58ed9151" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "15b132ad2eacb4e71015bad096f0a4003bb658e1aa0050bc07c9037a110fcb17" :a :db/ident :v :impl/braid-kernel.src.schema.neg-foundation-003 :op :assert}
+   {:e #blake3 "15b132ad2eacb4e71015bad096f0a4003bb658e1aa0050bc07c9037a110fcb17" :a :impl/file :v "braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "15b132ad2eacb4e71015bad096f0a4003bb658e1aa0050bc07c9037a110fcb17" :a :impl/implements :v #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :op :assert}
+   {:e #blake3 "15b132ad2eacb4e71015bad096f0a4003bb658e1aa0050bc07c9037a110fcb17" :a :impl/module :v "braid_kernel::schema" :op :assert}
+   {:e #blake3 "15b132ad2eacb4e71015bad096f0a4003bb658e1aa0050bc07c9037a110fcb17" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "15b132ad2eacb4e71015bad096f0a4003bb658e1aa0050bc07c9037a110fcb17" :a :impl/verification-evidence :v "Comment references NEG-FOUNDATION-003 in braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :db/ident :v :witness/fbw.2fb4c8ecf28a0ecc :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :witness/falsification-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :witness/spec-hash :v "2fb4c8ecf28a0ecc43c3f5dc139a505366042f4d6133fdc9ea23fd90ceeefe59" :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :witness/test-body-hash :v "2fb4c8ecf28a0ecc43c3f5dc139a505366042f4d6133fdc9ea23fd90ceeefe59" :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :witness/test-file :v "braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :witness/traces-to :v #blake3 "dd20595a0e13d2d74ac5345a02fff347f2abcad8e7257d416818794fad2840e8" :op :assert}
+   {:e #blake3 "17a67720df1d3264419ee05bd2d9ab36486d5a1d47b03639e97b7d57ef229bea" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :db/ident :v :witness/fbw.c3730b84cb35f6e1 :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :witness/falsification-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :witness/spec-hash :v "c3730b84cb35f6e1f6ea412757c0da3ddc28577ab2866fd17fd4b851e2ed5095" :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :witness/test-body-hash :v "c3730b84cb35f6e1f6ea412757c0da3ddc28577ab2866fd17fd4b851e2ed5095" :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :witness/test-file :v "braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :witness/traces-to :v #blake3 "2ecdb3a18efd486a8f8add8243f8177a12335efdb50147ba3d729cc1ffde902c" :op :assert}
+   {:e #blake3 "2081a58e22ad1773c4ab86c452d076f9569e5e2aff2e462d8ca4f559a8570301" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "223f9a72152c3956af8e2438b52d88e338247ea0069cd09133cbf7401c6f8820" :a :db/ident :v :impl/braid-kernel.src.policy.inv-foundation-008 :op :assert}
+   {:e #blake3 "223f9a72152c3956af8e2438b52d88e338247ea0069cd09133cbf7401c6f8820" :a :impl/file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "223f9a72152c3956af8e2438b52d88e338247ea0069cd09133cbf7401c6f8820" :a :impl/implements :v #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :op :assert}
+   {:e #blake3 "223f9a72152c3956af8e2438b52d88e338247ea0069cd09133cbf7401c6f8820" :a :impl/module :v "braid_kernel::policy" :op :assert}
+   {:e #blake3 "223f9a72152c3956af8e2438b52d88e338247ea0069cd09133cbf7401c6f8820" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "223f9a72152c3956af8e2438b52d88e338247ea0069cd09133cbf7401c6f8820" :a :impl/verification-evidence :v "Comment references INV-FOUNDATION-008 in braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :db/ident :v :witness/fbw.aa6e1f0b93829220 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :db/ident :v :witness/fbw.aa6e1f0b93829220 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :db/ident :v :witness/fbw.aa6e1f0b93829220 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :db/ident :v :witness/fbw.aa6e1f0b93829220 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/falsification-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/falsification-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/falsification-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/falsification-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/spec-hash :v "aa6e1f0b93829220f46cfa596d43f34d70c8ec7347ec9b0ea49e7050066d0e29" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/spec-hash :v "aa6e1f0b93829220f46cfa596d43f34d70c8ec7347ec9b0ea49e7050066d0e29" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/spec-hash :v "aa6e1f0b93829220f46cfa596d43f34d70c8ec7347ec9b0ea49e7050066d0e29" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/spec-hash :v "aa6e1f0b93829220f46cfa596d43f34d70c8ec7347ec9b0ea49e7050066d0e29" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/test-body-hash :v "aa6e1f0b93829220f46cfa596d43f34d70c8ec7347ec9b0ea49e7050066d0e29" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/test-body-hash :v "aa6e1f0b93829220f46cfa596d43f34d70c8ec7347ec9b0ea49e7050066d0e29" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/test-body-hash :v "aa6e1f0b93829220f46cfa596d43f34d70c8ec7347ec9b0ea49e7050066d0e29" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/test-body-hash :v "aa6e1f0b93829220f46cfa596d43f34d70c8ec7347ec9b0ea49e7050066d0e29" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/test-file :v "braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/test-file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/test-file :v "braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/test-file :v "braid/src/commands/init.rs" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/traces-to :v #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/traces-to :v #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/traces-to :v #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/traces-to :v #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "33d4dccfd185a36f411b6cb8a972588569fe6e7178e5e2f1bbfc06548df8bf37" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "36a6ba3011809e0182c5b5505ab5b270b22f73d072ea687fce8904cadf581d99" :a :db/ident :v :impl/braid-kernel.src.policy.neg-foundation-005 :op :assert}
+   {:e #blake3 "36a6ba3011809e0182c5b5505ab5b270b22f73d072ea687fce8904cadf581d99" :a :impl/file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "36a6ba3011809e0182c5b5505ab5b270b22f73d072ea687fce8904cadf581d99" :a :impl/implements :v #blake3 "183e7677d97573dcdb325617516e4795eb8d814b0396ebf08d5e8b69a03ba107" :op :assert}
+   {:e #blake3 "36a6ba3011809e0182c5b5505ab5b270b22f73d072ea687fce8904cadf581d99" :a :impl/module :v "braid_kernel::policy" :op :assert}
+   {:e #blake3 "36a6ba3011809e0182c5b5505ab5b270b22f73d072ea687fce8904cadf581d99" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "36a6ba3011809e0182c5b5505ab5b270b22f73d072ea687fce8904cadf581d99" :a :impl/verification-evidence :v "Comment references NEG-FOUNDATION-005 in braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :db/ident :v :witness/fbw.dd2bd8726f768212 :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :db/ident :v :witness/fbw.dd2bd8726f768212 :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/falsification-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/falsification-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/spec-hash :v "dd2bd8726f768212c68e998eefcdaf93ebd2f1b31387a8de4de7087307d98d06" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/spec-hash :v "dd2bd8726f768212c68e998eefcdaf93ebd2f1b31387a8de4de7087307d98d06" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/test-body-hash :v "dd2bd8726f768212c68e998eefcdaf93ebd2f1b31387a8de4de7087307d98d06" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/test-body-hash :v "dd2bd8726f768212c68e998eefcdaf93ebd2f1b31387a8de4de7087307d98d06" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/test-file :v "braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/test-file :v "braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/traces-to :v #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/traces-to :v #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "38ab5cd22aa6effb65861333b0b98838fbe99111dfc97fc628d7b2043f2bdb59" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "467717fdebed55ccd8a0d86115a2837b29d5c255f2e49bee6eb09d5b7828e082" :a :db/ident :v :impl/braid-kernel.src.schema.inv-store-014 :op :assert}
+   {:e #blake3 "467717fdebed55ccd8a0d86115a2837b29d5c255f2e49bee6eb09d5b7828e082" :a :impl/file :v "braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "467717fdebed55ccd8a0d86115a2837b29d5c255f2e49bee6eb09d5b7828e082" :a :impl/implements :v #blake3 "142af3dcd49f7be2805f0e2c81eb1a8e7153a95eef6245ce06d14ebb89d77431" :op :assert}
+   {:e #blake3 "467717fdebed55ccd8a0d86115a2837b29d5c255f2e49bee6eb09d5b7828e082" :a :impl/module :v "braid_kernel::schema" :op :assert}
+   {:e #blake3 "467717fdebed55ccd8a0d86115a2837b29d5c255f2e49bee6eb09d5b7828e082" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "467717fdebed55ccd8a0d86115a2837b29d5c255f2e49bee6eb09d5b7828e082" :a :impl/verification-evidence :v "Comment references INV-STORE-014 in braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "4c4ef435dc6567a4340aa313302a3d4befb529a0106b3862fcee3b3a52cf400d" :a :db/ident :v :impl/braid-kernel.src.bilateral.adr-foundation-013 :op :assert}
+   {:e #blake3 "4c4ef435dc6567a4340aa313302a3d4befb529a0106b3862fcee3b3a52cf400d" :a :impl/file :v "braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "4c4ef435dc6567a4340aa313302a3d4befb529a0106b3862fcee3b3a52cf400d" :a :impl/implements :v #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :op :assert}
+   {:e #blake3 "4c4ef435dc6567a4340aa313302a3d4befb529a0106b3862fcee3b3a52cf400d" :a :impl/module :v "braid_kernel::bilateral" :op :assert}
+   {:e #blake3 "4c4ef435dc6567a4340aa313302a3d4befb529a0106b3862fcee3b3a52cf400d" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "4c4ef435dc6567a4340aa313302a3d4befb529a0106b3862fcee3b3a52cf400d" :a :impl/verification-evidence :v "Comment references ADR-FOUNDATION-013 in braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :db/ident :v :witness/fbw.f781f50538db91c5 :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :db/ident :v :witness/fbw.f781f50538db91c5 :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/alignment-score :v 1.0 :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/alignment-score :v 1.0 :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/falsification-hash :v "35e80668702f233bfaa0c66df1ec176fd1e813312c0c4ababc35cebd6450cac6" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/falsification-hash :v "35e80668702f233bfaa0c66df1ec176fd1e813312c0c4ababc35cebd6450cac6" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/spec-hash :v "f781f50538db91c548630d7901603d0d65f5ac23f073a6a8310324c690b8c915" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/spec-hash :v "f781f50538db91c548630d7901603d0d65f5ac23f073a6a8310324c690b8c915" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/test-body-hash :v "35e80668702f233bfaa0c66df1ec176fd1e813312c0c4ababc35cebd6450cac6" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/test-body-hash :v "35e80668702f233bfaa0c66df1ec176fd1e813312c0c4ababc35cebd6450cac6" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/test-file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/test-file :v "braid/src/commands/challenge.rs" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/traces-to :v #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/traces-to :v #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "4d4527238abd06ee73f6b5be3f4dac9a9bc2571e2cc83aca3d84424878dbb43b" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "4fb93291d25fe259137fa0efbf9b5370b2487eb7a122f9ad6f4204d42460f8fb" :a :db/ident :v :impl/braid-kernel.src.bilateral.adr-store-008 :op :assert}
+   {:e #blake3 "4fb93291d25fe259137fa0efbf9b5370b2487eb7a122f9ad6f4204d42460f8fb" :a :impl/file :v "braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "4fb93291d25fe259137fa0efbf9b5370b2487eb7a122f9ad6f4204d42460f8fb" :a :impl/implements :v #blake3 "dd20595a0e13d2d74ac5345a02fff347f2abcad8e7257d416818794fad2840e8" :op :assert}
+   {:e #blake3 "4fb93291d25fe259137fa0efbf9b5370b2487eb7a122f9ad6f4204d42460f8fb" :a :impl/module :v "braid_kernel::bilateral" :op :assert}
+   {:e #blake3 "4fb93291d25fe259137fa0efbf9b5370b2487eb7a122f9ad6f4204d42460f8fb" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "4fb93291d25fe259137fa0efbf9b5370b2487eb7a122f9ad6f4204d42460f8fb" :a :impl/verification-evidence :v "Comment references ADR-STORE-008 in braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "51dad88a477218c71e4e740635891c0b21c579b589f9ce59cee300c951aa87b2" :a :db/ident :v :impl/braid-kernel.src.store.inv-query-016 :op :assert}
+   {:e #blake3 "51dad88a477218c71e4e740635891c0b21c579b589f9ce59cee300c951aa87b2" :a :impl/file :v "braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "51dad88a477218c71e4e740635891c0b21c579b589f9ce59cee300c951aa87b2" :a :impl/implements :v #blake3 "5c13b9a9169bcef3430a9c73cf1c6bd6c91ac7d2b2edf280131439e2994c0611" :op :assert}
+   {:e #blake3 "51dad88a477218c71e4e740635891c0b21c579b589f9ce59cee300c951aa87b2" :a :impl/module :v "braid_kernel::store" :op :assert}
+   {:e #blake3 "51dad88a477218c71e4e740635891c0b21c579b589f9ce59cee300c951aa87b2" :a :impl/verification-depth :v 2 :op :assert}
+   {:e #blake3 "51dad88a477218c71e4e740635891c0b21c579b589f9ce59cee300c951aa87b2" :a :impl/verification-evidence :v "Test file references INV-QUERY-016 in braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :db/ident :v :witness/fbw.ed5cf4524f1fde84 :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :witness/alignment-score :v 1.0 :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :witness/falsification-hash :v "b944ce2ec1036694bd6bb4001cb7b42f51aa6ddaa57cdab2019da6e1d4395395" :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :witness/spec-hash :v "ed5cf4524f1fde84636ab30dc4fcea7d5ccd1d8687ea14d898c0d92704d4c370" :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :witness/test-body-hash :v "b944ce2ec1036694bd6bb4001cb7b42f51aa6ddaa57cdab2019da6e1d4395395" :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :witness/test-file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :witness/traces-to :v #blake3 "183e7677d97573dcdb325617516e4795eb8d814b0396ebf08d5e8b69a03ba107" :op :assert}
+   {:e #blake3 "51eaa7ff8ddeb234e9e82a6a417a2f9a82f2046ec215bb5c74457e62a5513e9f" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "5a2b28e9de4e6de6d6f634d84041a5bf5b3b0a48b665e9fb0485ca777506bc27" :a :db/ident :v :impl/braid-kernel.src.schema.adr-foundation-014 :op :assert}
+   {:e #blake3 "5a2b28e9de4e6de6d6f634d84041a5bf5b3b0a48b665e9fb0485ca777506bc27" :a :impl/file :v "braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "5a2b28e9de4e6de6d6f634d84041a5bf5b3b0a48b665e9fb0485ca777506bc27" :a :impl/implements :v #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :op :assert}
+   {:e #blake3 "5a2b28e9de4e6de6d6f634d84041a5bf5b3b0a48b665e9fb0485ca777506bc27" :a :impl/module :v "braid_kernel::schema" :op :assert}
+   {:e #blake3 "5a2b28e9de4e6de6d6f634d84041a5bf5b3b0a48b665e9fb0485ca777506bc27" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "5a2b28e9de4e6de6d6f634d84041a5bf5b3b0a48b665e9fb0485ca777506bc27" :a :impl/verification-evidence :v "Comment references ADR-FOUNDATION-014 in braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "5e3f1a0146d893c172db785cdb46aa3a7e4dbd447a9af142fccea07303bbb3d3" :a :db/ident :v :impl/braid.src.commands.observe.inv-bilateral-001 :op :assert}
+   {:e #blake3 "5e3f1a0146d893c172db785cdb46aa3a7e4dbd447a9af142fccea07303bbb3d3" :a :impl/file :v "braid/src/commands/observe.rs" :op :assert}
+   {:e #blake3 "5e3f1a0146d893c172db785cdb46aa3a7e4dbd447a9af142fccea07303bbb3d3" :a :impl/implements :v #blake3 "7b9bbe4204b84aba3ff9e9571e7be271c1ce17a41c96a69e29f7e1b95bc6d937" :op :assert}
+   {:e #blake3 "5e3f1a0146d893c172db785cdb46aa3a7e4dbd447a9af142fccea07303bbb3d3" :a :impl/module :v "braid::commands::observe" :op :assert}
+   {:e #blake3 "5e3f1a0146d893c172db785cdb46aa3a7e4dbd447a9af142fccea07303bbb3d3" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "5e3f1a0146d893c172db785cdb46aa3a7e4dbd447a9af142fccea07303bbb3d3" :a :impl/verification-evidence :v "Comment references INV-BILATERAL-001 in braid/src/commands/observe.rs" :op :assert}
+   {:e #blake3 "5f2118b171d684c778a29b05a4a76c937e0b6d99ec974bd4840293b2ee5b84d1" :a :db/ident :v :impl/braid-kernel.src.schema.adr-foundation-013 :op :assert}
+   {:e #blake3 "5f2118b171d684c778a29b05a4a76c937e0b6d99ec974bd4840293b2ee5b84d1" :a :impl/file :v "braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "5f2118b171d684c778a29b05a4a76c937e0b6d99ec974bd4840293b2ee5b84d1" :a :impl/implements :v #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :op :assert}
+   {:e #blake3 "5f2118b171d684c778a29b05a4a76c937e0b6d99ec974bd4840293b2ee5b84d1" :a :impl/module :v "braid_kernel::schema" :op :assert}
+   {:e #blake3 "5f2118b171d684c778a29b05a4a76c937e0b6d99ec974bd4840293b2ee5b84d1" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "5f2118b171d684c778a29b05a4a76c937e0b6d99ec974bd4840293b2ee5b84d1" :a :impl/verification-evidence :v "Comment references ADR-FOUNDATION-013 in braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "5f59a1cdec4a6592868f124b1bb739b9dbd5f5b2e0fc6f3a2b723f890577b036" :a :db/ident :v :impl/braid.src.commands.status.inv-interface-008 :op :assert}
+   {:e #blake3 "5f59a1cdec4a6592868f124b1bb739b9dbd5f5b2e0fc6f3a2b723f890577b036" :a :impl/file :v "braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "5f59a1cdec4a6592868f124b1bb739b9dbd5f5b2e0fc6f3a2b723f890577b036" :a :impl/implements :v #blake3 "e4c50b3f262d40efadb6f18d61d32d9c73e5205a63b3988038e7ac564ee87aa0" :op :assert}
+   {:e #blake3 "5f59a1cdec4a6592868f124b1bb739b9dbd5f5b2e0fc6f3a2b723f890577b036" :a :impl/module :v "braid::commands::status" :op :assert}
+   {:e #blake3 "5f59a1cdec4a6592868f124b1bb739b9dbd5f5b2e0fc6f3a2b723f890577b036" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "5f59a1cdec4a6592868f124b1bb739b9dbd5f5b2e0fc6f3a2b723f890577b036" :a :impl/verification-evidence :v "Comment references INV-INTERFACE-008 in braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "61c8b606c1eb12611a7c9440bb91b278fda36be6cd7f81b138e627bee54c644f" :a :db/ident :v :impl/braid.src.commands.task.inv-guidance-024 :op :assert}
+   {:e #blake3 "61c8b606c1eb12611a7c9440bb91b278fda36be6cd7f81b138e627bee54c644f" :a :impl/file :v "braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "61c8b606c1eb12611a7c9440bb91b278fda36be6cd7f81b138e627bee54c644f" :a :impl/implements :v #blake3 "f4f942296662bb87aace9f5ee90fded0281c69d6c634b4c873991ad6b7a08835" :op :assert}
+   {:e #blake3 "61c8b606c1eb12611a7c9440bb91b278fda36be6cd7f81b138e627bee54c644f" :a :impl/module :v "braid::commands::task" :op :assert}
+   {:e #blake3 "61c8b606c1eb12611a7c9440bb91b278fda36be6cd7f81b138e627bee54c644f" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "61c8b606c1eb12611a7c9440bb91b278fda36be6cd7f81b138e627bee54c644f" :a :impl/verification-evidence :v "Comment references INV-GUIDANCE-024 in braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "63128aac31a7a5f2caebed71b4aabe8d295af3461ade17b929032f4e229f3c87" :a :db/ident :v :impl/braid-kernel.src.store.inv-query-025 :op :assert}
+   {:e #blake3 "63128aac31a7a5f2caebed71b4aabe8d295af3461ade17b929032f4e229f3c87" :a :impl/file :v "braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "63128aac31a7a5f2caebed71b4aabe8d295af3461ade17b929032f4e229f3c87" :a :impl/implements :v #blake3 "3bb9d89dffdca0d4501ed16e97ac83302c26b35b477ac92777ba5e4e54abd33e" :op :assert}
+   {:e #blake3 "63128aac31a7a5f2caebed71b4aabe8d295af3461ade17b929032f4e229f3c87" :a :impl/module :v "braid_kernel::store" :op :assert}
+   {:e #blake3 "63128aac31a7a5f2caebed71b4aabe8d295af3461ade17b929032f4e229f3c87" :a :impl/verification-depth :v 2 :op :assert}
+   {:e #blake3 "63128aac31a7a5f2caebed71b4aabe8d295af3461ade17b929032f4e229f3c87" :a :impl/verification-evidence :v "Test file references INV-QUERY-025 in braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "67cd712b6f0cccbde91176b46cbdb7c2d57f91c33e492d178798ab808d1eb0b1" :a :db/ident :v :impl/braid.src.commands.extract.adr-foundation-009 :op :assert}
+   {:e #blake3 "67cd712b6f0cccbde91176b46cbdb7c2d57f91c33e492d178798ab808d1eb0b1" :a :impl/file :v "braid/src/commands/extract.rs" :op :assert}
+   {:e #blake3 "67cd712b6f0cccbde91176b46cbdb7c2d57f91c33e492d178798ab808d1eb0b1" :a :impl/implements :v #blake3 "442e076cceeb8f5e87be8f5eefe666bed4d8c60b06ae6162431b2dd39c18c1a1" :op :assert}
+   {:e #blake3 "67cd712b6f0cccbde91176b46cbdb7c2d57f91c33e492d178798ab808d1eb0b1" :a :impl/module :v "braid::commands::extract" :op :assert}
+   {:e #blake3 "67cd712b6f0cccbde91176b46cbdb7c2d57f91c33e492d178798ab808d1eb0b1" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "67cd712b6f0cccbde91176b46cbdb7c2d57f91c33e492d178798ab808d1eb0b1" :a :impl/verification-evidence :v "Comment references ADR-FOUNDATION-009 in braid/src/commands/extract.rs" :op :assert}
+   {:e #blake3 "69cdfa40eb0e79a43c8ef8069d80df5104026b4bd977ec7fba9b1c842f2441ec" :a :db/ident :v :impl/braid-kernel.src.policy.inv-foundation-007 :op :assert}
+   {:e #blake3 "69cdfa40eb0e79a43c8ef8069d80df5104026b4bd977ec7fba9b1c842f2441ec" :a :impl/file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "69cdfa40eb0e79a43c8ef8069d80df5104026b4bd977ec7fba9b1c842f2441ec" :a :impl/implements :v #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :op :assert}
+   {:e #blake3 "69cdfa40eb0e79a43c8ef8069d80df5104026b4bd977ec7fba9b1c842f2441ec" :a :impl/module :v "braid_kernel::policy" :op :assert}
+   {:e #blake3 "69cdfa40eb0e79a43c8ef8069d80df5104026b4bd977ec7fba9b1c842f2441ec" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "69cdfa40eb0e79a43c8ef8069d80df5104026b4bd977ec7fba9b1c842f2441ec" :a :impl/verification-evidence :v "Comment references INV-FOUNDATION-007 in braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "6abb245f58558f77699232279e0f7ce8c413433c6b168ba821e43db45637fa91" :a :db/ident :v :impl/braid-kernel.src.policy.inv-foundation-006 :op :assert}
+   {:e #blake3 "6abb245f58558f77699232279e0f7ce8c413433c6b168ba821e43db45637fa91" :a :impl/file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "6abb245f58558f77699232279e0f7ce8c413433c6b168ba821e43db45637fa91" :a :impl/implements :v #blake3 "7acde41dbb27e9f3be835c10c3a870013f0855f97c7b597475f8921cbdc6de60" :op :assert}
+   {:e #blake3 "6abb245f58558f77699232279e0f7ce8c413433c6b168ba821e43db45637fa91" :a :impl/module :v "braid_kernel::policy" :op :assert}
+   {:e #blake3 "6abb245f58558f77699232279e0f7ce8c413433c6b168ba821e43db45637fa91" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "6abb245f58558f77699232279e0f7ce8c413433c6b168ba821e43db45637fa91" :a :impl/verification-evidence :v "Comment references INV-FOUNDATION-006 in braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "6d1bd4cc83ff3eb65cb59db7bcfe8fa0174810334b22058dcea47bf07afaf239" :a :db/ident :v :impl/braid.src.commands.observe.inv-guidance-014 :op :assert}
+   {:e #blake3 "6d1bd4cc83ff3eb65cb59db7bcfe8fa0174810334b22058dcea47bf07afaf239" :a :impl/file :v "braid/src/commands/observe.rs" :op :assert}
+   {:e #blake3 "6d1bd4cc83ff3eb65cb59db7bcfe8fa0174810334b22058dcea47bf07afaf239" :a :impl/implements :v #blake3 "765db5b76fa7e768fdd3e842691a5cbbd1cc6f62cee2d39bb66e0ca9c9be0053" :op :assert}
+   {:e #blake3 "6d1bd4cc83ff3eb65cb59db7bcfe8fa0174810334b22058dcea47bf07afaf239" :a :impl/module :v "braid::commands::observe" :op :assert}
+   {:e #blake3 "6d1bd4cc83ff3eb65cb59db7bcfe8fa0174810334b22058dcea47bf07afaf239" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "6d1bd4cc83ff3eb65cb59db7bcfe8fa0174810334b22058dcea47bf07afaf239" :a :impl/verification-evidence :v "Comment references INV-GUIDANCE-014 in braid/src/commands/observe.rs" :op :assert}
+   {:e #blake3 "706b6bc7241f5a5450e594b6e9d0181ea3438cf1f9dffe56581d55e2eb42187c" :a :db/ident :v :impl/braid.src.commands.task.adr-foundation-014 :op :assert}
+   {:e #blake3 "706b6bc7241f5a5450e594b6e9d0181ea3438cf1f9dffe56581d55e2eb42187c" :a :impl/file :v "braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "706b6bc7241f5a5450e594b6e9d0181ea3438cf1f9dffe56581d55e2eb42187c" :a :impl/implements :v #blake3 "074294aa9119041cf748fdd4cc84d6170a56a8095a29db7be1a19455e2ab3dbb" :op :assert}
+   {:e #blake3 "706b6bc7241f5a5450e594b6e9d0181ea3438cf1f9dffe56581d55e2eb42187c" :a :impl/module :v "braid::commands::task" :op :assert}
+   {:e #blake3 "706b6bc7241f5a5450e594b6e9d0181ea3438cf1f9dffe56581d55e2eb42187c" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "706b6bc7241f5a5450e594b6e9d0181ea3438cf1f9dffe56581d55e2eb42187c" :a :impl/verification-evidence :v "Comment references ADR-FOUNDATION-014 in braid/src/commands/task.rs" :op :assert}
+   {:e #blake3 "7a8403f415f4ed05e6cc1f32509c1d3c2697bbde920061e3fa95972f54a11f67" :a :db/ident :v :impl/braid.src.commands.challenge.inv-foundation-008 :op :assert}
+   {:e #blake3 "7a8403f415f4ed05e6cc1f32509c1d3c2697bbde920061e3fa95972f54a11f67" :a :impl/file :v "braid/src/commands/challenge.rs" :op :assert}
+   {:e #blake3 "7a8403f415f4ed05e6cc1f32509c1d3c2697bbde920061e3fa95972f54a11f67" :a :impl/implements :v #blake3 "5d15ca95d2b67d171b1f67e612f9a549b4f131026b48314e7e3b4720019e0d86" :op :assert}
+   {:e #blake3 "7a8403f415f4ed05e6cc1f32509c1d3c2697bbde920061e3fa95972f54a11f67" :a :impl/module :v "braid::commands::challenge" :op :assert}
+   {:e #blake3 "7a8403f415f4ed05e6cc1f32509c1d3c2697bbde920061e3fa95972f54a11f67" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "7a8403f415f4ed05e6cc1f32509c1d3c2697bbde920061e3fa95972f54a11f67" :a :impl/verification-evidence :v "Comment references INV-FOUNDATION-008 in braid/src/commands/challenge.rs" :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :db/ident :v :witness/fbw.46e5228afb8ae4f2 :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :witness/alignment-score :v 1.0 :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :witness/falsification-hash :v "2daac082b2e38f50151db3533071fd4e94972c4197719f28ef395872489fd7ad" :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :witness/spec-hash :v "46e5228afb8ae4f2dd06354b5e6d03f752f2e1dade0cccfce98b88708a424122" :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :witness/test-body-hash :v "2daac082b2e38f50151db3533071fd4e94972c4197719f28ef395872489fd7ad" :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :witness/test-file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :witness/traces-to :v #blake3 "e2adcc278d558d01a83c2de0f3701c1a5dc921d2fdab892da90a25c8c7e9d626" :op :assert}
+   {:e #blake3 "83ccf2c5f98cbd2768276160e39f9c553436ebe99723850eea955a76f53b921a" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "927d4aa96ccfc80ee6d809af98008949830b3f189152aeded1882dbd25373074" :a :db/ident :v :impl/braid.src.commands.extract.inv-foundation-003 :op :assert}
+   {:e #blake3 "927d4aa96ccfc80ee6d809af98008949830b3f189152aeded1882dbd25373074" :a :impl/file :v "braid/src/commands/extract.rs" :op :assert}
+   {:e #blake3 "927d4aa96ccfc80ee6d809af98008949830b3f189152aeded1882dbd25373074" :a :impl/implements :v #blake3 "7f5a77ecbda930a14a70274bb424bdb3418a70716b2e921247fe73c34d6efec6" :op :assert}
+   {:e #blake3 "927d4aa96ccfc80ee6d809af98008949830b3f189152aeded1882dbd25373074" :a :impl/module :v "braid::commands::extract" :op :assert}
+   {:e #blake3 "927d4aa96ccfc80ee6d809af98008949830b3f189152aeded1882dbd25373074" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "927d4aa96ccfc80ee6d809af98008949830b3f189152aeded1882dbd25373074" :a :impl/verification-evidence :v "Comment references INV-FOUNDATION-003 in braid/src/commands/extract.rs" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :db/ident :v :witness/fbw.b26dd8970de90f98 :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :db/ident :v :witness/fbw.b26dd8970de90f98 :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/alignment-score :v 1.0 :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/alignment-score :v 1.0 :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/falsification-hash :v "a1c55eee51e01dc8da609f0e3b95dc3f5e5c2e2f4c7e52607c6c025376b1483f" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/falsification-hash :v "a1c55eee51e01dc8da609f0e3b95dc3f5e5c2e2f4c7e52607c6c025376b1483f" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/spec-hash :v "b26dd8970de90f98a6e27cacb3683d8ab949414c45404f5949b4cd7b8f899e4b" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/spec-hash :v "b26dd8970de90f98a6e27cacb3683d8ab949414c45404f5949b4cd7b8f899e4b" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/test-body-hash :v "a1c55eee51e01dc8da609f0e3b95dc3f5e5c2e2f4c7e52607c6c025376b1483f" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/test-body-hash :v "a1c55eee51e01dc8da609f0e3b95dc3f5e5c2e2f4c7e52607c6c025376b1483f" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/test-file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/test-file :v "braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/traces-to :v #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/traces-to :v #blake3 "15e89eab589288b1fab647397cff7bcb3e7de388b97c7cc3a62f79acb5b3f567" :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "94a2559ebfa82eb44a746e5d2f6f4df2ec5f25c59bb142d21570e7ea2b14865f" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "9dc5ecf256b15c690ca7f82a95511a4d413a6ce62d0913527da3a2db45254ec4" :a :db/ident :v :impl/braid-kernel.src.store.inv-guidance-010 :op :assert}
+   {:e #blake3 "9dc5ecf256b15c690ca7f82a95511a4d413a6ce62d0913527da3a2db45254ec4" :a :impl/file :v "braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "9dc5ecf256b15c690ca7f82a95511a4d413a6ce62d0913527da3a2db45254ec4" :a :impl/implements :v #blake3 "5ec5a82c9ee3b60a53cec83354f855412d2170c8b069b0b461be1891f3fbb962" :op :assert}
+   {:e #blake3 "9dc5ecf256b15c690ca7f82a95511a4d413a6ce62d0913527da3a2db45254ec4" :a :impl/module :v "braid_kernel::store" :op :assert}
+   {:e #blake3 "9dc5ecf256b15c690ca7f82a95511a4d413a6ce62d0913527da3a2db45254ec4" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "9dc5ecf256b15c690ca7f82a95511a4d413a6ce62d0913527da3a2db45254ec4" :a :impl/verification-evidence :v "Comment references INV-GUIDANCE-010 in braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "9ded4ece60b9158078eca3fc66a0e78c022e2d214b29cc8c76cdf21451a7a8d6" :a :db/ident :v :impl/braid.src.commands.harvest.inv-task-006 :op :assert}
+   {:e #blake3 "9ded4ece60b9158078eca3fc66a0e78c022e2d214b29cc8c76cdf21451a7a8d6" :a :impl/file :v "braid/src/commands/harvest.rs" :op :assert}
+   {:e #blake3 "9ded4ece60b9158078eca3fc66a0e78c022e2d214b29cc8c76cdf21451a7a8d6" :a :impl/implements :v #blake3 "7f0892ad4e22135a1664af0a436f4b790e8c1c5a2d035ef5f4812f44a3e5da6b" :op :assert}
+   {:e #blake3 "9ded4ece60b9158078eca3fc66a0e78c022e2d214b29cc8c76cdf21451a7a8d6" :a :impl/module :v "braid::commands::harvest" :op :assert}
+   {:e #blake3 "9ded4ece60b9158078eca3fc66a0e78c022e2d214b29cc8c76cdf21451a7a8d6" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "9ded4ece60b9158078eca3fc66a0e78c022e2d214b29cc8c76cdf21451a7a8d6" :a :impl/verification-evidence :v "Comment references INV-TASK-006 in braid/src/commands/harvest.rs" :op :assert}
+   {:e #blake3 "a835c265c63ea74ca636e5f2b65dfa407764436b6187343ad047e5e3d97cc497" :a :db/ident :v :impl/braid-kernel.src.schema.adr-foundation-007 :op :assert}
+   {:e #blake3 "a835c265c63ea74ca636e5f2b65dfa407764436b6187343ad047e5e3d97cc497" :a :impl/file :v "braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "a835c265c63ea74ca636e5f2b65dfa407764436b6187343ad047e5e3d97cc497" :a :impl/implements :v #blake3 "0ca9f4dcf5bfa7ef958eb293cff3455f0d5ab2713add9fd166cc1ef34c87b033" :op :assert}
+   {:e #blake3 "a835c265c63ea74ca636e5f2b65dfa407764436b6187343ad047e5e3d97cc497" :a :impl/module :v "braid_kernel::schema" :op :assert}
+   {:e #blake3 "a835c265c63ea74ca636e5f2b65dfa407764436b6187343ad047e5e3d97cc497" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "a835c265c63ea74ca636e5f2b65dfa407764436b6187343ad047e5e3d97cc497" :a :impl/verification-evidence :v "Comment references ADR-FOUNDATION-007 in braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "ab2163e6a391d916d55da4052b1e125b0f9ff1e8cf06ff5a49598348a0cce289" :a :db/ident :v :impl/braid-kernel.src.store.inv-bilateral-001 :op :assert}
+   {:e #blake3 "ab2163e6a391d916d55da4052b1e125b0f9ff1e8cf06ff5a49598348a0cce289" :a :impl/file :v "braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "ab2163e6a391d916d55da4052b1e125b0f9ff1e8cf06ff5a49598348a0cce289" :a :impl/implements :v #blake3 "7b9bbe4204b84aba3ff9e9571e7be271c1ce17a41c96a69e29f7e1b95bc6d937" :op :assert}
+   {:e #blake3 "ab2163e6a391d916d55da4052b1e125b0f9ff1e8cf06ff5a49598348a0cce289" :a :impl/module :v "braid_kernel::store" :op :assert}
+   {:e #blake3 "ab2163e6a391d916d55da4052b1e125b0f9ff1e8cf06ff5a49598348a0cce289" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "ab2163e6a391d916d55da4052b1e125b0f9ff1e8cf06ff5a49598348a0cce289" :a :impl/verification-evidence :v "Comment references INV-BILATERAL-001 in braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "b611ccd1b003f572601ebb8487099263435853a3996a4a85b3595fef1813e58a" :a :db/ident :v :impl/braid-kernel.src.policy.adr-foundation-013 :op :assert}
+   {:e #blake3 "b611ccd1b003f572601ebb8487099263435853a3996a4a85b3595fef1813e58a" :a :impl/file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "b611ccd1b003f572601ebb8487099263435853a3996a4a85b3595fef1813e58a" :a :impl/implements :v #blake3 "faabe8d86389d10f9364f1454eadfe7e07a928ed07f206358b2a5f2f804c6627" :op :assert}
+   {:e #blake3 "b611ccd1b003f572601ebb8487099263435853a3996a4a85b3595fef1813e58a" :a :impl/module :v "braid_kernel::policy" :op :assert}
+   {:e #blake3 "b611ccd1b003f572601ebb8487099263435853a3996a4a85b3595fef1813e58a" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "b611ccd1b003f572601ebb8487099263435853a3996a4a85b3595fef1813e58a" :a :impl/verification-evidence :v "Comment references ADR-FOUNDATION-013 in braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "ba0e5566274dfa77ebac4ef38a952c1bda00a37601e972ae39b1011ba95bd5fa" :a :db/ident :v :impl/braid.src.main.inv-signal-001 :op :assert}
+   {:e #blake3 "ba0e5566274dfa77ebac4ef38a952c1bda00a37601e972ae39b1011ba95bd5fa" :a :impl/file :v "braid/src/main.rs" :op :assert}
+   {:e #blake3 "ba0e5566274dfa77ebac4ef38a952c1bda00a37601e972ae39b1011ba95bd5fa" :a :impl/implements :v #blake3 "a00d3c4c4951b9b6745198b78a8fe602c1c59bbe01d8cda8a3e7c88e5a53c897" :op :assert}
+   {:e #blake3 "ba0e5566274dfa77ebac4ef38a952c1bda00a37601e972ae39b1011ba95bd5fa" :a :impl/module :v "braid::main" :op :assert}
+   {:e #blake3 "ba0e5566274dfa77ebac4ef38a952c1bda00a37601e972ae39b1011ba95bd5fa" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "ba0e5566274dfa77ebac4ef38a952c1bda00a37601e972ae39b1011ba95bd5fa" :a :impl/verification-evidence :v "Comment references INV-SIGNAL-001 in braid/src/main.rs" :op :assert}
+   {:e #blake3 "bec2ecacca162f784f8d4d036d423bade72d5e7bdb1459b863136af21f97d5be" :a :db/ident :v :impl/braid-kernel.src.bilateral.inv-witness-002 :op :assert}
+   {:e #blake3 "bec2ecacca162f784f8d4d036d423bade72d5e7bdb1459b863136af21f97d5be" :a :impl/file :v "braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "bec2ecacca162f784f8d4d036d423bade72d5e7bdb1459b863136af21f97d5be" :a :impl/implements :v #blake3 "fee012f533fcc63eb0716153a3985dad8787052b44f6f4cf25d4a12a9b3bfd6b" :op :assert}
+   {:e #blake3 "bec2ecacca162f784f8d4d036d423bade72d5e7bdb1459b863136af21f97d5be" :a :impl/module :v "braid_kernel::bilateral" :op :assert}
+   {:e #blake3 "bec2ecacca162f784f8d4d036d423bade72d5e7bdb1459b863136af21f97d5be" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "bec2ecacca162f784f8d4d036d423bade72d5e7bdb1459b863136af21f97d5be" :a :impl/verification-evidence :v "Comment references INV-WITNESS-002 in braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "c73b88c89675a892f9524108bd6bea02c1db0e0b1939e3dea16c5c7aee05163e" :a :db/ident :v :impl/braid.src.commands.status.inv-budget-008 :op :assert}
+   {:e #blake3 "c73b88c89675a892f9524108bd6bea02c1db0e0b1939e3dea16c5c7aee05163e" :a :impl/file :v "braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "c73b88c89675a892f9524108bd6bea02c1db0e0b1939e3dea16c5c7aee05163e" :a :impl/implements :v #blake3 "b66c5113dc3fd0607986bf0edb73c752c90ed081fd7fec0736492810fffa7668" :op :assert}
+   {:e #blake3 "c73b88c89675a892f9524108bd6bea02c1db0e0b1939e3dea16c5c7aee05163e" :a :impl/module :v "braid::commands::status" :op :assert}
+   {:e #blake3 "c73b88c89675a892f9524108bd6bea02c1db0e0b1939e3dea16c5c7aee05163e" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "c73b88c89675a892f9524108bd6bea02c1db0e0b1939e3dea16c5c7aee05163e" :a :impl/verification-evidence :v "Comment references INV-BUDGET-008 in braid/src/commands/status.rs" :op :assert}
+   {:e #blake3 "d65d3c512f9a12dca961dc9df6712cf85704af788af978931a4c7ffa6a26d498" :a :trace/last-scan-mtime :v 1774250110 :op :assert}
+   {:e #blake3 "eb02688eedd8dd857fe8d99f6e5d75dbcb5d70c4ec6f92ae3a2e3e31930f3afd" :a :db/ident :v :impl/braid-kernel.src.schema.inv-bilateral-001 :op :assert}
+   {:e #blake3 "eb02688eedd8dd857fe8d99f6e5d75dbcb5d70c4ec6f92ae3a2e3e31930f3afd" :a :impl/file :v "braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "eb02688eedd8dd857fe8d99f6e5d75dbcb5d70c4ec6f92ae3a2e3e31930f3afd" :a :impl/implements :v #blake3 "7b9bbe4204b84aba3ff9e9571e7be271c1ce17a41c96a69e29f7e1b95bc6d937" :op :assert}
+   {:e #blake3 "eb02688eedd8dd857fe8d99f6e5d75dbcb5d70c4ec6f92ae3a2e3e31930f3afd" :a :impl/module :v "braid_kernel::schema" :op :assert}
+   {:e #blake3 "eb02688eedd8dd857fe8d99f6e5d75dbcb5d70c4ec6f92ae3a2e3e31930f3afd" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "eb02688eedd8dd857fe8d99f6e5d75dbcb5d70c4ec6f92ae3a2e3e31930f3afd" :a :impl/verification-evidence :v "Comment references INV-BILATERAL-001 in braid-kernel/src/schema.rs" :op :assert}
+   {:e #blake3 "f359344a0721c5ff24fa3e9cc68c29c28be7028f6ba319be2f81ac17b6edbf90" :a :db/ident :v :impl/braid-kernel.src.bilateral.adr-harvest-005 :op :assert}
+   {:e #blake3 "f359344a0721c5ff24fa3e9cc68c29c28be7028f6ba319be2f81ac17b6edbf90" :a :impl/file :v "braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "f359344a0721c5ff24fa3e9cc68c29c28be7028f6ba319be2f81ac17b6edbf90" :a :impl/implements :v #blake3 "2ecdb3a18efd486a8f8add8243f8177a12335efdb50147ba3d729cc1ffde902c" :op :assert}
+   {:e #blake3 "f359344a0721c5ff24fa3e9cc68c29c28be7028f6ba319be2f81ac17b6edbf90" :a :impl/module :v "braid_kernel::bilateral" :op :assert}
+   {:e #blake3 "f359344a0721c5ff24fa3e9cc68c29c28be7028f6ba319be2f81ac17b6edbf90" :a :impl/verification-depth :v 1 :op :assert}
+   {:e #blake3 "f359344a0721c5ff24fa3e9cc68c29c28be7028f6ba319be2f81ac17b6edbf90" :a :impl/verification-evidence :v "Comment references ADR-HARVEST-005 in braid-kernel/src/bilateral.rs" :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :db/ident :v :witness/fbw.a87acf345804c206 :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :witness/alignment-score :v 1.0 :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :witness/falsification-hash :v "4741a3335ebbb09a99eb3b4862cca26074363914670bc91c34617a7eed05af21" :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :witness/spec-hash :v "a87acf345804c206a7de0551269bbcf769a6289c5a9a72463f67464862f571a1" :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :witness/test-body-hash :v "4741a3335ebbb09a99eb3b4862cca26074363914670bc91c34617a7eed05af21" :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :witness/test-file :v "braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :witness/traces-to :v #blake3 "7acde41dbb27e9f3be835c10c3a870013f0855f97c7b597475f8921cbdc6de60" :op :assert}
+   {:e #blake3 "f977f44a2bcaa6156c68b465f1b665c7579db26a2ff4d28f0172863b341c8267" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :db/ident :v :witness/fbw.f60f95c1f9794196 :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :witness/agent :v "braid:user" :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :witness/alignment-score :v 0.0 :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :witness/challenge-count :v 0 :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :witness/falsification-hash :v "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262" :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :witness/level :v 1 :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :witness/spec-hash :v "f60f95c1f9794196411b32ac685b74948cb4480bbb3a54cc9e832114f6d2e2f9" :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :witness/status :v :witness.status/pending :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :witness/test-body-hash :v "f60f95c1f9794196411b32ac685b74948cb4480bbb3a54cc9e832114f6d2e2f9" :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :witness/test-file :v "braid/src/commands/extract.rs" :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :witness/traces-to :v #blake3 "442e076cceeb8f5e87be8f5eefe666bed4d8c60b06ae6162431b2dd39c18c1a1" :op :assert}
+   {:e #blake3 "f97a28f2de8bcefb9c5c9a90fac5da6de92177028c82b9445228a3c468d8403a" :a :witness/verdict :v :witness.verdict/unchallenged :op :assert}
+   {:e #blake3 "fc5b7454f252e2fb608d1b4d4459e4afca77fb917000d35be9dbd9b436383861" :a :db/ident :v :impl/braid-kernel.src.store.inv-query-015 :op :assert}
+   {:e #blake3 "fc5b7454f252e2fb608d1b4d4459e4afca77fb917000d35be9dbd9b436383861" :a :impl/file :v "braid-kernel/src/store.rs" :op :assert}
+   {:e #blake3 "fc5b7454f252e2fb608d1b4d4459e4afca77fb917000d35be9dbd9b436383861" :a :impl/implements :v #blake3 "292a084b15c791149b75b5ed6b415ee04eaabeffa0c1dc88bc2d6cdc241c7573" :op :assert}
+   {:e #blake3 "fc5b7454f252e2fb608d1b4d4459e4afca77fb917000d35be9dbd9b436383861" :a :impl/module :v "braid_kernel::store" :op :assert}
+   {:e #blake3 "fc5b7454f252e2fb608d1b4d4459e4afca77fb917000d35be9dbd9b436383861" :a :impl/verification-depth :v 2 :op :assert}
+   {:e #blake3 "fc5b7454f252e2fb608d1b4d4459e4afca77fb917000d35be9dbd9b436383861" :a :impl/verification-evidence :v "Test file references INV-QUERY-015 in braid-kernel/src/store.rs" :op :assert}
+ ]}

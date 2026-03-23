@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774248716/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Administrative Convergence — close 136 likely-done tasks, triage 46 EPICs, clear stale trace, crystallize 54 observations (Audit Findings 2+3)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :db/ident :v :task/t-84448be7 :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/created-at :v 1774248715 :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/description :v "CONTEXT: The project has 328 open tasks, 136 'likely implemented', 46 open EPICs (only 3 closed), 54 uncrystallized observations, and stale trace data (32 files modified since last scan). This administrative debt directly causes the F(S) plateau at 0.62 and dilutes R(t) routing effectiveness. RATIONALE: NEG-010 (do not open loops). Every unclosed task, uncrystallized observation, and stale trace record is an open loop. The code is complete — the data pipeline hasn't been run. APPROACH: Four sub-tasks: (1) batch-close 136 likely-implemented tasks, (2) triage 46 EPICs to less than 10 open, (3) refresh trace data, (4) crystallize 54 observations. ACCEPTANCE: (A) Open tasks less than 80. (B) Open EPICs less than 10. (C) Trace current (0 stale files). (D) Uncrystallized observations less than 10. (E) R(t) top recommendation impact greater than 0.40." :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/id :v "t-84448be7" :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/title :v "EPIC: Administrative Convergence — close 136 likely-done tasks, triage 46 EPICs, clear stale trace, crystallize 54 observations (Audit Findings 2+3)" :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/title-l1 :v "EPIC: Administrative Convergence — close 136 likely-done tasks, triage 46 E..." :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/traces-to :v #blake3 "6d52695da7318c5fd5d5915c1734c80043acfcdc41b48237f1c50006a6396526" :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/traces-to :v #blake3 "d54a134d486b47a450d4c1760f8f7c60668e1986f86927a06f8a8df7080b3195" :op :assert}
+   {:e #blake3 "d8389315d68c20c2bcc793d25f6ab083f003f9595b04df10f012993af9de7433" :a :task/type :v :task.type/epic :op :assert}
+ ]}

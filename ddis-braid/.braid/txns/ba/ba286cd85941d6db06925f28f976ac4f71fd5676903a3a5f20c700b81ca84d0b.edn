@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774249154/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Task Lifecycle Improvement — decay mechanism + EPIC auto-close (Audit Finding 3 structural fix)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :db/ident :v :task/t-39fbcc01 :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/created-at :v 1774249153 :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/description :v "CONTEXT: Task inflation is a structural problem, not just an administrative one. The system creates tasks faster than it closes them. Even after ADM-1/ADM-2 (batch close + EPIC triage), the root cause remains: no decay mechanism, no auto-close, no lifecycle management. RATIONALE: NEG-010 (do not open loops). The task system itself has become an open loop — it generates but doesn't converge. APPROACH: Two structural improvements: (1) Task decay — auto-downgrade untouched tasks to P4 after 5 sessions. (2) EPIC auto-close — when all sub-tasks of an EPIC are closed, auto-close the EPIC. ACCEPTANCE: (A) After 5 sessions, stale tasks auto-decay to P4. (B) EPICs with all closed sub-tasks auto-close. (C) R(t) impact concentration improves (top-1 impact greater than 0.35). SPEC: Need new INV-TASK-NNN for task lifecycle. Prerequisite spec creation included as sub-task." :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/id :v "t-39fbcc01" :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/title :v "EPIC: Task Lifecycle Improvement — decay mechanism + EPIC auto-close (Audit Finding 3 structural fix)" :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/title-l1 :v "EPIC: Task Lifecycle Improvement — decay mechanism + EPIC auto-close (Audit..." :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/traces-to :v #blake3 "6d52695da7318c5fd5d5915c1734c80043acfcdc41b48237f1c50006a6396526" :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/traces-to :v #blake3 "d54a134d486b47a450d4c1760f8f7c60668e1986f86927a06f8a8df7080b3195" :op :assert}
+   {:e #blake3 "9802ad357895e07f5d947b64dcb8251d9e1736e1ee63b0d0e65609bb2ca96645" :a :task/type :v :task.type/epic :op :assert}
+ ]}

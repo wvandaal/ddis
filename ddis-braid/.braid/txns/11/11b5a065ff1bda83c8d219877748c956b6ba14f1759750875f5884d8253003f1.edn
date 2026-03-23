@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774249212/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: DEFER-1: Downgrade 4 Phase E EPICs and sub-tasks to P4 backlog"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :db/ident :v :task/t-c6de09d6 :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/created-at :v 1774249211 :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/description :v "CONTEXT: Four work streams should be deferred to Phase E backlog: (A) Resolution-Deliberation Isomorphism (EPIC t-9cb083b5, P2), (B) F(T) Topology Fitness (EPIC t-241cf210, P2), (C) MCP Extraction Pipeline (MCP-EXTRACT-1..5 tasks), (D) Capability Census Protocol (EPIC t-fa4d2d7d, P1). These have zero current users and are speculative infrastructure. APPROACH: (1) Downgrade each EPIC and its sub-tasks to P4 (backlog). (2) Add label 'phase-e' to each for future retrieval. (3) Do NOT close — preserve the conceptual grouping for when Phase E begins. (4) This reduces the open task count and concentrates R(t) on Phase D work. ACCEPTANCE: (A) All four EPICs are P4. (B) All sub-tasks of these EPICs are P4. (C) They appear at bottom of braid task ready, not top. (D) R(t) top-3 recommendations are all Phase D tasks. CONSIDERATIONS: If any of these EPICs has sub-tasks that are independently useful for Phase D, extract those sub-tasks before downgrading. Don't lose useful work." :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/id :v "t-c6de09d6" :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/title :v "DEFER-1: Downgrade 4 Phase E EPICs and sub-tasks to P4 backlog" :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/title-l0 :v "DEFER-1" :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/title-l1 :v "DEFER-1: Downgrade 4 Phase E EPICs and sub-tasks to P4 backlog" :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/traces-to :v #blake3 "d54a134d486b47a450d4c1760f8f7c60668e1986f86927a06f8a8df7080b3195" :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/type :v :task.type/task :op :assert}
+ ]}

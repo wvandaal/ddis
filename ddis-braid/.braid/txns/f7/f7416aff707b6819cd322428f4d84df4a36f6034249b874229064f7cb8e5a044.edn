@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774249078/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :db/ident :v :recon/trace-d062c6c6e9a6a1b9 :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-neighborhood :v "RESOLUTION" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.kani_proofs.inv-resolution-002" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-resolution-001" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-resolution-002" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.task.inv-resolution-001" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.trace.inv-resolution-002" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-resolution-001" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-resolution-002" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.stateright_model.inv-resolution-002" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-neighbors :v ":impl/braid.src.commands.task.inv-resolution-001" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-refs :v "INV-RESOLUTION-001" :op :assert}
+   {:e #blake3 "17b268e8b98284e9a8c3f54d7fb4a2bead0958ebcce7a186847ddea41c88ef44" :a :recon/trace-refs :v "INV-RESOLUTION-002" :op :assert}
+ ]}

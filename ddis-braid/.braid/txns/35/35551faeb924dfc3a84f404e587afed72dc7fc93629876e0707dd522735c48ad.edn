@@ -1,0 +1,11 @@
+{:tx/id #hlc "1774250062/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-b5b7d0b1"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "c47a9914b5ea90af4b8a78421fb28fd040aef8870fe35d051624a4a48e9016fa" :a :task/close-reason :v "Phase E — niche security hardening, deferred per audit" :op :assert}
+   {:e #blake3 "c47a9914b5ea90af4b8a78421fb28fd040aef8870fe35d051624a4a48e9016fa" :a :task/closed-at :v 1774250061 :op :assert}
+   {:e #blake3 "c47a9914b5ea90af4b8a78421fb28fd040aef8870fe35d051624a4a48e9016fa" :a :task/completion-method :v :task.completion/verified :op :assert}
+   {:e #blake3 "c47a9914b5ea90af4b8a78421fb28fd040aef8870fe35d051624a4a48e9016fa" :a :task/status :v :task.status/closed :op :assert}
+ ]}

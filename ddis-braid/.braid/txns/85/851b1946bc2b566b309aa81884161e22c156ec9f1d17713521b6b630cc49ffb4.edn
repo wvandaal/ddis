@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774248837/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: HL-CALIBRATE: Wire hypothesis outcomes into boundary weight calibration"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :db/ident :v :task/t-e72ec374 :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/created-at :v 1774248836 :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/description :v "CONTEXT: Policy manifest defines boundary weights (coverage, depth, coherence, completeness, formality). These weights are bootstrap defaults — never calibrated from empirical data. The hypothesis ledger computes prediction errors that SHOULD feed back into boundary weight adjustment. RATIONALE: ADR-FOUNDATION-024 (self-calibrating attention). Without calibrated weights, F(S) measures alignment against an arbitrary model. The hypothesis error data tells us which boundaries are well-predicted (accurate weights) vs poorly-predicted (need adjustment). APPROACH: (1) After HL-CLOSE-1 provides at least 3 data points, compute per-boundary prediction error. (2) Boundaries with high error get weight adjustment: increase weight for under-predicted, decrease for over-predicted. (3) Implementation: add calibrate_boundary_weights(store, hypothesis_outcomes) -> Vec<WeightAdjustment> to policy.rs. (4) Apply adjustments via policy manifest update transaction. ACCEPTANCE: (A) After calibration, boundary weights differ from bootstrap defaults. (B) Subsequent predictions have lower mean error (convergence). (C) F(S) computation reflects calibrated weights. DEPENDS-ON: HL-CLOSE-1 (need outcome data). FILE: crates/braid-kernel/src/policy.rs" :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/id :v "t-e72ec374" :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/title :v "HL-CALIBRATE: Wire hypothesis outcomes into boundary weight calibration" :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/title-l0 :v "HL-CALIBRATE" :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/title-l1 :v "HL-CALIBRATE: Wire hypothesis outcomes into boundary weight calibration" :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/traces-to :v #blake3 "aaf898dc3d16c961c21592757ed873d54cbd5e8ce59afa177b6c67b7bc9286d8" :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/traces-to :v #blake3 "dbd4aa4ac4c6d7ba5d6fdaead15afb6f7e54d2540158a1814aad926d82a7bcd4" :op :assert}
+   {:e #blake3 "19cb976809f07d7bb93a080f60aaddc8dda408e04dbce9b7dae1643737bdaf74" :a :task/type :v :task.type/task :op :assert}
+ ]}

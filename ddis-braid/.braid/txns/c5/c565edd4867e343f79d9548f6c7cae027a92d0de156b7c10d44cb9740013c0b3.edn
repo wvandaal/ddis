@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774248762/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ADM-4: Batch-witness 238 untested INVs via auto-promote from trace links"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :db/ident :v :task/t-cad19297 :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/created-at :v 1774248761 :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/description :v "CONTEXT: 238 INVs lack L2+ witness depth. Many have corresponding test functions (linked via trace scan) but no formal witness record. The bilateral scanner counts these as spec↔impl gaps, directly causing the F(S) plateau. RATIONALE: INV-WITNESS-011 requires every current-stage INV to have L2+ FBW. The witness records exist conceptually (tests reference INVs) but aren't formalized in the store. APPROACH: (1) Ensure trace is current (depends on ADM-3). (2) For each INV with a trace-linked test, auto-create witness at L2. Implementation: braid witness auto-promote or scripted loop of braid witness check + create. (3) For INVs WITHOUT trace-linked tests, output unwitnessed list. (4) Expected: 238 → approximately 50 unwitnessed. ACCEPTANCE: (A) braid witness completeness shows greater than 80% coverage. (B) F(S) spec↔impl boundary improves from 0.82 to greater than 0.90. (C) Remaining unwitnessed INVs have documented reasons. DEPENDS-ON: ADM-3 (trace must be current). FILE: None — CLI operations, possibly a new braid witness auto-promote subcommand." :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/id :v "t-cad19297" :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/title :v "ADM-4: Batch-witness 238 untested INVs via auto-promote from trace links" :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/title-l0 :v "ADM-4" :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/title-l1 :v "ADM-4: Batch-witness 238 untested INVs via auto-promote from trace links" :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/traces-to :v #blake3 "07d7465987e4d75a8f1e3a6109a7300dd0a5a53f912d37d6caaf2a8ad69cd9a3" :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/traces-to :v #blake3 "8e2b78c5e255903e75329a90fca078f8fed5341e4d4d90864b8a9d884201101c" :op :assert}
+   {:e #blake3 "90fe11a79d4f54ca09e0120f81d0de6e1513cbdd406ea437b5adad2d36c61556" :a :task/type :v :task.type/task :op :assert}
+ ]}

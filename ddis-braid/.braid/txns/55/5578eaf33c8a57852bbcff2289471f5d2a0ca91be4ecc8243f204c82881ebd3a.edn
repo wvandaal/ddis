@@ -1,0 +1,14 @@
+{:tx/id #hlc "1774249881/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5e71999f429525fc5e8d8fa64d882eb1da0fc5e5e02bb23d5f89b005d5e4ffbf" :a :db/ident :v :recon/trace-52a9e9203254a0dc :op :assert}
+   {:e #blake3 "5e71999f429525fc5e8d8fa64d882eb1da0fc5e5e02bb23d5f89b005d5e4ffbf" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "5e71999f429525fc5e8d8fa64d882eb1da0fc5e5e02bb23d5f89b005d5e4ffbf" :a :recon/trace-neighborhood :v "TOPOLOGY" :op :assert}
+   {:e #blake3 "5e71999f429525fc5e8d8fa64d882eb1da0fc5e5e02bb23d5f89b005d5e4ffbf" :a :recon/trace-refs :v "ADR-TOPOLOGY-007" :op :assert}
+   {:e #blake3 "5e71999f429525fc5e8d8fa64d882eb1da0fc5e5e02bb23d5f89b005d5e4ffbf" :a :recon/trace-refs :v "INV-TOPOLOGY-012" :op :assert}
+   {:e #blake3 "5e71999f429525fc5e8d8fa64d882eb1da0fc5e5e02bb23d5f89b005d5e4ffbf" :a :recon/trace-refs :v "INV-TOPOLOGY-013" :op :assert}
+   {:e #blake3 "5e71999f429525fc5e8d8fa64d882eb1da0fc5e5e02bb23d5f89b005d5e4ffbf" :a :recon/trace-refs :v "INV-TOPOLOGY-014" :op :assert}
+ ]}

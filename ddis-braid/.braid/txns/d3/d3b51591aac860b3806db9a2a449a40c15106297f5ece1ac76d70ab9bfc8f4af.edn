@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774249052/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Testing Gap Remediation — slow test, resolution proptest, frontier sync, signal E2E (Audit Finding 8)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :db/ident :v :task/t-692c42d8 :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/created-at :v 1774249051 :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/description :v "CONTEXT: Audit identified 5 testing gaps: (1) 85s slow test blocking CI, (2) resolution module lacks proptest for commutativity, (3) sync/frontier has zero dedicated tests, (4) signal module is unit-only, (5) branch module has 6 tests. Gaps 1-2 are highest risk. RATIONALE: INV-WITNESS-001 (every INV needs witness). Testing gaps in resolution could corrupt merge. Slow tests degrade developer experience. APPROACH: Four sub-tasks addressing gaps 1-4. Gap 5 (branch) deferred to Phase E. ACCEPTANCE: (A) CI completes in less than 30s for default test suite. (B) Resolution has proptest for commutativity + idempotence. (C) Frontier sync has at least 5 dedicated tests. (D) Signal module has 1 E2E test. SPEC: INV-WITNESS-001, INV-RESOLUTION-001, INV-RESOLUTION-002." :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/id :v "t-692c42d8" :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/title :v "EPIC: Testing Gap Remediation — slow test, resolution proptest, frontier sync, signal E2E (Audit Finding 8)" :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/title-l1 :v "EPIC: Testing Gap Remediation — slow test, resolution proptest, frontier sy..." :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/traces-to :v #blake3 "89d7960c33f52ac3fba0ac3604efcc20111a204a7a6927118764add4ec1a5087" :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/traces-to :v #blake3 "b5c2484fe5810bf6fedb0192ee75735626bd5820092a937340af041ca82374d2" :op :assert}
+   {:e #blake3 "277fdf9e4e420df7babefd63ceca5075b5d0edf335192ef6ec3db054c718465a" :a :task/type :v :task.type/epic :op :assert}
+ ]}

@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774248747/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ADM-3: Refresh stale trace data (32 files modified since last scan)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :db/ident :v :task/t-3cf8907b :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/created-at :v 1774248746 :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/description :v "CONTEXT: braid status reports 'trace: stale (32 files modified since last scan)'. The trace scanner links INV/ADR/NEG references in Rust code to spec elements. Stale trace means the bilateral scanner can't accurately assess spec↔impl alignment, inflating the 98-gap count. RATIONALE: Trace freshness is prerequisite for accurate F(S) computation and for batch witness automation (ADM-4). APPROACH: (1) Run braid trace --commit. (2) Verify: braid status shows 'trace: current'. (3) Check: gap count should decrease as newly-traced INVs are linked. ACCEPTANCE: (A) Trace is current (0 stale files). (B) spec↔impl gap count decreases from 98. CONSIDERATIONS: This is a 30-second operation. It must run before ADM-4 (batch witness) because witness auto-promote depends on trace links. FILE: None — pure CLI operation." :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/id :v "t-3cf8907b" :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/title :v "ADM-3: Refresh stale trace data (32 files modified since last scan)" :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/title-l0 :v "ADM-3" :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/title-l1 :v "ADM-3: Refresh stale trace data (32 files modified since last scan)" :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/traces-to :v #blake3 "8e2b78c5e255903e75329a90fca078f8fed5341e4d4d90864b8a9d884201101c" :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/traces-to :v #blake3 "e31de61ee77b2df1cf3d10178af6b5be9aa8318b883f9a92659432f13d2eb644" :op :assert}
+   {:e #blake3 "b39f33426c896e6cacc1dfb90d949a2de1f9b2efe573b01a21fee64b7edb34ad" :a :task/type :v :task.type/task :op :assert}
+ ]}

@@ -1,0 +1,15 @@
+{:tx/id #hlc "1774249796/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "43f4e32951b4dacae0a5f0e34c6ab053e4f8a2a5b391479b1a7ae73dd55581f9" :a :db/ident :v :recon/trace-6f5ad60835421c57 :op :assert}
+   {:e #blake3 "43f4e32951b4dacae0a5f0e34c6ab053e4f8a2a5b391479b1a7ae73dd55581f9" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "43f4e32951b4dacae0a5f0e34c6ab053e4f8a2a5b391479b1a7ae73dd55581f9" :a :recon/trace-neighborhood :v "RESOLUTION" :op :assert}
+   {:e #blake3 "43f4e32951b4dacae0a5f0e34c6ab053e4f8a2a5b391479b1a7ae73dd55581f9" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.resolution.inv-resolution-001" :op :assert}
+   {:e #blake3 "43f4e32951b4dacae0a5f0e34c6ab053e4f8a2a5b391479b1a7ae73dd55581f9" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.task.inv-resolution-001" :op :assert}
+   {:e #blake3 "43f4e32951b4dacae0a5f0e34c6ab053e4f8a2a5b391479b1a7ae73dd55581f9" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-resolution-001" :op :assert}
+   {:e #blake3 "43f4e32951b4dacae0a5f0e34c6ab053e4f8a2a5b391479b1a7ae73dd55581f9" :a :recon/trace-neighbors :v ":impl/braid.src.commands.task.inv-resolution-001" :op :assert}
+   {:e #blake3 "43f4e32951b4dacae0a5f0e34c6ab053e4f8a2a5b391479b1a7ae73dd55581f9" :a :recon/trace-refs :v "INV-RESOLUTION-001" :op :assert}
+ ]}

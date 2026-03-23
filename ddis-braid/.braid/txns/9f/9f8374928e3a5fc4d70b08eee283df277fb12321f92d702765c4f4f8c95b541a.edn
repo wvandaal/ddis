@@ -1,0 +1,19 @@
+{:tx/id #hlc "1774248974/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-2-IMPL: Hebbian feedback from verbose-request detection"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :db/ident :v :task/t-065fdbaa :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/created-at :v 1774248973 :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/description :v "CONTEXT: ATT-2 detects when an agent explicitly requests more detail (verbose flag, --deep, repeated queries on same topic) and boosts the Hebbian weight for those context blocks. The signal: if agent uses --verbose or --deep on a command, the blocks shown in verbose mode get hebbian_boost += 1.0. Decay: 0.5x per session (Hebbian boost is session-local but persists via cold-path datoms). APPROACH: (1) In CLI main.rs, detect --verbose/--deep flags. (2) Record verbose-request signal as :attention/hebbian-boost increment on presented blocks. (3) In context.rs, include hebbian_boost in composite score: composite = surprisal * learned_weight + hebbian_boost. (4) Hebbian decay: on session start, multiply all hebbian_boost values by 0.5 (half-life per session). ACCEPTANCE: (A) Using --verbose on status boosts blocks shown in verbose mode. (B) Next session, those blocks rank higher. (C) After 3 sessions without --verbose, hebbian_boost decays to less than 0.15 (3 half-lives). (D) Hebbian boost does not override learned_weight — it's additive. DEPENDS-ON: ATT-1-IMPL. FILE: crates/braid-kernel/src/guidance/context.rs + crates/braid/src/main.rs" :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/id :v "t-065fdbaa" :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/title :v "ATT-2-IMPL: Hebbian feedback from verbose-request detection" :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/title-l0 :v "ATT-2-IMPL" :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/title-l1 :v "ATT-2-IMPL: Hebbian feedback from verbose-request detection" :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/traces-to :v #blake3 "dbd4aa4ac4c6d7ba5d6fdaead15afb6f7e54d2540158a1814aad926d82a7bcd4" :op :assert}
+   {:e #blake3 "7e045a1f8d787665cd4de283ff2b6057a1090e1b8a2980d11cf7a79218bae688" :a :task/type :v :task.type/task :op :assert}
+ ]}

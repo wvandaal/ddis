@@ -1,0 +1,15 @@
+{:tx/id #hlc "1774250047/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-ca5930c0, t-b489c254"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "418ddda34f51ea21a679be0dde9a03a37d48b6863db15216e09df7d524388426" :a :task/close-reason :v "Phase E — deferred per audit Finding 7" :op :assert}
+   {:e #blake3 "418ddda34f51ea21a679be0dde9a03a37d48b6863db15216e09df7d524388426" :a :task/closed-at :v 1774250046 :op :assert}
+   {:e #blake3 "418ddda34f51ea21a679be0dde9a03a37d48b6863db15216e09df7d524388426" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "418ddda34f51ea21a679be0dde9a03a37d48b6863db15216e09df7d524388426" :a :task/status :v :task.status/closed :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/close-reason :v "Phase E — deferred per audit Finding 7" :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/closed-at :v 1774250046 :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/completion-method :v :task.completion/no-criteria :op :assert}
+   {:e #blake3 "4eb608b833a00129552955c28c08afc94c18bfb8da411c80ec44d09153d9354b" :a :task/status :v :task.status/closed :op :assert}
+ ]}

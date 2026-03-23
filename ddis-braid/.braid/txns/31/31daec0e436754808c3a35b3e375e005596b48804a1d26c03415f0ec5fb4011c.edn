@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774248868/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Guidance Module Decomposition — split 11.5K LOC god module before attention pipeline (Audit Finding 5)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :db/ident :v :task/t-7b939306 :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/created-at :v 1774248867 :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/description :v "CONTEXT: guidance.rs is 11,476 LOC — 15% of the kernel. It handles 6 responsibilities: M(t) scoring, R(t) routing, ACP rendering, footer generation, gap detection, surprisal scoring. All attention pipeline work (ATT-0..7) will add to this file. RATIONALE: Single Responsibility Principle. Each change to guidance.rs risks affecting 6 unrelated subsystems. The attention pipeline will deepen coupling unless the module is split first. APPROACH: Split into guidance/mod.rs (re-exports) + methodology.rs (~3.5K: M(t), gaps) + routing.rs (~4K: R(t), impact, surprisal) + context.rs (~4K: ACP, footer, budget). No logic changes — mechanical refactor. All existing tests pass without modification. No public API change. ACCEPTANCE: (A) Three new files each less than 5K LOC. (B) cargo test passes identically. (C) No public API change in lib.rs. (D) Each module compiles independently (no circular deps between the three). TIMING: Must complete before ATT-0 implementation begins. SPEC: INV-GUIDANCE-001..011, INV-BUDGET-001..006." :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/id :v "t-7b939306" :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/priority :v 1 :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/title :v "EPIC: Guidance Module Decomposition — split 11.5K LOC god module before attention pipeline (Audit Finding 5)" :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/title-l1 :v "EPIC: Guidance Module Decomposition — split 11.5K LOC god module before att..." :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/traces-to :v #blake3 "5bb80b1e14affdd5e2e8422a5237b96ba4c12c29e1514f33d1af7426b41d6e00" :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/traces-to :v #blake3 "910ac2aaa408791c99925f1d82b797e7aa49a43fa57dc979aa4a7bb01bf3b8c4" :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/traces-to :v #blake3 "c831482114a96159d928cc28a039cdcad128e1589d20b6c9e909dbd0db8e690b" :op :assert}
+   {:e #blake3 "3abfa72bcb62bea8ef08467aee832dcd68f8700bb1e57a98786b65b70b3f01b0" :a :task/type :v :task.type/epic :op :assert}
+ ]}

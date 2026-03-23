@@ -1,0 +1,22 @@
+{:tx/id #hlc "1774248923/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :db/ident :v :recon/trace-7f79ddcfc9eb236f :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-neighborhood :v "BUDGET" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.budget.inv-budget-001" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.kani_proofs.inv-budget-001" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-neighbors :v ":impl/braid.src.commands.mod.inv-budget-001" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-neighbors :v ":impl/braid.src.main.inv-budget-001" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-neighbors :v ":task/t-546078c1" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-neighbors :v ":task/t-68f17a7e" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-neighbors :v ":task/t-80e061b7" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-neighbors :v ":task/t-8529a95a" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-neighbors :v ":task/t-9e575667" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-neighbors :v ":task/t-da41afef" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-refs :v "INV-BUDGET-001" :op :assert}
+   {:e #blake3 "8f2180daa056e58223a40a00c7808261c0b99b044e4b1c3544a8ec908cc9d4d1" :a :recon/trace-refs :v "INV-GUIDANCE-001" :op :assert}
+ ]}

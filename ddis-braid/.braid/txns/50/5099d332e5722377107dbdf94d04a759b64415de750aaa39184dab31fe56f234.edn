@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774249030/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ATT-TEST: Attention pipeline test suite — unit + proptest + multi-session E2E"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :db/ident :v :task/t-d31bc377 :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/created-at :v 1774249029 :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/description :v "CONTEXT: The attention pipeline (ATT-0..4) needs comprehensive testing. Each component introduces learnable state that could silently degrade if not verified. APPROACH: UNIT: (1) Surprisal = 1.0 for count=0, 0.5 for count=4, decreasing monotonically. (2) Hebbian boost increments on verbose request. (3) Hebbian decay halves per session (0.5^n). (4) Task relevance = 1.0 for matching namespace, 0.5 adjacent, 0.3 default. (5) Composite score combines all three factors correctly. (6) Block ordering follows composite score (highest first). PROPTEST: (7) For random presentation counts, surprisal is in (0, 1]. (8) For random attention scores, block ordering is total order (no ties cause instability). (9) Composite score is monotonically increasing in each factor when others held constant. E2E: (10) scripts/e2e_attention_pipeline.sh — multi-session scenario: init store, run 3 simulated sessions with varying verbose usage, verify block ordering evolves. Check: session 1 = default order, session 2 = verbose-boosted blocks higher, session 3 = task-switched blocks reorder. FAILURE DIAGNOSTICS: Each assertion logs: block_label, surprisal, hebbian, task_rel, composite, expected_rank, actual_rank. FILE: crates/braid-kernel/tests/attention.rs + scripts/e2e_attention_pipeline.sh" :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/id :v "t-d31bc377" :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/title :v "ATT-TEST: Attention pipeline test suite — unit + proptest + multi-session E2E" :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/title-l0 :v "ATT-TEST" :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/title-l1 :v "ATT-TEST: Attention pipeline test suite — unit + proptest + multi-session E2E" :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/traces-to :v #blake3 "31fcf3cca9d57e6a29e2f619a3968e0df88bac60d523a0a4169fd36340865bf1" :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/traces-to :v #blake3 "dbd4aa4ac4c6d7ba5d6fdaead15afb6f7e54d2540158a1814aad926d82a7bcd4" :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/traces-to :v #blake3 "fc04b9ecf83386b65b7f72c1ff1c274969ad92293c9d96c6a903027647872172" :op :assert}
+   {:e #blake3 "bc9e583d816d3feecc2740b1113f0f2ae9888c33b0299345f27288c7204889e9" :a :task/type :v :task.type/test :op :assert}
+ ]}

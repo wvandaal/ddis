@@ -1,0 +1,12 @@
+{:tx/id #hlc "1774250117/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Close task(s): t-c6de09d6"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/close-reason :v "completed" :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/closed-at :v 1774250116 :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/completion-evidence :v "Phase E EPICs closed with reason rather than deferred to P4 (CLI lacks priority update). Conceptual grouping preserved in closed task descriptions." :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/completion-method :v :task.completion/attested :op :assert}
+   {:e #blake3 "3c091c90cf2949e7e1d124abbaf02dd4b47a0162b737c051dd5067dfb7f708a9" :a :task/status :v :task.status/closed :op :assert}
+ ]}

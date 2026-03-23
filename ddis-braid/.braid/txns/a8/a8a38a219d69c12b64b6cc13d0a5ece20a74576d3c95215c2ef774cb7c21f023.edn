@@ -1,0 +1,20 @@
+{:tx/id #hlc "1774248731/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: ADM-1: Batch-close 136 likely-implemented tasks from audit"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :db/ident :v :task/t-90ebb265 :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/created-at :v 1774248730 :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/description :v "CONTEXT: braid task audit identified 136 tasks as 'likely implemented' based on spec coverage, acceptance criteria satisfaction, and code presence. These tasks are open but their work is done. RATIONALE: Open tasks dilute R(t) routing — 328 candidates instead of ~192. Every unclosed done-task is an open loop (NEG-010). APPROACH: (1) Run braid task audit to get the close command. (2) Execute the batch close command. (3) Verify: open task count drops by ~136. (4) Run braid status to check R(t) impact improvement. ACCEPTANCE: (A) braid task audit shows 0 'likely implemented' tasks. (B) Open task count is less than 200. (C) No false closures — spot-check 10 random closed tasks to verify they're actually done. CONSIDERATIONS: The audit uses heuristics (spec coverage percentage, acceptance criteria). Some tasks may be partially done. If spot-check reveals false closures, re-open those tasks and refine the audit heuristic. FILE: None — pure CLI operations." :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/id :v "t-90ebb265" :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/title :v "ADM-1: Batch-close 136 likely-implemented tasks from audit" :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/title-l0 :v "ADM-1" :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/title-l1 :v "ADM-1: Batch-close 136 likely-implemented tasks from audit" :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/traces-to :v #blake3 "6d52695da7318c5fd5d5915c1734c80043acfcdc41b48237f1c50006a6396526" :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/traces-to :v #blake3 "d54a134d486b47a450d4c1760f8f7c60668e1986f86927a06f8a8df7080b3195" :op :assert}
+   {:e #blake3 "daba2a06723a0f114221d1d1325137731c2df7444c6395d258abb1f96c7678b5" :a :task/type :v :task.type/task :op :assert}
+ ]}

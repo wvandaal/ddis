@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774249950/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :derived
+ :tx/rationale "OBSERVER-4: calibration data for t-db4dbf9e"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :prediction/actual-delta :v 0.000000726435890996413 :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :prediction/calibration-error :v 0.0000003633920394352508 :op :assert}
+   {:e #blake3 "5a11428978eedc5a42bc3268fd128d25416c0b0fbaf4837a8570e764a2543d77" :a :prediction/projected-delta :v 0.00000036304385156116223 :op :assert}
+ ]}

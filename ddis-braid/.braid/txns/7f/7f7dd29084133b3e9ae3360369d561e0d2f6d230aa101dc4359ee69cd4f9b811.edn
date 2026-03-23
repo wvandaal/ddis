@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774249714/0/0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/agent "0de71ddc1bd1b9a5706baa0ef6f2cdc1"
+ :tx/provenance :derived
+ :tx/rationale "AR-2: reconciliation trace"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :db/ident :v :recon/trace-dfe901c65f4b9837 :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-command :v "task" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-neighborhood :v "MERGE" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.agent_store.inv-merge-001" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.branch.inv-merge-001" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.kani_proofs.inv-merge-001" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.merge.inv-merge-001" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-neighbors :v ":impl/braid-kernel.src.store.inv-merge-001" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.cross_namespace.inv-merge-001" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-neighbors :v ":impl/braid-kernel.tests.stateright_model.inv-merge-001" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-neighbors :v ":task/t-05f6dca2" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-neighbors :v ":task/t-331ff9a5" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-neighbors :v ":task/t-6e170123" :op :assert}
+   {:e #blake3 "ff044dd66168ebf1033fa2bab5b814064b57f10faa207a9094fadb57ed6b1c79" :a :recon/trace-refs :v "INV-MERGE-001" :op :assert}
+ ]}

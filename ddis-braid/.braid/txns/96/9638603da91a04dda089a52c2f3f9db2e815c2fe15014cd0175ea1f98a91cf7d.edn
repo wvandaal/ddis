@@ -1,0 +1,21 @@
+{:tx/id #hlc "1774248947/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "Create task: EPIC: Attention Pipeline Phase 1 — ATT-0..4 learned context projection (Audit Finding 6)"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :db/ident :v :task/t-32fe5f28 :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/created-at :v 1774248946 :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/description :v "CONTEXT: ADR-FOUNDATION-024 (Learned Attention) crystallized. Architecture decided: dual-path model. ACP currently uses hardcoded precedence. ATT-0 through ATT-4 implement session-aware learned attention. ATT-5..7 extend to Bayesian calibration (depends on HL completion). RATIONALE: The Markov blanket insight — the CLI is a learned boundary optimizing information transfer between store and LLM. Static precedence wastes tokens on irrelevant context. Learned attention adapts to what the agent actually uses. APPROACH: Five implementation tasks in sequence: ATT-0 schema → ATT-1 surprisal → ATT-2 Hebbian → ATT-3 task-conditioned → ATT-4 wire ACP. CRITICAL DEPENDENCY: Guidance module split (EPIC GD) must complete first — all ATT work touches guidance code, and adding to an 11.5K LOC file is unacceptable. ACCEPTANCE: (A) ACP output varies across sessions based on presentation history. (B) Blocks requested via verbose get Hebbian boost in future sessions. (C) Task-relevant blocks score higher than generic blocks. (D) Metric: token efficiency (useful info per token) improves vs static baseline. SPEC: ADR-FOUNDATION-024, INV-ATTENTION-001..006." :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/id :v "t-32fe5f28" :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/priority :v 0 :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/source :v "braid:task" :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/status :v :task.status/open :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/title :v "EPIC: Attention Pipeline Phase 1 — ATT-0..4 learned context projection (Audit Finding 6)" :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/title-l0 :v "EPIC" :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/title-l1 :v "EPIC: Attention Pipeline Phase 1 — ATT-0..4 learned context projection (Aud..." :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/traces-to :v #blake3 "31fcf3cca9d57e6a29e2f619a3968e0df88bac60d523a0a4169fd36340865bf1" :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/traces-to :v #blake3 "dbd4aa4ac4c6d7ba5d6fdaead15afb6f7e54d2540158a1814aad926d82a7bcd4" :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/traces-to :v #blake3 "fc04b9ecf83386b65b7f72c1ff1c274969ad92293c9d96c6a903027647872172" :op :assert}
+   {:e #blake3 "d76aab9f5f6a34f5019ecc9d0061c1fcb1c04335740e2e99d1c726fbe8d01e26" :a :task/type :v :task.type/epic :op :assert}
+ ]}
