@@ -1,0 +1,10 @@
+{:tx/id #hlc "1774238498/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "challenge :spec/inv-store-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "4306e7b30099909365ad93e16476b65aee8263f2e1658a66c4a50e29dbcfbfac" :a :tx/provenance-type :v :provenance.type/challenge :op :assert}
+   {:e #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :a :comonad/depth :v 3 :op :assert}
+   {:e #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :a :comonad/last-challenged :v #inst 1774238498 :op :assert}
+ ]}

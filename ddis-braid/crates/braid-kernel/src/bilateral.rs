@@ -598,9 +598,11 @@ pub fn depth_weight(depth: i64) -> f64 {
 /// as an unverified assertion until challenged.
 pub fn comonadic_depth(store: &Store, entity: &EntityId) -> i64 {
     let attr = crate::datom::Attribute::from_keyword(":comonad/depth");
+    // Use rfind (last by BTreeSet order = latest tx) for LWW semantics
     store
         .entity_datoms(entity.clone())
         .iter()
+        .rev()
         .find(|d| d.attribute == attr && d.op == crate::datom::Op::Assert)
         .and_then(|d| match &d.value {
             crate::datom::Value::Long(v) => Some(*v),

@@ -1,0 +1,13 @@
+{:tx/id #hlc "1774238139/0/af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/agent "af86f4b0b23bbbe4de81fe20af03f998"
+ :tx/provenance :observed
+ :tx/rationale "challenge :spec/inv-store-001"
+ :tx/causal-predecessors []
+ :datoms [
+   {:e #blake3 "a938d5cdab9755af9029637e1c0fee116e265a850bc3b2c37d6e43064c34fd86" :a :db/doc :v "Store allows datom deletion under concurrent load" :op :assert}
+   {:e #blake3 "af5c4d59cbdde8622de66260866ce9711741723339e8199ae231fb47de9cc635" :a :db/doc :v "Retraction operation modifies existing datom tuple" :op :assert}
+   {:e #blake3 "c97adafbe21f836056aba5d73a25a5d3baf865836f43be19eb680e50a124d4e6" :a :tx/provenance-type :v :provenance.type/challenge :op :assert}
+   {:e #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :a :comonad/depth :v 1 :op :assert}
+   {:e #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :a :comonad/falsification :v #blake3 "a938d5cdab9755af9029637e1c0fee116e265a850bc3b2c37d6e43064c34fd86" :op :assert}
+   {:e #blake3 "e28e7edc1de3fd309bdb24646b12535d322634aa0f3488861155aaade266b8c3" :a :comonad/falsification :v #blake3 "af5c4d59cbdde8622de66260866ce9711741723339e8199ae231fb47de9cc635" :op :assert}
+ ]}

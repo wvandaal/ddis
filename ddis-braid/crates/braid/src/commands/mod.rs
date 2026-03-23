@@ -25,6 +25,7 @@ mod topology;
 pub(crate) mod trace;
 mod verify;
 mod witness;
+mod challenge;
 mod extract;
 mod wrap;
 pub(crate) mod write;
@@ -806,6 +807,47 @@ Workflow: braid go <id> → work → braid done <id>")]
         /// Attest completion — provide evidence string for non-automatable criteria.
         #[arg(long)]
         attest: Option<String>,
+    },
+
+    /// Challenge a claim's epistemic status (DC-4, ADR-FOUNDATION-020).
+    ///
+    /// The comonadic duplicate made executable. Tracks dialectical depth:
+    /// OPINION(0) → HYPOTHESIS(1) → TESTED(2) → SURVIVED(3) → KNOWLEDGE(4).
+    #[command(after_long_help = "\
+Examples:
+  braid challenge :spec/inv-store-001 --register -C \"Store deletes datom under load\"
+  braid challenge :spec/inv-store-001                     # attempt challenge (depth→TESTED)
+  braid challenge :spec/inv-store-001 --survive           # record survival (depth→SURVIVED)
+  braid challenge :spec/inv-store-001 --falsify           # record falsification (depth→OPINION)
+
+Workflow: register → challenge → survive/falsify → (repeat for deeper levels)")]
+    Challenge {
+        /// Entity identifier to challenge (e.g., :spec/inv-store-001).
+        entity: String,
+
+        /// Store directory path.
+        #[arg(long, short = 'p', default_value = ".braid")]
+        path: PathBuf,
+
+        /// Agent identity.
+        #[arg(long, short = 'a', default_value = "braid:user")]
+        agent: String,
+
+        /// Register falsification criteria (depth 0→1).
+        #[arg(long)]
+        register: bool,
+
+        /// Record challenge survival (depth increments).
+        #[arg(long)]
+        survive: bool,
+
+        /// Record falsification (depth resets to 0).
+        #[arg(long)]
+        falsify: bool,
+
+        /// Falsification criteria (use with --register). Repeatable.
+        #[arg(long = "criteria", short = 'C')]
+        criteria: Vec<String>,
     },
 
     /// Quick observation (shortcut for `braid observe` with defaults).
@@ -1667,7 +1709,8 @@ pub fn store_path(cmd: &Command) -> Option<&Path> {
         | Command::Note { path, .. }
         | Command::Go { path, .. }
         | Command::Verify { path, .. }
-        | Command::Transact { path, .. } => Some(path),
+        | Command::Transact { path, .. }
+        | Command::Challenge { path, .. } => Some(path),
         Command::Session { action } => match action {
             SessionAction::Start { path, .. }
             | SessionAction::End { path, .. }
@@ -1783,6 +1826,7 @@ pub fn command_name_for(cmd: &Command) -> &'static str {
         Command::Verify { .. } => "verify",
         Command::Transact { .. } => "transact",
         Command::Extract { .. } => "extract",
+        Command::Challenge { .. } => "challenge",
     }
 }
 
@@ -2060,7 +2104,8 @@ fn resolve_command_paths(mut cmd: Command) -> Command {
         | Command::Note { path, .. }
         | Command::Go { path, .. }
         | Command::Verify { path, .. }
-        | Command::Transact { path, .. } => {
+        | Command::Transact { path, .. }
+        | Command::Challenge { path, .. } => {
             *path = resolve_store_path(path.clone());
         }
         Command::Session { action } => match action {
@@ -2964,6 +3009,25 @@ pub fn run(
                 ));
             }
         },
+        Command::Challenge {
+            path,
+            entity,
+            agent,
+            register,
+            survive,
+            falsify,
+            criteria,
+        } => {
+            let cmd_output = challenge::run(&path, &entity, survive, falsify, register, &criteria, &agent)?;
+            return Ok(maybe_inject_footer(
+                cmd_output,
+                skip_footer,
+                path_for_footer.as_deref(),
+                budget_ctx,
+                footer_cmd_name,
+                None,
+            ));
+        }
         Command::Extract {
             filter,
             path,
