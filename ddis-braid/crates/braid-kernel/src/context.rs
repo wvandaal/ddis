@@ -110,6 +110,120 @@ fn block_presentation_count(store: &Store, label: &str) -> u64 {
         .unwrap_or(0)
 }
 
+/// Generate datoms to record presentation of context blocks (UAQ-6).
+///
+/// For each presented block label, either creates a new attention entity with
+/// count=1, or increments the existing entity's count. Omitted blocks are NOT
+/// recorded (their novelty is preserved).
+///
+/// Returns datoms to be transacted. Caller decides when/how to transact.
+pub fn record_block_presentations(
+    store: &Store,
+    presented_labels: &[&str],
+    tx: crate::datom::TxId,
+) -> Vec<crate::datom::Datom> {
+    use crate::datom::{Datom, EntityId};
+
+    let label_attr = Attribute::from_keyword(":attention/block-label");
+    let count_attr = Attribute::from_keyword(":attention/presentation-count");
+    let last_attr = Attribute::from_keyword(":attention/last-presented");
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
+    let mut datoms = Vec::new();
+
+    for label in presented_labels {
+        // Find existing attention entity for this label
+        let existing = store
+            .attribute_datoms(&label_attr)
+            .iter()
+            .filter(|d| d.op == Op::Assert)
+            .find(|d| matches!(&d.value, Value::String(s) if s.as_str() == *label))
+            .map(|d| {
+                let count = store
+                    .entity_datoms(d.entity)
+                    .iter()
+                    .find(|ed| ed.attribute == count_attr && ed.op == Op::Assert)
+                    .and_then(|ed| match &ed.value {
+                        Value::Long(n) => Some(*n),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+                (d.entity, count)
+            });
+
+        let (entity, new_count) = match existing {
+            Some((e, count)) => (e, count + 1),
+            None => {
+                // Create new attention entity
+                let e = EntityId::from_ident(&format!(":attention/{}", label));
+                datoms.push(Datom::new(
+                    e,
+                    label_attr.clone(),
+                    Value::String(label.to_string()),
+                    tx,
+                    Op::Assert,
+                ));
+                (e, 1)
+            }
+        };
+
+        // Assert new count (retract old if exists, assert new)
+        datoms.push(Datom::new(
+            entity,
+            count_attr.clone(),
+            Value::Long(new_count),
+            tx,
+            Op::Assert,
+        ));
+
+        // Update last-presented timestamp
+        datoms.push(Datom::new(
+            entity,
+            last_attr.clone(),
+            Value::Instant(now),
+            tx,
+            Op::Assert,
+        ));
+    }
+
+    datoms
+}
+
+/// Extract canonical labels from context blocks that were presented (not omitted).
+///
+/// Uses a simple heuristic: the first word of the content before ':' or space,
+/// lowercased. This matches the block labels used in `methodology_context_blocks`.
+pub fn extract_block_labels(blocks: &[crate::budget::ContextBlock], budget: usize) -> Vec<String> {
+    let mut remaining = budget;
+    let mut labels = Vec::new();
+
+    for block in blocks {
+        if block.tokens <= remaining {
+            remaining = remaining.saturating_sub(block.tokens);
+            // Extract label: content prefix before ':' or first word
+            let label = block
+                .content
+                .split_once(':')
+                .map(|(prefix, _)| prefix.trim().to_lowercase())
+                .unwrap_or_else(|| {
+                    block
+                        .content
+                        .split_whitespace()
+                        .next()
+                        .unwrap_or("unknown")
+                        .to_lowercase()
+                });
+            labels.push(label);
+        }
+    }
+
+    labels
+}
+
 // ---------------------------------------------------------------------------
 // ACP Methodology Context Blocks (ACP-9, INV-BUDGET-009)
 // ---------------------------------------------------------------------------
